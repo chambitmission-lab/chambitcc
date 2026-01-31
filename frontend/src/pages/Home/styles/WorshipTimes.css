@@ -1,10 +1,10 @@
 /* Worship Times */
 [data-theme="dark"] .worship-times {
-  background: rgba(15, 23, 42, 0.5);
+  background: var(--bg-tertiary);
 }
 
 [data-theme="light"] .worship-times {
-  background: rgba(226, 232, 240, 0.5);
+  background: var(--bg-tertiary);
 }
 
 .worship-times {
@@ -17,15 +17,8 @@
   }
 }
 
-[data-theme="dark"] .section-title {
-  color: white;
-}
-
-[data-theme="light"] .section-title {
-  color: #0f172a;
-}
-
 .section-title {
+  color: var(--text-primary);
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 3rem;
@@ -45,7 +38,7 @@
 }
 
 [data-theme="light"] .worship-tabs {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(15, 23, 42, 0.05);
 }
 
 .worship-tabs {
@@ -62,15 +55,8 @@
   }
 }
 
-[data-theme="dark"] .worship-tab {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-[data-theme="light"] .worship-tab {
-  color: rgba(15, 23, 42, 0.6);
-}
-
 .worship-tab {
+  color: var(--text-tertiary);
   flex: 1;
   padding: 0.875rem 1.5rem;
   background: transparent;
@@ -94,8 +80,8 @@
 }
 
 [data-theme="light"] .worship-tab:hover:not(.active) {
-  background: rgba(0, 0, 0, 0.08);
-  color: rgba(15, 23, 42, 0.9);
+  background: rgba(15, 23, 42, 0.08);
+  color: var(--text-primary);
 }
 
 /* 데스크톱에서만 섹션 타이틀 표시 */
@@ -188,19 +174,10 @@
   }
 }
 
-[data-theme="dark"] .worship-card {
-  backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="light"] .worship-card {
-  backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
 .worship-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(8px);
   border-radius: 1rem;
   padding: 2.5rem;
   text-align: center;
@@ -216,18 +193,18 @@
   }
 }
 
-[data-theme="dark"] .worship-card:hover {
+.worship-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(234, 179, 8, 0.4), 0 0 40px rgba(234, 179, 8, 0.3);
+  box-shadow: 0 20px 40px rgba(234, 179, 8, 0.3);
   border-color: rgba(234, 179, 8, 0.5);
+}
+
+[data-theme="dark"] .worship-card:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="light"] .worship-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(234, 179, 8, 0.3), 0 0 40px rgba(234, 179, 8, 0.2);
-  border-color: rgba(234, 179, 8, 0.5);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 1);
 }
 
 @media (max-width: 768px) {
@@ -284,15 +261,8 @@
   }
 }
 
-[data-theme="dark"] .worship-card h3 {
-  color: white;
-}
-
-[data-theme="light"] .worship-card h3 {
-  color: #0f172a;
-}
-
 .worship-card h3 {
+  color: var(--text-primary);
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 1rem;
@@ -319,15 +289,8 @@
   }
 }
 
-[data-theme="dark"] .location {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-[data-theme="light"] .location {
-  color: rgba(15, 23, 42, 0.6);
-}
-
 .location {
+  color: var(--text-tertiary);
   font-size: 0.9rem;
 }
 

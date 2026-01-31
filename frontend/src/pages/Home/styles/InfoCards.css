@@ -1,11 +1,11 @@
 /* Info Cards Section Styles */
 
 [data-theme="dark"] .info-cards {
-  background: #0f172a;
+  background: var(--bg-primary);
 }
 
 [data-theme="light"] .info-cards {
-  background: #f8fafc;
+  background: var(--bg-secondary);
 }
 
 .info-cards {
@@ -33,7 +33,7 @@
 
 .info-card {
   padding-left: 1.5rem;
-  border-left: 2px solid rgba(234, 179, 8, 0.2);
+  border-left: 2px solid rgba(234, 179, 8, 0.3);
 }
 
 .info-label {
@@ -46,15 +46,8 @@
   margin-bottom: 1rem;
 }
 
-[data-theme="dark"] .info-title {
-  color: white;
-}
-
-[data-theme="light"] .info-title {
-  color: #0f172a;
-}
-
 .info-title {
+  color: var(--text-primary);
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
@@ -67,15 +60,8 @@
   }
 }
 
-[data-theme="dark"] .info-description {
-  color: #94a3b8;
-}
-
-[data-theme="light"] .info-description {
-  color: #64748b;
-}
-
 .info-description {
+  color: var(--text-secondary);
   line-height: 1.6;
   word-break: keep-all;
 }
