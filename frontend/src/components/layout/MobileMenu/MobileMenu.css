@@ -1,3 +1,4 @@
+/* 모바일 메뉴 오버레이 - 헤더 아래부터 시작 */
 .mobile-menu-overlay {
   position: fixed !important;
   top: 80px !important;
@@ -13,16 +14,17 @@
 }
 
 .mobile-menu-overlay.active {
-  opacity: 1;
-  pointer-events: all;
+  opacity: 1 !important;
+  pointer-events: all !important;
 }
 
+/* 모바일 메뉴 - 헤더 아래부터 시작 */
 [data-theme="dark"] .mobile-menu {
-  background: rgba(15, 23, 42, 0.98);
+  background: rgba(15, 23, 42, 0.98) !important;
 }
 
 [data-theme="light"] .mobile-menu {
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 0.98) !important;
 }
 
 .mobile-menu {
@@ -30,13 +32,15 @@
   top: 80px !important;
   right: 0 !important;
   bottom: 0 !important;
-  width: 80%;
-  max-width: 400px;
+  left: auto !important;
+  width: 80% !important;
+  max-width: 400px !important;
   backdrop-filter: blur(20px);
-  z-index: 1000;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-  overflow-y: auto;
+  z-index: 1000 !important;
+  transform: translateX(100%) !important;
+  transition: transform 0.3s ease !important;
+  overflow-y: auto !important;
+  height: auto !important;
 }
 
 .mobile-menu.active {
