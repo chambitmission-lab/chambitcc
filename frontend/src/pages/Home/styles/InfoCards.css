@@ -1,0 +1,73 @@
+/* Info Cards Section Styles */
+
+.info-cards {
+  background: #0f172a;
+  padding: 6rem 1.5rem;
+  position: relative;
+  z-index: 40;
+}
+
+@media (max-width: 768px) {
+  .info-cards {
+    padding: 3rem 1rem;
+  }
+}
+
+.container {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+.info-card {
+  padding-left: 1.5rem;
+  border-left: 2px solid rgba(234, 179, 8, 0.2);
+}
+
+.info-label {
+  display: block;
+  color: #EAB308;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.info-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1rem;
+  word-break: keep-all;
+}
+
+@media (max-width: 768px) {
+  .info-title {
+    font-size: 1.125rem;
+  }
+}
+
+.info-description {
+  color: #94a3b8;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+@media (max-width: 768px) {
+  .info-description {
+    font-size: 0.875rem;
+  }
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .info-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
