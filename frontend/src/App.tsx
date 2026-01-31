@@ -19,7 +19,7 @@ import './App.css'
 
 function App() {
   return (
-    <Router basename="/chambitcc">
+    <Router basename={import.meta.env.PROD ? "/chambitcc/" : "/"}>
       <div className="app">
         <Header />
         <main className="main-content">
