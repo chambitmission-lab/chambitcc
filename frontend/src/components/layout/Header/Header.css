@@ -86,6 +86,10 @@
   transition: all 0.3s ease;
 }
 
+[data-theme="light"] .logo-image {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 .logo-icon {
   font-size: 1.875rem;
   color: #EAB308;
