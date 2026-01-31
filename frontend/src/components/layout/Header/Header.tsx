@@ -47,6 +47,15 @@ const Header = () => {
           <Navigation />
           
           <div className="header-actions">
+            {isLoggedIn ? (
+              <button onClick={handleLogout} className="auth-button">
+                로그아웃
+              </button>
+            ) : (
+              <Link to="/login" className="auth-button">
+                로그인
+              </Link>
+            )}
             <button 
               className="theme-toggle-header" 
               onClick={toggleTheme}
@@ -70,15 +79,6 @@ const Header = () => {
                 </svg>
               )}
             </button>
-            {isLoggedIn ? (
-              <button onClick={handleLogout} className="auth-button">
-                로그아웃
-              </button>
-            ) : (
-              <Link to="/login" className="auth-button">
-                로그인
-              </Link>
-            )}
           </div>
           
           <button 

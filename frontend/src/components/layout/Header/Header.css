@@ -117,6 +117,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 [data-theme="dark"] .theme-toggle-header {
@@ -141,22 +142,22 @@
   background: rgba(0, 0, 0, 0.08);
 }
 
-[data-theme="dark"] .header-actions .auth-button {
+[data-theme="dark"] .header .header-actions .auth-button {
   backdrop-filter: blur(8px);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(234, 179, 8, 0.3);
   color: white;
 }
 
-[data-theme="light"] .header-actions .auth-button {
+[data-theme="light"] .header .header-actions .auth-button {
   backdrop-filter: blur(8px);
   background: rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(234, 179, 8, 0.4);
   color: #0f172a;
 }
 
-.header-actions .auth-button {
-  padding: 0.625rem 1.5rem;
+.header .header-actions .auth-button {
+  padding: 0 1.5rem;
   border-radius: 9999px;
   text-decoration: none;
   font-size: 0.875rem;
@@ -165,12 +166,18 @@
   transition: all 0.3s ease;
   cursor: pointer;
   font-family: inherit;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   overflow: hidden;
+  height: 2.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0;
 }
 
-.header-actions .auth-button::before {
+.header .header-actions .auth-button::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -179,21 +186,21 @@
   transition: opacity 0.3s ease;
 }
 
-[data-theme="dark"] .header-actions .auth-button:hover {
+[data-theme="dark"] .header .header-actions .auth-button:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(234, 179, 8, 0.6);
   box-shadow: 0 0 20px rgba(234, 179, 8, 0.2);
   transform: translateY(-1px);
 }
 
-[data-theme="light"] .header-actions .auth-button:hover {
+[data-theme="light"] .header .header-actions .auth-button:hover {
   background: rgba(0, 0, 0, 0.08);
   border-color: rgba(234, 179, 8, 0.7);
   box-shadow: 0 0 20px rgba(234, 179, 8, 0.15);
   transform: translateY(-1px);
 }
 
-.header-actions .auth-button:hover::before {
+.header .header-actions .auth-button:hover::before {
   opacity: 1;
 }
 
