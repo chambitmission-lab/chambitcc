@@ -19,7 +19,7 @@ import './App.css'
 
 function App() {
   return (
-    <Router>
+    <Router basename="/chambitcc">
       <div className="app">
         <Header />
         <main className="main-content">
