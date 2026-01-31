@@ -1,0 +1,17 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0f172a;
+  color: white;
+}
+
+.main-content {
+  flex: 1;
+  padding-top: 80px;
+}
+
+/* Remove padding-top for home page hero */
+.main-content:has(.home) {
+  padding-top: 0;
+}

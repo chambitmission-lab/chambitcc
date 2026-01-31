@@ -1,0 +1,142 @@
+/* Latest Sermon */
+.latest-sermon {
+  padding: 6rem 1.5rem;
+  background: linear-gradient(to bottom, #1e293b, #0f172a);
+}
+
+@media (max-width: 768px) {
+  .latest-sermon {
+    padding: 3rem 1rem;
+  }
+}
+
+.sermon-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .sermon-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+}
+
+.sermon-info {
+  order: 2;
+}
+
+@media (min-width: 768px) {
+  .sermon-info {
+    order: 1;
+  }
+}
+
+.section-label {
+  display: block;
+  color: #EAB308;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.sermon-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 1rem 0;
+  color: white;
+  word-break: keep-all;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .sermon-title {
+    font-size: 1.25rem;
+  }
+}
+
+.sermon-verse {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+@media (max-width: 768px) {
+  .sermon-verse {
+    font-size: 0.875rem;
+  }
+}
+
+.sermon-meta {
+  display: flex;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+}
+
+.sermon-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.sermon-thumbnail {
+  position: relative;
+  aspect-ratio: 16/9;
+  order: 1;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+@media (min-width: 768px) {
+  .sermon-thumbnail {
+    order: 2;
+  }
+}
+
+.sermon-video {
+  border-radius: 1rem;
+  display: block;
+}
+
+.thumbnail-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(59, 130, 246, 0.2));
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.thumbnail-placeholder:hover {
+  transform: scale(1.02);
+}
+
+.play-button {
+  width: 80px;
+  height: 80px;
+  background: rgba(234, 179, 8, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #0f172a;
+  transition: all 0.3s ease;
+}
+
+.thumbnail-placeholder:hover .play-button {
+  transform: scale(1.1);
+  background: #EAB308;
+}

@@ -1,0 +1,275 @@
+/* Worship Times */
+.worship-times {
+  padding: 6rem 1.5rem;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+@media (max-width: 768px) {
+  .worship-times {
+    padding: 3rem 1rem;
+  }
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+  color: white;
+  word-break: keep-all;
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* 탭 네비게이션 */
+.worship-tabs {
+  display: none;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem;
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .worship-tabs {
+    display: flex;
+  }
+}
+
+.worship-tab {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.worship-tab.active {
+  background: #EAB308;
+  color: #0f172a;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+}
+
+.worship-tab:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 데스크톱에서만 섹션 타이틀 표시 */
+.desktop-only {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none;
+  }
+}
+
+/* 모바일 탭 전환 */
+.worship-section {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .worship-section.mobile-hidden {
+    display: none;
+  }
+  
+  .worship-section.mobile-active {
+    display: block;
+  }
+}
+
+.section-title.center {
+  text-align: center;
+}
+
+.worship-section {
+  margin-bottom: 4rem;
+}
+
+@media (max-width: 768px) {
+  .worship-section {
+    margin-bottom: 2.5rem;
+  }
+}
+
+.worship-section:last-child {
+  margin-bottom: 0;
+}
+
+.worship-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #EAB308;
+  margin-bottom: 2rem;
+  text-align: center;
+  letter-spacing: 0.05em;
+  word-break: keep-all;
+}
+
+@media (max-width: 768px) {
+  .worship-section-title {
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.worship-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .worship-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 768px) {
+  .worship-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 769px) {
+  .worship-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .worship-section:last-child .worship-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.worship-card {
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  padding: 2.5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .worship-card {
+    padding: 1.25rem 0.75rem;
+    border-radius: 0.75rem;
+  }
+}
+
+.worship-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(234, 179, 8, 0.4), 0 0 40px rgba(234, 179, 8, 0.3);
+  border-color: rgba(234, 179, 8, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 768px) {
+  .worship-card:hover {
+    transform: translateY(-4px);
+  }
+}
+
+.card-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, #EAB308, #fbbf24);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+}
+
+@media (max-width: 768px) {
+  .card-icon {
+    width: 45px;
+    height: 45px;
+    margin-bottom: 0.75rem;
+    font-size: 1.125rem;
+  }
+}
+
+.card-icon-text {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, #EAB308, #fbbf24);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+}
+
+@media (max-width: 768px) {
+  .card-icon-text {
+    width: 45px;
+    height: 45px;
+    margin-bottom: 0.75rem;
+    font-size: 0.8125rem;
+  }
+}
+
+.worship-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .worship-card h3 {
+    font-size: 0.9375rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.time {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #EAB308;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .time {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.location {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .location {
+    font-size: 0.75rem;
+  }
+}
