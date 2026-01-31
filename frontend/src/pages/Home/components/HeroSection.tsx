@@ -39,7 +39,6 @@ const HeroSection = () => {
         </p>
         <div className="hero-actions">
           <button className="btn-primary">예배 안내</button>
-          <button className="btn-glass">온라인 예배</button>
         </div>
       </div>
       
