@@ -35,6 +35,8 @@ jobs:
           npm ci
 
       - name: Build
+        env:
+          VITE_API_URL: https://port-0-chambit-ml1vrmry20fb0cc0.sel3.cloudtype.app
         run: |
           cd frontend
           npm run build
