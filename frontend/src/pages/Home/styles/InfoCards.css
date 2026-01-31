@@ -1,7 +1,14 @@
 /* Info Cards Section Styles */
 
-.info-cards {
+[data-theme="dark"] .info-cards {
   background: #0f172a;
+}
+
+[data-theme="light"] .info-cards {
+  background: #f8fafc;
+}
+
+.info-cards {
   padding: 6rem 1.5rem;
   position: relative;
   z-index: 40;
@@ -39,10 +46,17 @@
   margin-bottom: 1rem;
 }
 
+[data-theme="dark"] .info-title {
+  color: white;
+}
+
+[data-theme="light"] .info-title {
+  color: #0f172a;
+}
+
 .info-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: white;
   margin-bottom: 1rem;
   word-break: keep-all;
 }
@@ -53,8 +67,15 @@
   }
 }
 
-.info-description {
+[data-theme="dark"] .info-description {
   color: #94a3b8;
+}
+
+[data-theme="light"] .info-description {
+  color: #64748b;
+}
+
+.info-description {
   line-height: 1.6;
   word-break: keep-all;
 }

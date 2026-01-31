@@ -14,7 +14,7 @@
 }
 
 /* 마우스 따라다니는 빛 효과 */
-.home::before {
+[data-theme="dark"] .home::before {
   content: '';
   position: fixed;
   width: 600px;
@@ -29,6 +29,23 @@
   top: var(--mouse-y, 50%);
   transform: translate(-50%, -50%);
   mix-blend-mode: screen;
+}
+
+[data-theme="light"] .home::before {
+  content: '';
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(234, 179, 8, 0.08) 0%, rgba(234, 179, 8, 0.04) 30%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  left: var(--mouse-x, 50%);
+  top: var(--mouse-y, 50%);
+  transform: translate(-50%, -50%);
+  mix-blend-mode: multiply;
 }
 
 .home:hover::before {

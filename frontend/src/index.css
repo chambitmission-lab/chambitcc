@@ -9,21 +9,37 @@
   line-height: 1.6;
   font-weight: 400;
   
-  /* 다크 테마 기본 설정 */
-  color: white;
-  background-color: #0f172a;
-  
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
+}
+
+/* 다크 테마 */
+:root,
+[data-theme="dark"] {
+  color: white;
+  background-color: #0f172a;
   color-scheme: dark;
+}
+
+/* 라이트 테마 */
+[data-theme="light"] {
+  color: #1e293b;
+  background-color: #f8fafc;
+  color-scheme: light;
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+[data-theme="dark"] html {
   background-color: #0f172a;
+}
+
+[data-theme="light"] html {
+  background-color: #f8fafc;
 }
 
 body {
@@ -31,7 +47,14 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+[data-theme="dark"] body {
   background-color: #0f172a;
+}
+
+[data-theme="light"] body {
+  background-color: #f8fafc;
 }
 
 .container {

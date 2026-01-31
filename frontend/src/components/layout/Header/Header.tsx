@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useTheme } from '../../../contexts/ThemeContext'
 import Navigation from '../Navigation/Navigation'
 import MobileMenu from '../MobileMenu/MobileMenu'
 import chambitLogo from '../../../assets/chambit.png'
@@ -9,6 +10,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const { theme, toggleTheme } = useTheme()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -45,6 +47,13 @@ const Header = () => {
           <Navigation />
           
           <div className="header-actions">
+            <button 
+              className="theme-toggle-header" 
+              onClick={toggleTheme}
+              aria-label="테마 전환"
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             {isLoggedIn ? (
               <button onClick={handleLogout} className="auth-button">
                 로그아웃

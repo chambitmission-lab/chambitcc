@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from './contexts/ThemeContext'
 import Header from './components/layout/Header/Header'
 import Footer from './components/layout/Footer/Footer'
 import Home from './pages/Home/Home'
@@ -19,30 +20,32 @@ import './App.css'
 
 function App() {
   return (
-    <Router basename={import.meta.env.PROD ? "/chambitcc/" : "/"}>
-      <div className="app">
-        <Header />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/tv" element={<TV />} />
-            <Route path="/education" element={<Education />} />
-            <Route path="/mission" element={<Mission />} />
-            <Route path="/ministry" element={<Ministry />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/participate" element={<Participate />} />
-            <Route path="/online" element={<Online />} />
-            <Route path="/culture" element={<Culture />} />
-            <Route path="/worship" element={<Worship />} />
-            <Route path="/sermon" element={<Sermon />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <ThemeProvider>
+      <Router basename={import.meta.env.PROD ? "/chambitcc/" : "/"}>
+        <div className="app">
+          <Header />
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/tv" element={<TV />} />
+              <Route path="/education" element={<Education />} />
+              <Route path="/mission" element={<Mission />} />
+              <Route path="/ministry" element={<Ministry />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/participate" element={<Participate />} />
+              <Route path="/online" element={<Online />} />
+              <Route path="/culture" element={<Culture />} />
+              <Route path="/worship" element={<Worship />} />
+              <Route path="/sermon" element={<Sermon />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </Router>
+    </ThemeProvider>
   )
 }
 

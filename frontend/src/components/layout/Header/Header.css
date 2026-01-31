@@ -1,3 +1,29 @@
+/* 다크 테마 헤더 */
+[data-theme="dark"] .header {
+  backdrop-filter: blur(12px);
+  background-color: rgba(15, 23, 42, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .header.scrolled {
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* 라이트 테마 헤더 */
+[data-theme="light"] .header {
+  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .header.scrolled {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
 .header {
   position: fixed;
   top: 0;
@@ -5,15 +31,6 @@
   right: 0;
   z-index: 1000;
   transition: all 0.3s ease;
-  backdrop-filter: blur(12px);
-  background-color: rgba(15, 23, 42, 0.4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.header.scrolled {
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* 스크롤 전 헤더 그라데이션 제거 */
@@ -35,12 +52,19 @@
   height: 80px;
 }
 
+[data-theme="dark"] .logo {
+  color: white;
+}
+
+[data-theme="light"] .logo {
+  color: #0f172a;
+}
+
 .logo {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: white;
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -67,8 +91,12 @@
   color: #EAB308;
 }
 
-.logo-text {
+[data-theme="dark"] .logo-text {
   color: white;
+}
+
+[data-theme="light"] .logo-text {
+  color: #0f172a;
 }
 
 .header-actions {
@@ -78,13 +106,58 @@
   margin-left: 2rem;
 }
 
-.header-actions .auth-button {
-  padding: 0.625rem 1.5rem;
+.theme-toggle-header {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .theme-toggle-header {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+[data-theme="light"] .theme-toggle-header {
+  background: rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(8px);
+}
+
+.theme-toggle-header:hover {
+  transform: scale(1.1) rotate(15deg);
+}
+
+[data-theme="dark"] .theme-toggle-header:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="light"] .theme-toggle-header:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .header-actions .auth-button {
   backdrop-filter: blur(8px);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(234, 179, 8, 0.3);
-  border-radius: 9999px;
   color: white;
+}
+
+[data-theme="light"] .header-actions .auth-button {
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  color: #0f172a;
+}
+
+.header-actions .auth-button {
+  padding: 0.625rem 1.5rem;
+  border-radius: 9999px;
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 600;
@@ -106,10 +179,17 @@
   transition: opacity 0.3s ease;
 }
 
-.header-actions .auth-button:hover {
+[data-theme="dark"] .header-actions .auth-button:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(234, 179, 8, 0.6);
   box-shadow: 0 0 20px rgba(234, 179, 8, 0.2);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .header-actions .auth-button:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(234, 179, 8, 0.7);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.15);
   transform: translateY(-1px);
 }
 
@@ -132,11 +212,18 @@
   width: 28px;
 }
 
+[data-theme="dark"] .hamburger span {
+  background: white;
+}
+
+[data-theme="light"] .hamburger span {
+  background: #0f172a;
+}
+
 .hamburger span {
   display: block;
   width: 100%;
   height: 2px;
-  background: white;
   transition: all 0.3s ease;
 }
 
