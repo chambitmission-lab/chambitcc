@@ -15,6 +15,13 @@ const HeroSection = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
 
+  const scrollToWorshipTimes = () => {
+    const worshipSection = document.getElementById('worship-times')
+    if (worshipSection) {
+      worshipSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
   return (
     <section className="hero">
       <div className="hero-background">
@@ -38,7 +45,7 @@ const HeroSection = () => {
           에스겔 37장 5,10절
         </p>
         <div className="hero-actions">
-          <button className="btn-primary">예배 안내</button>
+          <button className="btn-primary" onClick={scrollToWorshipTimes}>예배 안내</button>
         </div>
       </div>
       

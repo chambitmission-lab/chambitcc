@@ -4,7 +4,7 @@ const WorshipTimes = () => {
   const [activeTab, setActiveTab] = useState<'sunday' | 'weekday'>('sunday')
 
   return (
-    <section className="worship-times">
+    <section className="worship-times" id="worship-times">
       <div className="container">
         <h2 className="section-title center">예배 시간</h2>
         
