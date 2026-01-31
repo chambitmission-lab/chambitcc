@@ -4,11 +4,26 @@
 }
 
 [data-theme="light"] .worship-times {
-  background: var(--bg-tertiary);
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 50%, #fef3c7 100%);
+  position: relative;
+}
+
+[data-theme="light"] .worship-times::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(234, 179, 8, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(234, 179, 8, 0.03) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .worship-times {
   padding: 6rem 1.5rem;
+  position: relative;
 }
 
 @media (max-width: 768px) {
@@ -136,6 +151,21 @@
   text-align: center;
   letter-spacing: 0.05em;
   word-break: keep-all;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+[data-theme="light"] .worship-section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #EAB308, transparent);
+  border-radius: 2px;
 }
 
 @media (max-width: 768px) {
@@ -184,6 +214,52 @@
   transition: all 0.3s ease;
   position: relative;
   cursor: pointer;
+  overflow: hidden;
+}
+
+[data-theme="light"] .worship-card {
+  background: 
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(254, 252, 232, 0.95) 100%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(234, 179, 8, 0.02) 0px,
+      rgba(234, 179, 8, 0.02) 2px,
+      transparent 2px,
+      transparent 12px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(234, 179, 8, 0.02) 0px,
+      rgba(234, 179, 8, 0.02) 2px,
+      transparent 2px,
+      transparent 12px
+    );
+  border: 2px solid rgba(234, 179, 8, 0.15);
+  box-shadow: 0 4px 20px rgba(234, 179, 8, 0.08);
+}
+
+[data-theme="light"] .worship-card::before {
+  content: '✝';
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 120px;
+  color: rgba(234, 179, 8, 0.05);
+  transform: rotate(15deg);
+  pointer-events: none;
+  line-height: 1;
+}
+
+[data-theme="light"] .worship-card::after {
+  content: '✝';
+  position: absolute;
+  bottom: -20px;
+  left: -20px;
+  font-size: 100px;
+  color: rgba(234, 179, 8, 0.03);
+  transform: rotate(-15deg);
+  pointer-events: none;
+  line-height: 1;
 }
 
 @media (max-width: 768px) {
@@ -204,7 +280,32 @@
 }
 
 [data-theme="light"] .worship-card:hover {
-  background: rgba(255, 255, 255, 1);
+  background: 
+    linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(254, 249, 195, 0.98) 100%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(234, 179, 8, 0.04) 0px,
+      rgba(234, 179, 8, 0.04) 2px,
+      transparent 2px,
+      transparent 12px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(234, 179, 8, 0.04) 0px,
+      rgba(234, 179, 8, 0.04) 2px,
+      transparent 2px,
+      transparent 12px
+    );
+  box-shadow: 0 12px 32px rgba(234, 179, 8, 0.2);
+  border-color: rgba(234, 179, 8, 0.4);
+}
+
+[data-theme="light"] .worship-card:hover::before {
+  color: rgba(234, 179, 8, 0.1);
+}
+
+[data-theme="light"] .worship-card:hover::after {
+  color: rgba(234, 179, 8, 0.06);
 }
 
 @media (max-width: 768px) {
@@ -226,6 +327,13 @@
   font-weight: 700;
   color: #0f172a;
   box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme="light"] .card-icon {
+  box-shadow: 0 6px 20px rgba(234, 179, 8, 0.25);
+  border: 3px solid rgba(255, 255, 255, 0.9);
 }
 
 @media (max-width: 768px) {
@@ -250,6 +358,13 @@
   font-weight: 700;
   color: #0f172a;
   box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme="light"] .card-icon-text {
+  box-shadow: 0 6px 20px rgba(234, 179, 8, 0.25);
+  border: 3px solid rgba(255, 255, 255, 0.9);
 }
 
 @media (max-width: 768px) {
