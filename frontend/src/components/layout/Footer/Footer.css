@@ -31,19 +31,21 @@
 .footer-section h4 {
   font-size: 1.125rem;
   margin-bottom: 1rem;
-  color: #ffd700;
+  color: #EAB308;
+  font-weight: 700;
 }
 
 [data-theme="dark"] .footer-section p {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 [data-theme="light"] .footer-section p {
-  color: rgba(15, 23, 42, 0.6);
+  color: #475569;
 }
 
 .footer-section p {
   line-height: 1.6;
+  font-weight: 500;
 }
 
 [data-theme="dark"] .footer-bottom {
@@ -53,7 +55,7 @@
 
 [data-theme="light"] .footer-bottom {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
-  color: rgba(15, 23, 42, 0.4);
+  color: #64748b;
 }
 
 .footer-bottom {
