@@ -50,6 +50,14 @@
   align-items: center;
   justify-content: space-between;
   height: 80px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    padding: 1rem 1.5rem;
+    height: 80px;
+  }
 }
 
 [data-theme="dark"] .logo {
@@ -214,6 +222,9 @@
   border: none;
   cursor: pointer;
   padding: 0.5rem;
+  position: relative;
+  z-index: 1001;
+  flex-shrink: 0;
 }
 
 .hamburger {
@@ -221,6 +232,8 @@
   flex-direction: column;
   gap: 5px;
   width: 28px;
+  height: 24px;
+  justify-content: center;
 }
 
 [data-theme="dark"] .hamburger span {
@@ -252,15 +265,17 @@
 
 @media (max-width: 768px) {
   .mobile-menu-button {
-    display: block;
-  }
-  
-  .header-container {
-    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .logo {
     font-size: 1.25rem;
+  }
+  
+  .logo-image {
+    height: 36px;
   }
 
   .header-actions {
