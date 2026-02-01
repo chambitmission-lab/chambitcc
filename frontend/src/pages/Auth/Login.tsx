@@ -44,6 +44,17 @@ const Login = () => {
       }
 
       localStorage.setItem('access_token', data.access_token)
+      // 사용자 정보 저장 (username과 full_name)
+      if (data.username) {
+        localStorage.setItem('user_username', data.username)
+      } else {
+        // 백엔드에서 username을 반환하지 않으면 입력한 값 사용
+        localStorage.setItem('user_username', formData.username)
+      }
+      if (data.full_name) {
+        localStorage.setItem('user_full_name', data.full_name)
+      }
+      
       navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : '로그인에 실패했습니다')

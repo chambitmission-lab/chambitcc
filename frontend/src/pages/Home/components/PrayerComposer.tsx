@@ -12,9 +12,24 @@ interface PrayerComposerProps {
 const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps) => {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [displayName, setDisplayName] = useState('Anonymous')
+  const [isAnonymous, setIsAnonymous] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  
+  const isLoggedIn = !!localStorage.getItem('access_token')
+  
+  // Get username from localStorage
+  const getUserName = (): string => {
+    if (!isLoggedIn || isAnonymous) return 'Anonymous'
+    
+    // 우선순위: full_name > username
+    const fullName = localStorage.getItem('user_full_name')
+    const username = localStorage.getItem('user_username')
+    
+    return fullName || username || 'Anonymous'
+  }
+  
+  const displayName = getUserName()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -50,8 +65,8 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
       const response = await createPrayer({
         title: title.trim(),
         content: content.trim(),
-        display_name: displayName.trim() || 'Anonymous',
-        is_fully_anonymous: true,
+        display_name: displayName,
+        is_fully_anonymous: isAnonymous,
         fingerprint,
       })
 
@@ -102,15 +117,29 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold">
                 {displayName.charAt(0).toUpperCase()}
               </div>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="표시 이름"
-                maxLength={20}
-                className="flex-1 bg-transparent border-none text-sm font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
-              />
+              <div className="flex-1">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {displayName}
+                </span>
+              </div>
             </div>
+            
+            {/* Anonymous Toggle - Only show for logged in users */}
+            {isLoggedIn && (
+              <div className="flex items-center gap-2 px-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                    className="w-4 h-4 text-primary bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark rounded focus:ring-2 focus:ring-primary"
+                  />
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    익명으로 작성
+                  </span>
+                </label>
+              </div>
+            )}
           </div>
 
           {/* Category Badge */}
@@ -159,10 +188,14 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
           {/* Privacy Notice */}
           <div className="bg-surface-light dark:bg-surface-dark rounded-lg p-3 border border-border-light dark:border-border-dark">
             <div className="flex items-start gap-2">
-              <span className="material-icons-outlined text-gray-500 text-lg">lock</span>
+              <span className="material-icons-outlined text-gray-500 text-lg">
+                {isAnonymous ? 'lock' : 'visibility'}
+              </span>
               <div>
                 <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                  기도 요청은 익명으로 게시됩니다. 표시 이름만 다른 사람에게 보입니다.
+                  {isAnonymous 
+                    ? '기도 요청은 익명으로 게시됩니다. 표시 이름만 다른 사람에게 보입니다.'
+                    : '기도 요청이 실명으로 게시됩니다. 다른 사람들이 작성자를 확인할 수 있습니다.'}
                 </p>
               </div>
             </div>
