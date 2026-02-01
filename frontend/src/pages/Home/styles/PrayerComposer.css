@@ -1,0 +1,225 @@
+/* Prayer Composer Modal - 인스타그램 스타일 */
+
+.prayer-composer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1.25rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.prayer-composer {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.composer-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  color: #262626;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 50%;
+}
+
+.composer-close:hover {
+  background: #fafafa;
+  transform: rotate(90deg);
+}
+
+.composer-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #dbdbdb;
+  text-align: center;
+}
+
+.composer-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #262626;
+  letter-spacing: 0;
+}
+
+.composer-subtitle {
+  font-size: 0.875rem;
+  color: #8e8e8e;
+  margin: 0.25rem 0 0 0;
+  font-weight: 400;
+}
+
+.composer-form {
+  padding: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background: #fafafa;
+  border: 1px solid #dbdbdb;
+  border-radius: 6px;
+  color: #262626;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  background: #fff;
+  border-color: #8e8e8e;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #8e8e8e;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.75rem;
+  color: #8e8e8e;
+  margin-top: 0.25rem;
+}
+
+.form-error {
+  padding: 0.75rem;
+  background: #fff5f5;
+  border: 1px solid #ed4956;
+  border-radius: 6px;
+  color: #ed4956;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.form-submit {
+  width: 100%;
+  padding: 0.75rem;
+  background: #0095f6;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.form-submit:hover:not(:disabled) {
+  background: #1877f2;
+}
+
+.form-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Scrollbar Styling */
+.prayer-composer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.prayer-composer::-webkit-scrollbar-track {
+  background: #fafafa;
+}
+
+.prayer-composer::-webkit-scrollbar-thumb {
+  background: #dbdbdb;
+  border-radius: 3px;
+}
+
+.prayer-composer::-webkit-scrollbar-thumb:hover {
+  background: #c7c7c7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .prayer-composer-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .prayer-composer {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .composer-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .composer-form {
+    padding: 1.25rem;
+  }
+
+  .composer-close {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+}

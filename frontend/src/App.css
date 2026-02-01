@@ -2,8 +2,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #0f172a;
-  color: white;
+  background: #fafafa;
+  color: #262626;
   overflow-x: hidden;
   width: 100%;
   max-width: 100vw;
@@ -11,10 +11,10 @@
 
 .main-content {
   flex: 1;
-  padding-top: 80px;
+  padding-top: 60px;
 }
 
-/* Remove padding-top for home page hero */
-.main-content:has(.home) {
-  padding-top: 0;
+/* Remove padding-top for home page */
+.main-content:has(.new-home) {
+  padding-top: 60px;
 }

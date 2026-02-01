@@ -1,0 +1,446 @@
+/* 인스타그램 스타일 메인 페이지 */
+
+.new-home {
+  min-height: 100vh;
+  background: #fafafa;
+}
+
+/* ===== PRAYER HERO ===== */
+.prayer-hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 3rem 1.25rem;
+  text-align: center;
+  color: #fff;
+  margin-bottom: 2rem;
+}
+
+.hero-content {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.hero-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 1rem 0;
+  display: block;
+}
+
+.title-line {
+  display: block;
+}
+
+.title-line.offset {
+  margin-left: 0;
+  text-shadow: none;
+}
+
+.hero-subtitle {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 1rem 0 2rem 0;
+  font-weight: 400;
+}
+
+/* CTA 버튼 - 인스타 스타일 */
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: #fff;
+  color: #667eea;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.cta-text {
+  letter-spacing: 0;
+}
+
+.cta-arrow {
+  font-size: 1.25rem;
+}
+
+/* Hero Stats */
+.hero-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.stat-divider {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== PRAYER LIST SECTION ===== */
+.prayer-list-section {
+  max-width: 614px;
+  margin: 0 auto;
+  padding: 0 0 2rem;
+}
+
+/* Sort Controls - 인스타 탭 스타일 */
+.list-controls {
+  margin-bottom: 1rem;
+  background: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sort-tabs {
+  display: flex;
+  gap: 0;
+}
+
+.sort-tab {
+  flex: 1;
+  padding: 0.875rem;
+  background: #fff;
+  color: #8e8e8e;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.sort-tab:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: #dbdbdb;
+}
+
+.sort-tab:hover {
+  background: #fafafa;
+}
+
+.sort-tab.active {
+  color: #262626;
+  background: #fff;
+}
+
+.sort-tab.active::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #262626;
+}
+
+/* Prayer Grid - 인스타 피드 스타일 */
+.prayer-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ===== PRAYER CARD - 인스타 포스트 스타일 ===== */
+.prayer-card {
+  background: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.prayer-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.prayer-card::before {
+  display: none;
+}
+
+.card-header {
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #efefef;
+}
+
+/* 프로필 아이콘 */
+.card-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+}
+
+.card-author {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #262626;
+}
+
+.card-time {
+  font-size: 0.75rem;
+  color: #8e8e8e;
+}
+
+.card-divider {
+  display: none;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+  padding: 1rem 1rem 0.5rem;
+  color: #262626;
+}
+
+.card-content {
+  padding: 0 1rem 1rem;
+}
+
+.card-text {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: #262626;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.card-text:not(.expanded) {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-expand {
+  margin-top: 0.25rem;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #8e8e8e;
+  font-size: 0.875rem;
+  font-weight: 400;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.card-expand:hover {
+  color: #262626;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem 0.875rem;
+  border-top: 1px solid #efefef;
+}
+
+/* Prayer Button - 인스타 좋아요 스타일 */
+.prayer-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  color: #262626;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 6px;
+}
+
+.prayer-button:hover {
+  background: #fafafa;
+}
+
+.prayer-button.prayed {
+  color: #ed4956;
+}
+
+.prayer-button.prayed .prayer-icon {
+  transform: scale(1.1);
+}
+
+.prayer-icon {
+  font-size: 1.25rem;
+  transition: transform 0.2s;
+}
+
+.prayer-count {
+  min-width: 20px;
+  text-align: left;
+}
+
+.card-stats {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.stat-item {
+  font-size: 0.875rem;
+  color: #8e8e8e;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ===== LOADING & EMPTY STATES ===== */
+.list-loading,
+.list-error,
+.list-empty {
+  text-align: center;
+  padding: 3rem 1.25rem;
+  color: #8e8e8e;
+  background: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  margin: 0 1.25rem;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #dbdbdb;
+  border-top-color: #262626;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.list-error {
+  color: #ed4956;
+  border-color: #ed4956;
+  background: #fff5f5;
+}
+
+.empty-subtitle {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #8e8e8e;
+}
+
+.load-more-trigger {
+  height: 1px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .prayer-hero {
+    padding: 2rem 1.25rem;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .hero-stats {
+    gap: 1.5rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .prayer-list-section {
+    padding: 0 0 1.5rem;
+  }
+
+  .list-controls,
+  .list-loading,
+  .list-error,
+  .list-empty {
+    margin: 0 1rem 1rem;
+  }
+
+  .prayer-grid {
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+
+  .card-title {
+    font-size: 0.9375rem;
+  }
+
+  .card-text {
+    font-size: 0.875rem;
+  }
+}

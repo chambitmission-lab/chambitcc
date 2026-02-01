@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
-import Header from './components/layout/Header/Header'
-import Footer from './components/layout/Footer/Footer'
+import NewHeader from './components/layout/NewHeader/NewHeader'
+import NewFooter from './components/layout/NewFooter/NewFooter'
 import Home from './pages/Home/Home'
+import NewHome from './pages/Home/NewHome'
 import About from './pages/About/About'
 import TV from './pages/TV/TV'
 import Education from './pages/Education/Education'
@@ -17,16 +18,18 @@ import Sermon from './pages/Sermon/Sermon'
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
 import './App.css'
+import './styles/common.css'
 
 function App() {
   return (
     <ThemeProvider>
       <Router basename={import.meta.env.PROD ? "/chambitcc/" : "/"}>
         <div className="app">
-          <Header />
+          <NewHeader />
           <main className="main-content">
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<NewHome />} />
+              <Route path="/old-home" element={<Home />} />
               <Route path="/about" element={<About />} />
               <Route path="/tv" element={<TV />} />
               <Route path="/education" element={<Education />} />
@@ -42,7 +45,7 @@ function App() {
               <Route path="/register" element={<Register />} />
             </Routes>
           </main>
-          <Footer />
+          <NewFooter />
         </div>
       </Router>
     </ThemeProvider>
