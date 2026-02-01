@@ -148,24 +148,6 @@ export const usePrayerDetail = (prayerId: number) => {
     staleTime: Infinity,
   })
 
-  // 목록 캐시에서 해당 기도 찾기 (초기 데이터로 사용)
-  const getInitialData = (): Prayer | undefined => {
-    // 모든 목록 캐시를 순회하며 해당 기도 찾기
-    const queryCache = queryClient.getQueryCache()
-    const queries = queryCache.findAll({ queryKey: prayerKeys.lists() })
-    
-    for (const query of queries) {
-      const data = query.state.data as any
-      if (data?.pages) {
-        for (const page of data.pages) {
-          const prayer = page.data.items.find((p: Prayer) => p.id === prayerId)
-          if (prayer) return prayer
-        }
-      }
-    }
-    return undefined
-  }
-
   // 기도 상세 조회
   const query = useQuery({
     queryKey: [...prayerKeys.all, 'detail', prayerId, fingerprint],
@@ -173,10 +155,8 @@ export const usePrayerDetail = (prayerId: number) => {
       const { fetchPrayerDetail } = await import('../api/prayer')
       return fetchPrayerDetail(prayerId, fingerprint)
     },
-    initialData: getInitialData, // 목록에서 가져온 데이터를 먼저 표시
     enabled: !!fingerprint && !!prayerId,
-    staleTime: 1000 * 60 * 5, // 5분으로 증가
-    gcTime: 1000 * 60 * 30, // 30분간 캐시 유지
+    staleTime: 1000 * 60 * 2, // 2분
   })
 
   // 기도했어요 토글 Mutation
