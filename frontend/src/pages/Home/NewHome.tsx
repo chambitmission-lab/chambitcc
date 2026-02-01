@@ -191,9 +191,9 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
   const displayContent = showEnglish && prayer.content_en ? prayer.content_en : prayer.content
 
   return (
-    <article className="bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-4 mb-3">
+    <article className="bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-3 mb-2">
       {/* Header */}
-      <div className="px-4 py-3 flex items-center justify-between">
+      <div className="px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white dark:ring-black">
             {prayer.display_name.charAt(0).toUpperCase()}
@@ -224,21 +224,21 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
       </div>
 
       {/* Content */}
-      <div className="px-4 mb-4">
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-indigo-100/50 dark:border-gray-700/50 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-full blur-3xl"></div>
-          <h3 className={`text-[11px] font-bold text-primary mb-3 tracking-[0.1em] relative z-10 ${!showEnglish ? 'uppercase' : ''}`}>
+      <div className="px-4 mb-3">
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 border border-indigo-100/50 dark:border-gray-700/50 relative overflow-hidden shadow-sm">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-full blur-2xl"></div>
+          <h3 className={`text-[10px] font-bold text-primary mb-2 tracking-[0.08em] relative z-10 ${!showEnglish ? 'uppercase' : ''}`}>
             {displayTitle}
           </h3>
-          <p className="text-[15px] text-gray-900 dark:text-gray-100 leading-[1.7] relative z-10 font-normal tracking-[-0.02em]">
+          <p className="text-[13px] text-gray-900 dark:text-gray-100 leading-[1.5] relative z-10 font-normal tracking-[-0.01em]">
             {displayContent}
           </p>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="px-4 flex items-center justify-between mb-3">
-        <div className="flex items-center gap-4">
+      <div className="px-4 flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={handlePray}
             disabled={isPraying}
@@ -246,31 +246,31 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
               prayer.is_prayed ? 'text-primary' : 'text-gray-800 dark:text-white hover:opacity-70'
             }`}
           >
-            <span className={`text-[28px] ${prayer.is_prayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
+            <span className={`text-[24px] ${prayer.is_prayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
               volunteer_activism
             </span>
           </button>
           <button className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity">
-            <span className="material-icons-outlined text-[26px] transform -scale-x-100">
+            <span className="material-icons-outlined text-[22px] transform -scale-x-100">
               chat_bubble_outline
             </span>
           </button>
           <button className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity">
-            <span className="material-icons-outlined text-[26px] -rotate-45 mb-1">send</span>
+            <span className="material-icons-outlined text-[22px] -rotate-45 mb-1">send</span>
           </button>
         </div>
         <button className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity">
-          <span className="material-icons-outlined text-[28px]">bookmark_border</span>
+          <span className="material-icons-outlined text-[24px]">bookmark_border</span>
         </button>
       </div>
 
       {/* Stats */}
       <div className="px-4">
-        <div className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+        <div className="text-xs font-semibold text-gray-900 dark:text-white mb-0.5">
           {prayer.prayer_count}명이 기도중
         </div>
         {prayer.reply_count > 0 && (
-          <button className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <button className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
             댓글 {prayer.reply_count}개 모두 보기
           </button>
         )}
