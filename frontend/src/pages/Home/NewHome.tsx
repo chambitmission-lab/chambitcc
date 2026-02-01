@@ -1,18 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
-import { usePrayers } from '../../hooks/usePrayers'
+import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import type { Prayer, SortType } from '../../types/prayer'
 
 const NewHome = () => {
   const [showComposer, setShowComposer] = useState(false)
   const [sort, setSort] = useState<SortType>('popular')
-  const prayerHook = usePrayers(sort)
+  const prayerHook = usePrayersInfinite(sort)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
 
   const handleSortChange = (newSort: SortType) => {
     setSort(newSort)
-    prayerHook.changeSort(newSort)
   }
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!loadMoreRef.current || prayerHook.loading || !prayerHook.hasMore) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !prayerHook.isFetchingMore) {
+          prayerHook.loadMore()
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    observer.observe(loadMoreRef.current)
+    return () => observer.disconnect()
+  }, [prayerHook.loading, prayerHook.hasMore, prayerHook.isFetchingMore])
 
   return (
     <ErrorBoundary>
@@ -112,6 +129,16 @@ const NewHome = () => {
                   <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">첫 번째로 나눠주세요</p>
                 </div>
               )}
+
+              {/* Infinite Scroll Trigger */}
+              {prayerHook.hasMore && <div ref={loadMoreRef} className="h-10" />}
+
+              {/* Loading More State */}
+              {prayerHook.isFetchingMore && (
+                <div className="py-4 text-center">
+                  <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
             </div>
           </main>
 
@@ -153,8 +180,8 @@ const NewHome = () => {
           {showComposer && (
             <PrayerComposer
               onClose={() => setShowComposer(false)}
-              onSuccess={(newPrayer) => {
-                prayerHook.addPrayer(newPrayer)
+              onSuccess={() => {
+                prayerHook.refresh()
                 setShowComposer(false)
               }}
               fingerprint={prayerHook.fingerprint}
