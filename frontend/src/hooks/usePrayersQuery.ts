@@ -135,3 +135,90 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort, fingerprint) }),
   }
 }
+
+
+// 기도 상세 조회 Hook
+export const usePrayerDetail = (prayerId: number) => {
+  const queryClient = useQueryClient()
+
+  // Fingerprint 가져오기
+  const { data: fingerprint = '' } = useQuery({
+    queryKey: ['fingerprint'],
+    queryFn: getOrCreateFingerprint,
+    staleTime: Infinity,
+  })
+
+  // 기도 상세 조회
+  const query = useQuery({
+    queryKey: [...prayerKeys.all, 'detail', prayerId, fingerprint],
+    queryFn: async () => {
+      const { fetchPrayerDetail } = await import('../api/prayer')
+      return fetchPrayerDetail(prayerId, fingerprint)
+    },
+    enabled: !!fingerprint && !!prayerId,
+    staleTime: 1000 * 60 * 2, // 2분
+  })
+
+  // 기도했어요 토글 Mutation
+  const toggleMutation = useMutation({
+    mutationFn: (prayerId: number) => togglePrayer(prayerId, fingerprint),
+    onMutate: async (prayerId) => {
+      // Optimistic Update
+      await queryClient.cancelQueries({ 
+        queryKey: [...prayerKeys.all, 'detail', prayerId, fingerprint] 
+      })
+      
+      const previousData = queryClient.getQueryData([...prayerKeys.all, 'detail', prayerId, fingerprint])
+      
+      queryClient.setQueryData([...prayerKeys.all, 'detail', prayerId, fingerprint], (old: Prayer | undefined) => {
+        if (!old) return old
+        
+        return {
+          ...old,
+          is_prayed: !old.is_prayed,
+          prayer_count: old.is_prayed 
+            ? old.prayer_count - 1 
+            : old.prayer_count + 1,
+        }
+      })
+      
+      return { previousData }
+    },
+    onError: (_err, prayerId, context) => {
+      // 에러 시 롤백
+      if (context?.previousData) {
+        queryClient.setQueryData(
+          [...prayerKeys.all, 'detail', prayerId, fingerprint],
+          context.previousData
+        )
+      }
+    },
+    onSuccess: (data, prayerId) => {
+      // 서버 응답으로 정확한 값 업데이트
+      queryClient.setQueryData([...prayerKeys.all, 'detail', prayerId, fingerprint], (old: Prayer | undefined) => {
+        if (!old) return old
+        
+        return {
+          ...old,
+          is_prayed: data.is_prayed,
+          prayer_count: data.prayer_count,
+        }
+      })
+
+      // 목록 캐시도 업데이트
+      queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+    },
+  })
+
+  return {
+    prayer: query.data,
+    loading: query.isLoading,
+    error: query.error?.message ?? null,
+    fingerprint,
+    handlePrayerToggle: () => toggleMutation.mutate(prayerId),
+    isToggling: toggleMutation.isPending,
+    refresh: () => queryClient.invalidateQueries({ 
+      queryKey: [...prayerKeys.all, 'detail', prayerId, fingerprint] 
+    }),
+  }
+}

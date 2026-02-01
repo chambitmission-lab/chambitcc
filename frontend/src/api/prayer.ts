@@ -4,7 +4,8 @@ import type {
   PrayerListResponse, 
   CreatePrayerRequest, 
   PrayerResponse,
-  SortType 
+  SortType,
+  Prayer
 } from '../types/prayer'
 
 // 기도 요청 목록 조회
@@ -91,4 +92,32 @@ export const togglePrayer = async (
   }
 
   return response.json()
+}
+
+// 기도 요청 상세 조회
+export const fetchPrayerDetail = async (
+  prayerId: number,
+  fingerprint?: string
+): Promise<Prayer> => {
+  const headers: HeadersInit = {}
+  
+  if (fingerprint) {
+    headers['X-Fingerprint'] = fingerprint
+  }
+
+  const token = localStorage.getItem('token')
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const response = await fetch(`${API_V1}/prayers/${prayerId}`, {
+    headers,
+  })
+
+  if (!response.ok) {
+    throw new Error('기도 요청을 불러오는데 실패했습니다')
+  }
+
+  const result = await response.json()
+  return result.data
 }

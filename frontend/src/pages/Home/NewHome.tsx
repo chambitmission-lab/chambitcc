@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
+import PrayerDetail from './components/PrayerDetail'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import type { Prayer, SortType } from '../../types/prayer'
 
 const NewHome = () => {
   const [showComposer, setShowComposer] = useState(false)
+  const [selectedPrayerId, setSelectedPrayerId] = useState<number | null>(null)
   const [sort, setSort] = useState<SortType>('popular')
   const prayerHook = usePrayersInfinite(sort)
   const loadMoreRef = useRef<HTMLDivElement>(null)
@@ -110,6 +112,7 @@ const NewHome = () => {
                   key={prayer.id}
                   prayer={prayer}
                   onPrayerToggle={prayerHook.handlePrayerToggle}
+                  onClick={() => setSelectedPrayerId(prayer.id)}
                 />
               ))}
 
@@ -187,6 +190,14 @@ const NewHome = () => {
               fingerprint={prayerHook.fingerprint}
             />
           )}
+
+          {/* Prayer Detail Modal */}
+          {selectedPrayerId && (
+            <PrayerDetail
+              prayerId={selectedPrayerId}
+              onClose={() => setSelectedPrayerId(null)}
+            />
+          )}
         </div>
       </div>
     </ErrorBoundary>
@@ -197,13 +208,15 @@ const NewHome = () => {
 interface PrayerArticleProps {
   prayer: Prayer
   onPrayerToggle: (prayerId: number) => void
+  onClick: () => void
 }
 
-const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
+const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) => {
   const [isPraying, setIsPraying] = useState(false)
   const [showEnglish, setShowEnglish] = useState(false)
 
-  const handlePray = async () => {
+  const handlePray = async (e: React.MouseEvent) => {
+    e.stopPropagation() // 카드 클릭 이벤트 방지
     if (isPraying) return
     setIsPraying(true)
     await onPrayerToggle(prayer.id)
@@ -218,7 +231,10 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
   const displayContent = showEnglish && prayer.content_en ? prayer.content_en : prayer.content
 
   return (
-    <article className="bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-3 mb-2">
+    <article 
+      className="bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-3 mb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
+      onClick={onClick}
+    >
       {/* Header */}
       <div className="px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -237,14 +253,20 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
         <div className="flex items-center gap-2">
           {hasTranslation && (
             <button
-              onClick={() => setShowEnglish(!showEnglish)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowEnglish(!showEnglish)
+              }}
               className="px-2.5 py-1.5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-[10px] font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
               title={showEnglish ? '한글로 보기' : 'View in English'}
             >
               {showEnglish ? '🇰🇷 한글' : '🇺🇸 EN'}
             </button>
           )}
-          <button className="text-gray-500 dark:text-gray-400">
+          <button 
+            onClick={(e) => e.stopPropagation()}
+            className="text-gray-500 dark:text-gray-400"
+          >
             <span className="material-icons-outlined">more_horiz</span>
           </button>
         </div>
@@ -276,12 +298,18 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
             volunteer_activism
           </span>
         </button>
-        <button className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity">
+        <button 
+          onClick={(e) => e.stopPropagation()}
+          className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity"
+        >
           <span className="material-icons-outlined text-[22px] transform -scale-x-100">
             chat_bubble_outline
           </span>
         </button>
-        <button className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity">
+        <button 
+          onClick={(e) => e.stopPropagation()}
+          className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity"
+        >
           <span className="material-icons-outlined text-[22px] -rotate-45 mb-1">send</span>
         </button>
       </div>

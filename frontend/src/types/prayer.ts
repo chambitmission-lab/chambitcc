@@ -9,8 +9,14 @@ export interface Prayer {
   prayer_count: number
   reply_count: number
   is_prayed: boolean
+  is_owner?: boolean  // 내가 작성한 기도인지
   created_at: string
   time_ago: string
+}
+
+export interface PrayerDetailResponse {
+  success: boolean
+  data: Prayer
 }
 
 export interface PrayerListResponse {
