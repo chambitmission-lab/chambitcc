@@ -83,14 +83,14 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
             <span className="material-icons-outlined">close</span>
           </button>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-            New Prayer Request
+            새 기도 요청
           </h2>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || !title.trim() || !content.trim()}
             className="text-primary font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Posting...' : 'Post'}
+            {isSubmitting ? '작성중...' : '작성'}
           </button>
         </div>
 
@@ -106,7 +106,7 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Display name"
+                placeholder="표시 이름"
                 maxLength={20}
                 className="flex-1 bg-transparent border-none text-sm font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
               />
@@ -116,7 +116,7 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
           {/* Category Badge */}
           <div className="mb-3">
             <span className="inline-block bg-indigo-100 dark:bg-indigo-900/30 text-primary text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
-              Prayer Request
+              기도 요청
             </span>
           </div>
 
@@ -126,7 +126,7 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Title (e.g., Family Health, Career Guidance)"
+              placeholder="제목 (예: 가족의 건강, 진로 인도)"
               maxLength={100}
               required
               className="w-full bg-transparent border-none text-base font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
@@ -138,7 +138,7 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Share your prayer request... Be specific about what you need prayer for."
+              placeholder="기도 제목을 나눠주세요... 구체적으로 어떤 기도가 필요한지 알려주세요."
               rows={8}
               maxLength={1000}
               required
@@ -162,7 +162,7 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
               <span className="material-icons-outlined text-gray-500 text-lg">lock</span>
               <div>
                 <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                  Your prayer request will be posted anonymously. Only your display name will be visible to others.
+                  기도 요청은 익명으로 게시됩니다. 표시 이름만 다른 사람에게 보입니다.
                 </p>
               </div>
             </div>

@@ -72,7 +72,7 @@ const NewHome = () => {
               <div className="flex-1">
                 <input
                   className="w-full bg-surface-light dark:bg-surface-dark border-none rounded-full px-4 py-2 text-sm focus:ring-1 focus:ring-primary dark:text-white placeholder-gray-500"
-                  placeholder="Share a prayer request..."
+                  placeholder="기도 제목을 나눠주세요..."
                   type="text"
                   onClick={() => setShowComposer(true)}
                   readOnly
@@ -82,7 +82,7 @@ const NewHome = () => {
                 onClick={() => setShowComposer(true)}
                 className="text-primary font-semibold text-sm"
               >
-                Post
+                작성
               </button>
             </div>
 
@@ -100,7 +100,7 @@ const NewHome = () => {
               {prayerHook.loading && (
                 <div className="py-8 text-center">
                   <div className="inline-block w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                  <p className="mt-2 text-sm text-gray-500">Loading prayers...</p>
+                  <p className="mt-2 text-sm text-gray-500">기도 요청을 불러오는 중...</p>
                 </div>
               )}
 
@@ -108,8 +108,8 @@ const NewHome = () => {
               {!prayerHook.loading && prayerHook.prayers.length === 0 && (
                 <div className="py-12 text-center">
                   <span className="text-6xl mb-4 block">🙏</span>
-                  <p className="text-gray-500 dark:text-gray-400">No prayers yet</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Be the first to share</p>
+                  <p className="text-gray-500 dark:text-gray-400">아직 기도 요청이 없습니다</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">첫 번째로 나눠주세요</p>
                 </div>
               )}
             </div>
@@ -248,11 +248,11 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
       {/* Stats */}
       <div className="px-4">
         <div className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-          {prayer.prayer_count} praying
+          {prayer.prayer_count}명이 기도중
         </div>
         {prayer.reply_count > 0 && (
           <button className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            View all {prayer.reply_count} comments
+            댓글 {prayer.reply_count}개 모두 보기
           </button>
         )}
         <div className="text-[10px] text-gray-400 mt-2 uppercase tracking-wide">
