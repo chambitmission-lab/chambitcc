@@ -1,9 +1,7 @@
-// 기도 요청 작성 모달
 import { useState, type FormEvent } from 'react'
 import { createPrayer } from '../../../api/prayer'
 import { validation } from '../../../utils/validation'
 import type { Prayer } from '../../../types/prayer'
-import '../styles/PrayerComposer.css'
 
 interface PrayerComposerProps {
   onClose: () => void
@@ -14,7 +12,7 @@ interface PrayerComposerProps {
 const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps) => {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [displayName, setDisplayName] = useState('익명')
+  const [displayName, setDisplayName] = useState('Anonymous')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -52,7 +50,7 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
       const response = await createPrayer({
         title: title.trim(),
         content: content.trim(),
-        display_name: displayName.trim() || '익명',
+        display_name: displayName.trim() || 'Anonymous',
         is_fully_anonymous: true,
         fingerprint,
       })
@@ -68,75 +66,107 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
   }
 
   return (
-    <div className="prayer-composer-overlay" onClick={onClose}>
-      <div className="prayer-composer" onClick={(e) => e.stopPropagation()}>
-        <button className="composer-close" onClick={onClose}>
-          ✕
-        </button>
-
-        <div className="composer-header">
-          <h2 className="composer-title">기도 요청</h2>
-          <p className="composer-subtitle">익명으로 안전하게 나눠주세요</p>
+    <div 
+      className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-background-light dark:bg-background-dark rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
+          <button
+            onClick={onClose}
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          >
+            <span className="material-icons-outlined">close</span>
+          </button>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            New Prayer Request
+          </h2>
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting || !title.trim() || !content.trim()}
+            className="text-primary font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Posting...' : 'Post'}
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="composer-form">
-          <div className="form-group">
-            <label htmlFor="displayName" className="form-label">
-              표시 이름
-            </label>
-            <input
-              id="displayName"
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="익명"
-              maxLength={20}
-              className="form-input"
-            />
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-4">
+          {/* Display Name */}
+          <div className="mb-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold">
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Display name"
+                maxLength={20}
+                className="flex-1 bg-transparent border-none text-sm font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="title" className="form-label">
-              제목 *
-            </label>
+          {/* Category Badge */}
+          <div className="mb-3">
+            <span className="inline-block bg-indigo-100 dark:bg-indigo-900/30 text-primary text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
+              Prayer Request
+            </span>
+          </div>
+
+          {/* Title */}
+          <div className="mb-3">
             <input
-              id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="간단한 제목을 입력하세요"
+              placeholder="Title (e.g., Family Health, Career Guidance)"
               maxLength={100}
               required
-              className="form-input"
+              className="w-full bg-transparent border-none text-base font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="content" className="form-label">
-              내용 *
-            </label>
+          {/* Content */}
+          <div className="mb-4">
             <textarea
-              id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="함께 기도하고 싶은 내용을 나눠주세요"
-              rows={6}
+              placeholder="Share your prayer request... Be specific about what you need prayer for."
+              rows={8}
               maxLength={1000}
               required
-              className="form-textarea"
+              className="w-full bg-transparent border-none text-base text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none resize-none leading-relaxed"
             />
-            <div className="char-count">{content.length}/1000</div>
+            <div className="text-xs text-gray-400 text-right mt-1">
+              {content.length}/1000
+            </div>
           </div>
 
-          {error && <div className="form-error">{error}</div>}
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          )}
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="form-submit"
-          >
-            {isSubmitting ? '등록 중...' : '기도 요청하기'}
-          </button>
+          {/* Privacy Notice */}
+          <div className="bg-surface-light dark:bg-surface-dark rounded-lg p-3 border border-border-light dark:border-border-dark">
+            <div className="flex items-start gap-2">
+              <span className="material-icons-outlined text-gray-500 text-lg">lock</span>
+              <div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                  Your prayer request will be posted anonymously. Only your display name will be visible to others.
+                </p>
+              </div>
+            </div>
+          </div>
         </form>
       </div>
     </div>

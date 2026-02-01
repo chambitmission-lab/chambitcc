@@ -18,6 +18,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     localStorage.setItem('theme', theme)
     document.documentElement.setAttribute('data-theme', theme)
+    
+    // Tailwind dark mode class 추가/제거
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
   }, [theme])
 
   const toggleTheme = () => {

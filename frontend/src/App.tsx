@@ -24,7 +24,7 @@ function App() {
   return (
     <ThemeProvider>
       <Router basename={import.meta.env.PROD ? "/chambitcc/" : "/"}>
-        <div className="app">
+        <div className="app min-h-screen">
           <NewHeader />
           <main className="main-content">
             <Routes>
