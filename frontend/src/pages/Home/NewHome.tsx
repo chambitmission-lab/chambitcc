@@ -255,9 +255,6 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
             댓글 {prayer.reply_count}개 모두 보기
           </button>
         )}
-        <div className="text-[10px] text-gray-400 mt-2 uppercase tracking-wide">
-          {prayer.time_ago}
-        </div>
       </div>
     </article>
   )
