@@ -2,8 +2,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #fafafa;
-  color: #262626;
+  background: var(--ig-secondary-background);
+  color: var(--ig-primary-text);
   overflow-x: hidden;
   width: 100%;
   max-width: 100vw;

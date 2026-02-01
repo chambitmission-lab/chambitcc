@@ -1,5 +1,5 @@
 // 기도 요청 작성 모달
-import { useState, FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { createPrayer } from '../../../api/prayer'
 import { validation } from '../../../utils/validation'
 import type { Prayer } from '../../../types/prayer'

@@ -1,5 +1,5 @@
 // Error Boundary 컴포넌트
-import { Component, ReactNode } from 'react'
+import { Component, type ReactNode } from 'react'
 
 interface Props {
   children: ReactNode

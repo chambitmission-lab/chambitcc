@@ -1,50 +1,61 @@
-/* 공통 스타일 */
+/* 공통 스타일 - 인스타그램 디자인 */
 
-/* Error Boundary */
+/* Error Boundary - 인스타그램 에러 스타일 */
 .error-boundary {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000;
-  color: #fff;
+  background: var(--ig-secondary-background);
+  color: var(--ig-primary-text);
   padding: 2rem;
 }
 
 .error-content {
   text-align: center;
-  max-width: 500px;
+  max-width: 400px;
+  background: var(--ig-primary-background);
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--ig-border);
 }
 
 .error-content h2 {
-  font-size: 2rem;
-  font-weight: 900;
-  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
 }
 
 .error-content p {
-  font-size: 1rem;
-  color: #999;
-  margin-bottom: 2rem;
+  font-size: 0.875rem;
+  color: var(--ig-secondary-text);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
 }
 
 .error-content button {
-  padding: 1rem 2rem;
-  background: #fff;
-  color: #000;
+  padding: 0.5rem 1.5rem;
+  background: var(--ig-blue);
+  color: #fff;
   border: none;
-  font-weight: 700;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.1s ease;
+  min-height: 32px;
 }
 
 .error-content button:hover {
-  background: #000;
-  color: #fff;
-  box-shadow: inset 0 0 0 2px #fff;
+  background: var(--ig-blue-hover);
 }
 
-/* Loading Container */
+.error-content button:active {
+  opacity: 0.7;
+}
+
+/* Loading Container - 인스타그램 로딩 스타일 */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -55,11 +66,11 @@
 
 .loading-message {
   margin-top: 1rem;
-  color: #666;
+  color: var(--ig-secondary-text);
   font-size: 0.875rem;
 }
 
-/* Utility Classes */
+/* Utility Classes - 인스타그램 스타일 */
 .text-center {
   text-align: center;
 }

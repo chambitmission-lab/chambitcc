@@ -1,7 +1,6 @@
 // Prayer API 호출 함수들
 import { API_V1 } from '../config/api'
 import type { 
-  Prayer, 
   PrayerListResponse, 
   CreatePrayerRequest, 
   PrayerResponse,

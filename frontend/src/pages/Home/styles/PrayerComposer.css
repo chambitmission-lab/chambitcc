@@ -1,4 +1,4 @@
-/* Prayer Composer Modal - 인스타그램 스타일 */
+/* Prayer Composer Modal - 인스타그램 Create Post 스타일 */
 
 .prayer-composer-overlay {
   position: fixed;
@@ -11,8 +11,9 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 1.25rem;
-  animation: fadeIn 0.2s ease;
+  padding: 1rem;
+  animation: fadeIn 0.15s ease;
+  backdrop-filter: blur(4px);
 }
 
 @keyframes fadeIn {
@@ -25,15 +26,17 @@
 }
 
 .prayer-composer {
-  background: #fff;
+  background: var(--ig-primary-background);
   border-radius: 12px;
   max-width: 500px;
   width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
   position: relative;
-  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes slideUp {
@@ -49,155 +52,167 @@
 
 .composer-close {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 32px;
-  height: 32px;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 40px;
+  height: 40px;
   background: transparent;
   border: none;
-  color: #262626;
-  font-size: 1.5rem;
+  color: var(--ig-primary-text);
+  font-size: 1.75rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.1s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
   border-radius: 50%;
+  line-height: 1;
 }
 
 .composer-close:hover {
-  background: #fafafa;
-  transform: rotate(90deg);
+  background: var(--ig-hover);
+}
+
+.composer-close:active {
+  opacity: 0.5;
 }
 
 .composer-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #dbdbdb;
+  padding: 1rem 1rem;
+  border-bottom: 1px solid var(--ig-border);
   text-align: center;
+  flex-shrink: 0;
 }
 
 .composer-title {
   font-size: 1rem;
   font-weight: 600;
   margin: 0;
-  color: #262626;
-  letter-spacing: 0;
+  color: var(--ig-primary-text);
+  letter-spacing: -0.01em;
 }
 
 .composer-subtitle {
-  font-size: 0.875rem;
-  color: #8e8e8e;
-  margin: 0.25rem 0 0 0;
+  font-size: 0.8125rem;
+  color: var(--ig-secondary-text);
+  margin: 0.375rem 0 0 0;
   font-weight: 400;
 }
 
 .composer-form {
-  padding: 1.5rem;
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .form-label {
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #262626;
+  color: var(--ig-primary-text);
   margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
 }
 
 .form-input,
 .form-textarea {
   width: 100%;
-  padding: 0.75rem;
-  background: #fafafa;
-  border: 1px solid #dbdbdb;
-  border-radius: 6px;
-  color: #262626;
-  font-size: 0.9375rem;
-  font-family: inherit;
-  transition: all 0.2s;
+  padding: 0.625rem 0.75rem;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 3px;
+  color: var(--ig-primary-text);
+  font-size: 0.875rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  transition: all 0.1s ease;
   outline: none;
 }
 
 .form-input:focus,
 .form-textarea:focus {
-  background: #fff;
-  border-color: #8e8e8e;
+  border-color: var(--ig-secondary-text);
 }
 
 .form-input::placeholder,
 .form-textarea::placeholder {
-  color: #8e8e8e;
+  color: var(--ig-secondary-text);
 }
 
 .form-textarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 140px;
   line-height: 1.5;
 }
 
 .char-count {
   text-align: right;
   font-size: 0.75rem;
-  color: #8e8e8e;
-  margin-top: 0.25rem;
+  color: var(--ig-secondary-text);
+  margin-top: 0.375rem;
 }
 
 .form-error {
-  padding: 0.75rem;
+  padding: 0.625rem 0.75rem;
   background: #fff5f5;
-  border: 1px solid #ed4956;
-  border-radius: 6px;
-  color: #ed4956;
-  font-size: 0.875rem;
+  border: 1px solid var(--ig-red);
+  border-radius: 3px;
+  color: var(--ig-red);
+  font-size: 0.8125rem;
   margin-bottom: 1rem;
   text-align: center;
 }
 
 .form-submit {
   width: 100%;
-  padding: 0.75rem;
-  background: #0095f6;
+  padding: 0.5rem;
+  background: var(--ig-blue);
   border: none;
   border-radius: 8px;
   color: #fff;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.1s ease;
+  min-height: 32px;
 }
 
 .form-submit:hover:not(:disabled) {
-  background: #1877f2;
+  background: var(--ig-blue-hover);
+}
+
+.form-submit:active:not(:disabled) {
+  opacity: 0.7;
 }
 
 .form-submit:disabled {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
-/* Scrollbar Styling */
-.prayer-composer::-webkit-scrollbar {
-  width: 6px;
+/* Scrollbar Styling - 인스타그램 스타일 */
+.composer-form::-webkit-scrollbar {
+  width: 8px;
 }
 
-.prayer-composer::-webkit-scrollbar-track {
-  background: #fafafa;
+.composer-form::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.prayer-composer::-webkit-scrollbar-thumb {
-  background: #dbdbdb;
-  border-radius: 3px;
+.composer-form::-webkit-scrollbar-thumb {
+  background: var(--ig-border);
+  border-radius: 4px;
 }
 
-.prayer-composer::-webkit-scrollbar-thumb:hover {
-  background: #c7c7c7;
+.composer-form::-webkit-scrollbar-thumb:hover {
+  background: var(--ig-secondary-text);
 }
 
-/* Responsive */
+/* Responsive - 인스타그램 모바일 스타일 */
 @media (max-width: 768px) {
   .prayer-composer-overlay {
     padding: 0;
@@ -211,15 +226,17 @@
   }
 
   .composer-header {
-    padding: 1rem 1.25rem;
+    padding: 0.875rem 1rem;
   }
 
   .composer-form {
-    padding: 1.25rem;
+    padding: 1rem;
   }
 
   .composer-close {
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 0.375rem;
+    right: 0.375rem;
+    width: 36px;
+    height: 36px;
   }
 }
