@@ -68,13 +68,13 @@ export const createPrayer = async (
   return response.json()
 }
 
-// 기도했어요 토글
-export const togglePrayer = async (
+// 기도했어요 (Single Responsibility: 기도 추가만 담당)
+export const addPrayer = async (
   prayerId: number,
   fingerprint: string
-): Promise<{ success: boolean; is_prayed: boolean; prayer_count: number }> => {
+): Promise<{ success: boolean; message: string }> => {
   const headers: HeadersInit = {
-    'X-Fingerprint': fingerprint,
+    'Content-Type': 'application/json',
   }
 
   const token = localStorage.getItem('token')
@@ -85,10 +85,36 @@ export const togglePrayer = async (
   const response = await fetch(`${API_V1}/prayers/${prayerId}/pray`, {
     method: 'POST',
     headers,
+    body: JSON.stringify({ fingerprint }),
   })
 
   if (!response.ok) {
-    throw new Error('기도 처리에 실패했습니다')
+    const error = await response.json()
+    throw new Error(error.detail || '기도 처리에 실패했습니다')
+  }
+
+  return response.json()
+}
+
+// 기도 취소 (Single Responsibility: 기도 취소만 담당)
+export const removePrayer = async (
+  prayerId: number
+): Promise<{ success: boolean; message: string }> => {
+  const headers: HeadersInit = {}
+
+  const token = localStorage.getItem('token')
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const response = await fetch(`${API_V1}/prayers/${prayerId}/pray`, {
+    method: 'DELETE',
+    headers,
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '기도 취소에 실패했습니다')
   }
 
   return response.json()

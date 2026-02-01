@@ -1,8 +1,9 @@
 // React Query를 사용한 Prayer 데이터 관리
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
-import { fetchPrayers, togglePrayer, createPrayer } from '../api/prayer'
+import { fetchPrayers, createPrayer } from '../api/prayer'
 import { getOrCreateFingerprint } from '../utils/fingerprint'
-import type { Prayer, SortType } from '../types/prayer'
+import { usePrayerToggle } from './usePrayerToggle'
+import type { SortType } from '../types/prayer'
 
 // Query Keys
 export const prayerKeys = {
@@ -36,76 +37,10 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     staleTime: 1000 * 60 * 2, // 2분간 fresh
   })
 
-  // 기도했어요 토글 Mutation
-  const toggleMutation = useMutation({
-    mutationFn: (prayerId: number) => togglePrayer(prayerId, fingerprint),
-    onMutate: async (prayerId) => {
-      // Optimistic Update
-      await queryClient.cancelQueries({ queryKey: prayerKeys.list(sort, fingerprint) })
-      
-      const previousData = queryClient.getQueryData(prayerKeys.list(sort, fingerprint))
-      
-      queryClient.setQueryData(prayerKeys.list(sort, fingerprint), (old: any) => {
-        if (!old) return old
-        
-        return {
-          ...old,
-          pages: old.pages.map((page: any) => ({
-            ...page,
-            data: {
-              ...page.data,
-              items: page.data.items.map((prayer: Prayer) =>
-                prayer.id === prayerId
-                  ? {
-                      ...prayer,
-                      is_prayed: !prayer.is_prayed,
-                      prayer_count: prayer.is_prayed 
-                        ? prayer.prayer_count - 1 
-                        : prayer.prayer_count + 1,
-                    }
-                  : prayer
-              ),
-            },
-          })),
-        }
-      })
-      
-      return { previousData }
-    },
-    onError: (_err, _prayerId, context) => {
-      // 에러 시 롤백
-      if (context?.previousData) {
-        queryClient.setQueryData(
-          prayerKeys.list(sort, fingerprint),
-          context.previousData
-        )
-      }
-    },
-    onSuccess: (data, prayerId) => {
-      // 서버 응답으로 정확한 값 업데이트
-      queryClient.setQueryData(prayerKeys.list(sort, fingerprint), (old: any) => {
-        if (!old) return old
-        
-        return {
-          ...old,
-          pages: old.pages.map((page: any) => ({
-            ...page,
-            data: {
-              ...page.data,
-              items: page.data.items.map((prayer: Prayer) =>
-                prayer.id === prayerId
-                  ? {
-                      ...prayer,
-                      is_prayed: data.is_prayed,
-                      prayer_count: data.prayer_count,
-                    }
-                  : prayer
-              ),
-            },
-          })),
-        }
-      })
-    },
+  // 기도 토글 훅 사용 (Dependency Inversion)
+  const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
+    fingerprint,
+    sort,
   })
 
   // 기도 생성 Mutation
@@ -120,6 +55,14 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
   // 모든 페이지의 prayers를 flat하게 변환
   const prayers = query.data?.pages.flatMap(page => page.data.items) ?? []
 
+  // 기도 토글 핸들러 (Open/Closed: 기존 인터페이스 유지하면서 새 구현 사용)
+  const handlePrayerToggle = async (prayerId: number): Promise<void> => {
+    const prayer = prayers.find(p => p.id === prayerId)
+    if (prayer) {
+      await handleToggle(prayerId, prayer.is_prayed)
+    }
+  }
+
   return {
     prayers,
     loading: query.isLoading,
@@ -129,7 +72,8 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     fingerprint,
     loadMore: query.fetchNextPage,
     isFetchingMore: query.isFetchingNextPage,
-    handlePrayerToggle: toggleMutation.mutate,
+    handlePrayerToggle,
+    isToggling,
     createPrayer: createMutation.mutate,
     isCreating: createMutation.isPending,
     refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort, fingerprint) }),
@@ -159,64 +103,31 @@ export const usePrayerDetail = (prayerId: number) => {
     staleTime: 1000 * 60 * 2, // 2분
   })
 
-  // 기도했어요 토글 Mutation
-  const toggleMutation = useMutation({
-    mutationFn: (prayerId: number) => togglePrayer(prayerId, fingerprint),
-    onMutate: async (prayerId) => {
-      // Optimistic Update
-      await queryClient.cancelQueries({ 
+  // 기도 토글 훅 사용 (Dependency Inversion)
+  const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
+    fingerprint,
+    onSuccess: () => {
+      // 상세 페이지 데이터 새로고침
+      queryClient.invalidateQueries({ 
         queryKey: [...prayerKeys.all, 'detail', prayerId, fingerprint] 
       })
-      
-      const previousData = queryClient.getQueryData([...prayerKeys.all, 'detail', prayerId, fingerprint])
-      
-      queryClient.setQueryData([...prayerKeys.all, 'detail', prayerId, fingerprint], (old: Prayer | undefined) => {
-        if (!old) return old
-        
-        return {
-          ...old,
-          is_prayed: !old.is_prayed,
-          prayer_count: old.is_prayed 
-            ? old.prayer_count - 1 
-            : old.prayer_count + 1,
-        }
-      })
-      
-      return { previousData }
-    },
-    onError: (_err, prayerId, context) => {
-      // 에러 시 롤백
-      if (context?.previousData) {
-        queryClient.setQueryData(
-          [...prayerKeys.all, 'detail', prayerId, fingerprint],
-          context.previousData
-        )
-      }
-    },
-    onSuccess: (data, prayerId) => {
-      // 서버 응답으로 정확한 값 업데이트
-      queryClient.setQueryData([...prayerKeys.all, 'detail', prayerId, fingerprint], (old: Prayer | undefined) => {
-        if (!old) return old
-        
-        return {
-          ...old,
-          is_prayed: data.is_prayed,
-          prayer_count: data.prayer_count,
-        }
-      })
-
-      // 목록 캐시도 업데이트
-      queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
     },
   })
+
+  // 기도 토글 핸들러
+  const handlePrayerToggle = () => {
+    if (query.data) {
+      handleToggle(prayerId, query.data.is_prayed)
+    }
+  }
 
   return {
     prayer: query.data,
     loading: query.isLoading,
     error: query.error?.message ?? null,
     fingerprint,
-    handlePrayerToggle: () => toggleMutation.mutate(prayerId),
-    isToggling: toggleMutation.isPending,
+    handlePrayerToggle,
+    isToggling,
     refresh: () => queryClient.invalidateQueries({ 
       queryKey: [...prayerKeys.all, 'detail', prayerId, fingerprint] 
     }),

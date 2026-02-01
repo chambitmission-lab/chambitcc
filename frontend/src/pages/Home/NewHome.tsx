@@ -3,6 +3,7 @@ import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
+import { showToast } from '../../utils/toast'
 import type { Prayer, SortType } from '../../types/prayer'
 
 const NewHome = () => {
@@ -14,6 +15,16 @@ const NewHome = () => {
 
   const handleSortChange = (newSort: SortType) => {
     setSort(newSort)
+  }
+
+  // 기도 토글 핸들러 with 토스트 메시지
+  const handlePrayerToggle = async (prayerId: number) => {
+    try {
+      await prayerHook.handlePrayerToggle(prayerId)
+      // 성공 메시지는 usePrayerToggle 훅에서 처리
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : '기도 처리에 실패했습니다', 'error')
+    }
   }
 
   // Infinite scroll observer
@@ -111,7 +122,7 @@ const NewHome = () => {
                 <PrayerArticle
                   key={prayer.id}
                   prayer={prayer}
-                  onPrayerToggle={prayerHook.handlePrayerToggle}
+                  onPrayerToggle={handlePrayerToggle}
                   onClick={() => setSelectedPrayerId(prayer.id)}
                 />
               ))}
@@ -242,8 +253,11 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
     e.stopPropagation() // 카드 클릭 이벤트 방지
     if (isPraying) return
     setIsPraying(true)
-    await onPrayerToggle(prayer.id)
-    setIsPraying(false)
+    try {
+      await onPrayerToggle(prayer.id)
+    } finally {
+      setIsPraying(false)
+    }
   }
 
   // 영어 번역이 있는지 확인
