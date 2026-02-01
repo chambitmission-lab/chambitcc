@@ -264,30 +264,25 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
       </div>
 
       {/* Actions */}
-      <div className="px-4 flex items-center justify-between mb-2">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handlePray}
-            disabled={isPraying}
-            className={`group flex items-center gap-1 transition-colors ${
-              prayer.is_prayed ? 'text-primary' : 'text-gray-800 dark:text-white hover:opacity-70'
-            }`}
-          >
-            <span className={`text-[24px] ${prayer.is_prayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
-              volunteer_activism
-            </span>
-          </button>
-          <button className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity">
-            <span className="material-icons-outlined text-[22px] transform -scale-x-100">
-              chat_bubble_outline
-            </span>
-          </button>
-          <button className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity">
-            <span className="material-icons-outlined text-[22px] -rotate-45 mb-1">send</span>
-          </button>
-        </div>
+      <div className="px-4 flex items-center gap-3 mb-2">
+        <button
+          onClick={handlePray}
+          disabled={isPraying}
+          className={`group flex items-center gap-1 transition-colors ${
+            prayer.is_prayed ? 'text-primary' : 'text-gray-800 dark:text-white hover:opacity-70'
+          }`}
+        >
+          <span className={`text-[24px] ${prayer.is_prayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
+            volunteer_activism
+          </span>
+        </button>
         <button className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity">
-          <span className="material-icons-outlined text-[24px]">bookmark_border</span>
+          <span className="material-icons-outlined text-[22px] transform -scale-x-100">
+            chat_bubble_outline
+          </span>
+        </button>
+        <button className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity">
+          <span className="material-icons-outlined text-[22px] -rotate-45 mb-1">send</span>
         </button>
       </div>
 
