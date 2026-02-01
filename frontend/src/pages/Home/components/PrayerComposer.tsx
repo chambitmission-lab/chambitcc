@@ -20,13 +20,13 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
   
   // Get username from localStorage
   const getUserName = (): string => {
-    if (!isLoggedIn || isAnonymous) return 'Anonymous'
+    if (!isLoggedIn || isAnonymous) return '익명'
     
     // 우선순위: full_name > username
     const fullName = localStorage.getItem('user_full_name')
     const username = localStorage.getItem('user_username')
     
-    return fullName || username || 'Anonymous'
+    return fullName || username || '익명'
   }
   
   const displayName = getUserName()

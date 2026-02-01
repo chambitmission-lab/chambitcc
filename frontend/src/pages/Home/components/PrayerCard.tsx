@@ -11,6 +11,9 @@ const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isPraying, setIsPraying] = useState(false)
 
+  // Anonymous를 익명으로 변환
+  const displayName = prayer.display_name === 'Anonymous' ? '익명' : prayer.display_name
+
   const handlePrayClick = async () => {
     if (isPraying) return
     
@@ -28,10 +31,10 @@ const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
     <article className="prayer-card">
       <div className="card-header">
         <div className="card-avatar">
-          {prayer.display_name.charAt(0).toUpperCase()}
+          {displayName.charAt(0).toUpperCase()}
         </div>
         <div className="card-meta">
-          <span className="card-author">{prayer.display_name}</span>
+          <span className="card-author">{displayName}</span>
           <span className="card-time">{prayer.time_ago}</span>
         </div>
       </div>
