@@ -149,32 +149,55 @@ const NewHome = () => {
           <div className="absolute bottom-24 right-5 md:hidden z-40">
             <button
               onClick={() => setShowComposer(true)}
-              className="w-14 h-14 bg-primary rounded-full shadow-lg shadow-blue-500/30 flex items-center justify-center text-white hover:bg-blue-600 transition-all transform hover:scale-105 active:scale-95"
+              className="w-14 h-14 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full shadow-lg shadow-purple-500/30 flex items-center justify-center text-white hover:scale-105 transition-all active:scale-95"
             >
-              <span className="material-icons-outlined text-2xl">edit</span>
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
             </button>
           </div>
 
           {/* Bottom Navigation */}
           <nav className="sticky bottom-0 bg-background-light dark:bg-background-dark border-t border-border-light dark:border-border-dark h-[84px] pb-5 px-6 flex justify-between items-center z-50">
-            <button className="flex flex-col items-center justify-center w-10 text-gray-900 dark:text-white">
-              <span className="material-icons-round text-[30px]">home</span>
+            {/* Home */}
+            <button className="flex flex-col items-center justify-center w-10 text-gray-900 dark:text-white transition-all hover:opacity-60">
+              <svg className="w-[27px] h-[27px]" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M22 23h-6.001a1 1 0 0 1-1-1v-5.455a2.997 2.997 0 1 0-5.993 0V22a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V11.543a1.002 1.002 0 0 1 .31-.724l10-9.543a1.001 1.001 0 0 1 1.38 0l10 9.543a1.002 1.002 0 0 1 .31.724V22a1 1 0 0 1-1 1Z"/>
+              </svg>
             </button>
-            <button className="flex flex-col items-center justify-center w-10 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
-              <span className="material-icons-outlined text-[30px]">search</span>
+            
+            {/* Search */}
+            <button className="flex flex-col items-center justify-center w-10 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all">
+              <svg className="w-[27px] h-[27px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
+                <circle cx="10.5" cy="10.5" r="7.5"/>
+                <line x1="16.5" y1="16.5" x2="22" y2="22"/>
+              </svg>
             </button>
+            
+            {/* Add/Create */}
             <button
               onClick={() => setShowComposer(true)}
-              className="flex flex-col items-center justify-center w-10 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="flex flex-col items-center justify-center w-10 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all"
             >
-              <span className="material-icons-outlined text-[30px]">add_box</span>
+              <svg className="w-[27px] h-[27px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
             </button>
-            <button className="flex flex-col items-center justify-center w-10 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">
-              <span className="material-icons-outlined text-[30px]">favorite_border</span>
+            
+            {/* Likes/Favorites */}
+            <button className="flex flex-col items-center justify-center w-10 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all">
+              <svg className="w-[27px] h-[27px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
             </button>
-            <button className="flex flex-col items-center justify-center w-10">
-              <div className="w-7 h-7 rounded-full bg-gray-300 dark:bg-gray-700 overflow-hidden border border-gray-200 dark:border-gray-600 flex items-center justify-center">
-                <span className="text-xs">👤</span>
+            
+            {/* Profile */}
+            <button className="flex flex-col items-center justify-center w-10 transition-all hover:opacity-60">
+              <div className="w-[27px] h-[27px] rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden border-2 border-gray-400 dark:border-gray-500 flex items-center justify-center">
+                <span className="text-gray-600 dark:text-gray-300 text-xs font-semibold">A</span>
               </div>
             </button>
           </nav>
@@ -286,31 +309,48 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
       </div>
 
       {/* Actions */}
-      <div className="px-4 flex items-center gap-3 mb-2">
+      <div className="px-4 flex items-center gap-4 mb-2">
         <button
           onClick={handlePray}
           disabled={isPraying}
-          className={`group flex items-center gap-1 transition-colors ${
-            prayer.is_prayed ? 'text-primary' : 'text-gray-800 dark:text-white hover:opacity-70'
+          className={`group flex items-center gap-1 transition-all ${
+            prayer.is_prayed ? 'text-red-500' : 'text-gray-800 dark:text-white hover:opacity-70'
           }`}
         >
-          <span className={`text-[24px] ${prayer.is_prayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
-            volunteer_activism
-          </span>
+          {prayer.is_prayed ? (
+            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          ) : (
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          )}
         </button>
         <button 
           onClick={(e) => e.stopPropagation()}
           className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity"
         >
-          <span className="material-icons-outlined text-[22px] transform -scale-x-100">
-            chat_bubble_outline
-          </span>
+          <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
         </button>
         <button 
           onClick={(e) => e.stopPropagation()}
           className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity"
         >
-          <span className="material-icons-outlined text-[22px] -rotate-45 mb-1">send</span>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+        <button 
+          onClick={(e) => e.stopPropagation()}
+          className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity ml-auto"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+          </svg>
         </button>
       </div>
 
