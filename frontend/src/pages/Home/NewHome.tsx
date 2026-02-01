@@ -20,47 +20,26 @@ const NewHome = () => {
         <div className="max-w-md mx-auto min-h-screen bg-background-light dark:bg-background-dark shadow-2xl relative flex flex-col border-x border-border-light dark:border-border-dark">
           
           <main className="flex-1 overflow-y-auto no-scrollbar pb-20">
-            {/* Story Section */}
-            <section className="pt-3 pb-2 border-b border-border-light dark:border-border-dark">
-              <div className="flex gap-4 overflow-x-auto px-4 no-scrollbar pb-2">
-                {/* Your Prayer Story */}
-                <div className="flex flex-col items-center gap-1 min-w-[72px]">
-                  <div className="w-[68px] h-[68px] rounded-full p-[2px] relative cursor-pointer">
-                    <div className="w-full h-full bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
-                      <span className="text-2xl">🙏</span>
-                    </div>
-                    <div className="absolute bottom-0 right-0 bg-primary text-white text-[14px] w-5 h-5 flex items-center justify-center rounded-full border-2 border-white dark:border-black shadow-sm font-bold leading-none pb-0.5">
-                      +
-                    </div>
+            {/* Today's Verse Banner */}
+            <section className="px-4 py-4 border-b border-border-light dark:border-border-dark">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-5 border border-blue-100/50 dark:border-gray-700/50">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <span className="material-icons-round text-primary text-xl">auto_stories</span>
                   </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">내 기도</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">오늘의 말씀</p>
+                    <p className="text-sm text-gray-900 dark:text-white leading-relaxed font-medium">
+                      "너희 마른 뼈들아, 이제 살아나리라!"
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">에스겔 37:5, 10</p>
+                  </div>
                 </div>
-
-                {/* Category Stories */}
-                {[
-                  { name: '건강', emoji: '💊', active: true },
-                  { name: '가족', emoji: '👨‍👩‍👧‍👦', active: true },
-                  { name: '직장', emoji: '💼', active: false },
-                  { name: '평안', emoji: '☮️', active: false },
-                ].map((category) => (
-                  <div key={category.name} className="flex flex-col items-center gap-1 min-w-[72px] cursor-pointer group">
-                    <div className={`w-[68px] h-[68px] rounded-full p-[2px] ${category.active ? 'story-ring-gradient' : 'bg-gray-200 dark:bg-gray-700'} ${category.active ? 'group-hover:scale-105' : ''} transition-transform duration-200`}>
-                      <div className="w-full h-full bg-white dark:bg-black rounded-full p-[2px] flex items-center justify-center">
-                        <span className={`text-3xl ${!category.active && 'filter grayscale opacity-50'}`}>
-                          {category.emoji}
-                        </span>
-                      </div>
-                    </div>
-                    <span className={`text-xs font-medium ${category.active ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
-                      {category.name}
-                    </span>
-                  </div>
-                ))}
               </div>
             </section>
 
             {/* Sort Tabs */}
-            <section className="bg-background-light dark:bg-background-dark py-3 px-4 flex items-center justify-between border-b border-border-light dark:border-border-dark sticky top-14 z-40">
+            <section className="bg-background-light dark:bg-background-dark py-3 px-4 flex items-center justify-between border-b border-border-light dark:border-border-dark sticky top-0 z-40">
               <div className="flex gap-6">
                 <button
                   onClick={() => handleSortChange('popular')}
@@ -70,7 +49,7 @@ const NewHome = () => {
                       : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
                   }`}
                 >
-                  Popular
+                  인기
                 </button>
                 <button
                   onClick={() => handleSortChange('latest')}
@@ -80,10 +59,7 @@ const NewHome = () => {
                       : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
                   }`}
                 >
-                  Latest
-                </button>
-                <button className="text-sm font-medium text-gray-400 dark:text-gray-500 pb-1.5 hover:text-gray-600 dark:hover:text-gray-300">
-                  My Feed
+                  최신
                 </button>
               </div>
             </section>
