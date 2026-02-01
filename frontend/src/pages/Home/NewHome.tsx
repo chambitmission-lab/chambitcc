@@ -174,6 +174,7 @@ interface PrayerArticleProps {
 
 const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
   const [isPraying, setIsPraying] = useState(false)
+  const [showEnglish, setShowEnglish] = useState(false)
 
   const handlePray = async () => {
     if (isPraying) return
@@ -181,6 +182,13 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
     await onPrayerToggle(prayer.id)
     setIsPraying(false)
   }
+
+  // 영어 번역이 있는지 확인
+  const hasTranslation = !!(prayer.title_en && prayer.content_en)
+  
+  // 현재 표시할 제목과 내용 결정
+  const displayTitle = showEnglish && prayer.title_en ? prayer.title_en : prayer.title
+  const displayContent = showEnglish && prayer.content_en ? prayer.content_en : prayer.content
 
   return (
     <article className="bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-4 mb-3">
@@ -199,9 +207,20 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
             </span>
           </div>
         </div>
-        <button className="text-gray-500 dark:text-gray-400">
-          <span className="material-icons-outlined">more_horiz</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {hasTranslation && (
+            <button
+              onClick={() => setShowEnglish(!showEnglish)}
+              className="px-2.5 py-1.5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-[10px] font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
+              title={showEnglish ? '한글로 보기' : 'View in English'}
+            >
+              {showEnglish ? '🇰🇷 한글' : '🇺🇸 EN'}
+            </button>
+          )}
+          <button className="text-gray-500 dark:text-gray-400">
+            <span className="material-icons-outlined">more_horiz</span>
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -209,10 +228,10 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-indigo-100/50 dark:border-gray-700/50 relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-full blur-3xl"></div>
           <h3 className="text-[11px] font-bold text-primary mb-3 uppercase tracking-[0.1em] relative z-10">
-            {prayer.title}
+            {displayTitle}
           </h3>
           <p className="text-[15px] text-gray-900 dark:text-gray-100 leading-[1.7] relative z-10 font-normal tracking-[-0.02em]">
-            {prayer.content}
+            {displayContent}
           </p>
         </div>
       </div>

@@ -280,6 +280,39 @@
   color: var(--ig-secondary-text);
 }
 
+/* 언어 토글 버튼 */
+.language-toggle {
+  padding: 0.375rem 0.75rem;
+  background: var(--ig-hover);
+  border: 1px solid var(--ig-border);
+  border-radius: 6px;
+  color: var(--ig-primary-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.language-toggle:hover {
+  background: var(--ig-border);
+  transform: translateY(-1px);
+}
+
+.language-toggle:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .language-toggle {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
 .card-divider {
   display: none;
 }

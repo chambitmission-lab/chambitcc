@@ -10,9 +10,13 @@ interface PrayerCardProps {
 const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isPraying, setIsPraying] = useState(false)
+  const [showEnglish, setShowEnglish] = useState(false)
 
   // Anonymous를 익명으로 변환
   const displayName = prayer.display_name === 'Anonymous' ? '익명' : prayer.display_name
+  
+  // 영어 번역이 있는지 확인
+  const hasTranslation = !!(prayer.title_en && prayer.content_en)
 
   const handlePrayClick = async () => {
     if (isPraying) return
@@ -26,6 +30,10 @@ const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
     if (text.length <= maxLength) return text
     return text.slice(0, maxLength) + '...'
   }
+  
+  // 현재 표시할 제목과 내용 결정
+  const displayTitle = showEnglish && prayer.title_en ? prayer.title_en : prayer.title
+  const displayContent = showEnglish && prayer.content_en ? prayer.content_en : prayer.content
 
   return (
     <article className="prayer-card">
@@ -37,15 +45,24 @@ const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
           <span className="card-author">{displayName}</span>
           <span className="card-time">{prayer.time_ago}</span>
         </div>
+        {hasTranslation && (
+          <button
+            className="language-toggle"
+            onClick={() => setShowEnglish(!showEnglish)}
+            title={showEnglish ? '한글로 보기' : 'View in English'}
+          >
+            {showEnglish ? '🇰🇷 한글' : '🇺🇸 English'}
+          </button>
+        )}
       </div>
 
-      <h3 className="card-title">{prayer.title}</h3>
+      <h3 className="card-title">{displayTitle}</h3>
 
       <div className="card-content">
         <p className={`card-text ${isExpanded ? 'expanded' : ''}`}>
-          {isExpanded ? prayer.content : truncateContent(prayer.content)}
+          {isExpanded ? displayContent : truncateContent(displayContent)}
         </p>
-        {prayer.content.length > 120 && (
+        {displayContent.length > 120 && (
           <button
             className="card-expand"
             onClick={() => setIsExpanded(!isExpanded)}
