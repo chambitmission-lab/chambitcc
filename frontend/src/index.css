@@ -12,9 +12,9 @@
 }
 
 :root {
-  /* 인스타그램 스타일 폰트 스택 - 시스템 폰트 우선 */
-  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "SUIT Variable", SUIT, "Malgun Gothic", "맑은 고딕", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  line-height: 1.5;
+  /* Pretendard - MZ세대 선호 폰트 */
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  line-height: 1.6;
   font-weight: 400;
   
   /* Instagram 컬러 팔레트 */

@@ -230,14 +230,12 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
 
       {/* Content */}
       <div className="px-4 mb-3">
-        <div className="bg-indigo-50 dark:bg-gray-900 rounded-xl p-5 border border-indigo-100 dark:border-gray-800 relative overflow-hidden">
-          <span className="absolute top-2 left-3 text-6xl text-indigo-200 dark:text-gray-700 font-serif opacity-50 select-none">
-            "
-          </span>
-          <h3 className="text-xs font-bold text-primary mb-2 uppercase tracking-wider relative z-10">
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-indigo-100/50 dark:border-gray-700/50 relative overflow-hidden shadow-sm">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-full blur-3xl"></div>
+          <h3 className="text-[11px] font-bold text-primary mb-3 uppercase tracking-[0.1em] relative z-10">
             {prayer.title}
           </h3>
-          <p className="text-[15px] text-gray-800 dark:text-gray-200 leading-relaxed relative z-10" style={{ fontWeight: 400, letterSpacing: '-0.01em' }}>
+          <p className="text-[15px] text-gray-900 dark:text-gray-100 leading-[1.7] relative z-10 font-normal tracking-[-0.02em]">
             {prayer.content}
           </p>
         </div>
