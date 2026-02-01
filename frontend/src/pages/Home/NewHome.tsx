@@ -237,7 +237,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
           <h3 className="text-xs font-bold text-primary mb-2 uppercase tracking-wider relative z-10">
             {prayer.title}
           </h3>
-          <p className="text-lg text-gray-800 dark:text-gray-200 font-serif leading-relaxed relative z-10">
+          <p className="text-[15px] text-gray-800 dark:text-gray-200 leading-relaxed relative z-10" style={{ fontWeight: 400, letterSpacing: '-0.01em' }}>
             {prayer.content}
           </p>
         </div>

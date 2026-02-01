@@ -17,7 +17,8 @@ export default {
         "border-dark": "#262626",
       },
       fontFamily: {
-        display: ["Inter", "sans-serif"],
+        display: ["-apple-system", "BlinkMacSystemFont", "Apple SD Gothic Neo", "SUIT Variable", "SUIT", "Malgun Gothic", "맑은 고딕", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "Apple SD Gothic Neo", "SUIT Variable", "SUIT", "Malgun Gothic", "맑은 고딕", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
       },
       borderRadius: {
         DEFAULT: "8px",
