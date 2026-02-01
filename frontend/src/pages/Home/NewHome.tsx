@@ -183,7 +183,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
   }
 
   return (
-    <article className="bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-2">
+    <article className="bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-4 mb-3">
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -205,7 +205,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
       </div>
 
       {/* Content */}
-      <div className="px-4 mb-3">
+      <div className="px-4 mb-4">
         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-indigo-100/50 dark:border-gray-700/50 relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-full blur-3xl"></div>
           <h3 className="text-[11px] font-bold text-primary mb-3 uppercase tracking-[0.1em] relative z-10">
@@ -218,7 +218,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle }: PrayerArticleProps) => {
       </div>
 
       {/* Actions */}
-      <div className="px-4 flex items-center justify-between mb-2">
+      <div className="px-4 flex items-center justify-between mb-3">
         <div className="flex items-center gap-4">
           <button
             onClick={handlePray}
