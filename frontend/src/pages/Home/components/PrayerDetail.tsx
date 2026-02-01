@@ -100,25 +100,17 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
               disabled={isToggling}
               className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all ${
                 prayer.is_prayed
-                  ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
-              {prayer.is_prayed ? (
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-              )}
+              <span className={`text-xl ${prayer.is_prayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
+                volunteer_activism
+              </span>
               <span>{prayer.is_prayed ? '기도중' : '기도하기'}</span>
             </button>
             <button className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
+              <span className="material-icons-outlined text-xl transform -scale-x-100">chat_bubble_outline</span>
               <span>댓글</span>
             </button>
           </div>

@@ -309,48 +309,31 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
       </div>
 
       {/* Actions */}
-      <div className="px-4 flex items-center gap-4 mb-2">
+      <div className="px-4 flex items-center gap-3 mb-2">
         <button
           onClick={handlePray}
           disabled={isPraying}
-          className={`group flex items-center gap-1 transition-all ${
-            prayer.is_prayed ? 'text-red-500' : 'text-gray-800 dark:text-white hover:opacity-70'
+          className={`group flex items-center gap-1 transition-colors ${
+            prayer.is_prayed ? 'text-primary' : 'text-gray-800 dark:text-white hover:opacity-70'
           }`}
         >
-          {prayer.is_prayed ? (
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-          ) : (
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-          )}
+          <span className={`text-[24px] ${prayer.is_prayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
+            volunteer_activism
+          </span>
         </button>
         <button 
           onClick={(e) => e.stopPropagation()}
           className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity"
         >
-          <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
+          <span className="material-icons-outlined text-[22px] transform -scale-x-100">
+            chat_bubble_outline
+          </span>
         </button>
         <button 
           onClick={(e) => e.stopPropagation()}
           className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <line x1="22" y1="2" x2="11" y2="13"/>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-          </svg>
-        </button>
-        <button 
-          onClick={(e) => e.stopPropagation()}
-          className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity ml-auto"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
-          </svg>
+          <span className="material-icons-outlined text-[22px] -rotate-45 mb-1">send</span>
         </button>
       </div>
 
