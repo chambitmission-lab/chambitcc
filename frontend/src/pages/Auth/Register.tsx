@@ -68,7 +68,7 @@ const Register = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold tracking-tighter font-display text-gray-900 dark:text-white mb-2">
-            TrueLight
+            참빛교회
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             참빛교회 온라인 서비스를 이용하세요
@@ -153,7 +153,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 bg-primary text-white font-semibold rounded text-sm hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+              className="w-full py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg text-sm hover:from-blue-600 hover:to-blue-700 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-sm mt-4"
             >
               {loading ? '가입 중...' : '회원가입'}
             </button>

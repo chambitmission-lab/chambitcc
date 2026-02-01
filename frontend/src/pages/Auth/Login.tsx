@@ -58,7 +58,7 @@ const Login = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold tracking-tighter font-display text-gray-900 dark:text-white mb-2">
-            TrueLight
+            참빛교회
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             참빛교회에 오신 것을 환영합니다
@@ -103,7 +103,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 bg-primary text-white font-semibold rounded text-sm hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg text-sm hover:from-blue-600 hover:to-blue-700 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-sm"
             >
               {loading ? '로그인 중...' : '로그인'}
             </button>
