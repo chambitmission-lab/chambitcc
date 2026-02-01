@@ -33,15 +33,15 @@ const NewHome = () => {
                       +
                     </div>
                   </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Your Prayer</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">내 기도</span>
                 </div>
 
                 {/* Category Stories */}
                 {[
-                  { name: 'Health', emoji: '💊', active: true },
-                  { name: 'Family', emoji: '👨‍👩‍👧‍👦', active: true },
-                  { name: 'Work', emoji: '💼', active: false },
-                  { name: 'Peace', emoji: '☮️', active: false },
+                  { name: '건강', emoji: '💊', active: true },
+                  { name: '가족', emoji: '👨‍👩‍👧‍👦', active: true },
+                  { name: '직장', emoji: '💼', active: false },
+                  { name: '평안', emoji: '☮️', active: false },
                 ].map((category) => (
                   <div key={category.name} className="flex flex-col items-center gap-1 min-w-[72px] cursor-pointer group">
                     <div className={`w-[68px] h-[68px] rounded-full p-[2px] ${category.active ? 'story-ring-gradient' : 'bg-gray-200 dark:bg-gray-700'} ${category.active ? 'group-hover:scale-105' : ''} transition-transform duration-200`}>

@@ -28,7 +28,7 @@ const NewHeader = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <h1 className="text-xl font-bold tracking-tighter font-display select-none text-gray-900 dark:text-white">
-            TrueLight
+            참빛교회
           </h1>
         </Link>
 
