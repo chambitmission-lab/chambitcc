@@ -17,7 +17,8 @@ export const logout = () => {
   queryClient.clear()
   
   // 페이지 새로고침하여 모든 상태 초기화
-  window.location.href = '/'
+  const basePath = import.meta.env.PROD ? '/chambitcc' : ''
+  window.location.href = basePath + '/'
 }
 
 /**

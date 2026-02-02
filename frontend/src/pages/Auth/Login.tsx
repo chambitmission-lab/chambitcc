@@ -67,11 +67,12 @@ const Login = () => {
       
       // 저장된 리다이렉트 경로가 있으면 그곳으로, 없으면 홈으로
       const redirectPath = sessionStorage.getItem('redirect_after_login')
+      const basePath = import.meta.env.PROD ? '/chambitcc' : ''
       if (redirectPath) {
         sessionStorage.removeItem('redirect_after_login')
-        window.location.href = redirectPath
+        window.location.href = basePath + redirectPath
       } else {
-        window.location.href = '/'
+        window.location.href = basePath + '/'
       }
     } catch (err) {
       console.error('로그인 에러:', err) // 디버깅용
