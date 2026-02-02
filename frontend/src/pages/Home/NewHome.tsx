@@ -344,20 +344,6 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
             volunteer_activism
           </span>
         </button>
-        <button 
-          onClick={(e) => e.stopPropagation()}
-          className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity"
-        >
-          <span className="material-icons-outlined text-[22px] transform -scale-x-100">
-            chat_bubble_outline
-          </span>
-        </button>
-        <button 
-          onClick={(e) => e.stopPropagation()}
-          className="text-gray-800 dark:text-white hover:opacity-60 transition-opacity"
-        >
-          <span className="material-icons-outlined text-[22px] -rotate-45 mb-1">send</span>
-        </button>
       </div>
 
       {/* Stats */}
