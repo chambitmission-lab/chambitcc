@@ -33,12 +33,6 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     
-    // 로그인 체크
-    if (!isLoggedIn) {
-      setError('로그인이 필요합니다')
-      return
-    }
-    
     // 검증
     const titleValidation = validation.validateTitle(title)
     if (!titleValidation.valid) {

@@ -17,6 +17,16 @@ const NewHome = () => {
     setSort(newSort)
   }
 
+  // 기도 작성 버튼 클릭 핸들러 (로그인 체크)
+  const handleComposerOpen = () => {
+    const isLoggedIn = !!localStorage.getItem('access_token')
+    if (!isLoggedIn) {
+      showToast('로그인이 필요합니다', 'error')
+      return
+    }
+    setShowComposer(true)
+  }
+
   // 기도 토글 핸들러 with 토스트 메시지
   const handlePrayerToggle = async (prayerId: number) => {
     try {
@@ -104,12 +114,12 @@ const NewHome = () => {
                   className="w-full bg-surface-light dark:bg-surface-dark border-none rounded-full px-4 py-2 text-sm focus:ring-1 focus:ring-primary dark:text-white placeholder-gray-500"
                   placeholder="기도 제목을 나눠주세요..."
                   type="text"
-                  onClick={() => setShowComposer(true)}
+                  onClick={handleComposerOpen}
                   readOnly
                 />
               </div>
               <button
-                onClick={() => setShowComposer(true)}
+                onClick={handleComposerOpen}
                 className="text-primary font-semibold text-sm"
               >
                 작성
@@ -159,7 +169,7 @@ const NewHome = () => {
           {/* Floating Action Button */}
           <div className="absolute bottom-24 right-5 md:hidden z-40">
             <button
-              onClick={() => setShowComposer(true)}
+              onClick={handleComposerOpen}
               className="w-14 h-14 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full shadow-lg shadow-purple-500/30 flex items-center justify-center text-white hover:scale-105 transition-all active:scale-95"
             >
               <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
@@ -188,7 +198,7 @@ const NewHome = () => {
             
             {/* Add/Create */}
             <button
-              onClick={() => setShowComposer(true)}
+              onClick={handleComposerOpen}
               className="flex flex-col items-center justify-center w-10 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all"
             >
               <svg className="w-[27px] h-[27px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
