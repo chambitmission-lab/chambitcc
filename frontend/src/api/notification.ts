@@ -1,6 +1,6 @@
 // 공지사항 API
 import { API_V1, apiFetch } from '../config/api'
-import type { Notification, CreateNotificationRequest, UpdateNotificationRequest, UnreadCountResponse } from '../types/notification'
+import type { Notification, CreateNotificationRequest, UpdateNotificationRequest } from '../types/notification'
 
 /**
  * 공지사항 목록 조회 (모든 사용자)
