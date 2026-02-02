@@ -398,12 +398,20 @@
   opacity: 0.5;
 }
 
+/* 기도중 상태 - 빨간색 */
+.prayer-card .card-footer .prayer-button.prayed,
 .prayer-button.prayed {
-  color: var(--ig-red);
+  color: #ed4956 !important;
 }
 
+.prayer-card .card-footer .prayer-button.prayed .prayer-icon,
 .prayer-button.prayed .prayer-icon {
   animation: likeAnimation 0.4s ease;
+}
+
+.prayer-card .card-footer .prayer-button.prayed .prayer-count,
+.prayer-button.prayed .prayer-count {
+  color: #ed4956 !important;
 }
 
 @keyframes likeAnimation {

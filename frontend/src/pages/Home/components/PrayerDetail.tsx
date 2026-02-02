@@ -124,7 +124,7 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
               disabled={isToggling}
               className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all ${
                 prayer.is_prayed
-                  ? 'bg-primary text-white'
+                  ? 'bg-ig-red text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >

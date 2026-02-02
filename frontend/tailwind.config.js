@@ -9,6 +9,7 @@ export default {
     extend: {
       colors: {
         primary: "#0095f6",
+        "ig-red": "#ed4956",
         "background-light": "#ffffff",
         "background-dark": "#000000",
         "surface-light": "#fafafa",

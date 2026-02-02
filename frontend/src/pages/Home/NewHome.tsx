@@ -337,7 +337,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
           onClick={handlePray}
           disabled={isPraying}
           className={`group flex items-center gap-1 transition-colors ${
-            prayer.is_prayed ? 'text-primary' : 'text-gray-800 dark:text-white hover:opacity-70'
+            prayer.is_prayed ? 'text-ig-red' : 'text-gray-800 dark:text-white hover:opacity-70'
           }`}
         >
           <span className={`text-[24px] ${prayer.is_prayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
