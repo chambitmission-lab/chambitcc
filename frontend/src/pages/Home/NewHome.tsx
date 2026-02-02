@@ -313,12 +313,6 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
               {showEnglish ? '🇰🇷 한글' : '🇺🇸 EN'}
             </button>
           )}
-          <button 
-            onClick={(e) => e.stopPropagation()}
-            className="text-gray-500 dark:text-gray-400"
-          >
-            <span className="material-icons-outlined">more_horiz</span>
-          </button>
         </div>
       </div>
 
