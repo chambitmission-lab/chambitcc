@@ -221,7 +221,6 @@ const NewHome = () => {
                 prayerHook.refresh()
                 setShowComposer(false)
               }}
-              fingerprint={prayerHook.fingerprint}
             />
           )}
 

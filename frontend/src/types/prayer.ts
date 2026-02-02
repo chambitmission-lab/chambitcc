@@ -32,9 +32,8 @@ export interface PrayerListResponse {
 export interface CreatePrayerRequest {
   title: string
   content: string
-  display_name: string
+  display_name?: string  // 선택 (기본값: "익명")
   is_fully_anonymous: boolean
-  fingerprint: string
 }
 
 export interface PrayerResponse {
@@ -65,8 +64,7 @@ export interface ReplyListResponse {
 
 export interface CreateReplyRequest {
   content: string
-  display_name: string
-  fingerprint: string
+  display_name?: string  // 선택 (기본값: "익명")
 }
 
 export interface ReplyResponse {

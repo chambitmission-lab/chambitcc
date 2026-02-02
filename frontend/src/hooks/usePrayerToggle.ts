@@ -5,7 +5,6 @@ import { showToast } from '../utils/toast'
 import type { Prayer, SortType } from '../types/prayer'
 
 interface UsePrayerToggleOptions {
-  fingerprint: string
   sort?: SortType
   onSuccess?: (message: string) => void
   onError?: (error: string) => void
@@ -17,13 +16,12 @@ interface PrayerToggleResult {
 }
 
 /**
- * 기도 토글 기능을 제공하는 훅
+ * 기도 토글 기능을 제공하는 훅 (로그인 필수)
  * - 기도 추가/취소를 처리
  * - Optimistic Update로 즉각적인 UI 반응
  * - 에러 시 자동 롤백
  */
 export const usePrayerToggle = ({
-  fingerprint,
   sort = 'popular',
   onSuccess,
   onError,
@@ -32,7 +30,7 @@ export const usePrayerToggle = ({
 
   // 기도 추가 Mutation
   const addMutation = useMutation({
-    mutationFn: (prayerId: number) => addPrayer(prayerId, fingerprint),
+    mutationFn: (prayerId: number) => addPrayer(prayerId),
     onSuccess: (data) => {
       showToast(data.message, 'success')
       onSuccess?.(data.message)
@@ -58,7 +56,7 @@ export const usePrayerToggle = ({
 
   // 통합 토글 함수 (Dependency Inversion: 추상화된 인터페이스 제공)
   const togglePrayer = async (prayerId: number, isPrayed: boolean) => {
-    const queryKey = ['prayers', 'list', sort, fingerprint]
+    const queryKey = ['prayers', 'list', sort]
 
     // Optimistic Update
     await queryClient.cancelQueries({ queryKey })

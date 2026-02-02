@@ -1,7 +1,6 @@
 // React Query를 사용한 Prayer 데이터 관리
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
-import { fetchPrayers, createPrayer } from '../api/prayer'
-import { getOrCreateFingerprint } from '../utils/fingerprint'
+import { useMutation, useQueryClient, useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { fetchPrayers, createPrayer, fetchPrayerDetail } from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
 import type { SortType } from '../types/prayer'
 
@@ -9,37 +8,28 @@ import type { SortType } from '../types/prayer'
 export const prayerKeys = {
   all: ['prayers'] as const,
   lists: () => [...prayerKeys.all, 'list'] as const,
-  list: (sort: SortType, fingerprint: string) => 
-    [...prayerKeys.lists(), sort, fingerprint] as const,
+  list: (sort: SortType) => 
+    [...prayerKeys.lists(), sort] as const,
 }
 
 // Infinite Query Hook
 export const usePrayersInfinite = (sort: SortType = 'popular') => {
   const queryClient = useQueryClient()
 
-  // Fingerprint 가져오기
-  const { data: fingerprint = '' } = useQuery({
-    queryKey: ['fingerprint'],
-    queryFn: getOrCreateFingerprint,
-    staleTime: Infinity, // 한 번 생성되면 계속 사용
-  })
-
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
-    queryKey: prayerKeys.list(sort, fingerprint),
-    queryFn: ({ pageParam = 1 }) => fetchPrayers(pageParam, 20, sort, fingerprint),
+    queryKey: prayerKeys.list(sort),
+    queryFn: ({ pageParam = 1 }) => fetchPrayers(pageParam, 20, sort),
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.data.items.length < 20) return undefined
       return allPages.length + 1
     },
     initialPageParam: 1,
-    enabled: !!fingerprint, // fingerprint가 있을 때만 실행
     staleTime: 1000 * 60 * 2, // 2분간 fresh
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
-    fingerprint,
     sort,
   })
 
@@ -69,14 +59,13 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     error: query.error?.message ?? null,
     hasMore: query.hasNextPage,
     sort,
-    fingerprint,
     loadMore: query.fetchNextPage,
     isFetchingMore: query.isFetchingNextPage,
     handlePrayerToggle,
     isToggling,
     createPrayer: createMutation.mutate,
     isCreating: createMutation.isPending,
-    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort, fingerprint) }),
+    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort) }),
   }
 }
 
@@ -85,31 +74,20 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
 export const usePrayerDetail = (prayerId: number) => {
   const queryClient = useQueryClient()
 
-  // Fingerprint 가져오기
-  const { data: fingerprint = '' } = useQuery({
-    queryKey: ['fingerprint'],
-    queryFn: getOrCreateFingerprint,
-    staleTime: Infinity,
-  })
-
   // 기도 상세 조회
   const query = useQuery({
-    queryKey: [...prayerKeys.all, 'detail', prayerId, fingerprint],
-    queryFn: async () => {
-      const { fetchPrayerDetail } = await import('../api/prayer')
-      return fetchPrayerDetail(prayerId, fingerprint)
-    },
-    enabled: !!fingerprint && !!prayerId,
+    queryKey: [...prayerKeys.all, 'detail', prayerId],
+    queryFn: () => fetchPrayerDetail(prayerId),
+    enabled: !!prayerId,
     staleTime: 1000 * 60 * 2, // 2분
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
-    fingerprint,
     onSuccess: () => {
       // 상세 페이지 데이터 새로고침
       queryClient.invalidateQueries({ 
-        queryKey: [...prayerKeys.all, 'detail', prayerId, fingerprint] 
+        queryKey: [...prayerKeys.all, 'detail', prayerId] 
       })
     },
   })
@@ -125,11 +103,10 @@ export const usePrayerDetail = (prayerId: number) => {
     prayer: query.data,
     loading: query.isLoading,
     error: query.error?.message ?? null,
-    fingerprint,
     handlePrayerToggle,
     isToggling,
     refresh: () => queryClient.invalidateQueries({ 
-      queryKey: [...prayerKeys.all, 'detail', prayerId, fingerprint] 
+      queryKey: [...prayerKeys.all, 'detail', prayerId] 
     }),
   }
 }

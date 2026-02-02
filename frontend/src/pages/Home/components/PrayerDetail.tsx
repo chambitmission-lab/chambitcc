@@ -31,8 +31,8 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
     },
   })
 
-  const handleReplySubmit = (content: string, displayName: string, fingerprint: string) => {
-    createReply({ content, display_name: displayName, fingerprint })
+  const handleReplySubmit = (content: string, displayName: string) => {
+    createReply({ content, display_name: displayName })
   }
 
   if (loading) {

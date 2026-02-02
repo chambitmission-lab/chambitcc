@@ -1,9 +1,8 @@
 // 댓글 작성 컴포넌트 (Single Responsibility: 댓글 입력만 담당)
 import { useState, useEffect } from 'react'
-import { getOrCreateFingerprint } from '../../utils/fingerprint'
 
 interface ReplyComposerProps {
-  onSubmit: (content: string, displayName: string, fingerprint: string) => void
+  onSubmit: (content: string, displayName: string) => void
   isSubmitting: boolean
 }
 
@@ -39,9 +38,12 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
       return
     }
 
-    const fingerprint = await getOrCreateFingerprint()
+    if (!isLoggedIn) {
+      alert('로그인이 필요합니다')
+      return
+    }
 
-    onSubmit(content.trim(), displayName, fingerprint)
+    onSubmit(content.trim(), displayName)
 
     // 폼 초기화
     setContent('')
@@ -58,10 +60,10 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="함께 기도하는 마음을 전해주세요..."
-            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+            placeholder={isLoggedIn ? "함께 기도하는 마음을 전해주세요..." : "로그인 후 댓글을 작성할 수 있습니다"}
+            className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
             rows={3}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isLoggedIn}
           />
           
           <div className="flex flex-col gap-3 mt-3">
@@ -81,14 +83,14 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
                 </label>
               ) : (
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  익명으로 작성됩니다
+                  로그인이 필요합니다
                 </span>
               )}
             </div>
             
             <button
               type="submit"
-              disabled={!content.trim() || isSubmitting}
+              disabled={!content.trim() || isSubmitting || !isLoggedIn}
               className="w-full px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {isSubmitting ? '작성중...' : '댓글 작성'}

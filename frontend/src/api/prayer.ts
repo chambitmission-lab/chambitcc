@@ -11,12 +11,11 @@ import type {
   ReplyResponse
 } from '../types/prayer'
 
-// 기도 요청 목록 조회
+// 기도 요청 목록 조회 (비로그인 가능)
 export const fetchPrayers = async (
   page: number = 1,
   limit: number = 20,
-  sort: SortType = 'popular',
-  fingerprint?: string
+  sort: SortType = 'popular'
 ): Promise<PrayerListResponse> => {
   const params = new URLSearchParams({
     page: page.toString(),
@@ -25,11 +24,7 @@ export const fetchPrayers = async (
   })
 
   const headers: HeadersInit = {}
-  if (fingerprint) {
-    headers['X-Fingerprint'] = fingerprint
-  }
-
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('access_token')
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
   }
@@ -45,17 +40,18 @@ export const fetchPrayers = async (
   return response.json()
 }
 
-// 기도 요청 생성
+// 기도 요청 생성 (로그인 필수)
 export const createPrayer = async (
   data: CreatePrayerRequest
 ): Promise<PrayerResponse> => {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
   }
 
-  const token = localStorage.getItem('token')
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
   }
 
   const response = await fetch(`${API_V1}/prayers`, {
@@ -71,24 +67,24 @@ export const createPrayer = async (
   return response.json()
 }
 
-// 기도했어요 (Single Responsibility: 기도 추가만 담당)
+// 기도했어요 (로그인 필수)
 export const addPrayer = async (
-  prayerId: number,
-  fingerprint: string
+  prayerId: number
 ): Promise<{ success: boolean; message: string }> => {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
   }
 
-  const token = localStorage.getItem('token')
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
   }
 
   const response = await fetch(`${API_V1}/prayers/${prayerId}/pray`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ fingerprint }),
+    body: JSON.stringify({}),
   })
 
   if (!response.ok) {
@@ -99,15 +95,17 @@ export const addPrayer = async (
   return response.json()
 }
 
-// 기도 취소 (Single Responsibility: 기도 취소만 담당)
+// 기도 취소 (로그인 필수)
 export const removePrayer = async (
   prayerId: number
 ): Promise<{ success: boolean; message: string }> => {
-  const headers: HeadersInit = {}
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
+  }
 
-  const token = localStorage.getItem('token')
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+  const headers: HeadersInit = {
+    'Authorization': `Bearer ${token}`,
   }
 
   const response = await fetch(`${API_V1}/prayers/${prayerId}/pray`, {
@@ -123,18 +121,13 @@ export const removePrayer = async (
   return response.json()
 }
 
-// 기도 요청 상세 조회
+// 기도 요청 상세 조회 (비로그인 가능)
 export const fetchPrayerDetail = async (
-  prayerId: number,
-  fingerprint?: string
+  prayerId: number
 ): Promise<Prayer> => {
   const headers: HeadersInit = {}
   
-  if (fingerprint) {
-    headers['X-Fingerprint'] = fingerprint
-  }
-
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('access_token')
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
   }
@@ -163,7 +156,7 @@ export const fetchReplies = async (
   })
 
   const headers: HeadersInit = {}
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('access_token')
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
   }
@@ -179,18 +172,19 @@ export const fetchReplies = async (
   return response.json()
 }
 
-// 댓글 작성 (Single Responsibility: 댓글 작성만 담당)
+// 댓글 작성 (로그인 필수)
 export const createReply = async (
   prayerId: number,
   data: CreateReplyRequest
 ): Promise<ReplyResponse> => {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
   }
 
-  const token = localStorage.getItem('token')
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
   }
 
   const response = await fetch(`${API_V1}/prayers/${prayerId}/replies`, {

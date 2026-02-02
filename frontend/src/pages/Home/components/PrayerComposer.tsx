@@ -6,10 +6,9 @@ import type { Prayer } from '../../../types/prayer'
 interface PrayerComposerProps {
   onClose: () => void
   onSuccess: (prayer: Prayer) => void
-  fingerprint: string
 }
 
-const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps) => {
+const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
@@ -34,6 +33,12 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     
+    // 로그인 체크
+    if (!isLoggedIn) {
+      setError('로그인이 필요합니다')
+      return
+    }
+    
     // 검증
     const titleValidation = validation.validateTitle(title)
     if (!titleValidation.valid) {
@@ -53,11 +58,6 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
       return
     }
 
-    if (!fingerprint) {
-      setError('잠시 후 다시 시도해주세요')
-      return
-    }
-
     setIsSubmitting(true)
     setError('')
 
@@ -67,7 +67,6 @@ const PrayerComposer = ({ onClose, onSuccess, fingerprint }: PrayerComposerProps
         content: content.trim(),
         display_name: displayName,
         is_fully_anonymous: isAnonymous,
-        fingerprint,
       })
 
       if (response.success) {

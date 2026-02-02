@@ -1,7 +1,6 @@
 // Prayer 데이터 관리 커스텀 훅
 import { useState, useEffect, useCallback } from 'react'
 import { fetchPrayers, addPrayer as addPrayerAPI, removePrayer } from '../api/prayer'
-import { getOrCreateFingerprint } from '../utils/fingerprint'
 import type { Prayer, SortType } from '../types/prayer'
 
 export const usePrayers = (initialSort: SortType = 'popular') => {
@@ -11,23 +10,15 @@ export const usePrayers = (initialSort: SortType = 'popular') => {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [sort, setSort] = useState<SortType>(initialSort)
-  const [fingerprint, setFingerprint] = useState<string>('')
-
-  // Fingerprint 초기화
-  useEffect(() => {
-    getOrCreateFingerprint().then(setFingerprint)
-  }, [])
 
   // 기도 목록 로드
   const loadPrayers = useCallback(async (reset: boolean = false) => {
-    if (!fingerprint) return
-
     try {
       setLoading(true)
       setError(null)
 
       const currentPage = reset ? 1 : page
-      const response = await fetchPrayers(currentPage, 20, sort, fingerprint)
+      const response = await fetchPrayers(currentPage, 20, sort)
 
       if (response.success) {
         setPrayers(prev => 
@@ -41,14 +32,12 @@ export const usePrayers = (initialSort: SortType = 'popular') => {
     } finally {
       setLoading(false)
     }
-  }, [fingerprint, page, sort])
+  }, [page, sort])
 
   // 초기 로드 및 정렬 변경 시 리로드
   useEffect(() => {
-    if (fingerprint) {
-      loadPrayers(true)
-    }
-  }, [fingerprint, sort])
+    loadPrayers(true)
+  }, [sort])
 
   // 더 보기
   const loadMore = useCallback(() => {
@@ -58,9 +47,13 @@ export const usePrayers = (initialSort: SortType = 'popular') => {
     }
   }, [loading, hasMore, loadPrayers])
 
-  // 기도했어요 토글
+  // 기도했어요 토글 (로그인 필수)
   const handlePrayerToggle = useCallback(async (prayerId: number) => {
-    if (!fingerprint) return
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      setError('로그인이 필요합니다')
+      return
+    }
 
     try {
       // 현재 상태 확인
@@ -71,15 +64,16 @@ export const usePrayers = (initialSort: SortType = 'popular') => {
       if (prayer.is_prayed) {
         await removePrayer(prayerId)
       } else {
-        await addPrayerAPI(prayerId, fingerprint)
+        await addPrayerAPI(prayerId)
       }
       
       // 목록 새로고침
       loadPrayers(true)
     } catch (err) {
       console.error('기도 토글 실패:', err)
+      setError(err instanceof Error ? err.message : '기도 처리에 실패했습니다')
     }
-  }, [fingerprint, prayers, loadPrayers])
+  }, [prayers, loadPrayers])
 
   // 정렬 변경
   const changeSort = useCallback((newSort: SortType) => {
@@ -98,7 +92,6 @@ export const usePrayers = (initialSort: SortType = 'popular') => {
     error,
     hasMore,
     sort,
-    fingerprint,
     loadMore,
     handlePrayerToggle,
     changeSort,
