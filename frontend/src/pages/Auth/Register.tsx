@@ -5,7 +5,6 @@ import { API_V1 } from '../../config/api'
 const Register = () => {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
-    email: '',
     username: '',
     password: '',
     confirmPassword: '',
@@ -40,7 +39,6 @@ const Register = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: formData.email,
           username: formData.username,
           password: formData.password,
           full_name: formData.full_name || null
@@ -84,19 +82,6 @@ const Register = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="이메일"
-                required
-                disabled={loading}
-                className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-
             <div>
               <input
                 type="text"
