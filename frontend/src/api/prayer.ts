@@ -27,9 +27,6 @@ export const fetchPrayers = async (
   const token = localStorage.getItem('access_token')
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
-    console.log('🔑 Token found, sending with request')
-  } else {
-    console.log('⚠️ No token found')
   }
 
   const response = await apiFetch(`${API_V1}/prayers?${params}`, {
@@ -40,9 +37,7 @@ export const fetchPrayers = async (
     throw new Error('기도 요청을 불러오는데 실패했습니다')
   }
 
-  const data = await response.json()
-  console.log('📥 Prayers response:', data)
-  return data
+  return response.json()
 }
 
 // 기도 요청 생성 (로그인 필수)

@@ -56,17 +56,13 @@ const Login = () => {
         localStorage.setItem('user_full_name', data.full_name)
       }
       
-      // React Query 캐시 무효화 - 로그인 후 새로운 데이터 가져오기
-      queryClient.invalidateQueries({ queryKey: ['prayers'] })
-      queryClient.invalidateQueries({ queryKey: ['community'] })
-      
       // 저장된 리다이렉트 경로가 있으면 그곳으로, 없으면 홈으로
       const redirectPath = sessionStorage.getItem('redirect_after_login')
       if (redirectPath) {
         sessionStorage.removeItem('redirect_after_login')
-        navigate(redirectPath)
+        window.location.href = redirectPath
       } else {
-        navigate('/')
+        window.location.href = '/'
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '로그인에 실패했습니다')
