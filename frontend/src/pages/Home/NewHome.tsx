@@ -239,6 +239,10 @@ const NewHome = () => {
             <PrayerDetail
               prayerId={selectedPrayerId}
               onClose={() => setSelectedPrayerId(null)}
+              onDelete={() => {
+                setSelectedPrayerId(null)
+                prayerHook.refresh()
+              }}
             />
           )}
         </div>

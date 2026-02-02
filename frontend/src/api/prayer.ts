@@ -200,3 +200,29 @@ export const createReply = async (
 
   return response.json()
 }
+
+// 기도 요청 삭제 (로그인 필수, 작성자만 가능)
+export const deletePrayer = async (
+  prayerId: number
+): Promise<{ success: boolean; message: string }> => {
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
+  }
+
+  const headers: HeadersInit = {
+    'Authorization': `Bearer ${token}`,
+  }
+
+  const response = await apiFetch(`${API_V1}/prayers/${prayerId}`, {
+    method: 'DELETE',
+    headers,
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '기도 요청 삭제에 실패했습니다')
+  }
+
+  return response.json()
+}

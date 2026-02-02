@@ -2,18 +2,23 @@
 import { useState } from 'react'
 import { usePrayerDetail } from '../../../hooks/usePrayersQuery'
 import { useReplies, useCreateReply } from '../../../hooks/useReplies'
+import { deletePrayer } from '../../../api/prayer'
 import ReplyList from '../../../components/common/ReplyList'
 import ReplyComposer from '../../../components/common/ReplyComposer'
+import { showToast } from '../../../utils/toast'
 
 interface PrayerDetailProps {
   prayerId: number
   onClose: () => void
+  onDelete?: () => void
 }
 
-const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
+const PrayerDetail = ({ prayerId, onClose, onDelete }: PrayerDetailProps) => {
   const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId)
   const [showEnglish, setShowEnglish] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // 댓글 관련 훅
   const {
@@ -33,6 +38,24 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
 
   const handleReplySubmit = (content: string, displayName: string) => {
     createReply({ content, display_name: displayName })
+  }
+
+  const handleDelete = async () => {
+    if (isDeleting) return
+
+    try {
+      setIsDeleting(true)
+      const result = await deletePrayer(prayerId)
+      showToast(result.message || '기도 요청이 삭제되었습니다', 'success')
+      onClose()
+      onDelete?.()
+    } catch (err: any) {
+      console.error('기도 요청 삭제 실패:', err)
+      showToast(err.message || '기도 요청 삭제에 실패했습니다', 'error')
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteConfirm(false)
+    }
   }
 
   if (loading) {
@@ -76,12 +99,23 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
         {/* Header */}
         <div className="sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-5 py-4 flex items-center justify-between z-10">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">기도 요청 상세</h2>
-          <button
-            onClick={onClose}
-            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <span className="material-icons-outlined text-[22px] text-gray-500 dark:text-gray-400">close</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {prayer?.is_owner && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                title="삭제"
+              >
+                <span className="material-icons-outlined text-[22px] text-gray-700 dark:text-gray-300">more_horiz</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <span className="material-icons-outlined text-[22px] text-gray-500 dark:text-gray-400">close</span>
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -198,6 +232,47 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <span className="material-icons-outlined text-red-600 dark:text-red-400 text-2xl">warning</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">기도 요청 삭제</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              이 기도 요청을 삭제하시겠습니까?<br />
+              삭제된 내용은 복구할 수 없습니다.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 px-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl font-semibold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 px-4 bg-red-600 text-white rounded-xl font-semibold text-sm hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    삭제 중...
+                  </>
+                ) : (
+                  '삭제'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
