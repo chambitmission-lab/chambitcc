@@ -13,7 +13,6 @@ interface NotificationModalProps {
 const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: NotificationModalProps) => {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null)
   const isLoggedIn = !!localStorage.getItem('access_token')
 
   useEffect(() => {
@@ -38,8 +37,6 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
   }
 
   const handleNotificationClick = async (notification: Notification) => {
-    setSelectedNotification(notification)
-    
     // 로그인 상태이고 읽지 않은 알림이면 읽음 처리
     if (isLoggedIn && !notification.is_read) {
       try {
@@ -120,16 +117,16 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
                     <h3>{notification.title}</h3>
                     {!notification.is_read && <span className="unread-badge"></span>}
                   </div>
-                  <p className="notification-item-preview">
-                    {notification.content.length > 60
-                      ? notification.content.substring(0, 60) + '...'
-                      : notification.content}
+                  <p className="notification-item-content">
+                    {notification.content}
                   </p>
                   <span className="notification-item-date">
                     {new Date(notification.created_at).toLocaleDateString('ko-KR', {
                       year: 'numeric',
                       month: 'long',
-                      day: 'numeric'
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
                     })}
                   </span>
                 </div>
@@ -138,35 +135,6 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
           )}
         </div>
       </div>
-
-      {/* Detail Modal */}
-      {selectedNotification && (
-        <>
-          <div className="notification-backdrop" onClick={() => setSelectedNotification(null)} />
-          <div className="notification-detail-modal">
-            <div className="notification-detail-header">
-              <h2>{selectedNotification.title}</h2>
-              <button onClick={() => setSelectedNotification(null)} className="close-btn">
-                <span className="material-icons-outlined">close</span>
-              </button>
-            </div>
-            <div className="notification-detail-content">
-              <p className="notification-detail-date">
-                {new Date(selectedNotification.created_at).toLocaleDateString('ko-KR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </p>
-              <div className="notification-detail-body">
-                {selectedNotification.content}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </>
   )
 }
