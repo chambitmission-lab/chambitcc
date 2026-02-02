@@ -13,6 +13,7 @@ interface NotificationModalProps {
 const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: NotificationModalProps) => {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
+  const [readingIds, setReadingIds] = useState<Set<number>>(new Set())
   const isLoggedIn = !!localStorage.getItem('access_token')
 
   useEffect(() => {
@@ -37,10 +38,14 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
   }
 
   const handleNotificationClick = async (notification: Notification) => {
-    // 로그인 상태이고 읽지 않은 알림이면 읽음 처리
-    if (isLoggedIn && !notification.is_read) {
+    // 로그인 상태이고 읽지 않은 알림이며, 현재 읽음 처리 중이 아닌 경우에만 처리
+    if (isLoggedIn && !notification.is_read && !readingIds.has(notification.id)) {
       try {
+        // 읽음 처리 중 표시
+        setReadingIds(prev => new Set(prev).add(notification.id))
+        
         await markAsRead(notification.id)
+        
         // 읽음 상태 업데이트
         setNotifications(prev =>
           prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
@@ -48,6 +53,19 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
         onUnreadCountChange()
       } catch (error) {
         console.error('읽음 처리 실패:', error)
+        // 실패 시 읽음 처리 중 상태 제거
+        setReadingIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(notification.id)
+          return newSet
+        })
+      } finally {
+        // 성공 시에도 읽음 처리 중 상태 제거 (이미 is_read가 true로 변경됨)
+        setReadingIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(notification.id)
+          return newSet
+        })
       }
     }
   }
