@@ -2,35 +2,41 @@
 import { useMutation, useQueryClient, useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { fetchPrayers, createPrayer, fetchPrayerDetail } from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
-import type { SortType } from '../types/prayer'
+import { getStoredFingerprint } from '../utils/fingerprint'
+import type { SortType, Prayer } from '../types/prayer'
 
 // Query Keys
 export const prayerKeys = {
   all: ['prayers'] as const,
   lists: () => [...prayerKeys.all, 'list'] as const,
-  list: (sort: SortType) => 
-    [...prayerKeys.lists(), sort] as const,
+  list: (sort: SortType, fingerprint?: string) => 
+    [...prayerKeys.lists(), sort, fingerprint] as const,
+  details: () => [...prayerKeys.all, 'detail'] as const,
+  detail: (prayerId: number, fingerprint?: string) => 
+    [...prayerKeys.details(), prayerId, fingerprint] as const,
 }
 
 // Infinite Query Hook
 export const usePrayersInfinite = (sort: SortType = 'popular') => {
   const queryClient = useQueryClient()
+  const fingerprint = getStoredFingerprint() || undefined
 
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
-    queryKey: prayerKeys.list(sort),
+    queryKey: prayerKeys.list(sort, fingerprint),
     queryFn: ({ pageParam = 1 }) => fetchPrayers(pageParam, 20, sort),
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.data.items.length < 20) return undefined
       return allPages.length + 1
     },
     initialPageParam: 1,
-    staleTime: 1000 * 60 * 2, // 2분간 fresh
+    staleTime: 1000 * 60 * 5, // 5분간 fresh (기도 목록은 자주 안 바뀜)
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
     sort,
+    fingerprint,
   })
 
   // 기도 생성 Mutation
@@ -65,7 +71,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     isToggling,
     createPrayer: createMutation.mutate,
     isCreating: createMutation.isPending,
-    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort) }),
+    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort, fingerprint) }),
   }
 }
 
@@ -73,23 +79,20 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
 // 기도 상세 조회 Hook
 export const usePrayerDetail = (prayerId: number) => {
   const queryClient = useQueryClient()
+  const fingerprint = getStoredFingerprint() || undefined
 
   // 기도 상세 조회
   const query = useQuery({
-    queryKey: [...prayerKeys.all, 'detail', prayerId],
+    queryKey: prayerKeys.detail(prayerId, fingerprint),
     queryFn: () => fetchPrayerDetail(prayerId),
     enabled: !!prayerId,
-    staleTime: 1000 * 60 * 2, // 2분
+    staleTime: 1000 * 60 * 5, // 5분
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
-    onSuccess: () => {
-      // 상세 페이지 데이터 새로고침
-      queryClient.invalidateQueries({ 
-        queryKey: [...prayerKeys.all, 'detail', prayerId] 
-      })
-    },
+    fingerprint,
+    prayerId, // 상세 페이지용
   })
 
   // 기도 토글 핸들러
@@ -106,7 +109,7 @@ export const usePrayerDetail = (prayerId: number) => {
     handlePrayerToggle,
     isToggling,
     refresh: () => queryClient.invalidateQueries({ 
-      queryKey: [...prayerKeys.all, 'detail', prayerId] 
+      queryKey: prayerKeys.detail(prayerId, fingerprint) 
     }),
   }
 }
