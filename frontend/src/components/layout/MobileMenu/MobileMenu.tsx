@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { logout } from '../../../utils/auth'
@@ -12,7 +12,6 @@ interface MobileMenuProps {
 const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const { theme, toggleTheme } = useTheme()
-  const navigate = useNavigate()
 
   useEffect(() => {
     const token = localStorage.getItem('access_token')

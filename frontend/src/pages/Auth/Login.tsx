@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { API_V1 } from '../../config/api'
-import { queryClient } from '../../config/queryClient'
 
 const Login = () => {
-  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     username: '',
     password: ''

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { logout } from '../../../utils/auth'
 import './NewHeader.css'
@@ -8,7 +8,6 @@ const NewHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const location = useLocation()
-  const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient, useInfiniteQuery, useQuery } from '@tansta
 import { fetchPrayers, createPrayer, fetchPrayerDetail } from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
 import { getStoredFingerprint } from '../utils/fingerprint'
-import type { SortType, Prayer } from '../types/prayer'
+import type { SortType } from '../types/prayer'
 
 // Query Keys
 export const prayerKeys = {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { logout } from '../../../utils/auth'
 import Navigation from '../Navigation/Navigation'
@@ -13,7 +13,6 @@ const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
-  const navigate = useNavigate()
 
   useEffect(() => {
     const handleScroll = () => {
