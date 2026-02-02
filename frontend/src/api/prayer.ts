@@ -1,5 +1,5 @@
 // Prayer API 호출 함수들
-import { API_V1 } from '../config/api'
+import { API_V1, apiFetch } from '../config/api'
 import type { 
   PrayerListResponse, 
   CreatePrayerRequest, 
@@ -29,7 +29,7 @@ export const fetchPrayers = async (
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_V1}/prayers?${params}`, {
+  const response = await apiFetch(`${API_V1}/prayers?${params}`, {
     headers,
   })
 
@@ -54,7 +54,7 @@ export const createPrayer = async (
     'Authorization': `Bearer ${token}`,
   }
 
-  const response = await fetch(`${API_V1}/prayers`, {
+  const response = await apiFetch(`${API_V1}/prayers`, {
     method: 'POST',
     headers,
     body: JSON.stringify(data),
@@ -81,7 +81,7 @@ export const addPrayer = async (
     'Authorization': `Bearer ${token}`,
   }
 
-  const response = await fetch(`${API_V1}/prayers/${prayerId}/pray`, {
+  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/pray`, {
     method: 'POST',
     headers,
     body: JSON.stringify({}),
@@ -108,7 +108,7 @@ export const removePrayer = async (
     'Authorization': `Bearer ${token}`,
   }
 
-  const response = await fetch(`${API_V1}/prayers/${prayerId}/pray`, {
+  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/pray`, {
     method: 'DELETE',
     headers,
   })
@@ -132,7 +132,7 @@ export const fetchPrayerDetail = async (
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_V1}/prayers/${prayerId}`, {
+  const response = await apiFetch(`${API_V1}/prayers/${prayerId}`, {
     headers,
   })
 
@@ -161,7 +161,7 @@ export const fetchReplies = async (
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_V1}/prayers/${prayerId}/replies?${params}`, {
+  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/replies?${params}`, {
     headers,
   })
 
@@ -187,7 +187,7 @@ export const createReply = async (
     'Authorization': `Bearer ${token}`,
   }
 
-  const response = await fetch(`${API_V1}/prayers/${prayerId}/replies`, {
+  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/replies`, {
     method: 'POST',
     headers,
     body: JSON.stringify(data),

@@ -55,7 +55,14 @@ const Login = () => {
         localStorage.setItem('user_full_name', data.full_name)
       }
       
-      navigate('/')
+      // 저장된 리다이렉트 경로가 있으면 그곳으로, 없으면 홈으로
+      const redirectPath = sessionStorage.getItem('redirect_after_login')
+      if (redirectPath) {
+        sessionStorage.removeItem('redirect_after_login')
+        navigate(redirectPath)
+      } else {
+        navigate('/')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '로그인에 실패했습니다')
     } finally {
