@@ -346,16 +346,24 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="px-4">
-        <div className="text-xs font-semibold text-gray-900 dark:text-white mb-0.5">
-          {prayer.prayer_count}명이 기도중
+      {/* Stats - 한 줄로 통합 */}
+      <div className="px-4 pb-3">
+        <div className="flex items-center gap-2 text-xs">
+          <span className="font-semibold text-gray-900 dark:text-white">
+            {prayer.prayer_count}명이 기도중
+          </span>
+          {prayer.reply_count > 0 && (
+            <>
+              <span className="text-gray-400 dark:text-gray-600">·</span>
+              <button 
+                onClick={(e) => e.stopPropagation()}
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                댓글 {prayer.reply_count}개
+              </button>
+            </>
+          )}
         </div>
-        {prayer.reply_count > 0 && (
-          <button className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-            댓글 {prayer.reply_count}개 모두 보기
-          </button>
-        )}
       </div>
     </article>
   )

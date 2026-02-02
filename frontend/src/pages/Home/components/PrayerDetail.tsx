@@ -117,22 +117,8 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
             </p>
           </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-5 text-sm mb-5 pb-5 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-gray-900 dark:text-white">{prayer.prayer_count}명</span>
-              <span className="text-gray-500 dark:text-gray-400">이 기도중</span>
-            </div>
-            {prayer.reply_count > 0 && (
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-gray-900 dark:text-white">{prayer.reply_count}개</span>
-                <span className="text-gray-500 dark:text-gray-400">댓글</span>
-              </div>
-            )}
-          </div>
-
           {/* Actions */}
-          <div className="flex items-center gap-3 mb-5">
+          <div className="flex items-center gap-3 mb-3">
             <button
               onClick={handlePrayerToggle}
               disabled={isToggling}
@@ -156,8 +142,26 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
               }`}
             >
               <span className="material-icons-outlined text-xl transform -scale-x-100">chat_bubble_outline</span>
-              <span>댓글 {prayer.reply_count > 0 && `(${prayer.reply_count})`}</span>
+              <span>댓글</span>
             </button>
+          </div>
+
+          {/* Stats - 버튼 바로 아래 */}
+          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-5 px-1">
+            <button 
+              onClick={handlePrayerToggle}
+              className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            >
+              <span className="font-semibold text-gray-900 dark:text-white">{prayer.prayer_count}명</span>이 기도중
+            </button>
+            {prayer.reply_count > 0 && (
+              <button 
+                onClick={() => setShowReplies(true)}
+                className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              >
+                댓글 <span className="font-semibold text-gray-900 dark:text-white">{prayer.reply_count}개</span> 모두 보기
+              </button>
+            )}
           </div>
 
           {/* Owner Badge */}
