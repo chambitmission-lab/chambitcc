@@ -44,3 +44,33 @@ export interface PrayerResponse {
 }
 
 export type SortType = 'popular' | 'latest'
+
+// Reply 관련 타입 정의
+export interface Reply {
+  id: number
+  display_name: string
+  content: string
+  created_at: string
+  time_ago: string
+}
+
+export interface ReplyListResponse {
+  success: boolean
+  data: {
+    items: Reply[]
+    page: number
+    limit: number
+  }
+}
+
+export interface CreateReplyRequest {
+  content: string
+  display_name: string
+  fingerprint: string
+}
+
+export interface ReplyResponse {
+  success: boolean
+  message: string
+  data: Reply
+}

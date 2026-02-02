@@ -1,6 +1,9 @@
 // 기도 요청 상세 페이지
 import { useState } from 'react'
 import { usePrayerDetail } from '../../../hooks/usePrayersQuery'
+import { useReplies, useCreateReply } from '../../../hooks/useReplies'
+import ReplyList from '../../../components/common/ReplyList'
+import ReplyComposer from '../../../components/common/ReplyComposer'
 
 interface PrayerDetailProps {
   prayerId: number
@@ -10,6 +13,27 @@ interface PrayerDetailProps {
 const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
   const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId)
   const [showEnglish, setShowEnglish] = useState(false)
+  const [showReplies, setShowReplies] = useState(false)
+
+  // 댓글 관련 훅
+  const {
+    replies,
+    isLoading: repliesLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useReplies({ prayerId })
+
+  const { createReply, isCreating } = useCreateReply({
+    prayerId,
+    onSuccess: () => {
+      setShowReplies(true)
+    },
+  })
+
+  const handleReplySubmit = (content: string, displayName: string, fingerprint: string) => {
+    createReply({ content, display_name: displayName, fingerprint })
+  }
 
   if (loading) {
     return (
@@ -109,9 +133,16 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
               </span>
               <span>{prayer.is_prayed ? '기도중' : '기도하기'}</span>
             </button>
-            <button className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+            <button
+              onClick={() => setShowReplies(!showReplies)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all ${
+                showReplies
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
               <span className="material-icons-outlined text-xl transform -scale-x-100">chat_bubble_outline</span>
-              <span>댓글</span>
+              <span>댓글 {prayer.reply_count > 0 && `(${prayer.reply_count})`}</span>
             </button>
           </div>
 
@@ -138,6 +169,29 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
                 <span className="material-icons-outlined text-base">info</span>
                 내가 작성한 기도 요청입니다
               </p>
+            </div>
+          )}
+
+          {/* Replies Section */}
+          {showReplies && (
+            <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
+                댓글 {prayer.reply_count > 0 && `(${prayer.reply_count})`}
+              </h3>
+
+              {/* Reply Composer */}
+              <div className="mb-8">
+                <ReplyComposer onSubmit={handleReplySubmit} isSubmitting={isCreating} />
+              </div>
+
+              {/* Reply List */}
+              <ReplyList
+                replies={replies}
+                isLoading={repliesLoading}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                onLoadMore={fetchNextPage}
+              />
             </div>
           )}
         </div>

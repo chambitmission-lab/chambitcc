@@ -1,6 +1,6 @@
 // Prayer 데이터 관리 커스텀 훅
 import { useState, useEffect, useCallback } from 'react'
-import { fetchPrayers, togglePrayer } from '../api/prayer'
+import { fetchPrayers, addPrayer as addPrayerAPI, removePrayer } from '../api/prayer'
 import { getOrCreateFingerprint } from '../utils/fingerprint'
 import type { Prayer, SortType } from '../types/prayer'
 
@@ -63,23 +63,23 @@ export const usePrayers = (initialSort: SortType = 'popular') => {
     if (!fingerprint) return
 
     try {
-      const result = await togglePrayer(prayerId, fingerprint)
-      
-      if (result.success) {
-        setPrayers(prev => prev.map(prayer => 
-          prayer.id === prayerId
-            ? { 
-                ...prayer, 
-                is_prayed: result.is_prayed,
-                prayer_count: result.prayer_count 
-              }
-            : prayer
-        ))
+      // 현재 상태 확인
+      const prayer = prayers.find(p => p.id === prayerId)
+      if (!prayer) return
+
+      // 기도 추가 또는 취소
+      if (prayer.is_prayed) {
+        await removePrayer(prayerId)
+      } else {
+        await addPrayerAPI(prayerId, fingerprint)
       }
+      
+      // 목록 새로고침
+      loadPrayers(true)
     } catch (err) {
       console.error('기도 토글 실패:', err)
     }
-  }, [fingerprint])
+  }, [fingerprint, prayers, loadPrayers])
 
   // 정렬 변경
   const changeSort = useCallback((newSort: SortType) => {

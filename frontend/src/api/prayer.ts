@@ -5,7 +5,10 @@ import type {
   CreatePrayerRequest, 
   PrayerResponse,
   SortType,
-  Prayer
+  Prayer,
+  ReplyListResponse,
+  CreateReplyRequest,
+  ReplyResponse
 } from '../types/prayer'
 
 // 기도 요청 목록 조회
@@ -146,4 +149,60 @@ export const fetchPrayerDetail = async (
 
   const result = await response.json()
   return result.data
+}
+
+// 댓글 목록 조회 (Single Responsibility: 댓글 조회만 담당)
+export const fetchReplies = async (
+  prayerId: number,
+  page: number = 1,
+  limit: number = 50
+): Promise<ReplyListResponse> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  })
+
+  const headers: HeadersInit = {}
+  const token = localStorage.getItem('token')
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const response = await fetch(`${API_V1}/prayers/${prayerId}/replies?${params}`, {
+    headers,
+  })
+
+  if (!response.ok) {
+    throw new Error('댓글을 불러오는데 실패했습니다')
+  }
+
+  return response.json()
+}
+
+// 댓글 작성 (Single Responsibility: 댓글 작성만 담당)
+export const createReply = async (
+  prayerId: number,
+  data: CreateReplyRequest
+): Promise<ReplyResponse> => {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  }
+
+  const token = localStorage.getItem('token')
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const response = await fetch(`${API_V1}/prayers/${prayerId}/replies`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '댓글 작성에 실패했습니다')
+  }
+
+  return response.json()
 }
