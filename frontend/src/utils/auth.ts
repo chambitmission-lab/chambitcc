@@ -36,3 +36,11 @@ export const getCurrentUser = () => {
     fullName: localStorage.getItem('user_full_name'),
   }
 }
+
+/**
+ * 관리자 권한 확인
+ */
+export const isAdmin = (): boolean => {
+  const username = localStorage.getItem('user_username')
+  return username === 'admin'
+}

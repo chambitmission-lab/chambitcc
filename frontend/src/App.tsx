@@ -17,6 +17,7 @@ import Worship from './pages/Worship/Worship'
 import Sermon from './pages/Sermon/Sermon'
 import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
+import NotificationManagement from './pages/Admin/NotificationManagement'
 import './App.css'
 import './styles/common.css'
 
@@ -43,6 +44,7 @@ function App() {
               <Route path="/sermon" element={<Sermon />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/admin/notifications" element={<NotificationManagement />} />
             </Routes>
           </main>
           <NewFooter />

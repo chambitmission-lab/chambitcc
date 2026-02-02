@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../../contexts/ThemeContext'
-import { logout } from '../../../utils/auth'
+import { logout, isAdmin } from '../../../utils/auth'
+import { getUnreadCount } from '../../../api/notification'
+import NotificationModal from '../../common/NotificationModal'
 import './NewHeader.css'
 
 const NewHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isAdminUser, setIsAdminUser] = useState(false)
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const location = useLocation()
   const { theme, toggleTheme } = useTheme()
 
@@ -14,7 +19,22 @@ const NewHeader = () => {
     setIsMenuOpen(false)
     const token = localStorage.getItem('access_token')
     setIsLoggedIn(!!token)
+    setIsAdminUser(isAdmin())
+    
+    // 읽지 않은 알림 개수 로드
+    if (token) {
+      loadUnreadCount()
+    }
   }, [location])
+
+  const loadUnreadCount = async () => {
+    try {
+      const count = await getUnreadCount()
+      setUnreadCount(count)
+    } catch (error) {
+      console.error('읽지 않은 알림 개수 로드 실패:', error)
+    }
+  }
 
   const handleLogout = () => {
     logout()
@@ -42,14 +62,21 @@ const NewHeader = () => {
             </span>
           </button>
           
-          <button className="text-gray-800 dark:text-white hover:text-primary transition-colors relative">
+          <button 
+            onClick={() => setIsNotificationOpen(true)}
+            className="text-gray-800 dark:text-white hover:text-primary transition-colors relative"
+            aria-label="알림"
+          >
             <span className="material-icons-outlined text-2xl">notifications</span>
-            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-black"></span>
+            {unreadCount > 0 && (
+              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-black"></span>
+            )}
           </button>
           
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-gray-800 dark:text-white hover:text-primary transition-colors"
+            aria-label="메뉴"
           >
             <span className="material-icons-outlined text-2xl -rotate-12 mb-1">send</span>
           </button>
@@ -92,6 +119,17 @@ const NewHeader = () => {
                 소식
               </Link>
               <div className="border-t border-border-light dark:border-border-dark my-2"></div>
+              {isAdminUser && (
+                <>
+                  <Link
+                    to="/admin/notifications"
+                    className="block px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400 font-semibold hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                  >
+                    📢 공지사항 관리
+                  </Link>
+                  <div className="border-t border-border-light dark:border-border-dark my-2"></div>
+                </>
+              )}
               {isLoggedIn ? (
                 <button
                   onClick={handleLogout}
@@ -111,6 +149,13 @@ const NewHeader = () => {
           </div>
         </div>
       )}
+
+      {/* Notification Modal */}
+      <NotificationModal
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+        onUnreadCountChange={loadUnreadCount}
+      />
     </header>
   )
 }

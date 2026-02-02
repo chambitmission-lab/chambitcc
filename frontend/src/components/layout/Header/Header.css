@@ -289,3 +289,52 @@
     display: none;
   }
 }
+
+/* Admin Button */
+[data-theme="dark"] .header .header-actions .admin-button {
+  backdrop-filter: blur(8px);
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.5);
+  color: #fbbf24;
+}
+
+[data-theme="light"] .header .header-actions .admin-button {
+  backdrop-filter: blur(8px);
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.6);
+  color: #d97706;
+}
+
+.header .header-actions .admin-button {
+  padding: 0 1.5rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  height: 2.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .header .header-actions .admin-button:hover {
+  background: rgba(234, 179, 8, 0.25);
+  border-color: rgba(234, 179, 8, 0.8);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .header .header-actions .admin-button:hover {
+  background: rgba(234, 179, 8, 0.2);
+  border-color: rgba(234, 179, 8, 0.9);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.25);
+  transform: translateY(-1px);
+}

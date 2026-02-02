@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../../contexts/ThemeContext'
-import { logout } from '../../../utils/auth'
+import { logout, isAdmin } from '../../../utils/auth'
 import Navigation from '../Navigation/Navigation'
 import MobileMenu from '../MobileMenu/MobileMenu'
 import chambitLogo from '../../../assets/chambit.png'
@@ -11,6 +11,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isAdminUser, setIsAdminUser] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
 
@@ -28,6 +29,8 @@ const Header = () => {
     // 로그인 상태 확인
     const token = localStorage.getItem('access_token')
     setIsLoggedIn(!!token)
+    // 관리자 권한 확인
+    setIsAdminUser(isAdmin())
   }, [location])
 
   const handleLogout = () => {
@@ -45,6 +48,11 @@ const Header = () => {
           <Navigation />
           
           <div className="header-actions">
+            {isAdminUser && (
+              <Link to="/admin/notifications" className="admin-button">
+                공지사항 관리
+              </Link>
+            )}
             {isLoggedIn ? (
               <button onClick={handleLogout} className="auth-button">
                 로그아웃

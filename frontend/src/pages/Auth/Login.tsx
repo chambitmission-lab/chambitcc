@@ -28,6 +28,8 @@ const Login = () => {
       formBody.append('username', formData.username)
       formBody.append('password', formData.password)
 
+      console.log('로그인 시도:', formData.username) // 디버깅용
+
       const response = await fetch(`${API_V1}/auth/login`, {
         method: 'POST',
         headers: {
@@ -37,12 +39,16 @@ const Login = () => {
       })
 
       const data = await response.json()
+      console.log('로그인 응답:', response.status, data) // 디버깅용
 
       if (!response.ok) {
         throw new Error(data.detail || '로그인에 실패했습니다')
       }
 
+      // 토큰 저장
       localStorage.setItem('access_token', data.access_token)
+      console.log('토큰 저장 완료') // 디버깅용
+      
       // 사용자 정보 저장 (username과 full_name)
       if (data.username) {
         localStorage.setItem('user_username', data.username)
@@ -54,6 +60,11 @@ const Login = () => {
         localStorage.setItem('user_full_name', data.full_name)
       }
       
+      console.log('사용자 정보 저장 완료:', {
+        username: localStorage.getItem('user_username'),
+        full_name: localStorage.getItem('user_full_name')
+      }) // 디버깅용
+      
       // 저장된 리다이렉트 경로가 있으면 그곳으로, 없으면 홈으로
       const redirectPath = sessionStorage.getItem('redirect_after_login')
       if (redirectPath) {
@@ -63,6 +74,7 @@ const Login = () => {
         window.location.href = '/'
       }
     } catch (err) {
+      console.error('로그인 에러:', err) // 디버깅용
       setError(err instanceof Error ? err.message : '로그인에 실패했습니다')
     } finally {
       setLoading(false)
