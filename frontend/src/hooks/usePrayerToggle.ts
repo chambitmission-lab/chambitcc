@@ -74,25 +74,35 @@ export const usePrayerToggle = ({
     queryClient.setQueryData(listQueryKey, (old: any) => {
       if (!old) return old
 
+      // 기도 수 업데이트
+      const updatedPages = old.pages.map((page: any) => ({
+        ...page,
+        data: {
+          ...page.data,
+          items: page.data.items.map((prayer: Prayer) =>
+            prayer.id === prayerId
+              ? {
+                  ...prayer,
+                  is_prayed: !isPrayed,
+                  prayer_count: isPrayed
+                    ? prayer.prayer_count - 1
+                    : prayer.prayer_count + 1,
+                }
+              : prayer
+          ),
+        },
+      }))
+
+      // 인기순일 때만 정렬 (prayer_count 내림차순)
+      if (sort === 'popular') {
+        updatedPages.forEach((page: any) => {
+          page.data.items.sort((a: Prayer, b: Prayer) => b.prayer_count - a.prayer_count)
+        })
+      }
+
       return {
         ...old,
-        pages: old.pages.map((page: any) => ({
-          ...page,
-          data: {
-            ...page.data,
-            items: page.data.items.map((prayer: Prayer) =>
-              prayer.id === prayerId
-                ? {
-                    ...prayer,
-                    is_prayed: !isPrayed,
-                    prayer_count: isPrayed
-                      ? prayer.prayer_count - 1
-                      : prayer.prayer_count + 1,
-                  }
-                : prayer
-            ),
-          },
-        })),
+        pages: updatedPages,
       }
     })
 
@@ -123,8 +133,8 @@ export const usePrayerToggle = ({
         await addMutation.mutateAsync(prayerId)
       }
 
-      // 성공 시 다른 정렬의 목록도 업데이트 (백그라운드)
-      // 현재 보고 있는 목록은 이미 Optimistic Update로 정확하게 반영됨
+      // 성공 시 다른 정렬의 목록만 백그라운드 무효화
+      // 현재 보고 있는 목록은 이미 Optimistic Update + 정렬로 정확하게 반영됨
       const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
       otherSorts.forEach(otherSort => {
         queryClient.invalidateQueries({ 
@@ -133,7 +143,7 @@ export const usePrayerToggle = ({
         })
       })
 
-      // 상세 페이지가 아닌 다른 상세 캐시들도 무효화 (백그라운드)
+      // 다른 상세 캐시들도 백그라운드 무효화
       if (!detailPrayerId) {
         queryClient.invalidateQueries({
           queryKey: prayerKeys.details(),
