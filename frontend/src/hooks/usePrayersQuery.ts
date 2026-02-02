@@ -3,7 +3,7 @@ import { useMutation, useQueryClient, useInfiniteQuery, useQuery } from '@tansta
 import { fetchPrayers, createPrayer, fetchPrayerDetail } from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
 import { getStoredFingerprint } from '../utils/fingerprint'
-import type { SortType } from '../types/prayer'
+import type { SortType, Prayer } from '../types/prayer'
 
 // Query Keys
 export const prayerKeys = {
@@ -77,7 +77,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
 
 
 // 기도 상세 조회 Hook
-export const usePrayerDetail = (prayerId: number) => {
+export const usePrayerDetail = (prayerId: number, initialData?: Prayer) => {
   const queryClient = useQueryClient()
   const fingerprint = getStoredFingerprint() || undefined
 
@@ -86,7 +86,8 @@ export const usePrayerDetail = (prayerId: number) => {
     queryKey: prayerKeys.detail(prayerId, fingerprint),
     queryFn: () => fetchPrayerDetail(prayerId),
     enabled: !!prayerId,
-    staleTime: 1000 * 60 * 5, // 5분
+    staleTime: 0, // 항상 최신 데이터를 가져오도록 설정
+    placeholderData: initialData, // initialData 대신 placeholderData 사용
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)

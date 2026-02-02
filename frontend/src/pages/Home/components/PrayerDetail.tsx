@@ -6,15 +6,17 @@ import { deletePrayer } from '../../../api/prayer'
 import ReplyList from '../../../components/common/ReplyList'
 import ReplyComposer from '../../../components/common/ReplyComposer'
 import { showToast } from '../../../utils/toast'
+import type { Prayer } from '../../../types/prayer'
 
 interface PrayerDetailProps {
   prayerId: number
+  initialData?: Prayer
   onClose: () => void
   onDelete?: () => void
 }
 
-const PrayerDetail = ({ prayerId, onClose, onDelete }: PrayerDetailProps) => {
-  const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId)
+const PrayerDetail = ({ prayerId, initialData, onClose, onDelete }: PrayerDetailProps) => {
+  const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData)
   const [showEnglish, setShowEnglish] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)

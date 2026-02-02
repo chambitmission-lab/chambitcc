@@ -238,6 +238,7 @@ const NewHome = () => {
           {selectedPrayerId && (
             <PrayerDetail
               prayerId={selectedPrayerId}
+              initialData={prayerHook.prayers.find(p => p.id === selectedPrayerId)}
               onClose={() => setSelectedPrayerId(null)}
               onDelete={() => {
                 setSelectedPrayerId(null)
