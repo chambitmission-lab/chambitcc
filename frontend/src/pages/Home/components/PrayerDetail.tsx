@@ -71,60 +71,74 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
   const displayContent = showEnglish && prayer.content_en ? prayer.content_en : prayer.content
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center">
-      <div className="bg-white dark:bg-gray-900 rounded-t-3xl md:rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl">
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between z-10">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">기도 요청</h2>
+        <div className="sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-5 py-4 flex items-center justify-between z-10">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">기도 요청 상세</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <span className="material-icons-outlined text-gray-600 dark:text-gray-400">close</span>
+            <span className="material-icons-outlined text-[22px] text-gray-500 dark:text-gray-400">close</span>
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-5">
           {/* Author Info */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-400 to-blue-500 flex items-center justify-center text-white font-bold ring-2 ring-white dark:ring-gray-900">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white text-base font-semibold shadow-md">
                 {prayer.display_name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="font-semibold text-gray-900 dark:text-white">{prayer.display_name}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{prayer.time_ago}</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">{prayer.display_name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{prayer.time_ago}</p>
               </div>
             </div>
             {hasTranslation && (
               <button
                 onClick={() => setShowEnglish(!showEnglish)}
-                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
-                {showEnglish ? '🇰🇷 한글' : '🇺🇸 EN'}
+                {showEnglish ? '🇰🇷 한글' : '🇺🇸 English'}
               </button>
             )}
           </div>
 
           {/* Prayer Content */}
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-2xl p-6 mb-6 border border-indigo-100/50 dark:border-gray-700/50">
-            <h3 className={`text-xs font-bold text-primary mb-3 tracking-wider ${!showEnglish ? 'uppercase' : ''}`}>
+          <div className="bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-gray-800/50 dark:to-gray-800/50 rounded-xl p-5 mb-5 border border-gray-200/50 dark:border-gray-700/50">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">
               {displayTitle}
             </h3>
-            <p className="text-base text-gray-900 dark:text-gray-100 leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
               {displayContent}
             </p>
           </div>
 
+          {/* Stats */}
+          <div className="flex items-center gap-5 text-sm mb-5 pb-5 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-gray-900 dark:text-white">{prayer.prayer_count}명</span>
+              <span className="text-gray-500 dark:text-gray-400">이 기도중</span>
+            </div>
+            {prayer.reply_count > 0 && (
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-gray-900 dark:text-white">{prayer.reply_count}개</span>
+                <span className="text-gray-500 dark:text-gray-400">댓글</span>
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-3 mb-5">
             <button
               onClick={handlePrayerToggle}
               disabled={isToggling}
-              className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm transition-all ${
                 prayer.is_prayed
-                  ? 'bg-ig-red text-white'
+                  ? 'bg-ig-red text-white shadow-md shadow-red-200 dark:shadow-red-900/30'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
@@ -135,9 +149,9 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
             </button>
             <button
               onClick={() => setShowReplies(!showReplies)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm transition-all ${
                 showReplies
-                  ? 'bg-primary text-white'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-indigo-900/30'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
@@ -146,25 +160,9 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
             </button>
           </div>
 
-          {/* Stats */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <div className="flex items-center gap-6 text-sm">
-              <div>
-                <span className="font-bold text-gray-900 dark:text-white">{prayer.prayer_count}명</span>
-                <span className="text-gray-500 dark:text-gray-400 ml-1">이 기도중</span>
-              </div>
-              {prayer.reply_count > 0 && (
-                <div>
-                  <span className="font-bold text-gray-900 dark:text-white">{prayer.reply_count}개</span>
-                  <span className="text-gray-500 dark:text-gray-400 ml-1">의 댓글</span>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Owner Badge */}
           {prayer.is_owner && (
-            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="mb-5 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
               <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
                 <span className="material-icons-outlined text-base">info</span>
                 내가 작성한 기도 요청입니다
@@ -174,13 +172,13 @@ const PrayerDetail = ({ prayerId, onClose }: PrayerDetailProps) => {
 
           {/* Replies Section */}
           {showReplies && (
-            <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-5">
                 댓글 {prayer.reply_count > 0 && `(${prayer.reply_count})`}
               </h3>
 
               {/* Reply Composer */}
-              <div className="mb-8">
+              <div className="mb-6">
                 <ReplyComposer onSubmit={handleReplySubmit} isSubmitting={isCreating} />
               </div>
 
