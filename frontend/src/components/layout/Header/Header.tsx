@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../../../contexts/ThemeContext'
+import { logout } from '../../../utils/auth'
 import Navigation from '../Navigation/Navigation'
 import MobileMenu from '../MobileMenu/MobileMenu'
 import chambitLogo from '../../../assets/chambit.png'
@@ -31,9 +32,7 @@ const Header = () => {
   }, [location])
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token')
-    setIsLoggedIn(false)
-    navigate('/')
+    logout()
   }
 
   return (

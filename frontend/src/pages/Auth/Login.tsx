@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { API_V1 } from '../../config/api'
+import { queryClient } from '../../config/queryClient'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -54,6 +55,10 @@ const Login = () => {
       if (data.full_name) {
         localStorage.setItem('user_full_name', data.full_name)
       }
+      
+      // React Query 캐시 무효화 - 로그인 후 새로운 데이터 가져오기
+      queryClient.invalidateQueries({ queryKey: ['prayers'] })
+      queryClient.invalidateQueries({ queryKey: ['community'] })
       
       // 저장된 리다이렉트 경로가 있으면 그곳으로, 없으면 홈으로
       const redirectPath = sessionStorage.getItem('redirect_after_login')

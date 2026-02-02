@@ -1,23 +1,20 @@
 import axios from 'axios'
 import { API_V1 } from '../config/api'
+import { logout } from '../utils/auth'
 
 // Axios 인터셉터 설정 - 401 에러 자동 처리
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // 토큰 제거
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('user')
-      
       // 현재 페이지 저장
       const currentPath = window.location.pathname + window.location.search
       if (currentPath !== '/login' && currentPath !== '/register') {
         sessionStorage.setItem('redirect_after_login', currentPath)
       }
       
-      // 로그인 페이지로 리다이렉트
-      window.location.href = '/login'
+      // 로그아웃 처리 (캐시 초기화 포함)
+      logout()
     }
     return Promise.reject(error)
   }

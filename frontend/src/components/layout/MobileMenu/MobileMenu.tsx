@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useTheme } from '../../../contexts/ThemeContext'
+import { logout } from '../../../utils/auth'
 import './MobileMenu.css'
 
 interface MobileMenuProps {
@@ -31,10 +32,8 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   }, [isOpen])
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token')
-    setIsLoggedIn(false)
     onClose()
-    navigate('/')
+    logout()
   }
 
   const menuItems = [

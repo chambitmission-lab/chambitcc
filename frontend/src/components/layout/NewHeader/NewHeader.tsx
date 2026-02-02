@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../../../contexts/ThemeContext'
+import { logout } from '../../../utils/auth'
 import './NewHeader.css'
 
 const NewHeader = () => {
@@ -17,9 +18,7 @@ const NewHeader = () => {
   }, [location])
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token')
-    setIsLoggedIn(false)
-    navigate('/')
+    logout()
   }
 
   return (
