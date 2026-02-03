@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
@@ -7,6 +8,7 @@ import { showToast } from '../../utils/toast'
 import type { Prayer, SortType } from '../../types/prayer'
 
 const NewHome = () => {
+  const navigate = useNavigate()
   const [showComposer, setShowComposer] = useState(false)
   const [selectedPrayerId, setSelectedPrayerId] = useState<number | null>(null)
   const [sort, setSort] = useState<SortType>('popular')
@@ -216,7 +218,10 @@ const NewHome = () => {
             </button>
             
             {/* Profile */}
-            <button className="flex flex-col items-center justify-center w-10 transition-all hover:opacity-60">
+            <button 
+              onClick={() => navigate('/profile')}
+              className="flex flex-col items-center justify-center w-10 transition-all hover:opacity-60"
+            >
               <div className="w-[27px] h-[27px] rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden border-2 border-gray-400 dark:border-gray-500 flex items-center justify-center">
                 <span className="text-gray-600 dark:text-gray-300 text-xs font-semibold">A</span>
               </div>
