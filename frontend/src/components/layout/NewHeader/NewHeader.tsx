@@ -67,7 +67,7 @@ const NewHeader = () => {
             className="text-gray-800 dark:text-white hover:text-primary transition-colors"
             aria-label="메뉴"
           >
-            <span className="material-icons-outlined text-2xl -rotate-12 mb-1">send</span>
+            <span className="material-icons-outlined text-2xl">more_vert</span>
           </button>
         </div>
       </div>
