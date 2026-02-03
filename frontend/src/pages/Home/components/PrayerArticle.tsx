@@ -82,10 +82,11 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/30 to-transparent dark:from-white/20 dark:to-transparent rounded-full blur-2xl"></div>
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-white/10 dark:to-white/5 rounded-full blur-2xl"></div>
             
-            <h3 className={`text-base font-bold text-purple-700 dark:text-purple-300 mb-2.5 tracking-[0.02em] relative z-10 ${!showEnglish ? 'uppercase' : ''}`}>
+            <h3 className={`text-base font-extrabold text-gray-900 dark:text-white mb-2.5 tracking-[0.02em] relative z-10 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] ${!showEnglish ? 'uppercase' : ''}`}>
               {displayTitle}
             </h3>
-            <p className="text-[15px] text-gray-800 dark:text-gray-100 leading-[1.7] relative z-10 font-normal tracking-[-0.01em]">
+            
+            <p className="text-[15px] text-gray-600 dark:text-gray-400 leading-[1.7] relative z-10 font-normal tracking-[-0.01em] drop-shadow-[0_0_6px_rgba(168,85,247,0.2)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]">
               {displayContent}
             </p>
           </div>
