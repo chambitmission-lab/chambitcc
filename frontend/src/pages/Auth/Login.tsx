@@ -144,7 +144,10 @@ const Login = () => {
         <div className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-4 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             계정이 없으신가요?{' '}
-            <Link to="/register" className="text-primary font-semibold hover:underline">
+            <Link 
+              to="/register" 
+              className="font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-purple-600 hover:to-pink-600 transition-all"
+            >
               회원가입
             </Link>
           </p>
