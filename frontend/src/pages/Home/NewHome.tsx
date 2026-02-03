@@ -59,7 +59,6 @@ const NewHome = () => {
 
           <FloatingActionButton onClick={handleComposerOpen} />
           <BottomNavigation 
-            onComposerOpen={handleComposerOpen}
             onProfileClick={handleProfileClick}
           />
 
