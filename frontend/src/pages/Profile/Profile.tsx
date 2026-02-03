@@ -29,17 +29,26 @@ const Profile = () => {
 
   if (isLoading) {
     return (
-      <div className="profile-loading">
-        <LoadingSpinner />
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
+        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark p-8 rounded-2xl">
+          <LoadingSpinner />
+        </div>
       </div>
     )
   }
 
   if (error || !data) {
     return (
-      <div className="profile-error">
-        <p>프로필을 불러올 수 없습니다</p>
-        <button onClick={() => navigate('/')}>홈으로 돌아가기</button>
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center p-4">
+        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark p-8 rounded-2xl text-center">
+          <p className="text-red-500 mb-4">프로필을 불러올 수 없습니다</p>
+          <button 
+            onClick={() => navigate('/')}
+            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-all"
+          >
+            홈으로 돌아가기
+          </button>
+        </div>
       </div>
     )
   }
@@ -47,14 +56,22 @@ const Profile = () => {
   const { stats, my_prayers, praying_for, my_replies } = data
 
   return (
-    <div className="profile-page">
-      <div className="profile-container">
+    <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl min-h-screen border-x border-border-light dark:border-border-dark">
         {/* 헤더 */}
-        <div className="profile-top">
-          <button className="back-button" onClick={() => navigate('/')}>
-            ← 뒤로
+        <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
+          <button 
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            onClick={() => navigate('/')}
+          >
+            <span className="material-icons-outlined">arrow_back</span>
+            <span className="text-sm font-semibold">뒤로</span>
           </button>
-          <button className="logout-button" onClick={handleLogout}>
+          <h1 className="text-base font-bold text-gray-900 dark:text-white">프로필</h1>
+          <button 
+            className="text-sm font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+            onClick={handleLogout}
+          >
             로그아웃
           </button>
         </div>
@@ -84,7 +101,7 @@ const Profile = () => {
         />
 
         {/* 콘텐츠 영역 */}
-        <div className="content-area">
+        <div className="px-4 py-4">
           {activeTab === 'prayers' && (
             <MyPrayersList
               prayers={my_prayers}
