@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { createPrayer } from '../../../api/prayer'
 import { validation } from '../../../utils/validation'
 import type { Prayer } from '../../../types/prayer'
@@ -9,6 +10,7 @@ interface PrayerComposerProps {
 }
 
 const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
+  const queryClient = useQueryClient()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
@@ -64,6 +66,12 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
       })
 
       if (response.success) {
+        // 프로필 캐시 무효화 (내가 작성한 기도 +1)
+        queryClient.invalidateQueries({
+          queryKey: ['profile', 'detail'],
+          refetchType: 'none',
+        })
+        
         onSuccess(response.data)
       }
     } catch (err) {

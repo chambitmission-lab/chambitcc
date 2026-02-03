@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useProfileDetail } from '../../hooks/useProfile'
+import { useProfileDetail, clearProfileCache } from '../../hooks/useProfile'
 import ProfileHeader from './components/ProfileHeader'
 import ActivityStats from './components/ActivityStats'
 import ContentTabs from './components/ContentTabs'
@@ -19,6 +19,7 @@ const Profile = () => {
   const handleLogout = () => {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
+    clearProfileCache() // 프로필 캐시 삭제
     navigate('/auth/login')
   }
 

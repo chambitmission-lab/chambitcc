@@ -71,6 +71,12 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
       queryClient.invalidateQueries({ queryKey: ['prayers', 'list'] })
       queryClient.invalidateQueries({ queryKey: ['prayers', prayerId] })
 
+      // 프로필 캐시 무효화 (내 댓글 +1)
+      queryClient.invalidateQueries({
+        queryKey: ['profile', 'detail'],
+        refetchType: 'none',
+      })
+
       showToast(response.message, 'success')
       onSuccess?.()
     },

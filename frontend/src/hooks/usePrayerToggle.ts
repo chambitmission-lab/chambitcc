@@ -150,6 +150,12 @@ export const usePrayerToggle = ({
           refetchType: 'none',
         })
       }
+
+      // 프로필 캐시 무효화 (기도 통계 업데이트)
+      queryClient.invalidateQueries({
+        queryKey: ['profile', 'detail'],
+        refetchType: 'none',
+      })
     } catch (error) {
       // 에러 시 롤백
       queryClient.setQueryData(listQueryKey, previousListData)
