@@ -1,0 +1,63 @@
+import { useState } from 'react'
+import type { Prayer } from '../../../../types/prayer'
+import CardHeader from './CardHeader'
+import CardContent from './CardContent'
+import CardFooter from './CardFooter'
+
+interface PrayerCardProps {
+  prayer: Prayer
+  onPrayerToggle: (prayerId: number) => void
+}
+
+const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [isPraying, setIsPraying] = useState(false)
+  const [showEnglish, setShowEnglish] = useState(false)
+
+  // Anonymous를 익명으로 변환
+  const displayName = prayer.display_name === 'Anonymous' ? '익명' : prayer.display_name
+  
+  // 영어 번역이 있는지 확인
+  const hasTranslation = !!(prayer.title_en && prayer.content_en)
+
+  // 현재 표시할 제목과 내용 결정
+  const displayTitle = showEnglish && prayer.title_en ? prayer.title_en : prayer.title
+  const displayContent = showEnglish && prayer.content_en ? prayer.content_en : prayer.content
+
+  const handlePrayClick = async () => {
+    if (isPraying) return
+    
+    setIsPraying(true)
+    await onPrayerToggle(prayer.id)
+    setIsPraying(false)
+  }
+
+  return (
+    <article className="prayer-card">
+      <CardHeader
+        displayName={displayName}
+        timeAgo={prayer.time_ago}
+        hasTranslation={hasTranslation}
+        showEnglish={showEnglish}
+        onToggleLanguage={() => setShowEnglish(!showEnglish)}
+      />
+
+      <CardContent
+        title={displayTitle}
+        content={displayContent}
+        isExpanded={isExpanded}
+        onToggleExpand={() => setIsExpanded(!isExpanded)}
+      />
+
+      <CardFooter
+        prayerCount={prayer.prayer_count}
+        replyCount={prayer.reply_count}
+        isPrayed={prayer.is_prayed}
+        isPraying={isPraying}
+        onPrayClick={handlePrayClick}
+      />
+    </article>
+  )
+}
+
+export default PrayerCard
