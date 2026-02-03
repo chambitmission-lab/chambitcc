@@ -33,7 +33,7 @@ const NewHome = () => {
   const handleProfileClick = () => {
     const isLoggedIn = !!localStorage.getItem('access_token')
     if (!isLoggedIn) {
-      showToast('로그인 후 사용할 수 있습니다', 'error')
+      showToast('로그인 후 사용할 수 있습니다', 'info')
       navigate('/login')
       return
     }
