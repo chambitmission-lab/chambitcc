@@ -220,10 +220,12 @@ const NewHome = () => {
             {/* Profile */}
             <button 
               onClick={() => navigate('/profile')}
-              className="flex flex-col items-center justify-center w-10 transition-all hover:opacity-60"
+              className="flex flex-col items-center justify-center w-10 transition-all hover:opacity-80"
             >
-              <div className="w-[27px] h-[27px] rounded-full bg-gray-300 dark:bg-gray-600 overflow-hidden border-2 border-gray-400 dark:border-gray-500 flex items-center justify-center">
-                <span className="text-gray-600 dark:text-gray-300 text-xs font-semibold">A</span>
+              <div className="w-[27px] h-[27px] rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center shadow-sm">
+                <svg className="w-[16px] h-[16px]" fill="white" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
               </div>
             </button>
           </nav>
