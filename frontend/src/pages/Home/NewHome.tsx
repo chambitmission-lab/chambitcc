@@ -321,10 +321,10 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
       <div className="px-4 mb-3">
         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 border border-indigo-100/50 dark:border-gray-700/50 relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-full blur-2xl"></div>
-          <h3 className={`text-[10px] font-bold text-primary mb-2 tracking-[0.08em] relative z-10 ${!showEnglish ? 'uppercase' : ''}`}>
+          <h3 className={`text-base font-bold text-primary mb-2.5 tracking-[0.02em] relative z-10 ${!showEnglish ? 'uppercase' : ''}`}>
             {displayTitle}
           </h3>
-          <p className="text-[13px] text-gray-900 dark:text-gray-100 leading-[1.5] relative z-10 font-normal tracking-[-0.01em]">
+          <p className="text-[15px] text-gray-900 dark:text-gray-100 leading-[1.7] relative z-10 font-normal tracking-[-0.01em]">
             {displayContent}
           </p>
         </div>

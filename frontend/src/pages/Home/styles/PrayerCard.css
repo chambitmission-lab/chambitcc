@@ -1,0 +1,271 @@
+/* ===== PRAYER CARD - 인스타그램 포스트 디자인 ===== */
+.prayer-card {
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 3px;
+  overflow: hidden;
+  transition: all 0.1s ease;
+}
+
+.prayer-card:hover {
+  border-color: var(--ig-secondary-text);
+}
+
+.prayer-card::before {
+  display: none;
+}
+
+/* 카드 헤더 - 인스타그램 포스트 헤더 */
+.card-header {
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: none;
+}
+
+/* 프로필 아바타 - 인스타그램 스토리 링 */
+.card-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, 
+    var(--ig-gradient-start) 0%, 
+    var(--ig-gradient-middle) 25%, 
+    var(--ig-gradient-end) 50%, 
+    var(--ig-gradient-purple) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  padding: 2px;
+}
+
+.card-avatar::before {
+  content: '';
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ig-primary-background);
+  position: absolute;
+}
+
+.card-avatar::after {
+  content: '🙏';
+  position: relative;
+  z-index: 1;
+  font-size: 0.875rem;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-author {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--ig-primary-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-time {
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+}
+
+/* 언어 토글 버튼 */
+.language-toggle {
+  padding: 0.375rem 0.75rem;
+  background: var(--ig-hover);
+  border: 1px solid var(--ig-border);
+  border-radius: 6px;
+  color: var(--ig-primary-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.language-toggle:hover {
+  background: var(--ig-border);
+  transform: translateY(-1px);
+}
+
+.language-toggle:active {
+  transform: translateY(0);
+}
+
+.card-divider {
+  display: none;
+}
+
+/* 카드 타이틀 */
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0 1rem 0.75rem;
+  color: var(--ig-primary-text);
+}
+
+/* 카드 콘텐츠 */
+.card-content {
+  padding: 0 1rem 0.75rem;
+}
+
+.card-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ig-primary-text);
+  margin: 0;
+  padding-bottom: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.card-text:not(.expanded) {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-expand {
+  margin-top: 0.25rem;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--ig-secondary-text);
+  font-size: 0.875rem;
+  font-weight: 400;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.card-expand:hover {
+  color: var(--ig-primary-text);
+}
+
+/* 카드 푸터 - 인스타그램 액션 바 */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem 0.5rem 0.5rem;
+  border-top: 1px solid var(--ig-border);
+  margin: 0 1rem;
+}
+
+/* Prayer Button - 인스타그램 좋아요 버튼 */
+.prayer-button {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.625rem;
+  background: transparent;
+  border: none;
+  color: var(--ig-primary-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  border-radius: 4px;
+}
+
+.prayer-button:hover {
+  background: var(--ig-hover);
+}
+
+.prayer-button:active {
+  opacity: 0.5;
+}
+
+/* 기도중 상태 - 빨간색 */
+.prayer-card .card-footer .prayer-button.prayed,
+.prayer-button.prayed {
+  color: #ed4956 !important;
+}
+
+.prayer-card .card-footer .prayer-button.prayed .prayer-icon,
+.prayer-button.prayed .prayer-icon {
+  animation: likeAnimation 0.4s ease;
+}
+
+.prayer-card .card-footer .prayer-button.prayed .prayer-count,
+.prayer-button.prayed .prayer-count {
+  color: #ed4956 !important;
+}
+
+@keyframes likeAnimation {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.2); }
+  30% { transform: scale(0.95); }
+  45%, 80% { transform: scale(1); }
+}
+
+.prayer-icon {
+  font-size: 1.5rem;
+  transition: transform 0.1s ease;
+  line-height: 1;
+}
+
+.prayer-count {
+  min-width: 20px;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+/* 카드 통계 */
+.card-stats {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.card-stats .stat-item {
+  font-size: 0.8125rem;
+  color: var(--ig-secondary-text);
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .prayer-card {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+
+  .card-title {
+    font-size: 1.0625rem;
+  }
+
+  .card-text {
+    font-size: 0.9375rem;
+    line-height: 1.65;
+  }
+}
+
+@media (max-width: 640px) {
+  .language-toggle {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+}

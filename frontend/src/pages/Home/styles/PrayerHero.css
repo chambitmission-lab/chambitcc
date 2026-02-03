@@ -1,0 +1,167 @@
+/* ===== PRAYER HERO - 인스타그램 심플 스타일 ===== */
+.prayer-hero {
+  background: var(--ig-primary-background);
+  padding: 3rem 1rem 2rem;
+  text-align: center;
+  color: var(--ig-primary-text);
+  margin-bottom: 0;
+  position: relative;
+  border-bottom: 1px solid var(--ig-border);
+}
+
+.hero-content {
+  max-width: 614px;
+  margin: 0 auto;
+}
+
+.hero-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ig-secondary-text);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 0.75rem 0;
+  display: block;
+  letter-spacing: -0.02em;
+  color: var(--ig-primary-text);
+}
+
+.title-line {
+  display: block;
+}
+
+.title-line.offset {
+  margin-left: 0;
+}
+
+.hero-subtitle {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ig-secondary-text);
+  margin: 0 auto 1.5rem;
+  font-weight: 400;
+  max-width: 480px;
+}
+
+/* CTA 버튼 - 인스타그램 버튼 스타일 */
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  background: var(--ig-blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  min-height: 32px;
+}
+
+.hero-cta:hover {
+  background: var(--ig-blue-hover);
+}
+
+.hero-cta:active {
+  opacity: 0.7;
+}
+
+.cta-text {
+  letter-spacing: 0;
+}
+
+.cta-arrow {
+  font-size: 1.125rem;
+}
+
+/* Hero Stats - 인스타그램 프로필 스타일 */
+.hero-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ig-border);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+  color: var(--ig-primary-text);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.stat-divider {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .prayer-hero {
+    padding: 2rem 1rem 1.5rem;
+  }
+
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .hero-stats {
+    gap: 1.5rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+  }
+
+  .stat-number {
+    font-size: 1rem;
+  }
+
+  .stat-label {
+    font-size: 0.6875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.5rem;
+  }
+
+  .hero-stats {
+    gap: 1.25rem;
+  }
+
+  .stat-number {
+    font-size: 0.9375rem;
+  }
+
+  .stat-label {
+    font-size: 0.625rem;
+  }
+}
