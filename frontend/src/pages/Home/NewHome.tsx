@@ -120,12 +120,12 @@ const NewHome = () => {
             {/* Prayer Composer Input */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
               <div className="relative">
-                {/* 하늘에서 내려오는 빛 효과 - 더 강렬하게 */}
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[3px] h-10 bg-gradient-to-b from-transparent via-white/60 to-white/80 blur-[2px]"></div>
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[1px] h-10 bg-gradient-to-b from-transparent via-white/80 to-white"></div>
+                {/* 하늘에서 내려오는 빛 효과 - 테마별 색상 */}
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[3px] h-10 bg-gradient-to-b from-transparent via-purple-400/60 to-purple-500/80 dark:via-white/60 dark:to-white/80 blur-[2px]"></div>
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[1px] h-10 bg-gradient-to-b from-transparent via-purple-500/80 to-purple-600 dark:via-white/80 dark:to-white"></div>
                 {/* 주변 빛 확산 효과 */}
-                <div className="absolute inset-0 rounded-full bg-white/20 blur-md animate-pulse"></div>
-                <div className="w-8 h-8 rounded-full backdrop-blur-md bg-gradient-to-b from-white/50 via-white/30 to-white/15 dark:from-white/40 dark:via-white/20 dark:to-white/10 border-2 border-white/60 dark:border-white/40 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_25px_rgba(255,255,255,0.6),0_-8px_20px_rgba(255,255,255,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_25px_rgba(255,255,255,0.4),0_-8px_20px_rgba(255,255,255,0.3),inset_0_1px_3px_rgba(255,255,255,0.6)] relative z-10">
+                <div className="absolute inset-0 rounded-full bg-purple-400/30 dark:bg-white/20 blur-md animate-pulse"></div>
+                <div className="w-8 h-8 rounded-full backdrop-blur-md bg-gradient-to-b from-purple-400/60 via-purple-500/40 to-purple-600/25 dark:from-white/50 dark:via-white/30 dark:to-white/15 border-2 border-purple-500/70 dark:border-white/60 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_25px_rgba(168,85,247,0.6),0_-8px_20px_rgba(168,85,247,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_25px_rgba(255,255,255,0.4),0_-8px_20px_rgba(255,255,255,0.3),inset_0_1px_3px_rgba(255,255,255,0.6)] relative z-10">
                   A
                 </div>
               </div>
@@ -315,12 +315,12 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
       <div className="px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative">
-            {/* 하늘에서 내려오는 빛 효과 - 더 강렬하게 */}
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[3px] h-10 bg-gradient-to-b from-transparent via-white/60 to-white/80 blur-[2px]"></div>
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[1px] h-10 bg-gradient-to-b from-transparent via-white/80 to-white"></div>
+            {/* 하늘에서 내려오는 빛 효과 - 테마별 색상 */}
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[3px] h-10 bg-gradient-to-b from-transparent via-purple-400/60 to-purple-500/80 dark:via-white/60 dark:to-white/80 blur-[2px]"></div>
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[1px] h-10 bg-gradient-to-b from-transparent via-purple-500/80 to-purple-600 dark:via-white/80 dark:to-white"></div>
             {/* 주변 빛 확산 효과 */}
-            <div className="absolute inset-0 rounded-full bg-white/20 blur-md animate-pulse"></div>
-            <div className="w-8 h-8 rounded-full backdrop-blur-md bg-gradient-to-b from-white/50 via-white/30 to-white/15 dark:from-white/40 dark:via-white/20 dark:to-white/10 border-2 border-white/60 dark:border-white/40 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_25px_rgba(255,255,255,0.6),0_-8px_20px_rgba(255,255,255,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_25px_rgba(255,255,255,0.4),0_-8px_20px_rgba(255,255,255,0.3),inset_0_1px_3px_rgba(255,255,255,0.6)] relative z-10">
+            <div className="absolute inset-0 rounded-full bg-purple-400/30 dark:bg-white/20 blur-md animate-pulse"></div>
+            <div className="w-8 h-8 rounded-full backdrop-blur-md bg-gradient-to-b from-purple-400/60 via-purple-500/40 to-purple-600/25 dark:from-white/50 dark:via-white/30 dark:to-white/15 border-2 border-purple-500/70 dark:border-white/60 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_25px_rgba(168,85,247,0.6),0_-8px_20px_rgba(168,85,247,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_25px_rgba(255,255,255,0.4),0_-8px_20px_rgba(255,255,255,0.3),inset_0_1px_3px_rgba(255,255,255,0.6)] relative z-10">
               {prayer.display_name.charAt(0).toUpperCase()}
             </div>
           </div>
@@ -352,14 +352,14 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
       {/* Content */}
       <div className="px-4 mb-3">
         <div className="relative">
-          {/* 위에서 내려오는 빛 효과 */}
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[2px] h-6 bg-gradient-to-b from-transparent via-white/30 to-white/50 blur-[1px]"></div>
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[1px] h-6 bg-gradient-to-b from-transparent via-white/50 to-white/70"></div>
+          {/* 위에서 내려오는 빛 효과 - 테마별 색상 */}
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[2px] h-6 bg-gradient-to-b from-transparent via-purple-400/40 to-purple-500/60 dark:via-white/30 dark:to-white/50 blur-[1px]"></div>
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[1px] h-6 bg-gradient-to-b from-transparent via-purple-500/60 to-purple-600/80 dark:via-white/50 dark:to-white/70"></div>
           
           {/* 기도 카드 */}
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 border border-white/40 dark:border-white/20 relative overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.3),0_-3px_10px_rgba(255,255,255,0.2)] dark:shadow-[0_0_15px_rgba(255,255,255,0.2),0_-3px_8px_rgba(255,255,255,0.1)]">
+          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 border border-purple-200/50 dark:border-white/20 relative overflow-hidden shadow-[0_0_20px_rgba(168,85,247,0.25),0_-3px_10px_rgba(168,85,247,0.2)] dark:shadow-[0_0_15px_rgba(255,255,255,0.2),0_-3px_8px_rgba(255,255,255,0.1)]">
             {/* 내부 빛 효과 */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-white/20 to-transparent rounded-full blur-2xl"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/20 to-transparent dark:from-white/20 dark:to-transparent rounded-full blur-2xl"></div>
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-full blur-2xl"></div>
             
             <h3 className={`text-base font-bold text-primary mb-2.5 tracking-[0.02em] relative z-10 ${!showEnglish ? 'uppercase' : ''}`}>
