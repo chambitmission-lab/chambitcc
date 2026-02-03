@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getNotifications, markAsRead, markAllAsRead } from '../../api/notification'
+import { getNotifications } from '../../api/notification'
+import { useMarkAsRead, useMarkAllAsRead } from '../../hooks/useNotifications'
 import { showToast } from '../../utils/toast'
 import type { Notification } from '../../types/notification'
 import './NotificationModal.css'
@@ -15,6 +16,10 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
   const [loading, setLoading] = useState(true)
   const [readingIds, setReadingIds] = useState<Set<number>>(new Set())
   const isLoggedIn = !!localStorage.getItem('access_token')
+  
+  // React Query mutations
+  const markAsReadMutation = useMarkAsRead()
+  const markAllAsReadMutation = useMarkAllAsRead()
 
   useEffect(() => {
     if (isOpen) {
@@ -44,7 +49,7 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
         // 읽음 처리 중 표시
         setReadingIds(prev => new Set(prev).add(notification.id))
         
-        await markAsRead(notification.id)
+        await markAsReadMutation.mutateAsync(notification.id)
         
         // 읽음 상태 업데이트
         setNotifications(prev =>
@@ -74,7 +79,7 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
     if (!isLoggedIn) return
     
     try {
-      await markAllAsRead()
+      await markAllAsReadMutation.mutateAsync()
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
       onUnreadCountChange()
       showToast('모든 알림을 읽음 처리했습니다', 'success')

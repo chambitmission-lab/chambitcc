@@ -23,7 +23,6 @@ export const getNotifications = async (): Promise<Notification[]> => {
   }
   
   const data = await response.json()
-  console.log('공지사항 API 응답:', data) // 디버깅용
   
   // 응답 형식 확인 및 처리
   if (Array.isArray(data)) {
@@ -83,7 +82,6 @@ export const getUnreadCount = async (): Promise<number> => {
   }
   
   const data = await response.json()
-  console.log('읽지 않은 개수 API 응답:', data) // 디버깅용
   
   // 응답 형식 확인
   if (typeof data === 'number') {

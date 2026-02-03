@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { logout, isAdmin } from '../../../utils/auth'
-import { getUnreadCount } from '../../../api/notification'
+import { useUnreadCount, useRefreshUnreadCount } from '../../../hooks/useNotifications'
 import NotificationModal from '../../common/NotificationModal'
 import './NewHeader.css'
 
@@ -11,30 +11,19 @@ const NewHeader = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isAdminUser, setIsAdminUser] = useState(false)
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
-  const [unreadCount, setUnreadCount] = useState(0)
   const location = useLocation()
   const { theme, toggleTheme } = useTheme()
+  
+  // React Query로 알림 개수 조회 (중복 호출 방지)
+  const { data: unreadCount = 0 } = useUnreadCount()
+  const refreshUnreadCount = useRefreshUnreadCount()
 
   useEffect(() => {
     setIsMenuOpen(false)
     const token = localStorage.getItem('access_token')
     setIsLoggedIn(!!token)
     setIsAdminUser(isAdmin())
-    
-    // 읽지 않은 알림 개수 로드
-    if (token) {
-      loadUnreadCount()
-    }
   }, [location])
-
-  const loadUnreadCount = async () => {
-    try {
-      const count = await getUnreadCount()
-      setUnreadCount(count)
-    } catch (error) {
-      console.error('읽지 않은 알림 개수 로드 실패:', error)
-    }
-  }
 
   const handleLogout = () => {
     logout()
@@ -153,8 +142,11 @@ const NewHeader = () => {
       {/* Notification Modal */}
       <NotificationModal
         isOpen={isNotificationOpen}
-        onClose={() => setIsNotificationOpen(false)}
-        onUnreadCountChange={loadUnreadCount}
+        onClose={() => {
+          setIsNotificationOpen(false)
+          refreshUnreadCount() // 모달 닫을 때 알림 개수 갱신
+        }}
+        onUnreadCountChange={refreshUnreadCount}
       />
     </header>
   )
