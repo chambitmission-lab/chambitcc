@@ -120,9 +120,12 @@ const NewHome = () => {
             {/* Prayer Composer Input */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
               <div className="relative">
-                {/* 하늘에서 내려오는 빛 효과 */}
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-[2px] h-8 bg-gradient-to-b from-transparent via-white/40 to-white/60 blur-[1px]"></div>
-                <div className="w-8 h-8 rounded-full backdrop-blur-md bg-gradient-to-b from-white/40 via-white/20 to-white/10 dark:from-white/30 dark:via-white/15 dark:to-white/5 border border-white/50 dark:border-white/30 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_20px_rgba(255,255,255,0.4),0_-5px_15px_rgba(255,255,255,0.3)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3),0_-5px_15px_rgba(255,255,255,0.2)]">
+                {/* 하늘에서 내려오는 빛 효과 - 더 강렬하게 */}
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[3px] h-10 bg-gradient-to-b from-transparent via-white/60 to-white/80 blur-[2px]"></div>
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[1px] h-10 bg-gradient-to-b from-transparent via-white/80 to-white"></div>
+                {/* 주변 빛 확산 효과 */}
+                <div className="absolute inset-0 rounded-full bg-white/20 blur-md animate-pulse"></div>
+                <div className="w-8 h-8 rounded-full backdrop-blur-md bg-gradient-to-b from-white/50 via-white/30 to-white/15 dark:from-white/40 dark:via-white/20 dark:to-white/10 border-2 border-white/60 dark:border-white/40 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_25px_rgba(255,255,255,0.6),0_-8px_20px_rgba(255,255,255,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_25px_rgba(255,255,255,0.4),0_-8px_20px_rgba(255,255,255,0.3),inset_0_1px_3px_rgba(255,255,255,0.6)] relative z-10">
                   A
                 </div>
               </div>
@@ -312,9 +315,12 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
       <div className="px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative">
-            {/* 하늘에서 내려오는 빛 효과 */}
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-[2px] h-8 bg-gradient-to-b from-transparent via-white/40 to-white/60 blur-[1px]"></div>
-            <div className="w-8 h-8 rounded-full backdrop-blur-md bg-gradient-to-b from-white/40 via-white/20 to-white/10 dark:from-white/30 dark:via-white/15 dark:to-white/5 border border-white/50 dark:border-white/30 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_20px_rgba(255,255,255,0.4),0_-5px_15px_rgba(255,255,255,0.3)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3),0_-5px_15px_rgba(255,255,255,0.2)]">
+            {/* 하늘에서 내려오는 빛 효과 - 더 강렬하게 */}
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[3px] h-10 bg-gradient-to-b from-transparent via-white/60 to-white/80 blur-[2px]"></div>
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[1px] h-10 bg-gradient-to-b from-transparent via-white/80 to-white"></div>
+            {/* 주변 빛 확산 효과 */}
+            <div className="absolute inset-0 rounded-full bg-white/20 blur-md animate-pulse"></div>
+            <div className="w-8 h-8 rounded-full backdrop-blur-md bg-gradient-to-b from-white/50 via-white/30 to-white/15 dark:from-white/40 dark:via-white/20 dark:to-white/10 border-2 border-white/60 dark:border-white/40 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_25px_rgba(255,255,255,0.6),0_-8px_20px_rgba(255,255,255,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_25px_rgba(255,255,255,0.4),0_-8px_20px_rgba(255,255,255,0.3),inset_0_1px_3px_rgba(255,255,255,0.6)] relative z-10">
               {prayer.display_name.charAt(0).toUpperCase()}
             </div>
           </div>
