@@ -29,6 +29,17 @@ const NewHome = () => {
     setShowComposer(true)
   }
 
+  // 프로필 버튼 클릭 핸들러 (로그인 체크)
+  const handleProfileClick = () => {
+    const isLoggedIn = !!localStorage.getItem('access_token')
+    if (!isLoggedIn) {
+      showToast('로그인 후 사용할 수 있습니다', 'error')
+      navigate('/login')
+      return
+    }
+    navigate('/profile')
+  }
+
   // 기도 토글 핸들러 with 토스트 메시지
   const handlePrayerToggle = async (prayerId: number) => {
     try {
@@ -219,7 +230,7 @@ const NewHome = () => {
             
             {/* Profile */}
             <button 
-              onClick={() => navigate('/profile')}
+              onClick={handleProfileClick}
               className="flex flex-col items-center justify-center w-10 transition-all hover:opacity-80"
             >
               <div className="w-[27px] h-[27px] rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center shadow-sm">
