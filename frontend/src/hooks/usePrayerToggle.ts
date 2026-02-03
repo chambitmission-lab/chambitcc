@@ -133,29 +133,31 @@ export const usePrayerToggle = ({
         await addMutation.mutateAsync(prayerId)
       }
 
-      // 성공 시 다른 정렬의 목록만 백그라운드 무효화
-      // 현재 보고 있는 목록은 이미 Optimistic Update + 정렬로 정확하게 반영됨
-      const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
-      otherSorts.forEach(otherSort => {
-        queryClient.invalidateQueries({ 
-          queryKey: prayerKeys.list(otherSort, fingerprint),
-          refetchType: 'none', // 백그라운드에서만, 즉시 리페치 안함
+      // 캐시 무효화 (비동기, 백그라운드)
+      setTimeout(() => {
+        // 다른 정렬의 목록만 백그라운드 무효화
+        const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
+        otherSorts.forEach(otherSort => {
+          queryClient.invalidateQueries({ 
+            queryKey: prayerKeys.list(otherSort, fingerprint),
+            refetchType: 'none',
+          })
         })
-      })
 
-      // 다른 상세 캐시들도 백그라운드 무효화
-      if (!detailPrayerId) {
+        // 다른 상세 캐시들도 백그라운드 무효화
+        if (!detailPrayerId) {
+          queryClient.invalidateQueries({
+            queryKey: prayerKeys.details(),
+            refetchType: 'none',
+          })
+        }
+
+        // 프로필 캐시 무효화 (기도 통계 업데이트)
         queryClient.invalidateQueries({
-          queryKey: prayerKeys.details(),
+          queryKey: ['profile', 'detail'],
           refetchType: 'none',
         })
-      }
-
-      // 프로필 캐시 무효화 (기도 통계 업데이트)
-      queryClient.invalidateQueries({
-        queryKey: ['profile', 'detail'],
-        refetchType: 'none',
-      })
+      }, 0)
     } catch (error) {
       // 에러 시 롤백
       queryClient.setQueryData(listQueryKey, previousListData)

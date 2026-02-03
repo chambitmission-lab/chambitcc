@@ -66,13 +66,16 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
       })
 
       if (response.success) {
-        // 프로필 캐시 무효화 (내가 작성한 기도 +1)
-        queryClient.invalidateQueries({
-          queryKey: ['profile', 'detail'],
-          refetchType: 'none',
-        })
-        
+        // 즉시 성공 처리
         onSuccess(response.data)
+        
+        // 프로필 캐시 무효화 (비동기, 백그라운드)
+        setTimeout(() => {
+          queryClient.invalidateQueries({
+            queryKey: ['profile', 'detail'],
+            refetchType: 'none',
+          })
+        }, 0)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '등록에 실패했습니다')

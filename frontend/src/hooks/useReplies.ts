@@ -64,21 +64,25 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
   const mutation = useMutation({
     mutationFn: (data: CreateReplyRequest) => createReply(prayerId, data),
     onSuccess: (response) => {
-      // 댓글 목록 갱신
-      queryClient.invalidateQueries({ queryKey: ['prayers', prayerId, 'replies'] })
-      
-      // 기도 목록의 댓글 수 갱신
-      queryClient.invalidateQueries({ queryKey: ['prayers', 'list'] })
-      queryClient.invalidateQueries({ queryKey: ['prayers', prayerId] })
-
-      // 프로필 캐시 무효화 (내 댓글 +1)
-      queryClient.invalidateQueries({
-        queryKey: ['profile', 'detail'],
-        refetchType: 'none',
-      })
-
+      // 즉시 성공 처리
       showToast(response.message, 'success')
       onSuccess?.()
+      
+      // 캐시 무효화 (비동기, 백그라운드)
+      setTimeout(() => {
+        // 댓글 목록 갱신
+        queryClient.invalidateQueries({ queryKey: ['prayers', prayerId, 'replies'] })
+        
+        // 기도 목록의 댓글 수 갱신
+        queryClient.invalidateQueries({ queryKey: ['prayers', 'list'] })
+        queryClient.invalidateQueries({ queryKey: ['prayers', prayerId] })
+
+        // 프로필 캐시 무효화 (내 댓글 +1)
+        queryClient.invalidateQueries({
+          queryKey: ['profile', 'detail'],
+          refetchType: 'none',
+        })
+      }, 0)
     },
     onError: (error: Error) => {
       showToast(error.message, 'error')
