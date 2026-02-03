@@ -119,8 +119,12 @@ const NewHome = () => {
 
             {/* Prayer Composer Input */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold">
-                A
+              <div className="relative">
+                {/* 하늘에서 내려오는 빛 효과 */}
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-[2px] h-8 bg-gradient-to-b from-transparent via-white/40 to-white/60 blur-[1px]"></div>
+                <div className="w-8 h-8 rounded-full backdrop-blur-md bg-gradient-to-b from-white/40 via-white/20 to-white/10 dark:from-white/30 dark:via-white/15 dark:to-white/5 border border-white/50 dark:border-white/30 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_20px_rgba(255,255,255,0.4),0_-5px_15px_rgba(255,255,255,0.3)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3),0_-5px_15px_rgba(255,255,255,0.2)]">
+                  A
+                </div>
               </div>
               <div className="flex-1">
                 <input
@@ -307,8 +311,12 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
       {/* Header */}
       <div className="px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white dark:ring-black">
-            {prayer.display_name.charAt(0).toUpperCase()}
+          <div className="relative">
+            {/* 하늘에서 내려오는 빛 효과 */}
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-[2px] h-8 bg-gradient-to-b from-transparent via-white/40 to-white/60 blur-[1px]"></div>
+            <div className="w-8 h-8 rounded-full backdrop-blur-md bg-gradient-to-b from-white/40 via-white/20 to-white/10 dark:from-white/30 dark:via-white/15 dark:to-white/5 border border-white/50 dark:border-white/30 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_20px_rgba(255,255,255,0.4),0_-5px_15px_rgba(255,255,255,0.3)] dark:shadow-[0_0_20px_rgba(255,255,255,0.3),0_-5px_15px_rgba(255,255,255,0.2)]">
+              {prayer.display_name.charAt(0).toUpperCase()}
+            </div>
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-gray-900 dark:text-white leading-none mb-1">
