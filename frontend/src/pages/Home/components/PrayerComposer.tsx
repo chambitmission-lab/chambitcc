@@ -107,7 +107,7 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || !title.trim() || !content.trim()}
-            className="text-primary font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white font-bold text-sm rounded-full shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30 hover:shadow-xl hover:shadow-purple-500/40 dark:hover:shadow-purple-900/40 transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             {isSubmitting ? '작성중...' : '작성'}
           </button>
@@ -118,8 +118,15 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
           {/* Display Name */}
           <div className="mb-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-blue-500 flex items-center justify-center text-white text-sm font-bold">
-                {displayName.charAt(0).toUpperCase()}
+              <div className="relative">
+                {/* 하늘에서 내려오는 빛 효과 - 테마별 색상 */}
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[3px] h-10 bg-gradient-to-b from-transparent via-purple-400/60 to-purple-500/80 dark:via-white/60 dark:to-white/80 blur-[2px]"></div>
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-[1px] h-10 bg-gradient-to-b from-transparent via-purple-500/80 to-purple-600 dark:via-white/80 dark:to-white"></div>
+                {/* 주변 빛 확산 효과 */}
+                <div className="absolute inset-0 rounded-full bg-purple-400/30 dark:bg-white/20 blur-md animate-pulse"></div>
+                <div className="w-10 h-10 rounded-full backdrop-blur-md bg-gradient-to-b from-purple-400/60 via-purple-500/40 to-purple-600/25 dark:from-white/50 dark:via-white/30 dark:to-white/15 border-2 border-purple-500/70 dark:border-white/60 flex items-center justify-center text-white text-sm font-bold shadow-[0_0_25px_rgba(168,85,247,0.6),0_-8px_20px_rgba(168,85,247,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_25px_rgba(255,255,255,0.4),0_-8px_20px_rgba(255,255,255,0.3),inset_0_1px_3px_rgba(255,255,255,0.6)] relative z-10">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
               </div>
               <div className="flex-1">
                 <span className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -147,38 +154,53 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
           </div>
 
           {/* Category Badge */}
-          <div className="mb-3">
-            <span className="inline-block bg-indigo-100 dark:bg-indigo-900/30 text-primary text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
+          <div className="mb-4">
+            <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 border border-purple-500/30 dark:border-purple-500/40 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
+              <span className="w-1.5 h-1.5 bg-purple-500 dark:bg-purple-400 rounded-full animate-pulse"></span>
               기도 요청
             </span>
           </div>
 
-          {/* Title */}
-          <div className="mb-3">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="제목 (예: 가족의 건강, 진로 인도)"
-              maxLength={100}
-              required
-              className="w-full bg-transparent border-none text-base font-semibold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
-            />
-          </div>
+          {/* Content Card */}
+          <div className="relative mb-4">
+            {/* 위에서 내려오는 빛 효과 - 테마별 색상 */}
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[2px] h-6 bg-gradient-to-b from-transparent via-purple-400/40 to-purple-500/60 dark:via-white/30 dark:to-white/50 blur-[1px]"></div>
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[1px] h-6 bg-gradient-to-b from-transparent via-purple-500/60 to-purple-600/80 dark:via-white/50 dark:to-white/70"></div>
+            
+            {/* 기도 카드 - 글래스모피즘 */}
+            <div className="backdrop-blur-xl bg-white/40 dark:bg-white/10 rounded-xl p-4 border border-white/60 dark:border-white/20 relative overflow-hidden shadow-[0_8px_32px_rgba(168,85,247,0.15),0_-3px_10px_rgba(168,85,247,0.1),inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3),0_-3px_10px_rgba(255,255,255,0.1),inset_0_1px_1px_rgba(255,255,255,0.2)]">
+              {/* 내부 빛 효과 */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/30 to-transparent dark:from-white/20 dark:to-transparent rounded-full blur-2xl"></div>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-white/10 dark:to-white/5 rounded-full blur-2xl"></div>
+              
+              {/* Title */}
+              <div className="mb-3 relative z-10">
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="제목 (예: 가족의 건강, 진로 인도)"
+                  maxLength={100}
+                  required
+                  className="w-full bg-transparent border-none text-base font-extrabold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] uppercase"
+                />
+              </div>
 
-          {/* Content */}
-          <div className="mb-4">
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="기도 제목을 나눠주세요... 구체적으로 어떤 기도가 필요한지 알려주세요."
-              rows={8}
-              maxLength={1000}
-              required
-              className="w-full bg-transparent border-none text-base text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none resize-none leading-relaxed"
-            />
-            <div className="text-xs text-gray-400 text-right mt-1">
-              {content.length}/1000
+              {/* Content */}
+              <div className="relative z-10">
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="기도 제목을 나눠주세요... 구체적으로 어떤 기도가 필요한지 알려주세요."
+                  rows={8}
+                  maxLength={1000}
+                  required
+                  className="w-full bg-transparent border-none text-[15px] text-gray-600 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none leading-[1.7] drop-shadow-[0_0_6px_rgba(168,85,247,0.2)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]"
+                />
+                <div className="text-xs text-gray-400 dark:text-gray-500 text-right mt-1">
+                  {content.length}/1000
+                </div>
+              </div>
             </div>
           </div>
 
