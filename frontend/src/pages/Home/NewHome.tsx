@@ -351,14 +351,24 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
 
       {/* Content */}
       <div className="px-4 mb-3">
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 border border-indigo-100/50 dark:border-gray-700/50 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-full blur-2xl"></div>
-          <h3 className={`text-base font-bold text-primary mb-2.5 tracking-[0.02em] relative z-10 ${!showEnglish ? 'uppercase' : ''}`}>
-            {displayTitle}
-          </h3>
-          <p className="text-[15px] text-gray-900 dark:text-gray-100 leading-[1.7] relative z-10 font-normal tracking-[-0.01em]">
-            {displayContent}
-          </p>
+        <div className="relative">
+          {/* 위에서 내려오는 빛 효과 */}
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[2px] h-6 bg-gradient-to-b from-transparent via-white/30 to-white/50 blur-[1px]"></div>
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[1px] h-6 bg-gradient-to-b from-transparent via-white/50 to-white/70"></div>
+          
+          {/* 기도 카드 */}
+          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 border border-white/40 dark:border-white/20 relative overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.3),0_-3px_10px_rgba(255,255,255,0.2)] dark:shadow-[0_0_15px_rgba(255,255,255,0.2),0_-3px_8px_rgba(255,255,255,0.1)]">
+            {/* 내부 빛 효과 */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-white/20 to-transparent rounded-full blur-2xl"></div>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/5 to-purple-500/5 rounded-full blur-2xl"></div>
+            
+            <h3 className={`text-base font-bold text-primary mb-2.5 tracking-[0.02em] relative z-10 ${!showEnglish ? 'uppercase' : ''}`}>
+              {displayTitle}
+            </h3>
+            <p className="text-[15px] text-gray-900 dark:text-gray-100 leading-[1.7] relative z-10 font-normal tracking-[-0.01em]">
+              {displayContent}
+            </p>
+          </div>
         </div>
       </div>
 
