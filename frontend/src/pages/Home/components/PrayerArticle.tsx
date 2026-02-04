@@ -9,7 +9,7 @@ interface PrayerArticleProps {
 
 const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) => {
   const [isPraying, setIsPraying] = useState(false)
-  const [showEnglish, setShowEnglish] = useState(false)
+  const [showTranslation, setShowTranslation] = useState(false) // 번역 보기 상태
 
   const handlePray = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -22,9 +22,23 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
     }
   }
 
-  const hasTranslation = !!(prayer.title_en && prayer.content_en)
-  const displayTitle = showEnglish && prayer.title_en ? prayer.title_en : prayer.title
-  const displayContent = showEnglish && prayer.content_en ? prayer.content_en : prayer.content
+  // 번역이 있는지 확인
+  const hasEnTranslation = !!(prayer.title_en && prayer.content_en)
+  const hasKoTranslation = !!(prayer.title_ko && prayer.content_ko)
+  const hasTranslation = hasEnTranslation || hasKoTranslation
+  
+  // 현재 표시할 제목과 내용 결정
+  const displayTitle = showTranslation 
+    ? (prayer.title_en || prayer.title_ko || prayer.title)
+    : prayer.title
+  const displayContent = showTranslation 
+    ? (prayer.content_en || prayer.content_ko || prayer.content)
+    : prayer.content
+  
+  // 버튼 텍스트 결정
+  const translationButtonText = showTranslation 
+    ? (hasKoTranslation ? '🇺🇸 EN' : '🇰🇷 한글') // 한글 번역 보는 중 → 영어(원문)로, 영어 번역 보는 중 → 한글(원문)로
+    : (hasKoTranslation ? '🇰🇷 한글' : '🇺🇸 EN') // 원문 보는 중 → 번역 언어 표시
 
   return (
     <article 
@@ -58,12 +72,12 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                setShowEnglish(!showEnglish)
+                setShowTranslation(!showTranslation)
               }}
               className="px-2.5 py-1.5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-[10px] font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
-              title={showEnglish ? '한글로 보기' : 'View in English'}
+              title={showTranslation ? '원문 보기' : '번역 보기'}
             >
-              {showEnglish ? '🇰🇷 한글' : '🇺🇸 EN'}
+              {translationButtonText}
             </button>
           )}
         </div>
@@ -82,7 +96,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/30 to-transparent dark:from-white/20 dark:to-transparent rounded-full blur-2xl"></div>
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-white/10 dark:to-white/5 rounded-full blur-2xl"></div>
             
-            <h3 className={`text-base font-extrabold text-gray-900 dark:text-white mb-2.5 tracking-[0.02em] relative z-10 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] ${!showEnglish ? 'uppercase' : ''}`}>
+            <h3 className="text-base font-extrabold text-gray-900 dark:text-white mb-2.5 tracking-[0.02em] relative z-10 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] uppercase">
               {displayTitle}
             </h3>
             

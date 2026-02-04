@@ -4,8 +4,10 @@ export interface Prayer {
   display_name: string
   title: string
   content: string
-  title_en?: string  // 영어 번역 제목
-  content_en?: string  // 영어 번역 내용
+  title_en?: string  // 한글→영어 번역 제목
+  content_en?: string  // 한글→영어 번역 내용
+  title_ko?: string  // 영어→한글 번역 제목
+  content_ko?: string  // 영어→한글 번역 내용
   prayer_count: number
   reply_count: number
   is_prayed: boolean

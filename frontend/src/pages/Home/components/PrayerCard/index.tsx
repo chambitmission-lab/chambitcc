@@ -17,12 +17,18 @@ const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
   // Anonymous를 익명으로 변환
   const displayName = prayer.display_name === 'Anonymous' ? '익명' : prayer.display_name
   
-  // 영어 번역이 있는지 확인
-  const hasTranslation = !!(prayer.title_en && prayer.content_en)
+  // 번역이 있는지 확인 (한글→영어 또는 영어→한글)
+  const hasEnTranslation = !!(prayer.title_en && prayer.content_en)
+  const hasKoTranslation = !!(prayer.title_ko && prayer.content_ko)
+  const hasTranslation = hasEnTranslation || hasKoTranslation
 
   // 현재 표시할 제목과 내용 결정
-  const displayTitle = showEnglish && prayer.title_en ? prayer.title_en : prayer.title
-  const displayContent = showEnglish && prayer.content_en ? prayer.content_en : prayer.content
+  const displayTitle = showEnglish 
+    ? (prayer.title_en || prayer.title_ko || prayer.title)
+    : prayer.title
+  const displayContent = showEnglish 
+    ? (prayer.content_en || prayer.content_ko || prayer.content)
+    : prayer.content
 
   const handlePrayClick = async () => {
     if (isPraying) return

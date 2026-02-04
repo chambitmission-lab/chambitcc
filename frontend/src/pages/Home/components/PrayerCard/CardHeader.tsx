@@ -26,9 +26,9 @@ const CardHeader = ({
         <button
           className="language-toggle"
           onClick={onToggleLanguage}
-          title={showEnglish ? '한글로 보기' : 'View in English'}
+          title={showEnglish ? 'View in English' : '한글로 보기'}
         >
-          {showEnglish ? '🇰🇷 한글' : '🇺🇸 English'}
+          {showEnglish ? '🇺🇸 English' : '🇰🇷 한글'}
         </button>
       )}
     </div>

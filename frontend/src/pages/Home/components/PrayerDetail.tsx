@@ -91,9 +91,19 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete }: PrayerDetail
     )
   }
 
-  const hasTranslation = !!(prayer.title_en && prayer.content_en)
-  const displayTitle = showEnglish && prayer.title_en ? prayer.title_en : prayer.title
-  const displayContent = showEnglish && prayer.content_en ? prayer.content_en : prayer.content
+  // 번역이 있는지 확인 (한글→영어 또는 영어→한글)
+  // 번역이 있는지 확인 (한글→영어 또는 영어→한글)
+  const hasEnTranslation = !!(prayer.title_en && prayer.content_en)
+  const hasKoTranslation = !!(prayer.title_ko && prayer.content_ko)
+  const hasTranslation = hasEnTranslation || hasKoTranslation
+  
+  // 현재 표시할 제목과 내용 결정
+  const displayTitle = showEnglish 
+    ? (prayer.title_en || prayer.title_ko || prayer.title)
+    : prayer.title
+  const displayContent = showEnglish 
+    ? (prayer.content_en || prayer.content_ko || prayer.content)
+    : prayer.content
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
@@ -145,7 +155,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete }: PrayerDetail
                 onClick={() => setShowEnglish(!showEnglish)}
                 className="px-3 py-1.5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                {showEnglish ? '🇰🇷 한글' : '🇺🇸 English'}
+                {showEnglish ? '🇺🇸 English' : '🇰🇷 한글'}
               </button>
             )}
           </div>
