@@ -22,13 +22,24 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
     queryKey: prayerKeys.list(sort),
-    queryFn: ({ pageParam = 1 }) => fetchPrayers(pageParam, 20, sort),
+    queryFn: async ({ pageParam = 1 }) => {
+      console.log('🔍 Fetching prayers:', { sort, page: pageParam })
+      try {
+        const result = await fetchPrayers(pageParam, 20, sort)
+        console.log('✅ Prayers fetched:', result)
+        return result
+      } catch (error) {
+        console.error('❌ Failed to fetch prayers:', error)
+        throw error
+      }
+    },
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.data.items.length < 20) return undefined
       return allPages.length + 1
     },
     initialPageParam: 1,
     staleTime: 1000 * 60 * 5, // 5분간 fresh (기도 목록은 자주 안 바뀜)
+    retry: 2, // 실패 시 2번 재시도
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)
