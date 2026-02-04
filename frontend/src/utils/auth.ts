@@ -1,10 +1,10 @@
 // 인증 관련 유틸리티 함수
-import { queryClient } from '../config/queryClient'
+import { getBasename } from '../config/basename'
 
 /**
  * 로그아웃 처리
  * - localStorage 정리
- * - React Query 캐시 초기화
+ * - 페이지 리로드로 상태 초기화
  */
 export const logout = () => {
   // 토큰 및 사용자 정보 제거
@@ -13,12 +13,12 @@ export const logout = () => {
   localStorage.removeItem('user_username')
   localStorage.removeItem('user_full_name')
   
-  // React Query 캐시 초기화
-  queryClient.clear()
+  // 더 이상 사용하지 않는 fingerprint 제거
+  localStorage.removeItem('user_fingerprint')
   
-  // 페이지 새로고침하여 모든 상태 초기화
-  const basePath = import.meta.env.PROD ? '/chambitcc' : ''
-  window.location.href = basePath + '/'
+  // 페이지 리로드 (캐시는 자동으로 정리됨)
+  const basePath = getBasename() + '/'
+  window.location.replace(basePath)
 }
 
 /**

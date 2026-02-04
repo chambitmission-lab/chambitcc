@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { getBasePath } from './config/basename'
 import NewHeader from './components/layout/NewHeader/NewHeader'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import Home from './pages/Home/Home'
@@ -25,7 +26,7 @@ import './styles/common.css'
 function App() {
   return (
     <ThemeProvider>
-      <Router basename={import.meta.env.PROD ? "/chambitcc/" : "/"}>
+      <Router basename={getBasePath()}>
         <div className="app min-h-screen">
           <NewHeader />
           <main className="main-content">

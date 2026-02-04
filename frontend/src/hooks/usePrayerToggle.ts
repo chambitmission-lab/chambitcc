@@ -7,7 +7,6 @@ import type { Prayer, SortType } from '../types/prayer'
 
 interface UsePrayerToggleOptions {
   sort?: SortType
-  fingerprint?: string
   prayerId?: number // 상세 페이지용
   onSuccess?: (message: string) => void
   onError?: (error: string) => void
@@ -27,11 +26,10 @@ interface PrayerToggleResult {
  */
 export const usePrayerToggle = ({
   sort = 'popular',
-  fingerprint,
   prayerId: detailPrayerId,
   onSuccess,
   onError,
-}: UsePrayerToggleOptions): PrayerToggleResult => {
+}: UsePrayerToggleOptions = {}): PrayerToggleResult => {
   const queryClient = useQueryClient()
 
   // 기도 추가 Mutation
@@ -62,9 +60,9 @@ export const usePrayerToggle = ({
 
   // 통합 토글 함수 (Dependency Inversion: 추상화된 인터페이스 제공)
   const togglePrayer = async (prayerId: number, isPrayed: boolean) => {
-    const listQueryKey = prayerKeys.list(sort, fingerprint)
+    const listQueryKey = prayerKeys.list(sort)
     const detailQueryKey = detailPrayerId 
-      ? prayerKeys.detail(detailPrayerId, fingerprint)
+      ? prayerKeys.detail(detailPrayerId)
       : null
 
     // Optimistic Update - 목록 캐시
@@ -139,7 +137,7 @@ export const usePrayerToggle = ({
         const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
         otherSorts.forEach(otherSort => {
           queryClient.invalidateQueries({ 
-            queryKey: prayerKeys.list(otherSort, fingerprint),
+            queryKey: prayerKeys.list(otherSort),
             refetchType: 'none',
           })
         })
