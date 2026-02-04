@@ -17,7 +17,7 @@ interface PrayerDetailProps {
 
 const PrayerDetail = ({ prayerId, initialData, onClose, onDelete }: PrayerDetailProps) => {
   const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData)
-  const [showEnglish, setShowEnglish] = useState(false)
+  const [showTranslation, setShowTranslation] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -98,12 +98,17 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete }: PrayerDetail
   const hasTranslation = hasEnTranslation || hasKoTranslation
   
   // 현재 표시할 제목과 내용 결정
-  const displayTitle = showEnglish 
+  const displayTitle = showTranslation 
     ? (prayer.title_en || prayer.title_ko || prayer.title)
     : prayer.title
-  const displayContent = showEnglish 
+  const displayContent = showTranslation 
     ? (prayer.content_en || prayer.content_ko || prayer.content)
     : prayer.content
+  
+  // 버튼 텍스트 결정
+  const translationButtonText = showTranslation 
+    ? (hasKoTranslation ? '🇺🇸 English' : '🇰🇷 한글')
+    : (hasKoTranslation ? '🇰🇷 한글' : '🇺🇸 English')
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
@@ -152,10 +157,10 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete }: PrayerDetail
             </div>
             {hasTranslation && (
               <button
-                onClick={() => setShowEnglish(!showEnglish)}
+                onClick={() => setShowTranslation(!showTranslation)}
                 className="px-3 py-1.5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                {showEnglish ? '🇺🇸 English' : '🇰🇷 한글'}
+                {translationButtonText}
               </button>
             )}
           </div>
@@ -172,7 +177,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete }: PrayerDetail
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/30 to-transparent dark:from-white/20 dark:to-transparent rounded-full blur-2xl"></div>
               <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-white/10 dark:to-white/5 rounded-full blur-2xl"></div>
               
-              <h3 className={`text-base font-extrabold text-gray-900 dark:text-white mb-3 tracking-[0.02em] relative z-10 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] ${!showEnglish ? 'uppercase' : ''}`}>
+              <h3 className="text-base font-extrabold text-gray-900 dark:text-white mb-3 tracking-[0.02em] relative z-10 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] uppercase">
                 {displayTitle}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap relative z-10 drop-shadow-[0_0_6px_rgba(168,85,247,0.2)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]">
