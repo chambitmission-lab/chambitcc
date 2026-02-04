@@ -69,10 +69,11 @@ const Profile = () => {
           </button>
           <h1 className="text-base font-bold text-gray-900 dark:text-white">프로필</h1>
           <button 
-            className="text-sm font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+            className="flex items-center gap-1 text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-purple-600 hover:to-pink-600 transition-all"
             onClick={handleLogout}
           >
-            로그아웃
+            <span className="material-icons-outlined text-lg bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">logout</span>
+            <span>로그아웃</span>
           </button>
         </div>
 

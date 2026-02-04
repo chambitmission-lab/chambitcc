@@ -8,7 +8,9 @@ const ActivityStats = ({ thisWeekCount, totalCount, streakDays }: ActivityStatsP
   return (
     <div className="px-4 pb-6">
       <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <span className="text-lg">📊</span>
+        <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
+          insights
+        </span>
         나의 기도 활동
       </h3>
       <div className="grid grid-cols-3 gap-3">
