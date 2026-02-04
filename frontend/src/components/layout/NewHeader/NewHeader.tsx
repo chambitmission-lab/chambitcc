@@ -128,16 +128,22 @@ const NewHeader = () => {
               {isLoggedIn ? (
                 <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                  className="block w-full text-left px-4 py-3 text-sm font-semibold transition-colors relative group"
                 >
-                  로그아웃
+                  <span className="bg-gradient-to-r from-amber-600 to-orange-500 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent group-hover:from-amber-700 group-hover:to-orange-600 dark:group-hover:from-amber-300 dark:group-hover:to-orange-300">
+                    로그아웃
+                  </span>
+                  <div className="absolute inset-0 bg-amber-50 dark:bg-amber-900/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg -z-10"></div>
                 </button>
               ) : (
                 <Link
                   to="/login"
-                  className="block px-4 py-3 text-sm text-primary font-semibold hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                  className="block px-4 py-3 text-sm font-semibold transition-colors relative group"
                 >
-                  로그인
+                  <span className="bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent group-hover:from-purple-700 group-hover:to-indigo-700 dark:group-hover:from-purple-300 dark:group-hover:to-indigo-300">
+                    로그인
+                  </span>
+                  <div className="absolute inset-0 bg-purple-50 dark:bg-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg -z-10"></div>
                 </Link>
               )}
             </nav>
