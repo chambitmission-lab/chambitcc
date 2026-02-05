@@ -21,9 +21,15 @@ const PrayerDetailHeader = ({ isOwner, onClose, onDeleteClick }: PrayerDetailHea
         )}
         <button
           onClick={onClose}
-          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+          className="relative w-9 h-9 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-500/30 dark:to-pink-500/30 hover:from-purple-500/30 hover:to-pink-500/30 dark:hover:from-purple-500/40 dark:hover:to-pink-500/40 transition-all group"
         >
-          <span className="material-icons-outlined text-[22px] text-gray-500 dark:text-gray-400">close</span>
+          {/* 강한 빛나는 효과 */}
+          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 opacity-60 blur-md group-hover:opacity-80 animate-pulse transition-opacity"></span>
+          <span className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 opacity-40 blur-sm group-hover:opacity-60 transition-opacity"></span>
+          {/* 빛나는 테두리 */}
+          <span className="absolute inset-0 rounded-full border-2 border-purple-500 dark:border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.6)] dark:shadow-[0_0_12px_rgba(168,85,247,0.8)] group-hover:shadow-[0_0_20px_rgba(168,85,247,0.8)] dark:group-hover:shadow-[0_0_20px_rgba(168,85,247,1)] transition-all"></span>
+          {/* X 아이콘 */}
+          <span className="material-icons-outlined text-[22px] text-purple-700 dark:text-purple-300 relative z-10 font-bold group-hover:scale-110 transition-transform drop-shadow-[0_0_4px_rgba(168,85,247,0.8)]">close</span>
         </button>
       </div>
     </div>
