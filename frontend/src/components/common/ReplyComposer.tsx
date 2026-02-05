@@ -84,7 +84,22 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
                   disabled={isSubmitting}
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  익명으로 작성 ({isAnonymous ? '익명' : displayName})
+                  익명으로 작성 (
+                  <span className="relative inline-block">
+                    <span className="relative z-10 font-bold text-amber-600 dark:text-amber-400">
+                      {isAnonymous ? '익명' : displayName}
+                    </span>
+                    {!isAnonymous && (
+                      <>
+                        {/* 황금빛 후광 */}
+                        <span className="absolute inset-0 blur-md bg-amber-300 dark:bg-amber-400 opacity-40 animate-pulse"></span>
+                        <span className="absolute inset-0 blur-sm bg-yellow-200 dark:bg-yellow-300 opacity-30"></span>
+                        {/* 빛나는 언더라인 */}
+                        <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_8px_rgba(251,191,36,0.6)]"></span>
+                      </>
+                    )}
+                  </span>
+                  )
                 </span>
               </label>
             )}
