@@ -34,7 +34,7 @@ const PrayerActions = ({
         onClick={onRepliesToggle}
         className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm transition-all ${
           showReplies
-            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-indigo-900/30'
+            ? 'bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30'
             : 'bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
         }`}
       >
