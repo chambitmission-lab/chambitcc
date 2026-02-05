@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Prayer } from '../../../types/prayer'
+import BibleVersesModal from './BibleVersesModal'
 
 interface PrayerArticleProps {
   prayer: Prayer
@@ -10,6 +11,12 @@ interface PrayerArticleProps {
 const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) => {
   const [isPraying, setIsPraying] = useState(false)
   const [showTranslation, setShowTranslation] = useState(false) // 번역 보기 상태
+  const [showVersesModal, setShowVersesModal] = useState(false) // 성경 구절 모달
+
+  // 디버깅: 성경 구절 데이터 확인
+  console.log('Prayer ID:', prayer.id)
+  console.log('Has recommended_verses:', !!prayer.recommended_verses)
+  console.log('Recommended verses data:', prayer.recommended_verses)
 
   const handlePray = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -120,6 +127,22 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
             volunteer_activism
           </span>
         </button>
+
+        {/* 성경 구절 버튼 */}
+        {prayer.recommended_verses && prayer.recommended_verses.verses.length > 0 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowVersesModal(true)
+            }}
+            className="group flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:opacity-70 transition-colors"
+            title="성경 말씀 보기"
+          >
+            <span className="material-icons-outlined text-[24px]">
+              auto_stories
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Stats - 한 줄로 통합 */}
@@ -141,6 +164,40 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
           )}
         </div>
       </div>
+
+      {/* 성경 구절 - 첫 번째 구절만 작게 표시 */}
+      {prayer.recommended_verses && prayer.recommended_verses.verses.length > 0 && (
+        <div className="px-4 pb-3">
+          <div className="bg-gradient-to-r from-purple-50/80 to-pink-50/80 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-3 border border-purple-200/50 dark:border-purple-500/30">
+            <div className="flex items-start gap-2">
+              <span className="material-icons-outlined text-purple-500 dark:text-purple-400 text-sm mt-0.5 flex-shrink-0">
+                auto_stories
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold text-purple-700 dark:text-purple-300 mb-1">
+                  {prayer.recommended_verses.verses[0].reference}
+                </p>
+                <p className="text-[11px] text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-2">
+                  "{prayer.recommended_verses.verses[0].text}"
+                </p>
+                {prayer.recommended_verses.verses.length > 1 && (
+                  <p className="text-[10px] text-purple-600 dark:text-purple-400 mt-1">
+                    +{prayer.recommended_verses.verses.length - 1}개 더보기
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 성경 구절 모달 */}
+      {showVersesModal && prayer.recommended_verses && (
+        <BibleVersesModal
+          verses={prayer.recommended_verses}
+          onClose={() => setShowVersesModal(false)}
+        />
+      )}
     </article>
   )
 }

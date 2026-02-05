@@ -14,6 +14,7 @@ export interface Prayer {
   is_owner?: boolean  // 내가 작성한 기도인지
   created_at: string
   time_ago: string
+  recommended_verses?: RecommendedVerses  // 성경 구절 추천
 }
 
 export interface PrayerDetailResponse {
@@ -38,10 +39,26 @@ export interface CreatePrayerRequest {
   is_fully_anonymous: boolean
 }
 
+// 성경 구절 추천 타입
+export interface BibleVerse {
+  reference: string  // 예: "마태복음 11:28"
+  text: string       // 성경 구절 내용
+  message: string    // 적용 메시지
+}
+
+export interface RecommendedVerses {
+  summary: string           // 기도 주제 요약
+  verses: BibleVerse[]      // 추천 성경 구절 목록
+  language: string          // 언어 코드 (ko, en 등)
+}
+
 export interface PrayerResponse {
   success: boolean
   message: string
-  data: Prayer
+  data: {
+    prayer: Prayer
+    recommended_verses?: RecommendedVerses  // optional
+  }
 }
 
 export type SortType = 'popular' | 'latest'

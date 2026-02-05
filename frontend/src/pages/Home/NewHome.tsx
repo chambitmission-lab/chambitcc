@@ -111,7 +111,7 @@ const NewHome = () => {
               onClose={() => setShowComposer(false)}
               onSuccess={() => {
                 prayerHook.refresh()
-                setShowComposer(false)
+                // 성경 구절 모달이 있을 수 있으므로 PrayerComposer가 자체적으로 닫힘 처리
               }}
             />
           )}

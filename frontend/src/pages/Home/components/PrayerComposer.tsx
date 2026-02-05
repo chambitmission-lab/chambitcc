@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { createPrayer } from '../../../api/prayer'
 import { validation } from '../../../utils/validation'
-import type { Prayer } from '../../../types/prayer'
+import type { Prayer, RecommendedVerses } from '../../../types/prayer'
+import BibleVersesModal from './BibleVersesModal'
 
 interface PrayerComposerProps {
   onClose: () => void
@@ -16,6 +17,8 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [recommendedVerses, setRecommendedVerses] = useState<RecommendedVerses | null>(null)
+  const [showVersesModal, setShowVersesModal] = useState(false)
   
   const isLoggedIn = !!localStorage.getItem('access_token')
   
@@ -66,8 +69,26 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
       })
 
       if (response.success) {
+        // 디버깅: 응답 데이터 확인
+        console.log('Create prayer response:', response)
+        console.log('Prayer data:', response.data)
+        console.log('Recommended verses:', response.data.recommended_verses)
+        
+        // 기도 객체 추출 (새로운 응답 구조)
+        const prayer = response.data.prayer
+        
         // 즉시 성공 처리
-        onSuccess(response.data)
+        onSuccess(prayer)
+        
+        // 성경 구절이 있으면 모달 표시
+        if (response.data.recommended_verses && response.data.recommended_verses.verses.length > 0) {
+          setRecommendedVerses(response.data.recommended_verses)
+          setShowVersesModal(true)
+          // 성경 구절 모달이 닫힐 때 onClose 호출됨
+        } else {
+          // 성경 구절이 없으면 바로 닫기
+          onClose()
+        }
         
         // 프로필 캐시 무효화 (비동기, 백그라운드)
         setTimeout(() => {
@@ -84,11 +105,26 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
     }
   }
 
+  const handleVersesModalClose = () => {
+    setShowVersesModal(false)
+    onClose()
+  }
+
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
-      onClick={onClose}
-    >
+    <>
+      {/* 성경 구절 모달 */}
+      {showVersesModal && recommendedVerses && (
+        <BibleVersesModal
+          verses={recommendedVerses}
+          onClose={handleVersesModalClose}
+        />
+      )}
+
+      {/* 기도 작성 모달 */}
+      <div 
+        className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
+        onClick={onClose}
+      >
       <div 
         className="bg-background-light dark:bg-background-dark rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
@@ -250,6 +286,7 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
         </form>
       </div>
     </div>
+    </>
   )
 }
 
