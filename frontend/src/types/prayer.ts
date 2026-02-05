@@ -55,10 +55,8 @@ export interface RecommendedVerses {
 export interface PrayerResponse {
   success: boolean
   message: string
-  data: {
-    prayer: Prayer
-    recommended_verses?: RecommendedVerses  // optional
-  }
+  data: Prayer  // 이제 prayer 객체가 바로 data에 있음
+  processing?: boolean  // 백그라운드 처리 중 여부
 }
 
 export type SortType = 'popular' | 'latest'

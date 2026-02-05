@@ -69,19 +69,24 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
       })
 
       if (response.success) {
-        // 기도 객체 추출 (새로운 응답 구조)
-        const prayer = response.data.prayer
+        // 기도 객체 추출 (data에 바로 있음)
+        const prayer = response.data
         
         // 즉시 성공 처리
         onSuccess(prayer)
         
         // 성경 구절이 있으면 모달 표시
-        if (response.data.recommended_verses && response.data.recommended_verses.verses.length > 0) {
-          setRecommendedVerses(response.data.recommended_verses)
+        if (prayer.recommended_verses && prayer.recommended_verses.verses.length > 0) {
+          setRecommendedVerses(prayer.recommended_verses)
           setShowVersesModal(true)
           // 성경 구절 모달이 닫힐 때 onClose 호출됨
         } else {
           // 성경 구절이 없으면 바로 닫기
+          // processing이 true면 백그라운드에서 처리 중
+          if (response.processing) {
+            // TODO: 나중에 폴링이나 웹소켓으로 업데이트 받을 수 있음
+            console.log('성경 구절이 백그라운드에서 처리 중입니다')
+          }
           onClose()
         }
         
