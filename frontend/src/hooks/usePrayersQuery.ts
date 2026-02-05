@@ -2,7 +2,8 @@
 import { useMutation, useQueryClient, useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { fetchPrayers, createPrayer, fetchPrayerDetail } from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
-import type { SortType, Prayer } from '../types/prayer'
+import { showToast } from '../utils/toast'
+import type { SortType, Prayer, CreatePrayerRequest } from '../types/prayer'
 
 // Query Keys
 export const prayerKeys = {
@@ -43,10 +44,69 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
 
   // 기도 생성 Mutation
   const createMutation = useMutation({
-    mutationFn: createPrayer,
+    mutationFn: (data: CreatePrayerRequest) => createPrayer(data),
+    onMutate: async (data) => {
+      // 진행 중인 쿼리 취소
+      await queryClient.cancelQueries({ queryKey: prayerKeys.list(sort) })
+
+      // 이전 데이터 백업
+      const previousData = queryClient.getQueryData(prayerKeys.list(sort))
+
+      // Optimistic Update - 임시 기도 추가
+      const tempPrayer: Prayer = {
+        id: Date.now(), // 임시 ID
+        display_name: data.display_name || '익명',
+        title: data.title,
+        content: data.content,
+        created_at: new Date().toISOString(),
+        time_ago: '방금 전',
+        prayer_count: 0,
+        reply_count: 0,
+        is_prayed: false,
+        is_owner: true,
+      }
+
+      queryClient.setQueryData(prayerKeys.list(sort), (old: any) => {
+        if (!old) return old
+
+        const firstPage = old.pages[0]
+        return {
+          ...old,
+          pages: [
+            {
+              ...firstPage,
+              data: {
+                ...firstPage.data,
+                items: [tempPrayer, ...firstPage.data.items],
+              },
+            },
+            ...old.pages.slice(1),
+          ],
+        }
+      })
+
+      return { previousData }
+    },
+    onError: (error: Error, _variables, context) => {
+      // 에러 시 롤백
+      if (context?.previousData) {
+        queryClient.setQueryData(prayerKeys.list(sort), context.previousData)
+      }
+      showToast(error.message || '기도 요청 등록에 실패했습니다.', 'error')
+    },
     onSuccess: () => {
-      // 모든 기도 목록 무효화하여 새로고침
+      showToast('기도 요청이 등록되었습니다.', 'success')
+      
+      // 실제 데이터로 갱신
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+      
+      // 백그라운드에서 프로필 캐시 무효화 (내 기도 +1)
+      setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: ['profile', 'detail'],
+          refetchType: 'none',
+        })
+      }, 0)
     },
   })
 
@@ -71,7 +131,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     isFetchingMore: query.isFetchingNextPage,
     handlePrayerToggle,
     isToggling,
-    createPrayer: createMutation.mutate,
+    createPrayer: (data: CreatePrayerRequest) => createMutation.mutateAsync(data),
     isCreating: createMutation.isPending,
     refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort) }),
   }
@@ -87,8 +147,8 @@ export const usePrayerDetail = (prayerId: number, initialData?: Prayer) => {
     queryKey: prayerKeys.detail(prayerId),
     queryFn: () => fetchPrayerDetail(prayerId),
     enabled: !!prayerId,
-    staleTime: 0, // 항상 최신 데이터를 가져오도록 설정
-    placeholderData: initialData, // initialData 대신 placeholderData 사용
+    staleTime: 1000 * 60 * 3, // 3분간 fresh (너무 자주 호출 방지)
+    initialData, // 목록에서 가져온 데이터를 초기값으로 사용
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)

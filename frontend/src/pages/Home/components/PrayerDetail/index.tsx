@@ -2,9 +2,9 @@
 import { useState } from 'react'
 import { usePrayerDetail } from '../../../../hooks/usePrayersQuery'
 import { useReplies, useCreateReply } from '../../../../hooks/useReplies'
+import { usePrayerDelete } from '../../../../hooks/usePrayerDelete'
 import type { Prayer } from '../../../../types/prayer'
 import { useTranslation } from './useTranslation'
-import { usePrayerDelete } from './usePrayerDelete'
 import PrayerDetailModal from './PrayerDetailModal'
 import PrayerDetailHeader from './PrayerDetailHeader'
 import LoadingState from './LoadingState'
@@ -38,12 +38,18 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete }: PrayerDetail
   } = useTranslation(prayer || null)
 
   // 삭제 관련
-  const {
-    showDeleteConfirm,
-    isDeleting,
-    setShowDeleteConfirm,
-    handleDelete,
-  } = usePrayerDelete(prayerId, onClose, onDelete)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const { deletePrayer, isDeleting } = usePrayerDelete({
+    onSuccess: () => {
+      setShowDeleteConfirm(false)
+      onClose()
+      onDelete?.()
+    },
+  })
+
+  const handleDelete = () => {
+    deletePrayer(prayerId)
+  }
 
   // 댓글 관련
   const {

@@ -1,21 +1,21 @@
 import '../styles/CommunityFeed.css'
 import { type Post } from '../../../api/community'
 import { useCommunityFeed } from '../../../hooks/useCommunityFeed'
-import { usePostActions } from '../../../hooks/usePostActions'
+import { useCommunityActions } from '../../../hooks/useCommunityActions'
 import { PostComposer } from '../../../components/community/PostComposer'
 import { PostItem } from '../../../components/community/PostItem'
 
 /**
  * 커뮤니티 피드 메인 컴포넌트
- * - 데이터 페칭과 상태 관리는 커스텀 훅으로 분리
+ * - React Query 기반 자동 캐싱 및 Optimistic Update
  * - UI 컴포넌트는 재사용 가능한 작은 컴포넌트로 분리
  */
 const CommunityFeed = () => {
-  const { posts, setPosts, loading, error } = useCommunityFeed()
-  const { handleLike, handleRetweet } = usePostActions({ posts, setPosts })
+  const { posts, loading, error, addPost } = useCommunityFeed()
+  const { handleLike, handleRetweet } = useCommunityActions()
 
-  const handlePostCreated = (newPost: Post) => {
-    setPosts([newPost, ...posts])
+  const handlePostCreated = async (content: string, image?: string) => {
+    await addPost(content, image)
   }
 
   if (loading) {
@@ -40,7 +40,7 @@ const FeedContainer = ({
   children 
 }: { 
   posts?: Post[]
-  onPostCreated?: (post: Post) => void
+  onPostCreated?: (content: string, image?: string) => Promise<void>
   onLike?: (postId: number) => void
   onRetweet?: (postId: number) => void
   children?: React.ReactNode

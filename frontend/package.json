@@ -14,6 +14,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-query-devtools": "^5.91.3",
+    "@tanstack/react-query-persist-client": "^5.90.22",
     "axios": "^1.13.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

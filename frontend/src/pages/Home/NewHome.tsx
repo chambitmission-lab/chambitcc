@@ -108,9 +108,10 @@ const NewHome = () => {
           {/* Prayer Composer Modal */}
           {showComposer && (
             <PrayerComposer
+              sort={sort}
               onClose={() => setShowComposer(false)}
               onSuccess={() => {
-                prayerHook.refresh()
+                // Optimistic Update가 자동으로 처리됨
                 // 성경 구절 모달이 있을 수 있으므로 PrayerComposer가 자체적으로 닫힘 처리
               }}
             />
@@ -124,7 +125,7 @@ const NewHome = () => {
               onClose={() => setSelectedPrayerId(null)}
               onDelete={() => {
                 setSelectedPrayerId(null)
-                prayerHook.refresh()
+                // Optimistic Update가 자동으로 처리됨
               }}
             />
           )}

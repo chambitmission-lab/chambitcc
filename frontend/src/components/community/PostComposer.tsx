@@ -1,9 +1,8 @@
-import { useState, type FormEvent } from 'react'
-import { createPost, type Post } from '../../api/community'
+import { useState } from 'react'
 import './PostComposer.css'
 
 interface PostComposerProps {
-  onPostCreated: (post: Post) => void
+  onPostCreated: (content: string, image?: string) => Promise<void>
 }
 
 /**
@@ -13,7 +12,7 @@ export const PostComposer = ({ onPostCreated }: PostComposerProps) => {
   const [content, setContent] = useState('')
   const [isPosting, setIsPosting] = useState(false)
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
     if (!content.trim()) {
@@ -28,13 +27,8 @@ export const PostComposer = ({ onPostCreated }: PostComposerProps) => {
 
     try {
       setIsPosting(true)
-      const response = await createPost(content)
-      
-      if (response.success) {
-        onPostCreated(response.data)
-        setContent('')
-        alert('게시물이 작성되었습니다!')
-      }
+      await onPostCreated(content)
+      setContent('')
     } catch (err: any) {
       console.error('게시물 작성 실패:', err)
       if (err.response?.status === 401) {

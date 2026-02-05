@@ -1,21 +1,20 @@
-import { useState, type FormEvent } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { createPrayer } from '../../../api/prayer'
+import { useState } from 'react'
+import { usePrayersInfinite } from '../../../hooks/usePrayersQuery'
 import { validation } from '../../../utils/validation'
-import type { Prayer, RecommendedVerses } from '../../../types/prayer'
+import type { RecommendedVerses, SortType } from '../../../types/prayer'
 import BibleVersesModal from './BibleVersesModal'
 
 interface PrayerComposerProps {
   onClose: () => void
-  onSuccess: (prayer: Prayer) => void
+  onSuccess?: () => void
+  sort?: SortType
 }
 
-const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
-  const queryClient = useQueryClient()
+const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposerProps) => {
+  const { createPrayer, isCreating } = usePrayersInfinite(sort)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [recommendedVerses, setRecommendedVerses] = useState<RecommendedVerses | null>(null)
   const [showVersesModal, setShowVersesModal] = useState(false)
@@ -35,7 +34,7 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
   
   const displayName = getUserName()
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // 검증
@@ -57,7 +56,6 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
       return
     }
 
-    setIsSubmitting(true)
     setError('')
 
     try {
@@ -68,40 +66,27 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
         is_fully_anonymous: isAnonymous,
       })
 
-      if (response.success) {
-        // 기도 객체 추출 (data에 바로 있음)
-        const prayer = response.data
-        
-        // 즉시 성공 처리
-        onSuccess(prayer)
-        
-        // 성경 구절이 있으면 모달 표시
-        if (prayer.recommended_verses && prayer.recommended_verses.verses.length > 0) {
-          setRecommendedVerses(prayer.recommended_verses)
-          setShowVersesModal(true)
-          // 성경 구절 모달이 닫힐 때 onClose 호출됨
-        } else {
-          // 성경 구절이 없으면 바로 닫기
-          // processing이 true면 백그라운드에서 처리 중
-          if (response.processing) {
-            // TODO: 나중에 폴링이나 웹소켓으로 업데이트 받을 수 있음
-            console.log('성경 구절이 백그라운드에서 처리 중입니다')
-          }
-          onClose()
+      // 기도 객체 추출 (data에 바로 있음)
+      const prayer = response.data
+      
+      // 즉시 성공 처리
+      onSuccess?.()
+      
+      // 성경 구절이 있으면 모달 표시
+      if (prayer.recommended_verses && prayer.recommended_verses.verses.length > 0) {
+        setRecommendedVerses(prayer.recommended_verses)
+        setShowVersesModal(true)
+        // 성경 구절 모달이 닫힐 때 onClose 호출됨
+      } else {
+        // 성경 구절이 없으면 바로 닫기
+        // processing이 true면 백그라운드에서 처리 중
+        if (response.processing) {
+          console.log('성경 구절이 백그라운드에서 처리 중입니다')
         }
-        
-        // 프로필 캐시 무효화 (비동기, 백그라운드)
-        setTimeout(() => {
-          queryClient.invalidateQueries({
-            queryKey: ['profile', 'detail'],
-            refetchType: 'none',
-          })
-        }, 0)
+        onClose()
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '등록에 실패했습니다')
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -163,10 +148,10 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
           </h2>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || !title.trim() || !content.trim()}
+            disabled={isCreating || !title.trim() || !content.trim()}
             className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white font-bold text-sm rounded-full shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30 hover:shadow-xl hover:shadow-purple-500/40 dark:hover:shadow-purple-900/40 transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            {isSubmitting ? '작성중...' : '작성'}
+            {isCreating ? '작성중...' : '작성'}
           </button>
         </div>
 

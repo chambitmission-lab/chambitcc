@@ -1,7 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { QueryClientProvider } from '@tanstack/react-query'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { queryClient } from './config/queryClient'
+import { persister } from './config/persister'
 import { disablePWAInDev } from './utils/pwa'
 import './index.css'
 import './styles/common.css'
@@ -12,8 +13,11 @@ disablePWAInDev()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider 
+      client={queryClient} 
+      persistOptions={{ persister }}
+    >
       <App />
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   </StrictMode>,
 )
