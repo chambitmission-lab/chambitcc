@@ -6,25 +6,26 @@ interface BibleVersesModalProps {
 }
 
 const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
-  const handleShare = () => {
-    const shareText = `📖 당신을 위한 성경 말씀\n\n${verses.summary}\n\n${verses.verses.map(v => 
-      `${v.reference}\n"${v.text}"\n💡 ${v.message}`
-    ).join('\n\n')}`
-    
-    if (navigator.share) {
-      navigator.share({
-        title: '당신을 위한 성경 말씀',
-        text: shareText,
-      }).catch(() => {
-        // 공유 취소 시 무시
-      })
-    } else {
-      // 클립보드에 복사
-      navigator.clipboard.writeText(shareText).then(() => {
-        alert('클립보드에 복사되었습니다')
-      })
-    }
-  }
+  // TODO: 나중에 공유 기능 추가 시 사용
+  // const handleShare = () => {
+  //   const shareText = `📖 당신을 위한 성경 말씀\n\n${verses.summary}\n\n${verses.verses.map(v => 
+  //     `${v.reference}\n"${v.text}"\n💡 ${v.message}`
+  //   ).join('\n\n')}`
+  //   
+  //   if (navigator.share) {
+  //     navigator.share({
+  //       title: '당신을 위한 성경 말씀',
+  //       text: shareText,
+  //     }).catch(() => {
+  //       // 공유 취소 시 무시
+  //     })
+  //   } else {
+  //     // 클립보드에 복사
+  //     navigator.clipboard.writeText(shareText).then(() => {
+  //       alert('클립보드에 복사되었습니다')
+  //     })
+  //   }
+  // }
 
   return (
     <div 
