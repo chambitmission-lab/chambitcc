@@ -69,11 +69,6 @@ const PrayerComposer = ({ onClose, onSuccess }: PrayerComposerProps) => {
       })
 
       if (response.success) {
-        // 디버깅: 응답 데이터 확인
-        console.log('Create prayer response:', response)
-        console.log('Prayer data:', response.data)
-        console.log('Recommended verses:', response.data.recommended_verses)
-        
         // 기도 객체 추출 (새로운 응답 구조)
         const prayer = response.data.prayer
         

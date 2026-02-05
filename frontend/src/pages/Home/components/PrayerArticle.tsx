@@ -13,11 +13,6 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
   const [showTranslation, setShowTranslation] = useState(false) // 번역 보기 상태
   const [showVersesModal, setShowVersesModal] = useState(false) // 성경 구절 모달
 
-  // 디버깅: 성경 구절 데이터 확인
-  console.log('Prayer ID:', prayer.id)
-  console.log('Has recommended_verses:', !!prayer.recommended_verses)
-  console.log('Recommended verses data:', prayer.recommended_verses)
-
   const handlePray = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (isPraying) return
