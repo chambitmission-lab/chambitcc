@@ -36,6 +36,24 @@ const NewHome = () => {
     }
   }
 
+  // 초기 로딩 상태 표시
+  if (prayerHook.loading && prayerHook.prayers.length === 0) {
+    return (
+      <ErrorBoundary>
+        <div className="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-200">
+          <div className="max-w-md mx-auto min-h-screen bg-background-light dark:bg-background-dark shadow-2xl relative flex flex-col border-x border-border-light dark:border-border-dark">
+            <main className="flex-1 flex items-center justify-center p-8">
+              <div className="text-center">
+                <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-900 dark:text-white font-semibold">기도 목록을 불러오는 중...</p>
+              </div>
+            </main>
+          </div>
+        </div>
+      </ErrorBoundary>
+    )
+  }
+
   // 에러 상태 표시
   if (prayerHook.error) {
     return (

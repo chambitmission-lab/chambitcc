@@ -23,15 +23,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
   const query = useInfiniteQuery({
     queryKey: prayerKeys.list(sort),
     queryFn: async ({ pageParam = 1 }) => {
-      console.log('🔍 Fetching prayers:', { sort, page: pageParam })
-      try {
-        const result = await fetchPrayers(pageParam, 20, sort)
-        console.log('✅ Prayers fetched:', result)
-        return result
-      } catch (error) {
-        console.error('❌ Failed to fetch prayers:', error)
-        throw error
-      }
+      return await fetchPrayers(pageParam, 20, sort)
     },
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.data.items.length < 20) return undefined
@@ -39,6 +31,8 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     },
     initialPageParam: 1,
     staleTime: 1000 * 60 * 5, // 5분간 fresh (기도 목록은 자주 안 바뀜)
+    refetchOnMount: true, // 마운트 시 항상 새로운 데이터 가져오기
+    refetchOnWindowFocus: false, // 윈도우 포커스 시에는 가져오지 않음
     retry: 2, // 실패 시 2번 재시도
   })
 
