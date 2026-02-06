@@ -1,6 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
-import { getBasename } from './config/basename'
 import NewHeader from './components/layout/NewHeader/NewHeader'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import Home from './pages/Home/Home'
@@ -24,9 +23,13 @@ import './App.css'
 import './styles/common.css'
 
 function App() {
+  // 디버깅: basename 확인
+  console.log('App using HashRouter')
+  console.log('Current location:', window.location.href)
+  
   return (
     <ThemeProvider>
-      <Router basename={getBasename()}>
+      <Router>
         <div className="app min-h-screen">
           <NewHeader />
           <main className="main-content">
@@ -48,6 +51,8 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin/notifications" element={<NotificationManagement />} />
+              {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
           <NewFooter />

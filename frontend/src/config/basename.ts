@@ -1,5 +1,5 @@
 // basename 설정을 중앙에서 관리
-// React Router의 basename과 Vite의 base는 trailing slash 없이 사용
+// Vite base와 일치시키기 위해 trailing slash 포함
 export const getBasename = () => {
   return import.meta.env.PROD ? '/chambitcc' : ''
 }

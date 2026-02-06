@@ -55,8 +55,8 @@ export default defineConfig(({ mode }) => ({
         theme_color: '#1a1a1a',
         background_color: '#1a1a1a',
         display: 'standalone',
-        start_url: mode === 'production' ? '/chambitcc' : '/',
-        scope: mode === 'production' ? '/chambitcc' : '/',
+        start_url: mode === 'production' ? '/chambitcc/' : '/',
+        scope: mode === 'production' ? '/chambitcc/' : '/',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -78,5 +78,5 @@ export default defineConfig(({ mode }) => ({
       }
     })
   ],
-  base: mode === 'production' ? '/chambitcc' : '/',
+  base: mode === 'production' ? '/chambitcc/' : '/',
 }))
