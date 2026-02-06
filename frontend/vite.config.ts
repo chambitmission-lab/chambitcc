@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
@@ -55,8 +55,8 @@ export default defineConfig({
         theme_color: '#1a1a1a',
         background_color: '#1a1a1a',
         display: 'standalone',
-        start_url: process.env.NODE_ENV === 'production' ? '/chambitcc/' : '/',
-        scope: process.env.NODE_ENV === 'production' ? '/chambitcc/' : '/',
+        start_url: mode === 'production' ? '/chambitcc/' : '/',
+        scope: mode === 'production' ? '/chambitcc/' : '/',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -78,5 +78,5 @@ export default defineConfig({
       }
     })
   ],
-  base: process.env.NODE_ENV === 'production' ? '/chambitcc/' : '/',
-})
+  base: mode === 'production' ? '/chambitcc/' : '/',
+}))
