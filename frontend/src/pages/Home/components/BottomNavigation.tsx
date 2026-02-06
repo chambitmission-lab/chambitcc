@@ -8,7 +8,7 @@ const BottomNavigation = ({ onProfileClick }: BottomNavigationProps) => {
   }
 
   return (
-    <nav className="sticky bottom-0 bg-background-light dark:bg-background-dark border-t border-border-light dark:border-border-dark h-[84px] pb-5 px-6 flex justify-center items-center z-50">
+    <nav className="bg-background-light dark:bg-background-dark border-t border-border-light dark:border-border-dark h-[84px] pb-5 px-6 flex justify-center items-center">
       <div className="flex justify-between items-center w-full max-w-[200px]">
         {/* Home - Scroll to Top */}
         <button 

@@ -101,9 +101,6 @@ const NewHome = () => {
           </main>
 
           <FloatingActionButton onClick={handleComposerOpen} />
-          <BottomNavigation 
-            onProfileClick={handleProfileClick}
-          />
 
           {/* Prayer Composer Modal */}
           {showComposer && (
@@ -129,6 +126,15 @@ const NewHome = () => {
               }}
             />
           )}
+        </div>
+
+        {/* Bottom Navigation - Fixed at bottom, centered with max-w-md */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+          <div className="max-w-md mx-auto pointer-events-auto">
+            <BottomNavigation 
+              onProfileClick={handleProfileClick}
+            />
+          </div>
         </div>
       </div>
     </ErrorBoundary>
