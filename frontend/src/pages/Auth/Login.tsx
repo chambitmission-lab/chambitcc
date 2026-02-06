@@ -60,7 +60,7 @@ const Login = () => {
       }
       
       // React Query 캐시 초기화
-      queryClient.clear()
+      await queryClient.invalidateQueries()
       
       // 저장된 리다이렉트 경로가 있으면 그곳으로, 없으면 홈으로
       const redirectPath = sessionStorage.getItem('redirect_after_login')

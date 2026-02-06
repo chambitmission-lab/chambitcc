@@ -1,5 +1,4 @@
 // 인증 관련 유틸리티 함수
-import { getBasename } from '../config/basename'
 
 /**
  * 로그아웃 처리
@@ -17,8 +16,9 @@ export const logout = () => {
   localStorage.removeItem('user_fingerprint')
   
   // 페이지 리로드 (캐시는 자동으로 정리됨)
-  const basePath = getBasename() + '/'
-  window.location.replace(basePath)
+  // origin + basename으로 이동 (Vite base와 일치)
+  const basename = import.meta.env.PROD ? '/chambitcc' : ''
+  window.location.href = window.location.origin + basename + '/'
 }
 
 /**
