@@ -28,6 +28,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
 
   const startRecording = useCallback(async () => {
     try {
+      console.log('Starting recording...')
       setError(null)
       
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -44,20 +45,31 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
       chunksRef.current = []
       
       mediaRecorder.ondataavailable = (event) => {
+        console.log('Data available, size:', event.data.size)
         if (event.data.size > 0) {
           chunksRef.current.push(event.data)
         }
       }
       
       mediaRecorder.onstop = () => {
+        console.log('MediaRecorder stopped, chunks:', chunksRef.current.length)
         const blob = new Blob(chunksRef.current, { type: mimeType })
+        console.log('Created blob, size:', blob.size)
         setAudioBlob(blob)
+        setRecordingState('stopped')
         
         // 스트림 정리
         stream.getTracks().forEach(track => track.stop())
       }
       
-      mediaRecorder.start()
+      mediaRecorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event)
+        setError('녹음 중 오류가 발생했습니다')
+      }
+      
+      // timeslice를 1000ms로 설정하여 1초마다 데이터 수집
+      mediaRecorder.start(1000)
+      console.log('MediaRecorder started, state:', mediaRecorder.state)
       setRecordingState('recording')
       
       // 타이머 시작
@@ -101,9 +113,10 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
   }, [recordingState])
 
   const stopRecording = useCallback(() => {
+    console.log('Stop recording called, current state:', recordingState)
     if (mediaRecorderRef.current && (recordingState === 'recording' || recordingState === 'paused')) {
+      console.log('Stopping MediaRecorder...')
       mediaRecorderRef.current.stop()
-      setRecordingState('stopped')
       
       // 타이머 정지
       if (timerRef.current) {
@@ -114,12 +127,17 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
   }, [recordingState])
 
   const resetRecording = useCallback(() => {
+    console.log('Reset recording called')
     if (timerRef.current) {
       clearInterval(timerRef.current)
       timerRef.current = null
     }
     
     if (mediaRecorderRef.current) {
+      if (mediaRecorderRef.current.state !== 'inactive') {
+        console.log('Stopping active MediaRecorder during reset')
+        mediaRecorderRef.current.stop()
+      }
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop())
       mediaRecorderRef.current = null
     }

@@ -1,4 +1,5 @@
 // 음성 녹음 컴포넌트
+import { useEffect } from 'react'
 import { useAudioRecorder } from '../../../hooks/useAudioRecorder'
 
 interface AudioRecorderProps {
@@ -18,6 +19,15 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
     resetRecording,
     error,
   } = useAudioRecorder()
+
+  // 컴포넌트 언마운트 시 녹음 정리 방지
+  useEffect(() => {
+    console.log('AudioRecorder mounted')
+    return () => {
+      console.log('AudioRecorder unmounting, state:', recordingState)
+      // 언마운트 시 녹음 중이면 정리하지 않음
+    }
+  }, [recordingState])
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60)
