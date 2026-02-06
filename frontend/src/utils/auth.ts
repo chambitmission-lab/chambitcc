@@ -2,8 +2,7 @@
 
 /**
  * 로그아웃 처리
- * - localStorage 정리
- * - 페이지 리로드로 상태 초기화
+ * - localStorage 정리 (토큰, 사용자 정보, React Query 캐시)
  */
 export const logout = () => {
   // 토큰 및 사용자 정보 제거
@@ -11,14 +10,10 @@ export const logout = () => {
   localStorage.removeItem('user')
   localStorage.removeItem('user_username')
   localStorage.removeItem('user_full_name')
-  
-  // 더 이상 사용하지 않는 fingerprint 제거
   localStorage.removeItem('user_fingerprint')
   
-  // 페이지 리로드 (캐시는 자동으로 정리됨)
-  // origin + basename으로 이동 (Vite base와 일치)
-  const basename = import.meta.env.PROD ? '/chambitcc' : ''
-  window.location.href = window.location.origin + basename + '/'
+  // React Query 캐시 제거 (persister가 localStorage 사용)
+  localStorage.removeItem('REACT_QUERY_CACHE')
 }
 
 /**
