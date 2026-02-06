@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { RecommendedVerses } from '../../../types/prayer'
 
 interface BibleVersesModalProps {
@@ -6,6 +7,22 @@ interface BibleVersesModalProps {
 }
 
 const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
+  // 브라우저 뒤로가기 처리
+  useEffect(() => {
+    // 모달이 열릴 때 히스토리 엔트리 추가
+    window.history.pushState({ modal: 'bible-verses' }, '')
+
+    const handlePopState = () => {
+      // 뒤로가기 시 모달만 닫기
+      onClose()
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [onClose])
   // TODO: 나중에 공유 기능 추가 시 사용
   // const handleShare = () => {
   //   const shareText = `📖 당신을 위한 성경 말씀\n\n${verses.summary}\n\n${verses.verses.map(v => 

@@ -1,5 +1,5 @@
 // 기도 요청 상세 페이지 - 메인 컨테이너
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePrayerDetail } from '../../../../hooks/usePrayersQuery'
 import { useReplies, useCreateReply } from '../../../../hooks/useReplies'
 import { usePrayerDelete } from '../../../../hooks/usePrayerDelete'
@@ -27,6 +27,23 @@ interface PrayerDetailProps {
 const PrayerDetail = ({ prayerId, initialData, onClose, onDelete }: PrayerDetailProps) => {
   const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData)
   const [showReplies, setShowReplies] = useState(false)
+
+  // 브라우저 뒤로가기 처리
+  useEffect(() => {
+    // 모달이 열릴 때 히스토리 엔트리 추가
+    window.history.pushState({ modal: 'prayer-detail' }, '')
+
+    const handlePopState = () => {
+      // 뒤로가기 시 모달만 닫기
+      onClose()
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [onClose])
 
   // 번역 관련
   const {

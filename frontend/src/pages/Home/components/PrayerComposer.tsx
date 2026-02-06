@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePrayersInfinite } from '../../../hooks/usePrayersQuery'
 import { validation } from '../../../utils/validation'
 import type { RecommendedVerses, SortType } from '../../../types/prayer'
@@ -18,6 +18,23 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
   const [error, setError] = useState('')
   const [recommendedVerses, setRecommendedVerses] = useState<RecommendedVerses | null>(null)
   const [showVersesModal, setShowVersesModal] = useState(false)
+
+  // 브라우저 뒤로가기 처리
+  useEffect(() => {
+    // 모달이 열릴 때 히스토리 엔트리 추가
+    window.history.pushState({ modal: 'prayer-composer' }, '')
+
+    const handlePopState = () => {
+      // 뒤로가기 시 모달만 닫기
+      onClose()
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [onClose])
   
   const isLoggedIn = !!localStorage.getItem('access_token')
   
