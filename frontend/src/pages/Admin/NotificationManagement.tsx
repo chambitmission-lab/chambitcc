@@ -101,114 +101,128 @@ const NotificationManagement = () => {
   if (loading) {
     return (
       <div className="admin-container">
-        <div className="loading-spinner">로딩 중...</div>
+        <div className="admin-container-inner">
+          <div className="loading-spinner">로딩 중...</div>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="admin-container">
-      <div className="admin-header">
-        <h1>공지사항 관리</h1>
-        {!isCreating && (
-          <button 
-            className="btn-primary"
-            onClick={() => setIsCreating(true)}
-          >
-            새 공지사항 작성
-          </button>
-        )}
-      </div>
-
-      {isCreating && (
-        <div className="notification-form-card">
-          <h2>{editingId ? '공지사항 수정' : '새 공지사항 작성'}</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="title">제목</label>
-              <input
-                id="title"
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="공지사항 제목을 입력하세요"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="content">내용</label>
-              <textarea
-                id="content"
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                placeholder="공지사항 내용을 입력하세요"
-                rows={6}
-                required
-              />
-            </div>
-
-            <div className="form-group-checkbox">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={formData.is_active}
-                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                />
-                <span>활성화</span>
-              </label>
-            </div>
-
-            <div className="form-actions">
-              <button type="submit" className="btn-primary">
-                {editingId ? '수정' : '생성'}
-              </button>
-              <button type="button" className="btn-secondary" onClick={handleCancel}>
-                취소
-              </button>
-            </div>
-          </form>
+      <div className="admin-container-inner">
+        <div className="admin-header">
+          <h1>공지사항 관리</h1>
+          {!isCreating && (
+            <button 
+              className="btn-primary"
+              onClick={() => setIsCreating(true)}
+            >
+              새 공지사항 작성
+            </button>
+          )}
         </div>
-      )}
 
-      <div className="notifications-list">
-        <h2>공지사항 목록</h2>
-        {!Array.isArray(notifications) || notifications.length === 0 ? (
-          <p className="empty-message">등록된 공지사항이 없습니다</p>
-        ) : (
-          <div className="notifications-grid">
-            {notifications.map((notification) => (
-              <div key={notification.id} className="notification-card">
-                <div className="notification-header">
-                  <h3>{notification.title}</h3>
-                  <span className={`status-badge ${notification.is_active ? 'active' : 'inactive'}`}>
-                    {notification.is_active ? '활성' : '비활성'}
-                  </span>
-                </div>
-                <p className="notification-content">{notification.content}</p>
-                <div className="notification-meta">
-                  <span className="date">
-                    {new Date(notification.created_at).toLocaleDateString('ko-KR')}
-                  </span>
-                </div>
-                <div className="notification-actions">
-                  <button 
-                    className="btn-edit"
-                    onClick={() => handleEdit(notification)}
-                  >
-                    수정
-                  </button>
-                  <button 
-                    className="btn-delete"
-                    onClick={() => handleDelete(notification.id)}
-                  >
-                    삭제
-                  </button>
-                </div>
+        {isCreating && (
+          <div className="notification-form-card">
+            <h2>{editingId ? '공지사항 수정' : '새 공지사항 작성'}</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="title">제목</label>
+                <input
+                  id="title"
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="공지사항 제목을 입력하세요"
+                  required
+                />
               </div>
-            ))}
+
+              <div className="form-group">
+                <label htmlFor="content">내용</label>
+                <textarea
+                  id="content"
+                  value={formData.content}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  placeholder="공지사항 내용을 입력하세요"
+                  rows={6}
+                  required
+                />
+              </div>
+
+              <div className="form-group-checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.is_active}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                  />
+                  <span>활성화</span>
+                </label>
+              </div>
+
+              <div className="form-actions">
+                <button type="submit" className="btn-primary">
+                  {editingId ? '수정' : '생성'}
+                </button>
+                <button type="button" className="btn-secondary" onClick={handleCancel}>
+                  취소
+                </button>
+              </div>
+            </form>
           </div>
         )}
+
+        <div className="notifications-list">
+          {!Array.isArray(notifications) || notifications.length === 0 ? (
+            <div className="list-empty">
+              <p>등록된 공지사항이 없습니다</p>
+              <p className="empty-subtitle">첫 번째 공지사항을 작성해주세요</p>
+            </div>
+          ) : (
+            <div className="notifications-feed">
+              {notifications.map((notification) => (
+                <article key={notification.id} className="notification-card">
+                  <div className="card-header">
+                    <div className="card-avatar">📢</div>
+                    <div className="card-meta">
+                      <div className="card-author">공지사항</div>
+                      <div className="card-time">
+                        {new Date(notification.created_at).toLocaleDateString('ko-KR')}
+                      </div>
+                    </div>
+                    <span className={`status-badge ${notification.is_active ? 'active' : 'inactive'}`}>
+                      {notification.is_active ? '활성' : '비활성'}
+                    </span>
+                  </div>
+
+                  <div className="card-content">
+                    <h3 className="card-title">{notification.title}</h3>
+                    <p className="card-text">{notification.content}</p>
+                  </div>
+
+                  <div className="card-footer">
+                    <button 
+                      className="action-button edit"
+                      onClick={() => handleEdit(notification)}
+                    >
+                      <span className="action-icon">✏️</span>
+                      <span>수정</span>
+                    </button>
+                    <button 
+                      className="action-button delete"
+                      onClick={() => handleDelete(notification.id)}
+                    >
+                      <span className="action-icon">🗑️</span>
+                      <span>삭제</span>
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
