@@ -83,3 +83,53 @@ export const createSermon = async (data: SermonCreateRequest): Promise<Sermon> =
   
   return response.json()
 }
+
+/**
+ * 설교 삭제 (관리자 전용) - 음성 파일도 자동 삭제됨
+ */
+export const deleteSermon = async (id: number): Promise<void> => {
+  const token = localStorage.getItem('access_token')
+  
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
+  }
+  
+  const response = await apiFetch(`${API_V1}/sermons/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '설교 삭제에 실패했습니다')
+  }
+}
+
+/**
+ * 음성 파일만 삭제 (관리자 전용)
+ * 설교는 유지하고 음성 파일만 삭제할 때 사용
+ */
+export const deleteAudioOnly = async (audioUrl: string): Promise<void> => {
+  const token = localStorage.getItem('access_token')
+  
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
+  }
+  
+  const response = await apiFetch(
+    `${API_V1}/sermons/audio?audio_url=${encodeURIComponent(audioUrl)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    }
+  )
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '음성 파일 삭제에 실패했습니다')
+  }
+}

@@ -1,15 +1,21 @@
 // 설교 상세 모달 컴포넌트
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Sermon } from '../../../types/sermon'
 import { API_URL } from '../../../config/api'
+import { isAdmin } from '../../../utils/auth'
+import { useDeleteSermon } from '../../../hooks/useSermons'
 
 interface SermonDetailProps {
   sermon: Sermon
   onClose: () => void
+  onDelete?: () => void
 }
 
-const SermonDetail = ({ sermon, onClose }: SermonDetailProps) => {
+const SermonDetail = ({ sermon, onClose, onDelete }: SermonDetailProps) => {
   const modalRef = useRef<HTMLDivElement>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const adminUser = isAdmin()
+  const deleteSermonMutation = useDeleteSermon()
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -35,6 +41,16 @@ const SermonDetail = ({ sermon, onClose }: SermonDetailProps) => {
     })
   }
 
+  const handleDelete = async () => {
+    try {
+      await deleteSermonMutation.mutateAsync(sermon.id)
+      onDelete?.()
+      onClose()
+    } catch (error) {
+      console.error('Delete error:', error)
+    }
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div
@@ -44,12 +60,23 @@ const SermonDetail = ({ sermon, onClose }: SermonDetailProps) => {
         {/* 헤더 */}
         <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">설교 말씀</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            <span className="material-icons-outlined">close</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {adminUser && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                title="삭제"
+              >
+                <span className="material-icons-outlined">delete</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <span className="material-icons-outlined">close</span>
+            </button>
+          </div>
         </div>
 
         {/* 내용 */}
@@ -141,6 +168,35 @@ const SermonDetail = ({ sermon, onClose }: SermonDetailProps) => {
             </div>
           </div>
         </div>
+
+        {/* 삭제 확인 모달 */}
+        {showDeleteConfirm && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20 p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                설교 삭제
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                이 설교를 삭제하시겠습니까? 음성 파일도 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleteSermonMutation.isPending}
+                  className="flex-1 px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deleteSermonMutation.isPending ? '삭제 중...' : '삭제'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

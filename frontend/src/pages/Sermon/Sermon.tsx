@@ -128,6 +128,10 @@ const Sermon = () => {
             <SermonDetail
               sermon={selectedSermon}
               onClose={() => setSelectedSermon(null)}
+              onDelete={() => {
+                setSelectedSermon(null)
+                refetch()
+              }}
             />
           )}
         </div>

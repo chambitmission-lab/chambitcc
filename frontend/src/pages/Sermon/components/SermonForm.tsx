@@ -1,7 +1,7 @@
 // 설교 등록 폼 컴포넌트
 import { useState } from 'react'
 import AudioRecorder from './AudioRecorder'
-import { useUploadAudio, useCreateSermon } from '../../../hooks/useSermons'
+import { useUploadAudio, useCreateSermon, useDeleteAudioOnly } from '../../../hooks/useSermons'
 import { showToast } from '../../../utils/toast'
 import type { SermonCreateRequest } from '../../../types/sermon'
 
@@ -23,10 +23,12 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
     thumbnail_url: '',
   })
   const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [uploadedAudioUrl, setUploadedAudioUrl] = useState<string>('')
   const [isUploading, setIsUploading] = useState(false)
 
   const uploadAudioMutation = useUploadAudio()
   const createSermonMutation = useCreateSermon()
+  const deleteAudioMutation = useDeleteAudioOnly()
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -65,6 +67,33 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
     }
   }
 
+  const handleRemoveAudio = async () => {
+    // 이미 업로드된 파일이 있으면 서버에서 삭제
+    if (uploadedAudioUrl) {
+      try {
+        await deleteAudioMutation.mutateAsync(uploadedAudioUrl)
+        setUploadedAudioUrl('')
+      } catch (error) {
+        console.error('Audio deletion error:', error)
+      }
+    }
+    
+    setAudioFile(null)
+    setFormData(prev => ({ ...prev, audio_url: '' }))
+  }
+
+  const handleClose = async () => {
+    // 폼을 닫을 때 업로드된 음성 파일이 있으면 삭제 (고아 파일 방지)
+    if (uploadedAudioUrl) {
+      try {
+        await deleteAudioMutation.mutateAsync(uploadedAudioUrl)
+      } catch (error) {
+        console.error('Cleanup error:', error)
+      }
+    }
+    onClose()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -79,9 +108,12 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
       
       // 음성 파일이 있으면 먼저 업로드
       let audioUrl = formData.audio_url
-      if (audioFile) {
+      if (audioFile && !uploadedAudioUrl) {
         const uploadResult = await uploadAudioMutation.mutateAsync(audioFile)
         audioUrl = uploadResult.audio_url
+        setUploadedAudioUrl(audioUrl)
+      } else if (uploadedAudioUrl) {
+        audioUrl = uploadedAudioUrl
       }
 
       // 설교 생성
@@ -90,6 +122,8 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
         audio_url: audioUrl,
       })
 
+      // 성공 시 uploadedAudioUrl 초기화 (삭제 방지)
+      setUploadedAudioUrl('')
       onSuccess()
       onClose()
     } catch (error) {
@@ -116,7 +150,7 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">설교 등록</h2>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 <span className="material-icons-outlined">close</span>
@@ -209,30 +243,42 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   음성 파일
                 </label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowRecorder(true)}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors"
-                  >
-                    <span className="material-icons-outlined">mic</span>
-                    녹음하기
-                  </button>
-                  <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
-                    <span className="material-icons-outlined">upload_file</span>
-                    파일 선택
-                    <input
-                      type="file"
-                      accept="audio/*"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                {audioFile && (
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                    선택된 파일: {audioFile.name}
-                  </p>
+                {audioFile ? (
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        선택된 파일: {audioFile.name}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleRemoveAudio}
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        <span className="material-icons-outlined">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowRecorder(true)}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors"
+                    >
+                      <span className="material-icons-outlined">mic</span>
+                      녹음하기
+                    </button>
+                    <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
+                      <span className="material-icons-outlined">upload_file</span>
+                      파일 선택
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
                 )}
               </div>
 
@@ -271,7 +317,7 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
             <div className="flex gap-3 mt-6">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 취소
