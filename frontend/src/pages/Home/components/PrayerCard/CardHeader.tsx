@@ -24,11 +24,31 @@ const CardHeader = ({
       </div>
       {hasTranslation && (
         <button
-          className="language-toggle"
+          className="language-toggle group"
           onClick={onToggleLanguage}
           title={showEnglish ? 'View in English' : '한글로 보기'}
+          style={{
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
         >
-          {showEnglish ? '🇺🇸 English' : '🇰🇷 한글'}
+          <span 
+            style={{
+              display: 'inline-block',
+              transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+            className="group-hover:scale-110"
+          >
+            {showEnglish ? '🇺🇸' : '🇰🇷'}
+          </span>
+          {' '}
+          <span
+            style={{
+              transition: 'all 0.2s ease-in-out',
+            }}
+            className="group-hover:tracking-wider"
+          >
+            {showEnglish ? 'English' : '한글'}
+          </span>
         </button>
       )}
     </div>

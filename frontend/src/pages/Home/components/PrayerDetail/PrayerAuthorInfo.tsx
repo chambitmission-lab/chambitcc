@@ -35,9 +35,29 @@ const PrayerAuthorInfo = ({
       {hasTranslation && (
         <button
           onClick={onTranslationToggle}
-          className="px-3 py-1.5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="group px-3 py-1.5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
+          style={{
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
         >
-          {translationButtonText}
+          <span
+            style={{
+              display: 'inline-block',
+              transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+            className="group-hover:scale-110 group-hover:rotate-12"
+          >
+            {translationButtonText.includes('English') || translationButtonText.includes('🇺🇸') ? '🇺🇸' : '🇰🇷'}
+          </span>
+          {' '}
+          <span
+            style={{
+              transition: 'letter-spacing 0.2s ease-in-out',
+            }}
+            className="group-hover:tracking-wider"
+          >
+            {translationButtonText.replace('🇺🇸 ', '').replace('🇰🇷 ', '')}
+          </span>
         </button>
       )}
     </div>

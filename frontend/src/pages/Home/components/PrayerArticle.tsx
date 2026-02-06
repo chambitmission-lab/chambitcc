@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Prayer } from '../../../types/prayer'
 import BibleVersesModal from './BibleVersesModal'
 
@@ -13,6 +13,11 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
   const [isPraying, setIsPraying] = useState(false)
   const [showTranslation, setShowTranslation] = useState(false) // 번역 보기 상태
   const [showVersesModal, setShowVersesModal] = useState(false) // 성경 구절 모달
+  
+  // 🎨 언어 전환 애니메이션 상태
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [displayTitle, setDisplayTitle] = useState(prayer.title)
+  const [displayContent, setDisplayContent] = useState(prayer.content)
 
   const handlePray = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -31,17 +36,40 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
   const hasTranslation = hasEnTranslation || hasKoTranslation
   
   // 현재 표시할 제목과 내용 결정
-  const displayTitle = showTranslation 
+  const currentTitle = showTranslation 
     ? (prayer.title_en || prayer.title_ko || prayer.title)
     : prayer.title
-  const displayContent = showTranslation 
+  const currentContent = showTranslation 
     ? (prayer.content_en || prayer.content_ko || prayer.content)
     : prayer.content
+  
+  // 🎨 Blur Fade 애니메이션 효과
+  useEffect(() => {
+    if (currentTitle !== displayTitle || currentContent !== displayContent) {
+      setIsTransitioning(true)
+      
+      const timer = setTimeout(() => {
+        setDisplayTitle(currentTitle)
+        setDisplayContent(currentContent)
+        setIsTransitioning(false)
+      }, 150)
+
+      return () => clearTimeout(timer)
+    }
+  }, [currentTitle, currentContent, displayTitle, displayContent])
   
   // 버튼 텍스트 결정
   const translationButtonText = showTranslation 
     ? (hasKoTranslation ? '🇺🇸 EN' : '🇰🇷 한글') // 한글 번역 보는 중 → 영어(원문)로, 영어 번역 보는 중 → 한글(원문)로
     : (hasKoTranslation ? '🇰🇷 한글' : '🇺🇸 EN') // 원문 보는 중 → 번역 언어 표시
+
+  // 애니메이션 스타일
+  const transitionStyles: React.CSSProperties = {
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    opacity: isTransitioning ? 0 : 1,
+    filter: isTransitioning ? 'blur(8px)' : 'blur(0px)',
+    transform: isTransitioning ? 'translateY(-4px)' : 'translateY(0)',
+  }
 
   return (
     <article 
@@ -77,10 +105,30 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
                 e.stopPropagation()
                 setShowTranslation(!showTranslation)
               }}
-              className="px-2.5 py-1.5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-[10px] font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
+              className="group px-2.5 py-1.5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-[10px] font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 flex items-center gap-1"
               title={showTranslation ? '원문 보기' : '번역 보기'}
+              style={{
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
             >
-              {translationButtonText}
+              <span
+                style={{
+                  display: 'inline-block',
+                  transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }}
+                className="group-hover:scale-110"
+              >
+                {translationButtonText.split(' ')[0]}
+              </span>
+              {' '}
+              <span
+                style={{
+                  transition: 'letter-spacing 0.2s ease-in-out',
+                }}
+                className="group-hover:tracking-wider"
+              >
+                {translationButtonText.split(' ')[1]}
+              </span>
             </button>
           )}
         </div>
@@ -99,11 +147,17 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/30 to-transparent dark:from-white/20 dark:to-transparent rounded-full blur-2xl"></div>
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-white/10 dark:to-white/5 rounded-full blur-2xl"></div>
             
-            <h3 className="text-base font-extrabold text-gray-900 dark:text-white mb-2.5 tracking-[0.02em] relative z-10 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] uppercase">
+            <h3 
+              className="text-base font-extrabold text-gray-900 dark:text-white mb-2.5 tracking-[0.02em] relative z-10 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] uppercase"
+              style={transitionStyles}
+            >
               {displayTitle}
             </h3>
             
-            <p className="text-[15px] text-gray-600 dark:text-gray-400 leading-[1.7] relative z-10 font-normal tracking-[-0.01em] drop-shadow-[0_0_6px_rgba(168,85,247,0.2)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]">
+            <p 
+              className="text-[15px] text-gray-600 dark:text-gray-400 leading-[1.7] relative z-10 font-normal tracking-[-0.01em] drop-shadow-[0_0_6px_rgba(168,85,247,0.2)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]"
+              style={transitionStyles}
+            >
               {displayContent}
             </p>
           </div>

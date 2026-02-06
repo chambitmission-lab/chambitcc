@@ -92,7 +92,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   display: flex;
   align-items: center;
@@ -101,11 +101,31 @@
 
 .language-toggle:hover {
   background: var(--ig-border);
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .language-toggle:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
+}
+
+/* 언어 전환 애니메이션 */
+@keyframes languageSwitch {
+  0% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    transform: translateY(0);
+  }
 }
 
 .card-divider {
