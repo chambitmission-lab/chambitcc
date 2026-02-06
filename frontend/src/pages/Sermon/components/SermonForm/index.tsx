@@ -25,31 +25,31 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 overflow-hidden"
       onClick={handleClose}
     >
       <div 
-        className="bg-background-light dark:bg-background-dark rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="bg-background-light dark:bg-background-dark rounded-2xl max-w-2xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {showRecorder ? (
-          <div className="p-6">
+          <div className="p-6 overflow-y-auto">
             <AudioRecorder
               onRecordingComplete={handleRecordingComplete}
               onCancel={() => setShowRecorder(false)}
             />
           </div>
         ) : (
-          <form onSubmit={handleSubmit}>
-            {/* 헤더 */}
-            <div className="sticky top-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
+          <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
+            {/* 헤더 - 고정 */}
+            <div className="flex-shrink-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
               <h2 className="text-base font-semibold text-gray-900 dark:text-white">
                 설교 등록
               </h2>
               <button
                 type="button"
                 onClick={handleClose}
-                className="relative group w-10 h-10 flex items-center justify-center"
+                className="relative group w-10 h-10 flex items-center justify-center flex-shrink-0"
               >
                 {/* 가장 바깥 빛 확산 (크고 은은하게) */}
                 <div className="absolute inset-0 rounded-full bg-purple-500/20 dark:bg-yellow-400/20 blur-2xl scale-150 group-hover:scale-[2] animate-pulse transition-transform duration-500"></div>
@@ -76,10 +76,10 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
               </button>
             </div>
 
-            {/* 폼 내용 */}
-            <div className="p-4">
+            {/* 폼 내용 - 스크롤 영역 */}
+            <div className="flex-1 overflow-y-auto px-4 py-4">
               {/* 카테고리 배지 */}
-              <div className="mb-4">
+              <div className="mb-3">
                 <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 border border-purple-500/30 dark:border-purple-500/40 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
                   <span className="w-1.5 h-1.5 bg-purple-500 dark:bg-purple-400 rounded-full animate-pulse"></span>
                   설교 말씀
@@ -87,16 +87,12 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
               </div>
 
               {/* 폼 필드 카드 */}
-              <div className="relative mb-4">
-                {/* 위에서 내려오는 빛 효과 */}
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[2px] h-6 bg-gradient-to-b from-transparent via-purple-400/40 to-purple-500/60 dark:via-white/30 dark:to-white/50 blur-[1px]"></div>
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-[1px] h-6 bg-gradient-to-b from-transparent via-purple-500/60 to-purple-600/80 dark:via-white/50 dark:to-white/70"></div>
-                
+              <div className="relative mb-3">
                 {/* 글래스모피즘 카드 */}
                 <div className="backdrop-blur-xl bg-white/40 dark:bg-white/10 rounded-xl p-4 border border-white/60 dark:border-white/20 relative overflow-hidden shadow-[0_8px_32px_rgba(168,85,247,0.15),0_-3px_10px_rgba(168,85,247,0.1),inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3),0_-3px_10px_rgba(255,255,255,0.1),inset_0_1px_1px_rgba(255,255,255,0.2)]">
                   {/* 내부 빛 효과 */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/30 to-transparent dark:from-white/20 dark:to-transparent rounded-full blur-2xl"></div>
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-white/10 dark:to-white/5 rounded-full blur-2xl"></div>
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/30 to-transparent dark:from-white/20 dark:to-transparent rounded-full blur-2xl pointer-events-none"></div>
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-white/10 dark:to-white/5 rounded-full blur-2xl pointer-events-none"></div>
                   
                   <div className="relative z-10">
                     <SermonFormFields formData={formData} onChange={handleInputChange} />
@@ -105,7 +101,7 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
               </div>
 
               {/* 음성 파일 업로드 */}
-              <div className="mb-4">
+              <div className="mb-3">
                 <AudioUploadSection
                   audioState={audioUpload.audioState}
                   onRecordingStart={() => setShowRecorder(true)}
@@ -113,8 +109,10 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
                   onRemove={audioUpload.removeAudio}
                 />
               </div>
+            </div>
 
-              {/* 제출 버튼 */}
+            {/* 제출 버튼 - 고정 */}
+            <div className="flex-shrink-0 px-4 py-3 border-t border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
               <div className="flex gap-3">
                 <button
                   type="button"
