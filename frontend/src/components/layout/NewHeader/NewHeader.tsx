@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { isAdmin } from '../../../utils/auth'
-import { useUnreadCount, useRefreshUnreadCount } from '../../../hooks/useNotifications'
+import { useUnreadCount } from '../../../hooks/useNotifications'
 import NotificationModal from '../../common/NotificationModal'
 import './NewHeader.css'
 
@@ -19,7 +19,6 @@ const NewHeader = () => {
   
   // React Query로 알림 개수 조회 (중복 호출 방지)
   const { data: unreadCount = 0 } = useUnreadCount()
-  const refreshUnreadCount = useRefreshUnreadCount()
 
   useEffect(() => {
     setIsMenuOpen(false)
@@ -176,11 +175,7 @@ const NewHeader = () => {
       {/* Notification Modal */}
       <NotificationModal
         isOpen={isNotificationOpen}
-        onClose={() => {
-          setIsNotificationOpen(false)
-          refreshUnreadCount() // 모달 닫을 때 알림 개수 갱신
-        }}
-        onUnreadCountChange={refreshUnreadCount}
+        onClose={() => setIsNotificationOpen(false)}
       />
     </header>
   )

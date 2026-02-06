@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react'
-import { getNotifications } from '../../api/notification'
-import { useMarkAsRead, useMarkAllAsRead } from '../../hooks/useNotifications'
+import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '../../hooks/useNotifications'
 import { showToast } from '../../utils/toast'
 import type { Notification } from '../../types/notification'
 
 interface NotificationModalProps {
   isOpen: boolean
   onClose: () => void
-  onUnreadCountChange: () => void
 }
 
-const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: NotificationModalProps) => {
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
+const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const [readingIds, setReadingIds] = useState<Set<number>>(new Set())
   const isLoggedIn = !!localStorage.getItem('access_token')
+  
+  // React Query로 알림 목록 조회 (unread_count 포함)
+  const { data, isLoading, refetch } = useNotifications()
+  const notifications = data?.notifications || []
+  const unreadCount = data?.unread_count || 0
   
   // React Query mutations
   const markAsReadMutation = useMarkAsRead()
@@ -22,24 +23,9 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
 
   useEffect(() => {
     if (isOpen) {
-      loadNotifications()
+      refetch()
     }
-  }, [isOpen])
-
-  const loadNotifications = async () => {
-    try {
-      setLoading(true)
-      const data = await getNotifications()
-      // 배열인지 확인하고 설정
-      setNotifications(Array.isArray(data) ? data : [])
-    } catch (error) {
-      console.error('공지사항 로드 에러:', error)
-      showToast(error instanceof Error ? error.message : '공지사항을 불러오는데 실패했습니다', 'error')
-      setNotifications([])
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [isOpen, refetch])
 
   const handleNotificationClick = async (notification: Notification) => {
     // 로그인 상태이고 읽지 않은 알림이며, 현재 읽음 처리 중이 아닌 경우에만 처리
@@ -49,22 +35,9 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
         setReadingIds(prev => new Set(prev).add(notification.id))
         
         await markAsReadMutation.mutateAsync(notification.id)
-        
-        // 읽음 상태 업데이트
-        setNotifications(prev =>
-          prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
-        )
-        onUnreadCountChange()
       } catch (error) {
         console.error('읽음 처리 실패:', error)
-        // 실패 시 읽음 처리 중 상태 제거
-        setReadingIds(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(notification.id)
-          return newSet
-        })
       } finally {
-        // 성공 시에도 읽음 처리 중 상태 제거 (이미 is_read가 true로 변경됨)
         setReadingIds(prev => {
           const newSet = new Set(prev)
           newSet.delete(notification.id)
@@ -79,17 +52,11 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
     
     try {
       await markAllAsReadMutation.mutateAsync()
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
-      onUnreadCountChange()
       showToast('모든 알림을 읽음 처리했습니다', 'success')
     } catch (error) {
       showToast(error instanceof Error ? error.message : '읽음 처리에 실패했습니다', 'error')
     }
   }
-
-  const unreadCount = Array.isArray(notifications) 
-    ? notifications.filter(n => !n.is_read).length 
-    : 0
 
   if (!isOpen) return null
 
@@ -147,7 +114,7 @@ const NotificationModal = ({ isOpen, onClose, onUnreadCountChange }: Notificatio
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50/90 dark:bg-gray-950/90 no-scrollbar">
-          {loading ? (
+          {isLoading ? (
             <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
               <div className="w-10 h-10 border-3 border-purple-500/20 border-t-purple-500 border-r-pink-500 rounded-full animate-spin mb-6"></div>
               <p className="font-medium">로딩 중...</p>

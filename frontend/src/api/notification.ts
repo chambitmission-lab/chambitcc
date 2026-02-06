@@ -1,12 +1,12 @@
 // 공지사항 API
 import { API_V1, apiFetch } from '../config/api'
-import type { Notification, CreateNotificationRequest, UpdateNotificationRequest } from '../types/notification'
+import type { Notification, NotificationsResponse, CreateNotificationRequest, UpdateNotificationRequest } from '../types/notification'
 
 /**
  * 공지사항 목록 조회 (모든 사용자)
- * 로그인 시 읽음 상태 포함
+ * 로그인 시 읽음 상태 및 unread_count 포함
  */
-export const getNotifications = async (): Promise<Notification[]> => {
+export const getNotifications = async (): Promise<NotificationsResponse> => {
   const token = localStorage.getItem('access_token')
   const headers: HeadersInit = {}
   
@@ -25,20 +25,28 @@ export const getNotifications = async (): Promise<Notification[]> => {
   const data = await response.json()
   
   // 응답 형식 확인 및 처리
+  let notifications: Notification[] = []
+  let unread_count = 0
+  
   if (Array.isArray(data)) {
-    return data
+    notifications = data
   } else if (data && Array.isArray(data.notifications)) {
-    return data.notifications
+    notifications = data.notifications
+    unread_count = data.unread_count || 0
   } else if (data && Array.isArray(data.data)) {
-    return data.data
+    notifications = data.data
+    unread_count = data.unread_count || 0
   } else if (data && Array.isArray(data.items)) {
-    return data.items
+    notifications = data.items
+    unread_count = data.unread_count || 0
   } else if (data && data.success && Array.isArray(data.data)) {
-    return data.data
+    notifications = data.data
+    unread_count = data.unread_count || 0
+  } else {
+    console.error('예상치 못한 응답 형식:', data)
   }
   
-  console.error('예상치 못한 응답 형식:', data)
-  return []
+  return { notifications, unread_count }
 }
 
 /**

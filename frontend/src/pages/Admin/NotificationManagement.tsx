@@ -33,8 +33,8 @@ const NotificationManagement = () => {
     try {
       setLoading(true)
       const data = await getNotifications()
-      // 배열인지 확인하고 설정
-      setNotifications(Array.isArray(data) ? data : [])
+      // NotificationsResponse 형식으로 받음
+      setNotifications(data.notifications || [])
     } catch (error) {
       console.error('공지사항 로드 에러:', error)
       showToast(error instanceof Error ? error.message : '공지사항을 불러오는데 실패했습니다', 'error')

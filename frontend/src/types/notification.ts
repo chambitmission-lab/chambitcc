@@ -10,6 +10,11 @@ export interface Notification {
   is_read?: boolean  // 로그인 사용자의 읽음 상태
 }
 
+export interface NotificationsResponse {
+  notifications: Notification[]
+  unread_count: number
+}
+
 export interface CreateNotificationRequest {
   title: string
   content: string
