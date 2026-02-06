@@ -22,11 +22,12 @@ interface PrayerDetailProps {
   initialData?: Prayer
   onClose: () => void
   onDelete?: () => void
+  initialOpenReplies?: boolean
 }
 
-const PrayerDetail = ({ prayerId, initialData, onClose, onDelete }: PrayerDetailProps) => {
+const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenReplies = false }: PrayerDetailProps) => {
   const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData)
-  const [showReplies, setShowReplies] = useState(false)
+  const [showReplies, setShowReplies] = useState(initialOpenReplies)
 
   // 브라우저 뒤로가기 처리 - 모달 열림
   useEffect(() => {

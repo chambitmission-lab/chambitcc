@@ -6,9 +6,10 @@ interface PrayerArticleProps {
   prayer: Prayer
   onPrayerToggle: (prayerId: number) => void
   onClick: () => void
+  onReplyClick: () => void
 }
 
-const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) => {
+const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: PrayerArticleProps) => {
   const [isPraying, setIsPraying] = useState(false)
   const [showTranslation, setShowTranslation] = useState(false) // 번역 보기 상태
   const [showVersesModal, setShowVersesModal] = useState(false) // 성경 구절 모달
@@ -150,7 +151,10 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick }: PrayerArticleProps) 
             <>
               <span className="text-gray-400 dark:text-gray-600">·</span>
               <button 
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onReplyClick()
+                }}
                 className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
                 댓글 {prayer.reply_count}개

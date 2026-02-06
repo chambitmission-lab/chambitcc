@@ -17,6 +17,7 @@ const NewHome = () => {
   const { requireAuth, requireAuthWithRedirect } = useAuth()
   const [showComposer, setShowComposer] = useState(false)
   const [selectedPrayerId, setSelectedPrayerId] = useState<number | null>(null)
+  const [openReplies, setOpenReplies] = useState(false) // 댓글 자동 열기 상태
   const [sort, setSort] = useState<SortType>('popular')
   const prayerHook = usePrayersInfinite(sort)
 
@@ -34,6 +35,11 @@ const NewHome = () => {
     } catch (error) {
       showToast(error instanceof Error ? error.message : '기도 처리에 실패했습니다', 'error')
     }
+  }
+
+  const handlePrayerClick = (prayerId: number, shouldOpenReplies = false) => {
+    setSelectedPrayerId(prayerId)
+    setOpenReplies(shouldOpenReplies)
   }
 
   // 초기 로딩 상태 표시
@@ -96,7 +102,7 @@ const NewHome = () => {
               isFetchingMore={prayerHook.isFetchingMore}
               onLoadMore={prayerHook.loadMore}
               onPrayerToggle={handlePrayerToggle}
-              onPrayerClick={setSelectedPrayerId}
+              onPrayerClick={handlePrayerClick}
             />
           </main>
 
@@ -119,11 +125,16 @@ const NewHome = () => {
             <PrayerDetail
               prayerId={selectedPrayerId}
               initialData={prayerHook.prayers.find(p => p.id === selectedPrayerId)}
-              onClose={() => setSelectedPrayerId(null)}
+              onClose={() => {
+                setSelectedPrayerId(null)
+                setOpenReplies(false)
+              }}
               onDelete={() => {
                 setSelectedPrayerId(null)
+                setOpenReplies(false)
                 // Optimistic Update가 자동으로 처리됨
               }}
+              initialOpenReplies={openReplies}
             />
           )}
         </div>
