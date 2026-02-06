@@ -51,6 +51,19 @@ const SermonDetail = ({ sermon, onClose, onDelete }: SermonDetailProps) => {
     }
   }
 
+  // 오디오 URL 생성
+  const getAudioUrl = () => {
+    if (!sermon.audio_url) return ''
+    
+    // audio_url이 이미 전체 URL인 경우
+    if (sermon.audio_url.startsWith('http://') || sermon.audio_url.startsWith('https://')) {
+      return sermon.audio_url
+    }
+    
+    // 상대 경로인 경우 API_URL과 결합
+    return `${API_URL}${sermon.audio_url}`
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div
@@ -131,7 +144,7 @@ const SermonDetail = ({ sermon, onClose, onDelete }: SermonDetailProps) => {
               </div>
               <audio
                 controls
-                src={`${API_URL}${sermon.audio_url}`}
+                src={getAudioUrl()}
                 className="w-full"
                 controlsList="nodownload"
               >
