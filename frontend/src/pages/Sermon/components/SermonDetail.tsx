@@ -47,7 +47,7 @@ const SermonDetail = ({ sermon, onClose, onDelete }: SermonDetailProps) => {
       onDelete?.()
       onClose()
     } catch (error) {
-      console.error('Delete error:', error)
+      // 삭제 실패는 mutation에서 처리
     }
   }
 

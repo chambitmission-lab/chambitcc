@@ -22,9 +22,7 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
 
   // 컴포넌트 언마운트 시 녹음 정리 방지
   useEffect(() => {
-    console.log('AudioRecorder mounted')
     return () => {
-      console.log('AudioRecorder unmounting, state:', recordingState)
       // 언마운트 시 녹음 중이면 정리하지 않음
     }
   }, [recordingState])

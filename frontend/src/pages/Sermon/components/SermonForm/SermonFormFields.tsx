@@ -87,36 +87,6 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
           required
         />
       </div>
-
-      {/* 비디오 URL (선택) */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-          비디오 URL (선택)
-        </label>
-        <input
-          type="url"
-          name="video_url"
-          value={formData.video_url}
-          onChange={onChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          placeholder="https://youtube.com/watch?v=..."
-        />
-      </div>
-
-      {/* 썸네일 URL (선택) */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-          썸네일 URL (선택)
-        </label>
-        <input
-          type="url"
-          name="thumbnail_url"
-          value={formData.thumbnail_url}
-          onChange={onChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          placeholder="https://example.com/thumbnail.jpg"
-        />
-      </div>
     </div>
   )
 }

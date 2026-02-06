@@ -63,7 +63,7 @@ export const useAudioUpload = () => {
       try {
         await deleteAudioMutation.mutateAsync(audioState.uploadedUrl)
       } catch (error) {
-        console.error('Audio deletion error:', error)
+        // 삭제 실패 시 무시
       }
     }
 
@@ -79,7 +79,7 @@ export const useAudioUpload = () => {
       try {
         await deleteAudioMutation.mutateAsync(audioState.uploadedUrl)
       } catch (error) {
-        console.error('Cleanup error:', error)
+        // 정리 실패 시 무시
       }
     }
   }
