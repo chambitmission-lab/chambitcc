@@ -116,6 +116,9 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
       >
         {/* Header */}
         <div className="sticky top-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            새 기도 요청
+          </h2>
           <button
             onClick={onClose}
             className="relative group w-10 h-10 flex items-center justify-center"
@@ -143,16 +146,6 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
               close
             </span>
           </button>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-            새 기도 요청
-          </h2>
-          <button
-            onClick={handleSubmit}
-            disabled={isCreating || !title.trim() || !content.trim()}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white font-bold text-sm rounded-full shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30 hover:shadow-xl hover:shadow-purple-500/40 dark:hover:shadow-purple-900/40 transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            {isCreating ? '작성중...' : '작성'}
-          </button>
         </div>
 
         {/* Form */}
@@ -175,6 +168,13 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
                   {displayName}
                 </span>
               </div>
+              <button
+                onClick={handleSubmit}
+                disabled={isCreating || !title.trim() || !content.trim()}
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white font-bold text-sm rounded-full shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30 hover:shadow-xl hover:shadow-purple-500/40 dark:hover:shadow-purple-900/40 transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {isCreating ? '작성중...' : '작성'}
+              </button>
             </div>
             
             {/* Anonymous Toggle - Only show for logged in users */}
