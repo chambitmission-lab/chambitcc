@@ -6,6 +6,13 @@ interface SermonFormFieldsProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
 }
 
+// YYYY-MM-DD를 YYYY년 MM월 DD일로 변환
+const formatDateToKorean = (dateStr: string) => {
+  if (!dateStr) return ''
+  const [year, month, day] = dateStr.split('-')
+  return `${year}년 ${month}월 ${day}일`
+}
+
 export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) => {
   return (
     <div className="space-y-4">
@@ -62,14 +69,28 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           설교 날짜 *
         </label>
-        <input
-          type="date"
-          name="sermon_date"
-          value={formData.sermon_date}
-          onChange={onChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          required
-        />
+        <div className="relative">
+          {/* 실제 date input */}
+          <input
+            id="sermon-date-input"
+            type="date"
+            name="sermon_date"
+            value={formData.sermon_date}
+            onChange={onChange}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent opacity-0 absolute inset-0 cursor-pointer z-10"
+            required
+          />
+          
+          {/* 표시용 입력 필드 */}
+          <div 
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white pointer-events-none flex items-center justify-between"
+          >
+            <span className={formData.sermon_date ? '' : 'text-gray-400 dark:text-gray-500'}>
+              {formData.sermon_date ? formatDateToKorean(formData.sermon_date) : '날짜를 선택하세요'}
+            </span>
+            <span className="material-icons-outlined text-gray-500">calendar_today</span>
+          </div>
+        </div>
       </div>
 
       {/* 설교 내용 */}
