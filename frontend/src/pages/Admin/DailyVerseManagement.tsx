@@ -6,6 +6,7 @@ import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import type { DailyVerse, CreateDailyVerseRequest } from '../../types/dailyVerse'
 import './NotificationManagement.css'
+import './DailyVerseManagement.css'
 
 const DailyVerseManagement = () => {
   const navigate = useNavigate()
@@ -137,19 +138,7 @@ const DailyVerseManagement = () => {
             <h2>{editingId ? '오늘의 말씀 수정' : '새 말씀 등록'}</h2>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label htmlFor="verse_text">말씀 내용</label>
-                <textarea
-                  id="verse_text"
-                  value={formData.verse_text}
-                  onChange={(e) => setFormData({ ...formData, verse_text: e.target.value })}
-                  placeholder="말씀 내용을 입력하세요"
-                  rows={4}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="verse_reference">성경 구절</label>
+                <label htmlFor="verse_reference">📖 성경 구절</label>
                 <input
                   id="verse_reference"
                   type="text"
@@ -160,14 +149,32 @@ const DailyVerseManagement = () => {
                 />
               </div>
 
-              <div className="form-info">
-                <p>💡 날짜는 자동으로 오늘로 설정됩니다</p>
-                <p>💡 오늘 날짜에 이미 말씀이 있으면 자동으로 수정됩니다</p>
+              <div className="form-group">
+                <label htmlFor="verse_text">✨ 말씀 내용</label>
+                <textarea
+                  id="verse_text"
+                  value={formData.verse_text}
+                  onChange={(e) => setFormData({ ...formData, verse_text: e.target.value })}
+                  placeholder="말씀 내용을 입력하세요"
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="form-info-box">
+                <div className="info-item">
+                  <span className="info-icon">📅</span>
+                  <span>날짜는 자동으로 오늘로 설정됩니다</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-icon">🔄</span>
+                  <span>오늘 날짜에 이미 말씀이 있으면 자동으로 수정됩니다</span>
+                </div>
               </div>
 
               <div className="form-actions">
                 <button type="submit" className="btn-primary">
-                  {editingId ? '수정' : '등록'}
+                  {editingId ? '✅ 수정 완료' : '✨ 등록하기'}
                 </button>
                 <button type="button" className="btn-secondary" onClick={handleCancel}>
                   취소
@@ -180,46 +187,62 @@ const DailyVerseManagement = () => {
         <div className="notifications-list">
           {!Array.isArray(verses) || verses.length === 0 ? (
             <div className="list-empty">
+              <div className="empty-icon">📖</div>
               <p>등록된 말씀이 없습니다</p>
               <p className="empty-subtitle">첫 번째 말씀을 등록해주세요</p>
             </div>
           ) : (
             <div className="notifications-feed">
-              {verses.map((verse) => (
-                <article key={verse.id} className="notification-card">
-                  <div className="card-header">
-                    <div className="card-avatar">📖</div>
-                    <div className="card-meta">
-                      <div className="card-author">오늘의 말씀</div>
-                      <div className="card-time">
-                        {new Date(verse.verse_date).toLocaleDateString('ko-KR')}
+              {verses.map((verse) => {
+                const verseDate = new Date(verse.verse_date)
+                const today = new Date()
+                today.setHours(0, 0, 0, 0)
+                verseDate.setHours(0, 0, 0, 0)
+                const isToday = verseDate.getTime() === today.getTime()
+                
+                return (
+                  <article key={verse.id} className="notification-card verse-card">
+                    <div className="card-header">
+                      <div className="card-avatar verse-avatar">📖</div>
+                      <div className="card-meta">
+                        <div className="card-author">오늘의 말씀</div>
+                        <div className="card-time">
+                          {new Date(verse.verse_date).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </div>
                       </div>
+                      {isToday && (
+                        <span className="today-badge">오늘</span>
+                      )}
                     </div>
-                  </div>
 
-                  <div className="card-content">
-                    <h3 className="card-title">{verse.verse_reference}</h3>
-                    <p className="card-text">"{verse.verse_text}"</p>
-                  </div>
+                    <div className="card-content verse-content">
+                      <h3 className="verse-reference">{verse.verse_reference}</h3>
+                      <p className="verse-text">"{verse.verse_text}"</p>
+                    </div>
 
-                  <div className="card-footer">
-                    <button 
-                      className="action-button edit"
-                      onClick={() => handleEdit(verse)}
-                    >
-                      <span className="action-icon">✏️</span>
-                      <span>수정</span>
-                    </button>
-                    <button 
-                      className="action-button delete"
-                      onClick={() => handleDelete(verse.id)}
-                    >
-                      <span className="action-icon">🗑️</span>
-                      <span>삭제</span>
-                    </button>
-                  </div>
-                </article>
-              ))}
+                    <div className="card-footer">
+                      <button 
+                        className="action-button edit"
+                        onClick={() => handleEdit(verse)}
+                      >
+                        <span className="action-icon">✏️</span>
+                        <span>수정</span>
+                      </button>
+                      <button 
+                        className="action-button delete"
+                        onClick={() => handleDelete(verse.id)}
+                      >
+                        <span className="action-icon">🗑️</span>
+                        <span>삭제</span>
+                      </button>
+                    </div>
+                  </article>
+                )
+              })}
             </div>
           )}
         </div>
