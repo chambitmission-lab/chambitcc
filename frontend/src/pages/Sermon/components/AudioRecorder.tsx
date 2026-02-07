@@ -22,15 +22,35 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
 
   // 녹음 시작 여부를 추적하는 ref
   const hasStartedRef = useRef(false)
+  const isStartingRef = useRef(false)
+  const lastClickTimeRef = useRef(0)
 
   const handleStart = async () => {
-    if (hasStartedRef.current) return
+    const now = Date.now()
+    
+    // 500ms 이내 중복 클릭 방지 (디바운스)
+    if (now - lastClickTimeRef.current < 500) {
+      return
+    }
+    
+    // 이미 시작했거나 시작 중이면 무시
+    if (hasStartedRef.current || isStartingRef.current || recordingState !== 'idle') {
+      return
+    }
+    
+    lastClickTimeRef.current = now
+    isStartingRef.current = true
     hasStartedRef.current = true
+    
     await startRecording()
+    
+    isStartingRef.current = false
   }
 
   const handleReset = () => {
     hasStartedRef.current = false
+    isStartingRef.current = false
+    lastClickTimeRef.current = 0
     resetRecording()
   }
 
@@ -108,7 +128,8 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
         {recordingState === 'idle' && (
           <button
             onClick={handleStart}
-            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all text-lg"
+            disabled={hasStartedRef.current || isStartingRef.current}
+            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="material-icons-outlined text-2xl">mic</span>
             녹음 시작

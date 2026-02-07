@@ -26,10 +26,18 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
   const timerRef = useRef<number | null>(null)
   const startTimeRef = useRef<number>(0)
   const pausedTimeRef = useRef<number>(0)
+  const isRequestingPermissionRef = useRef(false) // 권한 요청 중 플래그
 
   const startRecording = useCallback(async () => {
+    // 이미 녹음 중이거나 권한 요청 중이면 무시
+    if (isRequestingPermissionRef.current || mediaRecorderRef.current) {
+      console.log('[AudioRecorder] Already requesting permission or recording, ignoring')
+      return
+    }
+
     try {
       console.log('[AudioRecorder] Starting recording...')
+      isRequestingPermissionRef.current = true
       setError(null)
       
       // getUserMedia를 직접 호출하여 권한 요청 (한 번만)
@@ -40,6 +48,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
       if (!granted || !stream) {
         console.error('[AudioRecorder] Permission denied or stream unavailable:', permError)
         setError(permError || '마이크 접근 권한이 필요합니다')
+        isRequestingPermissionRef.current = false
         return
       }
       
@@ -97,10 +106,12 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
       }, 1000)
       
       console.log('[AudioRecorder] Recording started successfully')
+      isRequestingPermissionRef.current = false
       
     } catch (err) {
       console.error('[AudioRecorder] Recording error:', err)
       setError('마이크 접근 권한이 필요합니다')
+      isRequestingPermissionRef.current = false
     }
   }, [])
 
@@ -168,6 +179,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
     chunksRef.current = []
     startTimeRef.current = 0
     pausedTimeRef.current = 0
+    isRequestingPermissionRef.current = false // 플래그 리셋
   }, [])
 
   return {
