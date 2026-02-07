@@ -80,8 +80,8 @@ const Login = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-black min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-sm w-full">
+    <div className="bg-gray-50 dark:bg-black h-[calc(100vh-3.5rem)] flex items-center justify-center p-4 overflow-y-auto">
+      <div className="max-w-sm w-full my-auto">
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold tracking-tighter font-display text-gray-900 dark:text-white mb-2">

@@ -63,7 +63,7 @@
 
 html {
   scroll-behavior: smooth;
-  min-height: max(884px, 100dvh);
+  height: 100%;
   overflow-x: hidden;
   width: 100%;
   max-width: 100vw;
@@ -80,7 +80,7 @@ html {
 body {
   margin: 0;
   min-width: 320px;
-  min-height: max(884px, 100dvh);
+  height: 100%;
   overflow-x: hidden;
   width: 100%;
   max-width: 100vw;
