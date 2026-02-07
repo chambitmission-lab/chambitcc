@@ -61,7 +61,7 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-gradient-to-b from-yellow-300/30 to-transparent dark:from-yellow-200/20 blur-3xl rounded-full"></div>
 
         {/* Header */}
-        <div className="relative sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        <div className="relative sticky top-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="relative">
               {/* 아이콘 주변 빛 효과 */}
