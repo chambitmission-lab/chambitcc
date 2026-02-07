@@ -6,7 +6,6 @@ import TodaysVerse from './components/TodaysVerse'
 import SortTabs from './components/SortTabs'
 import PrayerComposerInput from './components/PrayerComposerInput'
 import PrayerFeed from './components/PrayerFeed'
-import FloatingActionButton from './components/FloatingActionButton'
 import BottomNavigation from './components/BottomNavigation'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import { useAuth } from '../../hooks/useAuth'
@@ -108,8 +107,6 @@ const NewHome = () => {
             />
           </main>
 
-          <FloatingActionButton onClick={handleComposerOpen} />
-
           {/* Prayer Composer Modal */}
           {showComposer && (
             <PrayerComposer
@@ -146,6 +143,7 @@ const NewHome = () => {
           <div className="max-w-md mx-auto pointer-events-auto">
             <BottomNavigation 
               onProfileClick={handleProfileClick}
+              onComposeClick={handleComposerOpen}
             />
           </div>
         </div>
