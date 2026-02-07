@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { getAllDailyVerses, createDailyVerse, updateDailyVerse, deleteDailyVerse } from '../../api/dailyVerse'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
@@ -8,6 +9,7 @@ import './NotificationManagement.css'
 
 const DailyVerseManagement = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [verses, setVerses] = useState<DailyVerse[]>([])
   const [loading, setLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
@@ -62,6 +64,9 @@ const DailyVerseManagement = () => {
         showToast('오늘의 말씀이 등록되었습니다', 'success')
       }
       
+      // 오늘의 말씀 캐시 무효화 (기도 목록 화면에서 자동 갱신)
+      queryClient.invalidateQueries({ queryKey: ['dailyVerse', 'today'] })
+      
       setFormData({ verse_text: '', verse_reference: '' })
       setIsCreating(false)
       setEditingId(null)
@@ -86,6 +91,10 @@ const DailyVerseManagement = () => {
     try {
       await deleteDailyVerse(id)
       showToast('오늘의 말씀이 삭제되었습니다', 'success')
+      
+      // 오늘의 말씀 캐시 무효화 (기도 목록 화면에서 자동 갱신)
+      queryClient.invalidateQueries({ queryKey: ['dailyVerse', 'today'] })
+      
       loadVerses()
     } catch (error) {
       showToast(error instanceof Error ? error.message : '삭제에 실패했습니다', 'error')
