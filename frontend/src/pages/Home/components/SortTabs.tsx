@@ -1,3 +1,4 @@
+import { useLanguage } from '../../../contexts/LanguageContext'
 import type { SortType } from '../../../types/prayer'
 
 interface SortTabsProps {
@@ -6,6 +7,8 @@ interface SortTabsProps {
 }
 
 const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
+  const { t } = useLanguage()
+  
   return (
     <section className="bg-background-light dark:bg-background-dark py-3 px-4 flex items-center justify-between border-b border-border-light dark:border-border-dark sticky top-0 z-40">
       <div className="flex gap-6">
@@ -17,7 +20,7 @@ const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
               : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
           }`}
         >
-          인기
+          {t('popular')}
         </button>
         <button
           onClick={() => onSortChange('latest')}
@@ -27,7 +30,7 @@ const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
               : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
           }`}
         >
-          최신
+          {t('latest')}
         </button>
       </div>
     </section>
