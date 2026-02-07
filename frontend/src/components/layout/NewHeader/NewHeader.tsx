@@ -136,41 +136,46 @@ const NewHeader = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="absolute top-14 left-0 right-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark shadow-lg">
+        <div className="absolute top-14 left-0 right-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark shadow-lg overflow-hidden">
           <div className="max-w-md mx-auto">
-            <nav className="py-2">
+            {/* 가로 스크롤 메뉴 */}
+            <nav className="flex overflow-x-auto scrollbar-hide py-3 px-4 gap-3">
               <Link
                 to="/about"
-                className="block px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                className="flex-shrink-0 px-4 py-2 text-sm text-gray-900 dark:text-white bg-surface-light dark:bg-surface-dark hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors whitespace-nowrap"
               >
                 {t('about')}
               </Link>
               <Link
                 to="/worship"
-                className="block px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                className="flex-shrink-0 px-4 py-2 text-sm text-gray-900 dark:text-white bg-surface-light dark:bg-surface-dark hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors whitespace-nowrap"
               >
                 {t('worship')}
               </Link>
               <Link
                 to="/sermon"
-                className="block px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                className="flex-shrink-0 px-4 py-2 text-sm text-gray-900 dark:text-white bg-surface-light dark:bg-surface-dark hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors whitespace-nowrap"
               >
                 {t('sermon')}
               </Link>
               <Link
                 to="/ministry"
-                className="block px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                className="flex-shrink-0 px-4 py-2 text-sm text-gray-900 dark:text-white bg-surface-light dark:bg-surface-dark hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors whitespace-nowrap"
               >
                 {t('ministry')}
               </Link>
               <Link
                 to="/news"
-                className="block px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                className="flex-shrink-0 px-4 py-2 text-sm text-gray-900 dark:text-white bg-surface-light dark:bg-surface-dark hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors whitespace-nowrap"
               >
                 {t('news')}
               </Link>
-              <div className="border-t border-border-light dark:border-border-dark my-2"></div>
-              
+            </nav>
+            
+            <div className="border-t border-border-light dark:border-border-dark"></div>
+            
+            {/* 세로 메뉴 (언어, 관리자, 로그인/로그아웃) */}
+            <div className="py-2">
               {/* 언어 전환 */}
               <button
                 onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
@@ -219,7 +224,7 @@ const NewHeader = () => {
                   <div className="absolute inset-0 bg-purple-50 dark:bg-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg -z-10"></div>
                 </Link>
               )}
-            </nav>
+            </div>
           </div>
         </div>
       )}

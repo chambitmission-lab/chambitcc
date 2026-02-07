@@ -236,3 +236,13 @@
     font-size: 1.5rem;
   }
 }
+
+/* 가로 스크롤 숨김 */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
