@@ -20,25 +20,33 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
     error,
   } = useAudioRecorder()
 
-  // 녹음 시작 여부를 추적하는 ref (중복 실행 방지)
-  const hasStartedRef = useRef(false)
+  // 녹음 시작 여부를 추적하는 ref (Strict Mode 대응)
+  const mountCountRef = useRef(0)
+  const hasRequestedPermissionRef = useRef(false)
 
-  // 컴포넌트 마운트 시 자동으로 녹음 시작 (한 번만)
+  // 컴포넌트 마운트 시 자동으로 녹음 시작
+  // Strict Mode에서 2번 마운트되는 것을 감지하여 권한 요청은 1번만 수행
   useEffect(() => {
-    if (!hasStartedRef.current) {
-      console.log('[AudioRecorder] Component mounted, starting recording...')
-      hasStartedRef.current = true
+    mountCountRef.current += 1
+    const currentMount = mountCountRef.current
+    
+    console.log('[AudioRecorder] Component mounted, mount count:', currentMount)
+    
+    // 첫 번째 마운트이거나, 이미 권한 요청을 하지 않은 경우에만 실행
+    if (!hasRequestedPermissionRef.current) {
+      console.log('[AudioRecorder] Starting recording (first time)...')
+      hasRequestedPermissionRef.current = true
       startRecording()
+    } else {
+      console.log('[AudioRecorder] Skipping recording start (already requested)')
+    }
+
+    // Cleanup 함수는 아무것도 하지 않음 (Strict Mode 재마운트 허용)
+    return () => {
+      console.log('[AudioRecorder] Cleanup called for mount:', currentMount)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  // 컴포넌트 언마운트 시 녹음 정리 방지
-  useEffect(() => {
-    return () => {
-      // 언마운트 시 녹음 중이면 정리하지 않음
-    }
-  }, [recordingState])
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60)

@@ -17,11 +17,10 @@ if (import.meta.env.PROD) {
   initPWAInstallPrompt()
 }
 
-// Strict Mode는 프로덕션에서만 활성화 (개발 중 권한 중복 요청 방지)
-const RootWrapper = import.meta.env.PROD ? StrictMode : ({ children }: { children: React.ReactNode }) => <>{children}</>
-
+// Strict Mode는 개발/프로덕션 모두에서 활성화
+// 권한 중복 요청 문제는 AudioRecorder 컴포넌트에서 ref로 해결
 createRoot(document.getElementById('root')!).render(
-  <RootWrapper>
+  <StrictMode>
     <LanguageProvider>
       <PersistQueryClientProvider 
         client={queryClient} 
@@ -30,5 +29,5 @@ createRoot(document.getElementById('root')!).render(
         <App />
       </PersistQueryClientProvider>
     </LanguageProvider>
-  </RootWrapper>,
+  </StrictMode>,
 )
