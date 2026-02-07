@@ -1,5 +1,5 @@
 // 음성 녹음 컴포넌트
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useAudioRecorder } from '../../../hooks/useAudioRecorder'
 
 interface AudioRecorderProps {
@@ -20,9 +20,17 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
     error,
   } = useAudioRecorder()
 
-  // 컴포넌트 마운트 시 자동으로 녹음 시작
+  // 녹음 시작 여부를 추적하는 ref (중복 실행 방지)
+  const hasStartedRef = useRef(false)
+
+  // 컴포넌트 마운트 시 자동으로 녹음 시작 (한 번만)
   useEffect(() => {
-    startRecording()
+    if (!hasStartedRef.current) {
+      console.log('[AudioRecorder] Component mounted, starting recording...')
+      hasStartedRef.current = true
+      startRecording()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // 컴포넌트 언마운트 시 녹음 정리 방지

@@ -17,8 +17,11 @@ if (import.meta.env.PROD) {
   initPWAInstallPrompt()
 }
 
+// Strict Mode는 프로덕션에서만 활성화 (개발 중 권한 중복 요청 방지)
+const RootWrapper = import.meta.env.PROD ? StrictMode : ({ children }: { children: React.ReactNode }) => <>{children}</>
+
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  <RootWrapper>
     <LanguageProvider>
       <PersistQueryClientProvider 
         client={queryClient} 
@@ -27,5 +30,5 @@ createRoot(document.getElementById('root')!).render(
         <App />
       </PersistQueryClientProvider>
     </LanguageProvider>
-  </StrictMode>,
+  </RootWrapper>,
 )

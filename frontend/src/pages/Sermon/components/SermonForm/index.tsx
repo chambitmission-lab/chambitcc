@@ -19,8 +19,14 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
   const [showRecorder, setShowRecorder] = useState(false)
 
   const handleRecordingComplete = (blob: Blob) => {
+    console.log('[SermonForm] Recording complete, blob size:', blob.size)
     audioUpload.handleRecordingComplete(blob)
     setShowRecorder(false)
+  }
+
+  const handleRecordingStart = () => {
+    console.log('[SermonForm] Opening recorder...')
+    setShowRecorder(true)
   }
 
   return (
@@ -96,7 +102,7 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
               <div className="mb-3">
                 <AudioUploadSection
                   audioState={audioUpload.audioState}
-                  onRecordingStart={() => setShowRecorder(true)}
+                  onRecordingStart={handleRecordingStart}
                   onFileSelect={audioUpload.handleFileSelect}
                   onRemove={audioUpload.removeAudio}
                 />
