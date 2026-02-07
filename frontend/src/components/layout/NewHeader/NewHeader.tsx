@@ -111,10 +111,23 @@ const NewHeader = () => {
           
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-gray-800 dark:text-white hover:text-primary transition-colors"
+            className={`relative transition-all ${
+              isMenuOpen 
+                ? 'text-red-500 dark:text-red-400' 
+                : 'text-gray-800 dark:text-white hover:text-primary'
+            }`}
             aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴"}
           >
-            <span className="material-icons-outlined text-2xl">
+            {/* X 버튼 빛나는 효과 (비상구 스타일) */}
+            {isMenuOpen && (
+              <>
+                <div className="absolute inset-0 bg-red-500/30 dark:bg-red-400/30 blur-lg animate-pulse"></div>
+                <div className="absolute inset-0 bg-red-500/20 dark:bg-red-400/20 blur-md"></div>
+              </>
+            )}
+            <span className={`material-icons-outlined text-2xl relative z-10 ${
+              isMenuOpen ? 'drop-shadow-[0_0_8px_rgba(239,68,68,0.8)] dark:drop-shadow-[0_0_10px_rgba(248,113,113,0.9)]' : ''
+            }`}>
               {isMenuOpen ? 'close' : 'more_vert'}
             </span>
           </button>
