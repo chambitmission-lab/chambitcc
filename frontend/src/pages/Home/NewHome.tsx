@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
@@ -14,6 +15,7 @@ import { showToast } from '../../utils/toast'
 import type { SortType } from '../../types/prayer'
 
 const NewHome = () => {
+  const location = useLocation()
   const { requireAuth, requireAuthWithRedirect } = useAuth()
   const { t } = useLanguage()
   const [showComposer, setShowComposer] = useState(false)
@@ -22,6 +24,16 @@ const NewHome = () => {
   const [sort, setSort] = useState<SortType>('popular')
   const prayerHook = usePrayersInfinite(sort)
   const mainRef = useRef<HTMLDivElement>(null)
+
+  // 프로필에서 넘어온 기도 ID 처리
+  useEffect(() => {
+    const state = location.state as { openPrayerId?: number } | null
+    if (state?.openPrayerId) {
+      setSelectedPrayerId(state.openPrayerId)
+      // state 초기화 (뒤로가기 시 다시 열리지 않도록)
+      window.history.replaceState({}, document.title)
+    }
+  }, [location])
 
   const handleComposerOpen = () => {
     requireAuth(() => setShowComposer(true))
