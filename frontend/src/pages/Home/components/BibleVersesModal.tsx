@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { RecommendedVerses } from '../../../types/prayer'
 
 interface BibleVersesModalProps {
@@ -8,8 +8,28 @@ interface BibleVersesModalProps {
 
 import { useLanguage } from '../../../contexts/LanguageContext'
 
+// 떠다니는 빛 입자 컴포넌트
+const FloatingParticle = ({ delay }: { delay: number }) => (
+  <div 
+    className="absolute w-1 h-1 bg-yellow-300/60 dark:bg-yellow-200/40 rounded-full blur-sm animate-float"
+    style={{
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      animationDelay: `${delay}s`,
+      animationDuration: `${3 + Math.random() * 2}s`
+    }}
+  />
+)
+
 const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
   const { t } = useLanguage()
+  const [isVisible, setIsVisible] = useState(false)
+
+  // 등장 애니메이션
+  useEffect(() => {
+    setTimeout(() => setIsVisible(true), 50)
+  }, [])
+
   // 브라우저 뒤로가기 처리
   useEffect(() => {
     // 모달이 열릴 때 히스토리 엔트리 추가
@@ -52,28 +72,39 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
       className="fixed inset-0 bg-black/70 backdrop-blur-md z-[110] flex items-center justify-center p-4"
       onClick={onClose}
     >
+      {/* 떠다니는 빛 입자들 - 성령의 임재 표현 */}
+      {[...Array(15)].map((_, i) => (
+        <FloatingParticle key={i} delay={i * 0.3} />
+      ))}
+
       <div 
-        className="relative bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl"
+        className={`relative bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl transition-all duration-700 ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 하늘에서 내려오는 빛 효과 */}
-        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-1 h-20 bg-gradient-to-b from-transparent via-yellow-300/60 to-yellow-400/80 dark:via-yellow-200/60 dark:to-yellow-300/80 blur-sm"></div>
-        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[2px] h-20 bg-gradient-to-b from-transparent via-yellow-400/80 to-yellow-500 dark:via-yellow-300/80 dark:to-yellow-400"></div>
+        {/* 하늘에서 내려오는 빛 효과 - 더 강렬하게 */}
+        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-2 h-20 bg-gradient-to-b from-transparent via-yellow-300/80 to-yellow-400 dark:via-yellow-200/80 dark:to-yellow-300 blur-sm animate-pulse"></div>
+        <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[3px] h-20 bg-gradient-to-b from-transparent via-yellow-400 to-yellow-500 dark:via-yellow-300 dark:to-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.8)]"></div>
         
-        {/* 상단 빛 확산 효과 */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-gradient-to-b from-yellow-300/30 to-transparent dark:from-yellow-200/20 blur-3xl rounded-full"></div>
+        {/* 상단 빛 확산 효과 - 더 넓게 */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 bg-gradient-to-b from-yellow-300/40 via-yellow-200/20 to-transparent dark:from-yellow-200/30 dark:via-yellow-100/10 blur-3xl rounded-full animate-pulse"></div>
+
+        {/* 호흡하는 후광 효과 */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-gradient-radial from-yellow-400/20 via-yellow-300/10 to-transparent dark:from-yellow-300/15 dark:via-yellow-200/5 blur-3xl rounded-full animate-breathe"></div>
 
         {/* Header */}
         <div className="relative sticky top-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="relative">
-              {/* 아이콘 주변 빛 효과 */}
-              <div className="absolute inset-0 bg-yellow-400/30 dark:bg-yellow-300/20 blur-md rounded-full animate-pulse"></div>
-              <span className="material-icons-outlined text-yellow-600 dark:text-yellow-400 text-xl relative z-10 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]">
+              {/* 아이콘 주변 빛 효과 - 더 강렬하게 */}
+              <div className="absolute inset-0 bg-yellow-400/50 dark:bg-yellow-300/40 blur-lg rounded-full animate-pulse"></div>
+              <div className="absolute inset-0 bg-yellow-300/30 dark:bg-yellow-200/20 blur-md rounded-full animate-ping"></div>
+              <span className="material-icons-outlined text-yellow-600 dark:text-yellow-400 text-xl relative z-10 drop-shadow-[0_0_12px_rgba(250,204,21,0.9)] animate-bounce-slow">
                 auto_stories
               </span>
             </div>
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-base font-semibold bg-gradient-to-r from-yellow-600 via-yellow-500 to-yellow-600 dark:from-yellow-400 dark:via-yellow-300 dark:to-yellow-400 bg-clip-text text-transparent animate-gradient">
               {t('bibleVersesForYou')}
             </h2>
           </div>
@@ -94,8 +125,10 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
           <div className="absolute bottom-20 left-10 w-32 h-32 bg-yellow-400/10 dark:bg-yellow-300/5 blur-3xl rounded-full"></div>
 
           {/* Summary */}
-          <div className="relative mb-4 p-3 bg-gradient-to-br from-yellow-50/80 to-white dark:from-yellow-900/10 dark:to-gray-800/50 rounded-lg border border-yellow-200/50 dark:border-yellow-700/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]">
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+          <div className="relative mb-4 p-4 bg-gradient-to-br from-yellow-50/90 via-amber-50/80 to-white dark:from-yellow-900/20 dark:via-amber-900/15 dark:to-gray-800/50 rounded-xl border border-yellow-200/60 dark:border-yellow-700/40 shadow-[0_0_20px_rgba(250,204,21,0.15)] overflow-hidden">
+            {/* 배경 빛나는 효과 */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-300/20 dark:bg-yellow-200/10 rounded-full blur-2xl animate-pulse"></div>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed relative z-10">
               {verses.summary}
             </p>
           </div>
@@ -105,40 +138,48 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
             {verses.verses.map((verse, index) => (
               <div 
                 key={index}
-                className="relative pb-4 border-b border-gray-200 dark:border-gray-800 last:border-0"
+                className="relative pb-4 border-b border-gray-200 dark:border-gray-800 last:border-0 animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.2}s` }}
               >
-                {/* 구절 주변 은은한 빛 */}
-                <div className="absolute -left-2 top-0 w-1 h-full bg-gradient-to-b from-yellow-400/40 via-yellow-300/20 to-transparent dark:from-yellow-300/30 dark:via-yellow-200/10 blur-sm"></div>
+                {/* 구절 주변 강렬한 빛 */}
+                <div className="absolute -left-2 top-0 w-1.5 h-full bg-gradient-to-b from-yellow-400/60 via-yellow-300/30 to-transparent dark:from-yellow-300/50 dark:via-yellow-200/20 blur-sm animate-pulse"></div>
+                <div className="absolute -left-1 top-0 w-0.5 h-full bg-gradient-to-b from-yellow-500 via-yellow-400/50 to-transparent dark:from-yellow-400 dark:via-yellow-300/40 shadow-[0_0_10px_rgba(250,204,21,0.6)]"></div>
                 
                 {/* Reference */}
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-3">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-yellow-400/40 dark:bg-yellow-300/30 blur-md rounded-full animate-pulse"></div>
-                    <span className="material-icons-outlined text-yellow-600 dark:text-yellow-400 text-sm relative z-10 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]">
+                    <div className="absolute inset-0 bg-yellow-400/60 dark:bg-yellow-300/50 blur-lg rounded-full animate-pulse"></div>
+                    <div className="absolute inset-0 bg-yellow-300/40 dark:bg-yellow-200/30 blur-md rounded-full animate-ping"></div>
+                    <span className="material-icons-outlined text-yellow-600 dark:text-yellow-400 text-base relative z-10 drop-shadow-[0_0_15px_rgba(250,204,21,1)]">
                       menu_book
                     </span>
                   </div>
-                  <h3 className="text-xs font-bold text-yellow-600 dark:text-yellow-300 uppercase tracking-wide drop-shadow-[0_0_12px_rgba(250,204,21,0.9)] dark:drop-shadow-[0_0_16px_rgba(253,224,71,0.8)]">
+                  <h3 className="text-sm font-bold bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 dark:from-yellow-400 dark:via-amber-300 dark:to-yellow-400 bg-clip-text text-transparent uppercase tracking-wide drop-shadow-[0_0_15px_rgba(250,204,21,1)] animate-gradient">
                     {verse.reference}
                   </h3>
                 </div>
 
-                {/* Text */}
-                <blockquote className="mb-3 pl-4 border-l-3 border-yellow-400 dark:border-yellow-300 relative">
-                  {/* 말씀 주변 강한 빛 효과 */}
-                  <div className="absolute -left-2 top-0 w-4 h-full bg-gradient-to-r from-yellow-400/60 via-yellow-300/30 to-transparent dark:from-yellow-300/50 dark:via-yellow-200/25 blur-md"></div>
-                  <div className="absolute -left-1 top-0 w-2 h-full bg-gradient-to-r from-yellow-500/80 to-transparent dark:from-yellow-400/70 blur-sm"></div>
+                {/* Text - 말씀에 최대 임팩트 */}
+                <blockquote className="mb-3 pl-5 border-l-4 border-yellow-400 dark:border-yellow-300 relative group">
+                  {/* 말씀 주변 매우 강한 빛 효과 */}
+                  <div className="absolute -left-3 top-0 w-6 h-full bg-gradient-to-r from-yellow-400/80 via-yellow-300/50 to-transparent dark:from-yellow-300/70 dark:via-yellow-200/40 blur-lg animate-pulse"></div>
+                  <div className="absolute -left-2 top-0 w-3 h-full bg-gradient-to-r from-yellow-500 via-yellow-400/60 to-transparent dark:from-yellow-400 dark:via-yellow-300/50 blur-md shadow-[0_0_20px_rgba(250,204,21,0.8)]"></div>
                   
-                  {/* 말씀 배경 빛 */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-50/80 via-yellow-50/40 to-transparent dark:from-yellow-900/20 dark:via-yellow-900/10 rounded-r-lg"></div>
+                  {/* 말씀 배경 빛 - 호흡하는 효과 */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-50/90 via-amber-50/60 to-transparent dark:from-yellow-900/30 dark:via-amber-900/20 rounded-r-xl animate-breathe"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-100/40 to-transparent dark:from-yellow-800/20 rounded-r-xl blur-sm"></div>
                   
-                  <p className="text-base font-bold text-gray-900 dark:text-white leading-relaxed relative z-10 drop-shadow-[0_0_15px_rgba(250,204,21,0.4)] dark:drop-shadow-[0_0_20px_rgba(253,224,71,0.5)] dark:text-shadow-[0_0_30px_rgba(253,224,71,0.3)]">
+                  {/* 반짝이는 효과 */}
+                  <div className="absolute top-2 right-4 w-2 h-2 bg-yellow-400 dark:bg-yellow-300 rounded-full blur-sm animate-twinkle"></div>
+                  <div className="absolute bottom-4 right-8 w-1.5 h-1.5 bg-amber-400 dark:bg-amber-300 rounded-full blur-sm animate-twinkle" style={{ animationDelay: '0.5s' }}></div>
+                  
+                  <p className="text-base font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-yellow-50 dark:to-white bg-clip-text text-transparent leading-relaxed relative z-10 drop-shadow-[0_0_20px_rgba(250,204,21,0.5)] dark:drop-shadow-[0_0_25px_rgba(253,224,71,0.6)] py-1">
                     "{verse.text}"
                   </p>
                 </blockquote>
 
                 {/* Message */}
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed pl-3">
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed pl-4">
                   {verse.message}
                 </p>
               </div>
