@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { showToast } from '../utils/toast'
 
 export const useAuth = () => {
   const navigate = useNavigate()
@@ -9,7 +10,8 @@ export const useAuth = () => {
 
   const requireAuth = (action: () => void) => {
     if (!isLoggedIn()) {
-      navigate('/login')
+      showToast('로그인이 필요합니다', 'info')
+      setTimeout(() => navigate('/login'), 500) // 토스트 보여주고 이동
       return false
     }
     action()
@@ -18,7 +20,8 @@ export const useAuth = () => {
 
   const requireAuthWithRedirect = (path: string) => {
     if (!isLoggedIn()) {
-      navigate('/login')
+      showToast('로그인이 필요합니다', 'info')
+      setTimeout(() => navigate('/login'), 500) // 토스트 보여주고 이동
       return false
     }
     navigate(path)
