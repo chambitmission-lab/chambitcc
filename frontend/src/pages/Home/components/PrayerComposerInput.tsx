@@ -32,7 +32,7 @@ const PrayerComposerInput = ({ onComposerOpen }: PrayerComposerInputProps) => {
         onClick={onComposerOpen}
         className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white font-bold text-sm rounded-full shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30 hover:shadow-xl hover:shadow-purple-500/40 dark:hover:shadow-purple-900/40 transition-all hover:scale-105 active:scale-95"
       >
-        {t('edit')}
+        {t('prayerComposerSubmit')}
       </button>
     </div>
   )
