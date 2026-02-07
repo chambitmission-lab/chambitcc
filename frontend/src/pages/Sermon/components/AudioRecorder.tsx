@@ -20,6 +20,11 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
     error,
   } = useAudioRecorder()
 
+  // 컴포넌트 마운트 시 자동으로 녹음 시작
+  useEffect(() => {
+    startRecording()
+  }, [])
+
   // 컴포넌트 언마운트 시 녹음 정리 방지
   useEffect(() => {
     return () => {
@@ -98,17 +103,7 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
 
       {/* 컨트롤 버튼 */}
       <div className="flex items-center justify-center gap-4">
-        {recordingState === 'idle' && (
-          <button
-            onClick={startRecording}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all"
-          >
-            <span className="material-icons-outlined">mic</span>
-            녹음 시작
-          </button>
-        )}
-
-        {recordingState === 'recording' && (
+        {(recordingState === 'idle' || recordingState === 'recording') && recordingState === 'recording' && (
           <>
             <button
               onClick={pauseRecording}
