@@ -143,31 +143,31 @@ const NewHeader = () => {
             <nav className="flex overflow-x-auto scrollbar-hide py-3 px-4 gap-3">
               <Link
                 to="/about"
-                className="flex-shrink-0 px-4 py-2 text-sm text-gray-900 dark:text-white bg-surface-light dark:bg-surface-dark hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors whitespace-nowrap"
+                className="glow-menu-item flex-shrink-0 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white rounded-full transition-all whitespace-nowrap relative"
               >
                 {t('about')}
               </Link>
               <Link
                 to="/worship"
-                className="flex-shrink-0 px-4 py-2 text-sm text-gray-900 dark:text-white bg-surface-light dark:bg-surface-dark hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors whitespace-nowrap"
+                className="glow-menu-item flex-shrink-0 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white rounded-full transition-all whitespace-nowrap relative"
               >
                 {t('worship')}
               </Link>
               <Link
                 to="/sermon"
-                className="flex-shrink-0 px-4 py-2 text-sm text-gray-900 dark:text-white bg-surface-light dark:bg-surface-dark hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors whitespace-nowrap"
+                className="glow-menu-item flex-shrink-0 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white rounded-full transition-all whitespace-nowrap relative"
               >
                 {t('sermon')}
               </Link>
               <Link
                 to="/ministry"
-                className="flex-shrink-0 px-4 py-2 text-sm text-gray-900 dark:text-white bg-surface-light dark:bg-surface-dark hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors whitespace-nowrap"
+                className="glow-menu-item flex-shrink-0 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white rounded-full transition-all whitespace-nowrap relative"
               >
                 {t('ministry')}
               </Link>
               <Link
                 to="/news"
-                className="flex-shrink-0 px-4 py-2 text-sm text-gray-900 dark:text-white bg-surface-light dark:bg-surface-dark hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors whitespace-nowrap"
+                className="glow-menu-item flex-shrink-0 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white rounded-full transition-all whitespace-nowrap relative"
               >
                 {t('news')}
               </Link>
