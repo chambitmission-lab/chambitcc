@@ -47,6 +47,8 @@ export const clearProfileCache = () => {
 
 // 프로필 전체 정보 조회
 export const useProfileDetail = () => {
+  const token = localStorage.getItem('access_token')
+  
   return useQuery({
     queryKey: ['profile', 'detail'],
     queryFn: async () => {
@@ -59,6 +61,8 @@ export const useProfileDetail = () => {
       setProfileCache(data)
       return data
     },
+    // 로그인 안되어 있으면 쿼리 비활성화
+    enabled: !!token,
     // 로컬스토리지 캐시를 초기 데이터로 사용
     placeholderData: getProfileCache,
     staleTime: 1000 * 60 * 10, // 10분

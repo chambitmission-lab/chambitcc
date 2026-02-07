@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useProfileDetail, clearProfileCache } from '../../hooks/useProfile'
@@ -16,6 +16,15 @@ const Profile = () => {
   const navigate = useNavigate()
   const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState<ProfileTab>('prayers')
+  
+  // 로그인 체크
+  useEffect(() => {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      navigate('/login', { replace: true })
+    }
+  }, [navigate])
+  
   const { data, isLoading, error } = useProfileDetail()
 
   const handleLogout = () => {
