@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getBulletins, getBulletinDetail } from '../../api/bulletin'
 import { showToast } from '../../utils/toast'
 import type { Bulletin } from '../../types/bulletin'
+import InstagramBulletinViewer from './components/InstagramBulletinViewer'
 import '../../pages/Bulletin/Bulletin.css'
 
 const News = () => {
@@ -56,42 +57,10 @@ const News = () => {
 
   if (viewMode === 'view' && selectedBulletin) {
     return (
-      <div className="bg-gray-50 dark:bg-black min-h-screen">
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
-          <div className="bulletin-viewer">
-            <div className="viewer-header">
-              <button onClick={handleBack} className="back-button">
-                <span className="material-icons-outlined">arrow_back</span>
-                <span>목록으로</span>
-              </button>
-              <div className="viewer-title">
-                <h1>{selectedBulletin.title}</h1>
-                <p className="viewer-date">
-                  {new Date(selectedBulletin.bulletin_date).toLocaleDateString('ko-KR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
-              </div>
-            </div>
-
-            <div className="viewer-content">
-              {selectedBulletin.pages && selectedBulletin.pages
-                .sort((a, b) => a.page_number - b.page_number)
-                .map((page) => (
-                  <div key={page.page_number} className="bulletin-page">
-                    <img 
-                      src={page.image_url} 
-                      alt={`페이지 ${page.page_number}`}
-                      loading="lazy"
-                    />
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <InstagramBulletinViewer 
+        bulletin={selectedBulletin}
+        onClose={handleBack}
+      />
     )
   }
 
