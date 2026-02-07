@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTheme } from '../../../contexts/ThemeContext'
@@ -13,6 +13,7 @@ const NewHeader = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isAdminUser, setIsAdminUser] = useState(false)
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
   const location = useLocation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -28,6 +29,23 @@ const NewHeader = () => {
     setIsLoggedIn(!!token)
     setIsAdminUser(isAdmin())
   }, [location])
+
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMenuOpen])
 
   const handleLogout = async () => {
     // 1. 진행 중인 쿼리 취소
@@ -53,7 +71,7 @@ const NewHeader = () => {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
+    <header className="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark" ref={menuRef}>
       <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 relative">
@@ -94,9 +112,11 @@ const NewHeader = () => {
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-gray-800 dark:text-white hover:text-primary transition-colors"
-            aria-label="메뉴"
+            aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴"}
           >
-            <span className="material-icons-outlined text-2xl">more_vert</span>
+            <span className="material-icons-outlined text-2xl">
+              {isMenuOpen ? 'close' : 'more_vert'}
+            </span>
           </button>
         </div>
       </div>
