@@ -113,19 +113,26 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
                 {/* Reference */}
                 <div className="flex items-center gap-2 mb-2">
                   <div className="relative">
-                    <div className="absolute inset-0 bg-yellow-400/20 dark:bg-yellow-300/10 blur-sm rounded-full"></div>
-                    <span className="material-icons-outlined text-yellow-600 dark:text-yellow-400 text-sm relative z-10">
+                    <div className="absolute inset-0 bg-yellow-400/40 dark:bg-yellow-300/30 blur-md rounded-full animate-pulse"></div>
+                    <span className="material-icons-outlined text-yellow-600 dark:text-yellow-400 text-sm relative z-10 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]">
                       menu_book
                     </span>
                   </div>
-                  <h3 className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 uppercase tracking-wide">
+                  <h3 className="text-xs font-bold text-yellow-600 dark:text-yellow-300 uppercase tracking-wide drop-shadow-[0_0_12px_rgba(250,204,21,0.9)] dark:drop-shadow-[0_0_16px_rgba(253,224,71,0.8)]">
                     {verse.reference}
                   </h3>
                 </div>
 
                 {/* Text */}
-                <blockquote className="mb-3 pl-3 border-l-2 border-yellow-400/50 dark:border-yellow-500/30">
-                  <p className="text-base text-gray-900 dark:text-white leading-relaxed">
+                <blockquote className="mb-3 pl-4 border-l-3 border-yellow-400 dark:border-yellow-300 relative">
+                  {/* 말씀 주변 강한 빛 효과 */}
+                  <div className="absolute -left-2 top-0 w-4 h-full bg-gradient-to-r from-yellow-400/60 via-yellow-300/30 to-transparent dark:from-yellow-300/50 dark:via-yellow-200/25 blur-md"></div>
+                  <div className="absolute -left-1 top-0 w-2 h-full bg-gradient-to-r from-yellow-500/80 to-transparent dark:from-yellow-400/70 blur-sm"></div>
+                  
+                  {/* 말씀 배경 빛 */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-50/80 via-yellow-50/40 to-transparent dark:from-yellow-900/20 dark:via-yellow-900/10 rounded-r-lg"></div>
+                  
+                  <p className="text-base font-bold text-gray-900 dark:text-white leading-relaxed relative z-10 drop-shadow-[0_0_15px_rgba(250,204,21,0.4)] dark:drop-shadow-[0_0_20px_rgba(253,224,71,0.5)] dark:text-shadow-[0_0_30px_rgba(253,224,71,0.3)]">
                     "{verse.text}"
                   </p>
                 </blockquote>
