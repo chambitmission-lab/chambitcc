@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import type { Language } from '../utils/i18n'
-import { translations, getStoredLanguage, setStoredLanguage } from '../utils/i18n'
+import type { Language } from '../locales'
+import { translations, getStoredLanguage, setStoredLanguage } from '../locales'
 
 interface LanguageContextType {
   language: Language
