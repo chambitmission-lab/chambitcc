@@ -14,4 +14,5 @@ export const navigation = {
   online: '온라인',
   tv: 'TV',
   notificationManagement: '📢 공지사항 관리',
+  dailyVerseManagement: '📖 오늘의 말씀 관리',
 } as const

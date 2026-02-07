@@ -14,4 +14,5 @@ export const navigation = {
   online: 'Online',
   tv: 'TV',
   notificationManagement: '📢 Notification Management',
+  dailyVerseManagement: '📖 Daily Verse Management',
 } as const
