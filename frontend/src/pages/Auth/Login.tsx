@@ -50,6 +50,11 @@ const Login = () => {
       // 토큰 저장
       localStorage.setItem('access_token', data.access_token)
       
+      // Refresh token 저장 (백엔드에서 제공하는 경우)
+      if (data.refresh_token) {
+        localStorage.setItem('refresh_token', data.refresh_token)
+      }
+      
       // 사용자 정보 저장 (username과 full_name)
       if (data.username) {
         localStorage.setItem('user_username', data.username)

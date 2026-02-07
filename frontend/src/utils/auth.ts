@@ -7,6 +7,7 @@
 export const logout = () => {
   // 토큰 및 사용자 정보 제거
   localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
   localStorage.removeItem('user')
   localStorage.removeItem('user_username')
   localStorage.removeItem('user_full_name')
@@ -39,4 +40,46 @@ export const getCurrentUser = () => {
 export const isAdmin = (): boolean => {
   const username = localStorage.getItem('user_username')
   return username === 'admin'
+}
+
+/**
+ * Access Token 갱신
+ */
+export const refreshAccessToken = async (): Promise<string | null> => {
+  const refreshToken = localStorage.getItem('refresh_token')
+  
+  if (!refreshToken) {
+    return null
+  }
+
+  try {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+    const response = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        refresh_token: refreshToken,
+      }),
+    })
+
+    if (!response.ok) {
+      // Refresh token도 만료됨
+      logout()
+      return null
+    }
+
+    const data = await response.json()
+    const newAccessToken = data.access_token
+    
+    // 새 access token 저장
+    localStorage.setItem('access_token', newAccessToken)
+    
+    return newAccessToken
+  } catch (error) {
+    console.error('Token refresh failed:', error)
+    logout()
+    return null
+  }
 }
