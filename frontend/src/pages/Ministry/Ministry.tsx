@@ -175,7 +175,13 @@ God meets us through the church space where His people gather. Therefore, we mus
 
               {/* Modal Content */}
               <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                <h2 
+                  className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400 mb-4"
+                  style={{
+                    textShadow: '0 0 30px rgba(168, 85, 247, 0.3)',
+                    filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.4))',
+                  }}
+                >
                   {selectedColumn.title}
                 </h2>
                 <div className="prose prose-sm dark:prose-invert max-w-none">
