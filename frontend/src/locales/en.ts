@@ -16,6 +16,15 @@ export const en = {
   sermon: 'Sermon',
   worship: 'Worship',
   about: 'About',
+  ministry: 'Ministry',
+  news: 'News',
+  mission: 'Mission',
+  culture: 'Culture',
+  education: 'Education',
+  participate: 'Participate',
+  online: 'Online',
+  tv: 'TV',
+  notificationManagement: '📢 Notification Management',
   
   // Prayer
   prayer: 'Prayer',

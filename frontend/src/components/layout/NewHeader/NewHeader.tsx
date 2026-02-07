@@ -110,31 +110,31 @@ const NewHeader = () => {
                 to="/about"
                 className="block px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
               >
-                소개
+                {t('about')}
               </Link>
               <Link
                 to="/worship"
                 className="block px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
               >
-                예배
+                {t('worship')}
               </Link>
               <Link
                 to="/sermon"
                 className="block px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
               >
-                말씀
+                {t('sermon')}
               </Link>
               <Link
                 to="/ministry"
                 className="block px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
               >
-                사역
+                {t('ministry')}
               </Link>
               <Link
                 to="/news"
                 className="block px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
               >
-                소식
+                {t('news')}
               </Link>
               <div className="border-t border-border-light dark:border-border-dark my-2"></div>
               
@@ -154,7 +154,7 @@ const NewHeader = () => {
                     to="/admin/notifications"
                     className="block px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400 font-semibold hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
                   >
-                    📢 공지사항 관리
+                    {t('notificationManagement')}
                   </Link>
                   <div className="border-t border-border-light dark:border-border-dark my-2"></div>
                 </>
