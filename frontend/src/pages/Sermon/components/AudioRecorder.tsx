@@ -1,5 +1,5 @@
 // 음성 녹음 컴포넌트
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { useAudioRecorder } from '../../../hooks/useAudioRecorder'
 
 interface AudioRecorderProps {
@@ -24,6 +24,17 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
   const hasStartedRef = useRef(false)
   const isStartingRef = useRef(false)
   const lastClickTimeRef = useRef(0)
+  const mountCountRef = useRef(0)
+
+  // 컴포넌트 마운트 추적 (Strict Mode 디버깅용)
+  useEffect(() => {
+    mountCountRef.current += 1
+    console.log(`[AudioRecorder] Component mounted (count: ${mountCountRef.current})`)
+    
+    return () => {
+      console.log(`[AudioRecorder] Component unmounting`)
+    }
+  }, [])
 
   const handleStart = async () => {
     const now = Date.now()
@@ -96,8 +107,7 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
       {recordingState === 'idle' && !error && (
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-600 dark:text-blue-400">
-            📱 모바일에서는 브라우저와 시스템에서 각각 마이크 권한을 요청할 수 있습니다. 
-            두 번 모두 '허용'을 선택해주세요.
+            📱 녹음 시작 버튼을 누르면 마이크 권한을 요청합니다. '허용'을 선택해주세요.
           </p>
         </div>
       )}

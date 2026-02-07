@@ -1,12 +1,14 @@
 // 권한 관리 유틸리티
 
-// 전역 플래그: 권한 요청 중복 방지
+// 전역 싱글톤: 권한 요청 중복 완전 차단
 let isRequestingPermission = false
 let permissionRequestPromise: Promise<{
   granted: boolean
   stream?: MediaStream
   error?: string
 }> | null = null
+let lastRequestTimestamp = 0
+const MIN_REQUEST_INTERVAL = 1000 // 최소 1초 간격
 
 /**
  * 마이크 권한 상태 확인
@@ -51,12 +53,24 @@ export const requestMicrophonePermission = async (): Promise<{
   stream?: MediaStream
   error?: string
 }> => {
-  // 이미 권한 요청 중이면 같은 Promise 반환
+  const now = Date.now()
+  
+  // 1. 이미 권한 요청 중이면 같은 Promise 반환
   if (isRequestingPermission && permissionRequestPromise) {
     console.log('[Permissions] Already requesting permission, returning existing promise')
     return permissionRequestPromise
   }
-
+  
+  // 2. 최근에 요청했으면 무시 (디바운스)
+  if (now - lastRequestTimestamp < MIN_REQUEST_INTERVAL) {
+    console.log('[Permissions] Request too soon, ignoring (debounce)')
+    return {
+      granted: false,
+      error: '권한 요청이 너무 빠릅니다. 잠시 후 다시 시도해주세요.'
+    }
+  }
+  
+  lastRequestTimestamp = now
   isRequestingPermission = true
   
   permissionRequestPromise = (async () => {

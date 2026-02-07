@@ -27,17 +27,35 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
   const startTimeRef = useRef<number>(0)
   const pausedTimeRef = useRef<number>(0)
   const isRequestingPermissionRef = useRef(false) // 권한 요청 중 플래그
+  const hasRequestedPermissionRef = useRef(false) // 권한 요청 완료 플래그
+  const lastRequestTimeRef = useRef(0) // 마지막 요청 시간
 
   const startRecording = useCallback(async () => {
-    // 이미 녹음 중이거나 권한 요청 중이면 무시
+    const now = Date.now()
+    
+    // 1. 이미 녹음 중이거나 권한 요청 중이면 무시
     if (isRequestingPermissionRef.current || mediaRecorderRef.current) {
       console.log('[AudioRecorder] Already requesting permission or recording, ignoring')
+      return
+    }
+    
+    // 2. 500ms 이내 중복 호출 방지 (디바운스)
+    if (now - lastRequestTimeRef.current < 500) {
+      console.log('[AudioRecorder] Request too soon, ignoring (debounce)')
+      return
+    }
+    
+    // 3. 이미 권한 요청을 완료했으면 무시 (Strict Mode 대응)
+    if (hasRequestedPermissionRef.current) {
+      console.log('[AudioRecorder] Permission already requested in this session, ignoring')
       return
     }
 
     try {
       console.log('[AudioRecorder] Starting recording...')
+      lastRequestTimeRef.current = now
       isRequestingPermissionRef.current = true
+      hasRequestedPermissionRef.current = true
       setError(null)
       
       // getUserMedia를 직접 호출하여 권한 요청 (한 번만)
@@ -180,6 +198,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
     startTimeRef.current = 0
     pausedTimeRef.current = 0
     isRequestingPermissionRef.current = false // 플래그 리셋
+    // hasRequestedPermissionRef는 리셋하지 않음 - 세션 동안 한 번만 요청
   }, [])
 
   return {
