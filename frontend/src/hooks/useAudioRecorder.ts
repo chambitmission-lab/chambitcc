@@ -29,16 +29,21 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
 
   const startRecording = useCallback(async () => {
     try {
-      console.log('Starting recording...')
+      console.log('[AudioRecorder] Starting recording...')
       setError(null)
       
-      // 권한 요청 및 스트림 획득 (중복 요청 방지)
+      // getUserMedia를 직접 호출하여 권한 요청 (한 번만)
+      // permissions.query()를 사용하지 않아 모바일에서 중복 프롬프트 방지
+      console.log('[AudioRecorder] Requesting microphone access...')
       const { granted, stream, error: permError } = await requestMicrophonePermission()
       
       if (!granted || !stream) {
+        console.error('[AudioRecorder] Permission denied or stream unavailable:', permError)
         setError(permError || '마이크 접근 권한이 필요합니다')
         return
       }
+      
+      console.log('[AudioRecorder] Microphone access granted, stream obtained')
       
       // 브라우저별 지원 형식 확인
       const mimeType = MediaRecorder.isTypeSupported('audio/webm')
@@ -47,36 +52,41 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
         ? 'audio/mp4'
         : 'audio/wav'
       
+      console.log('[AudioRecorder] Using MIME type:', mimeType)
+      
       const mediaRecorder = new MediaRecorder(stream, { mimeType })
       mediaRecorderRef.current = mediaRecorder
       chunksRef.current = []
       
       mediaRecorder.ondataavailable = (event) => {
-        console.log('Data available, size:', event.data.size)
+        console.log('[AudioRecorder] Data available, size:', event.data.size)
         if (event.data.size > 0) {
           chunksRef.current.push(event.data)
         }
       }
       
       mediaRecorder.onstop = () => {
-        console.log('MediaRecorder stopped, chunks:', chunksRef.current.length)
+        console.log('[AudioRecorder] MediaRecorder stopped, chunks:', chunksRef.current.length)
         const blob = new Blob(chunksRef.current, { type: mimeType })
-        console.log('Created blob, size:', blob.size)
+        console.log('[AudioRecorder] Created blob, size:', blob.size)
         setAudioBlob(blob)
         setRecordingState('stopped')
         
         // 스트림 정리
-        stream.getTracks().forEach(track => track.stop())
+        stream.getTracks().forEach(track => {
+          console.log('[AudioRecorder] Stopping track:', track.kind)
+          track.stop()
+        })
       }
       
       mediaRecorder.onerror = (event) => {
-        console.error('MediaRecorder error:', event)
+        console.error('[AudioRecorder] MediaRecorder error:', event)
         setError('녹음 중 오류가 발생했습니다')
       }
       
       // timeslice를 1000ms로 설정하여 1초마다 데이터 수집
       mediaRecorder.start(1000)
-      console.log('MediaRecorder started, state:', mediaRecorder.state)
+      console.log('[AudioRecorder] MediaRecorder started, state:', mediaRecorder.state)
       setRecordingState('recording')
       
       // 타이머 시작
@@ -86,9 +96,11 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
         setRecordingTime(Math.floor((Date.now() - startTimeRef.current - pausedTimeRef.current) / 1000))
       }, 1000)
       
+      console.log('[AudioRecorder] Recording started successfully')
+      
     } catch (err) {
+      console.error('[AudioRecorder] Recording error:', err)
       setError('마이크 접근 권한이 필요합니다')
-      console.error('Recording error:', err)
     }
   }, [])
 
