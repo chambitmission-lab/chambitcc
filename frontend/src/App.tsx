@@ -23,10 +23,6 @@ import './App.css'
 import './styles/common.css'
 
 function App() {
-  // 디버깅: basename 확인
-  console.log('App using HashRouter')
-  console.log('Current location:', window.location.href)
-  
   return (
     <ThemeProvider>
       <Router>

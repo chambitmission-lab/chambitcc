@@ -124,11 +124,11 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
 
       {/* 기도 작성 모달 */}
       <div 
-        className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 overflow-hidden"
         onClick={onClose}
       >
       <div 
-        className="bg-background-light dark:bg-background-dark rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="bg-background-light dark:bg-background-dark rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl overflow-x-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -166,7 +166,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4">
+        <form onSubmit={handleSubmit} className="p-4 overflow-x-hidden">
           {/* Display Name */}
           <div className="mb-4">
             <div className="flex items-center gap-3 mb-3">
@@ -233,7 +233,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
               <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-white/10 dark:to-white/5 rounded-full blur-2xl"></div>
               
               {/* Title */}
-              <div className="mb-3 relative z-10">
+              <div className="mb-1.5 relative z-10">
                 <input
                   type="text"
                   value={title}
@@ -241,7 +241,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
                   placeholder="제목 (예: 가족의 건강, 진로 인도)"
                   maxLength={100}
                   required
-                  className="w-full bg-transparent border-none text-base font-extrabold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] uppercase"
+                  className="w-full bg-transparent border-none text-sm font-extrabold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] uppercase py-1"
                 />
               </div>
 
@@ -251,12 +251,12 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="기도 제목을 나눠주세요... 구체적으로 어떤 기도가 필요한지 알려주세요."
-                  rows={8}
+                  rows={4}
                   maxLength={1000}
                   required
-                  className="w-full bg-transparent border-none text-[15px] text-gray-600 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none leading-[1.7] drop-shadow-[0_0_6px_rgba(168,85,247,0.2)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.25)]"
+                  className="w-full bg-transparent border-none text-sm text-gray-600 dark:text-gray-400 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none leading-[1.5] drop-shadow-[0_0_6px_rgba(168,85,247,0.2)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.25)] py-1"
                 />
-                <div className="text-xs text-gray-400 dark:text-gray-500 text-right mt-1">
+                <div className="text-xs text-gray-400 dark:text-gray-500 text-right mt-0.5">
                   {content.length}/1000
                 </div>
               </div>
