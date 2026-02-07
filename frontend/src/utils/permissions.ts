@@ -41,7 +41,6 @@ export const requestMicrophonePermission = async (): Promise<{
   
   // 1. 이미 캐시된 스트림이 있고 활성 상태면 재사용
   if (cachedStream && cachedStream.active) {
-    console.log('[Permissions] Reusing cached stream')
     return {
       granted: true,
       stream: cachedStream
@@ -50,13 +49,11 @@ export const requestMicrophonePermission = async (): Promise<{
   
   // 2. 이미 권한 요청 중이면 같은 Promise 반환
   if (isRequestingPermission && permissionRequestPromise) {
-    console.log('[Permissions] Already requesting, returning existing promise')
     return permissionRequestPromise
   }
   
   // 3. 디바운스: 최근 요청 후 너무 빠르면 무시
   if (now - lastRequestTimestamp < MIN_REQUEST_INTERVAL) {
-    console.log('[Permissions] Request too soon (debounce)')
     return {
       granted: false,
       error: '잠시 후 다시 시도해주세요.'
@@ -68,9 +65,6 @@ export const requestMicrophonePermission = async (): Promise<{
   
   permissionRequestPromise = (async () => {
     try {
-      console.log('[Permissions] Requesting microphone via getUserMedia...')
-      
-      // getUserMedia만 호출 (permissions.query 사용 안 함)
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           echoCancellation: true,
@@ -79,11 +73,7 @@ export const requestMicrophonePermission = async (): Promise<{
         }
       })
       
-      console.log('[Permissions] ✅ Permission granted, stream obtained')
-      
-      // 스트림 캐싱
       cachedStream = stream
-      
       isRequestingPermission = false
       permissionRequestPromise = null
       
@@ -92,8 +82,6 @@ export const requestMicrophonePermission = async (): Promise<{
         stream
       }
     } catch (error) {
-      console.error('[Permissions] ❌ Error:', error)
-      
       isRequestingPermission = false
       permissionRequestPromise = null
       
@@ -143,8 +131,7 @@ export const checkMicrophonePermission = async (): Promise<PermissionState | nul
       name: 'microphone' as PermissionName 
     })
     return status.state
-  } catch (error) {
-    // 모바일에서는 지원하지 않을 수 있음
+  } catch {
     return null
   }
 }

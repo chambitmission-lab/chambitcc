@@ -32,43 +32,23 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
   const startRecording = useCallback(async () => {
     const now = Date.now()
     
-    // 1. 이미 녹음 중이면 무시
-    if (mediaRecorderRef.current) {
-      console.log('[AudioRecorder] Already recording')
-      return
-    }
-    
-    // 2. 권한 요청 중이면 무시
-    if (isRequestingPermissionRef.current) {
-      console.log('[AudioRecorder] Permission request in progress')
-      return
-    }
-    
-    // 3. 디바운스: 500ms 이내 중복 클릭 방지
-    if (now - lastRequestTimeRef.current < 500) {
-      console.log('[AudioRecorder] Click too soon (debounce)')
-      return
-    }
+    if (mediaRecorderRef.current) return
+    if (isRequestingPermissionRef.current) return
+    if (now - lastRequestTimeRef.current < 500) return
 
     try {
-      console.log('[AudioRecorder] 🎤 Starting recording...')
       lastRequestTimeRef.current = now
       isRequestingPermissionRef.current = true
       setError(null)
       
-      // getUserMedia를 통해 권한 요청 (딱 1번만)
       const { granted, stream, error: permError } = await requestMicrophonePermission()
       
       if (!granted || !stream) {
-        console.error('[AudioRecorder] ❌ Permission denied:', permError)
         setError(permError || '마이크 접근 권한이 필요합니다')
         isRequestingPermissionRef.current = false
         return
       }
       
-      console.log('[AudioRecorder] ✅ Permission granted')
-      
-      // MediaRecorder 설정
       const mimeType = MediaRecorder.isTypeSupported('audio/webm')
         ? 'audio/webm'
         : MediaRecorder.isTypeSupported('audio/mp4')
@@ -89,8 +69,6 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
         const blob = new Blob(chunksRef.current, { type: mimeType })
         setAudioBlob(blob)
         setRecordingState('stopped')
-        
-        // 스트림 정리
         stream.getTracks().forEach(track => track.stop())
       }
       
@@ -98,22 +76,18 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
         setError('녹음 중 오류가 발생했습니다')
       }
       
-      // 녹음 시작 (1초마다 데이터 수집)
       mediaRecorder.start(1000)
       setRecordingState('recording')
       
-      // 타이머 시작
       startTimeRef.current = Date.now()
       pausedTimeRef.current = 0
       timerRef.current = window.setInterval(() => {
         setRecordingTime(Math.floor((Date.now() - startTimeRef.current - pausedTimeRef.current) / 1000))
       }, 1000)
       
-      console.log('[AudioRecorder] ✅ Recording started')
       isRequestingPermissionRef.current = false
       
     } catch (err) {
-      console.error('[AudioRecorder] ❌ Error:', err)
       setError('녹음 시작 중 오류가 발생했습니다')
       isRequestingPermissionRef.current = false
     }
