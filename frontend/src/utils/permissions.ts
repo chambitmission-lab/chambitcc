@@ -1,6 +1,7 @@
 // 권한 관리 유틸리티
 
-// 전역 싱글톤: 권한 요청 중복 완전 차단
+// 전역 싱글톤: 스트림 캐싱 및 중복 요청 완전 차단
+let cachedStream: MediaStream | null = null
 let isRequestingPermission = false
 let permissionRequestPromise: Promise<{
   granted: boolean
@@ -8,45 +9,28 @@ let permissionRequestPromise: Promise<{
   error?: string
 }> | null = null
 let lastRequestTimestamp = 0
-const MIN_REQUEST_INTERVAL = 1000 // 최소 1초 간격
+const MIN_REQUEST_INTERVAL = 500 // 최소 500ms 간격
 
 /**
- * 마이크 권한 상태 확인
- * 주의: 모바일에서는 permissions.query()가 권한 프롬프트를 트리거할 수 있으므로
- * 실제 사용 시에는 getUserMedia()를 직접 호출하는 것을 권장
+ * 캐시된 스트림 정리
  */
-export const checkMicrophonePermission = async (): Promise<PermissionState | null> => {
-  // 모바일 브라우저에서 중복 권한 요청을 방지하기 위해
-  // permissions.query()를 사용하지 않음
-  console.log('checkMicrophonePermission: Skipping permissions.query() to avoid duplicate prompts on mobile')
-  return null
-  
-  /* 원래 코드 (모바일에서 중복 프롬프트 발생)
-  if (!navigator.permissions || !navigator.permissions.query) {
-    console.log('Permissions API not supported')
-    return null
+export const clearCachedStream = () => {
+  if (cachedStream) {
+    cachedStream.getTracks().forEach(track => track.stop())
+    cachedStream = null
   }
-
-  try {
-    const permissionStatus = await navigator.permissions.query({ 
-      name: 'microphone' as PermissionName 
-    })
-    return permissionStatus.state
-  } catch (error) {
-    console.log('Error checking microphone permission:', error)
-    return null
-  }
-  */
 }
 
 /**
- * 마이크 권한 요청 (getUserMedia만 사용하여 중복 요청 방지)
+ * 마이크 권한 요청 및 스트림 획득
  * 
- * 중요: 모바일 브라우저(특히 iOS Safari, Chrome 모바일)에서
- * permissions.query()를 호출하면 권한 프롬프트가 표시될 수 있습니다.
- * 따라서 getUserMedia()만 직접 호출하여 한 번만 권한을 요청합니다.
+ * ✅ 핵심 원칙:
+ * 1. getUserMedia()만 사용 (permissions.query() 사용 안 함)
+ * 2. 스트림 전역 캐싱으로 중복 요청 방지
+ * 3. 반드시 유저 액션(버튼 클릭)에서만 호출
  * 
- * 전역 플래그로 중복 호출 완전 차단
+ * 모바일에서 permissions.query()는 권한 프롬프트를 트리거할 수 있으므로
+ * getUserMedia()만 직접 호출하여 정확히 1번만 권한을 요청합니다.
  */
 export const requestMicrophonePermission = async (): Promise<{
   granted: boolean
@@ -55,18 +39,27 @@ export const requestMicrophonePermission = async (): Promise<{
 }> => {
   const now = Date.now()
   
-  // 1. 이미 권한 요청 중이면 같은 Promise 반환
+  // 1. 이미 캐시된 스트림이 있고 활성 상태면 재사용
+  if (cachedStream && cachedStream.active) {
+    console.log('[Permissions] Reusing cached stream')
+    return {
+      granted: true,
+      stream: cachedStream
+    }
+  }
+  
+  // 2. 이미 권한 요청 중이면 같은 Promise 반환
   if (isRequestingPermission && permissionRequestPromise) {
-    console.log('[Permissions] Already requesting permission, returning existing promise')
+    console.log('[Permissions] Already requesting, returning existing promise')
     return permissionRequestPromise
   }
   
-  // 2. 최근에 요청했으면 무시 (디바운스)
+  // 3. 디바운스: 최근 요청 후 너무 빠르면 무시
   if (now - lastRequestTimestamp < MIN_REQUEST_INTERVAL) {
-    console.log('[Permissions] Request too soon, ignoring (debounce)')
+    console.log('[Permissions] Request too soon (debounce)')
     return {
       granted: false,
-      error: '권한 요청이 너무 빠릅니다. 잠시 후 다시 시도해주세요.'
+      error: '잠시 후 다시 시도해주세요.'
     }
   }
   
@@ -75,24 +68,21 @@ export const requestMicrophonePermission = async (): Promise<{
   
   permissionRequestPromise = (async () => {
     try {
-      const requestId = Math.random().toString(36).substring(7)
-      console.log(`[Permissions ${requestId}] ========== START ==========`)
-      console.log(`[Permissions ${requestId}] Requesting microphone permission via getUserMedia...`)
-      console.log(`[Permissions ${requestId}] Timestamp:`, Date.now())
+      console.log('[Permissions] Requesting microphone via getUserMedia...')
       
-      // Permissions API 체크를 제거 - 모바일에서 이것이 첫 번째 프롬프트를 트리거할 수 있음
-      // 바로 getUserMedia만 호출
-      
-      console.log(`[Permissions ${requestId}] About to call getUserMedia...`)
+      // getUserMedia만 호출 (permissions.query 사용 안 함)
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: true
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
       })
-      console.log(`[Permissions ${requestId}] getUserMedia returned successfully`)
       
-      console.log(`[Permissions ${requestId}] Microphone permission granted, stream obtained`)
-      console.log(`[Permissions ${requestId}] Audio tracks:`, stream.getAudioTracks().length)
-      console.log(`[Permissions ${requestId}] Timestamp after grant:`, Date.now())
-      console.log(`[Permissions ${requestId}] ========== END ==========`)
+      console.log('[Permissions] ✅ Permission granted, stream obtained')
+      
+      // 스트림 캐싱
+      cachedStream = stream
       
       isRequestingPermission = false
       permissionRequestPromise = null
@@ -102,15 +92,12 @@ export const requestMicrophonePermission = async (): Promise<{
         stream
       }
     } catch (error) {
-      console.error('[Permissions] Error requesting microphone permission:', error)
+      console.error('[Permissions] ❌ Error:', error)
       
       isRequestingPermission = false
       permissionRequestPromise = null
       
       if (error instanceof DOMException) {
-        console.error('[Permissions] DOMException name:', error.name)
-        console.error('[Permissions] DOMException message:', error.message)
-        
         if (error.name === 'NotAllowedError') {
           return {
             granted: false,
@@ -140,31 +127,24 @@ export const requestMicrophonePermission = async (): Promise<{
 }
 
 /**
- * 권한 상태 변경 감지
+ * 권한 상태 확인 (프롬프트 없이)
+ * 
+ * 주의: 일부 모바일 브라우저에서는 permissions.query()가
+ * 지원되지 않거나 프롬프트를 트리거할 수 있습니다.
+ * 따라서 이 함수는 선택적으로만 사용하세요.
  */
-export const watchPermissionChange = (
-  permissionName: PermissionName,
-  callback: (state: PermissionState) => void
-): (() => void) | null => {
-  if (!navigator.permissions || !navigator.permissions.query) {
+export const checkMicrophonePermission = async (): Promise<PermissionState | null> => {
+  if (!navigator.permissions?.query) {
     return null
   }
 
-  let permissionStatus: PermissionStatus | null = null
-
-  navigator.permissions.query({ name: permissionName }).then(status => {
-    permissionStatus = status
-    status.addEventListener('change', () => {
-      callback(status.state)
+  try {
+    const status = await navigator.permissions.query({ 
+      name: 'microphone' as PermissionName 
     })
-  }).catch(error => {
-    console.log('Error watching permission change:', error)
-  })
-
-  // cleanup 함수 반환
-  return () => {
-    if (permissionStatus) {
-      permissionStatus.removeEventListener('change', () => {})
-    }
+    return status.state
+  } catch (error) {
+    // 모바일에서는 지원하지 않을 수 있음
+    return null
   }
 }

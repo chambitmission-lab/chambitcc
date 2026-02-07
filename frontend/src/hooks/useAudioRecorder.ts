@@ -26,94 +26,80 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
   const timerRef = useRef<number | null>(null)
   const startTimeRef = useRef<number>(0)
   const pausedTimeRef = useRef<number>(0)
-  const isRequestingPermissionRef = useRef(false) // 권한 요청 중 플래그
-  const hasRequestedPermissionRef = useRef(false) // 권한 요청 완료 플래그
-  const lastRequestTimeRef = useRef(0) // 마지막 요청 시간
+  const isRequestingPermissionRef = useRef(false)
+  const lastRequestTimeRef = useRef(0)
 
   const startRecording = useCallback(async () => {
     const now = Date.now()
     
-    // 1. 이미 녹음 중이거나 권한 요청 중이면 무시
-    if (isRequestingPermissionRef.current || mediaRecorderRef.current) {
-      console.log('[AudioRecorder] Already requesting permission or recording, ignoring')
+    // 1. 이미 녹음 중이면 무시
+    if (mediaRecorderRef.current) {
+      console.log('[AudioRecorder] Already recording')
       return
     }
     
-    // 2. 500ms 이내 중복 호출 방지 (디바운스)
+    // 2. 권한 요청 중이면 무시
+    if (isRequestingPermissionRef.current) {
+      console.log('[AudioRecorder] Permission request in progress')
+      return
+    }
+    
+    // 3. 디바운스: 500ms 이내 중복 클릭 방지
     if (now - lastRequestTimeRef.current < 500) {
-      console.log('[AudioRecorder] Request too soon, ignoring (debounce)')
-      return
-    }
-    
-    // 3. 이미 권한 요청을 완료했으면 무시 (Strict Mode 대응)
-    if (hasRequestedPermissionRef.current) {
-      console.log('[AudioRecorder] Permission already requested in this session, ignoring')
+      console.log('[AudioRecorder] Click too soon (debounce)')
       return
     }
 
     try {
-      console.log('[AudioRecorder] Starting recording...')
+      console.log('[AudioRecorder] 🎤 Starting recording...')
       lastRequestTimeRef.current = now
       isRequestingPermissionRef.current = true
-      hasRequestedPermissionRef.current = true
       setError(null)
       
-      // getUserMedia를 직접 호출하여 권한 요청 (한 번만)
-      // permissions.query()를 사용하지 않아 모바일에서 중복 프롬프트 방지
-      console.log('[AudioRecorder] Requesting microphone access...')
+      // getUserMedia를 통해 권한 요청 (딱 1번만)
       const { granted, stream, error: permError } = await requestMicrophonePermission()
       
       if (!granted || !stream) {
-        console.error('[AudioRecorder] Permission denied or stream unavailable:', permError)
+        console.error('[AudioRecorder] ❌ Permission denied:', permError)
         setError(permError || '마이크 접근 권한이 필요합니다')
         isRequestingPermissionRef.current = false
         return
       }
       
-      console.log('[AudioRecorder] Microphone access granted, stream obtained')
+      console.log('[AudioRecorder] ✅ Permission granted')
       
-      // 브라우저별 지원 형식 확인
+      // MediaRecorder 설정
       const mimeType = MediaRecorder.isTypeSupported('audio/webm')
         ? 'audio/webm'
         : MediaRecorder.isTypeSupported('audio/mp4')
         ? 'audio/mp4'
         : 'audio/wav'
       
-      console.log('[AudioRecorder] Using MIME type:', mimeType)
-      
       const mediaRecorder = new MediaRecorder(stream, { mimeType })
       mediaRecorderRef.current = mediaRecorder
       chunksRef.current = []
       
       mediaRecorder.ondataavailable = (event) => {
-        console.log('[AudioRecorder] Data available, size:', event.data.size)
         if (event.data.size > 0) {
           chunksRef.current.push(event.data)
         }
       }
       
       mediaRecorder.onstop = () => {
-        console.log('[AudioRecorder] MediaRecorder stopped, chunks:', chunksRef.current.length)
         const blob = new Blob(chunksRef.current, { type: mimeType })
-        console.log('[AudioRecorder] Created blob, size:', blob.size)
         setAudioBlob(blob)
         setRecordingState('stopped')
         
         // 스트림 정리
-        stream.getTracks().forEach(track => {
-          console.log('[AudioRecorder] Stopping track:', track.kind)
-          track.stop()
-        })
+        stream.getTracks().forEach(track => track.stop())
       }
       
-      mediaRecorder.onerror = (event) => {
-        console.error('[AudioRecorder] MediaRecorder error:', event)
+      mediaRecorder.onerror = () => {
         setError('녹음 중 오류가 발생했습니다')
       }
       
-      // timeslice를 1000ms로 설정하여 1초마다 데이터 수집
+      // 녹음 시작 (1초마다 데이터 수집)
       mediaRecorder.start(1000)
-      console.log('[AudioRecorder] MediaRecorder started, state:', mediaRecorder.state)
       setRecordingState('recording')
       
       // 타이머 시작
@@ -123,12 +109,12 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
         setRecordingTime(Math.floor((Date.now() - startTimeRef.current - pausedTimeRef.current) / 1000))
       }, 1000)
       
-      console.log('[AudioRecorder] Recording started successfully')
+      console.log('[AudioRecorder] ✅ Recording started')
       isRequestingPermissionRef.current = false
       
     } catch (err) {
-      console.error('[AudioRecorder] Recording error:', err)
-      setError('마이크 접근 권한이 필요합니다')
+      console.error('[AudioRecorder] ❌ Error:', err)
+      setError('녹음 시작 중 오류가 발생했습니다')
       isRequestingPermissionRef.current = false
     }
   }, [])
@@ -161,12 +147,9 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
   }, [recordingState])
 
   const stopRecording = useCallback(() => {
-    console.log('Stop recording called, current state:', recordingState)
     if (mediaRecorderRef.current && (recordingState === 'recording' || recordingState === 'paused')) {
-      console.log('Stopping MediaRecorder...')
       mediaRecorderRef.current.stop()
       
-      // 타이머 정지
       if (timerRef.current) {
         clearInterval(timerRef.current)
         timerRef.current = null
@@ -175,7 +158,6 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
   }, [recordingState])
 
   const resetRecording = useCallback(() => {
-    console.log('Reset recording called')
     if (timerRef.current) {
       clearInterval(timerRef.current)
       timerRef.current = null
@@ -183,7 +165,6 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
     
     if (mediaRecorderRef.current) {
       if (mediaRecorderRef.current.state !== 'inactive') {
-        console.log('Stopping active MediaRecorder during reset')
         mediaRecorderRef.current.stop()
       }
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop())
@@ -197,8 +178,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
     chunksRef.current = []
     startTimeRef.current = 0
     pausedTimeRef.current = 0
-    isRequestingPermissionRef.current = false // 플래그 리셋
-    // hasRequestedPermissionRef는 리셋하지 않음 - 세션 동안 한 번만 요청
+    isRequestingPermissionRef.current = false
   }, [])
 
   return {

@@ -1,5 +1,5 @@
 // 음성 녹음 컴포넌트
-import { useRef, useEffect } from 'react'
+import { useRef } from 'react'
 import { useAudioRecorder } from '../../../hooks/useAudioRecorder'
 
 interface AudioRecorderProps {
@@ -20,47 +20,27 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
     error,
   } = useAudioRecorder()
 
-  // 녹음 시작 여부를 추적하는 ref
-  const hasStartedRef = useRef(false)
-  const isStartingRef = useRef(false)
+  // 중복 클릭 방지
   const lastClickTimeRef = useRef(0)
-  const mountCountRef = useRef(0)
-
-  // 컴포넌트 마운트 추적 (Strict Mode 디버깅용)
-  useEffect(() => {
-    mountCountRef.current += 1
-    console.log(`[AudioRecorder] Component mounted (count: ${mountCountRef.current})`)
-    
-    return () => {
-      console.log(`[AudioRecorder] Component unmounting`)
-    }
-  }, [])
 
   const handleStart = async () => {
     const now = Date.now()
     
-    // 500ms 이내 중복 클릭 방지 (디바운스)
+    // 500ms 이내 중복 클릭 방지
     if (now - lastClickTimeRef.current < 500) {
       return
     }
     
-    // 이미 시작했거나 시작 중이면 무시
-    if (hasStartedRef.current || isStartingRef.current || recordingState !== 'idle') {
+    // 이미 녹음 중이면 무시
+    if (recordingState !== 'idle') {
       return
     }
     
     lastClickTimeRef.current = now
-    isStartingRef.current = true
-    hasStartedRef.current = true
-    
     await startRecording()
-    
-    isStartingRef.current = false
   }
 
   const handleReset = () => {
-    hasStartedRef.current = false
-    isStartingRef.current = false
     lastClickTimeRef.current = 0
     resetRecording()
   }
@@ -148,8 +128,7 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
         {recordingState === 'idle' && (
           <button
             onClick={handleStart}
-            disabled={hasStartedRef.current || isStartingRef.current}
-            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all text-lg"
           >
             <span className="material-icons-outlined text-2xl">mic</span>
             녹음 시작
