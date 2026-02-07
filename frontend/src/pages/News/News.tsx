@@ -17,8 +17,8 @@ const News = () => {
   const loadBulletins = async () => {
     try {
       setLoading(true)
-      const data = await getBulletins()
-      setBulletins(data.bulletins || [])
+      const data = await getBulletins(0, 20) // 최근 20개 조회
+      setBulletins(data)
     } catch (error) {
       console.error('주보 로드 에러:', error)
       showToast(error instanceof Error ? error.message : '주보를 불러오는데 실패했습니다', 'error')
@@ -77,12 +77,12 @@ const News = () => {
             </div>
 
             <div className="viewer-content">
-              {selectedBulletin.pages
+              {selectedBulletin.pages && selectedBulletin.pages
                 .sort((a, b) => a.page_number - b.page_number)
                 .map((page) => (
                   <div key={page.page_number} className="bulletin-page">
                     <img 
-                      src={page.image_data} 
+                      src={page.image_url} 
                       alt={`페이지 ${page.page_number}`}
                       loading="lazy"
                     />
@@ -117,14 +117,14 @@ const News = () => {
                   className="bulletin-card"
                   onClick={() => handleBulletinClick(bulletin)}
                 >
-                  {bulletin.pages && bulletin.pages.length > 0 && (
+                  {bulletin.thumbnail_url && (
                     <div className="bulletin-thumbnail">
                       <img 
-                        src={bulletin.pages[0].image_data} 
+                        src={bulletin.thumbnail_url} 
                         alt={bulletin.title}
                       />
                       <div className="page-badge">
-                        {bulletin.pages.length}페이지
+                        {bulletin.page_count}페이지
                       </div>
                     </div>
                   )}
@@ -134,12 +134,15 @@ const News = () => {
                     {bulletin.description && (
                       <p className="bulletin-description">{bulletin.description}</p>
                     )}
-                    <div className="bulletin-date">
-                      {new Date(bulletin.bulletin_date).toLocaleDateString('ko-KR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                    <div className="bulletin-meta">
+                      <div className="bulletin-date">
+                        {new Date(bulletin.bulletin_date).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </div>
+                      <div className="bulletin-views">👁️ {bulletin.views}</div>
                     </div>
                   </div>
                 </article>

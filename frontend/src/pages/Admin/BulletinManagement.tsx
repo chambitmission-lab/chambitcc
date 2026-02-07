@@ -34,8 +34,8 @@ const BulletinManagement = () => {
   const loadBulletins = async () => {
     try {
       setLoading(true)
-      const data = await getBulletins()
-      setBulletins(data.bulletins || [])
+      const data = await getBulletins(0, 100) // 관리자는 전체 목록 조회
+      setBulletins(data)
     } catch (error) {
       console.error('주보 로드 에러:', error)
       showToast(error instanceof Error ? error.message : '주보를 불러오는데 실패했습니다', 'error')
@@ -282,13 +282,20 @@ const BulletinManagement = () => {
                     </div>
                   </div>
 
+                  {bulletin.thumbnail_url && (
+                    <div className="bulletin-thumbnail-preview">
+                      <img src={bulletin.thumbnail_url} alt={bulletin.title} />
+                    </div>
+                  )}
+
                   <div className="card-content">
                     <h3 className="card-title">{bulletin.title}</h3>
                     {bulletin.description && (
                       <p className="card-text">{bulletin.description}</p>
                     )}
                     <div className="bulletin-info">
-                      <span className="page-count">📄 {bulletin.pages?.length || 0}페이지</span>
+                      <span className="page-count">📄 {bulletin.page_count}페이지</span>
+                      <span className="view-count">👁️ {bulletin.views}회</span>
                     </div>
                   </div>
 

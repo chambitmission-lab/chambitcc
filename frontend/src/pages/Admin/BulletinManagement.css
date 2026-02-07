@@ -88,12 +88,29 @@
   margin-top: 0.75rem;
   padding-top: 0.75rem;
   border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
-.bulletin-card .page-count {
+.bulletin-card .page-count,
+.bulletin-card .view-count {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
   font-size: 0.875rem;
   color: #6c757d;
+}
+
+.bulletin-thumbnail-preview {
+  margin-top: 0.75rem;
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: 200px;
+}
+
+.bulletin-thumbnail-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

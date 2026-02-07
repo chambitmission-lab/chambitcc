@@ -2,8 +2,7 @@
 
 export interface BulletinPage {
   page_number: number
-  image_data: string  // base64 encoded image
-  image_type: string  // image/jpeg, image/png 등
+  image_url: string  // 이미지 URL
 }
 
 export interface Bulletin {
@@ -11,16 +10,13 @@ export interface Bulletin {
   title: string
   description: string
   bulletin_date: string
+  views: number
+  is_published: number
   created_at: string
-  updated_at?: string
-  pages: BulletinPage[]
-}
-
-export interface CreateBulletinRequest {
-  title: string
-  description: string
-  bulletin_date: string
-  pages: BulletinPage[]
+  updated_at: string
+  page_count: number
+  thumbnail_url: string
+  pages?: BulletinPage[]  // 상세 조회시에만 포함
 }
 
 export interface BulletinsResponse {

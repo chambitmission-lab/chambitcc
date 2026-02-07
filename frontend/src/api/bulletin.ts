@@ -1,12 +1,12 @@
 // 주보 API
 import { API_V1, apiFetch } from '../config/api'
-import type { Bulletin, BulletinsResponse } from '../types/bulletin'
+import type { Bulletin } from '../types/bulletin'
 
 /**
  * 주보 목록 조회
  */
-export const getBulletins = async (): Promise<BulletinsResponse> => {
-  const response = await apiFetch(`${API_V1}/bulletins`)
+export const getBulletins = async (skip = 0, limit = 10): Promise<Bulletin[]> => {
+  const response = await apiFetch(`${API_V1}/bulletins?skip=${skip}&limit=${limit}`)
   
   if (!response.ok) {
     throw new Error('주보 목록을 불러오는데 실패했습니다')
@@ -14,14 +14,12 @@ export const getBulletins = async (): Promise<BulletinsResponse> => {
   
   const data = await response.json()
   
-  // 응답 형식 처리
+  // 응답이 배열 형식
   if (Array.isArray(data)) {
-    return { bulletins: data, total: data.length }
-  } else if (data && Array.isArray(data.bulletins)) {
-    return { bulletins: data.bulletins, total: data.total || data.bulletins.length }
+    return data
   }
   
-  return { bulletins: [], total: 0 }
+  return []
 }
 
 /**

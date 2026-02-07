@@ -102,9 +102,22 @@
   line-height: 1.5;
 }
 
-.bulletin-date {
+.bulletin-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.875rem;
+}
+
+.bulletin-date {
   color: var(--text-tertiary);
+}
+
+.bulletin-views {
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 /* 주보 뷰어 */
