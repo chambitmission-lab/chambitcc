@@ -1,5 +1,5 @@
 // 음성 녹음 컴포넌트
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { useAudioRecorder } from '../../../hooks/useAudioRecorder'
 
 interface AudioRecorderProps {
@@ -20,33 +20,19 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
     error,
   } = useAudioRecorder()
 
-  // 녹음 시작 여부를 추적하는 ref (Strict Mode 대응)
-  const mountCountRef = useRef(0)
-  const hasRequestedPermissionRef = useRef(false)
+  // 녹음 시작 여부를 추적하는 ref
+  const hasStartedRef = useRef(false)
 
-  // 컴포넌트 마운트 시 자동으로 녹음 시작
-  // Strict Mode에서 2번 마운트되는 것을 감지하여 권한 요청은 1번만 수행
-  useEffect(() => {
-    mountCountRef.current += 1
-    const currentMount = mountCountRef.current
-    
-    console.log('[AudioRecorder] Component mounted, mount count:', currentMount)
-    
-    // 첫 번째 마운트이거나, 이미 권한 요청을 하지 않은 경우에만 실행
-    if (!hasRequestedPermissionRef.current) {
-      console.log('[AudioRecorder] Starting recording (first time)...')
-      hasRequestedPermissionRef.current = true
-      startRecording()
-    } else {
-      console.log('[AudioRecorder] Skipping recording start (already requested)')
-    }
+  const handleStart = async () => {
+    if (hasStartedRef.current) return
+    hasStartedRef.current = true
+    await startRecording()
+  }
 
-    // Cleanup 함수는 아무것도 하지 않음 (Strict Mode 재마운트 허용)
-    return () => {
-      console.log('[AudioRecorder] Cleanup called for mount:', currentMount)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const handleReset = () => {
+    hasStartedRef.current = false
+    resetRecording()
+  }
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60)
@@ -119,7 +105,17 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
 
       {/* 컨트롤 버튼 */}
       <div className="flex items-center justify-center gap-4">
-        {(recordingState === 'idle' || recordingState === 'recording') && recordingState === 'recording' && (
+        {recordingState === 'idle' && (
+          <button
+            onClick={handleStart}
+            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all text-lg"
+          >
+            <span className="material-icons-outlined text-2xl">mic</span>
+            녹음 시작
+          </button>
+        )}
+
+        {recordingState === 'recording' && (
           <>
             <button
               onClick={pauseRecording}
@@ -160,7 +156,7 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
         {recordingState === 'stopped' && audioBlob && (
           <>
             <button
-              onClick={resetRecording}
+              onClick={handleReset}
               className="flex items-center gap-2 px-6 py-3 bg-gray-500 text-white font-bold rounded-full hover:shadow-lg transition-all"
             >
               <span className="material-icons-outlined">refresh</span>

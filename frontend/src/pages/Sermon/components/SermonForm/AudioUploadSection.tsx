@@ -21,6 +21,13 @@ export const AudioUploadSection = ({
     }
   }
 
+  // 중복 클릭 방지
+  const handleRecordingClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onRecordingStart()
+  }
+
   return (
     <div>
       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -45,7 +52,7 @@ export const AudioUploadSection = ({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={onRecordingStart}
+            onClick={handleRecordingClick}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors"
           >
             <span className="material-icons-outlined">mic</span>

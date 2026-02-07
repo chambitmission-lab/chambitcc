@@ -1,5 +1,5 @@
 // 설교 등록 폼 메인 컴포넌트
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useSermonForm } from './useSermonForm'
 import { SermonFormFields } from './SermonFormFields'
 import { AudioUploadSection } from './AudioUploadSection'
@@ -17,15 +17,21 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
   } = useSermonForm(onSuccess, onClose)
 
   const [showRecorder, setShowRecorder] = useState(false)
+  const isOpeningRecorderRef = useRef(false)
 
   const handleRecordingComplete = (blob: Blob) => {
-    console.log('[SermonForm] Recording complete, blob size:', blob.size)
     audioUpload.handleRecordingComplete(blob)
     setShowRecorder(false)
+    isOpeningRecorderRef.current = false
   }
 
   const handleRecordingStart = () => {
-    console.log('[SermonForm] Opening recorder...')
+    // 이미 녹음기를 여는 중이거나 열려있으면 무시
+    if (isOpeningRecorderRef.current || showRecorder) {
+      return
+    }
+    
+    isOpeningRecorderRef.current = true
     setShowRecorder(true)
   }
 
@@ -41,6 +47,7 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
         {showRecorder ? (
           <div className="p-6 overflow-y-auto">
             <AudioRecorder
+              key="single-recorder"
               onRecordingComplete={handleRecordingComplete}
               onCancel={() => setShowRecorder(false)}
             />
