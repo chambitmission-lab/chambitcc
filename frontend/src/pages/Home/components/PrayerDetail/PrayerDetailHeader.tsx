@@ -7,7 +7,7 @@ interface PrayerDetailHeaderProps {
 
 const PrayerDetailHeader = ({ isOwner, onClose, onDeleteClick }: PrayerDetailHeaderProps) => {
   return (
-    <div className="sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-5 py-4 flex items-center justify-between z-10">
+    <div className="flex-shrink-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark px-5 py-4 flex items-center justify-between">
       <h2 className="text-base font-semibold text-gray-900 dark:text-white">기도 요청 상세</h2>
       <div className="flex items-center gap-2">
         {isOwner && (

@@ -132,7 +132,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
           onDeleteClick={() => setShowDeleteConfirm(true)}
         />
 
-        <div className="p-5">
+        <div className="flex-1 overflow-y-auto p-5">
           <PrayerAuthorInfo
             displayName={prayer.display_name}
             timeAgo={prayer.time_ago}
