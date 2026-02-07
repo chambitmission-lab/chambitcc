@@ -19,7 +19,7 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
   const touchStartRef = useRef({ x: 0, y: 0, distance: 0 })
   const lastTapRef = useRef(0)
   const dragStartRef = useRef({ x: 0, y: 0 })
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>()
+  const controlsTimeoutRef = useRef<number | undefined>(undefined)
 
   const pages = bulletin.pages?.sort((a, b) => a.page_number - b.page_number) || []
   const totalPages = pages.length
@@ -27,13 +27,13 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
   // 컨트롤 자동 숨김
   useEffect(() => {
     if (showControls) {
-      controlsTimeoutRef.current = setTimeout(() => {
+      controlsTimeoutRef.current = window.setTimeout(() => {
         setShowControls(false)
       }, 3000)
     }
     return () => {
       if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current)
+        window.clearTimeout(controlsTimeoutRef.current)
       }
     }
   }, [showControls, currentPage])
@@ -44,7 +44,7 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
   }
 
   // 더블탭 줌
-  const handleDoubleTap = (e: React.TouchEvent | React.MouseEvent) => {
+  const handleDoubleTap = () => {
     const now = Date.now()
     const timeSinceLastTap = now - lastTapRef.current
 
