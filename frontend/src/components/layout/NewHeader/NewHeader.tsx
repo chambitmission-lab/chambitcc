@@ -72,8 +72,17 @@ const NewHeader = () => {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark" ref={menuRef}>
-      <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+    <>
+      {/* Backdrop Blur Overlay */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/70 backdrop-blur-md z-40" 
+          onClick={() => setIsMenuOpen(false)}
+        />
+      )}
+
+      <header className="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark" ref={menuRef}>
+        <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 relative">
           {/* 하늘에서 내려오는 빛 효과 - 테마별 색상 */}
@@ -137,7 +146,7 @@ const NewHeader = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="absolute top-14 left-0 right-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark shadow-lg overflow-hidden">
+        <div className="absolute top-14 left-0 right-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark shadow-lg overflow-hidden z-50">
           <div className="max-w-md mx-auto">
             {/* 가로 스크롤 메뉴 */}
             <nav className="flex overflow-x-auto scrollbar-hide py-3 px-4 gap-3">
@@ -236,6 +245,7 @@ const NewHeader = () => {
         onClose={() => setIsNotificationOpen(false)}
       />
     </header>
+    </>
   )
 }
 
