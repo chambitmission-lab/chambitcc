@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Prayer } from '../../../../types/prayer'
+import { getRelativeTime } from '../../../../utils/dateUtils'
 import CardHeader from './CardHeader'
 import CardContent from './CardContent'
 import CardFooter from './CardFooter'
@@ -16,6 +17,9 @@ const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
 
   // Anonymous를 익명으로 변환
   const displayName = prayer.display_name === 'Anonymous' ? '익명' : prayer.display_name
+  
+  // 클라이언트에서 시간 계산 (타임존 문제 해결)
+  const timeAgo = getRelativeTime(prayer.created_at)
   
   // 번역이 있는지 확인 (한글→영어 또는 영어→한글)
   const hasEnTranslation = !!(prayer.title_en && prayer.content_en)
@@ -42,7 +46,7 @@ const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
     <article className="prayer-card">
       <CardHeader
         displayName={displayName}
-        timeAgo={prayer.time_ago}
+        timeAgo={timeAgo}
         hasTranslation={hasTranslation}
         showEnglish={showEnglish}
         onToggleLanguage={() => setShowEnglish(!showEnglish)}
