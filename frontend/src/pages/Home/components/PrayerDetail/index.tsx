@@ -1,5 +1,5 @@
 // 기도 요청 상세 페이지 - 메인 컨테이너
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePrayerDetail } from '../../../../hooks/usePrayersQuery'
 import { useReplies, useCreateReply } from '../../../../hooks/useReplies'
 import { usePrayerDelete } from '../../../../hooks/usePrayerDelete'
@@ -28,6 +28,7 @@ interface PrayerDetailProps {
 const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenReplies = false }: PrayerDetailProps) => {
   const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData)
   const [showReplies, setShowReplies] = useState(initialOpenReplies)
+  const repliesSectionRef = useRef<HTMLDivElement>(null)
 
   // 브라우저 뒤로가기 처리 - 모달 열림
   useEffect(() => {
@@ -53,11 +54,19 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
     }
   }, [onClose, showReplies])
 
-  // 댓글 열림/닫힘 상태 변경 시 히스토리 관리
+  // 댓글 열림/닫힘 상태 변경 시 히스토리 관리 및 스크롤
   useEffect(() => {
     if (showReplies) {
       // 댓글이 열릴 때 히스토리 엔트리 추가
       window.history.pushState({ modal: 'prayer-detail', replies: true }, '')
+      
+      // 댓글 섹션으로 스크롤 (약간의 딜레이를 주어 렌더링 완료 후 스크롤)
+      setTimeout(() => {
+        repliesSectionRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        })
+      }, 100)
     }
   }, [showReplies])
 
@@ -152,16 +161,18 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
           {prayer.is_owner && <OwnerBadge />}
 
           {showReplies && (
-            <RepliesSection
-              replyCount={prayer.reply_count}
-              replies={replies}
-              isLoading={repliesLoading}
-              isCreating={isCreating}
-              hasNextPage={hasNextPage}
-              isFetchingNextPage={isFetchingNextPage}
-              onReplySubmit={handleReplySubmit}
-              onLoadMore={fetchNextPage}
-            />
+            <div ref={repliesSectionRef}>
+              <RepliesSection
+                replyCount={prayer.reply_count}
+                replies={replies}
+                isLoading={repliesLoading}
+                isCreating={isCreating}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                onReplySubmit={handleReplySubmit}
+                onLoadMore={fetchNextPage}
+              />
+            </div>
           )}
         </div>
       </PrayerDetailModal>
