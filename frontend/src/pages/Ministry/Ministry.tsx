@@ -157,7 +157,12 @@ God meets us through the church space where His people gather. Therefore, we mus
                     {selectedColumn.author[0]}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                    <div 
+                      className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-slate-300 via-white to-slate-300 dark:from-slate-200 dark:via-white dark:to-slate-200 text-sm"
+                      style={{
+                        filter: 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 20px rgba(226, 232, 240, 0.4))',
+                      }}
+                    >
                       {selectedColumn.author} {selectedColumn.role}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -167,9 +172,13 @@ God meets us through the church space where His people gather. Therefore, we mus
                 </div>
                 <button
                   onClick={() => setSelectedColumn(null)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="relative text-cyan-400 hover:text-cyan-300 dark:text-cyan-300 dark:hover:text-cyan-200 transition-all"
+                  style={{
+                    filter: 'drop-shadow(0 0 8px rgba(34, 211, 238, 0.8)) drop-shadow(0 0 12px rgba(34, 211, 238, 0.6))',
+                  }}
                 >
-                  <span className="material-icons-outlined text-2xl">close</span>
+                  <span className="absolute inset-0 bg-cyan-400/30 dark:bg-cyan-300/30 blur-xl animate-pulse"></span>
+                  <span className="material-icons-outlined text-2xl relative z-10">close</span>
                 </button>
               </div>
 
