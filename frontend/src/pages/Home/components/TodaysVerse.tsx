@@ -1,7 +1,12 @@
-import { useLanguage } from '../../../contexts/LanguageContext'
+import { useDailyVerse } from '../../../hooks/useDailyVerse'
 
 const TodaysVerse = () => {
-  const { t } = useLanguage()
+  const { data: verse, isLoading, error } = useDailyVerse()
+  
+  // 404 에러이거나 데이터가 없으면 컴포넌트를 숨김
+  if (error?.message === 'NOT_FOUND' || (!isLoading && !verse)) {
+    return null
+  }
   
   return (
     <section className="px-4 py-4 border-b border-border-light dark:border-border-dark">
@@ -21,11 +26,20 @@ const TodaysVerse = () => {
               <span className="material-icons-round text-purple-600 dark:text-white text-xl drop-shadow-[0_0_6px_rgba(168,85,247,0.4)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">auto_stories</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5 drop-shadow-[0_0_4px_rgba(168,85,247,0.15)] dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">{t('todaysVerse')}</p>
-              <p className="text-sm text-gray-900 dark:text-white leading-relaxed font-extrabold drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
-                "너희 마른 뼈들아, 이제 살아나리라!"
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 drop-shadow-[0_0_4px_rgba(168,85,247,0.15)] dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">에스겔 37:5, 10</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5 drop-shadow-[0_0_4px_rgba(168,85,247,0.15)] dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">오늘의 말씀</p>
+              {isLoading ? (
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/2"></div>
+                </div>
+              ) : verse ? (
+                <>
+                  <p className="text-sm text-gray-900 dark:text-white leading-relaxed font-extrabold drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
+                    "{verse.verse_text}"
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 drop-shadow-[0_0_4px_rgba(168,85,247,0.15)] dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">{verse.verse_reference}</p>
+                </>
+              ) : null}
             </div>
           </div>
         </div>

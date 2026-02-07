@@ -189,6 +189,12 @@ const NewHeader = () => {
                   >
                     {t('notificationManagement')}
                   </Link>
+                  <Link
+                    to="/admin/daily-verse"
+                    className="block px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400 font-semibold hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                  >
+                    오늘의 말씀 관리
+                  </Link>
                   <div className="border-t border-border-light dark:border-border-dark my-2"></div>
                 </>
               )}
