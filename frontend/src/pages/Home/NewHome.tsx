@@ -10,11 +10,13 @@ import FloatingActionButton from './components/FloatingActionButton'
 import BottomNavigation from './components/BottomNavigation'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import { useAuth } from '../../hooks/useAuth'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
 import type { SortType } from '../../types/prayer'
 
 const NewHome = () => {
   const { requireAuth, requireAuthWithRedirect } = useAuth()
+  const { t } = useLanguage()
   const [showComposer, setShowComposer] = useState(false)
   const [selectedPrayerId, setSelectedPrayerId] = useState<number | null>(null)
   const [openReplies, setOpenReplies] = useState(false) // 댓글 자동 열기 상태
@@ -33,7 +35,7 @@ const NewHome = () => {
     try {
       await prayerHook.handlePrayerToggle(prayerId)
     } catch (error) {
-      showToast(error instanceof Error ? error.message : '기도 처리에 실패했습니다', 'error')
+      showToast(error instanceof Error ? error.message : t('prayerFailed'), 'error')
     }
   }
 
@@ -51,7 +53,7 @@ const NewHome = () => {
             <main className="flex-1 flex items-center justify-center p-8">
               <div className="text-center">
                 <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-gray-900 dark:text-white font-semibold">기도 목록을 불러오는 중...</p>
+                <p className="text-gray-900 dark:text-white font-semibold">{t('loadingPrayerList')}</p>
               </div>
             </main>
           </div>
@@ -69,13 +71,13 @@ const NewHome = () => {
             <main className="flex-1 flex items-center justify-center p-8">
               <div className="text-center">
                 <span className="text-6xl mb-4 block">⚠️</span>
-                <p className="text-gray-900 dark:text-white font-semibold mb-2">데이터를 불러올 수 없습니다</p>
+                <p className="text-gray-900 dark:text-white font-semibold mb-2">{t('cannotLoadData')}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{prayerHook.error}</p>
                 <button
                   onClick={() => window.location.reload()}
                   className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all"
                 >
-                  새로고침
+                  {t('refresh')}
                 </button>
               </div>
             </main>

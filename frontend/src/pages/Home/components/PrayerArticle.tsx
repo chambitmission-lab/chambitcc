@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Prayer } from '../../../types/prayer'
 import BibleVersesModal from './BibleVersesModal'
 
@@ -10,6 +11,7 @@ interface PrayerArticleProps {
 }
 
 const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: PrayerArticleProps) => {
+  const { t, language } = useLanguage()
   const [isPraying, setIsPraying] = useState(false)
   const [showTranslation, setShowTranslation] = useState(false) // 번역 보기 상태
   const [showVersesModal, setShowVersesModal] = useState(false) // 성경 구절 모달
@@ -199,7 +201,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
       <div className="px-4 pb-3">
         <div className="flex items-center gap-2 text-xs">
           <span className="font-semibold text-gray-900 dark:text-white">
-            {prayer.prayer_count}명이 기도중
+            {prayer.prayer_count}{language === 'ko' ? '명이 ' : ' '}{t('peopleArePraying')}
           </span>
           {prayer.reply_count > 0 && (
             <>
@@ -211,7 +213,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
                 }}
                 className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
-                댓글 {prayer.reply_count}개
+                {t('reply')} {prayer.reply_count}{t('replyCount')}
               </button>
             </>
           )}
@@ -241,7 +243,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
                 </p>
                 {prayer.recommended_verses.verses.length > 1 && (
                   <p className="text-[10px] text-purple-600 dark:text-purple-400 mt-1 font-semibold">
-                    +{prayer.recommended_verses.verses.length - 1}개 더보기
+                    +{prayer.recommended_verses.verses.length - 1}{language === 'ko' ? '개 더보기' : ' more'}
                   </p>
                 )}
               </div>

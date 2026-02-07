@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react'
+import { useLanguage } from '../../../contexts/LanguageContext'
 import PrayerArticle from './PrayerArticle'
 import type { Prayer } from '../../../types/prayer'
 
@@ -21,6 +22,7 @@ const PrayerFeed = ({
   onPrayerToggle,
   onPrayerClick
 }: PrayerFeedProps) => {
+  const { t } = useLanguage()
   const loadMoreRef = useRef<HTMLDivElement>(null)
 
   // Infinite scroll observer
@@ -56,7 +58,7 @@ const PrayerFeed = ({
       {loading && (
         <div className="py-8 text-center">
           <div className="inline-block w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-2 text-sm text-gray-500">기도 요청을 불러오는 중...</p>
+          <p className="mt-2 text-sm text-gray-500">{t('loadingPrayers')}</p>
         </div>
       )}
 
@@ -64,8 +66,8 @@ const PrayerFeed = ({
       {!loading && prayers.length === 0 && (
         <div className="py-12 text-center">
           <span className="text-6xl mb-4 block">🙏</span>
-          <p className="text-gray-500 dark:text-gray-400">아직 기도 요청이 없습니다</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">첫 번째로 나눠주세요</p>
+          <p className="text-gray-500 dark:text-gray-400">{t('noPrayersYet')}</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{t('firstPrayerRequest')}</p>
         </div>
       )}
 

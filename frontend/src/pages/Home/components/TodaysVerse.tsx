@@ -1,4 +1,8 @@
+import { useLanguage } from '../../../contexts/LanguageContext'
+
 const TodaysVerse = () => {
+  const { t } = useLanguage()
+  
   return (
     <section className="px-4 py-4 border-b border-border-light dark:border-border-dark">
       <div className="relative">
@@ -17,7 +21,7 @@ const TodaysVerse = () => {
               <span className="material-icons-round text-purple-600 dark:text-white text-xl drop-shadow-[0_0_6px_rgba(168,85,247,0.4)] dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">auto_stories</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5 drop-shadow-[0_0_4px_rgba(168,85,247,0.15)] dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">오늘의 말씀</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5 drop-shadow-[0_0_4px_rgba(168,85,247,0.15)] dark:drop-shadow-[0_0_6px_rgba(255,255,255,0.2)]">{t('todaysVerse')}</p>
               <p className="text-sm text-gray-900 dark:text-white leading-relaxed font-extrabold drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
                 "너희 마른 뼈들아, 이제 살아나리라!"
               </p>

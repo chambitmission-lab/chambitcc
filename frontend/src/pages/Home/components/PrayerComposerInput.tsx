@@ -1,8 +1,12 @@
+import { useLanguage } from '../../../contexts/LanguageContext'
+
 interface PrayerComposerInputProps {
   onComposerOpen: () => void
 }
 
 const PrayerComposerInput = ({ onComposerOpen }: PrayerComposerInputProps) => {
+  const { t } = useLanguage()
+  
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
       <div className="relative">
@@ -18,7 +22,7 @@ const PrayerComposerInput = ({ onComposerOpen }: PrayerComposerInputProps) => {
       <div className="flex-1">
         <input
           className="w-full bg-surface-light dark:bg-surface-dark border-none rounded-full px-4 py-2 text-sm focus:ring-1 focus:ring-primary dark:text-white placeholder-gray-500"
-          placeholder="기도 제목을 나눠주세요..."
+          placeholder={t('prayerPlaceholder')}
           type="text"
           onClick={onComposerOpen}
           readOnly
@@ -28,7 +32,7 @@ const PrayerComposerInput = ({ onComposerOpen }: PrayerComposerInputProps) => {
         onClick={onComposerOpen}
         className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white font-bold text-sm rounded-full shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30 hover:shadow-xl hover:shadow-purple-500/40 dark:hover:shadow-purple-900/40 transition-all hover:scale-105 active:scale-95"
       >
-        작성
+        {t('edit')}
       </button>
     </div>
   )

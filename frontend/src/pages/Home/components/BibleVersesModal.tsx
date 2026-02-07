@@ -6,7 +6,10 @@ interface BibleVersesModalProps {
   onClose: () => void
 }
 
+import { useLanguage } from '../../../contexts/LanguageContext'
+
 const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
+  const { t } = useLanguage()
   // 브라우저 뒤로가기 처리
   useEffect(() => {
     // 모달이 열릴 때 히스토리 엔트리 추가
@@ -71,7 +74,7 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
               </span>
             </div>
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-              당신을 위한 성경 말씀
+              {t('bibleVersesForYou')}
             </h2>
           </div>
           <button
@@ -141,7 +144,7 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
               onClick={onClose}
               className="w-full px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold rounded-lg hover:opacity-90 transition-opacity"
             >
-              닫기
+              {t('close')}
             </button>
           </div>
         </div>

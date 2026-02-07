@@ -4,6 +4,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { queryClient } from './config/queryClient'
 import { persister } from './config/persister'
 import { disablePWAInDev, initPWAInstallPrompt } from './utils/pwa'
+import { LanguageProvider } from './contexts/LanguageContext'
 import './index.css'
 import './styles/common.css'
 import App from './App.tsx'
@@ -18,11 +19,13 @@ if (import.meta.env.PROD) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <PersistQueryClientProvider 
-      client={queryClient} 
-      persistOptions={{ persister }}
-    >
-      <App />
-    </PersistQueryClientProvider>
+    <LanguageProvider>
+      <PersistQueryClientProvider 
+        client={queryClient} 
+        persistOptions={{ persister }}
+      >
+        <App />
+      </PersistQueryClientProvider>
+    </LanguageProvider>
   </StrictMode>,
 )
