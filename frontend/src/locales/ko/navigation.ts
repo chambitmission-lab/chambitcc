@@ -6,7 +6,7 @@ export const navigation = {
   bulletin: '주보',
   worship: '예배',
   about: '소개',
-  ministry: '사역',
+  ministry: '칼럼',
   news: '소식',
   mission: '선교',
   culture: '문화',
