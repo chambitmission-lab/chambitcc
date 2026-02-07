@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
@@ -21,6 +21,7 @@ const NewHome = () => {
   const [openReplies, setOpenReplies] = useState(false) // 댓글 자동 열기 상태
   const [sort, setSort] = useState<SortType>('popular')
   const prayerHook = usePrayersInfinite(sort)
+  const mainRef = useRef<HTMLDivElement>(null)
 
   const handleComposerOpen = () => {
     requireAuth(() => setShowComposer(true))
@@ -41,6 +42,17 @@ const NewHome = () => {
   const handlePrayerClick = (prayerId: number, shouldOpenReplies = false) => {
     setSelectedPrayerId(prayerId)
     setOpenReplies(shouldOpenReplies)
+  }
+
+  const handleScrollToTop = () => {
+    // 모든 가능한 스크롤 요소를 0으로 설정
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0
+      mainRef.current.scrollTo(0, 0)
+    }
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
   }
 
   // 초기 로딩 상태 표시
@@ -91,7 +103,7 @@ const NewHome = () => {
       <div className="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-200">
         <div className="max-w-md mx-auto min-h-screen bg-background-light dark:bg-background-dark shadow-2xl relative flex flex-col border-x border-border-light dark:border-border-dark">
           
-          <main className="flex-1 overflow-y-auto no-scrollbar pb-20">
+          <main ref={mainRef} className="flex-1 overflow-y-auto no-scrollbar pb-20">
             <TodaysVerse />
             <SortTabs currentSort={sort} onSortChange={setSort} />
             <PrayerComposerInput onComposerOpen={handleComposerOpen} />
@@ -139,11 +151,12 @@ const NewHome = () => {
         </div>
 
         {/* Bottom Navigation - Fixed at bottom, centered with max-w-md */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+        <div className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none">
           <div className="max-w-md mx-auto pointer-events-auto">
             <BottomNavigation 
               onProfileClick={handleProfileClick}
               onComposeClick={handleComposerOpen}
+              onScrollToTop={handleScrollToTop}
             />
           </div>
         </div>

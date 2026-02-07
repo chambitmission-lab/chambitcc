@@ -1,20 +1,17 @@
 interface BottomNavigationProps {
   onProfileClick: () => void
   onComposeClick: () => void
+  onScrollToTop: () => void
 }
 
-const BottomNavigation = ({ onProfileClick, onComposeClick }: BottomNavigationProps) => {
-  const handleScrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'instant' })
-  }
-
+const BottomNavigation = ({ onProfileClick, onComposeClick, onScrollToTop }: BottomNavigationProps) => {
   return (
     <nav className="bg-background-light dark:bg-background-dark border-t border-border-light dark:border-border-dark h-[84px] pb-5 px-6 flex justify-center items-center">
       <div className="flex justify-between items-center w-full max-w-[280px]">
         {/* Home - Scroll to Top */}
         <button 
-          onClick={handleScrollToTop}
-          className="flex flex-col items-center justify-center w-12 text-gray-900 dark:text-white transition-all hover:opacity-60"
+          onClick={onScrollToTop}
+          className="flex flex-col items-center justify-center w-12 text-gray-900 dark:text-white transition-all hover:opacity-60 cursor-pointer"
         >
           <svg className="w-[27px] h-[27px]" fill="currentColor" viewBox="0 0 24 24">
             <path d="M22 23h-6.001a1 1 0 0 1-1-1v-5.455a2.997 2.997 0 1 0-5.993 0V22a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V11.543a1.002 1.002 0 0 1 .31-.724l10-9.543a1.001 1.001 0 0 1 1.38 0l10 9.543a1.002 1.002 0 0 1 .31.724V22a1 1 0 0 1-1 1Z"/>
