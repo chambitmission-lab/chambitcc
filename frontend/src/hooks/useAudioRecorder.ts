@@ -1,6 +1,7 @@
 // 음성 녹음 커스텀 훅
 import { useState, useRef, useCallback } from 'react'
 import type { RecordingState } from '../types/sermon'
+import { requestMicrophonePermission } from '../utils/permissions'
 
 interface UseAudioRecorderReturn {
   recordingState: RecordingState
@@ -31,7 +32,13 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
       console.log('Starting recording...')
       setError(null)
       
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      // 권한 요청 및 스트림 획득 (중복 요청 방지)
+      const { granted, stream, error: permError } = await requestMicrophonePermission()
+      
+      if (!granted || !stream) {
+        setError(permError || '마이크 접근 권한이 필요합니다')
+        return
+      }
       
       // 브라우저별 지원 형식 확인
       const mimeType = MediaRecorder.isTypeSupported('audio/webm')
