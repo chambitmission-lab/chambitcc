@@ -20,6 +20,7 @@ import Login from './pages/Auth/Login'
 import Register from './pages/Auth/Register'
 import NotificationManagement from './pages/Admin/NotificationManagement'
 import DailyVerseManagement from './pages/Admin/DailyVerseManagement'
+import BulletinManagement from './pages/Admin/BulletinManagement'
 import Profile from './pages/Profile/Profile'
 import './App.css'
 import './styles/common.css'
@@ -50,6 +51,7 @@ function App() {
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin/notifications" element={<NotificationManagement />} />
               <Route path="/admin/daily-verse" element={<DailyVerseManagement />} />
+              <Route path="/admin/bulletins" element={<BulletinManagement />} />
               {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

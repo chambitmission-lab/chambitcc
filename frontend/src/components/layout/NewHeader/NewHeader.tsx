@@ -210,6 +210,12 @@ const NewHeader = () => {
                   >
                     {t('dailyVerseManagement')}
                   </Link>
+                  <Link
+                    to="/admin/bulletins"
+                    className="block px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400 font-semibold hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                  >
+                    {t('bulletinManagement')}
+                  </Link>
                   <div className="border-t border-border-light dark:border-border-dark my-2"></div>
                 </>
               )}

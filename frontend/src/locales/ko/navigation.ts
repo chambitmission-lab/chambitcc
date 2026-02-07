@@ -3,6 +3,7 @@ export const navigation = {
   home: '홈',
   profile: '프로필',
   sermon: '설교',
+  bulletin: '주보',
   worship: '예배',
   about: '소개',
   ministry: '사역',
@@ -15,4 +16,5 @@ export const navigation = {
   tv: 'TV',
   notificationManagement: '📢 공지사항 관리',
   dailyVerseManagement: '📖 오늘의 말씀 관리',
+  bulletinManagement: '📰 주보 관리',
 } as const

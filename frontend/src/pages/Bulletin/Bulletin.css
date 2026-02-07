@@ -1,0 +1,223 @@
+.bulletin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 200px);
+}
+
+.bulletin-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.bulletin-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.bulletin-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.bulletin-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.bulletin-empty p {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+}
+
+.bulletin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.bulletin-card {
+  background: var(--surface);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.bulletin-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.bulletin-thumbnail {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  background: #f0f0f0;
+  overflow: hidden;
+}
+
+.bulletin-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.page-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.bulletin-info {
+  padding: 1.5rem;
+}
+
+.bulletin-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.bulletin-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.bulletin-date {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+}
+
+/* 주보 뷰어 */
+.bulletin-viewer {
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--background);
+}
+
+.viewer-header {
+  position: sticky;
+  top: 56px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
+}
+
+.back-button:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.back-button .material-icons {
+  font-size: 1.25rem;
+}
+
+.viewer-title h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.viewer-date {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.viewer-content {
+  padding: 1rem 0;
+}
+
+.bulletin-page {
+  margin-bottom: 0.5rem;
+  background: white;
+}
+
+.bulletin-page img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+}
+
+/* 다크 모드 */
+@media (prefers-color-scheme: dark) {
+  .bulletin-page {
+    background: #1a1a1a;
+  }
+  
+  .bulletin-thumbnail {
+    background: #2a2a2a;
+  }
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .bulletin-container {
+    padding: 1rem;
+  }
+
+  .bulletin-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .bulletin-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .viewer-header {
+    top: 56px;
+  }
+
+  .viewer-title h1 {
+    font-size: 1.25rem;
+  }
+}

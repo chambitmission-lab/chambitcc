@@ -3,6 +3,7 @@ export const navigation = {
   home: 'Home',
   profile: 'Profile',
   sermon: 'Sermon',
+  bulletin: 'Bulletin',
   worship: 'Worship',
   about: 'About',
   ministry: 'Ministry',
@@ -15,4 +16,5 @@ export const navigation = {
   tv: 'TV',
   notificationManagement: '📢 Notification Management',
   dailyVerseManagement: '📖 Daily Verse Management',
+  bulletinManagement: '📰 Bulletin Management',
 } as const
