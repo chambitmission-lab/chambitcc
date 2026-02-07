@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
 import NewHeader from './components/layout/NewHeader/NewHeader'
 import NewFooter from './components/layout/NewFooter/NewFooter'
+import PWAInstallButton from './components/common/PWAInstallButton'
 import Home from './pages/Home/Home'
 import NewHome from './pages/Home/NewHome'
 import About from './pages/About/About'
@@ -52,6 +53,8 @@ function App() {
             </Routes>
           </main>
           <NewFooter />
+          {/* PWA 설치 버튼 */}
+          <PWAInstallButton />
         </div>
       </Router>
     </ThemeProvider>
