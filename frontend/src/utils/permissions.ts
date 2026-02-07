@@ -21,7 +21,7 @@ export const checkMicrophonePermission = async (): Promise<PermissionState | nul
 }
 
 /**
- * 마이크 권한 요청 (getUserMedia 호출 전 상태 확인)
+ * 마이크 권한 요청 (getUserMedia만 사용하여 중복 요청 방지)
  */
 export const requestMicrophonePermission = async (): Promise<{
   granted: boolean
@@ -29,22 +29,8 @@ export const requestMicrophonePermission = async (): Promise<{
   error?: string
 }> => {
   try {
-    // 권한 상태 먼저 확인
-    const permissionState = await checkMicrophonePermission()
-    
-    if (permissionState === 'denied') {
-      return {
-        granted: false,
-        error: '마이크 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.'
-      }
-    }
-
-    // 이미 권한이 있는 경우 바로 스트림 획득
-    if (permissionState === 'granted') {
-      console.log('Microphone permission already granted')
-    }
-
-    // getUserMedia 호출 (권한이 없으면 여기서 한 번만 요청됨)
+    // getUserMedia를 직접 호출 (한 번만 권한 요청)
+    // permissions.query()를 사용하지 않아 중복 권한 요청 방지
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     
     return {
@@ -58,12 +44,17 @@ export const requestMicrophonePermission = async (): Promise<{
       if (error.name === 'NotAllowedError') {
         return {
           granted: false,
-          error: '마이크 권한이 거부되었습니다.'
+          error: '마이크 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.'
         }
       } else if (error.name === 'NotFoundError') {
         return {
           granted: false,
           error: '마이크를 찾을 수 없습니다.'
+        }
+      } else if (error.name === 'NotReadableError') {
+        return {
+          granted: false,
+          error: '마이크가 다른 앱에서 사용 중입니다.'
         }
       }
     }
