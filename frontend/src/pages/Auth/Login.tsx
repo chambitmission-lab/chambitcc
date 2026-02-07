@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { API_V1 } from '../../config/api'
 
 const Login = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { t } = useLanguage()
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -42,7 +44,7 @@ const Login = () => {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.detail || '로그인에 실패했습니다')
+        throw new Error(data.detail || t('loginFailed'))
       }
 
       // 토큰 저장
@@ -71,7 +73,7 @@ const Login = () => {
         navigate('/', { replace: true })
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '로그인에 실패했습니다')
+      setError(err instanceof Error ? err.message : t('loginFailed'))
     } finally {
       setLoading(false)
     }
@@ -83,10 +85,10 @@ const Login = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold tracking-tighter font-display text-gray-900 dark:text-white mb-2">
-            참빛교회
+            {t('aboutChurchName')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            참빛교회에 오신 것을 환영합니다
+            {t('loginWelcome')}
           </p>
         </div>
 
@@ -105,7 +107,7 @@ const Login = () => {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder="아이디"
+                placeholder={t('loginUsername')}
                 required
                 disabled={loading}
                 className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary"
@@ -118,7 +120,7 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="비밀번호"
+                placeholder={t('loginPassword')}
                 required
                 disabled={loading}
                 className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary"
@@ -130,7 +132,7 @@ const Login = () => {
               disabled={loading}
               className="w-full py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg text-sm hover:from-purple-600 hover:to-pink-600 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-sm"
             >
-              {loading ? '로그인 중...' : '로그인'}
+              {loading ? t('loginLoading') : t('loginButton')}
             </button>
           </form>
         </div>
@@ -138,12 +140,12 @@ const Login = () => {
         {/* Sign Up Link */}
         <div className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-4 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            계정이 없으신가요?{' '}
+            {t('loginNoAccount')}{' '}
             <Link 
               to="/register" 
               className="font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-purple-600 hover:to-pink-600 transition-all"
             >
-              회원가입
+              {t('loginSignUp')}
             </Link>
           </p>
         </div>
@@ -151,7 +153,7 @@ const Login = () => {
         {/* Back to Home */}
         <div className="text-center mt-6">
           <Link to="/" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-            홈으로 돌아가기
+            {t('loginBackHome')}
           </Link>
         </div>
       </div>

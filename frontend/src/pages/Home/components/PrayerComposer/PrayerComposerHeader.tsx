@@ -1,12 +1,16 @@
+import { useLanguage } from '../../../../contexts/LanguageContext'
+
 interface PrayerComposerHeaderProps {
   onClose: () => void
 }
 
 const PrayerComposerHeader = ({ onClose }: PrayerComposerHeaderProps) => {
+  const { t } = useLanguage()
+  
   return (
     <div className="sticky top-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
       <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-        새 기도 요청
+        {t('prayerComposerTitle')}
       </h2>
       <button
         onClick={onClose}

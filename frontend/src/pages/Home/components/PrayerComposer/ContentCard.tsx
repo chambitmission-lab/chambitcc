@@ -1,3 +1,5 @@
+import { useLanguage } from '../../../../contexts/LanguageContext'
+
 interface ContentCardProps {
   title: string
   content: string
@@ -6,6 +8,8 @@ interface ContentCardProps {
 }
 
 const ContentCard = ({ title, content, onTitleChange, onContentChange }: ContentCardProps) => {
+  const { t } = useLanguage()
+  
   return (
     <div className="relative mb-4">
       {/* 위에서 내려오는 빛 효과 */}
@@ -24,7 +28,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
             type="text"
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            placeholder="제목 (예: 가족의 건강, 진로 인도)"
+            placeholder={t('prayerComposerTitlePlaceholder')}
             maxLength={100}
             required
             className="w-full bg-transparent border-none text-sm font-extrabold text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] uppercase py-1"
@@ -36,7 +40,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
           <textarea
             value={content}
             onChange={(e) => onContentChange(e.target.value)}
-            placeholder="기도 제목을 나눠주세요... 구체적으로 어떤 기도가 필요한지 알려주세요."
+            placeholder={t('prayerComposerContentPlaceholder')}
             rows={4}
             maxLength={1000}
             required

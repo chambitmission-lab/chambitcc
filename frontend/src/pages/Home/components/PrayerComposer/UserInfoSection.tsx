@@ -1,3 +1,5 @@
+import { useLanguage } from '../../../../contexts/LanguageContext'
+
 interface UserInfoSectionProps {
   displayName: string
   isLoggedIn: boolean
@@ -17,6 +19,8 @@ const UserInfoSection = ({
   onAnonymousChange,
   onSubmit,
 }: UserInfoSectionProps) => {
+  const { t } = useLanguage()
+  
   return (
     <div className="mb-4">
       <div className="flex items-center gap-3 mb-3">
@@ -43,7 +47,7 @@ const UserInfoSection = ({
           disabled={isCreating || !canSubmit}
           className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white font-bold text-sm rounded-full shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30 hover:shadow-xl hover:shadow-purple-500/40 dark:hover:shadow-purple-900/40 transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
-          {isCreating ? '작성중...' : '작성'}
+          {isCreating ? t('prayerComposerSubmitting') : t('prayerComposerSubmit')}
         </button>
       </div>
       
@@ -58,7 +62,7 @@ const UserInfoSection = ({
               className="w-4 h-4 text-primary bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark rounded focus:ring-2 focus:ring-primary"
             />
             <span className="text-xs text-gray-600 dark:text-gray-400">
-              익명으로 작성
+              {t('prayerComposerAnonymous')}
             </span>
           </label>
         </div>

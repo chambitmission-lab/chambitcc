@@ -163,4 +163,41 @@ export const en = {
   worshipLocationText: 'All services are held in the main sanctuary.',
   worshipInfoNote: 'Note:',
   worshipInfoText: 'Service times are subject to change.',
+  
+  // Login Page
+  loginWelcome: 'Welcome to Chambit Church',
+  loginTitle: 'Login',
+  loginUsername: 'Username',
+  loginPassword: 'Password',
+  loginButton: 'Login',
+  loginLoading: 'Logging in...',
+  loginFailed: 'Login failed',
+  loginNoAccount: "Don't have an account?",
+  loginSignUp: 'Sign Up',
+  loginBackHome: 'Back to Home',
+  
+  // Register Page
+  registerTitle: 'Sign Up',
+  registerWelcome: 'Use Chambit Church online services',
+  registerFullName: 'Full Name (Optional)',
+  registerUsername: 'Username',
+  registerPassword: 'Password (min 6 characters)',
+  registerConfirmPassword: 'Confirm Password',
+  registerButton: 'Sign Up',
+  registerLoading: 'Signing up...',
+  registerFailed: 'Sign up failed',
+  registerHaveAccount: 'Already have an account?',
+  registerLogin: 'Login',
+  registerPasswordMismatch: 'Passwords do not match',
+  registerSuccess: 'Registration completed. Please login.',
+  
+  // Prayer Composer
+  prayerComposerTitle: 'New Prayer Request',
+  prayerComposerSubmit: 'Submit',
+  prayerComposerSubmitting: 'Submitting...',
+  prayerComposerAnonymous: 'Post anonymously',
+  prayerComposerCategory: 'Prayer Request',
+  prayerComposerTitlePlaceholder: 'Title (e.g., Family health, Career guidance)',
+  prayerComposerContentPlaceholder: 'Share your prayer request... Please let us know specifically what prayer you need.',
+  prayerComposerCharCount: 'characters',
 } as const

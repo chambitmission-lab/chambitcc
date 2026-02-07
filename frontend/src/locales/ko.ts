@@ -163,4 +163,41 @@ export const ko = {
   worshipLocationText: '모든 예배는 본당에서 진행됩니다.',
   worshipInfoNote: '안내:',
   worshipInfoText: '예배 시간은 사정에 따라 변경될 수 있습니다.',
+  
+  // 로그인 페이지
+  loginWelcome: '참빛교회에 오신 것을 환영합니다',
+  loginTitle: '로그인',
+  loginUsername: '아이디',
+  loginPassword: '비밀번호',
+  loginButton: '로그인',
+  loginLoading: '로그인 중...',
+  loginFailed: '로그인에 실패했습니다',
+  loginNoAccount: '계정이 없으신가요?',
+  loginSignUp: '회원가입',
+  loginBackHome: '홈으로 돌아가기',
+  
+  // 회원가입 페이지
+  registerTitle: '회원가입',
+  registerWelcome: '참빛교회 온라인 서비스를 이용하세요',
+  registerFullName: '이름 (선택)',
+  registerUsername: '아이디',
+  registerPassword: '비밀번호 (최소 6자)',
+  registerConfirmPassword: '비밀번호 확인',
+  registerButton: '회원가입',
+  registerLoading: '가입 중...',
+  registerFailed: '회원가입에 실패했습니다',
+  registerHaveAccount: '이미 계정이 있으신가요?',
+  registerLogin: '로그인',
+  registerPasswordMismatch: '비밀번호가 일치하지 않습니다',
+  registerSuccess: '회원가입이 완료되었습니다. 로그인해주세요.',
+  
+  // 기도 작성
+  prayerComposerTitle: '새 기도 요청',
+  prayerComposerSubmit: '작성',
+  prayerComposerSubmitting: '작성중...',
+  prayerComposerAnonymous: '익명으로 작성',
+  prayerComposerCategory: '기도 요청',
+  prayerComposerTitlePlaceholder: '제목 (예: 가족의 건강, 진로 인도)',
+  prayerComposerContentPlaceholder: '기도 제목을 나눠주세요... 구체적으로 어떤 기도가 필요한지 알려주세요.',
+  prayerComposerCharCount: '자',
 } as const
