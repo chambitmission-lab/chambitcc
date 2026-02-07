@@ -1,8 +1,11 @@
 // 주보 타입 정의
 
 export interface BulletinPage {
+  id: number
+  bulletin_id: number
   page_number: number
-  image_url: string  // 이미지 URL
+  image_url: string
+  created_at: string
 }
 
 export interface Bulletin {
@@ -14,8 +17,8 @@ export interface Bulletin {
   is_published: number
   created_at: string
   updated_at: string
-  page_count: number
-  thumbnail_url: string
+  page_count?: number  // 목록 조회시에만 포함
+  thumbnail_url?: string  // 목록 조회시에만 포함
   pages?: BulletinPage[]  // 상세 조회시에만 포함
 }
 

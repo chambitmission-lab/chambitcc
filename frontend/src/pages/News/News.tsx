@@ -61,7 +61,7 @@ const News = () => {
           <div className="bulletin-viewer">
             <div className="viewer-header">
               <button onClick={handleBack} className="back-button">
-                <span className="material-icons">arrow_back</span>
+                <span className="material-icons-outlined">arrow_back</span>
                 <span>목록으로</span>
               </button>
               <div className="viewer-title">
