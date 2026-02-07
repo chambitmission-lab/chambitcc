@@ -92,6 +92,16 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
         </div>
       )}
 
+      {/* 권한 안내 메시지 (idle 상태일 때만) */}
+      {recordingState === 'idle' && !error && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <p className="text-sm text-blue-600 dark:text-blue-400">
+            📱 모바일에서는 브라우저와 시스템에서 각각 마이크 권한을 요청할 수 있습니다. 
+            두 번 모두 '허용'을 선택해주세요.
+          </p>
+        </div>
+      )}
+
       {/* 녹음 상태 표시 */}
       <div className="flex flex-col items-center justify-center py-8">
         {/* 녹음 아이콘 */}

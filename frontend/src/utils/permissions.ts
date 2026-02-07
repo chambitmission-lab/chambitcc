@@ -61,15 +61,24 @@ export const requestMicrophonePermission = async (): Promise<{
   
   permissionRequestPromise = (async () => {
     try {
-      console.log('[Permissions] Requesting microphone permission via getUserMedia...')
-      console.log('[Permissions] Call stack:', new Error().stack)
+      const requestId = Math.random().toString(36).substring(7)
+      console.log(`[Permissions ${requestId}] ========== START ==========`)
+      console.log(`[Permissions ${requestId}] Requesting microphone permission via getUserMedia...`)
+      console.log(`[Permissions ${requestId}] Timestamp:`, Date.now())
       
-      // getUserMedia를 직접 호출 (한 번만 권한 요청)
-      // permissions.query()를 사용하지 않아 중복 권한 요청 방지
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      // Permissions API 체크를 제거 - 모바일에서 이것이 첫 번째 프롬프트를 트리거할 수 있음
+      // 바로 getUserMedia만 호출
       
-      console.log('[Permissions] Microphone permission granted, stream obtained')
-      console.log('[Permissions] Audio tracks:', stream.getAudioTracks().length)
+      console.log(`[Permissions ${requestId}] About to call getUserMedia...`)
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: true
+      })
+      console.log(`[Permissions ${requestId}] getUserMedia returned successfully`)
+      
+      console.log(`[Permissions ${requestId}] Microphone permission granted, stream obtained`)
+      console.log(`[Permissions ${requestId}] Audio tracks:`, stream.getAudioTracks().length)
+      console.log(`[Permissions ${requestId}] Timestamp after grant:`, Date.now())
+      console.log(`[Permissions ${requestId}] ========== END ==========`)
       
       isRequestingPermission = false
       permissionRequestPromise = null
