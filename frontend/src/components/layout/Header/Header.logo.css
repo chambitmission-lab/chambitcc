@@ -1,0 +1,52 @@
+/* Logo Styles */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  transition: all 0.3s ease;
+}
+
+.logo:hover {
+  transform: translateY(-2px);
+}
+
+.logo:hover .logo-image {
+  filter: drop-shadow(0 0 20px rgba(234, 179, 8, 0.8)) drop-shadow(0 0 30px rgba(234, 179, 8, 0.5));
+}
+
+.logo-image {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  transition: all 0.3s ease;
+}
+
+.logo-icon {
+  font-size: 1.875rem;
+  color: #EAB308;
+}
+
+/* Logo Theme Variants */
+[data-theme="dark"] .logo {
+  color: white;
+}
+
+[data-theme="light"] .logo {
+  color: #0f172a;
+}
+
+[data-theme="light"] .logo-image {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+[data-theme="dark"] .logo-text {
+  color: white;
+}
+
+[data-theme="light"] .logo-text {
+  color: #0f172a;
+}

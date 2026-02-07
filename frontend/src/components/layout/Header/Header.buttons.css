@@ -1,0 +1,148 @@
+/* Theme Toggle Button */
+.theme-toggle-header {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .theme-toggle-header {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+[data-theme="light"] .theme-toggle-header {
+  background: rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(8px);
+}
+
+.theme-toggle-header:hover {
+  transform: scale(1.1) rotate(15deg);
+}
+
+[data-theme="dark"] .theme-toggle-header:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="light"] .theme-toggle-header:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Auth Button */
+.header .header-actions .auth-button {
+  padding: 0 1.5rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  height: 2.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+[data-theme="dark"] .header .header-actions .auth-button {
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: white;
+}
+
+[data-theme="light"] .header .header-actions .auth-button {
+  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  color: #0f172a;
+}
+
+.header .header-actions .auth-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(234, 179, 8, 0.05));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+[data-theme="dark"] .header .header-actions .auth-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(234, 179, 8, 0.6);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.2);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .header .header-actions .auth-button:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(234, 179, 8, 0.7);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.15);
+  transform: translateY(-1px);
+}
+
+.header .header-actions .auth-button:hover::before {
+  opacity: 1;
+}
+
+/* Admin Button */
+.header .header-actions .admin-button {
+  padding: 0 1.5rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  height: 2.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .header .header-actions .admin-button {
+  backdrop-filter: blur(8px);
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.5);
+  color: #fbbf24;
+}
+
+[data-theme="light"] .header .header-actions .admin-button {
+  backdrop-filter: blur(8px);
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.6);
+  color: #d97706;
+}
+
+[data-theme="dark"] .header .header-actions .admin-button:hover {
+  background: rgba(234, 179, 8, 0.25);
+  border-color: rgba(234, 179, 8, 0.8);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .header .header-actions .admin-button:hover {
+  background: rgba(234, 179, 8, 0.2);
+  border-color: rgba(234, 179, 8, 0.9);
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.25);
+  transform: translateY(-1px);
+}
