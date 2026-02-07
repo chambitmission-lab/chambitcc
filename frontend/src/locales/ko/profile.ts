@@ -1,0 +1,26 @@
+// 프로필 관련 번역
+export const profile = {
+  myProfile: '프로필',
+  myPrayers: '내 기도',
+  myReplies: '댓글',
+  prayingFor: '기도중',
+  myPrayerActivity: '나의 기도 활동',
+  noPrayersWritten: '아직 작성한 기도가 없습니다',
+  noPrayingFor: '아직 기도중인 항목이 없습니다',
+  noRepliesWritten: '아직 작성한 댓글이 없습니다',
+  cannotLoadProfile: '프로필을 불러올 수 없습니다',
+  
+  profileTitle: '프로필',
+  profileBack: '뒤로',
+  profileMyActivity: '나의 기도 활동',
+  profileThisWeek: '이번 주',
+  profileBackHome: '홈으로 돌아가기',
+  profileCannotLoad: '프로필을 불러올 수 없습니다',
+  profileEmptyPrayers: '아직 작성한 기도가 없습니다',
+  profileEmptyPraying: '아직 기도중인 항목이 없습니다',
+  profileEmptyReplies: '아직 작성한 댓글이 없습니다',
+  profilePrayingBadge: '기도중',
+  profilePrayedAt: '기도함',
+  profileReplyLabel: '댓글 작성',
+  profileWrittenAs: '로 작성',
+} as const

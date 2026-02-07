@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { useProfileDetail, clearProfileCache } from '../../hooks/useProfile'
 import ProfileHeader from './components/ProfileHeader'
 import ActivityStats from './components/ActivityStats'
@@ -13,6 +14,7 @@ import './styles/Profile.css'
 
 const Profile = () => {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState<ProfileTab>('prayers')
   const { data, isLoading, error } = useProfileDetail()
 
@@ -41,12 +43,12 @@ const Profile = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center p-4">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark p-8 rounded-2xl text-center">
-          <p className="text-red-500 mb-4">프로필을 불러올 수 없습니다</p>
+          <p className="text-red-500 mb-4">{t('profileCannotLoad')}</p>
           <button 
             onClick={() => navigate('/')}
             className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-all"
           >
-            홈으로 돌아가기
+            {t('profileBackHome')}
           </button>
         </div>
       </div>
@@ -65,15 +67,15 @@ const Profile = () => {
             onClick={() => navigate('/')}
           >
             <span className="material-icons-outlined">arrow_back</span>
-            <span className="text-sm font-semibold">뒤로</span>
+            <span className="text-sm font-semibold">{t('profileBack')}</span>
           </button>
-          <h1 className="text-base font-bold text-gray-900 dark:text-white">프로필</h1>
+          <h1 className="text-base font-bold text-gray-900 dark:text-white">{t('profileTitle')}</h1>
           <button 
             className="flex items-center gap-1 text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-purple-600 hover:to-pink-600 transition-all"
             onClick={handleLogout}
           >
             <span className="material-icons-outlined text-lg bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">logout</span>
-            <span>로그아웃</span>
+            <span>{t('logout')}</span>
           </button>
         </div>
 

@@ -1,3 +1,5 @@
+import { useLanguage } from '../../../contexts/LanguageContext'
+
 interface ActivityStatsProps {
   thisWeekCount: number
   totalCount: number
@@ -5,13 +7,15 @@ interface ActivityStatsProps {
 }
 
 const ActivityStats = ({ thisWeekCount, totalCount, streakDays }: ActivityStatsProps) => {
+  const { t } = useLanguage()
+  
   return (
     <div className="px-4 pb-6">
       <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
         <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
           insights
         </span>
-        나의 기도 활동
+        {t('profileMyActivity')}
       </h3>
       <div className="grid grid-cols-3 gap-3">
         <div className="relative">
@@ -20,7 +24,7 @@ const ActivityStats = ({ thisWeekCount, totalCount, streakDays }: ActivityStatsP
             <div className="text-xl font-extrabold text-gray-900 dark:text-white mb-0.5 relative z-10 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
               {thisWeekCount}
             </div>
-            <div className="text-[10px] text-gray-600 dark:text-gray-400 relative z-10 whitespace-nowrap">이번 주</div>
+            <div className="text-[10px] text-gray-600 dark:text-gray-400 relative z-10 whitespace-nowrap">{t('profileThisWeek')}</div>
           </div>
         </div>
         
@@ -30,7 +34,7 @@ const ActivityStats = ({ thisWeekCount, totalCount, streakDays }: ActivityStatsP
             <div className="text-xl font-extrabold text-gray-900 dark:text-white mb-0.5 relative z-10 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
               {totalCount}
             </div>
-            <div className="text-[10px] text-gray-600 dark:text-gray-400 relative z-10 whitespace-nowrap">총 기도</div>
+            <div className="text-[10px] text-gray-600 dark:text-gray-400 relative z-10 whitespace-nowrap">{t('totalPrayers')}</div>
           </div>
         </div>
         
@@ -40,7 +44,7 @@ const ActivityStats = ({ thisWeekCount, totalCount, streakDays }: ActivityStatsP
             <div className="text-xl font-extrabold text-gray-900 dark:text-white mb-0.5 relative z-10 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
               {streakDays}{streakDays >= 7 && '🔥'}
             </div>
-            <div className="text-[10px] text-gray-600 dark:text-gray-400 relative z-10 whitespace-nowrap">연속 기도</div>
+            <div className="text-[10px] text-gray-600 dark:text-gray-400 relative z-10 whitespace-nowrap">{t('consecutivePrayers')}</div>
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { useLanguage } from '../../../contexts/LanguageContext'
 import type { PrayingFor } from '../../../types/profile'
 import { getRelativeTime } from '../../../utils/dateUtils'
 
@@ -7,11 +8,13 @@ interface PrayingForListProps {
 }
 
 const PrayingForList = ({ prayers, onPrayerClick }: PrayingForListProps) => {
+  const { t, language } = useLanguage()
+  
   if (prayers.length === 0) {
     return (
       <div className="empty-state">
         <span className="empty-icon">🙏</span>
-        <p className="empty-text">아직 기도중인 항목이 없습니다</p>
+        <p className="empty-text">{t('profileEmptyPraying')}</p>
       </div>
     )
   }
@@ -26,14 +29,14 @@ const PrayingForList = ({ prayers, onPrayerClick }: PrayingForListProps) => {
         >
           <div className="item-header">
             <span className="item-author">{prayer.display_name}</span>
-            <span className="item-badge">기도중</span>
+            <span className="item-badge">{t('profilePrayingBadge')}</span>
           </div>
           <h4 className="item-title">{prayer.title}</h4>
           <p className="item-content">{prayer.content}</p>
           <div className="item-meta">
-            <span className="meta-item">🙏 {prayer.prayer_count}명 기도중</span>
+            <span className="meta-item">🙏 {prayer.prayer_count}{language === 'ko' ? '명 ' : ' '}{t('peopleArePraying')}</span>
             <span className="meta-item meta-time">
-              {getRelativeTime(prayer.prayed_at)} 기도함
+              {getRelativeTime(prayer.prayed_at)} {t('profilePrayedAt')}
             </span>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { useLanguage } from '../../../contexts/LanguageContext'
 import type { MyPrayer } from '../../../types/profile'
 import { getRelativeTime } from '../../../utils/dateUtils'
 
@@ -7,11 +8,13 @@ interface MyPrayersListProps {
 }
 
 const MyPrayersList = ({ prayers, onPrayerClick }: MyPrayersListProps) => {
+  const { t, language } = useLanguage()
+  
   if (prayers.length === 0) {
     return (
       <div className="empty-state">
         <span className="empty-icon">📝</span>
-        <p className="empty-text">아직 작성한 기도가 없습니다</p>
+        <p className="empty-text">{t('profileEmptyPrayers')}</p>
       </div>
     )
   }
@@ -27,8 +30,8 @@ const MyPrayersList = ({ prayers, onPrayerClick }: MyPrayersListProps) => {
           <h4 className="item-title">{prayer.title}</h4>
           <p className="item-content">{prayer.content}</p>
           <div className="item-meta">
-            <span className="meta-item">🙏 {prayer.prayer_count}명 기도중</span>
-            <span className="meta-item">💬 {prayer.reply_count}개 댓글</span>
+            <span className="meta-item">🙏 {prayer.prayer_count}{language === 'ko' ? '명 ' : ' '}{t('peopleArePraying')}</span>
+            <span className="meta-item">💬 {t('reply')} {prayer.reply_count}{t('replyCount')}</span>
             <span className="meta-item meta-time">
               {getRelativeTime(prayer.created_at)}
             </span>

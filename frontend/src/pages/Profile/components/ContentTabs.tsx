@@ -1,3 +1,4 @@
+import { useLanguage } from '../../../contexts/LanguageContext'
 import type { ProfileTab } from '../../../types/profile'
 
 interface ContentTabsProps {
@@ -11,6 +12,7 @@ interface ContentTabsProps {
 }
 
 const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
+  const { t } = useLanguage()
   return (
     <div className="flex gap-2 px-4 pb-4 border-b border-border-light dark:border-border-dark">
       <button
@@ -24,7 +26,7 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
         <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
           edit_note
         </span>
-        <span className={`text-xs font-bold ${activeTab === 'prayers' ? 'text-gray-900 dark:text-white' : ''}`}>내 기도</span>
+        <span className={`text-xs font-bold ${activeTab === 'prayers' ? 'text-gray-900 dark:text-white' : ''}`}>{t('myPrayers')}</span>
         <span className={`text-xs font-bold ${activeTab === 'prayers' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'}`}>
           {counts.prayers}
         </span>
@@ -47,7 +49,7 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
         <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
           volunteer_activism
         </span>
-        <span className={`text-xs font-bold ${activeTab === 'praying' ? 'text-gray-900 dark:text-white' : ''}`}>기도중</span>
+        <span className={`text-xs font-bold ${activeTab === 'praying' ? 'text-gray-900 dark:text-white' : ''}`}>{t('prayingFor')}</span>
         <span className={`text-xs font-bold ${activeTab === 'praying' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'}`}>
           {counts.praying}
         </span>
@@ -70,7 +72,7 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
         <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
           chat_bubble
         </span>
-        <span className={`text-xs font-bold ${activeTab === 'replies' ? 'text-gray-900 dark:text-white' : ''}`}>댓글</span>
+        <span className={`text-xs font-bold ${activeTab === 'replies' ? 'text-gray-900 dark:text-white' : ''}`}>{t('myReplies')}</span>
         <span className={`text-xs font-bold ${activeTab === 'replies' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'}`}>
           {counts.replies}
         </span>

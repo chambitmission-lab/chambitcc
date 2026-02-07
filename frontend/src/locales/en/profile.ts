@@ -1,0 +1,26 @@
+// Profile related translations
+export const profile = {
+  myProfile: 'Profile',
+  myPrayers: 'My Prayers',
+  myReplies: 'Replies',
+  prayingFor: 'Praying For',
+  myPrayerActivity: 'My Prayer Activity',
+  noPrayersWritten: 'No prayers written yet',
+  noPrayingFor: 'Not praying for anything yet',
+  noRepliesWritten: 'No replies written yet',
+  cannotLoadProfile: 'Cannot load profile',
+  
+  profileTitle: 'Profile',
+  profileBack: 'Back',
+  profileMyActivity: 'My Prayer Activity',
+  profileThisWeek: 'This Week',
+  profileBackHome: 'Back to Home',
+  profileCannotLoad: 'Cannot load profile',
+  profileEmptyPrayers: 'No prayers written yet',
+  profileEmptyPraying: 'Not praying for anything yet',
+  profileEmptyReplies: 'No replies written yet',
+  profilePrayingBadge: 'Praying',
+  profilePrayedAt: 'Prayed',
+  profileReplyLabel: 'Reply written',
+  profileWrittenAs: 'Written as',
+} as const
