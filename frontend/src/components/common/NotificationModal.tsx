@@ -13,19 +13,13 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const isLoggedIn = !!localStorage.getItem('access_token')
   
   // React Query로 알림 목록 조회 (unread_count 포함)
-  const { data, isLoading, refetch } = useNotifications()
+  const { data, isLoading } = useNotifications()
   const notifications = data?.notifications || []
   const unreadCount = data?.unread_count || 0
   
   // React Query mutations
   const markAsReadMutation = useMarkAsRead()
   const markAllAsReadMutation = useMarkAllAsRead()
-
-  useEffect(() => {
-    if (isOpen) {
-      refetch()
-    }
-  }, [isOpen, refetch])
 
   const handleNotificationClick = async (notification: Notification) => {
     // 로그인 상태이고 읽지 않은 알림이며, 현재 읽음 처리 중이 아닌 경우에만 처리

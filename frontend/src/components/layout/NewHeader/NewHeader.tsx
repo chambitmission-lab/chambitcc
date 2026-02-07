@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { isAdmin } from '../../../utils/auth'
-import { useUnreadCount } from '../../../hooks/useNotifications'
+import { useNotifications } from '../../../hooks/useNotifications'
 import NotificationModal from '../../common/NotificationModal'
 import './NewHeader.css'
 
@@ -21,7 +21,8 @@ const NewHeader = () => {
   const { language, setLanguage, t } = useLanguage()
   
   // React Query로 알림 개수 조회 (중복 호출 방지)
-  const { data: unreadCount = 0 } = useUnreadCount()
+  const { data } = useNotifications()
+  const unreadCount = data?.unread_count || 0
 
   useEffect(() => {
     setIsMenuOpen(false)
