@@ -145,17 +145,27 @@ export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistra
   }
 
   try {
+    // base path 고려 (프로덕션: /chambitcc/, 개발: /)
+    const base = import.meta.env.BASE_URL || '/';
+    const swPath = `${base}sw.js`.replace(/\/+/g, '/'); // 중복 슬래시 제거
+    
+    console.log('🔧 Service Worker 경로:', swPath);
+    
     // 기존 등록 확인
     let registration = await navigator.serviceWorker.getRegistration();
     
     if (!registration) {
       // 새로 등록
-      registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/'
+      registration = await navigator.serviceWorker.register(swPath, {
+        scope: base
       });
       console.log('✅ Service Worker 등록 완료:', registration);
     } else {
       console.log('✅ Service Worker 이미 등록됨:', registration);
+      
+      // 업데이트 확인
+      await registration.update();
+      console.log('🔄 Service Worker 업데이트 확인 완료');
     }
 
     // Service Worker 활성화 대기
@@ -165,6 +175,7 @@ export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistra
     return registration;
   } catch (error) {
     console.error('❌ Service Worker 등록 실패:', error);
+    console.error('에러 상세:', error);
     return null;
   }
 }

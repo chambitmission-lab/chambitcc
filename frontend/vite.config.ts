@@ -8,12 +8,16 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['vite.svg'],
+      includeAssets: ['vite.svg', 'sw.js'], // 푸시 알림용 sw.js 포함
       devOptions: {
         enabled: false // 개발 중에는 PWA 비활성화
       },
+      // 푸시 알림용 sw.js를 사용하므로 injectRegister를 null로 설정
+      injectRegister: null,
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg}'],
+        // sw.js는 workbox에서 제외 (수동 관리)
+        globIgnores: ['**/sw.js'],
         // 캐시 버전 업데이트 (fingerprint 제거 후)
         cleanupOutdatedCaches: true,
         skipWaiting: true,

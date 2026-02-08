@@ -6,19 +6,29 @@ export const PushNotificationButton = () => {
   const [showMessage, setShowMessage] = useState(false);
 
   const handleToggle = async () => {
+    console.log('🔘 푸시 알림 토글 클릭');
+    console.log('현재 상태:', { isSubscribed, permission, isLoading });
+    
     if (isSubscribed) {
+      console.log('📴 구독 해제 시도...');
       const success = await unsubscribe();
+      console.log('구독 해제 결과:', success);
       if (success) {
         setShowMessage(true);
         setTimeout(() => setShowMessage(false), 3000);
       }
     } else {
+      console.log('📲 구독 시도...');
       const success = await subscribe();
+      console.log('구독 결과:', success);
       if (success) {
         setShowMessage(true);
         setTimeout(() => setShowMessage(false), 3000);
       } else if (permission === 'denied') {
         alert('알림 권한이 차단되었습니다. 브라우저 설정에서 알림을 허용해주세요.');
+      } else {
+        console.error('❌ 구독 실패 - 권한:', permission);
+        alert('알림 구독에 실패했습니다. 콘솔을 확인해주세요.');
       }
     }
   };

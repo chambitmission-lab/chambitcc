@@ -1,14 +1,18 @@
 // Service Worker for Push Notifications
 
+// base path 설정 (프로덕션/개발 환경 자동 감지)
+const BASE_PATH = self.location.pathname.includes('/chambitcc/') ? '/chambitcc/' : '/';
+
 // 푸시 알림 수신
 self.addEventListener('push', (event) => {
   console.log('푸시 알림 수신:', event);
+  console.log('BASE_PATH:', BASE_PATH);
   
   const defaultData = {
     title: '알림',
     body: '새로운 알림이 도착했습니다.',
-    icon: '/pwa-192x192.png',
-    url: '/'
+    icon: `${BASE_PATH}pwa-192x192.png`,
+    url: BASE_PATH
   };
 
   // 데이터 파싱 및 알림 표시를 Promise로 처리
@@ -34,10 +38,16 @@ self.addEventListener('push', (event) => {
       }
     }
 
-    // 아이콘 경로 수정 (존재하지 않는 경로면 기본값 사용)
-    if (data.icon && !data.icon.includes('pwa-')) {
-      console.warn('⚠️ 잘못된 아이콘 경로:', data.icon, '→ 기본값 사용');
-      data.icon = '/pwa-192x192.png';
+    // 아이콘 경로 수정 (BASE_PATH 적용)
+    if (data.icon && !data.icon.startsWith('http') && !data.icon.startsWith(BASE_PATH)) {
+      console.log('🔧 아이콘 경로 수정:', data.icon, '→', `${BASE_PATH}${data.icon.replace(/^\//, '')}`);
+      data.icon = `${BASE_PATH}${data.icon.replace(/^\//, '')}`;
+    }
+    
+    // URL 경로도 BASE_PATH 적용
+    if (data.url && !data.url.startsWith('http') && !data.url.startsWith(BASE_PATH)) {
+      console.log('🔧 URL 경로 수정:', data.url, '→', `${BASE_PATH}${data.url.replace(/^\//, '')}`);
+      data.url = `${BASE_PATH}${data.url.replace(/^\//, '')}`;
     }
 
     console.log('알림 표시 시도:', data);
@@ -46,10 +56,10 @@ self.addEventListener('push', (event) => {
     try {
       const notificationOptions = {
         body: data.body,
-        icon: data.icon || '/pwa-192x192.png',
-        badge: '/pwa-192x192.png',
+        icon: data.icon || `${BASE_PATH}pwa-192x192.png`,
+        badge: `${BASE_PATH}pwa-192x192.png`,
         tag: data.tag || `notification-${Date.now()}`,
-        data: { url: data.url || '/' },
+        data: { url: data.url || BASE_PATH },
         requireInteraction: false,
         vibrate: [200, 100, 200],
         silent: false
@@ -69,7 +79,7 @@ self.addEventListener('push', (event) => {
         console.log('🔄 기본 알림으로 재시도...');
         return await self.registration.showNotification('알림', {
           body: data.body || '새로운 알림이 도착했습니다.',
-          icon: '/pwa-192x192.png'
+          icon: `${BASE_PATH}pwa-192x192.png`
         });
       } catch (retryError) {
         console.error('❌ 재시도도 실패:', retryError);
