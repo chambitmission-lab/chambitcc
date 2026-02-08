@@ -4,11 +4,14 @@ import { getVapidPublicKey, subscribePush, unsubscribePush } from '../api/push';
  * Base64 문자열을 Uint8Array로 변환 (VAPID 키용)
  */
 const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
-  // PEM 형식 헤더/푸터 제거
+  // PEM 형식 헤더/푸터 제거 및 이스케이프된 줄바꿈 처리
   let base64 = base64String
     .replace(/-----BEGIN PUBLIC KEY-----/g, '')
     .replace(/-----END PUBLIC KEY-----/g, '')
-    .replace(/\s/g, ''); // 모든 공백, 줄바꿈 제거
+    .replace(/\\n/g, '') // 이스케이프된 \n 제거
+    .replace(/\n/g, '')  // 실제 줄바꿈 제거
+    .replace(/\r/g, '')  // 캐리지 리턴 제거
+    .replace(/\s/g, ''); // 모든 공백 제거
 
   // URL-safe base64를 일반 base64로 변환
   base64 = base64
@@ -39,6 +42,7 @@ const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
     return derKey;
   } catch (error) {
     console.error('Base64 디코딩 실패:', error);
+    console.error('처리된 base64 문자열:', base64);
     throw new Error('VAPID 키 변환에 실패했습니다.');
   }
 };
