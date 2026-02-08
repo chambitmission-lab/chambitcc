@@ -2,18 +2,28 @@
 
 // base path 설정 (프로덕션/개발 환경 자동 감지)
 const BASE_PATH = self.location.pathname.includes('/chambitcc/') ? '/chambitcc/' : '/';
+const ORIGIN = self.location.origin; // https://your-domain.com
 
-console.log('🚀 Service Worker 시작 - BASE_PATH:', BASE_PATH);
+console.log('🚀 Service Worker 시작');
+console.log('ORIGIN:', ORIGIN);
+console.log('BASE_PATH:', BASE_PATH);
+
+// 절대 URL 생성 함수
+const getAbsoluteUrl = (path) => {
+  if (path.startsWith('http')) return path;
+  const cleanPath = path.replace(/^\//, '');
+  return `${ORIGIN}${BASE_PATH}${cleanPath}`;
+};
 
 // 푸시 알림 수신
 self.addEventListener('push', (event) => {
-  console.log('� 푸시 알림 수신:', event);
-  console.log('BASE_PATH:', BASE_PATH);
+  console.log('📬 푸시 알림 수신:', event);
   
   const defaultData = {
     title: '알림',
     body: '새로운 알림이 도착했습니다.',
-    icon: `${BASE_PATH}pwa-192x192.png`,
+    icon: getAbsoluteUrl('pwa-192x192.png'),
+    badge: getAbsoluteUrl('pwa-192x192.png'),
     url: BASE_PATH
   };
 
@@ -25,52 +35,62 @@ self.addEventListener('push', (event) => {
     if (event.data) {
       try {
         const parsedData = event.data.json();
-        console.log('파싱된 데이터:', parsedData);
+        console.log('📦 파싱된 데이터:', parsedData);
         data = { ...defaultData, ...parsedData };
       } catch (e) {
-        console.error('데이터 파싱 실패:', e);
+        console.error('❌ 데이터 파싱 실패:', e);
         try {
           const textData = event.data.text();
-          console.log('원본 텍스트:', textData);
-          // 텍스트로 받은 경우 body에 표시
+          console.log('� 원본 텍스트:', textData);
           data.body = textData || data.body;
         } catch (textError) {
-          console.error('텍스트 파싱도 실패:', textError);
+          console.error('❌ 텍스트 파싱도 실패:', textError);
         }
       }
     }
 
-    // 아이콘 경로 수정 (BASE_PATH 적용)
-    if (data.icon && !data.icon.startsWith('http') && !data.icon.startsWith(BASE_PATH)) {
-      console.log('🔧 아이콘 경로 수정:', data.icon, '→', `${BASE_PATH}${data.icon.replace(/^\//, '')}`);
-      data.icon = `${BASE_PATH}${data.icon.replace(/^\//, '')}`;
+    // 아이콘을 절대 URL로 변환
+    if (data.icon && !data.icon.startsWith('http')) {
+      const originalIcon = data.icon;
+      data.icon = getAbsoluteUrl(data.icon);
+      console.log('🔧 아이콘 URL 변환:', originalIcon, '→', data.icon);
     }
     
-    // URL 경로도 BASE_PATH 적용
+    // badge도 절대 URL로 변환
+    if (data.badge && !data.badge.startsWith('http')) {
+      data.badge = getAbsoluteUrl(data.badge);
+    }
+    
+    // URL 경로 수정
     if (data.url && !data.url.startsWith('http') && !data.url.startsWith(BASE_PATH)) {
-      console.log('🔧 URL 경로 수정:', data.url, '→', `${BASE_PATH}${data.url.replace(/^\//, '')}`);
+      const originalUrl = data.url;
       data.url = `${BASE_PATH}${data.url.replace(/^\//, '')}`;
+      console.log('🔧 URL 경로 수정:', originalUrl, '→', data.url);
     }
 
-    console.log('알림 표시 시도:', data);
+    console.log('🔔 알림 표시 시도:', data);
 
     // 알림 표시
     try {
       const notificationOptions = {
         body: data.body,
-        icon: data.icon || `${BASE_PATH}pwa-192x192.png`,
-        badge: `${BASE_PATH}pwa-192x192.png`,
+        icon: data.icon,
+        badge: data.badge || data.icon,
         tag: data.tag || `notification-${Date.now()}`,
         data: { url: data.url || BASE_PATH },
         requireInteraction: false,
         vibrate: [200, 100, 200],
-        silent: false
+        silent: false,
+        // 안드로이드에서 더 잘 보이도록
+        image: data.image || undefined,
+        dir: 'auto',
+        lang: 'ko'
       };
       
-      console.log('알림 옵션:', notificationOptions);
+      console.log('📋 알림 옵션:', notificationOptions);
       
       const result = await self.registration.showNotification(data.title, notificationOptions);
-      console.log('✅ 알림 표시 성공:', result);
+      console.log('✅ 알림 표시 성공');
       return result;
     } catch (error) {
       console.error('❌ 알림 표시 실패:', error);
@@ -81,7 +101,8 @@ self.addEventListener('push', (event) => {
         console.log('🔄 기본 알림으로 재시도...');
         return await self.registration.showNotification('알림', {
           body: data.body || '새로운 알림이 도착했습니다.',
-          icon: `${BASE_PATH}pwa-192x192.png`
+          icon: getAbsoluteUrl('pwa-192x192.png'),
+          badge: getAbsoluteUrl('pwa-192x192.png')
         });
       } catch (retryError) {
         console.error('❌ 재시도도 실패:', retryError);
@@ -97,19 +118,30 @@ self.addEventListener('push', (event) => {
 
 // 알림 클릭 처리
 self.addEventListener('notificationclick', (event) => {
-  console.log('알림 클릭:', event);
+  console.log('👆 알림 클릭:', event);
   event.notification.close();
   
-  if (event.notification.data && event.notification.data.url) {
-    event.waitUntil(
-      clients.openWindow(event.notification.data.url)
-    );
-  }
+  const urlToOpen = event.notification.data?.url || BASE_PATH;
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      // 이미 열린 창이 있으면 포커스
+      for (let client of windowClients) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // 없으면 새 창 열기
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });
 
 // 알림 닫기 처리
 self.addEventListener('notificationclose', (event) => {
-  console.log('알림 닫힘:', event);
+  console.log('🔕 알림 닫힘:', event.notification.tag);
 });
 
 // Service Worker 설치
