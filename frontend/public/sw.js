@@ -99,14 +99,16 @@ self.addEventListener('push', (event) => {
         image: data.image, // 안드로이드에서 큰 이미지로 표시
         tag: data.tag || `notification-${Date.now()}`,
         data: { url: data.url || BASE_PATH },
-        requireInteraction: false,
-        vibrate: [200, 100, 200],
+        requireInteraction: true, // 사용자가 직접 닫을 때까지 유지 (헤드업 알림)
+        vibrate: [200, 100, 200, 100, 200], // 더 강한 진동
         silent: false,
         dir: 'auto',
         lang: 'ko',
         // 안드로이드 최적화
         renotify: true,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        // 헤드업 알림을 위한 추가 옵션
+        actions: [] // 빈 배열이라도 있으면 우선순위 상승
       };
       
       console.log('📋 알림 옵션:', notificationOptions);
