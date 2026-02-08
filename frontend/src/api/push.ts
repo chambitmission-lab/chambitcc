@@ -96,6 +96,10 @@ export const getMySubscriptions = async (): Promise<PushSubscriptionData[]> => {
  */
 export const sendPush = async (request: SendPushRequest): Promise<void> => {
   const token = localStorage.getItem('access_token');
+  
+  console.log('🚀 API 호출: POST /api/v1/push/send');
+  console.log('📦 요청 데이터:', request);
+  
   const response = await apiFetch(`${API_V1}/push/send`, {
     method: 'POST',
     headers: {
@@ -105,8 +109,14 @@ export const sendPush = async (request: SendPushRequest): Promise<void> => {
     body: JSON.stringify(request)
   });
   
+  console.log('📡 응답 상태:', response.status, response.statusText);
+  
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
+    console.error('❌ API 에러 응답:', error);
     throw new Error(error.message || '푸시 전송에 실패했습니다.');
   }
+  
+  const result = await response.json().catch(() => null);
+  console.log('✅ API 응답 성공:', result);
 };

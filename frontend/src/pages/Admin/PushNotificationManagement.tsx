@@ -37,10 +37,19 @@ export const PushNotificationManagement = () => {
         ? userIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
         : undefined;
 
+      console.log('📤 푸시 알림 전송 시작');
+      console.log('📋 페이로드:', payload);
+      console.log('👥 대상 사용자 ID:', parsedUserIds || '전체');
+
+      const startTime = Date.now();
+      
       await sendPush({
         payload,
         user_ids: parsedUserIds
       });
+
+      const duration = Date.now() - startTime;
+      console.log(`✅ 푸시 알림 전송 완료 (${duration}ms)`);
 
       setMessage({
         type: 'success',
@@ -56,10 +65,15 @@ export const PushNotificationManagement = () => {
       setTag('notification');
       setUserIds('');
     } catch (error: any) {
-      console.error('푸시 전송 실패:', error);
+      console.error('❌ 푸시 전송 실패:', error);
+      console.error('에러 상세:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       setMessage({
         type: 'error',
-        text: error.response?.data?.message || '푸시 알림 전송에 실패했습니다.'
+        text: error.response?.data?.message || error.message || '푸시 알림 전송에 실패했습니다.'
       });
     } finally {
       setIsSending(false);
