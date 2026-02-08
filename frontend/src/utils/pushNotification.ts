@@ -208,8 +208,8 @@ export const showTestNotification = async (title: string, body: string): Promise
   const registration = await navigator.serviceWorker.ready;
   await registration.showNotification(title, {
     body,
-    icon: '/pwa-192x192.png',
-    badge: '/pwa-192x192.png',
+    icon: '/chambitcc/pwa-192x192.png',
+    badge: '/chambitcc/pwa-192x192.png',
     tag: 'test-notification'
   });
 };

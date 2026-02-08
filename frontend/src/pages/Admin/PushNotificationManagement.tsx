@@ -7,7 +7,7 @@ export const PushNotificationManagement = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [url, setUrl] = useState('/');
-  const [icon, setIcon] = useState('/pwa-192x192.png');
+  const [icon, setIcon] = useState('/chambitcc/pwa-192x192.png');
   const [tag, setTag] = useState('notification');
   const [userIds, setUserIds] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -28,8 +28,8 @@ export const PushNotificationManagement = () => {
       const payload: PushPayload = {
         title: title.trim(),
         body: body.trim(),
-        icon: icon.trim() || '/pwa-192x192.png',
-        image: '/pwa-512x512.png', // 안드로이드에서 큰 이미지로 표시
+        icon: icon.trim() || '/chambitcc/pwa-192x192.png',
+        image: '/chambitcc/pwa-512x512.png', // 안드로이드에서 큰 이미지로 표시
         url: url.trim() || '/',
         tag: tag.trim() || 'notification'
       };
@@ -200,7 +200,7 @@ export const PushNotificationManagement = () => {
               type="text"
               value={icon}
               onChange={(e) => setIcon(e.target.value)}
-              placeholder="/pwa-192x192.png"
+              placeholder="/chambitcc/pwa-192x192.png"
             />
           </div>
 
@@ -222,7 +222,7 @@ export const PushNotificationManagement = () => {
             <h3>미리보기</h3>
             <div className="notification-preview">
               <div className="preview-icon">
-                <img src={icon || '/pwa-192x192.png'} alt="icon" />
+                <img src={icon || '/chambitcc/pwa-192x192.png'} alt="icon" />
               </div>
               <div className="preview-content">
                 <div className="preview-title">{title || '알림 제목'}</div>
