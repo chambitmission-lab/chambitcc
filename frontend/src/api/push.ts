@@ -15,6 +15,7 @@ export interface PushPayload {
   body: string;
   icon?: string;
   badge?: string;
+  image?: string; // 안드로이드 큰 이미지
   url?: string;
   tag?: string;
 }

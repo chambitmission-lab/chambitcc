@@ -22,8 +22,10 @@ self.addEventListener('push', (event) => {
   const defaultData = {
     title: '알림',
     body: '새로운 알림이 도착했습니다.',
-    icon: getAbsoluteUrl('pwa-192x192.png'),
-    badge: getAbsoluteUrl('pwa-192x192.png'),
+    // 임시: 외부 이미지 URL 사용 (테스트용)
+    icon: 'https://via.placeholder.com/192x192/4285f4/ffffff?text=Church',
+    badge: 'https://via.placeholder.com/192x192/4285f4/ffffff?text=Church',
+    image: 'https://via.placeholder.com/512x512/4285f4/ffffff?text=Chambit+Church',
     url: BASE_PATH
   };
 
@@ -61,6 +63,13 @@ self.addEventListener('push', (event) => {
       data.badge = getAbsoluteUrl(data.badge);
     }
     
+    // image도 절대 URL로 변환 (안드로이드 큰 이미지)
+    if (data.image && !data.image.startsWith('http')) {
+      const originalImage = data.image;
+      data.image = getAbsoluteUrl(data.image);
+      console.log('🔧 이미지 URL 변환:', originalImage, '→', data.image);
+    }
+    
     // URL 경로 수정
     if (data.url && !data.url.startsWith('http') && !data.url.startsWith(BASE_PATH)) {
       const originalUrl = data.url;
@@ -76,15 +85,17 @@ self.addEventListener('push', (event) => {
         body: data.body,
         icon: data.icon,
         badge: data.badge || data.icon,
+        image: data.image, // 안드로이드에서 큰 이미지로 표시
         tag: data.tag || `notification-${Date.now()}`,
         data: { url: data.url || BASE_PATH },
         requireInteraction: false,
         vibrate: [200, 100, 200],
         silent: false,
-        // 안드로이드에서 더 잘 보이도록
-        image: data.image || undefined,
         dir: 'auto',
-        lang: 'ko'
+        lang: 'ko',
+        // 안드로이드 최적화
+        renotify: true,
+        timestamp: Date.now()
       };
       
       console.log('📋 알림 옵션:', notificationOptions);

@@ -29,6 +29,7 @@ export const PushNotificationManagement = () => {
         title: title.trim(),
         body: body.trim(),
         icon: icon.trim() || '/pwa-192x192.png',
+        image: '/pwa-512x512.png', // 안드로이드에서 큰 이미지로 표시
         url: url.trim() || '/',
         tag: tag.trim() || 'notification'
       };
