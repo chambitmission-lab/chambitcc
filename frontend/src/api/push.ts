@@ -41,6 +41,16 @@ export const getVapidPublicKey = async (): Promise<string> => {
  */
 export const subscribePush = async (subscription: PushSubscriptionData): Promise<void> => {
   const token = localStorage.getItem('access_token');
+  
+  console.log('📝 푸시 구독 등록 시작');
+  console.log('📦 구독 데이터:', {
+    endpoint: subscription.endpoint,
+    keys: {
+      p256dh: subscription.keys.p256dh.substring(0, 20) + '...',
+      auth: subscription.keys.auth.substring(0, 20) + '...'
+    }
+  });
+  
   const response = await apiFetch(`${API_V1}/push/subscribe`, {
     method: 'POST',
     headers: {
@@ -50,9 +60,16 @@ export const subscribePush = async (subscription: PushSubscriptionData): Promise
     body: JSON.stringify(subscription)
   });
   
+  console.log('📡 구독 API 응답 상태:', response.status, response.statusText);
+  
   if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    console.error('❌ 구독 실패:', error);
     throw new Error('푸시 구독에 실패했습니다.');
   }
+  
+  const result = await response.json().catch(() => null);
+  console.log('✅ 구독 성공:', result);
 };
 
 /**
@@ -119,4 +136,26 @@ export const sendPush = async (request: SendPushRequest): Promise<void> => {
   
   const result = await response.json().catch(() => null);
   console.log('✅ API 응답 성공:', result);
+  
+  // 전송 결과 상세 로그
+  if (result) {
+    if (result.success === false || result.failed > 0) {
+      console.warn('⚠️ 푸시 전송 결과:', {
+        성공: result.sent || 0,
+        실패: result.failed || 0,
+        알림받은사용자: result.users_notified || 0,
+        메시지: result.message
+      });
+      
+      if (result.sent === 0) {
+        throw new Error('푸시 전송 실패: 대상 사용자가 구독하지 않았거나 구독 정보가 유효하지 않습니다.');
+      }
+    } else {
+      console.log('📊 전송 통계:', {
+        성공: result.sent || 0,
+        실패: result.failed || 0,
+        알림받은사용자: result.users_notified || 0
+      });
+    }
+  }
 };

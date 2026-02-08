@@ -249,6 +249,13 @@ export const PushNotificationManagement = () => {
             <li>웹 브라우저(Chrome, Firefox, Edge)와 모바일에서 모두 수신 가능합니다.</li>
             <li>제목은 최대 50자, 내용은 최대 200자까지 입력 가능합니다.</li>
           </ul>
+          
+          <h3>⚠️ 푸시 전송 실패 시</h3>
+          <ul>
+            <li><strong>"failed: 1"</strong> 에러가 나면 대상 사용자가 구독하지 않았거나 구독이 만료된 것입니다.</li>
+            <li>사용자에게 프로필 페이지에서 <strong>"알림 받기"</strong> 버튼을 다시 눌러 재구독하도록 안내하세요.</li>
+            <li>VAPID 키가 변경된 경우, 모든 사용자가 재구독해야 합니다.</li>
+          </ul>
         </div>
       </div>
     </div>
