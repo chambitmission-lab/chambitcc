@@ -3,9 +3,11 @@
 // base path 설정 (프로덕션/개발 환경 자동 감지)
 const BASE_PATH = self.location.pathname.includes('/chambitcc/') ? '/chambitcc/' : '/';
 
+console.log('🚀 Service Worker 시작 - BASE_PATH:', BASE_PATH);
+
 // 푸시 알림 수신
 self.addEventListener('push', (event) => {
-  console.log('푸시 알림 수신:', event);
+  console.log('� 푸시 알림 수신:', event);
   console.log('BASE_PATH:', BASE_PATH);
   
   const defaultData = {
@@ -112,12 +114,12 @@ self.addEventListener('notificationclose', (event) => {
 
 // Service Worker 설치
 self.addEventListener('install', (event) => {
-  console.log('Service Worker 설치됨');
+  console.log('⚙️ Service Worker 설치됨');
   self.skipWaiting();
 });
 
 // Service Worker 활성화
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker 활성화됨');
-  event.waitUntil(clients.claim());
+  console.log('✅ Service Worker 활성화됨');
+  event.waitUntil(self.clients.claim());
 });
