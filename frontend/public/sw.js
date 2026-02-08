@@ -13,9 +13,16 @@ console.log('BASE_PATH:', BASE_PATH);
 
 // 절대 URL 생성 함수
 const getAbsoluteUrl = (path) => {
-  if (path.startsWith('http')) return path;
-  const cleanPath = path.replace(/^\//, '');
-  const fullUrl = `${ORIGIN}${BASE_PATH}${cleanPath}`;
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  
+  // 슬래시로 시작하면 제거
+  const cleanPath = path.replace(/^\/+/, '');
+  
+  // BASE_PATH가 /로 끝나지 않으면 추가
+  const basePath = BASE_PATH.endsWith('/') ? BASE_PATH : BASE_PATH + '/';
+  
+  const fullUrl = `${ORIGIN}${basePath}${cleanPath}`;
   console.log('🔗 URL 생성:', path, '→', fullUrl);
   return fullUrl;
 };
@@ -56,22 +63,22 @@ self.addEventListener('push', (event) => {
     }
 
     // 아이콘을 절대 URL로 변환
-    if (data.icon && !data.icon.startsWith('http')) {
+    if (data.icon) {
       const originalIcon = data.icon;
       data.icon = getAbsoluteUrl(data.icon);
-      console.log('🔧 아이콘 URL 변환:', originalIcon, '→', data.icon);
+      console.log('�️ 아이콘 변환:', originalIcon, '→', data.icon);
     }
     
     // badge도 절대 URL로 변환
-    if (data.badge && !data.badge.startsWith('http')) {
+    if (data.badge) {
       data.badge = getAbsoluteUrl(data.badge);
     }
     
     // image도 절대 URL로 변환 (안드로이드 큰 이미지)
-    if (data.image && !data.image.startsWith('http')) {
+    if (data.image) {
       const originalImage = data.image;
       data.image = getAbsoluteUrl(data.image);
-      console.log('🔧 이미지 URL 변환:', originalImage, '→', data.image);
+      console.log('�️ 이미지 변환:', originalImage, '→', data.imaige);
     }
     
     // URL 경로 수정
