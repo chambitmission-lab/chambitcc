@@ -134,3 +134,37 @@ export const disablePWAInDev = (): void => {
     })
   }
 }
+
+/**
+ * 푸시 알림용 Service Worker 등록
+ */
+export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
+  if (!('serviceWorker' in navigator)) {
+    console.warn('Service Worker를 지원하지 않는 브라우저입니다.');
+    return null;
+  }
+
+  try {
+    // 기존 등록 확인
+    let registration = await navigator.serviceWorker.getRegistration();
+    
+    if (!registration) {
+      // 새로 등록
+      registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/'
+      });
+      console.log('✅ Service Worker 등록 완료:', registration);
+    } else {
+      console.log('✅ Service Worker 이미 등록됨:', registration);
+    }
+
+    // Service Worker 활성화 대기
+    await navigator.serviceWorker.ready;
+    console.log('✅ Service Worker 활성화됨');
+
+    return registration;
+  } catch (error) {
+    console.error('❌ Service Worker 등록 실패:', error);
+    return null;
+  }
+}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useProfileDetail, clearProfileCache } from '../../hooks/useProfile'
+import { PushNotificationButton } from '../../components/common/PushNotificationButton'
 import ProfileHeader from './components/ProfileHeader'
 import ActivityStats from './components/ActivityStats'
 import ContentTabs from './components/ContentTabs'
@@ -100,6 +101,21 @@ const Profile = () => {
           totalCount={stats.activity.total_count}
           streakDays={stats.activity.streak_days}
         />
+
+        {/* 푸시 알림 설정 */}
+        <div className="px-4 py-4 border-b border-border-light dark:border-border-dark">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                푸시 알림
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                새로운 소식을 실시간으로 받아보세요
+              </p>
+            </div>
+            <PushNotificationButton />
+          </div>
+        </div>
 
         {/* 콘텐츠 탭 */}
         <ContentTabs
