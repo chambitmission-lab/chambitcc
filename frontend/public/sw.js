@@ -1,18 +1,23 @@
 // Service Worker for Push Notifications
 
 // base path 설정 (프로덕션/개발 환경 자동 감지)
-const BASE_PATH = self.location.pathname.includes('/chambitcc/') ? '/chambitcc/' : '/';
-const ORIGIN = self.location.origin; // https://your-domain.com
+// GitHub Pages: https://chambitmission-lab.github.io/chambitcc/
+const ORIGIN = self.location.origin;
+const SW_PATH = self.location.pathname; // /chambitcc/sw.js
+const BASE_PATH = SW_PATH.replace(/sw\.js$/, ''); // /chambitcc/
 
 console.log('🚀 Service Worker 시작');
 console.log('ORIGIN:', ORIGIN);
+console.log('SW_PATH:', SW_PATH);
 console.log('BASE_PATH:', BASE_PATH);
 
 // 절대 URL 생성 함수
 const getAbsoluteUrl = (path) => {
   if (path.startsWith('http')) return path;
   const cleanPath = path.replace(/^\//, '');
-  return `${ORIGIN}${BASE_PATH}${cleanPath}`;
+  const fullUrl = `${ORIGIN}${BASE_PATH}${cleanPath}`;
+  console.log('🔗 URL 생성:', path, '→', fullUrl);
+  return fullUrl;
 };
 
 // 푸시 알림 수신
@@ -22,10 +27,9 @@ self.addEventListener('push', (event) => {
   const defaultData = {
     title: '알림',
     body: '새로운 알림이 도착했습니다.',
-    // 임시: 외부 이미지 URL 사용 (테스트용)
-    icon: 'https://via.placeholder.com/192x192/4285f4/ffffff?text=Church',
-    badge: 'https://via.placeholder.com/192x192/4285f4/ffffff?text=Church',
-    image: 'https://via.placeholder.com/512x512/4285f4/ffffff?text=Chambit+Church',
+    icon: getAbsoluteUrl('pwa-192x192.png'),
+    badge: getAbsoluteUrl('pwa-192x192.png'),
+    image: getAbsoluteUrl('pwa-512x512.png'),
     url: BASE_PATH
   };
 
