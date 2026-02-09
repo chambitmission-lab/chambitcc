@@ -15,6 +15,25 @@ const PrayerHeader = ({
   translationButtonText,
   onTranslationToggle
 }: PrayerHeaderProps) => {
+  // translationButtonText 분석
+  // showTranslation = false일 때: "🇰🇷 한글" 또는 "🇺🇸 EN" (다음에 볼 언어)
+  // showTranslation = true일 때: "🇺🇸 EN" 또는 "🇰🇷 한글" (원문으로 돌아갈 언어)
+  
+  // 현재 보고 있는 언어를 표시
+  let currentLang = '한글'
+  
+  if (!showTranslation) {
+    // 원문을 보고 있음
+    // translationButtonText가 "🇰🇷 한글"이면 → 원문은 영어
+    // translationButtonText가 "🇺🇸 EN"이면 → 원문은 한글
+    currentLang = translationButtonText.includes('한글') ? 'EN' : '한글'
+  } else {
+    // 번역을 보고 있음
+    // translationButtonText가 "🇺🇸 EN"이면 → 번역은 한글
+    // translationButtonText가 "🇰🇷 한글"이면 → 번역은 영어
+    currentLang = translationButtonText.includes('EN') ? '한글' : 'EN'
+  }
+
   return (
     <div className="px-4 py-2 flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -34,37 +53,22 @@ const PrayerHeader = ({
           </span>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        {hasTranslation && (
-          <button
-            onClick={onTranslationToggle}
-            className="group px-2.5 py-1.5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-[10px] font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 flex items-center gap-1"
-            title={showTranslation ? '원문 보기' : '번역 보기'}
-            style={{
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
-          >
-            <span
-              style={{
-                display: 'inline-block',
-                transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              }}
-              className="group-hover:scale-110"
-            >
-              {translationButtonText.split(' ')[0]}
-            </span>
-            {' '}
-            <span
-              style={{
-                transition: 'letter-spacing 0.2s ease-in-out',
-              }}
-              className="group-hover:tracking-wider"
-            >
-              {translationButtonText.split(' ')[1]}
-            </span>
-          </button>
-        )}
-      </div>
+      
+      {/* 미니멀 언어 뱃지 */}
+      {hasTranslation && (
+        <button
+          onClick={onTranslationToggle}
+          className="group relative px-2 py-1 rounded-full bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-gray-200/80 dark:hover:bg-gray-700/80 transition-all duration-300 overflow-hidden"
+          title={showTranslation ? '원문 보기' : '번역 보기'}
+        >
+          {/* 호버 시 배경 애니메이션 */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+          
+          <span className="relative text-[11px] font-semibold text-gray-600 dark:text-gray-400 tracking-tight">
+            {currentLang}
+          </span>
+        </button>
+      )}
     </div>
   )
 }
