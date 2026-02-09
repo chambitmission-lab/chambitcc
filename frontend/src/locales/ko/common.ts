@@ -12,5 +12,5 @@ export const common = {
   refresh: '새로고침',
   owner: '작성자',
   deleteConfirm: '정말 삭제하시겠습니까?',
-  versesToMeditateOn: '함께 묵상해볼 수 있는 말씀',
+  versesToMeditateOn: '함께 묵상해볼 수 있는 해설',
 } as const

@@ -78,9 +78,12 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="relative w-8 h-8 flex items-center justify-center rounded-full hover:scale-110 transition-transform group"
           >
-            <span className="material-icons-outlined text-gray-900 dark:text-white text-xl">
+            {/* 전구 빛 효과 - 항상 표시 */}
+            <span className="absolute inset-0 bg-amber-300/40 dark:bg-amber-400/30 blur-md animate-pulse rounded-full"></span>
+            
+            <span className="relative material-icons-outlined text-amber-500 dark:text-amber-400 text-xl drop-shadow-[0_0_10px_rgba(251,191,36,0.7)]">
               close
             </span>
           </button>
@@ -118,16 +121,6 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
                 </p>
               </div>
             ))}
-          </div>
-
-          {/* Actions */}
-          <div className="mt-6">
-            <button
-              onClick={onClose}
-              className="w-full px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium text-sm rounded-lg hover:opacity-90 transition-opacity"
-            >
-              {t('close')}
-            </button>
           </div>
         </div>
       </div>
