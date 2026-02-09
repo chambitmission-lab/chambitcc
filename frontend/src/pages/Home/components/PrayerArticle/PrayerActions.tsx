@@ -1,17 +1,13 @@
 interface PrayerActionsProps {
   isPrayed: boolean
   isPraying: boolean
-  hasVerses: boolean
   onPray: (e: React.MouseEvent) => void
-  onVersesClick: (e: React.MouseEvent) => void
 }
 
 const PrayerActions = ({
   isPrayed,
   isPraying,
-  hasVerses,
-  onPray,
-  onVersesClick
+  onPray
 }: PrayerActionsProps) => {
   return (
     <div className="px-4 flex items-center gap-3 mb-2">
@@ -26,18 +22,6 @@ const PrayerActions = ({
           volunteer_activism
         </span>
       </button>
-
-      {hasVerses && (
-        <button
-          onClick={onVersesClick}
-          className="group flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:opacity-70 transition-colors"
-          title="성경 말씀 보기"
-        >
-          <span className="material-icons-outlined text-[24px]">
-            auto_stories
-          </span>
-        </button>
-      )}
     </div>
   )
 }

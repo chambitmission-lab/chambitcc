@@ -12,4 +12,5 @@ export const common = {
   refresh: 'Refresh',
   owner: 'Owner',
   deleteConfirm: 'Are you sure you want to delete?',
+  versesToMeditateOn: 'Verses to meditate on',
 } as const

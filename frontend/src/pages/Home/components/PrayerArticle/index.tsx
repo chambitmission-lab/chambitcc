@@ -68,9 +68,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
       <PrayerActions
         isPrayed={prayer.is_prayed}
         isPraying={isPraying}
-        hasVerses={!!(prayer.recommended_verses?.verses.length)}
         onPray={handlePray}
-        onVersesClick={handleVersesClick}
       />
 
       <PrayerStats
