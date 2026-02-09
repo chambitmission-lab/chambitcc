@@ -3,7 +3,7 @@ import type { DailyVerseResponse, DailyVerse, CreateDailyVerseRequest, UpdateDai
 
 // 오늘의 말씀 조회 (인증 불필요)
 export const getTodayVerse = async (): Promise<DailyVerseResponse> => {
-  const response = await apiFetch(`${API_V1}/daily-verse/today`)
+  const response = await apiFetch(`${API_V1}/daily-verse/current`)
   
   if (!response.ok) {
     if (response.status === 404) {
