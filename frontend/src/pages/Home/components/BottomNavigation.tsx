@@ -23,8 +23,8 @@ const BottomNavigation = ({ onProfileClick, onComposeClick, onScrollToTop }: Bot
           onClick={onComposeClick}
           className="flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 -mt-8"
         >
-          <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-            <svg className="w-7 h-7" fill="none" stroke="white" strokeWidth="3" viewBox="0 0 24 24">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+            <svg className="w-6 h-6" fill="none" stroke="white" strokeWidth="3" viewBox="0 0 24 24">
               <line x1="12" y1="5" x2="12" y2="19"/>
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
