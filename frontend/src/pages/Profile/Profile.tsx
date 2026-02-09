@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useProfileDetail, clearProfileCache } from '../../hooks/useProfile'
+import { logout } from '../../utils/auth'
 import { PushNotificationButton } from '../../components/common/PushNotificationButton'
 import ProfileHeader from './components/ProfileHeader'
 import ActivityStats from './components/ActivityStats'
@@ -29,8 +30,7 @@ const Profile = () => {
   const { data, isLoading, error } = useProfileDetail()
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
+    logout() // 통합된 로그아웃 함수 사용
     clearProfileCache() // 프로필 캐시 삭제
     navigate('/auth/login')
   }

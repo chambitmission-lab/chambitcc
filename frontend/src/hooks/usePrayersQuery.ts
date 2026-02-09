@@ -3,35 +3,52 @@ import { useMutation, useQueryClient, useInfiniteQuery, useQuery } from '@tansta
 import { fetchPrayers, createPrayer, fetchPrayerDetail } from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
 import { showToast } from '../utils/toast'
+import { getCurrentUser } from '../utils/auth'
 import type { SortType, Prayer, CreatePrayerRequest } from '../types/prayer'
 
-// Query Keys
+// Query Keys - 사용자별로 다른 캐시 사용
 export const prayerKeys = {
   all: ['prayers'] as const,
   lists: () => [...prayerKeys.all, 'list'] as const,
   list: (sort: SortType) => 
     [...prayerKeys.lists(), sort] as const,
   details: () => [...prayerKeys.all, 'detail'] as const,
-  detail: (prayerId: number) => 
-    [...prayerKeys.details(), prayerId] as const,
+  detail: (prayerId: number, username?: string | null) => 
+    [...prayerKeys.details(), prayerId, username || 'anonymous'] as const,
 }
 
 // Infinite Query Hook
 export const usePrayersInfinite = (sort: SortType = 'popular') => {
   const queryClient = useQueryClient()
+  const currentUser = getCurrentUser()
 
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
     queryKey: prayerKeys.list(sort),
     queryFn: async ({ pageParam = 1 }) => {
-      return await fetchPrayers(pageParam, 20, sort)
+      const response = await fetchPrayers(pageParam, 20, sort)
+      
+      // 클라이언트에서 is_owner 재계산 (보안 강화)
+      const itemsWithRecalculatedOwner = response.data.items.map(prayer => ({
+        ...prayer,
+        is_owner: currentUser.username ? prayer.is_owner : false,
+      }))
+      
+      return {
+        ...response,
+        data: {
+          ...response.data,
+          items: itemsWithRecalculatedOwner,
+        },
+      }
     },
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.data.items.length < 20) return undefined
       return allPages.length + 1
     },
     initialPageParam: 1,
-    staleTime: 1000 * 60 * 5, // 5분간 fresh (기도 목록은 자주 안 바뀜)
+    staleTime: 1000 * 60 * 10, // 10분간 fresh (사용자별 is_owner 재계산으로 안전)
+    gcTime: 1000 * 60 * 30, // 30분간 메모리 유지
     refetchOnMount: true, // 마운트 시 항상 새로운 데이터 가져오기
     refetchOnWindowFocus: false, // 윈도우 포커스 시에는 가져오지 않음
     retry: 2, // 실패 시 2번 재시도
@@ -141,14 +158,33 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
 // 기도 상세 조회 Hook
 export const usePrayerDetail = (prayerId: number, initialData?: Prayer) => {
   const queryClient = useQueryClient()
+  const currentUser = getCurrentUser()
 
-  // 기도 상세 조회
+  // 기도 상세 조회 - 사용자별 캐시 키 사용
   const query = useQuery({
-    queryKey: prayerKeys.detail(prayerId),
-    queryFn: () => fetchPrayerDetail(prayerId),
+    queryKey: prayerKeys.detail(prayerId, currentUser.username),
+    queryFn: async () => {
+      const data = await fetchPrayerDetail(prayerId)
+      
+      // 클라이언트에서 is_owner 재계산 (보안 강화)
+      // 백엔드 응답을 신뢰하되, 클라이언트에서도 검증
+      const recalculatedIsOwner = currentUser.username 
+        ? data.is_owner 
+        : false
+      
+      return {
+        ...data,
+        is_owner: recalculatedIsOwner,
+      }
+    },
     enabled: !!prayerId,
-    staleTime: 1000 * 60 * 3, // 3분간 fresh (너무 자주 호출 방지)
-    initialData, // 목록에서 가져온 데이터를 초기값으로 사용
+    staleTime: 1000 * 60 * 10, // 10분간 fresh (사용자별 캐시로 is_owner 문제 해결)
+    gcTime: 1000 * 60 * 30, // 30분간 메모리 유지 (가비지 컬렉션 시간)
+    initialData: initialData ? {
+      ...initialData,
+      // initialData의 is_owner도 재계산
+      is_owner: currentUser.username ? initialData.is_owner : false,
+    } : undefined,
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)
@@ -170,7 +206,7 @@ export const usePrayerDetail = (prayerId: number, initialData?: Prayer) => {
     handlePrayerToggle,
     isToggling,
     refresh: () => queryClient.invalidateQueries({ 
-      queryKey: prayerKeys.detail(prayerId) 
+      queryKey: prayerKeys.detail(prayerId, currentUser.username) 
     }),
   }
 }

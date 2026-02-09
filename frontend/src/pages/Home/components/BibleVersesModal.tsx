@@ -8,19 +8,6 @@ interface BibleVersesModalProps {
 
 import { useLanguage } from '../../../contexts/LanguageContext'
 
-// 떠다니는 빛 입자 컴포넌트
-const FloatingParticle = ({ delay }: { delay: number }) => (
-  <div 
-    className="absolute w-1 h-1 bg-yellow-300/60 dark:bg-yellow-200/40 rounded-full blur-sm animate-float"
-    style={{
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      animationDelay: `${delay}s`,
-      animationDuration: `${3 + Math.random() * 2}s`
-    }}
-  />
-)
-
 const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
   const { t } = useLanguage()
   const [isVisible, setIsVisible] = useState(false)

@@ -3,6 +3,10 @@
 /**
  * 로그아웃 처리
  * - localStorage 정리 (토큰, 사용자 정보, React Query 캐시)
+ * 
+ * 참고: React Query 캐시는 자동으로 무효화됩니다.
+ * 로그인 시 queryClient.invalidateQueries()가 호출되어
+ * 새 사용자의 데이터로 갱신됩니다.
  */
 export const logout = () => {
   // 토큰 및 사용자 정보 제거
