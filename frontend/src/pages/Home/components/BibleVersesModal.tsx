@@ -88,13 +88,6 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
 
         {/* Content */}
         <div className="relative p-4">
-          {/* Summary */}
-          <div className="relative mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-              💡 {verses.summary}
-            </p>
-          </div>
-
           {/* Verses */}
           <div className="space-y-4">
             {verses.verses.map((verse, index) => (
