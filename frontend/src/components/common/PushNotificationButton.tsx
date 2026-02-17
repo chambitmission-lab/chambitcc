@@ -43,26 +43,32 @@ export const PushNotificationButton = () => {
       <button
         onClick={handleToggle}
         disabled={isLoading}
-        className={`
-          flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all
-          ${isSubscribed 
-            ? 'bg-green-500 text-white hover:bg-green-600' 
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-          }
-          ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
-        `}
+        className="flex items-center gap-3 group"
       >
-        <span className="text-xl">
-          {isSubscribed ? '🔔' : '🔕'}
+        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+          {isLoading ? '처리 중...' : '알림'}
         </span>
-        <span>
-          {isLoading 
-            ? '처리 중...' 
-            : isSubscribed 
-              ? '알림 켜짐' 
-              : '알림 받기'
+        
+        {/* Instagram-style toggle switch */}
+        <div className={`
+          relative w-12 h-7 rounded-full transition-all duration-300 ease-in-out
+          ${isSubscribed 
+            ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400' 
+            : 'bg-gray-300 dark:bg-gray-600'
           }
-        </span>
+          ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          group-hover:shadow-md
+        `}>
+          <div className={`
+            absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-md
+            transition-transform duration-300 ease-in-out
+            ${isSubscribed ? 'translate-x-5' : 'translate-x-0'}
+          `}>
+            <span className="absolute inset-0 flex items-center justify-center text-xs">
+              {isSubscribed ? '🔔' : '🔕'}
+            </span>
+          </div>
+        </div>
       </button>
 
       {showMessage && (
