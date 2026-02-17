@@ -151,41 +151,39 @@ God meets us through the church space where His people gather. Therefore, we mus
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-                    {selectedColumn.author[0]}
-                  </div>
-                  <div>
-                    <div 
-                      className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-slate-300 via-white to-slate-300 dark:from-slate-200 dark:via-white dark:to-slate-200 text-sm"
-                      style={{
-                        filter: 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 20px rgba(226, 232, 240, 0.4))',
-                      }}
-                    >
-                      {selectedColumn.author} {selectedColumn.role}
+              <div className="sticky top-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark p-4 z-10">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                      {selectedColumn.author[0]}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {selectedColumn.date}
+                    <div>
+                      <div 
+                        className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-slate-300 via-white to-slate-300 dark:from-slate-200 dark:via-white dark:to-slate-200 text-sm"
+                        style={{
+                          filter: 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 20px rgba(226, 232, 240, 0.4))',
+                        }}
+                      >
+                        {selectedColumn.author} {selectedColumn.role}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {selectedColumn.date}
+                      </div>
                     </div>
                   </div>
+                  <button
+                    onClick={() => setSelectedColumn(null)}
+                    className="relative text-cyan-400 hover:text-cyan-300 dark:text-cyan-300 dark:hover:text-cyan-200 transition-all flex-shrink-0"
+                    style={{
+                      filter: 'drop-shadow(0 0 8px rgba(34, 211, 238, 0.8)) drop-shadow(0 0 12px rgba(34, 211, 238, 0.6))',
+                    }}
+                  >
+                    <span className="absolute inset-0 bg-cyan-400/30 dark:bg-cyan-300/30 blur-xl animate-pulse"></span>
+                    <span className="material-icons-outlined text-2xl relative z-10">close</span>
+                  </button>
                 </div>
-                <button
-                  onClick={() => setSelectedColumn(null)}
-                  className="relative text-cyan-400 hover:text-cyan-300 dark:text-cyan-300 dark:hover:text-cyan-200 transition-all"
-                  style={{
-                    filter: 'drop-shadow(0 0 8px rgba(34, 211, 238, 0.8)) drop-shadow(0 0 12px rgba(34, 211, 238, 0.6))',
-                  }}
-                >
-                  <span className="absolute inset-0 bg-cyan-400/30 dark:bg-cyan-300/30 blur-xl animate-pulse"></span>
-                  <span className="material-icons-outlined text-2xl relative z-10">close</span>
-                </button>
-              </div>
-
-              {/* Modal Content */}
-              <div className="p-6">
                 <h2 
-                  className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400 mb-4"
+                  className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400"
                   style={{
                     textShadow: '0 0 30px rgba(168, 85, 247, 0.3)',
                     filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.4))',
@@ -193,6 +191,10 @@ God meets us through the church space where His people gather. Therefore, we mus
                 >
                   {selectedColumn.title}
                 </h2>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6">
                 <div className="prose prose-sm dark:prose-invert max-w-none">
                   {selectedColumn.content.split('\n\n').map((paragraph, index) => (
                     <p key={index} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
