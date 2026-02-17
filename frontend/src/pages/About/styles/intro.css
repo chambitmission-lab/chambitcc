@@ -1,0 +1,67 @@
+/* About Page - Intro Section */
+
+.intro-section {
+  margin-bottom: 3rem;
+}
+
+.intro-text {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #4b5563;
+  margin-bottom: 2rem;
+}
+
+[data-theme="dark"] .intro-text {
+  color: #9ca3af;
+}
+
+/* Quote Card */
+.quote-card {
+  position: relative;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  margin: 2rem 0;
+  border: 2px solid #fde68a;
+  box-shadow: 0 10px 30px rgba(251, 191, 36, 0.15);
+}
+
+[data-theme="dark"] .quote-card {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border-color: #374151;
+}
+
+.quote-icon {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  font-size: 4rem;
+  color: #fbbf24;
+  opacity: 0.3;
+  font-family: Georgia, serif;
+}
+
+.quote-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #92400e;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+[data-theme="dark"] .quote-text {
+  color: #fbbf24;
+}
+
+.quote-author {
+  font-size: 0.875rem;
+  color: #78350f;
+  font-weight: 600;
+  text-align: right;
+}
+
+[data-theme="dark"] .quote-author {
+  color: #d97706;
+}

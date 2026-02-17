@@ -1,0 +1,97 @@
+/* About Page - Pastor Section */
+
+.pastor-section {
+  margin-bottom: 3rem;
+}
+
+.pastor-nickname {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 2rem;
+}
+
+[data-theme="dark"] .pastor-nickname {
+  background: linear-gradient(135deg, #374151, #1f2937);
+  color: #fbbf24;
+}
+
+.pastor-intro {
+  margin-bottom: 2rem;
+}
+
+.pastor-text {
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: #4b5563;
+  margin-bottom: 1.25rem;
+}
+
+[data-theme="dark"] .pastor-text {
+  color: #9ca3af;
+}
+
+.pastor-text.highlight {
+  padding: 1.25rem;
+  background: #fffbeb;
+  border-left: 4px solid #fbbf24;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+[data-theme="dark"] .pastor-text.highlight {
+  background: #1f2937;
+  color: #fbbf24;
+}
+
+/* Credentials */
+.credentials {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.credential-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #f9fafb;
+  border-radius: 1rem;
+  border: 2px solid #e5e7eb;
+}
+
+[data-theme="dark"] .credential-item {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.credential-icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.credential-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.credential-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .credential-value {
+  color: #f9fafb;
+}

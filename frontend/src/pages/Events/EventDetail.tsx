@@ -5,7 +5,7 @@ import { useEventDetail } from '../../hooks/useEvents'
 import { attendEvent, cancelAttendance, createEventComment, deleteEventComment } from '../../api/event'
 import { translations } from '../../locales'
 import type { AttendanceStatus } from '../../types/event'
-import './EventDetail.css'
+import './styles/detail/index.css'
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>()

@@ -1,5 +1,5 @@
 import { useLanguage } from '../../contexts/LanguageContext'
-import './About.css'
+import './styles/index.css'
 
 const About = () => {
   const { t } = useLanguage()

@@ -1,0 +1,47 @@
+/* About Page - CTA Section */
+
+.cta-section {
+  margin-bottom: 3rem;
+}
+
+.cta-card {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 1.5rem;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-card::before {
+  content: '✨';
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 3rem;
+  opacity: 0.1;
+}
+
+.cta-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.cta-text {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+}
+
+.cta-badge {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #fbbf24;
+  color: #1e293b;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
