@@ -6,6 +6,10 @@ export const common = {
   cancel: 'Cancel',
   delete: 'Delete',
   edit: 'Edit',
+  create: 'Create',
+  update: 'Update',
+  submit: 'Submit',
+  submitting: 'Submitting...',
   loading: 'Loading...',
   error: 'An error occurred',
   cannotLoadData: 'Cannot load data',
@@ -13,4 +17,5 @@ export const common = {
   owner: 'Owner',
   deleteConfirm: 'Are you sure you want to delete?',
   versesToMeditateOn: 'Verses to meditate on',
+  actions: 'Actions',
 } as const

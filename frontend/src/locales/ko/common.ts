@@ -6,6 +6,10 @@ export const common = {
   cancel: '취소',
   delete: '삭제',
   edit: '수정',
+  create: '등록',
+  update: '수정',
+  submit: '제출',
+  submitting: '제출 중...',
   loading: '로딩 중...',
   error: '오류가 발생했습니다',
   cannotLoadData: '데이터를 불러올 수 없습니다',
@@ -13,4 +17,5 @@ export const common = {
   owner: '작성자',
   deleteConfirm: '정말 삭제하시겠습니까?',
   versesToMeditateOn: '함께 묵상해볼 수 있는 해설',
+  actions: '작업',
 } as const

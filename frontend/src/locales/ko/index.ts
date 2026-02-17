@@ -8,6 +8,7 @@ import { profile } from './profile'
 import { bible } from './bible'
 import { about } from './about'
 import { worship } from './worship'
+import { event } from './event'
 
 export const ko = {
   ...common,
@@ -19,4 +20,5 @@ export const ko = {
   ...bible,
   ...about,
   ...worship,
+  ...event,
 } as const

@@ -17,4 +17,6 @@ export const navigation = {
   notificationManagement: '📢 Notification Management',
   dailyVerseManagement: '📖 Daily Verse Management',
   bulletinManagement: '📰 Bulletin Management',
+  events: 'Events',
+  eventManagement: '📅 Event Management',
 } as const

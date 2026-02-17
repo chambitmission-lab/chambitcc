@@ -166,6 +166,12 @@ const NewHeader = () => {
                 {t('sermon')}
               </Link>
               <Link
+                to="/events"
+                className="glow-menu-item flex-shrink-0 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white rounded-full transition-all whitespace-nowrap relative"
+              >
+                {t('events')}
+              </Link>
+              <Link
                 to="/ministry"
                 className="glow-menu-item flex-shrink-0 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white rounded-full transition-all whitespace-nowrap relative"
               >
@@ -212,6 +218,12 @@ const NewHeader = () => {
                     className="block px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400 font-semibold hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
                   >
                     {t('bulletinManagement')}
+                  </Link>
+                  <Link
+                    to="/admin/events"
+                    className="block px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400 font-semibold hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
+                  >
+                    {t('eventManagement')}
                   </Link>
                   <Link
                     to="/admin/push"

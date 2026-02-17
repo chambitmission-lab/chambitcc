@@ -22,7 +22,10 @@ import NotificationManagement from './pages/Admin/NotificationManagement'
 import DailyVerseManagement from './pages/Admin/DailyVerseManagement'
 import BulletinManagement from './pages/Admin/BulletinManagement'
 import { PushNotificationManagement } from './pages/Admin/PushNotificationManagement'
+import EventManagement from './pages/Admin/EventManagement'
 import Profile from './pages/Profile/Profile'
+import Events from './pages/Events/Events'
+import EventDetail from './pages/Events/EventDetail'
 import './App.css'
 import './styles/common.css'
 
@@ -54,6 +57,9 @@ function App() {
               <Route path="/admin/daily-verse" element={<DailyVerseManagement />} />
               <Route path="/admin/bulletins" element={<BulletinManagement />} />
               <Route path="/admin/push" element={<PushNotificationManagement />} />
+              <Route path="/admin/events" element={<EventManagement />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/events/:id" element={<EventDetail />} />
               {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
