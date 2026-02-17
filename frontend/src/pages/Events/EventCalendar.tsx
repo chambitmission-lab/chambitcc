@@ -70,23 +70,45 @@ const EventCalendar = () => {
 
   // 이벤트 스타일
   const eventStyleGetter = useCallback((event: CalendarEvent) => {
-    const categoryColors: Record<EventCategory, string> = {
-      worship: '#3b82f6',
-      meeting: '#f59e0b',
-      service: '#10b981',
-      special: '#ec4899',
-      education: '#8b5cf6',
-      other: '#6b7280',
+    const categoryColors: Record<EventCategory, { bg: string; shadow: string }> = {
+      worship: { 
+        bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        shadow: 'rgba(102, 126, 234, 0.4)'
+      },
+      meeting: { 
+        bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        shadow: 'rgba(240, 147, 251, 0.4)'
+      },
+      service: { 
+        bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+        shadow: 'rgba(79, 172, 254, 0.4)'
+      },
+      special: { 
+        bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+        shadow: 'rgba(250, 112, 154, 0.4)'
+      },
+      education: { 
+        bg: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+        shadow: 'rgba(168, 237, 234, 0.4)'
+      },
+      other: { 
+        bg: 'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)',
+        shadow: 'rgba(210, 153, 194, 0.4)'
+      },
     }
+
+    const colors = categoryColors[event.resource.category]
 
     return {
       style: {
-        backgroundColor: categoryColors[event.resource.category],
-        borderRadius: '4px',
-        opacity: 0.9,
+        background: colors.bg,
+        borderRadius: '6px',
+        opacity: 0.95,
         color: 'white',
         border: 'none',
         display: 'block',
+        fontWeight: '500',
+        boxShadow: `0 2px 8px ${colors.shadow}`,
       }
     }
   }, [])
@@ -132,27 +154,27 @@ const EventCalendar = () => {
 
       <div className="calendar-legend">
         <div className="legend-item">
-          <span className="legend-color" style={{ background: '#3b82f6' }}></span>
+          <span className="legend-color" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}></span>
           <span>{t.categories.worship}</span>
         </div>
         <div className="legend-item">
-          <span className="legend-color" style={{ background: '#f59e0b' }}></span>
+          <span className="legend-color" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}></span>
           <span>{t.categories.meeting}</span>
         </div>
         <div className="legend-item">
-          <span className="legend-color" style={{ background: '#10b981' }}></span>
+          <span className="legend-color" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}></span>
           <span>{t.categories.service}</span>
         </div>
         <div className="legend-item">
-          <span className="legend-color" style={{ background: '#ec4899' }}></span>
+          <span className="legend-color" style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }}></span>
           <span>{t.categories.special}</span>
         </div>
         <div className="legend-item">
-          <span className="legend-color" style={{ background: '#8b5cf6' }}></span>
+          <span className="legend-color" style={{ background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)' }}></span>
           <span>{t.categories.education}</span>
         </div>
         <div className="legend-item">
-          <span className="legend-color" style={{ background: '#6b7280' }}></span>
+          <span className="legend-color" style={{ background: 'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)' }}></span>
           <span>{t.categories.other}</span>
         </div>
       </div>
