@@ -7,8 +7,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvents } from '../../hooks/useEvents'
 import { translations } from '../../locales'
 import type { Event, EventCategory } from '../../types/event'
-import 'react-big-calendar/lib/css/react-big-calendar.css'
-import './EventCalendar.css'
+import './styles/index.css'
 
 const locales = {
   'ko': ko,

@@ -1,0 +1,11 @@
+/* Event Calendar Styles - Main Entry Point */
+
+/* Import React Big Calendar base styles */
+@import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+/* Import modular styles */
+@import './animations.css';
+@import './layout.css';
+@import './legend.css';
+@import './calendar-theme.css';
+@import './responsive.css';
