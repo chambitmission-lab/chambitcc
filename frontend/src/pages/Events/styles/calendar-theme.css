@@ -22,6 +22,24 @@
   background: #000000;
 }
 
+/* 일요일 (첫 번째 열) - 빨간색 */
+.rbc-header:first-child {
+  color: #ed4956;
+}
+
+:root[data-theme="dark"] .rbc-header:first-child {
+  color: #ff6b7a;
+}
+
+/* 토요일 (마지막 열) - 파란색 */
+.rbc-header:last-child {
+  color: #0095f6;
+}
+
+:root[data-theme="dark"] .rbc-header:last-child {
+  color: #4db5f9;
+}
+
 /* Today Highlight */
 .rbc-today {
   background: #f0f8ff;
@@ -62,6 +80,41 @@
 }
 
 .rbc-today .rbc-date-cell {
+  color: #0095f6;
+  font-weight: 600;
+}
+
+/* 일요일 날짜 (첫 번째 열) - 빨간색 */
+.rbc-day-bg:first-child + .rbc-date-cell,
+.rbc-row:not(.rbc-month-header) > div:first-child .rbc-date-cell {
+  color: #ed4956;
+}
+
+:root[data-theme="dark"] .rbc-day-bg:first-child + .rbc-date-cell,
+:root[data-theme="dark"] .rbc-row:not(.rbc-month-header) > div:first-child .rbc-date-cell {
+  color: #ff6b7a;
+}
+
+/* 토요일 날짜 (마지막 열) - 파란색 */
+.rbc-day-bg:last-child + .rbc-date-cell,
+.rbc-row:not(.rbc-month-header) > div:last-child .rbc-date-cell {
+  color: #0095f6;
+}
+
+:root[data-theme="dark"] .rbc-day-bg:last-child + .rbc-date-cell,
+:root[data-theme="dark"] .rbc-row:not(.rbc-month-header) > div:last-child .rbc-date-cell {
+  color: #4db5f9;
+}
+
+/* 오늘 날짜가 일요일/토요일일 때도 색상 유지 */
+.rbc-today.rbc-day-bg:first-child ~ * .rbc-date-cell,
+.rbc-row:not(.rbc-month-header) > div:first-child.rbc-today .rbc-date-cell {
+  color: #ed4956;
+  font-weight: 600;
+}
+
+.rbc-today.rbc-day-bg:last-child ~ * .rbc-date-cell,
+.rbc-row:not(.rbc-month-header) > div:last-child.rbc-today .rbc-date-cell {
   color: #0095f6;
   font-weight: 600;
 }
