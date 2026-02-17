@@ -91,7 +91,7 @@ export const usePrayerToggle = ({
         },
       }))
 
-      // 인기순일 때만 정렬 (prayer_count 내림차순)
+      // 따뜻한 관심순일 때만 정렬 (prayer_count 내림차순)
       if (sort === 'popular') {
         updatedPages.forEach((page: any) => {
           page.data.items.sort((a: Prayer, b: Prayer) => b.prayer_count - a.prayer_count)

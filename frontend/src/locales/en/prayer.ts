@@ -19,7 +19,7 @@ export const prayer = {
   prayed: 'Prayed',
   totalPrayers: 'Total Prayers',
   consecutivePrayers: 'Streak Days',
-  popular: 'Popular',
+  popular: 'Most Supported',
   latest: 'Latest',
   
   // Prayer composer

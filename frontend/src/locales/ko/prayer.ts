@@ -19,7 +19,7 @@ export const prayer = {
   prayed: '기도함',
   totalPrayers: '총 기도',
   consecutivePrayers: '연속 기도',
-  popular: '인기순',
+  popular: '따뜻한 관심순',
   latest: '최신순',
   
   // 기도 작성
