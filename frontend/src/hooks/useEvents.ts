@@ -15,40 +15,43 @@ export const useEvents = (
   const [hasMore, setHasMore] = useState(true)
 
   // 이벤트 목록 로드
-  const loadEvents = useCallback(async (reset: boolean = false) => {
+  const loadEvents = useCallback(async (currentSkip: number, reset: boolean = false) => {
     try {
       setLoading(true)
       setError(null)
 
-      const currentSkip = reset ? 0 : skip
+      console.log('Fetching events:', { startDate, endDate, category, currentSkip })
       const response = await fetchEvents(startDate, endDate, category, currentSkip, 20)
+      console.log('Events response:', response)
 
       if (response.success) {
         setEvents(prev =>
           reset ? response.data.items : [...prev, ...response.data.items]
         )
         setHasMore(response.data.items.length === 20)
-        if (reset) setSkip(0)
       }
     } catch (err) {
+      console.error('Error fetching events:', err)
       setError(err instanceof Error ? err.message : '오류가 발생했습니다')
     } finally {
       setLoading(false)
     }
-  }, [skip, startDate, endDate, category])
+  }, [startDate, endDate, category])
 
   // 초기 로드 및 필터 변경 시 리로드
   useEffect(() => {
-    loadEvents(true)
-  }, [startDate, endDate, category])
+    setSkip(0)
+    loadEvents(0, true)
+  }, [startDate, endDate, category, loadEvents])
 
   // 더 보기
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {
-      setSkip(prev => prev + 20)
-      loadEvents(false)
+      const newSkip = skip + 20
+      setSkip(newSkip)
+      loadEvents(newSkip, false)
     }
-  }, [loading, hasMore, loadEvents])
+  }, [loading, hasMore, skip, loadEvents])
 
   return {
     events,
@@ -56,7 +59,10 @@ export const useEvents = (
     error,
     hasMore,
     loadMore,
-    refresh: () => loadEvents(true),
+    refresh: () => {
+      setSkip(0)
+      loadEvents(0, true)
+    },
   }
 }
 
@@ -71,11 +77,15 @@ export const useEventDetail = (eventId: number) => {
       setLoading(true)
       setError(null)
 
+      console.log('Fetching event detail:', eventId)
       const response = await fetchEventDetail(eventId)
+      console.log('Event detail response:', response)
+
       if (response.success) {
         setEvent(response.data)
       }
     } catch (err) {
+      console.error('Error fetching event detail:', err)
       setError(err instanceof Error ? err.message : '오류가 발생했습니다')
     } finally {
       setLoading(false)

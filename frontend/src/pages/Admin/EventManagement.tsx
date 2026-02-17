@@ -274,18 +274,18 @@ const EventManagement = () => {
             <tbody>
               {events.map((event) => (
                 <tr key={event.id}>
-                  <td>{event.id}</td>
-                  <td>
+                  <td data-label="ID">{event.id}</td>
+                  <td data-label={t.category}>
                     <span className={`category-badge category-${event.category}`}>
                       {t.categories[event.category]}
                     </span>
                   </td>
-                  <td>{event.title}</td>
-                  <td>{formatDateTime(event.start_datetime)}</td>
-                  <td>{event.location || '-'}</td>
-                  <td>{event.attendance_count}</td>
-                  <td>{event.is_published ? '✅' : '❌'}</td>
-                  <td>
+                  <td data-label={t.eventTitle}>{event.title}</td>
+                  <td data-label={t.startDate}>{formatDateTime(event.start_datetime)}</td>
+                  <td data-label={t.location}>{event.location || '-'}</td>
+                  <td data-label={t.attendanceCount}>{event.attendance_count}</td>
+                  <td data-label={t.isPublished}>{event.is_published ? '✅' : '❌'}</td>
+                  <td data-label={t.actions}>
                     <div className="action-buttons">
                       <button onClick={() => handleEdit(event)} className="edit-btn">
                         {t.edit}

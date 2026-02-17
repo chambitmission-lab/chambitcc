@@ -42,7 +42,23 @@ export const fetchEvents = async (
     throw new Error('이벤트를 불러오는데 실패했습니다')
   }
 
-  return response.json()
+  const data = await response.json()
+  
+  // 백엔드가 배열을 직접 반환하는 경우 처리
+  if (Array.isArray(data)) {
+    return {
+      success: true,
+      data: {
+        items: data,
+        total: data.length,
+        page: Math.floor(skip / limit) + 1,
+        limit: limit,
+      }
+    }
+  }
+  
+  // 백엔드가 객체로 감싸서 반환하는 경우
+  return data
 }
 
 // 이벤트 상세 조회 (공개)
@@ -61,7 +77,17 @@ export const fetchEventDetail = async (eventId: number): Promise<EventDetailResp
     throw new Error('이벤트를 불러오는데 실패했습니다')
   }
 
-  return response.json()
+  const data = await response.json()
+  
+  // 백엔드가 객체를 직접 반환하는 경우 처리
+  if (data && !data.success) {
+    return {
+      success: true,
+      data: data
+    }
+  }
+  
+  return data
 }
 
 // 이벤트 생성 (관리자, 인증 필요)
@@ -275,5 +301,20 @@ export const fetchAllEvents = async (
     throw new Error('이벤트를 불러오는데 실패했습니다')
   }
 
-  return response.json()
+  const data = await response.json()
+  
+  // 백엔드가 배열을 직접 반환하는 경우 처리
+  if (Array.isArray(data)) {
+    return {
+      success: true,
+      data: {
+        items: data,
+        total: data.length,
+        page: Math.floor(skip / limit) + 1,
+        limit: limit,
+      }
+    }
+  }
+  
+  return data
 }
