@@ -1,58 +1,61 @@
-/* Event Description Section */
+/* Event Description Section - Modern Clean Style */
 
 .event-description {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .description-card {
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  border-radius: 1.5rem;
-  border: 2px solid #fde68a;
-  box-shadow: 0 10px 30px rgba(251, 191, 36, 0.15);
+  padding: 1rem;
+  background: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
 }
 
 [data-theme="dark"] .description-card {
-  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-  border-color: #374151;
+  background: #000000;
+  border-color: #262626;
 }
 
 .description-card p {
-  font-size: 0.9375rem;
-  line-height: 1.8;
-  color: #4b5563;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #262626;
   white-space: pre-wrap;
 }
 
 [data-theme="dark"] .description-card p {
-  color: #9ca3af;
+  color: #fafafa;
 }
 
 /* Attachment */
 .event-attachment {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .attachment-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.75rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  color: #0095f6;
   text-decoration: none;
-  border-radius: 50px;
-  font-size: 0.9375rem;
+  border: 1px solid #0095f6;
+  border-radius: 8px;
+  font-size: 0.875rem;
   font-weight: 600;
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .attachment-link {
+  background: #000000;
 }
 
 .attachment-link:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.4);
+  background: #0095f6;
+  color: white;
 }
 
 .attachment-icon {
-  font-size: 1.25rem;
+  font-size: 1rem;
 }

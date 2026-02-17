@@ -1,28 +1,28 @@
-/* Loading & Error States */
+/* Loading & Error States - Modern Clean Style */
 
 .loading-spinner {
   text-align: center;
   padding: 3rem 1rem;
-  color: #6b7280;
+  color: #8e8e8e;
 }
 
 [data-theme="dark"] .loading-spinner {
-  color: #9ca3af;
+  color: #a8a8a8;
 }
 
 .error-message {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  color: #991b1b;
-  padding: 1.5rem;
-  border-radius: 1rem;
+  background: #fff5f5;
+  color: #c53030;
+  padding: 1rem;
+  border-radius: 8px;
   margin-bottom: 1rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  border: 2px solid #fca5a5;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid #feb2b2;
 }
 
 [data-theme="dark"] .error-message {
-  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
-  color: #fecaca;
-  border-color: #991b1b;
+  background: #2d0a0a;
+  color: #fc8181;
+  border-color: #742a2a;
 }
