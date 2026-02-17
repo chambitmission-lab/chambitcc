@@ -1,0 +1,37 @@
+/* Responsive Design for Event Detail */
+
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .event-detail-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .info-card {
+    padding: 1rem;
+  }
+
+  .description-card {
+    padding: 1.25rem;
+  }
+
+  .attendance-section {
+    padding: 1.5rem 1rem;
+  }
+
+  .comment-form textarea {
+    font-size: 16px; /* iOS zoom 방지 */
+  }
+}
+
+@media (max-width: 375px) {
+  .hero-title {
+    font-size: 1.5rem;
+  }
+
+  .event-detail-content {
+    padding: 1.25rem 0.875rem;
+  }
+}

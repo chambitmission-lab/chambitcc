@@ -1,0 +1,61 @@
+/* Event Info Cards */
+
+.event-info-section {
+  margin-bottom: 2rem;
+}
+
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #f9fafb;
+  border-radius: 1rem;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .info-card {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .info-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.info-icon {
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.info-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .info-value {
+  color: #f9fafb;
+}

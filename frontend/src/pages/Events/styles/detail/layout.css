@@ -1,0 +1,54 @@
+/* Event Detail Layout */
+
+.back-btn {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #374151;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+[data-theme="dark"] .back-btn {
+  background: rgba(31, 41, 55, 0.95);
+  border-bottom-color: #374151;
+  color: #d1d5db;
+}
+
+.back-btn:hover {
+  background: rgba(249, 250, 251, 0.95);
+}
+
+[data-theme="dark"] .back-btn:hover {
+  background: rgba(55, 65, 81, 0.95);
+}
+
+.event-detail-content {
+  padding: 2rem 1.5rem;
+}
+
+/* Section Badge */
+.section-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 50px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 1.5rem;
+}
+
+[data-theme="dark"] .section-badge {
+  background: linear-gradient(135deg, #374151, #1f2937);
+  color: #fbbf24;
+}

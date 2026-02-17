@@ -1,0 +1,58 @@
+/* Event Description Section */
+
+.event-description {
+  margin-bottom: 2rem;
+}
+
+.description-card {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-radius: 1.5rem;
+  border: 2px solid #fde68a;
+  box-shadow: 0 10px 30px rgba(251, 191, 36, 0.15);
+}
+
+[data-theme="dark"] .description-card {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border-color: #374151;
+}
+
+.description-card p {
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: #4b5563;
+  white-space: pre-wrap;
+}
+
+[data-theme="dark"] .description-card p {
+  color: #9ca3af;
+}
+
+/* Attachment */
+.event-attachment {
+  margin-bottom: 2rem;
+}
+
+.attachment-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.75rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 50px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease;
+}
+
+.attachment-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.4);
+}
+
+.attachment-icon {
+  font-size: 1.25rem;
+}

@@ -1,0 +1,28 @@
+/* Loading & Error States */
+
+.loading-spinner {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+}
+
+[data-theme="dark"] .loading-spinner {
+  color: #9ca3af;
+}
+
+.error-message {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: 2px solid #fca5a5;
+}
+
+[data-theme="dark"] .error-message {
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+  color: #fecaca;
+  border-color: #991b1b;
+}
