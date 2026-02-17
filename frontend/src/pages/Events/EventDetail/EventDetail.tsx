@@ -20,7 +20,7 @@ const EventDetail = () => {
   const t = translations[language]
   const { event, loading, error, refresh } = useEventDetail(Number(id))
 
-  const { isLoggedIn: isLoggedInForAttendance, handleAttend, handleCancelAttendance } = 
+  const { handleAttend, handleCancelAttendance } = 
     useEventActions(Number(id), refresh, t)
 
   const {
@@ -87,7 +87,7 @@ const EventDetail = () => {
             />
 
             <AttendanceSection
-              userAttendanceStatus={event.user_attendance_status}
+              userAttendanceStatus={event.user_attendance_status ?? undefined}
               onAttend={handleAttend}
               onCancel={handleCancelAttendance}
               t={t}

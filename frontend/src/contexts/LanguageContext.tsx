@@ -20,7 +20,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const t = (key: keyof typeof translations.ko): string => {
-    return translations[language][key] || translations.ko[key] || key
+    const value = translations[language][key] || translations.ko[key] || key
+    return typeof value === 'string' ? value : String(key)
   }
 
   useEffect(() => {

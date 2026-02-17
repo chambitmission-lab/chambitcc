@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar'
+import type { View } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
@@ -21,8 +22,6 @@ const localizer = dateFnsLocalizer({
   locales,
 })
 
-type CalendarView = 'month' | 'week' | 'day' | 'agenda'
-
 interface CalendarEvent {
   id: number
   title: string
@@ -35,7 +34,7 @@ const EventCalendar = () => {
   const { language } = useLanguage()
   const t = translations[language]
   const navigate = useNavigate()
-  const [view, setView] = useState<CalendarView>('month')
+  const [view, setView] = useState<View>('month')
   const [date, setDate] = useState(new Date())
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | undefined>()
 
