@@ -1,0 +1,39 @@
+/* Agenda View Styles */
+
+.rbc-agenda-view {
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+:root[data-theme="dark"] .rbc-agenda-view {
+  border-color: #262626;
+}
+
+.rbc-agenda-table {
+  border-color: #efefef;
+}
+
+:root[data-theme="dark"] .rbc-agenda-table {
+  border-color: #1a1a1a;
+}
+
+.rbc-agenda-date-cell,
+.rbc-agenda-time-cell {
+  color: #8e8e8e;
+  font-size: 0.875rem;
+}
+
+:root[data-theme="dark"] .rbc-agenda-date-cell,
+:root[data-theme="dark"] .rbc-agenda-time-cell {
+  color: #a8a8a8;
+}
+
+.rbc-agenda-event-cell {
+  color: #262626;
+  font-size: 0.875rem;
+}
+
+:root[data-theme="dark"] .rbc-agenda-event-cell {
+  color: #fafafa;
+}

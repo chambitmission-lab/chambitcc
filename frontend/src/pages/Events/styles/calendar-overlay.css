@@ -1,0 +1,29 @@
+/* Overlay Styles */
+
+.rbc-overlay {
+  background: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+}
+
+:root[data-theme="dark"] .rbc-overlay {
+  background: #262626;
+  border-color: #363636;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.rbc-overlay-header {
+  padding: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #262626;
+  border-bottom: 1px solid #efefef;
+  margin-bottom: 0.5rem;
+}
+
+:root[data-theme="dark"] .rbc-overlay-header {
+  color: #fafafa;
+  border-bottom-color: #363636;
+}
