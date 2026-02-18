@@ -57,7 +57,7 @@ const PrayerAuthorInfo = ({
             }}
             className="group-hover:tracking-wider"
           >
-            {translationButtonText.replace('🇺🇸 ', '').replace('🇰🇷 ', '').replace('🇻🇳 ', '').replace('🇯🇵 ', '').replace('🇫🇷 ', '')}
+            {translationButtonText.replace('🇺🇸 ', '').replace('🇰🇷 ', '').replace('🇻🇳 ', '').replace('🇯🇵 ', '').replace('🇫🇷 ', '').replace('🇨🇳 ', '')}
           </span>
         </button>
       )}

@@ -18,6 +18,9 @@ export const getLanguageFlag = (langCode?: string): string => {
       return '🇯🇵'
     case 'fr':
       return '🇫🇷'
+    case 'zh':
+    case 'cn':
+      return '🇨🇳'
     default:
       console.warn('⚠️ Unknown language code:', langCode, '→', normalizedCode)
       return '🇰🇷' // 기본값은 한국어
@@ -43,6 +46,9 @@ export const getLanguageName = (langCode?: string): string => {
       return 'JP'
     case 'fr':
       return 'FR'
+    case 'zh':
+    case 'cn':
+      return 'CN'
     default:
       return '한글'
   }
