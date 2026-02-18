@@ -54,18 +54,29 @@ const PrayerHeader = ({
         </div>
       </div>
       
-      {/* 미니멀 언어 뱃지 */}
+      {/* 언어 전환 버튼 */}
       {hasTranslation && (
         <button
           onClick={onTranslationToggle}
-          className="group relative px-2 py-1 rounded-full bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-gray-200/80 dark:hover:bg-gray-700/80 transition-all duration-300 overflow-hidden"
+          className="group relative flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-purple-100/80 dark:hover:bg-purple-900/30 transition-all duration-300 overflow-hidden border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-300/50 dark:hover:border-purple-700/50"
           title={showTranslation ? '원문 보기' : '번역 보기'}
         >
           {/* 호버 시 배경 애니메이션 */}
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
           
-          <span className="relative text-[11px] font-semibold text-gray-600 dark:text-gray-400 tracking-tight">
-            {currentLang}
+          {/* 국기 아이콘 */}
+          <span className="relative text-xs">
+            {currentLang === '한글' ? '🇰🇷' : '🇺🇸'}
+          </span>
+          
+          {/* 화살표 */}
+          <span className="relative text-[9px] text-gray-400 dark:text-gray-500">
+            →
+          </span>
+          
+          {/* 다음 언어 국기 */}
+          <span className="relative text-xs opacity-60 group-hover:opacity-100 transition-opacity">
+            {currentLang === '한글' ? '🇺🇸' : '🇰🇷'}
           </span>
         </button>
       )}
