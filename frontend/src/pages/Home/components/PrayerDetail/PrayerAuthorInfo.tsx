@@ -6,7 +6,6 @@ interface PrayerAuthorInfoProps {
   timeAgo: string
   hasTranslation: boolean
   translationButtonText: string
-  currentLanguage: string
   nextLanguage: string
   onTranslationToggle: () => void
 }
@@ -16,7 +15,6 @@ const PrayerAuthorInfo = ({
   timeAgo,
   hasTranslation,
   translationButtonText,
-  currentLanguage,
   nextLanguage,
   onTranslationToggle,
 }: PrayerAuthorInfoProps) => {
@@ -59,7 +57,7 @@ const PrayerAuthorInfo = ({
             }}
             className="group-hover:tracking-wider"
           >
-            {translationButtonText.replace('🇺🇸 ', '').replace('🇰🇷 ', '').replace('🇻🇳 ', '').replace('🇯🇵 ', '')}
+            {translationButtonText.replace('🇺🇸 ', '').replace('🇰🇷 ', '').replace('🇻🇳 ', '').replace('🇯🇵 ', '').replace('🇫🇷 ', '')}
           </span>
         </button>
       )}

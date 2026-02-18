@@ -77,7 +77,6 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
     displayTitle,
     displayContent,
     translationButtonText,
-    currentLanguage,
     nextLanguage,
   } = useTranslation(prayer || null)
 
@@ -140,7 +139,6 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
             timeAgo={prayer.time_ago}
             hasTranslation={hasTranslation}
             translationButtonText={translationButtonText}
-            currentLanguage={currentLanguage}
             nextLanguage={nextLanguage}
             onTranslationToggle={toggleTranslation}
           />
