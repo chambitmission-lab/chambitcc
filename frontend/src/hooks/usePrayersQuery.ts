@@ -10,8 +10,8 @@ import type { SortType, Prayer, CreatePrayerRequest } from '../types/prayer'
 export const prayerKeys = {
   all: ['prayers'] as const,
   lists: () => [...prayerKeys.all, 'list'] as const,
-  list: (sort: SortType) => 
-    [...prayerKeys.lists(), sort] as const,
+  list: (sort: SortType, username?: string | null) => 
+    [...prayerKeys.lists(), sort, username || 'anonymous'] as const,
   details: () => [...prayerKeys.all, 'detail'] as const,
   detail: (prayerId: number, username?: string | null) => 
     [...prayerKeys.details(), prayerId, username || 'anonymous'] as const,
@@ -24,7 +24,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
 
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
-    queryKey: prayerKeys.list(sort),
+    queryKey: prayerKeys.list(sort, currentUser.username),
     queryFn: async ({ pageParam = 1 }) => {
       const response = await fetchPrayers(pageParam, 20, sort)
       
@@ -47,9 +47,9 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
       return allPages.length + 1
     },
     initialPageParam: 1,
-    staleTime: 1000 * 60 * 10, // 10분간 fresh (사용자별 is_owner 재계산으로 안전)
+    staleTime: 1000 * 60 * 5, // 5분간 fresh (PWA 재실행 시 빠른 갱신)
     gcTime: 1000 * 60 * 30, // 30분간 메모리 유지
-    refetchOnMount: true, // 마운트 시 항상 새로운 데이터 가져오기
+    refetchOnMount: 'always', // 마운트 시 항상 새로운 데이터 가져오기 (PWA 재실행 대응)
     refetchOnWindowFocus: false, // 윈도우 포커스 시에는 가져오지 않음
     retry: 2, // 실패 시 2번 재시도
   })
@@ -57,6 +57,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
   // 기도 토글 훅 사용 (Dependency Inversion)
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
     sort,
+    username: currentUser.username,
   })
 
   // 기도 생성 Mutation
@@ -114,7 +115,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     onSuccess: () => {
       showToast('기도 요청이 등록되었습니다.', 'success')
       
-      // 실제 데이터로 갱신
+      // 실제 데이터로 갱신 (모든 사용자의 캐시)
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
       
       // 백그라운드에서 프로필 캐시 무효화 (내 기도 +1)
@@ -150,7 +151,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     isToggling,
     createPrayer: (data: CreatePrayerRequest) => createMutation.mutateAsync(data),
     isCreating: createMutation.isPending,
-    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort) }),
+    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort, currentUser.username) }),
   }
 }
 
@@ -190,6 +191,7 @@ export const usePrayerDetail = (prayerId: number, initialData?: Prayer) => {
   // 기도 토글 훅 사용 (Dependency Inversion)
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
     prayerId, // 상세 페이지용
+    username: currentUser.username,
   })
 
   // 기도 토글 핸들러

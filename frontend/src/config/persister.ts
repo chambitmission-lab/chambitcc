@@ -18,9 +18,9 @@ export const persister: Persister = {
       
       const client = JSON.parse(cached) as PersistedClient
       
-      // 24시간 이상 지난 캐시는 무시
+      // 6시간 이상 지난 캐시는 무시 (PWA 재실행 시 신선한 데이터 보장)
       const now = Date.now()
-      if (client.timestamp && now - client.timestamp > 1000 * 60 * 60 * 24) {
+      if (client.timestamp && now - client.timestamp > 1000 * 60 * 60 * 6) {
         localStorage.removeItem('REACT_QUERY_CACHE')
         return undefined
       }

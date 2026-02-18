@@ -8,6 +8,7 @@ import type { Prayer, SortType } from '../types/prayer'
 interface UsePrayerToggleOptions {
   sort?: SortType
   prayerId?: number // 상세 페이지용
+  username?: string | null // 사용자별 캐시 키용
   onSuccess?: (message: string) => void
   onError?: (error: string) => void
 }
@@ -27,6 +28,7 @@ interface PrayerToggleResult {
 export const usePrayerToggle = ({
   sort = 'popular',
   prayerId: detailPrayerId,
+  username = null,
   onSuccess,
   onError,
 }: UsePrayerToggleOptions = {}): PrayerToggleResult => {
@@ -60,9 +62,9 @@ export const usePrayerToggle = ({
 
   // 통합 토글 함수 (Dependency Inversion: 추상화된 인터페이스 제공)
   const togglePrayer = async (prayerId: number, isPrayed: boolean) => {
-    const listQueryKey = prayerKeys.list(sort)
+    const listQueryKey = prayerKeys.list(sort, username)
     const detailQueryKey = detailPrayerId 
-      ? prayerKeys.detail(detailPrayerId)
+      ? prayerKeys.detail(detailPrayerId, username)
       : null
 
     // Optimistic Update - 목록 캐시
@@ -133,11 +135,11 @@ export const usePrayerToggle = ({
 
       // 캐시 무효화 (비동기, 백그라운드)
       setTimeout(() => {
-        // 다른 정렬의 목록만 백그라운드 무효화
+        // 다른 정렬의 목록만 백그라운드 무효화 (같은 사용자)
         const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
         otherSorts.forEach(otherSort => {
           queryClient.invalidateQueries({ 
-            queryKey: prayerKeys.list(otherSort),
+            queryKey: prayerKeys.list(otherSort, username),
             refetchType: 'none',
           })
         })
