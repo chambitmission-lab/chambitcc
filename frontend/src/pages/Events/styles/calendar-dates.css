@@ -50,15 +50,7 @@
   }
 }
 
-:root[data-theme="dark"] .rbc-today .rbc-date-cell {
-  color: #4db5f9;
-  text-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.5),
-    0 0 12px rgba(255, 230, 120, 0.5),
-    0 0 25px rgba(77, 181, 249, 0.4);
-}
-
-:root[data-theme="dark"] @keyframes streetLightGlow {
+@keyframes streetLightGlowDark {
   0%, 100% {
     text-shadow: 
       0 1px 3px rgba(0, 0, 0, 0.5),
@@ -73,6 +65,15 @@
       0 0 30px rgba(77, 181, 249, 0.5);
     filter: brightness(1.3);
   }
+}
+
+:root[data-theme="dark"] .rbc-today .rbc-date-cell {
+  color: #4db5f9;
+  text-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    0 0 12px rgba(255, 230, 120, 0.5),
+    0 0 25px rgba(77, 181, 249, 0.4);
+  animation: streetLightGlowDark 4s ease-in-out infinite;
 }
 
 /* 일요일 날짜 (첫 번째 열) - 빨간색 */
