@@ -8,6 +8,7 @@ export interface Prayer {
   content_en?: string  // 한글→영어 번역 내용
   title_ko?: string  // 영어→한글 번역 제목
   content_ko?: string  // 영어→한글 번역 내용
+  original_language?: string  // 원본 언어 코드 (ko, en, vi 등)
   prayer_count: number
   reply_count: number
   is_prayed: boolean

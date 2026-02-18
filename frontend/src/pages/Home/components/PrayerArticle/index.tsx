@@ -26,7 +26,10 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
     displayContent,
     transitionStyles,
     hasTranslation,
-    translationButtonText
+    translationButtonText,
+    currentLanguage,
+    nextLanguage,
+    originalLanguage
   } = useTranslationToggle(prayer)
 
   const handlePray = async (e: React.MouseEvent) => {
@@ -56,6 +59,9 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
         hasTranslation={hasTranslation}
         showTranslation={showTranslation}
         translationButtonText={translationButtonText}
+        currentLanguage={currentLanguage}
+        nextLanguage={nextLanguage}
+        originalLanguage={originalLanguage}
         onTranslationToggle={toggleTranslation}
       />
 

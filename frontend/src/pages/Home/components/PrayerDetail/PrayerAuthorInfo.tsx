@@ -1,9 +1,13 @@
+import { getLanguageFlag } from '../../../../utils/languageFlags'
+
 // 작성자 정보 컴포넌트
 interface PrayerAuthorInfoProps {
   displayName: string
   timeAgo: string
   hasTranslation: boolean
   translationButtonText: string
+  currentLanguage: string
+  nextLanguage: string
   onTranslationToggle: () => void
 }
 
@@ -12,6 +16,8 @@ const PrayerAuthorInfo = ({
   timeAgo,
   hasTranslation,
   translationButtonText,
+  currentLanguage,
+  nextLanguage,
   onTranslationToggle,
 }: PrayerAuthorInfoProps) => {
   return (
@@ -44,7 +50,7 @@ const PrayerAuthorInfo = ({
             }}
             className="group-hover:scale-110 group-hover:rotate-12"
           >
-            {translationButtonText.includes('English') || translationButtonText.includes('🇺🇸') ? '🇺🇸' : '🇰🇷'}
+            {getLanguageFlag(nextLanguage)}
           </span>
           {' '}
           <span
@@ -53,7 +59,7 @@ const PrayerAuthorInfo = ({
             }}
             className="group-hover:tracking-wider"
           >
-            {translationButtonText.replace('🇺🇸 ', '').replace('🇰🇷 ', '')}
+            {translationButtonText.replace('🇺🇸 ', '').replace('🇰🇷 ', '').replace('🇻🇳 ', '').replace('🇯🇵 ', '')}
           </span>
         </button>
       )}
