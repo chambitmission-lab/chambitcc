@@ -7,6 +7,7 @@ import TodaysVerse from './components/TodaysVerse'
 import SortTabs from './components/SortTabs'
 import PrayerComposerInput from './components/PrayerComposerInput'
 import PrayerFeed from './components/PrayerFeed'
+import PrayerFocusCard from './components/PrayerFocusCard'
 import BottomNavigation from './components/BottomNavigation'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import { useAuth } from '../../hooks/useAuth'
@@ -117,6 +118,7 @@ const NewHome = () => {
           
           <main ref={mainRef} className="flex-1 overflow-y-auto no-scrollbar pb-20">
             <TodaysVerse />
+            <PrayerFocusCard />
             <SortTabs currentSort={sort} onSortChange={setSort} />
             <PrayerComposerInput onComposerOpen={handleComposerOpen} />
             

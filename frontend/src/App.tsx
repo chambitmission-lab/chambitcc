@@ -26,6 +26,7 @@ import EventManagement from './pages/Admin/EventManagement'
 import Profile from './pages/Profile/Profile'
 import EventCalendar from './pages/Events/EventCalendar'
 import EventDetail from './pages/Events/EventDetail'
+import PrayerFocus from './pages/PrayerFocus'
 import './App.css'
 import './styles/common.css'
 
@@ -60,6 +61,7 @@ function App() {
               <Route path="/admin/events" element={<EventManagement />} />
               <Route path="/events" element={<EventCalendar />} />
               <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/prayer-focus" element={<PrayerFocus />} />
               {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

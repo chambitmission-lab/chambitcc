@@ -37,4 +37,14 @@ export const prayer = {
   stopVoiceInput: 'Stop voice input',
   listeningTitle: 'Listening for title...',
   listeningContent: 'Listening for content... (Click again to stop)',
+  
+  // Prayer Focus Mode
+  prayerFocusMode: 'Prayer Focus Mode',
+  selectPrayerTime: 'Select Prayer Time',
+  focusedPrayerDescription: 'Take time to pray with focus',
+  minutes: 'min',
+  todayVerse: "Today's Verse",
+  prayerComplete: 'Prayer Complete!',
+  startAgain: 'Start Again',
+  confirmExitTimer: 'Timer is running. Do you want to exit?',
 } as const

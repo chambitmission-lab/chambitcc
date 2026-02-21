@@ -37,4 +37,14 @@ export const prayer = {
   stopVoiceInput: '음성 입력 중지',
   listeningTitle: '제목 음성 인식 중...',
   listeningContent: '내용 음성 인식 중... (다시 클릭하면 중지)',
+  
+  // Prayer Focus Mode
+  prayerFocusMode: '집중 기도 모드',
+  selectPrayerTime: '기도 시간 선택',
+  focusedPrayerDescription: '집중하여 기도하는 시간을 가져보세요',
+  minutes: '분',
+  todayVerse: '오늘의 말씀',
+  prayerComplete: '기도 완료!',
+  startAgain: '다시 시작하기',
+  confirmExitTimer: '타이머가 실행 중입니다. 종료하시겠습니까?',
 } as const
