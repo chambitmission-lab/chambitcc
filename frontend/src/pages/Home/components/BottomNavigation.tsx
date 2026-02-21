@@ -21,7 +21,7 @@ const BottomNavigation = ({ onProfileClick, onComposeClick, onScrollToTop }: Bot
         {/* Compose - Center (Large) */}
         <button 
           onClick={onComposeClick}
-          className="flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 -mt-8"
+          className="flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
         >
           <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
             <svg className="w-6 h-6" fill="none" stroke="white" strokeWidth="3" viewBox="0 0 24 24">
