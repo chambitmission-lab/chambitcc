@@ -58,14 +58,8 @@ const NewHome = () => {
   }
 
   const handleScrollToTop = () => {
-    // 모든 가능한 스크롤 요소를 0으로 설정
-    if (mainRef.current) {
-      mainRef.current.scrollTop = 0
-      mainRef.current.scrollTo(0, 0)
-    }
-    window.scrollTo(0, 0)
-    document.documentElement.scrollTop = 0
-    document.body.scrollTop = 0
+    // 윈도우 스크롤을 맨 위로
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   // 초기 로딩 상태 표시
@@ -114,9 +108,9 @@ const NewHome = () => {
   return (
     <ErrorBoundary>
       <div className="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-200">
-        <div className="max-w-md mx-auto min-h-screen bg-background-light dark:bg-background-dark shadow-2xl relative flex flex-col border-x border-border-light dark:border-border-dark">
+        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl relative border-x border-border-light dark:border-border-dark">
           
-          <main ref={mainRef} className="flex-1 overflow-y-auto no-scrollbar pb-20">
+          <main ref={mainRef} className="pb-20">
             <TodaysVerse />
             <PrayerFocusCard />
             <SortTabs currentSort={sort} onSortChange={setSort} />

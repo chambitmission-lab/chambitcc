@@ -2,11 +2,13 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .main-content {
   flex: 1;
   width: 100%;
+  padding-top: 56px; /* 헤더 높이만큼 패딩 추가 */
 }
 
 /* Remove default margins and paddings */
