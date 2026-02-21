@@ -31,4 +31,10 @@ export const prayer = {
   prayerComposerTitlePlaceholder: '제목 (예: 가족의 건강, 진로 인도)',
   prayerComposerContentPlaceholder: '기도 제목을 나눠주세요... 구체적으로 어떤 기도가 필요한지 알려주세요.',
   prayerComposerCharCount: '자',
+  
+  // 음성 입력
+  startVoiceInput: '음성 입력 시작',
+  stopVoiceInput: '음성 입력 중지',
+  listeningTitle: '제목 음성 인식 중...',
+  listeningContent: '내용 음성 인식 중... (다시 클릭하면 중지)',
 } as const

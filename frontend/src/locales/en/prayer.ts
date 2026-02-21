@@ -31,4 +31,10 @@ export const prayer = {
   prayerComposerTitlePlaceholder: 'Title (e.g., Family health, Career guidance)',
   prayerComposerContentPlaceholder: 'Share your prayer request... Please let us know specifically what prayer you need.',
   prayerComposerCharCount: 'characters',
+  
+  // Voice input
+  startVoiceInput: 'Start voice input',
+  stopVoiceInput: 'Stop voice input',
+  listeningTitle: 'Listening for title...',
+  listeningContent: 'Listening for content... (Click again to stop)',
 } as const
