@@ -27,7 +27,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       setVoiceError(error)
       setTimeout(() => setVoiceError(''), 3000)
     },
-    continuous: false,
+    continuous: true,
   })
 
   // 내용 음성 인식
