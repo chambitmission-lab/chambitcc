@@ -97,6 +97,16 @@ export const useSpeechRecognition = ({
       // 종료 처리
       recognitionRef.current.onend = () => {
         setIsListening(false)
+        // continuous가 true이고 의도적으로 중지하지 않았다면 자동 재시작
+        if (continuous && isListening) {
+          setTimeout(() => {
+            try {
+              recognitionRef.current?.start()
+            } catch (err) {
+              console.log('Auto-restart failed:', err)
+            }
+          }, 100)
+        }
       }
     } else {
       setIsSupported(false)
@@ -118,23 +128,48 @@ export const useSpeechRecognition = ({
     }
 
     try {
+      // 이미 실행 중이면 중지 후 재시작
+      if (isListening) {
+        recognitionRef.current.stop()
+      }
+      
       // 누적 텍스트 초기화
       fullTranscriptRef.current = ''
-      recognitionRef.current.start()
-      setIsListening(true)
+      
+      // 약간의 지연 후 시작 (이전 세션이 완전히 종료되도록)
+      setTimeout(() => {
+        try {
+          recognitionRef.current.start()
+          setIsListening(true)
+        } catch (err) {
+          // 이미 시작된 경우 무시
+          if ((err as Error).message?.includes('already started')) {
+            console.log('Speech recognition already started')
+            setIsListening(true)
+          } else {
+            console.error('Failed to start recognition:', err)
+            onError?.('음성 인식을 시작할 수 없습니다')
+          }
+        }
+      }, 100)
     } catch (error) {
       console.error('Failed to start recognition:', error)
       onError?.('음성 인식을 시작할 수 없습니다')
     }
-  }, [isSupported, onError])
+  }, [isSupported, isListening, onError])
 
   // 음성 인식 중지
   const stopListening = useCallback(() => {
     if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop()
-      setIsListening(false)
-      // 중지 시 누적 텍스트 초기화
-      fullTranscriptRef.current = ''
+      try {
+        recognitionRef.current.stop()
+        setIsListening(false)
+        // 중지 시 누적 텍스트 초기화
+        fullTranscriptRef.current = ''
+      } catch (error) {
+        console.error('Failed to stop recognition:', error)
+        setIsListening(false)
+      }
     }
   }, [isListening])
 
