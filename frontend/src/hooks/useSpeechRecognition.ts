@@ -54,7 +54,8 @@ export const useSpeechRecognition = ({
       let interimTranscript = ''
       let finalTranscript = ''
 
-      for (let i = 0; i < event.results.length; i++) {
+      // resultIndex부터 시작하여 새로운 결과만 처리
+      for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript
         if (event.results[i].isFinal) {
           finalTranscript += transcript + ' '
@@ -64,9 +65,11 @@ export const useSpeechRecognition = ({
       }
 
       if (finalTranscript) {
+        // 최종 결과만 누적
         fullTranscriptRef.current += finalTranscript
         onResult(fullTranscriptRef.current.trim())
       } else if (interimTranscript) {
+        // 중간 결과는 누적하지 않고 표시만
         onResult((fullTranscriptRef.current + interimTranscript).trim())
       }
     }

@@ -119,19 +119,19 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                   <button
                     type="button"
                     onClick={handleTitleStart}
-                    className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
+                    className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all text-lg"
                     title={t('startVoiceInput') || '음성 입력 시작'}
                   >
-                    <span className="material-icons-outlined text-base">mic_none</span>
+                    🎤
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={handleTitleStop}
-                    className="w-8 h-8 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative"
+                    className="w-8 h-8 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative text-lg"
                     title={t('stopVoiceInput') || '음성 입력 중지'}
                   >
-                    <span className="material-icons-outlined text-base">stop</span>
+                    ⏹️
                     <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-75"></span>
                   </button>
                 )}
@@ -170,19 +170,19 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                   <button
                     type="button"
                     onClick={handleContentStart}
-                    className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
+                    className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all text-xl"
                     title={t('startVoiceInput') || '음성 입력 시작'}
                   >
-                    <span className="material-icons-outlined text-lg">mic_none</span>
+                    🎤
                   </button>
                 ) : (
                   <button
                     type="button"
                     onClick={handleContentStop}
-                    className="w-10 h-10 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative"
+                    className="w-10 h-10 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative text-xl"
                     title={t('stopVoiceInput') || '음성 입력 중지'}
                   >
-                    <span className="material-icons-outlined text-lg">stop</span>
+                    ⏹️
                     <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-75"></span>
                   </button>
                 )}
