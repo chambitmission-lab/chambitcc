@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useSpeechRecognition } from '../../../../hooks/useSpeechRecognition'
-import VoiceInputButton from '../../../../components/common/VoiceInputButton'
 
 interface ContentCardProps {
   title: string
@@ -44,30 +43,40 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
     continuous: true,
   })
 
-  const handleTitleVoiceClick = () => {
+  const handleTitleStart = () => {
+    // 내용 음성 인식이 실행 중이면 중지
     if (contentVoice.isListening) {
       contentVoice.stopListening()
     }
     
-    if (!titleVoice.isListening) {
-      // 시작할 때 현재 텍스트 저장
-      titleStartTextRef.current = title
-    }
-    
-    titleVoice.toggleListening()
+    // 제목 음성 인식 시작
+    titleStartTextRef.current = title
+    // 약간의 지연으로 이전 세션 정리 시간 확보
+    setTimeout(() => {
+      titleVoice.startListening()
+    }, 300)
   }
 
-  const handleContentVoiceClick = () => {
+  const handleTitleStop = () => {
+    titleVoice.stopListening()
+  }
+
+  const handleContentStart = () => {
+    // 제목 음성 인식이 실행 중이면 중지
     if (titleVoice.isListening) {
       titleVoice.stopListening()
     }
     
-    if (!contentVoice.isListening) {
-      // 시작할 때 현재 텍스트 저장
-      contentStartTextRef.current = content
-    }
-    
-    contentVoice.toggleListening()
+    // 내용 음성 인식 시작
+    contentStartTextRef.current = content
+    // 약간의 지연으로 이전 세션 정리 시간 확보
+    setTimeout(() => {
+      contentVoice.startListening()
+    }, 300)
+  }
+
+  const handleContentStop = () => {
+    contentVoice.stopListening()
   }
   
   return (
@@ -104,12 +113,30 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                 ${titleVoice.isListening ? 'animate-pulse' : ''}
               `}
             />
-            <VoiceInputButton
-              isListening={titleVoice.isListening}
-              isSupported={titleVoice.isSupported}
-              onClick={handleTitleVoiceClick}
-              size="sm"
-            />
+            {titleVoice.isSupported && (
+              <div className="flex items-center gap-1">
+                {!titleVoice.isListening ? (
+                  <button
+                    type="button"
+                    onClick={handleTitleStart}
+                    className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
+                    title={t('startVoiceInput') || '음성 입력 시작'}
+                  >
+                    <span className="material-icons-outlined text-base">mic_none</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleTitleStop}
+                    className="w-8 h-8 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative"
+                    title={t('stopVoiceInput') || '음성 입력 중지'}
+                  >
+                    <span className="material-icons-outlined text-base">stop</span>
+                    <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-75"></span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           {titleVoice.isListening && (
             <div className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1 animate-pulse">
@@ -137,18 +164,35 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                 ${contentVoice.isListening ? 'animate-pulse' : ''}
               `}
             />
-            <VoiceInputButton
-              isListening={contentVoice.isListening}
-              isSupported={contentVoice.isSupported}
-              onClick={handleContentVoiceClick}
-              size="md"
-              className="mt-1"
-            />
+            {contentVoice.isSupported && (
+              <div className="flex items-center gap-1 mt-1">
+                {!contentVoice.isListening ? (
+                  <button
+                    type="button"
+                    onClick={handleContentStart}
+                    className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
+                    title={t('startVoiceInput') || '음성 입력 시작'}
+                  >
+                    <span className="material-icons-outlined text-lg">mic_none</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleContentStop}
+                    className="w-10 h-10 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative"
+                    title={t('stopVoiceInput') || '음성 입력 중지'}
+                  >
+                    <span className="material-icons-outlined text-lg">stop</span>
+                    <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-75"></span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           {contentVoice.isListening && (
             <div className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1 animate-pulse">
               <span className="material-icons-outlined text-xs">mic</span>
-              {t('listeningContent') || '내용 음성 인식 중... (다시 클릭하면 중지)'}
+              {t('listeningContent') || '내용 음성 인식 중... (중지 버튼을 클릭하세요)'}
             </div>
           )}
           <div className="text-xs text-gray-400 dark:text-gray-500 text-right mt-0.5">

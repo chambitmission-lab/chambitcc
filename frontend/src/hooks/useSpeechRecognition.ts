@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback } from 'react'
 
 interface UseSpeechRecognitionProps {
   onResult: (transcript: string) => void
@@ -24,152 +24,149 @@ export const useSpeechRecognition = ({
   continuous = true,
 }: UseSpeechRecognitionProps) => {
   const [isListening, setIsListening] = useState(false)
-  const [isSupported, setIsSupported] = useState(false)
+  const isSupported = !!(
+    (window as any).SpeechRecognition || 
+    (window as any).webkitSpeechRecognition
+  )
+  
   const recognitionRef = useRef<any>(null)
   const fullTranscriptRef = useRef<string>('')
 
-  // 브라우저 지원 확인
-  useEffect(() => {
+  // 새로운 recognition 인스턴스 생성
+  const createRecognition = useCallback(() => {
     const SpeechRecognition = 
       (window as any).SpeechRecognition || 
       (window as any).webkitSpeechRecognition
 
-    if (SpeechRecognition) {
-      setIsSupported(true)
-      recognitionRef.current = new SpeechRecognition()
+    if (!SpeechRecognition) {
+      return null
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.continuous = continuous
+    recognition.interimResults = true
+    recognition.lang = language
+    recognition.maxAlternatives = 1
+
+    // 결과 처리
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interimTranscript = ''
+      let finalTranscript = ''
+
+      for (let i = 0; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' '
+        } else {
+          interimTranscript += transcript
+        }
+      }
+
+      if (finalTranscript) {
+        fullTranscriptRef.current += finalTranscript
+        onResult(fullTranscriptRef.current.trim())
+      } else if (interimTranscript) {
+        onResult((fullTranscriptRef.current + interimTranscript).trim())
+      }
+    }
+
+    // 에러 처리
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      console.error('Speech recognition error:', event.error)
       
-      // 설정
-      recognitionRef.current.continuous = continuous
-      recognitionRef.current.interimResults = true
-      recognitionRef.current.lang = language
-      recognitionRef.current.maxAlternatives = 1
-
-      // 결과 처리
-      recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
-        let interimTranscript = ''
-        let finalTranscript = ''
-
-        // 모든 결과를 순회하면서 누적
-        for (let i = 0; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' '
-          } else {
-            interimTranscript += transcript
-          }
-        }
-
-        // 최종 결과가 있으면 누적 텍스트에 추가
-        if (finalTranscript) {
-          fullTranscriptRef.current += finalTranscript
-          onResult(fullTranscriptRef.current.trim())
-        } else if (interimTranscript) {
-          // 중간 결과는 누적 텍스트 + 현재 중간 결과
-          onResult((fullTranscriptRef.current + interimTranscript).trim())
-        }
+      // aborted는 의도적인 중지이므로 에러 메시지 표시 안 함
+      if (event.error === 'aborted' || event.error === 'no-speech') {
+        return
       }
-
-      // 에러 처리
-      recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error('Speech recognition error:', event.error)
-        
-        let errorMessage = '음성 인식 오류가 발생했습니다'
-        
-        switch (event.error) {
-          case 'no-speech':
-            errorMessage = '음성이 감지되지 않았습니다'
-            break
-          case 'audio-capture':
-            errorMessage = '마이크를 사용할 수 없습니다'
-            break
-          case 'not-allowed':
-            errorMessage = '마이크 권한이 필요합니다'
-            break
-          case 'network':
-            errorMessage = '네트워크 오류가 발생했습니다'
-            break
-        }
-        
-        onError?.(errorMessage)
-        setIsListening(false)
+      
+      let errorMessage = '음성 인식 오류가 발생했습니다'
+      
+      switch (event.error) {
+        case 'audio-capture':
+          errorMessage = '마이크를 사용할 수 없습니다'
+          break
+        case 'not-allowed':
+          errorMessage = '마이크 권한이 필요합니다'
+          break
+        case 'network':
+          errorMessage = '네트워크 오류가 발생했습니다'
+          break
       }
-
-      // 종료 처리
-      recognitionRef.current.onend = () => {
-        setIsListening(false)
-        // continuous가 true이고 의도적으로 중지하지 않았다면 자동 재시작
-        if (continuous && isListening) {
-          setTimeout(() => {
-            try {
-              recognitionRef.current?.start()
-            } catch (err) {
-              console.log('Auto-restart failed:', err)
-            }
-          }, 100)
-        }
-      }
-    } else {
-      setIsSupported(false)
-      onError?.('이 브라우저는 음성 인식을 지원하지 않습니다')
+      
+      onError?.(errorMessage)
+      setIsListening(false)
     }
 
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop()
-      }
+    // 종료 처리
+    recognition.onend = () => {
+      console.log('Speech recognition ended')
+      setIsListening(false)
+      fullTranscriptRef.current = ''
     }
+
+    return recognition
   }, [language, continuous, onResult, onError])
 
   // 음성 인식 시작
   const startListening = useCallback(() => {
-    if (!isSupported || !recognitionRef.current) {
+    if (!isSupported) {
+      onError?.('이 브라우저는 음성 인식을 지원하지 않습니다')
+      return
+    }
+
+    // 이미 실행 중이면 무시
+    if (isListening) {
+      console.log('Already listening')
+      return
+    }
+
+    // 기존 인스턴스가 있으면 정리
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop()
+      } catch (e) {
+        // 무시
+      }
+      recognitionRef.current = null
+    }
+
+    // 새 인스턴스 생성
+    fullTranscriptRef.current = ''
+    recognitionRef.current = createRecognition()
+    
+    if (!recognitionRef.current) {
       onError?.('음성 인식을 사용할 수 없습니다')
       return
     }
 
     try {
-      // 이미 실행 중이면 중지 후 재시작
-      if (isListening) {
-        recognitionRef.current.stop()
-      }
-      
-      // 누적 텍스트 초기화
-      fullTranscriptRef.current = ''
-      
-      // 약간의 지연 후 시작 (이전 세션이 완전히 종료되도록)
-      setTimeout(() => {
-        try {
-          recognitionRef.current.start()
-          setIsListening(true)
-        } catch (err) {
-          // 이미 시작된 경우 무시
-          if ((err as Error).message?.includes('already started')) {
-            console.log('Speech recognition already started')
-            setIsListening(true)
-          } else {
-            console.error('Failed to start recognition:', err)
-            onError?.('음성 인식을 시작할 수 없습니다')
-          }
-        }
-      }, 100)
-    } catch (error) {
-      console.error('Failed to start recognition:', error)
+      recognitionRef.current.start()
+      setIsListening(true)
+      console.log('Speech recognition started')
+    } catch (err) {
+      console.error('Failed to start recognition:', err)
       onError?.('음성 인식을 시작할 수 없습니다')
+      recognitionRef.current = null
     }
-  }, [isSupported, isListening, onError])
+  }, [isSupported, isListening, createRecognition, onError])
 
   // 음성 인식 중지
   const stopListening = useCallback(() => {
-    if (recognitionRef.current && isListening) {
-      try {
-        recognitionRef.current.stop()
-        setIsListening(false)
-        // 중지 시 누적 텍스트 초기화
-        fullTranscriptRef.current = ''
-      } catch (error) {
-        console.error('Failed to stop recognition:', error)
-        setIsListening(false)
-      }
+    if (!recognitionRef.current || !isListening) {
+      return
+    }
+
+    try {
+      console.log('Stopping speech recognition')
+      recognitionRef.current.stop()
+      recognitionRef.current = null
+      setIsListening(false)
+      fullTranscriptRef.current = ''
+    } catch (error) {
+      console.error('Failed to stop recognition:', error)
+      recognitionRef.current = null
+      setIsListening(false)
+      fullTranscriptRef.current = ''
     }
   }, [isListening])
 

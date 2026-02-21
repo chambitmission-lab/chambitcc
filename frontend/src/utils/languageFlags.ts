@@ -1,7 +1,6 @@
 // 언어 코드에 따른 국기 이모지 반환
 export const getLanguageFlag = (langCode?: string): string => {
   const normalizedCode = langCode?.trim().toLowerCase()
-  console.log('🚩 getLanguageFlag - input:', langCode, '→ normalized:', normalizedCode)
   
   switch (normalizedCode) {
     case 'ko':
@@ -22,7 +21,6 @@ export const getLanguageFlag = (langCode?: string): string => {
     case 'cn':
       return '🇨🇳'
     default:
-      console.warn('⚠️ Unknown language code:', langCode, '→', normalizedCode)
       return '🇰🇷' // 기본값은 한국어
   }
 }

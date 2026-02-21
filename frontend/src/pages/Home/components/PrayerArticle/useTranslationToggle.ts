@@ -16,12 +16,6 @@ export const useTranslationToggle = (prayer: Prayer) => {
   // 원본 언어 (기본값: 한글)
   const originalLanguage = prayer.original_language || 'ko'
   
-  console.log('🔍 [PrayerArticle] Prayer ID:', prayer.id)
-  console.log('🔍 [PrayerArticle] original_language:', prayer.original_language)
-  console.log('🔍 [PrayerArticle] originalLanguage:', originalLanguage)
-  console.log('🔍 [PrayerArticle] hasEnTranslation:', hasEnTranslation)
-  console.log('🔍 [PrayerArticle] hasKoTranslation:', hasKoTranslation)
-  
   // 번역 언어 결정
   let translationLanguage = 'ko' // 기본값: 한글
   if (originalLanguage === 'ko') {
@@ -48,11 +42,6 @@ export const useTranslationToggle = (prayer: Prayer) => {
   
   // 버튼 텍스트 결정
   const translationButtonText = `${getLanguageFlag(nextLanguage)} ${getLanguageName(nextLanguage)}`
-  
-  console.log('🔍 [PrayerArticle] translationLanguage:', translationLanguage)
-  console.log('🔍 [PrayerArticle] currentLanguage:', currentLanguage)
-  console.log('🔍 [PrayerArticle] nextLanguage:', nextLanguage)
-  console.log('---')
 
   // Blur Fade 애니메이션 효과
   useEffect(() => {
