@@ -96,7 +96,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
         <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-white/10 dark:to-white/5 rounded-full blur-2xl"></div>
         
         {/* Title with Voice Input */}
-        <div className="mb-3 relative z-10">
+        <div className="mb-3 relative z-20">
           <div className="flex items-center gap-2">
             <input
               type="text"
@@ -113,7 +113,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                 ${titleVoice.isListening ? 'animate-pulse' : ''}
               `}
             />
-            <div className="flex items-center gap-1 flex-shrink-0 relative z-20">
+            <div className="flex items-center gap-1 flex-shrink-0">
               {!titleVoice.isListening ? (
                 <button
                   type="button"
