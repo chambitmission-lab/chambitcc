@@ -113,30 +113,29 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                 ${titleVoice.isListening ? 'animate-pulse' : ''}
               `}
             />
-            {titleVoice.isSupported && (
-              <div className="flex items-center gap-1">
-                {!titleVoice.isListening ? (
-                  <button
-                    type="button"
-                    onClick={handleTitleStart}
-                    className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all text-lg"
-                    title={t('startVoiceInput') || '음성 입력 시작'}
-                  >
-                    🎤
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleTitleStop}
-                    className="w-8 h-8 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative text-lg"
-                    title={t('stopVoiceInput') || '음성 입력 중지'}
-                  >
-                    ⏹️
-                    <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-75"></span>
-                  </button>
-                )}
-              </div>
-            )}
+            <div className="flex items-center gap-1 flex-shrink-0 relative z-20">
+              {!titleVoice.isListening ? (
+                <button
+                  type="button"
+                  onClick={handleTitleStart}
+                  disabled={!titleVoice.isSupported}
+                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={titleVoice.isSupported ? (t('startVoiceInput') || '음성 입력 시작') : '음성 인식 미지원'}
+                >
+                  🎤
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleTitleStop}
+                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative text-xl"
+                  title={t('stopVoiceInput') || '음성 입력 중지'}
+                >
+                  ⏹️
+                  <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-75"></span>
+                </button>
+              )}
+            </div>
           </div>
           {titleVoice.isListening && (
             <div className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1 animate-pulse">
@@ -164,30 +163,29 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                 ${contentVoice.isListening ? 'animate-pulse' : ''}
               `}
             />
-            {contentVoice.isSupported && (
-              <div className="flex items-center gap-1 mt-1">
-                {!contentVoice.isListening ? (
-                  <button
-                    type="button"
-                    onClick={handleContentStart}
-                    className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all text-xl"
-                    title={t('startVoiceInput') || '음성 입력 시작'}
-                  >
-                    🎤
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleContentStop}
-                    className="w-10 h-10 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative text-xl"
-                    title={t('stopVoiceInput') || '음성 입력 중지'}
-                  >
-                    ⏹️
-                    <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-75"></span>
-                  </button>
-                )}
-              </div>
-            )}
+            <div className="flex items-center gap-1 mt-1 flex-shrink-0">
+              {!contentVoice.isListening ? (
+                <button
+                  type="button"
+                  onClick={handleContentStart}
+                  disabled={!contentVoice.isSupported}
+                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={contentVoice.isSupported ? (t('startVoiceInput') || '음성 입력 시작') : '음성 인식 미지원'}
+                >
+                  🎤
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleContentStop}
+                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative text-xl"
+                  title={t('stopVoiceInput') || '음성 입력 중지'}
+                >
+                  ⏹️
+                  <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-75"></span>
+                </button>
+              )}
+            </div>
           </div>
           {contentVoice.isListening && (
             <div className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1 animate-pulse">
