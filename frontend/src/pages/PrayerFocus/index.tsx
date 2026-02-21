@@ -105,7 +105,7 @@ const PrayerFocus = () => {
               <div className="mb-6 relative group">
                 <div className="absolute -inset-4 bg-purple-500/20 rounded-full blur-xl group-hover:bg-purple-500/30 transition-all duration-700"></div>
                 <div className="w-24 h-24 rounded-full flex items-center justify-center relative transform transition-transform duration-500 hover:scale-105 hover:rotate-3 bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_15px_-3px_rgba(168,85,247,0.3),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-4px_6px_rgba(0,0,0,0.2)]">
-                  <span className="material-icons-outlined text-5xl drop-shadow-md">self_improvement</span>
+                  <span className="material-icons-outlined text-5xl drop-shadow-md">auto_stories</span>
                 </div>
               </div>
 
