@@ -17,7 +17,7 @@ const PrayerFocusCard = () => {
         <div className="relative flex items-center gap-4">
           {/* 아이콘 */}
           <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="material-icons-outlined text-3xl text-white">self_improvement</span>
+            <span className="material-icons-outlined text-3xl text-white">auto_stories</span>
           </div>
           
           {/* 텍스트 */}
