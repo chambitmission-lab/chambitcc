@@ -106,7 +106,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
               maxLength={100}
               required
               className={`
-                flex-1 bg-transparent border-none text-sm font-extrabold text-gray-900 dark:text-white 
+                flex-1 min-w-0 bg-transparent border-none text-sm font-extrabold text-gray-900 dark:text-white 
                 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none 
                 drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] 
                 uppercase py-1
