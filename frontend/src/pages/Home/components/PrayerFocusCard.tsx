@@ -25,7 +25,7 @@ const PrayerFocusCard = () => {
             <h3 className="text-lg font-bold text-white mb-1">
               {t('prayerFocusMode')}
             </h3>
-            <p className="text-sm text-white/80">
+            <p className="text-xs text-white/80">
               {t('focusedPrayerDescription')}
             </p>
           </div>
