@@ -31,6 +31,7 @@ export const useSpeechRecognition = ({
   
   const recognitionRef = useRef<any>(null)
   const fullTranscriptRef = useRef<string>('')
+  const isListeningRef = useRef<boolean>(false)
 
   // 새로운 recognition 인스턴스 생성
   const createRecognition = useCallback(() => {
@@ -95,12 +96,14 @@ export const useSpeechRecognition = ({
       
       onError?.(errorMessage)
       setIsListening(false)
+      isListeningRef.current = false
     }
 
     // 종료 처리
     recognition.onend = () => {
       console.log('Speech recognition ended')
       setIsListening(false)
+      isListeningRef.current = false
       fullTranscriptRef.current = ''
     }
 
@@ -109,14 +112,16 @@ export const useSpeechRecognition = ({
 
   // 음성 인식 시작
   const startListening = useCallback(() => {
+    console.log('startListening called, isListeningRef:', isListeningRef.current)
+    
     if (!isSupported) {
       onError?.('이 브라우저는 음성 인식을 지원하지 않습니다')
       return
     }
 
     // 이미 실행 중이면 무시
-    if (isListening) {
-      console.log('Already listening')
+    if (isListeningRef.current) {
+      console.log('Already listening, ignoring')
       return
     }
 
@@ -125,7 +130,7 @@ export const useSpeechRecognition = ({
       try {
         recognitionRef.current.stop()
       } catch (e) {
-        // 무시
+        console.log('Error stopping previous instance:', e)
       }
       recognitionRef.current = null
     }
@@ -142,17 +147,22 @@ export const useSpeechRecognition = ({
     try {
       recognitionRef.current.start()
       setIsListening(true)
+      isListeningRef.current = true
       console.log('Speech recognition started')
     } catch (err) {
       console.error('Failed to start recognition:', err)
       onError?.('음성 인식을 시작할 수 없습니다')
       recognitionRef.current = null
+      isListeningRef.current = false
     }
-  }, [isSupported, isListening, createRecognition, onError])
+  }, [isSupported, createRecognition, onError])
 
   // 음성 인식 중지
   const stopListening = useCallback(() => {
-    if (!recognitionRef.current || !isListening) {
+    console.log('stopListening called, isListeningRef:', isListeningRef.current)
+    
+    if (!recognitionRef.current || !isListeningRef.current) {
+      console.log('Not listening or no instance')
       return
     }
 
@@ -161,23 +171,25 @@ export const useSpeechRecognition = ({
       recognitionRef.current.stop()
       recognitionRef.current = null
       setIsListening(false)
+      isListeningRef.current = false
       fullTranscriptRef.current = ''
     } catch (error) {
       console.error('Failed to stop recognition:', error)
       recognitionRef.current = null
       setIsListening(false)
+      isListeningRef.current = false
       fullTranscriptRef.current = ''
     }
-  }, [isListening])
+  }, [])
 
   // 토글
   const toggleListening = useCallback(() => {
-    if (isListening) {
+    if (isListeningRef.current) {
       stopListening()
     } else {
       startListening()
     }
-  }, [isListening, startListening, stopListening])
+  }, [startListening, stopListening])
 
   return {
     isListening,
