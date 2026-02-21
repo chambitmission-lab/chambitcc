@@ -24,6 +24,15 @@ const NewHeader = () => {
   const { data } = useNotifications()
   const unreadCount = data?.unread_count || 0
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (location.pathname === '/') {
+      e.preventDefault()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+    }
+  }
+
   useEffect(() => {
     setIsMenuOpen(false)
     const token = localStorage.getItem('access_token')
@@ -84,7 +93,7 @@ const NewHeader = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark" ref={menuRef}>
         <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 relative">
+        <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2 relative">
           {/* 주변 빛 확산 효과 */}
           <div className="absolute inset-0 bg-purple-400/30 dark:bg-white/20 blur-md animate-pulse"></div>
           

@@ -58,8 +58,15 @@ const NewHome = () => {
   }
 
   const handleScrollToTop = () => {
-    // 윈도우 스크롤을 맨 위로
+    // 모든 가능한 스크롤 요소를 맨 위로
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    
+    // mainRef가 있다면 그것도 스크롤
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0
+    }
   }
 
   // 초기 로딩 상태 표시
