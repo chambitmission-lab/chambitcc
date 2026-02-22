@@ -2,12 +2,12 @@ import { Link } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 
 const ADMIN_MENU_ITEMS = [
-  { path: '/admin/notifications', key: 'notificationManagement' },
-  { path: '/admin/daily-verse', key: 'dailyVerseManagement' },
-  { path: '/admin/bulletins', key: 'bulletinManagement' },
-  { path: '/admin/events', key: 'eventManagement' },
-  { path: '/admin/push', label: '📢 푸시 알림 관리' },
-  { path: '/admin/users', label: '👥 회원 관리' }
+  { path: '/admin/notifications', key: 'notificationManagement' as const },
+  { path: '/admin/daily-verse', key: 'dailyVerseManagement' as const },
+  { path: '/admin/bulletins', key: 'bulletinManagement' as const },
+  { path: '/admin/events', key: 'eventManagement' as const },
+  { path: '/admin/push', key: 'pushNotificationManagement' as const },
+  { path: '/admin/users', key: 'userManagement' as const }
 ]
 
 const AdminMenu = () => {
@@ -21,7 +21,7 @@ const AdminMenu = () => {
           to={item.path}
           className="block px-4 py-3 text-sm text-yellow-600 dark:text-yellow-400 font-semibold hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
         >
-          {item.label || t(item.key!)}
+          {t(item.key)}
         </Link>
       ))}
       <div className="border-t border-border-light dark:border-border-dark my-2"></div>

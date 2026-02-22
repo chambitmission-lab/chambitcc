@@ -2,18 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
+import { getUserList, updateUserRole, updateUserStatus, type User } from '../../api/user'
 import './UserManagement.css'
-
-interface User {
-  id: number
-  username: string
-  email: string
-  full_name: string
-  is_admin: boolean
-  is_active: boolean
-  created_at: string
-  last_login?: string
-}
 
 const UserManagement = () => {
   const navigate = useNavigate()
@@ -37,44 +27,8 @@ const UserManagement = () => {
   const loadUsers = async () => {
     try {
       setLoading(true)
-      // TODO: API 연동 - 백엔드 API 준비되면 연결
-      // const data = await getUserList()
-      // setUsers(data)
-      
-      // 임시 데이터
-      const mockUsers: User[] = [
-        {
-          id: 1,
-          username: 'admin',
-          email: 'admin@church.com',
-          full_name: '관리자',
-          is_admin: true,
-          is_active: true,
-          created_at: '2024-01-01T00:00:00Z',
-          last_login: '2024-02-22T10:30:00Z'
-        },
-        {
-          id: 2,
-          username: 'user1',
-          email: 'user1@example.com',
-          full_name: '홍길동',
-          is_admin: false,
-          is_active: true,
-          created_at: '2024-01-15T00:00:00Z',
-          last_login: '2024-02-20T14:20:00Z'
-        },
-        {
-          id: 3,
-          username: 'user2',
-          email: 'user2@example.com',
-          full_name: '김철수',
-          is_admin: false,
-          is_active: true,
-          created_at: '2024-02-01T00:00:00Z',
-          last_login: '2024-02-21T09:15:00Z'
-        }
-      ]
-      setUsers(mockUsers)
+      const data = await getUserList()
+      setUsers(data.users)
     } catch (error) {
       console.error('회원 목록 로드 에러:', error)
       showToast('회원 목록을 불러오는데 실패했습니다', 'error')
@@ -88,8 +42,7 @@ const UserManagement = () => {
     if (!confirm(`정말 ${currentStatus ? '일반 사용자로' : '관리자로'} 변경하시겠습니까?`)) return
     
     try {
-      // TODO: API 연동
-      // await updateUserRole(userId, !currentStatus)
+      await updateUserRole(userId, !currentStatus)
       showToast('권한이 변경되었습니다', 'success')
       loadUsers()
     } catch (error) {
@@ -101,8 +54,7 @@ const UserManagement = () => {
     if (!confirm(`정말 ${currentStatus ? '비활성화' : '활성화'}하시겠습니까?`)) return
     
     try {
-      // TODO: API 연동
-      // await updateUserStatus(userId, !currentStatus)
+      await updateUserStatus(userId, !currentStatus)
       showToast('상태가 변경되었습니다', 'success')
       loadUsers()
     } catch (error) {
@@ -113,8 +65,7 @@ const UserManagement = () => {
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.full_name.toLowerCase().includes(searchTerm.toLowerCase())
+      (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
     
     const matchesRole = 
       filterRole === 'all' ||
@@ -175,7 +126,7 @@ const UserManagement = () => {
             <span className="search-icon">🔍</span>
             <input
               type="text"
-              placeholder="이름, 이메일, 아이디로 검색..."
+              placeholder="아이디, 이름으로 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -221,7 +172,7 @@ const UserManagement = () => {
                     </div>
                     <div className="card-meta">
                       <div className="card-author">
-                        {user.full_name}
+                        {user.full_name || user.username}
                         {user.is_admin && <span className="admin-badge">관리자</span>}
                       </div>
                       <div className="card-username">@{user.username}</div>
@@ -233,11 +184,17 @@ const UserManagement = () => {
 
                   <div className="card-content">
                     <div className="user-info-row">
-                      <span className="info-label">📧 이메일</span>
-                      <span className="info-value">{user.email}</span>
+                      <span className="info-label">� 아이디</span>
+                      <span className="info-value">{user.username}</span>
                     </div>
+                    {user.full_name && (
+                      <div className="user-info-row">
+                        <span className="info-label">✏️ 이름</span>
+                        <span className="info-value">{user.full_name}</span>
+                      </div>
+                    )}
                     <div className="user-info-row">
-                      <span className="info-label">📅 가입일</span>
+                      <span className="info-label">� 가입일</span>
                       <span className="info-value">{formatDate(user.created_at)}</span>
                     </div>
                     <div className="user-info-row">

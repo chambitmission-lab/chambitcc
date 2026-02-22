@@ -19,4 +19,6 @@ export const navigation = {
   bulletinManagement: '📰 Bulletin Management',
   events: 'Events',
   eventManagement: '📅 Event Management',
+  pushNotificationManagement: '📢 Push Notification Management',
+  userManagement: '👥 User Management',
 } as const

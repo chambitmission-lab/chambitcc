@@ -2,12 +2,12 @@ import { Link } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 
 const MENU_ITEMS = [
-  { path: '/about', key: 'about' },
-  { path: '/worship', key: 'worship' },
-  { path: '/sermon', key: 'sermon' },
-  { path: '/events', key: 'events' },
-  { path: '/ministry', key: 'ministry' },
-  { path: '/news', key: 'news' }
+  { path: '/about', key: 'about' as const },
+  { path: '/worship', key: 'worship' as const },
+  { path: '/sermon', key: 'sermon' as const },
+  { path: '/events', key: 'events' as const },
+  { path: '/ministry', key: 'ministry' as const },
+  { path: '/news', key: 'news' as const }
 ]
 
 const NavigationMenu = () => {
