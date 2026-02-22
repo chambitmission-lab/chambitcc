@@ -23,6 +23,7 @@ import DailyVerseManagement from './pages/Admin/DailyVerseManagement'
 import BulletinManagement from './pages/Admin/BulletinManagement'
 import { PushNotificationManagement } from './pages/Admin/PushNotificationManagement'
 import EventManagement from './pages/Admin/EventManagement'
+import UserManagement from './pages/Admin/UserManagement'
 import Profile from './pages/Profile/Profile'
 import EventCalendar from './pages/Events/EventCalendar'
 import EventDetail from './pages/Events/EventDetail'
@@ -59,6 +60,7 @@ function App() {
               <Route path="/admin/bulletins" element={<BulletinManagement />} />
               <Route path="/admin/push" element={<PushNotificationManagement />} />
               <Route path="/admin/events" element={<EventManagement />} />
+              <Route path="/admin/users" element={<UserManagement />} />
               <Route path="/events" element={<EventCalendar />} />
               <Route path="/events/:id" element={<EventDetail />} />
               <Route path="/prayer-focus" element={<PrayerFocus />} />

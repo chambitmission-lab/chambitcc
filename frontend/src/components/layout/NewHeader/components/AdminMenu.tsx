@@ -6,7 +6,8 @@ const ADMIN_MENU_ITEMS = [
   { path: '/admin/daily-verse', key: 'dailyVerseManagement' },
   { path: '/admin/bulletins', key: 'bulletinManagement' },
   { path: '/admin/events', key: 'eventManagement' },
-  { path: '/admin/push', label: '📢 푸시 알림 관리' }
+  { path: '/admin/push', label: '📢 푸시 알림 관리' },
+  { path: '/admin/users', label: '👥 회원 관리' }
 ]
 
 const AdminMenu = () => {
