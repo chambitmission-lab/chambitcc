@@ -33,6 +33,7 @@ export const useSpeechRecognition = ({
   const isListeningRef = useRef<boolean>(false)
   const shouldRestartRef = useRef<boolean>(false)
   const initialTextRef = useRef<string>('')
+  const lastProcessedIndexRef = useRef<number>(0)
 
   // 새로운 recognition 인스턴스 생성
   const createRecognition = useCallback(() => {
@@ -52,18 +53,23 @@ export const useSpeechRecognition = ({
 
     // 결과 처리
     recognition.onresult = (event: SpeechRecognitionEvent) => {
+      console.log('=== onresult event START ===')
+      console.log('resultIndex:', event.resultIndex, 'results.length:', event.results.length)
+      console.log('initialText:', initialTextRef.current)
+      console.log('lastProcessedIndex:', lastProcessedIndexRef.current)
+
       let interimTranscript = ''
       let finalTranscript = ''
 
-      console.log('onresult event, resultIndex:', event.resultIndex, 'results.length:', event.results.length)
-
-      // 현재 세션의 모든 결과를 조합 (이 세션에서 말한 내용만)
-      for (let i = 0; i < event.results.length; i++) {
+      // resultIndex부터 시작하여 새로운 결과만 처리
+      for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript
-        console.log(`Result ${i}: "${transcript}", isFinal: ${event.results[i].isFinal}`)
+        const isFinal = event.results[i].isFinal
+        console.log(`  Result[${i}]: "${transcript}", isFinal: ${isFinal}`)
         
-        if (event.results[i].isFinal) {
+        if (isFinal) {
           finalTranscript += transcript + ' '
+          lastProcessedIndexRef.current = i + 1
         } else {
           interimTranscript += transcript
         }
@@ -72,6 +78,9 @@ export const useSpeechRecognition = ({
       // 최종 결과 처리
       finalTranscript = finalTranscript.trim()
       interimTranscript = interimTranscript.trim()
+      
+      console.log('finalTranscript:', finalTranscript)
+      console.log('interimTranscript:', interimTranscript)
       
       if (finalTranscript || interimTranscript) {
         // 초기 텍스트(기존 텍스트) + 이번 세션의 새로운 음성
@@ -83,7 +92,8 @@ export const useSpeechRecognition = ({
         result = result.trim()
         
         const isFinal = !!finalTranscript && !interimTranscript
-        console.log(isFinal ? 'Final result:' : 'Interim result:', result, '(initialText:', initialTextRef.current, ', newText:', newText, ')')
+        console.log('isFinal:', isFinal, 'result:', result)
+        console.log('=== onresult event END ===\n')
         onResult(result, isFinal)
       }
     }
@@ -171,6 +181,7 @@ export const useSpeechRecognition = ({
 
     // 새 인스턴스 생성
     initialTextRef.current = initialText
+    lastProcessedIndexRef.current = 0
     recognitionRef.current = createRecognition()
     
     if (!recognitionRef.current) {
