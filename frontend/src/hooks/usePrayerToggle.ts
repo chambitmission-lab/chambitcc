@@ -3,11 +3,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addPrayer, removePrayer } from '../api/prayer'
 import { showToast } from '../utils/toast'
 import { prayerKeys } from './usePrayersQuery'
-import type { Prayer, SortType } from '../types/prayer'
+import type { Prayer, SortType, PrayerFilterType } from '../types/prayer'
 
 interface UsePrayerToggleOptions {
   sort?: SortType
   groupId?: number | null // 그룹 필터링용
+  filter?: PrayerFilterType | null // 기도 필터링용
   prayerId?: number // 상세 페이지용
   username?: string | null // 사용자별 캐시 키용
   onSuccess?: (message: string) => void
@@ -29,6 +30,7 @@ interface PrayerToggleResult {
 export const usePrayerToggle = ({
   sort = 'popular',
   groupId = null,
+  filter = null,
   prayerId: detailPrayerId,
   username = null,
   onSuccess,
@@ -64,7 +66,7 @@ export const usePrayerToggle = ({
 
   // 통합 토글 함수 (Dependency Inversion: 추상화된 인터페이스 제공)
   const togglePrayer = async (prayerId: number, isPrayed: boolean) => {
-    const listQueryKey = prayerKeys.list(sort, groupId, username)
+    const listQueryKey = prayerKeys.list(sort, groupId, filter, username)
     const detailQueryKey = detailPrayerId 
       ? prayerKeys.detail(detailPrayerId, username)
       : null
@@ -141,7 +143,7 @@ export const usePrayerToggle = ({
         const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
         otherSorts.forEach(otherSort => {
           queryClient.invalidateQueries({ 
-            queryKey: prayerKeys.list(otherSort, groupId, username),
+            queryKey: prayerKeys.list(otherSort, groupId, filter, username),
             refetchType: 'none',
           })
         })

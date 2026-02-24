@@ -14,7 +14,7 @@ import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import { useAuth } from '../../hooks/useAuth'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
-import type { SortType } from '../../types/prayer'
+import type { SortType, PrayerFilterType } from '../../types/prayer'
 
 const NewHome = () => {
   const location = useLocation()
@@ -26,9 +26,10 @@ const NewHome = () => {
   const [openReplies, setOpenReplies] = useState(false) // 댓글 자동 열기 상태
   const [sort, setSort] = useState<SortType>('popular')
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
+  const [selectedFilter, setSelectedFilter] = useState<PrayerFilterType>('all')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
-  const prayerHook = usePrayersInfinite(sort, selectedGroupId)  // ✅ selectedGroupId 전달
+  const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter)  // ✅ selectedFilter 전달
   const mainRef = useRef<HTMLDivElement>(null)
 
   // 프로필에서 넘어온 기도 ID 처리
@@ -130,10 +131,12 @@ const NewHome = () => {
             <TodaysVerse />
             
             {/* 소그룹 필터 */}
-            <div className="px-4 py-3">
+            <div className="px-4 py-3 overflow-x-auto scrollbar-hide">
               <GroupFilter
                 selectedGroupId={selectedGroupId}
+                selectedFilter={selectedFilter}
                 onGroupChange={setSelectedGroupId}
+                onFilterChange={setSelectedFilter}
                 onCreateGroup={() => setShowCreateModal(true)}
                 onJoinGroup={() => setShowJoinModal(true)}
               />

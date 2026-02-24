@@ -4,30 +4,30 @@ import { fetchPrayers, createPrayer, fetchPrayerDetail } from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
 import { showToast } from '../utils/toast'
 import { getCurrentUser } from '../utils/auth'
-import type { SortType, Prayer, CreatePrayerRequest } from '../types/prayer'
+import type { SortType, Prayer, CreatePrayerRequest, PrayerFilterType } from '../types/prayer'
 
 // Query Keys - 사용자별로 다른 캐시 사용
 export const prayerKeys = {
   all: ['prayers'] as const,
   lists: () => [...prayerKeys.all, 'list'] as const,
-  list: (sort: SortType, groupId?: number | null, username?: string | null) => 
-    [...prayerKeys.lists(), sort, groupId ?? 'all', username || 'anonymous'] as const,
+  list: (sort: SortType, groupId?: number | null, filter?: PrayerFilterType | null, username?: string | null) => 
+    [...prayerKeys.lists(), sort, groupId ?? 'all', filter ?? 'all', username || 'anonymous'] as const,
   details: () => [...prayerKeys.all, 'detail'] as const,
   detail: (prayerId: number, username?: string | null) => 
     [...prayerKeys.details(), prayerId, username || 'anonymous'] as const,
 }
 
 // Infinite Query Hook
-export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number | null) => {
+export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number | null, filter?: PrayerFilterType | null) => {
   const queryClient = useQueryClient()
   // 매 렌더링마다 최신 사용자 정보 가져오기 (장시간 후 재접속 대응)
   const currentUser = getCurrentUser()
 
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
-    queryKey: prayerKeys.list(sort, groupId, currentUser.username),
+    queryKey: prayerKeys.list(sort, groupId, filter, currentUser.username),
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await fetchPrayers(pageParam, 20, sort, groupId)
+      const response = await fetchPrayers(pageParam, 20, sort, groupId, filter)
       
       // 클라이언트에서 is_owner 재계산 (보안 강화)
       const itemsWithRecalculatedOwner = response.data.items.map((prayer: Prayer) => ({
@@ -59,6 +59,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
     sort,
     groupId,
+    filter,
     username: currentUser.username,
   })
 
@@ -67,10 +68,10 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
     mutationFn: (data: CreatePrayerRequest) => createPrayer(data),
     onMutate: async (data) => {
       // 진행 중인 쿼리 취소
-      await queryClient.cancelQueries({ queryKey: prayerKeys.list(sort, groupId) })
+      await queryClient.cancelQueries({ queryKey: prayerKeys.list(sort, groupId, filter) })
 
       // 이전 데이터 백업
-      const previousData = queryClient.getQueryData(prayerKeys.list(sort, groupId))
+      const previousData = queryClient.getQueryData(prayerKeys.list(sort, groupId, filter))
 
       // Optimistic Update - 임시 기도 추가
       const tempPrayer: Prayer = {
@@ -87,7 +88,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
         group_id: data.group_id,
       }
 
-      queryClient.setQueryData(prayerKeys.list(sort, groupId), (old: any) => {
+      queryClient.setQueryData(prayerKeys.list(sort, groupId, filter), (old: any) => {
         if (!old) return old
 
         const firstPage = old.pages[0]
@@ -111,7 +112,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
     onError: (error: Error, _variables, context) => {
       // 에러 시 롤백
       if (context?.previousData) {
-        queryClient.setQueryData(prayerKeys.list(sort, groupId), context.previousData)
+        queryClient.setQueryData(prayerKeys.list(sort, groupId, filter), context.previousData)
       }
       showToast(error.message || '기도 요청 등록에 실패했습니다.', 'error')
     },
@@ -154,7 +155,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
     isToggling,
     createPrayer: (data: CreatePrayerRequest) => createMutation.mutateAsync(data),
     isCreating: createMutation.isPending,
-    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort, groupId, currentUser.username) }),
+    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort, groupId, filter, currentUser.username) }),
   }
 }
 

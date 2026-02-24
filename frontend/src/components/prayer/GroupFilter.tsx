@@ -1,26 +1,50 @@
 // 소그룹 필터 컴포넌트
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useMyGroups } from '../../hooks/useGroups'
+import { useLanguage } from '../../contexts/LanguageContext'
+import type { PrayerFilterType } from '../../types/prayer'
 
 interface GroupFilterProps {
   selectedGroupId: number | null
+  selectedFilter: PrayerFilterType
   onGroupChange: (groupId: number | null) => void
+  onFilterChange: (filter: PrayerFilterType) => void
   onCreateGroup: () => void
   onJoinGroup: () => void
 }
 
 const GroupFilter = ({ 
-  selectedGroupId, 
+  selectedGroupId,
+  selectedFilter,
   onGroupChange,
+  onFilterChange,
   onCreateGroup,
   onJoinGroup
 }: GroupFilterProps) => {
   const { data: groupsData, isLoading } = useMyGroups()
+  const { t } = useLanguage()
   const [isExpanded, setIsExpanded] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
   
   const groups = groupsData?.data.items || []
   
   const selectedGroup = groups.find(g => g.id === selectedGroupId)
+
+  // 드롭다운 위치 계산
+  useEffect(() => {
+    if (isExpanded && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setDropdownStyle({
+        position: 'fixed',
+        top: `${rect.bottom + 8}px`,
+        left: '16px',
+        right: '16px',
+        maxWidth: '448px',
+        margin: '0 auto',
+      })
+    }
+  }, [isExpanded])
   
   return (
     <div className="relative">
@@ -32,22 +56,28 @@ const GroupFilter = ({
         />
       )}
       
-      <div className="flex items-center gap-2 relative z-50">
+      <div className="flex items-center gap-2 relative z-50 min-w-max">
+        {/* 전체 공개 */}
         <button
           className={`
             px-3 py-1.5 rounded-full text-xs font-semibold
             transition-all
-            ${selectedGroupId === null
+            ${selectedGroupId === null && selectedFilter === 'all'
               ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
               : 'bg-surface-light dark:bg-surface-dark text-gray-600 dark:text-gray-400 border border-border-light dark:border-border-dark'
             }
           `}
-          onClick={() => onGroupChange(null)}
+          onClick={() => {
+            onGroupChange(null)
+            onFilterChange('all')
+          }}
         >
-          전체 공개
+          {t('allPublic')}
         </button>
         
+        {/* 내 그룹 드롭다운 */}
         <button
+          ref={buttonRef}
           className={`
             flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold
             transition-all
@@ -58,15 +88,54 @@ const GroupFilter = ({
           `}
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <span className="truncate max-w-[100px]">{selectedGroup?.name || '내 그룹'}</span>
+          <span className="truncate max-w-[100px]">{selectedGroup?.name || t('myGroups')}</span>
           <span className={`text-[10px] ${selectedGroupId !== null ? 'text-white/80' : 'text-gray-400'}`}>
             {isExpanded ? '▲' : '▼'}
           </span>
         </button>
+
+        {/* 내 기도 */}
+        <button
+          className={`
+            px-3 py-1.5 rounded-full text-xs font-semibold
+            transition-all
+            ${selectedFilter === 'my_prayers'
+              ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
+              : 'bg-surface-light dark:bg-surface-dark text-gray-600 dark:text-gray-400 border border-border-light dark:border-border-dark'
+            }
+          `}
+          onClick={() => {
+            onGroupChange(null)
+            onFilterChange('my_prayers')
+          }}
+        >
+          {t('myPrayers')}
+        </button>
+
+        {/* 내가 기도한 */}
+        <button
+          className={`
+            px-3 py-1.5 rounded-full text-xs font-semibold
+            transition-all
+            ${selectedFilter === 'prayed_by_me'
+              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md'
+              : 'bg-surface-light dark:bg-surface-dark text-gray-600 dark:text-gray-400 border border-border-light dark:border-border-dark'
+            }
+          `}
+          onClick={() => {
+            onGroupChange(null)
+            onFilterChange('prayed_by_me')
+          }}
+        >
+          {t('prayedByMe')}
+        </button>
       </div>
       
       {isExpanded && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+        <div 
+          style={dropdownStyle}
+          className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto"
+        >
           {isLoading ? (
             <div className="p-6 text-center text-gray-500">로딩 중...</div>
           ) : groups.length === 0 ? (
@@ -103,6 +172,7 @@ const GroupFilter = ({
                     `}
                     onClick={() => {
                       onGroupChange(group.id)
+                      onFilterChange('all')
                       setIsExpanded(false)
                     }}
                   >

@@ -65,6 +65,8 @@ export interface PrayerResponse {
 
 export type SortType = 'popular' | 'latest'
 
+export type PrayerFilterType = 'all' | 'my_prayers' | 'prayed_by_me'
+
 // Reply 관련 타입 정의
 export interface Reply {
   id: number

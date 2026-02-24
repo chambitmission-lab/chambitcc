@@ -52,6 +52,8 @@ export const prayer = {
   prayerGroups: 'Prayer Groups',
   myGroups: 'My Groups',
   allPublic: 'Public Feed',
+  myPrayers: 'My Prayers',
+  prayedByMe: 'Prayed by Me',
   createGroup: 'Create Group',
   joinGroup: 'Join Group',
   groupName: 'Group Name',

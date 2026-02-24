@@ -16,7 +16,8 @@ export const fetchPrayers = async (
   page: number = 1,
   limit: number = 20,
   sort: SortType = 'popular',
-  groupId?: number | null
+  groupId?: number | null,
+  filter?: 'all' | 'my_prayers' | 'prayed_by_me' | null
 ): Promise<PrayerListResponse> => {
   const params = new URLSearchParams({
     page: page.toString(),
@@ -27,6 +28,11 @@ export const fetchPrayers = async (
   // 그룹 ID가 있으면 쿼리 파라미터에 추가
   if (groupId !== undefined && groupId !== null) {
     params.append('group_id', groupId.toString())
+  }
+
+  // 필터가 있으면 쿼리 파라미터에 추가
+  if (filter && filter !== 'all') {
+    params.append('filter', filter)
   }
 
   const response = await apiFetch(`${API_V1}/prayers?${params}`, {

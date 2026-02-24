@@ -5,12 +5,13 @@ import GroupFilter from '../../components/prayer/GroupFilter'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
 import PrayerComposer from '../../components/prayer/PrayerComposer'
 import PrayerCard from '../../components/prayer/PrayerCard'
-import type { SortType } from '../../types/prayer'
+import type { SortType, PrayerFilterType } from '../../types/prayer'
 import './PrayerList.css'
 
 const PrayerList = () => {
   const [sort, setSort] = useState<SortType>('popular')
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
+  const [selectedFilter, setSelectedFilter] = useState<PrayerFilterType>('all')
   const [showComposer, setShowComposer] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
@@ -26,7 +27,7 @@ const PrayerList = () => {
     isToggling,
     createPrayer,
     isCreating,
-  } = usePrayersInfinite(sort, selectedGroupId)
+  } = usePrayersInfinite(sort, selectedGroupId, selectedFilter)
   
   const handleCreatePrayer = async (data: any) => {
     // 선택된 그룹이 있으면 group_id 추가
@@ -50,7 +51,9 @@ const PrayerList = () => {
         {/* 그룹 필터 */}
         <GroupFilter
           selectedGroupId={selectedGroupId}
+          selectedFilter={selectedFilter}
           onGroupChange={setSelectedGroupId}
+          onFilterChange={setSelectedFilter}
           onCreateGroup={() => setShowCreateModal(true)}
           onJoinGroup={() => setShowJoinModal(true)}
         />

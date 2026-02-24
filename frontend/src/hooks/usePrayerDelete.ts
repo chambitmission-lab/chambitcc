@@ -31,7 +31,7 @@ export const usePrayerDelete = ({ onSuccess, onError }: UsePrayerDeleteOptions =
       const sorts = ['popular', 'latest'] as const
       
       for (const sort of sorts) {
-        const queryKey = prayerKeys.list(sort, null, currentUser.username)
+        const queryKey = prayerKeys.list(sort, null, null, currentUser.username)
         previousListsData[sort] = queryClient.getQueryData(queryKey)
 
         // Optimistic Update - 목록에서 제거
@@ -65,7 +65,7 @@ export const usePrayerDelete = ({ onSuccess, onError }: UsePrayerDeleteOptions =
         for (const sort of sorts) {
           if (context.previousListsData[sort]) {
             queryClient.setQueryData(
-              prayerKeys.list(sort, null, currentUser.username), 
+              prayerKeys.list(sort, null, null, currentUser.username), 
               context.previousListsData[sort]
             )
           }

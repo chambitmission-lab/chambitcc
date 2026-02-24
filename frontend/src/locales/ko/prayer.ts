@@ -52,6 +52,8 @@ export const prayer = {
   prayerGroups: '기도 그룹',
   myGroups: '내 그룹',
   allPublic: '전체 공개',
+  myPrayers: '내 기도',
+  prayedByMe: '내가 기도한',
   createGroup: '그룹 만들기',
   joinGroup: '그룹 가입하기',
   groupName: '그룹 이름',
