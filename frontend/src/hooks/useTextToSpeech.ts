@@ -23,6 +23,21 @@ export const useTextToSpeech = (options: UseTextToSpeechOptions = {}) => {
   // 브라우저 지원 확인
   useEffect(() => {
     setIsSupported('speechSynthesis' in window)
+    
+    // iOS Safari: 음성 목록 미리 로드 (첫 실행 지연 방지)
+    if ('speechSynthesis' in window) {
+      // iOS에서 getVoices()가 비동기로 로드되므로 이벤트 리스너 등록
+      const loadVoices = () => {
+        window.speechSynthesis.getVoices()
+      }
+      
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = loadVoices
+      }
+      
+      // 즉시 한 번 호출
+      loadVoices()
+    }
   }, [])
 
   // 음성 재생
@@ -43,6 +58,13 @@ export const useTextToSpeech = (options: UseTextToSpeechOptions = {}) => {
     utterance.pitch = pitch
     utterance.volume = volume
 
+    // iOS Safari: 한국어 음성 명시적으로 선택
+    const voices = window.speechSynthesis.getVoices()
+    const koreanVoice = voices.find(voice => voice.lang.startsWith('ko'))
+    if (koreanVoice) {
+      utterance.voice = koreanVoice
+    }
+
     utterance.onstart = () => {
       setIsPlaying(true)
       setIsPaused(false)
@@ -60,7 +82,11 @@ export const useTextToSpeech = (options: UseTextToSpeechOptions = {}) => {
     }
 
     utteranceRef.current = utterance
-    window.speechSynthesis.speak(utterance)
+    
+    // iOS Safari: 약간의 지연 후 재생 (안정성 향상)
+    setTimeout(() => {
+      window.speechSynthesis.speak(utterance)
+    }, 100)
   }, [isSupported, lang, rate, pitch, volume])
 
   // 일시정지
