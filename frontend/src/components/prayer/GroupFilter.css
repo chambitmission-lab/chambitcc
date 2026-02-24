@@ -1,6 +1,6 @@
 .group-filter {
   position: relative;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .group-filter-header {
@@ -13,25 +13,25 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  background: white;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ig-border);
+  border-radius: 6px;
+  background: var(--ig-primary-background);
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ig-primary-text);
 }
 
 .group-filter-btn:hover {
-  border-color: #4a90e2;
-  background: #f8fbff;
+  background: var(--ig-hover);
 }
 
 .group-filter-btn.active {
-  border-color: #4a90e2;
-  background: #4a90e2;
-  color: white;
+  background: var(--ig-primary-text);
+  color: var(--ig-primary-background);
+  border-color: var(--ig-primary-text);
 }
 
 .group-filter-toggle {
@@ -39,29 +39,29 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  background: white;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ig-border);
+  border-radius: 6px;
+  background: var(--ig-primary-background);
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ig-primary-text);
 }
 
 .group-filter-toggle:hover {
-  border-color: #4a90e2;
-  background: #f8fbff;
+  background: var(--ig-hover);
 }
 
 .group-icon {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .toggle-icon {
   margin-left: auto;
-  font-size: 0.8rem;
-  color: #666;
+  font-size: 0.7rem;
+  color: var(--ig-secondary-text);
 }
 
 .group-filter-dropdown {
@@ -69,10 +69,10 @@
   top: calc(100% + 0.5rem);
   left: 0;
   right: 0;
-  background: white;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 100;
   max-height: 400px;
   overflow-y: auto;
@@ -82,11 +82,12 @@
 .group-filter-empty {
   padding: 2rem;
   text-align: center;
-  color: #666;
+  color: var(--ig-secondary-text);
 }
 
 .group-filter-empty p {
   margin-bottom: 1rem;
+  color: var(--ig-secondary-text);
 }
 
 .group-filter-list {
@@ -100,7 +101,7 @@
   gap: 0.75rem;
   padding: 0.75rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: transparent;
   cursor: pointer;
   transition: all 0.2s;
@@ -108,11 +109,11 @@
 }
 
 .group-filter-item:hover {
-  background: #f8fbff;
+  background: var(--ig-hover);
 }
 
 .group-filter-item.active {
-  background: #e3f2fd;
+  background: var(--ig-hover);
 }
 
 .group-info {
@@ -122,19 +123,20 @@
 .group-name {
   font-weight: 600;
   margin-bottom: 0.25rem;
+  color: var(--ig-primary-text);
 }
 
 .group-stats {
-  font-size: 0.85rem;
-  color: #666;
+  font-size: 0.8125rem;
+  color: var(--ig-secondary-text);
 }
 
 .admin-badge {
   padding: 0.25rem 0.5rem;
-  background: #4a90e2;
-  color: white;
+  background: var(--ig-primary-text);
+  color: var(--ig-primary-background);
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
 }
 
@@ -142,33 +144,35 @@
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--ig-border);
 }
 
 .group-filter-actions button {
   flex: 1;
-  padding: 0.75rem;
+  padding: 0.625rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 600;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-create {
-  background: #4a90e2;
-  color: white;
+  background: var(--ig-primary-text);
+  color: var(--ig-primary-background);
 }
 
 .btn-create:hover {
-  background: #357abd;
+  opacity: 0.8;
 }
 
 .btn-join {
-  background: #f0f0f0;
-  color: #333;
+  background: var(--ig-hover);
+  color: var(--ig-primary-text);
+  border: 1px solid var(--ig-border);
 }
 
 .btn-join:hover {
-  background: #e0e0e0;
+  background: var(--ig-border);
 }
