@@ -16,7 +16,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   // 제목 음성 인식
   const titleVoice = useSpeechRecognition({
     onResult: (transcript) => {
-      // 음성 인식 결과를 그대로 사용 (이미 누적되어 있음)
+      // 음성 인식 결과를 그대로 사용 (기존 텍스트 + 새로운 음성)
       onTitleChange(transcript)
     },
     onError: (error) => {
@@ -24,12 +24,13 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       setTimeout(() => setVoiceError(''), 3000)
     },
     continuous: true,
+    initialText: title,
   })
 
   // 내용 음성 인식
   const contentVoice = useSpeechRecognition({
     onResult: (transcript) => {
-      // 음성 인식 결과를 그대로 사용 (이미 누적되어 있음)
+      // 음성 인식 결과를 그대로 사용 (기존 텍스트 + 새로운 음성)
       onContentChange(transcript)
     },
     onError: (error) => {
@@ -37,6 +38,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       setTimeout(() => setVoiceError(''), 3000)
     },
     continuous: true,
+    initialText: content,
   })
 
   const handleTitleStart = () => {
