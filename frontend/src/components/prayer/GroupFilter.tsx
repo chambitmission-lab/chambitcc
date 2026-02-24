@@ -35,11 +35,11 @@ const GroupFilter = ({
       <div className="flex items-center gap-2 relative z-50">
         <button
           className={`
-            flex-1 flex items-center justify-center px-4 py-2 rounded-full text-sm font-bold
+            px-3 py-1.5 rounded-full text-xs font-semibold
             transition-all
             ${selectedGroupId === null
-              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
-              : 'bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 border border-border-light dark:border-border-dark'
+              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+              : 'bg-surface-light dark:bg-surface-dark text-gray-600 dark:text-gray-400 border border-border-light dark:border-border-dark'
             }
           `}
           onClick={() => onGroupChange(null)}
@@ -49,17 +49,17 @@ const GroupFilter = ({
         
         <button
           className={`
-            flex-1 flex items-center justify-between px-4 py-2 rounded-full text-sm font-bold
+            flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold
             transition-all
             ${selectedGroupId !== null
-              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
-              : 'bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800'
+              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+              : 'bg-surface-light dark:bg-surface-dark text-gray-600 dark:text-gray-400 border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800'
             }
           `}
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <span className="truncate">{selectedGroup?.name || '내 그룹'}</span>
-          <span className={`text-xs ml-2 flex-shrink-0 ${selectedGroupId !== null ? 'text-white/80' : 'text-gray-400'}`}>
+          <span className="truncate max-w-[100px]">{selectedGroup?.name || '내 그룹'}</span>
+          <span className={`text-[10px] ${selectedGroupId !== null ? 'text-white/80' : 'text-gray-400'}`}>
             {isExpanded ? '▲' : '▼'}
           </span>
         </button>

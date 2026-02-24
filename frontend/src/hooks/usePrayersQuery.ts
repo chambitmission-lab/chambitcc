@@ -30,7 +30,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
       const response = await fetchPrayers(pageParam, 20, sort, groupId)
       
       // 클라이언트에서 is_owner 재계산 (보안 강화)
-      const itemsWithRecalculatedOwner = response.data.items.map(prayer => ({
+      const itemsWithRecalculatedOwner = response.data.items.map((prayer: Prayer) => ({
         ...prayer,
         is_owner: currentUser.username ? prayer.is_owner : false,
       }))
