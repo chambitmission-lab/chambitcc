@@ -1,7 +1,6 @@
 // 그룹 생성/가입 모달 컴포넌트
 import { useState } from 'react'
 import { useCreateGroup, useJoinGroup } from '../../hooks/useGroups'
-import './GroupModals.css'
 
 const ICON_OPTIONS = ['🙏', '⛪', '✝️', '🎵', '📖', '💒', '👥', '🕊️', '🌟', '❤️']
 
@@ -52,45 +51,64 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
   }
   
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+      onClick={handleClose}
+    >
+      <div 
+        className="bg-background-light dark:bg-background-dark rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-border-light dark:border-border-dark"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-border-light dark:border-border-dark">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
             {createdGroup ? '그룹 생성 완료' : '새 그룹 만들기'}
           </h2>
-          <button className="modal-close" onClick={handleClose}>×</button>
+          <button 
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-all"
+            onClick={handleClose}
+          >
+            ×
+          </button>
         </div>
         
         {createdGroup ? (
-          <div>
-            <p style={{ marginBottom: '1rem' }}>
+          <div className="p-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               그룹이 생성되었습니다! 아래 초대 코드를 공유하여 멤버를 초대하세요.
             </p>
             
-            <div className="invite-code-display">
-              <div>초대 코드</div>
-              <div className="invite-code">{createdGroup.invite_code}</div>
-              <div className="invite-code-hint">
+            <div className="p-4 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-center">
+              <div className="text-sm text-gray-500 mb-2">초대 코드</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white tracking-widest font-mono mb-2">
+                {createdGroup.invite_code}
+              </div>
+              <div className="text-xs text-gray-500 mb-3">
                 이 코드를 공유하면 다른 사람들이 그룹에 가입할 수 있습니다
               </div>
-              <button className="copy-button" onClick={handleCopyCode}>
+              <button 
+                className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all"
+                onClick={handleCopyCode}
+              >
                 코드 복사하기
               </button>
             </div>
             
-            <div className="modal-actions">
-              <button className="btn-submit" onClick={handleClose}>
-                확인
-              </button>
-            </div>
+            <button 
+              className="w-full mt-4 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm rounded-full hover:opacity-80 transition-all"
+              onClick={handleClose}
+            >
+              확인
+            </button>
           </div>
         ) : (
-          <form className="modal-form" onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">그룹 이름 *</label>
+          <form onSubmit={handleSubmit} className="p-4 space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                그룹 이름 *
+              </label>
               <input
                 type="text"
-                className="form-input"
+                className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="예: 청년부, 찬양팀, 셀 모임 A"
@@ -99,25 +117,36 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
               />
             </div>
             
-            <div className="form-group">
-              <label className="form-label">그룹 설명</label>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                그룹 설명
+              </label>
               <textarea
-                className="form-textarea"
+                className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="그룹에 대한 간단한 설명을 입력하세요"
                 maxLength={200}
+                rows={3}
               />
             </div>
             
-            <div className="form-group">
-              <label className="form-label">그룹 아이콘</label>
-              <div className="icon-selector">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                그룹 아이콘
+              </label>
+              <div className="grid grid-cols-5 gap-2">
                 {ICON_OPTIONS.map((iconOption) => (
                   <button
                     key={iconOption}
                     type="button"
-                    className={`icon-option ${icon === iconOption ? 'selected' : ''}`}
+                    className={`
+                      p-3 text-2xl rounded-lg border transition-all
+                      ${icon === iconOption
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-purple-500 scale-110'
+                        : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }
+                    `}
                     onClick={() => setIcon(iconOption)}
                   >
                     {iconOption}
@@ -126,13 +155,17 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
               </div>
             </div>
             
-            <div className="modal-actions">
-              <button type="button" className="btn-cancel" onClick={handleClose}>
+            <div className="flex gap-2 pt-2">
+              <button 
+                type="button"
+                className="flex-1 px-4 py-2 bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 font-bold text-sm rounded-full border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                onClick={handleClose}
+              >
                 취소
               </button>
               <button 
-                type="submit" 
-                className="btn-submit"
+                type="submit"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!name.trim() || createMutation.isPending}
               >
                 {createMutation.isPending ? '생성 중...' : '그룹 만들기'}
@@ -175,37 +208,53 @@ export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
   }
   
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2 className="modal-title">그룹 가입하기</h2>
-          <button className="modal-close" onClick={handleClose}>×</button>
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+      onClick={handleClose}
+    >
+      <div 
+        className="bg-background-light dark:bg-background-dark rounded-2xl max-w-md w-full shadow-2xl border border-border-light dark:border-border-dark"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-border-light dark:border-border-dark">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">그룹 가입하기</h2>
+          <button 
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-all"
+            onClick={handleClose}
+          >
+            ×
+          </button>
         </div>
         
-        <form className="modal-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">초대 코드 *</label>
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              초대 코드 *
+            </label>
             <input
               type="text"
-              className="form-input"
+              className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent uppercase tracking-widest font-mono text-center"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
               placeholder="초대 코드를 입력하세요"
               required
-              style={{ textTransform: 'uppercase', letterSpacing: '2px' }}
             />
-            <small style={{ color: '#666' }}>
+            <p className="mt-2 text-xs text-gray-500">
               그룹 관리자로부터 받은 초대 코드를 입력하세요
-            </small>
+            </p>
           </div>
           
-          <div className="modal-actions">
-            <button type="button" className="btn-cancel" onClick={handleClose}>
+          <div className="flex gap-2">
+            <button 
+              type="button"
+              className="flex-1 px-4 py-2 bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 font-bold text-sm rounded-full border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+              onClick={handleClose}
+            >
               취소
             </button>
             <button 
-              type="submit" 
-              className="btn-submit"
+              type="submit"
+              className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={!inviteCode.trim() || joinMutation.isPending}
             >
               {joinMutation.isPending ? '가입 중...' : '가입하기'}
