@@ -2,7 +2,6 @@ import BibleVersesModal from '../BibleVersesModal'
 import PrayerComposerHeader from './PrayerComposerHeader'
 import UserInfoSection from './UserInfoSection'
 import GroupSelector from './GroupSelector'
-import CategoryBadge from './CategoryBadge'
 import ContentCard from './ContentCard'
 import ErrorMessage from './ErrorMessage'
 import PrivacyNotice from './PrivacyNotice'
@@ -67,8 +66,6 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
               selectedGroupId={selectedGroupId}
               onGroupChange={setSelectedGroupId}
             />
-
-            <CategoryBadge />
 
             <ContentCard
               title={title}
