@@ -12,11 +12,20 @@ interface ContentCardProps {
 const ContentCard = ({ title, content, onTitleChange, onContentChange }: ContentCardProps) => {
   const { t } = useLanguage()
   const [voiceError, setVoiceError] = useState<string>('')
+  const [titlePreview, setTitlePreview] = useState<string>('')
+  const [contentPreview, setContentPreview] = useState<string>('')
 
   // 제목 음성 인식
   const titleVoice = useSpeechRecognition({
-    onResult: (transcript) => {
-      onTitleChange(transcript)
+    onResult: (transcript, isFinal) => {
+      if (isFinal) {
+        // 최종 결과만 실제로 반영
+        onTitleChange(transcript)
+        setTitlePreview('')
+      } else {
+        // 중간 결과는 미리보기만
+        setTitlePreview(transcript)
+      }
     },
     onError: (error) => {
       setVoiceError(error)
@@ -27,8 +36,15 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
 
   // 내용 음성 인식
   const contentVoice = useSpeechRecognition({
-    onResult: (transcript) => {
-      onContentChange(transcript)
+    onResult: (transcript, isFinal) => {
+      if (isFinal) {
+        // 최종 결과만 실제로 반영
+        onContentChange(transcript)
+        setContentPreview('')
+      } else {
+        // 중간 결과는 미리보기만
+        setContentPreview(transcript)
+      }
     },
     onError: (error) => {
       setVoiceError(error)
@@ -44,11 +60,13 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
     }
     
     // 제목 음성 인식 시작 - 현재 제목 텍스트를 전달
+    setTitlePreview('')
     titleVoice.startListening(title)
   }
 
   const handleTitleStop = () => {
     titleVoice.stopListening()
+    setTitlePreview('')
   }
 
   const handleContentStart = () => {
@@ -58,11 +76,13 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
     }
     
     // 내용 음성 인식 시작 - 현재 내용 텍스트를 전달
+    setContentPreview('')
     contentVoice.startListening(content)
   }
 
   const handleContentStop = () => {
     contentVoice.stopListening()
+    setContentPreview('')
   }
   
   return (
@@ -86,7 +106,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
           <div className="flex items-center gap-2">
             <input
               type="text"
-              value={title}
+              value={titleVoice.isListening && titlePreview ? titlePreview : title}
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder={t('prayerComposerTitlePlaceholder')}
               maxLength={100}
@@ -135,7 +155,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
         <div className="relative z-10">
           <div className="flex items-start gap-2">
             <textarea
-              value={content}
+              value={contentVoice.isListening && contentPreview ? contentPreview : content}
               onChange={(e) => onContentChange(e.target.value)}
               placeholder={t('prayerComposerContentPlaceholder')}
               rows={4}
@@ -180,7 +200,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
             </div>
           )}
           <div className="text-xs text-gray-400 dark:text-gray-500 text-right mt-0.5">
-            {content.length}/1000
+            {(contentVoice.isListening && contentPreview ? contentPreview : content).length}/1000
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 
 interface UseSpeechRecognitionProps {
-  onResult: (transcript: string) => void
+  onResult: (transcript: string, isFinal: boolean) => void
   onError?: (error: string) => void
   language?: string
   continuous?: boolean
@@ -75,13 +75,13 @@ export const useSpeechRecognition = ({
         fullTranscriptRef.current += (fullTranscriptRef.current ? ' ' : '') + finalTranscript
         const result = (initialTextRef.current + (initialTextRef.current && fullTranscriptRef.current ? ' ' : '') + fullTranscriptRef.current).trim()
         console.log('Final result:', result)
-        onResult(result)
+        onResult(result, true)
       } else if (interimTranscript) {
-        // 중간 결과는 초기 텍스트 + 현재 누적된 텍스트 + 중간 결과
+        // 중간 결과는 초기 텍스트 + 현재 누적된 텍스트 + 중간 결과 (미리보기용)
         const combined = initialTextRef.current + (initialTextRef.current && fullTranscriptRef.current ? ' ' : '') + fullTranscriptRef.current + (fullTranscriptRef.current && interimTranscript ? ' ' : '') + interimTranscript
         const result = combined.trim()
         console.log('Interim result:', result)
-        onResult(result)
+        onResult(result, false)
       }
     }
 
