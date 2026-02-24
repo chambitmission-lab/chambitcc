@@ -73,12 +73,13 @@ export const useSpeechRecognition = ({
       if (finalTranscript) {
         // 최종 결과만 누적
         fullTranscriptRef.current += finalTranscript
-        const result = (initialTextRef.current + fullTranscriptRef.current).trim()
+        // 공백 정리: 여러 공백을 하나로, 앞뒤 공백 제거
+        const result = (initialTextRef.current + ' ' + fullTranscriptRef.current).replace(/\s+/g, ' ').trim()
         console.log('Final result:', result)
         onResult(result)
       } else if (interimTranscript) {
         // 중간 결과는 초기 텍스트 + 현재 누적된 텍스트 + 중간 결과
-        const result = (initialTextRef.current + fullTranscriptRef.current + interimTranscript).trim()
+        const result = (initialTextRef.current + ' ' + fullTranscriptRef.current + interimTranscript).replace(/\s+/g, ' ').trim()
         console.log('Interim result:', result)
         onResult(result)
       }
