@@ -81,16 +81,16 @@ const GroupFilter = ({
             </div>
           ) : (
             <>
-              <div className="p-2">
+              <div className="p-2 space-y-1">
                 {groups.map(group => (
                   <button
                     key={group.id}
                     className={`
-                      w-full flex items-center gap-3 p-3 rounded-lg text-left
+                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left
                       transition-all
                       ${selectedGroupId === group.id
-                        ? 'bg-purple-50 dark:bg-purple-900/20'
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                        ? 'bg-purple-500/10 dark:bg-purple-500/20 ring-1 ring-purple-500'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                       }
                     `}
                     onClick={() => {
@@ -98,18 +98,34 @@ const GroupFilter = ({
                       setIsExpanded(false)
                     }}
                   >
+                    {/* 그룹 아이콘 */}
+                    <div className="text-2xl flex-shrink-0">
+                      {group.icon || '👥'}
+                    </div>
+                    
+                    {/* 그룹 정보 */}
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                      <div className="font-semibold text-sm text-gray-900 dark:text-white truncate mb-0.5">
                         {group.name}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        멤버 {group.member_count}명 · 기도 {group.prayer_count}개
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          👤 {group.member_count}
+                        </span>
+                        <span className="text-xs text-gray-400">·</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          🙏 {group.prayer_count}
+                        </span>
                       </div>
                     </div>
-                    {group.is_admin && (
-                      <span className="px-2 py-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-bold rounded">
-                        관리자
-                      </span>
+                    
+                    {/* 선택 표시 */}
+                    {selectedGroupId === group.id && (
+                      <div className="text-purple-500 flex-shrink-0">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
                     )}
                   </button>
                 ))}
