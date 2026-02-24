@@ -56,9 +56,13 @@ export const useSpeechRecognition = ({
       let interimTranscript = ''
       let finalTranscript = ''
 
+      console.log('onresult event, resultIndex:', event.resultIndex, 'results.length:', event.results.length)
+
       // resultIndex부터 시작하여 새로운 결과만 처리
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript
+        console.log(`Result ${i}: "${transcript}", isFinal: ${event.results[i].isFinal}`)
+        
         if (event.results[i].isFinal) {
           finalTranscript += transcript + ' '
         } else {
@@ -69,10 +73,14 @@ export const useSpeechRecognition = ({
       if (finalTranscript) {
         // 최종 결과만 누적
         fullTranscriptRef.current += finalTranscript
-        onResult((initialTextRef.current + fullTranscriptRef.current).trim())
+        const result = (initialTextRef.current + fullTranscriptRef.current).trim()
+        console.log('Final result:', result)
+        onResult(result)
       } else if (interimTranscript) {
         // 중간 결과는 초기 텍스트 + 현재 누적된 텍스트 + 중간 결과
-        onResult((initialTextRef.current + fullTranscriptRef.current + interimTranscript).trim())
+        const result = (initialTextRef.current + fullTranscriptRef.current + interimTranscript).trim()
+        console.log('Interim result:', result)
+        onResult(result)
       }
     }
 
@@ -106,14 +114,15 @@ export const useSpeechRecognition = ({
 
     // 종료 처리
     recognition.onend = () => {
-      console.log('Speech recognition ended, shouldRestart:', shouldRestartRef.current)
+      console.log('Speech recognition ended')
       
-      // continuous 모드이고 의도적으로 중지하지 않았다면 자동 재시작
-      if (continuous && shouldRestartRef.current && isListeningRef.current) {
+      // 의도적으로 중지한 경우가 아니라면 계속 듣기
+      if (shouldRestartRef.current && isListeningRef.current) {
         console.log('Auto-restarting speech recognition')
         setTimeout(() => {
           if (isListeningRef.current && recognitionRef.current) {
             try {
+              // 재시작 시 fullTranscript는 유지 (누적 계속)
               recognitionRef.current.start()
             } catch (err) {
               console.error('Failed to restart recognition:', err)
