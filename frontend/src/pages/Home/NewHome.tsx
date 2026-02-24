@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
@@ -7,7 +7,6 @@ import TodaysVerse from './components/TodaysVerse'
 import SortTabs from './components/SortTabs'
 import PrayerComposerInput from './components/PrayerComposerInput'
 import PrayerFeed from './components/PrayerFeed'
-import PrayerFocusCard from './components/PrayerFocusCard'
 import BottomNavigation from './components/BottomNavigation'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
@@ -19,6 +18,7 @@ import type { SortType } from '../../types/prayer'
 
 const NewHome = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const { requireAuth, requireAuthWithRedirect } = useAuth()
   const { t } = useLanguage()
   const [showComposer, setShowComposer] = useState(false)
@@ -74,6 +74,10 @@ const NewHome = () => {
     }
   }
 
+  const handleFocusModeClick = () => {
+    navigate('/prayer-focus')
+  }
+
   // 초기 로딩 상태 표시
   if (prayerHook.loading && prayerHook.prayers.length === 0) {
     return (
@@ -124,7 +128,6 @@ const NewHome = () => {
           
           <main ref={mainRef} className="pb-20">
             <TodaysVerse />
-            <PrayerFocusCard />
             
             {/* 소그룹 필터 */}
             <div className="px-4 py-3">
@@ -140,7 +143,7 @@ const NewHome = () => {
             <PrayerComposerInput onComposerOpen={handleComposerOpen} />
             
             <PrayerFeed
-              prayers={prayerHook.prayers}  // ✅ 서버에서 이미 필터링된 데이터 사용
+              prayers={prayerHook.prayers}
               loading={prayerHook.loading}
               hasMore={prayerHook.hasMore}
               isFetchingMore={prayerHook.isFetchingMore}
@@ -199,6 +202,7 @@ const NewHome = () => {
               onProfileClick={handleProfileClick}
               onComposeClick={handleComposerOpen}
               onScrollToTop={handleScrollToTop}
+              onFocusModeClick={handleFocusModeClick}
             />
           </div>
         </div>

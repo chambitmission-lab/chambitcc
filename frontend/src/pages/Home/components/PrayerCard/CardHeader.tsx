@@ -19,10 +19,10 @@ const CardHeader = ({
 }: CardHeaderProps) => {
   return (
     <>
-      {/* 그룹 배지 */}
+      {/* 그룹 배지 - 다크 그레이 톤 */}
       {group && (
-        <div className="mb-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-xs font-semibold">
+        <div className="mb-2 px-5">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-xs font-semibold border border-gray-200 dark:border-gray-700">
             <span>{group.icon}</span>
             <span>{group.name}</span>
           </span>
