@@ -24,7 +24,15 @@ const GroupFilter = ({
   
   return (
     <div className="relative">
-      <div className="flex items-center gap-2">
+      {/* Backdrop - 드롭다운 열릴 때 배경 흐리게 */}
+      {isExpanded && (
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+          onClick={() => setIsExpanded(false)}
+        />
+      )}
+      
+      <div className="flex items-center gap-2 relative z-50">
         <button
           className={`
             flex-1 flex items-center justify-center px-4 py-2 rounded-full text-sm font-bold
