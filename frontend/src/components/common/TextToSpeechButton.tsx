@@ -1,3 +1,4 @@
+import React from 'react'
 import { useTextToSpeech } from '../../hooks/useTextToSpeech'
 
 interface TextToSpeechButtonProps {
@@ -18,7 +19,7 @@ const TextToSpeechButton = ({ text, className = '', size = 'md' }: TextToSpeechB
     return null // 지원하지 않는 브라우저에서는 버튼 숨김
   }
 
-  const handleClick = (e: MouseEvent) => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation() // 부모 클릭 이벤트 방지
     
     if (isPlaying) {

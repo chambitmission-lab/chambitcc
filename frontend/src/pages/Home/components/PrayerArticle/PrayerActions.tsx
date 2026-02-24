@@ -1,9 +1,10 @@
+import React from 'react'
 import TextToSpeechButton from '../../../../components/common/TextToSpeechButton'
 
 interface PrayerActionsProps {
   isPrayed: boolean
   isPraying: boolean
-  onPray: (e: MouseEvent) => void
+  onPray: (e: React.MouseEvent) => void
   prayerText: string // 제목 + 내용
 }
 
