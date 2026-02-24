@@ -141,9 +141,9 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                     key={iconOption}
                     type="button"
                     className={`
-                      p-3 text-2xl rounded-lg border transition-all
+                      aspect-square flex items-center justify-center text-2xl rounded-lg border transition-all
                       ${icon === iconOption
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-purple-500 scale-110'
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-purple-500 ring-2 ring-purple-300'
                         : 'bg-surface-light dark:bg-surface-dark border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800'
                       }
                     `}
