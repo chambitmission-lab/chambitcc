@@ -20,6 +20,7 @@ export const prayerKeys = {
 // Infinite Query Hook
 export const usePrayersInfinite = (sort: SortType = 'popular') => {
   const queryClient = useQueryClient()
+  // 매 렌더링마다 최신 사용자 정보 가져오기 (장시간 후 재접속 대응)
   const currentUser = getCurrentUser()
 
   // 무한 스크롤 쿼리
@@ -47,11 +48,11 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
       return allPages.length + 1
     },
     initialPageParam: 1,
-    staleTime: 1000 * 60 * 5, // 5분간 fresh (PWA 재실행 시 빠른 갱신)
+    staleTime: 1000 * 60 * 5, // 5분간 fresh
     gcTime: 1000 * 60 * 30, // 30분간 메모리 유지
-    refetchOnMount: 'always', // 마운트 시 항상 새로운 데이터 가져오기 (PWA 재실행 대응)
-    refetchOnWindowFocus: false, // 윈도우 포커스 시에는 가져오지 않음
-    retry: 2, // 실패 시 2번 재시도
+    refetchOnMount: true, // 마운트 시 stale이면 항상 refetch
+    refetchOnWindowFocus: false,
+    retry: 2,
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)

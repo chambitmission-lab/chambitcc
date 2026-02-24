@@ -1,5 +1,8 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { clearPersistedCache } from './config/persister'
 import NewHeader from './components/layout/NewHeader/NewHeader'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
@@ -32,6 +35,51 @@ import './App.css'
 import './styles/common.css'
 
 function App() {
+  const queryClient = useQueryClient()
+
+  // 앱 시작 시 캐시 일관성 확인 (장시간 후 재접속 대응)
+  useEffect(() => {
+    const checkCacheConsistency = () => {
+      const currentUsername = localStorage.getItem('user_username')
+      const lastCachedUsername = localStorage.getItem('last_cached_username')
+      const lastAppOpenTime = localStorage.getItem('last_app_open_time')
+      const now = Date.now()
+      
+      // 사용자가 변경되었거나 처음 실행인 경우
+      if (currentUsername !== lastCachedUsername) {
+        console.log('User changed or first run, clearing cache')
+        clearPersistedCache()
+        queryClient.clear()
+        
+        // 현재 사용자 기록
+        if (currentUsername) {
+          localStorage.setItem('last_cached_username', currentUsername)
+        } else {
+          localStorage.removeItem('last_cached_username')
+        }
+      }
+      // 같은 사용자지만 30분 이상 지났으면 기도 목록 캐시만 무효화
+      else if (lastAppOpenTime) {
+        const timeSinceLastOpen = now - parseInt(lastAppOpenTime)
+        const THIRTY_MINUTES = 1000 * 60 * 30
+        
+        if (timeSinceLastOpen > THIRTY_MINUTES) {
+          console.log('App reopened after 30+ minutes, invalidating prayer caches')
+          // 기도 목록 캐시만 무효화 (백그라운드에서 새로 가져옴)
+          queryClient.invalidateQueries({ 
+            queryKey: ['prayers'],
+            refetchType: 'active' // 현재 활성화된 쿼리만 즉시 refetch
+          })
+        }
+      }
+      
+      // 현재 시간 기록
+      localStorage.setItem('last_app_open_time', now.toString())
+    }
+    
+    checkCacheConsistency()
+  }, [queryClient])
+
   return (
     <ThemeProvider>
       <Router>

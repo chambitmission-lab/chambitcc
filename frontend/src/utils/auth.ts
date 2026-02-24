@@ -1,4 +1,5 @@
 // 인증 관련 유틸리티 함수
+import { clearAllPersistedCache } from '../config/persister'
 
 /**
  * 로그아웃 처리
@@ -16,9 +17,14 @@ export const logout = () => {
   localStorage.removeItem('user_username')
   localStorage.removeItem('user_full_name')
   localStorage.removeItem('user_fingerprint')
+  localStorage.removeItem('last_cached_username')
   
-  // React Query 캐시 제거 (persister가 localStorage 사용)
-  localStorage.removeItem('REACT_QUERY_CACHE')
+  // React Query 캐시 제거 (모든 사용자의 캐시)
+  clearAllPersistedCache()
+  
+  // 프로필 캐시도 제거
+  localStorage.removeItem('profile_detail_cache')
+  localStorage.removeItem('profile_detail_cache_timestamp')
 }
 
 /**

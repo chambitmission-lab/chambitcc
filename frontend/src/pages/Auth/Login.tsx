@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { API_V1 } from '../../config/api'
+import { clearAllPersistedCache } from '../../config/persister'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -58,16 +59,21 @@ const Login = () => {
       // 사용자 정보 저장 (username과 full_name)
       if (data.username) {
         localStorage.setItem('user_username', data.username)
+        localStorage.setItem('last_cached_username', data.username)
       } else {
         // 백엔드에서 username을 반환하지 않으면 입력한 값 사용
         localStorage.setItem('user_username', formData.username)
+        localStorage.setItem('last_cached_username', formData.username)
       }
       if (data.full_name) {
         localStorage.setItem('user_full_name', data.full_name)
       }
       
-      // React Query 캐시 초기화
-      await queryClient.invalidateQueries()
+      // 이전 사용자의 캐시 완전히 제거 (사용자별 캐시 분리)
+      clearAllPersistedCache()
+      
+      // React Query 캐시 초기화 (메모리 캐시)
+      queryClient.clear()
       
       // 저장된 리다이렉트 경로가 있으면 그곳으로, 없으면 홈으로
       const redirectPath = sessionStorage.getItem('redirect_after_login')
