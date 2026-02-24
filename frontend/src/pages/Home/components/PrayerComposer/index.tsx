@@ -9,7 +9,7 @@ import PrivacyNotice from './PrivacyNotice'
 import { usePrayerComposer } from './usePrayerComposer'
 import type { PrayerComposerProps } from './types'
 
-const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposerProps) => {
+const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: PrayerComposerProps) => {
   const {
     title,
     content,
@@ -27,7 +27,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
     setSelectedGroupId,
     handleSubmit,
     handleVersesModalClose,
-  } = usePrayerComposer({ onClose, onSuccess, sort })
+  } = usePrayerComposer({ onClose, onSuccess, sort, groupId })  // ✅ groupId 전달
 
   const canSubmit = title.trim() && content.trim()
 

@@ -7,14 +7,15 @@ interface UsePrayerComposerProps {
   onClose: () => void
   onSuccess?: () => void
   sort: SortType
+  groupId?: number | null  // ✅ 초기 groupId 추가
 }
 
-export const usePrayerComposer = ({ onClose, onSuccess, sort }: UsePrayerComposerProps) => {
-  const { createPrayer, isCreating } = usePrayersInfinite(sort)
+export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePrayerComposerProps) => {
+  const { createPrayer, isCreating } = usePrayersInfinite(sort, groupId)  // ✅ groupId 전달
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(groupId || null)  // ✅ 초기값 설정
   const [error, setError] = useState('')
   const [recommendedVerses, setRecommendedVerses] = useState<RecommendedVerses | null>(null)
   const [showVersesModal, setShowVersesModal] = useState(false)

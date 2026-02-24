@@ -4,6 +4,7 @@ export interface PrayerComposerProps {
   onClose: () => void
   onSuccess?: () => void
   sort?: SortType
+  groupId?: number | null  // ✅ groupId 추가
 }
 
 export interface PrayerFormData {

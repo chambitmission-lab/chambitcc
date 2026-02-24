@@ -28,7 +28,7 @@ const NewHome = () => {
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
-  const prayerHook = usePrayersInfinite(sort)
+  const prayerHook = usePrayersInfinite(sort, selectedGroupId)  // ✅ selectedGroupId 전달
   const mainRef = useRef<HTMLDivElement>(null)
 
   // 프로필에서 넘어온 기도 ID 처리
@@ -140,10 +140,7 @@ const NewHome = () => {
             <PrayerComposerInput onComposerOpen={handleComposerOpen} />
             
             <PrayerFeed
-              prayers={selectedGroupId 
-                ? prayerHook.prayers.filter(p => p.group_id === selectedGroupId)
-                : prayerHook.prayers.filter(p => !p.group_id)
-              }
+              prayers={prayerHook.prayers}  // ✅ 서버에서 이미 필터링된 데이터 사용
               loading={prayerHook.loading}
               hasMore={prayerHook.hasMore}
               isFetchingMore={prayerHook.isFetchingMore}
@@ -157,6 +154,7 @@ const NewHome = () => {
           {showComposer && (
             <PrayerComposer
               sort={sort}
+              groupId={selectedGroupId}  // ✅ selectedGroupId 전달
               onClose={() => setShowComposer(false)}
               onSuccess={() => {
                 // Optimistic Update가 자동으로 처리됨
