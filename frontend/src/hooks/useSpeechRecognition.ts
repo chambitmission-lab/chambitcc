@@ -64,7 +64,7 @@ export const useSpeechRecognition = ({
         console.log(`Result ${i}: "${transcript}", isFinal: ${event.results[i].isFinal}`)
         
         if (event.results[i].isFinal) {
-          finalTranscript += transcript + ' '
+          finalTranscript += transcript
         } else {
           interimTranscript += transcript
         }
@@ -72,14 +72,14 @@ export const useSpeechRecognition = ({
 
       if (finalTranscript) {
         // 최종 결과만 누적
-        fullTranscriptRef.current += finalTranscript
-        // 공백 정리: 여러 공백을 하나로, 앞뒤 공백 제거
-        const result = (initialTextRef.current + ' ' + fullTranscriptRef.current).replace(/\s+/g, ' ').trim()
+        fullTranscriptRef.current += (fullTranscriptRef.current ? ' ' : '') + finalTranscript
+        const result = (initialTextRef.current + (initialTextRef.current && fullTranscriptRef.current ? ' ' : '') + fullTranscriptRef.current).trim()
         console.log('Final result:', result)
         onResult(result)
       } else if (interimTranscript) {
         // 중간 결과는 초기 텍스트 + 현재 누적된 텍스트 + 중간 결과
-        const result = (initialTextRef.current + ' ' + fullTranscriptRef.current + interimTranscript).replace(/\s+/g, ' ').trim()
+        const combined = initialTextRef.current + (initialTextRef.current && fullTranscriptRef.current ? ' ' : '') + fullTranscriptRef.current + (fullTranscriptRef.current && interimTranscript ? ' ' : '') + interimTranscript
+        const result = combined.trim()
         console.log('Interim result:', result)
         onResult(result)
       }
