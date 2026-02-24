@@ -57,7 +57,7 @@ export const useSpeechRecognition = ({
 
       console.log('onresult event, resultIndex:', event.resultIndex, 'results.length:', event.results.length)
 
-      // 모든 결과를 처음부터 다시 조합 (중복 방지)
+      // 현재 세션의 모든 결과를 조합 (이 세션에서 말한 내용만)
       for (let i = 0; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript
         console.log(`Result ${i}: "${transcript}", isFinal: ${event.results[i].isFinal}`)
@@ -71,20 +71,19 @@ export const useSpeechRecognition = ({
 
       // 최종 결과 처리
       finalTranscript = finalTranscript.trim()
+      interimTranscript = interimTranscript.trim()
       
       if (finalTranscript || interimTranscript) {
-        // 초기 텍스트 + 최종 결과 + 중간 결과
+        // 초기 텍스트(기존 텍스트) + 이번 세션의 새로운 음성
+        let newText = finalTranscript || interimTranscript
         let result = initialTextRef.current
-        if (finalTranscript) {
-          result += (result ? ' ' : '') + finalTranscript
-        }
-        if (interimTranscript) {
-          result += (result ? ' ' : '') + interimTranscript
+        if (newText) {
+          result += (result ? ' ' : '') + newText
         }
         result = result.trim()
         
         const isFinal = !!finalTranscript && !interimTranscript
-        console.log(isFinal ? 'Final result:' : 'Interim result:', result)
+        console.log(isFinal ? 'Final result:' : 'Interim result:', result, '(initialText:', initialTextRef.current, ', newText:', newText, ')')
         onResult(result, isFinal)
       }
     }

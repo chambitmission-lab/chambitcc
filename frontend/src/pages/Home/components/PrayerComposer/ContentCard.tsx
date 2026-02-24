@@ -56,7 +56,12 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   const handleTitleStart = () => {
     // 내용 음성 인식이 실행 중이면 중지
     if (contentVoice.isListening) {
+      // 중지 시 미리보기 내용이 있으면 실제 값으로 저장
+      if (contentPreview) {
+        onContentChange(contentPreview)
+      }
       contentVoice.stopListening()
+      setContentPreview('')
     }
     
     // 제목 음성 인식 시작 - 현재 제목 텍스트를 전달
@@ -65,6 +70,10 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   }
 
   const handleTitleStop = () => {
+    // 중지 시 미리보기 내용이 있으면 실제 값으로 저장
+    if (titlePreview) {
+      onTitleChange(titlePreview)
+    }
     titleVoice.stopListening()
     setTitlePreview('')
   }
@@ -72,7 +81,12 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   const handleContentStart = () => {
     // 제목 음성 인식이 실행 중이면 중지
     if (titleVoice.isListening) {
+      // 중지 시 미리보기 내용이 있으면 실제 값으로 저장
+      if (titlePreview) {
+        onTitleChange(titlePreview)
+      }
       titleVoice.stopListening()
+      setTitlePreview('')
     }
     
     // 내용 음성 인식 시작 - 현재 내용 텍스트를 전달
@@ -81,6 +95,10 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   }
 
   const handleContentStop = () => {
+    // 중지 시 미리보기 내용이 있으면 실제 값으로 저장
+    if (contentPreview) {
+      onContentChange(contentPreview)
+    }
     contentVoice.stopListening()
     setContentPreview('')
   }
