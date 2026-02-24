@@ -75,6 +75,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
         isPrayed={prayer.is_prayed}
         isPraying={isPraying}
         onPray={handlePray}
+        prayerText={`${displayTitle}. ${displayContent}`}
       />
 
       <PrayerStats

@@ -1,13 +1,17 @@
+import TextToSpeechButton from '../../../../components/common/TextToSpeechButton'
+
 interface PrayerActionsProps {
   isPrayed: boolean
   isPraying: boolean
-  onPray: (e: React.MouseEvent) => void
+  onPray: (e: MouseEvent) => void
+  prayerText: string // 제목 + 내용
 }
 
 const PrayerActions = ({
   isPrayed,
   isPraying,
-  onPray
+  onPray,
+  prayerText
 }: PrayerActionsProps) => {
   return (
     <div className="px-4 flex items-center gap-3 mb-2">
@@ -22,6 +26,12 @@ const PrayerActions = ({
           volunteer_activism
         </span>
       </button>
+      
+      {/* 음성 재생 버튼 */}
+      <TextToSpeechButton 
+        text={prayerText}
+        size="md"
+      />
     </div>
   )
 }
