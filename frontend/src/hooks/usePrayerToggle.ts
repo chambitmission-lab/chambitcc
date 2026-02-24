@@ -7,6 +7,7 @@ import type { Prayer, SortType } from '../types/prayer'
 
 interface UsePrayerToggleOptions {
   sort?: SortType
+  groupId?: number | null // 그룹 필터링용
   prayerId?: number // 상세 페이지용
   username?: string | null // 사용자별 캐시 키용
   onSuccess?: (message: string) => void
@@ -27,6 +28,7 @@ interface PrayerToggleResult {
  */
 export const usePrayerToggle = ({
   sort = 'popular',
+  groupId = null,
   prayerId: detailPrayerId,
   username = null,
   onSuccess,
@@ -62,7 +64,7 @@ export const usePrayerToggle = ({
 
   // 통합 토글 함수 (Dependency Inversion: 추상화된 인터페이스 제공)
   const togglePrayer = async (prayerId: number, isPrayed: boolean) => {
-    const listQueryKey = prayerKeys.list(sort, username)
+    const listQueryKey = prayerKeys.list(sort, groupId, username)
     const detailQueryKey = detailPrayerId 
       ? prayerKeys.detail(detailPrayerId, username)
       : null
@@ -139,7 +141,7 @@ export const usePrayerToggle = ({
         const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
         otherSorts.forEach(otherSort => {
           queryClient.invalidateQueries({ 
-            queryKey: prayerKeys.list(otherSort, username),
+            queryKey: prayerKeys.list(otherSort, groupId, username),
             refetchType: 'none',
           })
         })

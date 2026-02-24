@@ -26,15 +26,15 @@ const PrayerList = () => {
     isToggling,
     createPrayer,
     isCreating,
-  } = usePrayersInfinite(sort)
-  
-  // 그룹 필터링 (Mock - 백엔드에서 처리될 예정)
-  const filteredPrayers = selectedGroupId
-    ? prayers.filter(p => p.group_id === selectedGroupId)
-    : prayers.filter(p => !p.group_id) // 전체 공개만 표시
+  } = usePrayersInfinite(sort, selectedGroupId)
   
   const handleCreatePrayer = async (data: any) => {
-    await createPrayer(data)
+    // 선택된 그룹이 있으면 group_id 추가
+    const prayerData = {
+      ...data,
+      group_id: selectedGroupId,
+    }
+    await createPrayer(prayerData)
     setShowComposer(false)
   }
   
@@ -85,6 +85,7 @@ const PrayerList = () => {
           <PrayerComposer
             onSubmit={handleCreatePrayer}
             isSubmitting={isCreating}
+            initialGroupId={selectedGroupId}
           />
         )}
         
@@ -101,7 +102,7 @@ const PrayerList = () => {
               다시 시도
             </button>
           </div>
-        ) : filteredPrayers.length === 0 ? (
+        ) : prayers.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🙏</div>
             <h3>아직 기도 요청이 없습니다</h3>
@@ -116,7 +117,7 @@ const PrayerList = () => {
         ) : (
           <>
             <div className="prayer-list">
-              {filteredPrayers.map(prayer => (
+              {prayers.map(prayer => (
                 <PrayerCard
                   key={prayer.id}
                   prayer={prayer}

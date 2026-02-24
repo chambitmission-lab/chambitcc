@@ -10,24 +10,24 @@ import type { SortType, Prayer, CreatePrayerRequest } from '../types/prayer'
 export const prayerKeys = {
   all: ['prayers'] as const,
   lists: () => [...prayerKeys.all, 'list'] as const,
-  list: (sort: SortType, username?: string | null) => 
-    [...prayerKeys.lists(), sort, username || 'anonymous'] as const,
+  list: (sort: SortType, groupId?: number | null, username?: string | null) => 
+    [...prayerKeys.lists(), sort, groupId ?? 'all', username || 'anonymous'] as const,
   details: () => [...prayerKeys.all, 'detail'] as const,
   detail: (prayerId: number, username?: string | null) => 
     [...prayerKeys.details(), prayerId, username || 'anonymous'] as const,
 }
 
 // Infinite Query Hook
-export const usePrayersInfinite = (sort: SortType = 'popular') => {
+export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number | null) => {
   const queryClient = useQueryClient()
   // 매 렌더링마다 최신 사용자 정보 가져오기 (장시간 후 재접속 대응)
   const currentUser = getCurrentUser()
 
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
-    queryKey: prayerKeys.list(sort, currentUser.username),
+    queryKey: prayerKeys.list(sort, groupId, currentUser.username),
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await fetchPrayers(pageParam, 20, sort)
+      const response = await fetchPrayers(pageParam, 20, sort, groupId)
       
       // 클라이언트에서 is_owner 재계산 (보안 강화)
       const itemsWithRecalculatedOwner = response.data.items.map(prayer => ({
@@ -58,6 +58,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
   // 기도 토글 훅 사용 (Dependency Inversion)
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
     sort,
+    groupId,
     username: currentUser.username,
   })
 
@@ -66,10 +67,10 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     mutationFn: (data: CreatePrayerRequest) => createPrayer(data),
     onMutate: async (data) => {
       // 진행 중인 쿼리 취소
-      await queryClient.cancelQueries({ queryKey: prayerKeys.list(sort) })
+      await queryClient.cancelQueries({ queryKey: prayerKeys.list(sort, groupId) })
 
       // 이전 데이터 백업
-      const previousData = queryClient.getQueryData(prayerKeys.list(sort))
+      const previousData = queryClient.getQueryData(prayerKeys.list(sort, groupId))
 
       // Optimistic Update - 임시 기도 추가
       const tempPrayer: Prayer = {
@@ -83,9 +84,10 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
         reply_count: 0,
         is_prayed: false,
         is_owner: true,
+        group_id: data.group_id,
       }
 
-      queryClient.setQueryData(prayerKeys.list(sort), (old: any) => {
+      queryClient.setQueryData(prayerKeys.list(sort, groupId), (old: any) => {
         if (!old) return old
 
         const firstPage = old.pages[0]
@@ -109,7 +111,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     onError: (error: Error, _variables, context) => {
       // 에러 시 롤백
       if (context?.previousData) {
-        queryClient.setQueryData(prayerKeys.list(sort), context.previousData)
+        queryClient.setQueryData(prayerKeys.list(sort, groupId), context.previousData)
       }
       showToast(error.message || '기도 요청 등록에 실패했습니다.', 'error')
     },
@@ -152,7 +154,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular') => {
     isToggling,
     createPrayer: (data: CreatePrayerRequest) => createMutation.mutateAsync(data),
     isCreating: createMutation.isPending,
-    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort, currentUser.username) }),
+    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort, groupId, currentUser.username) }),
   }
 }
 

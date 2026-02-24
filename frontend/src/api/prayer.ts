@@ -15,13 +15,19 @@ import type {
 export const fetchPrayers = async (
   page: number = 1,
   limit: number = 20,
-  sort: SortType = 'popular'
+  sort: SortType = 'popular',
+  groupId?: number | null
 ): Promise<PrayerListResponse> => {
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
     sort,
   })
+
+  // 그룹 ID가 있으면 쿼리 파라미터에 추가
+  if (groupId !== undefined && groupId !== null) {
+    params.append('group_id', groupId.toString())
+  }
 
   const headers: HeadersInit = {}
   const token = localStorage.getItem('access_token')

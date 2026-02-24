@@ -7,14 +7,15 @@ import './PrayerComposer.css'
 interface PrayerComposerProps {
   onSubmit: (data: CreatePrayerRequest) => Promise<void>
   isSubmitting?: boolean
+  initialGroupId?: number | null
 }
 
-const PrayerComposer = ({ onSubmit, isSubmitting = false }: PrayerComposerProps) => {
+const PrayerComposer = ({ onSubmit, isSubmitting = false, initialGroupId = null }: PrayerComposerProps) => {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [isFullyAnonymous, setIsFullyAnonymous] = useState(false)
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(initialGroupId)
   
   const { data: groupsData } = useMyGroups()
   const groups = groupsData?.data.items || []
