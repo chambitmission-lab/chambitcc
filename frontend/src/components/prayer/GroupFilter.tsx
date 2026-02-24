@@ -27,7 +27,7 @@ const GroupFilter = ({
       <div className="flex items-center gap-2">
         <button
           className={`
-            flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold
+            flex-1 flex items-center justify-center px-4 py-2 rounded-full text-sm font-bold
             transition-all
             ${selectedGroupId === null
               ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
@@ -50,8 +50,8 @@ const GroupFilter = ({
           `}
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <span>{selectedGroup?.name || '내 그룹'}</span>
-          <span className={`text-xs ml-2 ${selectedGroupId !== null ? 'text-white/80' : 'text-gray-400'}`}>
+          <span className="truncate">{selectedGroup?.name || '내 그룹'}</span>
+          <span className={`text-xs ml-2 flex-shrink-0 ${selectedGroupId !== null ? 'text-white/80' : 'text-gray-400'}`}>
             {isExpanded ? '▲' : '▼'}
           </span>
         </button>
