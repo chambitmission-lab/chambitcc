@@ -26,13 +26,13 @@ const NewHeader = () => {
       {/* Backdrop Blur Overlay */}
       {isMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-md z-40" 
+          className="fixed inset-0 bg-black/70 backdrop-blur-md z-[55]" 
           onClick={() => setIsMenuOpen(false)}
         />
       )}
 
       <header 
-        className="fixed top-0 left-0 right-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark" 
+        className="fixed top-0 left-0 right-0 z-[60] bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark" 
         ref={menuRef}
       >
         <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">

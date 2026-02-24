@@ -10,7 +10,7 @@ interface MobileMenuProps {
 
 const MobileMenu = ({ isAdminUser, isLoggedIn, onLogout }: MobileMenuProps) => {
   return (
-    <div className="absolute top-14 left-0 right-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark shadow-lg overflow-hidden z-50">
+    <div className="absolute top-14 left-0 right-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark shadow-lg overflow-hidden z-[60]">
       <div className="max-w-md mx-auto">
         {/* 가로 스크롤 메뉴 */}
         <NavigationMenu />
