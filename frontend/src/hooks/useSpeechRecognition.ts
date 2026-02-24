@@ -32,6 +32,7 @@ export const useSpeechRecognition = ({
   const recognitionRef = useRef<any>(null)
   const fullTranscriptRef = useRef<string>('')
   const isListeningRef = useRef<boolean>(false)
+  const shouldRestartRef = useRef<boolean>(false)
 
   // 새로운 recognition 인스턴스 생성
   const createRecognition = useCallback(() => {
@@ -69,7 +70,7 @@ export const useSpeechRecognition = ({
         fullTranscriptRef.current += finalTranscript
         onResult(fullTranscriptRef.current.trim())
       } else if (interimTranscript) {
-        // 중간 결과는 누적하지 않고 표시만
+        // 중간 결과는 현재 누적된 텍스트 + 중간 결과
         onResult((fullTranscriptRef.current + interimTranscript).trim())
       }
     }
@@ -104,10 +105,27 @@ export const useSpeechRecognition = ({
 
     // 종료 처리
     recognition.onend = () => {
-      console.log('Speech recognition ended')
-      setIsListening(false)
-      isListeningRef.current = false
-      fullTranscriptRef.current = ''
+      console.log('Speech recognition ended, shouldRestart:', shouldRestartRef.current)
+      
+      // continuous 모드이고 의도적으로 중지하지 않았다면 자동 재시작
+      if (continuous && shouldRestartRef.current && isListeningRef.current) {
+        console.log('Auto-restarting speech recognition')
+        setTimeout(() => {
+          if (isListeningRef.current && recognitionRef.current) {
+            try {
+              recognitionRef.current.start()
+            } catch (err) {
+              console.error('Failed to restart recognition:', err)
+              setIsListening(false)
+              isListeningRef.current = false
+            }
+          }
+        }, 100)
+      } else {
+        setIsListening(false)
+        isListeningRef.current = false
+        fullTranscriptRef.current = ''
+      }
     }
 
     return recognition
@@ -151,12 +169,14 @@ export const useSpeechRecognition = ({
       recognitionRef.current.start()
       setIsListening(true)
       isListeningRef.current = true
+      shouldRestartRef.current = true
       console.log('Speech recognition started')
     } catch (err) {
       console.error('Failed to start recognition:', err)
       onError?.('음성 인식을 시작할 수 없습니다')
       recognitionRef.current = null
       isListeningRef.current = false
+      shouldRestartRef.current = false
     }
   }, [isSupported, createRecognition, onError])
 
@@ -171,13 +191,15 @@ export const useSpeechRecognition = ({
 
     try {
       console.log('Stopping speech recognition')
+      shouldRestartRef.current = false
+      isListeningRef.current = false
+      setIsListening(false)
       recognitionRef.current.stop()
       recognitionRef.current = null
-      setIsListening(false)
-      isListeningRef.current = false
       fullTranscriptRef.current = ''
     } catch (error) {
       console.error('Failed to stop recognition:', error)
+      shouldRestartRef.current = false
       recognitionRef.current = null
       setIsListening(false)
       isListeningRef.current = false

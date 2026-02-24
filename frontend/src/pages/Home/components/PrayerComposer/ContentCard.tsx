@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useSpeechRecognition } from '../../../../hooks/useSpeechRecognition'
 
@@ -12,16 +12,12 @@ interface ContentCardProps {
 const ContentCard = ({ title, content, onTitleChange, onContentChange }: ContentCardProps) => {
   const { t } = useLanguage()
   const [voiceError, setVoiceError] = useState<string>('')
-  
-  // 음성 인식 시작 시점의 텍스트 저장
-  const titleStartTextRef = useRef<string>('')
-  const contentStartTextRef = useRef<string>('')
 
   // 제목 음성 인식
   const titleVoice = useSpeechRecognition({
     onResult: (transcript) => {
-      // 시작 시점 텍스트 + 새로운 음성 인식 결과
-      onTitleChange(titleStartTextRef.current + transcript)
+      // 음성 인식 결과를 그대로 사용 (이미 누적되어 있음)
+      onTitleChange(transcript)
     },
     onError: (error) => {
       setVoiceError(error)
@@ -33,8 +29,8 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   // 내용 음성 인식
   const contentVoice = useSpeechRecognition({
     onResult: (transcript) => {
-      // 시작 시점 텍스트 + 새로운 음성 인식 결과
-      onContentChange(contentStartTextRef.current + transcript)
+      // 음성 인식 결과를 그대로 사용 (이미 누적되어 있음)
+      onContentChange(transcript)
     },
     onError: (error) => {
       setVoiceError(error)
@@ -49,12 +45,8 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       contentVoice.stopListening()
     }
     
-    // 제목 음성 인식 시작
-    titleStartTextRef.current = title
-    // 약간의 지연으로 이전 세션 정리 시간 확보
-    setTimeout(() => {
-      titleVoice.startListening()
-    }, 300)
+    // 제목 음성 인식 시작 - 기존 텍스트는 저장하지 않음
+    titleVoice.startListening()
   }
 
   const handleTitleStop = () => {
@@ -67,12 +59,8 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       titleVoice.stopListening()
     }
     
-    // 내용 음성 인식 시작
-    contentStartTextRef.current = content
-    // 약간의 지연으로 이전 세션 정리 시간 확보
-    setTimeout(() => {
-      contentVoice.startListening()
-    }, 300)
+    // 내용 음성 인식 시작 - 기존 텍스트는 저장하지 않음
+    contentVoice.startListening()
   }
 
   const handleContentStop = () => {
