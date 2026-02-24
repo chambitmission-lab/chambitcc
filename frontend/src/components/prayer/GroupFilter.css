@@ -1,0 +1,174 @@
+.group-filter {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.group-filter-header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.group-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.group-filter-btn:hover {
+  border-color: #4a90e2;
+  background: #f8fbff;
+}
+
+.group-filter-btn.active {
+  border-color: #4a90e2;
+  background: #4a90e2;
+  color: white;
+}
+
+.group-filter-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.group-filter-toggle:hover {
+  border-color: #4a90e2;
+  background: #f8fbff;
+}
+
+.group-icon {
+  font-size: 1.2rem;
+}
+
+.toggle-icon {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.group-filter-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.group-filter-loading,
+.group-filter-empty {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+}
+
+.group-filter-empty p {
+  margin-bottom: 1rem;
+}
+
+.group-filter-list {
+  padding: 0.5rem;
+}
+
+.group-filter-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.group-filter-item:hover {
+  background: #f8fbff;
+}
+
+.group-filter-item.active {
+  background: #e3f2fd;
+}
+
+.group-info {
+  flex: 1;
+}
+
+.group-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.group-stats {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.admin-badge {
+  padding: 0.25rem 0.5rem;
+  background: #4a90e2;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.group-filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.group-filter-actions button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-create {
+  background: #4a90e2;
+  color: white;
+}
+
+.btn-create:hover {
+  background: #357abd;
+}
+
+.btn-join {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.btn-join:hover {
+  background: #e0e0e0;
+}

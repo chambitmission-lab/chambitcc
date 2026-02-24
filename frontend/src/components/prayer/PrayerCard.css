@@ -1,0 +1,134 @@
+.prayer-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+  transition: all 0.2s;
+}
+
+.prayer-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.prayer-group-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.badge-icon {
+  font-size: 1rem;
+}
+
+.badge-name {
+  letter-spacing: 0.3px;
+}
+
+.prayer-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.prayer-author {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.author-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.prayer-time {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.owner-badge {
+  padding: 0.25rem 0.625rem;
+  background: #e3f2fd;
+  color: #1976d2;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.prayer-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  color: #222;
+  line-height: 1.4;
+}
+
+.prayer-content {
+  color: #555;
+  line-height: 1.6;
+  margin: 0 0 1.25rem 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.prayer-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.action-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+  color: #666;
+}
+
+.action-button:hover:not(:disabled) {
+  border-color: #4a90e2;
+  background: #f8fbff;
+  color: #4a90e2;
+}
+
+.action-button.active {
+  border-color: #4a90e2;
+  background: #4a90e2;
+  color: white;
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  font-size: 1.1rem;
+}
+
+.action-text {
+  font-size: 0.9rem;
+}
+
+.action-count {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
