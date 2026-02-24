@@ -9,6 +9,8 @@ import PrayerComposerInput from './components/PrayerComposerInput'
 import PrayerFeed from './components/PrayerFeed'
 import PrayerFocusCard from './components/PrayerFocusCard'
 import BottomNavigation from './components/BottomNavigation'
+import GroupFilter from '../../components/prayer/GroupFilter'
+import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import { useAuth } from '../../hooks/useAuth'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -23,6 +25,9 @@ const NewHome = () => {
   const [selectedPrayerId, setSelectedPrayerId] = useState<number | null>(null)
   const [openReplies, setOpenReplies] = useState(false) // 댓글 자동 열기 상태
   const [sort, setSort] = useState<SortType>('popular')
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showJoinModal, setShowJoinModal] = useState(false)
   const prayerHook = usePrayersInfinite(sort)
   const mainRef = useRef<HTMLDivElement>(null)
 
@@ -120,11 +125,25 @@ const NewHome = () => {
           <main ref={mainRef} className="pb-20">
             <TodaysVerse />
             <PrayerFocusCard />
+            
+            {/* 소그룹 필터 */}
+            <div className="px-4 py-3">
+              <GroupFilter
+                selectedGroupId={selectedGroupId}
+                onGroupChange={setSelectedGroupId}
+                onCreateGroup={() => setShowCreateModal(true)}
+                onJoinGroup={() => setShowJoinModal(true)}
+              />
+            </div>
+            
             <SortTabs currentSort={sort} onSortChange={setSort} />
             <PrayerComposerInput onComposerOpen={handleComposerOpen} />
             
             <PrayerFeed
-              prayers={prayerHook.prayers}
+              prayers={selectedGroupId 
+                ? prayerHook.prayers.filter(p => p.group_id === selectedGroupId)
+                : prayerHook.prayers.filter(p => !p.group_id)
+              }
               loading={prayerHook.loading}
               hasMore={prayerHook.hasMore}
               isFetchingMore={prayerHook.isFetchingMore}
@@ -163,6 +182,16 @@ const NewHome = () => {
               initialOpenReplies={openReplies}
             />
           )}
+
+          {/* 그룹 모달 */}
+          <CreateGroupModal
+            isOpen={showCreateModal}
+            onClose={() => setShowCreateModal(false)}
+          />
+          <JoinGroupModal
+            isOpen={showJoinModal}
+            onClose={() => setShowJoinModal(false)}
+          />
         </div>
 
         {/* Bottom Navigation - Fixed at bottom, centered with max-w-md */}

@@ -14,6 +14,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort }: UsePrayerCompose
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
   const [error, setError] = useState('')
   const [recommendedVerses, setRecommendedVerses] = useState<RecommendedVerses | null>(null)
   const [showVersesModal, setShowVersesModal] = useState(false)
@@ -76,6 +77,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort }: UsePrayerCompose
         content: content.trim(),
         display_name: displayName,
         is_fully_anonymous: isAnonymous,
+        group_id: selectedGroupId || undefined,
       })
 
       const prayer = response.data
@@ -106,6 +108,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort }: UsePrayerCompose
     title,
     content,
     isAnonymous,
+    selectedGroupId,
     error,
     recommendedVerses,
     showVersesModal,
@@ -117,6 +120,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort }: UsePrayerCompose
     setTitle,
     setContent,
     setIsAnonymous,
+    setSelectedGroupId,
     handleSubmit,
     handleVersesModalClose,
   }

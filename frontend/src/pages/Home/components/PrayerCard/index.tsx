@@ -49,6 +49,7 @@ const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
         hasTranslation={hasTranslation}
         showEnglish={showEnglish}
         onToggleLanguage={() => setShowEnglish(!showEnglish)}
+        group={prayer.group}
       />
 
       <CardContent

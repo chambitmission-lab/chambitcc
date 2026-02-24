@@ -1,6 +1,7 @@
 import BibleVersesModal from '../BibleVersesModal'
 import PrayerComposerHeader from './PrayerComposerHeader'
 import UserInfoSection from './UserInfoSection'
+import GroupSelector from './GroupSelector'
 import CategoryBadge from './CategoryBadge'
 import ContentCard from './ContentCard'
 import ErrorMessage from './ErrorMessage'
@@ -13,6 +14,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
     title,
     content,
     isAnonymous,
+    selectedGroupId,
     error,
     recommendedVerses,
     showVersesModal,
@@ -22,6 +24,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
     setTitle,
     setContent,
     setIsAnonymous,
+    setSelectedGroupId,
     handleSubmit,
     handleVersesModalClose,
   } = usePrayerComposer({ onClose, onSuccess, sort })
@@ -58,6 +61,11 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular' }: PrayerComposer
               canSubmit={!!canSubmit}
               onAnonymousChange={setIsAnonymous}
               onSubmit={handleSubmit}
+            />
+
+            <GroupSelector
+              selectedGroupId={selectedGroupId}
+              onGroupChange={setSelectedGroupId}
             />
 
             <CategoryBadge />
