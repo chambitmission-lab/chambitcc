@@ -5,7 +5,6 @@ interface UseSpeechRecognitionProps {
   onError?: (error: string) => void
   language?: string
   continuous?: boolean
-  initialText?: string
 }
 
 interface SpeechRecognitionEvent extends Event {
@@ -23,7 +22,6 @@ export const useSpeechRecognition = ({
   onError,
   language = 'ko-KR',
   continuous = true,
-  initialText = '',
 }: UseSpeechRecognitionProps) => {
   const [isListening, setIsListening] = useState(false)
   const isSupported = !!(
@@ -136,8 +134,8 @@ export const useSpeechRecognition = ({
   }, [language, continuous, onResult, onError])
 
   // 음성 인식 시작
-  const startListening = useCallback(() => {
-    console.log('startListening called, isListeningRef:', isListeningRef.current)
+  const startListening = useCallback((initialText: string = '') => {
+    console.log('startListening called, isListeningRef:', isListeningRef.current, 'initialText:', initialText)
     
     if (!isSupported) {
       onError?.('이 브라우저는 음성 인식을 지원하지 않습니다')
@@ -175,7 +173,7 @@ export const useSpeechRecognition = ({
       setIsListening(true)
       isListeningRef.current = true
       shouldRestartRef.current = true
-      console.log('Speech recognition started')
+      console.log('Speech recognition started with initialText:', initialText)
     } catch (err) {
       console.error('Failed to start recognition:', err)
       onError?.('음성 인식을 시작할 수 없습니다')
