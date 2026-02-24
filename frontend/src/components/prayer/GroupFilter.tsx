@@ -27,7 +27,7 @@ const GroupFilter = ({
       <div className="flex items-center gap-2">
         <button
           className={`
-            flex items-center gap-2 px-3 py-2 rounded-full text-sm font-bold
+            flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold
             transition-all
             ${selectedGroupId === null
               ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
@@ -36,17 +36,24 @@ const GroupFilter = ({
           `}
           onClick={() => onGroupChange(null)}
         >
-          <span>🌍</span>
-          <span>전체 공개</span>
+          전체 공개
         </button>
         
         <button
-          className="flex-1 flex items-center gap-2 px-3 py-2 rounded-full text-sm font-bold bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+          className={`
+            flex-1 flex items-center justify-between px-4 py-2 rounded-full text-sm font-bold
+            transition-all
+            ${selectedGroupId !== null
+              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
+              : 'bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800'
+            }
+          `}
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <span>{selectedGroup?.icon || '👥'}</span>
-          <span className="flex-1 text-left">{selectedGroup?.name || '내 그룹'}</span>
-          <span className="text-xs text-gray-400">{isExpanded ? '▲' : '▼'}</span>
+          <span>{selectedGroup?.name || '내 그룹'}</span>
+          <span className={`text-xs ml-2 ${selectedGroupId !== null ? 'text-white/80' : 'text-gray-400'}`}>
+            {isExpanded ? '▲' : '▼'}
+          </span>
         </button>
       </div>
       
@@ -91,7 +98,6 @@ const GroupFilter = ({
                       setIsExpanded(false)
                     }}
                   >
-                    <span className="text-2xl">{group.icon}</span>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-sm text-gray-900 dark:text-white truncate">
                         {group.name}
