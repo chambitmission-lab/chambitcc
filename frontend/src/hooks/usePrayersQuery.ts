@@ -48,7 +48,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
       return allPages.length + 1
     },
     initialPageParam: 1,
-    staleTime: 1000 * 60 * 5, // 5분간 fresh
+    staleTime: 0, // 필터 변경 시 즉시 새 데이터 가져오기
     gcTime: 1000 * 60 * 30, // 30분간 메모리 유지
     refetchOnMount: true, // 마운트 시 stale이면 항상 refetch
     refetchOnWindowFocus: false,
