@@ -33,7 +33,8 @@ export const useSpeechRecognition = ({
   const isListeningRef = useRef<boolean>(false)
   const shouldRestartRef = useRef<boolean>(false)
   const initialTextRef = useRef<string>('')
-  const lastProcessedIndexRef = useRef<number>(0)
+  const sessionTranscriptRef = useRef<string>('')  // 현재 세션의 누적 텍스트
+  const lastResultTimeRef = useRef<number>(0)  // 마지막 결과 시간 (중복 방지)
 
   // 새로운 recognition 인스턴스 생성
   const createRecognition = useCallback(() => {
@@ -53,23 +54,31 @@ export const useSpeechRecognition = ({
 
     // 결과 처리
     recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const now = Date.now()
+      
+      // 모바일에서 빠른 중복 호출 방지 (50ms 이내 중복 무시)
+      if (now - lastResultTimeRef.current < 50) {
+        console.log('Ignoring duplicate result (too fast)')
+        return
+      }
+      lastResultTimeRef.current = now
+      
       console.log('=== onresult event START ===')
       console.log('resultIndex:', event.resultIndex, 'results.length:', event.results.length)
       console.log('initialText:', initialTextRef.current)
-      console.log('lastProcessedIndex:', lastProcessedIndexRef.current)
+      console.log('sessionTranscript:', sessionTranscriptRef.current)
 
       let interimTranscript = ''
       let finalTranscript = ''
 
-      // resultIndex부터 시작하여 새로운 결과만 처리
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      // 모든 결과를 처음부터 다시 조합 (모바일 호환성)
+      for (let i = 0; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript
         const isFinal = event.results[i].isFinal
         console.log(`  Result[${i}]: "${transcript}", isFinal: ${isFinal}`)
         
         if (isFinal) {
           finalTranscript += transcript + ' '
-          lastProcessedIndexRef.current = i + 1
         } else {
           interimTranscript += transcript
         }
@@ -82,20 +91,18 @@ export const useSpeechRecognition = ({
       console.log('finalTranscript:', finalTranscript)
       console.log('interimTranscript:', interimTranscript)
       
-      if (finalTranscript || interimTranscript) {
-        // 초기 텍스트(기존 텍스트) + 이번 세션의 새로운 음성
-        let newText = finalTranscript || interimTranscript
-        let result = initialTextRef.current
-        if (newText) {
-          result += (result ? ' ' : '') + newText
-        }
-        result = result.trim()
+      // 현재 세션의 텍스트 (final + interim)
+      const currentSessionText = (finalTranscript + (finalTranscript && interimTranscript ? ' ' : '') + interimTranscript).trim()
+      
+      if (currentSessionText) {
+        // 초기 텍스트 + 현재 세션 텍스트
+        const result = (initialTextRef.current + (initialTextRef.current && currentSessionText ? ' ' : '') + currentSessionText).trim()
         
-        // 최종 결과인 경우 initialText를 업데이트하여 다음 음성 입력에 누적되도록 함
+        // 최종 결과인 경우 세션 텍스트 업데이트
         const isFinal = !!finalTranscript && !interimTranscript
         if (isFinal) {
-          initialTextRef.current = result
-          console.log('Updated initialText to:', result)
+          sessionTranscriptRef.current = finalTranscript
+          console.log('Updated sessionTranscript to:', finalTranscript)
         }
         
         console.log('isFinal:', isFinal, 'result:', result)
@@ -139,8 +146,13 @@ export const useSpeechRecognition = ({
       // 의도적으로 중지한 경우가 아니라면 계속 듣기
       if (shouldRestartRef.current && isListeningRef.current) {
         console.log('Auto-restarting speech recognition')
-        // 자동 재시작 시 lastProcessedIndex 초기화
-        lastProcessedIndexRef.current = 0
+        // 자동 재시작 시 세션 텍스트를 initialText에 누적
+        if (sessionTranscriptRef.current) {
+          initialTextRef.current = (initialTextRef.current + (initialTextRef.current ? ' ' : '') + sessionTranscriptRef.current).trim()
+          sessionTranscriptRef.current = ''
+          console.log('Accumulated session text to initialText:', initialTextRef.current)
+        }
+        
         setTimeout(() => {
           if (isListeningRef.current && recognitionRef.current) {
             try {
@@ -164,6 +176,7 @@ export const useSpeechRecognition = ({
         setIsListening(false)
         isListeningRef.current = false
         initialTextRef.current = ''
+        sessionTranscriptRef.current = ''
       }
     }
 
@@ -197,7 +210,8 @@ export const useSpeechRecognition = ({
 
     // 새 인스턴스 생성
     initialTextRef.current = initialText
-    lastProcessedIndexRef.current = 0
+    sessionTranscriptRef.current = ''
+    lastResultTimeRef.current = 0
     recognitionRef.current = createRecognition()
     
     if (!recognitionRef.current) {
@@ -237,6 +251,7 @@ export const useSpeechRecognition = ({
       recognitionRef.current.stop()
       recognitionRef.current = null
       initialTextRef.current = ''
+      sessionTranscriptRef.current = ''
     } catch (error) {
       console.error('Failed to stop recognition:', error)
       shouldRestartRef.current = false
@@ -244,6 +259,7 @@ export const useSpeechRecognition = ({
       setIsListening(false)
       isListeningRef.current = false
       initialTextRef.current = ''
+      sessionTranscriptRef.current = ''
     }
   }, [])
 
