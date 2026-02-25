@@ -91,7 +91,13 @@ export const useSpeechRecognition = ({
         }
         result = result.trim()
         
+        // 최종 결과인 경우 initialText를 업데이트하여 다음 음성 입력에 누적되도록 함
         const isFinal = !!finalTranscript && !interimTranscript
+        if (isFinal) {
+          initialTextRef.current = result
+          console.log('Updated initialText to:', result)
+        }
+        
         console.log('isFinal:', isFinal, 'result:', result)
         console.log('=== onresult event END ===\n')
         onResult(result, isFinal)
@@ -133,6 +139,8 @@ export const useSpeechRecognition = ({
       // 의도적으로 중지한 경우가 아니라면 계속 듣기
       if (shouldRestartRef.current && isListeningRef.current) {
         console.log('Auto-restarting speech recognition')
+        // 자동 재시작 시 lastProcessedIndex 초기화
+        lastProcessedIndexRef.current = 0
         setTimeout(() => {
           if (isListeningRef.current && recognitionRef.current) {
             try {

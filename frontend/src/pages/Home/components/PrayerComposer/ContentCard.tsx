@@ -12,20 +12,12 @@ interface ContentCardProps {
 const ContentCard = ({ title, content, onTitleChange, onContentChange }: ContentCardProps) => {
   const { t } = useLanguage()
   const [voiceError, setVoiceError] = useState<string>('')
-  const [titlePreview, setTitlePreview] = useState<string>('')
-  const [contentPreview, setContentPreview] = useState<string>('')
 
   // 제목 음성 인식
   const titleVoice = useSpeechRecognition({
-    onResult: (transcript, isFinal) => {
-      if (isFinal) {
-        // 최종 결과만 실제로 반영
-        onTitleChange(transcript)
-        setTitlePreview('')
-      } else {
-        // 중간 결과는 미리보기만
-        setTitlePreview(transcript)
-      }
+    onResult: (transcript) => {
+      // 중간 결과와 최종 결과 모두 실시간으로 반영
+      onTitleChange(transcript)
     },
     onError: (error) => {
       setVoiceError(error)
@@ -36,15 +28,9 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
 
   // 내용 음성 인식
   const contentVoice = useSpeechRecognition({
-    onResult: (transcript, isFinal) => {
-      if (isFinal) {
-        // 최종 결과만 실제로 반영
-        onContentChange(transcript)
-        setContentPreview('')
-      } else {
-        // 중간 결과는 미리보기만
-        setContentPreview(transcript)
-      }
+    onResult: (transcript) => {
+      // 중간 결과와 최종 결과 모두 실시간으로 반영
+      onContentChange(transcript)
     },
     onError: (error) => {
       setVoiceError(error)
@@ -56,51 +42,29 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   const handleTitleStart = () => {
     // 내용 음성 인식이 실행 중이면 중지
     if (contentVoice.isListening) {
-      // 중지 시 미리보기 내용이 있으면 실제 값으로 저장
-      if (contentPreview) {
-        onContentChange(contentPreview)
-      }
       contentVoice.stopListening()
-      setContentPreview('')
     }
     
     // 제목 음성 인식 시작 - 현재 제목 텍스트를 전달
-    setTitlePreview('')
     titleVoice.startListening(title)
   }
 
   const handleTitleStop = () => {
-    // 중지 시 미리보기 내용이 있으면 실제 값으로 저장
-    if (titlePreview) {
-      onTitleChange(titlePreview)
-    }
     titleVoice.stopListening()
-    setTitlePreview('')
   }
 
   const handleContentStart = () => {
     // 제목 음성 인식이 실행 중이면 중지
     if (titleVoice.isListening) {
-      // 중지 시 미리보기 내용이 있으면 실제 값으로 저장
-      if (titlePreview) {
-        onTitleChange(titlePreview)
-      }
       titleVoice.stopListening()
-      setTitlePreview('')
     }
     
     // 내용 음성 인식 시작 - 현재 내용 텍스트를 전달
-    setContentPreview('')
     contentVoice.startListening(content)
   }
 
   const handleContentStop = () => {
-    // 중지 시 미리보기 내용이 있으면 실제 값으로 저장
-    if (contentPreview) {
-      onContentChange(contentPreview)
-    }
     contentVoice.stopListening()
-    setContentPreview('')
   }
   
   return (
@@ -124,7 +88,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
           <div className="flex items-center gap-2">
             <input
               type="text"
-              value={titleVoice.isListening && titlePreview ? titlePreview : title}
+              value={title}
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder={t('prayerComposerTitlePlaceholder')}
               maxLength={100}
@@ -173,7 +137,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
         <div className="relative z-10">
           <div className="flex items-start gap-2">
             <textarea
-              value={contentVoice.isListening && contentPreview ? contentPreview : content}
+              value={content}
               onChange={(e) => onContentChange(e.target.value)}
               placeholder={t('prayerComposerContentPlaceholder')}
               rows={4}
@@ -218,7 +182,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
             </div>
           )}
           <div className="text-xs text-gray-400 dark:text-gray-500 text-right mt-0.5">
-            {(contentVoice.isListening && contentPreview ? contentPreview : content).length}/1000
+            {content.length}/1000
           </div>
         </div>
       </div>
