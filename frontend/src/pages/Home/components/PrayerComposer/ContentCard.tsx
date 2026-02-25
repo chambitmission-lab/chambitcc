@@ -14,6 +14,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   const [voiceError, setVoiceError] = useState<string>('')
   const lastTitleRef = useRef<string>('')
   const lastContentRef = useRef<string>('')
+  const isVoiceInputActiveRef = useRef<boolean>(false)  // 음성 입력 활성 상태
 
   // 안정적인 콜백 (메모이제이션)
   const handleTitleResult = useCallback((transcript: string) => {
@@ -59,10 +60,12 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
     // 내용 음성 인식이 실행 중이면 중지
     if (contentVoice.isListening) {
       contentVoice.stopListening()
+      isVoiceInputActiveRef.current = false
     }
     
     // ref 초기화
     lastTitleRef.current = title
+    isVoiceInputActiveRef.current = true
     
     // 제목 음성 인식 시작 - 현재 제목 텍스트를 전달
     titleVoice.startListening(title)
@@ -71,16 +74,19 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   const handleTitleStop = () => {
     titleVoice.stopListening()
     lastTitleRef.current = ''
+    isVoiceInputActiveRef.current = false
   }
 
   const handleContentStart = () => {
     // 제목 음성 인식이 실행 중이면 중지
     if (titleVoice.isListening) {
       titleVoice.stopListening()
+      isVoiceInputActiveRef.current = false
     }
     
     // ref 초기화
     lastContentRef.current = content
+    isVoiceInputActiveRef.current = true
     
     // 내용 음성 인식 시작 - 현재 내용 텍스트를 전달
     contentVoice.startListening(content)
@@ -89,7 +95,25 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   const handleContentStop = () => {
     contentVoice.stopListening()
     lastContentRef.current = ''
+    isVoiceInputActiveRef.current = false
   }
+
+  // 수동 입력 핸들러 (음성 입력 중이 아닐 때만 작동)
+  const handleManualTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isVoiceInputActiveRef.current) {
+      console.log('Ignoring manual title change during voice input')
+      return
+    }
+    onTitleChange(e.target.value)
+  }, [onTitleChange])
+
+  const handleManualContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (isVoiceInputActiveRef.current) {
+      console.log('Ignoring manual content change during voice input')
+      return
+    }
+    onContentChange(e.target.value)
+  }, [onContentChange])
   
   return (
     <div className="relative mb-4">
@@ -113,7 +137,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
             <input
               type="text"
               value={title}
-              onChange={(e) => onTitleChange(e.target.value)}
+              onChange={handleManualTitleChange}
               placeholder={t('prayerComposerTitlePlaceholder')}
               maxLength={100}
               required
@@ -162,7 +186,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
           <div className="flex items-start gap-2">
             <textarea
               value={content}
-              onChange={(e) => onContentChange(e.target.value)}
+              onChange={handleManualContentChange}
               placeholder={t('prayerComposerContentPlaceholder')}
               rows={4}
               maxLength={1000}
