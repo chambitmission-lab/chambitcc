@@ -134,7 +134,7 @@ export const useSpeechRecognition = ({
 
     // 종료 처리
     recognition.onend = () => {
-      console.log('Speech recognition ended')
+      console.log('Speech recognition ended, shouldRestart:', shouldRestartRef.current, 'isListening:', isListeningRef.current)
       
       // 의도적으로 중지한 경우가 아니라면 계속 듣기
       if (shouldRestartRef.current && isListeningRef.current) {
@@ -144,11 +144,19 @@ export const useSpeechRecognition = ({
         setTimeout(() => {
           if (isListeningRef.current && recognitionRef.current) {
             try {
-              recognitionRef.current.start()
-            } catch (err) {
-              console.error('Failed to restart recognition:', err)
-              setIsListening(false)
-              isListeningRef.current = false
+              // 재시작 전에 현재 상태 확인
+              if (recognitionRef.current) {
+                recognitionRef.current.start()
+              }
+            } catch (err: any) {
+              // 이미 시작된 경우는 무시
+              if (err.message && err.message.includes('already started')) {
+                console.log('Recognition already started, ignoring')
+              } else {
+                console.error('Failed to restart recognition:', err)
+                setIsListening(false)
+                isListeningRef.current = false
+              }
             }
           }
         }, 100)
