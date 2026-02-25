@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { usePrayersInfinite } from '../../../../hooks/usePrayersQuery'
 import { validation } from '../../../../utils/validation'
 import type { RecommendedVerses, SortType } from '../../../../types/prayer'
@@ -104,6 +104,27 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     onClose()
   }
 
+  // 음성 인식을 위한 안정적인 setter (중복 방지)
+  const handleTitleChange = useCallback((newTitle: string) => {
+    setTitle(prev => {
+      if (prev === newTitle) {
+        console.log('usePrayerComposer: Ignoring duplicate title update:', newTitle)
+        return prev
+      }
+      return newTitle
+    })
+  }, [])
+
+  const handleContentChange = useCallback((newContent: string) => {
+    setContent(prev => {
+      if (prev === newContent) {
+        console.log('usePrayerComposer: Ignoring duplicate content update:', newContent)
+        return prev
+      }
+      return newContent
+    })
+  }, [])
+
   return {
     // State
     title,
@@ -118,8 +139,8 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     displayName,
     
     // Handlers
-    setTitle,
-    setContent,
+    setTitle: handleTitleChange,
+    setContent: handleContentChange,
     setIsAnonymous,
     setSelectedGroupId,
     handleSubmit,

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useSpeechRecognition } from '../../../../hooks/useSpeechRecognition'
 
@@ -15,41 +15,43 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   const lastTitleRef = useRef<string>('')
   const lastContentRef = useRef<string>('')
 
+  // 안정적인 콜백 (메모이제이션)
+  const handleTitleResult = useCallback((transcript: string) => {
+    // 중복 방지: 이전과 동일한 텍스트면 무시
+    if (transcript === lastTitleRef.current) {
+      console.log('ContentCard: Ignoring duplicate title:', transcript)
+      return
+    }
+    lastTitleRef.current = transcript
+    onTitleChange(transcript)
+  }, [onTitleChange])
+
+  const handleContentResult = useCallback((transcript: string) => {
+    // 중복 방지: 이전과 동일한 텍스트면 무시
+    if (transcript === lastContentRef.current) {
+      console.log('ContentCard: Ignoring duplicate content:', transcript)
+      return
+    }
+    lastContentRef.current = transcript
+    onContentChange(transcript)
+  }, [onContentChange])
+
+  const handleError = useCallback((error: string) => {
+    setVoiceError(error)
+    setTimeout(() => setVoiceError(''), 3000)
+  }, [])
+
   // 제목 음성 인식
   const titleVoice = useSpeechRecognition({
-    onResult: (transcript) => {
-      // 중복 방지: 이전과 동일한 텍스트면 무시
-      if (transcript === lastTitleRef.current) {
-        console.log('ContentCard: Ignoring duplicate title:', transcript)
-        return
-      }
-      lastTitleRef.current = transcript
-      // 중간 결과와 최종 결과 모두 실시간으로 반영
-      onTitleChange(transcript)
-    },
-    onError: (error) => {
-      setVoiceError(error)
-      setTimeout(() => setVoiceError(''), 3000)
-    },
+    onResult: handleTitleResult,
+    onError: handleError,
     continuous: true,
   })
 
   // 내용 음성 인식
   const contentVoice = useSpeechRecognition({
-    onResult: (transcript) => {
-      // 중복 방지: 이전과 동일한 텍스트면 무시
-      if (transcript === lastContentRef.current) {
-        console.log('ContentCard: Ignoring duplicate content:', transcript)
-        return
-      }
-      lastContentRef.current = transcript
-      // 중간 결과와 최종 결과 모두 실시간으로 반영
-      onContentChange(transcript)
-    },
-    onError: (error) => {
-      setVoiceError(error)
-      setTimeout(() => setVoiceError(''), 3000)
-    },
+    onResult: handleContentResult,
+    onError: handleError,
     continuous: true,
   })
 
