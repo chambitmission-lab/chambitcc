@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useSpeechRecognition } from '../../../../hooks/useSpeechRecognition'
 
@@ -12,10 +12,18 @@ interface ContentCardProps {
 const ContentCard = ({ title, content, onTitleChange, onContentChange }: ContentCardProps) => {
   const { t } = useLanguage()
   const [voiceError, setVoiceError] = useState<string>('')
+  const lastTitleRef = useRef<string>('')
+  const lastContentRef = useRef<string>('')
 
   // 제목 음성 인식
   const titleVoice = useSpeechRecognition({
     onResult: (transcript) => {
+      // 중복 방지: 이전과 동일한 텍스트면 무시
+      if (transcript === lastTitleRef.current) {
+        console.log('ContentCard: Ignoring duplicate title:', transcript)
+        return
+      }
+      lastTitleRef.current = transcript
       // 중간 결과와 최종 결과 모두 실시간으로 반영
       onTitleChange(transcript)
     },
@@ -29,6 +37,12 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   // 내용 음성 인식
   const contentVoice = useSpeechRecognition({
     onResult: (transcript) => {
+      // 중복 방지: 이전과 동일한 텍스트면 무시
+      if (transcript === lastContentRef.current) {
+        console.log('ContentCard: Ignoring duplicate content:', transcript)
+        return
+      }
+      lastContentRef.current = transcript
       // 중간 결과와 최종 결과 모두 실시간으로 반영
       onContentChange(transcript)
     },
@@ -45,12 +59,16 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       contentVoice.stopListening()
     }
     
+    // ref 초기화
+    lastTitleRef.current = title
+    
     // 제목 음성 인식 시작 - 현재 제목 텍스트를 전달
     titleVoice.startListening(title)
   }
 
   const handleTitleStop = () => {
     titleVoice.stopListening()
+    lastTitleRef.current = ''
   }
 
   const handleContentStart = () => {
@@ -59,12 +77,16 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       titleVoice.stopListening()
     }
     
+    // ref 초기화
+    lastContentRef.current = content
+    
     // 내용 음성 인식 시작 - 현재 내용 텍스트를 전달
     contentVoice.startListening(content)
   }
 
   const handleContentStop = () => {
     contentVoice.stopListening()
+    lastContentRef.current = ''
   }
   
   return (
