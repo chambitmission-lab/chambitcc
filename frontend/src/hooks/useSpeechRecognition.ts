@@ -64,7 +64,7 @@ export const useSpeechRecognition = ({
       let interimTranscript = ''
       let finalTranscript = ''
 
-      // 모든 결과를 처음부터 다시 조합 (모바일 호환성)
+      // 모든 결과를 처음부터 다시 조합
       for (let i = 0; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript
         const isFinal = event.results[i].isFinal
@@ -84,32 +84,54 @@ export const useSpeechRecognition = ({
       console.log('finalTranscript:', finalTranscript)
       console.log('interimTranscript:', interimTranscript)
       
-      // 현재 세션의 텍스트 (final + interim)
-      const currentSessionText = (finalTranscript + (finalTranscript && interimTranscript ? ' ' : '') + interimTranscript).trim()
+      // 결과 조합 로직 개선
+      let result = ''
       
-      if (currentSessionText) {
-        // 초기 텍스트 + 현재 세션 텍스트
-        const result = (initialTextRef.current + (initialTextRef.current && currentSessionText ? ' ' : '') + currentSessionText).trim()
+      if (finalTranscript) {
+        // final 결과가 있으면: initialText + sessionTranscript + finalTranscript
+        const accumulated = [initialTextRef.current, sessionTranscriptRef.current, finalTranscript]
+          .filter(Boolean)
+          .join(' ')
+          .trim()
         
-        // 중복 전송 방지: 이전과 동일한 텍스트면 무시
-        if (result === lastTranscriptRef.current) {
-          console.log('Ignoring duplicate transcript:', result)
-          console.log('=== onresult event END (duplicate) ===\n')
-          return
+        if (interimTranscript) {
+          // final + interim 둘 다 있으면
+          result = (accumulated + ' ' + interimTranscript).trim()
+        } else {
+          // final만 있으면 (완전히 끝난 상태)
+          result = accumulated
         }
         
-        // 최종 결과인 경우 세션 텍스트 업데이트
-        const isFinal = !!finalTranscript && !interimTranscript
-        if (isFinal) {
-          sessionTranscriptRef.current = finalTranscript
-          console.log('Updated sessionTranscript to:', finalTranscript)
-        }
-        
-        lastTranscriptRef.current = result
-        console.log('isFinal:', isFinal, 'result:', result)
-        console.log('=== onresult event END ===\n')
-        onResult(result, isFinal)
+        // sessionTranscript 업데이트 (final 결과 누적)
+        sessionTranscriptRef.current = (sessionTranscriptRef.current + ' ' + finalTranscript).trim()
+        console.log('Updated sessionTranscript to:', sessionTranscriptRef.current)
+      } else if (interimTranscript) {
+        // interim만 있으면: initialText + sessionTranscript + interimTranscript
+        const accumulated = [initialTextRef.current, sessionTranscriptRef.current]
+          .filter(Boolean)
+          .join(' ')
+          .trim()
+        result = (accumulated + ' ' + interimTranscript).trim()
       }
+      
+      if (!result) {
+        console.log('No result to process')
+        console.log('=== onresult event END (empty) ===\n')
+        return
+      }
+      
+      // 중복 전송 방지: 이전과 동일한 텍스트면 무시
+      if (result === lastTranscriptRef.current) {
+        console.log('Ignoring duplicate transcript:', result)
+        console.log('=== onresult event END (duplicate) ===\n')
+        return
+      }
+      
+      lastTranscriptRef.current = result
+      const isFinal = !!finalTranscript && !interimTranscript
+      console.log('isFinal:', isFinal, 'result:', result)
+      console.log('=== onresult event END ===\n')
+      onResult(result, isFinal)
     }
 
     // 에러 처리
@@ -149,7 +171,10 @@ export const useSpeechRecognition = ({
         console.log('Auto-restarting speech recognition')
         // 자동 재시작 시 세션 텍스트를 initialText에 누적
         if (sessionTranscriptRef.current) {
-          initialTextRef.current = (initialTextRef.current + (initialTextRef.current ? ' ' : '') + sessionTranscriptRef.current).trim()
+          initialTextRef.current = [initialTextRef.current, sessionTranscriptRef.current]
+            .filter(Boolean)
+            .join(' ')
+            .trim()
           lastTranscriptRef.current = initialTextRef.current
           sessionTranscriptRef.current = ''
           console.log('Accumulated session text to initialText:', initialTextRef.current)
