@@ -7,4 +7,14 @@ export const bible = {
   translation: 'Translation',
   viewOriginal: 'View Original',
   viewTranslation: 'View Translation',
+  // Bible Study
+  title: 'Bible Study',
+  read: 'Read',
+  search: 'Search',
+  selectBook: 'Select Book',
+  oldTestament: 'Old Testament',
+  newTestament: 'New Testament',
+  searchPlaceholder: 'Enter search keyword...',
+  searchResults: 'Search Results: {{count}}',
+  noResults: 'No results found',
 } as const

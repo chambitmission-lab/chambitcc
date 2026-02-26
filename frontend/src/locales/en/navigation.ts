@@ -14,6 +14,7 @@ export const navigation = {
   participate: 'Participate',
   online: 'Online',
   tv: 'TV',
+  bible: 'Bible',
   notificationManagement: '📢 Notification Management',
   dailyVerseManagement: '📖 Daily Verse Management',
   bulletinManagement: '📰 Bulletin Management',

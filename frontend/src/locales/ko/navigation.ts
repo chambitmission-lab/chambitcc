@@ -14,6 +14,7 @@ export const navigation = {
   participate: '참여',
   online: '온라인',
   tv: 'TV',
+  bible: '성경',
   notificationManagement: '📢 공지사항 관리',
   dailyVerseManagement: '📖 오늘의 말씀 관리',
   bulletinManagement: '📰 주보 관리',

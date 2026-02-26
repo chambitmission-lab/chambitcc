@@ -1,0 +1,321 @@
+.bible-study-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.bible-study-header {
+  margin-bottom: 1.5rem;
+}
+
+.bible-study-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+}
+
+.bible-study-title .material-icons-round {
+  font-size: 2rem;
+  color: var(--ig-blue);
+}
+
+/* 탭 */
+.bible-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--ig-border);
+}
+
+.bible-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--ig-secondary-text);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bible-tab:hover {
+  color: var(--ig-blue);
+}
+
+.bible-tab.active {
+  color: var(--ig-blue);
+  border-bottom-color: var(--ig-blue);
+}
+
+/* 섹션 */
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ig-primary-text);
+  margin-bottom: 1rem;
+}
+
+/* 책 목록 */
+.bible-books-section {
+  margin-bottom: 2rem;
+}
+
+.testament-section {
+  margin-bottom: 2rem;
+}
+
+.testament-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+  margin-bottom: 0.75rem;
+}
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.book-button {
+  padding: 0.75rem;
+  background: var(--ig-primary-background);
+  border: 2px solid var(--ig-border);
+  border-radius: 8px;
+  color: var(--ig-primary-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.book-button:hover {
+  border-color: var(--ig-blue);
+  background: var(--ig-hover);
+}
+
+.book-button.selected {
+  background: var(--ig-blue);
+  border-color: var(--ig-blue);
+  color: white;
+}
+
+/* 장 선택 */
+.bible-chapter-section {
+  background: var(--ig-primary-background);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--ig-border);
+}
+
+.chapter-selector {
+  margin-bottom: 1.5rem;
+}
+
+.chapter-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 0.5rem;
+}
+
+.chapter-button {
+  padding: 0.5rem;
+  background: var(--ig-secondary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 6px;
+  color: var(--ig-primary-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.chapter-button:hover {
+  border-color: var(--ig-blue);
+  background: var(--ig-hover);
+}
+
+.chapter-button.selected {
+  background: var(--ig-blue);
+  border-color: var(--ig-blue);
+  color: white;
+}
+
+/* 성경 내용 */
+.bible-content {
+  margin-top: 1.5rem;
+}
+
+.chapter-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--ig-border);
+}
+
+.verses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.verse-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.verse-item:hover {
+  background: var(--ig-secondary-background);
+}
+
+.verse-number {
+  flex-shrink: 0;
+  width: 2rem;
+  font-weight: 700;
+  color: var(--ig-blue);
+  text-align: right;
+}
+
+.verse-text {
+  flex: 1;
+  color: var(--ig-primary-text);
+  line-height: 1.6;
+}
+
+/* 검색 */
+.bible-search-section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.search-form {
+  margin-bottom: 2rem;
+}
+
+.search-input-wrapper {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--ig-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--ig-primary-background);
+  color: var(--ig-primary-text);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--ig-blue);
+}
+
+.search-button {
+  padding: 0.75rem 1.5rem;
+  background: var(--ig-blue);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-button:hover {
+  background: var(--ig-blue-hover);
+}
+
+.search-results {
+  background: var(--ig-primary-background);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--ig-border);
+}
+
+.results-count {
+  font-size: 0.9rem;
+  color: var(--ig-secondary-text);
+  margin-bottom: 1rem;
+}
+
+.verse-item.search-result {
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--ig-secondary-background);
+  border-radius: 8px;
+}
+
+.verse-reference {
+  font-weight: 600;
+  color: var(--ig-blue);
+  font-size: 0.9rem;
+}
+
+.no-results {
+  text-align: center;
+  padding: 3rem;
+  color: var(--ig-secondary-text);
+}
+
+.no-results .material-icons-round {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* 로딩 */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+  font-size: 2rem;
+  color: var(--ig-blue);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .bible-study-container {
+    padding: 0.5rem;
+  }
+  
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+  
+  .chapter-buttons {
+    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  }
+  
+  .bible-study-title {
+    font-size: 1.5rem;
+  }
+}

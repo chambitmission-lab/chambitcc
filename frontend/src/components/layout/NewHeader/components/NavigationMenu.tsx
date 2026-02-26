@@ -5,6 +5,7 @@ const MENU_ITEMS = [
   { path: '/about', key: 'about' as const },
   { path: '/worship', key: 'worship' as const },
   { path: '/sermon', key: 'sermon' as const },
+  { path: '/bible', key: 'bible' as const },
   { path: '/events', key: 'events' as const },
   { path: '/ministry', key: 'ministry' as const },
   { path: '/news', key: 'news' as const }
