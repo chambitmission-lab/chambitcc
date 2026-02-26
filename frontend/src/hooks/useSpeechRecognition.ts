@@ -64,8 +64,8 @@ export const useSpeechRecognition = ({
       let interimTranscript = ''
       let finalTranscript = ''
 
-      // 모든 결과를 처음부터 다시 조합
-      for (let i = 0; i < event.results.length; i++) {
+      // resultIndex부터 시작 (이전 결과는 이미 처리됨)
+      for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript
         const isFinal = event.results[i].isFinal
         console.log(`  Result[${i}]: "${transcript}", isFinal: ${isFinal}`)
