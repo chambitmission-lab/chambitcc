@@ -11,6 +11,8 @@ const BibleStudy = () => {
   const [searchKeyword, setSearchKeyword] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<'read' | 'search'>('read')
+  const [showBookList, setShowBookList] = useState<boolean>(true)
+  const [expandedVerses, setExpandedVerses] = useState<boolean>(false)
   
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
   const { data: chapterData, isLoading: chapterLoading } = useBibleChapter(
@@ -33,6 +35,21 @@ const BibleStudy = () => {
     setSelectedBookId(bookId)
     setSelectedBook(bookName)
     setSelectedChapter(1)
+    setShowBookList(false)
+    setExpandedVerses(false)
+  }
+  
+  const handleChangeBook = () => {
+    setShowBookList(true)
+    setSelectedBookId(0)
+    setSelectedBook('')
+  }
+  
+  const handleChapterChange = (chapter: number) => {
+    setSelectedChapter(chapter)
+    setExpandedVerses(false)
+    // 스크롤을 상단으로
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   
   const oldTestament = books?.filter(b => b.testament === 'OLD') || []
@@ -52,6 +69,10 @@ const BibleStudy = () => {
       loadingBooks: '성경 책 목록을 불러오는 중...',
       errorBooks: '성경 책 목록을 불러오는데 실패했습니다. 백엔드 API를 확인해주세요.',
       noBooks: '성경 책 데이터가 없습니다.',
+      prevChapter: '이전 장',
+      nextChapter: '다음 장',
+      showMore: '더보기',
+      showLess: '접기',
     },
     en: {
       title: 'Bible Study',
@@ -66,6 +87,10 @@ const BibleStudy = () => {
       loadingBooks: 'Loading bible books...',
       errorBooks: 'Failed to load bible books. Please check backend API.',
       noBooks: 'No bible book data available.',
+      prevChapter: 'Previous',
+      nextChapter: 'Next',
+      showMore: 'Show More',
+      showLess: 'Show Less',
     }
   }
   
@@ -102,80 +127,113 @@ const BibleStudy = () => {
       {activeTab === 'read' && (
         <div className="bible-read-section">
           {/* 책 선택 */}
-          <div className="bible-books-section">
-            <h2 className="section-title">{t.selectBook}</h2>
-            
-            {booksLoading ? (
-              <div className="loading-spinner">
-                <span className="material-icons-round spinning">refresh</span>
-                <p style={{ marginTop: '1rem', color: 'var(--ig-secondary-text)' }}>
-                  {t.loadingBooks}
-                </p>
-              </div>
-            ) : booksError ? (
-              <div className="no-results">
-                <span className="material-icons-round">error_outline</span>
-                <p>{t.errorBooks}</p>
-                <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                  Error: {booksError.message}
-                </p>
-              </div>
-            ) : !books || books.length === 0 ? (
-              <div className="no-results">
-                <span className="material-icons-round">menu_book</span>
-                <p>{t.noBooks}</p>
-              </div>
-            ) : (
-              <>
-                <div className="testament-section">
-                  <h3 className="testament-title">{t.oldTestament} ({oldTestament.length})</h3>
-                  <div className="books-grid">
-                    {oldTestament.map(book => (
-                      <button
-                        key={book.id}
-                        className={`book-button ${selectedBookId === book.id ? 'selected' : ''}`}
-                        onClick={() => handleBookSelect(book.id, book.book_name_ko)}
-                      >
-                        {book.book_name_ko}
-                      </button>
-                    ))}
-                  </div>
+          {showBookList && (
+            <div className="bible-books-section">
+              <h2 className="section-title">{t.selectBook}</h2>
+              
+              {booksLoading ? (
+                <div className="loading-spinner">
+                  <span className="material-icons-round spinning">refresh</span>
+                  <p style={{ marginTop: '1rem', color: 'var(--ig-secondary-text)' }}>
+                    {t.loadingBooks}
+                  </p>
                 </div>
-                
-                <div className="testament-section">
-                  <h3 className="testament-title">{t.newTestament} ({newTestament.length})</h3>
-                  <div className="books-grid">
-                    {newTestament.map(book => (
-                      <button
-                        key={book.id}
-                        className={`book-button ${selectedBookId === book.id ? 'selected' : ''}`}
-                        onClick={() => handleBookSelect(book.id, book.book_name_ko)}
-                      >
-                        {book.book_name_ko}
-                      </button>
-                    ))}
-                  </div>
+              ) : booksError ? (
+                <div className="no-results">
+                  <span className="material-icons-round">error_outline</span>
+                  <p>{t.errorBooks}</p>
+                  <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                    Error: {booksError.message}
+                  </p>
                 </div>
-              </>
-            )}
-          </div>
+              ) : !books || books.length === 0 ? (
+                <div className="no-results">
+                  <span className="material-icons-round">menu_book</span>
+                  <p>{t.noBooks}</p>
+                </div>
+              ) : (
+                <>
+                  <div className="testament-section">
+                    <h3 className="testament-title">{t.oldTestament} ({oldTestament.length})</h3>
+                    <div className="books-grid">
+                      {oldTestament.map(book => (
+                        <button
+                          key={book.id}
+                          className="book-button"
+                          onClick={() => handleBookSelect(book.id, book.book_name_ko)}
+                        >
+                          {book.book_name_ko}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="testament-section">
+                    <h3 className="testament-title">{t.newTestament} ({newTestament.length})</h3>
+                    <div className="books-grid">
+                      {newTestament.map(book => (
+                        <button
+                          key={book.id}
+                          className="book-button"
+                          onClick={() => handleBookSelect(book.id, book.book_name_ko)}
+                        >
+                          {book.book_name_ko}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
           
           {/* 장 선택 및 내용 */}
-          {selectedBookId > 0 && selectedBookData && (
+          {!showBookList && selectedBookId > 0 && selectedBookData && (
             <div className="bible-chapter-section">
-              <div className="chapter-selector">
-                <h2 className="section-title">{selectedBook}</h2>
-                <div className="chapter-buttons">
-                  {Array.from({ length: selectedBookData.chapter_count }, (_, i) => i + 1).map(ch => (
-                    <button
-                      key={ch}
-                      className={`chapter-button ${selectedChapter === ch ? 'selected' : ''}`}
-                      onClick={() => setSelectedChapter(ch)}
-                    >
-                      {ch}
-                    </button>
-                  ))}
+              {/* 책 정보 헤더 */}
+              <div className="book-header">
+                <button className="back-button" onClick={handleChangeBook}>
+                  <span className="material-icons-round">arrow_back</span>
+                </button>
+                <div className="book-info">
+                  <h2 className="book-title">{selectedBook}</h2>
+                  <p className="book-progress">
+                    {selectedChapter}장 / {selectedBookData.chapter_count}장
+                  </p>
                 </div>
+              </div>
+              
+              {/* 장 네비게이션 */}
+              <div className="chapter-navigation">
+                <button 
+                  className="nav-button prev"
+                  onClick={() => handleChapterChange(selectedChapter - 1)}
+                  disabled={selectedChapter === 1}
+                  title={t.prevChapter}
+                >
+                  <span className="material-icons-round">chevron_left</span>
+                </button>
+                
+                <div className="chapter-dropdown">
+                  <select 
+                    value={selectedChapter}
+                    onChange={(e) => handleChapterChange(Number(e.target.value))}
+                    className="chapter-select"
+                  >
+                    {Array.from({ length: selectedBookData.chapter_count }, (_, i) => i + 1).map(ch => (
+                      <option key={ch} value={ch}>{ch}장</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <button 
+                  className="nav-button next"
+                  onClick={() => handleChapterChange(selectedChapter + 1)}
+                  disabled={selectedChapter === selectedBookData.chapter_count}
+                  title={t.nextChapter}
+                >
+                  <span className="material-icons-round">chevron_right</span>
+                </button>
               </div>
               
               {chapterLoading ? (
@@ -184,16 +242,40 @@ const BibleStudy = () => {
                 </div>
               ) : chapterData ? (
                 <div className="bible-content">
-                  <h3 className="chapter-title">
-                    {chapterData.book_name_ko} {chapterData.chapter}장
-                  </h3>
-                  <div className="verses-list">
-                    {chapterData.verses.map(verse => (
-                      <div key={verse.id} className="verse-item">
-                        <span className="verse-number">{verse.verse}</span>
-                        <span className="verse-text">{verse.text}</span>
-                      </div>
-                    ))}
+                  <div className="verses-container">
+                    <div className={`verses-list ${expandedVerses ? 'expanded' : 'collapsed'}`}>
+                      {chapterData.verses.map((verse, index) => (
+                        <div 
+                          key={verse.id} 
+                          className="verse-item"
+                          style={{ 
+                            display: !expandedVerses && index >= 5 ? 'none' : 'flex' 
+                          }}
+                        >
+                          <span className="verse-number">{verse.verse}</span>
+                          <span className="verse-text">{verse.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {chapterData.verses.length > 5 && (
+                      <button 
+                        className="expand-button"
+                        onClick={() => setExpandedVerses(!expandedVerses)}
+                      >
+                        {expandedVerses ? (
+                          <>
+                            <span className="material-icons-round">expand_less</span>
+                            <span>{t.showLess}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="material-icons-round">expand_more</span>
+                            <span>{chapterData.verses.length - 5}개 구절 {t.showMore}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : null}
