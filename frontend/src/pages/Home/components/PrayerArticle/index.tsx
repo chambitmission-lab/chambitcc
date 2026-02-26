@@ -6,7 +6,6 @@ import PrayerActions from './PrayerActions'
 import PrayerStats from './PrayerStats'
 import PrayerVersePreview from './PrayerVersePreview'
 import BibleVersesModal from '../BibleVersesModal'
-import { useTranslationToggle } from './useTranslationToggle'
 
 interface PrayerArticleProps {
   prayer: Prayer
@@ -18,19 +17,6 @@ interface PrayerArticleProps {
 const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: PrayerArticleProps) => {
   const [isPraying, setIsPraying] = useState(false)
   const [showVersesModal, setShowVersesModal] = useState(false)
-  
-  const {
-    showTranslation,
-    toggleTranslation,
-    displayTitle,
-    displayContent,
-    transitionStyles,
-    hasTranslation,
-    translationButtonText,
-    currentLanguage,
-    nextLanguage,
-    originalLanguage
-  } = useTranslationToggle(prayer)
 
   const handlePray = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -56,26 +42,19 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
       <PrayerHeader
         displayName={prayer.display_name}
         timeAgo={prayer.time_ago}
-        hasTranslation={hasTranslation}
-        showTranslation={showTranslation}
-        translationButtonText={translationButtonText}
-        currentLanguage={currentLanguage}
-        nextLanguage={nextLanguage}
-        originalLanguage={originalLanguage}
-        onTranslationToggle={toggleTranslation}
       />
 
       <PrayerContent
-        title={displayTitle}
-        content={displayContent}
-        transitionStyles={transitionStyles}
+        title={prayer.title}
+        content={prayer.content}
+        transitionStyles={{}}
       />
 
       <PrayerActions
         isPrayed={prayer.is_prayed}
         isPraying={isPraying}
         onPray={handlePray}
-        prayerText={`${displayTitle}. ${displayContent}`}
+        prayerText={`${prayer.title}. ${prayer.content}`}
       />
 
       <PrayerStats
