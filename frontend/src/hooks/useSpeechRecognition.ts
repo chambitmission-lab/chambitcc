@@ -89,13 +89,20 @@ export const useSpeechRecognition = ({
       console.log('initialText:', initialTextRef.current)
       console.log('accumulatedText:', accumulatedTextRef.current)
       
-      // 최종 텍스트 조합
-      let fullText = initialTextRef.current
+      // 최종 텍스트 조합 - 로직 단순화
+      let fullText = ''
       
+      // 1. initialText (시작할 때 있던 텍스트)
+      if (initialTextRef.current) {
+        fullText = initialTextRef.current
+      }
+      
+      // 2. accumulatedText (이번 세션에서 누적된 텍스트)
       if (accumulatedTextRef.current) {
         fullText = fullText ? `${fullText} ${accumulatedTextRef.current}` : accumulatedTextRef.current
       }
       
+      // 3. 현재 결과 (final 또는 interim)
       if (currentFinal) {
         fullText = fullText ? `${fullText} ${currentFinal}` : currentFinal
       } else if (currentInterim) {
@@ -141,17 +148,24 @@ export const useSpeechRecognition = ({
       
       // final 결과면 누적 - 여기가 핵심!
       if (isFinalResult && currentFinal) {
-        accumulatedTextRef.current = accumulatedTextRef.current 
-          ? `${accumulatedTextRef.current} ${currentFinal}`.trim()
-          : currentFinal
+        // accumulatedText에 누적
+        if (accumulatedTextRef.current) {
+          accumulatedTextRef.current = `${accumulatedTextRef.current} ${currentFinal}`.trim()
+        } else {
+          // 첫 번째 final 결과인 경우
+          // initialText가 있으면 그것도 포함
+          if (initialTextRef.current) {
+            accumulatedTextRef.current = `${initialTextRef.current} ${currentFinal}`.trim()
+          } else {
+            accumulatedTextRef.current = currentFinal
+          }
+        }
+        
         lastInterimRef.current = ''
         console.log('✅ Updated accumulatedText to:', accumulatedTextRef.current)
         
-        // 중요: lastSentText도 업데이트해서 다음 사이클에서 이 텍스트가 기준이 되도록
-        const newBase = initialTextRef.current
-          ? `${initialTextRef.current} ${accumulatedTextRef.current}`.trim()
-          : accumulatedTextRef.current
-        lastSentTextRef.current = newBase
+        // 중요: lastSentText도 업데이트
+        lastSentTextRef.current = accumulatedTextRef.current
         console.log('✅ Updated lastSentText to:', lastSentTextRef.current)
       }
       
