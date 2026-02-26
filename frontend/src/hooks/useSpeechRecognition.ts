@@ -36,6 +36,7 @@ export const useSpeechRecognition = ({
   const sessionTranscriptRef = useRef<string>('')  // 현재 세션의 누적 텍스트
   const lastResultTimeRef = useRef<number>(0)  // 마지막 결과 시간 (중복 방지)
   const lastTranscriptRef = useRef<string>('')  // 마지막으로 전송한 텍스트 (중복 전송 방지)
+  const processedFinalIndexRef = useRef<number>(-1)  // 마지막으로 처리한 final 결과의 인덱스
 
   // 새로운 recognition 인스턴스 생성
   const createRecognition = useCallback(() => {
@@ -59,59 +60,58 @@ export const useSpeechRecognition = ({
       console.log('resultIndex:', event.resultIndex, 'results.length:', event.results.length)
       console.log('initialText:', initialTextRef.current)
       console.log('sessionTranscript:', sessionTranscriptRef.current)
-      console.log('lastTranscript:', lastTranscriptRef.current)
+      console.log('processedFinalIndex:', processedFinalIndexRef.current)
 
       let interimTranscript = ''
-      let finalTranscript = ''
+      let newFinalTranscript = ''
 
-      // resultIndex부터 시작 (이전 결과는 이미 처리됨)
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      // 모든 결과를 순회하되, 이미 처리한 final 결과는 건너뛰기
+      for (let i = 0; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript
         const isFinal = event.results[i].isFinal
         console.log(`  Result[${i}]: "${transcript}", isFinal: ${isFinal}`)
         
         if (isFinal) {
-          finalTranscript += transcript + ' '
+          // 이미 처리한 final 결과는 건너뛰기
+          if (i > processedFinalIndexRef.current) {
+            newFinalTranscript += transcript + ' '
+            processedFinalIndexRef.current = i
+            console.log(`  -> New final result at index ${i}`)
+          } else {
+            console.log(`  -> Already processed final result at index ${i}`)
+          }
         } else {
-          interimTranscript += transcript
+          // interim 결과는 항상 마지막 것만 사용
+          interimTranscript = transcript
         }
       }
 
       // 최종 결과 처리
-      finalTranscript = finalTranscript.trim()
+      newFinalTranscript = newFinalTranscript.trim()
       interimTranscript = interimTranscript.trim()
       
-      console.log('finalTranscript:', finalTranscript)
+      console.log('newFinalTranscript:', newFinalTranscript)
       console.log('interimTranscript:', interimTranscript)
       
       // 결과 조합 로직 개선
       let result = ''
       
-      if (finalTranscript) {
-        // final 결과가 있으면: initialText + sessionTranscript + finalTranscript
-        const accumulated = [initialTextRef.current, sessionTranscriptRef.current, finalTranscript]
-          .filter(Boolean)
-          .join(' ')
-          .trim()
-        
-        if (interimTranscript) {
-          // final + interim 둘 다 있으면
-          result = (accumulated + ' ' + interimTranscript).trim()
-        } else {
-          // final만 있으면 (완전히 끝난 상태)
-          result = accumulated
-        }
-        
-        // sessionTranscript 업데이트 (final 결과 누적)
-        sessionTranscriptRef.current = (sessionTranscriptRef.current + ' ' + finalTranscript).trim()
+      if (newFinalTranscript) {
+        // 새로운 final 결과가 있으면 sessionTranscript에 추가
+        sessionTranscriptRef.current = (sessionTranscriptRef.current + ' ' + newFinalTranscript).trim()
         console.log('Updated sessionTranscript to:', sessionTranscriptRef.current)
-      } else if (interimTranscript) {
-        // interim만 있으면: initialText + sessionTranscript + interimTranscript
-        const accumulated = [initialTextRef.current, sessionTranscriptRef.current]
-          .filter(Boolean)
-          .join(' ')
-          .trim()
+      }
+      
+      // 전체 결과 조합: initialText + sessionTranscript + interimTranscript
+      const accumulated = [initialTextRef.current, sessionTranscriptRef.current]
+        .filter(Boolean)
+        .join(' ')
+        .trim()
+      
+      if (interimTranscript) {
         result = (accumulated + ' ' + interimTranscript).trim()
+      } else {
+        result = accumulated
       }
       
       if (!result) {
@@ -128,7 +128,7 @@ export const useSpeechRecognition = ({
       }
       
       lastTranscriptRef.current = result
-      const isFinal = !!finalTranscript && !interimTranscript
+      const isFinal = !!newFinalTranscript && !interimTranscript
       console.log('isFinal:', isFinal, 'result:', result)
       console.log('=== onresult event END ===\n')
       onResult(result, isFinal)
@@ -177,6 +177,7 @@ export const useSpeechRecognition = ({
             .trim()
           lastTranscriptRef.current = initialTextRef.current
           sessionTranscriptRef.current = ''
+          processedFinalIndexRef.current = -1  // 재시작 시 인덱스 초기화
           console.log('Accumulated session text to initialText:', initialTextRef.current)
         }
         
@@ -241,6 +242,7 @@ export const useSpeechRecognition = ({
     sessionTranscriptRef.current = ''
     lastResultTimeRef.current = 0
     lastTranscriptRef.current = initialText  // 초기 텍스트로 설정
+    processedFinalIndexRef.current = -1  // 처리된 final 인덱스 초기화
     recognitionRef.current = createRecognition()
     
     if (!recognitionRef.current) {
@@ -282,6 +284,7 @@ export const useSpeechRecognition = ({
       initialTextRef.current = ''
       sessionTranscriptRef.current = ''
       lastTranscriptRef.current = ''
+      processedFinalIndexRef.current = -1
     } catch (error) {
       console.error('Failed to stop recognition:', error)
       shouldRestartRef.current = false
@@ -291,6 +294,7 @@ export const useSpeechRecognition = ({
       initialTextRef.current = ''
       sessionTranscriptRef.current = ''
       lastTranscriptRef.current = ''
+      processedFinalIndexRef.current = -1
     }
   }, [])
 
