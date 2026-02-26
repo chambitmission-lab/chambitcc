@@ -33,9 +33,11 @@ export const useSpeechRecognition = ({
   const isListeningRef = useRef<boolean>(false)
   const shouldRestartRef = useRef<boolean>(false)
   const initialTextRef = useRef<string>('')
-  const sessionTranscriptRef = useRef<string>('')  // 현재 세션의 누적 텍스트
-  const lastTranscriptRef = useRef<string>('')  // 마지막으로 전송한 텍스트 (중복 전송 방지)
-  const processedFinalTextsRef = useRef<Set<string>>(new Set())  // 처리된 final 텍스트들
+  
+  // 간단한 중복 방지: 마지막 전송 내용과 시간
+  const lastSentTextRef = useRef<string>('')
+  const lastSentTimeRef = useRef<number>(0)
+  const debounceTimerRef = useRef<any>(null)
 
   // 새로운 recognition 인스턴스 생성
   const createRecognition = useCallback(() => {
@@ -53,89 +55,103 @@ export const useSpeechRecognition = ({
     recognition.lang = language
     recognition.maxAlternatives = 1
 
-    // 결과 처리
+    // 결과 처리 - 완전히 새로운 방식
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      console.log('=== onresult event START ===')
+      const now = Date.now()
+      
+      console.log('=== onresult START ===')
+      console.log('Time:', now)
       console.log('resultIndex:', event.resultIndex, 'results.length:', event.results.length)
-      console.log('initialText:', initialTextRef.current)
-      console.log('sessionTranscript:', sessionTranscriptRef.current)
-      console.log('processedFinalTexts:', Array.from(processedFinalTextsRef.current))
-
-      let interimTranscript = ''
-      let newFinalTranscripts: string[] = []
-
-      // 모든 결과를 순회
+      
+      // 전체 텍스트를 매번 새로 조합
+      let finalText = ''
+      let interimText = ''
+      
+      // results를 순회하면서 final과 interim 분리
       for (let i = 0; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript.trim()
-        const isFinal = event.results[i].isFinal
-        console.log(`  Result[${i}]: "${transcript}", isFinal: ${isFinal}`)
+        const result = event.results[i]
+        const text = result[0].transcript
         
-        if (isFinal) {
-          // 이미 처리한 final 텍스트인지 확인
-          if (!processedFinalTextsRef.current.has(transcript)) {
-            newFinalTranscripts.push(transcript)
-            processedFinalTextsRef.current.add(transcript)
-            console.log(`  -> New final result: "${transcript}"`)
-          } else {
-            console.log(`  -> Already processed final result: "${transcript}"`)
-          }
+        console.log(`Result[${i}]: "${text}", isFinal: ${result.isFinal}`)
+        
+        if (result.isFinal) {
+          finalText += text + ' '
         } else {
-          // interim 결과는 마지막 것만 사용
-          interimTranscript = transcript
+          // interim은 마지막 것만 사용
+          interimText = text
         }
       }
-
-      // 최종 결과 처리
-      interimTranscript = interimTranscript.trim()
       
-      console.log('newFinalTranscripts:', newFinalTranscripts)
-      console.log('interimTranscript:', interimTranscript)
+      finalText = finalText.trim()
+      interimText = interimText.trim()
       
-      // 새로운 final 결과가 있으면 sessionTranscript에 추가
-      if (newFinalTranscripts.length > 0) {
-        const newFinalText = newFinalTranscripts.join(' ')
-        sessionTranscriptRef.current = (sessionTranscriptRef.current + ' ' + newFinalText).trim()
-        console.log('Updated sessionTranscript to:', sessionTranscriptRef.current)
+      console.log('Extracted finalText:', finalText)
+      console.log('Extracted interimText:', interimText)
+      
+      // 최종 결과 조합
+      let fullText = ''
+      if (initialTextRef.current) {
+        fullText = initialTextRef.current
+      }
+      if (finalText) {
+        fullText = fullText ? `${fullText} ${finalText}` : finalText
+      }
+      if (interimText) {
+        fullText = fullText ? `${fullText} ${interimText}` : interimText
       }
       
-      // 전체 결과 조합: initialText + sessionTranscript + interimTranscript
-      const accumulated = [initialTextRef.current, sessionTranscriptRef.current]
-        .filter(Boolean)
-        .join(' ')
-        .trim()
+      fullText = fullText.trim()
       
-      let result = ''
-      if (interimTranscript) {
-        result = (accumulated + ' ' + interimTranscript).trim()
-      } else {
-        result = accumulated
-      }
+      console.log('Full text:', fullText)
+      console.log('Last sent:', lastSentTextRef.current)
       
-      if (!result) {
-        console.log('No result to process')
-        console.log('=== onresult event END (empty) ===\n')
+      // 중복 체크: 같은 텍스트를 100ms 이내에 다시 보내지 않음
+      if (fullText === lastSentTextRef.current && (now - lastSentTimeRef.current) < 100) {
+        console.log('DUPLICATE - Ignoring (same text within 100ms)')
+        console.log('=== onresult END ===\n')
         return
       }
       
-      // 중복 전송 방지: 이전과 동일한 텍스트면 무시
-      if (result === lastTranscriptRef.current) {
-        console.log('Ignoring duplicate transcript:', result)
-        console.log('=== onresult event END (duplicate) ===\n')
+      // 빈 결과 무시
+      if (!fullText || fullText === initialTextRef.current) {
+        console.log('EMPTY or SAME as initial - Ignoring')
+        console.log('=== onresult END ===\n')
         return
       }
       
-      lastTranscriptRef.current = result
-      const isFinal = newFinalTranscripts.length > 0 && !interimTranscript
-      console.log('Calling onResult - isFinal:', isFinal, 'result:', result)
-      console.log('=== onresult event END ===\n')
-      onResult(result, isFinal)
+      // 디바운싱: 빠른 연속 호출 방지
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+      
+      debounceTimerRef.current = setTimeout(() => {
+        const isFinalResult = !!finalText && !interimText
+        
+        console.log('SENDING to onResult:', fullText)
+        console.log('isFinal:', isFinalResult)
+        
+        lastSentTextRef.current = fullText
+        lastSentTimeRef.current = Date.now()
+        
+        onResult(fullText, isFinalResult)
+        
+        // final 결과가 있으면 initialText 업데이트
+        if (isFinalResult && finalText) {
+          const newInitial = initialTextRef.current 
+            ? `${initialTextRef.current} ${finalText}`.trim()
+            : finalText
+          initialTextRef.current = newInitial
+          console.log('Updated initialText to:', newInitial)
+        }
+        
+        console.log('=== onresult END ===\n')
+      }, 50) // 50ms 디바운스
     }
 
     // 에러 처리
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('Speech recognition error:', event.error)
       
-      // aborted는 의도적인 중지이므로 에러 메시지 표시 안 함
       if (event.error === 'aborted' || event.error === 'no-speech') {
         return
       }
@@ -161,36 +177,21 @@ export const useSpeechRecognition = ({
 
     // 종료 처리
     recognition.onend = () => {
-      console.log('Speech recognition ended, shouldRestart:', shouldRestartRef.current, 'isListening:', isListeningRef.current)
+      console.log('Recognition ended, shouldRestart:', shouldRestartRef.current)
       
-      // 의도적으로 중지한 경우가 아니라면 계속 듣기
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+      
       if (shouldRestartRef.current && isListeningRef.current) {
-        console.log('Auto-restarting speech recognition')
-        // 자동 재시작 시 세션 텍스트를 initialText에 누적
-        if (sessionTranscriptRef.current) {
-          initialTextRef.current = [initialTextRef.current, sessionTranscriptRef.current]
-            .filter(Boolean)
-            .join(' ')
-            .trim()
-          lastTranscriptRef.current = initialTextRef.current
-          sessionTranscriptRef.current = ''
-          processedFinalTextsRef.current.clear()  // 재시작 시 Set 초기화
-          console.log('Accumulated session text to initialText:', initialTextRef.current)
-        }
-        
+        console.log('Auto-restarting...')
         setTimeout(() => {
           if (isListeningRef.current && recognitionRef.current) {
             try {
-              // 재시작 전에 현재 상태 확인
-              if (recognitionRef.current) {
-                recognitionRef.current.start()
-              }
+              recognitionRef.current.start()
             } catch (err: any) {
-              // 이미 시작된 경우는 무시
-              if (err.message && err.message.includes('already started')) {
-                console.log('Recognition already started, ignoring')
-              } else {
-                console.error('Failed to restart recognition:', err)
+              if (!err.message?.includes('already started')) {
+                console.error('Failed to restart:', err)
                 setIsListening(false)
                 isListeningRef.current = false
               }
@@ -200,9 +201,6 @@ export const useSpeechRecognition = ({
       } else {
         setIsListening(false)
         isListeningRef.current = false
-        initialTextRef.current = ''
-        sessionTranscriptRef.current = ''
-        lastTranscriptRef.current = ''
       }
     }
 
@@ -211,34 +209,39 @@ export const useSpeechRecognition = ({
 
   // 음성 인식 시작
   const startListening = useCallback((initialText: string = '') => {
-    console.log('startListening called, isListeningRef:', isListeningRef.current, 'initialText:', initialText)
+    console.log('\n========== START LISTENING ==========')
+    console.log('initialText:', initialText)
     
     if (!isSupported) {
       onError?.('이 브라우저는 음성 인식을 지원하지 않습니다')
       return
     }
 
-    // 이미 실행 중이면 무시
     if (isListeningRef.current) {
-      console.log('Already listening, ignoring')
+      console.log('Already listening')
       return
     }
 
-    // 기존 인스턴스가 있으면 정리
+    // 기존 인스턴스 정리
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop()
       } catch (e) {
-        console.log('Error stopping previous instance:', e)
+        // ignore
       }
       recognitionRef.current = null
     }
 
-    // 새 인스턴스 생성
+    // 상태 초기화
     initialTextRef.current = initialText
-    sessionTranscriptRef.current = ''
-    lastTranscriptRef.current = initialText  // 초기 텍스트로 설정
-    processedFinalTextsRef.current = new Set()  // 처리된 텍스트 Set 초기화
+    lastSentTextRef.current = initialText
+    lastSentTimeRef.current = 0
+    
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    // 새 인스턴스 생성 및 시작
     recognitionRef.current = createRecognition()
     
     if (!recognitionRef.current) {
@@ -251,9 +254,9 @@ export const useSpeechRecognition = ({
       setIsListening(true)
       isListeningRef.current = true
       shouldRestartRef.current = true
-      console.log('Speech recognition started with initialText:', initialText)
+      console.log('Recognition started successfully')
     } catch (err) {
-      console.error('Failed to start recognition:', err)
+      console.error('Failed to start:', err)
       onError?.('음성 인식을 시작할 수 없습니다')
       recognitionRef.current = null
       isListeningRef.current = false
@@ -263,34 +266,35 @@ export const useSpeechRecognition = ({
 
   // 음성 인식 중지
   const stopListening = useCallback(() => {
-    console.log('stopListening called, isListeningRef:', isListeningRef.current)
+    console.log('\n========== STOP LISTENING ==========')
     
     if (!recognitionRef.current || !isListeningRef.current) {
-      console.log('Not listening or no instance')
       return
     }
 
     try {
-      console.log('Stopping speech recognition')
       shouldRestartRef.current = false
       isListeningRef.current = false
-      setIsListening(false)
+      
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+      
       recognitionRef.current.stop()
       recognitionRef.current = null
+      
+      setIsListening(false)
       initialTextRef.current = ''
-      sessionTranscriptRef.current = ''
-      lastTranscriptRef.current = ''
-      processedFinalTextsRef.current.clear()
+      lastSentTextRef.current = ''
+      lastSentTimeRef.current = 0
+      
+      console.log('Recognition stopped successfully')
     } catch (error) {
-      console.error('Failed to stop recognition:', error)
+      console.error('Failed to stop:', error)
       shouldRestartRef.current = false
       recognitionRef.current = null
       setIsListening(false)
       isListeningRef.current = false
-      initialTextRef.current = ''
-      sessionTranscriptRef.current = ''
-      lastTranscriptRef.current = ''
-      processedFinalTextsRef.current.clear()
     }
   }, [])
 
