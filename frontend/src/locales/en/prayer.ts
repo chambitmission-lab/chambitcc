@@ -53,7 +53,7 @@ export const prayer = {
   myGroups: 'My Groups',
   allPublic: 'Public Feed',
   myPrayers: 'My Prayers',
-  prayedByMe: 'Prayed by Me',
+  prayedByMe: 'Prayed',
   createGroup: 'Create Group',
   joinGroup: 'Join Group',
   groupName: 'Group Name',

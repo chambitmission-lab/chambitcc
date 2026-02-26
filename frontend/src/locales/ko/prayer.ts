@@ -53,7 +53,7 @@ export const prayer = {
   myGroups: '내 그룹',
   allPublic: '전체 공개',
   myPrayers: '내 기도',
-  prayedByMe: '내가 기도한',
+  prayedByMe: '기도함',
   createGroup: '그룹 만들기',
   joinGroup: '그룹 가입하기',
   groupName: '그룹 이름',

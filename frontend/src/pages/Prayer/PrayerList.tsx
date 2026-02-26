@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
-import PrayerComposer from '../../components/prayer/PrayerComposer'
 import PrayerCard from '../../components/prayer/PrayerCard'
 import type { SortType, PrayerFilterType } from '../../types/prayer'
 import './PrayerList.css'
@@ -12,7 +11,6 @@ const PrayerList = () => {
   const [sort, setSort] = useState<SortType>('popular')
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
   const [selectedFilter, setSelectedFilter] = useState<PrayerFilterType>('all')
-  const [showComposer, setShowComposer] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   
@@ -25,19 +23,7 @@ const PrayerList = () => {
     isFetchingMore,
     handlePrayerToggle,
     isToggling,
-    createPrayer,
-    isCreating,
   } = usePrayersInfinite(sort, selectedGroupId, selectedFilter)
-  
-  const handleCreatePrayer = async (data: any) => {
-    // 선택된 그룹이 있으면 group_id 추가
-    const prayerData = {
-      ...data,
-      group_id: selectedGroupId,
-    }
-    await createPrayer(prayerData)
-    setShowComposer(false)
-  }
   
   return (
     <div className="prayer-list-page">
@@ -58,39 +44,42 @@ const PrayerList = () => {
           onJoinGroup={() => setShowJoinModal(true)}
         />
         
-        {/* 정렬 & 작성 버튼 */}
-        <div className="list-controls">
-          <div className="sort-buttons">
+        {/* 정렬 버튼만 (슬림하게) */}
+        <div className="flex items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-2">
             <button
-              className={`sort-button ${sort === 'popular' ? 'active' : ''}`}
+              className={`
+                px-3 py-1.5 text-xs font-medium rounded-full transition-all
+                ${sort === 'popular' 
+                  ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' 
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }
+              `}
               onClick={() => setSort('popular')}
             >
               인기순
             </button>
             <button
-              className={`sort-button ${sort === 'latest' ? 'active' : ''}`}
+              className={`
+                px-3 py-1.5 text-xs font-medium rounded-full transition-all
+                ${sort === 'latest' 
+                  ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' 
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }
+              `}
               onClick={() => setSort('latest')}
             >
               최신순
             </button>
           </div>
           
-          <button
-            className="compose-button"
-            onClick={() => setShowComposer(!showComposer)}
-          >
-            {showComposer ? '취소' : '+ 기도 요청하기'}
-          </button>
+          {/* 기도 개수 표시 */}
+          {prayers.length > 0 && (
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              {prayers.length}개의 기도
+            </span>
+          )}
         </div>
-        
-        {/* 기도 작성 폼 */}
-        {showComposer && (
-          <PrayerComposer
-            onSubmit={handleCreatePrayer}
-            isSubmitting={isCreating}
-            initialGroupId={selectedGroupId}
-          />
-        )}
         
         {/* 기도 목록 */}
         {loading && prayers.length === 0 ? (
@@ -110,12 +99,9 @@ const PrayerList = () => {
             <div className="empty-icon">🙏</div>
             <h3>아직 기도 요청이 없습니다</h3>
             <p>첫 번째 기도 요청을 올려보세요!</p>
-            <button
-              className="compose-button"
-              onClick={() => setShowComposer(true)}
-            >
-              기도 요청하기
-            </button>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              하단의 + 버튼을 눌러 기도를 작성해보세요
+            </p>
           </div>
         ) : (
           <>

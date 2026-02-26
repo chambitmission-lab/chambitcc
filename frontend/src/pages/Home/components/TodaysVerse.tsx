@@ -9,26 +9,26 @@ const TodaysVerse = () => {
   }
   
   return (
-    <section className="sticky top-0 z-40 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark backdrop-blur-lg bg-opacity-95 dark:bg-opacity-95">
-      <div className="px-4 py-2">
-        <div className="flex items-center gap-2">
-          {/* 아이콘 */}
-          <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-white/20 dark:to-white/10 rounded-full flex items-center justify-center">
-            <span className="material-icons-round text-purple-600 dark:text-white text-base">auto_stories</span>
+    <section className="sticky top-0 z-40 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50">
+      <div className="px-4 py-1.5">
+        <div className="flex items-center gap-1.5">
+          {/* 아이콘 - 더 작게 */}
+          <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+            <span className="material-icons-round text-purple-500 dark:text-purple-400 text-sm">auto_stories</span>
           </div>
           
           {/* 내용 */}
           <div className="flex-1 min-w-0">
             {isLoading ? (
               <div className="animate-pulse">
-                <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+                <div className="h-2.5 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
               </div>
             ) : verse ? (
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-gray-900 dark:text-white font-semibold truncate flex-1">
+              <div className="flex items-center gap-1.5">
+                <p className="text-[11px] text-gray-700 dark:text-gray-300 font-medium truncate flex-1 leading-tight">
                   "{verse.verse_text}"
                 </p>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400 flex-shrink-0">
+                <span className="text-[9px] text-gray-400 dark:text-gray-500 flex-shrink-0 font-normal">
                   {verse.verse_reference}
                 </span>
               </div>

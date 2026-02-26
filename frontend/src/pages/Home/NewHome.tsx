@@ -5,7 +5,6 @@ import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
 import TodaysVerse from './components/TodaysVerse'
 import SortTabs from './components/SortTabs'
-import PrayerComposerInput from './components/PrayerComposerInput'
 import PrayerFeed from './components/PrayerFeed'
 import BottomNavigation from './components/BottomNavigation'
 import GroupFilter from '../../components/prayer/GroupFilter'
@@ -143,7 +142,6 @@ const NewHome = () => {
             </div>
             
             <SortTabs currentSort={sort} onSortChange={setSort} />
-            <PrayerComposerInput onComposerOpen={handleComposerOpen} />
             
             <PrayerFeed
               prayers={prayerHook.prayers}

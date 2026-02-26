@@ -56,79 +56,99 @@ const GroupFilter = ({
         />
       )}
       
-      <div className="flex items-center gap-2 relative z-50 min-w-max">
-        {/* 전체 공개 */}
-        <button
-          className={`
-            px-3 py-1.5 rounded-full text-xs font-semibold
-            transition-all
-            ${selectedGroupId === null && selectedFilter === 'all'
-              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-              : 'bg-surface-light dark:bg-surface-dark text-gray-600 dark:text-gray-400 border border-border-light dark:border-border-dark'
-            }
-          `}
-          onClick={() => {
-            onGroupChange(null)
-            onFilterChange('all')
-          }}
-        >
-          {t('allPublic')}
-        </button>
-        
-        {/* 내 그룹 드롭다운 */}
-        <button
-          ref={buttonRef}
-          className={`
-            flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold
-            transition-all
-            ${selectedGroupId !== null
-              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-              : 'bg-surface-light dark:bg-surface-dark text-gray-600 dark:text-gray-400 border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800'
-            }
-          `}
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <span className="truncate max-w-[100px]">{selectedGroup?.name || t('myGroups')}</span>
-          <span className={`text-[10px] ${selectedGroupId !== null ? 'text-white/80' : 'text-gray-400'}`}>
-            {isExpanded ? '▲' : '▼'}
-          </span>
-        </button>
+      {/* 언더라인 탭 스타일 */}
+      <div className="relative z-50">
+        <div className="flex items-center border-b border-gray-200 dark:border-gray-700">
+          {/* 전체 공개 */}
+          <button
+            className={`
+              relative flex-1 px-4 py-3 text-sm font-medium
+              transition-all duration-200
+              ${selectedGroupId === null && selectedFilter === 'all'
+                ? 'text-purple-600 dark:text-purple-400'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }
+            `}
+            onClick={() => {
+              onGroupChange(null)
+              onFilterChange('all')
+            }}
+          >
+            {t('allPublic')}
+            {selectedGroupId === null && selectedFilter === 'all' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500" />
+            )}
+          </button>
+          
+          {/* 내 그룹 드롭다운 */}
+          <button
+            ref={buttonRef}
+            className={`
+              relative flex-1 flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium
+              transition-all duration-200
+              ${selectedGroupId !== null
+                ? 'text-purple-600 dark:text-purple-400'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }
+            `}
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <span className="truncate max-w-[90px]">{selectedGroup?.name || t('myGroups')}</span>
+            <svg 
+              className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+            {selectedGroupId !== null && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500" />
+            )}
+          </button>
 
-        {/* 내 기도 */}
-        <button
-          className={`
-            px-3 py-1.5 rounded-full text-xs font-semibold
-            transition-all
-            ${selectedFilter === 'my_prayers'
-              ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md'
-              : 'bg-surface-light dark:bg-surface-dark text-gray-600 dark:text-gray-400 border border-border-light dark:border-border-dark'
-            }
-          `}
-          onClick={() => {
-            onGroupChange(null)
-            onFilterChange('my_prayers')
-          }}
-        >
-          {t('myPrayers')}
-        </button>
+          {/* 내 기도 */}
+          <button
+            className={`
+              relative flex-1 px-4 py-3 text-sm font-medium
+              transition-all duration-200
+              ${selectedFilter === 'my_prayers'
+                ? 'text-purple-600 dark:text-purple-400'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }
+            `}
+            onClick={() => {
+              onGroupChange(null)
+              onFilterChange('my_prayers')
+            }}
+          >
+            {t('myPrayers')}
+            {selectedFilter === 'my_prayers' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500" />
+            )}
+          </button>
 
-        {/* 내가 기도한 */}
-        <button
-          className={`
-            px-3 py-1.5 rounded-full text-xs font-semibold
-            transition-all
-            ${selectedFilter === 'prayed_by_me'
-              ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md'
-              : 'bg-surface-light dark:bg-surface-dark text-gray-600 dark:text-gray-400 border border-border-light dark:border-border-dark'
-            }
-          `}
-          onClick={() => {
-            onGroupChange(null)
-            onFilterChange('prayed_by_me')
-          }}
-        >
-          {t('prayedByMe')}
-        </button>
+          {/* 내가 기도한 */}
+          <button
+            className={`
+              relative flex-1 px-4 py-3 text-sm font-medium
+              transition-all duration-200
+              ${selectedFilter === 'prayed_by_me'
+                ? 'text-purple-600 dark:text-purple-400'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+              }
+            `}
+            onClick={() => {
+              onGroupChange(null)
+              onFilterChange('prayed_by_me')
+            }}
+          >
+            {t('prayedByMe')}
+            {selectedFilter === 'prayed_by_me' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500" />
+            )}
+          </button>
+        </div>
       </div>
       
       {isExpanded && (
