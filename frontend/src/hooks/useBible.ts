@@ -37,5 +37,6 @@ export const useBibleSearch = (keyword: string, page: number = 1) => {
     queryFn: () => searchBible(keyword, page),
     enabled: keyword.length > 0,
     staleTime: 1000 * 60 * 5, // 5분
+    retry: 1,
   })
 }

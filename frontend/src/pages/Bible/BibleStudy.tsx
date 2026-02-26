@@ -20,12 +20,6 @@ const BibleStudy = () => {
   )
   const { data: searchResults, isLoading: searchLoading } = useBibleSearch(searchQuery)
   
-  // 데이터 확인용 로그
-  if (books && books.length > 0) {
-    console.log('✅ 첫 번째 책 데이터:', books[0])
-    console.log('✅ 전체 책 개수:', books.length)
-  }
-  
   const selectedBookData = books?.find(b => b.id === selectedBookId)
   
   const handleSearch = (e: React.FormEvent) => {
