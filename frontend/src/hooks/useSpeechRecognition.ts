@@ -33,11 +33,14 @@ export const useSpeechRecognition = ({
   const isListeningRef = useRef<boolean>(false)
   const shouldRestartRef = useRef<boolean>(false)
   const initialTextRef = useRef<string>('')
+  const accumulatedTextRef = useRef<string>('')  // 누적된 확정 텍스트
   
-  // 간단한 중복 방지: 마지막 전송 내용과 시간
+  // 모바일 감지
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  
+  // 간단한 중복 방지
   const lastSentTextRef = useRef<string>('')
-  const lastSentTimeRef = useRef<number>(0)
-  const debounceTimerRef = useRef<any>(null)
+  const lastInterimRef = useRef<string>('')  // 마지막 interim 텍스트
 
   // 새로운 recognition 인스턴스 생성
   const createRecognition = useCallback(() => {
@@ -50,102 +53,101 @@ export const useSpeechRecognition = ({
     }
 
     const recognition = new SpeechRecognition()
-    recognition.continuous = continuous
+    
+    // 모바일에서는 continuous false, 데스크톱에서는 true
+    recognition.continuous = isMobile ? false : continuous
     recognition.interimResults = true
     recognition.lang = language
     recognition.maxAlternatives = 1
 
-    // 결과 처리 - 완전히 새로운 방식
+    console.log('Recognition created - isMobile:', isMobile, 'continuous:', recognition.continuous)
+
+    // 결과 처리
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const now = Date.now()
-      
       console.log('=== onresult START ===')
-      console.log('Time:', now)
       console.log('resultIndex:', event.resultIndex, 'results.length:', event.results.length)
       
-      // 전체 텍스트를 매번 새로 조합
-      let finalText = ''
-      let interimText = ''
+      // 가장 최근 결과만 처리 (resultIndex부터)
+      let currentFinal = ''
+      let currentInterim = ''
       
-      // results를 순회하면서 final과 interim 분리
-      for (let i = 0; i < event.results.length; i++) {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i]
-        const text = result[0].transcript
+        const text = result[0].transcript.trim()
         
         console.log(`Result[${i}]: "${text}", isFinal: ${result.isFinal}`)
         
         if (result.isFinal) {
-          finalText += text + ' '
+          currentFinal = text
         } else {
-          // interim은 마지막 것만 사용
-          interimText = text
+          currentInterim = text
         }
       }
       
-      finalText = finalText.trim()
-      interimText = interimText.trim()
+      console.log('currentFinal:', currentFinal)
+      console.log('currentInterim:', currentInterim)
+      console.log('accumulatedText:', accumulatedTextRef.current)
       
-      console.log('Extracted finalText:', finalText)
-      console.log('Extracted interimText:', interimText)
+      // 최종 텍스트 조합
+      let fullText = initialTextRef.current
       
-      // 최종 결과 조합
-      let fullText = ''
-      if (initialTextRef.current) {
-        fullText = initialTextRef.current
+      if (accumulatedTextRef.current) {
+        fullText = fullText ? `${fullText} ${accumulatedTextRef.current}` : accumulatedTextRef.current
       }
-      if (finalText) {
-        fullText = fullText ? `${fullText} ${finalText}` : finalText
-      }
-      if (interimText) {
-        fullText = fullText ? `${fullText} ${interimText}` : interimText
+      
+      if (currentFinal) {
+        fullText = fullText ? `${fullText} ${currentFinal}` : currentFinal
+      } else if (currentInterim) {
+        fullText = fullText ? `${fullText} ${currentInterim}` : currentInterim
       }
       
       fullText = fullText.trim()
       
-      console.log('Full text:', fullText)
-      console.log('Last sent:', lastSentTextRef.current)
+      console.log('fullText:', fullText)
+      console.log('lastSent:', lastSentTextRef.current)
       
-      // 중복 체크: 같은 텍스트를 100ms 이내에 다시 보내지 않음
-      if (fullText === lastSentTextRef.current && (now - lastSentTimeRef.current) < 100) {
-        console.log('DUPLICATE - Ignoring (same text within 100ms)')
+      // 중복 체크
+      if (fullText === lastSentTextRef.current) {
+        console.log('DUPLICATE - Ignoring')
         console.log('=== onresult END ===\n')
         return
+      }
+      
+      // interim이 이전과 같으면 무시 (모바일에서 같은 interim이 반복됨)
+      if (!currentFinal && currentInterim === lastInterimRef.current) {
+        console.log('SAME INTERIM - Ignoring')
+        console.log('=== onresult END ===\n')
+        return
+      }
+      
+      if (!currentFinal) {
+        lastInterimRef.current = currentInterim
       }
       
       // 빈 결과 무시
       if (!fullText || fullText === initialTextRef.current) {
-        console.log('EMPTY or SAME as initial - Ignoring')
+        console.log('EMPTY - Ignoring')
         console.log('=== onresult END ===\n')
         return
       }
       
-      // 디바운싱: 빠른 연속 호출 방지
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
+      const isFinalResult = !!currentFinal
+      
+      console.log('SENDING to onResult:', fullText, 'isFinal:', isFinalResult)
+      
+      lastSentTextRef.current = fullText
+      onResult(fullText, isFinalResult)
+      
+      // final 결과면 누적
+      if (isFinalResult && currentFinal) {
+        accumulatedTextRef.current = accumulatedTextRef.current 
+          ? `${accumulatedTextRef.current} ${currentFinal}`.trim()
+          : currentFinal
+        lastInterimRef.current = ''
+        console.log('Updated accumulatedText to:', accumulatedTextRef.current)
       }
       
-      debounceTimerRef.current = setTimeout(() => {
-        const isFinalResult = !!finalText && !interimText
-        
-        console.log('SENDING to onResult:', fullText)
-        console.log('isFinal:', isFinalResult)
-        
-        lastSentTextRef.current = fullText
-        lastSentTimeRef.current = Date.now()
-        
-        onResult(fullText, isFinalResult)
-        
-        // final 결과가 있으면 initialText 업데이트
-        if (isFinalResult && finalText) {
-          const newInitial = initialTextRef.current 
-            ? `${initialTextRef.current} ${finalText}`.trim()
-            : finalText
-          initialTextRef.current = newInitial
-          console.log('Updated initialText to:', newInitial)
-        }
-        
-        console.log('=== onresult END ===\n')
-      }, 50) // 50ms 디바운스
+      console.log('=== onresult END ===\n')
     }
 
     // 에러 처리
@@ -179,10 +181,7 @@ export const useSpeechRecognition = ({
     recognition.onend = () => {
       console.log('Recognition ended, shouldRestart:', shouldRestartRef.current)
       
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-      
+      // 모바일에서는 자동으로 재시작 (continuous false이므로)
       if (shouldRestartRef.current && isListeningRef.current) {
         console.log('Auto-restarting...')
         setTimeout(() => {
@@ -205,12 +204,13 @@ export const useSpeechRecognition = ({
     }
 
     return recognition
-  }, [language, continuous, onResult, onError])
+  }, [language, continuous, isMobile, onResult, onError])
 
   // 음성 인식 시작
   const startListening = useCallback((initialText: string = '') => {
     console.log('\n========== START LISTENING ==========')
     console.log('initialText:', initialText)
+    console.log('isMobile:', isMobile)
     
     if (!isSupported) {
       onError?.('이 브라우저는 음성 인식을 지원하지 않습니다')
@@ -234,12 +234,9 @@ export const useSpeechRecognition = ({
 
     // 상태 초기화
     initialTextRef.current = initialText
+    accumulatedTextRef.current = ''
     lastSentTextRef.current = initialText
-    lastSentTimeRef.current = 0
-    
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
+    lastInterimRef.current = ''
 
     // 새 인스턴스 생성 및 시작
     recognitionRef.current = createRecognition()
@@ -262,7 +259,7 @@ export const useSpeechRecognition = ({
       isListeningRef.current = false
       shouldRestartRef.current = false
     }
-  }, [isSupported, createRecognition, onError])
+  }, [isSupported, isMobile, createRecognition, onError])
 
   // 음성 인식 중지
   const stopListening = useCallback(() => {
@@ -276,17 +273,14 @@ export const useSpeechRecognition = ({
       shouldRestartRef.current = false
       isListeningRef.current = false
       
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-      
       recognitionRef.current.stop()
       recognitionRef.current = null
       
       setIsListening(false)
       initialTextRef.current = ''
+      accumulatedTextRef.current = ''
       lastSentTextRef.current = ''
-      lastSentTimeRef.current = 0
+      lastInterimRef.current = ''
       
       console.log('Recognition stopped successfully')
     } catch (error) {
