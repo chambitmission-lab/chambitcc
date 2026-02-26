@@ -228,12 +228,12 @@
 .nav-button:hover:not(:disabled) {
   background: #5568d3;
   border-color: #5568d3;
-  transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .nav-button:active:not(:disabled) {
-  transform: scale(0.95);
+  background: #4a5bc4;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
 }
 
 .nav-button:disabled {
