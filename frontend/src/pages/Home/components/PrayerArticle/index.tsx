@@ -50,7 +50,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
 
   return (
     <article 
-      className="bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-3 mb-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
+      className="bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-4 mb-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
       onClick={onClick}
     >
       <PrayerHeader
