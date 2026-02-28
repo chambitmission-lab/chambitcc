@@ -7,7 +7,8 @@ const ADMIN_MENU_ITEMS = [
   { path: '/admin/bulletins', key: 'bulletinManagement' as const },
   { path: '/admin/events', key: 'eventManagement' as const },
   { path: '/admin/push', key: 'pushNotificationManagement' as const },
-  { path: '/admin/users', key: 'userManagement' as const }
+  { path: '/admin/users', key: 'userManagement' as const },
+  { path: '/admin/groups', key: 'groupManagement' as const }
 ]
 
 const AdminMenu = () => {

@@ -18,4 +18,12 @@ export const common = {
   deleteConfirm: '정말 삭제하시겠습니까?',
   versesToMeditateOn: '함께 묵상해볼 수 있는 해설',
   actions: '작업',
+  // Admin menu items
+  notificationManagement: '공지사항 관리',
+  dailyVerseManagement: '오늘의 말씀 관리',
+  bulletinManagement: '주보 관리',
+  eventManagement: '행사 관리',
+  pushNotificationManagement: '푸시 알림 관리',
+  userManagement: '회원 관리',
+  groupManagement: '그룹 관리',
 } as const

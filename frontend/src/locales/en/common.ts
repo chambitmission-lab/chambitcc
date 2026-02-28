@@ -18,4 +18,12 @@ export const common = {
   deleteConfirm: 'Are you sure you want to delete?',
   versesToMeditateOn: 'Verses to meditate on',
   actions: 'Actions',
+  // Admin menu items
+  notificationManagement: 'Notification Management',
+  dailyVerseManagement: 'Daily Verse Management',
+  bulletinManagement: 'Bulletin Management',
+  eventManagement: 'Event Management',
+  pushNotificationManagement: 'Push Notification Management',
+  userManagement: 'User Management',
+  groupManagement: 'Group Management',
 } as const
