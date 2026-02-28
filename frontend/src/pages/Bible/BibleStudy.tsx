@@ -63,7 +63,7 @@ const BibleStudy = () => {
   
   // 디버깅: 챕터 데이터 확인
   useEffect(() => {
-    if (chapterData) {
+    if (import.meta.env.DEV && chapterData) {
       console.log('📖 Chapter Data:', {
         totalPages: chapterData.pages.length,
         pages: chapterData.pages.map(page => ({

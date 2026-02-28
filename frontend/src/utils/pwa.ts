@@ -12,7 +12,9 @@ export const initPWAInstallPrompt = (): void => {
     e.preventDefault()
     // 나중에 사용하기 위해 이벤트 저장
     deferredPrompt = e
-    console.log('✅ PWA 설치 가능 - 설치 프롬프트 준비됨')
+    if (import.meta.env.DEV) {
+      console.log('✅ PWA 설치 가능 - 설치 프롬프트 준비됨')
+    }
     
     // 커스텀 설치 버튼 표시 (선택사항)
     showInstallButton()
@@ -20,7 +22,9 @@ export const initPWAInstallPrompt = (): void => {
 
   // 설치 완료 이벤트
   window.addEventListener('appinstalled', () => {
-    console.log('✅ PWA 설치 완료!')
+    if (import.meta.env.DEV) {
+      console.log('✅ PWA 설치 완료!')
+    }
     deferredPrompt = null
     hideInstallButton()
   })
@@ -31,7 +35,9 @@ export const initPWAInstallPrompt = (): void => {
  */
 export const showPWAInstallPrompt = async (): Promise<boolean> => {
   if (!deferredPrompt) {
-    console.log('❌ 설치 프롬프트를 사용할 수 없습니다')
+    if (import.meta.env.DEV) {
+      console.log('❌ 설치 프롬프트를 사용할 수 없습니다')
+    }
     return false
   }
 
@@ -41,14 +47,18 @@ export const showPWAInstallPrompt = async (): Promise<boolean> => {
     
     // 사용자 선택 대기
     const { outcome } = await deferredPrompt.userChoice
-    console.log(`사용자 선택: ${outcome}`)
+    if (import.meta.env.DEV) {
+      console.log(`사용자 선택: ${outcome}`)
+    }
     
     // 프롬프트 초기화
     deferredPrompt = null
     
     return outcome === 'accepted'
   } catch (error) {
-    console.error('❌ PWA 설치 프롬프트 표시 실패:', error)
+    if (import.meta.env.DEV) {
+      console.error('❌ PWA 설치 프롬프트 표시 실패:', error)
+    }
     return false
   }
 }
@@ -93,12 +103,16 @@ export const clearPWACache = async (): Promise<void> => {
         registrations.map(registration => registration.unregister())
       )
       
-      console.log('✅ PWA 캐시가 모두 삭제되었습니다')
+      if (import.meta.env.DEV) {
+        console.log('✅ PWA 캐시가 모두 삭제되었습니다')
+      }
       
       // 페이지 새로고침
       window.location.reload()
     } catch (error) {
-      console.error('❌ PWA 캐시 삭제 실패:', error)
+      if (import.meta.env.DEV) {
+        console.error('❌ PWA 캐시 삭제 실패:', error)
+      }
     }
   }
 }
@@ -115,7 +129,9 @@ export const checkForPWAUpdate = async (): Promise<boolean> => {
         return true
       }
     } catch (error) {
-      console.error('❌ PWA 업데이트 확인 실패:', error)
+      if (import.meta.env.DEV) {
+        console.error('❌ PWA 업데이트 확인 실패:', error)
+      }
     }
   }
   return false
@@ -140,7 +156,9 @@ export const disablePWAInDev = (): void => {
  */
 export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
   if (!('serviceWorker' in navigator)) {
-    console.warn('Service Worker를 지원하지 않는 브라우저입니다.');
+    if (import.meta.env.DEV) {
+      console.warn('Service Worker를 지원하지 않는 브라우저입니다.');
+    }
     return null;
   }
 
@@ -149,7 +167,9 @@ export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistra
     const base = import.meta.env.BASE_URL || '/';
     const swPath = `${base}sw.js`.replace(/\/+/g, '/'); // 중복 슬래시 제거
     
-    console.log('🔧 Service Worker 경로:', swPath);
+    if (import.meta.env.DEV) {
+      console.log('🔧 Service Worker 경로:', swPath);
+    }
     
     // 기존 등록 확인
     let registration = await navigator.serviceWorker.getRegistration();
@@ -159,23 +179,33 @@ export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistra
       registration = await navigator.serviceWorker.register(swPath, {
         scope: base
       });
-      console.log('✅ Service Worker 등록 완료:', registration);
+      if (import.meta.env.DEV) {
+        console.log('✅ Service Worker 등록 완료:', registration);
+      }
     } else {
-      console.log('✅ Service Worker 이미 등록됨:', registration);
+      if (import.meta.env.DEV) {
+        console.log('✅ Service Worker 이미 등록됨:', registration);
+      }
       
       // 업데이트 확인
       await registration.update();
-      console.log('🔄 Service Worker 업데이트 확인 완료');
+      if (import.meta.env.DEV) {
+        console.log('🔄 Service Worker 업데이트 확인 완료');
+      }
     }
 
     // Service Worker 활성화 대기
     await navigator.serviceWorker.ready;
-    console.log('✅ Service Worker 활성화됨');
+    if (import.meta.env.DEV) {
+      console.log('✅ Service Worker 활성화됨');
+    }
 
     return registration;
   } catch (error) {
-    console.error('❌ Service Worker 등록 실패:', error);
-    console.error('에러 상세:', error);
+    if (import.meta.env.DEV) {
+      console.error('❌ Service Worker 등록 실패:', error);
+      console.error('에러 상세:', error);
+    }
     return null;
   }
 }
