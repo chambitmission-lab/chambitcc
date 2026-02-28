@@ -297,9 +297,9 @@ const BibleStudy = () => {
                       {chapterData.pages.map((page, pageIndex) => (
                         <div key={pageIndex}>
                           {page.verses.map((verse) => (
-                            <div key={verse.id} className="verse-item">
-                              <span className="verse-number">{verse.verse}</span>
-                              <span className="verse-text">
+                            <div key={verse.id} className="bible-verse-item">
+                              <span className="bible-verse-number">{verse.verse}</span>
+                              <span className="bible-verse-text">
                                 {verse.text || '(구절 내용 없음)'}
                               </span>
                             </div>
@@ -383,11 +383,11 @@ const BibleStudy = () => {
               </p>
               <div className="verses-list">
                 {searchResults.results.map(verse => (
-                  <div key={verse.id} className="verse-item search-result">
-                    <div className="verse-reference">
+                  <div key={verse.id} className="bible-verse-item bible-verse-item--search">
+                    <div className="bible-verse-reference">
                       {verse.book_name_ko} {verse.chapter}:{verse.verse}
                     </div>
-                    <div className="verse-text">{verse.text}</div>
+                    <div className="bible-verse-text">{verse.text}</div>
                   </div>
                 ))}
               </div>

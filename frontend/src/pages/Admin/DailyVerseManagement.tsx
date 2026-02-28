@@ -220,8 +220,8 @@ const DailyVerseManagement = () => {
                     </div>
 
                     <div className="card-content verse-content">
-                      <h3 className="verse-reference">{verse.verse_reference}</h3>
-                      <p className="verse-text">"{verse.verse_text}"</p>
+                      <h3 className="admin-verse-reference">{verse.verse_reference}</h3>
+                      <p className="admin-verse-text">"{verse.verse_text}"</p>
                     </div>
 
                     <div className="card-footer">

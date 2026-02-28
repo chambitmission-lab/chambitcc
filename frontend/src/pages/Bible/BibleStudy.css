@@ -378,7 +378,8 @@
   margin-bottom: 1rem;
 }
 
-.verse-item {
+/* Bible Study Verse Item - BEM naming */
+.bible-verse-item {
   display: flex;
   gap: 1.25rem;
   padding: 1.125rem 0;
@@ -387,11 +388,11 @@
   position: relative;
 }
 
-.verse-item:last-child {
+.bible-verse-item:last-child {
   border-bottom: none;
 }
 
-.verse-item:hover {
+.bible-verse-item:hover {
   background: var(--ig-hover);
   margin: 0 -1rem;
   padding: 1.125rem 1rem;
@@ -399,7 +400,7 @@
   border-bottom: 1px solid transparent;
 }
 
-.verse-item:hover::before {
+.bible-verse-item:hover::before {
   content: '';
   position: absolute;
   left: 0;
@@ -410,7 +411,7 @@
   border-radius: 0 2px 2px 0;
 }
 
-.verse-number {
+.bible-verse-number {
   flex-shrink: 0;
   width: 2rem;
   font-weight: 700;
@@ -420,12 +421,12 @@
   padding-top: 0.125rem;
 }
 
-.verse-item:hover .verse-number {
+.bible-verse-item:hover .bible-verse-number {
   color: #667eea;
   font-weight: 800;
 }
 
-.verse-text {
+.bible-verse-text {
   flex: 1;
   color: var(--ig-primary-text);
   line-height: 1.85;
@@ -550,7 +551,8 @@
   font-weight: 600;
 }
 
-.verse-item.search-result {
+/* Bible Study Search Result - BEM modifier */
+.bible-verse-item--search {
   flex-direction: column;
   gap: 0.625rem;
   padding: 1.125rem 1rem;
@@ -562,13 +564,13 @@
   position: relative;
 }
 
-.verse-item.search-result:hover {
+.bible-verse-item--search:hover {
   border-color: #667eea;
   background: rgba(102, 126, 234, 0.05);
   margin-bottom: 0.75rem;
 }
 
-.verse-item.search-result:hover::before {
+.bible-verse-item--search:hover::before {
   content: '';
   position: absolute;
   left: 0;
@@ -579,18 +581,18 @@
   border-radius: 2px 0 0 2px;
 }
 
-.verse-item.search-result .verse-text {
+.bible-verse-item--search .bible-verse-text {
   line-height: 1.85;
   letter-spacing: -0.01em;
 }
 
-.verse-reference {
+.bible-verse-reference {
   font-weight: 700;
   color: var(--ig-secondary-text);
   font-size: 0.8125rem;
 }
 
-.verse-item.search-result:hover .verse-reference {
+.bible-verse-item--search:hover .bible-verse-reference {
   color: #667eea;
 }
 
@@ -655,16 +657,16 @@
     font-size: 1.375rem;
   }
   
-  .verse-text {
+  .bible-verse-text {
     font-size: 0.9375rem;
     line-height: 1.9;
   }
   
-  .verse-item {
+  .bible-verse-item {
     padding: 1rem 0;
   }
   
-  .verse-item:hover {
+  .bible-verse-item:hover {
     padding: 1rem;
   }
 }
@@ -674,7 +676,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .verse-text {
+  .bible-verse-text {
     font-size: 0.9375rem;
     line-height: 1.95;
   }
