@@ -179,3 +179,49 @@ self.addEventListener('activate', (event) => {
   console.log('✅ Service Worker 활성화됨');
   event.waitUntil(self.clients.claim());
 });
+
+// API 캐싱 전략 (Network First with Cache Fallback)
+const CACHE_NAME = 'chambit-api-cache-v1';
+const API_CACHE_DURATION = 1000 * 60 * 60 * 24 * 7; // 7일
+
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // API 요청만 캐싱 (GET 요청만)
+  if (event.request.method === 'GET' && url.pathname.includes('/api/')) {
+    event.respondWith(
+      // Network First 전략: 네트워크 우선, 실패 시 캐시 사용
+      fetch(event.request)
+        .then(response => {
+          // 성공하면 캐시에 저장하고 반환
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // 네트워크 실패 시 캐시에서 가져오기
+          return caches.match(event.request).then(cachedResponse => {
+            if (cachedResponse) {
+              console.log('📦 캐시에서 응답:', url.pathname);
+              return cachedResponse;
+            }
+            // 캐시도 없으면 오프라인 응답
+            return new Response(
+              JSON.stringify({ 
+                error: 'offline', 
+                message: '오프라인 상태입니다. 네트워크 연결을 확인해주세요.' 
+              }),
+              { 
+                status: 503,
+                headers: { 'Content-Type': 'application/json' }
+              }
+            );
+          });
+        })
+    );
+  }
+});

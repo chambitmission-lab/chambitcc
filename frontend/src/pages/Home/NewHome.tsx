@@ -96,22 +96,24 @@ const NewHome = () => {
     )
   }
 
-  // 에러 상태 표시
-  if (prayerHook.error) {
+  // 에러 상태 표시 - 캐시된 데이터가 있으면 표시
+  if (prayerHook.error && prayerHook.prayers.length === 0) {
     return (
       <ErrorBoundary>
         <div className="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-200">
           <div className="max-w-md mx-auto min-h-screen bg-background-light dark:bg-background-dark shadow-2xl relative flex flex-col border-x border-border-light dark:border-border-dark">
             <main className="flex-1 flex items-center justify-center p-8">
               <div className="text-center">
-                <span className="text-6xl mb-4 block">⚠️</span>
-                <p className="text-gray-900 dark:text-white font-semibold mb-2">{t('cannotLoadData')}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{prayerHook.error}</p>
+                <span className="text-6xl mb-4 block">📡</span>
+                <p className="text-gray-900 dark:text-white font-semibold mb-2">오프라인 상태입니다</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  네트워크 연결을 확인해주세요
+                </p>
                 <button
-                  onClick={() => window.location.reload()}
+                  onClick={() => prayerHook.refresh()}
                   className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all"
                 >
-                  {t('refresh')}
+                  다시 시도
                 </button>
               </div>
             </main>
@@ -127,6 +129,16 @@ const NewHome = () => {
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl relative border-x border-border-light dark:border-border-dark">
           
           <main ref={mainRef} className="pb-20">
+            {/* 오프라인 배너 - 캐시된 데이터를 보여주면서 알림 */}
+            {prayerHook.error && prayerHook.prayers.length > 0 && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2">
+                <div className="flex items-center gap-2 text-sm text-yellow-800 dark:text-yellow-200">
+                  <span>📡</span>
+                  <span>오프라인 모드 - 저장된 데이터를 표시하고 있습니다</span>
+                </div>
+              </div>
+            )}
+            
             <TodaysVerse />
             
             {/* 소그룹 필터 */}

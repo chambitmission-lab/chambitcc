@@ -48,11 +48,19 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
       return allPages.length + 1
     },
     initialPageParam: 1,
-    staleTime: 0, // 필터 변경 시 즉시 새 데이터 가져오기
-    gcTime: 1000 * 60 * 30, // 30분간 메모리 유지
-    refetchOnMount: true, // 마운트 시 stale이면 항상 refetch
+    staleTime: 1000 * 60 * 5, // 5분간 fresh (캐시 활용)
+    gcTime: 1000 * 60 * 60 * 24, // 24시간 메모리 유지
+    refetchOnMount: false, // 캐시 우선
     refetchOnWindowFocus: false,
-    retry: 2,
+    retry: (failureCount, error: any) => {
+      // 네트워크 에러는 재시도하지 않고 캐시 사용
+      if (error?.message?.includes('Failed to fetch') || 
+          error?.message?.includes('Network request failed') ||
+          error?.message?.includes('ERR_CONNECTION_REFUSED')) {
+        return false
+      }
+      return failureCount < 2
+    },
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)
