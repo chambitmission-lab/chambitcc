@@ -14,6 +14,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
   const [description, setDescription] = useState('')
   const [icon, setIcon] = useState('🙏')
   const [createdGroup, setCreatedGroup] = useState<any>(null)
+  const [errorMessage, setErrorMessage] = useState('')
   
   const createMutation = useCreateGroup()
   
@@ -21,6 +22,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrorMessage('') // 에러 메시지 초기화
     
     try {
       const result = await createMutation.mutateAsync({
@@ -30,8 +32,14 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
       })
       
       setCreatedGroup(result.data)
-    } catch (error) {
+    } catch (error: any) {
       console.error('그룹 생성 실패:', error)
+      // 백엔드에서 온 에러 메시지 표시
+      if (error.message?.includes('이미 존재하는 그룹 이름')) {
+        setErrorMessage('이미 존재하는 그룹 이름입니다. 다른 이름을 사용해주세요.')
+      } else {
+        setErrorMessage(error.message || '그룹 생성에 실패했습니다.')
+      }
     }
   }
   
@@ -47,6 +55,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
     setDescription('')
     setIcon('🙏')
     setCreatedGroup(null)
+    setErrorMessage('')
     onClose()
   }
   
@@ -111,6 +120,18 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-4 space-y-4">
+            {/* 에러 메시지 표시 */}
+            {errorMessage && (
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <span className="text-red-500 text-lg">⚠️</span>
+                  <p className="text-sm text-red-700 dark:text-red-300 flex-1">
+                    {errorMessage}
+                  </p>
+                </div>
+              </div>
+            )}
+            
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 그룹 이름 *
@@ -119,7 +140,10 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 type="text"
                 className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value)
+                  setErrorMessage('') // 입력 시 에러 메시지 제거
+                }}
                 placeholder="예: 청년부, 찬양팀, 셀 모임 A"
                 required
                 maxLength={50}

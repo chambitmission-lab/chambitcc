@@ -7,7 +7,6 @@ import {
   joinGroup,
   leaveGroup
 } from '../api/group'
-import { showToast } from '../utils/toast'
 import type { CreateGroupRequest, JoinGroupRequest } from '../types/prayer'
 
 // Query Keys
@@ -42,12 +41,12 @@ export const useCreateGroup = () => {
   return useMutation({
     mutationFn: (data: CreateGroupRequest) => createGroup(data),
     onSuccess: () => {
-      showToast('그룹이 생성되었습니다', 'success')
+      // 토스트는 모달에서 처리하므로 제거
       queryClient.invalidateQueries({ queryKey: groupKeys.myGroups() })
       queryClient.invalidateQueries({ queryKey: groupKeys.allGroups() })
     },
-    onError: (error: Error) => {
-      showToast(error.message || '그룹 생성에 실패했습니다', 'error')
+    onError: () => {
+      // 에러는 모달에서 처리하므로 토스트 제거
     },
   })
 }
