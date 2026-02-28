@@ -44,11 +44,13 @@
 }
 
 .bible-verse-item:hover {
-  background: var(--ig-hover);
+  background: rgba(255, 248, 220, 0.15);
   margin: 0 -1rem;
   padding: 1.125rem 1rem;
   border-radius: 8px;
   border-bottom: 1px solid transparent;
+  position: relative;
+  overflow: visible;
 }
 
 .bible-verse-item:hover::before {
@@ -58,8 +60,48 @@
   top: 0;
   bottom: 0;
   width: 3px;
-  background: #667eea;
+  background: linear-gradient(180deg, #ffd700 0%, #ffb347 100%);
   border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+/* 독서등 효과 - 위에서 아래로 비추는 따뜻한 빛 */
+.bible-verse-item:hover::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -20%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 140%;
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 20%,
+    rgba(255, 248, 220, 0.4) 0%,
+    rgba(255, 248, 220, 0.25) 15%,
+    rgba(255, 248, 220, 0.15) 30%,
+    rgba(255, 248, 220, 0.08) 50%,
+    rgba(255, 248, 220, 0.03) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+  animation: deskLampGlow 3s ease-in-out infinite;
+  z-index: 1;
+}
+
+/* 텍스트가 빛 위에 보이도록 */
+.bible-verse-item:hover .bible-verse-number,
+.bible-verse-item:hover .bible-verse-text {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes deskLampGlow {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .bible-verse-number {
