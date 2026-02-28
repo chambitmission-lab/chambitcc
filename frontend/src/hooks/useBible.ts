@@ -7,6 +7,7 @@ export const useBibleBooks = () => {
     queryKey: ['bible', 'books'],
     queryFn: getBibleBooks,
     staleTime: 1000 * 60 * 60 * 24, // 24시간
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
   })
 }
 
@@ -16,7 +17,8 @@ export const useBibleChapter = (bookId: number, chapter: number, enabled: boolea
     queryKey: ['bible', 'chapter', bookId, chapter],
     queryFn: () => getBibleChapter(bookId, chapter),
     enabled: enabled && bookId > 0 && chapter > 0,
-    staleTime: 1000 * 60 * 60, // 1시간
+    staleTime: 1000 * 60 * 60 * 24, // 24시간
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
   })
 }
 
@@ -26,7 +28,8 @@ export const useBibleVerse = (book: string, chapter: number, verse: number, enab
     queryKey: ['bible', 'verse', book, chapter, verse],
     queryFn: () => getBibleVerse(book, chapter, verse),
     enabled: enabled && !!book && chapter > 0 && verse > 0,
-    staleTime: 1000 * 60 * 60, // 1시간
+    staleTime: 1000 * 60 * 60 * 24, // 24시간
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
   })
 }
 
@@ -36,7 +39,8 @@ export const useBibleSearch = (keyword: string, page: number = 1) => {
     queryKey: ['bible', 'search', keyword, page],
     queryFn: () => searchBible(keyword, page),
     enabled: keyword.length > 0,
-    staleTime: 1000 * 60 * 5, // 5분
+    staleTime: 1000 * 60 * 60 * 24, // 24시간
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
     retry: 1,
   })
 }
@@ -51,6 +55,7 @@ export const useBibleChapterInfinite = (bookNumber: number, chapter: number, ena
       return lastPage.has_more ? lastPage.current_page + 1 : undefined
     },
     initialPageParam: 1,
-    staleTime: 1000 * 60 * 60, // 1시간
+    staleTime: 1000 * 60 * 60 * 24, // 24시간
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
   })
 }

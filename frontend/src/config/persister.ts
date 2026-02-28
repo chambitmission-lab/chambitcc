@@ -30,10 +30,10 @@ export const persister: Persister = {
       const now = Date.now()
       const cacheAge = client.timestamp ? now - client.timestamp : Infinity
       
-      // 30분 이상 지난 캐시는 무시 (장시간 후 재접속 시 최신 데이터 보장)
-      const THIRTY_MINUTES = 1000 * 60 * 30
-      if (cacheAge > THIRTY_MINUTES) {
-        console.log('Cache is older than 30 minutes, ignoring')
+      // 7일 이상 지난 캐시는 무시 (성경 데이터는 변하지 않으므로 길게 유지)
+      const SEVEN_DAYS = 1000 * 60 * 60 * 24 * 7
+      if (cacheAge > SEVEN_DAYS) {
+        console.log('Cache is older than 7 days, ignoring')
         localStorage.removeItem(cacheKey)
         return undefined
       }
