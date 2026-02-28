@@ -53,19 +53,7 @@
   overflow: visible;
 }
 
-.bible-verse-item:hover::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, #ffd700 0%, #ffb347 100%);
-  border-radius: 0 2px 2px 0;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-}
-
-/* 독서등 효과 - 위에서 아래로 비추는 따뜻한 빛 */
+/* 독서등 효과 - 위에서 아래로 비추는 따뜻한 빛 (바 없이 빛만) */
 .bible-verse-item:hover::after {
   content: '';
   position: absolute;
