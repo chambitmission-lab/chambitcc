@@ -1,0 +1,138 @@
+/* Verse Display - 성경 본문 표시 */
+
+.bible-content {
+  margin-top: 0;
+  padding: 1rem;
+}
+
+.verses-container {
+  background: var(--ig-primary-background);
+}
+
+.chapter-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--ig-border);
+  letter-spacing: -0.02em;
+}
+
+.verses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.verses-list.collapsed {
+  margin-bottom: 1rem;
+}
+
+/* Bible Study Verse Item - BEM naming */
+.bible-verse-item {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.125rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.bible-verse-item:last-child {
+  border-bottom: none;
+}
+
+.bible-verse-item:hover {
+  background: var(--ig-hover);
+  margin: 0 -1rem;
+  padding: 1.125rem 1rem;
+  border-radius: 8px;
+  border-bottom: 1px solid transparent;
+}
+
+.bible-verse-item:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #667eea;
+  border-radius: 0 2px 2px 0;
+}
+
+.bible-verse-number {
+  flex-shrink: 0;
+  width: 2rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  text-align: right;
+  font-size: 0.8125rem;
+  padding-top: 0.125rem;
+}
+
+.bible-verse-item:hover .bible-verse-number {
+  color: #667eea;
+  font-weight: 800;
+}
+
+.bible-verse-text {
+  flex: 1;
+  color: var(--ig-primary-text);
+  line-height: 1.85;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+/* 더보기 버튼 */
+.expand-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--ig-secondary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 12px;
+  color: var(--ig-primary-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 1rem;
+}
+
+.expand-button:hover {
+  background: var(--ig-hover);
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.expand-button .material-icons-round {
+  font-size: 1.25rem;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .bible-verse-text {
+    font-size: 0.9375rem;
+    line-height: 1.9;
+  }
+  
+  .bible-verse-item {
+    padding: 1rem 0;
+  }
+  
+  .bible-verse-item:hover {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bible-verse-text {
+    font-size: 0.9375rem;
+    line-height: 1.95;
+  }
+}

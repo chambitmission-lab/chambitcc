@@ -1,0 +1,120 @@
+/* Bible Book Selector - 성경 책 선택 그리드 */
+
+.bible-books-section {
+  padding: 1rem;
+  background: var(--ig-secondary-background);
+}
+
+.testament-section {
+  margin-bottom: 1.5rem;
+}
+
+.testament-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.book-button {
+  padding: 0.875rem 0.5rem;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 8px;
+  color: var(--ig-primary-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.book-button:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+  transform: translateY(-1px);
+}
+
+.book-button:active {
+  transform: translateY(0);
+}
+
+.book-button.selected {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* 책 정보 헤더 */
+.book-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--ig-primary-background);
+  border-bottom: 1px solid var(--ig-border);
+}
+
+.back-button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ig-secondary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background: var(--ig-hover);
+  border-color: #667eea;
+}
+
+.back-button .material-icons-round {
+  font-size: 1.25rem;
+  color: var(--ig-primary-text);
+}
+
+.book-info {
+  flex: 1;
+}
+
+.book-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.book-progress {
+  font-size: 0.875rem;
+  color: var(--ig-secondary-text);
+  margin: 0.25rem 0 0;
+  font-weight: 600;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .books-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .books-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
