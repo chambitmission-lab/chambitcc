@@ -156,7 +156,7 @@
                0 0 30px rgba(236, 72, 153, 0.1);
 }
 
-.verse-text::before {
+.admin-container .verse-text::before {
   content: '';
   position: absolute;
   left: 0;

@@ -380,10 +380,11 @@
 
 .verse-item {
   display: flex;
-  gap: 1rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--ig-border);
-  transition: background 0.2s;
+  gap: 1.25rem;
+  padding: 1.125rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+  position: relative;
 }
 
 .verse-item:last-child {
@@ -393,25 +394,43 @@
 .verse-item:hover {
   background: var(--ig-hover);
   margin: 0 -1rem;
-  padding: 1rem;
+  padding: 1.125rem 1rem;
   border-radius: 8px;
   border-bottom: 1px solid transparent;
+}
+
+.verse-item:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #667eea;
+  border-radius: 0 2px 2px 0;
 }
 
 .verse-number {
   flex-shrink: 0;
   width: 2rem;
-  font-weight: 800;
-  color: #667eea;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
   text-align: right;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
+  padding-top: 0.125rem;
+}
+
+.verse-item:hover .verse-number {
+  color: #667eea;
+  font-weight: 800;
 }
 
 .verse-text {
   flex: 1;
   color: var(--ig-primary-text);
-  line-height: 1.7;
+  line-height: 1.85;
   font-size: 1rem;
+  letter-spacing: -0.01em;
 }
 
 /* 더보기 버튼 */
@@ -533,12 +552,14 @@
 
 .verse-item.search-result {
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem;
+  gap: 0.625rem;
+  padding: 1.125rem 1rem;
   background: var(--ig-secondary-background);
   border-radius: 8px;
   border: 1px solid var(--ig-border);
   margin-bottom: 0.75rem;
+  transition: all 0.2s;
+  position: relative;
 }
 
 .verse-item.search-result:hover {
@@ -547,10 +568,30 @@
   margin-bottom: 0.75rem;
 }
 
+.verse-item.search-result:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #667eea;
+  border-radius: 2px 0 0 2px;
+}
+
+.verse-item.search-result .verse-text {
+  line-height: 1.85;
+  letter-spacing: -0.01em;
+}
+
 .verse-reference {
   font-weight: 700;
+  color: var(--ig-secondary-text);
+  font-size: 0.8125rem;
+}
+
+.verse-item.search-result:hover .verse-reference {
   color: #667eea;
-  font-size: 0.875rem;
 }
 
 .no-results {
@@ -616,11 +657,25 @@
   
   .verse-text {
     font-size: 0.9375rem;
+    line-height: 1.9;
+  }
+  
+  .verse-item {
+    padding: 1rem 0;
+  }
+  
+  .verse-item:hover {
+    padding: 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .books-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .verse-text {
+    font-size: 0.9375rem;
+    line-height: 1.95;
   }
 }
