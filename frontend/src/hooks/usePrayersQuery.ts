@@ -22,6 +22,10 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
   const queryClient = useQueryClient()
   // 매 렌더링마다 최신 사용자 정보 가져오기 (장시간 후 재접속 대응)
   const currentUser = getCurrentUser()
+  
+  // 로그인 필요한 필터인지 확인
+  const requiresAuth = filter === 'my_prayers' || filter === 'prayed_by_me'
+  const isAuthenticated = !!currentUser.username
 
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
@@ -43,6 +47,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
         },
       }
     },
+    enabled: !requiresAuth || isAuthenticated, // 로그인 필요한 필터는 로그인 시에만 활성화
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.data.items.length < 20) return undefined
       return allPages.length + 1

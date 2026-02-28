@@ -18,7 +18,7 @@ import type { SortType, PrayerFilterType } from '../../types/prayer'
 const NewHome = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { requireAuth, requireAuthWithRedirect } = useAuth()
+  const { requireAuth, requireAuthWithRedirect, isLoggedIn } = useAuth()
   const { t } = useLanguage()
   const [showComposer, setShowComposer] = useState(false)
   const [selectedPrayerId, setSelectedPrayerId] = useState<number | null>(null)
@@ -30,6 +30,14 @@ const NewHome = () => {
   const [showJoinModal, setShowJoinModal] = useState(false)
   const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter)  // ✅ selectedFilter 전달
   const mainRef = useRef<HTMLDivElement>(null)
+
+  // 로그인 상태 변경 시 필터 초기화
+  useEffect(() => {
+    if (!isLoggedIn() && (selectedFilter === 'my_prayers' || selectedFilter === 'prayed_by_me')) {
+      setSelectedFilter('all')
+      setSelectedGroupId(null)
+    }
+  }, [isLoggedIn, selectedFilter])
 
   // 프로필에서 넘어온 기도 ID 처리
   useEffect(() => {
