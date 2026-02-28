@@ -1,5 +1,5 @@
 import { API_V1, apiFetch } from '../config/api'
-import type { BibleBook, BibleChapterResponse, BibleVerse, BibleSearchResult } from '../types/bible'
+import type { BibleBook, BibleChapterResponse, BibleChapterPaginatedResponse, BibleVerse, BibleSearchResult } from '../types/bible'
 
 // Mock 데이터 import (개발/테스트용)
 import { getMockBibleBooks, getMockBibleChapter, getMockBibleSearch } from './bible.mock'
@@ -64,6 +64,27 @@ export const searchBible = async (keyword: string, page: number = 1, limit: numb
   
   if (!response.ok) {
     throw new Error('Failed to search bible')
+  }
+  
+  return response.json()
+}
+
+// 페이지네이션 장 조회 (무한 스크롤용)
+export const getBibleChapterPaginated = async (
+  bookNumber: number, 
+  chapter: number, 
+  page: number = 1, 
+  pageSize: number = 20
+): Promise<BibleChapterPaginatedResponse> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    page_size: pageSize.toString()
+  })
+  
+  const response = await apiFetch(`${API_V1}/bible/chapter/${bookNumber}/${chapter}/paginated?${params}`)
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch bible chapter paginated')
   }
   
   return response.json()

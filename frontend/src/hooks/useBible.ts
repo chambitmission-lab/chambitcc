@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { getBibleBooks, getBibleChapter, getBibleVerse, searchBible } from '../api/bible'
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
+import { getBibleBooks, getBibleChapter, getBibleVerse, searchBible, getBibleChapterPaginated } from '../api/bible'
 
 // 성경 책 목록
 export const useBibleBooks = () => {
@@ -38,5 +38,19 @@ export const useBibleSearch = (keyword: string, page: number = 1) => {
     enabled: keyword.length > 0,
     staleTime: 1000 * 60 * 5, // 5분
     retry: 1,
+  })
+}
+
+// 무한 스크롤 장 조회
+export const useBibleChapterInfinite = (bookNumber: number, chapter: number, enabled: boolean = true) => {
+  return useInfiniteQuery({
+    queryKey: ['bible', 'chapter', 'infinite', bookNumber, chapter],
+    queryFn: ({ pageParam = 1 }) => getBibleChapterPaginated(bookNumber, chapter, pageParam, 20),
+    enabled: enabled && bookNumber > 0 && chapter > 0,
+    getNextPageParam: (lastPage) => {
+      return lastPage.has_more ? lastPage.current_page + 1 : undefined
+    },
+    initialPageParam: 1,
+    staleTime: 1000 * 60 * 60, // 1시간
   })
 }

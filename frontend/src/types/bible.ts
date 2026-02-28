@@ -31,3 +31,16 @@ export interface BibleSearchResult {
   total: number
   results: BibleVerse[]
 }
+
+// 페이지네이션 장 조회 응답
+export interface BibleChapterPaginatedResponse {
+  book_number: number
+  book_name_ko: string
+  book_name_en: string
+  chapter: number
+  verses: BibleVerse[]
+  total_verses: number
+  current_page: number
+  page_size: number
+  has_more: boolean
+}

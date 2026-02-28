@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useBibleBooks, useBibleChapter, useBibleSearch } from '../../hooks/useBible'
+import { useState, useEffect, useRef } from 'react'
+import { useBibleBooks, useBibleChapterInfinite, useBibleSearch } from '../../hooks/useBible'
 import { useLanguage } from '../../contexts/LanguageContext'
 import './BibleStudy.css'
 
@@ -12,19 +12,71 @@ const BibleStudy = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState<'read' | 'search'>('read')
   const [showBookList, setShowBookList] = useState<boolean>(true)
-  const [expandedVerses, setExpandedVerses] = useState<boolean>(false)
+  
+  // 무한 스크롤을 위한 ref
+  const observerTarget = useRef<HTMLDivElement>(null)
   
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
-  const { data: chapterData, isLoading: chapterLoading } = useBibleChapter(
-    selectedBookId, 
+  
+  const selectedBookData = books?.find(b => b.id === selectedBookId)
+  
+  const { 
+    data: chapterData, 
+    isLoading: chapterLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useBibleChapterInfinite(
+    selectedBookData?.book_number || 0, 
     selectedChapter,
     activeTab === 'read' && selectedBookId > 0
   )
   const { data: searchResults, isLoading: searchLoading } = useBibleSearch(searchQuery)
   
-  const selectedBookData = books?.find(b => b.id === selectedBookId)
+  // 무한 스크롤 Intersection Observer 설정
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          console.log('🔄 Loading next page...', { hasNextPage, isFetchingNextPage })
+          fetchNextPage()
+        }
+      },
+      { 
+        threshold: 0.1,
+        rootMargin: '100px' // 100px 전에 미리 로드
+      }
+    )
+    
+    const currentTarget = observerTarget.current
+    if (currentTarget) {
+      observer.observe(currentTarget)
+      console.log('👀 Observer attached', { hasNextPage, isFetchingNextPage })
+    }
+    
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget)
+      }
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
   
-  const handleSearch = (e: React.FormEvent) => {
+  // 디버깅: 챕터 데이터 확인
+  useEffect(() => {
+    if (chapterData) {
+      console.log('📖 Chapter Data:', {
+        totalPages: chapterData.pages.length,
+        pages: chapterData.pages.map(page => ({
+          page: page.current_page,
+          verseCount: page.verses.length,
+          verseNumbers: page.verses.map(v => v.verse),
+          hasMore: page.has_more
+        }))
+      })
+    }
+  }, [chapterData])
+  
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (searchKeyword.trim()) {
       setSearchQuery(searchKeyword.trim())
@@ -36,7 +88,6 @@ const BibleStudy = () => {
     setSelectedBook(bookName)
     setSelectedChapter(1)
     setShowBookList(false)
-    setExpandedVerses(false)
   }
   
   const handleChangeBook = () => {
@@ -47,7 +98,6 @@ const BibleStudy = () => {
   
   const handleChapterChange = (chapter: number) => {
     setSelectedChapter(chapter)
-    setExpandedVerses(false)
     // 스크롤을 상단으로
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -243,38 +293,75 @@ const BibleStudy = () => {
               ) : chapterData ? (
                 <div className="bible-content">
                   <div className="verses-container">
-                    <div className={`verses-list ${expandedVerses ? 'expanded' : 'collapsed'}`}>
-                      {chapterData.verses.map((verse, index) => (
-                        <div 
-                          key={verse.id} 
-                          className="verse-item"
-                          style={{ 
-                            display: !expandedVerses && index >= 5 ? 'none' : 'flex' 
-                          }}
-                        >
-                          <span className="verse-number">{verse.verse}</span>
-                          <span className="verse-text">{verse.text}</span>
+                    <div className="verses-list">
+                      {chapterData.pages.map((page, pageIndex) => (
+                        <div key={pageIndex}>
+                          {page.verses.map((verse) => (
+                            <div key={verse.id} className="verse-item">
+                              <span className="verse-number">{verse.verse}</span>
+                              <span className="verse-text">
+                                {verse.text || '(구절 내용 없음)'}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       ))}
                     </div>
                     
-                    {chapterData.verses.length > 5 && (
-                      <button 
-                        className="expand-button"
-                        onClick={() => setExpandedVerses(!expandedVerses)}
+                    {/* 디버깅 정보 (개발 중에만 표시) */}
+                    {import.meta.env.DEV && (
+                      <div style={{ 
+                        padding: '1rem', 
+                        margin: '1rem 0',
+                        background: 'rgba(102, 126, 234, 0.1)',
+                        borderRadius: '8px',
+                        fontSize: '0.75rem',
+                        color: 'var(--ig-secondary-text)'
+                      }}>
+                        <div>📊 로드된 페이지: {chapterData.pages.length}</div>
+                        <div>📝 총 구절 수: {chapterData.pages.reduce((sum, p) => sum + p.verses.length, 0)}</div>
+                        <div>🔢 구절 번호: {chapterData.pages.flatMap(p => p.verses.map(v => v.verse)).join(', ')}</div>
+                        <div>➡️ 다음 페이지: {hasNextPage ? '있음' : '없음'}</div>
+                      </div>
+                    )}
+                    
+                    {/* 무한 스크롤 트리거 */}
+                    {hasNextPage && (
+                      <div 
+                        ref={observerTarget} 
+                        style={{ 
+                          height: '100px', 
+                          margin: '2rem 0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
                       >
-                        {expandedVerses ? (
-                          <>
-                            <span className="material-icons-round">expand_less</span>
-                            <span>{t.showLess}</span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="material-icons-round">expand_more</span>
-                            <span>{chapterData.verses.length - 5}개 구절 {t.showMore}</span>
-                          </>
+                        {isFetchingNextPage && (
+                          <div className="loading-spinner" style={{ padding: '1rem' }}>
+                            <span className="material-icons-round spinning">refresh</span>
+                            <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
+                              구절을 불러오는 중...
+                            </p>
+                          </div>
                         )}
-                      </button>
+                      </div>
+                    )}
+                    
+                    {!hasNextPage && chapterData.pages.length > 0 && (
+                      <div style={{ 
+                        textAlign: 'center', 
+                        padding: '2rem 1rem',
+                        color: 'var(--ig-secondary-text)',
+                        fontSize: '0.875rem'
+                      }}>
+                        <span className="material-icons-round" style={{ fontSize: '2rem', opacity: 0.3 }}>
+                          check_circle
+                        </span>
+                        <p style={{ marginTop: '0.5rem' }}>
+                          {chapterData.pages[0].book_name_ko} {chapterData.pages[0].chapter}장 끝
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
