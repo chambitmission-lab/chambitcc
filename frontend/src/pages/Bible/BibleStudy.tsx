@@ -308,23 +308,6 @@ const BibleStudy = () => {
                       ))}
                     </div>
                     
-                    {/* 디버깅 정보 (개발 중에만 표시) */}
-                    {import.meta.env.DEV && (
-                      <div style={{ 
-                        padding: '1rem', 
-                        margin: '1rem 0',
-                        background: 'rgba(102, 126, 234, 0.1)',
-                        borderRadius: '8px',
-                        fontSize: '0.75rem',
-                        color: 'var(--ig-secondary-text)'
-                      }}>
-                        <div>📊 로드된 페이지: {chapterData.pages.length}</div>
-                        <div>📝 총 구절 수: {chapterData.pages.reduce((sum, p) => sum + p.verses.length, 0)}</div>
-                        <div>🔢 구절 번호: {chapterData.pages.flatMap(p => p.verses.map(v => v.verse)).join(', ')}</div>
-                        <div>➡️ 다음 페이지: {hasNextPage ? '있음' : '없음'}</div>
-                      </div>
-                    )}
-                    
                     {/* 무한 스크롤 트리거 */}
                     {hasNextPage && (
                       <div 
