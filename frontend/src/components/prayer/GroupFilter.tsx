@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useMyGroups } from '../../hooks/useGroups'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useAuth } from '../../hooks/useAuth'
 import type { PrayerFilterType } from '../../types/prayer'
 
 interface GroupFilterProps {
@@ -23,6 +24,7 @@ const GroupFilter = ({
 }: GroupFilterProps) => {
   const { data: groupsData, isLoading } = useMyGroups()
   const { t } = useLanguage()
+  const { requireAuth } = useAuth()
   const [isExpanded, setIsExpanded] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
@@ -118,8 +120,10 @@ const GroupFilter = ({
               }
             `}
             onClick={() => {
-              onGroupChange(null)
-              onFilterChange('my_prayers')
+              requireAuth(() => {
+                onGroupChange(null)
+                onFilterChange('my_prayers')
+              })
             }}
           >
             {t('myPrayers')}
@@ -139,8 +143,10 @@ const GroupFilter = ({
               }
             `}
             onClick={() => {
-              onGroupChange(null)
-              onFilterChange('prayed_by_me')
+              requireAuth(() => {
+                onGroupChange(null)
+                onFilterChange('prayed_by_me')
+              })
             }}
           >
             {t('prayedByMe')}
@@ -163,13 +169,13 @@ const GroupFilter = ({
               <p className="text-gray-500 mb-4">아직 가입한 그룹이 없습니다</p>
               <div className="flex gap-2">
                 <button 
-                  onClick={onCreateGroup}
+                  onClick={() => requireAuth(onCreateGroup)}
                   className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all"
                 >
                   그룹 만들기
                 </button>
                 <button 
-                  onClick={onJoinGroup}
+                  onClick={() => requireAuth(onJoinGroup)}
                   className="flex-1 px-4 py-2 bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 font-bold text-sm rounded-full border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                 >
                   그룹 가입
@@ -226,13 +232,13 @@ const GroupFilter = ({
               
               <div className="p-3 border-t border-border-light dark:border-border-dark flex gap-2">
                 <button 
-                  onClick={onCreateGroup}
+                  onClick={() => requireAuth(onCreateGroup)}
                   className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all"
                 >
                   + 그룹 만들기
                 </button>
                 <button 
-                  onClick={onJoinGroup}
+                  onClick={() => requireAuth(onJoinGroup)}
                   className="flex-1 px-4 py-2 bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 font-bold text-sm rounded-full border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                 >
                   그룹 가입
