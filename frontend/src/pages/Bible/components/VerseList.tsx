@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { BibleChapterPaginatedResponse } from '../../../types/bible'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 interface VerseListProps {
   chapterData: InfiniteData<BibleChapterPaginatedResponse> | undefined
@@ -8,6 +9,9 @@ interface VerseListProps {
   hasNextPage: boolean
   isFetchingNextPage: boolean
   fetchNextPage: () => void
+  selectedChapter: number
+  totalChapters: number
+  onChapterChange: (chapter: number) => void
 }
 
 const VerseList = ({
@@ -15,9 +19,20 @@ const VerseList = ({
   isLoading,
   hasNextPage,
   isFetchingNextPage,
-  fetchNextPage
+  fetchNextPage,
+  selectedChapter,
+  totalChapters,
+  onChapterChange
 }: VerseListProps) => {
   const observerTarget = useRef<HTMLDivElement>(null)
+  const { language } = useLanguage()
+  
+  const texts = {
+    ko: { prevChapter: '이전 장', nextChapter: '다음 장' },
+    en: { prevChapter: 'Previous', nextChapter: 'Next' }
+  }
+  
+  const t = texts[language]
   
   // 무한 스크롤 Intersection Observer 설정
   useEffect(() => {
@@ -125,9 +140,71 @@ const VerseList = ({
             <span className="material-icons-round" style={{ fontSize: '2rem', opacity: 0.3 }}>
               check_circle
             </span>
-            <p style={{ marginTop: '0.5rem' }}>
-              {chapterData.pages[0].book_name_ko} {chapterData.pages[0].chapter}장 끝
-            </p>
+            
+            {/* 장 끝 텍스트와 네비게이션을 한 줄에 배치 */}
+            <div style={{ 
+              marginTop: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '1rem'
+            }}>
+              <button 
+                onClick={() => onChapterChange(selectedChapter - 1)}
+                disabled={selectedChapter === 1}
+                title={t.prevChapter}
+                style={{
+                  padding: '0.5rem',
+                  borderRadius: '50%',
+                  border: '2px solid var(--ig-border)',
+                  background: 'var(--ig-primary-background)',
+                  color: 'var(--ig-primary-text)',
+                  cursor: selectedChapter === 1 ? 'not-allowed' : 'pointer',
+                  opacity: selectedChapter === 1 ? 0.3 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  flexShrink: 0,
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>
+                  chevron_left
+                </span>
+              </button>
+              
+              <p style={{ margin: 0, whiteSpace: 'nowrap', fontSize: '0.875rem' }}>
+                {chapterData.pages[0].book_name_ko} {chapterData.pages[0].chapter}장 끝
+              </p>
+              
+              <button 
+                onClick={() => onChapterChange(selectedChapter + 1)}
+                disabled={selectedChapter === totalChapters}
+                title={t.nextChapter}
+                style={{
+                  padding: '0.5rem',
+                  borderRadius: '50%',
+                  border: '2px solid var(--ig-border)',
+                  background: 'var(--ig-primary-background)',
+                  color: 'var(--ig-primary-text)',
+                  cursor: selectedChapter === totalChapters ? 'not-allowed' : 'pointer',
+                  opacity: selectedChapter === totalChapters ? 0.3 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  flexShrink: 0,
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>
+                  chevron_right
+                </span>
+              </button>
+            </div>
           </div>
         )}
       </div>

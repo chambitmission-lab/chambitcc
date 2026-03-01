@@ -48,7 +48,10 @@ const BibleStudy = () => {
   
   const handleChapterChange = (chapter: number) => {
     setSelectedChapter(chapter)
+    // 여러 스크롤 컨테이너를 모두 처리
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
   }
   
   return (
@@ -87,6 +90,9 @@ const BibleStudy = () => {
                 hasNextPage={hasNextPage || false}
                 isFetchingNextPage={isFetchingNextPage}
                 fetchNextPage={fetchNextPage}
+                selectedChapter={selectedChapter}
+                totalChapters={selectedBookData.chapter_count}
+                onChapterChange={handleChapterChange}
               />
             </div>
           )}
