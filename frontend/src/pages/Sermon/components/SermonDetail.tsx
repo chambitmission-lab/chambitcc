@@ -4,6 +4,7 @@ import type { Sermon } from '../../../types/sermon'
 import { API_URL } from '../../../config/api'
 import { isAdmin } from '../../../utils/auth'
 import { useDeleteSermon } from '../../../hooks/useSermons'
+import './SermonDetail.css'
 
 interface SermonDetailProps {
   sermon: Sermon
@@ -66,27 +67,39 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div
-        ref={modalRef}
-        className="bg-white dark:bg-gray-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-      >
+    <div className="sermon-detail-overlay">
+      <div ref={modalRef} className="sermon-detail-modal">
+        {/* 배경 효과 */}
+        <div className="sermon-detail-bg-effects">
+          <div className="sermon-detail-glow sermon-detail-glow-1"></div>
+          <div className="sermon-detail-glow sermon-detail-glow-2"></div>
+          <div className="sermon-detail-glow sermon-detail-glow-3"></div>
+        </div>
+
         {/* 헤더 */}
-        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between z-10">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">설교 말씀</h2>
-          <div className="flex items-center gap-2">
+        <div className="sermon-detail-header">
+          <div className="sermon-detail-header-content">
+            <div className="sermon-detail-avatar">
+              <span className="sermon-detail-avatar-emoji">📖</span>
+            </div>
+            <div className="sermon-detail-header-info">
+              <div className="sermon-detail-pastor-name">{sermon.pastor}</div>
+              <div className="sermon-detail-date">{formatDate(sermon.sermon_date)}</div>
+            </div>
+          </div>
+          <div className="sermon-detail-actions">
             {adminUser && (
               <>
                 <button
                   onClick={onEdit}
-                  className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                  className="sermon-detail-action-btn sermon-detail-edit-btn"
                   title="수정"
                 >
                   <span className="material-icons-outlined">edit</span>
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                  className="sermon-detail-action-btn sermon-detail-delete-btn"
                   title="삭제"
                 >
                   <span className="material-icons-outlined">delete</span>
@@ -95,7 +108,7 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
             )}
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="sermon-detail-action-btn sermon-detail-close-btn"
             >
               <span className="material-icons-outlined">close</span>
             </button>
@@ -103,59 +116,49 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
         </div>
 
         {/* 내용 */}
-        <div className="p-6">
+        <div className="sermon-detail-content">
           {/* 썸네일 */}
           {sermon.thumbnail_url && (
-            <div className="mb-6 rounded-xl overflow-hidden">
+            <div className="sermon-detail-thumbnail">
               <img
                 src={sermon.thumbnail_url}
                 alt={sermon.title}
-                className="w-full h-64 object-cover"
               />
             </div>
           )}
 
           {/* 제목 */}
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-            {sermon.title}
-          </h1>
+          <h1 className="sermon-detail-title">{sermon.title}</h1>
 
           {/* 성경 구절 */}
-          <div className="inline-block px-4 py-2 bg-purple-100 dark:bg-purple-900/30 rounded-full mb-4">
-            <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">
-              📖 {sermon.bible_verse}
-            </p>
+          <div className="sermon-detail-bible-badge">
+            <span>📖</span>
+            <span>{sermon.bible_verse}</span>
           </div>
 
           {/* 메타 정보 */}
-          <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600 dark:text-gray-400">
-            <span className="flex items-center gap-1">
-              <span className="material-icons-outlined text-base">person</span>
-              {sermon.pastor}
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="material-icons-outlined text-base">calendar_today</span>
-              {formatDate(sermon.sermon_date)}
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="material-icons-outlined text-base">visibility</span>
-              {sermon.views} 조회
-            </span>
+          <div className="sermon-detail-meta">
+            <div className="sermon-detail-meta-item">
+              <span className="material-icons-outlined">person</span>
+              <span>{sermon.pastor}</span>
+            </div>
+            <div className="sermon-detail-meta-item">
+              <span className="material-icons-outlined">visibility</span>
+              <span>{sermon.views.toLocaleString()} 조회</span>
+            </div>
           </div>
 
           {/* 음성 플레이어 */}
           {sermon.audio_url && (
-            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="material-icons-outlined text-purple-600 dark:text-purple-400">
-                  headphones
-                </span>
-                <h3 className="font-semibold text-gray-900 dark:text-white">설교 음성</h3>
+            <div className="sermon-detail-audio">
+              <div className="sermon-detail-audio-header">
+                <span className="material-icons-outlined">headphones</span>
+                <h3>설교 음성</h3>
               </div>
               <audio
                 controls
                 src={getAudioUrl()}
-                className="w-full"
+                className="sermon-detail-audio-player"
                 controlsList="nodownload"
               >
                 Your browser does not support the audio element.
@@ -165,54 +168,44 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
 
           {/* 비디오 링크 */}
           {sermon.video_url && (
-            <div className="mb-6">
-              <a
-                href={sermon.video_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-              >
-                <span className="material-icons-outlined">play_circle</span>
-                <span className="font-semibold">영상으로 보기</span>
-                <span className="material-icons-outlined ml-auto">open_in_new</span>
-              </a>
-            </div>
+            <a
+              href={sermon.video_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sermon-detail-video-link"
+            >
+              <span className="material-icons-outlined">play_circle</span>
+              <span>영상으로 보기</span>
+              <span className="material-icons-outlined">open_in_new</span>
+            </a>
           )}
 
           {/* 설교 내용 */}
-          <div className="prose dark:prose-invert max-w-none">
-            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                설교 내용
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                {sermon.content}
-              </p>
-            </div>
+          <div className="sermon-detail-body">
+            <h3 className="sermon-detail-body-title">설교 내용</h3>
+            <p className="sermon-detail-body-text">{sermon.content}</p>
           </div>
         </div>
 
         {/* 삭제 확인 모달 */}
         {showDeleteConfirm && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20 p-4">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-sm w-full">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                설교 삭제
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+          <div className="sermon-delete-confirm-overlay">
+            <div className="sermon-delete-confirm-modal">
+              <h3 className="sermon-delete-confirm-title">설교 삭제</h3>
+              <p className="sermon-delete-confirm-text">
                 이 설교를 삭제하시겠습니까? 음성 파일도 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
               </p>
-              <div className="flex gap-3">
+              <div className="sermon-delete-confirm-actions">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  className="sermon-delete-confirm-cancel"
                 >
                   취소
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={deleteSermonMutation.isPending}
-                  className="flex-1 px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="sermon-delete-confirm-delete"
                 >
                   {deleteSermonMutation.isPending ? '삭제 중...' : '삭제'}
                 </button>
