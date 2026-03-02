@@ -74,12 +74,6 @@ const SermonCard = ({ sermon, onClick }: SermonCardProps) => {
                 <span>음성</span>
               </div>
             )}
-            {sermon.video_url && (
-              <div className="sermon-media-badge video">
-                <span className="material-icons-outlined sermon-media-badge-icon">play_circle</span>
-                <span>영상</span>
-              </div>
-            )}
           </div>
         </div>
       </div>

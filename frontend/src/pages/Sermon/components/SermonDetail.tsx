@@ -166,20 +166,6 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
             </div>
           )}
 
-          {/* 비디오 링크 */}
-          {sermon.video_url && (
-            <a
-              href={sermon.video_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sermon-detail-video-link"
-            >
-              <span className="material-icons-outlined">play_circle</span>
-              <span>영상으로 보기</span>
-              <span className="material-icons-outlined">open_in_new</span>
-            </a>
-          )}
-
           {/* 설교 내용 */}
           <div className="sermon-detail-body">
             <h3 className="sermon-detail-body-title">설교 내용</h3>
