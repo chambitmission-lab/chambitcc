@@ -1,24 +1,26 @@
 // 설교 폼 상태 및 로직 관리
 import { useState } from 'react'
-import { useCreateSermon } from '../../../../hooks/useSermons'
+import { useCreateSermon, useUpdateSermon } from '../../../../hooks/useSermons'
 import { showToast } from '../../../../utils/toast'
 import { validateFormData } from './validation'
 import { useAudioUpload } from './useAudioUpload'
+import type { Sermon } from '../../../../types/sermon'
 import type { SermonFormData } from './types'
 
-export const useSermonForm = (onSuccess: () => void, onClose: () => void) => {
+export const useSermonForm = (onSuccess: () => void, onClose: () => void, sermon?: Sermon) => {
   const [formData, setFormData] = useState<SermonFormData>({
-    title: '',
-    pastor: '',
-    bible_verse: '',
-    sermon_date: new Date().toISOString().split('T')[0],
-    content: '',
-    audio_url: '',
-    video_url: '',
-    thumbnail_url: '',
+    title: sermon?.title || '',
+    pastor: sermon?.pastor || '',
+    bible_verse: sermon?.bible_verse || '',
+    sermon_date: sermon?.sermon_date || new Date().toISOString().split('T')[0],
+    content: sermon?.content || '',
+    audio_url: sermon?.audio_url || '',
+    video_url: sermon?.video_url || '',
+    thumbnail_url: sermon?.thumbnail_url || '',
   })
 
   const createSermonMutation = useCreateSermon()
+  const updateSermonMutation = useUpdateSermon()
   const audioUpload = useAudioUpload()
 
   const handleInputChange = (
@@ -38,19 +40,29 @@ export const useSermonForm = (onSuccess: () => void, onClose: () => void) => {
     }
 
     try {
-      // 음성 파일 업로드
+      // 음성 파일 업로드 (새로운 파일이 있는 경우에만)
       const audioUrl = await audioUpload.uploadAudio()
 
-      // 설교 생성
-      await createSermonMutation.mutateAsync({
+      const submitData = {
         ...formData,
-        audio_url: audioUrl,
-      })
+        audio_url: audioUrl || formData.audio_url,
+      }
+
+      if (sermon) {
+        // 수정 모드
+        await updateSermonMutation.mutateAsync({
+          id: sermon.id,
+          data: submitData,
+        })
+      } else {
+        // 생성 모드
+        await createSermonMutation.mutateAsync(submitData)
+      }
 
       onSuccess()
       onClose()
     } catch (error) {
-      showToast('설교 등록에 실패했습니다', 'error')
+      showToast(sermon ? '설교 수정에 실패했습니다' : '설교 등록에 실패했습니다', 'error')
     }
   }
 
@@ -65,6 +77,7 @@ export const useSermonForm = (onSuccess: () => void, onClose: () => void) => {
     handleSubmit,
     handleClose,
     audioUpload,
-    isSubmitting: createSermonMutation.isPending || audioUpload.audioState.isUploading,
+    isSubmitting: createSermonMutation.isPending || updateSermonMutation.isPending || audioUpload.audioState.isUploading,
+    isEditMode: !!sermon,
   }
 }

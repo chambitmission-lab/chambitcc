@@ -85,6 +85,33 @@ export const createSermon = async (data: SermonCreateRequest): Promise<Sermon> =
 }
 
 /**
+ * 설교 수정 (관리자 전용)
+ */
+export const updateSermon = async (id: number, data: SermonCreateRequest): Promise<Sermon> => {
+  const token = localStorage.getItem('access_token')
+  
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
+  }
+  
+  const response = await apiFetch(`${API_V1}/sermons/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '설교 수정에 실패했습니다')
+  }
+  
+  return response.json()
+}
+
+/**
  * 설교 삭제 (관리자 전용) - 음성 파일도 자동 삭제됨
  */
 export const deleteSermon = async (id: number): Promise<void> => {

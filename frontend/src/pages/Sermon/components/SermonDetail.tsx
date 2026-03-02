@@ -9,9 +9,10 @@ interface SermonDetailProps {
   sermon: Sermon
   onClose: () => void
   onDelete?: () => void
+  onEdit?: () => void
 }
 
-const SermonDetail = ({ sermon, onClose, onDelete }: SermonDetailProps) => {
+const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) => {
   const modalRef = useRef<HTMLDivElement>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const adminUser = isAdmin()
@@ -75,13 +76,22 @@ const SermonDetail = ({ sermon, onClose, onDelete }: SermonDetailProps) => {
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">설교 말씀</h2>
           <div className="flex items-center gap-2">
             {adminUser && (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                title="삭제"
-              >
-                <span className="material-icons-outlined">delete</span>
-              </button>
+              <>
+                <button
+                  onClick={onEdit}
+                  className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                  title="수정"
+                >
+                  <span className="material-icons-outlined">edit</span>
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                  title="삭제"
+                >
+                  <span className="material-icons-outlined">delete</span>
+                </button>
+              </>
             )}
             <button
               onClick={onClose}

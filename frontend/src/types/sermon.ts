@@ -26,6 +26,17 @@ export interface SermonCreateRequest {
   thumbnail_url?: string
 }
 
+export interface SermonUpdateRequest {
+  title?: string
+  pastor?: string
+  bible_verse?: string
+  sermon_date?: string
+  content?: string
+  audio_url?: string
+  video_url?: string
+  thumbnail_url?: string
+}
+
 export interface AudioUploadResponse {
   audio_url: string
   message: string

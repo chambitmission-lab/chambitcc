@@ -9,6 +9,7 @@ import type { Sermon as SermonType } from '../../types/sermon'
 
 const Sermon = () => {
   const [showForm, setShowForm] = useState(false)
+  const [editingSermon, setEditingSermon] = useState<SermonType | null>(null)
   const [selectedSermon, setSelectedSermon] = useState<SermonType | null>(null)
   const { data: sermons, isLoading, error, refetch } = useSermons(0, 20)
   const adminUser = isAdmin()
@@ -19,6 +20,17 @@ const Sermon = () => {
 
   const handleFormSuccess = () => {
     refetch()
+  }
+
+  const handleEdit = (sermon: SermonType) => {
+    setEditingSermon(sermon)
+    setSelectedSermon(null)
+    setShowForm(true)
+  }
+
+  const handleCloseForm = () => {
+    setShowForm(false)
+    setEditingSermon(null)
   }
 
   // 로딩 상태
@@ -115,10 +127,11 @@ const Sermon = () => {
             )}
           </div>
 
-          {/* 설교 등록 폼 모달 */}
+          {/* 설교 등록/수정 폼 모달 */}
           {showForm && (
             <SermonForm
-              onClose={() => setShowForm(false)}
+              sermon={editingSermon || undefined}
+              onClose={handleCloseForm}
               onSuccess={handleFormSuccess}
             />
           )}
@@ -128,6 +141,7 @@ const Sermon = () => {
             <SermonDetail
               sermon={selectedSermon}
               onClose={() => setSelectedSermon(null)}
+              onEdit={() => handleEdit(selectedSermon)}
               onDelete={() => {
                 setSelectedSermon(null)
                 refetch()

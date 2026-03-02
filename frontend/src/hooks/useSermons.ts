@@ -1,6 +1,6 @@
 // 설교 데이터 관리 훅
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getSermons, createSermon, uploadAudio, deleteSermon, deleteAudioOnly } from '../api/sermon'
+import { getSermons, createSermon, updateSermon, uploadAudio, deleteSermon, deleteAudioOnly } from '../api/sermon'
 import type { SermonCreateRequest } from '../types/sermon'
 import { showToast } from '../utils/toast'
 
@@ -29,6 +29,21 @@ export const useCreateSermon = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sermons'] })
       showToast('설교가 성공적으로 등록되었습니다', 'success')
+    },
+    onError: (error: Error) => {
+      showToast(error.message, 'error')
+    },
+  })
+}
+
+export const useUpdateSermon = () => {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: SermonCreateRequest }) => updateSermon(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sermons'] })
+      showToast('설교가 성공적으로 수정되었습니다', 'success')
     },
     onError: (error: Error) => {
       showToast(error.message, 'error')

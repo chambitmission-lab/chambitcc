@@ -1,7 +1,8 @@
 // SermonForm 관련 타입 정의
-import type { SermonCreateRequest } from '../../../../types/sermon'
+import type { Sermon, SermonCreateRequest } from '../../../../types/sermon'
 
 export interface SermonFormProps {
+  sermon?: Sermon
   onClose: () => void
   onSuccess: () => void
 }

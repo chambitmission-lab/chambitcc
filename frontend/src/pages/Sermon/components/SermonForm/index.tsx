@@ -6,7 +6,7 @@ import { AudioUploadSection } from './AudioUploadSection'
 import AudioRecorder from '../AudioRecorder'
 import type { SermonFormProps } from './types'
 
-const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
+const SermonForm = ({ sermon, onClose, onSuccess }: SermonFormProps) => {
   const {
     formData,
     handleInputChange,
@@ -14,7 +14,8 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
     handleClose,
     audioUpload,
     isSubmitting,
-  } = useSermonForm(onSuccess, onClose)
+    isEditMode,
+  } = useSermonForm(onSuccess, onClose, sermon)
 
   const [showRecorder, setShowRecorder] = useState(false)
   const isOpeningRecorderRef = useRef(false)
@@ -57,7 +58,7 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
             {/* 헤더 - 고정 */}
             <div className="flex-shrink-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
               <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-                설교 등록
+                {isEditMode ? '설교 수정' : '설교 등록'}
               </h2>
               <button
                 type="button"
@@ -131,7 +132,7 @@ const SermonForm = ({ onClose, onSuccess }: SermonFormProps) => {
                   disabled={isSubmitting}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSubmitting ? '등록 중...' : '등록하기'}
+                  {isSubmitting ? (isEditMode ? '수정 중...' : '등록 중...') : (isEditMode ? '수정하기' : '등록하기')}
                 </button>
               </div>
             </div>
