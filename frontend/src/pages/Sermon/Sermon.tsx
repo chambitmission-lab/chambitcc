@@ -6,6 +6,7 @@ import SermonDetail from './components/SermonDetail'
 import SermonForm from './components/SermonForm'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import type { Sermon as SermonType } from '../../types/sermon'
+import './Sermon.css'
 
 const Sermon = () => {
   const [showForm, setShowForm] = useState(false)
@@ -81,8 +82,16 @@ const Sermon = () => {
       <div className="bg-gray-50 dark:bg-black min-h-screen">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
           {/* 헤더 */}
-          <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-4 z-10">
-            <div className="flex items-center justify-between">
+          <div className="sermon-page-header">
+            {/* 배경 효과 */}
+            <div className="sermon-header-bg-effects">
+              <div className="sermon-header-glow sermon-header-glow-1"></div>
+              <div className="sermon-header-glow sermon-header-glow-2"></div>
+              <div className="sermon-header-glow sermon-header-glow-3"></div>
+            </div>
+            
+            {/* 헤더 내용 */}
+            <div className="sermon-header-content">
               <div className="flex items-center gap-2">
                 <span className="text-3xl">📖</span>
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">설교 말씀</h1>
