@@ -1,5 +1,6 @@
-// 설교 카드 컴포넌트
+// 설교 카드 컴포넌트 - Instagram Feed 스타일
 import type { Sermon } from '../../../types/sermon'
+import './SermonCard.css'
 
 interface SermonCardProps {
   sermon: Sermon
@@ -9,6 +10,16 @@ interface SermonCardProps {
 const SermonCard = ({ sermon, onClick }: SermonCardProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 0) return '오늘'
+    if (diffDays === 1) return '어제'
+    if (diffDays < 7) return `${diffDays}일 전`
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)}주 전`
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)}개월 전`
+    
     return date.toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: 'long',
@@ -17,70 +28,62 @@ const SermonCard = ({ sermon, onClick }: SermonCardProps) => {
   }
 
   return (
-    <div
-      onClick={onClick}
-      className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer"
-    >
-      {/* 썸네일 */}
-      {sermon.thumbnail_url && (
-        <div className="mb-4 rounded-xl overflow-hidden">
-          <img
-            src={sermon.thumbnail_url}
-            alt={sermon.title}
-            className="w-full h-48 object-cover"
-          />
-        </div>
-      )}
-
-      {/* 제목 */}
-      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
-        {sermon.title}
-      </h3>
-
-      {/* 성경 구절 */}
-      <p className="text-sm text-purple-600 dark:text-purple-400 font-semibold mb-3">
-        {sermon.bible_verse}
-      </p>
-
-      {/* 목사님 & 날짜 */}
-      <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-3">
-        <span className="flex items-center gap-1">
-          <span className="material-icons-outlined text-base">person</span>
-          {sermon.pastor}
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="material-icons-outlined text-base">calendar_today</span>
-          {formatDate(sermon.sermon_date)}
-        </span>
-      </div>
-
-      {/* 내용 미리보기 */}
-      <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 mb-4">
-        {sermon.content}
-      </p>
-
-      {/* 하단 정보 */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-          <span className="flex items-center gap-1">
-            <span className="material-icons-outlined text-base">visibility</span>
-            {sermon.views}
-          </span>
-          {sermon.audio_url && (
-            <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
-              <span className="material-icons-outlined text-base">headphones</span>
-              음성
-            </span>
-          )}
-          {sermon.video_url && (
-            <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
-              <span className="material-icons-outlined text-base">play_circle</span>
-              영상
-            </span>
-          )}
+    <article className="sermon-card" onClick={onClick}>
+      {/* 헤더 - Instagram 포스트 헤더 */}
+      <div className="sermon-card-header">
+        <div className="sermon-header-left">
+          <div className="sermon-avatar">
+            <span className="sermon-avatar-emoji">📖</span>
+          </div>
+          <div className="sermon-header-info">
+            <div className="sermon-pastor-name">{sermon.pastor}</div>
+            <div className="sermon-date">{formatDate(sermon.sermon_date)}</div>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* 카드 본문 - Instagram 캡션 스타일 */}
+      <div className="sermon-card-body">
+        {/* 성경 구절 배지 */}
+        <div className="sermon-bible-badge">
+          <span>📖</span>
+          <span>{sermon.bible_verse}</span>
+        </div>
+
+        {/* 제목 */}
+        <div className="sermon-title">
+          <span className="sermon-title-author">{sermon.pastor}</span>
+          {sermon.title}
+        </div>
+
+        {/* 내용 미리보기 */}
+        <p className="sermon-preview">{sermon.content}</p>
+        <span className="sermon-preview-more">더 보기</span>
+
+        {/* 하단 정보 */}
+        <div className="sermon-footer">
+          {/* 조회수 & 미디어 배지 */}
+          <div className="sermon-stats">
+            <div className="sermon-stat">
+              <span className="material-icons-outlined sermon-stat-icon">visibility</span>
+              <span>{sermon.views.toLocaleString()}</span>
+            </div>
+            {sermon.audio_url && (
+              <div className="sermon-media-badge audio">
+                <span className="material-icons-outlined sermon-media-badge-icon">headphones</span>
+                <span>음성</span>
+              </div>
+            )}
+            {sermon.video_url && (
+              <div className="sermon-media-badge video">
+                <span className="material-icons-outlined sermon-media-badge-icon">play_circle</span>
+                <span>영상</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </article>
   )
 }
 
