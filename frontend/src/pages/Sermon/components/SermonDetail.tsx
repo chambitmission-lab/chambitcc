@@ -66,6 +66,28 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
     return `${API_URL}${sermon.audio_url}`
   }
 
+  // YouTube Video ID 추출
+  const extractYouTubeVideoId = (url: string): string | null => {
+    if (!url) return null
+    
+    // 다양한 YouTube URL 형식 지원
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /^([a-zA-Z0-9_-]{11})$/ // 직접 Video ID인 경우
+    ]
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern)
+      if (match && match[1]) {
+        return match[1]
+      }
+    }
+    
+    return null
+  }
+
+  const videoId = sermon.video_url ? extractYouTubeVideoId(sermon.video_url) : null
+
   return (
     <div className="sermon-detail-overlay">
       <div ref={modalRef} className="sermon-detail-modal">
@@ -163,6 +185,25 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
               >
                 Your browser does not support the audio element.
               </audio>
+            </div>
+          )}
+
+          {/* YouTube 비디오 플레이어 */}
+          {videoId && (
+            <div className="sermon-detail-video">
+              <div className="sermon-detail-video-header">
+                <span className="material-icons-outlined">play_circle</span>
+                <h3>설교 영상</h3>
+              </div>
+              <div className="sermon-detail-video-container">
+                <iframe
+                  src={`https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1`}
+                  title="설교 영상"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="sermon-detail-video-iframe"
+                />
+              </div>
             </div>
           )}
 
