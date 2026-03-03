@@ -190,20 +190,14 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
 
           {/* YouTube 비디오 플레이어 */}
           {videoId && (
-            <div className="sermon-detail-video">
-              <div className="sermon-detail-video-header">
-                <span className="material-icons-outlined">play_circle</span>
-                <h3>설교 영상</h3>
-              </div>
-              <div className="sermon-detail-video-container">
-                <iframe
-                  src={`https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1`}
-                  title="설교 영상"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="sermon-detail-video-iframe"
-                />
-              </div>
+            <div className="sermon-detail-video-container">
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1`}
+                title="설교 영상"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="sermon-detail-video-iframe"
+              />
             </div>
           )}
 
