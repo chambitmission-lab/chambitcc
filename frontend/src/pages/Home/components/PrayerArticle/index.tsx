@@ -6,6 +6,7 @@ import PrayerActions from './PrayerActions'
 import PrayerStats from './PrayerStats'
 import PrayerVersePreview from './PrayerVersePreview'
 import BibleVersesModal from '../BibleVersesModal'
+import { getGroupColorTheme, getGroupColorCSSVars } from '../../../../utils/groupColors'
 
 interface PrayerArticleProps {
   prayer: Prayer
@@ -17,6 +18,10 @@ interface PrayerArticleProps {
 const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: PrayerArticleProps) => {
   const [isPraying, setIsPraying] = useState(false)
   const [showVersesModal, setShowVersesModal] = useState(false)
+  
+  // 그룹 색상 테마 가져오기
+  const colorTheme = getGroupColorTheme(prayer.group?.name)
+  const cssVars = getGroupColorCSSVars(colorTheme)
 
   const handlePray = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -36,12 +41,15 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
 
   return (
     <article 
-      className="bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-4 mb-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors"
+      className="prayer-card bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-4 mb-3 cursor-pointer transition-all"
       onClick={onClick}
+      style={cssVars as React.CSSProperties}
     >
       <PrayerHeader
         displayName={prayer.display_name}
         timeAgo={prayer.time_ago}
+        groupName={prayer.group?.name}
+        colorTheme={colorTheme}
       />
 
       <PrayerContent
@@ -55,6 +63,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
         isPraying={isPraying}
         onPray={handlePray}
         prayerText={`${prayer.title}. ${prayer.content}`}
+        colorTheme={colorTheme}
       />
 
       <PrayerStats

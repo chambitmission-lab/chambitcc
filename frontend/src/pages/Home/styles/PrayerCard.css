@@ -1,20 +1,46 @@
-/* ===== PRAYER CARD - 개선된 디자인 ===== */
+/* ===== PRAYER CARD - 빛의 서사 디자인 (그룹 색상 지원) ===== */
 .prayer-card {
   background: var(--ig-primary-background);
   border: 1px solid var(--ig-border);
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
-  transition: all 0.2s ease;
-  margin-bottom: 20px; /* 카드 간격 증가 */
-}
-
-.prayer-card:hover {
-  border-color: var(--ig-secondary-text);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  margin-bottom: 0;
+  position: relative;
 }
 
 .prayer-card::before {
-  display: none;
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--group-gradient, linear-gradient(135deg, 
+    rgba(251, 191, 36, 0.04) 0%,
+    rgba(245, 158, 11, 0.03) 50%,
+    rgba(251, 146, 60, 0.04) 100%));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.prayer-card:hover {
+  background: linear-gradient(135deg, 
+    rgba(251, 191, 36, 0.02) 0%,
+    rgba(245, 158, 11, 0.01) 50%,
+    rgba(251, 146, 60, 0.02) 100%);
+  box-shadow: 0 2px 12px var(--group-glow, rgba(251, 191, 36, 0.15));
+}
+
+.prayer-card:hover::before {
+  opacity: 1;
+}
+
+.prayer-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* 카드 헤더 */
@@ -26,19 +52,30 @@
   border-bottom: none;
 }
 
-/* 프로필 아바타 */
+/* 프로필 아바타 - 골드 빛 */
 .card-avatar {
-  width: 40px; /* 크기 증가 */
+  width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #FFD700 0%, #FFC107 50%, #FF9800 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: #5D4E37;
   font-weight: 600;
   font-size: 0.875rem;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  animation: gentle-glow 3s ease-in-out infinite;
+}
+
+@keyframes gentle-glow {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+  }
+  50% {
+    box-shadow: 0 2px 12px rgba(255, 193, 7, 0.5), 0 0 20px rgba(255, 215, 0, 0.2);
+  }
 }
 
 .card-avatar::before {
@@ -48,6 +85,7 @@
 .card-avatar::after {
   content: '🙏';
   font-size: 1.125rem;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .card-meta {
@@ -163,7 +201,7 @@
   background: var(--ig-hover);
 }
 
-/* Prayer Button - 퍼플 액션 */
+/* Prayer Button - 골드 빛의 액션 */
 .prayer-button {
   display: flex;
   align-items: center;
@@ -175,33 +213,97 @@
   font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.prayer-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  pointer-events: none;
 }
 
 .prayer-button:hover {
-  background: rgba(102, 126, 234, 0.1);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 193, 7, 0.1) 100%);
 }
 
 .prayer-button:active {
   transform: scale(0.95);
 }
 
-/* 기도중 상태 - 퍼플 */
+/* 기도중 상태 - 골드 발광 */
 .prayer-card .card-footer .prayer-button.prayed,
 .prayer-button.prayed {
-  color: #667eea !important;
-  background: rgba(102, 126, 234, 0.1);
+  color: #F57C00 !important;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 193, 7, 0.15) 100%);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), 
+              0 0 40px rgba(255, 193, 7, 0.15);
+  animation: holy-glow 2s ease-in-out infinite;
+}
+
+.prayer-card .card-footer .prayer-button.prayed::before,
+.prayer-button.prayed::before {
+  width: 200px;
+  height: 200px;
+  animation: ripple-glow 1.5s ease-out;
 }
 
 .prayer-card .card-footer .prayer-button.prayed .prayer-icon,
 .prayer-button.prayed .prayer-icon {
-  animation: likeAnimation 0.4s ease;
+  animation: prayer-pulse 0.6s ease-out;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
 }
 
 .prayer-card .card-footer .prayer-button.prayed .prayer-count,
 .prayer-button.prayed .prayer-count {
-  color: #667eea !important;
+  color: #F57C00 !important;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes holy-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), 
+                0 0 40px rgba(255, 193, 7, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5), 
+                0 0 60px rgba(255, 193, 7, 0.25);
+  }
+}
+
+@keyframes ripple-glow {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+  }
+}
+
+@keyframes prayer-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3) rotate(10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
 }
 
 @keyframes likeAnimation {
