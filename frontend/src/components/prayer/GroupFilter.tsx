@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useMyGroups } from '../../hooks/useGroups'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../hooks/useAuth'
+import { getGroupColorTheme } from '../../utils/groupColors'
 import type { PrayerFilterType } from '../../types/prayer'
 
 interface GroupFilterProps {
@@ -50,7 +51,7 @@ const GroupFilter = ({
   
   return (
     <div className="relative">
-      {/* Backdrop - 드롭다운 열릴 때 배경 흐리게 */}
+      {/* Backdrop */}
       {isExpanded && (
         <div 
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
@@ -160,88 +161,122 @@ const GroupFilter = ({
       {isExpanded && (
         <div 
           style={dropdownStyle}
-          className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto"
+          className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
         >
           {isLoading ? (
             <div className="p-6 text-center text-gray-500">로딩 중...</div>
           ) : groups.length === 0 ? (
-            <div className="p-6 text-center">
-              <p className="text-gray-500 mb-4">아직 가입한 그룹이 없습니다</p>
+            <div className="p-4 text-center">
+              <div className="text-4xl mb-2">🙏</div>
+              <p className="text-gray-600 dark:text-gray-400 text-xs mb-3">아직 가입한 그룹이 없습니다</p>
               <div className="flex gap-2">
                 <button 
                   onClick={() => requireAuth(onCreateGroup)}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all"
+                  className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-xs rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
                 >
-                  그룹 만들기
+                  + 만들기
                 </button>
                 <button 
                   onClick={() => requireAuth(onJoinGroup)}
-                  className="flex-1 px-4 py-2 bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 font-bold text-sm rounded-full border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
                 >
-                  그룹 가입
+                  가입하기
                 </button>
               </div>
             </div>
           ) : (
             <>
-              <div className="p-2 grid grid-cols-2 gap-1.5">
-                {groups.map(group => (
-                  <button
-                    key={group.id}
-                    className={`
-                      flex items-center gap-2 px-2.5 py-2 rounded-lg text-left relative
-                      transition-all
-                      ${selectedGroupId === group.id
-                        ? 'bg-purple-500/10 dark:bg-purple-500/20 ring-1 ring-purple-500'
-                        : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }
-                    `}
-                    onClick={() => {
-                      onGroupChange(group.id)
-                      onFilterChange('all')
-                      setIsExpanded(false)
-                    }}
-                  >
-                    {/* 그룹 아이콘 */}
-                    <div className="text-xl flex-shrink-0">
-                      {group.icon || '👥'}
-                    </div>
+              <div className="p-3">
+                {/* 그룹 칩 리스트 - 컴팩트 */}
+                <div className="flex flex-wrap gap-2">
+                  {groups.map(group => {
+                    const colorTheme = getGroupColorTheme(group.name)
+                    const isSelected = selectedGroupId === group.id
                     
-                    {/* 그룹 정보 */}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-xs text-gray-900 dark:text-white truncate">
-                        {group.name}
-                      </div>
-                      <div className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
-                        <span>👤{group.member_count}</span>
-                        <span>🙏{group.prayer_count}</span>
-                      </div>
-                    </div>
-                    
-                    {/* 선택 표시 */}
-                    {selectedGroupId === group.id && (
-                      <div className="absolute top-1 right-1 text-purple-500">
-                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    )}
-                  </button>
-                ))}
+                    return (
+                      <button
+                        key={group.id}
+                        className="group relative flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all duration-200 hover:scale-105 text-gray-700 dark:text-gray-200"
+                        style={{
+                          background: isSelected 
+                            ? colorTheme.gradient
+                            : 'rgba(0,0,0,0.03)',
+                          border: isSelected 
+                            ? `1.5px solid ${colorTheme.primary}`
+                            : '1.5px solid transparent',
+                          boxShadow: isSelected 
+                            ? `0 2px 12px ${colorTheme.glow}`
+                            : 'none'
+                        }}
+                        onClick={() => {
+                          onGroupChange(group.id)
+                          onFilterChange('all')
+                          setIsExpanded(false)
+                        }}
+                      >
+                        {/* 아이콘 */}
+                        <span className="text-base leading-none">{group.icon || '👥'}</span>
+                        
+                        {/* 그룹명 - 다크모드 대응 */}
+                        <span 
+                          className="text-xs font-bold"
+                          style={{
+                            color: isSelected 
+                              ? '#3D2817' 
+                              : undefined,
+                            textShadow: isSelected ? '0 1px 2px rgba(255,255,255,0.5)' : 'none'
+                          }}
+                        >
+                          {group.name}
+                        </span>
+                        
+                        {/* 통계 - 다크모드 대응 */}
+                        <div 
+                          className="flex items-center gap-1 text-[10px] font-semibold"
+                          style={{
+                            color: isSelected 
+                              ? '#3D2817' 
+                              : 'rgba(156, 163, 175, 1)', // gray-400
+                            textShadow: isSelected ? '0 1px 2px rgba(255,255,255,0.5)' : 'none'
+                          }}
+                        >
+                          <span>{group.member_count}</span>
+                          <span>·</span>
+                          <span>{group.prayer_count}</span>
+                        </div>
+                        
+                        {/* 선택 표시 */}
+                        {isSelected && (
+                          <div 
+                            className="w-3 h-3 rounded-full flex items-center justify-center ml-0.5"
+                            style={{
+                              background: 'rgba(255,255,255,0.95)',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                            }}
+                          >
+                            <svg className="w-2 h-2" fill={colorTheme.accent} viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
               
-              <div className="p-3 border-t border-border-light dark:border-border-dark flex gap-2">
+              <div className="px-3 pb-3 pt-2 border-t border-gray-200/50 dark:border-gray-700/50 flex gap-2">
                 <button 
                   onClick={() => requireAuth(onCreateGroup)}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all"
+                  className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-xs rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
                 >
-                  + 그룹 만들기
+                  + 만들기
                 </button>
                 <button 
                   onClick={() => requireAuth(onJoinGroup)}
-                  className="flex-1 px-4 py-2 bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 font-bold text-sm rounded-full border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
                 >
-                  그룹 가입
+                  가입하기
                 </button>
               </div>
             </>
