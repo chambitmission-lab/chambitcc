@@ -111,23 +111,25 @@ export const useSpeechRecognition = ({
       
       const isFinalResult = !!currentFinal
       
-      // 중복 체크 - 단, final 결과는 항상 전송
-      if (!isFinalResult && fullText === lastSentTextRef.current) {
+      // 빈 결과 무시
+      if (!fullText) {
+        return
+      }
+      
+      // 중복 체크 개선 - final 결과도 이전과 같으면 무시
+      if (fullText === lastSentTextRef.current) {
+        console.log('Ignoring duplicate result:', fullText)
         return
       }
       
       // interim이 이전과 같으면 무시 (모바일에서 같은 interim이 반복됨)
       if (!isFinalResult && currentInterim === lastInterimRef.current) {
+        console.log('Ignoring duplicate interim:', currentInterim)
         return
       }
       
       if (!isFinalResult) {
         lastInterimRef.current = currentInterim
-      }
-      
-      // 빈 결과 무시
-      if (!fullText || fullText === initialTextRef.current) {
-        return
       }
       
       lastSentTextRef.current = fullText
