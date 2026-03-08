@@ -187,14 +187,8 @@ export const useSpeechRecognition = ({
         setTimeout(() => {
           if (isListeningRef.current) {
             try {
-              console.log('Restarting speech recognition...')
-              // 기존 인스턴스 정리
-              if (recognitionRef.current) {
-                recognitionRef.current = null
-              }
-              
-              // 새 인스턴스 생성 및 시작
-              recognitionRef.current = createRecognition()
+              console.log('Restarting speech recognition with accumulated text:', accumulatedTextRef.current)
+              // 기존 인스턴스는 그대로 재시작 (ref는 유지됨)
               if (recognitionRef.current) {
                 recognitionRef.current.start()
                 console.log('Speech recognition restarted successfully')
