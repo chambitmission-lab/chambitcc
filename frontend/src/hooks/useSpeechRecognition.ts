@@ -77,6 +77,15 @@ export const useSpeechRecognition = ({
         }
       }
       
+      console.log('Speech recognition result:', {
+        currentFinal,
+        currentInterim,
+        initialText: initialTextRef.current,
+        accumulatedText: accumulatedTextRef.current,
+        resultIndex: event.resultIndex,
+        resultsLength: event.results.length
+      })
+      
       // 최종 텍스트 조합
       // fullText = initialText + accumulatedText + currentText
       let fullText = ''
@@ -100,13 +109,17 @@ export const useSpeechRecognition = ({
       
       fullText = fullText.trim()
       
+      console.log('Composed fullText:', fullText)
+      
       // 중복 체크
       if (fullText === lastSentTextRef.current) {
+        console.log('Ignoring duplicate text:', fullText)
         return
       }
       
       // interim이 이전과 같으면 무시 (모바일에서 같은 interim이 반복됨)
       if (!currentFinal && currentInterim === lastInterimRef.current) {
+        console.log('Ignoring duplicate interim:', currentInterim)
         return
       }
       
@@ -116,11 +129,13 @@ export const useSpeechRecognition = ({
       
       // 빈 결과 무시
       if (!fullText || fullText === initialTextRef.current) {
+        console.log('Ignoring empty or initial-only text:', fullText)
         return
       }
       
       const isFinalResult = !!currentFinal
       
+      console.log('Sending result to callback:', { fullText, isFinalResult })
       lastSentTextRef.current = fullText
       onResult(fullText, isFinalResult)
       
@@ -131,6 +146,7 @@ export const useSpeechRecognition = ({
           ? `${accumulatedTextRef.current} ${currentFinal}`.trim()
           : currentFinal
         
+        console.log('Updated accumulatedText:', accumulatedTextRef.current)
         lastInterimRef.current = ''
       }
     }
@@ -164,12 +180,25 @@ export const useSpeechRecognition = ({
 
     // 종료 처리
     recognition.onend = () => {
+      console.log('Speech recognition ended. shouldRestart:', shouldRestartRef.current, 'isListening:', isListeningRef.current)
+      
       // 모바일에서는 자동으로 재시작 (continuous false이므로)
       if (shouldRestartRef.current && isListeningRef.current) {
         setTimeout(() => {
-          if (isListeningRef.current && recognitionRef.current) {
+          if (isListeningRef.current) {
             try {
-              recognitionRef.current.start()
+              console.log('Restarting speech recognition...')
+              // 기존 인스턴스 정리
+              if (recognitionRef.current) {
+                recognitionRef.current = null
+              }
+              
+              // 새 인스턴스 생성 및 시작
+              recognitionRef.current = createRecognition()
+              if (recognitionRef.current) {
+                recognitionRef.current.start()
+                console.log('Speech recognition restarted successfully')
+              }
             } catch (err: any) {
               if (!err.message?.includes('already started')) {
                 console.error('Failed to restart recognition:', err)

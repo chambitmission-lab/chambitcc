@@ -18,21 +18,15 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
 
   // 안정적인 콜백 (메모이제이션)
   const handleTitleResult = useCallback((transcript: string, _isFinal: boolean) => {
-    // 중복 방지: 이전과 동일한 텍스트면 무시
-    if (transcript === lastTitleRef.current) {
-      console.log('ContentCard: Ignoring duplicate title:', transcript)
-      return
-    }
+    // useSpeechRecognition 훅에서 이미 중복 체크를 하므로 여기서는 바로 업데이트
+    console.log('ContentCard: Title result:', transcript)
     lastTitleRef.current = transcript
     onTitleChange(transcript)
   }, [onTitleChange])
 
   const handleContentResult = useCallback((transcript: string, _isFinal: boolean) => {
-    // 중복 방지: 이전과 동일한 텍스트면 무시
-    if (transcript === lastContentRef.current) {
-      console.log('ContentCard: Ignoring duplicate content:', transcript)
-      return
-    }
+    // useSpeechRecognition 훅에서 이미 중복 체크를 하므로 여기서는 바로 업데이트
+    console.log('ContentCard: Content result:', transcript)
     lastContentRef.current = transcript
     onContentChange(transcript)
   }, [onContentChange])
