@@ -17,7 +17,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   const isVoiceInputActiveRef = useRef<boolean>(false)  // 음성 입력 활성 상태
 
   // 안정적인 콜백 (메모이제이션)
-  const handleTitleResult = useCallback((transcript: string) => {
+  const handleTitleResult = useCallback((transcript: string, _isFinal: boolean) => {
     // 중복 방지: 이전과 동일한 텍스트면 무시
     if (transcript === lastTitleRef.current) {
       console.log('ContentCard: Ignoring duplicate title:', transcript)
@@ -27,7 +27,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
     onTitleChange(transcript)
   }, [onTitleChange])
 
-  const handleContentResult = useCallback((transcript: string) => {
+  const handleContentResult = useCallback((transcript: string, _isFinal: boolean) => {
     // 중복 방지: 이전과 동일한 텍스트면 무시
     if (transcript === lastContentRef.current) {
       console.log('ContentCard: Ignoring duplicate content:', transcript)
@@ -63,8 +63,8 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       isVoiceInputActiveRef.current = false
     }
     
-    // ref 초기화
-    lastTitleRef.current = title
+    // ref를 현재 값으로 설정 (중복 체크 초기화)
+    lastTitleRef.current = ''
     isVoiceInputActiveRef.current = true
     
     // 제목 음성 인식 시작 - 현재 제목 텍스트를 전달
@@ -84,8 +84,8 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       isVoiceInputActiveRef.current = false
     }
     
-    // ref 초기화
-    lastContentRef.current = content
+    // ref를 빈 문자열로 초기화 (중복 체크 방지)
+    lastContentRef.current = ''
     isVoiceInputActiveRef.current = true
     
     // 내용 음성 인식 시작 - 현재 내용 텍스트를 전달
