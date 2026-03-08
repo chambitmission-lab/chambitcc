@@ -102,8 +102,7 @@ export const useVerseReading = ({
     onResult: handleResult,
     onError: handleError,
     continuous: true, // 계속 듣기 모드 (천천히 읽어도 OK)
-    language: 'ko-KR',
-    autoStopTimeout: 3000 // 3초간 음성 없으면 자동 종료
+    language: 'ko-KR'
   })
 
   const startReading = useCallback(() => {

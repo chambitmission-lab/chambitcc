@@ -17,7 +17,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
   const isVoiceInputActiveRef = useRef<boolean>(false)  // 음성 입력 활성 상태
 
   // 안정적인 콜백 (메모이제이션)
-  const handleTitleResult = useCallback((transcript: string, _isFinal: boolean) => {
+  const handleTitleResult = useCallback((transcript: string) => {
     // 중복 방지: 이전과 동일한 텍스트면 무시
     if (transcript === lastTitleRef.current) {
       console.log('ContentCard: Ignoring duplicate title:', transcript)
@@ -27,7 +27,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
     onTitleChange(transcript)
   }, [onTitleChange])
 
-  const handleContentResult = useCallback((transcript: string, _isFinal: boolean) => {
+  const handleContentResult = useCallback((transcript: string) => {
     // 중복 방지: 이전과 동일한 텍스트면 무시
     if (transcript === lastContentRef.current) {
       console.log('ContentCard: Ignoring duplicate content:', transcript)
@@ -63,7 +63,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       isVoiceInputActiveRef.current = false
     }
     
-    // ref를 현재 title로 초기화 (중복 방지용)
+    // ref 초기화
     lastTitleRef.current = title
     isVoiceInputActiveRef.current = true
     
@@ -73,6 +73,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
 
   const handleTitleStop = () => {
     titleVoice.stopListening()
+    lastTitleRef.current = ''
     isVoiceInputActiveRef.current = false
   }
 
@@ -83,7 +84,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
       isVoiceInputActiveRef.current = false
     }
     
-    // ref를 현재 content로 초기화 (중복 방지용)
+    // ref 초기화
     lastContentRef.current = content
     isVoiceInputActiveRef.current = true
     
@@ -93,6 +94,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
 
   const handleContentStop = () => {
     contentVoice.stopListening()
+    lastContentRef.current = ''
     isVoiceInputActiveRef.current = false
   }
 
