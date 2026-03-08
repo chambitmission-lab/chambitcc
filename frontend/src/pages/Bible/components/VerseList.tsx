@@ -32,6 +32,7 @@ const VerseList = ({
   const { language } = useLanguage()
   const [readingMode, setReadingMode] = useState(false)
   
+  // 모든 훅은 조건문 이전에 호출되어야 함
   // 백엔드에서 읽음 상태 조회
   const { 
     data: readStatusData, 
@@ -77,6 +78,30 @@ const VerseList = ({
   
   const t = texts[language]
   
+  // 읽음 처리 핸들러 - 훅 호출 이후에 정의
+  const handleReadSuccess = async (verseId: number, similarity: number) => {
+    try {
+      // 백엔드 API 호출
+      await markAsReadMutation.mutateAsync({ verseId, similarity })
+      
+      // 명시적으로 읽음 상태 다시 조회
+      await refetchReadStatus()
+    } catch (error: any) {
+      // 이미 읽음 처리된 경우는 에러로 처리하지 않음
+      if (error?.message === 'ALREADY_READ') {
+        console.log('Verse already marked as read, refreshing status...')
+        await refetchReadStatus()
+      } else {
+        console.error('Failed to save reading record:', error)
+      }
+    }
+  }
+  
+  // 전체 구절 수 계산
+  const totalVerses = chapterData?.pages.reduce((sum, page) => sum + page.verses.length, 0) || 0
+  const readCount = readStatusData?.read_verses || 0
+  const progress = readStatusData?.progress || 0
+  
   // 무한 스크롤 Intersection Observer 설정
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -114,38 +139,6 @@ const VerseList = ({
     }
   }, [chapterData])
   
-  if (isLoading) {
-    return (
-      <div className="loading-spinner">
-        <span className="material-icons-round spinning">refresh</span>
-      </div>
-    )
-  }
-  
-  // 읽음 처리 핸들러
-  const handleReadSuccess = async (verseId: number, similarity: number) => {
-    try {
-      // 백엔드 API 호출
-      await markAsReadMutation.mutateAsync({ verseId, similarity })
-      
-      // 명시적으로 읽음 상태 다시 조회
-      await refetchReadStatus()
-    } catch (error: any) {
-      // 이미 읽음 처리된 경우는 에러로 처리하지 않음
-      if (error?.message === 'ALREADY_READ') {
-        console.log('Verse already marked as read, refreshing status...')
-        await refetchReadStatus()
-      } else {
-        console.error('Failed to save reading record:', error)
-      }
-    }
-  }
-  
-  // 전체 구절 수 계산
-  const totalVerses = chapterData?.pages.reduce((sum, page) => sum + page.verses.length, 0) || 0
-  const readCount = readStatusData?.read_verses || 0
-  const progress = readStatusData?.progress || 0
-  
   // 디버깅: 진행률 확인
   useEffect(() => {
     if (readingMode && readStatusData) {
@@ -157,6 +150,15 @@ const VerseList = ({
       })
     }
   }, [readingMode, progress, readCount, totalVerses, readStatusData])
+  
+  // 로딩 상태는 모든 훅 호출 이후에 체크
+  if (isLoading) {
+    return (
+      <div className="loading-spinner">
+        <span className="material-icons-round spinning">refresh</span>
+      </div>
+    )
+  }
   
   if (!chapterData) {
     return null
