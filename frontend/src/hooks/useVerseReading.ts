@@ -31,10 +31,7 @@ export const useVerseReading = ({
       return
     }
 
-    console.log('🔍 Manual verification triggered')
     const result = verifyVerseReading(verseText, spokenText, threshold)
-    
-    console.log('🔍 Verification result:', result)
     
     if (result.isValid) {
       setFeedback({
@@ -58,15 +55,11 @@ export const useVerseReading = ({
   }, [spokenText, verseText, threshold, onSuccess])
 
   const handleResult = useCallback((transcript: string, isFinal: boolean) => {
-    console.log('📝 Verse Reading Result:', { transcript, isFinal, verseText })
     setSpokenText(transcript)
 
     // 최종 결과일 때만 검증
     if (isFinal) {
-      console.log('✅ Final result - verifying...')
       const result = verifyVerseReading(verseText, transcript, threshold)
-      
-      console.log('🔍 Verification result:', result)
       
       if (result.isValid) {
         setFeedback({
@@ -89,8 +82,6 @@ export const useVerseReading = ({
           setFeedback(null)
         }, 3000)
       }
-    } else {
-      console.log('⏳ Interim result - waiting for final...')
     }
   }, [verseText, threshold, onSuccess])
 

@@ -33,7 +33,11 @@ const VerseList = ({
   const [readingMode, setReadingMode] = useState(false)
   
   // 백엔드에서 읽음 상태 조회
-  const { data: readStatusData, isLoading: isLoadingReadStatus } = useChapterReadStatus(
+  const { 
+    data: readStatusData, 
+    isLoading: isLoadingReadStatus,
+    refetch: refetchReadStatus 
+  } = useChapterReadStatus(
     bookNumber,
     selectedChapter,
     readingMode // 읽기 모드일 때만 조회
@@ -104,15 +108,9 @@ const VerseList = ({
   // 디버깅: 챕터 데이터 확인
   useEffect(() => {
     if (import.meta.env.DEV && chapterData) {
-      console.log('📖 Chapter Data:', {
-        totalPages: chapterData.pages.length,
-        pages: chapterData.pages.map(page => ({
-          page: page.current_page,
-          verseCount: page.verses.length,
-          verseNumbers: page.verses.map(v => v.verse),
-          hasMore: page.has_more
-        }))
-      })
+      const totalPages = chapterData.pages.length
+      const totalVerses = chapterData.pages.reduce((sum, page) => sum + page.verses.length, 0)
+      console.log('Chapter loaded:', { totalPages, totalVerses })
     }
   }, [chapterData])
   
@@ -126,15 +124,14 @@ const VerseList = ({
   
   // 읽음 처리 핸들러
   const handleReadSuccess = async (verseId: number, similarity: number) => {
-    console.log(`✅ Verse ${verseId} read successfully! Similarity: ${similarity}`)
-    
     try {
       // 백엔드 API 호출
       await markAsReadMutation.mutateAsync({ verseId, similarity })
-      console.log('✅ Successfully saved to backend')
+      
+      // 명시적으로 읽음 상태 다시 조회
+      await refetchReadStatus()
     } catch (error) {
-      console.error('❌ Failed to save to backend:', error)
-      // 에러 처리 (사용자에게 알림 등)
+      console.error('Failed to save reading record:', error)
     }
   }
   
