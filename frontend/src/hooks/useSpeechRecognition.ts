@@ -111,22 +111,6 @@ export const useSpeechRecognition = ({
       
       console.log('Composed fullText:', fullText)
       
-      // 중복 체크
-      if (fullText === lastSentTextRef.current) {
-        console.log('Ignoring duplicate text:', fullText)
-        return
-      }
-      
-      // interim이 이전과 같으면 무시 (모바일에서 같은 interim이 반복됨)
-      if (!currentFinal && currentInterim === lastInterimRef.current) {
-        console.log('Ignoring duplicate interim:', currentInterim)
-        return
-      }
-      
-      if (!currentFinal) {
-        lastInterimRef.current = currentInterim
-      }
-      
       // 빈 결과 무시
       if (!fullText || fullText === initialTextRef.current) {
         console.log('Ignoring empty or initial-only text:', fullText)
@@ -134,6 +118,22 @@ export const useSpeechRecognition = ({
       }
       
       const isFinalResult = !!currentFinal
+      
+      // 중복 체크 (interim 결과만 체크, final은 항상 처리)
+      if (!isFinalResult && fullText === lastSentTextRef.current) {
+        console.log('Ignoring duplicate interim text:', fullText)
+        return
+      }
+      
+      // interim이 이전과 같으면 무시 (모바일에서 같은 interim이 반복됨)
+      if (!isFinalResult && currentInterim === lastInterimRef.current) {
+        console.log('Ignoring duplicate interim:', currentInterim)
+        return
+      }
+      
+      if (!isFinalResult) {
+        lastInterimRef.current = currentInterim
+      }
       
       console.log('Sending result to callback:', { fullText, isFinalResult })
       lastSentTextRef.current = fullText
