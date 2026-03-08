@@ -17,4 +17,13 @@ export const bible = {
   searchPlaceholder: 'Enter search keyword...',
   searchResults: 'Search Results: {{count}}',
   noResults: 'No results found',
+  // Voice Reading
+  readingMode: 'Voice Reading Mode',
+  normalMode: 'Normal Mode',
+  readVerse: 'Read Verse',
+  progress: 'Progress',
+  readAloud: 'Read Aloud',
+  reading: 'Reading...',
+  readComplete: 'Read Complete',
+  readAgain: 'Read Again',
 } as const

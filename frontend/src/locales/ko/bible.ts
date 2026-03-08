@@ -17,4 +17,13 @@ export const bible = {
   searchPlaceholder: '검색어를 입력하세요...',
   searchResults: '검색 결과: {{count}}개',
   noResults: '검색 결과가 없습니다',
+  // 음성 읽기
+  readingMode: '음성 읽기 모드',
+  normalMode: '일반 모드',
+  readVerse: '구절 읽기',
+  progress: '진행률',
+  readAloud: '음성으로 읽기',
+  reading: '읽는 중...',
+  readComplete: '읽음 완료',
+  readAgain: '다시 읽기',
 } as const

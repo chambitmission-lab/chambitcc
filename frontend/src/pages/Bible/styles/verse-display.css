@@ -39,6 +39,34 @@
   position: relative;
 }
 
+/* 읽음 완료 상태 */
+.bible-verse-item.verse-read {
+  opacity: 0.6;
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.bible-verse-item.verse-read .bible-verse-text {
+  text-decoration: line-through;
+  text-decoration-color: rgba(34, 197, 94, 0.3);
+}
+
+/* 읽는 중 상태 */
+.bible-verse-item.verse-reading {
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid #3b82f6;
+  padding-left: calc(1rem - 3px);
+  animation: pulseReading 2s ease-in-out infinite;
+}
+
+@keyframes pulseReading {
+  0%, 100% {
+    background: rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    background: rgba(59, 130, 246, 0.15);
+  }
+}
+
 .bible-verse-item:last-child {
   border-bottom: none;
 }

@@ -93,6 +93,7 @@ const BibleStudy = () => {
                 selectedChapter={selectedChapter}
                 totalChapters={selectedBookData.chapter_count}
                 onChapterChange={handleChapterChange}
+                bookNumber={selectedBookData.book_number}
               />
             </div>
           )}
