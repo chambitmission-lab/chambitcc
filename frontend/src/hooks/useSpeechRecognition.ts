@@ -115,21 +115,23 @@ export const useSpeechRecognition = ({
       console.log('Composed fullText:', fullText)
       console.log('lastSent:', lastSentTextRef.current)
       
-      // 중복 체크
-      if (fullText === lastSentTextRef.current) {
-        console.log('DUPLICATE - Ignoring')
+      const isFinalResult = !!currentFinal
+      
+      // 중복 체크 - 단, final 결과는 항상 전송
+      if (!isFinalResult && fullText === lastSentTextRef.current) {
+        console.log('DUPLICATE INTERIM - Ignoring')
         console.log('=== onresult END ===\n')
         return
       }
       
       // interim이 이전과 같으면 무시 (모바일에서 같은 interim이 반복됨)
-      if (!currentFinal && currentInterim === lastInterimRef.current) {
+      if (!isFinalResult && currentInterim === lastInterimRef.current) {
         console.log('SAME INTERIM - Ignoring')
         console.log('=== onresult END ===\n')
         return
       }
       
-      if (!currentFinal) {
+      if (!isFinalResult) {
         lastInterimRef.current = currentInterim
       }
       
@@ -139,8 +141,6 @@ export const useSpeechRecognition = ({
         console.log('=== onresult END ===\n')
         return
       }
-      
-      const isFinalResult = !!currentFinal
       
       console.log('✅ SENDING to onResult:', fullText, 'isFinal:', isFinalResult)
       
@@ -191,13 +191,15 @@ export const useSpeechRecognition = ({
     // 종료 처리
     recognition.onend = () => {
       console.log('========== Recognition ENDED ==========')
+      console.log('continuous:', continuous)
       console.log('shouldRestart:', shouldRestartRef.current)
       console.log('isListening:', isListeningRef.current)
       console.log('accumulatedText before restart:', accumulatedTextRef.current)
       
-      // 모바일에서는 자동으로 재시작 (continuous false이므로)
-      if (shouldRestartRef.current && isListeningRef.current) {
-        console.log('🔄 Auto-restarting recognition...')
+      // continuous가 true이고, shouldRestart가 true일 때만 재시작
+      // continuous가 false면 한 번만 인식하고 끝
+      if (continuous && shouldRestartRef.current && isListeningRef.current) {
+        console.log('🔄 Auto-restarting recognition (continuous mode)...')
         console.log('Keeping accumulatedText:', accumulatedTextRef.current)
         
         setTimeout(() => {
@@ -216,6 +218,7 @@ export const useSpeechRecognition = ({
         }, 100)
       } else {
         console.log('🛑 Not restarting - cleaning up')
+        console.log('Reason:', !continuous ? 'continuous=false' : !shouldRestartRef.current ? 'shouldRestart=false' : 'isListening=false')
         setIsListening(false)
         isListeningRef.current = false
       }

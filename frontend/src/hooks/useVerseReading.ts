@@ -21,12 +21,52 @@ export const useVerseReading = ({
     type: 'success' | 'error' | 'info'
   } | null>(null)
 
+  // 수동 검증 함수
+  const manualVerify = useCallback(() => {
+    if (!spokenText) {
+      setFeedback({
+        message: '읽은 내용이 없습니다',
+        type: 'error'
+      })
+      return
+    }
+
+    console.log('🔍 Manual verification triggered')
+    const result = verifyVerseReading(verseText, spokenText, threshold)
+    
+    console.log('🔍 Verification result:', result)
+    
+    if (result.isValid) {
+      setFeedback({
+        message: result.message,
+        type: 'success'
+      })
+      onSuccess(result.similarity)
+      setTimeout(() => {
+        stopReading()
+      }, 1000)
+    } else {
+      setFeedback({
+        message: result.message,
+        type: 'error'
+      })
+      setTimeout(() => {
+        setSpokenText('')
+        setFeedback(null)
+      }, 3000)
+    }
+  }, [spokenText, verseText, threshold, onSuccess])
+
   const handleResult = useCallback((transcript: string, isFinal: boolean) => {
+    console.log('📝 Verse Reading Result:', { transcript, isFinal, verseText })
     setSpokenText(transcript)
 
     // 최종 결과일 때만 검증
     if (isFinal) {
+      console.log('✅ Final result - verifying...')
       const result = verifyVerseReading(verseText, transcript, threshold)
+      
+      console.log('🔍 Verification result:', result)
       
       if (result.isValid) {
         setFeedback({
@@ -47,8 +87,10 @@ export const useVerseReading = ({
         setTimeout(() => {
           setSpokenText('')
           setFeedback(null)
-        }, 2000)
+        }, 3000)
       }
+    } else {
+      console.log('⏳ Interim result - waiting for final...')
     }
   }, [verseText, threshold, onSuccess])
 
@@ -75,7 +117,7 @@ export const useVerseReading = ({
   const startReading = useCallback(() => {
     setSpokenText('')
     setFeedback(null)
-    startListening()
+    startListening('')
   }, [startListening])
 
   const stopReading = useCallback(() => {
@@ -90,6 +132,7 @@ export const useVerseReading = ({
     spokenText,
     feedback,
     startReading,
-    stopReading
+    stopReading,
+    manualVerify
   }
 }

@@ -32,7 +32,8 @@
 /* Bible Study Verse Item - BEM naming */
 .bible-verse-item {
   display: flex;
-  gap: 1.25rem;
+  flex-direction: column;
+  gap: 0;
   padding: 1.125rem 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   transition: all 0.2s;
@@ -52,18 +53,20 @@
 
 /* 읽는 중 상태 */
 .bible-verse-item.verse-reading {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.05);
   border-left: 3px solid #3b82f6;
   padding-left: calc(1rem - 3px);
-  animation: pulseReading 2s ease-in-out infinite;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-right: 1rem;
 }
 
 @keyframes pulseReading {
   0%, 100% {
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(59, 130, 246, 0.05);
   }
   50% {
-    background: rgba(59, 130, 246, 0.15);
+    background: rgba(59, 130, 246, 0.1);
   }
 }
 
@@ -79,6 +82,13 @@
   border-bottom: 1px solid transparent;
   position: relative;
   overflow: visible;
+}
+
+/* 읽는 중일 때는 hover 효과 제거 */
+.bible-verse-item.verse-reading:hover {
+  margin: 0 -1rem;
+  padding-left: calc(1rem - 3px);
+  padding-right: 1rem;
 }
 
 /* 독서등 효과 - 위에서 아래로 비추는 따뜻한 빛 (바 없이 빛만) */
