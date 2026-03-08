@@ -146,6 +146,18 @@ const VerseList = ({
   const readCount = readStatusData?.read_verses || 0
   const progress = readStatusData?.progress || 0
   
+  // 디버깅: 진행률 확인
+  useEffect(() => {
+    if (readingMode && readStatusData) {
+      console.log('Progress Debug:', {
+        progress,
+        readCount,
+        totalVerses,
+        readStatusData
+      })
+    }
+  }, [readingMode, progress, readCount, totalVerses, readStatusData])
+  
   if (!chapterData) {
     return null
   }
@@ -219,14 +231,16 @@ const VerseList = ({
               height: '8px',
               background: 'var(--ig-border)',
               borderRadius: '4px',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              position: 'relative'
             }}>
               <div style={{
                 width: `${progress}%`,
                 height: '100%',
-                background: 'linear-gradient(90deg, var(--ig-primary), var(--ig-accent))',
+                background: 'linear-gradient(90deg, #667eea, #764ba2)',
                 transition: 'width 0.3s ease',
-                borderRadius: '4px'
+                borderRadius: '4px',
+                minWidth: progress > 0 ? '2px' : '0' // 최소 너비 보장
               }} />
             </div>
           </div>
