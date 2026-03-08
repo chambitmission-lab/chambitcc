@@ -35,6 +35,14 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
     },
     threshold: 0.75
   })
+  
+  // 이미 읽은 구절은 읽기 시작 방지
+  const handleStartReading = () => {
+    if (isRead) {
+      return
+    }
+    startReading()
+  }
 
   return (
     <div 
@@ -77,7 +85,7 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
             <VerseReadingButton
               isReading={isReading}
               isSupported={isSupported}
-              onClick={isReading ? stopReading : startReading}
+              onClick={isReading ? stopReading : handleStartReading}
               disabled={isRead}
               size="sm"
             />

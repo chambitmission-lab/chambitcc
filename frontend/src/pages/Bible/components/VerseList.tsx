@@ -130,8 +130,14 @@ const VerseList = ({
       
       // 명시적으로 읽음 상태 다시 조회
       await refetchReadStatus()
-    } catch (error) {
-      console.error('Failed to save reading record:', error)
+    } catch (error: any) {
+      // 이미 읽음 처리된 경우는 에러로 처리하지 않음
+      if (error?.message === 'ALREADY_READ') {
+        console.log('Verse already marked as read, refreshing status...')
+        await refetchReadStatus()
+      } else {
+        console.error('Failed to save reading record:', error)
+      }
     }
   }
   

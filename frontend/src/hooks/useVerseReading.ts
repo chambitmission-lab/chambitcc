@@ -101,8 +101,9 @@ export const useVerseReading = ({
   } = useSpeechRecognition({
     onResult: handleResult,
     onError: handleError,
-    continuous: false, // 한 번에 한 구절씩
-    language: 'ko-KR'
+    continuous: true, // 계속 듣기 모드 (천천히 읽어도 OK)
+    language: 'ko-KR',
+    autoStopTimeout: 3000 // 3초간 음성 없으면 자동 종료
   })
 
   const startReading = useCallback(() => {

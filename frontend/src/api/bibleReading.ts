@@ -147,6 +147,9 @@ export const markVerseAsRead = async (
   )
   
   if (!response.ok) {
+    if (response.status === 409) {
+      throw new Error('ALREADY_READ')
+    }
     throw new Error('구절 읽음 처리에 실패했습니다')
   }
   

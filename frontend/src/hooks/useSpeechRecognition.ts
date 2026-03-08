@@ -5,6 +5,7 @@ interface UseSpeechRecognitionProps {
   onError?: (error: string) => void
   language?: string
   continuous?: boolean
+  autoStopTimeout?: number // 자동 종료 타임아웃 (밀리초)
 }
 
 interface SpeechRecognitionEvent extends Event {
@@ -22,6 +23,7 @@ export const useSpeechRecognition = ({
   onError,
   language = 'ko-KR',
   continuous = true,
+  autoStopTimeout = 0, // 0이면 자동 종료 안 함
 }: UseSpeechRecognitionProps) => {
   const [isListening, setIsListening] = useState(false)
   const isSupported = !!(
@@ -34,6 +36,7 @@ export const useSpeechRecognition = ({
   const shouldRestartRef = useRef<boolean>(false)
   const initialTextRef = useRef<string>('')
   const accumulatedTextRef = useRef<string>('')  // 누적된 확정 텍스트
+  const autoStopTimerRef = useRef<number | null>(null) // 자동 종료 타이머
   
   // 모바일 감지
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
@@ -54,14 +57,19 @@ export const useSpeechRecognition = ({
 
     const recognition = new SpeechRecognition()
     
-    // 모바일에서는 continuous false, 데스크톱에서는 true
-    recognition.continuous = isMobile ? false : continuous
+    // 성경 읽기처럼 긴 텍스트를 읽을 때는 continuous true 권장
+    recognition.continuous = continuous
     recognition.interimResults = true
     recognition.lang = language
     recognition.maxAlternatives = 1
 
     // 결과 처리
     recognition.onresult = (event: SpeechRecognitionEvent) => {
+      // 자동 종료 타이머 리셋 (음성이 감지되면)
+      if (autoStopTimeout > 0 && autoStopTimerRef.current) {
+        clearTimeout(autoStopTimerRef.current)
+        autoStopTimerRef.current = null
+      }
       
       // 가장 최근 결과만 처리 (resultIndex부터)
       let currentFinal = ''
@@ -133,6 +141,16 @@ export const useSpeechRecognition = ({
           : currentFinal
         
         lastInterimRef.current = ''
+        
+        // 자동 종료 타이머 시작 (final 결과 후)
+        if (autoStopTimeout > 0) {
+          autoStopTimerRef.current = setTimeout(() => {
+            if (isListeningRef.current && recognitionRef.current) {
+              // 자동으로 종료하고 최종 결과 전송
+              recognitionRef.current.stop()
+            }
+          }, autoStopTimeout)
+        }
       }
     }
 
@@ -246,6 +264,12 @@ export const useSpeechRecognition = ({
     }
 
     try {
+      // 자동 종료 타이머 정리
+      if (autoStopTimerRef.current) {
+        clearTimeout(autoStopTimerRef.current)
+        autoStopTimerRef.current = null
+      }
+      
       shouldRestartRef.current = false
       isListeningRef.current = false
       
