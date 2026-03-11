@@ -16,7 +16,7 @@ interface UsePrayerToggleOptions {
 }
 
 interface PrayerToggleResult {
-  togglePrayer: (prayerId: number, isPrayed: boolean) => void
+  togglePrayer: (prayerId: number, isPrayed: boolean, durationMinutes?: number) => void
   isToggling: boolean
 }
 
@@ -26,6 +26,7 @@ interface PrayerToggleResult {
  * - Optimistic Update로 즉각적인 UI 반응
  * - 목록과 상세 페이지 캐시 동시 업데이트
  * - 에러 시 자동 롤백
+ * - 기도 시간 추적 지원
  */
 export const usePrayerToggle = ({
   sort = 'popular',
@@ -38,9 +39,10 @@ export const usePrayerToggle = ({
 }: UsePrayerToggleOptions = {}): PrayerToggleResult => {
   const queryClient = useQueryClient()
 
-  // 기도 추가 Mutation
+  // 기도 추가 Mutation (기도 시간 포함)
   const addMutation = useMutation({
-    mutationFn: (prayerId: number) => addPrayer(prayerId),
+    mutationFn: ({ prayerId, durationMinutes }: { prayerId: number; durationMinutes?: number }) => 
+      addPrayer(prayerId, durationMinutes),
     onSuccess: (data) => {
       showToast(data.message, 'success')
       onSuccess?.(data.message)
@@ -64,8 +66,8 @@ export const usePrayerToggle = ({
     },
   })
 
-  // 통합 토글 함수 (Dependency Inversion: 추상화된 인터페이스 제공)
-  const togglePrayer = async (prayerId: number, isPrayed: boolean) => {
+  // 통합 토글 함수 (기도 시간 파라미터 추가)
+  const togglePrayer = async (prayerId: number, isPrayed: boolean, durationMinutes?: number) => {
     const listQueryKey = prayerKeys.list(sort, groupId, filter, username)
     const detailQueryKey = detailPrayerId 
       ? prayerKeys.detail(detailPrayerId, username)
@@ -134,7 +136,7 @@ export const usePrayerToggle = ({
       if (isPrayed) {
         await removeMutation.mutateAsync(prayerId)
       } else {
-        await addMutation.mutateAsync(prayerId)
+        await addMutation.mutateAsync({ prayerId, durationMinutes })
       }
 
       // 캐시 무효화 (비동기, 백그라운드)

@@ -23,4 +23,39 @@ export const profile = {
   profilePrayedAt: 'Prayed',
   profileReplyLabel: 'Reply written',
   profileWrittenAs: 'Written as',
+  
+  // Achievement System
+  achievementTitle: 'Achievements',
+  achievementNoUnlocked: 'No achievements unlocked yet',
+  achievementStartPraying: 'Pray and read the Bible to unlock achievements!',
+  achievementShowAll: 'Show All',
+  achievementCollapse: 'Collapse',
+  achievementUnlocked: 'Unlocked',
+  achievementProgress: 'Progress',
+  achievementReward: 'Unlock Reward',
+  achievementRewardGlow: 'Special glow effect unlocked',
+  achievementRewardBadge: 'Achievement badge displayed on profile',
+  achievementConfirm: 'Confirm',
+  
+  // Level System
+  levelTitle: 'Faith Temperature',
+  levelPoints: 'Points',
+  levelToNext: 'To Next Level',
+  levelMaxReached: 'Max Level Reached!',
+  levelHowToEarn: 'How to Earn Points',
+  levelPrayerMinute: 'Prayer 1 min',
+  levelPrayerCount: 'Prayer 1 time',
+  levelStreak: 'Streak 1 day',
+  levelBibleChapter: 'Bible 1 chapter',
+  levelBibleBook: 'Complete 1 book',
+  levelReply: 'Reply 1 time',
+  
+  // Level Names
+  levelNameSprout: 'Sprout',
+  levelNameSpark: 'Spark',
+  levelNameFlame: 'Small Flame',
+  levelNameBlazing: 'Blazing Fire',
+  levelNamePassion: 'Hot Passion',
+  levelNameLight: 'Light of Faith',
+  levelNameGlory: 'Heavenly Glory',
 } as const

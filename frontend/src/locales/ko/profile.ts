@@ -23,4 +23,39 @@ export const profile = {
   profilePrayedAt: '기도함',
   profileReplyLabel: '댓글 작성',
   profileWrittenAs: '로 작성',
+  
+  // 업적 시스템
+  achievementTitle: '업적',
+  achievementNoUnlocked: '아직 해금된 업적이 없습니다',
+  achievementStartPraying: '기도하고 성경을 읽으며 업적을 해금하세요!',
+  achievementShowAll: '전체보기',
+  achievementCollapse: '접기',
+  achievementUnlocked: '해금됨',
+  achievementProgress: '진행도',
+  achievementReward: '해금 보상',
+  achievementRewardGlow: '특별 글로우 효과 해금',
+  achievementRewardBadge: '프로필에 업적 뱃지 표시',
+  achievementConfirm: '확인',
+  
+  // 레벨 시스템
+  levelTitle: '신앙의 온도',
+  levelPoints: '포인트',
+  levelToNext: '다음 레벨까지',
+  levelMaxReached: '최고 레벨 달성!',
+  levelHowToEarn: '포인트 획득 방법',
+  levelPrayerMinute: '기도 1분',
+  levelPrayerCount: '기도 1회',
+  levelStreak: '연속 1일',
+  levelBibleChapter: '성경 1장',
+  levelBibleBook: '완독 1권',
+  levelReply: '댓글 1개',
+  
+  // 레벨 이름
+  levelNameSprout: '새싹',
+  levelNameSpark: '불씨',
+  levelNameFlame: '작은 불꽃',
+  levelNameBlazing: '타오르는 불',
+  levelNamePassion: '뜨거운 열정',
+  levelNameLight: '신앙의 빛',
+  levelNameGlory: '천상의 광채',
 } as const

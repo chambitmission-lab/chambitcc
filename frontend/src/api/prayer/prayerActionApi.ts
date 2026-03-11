@@ -4,16 +4,24 @@ import { getAuthHeaders, requireAuth } from '../utils/apiHelpers'
 
 /**
  * 기도했어요 (로그인 필수)
+ * @param prayerId 기도 ID
+ * @param prayerDurationMinutes 기도 시간 (분 단위, 선택적)
  */
 export const addPrayer = async (
-  prayerId: number
+  prayerId: number,
+  prayerDurationMinutes?: number
 ): Promise<{ success: boolean; message: string }> => {
   requireAuth()
+
+  const body: { prayer_duration_minutes?: number } = {}
+  if (prayerDurationMinutes !== undefined && prayerDurationMinutes > 0) {
+    body.prayer_duration_minutes = prayerDurationMinutes
+  }
 
   const response = await apiFetch(`${API_V1}/prayers/${prayerId}/pray`, {
     method: 'POST',
     headers: getAuthHeaders(true),
-    body: JSON.stringify({}),
+    body: JSON.stringify(body),
   })
 
   if (!response.ok) {

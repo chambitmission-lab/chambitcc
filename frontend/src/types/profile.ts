@@ -8,11 +8,16 @@ export interface ProfileStats {
     this_week_count: number
     total_count: number
     streak_days: number
+    total_prayer_time?: number // 분 단위 (선택적, 향후 API 추가)
   }
   content: {
     my_prayers: number
     praying_for: number
     my_replies: number
+  }
+  bible_reading?: {
+    chapters_read: number
+    books_completed: string[]
   }
 }
 
