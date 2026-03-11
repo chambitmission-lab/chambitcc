@@ -130,25 +130,23 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
         <div style={{
           padding: '1.25rem',
           background: feedback.type === 'success' 
-            ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(252, 211, 77, 0.1))' 
-            : 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(248, 113, 113, 0.05))',
+            ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(252, 211, 77, 0.15))' 
+            : 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(248, 113, 113, 0.1))',
           borderRadius: '0.75rem',
-          fontSize: '1.0625rem',
-          color: feedback.type === 'success' 
-            ? '#b45309'
-            : 'var(--ig-error)',
-          fontWeight: 600,
+          fontSize: '1.125rem',
+          color: 'var(--ig-primary-text)',
+          fontWeight: 700,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: '0.75rem',
           marginLeft: '3.25rem',
           border: feedback.type === 'success'
-            ? '2px solid rgba(251, 191, 36, 0.3)'
-            : '1px solid rgba(239, 68, 68, 0.2)',
+            ? '2px solid rgba(251, 191, 36, 0.4)'
+            : '2px solid rgba(239, 68, 68, 0.3)',
           boxShadow: feedback.type === 'success'
-            ? '0 4px 16px rgba(251, 191, 36, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5)'
-            : '0 2px 8px rgba(239, 68, 68, 0.1)',
+            ? '0 4px 16px rgba(251, 191, 36, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.6)'
+            : '0 4px 12px rgba(239, 68, 68, 0.15)',
           animation: 'fadeInScale 0.4s ease-out',
           textAlign: 'center'
         }}>
@@ -156,8 +154,8 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
             className="material-icons-round" 
             style={{ 
               fontSize: '2.5rem',
-              color: feedback.type === 'success' ? 'rgba(251, 191, 36, 0.9)' : 'var(--ig-error)',
-              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))'
+              color: feedback.type === 'success' ? '#d97706' : '#dc2626',
+              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))'
             }}
           >
             {feedback.type === 'success' ? 'auto_awesome' : 'refresh'}
