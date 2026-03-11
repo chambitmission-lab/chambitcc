@@ -16,11 +16,9 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
   const {
     isReading,
     isSupported,
-    spokenText,
     feedback,
     startReading,
-    stopReading,
-    manualVerify
+    stopReading
   } = useVerseReading({
     verseText: verse.text,
     onSuccess: (similarity) => {
@@ -93,73 +91,92 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
         )}
       </div>
       
-      {/* 음성 인식 중 표시 */}
-      {isReading && spokenText && (
+      {/* 읽는 중 안내 메시지 */}
+      {isReading && !feedback && (
         <div style={{
-          padding: '0.75rem',
-          background: 'rgba(59, 130, 246, 0.1)',
-          borderRadius: '0.5rem',
-          fontSize: '0.875rem',
-          color: 'var(--ig-secondary-text)',
-          marginLeft: '3.25rem' // 구절 번호 너비만큼 들여쓰기
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            marginBottom: '0.5rem'
-          }}>
-            <div style={{ fontWeight: 600, color: 'var(--ig-primary)' }}>
-              📝 읽은 내용:
-            </div>
-            <button
-              onClick={manualVerify}
-              style={{
-                padding: '0.25rem 0.75rem',
-                borderRadius: '0.375rem',
-                border: 'none',
-                background: 'var(--ig-primary)',
-                color: 'white',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem'
-              }}
-            >
-              <span className="material-icons-outlined" style={{ fontSize: '1rem' }}>
-                check
-              </span>
-              확인
-            </button>
-          </div>
-          <div style={{ lineHeight: 1.6 }}>{spokenText}</div>
-        </div>
-      )}
-      
-      {/* 피드백 메시지 */}
-      {showFeedback && feedback && (
-        <div style={{
-          padding: '0.75rem',
-          background: feedback.type === 'success' 
-            ? 'rgba(34, 197, 94, 0.1)' 
-            : 'rgba(239, 68, 68, 0.1)',
-          borderRadius: '0.5rem',
-          fontSize: '0.875rem',
-          color: feedback.type === 'success' 
-            ? 'var(--ig-success)' 
-            : 'var(--ig-error)',
+          padding: '1rem',
+          background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(252, 211, 77, 0.05))',
+          borderRadius: '0.75rem',
+          fontSize: '0.9375rem',
+          color: 'var(--ig-primary)',
           fontWeight: 500,
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
           gap: '0.5rem',
-          marginLeft: '3.25rem' // 구절 번호 너비만큼 들여쓰기
+          marginLeft: '3.25rem',
+          border: '1px solid rgba(251, 191, 36, 0.2)',
+          boxShadow: '0 2px 8px rgba(251, 191, 36, 0.1)'
         }}>
-          <span className="material-icons-round" style={{ fontSize: '1rem' }}>
-            {feedback.type === 'success' ? 'check_circle' : 'error'}
+          <span className="material-icons-outlined" style={{ 
+            fontSize: '1.25rem',
+            color: 'rgba(251, 191, 36, 0.8)',
+            animation: 'gentlePulse 2s ease-in-out infinite'
+          }}>
+            mic
           </span>
-          {feedback.message}
+          <span>말씀을 읽어주세요...</span>
+          <style>{`
+            @keyframes gentlePulse {
+              0%, 100% { opacity: 0.6; transform: scale(1); }
+              50% { opacity: 1; transform: scale(1.1); }
+            }
+          `}</style>
+        </div>
+      )}
+      
+      {/* 피드백 메시지 - 임팩트 있게 */}
+      {showFeedback && feedback && (
+        <div style={{
+          padding: '1.25rem',
+          background: feedback.type === 'success' 
+            ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(252, 211, 77, 0.1))' 
+            : 'linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(248, 113, 113, 0.05))',
+          borderRadius: '0.75rem',
+          fontSize: '1.0625rem',
+          color: feedback.type === 'success' 
+            ? '#b45309'
+            : 'var(--ig-error)',
+          fontWeight: 600,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.75rem',
+          marginLeft: '3.25rem',
+          border: feedback.type === 'success'
+            ? '2px solid rgba(251, 191, 36, 0.3)'
+            : '1px solid rgba(239, 68, 68, 0.2)',
+          boxShadow: feedback.type === 'success'
+            ? '0 4px 16px rgba(251, 191, 36, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5)'
+            : '0 2px 8px rgba(239, 68, 68, 0.1)',
+          animation: 'fadeInScale 0.4s ease-out',
+          textAlign: 'center'
+        }}>
+          <span 
+            className="material-icons-round" 
+            style={{ 
+              fontSize: '2.5rem',
+              color: feedback.type === 'success' ? 'rgba(251, 191, 36, 0.9)' : 'var(--ig-error)',
+              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))'
+            }}
+          >
+            {feedback.type === 'success' ? 'auto_awesome' : 'refresh'}
+          </span>
+          <div style={{ lineHeight: 1.5 }}>
+            {feedback.message}
+          </div>
+          <style>{`
+            @keyframes fadeInScale {
+              0% {
+                opacity: 0;
+                transform: scale(0.9) translateY(-10px);
+              }
+              100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+              }
+            }
+          `}</style>
         </div>
       )}
     </div>
