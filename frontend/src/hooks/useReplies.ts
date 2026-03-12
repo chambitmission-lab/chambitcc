@@ -108,6 +108,21 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
         }
       })
 
+      // 프로필 댓글 수 증가 (Optimistic) - 포인트 즉시 반영
+      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          stats: {
+            ...old.stats,
+            content: {
+              ...old.stats.content,
+              my_replies: (old.stats.content.my_replies || 0) + 1,
+            },
+          },
+        }
+      })
+
       return { previousReplies }
     },
     onError: (error: Error, _variables, context) => {
@@ -131,10 +146,9 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
         queryClient.invalidateQueries({ queryKey: ['prayers', 'list'] })
         queryClient.invalidateQueries({ queryKey: ['prayers', 'detail', prayerId] })
 
-        // 프로필 캐시 무효화 (내 댓글 +1)
+        // 프로필 캐시 무효화 및 자동 갱신 (내 댓글 +1, 포인트 +3)
         queryClient.invalidateQueries({
           queryKey: ['profile', 'detail'],
-          refetchType: 'none',
         })
       }, 0)
     },

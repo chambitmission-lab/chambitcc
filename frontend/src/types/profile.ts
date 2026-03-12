@@ -16,8 +16,9 @@ export interface ProfileStats {
     my_replies: number
   }
   bible_reading?: {
-    chapters_read: number
-    books_completed: string[]
+    verses_read: number // 읽은 구절 수
+    chapters_read: number // 완독한 장 수
+    books_completed: string[] // 완독한 책 목록
   }
 }
 

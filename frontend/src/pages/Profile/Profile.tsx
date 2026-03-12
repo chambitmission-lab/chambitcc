@@ -49,6 +49,7 @@ const Profile = () => {
       totalPrayerTime: data.stats.activity.total_prayer_time || data.stats.activity.total_count * 5, // API 데이터 또는 추정값
       totalPrayerCount: data.stats.activity.total_count,
       streakDays: data.stats.activity.streak_days,
+      bibleVersesRead: data.stats.bible_reading?.verses_read || 0,
       bibleChaptersRead: data.stats.bible_reading?.chapters_read || 0,
       bibleBooksCompleted: data.stats.bible_reading?.books_completed || [],
       repliesCount: data.stats.content.my_replies,

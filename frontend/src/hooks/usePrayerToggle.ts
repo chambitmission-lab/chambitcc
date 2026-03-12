@@ -131,6 +131,42 @@ export const usePrayerToggle = ({
       })
     }
 
+    // Optimistic Update - 프로필 캐시 (기도 횟수 즉시 반영)
+    const previousProfileData = queryClient.getQueryData(['profile', 'detail'])
+    if (!isPrayed) {
+      // 기도 추가 시에만 total_count +1
+      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          stats: {
+            ...old.stats,
+            activity: {
+              ...old.stats.activity,
+              total_count: (old.stats.activity.total_count || 0) + 1,
+              this_week_count: (old.stats.activity.this_week_count || 0) + 1,
+            },
+          },
+        }
+      })
+    } else {
+      // 기도 취소 시 total_count -1
+      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          stats: {
+            ...old.stats,
+            activity: {
+              ...old.stats.activity,
+              total_count: Math.max(0, (old.stats.activity.total_count || 0) - 1),
+              this_week_count: Math.max(0, (old.stats.activity.this_week_count || 0) - 1),
+            },
+          },
+        }
+      })
+    }
+
     try {
       // 실제 API 호출
       if (isPrayed) {
@@ -158,10 +194,9 @@ export const usePrayerToggle = ({
           })
         }
 
-        // 프로필 캐시 무효화 (기도 통계 업데이트)
+        // 프로필 캐시 무효화 및 자동 갱신 (기도 통계 업데이트)
         queryClient.invalidateQueries({
           queryKey: ['profile', 'detail'],
-          refetchType: 'none',
         })
       }, 0)
     } catch (error) {
@@ -169,6 +204,9 @@ export const usePrayerToggle = ({
       queryClient.setQueryData(listQueryKey, previousListData)
       if (detailQueryKey && previousDetailData) {
         queryClient.setQueryData(detailQueryKey, previousDetailData)
+      }
+      if (previousProfileData) {
+        queryClient.setQueryData(['profile', 'detail'], previousProfileData)
       }
       throw error
     }

@@ -32,8 +32,9 @@ export interface UserActivityData {
   streakDays: number
   
   // 성경 읽기
-  bibleChaptersRead: number
-  bibleBooksCompleted: string[]
+  bibleVersesRead: number // 읽은 구절 수
+  bibleChaptersRead: number // 완독한 장 수
+  bibleBooksCompleted: string[] // 완독한 책 목록
   
   // 커뮤니티 활동
   repliesCount: number

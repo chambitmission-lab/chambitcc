@@ -7,23 +7,20 @@ import { ACHIEVEMENTS, GLOW_LEVELS } from '../types/achievement'
 export const calculateActivityPoints = (activity: UserActivityData): number => {
   let points = 0
   
-  // 기도 시간: 1분당 1포인트
-  points += activity.totalPrayerTime
-  
   // 기도 횟수: 1회당 2포인트
   points += activity.totalPrayerCount * 2
   
-  // 연속 기도: 1일당 5포인트
-  points += activity.streakDays * 5
+  // 성경 구절 읽기: 1절당 1포인트
+  points += activity.bibleVersesRead * 1
   
-  // 성경 읽기: 1장당 3포인트
+  // 성경 장 완독: 1장당 3포인트 (보너스)
   points += activity.bibleChaptersRead * 3
   
-  // 성경 완독: 1권당 50포인트
+  // 성경 책 완독: 1권당 50포인트 (보너스)
   points += activity.bibleBooksCompleted.length * 50
   
-  // 댓글: 1개당 1포인트
-  points += activity.repliesCount
+  // 댓글: 1개당 3포인트
+  points += activity.repliesCount * 3
   
   // 기도중인 항목: 1개당 2포인트
   points += activity.prayingForCount * 2

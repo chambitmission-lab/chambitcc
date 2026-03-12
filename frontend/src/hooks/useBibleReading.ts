@@ -36,6 +36,29 @@ export const useMarkVerseAsRead = () => {
     onSuccess: () => {
       // 관련된 모든 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
+      
+      // 프로필 캐시 즉시 업데이트 (구절 읽기 +1P)
+      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          stats: {
+            ...old.stats,
+            bible_reading: {
+              verses_read: (old.stats.bible_reading?.verses_read || 0) + 1,
+              chapters_read: old.stats.bible_reading?.chapters_read || 0,
+              books_completed: old.stats.bible_reading?.books_completed || [],
+            },
+          },
+        }
+      })
+      
+      // 백그라운드에서 실제 데이터로 동기화
+      setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: ['profile', 'detail'],
+        })
+      }, 0)
     },
   })
 }
@@ -108,6 +131,29 @@ export const useUnmarkVerseAsRead = () => {
     onSuccess: () => {
       // 관련된 모든 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
+      
+      // 프로필 캐시 즉시 업데이트 (구절 읽기 -1P)
+      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          stats: {
+            ...old.stats,
+            bible_reading: {
+              verses_read: Math.max(0, (old.stats.bible_reading?.verses_read || 0) - 1),
+              chapters_read: old.stats.bible_reading?.chapters_read || 0,
+              books_completed: old.stats.bible_reading?.books_completed || [],
+            },
+          },
+        }
+      })
+      
+      // 백그라운드에서 실제 데이터로 동기화
+      setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: ['profile', 'detail'],
+        })
+      }, 0)
     },
   })
 }
