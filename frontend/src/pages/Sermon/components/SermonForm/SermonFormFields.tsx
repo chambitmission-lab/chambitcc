@@ -97,6 +97,42 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
           required
         />
       </div>
+
+      {/* 유튜브 URL */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          유튜브 영상 URL
+        </label>
+        <input
+          type="url"
+          name="video_url"
+          value={formData.video_url || ''}
+          onChange={onChange}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          placeholder="https://www.youtube.com/watch?v=..."
+        />
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          유튜브 영상 URL을 입력하세요 (선택사항)
+        </p>
+      </div>
+
+      {/* 썸네일 URL */}
+      <div>
+        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          썸네일 이미지 URL
+        </label>
+        <input
+          type="url"
+          name="thumbnail_url"
+          value={formData.thumbnail_url || ''}
+          onChange={onChange}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          placeholder="https://example.com/image.jpg"
+        />
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          설교 썸네일 이미지 URL을 입력하세요 (선택사항)
+        </p>
+      </div>
     </div>
   )
 }
