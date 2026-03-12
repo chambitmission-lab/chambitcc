@@ -4,16 +4,18 @@ import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
 import TodaysVerse from './components/TodaysVerse'
+import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import SortTabs from './components/SortTabs'
 import PrayerFeed from './components/PrayerFeed'
 import BottomNavigation from './components/BottomNavigation'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
+import AnswerModal from '../../components/prayer/AnswerModal'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import { useAuth } from '../../hooks/useAuth'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
-import type { SortType, PrayerFilterType } from '../../types/prayer'
+import type { SortType, PrayerFilterType, Prayer } from '../../types/prayer'
 
 const NewHome = () => {
   const location = useLocation()
@@ -28,6 +30,8 @@ const NewHome = () => {
   const [selectedFilter, setSelectedFilter] = useState<PrayerFilterType>('all')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
+  const [showAnswerModal, setShowAnswerModal] = useState(false)
+  const [selectedPrayerForAnswer, setSelectedPrayerForAnswer] = useState<Prayer | null>(null)
   const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter)  // ✅ selectedFilter 전달
   const mainRef = useRef<HTMLDivElement>(null)
 
@@ -68,6 +72,26 @@ const NewHome = () => {
   const handlePrayerClick = (prayerId: number, shouldOpenReplies = false) => {
     setSelectedPrayerId(prayerId)
     setOpenReplies(shouldOpenReplies)
+  }
+
+  const handleAnswerToggle = (prayerId: number) => {
+    const prayer = prayerHook.prayers.find(p => p.id === prayerId)
+    if (prayer) {
+      setSelectedPrayerForAnswer(prayer)
+      setShowAnswerModal(true)
+    }
+  }
+
+  const handleAnswerSubmit = (testimony: string) => {
+    if (selectedPrayerForAnswer) {
+      // TODO: 백엔드 API 연동
+      console.log('응답 등록:', {
+        prayerId: selectedPrayerForAnswer.id,
+        testimony
+      })
+      
+      alert(`✨ 응답이 등록되었습니다!\n\n"${selectedPrayerForAnswer.title}"\n\n간증: ${testimony}\n\n(백엔드 연동 후 실제로 저장됩니다)`)
+    }
   }
 
   const handleScrollToTop = () => {
@@ -149,6 +173,9 @@ const NewHome = () => {
             
             <TodaysVerse />
             
+            {/* 응답의 전당 배너 */}
+            <AnsweredPrayersBanner />
+            
             {/* 소그룹 필터 */}
             <div className="px-4 py-3 overflow-x-auto scrollbar-hide">
               <GroupFilter
@@ -170,6 +197,7 @@ const NewHome = () => {
               isFetchingMore={prayerHook.isFetchingMore}
               onLoadMore={prayerHook.loadMore}
               onPrayerToggle={handlePrayerToggle}
+              onAnswerToggle={handleAnswerToggle}
               onPrayerClick={handlePrayerClick}
             />
           </main>
@@ -213,6 +241,17 @@ const NewHome = () => {
           <JoinGroupModal
             isOpen={showJoinModal}
             onClose={() => setShowJoinModal(false)}
+          />
+          
+          {/* 응답 모달 */}
+          <AnswerModal
+            isOpen={showAnswerModal}
+            onClose={() => {
+              setShowAnswerModal(false)
+              setSelectedPrayerForAnswer(null)
+            }}
+            onSubmit={handleAnswerSubmit}
+            prayerTitle={selectedPrayerForAnswer?.title || ''}
           />
         </div>
 

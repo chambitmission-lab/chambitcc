@@ -13,6 +13,9 @@ export interface Prayer {
   reply_count: number
   is_prayed: boolean
   is_owner?: boolean  // 내가 작성한 기도인지
+  is_answered?: boolean  // 기도 응답 여부
+  answered_at?: string  // 응답 시간
+  testimony?: string  // 간증 내용
   created_at: string
   time_ago: string
   recommended_verses?: RecommendedVerses  // 성경 구절 추천

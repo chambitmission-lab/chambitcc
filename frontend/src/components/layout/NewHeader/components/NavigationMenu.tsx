@@ -6,6 +6,7 @@ const MENU_ITEMS = [
   { path: '/worship', key: 'worship' as const },
   { path: '/sermon', key: 'sermon' as const },
   { path: '/bible', key: 'bible' as const },
+  { path: '/answered-prayers', label: '✨ 응답의 전당' },
   { path: '/events', key: 'events' as const },
   { path: '/ministry', key: 'ministry' as const },
   { path: '/news', key: 'news' as const }
@@ -22,7 +23,7 @@ const NavigationMenu = () => {
           to={item.path}
           className="glow-menu-item flex-shrink-0 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white rounded-full transition-all whitespace-nowrap relative"
         >
-          {t(item.key)}
+          {'label' in item ? item.label : t(item.key)}
         </Link>
       ))}
     </nav>

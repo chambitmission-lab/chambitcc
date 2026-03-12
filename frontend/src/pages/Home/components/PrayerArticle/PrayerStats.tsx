@@ -3,10 +3,13 @@ import { useLanguage } from '../../../../contexts/LanguageContext'
 interface PrayerStatsProps {
   prayerCount: number
   replyCount: number
+  isOwner?: boolean
+  isAnswered?: boolean
   onReplyClick: (e: React.MouseEvent) => void
+  onAnswerClick?: (e: React.MouseEvent) => void
 }
 
-const PrayerStats = ({ prayerCount, replyCount, onReplyClick }: PrayerStatsProps) => {
+const PrayerStats = ({ prayerCount, replyCount, isOwner, isAnswered, onReplyClick, onAnswerClick }: PrayerStatsProps) => {
   const { language } = useLanguage()
 
   return (
@@ -30,6 +33,19 @@ const PrayerStats = ({ prayerCount, replyCount, onReplyClick }: PrayerStatsProps
               className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
               {language === 'ko' ? `댓글 ${replyCount}개` : `${replyCount} replies`}
+            </button>
+          </>
+        )}
+        
+        {/* 응답 버튼 (내 기도이고 아직 응답 안됨) */}
+        {isOwner && !isAnswered && onAnswerClick && (
+          <>
+            {(prayerCount > 0 || replyCount > 0) && <span className="text-gray-300 dark:text-gray-700">·</span>}
+            <button 
+              onClick={onAnswerClick}
+              className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors font-semibold"
+            >
+              ✨ {language === 'ko' ? '응답 등록' : 'Mark Answered'}
             </button>
           </>
         )}

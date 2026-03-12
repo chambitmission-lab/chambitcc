@@ -11,11 +11,12 @@ import { getGroupColorTheme, getGroupColorCSSVars } from '../../../../utils/grou
 interface PrayerArticleProps {
   prayer: Prayer
   onPrayerToggle: (prayerId: number) => void
+  onAnswerToggle?: (prayerId: number) => void
   onClick: () => void
   onReplyClick: () => void
 }
 
-const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: PrayerArticleProps) => {
+const PrayerArticle = ({ prayer, onPrayerToggle, onAnswerToggle, onClick, onReplyClick }: PrayerArticleProps) => {
   const [isPraying, setIsPraying] = useState(false)
   const [showVersesModal, setShowVersesModal] = useState(false)
   
@@ -34,6 +35,11 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
     }
   }
 
+  const handleAnswer = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onAnswerToggle?.(prayer.id)
+  }
+
   const handleVersesClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     setShowVersesModal(true)
@@ -41,7 +47,7 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
 
   return (
     <article 
-      className="prayer-card bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-4 mb-3 cursor-pointer transition-all"
+      className={`prayer-card bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark pb-4 mb-3 cursor-pointer transition-all ${prayer.is_answered ? 'answered-article' : ''}`}
       onClick={onClick}
       style={cssVars as React.CSSProperties}
     >
@@ -55,6 +61,8 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
       <PrayerContent
         title={prayer.title}
         content={prayer.content}
+        testimony={prayer.testimony}
+        isAnswered={prayer.is_answered}
         transitionStyles={{}}
       />
 
@@ -69,7 +77,10 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onClick, onReplyClick }: Prayer
       <PrayerStats
         prayerCount={prayer.prayer_count}
         replyCount={prayer.reply_count}
+        isOwner={prayer.is_owner}
+        isAnswered={prayer.is_answered}
         onReplyClick={onReplyClick}
+        onAnswerClick={handleAnswer}
       />
 
       {prayer.recommended_verses && prayer.recommended_verses.verses.length > 0 && (

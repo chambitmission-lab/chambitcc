@@ -10,6 +10,7 @@ interface PrayerFeedProps {
   isFetchingMore: boolean
   onLoadMore: () => void
   onPrayerToggle: (prayerId: number) => void
+  onAnswerToggle?: (prayerId: number) => void
   onPrayerClick: (prayerId: number, shouldOpenReplies?: boolean) => void
 }
 
@@ -20,6 +21,7 @@ const PrayerFeed = ({
   isFetchingMore,
   onLoadMore,
   onPrayerToggle,
+  onAnswerToggle,
   onPrayerClick
 }: PrayerFeedProps) => {
   const { t } = useLanguage()
@@ -49,6 +51,7 @@ const PrayerFeed = ({
           key={prayer.id}
           prayer={prayer}
           onPrayerToggle={onPrayerToggle}
+          onAnswerToggle={onAnswerToggle}
           onClick={() => onPrayerClick(prayer.id)}
           onReplyClick={() => onPrayerClick(prayer.id, true)}
         />

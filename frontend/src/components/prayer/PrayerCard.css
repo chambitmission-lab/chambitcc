@@ -11,6 +11,17 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* 응답된 기도 카드 스타일 - 기존 디자인 유지하되 미묘한 강조 */
+.prayer-card.answered {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.03) 0%, rgba(147, 51, 234, 0.03) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.1);
+}
+
+.prayer-card.answered:hover {
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
+}
+
 .prayer-group-badge {
   display: inline-flex;
   align-items: center;
@@ -55,6 +66,21 @@
   color: #666;
 }
 
+.header-badges {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.answered-badge {
+  padding: 0.25rem 0.625rem;
+  background: rgba(168, 85, 247, 0.1);
+  color: rgb(168, 85, 247);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .owner-badge {
   padding: 0.25rem 0.625rem;
   background: #e3f2fd;
@@ -78,6 +104,41 @@
   margin: 0 0 1.25rem 0;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* 간증 섹션 */
+.testimony-section {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(168, 85, 247, 0.05);
+  border-radius: 12px;
+  border-left: 3px solid rgb(168, 85, 247);
+}
+
+.testimony-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.testimony-icon {
+  font-size: 1.1rem;
+}
+
+.testimony-label {
+  font-weight: 700;
+  color: rgb(168, 85, 247);
+  font-size: 0.875rem;
+}
+
+.testimony-content {
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.95rem;
 }
 
 .prayer-actions {
@@ -104,14 +165,14 @@
 }
 
 .action-button:hover:not(:disabled) {
-  border-color: #4a90e2;
-  background: #f8fbff;
-  color: #4a90e2;
+  border-color: rgb(168, 85, 247);
+  background: rgba(168, 85, 247, 0.05);
+  color: rgb(168, 85, 247);
 }
 
 .action-button.active {
-  border-color: #4a90e2;
-  background: #4a90e2;
+  border-color: rgb(168, 85, 247);
+  background: rgb(168, 85, 247);
   color: white;
 }
 
@@ -131,4 +192,29 @@
 .action-count {
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+/* 응답 버튼 */
+.answer-button {
+  background: rgba(168, 85, 247, 0.1);
+  color: rgb(168, 85, 247);
+  border: 2px solid rgba(168, 85, 247, 0.3);
+  font-weight: 700;
+}
+
+.answer-button:hover:not(:disabled) {
+  background: rgb(168, 85, 247);
+  color: white;
+  border-color: rgb(168, 85, 247);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.prayer-card.answered .action-button {
+  background: white;
+}
+
+.prayer-card.answered .action-button.active {
+  background: rgb(168, 85, 247);
+  color: white;
 }

@@ -3,8 +3,9 @@ import { useState } from 'react'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
+import AnswerModal from '../../components/prayer/AnswerModal'
 import PrayerCard from '../../components/prayer/PrayerCard'
-import type { SortType, PrayerFilterType } from '../../types/prayer'
+import type { SortType, PrayerFilterType, Prayer } from '../../types/prayer'
 import './PrayerList.css'
 
 const PrayerList = () => {
@@ -13,6 +14,8 @@ const PrayerList = () => {
   const [selectedFilter, setSelectedFilter] = useState<PrayerFilterType>('all')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
+  const [showAnswerModal, setShowAnswerModal] = useState(false)
+  const [selectedPrayer, setSelectedPrayer] = useState<Prayer | null>(null)
   
   const {
     prayers,
@@ -24,6 +27,27 @@ const PrayerList = () => {
     handlePrayerToggle,
     isToggling,
   } = usePrayersInfinite(sort, selectedGroupId, selectedFilter)
+  
+  const handleAnswerToggle = (prayerId: number) => {
+    const prayer = prayers.find(p => p.id === prayerId)
+    if (prayer) {
+      setSelectedPrayer(prayer)
+      setShowAnswerModal(true)
+    }
+  }
+  
+  const handleAnswerSubmit = (testimony: string) => {
+    if (selectedPrayer) {
+      // TODO: 백엔드 API 연동
+      console.log('응답 등록:', {
+        prayerId: selectedPrayer.id,
+        testimony
+      })
+      
+      // 성공 메시지
+      alert(`✨ 응답이 등록되었습니다!\n\n"${selectedPrayer.title}"\n\n간증: ${testimony}\n\n(백엔드 연동 후 실제로 저장됩니다)`)
+    }
+  }
   
   return (
     <div className="prayer-list-page">
@@ -111,6 +135,7 @@ const PrayerList = () => {
                   key={prayer.id}
                   prayer={prayer}
                   onPrayerToggle={handlePrayerToggle}
+                  onAnswerToggle={handleAnswerToggle}
                   isToggling={isToggling}
                 />
               ))}
@@ -140,6 +165,15 @@ const PrayerList = () => {
       <JoinGroupModal
         isOpen={showJoinModal}
         onClose={() => setShowJoinModal(false)}
+      />
+      <AnswerModal
+        isOpen={showAnswerModal}
+        onClose={() => {
+          setShowAnswerModal(false)
+          setSelectedPrayer(null)
+        }}
+        onSubmit={handleAnswerSubmit}
+        prayerTitle={selectedPrayer?.title || ''}
       />
     </div>
   )
