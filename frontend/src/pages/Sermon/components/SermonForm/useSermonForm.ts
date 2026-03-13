@@ -4,6 +4,7 @@ import { useCreateSermon, useUpdateSermon } from '../../../../hooks/useSermons'
 import { showToast } from '../../../../utils/toast'
 import { validateFormData } from './validation'
 import { useAudioUpload } from './useAudioUpload'
+import { useTranscriptUpload } from './useTranscriptUpload'
 import type { Sermon } from '../../../../types/sermon'
 import type { SermonFormData } from './types'
 
@@ -19,9 +20,12 @@ export const useSermonForm = (onSuccess: () => void, onClose: () => void, sermon
     thumbnail_url: sermon?.thumbnail_url || '',
   })
 
+  const [createdSermonId, setCreatedSermonId] = useState<number | null>(sermon?.id || null)
+
   const createSermonMutation = useCreateSermon()
   const updateSermonMutation = useUpdateSermon()
   const audioUpload = useAudioUpload()
+  const transcriptUpload = useTranscriptUpload(createdSermonId)
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -56,7 +60,8 @@ export const useSermonForm = (onSuccess: () => void, onClose: () => void, sermon
         })
       } else {
         // 생성 모드
-        await createSermonMutation.mutateAsync(submitData)
+        const createdSermon = await createSermonMutation.mutateAsync(submitData)
+        setCreatedSermonId(createdSermon.id)
       }
 
       onSuccess()
@@ -77,6 +82,8 @@ export const useSermonForm = (onSuccess: () => void, onClose: () => void, sermon
     handleSubmit,
     handleClose,
     audioUpload,
+    transcriptUpload,
+    createdSermonId,
     isSubmitting: createSermonMutation.isPending || updateSermonMutation.isPending || audioUpload.audioState.isUploading,
     isEditMode: !!sermon,
   }

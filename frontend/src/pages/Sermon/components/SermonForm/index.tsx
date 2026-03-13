@@ -3,6 +3,7 @@ import { useState, useRef } from 'react'
 import { useSermonForm } from './useSermonForm'
 import { SermonFormFields } from './SermonFormFields'
 import { AudioUploadSection } from './AudioUploadSection'
+import { TranscriptUploadSection } from './TranscriptUploadSection'
 import AudioRecorder from '../AudioRecorder'
 import type { SermonFormProps } from './types'
 
@@ -13,6 +14,8 @@ const SermonForm = ({ sermon, onClose, onSuccess }: SermonFormProps) => {
     handleSubmit,
     handleClose,
     audioUpload,
+    transcriptUpload,
+    createdSermonId,
     isSubmitting,
     isEditMode,
   } = useSermonForm(onSuccess, onClose, sermon)
@@ -115,6 +118,18 @@ const SermonForm = ({ sermon, onClose, onSuccess }: SermonFormProps) => {
                   onRemove={audioUpload.removeAudio}
                 />
               </div>
+
+              {/* 트랜스크립트 업로드 (설교 등록 후 또는 수정 시) */}
+              {(createdSermonId || isEditMode) && (
+                <div className="mb-3">
+                  <TranscriptUploadSection
+                    sermonId={createdSermonId}
+                    onFileSelect={transcriptUpload.handleFileSelect}
+                    isUploading={transcriptUpload.isUploading}
+                    uploadResult={transcriptUpload.uploadResult}
+                  />
+                </div>
+              )}
             </div>
 
             {/* 제출 버튼 - 고정 */}

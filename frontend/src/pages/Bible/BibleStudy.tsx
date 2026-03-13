@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
 import {
   BibleHeader,
@@ -11,6 +12,8 @@ import {
 import './BibleStudy.css'
 
 const BibleStudy = () => {
+  const { bookNumber, chapter } = useParams<{ bookNumber?: string; chapter?: string }>()
+  
   const [selectedBookId, setSelectedBookId] = useState<number>(0)
   const [selectedBook, setSelectedBook] = useState<string>('')
   const [selectedChapter, setSelectedChapter] = useState<number>(1)
@@ -20,6 +23,28 @@ const BibleStudy = () => {
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
   
   const selectedBookData = books?.find(b => b.id === selectedBookId)
+  
+  // URL 파라미터로 책과 장이 전달된 경우 자동으로 선택
+  useEffect(() => {
+    if (bookNumber && chapter && books && books.length > 0) {
+      const bookNum = parseInt(bookNumber)
+      const chapterNum = parseInt(chapter)
+      
+      const book = books.find(b => b.book_number === bookNum)
+      if (book) {
+        setSelectedBookId(book.id)
+        setSelectedBook(book.book_name_ko)
+        setSelectedChapter(chapterNum)
+        setShowBookList(false)
+        setActiveTab('read')
+        
+        // 페이지 상단으로 스크롤
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }, 100)
+      }
+    }
+  }, [bookNumber, chapter, books])
   
   const { 
     data: chapterData, 

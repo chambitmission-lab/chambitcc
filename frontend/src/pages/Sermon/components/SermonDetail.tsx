@@ -4,6 +4,8 @@ import type { Sermon } from '../../../types/sermon'
 import { API_URL } from '../../../config/api'
 import { isAdmin } from '../../../utils/auth'
 import { useDeleteSermon } from '../../../hooks/useSermons'
+import { useSermonBibleReferences } from '../../../hooks/useSermonBibleReferences'
+import { BibleReferencesSection } from './BibleReferencesSection'
 import './SermonDetail.css'
 
 interface SermonDetailProps {
@@ -15,9 +17,19 @@ interface SermonDetailProps {
 
 const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) => {
   const modalRef = useRef<HTMLDivElement>(null)
+  const videoPlayerRef = useRef<HTMLIFrameElement>(null)
+  const audioPlayerRef = useRef<HTMLAudioElement>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const adminUser = isAdmin()
   const deleteSermonMutation = useDeleteSermon()
+  
+  // 설교별 성경 구절 목록 조회 (설교 상세에 포함되지 않은 경우 별도 조회)
+  const { data: bibleReferences, isLoading: isLoadingReferences } = useSermonBibleReferences(
+    sermon.bible_references && sermon.bible_references.length > 0 ? null : sermon.id
+  )
+  
+  // 설교 상세에 포함된 구절 또는 별도 조회한 구절 사용
+  const displayReferences = sermon.bible_references || bibleReferences || []
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -87,6 +99,28 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
   }
 
   const videoId = sermon.video_url ? extractYouTubeVideoId(sermon.video_url) : null
+
+  // 타임스탬프 클릭 핸들러 - 오디오 우선, 없으면 비디오
+  const handleTimestampClick = (timestamp: number) => {
+    // 1. 오디오 플레이어가 있으면 오디오 재생 (트랜스크립트는 음성 기반)
+    if (audioPlayerRef.current && sermon.audio_url) {
+      audioPlayerRef.current.currentTime = timestamp
+      audioPlayerRef.current.play()
+      
+      // 오디오 플레이어 위치로 스크롤
+      audioPlayerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    // 2. 오디오가 없고 비디오가 있으면 비디오 재생
+    else if (videoPlayerRef.current && videoId) {
+      const iframe = videoPlayerRef.current
+      const currentSrc = iframe.src
+      const newSrc = currentSrc.split('?')[0] + `?start=${Math.floor(timestamp)}&autoplay=1&playsinline=1&rel=0&modestbranding=1`
+      iframe.src = newSrc
+      
+      // 비디오 위치로 스크롤
+      iframe.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }
 
   return (
     <div className="sermon-detail-overlay">
@@ -178,6 +212,7 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
                 <h3>설교 음성</h3>
               </div>
               <audio
+                ref={audioPlayerRef}
                 controls
                 src={getAudioUrl()}
                 className="sermon-detail-audio-player"
@@ -192,12 +227,33 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
           {videoId && (
             <div className="sermon-detail-video-container">
               <iframe
+                ref={videoPlayerRef}
                 src={`https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1`}
                 title="설교 영상"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
                 className="sermon-detail-video-iframe"
               />
+            </div>
+          )}
+
+          {/* 언급된 성경 구절 */}
+          {displayReferences.length > 0 && (
+            <BibleReferencesSection
+              references={displayReferences}
+              videoId={videoId}
+              hasAudio={!!sermon.audio_url}
+              onTimestampClick={handleTimestampClick}
+            />
+          )}
+          
+          {/* 성경 구절 로딩 중 */}
+          {isLoadingReferences && (
+            <div className="sermon-detail-body">
+              <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+                <span className="material-icons-outlined animate-spin">refresh</span>
+                <span>성경 구절을 불러오는 중...</span>
+              </div>
             </div>
           )}
 

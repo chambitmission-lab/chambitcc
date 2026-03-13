@@ -118,6 +118,7 @@ function App() {
               <Route path="/prayer-focus" element={<PrayerFocus />} />
               <Route path="/answered-prayers" element={<AnsweredPrayers />} />
               <Route path="/bible" element={<BibleStudy />} />
+              <Route path="/bible/:bookNumber/:chapter" element={<BibleStudy />} />
               {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

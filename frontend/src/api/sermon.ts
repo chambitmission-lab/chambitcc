@@ -1,6 +1,6 @@
 // 설교 API 함수
 import { API_V1, apiFetch } from '../config/api'
-import type { Sermon, SermonCreateRequest, AudioUploadResponse } from '../types/sermon'
+import type { Sermon, SermonCreateRequest, AudioUploadResponse, TranscriptAnalysisResponse } from '../types/sermon'
 
 /**
  * 설교 목록 조회 (인증 불필요)
@@ -159,4 +159,49 @@ export const deleteAudioOnly = async (audioUrl: string): Promise<void> => {
     const error = await response.json()
     throw new Error(error.detail || '음성 파일 삭제에 실패했습니다')
   }
+}
+
+/**
+ * 트랜스크립트 업로드 및 성경 구절 자동 추출 (관리자 전용)
+ */
+export const analyzeTranscript = async (
+  sermonId: number,
+  file: File
+): Promise<TranscriptAnalysisResponse> => {
+  const token = localStorage.getItem('access_token')
+  
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
+  }
+  
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  const response = await apiFetch(`${API_V1}/sermons/${sermonId}/analyze-transcript`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '트랜스크립트 분석에 실패했습니다')
+  }
+  
+  return response.json()
+}
+
+/**
+ * 설교별 성경 구절 목록 조회
+ */
+export const getSermonBibleReferences = async (sermonId: number) => {
+  const response = await apiFetch(`${API_V1}/sermons/${sermonId}/bible-references`)
+  
+  if (!response.ok) {
+    throw new Error('성경 구절 목록을 불러오는데 실패했습니다')
+  }
+  
+  return response.json()
 }
