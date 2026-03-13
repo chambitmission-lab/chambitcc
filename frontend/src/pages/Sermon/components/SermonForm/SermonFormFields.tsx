@@ -93,9 +93,12 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
           onChange={onChange}
           rows={6}
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-          placeholder="설교 내용을 입력하세요"
+          placeholder="설교 내용을 입력하세요 (트랜스크립트 업로드 시 자동 생성 가능)"
           required
         />
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          💡 트랜스크립트 파일을 업로드하면 자동으로 생성됩니다
+        </p>
       </div>
 
       {/* 유튜브 URL */}

@@ -20,6 +20,8 @@ export interface TranscriptAnalysisResponse {
   sermon_id: number
   total_references: number
   references_saved: number
+  summary_generated: boolean
+  summary: string
   references: BibleReference[]
 }
 

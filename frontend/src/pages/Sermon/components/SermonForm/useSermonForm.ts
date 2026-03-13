@@ -25,7 +25,16 @@ export const useSermonForm = (onSuccess: () => void, onClose: () => void, sermon
   const createSermonMutation = useCreateSermon()
   const updateSermonMutation = useUpdateSermon()
   const audioUpload = useAudioUpload()
-  const transcriptUpload = useTranscriptUpload(createdSermonId)
+  
+  // 트랜스크립트 업로드 성공 시 설교 내용 업데이트 콜백
+  const handleTranscriptSuccess = (summary: string) => {
+    if (summary) {
+      setFormData(prev => ({ ...prev, content: summary }))
+      showToast('설교 내용이 업데이트되었습니다', 'info')
+    }
+  }
+  
+  const transcriptUpload = useTranscriptUpload(createdSermonId, handleTranscriptSuccess)
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

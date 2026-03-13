@@ -1,14 +1,15 @@
 // 트랜스크립트 업로드 섹션 컴포넌트
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { isAdmin } from '../../../../utils/auth'
 
 interface TranscriptUploadSectionProps {
   sermonId: number | null
-  onFileSelect: (file: File) => void
+  onFileSelect: (file: File, autoGenerateSummary: boolean) => void
   isUploading: boolean
   uploadResult: {
     total_references: number
     references_saved: number
+    summary_generated?: boolean
   } | null
 }
 
@@ -20,11 +21,12 @@ export const TranscriptUploadSection = ({
 }: TranscriptUploadSectionProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const adminUser = isAdmin()
+  const [autoGenerateSummary, setAutoGenerateSummary] = useState(true)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      onFileSelect(file)
+      onFileSelect(file, autoGenerateSummary)
     }
   }
 
@@ -58,13 +60,39 @@ export const TranscriptUploadSection = ({
               : '설교를 먼저 등록한 후 트랜스크립트를 업로드할 수 있습니다.'}
           </p>
 
+          {/* 자동 요약 생성 옵션 */}
+          {sermonId && (
+            <div className="mb-3 flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="auto-summary"
+                checked={autoGenerateSummary}
+                onChange={(e) => setAutoGenerateSummary(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label
+                htmlFor="auto-summary"
+                className="text-xs font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+              >
+                설교 내용 자동 생성 (트랜스크립트에서 요약 추출)
+              </label>
+            </div>
+          )}
+
           {uploadResult && (
             <div className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+              <div className="flex items-start gap-2 text-green-700 dark:text-green-400">
                 <span className="material-icons-outlined text-sm">check_circle</span>
-                <span className="text-xs font-medium">
-                  {uploadResult.references_saved}개의 성경 구절이 추출되었습니다
-                </span>
+                <div className="flex-1 text-xs">
+                  <div className="font-medium">
+                    {uploadResult.references_saved}개의 성경 구절이 추출되었습니다
+                  </div>
+                  {uploadResult.summary_generated && (
+                    <div className="mt-1 text-green-600 dark:text-green-500">
+                      ✓ 설교 내용이 자동으로 생성되었습니다
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -166,7 +166,8 @@ export const deleteAudioOnly = async (audioUrl: string): Promise<void> => {
  */
 export const analyzeTranscript = async (
   sermonId: number,
-  file: File
+  file: File,
+  autoGenerateSummary: boolean = true
 ): Promise<TranscriptAnalysisResponse> => {
   const token = localStorage.getItem('access_token')
   
@@ -177,13 +178,16 @@ export const analyzeTranscript = async (
   const formData = new FormData()
   formData.append('file', file)
   
-  const response = await apiFetch(`${API_V1}/sermons/${sermonId}/analyze-transcript`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-    body: formData,
-  })
+  const response = await apiFetch(
+    `${API_V1}/sermons/${sermonId}/analyze-transcript?auto_generate_summary=${autoGenerateSummary}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    }
+  )
   
   if (!response.ok) {
     const error = await response.json()

@@ -7,7 +7,9 @@
 ### 1. 관리자 기능
 - 설교 등록 후 트랜스크립트 JSON 파일 업로드
 - 자동으로 성경 구절 추출 및 저장
+- 설교 내용 자동 생성 옵션 (트랜스크립트에서 요약 추출)
 - 추출된 구절 개수 실시간 확인
+- 요약 생성 여부 확인
 
 ### 2. 사용자 기능
 - 설교 상세보기에서 언급된 성경 구절 확인
@@ -50,10 +52,13 @@
 
 2. **트랜스크립트 업로드**
    - 설교 등록 후 자동으로 "트랜스크립트 업로드" 섹션이 나타남
+   - "설교 내용 자동 생성" 체크박스 선택 (기본: 선택됨)
+     - 체크 시: 트랜스크립트에서 설교 내용 요약 자동 생성
+     - 해제 시: 성경 구절만 추출
    - "JSON 파일 선택" 버튼 클릭
    - 트랜스크립트 JSON 파일 선택
-   - 자동으로 성경 구절 추출 및 저장
-   - 추출된 구절 개수 확인
+   - 자동으로 성경 구절 추출 및 설교 내용 생성
+   - 추출된 구절 개수 및 요약 생성 여부 확인
 
 3. **기존 설교 수정 시**
    - 설교 상세보기에서 "수정" 버튼 클릭
@@ -187,12 +192,15 @@ function AdminPanel() {
 
 ### 트랜스크립트 분석
 ```
-POST /api/v1/sermons/{sermon_id}/analyze-transcript
+POST /api/v1/sermons/{sermon_id}/analyze-transcript?auto_generate_summary=true
 Authorization: Bearer {admin_token}
 Content-Type: multipart/form-data
 
 file: transcript.json
 ```
+
+**쿼리 파라미터:**
+- `auto_generate_summary` (boolean, optional): 설교 내용 자동 생성 여부 (기본값: true)
 
 **응답:**
 ```json
@@ -200,6 +208,8 @@ file: transcript.json
   "sermon_id": 123,
   "total_references": 7,
   "references_saved": 7,
+  "summary_generated": true,
+  "summary": "[사무엘상 3장 3절] 오늘 말씀에 사무엘상 3장 3절 상반절에...",
   "references": [...]
 }
 ```
@@ -249,6 +259,8 @@ GET /api/v1/sermons/{sermon_id}
 - [x] 설교별 성경 구절 목록 조회 훅 생성
 - [x] 트랜스크립트 업로드 컴포넌트 생성
 - [x] 트랜스크립트 업로드 훅 생성
+- [x] 설교 내용 자동 생성 옵션 추가
+- [x] 요약 생성 결과 표시
 - [x] 성경 구절 표시 컴포넌트 생성
 - [x] 성경 구절 관리 모달 컴포넌트 생성 (관리자용)
 - [x] 설교 폼에 트랜스크립트 업로드 통합
