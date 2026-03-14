@@ -100,6 +100,14 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo =
             </div>
           )}
           
+          {/* 벌과 나비 - 꽃이 있을 때만 표시 */}
+          {currentStage.flowers && currentStage.flowers.length > 0 && (
+            <div className="tree-insects">
+              <span className="insect bee">🐝</span>
+              <span className="insect butterfly">🦋</span>
+            </div>
+          )}
+          
           {/* 성장 효과 */}
           {versesRead > 0 && currentStage.sparkles && (
             <div className="tree-sparkles">
