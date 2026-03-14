@@ -1,19 +1,27 @@
 // 정원 데이터 관리 훅
 
 import { useMemo } from 'react'
-import { useReadVerses } from './useBibleReading'
 import { convertVersesToFlowers, groupFlowersByMonth } from '../utils/gardenCalculator'
 import type { GardenFlower, MonthlyGarden } from '../types/garden'
+import type { ReadVerse } from '../api/bibleReading'
+
+interface ReadVersesData {
+  read_verses: ReadVerse[]
+}
 
 export const useGarden = () => {
-  // 읽은 구절 데이터 가져오기
-  const { data: readVersesData, isLoading, error } = useReadVerses({
-    page_size: 1000, // 충분히 큰 값
-  })
+  // TODO: 백엔드 API 구현 후 활성화
+  // import { useReadVerses } from './useBibleReading'
+  // const { data: readVersesData, isLoading, error } = useReadVerses({
+  //   page_size: 1000,
+  // })
+  
+  // 임시: 빈 데이터 반환 (백엔드 API 준비될 때까지)
+  const readVersesData = null as ReadVersesData | null
 
   // 구절을 꽃으로 변환
   const flowers = useMemo<GardenFlower[]>(() => {
-    if (!readVersesData?.read_verses) return []
+    if (!readVersesData) return []
     return convertVersesToFlowers(readVersesData.read_verses)
   }, [readVersesData])
 
@@ -39,7 +47,7 @@ export const useGarden = () => {
     flowers,
     monthlyGardens,
     currentMonthGarden,
-    isLoading,
-    error,
+    isLoading: false,
+    error: null,
   }
 }
