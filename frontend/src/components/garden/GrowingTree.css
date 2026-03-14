@@ -489,6 +489,7 @@
   position: absolute;
   font-size: 1.2rem;
   animation: mushroom-sway 4s ease-in-out infinite;
+  transform-origin: bottom center;
 }
 
 .mushroom-1 {
@@ -505,49 +506,36 @@
 
 @keyframes mushroom-sway {
   0%, 100% {
-    transform: rotate(-2deg) scale(1);
+    transform: rotate(-2deg);
   }
   50% {
-    transform: rotate(2deg) scale(1.05);
+    transform: rotate(2deg);
   }
 }
 
-/* 돌멩이들 */
+/* 돌멩이들 - 움직이지 않음 */
 .rock {
   position: absolute;
   font-size: 1.8rem;
   opacity: 0.9;
-  animation: rock-settle 6s ease-in-out infinite;
 }
 
 .rock-1 {
   bottom: 8px;
   left: 25%;
   font-size: 2rem;
-  animation-delay: 0s;
 }
 
 .rock-2 {
   bottom: 12px;
   left: 65%;
   font-size: 1.6rem;
-  animation-delay: 2s;
 }
 
 .rock-3 {
   bottom: 6px;
   right: 15%;
   font-size: 1.9rem;
-  animation-delay: 4s;
-}
-
-@keyframes rock-settle {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
 }
 
 /* 풀 더미들 */
@@ -555,6 +543,7 @@
   position: absolute;
   font-size: 1.1rem;
   animation: grass-wave 3s ease-in-out infinite;
+  transform-origin: bottom center;
 }
 
 .tuft-1 {
@@ -583,10 +572,10 @@
 
 @keyframes grass-wave {
   0%, 100% {
-    transform: rotate(-3deg) translateY(0);
+    transform: rotate(-3deg);
   }
   50% {
-    transform: rotate(3deg) translateY(-3px);
+    transform: rotate(3deg);
   }
 }
 
