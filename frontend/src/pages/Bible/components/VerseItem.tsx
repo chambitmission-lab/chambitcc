@@ -33,7 +33,7 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
     onError: (error) => {
       console.error('Verse reading error:', error)
     },
-    threshold: 0.75
+    threshold: 0.5
   })
   
   // 읽기 시작/종료 시 최대 진행률 초기화

@@ -13,7 +13,7 @@ export const useVerseReading = ({
   verseText,
   onSuccess,
   onError,
-  threshold = 0.75
+  threshold = 0.5
 }: UseVerseReadingProps) => {
   const [spokenText, setSpokenText] = useState('')
   const [feedback, setFeedback] = useState<{
@@ -57,31 +57,31 @@ export const useVerseReading = ({
   const handleResult = useCallback((transcript: string, isFinal: boolean) => {
     setSpokenText(transcript)
 
-    // 최종 결과일 때만 검증
-    if (isFinal) {
-      const result = verifyVerseReading(verseText, transcript, threshold)
-      
-      if (result.isValid) {
-        setFeedback({
-          message: result.message,
-          type: 'success'
-        })
-        onSuccess(result.similarity)
-        // 성공 후 자동으로 중지
-        setTimeout(() => {
-          stopReading()
-        }, 1000)
-      } else {
-        setFeedback({
-          message: result.message,
-          type: 'error'
-        })
-        // 실패 시 다시 시도할 수 있도록 텍스트 초기화
-        setTimeout(() => {
-          setSpokenText('')
-          setFeedback(null)
-        }, 3000)
-      }
+    // 실시간으로 검증 (최종 결과를 기다리지 않음)
+    const result = verifyVerseReading(verseText, transcript, threshold)
+    
+    // 성공하면 즉시 처리
+    if (result.isValid) {
+      setFeedback({
+        message: result.message,
+        type: 'success'
+      })
+      onSuccess(result.similarity)
+      // 성공 후 자동으로 중지
+      setTimeout(() => {
+        stopReading()
+      }, 1000)
+    } else if (isFinal) {
+      // 최종 결과인데 실패한 경우에만 에러 표시
+      setFeedback({
+        message: result.message,
+        type: 'error'
+      })
+      // 실패 시 다시 시도할 수 있도록 텍스트 초기화
+      setTimeout(() => {
+        setSpokenText('')
+        setFeedback(null)
+      }, 3000)
     }
   }, [verseText, threshold, onSuccess])
 

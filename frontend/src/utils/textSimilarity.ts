@@ -69,16 +69,45 @@ export const calculateSimilarity = (text1: string, text2: string): number => {
 }
 
 /**
+ * 구조적 유사도 계산 (단어 순서와 구조 기반)
+ * 히브리 이름 등이 잘못 인식되어도 문장 구조가 비슷하면 높은 점수
+ */
+const calculateStructuralSimilarity = (text1: string, text2: string): number => {
+  const normalized1 = normalizeText(text1)
+  const normalized2 = normalizeText(text2)
+  
+  // 단어로 분리
+  const words1 = normalized1.split(/\s+/).filter(w => w.length > 0)
+  const words2 = normalized2.split(/\s+/).filter(w => w.length > 0)
+  
+  if (words1.length === 0 || words2.length === 0) {
+    return 0
+  }
+  
+  // 공통 단어 찾기
+  const commonWords = words1.filter(w => words2.includes(w))
+  
+  // 공통 단어 비율
+  const commonRatio = (commonWords.length * 2) / (words1.length + words2.length)
+  
+  // 길이 유사도 (단어 개수가 비슷한지)
+  const lengthRatio = Math.min(words1.length, words2.length) / Math.max(words1.length, words2.length)
+  
+  // 구조적 유사도 = 공통 단어 70% + 길이 유사도 30%
+  return commonRatio * 0.7 + lengthRatio * 0.3
+}
+
+/**
  * 성경 구절 읽기 검증 (개선 버전)
  * @param originalText 원본 성경 구절
  * @param spokenText 사용자가 읽은 텍스트
- * @param threshold 통과 기준 (기본 0.75 = 75%)
+ * @param threshold 통과 기준 (기본 0.5 = 50%)
  * @returns 검증 결과
  */
 export const verifyVerseReading = (
   originalText: string,
   spokenText: string,
-  threshold: number = 0.75
+  threshold: number = 0.5
 ): {
   isValid: boolean
   similarity: number
@@ -87,9 +116,23 @@ export const verifyVerseReading = (
   // 전체 유사도 계산
   const fullSimilarity = calculateSimilarity(originalText, spokenText)
   
+  // 구조적 유사도 계산 (단어 기반)
+  const structuralSimilarity = calculateStructuralSimilarity(originalText, spokenText)
+  
   // 최근 발화 내용 추출 (마지막 50% 정도)
   const normalized1 = normalizeText(originalText)
   const normalized2 = normalizeText(spokenText)
+  
+  // 디버깅 로그
+  console.log('Verse reading verification:', {
+    original: originalText,
+    spoken: spokenText,
+    normalized1,
+    normalized2,
+    fullSimilarity,
+    structuralSimilarity,
+    threshold
+  })
   
   // 최근 발화가 원본 텍스트를 포함하는지 확인
   const recentLength = Math.floor(normalized2.length * 0.5)
@@ -102,8 +145,16 @@ export const verifyVerseReading = (
     recentSimilarity = calculateSimilarity(originalEnd, recentSpoken)
   }
   
-  // 최종 유사도: 전체 70% + 최근 30% 가중치
-  const weightedSimilarity = fullSimilarity * 0.7 + recentSimilarity * 0.3
+  // 최종 유사도: 문자 유사도 40% + 구조적 유사도 40% + 최근 발화 20%
+  const weightedSimilarity = fullSimilarity * 0.4 + structuralSimilarity * 0.4 + recentSimilarity * 0.2
+  
+  console.log('Similarity calculation:', {
+    fullSimilarity,
+    structuralSimilarity,
+    recentSimilarity,
+    weightedSimilarity,
+    isValid: weightedSimilarity >= threshold
+  })
   
   const isValid = weightedSimilarity >= threshold
 
