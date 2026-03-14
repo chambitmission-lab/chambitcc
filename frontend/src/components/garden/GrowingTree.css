@@ -295,23 +295,23 @@
 }
 
 .tree-main.stage-2 .tree-emoji {
-  font-size: 6.5rem;
+  font-size: 7rem;
 }
 
 .tree-main.stage-3 .tree-emoji {
-  font-size: 8rem;
+  font-size: 10rem;
 }
 
 .tree-main.stage-4 .tree-emoji {
-  font-size: 9.5rem;
+  font-size: 13rem;
 }
 
 .tree-main.stage-5 .tree-emoji {
-  font-size: 11rem;
+  font-size: 16rem;
 }
 
 .tree-main.stage-6 .tree-emoji {
-  font-size: 13rem;
+  font-size: 18rem;
   animation: tree-sway 5s ease-in-out infinite, divine-glow 3s ease-in-out infinite;
 }
 
@@ -360,6 +360,98 @@
   50% {
     opacity: 1;
     transform: scale(1) translateY(-20px) rotate(180deg);
+  }
+}
+
+/* 꽃들 - 나무 주변에 자연스럽게 배치 */
+.tree-flowers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.tree-flower {
+  position: absolute;
+  font-size: 1.5rem;
+  animation: flower-bloom 3s ease-in-out infinite;
+}
+
+.tree-flower.flower-1 {
+  top: 5%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.tree-flower.flower-2 {
+  top: 8%;
+  right: 12%;
+  animation-delay: 0.5s;
+}
+
+.tree-flower.flower-3 {
+  top: 18%;
+  left: 5%;
+  animation-delay: 1s;
+}
+
+@keyframes flower-bloom {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+/* 열매들 - 나무 주변에 자연스럽게 배치 */
+.tree-fruits {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.tree-fruit {
+  position: absolute;
+  font-size: 1.3rem;
+  animation: fruit-sway 4s ease-in-out infinite;
+}
+
+.tree-fruit.fruit-1 {
+  top: 12%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.tree-fruit.fruit-2 {
+  top: 15%;
+  right: 18%;
+  animation-delay: 0.8s;
+}
+
+.tree-fruit.fruit-3 {
+  top: 25%;
+  left: 8%;
+  animation-delay: 1.6s;
+}
+
+.tree-fruit.fruit-4 {
+  top: 22%;
+  right: 10%;
+  animation-delay: 2.4s;
+}
+
+@keyframes fruit-sway {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(2deg);
   }
 }
 
@@ -593,23 +685,31 @@
   }
 
   .tree-main.stage-2 .tree-emoji {
-    font-size: 5rem !important;
+    font-size: 5.5rem !important;
   }
 
   .tree-main.stage-3 .tree-emoji {
-    font-size: 6.5rem !important;
-  }
-
-  .tree-main.stage-4 .tree-emoji {
     font-size: 7.5rem !important;
   }
 
+  .tree-main.stage-4 .tree-emoji {
+    font-size: 9.5rem !important;
+  }
+
   .tree-main.stage-5 .tree-emoji {
-    font-size: 9rem !important;
+    font-size: 11.5rem !important;
   }
 
   .tree-main.stage-6 .tree-emoji {
-    font-size: 10rem !important;
+    font-size: 13rem !important;
+  }
+  
+  .tree-flower {
+    font-size: 1.2rem;
+  }
+  
+  .tree-fruit {
+    font-size: 1rem;
   }
 
   .tree-info {

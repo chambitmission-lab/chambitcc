@@ -9,14 +9,25 @@ interface GrowingTreeProps {
 }
 
 // 나무 성장 단계 정의
-const TREE_STAGES = [
+interface TreeStage {
+  level: number
+  name: string
+  minVerses: number
+  emoji: string
+  flowers?: string[]
+  fruits?: string[]
+  sparkles?: boolean
+  description: string
+}
+
+const TREE_STAGES: TreeStage[] = [
   { level: 0, name: '씨앗', minVerses: 0, emoji: '🌰', description: '씨앗이 땅에 심어졌어요' },
   { level: 1, name: '새싹', minVerses: 10, emoji: '🌱', description: '작은 새싹이 돋아났어요' },
   { level: 2, name: '어린 묘목', minVerses: 30, emoji: '🌿', description: '푸른 잎이 자라나고 있어요' },
   { level: 3, name: '자라는 나무', minVerses: 60, emoji: '🌳', description: '튼튼한 나무로 자라고 있어요' },
-  { level: 4, name: '꽃 피는 나무', minVerses: 100, emoji: '🌸🌳', description: '아름다운 꽃이 피었어요' },
-  { level: 5, name: '열매 맺는 나무', minVerses: 150, emoji: '🍎🌳', description: '풍성한 열매를 맺었어요' },
-  { level: 6, name: '생명의 나무', minVerses: 300, emoji: '✨🌳✨', description: '완전히 성장한 생명의 나무예요' },
+  { level: 4, name: '꽃 피는 나무', minVerses: 100, emoji: '🌳', flowers: ['🌸', '🌸', '🌸'], description: '아름다운 꽃이 피었어요' },
+  { level: 5, name: '열매 맺는 나무', minVerses: 150, emoji: '🌳', flowers: ['🌸', '🌸'], fruits: ['🍎', '🍎', '🍎'], description: '풍성한 열매를 맺었어요' },
+  { level: 6, name: '생명의 나무', minVerses: 300, emoji: '🌳', flowers: ['🌸', '🌸', '🌸'], fruits: ['🍎', '🍎', '🍎', '🍎'], sparkles: true, description: '완전히 성장한 생명의 나무예요' },
 ]
 
 export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo = true }) => {
@@ -67,8 +78,30 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo =
         <div className={`tree-main stage-${currentStage.level}`}>
           <div className="tree-emoji">{currentStage.emoji}</div>
           
+          {/* 꽃들 - 나무 주변에 배치 */}
+          {currentStage.flowers && currentStage.flowers.length > 0 && (
+            <div className="tree-flowers">
+              {currentStage.flowers.map((flower, index) => (
+                <span key={`flower-${index}`} className={`tree-flower flower-${index + 1}`}>
+                  {flower}
+                </span>
+              ))}
+            </div>
+          )}
+          
+          {/* 열매들 - 나무 주변에 배치 */}
+          {currentStage.fruits && currentStage.fruits.length > 0 && (
+            <div className="tree-fruits">
+              {currentStage.fruits.map((fruit, index) => (
+                <span key={`fruit-${index}`} className={`tree-fruit fruit-${index + 1}`}>
+                  {fruit}
+                </span>
+              ))}
+            </div>
+          )}
+          
           {/* 성장 효과 */}
-          {versesRead > 0 && (
+          {versesRead > 0 && currentStage.sparkles && (
             <div className="tree-sparkles">
               <span className="sparkle">✨</span>
               <span className="sparkle">✨</span>
