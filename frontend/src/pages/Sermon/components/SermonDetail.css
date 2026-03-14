@@ -321,15 +321,16 @@
 
 .sermon-detail-body-text {
   color: #262626;
-  font-size: 0.875rem;
-  line-height: 1.6;
+  font-size: 0.9375rem;
+  line-height: 1.8;
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .dark .sermon-detail-body-text {
-  color: #fafafa;
+  color: #e5e7eb;
 }
 
 /* 삭제 확인 모달 */

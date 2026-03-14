@@ -6,6 +6,7 @@ import { isAdmin } from '../../../utils/auth'
 import { useDeleteSermon } from '../../../hooks/useSermons'
 import { useSermonBibleReferences } from '../../../hooks/useSermonBibleReferences'
 import { BibleReferencesSection } from './BibleReferencesSection'
+import SermonContentFormatter from './SermonContentFormatter'
 import './SermonDetail.css'
 
 interface SermonDetailProps {
@@ -260,7 +261,7 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
           {/* 설교 내용 */}
           <div className="sermon-detail-body">
             <h3 className="sermon-detail-body-title">설교 내용</h3>
-            <p className="sermon-detail-body-text">{sermon.content}</p>
+            <SermonContentFormatter content={sermon.content} />
           </div>
         </div>
 
