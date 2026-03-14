@@ -154,6 +154,14 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
     }
     startReading()
   }
+  
+  // 읽기 리셋 (처음부터 다시)
+  const handleResetReading = () => {
+    stopReading()
+    setTimeout(() => {
+      startReading()
+    }, 100)
+  }
 
   return (
     <div 
@@ -242,19 +250,55 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
               fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'space-between',
               gap: '0.5rem',
               border: '1px solid rgba(251, 191, 36, 0.2)',
               boxShadow: '0 2px 8px rgba(251, 191, 36, 0.1)'
             }}>
-              <span className="material-icons-outlined" style={{ 
-                fontSize: '1.25rem',
-                color: 'rgba(251, 191, 36, 0.8)',
-                animation: 'gentlePulse 2s ease-in-out infinite'
-              }}>
-                mic
-              </span>
-              <span>말씀을 읽어주세요...</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="material-icons-outlined" style={{ 
+                  fontSize: '1.25rem',
+                  color: 'rgba(251, 191, 36, 0.8)',
+                  animation: 'gentlePulse 2s ease-in-out infinite'
+                }}>
+                  mic
+                </span>
+                <span>말씀을 읽어주세요...</span>
+              </div>
+              
+              {/* 처음부터 다시 버튼 */}
+              <button
+                onClick={handleResetReading}
+                style={{
+                  padding: '0.4rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  border: '1px solid rgba(251, 191, 36, 0.3)',
+                  background: 'rgba(251, 191, 36, 0.1)',
+                  color: '#d97706',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(251, 191, 36, 0.2)'
+                  e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.5)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(251, 191, 36, 0.1)'
+                  e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.3)'
+                }}
+                title="틀렸다면 처음부터 다시 읽기"
+              >
+                <span className="material-icons-round" style={{ fontSize: '1rem' }}>
+                  refresh
+                </span>
+                다시
+              </button>
             </div>
             
             {/* 진행률 바 */}
@@ -326,6 +370,46 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
           <div style={{ lineHeight: 1.5 }}>
             {feedback.message}
           </div>
+          
+          {/* 에러일 때 다시 시도 버튼 */}
+          {feedback.type === 'error' && (
+            <button
+              onClick={() => {
+                setShowFeedback(false)
+                handleStartReading()
+              }}
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+                color: 'white',
+                fontSize: '0.9375rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 2px 8px rgba(220, 38, 38, 0.3)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.4)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(220, 38, 38, 0.3)'
+              }}
+            >
+              <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>
+                replay
+              </span>
+              다시 시도
+            </button>
+          )}
+          
           <style>{`
             @keyframes fadeInScale {
               0% {

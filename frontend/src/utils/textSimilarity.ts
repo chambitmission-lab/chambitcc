@@ -69,7 +69,7 @@ export const calculateSimilarity = (text1: string, text2: string): number => {
 }
 
 /**
- * 성경 구절 읽기 검증
+ * 성경 구절 읽기 검증 (개선 버전)
  * @param originalText 원본 성경 구절
  * @param spokenText 사용자가 읽은 텍스트
  * @param threshold 통과 기준 (기본 0.75 = 75%)
@@ -84,22 +84,42 @@ export const verifyVerseReading = (
   similarity: number
   message: string
 } => {
-  const similarity = calculateSimilarity(originalText, spokenText)
-  const isValid = similarity >= threshold
+  // 전체 유사도 계산
+  const fullSimilarity = calculateSimilarity(originalText, spokenText)
+  
+  // 최근 발화 내용 추출 (마지막 50% 정도)
+  const normalized1 = normalizeText(originalText)
+  const normalized2 = normalizeText(spokenText)
+  
+  // 최근 발화가 원본 텍스트를 포함하는지 확인
+  const recentLength = Math.floor(normalized2.length * 0.5)
+  const recentSpoken = normalized2.slice(-recentLength)
+  
+  // 최근 발화가 원본 텍스트의 끝부분과 얼마나 일치하는지
+  let recentSimilarity = 0
+  if (recentSpoken.length > 0 && normalized1.length > 0) {
+    const originalEnd = normalized1.slice(-recentLength)
+    recentSimilarity = calculateSimilarity(originalEnd, recentSpoken)
+  }
+  
+  // 최종 유사도: 전체 70% + 최근 30% 가중치
+  const weightedSimilarity = fullSimilarity * 0.7 + recentSimilarity * 0.3
+  
+  const isValid = weightedSimilarity >= threshold
 
   let message = ''
   if (isValid) {
-    if (similarity >= 0.95) {
+    if (weightedSimilarity >= 0.95) {
       message = '아멘! 말씀을 마음에 새기셨습니다 ✨'
-    } else if (similarity >= 0.85) {
+    } else if (weightedSimilarity >= 0.85) {
       message = '하나님의 말씀을 잘 읽으셨습니다 🙏'
     } else {
       message = '말씀과 함께하셨습니다 💫'
     }
   } else {
-    if (similarity >= 0.6) {
+    if (weightedSimilarity >= 0.6) {
       message = '천천히 다시 한번 읽어보세요 📖'
-    } else if (similarity >= 0.4) {
+    } else if (weightedSimilarity >= 0.4) {
       message = '말씀을 다시 확인해주세요 📕'
     } else {
       message = '구절을 다시 읽어주세요 📖'
@@ -108,7 +128,7 @@ export const verifyVerseReading = (
 
   return {
     isValid,
-    similarity: Math.round(similarity * 100) / 100,
+    similarity: Math.round(weightedSimilarity * 100) / 100,
     message
   }
 }
