@@ -1,0 +1,228 @@
+.virtual-garden {
+  width: 100%;
+  min-height: 400px;
+  background: linear-gradient(to bottom, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] .virtual-garden {
+  background: linear-gradient(to bottom, #1e3a5f 0%, #2d5a7b 50%, #3b7197 100%);
+}
+
+.garden-ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(to bottom, #86efac 0%, #4ade80 50%, #22c55e 100%);
+  border-radius: 0 0 16px 16px;
+}
+
+[data-theme='dark'] .garden-ground {
+  background: linear-gradient(to bottom, #166534 0%, #15803d 50%, #16a34a 100%);
+}
+
+.garden-flowers-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+}
+
+.garden-flower {
+  position: absolute;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: flower-bloom 0.6s ease-out;
+  transform-origin: bottom center;
+}
+
+.garden-flower:hover {
+  transform: scale(1.2) translateY(-5px);
+  filter: brightness(1.2);
+  z-index: 10;
+}
+
+@keyframes flower-bloom {
+  0% {
+    opacity: 0;
+    transform: scale(0) translateY(20px);
+  }
+  50% {
+    transform: scale(1.1) translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.flower-emoji {
+  font-size: 1em;
+  line-height: 1;
+  user-select: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* 꽃 툴팁 */
+.flower-tooltip {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 100;
+}
+
+.garden-flower:hover .flower-tooltip {
+  opacity: 1;
+}
+
+.flower-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+/* 빈 정원 상태 */
+.garden-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  gap: 1rem;
+}
+
+.garden-empty-icon {
+  font-size: 4rem;
+  opacity: 0.5;
+}
+
+.garden-empty-text {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  max-width: 300px;
+}
+
+.garden-empty-hint {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+}
+
+/* 정원 통계 */
+.garden-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.garden-stat-card {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] .garden-stat-card {
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.garden-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.garden-stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* 정원 레벨 */
+.garden-level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 1rem;
+}
+
+/* 월별 정원 헤더 */
+.monthly-garden-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.monthly-garden-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.monthly-garden-count {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .virtual-garden {
+    padding: 1rem;
+    min-height: 300px;
+  }
+  
+  .garden-flowers-container {
+    min-height: 300px;
+  }
+  
+  .garden-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .garden-stat-card {
+    padding: 0.75rem;
+  }
+  
+  .garden-stat-value {
+    font-size: 1.25rem;
+  }
+  
+  .garden-empty-icon {
+    font-size: 3rem;
+  }
+  
+  .garden-empty-text {
+    font-size: 1rem;
+  }
+}

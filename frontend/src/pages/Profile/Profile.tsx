@@ -160,6 +160,7 @@ const Profile = () => {
           username={stats.username}
           fullName={stats.full_name}
           glowLevel={glowLevel}
+          activityPoints={activityPoints}
         />
 
         {/* 레벨 진행도 */}

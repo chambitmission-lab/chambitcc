@@ -34,6 +34,7 @@ import EventDetail from './pages/Events/EventDetail'
 import PrayerFocus from './pages/PrayerFocus'
 import BibleStudy from './pages/Bible/BibleStudy'
 import AnsweredPrayers from './pages/Prayer/AnsweredPrayers'
+import { Garden } from './pages/Garden/Garden'
 import './App.css'
 import './styles/common.css'
 
@@ -119,6 +120,7 @@ function App() {
               <Route path="/answered-prayers" element={<AnsweredPrayers />} />
               <Route path="/bible" element={<BibleStudy />} />
               <Route path="/bible/:bookNumber/:chapter" element={<BibleStudy />} />
+              <Route path="/garden" element={<Garden />} />
               {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

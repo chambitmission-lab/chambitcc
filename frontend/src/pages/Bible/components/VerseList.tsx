@@ -4,6 +4,7 @@ import type { BibleChapterPaginatedResponse } from '../../../types/bible'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import VerseItem from './VerseItem'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
+import { celebrateFlowerBloom } from '../../../utils/confettiEffects'
 
 interface VerseListProps {
   chapterData: InfiniteData<BibleChapterPaginatedResponse> | undefined
@@ -83,6 +84,9 @@ const VerseList = ({
     try {
       // 백엔드 API 호출
       await markAsReadMutation.mutateAsync({ verseId, similarity })
+      
+      // 꽃 피어남 축하 효과
+      celebrateFlowerBloom()
       
       // 명시적으로 읽음 상태 다시 조회
       await refetchReadStatus()

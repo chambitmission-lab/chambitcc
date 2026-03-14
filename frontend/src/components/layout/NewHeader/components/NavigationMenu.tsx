@@ -6,6 +6,7 @@ const MENU_ITEMS = [
   { path: '/worship', key: 'worship' as const },
   { path: '/sermon', key: 'sermon' as const },
   { path: '/bible', key: 'bible' as const },
+  { path: '/garden', label: '🌸 나의 정원' },
   { path: '/answered-prayers', label: '✨ 응답의 전당' },
   { path: '/events', key: 'events' as const },
   { path: '/ministry', key: 'ministry' as const },
