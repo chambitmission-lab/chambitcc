@@ -234,3 +234,65 @@
     font-size: 1.25rem;
   }
 }
+
+/* 주보 탭 */
+.bulletin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 1rem 1.5rem;
+  border-bottom: 1px solid var(--ig-border);
+  margin-bottom: 1.5rem;
+}
+
+.bulletin-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  background: var(--ig-secondary-background);
+  border: 2px solid var(--ig-border);
+  border-radius: 12px;
+  color: var(--ig-secondary-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bulletin-tab .material-icons-round {
+  font-size: 1.25rem;
+}
+
+.bulletin-tab:hover {
+  background: var(--ig-hover);
+  border-color: #667eea;
+  color: var(--ig-primary-text);
+}
+
+.bulletin-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.bulletin-tab.active .material-icons-round {
+  color: white;
+}
+
+@media (max-width: 480px) {
+  .bulletin-tabs {
+    padding: 0 0.75rem 1rem;
+  }
+
+  .bulletin-tab {
+    font-size: 0.875rem;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .bulletin-tab .material-icons-round {
+    font-size: 1.125rem;
+  }
+}

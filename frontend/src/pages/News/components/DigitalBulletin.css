@@ -1,0 +1,388 @@
+/* Digital Bulletin - 디지털 주보 */
+
+.digital-bulletin {
+  background: var(--ig-secondary-background);
+  min-height: 100vh;
+}
+
+/* 헤더 */
+.digital-bulletin-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.digital-bulletin-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.05)"/></svg>');
+  opacity: 0.3;
+}
+
+.bulletin-date {
+  font-size: 0.875rem;
+  font-weight: 600;
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.bulletin-main-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.4;
+  margin: 0.5rem 0;
+  white-space: pre-line;
+  position: relative;
+}
+
+.bulletin-scripture {
+  font-size: 0.9375rem;
+  opacity: 0.95;
+  margin-top: 0.5rem;
+  font-weight: 500;
+  position: relative;
+}
+
+/* 섹션 */
+.bulletin-section {
+  margin: 0.75rem 1rem;
+  background: var(--ig-primary-background);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--ig-border);
+  transition: all 0.2s;
+}
+
+.bulletin-section:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.section-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.section-header:hover {
+  background: var(--ig-hover);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-icon {
+  font-size: 1.5rem;
+}
+
+.section-title h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+  margin: 0;
+}
+
+.expand-icon {
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+  transition: transform 0.3s;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.section-content {
+  padding: 0 1.25rem 1.25rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 예배 일정 */
+.worship-schedule {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.worship-service {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--ig-secondary-background);
+  border-radius: 8px;
+  border: 1px solid var(--ig-border);
+}
+
+.service-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.service-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+}
+
+.service-time {
+  font-size: 0.875rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.service-preacher {
+  font-size: 0.875rem;
+  color: var(--ig-secondary-text);
+  font-weight: 600;
+}
+
+/* 예배 상세 정보 */
+.worship-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ig-border);
+}
+
+.detail-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--ig-secondary-background);
+  border-radius: 8px;
+}
+
+.detail-item.sermon {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  min-width: 60px;
+}
+
+.detail-value {
+  font-size: 0.875rem;
+  color: var(--ig-primary-text);
+  line-height: 1.6;
+}
+
+.sermon-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sermon-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+  line-height: 1.5;
+}
+
+.sermon-subtitle {
+  font-size: 0.8125rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* 공지사항 */
+.announcements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.announcement-item {
+  padding: 1rem;
+  background: var(--ig-secondary-background);
+  border-radius: 8px;
+  border-left: 3px solid #667eea;
+}
+
+.announcement-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.5;
+}
+
+.announcement-content {
+  font-size: 0.875rem;
+  color: var(--ig-secondary-text);
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* 구역 보고 */
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.group-card {
+  padding: 1rem;
+  background: var(--ig-secondary-background);
+  border-radius: 8px;
+  border: 1px solid var(--ig-border);
+  transition: all 0.2s;
+}
+
+.group-card:hover {
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.group-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #667eea;
+}
+
+.group-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.group-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.group-detail .label {
+  color: var(--ig-secondary-text);
+  font-weight: 600;
+}
+
+.group-detail .value {
+  color: var(--ig-primary-text);
+  font-weight: 700;
+}
+
+/* 주간 일정 */
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.schedule-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--ig-secondary-background);
+  border-radius: 8px;
+  border: 1px solid var(--ig-border);
+  align-items: center;
+}
+
+.schedule-day {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.schedule-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.schedule-event {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+}
+
+.schedule-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--ig-secondary-text);
+}
+
+.schedule-time {
+  font-weight: 600;
+}
+
+.schedule-location {
+  font-weight: 500;
+}
+
+/* 반응형 */
+@media (max-width: 480px) {
+  .digital-bulletin-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .bulletin-main-title {
+    font-size: 1.25rem;
+  }
+
+  .groups-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .worship-service {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .service-preacher {
+    align-self: flex-end;
+  }
+}

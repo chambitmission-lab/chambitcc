@@ -3,6 +3,7 @@ import { getBulletins, getBulletinDetail } from '../../api/bulletin'
 import { showToast } from '../../utils/toast'
 import type { Bulletin } from '../../types/bulletin'
 import InstagramBulletinViewer from './components/InstagramBulletinViewer'
+import DigitalBulletin from './components/DigitalBulletin'
 import '../../pages/Bulletin/Bulletin.css'
 
 const News = () => {
@@ -10,6 +11,7 @@ const News = () => {
   const [selectedBulletin, setSelectedBulletin] = useState<Bulletin | null>(null)
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
+  const [bulletinType, setBulletinType] = useState<'image' | 'digital'>('image')
 
   useEffect(() => {
     loadBulletins()
@@ -73,51 +75,77 @@ const News = () => {
             <p className="bulletin-subtitle">참빛교회 주간 소식</p>
           </div>
 
-          {bulletins.length === 0 ? (
-            <div className="bulletin-empty">
-              <div className="empty-icon">📰</div>
-              <p>등록된 주보가 없습니다</p>
-            </div>
-          ) : (
-            <div className="bulletin-grid">
-              {bulletins.map((bulletin) => (
-                <article 
-                  key={bulletin.id} 
-                  className="bulletin-card"
-                  onClick={() => handleBulletinClick(bulletin)}
-                >
-                  {bulletin.thumbnail_url && (
-                    <div className="bulletin-thumbnail">
-                      <img 
-                        src={bulletin.thumbnail_url} 
-                        alt={bulletin.title}
-                      />
-                      <div className="page-badge">
-                        {bulletin.page_count}페이지
+          {/* 탭 전환 */}
+          <div className="bulletin-tabs">
+            <button 
+              className={`bulletin-tab ${bulletinType === 'image' ? 'active' : ''}`}
+              onClick={() => setBulletinType('image')}
+            >
+              <span className="material-icons-round">image</span>
+              이미지 주보
+            </button>
+            <button 
+              className={`bulletin-tab ${bulletinType === 'digital' ? 'active' : ''}`}
+              onClick={() => setBulletinType('digital')}
+            >
+              <span className="material-icons-round">article</span>
+              디지털 주보
+            </button>
+          </div>
+
+          {/* 이미지 주보 */}
+          {bulletinType === 'image' && (
+            <>
+              {bulletins.length === 0 ? (
+                <div className="bulletin-empty">
+                  <div className="empty-icon">📰</div>
+                  <p>등록된 주보가 없습니다</p>
+                </div>
+              ) : (
+                <div className="bulletin-grid">
+                  {bulletins.map((bulletin) => (
+                    <article 
+                      key={bulletin.id} 
+                      className="bulletin-card"
+                      onClick={() => handleBulletinClick(bulletin)}
+                    >
+                      {bulletin.thumbnail_url && (
+                        <div className="bulletin-thumbnail">
+                          <img 
+                            src={bulletin.thumbnail_url} 
+                            alt={bulletin.title}
+                          />
+                          <div className="page-badge">
+                            {bulletin.page_count}페이지
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="bulletin-info">
+                        <h3 className="bulletin-title">{bulletin.title}</h3>
+                        {bulletin.description && (
+                          <p className="bulletin-description">{bulletin.description}</p>
+                        )}
+                        <div className="bulletin-meta">
+                          <div className="bulletin-date">
+                            {new Date(bulletin.bulletin_date).toLocaleDateString('ko-KR', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </div>
+                          <div className="bulletin-views">👁️ {bulletin.views}</div>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  <div className="bulletin-info">
-                    <h3 className="bulletin-title">{bulletin.title}</h3>
-                    {bulletin.description && (
-                      <p className="bulletin-description">{bulletin.description}</p>
-                    )}
-                    <div className="bulletin-meta">
-                      <div className="bulletin-date">
-                        {new Date(bulletin.bulletin_date).toLocaleDateString('ko-KR', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </div>
-                      <div className="bulletin-views">👁️ {bulletin.views}</div>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </>
           )}
+
+          {/* 디지털 주보 */}
+          {bulletinType === 'digital' && <DigitalBulletin />}
         </div>
       </div>
     </div>
