@@ -1,15 +1,10 @@
 // 정원 메인 페이지
 
-import { useState } from 'react'
 import { GrowingTree } from '../../components/garden/GrowingTree'
-import { GrowthChart } from '../../components/garden/GrowthChart'
 import { useGarden } from '../../hooks/useGarden'
 import './Garden.css'
 
-type ChartType = 'area' | 'line' | 'bar'
-
 export const Garden: React.FC = () => {
-  const [chartType, setChartType] = useState<ChartType>('area')
   const { flowers, isLoading, error } = useGarden()
 
   if (isLoading) {
@@ -48,39 +43,6 @@ export const Garden: React.FC = () => {
       <div className="garden-section">
         <GrowingTree versesRead={flowers.length} showInfo />
       </div>
-
-      {/* 성장 차트 */}
-      {flowers.length > 0 && (
-        <div className="garden-section">
-          <h2 className="garden-section-title">
-            <span className="garden-section-icon">📊</span>
-            성장 기록
-          </h2>
-          <div className="chart-section">
-            <div className="chart-tabs">
-              <button
-                className={`chart-tab ${chartType === 'area' ? 'active' : ''}`}
-                onClick={() => setChartType('area')}
-              >
-                영역 차트
-              </button>
-              <button
-                className={`chart-tab ${chartType === 'line' ? 'active' : ''}`}
-                onClick={() => setChartType('line')}
-              >
-                선 차트
-              </button>
-              <button
-                className={`chart-tab ${chartType === 'bar' ? 'active' : ''}`}
-                onClick={() => setChartType('bar')}
-              >
-                막대 차트
-              </button>
-            </div>
-            <GrowthChart flowers={flowers} type={chartType} />
-          </div>
-        </div>
-      )}
     </div>
   )
 }
