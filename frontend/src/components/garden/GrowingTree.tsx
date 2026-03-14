@@ -1,6 +1,6 @@
 // 성장하는 나무 컴포넌트
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import './GrowingTree.css'
 
 interface GrowingTreeProps {
@@ -30,7 +30,34 @@ const TREE_STAGES: TreeStage[] = [
   { level: 6, name: '생명의 나무', minVerses: 300, emoji: '🌳', flowers: ['🌸', '🌸', '🌸'], fruits: ['🍎', '🍎', '🍎', '🍎'], sparkles: true, description: '완전히 성장한 생명의 나무예요' },
 ]
 
+// 시간대 타입
+type TimeOfDay = 'dawn' | 'day' | 'dusk' | 'night'
+
+// 한국 시간 기준으로 시간대 계산
+const getTimeOfDay = (): TimeOfDay => {
+  const now = new Date()
+  // 한국 시간으로 변환 (UTC+9)
+  const koreaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+  const hour = koreaTime.getHours()
+  
+  if (hour >= 5 && hour < 7) return 'dawn'      // 새벽 5-7시
+  if (hour >= 7 && hour < 17) return 'day'      // 낮 7-17시
+  if (hour >= 17 && hour < 19) return 'dusk'    // 저녁 17-19시
+  return 'night'                                 // 밤 19-5시
+}
+
 export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo = true }) => {
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay())
+  
+  // 1분마다 시간대 업데이트
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeOfDay(getTimeOfDay())
+    }, 60000) // 1분
+    
+    return () => clearInterval(interval)
+  }, [])
+  
   // 현재 나무 단계 계산
   const currentStage = useMemo(() => {
     for (let i = TREE_STAGES.length - 1; i >= 0; i--) {
@@ -59,13 +86,36 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo =
   return (
     <div className="growing-tree-container">
       {/* 나무 표시 영역 */}
-      <div className="tree-display">
+      <div className={`tree-display time-${timeOfDay}`}>
         <div className="tree-background">
           {/* 하늘 */}
           <div className="tree-sky">
-            <div className="sun"></div>
-            <div className="cloud cloud-1"></div>
-            <div className="cloud cloud-2"></div>
+            {/* 낮: 태양 */}
+            {(timeOfDay === 'day' || timeOfDay === 'dawn') && (
+              <div className="sun"></div>
+            )}
+            
+            {/* 밤: 달과 별 */}
+            {(timeOfDay === 'night' || timeOfDay === 'dusk') && (
+              <>
+                <div className="moon"></div>
+                <div className="stars">
+                  <span className="star star-1">⭐</span>
+                  <span className="star star-2">⭐</span>
+                  <span className="star star-3">⭐</span>
+                  <span className="star star-4">✨</span>
+                  <span className="star star-5">✨</span>
+                </div>
+              </>
+            )}
+            
+            {/* 낮: 구름 */}
+            {(timeOfDay === 'day' || timeOfDay === 'dawn') && (
+              <>
+                <div className="cloud cloud-1"></div>
+                <div className="cloud cloud-2"></div>
+              </>
+            )}
           </div>
           
           {/* 땅 */}

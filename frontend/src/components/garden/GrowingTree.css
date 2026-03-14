@@ -30,6 +30,11 @@
 .tree-background {
   position: absolute;
   inset: 0;
+  transition: background 2s ease;
+}
+
+/* 낮 배경 */
+.tree-display.time-day .tree-background {
   background: linear-gradient(
     180deg,
     #e0f2fe 0%,
@@ -37,6 +42,42 @@
     #7dd3fc 60%,
     #4ade80 85%,
     #22c55e 100%
+  );
+}
+
+/* 새벽 배경 */
+.tree-display.time-dawn .tree-background {
+  background: linear-gradient(
+    180deg,
+    #fef3c7 0%,
+    #fde68a 30%,
+    #fcd34d 50%,
+    #86efac 75%,
+    #4ade80 100%
+  );
+}
+
+/* 저녁 배경 */
+.tree-display.time-dusk .tree-background {
+  background: linear-gradient(
+    180deg,
+    #fed7aa 0%,
+    #fdba74 30%,
+    #fb923c 50%,
+    #4ade80 75%,
+    #22c55e 100%
+  );
+}
+
+/* 밤 배경 */
+.tree-display.time-night .tree-background {
+  background: linear-gradient(
+    180deg,
+    #0f172a 0%,
+    #1e293b 30%,
+    #334155 50%,
+    #166534 75%,
+    #14532d 100%
   );
 }
 
@@ -101,6 +142,93 @@
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+/* 달 - CSS로 그린 달 */
+.moon {
+  position: absolute;
+  top: 40px;
+  right: 50px;
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, #fef3c7 0%, #fde68a 70%);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 30px rgba(254, 243, 199, 0.6),
+    0 0 60px rgba(254, 243, 199, 0.3),
+    inset -10px -10px 20px rgba(253, 224, 71, 0.3);
+  animation: moon-glow 4s ease-in-out infinite;
+}
+
+@keyframes moon-glow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 0 30px rgba(254, 243, 199, 0.6),
+      0 0 60px rgba(254, 243, 199, 0.3),
+      inset -10px -10px 20px rgba(253, 224, 71, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 
+      0 0 40px rgba(254, 243, 199, 0.8),
+      0 0 80px rgba(254, 243, 199, 0.4),
+      inset -10px -10px 20px rgba(253, 224, 71, 0.4);
+  }
+}
+
+/* 별들 */
+.stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  font-size: 1rem;
+  animation: star-twinkle 3s ease-in-out infinite;
+}
+
+.star-1 {
+  top: 15%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.star-2 {
+  top: 25%;
+  left: 35%;
+  animation-delay: 0.8s;
+}
+
+.star-3 {
+  top: 10%;
+  right: 20%;
+  animation-delay: 1.6s;
+}
+
+.star-4 {
+  top: 30%;
+  right: 10%;
+  animation-delay: 2.4s;
+}
+
+.star-5 {
+  top: 20%;
+  left: 50%;
+  animation-delay: 1.2s;
+}
+
+@keyframes star-twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
   }
 }
 
