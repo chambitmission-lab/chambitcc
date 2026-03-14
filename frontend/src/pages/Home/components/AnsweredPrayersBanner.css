@@ -11,8 +11,9 @@
 
 @media (prefers-color-scheme: dark) {
   .answered-prayers-banner {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(147, 51, 234, 0.15) 100%);
-    border-color: rgba(168, 85, 247, 0.3);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(147, 51, 234, 0.25) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.2), inset 0 0 20px rgba(168, 85, 247, 0.1);
   }
 }
 
@@ -41,7 +42,17 @@
 
 .banner-icon {
   font-size: 1.5rem;
-  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.9));
+  }
 }
 
 .banner-text {
@@ -58,7 +69,9 @@
 
 @media (prefers-color-scheme: dark) {
   .banner-text h3 {
-    color: #f9fafb;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3);
+    font-weight: 800;
   }
 }
 
@@ -70,7 +83,9 @@
 
 @media (prefers-color-scheme: dark) {
   .banner-text p {
-    color: #9ca3af;
+    color: #e5e7eb;
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+    font-weight: 500;
   }
 }
 
@@ -81,9 +96,23 @@
   transition: transform 0.2s ease;
 }
 
+@media (prefers-color-scheme: dark) {
+  .banner-arrow {
+    color: rgba(168, 85, 247, 0.9);
+    filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.6));
+  }
+}
+
 .answered-prayers-banner:hover .banner-arrow {
   transform: translateX(4px);
   color: rgba(168, 85, 247, 0.8);
+}
+
+@media (prefers-color-scheme: dark) {
+  .answered-prayers-banner:hover .banner-arrow {
+    color: rgba(168, 85, 247, 1);
+    filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.8));
+  }
 }
 
 @media (max-width: 640px) {
