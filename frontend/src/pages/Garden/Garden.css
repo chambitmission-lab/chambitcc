@@ -5,8 +5,14 @@
 }
 
 .garden-header {
-  text-align: center;
   margin-bottom: 3rem;
+}
+
+.garden-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
 }
 
 .garden-title {
@@ -19,6 +25,33 @@
 .garden-subtitle {
   font-size: 1rem;
   color: var(--text-secondary);
+}
+
+/* 정원 꾸미기 버튼 */
+.garden-customize-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  white-space: nowrap;
+}
+
+.garden-customize-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.garden-customize-button .material-icons-round {
+  font-size: 1.25rem;
 }
 
 .garden-section {
@@ -194,6 +227,17 @@
 
   .garden-header {
     margin-bottom: 2rem;
+  }
+
+  .garden-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .garden-customize-button {
+    width: 100%;
+    justify-content: center;
   }
 
   .garden-title {

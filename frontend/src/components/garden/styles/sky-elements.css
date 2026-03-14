@@ -14,6 +14,7 @@
     0 0 60px rgba(251, 191, 36, 0.3),
     inset 0 -10px 20px rgba(245, 158, 11, 0.3);
   animation: sun-pulse 4s ease-in-out infinite;
+  overflow: hidden;
 }
 
 .sun::before {
@@ -23,6 +24,17 @@
   background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%);
   border-radius: 50%;
   animation: sun-rays 8s linear infinite;
+}
+
+/* 태양 내부 텍스처 효과 */
+.sun::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(245, 158, 11, 0.4) 0%, transparent 40%);
+  border-radius: 50%;
 }
 
 @keyframes sun-pulse {
@@ -43,14 +55,16 @@
   }
 }
 
-/* 달 - CSS로 그린 달 */
+/* 달 - 실제 달 텍스처 이미지 사용 */
 .moon {
   position: absolute;
   top: 40px;
   right: 50px;
   width: 70px;
   height: 70px;
-  background: radial-gradient(circle, #fef3c7 0%, #fde68a 70%);
+  background: 
+    url('/moon-texture.png') center/cover,
+    radial-gradient(circle, #fef3c7 0%, #fde68a 70%);
   border-radius: 50%;
   box-shadow: 
     0 0 30px rgba(254, 243, 199, 0.6),
@@ -58,6 +72,27 @@
     inset -10px -10px 20px rgba(253, 224, 71, 0.3);
   animation: moon-glow 4s ease-in-out infinite;
   overflow: hidden;
+}
+
+/* 달 표면 디테일 강조 */
+.moon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 35% 35%,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 50%
+  );
+  border-radius: 50%;
+}
+
+/* 달 이미지가 있을 경우 */
+.moon.with-image {
+  background-image: url('/moon-texture.png');
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
 }
 
 @keyframes moon-glow {
