@@ -1,24 +1,14 @@
 # 🌸 디지털 가드닝 백엔드 API 구현 가이드
 
-## 📋 현재 상황
+## ✅ 구현 완료
 
-프론트엔드 디지털 가드닝 기능은 완전히 구현되었으나, 백엔드 API가 아직 구현되지 않아 다음 에러가 발생합니다:
+백엔드 API가 구현되어 프론트엔드에서 활성화되었습니다!
 
-```
-GET http://localhost:8000/api/v1/bible/verses/read?page_size=1000 422 (Unprocessable Entity)
-```
+**변경 사항:**
+- `frontend/src/hooks/useGarden.ts` - API 호출 활성화 완료
+- 백엔드 API 연동 완료
 
-## ⚠️ 임시 조치
-
-현재 `useGarden` 훅에서 API 호출을 비활성화하여 에러는 발생하지 않지만, 실제 데이터는 표시되지 않습니다.
-
-```typescript
-// frontend/src/hooks/useGarden.ts
-const { data: readVersesData, isLoading, error } = useReadVerses(
-  { page_size: 1000 },
-  false // 백엔드 API 준비될 때까지 비활성화
-)
-```
+## 📋 구현된 API
 
 ## 🎯 필요한 백엔드 API
 

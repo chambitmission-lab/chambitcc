@@ -1,57 +1,16 @@
 // 정원 메인 페이지
 
-import { useState, useEffect } from 'react'
-import { LambCharacter } from '../../components/garden/LambCharacter'
-import { VirtualGarden } from '../../components/garden/VirtualGarden'
+import { useState } from 'react'
+import { GrowingTree } from '../../components/garden/GrowingTree'
 import { GrowthChart } from '../../components/garden/GrowthChart'
 import { useGarden } from '../../hooks/useGarden'
-import { useProfileDetail } from '../../hooks/useProfile'
-import { calculateActivityPoints } from '../../utils/achievementCalculator'
-import { calculateLambStage, getPointsToNextStage } from '../../utils/gardenCalculator'
-import { celebrateLevelUp, celebrateGardenMilestone } from '../../utils/confettiEffects'
-import type { UserActivityData } from '../../types/achievement'
 import './Garden.css'
 
 type ChartType = 'area' | 'line' | 'bar'
 
 export const Garden: React.FC = () => {
   const [chartType, setChartType] = useState<ChartType>('area')
-  const [previousLevel, setPreviousLevel] = useState<number>(0)
-
-  const { flowers, monthlyGardens, currentMonthGarden, isLoading, error } = useGarden()
-  const { data: profileData } = useProfileDetail()
-
-  // 활동 데이터 계산
-  const activityData: UserActivityData = {
-    totalPrayerTime: profileData?.stats?.activity?.total_prayer_time || 0,
-    totalPrayerCount: profileData?.stats?.activity?.total_count || 0,
-    streakDays: profileData?.stats?.activity?.streak_days || 0,
-    bibleVersesRead: flowers.length,
-    bibleChaptersRead: profileData?.stats?.bible_reading?.chapters_read || 0,
-    bibleBooksCompleted: profileData?.stats?.bible_reading?.books_completed || [],
-    repliesCount: profileData?.stats?.content?.my_replies || 0,
-    prayingForCount: profileData?.stats?.content?.praying_for || 0,
-  }
-
-  const points = calculateActivityPoints(activityData)
-  const lambStage = calculateLambStage(points)
-  const nextStageInfo = getPointsToNextStage(points)
-
-  // 레벨업 감지 및 축하 효과
-  useEffect(() => {
-    if (previousLevel > 0 && lambStage.level > previousLevel) {
-      celebrateLevelUp()
-    }
-    setPreviousLevel(lambStage.level)
-  }, [lambStage.level])
-
-  // 정원 마일스톤 축하
-  useEffect(() => {
-    const milestones = [10, 50, 100, 300, 500]
-    if (milestones.includes(flowers.length)) {
-      celebrateGardenMilestone()
-    }
-  }, [flowers.length])
+  const { flowers, isLoading, error } = useGarden()
 
   if (isLoading) {
     return (
@@ -79,57 +38,15 @@ export const Garden: React.FC = () => {
     <div className="garden-page">
       {/* 헤더 */}
       <div className="garden-header">
-        <h1 className="garden-title">나의 신앙 정원 🌸</h1>
+        <h1 className="garden-title">나의 신앙 나무 🌳</h1>
         <p className="garden-subtitle">
-          기도와 말씀으로 가꾸는 아름다운 정원
+          말씀을 읽을 때마다 조금씩 자라나는 생명의 나무
         </p>
       </div>
 
-      {/* 어린 양 섹션 */}
+      {/* 성장하는 나무 */}
       <div className="garden-section">
-        <div className="lamb-section">
-          <LambCharacter stage={lambStage} points={points} size={150} />
-
-          {/* 다음 단계 진행도 */}
-          {nextStageInfo && (
-            <div className="progress-section" style={{ marginTop: '2rem' }}>
-              <div className="progress-info">
-                <span className="progress-label">다음 단계까지</span>
-                <span className="progress-value">
-                  {nextStageInfo.needed}P 남음
-                </span>
-              </div>
-              <div className="progress-bar-container">
-                <div
-                  className="progress-bar-fill"
-                  style={{
-                    width: `${((nextStageInfo.total - nextStageInfo.needed) / nextStageInfo.total) * 100}%`,
-                  }}
-                />
-              </div>
-              <p className="progress-hint">
-                {nextStageInfo.nextStage.emoji} {nextStageInfo.nextStage.name}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 현재 월 정원 */}
-      <div className="garden-section">
-        <h2 className="garden-section-title">
-          <span className="garden-section-icon">🌷</span>
-          이번 달 정원
-        </h2>
-        {currentMonthGarden ? (
-          <VirtualGarden
-            flowers={currentMonthGarden.flowers}
-            title={`${currentMonthGarden.year}년 ${currentMonthGarden.month}월`}
-            showStats
-          />
-        ) : (
-          <VirtualGarden flowers={[]} showStats={false} />
-        )}
+        <GrowingTree versesRead={flowers.length} showInfo />
       </div>
 
       {/* 성장 차트 */}
@@ -161,26 +78,6 @@ export const Garden: React.FC = () => {
               </button>
             </div>
             <GrowthChart flowers={flowers} type={chartType} />
-          </div>
-        </div>
-      )}
-
-      {/* 월별 정원 히스토리 */}
-      {monthlyGardens.length > 1 && (
-        <div className="garden-section">
-          <h2 className="garden-section-title">
-            <span className="garden-section-icon">📅</span>
-            정원 히스토리
-          </h2>
-          <div className="monthly-gardens-grid">
-            {monthlyGardens.slice(1).map((garden) => (
-              <VirtualGarden
-                key={`${garden.year}-${garden.month}`}
-                flowers={garden.flowers}
-                title={`${garden.year}년 ${garden.month}월`}
-                showStats={false}
-              />
-            ))}
           </div>
         </div>
       )}

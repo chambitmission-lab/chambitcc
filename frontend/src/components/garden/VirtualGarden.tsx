@@ -25,7 +25,6 @@ export const VirtualGarden: React.FC<VirtualGardenProps> = ({
   if (flowers.length === 0) {
     return (
       <div className="virtual-garden">
-        <div className="garden-ground" />
         <div className="garden-empty">
           <div className="garden-empty-icon">🌱</div>
           <div className="garden-empty-text">
@@ -56,17 +55,13 @@ export const VirtualGarden: React.FC<VirtualGardenProps> = ({
       </div>
 
       <div className="virtual-garden">
-        <div className="garden-ground" />
         <div className="garden-flowers-container">
           {flowers.map((flower, index) => (
             <div
               key={flower.id}
               className="garden-flower"
               style={{
-                left: `${flower.position.x}%`,
-                top: `${flower.position.y}%`,
-                fontSize: `${flower.size}px`,
-                animationDelay: `${index * 0.05}s`,
+                animationDelay: `${index * 0.03}s`,
               }}
               onClick={() => setSelectedFlower(flower)}
             >

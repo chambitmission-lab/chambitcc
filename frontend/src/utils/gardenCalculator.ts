@@ -59,7 +59,7 @@ export const getFlowerType = (bookId: number): FlowerType => {
  * 읽은 구절을 정원 꽃으로 변환
  */
 export const convertVersesToFlowers = (verses: ReadVerse[]): GardenFlower[] => {
-  return verses.map((verse, index) => ({
+  return verses.map((verse) => ({
     id: `flower-${verse.id}-${verse.verse_id}`,
     verseId: verse.verse_id,
     bookId: verse.book_id,
@@ -69,25 +69,9 @@ export const convertVersesToFlowers = (verses: ReadVerse[]): GardenFlower[] => {
     text: verse.text,
     flowerType: getFlowerType(verse.book_id),
     bloomDate: verse.read_at,
-    position: generateFlowerPosition(index, verses.length),
-    size: Math.random() * 20 + 40, // 40-60px
+    position: { x: 0, y: 0 }, // 그리드 레이아웃 사용으로 불필요
+    size: 40, // 고정 크기
   }))
-}
-
-/**
- * 꽃 위치 생성 (나선형 패턴)
- */
-const generateFlowerPosition = (
-  index: number, 
-  total: number
-): { x: number; y: number } => {
-  const angle = index * (Math.PI * 2 * 3) / total // 3바퀴 나선
-  const radius = 30 + (index / total) * 60 // 중심에서 바깥으로
-  
-  return {
-    x: 50 + Math.cos(angle) * radius,
-    y: 50 + Math.sin(angle) * radius,
-  }
 }
 
 /**
