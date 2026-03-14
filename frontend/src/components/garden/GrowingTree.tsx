@@ -1,6 +1,7 @@
 // 성장하는 나무 컴포넌트
 
 import { useMemo, useState, useEffect } from 'react'
+import { getGardenTheme, type GardenTheme } from '../../api/garden'
 import './GrowingTree.css'
 
 interface GrowingTreeProps {
@@ -48,6 +49,30 @@ const getTimeOfDay = (): TimeOfDay => {
 
 export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo = true }) => {
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay())
+  const [gardenTheme, setGardenTheme] = useState<GardenTheme | null>(null)
+  
+  // 정원 테마 불러오기
+  useEffect(() => {
+    const loadTheme = async () => {
+      try {
+        console.log('Loading garden theme...')
+        const theme = await getGardenTheme()
+        console.log('Loaded theme:', theme)
+        setGardenTheme(theme)
+      } catch (err) {
+        console.error('테마 불러오기 실패:', err)
+        // 에러 시 기본 테마 사용
+        setGardenTheme({
+          theme_type: 'preset',
+          preset_name: 'classic',
+          moon_image_url: null,
+          sun_image_url: null,
+        })
+      }
+    }
+    
+    loadTheme()
+  }, [])
   
   // 1분마다 시간대 업데이트
   useEffect(() => {
@@ -92,13 +117,35 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo =
           <div className="tree-sky">
             {/* 낮: 태양 */}
             {(timeOfDay === 'day' || timeOfDay === 'dawn') && (
-              <div className="sun"></div>
+              <div 
+                className="sun"
+                style={
+                  gardenTheme?.theme_type === 'custom' && gardenTheme.sun_image_url
+                    ? { 
+                        backgroundImage: `url(${gardenTheme.sun_image_url})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      }
+                    : undefined
+                }
+              ></div>
             )}
             
             {/* 밤: 달과 별 */}
             {(timeOfDay === 'night' || timeOfDay === 'dusk') && (
               <>
-                <div className="moon"></div>
+                <div 
+                  className="moon"
+                  style={
+                    gardenTheme?.theme_type === 'custom' && gardenTheme.moon_image_url
+                      ? { 
+                          backgroundImage: `url(${gardenTheme.moon_image_url})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center'
+                        }
+                      : undefined
+                  }
+                ></div>
                 <div className="stars">
                   <span className="star star-1">⭐</span>
                   <span className="star star-2">⭐</span>

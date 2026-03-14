@@ -9,6 +9,12 @@ import './Garden.css'
 export const Garden: React.FC = () => {
   const { flowers, isLoading, error } = useGarden()
   const [showCustomizeModal, setShowCustomizeModal] = useState(false)
+  const [themeKey, setThemeKey] = useState(0) // 테마 변경 시 컴포넌트 재렌더링용
+
+  const handleThemeSave = () => {
+    // 테마 저장 후 GrowingTree 컴포넌트 재렌더링
+    setThemeKey(prev => prev + 1)
+  }
 
   if (isLoading) {
     return (
@@ -55,12 +61,15 @@ export const Garden: React.FC = () => {
 
       {/* 성장하는 나무 */}
       <div className="garden-section">
-        <GrowingTree versesRead={flowers.length} showInfo />
+        <GrowingTree key={themeKey} versesRead={flowers.length} showInfo />
       </div>
 
       {/* 정원 꾸미기 모달 */}
       {showCustomizeModal && (
-        <GardenCustomizeModal onClose={() => setShowCustomizeModal(false)} />
+        <GardenCustomizeModal 
+          onClose={() => setShowCustomizeModal(false)} 
+          onSave={handleThemeSave}
+        />
       )}
     </div>
   )
