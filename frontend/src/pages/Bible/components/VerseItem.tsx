@@ -154,14 +154,6 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
     }
     startReading()
   }
-  
-  // 읽기 리셋 (처음부터 다시)
-  const handleResetReading = () => {
-    stopReading()
-    setTimeout(() => {
-      startReading()
-    }, 100)
-  }
 
   return (
     <div 
@@ -228,109 +220,7 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
         )}
       </div>
       
-      {/* 읽는 중 안내 메시지 + 진행률 바 - 고정 높이로 레이아웃 시프트 방지 */}
-      <div style={{
-        marginLeft: '3.25rem',
-        minHeight: isReading && !feedback ? 'auto' : '0',
-        overflow: 'hidden',
-        transition: 'min-height 0.3s ease'
-      }}>
-        {isReading && !feedback && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem'
-          }}>
-            <div style={{
-              padding: '1rem',
-              background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(252, 211, 77, 0.05))',
-              borderRadius: '0.75rem',
-              fontSize: '0.9375rem',
-              color: 'var(--ig-primary)',
-              fontWeight: 500,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.5rem',
-              border: '1px solid rgba(251, 191, 36, 0.2)',
-              boxShadow: '0 2px 8px rgba(251, 191, 36, 0.1)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span className="material-icons-outlined" style={{ 
-                  fontSize: '1.25rem',
-                  color: 'rgba(251, 191, 36, 0.8)',
-                  animation: 'gentlePulse 2s ease-in-out infinite'
-                }}>
-                  mic
-                </span>
-                <span>말씀을 읽어주세요...</span>
-              </div>
-              
-              {/* 처음부터 다시 버튼 */}
-              <button
-                onClick={handleResetReading}
-                style={{
-                  padding: '0.4rem 0.75rem',
-                  borderRadius: '0.375rem',
-                  border: '1px solid rgba(251, 191, 36, 0.3)',
-                  background: 'rgba(251, 191, 36, 0.1)',
-                  color: '#d97706',
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(251, 191, 36, 0.2)'
-                  e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.5)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(251, 191, 36, 0.1)'
-                  e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.3)'
-                }}
-                title="틀렸다면 처음부터 다시 읽기"
-              >
-                <span className="material-icons-round" style={{ fontSize: '1rem' }}>
-                  refresh
-                </span>
-                다시
-              </button>
-            </div>
-            
-            {/* 진행률 바 */}
-            {highlightedText && highlightedText.progress > 0 && (
-              <div style={{
-                width: '100%',
-                height: '6px',
-                background: 'var(--ig-border)',
-                borderRadius: '3px',
-                overflow: 'hidden',
-                position: 'relative'
-              }}>
-                <div style={{
-                  width: `${highlightedText.progress}%`,
-                  height: '100%',
-                  background: 'linear-gradient(90deg, #fbbf24, #f59e0b)',
-                  transition: 'width 0.3s ease',
-                  borderRadius: '3px',
-                  boxShadow: '0 0 8px rgba(251, 191, 36, 0.5)'
-                }} />
-              </div>
-            )}
-            
-            <style>{`
-              @keyframes gentlePulse {
-                0%, 100% { opacity: 0.6; transform: scale(1); }
-                50% { opacity: 1; transform: scale(1.1); }
-              }
-            `}</style>
-          </div>
-        )}
-      </div>
+
       
       {/* 피드백 메시지 - 임팩트 있게 */}
       {showFeedback && feedback && (
