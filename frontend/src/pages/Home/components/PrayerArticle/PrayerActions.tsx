@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import TextToSpeechButton from '../../../../components/common/TextToSpeechButton'
+import { useLanguage } from '../../../../contexts/LanguageContext'
 import type { GroupColorTheme } from '../../../../utils/groupColors'
 
 interface PrayerActionsProps {
@@ -8,6 +9,9 @@ interface PrayerActionsProps {
   onPray: (e: React.MouseEvent) => void
   prayerText: string
   colorTheme: GroupColorTheme
+  isOwner?: boolean
+  isAnswered?: boolean
+  onAnswerClick?: (e: React.MouseEvent) => void
 }
 
 interface LightParticle {
@@ -21,8 +25,12 @@ const PrayerActions = ({
   isPraying,
   onPray,
   prayerText,
-  colorTheme
+  colorTheme,
+  isOwner,
+  isAnswered,
+  onAnswerClick
 }: PrayerActionsProps) => {
+  const { language } = useLanguage()
   const [particles, setParticles] = useState<LightParticle[]>([])
 
   const handlePrayClick = (e: React.MouseEvent) => {
@@ -53,36 +61,49 @@ const PrayerActions = ({
 
   return (
     <>
-      <div className="px-4 flex items-center gap-3 mb-2">
-        <button
-          onClick={handlePrayClick}
-          disabled={isPraying}
-          className={`relative group flex items-center gap-1 transition-all duration-300 ${
-            !useGroupColor && isPrayed ? 'text-ig-red' : 
-            !useGroupColor ? 'text-gray-800 dark:text-white hover:opacity-70' : ''
-          }`}
-          style={useGroupColor && isPrayed ? {
-            color: colorTheme.accent,
-            filter: `drop-shadow(0 0 8px ${colorTheme.glow}) drop-shadow(0 0 16px ${colorTheme.glow})`,
-            animation: 'holy-glow-icon 2s ease-in-out infinite'
-          } : {}}
-        >
-          <span 
-            className={`text-[24px] transition-transform duration-300 ${
-              isPrayed ? 'material-icons-round scale-110' : 'material-icons-outlined'
+      <div className="px-4 flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handlePrayClick}
+            disabled={isPraying}
+            className={`relative group flex items-center gap-1 transition-all duration-300 ${
+              !useGroupColor && isPrayed ? 'text-ig-red' : 
+              !useGroupColor ? 'text-gray-800 dark:text-white hover:opacity-70' : ''
             }`}
             style={useGroupColor && isPrayed ? {
-              filter: `drop-shadow(0 0 4px ${colorTheme.glow})`
+              color: colorTheme.accent,
+              filter: `drop-shadow(0 0 8px ${colorTheme.glow}) drop-shadow(0 0 16px ${colorTheme.glow})`,
+              animation: 'holy-glow-icon 2s ease-in-out infinite'
             } : {}}
           >
-            volunteer_activism
-          </span>
-        </button>
-        
-        <TextToSpeechButton 
-          text={prayerText}
-          size="md"
-        />
+            <span 
+              className={`text-[24px] transition-transform duration-300 ${
+                isPrayed ? 'material-icons-round scale-110' : 'material-icons-outlined'
+              }`}
+              style={useGroupColor && isPrayed ? {
+                filter: `drop-shadow(0 0 4px ${colorTheme.glow})`
+              } : {}}
+            >
+              volunteer_activism
+            </span>
+          </button>
+          
+          <TextToSpeechButton 
+            text={prayerText}
+            size="md"
+          />
+        </div>
+
+        {/* 응답 등록 버튼 (내 기도이고 아직 응답 안됨) */}
+        {isOwner && !isAnswered && onAnswerClick && (
+          <button 
+            onClick={onAnswerClick}
+            className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors text-sm font-semibold"
+          >
+            <span className="text-base">✨</span>
+            <span>{language === 'ko' ? '응답등록' : 'Answer'}</span>
+          </button>
+        )}
       </div>
 
       {/* 빛 알갱이 파티클 */}

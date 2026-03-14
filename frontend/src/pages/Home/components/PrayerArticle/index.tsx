@@ -72,15 +72,15 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onAnswerToggle, onClick, onRepl
         onPray={handlePray}
         prayerText={`${prayer.title}. ${prayer.content}`}
         colorTheme={colorTheme}
+        isOwner={prayer.is_owner}
+        isAnswered={prayer.is_answered}
+        onAnswerClick={handleAnswer}
       />
 
       <PrayerStats
         prayerCount={prayer.prayer_count}
         replyCount={prayer.reply_count}
-        isOwner={prayer.is_owner}
-        isAnswered={prayer.is_answered}
         onReplyClick={onReplyClick}
-        onAnswerClick={handleAnswer}
       />
 
       {prayer.recommended_verses && prayer.recommended_verses.verses.length > 0 && (
