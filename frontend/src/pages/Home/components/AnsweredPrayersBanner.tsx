@@ -28,7 +28,7 @@ const AnsweredPrayersBanner = () => {
         </div>
         <div className="flex-1">
           <h3 
-            className="m-0 text-base font-extrabold mb-0.5"
+            className="m-0 text-sm font-extrabold mb-0.5"
             style={{
               color: '#ffffff',
               textShadow: '0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3)'
