@@ -106,6 +106,12 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo =
                   <span className="star star-4">✨</span>
                   <span className="star star-5">✨</span>
                 </div>
+                {/* 별똥별 */}
+                <div className="shooting-stars">
+                  <span className="shooting-star"></span>
+                  <span className="shooting-star shooting-star-2"></span>
+                  <span className="shooting-star shooting-star-3"></span>
+                </div>
               </>
             )}
             
@@ -121,6 +127,24 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo =
           {/* 땅 */}
           <div className="tree-ground">
             <div className="grass"></div>
+            
+            {/* 땅 위 장식 요소들 */}
+            <div className="ground-decorations">
+              {/* 버섯들 */}
+              <span className="mushroom mushroom-1">🍄</span>
+              <span className="mushroom mushroom-2">🍄</span>
+              
+              {/* 돌멩이들 */}
+              <span className="rock rock-1">🪨</span>
+              <span className="rock rock-2">🪨</span>
+              <span className="rock rock-3">🪨</span>
+              
+              {/* 풀 더미들 */}
+              <span className="grass-tuft tuft-1">🌾</span>
+              <span className="grass-tuft tuft-2">🌾</span>
+              <span className="grass-tuft tuft-3">🌾</span>
+              <span className="grass-tuft tuft-4">🌿</span>
+            </div>
           </div>
         </div>
 
