@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import type { BibleVerse } from '../../../types/bible'
 import { useVerseReading } from '../../../hooks/useVerseReading'
 import VerseReadingButton from '../../../components/prayer/VerseReadingButton'
@@ -12,11 +12,13 @@ interface VerseItemProps {
 
 const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
+  const maxProgressRef = useRef(0) // 최대 진행률 추적
 
   const {
     isReading,
     isSupported,
     feedback,
+    spokenText,
     startReading,
     stopReading
   } = useVerseReading({
@@ -33,6 +35,117 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
     },
     threshold: 0.75
   })
+  
+  // 읽기 시작/종료 시 최대 진행률 초기화
+  useEffect(() => {
+    if (!isReading) {
+      maxProgressRef.current = 0
+    }
+  }, [isReading])
+  
+  // 노래방 스타일 하이라이트: 읽은 부분 계산 (유연한 매칭)
+  const highlightedText = useMemo(() => {
+    if (!isReading || !verse.text) {
+      return null
+    }
+    
+    // spokenText가 없으면 이전 최대값 유지
+    if (!spokenText) {
+      if (maxProgressRef.current === 0) {
+        return null
+      }
+      // 이전 최대값으로 표시
+      const charCount = Math.floor((maxProgressRef.current / 100) * verse.text.replace(/\s+/g, '').length)
+      let count = 0
+      let splitIndex = 0
+      for (let i = 0; i < verse.text.length; i++) {
+        if (verse.text[i] !== ' ') {
+          count++
+          if (count === charCount) {
+            splitIndex = i + 1
+            break
+          }
+        }
+      }
+      const readPart = verse.text.substring(0, splitIndex)
+      const unreadPart = verse.text.substring(splitIndex)
+      return { readPart, unreadPart, progress: maxProgressRef.current }
+    }
+    
+    // 공백 제거 후 비교
+    const normalizeText = (text: string) => text.replace(/\s+/g, '').toLowerCase()
+    const verseNormalized = normalizeText(verse.text)
+    const spokenNormalized = normalizeText(spokenText)
+    
+    // 유연한 매칭: 읽은 텍스트의 마지막 부분이 성경 텍스트 어디까지 포함되는지 찾기
+    let matchLength = 0
+    
+    // 방법 1: 순차적 매칭 (기존 방식)
+    for (let i = 0; i < Math.min(verseNormalized.length, spokenNormalized.length); i++) {
+      if (verseNormalized[i] === spokenNormalized[i]) {
+        matchLength = i + 1
+      } else {
+        break
+      }
+    }
+    
+    // 방법 2: 부분 문자열 매칭 (더 유연함)
+    // 읽은 텍스트의 마지막 5-10글자가 성경 텍스트 어디에 있는지 찾기
+    if (spokenNormalized.length >= 5) {
+      const recentSpoken = spokenNormalized.slice(-10) // 마지막 10글자
+      const foundIndex = verseNormalized.indexOf(recentSpoken)
+      
+      if (foundIndex !== -1) {
+        const potentialMatch = foundIndex + recentSpoken.length
+        // 더 긴 매칭을 선택
+        matchLength = Math.max(matchLength, potentialMatch)
+      }
+    }
+    
+    // 방법 3: 단어 단위 매칭 (가장 유연함)
+    // 읽은 텍스트를 단어로 분리해서 성경 텍스트에서 찾기
+    const spokenWords = spokenText.trim().split(/\s+/).filter(w => w.length > 0)
+    if (spokenWords.length > 0) {
+      const lastWord = spokenWords[spokenWords.length - 1]
+      const lastWordNormalized = normalizeText(lastWord)
+      
+      // 마지막 단어가 성경 텍스트 어디에 있는지 찾기
+      const wordIndex = verseNormalized.indexOf(lastWordNormalized)
+      if (wordIndex !== -1) {
+        const potentialMatch = wordIndex + lastWordNormalized.length
+        matchLength = Math.max(matchLength, potentialMatch)
+      }
+    }
+    
+    const currentProgress = (matchLength / verseNormalized.length) * 100
+    
+    // 최대 진행률 업데이트 (뒤로 가지 않도록)
+    if (currentProgress > maxProgressRef.current) {
+      maxProgressRef.current = currentProgress
+    }
+    
+    // 최대 진행률 기준으로 표시
+    const displayProgress = maxProgressRef.current
+    
+    // 원본 텍스트에서 매칭된 위치 찾기 (공백 포함)
+    const displayMatchLength = Math.floor((displayProgress / 100) * verseNormalized.length)
+    let charCount = 0
+    let splitIndex = 0
+    for (let i = 0; i < verse.text.length; i++) {
+      if (verse.text[i] !== ' ') {
+        charCount++
+        if (charCount === displayMatchLength) {
+          splitIndex = i + 1
+          break
+        }
+      }
+    }
+    
+    const readPart = verse.text.substring(0, splitIndex)
+    const unreadPart = verse.text.substring(splitIndex)
+    
+    return { readPart, unreadPart, progress: displayProgress }
+  }, [isReading, spokenText, verse.text])
   
   // 이미 읽은 구절은 읽기 시작 방지
   const handleStartReading = () => {
@@ -57,7 +170,23 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
       <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
         <span className="bible-verse-number">{verse.verse}</span>
         <span className="bible-verse-text" style={{ flex: 1 }}>
-          {verse.text || '(구절 내용 없음)'}
+          {isReading && highlightedText ? (
+            <>
+              <span style={{ 
+                color: '#fbbf24',
+                fontWeight: 600,
+                textShadow: '0 0 8px rgba(251, 191, 36, 0.4)',
+                transition: 'all 0.2s ease'
+              }}>
+                {highlightedText.readPart}
+              </span>
+              <span style={{ color: 'var(--ig-primary-text)' }}>
+                {highlightedText.unreadPart}
+              </span>
+            </>
+          ) : (
+            verse.text || '(구절 내용 없음)'
+          )}
         </span>
         
         {/* 읽기 모드일 때만 버튼 표시 */}
@@ -91,31 +220,59 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
         )}
       </div>
       
-      {/* 읽는 중 안내 메시지 */}
+      {/* 읽는 중 안내 메시지 + 진행률 바 */}
       {isReading && !feedback && (
         <div style={{
-          padding: '1rem',
-          background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(252, 211, 77, 0.05))',
-          borderRadius: '0.75rem',
-          fontSize: '0.9375rem',
-          color: 'var(--ig-primary)',
-          fontWeight: 500,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.5rem',
           marginLeft: '3.25rem',
-          border: '1px solid rgba(251, 191, 36, 0.2)',
-          boxShadow: '0 2px 8px rgba(251, 191, 36, 0.1)'
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem'
         }}>
-          <span className="material-icons-outlined" style={{ 
-            fontSize: '1.25rem',
-            color: 'rgba(251, 191, 36, 0.8)',
-            animation: 'gentlePulse 2s ease-in-out infinite'
+          <div style={{
+            padding: '1rem',
+            background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(252, 211, 77, 0.05))',
+            borderRadius: '0.75rem',
+            fontSize: '0.9375rem',
+            color: 'var(--ig-primary)',
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            border: '1px solid rgba(251, 191, 36, 0.2)',
+            boxShadow: '0 2px 8px rgba(251, 191, 36, 0.1)'
           }}>
-            mic
-          </span>
-          <span>말씀을 읽어주세요...</span>
+            <span className="material-icons-outlined" style={{ 
+              fontSize: '1.25rem',
+              color: 'rgba(251, 191, 36, 0.8)',
+              animation: 'gentlePulse 2s ease-in-out infinite'
+            }}>
+              mic
+            </span>
+            <span>말씀을 읽어주세요...</span>
+          </div>
+          
+          {/* 진행률 바 */}
+          {highlightedText && highlightedText.progress > 0 && (
+            <div style={{
+              width: '100%',
+              height: '6px',
+              background: 'var(--ig-border)',
+              borderRadius: '3px',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <div style={{
+                width: `${highlightedText.progress}%`,
+                height: '100%',
+                background: 'linear-gradient(90deg, #fbbf24, #f59e0b)',
+                transition: 'width 0.3s ease',
+                borderRadius: '3px',
+                boxShadow: '0 0 8px rgba(251, 191, 36, 0.5)'
+              }} />
+            </div>
+          )}
+          
           <style>{`
             @keyframes gentlePulse {
               0%, 100% { opacity: 0.6; transform: scale(1); }
