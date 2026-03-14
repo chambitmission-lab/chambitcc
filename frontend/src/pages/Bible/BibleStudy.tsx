@@ -80,53 +80,55 @@ const BibleStudy = () => {
   }
   
   return (
-    <div className="bible-study-container">
-      <BibleHeader />
-      
-      <BibleTabs activeTab={activeTab} onTabChange={setActiveTab} />
-      
-      {/* 읽기 탭 */}
-      {activeTab === 'read' && (
-        <div className="bible-read-section">
-          {/* 책 선택 */}
-          {showBookList && (
-            <BookSelector
-              books={books}
-              isLoading={booksLoading}
-              error={booksError}
-              onBookSelect={handleBookSelect}
-            />
-          )}
-          
-          {/* 장 선택 및 내용 */}
-          {!showBookList && selectedBookId > 0 && selectedBookData && (
-            <div className="bible-chapter-section">
-              <ChapterNavigation
-                selectedBook={selectedBook}
-                selectedChapter={selectedChapter}
-                totalChapters={selectedBookData.chapter_count}
-                onChapterChange={handleChapterChange}
-                onBackToBooks={handleChangeBook}
+    <div className="bg-gray-50 dark:bg-black min-h-screen">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
+        <BibleHeader />
+        
+        <BibleTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        {/* 읽기 탭 */}
+        {activeTab === 'read' && (
+          <div className="bible-read-section">
+            {/* 책 선택 */}
+            {showBookList && (
+              <BookSelector
+                books={books}
+                isLoading={booksLoading}
+                error={booksError}
+                onBookSelect={handleBookSelect}
               />
-              
-              <VerseList
-                chapterData={chapterData}
-                isLoading={chapterLoading}
-                hasNextPage={hasNextPage || false}
-                isFetchingNextPage={isFetchingNextPage}
-                fetchNextPage={fetchNextPage}
-                selectedChapter={selectedChapter}
-                totalChapters={selectedBookData.chapter_count}
-                onChapterChange={handleChapterChange}
-                bookNumber={selectedBookData.book_number}
-              />
-            </div>
-          )}
-        </div>
-      )}
-      
-      {/* 검색 탭 */}
-      {activeTab === 'search' && <BibleSearch />}
+            )}
+            
+            {/* 장 선택 및 내용 */}
+            {!showBookList && selectedBookId > 0 && selectedBookData && (
+              <div className="bible-chapter-section">
+                <ChapterNavigation
+                  selectedBook={selectedBook}
+                  selectedChapter={selectedChapter}
+                  totalChapters={selectedBookData.chapter_count}
+                  onChapterChange={handleChapterChange}
+                  onBackToBooks={handleChangeBook}
+                />
+                
+                <VerseList
+                  chapterData={chapterData}
+                  isLoading={chapterLoading}
+                  hasNextPage={hasNextPage || false}
+                  isFetchingNextPage={isFetchingNextPage}
+                  fetchNextPage={fetchNextPage}
+                  selectedChapter={selectedChapter}
+                  totalChapters={selectedBookData.chapter_count}
+                  onChapterChange={handleChapterChange}
+                  bookNumber={selectedBookData.book_number}
+                />
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* 검색 탭 */}
+        {activeTab === 'search' && <BibleSearch />}
+      </div>
     </div>
   )
 }

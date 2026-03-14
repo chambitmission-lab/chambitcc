@@ -107,12 +107,6 @@
 }
 
 /* 반응형 */
-@media (max-width: 768px) {
-  .books-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 @media (max-width: 480px) {
   .books-grid {
     grid-template-columns: repeat(2, 1fr);

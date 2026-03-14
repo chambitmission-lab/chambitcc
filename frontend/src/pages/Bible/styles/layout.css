@@ -1,10 +1,13 @@
 /* Bible Study Layout - 레이아웃 및 컨테이너 */
 
+/* Bible Study Layout - 레이아웃 및 컨테이너 */
+
 .bible-study-container {
-  max-width: 640px;
+  max-width: 448px; /* max-w-md와 동일 */
   margin: 0 auto;
   padding: 0;
   min-height: 100vh;
+  background: var(--ig-primary-background);
 }
 
 .bible-study-header {
