@@ -44,3 +44,14 @@ export interface BibleChapterPaginatedResponse {
   page_size: number
   has_more: boolean
 }
+
+// 성경 구절 수정 요청 (관리자용)
+export interface UpdateBibleVerseRequest {
+  text: string
+}
+
+// 성경 구절 수정 응답
+export interface UpdateBibleVerseResponse {
+  success: boolean
+  data: BibleVerse
+}

@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import type { InfiniteData } from '@tanstack/react-query'
-import type { BibleChapterPaginatedResponse } from '../../../types/bible'
+import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/bible'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import VerseItem from './VerseItem'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { celebrateFlowerBloom } from '../../../utils/confettiEffects'
+import VerseEditModal from '../../../components/bible/VerseEditModal'
+import { showToast } from '../../../utils/toast'
+import { useQueryClient } from '@tanstack/react-query'
+import { useOptimisticUpdateVerse } from '../../../hooks/useBibleAdmin'
 
 interface VerseListProps {
   chapterData: InfiniteData<BibleChapterPaginatedResponse> | undefined
@@ -32,6 +36,9 @@ const VerseList = ({
   const observerTarget = useRef<HTMLDivElement>(null)
   const { language } = useLanguage()
   const [readingMode, setReadingMode] = useState(false)
+  const [editingVerse, setEditingVerse] = useState<BibleVerse | null>(null)
+  const queryClient = useQueryClient()
+  const updateVerseMutation = useOptimisticUpdateVerse()
   
   // 모든 훅은 조건문 이전에 호출되어야 함
   // 백엔드에서 읽음 상태 조회
@@ -98,6 +105,39 @@ const VerseList = ({
       } else {
         console.error('Failed to save reading record:', error)
       }
+    }
+  }
+  
+  // 구절 수정 핸들러 (관리자용)
+  const handleEditVerse = (verse: BibleVerse) => {
+    setEditingVerse(verse)
+  }
+  
+  // 구절 저장 핸들러 (최종 개선 버전)
+  const handleSaveVerse = async (verseId: number, newText: string) => {
+    try {
+      // 방법 1: 낙관적 업데이트 사용
+      await updateVerseMutation.mutateAsync({
+        verseId,
+        newText,
+        bookNumber,
+        chapter: selectedChapter
+      })
+      
+      // 방법 2: 추가 안전장치 - 캐시 강제 새로고침
+      setTimeout(async () => {
+        await queryClient.refetchQueries({
+          queryKey: ['bible', 'chapter', 'infinite', bookNumber, selectedChapter],
+          type: 'active'
+        })
+      }, 100) // 100ms 후 새로고침
+      
+      showToast('성경 구절이 수정되었습니다', 'success')
+      
+    } catch (error) {
+      console.error('❌ Failed to update verse:', error)
+      showToast('구절 수정에 실패했습니다', 'error')
+      throw error
     }
   }
   
@@ -276,6 +316,7 @@ const VerseList = ({
                   readingMode={readingMode}
                   isRead={readVerses.has(verse.id)}
                   onReadSuccess={handleReadSuccess}
+                  onEdit={handleEditVerse}
                 />
               ))}
             </div>
@@ -383,6 +424,15 @@ const VerseList = ({
           </div>
         )}
       </div>
+      
+      {/* 구절 수정 모달 */}
+      {editingVerse && (
+        <VerseEditModal
+          verse={editingVerse}
+          onSave={handleSaveVerse}
+          onClose={() => setEditingVerse(null)}
+        />
+      )}
     </div>
   )
 }

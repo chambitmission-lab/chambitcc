@@ -2,17 +2,20 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import type { BibleVerse } from '../../../types/bible'
 import { useVerseReading } from '../../../hooks/useVerseReading'
 import VerseReadingButton from '../../../components/prayer/VerseReadingButton'
+import { isAdmin } from '../../../utils/auth'
 
 interface VerseItemProps {
   verse: BibleVerse
   readingMode: boolean
   isRead: boolean
   onReadSuccess: (verseId: number, similarity: number) => void
+  onEdit?: (verse: BibleVerse) => void
 }
 
-const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps) => {
+const VerseItem = ({ verse, readingMode, isRead, onReadSuccess, onEdit }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const maxProgressRef = useRef(0) // 최대 진행률 추적
+  const isAdminUser = isAdmin()
 
   const {
     isReading,
@@ -217,6 +220,38 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess }: VerseItemProps
               size="sm"
             />
           </div>
+        )}
+        
+        {/* 관리자 수정 버튼 */}
+        {isAdminUser && onEdit && (
+          <button
+            onClick={() => onEdit(verse)}
+            style={{
+              padding: '0.5rem',
+              background: 'rgba(139, 92, 246, 0.1)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              flexShrink: 0
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'
+              e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.5)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'
+              e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)'
+            }}
+            title="구절 수정 (관리자)"
+          >
+            <span className="material-icons-round" style={{ fontSize: '1.125rem', color: '#8b5cf6' }}>
+              edit
+            </span>
+          </button>
         )}
       </div>
       

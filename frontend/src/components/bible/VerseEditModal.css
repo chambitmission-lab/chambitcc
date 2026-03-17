@@ -1,0 +1,246 @@
+.verse-edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.verse-edit-modal {
+  background: var(--ig-background);
+  border-radius: 1rem;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.verse-edit-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--ig-border);
+}
+
+.verse-edit-modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ig-primary-text);
+}
+
+.verse-edit-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  color: var(--ig-secondary-text);
+  transition: all 0.2s;
+}
+
+.verse-edit-modal-close:hover:not(:disabled) {
+  background: var(--ig-hover);
+  color: var(--ig-primary-text);
+}
+
+.verse-edit-modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.verse-edit-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.verse-edit-info {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(168, 85, 247, 0.05));
+  border-radius: 0.75rem;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.verse-edit-reference {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #8b5cf6;
+}
+
+.verse-edit-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.verse-edit-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ig-primary-text);
+}
+
+.verse-edit-textarea {
+  width: 100%;
+  padding: 0.875rem;
+  border: 2px solid var(--ig-border);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ig-primary-text);
+  background: var(--ig-background);
+  resize: vertical;
+  min-height: 120px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.verse-edit-textarea:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.verse-edit-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.verse-edit-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.75rem;
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.verse-edit-error .material-icons-round {
+  font-size: 1.25rem;
+}
+
+.verse-edit-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.875rem;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 0.75rem;
+  color: #f59e0b;
+  font-size: 0.875rem;
+}
+
+.verse-edit-warning .material-icons-round {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.verse-edit-modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-top: 1px solid var(--ig-border);
+}
+
+.verse-edit-btn {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.verse-edit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.verse-edit-btn-cancel {
+  background: var(--ig-hover);
+  color: var(--ig-primary-text);
+}
+
+.verse-edit-btn-cancel:hover:not(:disabled) {
+  background: var(--ig-border);
+}
+
+.verse-edit-btn-save {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: white;
+}
+
+.verse-edit-btn-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+}
+
+.verse-edit-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: verse-edit-spin 0.6s linear infinite;
+}
+
+@keyframes verse-edit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 다크모드 대응 */
+@media (prefers-color-scheme: dark) {
+  .verse-edit-modal {
+    background: #1a1a1a;
+  }
+}
+
+/* 모바일 대응 */
+@media (max-width: 640px) {
+  .verse-edit-modal {
+    max-height: 95vh;
+    margin: 0.5rem;
+  }
+
+  .verse-edit-modal-header,
+  .verse-edit-modal-body,
+  .verse-edit-modal-footer {
+    padding: 1rem;
+  }
+
+  .verse-edit-modal-header h3 {
+    font-size: 1.125rem;
+  }
+
+  .verse-edit-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+}

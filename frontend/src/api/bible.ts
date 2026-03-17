@@ -1,5 +1,6 @@
 import { API_V1, apiFetch } from '../config/api'
-import type { BibleBook, BibleChapterResponse, BibleChapterPaginatedResponse, BibleVerse, BibleSearchResult } from '../types/bible'
+import type { BibleBook, BibleChapterResponse, BibleChapterPaginatedResponse, BibleVerse, BibleSearchResult, UpdateBibleVerseRequest, UpdateBibleVerseResponse } from '../types/bible'
+import { getAuthHeaders } from './utils/apiHelpers'
 
 // Mock 데이터 import (개발/테스트용)
 import { getMockBibleBooks, getMockBibleChapter, getMockBibleSearch } from './bible.mock'
@@ -88,4 +89,23 @@ export const getBibleChapterPaginated = async (
   }
   
   return response.json()
+}
+
+/**
+ * 성경 구절 수정 (관리자 전용)
+ */
+export const updateBibleVerse = async (verseId: number, data: UpdateBibleVerseRequest): Promise<BibleVerse> => {
+  const response = await apiFetch(`${API_V1}/bible/verses/${verseId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(data)
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '성경 구절 수정에 실패했습니다')
+  }
+  
+  const result: UpdateBibleVerseResponse = await response.json()
+  return result.data
 }
