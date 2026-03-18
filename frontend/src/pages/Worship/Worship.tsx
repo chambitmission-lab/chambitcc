@@ -1,8 +1,50 @@
+import { useState } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { isAdmin } from '../../utils/auth'
+import { showToast } from '../../utils/toast'
+import type { WorshipService } from '../../types/worship'
 import '../Home/styles/WorshipTimes.css'
 
 const Worship = () => {
   const { t } = useLanguage()
+  const isAdminUser = isAdmin()
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingData, setEditingData] = useState<WorshipService | null>(null)
+  
+  // 임시 데이터 (나중에 API로 교체)
+  const [sundayServices, setSundayServices] = useState<WorshipService[]>([
+    { id: 1, order: 1, name: '주일낮예배 1부', subtitle: '(이른예배)', time: '오전 7시 30분', location: '오렌엘 홀', is_active: true, service_type: 'sunday' },
+    { id: 2, order: 2, name: '주일낮예배 2부', subtitle: '(밤은예배)', time: '오전 9시 20분', location: '', is_active: true, service_type: 'sunday' },
+    { id: 3, order: 3, name: '주일낮예배 3부', subtitle: '(길은예배)', time: '오전 11시 20분', location: '', is_active: true, service_type: 'sunday' },
+    { id: 4, order: 4, name: '주일낮예배 4부', subtitle: '(열린예배)', time: '오후 1시 30분', location: '', is_active: true, service_type: 'sunday' },
+  ])
+
+  const handleEditClick = (service: WorshipService) => {
+    setEditingId(service.id!)
+    setEditingData({ ...service })
+  }
+
+  const handleCancelEdit = () => {
+    setEditingId(null)
+    setEditingData(null)
+  }
+
+  const handleSaveEdit = () => {
+    if (!editingData) return
+    
+    // TODO: API 호출로 교체
+    setSundayServices(prev => 
+      prev.map(s => s.id === editingData.id ? editingData : s)
+    )
+    setEditingId(null)
+    setEditingData(null)
+    showToast('예배 시간이 수정되었습니다', 'success')
+  }
+
+  const handleFieldChange = (field: keyof WorshipService, value: string | number) => {
+    if (!editingData) return
+    setEditingData({ ...editingData, [field]: value })
+  }
   
   return (
     <div className="bg-gray-50 dark:bg-black min-h-screen">
@@ -25,66 +67,97 @@ const Worship = () => {
           <section className="worship-section">
             <h2 className="worship-section-title">{t('worshipScheduleTitle')}</h2>
             <div className="space-y-3">
-              <div className="worship-card">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="card-icon-text">1</div>
-                    <div className="text-left">
-                      <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('worship1stService')}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('worship1stServiceSub')}</p>
+              {sundayServices.filter(s => s.is_active).map((service) => (
+                <div key={service.id} className="worship-card">
+                  {editingId === service.id && editingData ? (
+                    // 편집 모드
+                    <div className="flex flex-col gap-3 w-full">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={editingData.order}
+                          onChange={(e) => handleFieldChange('order', parseInt(e.target.value))}
+                          className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-center"
+                          min="1"
+                          max="10"
+                        />
+                        <input
+                          type="text"
+                          value={editingData.name}
+                          onChange={(e) => handleFieldChange('name', e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-bold"
+                          placeholder="예배 이름"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={editingData.subtitle || ''}
+                        onChange={(e) => handleFieldChange('subtitle', e.target.value)}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                        placeholder="부제목 (선택)"
+                      />
+                      <input
+                        type="text"
+                        value={editingData.time}
+                        onChange={(e) => handleFieldChange('time', e.target.value)}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        placeholder="시간"
+                      />
+                      <input
+                        type="text"
+                        value={editingData.location || ''}
+                        onChange={(e) => handleFieldChange('location', e.target.value)}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                        placeholder="장소 (선택)"
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={handleCancelEdit}
+                          className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                        >
+                          취소
+                        </button>
+                        <button
+                          onClick={handleSaveEdit}
+                          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+                        >
+                          저장
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="time text-base">{t('worshipTime1st')}</p>
-                    <p className="location text-xs">{t('worshipLocation1st')}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="worship-card">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="card-icon-text">2</div>
-                    <div className="text-left">
-                      <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('worship2ndService')}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('worship2ndServiceSub')}</p>
+                  ) : (
+                    // 일반 모드
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="card-icon-text">{service.order}</div>
+                        <div className="text-left">
+                          <h3 className="text-base font-bold text-gray-900 dark:text-white">{service.name}</h3>
+                          {service.subtitle && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{service.subtitle}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right flex items-center gap-2">
+                        <div>
+                          <p className="time text-base">{service.time}</p>
+                          {service.location && (
+                            <p className="location text-xs">{service.location}</p>
+                          )}
+                        </div>
+                        {isAdminUser && (
+                          <button
+                            onClick={() => handleEditClick(service)}
+                            className="ml-2 px-2 py-1 text-lg bg-yellow-500 hover:bg-yellow-600 text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                            title="수정"
+                          >
+                            ✏️
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="time text-base">{t('worshipTime2nd')}</p>
-                  </div>
+                  )}
                 </div>
-              </div>
-
-              <div className="worship-card">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="card-icon-text">3</div>
-                    <div className="text-left">
-                      <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('worship3rdService')}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('worship3rdServiceSub')}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="time text-base">{t('worshipTime3rd')}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="worship-card">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="card-icon-text">4</div>
-                    <div className="text-left">
-                      <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('worship4thService')}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('worship4thServiceSub')}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="time text-base">{t('worshipTime4th')}</p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </section>
 
