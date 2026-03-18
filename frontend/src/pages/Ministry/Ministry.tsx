@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
@@ -39,6 +39,7 @@ const Ministry = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [editingColumn, setEditingColumn] = useState<Partial<Column>>({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     loadColumns()
@@ -119,6 +120,42 @@ const Ministry = () => {
   const handleCancel = () => {
     setIsEditing(false)
     setEditingColumn({})
+  }
+
+  const handleHighlight = () => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = textarea.value.substring(start, end)
+
+    if (!selectedText) {
+      showToast(language === 'ko' ? '하이라이트할 텍스트를 선택하세요' : 'Please select text to highlight', 'error')
+      return
+    }
+
+    // 이미 [[]]로 감싸져 있는지 확인
+    if (selectedText.startsWith('[[') && selectedText.endsWith(']]')) {
+      showToast(language === 'ko' ? '이미 하이라이트된 텍스트입니다' : 'Text is already highlighted', 'error')
+      return
+    }
+
+    const before = textarea.value.substring(0, start)
+    const after = textarea.value.substring(end)
+    const newContent = before + '[[' + selectedText + ']]' + after
+
+    setEditingColumn({ ...editingColumn, content: newContent })
+
+    // 커서 위치 조정 (하이라이트된 텍스트 뒤로)
+    setTimeout(() => {
+      if (textarea) {
+        textarea.focus()
+        textarea.setSelectionRange(start + selectedText.length + 4, start + selectedText.length + 4)
+      }
+    }, 0)
+
+    showToast(language === 'ko' ? '하이라이트가 적용되었습니다' : 'Highlight applied', 'success')
   }
 
   return (
@@ -395,16 +432,31 @@ const Ministry = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {language === 'ko' ? '내용' : 'Content'} *
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {language === 'ko' ? '내용' : 'Content'} *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleHighlight}
+                      className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors flex items-center gap-1"
+                      title={language === 'ko' ? '선택한 텍스트를 하이라이트' : 'Highlight selected text'}
+                    >
+                      <span className="material-icons-outlined text-sm">highlight</span>
+                      <span>{language === 'ko' ? '하이라이트' : 'Highlight'}</span>
+                    </button>
+                  </div>
                   <textarea
+                    ref={textareaRef}
                     value={editingColumn.content || ''}
                     onChange={(e) => setEditingColumn({ ...editingColumn, content: e.target.value })}
                     rows={12}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
-                    placeholder={language === 'ko' ? '컬럼 내용을 입력하세요...\n\n[[텍스트]]로 감싸면 하이라이트 효과가 적용됩니다.' : 'Enter column content...\n\nWrap text with [[text]] for highlight effect.'}
+                    placeholder={language === 'ko' ? '컬럼 내용을 입력하세요...\n\n중요한 문구를 선택하고 "하이라이트" 버튼을 누르면 강조 효과가 적용됩니다.' : 'Enter column content...\n\nSelect important text and click "Highlight" button to apply emphasis effect.'}
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    💡 {language === 'ko' ? '중요한 문구를 드래그로 선택한 후 "하이라이트" 버튼을 클릭하세요' : 'Select important text and click the "Highlight" button'}
+                  </p>
                 </div>
               </div>
 
