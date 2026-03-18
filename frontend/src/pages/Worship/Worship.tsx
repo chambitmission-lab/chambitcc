@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
+import { getSundayServices, updateWorshipService } from '../../api/worship'
 import type { WorshipService } from '../../types/worship'
 import '../Home/styles/WorshipTimes.css'
 
@@ -10,14 +11,26 @@ const Worship = () => {
   const isAdminUser = isAdmin()
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingData, setEditingData] = useState<WorshipService | null>(null)
-  
-  // 임시 데이터 (나중에 API로 교체)
-  const [sundayServices, setSundayServices] = useState<WorshipService[]>([
-    { id: 1, order: 1, name: '주일낮예배 1부', subtitle: '(이른예배)', time: '오전 7시 30분', location: '오렌엘 홀', is_active: true, service_type: 'sunday' },
-    { id: 2, order: 2, name: '주일낮예배 2부', subtitle: '(밤은예배)', time: '오전 9시 20분', location: '', is_active: true, service_type: 'sunday' },
-    { id: 3, order: 3, name: '주일낮예배 3부', subtitle: '(길은예배)', time: '오전 11시 20분', location: '', is_active: true, service_type: 'sunday' },
-    { id: 4, order: 4, name: '주일낮예배 4부', subtitle: '(열린예배)', time: '오후 1시 30분', location: '', is_active: true, service_type: 'sunday' },
-  ])
+  const [sundayServices, setSundayServices] = useState<WorshipService[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // 예배 시간 데이터 로드
+  useEffect(() => {
+    loadSundayServices()
+  }, [])
+
+  const loadSundayServices = async () => {
+    try {
+      setLoading(true)
+      const data = await getSundayServices()
+      setSundayServices(data)
+    } catch (error) {
+      console.error('Failed to load sunday services:', error)
+      showToast('예배 시간을 불러오는데 실패했습니다', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleEditClick = (service: WorshipService) => {
     setEditingId(service.id!)
@@ -29,16 +42,29 @@ const Worship = () => {
     setEditingData(null)
   }
 
-  const handleSaveEdit = () => {
-    if (!editingData) return
+  const handleSaveEdit = async () => {
+    if (!editingData || !editingData.id) return
     
-    // TODO: API 호출로 교체
-    setSundayServices(prev => 
-      prev.map(s => s.id === editingData.id ? editingData : s)
-    )
-    setEditingId(null)
-    setEditingData(null)
-    showToast('예배 시간이 수정되었습니다', 'success')
+    try {
+      const updatedService = await updateWorshipService(editingData.id, {
+        order: editingData.order,
+        name: editingData.name,
+        subtitle: editingData.subtitle,
+        time: editingData.time,
+        location: editingData.location,
+        is_active: editingData.is_active
+      })
+      
+      setSundayServices(prev => 
+        prev.map(s => s.id === updatedService.id ? updatedService : s)
+      )
+      setEditingId(null)
+      setEditingData(null)
+      showToast('예배 시간이 수정되었습니다', 'success')
+    } catch (error) {
+      console.error('Failed to update worship service:', error)
+      showToast('예배 시간 수정에 실패했습니다', 'error')
+    }
   }
 
   const handleFieldChange = (field: keyof WorshipService, value: string | number) => {
@@ -66,7 +92,17 @@ const Worship = () => {
           {/* 주일 예배 Section */}
           <section className="worship-section">
             <h2 className="worship-section-title">{t('worshipScheduleTitle')}</h2>
-            <div className="space-y-3">
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">로딩 중...</p>
+              </div>
+            ) : sundayServices.length === 0 ? (
+              <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                등록된 예배 시간이 없습니다
+              </div>
+            ) : (
+              <div className="space-y-3">
               {sundayServices.filter(s => s.is_active).map((service) => (
                 <div key={service.id} className="worship-card">
                   {editingId === service.id && editingData ? (
@@ -158,7 +194,8 @@ const Worship = () => {
                   )}
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </section>
 
           {/* 평일 예배 Section */}
