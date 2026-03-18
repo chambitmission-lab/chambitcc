@@ -101,13 +101,13 @@ const calculateStructuralSimilarity = (text1: string, text2: string): number => 
  * 성경 구절 읽기 검증 (개선 버전)
  * @param originalText 원본 성경 구절
  * @param spokenText 사용자가 읽은 텍스트
- * @param threshold 통과 기준 (기본 0.5 = 50%)
+ * @param threshold 통과 기준 (기본 0.4 = 40%)
  * @returns 검증 결과
  */
 export const verifyVerseReading = (
   originalText: string,
   spokenText: string,
-  threshold: number = 0.5
+  threshold: number = 0.4
 ): {
   isValid: boolean
   similarity: number

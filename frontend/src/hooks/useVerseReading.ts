@@ -14,7 +14,7 @@ export const useVerseReading = ({
   verseText,
   onSuccess,
   onError,
-  threshold = 0.5,
+  threshold = 0.4,
   silenceTimeout = 2000 // 기본 2초
 }: UseVerseReadingProps) => {
   const [spokenText, setSpokenText] = useState('')
