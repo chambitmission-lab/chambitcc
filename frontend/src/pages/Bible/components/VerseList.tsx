@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/bible'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { useAuth } from '../../../hooks/useAuth'
 import VerseItem from './VerseItem'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { celebrateFlowerBloom } from '../../../utils/confettiEffects'
@@ -35,6 +37,8 @@ const VerseList = ({
 }: VerseListProps) => {
   const observerTarget = useRef<HTMLDivElement>(null)
   const { language } = useLanguage()
+  const { isLoggedIn } = useAuth()
+  const navigate = useNavigate()
   const [readingMode, setReadingMode] = useState(false)
   const [editingVerse, setEditingVerse] = useState<BibleVerse | null>(null)
   const queryClient = useQueryClient()
@@ -222,7 +226,17 @@ const VerseList = ({
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button
-            onClick={() => setReadingMode(!readingMode)}
+            onClick={() => {
+              // 읽기 모드를 켜려고 할 때만 로그인 체크
+              if (!readingMode) {
+                if (!isLoggedIn()) {
+                  showToast('로그인이 필요합니다', 'info')
+                  setTimeout(() => navigate('/login'), 500)
+                  return
+                }
+              }
+              setReadingMode(!readingMode)
+            }}
             style={{
               padding: '0.5rem 1rem',
               borderRadius: '0.5rem',
