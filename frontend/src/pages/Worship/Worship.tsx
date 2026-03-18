@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
-import { getSundayServices, updateWorshipService } from '../../api/worship'
+import { getSundayServices, getWeekdayServices, updateWorshipService } from '../../api/worship'
 import type { WorshipService } from '../../types/worship'
 import '../Home/styles/WorshipTimes.css'
 
@@ -12,20 +12,25 @@ const Worship = () => {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingData, setEditingData] = useState<WorshipService | null>(null)
   const [sundayServices, setSundayServices] = useState<WorshipService[]>([])
+  const [weekdayServices, setWeekdayServices] = useState<WorshipService[]>([])
   const [loading, setLoading] = useState(true)
 
   // 예배 시간 데이터 로드
   useEffect(() => {
-    loadSundayServices()
+    loadServices()
   }, [])
 
-  const loadSundayServices = async () => {
+  const loadServices = async () => {
     try {
       setLoading(true)
-      const data = await getSundayServices()
-      setSundayServices(data)
+      const [sundayData, weekdayData] = await Promise.all([
+        getSundayServices(),
+        getWeekdayServices()
+      ])
+      setSundayServices(sundayData)
+      setWeekdayServices(weekdayData)
     } catch (error) {
-      console.error('Failed to load sunday services:', error)
+      console.error('Failed to load services:', error)
       showToast('예배 시간을 불러오는데 실패했습니다', 'error')
     } finally {
       setLoading(false)
@@ -55,9 +60,17 @@ const Worship = () => {
         is_active: editingData.is_active
       })
       
-      setSundayServices(prev => 
-        prev.map(s => s.id === updatedService.id ? updatedService : s)
-      )
+      // 주일 예배인지 평일 예배인지 확인하여 업데이트
+      if (updatedService.service_type === 'sunday') {
+        setSundayServices(prev => 
+          prev.map(s => s.id === updatedService.id ? updatedService : s)
+        )
+      } else {
+        setWeekdayServices(prev => 
+          prev.map(s => s.id === updatedService.id ? updatedService : s)
+        )
+      }
+      
       setEditingId(null)
       setEditingData(null)
       showToast('예배 시간이 수정되었습니다', 'success')
@@ -201,53 +214,102 @@ const Worship = () => {
           {/* 평일 예배 Section */}
           <section className="worship-section">
             <h2 className="worship-section-title">{t('worshipWeekdayTitle')}</h2>
-            <div className="space-y-3">
-              <div className="worship-card">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="card-icon">🌅</div>
-                    <div className="text-left">
-                      <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('worshipDawnPrayer')}</h3>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="time text-base">{t('worshipDawnTime')}</p>
-                    <p className="location text-sm">{t('worshipDawnTimeDetail')}</p>
-                  </div>
-                </div>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">로딩 중...</p>
               </div>
-
-              <div className="worship-card">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="card-icon">📖</div>
-                    <div className="text-left">
-                      <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('worshipWednesday')}</h3>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="time text-base">{t('worshipWednesdayDay')}</p>
-                    <p className="location text-sm">{t('worshipWednesdayTime1')}</p>
-                    <p className="location text-sm">{t('worshipWednesdayTime2')}</p>
-                  </div>
-                </div>
+            ) : weekdayServices.length === 0 ? (
+              <div className="text-center py-8 text-gray-600 dark:text-gray-400">
+                등록된 평일 예배가 없습니다
               </div>
-
-              <div className="worship-card">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="card-icon">🙏</div>
-                    <div className="text-left">
-                      <h3 className="text-base font-bold text-gray-900 dark:text-white">{t('worshipFriday')}</h3>
-                    </div>
+            ) : (
+              <div className="space-y-3">
+                {weekdayServices.filter(s => s.is_active).map((service) => (
+                  <div key={service.id} className="worship-card">
+                    {editingId === service.id && editingData ? (
+                      // 편집 모드
+                      <div className="flex flex-col gap-3 w-full">
+                        <input
+                          type="text"
+                          value={editingData.name}
+                          onChange={(e) => handleFieldChange('name', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-bold"
+                          placeholder="예배 이름"
+                        />
+                        <input
+                          type="text"
+                          value={editingData.subtitle || ''}
+                          onChange={(e) => handleFieldChange('subtitle', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                          placeholder="요일 (예: 매주 월~금)"
+                        />
+                        <input
+                          type="text"
+                          value={editingData.time}
+                          onChange={(e) => handleFieldChange('time', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          placeholder="시간"
+                        />
+                        <input
+                          type="text"
+                          value={editingData.location || ''}
+                          onChange={(e) => handleFieldChange('location', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                          placeholder="추가 시간 정보 (선택)"
+                        />
+                        <div className="flex gap-2 justify-end">
+                          <button
+                            onClick={handleCancelEdit}
+                            className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                          >
+                            취소
+                          </button>
+                          <button
+                            onClick={handleSaveEdit}
+                            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+                          >
+                            저장
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      // 일반 모드
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="card-icon">
+                            {service.name.includes('새벽') ? '🌅' : service.name.includes('수요') ? '📖' : '🙏'}
+                          </div>
+                          <div className="text-left">
+                            <h3 className="text-base font-bold text-gray-900 dark:text-white">{service.name}</h3>
+                          </div>
+                        </div>
+                        <div className="text-right flex items-center gap-2">
+                          <div>
+                            {service.subtitle && (
+                              <p className="time text-base">{service.subtitle}</p>
+                            )}
+                            <p className="location text-sm">{service.time}</p>
+                            {service.location && (
+                              <p className="location text-sm">{service.location}</p>
+                            )}
+                          </div>
+                          {isAdminUser && (
+                            <button
+                              onClick={() => handleEditClick(service)}
+                              className="ml-2 px-2 py-1 text-lg bg-yellow-500 hover:bg-yellow-600 text-white rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                              title="수정"
+                            >
+                              ✏️
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="time text-base">{t('worshipFridayDay')}</p>
-                    <p className="location text-sm">{t('worshipFridayTime')}</p>
-                  </div>
-                </div>
+                ))}
               </div>
-            </div>
+            )}
           </section>
 
           {/* Info Note */}
