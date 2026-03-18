@@ -1,16 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { isAdmin } from '../../utils/auth'
+import { showToast } from '../../utils/toast'
+import { getColumns, createColumn, updateColumn, deleteColumn } from '../../api/column'
+import type { Column } from '../../types/column'
 import './Ministry.css'
-
-interface Column {
-  id: number
-  title: string
-  author: string
-  role: string
-  date: string
-  content: string
-  image?: string
-}
 
 // 중요한 문구를 하이라이트하는 함수
 const renderHighlightedText = (text: string) => {
@@ -38,40 +32,94 @@ const renderHighlightedText = (text: string) => {
 
 const Ministry = () => {
   const { language } = useLanguage()
+  const isAdminUser = isAdmin()
   const [selectedColumn, setSelectedColumn] = useState<Column | null>(null)
+  const [columns, setColumns] = useState<Column[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editingColumn, setEditingColumn] = useState<Partial<Column>>({})
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const columns: Column[] = [
-    {
-      id: 1,
-      title: language === 'ko' ? '함께 지어져 가는 교회 공간' : 'Building Church Space Together',
-      author: language === 'ko' ? '안동철' : 'Dong-Chul Ahn',
-      role: language === 'ko' ? '담임목사' : 'Senior Pastor',
-      date: '2026.02',
-      content: language === 'ko' 
-        ? `교회 건물은 다수한 '시설'이나 '건물'이 아닙니다. 비바람을 피하는 장소이기 이전에, [[예배와 기도, 만남과 회복이 이루어지는 거룩한 공간]]입니다. 또한 교회 건물은 사유재가 아니라 [[공공재적인 성격을 지닌 공간]]입니다. 누구 한 사람의 뜻대로 위해 존재하는 것이 아니라, 하나님께서 말기신 공동체 전체를 위해 사용되어야 할 공간이기 때문입니다.
+  useEffect(() => {
+    loadColumns()
+  }, [])
 
-그래서 교회 건물을 사용할 때 우리는 항상 이 질문을 스스로에게 던져야 합니다. [["건물을 사용할 때 나만 편리한가? 아니면 공동체의 유익을 위한 것인가?"]] 하는 질문입니다. 우리 교회는 건물을 사용할 때 사무실에 비치된 '교회 공간 사용신청서'를 작성하고 허락을 받은 후 사용하도록 하고 있습니다. 이는 절차를 복잡하게 하려는 규칙이 아니라, 여러 공동체와 세대가 같은 공간을 사용하는 기운데 서로간 충돌을 막고 질서를 세우기 위한 최소한의 약속입니다. [[약속이 있을 때 공동체는 더 자유로워질 수 있습니다.]]
-
-그런 관점에서 교회 공동체 내 소실을 알릴 때에도 교회 허락을 받아야 하며, 게시적으로 출력하여 아무 곳이나 부착하는 일은 삼가야 합니다. 이달의 좋은 내용이라 하더라도, 방식이 공동체의 질서를 해친다면 그 또한 호려질 수밖에 없습니다. 교회가 정한 공식 양식을 사용하고, 정해진 게시 장소에 부착하는 것 역시 [[함께 사용하고, 함께 지켜가는 공간에 대한 존중의 표현]]입니다.
-
-시도 바울은 에베소서 2장 22절에서 교회를 이렇게 말합니다. [["너희도 성령 안에서 하나님이 거하실 처소가 되기 위하여 예수 안에서 함께 지어져 가느니라."]] 교회는 흔적가가 아니라 '온자가' 함께 만들어가는 것입니다. 교회는 '누군가가 홀로 완성하는 것'이 아니라, [[서로 다른 돌들이 맞물리며 지어가는 살아 있는 공동체]]입니다. 공간을 사용하는 태도 역시 이 신앙고백과 분리될 수 없습니다.
-
-교회 공간 사용에 있어 또 하나 기억해야 할 부분이 있습니다. 사랑한 후에는 [[다음 사용자를 위해 깨끗하게 정리하는 점]]입니다. 의자를 제자리에 두고, 쓰레기를 치우며, 전기 제품 등을 점검하는 일은 작은 보이지만 실은 상당히 중요한 일이 아닙니다. 현재 교회의 전기와 냉난방 사용이 많이 지출되고 있는 현실 속에서, [[절약은 서비스가 아니라 책임]]이며, 교회를 향한 우리의 태도를 드러내는 신앙의 문제이기도 합니다.
-
-하나님은 그분의 백성이 모이는 교회 공간을 통해 우리를 만나 주십니다. 그렇기에 우리는 [[이 공간을 소중히 사용하고, 조심스럽게 관리하며, 기쁨으로 함께 지켜가야]] 합니다. 서로를 배려하는 작은 실천 하나하나가 교회를 세웁니다. [[함께 사용하고, 함께 먹지고, 함께 지어가는 공동체]]. 그 아름다운 교회의 모습이 우리의 공간 사용 속에서도 드러나기를 소망합니다.`
-        : `The church building is not just a 'facility' or 'building'. Before being a shelter from wind and rain, it is [[a holy space where worship, prayer, meetings, and restoration take place]]. Furthermore, the church building is not private property but [[has the character of a public space]]. It exists not for the will of one person, but as a space that should be used for the entire community entrusted by God.
-
-Therefore, when using the church building, we must always ask ourselves this question: [["When using the building, is it only convenient for me? Or is it for the benefit of the community?"]] Our church requires filling out a 'Church Space Usage Application Form' available at the office and receiving permission before use. This is not a rule to complicate procedures, but a minimum agreement to prevent conflicts and establish order as various communities and generations use the same space. [[When there are agreements, the community can become freer.]]
-
-From this perspective, even when announcing news within the church community, church permission must be obtained, and posting anywhere should be avoided. Even if the content is good, if the method disrupts the community's order, it can also be confused. Using the official format established by the church and posting in designated areas is also [[an expression of respect for a space we use together and protect together]].
-
-The Apostle Paul says in Ephesians 2:22: [["In him you too are being built together to become a dwelling in which God lives by his Spirit."]] The church is not built by 'someone' but by 'everyone' together. The church is not 'completed alone by someone', but is [[a living community built as different stones fit together]]. The attitude of using space cannot be separated from this confession of faith.
-
-There is one more thing to remember when using church space. After use, [[clean up for the next user]]. Putting chairs back in place, cleaning up trash, and checking electrical appliances may seem small but are actually quite important. In the current reality where church electricity and heating/cooling usage is high, [[conservation is not a service but a responsibility]], and it is also a matter of faith that reveals our attitude toward the church.
-
-God meets us through the church space where His people gather. Therefore, we must [[use this space carefully, manage it cautiously, and joyfully protect it together]]. Each small act of consideration for others builds the church. [[A community that uses together, eats together, and builds together]]. I hope that this beautiful image of the church will also be revealed in our use of space.`
+  const loadColumns = async () => {
+    try {
+      setLoading(true)
+      const data = await getColumns()
+      setColumns(data.filter(c => c.is_active))
+    } catch (error) {
+      console.error('Failed to load columns:', error)
+      showToast('목양컬럼을 불러오는데 실패했습니다', 'error')
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const handleAddNew = () => {
+    setEditingColumn({
+      title: '',
+      author: '',
+      role: '',
+      date: new Date().toISOString().split('T')[0],
+      content: '',
+      is_active: true
+    })
+    setIsEditing(true)
+  }
+
+  const handleEdit = (column: Column) => {
+    setEditingColumn(column)
+    setIsEditing(true)
+    setSelectedColumn(null)
+  }
+
+  const handleSave = async () => {
+    if (!editingColumn.title || !editingColumn.author || !editingColumn.content) {
+      showToast('제목, 작성자, 내용은 필수입니다', 'error')
+      return
+    }
+
+    try {
+      if (editingColumn.id) {
+        // 수정
+        const updated = await updateColumn(editingColumn.id, editingColumn)
+        setColumns(prev => prev.map(c => c.id === updated.id ? updated : c))
+        showToast('목양컬럼이 수정되었습니다', 'success')
+      } else {
+        // 생성
+        const created = await createColumn(editingColumn as any)
+        setColumns(prev => [created, ...prev])
+        showToast('목양컬럼이 추가되었습니다', 'success')
+      }
+      setIsEditing(false)
+      setEditingColumn({})
+    } catch (error) {
+      console.error('Failed to save column:', error)
+      showToast('저장에 실패했습니다', 'error')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!selectedColumn?.id) return
+
+    try {
+      await deleteColumn(selectedColumn.id)
+      setColumns(prev => prev.filter(c => c.id !== selectedColumn.id))
+      showToast('목양컬럼이 삭제되었습니다', 'success')
+      setSelectedColumn(null)
+      setShowDeleteConfirm(false)
+    } catch (error) {
+      console.error('Failed to delete column:', error)
+      showToast('삭제에 실패했습니다', 'error')
+    }
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    setEditingColumn({})
+  }
 
   return (
     <div className="bg-gray-50 dark:bg-black min-h-screen">
@@ -79,18 +127,40 @@ God meets us through the church space where His people gather. Therefore, we mus
         {/* Header */}
         <div className="sticky top-14 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
           <div className="px-4 py-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <span>✍️</span>
-              <span>{language === 'ko' ? '목양칼럼' : 'Pastoral Column'}</span>
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {language === 'ko' ? '담임목사의 목회 이야기' : "Pastor's Ministry Stories"}
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <span>✍️</span>
+                  <span>{language === 'ko' ? '목양칼럼' : 'Pastoral Column'}</span>
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {language === 'ko' ? '담임목사의 목회 이야기' : "Pastor's Ministry Stories"}
+                </p>
+              </div>
+              {isAdminUser && (
+                <button
+                  onClick={handleAddNew}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                >
+                  <span className="material-icons-outlined text-xl">add</span>
+                  <span>{language === 'ko' ? '추가' : 'Add'}</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Column List */}
-        <div className="p-4 space-y-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          </div>
+        ) : columns.length === 0 ? (
+          <div className="text-center py-20 text-gray-600 dark:text-gray-400">
+            {language === 'ko' ? '등록된 목양컬럼이 없습니다' : 'No columns available'}
+          </div>
+        ) : (
+          <div className="p-4 space-y-4">
           {columns.map((column) => (
             <article
               key={column.id}
@@ -138,7 +208,8 @@ God meets us through the church space where His people gather. Therefore, we mus
               </div>
             </article>
           ))}
-        </div>
+          </div>
+        )}
 
         {/* Detail Modal */}
         {selectedColumn && (
@@ -206,17 +277,183 @@ God meets us through the church space where His people gather. Therefore, we mus
 
               {/* Modal Actions */}
               <div className="sticky bottom-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark p-4 flex items-center gap-4">
-                <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                  <span className="material-icons-outlined text-2xl">favorite_border</span>
-                  <span className="text-sm font-medium">{language === 'ko' ? '좋아요' : 'Like'}</span>
+                {isAdminUser ? (
+                  <>
+                    <button 
+                      onClick={() => handleEdit(selectedColumn)}
+                      className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                    >
+                      <span className="material-icons-outlined text-2xl">edit</span>
+                      <span className="text-sm font-medium">{language === 'ko' ? '수정' : 'Edit'}</span>
+                    </button>
+                    <button 
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    >
+                      <span className="material-icons-outlined text-2xl">delete</span>
+                      <span className="text-sm font-medium">{language === 'ko' ? '삭제' : 'Delete'}</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                      <span className="material-icons-outlined text-2xl">favorite_border</span>
+                      <span className="text-sm font-medium">{language === 'ko' ? '좋아요' : 'Like'}</span>
+                    </button>
+                    <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                      <span className="material-icons-outlined text-2xl">chat_bubble_outline</span>
+                      <span className="text-sm font-medium">{language === 'ko' ? '댓글' : 'Comment'}</span>
+                    </button>
+                    <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors ml-auto">
+                      <span className="material-icons-outlined text-2xl">share</span>
+                      <span className="text-sm font-medium">{language === 'ko' ? '공유' : 'Share'}</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Modal */}
+        {isEditing && (
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={handleCancel}
+          >
+            <div 
+              className="bg-white dark:bg-surface-dark rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark p-4 z-10">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {editingColumn.id ? (language === 'ko' ? '컬럼 수정' : 'Edit Column') : (language === 'ko' ? '컬럼 추가' : 'Add Column')}
+                  </h2>
+                  <button
+                    onClick={handleCancel}
+                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <span className="material-icons-outlined text-2xl">close</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {language === 'ko' ? '제목' : 'Title'} *
+                  </label>
+                  <input
+                    type="text"
+                    value={editingColumn.title || ''}
+                    onChange={(e) => setEditingColumn({ ...editingColumn, title: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    placeholder={language === 'ko' ? '컬럼 제목을 입력하세요' : 'Enter column title'}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {language === 'ko' ? '작성자' : 'Author'} *
+                    </label>
+                    <input
+                      type="text"
+                      value={editingColumn.author || ''}
+                      onChange={(e) => setEditingColumn({ ...editingColumn, author: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      placeholder={language === 'ko' ? '작성자 이름' : 'Author name'}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      {language === 'ko' ? '직책' : 'Role'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editingColumn.role || ''}
+                      onChange={(e) => setEditingColumn({ ...editingColumn, role: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      placeholder={language === 'ko' ? '담임목사' : 'Senior Pastor'}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {language === 'ko' ? '날짜' : 'Date'}
+                  </label>
+                  <input
+                    type="text"
+                    value={editingColumn.date || ''}
+                    onChange={(e) => setEditingColumn({ ...editingColumn, date: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    placeholder="2026.02"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {language === 'ko' ? '내용' : 'Content'} *
+                  </label>
+                  <textarea
+                    value={editingColumn.content || ''}
+                    onChange={(e) => setEditingColumn({ ...editingColumn, content: e.target.value })}
+                    rows={12}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
+                    placeholder={language === 'ko' ? '컬럼 내용을 입력하세요...\n\n[[텍스트]]로 감싸면 하이라이트 효과가 적용됩니다.' : 'Enter column content...\n\nWrap text with [[text]] for highlight effect.'}
+                  />
+                </div>
+              </div>
+
+              <div className="sticky bottom-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark p-4 flex gap-3">
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  {language === 'ko' ? '취소' : 'Cancel'}
                 </button>
-                <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                  <span className="material-icons-outlined text-2xl">chat_bubble_outline</span>
-                  <span className="text-sm font-medium">{language === 'ko' ? '댓글' : 'Comment'}</span>
+                <button
+                  onClick={handleSave}
+                  className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  {language === 'ko' ? '저장' : 'Save'}
                 </button>
-                <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors ml-auto">
-                  <span className="material-icons-outlined text-2xl">share</span>
-                  <span className="text-sm font-medium">{language === 'ko' ? '공유' : 'Share'}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirm Modal */}
+        {showDeleteConfirm && (
+          <div 
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            <div 
+              className="bg-white dark:bg-surface-dark rounded-2xl max-w-sm w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                {language === 'ko' ? '컬럼 삭제' : 'Delete Column'}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                {language === 'ko' ? '정말 이 컬럼을 삭제하시겠습니까?' : 'Are you sure you want to delete this column?'}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  {language === 'ko' ? '취소' : 'Cancel'}
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  {language === 'ko' ? '삭제' : 'Delete'}
                 </button>
               </div>
             </div>
