@@ -27,11 +27,12 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess, onEdit }: VerseI
   } = useVerseReading({
     verseText: verse.text,
     onSuccess: (similarity) => {
-      setShowFeedback(true)
+      // 피드백 메시지는 표시하지 않음 (폭죽만 터트림)
+      // setShowFeedback(true)
       onReadSuccess(verse.id, similarity)
-      setTimeout(() => {
-        setShowFeedback(false)
-      }, 3000)
+      // setTimeout(() => {
+      //   setShowFeedback(false)
+      // }, 3000)
     },
     onError: (error) => {
       console.error('Verse reading error:', error)
