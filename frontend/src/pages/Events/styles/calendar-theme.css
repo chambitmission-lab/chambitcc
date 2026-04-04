@@ -1,0 +1,11 @@
+/* React Big Calendar Theme - Main Import File */
+
+@import './calendar-base.css';
+@import './calendar-header.css';
+@import './calendar-today.css';
+@import './calendar-dates.css';
+@import './calendar-events.css';
+@import './calendar-toolbar.css';
+@import './calendar-views.css';
+@import './calendar-overlay.css';
+@import './calendar-agenda.css';

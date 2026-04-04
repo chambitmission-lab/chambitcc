@@ -1,0 +1,27 @@
+/* Common Components - 공통 컴포넌트 (로딩, 빈 상태 등) */
+
+/* 로딩 스피너 */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 2rem;
+  gap: 1rem;
+}
+
+.loading-spinner p {
+  color: var(--ig-secondary-text);
+  font-size: 0.875rem;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+  font-size: 2.5rem;
+  color: #667eea;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

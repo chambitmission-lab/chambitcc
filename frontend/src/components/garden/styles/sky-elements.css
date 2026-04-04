@@ -1,0 +1,427 @@
+/* 하늘 요소 - 태양, 달, 별, 구름, 별똥별 */
+
+/* 태양 - CSS로 그린 태양 */
+.sun {
+  position: absolute;
+  top: 40px;
+  right: 50px;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle, #fbbf24 0%, #f59e0b 70%);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 30px rgba(251, 191, 36, 0.6),
+    0 0 60px rgba(251, 191, 36, 0.3),
+    inset 0 -10px 20px rgba(245, 158, 11, 0.3);
+  animation: sun-pulse 4s ease-in-out infinite;
+  overflow: hidden;
+}
+
+.sun::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: sun-rays 8s linear infinite;
+}
+
+/* 태양 내부 텍스처 효과 */
+.sun::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(245, 158, 11, 0.4) 0%, transparent 40%);
+  border-radius: 50%;
+}
+
+@keyframes sun-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes sun-rays {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 달 - 실제 달 텍스처 이미지 사용 */
+.moon {
+  position: absolute;
+  top: 40px;
+  right: 50px;
+  width: 70px;
+  height: 70px;
+  background: 
+    url('/moon-texture.png') center/cover,
+    radial-gradient(circle, #fef3c7 0%, #fde68a 70%);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 30px rgba(254, 243, 199, 0.6),
+    0 0 60px rgba(254, 243, 199, 0.3),
+    inset -10px -10px 20px rgba(253, 224, 71, 0.3);
+  animation: moon-glow 4s ease-in-out infinite;
+  overflow: hidden;
+}
+
+/* 달 표면 디테일 강조 */
+.moon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 35% 35%,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 50%
+  );
+  border-radius: 50%;
+}
+
+/* 달 이미지가 있을 경우 */
+.moon.with-image {
+  background-image: url('/moon-texture.png');
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
+}
+
+@keyframes moon-glow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 0 30px rgba(254, 243, 199, 0.6),
+      0 0 60px rgba(254, 243, 199, 0.3),
+      inset -10px -10px 20px rgba(253, 224, 71, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 
+      0 0 40px rgba(254, 243, 199, 0.8),
+      0 0 80px rgba(254, 243, 199, 0.4),
+      inset -10px -10px 20px rgba(253, 224, 71, 0.4);
+  }
+}
+
+/* 달 뒤에서 나타나는 토끼 */
+.moon-rabbit {
+  position: absolute;
+  font-size: 2rem;
+  bottom: -10px;
+  right: -20px;
+  animation: rabbit-peek 15s ease-in-out infinite;
+  transform-origin: bottom right;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  z-index: 10;
+}
+
+@keyframes rabbit-peek {
+  0%, 15% {
+    opacity: 0;
+    transform: translate(40px, 40px) scale(0.3);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  20%, 35% {
+    transform: translate(0, 0) scale(1) rotate(-5deg);
+  }
+  37%, 52% {
+    transform: translate(0, 0) scale(1) rotate(5deg);
+  }
+  54%, 69% {
+    transform: translate(0, 0) scale(1) rotate(-3deg);
+  }
+  71%, 80% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  83% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  86%, 100% {
+    opacity: 0;
+    transform: translate(40px, 40px) scale(0.3);
+  }
+}
+
+/* 별들 */
+.stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  font-size: 1rem;
+  animation: star-twinkle 3s ease-in-out infinite;
+}
+
+.star-1 {
+  top: 15%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.star-2 {
+  top: 25%;
+  left: 35%;
+  animation-delay: 0.8s;
+}
+
+.star-3 {
+  top: 10%;
+  right: 20%;
+  animation-delay: 1.6s;
+}
+
+.star-4 {
+  top: 30%;
+  right: 10%;
+  animation-delay: 2.4s;
+}
+
+.star-5 {
+  top: 20%;
+  left: 50%;
+  animation-delay: 1.2s;
+}
+
+@keyframes star-twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* 별똥별 */
+.shooting-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.shooting-star {
+  position: absolute;
+  opacity: 0;
+}
+
+/* 별똥별을 긴 빛줄기로 표현 */
+.shooting-star::before {
+  content: '';
+  position: absolute;
+  width: 150px;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.8) 30%,
+    rgba(251, 191, 36, 1) 70%,
+    rgba(251, 191, 36, 0) 100%
+  );
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+}
+
+.shooting-star::after {
+  content: '✨';
+  position: absolute;
+  right: -10px;
+  top: -8px;
+  font-size: 1rem;
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.8));
+}
+
+.shooting-star-1 {
+  top: 10%;
+  right: -10%;
+  animation: shooting-star-fall-1 8s ease-in infinite;
+  animation-delay: 2s;
+}
+
+.shooting-star-2 {
+  top: 20%;
+  right: -10%;
+  animation: shooting-star-fall-2 10s ease-in infinite;
+  animation-delay: 6s;
+}
+
+.shooting-star-3 {
+  top: 5%;
+  right: -10%;
+  animation: shooting-star-fall-3 12s ease-in infinite;
+  animation-delay: 10s;
+}
+
+@keyframes shooting-star-fall-1 {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(-45deg);
+  }
+  3% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-300px, 300px) rotate(-45deg);
+  }
+  23% {
+    opacity: 0;
+    transform: translate(-350px, 350px) rotate(-45deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-350px, 350px) rotate(-45deg);
+  }
+}
+
+@keyframes shooting-star-fall-2 {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(-50deg);
+  }
+  3% {
+    opacity: 1;
+  }
+  22% {
+    opacity: 1;
+    transform: translate(-350px, 320px) rotate(-50deg);
+  }
+  25% {
+    opacity: 0;
+    transform: translate(-400px, 370px) rotate(-50deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-400px, 370px) rotate(-50deg);
+  }
+}
+
+@keyframes shooting-star-fall-3 {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(-40deg);
+  }
+  3% {
+    opacity: 1;
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-280px, 280px) rotate(-40deg);
+  }
+  21% {
+    opacity: 0;
+    transform: translate(-330px, 330px) rotate(-40deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-330px, 330px) rotate(-40deg);
+  }
+}
+
+/* 구름 - CSS로 그린 구름 */
+.cloud {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 100px;
+  animation: cloud-float 25s ease-in-out infinite;
+}
+
+[data-theme='dark'] .cloud {
+  background: rgba(71, 85, 105, 0.6);
+}
+
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+}
+
+.cloud-1 {
+  width: 100px;
+  height: 40px;
+  top: 60px;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.cloud-1::before {
+  width: 50px;
+  height: 50px;
+  top: -25px;
+  left: 10px;
+}
+
+.cloud-1::after {
+  width: 60px;
+  height: 60px;
+  top: -30px;
+  right: 10px;
+}
+
+.cloud-2 {
+  width: 80px;
+  height: 35px;
+  top: 120px;
+  right: 15%;
+  animation-delay: 5s;
+}
+
+.cloud-2::before {
+  width: 40px;
+  height: 40px;
+  top: -20px;
+  left: 10px;
+}
+
+.cloud-2::after {
+  width: 50px;
+  height: 50px;
+  top: -25px;
+  right: 10px;
+}
+
+@keyframes cloud-float {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(20px) translateY(-5px);
+  }
+  50% {
+    transform: translateX(0) translateY(-10px);
+  }
+  75% {
+    transform: translateX(-20px) translateY(-5px);
+  }
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .sun {
+    width: 60px;
+    height: 60px;
+    top: 30px;
+    right: 30px;
+  }
+
+  .cloud-1, .cloud-2 {
+    transform: scale(0.8);
+  }
+}

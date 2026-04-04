@@ -1,0 +1,50 @@
+/* Calendar Base Styles */
+
+.rbc-calendar {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Off Range */
+.rbc-off-range-bg {
+  background-color: #fafafa;
+}
+
+:root[data-theme="dark"] .rbc-off-range-bg {
+  background-color: #0a0a0a;
+}
+
+/* Selected */
+.rbc-selected {
+  background-color: #0095f6 !important;
+}
+
+/* Current Time Indicator */
+.rbc-current-time-indicator {
+  background: #0095f6;
+  height: 2px;
+}
+
+/* Month Row */
+.rbc-month-row {
+  border-color: #efefef;
+}
+
+:root[data-theme="dark"] .rbc-month-row {
+  border-color: #1a1a1a;
+}
+
+/* Show More */
+.rbc-show-more {
+  color: #0095f6;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  text-align: left;
+}
+
+.rbc-show-more:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,150 @@
+/* Bible Search - 성경 검색 기능 */
+
+.bible-search-section {
+  padding: 1rem;
+  background: var(--ig-secondary-background);
+  min-height: calc(100vh - 200px);
+}
+
+.search-form {
+  margin-bottom: 1.5rem;
+  position: sticky;
+  top: 176px;
+  z-index: 8;
+  background: var(--ig-secondary-background);
+  padding-bottom: 1rem;
+}
+
+.search-input-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--ig-primary-background);
+  border: 2px solid var(--ig-border);
+  border-radius: 12px;
+  padding: 0.25rem;
+  transition: border-color 0.2s;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #667eea;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  color: var(--ig-primary-text);
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--ig-secondary-text);
+}
+
+.search-button {
+  padding: 0.75rem 1.25rem;
+  background: #667eea;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.search-button:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+}
+
+.search-button:active {
+  transform: translateY(0);
+}
+
+.search-button .material-icons-round {
+  font-size: 1.25rem;
+}
+
+.search-results {
+  background: var(--ig-primary-background);
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid var(--ig-border);
+}
+
+.results-count {
+  font-size: 0.875rem;
+  color: var(--ig-secondary-text);
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Bible Study Search Result - BEM modifier */
+.bible-verse-item--search {
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1.125rem 1rem;
+  background: var(--ig-secondary-background);
+  border-radius: 8px;
+  border: 1px solid var(--ig-border);
+  margin-bottom: 0.75rem;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.bible-verse-item--search:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+  margin-bottom: 0.75rem;
+}
+
+.bible-verse-item--search:hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #667eea;
+  border-radius: 2px 0 0 2px;
+}
+
+.bible-verse-item--search .bible-verse-text {
+  line-height: 1.85;
+  letter-spacing: -0.01em;
+}
+
+.bible-verse-reference {
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  font-size: 0.8125rem;
+}
+
+.bible-verse-item--search:hover .bible-verse-reference {
+  color: #667eea;
+}
+
+.no-results {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--ig-secondary-text);
+}
+
+.no-results .material-icons-round {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.3;
+}
+
+.no-results p {
+  font-size: 1rem;
+  font-weight: 500;
+}

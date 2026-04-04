@@ -1,0 +1,167 @@
+/* Attendance Section - Modern Clean Style */
+
+.attendance-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+}
+
+[data-theme="dark"] .attendance-section {
+  background: #000000;
+  border-color: #262626;
+}
+
+.attendance-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.attend-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+[data-theme="dark"] .attend-btn {
+  background: #000000;
+}
+
+.btn-icon {
+  font-size: 1rem;
+}
+
+.attend-btn.attending {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.attend-btn.attending:hover {
+  background: #22c55e;
+  color: white;
+}
+
+[data-theme="dark"] .attend-btn.attending {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+[data-theme="dark"] .attend-btn.attending:hover {
+  background: #22c55e;
+  color: white;
+}
+
+.attend-btn.maybe {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.attend-btn.maybe:hover {
+  background: #f59e0b;
+  color: white;
+}
+
+[data-theme="dark"] .attend-btn.maybe {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+[data-theme="dark"] .attend-btn.maybe:hover {
+  background: #f59e0b;
+  color: white;
+}
+
+.attend-btn.not-attending {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.attend-btn.not-attending:hover {
+  background: #ef4444;
+  color: white;
+}
+
+[data-theme="dark"] .attend-btn.not-attending {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+[data-theme="dark"] .attend-btn.not-attending:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.attendance-current {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.current-status-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f0f9ff;
+  border: 1px solid #0095f6;
+  border-radius: 8px;
+}
+
+[data-theme="dark"] .current-status-card {
+  background: #0a1929;
+  border-color: #0095f6;
+}
+
+.status-icon {
+  font-size: 1.25rem;
+  color: #0095f6;
+}
+
+.current-status-card p {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #262626;
+}
+
+[data-theme="dark"] .current-status-card p {
+  color: #fafafa;
+}
+
+.cancel-btn {
+  padding: 0.75rem 1rem;
+  background: white;
+  color: #262626;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .cancel-btn {
+  background: #000000;
+  color: #fafafa;
+  border-color: #262626;
+}
+
+.cancel-btn:hover {
+  background: #f5f5f5;
+  border-color: #a8a8a8;
+}
+
+[data-theme="dark"] .cancel-btn:hover {
+  background: #1a1a1a;
+  border-color: #363636;
+}

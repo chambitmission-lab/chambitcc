@@ -1,0 +1,9 @@
+/* 성장하는 나무 스타일 - 모듈화된 구조 */
+
+/* 각 모듈별 스타일 임포트 */
+@import './styles/tree-display.css';      /* 메인 컨테이너 및 배경 */
+@import './styles/sky-elements.css';      /* 하늘 요소 (태양, 달, 별, 구름, 별똥별) */
+@import './styles/tree-stages.css';       /* 나무 성장 단계 */
+@import './styles/tree-decorations.css';  /* 나무 장식 (꽃, 열매, 벌, 나비) */
+@import './styles/ground-elements.css';   /* 땅 요소 (버섯, 돌, 풀) */
+@import './styles/tree-info.css';         /* 정보 섹션 (배지, 통계, 진행률) */

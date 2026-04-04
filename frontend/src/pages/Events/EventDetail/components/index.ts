@@ -1,0 +1,5 @@
+export { EventHero } from './EventHero'
+export { EventInfo } from './EventInfo'
+export { EventDescription } from './EventDescription'
+export { AttendanceSection } from './AttendanceSection'
+export { CommentsSection } from './CommentsSection'

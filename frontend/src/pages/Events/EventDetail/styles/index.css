@@ -1,0 +1,10 @@
+/* Event Detail - Main Import File */
+
+@import './hero.css';
+@import './layout.css';
+@import './info-cards.css';
+@import './description.css';
+@import './attendance.css';
+@import './comments.css';
+@import './states.css';
+@import './responsive.css';

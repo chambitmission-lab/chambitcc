@@ -1,0 +1,91 @@
+/* 공통 스타일 - 인스타그램 디자인 */
+
+/* Error Boundary - 인스타그램 에러 스타일 */
+.error-boundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ig-secondary-background);
+  color: var(--ig-primary-text);
+  padding: 2rem;
+}
+
+.error-content {
+  text-align: center;
+  max-width: 400px;
+  background: var(--ig-primary-background);
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--ig-border);
+}
+
+.error-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.error-content p {
+  font-size: 0.875rem;
+  color: var(--ig-secondary-text);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.error-content button {
+  padding: 0.5rem 1.5rem;
+  background: var(--ig-blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  min-height: 32px;
+}
+
+.error-content button:hover {
+  background: var(--ig-blue-hover);
+}
+
+.error-content button:active {
+  opacity: 0.7;
+}
+
+/* Loading Container - 인스타그램 로딩 스타일 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.loading-message {
+  margin-top: 1rem;
+  color: var(--ig-secondary-text);
+  font-size: 0.875rem;
+}
+
+/* Utility Classes - 인스타그램 스타일 */
+.text-center {
+  text-align: center;
+}
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+.p-1 { padding: 0.5rem; }
+.p-2 { padding: 1rem; }
+.p-3 { padding: 1.5rem; }
+.p-4 { padding: 2rem; }

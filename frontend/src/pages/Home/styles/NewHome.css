@@ -1,0 +1,9 @@
+/* 인스타그램 스타일 메인 페이지 */
+@import './PrayerHero.css';
+@import './PrayerList.css';
+@import './PrayerCard.css';
+
+.new-home {
+  min-height: 100vh;
+  background: var(--ig-secondary-background);
+}

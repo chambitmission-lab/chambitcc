@@ -1,0 +1,28 @@
+/* Loading & Error States - Modern Clean Style */
+
+.loading-spinner {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #8e8e8e;
+}
+
+[data-theme="dark"] .loading-spinner {
+  color: #a8a8a8;
+}
+
+.error-message {
+  background: #fff5f5;
+  color: #c53030;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid #feb2b2;
+}
+
+[data-theme="dark"] .error-message {
+  background: #2d0a0a;
+  color: #fc8181;
+  border-color: #742a2a;
+}

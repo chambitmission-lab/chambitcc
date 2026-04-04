@@ -1,0 +1,267 @@
+/* 인스타그램 스타일 푸터 */
+
+.new-footer {
+  background: var(--ig-primary-background);
+  color: var(--ig-secondary-text);
+  border-top: 1px solid var(--ig-border);
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 975px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+}
+
+/* Footer Grid - 인스타그램 심플 레이아웃 */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Sections Wrapper - 모바일 레이아웃용 */
+.footer-sections-wrapper {
+  display: contents;
+}
+
+/* Brand Section - 인스타그램 로고 스타일 */
+.footer-brand {
+  max-width: 100%;
+}
+
+.footer-logo {
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin: 0 0 0.5rem 0;
+  color: var(--ig-primary-text);
+  font-family: 'Pacifico', 'Lobster', cursive, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+.footer-tagline {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ig-secondary-text);
+  margin: 0;
+}
+
+/* Footer Sections */
+.footer-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Links - 인스타그램 링크 스타일 */
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-links a {
+  color: var(--ig-secondary-text);
+  text-decoration: none;
+  font-size: 0.75rem;
+  transition: color 0.1s ease;
+  width: fit-content;
+}
+
+.footer-links a:hover {
+  color: var(--ig-primary-text);
+}
+
+/* Contact - 인스타그램 텍스트 스타일 */
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.footer-contact p {
+  color: var(--ig-secondary-text);
+  font-size: 0.75rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.footer-address {
+  margin-top: 0.25rem;
+}
+
+/* Social Links - 인스타그램 아이콘 스타일 */
+.footer-social {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.social-link {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ig-primary-text);
+  background: transparent;
+  border: 1px solid var(--ig-border);
+  border-radius: 6px;
+  transition: all 0.1s ease;
+  text-decoration: none;
+}
+
+.social-link:hover {
+  background: var(--ig-hover);
+  border-color: var(--ig-secondary-text);
+}
+
+.social-link svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Bottom Bar - 인스타그램 하단 바 */
+.footer-bottom {
+  padding-top: 1rem;
+}
+
+.footer-divider {
+  height: 1px;
+  background: var(--ig-border);
+  margin-bottom: 1rem;
+}
+
+.footer-copyright {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.footer-copyright p {
+  font-size: 0.6875rem;
+  color: var(--ig-tertiary-text);
+  margin: 0;
+}
+
+.footer-credit {
+  color: var(--ig-tertiary-text);
+}
+
+/* Responsive - 인스타그램 모바일 스타일 */
+@media (max-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer-inner {
+    padding: 1.5rem 1rem;
+  }
+
+  .footer-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .footer-brand {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--ig-border);
+  }
+
+  .footer-logo {
+    font-size: 1.25rem;
+  }
+
+  .footer-tagline {
+    font-size: 0.75rem;
+  }
+
+  /* 모바일에서 섹션들을 2열로 */
+  .footer-sections-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .footer-title {
+    font-size: 0.625rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-links a,
+  .footer-contact p {
+    font-size: 0.6875rem;
+  }
+
+  .footer-social {
+    gap: 0.375rem;
+  }
+
+  .social-link {
+    width: 28px;
+    height: 28px;
+  }
+
+  .social-link svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .footer-bottom {
+    padding-top: 1rem;
+  }
+
+  .footer-divider {
+    margin-bottom: 1rem;
+  }
+
+  .footer-copyright {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.25rem;
+  }
+
+  .footer-copyright p {
+    font-size: 0.625rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-inner {
+    padding: 1.25rem 1rem;
+  }
+
+  .footer-grid {
+    gap: 1.25rem;
+  }
+
+  .footer-brand {
+    padding-bottom: 0.75rem;
+  }
+
+  /* 작은 화면에서는 1열로 */
+  .footer-sections-wrapper {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}

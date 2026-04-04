@@ -1,0 +1,25 @@
+/* 
+ * Bible Study - Main Entry Point
+ * 
+ * 이 파일은 모든 하위 스타일 파일을 import합니다.
+ * SOLID 원칙의 Single Responsibility Principle을 따라
+ * 각 기능별로 스타일을 분리했습니다.
+ */
+
+/* Layout - 레이아웃 및 컨테이너 */
+@import './styles/layout.css';
+
+/* Book Selector - 성경 책 선택 */
+@import './styles/book-selector.css';
+
+/* Chapter Navigation - 장 네비게이션 */
+@import './styles/chapter-navigation.css';
+
+/* Verse Display - 성경 본문 표시 */
+@import './styles/verse-display.css';
+
+/* Search - 검색 기능 */
+@import './styles/search.css';
+
+/* Common - 공통 컴포넌트 */
+@import './styles/common.css';
