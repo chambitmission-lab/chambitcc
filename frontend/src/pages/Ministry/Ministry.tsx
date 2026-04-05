@@ -6,7 +6,7 @@ import { getColumns, createColumn, updateColumn, deleteColumn } from '../../api/
 import type { Column } from '../../types/column'
 import './Ministry.css'
 
-// 중요한 문구를 하이라이트하는 함수
+// 중요한 문구를 하이라이트하는 함수 (상세 화면용)
 const renderHighlightedText = (text: string) => {
   // [[텍스트]] 형식을 찾아서 빛나는 효과 적용
   const parts = text.split(/(\[\[.*?\]\])/g)
@@ -28,6 +28,11 @@ const renderHighlightedText = (text: string) => {
     }
     return part
   })
+}
+
+// 하이라이트 태그를 제거하는 함수 (목록 화면용)
+const removeHighlightTags = (text: string): string => {
+  return text.replace(/\[\[(.*?)\]\]/g, '$1')
 }
 
 const Ministry = () => {
@@ -225,7 +230,7 @@ const Ministry = () => {
                   {column.title}
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed">
-                  {column.content}
+                  {removeHighlightTags(column.content)}
                 </p>
               </div>
 
