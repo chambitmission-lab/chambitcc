@@ -6,7 +6,10 @@
       "Bash(npx -p typescript tsc --noEmit)",
       "Bash(node_modules/.bin/tsc --noEmit)",
       "Bash(./node_modules/.bin/tsc --noEmit)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -E \"\\\\.\\(java|kt|ts|js|go|py\\)$\")",
+      "Bash(grep -E \"\\\\.\\(py|md\\)$\")"
     ]
   }
 }

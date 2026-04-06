@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { sendPush, type PushPayload } from '../../api/push';
+import { getUserList, type User } from '../../api/user';
 import './NotificationManagement.css';
 import './PushNotificationManagement.css';
 
@@ -9,15 +10,68 @@ export const PushNotificationManagement = () => {
   const [url, setUrl] = useState('/');
   const [icon, setIcon] = useState('/chambitcc/pwa-192x192.png');
   const [tag, setTag] = useState('notification');
-  const [userIds, setUserIds] = useState('');
+  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
+  const [sendTarget, setSendTarget] = useState<'all' | 'selected'>('all');
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // 사용자 목록
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // 사용자 목록 불러오기
+  const fetchUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const data = await getUserList();
+      setUsers(data.users);
+    } catch (error) {
+      console.error('사용자 목록 조회 실패:', error);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // 검색 필터링
+  const filteredUsers = users.filter(user => {
+    const query = searchQuery.toLowerCase();
+    return (
+      user.username.toLowerCase().includes(query) ||
+      (user.full_name && user.full_name.toLowerCase().includes(query))
+    );
+  });
+
+  const toggleUserSelection = (userId: number) => {
+    setSelectedUserIds(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUserIds.length === filteredUsers.length) {
+      setSelectedUserIds([]);
+    } else {
+      setSelectedUserIds(filteredUsers.map(u => u.id));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim() || !body.trim()) {
       setMessage({ type: 'error', text: '제목과 내용을 입력해주세요.' });
+      return;
+    }
+
+    if (sendTarget === 'selected' && selectedUserIds.length === 0) {
+      setMessage({ type: 'error', text: '전송할 사용자를 선택해주세요.' });
       return;
     }
 
@@ -29,24 +83,22 @@ export const PushNotificationManagement = () => {
         title: title.trim(),
         body: body.trim(),
         icon: icon.trim() || '/chambitcc/pwa-192x192.png',
-        image: '/chambitcc/pwa-512x512.png', // 안드로이드에서 큰 이미지로 표시
+        image: '/chambitcc/pwa-512x512.png',
         url: url.trim() || '/',
         tag: tag.trim() || 'notification'
       };
 
-      const parsedUserIds = userIds.trim()
-        ? userIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
-        : undefined;
+      const userIdsToSend = sendTarget === 'selected' ? selectedUserIds : undefined;
 
       console.log('📤 푸시 알림 전송 시작');
       console.log('📋 페이로드:', payload);
-      console.log('👥 대상 사용자 ID:', parsedUserIds || '전체');
+      console.log('👥 대상 사용자 ID:', userIdsToSend || '전체');
 
       const startTime = Date.now();
-      
+
       await sendPush({
         payload,
-        user_ids: parsedUserIds
+        user_ids: userIdsToSend
       });
 
       const duration = Date.now() - startTime;
@@ -54,8 +106,8 @@ export const PushNotificationManagement = () => {
 
       setMessage({
         type: 'success',
-        text: parsedUserIds
-          ? `${parsedUserIds.length}명에게 푸시 알림을 전송했습니다.`
+        text: userIdsToSend
+          ? `${userIdsToSend.length}명에게 푸시 알림을 전송했습니다.`
           : '전체 사용자에게 푸시 알림을 전송했습니다.'
       });
 
@@ -64,7 +116,8 @@ export const PushNotificationManagement = () => {
       setBody('');
       setUrl('/');
       setTag('notification');
-      setUserIds('');
+      setSelectedUserIds([]);
+      setSendTarget('all');
     } catch (error: any) {
       console.error('❌ 푸시 전송 실패:', error);
       console.error('에러 상세:', {
@@ -205,18 +258,91 @@ export const PushNotificationManagement = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="userIds">
-              특정 사용자 ID (선택사항)
-              <span className="help-text">쉼표로 구분, 비워두면 전체 발송</span>
-            </label>
-            <input
-              id="userIds"
-              type="text"
-              value={userIds}
-              onChange={(e) => setUserIds(e.target.value)}
-              placeholder="예: 1, 2, 3"
-            />
+            <label>전송 대상</label>
+            <div className="send-target-options">
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="sendTarget"
+                  value="all"
+                  checked={sendTarget === 'all'}
+                  onChange={() => setSendTarget('all')}
+                />
+                전체 발송
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="sendTarget"
+                  value="selected"
+                  checked={sendTarget === 'selected'}
+                  onChange={() => setSendTarget('selected')}
+                />
+                선택 발송
+                {sendTarget === 'selected' && selectedUserIds.length > 0 && (
+                  <span className="selected-count">{selectedUserIds.length}명 선택</span>
+                )}
+              </label>
+            </div>
           </div>
+
+          {sendTarget === 'selected' && (
+            <div className="user-select-section">
+              <div className="user-search-bar">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="이름 또는 아이디로 검색..."
+                  className="user-search-input"
+                />
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="select-all-btn"
+                >
+                  {selectedUserIds.length === filteredUsers.length && filteredUsers.length > 0
+                    ? '전체 해제'
+                    : '전체 선택'}
+                </button>
+              </div>
+
+              {isLoadingUsers ? (
+                <div className="user-list-loading">사용자 목록을 불러오는 중...</div>
+              ) : (
+                <div className="user-list-container">
+                  {filteredUsers.length === 0 ? (
+                    <div className="user-list-empty">
+                      {searchQuery ? '검색 결과가 없습니다.' : '등록된 사용자가 없습니다.'}
+                    </div>
+                  ) : (
+                    filteredUsers.map(user => (
+                      <label
+                        key={user.id}
+                        className={`user-list-item ${selectedUserIds.includes(user.id) ? 'selected' : ''}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedUserIds.includes(user.id)}
+                          onChange={() => toggleUserSelection(user.id)}
+                        />
+                        <div className="user-info">
+                          <span className="user-name">
+                            {user.full_name || user.username}
+                          </span>
+                          <span className="user-meta">
+                            @{user.username}
+                            {user.is_admin && <span className="admin-badge">관리자</span>}
+                            {!user.is_active && <span className="inactive-badge">비활성</span>}
+                          </span>
+                        </div>
+                      </label>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="preview-section">
             <h3>미리보기</h3>
