@@ -22,9 +22,27 @@ registerPushServiceWorker()
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LanguageProvider>
-      <PersistQueryClientProvider 
-        client={queryClient} 
-        persistOptions={{ persister }}
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{
+          persister,
+          dehydrateOptions: {
+            shouldDehydrateQuery: (query) => {
+              // 기본 조건: 성공한 쿼리만 persist
+              if (query.state.status !== 'success') return false
+              // 무한 스크롤 쿼리는 데이터가 크므로 persist 제외
+              const key = query.queryKey
+              if (Array.isArray(key) && key.includes('infinite')) return false
+              // pageParams가 있는 infinite query도 제외 (커뮤니티, 기도, 댓글 등)
+              if (query.state.data && typeof query.state.data === 'object' && 'pageParams' in query.state.data) {
+                const pageParams = (query.state.data as any).pageParams
+                // 첫 페이지만 있으면 persist 허용, 2페이지 이상이면 제외
+                if (Array.isArray(pageParams) && pageParams.length > 1) return false
+              }
+              return true
+            },
+          },
+        }}
       >
         <App />
       </PersistQueryClientProvider>

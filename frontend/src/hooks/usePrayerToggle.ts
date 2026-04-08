@@ -175,30 +175,27 @@ export const usePrayerToggle = ({
         await addMutation.mutateAsync({ prayerId, durationMinutes })
       }
 
-      // 캐시 무효화 (비동기, 백그라운드)
-      setTimeout(() => {
-        // 다른 정렬의 목록만 백그라운드 무효화 (같은 사용자)
-        const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
-        otherSorts.forEach(otherSort => {
-          queryClient.invalidateQueries({ 
-            queryKey: prayerKeys.list(otherSort, groupId, filter, username),
-            refetchType: 'none',
-          })
-        })
-
-        // 다른 상세 캐시들도 백그라운드 무효화
-        if (!detailPrayerId) {
-          queryClient.invalidateQueries({
-            queryKey: prayerKeys.details(),
-            refetchType: 'none',
-          })
-        }
-
-        // 프로필 캐시 무효화 및 자동 갱신 (기도 통계 업데이트)
+      // 다른 정렬의 목록만 백그라운드 무효화 (같은 사용자)
+      const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
+      otherSorts.forEach(otherSort => {
         queryClient.invalidateQueries({
-          queryKey: ['profile', 'detail'],
+          queryKey: prayerKeys.list(otherSort, groupId, filter, username),
+          refetchType: 'none',
         })
-      }, 0)
+      })
+
+      // 다른 상세 캐시들도 백그라운드 무효화
+      if (!detailPrayerId) {
+        queryClient.invalidateQueries({
+          queryKey: prayerKeys.details(),
+          refetchType: 'none',
+        })
+      }
+
+      // 프로필 캐시 무효화 및 자동 갱신 (기도 통계 업데이트)
+      queryClient.invalidateQueries({
+        queryKey: ['profile', 'detail'],
+      })
     } catch (error) {
       // 에러 시 롤백
       queryClient.setQueryData(listQueryKey, previousListData)

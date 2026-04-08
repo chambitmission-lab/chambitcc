@@ -4,6 +4,7 @@ import { fetchPrayers, createPrayer, fetchPrayerDetail } from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
 import { showToast } from '../utils/toast'
 import { getCurrentUser } from '../utils/auth'
+import { createRetry } from '../config/queryClient'
 import type { SortType, Prayer, CreatePrayerRequest, PrayerFilterType } from '../types/prayer'
 
 // Query Keys - 사용자별로 다른 캐시 사용
@@ -57,15 +58,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
     gcTime: 1000 * 60 * 60 * 2, // 2시간 메모리 유지 (무한스크롤 데이터 누적 방지)
     refetchOnMount: false, // 캐시 우선
     refetchOnWindowFocus: false,
-    retry: (failureCount, error: any) => {
-      // 네트워크 에러는 재시도하지 않고 캐시 사용
-      if (error?.message?.includes('Failed to fetch') || 
-          error?.message?.includes('Network request failed') ||
-          error?.message?.includes('ERR_CONNECTION_REFUSED')) {
-        return false
-      }
-      return failureCount < 2
-    },
+    retry: createRetry(2), // 전역(1회)보다 여유 있게 재시도
   })
 
   // 기도 토글 훅 사용 (Dependency Inversion)
@@ -135,13 +128,11 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
       // 실제 데이터로 갱신 (모든 사용자의 캐시)
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
       
-      // 백그라운드에서 프로필 캐시 무효화 (내 기도 +1)
-      setTimeout(() => {
-        queryClient.invalidateQueries({
-          queryKey: ['profile', 'detail'],
-          refetchType: 'none',
-        })
-      }, 0)
+      // 프로필 캐시 무효화 (내 기도 +1)
+      queryClient.invalidateQueries({
+        queryKey: ['profile', 'detail'],
+        refetchType: 'none',
+      })
     },
   })
 
@@ -159,7 +150,7 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
   return {
     prayers,
     loading: query.isLoading,
-    error: query.error?.message ?? null,
+    error: query.error instanceof Error ? query.error.message : null,
     hasMore: query.hasNextPage,
     sort,
     loadMore: query.fetchNextPage,

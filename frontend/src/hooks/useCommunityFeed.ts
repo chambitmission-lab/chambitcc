@@ -109,11 +109,8 @@ export const useCommunityFeed = (initialSort: string = 'latest') => {
     addPost: (content: string, image?: string) => 
       createMutation.mutateAsync({ content, image }),
     isCreating: createMutation.isPending,
-    refresh: () => queryClient.invalidateQueries({ 
-      queryKey: communityKeys.posts(initialSort) 
-    }),
-    refetch: () => queryClient.invalidateQueries({ 
-      queryKey: communityKeys.posts(initialSort) 
+    refresh: () => queryClient.invalidateQueries({
+      queryKey: communityKeys.posts(initialSort)
     }),
   }
 }

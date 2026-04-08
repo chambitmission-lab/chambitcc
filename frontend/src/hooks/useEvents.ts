@@ -1,105 +1,74 @@
-// Event 데이터 관리 커스텀 훅
-import { useState, useEffect, useCallback } from 'react'
+// Event 데이터 관리 커스텀 훅 - React Query 기반
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchEvents, fetchEventDetail } from '../api/event'
-import type { Event, EventCategory } from '../types/event'
+import type { EventCategory } from '../types/event'
+
+// Query Keys
+export const eventKeys = {
+  all: ['events'] as const,
+  lists: () => [...eventKeys.all, 'list'] as const,
+  list: (startDate?: string, endDate?: string, category?: EventCategory) =>
+    [...eventKeys.lists(), startDate ?? 'all', endDate ?? 'all', category ?? 'all'] as const,
+  details: () => [...eventKeys.all, 'detail'] as const,
+  detail: (eventId: number) => [...eventKeys.details(), eventId] as const,
+}
 
 export const useEvents = (
   startDate?: string,
   endDate?: string,
   category?: EventCategory
 ) => {
-  const [events, setEvents] = useState<Event[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [skip, setSkip] = useState(0)
-  const [hasMore, setHasMore] = useState(true)
+  const queryClient = useQueryClient()
 
-  // 이벤트 목록 로드
-  const loadEvents = useCallback(async (currentSkip: number, reset: boolean = false) => {
-    try {
-      setLoading(true)
-      setError(null)
+  const query = useInfiniteQuery({
+    queryKey: eventKeys.list(startDate, endDate, category),
+    queryFn: async ({ pageParam = 0 }) => {
+      return await fetchEvents(startDate, endDate, category, pageParam, 20)
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.data.items.length < 20) return undefined
+      return allPages.length * 20
+    },
+    initialPageParam: 0,
+    staleTime: 1000 * 60 * 5, // 5분
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  })
 
-      console.log('Fetching events:', { startDate, endDate, category, currentSkip })
-      const response = await fetchEvents(startDate, endDate, category, currentSkip, 20)
-      console.log('Events response:', response)
-
-      if (response.success) {
-        setEvents(prev =>
-          reset ? response.data.items : [...prev, ...response.data.items]
-        )
-        setHasMore(response.data.items.length === 20)
-      }
-    } catch (err) {
-      console.error('Error fetching events:', err)
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다')
-    } finally {
-      setLoading(false)
-    }
-  }, [startDate, endDate, category])
-
-  // 초기 로드 및 필터 변경 시 리로드
-  useEffect(() => {
-    setSkip(0)
-    loadEvents(0, true)
-  }, [startDate, endDate, category, loadEvents])
-
-  // 더 보기
-  const loadMore = useCallback(() => {
-    if (!loading && hasMore) {
-      const newSkip = skip + 20
-      setSkip(newSkip)
-      loadEvents(newSkip, false)
-    }
-  }, [loading, hasMore, skip, loadEvents])
+  const events = query.data?.pages.flatMap(page => page.data.items) ?? []
 
   return {
     events,
-    loading,
-    error,
-    hasMore,
-    loadMore,
-    refresh: () => {
-      setSkip(0)
-      loadEvents(0, true)
-    },
+    loading: query.isLoading,
+    error: query.error?.message ?? null,
+    hasMore: query.hasNextPage,
+    loadMore: () => query.fetchNextPage(),
+    refresh: () => queryClient.invalidateQueries({
+      queryKey: eventKeys.list(startDate, endDate, category),
+    }),
   }
 }
 
 // 이벤트 상세 조회 훅
 export const useEventDetail = (eventId: number) => {
-  const [event, setEvent] = useState<Event | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
-  const loadEvent = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      console.log('Fetching event detail:', eventId)
+  const query = useQuery({
+    queryKey: eventKeys.detail(eventId),
+    queryFn: async () => {
       const response = await fetchEventDetail(eventId)
-      console.log('Event detail response:', response)
-
-      if (response.success) {
-        setEvent(response.data)
-      }
-    } catch (err) {
-      console.error('Error fetching event detail:', err)
-      setError(err instanceof Error ? err.message : '오류가 발생했습니다')
-    } finally {
-      setLoading(false)
-    }
-  }, [eventId])
-
-  useEffect(() => {
-    loadEvent()
-  }, [loadEvent])
+      return response.success ? response.data : null
+    },
+    enabled: !!eventId,
+    staleTime: 1000 * 60 * 5,
+  })
 
   return {
-    event,
-    loading,
-    error,
-    refresh: loadEvent,
+    event: query.data ?? null,
+    loading: query.isLoading,
+    error: query.error?.message ?? null,
+    refresh: () => queryClient.invalidateQueries({
+      queryKey: eventKeys.detail(eventId),
+    }),
   }
 }

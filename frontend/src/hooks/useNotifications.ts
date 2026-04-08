@@ -29,31 +29,13 @@ export const useNotifications = () => {
 
 /**
  * 읽지 않은 알림 개수만 조회
- * useNotifications의 캐시된 데이터에서 추출
+ * useNotifications의 캐시에서 파생 (별도 API 호출 없음)
  */
 export const useUnreadCount = () => {
-  const queryClient = useQueryClient()
-  const token = localStorage.getItem('access_token')
-  
-  return useQuery({
-    queryKey: notificationKeys.unreadCount(),
-    queryFn: async () => {
-      // 먼저 캐시된 notifications 데이터 확인
-      const cachedData = queryClient.getQueryData(notificationKeys.list())
-      if (cachedData && typeof cachedData === 'object' && 'unread_count' in cachedData) {
-        return cachedData.unread_count as number
-      }
-      
-      // 캐시가 없으면 API 호출
-      const data = await getNotifications()
-      return data.unread_count
-    },
-    enabled: !!token,
-    staleTime: 1000 * 60 * 5, // 5분간 fresh 상태 유지
-    refetchInterval: 1000 * 60 * 5, // 5분마다 자동 갱신
-    refetchOnMount: false,
-    refetchOnWindowFocus: false, // 창 포커스 시 갱신 비활성화
-  })
+  const { data } = useNotifications()
+  return data && typeof data === 'object' && 'unread_count' in data
+    ? (data.unread_count as number)
+    : 0
 }
 
 /**
@@ -61,13 +43,11 @@ export const useUnreadCount = () => {
  */
 export const useMarkAsRead = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: markAsRead,
     onSuccess: () => {
-      // 알림 목록 및 개수 캐시 무효화
       queryClient.invalidateQueries({ queryKey: notificationKeys.list() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
     },
   })
 }
@@ -77,25 +57,22 @@ export const useMarkAsRead = () => {
  */
 export const useMarkAllAsRead = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: markAllAsRead,
     onSuccess: () => {
-      // 알림 목록 및 개수 캐시 무효화
       queryClient.invalidateQueries({ queryKey: notificationKeys.list() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
     },
   })
 }
 
 /**
- * 알림 목록 및 개수 수동 갱신
+ * 알림 목록 수동 갱신
  */
 export const useRefreshNotifications = () => {
   const queryClient = useQueryClient()
-  
+
   return () => {
     queryClient.invalidateQueries({ queryKey: notificationKeys.list() })
-    queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
   }
 }

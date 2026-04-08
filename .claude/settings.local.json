@@ -9,7 +9,10 @@
       "Bash(ls:*)",
       "Bash(xargs grep:*)",
       "Bash(grep -E \"\\\\.\\(java|kt|ts|js|go|py\\)$\")",
-      "Bash(grep -E \"\\\\.\\(py|md\\)$\")"
+      "Bash(grep -E \"\\\\.\\(py|md\\)$\")",
+      "Bash(find /c/Users/k1988/idea/chambitcc-main/frontend/src/hooks -name \"*.ts*\" -exec basename {} \\\\;)",
+      "Bash(npm run:*)",
+      "Bash(npm install:*)"
     ]
   }
 }
