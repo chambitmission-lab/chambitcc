@@ -12,6 +12,8 @@ interface PrayerActionsProps {
   isOwner?: boolean
   isAnswered?: boolean
   onAnswerClick?: (e: React.MouseEvent) => void
+  onEditAnswerClick?: (e: React.MouseEvent) => void
+  onCancelAnswerClick?: (e: React.MouseEvent) => void
 }
 
 interface LightParticle {
@@ -28,7 +30,9 @@ const PrayerActions = ({
   colorTheme,
   isOwner,
   isAnswered,
-  onAnswerClick
+  onAnswerClick,
+  onEditAnswerClick,
+  onCancelAnswerClick,
 }: PrayerActionsProps) => {
   const { language } = useLanguage()
   const [particles, setParticles] = useState<LightParticle[]>([])
@@ -96,13 +100,38 @@ const PrayerActions = ({
 
         {/* 응답 등록 버튼 (내 기도이고 아직 응답 안됨) */}
         {isOwner && !isAnswered && onAnswerClick && (
-          <button 
+          <button
             onClick={onAnswerClick}
             className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors text-sm font-semibold"
           >
             <span className="text-base">✨</span>
             <span>{language === 'ko' ? '응답등록' : 'Answer'}</span>
           </button>
+        )}
+
+        {/* 응답 수정 / 취소 버튼 (내 기도이고 이미 응답된 경우) */}
+        {isOwner && isAnswered && (onEditAnswerClick || onCancelAnswerClick) && (
+          <div className="flex items-center gap-3">
+            {onEditAnswerClick && (
+              <button
+                onClick={onEditAnswerClick}
+                className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors text-sm font-semibold"
+              >
+                <span className="text-base">✏️</span>
+                <span>{language === 'ko' ? '간증수정' : 'Edit'}</span>
+              </button>
+            )}
+            {onCancelAnswerClick && (
+              <button
+                onClick={onCancelAnswerClick}
+                className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-sm"
+                title={language === 'ko' ? '응답 등록 취소' : 'Cancel answer'}
+              >
+                <span className="text-base">↩️</span>
+                <span>{language === 'ko' ? '응답취소' : 'Cancel'}</span>
+              </button>
+            )}
+          </div>
         )}
       </div>
 

@@ -11,6 +11,8 @@ interface PrayerFeedProps {
   onLoadMore: () => void
   onPrayerToggle: (prayerId: number) => void
   onAnswerToggle?: (prayerId: number) => void
+  onEditAnswer?: (prayerId: number) => void
+  onCancelAnswer?: (prayerId: number) => void
   onPrayerClick: (prayerId: number, shouldOpenReplies?: boolean) => void
 }
 
@@ -22,6 +24,8 @@ const PrayerFeed = ({
   onLoadMore,
   onPrayerToggle,
   onAnswerToggle,
+  onEditAnswer,
+  onCancelAnswer,
   onPrayerClick
 }: PrayerFeedProps) => {
   const { t } = useLanguage()
@@ -52,6 +56,8 @@ const PrayerFeed = ({
           prayer={prayer}
           onPrayerToggle={onPrayerToggle}
           onAnswerToggle={onAnswerToggle}
+          onEditAnswer={onEditAnswer}
+          onCancelAnswer={onCancelAnswer}
           onClick={() => onPrayerClick(prayer.id)}
           onReplyClick={() => onPrayerClick(prayer.id, true)}
         />

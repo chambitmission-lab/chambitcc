@@ -12,11 +12,21 @@ interface PrayerArticleProps {
   prayer: Prayer
   onPrayerToggle: (prayerId: number) => void
   onAnswerToggle?: (prayerId: number) => void
+  onEditAnswer?: (prayerId: number) => void
+  onCancelAnswer?: (prayerId: number) => void
   onClick: () => void
   onReplyClick: () => void
 }
 
-const PrayerArticle = ({ prayer, onPrayerToggle, onAnswerToggle, onClick, onReplyClick }: PrayerArticleProps) => {
+const PrayerArticle = ({
+  prayer,
+  onPrayerToggle,
+  onAnswerToggle,
+  onEditAnswer,
+  onCancelAnswer,
+  onClick,
+  onReplyClick,
+}: PrayerArticleProps) => {
   const [isPraying, setIsPraying] = useState(false)
   const [showVersesModal, setShowVersesModal] = useState(false)
   
@@ -38,6 +48,16 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onAnswerToggle, onClick, onRepl
   const handleAnswer = (e: React.MouseEvent) => {
     e.stopPropagation()
     onAnswerToggle?.(prayer.id)
+  }
+
+  const handleEditAnswer = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onEditAnswer?.(prayer.id)
+  }
+
+  const handleCancelAnswer = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onCancelAnswer?.(prayer.id)
   }
 
   const handleVersesClick = (e: React.MouseEvent) => {
@@ -75,6 +95,8 @@ const PrayerArticle = ({ prayer, onPrayerToggle, onAnswerToggle, onClick, onRepl
         isOwner={prayer.is_owner}
         isAnswered={prayer.is_answered}
         onAnswerClick={handleAnswer}
+        onEditAnswerClick={handleEditAnswer}
+        onCancelAnswerClick={handleCancelAnswer}
       />
 
       <PrayerStats

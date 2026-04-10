@@ -82,15 +82,40 @@ const NewHome = () => {
     }
   }
 
-  const handleAnswerSubmit = (testimony: string) => {
-    if (selectedPrayerForAnswer) {
-      // TODO: 백엔드 API 연동
-      console.log('응답 등록:', {
-        prayerId: selectedPrayerForAnswer.id,
-        testimony
-      })
-      
-      alert(`✨ 응답이 등록되었습니다!\n\n"${selectedPrayerForAnswer.title}"\n\n간증: ${testimony}\n\n(백엔드 연동 후 실제로 저장됩니다)`)
+  // 응답된 기도의 간증 수정 진입점
+  const handleEditAnswer = (prayerId: number) => {
+    const prayer = prayerHook.prayers.find(p => p.id === prayerId)
+    if (prayer) {
+      setSelectedPrayerForAnswer(prayer)
+      setShowAnswerModal(true)
+    }
+  }
+
+  // 응답 등록 취소
+  const handleCancelAnswer = async (prayerId: number) => {
+    const ok = window.confirm('응답 등록을 취소하시겠습니까? 등록한 간증이 삭제됩니다.')
+    if (!ok) return
+    try {
+      await prayerHook.cancelPrayerAnswer(prayerId)
+    } catch {
+      // mutation onError에서 toast 처리됨
+    }
+  }
+
+  const handleAnswerSubmit = async (testimony: string) => {
+    if (!selectedPrayerForAnswer) return
+    try {
+      // 이미 응답된 기도면 수정, 아니면 신규 등록
+      if (selectedPrayerForAnswer.is_answered) {
+        await prayerHook.updatePrayerAnswer(selectedPrayerForAnswer.id, testimony)
+      } else {
+        await prayerHook.answerPrayer(selectedPrayerForAnswer.id, testimony)
+      }
+      // 성공 시 모달 닫기 (실패 시에는 사용자가 다시 시도할 수 있도록 열어둠)
+      setShowAnswerModal(false)
+      setSelectedPrayerForAnswer(null)
+    } catch {
+      // mutation onError에서 toast 처리됨
     }
   }
 
@@ -198,6 +223,8 @@ const NewHome = () => {
               onLoadMore={prayerHook.loadMore}
               onPrayerToggle={handlePrayerToggle}
               onAnswerToggle={handleAnswerToggle}
+              onEditAnswer={handleEditAnswer}
+              onCancelAnswer={handleCancelAnswer}
               onPrayerClick={handlePrayerClick}
             />
           </main>
@@ -252,6 +279,12 @@ const NewHome = () => {
             }}
             onSubmit={handleAnswerSubmit}
             prayerTitle={selectedPrayerForAnswer?.title || ''}
+            initialTestimony={
+              selectedPrayerForAnswer?.is_answered
+                ? selectedPrayerForAnswer?.testimony
+                : undefined
+            }
+            isSubmitting={prayerHook.isAnswering}
           />
         </div>
 
