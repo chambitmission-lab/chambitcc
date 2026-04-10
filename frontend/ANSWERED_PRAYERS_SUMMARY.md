@@ -155,21 +155,27 @@ border-left: 3px solid rgb(168, 85, 247);
 - [x] 반응형 디자인
 - [x] TypeScript 에러 없음
 
-## 🔄 백엔드 연동 대기
+## ✅ 백엔드 연동 완료
 
-### API 엔드포인트 필요
+### API 엔드포인트 (구현됨)
 ```
-POST /api/prayers/{prayer_id}/answer
-GET  /api/prayers?is_answered=true
-DELETE /api/prayers/{prayer_id}/answer (선택)
+GET    /api/v1/prayers?is_answered=true   # 응답의 전당 목록
+POST   /api/v1/prayers/{prayer_id}/answer # 응답 등록 (작성자만)
+PUT    /api/v1/prayers/{prayer_id}/answer # 간증 수정 (작성자만)
+DELETE /api/v1/prayers/{prayer_id}/answer # 응답 등록 취소 (작성자만)
 ```
 
-### 데이터베이스 스키마
+응답 등록 시 함께 기도한 사용자들에게 푸시 알림이 백그라운드로 발송됩니다.
+
+### 데이터베이스 스키마 (마이그레이션 적용됨)
 ```sql
-ALTER TABLE prayers ADD COLUMN is_answered BOOLEAN DEFAULT FALSE;
+ALTER TABLE prayers ADD COLUMN is_answered BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE prayers ADD COLUMN testimony TEXT;
-ALTER TABLE prayers ADD COLUMN answered_at TIMESTAMP;
+ALTER TABLE prayers ADD COLUMN answered_at TIMESTAMP WITH TIME ZONE;
+CREATE INDEX ix_prayers_is_answered ON prayers (is_answered);
 ```
+
+마이그레이션: `backend/alembic/versions/add_answered_fields_to_prayers.py`
 
 ## 🎉 주요 개선사항
 
@@ -185,21 +191,20 @@ ALTER TABLE prayers ADD COLUMN answered_at TIMESTAMP;
 - 직관적인 응답 버튼 위치
 - 부드러운 애니메이션
 
-## 📊 테스트 데이터
+## 📊 테스트 데이터 (선택 사항)
 
-5개의 샘플 응답 기도가 준비되어 있습니다:
-- 취업 응답
-- 건강 회복
-- 시험 합격
-- 관계 회복
-- 사업 회복
+`src/utils/mockAnsweredPrayers.ts`에 5개의 샘플 응답 기도가 정의되어 있지만,
+현재는 어디서도 import되지 않습니다. 실제 동작은 백엔드 API를 사용합니다.
 
-## 💡 다음 단계
+UI 시연용으로 mock을 다시 활용하고 싶다면 `addMockAnsweredPrayers()` 헬퍼를
+적당한 위치에서 호출하세요.
 
-1. 백엔드 API 개발
-2. 실제 데이터 연동
-3. 응답 수정/삭제 기능
-4. 푸시 알림 (선택)
+## 💡 다음 단계 (모두 완료)
+
+1. ✅ 백엔드 API 개발 — `POST/PUT/DELETE /prayers/{id}/answer`
+2. ✅ 실제 데이터 연동 — `usePrayersInfinite(..., isAnswered)` + answer mutation
+3. ✅ 응답 수정/취소 기능 — PrayerCard ✏️/↩️ 진입점
+4. ✅ 푸시 알림 — `_notify_reactors_of_answer` (백그라운드)
 
 ---
 

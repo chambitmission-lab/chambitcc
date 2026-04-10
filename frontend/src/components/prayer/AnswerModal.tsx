@@ -1,23 +1,41 @@
-// 기도 응답 모달 - 간증 작성
-import { useState } from 'react'
+// 기도 응답 모달 - 간증 작성/수정
+import { useEffect, useState } from 'react'
 
 interface AnswerModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (testimony: string) => void
   prayerTitle: string
+  /** 수정 모드일 때 기존 간증 텍스트 (없으면 신규 등록 모드) */
+  initialTestimony?: string
+  /** 등록/수정 진행 중 표시용 */
+  isSubmitting?: boolean
 }
 
-const AnswerModal = ({ isOpen, onClose, onSubmit, prayerTitle }: AnswerModalProps) => {
-  const [testimony, setTestimony] = useState('')
-  
+const AnswerModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  prayerTitle,
+  initialTestimony,
+  isSubmitting = false,
+}: AnswerModalProps) => {
+  const isEditMode = !!initialTestimony
+  const [testimony, setTestimony] = useState(initialTestimony ?? '')
+
+  // 모달이 열릴 때마다 initialTestimony 동기화 (다른 prayer로 전환 대응)
+  useEffect(() => {
+    if (isOpen) {
+      setTestimony(initialTestimony ?? '')
+    }
+  }, [isOpen, initialTestimony])
+
   if (!isOpen) return null
-  
+
   const handleSubmit = () => {
-    if (testimony.trim()) {
+    if (testimony.trim() && !isSubmitting) {
       onSubmit(testimony)
-      setTestimony('')
-      onClose()
+      // 성공/실패 처리는 부모에서. 모달 닫기는 부모 책임.
     }
   }
   
@@ -33,7 +51,9 @@ const AnswerModal = ({ isOpen, onClose, onSubmit, prayerTitle }: AnswerModalProp
         <div className="flex items-center justify-between p-4 border-b border-border-light dark:border-border-dark">
           <div className="flex items-center gap-2">
             <span className="text-2xl">✨</span>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">기도 응답 간증</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              {isEditMode ? '간증 수정' : '기도 응답 간증'}
+            </h2>
           </div>
           <button 
             className="w-10 h-10 flex items-center justify-center rounded-full relative group transition-all"
@@ -87,13 +107,13 @@ const AnswerModal = ({ isOpen, onClose, onSubmit, prayerTitle }: AnswerModalProp
             >
               취소
             </button>
-            <button 
+            <button
               onClick={handleSubmit}
-              disabled={!testimony.trim()}
+              disabled={!testimony.trim() || isSubmitting}
               className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <span>✨</span>
-              응답 등록
+              {isSubmitting ? '저장 중...' : isEditMode ? '간증 수정' : '응답 등록'}
             </button>
           </div>
         </div>

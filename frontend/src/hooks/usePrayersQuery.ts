@@ -1,6 +1,13 @@
 // React Query를 사용한 Prayer 데이터 관리
 import { useMutation, useQueryClient, useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { fetchPrayers, createPrayer, fetchPrayerDetail } from '../api/prayer'
+import {
+  fetchPrayers,
+  createPrayer,
+  fetchPrayerDetail,
+  answerPrayer,
+  updatePrayerAnswer,
+  cancelPrayerAnswer,
+} from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
 import { showToast } from '../utils/toast'
 import { getCurrentUser } from '../utils/auth'
@@ -11,28 +18,46 @@ import type { SortType, Prayer, CreatePrayerRequest, PrayerFilterType } from '..
 export const prayerKeys = {
   all: ['prayers'] as const,
   lists: () => [...prayerKeys.all, 'list'] as const,
-  list: (sort: SortType, groupId?: number | null, filter?: PrayerFilterType | null, username?: string | null) => 
-    [...prayerKeys.lists(), sort, groupId ?? 'all', filter ?? 'all', username || 'anonymous'] as const,
+  list: (
+    sort: SortType,
+    groupId?: number | null,
+    filter?: PrayerFilterType | null,
+    username?: string | null,
+    isAnswered?: boolean,
+  ) =>
+    [
+      ...prayerKeys.lists(),
+      sort,
+      groupId ?? 'all',
+      filter ?? 'all',
+      username || 'anonymous',
+      isAnswered === undefined ? 'any' : isAnswered ? 'answered' : 'unanswered',
+    ] as const,
   details: () => [...prayerKeys.all, 'detail'] as const,
-  detail: (prayerId: number, username?: string | null) => 
+  detail: (prayerId: number, username?: string | null) =>
     [...prayerKeys.details(), prayerId, username || 'anonymous'] as const,
 }
 
 // Infinite Query Hook
-export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number | null, filter?: PrayerFilterType | null) => {
+export const usePrayersInfinite = (
+  sort: SortType = 'popular',
+  groupId?: number | null,
+  filter?: PrayerFilterType | null,
+  isAnswered?: boolean,
+) => {
   const queryClient = useQueryClient()
   // 매 렌더링마다 최신 사용자 정보 가져오기 (장시간 후 재접속 대응)
   const currentUser = getCurrentUser()
-  
+
   // 로그인 필요한 필터인지 확인
   const requiresAuth = filter === 'my_prayers' || filter === 'prayed_by_me'
   const isAuthenticated = !!currentUser.username
 
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
-    queryKey: prayerKeys.list(sort, groupId, filter, currentUser.username),
+    queryKey: prayerKeys.list(sort, groupId, filter, currentUser.username, isAnswered),
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await fetchPrayers(pageParam, 20, sort, groupId, filter)
+      const response = await fetchPrayers(pageParam, 20, sort, groupId, filter, isAnswered)
       
       // 클라이언트에서 is_owner 재계산 (보안 강화)
       const itemsWithRecalculatedOwner = response.data.items.map((prayer: Prayer) => ({
@@ -124,15 +149,77 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
     },
     onSuccess: () => {
       showToast('기도 요청이 등록되었습니다.', 'success')
-      
+
       // 실제 데이터로 갱신 (모든 사용자의 캐시)
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
-      
+
       // 프로필 캐시 무효화 (내 기도 +1)
       queryClient.invalidateQueries({
         queryKey: ['profile', 'detail'],
         refetchType: 'none',
       })
+    },
+  })
+
+  // 응답 등록 Mutation (응답의 전당)
+  // - 등록/수정 모두 처리: 이미 응답된 기도면 PUT, 아니면 POST
+  const answerMutation = useMutation({
+    mutationFn: async ({
+      prayerId,
+      testimony,
+      isUpdate,
+    }: {
+      prayerId: number
+      testimony: string
+      isUpdate?: boolean
+    }) => {
+      if (isUpdate) {
+        return updatePrayerAnswer(prayerId, testimony)
+      }
+      return answerPrayer(prayerId, testimony)
+    },
+    onSuccess: (_data, variables) => {
+      showToast(
+        variables.isUpdate ? '응답 간증이 수정되었습니다.' : '✨ 응답이 등록되었습니다',
+        'success',
+      )
+
+      // 모든 기도 목록 캐시 무효화 (응답의 전당 포함)
+      queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+
+      // 상세 캐시도 무효화 (해당 기도 카드)
+      queryClient.invalidateQueries({
+        queryKey: prayerKeys.detail(variables.prayerId, currentUser.username),
+      })
+
+      // 프로필 캐시도 무효화 (응답한 기도 수가 통계에 영향)
+      queryClient.invalidateQueries({
+        queryKey: ['profile', 'detail'],
+        refetchType: 'none',
+      })
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '응답 등록에 실패했습니다.', 'error')
+    },
+  })
+
+  // 응답 취소 Mutation
+  const cancelAnswerMutation = useMutation({
+    mutationFn: ({ prayerId }: { prayerId: number }) => cancelPrayerAnswer(prayerId),
+    onSuccess: (_data, variables) => {
+      showToast('응답 등록이 취소되었습니다.', 'success')
+
+      queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+      queryClient.invalidateQueries({
+        queryKey: prayerKeys.detail(variables.prayerId, currentUser.username),
+      })
+      queryClient.invalidateQueries({
+        queryKey: ['profile', 'detail'],
+        refetchType: 'none',
+      })
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '응답 취소에 실패했습니다.', 'error')
     },
   })
 
@@ -159,7 +246,18 @@ export const usePrayersInfinite = (sort: SortType = 'popular', groupId?: number 
     isToggling,
     createPrayer: (data: CreatePrayerRequest) => createMutation.mutateAsync(data),
     isCreating: createMutation.isPending,
-    refresh: () => queryClient.invalidateQueries({ queryKey: prayerKeys.list(sort, groupId, filter, currentUser.username) }),
+    answerPrayer: (prayerId: number, testimony: string) =>
+      answerMutation.mutateAsync({ prayerId, testimony }),
+    updatePrayerAnswer: (prayerId: number, testimony: string) =>
+      answerMutation.mutateAsync({ prayerId, testimony, isUpdate: true }),
+    cancelPrayerAnswer: (prayerId: number) =>
+      cancelAnswerMutation.mutateAsync({ prayerId }),
+    isAnswering: answerMutation.isPending,
+    isCancellingAnswer: cancelAnswerMutation.isPending,
+    refresh: () =>
+      queryClient.invalidateQueries({
+        queryKey: prayerKeys.list(sort, groupId, filter, currentUser.username, isAnswered),
+      }),
   }
 }
 

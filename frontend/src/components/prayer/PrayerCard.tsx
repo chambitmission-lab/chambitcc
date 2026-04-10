@@ -7,15 +7,21 @@ interface PrayerCardProps {
   onPrayerToggle?: (prayerId: number) => void
   onReplyClick?: (prayerId: number) => void
   onAnswerToggle?: (prayerId: number) => void
+  /** 응답된 기도에 대해 작성자가 간증을 수정하려고 누를 때 */
+  onEditAnswer?: (prayerId: number) => void
+  /** 응답된 기도의 응답 등록을 취소할 때 */
+  onCancelAnswer?: (prayerId: number) => void
   isToggling?: boolean
   showAnswerButton?: boolean
 }
 
-const PrayerCard = ({ 
-  prayer, 
+const PrayerCard = ({
+  prayer,
   onPrayerToggle,
   onReplyClick,
   onAnswerToggle,
+  onEditAnswer,
+  onCancelAnswer,
   isToggling = false,
   showAnswerButton = true
 }: PrayerCardProps) => {
@@ -95,6 +101,33 @@ const PrayerCard = ({
             <span className="action-icon">✨</span>
             <span className="action-text">응답</span>
           </button>
+        )}
+
+        {/* 응답 수정/취소 버튼 (내 기도이고, 이미 응답된 경우) */}
+        {showAnswerButton && prayer.is_owner && prayer.is_answered && (
+          <>
+            {onEditAnswer && (
+              <button
+                className="action-button answer-button"
+                onClick={() => onEditAnswer(prayer.id)}
+                disabled={isToggling}
+              >
+                <span className="action-icon">✏️</span>
+                <span className="action-text">간증 수정</span>
+              </button>
+            )}
+            {onCancelAnswer && (
+              <button
+                className="action-button"
+                onClick={() => onCancelAnswer(prayer.id)}
+                disabled={isToggling}
+                title="응답 등록 취소"
+              >
+                <span className="action-icon">↩️</span>
+                <span className="action-text">응답 취소</span>
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

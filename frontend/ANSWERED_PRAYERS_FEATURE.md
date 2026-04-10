@@ -74,50 +74,48 @@
 
 ### 1. 응답 등록하기
 ```typescript
-// PrayerList.tsx에서
-const handleAnswerToggle = (prayerId: number) => {
-  const prayer = prayers.find(p => p.id === prayerId)
-  if (prayer) {
-    setSelectedPrayer(prayer)
-    setShowAnswerModal(true)
-  }
-}
+// PrayerList.tsx 또는 AnsweredPrayers.tsx에서
+const {
+  answerPrayer,
+  updatePrayerAnswer,
+  cancelPrayerAnswer,
+  isAnswering,
+} = usePrayersInfinite(sort, groupId, filter, /* isAnswered */ undefined)
 
-const handleAnswerSubmit = (testimony: string) => {
-  // TODO: 백엔드 API 호출
-  // POST /api/prayers/{prayerId}/answer
-  // Body: { testimony: string }
-}
+// 신규 등록
+await answerPrayer(prayer.id, testimony)
+// 수정
+await updatePrayerAnswer(prayer.id, testimony)
+// 취소
+await cancelPrayerAnswer(prayer.id)
 ```
+
+`PrayerList.tsx:handleAnswerSubmit`이 `prayer.is_answered` 여부에 따라
+`POST` / `PUT`을 자동으로 분기합니다.
 
 ### 2. 응답의 전당 접근
 - 홈 화면의 황금빛 배너 클릭
 - 상단 메뉴에서 '✨ 응답의 전당' 클릭
 - 직접 URL 접근: `/answered-prayers`
 
-### 3. 테스트용 Mock 데이터
-```typescript
-import { mockAnsweredPrayers } from '../utils/mockAnsweredPrayers'
+응답의 전당 페이지는 `usePrayersInfinite(sort, null, 'all', true)`를 호출해
+`GET /api/v1/prayers?is_answered=true`로 백엔드에서 직접 필터링된 목록을 받습니다.
 
-// 테스트 시 사용
-const testPrayers = [...mockAnsweredPrayers, ...realPrayers]
-```
-
-## 🚀 백엔드 연동 필요 사항
+## ✅ 백엔드 연동 (구현 완료)
 
 ### API 엔드포인트
 
 #### 1. 응답 등록
 ```
-POST /api/prayers/{prayer_id}/answer
+POST /api/v1/prayers/{prayer_id}/answer
 Authorization: Bearer {token}
 
 Request Body:
 {
-  "testimony": "간증 내용 (최대 500자)"
+  "testimony": "간증 내용 (1~2000자)"
 }
 
-Response:
+Response 201:
 {
   "success": true,
   "message": "응답이 등록되었습니다",
@@ -125,15 +123,31 @@ Response:
     "id": 123,
     "is_answered": true,
     "testimony": "간증 내용",
-    "answered_at": "2024-03-12T10:30:00Z"
+    "answered_at": "2026-04-10T01:30:00Z",
+    ...
   }
 }
 ```
 
-#### 2. 응답된 기도 목록 조회
+등록 성공 후 백그라운드에서 `_notify_reactors_of_answer`가 실행되어,
+해당 기도에 reaction(🙏 기도하기)을 남긴 사용자들에게 푸시 알림이 발송됩니다.
+
+#### 2. 응답 간증 수정
 ```
-GET /api/prayers?is_answered=true&sort=latest&page=1&limit=20
+PUT /api/v1/prayers/{prayer_id}/answer
 Authorization: Bearer {token}
+
+Request Body:
+{
+  "testimony": "수정한 간증 내용"
+}
+```
+
+`answered_at`은 최초 등록 시점이 유지됩니다.
+
+#### 3. 응답된 기도 목록 조회
+```
+GET /api/v1/prayers?is_answered=true&sort=latest&page=1&limit=20
 
 Response:
 {
@@ -142,40 +156,46 @@ Response:
     "items": [Prayer[]],
     "page": 1,
     "limit": 20,
-    "total": 50
+    "total": 20
   }
 }
 ```
 
-#### 3. 응답 취소 (선택사항)
+`is_answered=true`이고 `sort=latest`인 경우 백엔드는 `ORDER BY answered_at DESC`로
+정렬해 응답 시각 순으로 노출됩니다.
+
+#### 4. 응답 등록 취소
 ```
-DELETE /api/prayers/{prayer_id}/answer
-Authorization: Bearer {token}
+DELETE /api/v1/prayers/{prayer_id}/answer
 
 Response:
 {
   "success": true,
-  "message": "응답이 취소되었습니다"
+  "message": "응답이 취소되었습니다",
+  "data": { ...is_answered=false 로 갱신된 prayer }
 }
 ```
 
-### 데이터베이스 스키마 추가
+`is_answered=false`, `testimony=NULL`, `answered_at=NULL`로 초기화되며
+기도 자체는 그대로 유지됩니다.
+
+### 데이터베이스 스키마 (마이그레이션 적용됨)
 
 ```sql
--- prayers 테이블에 컬럼 추가
-ALTER TABLE prayers ADD COLUMN is_answered BOOLEAN DEFAULT FALSE;
+ALTER TABLE prayers ADD COLUMN is_answered BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE prayers ADD COLUMN testimony TEXT;
-ALTER TABLE prayers ADD COLUMN answered_at TIMESTAMP;
-
--- 인덱스 추가 (성능 최적화)
-CREATE INDEX idx_prayers_is_answered ON prayers(is_answered);
-CREATE INDEX idx_prayers_answered_at ON prayers(answered_at DESC);
+ALTER TABLE prayers ADD COLUMN answered_at TIMESTAMP WITH TIME ZONE;
+CREATE INDEX ix_prayers_is_answered ON prayers (is_answered);
 ```
 
-### 권한 체크
-- 응답 등록: 기도 작성자만 가능 (`is_owner = true`)
-- 응답 조회: 모든 사용자 가능
-- 응답 수정/삭제: 기도 작성자만 가능
+마이그레이션 파일: `backend/alembic/versions/add_answered_fields_to_prayers.py`
+(revision: `add_answered_prayers`, down_revision: `add_user_id_idx_prayer`)
+
+### 권한 체크 (백엔드에서 강제)
+- **응답 등록/수정/취소**: 기도 작성자만 (`prayer.user_id == current_user.id`)
+- **응답 조회**: 모든 사용자
+- 작성자가 아닌 사용자가 호출하면 `403 Forbidden` 반환
+- 이미 응답된 기도에 다시 등록하면 `409 Conflict` 반환 → 프론트는 자동으로 PUT으로 분기
 
 ## 📱 반응형 디자인
 
@@ -197,11 +217,13 @@ CREATE INDEX idx_prayers_answered_at ON prayers(answered_at DESC);
 - [x] 라우팅 설정
 - [x] Mock 데이터 생성
 
-### 백엔드 연동 필요
-- [ ] 응답 등록 API 연동
-- [ ] 응답된 기도 목록 API 연동
-- [ ] 응답 취소 API 연동 (선택)
-- [ ] 실시간 업데이트 (React Query 무효화)
+### 백엔드 연동 (완료)
+- [x] 응답 등록 API 연동 (`POST /api/v1/prayers/{id}/answer`)
+- [x] 응답 간증 수정 API 연동 (`PUT /api/v1/prayers/{id}/answer`)
+- [x] 응답 취소 API 연동 (`DELETE /api/v1/prayers/{id}/answer`)
+- [x] 응답된 기도 목록 API 연동 (`GET /api/v1/prayers?is_answered=true`)
+- [x] 실시간 업데이트 (React Query — answer/cancel mutation의 onSuccess에서 `prayerKeys.lists()` invalidate)
+- [x] 푸시 알림 (응답 등록 시 reactor들에게 백그라운드 발송)
 
 ## 🎉 기대 효과
 

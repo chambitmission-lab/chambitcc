@@ -26,8 +26,12 @@ const PrayerList = () => {
     isFetchingMore,
     handlePrayerToggle,
     isToggling,
+    answerPrayer,
+    updatePrayerAnswer,
+    cancelPrayerAnswer,
+    isAnswering,
   } = usePrayersInfinite(sort, selectedGroupId, selectedFilter)
-  
+
   const handleAnswerToggle = (prayerId: number) => {
     const prayer = prayers.find(p => p.id === prayerId)
     if (prayer) {
@@ -35,17 +39,41 @@ const PrayerList = () => {
       setShowAnswerModal(true)
     }
   }
-  
-  const handleAnswerSubmit = (testimony: string) => {
-    if (selectedPrayer) {
-      // TODO: 백엔드 API 연동
-      console.log('응답 등록:', {
-        prayerId: selectedPrayer.id,
-        testimony
-      })
-      
-      // 성공 메시지
-      alert(`✨ 응답이 등록되었습니다!\n\n"${selectedPrayer.title}"\n\n간증: ${testimony}\n\n(백엔드 연동 후 실제로 저장됩니다)`)
+
+  // 응답된 기도의 간증 수정 진입점 (응답된 기도에서만 호출됨)
+  const handleEditAnswer = (prayerId: number) => {
+    const prayer = prayers.find(p => p.id === prayerId)
+    if (prayer) {
+      setSelectedPrayer(prayer)
+      setShowAnswerModal(true)
+    }
+  }
+
+  // 응답 등록 취소
+  const handleCancelAnswer = async (prayerId: number) => {
+    const ok = window.confirm('응답 등록을 취소하시겠습니까? 등록한 간증이 삭제됩니다.')
+    if (!ok) return
+    try {
+      await cancelPrayerAnswer(prayerId)
+    } catch {
+      // mutation onError에서 toast 처리됨
+    }
+  }
+
+  const handleAnswerSubmit = async (testimony: string) => {
+    if (!selectedPrayer) return
+    try {
+      // 이미 응답된 기도면 수정, 아니면 신규 등록
+      if (selectedPrayer.is_answered) {
+        await updatePrayerAnswer(selectedPrayer.id, testimony)
+      } else {
+        await answerPrayer(selectedPrayer.id, testimony)
+      }
+      // 성공 시 모달 닫기 (실패 시에는 사용자가 다시 시도할 수 있도록 열어둠)
+      setShowAnswerModal(false)
+      setSelectedPrayer(null)
+    } catch {
+      // mutation의 onError에서 toast 처리됨
     }
   }
   
@@ -136,6 +164,8 @@ const PrayerList = () => {
                   prayer={prayer}
                   onPrayerToggle={handlePrayerToggle}
                   onAnswerToggle={handleAnswerToggle}
+                  onEditAnswer={handleEditAnswer}
+                  onCancelAnswer={handleCancelAnswer}
                   isToggling={isToggling}
                 />
               ))}
@@ -174,6 +204,8 @@ const PrayerList = () => {
         }}
         onSubmit={handleAnswerSubmit}
         prayerTitle={selectedPrayer?.title || ''}
+        initialTestimony={selectedPrayer?.is_answered ? selectedPrayer?.testimony : undefined}
+        isSubmitting={isAnswering}
       />
     </div>
   )

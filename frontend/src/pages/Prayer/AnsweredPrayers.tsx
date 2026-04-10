@@ -2,14 +2,17 @@
 import { useState } from 'react'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import PrayerCard from '../../components/prayer/PrayerCard'
-import type { SortType } from '../../types/prayer'
+import AnswerModal from '../../components/prayer/AnswerModal'
+import type { Prayer, SortType } from '../../types/prayer'
 import './AnsweredPrayers.css'
 
 const AnsweredPrayers = () => {
   const [sort, setSort] = useState<SortType>('latest')
-  
+  const [editingPrayer, setEditingPrayer] = useState<Prayer | null>(null)
+
+  // 백엔드에 is_answered=true 필터 전달 → 응답된 기도만 페이지네이션으로 받음
   const {
-    prayers,
+    prayers: answeredPrayers,
     loading,
     error,
     hasMore,
@@ -17,10 +20,35 @@ const AnsweredPrayers = () => {
     isFetchingMore,
     handlePrayerToggle,
     isToggling,
-  } = usePrayersInfinite(sort, null, 'all')
-  
-  // 응답된 기도만 필터링 (백엔드 연동 전 임시)
-  const answeredPrayers = prayers.filter(prayer => prayer.is_answered)
+    updatePrayerAnswer,
+    cancelPrayerAnswer,
+    isAnswering,
+  } = usePrayersInfinite(sort, null, 'all', true)
+
+  const handleEditAnswer = (prayerId: number) => {
+    const prayer = answeredPrayers.find(p => p.id === prayerId)
+    if (prayer) setEditingPrayer(prayer)
+  }
+
+  const handleCancelAnswer = async (prayerId: number) => {
+    const ok = window.confirm('응답 등록을 취소하시겠습니까? 등록한 간증이 삭제됩니다.')
+    if (!ok) return
+    try {
+      await cancelPrayerAnswer(prayerId)
+    } catch {
+      // mutation onError에서 toast 처리
+    }
+  }
+
+  const handleSubmitEdit = async (testimony: string) => {
+    if (!editingPrayer) return
+    try {
+      await updatePrayerAnswer(editingPrayer.id, testimony)
+      setEditingPrayer(null)
+    } catch {
+      // mutation onError에서 toast 처리
+    }
+  }
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black pt-24 pb-8 px-4">
@@ -166,8 +194,12 @@ const AnsweredPrayers = () => {
                   key={prayer.id}
                   prayer={prayer}
                   onPrayerToggle={handlePrayerToggle}
+                  onEditAnswer={handleEditAnswer}
+                  onCancelAnswer={handleCancelAnswer}
                   isToggling={isToggling}
-                  showAnswerButton={false}
+                  /* 응답의 전당은 모두 응답된 기도이므로 응답 등록 버튼은 안 뜨고
+                     수정/취소 버튼만 작성자 본인에게 노출됨 */
+                  showAnswerButton={true}
                 />
               ))}
             </div>
@@ -188,6 +220,16 @@ const AnsweredPrayers = () => {
         )}
       </div>
       
+      {/* 간증 수정 모달 */}
+      <AnswerModal
+        isOpen={!!editingPrayer}
+        onClose={() => setEditingPrayer(null)}
+        onSubmit={handleSubmitEdit}
+        prayerTitle={editingPrayer?.title ?? ''}
+        initialTestimony={editingPrayer?.testimony}
+        isSubmitting={isAnswering}
+      />
+
       <style>{`
         @keyframes sparkle {
           0%, 100% {

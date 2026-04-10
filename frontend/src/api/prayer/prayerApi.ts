@@ -11,13 +11,16 @@ import type {
 
 /**
  * 기도 요청 목록 조회 (비로그인 가능)
+ *
+ * @param isAnswered true면 응답된 기도만(응답의 전당), false면 미응답만, undefined면 전체
  */
 export const fetchPrayers = async (
   page: number = 1,
   limit: number = 20,
   sort: SortType = 'popular',
   groupId?: number | null,
-  filter?: 'all' | 'my_prayers' | 'prayed_by_me' | null
+  filter?: 'all' | 'my_prayers' | 'prayed_by_me' | null,
+  isAnswered?: boolean
 ): Promise<PrayerListResponse> => {
   const params = new URLSearchParams({
     page: page.toString(),
@@ -33,6 +36,11 @@ export const fetchPrayers = async (
   // 필터가 있으면 쿼리 파라미터에 추가
   if (filter && filter !== 'all') {
     params.append('filter', filter)
+  }
+
+  // 응답의 전당 필터
+  if (isAnswered !== undefined) {
+    params.append('is_answered', String(isAnswered))
   }
 
   const response = await apiFetch(`${API_V1}/prayers?${params}`, {
