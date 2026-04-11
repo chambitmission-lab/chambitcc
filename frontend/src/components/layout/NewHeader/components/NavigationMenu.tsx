@@ -9,6 +9,7 @@ const MENU_ITEMS = [
   { path: '/garden', label: '🌸 나의 정원' },
   { path: '/answered-prayers', label: '✨ 응답의 전당' },
   { path: '/events', key: 'events' as const },
+  { path: '/mission', label: '🌍 선교 현황' },
   { path: '/ministry', key: 'ministry' as const },
   { path: '/news', key: 'news' as const }
 ]
