@@ -171,9 +171,34 @@ export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistra
       console.log('🔧 Service Worker 경로:', swPath);
     }
     
-    // 기존 등록 확인
+    // 좀비 Service Worker 자동 청소
+    // 이전에 vite-plugin-pwa 등으로 등록된 다른 스크립트(dev-sw.js 등)가
+    // 남아 있으면 update() 시 MIME 에러가 발생하므로 먼저 제거한다.
+    const expectedScriptUrl = new URL(swPath, window.location.origin).href;
+    const allRegistrations = await navigator.serviceWorker.getRegistrations();
+    for (const reg of allRegistrations) {
+      const activeUrl =
+        reg.active?.scriptURL ||
+        reg.waiting?.scriptURL ||
+        reg.installing?.scriptURL ||
+        '';
+      if (activeUrl && activeUrl !== expectedScriptUrl) {
+        try {
+          await reg.unregister();
+          if (import.meta.env.DEV) {
+            console.log('🧹 좀비 Service Worker 제거:', activeUrl);
+          }
+        } catch (unregErr) {
+          if (import.meta.env.DEV) {
+            console.warn('좀비 SW 제거 실패 (무시):', unregErr);
+          }
+        }
+      }
+    }
+
+    // 기존 등록 확인 (청소 후)
     let registration = await navigator.serviceWorker.getRegistration();
-    
+
     if (!registration) {
       // 새로 등록
       registration = await navigator.serviceWorker.register(swPath, {
@@ -186,11 +211,31 @@ export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistra
       if (import.meta.env.DEV) {
         console.log('✅ Service Worker 이미 등록됨:', registration);
       }
-      
-      // 업데이트 확인
-      await registration.update();
-      if (import.meta.env.DEV) {
-        console.log('🔄 Service Worker 업데이트 확인 완료');
+
+      // 업데이트 확인 — 실패해도 전체 흐름을 중단시키지 않음
+      try {
+        await registration.update();
+        if (import.meta.env.DEV) {
+          console.log('🔄 Service Worker 업데이트 확인 완료');
+        }
+      } catch (updateErr) {
+        if (import.meta.env.DEV) {
+          console.warn('⚠️ SW update 실패 — 좀비 등록 가능성, 재등록 시도:', updateErr);
+        }
+        // 좀비 등록이 남아있던 경우 강제 재등록
+        try {
+          await registration.unregister();
+          registration = await navigator.serviceWorker.register(swPath, {
+            scope: base
+          });
+          if (import.meta.env.DEV) {
+            console.log('♻️ Service Worker 재등록 완료:', registration);
+          }
+        } catch (reregErr) {
+          if (import.meta.env.DEV) {
+            console.error('SW 재등록 실패:', reregErr);
+          }
+        }
       }
     }
 
