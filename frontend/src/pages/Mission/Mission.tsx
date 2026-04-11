@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   missionaryByRegion,
   regionMeta,
@@ -17,6 +17,8 @@ const REGION_ORDER: RegionKey[] = ['asia', 'europe', 'africa', 'americas']
 const Mission = () => {
   const [activeRegion, setActiveRegion] = useState<RegionKey>('asia')
   const [hoverCountry, setHoverCountry] = useState<string | null>(null)
+  const [selectedKey, setSelectedKey] = useState<string | null>(null) // "country|name"
+  const mapRef = useRef<HTMLDivElement>(null)
 
   const missionaries = useMemo(
     () => missionaryByRegion[activeRegion],
@@ -24,6 +26,27 @@ const Mission = () => {
   )
 
   const activeMeta = regionMeta[activeRegion]
+
+  // selectedKey → 국가명 추출
+  const selectedCountry = selectedKey ? selectedKey.split('|')[0] : null
+
+  const handleCardClick = (country: string, name: string) => {
+    const key = `${country}|${name}`
+    if (selectedKey === key) {
+      // 같은 카드 재클릭 시 선택 해제
+      setSelectedKey(null)
+      return
+    }
+    setSelectedKey(key)
+    // 지도를 화면에 부드럽게 가져오기
+    mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
+  // 지역 탭 변경 시 선택 초기화
+  const handleRegionChange = (key: RegionKey) => {
+    setActiveRegion(key)
+    setSelectedKey(null)
+  }
 
   // 지도에 찍을 점: 전체 선교지 (활성 지역 강조)
   const mapPoints = useMemo(() => {
@@ -77,16 +100,17 @@ const Mission = () => {
         </div>
 
         {/* ===== WORLD MAP ===== */}
-        <div className="mission-map-wrap">
+        <div className="mission-map-wrap" ref={mapRef}>
           <div className="map-heading">
             <span className="map-title">🌐 해외 사역 지도</span>
             <span className="map-hint">
-              {hoverCountry ?? `${activeMeta.label} 강조`}
+              {selectedCountry ?? hoverCountry ?? `${activeMeta.label} 강조`}
             </span>
           </div>
           <WorldMap
             points={mapPoints}
             onHover={setHoverCountry}
+            selectedCountry={selectedCountry}
           />
         </div>
 
@@ -105,7 +129,7 @@ const Mission = () => {
               <button
                 key={key}
                 className={`region-tab ${activeRegion === key ? 'active' : ''}`}
-                onClick={() => setActiveRegion(key)}
+                onClick={() => handleRegionChange(key)}
                 style={activeRegion === key ? {
                   borderColor: meta.color,
                   boxShadow: `0 0 20px ${meta.color}55`,
@@ -129,7 +153,13 @@ const Mission = () => {
         </div>
 
         {/* ===== MISSIONARY GRID ===== */}
-        <MissionaryGrid missionaries={missionaries} color={activeMeta.color} key={activeRegion} />
+        <MissionaryGrid
+          missionaries={missionaries}
+          color={activeMeta.color}
+          key={activeRegion}
+          selectedKey={selectedKey}
+          onCardClick={handleCardClick}
+        />
 
         {/* ===== DOMESTIC SECTION ===== */}
         <div className="mission-section-title">
@@ -182,27 +212,41 @@ const Mission = () => {
 const MissionaryGrid = ({
   missionaries,
   color,
+  selectedKey,
+  onCardClick,
 }: {
   missionaries: Missionary[]
   color: string
+  selectedKey: string | null
+  onCardClick: (country: string, name: string) => void
 }) => {
   return (
     <div className="missionary-grid">
-      {missionaries.map((m, idx) => (
-        <div
-          key={`${m.country}-${m.name}-${idx}`}
-          className="missionary-card"
-          style={{
-            ['--card-glow' as string]: `${color}40`,
-          }}
-        >
-          <div className="card-country" style={{ color }}>
-            {m.country}
-          </div>
-          <div className="card-name">{m.name}</div>
-          {m.note && <div className="card-note">{m.note}</div>}
-        </div>
-      ))}
+      {missionaries.map((m, idx) => {
+        const key = `${m.country}|${m.name}`
+        const isSelected = selectedKey === key
+        return (
+          <button
+            type="button"
+            key={`${m.country}-${m.name}-${idx}`}
+            className={`missionary-card ${isSelected ? 'selected' : ''}`}
+            onClick={() => onCardClick(m.country, m.name)}
+            style={{
+              ['--card-glow' as string]: `${color}40`,
+              ...(isSelected ? {
+                borderColor: color,
+                boxShadow: `0 0 24px ${color}66, 0 0 8px ${color}33`,
+              } : {}),
+            }}
+          >
+            <div className="card-country" style={{ color }}>
+              {m.country}
+            </div>
+            <div className="card-name">{m.name}</div>
+            {m.note && <div className="card-note">{m.note}</div>}
+          </button>
+        )
+      })}
     </div>
   )
 }

@@ -16,6 +16,8 @@ export interface MapPoint {
 interface WorldMapProps {
   points: MapPoint[]
   onHover?: (country: string | null) => void
+  /** 카드 클릭으로 선택된 국가 — 초강조 표시 */
+  selectedCountry?: string | null
 }
 
 /** 단순화된 대륙 경로들 — 모양새만 알아볼 수 있도록 */
@@ -49,7 +51,7 @@ const CONTINENTS: string[] = [
   'M 790 370 L 860 365 L 895 395 L 870 430 L 815 425 L 785 405 Z',
 ]
 
-const WorldMap = ({ points, onHover }: WorldMapProps) => {
+const WorldMap = ({ points, onHover, selectedCountry }: WorldMapProps) => {
   return (
     <svg
       className="world-map"
@@ -91,40 +93,101 @@ const WorldMap = ({ points, onHover }: WorldMapProps) => {
 
       {/* mission points */}
       <g>
-        {points.map(p => (
-          <g
-            key={p.country}
-            className={`map-dot ${p.active ? 'active' : ''}`}
-            style={{ color: p.color }}
-            onMouseEnter={() => onHover?.(p.country)}
-            onMouseLeave={() => onHover?.(null)}
-          >
-            {p.active && (
+        {points.map(p => {
+          const isSelected = selectedCountry === p.country
+          return (
+            <g
+              key={p.country}
+              className={`map-dot ${p.active ? 'active' : ''} ${isSelected ? 'selected' : ''}`}
+              style={{ color: p.color }}
+              onMouseEnter={() => onHover?.(p.country)}
+              onMouseLeave={() => onHover?.(null)}
+            >
+              {/* 선택된 국가: 넓은 외곽 halo */}
+              {isSelected && (
+                <>
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r="18"
+                    fill={p.color}
+                    opacity="0.15"
+                    className="dot-halo-outer"
+                  />
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r="11"
+                    fill={p.color}
+                    opacity="0.3"
+                    className="dot-halo-inner"
+                  />
+                  <circle
+                    className="dot-pulse dot-pulse-strong"
+                    cx={p.x}
+                    cy={p.y}
+                    r="3"
+                    fill="none"
+                    stroke={p.color}
+                    strokeWidth="1.8"
+                  />
+                </>
+              )}
+              {p.active && !isSelected && (
+                <circle
+                  className="dot-pulse"
+                  cx={p.x}
+                  cy={p.y}
+                  r="3"
+                  fill="none"
+                  stroke={p.color}
+                  strokeWidth="1.2"
+                />
+              )}
               <circle
-                className="dot-pulse"
+                className="dot-core"
                 cx={p.x}
                 cy={p.y}
-                r="3"
-                fill="none"
-                stroke={p.color}
-                strokeWidth="1.2"
+                r={isSelected ? 6 : p.active ? 4 : 2.5}
+                fill={isSelected ? '#ffffff' : p.color}
+                stroke={isSelected ? p.color : 'none'}
+                strokeWidth={isSelected ? 2 : 0}
+                opacity={p.active || isSelected ? 1 : 0.55}
+                style={{
+                  filter: isSelected
+                    ? `drop-shadow(0 0 14px ${p.color}) drop-shadow(0 0 6px ${p.color})`
+                    : p.active
+                      ? `drop-shadow(0 0 6px ${p.color})`
+                      : 'none',
+                }}
               />
-            )}
-            <circle
-              className="dot-core"
-              cx={p.x}
-              cy={p.y}
-              r={p.active ? 4 : 2.5}
-              fill={p.color}
-              opacity={p.active ? 1 : 0.55}
-              style={{
-                filter: p.active
-                  ? `drop-shadow(0 0 6px ${p.color})`
-                  : 'none',
-              }}
-            />
-          </g>
-        ))}
+              {/* 선택 국가 라벨 */}
+              {isSelected && (
+                <g className="dot-label">
+                  <rect
+                    x={p.x - 28}
+                    y={p.y - 32}
+                    width="56"
+                    height="18"
+                    rx="9"
+                    fill={p.color}
+                    opacity="0.95"
+                  />
+                  <text
+                    x={p.x}
+                    y={p.y - 19}
+                    textAnchor="middle"
+                    fontSize="11"
+                    fontWeight="700"
+                    fill="#ffffff"
+                  >
+                    {p.country}
+                  </text>
+                </g>
+              )}
+            </g>
+          )
+        })}
       </g>
     </svg>
   )
