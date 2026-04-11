@@ -1,5 +1,9 @@
 import { getVapidPublicKey, subscribePush, unsubscribePush } from '../api/push';
 
+// 사용자별 푸시 알림 선호도를 localStorage에 저장하기 위한 키 prefix.
+// 같은 브라우저에서 사용자가 바뀌면 각자 자기 키를 갖기 때문에 격리가 유지된다.
+const PUSH_PREF_PREFIX = 'push_pref_';
+
 /**
  * Base64 문자열을 Uint8Array로 변환 (VAPID 키용)
  */
@@ -194,6 +198,56 @@ export const isPushSubscribed = async (): Promise<boolean> => {
   } catch (error) {
     console.error('❌ 푸시 구독 상태 확인 실패:', error);
     return false;
+  }
+};
+
+/**
+ * 사용자별 푸시 알림 선호도 저장 (localStorage).
+ * 같은 브라우저에서 사용자 A의 'on'과 사용자 B의 'off'가 공존할 수 있다.
+ */
+export const setPushPreference = (username: string | null, enabled: boolean): void => {
+  if (!username) return;
+  localStorage.setItem(`${PUSH_PREF_PREFIX}${username}`, enabled ? 'on' : 'off');
+};
+
+/**
+ * 사용자별 푸시 알림 선호도 조회. 명시적으로 'on'일 때만 true.
+ * (한 번도 설정한 적 없거나 'off'면 false)
+ */
+export const getPushPreference = (username: string | null): boolean => {
+  if (!username) return false;
+  return localStorage.getItem(`${PUSH_PREF_PREFIX}${username}`) === 'on';
+};
+
+/**
+ * 로그인 직후 호출. 해당 사용자가 이전 세션에서 푸시를 켜둔 상태였다면
+ * 자동으로 브라우저 + 백엔드 재구독을 수행한다.
+ *
+ * 안전 장치:
+ * - 권한이 'granted'가 아니면 아무것도 하지 않음 (권한 프롬프트 자동 재출현 방지).
+ * - 실패해도 절대 예외를 던지지 않음 — 로그인 흐름은 막히면 안 된다.
+ */
+export const restorePushSubscriptionForUser = async (
+  username: string | null
+): Promise<void> => {
+  if (!username) return;
+  if (!getPushPreference(username)) return;
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+  if (checkNotificationPermission() !== 'granted') {
+    // 권한이 없으면 자동으로 프롬프트를 띄우지 않고 조용히 종료.
+    // 사용자가 직접 프로필에서 토글을 켜면 그 때 권한을 다시 요청한다.
+    return;
+  }
+
+  try {
+    const success = await subscribeToPushNotifications();
+    if (!success) {
+      console.warn(`자동 푸시 재구독 실패 (${username}): subscribe가 false 반환`);
+    } else {
+      console.log(`✅ ${username}의 푸시 구독을 자동 복원했습니다`);
+    }
+  } catch (error) {
+    console.warn('자동 푸시 재구독 중 예상치 못한 에러 (무시):', error);
   }
 };
 

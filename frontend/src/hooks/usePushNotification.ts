@@ -3,10 +3,11 @@ import {
   subscribeToPushNotifications,
   unsubscribeFromPushNotifications,
   checkNotificationPermission,
-  showTestNotification
+  showTestNotification,
+  setPushPreference
 } from '../utils/pushNotification';
 import { getMySubscriptions } from '../api/push';
-import { isAuthenticated } from '../utils/auth';
+import { isAuthenticated, getCurrentUser } from '../utils/auth';
 
 export const usePushNotification = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -62,6 +63,8 @@ export const usePushNotification = () => {
       if (success) {
         setIsSubscribed(true);
         setPermission('granted');
+        // 같은 사용자가 다음에 다시 로그인했을 때 자동으로 켜지도록 선호도 저장
+        setPushPreference(getCurrentUser().username, true);
       }
       return success;
     } finally {
@@ -76,6 +79,8 @@ export const usePushNotification = () => {
       const success = await unsubscribeFromPushNotifications();
       if (success) {
         setIsSubscribed(false);
+        // 사용자가 명시적으로 끈 것이므로 다음 로그인 시에도 꺼진 채로 시작
+        setPushPreference(getCurrentUser().username, false);
       }
       return success;
     } finally {
