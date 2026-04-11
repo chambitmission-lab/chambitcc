@@ -159,8 +159,13 @@ export const unsubscribeFromPushNotifications = async (): Promise<boolean> => {
       return false;
     }
 
-    // 백엔드에서 구독 해제
-    await unsubscribePush(subscription.endpoint);
+    // 백엔드에서 구독 해제 — 실패해도 로컬 브라우저 구독은 반드시 끊는다.
+    // (예: 토큰 만료 후 logout 호출 흐름)
+    try {
+      await unsubscribePush(subscription.endpoint);
+    } catch (backendError) {
+      console.warn('백엔드 구독 해제 실패 (브라우저 구독은 계속 해제 진행):', backendError);
+    }
 
     // 브라우저에서 구독 해제
     await subscription.unsubscribe();

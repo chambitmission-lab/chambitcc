@@ -75,17 +75,23 @@ export const subscribePush = async (subscription: PushSubscriptionData): Promise
 
 /**
  * 푸시 구독 해제
+ *
+ * 주의: 일부러 apiFetch가 아닌 plain fetch를 사용한다.
+ * 이 함수는 logout() 흐름에서도 호출되는데, logout이 호출되는 시점은
+ * 토큰이 만료되어 refresh가 실패한 직후일 수 있다. 그 상황에서 apiFetch를
+ * 쓰면 401 → refreshPromise 대기 → 자기 자신을 기다리는 데드락이 생긴다.
+ * 401이 떠도 그냥 무시하고 진행해야 브라우저 측 unsubscribe까지 도달한다.
  */
 export const unsubscribePush = async (endpoint: string): Promise<void> => {
   const token = localStorage.getItem('access_token');
   const encodedEndpoint = encodeURIComponent(endpoint);
-  const response = await apiFetch(`${API_V1}/push/unsubscribe?endpoint=${encodedEndpoint}`, {
+  const response = await fetch(`${API_V1}/push/unsubscribe?endpoint=${encodedEndpoint}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`
     }
   });
-  
+
   if (!response.ok) {
     throw new Error('푸시 구독 해제에 실패했습니다.');
   }

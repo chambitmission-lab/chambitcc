@@ -87,8 +87,8 @@ const Profile = () => {
     }
   }, [achievements])
 
-  const handleLogout = () => {
-    logout() // 통합된 로그아웃 함수 사용 (React Query 캐시도 함께 정리됨)
+  const handleLogout = async () => {
+    await logout() // 푸시 구독 해제 + 토큰 제거 + React Query 캐시 정리
     navigate('/auth/login')
   }
 

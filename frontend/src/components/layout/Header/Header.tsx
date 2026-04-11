@@ -33,8 +33,8 @@ const Header = () => {
     setIsAdminUser(isAdmin())
   }, [location])
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
   }
 
   return (

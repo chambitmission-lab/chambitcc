@@ -12,7 +12,9 @@
       "Bash(grep -E \"\\\\.\\(py|md\\)$\")",
       "Bash(find /c/Users/k1988/idea/chambitcc-main/frontend/src/hooks -name \"*.ts*\" -exec basename {} \\\\;)",
       "Bash(npm run:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(python -m py_compile app/repositories/push_subscription_repo.py)"
     ]
   }
 }

@@ -1,15 +1,29 @@
 // 인증 관련 유틸리티 함수
 import { clearAllPersistedCache } from '../config/persister'
+import { unsubscribeFromPushNotifications } from './pushNotification'
 
 /**
  * 로그아웃 처리
+ * - 푸시 구독 해제 (브라우저 + 백엔드)
  * - localStorage 정리 (토큰, 사용자 정보, React Query 캐시)
- * 
+ *
+ * 푸시 구독은 브라우저(오리진) 단위로 유지되기 때문에 로그아웃 시
+ * 명시적으로 해제하지 않으면 다음에 같은 디바이스로 로그인한 다른
+ * 사용자가 이전 사용자의 구독 상태를 그대로 물려받게 된다.
+ * 백엔드 DELETE 호출은 인증이 필요하므로 토큰을 지우기 *전에* 수행한다.
+ *
  * 참고: React Query 캐시는 자동으로 무효화됩니다.
  * 로그인 시 queryClient.invalidateQueries()가 호출되어
  * 새 사용자의 데이터로 갱신됩니다.
  */
-export const logout = () => {
+export const logout = async () => {
+  // 푸시 구독 해제 (네트워크 실패해도 로그아웃은 계속 진행)
+  try {
+    await unsubscribeFromPushNotifications()
+  } catch (error) {
+    console.warn('로그아웃 중 푸시 구독 해제 실패 (무시하고 진행):', error)
+  }
+
   // 토큰 및 사용자 정보 제거
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
@@ -18,7 +32,7 @@ export const logout = () => {
   localStorage.removeItem('user_full_name')
   localStorage.removeItem('user_fingerprint')
   localStorage.removeItem('last_cached_username')
-  
+
   // React Query 캐시 제거 (모든 사용자의 캐시 - 프로필 포함)
   clearAllPersistedCache()
 }
@@ -72,7 +86,7 @@ export const refreshAccessToken = async (): Promise<string | null> => {
 
     if (!response.ok) {
       // Refresh token도 만료됨
-      logout()
+      await logout()
       return null
     }
 
@@ -85,7 +99,7 @@ export const refreshAccessToken = async (): Promise<string | null> => {
     return newAccessToken
   } catch (error) {
     console.error('Token refresh failed:', error)
-    logout()
+    await logout()
     return null
   }
 }

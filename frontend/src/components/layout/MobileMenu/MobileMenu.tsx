@@ -30,9 +30,9 @@ const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
     }
   }, [isOpen])
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     onClose()
-    logout()
+    await logout()
   }
 
   const menuItems = [

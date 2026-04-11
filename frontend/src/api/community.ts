@@ -12,9 +12,11 @@ axios.interceptors.response.use(
       if (currentPath !== '/login' && currentPath !== '/register') {
         sessionStorage.setItem('redirect_after_login', currentPath)
       }
-      
-      // 로그아웃 처리 (캐시 초기화 포함)
-      logout()
+
+      // 로그아웃 처리 (푸시 구독 해제 + 캐시 초기화 포함)
+      // 인터셉터는 동기 흐름이라 await할 수 없지만, logout 내부에서
+      // 푸시 해제 실패는 catch 처리되므로 fire-and-forget으로 호출한다.
+      void logout()
     }
     return Promise.reject(error)
   }
