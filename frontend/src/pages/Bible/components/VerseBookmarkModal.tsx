@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { HighlightColor, VerseBookmark } from '../../../api/bibleBookmark'
 import { useUpsertBookmark, useDeleteBookmark } from '../../../hooks/useBibleBookmark'
 import { showToast } from '../../../utils/toast'
@@ -68,9 +69,9 @@ const VerseBookmarkModal = ({
   const isBusy = upsert.isPending || del.isPending
   const charCount = note.length
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md p-0 sm:p-4"
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md p-0 sm:p-4"
       onClick={onClose}
     >
       <div
@@ -185,7 +186,8 @@ const VerseBookmarkModal = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
