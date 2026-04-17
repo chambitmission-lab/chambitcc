@@ -327,6 +327,8 @@ const VerseList = ({
                 <VerseItem
                   key={verse.id}
                   verse={verse}
+                  bookNameKo={page.book_name_ko}
+                  chapter={page.chapter}
                   readingMode={readingMode}
                   isRead={readVerses.has(verse.id)}
                   onReadSuccess={handleReadSuccess}

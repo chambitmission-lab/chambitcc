@@ -8,13 +8,15 @@ import VerseBookmarkModal, { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 
 interface VerseItemProps {
   verse: BibleVerse
+  bookNameKo?: string
+  chapter?: number
   readingMode: boolean
   isRead: boolean
   onReadSuccess: (verseId: number, similarity: number) => void
   onEdit?: (verse: BibleVerse) => void
 }
 
-const VerseItem = ({ verse, readingMode, isRead, onReadSuccess, onEdit }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSuccess, onEdit }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const maxProgressRef = useRef(0) // 최대 진행률 추적
@@ -444,7 +446,7 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess, onEdit }: VerseI
       {showBookmarkModal && (
         <VerseBookmarkModal
           verseId={verse.id}
-          verseReference={`${verse.book_name_ko} ${verse.chapter}:${verse.verse}`}
+          verseReference={`${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verse.verse}`.trim()}
           verseText={verse.text}
           existing={bookmark ?? null}
           onClose={() => setShowBookmarkModal(false)}
