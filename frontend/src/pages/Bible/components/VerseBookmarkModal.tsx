@@ -70,11 +70,11 @@ const VerseBookmarkModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md p-0 sm:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-md bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-4 border-b border-border-light dark:border-border-dark flex items-center justify-between">
