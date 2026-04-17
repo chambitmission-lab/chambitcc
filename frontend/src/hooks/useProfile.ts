@@ -14,8 +14,10 @@ export const useProfileDetail = () => {
     }),
     // 로그인 안되어 있으면 쿼리 비활성화
     enabled: !!token,
-    staleTime: 1000 * 60 * 10, // 10분
+    staleTime: 1000 * 15, // 15초 (포인트 실시간 반영 위해 짧게)
     gcTime: 1000 * 60 * 30, // 30분간 메모리 유지
+    refetchOnWindowFocus: true, // 탭 복귀 시 자동 갱신
+    refetchOnMount: true, // 페이지 진입 시 최신화
   })
 }
 

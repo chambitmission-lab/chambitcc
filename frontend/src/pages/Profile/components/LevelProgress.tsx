@@ -79,12 +79,16 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
           💡 포인트 획득 방법
         </p>
         <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 dark:text-gray-400">
-          <div>• 기도 1회: 2P</div>
-          <div>• 댓글 1개: 3P</div>
-          <div>• 성경 1절: 1P</div>
-          <div>• 기도중 1개: 2P</div>
-          <div>• 1장 완독: 3P</div>
-          <div>• 1권 완독: 50P</div>
+          <div>• 기도 1회: 10P</div>
+          <div>• 댓글 1개: 10P</div>
+          <div>• 성경 1절: 3P</div>
+          <div>• 기도중 1개: 5P</div>
+          <div>• 1장 완독: 20P</div>
+          <div>• 1권 완독: 200P</div>
+          <div>• 연속 기도 1일: 5P</div>
+          <div>• 하이라이트 1개: 5P</div>
+          <div>• 묵상 노트 1개: 15P</div>
+          <div>• 즐겨찾기 1개: 3P</div>
         </div>
       </div>
     </div>

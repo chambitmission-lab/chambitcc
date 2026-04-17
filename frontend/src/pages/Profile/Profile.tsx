@@ -13,6 +13,7 @@ import ContentTabs from './components/ContentTabs'
 import MyPrayersList from './components/MyPrayersList'
 import PrayingForList from './components/PrayingForList'
 import MyRepliesList from './components/MyRepliesList'
+import MyBookmarksList from './components/MyBookmarksList'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import type { ProfileTab } from '../../types/profile'
 import type { Achievement, UserActivityData } from '../../types/achievement'
@@ -54,6 +55,9 @@ const Profile = () => {
       bibleBooksCompleted: data.stats.bible_reading?.books_completed || [],
       repliesCount: data.stats.content.my_replies,
       prayingForCount: data.stats.content.praying_for,
+      bookmarksCount: data.stats.bible_reading?.bookmarks_count || 0,
+      notesCount: data.stats.bible_reading?.notes_count || 0,
+      favoritesCount: data.stats.bible_reading?.favorites_count || 0,
     }
   }, [data])
   
@@ -205,6 +209,7 @@ const Profile = () => {
             prayers: stats.content.my_prayers,
             praying: stats.content.praying_for,
             replies: stats.content.my_replies,
+            notes: stats.bible_reading?.bookmarks_count || 0,
           }}
         />
 
@@ -228,6 +233,7 @@ const Profile = () => {
               onReplyClick={handlePrayerClick}
             />
           )}
+          {activeTab === 'notes' && <MyBookmarksList />}
         </div>
         
         {/* 업적 모달 */}

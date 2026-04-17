@@ -6,25 +6,37 @@ import { ACHIEVEMENTS, GLOW_LEVELS } from '../types/achievement'
  */
 export const calculateActivityPoints = (activity: UserActivityData): number => {
   let points = 0
-  
-  // 기도 횟수: 1회당 2포인트
-  points += activity.totalPrayerCount * 2
-  
-  // 성경 구절 읽기: 1절당 1포인트
-  points += activity.bibleVersesRead * 1
-  
-  // 성경 장 완독: 1장당 3포인트 (보너스)
-  points += activity.bibleChaptersRead * 3
-  
-  // 성경 책 완독: 1권당 50포인트 (보너스)
-  points += activity.bibleBooksCompleted.length * 50
-  
-  // 댓글: 1개당 3포인트
-  points += activity.repliesCount * 3
-  
-  // 기도중인 항목: 1개당 2포인트
-  points += activity.prayingForCount * 2
-  
+
+  // 기도 횟수: 1회당 10포인트
+  points += activity.totalPrayerCount * 10
+
+  // 성경 구절 읽기: 1절당 3포인트
+  points += activity.bibleVersesRead * 3
+
+  // 성경 장 완독: 1장당 20포인트 (보너스)
+  points += activity.bibleChaptersRead * 20
+
+  // 성경 책 완독: 1권당 200포인트 (보너스)
+  points += activity.bibleBooksCompleted.length * 200
+
+  // 댓글: 1개당 10포인트
+  points += activity.repliesCount * 10
+
+  // 기도중인 항목: 1개당 5포인트
+  points += activity.prayingForCount * 5
+
+  // 연속 기도 일수: 1일당 5포인트
+  points += activity.streakDays * 5
+
+  // 구절 하이라이트: 1개당 5포인트
+  points += activity.bookmarksCount * 5
+
+  // 묵상 노트: 1개당 15포인트 (글을 쓰는 행위는 큰 가중치)
+  points += activity.notesCount * 15
+
+  // 즐겨찾기 구절: 1개당 3포인트
+  points += activity.favoritesCount * 3
+
   return points
 }
 
@@ -92,6 +104,16 @@ export const calculateAchievements = (activity: UserActivityData): Achievement[]
         
       case 'community':
         progress = activity.repliesCount
+        unlocked = progress >= achievement.requirement
+        break
+
+      case 'bible_note':
+        progress = activity.notesCount
+        unlocked = progress >= achievement.requirement
+        break
+
+      case 'bible_highlight':
+        progress = activity.bookmarksCount
         unlocked = progress >= achievement.requirement
         break
     }

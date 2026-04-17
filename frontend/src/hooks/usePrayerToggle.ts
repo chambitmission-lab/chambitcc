@@ -131,10 +131,10 @@ export const usePrayerToggle = ({
       })
     }
 
-    // Optimistic Update - 프로필 캐시 (기도 횟수 즉시 반영)
+    // Optimistic Update - 프로필 캐시 (기도 횟수 + 기도중 개수 즉시 반영)
     const previousProfileData = queryClient.getQueryData(['profile', 'detail'])
     if (!isPrayed) {
-      // 기도 추가 시에만 total_count +1
+      // 기도 추가 시 total_count +1, praying_for +1
       queryClient.setQueryData(['profile', 'detail'], (old: any) => {
         if (!old) return old
         return {
@@ -146,11 +146,15 @@ export const usePrayerToggle = ({
               total_count: (old.stats.activity.total_count || 0) + 1,
               this_week_count: (old.stats.activity.this_week_count || 0) + 1,
             },
+            content: {
+              ...old.stats.content,
+              praying_for: (old.stats.content?.praying_for || 0) + 1,
+            },
           },
         }
       })
     } else {
-      // 기도 취소 시 total_count -1
+      // 기도 취소 시 total_count -1, praying_for -1
       queryClient.setQueryData(['profile', 'detail'], (old: any) => {
         if (!old) return old
         return {
@@ -161,6 +165,10 @@ export const usePrayerToggle = ({
               ...old.stats.activity,
               total_count: Math.max(0, (old.stats.activity.total_count || 0) - 1),
               this_week_count: Math.max(0, (old.stats.activity.this_week_count || 0) - 1),
+            },
+            content: {
+              ...old.stats.content,
+              praying_for: Math.max(0, (old.stats.content?.praying_for || 0) - 1),
             },
           },
         }

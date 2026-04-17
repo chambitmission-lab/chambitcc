@@ -8,6 +8,7 @@ interface ContentTabsProps {
     prayers: number
     praying: number
     replies: number
+    notes: number
   }
 }
 
@@ -77,6 +78,29 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
           {counts.replies}
         </span>
         {activeTab === 'replies' && (
+          <>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.6),0_0_20px_rgba(236,72,153,0.4)]"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-sm"></div>
+          </>
+        )}
+      </button>
+
+      <button
+        className={`flex-1 flex flex-col items-center gap-2 py-3 px-4 rounded-t-xl transition-all relative ${
+          activeTab === 'notes'
+            ? 'bg-surface-light dark:bg-surface-dark'
+            : 'bg-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+        }`}
+        onClick={() => onTabChange('notes')}
+      >
+        <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
+          auto_stories
+        </span>
+        <span className={`text-xs font-bold ${activeTab === 'notes' ? 'text-gray-900 dark:text-white' : ''}`}>묵상노트</span>
+        <span className={`text-xs font-bold ${activeTab === 'notes' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'}`}>
+          {counts.notes}
+        </span>
+        {activeTab === 'notes' && (
           <>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.6),0_0_20px_rgba(236,72,153,0.4)]"></div>
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-sm"></div>

@@ -1,6 +1,6 @@
 // 업적 및 보상 시스템 타입 정의
 
-export type AchievementType = 'prayer_time' | 'bible_reading' | 'prayer_count' | 'streak' | 'community'
+export type AchievementType = 'prayer_time' | 'bible_reading' | 'prayer_count' | 'streak' | 'community' | 'bible_note' | 'bible_highlight'
 
 export interface Achievement {
   id: string
@@ -30,15 +30,20 @@ export interface UserActivityData {
   totalPrayerTime: number // 분 단위
   totalPrayerCount: number
   streakDays: number
-  
+
   // 성경 읽기
   bibleVersesRead: number // 읽은 구절 수
   bibleChaptersRead: number // 완독한 장 수
   bibleBooksCompleted: string[] // 완독한 책 목록
-  
+
   // 커뮤니티 활동
   repliesCount: number
   prayingForCount: number
+
+  // 묵상/북마크
+  bookmarksCount: number // 하이라이트 개수
+  notesCount: number // 묵상 노트 개수
+  favoritesCount: number // 즐겨찾기 개수
 }
 
 export const GLOW_LEVELS: GlowLevel[] = [
@@ -54,7 +59,7 @@ export const GLOW_LEVELS: GlowLevel[] = [
   {
     level: 1,
     name: '불씨',
-    minPoints: 50,
+    minPoints: 100,
     glowColor: 'rgba(251, 191, 36, 0.5)', // amber
     glowIntensity: 0.5,
     glowSize: 30,
@@ -63,7 +68,7 @@ export const GLOW_LEVELS: GlowLevel[] = [
   {
     level: 2,
     name: '작은 불꽃',
-    minPoints: 150,
+    minPoints: 500,
     glowColor: 'rgba(249, 115, 22, 0.6)', // orange
     glowIntensity: 0.6,
     glowSize: 40,
@@ -72,7 +77,7 @@ export const GLOW_LEVELS: GlowLevel[] = [
   {
     level: 3,
     name: '타오르는 불',
-    minPoints: 300,
+    minPoints: 1500,
     glowColor: 'rgba(239, 68, 68, 0.7)', // red
     glowIntensity: 0.7,
     glowSize: 50,
@@ -81,7 +86,7 @@ export const GLOW_LEVELS: GlowLevel[] = [
   {
     level: 4,
     name: '뜨거운 열정',
-    minPoints: 500,
+    minPoints: 3500,
     glowColor: 'rgba(168, 85, 247, 0.8)', // purple
     glowIntensity: 0.8,
     glowSize: 60,
@@ -90,7 +95,7 @@ export const GLOW_LEVELS: GlowLevel[] = [
   {
     level: 5,
     name: '신앙의 빛',
-    minPoints: 1000,
+    minPoints: 8000,
     glowColor: 'rgba(59, 130, 246, 0.9)', // blue
     glowIntensity: 0.9,
     glowSize: 70,
@@ -99,11 +104,29 @@ export const GLOW_LEVELS: GlowLevel[] = [
   {
     level: 6,
     name: '천상의 광채',
-    minPoints: 2000,
+    minPoints: 20000,
     glowColor: 'rgba(255, 255, 255, 1)', // white
     glowIntensity: 1,
     glowSize: 80,
     pulseSpeed: 1,
+  },
+  {
+    level: 7,
+    name: '영원한 등불',
+    minPoints: 40000,
+    glowColor: 'rgba(250, 204, 21, 1)', // gold
+    glowIntensity: 1,
+    glowSize: 95,
+    pulseSpeed: 0.9,
+  },
+  {
+    level: 8,
+    name: '구원의 별',
+    minPoints: 80000,
+    glowColor: 'rgba(236, 72, 153, 1)', // radiant pink
+    glowIntensity: 1,
+    glowSize: 110,
+    pulseSpeed: 0.8,
   },
 ]
 
@@ -226,5 +249,39 @@ export const ACHIEVEMENTS: Omit<Achievement, 'unlocked' | 'progress'>[] = [
     glowColor: 'rgba(168, 85, 247, 0.6)',
     glowIntensity: 0.6,
     icon: '💬',
+  },
+
+  // 묵상 노트 업적
+  {
+    id: 'bible_note_first',
+    type: 'bible_note',
+    title: '첫 묵상',
+    description: '묵상 노트 1개 작성',
+    requirement: 1,
+    glowColor: 'rgba(168, 85, 247, 0.6)',
+    glowIntensity: 0.6,
+    icon: '📝',
+  },
+  {
+    id: 'bible_note_20',
+    type: 'bible_note',
+    title: '묵상의 습관',
+    description: '묵상 노트 20개 작성',
+    requirement: 20,
+    glowColor: 'rgba(139, 92, 246, 0.8)',
+    glowIntensity: 0.8,
+    icon: '✍️',
+  },
+
+  // 하이라이트 업적
+  {
+    id: 'bible_highlight_100',
+    type: 'bible_highlight',
+    title: '말씀의 정원',
+    description: '구절 하이라이트 100개',
+    requirement: 100,
+    glowColor: 'rgba(250, 204, 21, 0.9)',
+    glowIntensity: 0.9,
+    icon: '🌼',
   },
 ]

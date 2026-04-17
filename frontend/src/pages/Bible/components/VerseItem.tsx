@@ -3,6 +3,8 @@ import type { BibleVerse } from '../../../types/bible'
 import { useVerseReading } from '../../../hooks/useVerseReading'
 import VerseReadingButton from '../../../components/prayer/VerseReadingButton'
 import { isAdmin } from '../../../utils/auth'
+import { useVerseBookmark } from '../../../hooks/useBibleBookmark'
+import VerseBookmarkModal, { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 
 interface VerseItemProps {
   verse: BibleVerse
@@ -14,8 +16,13 @@ interface VerseItemProps {
 
 const VerseItem = ({ verse, readingMode, isRead, onReadSuccess, onEdit }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
+  const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const maxProgressRef = useRef(0) // 최대 진행률 추적
   const isAdminUser = isAdmin()
+  const { data: bookmark } = useVerseBookmark(verse.id)
+  const highlightBg = bookmark?.highlight_color
+    ? HIGHLIGHT_COLOR_BG[bookmark.highlight_color]
+    : null
 
   const {
     isReading,
@@ -171,7 +178,21 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess, onEdit }: VerseI
       }}
     >
       {/* 구절 번호와 텍스트 */}
-      <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '1.25rem',
+          alignItems: 'flex-start',
+          ...(highlightBg && !isReading
+            ? {
+                background: `linear-gradient(to right, ${highlightBg}66, ${highlightBg}33)`,
+                borderLeft: `3px solid ${highlightBg}`,
+                borderRadius: '0.375rem',
+                padding: '0.375rem 0.5rem',
+              }
+            : {}),
+        }}
+      >
         <span className="bible-verse-number">{verse.verse}</span>
         <span className="bible-verse-text" style={{ flex: 1 }}>
           {isReading && highlightedText ? (
@@ -223,6 +244,46 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess, onEdit }: VerseI
           </div>
         )}
         
+        {/* 북마크/묵상 버튼 (항상 노출) */}
+        <button
+          onClick={() => setShowBookmarkModal(true)}
+          style={{
+            padding: '0.5rem',
+            background: bookmark ? 'rgba(234, 179, 8, 0.15)' : 'rgba(156, 163, 175, 0.08)',
+            border: bookmark
+              ? '1px solid rgba(234, 179, 8, 0.4)'
+              : '1px solid rgba(156, 163, 175, 0.25)',
+            borderRadius: '0.5rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s',
+            flexShrink: 0,
+          }}
+          title={bookmark ? '묵상 노트 수정' : '묵상/북마크 추가'}
+        >
+          <span
+            className="material-icons-round"
+            style={{
+              fontSize: '1.125rem',
+              color: bookmark
+                ? bookmark.is_favorite
+                  ? '#ec4899'
+                  : '#eab308'
+                : '#9ca3af',
+            }}
+          >
+            {bookmark
+              ? bookmark.is_favorite
+                ? 'favorite'
+                : bookmark.note
+                  ? 'bookmark'
+                  : 'brush'
+              : 'bookmark_border'}
+          </span>
+        </button>
+
         {/* 관리자 수정 버튼 */}
         {isAdminUser && onEdit && (
           <button
@@ -349,6 +410,45 @@ const VerseItem = ({ verse, readingMode, isRead, onReadSuccess, onEdit }: VerseI
             }
           `}</style>
         </div>
+      )}
+
+      {/* 묵상 메모 미리보기 */}
+      {bookmark?.note && (
+        <div
+          onClick={() => setShowBookmarkModal(true)}
+          style={{
+            marginLeft: '3.25rem',
+            padding: '0.625rem 0.875rem',
+            background: 'rgba(168, 85, 247, 0.08)',
+            borderLeft: '3px solid rgba(168, 85, 247, 0.5)',
+            borderRadius: '0.375rem',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            color: 'var(--ig-secondary-text)',
+            fontStyle: 'italic',
+            lineHeight: 1.5,
+          }}
+          title="클릭해서 수정"
+        >
+          <span
+            className="material-icons-round"
+            style={{ fontSize: '0.875rem', marginRight: '0.375rem', verticalAlign: 'middle', color: '#a855f7' }}
+          >
+            edit_note
+          </span>
+          {bookmark.note.length > 100 ? bookmark.note.slice(0, 100) + '...' : bookmark.note}
+        </div>
+      )}
+
+      {/* 북마크/묵상 모달 */}
+      {showBookmarkModal && (
+        <VerseBookmarkModal
+          verseId={verse.id}
+          verseReference={`${verse.book_name_ko} ${verse.chapter}:${verse.verse}`}
+          verseText={verse.text}
+          existing={bookmark ?? null}
+          onClose={() => setShowBookmarkModal(false)}
+        />
       )}
     </div>
   )
