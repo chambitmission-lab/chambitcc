@@ -104,7 +104,8 @@ export const useReadingProgress = () => {
   return useQuery({
     queryKey: bibleReadingKeys.progress(),
     queryFn: () => getReadingProgress(),
-    staleTime: 1000 * 60 * 10, // 10분
+    staleTime: 1000 * 30, // 30초
+    refetchOnMount: 'always', // 글로벌 false 오버라이드 — Garden 진입 시 항상 최신값
   })
 }
 
