@@ -1,4 +1,4 @@
-.garden-page {
+.main-content > .garden-page {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
@@ -221,7 +221,7 @@
 
 /* 반응형 */
 @media (max-width: 768px) {
-  .garden-page {
+  .main-content > .garden-page {
     padding: 1rem;
   }
 
