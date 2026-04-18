@@ -185,13 +185,14 @@ export const calculateGardenLevel = (flowerCount: number): {
   name: string
   minFlowers: number
 } => {
+  // 성경 전체(약 31,102절) 완독을 최고 레벨로 설정
   const levels = [
     { level: 0, name: '씨앗', minFlowers: 0 },
-    { level: 1, name: '새싹 정원', minFlowers: 10 },
-    { level: 2, name: '작은 화단', minFlowers: 50 },
-    { level: 3, name: '아름다운 정원', minFlowers: 100 },
-    { level: 4, name: '풍성한 정원', minFlowers: 300 },
-    { level: 5, name: '천국의 정원', minFlowers: 500 },
+    { level: 1, name: '새싹 정원', minFlowers: 2000 },
+    { level: 2, name: '작은 화단', minFlowers: 8000 },
+    { level: 3, name: '아름다운 정원', minFlowers: 15000 },
+    { level: 4, name: '풍성한 정원', minFlowers: 23000 },
+    { level: 5, name: '천국의 정원', minFlowers: 31102 },
   ]
   
   for (let i = levels.length - 1; i >= 0; i--) {

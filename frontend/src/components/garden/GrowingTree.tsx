@@ -6,6 +6,7 @@ import './GrowingTree.css'
 
 interface GrowingTreeProps {
   versesRead: number // 읽은 구절 수
+  totalVerses?: number // 성경 전체 구절 수 (백엔드 값 우선, 없으면 기본값 사용)
   showInfo?: boolean
 }
 
@@ -21,14 +22,17 @@ interface TreeStage {
   description: string
 }
 
+// 성경 전체 구절 수 기본값 (개역개정 기준 약 31,102절). 백엔드가 값을 내려주면 그걸 우선 사용.
+const DEFAULT_TOTAL_BIBLE_VERSES = 31102
+
 const TREE_STAGES: TreeStage[] = [
   { level: 0, name: '씨앗', minVerses: 0, emoji: '🌰', description: '씨앗이 땅에 심어졌어요' },
-  { level: 1, name: '새싹', minVerses: 10, emoji: '🌱', description: '작은 새싹이 돋아났어요' },
-  { level: 2, name: '어린 묘목', minVerses: 30, emoji: '🌿', description: '푸른 잎이 자라나고 있어요' },
-  { level: 3, name: '자라는 나무', minVerses: 60, emoji: '🌳', description: '튼튼한 나무로 자라고 있어요' },
-  { level: 4, name: '꽃 피는 나무', minVerses: 100, emoji: '🌳', flowers: ['🌸', '🌸', '🌸'], description: '아름다운 꽃이 피었어요' },
-  { level: 5, name: '열매 맺는 나무', minVerses: 150, emoji: '🌳', flowers: ['🌸', '🌸'], fruits: ['🍎', '🍎', '🍎'], description: '풍성한 열매를 맺었어요' },
-  { level: 6, name: '생명의 나무', minVerses: 300, emoji: '🌳', flowers: ['🌸', '🌸', '🌸'], fruits: ['🍎', '🍎', '🍎', '🍎'], sparkles: true, description: '완전히 성장한 생명의 나무예요' },
+  { level: 1, name: '새싹', minVerses: 1000, emoji: '🌱', description: '작은 새싹이 돋아났어요' },
+  { level: 2, name: '어린 묘목', minVerses: 5000, emoji: '🌿', description: '푸른 잎이 자라나고 있어요' },
+  { level: 3, name: '자라는 나무', minVerses: 10000, emoji: '🌳', description: '튼튼한 나무로 자라고 있어요' },
+  { level: 4, name: '꽃 피는 나무', minVerses: 17000, emoji: '🌳', flowers: ['🌸', '🌸', '🌸'], description: '아름다운 꽃이 피었어요' },
+  { level: 5, name: '열매 맺는 나무', minVerses: 24000, emoji: '🌳', flowers: ['🌸', '🌸'], fruits: ['🍎', '🍎', '🍎'], description: '풍성한 열매를 맺었어요' },
+  { level: 6, name: '생명의 나무', minVerses: DEFAULT_TOTAL_BIBLE_VERSES, emoji: '🌳', flowers: ['🌸', '🌸', '🌸'], fruits: ['🍎', '🍎', '🍎', '🍎'], sparkles: true, description: '성경 전체를 완독하여 생명의 나무로 완성되었어요' },
 ]
 
 // 시간대 타입
@@ -47,9 +51,19 @@ const getTimeOfDay = (): TimeOfDay => {
   return 'night'                                 // 밤 19-5시
 }
 
-export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo = true }) => {
+export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, totalVerses, showInfo = true }) => {
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay())
   const [gardenTheme, setGardenTheme] = useState<GardenTheme | null>(null)
+
+  // 백엔드에서 내려준 총 구절 수를 우선 사용, 없으면 기본값
+  const totalBibleVerses = totalVerses && totalVerses > 0 ? totalVerses : DEFAULT_TOTAL_BIBLE_VERSES
+
+  // 마지막 단계를 실제 총 구절 수에 맞춤 (역본에 따른 차이 흡수)
+  const treeStages = useMemo<TreeStage[]>(() => {
+    const stages = TREE_STAGES.map(s => ({ ...s }))
+    stages[stages.length - 1].minVerses = totalBibleVerses
+    return stages
+  }, [totalBibleVerses])
   
   // 정원 테마 불러오기
   useEffect(() => {
@@ -85,28 +99,33 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo =
   
   // 현재 나무 단계 계산
   const currentStage = useMemo(() => {
-    for (let i = TREE_STAGES.length - 1; i >= 0; i--) {
-      if (versesRead >= TREE_STAGES[i].minVerses) {
-        return TREE_STAGES[i]
+    for (let i = treeStages.length - 1; i >= 0; i--) {
+      if (versesRead >= treeStages[i].minVerses) {
+        return treeStages[i]
       }
     }
-    return TREE_STAGES[0]
-  }, [versesRead])
+    return treeStages[0]
+  }, [versesRead, treeStages])
 
   // 다음 단계 정보
   const nextStage = useMemo(() => {
-    const currentIndex = TREE_STAGES.findIndex(s => s.level === currentStage.level)
-    if (currentIndex === TREE_STAGES.length - 1) return null
-    return TREE_STAGES[currentIndex + 1]
-  }, [currentStage])
+    const currentIndex = treeStages.findIndex(s => s.level === currentStage.level)
+    if (currentIndex === treeStages.length - 1) return null
+    return treeStages[currentIndex + 1]
+  }, [currentStage, treeStages])
 
-  // 진행률 계산
+  // 진행률 계산 (다음 단계까지)
   const progress = useMemo(() => {
     if (!nextStage) return 100
     const current = versesRead - currentStage.minVerses
     const total = nextStage.minVerses - currentStage.minVerses
     return Math.min(100, (current / total) * 100)
   }, [versesRead, currentStage, nextStage])
+
+  // 전체 성경 완독률
+  const overallProgress = useMemo(() => {
+    return Math.min(100, (versesRead / totalBibleVerses) * 100)
+  }, [versesRead, totalBibleVerses])
 
   return (
     <div className="growing-tree-container">
@@ -249,35 +268,38 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo =
           </div>
           
           <p className="tree-description">{currentStage.description}</p>
-          
+
           <div className="tree-stats">
             <div className="tree-stat">
               <span className="tree-stat-label">읽은 구절</span>
-              <span className="tree-stat-value">{versesRead}절</span>
+              <span className="tree-stat-value">{versesRead.toLocaleString()}</span>
+              <span className="tree-stat-sub">/ {totalBibleVerses.toLocaleString()}절</span>
             </div>
-            
-            {nextStage && (
-              <div className="tree-stat">
-                <span className="tree-stat-label">다음 단계까지</span>
-                <span className="tree-stat-value">{nextStage.minVerses - versesRead}절</span>
-              </div>
-            )}
+
+            <div className="tree-stat">
+              <span className="tree-stat-label">전체 완독률</span>
+              <span className="tree-stat-value">{overallProgress.toFixed(1)}<span className="tree-stat-unit">%</span></span>
+              <span className="tree-stat-sub">성경 전체 기준</span>
+            </div>
           </div>
 
-          {/* 진행도 바 */}
+          {/* 다음 단계 진행도 */}
           {nextStage && (
             <div className="tree-progress">
               <div className="tree-progress-info">
                 <span className="tree-progress-label">
-                  {nextStage.emoji} {nextStage.name}
+                  {nextStage.emoji} {nextStage.name}까지
                 </span>
                 <span className="tree-progress-percent">{Math.floor(progress)}%</span>
               </div>
               <div className="tree-progress-bar">
-                <div 
+                <div
                   className="tree-progress-fill"
                   style={{ width: `${progress}%` }}
                 />
+              </div>
+              <div className="tree-progress-footer">
+                남은 구절 {(nextStage.minVerses - versesRead).toLocaleString()}절
               </div>
             </div>
           )}
@@ -285,7 +307,7 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, showInfo =
           {!nextStage && (
             <div className="tree-complete">
               <span className="tree-complete-icon">🎉</span>
-              <span className="tree-complete-text">완전히 성장했어요!</span>
+              <span className="tree-complete-text">성경 전체를 완독했어요!</span>
             </div>
           )}
         </div>

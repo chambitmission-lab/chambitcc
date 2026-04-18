@@ -2,12 +2,14 @@
 
 import { useState } from 'react'
 import { GrowingTree } from '../../components/garden/GrowingTree'
-import { useGarden } from '../../hooks/useGarden'
+import { useReadingProgress } from '../../hooks/useBibleReading'
 import { GardenCustomizeModal } from '../../components/garden/GardenCustomizeModal'
 import './Garden.css'
 
 export const Garden: React.FC = () => {
-  const { flowers, isLoading, error } = useGarden()
+  const { data: progress, isLoading, error } = useReadingProgress()
+  const versesRead = progress?.overall.read_verses ?? 0
+  const totalVerses = progress?.overall.total_verses
   const [showCustomizeModal, setShowCustomizeModal] = useState(false)
   const [themeKey, setThemeKey] = useState(0) // 테마 변경 시 컴포넌트 재렌더링용
 
@@ -61,7 +63,7 @@ export const Garden: React.FC = () => {
 
       {/* 성장하는 나무 */}
       <div className="garden-section">
-        <GrowingTree key={themeKey} versesRead={flowers.length} showInfo />
+        <GrowingTree key={themeKey} versesRead={versesRead} totalVerses={totalVerses} showInfo />
       </div>
 
       {/* 정원 꾸미기 모달 */}
