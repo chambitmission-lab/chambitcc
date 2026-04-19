@@ -48,7 +48,7 @@ export interface MonthlyGarden {
 }
 
 // 어린 양 단계 정의
-// 이모지는 단일 문자(🐑 또는 🐏)만 사용. 스파클/왕관/글로우 등 장식은 LambCharacter 컴포넌트가 레벨에 따라 오버레이로 덧붙임.
+// LambCharacter는 커스텀 SVG로 렌더링하며 level에 따라 양의 색·뿔·볼터치 등 몸 자체가 변한다. emoji 필드는 레거시/폴백용.
 export const LAMB_STAGES: LambStage[] = [
   {
     level: 0,
