@@ -15,7 +15,8 @@
       "Bash(npm install:*)",
       "Bash(echo \"EXIT=$?\")",
       "Bash(python -m py_compile app/repositories/push_subscription_repo.py)",
-      "Bash(python -m py_compile app/services/bible_verse_service.py app/services/prayer_service.py)"
+      "Bash(python -m py_compile app/services/bible_verse_service.py app/services/prayer_service.py)",
+      "Bash(echo \"exit=$?\")"
     ]
   }
 }

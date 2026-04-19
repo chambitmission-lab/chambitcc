@@ -6,10 +6,10 @@ const MENU_ITEMS = [
   { path: '/worship', key: 'worship' as const },
   { path: '/sermon', key: 'sermon' as const },
   { path: '/bible', key: 'bible' as const },
-  { path: '/garden', label: '🌸 나의 정원' },
-  { path: '/answered-prayers', label: '✨ 응답의 전당' },
+  { path: '/garden', key: 'garden' as const },
+  { path: '/answered-prayers', key: 'answeredPrayers' as const },
   { path: '/events', key: 'events' as const },
-  { path: '/mission', label: '🌍 선교 현황' },
+  { path: '/mission', key: 'missionStatus' as const },
   { path: '/ministry', key: 'ministry' as const },
   { path: '/news', key: 'news' as const }
 ]
@@ -25,7 +25,7 @@ const NavigationMenu = () => {
           to={item.path}
           className="glow-menu-item px-3 py-3 text-sm font-semibold text-gray-900 dark:text-white rounded-xl transition-all text-center relative min-h-[44px] flex items-center justify-center"
         >
-          {'label' in item ? item.label : t(item.key)}
+          {t(item.key)}
         </Link>
       ))}
     </nav>

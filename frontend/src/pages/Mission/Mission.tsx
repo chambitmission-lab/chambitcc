@@ -10,11 +10,20 @@ import {
   type Missionary,
 } from './missionData'
 import WorldMap from './WorldMap'
+import { useLanguage } from '../../contexts/LanguageContext'
 import './Mission.css'
 
 const REGION_ORDER: RegionKey[] = ['asia', 'europe', 'africa', 'americas']
 
+const REGION_LABEL_KEY: Record<RegionKey, 'regionAsia' | 'regionEurope' | 'regionAfrica' | 'regionAmericas'> = {
+  asia: 'regionAsia',
+  europe: 'regionEurope',
+  africa: 'regionAfrica',
+  americas: 'regionAmericas',
+}
+
 const Mission = () => {
+  const { t } = useLanguage()
   const [activeRegion, setActiveRegion] = useState<RegionKey>('asia')
   const [hoverCountry, setHoverCountry] = useState<string | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null) // "country|name"
@@ -26,6 +35,7 @@ const Mission = () => {
   )
 
   const activeMeta = regionMeta[activeRegion]
+  const activeRegionLabel = t(REGION_LABEL_KEY[activeRegion])
 
   // selectedKey → 국가명 추출
   const selectedCountry = selectedKey ? selectedKey.split('|')[0] : null
@@ -65,17 +75,15 @@ const Mission = () => {
         <section className="mission-hero">
           <div className="hero-eyebrow">CHAMBIT CHURCH · MISSION</div>
           <h1 className="hero-title">
-            땅 끝까지
+            {t('missionHeroTitleLine1')}
             <br />
-            복음의 빛을
+            {t('missionHeroTitleLine2')}
           </h1>
           <div className="hero-title-en">WORLDWIDE&nbsp;·&nbsp;MISSION&nbsp;·&nbsp;STATUS</div>
 
           <div className="hero-verse">
-            "오직 성령이 너희에게 임하시면 너희가 권능을 받고
-            예루살렘과 온 유대와 사마리아와 땅 끝까지 이르러
-            내 증인이 되리라"
-            <span className="hero-verse-ref">— 사도행전 1:8</span>
+            {t('missionHeroVerse')}
+            <span className="hero-verse-ref">{t('missionHeroVerseRef')}</span>
           </div>
         </section>
 
@@ -83,28 +91,28 @@ const Mission = () => {
         <div className="mission-stats">
           <div className="stat-card">
             <span className="stat-num">{missionStats.total}</span>
-            <span className="stat-label">파송 선교사</span>
+            <span className="stat-label">{t('missionStatDispatched')}</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{missionStats.countries}</span>
-            <span className="stat-label">사역 국가</span>
+            <span className="stat-label">{t('missionStatCountries')}</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{missionStats.regions}</span>
-            <span className="stat-label">대륙</span>
+            <span className="stat-label">{t('missionStatContinents')}</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{missionStats.domesticPartners}</span>
-            <span className="stat-label">국내 협력</span>
+            <span className="stat-label">{t('missionStatDomesticPartners')}</span>
           </div>
         </div>
 
         {/* ===== WORLD MAP ===== */}
         <div className="mission-map-wrap" ref={mapRef}>
           <div className="map-heading">
-            <span className="map-title">🌐 해외 사역 지도</span>
+            <span className="map-title">{t('missionMapTitle')}</span>
             <span className="map-hint">
-              {selectedCountry ?? hoverCountry ?? `${activeMeta.label} 강조`}
+              {selectedCountry ?? hoverCountry ?? `${activeRegionLabel} ${t('missionRegionEmphasize')}`}
             </span>
           </div>
           <WorldMap
@@ -136,7 +144,7 @@ const Mission = () => {
                 } : undefined}
               >
                 <span>{meta.emoji}</span>
-                <span>{meta.label}</span>
+                <span>{t(REGION_LABEL_KEY[key])}</span>
                 <span className="tab-count">{count}</span>
               </button>
             )
@@ -148,7 +156,7 @@ const Mission = () => {
           <div className="region-label" style={{
             backgroundImage: `linear-gradient(135deg, #fff, ${activeMeta.color})`,
           }}>
-            {activeMeta.label} 지역
+            {activeRegionLabel} {t('missionRegionArea')}
           </div>
         </div>
 
@@ -170,12 +178,12 @@ const Mission = () => {
 
         <section className="domestic-section">
           <div className="domestic-header">
-            <div className="domestic-eyebrow">국내 선교 · 함께 세워가는 교회</div>
-            <span className="domestic-title">국내선교</span>
+            <div className="domestic-eyebrow">{t('missionDomesticEyebrow')}</div>
+            <span className="domestic-title">{t('missionDomesticTitle')}</span>
           </div>
 
           <div className="domestic-group">
-            <div className="domestic-group-title">미자립 교회 지원</div>
+            <div className="domestic-group-title">{t('missionDomesticChurches')}</div>
             <div className="domestic-chips">
               {domesticChurches.map(name => (
                 <div key={name} className="domestic-chip">{name}</div>
@@ -184,7 +192,7 @@ const Mission = () => {
           </div>
 
           <div className="domestic-group">
-            <div className="domestic-group-title">협력 기관</div>
+            <div className="domestic-group-title">{t('missionDomesticOrgs')}</div>
             <div className="domestic-chips">
               {domesticOrganizations.map(name => (
                 <div key={name} className="domestic-chip">{name}</div>
@@ -197,9 +205,9 @@ const Mission = () => {
         <section className="mission-footer">
           <div className="footer-icon">🙏</div>
           <p className="footer-text">
-            참빛교회는 세계 곳곳에 복음의 빛을 밝히는
+            {t('missionFooterLine1')}
             <br />
-            선교사님들을 위해 오늘도 기도합니다.
+            {t('missionFooterLine2')}
           </p>
           <span className="footer-sign">FOR HIS GLORY</span>
         </section>

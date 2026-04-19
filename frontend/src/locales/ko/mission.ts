@@ -1,0 +1,25 @@
+// 선교 페이지 번역
+export const mission = {
+  missionHeroTitleLine1: '땅 끝까지',
+  missionHeroTitleLine2: '복음의 빛을',
+  missionHeroVerse:
+    '"오직 성령이 너희에게 임하시면 너희가 권능을 받고 예루살렘과 온 유대와 사마리아와 땅 끝까지 이르러 내 증인이 되리라"',
+  missionHeroVerseRef: '— 사도행전 1:8',
+  missionStatDispatched: '파송 선교사',
+  missionStatCountries: '사역 국가',
+  missionStatContinents: '대륙',
+  missionStatDomesticPartners: '국내 협력',
+  missionMapTitle: '🌐 해외 사역 지도',
+  missionRegionEmphasize: '강조',
+  missionRegionArea: '지역',
+  regionAsia: '아시아',
+  regionEurope: '유럽',
+  regionAfrica: '아프리카',
+  regionAmericas: '아메리카',
+  missionDomesticEyebrow: '국내 선교 · 함께 세워가는 교회',
+  missionDomesticTitle: '국내선교',
+  missionDomesticChurches: '미자립 교회 지원',
+  missionDomesticOrgs: '협력 기관',
+  missionFooterLine1: '참빛교회는 세계 곳곳에 복음의 빛을 밝히는',
+  missionFooterLine2: '선교사님들을 위해 오늘도 기도합니다.',
+} as const

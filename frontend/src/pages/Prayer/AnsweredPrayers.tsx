@@ -3,10 +3,12 @@ import { useState } from 'react'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import PrayerCard from '../../components/prayer/PrayerCard'
 import AnswerModal from '../../components/prayer/AnswerModal'
+import { useLanguage } from '../../contexts/LanguageContext'
 import type { Prayer, SortType } from '../../types/prayer'
 import './AnsweredPrayers.css'
 
 const AnsweredPrayers = () => {
+  const { t } = useLanguage()
   const [sort, setSort] = useState<SortType>('latest')
   const [editingPrayer, setEditingPrayer] = useState<Prayer | null>(null)
 
@@ -31,7 +33,7 @@ const AnsweredPrayers = () => {
   }
 
   const handleCancelAnswer = async (prayerId: number) => {
-    const ok = window.confirm('응답 등록을 취소하시겠습니까? 등록한 간증이 삭제됩니다.')
+    const ok = window.confirm(t('answeredCancelConfirm'))
     if (!ok) return
     try {
       await cancelPrayerAnswer(prayerId)
@@ -72,23 +74,23 @@ const AnsweredPrayers = () => {
           >
             ✨
           </div>
-          <h1 
+          <h1
             className="text-2xl font-bold mb-2"
             style={{
               color: '#ffffff',
               textShadow: '0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3)'
             }}
           >
-            응답의 전당
+            {t('answeredPageTitle')}
           </h1>
-          <p 
+          <p
             className="text-base"
             style={{
               color: '#e5e7eb',
               textShadow: '0 0 8px rgba(168, 85, 247, 0.4)'
             }}
           >
-            하나님께서 응답하신 기도들
+            {t('answeredPageSubtitle')}
           </p>
         </div>
         
@@ -103,7 +105,7 @@ const AnsweredPrayers = () => {
             style={{ border: '1px solid' }}
             onClick={() => setSort('popular')}
           >
-            인기순
+            {t('sortPopular')}
           </button>
           <button
             className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
@@ -114,7 +116,7 @@ const AnsweredPrayers = () => {
             style={{ border: '1px solid' }}
             onClick={() => setSort('latest')}
           >
-            최신순
+            {t('sortLatest')}
           </button>
           
           {/* 응답된 기도 개수 */}
@@ -126,7 +128,7 @@ const AnsweredPrayers = () => {
                 textShadow: '0 0 8px rgba(168, 85, 247, 0.4)'
               }}
             >
-              ✨ {answeredPrayers.length}개의 응답
+              ✨ {answeredPrayers.length}{t('answeredCountSuffix')}
             </span>
           )}
         </div>
@@ -141,7 +143,7 @@ const AnsweredPrayers = () => {
             }}
           >
             <div className="w-10 h-10 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-white">응답된 기도를 불러오는 중...</p>
+            <p className="text-white">{t('answeredLoading')}</p>
           </div>
         ) : error ? (
           <div 
@@ -152,11 +154,11 @@ const AnsweredPrayers = () => {
             }}
           >
             <p className="text-red-400 mb-4">❌ {error}</p>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="px-6 py-3 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors"
             >
-              다시 시도
+              {t('retry')}
             </button>
           </div>
         ) : answeredPrayers.length === 0 ? (
@@ -175,16 +177,16 @@ const AnsweredPrayers = () => {
             >
               ✨
             </div>
-            <h3 
+            <h3
               className="text-xl mb-2 font-bold"
               style={{
                 color: '#ffffff',
                 textShadow: '0 0 10px rgba(168, 85, 247, 0.3)'
               }}
             >
-              아직 응답된 기도가 없습니다
+              {t('answeredEmptyTitle')}
             </h3>
-            <p className="text-gray-400">첫 번째 응답 간증을 남겨보세요!</p>
+            <p className="text-gray-400">{t('answeredEmptyDesc')}</p>
           </div>
         ) : (
           <>
@@ -212,7 +214,7 @@ const AnsweredPrayers = () => {
                   disabled={isFetchingMore}
                   className="px-8 py-3.5 bg-transparent text-purple-400 border-2 border-purple-500/30 rounded-lg font-semibold hover:bg-purple-500/10 hover:border-purple-500/50 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                 >
-                  {isFetchingMore ? '로딩 중...' : '더 보기'}
+                  {isFetchingMore ? t('loading') : t('loadMore')}
                 </button>
               </div>
             )}

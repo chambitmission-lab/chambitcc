@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { GrowingTree } from '../../components/garden/GrowingTree'
 import { useReadingProgress } from '../../hooks/useBibleReading'
 import { GardenCustomizeModal } from '../../components/garden/GardenCustomizeModal'
+import { useLanguage } from '../../contexts/LanguageContext'
 import './Garden.css'
 
 export const Garden: React.FC = () => {
   const { data: progress, isLoading, error } = useReadingProgress()
+  const { t } = useLanguage()
   const versesRead = progress?.overall.read_verses ?? 0
   const totalVerses = progress?.overall.total_verses
   const [showCustomizeModal, setShowCustomizeModal] = useState(false)
@@ -23,7 +25,7 @@ export const Garden: React.FC = () => {
       <div className="garden-page">
         <div className="garden-loading">
           <div className="garden-loading-spinner">🌱</div>
-          <p>정원을 불러오는 중...</p>
+          <p>{t('gardenLoading')}</p>
         </div>
       </div>
     )
@@ -34,7 +36,7 @@ export const Garden: React.FC = () => {
       <div className="garden-page">
         <div className="garden-error">
           <div className="garden-error-icon">😢</div>
-          <p className="garden-error-text">정원을 불러올 수 없습니다</p>
+          <p className="garden-error-text">{t('gardenLoadError')}</p>
         </div>
       </div>
     )
@@ -46,17 +48,17 @@ export const Garden: React.FC = () => {
       <div className="garden-header">
         <div className="garden-header-content">
           <div>
-            <h1 className="garden-title">나의 신앙 나무 🌳</h1>
+            <h1 className="garden-title">{t('gardenPageTitle')}</h1>
             <p className="garden-subtitle">
-              말씀을 읽을 때마다 조금씩 자라나는 생명의 나무
+              {t('gardenPageSubtitle')}
             </p>
           </div>
-          <button 
+          <button
             className="garden-customize-button"
             onClick={() => setShowCustomizeModal(true)}
           >
             <span className="material-icons-round">palette</span>
-            정원 꾸미기
+            {t('gardenCustomize')}
           </button>
         </div>
       </div>

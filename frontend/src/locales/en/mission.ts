@@ -1,0 +1,25 @@
+// Mission page translations
+export const mission = {
+  missionHeroTitleLine1: 'To the Ends of the Earth',
+  missionHeroTitleLine2: 'With the Light of the Gospel',
+  missionHeroVerse:
+    '"But you will receive power when the Holy Spirit comes on you; and you will be my witnesses in Jerusalem, and in all Judea and Samaria, and to the ends of the earth."',
+  missionHeroVerseRef: '— Acts 1:8',
+  missionStatDispatched: 'Missionaries Sent',
+  missionStatCountries: 'Countries',
+  missionStatContinents: 'Continents',
+  missionStatDomesticPartners: 'Domestic Partners',
+  missionMapTitle: '🌐 Overseas Mission Map',
+  missionRegionEmphasize: 'highlighted',
+  missionRegionArea: 'Region',
+  regionAsia: 'Asia',
+  regionEurope: 'Europe',
+  regionAfrica: 'Africa',
+  regionAmericas: 'Americas',
+  missionDomesticEyebrow: 'Domestic Mission · Churches We Build Together',
+  missionDomesticTitle: 'Domestic Mission',
+  missionDomesticChurches: 'Supporting Small Churches',
+  missionDomesticOrgs: 'Partner Organizations',
+  missionFooterLine1: 'Chambit Church prays today for the missionaries',
+  missionFooterLine2: 'bringing the light of the gospel across the world.',
+} as const

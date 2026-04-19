@@ -1,4 +1,5 @@
 import { useTheme } from '../../../../contexts/ThemeContext'
+import { useLanguage } from '../../../../contexts/LanguageContext'
 
 interface HeaderActionsProps {
   unreadCount: number
@@ -9,23 +10,24 @@ interface HeaderActionsProps {
 
 const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onMenuToggle }: HeaderActionsProps) => {
   const { theme, toggleTheme } = useTheme()
+  const { t } = useLanguage()
 
   return (
     <div className="flex items-center gap-5">
-      <button 
+      <button
         onClick={toggleTheme}
         className="text-gray-800 dark:text-white hover:text-primary transition-colors"
-        aria-label="테마 변경"
+        aria-label={t('themeToggleAria')}
       >
         <span className="material-icons-outlined text-2xl">
           {theme === 'dark' ? 'light_mode' : 'dark_mode'}
         </span>
       </button>
-      
-      <button 
+
+      <button
         onClick={onNotificationClick}
         className="text-gray-800 dark:text-white hover:text-primary transition-colors relative"
-        aria-label="알림"
+        aria-label={t('notificationsAria')}
       >
         <span className="material-icons-outlined text-2xl">notifications</span>
         {unreadCount > 0 && (
@@ -40,7 +42,7 @@ const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onMenuTog
             ? 'text-red-500 dark:text-red-400' 
             : 'text-gray-800 dark:text-white hover:text-primary'
         }`}
-        aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴"}
+        aria-label={isMenuOpen ? t('menuCloseAria') : t('menuAria')}
       >
         {/* X 버튼 빛나는 효과 (비상구 스타일) */}
         {isMenuOpen && (

@@ -22,4 +22,7 @@ export const navigation = {
   eventManagement: '📅 일정 관리',
   pushNotificationManagement: '📢 푸시 알림 관리',
   userManagement: '👥 회원 관리',
+  garden: '🌸 나의 정원',
+  answeredPrayers: '✨ 응답의 전당',
+  missionStatus: '🌍 선교 현황',
 } as const

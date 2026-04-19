@@ -22,4 +22,7 @@ export const navigation = {
   eventManagement: '📅 Event Management',
   pushNotificationManagement: '📢 Push Notification Management',
   userManagement: '👥 User Management',
+  garden: '🌸 My Garden',
+  answeredPrayers: '✨ Answered Prayers',
+  missionStatus: '🌍 Mission Status',
 } as const
