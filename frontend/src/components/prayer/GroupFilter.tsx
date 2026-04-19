@@ -164,23 +164,23 @@ const GroupFilter = ({
           className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
         >
           {isLoading ? (
-            <div className="p-6 text-center text-gray-500">로딩 중...</div>
+            <div className="p-6 text-center text-gray-500">{t('loading')}</div>
           ) : groups.length === 0 ? (
             <div className="p-4 text-center">
               <div className="text-4xl mb-2">🙏</div>
-              <p className="text-gray-600 dark:text-gray-400 text-xs mb-3">아직 가입한 그룹이 없습니다</p>
+              <p className="text-gray-600 dark:text-gray-400 text-xs mb-3">{t('noGroupsYet')}</p>
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={() => requireAuth(onCreateGroup)}
                   className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-xs rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
                 >
-                  + 만들기
+                  + {t('createGroupShort')}
                 </button>
-                <button 
+                <button
                   onClick={() => requireAuth(onJoinGroup)}
                   className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
                 >
-                  가입하기
+                  {t('joinGroupShort')}
                 </button>
               </div>
             </div>
@@ -266,17 +266,17 @@ const GroupFilter = ({
               </div>
               
               <div className="px-3 pb-3 pt-2 border-t border-gray-200/50 dark:border-gray-700/50 flex gap-2">
-                <button 
+                <button
                   onClick={() => requireAuth(onCreateGroup)}
                   className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-xs rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
                 >
-                  + 만들기
+                  + {t('createGroupShort')}
                 </button>
-                <button 
+                <button
                   onClick={() => requireAuth(onJoinGroup)}
                   className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
                 >
-                  가입하기
+                  {t('joinGroupShort')}
                 </button>
               </div>
             </>

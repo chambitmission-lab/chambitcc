@@ -20,6 +20,7 @@ export const common = {
   notificationsAria: 'Notifications',
   menuAria: 'Menu',
   menuCloseAria: 'Close menu',
+  confirm: 'Confirm',
   owner: 'Owner',
   deleteConfirm: 'Are you sure you want to delete?',
   versesToMeditateOn: 'Verses to meditate on',

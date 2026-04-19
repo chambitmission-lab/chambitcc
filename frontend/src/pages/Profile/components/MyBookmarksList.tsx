@@ -1,17 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useMyBookmarks } from '../../../hooks/useBibleBookmark'
+import { useLanguage } from '../../../contexts/LanguageContext'
 import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
 import { HIGHLIGHT_COLOR_BG } from '../../Bible/components/VerseBookmarkModal'
 
 const FILTERS = [
-  { value: 'all', label: '전체' },
-  { value: 'notes', label: '묵상 노트' },
-  { value: 'favorites', label: '즐겨찾기' },
+  { value: 'all', labelKey: 'bookmarksFilterAll' },
+  { value: 'notes', labelKey: 'meditationNote' },
+  { value: 'favorites', labelKey: 'bookmarksFilterFavorites' },
 ] as const
 
 type FilterValue = (typeof FILTERS)[number]['value']
 
 const MyBookmarksList = () => {
+  const { t } = useLanguage()
   const [filter, setFilter] = useState<FilterValue>('all')
 
   const queryParams = useMemo(() => {
@@ -23,11 +25,11 @@ const MyBookmarksList = () => {
   const { data, isLoading, error } = useMyBookmarks(queryParams)
 
   if (isLoading) {
-    return <div className="text-center text-sm text-gray-500 py-8">불러오는 중...</div>
+    return <div className="text-center text-sm text-gray-500 py-8">{t('bookmarksLoading')}</div>
   }
 
   if (error) {
-    return <div className="text-center text-sm text-red-500 py-8">불러올 수 없어요</div>
+    return <div className="text-center text-sm text-red-500 py-8">{t('bookmarksLoadError')}</div>
   }
 
   const items = data?.items ?? []
@@ -45,7 +47,7 @@ const MyBookmarksList = () => {
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
             }`}
           >
-            {f.label}
+            {t(f.labelKey)}
           </button>
         ))}
       </div>
@@ -56,10 +58,10 @@ const MyBookmarksList = () => {
             auto_stories
           </span>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-            저장된 묵상 노트가 없어요
+            {t('bookmarksEmpty')}
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            성경에서 구절을 하이라이트하거나 묵상 메모를 남겨보세요 ✨
+            {t('bookmarksEmptyHint')}
           </p>
         </div>
       ) : (

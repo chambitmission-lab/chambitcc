@@ -1,6 +1,7 @@
 // 그룹 생성/가입 모달 컴포넌트
 import { useState } from 'react'
 import { useCreateGroup, useJoinGroup } from '../../hooks/useGroups'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const ICON_OPTIONS = ['🙏', '⛪', '✝️', '🎵', '📖', '💒', '👥', '🕊️', '🌟', '❤️']
 
@@ -10,43 +11,44 @@ interface CreateGroupModalProps {
 }
 
 export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => {
+  const { t } = useLanguage()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [icon, setIcon] = useState('🙏')
   const [createdGroup, setCreatedGroup] = useState<any>(null)
   const [errorMessage, setErrorMessage] = useState('')
-  
+
   const createMutation = useCreateGroup()
-  
+
   if (!isOpen) return null
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage('') // 에러 메시지 초기화
-    
+
     try {
       const result = await createMutation.mutateAsync({
         name,
         description,
         icon,
       })
-      
+
       setCreatedGroup(result.data)
     } catch (error: any) {
       console.error('그룹 생성 실패:', error)
       // 백엔드에서 온 에러 메시지 표시
       if (error.message?.includes('이미 존재하는 그룹 이름')) {
-        setErrorMessage('이미 존재하는 그룹 이름입니다. 다른 이름을 사용해주세요.')
+        setErrorMessage(t('groupExistsError'))
       } else {
-        setErrorMessage(error.message || '그룹 생성에 실패했습니다.')
+        setErrorMessage(error.message || t('groupCreateFailed'))
       }
     }
   }
-  
+
   const handleCopyCode = () => {
     if (createdGroup?.invite_code) {
       navigator.clipboard.writeText(createdGroup.invite_code)
-      alert('초대 코드가 복사되었습니다!')
+      alert(t('inviteCodeCopied'))
     }
   }
   
@@ -70,7 +72,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
       >
         <div className="flex items-center justify-between p-4 border-b border-border-light dark:border-border-dark">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-            {createdGroup ? '그룹 생성 완료' : '새 그룹 만들기'}
+            {createdGroup ? t('groupCreatedTitle') : t('createGroupTitle')}
           </h2>
           <button 
             className="w-10 h-10 flex items-center justify-center rounded-full relative group transition-all"
@@ -92,30 +94,30 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
         {createdGroup ? (
           <div className="p-4">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              그룹이 생성되었습니다! 아래 초대 코드를 공유하여 멤버를 초대하세요.
+              {t('groupCreatedMessage')}
             </p>
-            
+
             <div className="p-4 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-center">
-              <div className="text-sm text-gray-500 mb-2">초대 코드</div>
+              <div className="text-sm text-gray-500 mb-2">{t('inviteCode')}</div>
               <div className="text-2xl font-bold text-gray-900 dark:text-white tracking-widest font-mono mb-2">
                 {createdGroup.invite_code}
               </div>
               <div className="text-xs text-gray-500 mb-3">
-                이 코드를 공유하면 다른 사람들이 그룹에 가입할 수 있습니다
+                {t('shareInviteCode')}
               </div>
-              <button 
+              <button
                 className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all"
                 onClick={handleCopyCode}
               >
-                코드 복사하기
+                {t('copyCode')}
               </button>
             </div>
-            
-            <button 
+
+            <button
               className="w-full mt-4 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm rounded-full hover:opacity-80 transition-all"
               onClick={handleClose}
             >
-              확인
+              {t('confirm')}
             </button>
           </div>
         ) : (
@@ -134,7 +136,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
             
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                그룹 이름 *
+                {t('groupName')} *
               </label>
               <input
                 type="text"
@@ -144,29 +146,29 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                   setName(e.target.value)
                   setErrorMessage('') // 입력 시 에러 메시지 제거
                 }}
-                placeholder="예: 청년부, 찬양팀, 셀 모임 A"
+                placeholder={t('groupNamePlaceholder')}
                 required
                 maxLength={50}
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                그룹 설명
+                {t('groupDescription')}
               </label>
               <textarea
                 className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="그룹에 대한 간단한 설명을 입력하세요"
+                placeholder={t('groupDescriptionPlaceholder')}
                 maxLength={200}
                 rows={3}
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                그룹 아이콘
+                {t('groupIcon')}
               </label>
               <div className="grid grid-cols-5 gap-2">
                 {ICON_OPTIONS.map((iconOption) => (
@@ -189,19 +191,19 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
             </div>
             
             <div className="flex gap-2 pt-2">
-              <button 
+              <button
                 type="button"
                 className="flex-1 px-4 py-2 bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 font-bold text-sm rounded-full border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                 onClick={handleClose}
               >
-                취소
+                {t('cancel')}
               </button>
-              <button 
+              <button
                 type="submit"
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!name.trim() || createMutation.isPending}
               >
-                {createMutation.isPending ? '생성 중...' : '그룹 만들기'}
+                {createMutation.isPending ? t('creatingGroup') : t('createGroup')}
               </button>
             </div>
           </form>
@@ -217,8 +219,9 @@ interface JoinGroupModalProps {
 }
 
 export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
+  const { t } = useLanguage()
   const [inviteCode, setInviteCode] = useState('')
-  
+
   const joinMutation = useJoinGroup()
   
   if (!isOpen) return null
@@ -250,7 +253,7 @@ export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-border-light dark:border-border-dark">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">그룹 가입하기</h2>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t('joinGroup')}</h2>
           <button 
             className="w-10 h-10 flex items-center justify-center rounded-full relative group transition-all"
             onClick={handleClose}
@@ -271,35 +274,35 @@ export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              초대 코드 *
+              {t('inviteCode')} *
             </label>
             <input
               type="text"
               className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent uppercase tracking-widest font-mono text-center"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              placeholder="초대 코드를 입력하세요"
+              placeholder={t('enterInviteCode')}
               required
             />
             <p className="mt-2 text-xs text-gray-500">
-              그룹 관리자로부터 받은 초대 코드를 입력하세요
+              {t('inviteCodeAdminHint')}
             </p>
           </div>
-          
+
           <div className="flex gap-2">
-            <button 
+            <button
               type="button"
               className="flex-1 px-4 py-2 bg-surface-light dark:bg-surface-dark text-gray-700 dark:text-gray-300 font-bold text-sm rounded-full border border-border-light dark:border-border-dark hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
               onClick={handleClose}
             >
-              취소
+              {t('cancel')}
             </button>
-            <button 
+            <button
               type="submit"
               className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm rounded-full shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={!inviteCode.trim() || joinMutation.isPending}
             >
-              {joinMutation.isPending ? '가입 중...' : '가입하기'}
+              {joinMutation.isPending ? t('joiningGroup') : t('joinGroupShort')}
             </button>
           </div>
         </form>

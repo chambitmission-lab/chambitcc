@@ -73,4 +73,20 @@ export const prayer = {
   prayers: 'prayers',
   admin: 'Admin',
   publicScope: 'Visibility',
+
+  // Group modals / short button labels
+  createGroupShort: 'Create',
+  joinGroupShort: 'Join',
+  createGroupTitle: 'Create New Group',
+  groupCreatedTitle: 'Group Created',
+  groupCreatedMessage: 'Your group has been created! Share the invite code below to invite members.',
+  inviteCodeCopied: 'Invite code copied!',
+  copyCode: 'Copy Code',
+  groupNamePlaceholder: 'e.g., Youth Group, Praise Team, Cell Group A',
+  groupDescriptionPlaceholder: 'Enter a brief description of your group',
+  inviteCodeAdminHint: 'Enter the invite code you received from the group admin',
+  creatingGroup: 'Creating...',
+  joiningGroup: 'Joining...',
+  groupExistsError: 'Group name already exists. Please use a different name.',
+  groupCreateFailed: 'Failed to create group.',
 } as const

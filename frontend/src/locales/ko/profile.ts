@@ -50,6 +50,16 @@ export const profile = {
   levelBibleBook: '완독 1권',
   levelReply: '댓글 1개',
   
+  // 묵상 노트 / 북마크
+  meditationNotes: '묵상노트',
+  meditationNote: '묵상 노트',
+  bookmarksFilterAll: '전체',
+  bookmarksFilterFavorites: '즐겨찾기',
+  bookmarksLoading: '불러오는 중...',
+  bookmarksLoadError: '불러올 수 없어요',
+  bookmarksEmpty: '저장된 묵상 노트가 없어요',
+  bookmarksEmptyHint: '성경에서 구절을 하이라이트하거나 묵상 메모를 남겨보세요 ✨',
+
   // 레벨 이름
   levelNameSprout: '새싹',
   levelNameSpark: '불씨',

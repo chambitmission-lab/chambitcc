@@ -20,6 +20,7 @@ export const common = {
   notificationsAria: '알림',
   menuAria: '메뉴',
   menuCloseAria: '메뉴 닫기',
+  confirm: '확인',
   owner: '작성자',
   deleteConfirm: '정말 삭제하시겠습니까?',
   versesToMeditateOn: '함께 묵상해볼 수 있는 해설',

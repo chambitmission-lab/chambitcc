@@ -73,4 +73,20 @@ export const prayer = {
   prayers: '기도',
   admin: '관리자',
   publicScope: '공개 범위',
+
+  // 그룹 모달 / 짧은 버튼 라벨
+  createGroupShort: '만들기',
+  joinGroupShort: '가입하기',
+  createGroupTitle: '새 그룹 만들기',
+  groupCreatedTitle: '그룹 생성 완료',
+  groupCreatedMessage: '그룹이 생성되었습니다! 아래 초대 코드를 공유하여 멤버를 초대하세요.',
+  inviteCodeCopied: '초대 코드가 복사되었습니다!',
+  copyCode: '코드 복사하기',
+  groupNamePlaceholder: '예: 청년부, 찬양팀, 셀 모임 A',
+  groupDescriptionPlaceholder: '그룹에 대한 간단한 설명을 입력하세요',
+  inviteCodeAdminHint: '그룹 관리자로부터 받은 초대 코드를 입력하세요',
+  creatingGroup: '생성 중...',
+  joiningGroup: '가입 중...',
+  groupExistsError: '이미 존재하는 그룹 이름입니다. 다른 이름을 사용해주세요.',
+  groupCreateFailed: '그룹 생성에 실패했습니다.',
 } as const

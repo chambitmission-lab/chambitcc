@@ -50,6 +50,16 @@ export const profile = {
   levelBibleBook: 'Complete 1 book',
   levelReply: 'Reply 1 time',
   
+  // Meditation Notes / Bookmarks
+  meditationNotes: 'Notes',
+  meditationNote: 'Meditation Note',
+  bookmarksFilterAll: 'All',
+  bookmarksFilterFavorites: 'Favorites',
+  bookmarksLoading: 'Loading...',
+  bookmarksLoadError: "Couldn't load",
+  bookmarksEmpty: 'No saved meditation notes',
+  bookmarksEmptyHint: 'Highlight a verse or add a meditation note from the Bible ✨',
+
   // Level Names
   levelNameSprout: 'Sprout',
   levelNameSpark: 'Spark',

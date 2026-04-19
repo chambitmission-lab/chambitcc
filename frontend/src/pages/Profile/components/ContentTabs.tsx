@@ -96,7 +96,7 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
         <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
           auto_stories
         </span>
-        <span className={`text-xs font-bold ${activeTab === 'notes' ? 'text-gray-900 dark:text-white' : ''}`}>묵상노트</span>
+        <span className={`text-xs font-bold ${activeTab === 'notes' ? 'text-gray-900 dark:text-white' : ''}`}>{t('meditationNotes')}</span>
         <span className={`text-xs font-bold ${activeTab === 'notes' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'}`}>
           {counts.notes}
         </span>
