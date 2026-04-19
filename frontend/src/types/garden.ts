@@ -48,6 +48,7 @@ export interface MonthlyGarden {
 }
 
 // 어린 양 단계 정의
+// 이모지는 단일 문자(🐑 또는 🐏)만 사용. 스파클/왕관/글로우 등 장식은 LambCharacter 컴포넌트가 레벨에 따라 오버레이로 덧붙임.
 export const LAMB_STAGES: LambStage[] = [
   {
     level: 0,
@@ -61,42 +62,42 @@ export const LAMB_STAGES: LambStage[] = [
     name: '뛰어노는 양',
     description: '기도와 말씀으로 건강하게 자라고 있어요',
     minPoints: 50,
-    emoji: '🐏',
+    emoji: '🐑',
   },
   {
     level: 2,
     name: '건강한 양',
     description: '꾸준한 신앙 생활로 튼튼해졌어요',
     minPoints: 150,
-    emoji: '🐑✨',
+    emoji: '🐑',
   },
   {
     level: 3,
     name: '튼튼한 양',
     description: '말씀과 기도로 강건해졌어요',
     minPoints: 300,
-    emoji: '🐏💪',
+    emoji: '🐏',
   },
   {
     level: 4,
     name: '지혜로운 양',
     description: '깊은 신앙으로 지혜를 얻었어요',
     minPoints: 500,
-    emoji: '🐑📖',
+    emoji: '🐏',
   },
   {
     level: 5,
     name: '빛나는 양',
     description: '신앙의 빛으로 주변을 밝혀요',
     minPoints: 1000,
-    emoji: '🐏✨💫',
+    emoji: '🐏',
   },
   {
     level: 6,
     name: '천상의 양',
     description: '완전한 신앙으로 하늘의 영광을 반영해요',
     minPoints: 2000,
-    emoji: '🐑👑✨',
+    emoji: '🐏',
   },
 ]
 

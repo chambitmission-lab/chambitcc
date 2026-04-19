@@ -43,26 +43,34 @@ export const LambCharacter: React.FC<LambCharacterProps> = ({
     return 'lamb-sleeping'
   }, [stage.level])
 
+  // 레벨별 글로우 — Lv.4부터 은은한 황금빛, Lv.6에서 천상의 흰빛
+  const glowFilter = useMemo(() => {
+    if (stage.level >= 6) return 'drop-shadow(0 0 24px rgba(255, 255, 255, 0.9))'
+    if (stage.level >= 4) return 'drop-shadow(0 0 16px rgba(251, 191, 36, 0.7))'
+    return 'none'
+  }, [stage.level])
+
   return (
     <div className="lamb-character-container">
-      <div 
+      <div
         className={`lamb-character ${animationClass}`}
-        style={{ 
+        style={{
           fontSize: `${size}px`,
-          filter: stage.level >= 5 ? 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.8))' : 'none'
+          filter: glowFilter,
         }}
       >
         <div className="lamb-emoji">{stage.emoji}</div>
-        
-        {/* 레벨에 따른 특수 효과 */}
-        {stage.level >= 3 && (
+
+        {/* Lv.2부터 스파클 — 개수도 레벨에 따라 증가 */}
+        {stage.level >= 2 && (
           <div className="lamb-sparkles">
             <span className="sparkle">✨</span>
-            <span className="sparkle">✨</span>
-            <span className="sparkle">✨</span>
+            {stage.level >= 3 && <span className="sparkle">✨</span>}
+            {stage.level >= 4 && <span className="sparkle">✨</span>}
           </div>
         )}
-        
+
+        {/* Lv.5부터 왕관 */}
         {stage.level >= 5 && (
           <div className="lamb-halo">👑</div>
         )}
