@@ -17,28 +17,32 @@
 .lamb-svg {
   display: block;
   user-select: none;
+  overflow: visible;
   --lamb-wool: #fdf6e3;
-  --lamb-face: #f5c9a8;
-  --lamb-horn: #d4b483;
-  --lamb-leg: #8b6f5c;
-  --lamb-cheek: #ff9bb3;
-  --lamb-cheek-opacity: 0;
+  --lamb-face: #fad8b8;
+  --lamb-ear-inner: #f4a8a8;
+  --lamb-horn: #c99a5b;
+  --lamb-leg: #5b4236;
+  --lamb-cheek: #ff8fae;
+  --lamb-cheek-opacity: 0.35;
 }
 
 /* 레벨별 색 팔레트 — 몸의 변화를 변수만으로 제어 */
 .lamb-level-0 {
   --lamb-wool: #fdf6e3;
+  --lamb-cheek-opacity: 0.3;
 }
 .lamb-level-1 {
   --lamb-wool: #ffffff;
+  --lamb-cheek-opacity: 0.4;
 }
 .lamb-level-2 {
   --lamb-wool: #fff3a8;
-  --lamb-cheek-opacity: 0.4;
+  --lamb-cheek-opacity: 0.5;
 }
 .lamb-level-3 {
   --lamb-wool: #ffd6e0;
-  --lamb-cheek-opacity: 0.55;
+  --lamb-cheek-opacity: 0.6;
 }
 .lamb-level-4 {
   --lamb-wool: #ffb4d1;
