@@ -18,12 +18,12 @@ const NavigationMenu = () => {
   const { t } = useLanguage()
 
   return (
-    <nav className="flex overflow-x-auto scrollbar-hide py-3 px-4 gap-3">
+    <nav className="grid grid-cols-2 gap-2 p-3">
       {MENU_ITEMS.map(item => (
         <Link
           key={item.path}
           to={item.path}
-          className="glow-menu-item flex-shrink-0 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-white rounded-full transition-all whitespace-nowrap relative"
+          className="glow-menu-item px-3 py-3 text-sm font-semibold text-gray-900 dark:text-white rounded-xl transition-all text-center relative min-h-[44px] flex items-center justify-center"
         >
           {'label' in item ? item.label : t(item.key)}
         </Link>
