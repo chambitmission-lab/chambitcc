@@ -2,7 +2,7 @@ import { API_V1, apiFetch } from '../config/api'
 import { getAuthHeaders, requireAuth } from './utils/apiHelpers'
 import type {
   GameState,
-  RollResult,
+  AdvanceResult,
   AnswerResult,
   Leaderboard,
   BluemarbleStats,
@@ -48,13 +48,13 @@ export const fetchState = async (): Promise<GameState> => {
   return handle<GameState>(res, '게임 상태를 불러오지 못했습니다')
 }
 
-export const rollDice = async (): Promise<RollResult> => {
+export const advanceStep = async (): Promise<AdvanceResult> => {
   requireAuth()
-  const res = await apiFetch(`${BASE}/roll`, {
+  const res = await apiFetch(`${BASE}/advance`, {
     method: 'POST',
     headers: getAuthHeaders(),
   })
-  return handle<RollResult>(res, '주사위 굴리기 실패')
+  return handle<AdvanceResult>(res, '발자취 전진 실패')
 }
 
 export const submitAnswer = async (

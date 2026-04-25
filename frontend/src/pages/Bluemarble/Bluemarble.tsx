@@ -1,23 +1,31 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import {
   useBluemarbleState,
   useStartGame,
-  useRollDice,
+  useAdvanceStep,
   useSubmitAnswer,
   useAbandonGame,
 } from '../../hooks/useBluemarble'
 import { useProfileDetail } from '../../hooks/useProfile'
-import type { QuizPublic } from '../../types/bluemarble'
-import BoardTile from './components/BoardTile'
-import GamePiece from './components/GamePiece'
-import Dice from './components/Dice'
+import { useSfx } from '../../hooks/useSfx'
+import type { QuizPublic, Tile, AdvanceResult } from '../../types/bluemarble'
+import JourneyTile from './components/JourneyTile'
+import JourneyPiece from './components/JourneyPiece'
+import StepButton from './components/StepButton'
+import NarrativeCard from './components/NarrativeCard'
 import QuizModal from './components/QuizModal'
 import EventToast from './components/EventToast'
 import GameStatus from './components/GameStatus'
 import Leaderboard from './components/Leaderboard'
-import { POSITION_TO_GRID } from './boardLayout'
+import {
+  positionToCoord,
+  getFogState,
+  JOURNEY_COLS,
+  JOURNEY_ROWS,
+} from './journeyLayout'
 import './Bluemarble.css'
 
 interface Toast {
@@ -27,28 +35,34 @@ interface Toast {
   scoreDelta?: number
 }
 
+interface NarrativeState {
+  tile: Tile
+  verseText: string | null
+  variant: 'arrival' | 'milestone' | 'rest' | 'finish'
+  scoreDelta?: number
+}
+
 export default function Bluemarble() {
   const navigate = useNavigate()
   const isAuthenticated = !!localStorage.getItem('access_token')
   const profileQuery = useProfileDetail()
   const user = profileQuery.data?.stats
   const startMutation = useStartGame()
-  const rollMutation = useRollDice()
+  const advanceMutation = useAdvanceStep()
   const answerMutation = useSubmitAnswer()
   const abandonMutation = useAbandonGame()
   const stateQuery = useBluemarbleState(isAuthenticated)
+  const sfx = useSfx()
 
-  const [diceRolling, setDiceRolling] = useState(false)
-  const [diceValue, setDiceValue] = useState<number | null>(null)
-  const [pieceMoving, setPieceMoving] = useState(false)
   const [showQuiz, setShowQuiz] = useState(false)
-  // 모달이 열릴 때 퀴즈를 스냅샷 → pendingQuiz가 서버에서 null로 바뀌어도
-  // 결과 화면이 사라지지 않도록 유지
   const [activeQuiz, setActiveQuiz] = useState<QuizPublic | null>(null)
+  const [activeNarrative, setActiveNarrative] = useState<NarrativeState | null>(null)
   const [toasts, setToasts] = useState<Toast[]>([])
   const [showLb, setShowLb] = useState(false)
-  const [lastMsg, setLastMsg] = useState<string>('')
+  const [muted, setMutedUi] = useState<boolean>(sfx.isMuted())
+  const [streak, setStreak] = useState(0)
   const toastIdRef = useRef(0)
+  const introShownRef = useRef(false)
 
   const state = stateQuery.data
   const session = state?.session
@@ -56,8 +70,12 @@ export default function Bluemarble() {
   const pendingQuiz = state?.pending_quiz
 
   const isGameDone = session?.status === 'completed'
+  const currentTile = useMemo(
+    () => tiles.find((t) => t.position === session?.current_position) ?? null,
+    [tiles, session?.current_position],
+  )
 
-  // 시작/이어가기 자동 호출
+  // 첫 진입: 세션 없으면 자동 시작
   useEffect(() => {
     if (isAuthenticated && stateQuery.isError) {
       startMutation.mutate(false)
@@ -65,15 +83,29 @@ export default function Bluemarble() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, stateQuery.isError])
 
-  // pending quiz가 생기면 모달 자동 오픈 (말 이동이 끝난 후)
-  // 모달에 표시할 퀴즈를 스냅샷 → 답 제출 후 서버 state가 갱신되어
-  // pendingQuiz가 null이 되어도 결과 화면이 유지됨
+  // 시작 시 인트로 카드
   useEffect(() => {
-    if (pendingQuiz && !pieceMoving && !diceRolling && !showQuiz) {
+    if (!session || introShownRef.current) return
+    if (session.current_position === 0 && tiles.length > 0 && !pendingQuiz) {
+      const startTile = tiles.find((t) => t.position === 0)
+      if (startTile) {
+        introShownRef.current = true
+        setActiveNarrative({
+          tile: startTile,
+          verseText: null,
+          variant: 'arrival',
+        })
+      }
+    }
+  }, [session, tiles, pendingQuiz])
+
+  // pending quiz가 있으면 모달 자동 오픈 (내러티브 카드가 닫혀있을 때)
+  useEffect(() => {
+    if (pendingQuiz && !activeNarrative && !showQuiz) {
       setActiveQuiz(pendingQuiz)
       setShowQuiz(true)
     }
-  }, [pendingQuiz, pieceMoving, diceRolling, showQuiz])
+  }, [pendingQuiz, activeNarrative, showQuiz])
 
   const pushToast = (message: string, variant: Toast['variant'], scoreDelta?: number) => {
     const id = ++toastIdRef.current
@@ -82,66 +114,54 @@ export default function Bluemarble() {
 
   const removeToast = (id: number) => setToasts((t) => t.filter((x) => x.id !== id))
 
-  const handleRoll = async () => {
-    if (!session || diceRolling || pieceMoving || pendingQuiz || isGameDone) return
-    setDiceRolling(true)
-    setDiceValue(null)
-    setLastMsg('')
-
+  const handleAdvance = async () => {
+    if (!session || advanceMutation.isPending || pendingQuiz || isGameDone || activeNarrative) return
+    sfx.play('click')
     try {
-      const result = await rollMutation.mutateAsync()
-      // 주사위 멈출 때까지 기다림
+      const result: AdvanceResult = await advanceMutation.mutateAsync()
+
+      if (result.event_type === 'quiz') {
+        // 위치 변동 없음 → 곧 useEffect로 퀴즈 모달 오픈
+        sfx.play('reveal')
+        return
+      }
+
+      // 즉시 전진한 경우 (milestone / rest / finish)
+      sfx.play('step')
       setTimeout(() => {
-        setDiceValue(result.dice)
-        setDiceRolling(false)
+        sfx.play('reveal')
+      }, 300)
 
-        // 말 이동 시작
-        setPieceMoving(true)
-        setLastMsg(result.message)
+      const variant: NarrativeState['variant'] =
+        result.event_type === 'milestone'
+          ? 'milestone'
+          : result.event_type === 'rest'
+          ? 'rest'
+          : result.event_type === 'finish'
+          ? 'finish'
+          : 'arrival'
 
-        if (result.passed_start && result.lap_bonus > 0) {
-          pushToast(`한 바퀴 돌았습니다! +${result.lap_bonus}pt`, 'lap', result.lap_bonus)
-          confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
-        }
+      if (result.event_type === 'milestone') {
+        sfx.play('milestone')
+        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
+        pushToast(`이정표! ${result.next_tile.title} +${result.score_delta}pt`, 'bonus', result.score_delta)
+      } else if (result.event_type === 'finish') {
+        sfx.play('fanfare')
+        confetti({ particleCount: 240, spread: 120, origin: { y: 0.5 } })
+        pushToast('여행 완주!', 'finish', result.total_score)
+      } else if (result.event_type === 'rest') {
+        pushToast(`${result.next_tile.title} +${result.score_delta}pt`, 'rest', result.score_delta)
+      }
 
-        // 칸별 토스트는 도착 후 표시
-      }, 900)
+      setActiveNarrative({
+        tile: result.next_tile,
+        verseText: result.verse_text ?? null,
+        variant,
+        scoreDelta: result.score_delta,
+      })
     } catch (e) {
-      setDiceRolling(false)
-      setLastMsg(e instanceof Error ? e.message : '오류가 발생했습니다')
+      pushToast(e instanceof Error ? e.message : '오류가 발생했습니다', 'info')
     }
-  }
-
-  const handlePieceArrive = () => {
-    setPieceMoving(false)
-    // 가장 최근 roll 결과를 기반으로 토스트 표시
-    const last = rollMutation.data
-    if (!last) return
-
-    const tile = last.landed_tile
-    if (last.event_type === 'bonus') {
-      pushToast(`${tile.title}!`, 'bonus', last.score_delta)
-      confetti({ particleCount: 60, spread: 50, origin: { y: 0.6 } })
-    } else if (last.event_type === 'rest') {
-      pushToast(`${tile.title} - 다음 턴 쉽니다`, 'rest')
-    } else if (last.event_type === 'warp') {
-      pushToast(`${tile.title}!`, 'warp')
-      confetti({
-        particleCount: 100,
-        angle: 90,
-        spread: 360,
-        startVelocity: 30,
-        origin: { y: 0.5 },
-      })
-    } else if (last.event_type === 'finish' || isGameDone) {
-      pushToast('성경 일주 완료!', 'finish', last.total_score)
-      confetti({
-        particleCount: 200,
-        spread: 90,
-        origin: { y: 0.6 },
-      })
-    }
-    // quiz/mission은 모달이 알아서 오픈됨 (위의 useEffect)
   }
 
   const handleAnswerSubmit = async (choiceIndex: number) => {
@@ -151,37 +171,73 @@ export default function Bluemarble() {
       quizId: quiz.id,
       choiceIndex,
     })
+    setStreak(result.streak)
     if (result.is_correct) {
+      sfx.play('correct')
+      sfx.play('step')
       confetti({ particleCount: 90, spread: 60, origin: { y: 0.5 } })
+      if (result.is_finish) {
+        sfx.play('fanfare')
+        confetti({ particleCount: 240, spread: 120, origin: { y: 0.5 } })
+      }
+    } else {
+      sfx.play('wrong')
     }
     return result
   }
 
   const handleQuizClose = () => {
     setShowQuiz(false)
+    const lastResult = answerMutation.data
+    const quizClosedTile = activeQuiz
+      ? tiles.find((t) => t.bible_book === activeQuiz.related_book && t.bible_chapter === activeQuiz.related_chapter)
+      : null
     setActiveQuiz(null)
+
+    // 정답이었고 도착한 칸이 있으면 NarrativeCard 자동 표시
+    if (lastResult?.is_correct && lastResult.arrived_tile) {
+      setActiveNarrative({
+        tile: lastResult.arrived_tile as Tile,
+        verseText: lastResult.related_verse_text ?? null,
+        variant: lastResult.is_finish ? 'finish' : 'arrival',
+        scoreDelta: lastResult.score_delta,
+      })
+    } else if (lastResult?.is_correct && quizClosedTile) {
+      setActiveNarrative({
+        tile: quizClosedTile,
+        verseText: lastResult.related_verse_text ?? null,
+        variant: 'arrival',
+        scoreDelta: lastResult.score_delta,
+      })
+    }
+  }
+
+  const handleNarrativeClose = () => {
+    setActiveNarrative(null)
   }
 
   const handleRestart = () => {
-    if (window.confirm('현재 진행을 포기하고 새로 시작할까요?')) {
+    if (window.confirm('지금까지의 발자취를 포기하고 처음부터 다시 시작할까요?')) {
+      sfx.play('click')
+      introShownRef.current = false
+      setStreak(0)
       startMutation.mutate(true)
     }
   }
 
-  // 보드 그리드 셀 (7x7) - 칸이 없는 안쪽은 비우고, 가운데 5x5 영역에 게임 상태 표시
-  const tilesByPosition = useMemo(() => {
-    const map = new Map<number, (typeof tiles)[number]>()
-    tiles.forEach((t) => map.set(t.position, t))
-    return map
-  }, [tiles])
+  const toggleMute = () => {
+    const next = !muted
+    sfx.setMuted(next)
+    setMutedUi(next)
+  }
 
-  // 로그인 안 됨
+  // 안내 단계: 인증 / 로딩 / 빈 세션
   if (!isAuthenticated) {
     return (
       <div className="bm-page">
         <div className="bm-need-login">
-          <h2>🎲 성경 보드게임</h2>
-          <p>로그인이 필요한 게임이에요.</p>
+          <h2>👣 예수님의 발자취</h2>
+          <p>로그인 후 80걸음의 여행을 시작할 수 있어요.</p>
           <button type="button" className="bm-primary-btn" onClick={() => navigate('/login')}>
             로그인하러 가기
           </button>
@@ -193,7 +249,7 @@ export default function Bluemarble() {
   if (stateQuery.isLoading || startMutation.isPending) {
     return (
       <div className="bm-page">
-        <div className="bm-loading">게임을 준비중입니다...</div>
+        <div className="bm-loading">발자취를 준비 중입니다…</div>
       </div>
     )
   }
@@ -202,28 +258,33 @@ export default function Bluemarble() {
     return (
       <div className="bm-page">
         <div className="bm-need-login">
-          <h2>🎲 성경 보드게임</h2>
+          <h2>👣 예수님의 발자취</h2>
           <button
             type="button"
             className="bm-primary-btn"
             onClick={() => startMutation.mutate(false)}
           >
-            새 게임 시작하기
+            여행 시작하기
           </button>
         </div>
       </div>
     )
   }
 
+  // grid 셀 크기 계산용 비율 (실제 좌표는 % 기반으로 절대 위치)
+
   return (
     <div className="bm-page">
       {/* 헤더 */}
       <header className="bm-page-header">
         <h1 className="bm-title">
-          <span className="bm-title-emoji">🎲</span>
-          성경 일주 보드게임
+          <span className="bm-title-emoji">👣</span>
+          예수님의 발자취
         </h1>
         <div className="bm-header-actions">
+          <button type="button" className="bm-ghost-btn" onClick={toggleMute} aria-label="음소거 토글">
+            {muted ? '🔇' : '🔊'}
+          </button>
           <button type="button" className="bm-ghost-btn" onClick={() => setShowLb(true)}>
             🏆 리더보드
           </button>
@@ -233,14 +294,14 @@ export default function Bluemarble() {
             onClick={handleRestart}
             disabled={startMutation.isPending}
           >
-            ↻ 새 게임
+            ↻ 처음부터
           </button>
           {!isGameDone && (
             <button
               type="button"
               className="bm-ghost-btn bm-ghost-danger"
               onClick={() => {
-                if (window.confirm('정말 게임을 포기할까요?')) abandonMutation.mutate()
+                if (window.confirm('정말 여행을 포기할까요?')) abandonMutation.mutate()
               }}
             >
               포기
@@ -249,71 +310,112 @@ export default function Bluemarble() {
         </div>
       </header>
 
-      {/* 보드 */}
-      <div className="bm-board-wrapper">
-        <div className="bm-board">
-          {/* 24칸 */}
-          {tiles.map((tile) => {
-            const grid = POSITION_TO_GRID[tile.position]
-            const isCurrent = session.current_position === tile.position
-            return (
-              <div
-                key={tile.id}
-                style={{
-                  gridRow: grid.row,
-                  gridColumn: grid.col,
-                }}
-              >
-                <BoardTile tile={tile} isCurrent={isCurrent} isLanded={isCurrent} />
-              </div>
-            )
-          })}
-
-          {/* 말 (Lamb) */}
-          <GamePiece position={session.current_position} onArrive={handlePieceArrive} />
-
-          {/* 중앙 영역 */}
-          <div className="bm-board-center">
-            <GameStatus session={session} username={user?.full_name || user?.username} />
-            <Dice
-              value={diceValue ?? session.last_dice}
-              rolling={diceRolling}
-              onRoll={handleRoll}
-              disabled={pieceMoving || !!pendingQuiz || isGameDone || session.skip_next_turn === false ? false : false}
+      <div className="bm-layout">
+        {/* 사이드 - 게임 상태 */}
+        <aside className="bm-side">
+          <GameStatus
+            session={session}
+            username={user?.full_name || user?.username}
+            phase={currentTile?.phase ?? null}
+            streak={streak}
+          />
+          <div className="bm-side-action">
+            <StepButton
+              onClick={handleAdvance}
+              disabled={!!pendingQuiz || isGameDone || !!activeNarrative}
+              loading={advanceMutation.isPending}
               label={
-                session.skip_next_turn
-                  ? '쉬는 턴 (소진)'
-                  : isGameDone
-                  ? '게임 종료'
+                isGameDone
+                  ? '여행 완료'
                   : pendingQuiz
                   ? '퀴즈 풀기'
-                  : '주사위 굴리기'
+                  : activeNarrative
+                  ? '카드 닫기'
+                  : '다음 발자취로'
+              }
+              hint={
+                isGameDone
+                  ? '👑 부활하신 주님과 동행하셨습니다'
+                  : pendingQuiz
+                  ? '맞히면 다음 칸으로 전진합니다'
+                  : '안개 너머의 발자취가 기다립니다'
               }
             />
-            {lastMsg && <div className="bm-last-msg">{lastMsg}</div>}
-            {tilesByPosition.get(session.current_position) && (
-              <div className="bm-current-tile-info">
-                <span className="bm-cti-icon">{tilesByPosition.get(session.current_position)?.icon}</span>
-                <span className="bm-cti-title">{tilesByPosition.get(session.current_position)?.title}</span>
-              </div>
-            )}
           </div>
+        </aside>
+
+        {/* 발자취 보드 */}
+        <div className="journey-wrap">
+          <div
+            className="journey-board"
+            style={{
+              gridTemplateColumns: `repeat(${JOURNEY_COLS}, 1fr)`,
+              gridTemplateRows: `repeat(${JOURNEY_ROWS}, 1fr)`,
+            }}
+          >
+            {tiles.map((tile) => {
+              const { row, col } = positionToCoord(tile.position)
+              const fog = getFogState(tile.position, session.current_position)
+              const isCurrent = tile.position === session.current_position
+              const isNext = tile.position === session.current_position + 1
+              return (
+                <div
+                  key={tile.id}
+                  style={{ gridRow: row + 1, gridColumn: col + 1 }}
+                  className="journey-cell"
+                >
+                  <JourneyTile
+                    tile={tile}
+                    fog={fog}
+                    isCurrent={isCurrent}
+                    isNext={isNext}
+                  />
+                </div>
+              )
+            })}
+            <JourneyPiece position={session.current_position} />
+          </div>
+          {currentTile && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentTile.id}
+                className="journey-hud"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                <span className="journey-hud-icon">{currentTile.icon}</span>
+                <div className="journey-hud-text">
+                  <div className="journey-hud-title">{currentTile.title}</div>
+                  {currentTile.phase && (
+                    <div className="journey-hud-phase">{currentTile.phase}</div>
+                  )}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          )}
         </div>
       </div>
 
-      {/* 게임 클리어 화면 */}
-      {isGameDone && (
+      {/* 게임 클리어 */}
+      {isGameDone && !activeNarrative && (
         <div className="bm-modal-backdrop">
-          <div className="bm-clear-modal">
-            <div className="bm-clear-trophy">🏆</div>
-            <h2>성경 일주 완주!</h2>
+          <motion.div
+            className="bm-clear-modal"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+          >
+            <div className="bm-clear-trophy">👑</div>
+            <h2>발자취 완주!</h2>
             <div className="bm-clear-score">{session.total_score.toLocaleString()}pt</div>
             <div className="bm-clear-stats">
               <span>정답 {session.correct_count}</span>
               <span>·</span>
-              <span>{session.lap_count}바퀴</span>
+              <span>오답 {session.wrong_count}</span>
               <span>·</span>
-              <span>{session.dice_count}턴</span>
+              <span>{session.dice_count}걸음</span>
             </div>
             <div className="bm-clear-actions">
               <button type="button" className="bm-primary-btn" onClick={() => startMutation.mutate(true)}>
@@ -323,11 +425,11 @@ export default function Bluemarble() {
                 리더보드 보기
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
-      {/* 퀴즈 모달 - activeQuiz 스냅샷 사용 (서버 state 변화에 영향 안 받음) */}
+      {/* 퀴즈 모달 */}
       {showQuiz && activeQuiz && (
         <QuizModal
           quiz={activeQuiz}
@@ -335,6 +437,16 @@ export default function Bluemarble() {
           onClose={handleQuizClose}
         />
       )}
+
+      {/* 내러티브 카드 */}
+      <NarrativeCard
+        tile={activeNarrative?.tile ?? null}
+        verseText={activeNarrative?.verseText}
+        open={!!activeNarrative}
+        onClose={handleNarrativeClose}
+        variant={activeNarrative?.variant ?? 'arrival'}
+        scoreDelta={activeNarrative?.scoreDelta}
+      />
 
       {/* 토스트 */}
       <div className="bm-toast-container">

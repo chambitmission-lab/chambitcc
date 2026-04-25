@@ -8,6 +8,7 @@ export type TileType =
   | 'rest'
   | 'warp'
   | 'finish'
+  | 'milestone'
 
 export type QuizCategory = 'OLD' | 'NEW' | 'GENERAL'
 export type SessionStatus = 'active' | 'completed' | 'abandoned'
@@ -25,6 +26,12 @@ export interface Tile {
   quiz_difficulty: number | null
   bonus_points: number
   warp_target: number | null
+  narrative: string | null
+  bible_book: number | null
+  bible_chapter: number | null
+  bible_verse_start: number | null
+  bible_verse_end: number | null
+  phase: string | null
 }
 
 export interface QuizPublic {
@@ -66,31 +73,25 @@ export interface GameState {
   pending_quiz: QuizPublic | null
 }
 
-export type RollEventType =
+export type AdvanceEventType =
   | 'quiz'
-  | 'bonus'
+  | 'milestone'
   | 'rest'
-  | 'warp'
   | 'finish'
   | 'start'
-  | 'mission'
-  | 'skip'
+  | 'bonus'
 
-export interface RollResult {
-  dice: number
+export interface AdvanceResult {
   from_position: number
   to_position: number
-  passed_start: boolean
-  lap_bonus: number
-  landed_tile: Tile
+  next_tile: Tile
   pending_quiz: QuizPublic | null
-  event_type: RollEventType
-  extra_roll: boolean
-  skip_next_turn: boolean
+  event_type: AdvanceEventType
   score_delta: number
   total_score: number
+  is_finish: boolean
   message: string
-  warp_to: number | null
+  verse_text: string | null
 }
 
 export interface AnswerResult {
@@ -102,6 +103,10 @@ export interface AnswerResult {
   correct_count: number
   wrong_count: number
   related_verse_text: string | null
+  new_position: number | null
+  arrived_tile: Tile | null
+  streak: number
+  is_finish: boolean
 }
 
 export interface LeaderboardEntry {

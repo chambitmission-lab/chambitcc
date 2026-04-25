@@ -3,7 +3,7 @@ import {
   fetchState,
   fetchTiles,
   startGame,
-  rollDice,
+  advanceStep,
   submitAnswer,
   fetchLeaderboard,
   fetchBluemarbleStats,
@@ -41,10 +41,10 @@ export const useStartGame = () => {
   })
 }
 
-export const useRollDice = () => {
+export const useAdvanceStep = () => {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: rollDice,
+    mutationFn: advanceStep,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK_BM_STATE })
     },

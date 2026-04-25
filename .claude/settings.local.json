@@ -18,7 +18,10 @@
       "Bash(python -m py_compile app/services/bible_verse_service.py app/services/prayer_service.py)",
       "Bash(echo \"exit=$?\")",
       "Bash(python -c \"import ast; ast.parse\\(open\\('app/services/push_notification_service.py', encoding='utf-8'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(python -c \"import ast; [ast.parse\\(open\\(f, encoding='utf-8'\\).read\\(\\)\\) for f in ['app/models/bluemarble.py', 'app/services/bluemarble_service.py', 'app/api/v1/endpoints/bluemarble.py', 'app/schemas/bluemarble.py', 'seed_journey.py', 'alembic/versions/bm002_journey_80_waypoints.py']]; print\\('All Python files parse OK'\\)\")",
+      "Bash(python *)",
+      "Bash(DATABASE_URL=postgresql://x SECRET_KEY=x FRONTEND_URL=http://x python *)"
     ]
   }
 }
