@@ -37,6 +37,13 @@ export const calculateActivityPoints = (activity: UserActivityData): number => {
   // 즐겨찾기 구절: 1개당 3포인트
   points += activity.favoritesCount * 3
 
+  // 성경 보드게임: 정답 1개당 8포인트, 1바퀴당 30포인트, 클리어 1회당 200포인트
+  points += activity.bluemarbleCorrectTotal * 8
+  points += activity.bluemarbleLapsTotal * 30
+  points += activity.bluemarbleClearCount * 200
+  // 베스트 점수의 10%를 추가 가산 (게임 내 점수도 GLOW에 기여)
+  points += Math.floor(activity.bluemarbleBestScore * 0.1)
+
   return points
 }
 
@@ -114,6 +121,26 @@ export const calculateAchievements = (activity: UserActivityData): Achievement[]
 
       case 'bible_highlight':
         progress = activity.bookmarksCount
+        unlocked = progress >= achievement.requirement
+        break
+
+      case 'bluemarble_correct':
+        progress = activity.bluemarbleCorrectTotal
+        unlocked = progress >= achievement.requirement
+        break
+
+      case 'bluemarble_lap':
+        progress = activity.bluemarbleLapsTotal
+        unlocked = progress >= achievement.requirement
+        break
+
+      case 'bluemarble_clear':
+        progress = activity.bluemarbleClearCount
+        unlocked = progress >= achievement.requirement
+        break
+
+      case 'bluemarble_score':
+        progress = activity.bluemarbleBestScore
         unlocked = progress >= achievement.requirement
         break
     }

@@ -17,7 +17,8 @@
       "Bash(python -m py_compile app/repositories/push_subscription_repo.py)",
       "Bash(python -m py_compile app/services/bible_verse_service.py app/services/prayer_service.py)",
       "Bash(echo \"exit=$?\")",
-      "Bash(python -c \"import ast; ast.parse\\(open\\('app/services/push_notification_service.py', encoding='utf-8'\\).read\\(\\)\\); print\\('syntax OK'\\)\")"
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app/services/push_notification_service.py', encoding='utf-8'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
+      "Bash(python -c ' *)"
     ]
   }
 }

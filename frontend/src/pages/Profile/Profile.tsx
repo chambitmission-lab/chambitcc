@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useProfileDetail } from '../../hooks/useProfile'
+import { useBluemarbleStats } from '../../hooks/useBluemarble'
 import { logout } from '../../utils/auth'
 import { PushNotificationButton } from '../../components/common/PushNotificationButton'
 import ProfileHeader from './components/ProfileHeader'
@@ -41,11 +42,12 @@ const Profile = () => {
   }, [navigate])
   
   const { data, isLoading, error } = useProfileDetail()
-  
+  const { data: bmStats } = useBluemarbleStats(!!localStorage.getItem('access_token'))
+
   // 활동 데이터를 기반으로 업적 계산
   const activityData = useMemo<UserActivityData | null>(() => {
     if (!data) return null
-    
+
     return {
       totalPrayerTime: data.stats.activity.total_prayer_time || data.stats.activity.total_count * 5, // API 데이터 또는 추정값
       totalPrayerCount: data.stats.activity.total_count,
@@ -58,8 +60,12 @@ const Profile = () => {
       bookmarksCount: data.stats.bible_reading?.bookmarks_count || 0,
       notesCount: data.stats.bible_reading?.notes_count || 0,
       favoritesCount: data.stats.bible_reading?.favorites_count || 0,
+      bluemarbleBestScore: bmStats?.best_score ?? 0,
+      bluemarbleCorrectTotal: bmStats?.total_correct ?? 0,
+      bluemarbleLapsTotal: 0, // 누적 바퀴는 stats에 추가하지 않음. 완주 횟수로 대체 가능
+      bluemarbleClearCount: bmStats?.completed_games ?? 0,
     }
-  }, [data])
+  }, [data, bmStats])
   
   // 포인트 및 레벨 계산
   const activityPoints = useMemo(() => {

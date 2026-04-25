@@ -1,6 +1,6 @@
 // 업적 및 보상 시스템 타입 정의
 
-export type AchievementType = 'prayer_time' | 'bible_reading' | 'prayer_count' | 'streak' | 'community' | 'bible_note' | 'bible_highlight'
+export type AchievementType = 'prayer_time' | 'bible_reading' | 'prayer_count' | 'streak' | 'community' | 'bible_note' | 'bible_highlight' | 'bluemarble_correct' | 'bluemarble_lap' | 'bluemarble_clear' | 'bluemarble_score'
 
 export interface Achievement {
   id: string
@@ -44,6 +44,12 @@ export interface UserActivityData {
   bookmarksCount: number // 하이라이트 개수
   notesCount: number // 묵상 노트 개수
   favoritesCount: number // 즐겨찾기 개수
+
+  // 성경 보드게임 (블루마블)
+  bluemarbleBestScore: number // 베스트 점수
+  bluemarbleCorrectTotal: number // 누적 정답 수
+  bluemarbleLapsTotal: number // 누적 바퀴 수 (전체 게임 합산)
+  bluemarbleClearCount: number // 일주(완주) 횟수
 }
 
 export const GLOW_LEVELS: GlowLevel[] = [
@@ -283,5 +289,67 @@ export const ACHIEVEMENTS: Omit<Achievement, 'unlocked' | 'progress'>[] = [
     glowColor: 'rgba(250, 204, 21, 0.9)',
     glowIntensity: 0.9,
     icon: '🌼',
+  },
+
+  // ============= 성경 보드게임(블루마블) 업적 =============
+  {
+    id: 'bm_correct_10',
+    type: 'bluemarble_correct',
+    title: '말씀 새내기',
+    description: '보드게임 퀴즈 10문제 정답',
+    requirement: 10,
+    glowColor: 'rgba(52, 211, 153, 0.6)',
+    glowIntensity: 0.6,
+    icon: '🎯',
+  },
+  {
+    id: 'bm_correct_50',
+    type: 'bluemarble_correct',
+    title: '말씀 박사',
+    description: '보드게임 퀴즈 50문제 정답',
+    requirement: 50,
+    glowColor: 'rgba(34, 197, 94, 0.8)',
+    glowIntensity: 0.8,
+    icon: '🧠',
+  },
+  {
+    id: 'bm_lap_3',
+    type: 'bluemarble_lap',
+    title: '여행자의 발자취',
+    description: '보드 한 바퀴 3회 달성',
+    requirement: 3,
+    glowColor: 'rgba(96, 165, 250, 0.7)',
+    glowIntensity: 0.7,
+    icon: '👣',
+  },
+  {
+    id: 'bm_clear_1',
+    type: 'bluemarble_clear',
+    title: '성경 일주',
+    description: '보드게임 첫 완주',
+    requirement: 1,
+    glowColor: 'rgba(251, 191, 36, 0.9)',
+    glowIntensity: 0.9,
+    icon: '🏆',
+  },
+  {
+    id: 'bm_score_1000',
+    type: 'bluemarble_score',
+    title: '믿음의 챔피언',
+    description: '베스트 점수 1,000점 달성',
+    requirement: 1000,
+    glowColor: 'rgba(236, 72, 153, 0.8)',
+    glowIntensity: 0.8,
+    icon: '⭐',
+  },
+  {
+    id: 'bm_score_3000',
+    type: 'bluemarble_score',
+    title: '말씀의 거장',
+    description: '베스트 점수 3,000점 달성',
+    requirement: 3000,
+    glowColor: 'rgba(168, 85, 247, 0.9)',
+    glowIntensity: 0.9,
+    icon: '👑',
   },
 ]
