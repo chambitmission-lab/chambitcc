@@ -11,7 +11,7 @@ const MENU_ITEMS: MenuItem[] = [
   { path: '/sermon', key: 'sermon' },
   { path: '/bible', key: 'bible' },
   { path: '/garden', key: 'garden' },
-  { path: '/bluemarble', label: '🎲 보드게임' },
+  { path: '/bluemarble', label: '🎲 바이블 퀘스트' },
   { path: '/answered-prayers', key: 'answeredPrayers' },
   { path: '/events', key: 'events' },
   { path: '/mission', key: 'missionStatus' },
