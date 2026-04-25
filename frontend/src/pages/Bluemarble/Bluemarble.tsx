@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import {
@@ -8,6 +9,7 @@ import {
   useAdvanceStep,
   useSubmitAnswer,
   useAbandonGame,
+  QK_BM_STATE,
 } from '../../hooks/useBluemarble'
 import { useProfileDetail } from '../../hooks/useProfile'
 import { useSfx } from '../../hooks/useSfx'
@@ -44,6 +46,7 @@ interface NarrativeState {
 
 export default function Bluemarble() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const isAuthenticated = !!localStorage.getItem('access_token')
   const profileQuery = useProfileDetail()
   const user = profileQuery.data?.stats
@@ -53,6 +56,13 @@ export default function Bluemarble() {
   const abandonMutation = useAbandonGame()
   const stateQuery = useBluemarbleState(isAuthenticated)
   const sfx = useSfx()
+
+  // 마운트 시 캐시된 상태 무효화 → 항상 서버에서 fresh fetch
+  // (이전 세션의 stale pending_quiz가 잘못 표시되는 것을 방지)
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: QK_BM_STATE })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [showQuiz, setShowQuiz] = useState(false)
   const [activeQuiz, setActiveQuiz] = useState<QuizPublic | null>(null)
@@ -167,23 +177,35 @@ export default function Bluemarble() {
   const handleAnswerSubmit = async (choiceIndex: number) => {
     const quiz = activeQuiz ?? pendingQuiz
     if (!quiz) throw new Error('퀴즈 없음')
-    const result = await answerMutation.mutateAsync({
-      quizId: quiz.id,
-      choiceIndex,
-    })
-    setStreak(result.streak)
-    if (result.is_correct) {
-      sfx.play('correct')
-      sfx.play('step')
-      confetti({ particleCount: 90, spread: 60, origin: { y: 0.5 } })
-      if (result.is_finish) {
-        sfx.play('fanfare')
-        confetti({ particleCount: 240, spread: 120, origin: { y: 0.5 } })
+    try {
+      const result = await answerMutation.mutateAsync({
+        quizId: quiz.id,
+        choiceIndex,
+      })
+      setStreak(result.streak)
+      if (result.is_correct) {
+        sfx.play('correct')
+        sfx.play('step')
+        confetti({ particleCount: 90, spread: 60, origin: { y: 0.5 } })
+        if (result.is_finish) {
+          sfx.play('fanfare')
+          confetti({ particleCount: 240, spread: 120, origin: { y: 0.5 } })
+        }
+      } else {
+        sfx.play('wrong')
       }
-    } else {
-      sfx.play('wrong')
+      return result
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '오류'
+      // 세션이 만료되었거나 퀴즈가 더 이상 유효하지 않은 경우 자동 복구
+      if (msg.includes('진행 중인 게임이 없습니다') || msg.includes('해당 퀴즈는')) {
+        pushToast('세션이 만료되어 새로 동기화합니다', 'info')
+        setShowQuiz(false)
+        setActiveQuiz(null)
+        await queryClient.invalidateQueries({ queryKey: QK_BM_STATE })
+      }
+      throw err
     }
-    return result
   }
 
   const handleQuizClose = () => {
