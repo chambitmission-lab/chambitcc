@@ -9,6 +9,7 @@ import {
   useAbandonGame,
 } from '../../hooks/useBluemarble'
 import { useProfileDetail } from '../../hooks/useProfile'
+import type { QuizPublic } from '../../types/bluemarble'
 import BoardTile from './components/BoardTile'
 import GamePiece from './components/GamePiece'
 import Dice from './components/Dice'
@@ -41,6 +42,9 @@ export default function Bluemarble() {
   const [diceValue, setDiceValue] = useState<number | null>(null)
   const [pieceMoving, setPieceMoving] = useState(false)
   const [showQuiz, setShowQuiz] = useState(false)
+  // 모달이 열릴 때 퀴즈를 스냅샷 → pendingQuiz가 서버에서 null로 바뀌어도
+  // 결과 화면이 사라지지 않도록 유지
+  const [activeQuiz, setActiveQuiz] = useState<QuizPublic | null>(null)
   const [toasts, setToasts] = useState<Toast[]>([])
   const [showLb, setShowLb] = useState(false)
   const [lastMsg, setLastMsg] = useState<string>('')
@@ -62,11 +66,14 @@ export default function Bluemarble() {
   }, [isAuthenticated, stateQuery.isError])
 
   // pending quiz가 생기면 모달 자동 오픈 (말 이동이 끝난 후)
+  // 모달에 표시할 퀴즈를 스냅샷 → 답 제출 후 서버 state가 갱신되어
+  // pendingQuiz가 null이 되어도 결과 화면이 유지됨
   useEffect(() => {
-    if (pendingQuiz && !pieceMoving && !diceRolling) {
+    if (pendingQuiz && !pieceMoving && !diceRolling && !showQuiz) {
+      setActiveQuiz(pendingQuiz)
       setShowQuiz(true)
     }
-  }, [pendingQuiz, pieceMoving, diceRolling])
+  }, [pendingQuiz, pieceMoving, diceRolling, showQuiz])
 
   const pushToast = (message: string, variant: Toast['variant'], scoreDelta?: number) => {
     const id = ++toastIdRef.current
@@ -138,9 +145,10 @@ export default function Bluemarble() {
   }
 
   const handleAnswerSubmit = async (choiceIndex: number) => {
-    if (!pendingQuiz) throw new Error('퀴즈 없음')
+    const quiz = activeQuiz ?? pendingQuiz
+    if (!quiz) throw new Error('퀴즈 없음')
     const result = await answerMutation.mutateAsync({
-      quizId: pendingQuiz.id,
+      quizId: quiz.id,
       choiceIndex,
     })
     if (result.is_correct) {
@@ -151,6 +159,7 @@ export default function Bluemarble() {
 
   const handleQuizClose = () => {
     setShowQuiz(false)
+    setActiveQuiz(null)
   }
 
   const handleRestart = () => {
@@ -318,10 +327,10 @@ export default function Bluemarble() {
         </div>
       )}
 
-      {/* 퀴즈 모달 */}
-      {showQuiz && pendingQuiz && (
+      {/* 퀴즈 모달 - activeQuiz 스냅샷 사용 (서버 state 변화에 영향 안 받음) */}
+      {showQuiz && activeQuiz && (
         <QuizModal
-          quiz={pendingQuiz}
+          quiz={activeQuiz}
           onSubmit={handleAnswerSubmit}
           onClose={handleQuizClose}
         />

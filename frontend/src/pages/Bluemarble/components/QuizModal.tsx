@@ -34,7 +34,7 @@ export default function QuizModal({ quiz, onSubmit, onClose }: Props) {
   }
 
   return (
-    <div className="bm-modal-backdrop" onClick={result ? onClose : undefined}>
+    <div className="bm-modal-backdrop">
       <div className="bm-quiz-modal" onClick={(e) => e.stopPropagation()}>
         <div className="bm-quiz-header">
           <span className="bm-quiz-cat">{quiz.category === 'OLD' ? '구약' : quiz.category === 'NEW' ? '신약' : '일반'}</span>
