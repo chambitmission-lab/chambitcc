@@ -1,0 +1,241 @@
+/* 범용 인라인 편집 컴포넌트 스타일 */
+
+.ef-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.ef-edit-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(168, 85, 247, 0.95);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+  transition: transform 0.15s ease, background 0.15s ease;
+  z-index: 5;
+  padding: 0;
+  pointer-events: auto;
+}
+
+.ef-edit-btn:hover {
+  transform: scale(1.1);
+  background: rgba(147, 51, 234, 1);
+}
+
+.ef-edit-btn .material-icons-outlined {
+  font-size: 14px;
+}
+
+/* Add 버튼 */
+.ef-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  margin: 0.75rem 0;
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  border: 1px dashed rgba(168, 85, 247, 0.5);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.ef-add-btn:hover {
+  background: rgba(168, 85, 247, 0.18);
+}
+
+.ef-add-btn .material-icons-outlined {
+  font-size: 18px;
+}
+
+/* Remove 버튼 */
+.ef-remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.92);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+  z-index: 5;
+  padding: 0;
+}
+
+.ef-remove-btn:hover {
+  background: #b91c1c;
+}
+
+.ef-remove-btn .material-icons-outlined {
+  font-size: 14px;
+}
+
+/* 모달 */
+.ef-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.ef-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .ef-modal {
+  background: #1f2937;
+  color: #fff;
+}
+
+.ef-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .ef-header {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ef-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.ef-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ef-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ef-body input,
+.ef-body textarea {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #fff;
+  color: #111;
+  resize: vertical;
+}
+
+[data-theme="dark"] .ef-body input,
+[data-theme="dark"] .ef-body textarea {
+  background: #111827;
+  color: #f3f4f6;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.ef-body input:focus,
+.ef-body textarea:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+.ef-hint {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.55);
+  margin: 0;
+}
+
+[data-theme="dark"] .ef-hint {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.ef-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .ef-footer {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ef-cancel,
+.ef-save {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+}
+
+.ef-cancel {
+  background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+}
+
+[data-theme="dark"] .ef-cancel {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ef-cancel:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.ef-save {
+  background: #a855f7;
+  color: #fff;
+}
+
+.ef-save:hover {
+  background: #9333ea;
+}
+
+.ef-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
