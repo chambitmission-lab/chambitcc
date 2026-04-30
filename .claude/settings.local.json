@@ -21,7 +21,8 @@
       "Bash(python -c ' *)",
       "Bash(python -c \"import ast; [ast.parse\\(open\\(f, encoding='utf-8'\\).read\\(\\)\\) for f in ['app/models/bluemarble.py', 'app/services/bluemarble_service.py', 'app/api/v1/endpoints/bluemarble.py', 'app/schemas/bluemarble.py', 'seed_journey.py', 'alembic/versions/bm002_journey_80_waypoints.py']]; print\\('All Python files parse OK'\\)\")",
       "Bash(python *)",
-      "Bash(DATABASE_URL=postgresql://x SECRET_KEY=x FRONTEND_URL=http://x python *)"
+      "Bash(DATABASE_URL=postgresql://x SECRET_KEY=x FRONTEND_URL=http://x python *)",
+      "Bash(npx eslint *)"
     ]
   }
 }

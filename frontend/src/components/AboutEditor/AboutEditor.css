@@ -1,0 +1,273 @@
+/* About 페이지 인라인 편집 컴포넌트 스타일 */
+
+.about-editable-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.about-editable-hero {
+  position: relative;
+}
+
+.about-edit-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(168, 85, 247, 0.95);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+  transition: transform 0.15s ease, background 0.15s ease;
+  z-index: 5;
+  padding: 0;
+}
+
+.about-edit-btn:hover {
+  transform: scale(1.1);
+  background: rgba(147, 51, 234, 1);
+}
+
+.about-edit-btn .material-icons-outlined {
+  font-size: 16px;
+}
+
+.about-edit-btn--hero {
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+}
+
+.about-edit-btn--hero .material-icons-outlined {
+  font-size: 22px;
+}
+
+/* 모달 */
+.about-edit-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.about-edit-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .about-edit-modal {
+  background: #1f2937;
+  color: #fff;
+}
+
+.about-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .about-edit-header {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.about-edit-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.about-edit-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.about-edit-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.about-edit-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.about-edit-label input,
+.about-edit-label textarea {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #fff;
+  color: #111;
+  resize: vertical;
+}
+
+[data-theme="dark"] .about-edit-label input,
+[data-theme="dark"] .about-edit-label textarea {
+  background: #111827;
+  color: #f3f4f6;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.about-edit-label input:focus,
+.about-edit-label textarea:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+}
+
+.about-edit-hint {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.55);
+  margin: 0;
+}
+
+[data-theme="dark"] .about-edit-hint {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.about-edit-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .about-edit-footer {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.about-edit-cancel,
+.about-edit-save {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s ease;
+}
+
+.about-edit-cancel {
+  background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+}
+
+[data-theme="dark"] .about-edit-cancel {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.about-edit-cancel:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.about-edit-save {
+  background: #a855f7;
+  color: #fff;
+}
+
+.about-edit-save:hover {
+  background: #9333ea;
+}
+
+.about-edit-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 이미지 편집 */
+.about-edit-preview {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme="dark"] .about-edit-preview {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.about-edit-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about-edit-preview--empty {
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.9rem;
+}
+
+[data-theme="dark"] .about-edit-preview--empty {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.about-edit-pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1rem;
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  border: 1px dashed rgba(168, 85, 247, 0.5);
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.about-edit-pick:hover {
+  background: rgba(168, 85, 247, 0.18);
+}
+
+.about-edit-remove {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+  padding: 0.4rem;
+}
+
+.about-edit-remove:hover {
+  text-decoration: underline;
+}

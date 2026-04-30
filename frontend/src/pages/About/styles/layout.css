@@ -52,3 +52,20 @@
 [data-theme="dark"] .footer-text {
   color: #9ca3af;
 }
+
+/* Admin 인라인 편집 안내 */
+.about-admin-hint {
+  margin: 1rem 0 2rem;
+  padding: 0.75rem 1rem;
+  background: rgba(168, 85, 247, 0.08);
+  color: #7c3aed;
+  border: 1px dashed rgba(168, 85, 247, 0.4);
+  border-radius: 12px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+[data-theme="dark"] .about-admin-hint {
+  background: rgba(168, 85, 247, 0.12);
+  color: #c4b5fd;
+}
