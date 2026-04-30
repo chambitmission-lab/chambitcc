@@ -20,18 +20,22 @@ fallback되어 기존 i18n 번역값이 그대로 노출됩니다.
 
 ## 🗄️ 데이터 모델
 
-### 1. `about_content` 테이블 (단일 행 / JSONB 권장)
+### 1. `about_content` 테이블 (단일 행, JSON 컬럼)
+
+DB는 MySQL이라 generic `JSON` 타입을 사용. 모델은 `migrate_add_about_content.py`로
+SQLAlchemy `Base.metadata.create_all`을 통해 생성됨.
 
 ```sql
-create table about_content (
-  id integer primary key default 1,
-  fields jsonb not null default '{}'::jsonb,
-  hero_background_url text,
-  updated_at timestamptz not null default now(),
-  constraint about_content_singleton check (id = 1)
+-- 참고용 (실제로는 SQLAlchemy가 자동 생성)
+CREATE TABLE about_content (
+  id INTEGER PRIMARY KEY,
+  fields JSON NOT NULL,
+  hero_background_url TEXT NULL,
+  updated_at DATETIME,
+  CONSTRAINT about_content_singleton CHECK (id = 1)
 );
 
-insert into about_content (id) values (1) on conflict do nothing;
+INSERT INTO about_content (id, fields) VALUES (1, '{}');
 ```
 
 `fields` JSONB 구조:

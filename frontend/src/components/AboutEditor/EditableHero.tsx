@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
 import {
@@ -83,75 +84,77 @@ const HeroEditButton = ({ isAdmin }: HeroEditButtonProps) => {
         <span className="material-icons-outlined">image</span>
       </button>
 
-      {isOpen && (
-        <div className="about-edit-overlay" onClick={close} role="dialog">
-          <div className="about-edit-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="about-edit-header">
-              <h3>{language === 'ko' ? '배경 이미지' : 'Background Image'}</h3>
-              <button onClick={close} className="about-edit-close" aria-label="close">
-                <span className="material-icons-outlined">close</span>
-              </button>
-            </div>
+      {isOpen &&
+        createPortal(
+          <div className="about-edit-overlay" onClick={close} role="dialog">
+            <div className="about-edit-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="about-edit-header">
+                <h3>{language === 'ko' ? '배경 이미지' : 'Background Image'}</h3>
+                <button onClick={close} className="about-edit-close" aria-label="close">
+                  <span className="material-icons-outlined">close</span>
+                </button>
+              </div>
 
-            <div className="about-edit-body">
-              {previewUrl ? (
-                <div className="about-edit-preview">
-                  <img src={previewUrl} alt="preview" />
-                </div>
-              ) : (
-                <div className="about-edit-preview about-edit-preview--empty">
-                  {language === 'ko' ? '미리보기 없음' : 'No preview'}
-                </div>
-              )}
+              <div className="about-edit-body">
+                {previewUrl ? (
+                  <div className="about-edit-preview">
+                    <img src={previewUrl} alt="preview" />
+                  </div>
+                ) : (
+                  <div className="about-edit-preview about-edit-preview--empty">
+                    {language === 'ko' ? '미리보기 없음' : 'No preview'}
+                  </div>
+                )}
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                style={{ display: 'none' }}
-              />
-              <button
-                type="button"
-                className="about-edit-pick"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <span className="material-icons-outlined">upload</span>
-                <span>{language === 'ko' ? '이미지 선택' : 'Choose image'}</span>
-              </button>
-
-              {heroBackgroundUrl && (
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                />
                 <button
                   type="button"
-                  onClick={handleRemove}
-                  className="about-edit-remove"
+                  className="about-edit-pick"
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  {language === 'ko' ? '기본 배경으로 되돌리기' : 'Reset to default'}
+                  <span className="material-icons-outlined">upload</span>
+                  <span>{language === 'ko' ? '이미지 선택' : 'Choose image'}</span>
                 </button>
-              )}
-            </div>
 
-            <div className="about-edit-footer">
-              <button onClick={close} className="about-edit-cancel">
-                {language === 'ko' ? '취소' : 'Cancel'}
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={uploadMutation.isPending || updateMutation.isPending}
-                className="about-edit-save"
-              >
-                {uploadMutation.isPending || updateMutation.isPending
-                  ? language === 'ko'
-                    ? '저장 중...'
-                    : 'Saving...'
-                  : language === 'ko'
-                  ? '저장'
-                  : 'Save'}
-              </button>
+                {heroBackgroundUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemove}
+                    className="about-edit-remove"
+                  >
+                    {language === 'ko' ? '기본 배경으로 되돌리기' : 'Reset to default'}
+                  </button>
+                )}
+              </div>
+
+              <div className="about-edit-footer">
+                <button onClick={close} className="about-edit-cancel">
+                  {language === 'ko' ? '취소' : 'Cancel'}
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={uploadMutation.isPending || updateMutation.isPending}
+                  className="about-edit-save"
+                >
+                  {uploadMutation.isPending || updateMutation.isPending
+                    ? language === 'ko'
+                      ? '저장 중...'
+                      : 'Saving...'
+                    : language === 'ko'
+                    ? '저장'
+                    : 'Save'}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   )
 }
