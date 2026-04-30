@@ -233,21 +233,6 @@ const Ministry = () => {
                   {removeHighlightTags(column.content)}
                 </p>
               </div>
-
-              {/* Actions */}
-              <div className="px-4 pb-4 flex items-center gap-4 text-gray-500 dark:text-gray-400">
-                <button className="flex items-center gap-1 text-sm hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                  <span className="material-icons-outlined text-xl">favorite_border</span>
-                  <span>{language === 'ko' ? '좋아요' : 'Like'}</span>
-                </button>
-                <button className="flex items-center gap-1 text-sm hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                  <span className="material-icons-outlined text-xl">chat_bubble_outline</span>
-                  <span>{language === 'ko' ? '댓글' : 'Comment'}</span>
-                </button>
-                <button className="flex items-center gap-1 text-sm hover:text-purple-600 dark:hover:text-purple-400 transition-colors ml-auto">
-                  <span className="material-icons-outlined text-xl">bookmark_border</span>
-                </button>
-              </div>
             </article>
           ))}
           </div>
@@ -318,41 +303,24 @@ const Ministry = () => {
               </div>
 
               {/* Modal Actions */}
-              <div className="sticky bottom-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark p-4 flex items-center gap-4">
-                {isAdminUser ? (
-                  <>
-                    <button 
-                      onClick={() => handleEdit(selectedColumn)}
-                      className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                    >
-                      <span className="material-icons-outlined text-2xl">edit</span>
-                      <span className="text-sm font-medium">{language === 'ko' ? '수정' : 'Edit'}</span>
-                    </button>
-                    <button 
-                      onClick={() => setShowDeleteConfirm(true)}
-                      className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                    >
-                      <span className="material-icons-outlined text-2xl">delete</span>
-                      <span className="text-sm font-medium">{language === 'ko' ? '삭제' : 'Delete'}</span>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                      <span className="material-icons-outlined text-2xl">favorite_border</span>
-                      <span className="text-sm font-medium">{language === 'ko' ? '좋아요' : 'Like'}</span>
-                    </button>
-                    <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                      <span className="material-icons-outlined text-2xl">chat_bubble_outline</span>
-                      <span className="text-sm font-medium">{language === 'ko' ? '댓글' : 'Comment'}</span>
-                    </button>
-                    <button className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors ml-auto">
-                      <span className="material-icons-outlined text-2xl">share</span>
-                      <span className="text-sm font-medium">{language === 'ko' ? '공유' : 'Share'}</span>
-                    </button>
-                  </>
-                )}
-              </div>
+              {isAdminUser && (
+                <div className="sticky bottom-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark p-4 flex items-center gap-4">
+                  <button
+                    onClick={() => handleEdit(selectedColumn)}
+                    className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                  >
+                    <span className="material-icons-outlined text-2xl">edit</span>
+                    <span className="text-sm font-medium">{language === 'ko' ? '수정' : 'Edit'}</span>
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                  >
+                    <span className="material-icons-outlined text-2xl">delete</span>
+                    <span className="text-sm font-medium">{language === 'ko' ? '삭제' : 'Delete'}</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
