@@ -59,13 +59,18 @@ export const advanceStep = async (): Promise<AdvanceResult> => {
 
 export const submitAnswer = async (
   quizId: number,
-  choiceIndex: number
+  choiceIndex: number,
+  elapsedMs?: number,
 ): Promise<AnswerResult> => {
   requireAuth()
   const res = await apiFetch(`${BASE}/answer`, {
     method: 'POST',
     headers: getAuthHeaders(true),
-    body: JSON.stringify({ quiz_id: quizId, choice_index: choiceIndex }),
+    body: JSON.stringify({
+      quiz_id: quizId,
+      choice_index: choiceIndex,
+      ...(elapsedMs != null ? { elapsed_ms: elapsedMs } : {}),
+    }),
   })
   return handle<AnswerResult>(res, '정답 제출 실패')
 }

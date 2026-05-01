@@ -24,7 +24,11 @@
       "Bash(DATABASE_URL=postgresql://x SECRET_KEY=x FRONTEND_URL=http://x python *)",
       "Bash(npx eslint *)",
       "Bash(DATABASE_URL=sqlite:///tmp.db SECRET_KEY=test FRONTEND_URL=http://x python -c \"from app.models.rabbit import RabbitCompanion, RabbitEventLog; from app.services.rabbit_service import rabbit_service, STAGE_THRESHOLDS, MAX_STAGE; from app.schemas.rabbit import RabbitResponse, RabbitProgressResponse, EquipRequest, UnequipRequest, NicknameRequest, RabbitEventLogResponse, CatalogResponse, TreasureDef; from app.api.v1.endpoints import rabbit as r; from app.api.v1.router import api_router; print\\('OK', len\\(api_router.routes\\), 'routes'\\); print\\('rabbit routes:', [route.path for route in api_router.routes if '/rabbit' in route.path]\\)\")",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(Select-String -Pattern \"바이블|bible|quiz|퀀스트\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\k1988\\\\idea\\\\chambitcc-main\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(powershell *)"
     ]
   }
 }

@@ -1,13 +1,13 @@
-// 80칸 발자취 경로 레이아웃 (8행 × 10열 serpentine)
-// position 0~79 → row(0~7) × col(0~9) 매핑
+// 120칸 발자취 경로 레이아웃 (12행 × 10열 serpentine)
+// position 0~119 → row(0~11) × col(0~9) 매핑
 // 짝수 행: 좌→우, 홀수 행: 우→좌
 
-export const JOURNEY_LENGTH = 80
+export const JOURNEY_LENGTH = 120
 export const JOURNEY_COLS = 10
-export const JOURNEY_ROWS = 8
+export const JOURNEY_ROWS = 12
 
 export interface JourneyCoord {
-  row: number // 0~7
+  row: number // 0~11
   col: number // 0~9
 }
 
@@ -46,6 +46,11 @@ export const PHASE_COLORS: Record<string, string> = {
   '예루살렘 향하여': '#fed7aa',
   '고난 주간': '#fecaca',
   '십자가와 부활': '#fde68a',
+  // Phase 9-12: 사도행전~계시록
+  '성령강림과 오순절': '#fed7aa',
+  '초대교회의 사도들': '#bbf7d0',
+  '바울의 선교 여행': '#c4b5fd',
+  '땅끝까지': '#fde68a',
 }
 
 export const getPhaseRange = (phase: string): { start: number; end: number } => {
@@ -58,6 +63,10 @@ export const getPhaseRange = (phase: string): { start: number; end: number } => 
     case '예루살렘 향하여': return { start: 51, end: 65 }
     case '고난 주간': return { start: 66, end: 75 }
     case '십자가와 부활': return { start: 76, end: 79 }
-    default: return { start: 0, end: 79 }
+    case '성령강림과 오순절': return { start: 80, end: 89 }
+    case '초대교회의 사도들': return { start: 90, end: 99 }
+    case '바울의 선교 여행': return { start: 100, end: 109 }
+    case '땅끝까지': return { start: 110, end: 119 }
+    default: return { start: 0, end: 119 }
   }
 }

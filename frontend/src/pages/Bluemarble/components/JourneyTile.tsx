@@ -19,6 +19,7 @@ const TYPE_LABEL: Record<string, string> = {
   warp: '워프',
   finish: '도착',
   milestone: '이정표',
+  boss: '⚔️ 보스',
 }
 
 export default function JourneyTile({ tile, fog, isCurrent, isNext, onClick }: Props) {
@@ -29,7 +30,7 @@ export default function JourneyTile({ tile, fog, isCurrent, isNext, onClick }: P
     <motion.button
       type="button"
       onClick={onClick}
-      className={`jt ${isCurrent ? 'jt-current' : ''} ${isNext ? 'jt-next' : ''} jt-fog-${fog}`}
+      className={`jt ${isCurrent ? 'jt-current' : ''} ${isNext ? 'jt-next' : ''} jt-fog-${fog} jt-type-${tile.tile_type}`}
       style={{
         ['--tile-color' as string]: isHidden ? '#1e293b' : tile.theme_color,
       }}

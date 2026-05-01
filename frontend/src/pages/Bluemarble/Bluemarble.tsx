@@ -14,7 +14,7 @@ import {
 import { useProfileDetail } from '../../hooks/useProfile'
 import { useSfx } from '../../hooks/useSfx'
 import { useMyRabbit, QK_RABBIT_ME } from '../../hooks/useRabbit'
-import type { QuizPublic, Tile, AdvanceResult } from '../../types/bluemarble'
+import type { QuizPublic, Tile, AdvanceResult, BossState } from '../../types/bluemarble'
 import type { RabbitMood } from '../../components/rabbit/RabbitAvatar'
 import type { TreasureDef } from '../../types/rabbit'
 import JourneyTile from './components/JourneyTile'
@@ -85,6 +85,10 @@ export default function Bluemarble() {
     null,
   )
   const [pendingLap, setPendingLap] = useState<LapEvent | null>(null)
+  // 보스 진행 상태 — 마지막 답변에서 받은 boss_state. 다음 문제 출제 시 QuizModal에 전달.
+  const [bossState, setBossState] = useState<BossState | null>(null)
+  // 보스 클리어 결과 (보너스/정답 수) — 클리어 모달 트리거
+  const [bossClear, setBossClear] = useState<BossState | null>(null)
   const toastIdRef = useRef(0)
   const introShownRef = useRef(false)
 
@@ -150,6 +154,22 @@ export default function Bluemarble() {
         return
       }
 
+      if (result.event_type === 'boss') {
+        // 보스 칸: 위치는 보스 타일로 이동, pending_quiz로 첫 문제 출제됨
+        sfx.play('milestone')
+        sfx.play('fanfare')
+        confetti({
+          particleCount: 200,
+          spread: 130,
+          origin: { y: 0.5 },
+          colors: ['#f87171', '#fbbf24', '#facc15', '#a78bfa'],
+        })
+        pushToast(`⚔️ ${result.next_tile.title} - 5문제 도전 시작!`, 'finish', 0)
+        // 보스 진입 시 boss_state 리셋 (이전 보스 흔적 제거)
+        setBossState(null)
+        return
+      }
+
       // 즉시 전진한 경우 (milestone / rest / finish)
       sfx.play('step')
       setTimeout(() => {
@@ -201,15 +221,25 @@ export default function Bluemarble() {
     }
   }
 
-  const handleAnswerSubmit = async (choiceIndex: number) => {
+  const handleAnswerSubmit = async (choiceIndex: number, elapsedMs: number) => {
     const quiz = activeQuiz ?? pendingQuiz
     if (!quiz) throw new Error('퀴즈 없음')
     try {
       const result = await answerMutation.mutateAsync({
         quizId: quiz.id,
         choiceIndex,
+        elapsedMs,
       })
       setStreak(result.streak)
+      // 보스 응답 처리: 진행 중이면 다음 문제 stash, 완료면 클리어 모달
+      if (result.boss_state) {
+        if (result.boss_state.boss_complete) {
+          setBossClear(result.boss_state)
+          setBossState(null)
+        } else if (result.boss_state.in_boss) {
+          setBossState(result.boss_state)
+        }
+      }
       if (result.is_correct) {
         sfx.play('correct')
         sfx.play('step')
@@ -282,6 +312,19 @@ export default function Bluemarble() {
       : null
     setActiveQuiz(null)
 
+    // 보스 클리어 시: narrative 대신 보스 클리어 모달이 표시됨 (이미 setBossClear됨)
+    if (lastResult?.boss_state?.boss_complete) {
+      // 폭죽 추가
+      sfx.play('fanfare')
+      confetti({
+        particleCount: 220,
+        spread: 120,
+        origin: { y: 0.5 },
+        colors: ['#facc15', '#fbbf24', '#fde68a', '#a78bfa', '#f87171'],
+      })
+      return
+    }
+
     // 정답이었고 도착한 칸이 있으면 NarrativeCard 자동 표시
     if (lastResult?.is_correct && lastResult.arrived_tile) {
       setActiveNarrative({
@@ -297,6 +340,14 @@ export default function Bluemarble() {
         variant: 'arrival',
         scoreDelta: lastResult.score_delta,
       })
+    }
+  }
+
+  const handleBossNext = () => {
+    const next = answerMutation.data?.next_boss_quiz
+    if (next) {
+      // QuizModal이 quiz.id 변경을 감지하여 자체 상태(answer/timer)를 리셋
+      setActiveQuiz(next)
     }
   }
 
@@ -535,7 +586,49 @@ export default function Bluemarble() {
           quiz={activeQuiz}
           onSubmit={handleAnswerSubmit}
           onClose={handleQuizClose}
+          isBoss={currentTile?.tile_type === 'boss'}
+          bossTitle={currentTile?.tile_type === 'boss' ? currentTile.title : undefined}
+          bossState={bossState}
+          onBossNext={handleBossNext}
         />
+      )}
+
+      {/* 보스 클리어 모달 */}
+      {bossClear && (
+        <div className="bm-modal-backdrop">
+          <motion.div
+            className="bm-boss-clear-modal"
+            initial={{ scale: 0.7, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 18 }}
+          >
+            <div className="bm-boss-clear-icon">
+              {bossClear.is_perfect ? '👑' : '⚔️'}
+            </div>
+            <h2 className="bm-boss-clear-title">
+              {bossClear.is_perfect ? '완벽한 승리!' : '보스 클리어!'}
+            </h2>
+            <div className="bm-boss-clear-stats">
+              <span className="bm-boss-clear-frac">
+                {bossClear.boss_correct} <span>/</span> {bossClear.boss_total}
+              </span>
+              <span className="bm-boss-clear-label">정답</span>
+            </div>
+            <div className="bm-boss-clear-bonus">
+              +{bossClear.boss_clear_bonus.toLocaleString()}pt
+              {bossClear.is_perfect && (
+                <span className="bm-boss-clear-perfect">PERFECT 보너스!</span>
+              )}
+            </div>
+            <button
+              type="button"
+              className="bm-primary-btn"
+              onClick={() => setBossClear(null)}
+            >
+              계속 전진하기
+            </button>
+          </motion.div>
+        </div>
       )}
 
       {/* 내러티브 카드 */}

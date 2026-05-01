@@ -11,6 +11,7 @@ export type TileType =
   | 'warp'
   | 'finish'
   | 'milestone'
+  | 'boss'
 
 export type QuizCategory = 'OLD' | 'NEW' | 'GENERAL'
 export type SessionStatus = 'active' | 'completed' | 'abandoned'
@@ -83,6 +84,17 @@ export type AdvanceEventType =
   | 'lap_finish'
   | 'start'
   | 'bonus'
+  | 'boss'
+
+export interface BossState {
+  in_boss: boolean
+  boss_total: number
+  boss_index: number
+  boss_correct: number
+  boss_complete: boolean
+  boss_clear_bonus: number
+  is_perfect: boolean
+}
 
 export interface LapEvent {
   lap_count: number
@@ -121,6 +133,15 @@ export interface AnswerResult {
   is_finish: boolean
   rabbit_event?: RabbitEvent | null
   lap_event?: LapEvent | null
+  // 점수 디테일 (콤보/타임어택 시각화용)
+  base_points: number
+  streak_multiplier: number
+  time_bonus_ratio: number
+  time_bonus: number
+  streak_flat_bonus: number
+  // 보스 진행 상태
+  boss_state?: BossState | null
+  next_boss_quiz?: QuizPublic | null
 }
 
 export interface LeaderboardEntry {

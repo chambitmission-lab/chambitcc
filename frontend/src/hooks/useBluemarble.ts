@@ -54,8 +54,8 @@ export const useAdvanceStep = () => {
 export const useSubmitAnswer = () => {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (vars: { quizId: number; choiceIndex: number }) =>
-      submitAnswer(vars.quizId, vars.choiceIndex),
+    mutationFn: (vars: { quizId: number; choiceIndex: number; elapsedMs?: number }) =>
+      submitAnswer(vars.quizId, vars.choiceIndex, vars.elapsedMs),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QK_BM_STATE })
       qc.invalidateQueries({ queryKey: QK_BM_STATS })
