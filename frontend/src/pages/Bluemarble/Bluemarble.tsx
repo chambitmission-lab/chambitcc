@@ -27,6 +27,8 @@ import GameStatus from './components/GameStatus'
 import Leaderboard from './components/Leaderboard'
 import TreasureRevealModal from '../../components/rabbit/TreasureRevealModal'
 import EvolutionModal from '../../components/rabbit/EvolutionModal'
+import LapCompletionModal from '../../components/rabbit/LapCompletionModal'
+import type { LapEvent } from '../../types/bluemarble'
 import {
   positionToCoord,
   getFogState,
@@ -82,6 +84,7 @@ export default function Bluemarble() {
   const [pendingEvolution, setPendingEvolution] = useState<{ from: number; to: number } | null>(
     null,
   )
+  const [pendingLap, setPendingLap] = useState<LapEvent | null>(null)
   const toastIdRef = useRef(0)
   const introShownRef = useRef(false)
 
@@ -158,7 +161,7 @@ export default function Bluemarble() {
           ? 'milestone'
           : result.event_type === 'rest'
           ? 'rest'
-          : result.event_type === 'finish'
+          : result.event_type === 'finish' || result.event_type === 'lap_finish'
           ? 'finish'
           : 'arrival'
 
@@ -166,10 +169,23 @@ export default function Bluemarble() {
         sfx.play('milestone')
         confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
         pushToast(`이정표! ${result.next_tile.title} +${result.score_delta}pt`, 'bonus', result.score_delta)
-      } else if (result.event_type === 'finish') {
+      } else if (result.event_type === 'lap_finish' || result.event_type === 'finish') {
         sfx.play('fanfare')
-        confetti({ particleCount: 240, spread: 120, origin: { y: 0.5 } })
-        pushToast('여행 완주!', 'finish', result.total_score)
+        confetti({
+          particleCount: 360,
+          spread: 160,
+          startVelocity: 55,
+          origin: { y: 0.5 },
+          colors: ['#facc15', '#fbbf24', '#fde68a', '#a78bfa', '#f59e0b', '#ffffff'],
+        })
+        setTimeout(() => {
+          confetti({ particleCount: 120, angle: 60, spread: 90, origin: { x: 0, y: 0.6 } })
+          confetti({ particleCount: 120, angle: 120, spread: 90, origin: { x: 1, y: 0.6 } })
+        }, 800)
+        if (result.lap_event) {
+          setPendingLap(result.lap_event)
+        }
+        pushToast(`${result.lap_event?.lap_count ?? 1}바퀴 완주!`, 'finish', result.score_delta)
       } else if (result.event_type === 'rest') {
         pushToast(`${result.next_tile.title} +${result.score_delta}pt`, 'rest', result.score_delta)
       }
@@ -202,7 +218,23 @@ export default function Bluemarble() {
         setTimeout(() => setRabbitMood('idle'), 2000)
         if (result.is_finish) {
           sfx.play('fanfare')
-          confetti({ particleCount: 240, spread: 120, origin: { y: 0.5 } })
+          // 한 바퀴 완주 — 거대한 컨페티 + 황금 컬러
+          confetti({
+            particleCount: 360,
+            spread: 160,
+            startVelocity: 55,
+            origin: { y: 0.5 },
+            colors: ['#facc15', '#fbbf24', '#fde68a', '#a78bfa', '#f59e0b', '#ffffff'],
+          })
+          // 1초 뒤 추가 발사 (양쪽에서)
+          setTimeout(() => {
+            confetti({ particleCount: 120, angle: 60, spread: 90, origin: { x: 0, y: 0.6 } })
+            confetti({ particleCount: 120, angle: 120, spread: 90, origin: { x: 1, y: 0.6 } })
+          }, 800)
+        }
+        // 한 바퀴 완주 이벤트 캡처
+        if (result.lap_event) {
+          setPendingLap(result.lap_event)
         }
         // 토끼 이벤트 — 보물 / 진화
         const ev = result.rabbit_event
@@ -547,6 +579,35 @@ export default function Bluemarble() {
           toStage={pendingEvolution.to}
           equipped={rabbitQuery.data?.rabbit.equipped ?? {}}
           onClose={() => setPendingEvolution(null)}
+        />
+      )}
+
+      {/* 한 바퀴 완주 모달 — 가장 위 z-index */}
+      {pendingLap && session && (
+        <LapCompletionModal
+          lap={pendingLap}
+          totalScore={session.total_score}
+          correctCount={session.correct_count}
+          rabbitStage={rabbitQuery.data?.rabbit.stage ?? 1}
+          rabbitEquipped={rabbitQuery.data?.rabbit.equipped ?? {}}
+          onContinue={() => {
+            setPendingLap(null)
+            // 퀴즈/내러티브 모달이 떠있다면 정리
+            setShowQuiz(false)
+            setActiveQuiz(null)
+            setActiveNarrative(null)
+            // 게임은 백엔드에서 이미 다음 바퀴로 루프됨. state 새로고침.
+            queryClient.invalidateQueries({ queryKey: QK_BM_STATE })
+          }}
+          onFinish={() => {
+            if (window.confirm('정말 여행을 마치시겠어요? 누적 점수가 리더보드에 기록됩니다.')) {
+              setPendingLap(null)
+              setShowQuiz(false)
+              setActiveQuiz(null)
+              setActiveNarrative(null)
+              abandonMutation.mutate()
+            }
+          }}
         />
       )}
     </div>

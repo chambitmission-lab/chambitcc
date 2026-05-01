@@ -80,8 +80,17 @@ export type AdvanceEventType =
   | 'milestone'
   | 'rest'
   | 'finish'
+  | 'lap_finish'
   | 'start'
   | 'bonus'
+
+export interface LapEvent {
+  lap_count: number
+  lap_bonus: number
+  title: string
+  scripture_ref: string
+  scripture_text: string
+}
 
 export interface AdvanceResult {
   from_position: number
@@ -94,6 +103,7 @@ export interface AdvanceResult {
   is_finish: boolean
   message: string
   verse_text: string | null
+  lap_event?: LapEvent | null
 }
 
 export interface AnswerResult {
@@ -110,6 +120,7 @@ export interface AnswerResult {
   streak: number
   is_finish: boolean
   rabbit_event?: RabbitEvent | null
+  lap_event?: LapEvent | null
 }
 
 export interface LeaderboardEntry {

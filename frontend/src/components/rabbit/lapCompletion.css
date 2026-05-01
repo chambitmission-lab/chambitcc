@@ -1,0 +1,207 @@
+/* ============ 한 바퀴 완주 모달 ============ */
+.lap-backdrop {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(252, 211, 77, 0.18) 0%, transparent 50%),
+    rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+}
+
+/* 회전하는 빛줄기 */
+.lap-beams {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: lap-rotate 30s linear infinite;
+}
+.lap-beam {
+  position: absolute;
+  width: 6px;
+  height: 1400px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(252, 211, 77, 0.18) 40%,
+    rgba(252, 211, 77, 0.35) 50%,
+    rgba(252, 211, 77, 0.18) 60%,
+    transparent 100%
+  );
+  transform-origin: center;
+}
+@keyframes lap-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.lap-modal {
+  position: relative;
+  background: linear-gradient(180deg, #1e1b4b 0%, #0f0d2e 100%);
+  border: 3px solid #facc15;
+  border-radius: 20px;
+  padding: 28px 28px 24px;
+  max-width: 540px;
+  width: 100%;
+  text-align: center;
+  box-shadow:
+    0 0 80px rgba(250, 204, 21, 0.35),
+    0 25px 60px -12px rgba(0, 0, 0, 0.9);
+  z-index: 1;
+}
+
+.lap-crown-emoji {
+  font-size: 56px;
+  filter: drop-shadow(0 4px 12px rgba(250, 204, 21, 0.6));
+  margin-bottom: 8px;
+}
+
+.lap-counter {
+  font-size: 42px;
+  font-weight: 900;
+  color: #fde68a;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 14px rgba(252, 211, 77, 0.5);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
+.lap-counter-suffix {
+  font-size: 18px;
+  font-weight: 700;
+  color: #c4b5fd;
+}
+
+.lap-title {
+  margin: 4px 0 16px;
+  font-size: 22px;
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #fde68a 0%, #facc15 50%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.lap-rabbit {
+  display: flex;
+  justify-content: center;
+  margin: 6px 0 14px;
+  filter: drop-shadow(0 6px 24px rgba(250, 204, 21, 0.4));
+}
+
+.lap-scripture {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 3px solid #facc15;
+  border-radius: 6px;
+  text-align: left;
+}
+.lap-scripture-text {
+  color: #e5e7eb;
+  font-size: 14px;
+  line-height: 1.6;
+  font-style: italic;
+}
+.lap-scripture-ref {
+  color: #fbbf24;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 8px;
+  text-align: right;
+}
+
+.lap-bonus-row {
+  margin-bottom: 14px;
+}
+.lap-bonus-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  background: linear-gradient(180deg, #facc15, #f59e0b);
+  border-radius: 100px;
+  color: #422006;
+}
+.lap-bonus-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+.lap-bonus-value {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.lap-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.lap-stat {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(168, 162, 219, 0.2);
+  border-radius: 10px;
+  padding: 10px 6px;
+}
+.lap-stat-label {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+.lap-stat-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fde68a;
+}
+
+.lap-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lap-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.lap-btn:hover {
+  filter: brightness(1.1);
+}
+.lap-btn-primary {
+  background: linear-gradient(180deg, #facc15 0%, #f59e0b 100%);
+  color: #422006;
+}
+.lap-btn-ghost {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+}
+.lap-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+@media (max-width: 480px) {
+  .lap-modal { padding: 22px 18px 18px; }
+  .lap-counter { font-size: 36px; }
+  .lap-title { font-size: 18px; }
+  .lap-stats { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .lap-stat-value { font-size: 15px; }
+}
