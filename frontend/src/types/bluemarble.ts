@@ -1,5 +1,7 @@
 // 성경 보드게임 타입 정의
 
+import type { RabbitEvent } from './rabbit'
+
 export type TileType =
   | 'start'
   | 'quiz'
@@ -107,6 +109,7 @@ export interface AnswerResult {
   arrived_tile: Tile | null
   streak: number
   is_finish: boolean
+  rabbit_event?: RabbitEvent | null
 }
 
 export interface LeaderboardEntry {

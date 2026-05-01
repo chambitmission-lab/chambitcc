@@ -13,7 +13,10 @@ import {
 } from '../../hooks/useBluemarble'
 import { useProfileDetail } from '../../hooks/useProfile'
 import { useSfx } from '../../hooks/useSfx'
+import { useMyRabbit, QK_RABBIT_ME } from '../../hooks/useRabbit'
 import type { QuizPublic, Tile, AdvanceResult } from '../../types/bluemarble'
+import type { RabbitMood } from '../../components/rabbit/RabbitAvatar'
+import type { TreasureDef } from '../../types/rabbit'
 import JourneyTile from './components/JourneyTile'
 import JourneyPiece from './components/JourneyPiece'
 import StepButton from './components/StepButton'
@@ -22,6 +25,8 @@ import QuizModal from './components/QuizModal'
 import EventToast from './components/EventToast'
 import GameStatus from './components/GameStatus'
 import Leaderboard from './components/Leaderboard'
+import TreasureRevealModal from '../../components/rabbit/TreasureRevealModal'
+import EvolutionModal from '../../components/rabbit/EvolutionModal'
 import {
   positionToCoord,
   getFogState,
@@ -55,6 +60,7 @@ export default function Bluemarble() {
   const answerMutation = useSubmitAnswer()
   const abandonMutation = useAbandonGame()
   const stateQuery = useBluemarbleState(isAuthenticated)
+  const rabbitQuery = useMyRabbit(isAuthenticated)
   const sfx = useSfx()
 
   // 마운트 시 캐시된 상태 무효화 → 항상 서버에서 fresh fetch
@@ -71,6 +77,11 @@ export default function Bluemarble() {
   const [showLb, setShowLb] = useState(false)
   const [muted, setMutedUi] = useState<boolean>(sfx.isMuted())
   const [streak, setStreak] = useState(0)
+  const [rabbitMood, setRabbitMood] = useState<RabbitMood>('idle')
+  const [pendingTreasures, setPendingTreasures] = useState<TreasureDef[]>([])
+  const [pendingEvolution, setPendingEvolution] = useState<{ from: number; to: number } | null>(
+    null,
+  )
   const toastIdRef = useRef(0)
   const introShownRef = useRef(false)
 
@@ -187,12 +198,35 @@ export default function Bluemarble() {
         sfx.play('correct')
         sfx.play('step')
         confetti({ particleCount: 90, spread: 60, origin: { y: 0.5 } })
+        setRabbitMood('happy')
+        setTimeout(() => setRabbitMood('idle'), 2000)
         if (result.is_finish) {
           sfx.play('fanfare')
           confetti({ particleCount: 240, spread: 120, origin: { y: 0.5 } })
         }
+        // 토끼 이벤트 — 보물 / 진화
+        const ev = result.rabbit_event
+        if (ev) {
+          // 캐시 무효화 → 토끼 다시 fetch
+          queryClient.invalidateQueries({ queryKey: QK_RABBIT_ME })
+          if (ev.treasures_gained?.length) {
+            setPendingTreasures(ev.treasures_gained)
+          }
+          if (ev.evolved && ev.from_stage) {
+            setPendingEvolution({ from: ev.from_stage, to: ev.stage })
+            confetti({
+              particleCount: 160,
+              spread: 100,
+              origin: { y: 0.4 },
+              colors: ['#facc15', '#fbbf24', '#fde68a', '#a78bfa'],
+            })
+            sfx.play('milestone')
+          }
+        }
       } else {
         sfx.play('wrong')
+        setRabbitMood('sad')
+        setTimeout(() => setRabbitMood('idle'), 1600)
       }
       return result
     } catch (err) {
@@ -313,6 +347,13 @@ export default function Bluemarble() {
           <button
             type="button"
             className="bm-ghost-btn"
+            onClick={() => navigate('/bluemarble/rabbit')}
+          >
+            🐰 내 토끼
+          </button>
+          <button
+            type="button"
+            className="bm-ghost-btn"
             onClick={handleRestart}
             disabled={startMutation.isPending}
           >
@@ -395,7 +436,12 @@ export default function Bluemarble() {
                 </div>
               )
             })}
-            <JourneyPiece position={session.current_position} />
+            <JourneyPiece
+              position={session.current_position}
+              stage={rabbitQuery.data?.rabbit.stage ?? 1}
+              equipped={rabbitQuery.data?.rabbit.equipped ?? {}}
+              mood={rabbitMood}
+            />
           </div>
           {currentTile && (
             <AnimatePresence mode="wait">
@@ -485,6 +531,24 @@ export default function Bluemarble() {
 
       {/* 리더보드 */}
       <Leaderboard open={showLb} onClose={() => setShowLb(false)} />
+
+      {/* 보물 획득 모달 (정답 후) */}
+      {pendingTreasures.length > 0 && (
+        <TreasureRevealModal
+          treasures={pendingTreasures}
+          onClose={() => setPendingTreasures([])}
+        />
+      )}
+
+      {/* 진화 모달 */}
+      {pendingEvolution && (
+        <EvolutionModal
+          fromStage={pendingEvolution.from}
+          toStage={pendingEvolution.to}
+          equipped={rabbitQuery.data?.rabbit.equipped ?? {}}
+          onClose={() => setPendingEvolution(null)}
+        />
+      )}
     </div>
   )
 }

@@ -1,0 +1,417 @@
+/* ============ 보물 획득 모달 ============ */
+.treasure-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.treasure-modal {
+  position: relative;
+  background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+  border: 2px solid #facc15;
+  border-radius: 18px;
+  padding: 24px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+.treasure-shine {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+.treasure-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+.treasure-title h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #fde68a;
+}
+.treasure-emoji {
+  font-size: 30px;
+}
+.treasure-list {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+.treasure-card {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+}
+.treasure-icon {
+  font-size: 36px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(250, 204, 21, 0.12);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.treasure-info {
+  flex: 1;
+  min-width: 0;
+}
+.treasure-name {
+  font-weight: 800;
+  color: #fde68a;
+  font-size: 16px;
+}
+.treasure-slot {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+.treasure-scripture {
+  font-size: 12px;
+  color: #fbbf24;
+  margin-top: 4px;
+  font-weight: 600;
+}
+.treasure-desc {
+  font-size: 13px;
+  color: #cbd5e1;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.treasure-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #facc15 0%, #f59e0b 100%);
+  color: #422006;
+  font-weight: 800;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  position: relative;
+}
+.treasure-btn:hover {
+  filter: brightness(1.05);
+}
+
+/* ============ 진화 모달 ============ */
+.evo-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.evo-modal {
+  position: relative;
+  background: linear-gradient(180deg, #4c1d95 0%, #1e1b4b 100%);
+  border: 2px solid #a78bfa;
+  border-radius: 18px;
+  padding: 28px 24px;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.8);
+}
+.evo-rays {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(250, 204, 21, 0.18) 0%, transparent 55%);
+  pointer-events: none;
+}
+.evo-title {
+  position: relative;
+  margin: 0 0 18px;
+  color: #fde68a;
+  font-size: 22px;
+}
+.evo-compare {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+}
+.evo-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+.evo-side-new {
+  transform: scale(1.05);
+}
+.evo-stage-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c4b5fd;
+}
+.evo-new {
+  color: #fde68a;
+  font-size: 16px;
+}
+.evo-stage-name {
+  font-size: 12px;
+  color: #cbd5e1;
+}
+.evo-arrow {
+  font-size: 28px;
+  color: #fbbf24;
+}
+.evo-btn {
+  margin-top: 22px;
+  padding: 12px 28px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%);
+  color: #fff;
+  font-weight: 800;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  position: relative;
+}
+.evo-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* ============ 갤러리 ============ */
+.rg-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+  color: #e5e7eb;
+}
+.rg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.rg-back {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.rg-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+  color: #fde68a;
+}
+.rg-actions {
+  display: flex;
+  gap: 8px;
+}
+.rg-share-btn {
+  background: linear-gradient(180deg, #facc15, #f59e0b);
+  color: #422006;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rg-hero {
+  display: grid;
+  grid-template-columns: minmax(200px, 240px) 1fr;
+  gap: 24px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #334155;
+  margin-bottom: 24px;
+}
+.rg-hero-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.12), transparent 70%);
+  border-radius: 12px;
+}
+.rg-hero-info h2 {
+  margin: 0 0 4px;
+  color: #fde68a;
+}
+.rg-hero-stage {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+.rg-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rg-progress-row {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+.rg-progress-label {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+.rg-progress-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.rg-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #facc15, #f59e0b);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+.rg-stat-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.rg-stat {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+.rg-stat strong {
+  color: #fde68a;
+  margin-left: 6px;
+}
+
+.rg-section {
+  margin-top: 28px;
+}
+.rg-section-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #e5e7eb;
+  margin: 0 0 12px;
+}
+.rg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+.rg-treasure {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  position: relative;
+}
+.rg-treasure.locked {
+  opacity: 0.5;
+  filter: grayscale(0.6);
+}
+.rg-treasure.equipped {
+  border-color: #facc15;
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.2);
+}
+.rg-treasure-icon {
+  font-size: 32px;
+  margin-bottom: 6px;
+}
+.rg-treasure-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fde68a;
+  margin-bottom: 2px;
+}
+.rg-treasure-scripture {
+  font-size: 11px;
+  color: #94a3b8;
+}
+.rg-treasure-action {
+  margin-top: 8px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.rg-treasure-action:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.rg-treasure-equipped-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 10px;
+  background: #facc15;
+  color: #422006;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+}
+
+.rg-events {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.rg-event {
+  font-size: 13px;
+  color: #cbd5e1;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.rg-event-date {
+  color: #64748b;
+  font-size: 11px;
+}
+
+/* QuizModal 동반자 토끼 */
+.quiz-companion {
+  position: absolute;
+  right: -12px;
+  top: -54px;
+  pointer-events: none;
+  z-index: 2;
+}
+@media (max-width: 640px) {
+  .rg-hero { grid-template-columns: 1fr; }
+  .quiz-companion { right: 0; top: -44px; }
+}

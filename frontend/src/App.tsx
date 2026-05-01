@@ -36,6 +36,7 @@ import BibleStudy from './pages/Bible/BibleStudy'
 import AnsweredPrayers from './pages/Prayer/AnsweredPrayers'
 import { Garden } from './pages/Garden/Garden'
 import Bluemarble from './pages/Bluemarble/Bluemarble'
+import RabbitGallery from './pages/Bluemarble/RabbitGallery'
 import WeeklyStory from './pages/WeeklyStory/WeeklyStory'
 import './App.css'
 import './styles/common.css'
@@ -124,6 +125,7 @@ function App() {
               <Route path="/bible/:bookNumber/:chapter" element={<BibleStudy />} />
               <Route path="/garden" element={<Garden />} />
               <Route path="/bluemarble" element={<Bluemarble />} />
+              <Route path="/bluemarble/rabbit" element={<RabbitGallery />} />
               <Route path="/weekly-story" element={<WeeklyStory />} />
               {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
               <Route path="*" element={<Navigate to="/" replace />} />

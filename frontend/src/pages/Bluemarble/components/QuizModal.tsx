@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { QuizPublic, AnswerResult } from '../../../types/bluemarble'
 import { useSfx } from '../../../hooks/useSfx'
+import { useMyRabbit } from '../../../hooks/useRabbit'
+import RabbitAvatar, { type RabbitMood } from '../../../components/rabbit/RabbitAvatar'
+import '../../../components/rabbit/rabbit.css'
 
 interface Props {
   quiz: QuizPublic
@@ -21,6 +24,15 @@ export default function QuizModal({ quiz, onSubmit, onClose }: Props) {
   const [showHint, setShowHint] = useState(false)
   const sfx = useSfx()
   const playedResultRef = useRef(false)
+  const rabbitQuery = useMyRabbit(true)
+  const rabbit = rabbitQuery.data?.rabbit
+  const companionMood: RabbitMood = result
+    ? result.is_correct
+      ? 'excited'
+      : 'sad'
+    : selected != null
+    ? 'happy'
+    : 'idle'
 
   useEffect(() => {
     setSelected(null)
@@ -78,7 +90,15 @@ export default function QuizModal({ quiz, onSubmit, onClose }: Props) {
 
   return (
     <div className="bm-modal-backdrop">
-      <div className={modalClass} onClick={(e) => e.stopPropagation()}>
+      <div className={modalClass} onClick={(e) => e.stopPropagation()} style={{ position: 'relative' }}>
+        <div className="quiz-companion">
+          <RabbitAvatar
+            stage={rabbit?.stage ?? 1}
+            equipped={rabbit?.equipped ?? {}}
+            mood={companionMood}
+            size={64}
+          />
+        </div>
         {isCorrect && (
           <div className="bm-confetti" aria-hidden="true">
             {CONFETTI_PIECES.map((i) => (

@@ -22,7 +22,9 @@
       "Bash(python -c \"import ast; [ast.parse\\(open\\(f, encoding='utf-8'\\).read\\(\\)\\) for f in ['app/models/bluemarble.py', 'app/services/bluemarble_service.py', 'app/api/v1/endpoints/bluemarble.py', 'app/schemas/bluemarble.py', 'seed_journey.py', 'alembic/versions/bm002_journey_80_waypoints.py']]; print\\('All Python files parse OK'\\)\")",
       "Bash(python *)",
       "Bash(DATABASE_URL=postgresql://x SECRET_KEY=x FRONTEND_URL=http://x python *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(DATABASE_URL=sqlite:///tmp.db SECRET_KEY=test FRONTEND_URL=http://x python -c \"from app.models.rabbit import RabbitCompanion, RabbitEventLog; from app.services.rabbit_service import rabbit_service, STAGE_THRESHOLDS, MAX_STAGE; from app.schemas.rabbit import RabbitResponse, RabbitProgressResponse, EquipRequest, UnequipRequest, NicknameRequest, RabbitEventLogResponse, CatalogResponse, TreasureDef; from app.api.v1.endpoints import rabbit as r; from app.api.v1.router import api_router; print\\('OK', len\\(api_router.routes\\), 'routes'\\); print\\('rabbit routes:', [route.path for route in api_router.routes if '/rabbit' in route.path]\\)\")",
+      "Bash(npx vite *)"
     ]
   }
 }
