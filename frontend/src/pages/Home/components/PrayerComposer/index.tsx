@@ -2,6 +2,7 @@ import BibleVersesModal from '../BibleVersesModal'
 import PrayerComposerHeader from './PrayerComposerHeader'
 import UserInfoSection from './UserInfoSection'
 import GroupSelector from './GroupSelector'
+import EmotionSelector from './EmotionSelector'
 import ContentCard from './ContentCard'
 import ErrorMessage from './ErrorMessage'
 import PrivacyNotice from './PrivacyNotice'
@@ -14,6 +15,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     content,
     isAnonymous,
     selectedGroupId,
+    emotion,
     error,
     recommendedVerses,
     showVersesModal,
@@ -24,6 +26,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     setContent,
     setIsAnonymous,
     setSelectedGroupId,
+    setEmotion,
     handleSubmit,
     handleVersesModalClose,
   } = usePrayerComposer({ onClose, onSuccess, sort, groupId })  // ✅ groupId 전달
@@ -65,6 +68,12 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
             <GroupSelector
               selectedGroupId={selectedGroupId}
               onGroupChange={setSelectedGroupId}
+            />
+
+            <EmotionSelector
+              selected={emotion}
+              onChange={setEmotion}
+              disabled={isCreating}
             />
 
             <ContentCard

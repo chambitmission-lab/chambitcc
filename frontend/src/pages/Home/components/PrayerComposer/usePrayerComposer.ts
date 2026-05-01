@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { usePrayersInfinite } from '../../../../hooks/usePrayersQuery'
 import { validation } from '../../../../utils/validation'
-import type { RecommendedVerses, SortType } from '../../../../types/prayer'
+import type { PrayerEmotion, RecommendedVerses, SortType } from '../../../../types/prayer'
 
 interface UsePrayerComposerProps {
   onClose: () => void
@@ -16,6 +16,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(groupId || null)  // ✅ 초기값 설정
+  const [emotion, setEmotion] = useState<PrayerEmotion | null>(null)
   const [error, setError] = useState('')
   const [recommendedVerses, setRecommendedVerses] = useState<RecommendedVerses | null>(null)
   const [showVersesModal, setShowVersesModal] = useState(false)
@@ -79,6 +80,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
         display_name: displayName,
         is_fully_anonymous: isAnonymous,
         group_id: selectedGroupId || undefined,
+        emotion: emotion || undefined,
       })
 
       const prayer = response.data
@@ -131,18 +133,20 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     content,
     isAnonymous,
     selectedGroupId,
+    emotion,
     error,
     recommendedVerses,
     showVersesModal,
     isCreating,
     isLoggedIn,
     displayName,
-    
+
     // Handlers
     setTitle: handleTitleChange,
     setContent: handleContentChange,
     setIsAnonymous,
     setSelectedGroupId,
+    setEmotion,
     handleSubmit,
     handleVersesModalClose,
   }

@@ -7,6 +7,7 @@ import { logout } from '../../utils/auth'
 import { PushNotificationButton } from '../../components/common/PushNotificationButton'
 import ProfileHeader from './components/ProfileHeader'
 import ActivityStats from './components/ActivityStats'
+import WeeklyStoryHook from './components/WeeklyStoryHook'
 import LevelProgress from './components/LevelProgress'
 import AchievementBadges from './components/AchievementBadges'
 import AchievementModal from './components/AchievementModal'
@@ -191,6 +192,9 @@ const Profile = () => {
           totalCount={stats.activity.total_count}
           streakDays={stats.activity.streak_days}
         />
+
+        {/* 주간 기도 스토리 진입 */}
+        <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
 
         {/* 푸시 알림 설정 */}
         <div className="px-4 py-4 border-b border-border-light dark:border-border-dark">

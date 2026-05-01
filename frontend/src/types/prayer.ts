@@ -1,3 +1,14 @@
+// 주간 기도 스토리 감정 키 (백엔드 ALLOWED_EMOTIONS와 동기화)
+export type PrayerEmotion =
+  | 'tired'
+  | 'anxious'
+  | 'grateful'
+  | 'sad'
+  | 'lonely'
+  | 'angry'
+  | 'hopeful'
+  | 'confused'
+
 // Prayer 관련 타입 정의
 export interface Prayer {
   id: number
@@ -16,6 +27,7 @@ export interface Prayer {
   is_answered?: boolean  // 기도 응답 여부
   answered_at?: string  // 응답 시간
   testimony?: string  // 간증 내용
+  emotion?: PrayerEmotion  // 감정 태그 (주간 스토리용)
   created_at: string
   time_ago: string
   recommended_verses?: RecommendedVerses  // 성경 구절 추천
@@ -44,6 +56,7 @@ export interface CreatePrayerRequest {
   display_name?: string  // 선택 (기본값: "익명")
   is_fully_anonymous: boolean
   group_id?: number  // 소그룹 ID (선택)
+  emotion?: PrayerEmotion  // 감정 태그 (선택)
 }
 
 // 성경 구절 추천 타입
