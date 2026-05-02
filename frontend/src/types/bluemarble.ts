@@ -15,6 +15,9 @@ export type TileType =
 
 export type QuizCategory = 'OLD' | 'NEW' | 'GENERAL'
 export type SessionStatus = 'active' | 'completed' | 'abandoned'
+// 학습 렌즈 — 바퀴마다 다른 시각으로 동일 발자취 묵상
+// know(이해) | see(의미) | connect(연결/그리스도) | live(적용) | deep(심화) | any(전 바퀴)
+export type LapFocus = 'know' | 'see' | 'connect' | 'live' | 'deep' | 'any'
 
 export interface Tile {
   id: number
@@ -48,6 +51,7 @@ export interface QuizPublic {
   related_chapter: number | null
   related_verse: number | null
   points: number
+  lap_focus: LapFocus
 }
 
 export interface GameSession {
@@ -96,12 +100,29 @@ export interface BossState {
   is_perfect: boolean
 }
 
+export interface LapVerse {
+  book: number
+  chapter: number
+  verse: number
+  text: string
+}
+
 export interface LapEvent {
   lap_count: number
   lap_bonus: number
   title: string
   scripture_ref: string
   scripture_text: string
+  // 랩 완주 리포트 (이번 바퀴 통계 + 만난 구절 + 다음 바퀴 렌즈)
+  lap_correct_count?: number
+  lap_wrong_count?: number
+  lap_accuracy?: number    // 0.0 ~ 1.0
+  lap_score?: number       // 이번 바퀴에서 획득한 점수
+  lap_turns?: number       // 이번 바퀴 턴 수
+  verses?: LapVerse[]      // 이번 바퀴 만난 구절 (최대 3)
+  next_focus?: LapFocus    // 다음 바퀴 학습 렌즈
+  next_focus_title?: string
+  next_focus_subtitle?: string
 }
 
 export interface AdvanceResult {

@@ -103,6 +103,63 @@ export default function LapCompletionModal({
             </div>
           </div>
 
+          {/* 이번 바퀴 요약 (백엔드 lap_report) */}
+          {(lap.lap_correct_count != null || lap.lap_score != null) && (
+            <div className="lap-roundup">
+              <div className="lap-roundup-title">📜 이번 바퀴 요약</div>
+              <div className="lap-roundup-grid">
+                {lap.lap_score != null && (
+                  <div className="lap-roundup-cell">
+                    <span className="lap-roundup-label">획득 점수</span>
+                    <span className="lap-roundup-value">+{lap.lap_score.toLocaleString()}</span>
+                  </div>
+                )}
+                {lap.lap_correct_count != null && lap.lap_wrong_count != null && (
+                  <div className="lap-roundup-cell">
+                    <span className="lap-roundup-label">정답/오답</span>
+                    <span className="lap-roundup-value">
+                      {lap.lap_correct_count} / {lap.lap_wrong_count}
+                    </span>
+                  </div>
+                )}
+                {lap.lap_accuracy != null && (
+                  <div className="lap-roundup-cell">
+                    <span className="lap-roundup-label">정답률</span>
+                    <span className="lap-roundup-value">
+                      {Math.round(lap.lap_accuracy * 100)}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* 이번 바퀴 만난 구절 3선 */}
+          {lap.verses && lap.verses.length > 0 && (
+            <div className="lap-verses">
+              <div className="lap-verses-title">✨ 이번 바퀴에서 만난 말씀</div>
+              <ul className="lap-verses-list">
+                {lap.verses.map((v, i) => (
+                  <li key={i} className="lap-verse-item">
+                    <div className="lap-verse-text">"{v.text}"</div>
+                    <div className="lap-verse-ref">— {v.book}권 {v.chapter}장 {v.verse}절</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* 다음 바퀴 학습 렌즈 안내 */}
+          {lap.next_focus && lap.next_focus_title && (
+            <div className="lap-next-focus">
+              <div className="lap-next-focus-badge">다음 바퀴의 렌즈</div>
+              <div className="lap-next-focus-title">{lap.next_focus_title}</div>
+              {lap.next_focus_subtitle && (
+                <div className="lap-next-focus-sub">{lap.next_focus_subtitle}</div>
+              )}
+            </div>
+          )}
+
           <div className="lap-actions">
             <button type="button" className="lap-btn lap-btn-primary" onClick={onContinue}>
               🚀 계속 모험하기

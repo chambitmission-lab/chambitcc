@@ -28,7 +28,8 @@
       "Bash(Select-String -Pattern \"바이블|bible|quiz|퀀스트\")",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\k1988\\\\idea\\\\chambitcc-main\" -Directory)",
       "Bash(Select-Object Name)",
-      "Bash(powershell *)"
+      "Bash(powershell *)",
+      "Bash(dir C:Usersk1988ideachambitcc-main *)"
     ]
   }
 }
