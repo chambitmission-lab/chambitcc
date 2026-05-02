@@ -430,12 +430,14 @@
   padding: 24px;
   max-width: 520px;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
   animation: bm-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   color: #e2e8f0;
   position: relative;
-  overflow: hidden;
 }
 @keyframes bm-slide-up {
   from { opacity: 0; transform: translateY(40px) scale(0.95); }
@@ -1431,6 +1433,17 @@
 }
 .bm-next-boss-btn:hover {
   filter: brightness(1.1);
+}
+
+/* 결과 영역의 액션 버튼은 모달 하단에 항상 보이도록 sticky.
+   해설/구절이 길어 모달이 스크롤될 때도 사용자가 즉시 누를 수 있게 한다. */
+.bm-result .bm-next-boss-btn,
+.bm-result .bm-close-btn {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  /* 스크롤 시 버튼 뒤로 본문이 보이지 않도록 결과 배경과 동일한 톤의 그라데이션 페이드 */
+  box-shadow: 0 -16px 18px -8px rgba(15, 23, 42, 0.85);
 }
 
 /* 보스 클리어 모달 */
