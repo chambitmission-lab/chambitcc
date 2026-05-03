@@ -84,7 +84,7 @@ export const Genealogy = () => {
               isLoggedIn={isLoggedIn}
             />
             <p className="mt-2 text-xs text-gray-400 text-center">
-              마우스 휠로 확대/축소, 드래그로 이동하실 수 있습니다.
+              스크롤로 위아래 탐색하세요. 확대/축소는 Ctrl(⌘)+휠 또는 두 손가락 핀치로 가능합니다.
             </p>
           </div>
           <div className="lg:col-span-1">

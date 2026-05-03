@@ -144,7 +144,15 @@ export const GenealogyTree = ({
     const viewBoxWidth = Math.max(treeWidth + 100, 400)
     const viewBoxHeight = treeHeight + 80
 
-    svg.attr('viewBox', `${minX - 50} -40 ${viewBoxWidth} ${viewBoxHeight}`)
+    // SVG를 자연 크기(px)로 그려서 글자/노드가 읽기 좋은 크기로 유지되도록 한다.
+    // 컨테이너가 overflow:auto이므로 영역 밖은 스크롤로 탐색.
+    svg
+      .attr('viewBox', `${minX - 50} -40 ${viewBoxWidth} ${viewBoxHeight}`)
+      .attr('width', viewBoxWidth)
+      .attr('height', viewBoxHeight)
+      .style('width', `${viewBoxWidth}px`)
+      .style('height', `${viewBoxHeight}px`)
+      .style('max-width', 'none')
 
     // 링크 그리기
     const linkGen = d3
@@ -298,15 +306,26 @@ export const GenealogyTree = ({
     })
 
     // zoom/pan
+    // 모바일·데스크톱 양쪽에서 컨테이너 스크롤이 우선이 되도록 필터를 건다.
+    // - 휠: Ctrl(또는 Mac의 Meta) 누른 상태에서만 줌
+    // - 터치: 두 손가락 이상일 때만 (한 손가락 = 페이지 스크롤)
+    // - 마우스 드래그: 그대로 허용 (PC pan)
     const zoomBehavior = d3
       .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.4, 2.5])
+      .scaleExtent([0.5, 2.5])
+      .filter((event: any) => {
+        if (event.type === 'wheel') return event.ctrlKey || event.metaKey
+        if (event.type === 'touchstart') {
+          return !!event.touches && event.touches.length >= 2
+        }
+        return !event.button
+      })
       .on('zoom', (event) => {
         g.attr('transform', event.transform.toString())
       })
 
     svg.call(zoomBehavior as any)
-    // 초기 transform 리셋
+    // 초기 transform 리셋 (자연 크기 1:1로 시작)
     svg.call(zoomBehavior.transform as any, d3.zoomIdentity)
   }, [root, selectedSlug, readingProgress, isLoggedIn, onSelect, spouseMap])
 
@@ -319,8 +338,8 @@ export const GenealogyTree = ({
   }
 
   return (
-    <div className="w-full h-[70vh] overflow-hidden rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-gray-700 dark:text-gray-200">
-      <svg ref={svgRef} className="w-full h-full" preserveAspectRatio="xMidYMin meet">
+    <div className="w-full max-h-[80vh] overflow-auto rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-gray-700 dark:text-gray-200">
+      <svg ref={svgRef} preserveAspectRatio="xMidYMin meet" style={{ display: 'block' }}>
         <g ref={gRef} />
       </svg>
     </div>
