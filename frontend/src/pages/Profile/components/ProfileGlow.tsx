@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { GlowLevel } from '../../../types/achievement'
+import { getReadableTextStyle } from '../../../utils/contrastText'
 
 interface ProfileGlowProps {
   glowLevel: GlowLevel
@@ -9,7 +10,8 @@ interface ProfileGlowProps {
 
 const ProfileGlow = ({ glowLevel, fullName, specialAchievementColor }: ProfileGlowProps) => {
   const glowColor = specialAchievementColor || glowLevel.glowColor
-  
+  const badgeText = getReadableTextStyle(glowColor)
+
   // 애니메이션 스타일 생성
   const pulseAnimation = useMemo(() => ({
     animation: `pulse ${glowLevel.pulseSpeed}s cubic-bezier(0.4, 0, 0.6, 1) infinite`,
@@ -70,11 +72,13 @@ const ProfileGlow = ({ glowLevel, fullName, specialAchievementColor }: ProfileGl
       </div>
       
       {/* 레벨 뱃지 */}
-      <div 
-        className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg z-20"
+      <div
+        className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold shadow-lg z-20"
         style={{
           backgroundColor: glowColor,
           boxShadow: `0 0 20px ${glowColor}`,
+          color: badgeText.color,
+          textShadow: badgeText.textShadow,
         }}
       >
         {glowLevel.name}

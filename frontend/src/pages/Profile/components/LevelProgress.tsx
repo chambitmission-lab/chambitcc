@@ -1,4 +1,5 @@
 import type { GlowLevel } from '../../../types/achievement'
+import { getReadableTextStyle } from '../../../utils/contrastText'
 
 interface LevelProgressProps {
   currentLevel: GlowLevel
@@ -7,9 +8,10 @@ interface LevelProgressProps {
 }
 
 const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgressProps) => {
-  const progress = pointsToNext 
+  const progress = pointsToNext
     ? ((pointsToNext.total - pointsToNext.needed) / pointsToNext.total) * 100
     : 100
+  const badgeText = getReadableTextStyle(currentLevel.glowColor)
   
   return (
     <div className="px-4 py-6 border-b border-border-light dark:border-border-dark">
@@ -22,11 +24,13 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
             {currentPoints.toLocaleString()} 포인트
           </p>
         </div>
-        <div 
-          className="px-4 py-2 rounded-full text-sm font-bold text-white shadow-lg"
+        <div
+          className="px-4 py-2 rounded-full text-sm font-bold shadow-lg"
           style={{
             backgroundColor: currentLevel.glowColor,
             boxShadow: `0 0 20px ${currentLevel.glowColor}`,
+            color: badgeText.color,
+            textShadow: badgeText.textShadow,
           }}
         >
           Lv.{currentLevel.level}
