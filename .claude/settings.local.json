@@ -29,7 +29,13 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\k1988\\\\idea\\\\chambitcc-main\" -Directory)",
       "Bash(Select-Object Name)",
       "Bash(powershell *)",
-      "Bash(dir C:Usersk1988ideachambitcc-main *)"
+      "Bash(dir C:Usersk1988ideachambitcc-main *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\k1988\\\\idea\\\\chambitcc-main\" -Recurse -Depth 2)",
+      "Bash(Select-Object FullName)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\k1988\\\\idea\\\\chambitcc-main\" -Force)",
+      "PowerShell(npm install *)",
+      "PowerShell(npm run *)",
+      "PowerShell(python -c \"from app.api.v1.router import api_router; from app.models.bible_figure import BibleFigure, FigureRelationship; from app.services.bible_figure_service import BibleFigureService; from app.api.v1.endpoints import bible_figure; print\\('OK - all imports successful'\\)\")"
     ]
   }
 }
