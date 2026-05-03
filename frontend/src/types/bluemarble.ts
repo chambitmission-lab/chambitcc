@@ -1,6 +1,6 @@
 // 성경 보드게임 타입 정의
 
-import type { RabbitEvent } from './rabbit'
+import type { RabbitEvent, TreasureDef } from './rabbit'
 
 export type TileType =
   | 'start'
@@ -123,6 +123,8 @@ export interface LapEvent {
   next_focus?: LapFocus    // 다음 바퀴 학습 렌즈
   next_focus_title?: string
   next_focus_subtitle?: string
+  // 한 바퀴 완주로 지급된 보물 (예: 첫 완주 시 생명의 면류관)
+  treasures_gained?: TreasureDef[]
 }
 
 export interface AdvanceResult {

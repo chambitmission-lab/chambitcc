@@ -204,6 +204,11 @@ export default function Bluemarble() {
         }, 800)
         if (result.lap_event) {
           setPendingLap(result.lap_event)
+          // 한 바퀴 완주 보상 (생명의 면류관) — 토끼 캐시 무효화 + 모달 표시
+          if (result.lap_event.treasures_gained?.length) {
+            queryClient.invalidateQueries({ queryKey: QK_RABBIT_ME })
+            setPendingTreasures(result.lap_event.treasures_gained)
+          }
         }
         pushToast(`${result.lap_event?.lap_count ?? 1}바퀴 완주!`, 'finish', result.score_delta)
       } else if (result.event_type === 'rest') {
@@ -268,22 +273,26 @@ export default function Bluemarble() {
         }
         // 토끼 이벤트 — 보물 / 진화
         const ev = result.rabbit_event
-        if (ev) {
+        // 정답 보상 보물 + 랩 완주 보상(면류관)을 합쳐 한 번에 노출
+        const gainedFromAnswer = ev?.treasures_gained ?? []
+        const gainedFromLap = result.lap_event?.treasures_gained ?? []
+        const allGained = [...gainedFromAnswer, ...gainedFromLap]
+        if (ev || gainedFromLap.length) {
           // 캐시 무효화 → 토끼 다시 fetch
           queryClient.invalidateQueries({ queryKey: QK_RABBIT_ME })
-          if (ev.treasures_gained?.length) {
-            setPendingTreasures(ev.treasures_gained)
-          }
-          if (ev.evolved && ev.from_stage) {
-            setPendingEvolution({ from: ev.from_stage, to: ev.stage })
-            confetti({
-              particleCount: 160,
-              spread: 100,
-              origin: { y: 0.4 },
-              colors: ['#facc15', '#fbbf24', '#fde68a', '#a78bfa'],
-            })
-            sfx.play('milestone')
-          }
+        }
+        if (allGained.length) {
+          setPendingTreasures(allGained)
+        }
+        if (ev?.evolved && ev.from_stage) {
+          setPendingEvolution({ from: ev.from_stage, to: ev.stage })
+          confetti({
+            particleCount: 160,
+            spread: 100,
+            origin: { y: 0.4 },
+            colors: ['#facc15', '#fbbf24', '#fde68a', '#a78bfa'],
+          })
+          sfx.play('milestone')
         }
       } else {
         sfx.play('wrong')
