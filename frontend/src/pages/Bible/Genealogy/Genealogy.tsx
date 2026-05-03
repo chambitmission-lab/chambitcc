@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useMessianicGenealogy } from '../../../hooks/useBibleFigure'
 import GenealogyTree from './components/GenealogyTree'
 import FigureDetailPanel from './components/FigureDetailPanel'
@@ -73,28 +74,71 @@ export const Genealogy = () => {
       )}
 
       {data && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <GenealogyTree
-              nodes={data.nodes}
-              links={data.links}
-              readingProgress={data.reading_progress}
-              selectedSlug={selectedSlug}
-              onSelect={setSelectedSlug}
-              isLoggedIn={isLoggedIn}
-            />
-            <p className="mt-2 text-xs text-gray-400 text-center">
-              스크롤로 위아래 탐색하세요. 확대/축소는 Ctrl(⌘)+휠 또는 두 손가락 핀치로 가능합니다.
-            </p>
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <GenealogyTree
+                nodes={data.nodes}
+                links={data.links}
+                readingProgress={data.reading_progress}
+                selectedSlug={selectedSlug}
+                onSelect={setSelectedSlug}
+                isLoggedIn={isLoggedIn}
+              />
+              <p className="mt-2 text-xs text-gray-400 text-center">
+                스크롤로 위아래 탐색하세요. 확대/축소는 Ctrl(⌘)+휠 또는 두 손가락 핀치로 가능합니다.
+              </p>
+            </div>
+
+            {/* 데스크톱(lg+): 우측에 sticky 사이드 패널 */}
+            <aside className="hidden lg:block lg:col-span-1">
+              <div className="sticky top-4">
+                <FigureDetailPanel
+                  slug={selectedSlug}
+                  onSelect={setSelectedSlug}
+                  onClose={() => setSelectedSlug(null)}
+                />
+              </div>
+            </aside>
           </div>
-          <div className="lg:col-span-1">
-            <FigureDetailPanel
-              slug={selectedSlug}
-              onSelect={setSelectedSlug}
-              onClose={() => setSelectedSlug(null)}
-            />
-          </div>
-        </div>
+
+          {/* 모바일/태블릿: 클릭 시 화면 하단에서 올라오는 bottom sheet */}
+          <AnimatePresence>
+            {selectedSlug && (
+              <>
+                <motion.div
+                  key="genealogy-backdrop"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="lg:hidden fixed inset-0 z-40 bg-black/40"
+                  onClick={() => setSelectedSlug(null)}
+                />
+                <motion.div
+                  key="genealogy-sheet"
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '100%' }}
+                  transition={{ type: 'spring', damping: 32, stiffness: 280 }}
+                  className="lg:hidden fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] bg-white dark:bg-surface-dark rounded-t-2xl shadow-2xl flex flex-col"
+                >
+                  {/* drag handle (시각적 힌트) */}
+                  <div className="flex-shrink-0 flex justify-center py-2">
+                    <div className="w-10 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full" />
+                  </div>
+                  <div className="overflow-y-auto">
+                    <FigureDetailPanel
+                      slug={selectedSlug}
+                      onSelect={setSelectedSlug}
+                      onClose={() => setSelectedSlug(null)}
+                    />
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </>
       )}
     </div>
   )

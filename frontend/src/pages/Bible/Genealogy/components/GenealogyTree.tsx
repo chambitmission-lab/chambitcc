@@ -339,9 +339,21 @@ export const GenealogyTree = ({
 
   return (
     <div className="w-full max-h-[80vh] overflow-auto rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-surface-dark text-gray-700 dark:text-gray-200">
-      <svg ref={svgRef} preserveAspectRatio="xMidYMin meet" style={{ display: 'block' }}>
-        <g ref={gRef} />
-      </svg>
+      {/*
+        flex + justify-center 만으로는 svg가 컨테이너보다 클 때 좌측이 잘려서 안 보인다.
+        min-w-min(min-content) 로 inner의 최소 너비를 자식 너비 이상으로 강제해서:
+        - svg < 컨테이너  → inner는 컨테이너 너비, svg는 가운데 정렬
+        - svg > 컨테이너  → inner는 svg 너비, 가로 스크롤로 좌측부터 노출
+      */}
+      <div className="flex justify-center min-w-min">
+        <svg
+          ref={svgRef}
+          preserveAspectRatio="xMidYMin meet"
+          style={{ display: 'block', flexShrink: 0 }}
+        >
+          <g ref={gRef} />
+        </svg>
+      </div>
     </div>
   )
 }
