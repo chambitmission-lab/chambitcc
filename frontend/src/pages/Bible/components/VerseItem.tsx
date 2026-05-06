@@ -14,9 +14,11 @@ interface VerseItemProps {
   isRead: boolean
   onReadSuccess: (verseId: number, similarity: number) => void
   onEdit?: (verse: BibleVerse) => void
+  onShowCommentary?: (verse: BibleVerse) => void
+  hasCommentary?: boolean
 }
 
-const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSuccess, onEdit }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSuccess, onEdit, onShowCommentary, hasCommentary }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const maxProgressRef = useRef(0) // 최대 진행률 추적
@@ -285,6 +287,54 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
               : 'bookmark_border'}
           </span>
         </button>
+
+        {/* 해석 보기 버튼 */}
+        {onShowCommentary && (
+          <button
+            onClick={() => onShowCommentary(verse)}
+            style={{
+              padding: '0.5rem',
+              background: hasCommentary
+                ? 'rgba(99, 102, 241, 0.15)'
+                : 'rgba(156, 163, 175, 0.08)',
+              border: hasCommentary
+                ? '1px solid rgba(99, 102, 241, 0.45)'
+                : '1px solid rgba(156, 163, 175, 0.25)',
+              borderRadius: '0.5rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              flexShrink: 0,
+              position: 'relative',
+            }}
+            title={hasCommentary ? '해석 보기' : '해석 (등록된 해석 없음)'}
+          >
+            <span
+              className="material-icons-round"
+              style={{
+                fontSize: '1.125rem',
+                color: hasCommentary ? '#6366f1' : '#9ca3af',
+              }}
+            >
+              menu_book
+            </span>
+            {hasCommentary && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: '#6366f1',
+                }}
+              />
+            )}
+          </button>
+        )}
 
         {/* 관리자 수정 버튼 */}
         {isAdminUser && onEdit && (

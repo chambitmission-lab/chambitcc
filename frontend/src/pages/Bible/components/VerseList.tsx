@@ -8,9 +8,11 @@ import VerseItem from './VerseItem'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { celebrateFlowerBloom } from '../../../utils/confettiEffects'
 import VerseEditModal from '../../../components/bible/VerseEditModal'
+import BibleCommentaryPanel from '../../../components/bible/BibleCommentaryPanel'
 import { showToast } from '../../../utils/toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useOptimisticUpdateVerse } from '../../../hooks/useBibleAdmin'
+import { useChapterCommentaries } from '../../../hooks/useBibleCommentary'
 
 interface VerseListProps {
   chapterData: InfiniteData<BibleChapterPaginatedResponse> | undefined
@@ -41,8 +43,39 @@ const VerseList = ({
   const navigate = useNavigate()
   const [readingMode, setReadingMode] = useState(false)
   const [editingVerse, setEditingVerse] = useState<BibleVerse | null>(null)
+  const [commentaryFocusVerse, setCommentaryFocusVerse] = useState<number | null>(null)
+  const [commentaryPanelOpen, setCommentaryPanelOpen] = useState(false)
   const queryClient = useQueryClient()
   const updateVerseMutation = useOptimisticUpdateVerse()
+
+  // 해당 장의 해석 목록 (절별로 indicator 표시용)
+  const { data: chapterCommentaries } = useChapterCommentaries(
+    bookNumber,
+    selectedChapter,
+    bookNumber > 0 && selectedChapter > 0,
+  )
+
+  // 절 → 해석 존재 여부 맵
+  const verseHasCommentaryMap = useMemo(() => {
+    const map = new Set<number>()
+    if (!chapterCommentaries?.items) return map
+    for (const c of chapterCommentaries.items) {
+      for (let v = c.verse_start; v <= c.verse_end; v++) {
+        map.add(v)
+      }
+    }
+    return map
+  }, [chapterCommentaries])
+
+  const handleShowCommentary = (verse: BibleVerse) => {
+    setCommentaryFocusVerse(verse.verse)
+    setCommentaryPanelOpen(true)
+  }
+
+  const handleShowChapterCommentaries = () => {
+    setCommentaryFocusVerse(null)
+    setCommentaryPanelOpen(true)
+  }
   
   // 모든 훅은 조건문 이전에 호출되어야 함
   // 백엔드에서 읽음 상태 조회
@@ -333,6 +366,8 @@ const VerseList = ({
                   isRead={readVerses.has(verse.id)}
                   onReadSuccess={handleReadSuccess}
                   onEdit={handleEditVerse}
+                  onShowCommentary={handleShowCommentary}
+                  hasCommentary={verseHasCommentaryMap.has(verse.verse)}
                 />
               ))}
             </div>
@@ -447,6 +482,50 @@ const VerseList = ({
           verse={editingVerse}
           onSave={handleSaveVerse}
           onClose={() => setEditingVerse(null)}
+        />
+      )}
+
+      {/* 장 전체 해석 보기 플로팅 버튼 */}
+      {(chapterCommentaries?.items?.length ?? 0) > 0 && !commentaryPanelOpen && (
+        <button
+          onClick={handleShowChapterCommentaries}
+          title="이 장의 해석 모두 보기"
+          style={{
+            position: 'fixed',
+            right: '1rem',
+            bottom: '5.5rem',
+            width: '52px',
+            height: '52px',
+            borderRadius: '50%',
+            border: 'none',
+            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+            color: 'white',
+            boxShadow: '0 6px 18px rgba(99, 102, 241, 0.45)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
+          }}
+        >
+          <span className="material-icons-round" style={{ fontSize: '1.5rem' }}>
+            menu_book
+          </span>
+        </button>
+      )}
+
+      {/* 해석 패널 */}
+      {commentaryPanelOpen && chapterData && chapterData.pages[0] && (
+        <BibleCommentaryPanel
+          bookNumber={bookNumber}
+          chapter={selectedChapter}
+          bookNameKo={chapterData.pages[0].book_name_ko}
+          focusVerse={commentaryFocusVerse}
+          totalVerses={chapterData.pages[0].total_verses}
+          onClose={() => {
+            setCommentaryPanelOpen(false)
+            setCommentaryFocusVerse(null)
+          }}
         />
       )}
     </div>
