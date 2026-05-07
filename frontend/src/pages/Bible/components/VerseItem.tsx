@@ -21,6 +21,7 @@ interface VerseItemProps {
 const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSuccess, onEdit, onShowCommentary, hasCommentary }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
+  const [showActions, setShowActions] = useState(false)
   const maxProgressRef = useRef(0) // 최대 진행률 추적
   const isAdminUser = isAdmin()
   const { data: bookmark } = useVerseBookmark(verse.id)
@@ -55,6 +56,13 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
   useEffect(() => {
     if (!isReading) {
       maxProgressRef.current = 0
+    }
+  }, [isReading])
+
+  // 음성 인식 중에는 액션바가 닫혀서 마이크 버튼이 가려지지 않도록 보장
+  useEffect(() => {
+    if (isReading) {
+      setShowActions(true)
     }
   }, [isReading])
   
@@ -181,12 +189,25 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
         gap: '0.5rem'
       }}
     >
-      {/* 구절 번호와 텍스트 */}
+      {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}
       <div
+        onClick={() => setShowActions(prev => !prev)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setShowActions(prev => !prev)
+          }
+        }}
+        aria-expanded={showActions}
+        aria-label={`${verse.verse}절 액션 ${showActions ? '닫기' : '열기'}`}
         style={{
           display: 'flex',
           gap: '1.25rem',
           alignItems: 'flex-start',
+          cursor: 'pointer',
+          userSelect: 'text',
           ...(highlightBg && !isReading
             ? {
                 background: `linear-gradient(to right, ${highlightBg}66, ${highlightBg}33)`,
@@ -198,10 +219,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
         }}
       >
         <span className="bible-verse-number">{verse.verse}</span>
-        <span className="bible-verse-text" style={{ flex: 1 }}>
+        <span className="bible-verse-text" style={{ flex: 1, minWidth: 0 }}>
           {isReading && highlightedText ? (
             <>
-              <span style={{ 
+              <span style={{
                 color: '#fbbf24',
                 fontWeight: 600,
                 textShadow: '0 0 8px rgba(251, 191, 36, 0.4)',
@@ -217,115 +238,42 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
             verse.text || '(구절 내용 없음)'
           )}
         </span>
-        
-        {/* 읽기 모드일 때만 버튼 표시 */}
-        {readingMode && (
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.5rem',
-            flexShrink: 0
-          }}>
+
+        {/* 가벼운 상태 인디케이터 (점/체크) - 본문 폭을 거의 잡아먹지 않음 */}
+        {(isRead || bookmark || hasCommentary) && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              flexShrink: 0,
+              paddingTop: '0.375rem',
+            }}
+          >
             {isRead && (
-              <span 
-                className="material-icons-round" 
-                style={{ 
-                  color: 'var(--ig-success)', 
-                  fontSize: '1.25rem' 
-                }}
+              <span
+                className="material-icons-round"
+                style={{ color: 'var(--ig-success)', fontSize: '1rem' }}
                 title="읽음 완료"
               >
                 check_circle
               </span>
             )}
-            <VerseReadingButton
-              isReading={isReading}
-              isSupported={isSupported}
-              onClick={isReading ? stopReading : handleStartReading}
-              disabled={isRead}
-              size="sm"
-            />
-          </div>
-        )}
-        
-        {/* 북마크/묵상 버튼 (항상 노출) */}
-        <button
-          onClick={() => setShowBookmarkModal(true)}
-          style={{
-            padding: '0.5rem',
-            background: bookmark ? 'rgba(234, 179, 8, 0.15)' : 'rgba(156, 163, 175, 0.08)',
-            border: bookmark
-              ? '1px solid rgba(234, 179, 8, 0.4)'
-              : '1px solid rgba(156, 163, 175, 0.25)',
-            borderRadius: '0.5rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s',
-            flexShrink: 0,
-          }}
-          title={bookmark ? '묵상 노트 수정' : '묵상/북마크 추가'}
-        >
-          <span
-            className="material-icons-round"
-            style={{
-              fontSize: '1.125rem',
-              color: bookmark
-                ? bookmark.is_favorite
-                  ? '#ec4899'
-                  : '#eab308'
-                : '#9ca3af',
-            }}
-          >
-            {bookmark
-              ? bookmark.is_favorite
-                ? 'favorite'
-                : bookmark.note
-                  ? 'bookmark'
-                  : 'brush'
-              : 'bookmark_border'}
-          </span>
-        </button>
-
-        {/* 해석 보기 버튼 */}
-        {onShowCommentary && (
-          <button
-            onClick={() => onShowCommentary(verse)}
-            style={{
-              padding: '0.5rem',
-              background: hasCommentary
-                ? 'rgba(99, 102, 241, 0.15)'
-                : 'rgba(156, 163, 175, 0.08)',
-              border: hasCommentary
-                ? '1px solid rgba(99, 102, 241, 0.45)'
-                : '1px solid rgba(156, 163, 175, 0.25)',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s',
-              flexShrink: 0,
-              position: 'relative',
-            }}
-            title={hasCommentary ? '해석 보기' : '해석 (등록된 해석 없음)'}
-          >
-            <span
-              className="material-icons-round"
-              style={{
-                fontSize: '1.125rem',
-                color: hasCommentary ? '#6366f1' : '#9ca3af',
-              }}
-            >
-              menu_book
-            </span>
+            {bookmark && (
+              <span
+                title={bookmark.is_favorite ? '즐겨찾기' : bookmark.note ? '묵상 노트' : '북마크'}
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  background: bookmark.is_favorite ? '#ec4899' : '#eab308',
+                }}
+              />
+            )}
             {hasCommentary && (
               <span
+                title="해석 있음"
                 style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: '4px',
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
@@ -333,44 +281,151 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
                 }}
               />
             )}
-          </button>
-        )}
-
-        {/* 관리자 수정 버튼 */}
-        {isAdminUser && onEdit && (
-          <button
-            onClick={() => onEdit(verse)}
-            style={{
-              padding: '0.5rem',
-              background: 'rgba(139, 92, 246, 0.1)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
-              borderRadius: '0.5rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s',
-              flexShrink: 0
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'
-              e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.5)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'
-              e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)'
-            }}
-            title="구절 수정 (관리자)"
-          >
-            <span className="material-icons-round" style={{ fontSize: '1.125rem', color: '#8b5cf6' }}>
-              edit
-            </span>
-          </button>
+          </div>
         )}
       </div>
-      
 
-      
+      {/* 액션바 - 탭 시 본문 아래로 부드럽게 등장 */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateRows: showActions ? '1fr' : '0fr',
+          opacity: showActions ? 1 : 0,
+          transition: 'grid-template-rows 0.25s ease, opacity 0.2s ease',
+          marginLeft: '3.25rem',
+        }}
+        aria-hidden={!showActions}
+      >
+        <div style={{ overflow: 'hidden' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.5rem',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              paddingTop: showActions ? '0.5rem' : 0,
+            }}
+          >
+            {readingMode && (
+              <VerseReadingButton
+                isReading={isReading}
+                isSupported={isSupported}
+                onClick={isReading ? stopReading : handleStartReading}
+                disabled={isRead}
+                size="sm"
+              />
+            )}
+
+            <button
+              onClick={() => setShowBookmarkModal(true)}
+              style={{
+                padding: '0.5rem',
+                background: bookmark ? 'rgba(234, 179, 8, 0.15)' : 'rgba(156, 163, 175, 0.08)',
+                border: bookmark
+                  ? '1px solid rgba(234, 179, 8, 0.4)'
+                  : '1px solid rgba(156, 163, 175, 0.25)',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s',
+                flexShrink: 0,
+              }}
+              title={bookmark ? '묵상 노트 수정' : '묵상/북마크 추가'}
+              tabIndex={showActions ? 0 : -1}
+            >
+              <span
+                className="material-icons-round"
+                style={{
+                  fontSize: '1.125rem',
+                  color: bookmark
+                    ? bookmark.is_favorite
+                      ? '#ec4899'
+                      : '#eab308'
+                    : '#9ca3af',
+                }}
+              >
+                {bookmark
+                  ? bookmark.is_favorite
+                    ? 'favorite'
+                    : bookmark.note
+                      ? 'bookmark'
+                      : 'brush'
+                  : 'bookmark_border'}
+              </span>
+            </button>
+
+            {onShowCommentary && (
+              <button
+                onClick={() => onShowCommentary(verse)}
+                style={{
+                  padding: '0.5rem',
+                  background: hasCommentary
+                    ? 'rgba(99, 102, 241, 0.15)'
+                    : 'rgba(156, 163, 175, 0.08)',
+                  border: hasCommentary
+                    ? '1px solid rgba(99, 102, 241, 0.45)'
+                    : '1px solid rgba(156, 163, 175, 0.25)',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s',
+                  flexShrink: 0,
+                }}
+                title={hasCommentary ? '해석 보기' : '해석 (등록된 해석 없음)'}
+                tabIndex={showActions ? 0 : -1}
+              >
+                <span
+                  className="material-icons-round"
+                  style={{
+                    fontSize: '1.125rem',
+                    color: hasCommentary ? '#6366f1' : '#9ca3af',
+                  }}
+                >
+                  menu_book
+                </span>
+              </button>
+            )}
+
+            {isAdminUser && onEdit && (
+              <button
+                onClick={() => onEdit(verse)}
+                style={{
+                  padding: '0.5rem',
+                  background: 'rgba(139, 92, 246, 0.1)',
+                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'
+                  e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.5)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'
+                  e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)'
+                }}
+                title="구절 수정 (관리자)"
+                tabIndex={showActions ? 0 : -1}
+              >
+                <span className="material-icons-round" style={{ fontSize: '1.125rem', color: '#8b5cf6' }}>
+                  edit
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+
       {/* 피드백 메시지 - 임팩트 있게 */}
       {showFeedback && feedback && (
         <div style={{
