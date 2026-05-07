@@ -13,6 +13,7 @@ export interface BibleVerse {
   id: number
   book_id: number
   book_name_ko: string
+  book_number?: number
   chapter: number
   verse: number
   text: string
@@ -26,10 +27,25 @@ export interface BibleChapterResponse {
   verses: BibleVerse[]
 }
 
+// 검색 결과 책 정보
+export interface BibleSearchBook {
+  book_number: number
+  book_name_ko: string
+  book_name_en: string
+  testament: string
+  chapter_count: number
+}
+
 // 검색 결과
 export interface BibleSearchResult {
   total: number
   results: BibleVerse[]
+  is_chapter_search?: boolean
+  book_number?: number | null
+  book_name_ko?: string | null
+  chapter?: number | null
+  is_book_search?: boolean
+  book?: BibleSearchBook | null
 }
 
 // 페이지네이션 장 조회 응답
