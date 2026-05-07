@@ -93,6 +93,10 @@ export default function RabbitAvatar({
           />
         )}
 
+        {/* 등 뒤 장비 — 몸통/머리 뒤에 그려 살짝 보이게 */}
+        {equipped.back === 'golden_cross' && <GoldenCross />}
+        {equipped.banner === 'trumpet_of_faith' && <Banner />}
+
         {/* 귀 (뒤) */}
         <Ear side="left" palette={palette} mood={mood} />
         <Ear side="right" palette={palette} mood={mood} />
@@ -223,6 +227,15 @@ export default function RabbitAvatar({
 
         {/* 면류관 (accessory) */}
         {equipped.accessory === 'crown_of_life' && <Crown />}
+
+        {/* 두루마리 (scroll) — 허리 옆에 매달림 */}
+        {equipped.scroll === 'scroll_of_wisdom' && <Scroll />}
+
+        {/* 등불 (lamp) — 토끼 왼쪽 옆에 떠있는 등잔 */}
+        {equipped.lamp === 'lamp_of_word' && <Lamp />}
+
+        {/* 비둘기 (companion) — 우상단 작게 */}
+        {equipped.companion === 'dove_of_spirit' && <Dove />}
       </svg>
     </motion.div>
   )
@@ -417,6 +430,164 @@ function Crown() {
       <circle cx="100" cy="40" r="3" fill="#dc2626" />
       <circle cx="83" cy="45" r="2" fill="#10b981" />
       <circle cx="117" cy="45" r="2" fill="#10b981" />
+    </g>
+  )
+}
+
+function GoldenCross() {
+  return (
+    <g>
+      {/* 등 뒤에서 솟는 후광 */}
+      <motion.circle
+        cx="100"
+        cy="60"
+        r="40"
+        fill="#fde68a"
+        opacity="0.3"
+        animate={{ opacity: [0.18, 0.42, 0.18] }}
+        transition={{ duration: 2.6, repeat: Infinity }}
+      />
+      {/* 황금 십자가 — 몸/머리 뒤로 살짝 솟음 */}
+      <rect x="96" y="20" width="8" height="80" fill="#facc15" stroke="#a16207" strokeWidth="1.5" />
+      <rect x="78" y="42" width="44" height="8" fill="#facc15" stroke="#a16207" strokeWidth="1.5" />
+      {/* 빛 반짝 */}
+      <motion.circle
+        cx="100"
+        cy="46"
+        r="2.5"
+        fill="#fff7d6"
+        animate={{ opacity: [0.4, 1, 0.4] }}
+        transition={{ duration: 1.4, repeat: Infinity }}
+      />
+    </g>
+  )
+}
+
+function Banner() {
+  return (
+    <g>
+      {/* 깃대 */}
+      <line x1="180" y1="170" x2="180" y2="50" stroke="#451a03" strokeWidth="2.4" />
+      {/* 끝 장식 (별) */}
+      <path
+        d="M 180 42 L 182 48 L 188 48 L 183 52 L 185 58 L 180 54 L 175 58 L 177 52 L 172 48 L 178 48 Z"
+        fill="#facc15"
+        stroke="#a16207"
+        strokeWidth="0.8"
+      />
+      {/* 깃발 — 바람에 흔들림 */}
+      <motion.path
+        d="M 180 60 L 200 65 L 196 75 L 200 85 L 180 80 Z"
+        fill="#dc2626"
+        stroke="#7f1d1d"
+        strokeWidth="1.2"
+        animate={{ x: [0, 1.5, 0, -1.5, 0] }}
+        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* 깃발 십자가 */}
+      <rect x="187" y="66" width="2" height="14" fill="#fff" />
+      <rect x="183" y="71" width="10" height="2.5" fill="#fff" />
+    </g>
+  )
+}
+
+function Scroll() {
+  return (
+    <g>
+      {/* 두루마리 — 허리 오른쪽에 매달림 */}
+      <ellipse cx="148" cy="148" rx="3" ry="11" fill="#fef3c7" stroke="#92400e" strokeWidth="1.2" />
+      <rect x="146" y="140" width="6" height="16" fill="#fef9d3" stroke="#92400e" strokeWidth="1" />
+      <line x1="146" y1="144" x2="152" y2="144" stroke="#92400e" strokeWidth="0.5" />
+      <line x1="146" y1="148" x2="152" y2="148" stroke="#92400e" strokeWidth="0.5" />
+      <line x1="146" y1="152" x2="152" y2="152" stroke="#92400e" strokeWidth="0.5" />
+      {/* 빨간 끈 */}
+      <ellipse cx="149" cy="158" rx="4" ry="1.5" fill="#dc2626" stroke="#7f1d1d" strokeWidth="0.6" />
+    </g>
+  )
+}
+
+function Lamp() {
+  return (
+    <g>
+      {/* 등잔 본체 (머리 옆 좌측 떠있는 등) */}
+      <ellipse cx="28" cy="98" rx="10" ry="5" fill="#a16207" stroke="#451a03" strokeWidth="1.2" />
+      <path d="M 18 98 L 38 98 L 36 103 L 20 103 Z" fill="#92400e" stroke="#451a03" strokeWidth="1" />
+      {/* 손잡이 */}
+      <path d="M 36 96 Q 44 92 38 102" fill="none" stroke="#451a03" strokeWidth="1.2" />
+      {/* 심지 구멍 */}
+      <rect x="14" y="93" width="6" height="5" fill="#a16207" stroke="#451a03" strokeWidth="0.8" />
+      {/* 불꽃 */}
+      <motion.path
+        d="M 17 92 Q 12 84 17 76 Q 22 84 17 92 Z"
+        fill="#fbbf24"
+        stroke="#dc2626"
+        strokeWidth="0.6"
+        animate={{ scale: [1, 1.12, 1] }}
+        transition={{ duration: 0.7, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ transformOrigin: '17px 92px' }}
+      />
+      <motion.circle
+        cx="17"
+        cy="84"
+        r="2.5"
+        fill="#fff7d6"
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 0.7, repeat: Infinity }}
+      />
+      {/* 따뜻한 빛 */}
+      <motion.circle
+        cx="17"
+        cy="84"
+        r="14"
+        fill="#fde68a"
+        opacity="0.18"
+        animate={{ opacity: [0.1, 0.28, 0.1] }}
+        transition={{ duration: 1.4, repeat: Infinity }}
+      />
+    </g>
+  )
+}
+
+function Dove() {
+  return (
+    <g>
+      {/* 후광 */}
+      <motion.circle
+        cx="172"
+        cy="32"
+        r="14"
+        fill="#fde68a"
+        opacity="0.3"
+        animate={{ opacity: [0.15, 0.4, 0.15] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+      {/* 날개 위로 펄럭 */}
+      <motion.g
+        animate={{ y: [0, -2, 0] }}
+        transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        {/* 몸 */}
+        <ellipse cx="170" cy="35" rx="11" ry="6" fill="#ffffff" stroke="#94a3b8" strokeWidth="1.2" />
+        {/* 머리 */}
+        <circle cx="180" cy="32" r="4.5" fill="#ffffff" stroke="#94a3b8" strokeWidth="1" />
+        {/* 부리 */}
+        <path d="M 184 32 L 188 33 L 184 34 Z" fill="#fbbf24" stroke="#a16207" strokeWidth="0.4" />
+        {/* 눈 */}
+        <circle cx="181" cy="31" r="0.9" fill="#1f2937" />
+        {/* 날개 (위로 들린) */}
+        <path
+          d="M 168 33 Q 162 22 158 30 Q 162 32 168 33 Z"
+          fill="#f1f5f9"
+          stroke="#94a3b8"
+          strokeWidth="1"
+        />
+        {/* 꼬리 깃 */}
+        <path d="M 159 35 L 152 33 L 158 38 Z" fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1" />
+        {/* 올리브 가지 */}
+        <line x1="188" y1="33" x2="196" y2="34" stroke="#16a34a" strokeWidth="1.2" strokeLinecap="round" />
+        <ellipse cx="191" cy="33" rx="1.6" ry="0.8" fill="#16a34a" />
+        <ellipse cx="194" cy="34" rx="1.6" ry="0.8" fill="#16a34a" />
+      </motion.g>
     </g>
   )
 }

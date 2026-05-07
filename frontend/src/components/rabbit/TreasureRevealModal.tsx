@@ -15,6 +15,11 @@ const SLOT_LABEL: Record<string, string> = {
   helmet: '머리',
   weapon: '무기',
   accessory: '장식',
+  companion: '동행',
+  lamp: '등불',
+  scroll: '두루마리',
+  back: '등',
+  banner: '깃발',
 }
 
 export default function TreasureRevealModal({ treasures, onClose }: Props) {
@@ -85,6 +90,11 @@ function getTreasureEmoji(code: string): string {
     helmet_of_salvation: '⛑️',
     sword_of_spirit: '⚔️',
     crown_of_life: '👑',
+    dove_of_spirit: '🕊️',
+    lamp_of_word: '🪔',
+    scroll_of_wisdom: '📜',
+    golden_cross: '✝️',
+    trumpet_of_faith: '🎺',
   }
   return map[code] || '✨'
 }

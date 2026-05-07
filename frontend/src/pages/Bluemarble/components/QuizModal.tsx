@@ -24,9 +24,9 @@ const DIFFICULTY_COLOR = ['', 'text-green-600', 'text-amber-600', 'text-rose-600
 const CONFETTI_PIECES = Array.from({ length: 18 }, (_, i) => i)
 const CONFETTI_EMOJI = ['✨', '🎉', '⭐', '💫', '🌟', '🕊️']
 
-const TIMER_DURATION_MS = 15000  // 15초 제한
-const TIME_BONUS_THRESHOLD_MS = 10000
-const TIME_PERFECT_MS = 5000
+const TIMER_DURATION_MS = 15000  // 15초 제한 (보기 노출 시점부터)
+const READ_PHASE_MS = 1500  // 보기 노출 전, 문제만 먼저 보여주는 시간
+const EXPLANATION_GATE_MS = 1500  // 정답 후 해설을 최소한으로 보게 하는 시간
 
 export default function QuizModal({
   quiz,
@@ -42,10 +42,14 @@ export default function QuizModal({
   const [result, setResult] = useState<AnswerResult | null>(null)
   const [showHint, setShowHint] = useState(false)
   const [remainingMs, setRemainingMs] = useState(TIMER_DURATION_MS)
+  const [choicesRevealed, setChoicesRevealed] = useState(false)
+  const [explainGateOpen, setExplainGateOpen] = useState(false)
   const sfx = useSfx()
   const playedResultRef = useRef(false)
   const startTimeRef = useRef<number>(Date.now())
   const tickRef = useRef<number | null>(null)
+  const revealTimerRef = useRef<number | null>(null)
+  const explainTimerRef = useRef<number | null>(null)
   const rabbitQuery = useMyRabbit(true)
   const rabbit = rabbitQuery.data?.rabbit
   const companionMood: RabbitMood = result
@@ -56,37 +60,63 @@ export default function QuizModal({
     ? 'happy'
     : 'idle'
 
-  // quiz가 바뀌면 모든 상태 리셋 + 타이머 시작
+  // quiz가 바뀌면 모든 상태 리셋 + 보기 노출 딜레이 후 타이머 시작
   useEffect(() => {
     setSelected(null)
     setResult(null)
     setShowHint(false)
     setRemainingMs(TIMER_DURATION_MS)
+    setChoicesRevealed(false)
+    setExplainGateOpen(false)
     playedResultRef.current = false
-    startTimeRef.current = Date.now()
 
+    // 기존 타이머 정리
     if (tickRef.current != null) {
       window.clearInterval(tickRef.current)
+      tickRef.current = null
     }
-    tickRef.current = window.setInterval(() => {
-      const elapsed = Date.now() - startTimeRef.current
-      const left = Math.max(0, TIMER_DURATION_MS - elapsed)
-      setRemainingMs(left)
-      if (left <= 0 && tickRef.current != null) {
-        window.clearInterval(tickRef.current)
-        tickRef.current = null
-      }
-    }, 100)
+    if (revealTimerRef.current != null) {
+      window.clearTimeout(revealTimerRef.current)
+      revealTimerRef.current = null
+    }
+    if (explainTimerRef.current != null) {
+      window.clearTimeout(explainTimerRef.current)
+      explainTimerRef.current = null
+    }
+
+    // 1) 문제만 먼저 노출 — READ_PHASE_MS 동안 보기는 가려둠
+    revealTimerRef.current = window.setTimeout(() => {
+      setChoicesRevealed(true)
+      // 2) 보기가 노출되는 시점부터 답변 시간 측정 시작
+      startTimeRef.current = Date.now()
+      tickRef.current = window.setInterval(() => {
+        const elapsed = Date.now() - startTimeRef.current
+        const left = Math.max(0, TIMER_DURATION_MS - elapsed)
+        setRemainingMs(left)
+        if (left <= 0 && tickRef.current != null) {
+          window.clearInterval(tickRef.current)
+          tickRef.current = null
+        }
+      }, 100)
+    }, READ_PHASE_MS)
 
     return () => {
       if (tickRef.current != null) {
         window.clearInterval(tickRef.current)
         tickRef.current = null
       }
+      if (revealTimerRef.current != null) {
+        window.clearTimeout(revealTimerRef.current)
+        revealTimerRef.current = null
+      }
+      if (explainTimerRef.current != null) {
+        window.clearTimeout(explainTimerRef.current)
+        explainTimerRef.current = null
+      }
     }
   }, [quiz.id])
 
-  // 결과가 들어오면 한 번만 효과음 재생 + 타이머 정지
+  // 결과가 들어오면 한 번만 효과음 재생 + 타이머 정지 + 해설 게이트 시작
   useEffect(() => {
     if (!result || playedResultRef.current) return
     playedResultRef.current = true
@@ -95,6 +125,14 @@ export default function QuizModal({
       window.clearInterval(tickRef.current)
       tickRef.current = null
     }
+    // 정답 후 EXPLANATION_GATE_MS 동안은 "계속하기" 비활성화 — 해설을 읽을 시간 강제
+    setExplainGateOpen(false)
+    if (explainTimerRef.current != null) {
+      window.clearTimeout(explainTimerRef.current)
+    }
+    explainTimerRef.current = window.setTimeout(() => {
+      setExplainGateOpen(true)
+    }, EXPLANATION_GATE_MS)
   }, [result, sfx])
 
   // 시간 만료 시 자동 제출 (선택지 없으면 0번 선택)
@@ -107,6 +145,7 @@ export default function QuizModal({
 
   const handleSelect = (i: number) => {
     if (result || submitting) return
+    if (!choicesRevealed) return  // 문제 읽는 시간 동안엔 선택 불가
     if (selected !== i) sfx.play('select')
     setSelected(i)
   }
@@ -169,13 +208,15 @@ export default function QuizModal({
     .filter(Boolean)
     .join(' ')
 
-  // 시간 보너스 라벨 (실시간 표시)
+  // 시간 보너스 라벨 — 보기 노출 후 elapsed 기준
+  // 0~3초: 0% (찍기 패널티), 3~10초: +20%, 10~15초: +10%
+  const elapsedFromReveal = TIMER_DURATION_MS - remainingMs
   const timeBonusLabel =
-    remainingMs >= TIMER_DURATION_MS - TIME_PERFECT_MS
-      ? '+50% 시간보너스!'
-      : remainingMs >= TIMER_DURATION_MS - TIME_BONUS_THRESHOLD_MS
+    elapsedFromReveal < 3000
+      ? '🚫 너무 빨라요 — 문제를 읽으세요'
+      : elapsedFromReveal <= 10000
       ? '+20% 시간보너스'
-      : null
+      : '+10% 시간보너스'
 
   return (
     <div className="bm-modal-backdrop">
@@ -285,7 +326,21 @@ export default function QuizModal({
           </div>
         )}
 
-        <div className="bm-quiz-choices">
+        {!choicesRevealed && !result && (
+          <div className="bm-quiz-read-hint" aria-live="polite">
+            📖 문제를 먼저 읽어보세요…
+          </div>
+        )}
+
+        <div
+          className="bm-quiz-choices"
+          style={{
+            opacity: choicesRevealed || result ? 1 : 0,
+            transition: 'opacity 0.4s ease',
+            pointerEvents: choicesRevealed || result ? 'auto' : 'none',
+          }}
+          aria-hidden={!choicesRevealed && !result}
+        >
           {quiz.choices.map((c, i) => {
             const isSelected = selected === i
             const isChoiceCorrect = result && i === result.correct_index
@@ -299,7 +354,7 @@ export default function QuizModal({
                 } ${isChoiceCorrect ? 'bm-quiz-choice-correct' : ''} ${
                   isWrongPick ? 'bm-quiz-choice-wrong' : ''
                 }`}
-                disabled={!!result || submitting}
+                disabled={!!result || submitting || !choicesRevealed}
                 onClick={() => handleSelect(i)}
               >
                 <span className="bm-choice-letter">{['A', 'B', 'C', 'D'][i]}</span>
@@ -315,7 +370,7 @@ export default function QuizModal({
           <button
             type="button"
             className="bm-submit-btn"
-            disabled={selected == null || submitting}
+            disabled={selected == null || submitting || !choicesRevealed}
             onClick={handleSubmit}
           >
             {submitting ? '확인 중...' : '제출'}
@@ -360,16 +415,34 @@ export default function QuizModal({
             )}
 
             {bossInProgress && onBossNext ? (
-              <button type="button" className="bm-submit-btn bm-next-boss-btn" onClick={handleNext}>
-                다음 문제로 →
+              <button
+                type="button"
+                className="bm-submit-btn bm-next-boss-btn"
+                onClick={handleNext}
+                disabled={!explainGateOpen}
+                title={!explainGateOpen ? '해설을 잠시 읽어보세요' : undefined}
+              >
+                {explainGateOpen ? '다음 문제로 →' : '📖 해설 읽는 중…'}
               </button>
             ) : bossComplete ? (
-              <button type="button" className="bm-close-btn" onClick={handleClose}>
-                결과 보기 ({activeBoss?.boss_correct}/{activeBoss?.boss_total} 정답)
+              <button
+                type="button"
+                className="bm-close-btn"
+                onClick={handleClose}
+                disabled={!explainGateOpen}
+              >
+                {explainGateOpen
+                  ? `결과 보기 (${activeBoss?.boss_correct}/${activeBoss?.boss_total} 정답)`
+                  : '📖 해설 읽는 중…'}
               </button>
             ) : (
-              <button type="button" className="bm-close-btn" onClick={handleClose}>
-                계속하기
+              <button
+                type="button"
+                className="bm-close-btn"
+                onClick={handleClose}
+                disabled={!explainGateOpen}
+              >
+                {explainGateOpen ? '계속하기' : '📖 해설 읽는 중…'}
               </button>
             )}
           </div>

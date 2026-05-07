@@ -8,6 +8,11 @@ export type RabbitSlot =
   | 'helmet'
   | 'weapon'
   | 'accessory'
+  | 'companion'
+  | 'lamp'
+  | 'scroll'
+  | 'back'
+  | 'banner'
 
 export interface TreasureDef {
   code: string
