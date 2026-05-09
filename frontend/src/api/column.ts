@@ -2,14 +2,17 @@
 import { API_V1, apiFetch } from '../config/api'
 import type { Column, CreateColumnRequest, UpdateColumnRequest } from '../types/column'
 
-// 목양컬럼 목록 조회 (인증 불필요)
-export const getColumns = async (): Promise<Column[]> => {
-  const response = await apiFetch(`${API_V1}/columns`)
-  
+// 목양컬럼 목록 조회 (인증 불필요, 선택적 키워드 검색)
+export const getColumns = async (q?: string): Promise<Column[]> => {
+  const params = new URLSearchParams()
+  if (q && q.trim()) params.set('q', q.trim())
+  const qs = params.toString()
+  const response = await apiFetch(`${API_V1}/columns${qs ? `?${qs}` : ''}`)
+
   if (!response.ok) {
     throw new Error('Failed to fetch columns')
   }
-  
+
   return response.json()
 }
 

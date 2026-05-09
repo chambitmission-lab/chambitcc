@@ -35,6 +35,30 @@ const removeHighlightTags = (text: string): string => {
   return text.replace(/\[\[(.*?)\]\]/g, '$1')
 }
 
+// 정규식 메타문자 이스케이프
+const escapeRegex = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+// 검색 키워드를 텍스트에서 하이라이트 (목록 카드용)
+const highlightKeyword = (text: string, keyword: string) => {
+  const trimmed = keyword.trim()
+  if (!trimmed) return text
+  const lowerKey = trimmed.toLowerCase()
+  const regex = new RegExp(`(${escapeRegex(trimmed)})`, 'gi')
+  const parts = text.split(regex)
+  return parts.map((part, i) =>
+    part.toLowerCase() === lowerKey ? (
+      <mark
+        key={i}
+        className="bg-yellow-200 dark:bg-yellow-700/70 text-inherit rounded px-0.5"
+      >
+        {part}
+      </mark>
+    ) : (
+      <span key={i}>{part}</span>
+    )
+  )
+}
+
 const Ministry = () => {
   const { language } = useLanguage()
   const isAdminUser = isAdmin()
@@ -44,16 +68,32 @@ const Ministry = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [editingColumn, setEditingColumn] = useState<Partial<Column>>({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [appliedQuery, setAppliedQuery] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
+  // 검색어 변경 시 디바운스로 백엔드 호출
   useEffect(() => {
-    loadColumns()
-  }, [])
+    const timer = setTimeout(() => {
+      loadColumns(searchQuery)
+      setAppliedQuery(searchQuery.trim())
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
-  const loadColumns = async () => {
+  // 검색창 열릴 때 자동 포커스
+  useEffect(() => {
+    if (showSearch) {
+      searchInputRef.current?.focus()
+    }
+  }, [showSearch])
+
+  const loadColumns = async (q?: string) => {
     try {
       setLoading(true)
-      const data = await getColumns()
+      const data = await getColumns(q)
       setColumns(data.filter(c => c.is_active))
     } catch (error) {
       console.error('Failed to load columns:', error)
@@ -61,6 +101,14 @@ const Ministry = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const toggleSearch = () => {
+    if (showSearch) {
+      // 닫을 때 검색어 초기화
+      setSearchQuery('')
+    }
+    setShowSearch(!showSearch)
   }
 
   const handleAddNew = () => {
@@ -179,16 +227,56 @@ const Ministry = () => {
                   {language === 'ko' ? '담임목사의 목회 이야기' : "Pastor's Ministry Stories"}
                 </p>
               </div>
-              {isAdminUser && (
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={handleAddNew}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                  onClick={toggleSearch}
+                  className={`p-2 rounded-lg transition-colors ${
+                    showSearch
+                      ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                  aria-label={language === 'ko' ? '검색' : 'Search'}
+                  title={language === 'ko' ? '검색' : 'Search'}
                 >
-                  <span className="material-icons-outlined text-xl">add</span>
-                  <span>{language === 'ko' ? '추가' : 'Add'}</span>
+                  <span className="material-icons-outlined text-xl">
+                    {showSearch ? 'close' : 'search'}
+                  </span>
                 </button>
-              )}
+                {isAdminUser && (
+                  <button
+                    onClick={handleAddNew}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                  >
+                    <span className="material-icons-outlined text-xl">add</span>
+                    <span>{language === 'ko' ? '추가' : 'Add'}</span>
+                  </button>
+                )}
+              </div>
             </div>
+            {showSearch && (
+              <div className="mt-3 relative">
+                <span className="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl pointer-events-none">
+                  search
+                </span>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={language === 'ko' ? '제목 또는 본문에서 검색…' : 'Search title or content…'}
+                  className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                    aria-label={language === 'ko' ? '검색어 지우기' : 'Clear search'}
+                  >
+                    <span className="material-icons-outlined text-lg">close</span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -199,7 +287,11 @@ const Ministry = () => {
           </div>
         ) : columns.length === 0 ? (
           <div className="text-center py-20 text-gray-600 dark:text-gray-400">
-            {language === 'ko' ? '등록된 목양컬럼이 없습니다' : 'No columns available'}
+            {appliedQuery
+              ? (language === 'ko'
+                  ? `"${appliedQuery}" 검색 결과가 없습니다`
+                  : `No results for "${appliedQuery}"`)
+              : (language === 'ko' ? '등록된 목양컬럼이 없습니다' : 'No columns available')}
           </div>
         ) : (
           <div className="p-4 space-y-4">
@@ -227,10 +319,10 @@ const Ministry = () => {
               {/* Content Preview */}
               <div className="px-4 pb-4">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                  {column.title}
+                  {highlightKeyword(column.title, appliedQuery)}
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed">
-                  {removeHighlightTags(column.content)}
+                  {highlightKeyword(removeHighlightTags(column.content), appliedQuery)}
                 </p>
               </div>
             </article>
