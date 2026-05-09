@@ -5,6 +5,7 @@ import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
 import TodaysVerse from './components/TodaysVerse'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
+import ThanksThread from './components/ThanksThread'
 import SortTabs from './components/SortTabs'
 import PrayerFeed from './components/PrayerFeed'
 import BottomNavigation from './components/BottomNavigation'
@@ -200,7 +201,10 @@ const NewHome = () => {
             
             {/* 응답의 전당 배너 */}
             <AnsweredPrayersBanner />
-            
+
+            {/* 오늘의 감사 (Small Thanks Thread) */}
+            <ThanksThread />
+
             {/* 소그룹 필터 */}
             <div className="px-4 py-3 overflow-x-auto scrollbar-hide">
               <GroupFilter

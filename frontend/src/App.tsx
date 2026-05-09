@@ -35,6 +35,7 @@ import PrayerFocus from './pages/PrayerFocus'
 import BibleStudy from './pages/Bible/BibleStudy'
 import Genealogy from './pages/Bible/Genealogy/Genealogy'
 import AnsweredPrayers from './pages/Prayer/AnsweredPrayers'
+import Thanks from './pages/Thanks/Thanks'
 import { Garden } from './pages/Garden/Garden'
 import Bluemarble from './pages/Bluemarble/Bluemarble'
 import RabbitGallery from './pages/Bluemarble/RabbitGallery'
@@ -122,6 +123,7 @@ function App() {
               <Route path="/events/:id" element={<EventDetail />} />
               <Route path="/prayer-focus" element={<PrayerFocus />} />
               <Route path="/answered-prayers" element={<AnsweredPrayers />} />
+              <Route path="/thanks" element={<Thanks />} />
               <Route path="/bible" element={<BibleStudy />} />
               <Route path="/bible/genealogy" element={<Genealogy />} />
               <Route path="/bible/:bookNumber/:chapter" element={<BibleStudy />} />
