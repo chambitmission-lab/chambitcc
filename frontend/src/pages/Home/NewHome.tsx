@@ -5,7 +5,8 @@ import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
 import TodaysVerse from './components/TodaysVerse'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
-import ThanksThread from './components/ThanksThread'
+// 오늘의 감사 — 임시 비활성화. 다시 활성화하려면 아래 import와 <ThanksThread /> 주석을 해제하세요.
+// import ThanksThread from './components/ThanksThread'
 import SortTabs from './components/SortTabs'
 import PrayerFeed from './components/PrayerFeed'
 import BottomNavigation from './components/BottomNavigation'
@@ -202,8 +203,8 @@ const NewHome = () => {
             {/* 응답의 전당 배너 */}
             <AnsweredPrayersBanner />
 
-            {/* 오늘의 감사 (Small Thanks Thread) */}
-            <ThanksThread />
+            {/* 오늘의 감사 (Small Thanks Thread) — 임시 비활성화 */}
+            {/* <ThanksThread /> */}
 
             {/* 소그룹 필터 */}
             <div className="px-4 py-3 overflow-x-auto scrollbar-hide">
