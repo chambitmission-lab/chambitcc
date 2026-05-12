@@ -48,7 +48,7 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4"
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center p-4"
       onClick={onClose}
     >
       <div
