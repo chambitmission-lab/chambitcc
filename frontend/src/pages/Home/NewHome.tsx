@@ -5,6 +5,7 @@ import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
 import TodaysVerse from './components/TodaysVerse'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
+import ThanksTicker from './components/ThanksTicker'
 // 오늘의 감사 — 임시 비활성화. 다시 활성화하려면 아래 import와 <ThanksThread /> 주석을 해제하세요.
 // import ThanksThread from './components/ThanksThread'
 import SortTabs from './components/SortTabs'
@@ -199,7 +200,10 @@ const NewHome = () => {
             )}
             
             <TodaysVerse />
-            
+
+            {/* 오늘의 감사 한 줄 (전광판 마퀴) */}
+            <ThanksTicker />
+
             {/* 응답의 전당 배너 */}
             <AnsweredPrayersBanner />
 
