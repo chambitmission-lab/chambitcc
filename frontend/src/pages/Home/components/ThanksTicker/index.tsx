@@ -58,8 +58,6 @@ const ThanksTicker = () => {
                     {t.emotion && (
                       <span aria-hidden>{THANKS_EMOTIONS[t.emotion].emoji}</span>
                     )}
-                    <span className="font-semibold">{t.display_name}</span>
-                    <span className="opacity-50">·</span>
                     <span>{t.content}</span>
                   </span>
                 ))}
