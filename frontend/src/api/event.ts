@@ -11,13 +11,16 @@ import type {
   EventCategory,
 } from '../types/event'
 
-// 이벤트 목록 조회 (공개, 비로그인 가능)
+// 이벤트 목록 조회
+// - groupId 미지정 → 전체 공개 이벤트만
+// - groupId 지정 → 해당 그룹 이벤트만 (해당 그룹 멤버여야 함, 토큰 필요)
 export const fetchEvents = async (
   startDate?: string,
   endDate?: string,
   category?: EventCategory,
   skip: number = 0,
-  limit: number = 20
+  limit: number = 20,
+  groupId?: number
 ): Promise<EventListResponse> => {
   const params = new URLSearchParams({
     skip: skip.toString(),
@@ -27,6 +30,9 @@ export const fetchEvents = async (
   if (startDate) params.append('start_date', startDate)
   if (endDate) params.append('end_date', endDate)
   if (category) params.append('category', category)
+  if (groupId !== undefined && groupId !== null) {
+    params.append('group_id', String(groupId))
+  }
 
   const headers: HeadersInit = {}
   const token = localStorage.getItem('access_token')
@@ -111,6 +117,10 @@ export const createEvent = async (
   if (data.repeat_type) formData.append('repeat_type', data.repeat_type)
   if (data.repeat_end_date) formData.append('repeat_end_date', data.repeat_end_date)
   if (data.is_published !== undefined) formData.append('is_published', String(data.is_published))
+  if (data.group_id !== undefined && data.group_id !== null) {
+    formData.append('group_id', String(data.group_id))
+  }
+  if (data.rsvp_deadline) formData.append('rsvp_deadline', data.rsvp_deadline)
   if (file) formData.append('file', file)
 
   const response = await apiFetch(`${API_V1}/events`, {

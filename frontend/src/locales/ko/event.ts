@@ -49,6 +49,16 @@ export const event = {
   },
   attend: '참석 의사 표시',
   cancelAttendance: '참석 취소',
+  rsvpDeadline: 'RSVP 마감',
+  rsvpClosed: 'RSVP 마감되었습니다',
+  rsvpClosesOn: 'RSVP 마감: {date}',
+
+  // 소그룹 전용 모임
+  groupOnlyBadge: '소그룹 전용',
+  groupLabel: '그룹',
+  groupOptional: '소그룹 (선택)',
+  groupPublic: '전체 공개',
+  selectGroup: '그룹 선택',
   
   // 댓글
   comments: '댓글',

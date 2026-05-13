@@ -20,6 +20,13 @@ export interface EventComment {
   created_at: string
 }
 
+// 이벤트가 속한 소그룹 요약 (백엔드 EventGroupInfo 와 동일)
+export interface EventGroupInfo {
+  id: number
+  name: string
+  icon?: string
+}
+
 export interface Event {
   id: number
   title: string
@@ -39,6 +46,11 @@ export interface Event {
   attendances?: EventAttendance[]
   comments?: EventComment[]
   user_attendance_status?: AttendanceStatus | null
+  // 소그룹 전용 모임: null이면 전체 공개
+  group_id?: number | null
+  group?: EventGroupInfo | null
+  // RSVP 마감 시각 (ISO). null이면 마감 없음
+  rsvp_deadline?: string | null
 }
 
 export interface EventListResponse {
@@ -66,6 +78,8 @@ export interface CreateEventRequest {
   repeat_type?: RepeatType
   repeat_end_date?: string
   is_published?: boolean
+  group_id?: number | null
+  rsvp_deadline?: string | null
 }
 
 export interface UpdateEventRequest {
@@ -78,6 +92,8 @@ export interface UpdateEventRequest {
   repeat_type?: RepeatType
   repeat_end_date?: string
   is_published?: boolean
+  group_id?: number | null
+  rsvp_deadline?: string | null
 }
 
 export interface AttendEventRequest {

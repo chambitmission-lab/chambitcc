@@ -31,6 +31,8 @@ import GroupManagement from './pages/Admin/GroupManagement'
 import Profile from './pages/Profile/Profile'
 import EventCalendar from './pages/Events/EventCalendar'
 import EventDetail from './pages/Events/EventDetail'
+import MyGroups from './pages/Groups/MyGroups'
+import GroupDetail from './pages/Groups/GroupDetail'
 import PrayerFocus from './pages/PrayerFocus'
 import BibleStudy from './pages/Bible/BibleStudy'
 import Genealogy from './pages/Bible/Genealogy/Genealogy'
@@ -121,6 +123,8 @@ function App() {
               <Route path="/admin/groups" element={<GroupManagement />} />
               <Route path="/events" element={<EventCalendar />} />
               <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/groups" element={<MyGroups />} />
+              <Route path="/groups/:id" element={<GroupDetail />} />
               <Route path="/prayer-focus" element={<PrayerFocus />} />
               <Route path="/answered-prayers" element={<AnsweredPrayers />} />
               <Route path="/thanks" element={<Thanks />} />

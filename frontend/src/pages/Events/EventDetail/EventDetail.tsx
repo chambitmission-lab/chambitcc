@@ -71,6 +71,28 @@ const EventDetail = () => {
 
         <div className="event-detail-content">
           <div className="event-detail-card">
+            {event.group && (
+              <div
+                className="event-group-badge"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  margin: '0 0 0.75rem',
+                  padding: '0.25rem 0.6rem',
+                  borderRadius: '9999px',
+                  background: '#eef2ff',
+                  color: '#3730a3',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                }}
+                aria-label={t.groupOnlyBadge}
+              >
+                <span aria-hidden="true">{event.group.icon || '🔒'}</span>
+                <span>{t.groupOnlyBadge} · {event.group.name}</span>
+              </div>
+            )}
+
             <EventInfo
               startDate={event.start_datetime}
               endDate={event.end_datetime}
@@ -90,6 +112,7 @@ const EventDetail = () => {
               userAttendanceStatus={event.user_attendance_status ?? undefined}
               onAttend={handleAttend}
               onCancel={handleCancelAttendance}
+              rsvpDeadline={event.rsvp_deadline}
               t={t}
             />
 

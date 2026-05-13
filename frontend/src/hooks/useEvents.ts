@@ -7,8 +7,19 @@ import type { EventCategory } from '../types/event'
 export const eventKeys = {
   all: ['events'] as const,
   lists: () => [...eventKeys.all, 'list'] as const,
-  list: (startDate?: string, endDate?: string, category?: EventCategory) =>
-    [...eventKeys.lists(), startDate ?? 'all', endDate ?? 'all', category ?? 'all'] as const,
+  list: (
+    startDate?: string,
+    endDate?: string,
+    category?: EventCategory,
+    groupId?: number,
+  ) =>
+    [
+      ...eventKeys.lists(),
+      startDate ?? 'all',
+      endDate ?? 'all',
+      category ?? 'all',
+      groupId ?? 'public',
+    ] as const,
   details: () => [...eventKeys.all, 'detail'] as const,
   detail: (eventId: number) => [...eventKeys.details(), eventId] as const,
 }
@@ -16,14 +27,15 @@ export const eventKeys = {
 export const useEvents = (
   startDate?: string,
   endDate?: string,
-  category?: EventCategory
+  category?: EventCategory,
+  groupId?: number,
 ) => {
   const queryClient = useQueryClient()
 
   const query = useInfiniteQuery({
-    queryKey: eventKeys.list(startDate, endDate, category),
+    queryKey: eventKeys.list(startDate, endDate, category, groupId),
     queryFn: async ({ pageParam = 0 }) => {
-      return await fetchEvents(startDate, endDate, category, pageParam, 20)
+      return await fetchEvents(startDate, endDate, category, pageParam, 20, groupId)
     },
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.data.items.length < 20) return undefined
@@ -44,7 +56,7 @@ export const useEvents = (
     hasMore: query.hasNextPage,
     loadMore: () => query.fetchNextPage(),
     refresh: () => queryClient.invalidateQueries({
-      queryKey: eventKeys.list(startDate, endDate, category),
+      queryKey: eventKeys.list(startDate, endDate, category, groupId),
     }),
   }
 }

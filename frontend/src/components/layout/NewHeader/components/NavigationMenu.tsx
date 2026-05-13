@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 
 type MenuItem =
-  | { path: string; key: 'about' | 'worship' | 'sermon' | 'bible' | 'garden' | 'answeredPrayers' | 'events' | 'missionStatus' | 'ministry' | 'news' }
+  | { path: string; key: 'about' | 'worship' | 'sermon' | 'bible' | 'garden' | 'answeredPrayers' | 'events' | 'missionStatus' | 'ministry' | 'news' | 'myGroups' }
   | { path: string; label: string }
 
 const MENU_ITEMS: MenuItem[] = [
@@ -14,6 +14,7 @@ const MENU_ITEMS: MenuItem[] = [
   { path: '/bluemarble', label: '🎲 바이블 퀘스트' },
   { path: '/answered-prayers', key: 'answeredPrayers' },
   { path: '/events', key: 'events' },
+  { path: '/groups', key: 'myGroups' },
   { path: '/mission', key: 'missionStatus' },
   { path: '/ministry', key: 'ministry' },
   { path: '/news', key: 'news' }

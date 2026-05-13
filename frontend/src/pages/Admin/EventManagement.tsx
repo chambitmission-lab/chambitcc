@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { fetchAllEvents, createEvent, updateEvent, deleteEvent } from '../../api/event'
+import { useAllGroups } from '../../hooks/useGroups'
 import { translations } from '../../locales'
 import type { Event, CreateEventRequest, EventCategory, RepeatType } from '../../types/event'
 import './EventManagement.css'
@@ -24,7 +25,13 @@ const EventManagement = () => {
     repeat_type: 'none',
     repeat_end_date: '',
     is_published: true,
+    group_id: null,
+    rsvp_deadline: '',
   })
+
+  // 그룹 선택 옵션 (관리자는 전체 그룹 조회 가능)
+  const { data: groupsData } = useAllGroups()
+  const groups = groupsData?.data.items ?? []
 
   useEffect(() => {
     loadEvents()
@@ -47,12 +54,19 @@ const EventManagement = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // 빈 문자열은 백엔드에서 datetime 파싱 에러를 내므로 제거
+    const payload = {
+      ...formData,
+      rsvp_deadline: formData.rsvp_deadline ? formData.rsvp_deadline : null,
+      repeat_end_date: formData.repeat_end_date ? formData.repeat_end_date : undefined,
+    }
+
     try {
       if (editingEvent) {
-        await updateEvent(editingEvent.id, formData)
+        await updateEvent(editingEvent.id, payload)
         alert(t.updateSuccess)
       } else {
-        await createEvent(formData, file || undefined)
+        await createEvent(payload, file || undefined)
         alert(t.createSuccess)
       }
       resetForm()
@@ -74,6 +88,8 @@ const EventManagement = () => {
       repeat_type: event.repeat_type,
       repeat_end_date: event.repeat_end_date || '',
       is_published: event.is_published,
+      group_id: event.group_id ?? null,
+      rsvp_deadline: event.rsvp_deadline ? event.rsvp_deadline.slice(0, 16) : '',
     })
     setShowForm(true)
   }
@@ -101,6 +117,8 @@ const EventManagement = () => {
       repeat_type: 'none',
       repeat_end_date: '',
       is_published: true,
+      group_id: null,
+      rsvp_deadline: '',
     })
     setFile(null)
     setEditingEvent(null)
@@ -181,6 +199,41 @@ const EventManagement = () => {
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               placeholder={t.enterLocation}
             />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>{t.groupOptional}</label>
+              <select
+                value={formData.group_id ?? ''}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    group_id: e.target.value === '' ? null : Number(e.target.value),
+                  })
+                }
+              >
+                <option value="">{t.groupPublic}</option>
+                {groups.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.icon ? `${g.icon} ` : ''}
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>{t.rsvpDeadline}</label>
+              <input
+                type="datetime-local"
+                value={formData.rsvp_deadline ?? ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, rsvp_deadline: e.target.value || '' })
+                }
+                max={formData.start_datetime || undefined}
+              />
+            </div>
           </div>
 
           <div className="form-group">

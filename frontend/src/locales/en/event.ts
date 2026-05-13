@@ -49,6 +49,16 @@ export const event = {
   },
   attend: 'RSVP',
   cancelAttendance: 'Cancel RSVP',
+  rsvpDeadline: 'RSVP Deadline',
+  rsvpClosed: 'RSVP closed',
+  rsvpClosesOn: 'RSVP closes on {date}',
+
+  // Small-group-only meeting
+  groupOnlyBadge: 'Group only',
+  groupLabel: 'Group',
+  groupOptional: 'Group (optional)',
+  groupPublic: 'Public',
+  selectGroup: 'Select group',
   
   // Comments
   comments: 'Comments',
