@@ -7,9 +7,11 @@ import ContentCard from './ContentCard'
 import ErrorMessage from './ErrorMessage'
 import PrivacyNotice from './PrivacyNotice'
 import { usePrayerComposer } from './usePrayerComposer'
+import { useLanguage } from '../../../../contexts/LanguageContext'
 import type { PrayerComposerProps } from './types'
 
 const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: PrayerComposerProps) => {
+  const { t } = useLanguage()
   const {
     title,
     content,
@@ -59,10 +61,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
               displayName={displayName}
               isLoggedIn={isLoggedIn}
               isAnonymous={isAnonymous}
-              isCreating={isCreating}
-              canSubmit={!!canSubmit}
               onAnonymousChange={setIsAnonymous}
-              onSubmit={handleSubmit}
             />
 
             <GroupSelector
@@ -86,6 +85,16 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
             <ErrorMessage error={error} />
 
             <PrivacyNotice isAnonymous={isAnonymous} />
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={isCreating || !canSubmit}
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white font-bold text-sm rounded-full shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30 hover:shadow-xl hover:shadow-purple-500/40 dark:hover:shadow-purple-900/40 transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {isCreating ? t('prayerComposerSubmitting') : t('prayerComposerSubmit')}
+              </button>
+            </div>
           </form>
         </div>
       </div>
