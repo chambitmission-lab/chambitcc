@@ -1,10 +1,12 @@
-// 그룹 아지트 (최소 구성) — /groups/:id
-// 표시 항목: 이름/아이콘/설명/멤버수 + 관리자에게는 초대 코드 + 복사 버튼
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+// 그룹 아지트 — /groups/:id
+// 표시 항목: 이름/아이콘/설명/멤버수 + 다가오는 모임 + 관리자에게 초대코드/모임만들기
+import { useMemo, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useMyGroups } from '../../hooks/useGroups'
+import { useEvents } from '../../hooks/useEvents'
 import { isAuthenticated } from '../../utils/auth'
+import CreateGroupMeetingModal from '../../components/group/CreateGroupMeetingModal'
 
 const GroupDetail = () => {
   const { t } = useLanguage()
@@ -16,6 +18,21 @@ const GroupDetail = () => {
 
   const groupId = Number(id)
   const group = data?.data.items.find((g) => g.id === groupId)
+
+  // 오늘 자정(KST) 부터의 일정만 (이미 끝난 모임 숨김)
+  const todayIso = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d.toISOString().slice(0, 10) // YYYY-MM-DD
+  }, [])
+  const { events: meetings, loading: meetingsLoading } = useEvents(
+    group ? todayIso : undefined,
+    undefined,
+    undefined,
+    group ? groupId : undefined,
+  )
+
+  const [showCreate, setShowCreate] = useState(false)
 
   if (!loggedIn) {
     return (
@@ -119,6 +136,68 @@ const GroupDetail = () => {
           </div>
         )}
 
+        {/* 다가오는 모임 */}
+        <div className="px-4 pb-4">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white">
+              📅 다가오는 모임
+            </h2>
+            {group.is_admin && (
+              <button
+                onClick={() => setShowCreate(true)}
+                className="text-xs px-2.5 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full shadow"
+              >
+                ＋ 모임 만들기
+              </button>
+            )}
+          </div>
+          {meetingsLoading ? (
+            <div className="text-xs text-gray-500 py-3">{t('loading')}</div>
+          ) : meetings.length === 0 ? (
+            <div className="text-xs text-gray-500 py-3 text-center bg-surface-light dark:bg-surface-dark rounded-lg border border-dashed border-border-light dark:border-border-dark">
+              아직 등록된 모임이 없습니다
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {meetings.map((m) => {
+                const start = new Date(m.start_datetime)
+                const dateStr = start.toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  weekday: 'short',
+                })
+                const timeStr = start.toLocaleTimeString(undefined, {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+                return (
+                  <Link
+                    key={m.id}
+                    to={`/events/${m.id}`}
+                    className="block p-3 bg-surface-light dark:bg-surface-dark rounded-lg border border-border-light dark:border-border-dark hover:border-purple-300 dark:hover:border-purple-700 transition-colors"
+                  >
+                    <div className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                      {m.title}
+                    </div>
+                    <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                      {dateStr} · {timeStr}
+                      {m.location ? ` · ${m.location}` : ''}
+                    </div>
+                    <div className="text-[11px] text-gray-400 mt-0.5">
+                      👤 {m.attendance_count}
+                      {m.rsvp_deadline && (
+                        <span className="ml-2">
+                          ⏰ {new Date(m.rsvp_deadline).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
         {/* 초대 코드 (관리자만) */}
         {group.is_admin && group.invite_code && (
           <div className="mx-4 mb-6 p-4 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl text-center">
@@ -138,6 +217,13 @@ const GroupDetail = () => {
           </div>
         )}
       </div>
+
+      <CreateGroupMeetingModal
+        isOpen={showCreate}
+        onClose={() => setShowCreate(false)}
+        groupId={groupId}
+        groupName={group.name}
+      />
     </div>
   )
 }
