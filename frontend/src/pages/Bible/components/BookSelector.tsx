@@ -1,14 +1,24 @@
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
+import type { ResumePosition } from '../../../api/bibleReading'
 
 interface BookSelectorProps {
   books: BibleBook[] | undefined
   isLoading: boolean
   error: Error | null
-  onBookSelect: (bookId: number, bookName: string) => void
+  onBookSelect: (bookId: number, bookName: string, resume?: ResumePosition) => void
+  resumeMap?: Map<number, ResumePosition>
 }
 
-const BookSelector = ({ books, isLoading, error, onBookSelect }: BookSelectorProps) => {
+const formatRelativeShort = (iso: string): string => {
+  const diffDay = Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24))
+  if (diffDay <= 0) return '오늘'
+  if (diffDay === 1) return '어제'
+  if (diffDay < 7) return `${diffDay}일`
+  return new Date(iso).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
+}
+
+const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap }: BookSelectorProps) => {
   const { language } = useLanguage()
   
   const texts = {
@@ -83,30 +93,66 @@ const BookSelector = ({ books, isLoading, error, onBookSelect }: BookSelectorPro
       <div className="testament-section">
         <h3 className="testament-title">{t.oldTestament} ({oldTestament.length})</h3>
         <div className="books-grid">
-          {oldTestament.map(book => (
-            <button
-              key={book.id}
-              className="book-button"
-              onClick={() => onBookSelect(book.id, book.book_name_ko)}
-            >
-              {book.book_name_ko}
-            </button>
-          ))}
+          {oldTestament.map(book => {
+            const resume = resumeMap?.get(book.book_number)
+            return (
+              <button
+                key={book.id}
+                className={`book-button${resume ? ' book-button-has-resume' : ''}`}
+                onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
+                style={resume ? { position: 'relative' } : undefined}
+              >
+                <span>{book.book_name_ko}</span>
+                {resume && (
+                  <span
+                    style={{
+                      display: 'block',
+                      marginTop: '0.25rem',
+                      fontSize: '0.65rem',
+                      color: '#6366f1',
+                      fontWeight: 600,
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {resume.chapter}:{resume.verse} · {formatRelativeShort(resume.read_at)}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
-      
+
       <div className="testament-section">
         <h3 className="testament-title">{t.newTestament} ({newTestament.length})</h3>
         <div className="books-grid">
-          {newTestament.map(book => (
-            <button
-              key={book.id}
-              className="book-button"
-              onClick={() => onBookSelect(book.id, book.book_name_ko)}
-            >
-              {book.book_name_ko}
-            </button>
-          ))}
+          {newTestament.map(book => {
+            const resume = resumeMap?.get(book.book_number)
+            return (
+              <button
+                key={book.id}
+                className={`book-button${resume ? ' book-button-has-resume' : ''}`}
+                onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
+                style={resume ? { position: 'relative' } : undefined}
+              >
+                <span>{book.book_name_ko}</span>
+                {resume && (
+                  <span
+                    style={{
+                      display: 'block',
+                      marginTop: '0.25rem',
+                      fontSize: '0.65rem',
+                      color: '#6366f1',
+                      fontWeight: 600,
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {resume.chapter}:{resume.verse} · {formatRelativeShort(resume.read_at)}
+                  </span>
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>

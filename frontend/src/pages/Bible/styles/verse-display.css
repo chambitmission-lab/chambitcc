@@ -223,3 +223,23 @@
     line-height: 1.95;
   }
 }
+
+/* 이어 읽기 하이라이트 - 도착한 절을 잠깐 강조 */
+.bible-verse-item.verse-resume-highlight {
+  animation: verse-resume-flash 2.4s ease-out;
+}
+
+@keyframes verse-resume-flash {
+  0% {
+    background-color: rgba(99, 102, 241, 0.0);
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.0);
+  }
+  20% {
+    background-color: rgba(99, 102, 241, 0.18);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25);
+  }
+  100% {
+    background-color: rgba(99, 102, 241, 0.0);
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.0);
+  }
+}

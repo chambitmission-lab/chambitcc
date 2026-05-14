@@ -278,6 +278,48 @@ export const getBookReadingProgress = async (
   return result.data
 }
 
+// 이어 읽기 위치
+export interface ResumePosition {
+  book_number: number
+  book_name_ko: string
+  chapter: number
+  verse: number
+  verse_id: number
+  text: string
+  read_at: string
+}
+
+export interface ResumeReadingResponse {
+  success: boolean
+  data: {
+    latest: ResumePosition | null
+    recent_books: ResumePosition[]
+  }
+}
+
+/**
+ * 이어 읽기 위치 조회 (전역 최신 + 책별 마지막)
+ */
+export const getResumeReading = async (
+  limit: number = 10
+): Promise<ResumeReadingResponse['data']> => {
+  requireAuth()
+
+  const response = await apiFetch(
+    `${API_V1}/bible/reading-progress/resume?limit=${limit}`,
+    {
+      headers: getAuthHeaders(true)
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error('이어 읽기 정보를 불러오는데 실패했습니다')
+  }
+
+  const result: ResumeReadingResponse = await response.json()
+  return result.data
+}
+
 /**
  * 읽음 취소
  */

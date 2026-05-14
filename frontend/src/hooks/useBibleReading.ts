@@ -5,6 +5,7 @@ import {
   getChapterReadStatus,
   getReadingProgress,
   getBookReadingProgress,
+  getResumeReading,
   unmarkVerseAsRead
 } from '../api/bibleReading'
 
@@ -22,6 +23,7 @@ export const bibleReadingKeys = {
   progress: () => [...bibleReadingKeys.all, 'progress'] as const,
   bookProgress: (bookId: number) =>
     [...bibleReadingKeys.all, 'bookProgress', bookId] as const,
+  resume: (limit: number) => [...bibleReadingKeys.all, 'resume', limit] as const,
 }
 
 /**
@@ -118,6 +120,18 @@ export const useBookReadingProgress = (bookId: number, enabled: boolean = true) 
     queryFn: () => getBookReadingProgress(bookId),
     enabled: enabled && bookId > 0,
     staleTime: 1000 * 60 * 10, // 10분
+  })
+}
+
+/**
+ * 이어 읽기 위치 조회 (전역 최신 + 책별 마지막)
+ */
+export const useResumeReading = (limit: number = 10, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: bibleReadingKeys.resume(limit),
+    queryFn: () => getResumeReading(limit),
+    enabled,
+    staleTime: 1000 * 30, // 30초
   })
 }
 

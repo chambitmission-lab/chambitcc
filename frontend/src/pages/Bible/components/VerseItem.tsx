@@ -179,14 +179,17 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
   }
 
   return (
-    <div 
+    <div
+      id={`bible-verse-${verse.verse}`}
+      data-verse={verse.verse}
       className={`bible-verse-item ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''}`}
       style={{
         position: 'relative',
         transition: 'all 0.3s ease',
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.5rem'
+        gap: '0.5rem',
+        scrollMarginTop: '5rem',
       }}
     >
       {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}

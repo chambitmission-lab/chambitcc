@@ -24,6 +24,8 @@ interface VerseListProps {
   totalChapters: number
   onChapterChange: (chapter: number) => void
   bookNumber: number
+  scrollToVerse?: number | null
+  onScrolled?: () => void
 }
 
 const VerseList = ({
@@ -35,7 +37,9 @@ const VerseList = ({
   selectedChapter,
   totalChapters,
   onChapterChange,
-  bookNumber
+  bookNumber,
+  scrollToVerse,
+  onScrolled,
 }: VerseListProps) => {
   const observerTarget = useRef<HTMLDivElement>(null)
   const { language } = useLanguage()
@@ -211,6 +215,26 @@ const VerseList = ({
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
   
+  // 이어 읽기: 지정된 절로 자동 스크롤 + 일시적 하이라이트.
+  // 무한 스크롤 페이지가 새로 로드될 때마다 DOM 존재 여부를 재확인하고,
+  // 없으면 자동으로 다음 페이지를 미리 받는다.
+  useEffect(() => {
+    if (!scrollToVerse || !chapterData) return
+    const el = document.getElementById(`bible-verse-${scrollToVerse}`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      el.classList.add('verse-resume-highlight')
+      const timer = setTimeout(() => {
+        el.classList.remove('verse-resume-highlight')
+      }, 2400)
+      onScrolled?.()
+      return () => clearTimeout(timer)
+    }
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [scrollToVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled])
+
   // 디버깅: 챕터 데이터 확인
   useEffect(() => {
     if (import.meta.env.DEV && chapterData) {

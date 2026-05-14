@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
+import { useResumeReading } from '../../hooks/useBibleReading'
+import { useAuth } from '../../hooks/useAuth'
+import type { ResumePosition } from '../../api/bibleReading'
 import {
   BibleHeader,
   BibleTabs,
   BookSelector,
   ChapterNavigation,
   VerseList,
-  BibleSearch
+  BibleSearch,
+  ResumeReadingCard,
 } from './components'
 import './BibleStudy.css'
 
@@ -19,8 +23,17 @@ const BibleStudy = () => {
   const [selectedChapter, setSelectedChapter] = useState<number>(1)
   const [activeTab, setActiveTab] = useState<'read' | 'search'>('read')
   const [showBookList, setShowBookList] = useState<boolean>(true)
-  
+  const [pendingScrollVerse, setPendingScrollVerse] = useState<number | null>(null)
+
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
+  const { isLoggedIn } = useAuth()
+  const { data: resumeData } = useResumeReading(20, isLoggedIn())
+
+  const resumeMap = useMemo(() => {
+    const map = new Map<number, ResumePosition>()
+    resumeData?.recent_books?.forEach(p => map.set(p.book_number, p))
+    return map
+  }, [resumeData])
   
   const selectedBookData = books?.find(b => b.id === selectedBookId)
   
@@ -58,11 +71,23 @@ const BibleStudy = () => {
     activeTab === 'read' && selectedBookId > 0
   )
   
-  const handleBookSelect = (bookId: number, bookName: string) => {
+  const handleBookSelect = (bookId: number, bookName: string, resume?: ResumePosition) => {
     setSelectedBookId(bookId)
     setSelectedBook(bookName)
-    setSelectedChapter(1)
+    setSelectedChapter(resume?.chapter ?? 1)
+    setPendingScrollVerse(resume?.verse ?? null)
     setShowBookList(false)
+  }
+
+  const handleResume = (pos: ResumePosition) => {
+    const book = books?.find(b => b.book_number === pos.book_number)
+    if (!book) return
+    setSelectedBookId(book.id)
+    setSelectedBook(book.book_name_ko)
+    setSelectedChapter(pos.chapter)
+    setPendingScrollVerse(pos.verse)
+    setShowBookList(false)
+    setActiveTab('read')
   }
   
   const handleChangeBook = () => {
@@ -73,6 +98,7 @@ const BibleStudy = () => {
   
   const handleChapterChange = (chapter: number) => {
     setSelectedChapter(chapter)
+    setPendingScrollVerse(null)
     // 여러 스크롤 컨테이너를 모두 처리
     window.scrollTo({ top: 0, behavior: 'smooth' })
     document.documentElement.scrollTop = 0
@@ -89,6 +115,15 @@ const BibleStudy = () => {
         {/* 읽기 탭 */}
         {activeTab === 'read' && (
           <div className="bible-read-section">
+            {/* 이어 읽기 카드 - 책 목록 화면에서만 노출 */}
+            {showBookList && resumeData?.latest && (
+              <ResumeReadingCard
+                latest={resumeData.latest}
+                recentBooks={resumeData.recent_books}
+                onResume={handleResume}
+              />
+            )}
+
             {/* 책 선택 */}
             {showBookList && (
               <BookSelector
@@ -96,6 +131,7 @@ const BibleStudy = () => {
                 isLoading={booksLoading}
                 error={booksError}
                 onBookSelect={handleBookSelect}
+                resumeMap={resumeMap}
               />
             )}
             
@@ -120,6 +156,8 @@ const BibleStudy = () => {
                   totalChapters={selectedBookData.chapter_count}
                   onChapterChange={handleChapterChange}
                   bookNumber={selectedBookData.book_number}
+                  scrollToVerse={pendingScrollVerse}
+                  onScrolled={() => setPendingScrollVerse(null)}
                 />
               </div>
             )}
