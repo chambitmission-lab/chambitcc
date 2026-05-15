@@ -1,5 +1,6 @@
 import './Home.css'
 import HeroSection from './components/HeroSection'
+import DailyMeditationCard from './components/DailyMeditationCard'
 import InfoCards from './components/InfoCards'
 import WorshipTimes from './components/WorshipTimes'
 import LatestSermon from './components/LatestSermon'
@@ -10,6 +11,7 @@ const Home = () => {
   return (
     <div className="home">
       <HeroSection />
+      <DailyMeditationCard />
       <InfoCards />
       <WorshipTimes />
       <LatestSermon />

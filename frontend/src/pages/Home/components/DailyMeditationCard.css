@@ -1,0 +1,271 @@
+/* DailyMeditationCard
+ * 시간대(morning/afternoon/evening)와 절기(season)별 배경 그라데이션.
+ * 본문 폰트와 구조는 고정 — 신뢰감 유지.
+ */
+
+.meditation-section {
+  padding: 32px 16px 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.meditation-card {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  border-radius: 24px;
+  padding: 28px 24px 24px;
+  overflow: hidden;
+  box-shadow:
+    0 20px 60px -20px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  color: #1f2937;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.meditation-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.95;
+}
+
+.meditation-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── 시간대별 배경 ──────────────────────── */
+.meditation-card[data-time="morning"]::before {
+  background: linear-gradient(
+    135deg,
+    #fff4d6 0%,
+    #ffe3b3 35%,
+    #ffd9c0 70%,
+    #ffc8d6 100%
+  );
+}
+
+.meditation-card[data-time="afternoon"]::before {
+  background: linear-gradient(
+    135deg,
+    #e8f4ff 0%,
+    #c9e3ff 50%,
+    #b5d4ff 100%
+  );
+}
+
+.meditation-card[data-time="evening"]::before {
+  background: linear-gradient(
+    135deg,
+    #2c3e75 0%,
+    #4a3f88 50%,
+    #6a4a96 100%
+  );
+  color: #f3eaff;
+}
+
+/* ── 절기별 액센트 (왼쪽 세로 바) ─────────── */
+.meditation-card[data-season="advent"] {
+  border-left: 4px solid #6b46c1;
+}
+.meditation-card[data-season="lent"] {
+  border-left: 4px solid #7c2d12;
+}
+.meditation-card[data-season="easter"] {
+  border-left: 4px solid #eab308;
+}
+.meditation-card[data-season="epiphany"],
+.meditation-card[data-season="ordinary"] {
+  border-left: 4px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ── 헤더 (인사 + 통독 진도) ──────────────── */
+.meditation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.meditation-greeting {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  opacity: 0.85;
+}
+
+.meditation-progress {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+}
+
+.meditation-card[data-time="evening"] .meditation-progress {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f3eaff;
+}
+
+/* ── 본문 표기 / 주제 ──────────────────── */
+.meditation-passage {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.meditation-passage-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.meditation-passage-theme {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  font-weight: 500;
+}
+
+.meditation-card[data-time="evening"] .meditation-passage-theme {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ── 핵심 절 인용 ──────────────────────── */
+.meditation-verse-quote {
+  margin: 6px 0 18px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.meditation-card[data-time="evening"] .meditation-verse-quote {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.meditation-verse-text {
+  font-size: 17px;
+  line-height: 1.6;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+
+.meditation-verse-reference {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.7;
+  text-align: right;
+}
+
+/* ── 묵상 질문 ──────────────────────── */
+.meditation-question-block {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.meditation-question-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.meditation-question-text {
+  font-size: 13.5px;
+  line-height: 1.55;
+  opacity: 0.9;
+  word-break: keep-all;
+}
+
+/* ── CTA 버튼 ──────────────────────── */
+.meditation-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  color: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  text-decoration: none;
+}
+
+.meditation-cta:hover {
+  background: rgba(0, 0, 0, 0.14);
+  transform: translateY(-1px);
+}
+
+.meditation-card[data-time="evening"] .meditation-cta {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.meditation-card[data-time="evening"] .meditation-cta:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.meditation-cta .material-icons-round {
+  font-size: 16px;
+}
+
+/* ── 로딩/에러 상태 ──────────────────── */
+.meditation-card.is-loading {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+}
+
+.meditation-skeleton {
+  height: 14px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  margin-bottom: 10px;
+  animation: meditation-pulse 1.6s ease-in-out infinite;
+}
+
+.meditation-skeleton.lg {
+  height: 22px;
+  width: 80%;
+}
+
+.meditation-skeleton.sm {
+  height: 10px;
+  width: 40%;
+}
+
+@keyframes meditation-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.85; }
+}
+
+/* ── 다크 모드 ──────────────────────── */
+[data-theme="dark"] .meditation-card[data-time="morning"]::before,
+[data-theme="dark"] .meditation-card[data-time="afternoon"]::before {
+  filter: brightness(0.7) saturate(1.1);
+}
+
+[data-theme="dark"] .meditation-card {
+  color: #f3f4f6;
+}
+
+[data-theme="dark"] .meditation-card[data-time="morning"],
+[data-theme="dark"] .meditation-card[data-time="afternoon"] {
+  color: #1f2937;
+}

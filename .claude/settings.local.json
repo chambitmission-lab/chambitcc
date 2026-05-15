@@ -37,7 +37,9 @@
       "PowerShell(npm run *)",
       "PowerShell(python -c \"from app.api.v1.router import api_router; from app.models.bible_figure import BibleFigure, FigureRelationship; from app.services.bible_figure_service import BibleFigureService; from app.api.v1.endpoints import bible_figure; print\\('OK - all imports successful'\\)\")",
       "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 60)",
-      "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 40)"
+      "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 40)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\k1988\\\\idea\\\\chambit-main\" -Directory)",
+      "Bash(dir C:\\\\Users\\\\k1988\\\\idea\\\\chambit-main\\\\backend\\\\apply_*.py)"
     ]
   }
 }
