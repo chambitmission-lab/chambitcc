@@ -29,32 +29,8 @@ const DailyMeditationCard = () => {
   const { data, isLoading, error } = useDailyMeditation()
   const { fullName } = getCurrentUser()
 
-  // [DEBUG] 일시적: 에러도 화면에 표시 — 안정화 후 return null 로 되돌릴 것
   if (error) {
-    const errMsg = error instanceof Error ? error.message : String(error)
-    console.error('[DailyMeditationCard] API error:', error)
-    return (
-      <section className="meditation-section">
-        <div
-          className="meditation-card"
-          data-time="morning"
-          style={{ padding: 20 }}
-        >
-          <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-            🛠 묵상 카드 로딩 실패 (디버그 모드)
-          </p>
-          <p style={{ fontSize: 12, opacity: 0.75, lineHeight: 1.5 }}>
-            error: <code>{errMsg}</code>
-            <br />
-            ① 백엔드 서버가 켜져있나요?
-            <br />
-            ② <code>apply_meditation_migration.py</code> 실행했나요?
-            <br />
-            ③ 콘솔(F12)에서 <code>/api/v1/meditation/today</code> 응답 확인하세요
-          </p>
-        </div>
-      </section>
-    )
+    return null
   }
 
   if (isLoading || !data) {
@@ -89,10 +65,10 @@ const DailyMeditationCard = () => {
             {buildGreeting(timeOfDay, fullName)}
           </span>
           <span className="meditation-progress">
-            <span className="material-icons-round" style={{ fontSize: 12, verticalAlign: 'middle', marginRight: 4 }}>
+            <span className="material-icons-round" style={{ fontSize: 11 }}>
               auto_stories
             </span>
-            {SEASON_LABELS[season] ?? ''} · 통독 {data.day_number}/{data.total_days}일
+            {SEASON_LABELS[season] ?? ''} · {data.day_number}/{data.total_days}일
           </span>
         </header>
 
