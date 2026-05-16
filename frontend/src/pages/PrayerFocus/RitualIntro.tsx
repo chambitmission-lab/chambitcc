@@ -9,12 +9,12 @@ interface RitualIntroProps {
   /** 주제별 시작 멘트(옵션). 없으면 기본 골방 말씀 표시 */
   themeQuoteKey?: string
   themeQuoteRefKey?: string
-  /** 자동으로 다음 단계로 넘어가기까지의 ms. 기본 5500ms */
+  /** 자동 진입 시간(ms). 0 또는 미지정이면 자동 진입 없이 사용자 터치만 기다림 */
   autoAdvanceMs?: number
   onEnter: () => void
 }
 
-const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, autoAdvanceMs = 5500, onEnter }: RitualIntroProps) => {
+const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, autoAdvanceMs = 0, onEnter }: RitualIntroProps) => {
   const { t } = useLanguage()
   const tx = t as unknown as (k: string) => string
   const [step, setStep] = useState(0) // 0: 어두움 → 1: 말씀 → 2: 호흡 멘트 → 3: 터치 안내
@@ -25,10 +25,11 @@ const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, autoAdvanceMs = 55
       setTimeout(() => setStep(2), 2400),  // 호흡 멘트 fade-in
       setTimeout(() => setStep(3), 4000),  // 터치 안내 fade-in
     ]
-    const auto = setTimeout(onEnter, autoAdvanceMs)
+    // autoAdvanceMs > 0 일 때만 자동 진입 — 기본은 수동 터치
+    const auto = autoAdvanceMs > 0 ? setTimeout(onEnter, autoAdvanceMs) : null
     return () => {
       timers.forEach(clearTimeout)
-      clearTimeout(auto)
+      if (auto) clearTimeout(auto)
     }
   }, [autoAdvanceMs, onEnter])
 
