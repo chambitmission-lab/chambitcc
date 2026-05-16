@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
-import TodaysVerse from './components/TodaysVerse'
+// TodaysVerse — DailyMeditationCard와 verse 표시가 중복되어 비활성화. 다시 살리려면 아래 import와 <TodaysVerse /> 주석을 해제하세요.
+// import TodaysVerse from './components/TodaysVerse'
 import DailyMeditationCard from './components/DailyMeditationCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import ThanksTicker from './components/ThanksTicker'
@@ -200,7 +201,8 @@ const NewHome = () => {
               </div>
             )}
             
-            <TodaysVerse />
+            {/* TodaysVerse — DailyMeditationCard와 중복되어 비활성화 */}
+            {/* <TodaysVerse /> */}
 
             {/* 오늘의 묵상 카드 (통독표 + 시간대/감정 컨텍스트) */}
             <DailyMeditationCard />

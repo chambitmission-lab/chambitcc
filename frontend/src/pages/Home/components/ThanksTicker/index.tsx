@@ -29,8 +29,8 @@ const ThanksTicker = () => {
   const durationSec = Math.max(20, items.length * 6)
 
   return (
-    <section className="px-4 pt-3 pb-1">
-      <div className="w-full rounded-2xl overflow-hidden bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 dark:from-amber-900/25 dark:via-orange-900/20 dark:to-amber-900/25 border border-amber-200/70 dark:border-amber-800/40 hover:shadow-md transition-shadow flex items-stretch">
+    <section className="px-4 py-1.5">
+      <div className="w-full rounded-2xl overflow-hidden bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 dark:from-amber-900/20 dark:via-orange-900/15 dark:to-amber-900/20 border border-amber-200/60 dark:border-amber-700/30 hover:shadow-md transition-shadow flex items-stretch">
         {/* 본문 영역: 탭하면 /thanks 목록으로 이동 */}
         <button
           type="button"
