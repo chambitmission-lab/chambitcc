@@ -39,7 +39,8 @@
       "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 60)",
       "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 40)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\k1988\\\\idea\\\\chambit-main\" -Directory)",
-      "Bash(dir C:\\\\Users\\\\k1988\\\\idea\\\\chambit-main\\\\backend\\\\apply_*.py)"
+      "Bash(dir C:\\\\Users\\\\k1988\\\\idea\\\\chambit-main\\\\backend\\\\apply_*.py)",
+      "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 30)"
     ]
   }
 }

@@ -3,8 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
 import PrayerDetail from './components/PrayerDetail'
-// TodaysVerse — DailyMeditationCard와 verse 표시가 중복되어 비활성화. 다시 살리려면 아래 import와 <TodaysVerse /> 주석을 해제하세요.
+// TodaysVerse — AnnualThemeVerse 전용 카드로 대체. 다시 살리려면 아래 import와 <TodaysVerse /> 주석을 해제하세요.
 // import TodaysVerse from './components/TodaysVerse'
+import AnnualThemeVerse from './components/AnnualThemeVerse'
 import DailyMeditationCard from './components/DailyMeditationCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import ThanksTicker from './components/ThanksTicker'
@@ -201,8 +202,8 @@ const NewHome = () => {
               </div>
             )}
             
-            {/* TodaysVerse — DailyMeditationCard와 중복되어 비활성화 */}
-            {/* <TodaysVerse /> */}
+            {/* 올해의 말씀 — 교회 연간 표어 (메인 화면 위계 최상단) */}
+            <AnnualThemeVerse />
 
             {/* 오늘의 묵상 카드 (통독표 + 시간대/감정 컨텍스트) */}
             <DailyMeditationCard />
