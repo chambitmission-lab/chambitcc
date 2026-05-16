@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import type { Prayer } from '../../../../types/prayer'
 import PrayerHeader from './PrayerHeader'
 import PrayerContent from './PrayerContent'
@@ -10,12 +10,11 @@ import { getGroupColorTheme, getGroupColorCSSVars } from '../../../../utils/grou
 
 interface PrayerArticleProps {
   prayer: Prayer
-  onPrayerToggle: (prayerId: number) => void
+  onPrayerToggle: (prayerId: number) => void | Promise<void>
   onAnswerToggle?: (prayerId: number) => void
   onEditAnswer?: (prayerId: number) => void
   onCancelAnswer?: (prayerId: number) => void
-  onClick: () => void
-  onReplyClick: () => void
+  onPrayerClick: (prayerId: number, shouldOpenReplies?: boolean) => void
 }
 
 const PrayerArticle = ({
@@ -24,8 +23,7 @@ const PrayerArticle = ({
   onAnswerToggle,
   onEditAnswer,
   onCancelAnswer,
-  onClick,
-  onReplyClick,
+  onPrayerClick,
 }: PrayerArticleProps) => {
   const [isPraying, setIsPraying] = useState(false)
   const [showVersesModal, setShowVersesModal] = useState(false)
@@ -39,7 +37,7 @@ const PrayerArticle = ({
     if (isPraying) return
     setIsPraying(true)
     try {
-      onPrayerToggle(prayer.id)
+      await onPrayerToggle(prayer.id)
     } finally {
       setIsPraying(false)
     }
@@ -65,10 +63,13 @@ const PrayerArticle = ({
     setShowVersesModal(true)
   }
 
+  const handleArticleClick = () => onPrayerClick(prayer.id)
+  const handleReplyClick = () => onPrayerClick(prayer.id, true)
+
   return (
     <article
       className={`prayer-card bg-background-light dark:bg-background-dark pb-6 mb-5 cursor-pointer transition-all ${prayer.is_answered ? 'answered-article' : ''}`}
-      onClick={onClick}
+      onClick={handleArticleClick}
       style={cssVars as React.CSSProperties}
     >
       <PrayerHeader
@@ -102,7 +103,7 @@ const PrayerArticle = ({
       <PrayerStats
         prayerCount={prayer.prayer_count}
         replyCount={prayer.reply_count}
-        onReplyClick={onReplyClick}
+        onReplyClick={handleReplyClick}
       />
 
       {prayer.recommended_verses && prayer.recommended_verses.verses.length > 0 && (
@@ -122,4 +123,4 @@ const PrayerArticle = ({
   )
 }
 
-export default PrayerArticle
+export default memo(PrayerArticle)

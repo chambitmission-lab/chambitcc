@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 import PrayerComposer from './components/PrayerComposer'
@@ -41,6 +41,10 @@ const NewHome = () => {
   const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter)  // ✅ selectedFilter 전달
   const mainRef = useRef<HTMLDivElement>(null)
 
+  // 핸들러 안정화용 ref — prayerHook은 매 렌더 새 객체라 useCallback deps에 못 넣음
+  const prayerHookRef = useRef(prayerHook)
+  prayerHookRef.current = prayerHook
+
   // 로그인 상태 변경 시 필터 초기화
   useEffect(() => {
     if (!isLoggedIn() && (selectedFilter === 'my_prayers' || selectedFilter === 'prayed_by_me')) {
@@ -67,46 +71,46 @@ const NewHome = () => {
     requireAuthWithRedirect('/profile')
   }
 
-  const handlePrayerToggle = async (prayerId: number) => {
+  const handlePrayerToggle = useCallback(async (prayerId: number) => {
     try {
-      await prayerHook.handlePrayerToggle(prayerId)
+      await prayerHookRef.current.handlePrayerToggle(prayerId)
     } catch (error) {
       showToast(error instanceof Error ? error.message : t('prayerFailed'), 'error')
     }
-  }
+  }, [t])
 
-  const handlePrayerClick = (prayerId: number, shouldOpenReplies = false) => {
+  const handlePrayerClick = useCallback((prayerId: number, shouldOpenReplies = false) => {
     setSelectedPrayerId(prayerId)
     setOpenReplies(shouldOpenReplies)
-  }
+  }, [])
 
-  const handleAnswerToggle = (prayerId: number) => {
-    const prayer = prayerHook.prayers.find(p => p.id === prayerId)
+  const handleAnswerToggle = useCallback((prayerId: number) => {
+    const prayer = prayerHookRef.current.prayers.find(p => p.id === prayerId)
     if (prayer) {
       setSelectedPrayerForAnswer(prayer)
       setShowAnswerModal(true)
     }
-  }
+  }, [])
 
   // 응답된 기도의 간증 수정 진입점
-  const handleEditAnswer = (prayerId: number) => {
-    const prayer = prayerHook.prayers.find(p => p.id === prayerId)
+  const handleEditAnswer = useCallback((prayerId: number) => {
+    const prayer = prayerHookRef.current.prayers.find(p => p.id === prayerId)
     if (prayer) {
       setSelectedPrayerForAnswer(prayer)
       setShowAnswerModal(true)
     }
-  }
+  }, [])
 
   // 응답 등록 취소
-  const handleCancelAnswer = async (prayerId: number) => {
+  const handleCancelAnswer = useCallback(async (prayerId: number) => {
     const ok = window.confirm('응답 등록을 취소하시겠습니까? 등록한 간증이 삭제됩니다.')
     if (!ok) return
     try {
-      await prayerHook.cancelPrayerAnswer(prayerId)
+      await prayerHookRef.current.cancelPrayerAnswer(prayerId)
     } catch {
       // mutation onError에서 toast 처리됨
     }
-  }
+  }, [])
 
   const handleAnswerSubmit = async (testimony: string) => {
     if (!selectedPrayerForAnswer) return
@@ -141,50 +145,10 @@ const NewHome = () => {
     navigate('/prayer-focus')
   }
 
-  // 초기 로딩 상태 표시
-  if (prayerHook.loading && prayerHook.prayers.length === 0) {
-    return (
-      <ErrorBoundary>
-        <div className="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-200">
-          <div className="max-w-md mx-auto min-h-screen bg-background-light dark:bg-background-dark shadow-2xl relative flex flex-col border-x border-border-light dark:border-border-dark">
-            <main className="flex-1 flex items-center justify-center p-8">
-              <div className="text-center">
-                <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-gray-900 dark:text-white font-semibold">{t('loadingPrayerList')}</p>
-              </div>
-            </main>
-          </div>
-        </div>
-      </ErrorBoundary>
-    )
-  }
-
-  // 에러 상태 표시 - 캐시된 데이터가 있으면 표시
-  if (prayerHook.error && prayerHook.prayers.length === 0) {
-    return (
-      <ErrorBoundary>
-        <div className="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-200">
-          <div className="max-w-md mx-auto min-h-screen bg-background-light dark:bg-background-dark shadow-2xl relative flex flex-col border-x border-border-light dark:border-border-dark">
-            <main className="flex-1 flex items-center justify-center p-8">
-              <div className="text-center">
-                <span className="text-6xl mb-4 block">📡</span>
-                <p className="text-gray-900 dark:text-white font-semibold mb-2">오프라인 상태입니다</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  네트워크 연결을 확인해주세요
-                </p>
-                <button
-                  onClick={() => prayerHook.refresh()}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all"
-                >
-                  다시 시도
-                </button>
-              </div>
-            </main>
-          </div>
-        </div>
-      </ErrorBoundary>
-    )
-  }
+  // 초기 로딩/에러는 PrayerFeed 영역 안에서만 표시 — 상단 카드(올해의 말씀, 묵상, 감사)는
+  // 독립 쿼리이므로 기도 목록 fetch와 무관하게 즉시 렌더되어야 LCP 손해가 없다.
+  const showOfflineWithoutCache =
+    !!prayerHook.error && prayerHook.prayers.length === 0
 
   return (
     <ErrorBoundary>
@@ -230,19 +194,37 @@ const NewHome = () => {
             </div>
             
             <SortTabs currentSort={sort} onSortChange={setSort} />
-            
-            <PrayerFeed
-              prayers={prayerHook.prayers}
-              loading={prayerHook.loading}
-              hasMore={prayerHook.hasMore}
-              isFetchingMore={prayerHook.isFetchingMore}
-              onLoadMore={prayerHook.loadMore}
-              onPrayerToggle={handlePrayerToggle}
-              onAnswerToggle={handleAnswerToggle}
-              onEditAnswer={handleEditAnswer}
-              onCancelAnswer={handleCancelAnswer}
-              onPrayerClick={handlePrayerClick}
-            />
+
+            {showOfflineWithoutCache ? (
+              <div className="px-4 py-12 text-center">
+                <span className="text-5xl mb-3 block">📡</span>
+                <p className="text-gray-900 dark:text-white font-semibold mb-1">
+                  오프라인 상태입니다
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  네트워크 연결을 확인해주세요
+                </p>
+                <button
+                  onClick={() => prayerHook.refresh()}
+                  className="px-5 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold rounded-full hover:shadow-lg transition-all"
+                >
+                  다시 시도
+                </button>
+              </div>
+            ) : (
+              <PrayerFeed
+                prayers={prayerHook.prayers}
+                loading={prayerHook.loading}
+                hasMore={prayerHook.hasMore}
+                isFetchingMore={prayerHook.isFetchingMore}
+                onLoadMore={prayerHook.loadMore}
+                onPrayerToggle={handlePrayerToggle}
+                onAnswerToggle={handleAnswerToggle}
+                onEditAnswer={handleEditAnswer}
+                onCancelAnswer={handleCancelAnswer}
+                onPrayerClick={handlePrayerClick}
+              />
+            )}
           </main>
 
           {/* Prayer Composer Modal */}

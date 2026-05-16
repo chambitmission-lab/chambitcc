@@ -1,51 +1,69 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getThanksList } from '../../api/thanks'
-import { useLanguage } from '../../contexts/LanguageContext'
-import { useAuth } from '../../hooks/useAuth'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query'
 import {
   createThanks,
   deleteThanks,
+  getThanksList,
   toggleThanksAmen,
 } from '../../api/thanks'
-import type { CreateThanksRequest, Thanks as ThanksType } from '../../types/thanks'
+import { useLanguage } from '../../contexts/LanguageContext'
+import { useAuth } from '../../hooks/useAuth'
+import {
+  THANKS_PAGE_SIZE,
+  thanksKeys,
+  type ThanksInfiniteData,
+  type ThanksPage,
+} from '../Home/components/ThanksThread/useThanks'
+import type { CreateThanksRequest } from '../../types/thanks'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import ThanksCard from '../Home/components/ThanksThread/ThanksCard'
 import ThanksComposer from '../Home/components/ThanksThread/ThanksComposer'
-
-const PAGE_SIZE = 20
 
 const Thanks = () => {
   const { language } = useLanguage()
   const { requireAuth } = useAuth()
   const navigate = useNavigate()
   const admin = isAdmin()
+  const queryClient = useQueryClient()
 
-  const [items, setItems] = useState<ThanksType[]>([])
-  const [page, setPage] = useState(1)
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [showComposer, setShowComposer] = useState(false)
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const [showComposer, setShowComposer] = useState(false)
 
-  const loadPage = useCallback(async (p: number) => {
-    setLoading(true)
-    try {
-      const data = await getThanksList(p, PAGE_SIZE)
-      setItems((prev) => (p === 1 ? data.items : [...prev, ...data.items]))
-      setTotal(data.total)
-      setPage(p)
-    } catch (e) {
-      showToast(e instanceof Error ? e.message : 'Failed to load', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  // ticker(useThanks)와 동일한 키 → 캐시 공유
+  const queryKey = thanksKeys.infinite(THANKS_PAGE_SIZE)
 
-  useEffect(() => {
-    loadPage(1)
-  }, [loadPage])
+  const query = useInfiniteQuery({
+    queryKey,
+    queryFn: async ({ pageParam = 1 }): Promise<ThanksPage> => {
+      const data = await getThanksList(pageParam, THANKS_PAGE_SIZE)
+      return { items: data.items, total: data.total, page: pageParam }
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((sum, p) => sum + p.items.length, 0)
+      return loaded < lastPage.total ? lastPage.page + 1 : undefined
+    },
+    staleTime: 1000 * 60 * 2,
+    gcTime: 1000 * 60 * 30,
+  })
+
+  const items = query.data?.pages.flatMap((p) => p.items) ?? []
+  const total = query.data?.pages[0]?.total ?? 0
+
+  const updatePages = (
+    updater: (page: ThanksPage, index: number) => ThanksPage,
+  ) => {
+    queryClient.setQueryData<ThanksInfiniteData>(queryKey, (prev) => {
+      if (!prev) return prev
+      return { ...prev, pages: prev.pages.map(updater) }
+    })
+  }
 
   // 무한 스크롤
   useEffect(() => {
@@ -53,77 +71,111 @@ const Thanks = () => {
     if (!el) return
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !loading && items.length < total) {
-          loadPage(page + 1)
+        if (
+          entry.isIntersecting &&
+          query.hasNextPage &&
+          !query.isFetchingNextPage
+        ) {
+          query.fetchNextPage()
         }
       },
-      { rootMargin: '200px' }
+      { rootMargin: '200px' },
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [loading, items.length, total, page, loadPage])
+  }, [query])
 
-  const handleAdd = async (payload: CreateThanksRequest) => {
-    const created = await createThanks(payload)
-    setItems((prev) => [created, ...prev])
-    setTotal((t) => t + 1)
-  }
+  const addMutation = useMutation({
+    mutationFn: (payload: CreateThanksRequest) => createThanks(payload),
+    onSuccess: (created) => {
+      updatePages((page, idx) =>
+        idx === 0
+          ? { ...page, items: [created, ...page.items], total: page.total + 1 }
+          : { ...page, total: page.total + 1 },
+      )
+    },
+  })
 
-  const handleAmen = (id: number) => {
-    requireAuth(async () => {
-      const target = items.find((t) => t.id === id)
-      if (!target) return
-      // 낙관적
-      setItems((prev) =>
-        prev.map((t) =>
+  const amenMutation = useMutation({
+    mutationFn: (id: number) => toggleThanksAmen(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<ThanksInfiniteData>(queryKey)
+      updatePages((page) => ({
+        ...page,
+        items: page.items.map((t) =>
           t.id === id
             ? {
                 ...t,
                 is_amened: !t.is_amened,
-                amen_count: t.is_amened ? Math.max(0, t.amen_count - 1) : t.amen_count + 1,
+                amen_count: t.is_amened
+                  ? Math.max(0, t.amen_count - 1)
+                  : t.amen_count + 1,
               }
-            : t
-        )
-      )
-      try {
-        const res = await toggleThanksAmen(id)
-        setItems((prev) =>
-          prev.map((t) =>
-            t.id === id ? { ...t, is_amened: res.is_amened, amen_count: res.amen_count } : t
-          )
-        )
-      } catch (e) {
-        // 롤백
-        setItems((prev) =>
-          prev.map((t) =>
-            t.id === id
-              ? {
-                  ...t,
-                  is_amened: !t.is_amened,
-                  amen_count: t.is_amened ? Math.max(0, t.amen_count - 1) : t.amen_count + 1,
-                }
-              : t
-          )
-        )
-        showToast(e instanceof Error ? e.message : 'Failed', 'error')
+            : t,
+        ),
+      }))
+      return { previous }
+    },
+    onSuccess: (res, id) => {
+      updatePages((page) => ({
+        ...page,
+        items: page.items.map((t) =>
+          t.id === id
+            ? { ...t, is_amened: res.is_amened, amen_count: res.amen_count }
+            : t,
+        ),
+      }))
+    },
+    onError: (_e, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
       }
-    })
+      showToast(language === 'ko' ? '실패했습니다' : 'Failed', 'error')
+    },
+  })
+
+  const removeMutation = useMutation({
+    mutationFn: (id: number) => deleteThanks(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<ThanksInfiniteData>(queryKey)
+      updatePages((page) => ({
+        ...page,
+        items: page.items.filter((t) => t.id !== id),
+        total: Math.max(0, page.total - 1),
+      }))
+      return { previous }
+    },
+    onSuccess: () => {
+      showToast(language === 'ko' ? '삭제되었습니다' : 'Deleted', 'success')
+    },
+    onError: (_e, _id, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous)
+      }
+      showToast(language === 'ko' ? '실패했습니다' : 'Failed', 'error')
+    },
+  })
+
+  const handleAdd = async (payload: CreateThanksRequest) => {
+    await addMutation.mutateAsync(payload)
+  }
+
+  const handleAmen = (id: number) => {
+    requireAuth(() => amenMutation.mutate(id))
   }
 
   const handleDelete = async (id: number) => {
-    const ok = window.confirm(language === 'ko' ? '이 감사를 삭제할까요?' : 'Delete this thanks?')
+    const ok = window.confirm(
+      language === 'ko' ? '이 감사를 삭제할까요?' : 'Delete this thanks?',
+    )
     if (!ok) return
-    try {
-      await deleteThanks(id)
-      setItems((prev) => prev.filter((t) => t.id !== id))
-      setTotal((t) => Math.max(0, t - 1))
-      showToast(language === 'ko' ? '삭제되었습니다' : 'Deleted', 'success')
-    } catch (e) {
-      showToast(e instanceof Error ? e.message : 'Failed', 'error')
-    }
+    removeMutation.mutate(id)
   }
 
   const handleOpenComposer = () => requireAuth(() => setShowComposer(true))
+  const showSpinner = query.isLoading || query.isFetchingNextPage
 
   return (
     <div className="bg-gray-50 dark:bg-black min-h-screen">
@@ -144,7 +196,10 @@ const Thanks = () => {
                 <span>{language === 'ko' ? '오늘의 감사' : 'Today’s Thanks'}</span>
               </h1>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {language === 'ko' ? '일상 속 작은 감사를 함께 나눕니다' : 'Share the little joys of daily life'}
+                {language === 'ko'
+                  ? '일상 속 작은 감사를 함께 나눕니다'
+                  : 'Share the little joys of daily life'}
+                {total > 0 && ` · ${total}`}
               </p>
             </div>
             <button
@@ -159,7 +214,7 @@ const Thanks = () => {
 
         {/* List */}
         <div className="p-4 space-y-3">
-          {items.length === 0 && !loading ? (
+          {items.length === 0 && !query.isLoading ? (
             <button
               onClick={handleOpenComposer}
               className="w-full text-left p-6 rounded-2xl border border-dashed border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/10 text-sm text-amber-800 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
@@ -181,7 +236,7 @@ const Thanks = () => {
             ))
           )}
 
-          {loading && (
+          {showSpinner && (
             <div className="flex items-center justify-center py-6">
               <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
             </div>
@@ -192,7 +247,10 @@ const Thanks = () => {
         </div>
 
         {showComposer && (
-          <ThanksComposer onClose={() => setShowComposer(false)} onSubmit={handleAdd} />
+          <ThanksComposer
+            onClose={() => setShowComposer(false)}
+            onSubmit={handleAdd}
+          />
         )}
       </div>
     </div>
