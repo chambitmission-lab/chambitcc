@@ -43,9 +43,9 @@ const TextToSpeechButton = ({ text, className = '', size = 'md' }: TextToSpeechB
         flex items-center justify-center
         rounded-full
         transition-all duration-200
-        ${isPlaying 
-          ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/50 animate-pulse' 
-          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-600 dark:hover:text-purple-400'
+        ${isPlaying
+          ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/50 animate-pulse'
+          : 'bg-purple-50/70 dark:bg-purple-900/15 text-purple-500/90 dark:text-purple-400/80 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-600 dark:hover:text-purple-300'
         }
         ${className}
       `}

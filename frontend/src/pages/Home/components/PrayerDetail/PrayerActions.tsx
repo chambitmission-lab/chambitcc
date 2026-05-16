@@ -21,7 +21,7 @@ const PrayerActions = ({
         disabled={isToggling}
         className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm transition-all ${
           isPrayed
-            ? 'bg-ig-red text-white shadow-md shadow-red-200 dark:shadow-red-900/30'
+            ? 'bg-purple-500 text-white shadow-md shadow-purple-300 dark:shadow-purple-900/40'
             : 'bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
         }`}
       >

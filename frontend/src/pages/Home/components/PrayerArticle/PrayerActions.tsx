@@ -71,8 +71,8 @@ const PrayerActions = ({
             onClick={handlePrayClick}
             disabled={isPraying}
             className={`relative group flex items-center gap-1 transition-all duration-300 ${
-              !useGroupColor && isPrayed ? 'text-ig-red' : 
-              !useGroupColor ? 'text-gray-800 dark:text-white hover:opacity-70' : ''
+              !useGroupColor && isPrayed ? 'text-purple-500 dark:text-purple-400' :
+              !useGroupColor ? 'text-gray-700 dark:text-gray-300 hover:text-purple-500 dark:hover:text-purple-400' : ''
             }`}
             style={useGroupColor && isPrayed ? {
               color: colorTheme.accent,
