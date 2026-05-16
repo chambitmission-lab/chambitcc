@@ -264,6 +264,32 @@ body {
   animation: scale-in 0.6s ease-out;
 }
 
+/* 기도 중 잔잔한 파동/숨소리 같은 펄스 */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.06);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4.5s ease-in-out infinite;
+}
+
+/* 진입 의식용 매우 느린 호흡 페이드 */
+@keyframes breath-fade {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
+
+.animate-breath-fade {
+  animation: breath-fade 5s ease-in-out infinite;
+}
+
 /* Liquid Pill Button Effects */
 .liquid-pill {
   position: relative;

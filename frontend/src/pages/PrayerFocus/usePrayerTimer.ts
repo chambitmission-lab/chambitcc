@@ -2,18 +2,22 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 
 interface UsePrayerTimerProps {
   onComplete?: () => void
+  /** 진행률이 50%를 지나는 순간 1회 호출 — 중간 말씀 fade-in 등에 사용 */
+  onHalfway?: () => void
 }
 
-export const usePrayerTimer = ({ onComplete }: UsePrayerTimerProps = {}) => {
+export const usePrayerTimer = ({ onComplete, onHalfway }: UsePrayerTimerProps = {}) => {
   const [timeLeft, setTimeLeft] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [isComplete, setIsComplete] = useState(false)
   const [totalSeconds, setTotalSeconds] = useState(0)
-  
+
   const intervalRef = useRef<number | null>(null)
   const startTimeRef = useRef<number>(0)
   const pausedTimeRef = useRef<number>(0)
+  const halfwayFiredRef = useRef<boolean>(false)
+  const totalRef = useRef<number>(0)
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
@@ -31,6 +35,8 @@ export const usePrayerTimer = ({ onComplete }: UsePrayerTimerProps = {}) => {
     setIsComplete(false)
     startTimeRef.current = Date.now()
     pausedTimeRef.current = 0
+    halfwayFiredRef.current = false
+    totalRef.current = seconds
 
     intervalRef.current = window.setInterval(() => {
       setTimeLeft((prev) => {
@@ -41,10 +47,16 @@ export const usePrayerTimer = ({ onComplete }: UsePrayerTimerProps = {}) => {
           onComplete?.()
           return 0
         }
-        return prev - 1
+        const next = prev - 1
+        // 중간 지점(50%) 통과 시점에 1회 발사
+        if (!halfwayFiredRef.current && totalRef.current > 0 && next <= totalRef.current / 2) {
+          halfwayFiredRef.current = true
+          onHalfway?.()
+        }
+        return next
       })
     }, 1000)
-  }, [clearTimer, onComplete])
+  }, [clearTimer, onComplete, onHalfway])
 
   const pauseTimer = useCallback(() => {
     if (isRunning && !isPaused) {
@@ -57,7 +69,7 @@ export const usePrayerTimer = ({ onComplete }: UsePrayerTimerProps = {}) => {
   const resumeTimer = useCallback(() => {
     if (isPaused) {
       setIsPaused(false)
-      
+
       intervalRef.current = window.setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -67,11 +79,16 @@ export const usePrayerTimer = ({ onComplete }: UsePrayerTimerProps = {}) => {
             onComplete?.()
             return 0
           }
-          return prev - 1
+          const next = prev - 1
+          if (!halfwayFiredRef.current && totalRef.current > 0 && next <= totalRef.current / 2) {
+            halfwayFiredRef.current = true
+            onHalfway?.()
+          }
+          return next
         })
       }, 1000)
     }
-  }, [isPaused, clearTimer, onComplete])
+  }, [isPaused, clearTimer, onComplete, onHalfway])
 
   const resetTimer = useCallback(() => {
     clearTimer()

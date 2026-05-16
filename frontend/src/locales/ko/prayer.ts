@@ -47,6 +47,105 @@ export const prayer = {
   prayerComplete: '기도 완료!',
   startAgain: '다시 시작하기',
   confirmExitTimer: '타이머가 실행 중입니다. 종료하시겠습니까?',
+
+  // 감성형 시간 라벨
+  timeShortStay: '짧게 머물기',
+  timeQuietFocus: '조용히 집중하기',
+  timeDeepPrayer: '깊이 기도하기',
+  timeBriefPause: '잠깐 멈추기',
+  timeStillness: '고요히 머물기',
+
+  // 진입 의식(Ritual)
+  ritualBreathe: '잠시 숨을 고르고',
+  ritualGaze: '하나님께 시선을 향해보세요',
+  ritualRoomVerse: '"너는 기도할 때에 네 골방에 들어가 문을 닫고 은밀한 중에 계신 네 아버지께 기도하라"',
+  ritualRoomVerseRef: '마태복음 6:6',
+  enteringPrayerSpace: '기도의 자리로 들어갑니다',
+  tapToEnter: '터치하여 시작하기',
+
+  // 기도 주제
+  selectPrayerTheme: '오늘 어떤 마음으로 기도하시나요?',
+  prayerThemeOptional: '주제를 고르지 않고 시작할 수도 있어요',
+  themeThanks: '감사',
+  themeRepentance: '회개',
+  themeAnxiety: '불안',
+  themeIntercession: '중보',
+  themeDecision: '결단',
+  themeFreedom: '자유 기도',
+  themeThanksDesc: '받은 은혜를 되새기는 시간',
+  themeRepentanceDesc: '주 앞에 마음을 비추는 시간',
+  themeAnxietyDesc: '염려를 내려놓는 시간',
+  themeIntercessionDesc: '이웃과 교회를 위한 시간',
+  themeDecisionDesc: '인도하심을 구하는 시간',
+  themeFreedomDesc: '마음 가는 대로 드리는 기도',
+
+  // 주제별 시작 말씀(진입 의식) — 개역개정
+  themeThanksQuote: '"감사함으로 그의 문에 들어가며 찬송함으로 그의 궁정에 들어가서 그에게 감사하며 그의 이름을 송축할지어다"',
+  themeThanksQuoteRef: '시편 100:4',
+  themeRepentanceQuote: '"하나님이여 내 속에 정한 마음을 창조하시고 내 안에 정직한 영을 새롭게 하소서"',
+  themeRepentanceQuoteRef: '시편 51:10',
+  themeAnxietyQuote: '"아무 것도 염려하지 말고 다만 모든 일에 기도와 간구로 너희 구할 것을 감사함으로 하나님께 아뢰라"',
+  themeAnxietyQuoteRef: '빌립보서 4:6',
+  themeIntercessionQuote: '"내가 첫째로 권하노니 모든 사람을 위하여 간구와 기도와 도고와 감사를 하되"',
+  themeIntercessionQuoteRef: '디모데전서 2:1',
+  themeDecisionQuote: '"너는 마음을 다하여 여호와를 신뢰하고 네 명철을 의지하지 말라 너는 범사에 그를 인정하라 그리하면 네 길을 지도하시리라"',
+  themeDecisionQuoteRef: '잠언 3:5-6',
+
+  // 주제별 중간 말씀(50% 시점)
+  themeThanksMidVerse: '범사에 감사하라 이것이 그리스도 예수 안에서 너희를 향하신 하나님의 뜻이니라',
+  themeThanksMidVerseRef: '데살로니가전서 5:18',
+  themeRepentanceMidVerse: '너희의 죄가 주홍 같을지라도 눈과 같이 희어질 것이요',
+  themeRepentanceMidVerseRef: '이사야 1:18',
+  themeAnxietyMidVerse: '너희 염려를 다 주께 맡기라 이는 그가 너희를 돌보심이라',
+  themeAnxietyMidVerseRef: '베드로전서 5:7',
+  themeIntercessionMidVerse: '의인의 간구는 역사하는 힘이 큼이니라',
+  themeIntercessionMidVerseRef: '야고보서 5:16',
+  themeDecisionMidVerse: '내가 네 갈 길을 가르쳐 보이고 너를 주목하여 훈계하리로다',
+  themeDecisionMidVerseRef: '시편 32:8',
+  themeFreedomMidVerse: '백성들아 시시로 그를 의지하고 그의 앞에 마음을 토하라 하나님은 우리의 피난처시로다',
+  themeFreedomMidVerseRef: '시편 62:8',
+
+  // 주제별 종료 메시지
+  themeThanksClose: '감사로 채워진 시간을 가졌습니다',
+  themeRepentanceClose: '주의 긍휼이 함께하셨습니다',
+  themeAnxietyClose: '주께 모든 염려를 맡기는 시간이었습니다',
+  themeIntercessionClose: '중보의 자리에 함께하셨습니다',
+  themeDecisionClose: '주의 인도하심을 구하는 시간이었습니다',
+  themeFreedomClose: '주 앞에 머문 시간을 기억하세요',
+
+  // 사운드/Ambience
+  ambience: '배경음',
+  ambienceSilent: '무음',
+  ambienceRain: '빗소리',
+  ambienceDawn: '새벽 공기',
+  ambiencePiano: '잔잔한 피아노',
+  ambienceCandle: '촛불',
+  ambienceChurch: '교회 잔향',
+  ambienceUnavailable: '준비 중',
+
+  // 중간 말씀
+  midPrayerWhisper: '하나님이 함께하십니다',
+
+  // 종료 경험
+  prayerCompleteRest: '오늘도 하나님 앞에 머문 시간을 기억하세요',
+  recordOneLineTitle: '오늘 받은 마음을 한 줄로 남겨보세요',
+  recordOneLinePlaceholder: '예: 평안을 주셔서 감사합니다',
+  saveOneLine: '한 줄 저장',
+  amenButton: '아멘',
+  amenSaved: '아멘으로 마무리하셨습니다',
+  thanksSaved: '감사 한 줄이 기록되었습니다',
+  skipForNow: '다음에 하기',
+
+  // 통계/영적 흔적
+  spiritualTrace: '영적 흔적',
+  todaysPrayerAdded: '오늘 {minutes}분이 기도에 더해졌습니다',
+  streakDaysLabel: '연속 기도',
+  thisWeekMinutesLabel: '이번 주',
+  totalMinutesLabel: '총 기도',
+  averageSessionLabel: '평균 한 회',
+  daysUnit: '일',
+  minutesUnit: '분',
+  sessionsUnit: '회',
   
   // 소그룹 기능
   prayerGroups: '기도 그룹',

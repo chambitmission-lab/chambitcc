@@ -47,6 +47,105 @@ export const prayer = {
   prayerComplete: 'Prayer Complete!',
   startAgain: 'Start Again',
   confirmExitTimer: 'Timer is running. Do you want to exit?',
+
+  // Emotional time labels
+  timeShortStay: 'A brief moment',
+  timeQuietFocus: 'Quiet focus',
+  timeDeepPrayer: 'Go deeper',
+  timeBriefPause: 'Brief pause',
+  timeStillness: 'Stillness',
+
+  // Ritual entry
+  ritualBreathe: 'Take a slow breath',
+  ritualGaze: 'and turn your eyes to God',
+  ritualRoomVerse: '"But when you pray, go into your room, close the door and pray to your Father, who is unseen."',
+  ritualRoomVerseRef: 'Matthew 6:6',
+  enteringPrayerSpace: 'Entering your place of prayer',
+  tapToEnter: 'Tap to begin',
+
+  // Prayer themes
+  selectPrayerTheme: 'What is on your heart today?',
+  prayerThemeOptional: 'You can also begin without a theme',
+  themeThanks: 'Thanksgiving',
+  themeRepentance: 'Repentance',
+  themeAnxiety: 'Anxiety',
+  themeIntercession: 'Intercession',
+  themeDecision: 'Decision',
+  themeFreedom: 'Free Prayer',
+  themeThanksDesc: 'Remember the grace you have received',
+  themeRepentanceDesc: 'Let the Lord search your heart',
+  themeAnxietyDesc: 'Lay down your worries',
+  themeIntercessionDesc: 'Pray for others and the church',
+  themeDecisionDesc: 'Seek His guidance',
+  themeFreedomDesc: 'Pray as the Spirit leads',
+
+  // Theme opening verses (ritual)
+  themeThanksQuote: '"Enter his gates with thanksgiving and his courts with praise; give thanks to him and praise his name."',
+  themeThanksQuoteRef: 'Psalm 100:4',
+  themeRepentanceQuote: '"Create in me a pure heart, O God, and renew a steadfast spirit within me."',
+  themeRepentanceQuoteRef: 'Psalm 51:10',
+  themeAnxietyQuote: '"Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God."',
+  themeAnxietyQuoteRef: 'Philippians 4:6',
+  themeIntercessionQuote: '"I urge, then, first of all, that petitions, prayers, intercession and thanksgiving be made for all people."',
+  themeIntercessionQuoteRef: '1 Timothy 2:1',
+  themeDecisionQuote: '"Trust in the LORD with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight."',
+  themeDecisionQuoteRef: 'Proverbs 3:5-6',
+
+  // Theme mid-prayer verses
+  themeThanksMidVerse: 'Give thanks in all circumstances; for this is God\'s will for you in Christ Jesus.',
+  themeThanksMidVerseRef: '1 Thessalonians 5:18',
+  themeRepentanceMidVerse: 'Though your sins are like scarlet, they shall be as white as snow.',
+  themeRepentanceMidVerseRef: 'Isaiah 1:18',
+  themeAnxietyMidVerse: 'Cast all your anxiety on him because he cares for you.',
+  themeAnxietyMidVerseRef: '1 Peter 5:7',
+  themeIntercessionMidVerse: 'The prayer of a righteous person is powerful and effective.',
+  themeIntercessionMidVerseRef: 'James 5:16',
+  themeDecisionMidVerse: 'I will instruct you and teach you in the way you should go.',
+  themeDecisionMidVerseRef: 'Psalm 32:8',
+  themeFreedomMidVerse: 'Trust in him at all times, you people; pour out your hearts to him, for God is our refuge.',
+  themeFreedomMidVerseRef: 'Psalm 62:8',
+
+  // Theme closing messages
+  themeThanksClose: 'A time filled with thanksgiving',
+  themeRepentanceClose: 'The Lord\'s mercy was with you',
+  themeAnxietyClose: 'You entrusted every worry to the Lord',
+  themeIntercessionClose: 'You stood in the place of intercession',
+  themeDecisionClose: 'A time seeking the Lord\'s guidance',
+  themeFreedomClose: 'Remember the time you spent before the Lord',
+
+  // Ambience
+  ambience: 'Ambience',
+  ambienceSilent: 'Silent',
+  ambienceRain: 'Rain',
+  ambienceDawn: 'Dawn air',
+  ambiencePiano: 'Soft piano',
+  ambienceCandle: 'Candle',
+  ambienceChurch: 'Church reverb',
+  ambienceUnavailable: 'Coming soon',
+
+  // Mid-prayer
+  midPrayerWhisper: 'God is with you',
+
+  // Completion experience
+  prayerCompleteRest: 'Remember the time you spent before God today',
+  recordOneLineTitle: 'Leave one line about what you received',
+  recordOneLinePlaceholder: 'e.g., Thank you for granting peace',
+  saveOneLine: 'Save',
+  amenButton: 'Amen',
+  amenSaved: 'You closed with an Amen',
+  thanksSaved: 'Your one-line thanks was saved',
+  skipForNow: 'Maybe later',
+
+  // Stats / Spiritual trace
+  spiritualTrace: 'Spiritual Trace',
+  todaysPrayerAdded: '{minutes} minutes added to your prayer today',
+  streakDaysLabel: 'Streak',
+  thisWeekMinutesLabel: 'This week',
+  totalMinutesLabel: 'Total prayer',
+  averageSessionLabel: 'Avg / session',
+  daysUnit: 'days',
+  minutesUnit: 'min',
+  sessionsUnit: 'sessions',
   
   // Prayer Groups
   prayerGroups: 'Prayer Groups',

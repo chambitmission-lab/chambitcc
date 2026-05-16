@@ -1,80 +1,249 @@
+import { useEffect, useState } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
+import type { MoodPalette } from './moodPalette'
+import type { PrayerTheme } from './prayerThemes'
+import {
+  createPrayerSession,
+  getPrayerSessionStats,
+  recordLocalSession,
+  type PrayerSessionStats,
+} from '../../api/prayerSession'
+import { createThanks } from '../../api/thanks'
 
 interface SessionCompleteProps {
-  duration: number
+  duration: number  // 분 단위
+  theme: PrayerTheme | null
+  mood: MoodPalette
+  verseId?: number
+  ambienceId?: string
   onRestart: () => void
   onClose: () => void
 }
 
-const SessionComplete = ({ duration, onRestart, onClose }: SessionCompleteProps) => {
+const isLoggedIn = (): boolean => !!localStorage.getItem('access_token')
+
+const SessionComplete = ({
+  duration,
+  theme,
+  mood,
+  verseId,
+  ambienceId,
+  onRestart,
+  onClose,
+}: SessionCompleteProps) => {
   const { t } = useLanguage()
+  const tx = t as unknown as (k: string) => string
+
+  const [stats, setStats] = useState<PrayerSessionStats | null>(null)
+  const [statsLoading, setStatsLoading] = useState(false)
+  const [note, setNote] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
+  const [noteSaved, setNoteSaved] = useState(false)
+  const [amenPressed, setAmenPressed] = useState(false)
+  const [recordError, setRecordError] = useState<string | null>(null)
+
+  // 마운트 시 세션 기록 + 통계 조회
+  useEffect(() => {
+    const seconds = duration * 60
+    const payload = {
+      duration: seconds,
+      theme: theme?.id ?? null,
+      verse_id: verseId ?? null,
+      ambience: ambienceId as any,
+      completed_at: new Date().toISOString(),
+    }
+
+    if (!isLoggedIn()) {
+      // 비로그인 — 로컬에만 저장, 통계는 표시 안 함
+      recordLocalSession(payload)
+      return
+    }
+
+    setStatsLoading(true)
+    ;(async () => {
+      try {
+        await createPrayerSession(payload)
+        const s = await getPrayerSessionStats()
+        setStats(s)
+      } catch (err) {
+        setRecordError((err as Error).message)
+        // 실패 시 로컬에라도 남김
+        recordLocalSession(payload)
+      } finally {
+        setStatsLoading(false)
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleSaveNote = async () => {
+    const trimmed = note.trim()
+    if (!trimmed) return
+    if (!isLoggedIn()) {
+      setRecordError(t('loginRequired') || '로그인이 필요합니다')
+      return
+    }
+    setSavingNote(true)
+    try {
+      await createThanks({ content: trimmed.slice(0, 100) })
+      setNoteSaved(true)
+    } catch (err) {
+      setRecordError((err as Error).message)
+    } finally {
+      setSavingNote(false)
+    }
+  }
+
+  const handleAmen = () => {
+    setAmenPressed(true)
+    if ('vibrate' in navigator) {
+      navigator.vibrate(80)
+    }
+  }
+
+  const closingMessage = theme?.closingMessageKey ? tx(theme.closingMessageKey) : t('prayerCompleteRest')
 
   return (
-    <div className="min-h-screen bg-[#0f0f13] text-white flex items-center justify-center p-4 relative overflow-hidden">
-      {/* 배경 효과 */}
+    <div className={`min-h-screen ${mood.bgBase} text-white relative overflow-hidden`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[20%] left-[10%] w-96 h-96 bg-purple-700/25 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-[20%] right-[10%] w-96 h-96 bg-pink-600/15 rounded-full blur-3xl"></div>
+        <div className={`absolute top-[20%] left-[10%] w-96 h-96 ${mood.glowA} rounded-full blur-3xl`}></div>
+        <div className={`absolute bottom-[20%] right-[10%] w-96 h-96 ${mood.glowB} rounded-full blur-3xl`}></div>
       </div>
 
-      <div className="w-full max-w-md space-y-8 animate-fade-in text-center relative z-10">
+      <div className="relative z-10 px-4 py-10 max-w-md mx-auto space-y-6 animate-fade-in text-center">
         {/* 완료 아이콘 */}
         <div className="relative">
-          <div className="w-32 h-32 mx-auto bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center animate-scale-in shadow-[0_10px_15px_-3px_rgba(168,85,247,0.3),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-4px_6px_rgba(0,0,0,0.2)]">
-            <span className="material-icons-outlined text-7xl">check_circle</span>
+          <div className={`w-24 h-24 mx-auto bg-gradient-to-br ${mood.buttonGradient} rounded-full flex items-center justify-center animate-scale-in shadow-[0_10px_15px_-3px_rgba(168,85,247,0.25),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-4px_6px_rgba(0,0,0,0.2)]`}>
+            <span className="material-icons-outlined text-5xl">check_circle</span>
           </div>
-          <div className="absolute inset-0 w-32 h-32 mx-auto bg-purple-500/50 rounded-full animate-ping"></div>
+          <div className={`absolute inset-0 w-24 h-24 mx-auto rounded-full animate-ping ${mood.glowC}`}></div>
         </div>
 
-        {/* 완료 메시지 */}
-        <div className="space-y-4">
-          <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-100 to-white/80">
+        <div className="space-y-2">
+          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
             {t('prayerComplete')}
           </h2>
-          <p className="text-xl text-white/70">
-            {duration}분 동안 집중하여 기도하셨습니다
+          <p className="text-white/70 leading-relaxed">{closingMessage}</p>
+          <p className="text-white/45 text-sm">
+            {duration} {t('minutes')}{theme ? ` · ${tx(theme.labelKey)}` : ''}
           </p>
         </div>
 
-        {/* 통계 카드 */}
-        <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-6 border border-white/8 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-3xl font-bold text-purple-300">{duration}</div>
-              <div className="text-sm text-white/60">분</div>
+        {/* 영적 흔적 (통계) */}
+        {isLoggedIn() && (
+          <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-5 border border-white/8 text-left">
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`material-icons-outlined text-sm ${mood.accentText}`}>auto_awesome</span>
+              <h3 className={`text-xs font-bold tracking-widest uppercase ${mood.accentText}`}>
+                {t('spiritualTrace')}
+              </h3>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-pink-300">1</div>
-              <div className="text-sm text-white/60">세션</div>
+
+            {statsLoading && (
+              <p className="text-white/40 text-sm text-center py-4">...</p>
+            )}
+
+            {!statsLoading && stats && (
+              <>
+                <p className="text-white/80 text-sm mb-4">
+                  {(t('todaysPrayerAdded') || '오늘 {minutes}분이 기도에 더해졌습니다').replace(
+                    '{minutes}',
+                    String(duration),
+                  )}
+                </p>
+                <div className="grid grid-cols-4 gap-2 text-center">
+                  <Stat value={stats.streak_days} unit={t('daysUnit')} label={t('streakDaysLabel')} mood={mood} />
+                  <Stat value={stats.this_week_minutes} unit={t('minutesUnit')} label={t('thisWeekMinutesLabel')} mood={mood} />
+                  <Stat value={stats.total_minutes} unit={t('minutesUnit')} label={t('totalMinutesLabel')} mood={mood} />
+                  <Stat value={stats.average_duration_minutes} unit={t('minutesUnit')} label={t('averageSessionLabel')} mood={mood} />
+                </div>
+              </>
+            )}
+
+            {!statsLoading && !stats && recordError && (
+              <p className="text-rose-300/70 text-xs text-center py-2">{recordError}</p>
+            )}
+          </div>
+        )}
+
+        {/* 한 줄 감사 기록 */}
+        {isLoggedIn() && !noteSaved && (
+          <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-5 border border-white/8 text-left">
+            <p className="text-white/75 text-sm mb-3">{t('recordOneLineTitle')}</p>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value.slice(0, 100))}
+              placeholder={t('recordOneLinePlaceholder')}
+              rows={2}
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white/90 placeholder-white/30 focus:outline-none focus:border-white/30 resize-none"
+            />
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-[10px] text-white/30">{note.length}/100</span>
+              <button
+                onClick={handleSaveNote}
+                disabled={!note.trim() || savingNote}
+                className={`px-4 py-1.5 text-xs font-medium rounded-full bg-gradient-to-r ${mood.buttonGradient} disabled:opacity-40 disabled:cursor-not-allowed`}
+              >
+                {savingNote ? '...' : t('saveOneLine')}
+              </button>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* 격려 메시지 */}
+        {noteSaved && (
+          <div className={`bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-4 border border-white/8 text-sm ${mood.accentText}`}>
+            ✓ {t('thanksSaved')}
+          </div>
+        )}
+
+        {/* 격려 말씀 */}
         <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-4 border border-white/8">
-          <p className="text-white/80 leading-relaxed font-serif italic">
-            "쉬지 말고 기도하라" - 데살로니가전서 5:17
+          <p className="text-white/75 leading-relaxed font-serif italic text-sm">
+            "쉬지 말고 기도하라" — 데살로니가전서 5:17
           </p>
         </div>
 
-        {/* 액션 버튼들 */}
+        {/* 아멘 / 다시 / 닫기 */}
         <div className="space-y-3">
-          <button
-            onClick={onRestart}
-            className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl font-semibold hover:shadow-[0_10px_25px_-5px_rgba(168,85,247,0.4)] transition-all"
-          >
-            {t('startAgain')}
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full py-4 bg-white/10 backdrop-blur-md rounded-xl font-semibold border border-white/20 hover:bg-white/20 transition-all"
-          >
-            {t('close')}
-          </button>
+          {!amenPressed ? (
+            <button
+              onClick={handleAmen}
+              className={`w-full py-4 bg-gradient-to-r ${mood.buttonGradient} rounded-xl font-semibold tracking-wide transition-all hover:shadow-[0_10px_25px_-5px_rgba(168,85,247,0.4)]`}
+            >
+              🙏 {t('amenButton')}
+            </button>
+          ) : (
+            <div className={`w-full py-4 bg-white/10 border border-white/15 rounded-xl text-sm ${mood.accentText}`}>
+              ✓ {t('amenSaved')}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={onRestart}
+              className="py-3 bg-white/10 backdrop-blur-md rounded-xl text-sm font-medium border border-white/15 hover:bg-white/20 transition-all"
+            >
+              {t('startAgain')}
+            </button>
+            <button
+              onClick={onClose}
+              className="py-3 bg-white/5 backdrop-blur-md rounded-xl text-sm font-medium border border-white/10 hover:bg-white/15 transition-all"
+            >
+              {t('close')}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   )
 }
+
+const Stat = ({ value, unit, label, mood }: { value: number; unit: string; label: string; mood: MoodPalette }) => (
+  <div>
+    <div className={`text-xl font-bold ${mood.accentText}`}>{value}</div>
+    <div className="text-[10px] text-white/40">{unit}</div>
+    <div className="text-[10px] text-white/50 mt-0.5">{label}</div>
+  </div>
+)
 
 export default SessionComplete
