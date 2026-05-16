@@ -25,9 +25,9 @@ const RepliesSection = ({
   onLoadMore,
 }: RepliesSectionProps) => {
   return (
-    <div className="mt-6 pt-6 border-t border-border-light dark:border-border-dark">
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-5">
-        댓글 {replyCount > 0 && `(${replyCount})`}
+    <div className="mt-10">
+      <h3 className="text-[15px] font-semibold text-gray-900 dark:text-white mb-5">
+        댓글 {replyCount > 0 && <span className="text-gray-400 dark:text-gray-500 font-normal">({replyCount})</span>}
       </h3>
 
       {/* Reply Composer */}
