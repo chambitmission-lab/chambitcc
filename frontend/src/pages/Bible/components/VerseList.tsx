@@ -509,6 +509,48 @@ const VerseList = ({
         />
       )}
 
+      {/* 음성 읽기 모드 FAB - 스크롤 위치와 무관하게 어디서든 토글 가능 */}
+      {!commentaryPanelOpen && (
+        <button
+          onClick={() => {
+            if (!readingMode && !isLoggedIn()) {
+              showToast('로그인이 필요합니다', 'info')
+              setTimeout(() => navigate('/login'), 500)
+              return
+            }
+            setReadingMode(!readingMode)
+          }}
+          title={readingMode ? t.normalMode : t.readingMode}
+          aria-label={readingMode ? t.normalMode : t.readingMode}
+          style={{
+            position: 'fixed',
+            right: '1rem',
+            bottom: (chapterCommentaries?.items?.length ?? 0) > 0 ? '11.5rem' : '5.5rem',
+            width: '52px',
+            height: '52px',
+            borderRadius: '50%',
+            border: 'none',
+            background: readingMode
+              ? 'linear-gradient(135deg, #ef4444, #f97316)'
+              : 'linear-gradient(135deg, #0ea5e9, #6366f1)',
+            color: 'white',
+            boxShadow: readingMode
+              ? '0 6px 18px rgba(239, 68, 68, 0.5)'
+              : '0 6px 18px rgba(14, 165, 233, 0.45)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
+            transition: 'background 0.2s, box-shadow 0.2s, bottom 0.2s',
+          }}
+        >
+          <span className="material-icons-round" style={{ fontSize: '1.5rem' }}>
+            {readingMode ? 'mic' : 'mic_none'}
+          </span>
+        </button>
+      )}
+
       {/* 장 전체 해석 보기 플로팅 버튼 */}
       {(chapterCommentaries?.items?.length ?? 0) > 0 && !commentaryPanelOpen && (
         <button
