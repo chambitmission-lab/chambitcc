@@ -16,7 +16,7 @@ const PrayerDetailHeader = ({ isOwner, onClose, onDeleteClick }: PrayerDetailHea
             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-light dark:hover:bg-surface-dark transition-colors"
             title="삭제"
           >
-            <span className="material-icons-outlined text-[22px] text-gray-700 dark:text-gray-300">more_horiz</span>
+            <span className="material-icons-outlined text-[22px] text-gray-700 dark:text-gray-300">more_vert</span>
           </button>
         )}
         <button

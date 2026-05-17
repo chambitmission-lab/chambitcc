@@ -7,7 +7,7 @@ interface DeleteConfirmModalProps {
 
 const DeleteConfirmModal = ({ isDeleting, onConfirm, onCancel }: DeleteConfirmModalProps) => {
   return (
-    <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 z-[120] flex items-center justify-center p-4">
       <div className="bg-background-light dark:bg-background-dark rounded-2xl p-6 max-w-sm w-full shadow-2xl">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
