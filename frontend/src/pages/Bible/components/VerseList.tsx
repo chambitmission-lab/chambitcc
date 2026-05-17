@@ -45,7 +45,6 @@ const VerseList = ({
   const { language } = useLanguage()
   const { isLoggedIn } = useAuth()
   const navigate = useNavigate()
-  const [readingMode, setReadingMode] = useState(false)
   const [editingVerse, setEditingVerse] = useState<BibleVerse | null>(null)
   const [commentaryFocusVerse, setCommentaryFocusVerse] = useState<number | null>(null)
   const [commentaryPanelOpen, setCommentaryPanelOpen] = useState(false)
@@ -82,15 +81,14 @@ const VerseList = ({
   }
   
   // 모든 훅은 조건문 이전에 호출되어야 함
-  // 백엔드에서 읽음 상태 조회
-  const { 
-    data: readStatusData, 
-    isLoading: isLoadingReadStatus,
-    refetch: refetchReadStatus 
+  // 백엔드에서 읽음 상태 조회 (로그인 시 항상)
+  const {
+    data: readStatusData,
+    refetch: refetchReadStatus
   } = useChapterReadStatus(
     bookNumber,
     selectedChapter,
-    readingMode // 읽기 모드일 때만 조회
+    isLoggedIn()
   )
   
   // 읽음 처리 Mutation
@@ -107,24 +105,16 @@ const VerseList = ({
   }, [readStatusData])
   
   const texts = {
-    ko: { 
-      prevChapter: '이전 장', 
+    ko: {
+      prevChapter: '이전 장',
       nextChapter: '다음 장',
-      readingMode: '음성 읽기 모드',
-      normalMode: '일반 모드',
-      readVerse: '구절 읽기',
-      progress: '진행률'
     },
-    en: { 
-      prevChapter: 'Previous', 
+    en: {
+      prevChapter: 'Previous',
       nextChapter: 'Next',
-      readingMode: 'Voice Reading Mode',
-      normalMode: 'Normal Mode',
-      readVerse: 'Read Verse',
-      progress: 'Progress'
     }
   }
-  
+
   const t = texts[language]
   
   // 읽음 처리 핸들러 - 훅 호출 이후에 정의
@@ -244,18 +234,6 @@ const VerseList = ({
     }
   }, [chapterData])
   
-  // 디버깅: 진행률 확인
-  useEffect(() => {
-    if (readingMode && readStatusData) {
-      console.log('Progress Debug:', {
-        progress,
-        readCount,
-        totalVerses,
-        readStatusData
-      })
-    }
-  }, [readingMode, progress, readCount, totalVerses, readStatusData])
-  
   // 로딩 상태는 모든 훅 호출 이후에 체크
   if (isLoading) {
     return (
@@ -271,111 +249,46 @@ const VerseList = ({
   
   return (
     <div className="bible-content">
-      {/* 읽기 모드 토글 및 진행률 */}
-      <div style={{
-        padding: '1rem',
-        background: 'var(--ig-secondary-background)',
-        borderRadius: '0.75rem',
-        marginBottom: '1rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.75rem'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button
-            onClick={() => {
-              // 읽기 모드를 켜려고 할 때만 로그인 체크
-              if (!readingMode) {
-                if (!isLoggedIn()) {
-                  showToast('로그인이 필요합니다', 'info')
-                  setTimeout(() => navigate('/login'), 500)
-                  return
-                }
-              }
-              setReadingMode(!readingMode)
-            }}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '0.5rem',
-              border: 'none',
-              background: readingMode ? 'var(--ig-primary)' : 'var(--ig-border)',
-              color: readingMode ? 'white' : 'var(--ig-primary-text)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontWeight: 500,
-              transition: 'all 0.2s'
-            }}
-          >
-            <span className="material-icons-outlined" style={{ fontSize: '1.25rem' }}>
-              {readingMode ? 'mic' : 'mic_none'}
-            </span>
-            {readingMode ? t.readingMode : t.normalMode}
-          </button>
-          
-          {readingMode && !isLoadingReadStatus && (
-            <div style={{ 
-              fontSize: '0.875rem', 
-              color: 'var(--ig-secondary-text)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}>
-              <span className="material-icons-outlined" style={{ fontSize: '1rem' }}>
-                auto_stories
-              </span>
-              {readCount} / {totalVerses}
-            </div>
-          )}
-        </div>
-        
-        {/* 진행률 바 */}
-        {readingMode && !isLoadingReadStatus && (
-          <div>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '0.5rem',
-              fontSize: '0.875rem'
-            }}>
-              <span style={{ color: 'var(--ig-secondary-text)' }}>{t.progress}</span>
-              <span style={{ fontWeight: 600, color: 'var(--ig-primary)' }}>{Math.round(progress)}%</span>
-            </div>
-            <div style={{
-              width: '100%',
-              height: '8px',
-              background: 'var(--ig-border)',
-              borderRadius: '4px',
-              overflow: 'hidden',
-              position: 'relative'
-            }}>
-              <div style={{
-                width: `${progress}%`,
-                height: '100%',
-                background: 'linear-gradient(90deg, #667eea, #764ba2)',
-                transition: 'width 0.3s ease',
-                borderRadius: '4px',
-                minWidth: progress > 0 ? '2px' : '0' // 최소 너비 보장
-              }} />
-            </div>
-          </div>
-        )}
-        
-        {/* 로딩 중 */}
-        {readingMode && isLoadingReadStatus && (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '0.5rem',
-            color: 'var(--ig-secondary-text)',
-            fontSize: '0.875rem'
+      {/* 진행률 pill - 읽은 절이 있을 때만 컴팩트하게 표시 */}
+      {readCount > 0 && totalVerses > 0 && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.625rem',
+          padding: '0.5rem 0.875rem',
+          marginBottom: '0.875rem',
+          background: 'var(--ig-secondary-background)',
+          borderRadius: '999px',
+          fontSize: '0.8125rem',
+        }}>
+          <span className="material-icons-outlined" style={{ fontSize: '1rem', color: 'var(--ig-primary)' }}>
+            auto_stories
+          </span>
+          <span style={{ color: 'var(--ig-secondary-text)', fontWeight: 500 }}>
+            {readCount} / {totalVerses}
+          </span>
+          <div style={{
+            flex: 1,
+            height: '6px',
+            background: 'var(--ig-border)',
+            borderRadius: '3px',
+            overflow: 'hidden',
           }}>
-            읽음 상태 불러오는 중...
+            <div style={{
+              width: `${progress}%`,
+              height: '100%',
+              background: 'linear-gradient(90deg, #667eea, #764ba2)',
+              borderRadius: '3px',
+              transition: 'width 0.3s ease',
+              minWidth: progress > 0 ? '2px' : '0',
+            }} />
           </div>
-        )}
-      </div>
-      
+          <span style={{ fontWeight: 600, color: 'var(--ig-primary)', minWidth: '2.5rem', textAlign: 'right' }}>
+            {Math.round(progress)}%
+          </span>
+        </div>
+      )}
+
       <div className="verses-container">
         <div className="verses-list">
           {chapterData.pages.map((page, pageIndex) => (
@@ -386,7 +299,6 @@ const VerseList = ({
                   verse={verse}
                   bookNameKo={page.book_name_ko}
                   chapter={page.chapter}
-                  readingMode={readingMode}
                   isRead={readVerses.has(verse.id)}
                   onReadSuccess={handleReadSuccess}
                   onEdit={handleEditVerse}
@@ -507,48 +419,6 @@ const VerseList = ({
           onSave={handleSaveVerse}
           onClose={() => setEditingVerse(null)}
         />
-      )}
-
-      {/* 음성 읽기 모드 FAB - 스크롤 위치와 무관하게 어디서든 토글 가능 */}
-      {!commentaryPanelOpen && (
-        <button
-          onClick={() => {
-            if (!readingMode && !isLoggedIn()) {
-              showToast('로그인이 필요합니다', 'info')
-              setTimeout(() => navigate('/login'), 500)
-              return
-            }
-            setReadingMode(!readingMode)
-          }}
-          title={readingMode ? t.normalMode : t.readingMode}
-          aria-label={readingMode ? t.normalMode : t.readingMode}
-          style={{
-            position: 'fixed',
-            right: '1rem',
-            bottom: (chapterCommentaries?.items?.length ?? 0) > 0 ? '11.5rem' : '5.5rem',
-            width: '52px',
-            height: '52px',
-            borderRadius: '50%',
-            border: 'none',
-            background: readingMode
-              ? 'linear-gradient(135deg, #ef4444, #f97316)'
-              : 'linear-gradient(135deg, #0ea5e9, #6366f1)',
-            color: 'white',
-            boxShadow: readingMode
-              ? '0 6px 18px rgba(239, 68, 68, 0.5)'
-              : '0 6px 18px rgba(14, 165, 233, 0.45)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 50,
-            transition: 'background 0.2s, box-shadow 0.2s, bottom 0.2s',
-          }}
-        >
-          <span className="material-icons-round" style={{ fontSize: '1.5rem' }}>
-            {readingMode ? 'mic' : 'mic_none'}
-          </span>
-        </button>
       )}
 
       {/* 장 전체 해석 보기 플로팅 버튼 */}

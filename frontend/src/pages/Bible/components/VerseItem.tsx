@@ -10,7 +10,6 @@ interface VerseItemProps {
   verse: BibleVerse
   bookNameKo?: string
   chapter?: number
-  readingMode: boolean
   isRead: boolean
   onReadSuccess: (verseId: number, similarity: number) => void
   onEdit?: (verse: BibleVerse) => void
@@ -18,7 +17,7 @@ interface VerseItemProps {
   hasCommentary?: boolean
 }
 
-const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSuccess, onEdit, onShowCommentary, hasCommentary }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, hasCommentary }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showActions, setShowActions] = useState(false)
@@ -192,15 +191,24 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
         scrollMarginTop: '5rem',
       }}
     >
-      {/* 구절 번호와 텍스트
-          - 읽기 모드 ON: 텍스트 탭 → 즉시 녹음 시작/중지 (액션바 안 거침)
-          - 읽기 모드 OFF: 텍스트 탭 → 액션바 토글
-          - 번호 탭: 어느 모드에서든 액션바 토글 (북마크 escape hatch) */}
+      {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}
       <div
+        onClick={() => setShowActions(prev => !prev)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setShowActions(prev => !prev)
+          }
+        }}
+        aria-expanded={showActions}
+        aria-label={`${verse.verse}절 액션 ${showActions ? '닫기' : '열기'}`}
         style={{
           display: 'flex',
           gap: '1.25rem',
           alignItems: 'flex-start',
+          cursor: 'pointer',
           userSelect: 'text',
           ...(highlightBg && !isReading
             ? {
@@ -212,59 +220,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
             : {}),
         }}
       >
-        <span
-          className="bible-verse-number"
-          onClick={(e) => {
-            e.stopPropagation()
-            setShowActions(prev => !prev)
-          }}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              setShowActions(prev => !prev)
-            }
-          }}
-          aria-expanded={showActions}
-          aria-label={`${verse.verse}절 액션 ${showActions ? '닫기' : '열기'}`}
-          style={{ cursor: 'pointer' }}
-        >
-          {verse.verse}
-        </span>
-        <span
-          className="bible-verse-text"
-          onClick={() => {
-            if (readingMode && isSupported) {
-              if (isReading) {
-                stopReading()
-              } else {
-                handleStartReading()
-              }
-            } else {
-              setShowActions(prev => !prev)
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              if (readingMode && isSupported) {
-                if (isReading) stopReading()
-                else handleStartReading()
-              } else {
-                setShowActions(prev => !prev)
-              }
-            }
-          }}
-          aria-label={
-            readingMode && isSupported
-              ? `${verse.verse}절 ${isReading ? '읽기 중지' : '읽기 시작'}`
-              : `${verse.verse}절 액션 ${showActions ? '닫기' : '열기'}`
-          }
-          style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
-        >
+        <span className="bible-verse-number">{verse.verse}</span>
+        <span className="bible-verse-text" style={{ flex: 1, minWidth: 0 }}>
           {isReading && highlightedText ? (
             <>
               <span style={{
@@ -351,7 +308,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
               paddingTop: showActions ? '0.5rem' : 0,
             }}
           >
-            {readingMode && (
+            {isSupported && (
               <VerseReadingButton
                 isReading={isReading}
                 isSupported={isSupported}
