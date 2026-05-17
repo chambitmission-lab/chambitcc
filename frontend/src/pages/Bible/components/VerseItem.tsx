@@ -192,24 +192,15 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
         scrollMarginTop: '5rem',
       }}
     >
-      {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}
+      {/* 구절 번호와 텍스트
+          - 읽기 모드 ON: 텍스트 탭 → 즉시 녹음 시작/중지 (액션바 안 거침)
+          - 읽기 모드 OFF: 텍스트 탭 → 액션바 토글
+          - 번호 탭: 어느 모드에서든 액션바 토글 (북마크 escape hatch) */}
       <div
-        onClick={() => setShowActions(prev => !prev)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            setShowActions(prev => !prev)
-          }
-        }}
-        aria-expanded={showActions}
-        aria-label={`${verse.verse}절 액션 ${showActions ? '닫기' : '열기'}`}
         style={{
           display: 'flex',
           gap: '1.25rem',
           alignItems: 'flex-start',
-          cursor: 'pointer',
           userSelect: 'text',
           ...(highlightBg && !isReading
             ? {
@@ -221,8 +212,59 @@ const VerseItem = ({ verse, bookNameKo, chapter, readingMode, isRead, onReadSucc
             : {}),
         }}
       >
-        <span className="bible-verse-number">{verse.verse}</span>
-        <span className="bible-verse-text" style={{ flex: 1, minWidth: 0 }}>
+        <span
+          className="bible-verse-number"
+          onClick={(e) => {
+            e.stopPropagation()
+            setShowActions(prev => !prev)
+          }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setShowActions(prev => !prev)
+            }
+          }}
+          aria-expanded={showActions}
+          aria-label={`${verse.verse}절 액션 ${showActions ? '닫기' : '열기'}`}
+          style={{ cursor: 'pointer' }}
+        >
+          {verse.verse}
+        </span>
+        <span
+          className="bible-verse-text"
+          onClick={() => {
+            if (readingMode && isSupported) {
+              if (isReading) {
+                stopReading()
+              } else {
+                handleStartReading()
+              }
+            } else {
+              setShowActions(prev => !prev)
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              if (readingMode && isSupported) {
+                if (isReading) stopReading()
+                else handleStartReading()
+              } else {
+                setShowActions(prev => !prev)
+              }
+            }
+          }}
+          aria-label={
+            readingMode && isSupported
+              ? `${verse.verse}절 ${isReading ? '읽기 중지' : '읽기 시작'}`
+              : `${verse.verse}절 액션 ${showActions ? '닫기' : '열기'}`
+          }
+          style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
+        >
           {isReading && highlightedText ? (
             <>
               <span style={{
