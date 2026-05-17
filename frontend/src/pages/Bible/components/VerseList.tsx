@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/bible'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -44,7 +43,6 @@ const VerseList = ({
   const observerTarget = useRef<HTMLDivElement>(null)
   const { language } = useLanguage()
   const { isLoggedIn } = useAuth()
-  const navigate = useNavigate()
   const [editingVerse, setEditingVerse] = useState<BibleVerse | null>(null)
   const [commentaryFocusVerse, setCommentaryFocusVerse] = useState<number | null>(null)
   const [commentaryPanelOpen, setCommentaryPanelOpen] = useState(false)
