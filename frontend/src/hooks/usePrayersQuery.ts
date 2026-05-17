@@ -185,7 +185,16 @@ export const usePrayersInfinite = (
       )
 
       // 모든 기도 목록 캐시 무효화 (응답의 전당 포함)
-      queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+      // refetchType: 'all' — 비활성 list 쿼리(예: 응답의 전당에서 액션한
+      //   뒤 진입할 메인 홈 피드)도 함께 refetch 시켜야 응답 상태가
+      //   페이지 간 동기화된다. 기본값 'active'는 현재 마운트된 쿼리만
+      //   refetch하고 비활성 쿼리는 stale 마크만 되며, useInfiniteQuery
+      //   의 refetchOnMount:false 와 결합되면 다음 마운트에도 옛 캐시가
+      //   그대로 노출되는 문제가 있었다.
+      queryClient.invalidateQueries({
+        queryKey: prayerKeys.lists(),
+        refetchType: 'all',
+      })
 
       // 상세 캐시도 무효화 (해당 기도 카드)
       queryClient.invalidateQueries({
@@ -209,7 +218,12 @@ export const usePrayersInfinite = (
     onSuccess: (_data, variables) => {
       showToast('응답 등록이 취소되었습니다.', 'success')
 
-      queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+      // refetchType: 'all' — answerMutation 참조. 응답 취소 후
+      // 다른 페이지(메인 홈/응답의 전당)로 이동했을 때도 즉시 반영되도록.
+      queryClient.invalidateQueries({
+        queryKey: prayerKeys.lists(),
+        refetchType: 'all',
+      })
       queryClient.invalidateQueries({
         queryKey: prayerKeys.detail(variables.prayerId, currentUser.username),
       })
