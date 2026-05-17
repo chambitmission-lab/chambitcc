@@ -1,255 +1,466 @@
-.answered-prayers-page {
+/* 응답의 전당 — 성소(聖所) 톤
+ * AnnualThemeVerse / DailyMeditationCard 와 같은 카드 시스템(rounded-2xl,
+ * border 1px, mx-4 my-3)에 정렬한다. 다만 "응답"의 위계를 위해
+ *   - 깊은 슬레이트/보라 베이스 (AnnualThemeVerse 와 동일 베이스)
+ *   - 좌측 amber 액센트 라인 (영광/응답의 표징)
+ *   - 좌측 emblem (auto_awesome)
+ *   - 본문에 짧은 말씀 인용 한 줄
+ * 으로 무게감을 더한다. 과한 glow / drop-shadow 는 쓰지 않는다.
+ *
+ * ※ 테마는 ThemeContext 의 [data-theme="light"|"dark"] 토글을 따른다.
+ *   기본은 다크 톤을 베이스로 깔고, light 일 때만 오버라이드한다.
+ */
+
+/* ── 페이지 쉘 ───────────────────────────
+ * 홈(NewHome)과 동일한 max-w-md 모바일 쉘로 정렬해
+ * 페이지 간 이동 시 폭이 흔들리지 않게 한다.
+ */
+.answered-page {
   min-height: 100vh;
-  background: var(--background-light);
-  padding: 6rem 1rem 2rem;
+  background-color: var(--ig-secondary-background);
+  padding-top: 5.5rem;
+  padding-bottom: 5rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  .answered-prayers-page {
-    background: var(--background-dark);
-  }
-}
-
-.answered-prayers-container {
-  max-width: 800px;
+.answered-shell {
+  max-width: 28rem; /* tailwind max-w-md */
   margin: 0 auto;
+  background-color: var(--ig-primary-background);
+  border-left: 1px solid var(--ig-border);
+  border-right: 1px solid var(--ig-border);
+  min-height: calc(100vh - 5.5rem);
 }
 
-.page-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(168, 85, 247, 0.1);
+/* ── 헤더 카드 (성소 톤) ─────────────────── */
+.answered-hall-section {
+  margin: 12px 16px;
+}
+
+.answered-hall-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 14px;
+  align-items: start;
+  padding: 18px 20px 16px;
   border-radius: 16px;
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 27, 75, 0.55) 0%,
+    rgba(76, 29, 149, 0.32) 100%
+  );
+  overflow: hidden;
+  color: #f5f3ff;
 }
 
-@media (prefers-color-scheme: dark) {
-  .page-header {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
-    border-color: rgba(168, 85, 247, 0.2);
-  }
+/* 좌측 amber 액센트 라인 — 응답/영광의 표징 */
+.answered-hall-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14%;
+  bottom: 14%;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    rgba(251, 191, 36, 0) 0%,
+    rgba(251, 191, 36, 0.85) 50%,
+    rgba(251, 191, 36, 0) 100%
+  );
+  border-radius: 0 3px 3px 0;
 }
 
-.header-icon {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
-  filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.4));
+[data-theme="light"] .answered-hall-card {
+  background: linear-gradient(
+    135deg,
+    rgba(245, 243, 255, 0.95) 0%,
+    rgba(237, 233, 254, 0.85) 100%
+  );
+  border-color: rgba(168, 85, 247, 0.32);
+  color: #1e1b4b;
 }
 
-.page-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
-  color: #1f2937;
-}
-
-@media (prefers-color-scheme: dark) {
-  .page-header h1 {
-    color: #f9fafb;
-  }
-}
-
-.page-header p {
-  font-size: 0.95rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  .page-header p {
-    color: #9ca3af;
-  }
-}
-
-.sort-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0 1rem 1rem;
-  flex-wrap: wrap;
-}
-
-.sort-btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid rgba(168, 85, 247, 0.2);
-  border-radius: 20px;
-  background: transparent;
-  color: #6b7280;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-@media (prefers-color-scheme: dark) {
-  .sort-btn {
-    color: #9ca3af;
-    border-color: rgba(168, 85, 247, 0.3);
-  }
-}
-
-.sort-btn:hover {
-  border-color: rgba(168, 85, 247, 0.4);
-  background: rgba(168, 85, 247, 0.05);
-}
-
-@media (prefers-color-scheme: dark) {
-  .sort-btn:hover {
-    background: rgba(168, 85, 247, 0.1);
-  }
-}
-
-.sort-btn.active {
-  background: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.4);
-  color: rgb(168, 85, 247);
-}
-
-@media (prefers-color-scheme: dark) {
-  .sort-btn.active {
-    background: rgba(168, 85, 247, 0.2);
-    border-color: rgba(168, 85, 247, 0.5);
-  }
-}
-
-.count-badge {
-  margin-left: auto;
-  font-size: 0.75rem;
-  color: rgb(168, 85, 247);
-  font-weight: 600;
-}
-
-.answered-prayers-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.loading-state,
-.error-state,
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: white;
-  border-radius: 16px;
-  border: 1px solid rgba(168, 85, 247, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-  .loading-state,
-  .error-state,
-  .empty-state {
-    background: #1f2937;
-    border-color: rgba(168, 85, 247, 0.2);
-  }
-}
-
-.spinner {
+/* emblem (auto_awesome) */
+.answered-hall-emblem {
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(168, 85, 247, 0.1);
-  border-top-color: rgb(168, 85, 247);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
+  background: linear-gradient(
+    135deg,
+    rgba(251, 191, 36, 0.22),
+    rgba(168, 85, 247, 0.22)
+  );
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: rgba(254, 243, 199, 0.95);
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.18);
 }
 
-@keyframes spin {
+.answered-hall-emblem .material-icons-round {
+  font-size: 22px;
+  animation: hall-emblem-glow 2.6s ease-in-out infinite;
+}
+
+@keyframes hall-emblem-glow {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .answered-hall-emblem .material-icons-round { animation: none; }
+}
+
+[data-theme="light"] .answered-hall-emblem {
+  background: linear-gradient(
+    135deg,
+    rgba(251, 191, 36, 0.18),
+    rgba(168, 85, 247, 0.14)
+  );
+  color: rgba(120, 53, 15, 0.9);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.12);
+}
+
+/* 본문(emblem 우측 컬럼) */
+.answered-hall-body {
+  min-width: 0;
+}
+
+.answered-hall-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.answered-hall-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.16);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: rgba(254, 243, 199, 0.95);
+  white-space: nowrap;
+}
+
+[data-theme="light"] .answered-hall-label {
+  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(180, 83, 9, 0.35);
+  color: rgba(120, 53, 15, 0.95);
+}
+
+.answered-hall-reference {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: rgba(196, 181, 253, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="light"] .answered-hall-reference {
+  color: rgba(91, 33, 182, 0.75);
+}
+
+/* 타이틀 + 부제 */
+.answered-hall-title {
+  margin: 0 0 2px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #f5f3ff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="light"] .answered-hall-title {
+  color: #1e1b4b;
+  text-shadow: none;
+}
+
+.answered-hall-subtitle {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(233, 213, 255, 0.78);
+}
+
+[data-theme="light"] .answered-hall-subtitle {
+  color: rgba(91, 33, 182, 0.78);
+}
+
+/* 본문 말씀 인용 */
+.answered-hall-verse {
+  position: relative;
+  margin: 10px 0 0;
+  padding: 10px 2px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 12.5px;
+  line-height: 1.6;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(233, 213, 255, 0.9);
+  word-break: keep-all;
+}
+
+[data-theme="light"] .answered-hall-verse {
+  border-top-color: rgba(0, 0, 0, 0.08);
+  color: rgba(67, 20, 142, 0.9);
+}
+
+.answered-hall-verse-mark {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  line-height: 0;
+  color: rgba(251, 191, 36, 0.55);
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+
+/* 카운트 칩 */
+.answered-hall-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(254, 243, 199, 0.95);
+}
+
+[data-theme="light"] .answered-hall-count {
+  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(180, 83, 9, 0.32);
+  color: rgba(120, 53, 15, 0.95);
+}
+
+/* ── 정렬 탭 (SortTabs 패턴) ─────────────── */
+.answered-sort-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ig-border);
+}
+
+.answered-sort-tab {
+  background: none;
+  border: none;
+  padding: 6px 0;
+  margin-bottom: -6px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--ig-tertiary-text);
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.answered-sort-tab:hover {
+  color: var(--ig-secondary-text);
+}
+
+.answered-sort-tab.is-active {
+  color: var(--ig-primary-text);
+  border-bottom-color: var(--ig-primary-text);
+}
+
+.answered-sort-tab-group {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.answered-sort-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgb(168, 85, 247);
+  letter-spacing: -0.01em;
+}
+
+[data-theme="light"] .answered-sort-count {
+  color: rgb(126, 34, 206);
+}
+
+/* ── 기도 목록 영역 ───────────────────── */
+.answered-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+/* ── 상태 카드 (로딩 / 에러 / 빈 상태) ─── */
+.answered-state-card {
+  margin: 16px;
+  padding: 48px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 27, 75, 0.4) 0%,
+    rgba(76, 29, 149, 0.22) 100%
+  );
+  text-align: center;
+  color: #f5f3ff;
+}
+
+[data-theme="light"] .answered-state-card {
+  background: linear-gradient(
+    135deg,
+    rgba(245, 243, 255, 0.85) 0%,
+    rgba(237, 233, 254, 0.75) 100%
+  );
+  border-color: rgba(168, 85, 247, 0.25);
+  color: #1e1b4b;
+}
+
+.answered-state-spinner {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 14px;
+  border: 3px solid rgba(168, 85, 247, 0.2);
+  border-top-color: rgb(168, 85, 247);
+  border-radius: 50%;
+  animation: answered-spin 1s linear infinite;
+}
+
+@keyframes answered-spin {
   to { transform: rotate(360deg); }
 }
 
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.3));
+.answered-state-emblem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(251, 191, 36, 0.18),
+    rgba(168, 85, 247, 0.18)
+  );
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: rgba(254, 243, 199, 0.95);
 }
 
-.empty-state h3 {
-  font-size: 1.25rem;
-  margin: 0 0 0.5rem 0;
-  color: #1f2937;
+.answered-state-emblem .material-icons-round {
+  font-size: 30px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .empty-state h3 {
-    color: #f9fafb;
-  }
+[data-theme="light"] .answered-state-emblem {
+  color: rgba(120, 53, 15, 0.9);
 }
 
-.empty-state p {
-  color: #6b7280;
+.answered-state-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+
+.answered-state-desc {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(233, 213, 255, 0.78);
 }
 
-@media (prefers-color-scheme: dark) {
-  .empty-state p {
-    color: #9ca3af;
-  }
+[data-theme="light"] .answered-state-desc {
+  color: rgba(91, 33, 182, 0.78);
 }
 
-.error-state p {
-  color: #dc2626;
-  margin-bottom: 1rem;
-}
-
-.error-state button {
-  padding: 0.75rem 1.5rem;
-  background: rgb(168, 85, 247);
-  color: white;
-  border: none;
-  border-radius: 8px;
+.answered-state-error {
+  color: #fca5a5;
+  margin: 0 0 14px;
   font-weight: 600;
+}
+
+[data-theme="light"] .answered-state-error {
+  color: #b91c1c;
+}
+
+.answered-state-retry {
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.18);
+  color: rgba(233, 213, 255, 0.95);
+  font-size: 12.5px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.error-state button:hover {
-  background: rgb(147, 51, 234);
+.answered-state-retry:hover {
+  background: rgba(168, 85, 247, 0.28);
+  border-color: rgba(168, 85, 247, 0.55);
 }
 
-.load-more {
+[data-theme="light"] .answered-state-retry {
+  background: rgba(168, 85, 247, 0.14);
+  color: rgba(88, 28, 135, 0.95);
+}
+
+/* ── 더 보기 ───────────────────────── */
+.answered-load-more {
   text-align: center;
-  margin-top: 2rem;
+  padding: 8px 16px 24px;
 }
 
-.load-more-button {
-  padding: 0.875rem 2rem;
-  background: transparent;
-  color: rgb(168, 85, 247);
-  border: 2px solid rgba(168, 85, 247, 0.3);
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.load-more-button:hover:not(:disabled) {
+.answered-load-more-btn {
+  padding: 11px 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(168, 85, 247, 0.35);
   background: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.5);
+  color: rgba(216, 180, 254, 0.95);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.load-more-button:disabled {
-  opacity: 0.6;
+.answered-load-more-btn:hover:not(:disabled) {
+  background: rgba(168, 85, 247, 0.18);
+  border-color: rgba(168, 85, 247, 0.55);
+}
+
+.answered-load-more-btn:disabled {
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-@media (max-width: 768px) {
-  .answered-prayers-page {
-    padding: 5rem 0.75rem 2rem;
+[data-theme="light"] .answered-load-more-btn {
+  background: rgba(168, 85, 247, 0.08);
+  color: rgba(88, 28, 135, 0.95);
+}
+
+/* ── 반응형 ────────────────────────── */
+@media (max-width: 380px) {
+  .answered-hall-card {
+    padding: 16px 16px 14px;
+    column-gap: 12px;
   }
-  
-  .page-header {
-    padding: 1.25rem;
+
+  .answered-hall-title {
+    font-size: 17px;
   }
-  
-  .page-header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .header-icon {
-    font-size: 2.5rem;
+
+  .answered-hall-emblem {
+    width: 36px;
+    height: 36px;
   }
 }
