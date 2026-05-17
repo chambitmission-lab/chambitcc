@@ -14,11 +14,12 @@
 /* ── 페이지 쉘 ───────────────────────────
  * 홈(NewHome)과 동일한 max-w-md 모바일 쉘로 정렬해
  * 페이지 간 이동 시 폭이 흔들리지 않게 한다.
+ * 상단 패딩은 App.css 의 .main-content (padding-top: 56px) 가 이미
+ * 처리하므로 여기서는 추가로 주지 않는다.
  */
 .answered-page {
   min-height: 100vh;
   background-color: var(--ig-secondary-background);
-  padding-top: 5.5rem;
   padding-bottom: 5rem;
 }
 
@@ -28,7 +29,7 @@
   background-color: var(--ig-primary-background);
   border-left: 1px solid var(--ig-border);
   border-right: 1px solid var(--ig-border);
-  min-height: calc(100vh - 5.5rem);
+  min-height: 100vh;
 }
 
 /* ── 헤더 카드 (성소 톤) ─────────────────── */
@@ -446,6 +447,323 @@
 [data-theme="light"] .answered-load-more-btn {
   background: rgba(168, 85, 247, 0.08);
   color: rgba(88, 28, 135, 0.95);
+}
+
+/* ── PrayerCard 텍스트/카드 톤 오버라이드 ─────
+ * PrayerCard 는 라이트 테마 전용으로 작성돼 있어 (.prayer-title #222,
+ * .prayer-content #555, .testimony-content #333, .prayer-card.answered
+ * 배경 3% 보라) 다크 톤 응답의 전당 페이지에 그대로 두면 검정 위
+ * 검정 글씨가 된다. .answered-list 스코프 안에서만 다크 가독성에
+ * 맞게 색을 올린다.
+ */
+
+/* 카드 자체 — 검정 위에서 카드로 인식되도록 살짝 lift */
+.answered-list .prayer-card,
+.answered-list .prayer-card.answered {
+  background: linear-gradient(
+    135deg,
+    rgba(168, 85, 247, 0.08) 0%,
+    rgba(147, 51, 234, 0.06) 100%
+  );
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+
+.answered-list .prayer-card .author-name {
+  color: rgba(243, 232, 255, 0.95);
+}
+
+.answered-list .prayer-card .prayer-time {
+  color: rgba(216, 180, 254, 0.65);
+}
+
+.answered-list .prayer-card .prayer-title {
+  color: rgba(245, 243, 255, 0.96);
+}
+
+.answered-list .prayer-card .prayer-content {
+  color: rgba(229, 215, 255, 0.85);
+}
+
+/* 간증 섹션 — 영적 톤
+ * 단순한 좌측 보라 라인 대신
+ *   - 좌측에 위/아래로 페이드아웃되는 amber "빛기둥" (영광/응답의 표징)
+ *   - 카드 내부 좌상단에서 새어 나오는 미세한 radial 광선
+ *   - amber + 보라 그라데이션 베이스
+ * 로 거룩한 느낌을 더한다.
+ */
+.answered-list .prayer-card .testimony-section {
+  position: relative;
+  background:
+    radial-gradient(
+      circle at 8% 18%,
+      rgba(251, 191, 36, 0.18) 0%,
+      rgba(251, 191, 36, 0) 55%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(251, 191, 36, 0.08) 0%,
+      rgba(168, 85, 247, 0.08) 100%
+    );
+  border-left: 0;
+  padding-left: 1.25rem;
+  box-shadow:
+    inset 0 0 0 1px rgba(251, 191, 36, 0.18),
+    0 0 18px rgba(251, 191, 36, 0.06);
+  overflow: hidden;
+}
+
+/* 좌측 빛기둥 — 위/아래 페이드아웃 */
+.answered-list .prayer-card .testimony-section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12%;
+  bottom: 12%;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(251, 191, 36, 0) 0%,
+    rgba(251, 191, 36, 0.85) 28%,
+    rgba(254, 243, 199, 1) 50%,
+    rgba(251, 191, 36, 0.85) 72%,
+    rgba(251, 191, 36, 0) 100%
+  );
+  border-radius: 0 2px 2px 0;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.55);
+}
+
+/* 우상단 미세한 반사광 */
+.answered-list .prayer-card .testimony-section::after {
+  content: '';
+  position: absolute;
+  right: -20px;
+  top: -20px;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(
+    circle,
+    rgba(251, 191, 36, 0.1) 0%,
+    rgba(251, 191, 36, 0) 70%
+  );
+  pointer-events: none;
+}
+
+.answered-list .prayer-card .testimony-icon {
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.5));
+}
+
+.answered-list .prayer-card .testimony-label {
+  color: rgba(254, 243, 199, 0.95);
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.25);
+}
+
+.answered-list .prayer-card .testimony-content {
+  color: rgba(254, 243, 199, 0.92);
+}
+
+/* 라이트 테마 — 카드 베이스가 보라/연보라이므로 원본 색 유지하되
+ * 흰 카드 대신 약간 보라 틴트로 페이지와 어우러지게 한다. */
+[data-theme="light"] .answered-list .prayer-card,
+[data-theme="light"] .answered-list .prayer-card.answered {
+  background: linear-gradient(
+    135deg,
+    rgba(245, 243, 255, 0.95) 0%,
+    rgba(237, 233, 254, 0.85) 100%
+  );
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.08);
+}
+
+[data-theme="light"] .answered-list .prayer-card .author-name {
+  color: #1f2937;
+}
+
+[data-theme="light"] .answered-list .prayer-card .prayer-time {
+  color: #6b7280;
+}
+
+[data-theme="light"] .answered-list .prayer-card .prayer-title {
+  color: #1e1b4b;
+}
+
+[data-theme="light"] .answered-list .prayer-card .prayer-content {
+  color: #374151;
+}
+
+[data-theme="light"] .answered-list .prayer-card .testimony-section {
+  background:
+    radial-gradient(
+      circle at 8% 18%,
+      rgba(251, 191, 36, 0.22) 0%,
+      rgba(251, 191, 36, 0) 55%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(254, 243, 199, 0.8) 0%,
+      rgba(237, 233, 254, 0.7) 100%
+    );
+  box-shadow:
+    inset 0 0 0 1px rgba(180, 83, 9, 0.18),
+    0 0 14px rgba(251, 191, 36, 0.1);
+}
+
+[data-theme="light"] .answered-list .prayer-card .testimony-section::before {
+  background: linear-gradient(
+    180deg,
+    rgba(180, 83, 9, 0) 0%,
+    rgba(217, 119, 6, 0.8) 28%,
+    rgba(245, 158, 11, 1) 50%,
+    rgba(217, 119, 6, 0.8) 72%,
+    rgba(180, 83, 9, 0) 100%
+  );
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+}
+
+[data-theme="light"] .answered-list .prayer-card .testimony-icon {
+  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.4));
+}
+
+[data-theme="light"] .answered-list .prayer-card .testimony-label {
+  color: rgba(120, 53, 15, 0.95);
+  text-shadow: none;
+}
+
+[data-theme="light"] .answered-list .prayer-card .testimony-content {
+  color: rgba(67, 20, 142, 0.92);
+}
+
+/* ── PrayerCard 액션 버튼 오버라이드 ─────
+ * PrayerCard 의 기본 .action-button 은 background: white / color: #666 로
+ * 라이트 톤에 맞춰져 있고, .prayer-card.answered 에서도 강제로 흰 배경을
+ * 깐다. 응답의 전당은 카드 시스템 자체가 슬레이트/보라 톤이라 그대로
+ * 두면 버튼만 흰 패치로 떠 보인다.
+ *
+ * 메인 홈 (.prayer-feed 등) 의 동일 컴포넌트를 건드리지 않도록
+ * .answered-list 스코프 안에서만 오버라이드한다.
+ */
+
+.answered-list .prayer-card .prayer-actions {
+  border-top-color: rgba(168, 85, 247, 0.18);
+  /* 4개 버튼(기도했어요/댓글/간증 수정/응답 취소) 가로 한 줄 강제 */
+  gap: 0.4rem;
+  flex-wrap: nowrap;
+}
+
+/* 버튼 자체 — 폭 좁아도 텍스트 줄바꿈 없이 들어가도록 컴팩트하게 */
+.answered-list .prayer-card .action-button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0.5rem 0.35rem;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  border-width: 1px;
+  border-radius: 10px;
+}
+
+.answered-list .prayer-card .action-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.answered-list .prayer-card .action-text {
+  font-size: 0.72rem;
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.answered-list .prayer-card .action-count {
+  font-size: 0.72rem;
+  font-weight: 800;
+  opacity: 0.92;
+}
+
+.answered-list .prayer-card .action-button,
+.answered-list .prayer-card.answered .action-button {
+  background: rgba(30, 27, 75, 0.55);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: rgba(216, 180, 254, 0.92);
+}
+
+.answered-list .prayer-card .action-button:hover:not(:disabled) {
+  background: rgba(76, 29, 149, 0.5);
+  border-color: rgba(168, 85, 247, 0.55);
+  color: rgba(233, 213, 255, 1);
+}
+
+.answered-list .prayer-card .action-button.active,
+.answered-list .prayer-card.answered .action-button.active {
+  background: linear-gradient(
+    135deg,
+    rgba(168, 85, 247, 0.95) 0%,
+    rgba(147, 51, 234, 0.95) 100%
+  );
+  border-color: rgba(216, 180, 254, 0.55);
+  color: #ffffff;
+}
+
+.answered-list .prayer-card .action-count {
+  color: rgba(254, 243, 199, 0.95);
+}
+
+/* 응답(✨) / 간증 수정 버튼은 amber 액센트로 위계 부여 */
+.answered-list .prayer-card .answer-button,
+.answered-list .prayer-card.answered .answer-button {
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: rgba(254, 243, 199, 0.95);
+}
+
+.answered-list .prayer-card .answer-button:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.22);
+  border-color: rgba(251, 191, 36, 0.6);
+  color: #fef3c7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(251, 191, 36, 0.18);
+}
+
+/* 라이트 테마 — 카드 베이스(슬레이트/보라 light)에 맞춰 부드럽게 */
+[data-theme="light"] .answered-list .prayer-card .action-button,
+[data-theme="light"] .answered-list .prayer-card.answered .action-button {
+  background: rgba(245, 243, 255, 0.9);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: rgba(88, 28, 135, 0.88);
+}
+
+[data-theme="light"] .answered-list .prayer-card .action-button:hover:not(:disabled) {
+  background: rgba(237, 233, 254, 1);
+  border-color: rgba(168, 85, 247, 0.5);
+  color: rgba(76, 29, 149, 1);
+}
+
+[data-theme="light"] .answered-list .prayer-card .action-button.active,
+[data-theme="light"] .answered-list .prayer-card.answered .action-button.active {
+  background: linear-gradient(
+    135deg,
+    rgba(168, 85, 247, 1) 0%,
+    rgba(147, 51, 234, 1) 100%
+  );
+  border-color: rgba(126, 34, 206, 0.65);
+  color: #ffffff;
+}
+
+[data-theme="light"] .answered-list .prayer-card .action-count {
+  color: rgba(120, 53, 15, 0.95);
+}
+
+[data-theme="light"] .answered-list .prayer-card .answer-button,
+[data-theme="light"] .answered-list .prayer-card.answered .answer-button {
+  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(180, 83, 9, 0.35);
+  color: rgba(120, 53, 15, 0.95);
+}
+
+[data-theme="light"] .answered-list .prayer-card .prayer-actions {
+  border-top-color: rgba(168, 85, 247, 0.18);
 }
 
 /* ── 반응형 ────────────────────────── */
