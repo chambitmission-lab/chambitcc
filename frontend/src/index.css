@@ -32,6 +32,13 @@
   --ig-gradient-middle: #e6683c;
   --ig-gradient-end: #dc2743;
   --ig-gradient-purple: #bc1888;
+
+  /* Brand accent — 화면 전체에서 동일한 보라/핑크 톤을 쓰기 위한 토큰 */
+  --accent-purple: #a855f7;
+  --accent-purple-strong: #9333ea;
+  --accent-pink: #ec4899;
+  --accent-gradient: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --accent-glow: rgba(168, 85, 247, 0.45);
   
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -49,13 +56,13 @@
 
 /* 다크 테마 */
 [data-theme="dark"] {
-  --ig-primary-background: #000000;
-  --ig-secondary-background: #000000;
+  --ig-primary-background: #0b0b12;
+  --ig-secondary-background: #0b0b12;
   --ig-primary-text: #fafafa;
   --ig-secondary-text: #a8a8a8;
   --ig-tertiary-text: #737373;
-  --ig-border: #262626;
-  --ig-hover: #1a1a1a;
+  --ig-border: #23232e;
+  --ig-hover: #1c1c26;
   color: var(--ig-primary-text);
   background-color: var(--ig-primary-background);
   color-scheme: dark;

@@ -8,10 +8,11 @@ interface BottomNavigationProps {
 const BottomNavigation = ({ onProfileClick, onComposeClick, onScrollToTop, onFocusModeClick }: BottomNavigationProps) => {
   return (
     <>
-      {/* 집중 기도 모드 FAB */}
+      {/* 집중 기도 모드 FAB — 메인 + 버튼 / 프로필과 동일한 purple→pink 그라데이션으로 통일.
+          이전엔 purple→indigo만 혼자 다른 톤이라 화면 전체 액센트 일관성이 깨졌음. */}
       <button
         onClick={onFocusModeClick}
-        className="fixed bottom-24 right-4 w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 active:scale-95 z-50 flex items-center justify-center group"
+        className="fixed bottom-24 right-4 w-14 h-14 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full shadow-lg shadow-purple-500/30 hover:shadow-xl transition-all hover:scale-110 active:scale-95 z-50 flex items-center justify-center group"
       >
         {/* 펄스 효과 */}
         <div className="absolute inset-0 rounded-full bg-purple-500 animate-ping opacity-20"></div>
