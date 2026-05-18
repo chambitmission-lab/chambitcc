@@ -212,14 +212,14 @@ const Ministry = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-black min-h-screen">
+    <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
         {/* Header */}
         <div className="sticky top-14 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
           <div className="px-4 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <h1 className="text-[22px] font-bold text-gray-900 dark:text-white flex items-center gap-2 tracking-[-0.015em] leading-[1.2]">
                   <span>✍️</span>
                   <span>{language === 'ko' ? '목양칼럼' : 'Pastoral Column'}</span>
                 </h1>
@@ -230,10 +230,10 @@ const Ministry = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={toggleSearch}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 rounded-full transition-colors ${
                     showSearch
-                      ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      ? 'bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-white/[0.06]'
                   }`}
                   aria-label={language === 'ko' ? '검색' : 'Search'}
                   title={language === 'ko' ? '검색' : 'Search'}
@@ -245,9 +245,9 @@ const Ministry = () => {
                 {isAdminUser && (
                   <button
                     onClick={handleAddNew}
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-gradient-to-tr from-purple-500 to-pink-500 text-white rounded-full font-semibold text-sm shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all flex items-center gap-1.5"
                   >
-                    <span className="material-icons-outlined text-xl">add</span>
+                    <span className="material-icons-outlined text-lg">add</span>
                     <span>{language === 'ko' ? '추가' : 'Add'}</span>
                   </button>
                 )}
@@ -264,7 +264,7 @@ const Ministry = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={language === 'ko' ? '제목 또는 본문에서 검색…' : 'Search title or content…'}
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full pl-10 pr-10 py-2.5 border border-border-light dark:border-white/[0.08] rounded-full bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
                 />
                 {searchQuery && (
                   <button
@@ -298,30 +298,33 @@ const Ministry = () => {
           {columns.map((column) => (
             <article
               key={column.id}
-              className="bg-white dark:bg-surface-dark rounded-2xl overflow-hidden shadow-sm border border-border-light dark:border-border-dark hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white dark:bg-[#1c1c26] rounded-2xl overflow-hidden border border-border-light dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(168,85,247,0.08)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.5),0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.08),0_8px_20px_rgba(168,85,247,0.16)] dark:hover:shadow-[0_2px_6px_rgba(0,0,0,0.6),0_12px_28px_rgba(168,85,247,0.18)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
               onClick={() => setSelectedColumn(column)}
             >
-              {/* Author Info */}
+              {/* Author Info — 다른 화면 아바타와 동일한 펄스 글로우 패턴 */}
               <div className="p-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-                  {column.author[0]}
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 rounded-full bg-purple-400/30 dark:bg-purple-500/40 blur-md animate-pulse"></div>
+                  <div className="w-10 h-10 rounded-full backdrop-blur-md bg-gradient-to-b from-purple-400/60 via-purple-500/40 to-purple-600/25 dark:from-purple-400/50 dark:via-purple-500/30 dark:to-purple-600/20 border-2 border-purple-500/70 dark:border-purple-400/50 flex items-center justify-center text-white text-base font-bold shadow-[0_0_20px_rgba(168,85,247,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_20px_rgba(168,85,247,0.35),inset_0_1px_3px_rgba(255,255,255,0.3)] relative z-10">
+                    {column.author[0]}
+                  </div>
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                  <div className="font-semibold text-gray-900 dark:text-white text-sm leading-none mb-1">
                     {column.author} {column.role}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="text-[11px] text-gray-500 dark:text-gray-400">
                     {column.date}
                   </div>
                 </div>
               </div>
 
               {/* Content Preview */}
-              <div className="px-4 pb-4">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+              <div className="px-4 pb-5">
+                <h2 className="text-[20px] font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 tracking-[-0.015em] leading-[1.3]">
                   {highlightKeyword(column.title, appliedQuery)}
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed">
+                <p className="text-[15px] text-gray-600 dark:text-gray-300 line-clamp-3 leading-[1.7] tracking-[-0.01em]">
                   {highlightKeyword(removeHighlightTags(column.content), appliedQuery)}
                 </p>
               </div>
@@ -332,50 +335,47 @@ const Ministry = () => {
 
         {/* Detail Modal */}
         {selectedColumn && (
-          <div 
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          <div
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4"
             onClick={() => setSelectedColumn(null)}
           >
-            <div 
-              className="bg-white dark:bg-surface-dark rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+            <div
+              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark p-4 z-10">
-                <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark p-5 z-10">
+                <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                      {selectedColumn.author[0]}
+                    {/* 작성자 아바타 — 다른 화면과 동일한 펄스 글로우 패턴 */}
+                    <div className="relative flex-shrink-0">
+                      <div className="absolute inset-0 rounded-full bg-purple-400/30 dark:bg-purple-500/40 blur-md animate-pulse"></div>
+                      <div className="w-10 h-10 rounded-full backdrop-blur-md bg-gradient-to-b from-purple-400/60 via-purple-500/40 to-purple-600/25 dark:from-purple-400/50 dark:via-purple-500/30 dark:to-purple-600/20 border-2 border-purple-500/70 dark:border-purple-400/50 flex items-center justify-center text-white text-base font-bold shadow-[0_0_20px_rgba(168,85,247,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_20px_rgba(168,85,247,0.35),inset_0_1px_3px_rgba(255,255,255,0.3)] relative z-10">
+                        {selectedColumn.author[0]}
+                      </div>
                     </div>
-                    <div>
-                      <div 
-                        className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-slate-300 via-white to-slate-300 dark:from-slate-200 dark:via-white dark:to-slate-200 text-sm"
-                        style={{
-                          filter: 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 20px rgba(226, 232, 240, 0.4))',
-                        }}
-                      >
+                    <div className="flex flex-col">
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white leading-none mb-1">
                         {selectedColumn.author} {selectedColumn.role}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400">
                         {selectedColumn.date}
                       </div>
                     </div>
                   </div>
+                  {/* 닫기 버튼 — 시안 글로우 제거, 다른 모달과 동일한 표준 패턴 */}
                   <button
                     onClick={() => setSelectedColumn(null)}
-                    className="relative text-cyan-400 hover:text-cyan-300 dark:text-cyan-300 dark:hover:text-cyan-200 transition-all flex-shrink-0"
-                    style={{
-                      filter: 'drop-shadow(0 0 8px rgba(34, 211, 238, 0.8)) drop-shadow(0 0 12px rgba(34, 211, 238, 0.6))',
-                    }}
+                    className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-full hover:bg-purple-50 dark:hover:bg-purple-500/15 transition-colors"
+                    aria-label="닫기"
                   >
-                    <span className="absolute inset-0 bg-cyan-400/30 dark:bg-cyan-300/30 blur-xl animate-pulse"></span>
-                    <span className="material-icons-outlined text-2xl relative z-10">close</span>
+                    <span className="material-icons-outlined text-[20px] text-gray-600 dark:text-gray-400">close</span>
                   </button>
                 </div>
-                <h2 
-                  className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400"
+                {/* 제목 — 기존 보라/핑크 그라데이션 텍스트는 칼럼 화면의 시그니처라 유지하되, 글로우만 토큰화 */}
+                <h2
+                  className="text-[22px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400 tracking-[-0.015em] leading-[1.3]"
                   style={{
-                    textShadow: '0 0 30px rgba(168, 85, 247, 0.3)',
                     filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.4))',
                   }}
                 >
@@ -387,7 +387,7 @@ const Ministry = () => {
               <div className="p-6">
                 <div className="prose prose-sm dark:prose-invert max-w-none">
                   {selectedColumn.content.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                    <p key={index} className="text-[15px] text-gray-700 dark:text-gray-300 leading-[1.75] tracking-[-0.01em] mb-4">
                       {renderHighlightedText(paragraph)}
                     </p>
                   ))}
@@ -396,20 +396,20 @@ const Ministry = () => {
 
               {/* Modal Actions */}
               {isAdminUser && (
-                <div className="sticky bottom-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark p-4 flex items-center gap-4">
+                <div className="sticky bottom-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-border-light dark:border-border-dark p-4 flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(selectedColumn)}
-                    className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-white/[0.08] hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
                   >
-                    <span className="material-icons-outlined text-2xl">edit</span>
-                    <span className="text-sm font-medium">{language === 'ko' ? '수정' : 'Edit'}</span>
+                    <span className="material-icons-outlined text-lg">edit</span>
+                    <span className="text-sm font-semibold">{language === 'ko' ? '수정' : 'Edit'}</span>
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                   >
-                    <span className="material-icons-outlined text-2xl">delete</span>
-                    <span className="text-sm font-medium">{language === 'ko' ? '삭제' : 'Delete'}</span>
+                    <span className="material-icons-outlined text-lg">delete</span>
+                    <span className="text-sm font-semibold">{language === 'ko' ? '삭제' : 'Delete'}</span>
                   </button>
                 </div>
               )}
@@ -419,92 +419,93 @@ const Ministry = () => {
 
         {/* Edit Modal */}
         {isEditing && (
-          <div 
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          <div
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4"
             onClick={handleCancel}
           >
-            <div 
-              className="bg-white dark:bg-surface-dark rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+            <div
+              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark p-4 z-10">
+              <div className="sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark p-5 z-10">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
                     {editingColumn.id ? (language === 'ko' ? '컬럼 수정' : 'Edit Column') : (language === 'ko' ? '컬럼 추가' : 'Add Column')}
                   </h2>
                   <button
                     onClick={handleCancel}
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-purple-50 dark:hover:bg-purple-500/15 transition-colors"
+                    aria-label="닫기"
                   >
-                    <span className="material-icons-outlined text-2xl">close</span>
+                    <span className="material-icons-outlined text-[20px] text-gray-600 dark:text-gray-400">close</span>
                   </button>
                 </div>
               </div>
 
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-[-0.005em]">
                     {language === 'ko' ? '제목' : 'Title'} *
                   </label>
                   <input
                     type="text"
                     value={editingColumn.title || ''}
                     onChange={(e) => setEditingColumn({ ...editingColumn, title: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
                     placeholder={language === 'ko' ? '컬럼 제목을 입력하세요' : 'Enter column title'}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-[-0.005em]">
                       {language === 'ko' ? '작성자' : 'Author'} *
                     </label>
                     <input
                       type="text"
                       value={editingColumn.author || ''}
                       onChange={(e) => setEditingColumn({ ...editingColumn, author: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
                       placeholder={language === 'ko' ? '작성자 이름' : 'Author name'}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-[-0.005em]">
                       {language === 'ko' ? '직책' : 'Role'}
                     </label>
                     <input
                       type="text"
                       value={editingColumn.role || ''}
                       onChange={(e) => setEditingColumn({ ...editingColumn, role: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
                       placeholder={language === 'ko' ? '담임목사' : 'Senior Pastor'}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 tracking-[-0.005em]">
                     {language === 'ko' ? '날짜' : 'Date'}
                   </label>
                   <input
                     type="text"
                     value={editingColumn.date || ''}
                     onChange={(e) => setEditingColumn({ ...editingColumn, date: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
                     placeholder="2026.02"
                   />
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 tracking-[-0.005em]">
                       {language === 'ko' ? '내용' : 'Content'} *
                     </label>
                     <button
                       type="button"
                       onClick={handleHighlight}
-                      className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors flex items-center gap-1"
+                      className="px-3 py-1 bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 rounded-full text-xs font-semibold hover:bg-purple-200 dark:hover:bg-purple-500/25 transition-colors flex items-center gap-1"
                       title={language === 'ko' ? '선택한 텍스트를 하이라이트' : 'Highlight selected text'}
                     >
                       <span className="material-icons-outlined text-sm">highlight</span>
@@ -516,25 +517,25 @@ const Ministry = () => {
                     value={editingColumn.content || ''}
                     onChange={(e) => setEditingColumn({ ...editingColumn, content: e.target.value })}
                     rows={12}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
+                    className="w-full px-4 py-3 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm leading-[1.7] resize-none focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
                     placeholder={language === 'ko' ? '컬럼 내용을 입력하세요...\n\n중요한 문구를 선택하고 "하이라이트" 버튼을 누르면 강조 효과가 적용됩니다.' : 'Enter column content...\n\nSelect important text and click "Highlight" button to apply emphasis effect.'}
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
                     💡 {language === 'ko' ? '중요한 문구를 드래그로 선택한 후 "하이라이트" 버튼을 클릭하세요' : 'Select important text and click the "Highlight" button'}
                   </p>
                 </div>
               </div>
 
-              <div className="sticky bottom-0 bg-white/95 dark:bg-surface-dark/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark p-4 flex gap-3">
+              <div className="sticky bottom-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-border-light dark:border-border-dark p-4 flex gap-3">
                 <button
                   onClick={handleCancel}
-                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-purple-50 dark:hover:bg-white/[0.08] transition-colors"
                 >
                   {language === 'ko' ? '취소' : 'Cancel'}
                 </button>
                 <button
                   onClick={handleSave}
-                  className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+                  className="flex-1 py-3 px-4 bg-gradient-to-tr from-purple-500 to-pink-500 text-white rounded-2xl font-semibold text-sm shadow-lg shadow-purple-500/30 dark:shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/40 transition-all"
                 >
                   {language === 'ko' ? '저장' : 'Save'}
                 </button>
@@ -543,32 +544,40 @@ const Ministry = () => {
           </div>
         )}
 
-        {/* Delete Confirm Modal */}
+        {/* Delete Confirm Modal — 기도 DeleteConfirmModal과 동일 패턴 */}
         {showDeleteConfirm && (
-          <div 
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          <div
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[60] flex items-center justify-center p-4"
             onClick={() => setShowDeleteConfirm(false)}
           >
-            <div 
-              className="bg-white dark:bg-surface-dark rounded-2xl max-w-sm w-full p-6"
+            <div
+              className="bg-background-light dark:bg-background-dark rounded-3xl p-6 max-w-sm w-full border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(239,68,68,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                {language === 'ko' ? '컬럼 삭제' : 'Delete Column'}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                {language === 'ko' ? '정말 이 컬럼을 삭제하시겠습니까?' : 'Are you sure you want to delete this column?'}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 rounded-full bg-red-400/30 dark:bg-red-500/40 blur-md animate-pulse"></div>
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-b from-red-400/60 via-red-500/40 to-red-600/25 dark:from-red-400/50 dark:via-red-500/30 dark:to-red-600/20 border-2 border-red-500/70 dark:border-red-400/50 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.4),inset_0_1px_3px_rgba(255,255,255,0.6)] dark:shadow-[0_0_20px_rgba(239,68,68,0.3),inset_0_1px_3px_rgba(255,255,255,0.25)] relative z-10">
+                    <span className="material-icons-outlined text-white text-xl">warning</span>
+                  </div>
+                </div>
+                <h3 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
+                  {language === 'ko' ? '컬럼 삭제' : 'Delete Column'}
+                </h3>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-[1.7] mb-6">
+                {language === 'ko' ? '정말 이 컬럼을 삭제하시겠습니까?\n삭제된 내용은 복구할 수 없습니다.' : 'Are you sure you want to delete this column?\nThis cannot be undone.'}
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-purple-50 dark:hover:bg-white/[0.08] transition-colors"
                 >
                   {language === 'ko' ? '취소' : 'Cancel'}
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                  className="flex-1 py-3 px-4 bg-gradient-to-tr from-red-500 to-rose-500 text-white rounded-2xl font-semibold text-sm shadow-lg shadow-red-500/30 dark:shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/40 transition-all"
                 >
                   {language === 'ko' ? '삭제' : 'Delete'}
                 </button>
