@@ -39,15 +39,15 @@ const PrayerContent = ({ title, content }: PrayerContentProps) => {
   }
 
   return (
-    <div className="mb-6">
+    <div className="mb-7">
       <h3
-        className="text-[18px] font-extrabold text-gray-900 dark:text-white mb-4 tracking-[-0.01em] leading-snug"
+        className="text-[22px] font-bold text-gray-900 dark:text-white mb-6 tracking-[-0.015em] leading-[1.3]"
         style={transitionStyles}
       >
         {displayTitle}
       </h3>
       <p
-        className="text-[15px] text-gray-700 dark:text-gray-200 leading-[1.75] whitespace-pre-wrap tracking-[-0.01em]"
+        className="text-[15px] text-gray-700 dark:text-gray-300 leading-[1.75] whitespace-pre-wrap tracking-[-0.01em]"
         style={transitionStyles}
       >
         {displayContent}

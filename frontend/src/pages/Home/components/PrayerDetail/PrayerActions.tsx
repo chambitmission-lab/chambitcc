@@ -15,14 +15,14 @@ const PrayerActions = ({
   onRepliesToggle,
 }: PrayerActionsProps) => {
   return (
-    <div className="flex items-center gap-3 mb-3">
+    <div className="flex items-center gap-3 mb-4">
       <button
         onClick={onPrayerToggle}
         disabled={isToggling}
-        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all ${
           isPrayed
-            ? 'bg-purple-500 text-white shadow-md shadow-purple-300 dark:shadow-purple-900/40'
-            : 'bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+            ? 'bg-gradient-to-tr from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 dark:shadow-purple-500/20'
+            : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-purple-50 dark:hover:bg-white/[0.08]'
         }`}
       >
         <span className={`text-xl ${isPrayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
@@ -32,10 +32,10 @@ const PrayerActions = ({
       </button>
       <button
         onClick={onRepliesToggle}
-        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all ${
           showReplies
-            ? 'bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30'
-            : 'bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+            ? 'bg-gradient-to-tr from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 dark:shadow-purple-500/20'
+            : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-purple-50 dark:hover:bg-white/[0.08]'
         }`}
       >
         <span className="material-icons-outlined text-xl transform -scale-x-100">chat_bubble_outline</span>
