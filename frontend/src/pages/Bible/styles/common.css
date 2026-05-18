@@ -18,7 +18,7 @@
 .spinning {
   animation: spin 1s linear infinite;
   font-size: 2.5rem;
-  color: #667eea;
+  color: #a855f7;
 }
 
 @keyframes spin {

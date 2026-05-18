@@ -15,9 +15,9 @@ const BibleHeader = () => {
       </h1>
       <Link
         to="/bible/genealogy"
-        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-200 dark:hover:bg-amber-900/50 transition-colors"
+        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50/80 text-amber-700 border border-amber-200/60 hover:bg-amber-100/80 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-400/20 dark:hover:bg-amber-500/15 transition-all"
       >
-        <span className="material-icons-round" style={{ fontSize: 18 }}>
+        <span className="material-icons-round" style={{ fontSize: 16 }}>
           account_tree
         </span>
         {genealogyLabel}

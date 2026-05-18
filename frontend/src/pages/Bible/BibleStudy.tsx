@@ -106,7 +106,7 @@ const BibleStudy = () => {
   }
   
   return (
-    <div className="bg-gray-50 dark:bg-black min-h-screen">
+    <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
         <BibleHeader />
         

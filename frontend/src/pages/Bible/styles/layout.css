@@ -31,7 +31,7 @@
 
 .bible-study-title .material-icons-round {
   font-size: 1.75rem;
-  color: #667eea;
+  color: #a855f7;
 }
 
 /* 탭 */
@@ -72,8 +72,8 @@
 }
 
 .bible-tab.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: #a855f7;
+  border-bottom-color: #a855f7;
   background: transparent;
 }
 

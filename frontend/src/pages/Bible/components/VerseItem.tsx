@@ -279,7 +279,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  background: '#6366f1',
+                  background: '#a855f7',
                 }}
               />
             )}
@@ -364,10 +364,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                 style={{
                   padding: '0.5rem',
                   background: hasCommentary
-                    ? 'rgba(99, 102, 241, 0.15)'
+                    ? 'rgba(168, 85, 247, 0.15)'
                     : 'rgba(156, 163, 175, 0.08)',
                   border: hasCommentary
-                    ? '1px solid rgba(99, 102, 241, 0.45)'
+                    ? '1px solid rgba(168, 85, 247, 0.45)'
                     : '1px solid rgba(156, 163, 175, 0.25)',
                   borderRadius: '0.5rem',
                   cursor: 'pointer',
@@ -384,7 +384,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   className="material-icons-round"
                   style={{
                     fontSize: '1.125rem',
-                    color: hasCommentary ? '#6366f1' : '#9ca3af',
+                    color: hasCommentary ? '#a855f7' : '#9ca3af',
                   }}
                 >
                   menu_book
@@ -397,8 +397,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                 onClick={() => onEdit(verse)}
                 style={{
                   padding: '0.5rem',
-                  background: 'rgba(139, 92, 246, 0.1)',
-                  border: '1px solid rgba(139, 92, 246, 0.3)',
+                  background: 'rgba(168, 85, 247, 0.1)',
+                  border: '1px solid rgba(168, 85, 247, 0.3)',
                   borderRadius: '0.5rem',
                   cursor: 'pointer',
                   display: 'flex',
@@ -408,17 +408,17 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   flexShrink: 0,
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(139, 92, 246, 0.2)'
-                  e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.5)'
+                  e.currentTarget.style.background = 'rgba(168, 85, 247, 0.2)'
+                  e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.5)'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'
-                  e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.3)'
+                  e.currentTarget.style.background = 'rgba(168, 85, 247, 0.1)'
+                  e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)'
                 }}
                 title="구절 수정 (관리자)"
                 tabIndex={showActions ? 0 : -1}
               >
-                <span className="material-icons-round" style={{ fontSize: '1.125rem', color: '#8b5cf6' }}>
+                <span className="material-icons-round" style={{ fontSize: '1.125rem', color: '#a855f7' }}>
                   edit
                 </span>
               </button>

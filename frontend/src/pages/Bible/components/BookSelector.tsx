@@ -109,7 +109,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap }: Book
                       display: 'block',
                       marginTop: '0.25rem',
                       fontSize: '0.65rem',
-                      color: '#6366f1',
+                      color: '#a855f7',
                       fontWeight: 600,
                       lineHeight: 1.1,
                     }}
@@ -142,7 +142,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap }: Book
                       display: 'block',
                       marginTop: '0.25rem',
                       fontSize: '0.65rem',
-                      color: '#6366f1',
+                      color: '#a855f7',
                       fontWeight: 600,
                       lineHeight: 1.1,
                     }}

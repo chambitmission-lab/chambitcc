@@ -10,12 +10,11 @@
 }
 
 .testament-title {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 700;
   color: var(--ig-secondary-text);
   margin-bottom: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: -0.005em;
 }
 
 .books-grid {
@@ -28,7 +27,7 @@
   padding: 0.875rem 0.5rem;
   background: var(--ig-primary-background);
   border: 1px solid var(--ig-border);
-  border-radius: 8px;
+  border-radius: 14px;
   color: var(--ig-primary-text);
   font-size: 0.875rem;
   font-weight: 600;
@@ -37,10 +36,17 @@
   text-align: center;
 }
 
+/* 다크모드: 페이지 배경(#0b0b12) 위에서 카드가 살짝 떠 보이도록 글래스 표면 사용 */
+[data-theme="dark"] .book-button {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .book-button:hover {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.05);
+  border-color: var(--accent-purple, #a855f7);
+  background: rgba(168, 85, 247, 0.06);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.1);
 }
 
 .book-button:active {
@@ -48,10 +54,10 @@
 }
 
 .book-button.selected {
-  background: #667eea;
-  border-color: #667eea;
+  background: var(--accent-gradient, linear-gradient(135deg, #a855f7 0%, #ec4899 100%));
+  border-color: transparent;
   color: white;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
 }
 
 /* 책 정보 헤더 */
@@ -79,7 +85,7 @@
 
 .back-button:hover {
   background: var(--ig-hover);
-  border-color: #667eea;
+  border-color: #a855f7;
 }
 
 .back-button .material-icons-round {

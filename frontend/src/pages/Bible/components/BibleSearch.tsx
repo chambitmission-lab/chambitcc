@@ -91,7 +91,7 @@ const BibleSearch = () => {
           >
             <span
               className="material-icons-round"
-              style={{ fontSize: '2rem', color: '#667eea' }}
+              style={{ fontSize: '2rem', color: '#a855f7' }}
             >
               menu_book
             </span>
@@ -162,9 +162,9 @@ const BibleSearch = () => {
                   transition: 'all 0.15s',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#667eea'
+                  e.currentTarget.style.background = '#a855f7'
                   e.currentTarget.style.color = 'white'
-                  e.currentTarget.style.borderColor = '#667eea'
+                  e.currentTarget.style.borderColor = '#a855f7'
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'var(--ig-secondary-background)'

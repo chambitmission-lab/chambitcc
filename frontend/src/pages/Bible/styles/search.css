@@ -20,13 +20,18 @@
   gap: 0.5rem;
   background: var(--ig-primary-background);
   border: 2px solid var(--ig-border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 0.25rem;
   transition: border-color 0.2s;
 }
 
+[data-theme="dark"] .search-input-wrapper {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .search-input-wrapper:focus-within {
-  border-color: #667eea;
+  border-color: #a855f7;
 }
 
 .search-input {
@@ -48,9 +53,9 @@
 
 .search-button {
   padding: 0.75rem 1.25rem;
-  background: #667eea;
+  background: var(--accent-gradient, linear-gradient(135deg, #a855f7 0%, #ec4899 100%));
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   color: white;
   cursor: pointer;
   transition: all 0.2s;
@@ -58,11 +63,12 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.3);
 }
 
 .search-button:hover {
-  background: #5568d3;
   transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.4);
 }
 
 .search-button:active {
@@ -75,9 +81,14 @@
 
 .search-results {
   background: var(--ig-primary-background);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1rem;
   border: 1px solid var(--ig-border);
+}
+
+[data-theme="dark"] .search-results {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .results-count {
@@ -93,16 +104,21 @@
   gap: 0.625rem;
   padding: 1.125rem 1rem;
   background: var(--ig-secondary-background);
-  border-radius: 8px;
+  border-radius: 14px;
   border: 1px solid var(--ig-border);
   margin-bottom: 0.75rem;
   transition: all 0.2s;
   position: relative;
 }
 
+[data-theme="dark"] .bible-verse-item--search {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .bible-verse-item--search:hover {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.05);
+  border-color: #a855f7;
+  background: rgba(168, 85, 247, 0.05);
   margin-bottom: 0.75rem;
 }
 
@@ -113,7 +129,7 @@
   top: 0;
   bottom: 0;
   width: 3px;
-  background: #667eea;
+  background: #a855f7;
   border-radius: 2px 0 0 2px;
 }
 
@@ -129,7 +145,7 @@
 }
 
 .bible-verse-item--search:hover .bible-verse-reference {
-  color: #667eea;
+  color: #a855f7;
 }
 
 .no-results {

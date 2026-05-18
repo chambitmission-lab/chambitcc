@@ -28,15 +28,20 @@
   flex-shrink: 0;
 }
 
+[data-theme="dark"] .nav-button {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .nav-button:hover:not(:disabled) {
   background: var(--ig-hover);
-  border-color: #667eea;
-  color: #667eea;
+  border-color: #a855f7;
+  color: #a855f7;
 }
 
 .nav-button:active:not(:disabled) {
-  background: rgba(102, 126, 234, 0.1);
-  border-color: #667eea;
+  background: rgba(168, 85, 247, 0.1);
+  border-color: #a855f7;
 }
 
 .nav-button:disabled {
@@ -59,9 +64,9 @@
 .chapter-select {
   width: 100%;
   padding: 1rem 1.25rem;
-  background: var(--ig-primary-background);
+  background-color: var(--ig-primary-background);
   border: 2px solid var(--ig-border);
-  border-radius: 12px;
+  border-radius: 14px;
   color: var(--ig-primary-text);
   font-size: 1rem;
   font-weight: 700;
@@ -71,22 +76,27 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23667eea' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23a855f7' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
   background-size: 1.5rem;
   padding-right: 2.5rem;
 }
 
+[data-theme="dark"] .chapter-select {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .chapter-select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
 }
 
 .chapter-select:hover {
-  border-color: #667eea;
-  background-color: rgba(102, 126, 234, 0.02);
+  border-color: #a855f7;
+  background-color: rgba(168, 85, 247, 0.02);
 }
 
 /* 장 선택 버튼 그리드 (사용되지 않을 수 있음) */
@@ -117,14 +127,15 @@
 }
 
 .chapter-button:hover {
-  border-color: #667eea;
-  background: rgba(102, 126, 234, 0.05);
+  border-color: #a855f7;
+  background: rgba(168, 85, 247, 0.05);
 }
 
 .chapter-button.selected {
-  background: #667eea;
-  border-color: #667eea;
+  background: var(--accent-gradient, linear-gradient(135deg, #a855f7 0%, #ec4899 100%));
+  border-color: transparent;
   color: white;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
 }
 
 /* 반응형 */

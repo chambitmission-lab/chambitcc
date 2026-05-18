@@ -62,7 +62,7 @@ const ResumeReadingCard = ({ latest, recentBooks, onResume }: ResumeReadingCardP
           className="material-icons-round"
           style={{
             fontSize: '1.75rem',
-            color: '#6366f1',
+            color: '#a855f7',
             flexShrink: 0,
           }}
         >
