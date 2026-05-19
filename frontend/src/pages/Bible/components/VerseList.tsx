@@ -174,6 +174,12 @@ const VerseList = ({
   const totalVerses = chapterData?.pages.reduce((sum, page) => sum + page.verses.length, 0) || 0
   const readCount = readStatusData?.read_verses || 0
   const progress = readStatusData?.progress || 0
+
+  // 해설 패널 Hero에 본문 텍스트를 넘기기 위한 합쳐진 절 배열
+  const allVerses = useMemo(() => {
+    if (!chapterData) return []
+    return chapterData.pages.flatMap((p) => p.verses)
+  }, [chapterData])
   
   // 무한 스크롤 Intersection Observer 설정
   useEffect(() => {
@@ -456,6 +462,7 @@ const VerseList = ({
           bookNameKo={chapterData.pages[0].book_name_ko}
           focusVerse={commentaryFocusVerse}
           totalVerses={chapterData.pages[0].total_verses}
+          verses={allVerses}
           onClose={() => {
             setCommentaryPanelOpen(false)
             setCommentaryFocusVerse(null)

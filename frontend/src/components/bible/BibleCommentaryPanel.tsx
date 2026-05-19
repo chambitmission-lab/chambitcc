@@ -1,51 +1,32 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   useChapterCommentaries,
   useCreateCommentary,
   useDeleteCommentary,
   useUpdateCommentary,
 } from '../../hooks/useBibleCommentary'
+import { useTextToSpeech } from '../../hooks/useTextToSpeech'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import type {
   BibleCommentary,
   BibleCommentaryCreateRequest,
 } from '../../types/bibleCommentary'
+import type { BibleVerse } from '../../types/bible'
 import BibleCommentaryEditor from './BibleCommentaryEditor'
 import BibleCommentaryItem from './BibleCommentaryItem'
+import './BibleCommentaryPanel.css'
 
 interface BibleCommentaryPanelProps {
   bookNumber: number
   chapter: number
   bookNameKo: string
-  /** 패널이 열려있을 때 표시할 절 번호 (이 절을 포함하는 해석만 보여줌). null 이면 장 전체 */
+  /** 패널이 열려있을 때 포커스할 절 번호. null 이면 장 전체 */
   focusVerse: number | null
   totalVerses?: number
+  /** 장 전체 절 데이터 — Hero 영역에 본문 표시 용도 */
+  verses?: BibleVerse[]
   onClose: () => void
-}
-
-const overlay: React.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(0, 0, 0, 0.5)',
-  display: 'flex',
-  alignItems: 'flex-end',
-  justifyContent: 'center',
-  zIndex: 1000,
-}
-
-const panel: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '560px',
-  maxHeight: '85vh',
-  background: 'var(--ig-primary-background, #fff)',
-  color: 'var(--ig-primary-text, #111)',
-  borderTopLeftRadius: '1rem',
-  borderTopRightRadius: '1rem',
-  display: 'flex',
-  flexDirection: 'column',
-  boxShadow: '0 -8px 28px rgba(0,0,0,0.25)',
-  overflow: 'hidden',
 }
 
 const BibleCommentaryPanel = ({
@@ -54,6 +35,7 @@ const BibleCommentaryPanel = ({
   bookNameKo,
   focusVerse,
   totalVerses,
+  verses,
   onClose,
 }: BibleCommentaryPanelProps) => {
   const admin = isAdmin()
@@ -67,18 +49,59 @@ const BibleCommentaryPanel = ({
   const [editing, setEditing] = useState<BibleCommentary | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  // Hero TTS
+  const heroTTS = useTextToSpeech({ rate: 0.95 })
+
+  // Esc 닫기
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  // 언마운트 시 TTS 중지
+  const heroTTSStop = heroTTS.stop
+  useEffect(() => {
+    return () => {
+      heroTTSStop()
+    }
+  }, [heroTTSStop])
+
+  const allCommentaries = data?.items ?? []
+
   const filtered = useMemo(() => {
-    const all = data?.items ?? []
-    if (focusVerse == null) return all
-    return all.filter(
+    if (focusVerse == null) return allCommentaries
+    return allCommentaries.filter(
       (c) => c.verse_start <= focusVerse && c.verse_end >= focusVerse,
     )
-  }, [data, focusVerse])
+  }, [allCommentaries, focusVerse])
 
-  const headerLabel =
+  // Hero에 표시할 본문: focusVerse가 있으면 해당 절, 없으면 장 첫 절
+  const heroVerseText = useMemo(() => {
+    if (!verses || verses.length === 0) return null
+    if (focusVerse != null) {
+      const v = verses.find((vv) => vv.verse === focusVerse)
+      return v?.text ?? null
+    }
+    return null
+  }, [verses, focusVerse])
+
+  const heroLabel = focusVerse != null ? '함께 묵상' : '장 전체 해설'
+  const heroReference =
     focusVerse != null
-      ? `${bookNameKo} ${chapter}:${focusVerse} 해석`
-      : `${bookNameKo} ${chapter}장 해석`
+      ? `${bookNameKo} ${chapter}:${focusVerse}`
+      : `${bookNameKo} ${chapter}장`
+
+  const handleHeroTTS = () => {
+    if (!heroVerseText) return
+    if (heroTTS.isPlaying) {
+      heroTTS.stop()
+    } else {
+      heroTTS.speak(`${heroReference}. ${heroVerseText}`)
+    }
+  }
 
   const handleCreateClick = () => {
     setEditing(null)
@@ -93,7 +116,7 @@ const BibleCommentaryPanel = ({
   }
 
   const handleDelete = async (c: BibleCommentary) => {
-    if (!confirm(`이 해석을 삭제할까요?\n${c.title || c.content.slice(0, 30)}`)) {
+    if (!confirm(`이 해설을 삭제할까요?\n${c.title || c.content.slice(0, 30)}`)) {
       return
     }
     try {
@@ -102,7 +125,7 @@ const BibleCommentaryPanel = ({
         bookNumber: c.book_number,
         chapter: c.chapter,
       })
-      showToast('해석이 삭제되었습니다', 'success')
+      showToast('해설이 삭제되었습니다', 'success')
     } catch (e) {
       const msg = e instanceof Error ? e.message : '삭제 실패'
       showToast(msg, 'error')
@@ -123,10 +146,10 @@ const BibleCommentaryPanel = ({
             content: payload.content,
           },
         })
-        showToast('해석이 수정되었습니다', 'success')
+        showToast('해설이 수정되었습니다', 'success')
       } else {
         await createMutation.mutateAsync(payload)
-        showToast('해석이 추가되었습니다', 'success')
+        showToast('해설이 추가되었습니다', 'success')
       }
       setEditorOpen(false)
       setEditing(null)
@@ -138,77 +161,107 @@ const BibleCommentaryPanel = ({
 
   return (
     <>
-      <div style={overlay} onClick={onClose}>
-        <section style={panel} onClick={(e) => e.stopPropagation()}>
-          <header
-            style={{
-              padding: '0.75rem 1rem',
-              borderBottom: '1px solid var(--ig-border, rgba(0,0,0,0.08))',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(168,85,247,0.06))',
-            }}
-          >
-            <span className="material-icons-round" style={{ color: '#6366f1' }}>
-              menu_book
-            </span>
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, flex: 1 }}>
-              {headerLabel}
-            </h3>
+      <div className="commentary-overlay" onClick={onClose}>
+        <section
+          className="commentary-panel"
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-label={`${heroReference} 해설`}
+        >
+          <div className="commentary-drag-handle" />
+
+          <div className="commentary-header">
             <button
+              type="button"
+              className="commentary-close-btn"
               onClick={onClose}
               aria-label="닫기"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '0.25rem',
-                color: 'var(--ig-secondary-text, #666)',
-              }}
             >
-              <span className="material-icons-round">close</span>
+              <span className="material-icons-round" style={{ fontSize: 20 }}>
+                close
+              </span>
             </button>
-          </header>
+          </div>
 
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '0.875rem 1rem 1rem',
-            }}
-          >
+          {/* Hero — 절 본문 + 메타 */}
+          <div className="commentary-hero">
+            <div className="commentary-hero-top">
+              <div className="commentary-hero-emblem">
+                <span className="material-icons-round">auto_stories</span>
+              </div>
+              <div className="commentary-hero-meta">
+                <span className="commentary-hero-label">{heroLabel}</span>
+                <h2 className="commentary-hero-reference">{heroReference}</h2>
+              </div>
+            </div>
+
+            {heroVerseText ? (
+              <blockquote className="commentary-hero-quote">
+                <span className="commentary-hero-quote-mark">“</span>
+                <p className="commentary-hero-quote-text">{heroVerseText}</p>
+              </blockquote>
+            ) : (
+              <p
+                className="commentary-hero-quote-text"
+                style={{ paddingLeft: 6 }}
+              >
+                이 장의 해설을 함께 묵상해봅니다.
+              </p>
+            )}
+
+            <div className="commentary-hero-footer">
+              <span className="commentary-hero-stat">
+                <span
+                  className="material-icons-round"
+                  style={{ fontSize: 14, color: 'rgba(196,181,253,0.7)' }}
+                >
+                  menu_book
+                </span>
+                <span className="commentary-hero-stat-number">
+                  {filtered.length}
+                </span>
+                개의 해설
+              </span>
+              {heroVerseText && heroTTS.isSupported && (
+                <button
+                  type="button"
+                  className={`commentary-hero-tts-btn${heroTTS.isPlaying ? ' is-playing' : ''}`}
+                  onClick={handleHeroTTS}
+                  aria-label={heroTTS.isPlaying ? '낭독 정지' : '말씀 듣기'}
+                >
+                  <span className="material-icons-round">
+                    {heroTTS.isPlaying ? 'stop_circle' : 'volume_up'}
+                  </span>
+                  {heroTTS.isPlaying ? '정지' : '말씀 듣기'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 본문 */}
+          <div className="commentary-body">
             {isLoading && (
-              <div style={{ textAlign: 'center', padding: '2rem 0', color: '#888' }}>
-                <span className="material-icons-round spinning">refresh</span>
-                <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
-                  해석 불러오는 중...
-                </p>
+              <div className="commentary-loading">
+                <span className="material-icons-round commentary-spinning">
+                  refresh
+                </span>
+                <p style={{ marginTop: 10, fontSize: 13 }}>해설 불러오는 중...</p>
               </div>
             )}
 
             {!isLoading && filtered.length === 0 && (
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: '2.5rem 1rem',
-                  color: 'var(--ig-secondary-text, #888)',
-                }}
-              >
-                <span
-                  className="material-icons-round"
-                  style={{ fontSize: '2.25rem', opacity: 0.35 }}
-                >
-                  auto_stories
-                </span>
-                <p style={{ margin: '0.5rem 0 0', fontSize: '0.9375rem' }}>
-                  아직 등록된 해석이 없습니다
+              <div className="commentary-empty">
+                <div className="commentary-empty-icon">
+                  <span className="material-icons-round">menu_book</span>
+                </div>
+                <p className="commentary-empty-title">
+                  아직 등록된 해설이 없습니다
                 </p>
-                {admin && (
-                  <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem' }}>
-                    아래 + 버튼으로 첫 해석을 추가해보세요
-                  </p>
-                )}
+                <p className="commentary-empty-desc">
+                  {admin
+                    ? '아래 + 버튼으로 이 절의 첫 해설을 더해보세요.'
+                    : '곧 목회자·교사가 해설을 더해드릴 거예요.'}
+                </p>
               </div>
             )}
 
@@ -217,6 +270,7 @@ const BibleCommentaryPanel = ({
                 <BibleCommentaryItem
                   key={c.id}
                   commentary={c}
+                  bookNameKo={bookNameKo}
                   isAdmin={admin}
                   onEdit={handleEditClick}
                   onDelete={handleDelete}
@@ -224,37 +278,17 @@ const BibleCommentaryPanel = ({
               ))}
           </div>
 
+          {/* Compose FAB — 관리자 전용 */}
           {admin && (
-            <div
-              style={{
-                padding: '0.625rem 1rem',
-                borderTop: '1px solid var(--ig-border, rgba(0,0,0,0.08))',
-                background: 'var(--ig-primary-background, #fff)',
-              }}
+            <button
+              type="button"
+              className="commentary-fab"
+              onClick={handleCreateClick}
+              title="해설 추가"
+              aria-label="해설 추가"
             >
-              <button
-                onClick={handleCreateClick}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  borderRadius: '0.625rem',
-                  border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  color: 'white',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.375rem',
-                }}
-              >
-                <span className="material-icons-round" style={{ fontSize: '1.125rem' }}>
-                  add
-                </span>
-                해석 추가
-              </button>
-            </div>
+              <span className="material-icons-round">add</span>
+            </button>
           )}
         </section>
       </div>
@@ -263,6 +297,7 @@ const BibleCommentaryPanel = ({
         <BibleCommentaryEditor
           bookNumber={bookNumber}
           chapter={chapter}
+          bookNameKo={bookNameKo}
           totalVerses={totalVerses}
           initialVerseStart={focusVerse ?? 1}
           initialVerseEnd={focusVerse ?? 1}
