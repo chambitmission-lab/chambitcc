@@ -45,37 +45,54 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
   }
 
   const remaining = MAX_LEN - content.length
+  const canSubmit = content.trim().length > 0 && !submitting
 
   return (
     <div
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-end sm:items-center justify-center p-4 overflow-hidden"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-surface-dark rounded-2xl max-w-md w-full overflow-hidden"
+        className="relative bg-background-light dark:bg-[#1c1c26] rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto overflow-x-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_8px_32px_rgba(168,85,247,0.15)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18),inset_0_1px_0_rgba(255,255,255,0.05)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-4 border-b border-border-light dark:border-border-dark flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <span>🙏</span>
-            <span>{language === 'ko' ? '오늘의 감사 나누기' : 'Share Today’s Thanks'}</span>
-          </h2>
+        {/* 다크모드 카드 표면 미세 그라데이션 */}
+        <div className="hidden dark:block sticky top-0 left-0 right-0 -z-0 pointer-events-none">
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent" />
+        </div>
+
+        {/* 보랏빛 글로우 */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/15 dark:to-pink-500/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-purple-400/10 dark:from-pink-500/10 dark:to-purple-500/8 rounded-full blur-3xl pointer-events-none" />
+
+        {/* 헤더 */}
+        <div className="relative z-10 sticky top-0 backdrop-blur-xl bg-background-light/85 dark:bg-[#1c1c26]/90 border-b border-black/[0.04] dark:border-white/[0.08] px-5 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="material-icons-round text-[20px] bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
+              volunteer_activism
+            </span>
+            <h2 className="text-[18px] font-bold tracking-[-0.015em] text-gray-900 dark:text-white">
+              {language === 'ko' ? '오늘의 감사 나누기' : 'Share Today’s Thanks'}
+            </h2>
+          </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             aria-label={language === 'ko' ? '닫기' : 'Close'}
+            className="w-9 h-9 flex items-center justify-center rounded-full text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
           >
-            <span className="material-icons-outlined">close</span>
+            <span className="material-icons-outlined text-[22px]">close</span>
           </button>
         </div>
 
-        <div className="p-4 space-y-4">
-          {/* 감정 선택 */}
+        {/* 본문 */}
+        <div className="relative z-10 p-5 space-y-5">
+          {/* 감정 선택 — pill grid, active 그라데이션 purple→pink */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+            <label className="block text-[13px] font-semibold text-gray-600 dark:text-white/60 mb-2.5 tracking-[-0.01em]">
               {language === 'ko' ? '오늘의 마음 (선택)' : 'How does it feel? (optional)'}
             </label>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-1.5 flex-wrap">
               {(Object.keys(THANKS_EMOTIONS) as ThanksEmotion[]).map((key) => {
                 const meta = THANKS_EMOTIONS[key]
                 const active = emotion === key
@@ -84,10 +101,10 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
                     key={key}
                     type="button"
                     onClick={() => setEmotion(active ? null : key)}
-                    className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
+                    className={`px-3 py-1.5 rounded-full text-[13px] font-medium border transition-all ${
                       active
-                        ? 'bg-amber-100 dark:bg-amber-900/40 border-amber-400 text-amber-800 dark:text-amber-200'
-                        : 'bg-gray-50 dark:bg-gray-800 border-transparent text-gray-700 dark:text-gray-300 hover:border-amber-300'
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 border-transparent text-white shadow-md shadow-purple-500/30'
+                        : 'bg-surface-light dark:bg-[#14141c] border-black/[0.06] dark:border-white/[0.08] text-gray-700 dark:text-white/70 hover:border-purple-400/40 dark:hover:border-purple-400/40 hover:text-purple-600 dark:hover:text-purple-300'
                     }`}
                   >
                     <span className="mr-1">{meta.emoji}</span>
@@ -100,6 +117,21 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
 
           {/* 본문 */}
           <div>
+            <label className="flex items-center justify-between text-[13px] font-semibold text-gray-600 dark:text-white/60 mb-2 tracking-[-0.01em]">
+              <span>
+                {language === 'ko' ? '감사 내용' : 'Your thanks'}{' '}
+                <span className="text-pink-500 dark:text-pink-400">*</span>
+              </span>
+              <span
+                className={`text-[11px] font-normal tabular-nums ${
+                  remaining < 10
+                    ? 'text-pink-500 dark:text-pink-400'
+                    : 'text-gray-400 dark:text-white/40'
+                }`}
+              >
+                {content.length}/{MAX_LEN}
+              </span>
+            </label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value.slice(0, MAX_LEN))}
@@ -108,40 +140,35 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
               autoFocus
               placeholder={
                 language === 'ko'
-                  ? '예: 오늘 마신 커피 한 잔이 참 맛있었습니다 ☕'
-                  : 'e.g., A simple coffee made my day brighter today ☕'
+                  ? '예: 오늘 마신 커피 한 잔이 참 맛있었습니다'
+                  : 'e.g., A simple coffee made my day brighter today'
               }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+              className="w-full px-3.5 py-3 bg-surface-light dark:bg-[#14141c] border border-black/[0.05] dark:border-white/[0.06] rounded-xl text-[14px] leading-[1.6] text-gray-900 dark:text-white/90 placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400/60 dark:focus:border-purple-400/50 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-500/25 resize-none transition-colors"
             />
-            <div className="flex justify-end mt-1">
-              <span
-                className={`text-xs ${
-                  remaining < 10 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-400'
-                }`}
-              >
-                {content.length}/{MAX_LEN}
-              </span>
-            </div>
           </div>
-        </div>
 
-        <div className="p-4 border-t border-border-light dark:border-border-dark flex gap-2">
-          <button
-            onClick={onClose}
-            disabled={submitting}
-            className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
-          >
-            {language === 'ko' ? '취소' : 'Cancel'}
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={submitting || !content.trim()}
-            className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-medium hover:from-amber-600 hover:to-orange-600 transition-colors disabled:opacity-50"
-          >
-            {submitting
-              ? (language === 'ko' ? '등록 중…' : 'Sharing…')
-              : (language === 'ko' ? '나누기' : 'Share')}
-          </button>
+          {/* 액션 */}
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="flex-1 px-4 py-2.5 bg-transparent text-gray-700 dark:text-white/70 font-semibold text-[14px] rounded-full border border-black/[0.08] dark:border-white/[0.10] hover:text-purple-600 dark:hover:text-purple-300 hover:border-purple-400/40 dark:hover:border-purple-400/40 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors disabled:opacity-50"
+            >
+              {language === 'ko' ? '취소' : 'Cancel'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white font-bold text-[14px] rounded-full shadow-lg shadow-purple-500/30 dark:shadow-purple-900/30 hover:shadow-xl hover:shadow-purple-500/40 dark:hover:shadow-purple-900/40 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-1.5"
+            >
+              <span className="material-icons-round text-[16px]">volunteer_activism</span>
+              {submitting
+                ? (language === 'ko' ? '등록 중…' : 'Sharing…')
+                : (language === 'ko' ? '나누기' : 'Share')}
+            </button>
+          </div>
         </div>
       </div>
     </div>

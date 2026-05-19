@@ -58,18 +58,18 @@ const ThanksThread = () => {
           {total > items.length && (
             <button
               onClick={() => navigate('/thanks')}
-              className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
+              className="text-[12px] font-medium text-purple-600 dark:text-purple-300 hover:underline"
             >
               {language === 'ko' ? '더보기' : 'See all'}
             </button>
           )}
           <button
             onClick={handleOpenComposer}
-            className="ml-1 p-1.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-sm hover:shadow-md transition-shadow"
+            className="ml-1 p-1.5 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/30 hover:shadow-lg hover:shadow-purple-500/40 transition-all"
             aria-label={language === 'ko' ? '감사 나누기' : 'Share thanks'}
             title={language === 'ko' ? '감사 나누기' : 'Share thanks'}
           >
-            <span className="material-icons-outlined text-base">add</span>
+            <span className="material-icons-round text-base">add</span>
           </button>
         </div>
       </div>
@@ -87,11 +87,16 @@ const ThanksThread = () => {
       ) : items.length === 0 ? (
         <button
           onClick={handleOpenComposer}
-          className="w-full text-left p-4 rounded-2xl border border-dashed border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/10 text-sm text-amber-800 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+          className="w-full text-left p-4 rounded-2xl border border-dashed border-purple-300/60 dark:border-purple-400/30 bg-purple-50/40 dark:bg-purple-500/[0.06] text-[14px] text-purple-700 dark:text-purple-200 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors flex items-center gap-2"
         >
-          {language === 'ko'
-            ? '☕ 오늘 첫 감사를 나눠주세요'
-            : '☕ Be the first to share thanks today'}
+          <span className="material-icons-round text-[18px] text-purple-500 dark:text-purple-300">
+            add_circle_outline
+          </span>
+          <span>
+            {language === 'ko'
+              ? '오늘 첫 감사를 나눠주세요'
+              : 'Be the first to share thanks today'}
+          </span>
         </button>
       ) : (
         <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4">

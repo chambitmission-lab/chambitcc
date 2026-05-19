@@ -178,50 +178,87 @@ const Thanks = () => {
   const showSpinner = query.isLoading || query.isFetchingNextPage
 
   return (
-    <div className="bg-gray-50 dark:bg-black min-h-screen">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
-        {/* Header */}
-        <div className="sticky top-14 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
-          <div className="px-4 py-4 flex items-center justify-between">
+    <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen border-x border-black/[0.04] dark:border-white/[0.06]">
+        {/* Sticky 헤더 — 컴팩트 네비 */}
+        <div className="sticky top-14 z-10 backdrop-blur-xl bg-background-light/85 dark:bg-background-dark/85 border-b border-black/[0.04] dark:border-white/[0.06]">
+          <div className="px-4 py-3 flex items-center justify-between">
             <button
               onClick={() => navigate(-1)}
-              className="p-1 -ml-1 text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white"
+              className="w-9 h-9 -ml-1 flex items-center justify-center rounded-full text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
               aria-label={language === 'ko' ? '뒤로' : 'Back'}
             >
-              <span className="material-icons-outlined">arrow_back</span>
+              <span className="material-icons-outlined text-[22px]">arrow_back</span>
             </button>
-            <div className="flex-1 text-center">
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white flex items-center justify-center gap-1.5">
-                <span>🙏</span>
-                <span>{language === 'ko' ? '오늘의 감사' : 'Today’s Thanks'}</span>
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {language === 'ko'
-                  ? '일상 속 작은 감사를 함께 나눕니다'
-                  : 'Share the little joys of daily life'}
-                {total > 0 && ` · ${total}`}
-              </p>
-            </div>
+            <h1 className="text-[15px] font-bold tracking-[-0.01em] text-gray-900 dark:text-white">
+              {language === 'ko' ? '오늘의 감사' : 'Today’s Thanks'}
+            </h1>
             <button
               onClick={handleOpenComposer}
-              className="p-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-sm"
+              className="w-9 h-9 -mr-1 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/30 hover:shadow-lg hover:shadow-purple-500/40 transition-all"
               aria-label={language === 'ko' ? '감사 나누기' : 'Share thanks'}
             >
-              <span className="material-icons-outlined text-base">add</span>
+              <span className="material-icons-round text-[20px]">add</span>
             </button>
           </div>
         </div>
 
+        {/* Hero 카드 — 보조 페이지 Hero + brand 그라데이션 카운트 */}
+        <section className="px-4 pt-4">
+          <article className="relative overflow-hidden rounded-2xl border border-black/[0.05] dark:border-white/[0.08] bg-background-light dark:bg-[#1c1c26] shadow-[0_8px_32px_rgba(168,85,247,0.10)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.45),0_8px_28px_rgba(168,85,247,0.18),inset_0_1px_0_rgba(255,255,255,0.05)]">
+            {/* 좌측 3px 그라데이션 액센트 라인 */}
+            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-purple-500 to-pink-500" />
+            {/* 보랏빛 글로우 */}
+            <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/15 dark:to-pink-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-10 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-purple-400/10 dark:from-pink-500/10 dark:to-purple-500/8 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 p-5 flex items-start gap-4">
+              <div className="shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/15 dark:from-purple-500/20 dark:to-pink-500/20 border border-purple-500/20 dark:border-purple-400/20 flex items-center justify-center">
+                <span className="material-icons-round text-[24px] bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                  volunteer_activism
+                </span>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[11px] font-semibold tracking-[0.08em] uppercase text-purple-600 dark:text-purple-300">
+                    GRATITUDE
+                  </span>
+                  {total > 0 && (
+                    <span className="text-[11px] font-bold tabular-nums bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                      {total}
+                      {language === 'ko' ? '개' : ''}
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white mb-1.5">
+                  {language === 'ko' ? '오늘의 감사' : 'Today’s Thanks'}
+                </h2>
+                <p className="text-[13px] leading-[1.6] text-gray-600 dark:text-white/60">
+                  {language === 'ko'
+                    ? '일상 속 작은 감사를 함께 나눕니다'
+                    : 'Share the little joys of daily life'}
+                </p>
+              </div>
+            </div>
+          </article>
+        </section>
+
         {/* List */}
-        <div className="p-4 space-y-3">
+        <div className="px-4 pt-4 pb-24 space-y-3">
           {items.length === 0 && !query.isLoading ? (
             <button
               onClick={handleOpenComposer}
-              className="w-full text-left p-6 rounded-2xl border border-dashed border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/10 text-sm text-amber-800 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+              className="w-full text-left p-6 rounded-2xl border border-dashed border-purple-300/60 dark:border-purple-400/30 bg-purple-50/40 dark:bg-purple-500/[0.06] text-[14px] text-purple-700 dark:text-purple-200 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors flex items-center gap-2"
             >
-              {language === 'ko'
-                ? '☕ 오늘 첫 감사를 나눠주세요'
-                : '☕ Be the first to share thanks today'}
+              <span className="material-icons-round text-[18px] text-purple-500 dark:text-purple-300">
+                add_circle_outline
+              </span>
+              <span>
+                {language === 'ko'
+                  ? '오늘 첫 감사를 나눠주세요'
+                  : 'Be the first to share thanks today'}
+              </span>
             </button>
           ) : (
             items.map((t) => (
@@ -238,7 +275,7 @@ const Thanks = () => {
 
           {showSpinner && (
             <div className="flex items-center justify-center py-6">
-              <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 dark:border-purple-400/30 dark:border-t-purple-300 rounded-full animate-spin" />
             </div>
           )}
 

@@ -30,7 +30,7 @@ const ThanksTicker = () => {
 
   return (
     <section className="px-4 py-1.5">
-      <div className="w-full rounded-2xl overflow-hidden bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 dark:from-amber-900/20 dark:via-orange-900/15 dark:to-amber-900/20 border border-amber-200/60 dark:border-amber-700/30 hover:shadow-md transition-shadow flex items-stretch">
+      <div className="w-full rounded-2xl overflow-hidden bg-gradient-to-r from-purple-50/80 via-pink-50/60 to-purple-50/80 dark:from-purple-500/[0.08] dark:via-pink-500/[0.06] dark:to-purple-500/[0.08] border border-purple-200/60 dark:border-purple-400/20 shadow-[0_2px_12px_rgba(168,85,247,0.06)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:shadow-md transition-shadow flex items-stretch">
         {/* 본문 영역: 탭하면 /thanks 목록으로 이동 */}
         <button
           type="button"
@@ -43,20 +43,22 @@ const ThanksTicker = () => {
           }
         >
           <div className="flex items-center gap-2 pl-3 pr-2 py-2.5">
-            <span className="text-base shrink-0" aria-hidden>🙏</span>
-            <span className="text-xs font-bold text-amber-900 dark:text-amber-200 whitespace-nowrap shrink-0">
+            <span className="material-icons-round text-[18px] shrink-0 bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent" aria-hidden>
+              volunteer_activism
+            </span>
+            <span className="text-[12px] font-bold tracking-[-0.01em] text-purple-700 dark:text-purple-200 whitespace-nowrap shrink-0">
               {language === 'ko' ? '오늘의 감사 한 줄' : "Today's Gratitude"}
             </span>
 
             <div className="flex-1 overflow-hidden relative h-5">
               {empty ? (
-                <span className="block text-xs text-amber-800/80 dark:text-amber-200/80 truncate">
+                <span className="block text-[12px] text-purple-700/80 dark:text-purple-200/80 truncate">
                   {language === 'ko'
-                    ? '아직 감사가 없어요 — 옆 ✎ 으로 첫 감사를 ✨'
-                    : 'No thanks yet — tap ✎ to share the first ✨'}
+                    ? '아직 감사가 없어요 — 옆 ✎ 으로 첫 감사를 나눠주세요'
+                    : 'No thanks yet — tap ✎ to share the first one'}
                 </span>
               ) : loading && items.length === 0 ? (
-                <span className="block text-xs text-amber-700/60 dark:text-amber-300/60">···</span>
+                <span className="block text-[12px] text-purple-600/60 dark:text-purple-300/60">···</span>
               ) : (
                 <div
                   className="thanks-ticker-track absolute left-0 top-0 flex whitespace-nowrap"
@@ -65,7 +67,7 @@ const ThanksTicker = () => {
                   {marqueeItems.map((t, i) => (
                     <span
                       key={`${t.id}-${i}`}
-                      className="inline-flex items-center gap-1.5 pr-8 text-xs text-amber-900 dark:text-amber-100"
+                      className="inline-flex items-center gap-1.5 pr-8 text-[12px] text-purple-900 dark:text-purple-100"
                     >
                       {t.emotion && (
                         <span aria-hidden>{THANKS_EMOTIONS[t.emotion].emoji}</span>
@@ -83,12 +85,12 @@ const ThanksTicker = () => {
         <button
           type="button"
           onClick={handleOpenComposer}
-          className="shrink-0 px-3 flex items-center justify-center border-l border-amber-200/70 dark:border-amber-800/40 hover:bg-amber-100/50 dark:hover:bg-amber-900/30 active:scale-95 transition"
+          className="shrink-0 px-3 flex items-center justify-center border-l border-purple-200/60 dark:border-purple-400/20 hover:bg-purple-100/50 dark:hover:bg-purple-500/10 active:scale-95 transition"
           aria-label={language === 'ko' ? '감사 한 줄 적기' : 'Write a thanks'}
           title={language === 'ko' ? '감사 한 줄 적기' : 'Write a thanks'}
         >
           <span
-            className="material-icons-outlined text-amber-600 dark:text-amber-400 text-xl"
+            className="material-icons-outlined text-purple-600 dark:text-purple-300 text-xl"
             aria-hidden
           >
             edit_note
