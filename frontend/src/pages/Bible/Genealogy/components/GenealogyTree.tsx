@@ -122,6 +122,8 @@ export const GenealogyTree = ({
   const palette = theme === 'dark' ? DARK : LIGHT
   const svgRef = useRef<SVGSVGElement | null>(null)
   const gRef = useRef<SVGGElement | null>(null)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const spineOffsetRef = useRef<number>(0)
 
   const { root, spouseMap } = useMemo(() => {
     const nodeBySlug = new Map<string, BibleFigureSummary>(
@@ -243,19 +245,27 @@ export const GenealogyTree = ({
     const xs = allNodes.map((n) => n.x)
     const minX = Math.min(...xs)
     const maxX = Math.max(...xs)
-    const treeWidth = maxX - minX + NODE_WIDTH
     const treeHeight = (hierarchy.height + 1) * V_GAP + 40
 
-    const viewBoxWidth = Math.max(treeWidth + 100, 400)
+    // spine(x=0)이 SVG 가로 정중앙에 오도록 viewBox 를 좌우 대칭으로 잡는다.
+    // 그래야 좌측 가지가 없는 초반부 체인에서도 메시아 spine 이 화면 중앙에 보인다.
+    const PAD = 60
+    const halfWidth =
+      Math.max(Math.abs(minX), maxX) + NODE_WIDTH / 2 + PAD
+    const viewBoxWidth = halfWidth * 2
+    const viewBoxStartX = -halfWidth
     const viewBoxHeight = treeHeight + 80
 
     svg
-      .attr('viewBox', `${minX - 50} -40 ${viewBoxWidth} ${viewBoxHeight}`)
+      .attr('viewBox', `${viewBoxStartX} -40 ${viewBoxWidth} ${viewBoxHeight}`)
       .attr('width', viewBoxWidth)
       .attr('height', viewBoxHeight)
       .style('width', `${viewBoxWidth}px`)
       .style('height', `${viewBoxHeight}px`)
       .style('max-width', 'none')
+
+    // SVG 의 가로 정중앙(= spine x=0) 픽셀 위치 → 컨테이너 가로 스크롤 정렬에 사용
+    spineOffsetRef.current = viewBoxWidth / 2
 
     // 부모/자식 링크
     const linkGen = d3
@@ -515,6 +525,15 @@ export const GenealogyTree = ({
 
     svg.call(zoomBehavior as any)
     svg.call(zoomBehavior.transform as any, d3.zoomIdentity)
+
+    // 트리가 컨테이너보다 넓으면 spine(x=0)을 가로 중앙으로 스크롤
+    // 내부 flex wrapper 의 px-4 (16px) padding 보정
+    if (scrollRef.current) {
+      const container = scrollRef.current
+      const INNER_PAD = 16
+      const target = spineOffsetRef.current + INNER_PAD - container.clientWidth / 2
+      container.scrollLeft = Math.max(0, target)
+    }
   }, [
     root,
     selectedSlug,
@@ -536,9 +555,12 @@ export const GenealogyTree = ({
   }
 
   return (
-    <div className="w-full max-h-[78vh] overflow-auto rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#15151d] relative">
+    <div
+      ref={scrollRef}
+      className="w-full max-h-[78vh] overflow-auto rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#15151d] relative"
+    >
       <div className="absolute inset-0 opacity-0 dark:opacity-100 pointer-events-none bg-gradient-to-br from-white/[0.04] via-transparent to-white/[0.02]" />
-      <div className="flex justify-center min-w-min relative">
+      <div className="flex justify-center min-w-min relative py-4 px-4">
         <svg
           ref={svgRef}
           preserveAspectRatio="xMidYMin meet"
