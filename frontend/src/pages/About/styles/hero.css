@@ -3,20 +3,20 @@
 .about-hero {
   position: relative;
   height: 280px;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  background: linear-gradient(135deg, #1a0b2e 0%, #2a1438 50%, #3d1b5c 100%);
   overflow: hidden;
 }
 
 [data-theme="dark"] .about-hero {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, #0b0b12 0%, #1c1c26 50%, #2a1438 100%);
 }
 
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 20% 30%, rgba(168, 85, 247, 0.18) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.18) 0%, transparent 50%);
 }
 
 .hero-content {
@@ -34,7 +34,7 @@
   position: relative;
   display: inline-block;
   padding: 0.5rem 1.25rem;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-radius: 50px;
@@ -42,10 +42,10 @@
   font-weight: 600;
   color: white;
   margin-bottom: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(236, 72, 153, 0.4);
+  box-shadow:
+    0 8px 32px rgba(168, 85, 247, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   animation: float 3s ease-in-out infinite;
 }
 
@@ -57,9 +57,9 @@
   padding: 2px;
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.8),
-    rgba(251, 191, 36, 0.8),
-    rgba(255, 255, 255, 0.8)
+    rgba(168, 85, 247, 0.8),
+    rgba(236, 72, 153, 0.8),
+    rgba(168, 85, 247, 0.8)
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -80,25 +80,25 @@
   0% {
     background: linear-gradient(
       0deg,
-      rgba(255, 255, 255, 0.8),
-      rgba(251, 191, 36, 0.8),
-      rgba(255, 255, 255, 0.8)
+      rgba(168, 85, 247, 0.8),
+      rgba(236, 72, 153, 0.8),
+      rgba(168, 85, 247, 0.8)
     );
   }
   50% {
     background: linear-gradient(
       180deg,
-      rgba(251, 191, 36, 0.8),
-      rgba(255, 255, 255, 0.8),
-      rgba(251, 191, 36, 0.8)
+      rgba(236, 72, 153, 0.8),
+      rgba(168, 85, 247, 0.8),
+      rgba(236, 72, 153, 0.8)
     );
   }
   100% {
     background: linear-gradient(
       360deg,
-      rgba(255, 255, 255, 0.8),
-      rgba(251, 191, 36, 0.8),
-      rgba(255, 255, 255, 0.8)
+      rgba(168, 85, 247, 0.8),
+      rgba(236, 72, 153, 0.8),
+      rgba(168, 85, 247, 0.8)
     );
   }
 }
@@ -109,32 +109,32 @@
   color: white;
   margin-bottom: 0.75rem;
   letter-spacing: -0.02em;
-  text-shadow: 
+  text-shadow:
     0 0 10px rgba(255, 255, 255, 0.8),
-    0 0 20px rgba(255, 255, 255, 0.6),
-    0 0 30px rgba(251, 191, 36, 0.6),
-    0 0 40px rgba(251, 191, 36, 0.4),
-    0 4px 20px rgba(0, 0, 0, 0.2);
+    0 0 20px rgba(236, 72, 153, 0.6),
+    0 0 30px rgba(168, 85, 247, 0.6),
+    0 0 40px rgba(168, 85, 247, 0.4),
+    0 4px 20px rgba(0, 0, 0, 0.4);
   animation: glow 2s ease-in-out infinite alternate;
 }
 
 @keyframes glow {
   from {
-    text-shadow: 
+    text-shadow:
       0 0 10px rgba(255, 255, 255, 0.8),
-      0 0 20px rgba(255, 255, 255, 0.6),
-      0 0 30px rgba(251, 191, 36, 0.6),
-      0 0 40px rgba(251, 191, 36, 0.4),
-      0 4px 20px rgba(0, 0, 0, 0.2);
+      0 0 20px rgba(236, 72, 153, 0.6),
+      0 0 30px rgba(168, 85, 247, 0.6),
+      0 0 40px rgba(168, 85, 247, 0.4),
+      0 4px 20px rgba(0, 0, 0, 0.4);
   }
   to {
-    text-shadow: 
+    text-shadow:
       0 0 20px rgba(255, 255, 255, 1),
-      0 0 30px rgba(255, 255, 255, 0.8),
-      0 0 40px rgba(251, 191, 36, 0.8),
-      0 0 50px rgba(251, 191, 36, 0.6),
-      0 0 60px rgba(251, 191, 36, 0.4),
-      0 4px 20px rgba(0, 0, 0, 0.2);
+      0 0 30px rgba(236, 72, 153, 0.8),
+      0 0 40px rgba(168, 85, 247, 0.8),
+      0 0 50px rgba(236, 72, 153, 0.6),
+      0 0 60px rgba(168, 85, 247, 0.4),
+      0 4px 20px rgba(0, 0, 0, 0.4);
   }
 }
 
@@ -143,22 +143,22 @@
   color: rgba(255, 255, 255, 0.95);
   font-weight: 500;
   letter-spacing: 0.05em;
-  text-shadow: 
+  text-shadow:
     0 0 10px rgba(255, 255, 255, 0.5),
-    0 0 20px rgba(251, 191, 36, 0.3);
+    0 0 20px rgba(236, 72, 153, 0.4);
   animation: subtleGlow 3s ease-in-out infinite alternate;
 }
 
 @keyframes subtleGlow {
   from {
-    text-shadow: 
+    text-shadow:
       0 0 10px rgba(255, 255, 255, 0.5),
-      0 0 20px rgba(251, 191, 36, 0.3);
+      0 0 20px rgba(236, 72, 153, 0.4);
   }
   to {
-    text-shadow: 
+    text-shadow:
       0 0 15px rgba(255, 255, 255, 0.7),
-      0 0 25px rgba(251, 191, 36, 0.5),
-      0 0 35px rgba(251, 191, 36, 0.3);
+      0 0 25px rgba(168, 85, 247, 0.5),
+      0 0 35px rgba(236, 72, 153, 0.4);
   }
 }

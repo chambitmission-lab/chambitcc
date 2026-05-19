@@ -5,12 +5,14 @@
 }
 
 .cta-card {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, #1c1c26 0%, #2a1438 100%);
   border-radius: 1.5rem;
   padding: 2.5rem 2rem;
   text-align: center;
   position: relative;
   overflow: hidden;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.2);
 }
 
 .cta-card::before {
@@ -39,9 +41,10 @@
 .cta-badge {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: #fbbf24;
-  color: #1e293b;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  color: white;
   border-radius: 50px;
   font-weight: 700;
   font-size: 0.9375rem;
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
 }

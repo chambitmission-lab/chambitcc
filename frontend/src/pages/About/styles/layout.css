@@ -8,17 +8,17 @@
 .section-badge {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.15));
   border-radius: 50px;
   font-size: 0.875rem;
   font-weight: 700;
-  color: #92400e;
+  color: #9333ea;
   margin-bottom: 1rem;
 }
 
 [data-theme="dark"] .section-badge {
-  background: linear-gradient(135deg, #374151, #1f2937);
-  color: #fbbf24;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2));
+  color: #f9a8d4;
 }
 
 /* Section Title */
@@ -50,7 +50,7 @@
 }
 
 [data-theme="dark"] .footer-text {
-  color: #9ca3af;
+  color: #c4b5fd;
 }
 
 /* Admin 인라인 편집 안내 */

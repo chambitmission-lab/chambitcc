@@ -7,17 +7,17 @@
 .pastor-nickname {
   display: inline-block;
   padding: 0.5rem 1.25rem;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.15));
   border-radius: 50px;
   font-size: 1rem;
   font-weight: 700;
-  color: #92400e;
+  color: #9333ea;
   margin-bottom: 2rem;
 }
 
 [data-theme="dark"] .pastor-nickname {
-  background: linear-gradient(135deg, #374151, #1f2937);
-  color: #fbbf24;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2));
+  color: #f9a8d4;
 }
 
 .pastor-intro {
@@ -32,21 +32,22 @@
 }
 
 [data-theme="dark"] .pastor-text {
-  color: #9ca3af;
+  color: #c4b5fd;
 }
 
 .pastor-text.highlight {
   padding: 1.25rem;
-  background: #fffbeb;
-  border-left: 4px solid #fbbf24;
+  background: rgba(168, 85, 247, 0.06);
+  border-left: 4px solid #a855f7;
   border-radius: 0.5rem;
   font-weight: 600;
-  color: #92400e;
+  color: #6b21a8;
 }
 
 [data-theme="dark"] .pastor-text.highlight {
-  background: #1f2937;
-  color: #fbbf24;
+  background: rgba(168, 85, 247, 0.12);
+  border-left-color: #ec4899;
+  color: #f9a8d4;
 }
 
 /* Credentials */
@@ -67,8 +68,8 @@
 }
 
 [data-theme="dark"] .credential-item {
-  background: #1f2937;
-  border-color: #374151;
+  background: #1c1c26;
+  border-color: rgba(168, 85, 247, 0.2);
 }
 
 .credential-icon {
@@ -77,12 +78,15 @@
 }
 
 .credential-label {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  color: #fbbf24;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: #a855f7;
+  letter-spacing: 0.02em;
   margin-bottom: 0.25rem;
+}
+
+[data-theme="dark"] .credential-label {
+  color: #f9a8d4;
 }
 
 .credential-value {

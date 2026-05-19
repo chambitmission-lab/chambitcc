@@ -8,7 +8,7 @@
 }
 
 [data-theme="dark"] .meeting-section {
-  background: #111827;
+  background: #1c1c26;
 }
 
 .meeting-title {
@@ -48,14 +48,15 @@
 
 .meeting-card.good {
   grid-column: 1 / -1;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 2px solid #fbbf24;
-  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.2);
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  border: 2px solid rgba(236, 72, 153, 0.5);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
 }
 
 [data-theme="dark"] .meeting-card.good {
-  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
-  border-color: #fbbf24;
+  background: linear-gradient(135deg, #2a1438 0%, #1c1c26 100%);
+  border-color: rgba(236, 72, 153, 0.5);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
 }
 
 .meeting-emoji {
@@ -77,10 +78,10 @@
 
 .meeting-card.good .good-text {
   font-size: 1rem;
-  color: #92400e;
+  color: white;
   font-weight: 700;
 }
 
 [data-theme="dark"] .meeting-card.good .good-text {
-  color: #fbbf24;
+  color: #f9a8d4;
 }
