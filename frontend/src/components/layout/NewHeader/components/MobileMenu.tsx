@@ -10,16 +10,24 @@ interface MobileMenuProps {
 
 const MobileMenu = ({ isAdminUser, isLoggedIn, onLogout }: MobileMenuProps) => {
   return (
-    <div className="absolute top-14 left-0 right-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark shadow-lg overflow-hidden z-[60]">
-      <div className="max-w-md mx-auto">
+    <div
+      className="
+        absolute top-14 left-0 right-0 z-[60]
+        bg-background-light dark:bg-background-dark
+        border-b border-border-light dark:border-border-dark
+        shadow-lg
+        max-h-[calc(100vh-3.5rem)] overflow-y-auto overscroll-contain
+      "
+    >
+      <div className="max-w-md mx-auto pb-4">
         {/* 2열 그리드 메뉴 */}
         <NavigationMenu />
-        
-        <div className="border-t border-border-light dark:border-border-dark"></div>
-        
+
+        <div className="border-t border-border-light dark:border-border-dark" />
+
         {/* 관리자 메뉴 */}
         {isAdminUser && <AdminMenu />}
-        
+
         {/* 설정 메뉴 */}
         <SettingsMenu isLoggedIn={isLoggedIn} onLogout={onLogout} />
       </div>
