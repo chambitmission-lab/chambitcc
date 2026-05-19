@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { BibleVerse, RecommendedVerses } from '../../../types/prayer'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import { useTextToSpeech } from '../../../hooks/useTextToSpeech'
 import { showToast } from '../../../utils/toast'
+import './BibleVersesModal.css'
 
 interface BibleVersesModalProps {
   verses: RecommendedVerses
@@ -17,22 +17,6 @@ interface VerseCardProps {
 }
 
 const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
-  const tts = useTextToSpeech({ rate: 0.95 })
-  const ttsStop = tts.stop
-  useEffect(() => {
-    return () => {
-      ttsStop()
-    }
-  }, [ttsStop])
-
-  const handleTTS = () => {
-    if (tts.isPlaying) {
-      tts.stop()
-      return
-    }
-    tts.speak(`${verse.reference}. ${verse.text}`)
-  }
-
   const handleShare = async () => {
     const body =
       `📖 ${verse.reference}\n\n"${verse.text}"\n\n💡 ${verse.message}\n\n` +
@@ -53,11 +37,8 @@ const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
   }
 
   return (
-    <article
-      className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-    >
-      {/* subtle gradient highlight */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-white/[0.02] dark:opacity-100 opacity-0" />
+    <article className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+      <div className="pointer-events-none absolute inset-0 hidden dark:block bg-gradient-to-br from-white/[0.05] via-transparent to-white/[0.02]" />
 
       <div className="relative p-5">
         {/* head: index + reference */}
@@ -86,9 +67,7 @@ const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
         <blockquote className="relative mb-3 pl-3">
           <span
             className="pointer-events-none absolute -top-1 -left-1 select-none text-[40px] leading-none text-purple-400/40 dark:text-purple-400/35"
-            style={{
-              fontFamily: 'Georgia, "Times New Roman", serif',
-            }}
+            style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
             aria-hidden="true"
           >
             “
@@ -106,13 +85,7 @@ const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
         </blockquote>
 
         {/* insight message */}
-        <div
-          className="rounded-xl border border-purple-200/60 dark:border-purple-500/25 px-3.5 py-3"
-          style={{
-            background:
-              'linear-gradient(135deg, rgba(168,85,247,0.08), rgba(236,72,153,0.06))',
-          }}
-        >
+        <div className="bvm-insight rounded-xl px-3.5 py-3">
           <div className="flex items-start gap-2">
             <span className="material-icons-round flex-shrink-0 text-[18px] text-purple-600 dark:text-purple-300">
               auto_awesome
@@ -124,32 +97,7 @@ const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
         </div>
 
         {/* actions */}
-        <div className="mt-3.5 flex items-center justify-end gap-2">
-          {tts.isSupported && (
-            <button
-              type="button"
-              onClick={handleTTS}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-all ${
-                tts.isPlaying
-                  ? 'border-transparent text-white shadow-[0_4px_14px_rgba(168,85,247,0.42)]'
-                  : 'border-purple-300/50 dark:border-purple-500/35 bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-200 hover:bg-purple-100 dark:hover:bg-purple-500/20'
-              }`}
-              style={
-                tts.isPlaying
-                  ? {
-                      background:
-                        'linear-gradient(135deg, #a855f7, #ec4899)',
-                    }
-                  : undefined
-              }
-              aria-label={tts.isPlaying ? '낭독 정지' : '말씀 듣기'}
-            >
-              <span className="material-icons-round text-[15px]">
-                {tts.isPlaying ? 'stop_circle' : 'volume_up'}
-              </span>
-              {tts.isPlaying ? '정지' : '듣기'}
-            </button>
-          )}
+        <div className="mt-3.5 flex items-center justify-end">
           <button
             type="button"
             onClick={handleShare}
@@ -282,54 +230,21 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
         {/* Scrollable body */}
         <div className="overflow-y-auto max-h-[calc(92vh-64px)] px-4 pb-8 pt-4">
           {/* Hero card */}
-          <section
-            className="relative mb-5 overflow-hidden rounded-2xl border border-purple-300/40 dark:border-purple-500/30 p-5"
-            style={{
-              background:
-                'linear-gradient(135deg, rgba(245,243,255,0.95) 0%, rgba(237,233,254,0.85) 100%)',
-              boxShadow:
-                '0 0 0 1px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255,255,255,0.4)',
-            }}
-          >
-            <div
-              className="hidden dark:block absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  'linear-gradient(135deg, rgba(30,27,75,0.65) 0%, rgba(76,29,149,0.4) 100%)',
-              }}
-            />
-            <span
-              aria-hidden="true"
-              className="absolute left-0 top-[18%] bottom-[18%] w-[3px] rounded-r"
-              style={{
-                background:
-                  'linear-gradient(180deg, rgba(168,85,247,0), rgba(168,85,247,0.7) 50%, rgba(168,85,247,0))',
-              }}
-            />
+          <section className="bvm-hero relative mb-5 overflow-hidden rounded-2xl p-5">
+            <span aria-hidden="true" className="bvm-hero-accent-line" />
 
             <div className="relative flex items-start gap-3">
-              <div
-                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-purple-400/40 dark:border-purple-400/45 text-purple-700 dark:text-purple-100"
-                style={{
-                  background:
-                    'linear-gradient(135deg, rgba(168,85,247,0.22), rgba(236,72,153,0.16))',
-                }}
-              >
+              <div className="bvm-hero-emblem flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full">
                 <span className="material-icons-round text-[22px]">
                   auto_stories
                 </span>
               </div>
               <div className="min-w-0 flex-1">
-                <span
-                  className="inline-block rounded-full border border-purple-400/40 dark:border-purple-400/40 px-2 py-0.5 text-[10.5px] font-bold tracking-[0.08em] text-purple-800 dark:text-purple-200"
-                  style={{
-                    background: 'rgba(168,85,247,0.18)',
-                  }}
-                >
+                <span className="bvm-hero-label inline-block rounded-full px-2 py-0.5 text-[10.5px] font-bold tracking-[0.08em]">
                   TODAY · 함께 묵상
                 </span>
                 <h2
-                  className="mt-1.5 text-[20px] font-bold leading-[1.3] tracking-[-0.015em] text-gray-900 dark:text-purple-50"
+                  className="bvm-hero-title mt-1.5 text-[20px] font-bold leading-[1.3] tracking-[-0.015em]"
                   style={{ wordBreak: 'keep-all' }}
                 >
                   {heroTitle}
@@ -339,15 +254,15 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
 
             {verses.summary && (
               <p
-                className="relative mt-3.5 mb-0 text-[14px] leading-[1.7] text-purple-900/80 dark:text-purple-100/85"
+                className="bvm-hero-summary relative mt-3.5 mb-0 text-[14px] leading-[1.7]"
                 style={{ wordBreak: 'keep-all' }}
               >
                 {verses.summary}
               </p>
             )}
 
-            <div className="relative mt-4 flex items-center gap-2 border-t border-purple-300/30 dark:border-white/[0.06] pt-3">
-              <span className="text-[12px] font-semibold text-purple-900/70 dark:text-purple-200/75">
+            <div className="bvm-hero-divider relative mt-4 flex items-center gap-2 pt-3">
+              <span className="bvm-hero-stat-label text-[12px] font-semibold">
                 <span
                   className="font-bold tabular-nums text-[14px]"
                   style={{
