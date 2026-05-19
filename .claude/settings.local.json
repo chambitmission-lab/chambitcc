@@ -45,7 +45,12 @@
       "PowerShell(Get-Location; npx tsc -b --pretty false; \"exit=$LASTEXITCODE\")",
       "PowerShell(Get-Location; npx eslint src/pages/Profile 2>&1 | Select-Object -First 100; \"exit=$LASTEXITCODE\")",
       "PowerShell(Get-Location; npx eslint src/components/layout/NewHeader src/locales/ko/navigation.ts src/locales/en/navigation.ts 2>&1 | Select-Object -First 80; \"exit=$LASTEXITCODE\")",
-      "PowerShell(Get-Location; npx eslint src/pages/Admin/UserManagement.tsx 2>&1 | Select-Object -First 60; \"exit=$LASTEXITCODE\")"
+      "PowerShell(Get-Location; npx eslint src/pages/Admin/UserManagement.tsx 2>&1 | Select-Object -First 60; \"exit=$LASTEXITCODE\")",
+      "Bash(tee /tmp/tsc.out)",
+      "Bash(git revert *)",
+      "Bash(git stash *)",
+      "Bash(git -C .. stash push -m \"settings-local-temp\" -- .claude/settings.local.json)",
+      "Bash(git -C .. stash pop)"
     ]
   }
 }
