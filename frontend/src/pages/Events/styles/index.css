@@ -1,11 +1,12 @@
-/* Event Calendar Styles - Main Entry Point */
+/* Event Calendar — 어젠다 중심 재설계
+ * 기존 react-big-calendar 스타일은 어젠다 뷰로 전환되며 더 이상 필요하지 않음.
+ * Tailwind 토큰으로 충분하지만, scrollbar-hide 같은 페이지 전용 헬퍼만 남김.
+ */
 
-/* Import React Big Calendar base styles */
-@import 'react-big-calendar/lib/css/react-big-calendar.css';
-
-/* Import modular styles */
-@import './animations.css';
-@import './layout.css';
-@import './legend.css';
-@import './calendar-theme.css';
-@import './responsive.css';
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
