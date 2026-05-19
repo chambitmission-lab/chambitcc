@@ -202,21 +202,14 @@ export const GardenCustomizeModal: React.FC<GardenCustomizeModalProps> = ({ onCl
         <div className="modal-content">
           {/* 로딩 상태 */}
           {isLoading && (
-            <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <div className="customize-loading">
               <div className="loading-spinner">로딩 중...</div>
             </div>
           )}
 
           {/* 에러 메시지 */}
           {error && (
-            <div style={{ 
-              padding: '1rem', 
-              marginBottom: '1rem', 
-              background: '#fee', 
-              color: '#c33', 
-              borderRadius: '8px',
-              fontSize: '0.875rem'
-            }}>
+            <div className="customize-error" role="alert">
               {error}
             </div>
           )}

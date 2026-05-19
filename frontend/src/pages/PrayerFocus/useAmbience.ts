@@ -27,7 +27,11 @@ export const useAmbience = (ambienceId: string): UseAmbienceReturn => {
 
     if (!track?.src) return
 
-    const audio = new Audio(track.src)
+    // GitHub Pages 등 서브경로 호스팅 호환을 위해 BASE_URL 을 prepend. http(s)/blob URL 은 그대로.
+    const resolvedSrc = /^(https?:|blob:|data:)/.test(track.src)
+      ? track.src
+      : `${import.meta.env.BASE_URL.replace(/\/$/, '')}${track.src}`
+    const audio = new Audio(resolvedSrc)
     audio.loop = true
     audio.volume = track.volume ?? 0.4
     audio.preload = 'auto'

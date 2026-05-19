@@ -1,4 +1,4 @@
-// 정원 메인 페이지
+// 정원 메인 페이지 — 다크모드 토큰(#0b0b12 / #1c1c26 / purple→pink) 적용, NewHome 디자인 언어와 정렬
 
 import { useState } from 'react'
 import { GrowingTree } from '../../components/garden/GrowingTree'
@@ -13,10 +13,9 @@ export const Garden: React.FC = () => {
   const versesRead = progress?.overall.read_verses ?? 0
   const totalVerses = progress?.overall.total_verses
   const [showCustomizeModal, setShowCustomizeModal] = useState(false)
-  const [themeKey, setThemeKey] = useState(0) // 테마 변경 시 컴포넌트 재렌더링용
+  const [themeKey, setThemeKey] = useState(0)
 
   const handleThemeSave = () => {
-    // 테마 저장 후 GrowingTree 컴포넌트 재렌더링
     setThemeKey(prev => prev + 1)
   }
 
@@ -44,24 +43,25 @@ export const Garden: React.FC = () => {
 
   return (
     <div className="garden-page">
-      {/* 헤더 */}
-      <div className="garden-header">
-        <div className="garden-header-content">
-          <div>
-            <h1 className="garden-title">{t('gardenPageTitle')}</h1>
-            <p className="garden-subtitle">
-              {t('gardenPageSubtitle')}
-            </p>
-          </div>
-          <button
-            className="garden-customize-button"
-            onClick={() => setShowCustomizeModal(true)}
-          >
-            <span className="material-icons-round">palette</span>
-            {t('gardenCustomize')}
-          </button>
+      {/* Hero — NewHome 의 AnnualThemeVerse 톤과 정렬한 보라/핑크 그라데이션 카드 */}
+      <section className="garden-hero">
+        <div className="garden-hero-emblem" aria-hidden>
+          <span className="material-icons-round">park</span>
         </div>
-      </div>
+        <div className="garden-hero-body">
+          <span className="garden-hero-label">나의 신앙 나무</span>
+          <h1 className="garden-hero-title">{t('gardenPageTitle')}</h1>
+          <p className="garden-hero-subtitle">{t('gardenPageSubtitle')}</p>
+        </div>
+        <button
+          className="garden-customize-button"
+          onClick={() => setShowCustomizeModal(true)}
+          aria-label={t('gardenCustomize')}
+        >
+          <span className="material-icons-round">palette</span>
+          <span className="garden-customize-label">{t('gardenCustomize')}</span>
+        </button>
+      </section>
 
       {/* 성장하는 나무 */}
       <div className="garden-section">
@@ -70,8 +70,8 @@ export const Garden: React.FC = () => {
 
       {/* 정원 꾸미기 모달 */}
       {showCustomizeModal && (
-        <GardenCustomizeModal 
-          onClose={() => setShowCustomizeModal(false)} 
+        <GardenCustomizeModal
+          onClose={() => setShowCustomizeModal(false)}
           onSave={handleThemeSave}
         />
       )}
