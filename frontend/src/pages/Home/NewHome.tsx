@@ -155,7 +155,7 @@ const NewHome = () => {
       <div className="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-200">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl relative border-x border-border-light dark:border-border-dark">
           
-          <main ref={mainRef} className="pb-20">
+          <main ref={mainRef} className="pb-28">
             {/* 오프라인 배너 - 캐시된 데이터를 보여주면서 알림 */}
             {prayerHook.error && prayerHook.prayers.length > 0 && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2">

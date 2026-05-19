@@ -2,67 +2,98 @@ interface BottomNavigationProps {
   onProfileClick: () => void
   onComposeClick: () => void
   onScrollToTop: () => void
-  onFocusModeClick: () => void  // ✅ 추가
+  onFocusModeClick: () => void
 }
 
-const BottomNavigation = ({ onProfileClick, onComposeClick, onScrollToTop, onFocusModeClick }: BottomNavigationProps) => {
+const BottomNavigation = ({
+  onProfileClick,
+  onComposeClick,
+  onScrollToTop,
+  onFocusModeClick,
+}: BottomNavigationProps) => {
   return (
-    <>
-      {/* 집중 기도 모드 FAB — 메인 + 버튼 / 프로필과 동일한 purple→pink 그라데이션으로 통일.
-          이전엔 purple→indigo만 혼자 다른 톤이라 화면 전체 액센트 일관성이 깨졌음. */}
+    <div className="relative px-3 pb-3 pt-6">
+      {/* 중앙 Compose FAB — dock 위로 살짝 들어올린 유일한 saturated 액센트.
+          ring 컬러를 배경과 맞춰 dock에서 동그랗게 잘려나간 듯한 노치 느낌을 냄. */}
       <button
-        onClick={onFocusModeClick}
-        className="fixed bottom-24 right-4 w-14 h-14 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full shadow-lg shadow-purple-500/30 hover:shadow-xl transition-all hover:scale-110 active:scale-95 z-50 flex items-center justify-center group"
+        onClick={onComposeClick}
+        aria-label="기도 작성"
+        className="absolute left-1/2 -translate-x-1/2 top-0 z-20 w-14 h-14 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 shadow-[0_8px_24px_rgba(168,85,247,0.45)] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ring-[5px] ring-gray-50 dark:ring-background-dark"
       >
-        {/* 펄스 효과 */}
-        <div className="absolute inset-0 rounded-full bg-purple-500 animate-ping opacity-20"></div>
-        
-        {/* 아이콘 */}
-        <span className="material-icons-outlined text-white text-2xl relative z-10 group-hover:scale-110 transition-transform">
-          auto_stories
-        </span>
+        <span className="absolute inset-0 rounded-full bg-purple-500/40 animate-ping opacity-40 pointer-events-none" />
+        <svg
+          className="w-7 h-7 relative z-10"
+          fill="none"
+          stroke="white"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          viewBox="0 0 24 24"
+        >
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
       </button>
-      
-      {/* 기존 네비게이션 */}
-      <nav className="bg-background-light dark:bg-background-dark border-t border-border-light dark:border-border-dark h-[84px] pb-5 px-6 flex justify-center items-center">
-        <div className="flex justify-between items-center w-full max-w-[280px]">
-          {/* Home - Scroll to Top */}
-          <button 
-            onClick={onScrollToTop}
-            className="flex flex-col items-center justify-center w-12 text-gray-900 dark:text-white transition-all hover:opacity-60 cursor-pointer"
+
+      {/* Glass dock — 카드 시스템과 동일한 #1c1c26/80 + 상단 1px 빛줄 + soft purple shadow */}
+      <nav
+        className="relative backdrop-blur-xl bg-white/80 dark:bg-[#1c1c26]/85 border border-black/[0.04] dark:border-white/[0.08] rounded-2xl px-5 py-2 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_rgba(168,85,247,0.10)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.5),0_12px_28px_rgba(168,85,247,0.20),inset_0_1px_0_rgba(255,255,255,0.06)]"
+      >
+        {/* 다크모드 카드 표면 그라데이션 — 카드 시스템과 동일 */}
+        <div className="hidden dark:block absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
+
+        {/* Home */}
+        <button
+          onClick={onScrollToTop}
+          aria-label="홈"
+          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
+        >
+          <svg
+            className="w-[26px] h-[26px]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
           >
-            <svg className="w-[27px] h-[27px]" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M22 23h-6.001a1 1 0 0 1-1-1v-5.455a2.997 2.997 0 1 0-5.993 0V22a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V11.543a1.002 1.002 0 0 1 .31-.724l10-9.543a1.001 1.001 0 0 1 1.38 0l10 9.543a1.002 1.002 0 0 1 .31.724V22a1 1 0 0 1-1 1Z"/>
-            </svg>
-          </button>
-          
-          {/* Compose - Center (Large) */}
-          <button 
-            onClick={onComposeClick}
-            className="flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
+            <path d="M3 11.5 12 3l9 8.5" />
+            <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10" />
+          </svg>
+        </button>
+
+        {/* Focus — 흡수된 집중 기도 모드. outline 톤으로 다른 nav와 동일 가중치 */}
+        <button
+          onClick={onFocusModeClick}
+          aria-label="집중 기도 모드"
+          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
+        >
+          <span className="material-icons-outlined text-[26px]">auto_stories</span>
+        </button>
+
+        {/* Compose 슬롯 — FAB이 위로 들어올려져 시각적 빈자리. 폭만 확보 */}
+        <div className="w-14 h-12" aria-hidden="true" />
+
+        {/* Profile — saturated 원형 금지, outline으로 평탄화 */}
+        <button
+          onClick={onProfileClick}
+          aria-label="프로필"
+          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
+        >
+          <svg
+            className="w-[26px] h-[26px]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            viewBox="0 0 24 24"
           >
-            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-              <svg className="w-6 h-6" fill="none" stroke="white" strokeWidth="3" viewBox="0 0 24 24">
-                <line x1="12" y1="5" x2="12" y2="19"/>
-                <line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-            </div>
-          </button>
-          
-          {/* Profile */}
-          <button 
-            onClick={onProfileClick}
-            className="flex flex-col items-center justify-center w-12 transition-all hover:opacity-80"
-          >
-            <div className="w-[27px] h-[27px] rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center shadow-sm">
-              <svg className="w-[16px] h-[16px]" fill="white" viewBox="0 0 24 24">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-            </div>
-          </button>
-        </div>
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
+          </svg>
+        </button>
       </nav>
-    </>
+    </div>
   )
 }
 
