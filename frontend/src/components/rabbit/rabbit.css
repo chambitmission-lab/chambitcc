@@ -1,9 +1,9 @@
-/* ============ 보물 획득 모달 ============ */
+/* ============ 보물 획득 모달 (Treasure Reveal) ============ */
 .treasure-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
+  background: rgba(8, 8, 13, 0.78);
+  backdrop-filter: blur(8px);
   z-index: 100;
   display: flex;
   align-items: center;
@@ -12,13 +12,18 @@
 }
 .treasure-modal {
   position: relative;
-  background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
-  border: 2px solid #facc15;
-  border-radius: 18px;
-  padding: 24px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(255, 255, 255, 0.02) 100%),
+    #1c1c26;
+  border: 1.5px solid rgba(236, 72, 153, 0.45);
+  border-radius: 20px;
+  padding: 26px;
   max-width: 460px;
   width: 100%;
-  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 30px 80px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(236, 72, 153, 0.25);
   overflow: hidden;
 }
 .treasure-shine {
@@ -27,7 +32,7 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(250, 204, 21, 0.18) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.18) 0%, transparent 60%);
   pointer-events: none;
 }
 .treasure-title {
@@ -39,25 +44,31 @@
 .treasure-title h2 {
   margin: 0;
   font-size: 22px;
-  color: #fde68a;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  background: linear-gradient(135deg, #c4b5fd 0%, #f9a8d4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .treasure-emoji {
   font-size: 30px;
+  filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.5));
 }
 .treasure-list {
   margin: 16px 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   position: relative;
 }
 .treasure-card {
   display: flex;
   gap: 14px;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(250, 204, 21, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.3);
 }
 .treasure-icon {
   font-size: 36px;
@@ -66,8 +77,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(250, 204, 21, 0.12);
-  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(236, 72, 153, 0.12));
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 14px;
   flex-shrink: 0;
 }
 .treasure-info {
@@ -76,48 +88,58 @@
 }
 .treasure-name {
   font-weight: 800;
-  color: #fde68a;
+  color: #f5f3ff;
   font-size: 16px;
+  letter-spacing: -0.01em;
 }
 .treasure-slot {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(196, 181, 253, 0.65);
   margin-top: 2px;
+  font-weight: 500;
 }
 .treasure-scripture {
   font-size: 12px;
-  color: #fbbf24;
+  color: #d8b4fe;
   margin-top: 4px;
   font-weight: 600;
 }
 .treasure-desc {
   font-size: 13px;
-  color: #cbd5e1;
+  color: rgba(196, 181, 253, 0.85);
   margin-top: 6px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 .treasure-btn {
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #facc15 0%, #f59e0b 100%);
-  color: #422006;
+  padding: 13px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  color: white;
   font-weight: 800;
-  border: none;
   font-size: 15px;
+  letter-spacing: -0.01em;
+  border: none;
   cursor: pointer;
   position: relative;
+  box-shadow:
+    0 4px 14px rgba(168, 85, 247, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 .treasure-btn:hover {
-  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 22px rgba(236, 72, 153, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-/* ============ 진화 모달 ============ */
+/* ============ 진화 모달 (Evolution) ============ */
 .evo-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(6px);
+  background: rgba(8, 8, 13, 0.82);
+  backdrop-filter: blur(8px);
   z-index: 110;
   display: flex;
   align-items: center;
@@ -126,28 +148,38 @@
 }
 .evo-modal {
   position: relative;
-  background: linear-gradient(180deg, #4c1d95 0%, #1e1b4b 100%);
-  border: 2px solid #a78bfa;
-  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(255, 255, 255, 0.02) 100%),
+    linear-gradient(180deg, #2a1a4a 0%, #14141e 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.5);
+  border-radius: 20px;
   padding: 28px 24px;
   max-width: 520px;
   width: 100%;
   text-align: center;
   overflow: hidden;
-  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 30px 80px rgba(0, 0, 0, 0.8),
+    0 0 70px rgba(168, 85, 247, 0.3);
 }
 .evo-rays {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 40%, rgba(250, 204, 21, 0.18) 0%, transparent 55%);
+    radial-gradient(circle at 50% 40%, rgba(236, 72, 153, 0.18) 0%, transparent 55%);
   pointer-events: none;
 }
 .evo-title {
   position: relative;
   margin: 0 0 18px;
-  color: #fde68a;
   font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  background: linear-gradient(135deg, #c4b5fd 0%, #f9a8d4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .evo-compare {
   display: flex;
@@ -170,215 +202,376 @@
   font-size: 13px;
   font-weight: 700;
   color: #c4b5fd;
+  letter-spacing: -0.01em;
 }
 .evo-new {
-  color: #fde68a;
+  background: linear-gradient(135deg, #c4b5fd, #f9a8d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-size: 16px;
 }
 .evo-stage-name {
   font-size: 12px;
-  color: #cbd5e1;
+  color: rgba(196, 181, 253, 0.7);
 }
 .evo-arrow {
   font-size: 28px;
-  color: #fbbf24;
+  color: #ec4899;
+  filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.45));
 }
 .evo-btn {
   margin-top: 22px;
-  padding: 12px 28px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%);
+  padding: 13px 28px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   color: #fff;
   font-weight: 800;
-  border: none;
   font-size: 15px;
+  letter-spacing: -0.01em;
+  border: none;
   cursor: pointer;
   position: relative;
+  box-shadow:
+    0 4px 14px rgba(168, 85, 247, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 .evo-btn:hover {
-  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 22px rgba(236, 72, 153, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-/* ============ 갤러리 ============ */
+/* ============ 갤러리 (RabbitGallery) ============ */
 .rg-page {
   max-width: 960px;
   margin: 0 auto;
-  padding: 24px 16px 80px;
+  padding: 18px 16px 80px;
   color: #e5e7eb;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 18% 8%, rgba(168, 85, 247, 0.15) 0%, transparent 55%),
+    radial-gradient(ellipse at 88% 92%, rgba(236, 72, 153, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at top, #14141e 0%, #0b0b12 70%, #08080d 100%);
 }
 .rg-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .rg-back {
-  background: transparent;
-  color: #94a3b8;
-  border: 1px solid #334155;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(233, 213, 255, 0.92);
+  border: 1px solid rgba(168, 85, 247, 0.25);
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.rg-back:hover {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.4);
 }
 .rg-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
+  letter-spacing: -0.015em;
   margin: 0;
-  color: #fde68a;
+  background: linear-gradient(135deg, #c4b5fd 0%, #f9a8d4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .rg-actions {
   display: flex;
   gap: 8px;
 }
 .rg-share-btn {
-  background: linear-gradient(180deg, #facc15, #f59e0b);
-  color: #422006;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: white;
   border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
   font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.01em;
   cursor: pointer;
+  box-shadow:
+    0 4px 12px rgba(168, 85, 247, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.rg-share-btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 6px 16px rgba(236, 72, 153, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .rg-hero {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(200px, 240px) 1fr;
-  gap: 24px;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border-radius: 16px;
-  padding: 24px;
-  border: 1px solid #334155;
-  margin-bottom: 24px;
+  grid-template-columns: minmax(180px, 220px) 1fr;
+  gap: 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%, rgba(255, 255, 255, 0.02) 100%),
+    linear-gradient(135deg, rgba(30, 27, 75, 0.55) 0%, rgba(76, 29, 149, 0.32) 100%);
+  border-radius: 18px;
+  padding: 22px;
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  margin-bottom: 22px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 30px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+.rg-hero::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18%;
+  bottom: 18%;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    rgba(168, 85, 247, 0) 0%,
+    rgba(168, 85, 247, 0.7) 50%,
+    rgba(168, 85, 247, 0) 100%
+  );
+  border-radius: 0 3px 3px 0;
 }
 .rg-hero-avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle, rgba(250, 204, 21, 0.12), transparent 70%);
-  border-radius: 12px;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.15), transparent 70%);
+  border-radius: 14px;
 }
 .rg-hero-info h2 {
   margin: 0 0 4px;
-  color: #fde68a;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: #f5f3ff;
+}
+.rg-nickname-display {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.rg-nickname-display:hover {
+  color: #d8b4fe;
+}
+.rg-nickname-edit-icon {
+  font-size: 12px;
+  margin-left: 8px;
+  color: rgba(196, 181, 253, 0.5);
+}
+.rg-nickname-edit {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.rg-nickname-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #f5f3ff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.rg-nickname-input:focus {
+  border-color: rgba(168, 85, 247, 0.55);
+  background: rgba(168, 85, 247, 0.08);
+}
+.rg-nickname-input::placeholder {
+  color: rgba(196, 181, 253, 0.45);
 }
 .rg-hero-stage {
   font-size: 13px;
-  color: #94a3b8;
+  color: rgba(196, 181, 253, 0.72);
   margin-bottom: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 .rg-progress {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 .rg-progress-row {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(168, 85, 247, 0.15);
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 .rg-progress-label {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(196, 181, 253, 0.78);
   margin-bottom: 6px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 .rg-progress-bar {
   height: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
   overflow: hidden;
 }
 .rg-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #facc15, #f59e0b);
-  border-radius: 4px;
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+  border-radius: 999px;
   transition: width 0.4s ease;
+  box-shadow: 0 0 10px rgba(236, 72, 153, 0.35);
 }
 .rg-stat-row {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   margin-top: 12px;
   flex-wrap: wrap;
 }
 .rg-stat {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 13px;
-  color: #cbd5e1;
+  color: rgba(196, 181, 253, 0.85);
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 .rg-stat strong {
-  color: #fde68a;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
   margin-left: 6px;
+  font-variant-numeric: tabular-nums;
 }
 
 .rg-section {
-  margin-top: 28px;
+  margin-top: 26px;
 }
 .rg-section-title {
   font-size: 16px;
   font-weight: 800;
-  color: #e5e7eb;
+  letter-spacing: -0.015em;
+  color: #f5f3ff;
   margin: 0 0 12px;
 }
 .rg-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 .rg-treasure {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 12px;
-  text-align: center;
   position: relative;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 50%, rgba(255, 255, 255, 0.02) 100%),
+    #1c1c26;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 12px;
+  text-align: center;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.25);
+}
+.rg-treasure:hover {
+  transform: translateY(-2px);
+  border-color: rgba(168, 85, 247, 0.3);
 }
 .rg-treasure.locked {
-  opacity: 0.5;
-  filter: grayscale(0.6);
+  opacity: 0.55;
+  filter: grayscale(0.5);
 }
 .rg-treasure.equipped {
-  border-color: #facc15;
-  box-shadow: 0 0 12px rgba(250, 204, 21, 0.2);
+  border-color: rgba(236, 72, 153, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 18px rgba(236, 72, 153, 0.25),
+    0 4px 12px rgba(0, 0, 0, 0.25);
 }
 .rg-treasure-icon {
-  font-size: 32px;
+  font-size: 30px;
   margin-bottom: 6px;
+  filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.3));
 }
 .rg-treasure-name {
   font-size: 13px;
   font-weight: 700;
-  color: #fde68a;
+  letter-spacing: -0.01em;
+  color: #f5f3ff;
   margin-bottom: 2px;
 }
 .rg-treasure-scripture {
   font-size: 11px;
-  color: #94a3b8;
+  color: rgba(196, 181, 253, 0.7);
+  font-weight: 500;
+}
+.rg-treasure-slot {
+  font-size: 11px;
+  color: rgba(196, 181, 253, 0.55);
+  margin-top: 4px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.rg-treasure-locked-text {
+  font-size: 11px;
+  color: rgba(196, 181, 253, 0.5);
+  margin-top: 8px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.rg-events-empty {
+  color: rgba(196, 181, 253, 0.55);
+  font-size: 13px;
+  padding: 16px 4px;
+  text-align: center;
+  font-weight: 500;
 }
 .rg-treasure-action {
   margin-top: 8px;
   font-size: 12px;
-  background: transparent;
-  border: 1px solid #475569;
-  color: #cbd5e1;
-  padding: 4px 10px;
-  border-radius: 6px;
+  font-weight: 600;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #d8b4fe;
+  padding: 5px 12px;
+  border-radius: 999px;
   cursor: pointer;
+  transition: background 0.15s ease;
+  letter-spacing: -0.01em;
 }
 .rg-treasure-action:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(168, 85, 247, 0.2);
 }
 .rg-treasure-equipped-badge {
   position: absolute;
   top: 6px;
   right: 6px;
-  font-size: 10px;
-  background: #facc15;
-  color: #422006;
-  padding: 2px 6px;
-  border-radius: 4px;
+  font-size: 9.5px;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 999px;
   font-weight: 800;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 6px rgba(236, 72, 153, 0.35);
 }
 
 .rg-events {
@@ -390,17 +583,20 @@
 }
 .rg-event {
   font-size: 13px;
-  color: #cbd5e1;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
+  color: rgba(196, 181, 253, 0.88);
+  padding: 9px 13px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  letter-spacing: -0.01em;
 }
 .rg-event-date {
-  color: #64748b;
+  color: rgba(196, 181, 253, 0.55);
   font-size: 11px;
+  font-weight: 500;
 }
 
 /* QuizModal 동반자 토끼 */
@@ -412,6 +608,8 @@
   z-index: 2;
 }
 @media (max-width: 640px) {
-  .rg-hero { grid-template-columns: 1fr; }
+  .rg-hero { grid-template-columns: 1fr; gap: 16px; }
   .quiz-companion { right: 0; top: -44px; }
+  .rg-title { font-size: 17px; }
+  .rg-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 }

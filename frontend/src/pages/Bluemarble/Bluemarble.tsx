@@ -162,7 +162,7 @@ export default function Bluemarble() {
           particleCount: 200,
           spread: 130,
           origin: { y: 0.5 },
-          colors: ['#f87171', '#fbbf24', '#facc15', '#a78bfa'],
+          colors: ['#a855f7', '#ec4899', '#f9a8d4', '#d8b4fe'],
         })
         pushToast(`⚔️ ${result.next_tile.title} - 5문제 도전 시작!`, 'finish', 0)
         // 보스 진입 시 boss_state 리셋 (이전 보스 흔적 제거)
@@ -196,7 +196,7 @@ export default function Bluemarble() {
           spread: 160,
           startVelocity: 55,
           origin: { y: 0.5 },
-          colors: ['#facc15', '#fbbf24', '#fde68a', '#a78bfa', '#f59e0b', '#ffffff'],
+          colors: ['#a855f7', '#ec4899', '#f9a8d4', '#d8b4fe', '#c084fc', '#ffffff'],
         })
         setTimeout(() => {
           confetti({ particleCount: 120, angle: 60, spread: 90, origin: { x: 0, y: 0.6 } })
@@ -253,13 +253,13 @@ export default function Bluemarble() {
         setTimeout(() => setRabbitMood('idle'), 2000)
         if (result.is_finish) {
           sfx.play('fanfare')
-          // 한 바퀴 완주 — 거대한 컨페티 + 황금 컬러
+          // 한 바퀴 완주 — 거대한 컨페티 (브랜드 purple→pink 팔레트)
           confetti({
             particleCount: 360,
             spread: 160,
             startVelocity: 55,
             origin: { y: 0.5 },
-            colors: ['#facc15', '#fbbf24', '#fde68a', '#a78bfa', '#f59e0b', '#ffffff'],
+            colors: ['#a855f7', '#ec4899', '#f9a8d4', '#d8b4fe', '#c084fc', '#ffffff'],
           })
           // 1초 뒤 추가 발사 (양쪽에서)
           setTimeout(() => {
@@ -290,7 +290,7 @@ export default function Bluemarble() {
             particleCount: 160,
             spread: 100,
             origin: { y: 0.4 },
-            colors: ['#facc15', '#fbbf24', '#fde68a', '#a78bfa'],
+            colors: ['#a855f7', '#ec4899', '#f9a8d4', '#d8b4fe'],
           })
           sfx.play('milestone')
         }
@@ -329,7 +329,7 @@ export default function Bluemarble() {
         particleCount: 220,
         spread: 120,
         origin: { y: 0.5 },
-        colors: ['#facc15', '#fbbf24', '#fde68a', '#a78bfa', '#f87171'],
+        colors: ['#a855f7', '#ec4899', '#f9a8d4', '#d8b4fe', '#f87171'],
       })
       return
     }

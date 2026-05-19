@@ -132,19 +132,13 @@ export default function RabbitGallery() {
         </div>
         <div className="rg-hero-info">
           {editing ? (
-            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <div className="rg-nickname-edit">
               <input
                 value={nicknameInput}
                 onChange={(e) => setNicknameInput(e.target.value)}
                 placeholder="토끼 별명"
                 maxLength={30}
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid #475569',
-                  color: '#e5e7eb',
-                  padding: '6px 10px',
-                  borderRadius: 6,
-                }}
+                className="rg-nickname-input"
               />
               <button className="rg-back" onClick={handleSaveNickname}>저장</button>
               <button className="rg-back" onClick={() => setEditing(false)}>취소</button>
@@ -155,11 +149,11 @@ export default function RabbitGallery() {
                 setNicknameInput(rabbit.nickname || '')
                 setEditing(true)
               }}
-              style={{ cursor: 'pointer' }}
+              className="rg-nickname-display"
               title="클릭해서 별명 수정"
             >
               {rabbit.nickname || '내 토끼'}
-              <span style={{ fontSize: 12, color: '#64748b', marginLeft: 8 }}>✏️</span>
+              <span className="rg-nickname-edit-icon">✏️</span>
             </h2>
           )}
           <div className="rg-hero-stage">
@@ -218,7 +212,7 @@ export default function RabbitGallery() {
                 <div className="rg-treasure-icon">{TREASURE_EMOJI[t.code] || '✨'}</div>
                 <div className="rg-treasure-name">{t.name}</div>
                 <div className="rg-treasure-scripture">{t.scripture}</div>
-                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+                <div className="rg-treasure-slot">
                   {SLOT_LABEL[t.slot] || t.slot}
                   {t.threshold ? ` · ${t.threshold}정답` : ''}
                 </div>
@@ -241,7 +235,7 @@ export default function RabbitGallery() {
                   </button>
                 )}
                 {!owned && (
-                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>잠김 🔒</div>
+                  <div className="rg-treasure-locked-text">잠김 🔒</div>
                 )}
               </div>
             )
@@ -253,7 +247,7 @@ export default function RabbitGallery() {
         <h3 className="rg-section-title">📜 토끼 일지</h3>
         <div className="rg-events">
           {(eventsQuery.data || []).length === 0 && (
-            <div style={{ color: '#64748b', fontSize: 13 }}>아직 이벤트가 없어요.</div>
+            <div className="rg-events-empty">아직 이벤트가 없어요.</div>
           )}
           {(eventsQuery.data || []).map((ev) => (
             <div key={ev.id} className="rg-event">
