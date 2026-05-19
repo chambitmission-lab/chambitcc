@@ -17,20 +17,23 @@
   color: #262626;
 }
 
-.dark .bible-references-header .material-icons-outlined {
-  color: #fafafa;
+.dark .bible-references-header .material-icons-outlined,
+[data-theme="dark"] .bible-references-header .material-icons-outlined {
+  color: #d8b4fe;
 }
 
 .bible-references-header h3 {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.015em;
   color: #262626;
   margin: 0;
   flex: 1;
 }
 
-.dark .bible-references-header h3 {
-  color: #fafafa;
+.dark .bible-references-header h3,
+[data-theme="dark"] .bible-references-header h3 {
+  color: #ffffff;
 }
 
 .bible-references-count {
@@ -39,17 +42,18 @@
   justify-content: center;
   min-width: 1.75rem;
   height: 1.75rem;
-  padding: 0 0.5rem;
-  background: #efefef;
-  color: #262626;
+  padding: 0 0.625rem;
+  background: rgba(168, 85, 247, 0.10);
+  color: #a855f7;
   font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 0.375rem;
+  font-weight: 700;
+  border-radius: 999px;
 }
 
-.dark .bible-references-count {
-  background: #262626;
-  color: #fafafa;
+.dark .bible-references-count,
+[data-theme="dark"] .bible-references-count {
+  background: rgba(168, 85, 247, 0.18);
+  color: #d8b4fe;
 }
 
 .bible-references-list {
@@ -60,24 +64,34 @@
 
 .bible-reference-card {
   background: #ffffff;
-  border-radius: 0.5rem;
+  border-radius: 12px;
   border: 1px solid #dbdbdb;
   cursor: pointer;
   transition: all 0.2s ease;
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.dark .bible-reference-card {
-  background: #000000;
-  border-color: #262626;
+.dark .bible-reference-card,
+[data-theme="dark"] .bible-reference-card {
+  background: #1c1c26;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .bible-reference-card:hover {
-  border-color: #a8a8a8;
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.12);
 }
 
-.dark .bible-reference-card:hover {
-  border-color: #3f3f3f;
+.dark .bible-reference-card:hover,
+[data-theme="dark"] .bible-reference-card:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow:
+    0 4px 16px rgba(168, 85, 247, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .bible-reference-card:active {
@@ -92,8 +106,9 @@
   border-bottom: 1px solid #efefef;
 }
 
-.dark .bible-reference-header {
-  border-bottom-color: #262626;
+.dark .bible-reference-header,
+[data-theme="dark"] .bible-reference-header {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 .bible-reference-title {
@@ -105,25 +120,28 @@
 
 .bible-reference-book {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.015em;
   color: #262626;
 }
 
-.dark .bible-reference-book {
-  color: #fafafa;
+.dark .bible-reference-book,
+[data-theme="dark"] .bible-reference-book {
+  color: #ffffff;
 }
 
 .bible-reference-chapter-verse {
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   color: #8e8e8e;
-  padding: 0.25rem 0.5rem;
-  background: #efefef;
-  border-radius: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 999px;
 }
 
-.dark .bible-reference-chapter-verse {
-  background: #262626;
+.dark .bible-reference-chapter-verse,
+[data-theme="dark"] .bible-reference-chapter-verse {
+  background: rgba(255, 255, 255, 0.06);
   color: #a8a8a8;
 }
 
@@ -131,30 +149,47 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
-  background: transparent;
-  color: #0095f6;
-  border: 1px solid #0095f6;
-  border-radius: 0.375rem;
+  padding: 0.375rem 0.85rem;
+  background: rgba(168, 85, 247, 0.08);
+  color: #a855f7;
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
+[data-theme="dark"] .bible-reference-timestamp {
+  background: rgba(168, 85, 247, 0.14);
+  color: #d8b4fe;
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
 .bible-reference-timestamp.audio-timestamp {
-  color: #a78bfa;
-  border-color: #a78bfa;
+  color: #ec4899;
+  border-color: rgba(236, 72, 153, 0.45);
+  background: rgba(236, 72, 153, 0.08);
+}
+
+[data-theme="dark"] .bible-reference-timestamp.audio-timestamp {
+  color: #f9a8d4;
+  border-color: rgba(236, 72, 153, 0.4);
+  background: rgba(236, 72, 153, 0.14);
 }
 
 .bible-reference-timestamp:hover {
-  background: #0095f6;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(168, 85, 247, 0.35);
 }
 
 .bible-reference-timestamp.audio-timestamp:hover {
-  background: #a78bfa;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(236, 72, 153, 0.35);
 }
 
 .bible-reference-timestamp .material-icons-outlined {
@@ -169,9 +204,10 @@
   border-bottom: 1px solid #efefef;
 }
 
-.dark .bible-reference-context {
-  background: #121212;
-  border-bottom-color: #262626;
+.dark .bible-reference-context,
+[data-theme="dark"] .bible-reference-context {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 .bible-reference-context .material-icons-outlined {
@@ -183,12 +219,13 @@
 .bible-reference-context p {
   margin: 0;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.6;
   color: #262626;
 }
 
-.dark .bible-reference-context p {
-  color: #fafafa;
+.dark .bible-reference-context p,
+[data-theme="dark"] .bible-reference-context p {
+  color: #d1d5db;
 }
 
 .bible-reference-text {
@@ -196,19 +233,21 @@
   border-bottom: 1px solid #efefef;
 }
 
-.dark .bible-reference-text {
-  border-bottom-color: #262626;
+.dark .bible-reference-text,
+[data-theme="dark"] .bible-reference-text {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
 .bible-reference-text p {
   margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.7;
   color: #262626;
 }
 
-.dark .bible-reference-text p {
-  color: #fafafa;
+.dark .bible-reference-text p,
+[data-theme="dark"] .bible-reference-text p {
+  color: #e5e7eb;
 }
 
 .bible-reference-action {
@@ -216,9 +255,13 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 1rem;
-  color: #0095f6;
+  color: #a855f7;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .bible-reference-action {
+  color: #d8b4fe;
 }
 
 .bible-reference-action .material-icons-outlined {
@@ -237,13 +280,7 @@
   }
 
   .bible-reference-card {
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-  }
-
-  .bible-reference-card:first-child {
-    border-top: none;
+    border-radius: 12px;
   }
 
   .bible-reference-header {

@@ -140,13 +140,14 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
         
         .sermon-section {
           border: 1px solid #efefef;
-          border-radius: 8px;
+          border-radius: 12px;
           overflow: hidden;
           transition: all 0.2s;
         }
-        
+
         .dark .sermon-section {
-          border-color: #262626;
+          border-color: rgba(255, 255, 255, 0.06);
+          background: rgba(255, 255, 255, 0.02);
         }
         
         .sermon-section-header {
@@ -165,17 +166,17 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
         .sermon-section-header:hover {
           background: #f9f9f9;
         }
-        
+
         .dark .sermon-section-header:hover {
-          background: #1a1a1a;
+          background: rgba(168, 85, 247, 0.08);
         }
-        
+
         .sermon-section-header:active {
           background: #f0f0f0;
         }
-        
+
         .dark .sermon-section-header:active {
-          background: #0a0a0a;
+          background: rgba(168, 85, 247, 0.12);
         }
         
         .sermon-section-title-wrapper {
@@ -192,13 +193,14 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
         
         .sermon-section-title {
           font-size: 0.9375rem;
-          font-weight: 600;
-          color: #0095f6;
+          font-weight: 700;
+          letter-spacing: -0.015em;
+          color: #a855f7;
           flex: 1;
         }
-        
+
         .dark .sermon-section-title {
-          color: #3b82f6;
+          color: #d8b4fe;
         }
         
         .sermon-section-arrow {
@@ -230,27 +232,27 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
         
         .sermon-section-text {
           color: #262626;
-          font-size: 0.9375rem;
-          line-height: 1.8;
+          font-size: 15px;
+          line-height: 1.7;
           letter-spacing: -0.01em;
         }
-        
+
         .dark .sermon-section-text {
-          color: #e5e7eb;
+          color: #d1d5db;
         }
-        
+
         .sermon-bible-ref {
-          color: #8b5cf6;
+          color: #a855f7;
           font-weight: 600;
-          background: rgba(139, 92, 246, 0.1);
+          background: rgba(168, 85, 247, 0.10);
           padding: 0.125rem 0.375rem;
           border-radius: 0.25rem;
           font-size: 0.875rem;
         }
-        
+
         .dark .sermon-bible-ref {
-          color: #a78bfa;
-          background: rgba(167, 139, 250, 0.15);
+          color: #d8b4fe;
+          background: rgba(168, 85, 247, 0.18);
         }
         
         .sermon-emphasis {

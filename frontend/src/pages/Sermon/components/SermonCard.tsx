@@ -51,10 +51,7 @@ const SermonCard = ({ sermon, onClick }: SermonCardProps) => {
         </div>
 
         {/* 제목 */}
-        <div className="sermon-title">
-          <span className="sermon-title-author">{sermon.pastor}</span>
-          {sermon.title}
-        </div>
+        <h3 className="sermon-title">{sermon.title}</h3>
 
         {/* 내용 미리보기 */}
         <p className="sermon-preview">{sermon.content}</p>

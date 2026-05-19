@@ -38,7 +38,7 @@ const Sermon = () => {
   if (isLoading) {
     return (
       <ErrorBoundary>
-        <div className="bg-gray-50 dark:bg-black min-h-screen">
+        <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
           <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
             <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
@@ -56,7 +56,7 @@ const Sermon = () => {
   if (error) {
     return (
       <ErrorBoundary>
-        <div className="bg-gray-50 dark:bg-black min-h-screen">
+        <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
           <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
             <div className="flex items-center justify-center min-h-screen p-8">
               <div className="text-center">
@@ -79,7 +79,7 @@ const Sermon = () => {
 
   return (
     <ErrorBoundary>
-      <div className="bg-gray-50 dark:bg-black min-h-screen">
+      <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
           {/* 헤더 */}
           <div className="sermon-page-header">
