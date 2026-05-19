@@ -14,11 +14,11 @@ const BottomNavigation = ({
   return (
     <div className="relative px-3 pb-3 pt-6">
       {/* 중앙 Compose FAB — dock 위로 살짝 들어올린 유일한 saturated 액센트.
-          ring 컬러를 배경과 맞춰 dock에서 동그랗게 잘려나간 듯한 노치 느낌을 냄. */}
+          ring 컬러를 dock 카드 톤(#1c1c26)으로 맞춰 검은 외곽선 느낌 없이 dock에서 자연스럽게 떠오른 듯한 인상. */}
       <button
         onClick={onComposeClick}
         aria-label="기도 작성"
-        className="absolute left-1/2 -translate-x-1/2 top-0 z-20 w-14 h-14 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 shadow-[0_8px_24px_rgba(168,85,247,0.45)] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ring-[5px] ring-gray-50 dark:ring-background-dark"
+        className="absolute left-1/2 -translate-x-1/2 top-0 z-20 w-14 h-14 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 shadow-[0_8px_24px_rgba(168,85,247,0.45)] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 ring-[4px] ring-gray-50 dark:ring-[#1c1c26]"
       >
         <span className="absolute inset-0 rounded-full bg-purple-500/40 animate-ping opacity-40 pointer-events-none" />
         <svg
