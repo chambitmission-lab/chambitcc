@@ -10,37 +10,49 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
   const { language, setLanguage, t } = useLanguage()
 
   return (
-    <div className="py-2">
+    <div className="py-2 px-3">
       {/* 언어 전환 */}
       <button
         onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
-        className="block w-full text-left px-4 py-3 text-sm text-gray-900 dark:text-white hover:bg-surface-light dark:hover:bg-surface-dark transition-colors flex items-center gap-2"
+        className="
+          w-full flex items-center gap-2 px-3 py-3 rounded-xl
+          text-[14px] font-medium text-gray-900 dark:text-white/85
+          hover:bg-gray-100/60 dark:hover:bg-white/[0.04]
+          transition-colors
+        "
       >
         <span className="text-base">{language === 'ko' ? '🇺🇸' : '🇰🇷'}</span>
         <span>{language === 'ko' ? 'English' : '한국어'}</span>
       </button>
-      
-      <div className="border-t border-border-light dark:border-border-dark my-2"></div>
-      
+
+      <div className="border-t border-border-light dark:border-border-dark my-2 mx-1" />
+
+      {/* 로그인/로그아웃 — brand purple→pink 통일 */}
       {isLoggedIn ? (
         <button
           onClick={onLogout}
-          className="block w-full text-left px-4 py-3 text-sm font-semibold transition-colors relative group"
+          className="
+            w-full text-left px-3 py-3 rounded-xl text-[14px] font-bold tracking-[-0.01em]
+            hover:bg-purple-50/70 dark:hover:bg-purple-500/10
+            transition-colors
+          "
         >
-          <span className="bg-gradient-to-r from-amber-600 to-orange-500 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent group-hover:from-amber-700 group-hover:to-orange-600 dark:group-hover:from-amber-300 dark:group-hover:to-orange-300">
+          <span className="bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
             {t('logout')}
           </span>
-          <div className="absolute inset-0 bg-amber-50 dark:bg-amber-900/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg -z-10"></div>
         </button>
       ) : (
         <Link
           to="/login"
-          className="block px-4 py-3 text-sm font-semibold transition-colors relative group"
+          className="
+            block px-3 py-3 rounded-xl text-[14px] font-bold tracking-[-0.01em]
+            hover:bg-purple-50/70 dark:hover:bg-purple-500/10
+            transition-colors
+          "
         >
-          <span className="bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent group-hover:from-purple-700 group-hover:to-indigo-700 dark:group-hover:from-purple-300 dark:group-hover:to-indigo-300">
+          <span className="bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
             {t('login')}
           </span>
-          <div className="absolute inset-0 bg-purple-50 dark:bg-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg -z-10"></div>
         </Link>
       )}
     </div>

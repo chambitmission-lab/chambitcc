@@ -12,11 +12,14 @@ const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onMenuTog
   const { theme, toggleTheme } = useTheme()
   const { t } = useLanguage()
 
+  const iconBaseClass =
+    'text-gray-700 dark:text-white/80 hover:text-purple-600 dark:hover:text-purple-300 transition-colors'
+
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex items-center gap-4">
       <button
         onClick={toggleTheme}
-        className="text-gray-800 dark:text-white hover:text-primary transition-colors"
+        className={iconBaseClass}
         aria-label={t('themeToggleAria')}
       >
         <span className="material-icons-outlined text-2xl">
@@ -26,34 +29,21 @@ const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onMenuTog
 
       <button
         onClick={onNotificationClick}
-        className="text-gray-800 dark:text-white hover:text-primary transition-colors relative"
+        className={`${iconBaseClass} relative`}
         aria-label={t('notificationsAria')}
       >
         <span className="material-icons-outlined text-2xl">notifications</span>
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-black"></span>
+          <span className="absolute top-0 right-0 w-2 h-2 bg-pink-500 rounded-full ring-2 ring-background-light dark:ring-background-dark" />
         )}
       </button>
-      
-      <button 
+
+      <button
         onClick={onMenuToggle}
-        className={`relative transition-all ${
-          isMenuOpen 
-            ? 'text-red-500 dark:text-red-400' 
-            : 'text-gray-800 dark:text-white hover:text-primary'
-        }`}
+        className={`${iconBaseClass} ${isMenuOpen ? 'text-purple-600 dark:text-purple-300' : ''}`}
         aria-label={isMenuOpen ? t('menuCloseAria') : t('menuAria')}
       >
-        {/* X 버튼 빛나는 효과 (비상구 스타일) */}
-        {isMenuOpen && (
-          <>
-            <div className="absolute inset-0 bg-red-500/30 dark:bg-red-400/30 blur-lg animate-pulse"></div>
-            <div className="absolute inset-0 bg-red-500/20 dark:bg-red-400/20 blur-md"></div>
-          </>
-        )}
-        <span className={`material-icons-outlined text-2xl relative z-10 ${
-          isMenuOpen ? 'drop-shadow-[0_0_8px_rgba(239,68,68,0.8)] dark:drop-shadow-[0_0_10px_rgba(248,113,113,0.9)]' : ''
-        }`}>
+        <span className="material-icons-outlined text-2xl">
           {isMenuOpen ? 'close' : 'more_vert'}
         </span>
       </button>

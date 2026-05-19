@@ -25,4 +25,5 @@ export const navigation = {
   garden: '🌸 나의 정원',
   answeredPrayers: '✨ 응답의 전당',
   missionStatus: '🌍 선교 현황',
+  adminMenu: '관리자 메뉴',
 } as const

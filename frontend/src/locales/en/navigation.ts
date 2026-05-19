@@ -25,4 +25,5 @@ export const navigation = {
   garden: '🌸 My Garden',
   answeredPrayers: '✨ Answered Prayers',
   missionStatus: '🌍 Mission Status',
+  adminMenu: 'Admin Menu',
 } as const
