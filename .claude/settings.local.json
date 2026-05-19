@@ -40,7 +40,10 @@
       "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 40)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\k1988\\\\idea\\\\chambit-main\" -Directory)",
       "Bash(dir C:\\\\Users\\\\k1988\\\\idea\\\\chambit-main\\\\backend\\\\apply_*.py)",
-      "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 30)"
+      "PowerShell(npx tsc -b --noEmit 2>&1 | Select-Object -First 30)",
+      "PowerShell(Get-Location; npx tsc -b --pretty false 2>&1 | Select-Object -First 80)",
+      "PowerShell(Get-Location; npx tsc -b --pretty false; \"exit=$LASTEXITCODE\")",
+      "PowerShell(Get-Location; npx eslint src/pages/Profile 2>&1 | Select-Object -First 100; \"exit=$LASTEXITCODE\")"
     ]
   }
 }

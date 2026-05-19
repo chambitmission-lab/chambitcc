@@ -117,7 +117,7 @@ const Profile = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-background-dark flex items-center justify-center">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark p-8 rounded-2xl">
           <LoadingSpinner />
         </div>
@@ -127,10 +127,10 @@ const Profile = () => {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-background-dark flex items-center justify-center p-4">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark p-8 rounded-2xl text-center">
           <p className="text-red-500 mb-4">{t('profileCannotLoad')}</p>
-          <button 
+          <button
             onClick={() => navigate('/')}
             className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-all"
           >
@@ -144,19 +144,19 @@ const Profile = () => {
   const { stats, my_prayers, praying_for, my_replies } = data
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl min-h-screen border-x border-border-light dark:border-border-dark">
         {/* 헤더 */}
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
-          <button 
-            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          <button
+            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-purple-300 transition-colors"
             onClick={() => navigate('/')}
           >
             <span className="material-icons-outlined">arrow_back</span>
             <span className="text-sm font-semibold">{t('profileBack')}</span>
           </button>
-          <h1 className="text-base font-bold text-gray-900 dark:text-white">{t('profileTitle')}</h1>
-          <button 
+          <h1 className="text-base font-bold text-gray-900 dark:text-white tracking-[-0.015em]">{t('profileTitle')}</h1>
+          <button
             className="flex items-center gap-1 text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-purple-600 hover:to-pink-600 transition-all"
             onClick={handleLogout}
           >
@@ -197,17 +197,29 @@ const Profile = () => {
         <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
 
         {/* 푸시 알림 설정 */}
-        <div className="px-4 py-4 border-b border-border-light dark:border-border-dark">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-                푸시 알림
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                새로운 소식을 실시간으로 받아보세요
-              </p>
+        <div className="px-4 py-3">
+          <div
+            className="
+              relative overflow-hidden rounded-2xl p-4
+              bg-white/80 dark:bg-card-dark
+              border border-gray-200/70 dark:border-white/[0.08]
+              shadow-sm
+              dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(168,85,247,0.10)]
+            "
+          >
+            <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
+
+            <div className="relative z-10 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="text-[14px] font-bold text-gray-900 dark:text-white mb-0.5 tracking-[-0.01em]">
+                  푸시 알림
+                </h3>
+                <p className="text-[12px] text-gray-500 dark:text-white/55">
+                  새로운 소식을 실시간으로 받아보세요
+                </p>
+              </div>
+              <PushNotificationButton />
             </div>
-            <PushNotificationButton />
           </div>
         </div>
 

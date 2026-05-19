@@ -21,15 +21,15 @@ const ProfileHeader = ({ username, fullName, glowLevel, activityPoints, specialA
         fullName={fullName}
         specialAchievementColor={specialAchievementColor}
       />
-      <h2 
-        className="text-2xl font-extrabold text-gray-900 dark:text-white mb-1"
+      <h2
+        className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white mb-1"
         style={{
           filter: `drop-shadow(0 0 12px ${glowLevel.glowColor})`,
         }}
       >
         {fullName}
       </h2>
-      <p className="text-sm text-gray-500 dark:text-gray-400">@{username}</p>
+      <p className="text-[13px] text-gray-500 dark:text-white/55">@{username}</p>
       
       {/* 어린 양 캐릭터 */}
       <div style={{ marginTop: '1rem' }}>

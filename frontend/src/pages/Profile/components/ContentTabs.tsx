@@ -14,99 +14,63 @@ interface ContentTabsProps {
 
 const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
   const { t } = useLanguage()
-  return (
-    <div className="flex gap-2 px-4 pb-4 border-b border-border-light dark:border-border-dark">
-      <button
-        className={`flex-1 flex flex-col items-center gap-2 py-3 px-4 rounded-t-xl transition-all relative ${
-          activeTab === 'prayers'
-            ? 'bg-surface-light dark:bg-surface-dark'
-            : 'bg-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-        }`}
-        onClick={() => onTabChange('prayers')}
-      >
-        <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
-          edit_note
-        </span>
-        <span className={`text-xs font-bold ${activeTab === 'prayers' ? 'text-gray-900 dark:text-white' : ''}`}>{t('myPrayers')}</span>
-        <span className={`text-xs font-bold ${activeTab === 'prayers' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'}`}>
-          {counts.prayers}
-        </span>
-        {activeTab === 'prayers' && (
-          <>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.6),0_0_20px_rgba(236,72,153,0.4)]"></div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-sm"></div>
-          </>
-        )}
-      </button>
-      
-      <button
-        className={`flex-1 flex flex-col items-center gap-2 py-3 px-4 rounded-t-xl transition-all relative ${
-          activeTab === 'praying'
-            ? 'bg-surface-light dark:bg-surface-dark'
-            : 'bg-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-        }`}
-        onClick={() => onTabChange('praying')}
-      >
-        <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
-          volunteer_activism
-        </span>
-        <span className={`text-xs font-bold ${activeTab === 'praying' ? 'text-gray-900 dark:text-white' : ''}`}>{t('prayingFor')}</span>
-        <span className={`text-xs font-bold ${activeTab === 'praying' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'}`}>
-          {counts.praying}
-        </span>
-        {activeTab === 'praying' && (
-          <>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.6),0_0_20px_rgba(236,72,153,0.4)]"></div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-sm"></div>
-          </>
-        )}
-      </button>
-      
-      <button
-        className={`flex-1 flex flex-col items-center gap-2 py-3 px-4 rounded-t-xl transition-all relative ${
-          activeTab === 'replies'
-            ? 'bg-surface-light dark:bg-surface-dark'
-            : 'bg-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-        }`}
-        onClick={() => onTabChange('replies')}
-      >
-        <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
-          chat_bubble
-        </span>
-        <span className={`text-xs font-bold ${activeTab === 'replies' ? 'text-gray-900 dark:text-white' : ''}`}>{t('myReplies')}</span>
-        <span className={`text-xs font-bold ${activeTab === 'replies' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'}`}>
-          {counts.replies}
-        </span>
-        {activeTab === 'replies' && (
-          <>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.6),0_0_20px_rgba(236,72,153,0.4)]"></div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-sm"></div>
-          </>
-        )}
-      </button>
 
-      <button
-        className={`flex-1 flex flex-col items-center gap-2 py-3 px-4 rounded-t-xl transition-all relative ${
-          activeTab === 'notes'
-            ? 'bg-surface-light dark:bg-surface-dark'
-            : 'bg-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-        }`}
-        onClick={() => onTabChange('notes')}
-      >
-        <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
-          auto_stories
-        </span>
-        <span className={`text-xs font-bold ${activeTab === 'notes' ? 'text-gray-900 dark:text-white' : ''}`}>{t('meditationNotes')}</span>
-        <span className={`text-xs font-bold ${activeTab === 'notes' ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-500'}`}>
-          {counts.notes}
-        </span>
-        {activeTab === 'notes' && (
-          <>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.6),0_0_20px_rgba(236,72,153,0.4)]"></div>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-sm"></div>
-          </>
-        )}
-      </button>
+  const tabs = [
+    { key: 'prayers', icon: 'edit_note', labelKey: 'myPrayers', count: counts.prayers },
+    { key: 'praying', icon: 'volunteer_activism', labelKey: 'prayingFor', count: counts.praying },
+    { key: 'replies', icon: 'chat_bubble', labelKey: 'myReplies', count: counts.replies },
+    { key: 'notes', icon: 'auto_stories', labelKey: 'meditationNotes', count: counts.notes },
+  ] as const
+
+  return (
+    <div className="flex gap-1.5 px-4 pb-3 mt-1 border-b border-border-light dark:border-border-dark">
+      {tabs.map((tab) => {
+        const isActive = activeTab === tab.key
+        return (
+          <button
+            key={tab.key}
+            onClick={() => onTabChange(tab.key)}
+            className={`
+              flex-1 flex flex-col items-center gap-1.5 py-3 px-2 rounded-t-xl
+              transition-all relative
+              ${isActive
+                ? 'bg-white/70 dark:bg-card-dark/80'
+                : 'bg-transparent text-gray-500 dark:text-white/55 hover:bg-gray-100/60 dark:hover:bg-white/[0.03]'
+              }
+            `}
+          >
+            <span
+              className={`material-icons-outlined text-[20px] ${
+                isActive
+                  ? 'bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent'
+                  : ''
+              }`}
+            >
+              {tab.icon}
+            </span>
+            <span
+              className={`text-[11px] font-semibold tracking-[-0.01em] ${
+                isActive ? 'text-gray-900 dark:text-white' : ''
+              }`}
+            >
+              {t(tab.labelKey)}
+            </span>
+            <span
+              className={`text-[11px] font-semibold ${
+                isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-white/40'
+              }`}
+            >
+              {tab.count}
+            </span>
+            {isActive && (
+              <>
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.6),0_0_20px_rgba(236,72,153,0.4)]" />
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-sm" />
+              </>
+            )}
+          </button>
+        )
+      })}
     </div>
   )
 }
