@@ -45,18 +45,27 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
         />
       )}
 
-      {/* 기도 작성 모달 */}
+      {/* 기도 작성 모달 — 카드 시스템과 동일 토큰 (#1c1c26 솔리드 + 그라데이션 한 겹 + 1px 상단 빛줄) */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4 overflow-hidden"
         onClick={onClose}
       >
-        <div 
-          className="bg-background-light dark:bg-background-dark rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl overflow-x-hidden"
+        <div
+          className="relative bg-background-light dark:bg-[#1c1c26] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto overflow-x-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_8px_32px_rgba(168,85,247,0.15)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18),inset_0_1px_0_rgba(255,255,255,0.05)]"
           onClick={(e) => e.stopPropagation()}
         >
+          {/* 다크모드 카드 표면 그라데이션 — 평평한 회색 박스 방지 */}
+          <div className="hidden dark:block sticky top-0 left-0 right-0 -z-0 pointer-events-none">
+            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent" />
+          </div>
+
+          {/* 보랏빛 글로우 — 카드 시스템과 동일 액센트 */}
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/15 dark:to-pink-500/8 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-purple-400/10 dark:from-pink-500/10 dark:to-purple-500/8 rounded-full blur-3xl pointer-events-none" />
+
           <PrayerComposerHeader onClose={onClose} />
 
-          <form onSubmit={handleSubmit} className="p-4 overflow-x-hidden">
+          <form onSubmit={handleSubmit} className="relative z-10 p-4 overflow-x-hidden">
             <UserInfoSection
               displayName={displayName}
               isLoggedIn={isLoggedIn}

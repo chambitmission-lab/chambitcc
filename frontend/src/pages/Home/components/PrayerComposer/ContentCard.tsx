@@ -119,14 +119,17 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
         </div>
       )}
 
-      {/* 기도 카드 - 글래스모피즘 */}
-      <div className="backdrop-blur-xl bg-white/40 dark:bg-white/10 rounded-xl p-4 border border-white/60 dark:border-white/20 relative shadow-[0_8px_32px_rgba(168,85,247,0.15),0_-3px_10px_rgba(168,85,247,0.1),inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3),0_-3px_10px_rgba(255,255,255,0.1),inset_0_1px_1px_rgba(255,255,255,0.2)]">
-        {/* 내부 빛 효과 */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/30 to-transparent dark:from-white/20 dark:to-transparent rounded-full blur-2xl pointer-events-none -z-10"></div>
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 dark:from-white/10 dark:to-white/5 rounded-full blur-2xl pointer-events-none -z-10"></div>
+      {/* 기도 카드 — 카드 시스템과 동일 토큰 (#1c1c26 솔리드 + 그라데이션 한 겹 + 1px 상단 빛줄, 보라/핑크 글로우) */}
+      <div className="relative bg-white/60 dark:bg-[#23232e] backdrop-blur-xl rounded-2xl p-5 border border-black/[0.04] dark:border-white/[0.08] shadow-[0_2px_8px_rgba(168,85,247,0.10)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),0_8px_24px_rgba(168,85,247,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] overflow-hidden">
+        {/* 다크모드 카드 표면 그라데이션 */}
+        <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl"></div>
+
+        {/* 보랏빛/핑크 글로우 — 무채색 금지 */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/25 to-transparent dark:from-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/15 to-pink-400/15 dark:from-pink-500/15 dark:to-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
         
-        {/* Title with Voice Input */}
-        <div className="mb-3 relative z-20">
+        {/* Title with Voice Input — 한글 제목: uppercase 금지, 20px/700, leading 1.3 */}
+        <div className="mb-4 relative z-20">
           <div className="flex items-center gap-2">
             <input
               type="text"
@@ -136,10 +139,8 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
               maxLength={100}
               required
               className={`
-                flex-1 min-w-0 bg-transparent border-none text-sm font-extrabold text-gray-900 dark:text-white 
-                placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none 
-                drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] 
-                uppercase py-1
+                flex-1 min-w-0 bg-transparent border-none text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white
+                placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none py-1
                 ${titleVoice.isListening ? 'animate-pulse' : ''}
               `}
             />
@@ -149,7 +150,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                   type="button"
                   onClick={handleTitleStart}
                   disabled={!titleVoice.isSupported}
-                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-gradient-to-tr from-purple-500 to-pink-500 text-white shadow-[0_4px_12px_rgba(168,85,247,0.35)] hover:shadow-[0_6px_18px_rgba(168,85,247,0.5)] hover:scale-105 active:scale-95 transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   title={titleVoice.isSupported ? (t('startVoiceInput') || '음성 입력 시작') : '음성 인식 미지원'}
                 >
                   🎤
@@ -158,7 +159,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                 <button
                   type="button"
                   onClick={handleTitleStop}
-                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative text-xl"
+                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative text-lg"
                   title={t('stopVoiceInput') || '음성 입력 중지'}
                 >
                   ⏹️
@@ -168,14 +169,17 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
             </div>
           </div>
           {titleVoice.isListening && (
-            <div className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1 animate-pulse">
+            <div className="text-xs text-red-500 dark:text-red-400 mt-2 flex items-center gap-1 animate-pulse">
               <span className="material-icons-outlined text-xs">mic</span>
               {t('listeningTitle') || '제목 음성 인식 중...'}
             </div>
           )}
         </div>
 
-        {/* Content with Voice Input */}
+        {/* 제목/본문 구분선 — 카드 시스템과 동일한 미세 라인 */}
+        <div className="h-px bg-black/[0.06] dark:bg-white/[0.06] mb-4 relative z-10" />
+
+        {/* Content with Voice Input — 본문 15px/leading 1.7 */}
         <div className="relative z-10">
           <div className="flex items-start gap-2">
             <textarea
@@ -186,10 +190,9 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
               maxLength={1000}
               required
               className={`
-                flex-1 bg-transparent border-none text-sm text-gray-600 dark:text-gray-400 
-                placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none 
-                leading-[1.5] drop-shadow-[0_0_6px_rgba(168,85,247,0.2)] 
-                dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.25)] py-1
+                flex-1 bg-transparent border-none text-[15px] tracking-[-0.01em] text-gray-700 dark:text-gray-300
+                placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none resize-none
+                leading-[1.7] py-1
                 ${contentVoice.isListening ? 'animate-pulse' : ''}
               `}
             />
@@ -199,7 +202,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                   type="button"
                   onClick={handleContentStart}
                   disabled={!contentVoice.isSupported}
-                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-gradient-to-tr from-purple-500 to-pink-500 text-white shadow-[0_4px_12px_rgba(168,85,247,0.35)] hover:shadow-[0_6px_18px_rgba(168,85,247,0.5)] hover:scale-105 active:scale-95 transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   title={contentVoice.isSupported ? (t('startVoiceInput') || '음성 입력 시작') : '음성 인식 미지원'}
                 >
                   🎤
@@ -208,7 +211,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                 <button
                   type="button"
                   onClick={handleContentStop}
-                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative text-xl"
+                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/50 animate-pulse transition-all relative text-lg"
                   title={t('stopVoiceInput') || '음성 입력 중지'}
                 >
                   ⏹️
@@ -218,12 +221,12 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
             </div>
           </div>
           {contentVoice.isListening && (
-            <div className="text-xs text-red-500 dark:text-red-400 mt-1 flex items-center gap-1 animate-pulse">
+            <div className="text-xs text-red-500 dark:text-red-400 mt-2 flex items-center gap-1 animate-pulse">
               <span className="material-icons-outlined text-xs">mic</span>
               {t('listeningContent') || '내용 음성 인식 중... (중지 버튼을 클릭하세요)'}
             </div>
           )}
-          <div className="text-xs text-gray-400 dark:text-gray-500 text-right mt-0.5">
+          <div className="text-[11px] text-gray-400 dark:text-gray-500 text-right mt-1">
             {content.length}/1000
           </div>
         </div>

@@ -8,16 +8,14 @@ const PrivacyNotice = ({ isAnonymous }: PrivacyNoticeProps) => {
   const { t } = useLanguage()
   
   return (
-    <div className="bg-surface-light dark:bg-surface-dark rounded-lg p-3 border border-border-light dark:border-border-dark">
-      <div className="flex items-start gap-2">
-        <span className="material-icons-outlined text-gray-500 text-lg">
+    <div className="mt-4 mb-4 bg-purple-500/[0.04] dark:bg-purple-500/[0.08] rounded-xl p-3.5 border border-purple-500/10 dark:border-purple-500/15">
+      <div className="flex items-start gap-2.5">
+        <span className="material-icons-outlined text-purple-600 dark:text-purple-300 text-[20px] mt-px">
           {isAnonymous ? 'lock' : 'visibility'}
         </span>
-        <div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-            {isAnonymous ? t('anonymousNotice') : t('realNameNotice')}
-          </p>
-        </div>
+        <p className="text-[12px] text-gray-600 dark:text-gray-300 leading-[1.6] flex-1">
+          {isAnonymous ? t('anonymousNotice') : t('realNameNotice')}
+        </p>
       </div>
     </div>
   )
