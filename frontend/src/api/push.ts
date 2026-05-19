@@ -25,6 +25,14 @@ export interface SendPushRequest {
   user_ids?: number[];
 }
 
+export interface SendPushResult {
+  sent: number;
+  failed: number;
+  users_notified: number;
+  success?: boolean;
+  message?: string;
+}
+
 /**
  * VAPID 공개 키 가져오기
  */
@@ -117,13 +125,14 @@ export const getMySubscriptions = async (): Promise<PushSubscriptionData[]> => {
 
 /**
  * 푸시 전송 (관리자 전용)
+ *
+ * 결과 객체(sent/failed/users_notified)를 그대로 반환한다.
+ * HTTP 에러는 throw 하지만, sent===0 같은 부분 실패는 UI에서 결과 카드로 표시하도록
+ * throw 하지 않고 그대로 결과를 돌려준다.
  */
-export const sendPush = async (request: SendPushRequest): Promise<void> => {
+export const sendPush = async (request: SendPushRequest): Promise<SendPushResult> => {
   const token = localStorage.getItem('access_token');
-  
-  console.log('🚀 API 호출: POST /api/v1/push/send');
-  console.log('📦 요청 데이터:', request);
-  
+
   const response = await apiFetch(`${API_V1}/push/send`, {
     method: 'POST',
     headers: {
@@ -132,37 +141,18 @@ export const sendPush = async (request: SendPushRequest): Promise<void> => {
     },
     body: JSON.stringify(request)
   });
-  
-  console.log('📡 응답 상태:', response.status, response.statusText);
-  
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    console.error('❌ API 에러 응답:', error);
-    throw new Error(error.message || '푸시 전송에 실패했습니다.');
+    throw new Error(error.message || error.detail || '푸시 전송에 실패했습니다.');
   }
-  
+
   const result = await response.json().catch(() => null);
-  console.log('✅ API 응답 성공:', result);
-  
-  // 전송 결과 상세 로그
-  if (result) {
-    if (result.success === false || result.failed > 0) {
-      console.warn('⚠️ 푸시 전송 결과:', {
-        성공: result.sent || 0,
-        실패: result.failed || 0,
-        알림받은사용자: result.users_notified || 0,
-        메시지: result.message
-      });
-      
-      if (result.sent === 0) {
-        throw new Error('푸시 전송 실패: 대상 사용자가 구독하지 않았거나 구독 정보가 유효하지 않습니다.');
-      }
-    } else {
-      console.log('📊 전송 통계:', {
-        성공: result.sent || 0,
-        실패: result.failed || 0,
-        알림받은사용자: result.users_notified || 0
-      });
-    }
-  }
+  return {
+    sent: result?.sent ?? 0,
+    failed: result?.failed ?? 0,
+    users_notified: result?.users_notified ?? 0,
+    success: result?.success,
+    message: result?.message
+  };
 };
