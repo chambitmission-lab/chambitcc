@@ -1,127 +1,386 @@
-import { useEffect, useState } from 'react'
-import type { RecommendedVerses } from '../../../types/prayer'
+import { useEffect, useMemo, useState } from 'react'
+import type { BibleVerse, RecommendedVerses } from '../../../types/prayer'
+import { useLanguage } from '../../../contexts/LanguageContext'
+import { useTextToSpeech } from '../../../hooks/useTextToSpeech'
+import { showToast } from '../../../utils/toast'
 
 interface BibleVersesModalProps {
   verses: RecommendedVerses
   onClose: () => void
 }
 
-import { useLanguage } from '../../../contexts/LanguageContext'
+interface VerseCardProps {
+  verse: BibleVerse
+  index: number
+  total: number
+  summary: string
+}
+
+const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
+  const tts = useTextToSpeech({ rate: 0.95 })
+  const ttsStop = tts.stop
+  useEffect(() => {
+    return () => {
+      ttsStop()
+    }
+  }, [ttsStop])
+
+  const handleTTS = () => {
+    if (tts.isPlaying) {
+      tts.stop()
+      return
+    }
+    tts.speak(`${verse.reference}. ${verse.text}`)
+  }
+
+  const handleShare = async () => {
+    const body =
+      `📖 ${verse.reference}\n\n"${verse.text}"\n\n💡 ${verse.message}\n\n` +
+      `— 참빛교회 함께 묵상 (${index + 1}/${total})\n${summary}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: verse.reference, text: body })
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(body)
+        showToast('말씀을 복사했어요', 'success')
+      } else {
+        showToast('이 브라우저는 공유를 지원하지 않아요', 'info')
+      }
+    } catch (e) {
+      if ((e as DOMException)?.name === 'AbortError') return
+      showToast('공유 중 문제가 발생했어요', 'error')
+    }
+  }
+
+  return (
+    <article
+      className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+    >
+      {/* subtle gradient highlight */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.05] via-transparent to-white/[0.02] dark:opacity-100 opacity-0" />
+
+      <div className="relative p-5">
+        {/* head: index + reference */}
+        <div className="mb-3 flex items-center gap-2.5">
+          <div
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-purple-300/40 dark:border-purple-500/35 text-white shadow-[0_4px_14px_rgba(168,85,247,0.35)]"
+            style={{
+              background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+            }}
+          >
+            <span className="text-[13px] font-bold tabular-nums">
+              {index + 1}
+            </span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <span className="block text-[10.5px] font-bold uppercase tracking-[0.08em] text-purple-700 dark:text-purple-300">
+              SCRIPTURE · {index + 1}/{total}
+            </span>
+            <h3 className="m-0 text-[17px] font-bold leading-[1.3] tracking-[-0.015em] text-gray-900 dark:text-purple-50">
+              {verse.reference}
+            </h3>
+          </div>
+        </div>
+
+        {/* serif blockquote */}
+        <blockquote className="relative mb-3 pl-3">
+          <span
+            className="pointer-events-none absolute -top-1 -left-1 select-none text-[40px] leading-none text-purple-400/40 dark:text-purple-400/35"
+            style={{
+              fontFamily: 'Georgia, "Times New Roman", serif',
+            }}
+            aria-hidden="true"
+          >
+            “
+          </span>
+          <p
+            className="m-0 text-[15.5px] font-medium leading-[1.75] tracking-[-0.005em] text-gray-800 dark:text-purple-50/95"
+            style={{
+              fontFamily:
+                'Georgia, "Noto Serif KR", "Times New Roman", serif',
+              wordBreak: 'keep-all',
+            }}
+          >
+            {verse.text}
+          </p>
+        </blockquote>
+
+        {/* insight message */}
+        <div
+          className="rounded-xl border border-purple-200/60 dark:border-purple-500/25 px-3.5 py-3"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(168,85,247,0.08), rgba(236,72,153,0.06))',
+          }}
+        >
+          <div className="flex items-start gap-2">
+            <span className="material-icons-round flex-shrink-0 text-[18px] text-purple-600 dark:text-purple-300">
+              auto_awesome
+            </span>
+            <p className="m-0 text-[13.5px] leading-[1.7] text-gray-700 dark:text-purple-100/85">
+              {verse.message}
+            </p>
+          </div>
+        </div>
+
+        {/* actions */}
+        <div className="mt-3.5 flex items-center justify-end gap-2">
+          {tts.isSupported && (
+            <button
+              type="button"
+              onClick={handleTTS}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-all ${
+                tts.isPlaying
+                  ? 'border-transparent text-white shadow-[0_4px_14px_rgba(168,85,247,0.42)]'
+                  : 'border-purple-300/50 dark:border-purple-500/35 bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-200 hover:bg-purple-100 dark:hover:bg-purple-500/20'
+              }`}
+              style={
+                tts.isPlaying
+                  ? {
+                      background:
+                        'linear-gradient(135deg, #a855f7, #ec4899)',
+                    }
+                  : undefined
+              }
+              aria-label={tts.isPlaying ? '낭독 정지' : '말씀 듣기'}
+            >
+              <span className="material-icons-round text-[15px]">
+                {tts.isPlaying ? 'stop_circle' : 'volume_up'}
+              </span>
+              {tts.isPlaying ? '정지' : '듣기'}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleShare}
+            className="inline-flex items-center gap-1.5 rounded-full border border-purple-300/50 dark:border-purple-500/35 bg-purple-50 dark:bg-purple-500/10 px-3 py-1.5 text-[12px] font-semibold text-purple-700 dark:text-purple-200 transition-all hover:bg-purple-100 dark:hover:bg-purple-500/20"
+            aria-label="가족·소그룹에 공유"
+          >
+            <span className="material-icons-round text-[15px]">ios_share</span>
+            공유
+          </button>
+        </div>
+      </div>
+    </article>
+  )
+}
 
 const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [isVisible, setIsVisible] = useState(false)
 
   // 등장 애니메이션
   useEffect(() => {
-    setTimeout(() => setIsVisible(true), 50)
+    const id = window.setTimeout(() => setIsVisible(true), 30)
+    return () => window.clearTimeout(id)
   }, [])
 
   // 브라우저 뒤로가기 처리
   useEffect(() => {
-    // 모달이 열릴 때 히스토리 엔트리 추가
     window.history.pushState({ modal: 'bible-verses' }, '')
-
     const handlePopState = () => {
-      // 뒤로가기 시 모달만 닫기
       onClose()
     }
-
     window.addEventListener('popstate', handlePopState)
-
     return () => {
       window.removeEventListener('popstate', handlePopState)
     }
   }, [onClose])
-  // TODO: 나중에 공유 기능 추가 시 사용
-  // const handleShare = () => {
-  //   const shareText = `📖 당신을 위한 성경 말씀\n\n${verses.summary}\n\n${verses.verses.map(v => 
-  //     `${v.reference}\n"${v.text}"\n💡 ${v.message}`
-  //   ).join('\n\n')}`
-  //   
-  //   if (navigator.share) {
-  //     navigator.share({
-  //       title: '당신을 위한 성경 말씀',
-  //       text: shareText,
-  //     }).catch(() => {
-  //       // 공유 취소 시 무시
-  //     })
-  //   } else {
-  //     // 클립보드에 복사
-  //     navigator.clipboard.writeText(shareText).then(() => {
-  //       alert('클립보드에 복사되었습니다')
-  //     })
-  //   }
-  // }
+
+  // ESC 닫기
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  const heroTitle = useMemo(() => {
+    if (language === 'en') {
+      return `${verses.verses.length} verses for you`
+    }
+    return `당신을 위한 ${verses.verses.length}개의 말씀`
+  }, [language, verses.verses.length])
+
+  const handleShareAll = async () => {
+    const lines = verses.verses
+      .map(
+        (v, i) =>
+          `${i + 1}. ${v.reference}\n"${v.text}"\n💡 ${v.message}`,
+      )
+      .join('\n\n')
+    const body = `📖 ${heroTitle}\n\n${verses.summary}\n\n${lines}\n\n— 참빛교회 함께 묵상`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: heroTitle, text: body })
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(body)
+        showToast('말씀 묶음을 복사했어요', 'success')
+      } else {
+        showToast('이 브라우저는 공유를 지원하지 않아요', 'info')
+      }
+    } catch (e) {
+      if ((e as DOMException)?.name === 'AbortError') return
+      showToast('공유 중 문제가 발생했어요', 'error')
+    }
+  }
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[120] flex items-center justify-center p-4"
+    <div
+      className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-md p-0 sm:p-4"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('versesToMeditateOn')}
     >
-      <div 
-        className={`relative bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-xl transition-all duration-500 ${
-          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+      <div
+        className={`relative w-full sm:max-w-lg max-h-[92vh] overflow-hidden rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-card-dark shadow-[0_-16px_60px_rgba(168,85,247,0.2)] sm:shadow-[0_24px_60px_rgba(168,85,247,0.25)] transition-all duration-300 ${
+          isVisible
+            ? 'opacity-100 translate-y-0 scale-100'
+            : 'opacity-0 translate-y-6 sm:translate-y-0 sm:scale-[0.97]'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* drag handle (mobile) */}
+        <div
+          aria-hidden="true"
+          className="absolute top-2 left-1/2 -translate-x-1/2 h-1 w-10 rounded-full bg-gray-300/60 dark:bg-white/15 sm:hidden"
+        />
 
         {/* Header */}
-        <div className="relative sticky top-0 z-20 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="material-icons-outlined text-gray-600 dark:text-gray-400 text-lg">
+        <div className="sticky top-0 z-20 flex items-center justify-between px-4 pt-5 pb-3 bg-white/95 dark:bg-card-dark/95 backdrop-blur-sm border-b border-gray-100 dark:border-white/[0.05]">
+          <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-purple-700 dark:text-purple-300">
+            <span className="material-icons-round text-[14px]">
               auto_stories
             </span>
-            <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {t('versesToMeditateOn')}
-            </h2>
+            함께 묵상
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handleShareAll}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] text-gray-600 dark:text-white/70 hover:border-purple-300 dark:hover:border-purple-500/35 hover:bg-purple-50 dark:hover:bg-purple-500/15 hover:text-purple-700 dark:hover:text-purple-200 transition-all"
+              aria-label="전체 묶음 공유"
+              title="전체 묶음 공유"
+            >
+              <span className="material-icons-round text-[19px]">
+                ios_share
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] text-gray-600 dark:text-white/70 hover:border-purple-300 dark:hover:border-purple-500/35 hover:bg-purple-50 dark:hover:bg-purple-500/15 hover:text-purple-700 dark:hover:text-purple-200 transition-all"
+              aria-label="닫기"
+            >
+              <span className="material-icons-round text-[20px]">close</span>
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="relative w-8 h-8 flex items-center justify-center rounded-full hover:scale-110 transition-transform group"
-          >
-            {/* 전구 빛 효과 - 항상 표시 */}
-            <span className="absolute inset-0 bg-amber-300/40 dark:bg-amber-400/30 blur-md animate-pulse rounded-full"></span>
-            
-            <span className="relative material-icons-outlined text-amber-500 dark:text-amber-400 text-xl drop-shadow-[0_0_10px_rgba(251,191,36,0.7)]">
-              close
-            </span>
-          </button>
         </div>
 
-        {/* Content */}
-        <div className="relative p-4">
-          {/* Verses */}
-          <div className="space-y-4">
-            {verses.verses.map((verse, index) => (
-              <div 
-                key={index}
-                className="pb-4 border-b border-gray-200 dark:border-gray-800 last:border-0"
+        {/* Scrollable body */}
+        <div className="overflow-y-auto max-h-[calc(92vh-64px)] px-4 pb-8 pt-4">
+          {/* Hero card */}
+          <section
+            className="relative mb-5 overflow-hidden rounded-2xl border border-purple-300/40 dark:border-purple-500/30 p-5"
+            style={{
+              background:
+                'linear-gradient(135deg, rgba(245,243,255,0.95) 0%, rgba(237,233,254,0.85) 100%)',
+              boxShadow:
+                '0 0 0 1px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255,255,255,0.4)',
+            }}
+          >
+            <div
+              className="hidden dark:block absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  'linear-gradient(135deg, rgba(30,27,75,0.65) 0%, rgba(76,29,149,0.4) 100%)',
+              }}
+            />
+            <span
+              aria-hidden="true"
+              className="absolute left-0 top-[18%] bottom-[18%] w-[3px] rounded-r"
+              style={{
+                background:
+                  'linear-gradient(180deg, rgba(168,85,247,0), rgba(168,85,247,0.7) 50%, rgba(168,85,247,0))',
+              }}
+            />
+
+            <div className="relative flex items-start gap-3">
+              <div
+                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-purple-400/40 dark:border-purple-400/45 text-purple-700 dark:text-purple-100"
+                style={{
+                  background:
+                    'linear-gradient(135deg, rgba(168,85,247,0.22), rgba(236,72,153,0.16))',
+                }}
               >
-                {/* Reference */}
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="material-icons-outlined text-gray-500 dark:text-gray-400 text-sm">
-                    menu_book
-                  </span>
-                  <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    {verse.reference}
-                  </h3>
-                </div>
-
-                {/* Text */}
-                <blockquote className="mb-2 pl-3 border-l-2 border-gray-300 dark:border-gray-600">
-                  <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
-                    "{verse.text}"
-                  </p>
-                </blockquote>
-
-                {/* Message */}
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed pl-3">
-                  {verse.message}
-                </p>
+                <span className="material-icons-round text-[22px]">
+                  auto_stories
+                </span>
               </div>
+              <div className="min-w-0 flex-1">
+                <span
+                  className="inline-block rounded-full border border-purple-400/40 dark:border-purple-400/40 px-2 py-0.5 text-[10.5px] font-bold tracking-[0.08em] text-purple-800 dark:text-purple-200"
+                  style={{
+                    background: 'rgba(168,85,247,0.18)',
+                  }}
+                >
+                  TODAY · 함께 묵상
+                </span>
+                <h2
+                  className="mt-1.5 text-[20px] font-bold leading-[1.3] tracking-[-0.015em] text-gray-900 dark:text-purple-50"
+                  style={{ wordBreak: 'keep-all' }}
+                >
+                  {heroTitle}
+                </h2>
+              </div>
+            </div>
+
+            {verses.summary && (
+              <p
+                className="relative mt-3.5 mb-0 text-[14px] leading-[1.7] text-purple-900/80 dark:text-purple-100/85"
+                style={{ wordBreak: 'keep-all' }}
+              >
+                {verses.summary}
+              </p>
+            )}
+
+            <div className="relative mt-4 flex items-center gap-2 border-t border-purple-300/30 dark:border-white/[0.06] pt-3">
+              <span className="text-[12px] font-semibold text-purple-900/70 dark:text-purple-200/75">
+                <span
+                  className="font-bold tabular-nums text-[14px]"
+                  style={{
+                    background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  {verses.verses.length}
+                </span>{' '}
+                개의 말씀이 준비되어 있어요
+              </span>
+            </div>
+          </section>
+
+          {/* Verse cards */}
+          <div className="space-y-3">
+            {verses.verses.map((verse, index) => (
+              <VerseCard
+                key={index}
+                verse={verse}
+                index={index}
+                total={verses.verses.length}
+                summary={verses.summary}
+              />
             ))}
           </div>
+
+          {/* Footer hint */}
+          <p className="mt-6 text-center text-[11.5px] text-gray-400 dark:text-white/40">
+            잠시 멈춰서, 한 절씩 천천히 묵상해보세요.
+          </p>
         </div>
       </div>
     </div>
