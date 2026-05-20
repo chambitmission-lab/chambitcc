@@ -146,6 +146,10 @@ const NewHome = () => {
     navigate('/prayer-focus')
   }
 
+  const handleBibleClick = () => {
+    navigate('/bible')
+  }
+
   // 초기 로딩/에러는 PrayerFeed 영역 안에서만 표시 — 상단 카드(올해의 말씀, 묵상, 감사)는
   // 독립 쿼리이므로 기도 목록 fetch와 무관하게 즉시 렌더되어야 LCP 손해가 없다.
   const showOfflineWithoutCache =
@@ -293,11 +297,12 @@ const NewHome = () => {
         {/* Bottom Navigation - Fixed at bottom, centered with max-w-md */}
         <div className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none">
           <div className="max-w-md mx-auto pointer-events-auto">
-            <BottomNavigation 
+            <BottomNavigation
               onProfileClick={handleProfileClick}
               onComposeClick={handleComposerOpen}
               onScrollToTop={handleScrollToTop}
               onFocusModeClick={handleFocusModeClick}
+              onBibleClick={handleBibleClick}
             />
           </div>
         </div>

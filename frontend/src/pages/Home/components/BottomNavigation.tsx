@@ -3,6 +3,7 @@ interface BottomNavigationProps {
   onComposeClick: () => void
   onScrollToTop: () => void
   onFocusModeClick: () => void
+  onBibleClick: () => void
 }
 
 const BottomNavigation = ({
@@ -10,6 +11,7 @@ const BottomNavigation = ({
   onComposeClick,
   onScrollToTop,
   onFocusModeClick,
+  onBibleClick,
 }: BottomNavigationProps) => {
   return (
     <div className="relative px-3 pb-3 pt-6">
@@ -61,17 +63,27 @@ const BottomNavigation = ({
           </svg>
         </button>
 
-        {/* Focus — 흡수된 집중 기도 모드. outline 톤으로 다른 nav와 동일 가중치 */}
+        {/* Bible — FAB 왼쪽 '말씀' 자리. 책 아이콘은 성경 전용으로 두고 집중기도는 기도 아이콘으로 분리 */}
+        <button
+          onClick={onBibleClick}
+          aria-label="성경"
+          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
+        >
+          <span className="material-icons-outlined text-[26px]">menu_book</span>
+        </button>
+
+        {/* Compose 슬롯 — FAB이 위로 들어올려져 시각적 빈자리. 폭만 확보.
+            5개 배치(홈·성경·[FAB]·집중·프로필)가 되면서 이 spacer가 정확히 중앙(50%)에 와 FAB(left-1/2)과 정렬됨 */}
+        <div className="w-14 h-12" aria-hidden="true" />
+
+        {/* Focus — FAB 오른쪽 '기도' 자리. 책 아이콘(auto_stories)→기도/명상 아이콘으로 교체해 성경과 구분 */}
         <button
           onClick={onFocusModeClick}
           aria-label="집중 기도 모드"
           className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
         >
-          <span className="material-icons-outlined text-[26px]">auto_stories</span>
+          <span className="material-icons-outlined text-[26px]">self_improvement</span>
         </button>
-
-        {/* Compose 슬롯 — FAB이 위로 들어올려져 시각적 빈자리. 폭만 확보 */}
-        <div className="w-14 h-12" aria-hidden="true" />
 
         {/* Profile — saturated 원형 금지, outline으로 평탄화 */}
         <button
