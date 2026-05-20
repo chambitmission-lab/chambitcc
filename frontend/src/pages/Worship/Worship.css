@@ -318,6 +318,44 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
+/* ── 평일 카드: 시간/장소를 이름 아래 전체폭으로 (긴 일정 겹침 방지) ── */
+.worship-item-schedule {
+  margin-top: 10px;
+  padding-left: 58px; /* emblem(46) + gap(12) → 이름과 좌측 정렬 */
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.worship-sched-day {
+  align-self: flex-start;
+  margin-bottom: 1px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  color: #7c3aed;
+}
+[data-theme="dark"] .worship-sched-day {
+  background: rgba(168, 85, 247, 0.16);
+  color: #d8b4fe;
+}
+.worship-sched-time {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  word-break: keep-all;
+  color: #9333ea;
+}
+[data-theme="dark"] .worship-sched-time {
+  color: #d8b4fe;
+}
+
 /* ── 관리자 수정 버튼 ─────────────────── */
 .worship-edit-btn {
   width: 36px;

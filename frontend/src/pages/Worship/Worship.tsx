@@ -277,36 +277,36 @@ const Worship = () => {
                       </div>
                     </div>
                   ) : (
-                    // 일반 모드
-                    <div className="worship-item-row">
-                      <div className="worship-item-left">
-                        <div className="worship-item-emblem">
-                          <span className="material-icons-round">{weekdayIcon(service.name)}</span>
-                        </div>
-                        <div>
+                    // 일반 모드 — 평일 일정은 길어질 수 있어 이름 아래 전체폭으로 배치
+                    <>
+                      <div className="worship-item-row">
+                        <div className="worship-item-left">
+                          <div className="worship-item-emblem">
+                            <span className="material-icons-round">{weekdayIcon(service.name)}</span>
+                          </div>
                           <h3 className="worship-item-name">{service.name}</h3>
                         </div>
-                      </div>
-                      <div className="worship-item-meta">
-                        {service.subtitle && (
-                          <p className="worship-item-time">{service.subtitle}</p>
+                        {isAdminUser && (
+                          <button
+                            onClick={() => handleEditClick(service)}
+                            className="worship-edit-btn"
+                            title="수정"
+                            aria-label="수정"
+                          >
+                            <span className="material-icons-round">edit</span>
+                          </button>
                         )}
-                        <p className="worship-item-loc">{service.time}</p>
+                      </div>
+                      <div className="worship-item-schedule">
+                        {service.subtitle && (
+                          <span className="worship-sched-day">{service.subtitle}</span>
+                        )}
+                        <p className="worship-sched-time">{service.time}</p>
                         {service.location && (
                           <p className="worship-item-loc">{service.location}</p>
                         )}
                       </div>
-                      {isAdminUser && (
-                        <button
-                          onClick={() => handleEditClick(service)}
-                          className="worship-edit-btn"
-                          title="수정"
-                          aria-label="수정"
-                        >
-                          <span className="material-icons-round">edit</span>
-                        </button>
-                      )}
-                    </div>
+                    </>
                   )}
                 </div>
               ))
