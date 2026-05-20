@@ -62,7 +62,9 @@
       "Bash(cd C:\\\\Users\\\\k1988\\\\idea\\\\chambitcc-main\\\\frontend *)",
       "Bash(node -e \"const p=require\\('./package.json'\\); const all={...p.dependencies,...p.devDependencies}; console.log\\('canvas-confetti:', all['canvas-confetti']||'NOT FOUND'\\); console.log\\('@types/canvas-confetti:', all['@types/canvas-confetti']||'NOT FOUND'\\);\")",
       "Bash(ls node_modules/canvas-confetti)",
-      "Bash(tee /tmp/tsc_out.txt)"
+      "Bash(tee /tmp/tsc_out.txt)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(Object.keys\\({...p.dependencies,...p.devDependencies}\\).filter\\(d=>/playwright|puppeteer|vitest|jsdom/i.test\\(d\\)\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(git check-ignore *)"
     ]
   }
 }
