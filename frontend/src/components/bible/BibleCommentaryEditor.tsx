@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Markdown } from '../../utils/markdown'
+import { generateCommentaryDraft } from '../../api/bibleCommentary'
 import {
   COMMENTARY_CATEGORIES,
   type BibleCommentary,
@@ -84,6 +85,8 @@ const BibleCommentaryEditor = ({
   const [category, setCategory] = useState<string>(existing?.category ?? '')
   const [content, setContent] = useState<string>(existing?.content ?? '')
   const [showPreview, setShowPreview] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
 
   useEffect(() => {
     if (verseEnd < verseStart) {
@@ -92,6 +95,35 @@ const BibleCommentaryEditor = ({
   }, [verseStart, verseEnd])
 
   const isEditing = !!existing
+
+  const handleGenerateAI = async () => {
+    if (aiLoading || saving) return
+    if (
+      content.trim() &&
+      !window.confirm('현재 작성한 본문을 AI 초안으로 교체할까요?')
+    ) {
+      return
+    }
+    setAiError(null)
+    setAiLoading(true)
+    try {
+      const draft = await generateCommentaryDraft({
+        book_number: bookNumber,
+        chapter,
+        verse_start: verseStart,
+        verse_end: verseEnd,
+        category: category || undefined,
+      })
+      setContent(draft.content)
+      if (draft.title) setTitle(draft.title)
+      if (draft.category) setCategory(draft.category)
+      setShowPreview(false)
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : 'AI 초안 생성에 실패했습니다')
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -201,6 +233,61 @@ const BibleCommentaryEditor = ({
               </option>
             ))}
           </select>
+        </div>
+
+        <div style={{ marginBottom: '0.75rem' }}>
+          <button
+            type="button"
+            onClick={handleGenerateAI}
+            disabled={aiLoading || saving}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.375rem',
+              padding: '0.625rem 1rem',
+              borderRadius: '0.625rem',
+              border: 'none',
+              background: aiLoading
+                ? 'var(--ig-secondary-background, #eee)'
+                : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+              color: aiLoading ? 'var(--ig-secondary-text, #888)' : '#fff',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              cursor: aiLoading || saving ? 'not-allowed' : 'pointer',
+              opacity: saving ? 0.6 : 1,
+            }}
+          >
+            <span className="material-icons-round" style={{ fontSize: '1.125rem' }}>
+              auto_awesome
+            </span>
+            {aiLoading ? 'AI가 해석을 작성하고 있어요…' : 'AI로 해석 초안 생성'}
+          </button>
+          <div
+            style={{
+              fontSize: '0.6875rem',
+              color: 'var(--ig-secondary-text, #888)',
+              marginTop: '0.25rem',
+            }}
+          >
+            선택한 절{category ? ` · ${category} 관점` : ''}으로 초안을 만들어 아래 본문에
+            채웁니다. 검토·수정 후 저장하세요.
+          </div>
+          {aiError && (
+            <div
+              style={{
+                background: 'rgba(220,38,38,0.08)',
+                color: '#b91c1c',
+                padding: '0.5rem 0.625rem',
+                borderRadius: '0.5rem',
+                fontSize: '0.8125rem',
+                marginTop: '0.5rem',
+              }}
+            >
+              {aiError}
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: '0.5rem' }}>

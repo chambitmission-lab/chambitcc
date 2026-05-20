@@ -2,6 +2,8 @@ import { API_V1, apiFetch } from '../config/api'
 import { getAuthHeaders } from './utils/apiHelpers'
 import type {
   BibleCommentary,
+  BibleCommentaryAIGenerateRequest,
+  BibleCommentaryAIGenerateResponse,
   BibleCommentaryCreateRequest,
   BibleCommentaryListResponse,
   BibleCommentaryUpdateRequest,
@@ -63,6 +65,21 @@ export const updateCommentary = async (
   }
   const data = await response.json()
   return data.commentary as BibleCommentary
+}
+
+export const generateCommentaryDraft = async (
+  payload: BibleCommentaryAIGenerateRequest,
+): Promise<BibleCommentaryAIGenerateResponse> => {
+  const response = await apiFetch(`${BASE}/ai-generate`, {
+    method: 'POST',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || 'AI 해석 초안 생성에 실패했습니다')
+  }
+  return response.json()
 }
 
 export const deleteCommentary = async (commentaryId: number): Promise<void> => {

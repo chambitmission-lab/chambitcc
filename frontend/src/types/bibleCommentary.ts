@@ -42,6 +42,21 @@ export interface BibleCommentaryUpdateRequest {
   category?: string
 }
 
+export interface BibleCommentaryAIGenerateRequest {
+  book_number: number
+  chapter: number
+  verse_start: number
+  verse_end: number
+  category?: string
+}
+
+export interface BibleCommentaryAIGenerateResponse {
+  title?: string | null
+  content: string
+  category?: string | null
+  reference: string
+}
+
 export const COMMENTARY_CATEGORIES = [
   '신학적',
   '역사적',

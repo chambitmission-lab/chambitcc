@@ -51,7 +51,14 @@
       "Bash(git stash *)",
       "Bash(git -C .. stash push -m \"settings-local-temp\" -- .claude/settings.local.json)",
       "Bash(git -C .. stash pop)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(cd C:\\\\Users\\\\k1988\\\\idea\\\\chambitcc-main *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\k1988\\\\idea\\\\chambit-main\\\\backend\" -Recurse | Where-Object { $_.PSIsContainer -eq $false } | Select-Object -First 50)",
+      "Bash(DATABASE_URL=\"sqlite://\" SECRET_KEY=\"x\" FRONTEND_URL=\"http://localhost\" GEMINI_API_KEY=\"\" python -c \"from app.api.v1.endpoints import bible_commentary; from app.services.bible_commentary_service import BibleCommentaryService; print\\('IMPORT OK - no circular import'\\)\")",
+      "Bash(DATABASE_URL=\"sqlite://\" SECRET_KEY=\"x\" FRONTEND_URL=\"http://localhost\" python -c \"import app.repositories.bible_repo\")",
+      "Bash(DATABASE_URL=sqlite:// SECRET_KEY=x FRONTEND_URL=http://localhost GEMINI_API_KEY='' python -c ' *)",
+      "Bash(pip show *)",
+      "Bash(echo \"=== exit: $? ===\")"
     ]
   }
 }
