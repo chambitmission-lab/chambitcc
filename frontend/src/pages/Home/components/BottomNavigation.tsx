@@ -76,27 +76,36 @@ const BottomNavigation = ({
             5개 배치(홈·성경·[FAB]·집중·프로필)가 되면서 이 spacer가 정확히 중앙(50%)에 와 FAB(left-1/2)과 정렬됨 */}
         <div className="w-14 h-12" aria-hidden="true" />
 
-        {/* Focus — FAB 오른쪽 '기도' 자리. 두 손 모은 기도손(folded hands) 커스텀 SVG.
-            세로 대칭 형태는 26px에서 잎사귀로 뭉개지므로, 아래로 벌어진 소매(팔)로 실루엣을
-            깨고 중앙 seam으로 '두 손 맞닿음'을 표현. 홈·프로필·성경과 동일한 outline(stroke 1.8) 톤 */}
+        {/* Focus — FAB 오른쪽 '기도' 자리. 빛이 나는 십자가.
+            라틴 십자가 본체(currentColor, hover 시 보라) 뒤에 보라 글로우(feGaussianBlur)를 깔아
+            "빛나는 십자가"를 표현. 글로우 색은 브랜드 액센트(purple) 고정 — 집중 기도 모드를 은은히 강조 */}
         <button
           onClick={onFocusModeClick}
           aria-label="집중 기도 모드"
           className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
         >
-          <svg
-            className="w-[26px] h-[26px]"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            viewBox="0 0 24 24"
-          >
-            {/* 두 손 외곽 — 손끝(위 가운데)에서 손등 불룩, 아래로 소매가 양쪽 모서리로 벌어짐 */}
-            <path d="M12 3.8C12.7 3.9 13 4.5 13.2 5.2 13.6 6.6 14 7.7 14.3 9.2 14.6 11 15.2 12.7 16.4 14.6 17.5 16.5 18.6 18.4 19.4 20.2 19.6 20.7 19.3 21.2 18.8 21.2L17 21.2C16.5 21.2 16.1 20.9 15.9 20.4 15.1 18.5 14 16.4 13.2 14.8 12.7 13.7 12.3 12.5 12.1 11.4 11.7 12.5 11.3 13.7 10.8 14.8 10 16.4 8.9 18.5 8.1 20.4 7.9 20.9 7.5 21.2 7 21.2L5.2 21.2C4.7 21.2 4.4 20.7 4.6 20.2 5.4 18.4 6.5 16.5 7.6 14.6 8.8 12.7 9.4 11 9.7 9.2 10 7.7 10.4 6.6 10.8 5.2 11 4.5 11.3 3.9 12 3.8Z" />
-            {/* 두 손이 맞닿는 중앙선 */}
-            <path d="M12 4.4 12 11" />
+          <svg className="w-[26px] h-[26px]" viewBox="0 0 24 24">
+            <defs>
+              <filter id="crossGlow" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="1.1" />
+              </filter>
+            </defs>
+            {/* 발광(글로우) — 십자가 뒤에 깔리는 보라 빛 */}
+            <g
+              filter="url(#crossGlow)"
+              stroke="#a855f7"
+              strokeWidth={3.4}
+              strokeLinecap="round"
+              fill="none"
+            >
+              <path d="M12 4.2V19.8" />
+              <path d="M8 9H16" />
+            </g>
+            {/* 십자가 본체 */}
+            <g stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" fill="none">
+              <path d="M12 4.2V19.8" />
+              <path d="M8 9H16" />
+            </g>
           </svg>
         </button>
 

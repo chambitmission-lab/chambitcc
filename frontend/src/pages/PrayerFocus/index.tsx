@@ -195,7 +195,9 @@ const PrayerFocus = () => {
           <div className="mb-6 relative group">
             <div className={`absolute -inset-4 ${mood.glowC} rounded-full blur-xl group-hover:opacity-100 transition-all duration-700`}></div>
             <div className={`w-20 h-20 rounded-full flex items-center justify-center relative transform transition-transform duration-500 hover:scale-105 hover:rotate-3 bg-gradient-to-br ${mood.buttonGradient} shadow-[0_10px_15px_-3px_rgba(168,85,247,0.25),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-4px_6px_rgba(0,0,0,0.2)]`}>
-              <span className="material-icons-outlined text-4xl drop-shadow-md">auto_stories</span>
+              <svg viewBox="0 0 24 24" className="w-9 h-9 drop-shadow-md" fill="currentColor" aria-hidden="true">
+                <path d="M10.5 2h3v4H18v3h-4.5v13h-3V9H6V6h4.5z" />
+              </svg>
             </div>
           </div>
 
