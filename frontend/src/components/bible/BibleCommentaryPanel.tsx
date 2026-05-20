@@ -24,30 +24,6 @@ interface BibleCommentaryPanelProps {
   onClose: () => void
 }
 
-const overlay: React.CSSProperties = {
-  position: 'fixed',
-  inset: 0,
-  background: 'rgba(0, 0, 0, 0.5)',
-  display: 'flex',
-  alignItems: 'flex-end',
-  justifyContent: 'center',
-  zIndex: 1000,
-}
-
-const panel: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '560px',
-  maxHeight: '85vh',
-  background: 'var(--ig-primary-background, #fff)',
-  color: 'var(--ig-primary-text, #111)',
-  borderTopLeftRadius: '1rem',
-  borderTopRightRadius: '1rem',
-  display: 'flex',
-  flexDirection: 'column',
-  boxShadow: '0 -8px 28px rgba(0,0,0,0.25)',
-  overflow: 'hidden',
-}
-
 const BibleCommentaryPanel = ({
   bookNumber,
   chapter,
@@ -77,8 +53,8 @@ const BibleCommentaryPanel = ({
 
   const headerLabel =
     focusVerse != null
-      ? `${bookNameKo} ${chapter}:${focusVerse} 해석`
-      : `${bookNameKo} ${chapter}장 해석`
+      ? `${bookNameKo} ${chapter}:${focusVerse}`
+      : `${bookNameKo} ${chapter}장`
 
   const handleCreateClick = () => {
     setEditing(null)
@@ -138,75 +114,60 @@ const BibleCommentaryPanel = ({
 
   return (
     <>
-      <div style={overlay} onClick={onClose}>
-        <section style={panel} onClick={(e) => e.stopPropagation()}>
-          <header
-            style={{
-              padding: '0.75rem 1rem',
-              borderBottom: '1px solid var(--ig-border, rgba(0,0,0,0.08))',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(168,85,247,0.06))',
-            }}
-          >
-            <span className="material-icons-round" style={{ color: '#6366f1' }}>
-              menu_book
-            </span>
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, flex: 1 }}>
-              {headerLabel}
-            </h3>
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+        onClick={onClose}
+      >
+        <section
+          className="relative w-full sm:max-w-lg max-h-[85vh] sm:max-h-[88vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18)] flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* 카드 표면 그라데이션 + 글로우 */}
+          <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
+          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/15 dark:to-pink-500/8 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-purple-400/10 dark:from-pink-500/10 dark:to-purple-500/8 rounded-full blur-3xl pointer-events-none" />
+
+          {/* 헤더 */}
+          <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
+            <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-purple-500/15 to-pink-500/10 text-purple-600 dark:text-purple-300 shrink-0">
+              <span className="material-icons-round text-[22px]">menu_book</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.1em]">
+                말씀 해석
+              </p>
+              <h3 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em] truncate">
+                {headerLabel}
+              </h3>
+            </div>
             <button
               onClick={onClose}
               aria-label="닫기"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '0.25rem',
-                color: 'var(--ig-secondary-text, #666)',
-              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-purple-500 dark:hover:text-purple-300 transition-colors shrink-0"
             >
-              <span className="material-icons-round">close</span>
+              <span className="material-icons-round text-[20px]">close</span>
             </button>
-          </header>
+          </div>
 
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '0.875rem 1rem 1rem',
-            }}
-          >
+          {/* 본문 */}
+          <div className="relative z-10 flex-1 overflow-y-auto px-5 py-4">
             {isLoading && (
-              <div style={{ textAlign: 'center', padding: '2rem 0', color: '#888' }}>
-                <span className="material-icons-round spinning">refresh</span>
-                <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
-                  해석 불러오는 중...
-                </p>
+              <div className="text-center py-10 text-gray-400 dark:text-white/45">
+                <span className="material-icons-round animate-spin text-[28px]">refresh</span>
+                <p className="mt-2 text-[13.5px]">해석 불러오는 중...</p>
               </div>
             )}
 
             {!isLoading && filtered.length === 0 && (
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: '2.5rem 1rem',
-                  color: 'var(--ig-secondary-text, #888)',
-                }}
-              >
-                <span
-                  className="material-icons-round"
-                  style={{ fontSize: '2.25rem', opacity: 0.35 }}
-                >
-                  auto_stories
-                </span>
-                <p style={{ margin: '0.5rem 0 0', fontSize: '0.9375rem' }}>
+              <div className="text-center py-12 px-4 text-gray-400 dark:text-white/45">
+                <span className="material-icons-round text-[40px] opacity-40">auto_stories</span>
+                <p className="mt-2 text-[15px] text-gray-500 dark:text-white/55">
                   아직 등록된 해석이 없습니다
                 </p>
                 {admin && (
-                  <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem' }}>
-                    아래 + 버튼으로 첫 해석을 추가해보세요
+                  <p className="mt-1 text-[13px]">
+                    아래 버튼으로 첫 해석을 추가해보세요
                   </p>
                 )}
               </div>
@@ -224,34 +185,14 @@ const BibleCommentaryPanel = ({
               ))}
           </div>
 
+          {/* 관리자: 해석 추가 */}
           {admin && (
-            <div
-              style={{
-                padding: '0.625rem 1rem',
-                borderTop: '1px solid var(--ig-border, rgba(0,0,0,0.08))',
-                background: 'var(--ig-primary-background, #fff)',
-              }}
-            >
+            <div className="relative z-10 px-5 py-3 border-t border-black/[0.04] dark:border-white/[0.06] bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm">
               <button
                 onClick={handleCreateClick}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  borderRadius: '0.625rem',
-                  border: 'none',
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  color: 'white',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.375rem',
-                }}
+                className="w-full inline-flex items-center justify-center gap-1.5 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all"
               >
-                <span className="material-icons-round" style={{ fontSize: '1.125rem' }}>
-                  add
-                </span>
+                <span className="material-icons-round text-[19px]">add</span>
                 해석 추가
               </button>
             </div>

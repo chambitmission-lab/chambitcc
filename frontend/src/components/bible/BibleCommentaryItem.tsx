@@ -29,118 +29,53 @@ const BibleCommentaryItem = ({
   onDelete,
 }: BibleCommentaryItemProps) => {
   const authorName =
-    commentary.author?.full_name ||
-    commentary.author?.username ||
-    '관리자'
+    commentary.author?.full_name || commentary.author?.username || '관리자'
 
   return (
-    <article
-      style={{
-        background: 'var(--ig-secondary-background, #f7f7f8)',
-        border: '1px solid var(--ig-border, rgba(0,0,0,0.06))',
-        borderRadius: '0.75rem',
-        padding: '0.875rem 1rem',
-        marginBottom: '0.75rem',
-      }}
-    >
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          flexWrap: 'wrap',
-          marginBottom: '0.5rem',
-        }}
-      >
-        <span
-          style={{
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            background: 'rgba(99, 102, 241, 0.12)',
-            color: '#6366f1',
-            padding: '0.125rem 0.5rem',
-            borderRadius: '999px',
-          }}
-        >
+    <article className="relative mb-3 rounded-2xl border border-black/[0.04] dark:border-white/[0.08] bg-surface-light dark:bg-white/[0.03] px-4 py-3.5 overflow-hidden">
+      <div className="hidden dark:block absolute inset-x-0 top-0 h-px bg-white/[0.05] pointer-events-none" />
+
+      <header className="flex items-center gap-2 flex-wrap mb-2">
+        <span className="inline-flex items-center text-[12px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/12 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300">
           {formatRange(commentary)}
         </span>
         {commentary.category && (
-          <span
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--ig-secondary-text, #666)',
-              background: 'rgba(0,0,0,0.04)',
-              padding: '0.125rem 0.5rem',
-              borderRadius: '999px',
-            }}
-          >
+          <span className="inline-flex items-center text-[12px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-white/65">
             {commentary.category}
           </span>
         )}
-        <span
-          style={{
-            fontSize: '0.7rem',
-            color: 'var(--ig-secondary-text, #888)',
-            marginLeft: 'auto',
-          }}
-        >
+        <span className="ml-auto text-[11px] text-gray-400 dark:text-white/45">
           {authorName} · {formatDate(commentary.updated_at)}
         </span>
       </header>
 
       {commentary.title && (
-        <h4
-          style={{
-            margin: '0 0 0.375rem',
-            fontSize: '1rem',
-            fontWeight: 700,
-            color: 'var(--ig-primary-text, #111)',
-          }}
-        >
+        <h4 className="mt-0 mb-1.5 text-[16px] font-bold tracking-[-0.015em] leading-[1.35] text-gray-900 dark:text-white">
           {commentary.title}
         </h4>
       )}
 
-      <Markdown source={commentary.content} />
+      <div className="text-[14.5px] leading-[1.7] text-gray-700 dark:text-white/80">
+        <Markdown source={commentary.content} />
+      </div>
 
       {isAdmin && (
-        <div
-          style={{
-            display: 'flex',
-            gap: '0.375rem',
-            justifyContent: 'flex-end',
-            marginTop: '0.5rem',
-          }}
-        >
+        <div className="flex gap-1.5 justify-end mt-2.5">
           {onEdit && (
             <button
               onClick={() => onEdit(commentary)}
-              style={{
-                padding: '0.25rem 0.625rem',
-                fontSize: '0.75rem',
-                borderRadius: '0.375rem',
-                border: '1px solid rgba(139, 92, 246, 0.3)',
-                background: 'rgba(139, 92, 246, 0.08)',
-                color: '#7c3aed',
-                cursor: 'pointer',
-              }}
+              className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-bold bg-purple-500/10 dark:bg-purple-500/12 text-purple-700 dark:text-purple-300 border border-purple-500/20 dark:border-purple-500/25 hover:bg-purple-500/15 dark:hover:bg-purple-500/20 transition-colors"
             >
+              <span className="material-icons-round text-[15px]">edit</span>
               수정
             </button>
           )}
           {onDelete && (
             <button
               onClick={() => onDelete(commentary)}
-              style={{
-                padding: '0.25rem 0.625rem',
-                fontSize: '0.75rem',
-                borderRadius: '0.375rem',
-                border: '1px solid rgba(220, 38, 38, 0.3)',
-                background: 'rgba(220, 38, 38, 0.06)',
-                color: '#b91c1c',
-                cursor: 'pointer',
-              }}
+              className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-bold bg-red-500/8 dark:bg-red-500/10 text-red-600 dark:text-red-300 border border-red-500/20 dark:border-red-400/30 hover:bg-red-500/15 dark:hover:bg-red-500/20 transition-colors"
             >
+              <span className="material-icons-round text-[15px]">delete_outline</span>
               삭제
             </button>
           )}
