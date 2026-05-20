@@ -74,6 +74,18 @@ const PrayerFocus = () => {
     startTimer(selectedMinutes * 60)
   }
 
+  // 일시정지/재개는 타이머와 배경음을 함께 제어한다.
+  // (배경음이 'silent'이면 pause/play 는 안전한 no-op)
+  const handlePause = () => {
+    pauseTimer()
+    ambience.pause()
+  }
+
+  const handleResume = () => {
+    resumeTimer()
+    ambience.play()
+  }
+
   const handleReset = () => {
     resetTimer()
     setShowMidVerse(false)
@@ -158,8 +170,8 @@ const PrayerFocus = () => {
             <TimerControls
               isRunning={isRunning}
               isPaused={isPaused}
-              onPause={pauseTimer}
-              onResume={resumeTimer}
+              onPause={handlePause}
+              onResume={handleResume}
               onReset={handleReset}
             />
           </div>
