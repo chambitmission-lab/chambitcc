@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ResumePosition } from '../../../api/bibleReading'
+import { parseApiDate } from '../../../utils/dateUtils'
 
 interface ResumeReadingCardProps {
   latest: ResumePosition | null
@@ -8,7 +9,8 @@ interface ResumeReadingCardProps {
 }
 
 const formatRelativeTime = (iso: string): string => {
-  const then = new Date(iso).getTime()
+  const date = parseApiDate(iso)
+  const then = date.getTime()
   const now = Date.now()
   const diffMs = now - then
   const diffMin = Math.floor(diffMs / (1000 * 60))
@@ -20,7 +22,7 @@ const formatRelativeTime = (iso: string): string => {
   if (diffHour < 24) return `${diffHour}시간 전`
   if (diffDay === 1) return '어제'
   if (diffDay < 7) return `${diffDay}일 전`
-  return new Date(iso).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+  return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
 }
 
 const ResumeReadingCard = ({ latest, recentBooks, onResume }: ResumeReadingCardProps) => {

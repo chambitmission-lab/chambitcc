@@ -1,7 +1,27 @@
 /**
+ * API 시각 문자열을 Date 로 파싱한다.
+ *
+ * 백엔드(MariaDB)는 UTC 시각을 타임존 표기('Z'/offset) 없이 내려줄 때가 있다
+ * (예: 성경 읽기 read_at). 표기가 없으면 브라우저의 `new Date()` 가 이를 로컬
+ * 시간으로 해석해 KST 기준 +9시간 오차가 생긴다. 표기가 없으면 UTC 로 간주해
+ * 'Z' 를 붙여 파싱함으로써 이를 막는다.
+ *
+ * 이미 'Z' 나 +09:00 같은 오프셋이 있으면 그대로 둔다.
+ *
+ * @param dateString - ISO 8601 시각 문자열
+ */
+export const parseApiDate = (dateString: string): Date => {
+  const hasTimezone = /[Zz]$|[+-]\d{2}:?\d{2}$/.test(dateString)
+  if (!hasTimezone && dateString.includes('T')) {
+    return new Date(`${dateString}Z`)
+  }
+  return new Date(dateString)
+}
+
+/**
  * 상대 시간 계산 유틸리티
  * UTC 시간을 받아서 사용자의 로컬 시간 기준으로 상대 시간을 계산합니다.
- * 
+ *
  * @param dateString - ISO 8601 형식의 UTC 시간 문자열 (예: "2026-02-05T12:36:59Z")
  * @returns 상대 시간 문자열 (예: "1시간 전", "3일 전")
  */

@@ -1,6 +1,7 @@
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
 import type { ResumePosition } from '../../../api/bibleReading'
+import { parseApiDate } from '../../../utils/dateUtils'
 
 interface BookSelectorProps {
   books: BibleBook[] | undefined
@@ -11,11 +12,12 @@ interface BookSelectorProps {
 }
 
 const formatRelativeShort = (iso: string): string => {
-  const diffDay = Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24))
+  const date = parseApiDate(iso)
+  const diffDay = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
   if (diffDay <= 0) return '오늘'
   if (diffDay === 1) return '어제'
   if (diffDay < 7) return `${diffDay}일`
-  return new Date(iso).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
+  return date.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
 }
 
 const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap }: BookSelectorProps) => {
