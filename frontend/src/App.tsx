@@ -49,6 +49,9 @@ const GroupDetail = lazy(() => import('./pages/Groups/GroupDetail'))
 const PrayerFocus = lazy(() => import('./pages/PrayerFocus'))
 const BibleStudy = lazy(() => import('./pages/Bible/BibleStudy'))
 const Genealogy = lazy(() => import('./pages/Bible/Genealogy/Genealogy'))
+const PlanList = lazy(() => import('./pages/Bible/Plans/PlanList'))
+const PlanDetail = lazy(() => import('./pages/Bible/Plans/PlanDetail'))
+const BiblePlanManagement = lazy(() => import('./pages/Admin/BiblePlanManagement'))
 const AnsweredPrayers = lazy(
   () => import('./pages/Prayer/AnsweredPrayers'),
 )
@@ -146,6 +149,7 @@ function App() {
                 <Route path="/admin/events" element={<EventManagement />} />
                 <Route path="/admin/users" element={<UserManagement />} />
                 <Route path="/admin/groups" element={<GroupManagement />} />
+                <Route path="/admin/bible-plans" element={<BiblePlanManagement />} />
                 <Route path="/events" element={<EventCalendar />} />
                 <Route path="/events/:id" element={<EventDetail />} />
                 <Route path="/groups" element={<MyGroups />} />
@@ -155,6 +159,8 @@ function App() {
                 <Route path="/thanks" element={<Thanks />} />
                 <Route path="/bible" element={<BibleStudy />} />
                 <Route path="/bible/genealogy" element={<Genealogy />} />
+                <Route path="/bible/plans" element={<PlanList />} />
+                <Route path="/bible/plans/:planId" element={<PlanDetail />} />
                 <Route path="/bible/:bookNumber/:chapter" element={<BibleStudy />} />
                 <Route path="/garden" element={<Garden />} />
                 <Route path="/bluemarble" element={<Bluemarble />} />

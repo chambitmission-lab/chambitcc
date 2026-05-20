@@ -58,7 +58,11 @@
       "Bash(DATABASE_URL=\"sqlite://\" SECRET_KEY=\"x\" FRONTEND_URL=\"http://localhost\" python -c \"import app.repositories.bible_repo\")",
       "Bash(DATABASE_URL=sqlite:// SECRET_KEY=x FRONTEND_URL=http://localhost GEMINI_API_KEY='' python -c ' *)",
       "Bash(pip show *)",
-      "Bash(echo \"=== exit: $? ===\")"
+      "Bash(echo \"=== exit: $? ===\")",
+      "Bash(cd C:\\\\Users\\\\k1988\\\\idea\\\\chambitcc-main\\\\frontend *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); const all={...p.dependencies,...p.devDependencies}; console.log\\('canvas-confetti:', all['canvas-confetti']||'NOT FOUND'\\); console.log\\('@types/canvas-confetti:', all['@types/canvas-confetti']||'NOT FOUND'\\);\")",
+      "Bash(ls node_modules/canvas-confetti)",
+      "Bash(tee /tmp/tsc_out.txt)"
     ]
   }
 }

@@ -20,6 +20,7 @@ export const navigation = {
   bulletinManagement: '📰 주보 관리',
   events: '일정',
   eventManagement: '📅 일정 관리',
+  biblePlanManagement: '📚 읽기 플랜 관리',
   pushNotificationManagement: '📢 푸시 알림 관리',
   userManagement: '👥 회원 관리',
   garden: '🌸 나의 정원',

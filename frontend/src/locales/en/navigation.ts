@@ -20,6 +20,7 @@ export const navigation = {
   bulletinManagement: '📰 Bulletin Management',
   events: 'Events',
   eventManagement: '📅 Event Management',
+  biblePlanManagement: '📚 Reading Plan Management',
   pushNotificationManagement: '📢 Push Notification Management',
   userManagement: '👥 User Management',
   garden: '🌸 My Garden',

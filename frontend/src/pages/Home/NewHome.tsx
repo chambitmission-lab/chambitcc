@@ -7,6 +7,7 @@ import PrayerDetail from './components/PrayerDetail'
 // import TodaysVerse from './components/TodaysVerse'
 import AnnualThemeVerse from './components/AnnualThemeVerse'
 import DailyMeditationCard from './components/DailyMeditationCard'
+import TodayPlanCard from './components/TodayPlanCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import ThanksTicker from './components/ThanksTicker'
 // 오늘의 감사 — 임시 비활성화. 다시 활성화하려면 아래 import와 <ThanksThread /> 주석을 해제하세요.
@@ -171,6 +172,9 @@ const NewHome = () => {
 
             {/* 오늘의 묵상 카드 (통독표 + 시간대/감정 컨텍스트) */}
             <DailyMeditationCard />
+
+            {/* 오늘의 읽기 — 진행 중인 구독형 읽기 플랜(bible_plans) */}
+            <TodayPlanCard />
 
             {/* 오늘의 감사 한 줄 (전광판 마퀴) */}
             <ThanksTicker />
