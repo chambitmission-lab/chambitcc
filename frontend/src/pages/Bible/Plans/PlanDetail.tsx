@@ -85,7 +85,12 @@ const PlanDetail = () => {
 
   const handleRead = (day: PlanDay) => {
     const first = day.passages[0]
-    if (first) navigate(`/bible/${first.book_number}/${first.chapter_start}`)
+    if (first) {
+      // 플랜/일차 정보를 함께 넘겨, 본문을 다 읽으면 해당 일차가 자동 완료되도록 한다.
+      navigate(
+        `/bible/${first.book_number}/${first.chapter_start}?plan=${id}&day=${day.day_number}`,
+      )
+    }
   }
 
   const handleReflect = async (day: PlanDay) => {

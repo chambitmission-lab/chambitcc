@@ -1,8 +1,11 @@
-import { useState, useEffect, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
+import confetti from 'canvas-confetti'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
 import { useResumeReading } from '../../hooks/useBibleReading'
+import { useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
 import { useAuth } from '../../hooks/useAuth'
+import { showToast } from '../../utils/toast'
 import type { ResumePosition } from '../../api/bibleReading'
 import {
   BibleHeader,
@@ -71,6 +74,44 @@ const BibleStudy = () => {
     activeTab === 'read' && selectedBookId > 0
   )
   
+  // ── 읽기 플랜 연동 ──
+  // PlanDetail에서 "오늘 분량 읽기"로 진입하면 ?plan=&day= 가 붙는다.
+  // 그 본문(장)을 끝까지 읽으면 해당 일차를 자동 완료 처리한다.
+  const [searchParams] = useSearchParams()
+  const planId = Number(searchParams.get('plan')) || 0
+  const planDayNumber = Number(searchParams.get('day')) || 0
+  const { data: planData } = useBiblePlan(planId, planId > 0)
+  const completeDay = useCompleteDay()
+
+  const planDay = planData?.days.find((d) => d.day_number === planDayNumber)
+  const planPassage = planDay?.passages[0]
+  // 현재 보고 있는 장이 플랜이 지정한 본문과 일치하고, 아직 완료되지 않은 경우에만 자동 완료를 활성화.
+  const planAutoComplete =
+    planId > 0 &&
+    planDayNumber > 0 &&
+    !!planDay &&
+    !planDay.completed &&
+    !!planPassage &&
+    selectedBookData?.book_number === planPassage.book_number &&
+    selectedChapter === planPassage.chapter_start
+
+  const handleChapterFullyRead = useCallback(async () => {
+    if (!planAutoComplete) return
+    try {
+      await completeDay.mutateAsync({ planId, dayNumber: planDayNumber })
+      confetti({
+        particleCount: 90,
+        spread: 75,
+        origin: { y: 0.7 },
+        colors: ['#a855f7', '#ec4899', '#d946ef', '#f472b6'],
+      })
+      showToast(`오늘 분량 완료! ${planDayNumber}일차를 마쳤어요 🎉`, 'success')
+    } catch (e) {
+      // 자동 완료 실패는 조용히 무시 — 플랜 화면의 수동 체크로 대체 가능
+      console.error('plan auto-complete failed', e)
+    }
+  }, [planAutoComplete, completeDay, planId, planDayNumber])
+
   const handleBookSelect = (bookId: number, bookName: string, resume?: ResumePosition) => {
     setSelectedBookId(bookId)
     setSelectedBook(bookName)
@@ -158,6 +199,7 @@ const BibleStudy = () => {
                   bookNumber={selectedBookData.book_number}
                   scrollToVerse={pendingScrollVerse}
                   onScrolled={() => setPendingScrollVerse(null)}
+                  onChapterFullyRead={planAutoComplete ? handleChapterFullyRead : undefined}
                 />
               </div>
             )}

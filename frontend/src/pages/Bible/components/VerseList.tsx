@@ -25,6 +25,8 @@ interface VerseListProps {
   bookNumber: number
   scrollToVerse?: number | null
   onScrolled?: () => void
+  // 이 장의 모든 절을 읽었을 때 1회 호출 (읽기 플랜 자동 완료용)
+  onChapterFullyRead?: () => void
 }
 
 const VerseList = ({
@@ -39,8 +41,10 @@ const VerseList = ({
   bookNumber,
   scrollToVerse,
   onScrolled,
+  onChapterFullyRead,
 }: VerseListProps) => {
   const observerTarget = useRef<HTMLDivElement>(null)
+  const fullReadFiredRef = useRef(false)
   const { language } = useLanguage()
   const { isLoggedIn } = useAuth()
   const [editingVerse, setEditingVerse] = useState<BibleVerse | null>(null)
@@ -174,7 +178,25 @@ const VerseList = ({
   const totalVerses = chapterData?.pages.reduce((sum, page) => sum + page.verses.length, 0) || 0
   const readCount = readStatusData?.read_verses || 0
   const progress = readStatusData?.progress || 0
-  
+
+  // 장이 바뀌면 자동 완료 발동 플래그 초기화
+  useEffect(() => {
+    fullReadFiredRef.current = false
+  }, [bookNumber, selectedChapter])
+
+  // 이 장의 모든 절을 읽었으면 onChapterFullyRead 를 1회 호출 (읽기 플랜 자동 완료)
+  // 백엔드가 계산한 장 전체 기준(total_verses/read_verses)을 사용해 페이지네이션 영향 없이 판정.
+  useEffect(() => {
+    if (!onChapterFullyRead || fullReadFiredRef.current) return
+    const total = readStatusData?.total_verses ?? 0
+    const read = readStatusData?.read_verses ?? 0
+    if (total > 0 && read >= total) {
+      fullReadFiredRef.current = true
+      onChapterFullyRead()
+    }
+  }, [onChapterFullyRead, readStatusData])
+
+
   // 무한 스크롤 Intersection Observer 설정
   useEffect(() => {
     const observer = new IntersectionObserver(
