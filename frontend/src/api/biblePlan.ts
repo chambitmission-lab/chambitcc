@@ -7,6 +7,7 @@ import type {
   PlanListResponse,
   PlanProgress,
   PlanReflection,
+  PlanReflectionUpdateRequest,
   PlanUpdateRequest,
   TodayResponse,
 } from '../types/biblePlan'
@@ -104,14 +105,37 @@ export const uncompleteDay = async (
 export const generateReflection = async (
   planId: number,
   dayNumber: number,
+  force = false,
 ): Promise<PlanReflection> => {
-  const response = await apiFetch(`${BASE}/${planId}/days/${dayNumber}/reflection`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-  })
+  const query = force ? '?force=true' : ''
+  const response = await apiFetch(
+    `${BASE}/${planId}/days/${dayNumber}/reflection${query}`,
+    {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    },
+  )
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
     throw new Error(error.detail || 'AI 묵상 생성에 실패했습니다')
+  }
+  return response.json()
+}
+
+// 관리자 — AI 묵상 직접 수정
+export const updateReflection = async (
+  planId: number,
+  dayNumber: number,
+  payload: PlanReflectionUpdateRequest,
+): Promise<PlanReflection> => {
+  const response = await apiFetch(`${BASE}/${planId}/days/${dayNumber}/reflection`, {
+    method: 'PUT',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || '묵상 수정에 실패했습니다')
   }
   return response.json()
 }

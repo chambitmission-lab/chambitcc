@@ -87,6 +87,12 @@ export interface PlanReflection {
   questions: string[]
 }
 
+// 관리자 — AI 묵상 직접 수정
+export interface PlanReflectionUpdateRequest {
+  reflection: string
+  questions: string[]
+}
+
 // ── 관리자 등록/수정 ──
 export interface PlanPassageInput {
   book_number: number
