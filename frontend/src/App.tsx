@@ -62,6 +62,7 @@ const Garden = lazy(() =>
 const Bluemarble = lazy(() => import('./pages/Bluemarble/Bluemarble'))
 const RabbitGallery = lazy(() => import('./pages/Bluemarble/RabbitGallery'))
 const WeeklyStory = lazy(() => import('./pages/WeeklyStory/WeeklyStory'))
+const Growth = lazy(() => import('./pages/Growth/Growth'))
 
 import './App.css'
 import './styles/common.css'
@@ -166,6 +167,7 @@ function App() {
                 <Route path="/bluemarble" element={<Bluemarble />} />
                 <Route path="/bluemarble/rabbit" element={<RabbitGallery />} />
                 <Route path="/weekly-story" element={<WeeklyStory />} />
+                <Route path="/growth" element={<Growth />} />
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

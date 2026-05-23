@@ -66,7 +66,16 @@
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(Object.keys\\({...p.dependencies,...p.devDependencies}\\).filter\\(d=>/playwright|puppeteer|vitest|jsdom/i.test\\(d\\)\\).join\\('\\\\n'\\)\\)\")",
       "Bash(git check-ignore *)",
       "Bash(node -e ' *)",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(Get-ChildItem -Directory)",
+      "Bash(Get-ChildItem -Path . -Recurse -File -Name -Include *.py)",
+      "Bash(Select-Object -First 50)",
+      "Bash(ls venv/Scripts/python.exe)",
+      "Bash(ls .venv/Scripts/python.exe)",
+      "Bash(mv schemas/journey.py schemas/growth.py)",
+      "Bash(mv services/journey_service.py services/growth_service.py)",
+      "Bash(mv api/v1/endpoints/journey.py api/v1/endpoints/growth.py)",
+      "Bash(DATABASE_URL=mysql+pymysql://u:p@localhost/db SECRET_KEY=test-secret FRONTEND_URL=http://localhost:5173 python -c ' *)"
     ]
   }
 }

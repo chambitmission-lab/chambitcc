@@ -8,6 +8,7 @@ import { PushNotificationButton } from '../../components/common/PushNotification
 import ProfileHeader from './components/ProfileHeader'
 import ActivityStats from './components/ActivityStats'
 import WeeklyStoryHook from './components/WeeklyStoryHook'
+import GrowthHook from './components/GrowthHook'
 import LevelProgress from './components/LevelProgress'
 import AchievementBadges from './components/AchievementBadges'
 import AchievementModal from './components/AchievementModal'
@@ -192,6 +193,9 @@ const Profile = () => {
           totalCount={stats.activity.total_count}
           streakDays={stats.activity.streak_days}
         />
+
+        {/* 신앙 여정(전체) 진입 */}
+        <GrowthHook />
 
         {/* 주간 기도 스토리 진입 */}
         <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
