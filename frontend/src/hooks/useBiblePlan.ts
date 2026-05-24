@@ -47,7 +47,11 @@ export const useTodayReadings = (enabled = true) =>
   })
 
 const invalidatePlanData = (qc: ReturnType<typeof useQueryClient>) => {
-  qc.invalidateQueries({ queryKey: biblePlanKeys.all })
+  // refetchType: 'all' — 그만두기/구독을 상세 페이지에서 누르면 홈의 today 카드,
+  //   목록 등 비활성 쿼리는 기본값 'active'로는 stale 마크만 되고, 전역
+  //   refetchOnMount:false(queryClient.ts)와 결합되면 다음 마운트에도 옛 캐시가
+  //   그대로 노출된다. 비활성 쿼리까지 즉시 refetch해 페이지 간 동기화를 보장한다.
+  qc.invalidateQueries({ queryKey: biblePlanKeys.all, refetchType: 'all' })
 }
 
 export const useSubscribePlan = () => {
