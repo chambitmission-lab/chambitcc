@@ -52,8 +52,8 @@ const VerseReadingButton = ({
         relative
         outline-none focus:outline-none focus-visible:outline-none appearance-none
         ${isReading
-          ? 'bg-gradient-to-br from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white shadow-lg shadow-amber-500/30'
-          : 'bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg'
+          ? 'bg-gradient-to-br from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white'
+          : 'bg-blue-500 hover:bg-blue-600 text-white'
         }
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       `}
@@ -62,24 +62,11 @@ const VerseReadingButton = ({
         WebkitTapHighlightColor: 'transparent',
         outline: 'none',
         border: 'none',
-        ...(isReading ? { animation: 'gentleGlow 2s ease-in-out infinite' } : {}),
       }}
     >
-      <span className="material-icons-outlined relative z-10" style={{ fontSize: size === 'sm' ? '1rem' : '1.25rem' }}>
+      <span className="material-icons-outlined" style={{ fontSize: size === 'sm' ? '1rem' : '1.25rem' }}>
         {isReading ? 'mic' : 'record_voice_over'}
       </span>
-
-      {/* 읽는 중 은은한 빛 효과 - box-shadow 기반(블러 레이어 사각 아티팩트 방지) */}
-      <style>{`
-        @keyframes gentleGlow {
-          0%, 100% {
-            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3), 0 0 30px rgba(251, 191, 36, 0.15);
-          }
-          50% {
-            box-shadow: 0 0 20px rgba(251, 191, 36, 0.4), 0 0 40px rgba(251, 191, 36, 0.2);
-          }
-        }
-      `}</style>
     </button>
   )
 }

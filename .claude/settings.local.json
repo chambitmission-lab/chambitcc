@@ -77,7 +77,8 @@
       "Bash(mv api/v1/endpoints/journey.py api/v1/endpoints/growth.py)",
       "Bash(DATABASE_URL=mysql+pymysql://u:p@localhost/db SECRET_KEY=test-secret FRONTEND_URL=http://localhost:5173 python -c ' *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\k1988\\\\idea\\\\chambitcc-main\" -Recurse -Filter \"package.json\")",
-      "Bash(Select-Object -First 1)"
+      "Bash(Select-Object -First 1)",
+      "Bash(git *)"
     ]
   }
 }
