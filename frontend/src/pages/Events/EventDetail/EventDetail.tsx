@@ -81,8 +81,8 @@ const EventDetail = () => {
                   margin: '0 0 0.75rem',
                   padding: '0.25rem 0.6rem',
                   borderRadius: '9999px',
-                  background: '#eef2ff',
-                  color: '#3730a3',
+                  background: '#f3e8ff',
+                  color: '#7e22ce',
                   fontSize: '0.8rem',
                   fontWeight: 600,
                 }}

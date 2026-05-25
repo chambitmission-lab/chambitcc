@@ -3,12 +3,12 @@
 .event-detail-hero {
   position: relative;
   height: 200px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   overflow: hidden;
 }
 
 [data-theme="dark"] .event-detail-hero {
-  background: linear-gradient(135deg, #4c51bf 0%, #553c9a 100%);
+  background: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
 }
 
 .hero-overlay {

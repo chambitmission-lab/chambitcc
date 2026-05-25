@@ -38,9 +38,9 @@
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background: white;
-  color: #0095f6;
+  color: #a855f7;
   text-decoration: none;
-  border: 1px solid #0095f6;
+  border: 1px solid #a855f7;
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;
@@ -52,7 +52,7 @@
 }
 
 .attachment-link:hover {
-  background: #0095f6;
+  background: #a855f7;
   color: white;
 }
 

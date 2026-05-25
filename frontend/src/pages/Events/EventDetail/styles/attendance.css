@@ -113,19 +113,19 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: #f0f9ff;
-  border: 1px solid #0095f6;
+  background: #faf5ff;
+  border: 1px solid #a855f7;
   border-radius: 8px;
 }
 
 [data-theme="dark"] .current-status-card {
-  background: #0a1929;
-  border-color: #0095f6;
+  background: #1c1426;
+  border-color: #a855f7;
 }
 
 .status-icon {
   font-size: 1.25rem;
-  color: #0095f6;
+  color: #a855f7;
 }
 
 .current-status-card p {
