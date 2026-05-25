@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { GlowLevel } from '../../../types/achievement'
-import { getReadableTextStyle } from '../../../utils/contrastText'
+import { getReadableTextStyle, toOpaqueColor } from '../../../utils/contrastText'
 
 interface ProfileGlowProps {
   glowLevel: GlowLevel
@@ -54,17 +54,18 @@ const ProfileGlow = ({ glowLevel, fullName, specialAchievementColor }: ProfileGl
         }}
       />
       
-      {/* 프로필 아바타 */}
-      <div 
-        className="w-24 h-24 rounded-full backdrop-blur-md bg-gradient-to-b flex items-center justify-center text-white text-3xl font-bold relative z-10"
+      {/* 프로필 아바타 — 본체는 브랜드 purple→pink 솔리드 베이스(이니셜 항상 가독),
+          레벨 색(glowColor)은 링(border) + 글로우로 표현해 라이트/다크 모두에서 읽히게 한다.
+          (레벨색을 채움으로 쓰면 gray·white 레벨이 흰 배경에서 사라짐) */}
+      <div
+        className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-3xl font-bold relative z-10"
         style={{
-          backgroundImage: `linear-gradient(to bottom, ${glowColor}, transparent)`,
           borderWidth: '4px',
           borderColor: glowColor,
           boxShadow: `
             0 0 ${glowLevel.glowSize}px ${glowColor},
             0 -12px 30px ${glowColor},
-            inset 0 2px 4px rgba(255, 255, 255, 0.6)
+            inset 0 2px 4px rgba(255, 255, 255, 0.35)
           `,
         }}
       >
@@ -75,7 +76,8 @@ const ProfileGlow = ({ glowLevel, fullName, specialAchievementColor }: ProfileGl
       <div
         className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold shadow-lg z-20"
         style={{
-          backgroundColor: glowColor,
+          backgroundColor: toOpaqueColor(glowColor),
+          border: '1px solid rgba(0, 0, 0, 0.08)',
           boxShadow: `0 0 20px ${glowColor}`,
           color: badgeText.color,
           textShadow: badgeText.textShadow,

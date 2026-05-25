@@ -16,6 +16,17 @@ const FALLBACK: ReadableTextStyle = {
   textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
 }
 
+/**
+ * glowColor(rgba)의 알파를 제거해 불투명 색으로 변환.
+ * 레벨 뱃지/칩 배경에 써서, 흰 배경 위에서도 색이 카드에 비쳐 흐려지지 않고
+ * getReadableTextStyle 의 RGB 기반 대비 판정과 실제 렌더가 일치하도록 한다.
+ */
+export function toOpaqueColor(rgbaColor: string): string {
+  const m = rgbaColor.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
+  if (!m) return rgbaColor
+  return `rgb(${m[1]}, ${m[2]}, ${m[3]})`
+}
+
 export function getReadableTextStyle(rgbaColor: string): ReadableTextStyle {
   const m = rgbaColor.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
   if (!m) return FALLBACK

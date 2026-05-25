@@ -60,13 +60,13 @@ const EventCalendar = () => {
         <header className="px-4 pt-5 pb-2">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-purple-300/80 text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
+              <p className="text-purple-600 dark:text-purple-300/80 text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
                 CALENDAR
               </p>
-              <h1 className="text-white text-[26px] font-bold leading-none tracking-[-0.02em]">
+              <h1 className="text-gray-900 dark:text-white text-[26px] font-bold leading-none tracking-[-0.02em]">
                 {t.title}
               </h1>
-              <p className="text-white/55 text-[13px] mt-2">
+              <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
                 {loading ? '불러오는 중...' : `${totalCount}건의 일정이 예정되어 있어요`}
               </p>
             </div>
@@ -74,7 +74,7 @@ const EventCalendar = () => {
               <button
                 type="button"
                 onClick={() => navigate('/admin/events')}
-                className="inline-flex items-center gap-1.5 px-3 h-9 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[12px] font-bold hover:bg-purple-500/25 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 h-9 rounded-full bg-purple-500/10 dark:bg-purple-500/15 border border-purple-400/40 dark:border-purple-500/30 text-purple-600 dark:text-purple-300 text-[12px] font-bold hover:bg-purple-500/20 dark:hover:bg-purple-500/25 transition-colors"
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -91,7 +91,7 @@ const EventCalendar = () => {
 
         {/* Hero */}
         {loading && events.length === 0 ? (
-          <div className="mx-4 mb-4 h-40 rounded-3xl bg-[#1c1c26] border border-white/[0.06] animate-pulse" />
+          <div className="mx-4 mb-4 h-40 rounded-3xl bg-gray-100 dark:bg-[#1c1c26] border border-gray-200/70 dark:border-white/[0.06] animate-pulse" />
         ) : heroEvent ? (
           <EventHeroCard event={heroEvent} />
         ) : null}
@@ -109,7 +109,7 @@ const EventCalendar = () => {
         {loading && events.length === 0 ? (
           <div className="px-4 flex flex-col gap-2">
             {[0, 1, 2].map(i => (
-              <div key={i} className="h-20 rounded-2xl bg-[#1c1c26] border border-white/[0.06] animate-pulse" />
+              <div key={i} className="h-20 rounded-2xl bg-gray-100 dark:bg-[#1c1c26] border border-gray-200/70 dark:border-white/[0.06] animate-pulse" />
             ))}
           </div>
         ) : groups.length === 0 && !heroEvent ? (

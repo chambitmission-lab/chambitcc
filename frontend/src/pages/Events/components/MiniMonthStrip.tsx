@@ -49,7 +49,7 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
   const monthLabel = `${date.getFullYear()}년 ${date.getMonth() + 1}월`
 
   return (
-    <div className="mx-4 mb-4 rounded-2xl bg-[#1c1c26] border border-white/[0.06] overflow-hidden">
+    <div className="relative mx-4 mb-4 rounded-2xl bg-white dark:bg-[#1c1c26] border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none overflow-hidden">
       <div
         className="absolute inset-x-0 top-0 h-px"
         style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)' }}
@@ -59,16 +59,16 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
         <button
           type="button"
           onClick={onToday}
-          className="px-2.5 h-7 rounded-full bg-white/[0.06] hover:bg-white/[0.1] text-white/80 text-[12px] font-semibold transition-colors"
+          className="px-2.5 h-7 rounded-full bg-gray-100 dark:bg-white/[0.06] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 text-[12px] font-semibold transition-colors"
         >
           오늘
         </button>
-        <div className="text-white text-[15px] font-bold tracking-[-0.01em]">{monthLabel}</div>
+        <div className="text-gray-900 dark:text-white text-[15px] font-bold tracking-[-0.01em]">{monthLabel}</div>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={onPrev}
-            className="w-8 h-8 rounded-full bg-white/[0.04] hover:bg-white/[0.1] text-white/80 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/[0.04] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 flex items-center justify-center transition-colors"
             aria-label="이전 달"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -78,7 +78,7 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
           <button
             type="button"
             onClick={onNext}
-            className="w-8 h-8 rounded-full bg-white/[0.04] hover:bg-white/[0.1] text-white/80 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/[0.04] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 flex items-center justify-center transition-colors"
             aria-label="다음 달"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -95,7 +95,7 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
             key={d}
             className={[
               'text-center text-[11px] font-bold py-1',
-              i === 0 ? 'text-pink-300/80' : i === 6 ? 'text-purple-300/80' : 'text-white/45',
+              i === 0 ? 'text-pink-500 dark:text-pink-300/80' : i === 6 ? 'text-purple-500 dark:text-purple-300/80' : 'text-gray-400 dark:text-white/45',
             ].join(' ')}
           >
             {d}
@@ -120,7 +120,7 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
               className={[
                 'relative aspect-square flex flex-col items-center justify-center rounded-xl transition-colors',
                 !inMonth && 'opacity-30 cursor-default',
-                inMonth && !isToday && 'hover:bg-white/[0.04]',
+                inMonth && !isToday && 'hover:bg-gray-100 dark:hover:bg-white/[0.04]',
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -131,10 +131,10 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
                   isToday
                     ? 'text-white'
                     : dow === 0
-                      ? 'text-pink-300'
+                      ? 'text-pink-500 dark:text-pink-300'
                       : dow === 6
-                        ? 'text-purple-300'
-                        : 'text-white/85',
+                        ? 'text-purple-500 dark:text-purple-300'
+                        : 'text-gray-700 dark:text-white/85',
                 ].join(' ')}
               >
                 {isToday ? (

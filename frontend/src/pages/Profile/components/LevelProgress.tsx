@@ -1,5 +1,5 @@
 import type { GlowLevel } from '../../../types/achievement'
-import { getReadableTextStyle } from '../../../utils/contrastText'
+import { getReadableTextStyle, toOpaqueColor } from '../../../utils/contrastText'
 
 interface LevelProgressProps {
   currentLevel: GlowLevel
@@ -40,7 +40,8 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
           <div
             className="px-4 py-1.5 rounded-full text-[13px] font-bold shadow-lg"
             style={{
-              backgroundColor: currentLevel.glowColor,
+              backgroundColor: toOpaqueColor(currentLevel.glowColor),
+              border: '1px solid rgba(0, 0, 0, 0.08)',
               boxShadow: `0 0 18px ${currentLevel.glowColor}`,
               color: badgeText.color,
               textShadow: badgeText.textShadow,
@@ -57,7 +58,9 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
               className="h-3 rounded-full transition-all duration-500 relative"
               style={{
                 width: `${progress}%`,
-                background: `linear-gradient(to right, ${currentLevel.glowColor}, rgba(255, 255, 255, 0.8))`,
+                // fill 은 브랜드 purple→pink 솔리드(라이트 트랙 위에서도 항상 가독).
+                // 레벨 색은 glow(box-shadow)로 표현 — 흰색/회색 레벨도 사라지지 않게.
+                background: 'linear-gradient(to right, #a855f7, #ec4899)',
                 boxShadow: `0 0 10px ${currentLevel.glowColor}`,
               }}
             >

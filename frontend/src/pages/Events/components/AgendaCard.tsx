@@ -26,10 +26,7 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
       className="w-full text-left group"
     >
       <article
-        className="relative overflow-hidden rounded-2xl bg-[#1c1c26] border border-white/[0.06] transition-all group-hover:border-white/[0.12] group-hover:bg-[#1e1e2a] group-active:scale-[0.995]"
-        style={{
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
-        }}
+        className="relative overflow-hidden rounded-2xl bg-white dark:bg-[#1c1c26] border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all group-hover:border-purple-300/50 dark:group-hover:border-white/[0.12] group-hover:bg-purple-50/40 dark:group-hover:bg-[#1e1e2a] group-active:scale-[0.995]"
       >
         {/* 좌측 컬러 바 */}
         <div
@@ -47,11 +44,11 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
         <div className="relative pl-4 pr-4 py-3.5">
           {/* 상단: 날짜 + D-Day */}
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-white/55 text-[11.5px] font-semibold tracking-wide">
+            <span className="text-gray-500 dark:text-white/55 text-[11.5px] font-semibold tracking-wide">
               {dateLabel}
             </span>
-            <span className="text-white/30 text-[11px]">·</span>
-            <span className="text-white/75 text-[11.5px] font-semibold">{time}</span>
+            <span className="text-gray-300 dark:text-white/30 text-[11px]">·</span>
+            <span className="text-gray-600 dark:text-white/75 text-[11.5px] font-semibold">{time}</span>
             {showDDay && (
               <span
                 className={`ml-auto inline-flex items-center px-2 h-5 rounded-full ${v.chipBg} ${v.chipText} text-[10.5px] font-bold tracking-wide`}
@@ -62,13 +59,13 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
           </div>
 
           {/* 제목 */}
-          <h3 className="text-white text-[15.5px] font-bold leading-[1.35] tracking-[-0.012em] mb-2 line-clamp-2">
+          <h3 className="text-gray-900 dark:text-white text-[15.5px] font-bold leading-[1.35] tracking-[-0.012em] mb-2 line-clamp-2">
             <span className="mr-1.5">{v.emoji}</span>
             {event.title}
           </h3>
 
           {/* 메타 */}
-          <div className="flex items-center gap-3 text-white/55 text-[12px] font-medium">
+          <div className="flex items-center gap-3 text-gray-500 dark:text-white/55 text-[12px] font-medium">
             <span
               className={`inline-flex items-center px-1.5 h-5 rounded-md ${v.chipBg} ${v.chipText} text-[10.5px] font-bold`}
             >

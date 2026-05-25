@@ -22,7 +22,7 @@ const CategoryPills = ({ value, onChange }: CategoryPillsProps) => {
             'shrink-0 px-3.5 h-9 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all',
             value === undefined
               ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_4px_14px_-4px_rgba(168,85,247,0.55)]'
-              : 'bg-white/[0.04] text-white/70 border border-white/[0.08] hover:bg-white/[0.08] hover:text-white',
+              : 'bg-gray-100 dark:bg-white/[0.04] text-gray-600 dark:text-white/70 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08] hover:text-gray-900 dark:hover:text-white',
           ].join(' ')}
         >
           {t.categories.all}
@@ -39,7 +39,7 @@ const CategoryPills = ({ value, onChange }: CategoryPillsProps) => {
                 'shrink-0 px-3.5 h-9 rounded-full text-[13px] font-semibold whitespace-nowrap transition-all flex items-center gap-1.5',
                 active
                   ? `bg-gradient-to-r ${v.gradient} text-white shadow-[0_4px_14px_-4px_rgba(168,85,247,0.55)]`
-                  : 'bg-white/[0.04] text-white/70 border border-white/[0.08] hover:bg-white/[0.08] hover:text-white',
+                  : 'bg-gray-100 dark:bg-white/[0.04] text-gray-600 dark:text-white/70 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08] hover:text-gray-900 dark:hover:text-white',
               ].join(' ')}
             >
               <span className="text-[14px]">{v.emoji}</span>

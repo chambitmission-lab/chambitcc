@@ -19,7 +19,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     gradient: 'from-purple-500 to-pink-500',
     accent: '#a855f7',
     chipBg: 'bg-purple-500/15',
-    chipText: 'text-purple-300',
+    chipText: 'text-purple-700 dark:text-purple-300',
     dot: 'bg-purple-400',
   },
   meeting: {
@@ -27,7 +27,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     gradient: 'from-fuchsia-500 to-pink-500',
     accent: '#d946ef',
     chipBg: 'bg-fuchsia-500/15',
-    chipText: 'text-fuchsia-300',
+    chipText: 'text-fuchsia-700 dark:text-fuchsia-300',
     dot: 'bg-fuchsia-400',
   },
   service: {
@@ -35,7 +35,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     gradient: 'from-purple-400 to-fuchsia-500',
     accent: '#c084fc',
     chipBg: 'bg-purple-400/15',
-    chipText: 'text-purple-200',
+    chipText: 'text-purple-700 dark:text-purple-200',
     dot: 'bg-purple-300',
   },
   special: {
@@ -43,7 +43,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     gradient: 'from-pink-500 to-rose-500',
     accent: '#ec4899',
     chipBg: 'bg-pink-500/15',
-    chipText: 'text-pink-300',
+    chipText: 'text-pink-700 dark:text-pink-300',
     dot: 'bg-pink-400',
   },
   education: {
@@ -51,7 +51,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     gradient: 'from-fuchsia-500 to-purple-500',
     accent: '#a855f7',
     chipBg: 'bg-fuchsia-500/15',
-    chipText: 'text-fuchsia-200',
+    chipText: 'text-fuchsia-700 dark:text-fuchsia-200',
     dot: 'bg-fuchsia-300',
   },
   other: {
@@ -59,7 +59,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     gradient: 'from-purple-500 to-purple-700',
     accent: '#9333ea',
     chipBg: 'bg-purple-500/15',
-    chipText: 'text-purple-300',
+    chipText: 'text-purple-700 dark:text-purple-300',
     dot: 'bg-purple-500',
   },
 }
