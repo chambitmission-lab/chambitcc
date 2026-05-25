@@ -50,6 +50,7 @@ const VerseReadingButton = ({
         flex items-center justify-center
         transition-all duration-500
         relative
+        outline-none focus:outline-none focus-visible:outline-none appearance-none
         ${isReading
           ? 'bg-gradient-to-br from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white shadow-lg shadow-amber-500/30'
           : 'bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg'
@@ -57,9 +58,12 @@ const VerseReadingButton = ({
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
       `}
       title={isReading ? t.reading : t.start}
-      style={isReading ? {
-        animation: 'gentleGlow 2s ease-in-out infinite'
-      } : undefined}
+      style={{
+        WebkitTapHighlightColor: 'transparent',
+        outline: 'none',
+        border: 'none',
+        ...(isReading ? { animation: 'gentleGlow 2s ease-in-out infinite' } : {}),
+      }}
     >
       <span className="material-icons-outlined relative z-10" style={{ fontSize: size === 'sm' ? '1rem' : '1.25rem' }}>
         {isReading ? 'mic' : 'record_voice_over'}
