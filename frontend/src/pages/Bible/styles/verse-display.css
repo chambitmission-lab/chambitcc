@@ -149,6 +149,17 @@
   }
 }
 
+/* 라이트 테마: 흰 배경에선 따뜻한 크림 hover/독서등 글로우가 보이지 않고
+   구절 번호도 보라로 바뀌므로, 다른 hover(책·장·검색)와 동일한 보라 톤으로 통일한다.
+   따뜻한 독서등은 어두운 배경에서만 의미가 있어 다크 전용으로 둔다. */
+[data-theme="light"] .bible-verse-item:hover {
+  background: rgba(168, 85, 247, 0.05);
+}
+
+[data-theme="light"] .bible-verse-item:hover::after {
+  display: none;
+}
+
 .bible-verse-number {
   flex-shrink: 0;
   width: 2rem;
