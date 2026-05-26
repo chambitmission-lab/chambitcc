@@ -1,10 +1,13 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useGrowthSummary, useGrowthTimeline } from '../../hooks/useGrowth'
 import type { TimelineEvent } from '../../types/growth'
 import GrowthHero from './components/GrowthHero'
 import GrowthStats from './components/GrowthStats'
 import ActivityTimeline from './components/ActivityTimeline'
+import AmbiencePicker from '../../components/common/AmbiencePicker'
+import { GROWTH_AMBIENCE_TRACKS } from '../../data/ambienceTracks'
+import { useAmbience } from '../../hooks/useAmbience'
 
 const Growth = () => {
   const navigate = useNavigate()
@@ -25,6 +28,9 @@ const Growth = () => {
   } = useGrowthTimeline(hasToken)
 
   const summary = summaryRes?.data ?? null
+
+  const [ambienceId, setAmbienceId] = useState<string>('silent')
+  useAmbience(ambienceId, { autoplay: true })
 
   const events = useMemo<TimelineEvent[]>(
     () => timelineData?.pages.flatMap((p) => p.data.events) ?? [],
@@ -88,6 +94,13 @@ const Growth = () => {
         </div>
 
         <GrowthHero summary={summary} />
+
+        <AmbiencePicker
+          tracks={GROWTH_AMBIENCE_TRACKS}
+          ambienceId={ambienceId}
+          onChange={setAmbienceId}
+          title="여정과 함께 들어요"
+        />
 
         {summary.has_activity && <GrowthStats summary={summary} />}
 

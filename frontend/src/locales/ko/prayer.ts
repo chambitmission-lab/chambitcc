@@ -122,6 +122,11 @@ export const prayer = {
   ambienceCandle: '촛불',
   ambienceChurch: '교회 잔향',
   ambienceUnavailable: '준비 중',
+  ambienceGrowthPiano: '잔잔한 피아노',
+  ambienceGrowthHymn: '찬송 연주',
+  ambienceGrowthWorship: '워십 앰비언트',
+  ambienceGrowthNature: '숲과 시냇물',
+  ambienceGrowthStrings: '현악 묵상',
 
   // 중간 말씀
   midPrayerWhisper: '하나님이 함께하십니다',

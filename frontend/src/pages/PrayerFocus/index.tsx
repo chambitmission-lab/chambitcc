@@ -13,8 +13,8 @@ import { PRAYER_TIME_PRESETS } from './presets'
 import { getCurrentMood } from './moodPalette'
 import { PRAYER_THEMES } from './prayerThemes'
 import type { PrayerTheme } from './prayerThemes'
-import { AMBIENCE_TRACKS } from './ambienceTracks'
-import { useAmbience } from './useAmbience'
+import { PRAYER_AMBIENCE_TRACKS } from '../../data/ambienceTracks'
+import { useAmbience } from '../../hooks/useAmbience'
 
 type Stage = 'setup' | 'ritual' | 'praying'
 
@@ -255,7 +255,7 @@ const PrayerFocus = () => {
               {t('ambience')}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
-              {AMBIENCE_TRACKS.map((track) => {
+              {PRAYER_AMBIENCE_TRACKS.map((track) => {
                 const active = ambienceId === track.id
                 return (
                   <button
