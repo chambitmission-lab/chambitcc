@@ -122,11 +122,6 @@ export const prayer = {
   ambienceCandle: 'Candle',
   ambienceChurch: 'Church reverb',
   ambienceUnavailable: 'Coming soon',
-  ambienceGrowthPiano: 'Soft piano',
-  ambienceGrowthHymn: 'Hymn instrumental',
-  ambienceGrowthWorship: 'Worship ambient',
-  ambienceGrowthNature: 'Forest & stream',
-  ambienceGrowthStrings: 'String meditation',
 
   // Mid-prayer
   midPrayerWhisper: 'God is with you',

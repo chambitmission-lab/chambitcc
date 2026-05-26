@@ -12,9 +12,6 @@ import type {
 } from '../../types/weeklyStory'
 import { useWeeklyStory } from '../../hooks/useWeeklyStory'
 import { useSfx } from '../../hooks/useSfx'
-import { useAmbience } from '../../hooks/useAmbience'
-import { GROWTH_AMBIENCE_TRACKS } from '../../data/ambienceTracks'
-import { useLanguage } from '../../contexts/LanguageContext'
 import './WeeklyStory.css'
 
 type CardKind =
@@ -65,15 +62,10 @@ const EMOJI_BY_EMOTION: Record<string, string> = {
 export default function WeeklyStory() {
   const navigate = useNavigate()
   const sfx = useSfx()
-  const { t } = useLanguage()
-  const tx = t as unknown as (k: string) => string
   const { data, isLoading, error } = useWeeklyStory()
   const story: WeeklyStoryData | null = data?.data ?? null
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
-  const [bgmId, setBgmId] = useState<string>('silent')
-  const [bgmOpen, setBgmOpen] = useState(false)
-  useAmbience(bgmId, { autoplay: true })
   const startTimeRef = useRef<number>(Date.now())
   const elapsedBeforePauseRef = useRef<number>(0)
 
@@ -233,82 +225,10 @@ export default function WeeklyStory() {
           <span>📖</span>
           <span>주간 기도 스토리</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button
-            className="ws-close-btn"
-            onClick={(e) => {
-              e.stopPropagation()
-              setBgmOpen((o) => !o)
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            aria-label="배경음"
-            title="배경음"
-          >
-            <span
-              className="material-icons-outlined"
-              style={{ fontSize: 18 }}
-            >
-              {bgmId !== 'silent' ? 'music_note' : 'music_off'}
-            </span>
-          </button>
-          <button className="ws-close-btn" onClick={close} aria-label="닫기">
-            ✕
-          </button>
-        </div>
+        <button className="ws-close-btn" onClick={close} aria-label="닫기">
+          ✕
+        </button>
       </div>
-
-      {bgmOpen && (
-        <div
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          style={{
-            padding: '0 14px 8px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 6,
-          }}
-        >
-          {GROWTH_AMBIENCE_TRACKS.map((track) => {
-            const active = bgmId === track.id
-            return (
-              <button
-                key={track.id}
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setBgmId(track.id)
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  padding: '5px 10px',
-                  borderRadius: 999,
-                  fontSize: 11,
-                  fontWeight: 500,
-                  border: active
-                    ? '1px solid rgba(255,255,255,0.35)'
-                    : '1px solid rgba(255,255,255,0.15)',
-                  background: active
-                    ? 'linear-gradient(135deg,#a855f7,#ec4899)'
-                    : 'rgba(255,255,255,0.08)',
-                  color: active ? '#fff' : 'rgba(255,255,255,0.78)',
-                  cursor: 'pointer',
-                  transition: 'all .15s ease',
-                }}
-              >
-                <span
-                  className="material-icons-outlined"
-                  style={{ fontSize: 14 }}
-                >
-                  {track.icon}
-                </span>
-                {tx(track.labelKey)}
-              </button>
-            )
-          })}
-        </div>
-      )}
 
       <div className="ws-card-area">
         {cards.map((card, i) => (

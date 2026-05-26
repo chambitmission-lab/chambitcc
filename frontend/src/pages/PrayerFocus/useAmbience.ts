@@ -2,7 +2,7 @@
 // silent 또는 파일이 없는 경우 안전하게 no-op 반환.
 // 컴포넌트 언마운트 시 자동 정리.
 import { useEffect, useRef, useCallback, useMemo } from 'react'
-import { findAmbience } from '../data/ambienceTracks'
+import { findAmbience } from './ambienceTracks'
 
 interface UseAmbienceReturn {
   play: () => void
@@ -11,16 +11,13 @@ interface UseAmbienceReturn {
   isReady: boolean
 }
 
-export const useAmbience = (
-  ambienceId: string,
-  opts?: { autoplay?: boolean },
-): UseAmbienceReturn => {
-  const autoplay = opts?.autoplay ?? false
+export const useAmbience = (ambienceId: string): UseAmbienceReturn => {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const track = useMemo(() => findAmbience(ambienceId), [ambienceId])
 
   // 트랙 변경 시 기존 오디오 정리 + 새로 준비
   useEffect(() => {
+    // 기존 정리
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.src = ''
@@ -40,21 +37,12 @@ export const useAmbience = (
     audio.preload = 'auto'
     audioRef.current = audio
 
-    if (autoplay) {
-      const p = audio.play()
-      if (p && typeof p.catch === 'function') {
-        p.catch(() => {
-          // autoplay 정책 차단 또는 파일 없음 — 조용히 무시
-        })
-      }
-    }
-
     return () => {
       audio.pause()
       audio.src = ''
       audio.load()
     }
-  }, [track, autoplay])
+  }, [track])
 
   // 페이지 떠날 때 정리
   useEffect(() => {
@@ -69,10 +57,11 @@ export const useAmbience = (
   const play = useCallback(() => {
     const a = audioRef.current
     if (!a) return
+    // 사용자 인터랙션 후에 호출되므로 autoplay policy 통과
     const p = a.play()
     if (p && typeof p.catch === 'function') {
       p.catch(() => {
-        // 재생 실패는 조용히 무시 — 파일이 없거나 autoplay 차단
+        // 재생 실패는 조용히 무시 — 파일이 없거나 권한이 없을 때
       })
     }
   }, [])
