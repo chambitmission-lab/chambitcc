@@ -24,7 +24,9 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
     if (editingVerse) {
       setVerseReference(editingVerse.verse_reference)
       setVerseText(editingVerse.verse_text)
-      setVerseDate(editingVerse.verse_date.slice(0, 10))
+      setVerseDate(
+        editingVerse.verse_date ? editingVerse.verse_date.slice(0, 10) : toDateInput(new Date())
+      )
     } else {
       setVerseReference('')
       setVerseText('')
@@ -232,11 +234,13 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
                 <p className="text-[11.5px] text-gray-500 dark:text-white/55 leading-[1.5]">
                   📅 게시일{' '}
                   <span className="font-semibold text-gray-700 dark:text-white/80">
-                    {new Date(editingVerse.verse_date).toLocaleDateString('ko-KR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
+                    {editingVerse.verse_date
+                      ? new Date(editingVerse.verse_date).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })
+                      : '날짜 없음'}
                   </span>
                   {' '}— 수정 시 변경되지 않습니다
                 </p>

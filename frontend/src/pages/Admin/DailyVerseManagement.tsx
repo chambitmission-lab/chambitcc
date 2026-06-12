@@ -19,21 +19,31 @@ const startOfDay = (d: Date) => {
 const diffInDays = (a: Date, b: Date) =>
   Math.round((startOfDay(a).getTime() - startOfDay(b).getTime()) / 86400000)
 
-const getVerseStatus = (verseDate: string): 'today' | 'upcoming' | 'past' => {
-  const diff = diffInDays(new Date(verseDate), new Date())
+const isValidDate = (d: Date) => !isNaN(d.getTime())
+
+const getVerseStatus = (verseDate: string | null | undefined): 'today' | 'upcoming' | 'past' => {
+  if (!verseDate) return 'past'
+  const d = new Date(verseDate)
+  if (!isValidDate(d)) return 'past'
+  const diff = diffInDays(d, new Date())
   if (diff === 0) return 'today'
   if (diff > 0) return 'upcoming'
   return 'past'
 }
 
-const formatDateLabel = (verseDate: string) => {
+const formatDateLabel = (verseDate: string | null | undefined) => {
+  if (!verseDate) return '날짜 없음'
   const d = new Date(verseDate)
+  if (!isValidDate(d)) return '날짜 없음'
   const days = ['일', '월', '화', '수', '목', '금', '토']
   return `${d.getFullYear()}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getDate().toString().padStart(2, '0')} (${days[d.getDay()]})`
 }
 
-const formatRelativeLabel = (verseDate: string): string => {
-  const diff = diffInDays(new Date(verseDate), new Date())
+const formatRelativeLabel = (verseDate: string | null | undefined): string => {
+  if (!verseDate) return '날짜 없음'
+  const d = new Date(verseDate)
+  if (!isValidDate(d)) return '날짜 없음'
+  const diff = diffInDays(d, new Date())
   if (diff === 0) return '오늘'
   if (diff === 1) return '내일'
   if (diff === -1) return '어제'
