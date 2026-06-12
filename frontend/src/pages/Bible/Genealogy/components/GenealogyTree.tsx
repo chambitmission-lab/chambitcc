@@ -267,15 +267,9 @@ export const GenealogyTree = ({
     // SVG 의 가로 정중앙(= spine x=0) 픽셀 위치 → 컨테이너 가로 스크롤 정렬에 사용
     spineOffsetRef.current = viewBoxWidth / 2
 
-    // 부모/자식 링크
-    const linkGen = d3
-      .linkVertical<
-        d3.HierarchyPointLink<TreeDatum>,
-        d3.HierarchyPointNode<TreeDatum>
-      >()
-      .x((d) => d.x)
-      .y((d) => d.y)
-
+    // 부모/자식 링크 — 카드 중심이 아니라 가장자리(부모 카드 하단 → 자식 카드 상단)에서
+    // 시작/종료하도록 직접 그린다. 카드 배경이 반투명이라 라인이 카드 중앙을 관통하면
+    // 이름 텍스트 위로 비쳐 보이기 때문.
     g.append('g')
       .attr('class', 'links')
       .attr('fill', 'none')
@@ -283,7 +277,14 @@ export const GenealogyTree = ({
       .selectAll('path')
       .data(laidOut.links() as d3.HierarchyPointLink<TreeDatum>[])
       .join('path')
-      .attr('d', (d) => linkGen(d) as string)
+      .attr('d', (d) => {
+        const sx = d.source.x
+        const sy = d.source.y + NODE_HEIGHT / 2
+        const tx = d.target.x
+        const ty = d.target.y - NODE_HEIGHT / 2
+        const my = (sy + ty) / 2
+        return `M${sx},${sy}C${sx},${my},${tx},${my},${tx},${ty}`
+      })
       .attr('stroke', (d) => {
         const targetMessianic = d.target.data.figure.is_messianic_line
         const sourceMessianic = d.source.data.figure.is_messianic_line

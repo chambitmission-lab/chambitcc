@@ -102,10 +102,11 @@ export const useChapterReadStatus = (
 /**
  * 전체 읽기 진행률 조회
  */
-export const useReadingProgress = () => {
+export const useReadingProgress = (enabled: boolean = true) => {
   return useQuery({
     queryKey: bibleReadingKeys.progress(),
     queryFn: () => getReadingProgress(),
+    enabled,
     staleTime: 1000 * 30, // 30초
     refetchOnMount: 'always', // 글로벌 false 오버라이드 — Garden 진입 시 항상 최신값
   })

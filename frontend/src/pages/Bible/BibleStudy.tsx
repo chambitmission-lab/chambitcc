@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
-import { useResumeReading } from '../../hooks/useBibleReading'
+import { useResumeReading, useReadingProgress } from '../../hooks/useBibleReading'
 import { useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
 import { useAuth } from '../../hooks/useAuth'
 import { showToast } from '../../utils/toast'
@@ -31,12 +31,20 @@ const BibleStudy = () => {
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
   const { isLoggedIn } = useAuth()
   const { data: resumeData } = useResumeReading(20, isLoggedIn())
+  const { data: progressData } = useReadingProgress(isLoggedIn())
 
   const resumeMap = useMemo(() => {
     const map = new Map<number, ResumePosition>()
     resumeData?.recent_books?.forEach(p => map.set(p.book_number, p))
     return map
   }, [resumeData])
+
+  // book_id → 완독률(0~100) 매핑. 카드 하단 게이지바에 사용
+  const progressMap = useMemo(() => {
+    const map = new Map<number, number>()
+    progressData?.books?.forEach(b => map.set(b.book_id, b.progress_rate))
+    return map
+  }, [progressData])
   
   const selectedBookData = books?.find(b => b.id === selectedBookId)
   
@@ -173,6 +181,7 @@ const BibleStudy = () => {
                 error={booksError}
                 onBookSelect={handleBookSelect}
                 resumeMap={resumeMap}
+                progressMap={progressMap}
               />
             )}
             

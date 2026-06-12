@@ -72,10 +72,10 @@ export interface ChapterReadStatusResponse {
 export interface BookProgress {
   book_id: number
   book_name_ko: string
-  book_name_en: string
+  book_name_en?: string
   total_verses: number
   read_verses: number
-  progress: number
+  progress_rate: number // 완독률 0~100
   last_read_at: string | null
 }
 
@@ -85,17 +85,17 @@ export interface ReadingProgressResponse {
     overall: {
       total_verses: number
       read_verses: number
-      progress: number
+      progress_rate: number
     }
     old_testament: {
       total_verses: number
       read_verses: number
-      progress: number
+      progress_rate: number
     }
     new_testament: {
       total_verses: number
       read_verses: number
-      progress: number
+      progress_rate: number
     }
     books: BookProgress[]
   }

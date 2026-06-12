@@ -9,6 +9,8 @@ interface BookSelectorProps {
   error: Error | null
   onBookSelect: (bookId: number, bookName: string, resume?: ResumePosition) => void
   resumeMap?: Map<number, ResumePosition>
+  /** book_id → 완독률(0~100) */
+  progressMap?: Map<number, number>
 }
 
 const formatRelativeShort = (iso: string): string => {
@@ -20,7 +22,7 @@ const formatRelativeShort = (iso: string): string => {
   return date.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
 }
 
-const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap }: BookSelectorProps) => {
+const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progressMap }: BookSelectorProps) => {
   const { language } = useLanguage()
   
   const texts = {
@@ -43,10 +45,51 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap }: Book
   }
   
   const t = texts[language]
-  
+
   const oldTestament = books?.filter(b => b.testament === 'OLD') || []
   const newTestament = books?.filter(b => b.testament === 'NEW') || []
-  
+
+  const renderBook = (book: BibleBook) => {
+    const resume = resumeMap?.get(book.book_number)
+    const progress = Math.max(0, Math.min(100, progressMap?.get(book.id) ?? 0))
+    const isComplete = progress >= 100
+    const hasProgress = progress > 0
+
+    return (
+      <button
+        key={book.id}
+        className={`book-button${resume ? ' book-button-has-resume' : ''}${isComplete ? ' book-button-complete' : ''}`}
+        onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
+      >
+        {isComplete && (
+          <span className="book-complete-badge" aria-label="완독">
+            <span className="material-icons-round">check</span>
+          </span>
+        )}
+        <span>{book.book_name_ko}</span>
+        {resume && (
+          <span
+            style={{
+              display: 'block',
+              marginTop: '0.25rem',
+              fontSize: '0.65rem',
+              color: '#a855f7',
+              fontWeight: 600,
+              lineHeight: 1.1,
+            }}
+          >
+            {resume.chapter}:{resume.verse} · {formatRelativeShort(resume.read_at)}
+          </span>
+        )}
+        {hasProgress && (
+          <span className="book-progress-track" aria-hidden="true">
+            <span className="book-progress-fill" style={{ width: `${progress}%` }} />
+          </span>
+        )}
+      </button>
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="bible-books-section">
@@ -95,66 +138,14 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap }: Book
       <div className="testament-section">
         <h3 className="testament-title">{t.oldTestament} ({oldTestament.length})</h3>
         <div className="books-grid">
-          {oldTestament.map(book => {
-            const resume = resumeMap?.get(book.book_number)
-            return (
-              <button
-                key={book.id}
-                className={`book-button${resume ? ' book-button-has-resume' : ''}`}
-                onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
-                style={resume ? { position: 'relative' } : undefined}
-              >
-                <span>{book.book_name_ko}</span>
-                {resume && (
-                  <span
-                    style={{
-                      display: 'block',
-                      marginTop: '0.25rem',
-                      fontSize: '0.65rem',
-                      color: '#a855f7',
-                      fontWeight: 600,
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {resume.chapter}:{resume.verse} · {formatRelativeShort(resume.read_at)}
-                  </span>
-                )}
-              </button>
-            )
-          })}
+          {oldTestament.map(renderBook)}
         </div>
       </div>
 
       <div className="testament-section">
         <h3 className="testament-title">{t.newTestament} ({newTestament.length})</h3>
         <div className="books-grid">
-          {newTestament.map(book => {
-            const resume = resumeMap?.get(book.book_number)
-            return (
-              <button
-                key={book.id}
-                className={`book-button${resume ? ' book-button-has-resume' : ''}`}
-                onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
-                style={resume ? { position: 'relative' } : undefined}
-              >
-                <span>{book.book_name_ko}</span>
-                {resume && (
-                  <span
-                    style={{
-                      display: 'block',
-                      marginTop: '0.25rem',
-                      fontSize: '0.65rem',
-                      color: '#a855f7',
-                      fontWeight: 600,
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {resume.chapter}:{resume.verse} · {formatRelativeShort(resume.read_at)}
-                  </span>
-                )}
-              </button>
-            )
-          })}
+          {newTestament.map(renderBook)}
         </div>
       </div>
     </div>
