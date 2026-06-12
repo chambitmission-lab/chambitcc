@@ -90,6 +90,10 @@ const DARK: Palette = {
 const NODE_WIDTH = 148
 const NODE_HEIGHT = 68
 const V_GAP = 116
+const SPOUSE_GAP = 10 // 노드 우측과 배우자 pill 사이 간격
+
+// 배우자 pill 너비 (이름 길이 기반). viewBox 계산과 렌더링이 동일 값을 쓰도록 공유
+const spouseLabelWidth = (name: string) => Math.max(name.length * 13 + 18, 46)
 
 const roleLabel = (figure: BibleFigureSummary): string | null => {
   if (figure.slug === 'jesus_christ') return null
@@ -247,11 +251,25 @@ export const GenealogyTree = ({
     const maxX = Math.max(...xs)
     const treeHeight = (hierarchy.height + 1) * V_GAP + 40
 
+    // 배우자 pill 은 노드 우측으로 뻗어나가므로 그 최대 지점을 viewBox 에 반영(안 하면 잘림)
+    let maxSpouseRightEdge = 0
+    allNodes.forEach((n) => {
+      const spouses = n.data.spouses
+      if (spouses && spouses.length > 0) {
+        const widest = Math.max(...spouses.map((sp) => spouseLabelWidth(sp.name_ko)))
+        maxSpouseRightEdge = Math.max(
+          maxSpouseRightEdge,
+          n.x + NODE_WIDTH / 2 + SPOUSE_GAP + widest,
+        )
+      }
+    })
+
     // spine(x=0)이 SVG 가로 정중앙에 오도록 viewBox 를 좌우 대칭으로 잡는다.
     // 그래야 좌측 가지가 없는 초반부 체인에서도 메시아 spine 이 화면 중앙에 보인다.
     const PAD = 60
-    const halfWidth =
-      Math.max(Math.abs(minX), maxX) + NODE_WIDTH / 2 + PAD
+    const rightExtent = Math.max(maxX + NODE_WIDTH / 2, maxSpouseRightEdge)
+    const leftExtent = Math.abs(minX) + NODE_WIDTH / 2
+    const halfWidth = Math.max(leftExtent, rightExtent) + PAD
     const viewBoxWidth = halfWidth * 2
     const viewBoxStartX = -halfWidth
     const viewBoxHeight = treeHeight + 80
@@ -453,11 +471,11 @@ export const GenealogyTree = ({
       const sg = d3
         .select(this)
         .append('g')
-        .attr('transform', `translate(${NODE_WIDTH / 2 + 10}, 0)`)
+        .attr('transform', `translate(${NODE_WIDTH / 2 + SPOUSE_GAP}, 0)`)
       spouses.forEach((sp, i) => {
         const yOffset = i * 26 - ((spouses.length - 1) * 26) / 2
         const label = sp.name_ko
-        const labelWidth = Math.max(label.length * 13 + 18, 46)
+        const labelWidth = spouseLabelWidth(label)
 
         sg.append('line')
           .attr('x1', -4)
