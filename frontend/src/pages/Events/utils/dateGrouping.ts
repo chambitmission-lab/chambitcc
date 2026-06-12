@@ -1,7 +1,7 @@
 import type { Event } from '../../../types/event'
 
 export interface AgendaGroup {
-  key: 'today' | 'tomorrow' | 'thisWeek' | 'thisMonth' | 'later'
+  key: 'today' | 'tomorrow' | 'thisWeek' | 'thisMonth' | 'later' | 'past'
   label: string
   events: Event[]
 }
@@ -36,6 +36,9 @@ export const groupEventsByDate = (events: Event[], now: Date = new Date()): Agen
   )
 
   const upcoming = sorted.filter(e => new Date(e.start_datetime).getTime() >= today.getTime())
+  const pastEvents = sorted
+    .filter(e => new Date(e.start_datetime).getTime() < today.getTime())
+    .reverse()
 
   const buckets: Record<AgendaGroup['key'], Event[]> = {
     today: [],
@@ -43,6 +46,7 @@ export const groupEventsByDate = (events: Event[], now: Date = new Date()): Agen
     thisWeek: [],
     thisMonth: [],
     later: [],
+    past: pastEvents,
   }
 
   for (const ev of upcoming) {
@@ -62,11 +66,19 @@ export const groupEventsByDate = (events: Event[], now: Date = new Date()): Agen
     thisWeek: '이번 주',
     thisMonth: '이번 달',
     later: '다가오는 일정',
+    past: '지난 일정',
   }
 
-  return (Object.keys(buckets) as AgendaGroup['key'][])
+  const upcomingOrder: AgendaGroup['key'][] = ['today', 'tomorrow', 'thisWeek', 'thisMonth', 'later']
+  const result = upcomingOrder
     .map(key => ({ key, label: labels[key], events: buckets[key] }))
     .filter(g => g.events.length > 0)
+
+  if (buckets.past.length > 0) {
+    result.push({ key: 'past' as const, label: labels.past, events: buckets.past })
+  }
+
+  return result
 }
 
 /**

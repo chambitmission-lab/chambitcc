@@ -6,10 +6,11 @@ interface AgendaSectionProps {
 }
 
 const AgendaSection = ({ group }: AgendaSectionProps) => {
+  const isPast = group.key === 'past'
   return (
-    <section className="px-4 mb-5">
+    <section className={`px-4 mb-5 ${isPast ? 'opacity-70' : ''}`}>
       <div className="flex items-center justify-between mb-2.5 px-0.5">
-        <h3 className="text-gray-900 dark:text-white text-[14px] font-bold tracking-[-0.01em]">
+        <h3 className={`text-[14px] font-bold tracking-[-0.01em] ${isPast ? 'text-gray-400 dark:text-white/45' : 'text-gray-900 dark:text-white'}`}>
           {group.label}
         </h3>
         <span className="text-gray-400 dark:text-white/45 text-[11.5px] font-semibold">

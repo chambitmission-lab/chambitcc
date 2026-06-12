@@ -25,10 +25,17 @@ const EventCalendar = () => {
   const [viewDate, setViewDate] = useState(() => new Date())
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | undefined>()
 
-  // 현재 보이는 달의 1일 ~ 다음 달 말일 까지 fetch
+  // 현재 보이는 달의 1일 ~ (과거 달이면 해당 달 말일 / 현재·미래 달이면 다음 달 말일) 까지 fetch
   const { startDate, endDate } = useMemo(() => {
+    const now = new Date()
+    const isPastMonth =
+      viewDate.getFullYear() < now.getFullYear() ||
+      (viewDate.getFullYear() === now.getFullYear() && viewDate.getMonth() < now.getMonth())
+
     const start = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1)
-    const end = new Date(viewDate.getFullYear(), viewDate.getMonth() + 2, 0)
+    const end = isPastMonth
+      ? new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0)
+      : new Date(viewDate.getFullYear(), viewDate.getMonth() + 2, 0)
     return { startDate: formatYMD(start), endDate: formatYMD(end) }
   }, [viewDate])
 
