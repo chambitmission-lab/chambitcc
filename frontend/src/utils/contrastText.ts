@@ -36,9 +36,14 @@ export function getReadableTextStyle(rgbaColor: string): ReadableTextStyle {
   // ITU-R BT.601 휘도 근사 (0~1)
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
   if (luminance > 0.65) {
+    // 중성 검정 대신 같은 색 계열을 짙게 낮춘 톤온톤 글자색(예: 골드 → 딥 브라운).
+    // 0.26 배율로 충분한 대비를 확보하면서 배경과 자연스럽게 어울리게 한다.
+    const dr = Math.round(r * 0.26)
+    const dg = Math.round(g * 0.26)
+    const db = Math.round(b * 0.26)
     return {
-      color: '#1f2937',
-      textShadow: '0 1px 2px rgba(255, 255, 255, 0.7)',
+      color: `rgb(${dr}, ${dg}, ${db})`,
+      textShadow: '0 1px 1px rgba(255, 255, 255, 0.45)',
     }
   }
   return FALLBACK

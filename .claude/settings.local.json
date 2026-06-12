@@ -80,7 +80,8 @@
       "Bash(Select-Object -First 1)",
       "Bash(git *)",
       "PowerShell(Test-Path *)",
-      "Bash(xargs cat)"
+      "Bash(xargs cat)",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('app/services/weekly_story_service.py'\\).read\\(\\)\\); print\\('syntax OK'\\)\")"
     ]
   }
 }

@@ -16,11 +16,17 @@ const ProfileHeader = ({ username, fullName, glowLevel, activityPoints, specialA
   
   return (
     <div className="flex flex-col items-center py-8 px-4">
-      <ProfileGlow 
+      {/* 어린 양 캐릭터 — 프로필 메인 */}
+      <div className="mb-3">
+        <LambCharacter stage={lambStage} points={activityPoints} size={140} showInfo={false} />
+      </div>
+
+      <ProfileGlow
         glowLevel={glowLevel}
         fullName={fullName}
         specialAchievementColor={specialAchievementColor}
       />
+
       <h2
         className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white mb-1"
         style={{
@@ -30,11 +36,6 @@ const ProfileHeader = ({ username, fullName, glowLevel, activityPoints, specialA
         {fullName}
       </h2>
       <p className="text-[13px] text-gray-500 dark:text-white/55">@{username}</p>
-      
-      {/* 어린 양 캐릭터 */}
-      <div style={{ marginTop: '1rem' }}>
-        <LambCharacter stage={lambStage} points={activityPoints} size={80} showInfo={false} />
-      </div>
     </div>
   )
 }
