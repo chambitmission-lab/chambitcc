@@ -27,3 +27,16 @@ export const LEVEL_LABEL: Record<string, string> = {
   중급: '중급',
   고급: '고급',
 }
+
+// 플랜 메타 → 인스타 해시태그 스타일 토큰들 (#7일완성 #입문 …)
+export const planHashtags = (plan: {
+  total_days?: number | null
+  level?: string | null
+  category?: string | null
+}): string[] => {
+  const tags: string[] = []
+  if (plan.total_days) tags.push(`${plan.total_days}일완성`)
+  if (plan.level) tags.push(plan.level)
+  if (plan.category) tags.push(plan.category)
+  return tags
+}
