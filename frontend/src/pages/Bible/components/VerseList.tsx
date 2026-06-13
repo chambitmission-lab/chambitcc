@@ -280,6 +280,8 @@ const VerseList = ({
           background: 'var(--ig-secondary-background)',
           borderRadius: '999px',
           fontSize: '0.8125rem',
+          maxWidth: '42rem',
+          marginInline: 'auto',
         }}>
           <span className="material-icons-outlined" style={{ fontSize: '1rem', color: 'var(--ig-primary)' }}>
             auto_stories
