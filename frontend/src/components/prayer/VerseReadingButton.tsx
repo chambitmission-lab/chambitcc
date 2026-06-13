@@ -35,7 +35,7 @@ const VerseReadingButton = ({
   const t = texts[language]
 
   const sizeClasses = {
-    sm: 'w-8 h-8 text-sm',
+    sm: 'w-9 h-9 text-sm',
     md: 'w-10 h-10 text-base'
   }
 
@@ -48,24 +48,30 @@ const VerseReadingButton = ({
         ${sizeClasses[size]}
         rounded-full
         flex items-center justify-center
-        transition-all duration-500
+        transition-all duration-300
         relative
         outline-none focus:outline-none focus-visible:outline-none appearance-none
         ${isReading
           ? 'bg-gradient-to-br from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white'
-          : 'bg-blue-500 hover:bg-blue-600 text-white'
+          : 'bg-gradient-to-br from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white'
         }
-        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'}
       `}
       title={isReading ? t.reading : t.start}
       style={{
         WebkitTapHighlightColor: 'transparent',
         outline: 'none',
         border: 'none',
+        boxShadow: isReading
+          ? '0 4px 14px rgba(251, 191, 36, 0.4)'
+          : '0 4px 14px rgba(168, 85, 247, 0.4)',
       }}
     >
-      <span className="material-icons-outlined" style={{ fontSize: size === 'sm' ? '1rem' : '1.25rem' }}>
-        {isReading ? 'mic' : 'record_voice_over'}
+      <span
+        className="material-icons-outlined"
+        style={{ fontSize: size === 'sm' ? '1.0625rem' : '1.25rem' }}
+      >
+        {isReading ? 'graphic_eq' : 'record_voice_over'}
       </span>
     </button>
   )

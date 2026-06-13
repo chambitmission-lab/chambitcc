@@ -225,9 +225,9 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           {isReading && highlightedText ? (
             <>
               <span style={{
-                color: '#fbbf24',
+                color: '#fca985',
                 fontWeight: 600,
-                textShadow: '0 0 8px rgba(251, 191, 36, 0.4)',
+                textShadow: '0 0 8px rgba(251, 146, 96, 0.3)',
                 transition: 'all 0.2s ease'
               }}>
                 {highlightedText.readPart}
@@ -320,20 +320,25 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
 
             <button
               onClick={() => setShowBookmarkModal(true)}
-              style={{
-                padding: '0.5rem',
-                background: bookmark ? 'rgba(234, 179, 8, 0.15)' : 'rgba(156, 163, 175, 0.08)',
-                border: bookmark
-                  ? '1px solid rgba(234, 179, 8, 0.4)'
-                  : '1px solid rgba(156, 163, 175, 0.25)',
-                borderRadius: '0.5rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s',
-                flexShrink: 0,
-              }}
+              className="verse-action-btn"
+              style={
+                bookmark?.is_favorite
+                  ? {
+                      background: 'rgba(236, 72, 153, 0.16)',
+                      border: '1px solid rgba(236, 72, 153, 0.5)',
+                      boxShadow: '0 2px 10px rgba(236, 72, 153, 0.18)',
+                    }
+                  : bookmark
+                    ? {
+                        background: 'rgba(234, 179, 8, 0.16)',
+                        border: '1px solid rgba(234, 179, 8, 0.5)',
+                        boxShadow: '0 2px 10px rgba(234, 179, 8, 0.16)',
+                      }
+                    : {
+                        background: 'rgba(234, 179, 8, 0.1)',
+                        border: '1px solid rgba(234, 179, 8, 0.22)',
+                      }
+              }
               title={bookmark ? '묵상 노트 수정' : '묵상/북마크 추가'}
               tabIndex={showActions ? 0 : -1}
             >
@@ -341,11 +346,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                 className="material-icons-round"
                 style={{
                   fontSize: '1.125rem',
-                  color: bookmark
-                    ? bookmark.is_favorite
-                      ? '#ec4899'
-                      : '#eab308'
-                    : '#9ca3af',
+                  color: bookmark?.is_favorite ? '#ec4899' : '#eab308',
+                  opacity: bookmark ? 1 : 0.85,
                 }}
               >
                 {bookmark
@@ -361,22 +363,19 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             {onShowCommentary && (
               <button
                 onClick={() => onShowCommentary(verse)}
-                style={{
-                  padding: '0.5rem',
-                  background: hasCommentary
-                    ? 'rgba(168, 85, 247, 0.15)'
-                    : 'rgba(156, 163, 175, 0.08)',
-                  border: hasCommentary
-                    ? '1px solid rgba(168, 85, 247, 0.45)'
-                    : '1px solid rgba(156, 163, 175, 0.25)',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s',
-                  flexShrink: 0,
-                }}
+                className="verse-action-btn"
+                style={
+                  hasCommentary
+                    ? {
+                        background: 'rgba(168, 85, 247, 0.16)',
+                        border: '1px solid rgba(168, 85, 247, 0.5)',
+                        boxShadow: '0 2px 10px rgba(168, 85, 247, 0.18)',
+                      }
+                    : {
+                        background: 'rgba(168, 85, 247, 0.1)',
+                        border: '1px solid rgba(168, 85, 247, 0.22)',
+                      }
+                }
                 title={hasCommentary ? '해석 보기' : '해석 (등록된 해석 없음)'}
                 tabIndex={showActions ? 0 : -1}
               >
@@ -384,7 +383,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   className="material-icons-round"
                   style={{
                     fontSize: '1.125rem',
-                    color: hasCommentary ? '#a855f7' : '#9ca3af',
+                    color: '#a855f7',
+                    opacity: hasCommentary ? 1 : 0.8,
                   }}
                 >
                   menu_book
@@ -395,30 +395,15 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             {isAdminUser && onEdit && (
               <button
                 onClick={() => onEdit(verse)}
+                className="verse-action-btn"
                 style={{
-                  padding: '0.5rem',
-                  background: 'rgba(168, 85, 247, 0.1)',
-                  border: '1px solid rgba(168, 85, 247, 0.3)',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(168, 85, 247, 0.2)'
-                  e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.5)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(168, 85, 247, 0.1)'
-                  e.currentTarget.style.borderColor = 'rgba(168, 85, 247, 0.3)'
+                  background: 'rgba(148, 163, 184, 0.12)',
+                  border: '1px solid rgba(148, 163, 184, 0.28)',
                 }}
                 title="구절 수정 (관리자)"
                 tabIndex={showActions ? 0 : -1}
               >
-                <span className="material-icons-round" style={{ fontSize: '1.125rem', color: '#a855f7' }}>
+                <span className="material-icons-round" style={{ fontSize: '1.125rem', color: '#94a3b8' }}>
                   edit
                 </span>
               </button>

@@ -92,11 +92,13 @@
   border-bottom: none;
 }
 
+/* 선택/호버 시 차분한 하이라이트 - 새 다크 패널과 어울리는 은은한 보라 힌트.
+   (이전의 크림색 '독서등' 방사형 글로우는 톤이 튀어 제거) */
 .bible-verse-item:hover {
-  background: rgba(255, 248, 220, 0.15);
-  margin: 0 -1rem;
-  padding: 1.125rem 1rem;
-  border-radius: 8px;
+  background: rgba(168, 85, 247, 0.06);
+  margin: 0 -0.75rem;
+  padding: 1.125rem 0.75rem;
+  border-radius: 12px;
   border-bottom: 1px solid transparent;
   position: relative;
   overflow: visible;
@@ -109,54 +111,8 @@
   padding-right: 1rem;
 }
 
-/* 독서등 효과 - 위에서 아래로 비추는 따뜻한 빛 (바 없이 빛만) */
-.bible-verse-item:hover::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: -20%;
-  transform: translateX(-50%);
-  width: 120%;
-  height: 140%;
-  background: radial-gradient(
-    ellipse 70% 60% at 50% 20%,
-    rgba(255, 248, 220, 0.4) 0%,
-    rgba(255, 248, 220, 0.25) 15%,
-    rgba(255, 248, 220, 0.15) 30%,
-    rgba(255, 248, 220, 0.08) 50%,
-    rgba(255, 248, 220, 0.03) 70%,
-    transparent 100%
-  );
-  pointer-events: none;
-  animation: deskLampGlow 3s ease-in-out infinite;
-  z-index: 1;
-}
-
-/* 텍스트가 빛 위에 보이도록 */
-.bible-verse-item:hover .bible-verse-number,
-.bible-verse-item:hover .bible-verse-text {
-  position: relative;
-  z-index: 2;
-}
-
-@keyframes deskLampGlow {
-  0%, 100% {
-    opacity: 0.8;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-/* 라이트 테마: 흰 배경에선 따뜻한 크림 hover/독서등 글로우가 보이지 않고
-   구절 번호도 보라로 바뀌므로, 다른 hover(책·장·검색)와 동일한 보라 톤으로 통일한다.
-   따뜻한 독서등은 어두운 배경에서만 의미가 있어 다크 전용으로 둔다. */
 [data-theme="light"] .bible-verse-item:hover {
   background: rgba(168, 85, 247, 0.05);
-}
-
-[data-theme="light"] .bible-verse-item:hover::after {
-  display: none;
 }
 
 .bible-verse-number {
@@ -196,6 +152,28 @@
 
 [data-theme="dark"] .bible-verse-text {
   color: #e7e7ec;
+}
+
+/* 구절 액션 버튼 - 원형 글래스, 각 기능별 정체성 컬러는 인라인 스타일로 지정.
+   호버/탭에 가벼운 스케일 반응을 줘 개성과 촉감을 더한다. */
+.verse-action-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.18s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.verse-action-btn:hover {
+  transform: scale(1.08);
+}
+
+.verse-action-btn:active {
+  transform: scale(0.94);
 }
 
 /* 더보기 버튼 */
