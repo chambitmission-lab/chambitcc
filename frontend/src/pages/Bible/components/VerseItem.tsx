@@ -298,7 +298,9 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         }}
         aria-hidden={!showActions}
       >
-        <div style={{ overflow: 'hidden' }}>
+        {/* 펼쳐진 상태에선 overflow를 풀어 버튼 글로우가 사각형으로 잘리지 않게 한다.
+            (접힌 상태에서만 hidden으로 콘텐츠를 감춰 등장/퇴장 애니메이션 유지) */}
+        <div style={{ overflow: showActions ? 'visible' : 'hidden' }}>
           <div
             style={{
               display: 'flex',

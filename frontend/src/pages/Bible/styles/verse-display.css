@@ -166,6 +166,12 @@
   cursor: pointer;
   flex-shrink: 0;
   transition: transform 0.18s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  /* 아이콘 원 뒤에 비치던 사각형(모바일 탭 하이라이트/기본 포커스 박스) 제거 */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  background-clip: padding-box;
 }
 
 .verse-action-btn:hover {
@@ -174,6 +180,16 @@
 
 .verse-action-btn:active {
   transform: scale(0.94);
+}
+
+/* 키보드 포커스에만 접근성용 링 표시 (마우스/터치에는 사각형 안 보임) */
+.verse-action-btn:focus {
+  outline: none;
+}
+
+.verse-action-btn:focus-visible {
+  outline: 2px solid rgba(168, 85, 247, 0.7);
+  outline-offset: 2px;
 }
 
 /* 더보기 버튼 */
