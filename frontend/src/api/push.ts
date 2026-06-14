@@ -90,18 +90,30 @@ export const subscribePush = async (subscription: PushSubscriptionData): Promise
  * 쓰면 401 → refreshPromise 대기 → 자기 자신을 기다리는 데드락이 생긴다.
  * 401이 떠도 그냥 무시하고 진행해야 브라우저 측 unsubscribe까지 도달한다.
  */
-export const unsubscribePush = async (endpoint: string): Promise<void> => {
-  const token = localStorage.getItem('access_token');
+export const unsubscribePush = async (endpoint: string, token?: string | null): Promise<void> => {
+  // logout 흐름에서는 토큰을 지우기 전에 스냅샷한 값을 넘겨받는다.
+  // (인자가 없으면 기존 동작대로 localStorage에서 조회)
+  const authToken = token ?? localStorage.getItem('access_token');
   const encodedEndpoint = encodeURIComponent(endpoint);
-  const response = await fetch(`${API_V1}/push/unsubscribe?endpoint=${encodedEndpoint}`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  });
 
-  if (!response.ok) {
-    throw new Error('푸시 구독 해제에 실패했습니다.');
+  // 네트워크가 느리거나 멈춰도 무한정 매달리지 않도록 타임아웃을 건다.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const response = await fetch(`${API_V1}/push/unsubscribe?endpoint=${encodedEndpoint}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      },
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error('푸시 구독 해제에 실패했습니다.');
+    }
+  } finally {
+    clearTimeout(timeoutId);
   }
 };
 

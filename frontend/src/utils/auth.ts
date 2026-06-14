@@ -4,27 +4,27 @@ import { unsubscribeFromPushNotifications } from './pushNotification'
 
 /**
  * 로그아웃 처리
- * - 푸시 구독 해제 (브라우저 + 백엔드)
- * - localStorage 정리 (토큰, 사용자 정보, React Query 캐시)
+ * - localStorage 정리 (토큰, 사용자 정보, React Query 캐시) → 즉시 동기 처리
+ * - 푸시 구독 해제 (브라우저 + 백엔드) → 백그라운드 처리
+ *
+ * 핵심: 푸시 구독 해제는 서비스워커 준비 대기 + 백엔드 네트워크 호출을 포함해
+ * 느리거나 멈출 수 있다. 이걸 await 하면 로그아웃/화면 전환이 그만큼 버벅인다.
+ * 따라서 토큰·캐시 제거는 즉시 끝내고, 푸시 해제는 백그라운드로 던진다(fire-and-forget).
  *
  * 푸시 구독은 브라우저(오리진) 단위로 유지되기 때문에 로그아웃 시
  * 명시적으로 해제하지 않으면 다음에 같은 디바이스로 로그인한 다른
  * 사용자가 이전 사용자의 구독 상태를 그대로 물려받게 된다.
- * 백엔드 DELETE 호출은 인증이 필요하므로 토큰을 지우기 *전에* 수행한다.
+ * 백엔드 DELETE 호출은 인증이 필요하므로 토큰을 지우기 *전에* 스냅샷해서 넘긴다.
  *
  * 참고: React Query 캐시는 자동으로 무효화됩니다.
  * 로그인 시 queryClient.invalidateQueries()가 호출되어
  * 새 사용자의 데이터로 갱신됩니다.
  */
 export const logout = async () => {
-  // 푸시 구독 해제 (네트워크 실패해도 로그아웃은 계속 진행)
-  try {
-    await unsubscribeFromPushNotifications()
-  } catch (error) {
-    console.warn('로그아웃 중 푸시 구독 해제 실패 (무시하고 진행):', error)
-  }
+  // 백엔드 구독 해제에 필요한 토큰을 제거 전에 스냅샷
+  const token = localStorage.getItem('access_token')
 
-  // 토큰 및 사용자 정보 제거
+  // 토큰 및 사용자 정보 제거 (동기 · 즉시)
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
   localStorage.removeItem('user')
@@ -35,6 +35,12 @@ export const logout = async () => {
 
   // React Query 캐시 제거 (모든 사용자의 캐시 - 프로필 포함)
   clearAllPersistedCache()
+
+  // 푸시 구독 해제는 화면 전환을 막지 않도록 백그라운드로 처리.
+  // (네트워크/서비스워커가 느려도 로그아웃 UI는 즉시 반응한다)
+  void unsubscribeFromPushNotifications(token).catch((error) => {
+    console.warn('로그아웃 중 푸시 구독 해제 실패 (무시):', error)
+  })
 }
 
 /**
