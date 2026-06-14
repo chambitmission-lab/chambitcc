@@ -27,6 +27,123 @@ const getAbsoluteUrl = (path) => {
   return fullUrl;
 };
 
+// 앱이 Cache Storage에 적어둔 API base를 읽는다 (예: https://api.example.com/api/v1).
+// pushsubscriptionchange(구독 회전)에서 백엔드 재등록에 사용한다.
+// SW 스크립트 URL을 건드리지 않으므로 기존 구독이 보존된다.
+const SW_CONFIG_CACHE = 'chambit-sw-config';
+const SW_API_BASE_KEY = '/__sw_api_base';
+
+const getApiBase = async () => {
+  try {
+    const cache = await caches.open(SW_CONFIG_CACHE);
+    const res = await cache.match(SW_API_BASE_KEY);
+    if (!res) return null;
+    return (await res.text()) || null;
+  } catch (e) {
+    return null;
+  }
+};
+
+// Base64(또는 PEM) 공개 키를 Uint8Array로 변환 (VAPID 키용)
+// 프론트엔드 utils/pushNotification.ts의 로직과 동일하게 유지한다.
+const urlBase64ToUint8Array = (base64String) => {
+  let base64 = base64String
+    .replace(/-----BEGIN PUBLIC KEY-----/g, '')
+    .replace(/-----END PUBLIC KEY-----/g, '')
+    .replace(/\\n/g, '')
+    .replace(/\n/g, '')
+    .replace(/\r/g, '')
+    .replace(/\s/g, '');
+
+  base64 = base64.replace(/-/g, '+').replace(/_/g, '/');
+  const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+  base64 = base64 + padding;
+
+  const rawData = self.atob(base64);
+  const derKey = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    derKey[i] = rawData.charCodeAt(i);
+  }
+
+  // DER-encoded SPKI(91바이트)면 헤더 26바이트를 제거해 raw 65바이트만 사용
+  if (derKey.length === 91) {
+    return derKey.slice(26);
+  }
+  return derKey;
+};
+
+const arrayBufferToBase64 = (buffer) => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return self.btoa(binary);
+};
+
+// 푸시 서비스가 구독 endpoint를 회전/만료시키면 발생.
+// 새 endpoint로 재구독한 뒤 백엔드의 기존(old) 레코드를 갱신해
+// 사용자 구독이 조용히 끊기는 것을 막는다(인증 토큰 없이 old_endpoint로 식별).
+self.addEventListener('pushsubscriptionchange', (event) => {
+  console.log('🔄 pushsubscriptionchange 발생');
+
+  event.waitUntil((async () => {
+    try {
+      const apiBase = await getApiBase();
+      if (!apiBase) {
+        console.warn('API base가 없어 구독 회전을 건너뜁니다.');
+        return;
+      }
+
+      const oldEndpoint = event.oldSubscription && event.oldSubscription.endpoint;
+      if (!oldEndpoint) {
+        // 옛 endpoint를 모르면 백엔드에서 사용자를 식별할 수 없다.
+        // 다음 로그인/토글 시 재구독으로 복구되므로 조용히 종료.
+        console.warn('oldSubscription endpoint가 없어 회전을 건너뜁니다.');
+        return;
+      }
+
+      // 브라우저가 새 구독을 제공하면 그대로 쓰고, 없으면 직접 재구독
+      let newSub = event.newSubscription;
+      if (!newSub) {
+        const res = await fetch(`${apiBase}/push/vapid-public-key`);
+        if (!res.ok) throw new Error('VAPID 키 조회 실패');
+        const { publicKey } = await res.json();
+        const applicationServerKey = urlBase64ToUint8Array(publicKey);
+        newSub = await self.registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey
+        });
+      }
+
+      const p256dh = newSub.getKey('p256dh');
+      const auth = newSub.getKey('auth');
+      if (!p256dh || !auth) throw new Error('새 구독 키를 가져올 수 없습니다.');
+
+      const rotateRes = await fetch(`${apiBase}/push/rotate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          old_endpoint: oldEndpoint,
+          endpoint: newSub.endpoint,
+          keys: {
+            p256dh: arrayBufferToBase64(p256dh),
+            auth: arrayBufferToBase64(auth)
+          }
+        })
+      });
+
+      if (rotateRes.ok) {
+        console.log('✅ 구독 회전 완료 (백엔드 갱신)');
+      } else {
+        console.warn('구독 회전 백엔드 갱신 실패:', rotateRes.status);
+      }
+    } catch (error) {
+      console.error('❌ pushsubscriptionchange 처리 실패:', error);
+    }
+  })());
+});
+
 // 푸시 알림 수신
 self.addEventListener('push', (event) => {
   console.log('📬 푸시 알림 수신:', event);

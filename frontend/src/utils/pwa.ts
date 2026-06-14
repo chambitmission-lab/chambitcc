@@ -154,6 +154,28 @@ export const disablePWAInDev = (): void => {
 /**
  * 푸시 알림용 Service Worker 등록
  */
+// SW가 읽을 설정을 보관하는 Cache Storage 키
+const SW_CONFIG_CACHE = 'chambit-sw-config';
+const SW_API_BASE_KEY = '/__sw_api_base';
+
+/**
+ * API base URL을 Cache Storage에 기록해 서비스워커가 읽을 수 있게 한다.
+ * (SW는 빌드 환경변수에 접근할 수 없고, pushsubscriptionchange 시점에는
+ *  열려 있는 클라이언트가 없을 수 있어 postMessage 대신 Cache를 쓴다.)
+ */
+const saveApiBaseForServiceWorker = async (): Promise<void> => {
+  try {
+    if (!('caches' in self)) return;
+    const apiBase = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1`;
+    const cache = await caches.open(SW_CONFIG_CACHE);
+    await cache.put(SW_API_BASE_KEY, new Response(apiBase));
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn('API base 캐시 저장 실패 (무시):', error);
+    }
+  }
+};
+
 export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
   if (!('serviceWorker' in navigator)) {
     if (import.meta.env.DEV) {
@@ -166,7 +188,12 @@ export const registerPushServiceWorker = async (): Promise<ServiceWorkerRegistra
     // base path 고려 (프로덕션: /chambitcc/, 개발: /)
     const base = import.meta.env.BASE_URL || '/';
     const swPath = `${base}sw.js`.replace(/\/+/g, '/'); // 중복 슬래시 제거
-    
+
+    // 서비스워커는 빌드 환경변수를 못 읽으므로 API base를 Cache Storage에 적어둔다.
+    // pushsubscriptionchange(구독 회전)에서 클라이언트가 없어도 읽어 백엔드에
+    // 재등록할 수 있다. (SW 스크립트 URL은 건드리지 않아 구독이 보존됨)
+    await saveApiBaseForServiceWorker();
+
     if (import.meta.env.DEV) {
       console.log('🔧 Service Worker 경로:', swPath);
     }
