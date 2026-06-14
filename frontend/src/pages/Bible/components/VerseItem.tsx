@@ -140,10 +140,17 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     }
     
     const currentProgress = (matchLength / verseNormalized.length) * 100
-    
+
     // 최대 진행률 업데이트 (뒤로 가지 않도록)
+    // 보조 다듬기: 한 번의 인식 업데이트로 경계가 훌쩍 점프하지 않게 전진 폭을 제한한다.
+    // (반복 단어를 indexOf가 본문 뒤쪽에서 잘못 매칭하면 진행률이 급등해 색칠 영역이
+    //  확 튀는데, 이를 단계적으로 따라가게 만들어 어지럼증을 줄인다.)
+    const MAX_FORWARD_STEP = 15 // % — 정상 낭독은 한 번에 이 정도 이상 잘 안 뛴다
     if (currentProgress > maxProgressRef.current) {
-      maxProgressRef.current = currentProgress
+      maxProgressRef.current = Math.min(
+        currentProgress,
+        maxProgressRef.current + MAX_FORWARD_STEP
+      )
     }
     
     // 최대 진행률 기준으로 표시
@@ -226,9 +233,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             <>
               <span style={{
                 color: '#fca985',
-                fontWeight: 600,
+                // 읽은 부분도 본문과 동일한 굵기(400) 유지 — bold로 폭이 바뀌면
+                // 하이라이트 경계가 전진할 때마다 줄바꿈이 재계산돼 본문이 출렁인다.
                 textShadow: '0 0 8px rgba(251, 146, 96, 0.3)',
-                transition: 'all 0.2s ease'
+                transition: 'color 0.2s ease'
               }}>
                 {highlightedText.readPart}
               </span>
