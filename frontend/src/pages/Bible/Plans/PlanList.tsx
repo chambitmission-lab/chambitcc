@@ -183,7 +183,7 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
     onClick={onClick}
     className="group relative w-full text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-purple-300/50 dark:hover:border-purple-400/30"
   >
-    <div className="relative aspect-[4/5]">
+    <div className="relative aspect-square">
       <PlanVisual plan={plan} size="feed" />
     </div>
     <div className="px-3 pt-3 pb-4">
@@ -261,7 +261,7 @@ const PlanSkeletons = () => (
           key={i}
           className="rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse overflow-hidden"
         >
-          <div className="aspect-[4/5]" />
+          <div className="aspect-square" />
           <div className="p-3 space-y-2">
             <div className="h-3.5 w-3/4 rounded bg-gray-200/70 dark:bg-white/[0.06]" />
             <div className="h-2.5 w-1/2 rounded bg-gray-200/70 dark:bg-white/[0.06]" />
