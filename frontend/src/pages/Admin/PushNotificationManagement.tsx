@@ -568,7 +568,7 @@ export const PushNotificationManagement = () => {
             >
               {isSending ? (
                 <>
-                  <span className="material-icons-outlined text-[18px] animate-spin">progress_activity</span>
+                  <span className="w-[16px] h-[16px] rounded-full border-2 border-white/40 border-t-white animate-spin" />
                   전송 중…
                 </>
               ) : (
