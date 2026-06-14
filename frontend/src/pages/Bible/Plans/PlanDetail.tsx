@@ -268,7 +268,7 @@ const PlanDetail = () => {
           ) : (
             <button
               onClick={startTodaysReading}
-              className={`mt-4 w-full py-3 rounded-xl bg-gradient-to-r ${grad} text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all`}
+              className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all"
             >
               오늘 분량 읽기 · {progress.current_day}일차
             </button>
