@@ -103,6 +103,7 @@ const PrayerArticle = ({
       <PrayerStats
         prayerCount={prayer.prayer_count}
         replyCount={prayer.reply_count}
+        isOwner={prayer.is_owner}
         onReplyClick={handleReplyClick}
       />
 

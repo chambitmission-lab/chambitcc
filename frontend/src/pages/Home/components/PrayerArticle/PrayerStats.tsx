@@ -3,11 +3,21 @@ import { useLanguage } from '../../../../contexts/LanguageContext'
 interface PrayerStatsProps {
   prayerCount: number
   replyCount: number
+  isOwner?: boolean
   onReplyClick: (e: React.MouseEvent) => void
 }
 
-const PrayerStats = ({ prayerCount, replyCount, onReplyClick }: PrayerStatsProps) => {
+const PrayerStats = ({ prayerCount, replyCount, isOwner, onReplyClick }: PrayerStatsProps) => {
   const { language } = useLanguage()
+
+  // 내 기도글이면 "당신을 위해", 남의 기도글이면 "함께"
+  const prayerCountText = isOwner
+    ? language === 'ko'
+      ? `지금 ${prayerCount}명이 당신을 위해 기도하고 있어요`
+      : `${prayerCount} praying for you`
+    : language === 'ko'
+      ? `지금 ${prayerCount}명이 함께 기도하고 있어요`
+      : `${prayerCount} praying together`
 
   return (
     <div className="px-4 pb-2">
@@ -15,9 +25,7 @@ const PrayerStats = ({ prayerCount, replyCount, onReplyClick }: PrayerStatsProps
         {/* 함께 기도하는 사람들 */}
         {prayerCount > 0 && (
           <span className="text-gray-600 dark:text-gray-400">
-            {language === 'ko' 
-              ? `지금 ${prayerCount}명이 함께 기도하고 있어요`
-              : `${prayerCount} praying together`}
+            {prayerCountText}
           </span>
         )}
         
