@@ -89,9 +89,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           }
         }
       }
-      const readPart = verse.text.substring(0, splitIndex)
-      const unreadPart = verse.text.substring(splitIndex)
-      return { readPart, unreadPart, progress: maxProgressRef.current }
+      return { splitIndex, progress: maxProgressRef.current }
     }
     
     // 공백 제거 후 비교
@@ -170,10 +168,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
       }
     }
     
-    const readPart = verse.text.substring(0, splitIndex)
-    const unreadPart = verse.text.substring(splitIndex)
-    
-    return { readPart, unreadPart, progress: displayProgress }
+    return { splitIndex, progress: displayProgress }
   }, [isReading, spokenText, verse.text])
   
   // 이미 읽은 구절은 읽기 시작 방지
@@ -191,8 +186,6 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
       className={`bible-verse-item ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''}`}
       style={{
         position: 'relative',
-        // 액션바가 오버레이로 펼쳐지면 이 구절을 위로 올려 다음 구절 위에 떠 보이게 한다.
-        zIndex: showActions ? 30 : undefined,
         transition: 'all 0.3s ease',
         display: 'flex',
         flexDirection: 'column',
@@ -232,20 +225,25 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         <span className="bible-verse-number">{verse.verse}</span>
         <span className="bible-verse-text" style={{ flex: 1, minWidth: 0 }}>
           {isReading && highlightedText ? (
-            <>
-              <span style={{
-                color: '#fca985',
-                // 읽은 부분도 본문과 동일한 굵기(400) 유지 — bold로 폭이 바뀌면
-                // 하이라이트 경계가 전진할 때마다 줄바꿈이 재계산돼 본문이 출렁인다.
-                textShadow: '0 0 8px rgba(251, 146, 96, 0.3)',
-                transition: 'color 0.2s ease'
-              }}>
-                {highlightedText.readPart}
-              </span>
-              <span style={{ color: 'var(--ig-primary-text)' }}>
-                {highlightedText.unreadPart}
-              </span>
-            </>
+            // 노래방 하이라이트: 글자별 '고정' span을 한 번만 만들고 색만 바꾼다.
+            // 읽은/안읽은을 두 덩어리 span으로 나누면 경계가 움직일 때마다 줄바꿈이
+            // 재계산돼 본문이 출렁인다 → 글자 수·내용이 불변인 span 배열로 만들면
+            // 레이아웃은 처음 한 번만 계산되고 이후엔 color만 repaint돼 reflow가 없다.
+            Array.from(verse.text).map((ch, i) => {
+              const isReadChar = i < highlightedText.splitIndex
+              return (
+                <span
+                  key={i}
+                  style={{
+                    color: isReadChar ? '#fca985' : 'var(--ig-primary-text)',
+                    textShadow: isReadChar ? '0 0 8px rgba(251, 146, 96, 0.3)' : undefined,
+                    transition: 'color 0.2s ease',
+                  }}
+                >
+                  {ch}
+                </span>
+              )
+            })
           ) : (
             verse.text || '(구절 내용 없음)'
           )}
@@ -297,31 +295,29 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         )}
       </div>
 
-      {/* 액션바 - 탭 시 본문 위에 떠서 등장(오버레이).
-          absolute로 띄워 아래 구절을 밀어내지 않으므로 탭할 때 레이아웃이 출렁이지 않는다. */}
+      {/* 액션바 - 탭 시 본문 아래로 부드럽게 등장 */}
       <div
         style={{
-          position: 'absolute',
-          top: '100%',
-          left: '3.25rem',
-          zIndex: 20,
-          display: 'flex',
-          gap: '0.5rem',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          padding: '0.5rem',
-          borderRadius: '0.875rem',
-          background: 'var(--ig-elevated-background, var(--ig-primary-background))',
-          border: '1px solid var(--ig-border)',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
+          display: 'grid',
+          gridTemplateRows: showActions ? '1fr' : '0fr',
           opacity: showActions ? 1 : 0,
-          transform: showActions ? 'translateY(0)' : 'translateY(-6px)',
-          visibility: showActions ? 'visible' : 'hidden',
-          pointerEvents: showActions ? 'auto' : 'none',
-          transition: 'opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease',
+          transition: 'grid-template-rows 0.25s ease, opacity 0.2s ease',
+          marginLeft: '3.25rem',
         }}
         aria-hidden={!showActions}
       >
+        {/* 펼쳐진 상태에선 overflow를 풀어 버튼 글로우가 사각형으로 잘리지 않게 한다.
+            (접힌 상태에서만 hidden으로 콘텐츠를 감춰 등장/퇴장 애니메이션 유지) */}
+        <div style={{ overflow: showActions ? 'visible' : 'hidden' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.5rem',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              paddingTop: showActions ? '0.5rem' : 0,
+            }}
+          >
             {isSupported && (
               <VerseReadingButton
                 isReading={isReading}
@@ -422,6 +418,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                 </span>
               </button>
             )}
+          </div>
+        </div>
       </div>
 
 
