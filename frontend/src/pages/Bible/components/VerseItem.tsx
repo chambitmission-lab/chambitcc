@@ -191,7 +191,9 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
       className={`bible-verse-item ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''}`}
       style={{
         position: 'relative',
-        transition: 'all 0.3s ease',
+        // 'all'을 쓰면 :hover의 margin/padding 같은 레이아웃 속성까지 애니메이션돼 버벅인다.
+        // 색/그림자 등 합성 가능한 속성만 전환하고 박스 지오메트리는 즉시 적용.
+        transition: 'background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
         display: 'flex',
         flexDirection: 'column',
         gap: '0.5rem',
@@ -295,19 +297,19 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         )}
       </div>
 
-      {/* 액션바 - 탭 시 본문 아래로 부드럽게 등장 */}
+      {/* 액션바 - 탭 시 본문 아래로 등장.
+          높이(grid-template-rows)는 '즉시' 토글해 레이아웃 애니메이션을 없앤다 →
+          펼침/접힘 동안 프레임마다 아래 구절이 reflow되며 버벅이던 현상 제거.
+          버튼은 opacity/transform(GPU 합성)으로만 부드럽게 페이드한다. */}
       <div
         style={{
           display: 'grid',
           gridTemplateRows: showActions ? '1fr' : '0fr',
-          opacity: showActions ? 1 : 0,
-          transition: 'grid-template-rows 0.25s ease, opacity 0.2s ease',
           marginLeft: '3.25rem',
         }}
         aria-hidden={!showActions}
       >
-        {/* 펼쳐진 상태에선 overflow를 풀어 버튼 글로우가 사각형으로 잘리지 않게 한다.
-            (접힌 상태에서만 hidden으로 콘텐츠를 감춰 등장/퇴장 애니메이션 유지) */}
+        {/* 펼쳐진 상태에선 overflow를 풀어 버튼 글로우가 사각형으로 잘리지 않게 한다. */}
         <div style={{ overflow: showActions ? 'visible' : 'hidden' }}>
           <div
             style={{
@@ -315,7 +317,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               gap: '0.5rem',
               alignItems: 'center',
               flexWrap: 'wrap',
-              paddingTop: showActions ? '0.5rem' : 0,
+              paddingTop: '0.5rem',
+              opacity: showActions ? 1 : 0,
+              transform: showActions ? 'translateY(0)' : 'translateY(-6px)',
+              transition: 'opacity 0.18s ease, transform 0.18s ease',
             }}
           >
             {isSupported && (
