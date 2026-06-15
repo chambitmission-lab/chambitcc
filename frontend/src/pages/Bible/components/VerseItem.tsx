@@ -89,7 +89,9 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           }
         }
       }
-      return { splitIndex, progress: maxProgressRef.current }
+      const readPart = verse.text.substring(0, splitIndex)
+      const unreadPart = verse.text.substring(splitIndex)
+      return { readPart, unreadPart, progress: maxProgressRef.current }
     }
     
     // 공백 제거 후 비교
@@ -168,7 +170,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
       }
     }
     
-    return { splitIndex, progress: displayProgress }
+    const readPart = verse.text.substring(0, splitIndex)
+    const unreadPart = verse.text.substring(splitIndex)
+
+    return { readPart, unreadPart, progress: displayProgress }
   }, [isReading, spokenText, verse.text])
   
   // 이미 읽은 구절은 읽기 시작 방지
@@ -225,25 +230,20 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         <span className="bible-verse-number">{verse.verse}</span>
         <span className="bible-verse-text" style={{ flex: 1, minWidth: 0 }}>
           {isReading && highlightedText ? (
-            // 노래방 하이라이트: 글자별 '고정' span을 한 번만 만들고 색만 바꾼다.
-            // 읽은/안읽은을 두 덩어리 span으로 나누면 경계가 움직일 때마다 줄바꿈이
-            // 재계산돼 본문이 출렁인다 → 글자 수·내용이 불변인 span 배열로 만들면
-            // 레이아웃은 처음 한 번만 계산되고 이후엔 color만 repaint돼 reflow가 없다.
-            Array.from(verse.text).map((ch, i) => {
-              const isReadChar = i < highlightedText.splitIndex
-              return (
-                <span
-                  key={i}
-                  style={{
-                    color: isReadChar ? '#fca985' : 'var(--ig-primary-text)',
-                    textShadow: isReadChar ? '0 0 8px rgba(251, 146, 96, 0.3)' : undefined,
-                    transition: 'color 0.2s ease',
-                  }}
-                >
-                  {ch}
-                </span>
-              )
-            })
+            <>
+              <span style={{
+                color: '#fca985',
+                // 읽은 부분도 본문과 동일한 굵기(400) 유지 — bold면 경계가 전진할 때마다
+                // 폭이 바뀌어 줄바꿈이 재계산된다(출렁임).
+                textShadow: '0 0 8px rgba(251, 146, 96, 0.3)',
+                transition: 'color 0.2s ease'
+              }}>
+                {highlightedText.readPart}
+              </span>
+              <span style={{ color: 'var(--ig-primary-text)' }}>
+                {highlightedText.unreadPart}
+              </span>
+            </>
           ) : (
             verse.text || '(구절 내용 없음)'
           )}

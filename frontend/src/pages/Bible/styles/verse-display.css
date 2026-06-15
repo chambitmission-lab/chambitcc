@@ -232,8 +232,11 @@
     padding: 1rem 0;
   }
 
+  /* 탭(모바일은 :hover가 들러붙음) 시 좌우 패딩(0.75rem)을 :hover 마진(-0.75rem)과
+     일치시켜 본문 컨텐츠 폭을 고정한다. 폭이 바뀌면 구절 전체가 다시 줄바꿈돼 출렁인다.
+     (상하 1rem은 그대로 유지) */
   .bible-verse-item:hover {
-    padding: 1rem;
+    padding: 1rem 0.75rem;
   }
 }
 
