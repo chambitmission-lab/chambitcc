@@ -28,9 +28,6 @@ const BibleCommentaryItem = ({
   onEdit,
   onDelete,
 }: BibleCommentaryItemProps) => {
-  const authorName =
-    commentary.author?.full_name || commentary.author?.username || '관리자'
-
   return (
     <article className="relative mb-3 rounded-2xl border border-black/[0.04] dark:border-white/[0.08] bg-surface-light dark:bg-white/[0.03] px-4 py-3.5 overflow-hidden">
       <div className="hidden dark:block absolute inset-x-0 top-0 h-px bg-white/[0.05] pointer-events-none" />
@@ -45,7 +42,7 @@ const BibleCommentaryItem = ({
           </span>
         )}
         <span className="ml-auto text-[11px] text-gray-400 dark:text-white/45">
-          {authorName} · {formatDate(commentary.updated_at)}
+          {formatDate(commentary.updated_at)}
         </span>
       </header>
 
