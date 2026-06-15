@@ -28,6 +28,55 @@ const CATEGORY_EMOJI: Record<string, string> = {
   묵상: '🕊️',
 }
 
+/** JSON 문자열 이스케이프(\n, \t, \" 등)를 실제 문자로 되돌린다. */
+const unescapeJsonString = (s: string): string =>
+  s
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\n')
+    .replace(/\\t/g, '\t')
+    .replace(/\\"/g, '"')
+
+/**
+ * 붙여넣기한 텍스트를 본문에 맞게 정리한다.
+ * - AI가 뱉은 JSON({ title, content, category }) 통째면 content만 추출
+ * - JSON에서 복사해 \n 이 글자 그대로 들어온 content면 실제 줄바꿈으로 변환
+ * 정리할 게 없으면 null 을 반환(기본 붙여넣기 동작 유지).
+ */
+const normalizePastedCommentary = (
+  raw: string,
+): { content: string; title?: string; category?: string } | null => {
+  const trimmed = raw.trim()
+
+  // 1) JSON 객체 통째로 붙여넣은 경우
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    try {
+      const obj = JSON.parse(trimmed)
+      if (obj && typeof obj.content === 'string') {
+        return {
+          content: obj.content.trim(),
+          title: typeof obj.title === 'string' ? obj.title.trim() : undefined,
+          category:
+            typeof obj.category === 'string' ? obj.category.trim() : undefined,
+        }
+      }
+    } catch {
+      // JSON 파싱 실패 시 아래로 진행
+    }
+  }
+
+  // 2) content 값만 복사했는데 \n 이 글자 그대로 들어온 경우
+  if (raw.includes('\\n')) {
+    let text = unescapeJsonString(raw).trim()
+    if (text.startsWith('"') && text.endsWith('"')) {
+      text = text.slice(1, -1)
+    }
+    return { content: text }
+  }
+
+  return null
+}
+
 const BibleCommentaryEditor = ({
   bookNumber,
   chapter,
@@ -89,6 +138,23 @@ const BibleCommentaryEditor = ({
     } finally {
       setAiLoading(false)
     }
+  }
+
+  const handleContentPaste = (
+    e: React.ClipboardEvent<HTMLTextAreaElement>,
+  ) => {
+    const pasted = e.clipboardData.getData('text')
+    const normalized = normalizePastedCommentary(pasted)
+    if (!normalized) return // 정리할 게 없으면 기본 붙여넣기 그대로
+
+    e.preventDefault()
+    const el = e.currentTarget
+    const start = el.selectionStart ?? content.length
+    const end = el.selectionEnd ?? content.length
+    setContent(content.slice(0, start) + normalized.content + content.slice(end))
+    // 제목/카테고리는 비어 있을 때만 보조로 채움 (사용자가 고른 값은 유지)
+    if (normalized.title && !title.trim()) setTitle(normalized.title)
+    if (normalized.category && !category) setCategory(normalized.category)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -278,6 +344,7 @@ const BibleCommentaryEditor = ({
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
+                  onPaste={handleContentPaste}
                   rows={12}
                   required
                   placeholder={`# 제목\n\n**핵심 단어**, *원어 분석*\n\n- 요점 1\n- 요점 2\n\n> 적용 묵상`}
@@ -286,6 +353,10 @@ const BibleCommentaryEditor = ({
               )}
               <p className="mt-1.5 text-[11px] text-gray-400 dark:text-white/35">
                 지원: # 제목 / **굵게** / *기울임* / - 리스트 / &gt; 인용 / 빈 줄로 문단
+              </p>
+              <p className="mt-1 text-[11px] text-gray-400 dark:text-white/35">
+                💡 AI가 준 content(또는 JSON 통째)를 그대로 붙여넣으면 줄바꿈·기호가
+                자동으로 정리됩니다.
               </p>
             </div>
 
