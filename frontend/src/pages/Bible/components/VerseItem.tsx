@@ -191,6 +191,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
       className={`bible-verse-item ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''}`}
       style={{
         position: 'relative',
+        // 액션바가 오버레이로 펼쳐지면 이 구절을 위로 올려 다음 구절 위에 떠 보이게 한다.
+        zIndex: showActions ? 30 : undefined,
         transition: 'all 0.3s ease',
         display: 'flex',
         flexDirection: 'column',
@@ -295,29 +297,31 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         )}
       </div>
 
-      {/* 액션바 - 탭 시 본문 아래로 부드럽게 등장 */}
+      {/* 액션바 - 탭 시 본문 위에 떠서 등장(오버레이).
+          absolute로 띄워 아래 구절을 밀어내지 않으므로 탭할 때 레이아웃이 출렁이지 않는다. */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateRows: showActions ? '1fr' : '0fr',
+          position: 'absolute',
+          top: '100%',
+          left: '3.25rem',
+          zIndex: 20,
+          display: 'flex',
+          gap: '0.5rem',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          padding: '0.5rem',
+          borderRadius: '0.875rem',
+          background: 'var(--ig-elevated-background, var(--ig-primary-background))',
+          border: '1px solid var(--ig-border)',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
           opacity: showActions ? 1 : 0,
-          transition: 'grid-template-rows 0.25s ease, opacity 0.2s ease',
-          marginLeft: '3.25rem',
+          transform: showActions ? 'translateY(0)' : 'translateY(-6px)',
+          visibility: showActions ? 'visible' : 'hidden',
+          pointerEvents: showActions ? 'auto' : 'none',
+          transition: 'opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease',
         }}
         aria-hidden={!showActions}
       >
-        {/* 펼쳐진 상태에선 overflow를 풀어 버튼 글로우가 사각형으로 잘리지 않게 한다.
-            (접힌 상태에서만 hidden으로 콘텐츠를 감춰 등장/퇴장 애니메이션 유지) */}
-        <div style={{ overflow: showActions ? 'visible' : 'hidden' }}>
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.5rem',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              paddingTop: showActions ? '0.5rem' : 0,
-            }}
-          >
             {isSupported && (
               <VerseReadingButton
                 isReading={isReading}
@@ -418,8 +422,6 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                 </span>
               </button>
             )}
-          </div>
-        </div>
       </div>
 
 
