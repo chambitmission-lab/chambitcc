@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { getGardenTheme, type GardenTheme } from '../../api/garden'
+import { TreeSVG } from './TreeSVG'
 import './GrowingTree.css'
 
 interface GrowingTreeProps {
@@ -127,6 +128,13 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, totalVerse
     return Math.min(100, (versesRead / totalBibleVerses) * 100)
   }, [versesRead, totalBibleVerses])
 
+  // SVG 나무 연속 성장값(0..1). 지수 0.45로 초반 성장을 빠르게 체감시키고
+  // 후반은 완만하게 — "읽을 때마다 잎이 늘어나는" 재미를 위해.
+  const treeGrowth = useMemo(() => {
+    if (versesRead <= 0) return 0
+    return Math.min(1, Math.pow(versesRead / totalBibleVerses, 0.45))
+  }, [versesRead, totalBibleVerses])
+
   return (
     <div className="growing-tree-container">
       {/* 나무 표시 영역 */}
@@ -193,70 +201,11 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, totalVerse
           {/* 땅 */}
           <div className="tree-ground">
             <div className="grass"></div>
-            
-            {/* 땅 위 장식 요소들 */}
-            <div className="ground-decorations">
-              {/* 버섯들 */}
-              <span className="mushroom mushroom-1">🍄</span>
-              <span className="mushroom mushroom-2">🍄</span>
-              
-              {/* 돌멩이들 */}
-              <span className="rock rock-1">🪨</span>
-              <span className="rock rock-2">🪨</span>
-              <span className="rock rock-3">🪨</span>
-              
-              {/* 풀 더미들 */}
-              <span className="grass-tuft tuft-1">🌾</span>
-              <span className="grass-tuft tuft-2">🌾</span>
-              <span className="grass-tuft tuft-3">🌾</span>
-              <span className="grass-tuft tuft-4">🌿</span>
-            </div>
           </div>
         </div>
 
-        {/* 나무 */}
-        <div className={`tree-main stage-${currentStage.level}`}>
-          <div className="tree-emoji">{currentStage.emoji}</div>
-          
-          {/* 꽃들 - 나무 주변에 배치 */}
-          {currentStage.flowers && currentStage.flowers.length > 0 && (
-            <div className="tree-flowers">
-              {currentStage.flowers.map((flower, index) => (
-                <span key={`flower-${index}`} className={`tree-flower flower-${index + 1}`}>
-                  {flower}
-                </span>
-              ))}
-            </div>
-          )}
-          
-          {/* 열매들 - 나무 주변에 배치 */}
-          {currentStage.fruits && currentStage.fruits.length > 0 && (
-            <div className="tree-fruits">
-              {currentStage.fruits.map((fruit, index) => (
-                <span key={`fruit-${index}`} className={`tree-fruit fruit-${index + 1}`}>
-                  {fruit}
-                </span>
-              ))}
-            </div>
-          )}
-          
-          {/* 벌과 나비 - 꽃이 있을 때만 표시 */}
-          {currentStage.flowers && currentStage.flowers.length > 0 && (
-            <div className="tree-insects">
-              <span className="insect bee">🐝</span>
-              <span className="insect butterfly">🦋</span>
-            </div>
-          )}
-          
-          {/* 성장 효과 */}
-          {versesRead > 0 && currentStage.sparkles && (
-            <div className="tree-sparkles">
-              <span className="sparkle">✨</span>
-              <span className="sparkle">✨</span>
-              <span className="sparkle">✨</span>
-            </div>
-          )}
-        </div>
+        {/* 나무 — 절차적 SVG, 읽은 절 수에 비례해 연속 성장 */}
+        <TreeSVG growth={treeGrowth} timeOfDay={timeOfDay} />
       </div>
 
       {/* 정보 표시 */}

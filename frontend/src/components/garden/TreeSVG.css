@@ -1,0 +1,56 @@
+/* 절차적 SVG 신앙 나무 */
+
+.tree-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  animation: tree-svg-enter 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes tree-svg-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 잎·가지 전체가 바람에 살랑이는 느낌 — 바닥 중심 기준 */
+.tree-svg-canopy {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: canopy-sway 6s ease-in-out infinite;
+}
+
+@keyframes canopy-sway {
+  0%, 100% { transform: rotate(-1.1deg); }
+  50% { transform: rotate(1.1deg); }
+}
+
+/* 탭하면 잎이 살랑 흔들림 */
+.tree-svg.rustle .tree-svg-canopy {
+  animation: canopy-rustle 0.7s ease-in-out;
+}
+
+@keyframes canopy-rustle {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(2.6deg); }
+  45% { transform: rotate(-2deg); }
+  68% { transform: rotate(1.2deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tree-svg,
+  .tree-svg-canopy,
+  .tree-svg.rustle .tree-svg-canopy {
+    animation: none;
+  }
+}
