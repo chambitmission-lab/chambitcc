@@ -26,15 +26,21 @@ interface TreeStage {
 // 성경 전체 구절 수 기본값 (개역개정 기준 약 31,102절). 백엔드가 값을 내려주면 그걸 우선 사용.
 const DEFAULT_TOTAL_BIBLE_VERSES = 31102
 
+// 단계 임계값 — 초반 도달감을 위해 완만하게(새싹 30 → 어린묘목 200 → …).
+// 마지막 단계만 실제 완독(전체 구절)에 맞춘다.
 const TREE_STAGES: TreeStage[] = [
   { level: 0, name: '씨앗', minVerses: 0, emoji: '🌰', description: '씨앗이 땅에 심어졌어요' },
-  { level: 1, name: '새싹', minVerses: 1000, emoji: '🌱', description: '작은 새싹이 돋아났어요' },
-  { level: 2, name: '어린 묘목', minVerses: 5000, emoji: '🌿', description: '푸른 잎이 자라나고 있어요' },
-  { level: 3, name: '자라는 나무', minVerses: 10000, emoji: '🌳', description: '튼튼한 나무로 자라고 있어요' },
-  { level: 4, name: '꽃 피는 나무', minVerses: 17000, emoji: '🌳', flowers: ['🌸', '🌸', '🌸'], description: '아름다운 꽃이 피었어요' },
-  { level: 5, name: '열매 맺는 나무', minVerses: 24000, emoji: '🌳', flowers: ['🌸', '🌸'], fruits: ['🍎', '🍎', '🍎'], description: '풍성한 열매를 맺었어요' },
+  { level: 1, name: '새싹', minVerses: 30, emoji: '🌱', description: '작은 새싹이 돋아났어요' },
+  { level: 2, name: '어린 묘목', minVerses: 200, emoji: '🌿', description: '푸른 잎이 자라나고 있어요' },
+  { level: 3, name: '자라는 나무', minVerses: 800, emoji: '🌳', description: '튼튼한 나무로 자라고 있어요' },
+  { level: 4, name: '꽃 피는 나무', minVerses: 2500, emoji: '🌳', flowers: ['🌸', '🌸', '🌸'], description: '아름다운 꽃이 피었어요' },
+  { level: 5, name: '열매 맺는 나무', minVerses: 8000, emoji: '🌳', flowers: ['🌸', '🌸'], fruits: ['🍎', '🍎', '🍎'], description: '풍성한 열매를 맺었어요' },
   { level: 6, name: '생명의 나무', minVerses: DEFAULT_TOTAL_BIBLE_VERSES, emoji: '🌳', flowers: ['🌸', '🌸', '🌸'], fruits: ['🍎', '🍎', '🍎', '🍎'], sparkles: true, description: '성경 전체를 완독하여 생명의 나무로 완성되었어요' },
 ]
+
+// 단계별 시각 성장값(0..1) — TreeSVG에 넘겨 나무 모양을 단계 서사와 일치시킨다.
+// 새싹=새싹모양, 자라는나무=잎 무성, 꽃피는=꽃, 열매=열매, 생명=글로우.
+const STAGE_VISUAL = [0, 0.1, 0.22, 0.42, 0.62, 0.82, 1.0]
 
 // 시간대 타입
 type TimeOfDay = 'dawn' | 'day' | 'dusk' | 'night'
@@ -128,12 +134,15 @@ export const GrowingTree: React.FC<GrowingTreeProps> = ({ versesRead, totalVerse
     return Math.min(100, (versesRead / totalBibleVerses) * 100)
   }, [versesRead, totalBibleVerses])
 
-  // SVG 나무 연속 성장값(0..1). 지수 0.45로 초반 성장을 빠르게 체감시키고
-  // 후반은 완만하게 — "읽을 때마다 잎이 늘어나는" 재미를 위해.
+  // SVG 나무 연속 성장값(0..1) — 단계 목표값 사이를 단계 진행도로 보간.
+  // 단계 서사와 나무 모양이 일치하고, 같은 단계 안에서도 읽을 때마다 잎이 늘어난다.
   const treeGrowth = useMemo(() => {
     if (versesRead <= 0) return 0
-    return Math.min(1, Math.pow(versesRead / totalBibleVerses, 0.45))
-  }, [versesRead, totalBibleVerses])
+    const base = STAGE_VISUAL[currentStage.level] ?? 0
+    if (!nextStage) return base
+    const next = STAGE_VISUAL[nextStage.level] ?? 1
+    return Math.min(1, base + (next - base) * (progress / 100))
+  }, [versesRead, currentStage, nextStage, progress])
 
   return (
     <div className="growing-tree-container">

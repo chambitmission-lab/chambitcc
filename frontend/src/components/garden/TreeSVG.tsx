@@ -1,6 +1,6 @@
-// 절차적 SVG 신앙 나무 — 읽은 절 수(growth 0..1)에 비례해 줄기·가지·잎·꽃·열매가
-// 연속적으로 자라난다. 7단계 점프가 아니라 "읽을 때마다 한 잎씩" 자라는 성장의 재미가 핵심.
-// 꽃(blossom)은 브랜드 purple→pink, 잎은 자연 초록, 열매는 사과 빨강.
+// 절차적 SVG 신앙 나무 — growth(0..1)에 비례해 줄기·가지·잎·꽃·열매가 연속 성장.
+// growth 값은 GrowingTree가 "단계 진행도"에 맞춰 매핑해서 넘겨준다(단계 서사와 시각 일치).
+// 잎=자연 초록, 꽃=브랜드 purple→pink, 열매=사과 빨강.
 
 import { useMemo, useState } from 'react'
 import './TreeSVG.css'
@@ -13,7 +13,7 @@ interface TreeSVGProps {
   seed?: number
 }
 
-// 결정적 난수 — 같은 seed면 항상 같은 나무 모양 (렌더마다 흔들리지 않게)
+// 결정적 난수 — 같은 seed면 항상 같은 나무 모양
 function mulberry32(a: number) {
   return function () {
     a |= 0
@@ -43,7 +43,8 @@ interface TreeShape {
 }
 
 const MAX_DEPTH = 5
-const APPEAR_STEP = 0.15 // 자식 가지는 부모가 다 자란 뒤 등장
+const APPEAR_STEP = 0.08 // 가지 깊이별 등장 간격
+const TRUNK_BASE_Y = 12 // 줄기 밑동을 흙 속까지 내려 "심어진" 느낌
 
 function buildTree(seed: number): TreeShape {
   const rnd = mulberry32(seed)
@@ -63,32 +64,38 @@ function buildTree(seed: number): TreeShape {
     const isTip = depth >= MAX_DEPTH || len < 16
     if (isTip) {
       // 가지 끝 잎 뭉치
-      const cluster = 4 + Math.floor(rnd() * 3)
-      const tipAppear = Math.min(0.9, appearAt + APPEAR_STEP)
+      const cluster = 5 + Math.floor(rnd() * 3)
       for (let i = 0; i < cluster; i++) {
         leaves.push({
-          x: x2 + (rnd() - 0.5) * 30,
-          y: y2 + (rnd() - 0.5) * 30,
-          r: 10 + rnd() * 8,
-          appearAt: Math.min(0.92, tipAppear + rnd() * 0.1),
+          x: x2 + (rnd() - 0.5) * 34,
+          y: y2 + (rnd() - 0.5) * 34,
+          r: 11 + rnd() * 8,
+          appearAt: Math.min(0.5, appearAt + 0.03 + rnd() * 0.08),
           tone: Math.floor(rnd() * 4),
         })
       }
-      // 꽃 — 후반(0.6~)에 핀다
-      if (rnd() < 0.55) {
+      if (rnd() < 0.6) {
         blossoms.push({
-          x: x2 + (rnd() - 0.5) * 22, y: y2 + (rnd() - 0.5) * 22,
-          appearAt: 0.6 + rnd() * 0.22, size: 5 + rnd() * 3,
+          x: x2 + (rnd() - 0.5) * 24, y: y2 + (rnd() - 0.5) * 24,
+          appearAt: 0.5 + rnd() * 0.16, size: 5 + rnd() * 3,
         })
       }
-      // 열매 — 마지막(0.82~)에 맺힌다
-      if (rnd() < 0.38) {
+      if (rnd() < 0.42) {
         fruits.push({
-          x: x2 + (rnd() - 0.5) * 18, y: y2 + (rnd() - 0.5) * 18,
-          appearAt: 0.82 + rnd() * 0.14, size: 6 + rnd() * 2,
+          x: x2 + (rnd() - 0.5) * 20, y: y2 + (rnd() - 0.5) * 20,
+          appearAt: 0.68 + rnd() * 0.16, size: 6 + rnd() * 2,
         })
       }
       return
+    }
+
+    // 중간 가지에도 잎을 달아 낮은 단계부터 초록이 보이게
+    if (depth >= 2) {
+      leaves.push({
+        x: x2 + (rnd() - 0.5) * 18, y: y2 + (rnd() - 0.5) * 18,
+        r: 9 + rnd() * 5, appearAt: Math.min(0.48, appearAt + 0.04),
+        tone: Math.floor(rnd() * 4),
+      })
     }
 
     const children = depth === 0 ? 1 : 2 + (rnd() < 0.25 ? 1 : 0)
@@ -101,12 +108,12 @@ function buildTree(seed: number): TreeShape {
     }
   }
 
-  // 줄기: 바닥(0,0)에서 위로(-Y)
-  grow(0, 0, -Math.PI / 2, 92, 22, 0, 0)
+  // 줄기: 흙 속(0, TRUNK_BASE_Y)에서 위로
+  grow(0, TRUNK_BASE_Y, -Math.PI / 2, 92, 22, 0, 0)
 
-  // 떡잎 — 새싹 단계에서 바로 보이도록 아주 일찍 등장
-  leaves.push({ x: -12, y: -28, r: 9, appearAt: 0.01, tone: 0 })
-  leaves.push({ x: 12, y: -34, r: 9, appearAt: 0.03, tone: 1 })
+  // 떡잎 — 새싹 단계에서 바로 초록이 보이도록 아주 일찍 등장
+  leaves.push({ x: -12, y: -20, r: 10, appearAt: 0.03, tone: 0 })
+  leaves.push({ x: 13, y: -28, r: 10, appearAt: 0.05, tone: 1 })
 
   return { branches, leaves, blossoms, fruits }
 }
@@ -119,7 +126,7 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
   const shape = useMemo(() => buildTree(seed), [seed])
   const [rustle, setRustle] = useState(false)
 
-  const reveal = (appearAt: number, window = 0.15) =>
+  const reveal = (appearAt: number, window: number) =>
     clamp01((growth - appearAt) / window)
 
   const dim = timeOfDay === 'night' ? 0.62 : timeOfDay === 'dusk' ? 0.82 : 1
@@ -133,7 +140,7 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
   return (
     <svg
       className={`tree-svg${rustle ? ' rustle' : ''}`}
-      viewBox="-180 -350 360 390"
+      viewBox="-180 -350 360 380"
       preserveAspectRatio="xMidYMax meet"
       onClick={handleTap}
       role="img"
@@ -160,7 +167,7 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
           <stop offset="55%" stopColor="rgba(168,85,247,0.18)" />
           <stop offset="100%" stopColor="rgba(168,85,247,0)" />
         </radialGradient>
-        <radialGradient id="mound-grad" cx="50%" cy="20%" r="80%">
+        <radialGradient id="mound-grad" cx="50%" cy="18%" r="85%">
           <stop offset="0%" stopColor="#65a30d" />
           <stop offset="100%" stopColor="#3f6212" />
         </radialGradient>
@@ -168,37 +175,31 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
 
       {/* 생명의 나무 글로우 — 완성에 가까울수록 은은하게 (브랜드 보라) */}
       {growth > 0.9 && (
-        <circle cx="0" cy="-150" r="180" fill="url(#life-glow)"
+        <circle cx="0" cy="-150" r="190" fill="url(#life-glow)"
           opacity={(growth - 0.9) / 0.1} />
       )}
-
-      {/* 흙 둔덕 — 나무가 땅에 박혀 보이게 */}
-      <ellipse cx="0" cy="6" rx="120" ry="26" fill="url(#mound-grad)" opacity="0.95" />
-      <ellipse cx="0" cy="2" rx="78" ry="15" fill="#4d7c0f" opacity="0.8" />
-
-      {/* 바닥 풀 */}
-      <g opacity="0.85">
-        {[-95, -70, 70, 96].map((gx, i) => (
-          <path key={i}
-            d={`M ${gx} 4 q ${i % 2 ? 5 : -5} -14 ${i % 2 ? 1 : -1} -20`}
-            stroke="#65a30d" strokeWidth="3" fill="none" strokeLinecap="round" />
-        ))}
-      </g>
 
       {isSeed ? (
         // 씨앗 상태
         <g>
-          <ellipse cx="0" cy="-10" rx="14" ry="18" fill="#7c4a2d" />
-          <ellipse cx="-4" cy="-16" rx="4" ry="6" fill="#9c6b45" opacity="0.7" />
+          <ellipse cx="0" cy="0" rx="14" ry="18" fill="#7c4a2d" />
+          <ellipse cx="-4" cy="-6" rx="4" ry="6" fill="#9c6b45" opacity="0.7" />
         </g>
       ) : (
         <g
           className="tree-svg-canopy"
           style={{ filter: `brightness(${dim}) saturate(${dim < 1 ? 0.85 : 1})` }}
         >
-          {/* 가지 — appearAt 순으로 그려 자연스러운 성장 순서 */}
+          {/* 밑동 뿌리 플레어 — 땅에 심어진 느낌 */}
+          <path d={`M -20 ${TRUNK_BASE_Y} Q -34 ${TRUNK_BASE_Y - 2} -40 ${TRUNK_BASE_Y + 6}
+                    Q -24 ${TRUNK_BASE_Y + 2} 0 ${TRUNK_BASE_Y}
+                    Q 24 ${TRUNK_BASE_Y + 2} 40 ${TRUNK_BASE_Y + 6}
+                    Q 34 ${TRUNK_BASE_Y - 2} 20 ${TRUNK_BASE_Y} Z`}
+            fill="#5e3d24" opacity={reveal(0, 0.1)} />
+
+          {/* 가지 */}
           {shape.branches.map((b, i) => {
-            const r = reveal(b.appearAt)
+            const r = reveal(b.appearAt, APPEAR_STEP)
             if (r <= 0) return null
             const ex = b.x1 + (b.x2 - b.x1) * r
             const ey = b.y1 + (b.y2 - b.y1) * r
@@ -206,14 +207,14 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
               <line key={`b${i}`}
                 x1={b.x1} y1={b.y1} x2={ex} y2={ey}
                 stroke={b.depth < 2 ? 'url(#trunk-grad)' : '#7a5536'}
-                strokeWidth={b.w * (0.5 + 0.5 * r)}
+                strokeWidth={b.w * (0.55 + 0.45 * r)}
                 strokeLinecap="round" />
             )
           })}
 
           {/* 잎 */}
           {shape.leaves.map((l, i) => {
-            const r = reveal(l.appearAt, 0.12)
+            const r = reveal(l.appearAt, 0.1)
             if (r <= 0) return null
             return (
               <circle key={`l${i}`}
@@ -224,7 +225,7 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
 
           {/* 꽃 (브랜드 그라데이션) */}
           {shape.blossoms.map((p, i) => {
-            const r = reveal(p.appearAt, 0.12)
+            const r = reveal(p.appearAt, 0.1)
             if (r <= 0) return null
             return (
               <g key={`p${i}`} transform={`translate(${p.x} ${p.y}) scale(${r})`}>
@@ -236,7 +237,7 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
 
           {/* 열매 */}
           {shape.fruits.map((f, i) => {
-            const r = reveal(f.appearAt, 0.12)
+            const r = reveal(f.appearAt, 0.1)
             if (r <= 0) return null
             return (
               <g key={`f${i}`} transform={`translate(${f.x} ${f.y}) scale(${r})`}>
@@ -249,6 +250,19 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
           })}
         </g>
       )}
+
+      {/* 흙 둔덕 — 줄기 밑동을 덮어 심어진 느낌 (나무 위에 그려 밑동을 가린다) */}
+      <ellipse cx="0" cy={TRUNK_BASE_Y + 6} rx="120" ry="24" fill="url(#mound-grad)" />
+      <ellipse cx="0" cy={TRUNK_BASE_Y + 2} rx="80" ry="14" fill="#4d7c0f" opacity="0.85" />
+
+      {/* 바닥 풀 */}
+      <g opacity="0.9">
+        {[-96, -68, -40, 40, 70, 98].map((gx, i) => (
+          <path key={i}
+            d={`M ${gx} ${TRUNK_BASE_Y + 4} q ${i % 2 ? 5 : -5} -15 ${i % 2 ? 1 : -1} -21`}
+            stroke="#65a30d" strokeWidth="3" fill="none" strokeLinecap="round" />
+        ))}
+      </g>
     </svg>
   )
 }
