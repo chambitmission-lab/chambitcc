@@ -24,7 +24,7 @@ export const navigation = {
   bibleCommentaryManagement: '✍️ 성경 해석 생성',
   pushNotificationManagement: '📢 푸시 알림 관리',
   userManagement: '👥 회원 관리',
-  garden: '🌸 나의 정원',
+  garden: '🏷️ 성경 칭호',
   answeredPrayers: '✨ 응답의 전당',
   missionStatus: '🌍 선교 현황',
   adminMenu: '관리자 메뉴',

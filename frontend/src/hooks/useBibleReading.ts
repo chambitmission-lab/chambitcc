@@ -8,6 +8,7 @@ import {
   getResumeReading,
   unmarkVerseAsRead
 } from '../api/bibleReading'
+import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 
 // Query Keys
 export const bibleReadingKeys = {
@@ -38,7 +39,10 @@ export const useMarkVerseAsRead = () => {
     onSuccess: () => {
       // 관련된 모든 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
-      
+
+      // 성경 칭호 평가 예약(디바운스) — 읽기 세션 끝에 새 칭호 해금 팝업
+      scheduleTitleEvaluation()
+
       // 프로필 캐시 즉시 업데이트 (구절 읽기 +1P)
       queryClient.setQueryData(['profile', 'detail'], (old: any) => {
         if (!old) return old

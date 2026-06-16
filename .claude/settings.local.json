@@ -87,7 +87,11 @@
       "Bash(curl -s -m 5 http://localhost:8000/api/v1/bible-plans)",
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('total:', d.get\\('total'\\)\\); [print\\(' -', p['slug'], '|', p['title']\\) for p in d.get\\('items',[]\\)]\")",
       "Bash(cat)",
-      "Bash(node /tmp/sim.mjs)"
+      "Bash(node /tmp/sim.mjs)",
+      "Read(//c/Users/k1988/idea/chambit-main/**)",
+      "Bash(ls app/routers)",
+      "Bash(ls backend/app/routers)",
+      "Bash(find . -maxdepth 3 -type d -name routers)"
     ]
   }
 }

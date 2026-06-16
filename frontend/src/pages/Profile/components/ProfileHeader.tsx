@@ -1,5 +1,6 @@
 import ProfileGlow from './ProfileGlow'
 import { LambCharacter } from '../../../components/garden/LambCharacter'
+import { TitleEquippedChip } from '../../../components/titles/TitleEquippedChip'
 import { calculateLambStage } from '../../../utils/gardenCalculator'
 import type { GlowLevel } from '../../../types/achievement'
 
@@ -36,6 +37,9 @@ const ProfileHeader = ({ username, fullName, glowLevel, activityPoints, specialA
         {fullName}
       </h2>
       <p className="text-[13px] text-gray-500 dark:text-white/55">@{username}</p>
+
+      {/* 장착한 성경 칭호 — 클릭하면 칭호 페이지로 이동해 변경 */}
+      <TitleEquippedChip />
     </div>
   )
 }

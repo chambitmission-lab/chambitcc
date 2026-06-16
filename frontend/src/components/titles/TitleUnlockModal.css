@@ -1,0 +1,155 @@
+/* 칭호 해금 팝업 */
+.title-unlock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(8, 8, 16, 0.66);
+  backdrop-filter: blur(6px);
+}
+
+.title-unlock-card {
+  position: relative;
+  width: min(360px, 92vw);
+  padding: 30px 24px 24px;
+  border-radius: 26px;
+  text-align: center;
+  background: linear-gradient(160deg, #241a3a 0%, #1c1c26 60%);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  box-shadow:
+    0 24px 60px rgba(168, 85, 247, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+/* 번지는 광채 */
+.title-unlock-burst {
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  width: 320px;
+  height: 320px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.5) 0%, rgba(168, 85, 247, 0.32) 38%, transparent 70%);
+  filter: blur(8px);
+  pointer-events: none;
+  animation: unlock-glow 2.6s ease-in-out infinite;
+}
+
+@keyframes unlock-glow {
+  0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+}
+
+.title-unlock-eyebrow {
+  position: relative;
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #f9a8d4;
+  margin-bottom: 14px;
+}
+
+.title-unlock-emblem {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 16px;
+  border-radius: 24px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow:
+    0 10px 30px rgba(168, 85, 247, 0.5),
+    0 0 0 4px var(--tier-ring, rgba(168, 85, 247, 0.4));
+}
+
+.title-unlock-icon {
+  font-size: 46px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
+.title-unlock-name {
+  position: relative;
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  background: linear-gradient(135deg, #d8b4fe, #f9a8d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.title-unlock-congrats {
+  position: relative;
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #eaeaf0;
+}
+
+.title-unlock-desc {
+  position: relative;
+  margin: 0 0 22px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #b9b9c4;
+}
+
+.title-unlock-actions {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.title-unlock-equip {
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  padding: 13px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: 0 8px 22px rgba(168, 85, 247, 0.45);
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.title-unlock-equip:hover { filter: brightness(1.08); }
+.title-unlock-equip:active { transform: scale(0.97); }
+
+.title-unlock-later {
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  padding: 11px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #b9b9c4;
+  background: rgba(148, 163, 184, 0.12);
+  transition: background 0.15s ease;
+}
+
+.title-unlock-later:hover { background: rgba(148, 163, 184, 0.2); }
+
+.title-unlock-tier-chip {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-unlock-burst { animation: none; }
+}

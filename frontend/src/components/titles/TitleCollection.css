@@ -1,0 +1,145 @@
+/* 성경 칭호 컬렉션 레이아웃 */
+.title-collection {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* 통계 요약 */
+.title-collection-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 16px;
+  border-radius: 20px;
+  background: #1c1c26;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.title-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  min-width: 0;
+}
+
+.title-stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.gradient-num {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.title-stat-unit {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.title-stat-emoji {
+  font-size: 26px;
+}
+
+.title-stat-sub {
+  font-size: 12px;
+  color: #8b8b97;
+}
+
+.title-stat-label {
+  font-size: 12px;
+  color: #b9b9c4;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 카테고리 섹션 */
+.title-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.title-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-section-icon {
+  font-size: 18px;
+}
+
+.title-section-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #f4f4f6;
+}
+
+.title-section-count {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a78bfa;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.14);
+}
+
+.title-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+/* 로딩/에러 */
+.title-collection-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 60px 16px;
+  color: #b9b9c4;
+}
+
+.title-collection-spinner {
+  font-size: 34px;
+  animation: title-bob 1.4s ease-in-out infinite;
+}
+
+.title-collection-state-icon {
+  font-size: 34px;
+}
+
+@keyframes title-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-collection-spinner { animation: none; }
+}
+
+/* 라이트 모드 */
+:root:not([data-theme='dark']) .title-collection-stats {
+  background: #ffffff;
+}
+:root:not([data-theme='dark']) .title-section-title {
+  color: #1f2937;
+}
+
+@media (max-width: 768px) {
+  .title-grid {
+    grid-template-columns: 1fr;
+  }
+}

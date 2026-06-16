@@ -6,6 +6,7 @@ import { clearPersistedCache } from './config/persister'
 import NewHeader from './components/layout/NewHeader/NewHeader'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
+import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
 // 즉시 진입 가능성이 높은 페이지는 eager import 유지
 import NewHome from './pages/Home/NewHome'
 import Login from './pages/Auth/Login'
@@ -178,6 +179,8 @@ function App() {
           <NewFooter />
           {/* PWA 설치 버튼 */}
           <PWAInstallButton />
+          {/* 성경 칭호 해금 팝업 호스트 — 읽기 후 새 칭호를 축하 */}
+          <TitleUnlockHost />
         </div>
       </Router>
     </ThemeProvider>

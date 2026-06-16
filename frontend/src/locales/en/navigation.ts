@@ -24,7 +24,7 @@ export const navigation = {
   bibleCommentaryManagement: '✍️ Bible Commentary Generation',
   pushNotificationManagement: '📢 Push Notification Management',
   userManagement: '👥 User Management',
-  garden: '🌸 My Garden',
+  garden: '🏷️ Bible Titles',
   answeredPrayers: '✨ Answered Prayers',
   missionStatus: '🌍 Mission Status',
   adminMenu: 'Admin Menu',

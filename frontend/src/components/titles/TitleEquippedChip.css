@@ -1,0 +1,87 @@
+/* 장착 칭호 칩 + 반짝이 파티클 */
+.title-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 14px;
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  border-radius: 999px;
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(236, 72, 153, 0.16));
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.22);
+  transition: transform 0.12s ease, box-shadow 0.2s ease;
+  overflow: visible;
+}
+
+.title-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.32);
+}
+
+.title-chip:active {
+  transform: scale(0.97);
+}
+
+.title-chip-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.title-chip-name {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  background: linear-gradient(135deg, #c084fc, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 빈 상태(칭호 미장착) */
+.title-chip-empty {
+  color: #a78bfa;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(168, 85, 247, 0.1);
+  border-style: dashed;
+}
+
+.title-chip-empty-icon {
+  font-size: 16px;
+}
+
+/* 파티클 레이어 */
+.title-chip-sparkles {
+  position: absolute;
+  inset: -8px;
+  pointer-events: none;
+}
+
+.title-chip-sparkle {
+  position: absolute;
+  font-size: 9px;
+  color: #f9a8d4;
+  opacity: 0;
+  text-shadow: 0 0 6px rgba(249, 168, 212, 0.9);
+  animation: chip-spark 2.8s ease-in-out infinite;
+}
+
+/* 텍스트 주변에 흩뿌려 배치 + 서로 다른 타이밍으로 "톡톡" 튀게 */
+.title-chip-sparkle.s0 { top: -2px;  left: 8%;  animation-delay: 0s;    }
+.title-chip-sparkle.s1 { top: 60%;   left: 2%;  animation-delay: 0.5s;  }
+.title-chip-sparkle.s2 { top: -4px;  left: 52%; animation-delay: 1s;    }
+.title-chip-sparkle.s3 { top: 70%;   left: 46%; animation-delay: 1.5s;  }
+.title-chip-sparkle.s4 { top: -2px;  right: 8%; animation-delay: 0.8s;  }
+.title-chip-sparkle.s5 { top: 62%;   right: 3%; animation-delay: 2s;    }
+
+@keyframes chip-spark {
+  0%, 100% { opacity: 0; transform: scale(0.4) translateY(0); }
+  40%      { opacity: 1; transform: scale(1) translateY(-3px); }
+  70%      { opacity: 0.4; transform: scale(0.8) translateY(-5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-chip-sparkle { animation: none; opacity: 0.5; }
+}
