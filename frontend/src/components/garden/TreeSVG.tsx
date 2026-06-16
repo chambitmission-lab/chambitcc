@@ -171,6 +171,12 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
           <stop offset="0%" stopColor="#65a30d" />
           <stop offset="100%" stopColor="#3f6212" />
         </radialGradient>
+        {/* 카드 하단을 채우는 지면 — 위는 풀빛, 아래로 갈수록 흙빛 */}
+        <linearGradient id="ground-body" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#4d7c0f" />
+          <stop offset="40%" stopColor="#3f6212" />
+          <stop offset="100%" stopColor="#2f4d10" />
+        </linearGradient>
       </defs>
 
       {/* 생명의 나무 글로우 — 완성에 가까울수록 은은하게 (브랜드 보라) */}
@@ -251,16 +257,30 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
         </g>
       )}
 
-      {/* 흙 바닥 — 카드 폭 전체로 깔아 "떠 있는 접시" 대신 단단히 심어진 지면.
-          rx가 viewBox 절반(180)을 넘어 양 끝까지 바닥이 닿게 한다(overflow visible). */}
-      <ellipse cx="0" cy={TRUNK_BASE_Y + 18} rx="240" ry="30" fill="url(#mound-grad)" />
-      <ellipse cx="0" cy={TRUNK_BASE_Y + 6} rx="150" ry="16" fill="#4d7c0f" opacity="0.85" />
+      {/* 단단한 지면 — 카드 하단을 가득 채워(가로·아래로 viewBox 밖까지) "떠 있는 접시" 대신
+          끊김 없는 땅을 만든다. 상단은 완만한 둔덕 곡선, 그 아래는 흙으로 바닥 끝까지 채운다. */}
+      <path
+        d={`M -300 ${TRUNK_BASE_Y - 4}
+            Q 0 ${TRUNK_BASE_Y - 18} 300 ${TRUNK_BASE_Y - 4}
+            L 300 160 L -300 160 Z`}
+        fill="url(#ground-body)"
+      />
+      {/* 풀 표면 하이라이트 — 둔덕 능선을 또렷하게 */}
+      <path
+        d={`M -300 ${TRUNK_BASE_Y - 4}
+            Q 0 ${TRUNK_BASE_Y - 18} 300 ${TRUNK_BASE_Y - 4}
+            Q 0 ${TRUNK_BASE_Y - 6} -300 ${TRUNK_BASE_Y - 4} Z`}
+        fill="#65a30d" opacity="0.85"
+      />
+
+      {/* 접지 그림자 — 밑동을 지면에 붙여 떠 있는 느낌 제거 */}
+      <ellipse cx="0" cy={TRUNK_BASE_Y - 4} rx="58" ry="9" fill="#1f3d0a" opacity="0.3" />
 
       {/* 바닥 풀 */}
       <g opacity="0.9">
         {[-96, -68, -40, 40, 70, 98].map((gx, i) => (
           <path key={i}
-            d={`M ${gx} ${TRUNK_BASE_Y + 4} q ${i % 2 ? 5 : -5} -15 ${i % 2 ? 1 : -1} -21`}
+            d={`M ${gx} ${TRUNK_BASE_Y - 2} q ${i % 2 ? 5 : -5} -15 ${i % 2 ? 1 : -1} -21`}
             stroke="#65a30d" strokeWidth="3" fill="none" strokeLinecap="round" />
         ))}
       </g>
