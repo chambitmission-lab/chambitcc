@@ -140,7 +140,7 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
   return (
     <svg
       className={`tree-svg${rustle ? ' rustle' : ''}`}
-      viewBox="-180 -350 360 380"
+      viewBox="-180 -300 360 330"
       preserveAspectRatio="xMidYMax meet"
       onClick={handleTap}
       role="img"
@@ -251,9 +251,10 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
         </g>
       )}
 
-      {/* 흙 둔덕 — 줄기 밑동을 덮어 심어진 느낌 (나무 위에 그려 밑동을 가린다) */}
-      <ellipse cx="0" cy={TRUNK_BASE_Y + 6} rx="120" ry="24" fill="url(#mound-grad)" />
-      <ellipse cx="0" cy={TRUNK_BASE_Y + 2} rx="80" ry="14" fill="#4d7c0f" opacity="0.85" />
+      {/* 흙 바닥 — 카드 폭 전체로 깔아 "떠 있는 접시" 대신 단단히 심어진 지면.
+          rx가 viewBox 절반(180)을 넘어 양 끝까지 바닥이 닿게 한다(overflow visible). */}
+      <ellipse cx="0" cy={TRUNK_BASE_Y + 18} rx="240" ry="30" fill="url(#mound-grad)" />
+      <ellipse cx="0" cy={TRUNK_BASE_Y + 6} rx="150" ry="16" fill="#4d7c0f" opacity="0.85" />
 
       {/* 바닥 풀 */}
       <g opacity="0.9">
