@@ -22,6 +22,11 @@ const formatRange = (c: BibleCommentary) => {
   return `${c.verse_start}-${c.verse_end}절`
 }
 
+// 별도 title이 있을 때, 본문 맨 앞의 마크다운 제목(# ...)은 제목 중복이므로 제거한다.
+// (AI 초안이 title 필드와 본문 # 제목을 둘 다 만들어내던 과거 데이터까지 커버)
+const stripLeadingHeading = (content: string) =>
+  content.replace(/^\s*#{1,6}[ \t]+.*\r?\n+/, '')
+
 const BibleCommentaryItem = ({
   commentary,
   isAdmin,
@@ -53,7 +58,13 @@ const BibleCommentaryItem = ({
       )}
 
       <div className="text-[14.5px] leading-[1.7] text-gray-700 dark:text-white/80">
-        <Markdown source={commentary.content} />
+        <Markdown
+          source={
+            commentary.title
+              ? stripLeadingHeading(commentary.content)
+              : commentary.content
+          }
+        />
       </div>
 
       {isAdmin && (

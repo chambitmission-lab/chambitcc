@@ -4,6 +4,7 @@ import type {
   BibleCommentary,
   BibleCommentaryAIGenerateRequest,
   BibleCommentaryAIGenerateResponse,
+  BibleCommentaryBatchOneResponse,
   BibleCommentaryCreateRequest,
   BibleCommentaryListResponse,
   BibleCommentaryUpdateRequest,
@@ -78,6 +79,33 @@ export const generateCommentaryDraft = async (
   if (!response.ok) {
     const error = await response.json().catch(() => ({}))
     throw new Error(error.detail || 'AI 해석 초안 생성에 실패했습니다')
+  }
+  return response.json()
+}
+
+/**
+ * 해석 없는 절 1건을 AI로 생성해 바로 저장 (관리자 전용).
+ * 프론트에서 원하는 횟수만큼 순차 호출하며 진행률을 표시한다.
+ * 1건씩 처리하므로 Gemini 1회 호출이라 타임아웃에 안전하다.
+ */
+export const batchGenerateOneCommentary = async (
+  bookNumber?: number,
+  chapter?: number,
+): Promise<BibleCommentaryBatchOneResponse> => {
+  const params = new URLSearchParams()
+  if (bookNumber != null) params.set('book_number', String(bookNumber))
+  if (chapter != null) params.set('chapter', String(chapter))
+  const query = params.toString()
+  const response = await apiFetch(
+    `${BASE}/ai-batch-generate-one${query ? `?${query}` : ''}`,
+    {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    },
+  )
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || 'AI 해석 생성에 실패했습니다')
   }
   return response.json()
 }

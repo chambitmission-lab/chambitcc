@@ -52,6 +52,7 @@ const Genealogy = lazy(() => import('./pages/Bible/Genealogy/Genealogy'))
 const PlanList = lazy(() => import('./pages/Bible/Plans/PlanList'))
 const PlanDetail = lazy(() => import('./pages/Bible/Plans/PlanDetail'))
 const BiblePlanManagement = lazy(() => import('./pages/Admin/BiblePlanManagement'))
+const BibleCommentaryManagement = lazy(() => import('./pages/Admin/BibleCommentaryManagement'))
 const AnsweredPrayers = lazy(
   () => import('./pages/Prayer/AnsweredPrayers'),
 )
@@ -151,6 +152,7 @@ function App() {
                 <Route path="/admin/users" element={<UserManagement />} />
                 <Route path="/admin/groups" element={<GroupManagement />} />
                 <Route path="/admin/bible-plans" element={<BiblePlanManagement />} />
+                <Route path="/admin/bible-commentaries" element={<BibleCommentaryManagement />} />
                 <Route path="/events" element={<EventCalendar />} />
                 <Route path="/events/:id" element={<EventDetail />} />
                 <Route path="/groups" element={<MyGroups />} />
