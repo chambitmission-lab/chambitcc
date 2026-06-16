@@ -342,7 +342,8 @@
 }
 
 [data-theme='dark'] .cloud {
-  background: rgba(71, 85, 105, 0.6);
+  /* 낮 하늘 위 뭉게구름 — 회색(먹구름) 대신 흰 구름으로. 살짝 투명해 하늘과 자연스레 섞인다. */
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .cloud::before,

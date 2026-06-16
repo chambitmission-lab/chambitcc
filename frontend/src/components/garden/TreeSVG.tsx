@@ -44,7 +44,7 @@ interface TreeShape {
 
 const MAX_DEPTH = 5
 const APPEAR_STEP = 0.08 // 가지 깊이별 등장 간격
-const TRUNK_BASE_Y = 12 // 줄기 밑동을 흙 속까지 내려 "심어진" 느낌
+const TRUNK_BASE_Y = 16 // 줄기 밑동을 흙 속까지 내려 "심어진" 느낌
 
 function buildTree(seed: number): TreeShape {
   const rnd = mulberry32(seed)
@@ -258,29 +258,37 @@ export const TreeSVG: React.FC<TreeSVGProps> = ({ growth, timeOfDay, seed = 7 })
       )}
 
       {/* 단단한 지면 — 카드 하단을 가득 채워(가로·아래로 viewBox 밖까지) "떠 있는 접시" 대신
-          끊김 없는 땅을 만든다. 상단은 완만한 둔덕 곡선, 그 아래는 흙으로 바닥 끝까지 채운다. */}
+          끊김 없는 땅을 만든다. 가운데를 봉긋하게 올린 둔덕에 나무가 "심어진" 느낌을 준다. */}
       <path
-        d={`M -300 ${TRUNK_BASE_Y - 4}
-            Q 0 ${TRUNK_BASE_Y - 18} 300 ${TRUNK_BASE_Y - 4}
-            L 300 160 L -300 160 Z`}
+        d={`M -300 ${TRUNK_BASE_Y + 2}
+            Q -120 ${TRUNK_BASE_Y + 2} -82 ${TRUNK_BASE_Y - 4}
+            Q -32 ${TRUNK_BASE_Y - 9} 0 ${TRUNK_BASE_Y - 8}
+            Q 32 ${TRUNK_BASE_Y - 9} 82 ${TRUNK_BASE_Y - 4}
+            Q 120 ${TRUNK_BASE_Y + 2} 300 ${TRUNK_BASE_Y + 2}
+            L 300 180 L -300 180 Z`}
         fill="url(#ground-body)"
       />
-      {/* 풀 표면 하이라이트 — 둔덕 능선을 또렷하게 */}
+      {/* 풀빛 능선 하이라이트 — 둔덕 능선을 또렷하게 */}
       <path
-        d={`M -300 ${TRUNK_BASE_Y - 4}
-            Q 0 ${TRUNK_BASE_Y - 18} 300 ${TRUNK_BASE_Y - 4}
-            Q 0 ${TRUNK_BASE_Y - 6} -300 ${TRUNK_BASE_Y - 4} Z`}
-        fill="#65a30d" opacity="0.85"
+        d={`M -300 ${TRUNK_BASE_Y + 2}
+            Q -120 ${TRUNK_BASE_Y + 2} -82 ${TRUNK_BASE_Y - 4}
+            Q -32 ${TRUNK_BASE_Y - 9} 0 ${TRUNK_BASE_Y - 8}
+            Q 32 ${TRUNK_BASE_Y - 9} 82 ${TRUNK_BASE_Y - 4}
+            Q 120 ${TRUNK_BASE_Y + 2} 300 ${TRUNK_BASE_Y + 2}
+            Q 0 ${TRUNK_BASE_Y + 8} -300 ${TRUNK_BASE_Y + 2} Z`}
+        fill="#65a30d" opacity="0.9"
       />
 
-      {/* 접지 그림자 — 밑동을 지면에 붙여 떠 있는 느낌 제거 */}
-      <ellipse cx="0" cy={TRUNK_BASE_Y - 4} rx="58" ry="9" fill="#1f3d0a" opacity="0.3" />
+      {/* 둔덕 음영 — 봉긋함을 강조해 입체감 */}
+      <ellipse cx="0" cy={TRUNK_BASE_Y - 1} rx="92" ry="15" fill="#3f6212" opacity="0.32" />
+      {/* 접지 그림자 — 밑동을 둔덕에 딱 붙여 떠 있는 느낌 제거 */}
+      <ellipse cx="0" cy={TRUNK_BASE_Y - 3} rx="50" ry="8" fill="#1f3d0a" opacity="0.4" />
 
-      {/* 바닥 풀 */}
-      <g opacity="0.9">
-        {[-96, -68, -40, 40, 70, 98].map((gx, i) => (
+      {/* 밑동 둘레 풀 — 나무가 솟아난 지점을 풀로 감싸 접지감 강화 */}
+      <g opacity="0.95">
+        {[-78, -56, -36, -18, 18, 36, 56, 78].map((gx, i) => (
           <path key={i}
-            d={`M ${gx} ${TRUNK_BASE_Y - 2} q ${i % 2 ? 5 : -5} -15 ${i % 2 ? 1 : -1} -21`}
+            d={`M ${gx} ${TRUNK_BASE_Y - 4} q ${i % 2 ? 5 : -5} -15 ${i % 2 ? 1 : -1} -22`}
             stroke="#65a30d" strokeWidth="3" fill="none" strokeLinecap="round" />
         ))}
       </g>
