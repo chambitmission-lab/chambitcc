@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Markdown } from '../../utils/markdown'
 import { generateCommentaryDraft } from '../../api/bibleCommentary'
 import {
@@ -107,6 +107,22 @@ const BibleCommentaryEditor = ({
       setVerseEnd(verseStart)
     }
   }, [verseStart, verseEnd])
+
+  // 뒤로가기로 이 에디터(추가/수정 폼)만 먼저 닫히도록 처리
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+  useEffect(() => {
+    window.history.pushState({ bibleCommentaryEditor: true }, '')
+    const handlePop = () => onCloseRef.current()
+    window.addEventListener('popstate', handlePop)
+    return () => {
+      window.removeEventListener('popstate', handlePop)
+      // 버튼/배경 클릭으로 닫혔다면 우리가 쌓은 히스토리 항목을 되돌려 정리
+      if (window.history.state?.bibleCommentaryEditor) {
+        window.history.back()
+      }
+    }
+  }, [])
 
   const isEditing = !!existing
   const canSubmit = !!content.trim() && !saving
