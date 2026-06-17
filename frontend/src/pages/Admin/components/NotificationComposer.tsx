@@ -5,6 +5,7 @@ import type {
   Notification,
 } from '../../../types/notification'
 import { showToast } from '../../../utils/toast'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 
 interface NotificationComposerProps {
   editingNotification: Notification | null
@@ -26,6 +27,9 @@ const NotificationComposer = ({
   const [form, setForm] = useState<CreateNotificationRequest>(DEFAULT_FORM)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   useEffect(() => {
     if (editingNotification) {

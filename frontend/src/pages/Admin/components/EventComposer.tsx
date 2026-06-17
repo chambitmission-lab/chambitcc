@@ -13,6 +13,7 @@ import {
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
 import { showToast } from '../../../utils/toast'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 
 interface EventComposerProps {
   editingEvent: Event | null
@@ -63,6 +64,9 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
   const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   useEffect(() => {
     if (editingEvent) {

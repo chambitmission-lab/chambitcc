@@ -2,6 +2,7 @@
 import { useState, type ReactNode } from 'react'
 import { useCreateGroup, useJoinGroup } from '../../hooks/useGroups'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
 import type { PrayerGroup } from '../../types/prayer'
 
@@ -14,7 +15,11 @@ interface ModalShellProps {
   children: ReactNode
 }
 
-const ModalShell = ({ title, onClose, children }: ModalShellProps) => (
+const ModalShell = ({ title, onClose, children }: ModalShellProps) => {
+  // 뒤로가기 → 모달만 닫기 (Create/Join 공통)
+  useModalBackButton(onClose)
+
+  return (
   <div
     className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
     onClick={onClose}
@@ -49,7 +54,8 @@ const ModalShell = ({ title, onClose, children }: ModalShellProps) => (
       <div className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">{children}</div>
     </div>
   </div>
-)
+  )
+}
 
 // ── Create Group ──────────────────────────────────────
 interface CreateGroupModalProps {

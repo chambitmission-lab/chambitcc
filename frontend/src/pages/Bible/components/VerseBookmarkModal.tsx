@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { HighlightColor, VerseBookmark } from '../../../api/bibleBookmark'
 import { useUpsertBookmark, useDeleteBookmark } from '../../../hooks/useBibleBookmark'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { showToast } from '../../../utils/toast'
 
 interface VerseBookmarkModalProps {
@@ -41,6 +42,9 @@ const VerseBookmarkModal = ({
     window.addEventListener('keydown', onEsc)
     return () => window.removeEventListener('keydown', onEsc)
   }, [onClose])
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   const handleSave = async () => {
     try {

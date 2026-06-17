@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { WorshipService } from '../../types/worship'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 import './WorshipEditModal.css'
 
 interface WorshipEditModalProps {
@@ -10,6 +11,9 @@ interface WorshipEditModalProps {
 
 const WorshipEditModal = ({ service, onClose, onSave }: WorshipEditModalProps) => {
   const [formData, setFormData] = useState<WorshipService>(service)
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   useEffect(() => {
     setFormData(service)

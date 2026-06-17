@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { BibleVerse } from '../../types/bible'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 import './VerseEditModal.css'
 
 interface VerseEditModalProps {
@@ -14,20 +15,7 @@ const VerseEditModal = ({ verse, onSave, onClose }: VerseEditModalProps) => {
   const [error, setError] = useState<string | null>(null)
 
   // 뒤로가기로 홈 이동 대신 이 모달만 먼저 닫히도록 처리
-  const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
-  useEffect(() => {
-    window.history.pushState({ verseEditModal: true }, '')
-    const handlePop = () => onCloseRef.current()
-    window.addEventListener('popstate', handlePop)
-    return () => {
-      window.removeEventListener('popstate', handlePop)
-      // 버튼/배경 클릭으로 닫혔다면 우리가 쌓은 히스토리 항목을 되돌려 정리
-      if (window.history.state?.verseEditModal) {
-        window.history.back()
-      }
-    }
-  }, [])
+  useModalBackButton(onClose)
 
   const handleSave = async () => {
     // 빈 텍스트 방지

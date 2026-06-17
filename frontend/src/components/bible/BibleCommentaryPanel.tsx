@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   useChapterCommentaries,
   useCreateCommentary,
   useDeleteCommentary,
   useUpdateCommentary,
 } from '../../hooks/useBibleCommentary'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import type {
@@ -44,20 +45,7 @@ const BibleCommentaryPanel = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // 모바일/브라우저 뒤로가기로 홈까지 나가버리지 않고 이 패널만 닫히도록 처리
-  const onCloseRef = useRef(onClose)
-  onCloseRef.current = onClose
-  useEffect(() => {
-    window.history.pushState({ bibleCommentaryPanel: true }, '')
-    const handlePop = () => onCloseRef.current()
-    window.addEventListener('popstate', handlePop)
-    return () => {
-      window.removeEventListener('popstate', handlePop)
-      // 버튼/배경 클릭으로 닫혔다면 우리가 쌓은 히스토리 항목을 되돌려 정리
-      if (window.history.state?.bibleCommentaryPanel) {
-        window.history.back()
-      }
-    }
-  }, [])
+  useModalBackButton(onClose)
 
   const filtered = useMemo(() => {
     const all = data?.items ?? []

@@ -5,6 +5,7 @@ import { SermonFormFields } from './SermonFormFields'
 import { AudioUploadSection } from './AudioUploadSection'
 import { TranscriptUploadSection } from './TranscriptUploadSection'
 import AudioRecorder from '../AudioRecorder'
+import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import type { SermonFormProps } from './types'
 
 const SermonForm = ({ sermon, onClose, onSuccess }: SermonFormProps) => {
@@ -22,6 +23,16 @@ const SermonForm = ({ sermon, onClose, onSuccess }: SermonFormProps) => {
 
   const [showRecorder, setShowRecorder] = useState(false)
   const isOpeningRecorderRef = useRef(false)
+
+  // 뒤로가기 → 녹음기가 열려있으면 녹음기만, 아니면 폼 닫기
+  useModalBackButton(() => {
+    if (showRecorder) {
+      setShowRecorder(false)
+      isOpeningRecorderRef.current = false
+    } else {
+      handleClose()
+    }
+  })
 
   const handleRecordingComplete = (blob: Blob) => {
     audioUpload.handleRecordingComplete(blob)

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getGardenTheme, saveGardenTheme, uploadGardenImage, type PresetName } from '../../api/garden'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 import './GardenCustomizeModal.css'
 
 interface GardenCustomizeModalProps {
@@ -51,6 +52,9 @@ export const GardenCustomizeModal: React.FC<GardenCustomizeModalProps> = ({ onCl
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   // 현재 테마 설정 불러오기
   useEffect(() => {

@@ -5,6 +5,7 @@ import {
   useMarkAllAsRead,
 } from '../../hooks/useNotifications'
 import { showToast } from '../../utils/toast'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 import type { Notification } from '../../types/notification'
 
 interface NotificationModalProps {
@@ -76,6 +77,9 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
       )
     }
   }
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose, isOpen)
 
   if (!isOpen) return null
 

@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { createDailyVerse, updateDailyVerse } from '../../../api/dailyVerse'
 import type { DailyVerse } from '../../../types/dailyVerse'
 import { showToast } from '../../../utils/toast'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 
 interface DailyVerseComposerProps {
   editingVerse: DailyVerse | null
@@ -19,6 +20,9 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
   const [verseDate, setVerseDate] = useState(() => toDateInput(new Date()))
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   useEffect(() => {
     if (editingVerse) {

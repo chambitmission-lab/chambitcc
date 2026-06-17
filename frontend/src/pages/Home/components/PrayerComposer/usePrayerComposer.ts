@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { usePrayersInfinite } from '../../../../hooks/usePrayersQuery'
+import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { validation } from '../../../../utils/validation'
 import type { PrayerEmotion, RecommendedVerses, SortType } from '../../../../types/prayer'
 
@@ -21,20 +22,8 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
   const [recommendedVerses, setRecommendedVerses] = useState<RecommendedVerses | null>(null)
   const [showVersesModal, setShowVersesModal] = useState(false)
 
-  // 브라우저 뒤로가기 처리
-  useEffect(() => {
-    window.history.pushState({ modal: 'prayer-composer' }, '')
-
-    const handlePopState = () => {
-      onClose()
-    }
-
-    window.addEventListener('popstate', handlePopState)
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState)
-    }
-  }, [onClose])
+  // 브라우저 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   const isLoggedIn = !!localStorage.getItem('access_token')
 

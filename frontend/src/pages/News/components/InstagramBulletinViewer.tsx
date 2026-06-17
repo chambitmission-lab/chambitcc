@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Bulletin } from '../../../types/bulletin'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import './InstagramBulletinViewer.css'
 
 interface InstagramBulletinViewerProps {
@@ -23,6 +24,9 @@ const InstagramBulletinViewer = ({ bulletin, onClose }: InstagramBulletinViewerP
 
   const pages = bulletin.pages?.sort((a, b) => a.page_number - b.page_number) || []
   const totalPages = pages.length
+
+  // 뒤로가기 → 뷰어만 닫기
+  useModalBackButton(onClose)
 
   // 컨트롤 자동 숨김
   useEffect(() => {

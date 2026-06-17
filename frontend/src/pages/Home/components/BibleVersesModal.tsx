@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { BibleVerse, RecommendedVerses } from '../../../types/prayer'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { showToast } from '../../../utils/toast'
 import './BibleVersesModal.css'
 
@@ -123,17 +124,8 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
     return () => window.clearTimeout(id)
   }, [])
 
-  // 브라우저 뒤로가기 처리
-  useEffect(() => {
-    window.history.pushState({ modal: 'bible-verses' }, '')
-    const handlePopState = () => {
-      onClose()
-    }
-    window.addEventListener('popstate', handlePopState)
-    return () => {
-      window.removeEventListener('popstate', handlePopState)
-    }
-  }, [onClose])
+  // 브라우저 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   // ESC 닫기
   useEffect(() => {

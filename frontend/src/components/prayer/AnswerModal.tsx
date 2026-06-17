@@ -1,5 +1,6 @@
 // 기도 응답 모달 - 간증 작성/수정
 import { useEffect, useState } from 'react'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 
 interface AnswerModalProps {
   isOpen: boolean
@@ -29,6 +30,9 @@ const AnswerModal = ({
       setTestimony(initialTestimony ?? '')
     }
   }, [isOpen, initialTestimony])
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose, isOpen)
 
   if (!isOpen) return null
 

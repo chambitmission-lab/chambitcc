@@ -5,6 +5,7 @@ import { useCreatePlan, useUpdatePlan } from '../../../hooks/useBiblePlan'
 import { generateSchedule } from '../../../api/biblePlan'
 import type { PlanDayInput, PlanSummary } from '../../../types/biblePlan'
 import { showToast } from '../../../utils/toast'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 
 interface Props {
   editingPlan: PlanSummary | null
@@ -76,6 +77,9 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
   const [generatedDays, setGeneratedDays] = useState<PlanDayInput[] | null>(null)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   useEffect(() => {
     if (editingPlan) {

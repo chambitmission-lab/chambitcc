@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { showToast } from '../../../../utils/toast'
+import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { THANKS_EMOTIONS, type ThanksEmotion } from '../../../../types/thanks'
 
 const MAX_LEN = 100
@@ -15,6 +16,9 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
   const [content, setContent] = useState('')
   const [emotion, setEmotion] = useState<ThanksEmotion | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   const handleSubmit = async () => {
     const trimmed = content.trim()

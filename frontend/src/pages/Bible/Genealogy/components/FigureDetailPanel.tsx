@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useBibleFigureDetail } from '../../../../hooks/useBibleFigure'
+import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import type { BibleFigureSummary } from '../../../../types/bibleFigure'
 
 interface FigureDetailPanelProps {
@@ -17,6 +18,9 @@ export const FigureDetailPanel = ({
   variant = 'card',
 }: FigureDetailPanelProps) => {
   const { data, isLoading, error } = useBibleFigureDetail(slug)
+
+  // 모바일 시트로 열린 경우만 뒤로가기 → 시트 닫기 (데스크탑 사이드 카드는 제외)
+  useModalBackButton(onClose, variant === 'sheet' && !!slug)
 
   const shellBase =
     'relative rounded-2xl border bg-white dark:bg-[#1c1c26] border-gray-200 dark:border-white/[0.08] overflow-hidden'

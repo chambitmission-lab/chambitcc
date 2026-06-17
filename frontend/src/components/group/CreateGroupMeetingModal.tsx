@@ -6,6 +6,7 @@ import { translations } from '../../locales'
 import { createEvent } from '../../api/event'
 import { eventKeys } from '../../hooks/useEvents'
 import { showToast } from '../../utils/toast'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 
 interface CreateGroupMeetingModalProps {
   isOpen: boolean
@@ -33,8 +34,6 @@ const CreateGroupMeetingModal = ({
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
-  if (!isOpen) return null
-
   const handleClose = () => {
     if (submitting) return
     setTitle('')
@@ -46,6 +45,11 @@ const CreateGroupMeetingModal = ({
     setErrorMsg('')
     onClose()
   }
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(handleClose, isOpen)
+
+  if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

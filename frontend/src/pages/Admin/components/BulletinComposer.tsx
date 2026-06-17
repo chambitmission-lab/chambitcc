@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createBulletin } from '../../../api/bulletin'
 import { showToast } from '../../../utils/toast'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 
 interface BulletinComposerProps {
   onClose: () => void
@@ -34,6 +35,9 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // 뒤로가기 → 모달만 닫기
+  useModalBackButton(onClose)
 
   // 미리보기 URL은 unmount 시 해제 (메모리 누수 방지)
   useEffect(() => {
