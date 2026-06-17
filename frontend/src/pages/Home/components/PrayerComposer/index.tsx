@@ -47,11 +47,11 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
 
       {/* 기도 작성 모달 — 카드 시스템과 동일 토큰 (#1c1c26 솔리드 + 그라데이션 한 겹 + 1px 상단 빛줄) */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4 overflow-hidden"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
         onClick={onClose}
       >
         <div
-          className="relative bg-background-light dark:bg-[#1c1c26] rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto overflow-x-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_8px_32px_rgba(168,85,247,0.15)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18),inset_0_1px_0_rgba(255,255,255,0.05)]"
+          className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-y-auto overflow-x-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18),inset_0_1px_0_rgba(255,255,255,0.05)]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* 다크모드 카드 표면 그라데이션 — 평평한 회색 박스 방지 */}
