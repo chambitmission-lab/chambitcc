@@ -52,7 +52,7 @@ const VerseReadingButton = ({
         relative
         outline-none focus:outline-none focus-visible:outline-none appearance-none
         ${isReading
-          ? 'bg-gradient-to-br from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-white'
+          ? 'bg-gradient-to-br from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white'
           : 'bg-gradient-to-br from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white'
         }
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'}
@@ -63,7 +63,7 @@ const VerseReadingButton = ({
         outline: 'none',
         border: 'none',
         boxShadow: isReading
-          ? '0 4px 14px rgba(251, 191, 36, 0.4)'
+          ? '0 4px 14px rgba(236, 72, 153, 0.4)'
           : '0 4px 14px rgba(168, 85, 247, 0.4)',
       }}
     >

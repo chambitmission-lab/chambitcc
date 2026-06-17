@@ -221,7 +221,9 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           userSelect: 'text',
           ...(highlightBg && !isReading
             ? {
-                background: `linear-gradient(to right, ${highlightBg}66, ${highlightBg}33)`,
+                // 다크 배경 위에서 파스텔 형광펜이 탁하게 떡지지 않도록:
+                // 색 정체성은 왼쪽 바로 또렷하게 주고, 면은 아주 옅은 틴트만.
+                background: `linear-gradient(to right, ${highlightBg}26, ${highlightBg}0d)`,
                 borderLeft: `3px solid ${highlightBg}`,
                 borderRadius: '0.375rem',
                 padding: '0.375rem 0.5rem',
@@ -234,10 +236,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           {isReading && highlightedText ? (
             <>
               <span style={{
-                color: '#fca985',
+                color: '#f0abfc',
                 // 읽은 부분도 본문과 동일한 굵기(400) 유지 — bold면 경계가 전진할 때마다
                 // 폭이 바뀌어 줄바꿈이 재계산된다(출렁임).
-                textShadow: '0 0 8px rgba(251, 146, 96, 0.3)',
+                textShadow: '0 0 8px rgba(236, 72, 153, 0.35)',
                 transition: 'color 0.2s ease'
               }}>
                 {highlightedText.readPart}
@@ -278,7 +280,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  background: bookmark.is_favorite ? '#ec4899' : '#eab308',
+                  background: bookmark.is_favorite ? '#ec4899' : '#a855f7',
                 }}
               />
             )}
@@ -345,13 +347,13 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                     }
                   : bookmark
                     ? {
-                        background: 'rgba(234, 179, 8, 0.16)',
-                        border: '1px solid rgba(234, 179, 8, 0.5)',
-                        boxShadow: '0 2px 10px rgba(234, 179, 8, 0.16)',
+                        background: 'rgba(236, 72, 153, 0.14)',
+                        border: '1px solid rgba(236, 72, 153, 0.45)',
+                        boxShadow: '0 2px 10px rgba(236, 72, 153, 0.16)',
                       }
                     : {
-                        background: 'rgba(234, 179, 8, 0.1)',
-                        border: '1px solid rgba(234, 179, 8, 0.22)',
+                        background: 'rgba(236, 72, 153, 0.09)',
+                        border: '1px solid rgba(236, 72, 153, 0.22)',
                       }
               }
               title={bookmark ? '묵상 노트 수정' : '묵상/북마크 추가'}
@@ -361,7 +363,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                 className="material-icons-round"
                 style={{
                   fontSize: '1.125rem',
-                  color: bookmark?.is_favorite ? '#ec4899' : '#eab308',
+                  color: bookmark?.is_favorite ? '#ec4899' : '#f472b6',
                   opacity: bookmark ? 1 : 0.85,
                 }}
               >
