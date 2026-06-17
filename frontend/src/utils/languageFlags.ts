@@ -21,6 +21,8 @@ export const getLanguageCountryCode = (langCode?: string): string => {
     case 'zh':
     case 'cn':
       return 'cn'
+    case 'th':
+      return 'th'
     default:
       return 'kr' // 기본값은 한국어
   }
@@ -48,6 +50,8 @@ export const getLanguageFlag = (langCode?: string): string => {
     case 'zh':
     case 'cn':
       return '🇨🇳'
+    case 'th':
+      return '🇹🇭'
     default:
       return '🇰🇷' // 기본값은 한국어
   }
@@ -75,6 +79,8 @@ export const getLanguageName = (langCode?: string): string => {
     case 'zh':
     case 'cn':
       return 'CN'
+    case 'th':
+      return 'TH'
     default:
       return '한글'
   }
