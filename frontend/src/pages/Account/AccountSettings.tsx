@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { getMe, changePassword, type ChangePasswordError } from '../../api/account'
+import { logout } from '../../utils/auth'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const AccountSettings = () => {
@@ -66,6 +67,11 @@ const AccountSettings = () => {
     }
   }
 
+  const handleLogout = async () => {
+    await logout() // 푸시 구독 해제 + 토큰 제거 + React Query 캐시 정리
+    navigate('/login', { replace: true })
+  }
+
   const inputClass =
     'w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary'
 
@@ -84,7 +90,13 @@ const AccountSettings = () => {
           <h1 className="text-base font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
             {t('accountTitle')}
           </h1>
-          <span className="w-12" />
+          <button
+            className="flex items-center gap-1 text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-purple-600 hover:to-pink-600 transition-all"
+            onClick={handleLogout}
+          >
+            <span className="material-icons-outlined text-lg bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">logout</span>
+            <span>{t('logout')}</span>
+          </button>
         </div>
 
         {isLoading && (
