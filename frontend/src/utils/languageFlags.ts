@@ -1,3 +1,31 @@
+// 언어 코드 → ISO 3166-1 alpha-2 국가 코드 (flag-icons용, 소문자)
+// OS 이모지 폰트에 의존하지 않고 SVG 국기를 렌더링하기 위함
+export const getLanguageCountryCode = (langCode?: string): string => {
+  const normalizedCode = langCode?.trim().toLowerCase()
+
+  switch (normalizedCode) {
+    case 'ko':
+    case 'kr':
+      return 'kr'
+    case 'en':
+    case 'us':
+      return 'us'
+    case 'vi':
+    case 'vn':
+      return 'vn'
+    case 'ja':
+    case 'jp':
+      return 'jp'
+    case 'fr':
+      return 'fr'
+    case 'zh':
+    case 'cn':
+      return 'cn'
+    default:
+      return 'kr' // 기본값은 한국어
+  }
+}
+
 // 언어 코드에 따른 국기 이모지 반환
 export const getLanguageFlag = (langCode?: string): string => {
   const normalizedCode = langCode?.trim().toLowerCase()

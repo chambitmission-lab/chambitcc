@@ -92,7 +92,9 @@
       "Bash(ls app/routers)",
       "Bash(ls backend/app/routers)",
       "Bash(find . -maxdepth 3 -type d -name routers)",
-      "Bash(DATABASE_URL=sqlite:// SECRET_KEY=x FRONTEND_URL=http://localhost python -c ' *)"
+      "Bash(DATABASE_URL=sqlite:// SECRET_KEY=x FRONTEND_URL=http://localhost python -c ' *)",
+      "Bash(node -p \"require\\('./package.json'\\).dependencies.react\")",
+      "Bash(ls node_modules/flag-icons)"
     ]
   }
 }

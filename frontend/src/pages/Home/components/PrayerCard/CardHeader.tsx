@@ -1,4 +1,5 @@
 import type { PrayerGroup } from '../../../../types/prayer'
+import LangFlag from '../../../../components/common/LangFlag'
 
 interface CardHeaderProps {
   displayName: string
@@ -53,7 +54,7 @@ const CardHeader = ({
               }}
               className="group-hover:scale-110"
             >
-              {showEnglish ? '🇺🇸' : '🇰🇷'}
+              <LangFlag code={showEnglish ? 'us' : 'kr'} className="rounded-[2px]" />
             </span>
             {' '}
             <span

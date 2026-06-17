@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
+import LangFlag from '../../../common/LangFlag'
 
 interface SettingsMenuProps {
   isLoggedIn: boolean
@@ -21,7 +22,7 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
           transition-colors
         "
       >
-        <span className="text-base">{language === 'ko' ? '🇺🇸' : '🇰🇷'}</span>
+        <LangFlag code={language === 'ko' ? 'us' : 'kr'} className="text-base rounded-[2px]" />
         <span>{language === 'ko' ? 'English' : '한국어'}</span>
       </button>
 

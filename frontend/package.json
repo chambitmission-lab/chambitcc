@@ -21,6 +21,7 @@
     "canvas-confetti": "^1.9.4",
     "d3": "^7.9.0",
     "date-fns": "^4.1.0",
+    "flag-icons": "^7.5.0",
     "framer-motion": "^12.38.0",
     "howler": "^2.2.4",
     "lottie-react": "^2.4.1",

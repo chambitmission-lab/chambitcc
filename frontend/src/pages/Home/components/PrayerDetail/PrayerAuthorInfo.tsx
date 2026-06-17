@@ -1,4 +1,5 @@
-import { getLanguageFlag } from '../../../../utils/languageFlags'
+import LangFlag from '../../../../components/common/LangFlag'
+import { getLanguageName } from '../../../../utils/languageFlags'
 
 // 작성자 정보 컴포넌트
 interface PrayerAuthorInfoProps {
@@ -14,7 +15,6 @@ const PrayerAuthorInfo = ({
   displayName,
   timeAgo,
   hasTranslation,
-  translationButtonText,
   nextLanguage,
   onTranslationToggle,
 }: PrayerAuthorInfoProps) => {
@@ -48,7 +48,7 @@ const PrayerAuthorInfo = ({
             }}
             className="group-hover:scale-110 group-hover:rotate-12"
           >
-            {getLanguageFlag(nextLanguage)}
+            <LangFlag code={nextLanguage} className="rounded-[2px]" />
           </span>
           {' '}
           <span
@@ -57,7 +57,7 @@ const PrayerAuthorInfo = ({
             }}
             className="group-hover:tracking-wider"
           >
-            {translationButtonText.replace('🇺🇸 ', '').replace('🇰🇷 ', '').replace('🇻🇳 ', '').replace('🇯🇵 ', '').replace('🇫🇷 ', '').replace('🇨🇳 ', '')}
+            {getLanguageName(nextLanguage)}
           </span>
         </button>
       )}
