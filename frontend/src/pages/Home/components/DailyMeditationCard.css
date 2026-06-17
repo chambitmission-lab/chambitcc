@@ -20,45 +20,48 @@
   backdrop-filter: blur(10px);
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.18) 0%,
-    rgba(139, 92, 246, 0.20) 100%
+    rgba(168, 85, 247, 0.16) 0%,
+    rgba(236, 72, 153, 0.16) 100%
   );
   color: #f3f4f6;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* ── 시간대별 그라데이션 ─────────────────── */
+/* ── 시간대별 그라데이션 (브랜드 purple→pink 안에서 미묘하게) ── */
 .meditation-card[data-time="morning"] {
   background: linear-gradient(
     135deg,
-    rgba(251, 191, 36, 0.16) 0%,
-    rgba(244, 114, 182, 0.16) 100%
+    rgba(168, 85, 247, 0.14) 0%,
+    rgba(244, 114, 182, 0.18) 100%
   );
-  border-color: rgba(251, 191, 36, 0.4);
+  border-color: rgba(244, 114, 182, 0.4);
   box-shadow:
-    0 0 18px rgba(251, 191, 36, 0.12),
-    inset 0 0 16px rgba(244, 114, 182, 0.06);
+    0 0 18px rgba(244, 114, 182, 0.12),
+    inset 0 0 16px rgba(168, 85, 247, 0.06);
 }
 
 .meditation-card[data-time="afternoon"] {
   background: linear-gradient(
     135deg,
-    rgba(59, 130, 246, 0.16) 0%,
-    rgba(56, 189, 248, 0.18) 100%
+    rgba(139, 92, 246, 0.17) 0%,
+    rgba(217, 70, 239, 0.17) 100%
   );
-  border-color: rgba(56, 189, 248, 0.4);
+  border-color: rgba(168, 85, 247, 0.42);
   box-shadow:
-    0 0 18px rgba(56, 189, 248, 0.14),
-    inset 0 0 16px rgba(59, 130, 246, 0.06);
+    0 0 18px rgba(168, 85, 247, 0.14),
+    inset 0 0 16px rgba(139, 92, 246, 0.06);
 }
 
 .meditation-card[data-time="evening"] {
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.20) 0%,
-    rgba(139, 92, 246, 0.22) 100%
+    rgba(124, 58, 237, 0.20) 0%,
+    rgba(168, 85, 247, 0.22) 100%
   );
   border-color: rgba(139, 92, 246, 0.45);
+  box-shadow:
+    0 0 18px rgba(139, 92, 246, 0.14),
+    inset 0 0 16px rgba(124, 58, 237, 0.06);
 }
 
 /* ── 절기 액센트 (좌측 얇은 바) ──────────── */
@@ -228,7 +231,7 @@
 [data-theme="light"] .meditation-card[data-time="morning"] {
   background: linear-gradient(
     135deg,
-    rgba(251, 191, 36, 0.22) 0%,
+    rgba(168, 85, 247, 0.18) 0%,
     rgba(244, 114, 182, 0.22) 100%
   );
 }
@@ -236,16 +239,16 @@
 [data-theme="light"] .meditation-card[data-time="afternoon"] {
   background: linear-gradient(
     135deg,
-    rgba(59, 130, 246, 0.18) 0%,
-    rgba(56, 189, 248, 0.22) 100%
+    rgba(139, 92, 246, 0.20) 0%,
+    rgba(217, 70, 239, 0.20) 100%
   );
 }
 
 [data-theme="light"] .meditation-card[data-time="evening"] {
   background: linear-gradient(
     135deg,
-    rgba(99, 102, 241, 0.22) 0%,
-    rgba(139, 92, 246, 0.24) 100%
+    rgba(124, 58, 237, 0.22) 0%,
+    rgba(168, 85, 247, 0.24) 100%
   );
 }
 
