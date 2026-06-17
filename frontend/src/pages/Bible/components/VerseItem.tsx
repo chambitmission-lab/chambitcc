@@ -188,7 +188,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     <div
       id={`bible-verse-${verse.verse}`}
       data-verse={verse.verse}
-      className={`bible-verse-item ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''}`}
+      className={`bible-verse-item ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''} ${showActions && !isReading ? 'verse-selected' : ''}`}
       style={{
         position: 'relative',
         // 'all'을 쓰면 :hover의 margin/padding 같은 레이아웃 속성까지 애니메이션돼 버벅인다.
@@ -232,7 +232,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         }}
       >
         <span className="bible-verse-number">{verse.verse}</span>
-        <span className="bible-verse-text" style={{ flex: 1, minWidth: 0 }}>
+        <span
+          className={`bible-verse-text ${highlightBg && !isReading ? 'is-highlighted' : ''}`}
+          style={{ flex: 1, minWidth: 0 }}
+        >
           {isReading && highlightedText ? (
             <>
               <span style={{
@@ -325,16 +328,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               transition: 'opacity 0.18s ease, transform 0.18s ease',
             }}
           >
-            {isSupported && (
-              <VerseReadingButton
-                isReading={isReading}
-                isSupported={isSupported}
-                onClick={isReading ? stopReading : handleStartReading}
-                disabled={isRead}
-                size="sm"
-              />
-            )}
-
+            {/* 주요 액션: 북마크·해석 (가장 자주 쓰는 묵상 동작을 앞에 배치) */}
             <button
               onClick={() => setShowBookmarkModal(true)}
               className="verse-action-btn"
@@ -409,18 +403,47 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               </button>
             )}
 
+            {/* 구분선: 주요(묵상) ↔ 보조(음성/관리자) 그룹 분리 */}
+            {(isSupported || (isAdminUser && onEdit)) && (
+              <span
+                aria-hidden
+                style={{
+                  width: '1px',
+                  height: '1.25rem',
+                  background: 'var(--ig-border, rgba(255,255,255,0.12))',
+                  margin: '0 0.125rem',
+                  flexShrink: 0,
+                }}
+              />
+            )}
+
+            {/* 보조 액션: 음성 낭독 (톤다운) */}
+            {isSupported && (
+              <span style={{ display: 'inline-flex', opacity: 0.9 }}>
+                <VerseReadingButton
+                  isReading={isReading}
+                  isSupported={isSupported}
+                  onClick={isReading ? stopReading : handleStartReading}
+                  disabled={isRead}
+                  size="sm"
+                />
+              </span>
+            )}
+
+            {/* 보조 액션: 구절 수정 (관리자) */}
             {isAdminUser && onEdit && (
               <button
                 onClick={() => onEdit(verse)}
                 className="verse-action-btn"
                 style={{
-                  background: 'rgba(148, 163, 184, 0.12)',
-                  border: '1px solid rgba(148, 163, 184, 0.28)',
+                  background: 'rgba(148, 163, 184, 0.1)',
+                  border: '1px solid rgba(148, 163, 184, 0.24)',
+                  opacity: 0.85,
                 }}
                 title="구절 수정 (관리자)"
                 tabIndex={showActions ? 0 : -1}
               >
-                <span className="material-icons-round" style={{ fontSize: '1.125rem', color: '#94a3b8' }}>
+                <span className="material-icons-round" style={{ fontSize: '1.0625rem', color: '#94a3b8' }}>
                   edit
                 </span>
               </button>

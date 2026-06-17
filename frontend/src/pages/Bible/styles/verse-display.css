@@ -104,6 +104,31 @@
   overflow: visible;
 }
 
+/* 선택(탭하여 액션바 펼침) 상태 - 또렷한 좌측 보라 바 + 살짝 떠보이는 카드.
+   hover와 동일한 margin/padding을 써서 탭 시 추가 레이아웃 이동(출렁임)이 없게 한다. */
+.bible-verse-item.verse-selected {
+  background: rgba(168, 85, 247, 0.08);
+  margin: 0 -0.75rem;
+  padding: 1.125rem 0.75rem;
+  border-radius: 12px;
+  border-bottom: 1px solid transparent;
+  box-shadow:
+    inset 3px 0 0 rgba(168, 85, 247, 0.85),
+    0 6px 22px -6px rgba(0, 0, 0, 0.35);
+}
+
+.bible-verse-item.verse-selected .bible-verse-number {
+  color: #a855f7;
+  font-weight: 800;
+}
+
+[data-theme="light"] .bible-verse-item.verse-selected {
+  background: rgba(168, 85, 247, 0.07);
+  box-shadow:
+    inset 3px 0 0 rgba(168, 85, 247, 0.7),
+    0 6px 20px -8px rgba(168, 85, 247, 0.35);
+}
+
 /* 읽는 중일 때는 hover 효과 제거 */
 .bible-verse-item.verse-reading:hover {
   margin: 0 -1rem;
@@ -136,6 +161,19 @@
   line-height: 2.0;
   font-size: 1.0625rem;
   letter-spacing: -0.01em;
+}
+
+/* 형광펜 친 절은 본문 글자를 살짝 또렷하게 — 마커 위에서 묻히지 않도록 */
+.bible-verse-text.is-highlighted {
+  font-weight: 500;
+}
+
+[data-theme="dark"] .bible-verse-text.is-highlighted {
+  color: #f5f5f7;
+}
+
+[data-theme="light"] .bible-verse-text.is-highlighted {
+  color: #111827;
 }
 
 /* 다크 테마 읽기 편의 개선:
@@ -235,7 +273,8 @@
   /* 탭(모바일은 :hover가 들러붙음) 시 좌우 패딩(0.75rem)을 :hover 마진(-0.75rem)과
      일치시켜 본문 컨텐츠 폭을 고정한다. 폭이 바뀌면 구절 전체가 다시 줄바꿈돼 출렁인다.
      (상하 1rem은 그대로 유지) */
-  .bible-verse-item:hover {
+  .bible-verse-item:hover,
+  .bible-verse-item.verse-selected {
     padding: 1rem 0.75rem;
   }
 }
