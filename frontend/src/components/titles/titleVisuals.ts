@@ -28,6 +28,12 @@ export const TIER_VISUALS: Record<TitleTier, TierVisual> = {
     chipBg: 'rgba(245, 158, 11, 0.16)',
     chipText: '#f0a82c',
   },
+  legendary: {
+    label: '전설',
+    ring: 'rgba(251, 191, 36, 0.9)',
+    chipBg: 'rgba(251, 191, 36, 0.18)',
+    chipText: '#fbbf24',
+  },
 }
 
 export const CATEGORY_ORDER: TitleCategory[] = ['time', 'pattern', 'hidden']

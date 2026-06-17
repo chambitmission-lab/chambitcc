@@ -229,6 +229,68 @@
   box-shadow: none;
 }
 
+/* 🏆 전설 등급 — 무지개빛 홀로그램 테두리가 살아 움직인다 */
+.title-card.title-tier-legendary.is-earned {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#1c1c26, #1c1c26) padding-box,
+    linear-gradient(135deg, #fbbf24, #ec4899, #a855f7, #22d3ee, #fbbf24) border-box;
+  background-size: 100% 100%, 300% 300%;
+  animation: legend-border 6s linear infinite, legend-glow 3s ease-in-out infinite;
+}
+
+.title-card.title-tier-legendary.is-earned .title-card-emblem {
+  background: linear-gradient(135deg, #fbbf24, #ec4899, #a855f7);
+  box-shadow: 0 6px 18px rgba(251, 191, 36, 0.5);
+}
+
+.title-card.title-tier-legendary.is-earned::after {
+  /* 카드 위를 천천히 지나가는 반짝임 */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.14) 50%, transparent 60%);
+  background-size: 250% 100%;
+  animation: legend-sheen 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes legend-border {
+  0% { background-position: 0% 0%, 0% 50%; }
+  100% { background-position: 0% 0%, 300% 50%; }
+}
+
+@keyframes legend-glow {
+  0%, 100% { box-shadow: 0 8px 28px rgba(168, 85, 247, 0.35), 0 0 0 1px rgba(251, 191, 36, 0.35); }
+  50% { box-shadow: 0 12px 36px rgba(236, 72, 153, 0.45), 0 0 24px rgba(251, 191, 36, 0.4); }
+}
+
+@keyframes legend-sheen {
+  0%, 100% { background-position: 130% 0; }
+  50% { background-position: -30% 0; }
+}
+
+.title-card-tier.is-legendary {
+  color: #1a1410;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fde68a, #fbbf24, #f472b6);
+  background-size: 200% 200%;
+  animation: legend-chip 3s ease infinite;
+}
+
+@keyframes legend-chip {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-card.title-tier-legendary.is-earned,
+  .title-card.title-tier-legendary.is-earned::after,
+  .title-card-tier.is-legendary {
+    animation: none;
+  }
+}
+
 /* 라이트 모드 폴백 */
 :root:not([data-theme='dark']) .title-card {
   background: #ffffff;
@@ -245,4 +307,10 @@
 }
 :root:not([data-theme='dark']) .title-card-desc {
   color: #4b5563;
+}
+:root:not([data-theme='dark']) .title-card.title-tier-legendary.is-earned {
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(135deg, #fbbf24, #ec4899, #a855f7, #22d3ee, #fbbf24) border-box;
+  background-size: 100% 100%, 300% 300%;
 }

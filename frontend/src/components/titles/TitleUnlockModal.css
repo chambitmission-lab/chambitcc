@@ -24,6 +24,33 @@
   overflow: hidden;
 }
 
+/* 🏆 전설 등급 팝업 — 무지개빛 테두리가 흐른다 */
+.title-unlock-card.is-legendary {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(160deg, #2a2012 0%, #1c1c26 60%) padding-box,
+    linear-gradient(135deg, #fbbf24, #ec4899, #a855f7, #22d3ee, #fbbf24) border-box;
+  background-size: 100% 100%, 300% 300%;
+  box-shadow: 0 24px 70px rgba(251, 191, 36, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: unlock-legend-border 6s linear infinite;
+}
+
+.title-unlock-card.is-legendary .title-unlock-emblem {
+  background: linear-gradient(135deg, #fbbf24, #ec4899, #a855f7);
+}
+
+.title-unlock-card.is-legendary .title-unlock-name {
+  background: linear-gradient(135deg, #fde68a, #fbbf24, #f9a8d4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes unlock-legend-border {
+  0% { background-position: 0% 0%, 0% 50%; }
+  100% { background-position: 0% 0%, 300% 50%; }
+}
+
 /* 번지는 광채 */
 .title-unlock-burst {
   position: absolute;
@@ -151,5 +178,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .title-unlock-burst { animation: none; }
+  .title-unlock-burst,
+  .title-unlock-card.is-legendary { animation: none; }
 }

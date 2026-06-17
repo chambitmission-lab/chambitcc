@@ -23,7 +23,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({ title, onToggleEquip, busy
 
   return (
     <div
-      className={`title-card${locked ? ' is-locked' : ' is-earned'}${title.equipped ? ' is-equipped' : ''}`}
+      className={`title-card title-tier-${title.tier}${locked ? ' is-locked' : ' is-earned'}${title.equipped ? ' is-equipped' : ''}`}
       style={!locked ? ({ ['--tier-ring' as string]: tier.ring }) : undefined}
     >
       <div className="title-card-top">
@@ -36,8 +36,11 @@ export const TitleCard: React.FC<TitleCardProps> = ({ title, onToggleEquip, busy
             {title.equipped && <span className="title-card-equipped-chip">장착중</span>}
           </div>
           <div className="title-card-meta">
-            <span className="title-card-tier" style={{ background: tier.chipBg, color: tier.chipText }}>
-              {tier.label}
+            <span
+              className={`title-card-tier${title.tier === 'legendary' ? ' is-legendary' : ''}`}
+              style={title.tier === 'legendary' ? undefined : { background: tier.chipBg, color: tier.chipText }}
+            >
+              {title.tier === 'legendary' ? '★ 전설' : tier.label}
             </span>
             <span className="title-card-cat">{title.category_label}</span>
           </div>

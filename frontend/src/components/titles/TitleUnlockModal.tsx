@@ -13,24 +13,34 @@ interface TitleUnlockModalProps {
   onClose: () => void
 }
 
-const fireConfetti = () => {
-  // 브랜드 컬러 폭죽 — 가운데 위에서 양옆으로
-  const colors = ['#a855f7', '#ec4899', '#f9a8d4', '#d8b4fe']
-  confetti({ particleCount: 70, spread: 70, startVelocity: 42, origin: { x: 0.5, y: 0.35 }, colors })
+const fireConfetti = (legendary = false) => {
+  // 브랜드 컬러 폭죽 — 가운데 위에서 양옆으로. 전설 등급은 금색을 더해 더 화려하게.
+  const colors = legendary
+    ? ['#fbbf24', '#fde68a', '#ec4899', '#a855f7', '#22d3ee']
+    : ['#a855f7', '#ec4899', '#f9a8d4', '#d8b4fe']
+  const base = legendary ? 130 : 70
+  confetti({ particleCount: base, spread: legendary ? 100 : 70, startVelocity: 46, origin: { x: 0.5, y: 0.35 }, colors })
   setTimeout(() => {
-    confetti({ particleCount: 40, angle: 60, spread: 60, origin: { x: 0, y: 0.5 }, colors })
-    confetti({ particleCount: 40, angle: 120, spread: 60, origin: { x: 1, y: 0.5 }, colors })
+    confetti({ particleCount: legendary ? 70 : 40, angle: 60, spread: 70, origin: { x: 0, y: 0.5 }, colors })
+    confetti({ particleCount: legendary ? 70 : 40, angle: 120, spread: 70, origin: { x: 1, y: 0.5 }, colors })
   }, 150)
+  if (legendary) {
+    // 전설: 한 번 더 쏟아지는 황금비
+    setTimeout(() => {
+      confetti({ particleCount: 90, spread: 120, startVelocity: 38, origin: { x: 0.5, y: 0.2 }, colors })
+    }, 450)
+  }
 }
 
 export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
   title, remaining, onEquip, onClose,
 }) => {
   const tier = TIER_VISUALS[title.tier]
+  const isLegendary = title.tier === 'legendary'
 
   useEffect(() => {
-    fireConfetti()
-  }, [title.key])
+    fireConfetti(isLegendary)
+  }, [title.key, isLegendary])
 
   return (
     <motion.div
@@ -41,7 +51,7 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
       onClick={onClose}
     >
       <motion.div
-        className="title-unlock-card"
+        className={`title-unlock-card${isLegendary ? ' is-legendary' : ''}`}
         onClick={(e) => e.stopPropagation()}
         initial={{ scale: 0.78, y: 28, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
@@ -57,7 +67,7 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.12 }}
         >
-          ✨ 새로운 칭호 획득
+          {isLegendary ? '🏆 전설 칭호 획득!' : '✨ 새로운 칭호 획득'}
         </motion.span>
 
         <motion.div

@@ -3,7 +3,7 @@ import { API_V1, apiFetch } from '../config/api'
 import { getAuthHeaders, requireAuth } from './utils/apiHelpers'
 
 export type TitleCategory = 'time' | 'pattern' | 'hidden'
-export type TitleTier = 'bronze' | 'silver' | 'gold'
+export type TitleTier = 'bronze' | 'silver' | 'gold' | 'legendary'
 
 export interface TitleProgress {
   current: number
