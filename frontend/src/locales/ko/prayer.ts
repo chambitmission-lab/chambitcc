@@ -117,10 +117,10 @@ export const prayer = {
   ambience: '배경음',
   ambienceSilent: '무음',
   ambienceRain: '빗소리',
-  ambienceDawn: '새벽 공기',
+  ambienceDawn: '겨울산 눈 바람소리',
   ambiencePiano: '잔잔한 피아노',
-  ambienceCandle: '촛불',
-  ambienceChurch: '교회 잔향',
+  ambienceCandle: '조용한 시간',
+  ambienceChurch: '반성할 때',
   ambienceUnavailable: '준비 중',
 
   // 중간 말씀
