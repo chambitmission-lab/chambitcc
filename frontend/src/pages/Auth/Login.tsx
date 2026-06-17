@@ -46,7 +46,12 @@ const Login = () => {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.detail || t('loginFailed'))
+        // 백엔드가 내려주는 detail은 영어로 고정되어 있으므로 그대로 노출하지 않고,
+        // 현재 선택된 언어에 맞는 번역 메시지로 변환해서 보여준다.
+        const message = response.status === 401
+          ? t('loginInvalidCredentials')
+          : t('loginFailed')
+        throw new Error(message)
       }
 
       // 토큰 저장

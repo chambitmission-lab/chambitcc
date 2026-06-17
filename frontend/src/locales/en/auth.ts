@@ -12,6 +12,7 @@ export const auth = {
   loginButton: 'Login',
   loginLoading: 'Logging in...',
   loginFailed: 'Login failed',
+  loginInvalidCredentials: 'Incorrect username or password',
   loginNoAccount: "Don't have an account?",
   loginSignUp: 'Sign Up',
   loginBackHome: 'Back to Home',
