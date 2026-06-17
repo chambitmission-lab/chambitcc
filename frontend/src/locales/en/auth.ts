@@ -32,6 +32,28 @@ export const auth = {
   registerPasswordMismatch: 'Passwords do not match',
   registerSuccess: 'Registration completed. Please login.',
   
+  // My Account / Account Settings
+  accountTitle: 'My Account',
+  accountInfoSection: 'Account Info',
+  accountUsername: 'Username',
+  accountFullName: 'Name',
+  accountEmail: 'Email',
+  accountJoinedAt: 'Joined',
+  accountNotSet: 'Not set',
+  accountChangePasswordSection: 'Change Password',
+  accountCurrentPassword: 'Current Password',
+  accountNewPassword: 'New Password (min 6 characters)',
+  accountConfirmNewPassword: 'Confirm New Password',
+  accountChangePasswordButton: 'Change Password',
+  accountChanging: 'Changing...',
+  accountPasswordChanged: 'Password changed successfully',
+  accountPasswordMismatch: 'New passwords do not match',
+  accountPasswordTooShort: 'Password must be at least 6 characters',
+  accountWrongCurrentPassword: 'Current password is incorrect',
+  accountChangePasswordFailed: 'Failed to change password',
+  accountCannotLoad: 'Could not load account info',
+  accountBack: 'Back',
+
   // Anonymous/Real Name
   anonymous: 'Anonymous',
   realName: 'Real Name',

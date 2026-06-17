@@ -26,6 +26,7 @@ const Worship = lazy(() => import('./pages/Worship/Worship'))
 const Sermon = lazy(() => import('./pages/Sermon/Sermon'))
 const Register = lazy(() => import('./pages/Auth/Register'))
 const Profile = lazy(() => import('./pages/Profile/Profile'))
+const AccountSettings = lazy(() => import('./pages/Account/AccountSettings'))
 const NotificationManagement = lazy(
   () => import('./pages/Admin/NotificationManagement'),
 )
@@ -145,6 +146,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/account" element={<AccountSettings />} />
                 <Route path="/admin/notifications" element={<NotificationManagement />} />
                 <Route path="/admin/daily-verse" element={<DailyVerseManagement />} />
                 <Route path="/admin/bulletins" element={<BulletinManagement />} />

@@ -32,6 +32,28 @@ export const auth = {
   registerPasswordMismatch: '비밀번호가 일치하지 않습니다',
   registerSuccess: '회원가입이 완료되었습니다. 로그인해주세요.',
   
+  // 내 정보 / 계정 설정
+  accountTitle: '내 정보',
+  accountInfoSection: '계정 정보',
+  accountUsername: '아이디',
+  accountFullName: '이름',
+  accountEmail: '이메일',
+  accountJoinedAt: '가입일',
+  accountNotSet: '미설정',
+  accountChangePasswordSection: '비밀번호 변경',
+  accountCurrentPassword: '현재 비밀번호',
+  accountNewPassword: '새 비밀번호 (최소 6자)',
+  accountConfirmNewPassword: '새 비밀번호 확인',
+  accountChangePasswordButton: '비밀번호 변경',
+  accountChanging: '변경 중...',
+  accountPasswordChanged: '비밀번호가 변경되었습니다',
+  accountPasswordMismatch: '새 비밀번호가 일치하지 않습니다',
+  accountPasswordTooShort: '비밀번호는 최소 6자 이상이어야 합니다',
+  accountWrongCurrentPassword: '현재 비밀번호가 올바르지 않습니다',
+  accountChangePasswordFailed: '비밀번호 변경에 실패했습니다',
+  accountCannotLoad: '내 정보를 불러올 수 없습니다',
+  accountBack: '뒤로',
+
   // 익명/실명
   anonymous: '익명',
   realName: '실명',
