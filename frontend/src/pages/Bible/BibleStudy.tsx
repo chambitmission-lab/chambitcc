@@ -16,6 +16,7 @@ import {
   BibleSearch,
   ResumeReadingCard,
 } from './components'
+import BookIntroCard from '../../components/bible/BookIntroCard'
 import './BibleStudy.css'
 
 const BibleStudy = () => {
@@ -195,6 +196,14 @@ const BibleStudy = () => {
                   onChapterChange={handleChapterChange}
                   onBackToBooks={handleChangeBook}
                 />
+
+                {/* 권 개관 — 책 진입 시 큰 그림 노출 (1장에서만 보여 가독성 유지) */}
+                {selectedChapter === 1 && (
+                  <BookIntroCard
+                    bookNumber={selectedBookData.book_number}
+                    bookNameKo={selectedBook}
+                  />
+                )}
                 
                 <VerseList
                   chapterData={chapterData}
