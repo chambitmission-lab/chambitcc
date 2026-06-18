@@ -1,5 +1,6 @@
 import type { GlowLevel } from '../../../types/achievement'
 import { getReadableTextStyle, toOpaqueColor } from '../../../utils/contrastText'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 interface LevelProgressProps {
   currentLevel: GlowLevel
@@ -8,6 +9,7 @@ interface LevelProgressProps {
 }
 
 const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgressProps) => {
+  const { t } = useLanguage()
   const progress = pointsToNext
     ? ((pointsToNext.total - pointsToNext.needed) / pointsToNext.total) * 100
     : 100
@@ -31,10 +33,10 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
         <div className="relative z-10 flex items-center justify-between mb-4">
           <div>
             <h3 className="text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
-              신앙의 온도
+              {t('levelTitle')}
             </h3>
             <p className="text-[12px] text-gray-500 dark:text-white/55 mt-0.5">
-              {currentPoints.toLocaleString()} 포인트
+              {currentPoints.toLocaleString()} {t('levelPoints')}
             </p>
           </div>
           <div
@@ -74,16 +76,16 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
           {pointsToNext ? (
             <div className="flex items-center justify-between mt-2 text-[12px]">
               <span className="text-gray-600 dark:text-white/65">
-                {currentLevel.name}
+                {t(currentLevel.nameKey)}
               </span>
               <span className="font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                다음 레벨까지 {pointsToNext.needed.toLocaleString()}P
+                {t('levelToNext')} {pointsToNext.needed.toLocaleString()}P
               </span>
             </div>
           ) : (
             <div className="text-center mt-2">
               <span className="text-[12px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                🎉 최고 레벨 달성! 🎉
+                🎉 {t('levelMaxReached')} 🎉
               </span>
             </div>
           )}
@@ -98,19 +100,19 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
           "
         >
           <p className="text-[12px] text-gray-700 dark:text-white/80 mb-2 font-semibold">
-            💡 포인트 획득 방법
+            💡 {t('levelHowToEarn')}
           </p>
           <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-[11.5px] text-gray-600 dark:text-white/60 leading-relaxed">
-            <div>• 기도 1회: 10P</div>
-            <div>• 댓글 1개: 10P</div>
-            <div>• 성경 1절: 3P</div>
-            <div>• 기도중 1개: 5P</div>
-            <div>• 1장 완독: 20P</div>
-            <div>• 1권 완독: 200P</div>
-            <div>• 연속 기도 1일: 5P</div>
-            <div>• 하이라이트 1개: 5P</div>
-            <div>• 묵상 노트 1개: 15P</div>
-            <div>• 즐겨찾기 1개: 3P</div>
+            <div>• {t('earnPrayer')}: 10P</div>
+            <div>• {t('earnReply')}: 10P</div>
+            <div>• {t('earnVerse')}: 3P</div>
+            <div>• {t('earnPrayingFor')}: 5P</div>
+            <div>• {t('earnChapter')}: 20P</div>
+            <div>• {t('earnBook')}: 200P</div>
+            <div>• {t('earnStreak')}: 5P</div>
+            <div>• {t('earnHighlight')}: 5P</div>
+            <div>• {t('earnNote')}: 15P</div>
+            <div>• {t('earnFavorite')}: 3P</div>
           </div>
         </div>
       </div>

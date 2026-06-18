@@ -1,5 +1,6 @@
 import type { GlowLevel } from '../../../types/achievement'
 import { getReadableTextStyle, toOpaqueColor } from '../../../utils/contrastText'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 interface ProfileGlowProps {
   glowLevel: GlowLevel
@@ -8,6 +9,7 @@ interface ProfileGlowProps {
 }
 
 const ProfileGlow = ({ glowLevel, specialAchievementColor }: ProfileGlowProps) => {
+  const { t } = useLanguage()
   const glowColor = specialAchievementColor || glowLevel.glowColor
   const badgeText = getReadableTextStyle(glowColor)
 
@@ -24,7 +26,7 @@ const ProfileGlow = ({ glowLevel, specialAchievementColor }: ProfileGlowProps) =
           textShadow: badgeText.textShadow,
         }}
       >
-        {glowLevel.name}
+        {t(glowLevel.nameKey)}
       </div>
     </div>
   )

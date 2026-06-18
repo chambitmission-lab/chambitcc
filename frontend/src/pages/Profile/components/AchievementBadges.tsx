@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Achievement } from '../../../types/achievement'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 interface AchievementBadgesProps {
   achievements: Achievement[]
@@ -7,6 +8,7 @@ interface AchievementBadgesProps {
 }
 
 const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadgesProps) => {
+  const { t } = useLanguage()
   const [showAll, setShowAll] = useState(false)
 
   const unlockedAchievements = achievements.filter(a => a.unlocked)
@@ -27,14 +29,14 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
           <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
           <div className="relative z-10">
             <h3 className="text-[14px] font-bold text-gray-900 dark:text-white mb-3 tracking-[-0.01em]">
-              🏆 업적
+              🏆 {t('achievementTitle')}
             </h3>
             <div className="text-center py-6">
               <p className="text-[13px] text-gray-500 dark:text-white/60 mb-1">
-                아직 해금된 업적이 없습니다
+                {t('achievementNoUnlocked')}
               </p>
               <p className="text-[12px] text-gray-400 dark:text-white/40">
-                기도하고 성경을 읽으며 업적을 해금하세요!
+                {t('achievementStartPraying')}
               </p>
             </div>
           </div>
@@ -58,14 +60,14 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
 
         <div className="relative z-10 flex items-center justify-between mb-4">
           <h3 className="text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
-            🏆 업적 ({unlockedAchievements.length}/{achievements.length})
+            🏆 {t('achievementTitle')} ({unlockedAchievements.length}/{achievements.length})
           </h3>
           {unlockedAchievements.length > 6 && (
             <button
               onClick={() => setShowAll(!showAll)}
               className="text-[12px] font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-purple-600 hover:to-pink-600 transition-all"
             >
-              {showAll ? '접기' : '전체보기'}
+              {showAll ? t('achievementCollapse') : t('achievementShowAll')}
             </button>
           )}
         </div>
@@ -91,7 +93,7 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
               </div>
 
               <div className="text-[11.5px] font-semibold text-gray-900 dark:text-white line-clamp-1">
-                {achievement.title}
+                {t(achievement.titleKey)}
               </div>
 
               {!achievement.unlocked && (

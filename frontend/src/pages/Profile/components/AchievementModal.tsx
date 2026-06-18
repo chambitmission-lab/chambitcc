@@ -1,4 +1,5 @@
 import type { Achievement } from '../../../types/achievement'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 interface AchievementModalProps {
   achievement: Achievement | null
@@ -6,6 +7,7 @@ interface AchievementModalProps {
 }
 
 const AchievementModal = ({ achievement, onClose }: AchievementModalProps) => {
+  const { t } = useLanguage()
   if (!achievement) return null
   
   return (
@@ -35,25 +37,25 @@ const AchievementModal = ({ achievement, onClose }: AchievementModalProps) => {
           
           {achievement.unlocked && (
             <div className="inline-block px-4 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-sm font-bold rounded-full shadow-lg">
-              ✓ 해금됨
+              ✓ {t('achievementUnlocked')}
             </div>
           )}
         </div>
         
         {/* 제목 */}
         <h3 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-2">
-          {achievement.title}
+          {t(achievement.titleKey)}
         </h3>
-        
+
         {/* 설명 */}
         <p className="text-center text-gray-600 dark:text-gray-400 mb-4">
-          {achievement.description}
+          {t(achievement.descKey)}
         </p>
-        
+
         {/* 진행도 */}
         <div className="mb-6">
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-gray-600 dark:text-gray-400">진행도</span>
+            <span className="text-gray-600 dark:text-gray-400">{t('achievementProgress')}</span>
             <span className="font-semibold text-gray-900 dark:text-white">
               {achievement.progress} / {achievement.requirement}
             </span>
@@ -74,12 +76,12 @@ const AchievementModal = ({ achievement, onClose }: AchievementModalProps) => {
         {achievement.unlocked && (
           <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl mb-4">
             <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-              🎁 해금 보상
+              🎁 {t('achievementReward')}
             </p>
             <div className="text-xs text-gray-600 dark:text-gray-400">
-              • 특별 글로우 효과 해금
+              • {t('achievementRewardGlow')}
               <br />
-              • 프로필에 업적 뱃지 표시
+              • {t('achievementRewardBadge')}
             </div>
           </div>
         )}
@@ -89,7 +91,7 @@ const AchievementModal = ({ achievement, onClose }: AchievementModalProps) => {
           onClick={onClose}
           className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg"
         >
-          확인
+          {t('achievementConfirm')}
         </button>
       </div>
     </div>
