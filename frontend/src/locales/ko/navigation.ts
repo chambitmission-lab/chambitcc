@@ -25,6 +25,7 @@ export const navigation = {
   pushNotificationManagement: '📢 푸시 알림 관리',
   userManagement: '👥 회원 관리',
   garden: '🏷️ 성경 칭호',
+  bluemarble: '🎲 바이블 퀘스트',
   answeredPrayers: '✨ 응답의 전당',
   missionStatus: '🌍 선교 현황',
   adminMenu: '관리자 메뉴',

@@ -25,6 +25,7 @@ export const navigation = {
   pushNotificationManagement: '📢 Push Notification Management',
   userManagement: '👥 User Management',
   garden: '🏷️ Bible Titles',
+  bluemarble: '🎲 Bible Quest',
   answeredPrayers: '✨ Answered Prayers',
   missionStatus: '🌍 Mission Status',
   adminMenu: 'Admin Menu',

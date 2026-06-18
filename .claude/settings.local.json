@@ -98,7 +98,10 @@
       "Bash(ls public/)",
       "Bash(head -60 public/sw.js)",
       "Bash(ls ../.github/workflows/)",
-      "Bash(echo \"EXIT: $?\")"
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(curl -s -m 4 -o /dev/null -w \"8000:%{http_code}\\\\n\" http://localhost:8000/docs)",
+      "Bash(curl -s -m 4 -o /dev/null -w \"8000api:%{http_code}\\\\n\" http://localhost:8000/api/v1/prayer-sessions/stats)",
+      "Bash(netstat -ano)"
     ]
   }
 }
