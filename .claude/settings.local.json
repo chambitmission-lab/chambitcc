@@ -97,7 +97,8 @@
       "Bash(ls node_modules/flag-icons)",
       "Bash(ls public/)",
       "Bash(head -60 public/sw.js)",
-      "Bash(ls ../.github/workflows/)"
+      "Bash(ls ../.github/workflows/)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

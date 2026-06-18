@@ -26,7 +26,7 @@ const PrayerActions = ({
   isPrayed,
   isPraying,
   onPray,
-  prayerText,
+  // prayerText, // TTS 비활성화로 미사용 (인터페이스에는 유지)
   colorTheme,
   isOwner,
   isAnswered,
