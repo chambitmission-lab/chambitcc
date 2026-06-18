@@ -111,22 +111,31 @@ const SessionComplete = ({
       </div>
 
       <div className="relative z-10 px-4 py-10 max-w-md mx-auto space-y-6 animate-fade-in text-center">
-        {/* 완료 아이콘 */}
-        <div className="relative">
-          <div className={`w-24 h-24 mx-auto bg-gradient-to-br ${mood.buttonGradient} rounded-full flex items-center justify-center animate-scale-in shadow-[0_10px_15px_-3px_rgba(168,85,247,0.25),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-4px_6px_rgba(0,0,0,0.2)]`}>
-            <span className="material-icons-outlined text-5xl">check_circle</span>
-          </div>
-          <div className={`absolute inset-0 w-24 h-24 mx-auto rounded-full animate-ping ${mood.glowC}`}></div>
-        </div>
+        {/* 완료 Hero 카드 */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-[rgba(20,20,25,0.6)] backdrop-blur-xl border border-white/8 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
 
-        <div className="space-y-2">
-          <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
-            {t('prayerComplete')}
-          </h2>
-          <p className="text-white/70 leading-relaxed">{closingMessage}</p>
-          <p className="text-white/45 text-sm">
-            {duration} {t('minutes')}{theme ? ` · ${tx(theme.labelKey)}` : ''}
-          </p>
+          <div className="relative z-10">
+            {/* 완료 아이콘 (emblem) */}
+            <div className="relative w-24 h-24 mx-auto mb-4">
+              <div className={`w-24 h-24 bg-gradient-to-br ${mood.buttonGradient} rounded-full flex items-center justify-center animate-scale-in shadow-[0_10px_15px_-3px_rgba(168,85,247,0.25),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-4px_6px_rgba(0,0,0,0.2)]`}>
+                <span className="material-icons-outlined text-5xl">check_circle</span>
+              </div>
+              <div className={`absolute inset-0 w-24 h-24 rounded-full animate-ping ${mood.glowC}`}></div>
+            </div>
+
+            <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
+              {t('prayerComplete')}
+            </h2>
+            <p className="text-white/70 leading-relaxed mt-2">{closingMessage}</p>
+
+            {/* 시간·주제 chip */}
+            <div className="mt-4 flex justify-center">
+              <span className={`inline-flex items-center px-3 py-1 rounded-full bg-white/8 border border-white/10 text-xs font-medium ${mood.accentText}`}>
+                {duration} {t('minutes')}{theme ? ` · ${tx(theme.labelKey)}` : ''}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* 영적 흔적 (통계) */}
@@ -177,16 +186,16 @@ const SessionComplete = ({
               rows={2}
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white/90 placeholder-white/30 focus:outline-none focus:border-white/30 resize-none"
             />
-            <div className="flex items-center justify-between mt-2">
+            <div className="flex justify-end mt-1.5">
               <span className="text-[10px] text-white/30">{note.length}/100</span>
-              <button
-                onClick={handleSaveNote}
-                disabled={!note.trim() || savingNote}
-                className={`px-4 py-1.5 text-xs font-medium rounded-full bg-gradient-to-r ${mood.buttonGradient} disabled:opacity-40 disabled:cursor-not-allowed`}
-              >
-                {savingNote ? '...' : t('saveOneLine')}
-              </button>
             </div>
+            <button
+              onClick={handleSaveNote}
+              disabled={!note.trim() || savingNote}
+              className={`w-full mt-2 py-2.5 text-sm font-medium rounded-xl bg-gradient-to-r ${mood.buttonGradient} disabled:opacity-40 disabled:cursor-not-allowed transition-all`}
+            >
+              {savingNote ? '...' : t('saveOneLine')}
+            </button>
           </div>
         )}
 
@@ -240,9 +249,11 @@ const SessionComplete = ({
 
 const Stat = ({ value, unit, label, mood }: { value: number; unit: string; label: string; mood: MoodPalette }) => (
   <div>
-    <div className={`text-xl font-bold ${mood.accentText}`}>{value}</div>
-    <div className="text-[10px] text-white/40">{unit}</div>
-    <div className="text-[10px] text-white/50 mt-0.5">{label}</div>
+    <div className={`text-xl font-bold ${mood.accentText} whitespace-nowrap`}>
+      {value}
+      <span className="text-xs font-medium ml-0.5">{unit}</span>
+    </div>
+    <div className="text-[10px] text-white/50 mt-1 whitespace-nowrap">{label}</div>
   </div>
 )
 

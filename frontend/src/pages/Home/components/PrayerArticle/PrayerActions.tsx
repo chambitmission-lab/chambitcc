@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import TextToSpeechButton from '../../../../components/common/TextToSpeechButton'
+// import TextToSpeechButton from '../../../../components/common/TextToSpeechButton' // TTS 비활성화
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import type { GroupColorTheme } from '../../../../utils/groupColors'
 
@@ -92,10 +92,11 @@ const PrayerActions = ({
             </span>
           </button>
           
-          <TextToSpeechButton 
+          {/* 기도내용 읽어주기(TTS) 기능 비활성화 - 화면에서 숨김
+          <TextToSpeechButton
             text={prayerText}
             size="md"
-          />
+          /> */}
         </div>
 
         {/* 응답 등록 버튼 (내 기도이고 아직 응답 안됨) */}
