@@ -93,14 +93,19 @@ const Profile = () => {
   }, [activityData])
   
   // 새로 해금된 업적 확인
+  // 주의: activityData는 프로필(data) + 블루마블(bmStats) 두 쿼리로 단계적으로 만들어진다.
+  // 둘 중 하나만 도착한 상태에서 감지가 돌면, 아직 안 온 데이터 기준 업적이 빠진 채로
+  // localStorage('unlocked_achievements')를 덮어쓴 뒤 → 나머지 데이터 도착 시 "새 해금"으로
+  // 오판되어 매 방문마다 모달이 뜬다. 따라서 데이터가 완전히 로드된 뒤에만 감지한다.
   useEffect(() => {
+    if (isLoading || (hasToken && bmLoading)) return
     if (achievements.length > 0) {
       const newlyUnlocked = getNewlyUnlockedAchievements(achievements)
       if (newlyUnlocked.length > 0) {
         setSelectedAchievement(newlyUnlocked[0])
       }
     }
-  }, [achievements])
+  }, [achievements, isLoading, bmLoading, hasToken])
 
   const handleLogout = async () => {
     await logout() // 푸시 구독 해제 + 토큰 제거 + React Query 캐시 정리
