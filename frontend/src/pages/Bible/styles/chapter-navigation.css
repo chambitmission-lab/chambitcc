@@ -88,6 +88,19 @@
   border-color: rgba(255, 255, 255, 0.08);
 }
 
+/* 네이티브 드롭다운 팝업(option)은 PC 브라우저에서 흰 배경으로 렌더되어
+   상속된 흰 글자가 안 보임 → 명시적으로 색상 지정 */
+.chapter-select option {
+  background-color: #ffffff;
+  color: #1c1c26;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .chapter-select option {
+  background-color: #1c1c26;
+  color: #f5f5f7;
+}
+
 .chapter-select:focus {
   outline: none;
   border-color: #a855f7;
