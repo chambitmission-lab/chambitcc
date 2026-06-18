@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { MoodPalette } from './moodPalette'
 import type { PrayerTheme } from './prayerThemes'
@@ -6,9 +7,9 @@ import {
   createPrayerSession,
   getPrayerSessionStats,
   recordLocalSession,
+  updatePrayerSessionNote,
   type PrayerSessionStats,
 } from '../../api/prayerSession'
-import { createThanks } from '../../api/thanks'
 
 interface SessionCompleteProps {
   duration: number  // 분 단위
@@ -33,9 +34,11 @@ const SessionComplete = ({
 }: SessionCompleteProps) => {
   const { t } = useLanguage()
   const tx = t as unknown as (k: string) => string
+  const navigate = useNavigate()
 
   const [stats, setStats] = useState<PrayerSessionStats | null>(null)
   const [statsLoading, setStatsLoading] = useState(false)
+  const [sessionId, setSessionId] = useState<number | null>(null)
   const [note, setNote] = useState('')
   const [savingNote, setSavingNote] = useState(false)
   const [noteSaved, setNoteSaved] = useState(false)
@@ -62,7 +65,8 @@ const SessionComplete = ({
     setStatsLoading(true)
     ;(async () => {
       try {
-        await createPrayerSession(payload)
+        const session = await createPrayerSession(payload)
+        setSessionId(session.id)
         const s = await getPrayerSessionStats()
         setStats(s)
       } catch (err) {
@@ -83,9 +87,16 @@ const SessionComplete = ({
       setRecordError(t('loginRequired') || '로그인이 필요합니다')
       return
     }
+    if (!sessionId) {
+      // 세션 기록 자체가 실패한 경우 — 묵상 메모를 붙일 대상이 없음
+      setRecordError(recordError || t('prayerSessionSaveFailed') || '세션 기록에 실패해 묵상을 저장할 수 없습니다')
+      return
+    }
     setSavingNote(true)
+    setRecordError(null)
     try {
-      await createThanks({ content: trimmed.slice(0, 100) })
+      // 공개 감사가 아니라 이 기도 세션에 종속된 비공개 묵상 기록으로 저장
+      await updatePrayerSessionNote(sessionId, trimmed.slice(0, 100))
       setNoteSaved(true)
     } catch (err) {
       setRecordError((err as Error).message)
@@ -175,10 +186,14 @@ const SessionComplete = ({
           </div>
         )}
 
-        {/* 한 줄 감사 기록 */}
+        {/* 한 줄 묵상 기록 (비공개 — 이 기도 세션에 종속) */}
         {isLoggedIn() && !noteSaved && (
           <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-5 border border-white/8 text-left">
-            <p className="text-white/75 text-sm mb-3">{t('recordOneLineTitle')}</p>
+            <p className="text-white/75 text-sm mb-1">{t('recordOneLineTitle')}</p>
+            <p className="text-white/40 text-xs mb-3 flex items-center gap-1">
+              <span className="material-icons-outlined text-[13px]">lock</span>
+              {t('devotionNotePrivateHint')}
+            </p>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value.slice(0, 100))}
@@ -200,8 +215,16 @@ const SessionComplete = ({
         )}
 
         {noteSaved && (
-          <div className={`bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-4 border border-white/8 text-sm ${mood.accentText}`}>
-            ✓ {t('thanksSaved')}
+          <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-4 border border-white/8 text-left">
+            <p className={`text-sm ${mood.accentText}`}>✓ {t('devotionNoteSaved')}</p>
+            <p className="text-white/50 text-xs mt-1.5">{t('devotionNoteSavedHint')}</p>
+            <button
+              onClick={() => navigate('/growth')}
+              className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-white/80 hover:text-white transition-colors"
+            >
+              <span className="material-icons-outlined text-sm">timeline</span>
+              {t('viewInGrowth')}
+            </button>
           </div>
         )}
 

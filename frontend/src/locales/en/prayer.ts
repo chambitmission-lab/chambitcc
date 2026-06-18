@@ -130,10 +130,15 @@ export const prayer = {
   prayerCompleteRest: 'Remember the time you spent before God today',
   recordOneLineTitle: 'Leave one line about what you received',
   recordOneLinePlaceholder: 'e.g., Thank you for granting peace',
-  saveOneLine: 'Save',
+  devotionNotePrivateHint: 'A private reflection only you can see',
+  saveOneLine: 'Save reflection',
   amenButton: 'Amen',
   amenSaved: 'You closed with an Amen',
   thanksSaved: 'Your one-line thanks was saved',
+  devotionNoteSaved: 'Your reflection was saved',
+  devotionNoteSavedHint: 'You can revisit it with this prayer in your faith journey',
+  viewInGrowth: 'View in faith journey',
+  prayerSessionSaveFailed: "Couldn't save the reflection because the session record failed",
   skipForNow: 'Maybe later',
 
   // Stats / Spiritual trace

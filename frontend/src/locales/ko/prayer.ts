@@ -130,10 +130,15 @@ export const prayer = {
   prayerCompleteRest: '오늘도 하나님 앞에 머문 시간을 기억하세요',
   recordOneLineTitle: '오늘 받은 마음을 한 줄로 남겨보세요',
   recordOneLinePlaceholder: '예: 평안을 주셔서 감사합니다',
-  saveOneLine: '한 줄 저장',
+  devotionNotePrivateHint: '나만 보는 묵상 기록이에요',
+  saveOneLine: '묵상 기록 저장',
   amenButton: '아멘',
   amenSaved: '아멘으로 마무리하셨습니다',
   thanksSaved: '감사 한 줄이 기록되었습니다',
+  devotionNoteSaved: '묵상 한 줄이 기록되었습니다',
+  devotionNoteSavedHint: '신앙 여정 타임라인에서 이 기도와 함께 다시 볼 수 있어요',
+  viewInGrowth: '신앙 여정에서 보기',
+  prayerSessionSaveFailed: '세션 기록에 실패해 묵상을 저장할 수 없습니다',
   skipForNow: '다음에 하기',
 
   // 통계/영적 흔적

@@ -77,6 +77,25 @@ export const createPrayerSession = async (
   return json.data as PrayerSessionResponse
 }
 
+/** 세션 묵상 한 줄 기록 저장/수정 (로그인 필수, 비공개) */
+export const updatePrayerSessionNote = async (
+  sessionId: number,
+  note: string,
+): Promise<PrayerSessionResponse> => {
+  requireAuth()
+  const response = await apiFetch(`${API_V1}/prayer-sessions/${sessionId}/note`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ note }),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || '묵상 기록 저장에 실패했습니다')
+  }
+  const json = await response.json()
+  return json.data as PrayerSessionResponse
+}
+
 /** 통계 조회 (로그인 필수) */
 export const getPrayerSessionStats = async (): Promise<PrayerSessionStats> => {
   requireAuth()
