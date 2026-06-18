@@ -5,6 +5,7 @@ import VerseReadingButton from '../../../components/prayer/VerseReadingButton'
 import { isAdmin } from '../../../utils/auth'
 import { useVerseBookmark } from '../../../hooks/useBibleBookmark'
 import VerseBookmarkModal, { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
+import VerseNoteSheet from './VerseNoteSheet'
 
 interface VerseItemProps {
   verse: BibleVerse
@@ -20,6 +21,7 @@ interface VerseItemProps {
 const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, hasCommentary }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
+  const [showNoteSheet, setShowNoteSheet] = useState(false)
   const [showActions, setShowActions] = useState(false)
   const maxProgressRef = useRef(0) // 최대 진행률 추적
   const isAdminUser = isAdmin()
@@ -176,6 +178,29 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     return { readPart, unreadPart, progress: displayProgress }
   }, [isReading, spokenText, verse.text])
   
+  const hasNote = !!bookmark?.note
+
+  // 구절 본문에 줄 좌측 강조(블록 지정). 색 형광펜이 우선, 없으면 노트가 있을 때
+  // 은은한 보라 틴트로 "여긴 내가 묵상한 절"임을 본문 읽기를 방해하지 않는 선에서 표시.
+  const rowAccent =
+    highlightBg && !isReading
+      ? {
+          // 다크 배경 위에서 파스텔 형광펜이 탁하게 떡지지 않도록:
+          // 색 정체성은 왼쪽 바로 또렷하게 주고, 면은 아주 옅은 틴트만.
+          background: `linear-gradient(to right, ${highlightBg}26, ${highlightBg}0d)`,
+          borderLeft: `3px solid ${highlightBg}`,
+          borderRadius: '0.375rem',
+          padding: '0.375rem 0.5rem',
+        }
+      : hasNote && !isReading
+        ? {
+            background: 'linear-gradient(to right, rgba(168,85,247,0.10), rgba(168,85,247,0.02))',
+            borderLeft: '3px solid rgba(168,85,247,0.55)',
+            borderRadius: '0.375rem',
+            padding: '0.375rem 0.5rem',
+          }
+        : {}
+
   // 이미 읽은 구절은 읽기 시작 방지
   const handleStartReading = () => {
     if (isRead) {
@@ -212,23 +237,15 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           }
         }}
         aria-expanded={showActions}
-        aria-label={`${verse.verse}절 액션 ${showActions ? '닫기' : '열기'}`}
+        aria-label={`${verse.verse}절 메뉴 ${showActions ? '닫기' : '열기'}`}
         style={{
+          position: 'relative',
           display: 'flex',
           gap: '1.25rem',
           alignItems: 'flex-start',
           cursor: 'pointer',
           userSelect: 'text',
-          ...(highlightBg && !isReading
-            ? {
-                // 다크 배경 위에서 파스텔 형광펜이 탁하게 떡지지 않도록:
-                // 색 정체성은 왼쪽 바로 또렷하게 주고, 면은 아주 옅은 틴트만.
-                background: `linear-gradient(to right, ${highlightBg}26, ${highlightBg}0d)`,
-                borderLeft: `3px solid ${highlightBg}`,
-                borderRadius: '0.375rem',
-                padding: '0.375rem 0.5rem',
-              }
-            : {}),
+          ...rowAccent,
         }}
       >
         <span className="bible-verse-number">{verse.verse}</span>
@@ -257,7 +274,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         </span>
 
         {/* 가벼운 상태 인디케이터 (점/체크) - 본문 폭을 거의 잡아먹지 않음 */}
-        {(isRead || bookmark || hasCommentary) && (
+        {(isRead || (bookmark && (bookmark.is_favorite || bookmark.highlight_color)) || hasCommentary) && (
           <div
             style={{
               display: 'flex',
@@ -276,9 +293,11 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                 check_circle
               </span>
             )}
-            {bookmark && (
+            {/* 노트 전용 북마크는 아래 칩+좌측 강조로 이미 보이므로 점 생략(중복 방지).
+                즐겨찾기/하이라이트만 점으로 표시. */}
+            {bookmark && (bookmark.is_favorite || bookmark.highlight_color) && (
               <span
-                title={bookmark.is_favorite ? '즐겨찾기' : bookmark.note ? '묵상 노트' : '북마크'}
+                title={bookmark.is_favorite ? '즐겨찾기' : '하이라이트'}
                 style={{
                   width: '6px',
                   height: '6px',
@@ -300,37 +319,30 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             )}
           </div>
         )}
-      </div>
-
-      {/* 액션바 - 탭 시 본문 아래로 등장.
-          높이(grid-template-rows)는 '즉시' 토글해 레이아웃 애니메이션을 없앤다 →
-          펼침/접힘 동안 프레임마다 아래 구절이 reflow되며 버벅이던 현상 제거.
-          버튼은 opacity/transform(GPU 합성)으로만 부드럽게 페이드한다. */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateRows: showActions ? '1fr' : '0fr',
-          marginLeft: '3.25rem',
-        }}
-        aria-hidden={!showActions}
-      >
-        {/* 펼쳐진 상태에선 overflow를 풀어 버튼 글로우가 사각형으로 잘리지 않게 한다. */}
-        <div style={{ overflow: showActions ? 'visible' : 'hidden' }}>
+        {/* 플로팅 액션 메뉴 - 탭하면 구절 바로 아래에 떠서(absolute) 다음 구절을 밀어내지 않는다.
+            인라인으로 펼쳐 본문이 reflow되며 시선이 끌려가던 문제를 오버레이로 대체. */}
+        {showActions && (
           <div
+            onClick={(e) => e.stopPropagation()}
+            role="menu"
+            className="verse-action-popover"
             style={{
+              position: 'absolute',
+              top: 'calc(100% + 6px)',
+              left: '3.25rem',
+              zIndex: 50,
               display: 'flex',
               gap: '0.5rem',
               alignItems: 'center',
               flexWrap: 'wrap',
-              paddingTop: '0.5rem',
-              opacity: showActions ? 1 : 0,
-              transform: showActions ? 'translateY(0)' : 'translateY(-6px)',
-              transition: 'opacity 0.18s ease, transform 0.18s ease',
+              padding: '0.4rem 0.5rem',
+              borderRadius: '1.5rem',
+              animation: 'versePopIn 0.16s ease-out',
             }}
           >
             {/* 주요 액션: 북마크·해석 (가장 자주 쓰는 묵상 동작을 앞에 배치) */}
             <button
-              onClick={() => setShowBookmarkModal(true)}
+              onClick={() => { setShowActions(false); setShowBookmarkModal(true) }}
               className="verse-action-btn"
               style={
                 bookmark?.is_favorite
@@ -373,7 +385,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
 
             {onShowCommentary && (
               <button
-                onClick={() => onShowCommentary(verse)}
+                onClick={() => { setShowActions(false); onShowCommentary(verse) }}
                 className="verse-action-btn"
                 style={
                   hasCommentary
@@ -433,7 +445,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             {/* 보조 액션: 구절 수정 (관리자) */}
             {isAdminUser && onEdit && (
               <button
-                onClick={() => onEdit(verse)}
+                onClick={() => { setShowActions(false); onEdit(verse) }}
                 className="verse-action-btn"
                 style={{
                   background: 'rgba(148, 163, 184, 0.1)',
@@ -449,7 +461,16 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               </button>
             )}
           </div>
-        </div>
+        )}
+
+        {/* 바깥 탭 시 닫기. 낭독(음성 인식) 중에는 스크롤/읽기를 막지 않도록 백드롭 생략. */}
+        {showActions && !isReading && (
+          <div
+            onClick={(e) => { e.stopPropagation(); setShowActions(false) }}
+            style={{ position: 'fixed', inset: 0, zIndex: 40 }}
+            aria-hidden
+          />
+        )}
       </div>
 
 
@@ -546,32 +567,47 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         </div>
       )}
 
-      {/* 묵상 메모 미리보기 */}
-      {bookmark?.note && (
-        <div
-          onClick={() => setShowBookmarkModal(true)}
+      {/* 묵상 노트 칩 - 메모 본문을 흐름에 그대로 풀어놓아 성경 본문과 섞이던 문제를
+          해결. 작은 칩만 두고, 누르면 하단 시트가 올라와 메모를 또렷하게 보여준다. */}
+      {hasNote && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setShowNoteSheet(true) }}
           style={{
+            alignSelf: 'flex-start',
             marginLeft: '3.25rem',
-            padding: '0.625rem 0.875rem',
-            background: 'rgba(168, 85, 247, 0.08)',
-            borderLeft: '3px solid rgba(168, 85, 247, 0.5)',
-            borderRadius: '0.375rem',
+            marginTop: '0.25rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.375rem',
+            maxWidth: 'calc(100% - 3.25rem)',
+            padding: '0.3rem 0.7rem 0.3rem 0.55rem',
+            background: 'rgba(168, 85, 247, 0.1)',
+            border: '1px solid rgba(168, 85, 247, 0.28)',
+            borderRadius: '999px',
             cursor: 'pointer',
-            fontSize: '0.875rem',
+            fontSize: '0.8125rem',
             color: 'var(--ig-secondary-text)',
-            fontStyle: 'italic',
-            lineHeight: 1.5,
+            lineHeight: 1.3,
+            WebkitTapHighlightColor: 'transparent',
           }}
-          title="클릭해서 수정"
+          title="묵상 노트 보기"
         >
-          <span
-            className="material-icons-round"
-            style={{ fontSize: '0.875rem', marginRight: '0.375rem', verticalAlign: 'middle', color: '#a855f7' }}
-          >
-            edit_note
+          <span className="material-icons-round" style={{ fontSize: '1rem', color: '#a855f7', flexShrink: 0 }}>
+            sticky_note_2
           </span>
-          {bookmark.note.length > 100 ? bookmark.note.slice(0, 100) + '...' : bookmark.note}
-        </div>
+          <span style={{ fontWeight: 700, color: '#a855f7', flexShrink: 0 }}>묵상 노트</span>
+          <span
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              opacity: 0.85,
+            }}
+          >
+            {bookmark!.note}
+          </span>
+        </button>
       )}
 
       {/* 북마크/묵상 모달 */}
@@ -582,6 +618,17 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           verseText={verse.text}
           existing={bookmark ?? null}
           onClose={() => setShowBookmarkModal(false)}
+        />
+      )}
+
+      {/* 묵상 노트 읽기 시트 - 수정 누르면 편집 모달로 전환 */}
+      {showNoteSheet && bookmark?.note && (
+        <VerseNoteSheet
+          verseReference={`${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verse.verse}`.trim()}
+          verseText={verse.text}
+          bookmark={bookmark}
+          onEdit={() => { setShowNoteSheet(false); setShowBookmarkModal(true) }}
+          onClose={() => setShowNoteSheet(false)}
         />
       )}
     </div>
