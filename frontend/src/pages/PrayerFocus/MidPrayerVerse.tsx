@@ -34,7 +34,7 @@ const MidPrayerVerse = ({ show, verseText, verseRef, visibleMs = 9000, onHide }:
 
   return (
     <div
-      className={`pointer-events-none absolute inset-x-0 top-1/3 flex flex-col items-center justify-center px-8 text-center transition-all duration-[1400ms] ease-out ${
+      className={`pointer-events-none absolute inset-x-0 top-0 bottom-[62%] flex flex-col items-center justify-end px-8 pb-2 text-center transition-all duration-[1400ms] ease-out ${
         mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       }`}
     >
