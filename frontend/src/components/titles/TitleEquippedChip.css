@@ -39,6 +39,31 @@
   -webkit-text-fill-color: transparent;
 }
 
+/* 로딩 스켈레톤 — 칩과 같은 크기로 자리를 잡아 레이아웃 점프/빈 상태 깜빡임을 막는다 */
+.title-chip-skeleton {
+  width: 116px;
+  height: 31px;
+  cursor: default;
+  border-color: rgba(168, 85, 247, 0.2);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
+  box-shadow: none;
+  animation: title-chip-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+.title-chip-skeleton:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+@keyframes title-chip-skeleton-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-chip-skeleton { animation: none; opacity: 0.55; }
+}
+
 /* 빈 상태(칭호 미장착) */
 .title-chip-empty {
   color: #a78bfa;

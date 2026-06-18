@@ -8,7 +8,13 @@ const SPARKLES = [0, 1, 2, 3, 4, 5]
 
 export const TitleEquippedChip: React.FC = () => {
   const navigate = useNavigate()
-  const { data: equipped } = useEquippedTitle()
+  const { data: equipped, isLoading } = useEquippedTitle()
+
+  // 첫 로드(캐시 없음)에는 equipped 가 undefined 라 "칭호 달기" 빈 상태가 잠깐 떴다가
+  // 실제 칭호로 바뀌는 플래시가 생긴다. 로딩 중에는 같은 크기의 스켈레톤을 보여 깜빡임을 막는다.
+  if (isLoading && !equipped) {
+    return <div className="title-chip title-chip-skeleton" aria-hidden />
+  }
 
   if (!equipped) {
     return (

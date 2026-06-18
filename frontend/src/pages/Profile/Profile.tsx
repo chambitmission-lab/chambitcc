@@ -43,8 +43,11 @@ const Profile = () => {
     }
   }, [navigate])
   
+  const hasToken = !!localStorage.getItem('access_token')
   const { data, isLoading, error } = useProfileDetail()
-  const { data: bmStats } = useBluemarbleStats(!!localStorage.getItem('access_token'))
+  // 블루마블 통계도 포인트(=양 단계/레벨)에 기여하므로, 도착 전 렌더하면
+  // bluemarble=0 으로 낮게 계산된 양이 먼저 떴다가 점프하는 플래시가 생긴다.
+  const { data: bmStats, isLoading: bmLoading } = useBluemarbleStats(hasToken)
 
   // 활동 데이터를 기반으로 업적 계산
   const activityData = useMemo<UserActivityData | null>(() => {
@@ -116,7 +119,7 @@ const Profile = () => {
     setSelectedAchievement(null)
   }
 
-  if (isLoading) {
+  if (isLoading || (hasToken && bmLoading)) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-background-dark flex items-center justify-center">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark p-8 rounded-2xl">
