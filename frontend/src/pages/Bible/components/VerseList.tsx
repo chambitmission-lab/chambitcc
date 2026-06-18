@@ -89,6 +89,7 @@ const VerseList = ({
   // 백엔드에서 읽음 상태 조회 (로그인 시 항상)
   const {
     data: readStatusData,
+    isLoading: readStatusLoading,
     refetch: refetchReadStatus
   } = useChapterReadStatus(
     bookNumber,
@@ -257,8 +258,12 @@ const VerseList = ({
     }
   }, [chapterData])
   
-  // 로딩 상태는 모든 훅 호출 이후에 체크
-  if (isLoading) {
+  // 로딩 상태는 모든 훅 호출 이후에 체크.
+  // 본문(캐시로 즉시)과 읽음 상태(staleTime 5분이라 늦게 도착)가 따로 도착하면
+  // '안 읽음' 초기 상태가 잠깐 보였다가 읽음으로 확 바뀌는 깜빡임이 생긴다.
+  // 읽음 상태가 처음 로드되는 동안에도 스피너를 유지해 최종 상태를 한 번에 그린다.
+  // (읽음 상태가 이미 캐시에 있으면 readStatusLoading=false라 지연 없음)
+  if (isLoading || readStatusLoading) {
     return (
       <div className="loading-spinner">
         <span className="material-icons-round spinning">refresh</span>
