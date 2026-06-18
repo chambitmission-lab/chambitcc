@@ -48,6 +48,9 @@ const VerseList = ({
   const { language } = useLanguage()
   const { isLoggedIn } = useAuth()
   const [editingVerse, setEditingVerse] = useState<BibleVerse | null>(null)
+  // 액션 메뉴는 한 번에 한 절만 열린다. 다른 절을 탭하면 자동으로 이전 메뉴가 닫혀
+  // 여러 메뉴가 동시에 떠 본문을 가리는 일이 없다.
+  const [openVerseId, setOpenVerseId] = useState<number | null>(null)
   const [commentaryFocusVerse, setCommentaryFocusVerse] = useState<number | null>(null)
   const [commentaryPanelOpen, setCommentaryPanelOpen] = useState(false)
   const queryClient = useQueryClient()
@@ -326,6 +329,8 @@ const VerseList = ({
                   onEdit={handleEditVerse}
                   onShowCommentary={handleShowCommentary}
                   hasCommentary={verseHasCommentaryMap.has(verse.verse)}
+                  actionsOpen={openVerseId === verse.id}
+                  onActionsOpenChange={(open) => setOpenVerseId(open ? verse.id : null)}
                 />
               ))}
             </div>

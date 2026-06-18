@@ -16,13 +16,17 @@ interface VerseItemProps {
   onEdit?: (verse: BibleVerse) => void
   onShowCommentary?: (verse: BibleVerse) => void
   hasCommentary?: boolean
+  // 액션바 열림 상태는 부모(VerseList)가 관리한다 — 한 번에 한 절의 메뉴만 열려
+  // 다른 절을 탭하면 이전 메뉴가 닫힌다(예전 풀스크린 백드롭의 역할을 대체).
+  actionsOpen: boolean
+  onActionsOpenChange: (open: boolean) => void
 }
 
-const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, hasCommentary }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, hasCommentary, actionsOpen, onActionsOpenChange }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
-  const [showActions, setShowActions] = useState(false)
+  const showActions = actionsOpen
   const maxProgressRef = useRef(0) // 최대 진행률 추적
   const isAdminUser = isAdmin()
   const { data: bookmark } = useVerseBookmark(verse.id)
@@ -63,8 +67,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
   // 음성 인식 중에는 액션바가 닫혀서 마이크 버튼이 가려지지 않도록 보장
   useEffect(() => {
     if (isReading) {
-      setShowActions(true)
+      onActionsOpenChange(true)
     }
+    // onActionsOpenChange는 매 렌더 새로 생성되지만, 의도적으로 isReading 변화에만 반응한다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReading])
   
   // 노래방 스타일 하이라이트: 읽은 부분 계산 (유연한 매칭)
@@ -227,13 +233,13 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     >
       {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}
       <div
-        onClick={() => setShowActions(prev => !prev)}
+        onClick={() => onActionsOpenChange(!showActions)}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
-            setShowActions(prev => !prev)
+            onActionsOpenChange(!showActions)
           }
         }}
         aria-expanded={showActions}
@@ -319,18 +325,20 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             )}
           </div>
         )}
-        {/* 플로팅 액션 메뉴 - 탭하면 구절 바로 아래에 떠서(absolute) 다음 구절을 밀어내지 않는다.
-            인라인으로 펼쳐 본문이 reflow되며 시선이 끌려가던 문제를 오버레이로 대체. */}
-        {showActions && (
+      </div>
+
+      {/* 액션 메뉴 - 절을 탭하면 본문 흐름 안에서 바로 아래에 펼쳐진다.
+          예전 absolute 오버레이는 다음 절을 가렸고, 닫기용 풀스크린 fixed 백드롭이
+          모바일 스크롤을 막았다. 인라인(in-flow) 배치로 두 문제를 함께 해결한다.
+          (다른 절을 탭하면 부모가 이 메뉴를 닫아 항상 한 절만 열린다) */}
+      {showActions && (
           <div
-            onClick={(e) => e.stopPropagation()}
             role="menu"
             className="verse-action-popover"
             style={{
-              position: 'absolute',
-              top: 'calc(100% + 6px)',
-              left: '3.25rem',
-              zIndex: 50,
+              alignSelf: 'flex-start',
+              marginLeft: '3.25rem',
+              marginTop: '0.5rem',
               display: 'flex',
               gap: '0.5rem',
               alignItems: 'center',
@@ -342,7 +350,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           >
             {/* 주요 액션: 북마크·해석 (가장 자주 쓰는 묵상 동작을 앞에 배치) */}
             <button
-              onClick={() => { setShowActions(false); setShowBookmarkModal(true) }}
+              onClick={() => { onActionsOpenChange(false); setShowBookmarkModal(true) }}
               className="verse-action-btn"
               style={
                 bookmark?.is_favorite
@@ -385,7 +393,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
 
             {onShowCommentary && (
               <button
-                onClick={() => { setShowActions(false); onShowCommentary(verse) }}
+                onClick={() => { onActionsOpenChange(false); onShowCommentary(verse) }}
                 className="verse-action-btn"
                 style={
                   hasCommentary
@@ -445,7 +453,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             {/* 보조 액션: 구절 수정 (관리자) */}
             {isAdminUser && onEdit && (
               <button
-                onClick={() => { setShowActions(false); onEdit(verse) }}
+                onClick={() => { onActionsOpenChange(false); onEdit(verse) }}
                 className="verse-action-btn"
                 style={{
                   background: 'rgba(148, 163, 184, 0.1)',
@@ -461,17 +469,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               </button>
             )}
           </div>
-        )}
-
-        {/* 바깥 탭 시 닫기. 낭독(음성 인식) 중에는 스크롤/읽기를 막지 않도록 백드롭 생략. */}
-        {showActions && !isReading && (
-          <div
-            onClick={(e) => { e.stopPropagation(); setShowActions(false) }}
-            style={{ position: 'fixed', inset: 0, zIndex: 40 }}
-            aria-hidden
-          />
-        )}
-      </div>
+      )}
 
 
       {/* 피드백 메시지 - 임팩트 있게 */}
