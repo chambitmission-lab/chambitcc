@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/bible'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -43,7 +43,7 @@ const VerseList = ({
   onScrolled,
   onChapterFullyRead,
 }: VerseListProps) => {
-  const observerTarget = useRef<HTMLDivElement>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
   const fullReadFiredRef = useRef(false)
   const { language } = useLanguage()
   const { isLoggedIn } = useAuth()
@@ -201,33 +201,40 @@ const VerseList = ({
   }, [onChapterFullyRead, readStatusData])
 
 
-  // 무한 스크롤 Intersection Observer 설정
-  useEffect(() => {
-    const observer = new IntersectionObserver(
+  // 무한 스크롤: 옵저버 콜백이 항상 최신 값을 보도록 ref 에 보관.
+  // 이렇게 하면 콜백 ref 자체는 deps 없이 안정적으로 유지할 수 있어,
+  // 페이지 로드마다 옵저버를 재생성하지 않는다.
+  const infiniteScrollState = useRef({ hasNextPage, isFetchingNextPage, fetchNextPage })
+  infiniteScrollState.current = { hasNextPage, isFetchingNextPage, fetchNextPage }
+
+  // 무한 스크롤 트리거 div 에 붙는 콜백 ref.
+  // 트리거 div 는 로딩 스피너 early-return 이후에만 렌더되므로, useEffect+useRef
+  // 조합은 부착 타이밍이 어긋나기 쉽다(본문이 먼저 오고 읽음 상태가 늦게 오면
+  // 옵저버가 끝내 안 붙어 다음 페이지가 로드되지 않던 버그가 있었다).
+  // 콜백 ref 는 노드가 마운트되는 즉시 호출되므로 타이밍과 무관하게 항상 부착된다.
+  const observerTargetRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect()
+      observerRef.current = null
+    }
+    if (!node) return
+    observerRef.current = new IntersectionObserver(
       (entries) => {
+        const { hasNextPage, isFetchingNextPage, fetchNextPage } = infiniteScrollState.current
         if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-          console.log('🔄 Loading next page...', { hasNextPage, isFetchingNextPage })
           fetchNextPage()
         }
       },
-      { 
+      {
         threshold: 0.1,
-        rootMargin: '100px' // 100px 전에 미리 로드
+        rootMargin: '100px', // 100px 전에 미리 로드
       }
     )
-    
-    const currentTarget = observerTarget.current
-    if (currentTarget) {
-      observer.observe(currentTarget)
-      console.log('👀 Observer attached', { hasNextPage, isFetchingNextPage })
-    }
-    
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget)
-      }
-    }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+    observerRef.current.observe(node)
+  }, [])
+
+  // 언마운트 시 옵저버 정리
+  useEffect(() => () => observerRef.current?.disconnect(), [])
   
   // 이어 읽기: 지정된 절로 자동 스크롤 + 일시적 하이라이트.
   // 무한 스크롤 페이지가 새로 로드될 때마다 DOM 존재 여부를 재확인하고,
@@ -344,9 +351,9 @@ const VerseList = ({
         
         {/* 무한 스크롤 트리거 */}
         {hasNextPage && (
-          <div 
-            ref={observerTarget} 
-            style={{ 
+          <div
+            ref={observerTargetRef}
+            style={{
               height: '100px', 
               margin: '2rem 0',
               display: 'flex',
