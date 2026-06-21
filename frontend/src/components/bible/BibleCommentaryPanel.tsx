@@ -47,12 +47,19 @@ const BibleCommentaryPanel = ({
   // 모바일/브라우저 뒤로가기로 홈까지 나가버리지 않고 이 패널만 닫히도록 처리
   useModalBackButton(onClose)
 
-  const filtered = useMemo(() => {
+  const { summaries, verses, total } = useMemo(() => {
     const all = data?.items ?? []
-    if (focusVerse == null) return all
-    return all.filter(
-      (c) => c.verse_start <= focusVerse && c.verse_end >= focusVerse,
-    )
+    const filtered =
+      focusVerse == null
+        ? all
+        : all.filter(
+            (c) => c.verse_start <= focusVerse && c.verse_end >= focusVerse,
+          )
+    return {
+      summaries: filtered.filter((c) => c.scope === 'summary'),
+      verses: filtered.filter((c) => c.scope !== 'summary'),
+      total: filtered.length,
+    }
   }, [data, focusVerse])
 
   const headerLabel =
@@ -163,7 +170,7 @@ const BibleCommentaryPanel = ({
               </div>
             )}
 
-            {!isLoading && filtered.length === 0 && (
+            {!isLoading && total === 0 && (
               <div className="text-center py-12 px-4 text-gray-400 dark:text-white/45">
                 <span className="material-icons-round text-[40px] opacity-40">auto_stories</span>
                 <p className="mt-2 text-[15px] text-gray-500 dark:text-white/55">
@@ -177,16 +184,35 @@ const BibleCommentaryPanel = ({
               </div>
             )}
 
-            {!isLoading &&
-              filtered.map((c) => (
-                <BibleCommentaryItem
-                  key={c.id}
-                  commentary={c}
-                  isAdmin={admin}
-                  onEdit={handleEditClick}
-                  onDelete={handleDelete}
-                />
-              ))}
+            {!isLoading && summaries.length > 0 && (
+              <section className="mb-1">
+                <SectionLabel icon="auto_stories" text="요약 해석" />
+                {summaries.map((c) => (
+                  <BibleCommentaryItem
+                    key={c.id}
+                    commentary={c}
+                    isAdmin={admin}
+                    onEdit={handleEditClick}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </section>
+            )}
+
+            {!isLoading && verses.length > 0 && (
+              <section>
+                <SectionLabel icon="format_list_numbered" text="절별 해석" />
+                {verses.map((c) => (
+                  <BibleCommentaryItem
+                    key={c.id}
+                    commentary={c}
+                    isAdmin={admin}
+                    onEdit={handleEditClick}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </section>
+            )}
           </div>
 
           {/* 관리자: 해석 추가 */}
@@ -224,5 +250,22 @@ const BibleCommentaryPanel = ({
     </>
   )
 }
+
+interface SectionLabelProps {
+  icon: string
+  text: string
+}
+
+/** 요약/절별 해석 그룹을 구분하는 작은 머리글 */
+const SectionLabel = ({ icon, text }: SectionLabelProps) => (
+  <div className="flex items-center gap-1.5 px-0.5 mb-2 mt-1">
+    <span className="material-icons-round text-[16px] text-purple-500 dark:text-purple-300">
+      {icon}
+    </span>
+    <span className="text-[12px] font-bold tracking-[0.04em] text-purple-600/90 dark:text-purple-300/90">
+      {text}
+    </span>
+  </div>
+)
 
 export default BibleCommentaryPanel

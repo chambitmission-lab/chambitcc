@@ -6,6 +6,7 @@ import {
   COMMENTARY_CATEGORIES,
   type BibleCommentary,
   type BibleCommentaryCreateRequest,
+  type BibleCommentaryScope,
 } from '../../types/bibleCommentary'
 
 interface BibleCommentaryEditorProps {
@@ -90,12 +91,16 @@ const BibleCommentaryEditor = ({
   onSave,
   onClose,
 }: BibleCommentaryEditorProps) => {
+  const [scope, setScope] = useState<BibleCommentaryScope>(
+    existing?.scope ?? 'verse',
+  )
   const [verseStart, setVerseStart] = useState<number>(
     existing?.verse_start ?? initialVerseStart,
   )
   const [verseEnd, setVerseEnd] = useState<number>(
     existing?.verse_end ?? initialVerseEnd ?? initialVerseStart,
   )
+  const isVerseScope = scope === 'verse'
   const [title, setTitle] = useState<string>(existing?.title ?? '')
   const [category, setCategory] = useState<string>(existing?.category ?? '')
   const [content, setContent] = useState<string>(existing?.content ?? '')
@@ -104,10 +109,13 @@ const BibleCommentaryEditor = ({
   const [aiError, setAiError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (verseEnd < verseStart) {
+    // 절별 해석은 단일 절만 가리킨다 → 끝 절을 시작 절에 고정
+    if (isVerseScope && verseEnd !== verseStart) {
+      setVerseEnd(verseStart)
+    } else if (verseEnd < verseStart) {
       setVerseEnd(verseStart)
     }
-  }, [verseStart, verseEnd])
+  }, [verseStart, verseEnd, isVerseScope])
 
   // 뒤로가기로 이 에디터(추가/수정 폼)만 먼저 닫히도록 처리
   useModalBackButton(onClose)
@@ -168,10 +176,11 @@ const BibleCommentaryEditor = ({
       book_number: bookNumber,
       chapter,
       verse_start: verseStart,
-      verse_end: verseEnd,
+      verse_end: isVerseScope ? verseStart : verseEnd,
       title: title.trim() || undefined,
       category: category || undefined,
       content: content.trim(),
+      scope,
     })
   }
 
@@ -216,12 +225,51 @@ const BibleCommentaryEditor = ({
         {/* 본문 */}
         <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden">
           <div className="px-5 py-5 space-y-5">
-            {/* 절 범위 */}
-            <FieldGroup label="절 범위" required>
+            {/* 해석 종류 (절별 / 요약) */}
+            <FieldGroup label="해석 종류" required>
               <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    { value: 'verse', icon: 'format_list_numbered', label: '절별 해석', desc: '한 절에 다는 해석' },
+                    { value: 'summary', icon: 'auto_stories', label: '요약 해석', desc: '여러 절을 묶어 요약' },
+                  ] as const
+                ).map((opt) => {
+                  const active = scope === opt.value
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setScope(opt.value)}
+                      className={[
+                        'flex flex-col items-start gap-0.5 px-3.5 py-2.5 rounded-xl text-left transition-all border',
+                        active
+                          ? 'bg-gradient-to-br from-purple-500/15 to-pink-500/10 border-purple-400/50 dark:border-purple-400/50'
+                          : 'bg-gray-50 dark:bg-white/[0.03] border-gray-200 dark:border-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06]',
+                      ].join(' ')}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <span className={`material-icons-round text-[18px] ${active ? 'text-purple-600 dark:text-purple-300' : 'text-gray-400 dark:text-white/40'}`}>
+                          {opt.icon}
+                        </span>
+                        <span className={`text-[13.5px] font-bold ${active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-white/65'}`}>
+                          {opt.label}
+                        </span>
+                      </span>
+                      <span className="text-[11px] text-gray-400 dark:text-white/40">
+                        {opt.desc}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </FieldGroup>
+
+            {/* 절 범위 */}
+            <FieldGroup label={isVerseScope ? '절 번호' : '절 범위'} required>
+              <div className={isVerseScope ? '' : 'grid grid-cols-2 gap-2'}>
                 <label className="block">
                   <span className="block text-[10.5px] font-bold uppercase tracking-[0.05em] text-gray-500 dark:text-white/45 mb-1">
-                    시작
+                    {isVerseScope ? '절' : '시작'}
                   </span>
                   <input
                     type="number"
@@ -233,20 +281,22 @@ const BibleCommentaryEditor = ({
                     required
                   />
                 </label>
-                <label className="block">
-                  <span className="block text-[10.5px] font-bold uppercase tracking-[0.05em] text-gray-500 dark:text-white/45 mb-1">
-                    끝
-                  </span>
-                  <input
-                    type="number"
-                    min={verseStart}
-                    max={totalVerses}
-                    value={verseEnd}
-                    onChange={(e) => setVerseEnd(Math.max(verseStart, parseInt(e.target.value) || verseStart))}
-                    className={inputClass}
-                    required
-                  />
-                </label>
+                {!isVerseScope && (
+                  <label className="block">
+                    <span className="block text-[10.5px] font-bold uppercase tracking-[0.05em] text-gray-500 dark:text-white/45 mb-1">
+                      끝
+                    </span>
+                    <input
+                      type="number"
+                      min={verseStart}
+                      max={totalVerses}
+                      value={verseEnd}
+                      onChange={(e) => setVerseEnd(Math.max(verseStart, parseInt(e.target.value) || verseStart))}
+                      className={inputClass}
+                      required
+                    />
+                  </label>
+                )}
               </div>
             </FieldGroup>
 

@@ -4,6 +4,9 @@ export interface BibleCommentaryAuthor {
   full_name?: string | null
 }
 
+/** 해석 성격: 'verse' 절별 해석 / 'summary' 요약 해석 */
+export type BibleCommentaryScope = 'verse' | 'summary'
+
 export interface BibleCommentary {
   id: number
   book_number: number
@@ -13,6 +16,7 @@ export interface BibleCommentary {
   title?: string | null
   content: string
   category?: string | null
+  scope: BibleCommentaryScope
   author_id?: number | null
   author?: BibleCommentaryAuthor | null
   created_at: string
@@ -32,6 +36,7 @@ export interface BibleCommentaryCreateRequest {
   title?: string
   content: string
   category?: string
+  scope?: BibleCommentaryScope
 }
 
 export interface BibleCommentaryUpdateRequest {
@@ -40,6 +45,7 @@ export interface BibleCommentaryUpdateRequest {
   title?: string
   content?: string
   category?: string
+  scope?: BibleCommentaryScope
 }
 
 export interface BibleCommentaryAIGenerateRequest {
