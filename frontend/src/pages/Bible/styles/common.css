@@ -25,3 +25,216 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* ──────────────────────────────────────────────────────────
+   성경 장 로더 — 말씀에서 빛(영광)이 퍼지는 듯한 잔잔한 모션
+   ────────────────────────────────────────────────────────── */
+.chapter-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 4rem 2rem;
+}
+
+.chapter-loader--sm {
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+/* 빛이 퍼지는 halo 영역 */
+.chapter-loader__halo {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chapter-loader--sm .chapter-loader__halo {
+  width: 56px;
+  height: 56px;
+}
+
+/* 동심원 빛 링: 안에서 밖으로 퍼지며 사라진다 */
+.chapter-loader__ring {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(168, 85, 247, 0.55);
+  opacity: 0;
+  animation: chapterHalo 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.chapter-loader__ring:nth-child(2) {
+  animation-delay: 0.8s;
+  border-color: rgba(236, 72, 153, 0.5);
+}
+
+.chapter-loader__ring:nth-child(3) {
+  animation-delay: 1.6s;
+  border-color: rgba(192, 132, 252, 0.45);
+}
+
+/* 중앙의 빛나는 말씀(펼쳐진 책) */
+.chapter-loader__core {
+  position: relative;
+  z-index: 2;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 35%, rgba(236, 72, 153, 0.28), rgba(168, 85, 247, 0.16));
+  box-shadow:
+    0 0 0 1px rgba(168, 85, 247, 0.35),
+    inset 0 0 12px rgba(236, 72, 153, 0.25);
+  animation: chapterGlow 2.4s ease-in-out infinite, chapterFloat 3.6s ease-in-out infinite;
+}
+
+.chapter-loader--sm .chapter-loader__core {
+  width: 36px;
+  height: 36px;
+}
+
+.chapter-loader__core .material-icons-round {
+  font-size: 1.75rem;
+  background: linear-gradient(135deg, #c084fc, #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.45));
+}
+
+.chapter-loader--sm .chapter-loader__core .material-icons-round {
+  font-size: 1.15rem;
+}
+
+/* 떠다니는 작은 빛 입자 */
+.chapter-loader__spark {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f0abfc;
+  box-shadow: 0 0 8px rgba(236, 72, 153, 0.8);
+  opacity: 0;
+  z-index: 3;
+}
+
+.chapter-loader__spark--1 {
+  top: 6px;
+  right: 14px;
+  animation: chapterSpark 2.8s ease-in-out infinite;
+}
+
+.chapter-loader__spark--2 {
+  bottom: 10px;
+  left: 10px;
+  width: 4px;
+  height: 4px;
+  animation: chapterSpark 2.8s ease-in-out 0.9s infinite;
+}
+
+.chapter-loader__spark--3 {
+  top: 50%;
+  right: 2px;
+  width: 3px;
+  height: 3px;
+  animation: chapterSpark 2.8s ease-in-out 1.7s infinite;
+}
+
+.chapter-loader--sm .chapter-loader__spark {
+  display: none;
+}
+
+/* 흐르는 그라데이션 shimmer 바 */
+.chapter-loader__bar {
+  position: relative;
+  width: 140px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--ig-border, rgba(255, 255, 255, 0.1));
+  overflow: hidden;
+}
+
+.chapter-loader--sm .chapter-loader__bar {
+  width: 96px;
+  height: 3px;
+}
+
+.chapter-loader__bar-fill {
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #a855f7, #ec4899, transparent);
+  animation: chapterShimmer 1.6s ease-in-out infinite;
+}
+
+.chapter-loader__label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ig-secondary-text);
+  animation: chapterLabelPulse 2.4s ease-in-out infinite;
+}
+
+.chapter-loader--sm .chapter-loader__label {
+  font-size: 0.75rem;
+}
+
+@keyframes chapterHalo {
+  0%   { transform: scale(0.55); opacity: 0; }
+  35%  { opacity: 0.55; }
+  100% { transform: scale(1.75); opacity: 0; }
+}
+
+@keyframes chapterGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(236, 72, 153, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(168, 85, 247, 0.5), inset 0 0 16px rgba(236, 72, 153, 0.35);
+  }
+}
+
+@keyframes chapterFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+@keyframes chapterSpark {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  40%      { opacity: 1; transform: scale(1); }
+  70%      { opacity: 0.4; }
+}
+
+@keyframes chapterShimmer {
+  0%   { left: -45%; }
+  100% { left: 105%; }
+}
+
+@keyframes chapterLabelPulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+/* 접근성: 모션 최소화 설정 시 잔잔하게 */
+@media (prefers-reduced-motion: reduce) {
+  .chapter-loader__ring,
+  .chapter-loader__core,
+  .chapter-loader__spark,
+  .chapter-loader__bar-fill,
+  .chapter-loader__label {
+    animation-duration: 3.6s;
+  }
+  .chapter-loader__core { animation: chapterGlow 3.6s ease-in-out infinite; }
+}

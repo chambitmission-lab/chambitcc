@@ -4,6 +4,7 @@ import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/b
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
 import VerseItem from './VerseItem'
+import ChapterLoader from './ChapterLoader'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { celebrateFlowerBloom } from '../../../utils/confettiEffects'
 import VerseEditModal from '../../../components/bible/VerseEditModal'
@@ -271,11 +272,7 @@ const VerseList = ({
   // 읽음 상태가 처음 로드되는 동안에도 스피너를 유지해 최종 상태를 한 번에 그린다.
   // (읽음 상태가 이미 캐시에 있으면 readStatusLoading=false라 지연 없음)
   if (isLoading || readStatusLoading) {
-    return (
-      <div className="loading-spinner">
-        <span className="material-icons-round spinning">refresh</span>
-      </div>
-    )
+    return <ChapterLoader size="lg" />
   }
   
   if (!chapterData) {
@@ -362,12 +359,7 @@ const VerseList = ({
             }}
           >
             {isFetchingNextPage && (
-              <div className="loading-spinner" style={{ padding: '1rem' }}>
-                <span className="material-icons-round spinning">refresh</span>
-                <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
-                  구절을 불러오는 중...
-                </p>
-              </div>
+              <ChapterLoader size="sm" label="구절을 불러오는 중" />
             )}
           </div>
         )}
