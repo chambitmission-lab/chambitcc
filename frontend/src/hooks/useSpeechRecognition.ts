@@ -17,6 +17,11 @@ interface SpeechRecognitionErrorEvent extends Event {
   message: string
 }
 
+// 모듈 전역 조율자: 화면에 절마다 별도 훅 인스턴스가 있어 서로를 모르기 때문에,
+// 동시에 하나의 음성 인식만 활성화되도록 여기서 "현재 활성 리더의 stop"을 들고 있는다.
+// 새 절이 시작되면 이전 절을 자동 종료시킨다 (= 마지막에 누른 것이 우선).
+let activeReaderStop: (() => void) | null = null
+
 export const useSpeechRecognition = ({
   onResult,
   onError,
@@ -37,6 +42,8 @@ export const useSpeechRecognition = ({
   const accumulatedTextRef = useRef<string>('')  // 누적된 확정 텍스트
   const micPrimedRef = useRef<boolean>(false)     // 마이크 권한 선확보 여부
   const startingRef = useRef<boolean>(false)      // 시작 진행 중 가드 (중복 탭 방지)
+  const stopSelfRef = useRef<() => void>(() => {}) // 이 인스턴스의 stop (전역 조율자에 등록용)
+  const startWatchdogRef = useRef<number | null>(null) // onstart가 안 뜰 때 스피너 무한 회전 방지
   
   // 모바일 감지
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
@@ -66,6 +73,10 @@ export const useSpeechRecognition = ({
     // 실제 인식이 시작된 시점을 단일 진실로 사용 (버튼 상태가 실제 상태와 어긋나지 않도록)
     recognition.onstart = () => {
       console.log('Speech recognition started')
+      if (startWatchdogRef.current) {
+        clearTimeout(startWatchdogRef.current)
+        startWatchdogRef.current = null
+      }
       startingRef.current = false
       isListeningRef.current = true
       setIsStarting(false)
@@ -185,6 +196,10 @@ export const useSpeechRecognition = ({
           break
       }
       
+      if (startWatchdogRef.current) {
+        clearTimeout(startWatchdogRef.current)
+        startWatchdogRef.current = null
+      }
       onError?.(errorMessage)
       startingRef.current = false
       setIsStarting(false)
@@ -258,6 +273,15 @@ export const useSpeechRecognition = ({
     if (isListeningRef.current || startingRef.current) {
       return
     }
+
+    // 다른 절이 듣는 중/시작 중이면 먼저 종료시킨다 (마지막에 누른 절이 우선).
+    // 동시에 두 음성 인식이 마이크를 잡으면 새 인스턴스의 onstart가 뜨지 않아
+    // 스피너가 무한히 도는 문제가 생긴다.
+    if (activeReaderStop && activeReaderStop !== stopSelfRef.current) {
+      activeReaderStop()
+    }
+    activeReaderStop = stopSelfRef.current
+
     startingRef.current = true
     setIsStarting(true)  // 클릭 즉시 버튼이 "시작 중"으로 반응하도록 (실제 onstart 전까지)
 
@@ -327,6 +351,19 @@ export const useSpeechRecognition = ({
       }
     }
     tryStart()
+
+    // 워치독: 일정 시간 안에 onstart가 안 뜨면(=마이크 경쟁 등으로 조용히 실패)
+    // 시작 상태를 풀어 스피너가 무한히 돌지 않게 한다.
+    if (startWatchdogRef.current) {
+      clearTimeout(startWatchdogRef.current)
+    }
+    startWatchdogRef.current = setTimeout(() => {
+      startWatchdogRef.current = null
+      if (startingRef.current && !isListeningRef.current) {
+        console.warn('Speech recognition did not start in time — resetting')
+        stopSelfRef.current()
+      }
+    }, 5000) as unknown as number
   }, [isSupported, isMobile, createRecognition, onError, primeMicrophone])
 
   // 음성 인식 중지
@@ -334,6 +371,16 @@ export const useSpeechRecognition = ({
     // 시작 진행 중에 눌린 경우에도 시작을 취소할 수 있도록 가드 해제
     startingRef.current = false
     setIsStarting(false)
+
+    if (startWatchdogRef.current) {
+      clearTimeout(startWatchdogRef.current)
+      startWatchdogRef.current = null
+    }
+
+    // 전역 조율자에서 내가 활성이면 해제
+    if (activeReaderStop === stopSelfRef.current) {
+      activeReaderStop = null
+    }
 
     if (!recognitionRef.current || !isListeningRef.current) {
       return
@@ -359,6 +406,9 @@ export const useSpeechRecognition = ({
       isListeningRef.current = false
     }
   }, [])
+
+  // 전역 조율자가 호출할 수 있도록 이 인스턴스의 stop을 항상 최신으로 유지
+  stopSelfRef.current = stopListening
 
   // 토글
   const toggleListening = useCallback(() => {
