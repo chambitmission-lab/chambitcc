@@ -36,11 +36,13 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
 
   const {
     isReading,
+    isStarting,
     isSupported,
     feedback,
     spokenText,
     startReading,
-    stopReading
+    stopReading,
+    primeMicrophone
   } = useVerseReading({
     verseText: verse.text,
     onSuccess: (similarity) => {
@@ -442,8 +444,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               <span style={{ display: 'inline-flex', opacity: 0.9 }}>
                 <VerseReadingButton
                   isReading={isReading}
+                  isStarting={isStarting}
                   isSupported={isSupported}
                   onClick={isReading ? stopReading : handleStartReading}
+                  onPrime={primeMicrophone}
                   disabled={isRead}
                   size="sm"
                 />

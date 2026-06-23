@@ -142,9 +142,11 @@ export const useVerseReading = ({
 
   const {
     isListening,
+    isStarting,
     isSupported,
     startListening,
-    stopListening
+    stopListening,
+    primeMicrophone
   } = useSpeechRecognition({
     onResult: handleResult,
     onError: handleError,
@@ -187,11 +189,13 @@ export const useVerseReading = ({
 
   return {
     isReading: isListening,
+    isStarting,
     isSupported,
     spokenText,
     feedback,
     startReading,
     stopReading,
-    manualVerify
+    manualVerify,
+    primeMicrophone
   }
 }

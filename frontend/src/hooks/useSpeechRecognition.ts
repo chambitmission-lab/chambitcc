@@ -24,6 +24,7 @@ export const useSpeechRecognition = ({
   continuous = true,
 }: UseSpeechRecognitionProps) => {
   const [isListening, setIsListening] = useState(false)
+  const [isStarting, setIsStarting] = useState(false)  // 클릭~실제 인식 시작 사이의 과도 상태 (즉각 시각 피드백용)
   const isSupported = !!(
     (window as any).SpeechRecognition || 
     (window as any).webkitSpeechRecognition
@@ -67,6 +68,7 @@ export const useSpeechRecognition = ({
       console.log('Speech recognition started')
       startingRef.current = false
       isListeningRef.current = true
+      setIsStarting(false)
       setIsListening(true)
     }
 
@@ -185,6 +187,7 @@ export const useSpeechRecognition = ({
       
       onError?.(errorMessage)
       startingRef.current = false
+      setIsStarting(false)
       setIsListening(false)
       isListeningRef.current = false
     }
@@ -215,6 +218,7 @@ export const useSpeechRecognition = ({
         }, 100)
       } else {
         startingRef.current = false
+        setIsStarting(false)
         setIsListening(false)
         isListeningRef.current = false
       }
@@ -255,6 +259,7 @@ export const useSpeechRecognition = ({
       return
     }
     startingRef.current = true
+    setIsStarting(true)  // 클릭 즉시 버튼이 "시작 중"으로 반응하도록 (실제 onstart 전까지)
 
     // 기존 인스턴스 정리
     if (recognitionRef.current) {
@@ -281,6 +286,7 @@ export const useSpeechRecognition = ({
 
     // 시작 도중 stop이 호출됐다면 중단
     if (!startingRef.current) {
+      setIsStarting(false)
       return
     }
 
@@ -289,6 +295,7 @@ export const useSpeechRecognition = ({
 
     if (!recognitionRef.current) {
       startingRef.current = false
+      setIsStarting(false)
       onError?.('음성 인식을 사용할 수 없습니다')
       return
     }
@@ -312,6 +319,7 @@ export const useSpeechRecognition = ({
           console.error('Failed to start recognition:', err)
           startingRef.current = false
           shouldRestartRef.current = false
+          setIsStarting(false)
           onError?.('음성 인식을 시작할 수 없습니다')
           recognitionRef.current = null
           isListeningRef.current = false
@@ -325,6 +333,7 @@ export const useSpeechRecognition = ({
   const stopListening = useCallback(() => {
     // 시작 진행 중에 눌린 경우에도 시작을 취소할 수 있도록 가드 해제
     startingRef.current = false
+    setIsStarting(false)
 
     if (!recognitionRef.current || !isListeningRef.current) {
       return
@@ -362,9 +371,11 @@ export const useSpeechRecognition = ({
 
   return {
     isListening,
+    isStarting,
     isSupported,
     startListening,
     stopListening,
     toggleListening,
+    primeMicrophone,
   }
 }
