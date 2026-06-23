@@ -232,7 +232,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
                 </span>
               </span>
 
-              {/* 인도하는 빛 — 처음부터 끝까지 길을 함께 걷는 동행 */}
+              {/* 인도하는 빛 — 처음부터 끝까지 길을 함께 걷는 별빛 동행 */}
               <div
                 className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
                 style={{ left: `${pct}%` }}
@@ -240,7 +240,13 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
                 {isPlaying && (
                   <span className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-pink-400/35 blur-[3px] [animation-duration:1.6s]" />
                 )}
-                <span className="relative block h-4 w-4 rounded-full bg-white shadow-[0_0_10px_2px_rgba(236,72,153,0.7)] ring-2 ring-pink-500 transition-transform group-active:scale-110" />
+                <svg
+                  viewBox="0 0 24 24"
+                  className="relative block h-[18px] w-[18px] text-white drop-shadow-[0_0_6px_rgba(236,72,153,0.9)] transition-transform group-active:scale-110"
+                  fill="currentColor"
+                >
+                  <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
+                </svg>
               </div>
               <input
                 type="range"
