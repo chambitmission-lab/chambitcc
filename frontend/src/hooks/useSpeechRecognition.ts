@@ -22,6 +22,11 @@ interface SpeechRecognitionErrorEvent extends Event {
 // 새 절이 시작되면 이전 절을 자동 종료시킨다 (= 마지막에 누른 것이 우선).
 let activeReaderStop: (() => void) | null = null
 
+// 마이크 권한/오디오 스택은 브라우저 전역으로 한 번만 데우면 된다.
+// 절마다 훅 인스턴스가 따로라 인스턴스별 ref로만 관리하면 "각 절의 첫 클릭"마다
+// getUserMedia를 다시 수행해 매번 느려진다. 전역 플래그로 페이지당 한 번만 데운다.
+let micGloballyPrimed = false
+
 export const useSpeechRecognition = ({
   onResult,
   onError,
@@ -246,7 +251,9 @@ export const useSpeechRecognition = ({
   // 모바일(특히 Android Chrome)에서 첫 start()가 권한 프롬프트·오디오 초기화와
   // 경쟁하다 조용히 끝나버리는 문제를 막아, 한 번에 인식이 시작되도록 한다.
   const primeMicrophone = useCallback(async () => {
-    if (micPrimedRef.current) {
+    // 이미 이 페이지에서 한 번 데웠으면(어느 절이든) 즉시 반환 — 절마다 재확보 방지
+    if (micGloballyPrimed || micPrimedRef.current) {
+      micPrimedRef.current = true
       return
     }
     try {
@@ -255,6 +262,7 @@ export const useSpeechRecognition = ({
         // 권한만 확보하고 즉시 해제 (SpeechRecognition이 마이크를 사용하도록)
         stream.getTracks().forEach((track) => track.stop())
       }
+      micGloballyPrimed = true
       micPrimedRef.current = true
     } catch (e) {
       // 권한 거부 등은 이후 recognition.onerror에서 처리됨
@@ -302,9 +310,9 @@ export const useSpeechRecognition = ({
     lastInterimRef.current = ''
 
     // 마이크 권한이 아직 확보되지 않았다면 먼저 확보한다.
-    // 이미 확보된 경우(=2번째 탭 이후)에는 await 없이 동기적으로 진행해
-    // iOS Safari의 user-gesture 토큰을 유지한다.
-    if (!micPrimedRef.current && typeof navigator.mediaDevices?.getUserMedia === 'function') {
+    // 페이지에서 이미 한 번 데웠으면(전역 플래그) await 없이 동기적으로 진행해
+    // iOS Safari의 user-gesture 토큰을 유지하고, 각 절의 첫 클릭도 빠르게 시작한다.
+    if (!micGloballyPrimed && !micPrimedRef.current && typeof navigator.mediaDevices?.getUserMedia === 'function') {
       await primeMicrophone()
     }
 
