@@ -11,6 +11,14 @@ const VOICE_STORAGE_KEY = 'bible-tts-voice'
 const RATE_STORAGE_KEY = 'bible-tts-rate'
 const RATE_OPTIONS = [0.75, 1, 1.25, 1.5]
 
+// 첫 생성(몇 초) 동안 번갈아 보여줄 잔잔한 대기 문구
+const LOADING_MESSAGES = [
+  '말씀을 준비하고 있어요…',
+  '잠시 마음을 고요히…',
+  '은혜의 음성을 빚는 중…',
+  '곧 들려드릴게요…',
+]
+
 const loadVoice = (): BibleTTSVoice => {
   const v = localStorage.getItem(VOICE_STORAGE_KEY)
   return v === 'male' ? 'male' : 'female'
@@ -47,6 +55,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [loadingMsgIdx, setLoadingMsgIdx] = useState(0)
 
   const { data, isFetching, isError } = useBibleChapterAudio(bookNumber, chapter, voice, started)
   const audioUrl = data?.audio_url
@@ -119,10 +128,21 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
   const loading = isFetching && !audioUrl
   const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
 
+  // 로딩 중에는 잔잔한 문구를 천천히 교체
+  useEffect(() => {
+    if (!loading) return
+    setLoadingMsgIdx(0)
+    const id = setInterval(
+      () => setLoadingMsgIdx((i) => (i + 1) % LOADING_MESSAGES.length),
+      2400
+    )
+    return () => clearInterval(id)
+  }, [loading])
+
   const statusText = isError
     ? '오디오를 불러오지 못했어요'
     : loading
-      ? '음성을 준비하고 있어요…'
+      ? LOADING_MESSAGES[loadingMsgIdx]
       : isPlaying
         ? '재생 중'
         : '듣기'
@@ -141,13 +161,23 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
             onClick={togglePlay}
             disabled={loading}
             aria-label={isPlaying ? '일시정지' : '재생'}
-            className="relative grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_8px_22px_-6px_rgba(217,70,239,0.75)] transition active:scale-95 disabled:opacity-70"
+            className="relative grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_8px_22px_-6px_rgba(217,70,239,0.75)] transition active:scale-95 disabled:cursor-default"
           >
-            {isPlaying && (
+            {isPlaying && !loading && (
               <span className="absolute inset-0 rounded-full bg-pink-500/40 animate-ping [animation-duration:1.6s]" />
             )}
             {loading ? (
-              <span className="material-icons-round relative animate-spin text-[26px] leading-none">progress_activity</span>
+              <>
+                {/* 퍼져나가는 빛의 파동 */}
+                <span className="absolute inset-0 rounded-full bg-white/25 animate-ping [animation-duration:2s]" />
+                <span className="absolute inset-0 rounded-full bg-white/20 animate-ping [animation-duration:2s] [animation-delay:0.7s]" />
+                {/* 회전하는 빛무리(후광) */}
+                <span className="absolute -inset-2 animate-spin rounded-full bg-[conic-gradient(from_0deg,transparent,rgba(255,255,255,0.65),transparent_55%)] blur-[1px] [animation-duration:2.6s]" />
+                {/* 은은히 빛나는 코어 */}
+                <span className="material-icons-round relative animate-pulse text-[24px] leading-none text-white [animation-duration:1.6s]">
+                  auto_awesome
+                </span>
+              </>
             ) : (
               <span className="material-icons-round relative text-[30px] leading-none">
                 {isPlaying ? 'pause' : 'play_arrow'}
@@ -181,6 +211,9 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
             {/* 커스텀 그라데이션 진행바 (seek 가능) */}
             <div className="group relative h-2">
               <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-black/10 dark:bg-white/12" />
+              {loading && (
+                <span className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 animate-pulse rounded-full bg-gradient-to-r from-purple-500/0 via-pink-500/70 to-purple-500/0 [animation-duration:1.8s]" />
+              )}
               <div
                 className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
                 style={{ width: `${pct}%` }}
