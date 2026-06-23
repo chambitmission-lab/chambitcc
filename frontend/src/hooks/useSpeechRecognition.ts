@@ -34,6 +34,8 @@ export const useSpeechRecognition = ({
   const shouldRestartRef = useRef<boolean>(false)
   const initialTextRef = useRef<string>('')
   const accumulatedTextRef = useRef<string>('')  // 누적된 확정 텍스트
+  const micPrimedRef = useRef<boolean>(false)     // 마이크 권한 선확보 여부
+  const startingRef = useRef<boolean>(false)      // 시작 진행 중 가드 (중복 탭 방지)
   
   // 모바일 감지
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
@@ -53,12 +55,20 @@ export const useSpeechRecognition = ({
     }
 
     const recognition = new SpeechRecognition()
-    
+
     // 모바일에서는 continuous false, 데스크톱에서는 true
     recognition.continuous = isMobile ? false : continuous
     recognition.interimResults = true
     recognition.lang = language
     recognition.maxAlternatives = 1
+
+    // 실제 인식이 시작된 시점을 단일 진실로 사용 (버튼 상태가 실제 상태와 어긋나지 않도록)
+    recognition.onstart = () => {
+      console.log('Speech recognition started')
+      startingRef.current = false
+      isListeningRef.current = true
+      setIsListening(true)
+    }
 
     // 결과 처리
     recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -174,6 +184,7 @@ export const useSpeechRecognition = ({
       }
       
       onError?.(errorMessage)
+      startingRef.current = false
       setIsListening(false)
       isListeningRef.current = false
     }
@@ -203,6 +214,7 @@ export const useSpeechRecognition = ({
           }
         }, 100)
       } else {
+        startingRef.current = false
         setIsListening(false)
         isListeningRef.current = false
       }
@@ -211,16 +223,38 @@ export const useSpeechRecognition = ({
     return recognition
   }, [language, continuous, isMobile, onResult, onError])
 
+  // 마이크 권한/오디오 스택을 미리 확보한다.
+  // 모바일(특히 Android Chrome)에서 첫 start()가 권한 프롬프트·오디오 초기화와
+  // 경쟁하다 조용히 끝나버리는 문제를 막아, 한 번에 인식이 시작되도록 한다.
+  const primeMicrophone = useCallback(async () => {
+    if (micPrimedRef.current) {
+      return
+    }
+    try {
+      if (navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        // 권한만 확보하고 즉시 해제 (SpeechRecognition이 마이크를 사용하도록)
+        stream.getTracks().forEach((track) => track.stop())
+      }
+      micPrimedRef.current = true
+    } catch (e) {
+      // 권한 거부 등은 이후 recognition.onerror에서 처리됨
+      console.warn('Microphone priming failed:', e)
+    }
+  }, [])
+
   // 음성 인식 시작
-  const startListening = useCallback((initialText: string = '') => {
+  const startListening = useCallback(async (initialText: string = '') => {
     if (!isSupported) {
       onError?.('이 브라우저는 음성 인식을 지원하지 않습니다')
       return
     }
 
-    if (isListeningRef.current) {
+    // 이미 듣는 중이거나 시작 진행 중이면 무시 (중복 탭으로 인한 상태 꼬임 방지)
+    if (isListeningRef.current || startingRef.current) {
       return
     }
+    startingRef.current = true
 
     // 기존 인스턴스 정리
     if (recognitionRef.current) {
@@ -238,30 +272,60 @@ export const useSpeechRecognition = ({
     lastSentTextRef.current = initialText
     lastInterimRef.current = ''
 
+    // 마이크 권한이 아직 확보되지 않았다면 먼저 확보한다.
+    // 이미 확보된 경우(=2번째 탭 이후)에는 await 없이 동기적으로 진행해
+    // iOS Safari의 user-gesture 토큰을 유지한다.
+    if (!micPrimedRef.current && navigator.mediaDevices?.getUserMedia) {
+      await primeMicrophone()
+    }
+
+    // 시작 도중 stop이 호출됐다면 중단
+    if (!startingRef.current) {
+      return
+    }
+
     // 새 인스턴스 생성 및 시작
     recognitionRef.current = createRecognition()
-    
+
     if (!recognitionRef.current) {
+      startingRef.current = false
       onError?.('음성 인식을 사용할 수 없습니다')
       return
     }
 
-    try {
-      recognitionRef.current.start()
-      setIsListening(true)
-      isListeningRef.current = true
-      shouldRestartRef.current = true
-    } catch (err) {
-      console.error('Failed to start recognition:', err)
-      onError?.('음성 인식을 시작할 수 없습니다')
-      recognitionRef.current = null
-      isListeningRef.current = false
-      shouldRestartRef.current = false
+    shouldRestartRef.current = true
+
+    // start()는 직전 인스턴스가 완전히 종료되지 않았을 때 InvalidStateError를
+    // 던질 수 있다. 짧게 재시도해 한 번에 시작되도록 한다.
+    const tryStart = (attempt = 0) => {
+      if (!recognitionRef.current || !startingRef.current) {
+        return
+      }
+      try {
+        recognitionRef.current.start()
+        // 실제 시작 여부는 recognition.onstart에서 isListening으로 반영된다.
+      } catch (err) {
+        if (attempt < 2) {
+          console.warn(`start() retry (${attempt + 1})`, err)
+          setTimeout(() => tryStart(attempt + 1), 200)
+        } else {
+          console.error('Failed to start recognition:', err)
+          startingRef.current = false
+          shouldRestartRef.current = false
+          onError?.('음성 인식을 시작할 수 없습니다')
+          recognitionRef.current = null
+          isListeningRef.current = false
+        }
+      }
     }
-  }, [isSupported, isMobile, createRecognition, onError])
+    tryStart()
+  }, [isSupported, isMobile, createRecognition, onError, primeMicrophone])
 
   // 음성 인식 중지
   const stopListening = useCallback(() => {
+    // 시작 진행 중에 눌린 경우에도 시작을 취소할 수 있도록 가드 해제
+    startingRef.current = false
+
     if (!recognitionRef.current || !isListeningRef.current) {
       return
     }
@@ -269,7 +333,7 @@ export const useSpeechRecognition = ({
     try {
       shouldRestartRef.current = false
       isListeningRef.current = false
-      
+
       recognitionRef.current.stop()
       recognitionRef.current = null
       
