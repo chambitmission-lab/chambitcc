@@ -12,6 +12,7 @@ import {
   BibleTabs,
   BookSelector,
   ChapterNavigation,
+  BibleAudioPlayer,
   VerseList,
   BibleSearch,
   ResumeReadingCard,
@@ -195,6 +196,13 @@ const BibleStudy = () => {
                   totalChapters={selectedBookData.chapter_count}
                   onChapterChange={handleChapterChange}
                   onBackToBooks={handleChangeBook}
+                />
+
+                {/* 오디오북 — 현재 장을 음성으로 듣기. 장이 바뀌면 key로 새로 마운트 */}
+                <BibleAudioPlayer
+                  key={`${selectedBookData.book_number}-${selectedChapter}`}
+                  bookNumber={selectedBookData.book_number}
+                  chapter={selectedChapter}
                 />
 
                 {/* 권 개관 — 책 진입 시 큰 그림 노출 (1장에서만 보여 가독성 유지) */}

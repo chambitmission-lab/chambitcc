@@ -71,3 +71,13 @@ export interface UpdateBibleVerseResponse {
   success: boolean
   data: BibleVerse
 }
+
+// 성경 본문 오디오북(TTS) 음성 종류
+export type BibleTTSVoice = 'female' | 'male'
+
+// 성경 본문 오디오북(TTS) 응답
+export interface BibleTTSResponse {
+  audio_url: string // 재생 가능한 mp3 public URL
+  voice: BibleTTSVoice // 사용된 음성
+  cached: boolean // true면 기존 캐시 재사용
+}

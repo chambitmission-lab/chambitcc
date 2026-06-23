@@ -1,5 +1,5 @@
 import { API_V1, apiFetch } from '../config/api'
-import type { BibleBook, BibleChapterResponse, BibleChapterPaginatedResponse, BibleVerse, BibleSearchResult, UpdateBibleVerseRequest, UpdateBibleVerseResponse } from '../types/bible'
+import type { BibleBook, BibleChapterResponse, BibleChapterPaginatedResponse, BibleVerse, BibleSearchResult, UpdateBibleVerseRequest, UpdateBibleVerseResponse, BibleTTSResponse, BibleTTSVoice } from '../types/bible'
 import { getAuthHeaders } from './utils/apiHelpers'
 
 // Mock 데이터 import (개발/테스트용)
@@ -108,4 +108,25 @@ export const updateBibleVerse = async (verseId: number, data: UpdateBibleVerseRe
   
   const result: UpdateBibleVerseResponse = await response.json()
   return result.data
+}
+
+/**
+ * 성경 한 장의 오디오북(mp3) URL 조회
+ * - 백엔드가 edge-tts로 본문을 읽어주는 mp3를 생성하고 Supabase에 영구 캐시한다.
+ * - 두 번째 요청부터는 cached=true 로 즉시 URL을 돌려준다.
+ */
+export const getBibleChapterAudio = async (
+  bookNumber: number,
+  chapter: number,
+  voice: BibleTTSVoice = 'female'
+): Promise<BibleTTSResponse> => {
+  const params = new URLSearchParams({ voice })
+  const response = await apiFetch(`${API_V1}/bible/tts/${bookNumber}/${chapter}?${params}`)
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || '오디오 생성에 실패했습니다')
+  }
+
+  return response.json()
 }

@@ -1,5 +1,6 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
-import { getBibleBooks, getBibleChapter, getBibleVerse, searchBible, getBibleChapterPaginated } from '../api/bible'
+import { getBibleBooks, getBibleChapter, getBibleVerse, searchBible, getBibleChapterPaginated, getBibleChapterAudio } from '../api/bible'
+import type { BibleTTSVoice } from '../types/bible'
 
 // 성경 책 목록
 export const useBibleBooks = () => {
@@ -41,6 +42,25 @@ export const useBibleSearch = (keyword: string, page: number = 1) => {
     enabled: keyword.length > 0,
     staleTime: 1000 * 60 * 60 * 24, // 24시간
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
+    retry: 1,
+  })
+}
+
+// 장 오디오북(TTS) URL 조회
+// enabled=false 로 두었다가, 사용자가 재생을 누른 시점에만 활성화한다
+// (모든 장을 열 때마다 TTS를 생성하지 않도록 지연 로딩).
+export const useBibleChapterAudio = (
+  bookNumber: number,
+  chapter: number,
+  voice: BibleTTSVoice = 'female',
+  enabled: boolean = false
+) => {
+  return useQuery({
+    queryKey: ['bible', 'tts', bookNumber, chapter, voice],
+    queryFn: () => getBibleChapterAudio(bookNumber, chapter, voice),
+    enabled: enabled && bookNumber > 0 && chapter > 0,
+    staleTime: Infinity, // 본문 불변 → 한 번 받은 URL은 영구 재사용
+    gcTime: 1000 * 60 * 60 * 24, // 24시간
     retry: 1,
   })
 }
