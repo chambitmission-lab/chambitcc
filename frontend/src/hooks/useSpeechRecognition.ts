@@ -231,7 +231,7 @@ export const useSpeechRecognition = ({
       return
     }
     try {
-      if (navigator.mediaDevices?.getUserMedia) {
+      if (typeof navigator.mediaDevices?.getUserMedia === 'function') {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
         // 권한만 확보하고 즉시 해제 (SpeechRecognition이 마이크를 사용하도록)
         stream.getTracks().forEach((track) => track.stop())
@@ -275,7 +275,7 @@ export const useSpeechRecognition = ({
     // 마이크 권한이 아직 확보되지 않았다면 먼저 확보한다.
     // 이미 확보된 경우(=2번째 탭 이후)에는 await 없이 동기적으로 진행해
     // iOS Safari의 user-gesture 토큰을 유지한다.
-    if (!micPrimedRef.current && navigator.mediaDevices?.getUserMedia) {
+    if (!micPrimedRef.current && typeof navigator.mediaDevices?.getUserMedia === 'function') {
       await primeMicrophone()
     }
 
