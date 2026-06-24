@@ -23,7 +23,19 @@ const renderInline = (text: string, keyPrefix: string): ReactNode[] => {
     .map((token, idx) => {
       const key = `${keyPrefix}-${idx}`
       if (token.startsWith('**') && token.endsWith('**')) {
-        return <strong key={key}>{token.slice(2, -2)}</strong>
+        // 성경 해석의 중요 문구를 신적 영광·빛을 상징하는 금빛 글로우로 강조한다.
+        return (
+          <strong
+            key={key}
+            className="font-bold text-[#d4a017] dark:text-[#fbbf24]"
+            style={{
+              textShadow:
+                '0 0 15px rgba(251, 191, 36, 0.7), 0 0 25px rgba(251, 191, 36, 0.45)',
+            }}
+          >
+            {token.slice(2, -2)}
+          </strong>
+        )
       }
       if (token.startsWith('*') && token.endsWith('*')) {
         return <em key={key}>{token.slice(1, -1)}</em>
