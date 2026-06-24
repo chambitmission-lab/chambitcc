@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 
 export const useMenuState = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const location = useLocation()
+
+  // 모바일 뒤로가기 시 앱 종료 대신 메뉴만 닫기
+  useModalBackButton(() => setIsMenuOpen(false), isMenuOpen)
 
   // 페이지 이동 시 메뉴 닫기
   useEffect(() => {
