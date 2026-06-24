@@ -91,6 +91,18 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
   const requestPlay = () => {
     const audio = audioRef.current
     if (started && audio) {
+      // 스트리밍으로 끝까지 들었거나 오류로 끝난 경우, 같은 src에 audio.play()만
+      // 하면 미디어가 "끝(ended)" 상태에 머물러 재생이 시작되지 않는다.
+      // 첫 재생 이후엔 백엔드가 캐시 파일로 응답하므로, load()로 다시 불러오면
+      // 처음부터 정상 재생(탐색 가능)된다.
+      if (audio.ended || audio.error) {
+        setIsError(false)
+        setPreparing(true)
+        setCurrentTime(0)
+        wantPlayRef.current = true
+        audio.load()
+        return
+      }
       // 이미 src가 걸려 있음 → 즉시(또는 버퍼되면) 재생
       if (audio.readyState < 2) setPreparing(true)
       audio.play().catch(() => {})
@@ -351,6 +363,15 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
         ref={audioRef}
         src={audioUrl}
         preload="none"
+        onCanPlay={(e) => {
+          // load() 재로딩(재생 종료 후 다시 재생) 시 src가 그대로라 audioUrl
+          // effect가 다시 돌지 않으므로, 데이터가 준비되면 여기서 대기 재생을 실행한다.
+          if (wantPlayRef.current) {
+            wantPlayRef.current = false
+            e.currentTarget.playbackRate = rate
+            e.currentTarget.play().catch(() => {})
+          }
+        }}
         onPlay={() => setIsPlaying(true)}
         onPlaying={() => {
           // 첫 소리가 실제로 나기 시작 → 대기 상태 해제
