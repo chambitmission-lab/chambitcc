@@ -140,6 +140,9 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
   }
 
   const loading = preparing && !isError
+  // 미캐시 첫 재생은 스트리밍이라 총길이를 알 수 없다(duration<=0).
+  // 이 경우 멈춘 듯한 0:00·고정 진행바 대신 "실시간 생성 중" 불확정 표시로 보여준다.
+  const liveStream = started && !loading && !isError && duration <= 0
   const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
 
   // 로딩 중에는 잔잔한 문구를 천천히 교체
@@ -228,56 +231,74 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
               {loading && (
                 <span className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 animate-pulse rounded-full bg-gradient-to-r from-purple-500/0 via-pink-500/70 to-purple-500/0 [animation-duration:1.8s]" />
               )}
-              <div
-                className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
-                style={{ width: `${pct}%` }}
-              />
 
-              {/* 시작점 — 함께 출발한 자리 */}
-              <span className="pointer-events-none absolute left-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-purple-400/70 dark:bg-purple-300/60" />
-
-              {/* 도착점 — 빛이 향해 가는 목적지(가까워질수록 환해진다) */}
-              <span
-                className="pointer-events-none absolute left-full top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity"
-                style={{ opacity: 0.3 + (pct / 100) * 0.7 }}
-              >
-                <span className="material-icons-round block text-[14px] leading-none text-pink-400 dark:text-pink-300">
-                  auto_awesome
+              {liveStream ? (
+                /* 실시간 생성 중 — 총길이를 모르므로 좌→우로 흐르는 불확정 바
+                   (멈춘 듯 보이지 않게 "라이브 생성"임을 표현) */
+                <span className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 overflow-hidden rounded-full">
+                  <span className="absolute left-0 top-0 h-full w-1/3 animate-bible-stream-sweep rounded-full bg-gradient-to-r from-purple-500/0 via-pink-500 to-purple-500/0" />
                 </span>
-              </span>
+              ) : (
+                <>
+                  <div
+                    className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+                    style={{ width: `${pct}%` }}
+                  />
 
-              {/* 인도하는 빛 — 처음부터 끝까지 길을 함께 걷는 별빛 동행 */}
-              <div
-                className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
-                style={{ left: `${pct}%` }}
-              >
-                {isPlaying && (
-                  <span className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-pink-400/35 blur-[3px] [animation-duration:1.6s]" />
-                )}
-                <svg
-                  viewBox="0 0 24 24"
-                  className="relative block h-[18px] w-[18px] text-white drop-shadow-[0_0_6px_rgba(236,72,153,0.9)] transition-transform group-active:scale-110"
-                  fill="currentColor"
-                >
-                  <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
-                </svg>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={duration || 0}
-                step={0.1}
-                value={currentTime}
-                onChange={handleSeek}
-                disabled={!duration}
-                aria-label="재생 위치"
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-default"
-              />
+                  {/* 시작점 — 함께 출발한 자리 */}
+                  <span className="pointer-events-none absolute left-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-purple-400/70 dark:bg-purple-300/60" />
+
+                  {/* 도착점 — 빛이 향해 가는 목적지(가까워질수록 환해진다) */}
+                  <span
+                    className="pointer-events-none absolute left-full top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity"
+                    style={{ opacity: 0.3 + (pct / 100) * 0.7 }}
+                  >
+                    <span className="material-icons-round block text-[14px] leading-none text-pink-400 dark:text-pink-300">
+                      auto_awesome
+                    </span>
+                  </span>
+
+                  {/* 인도하는 빛 — 처음부터 끝까지 길을 함께 걷는 별빛 동행 */}
+                  <div
+                    className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: `${pct}%` }}
+                  >
+                    {isPlaying && (
+                      <span className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-pink-400/35 blur-[3px] [animation-duration:1.6s]" />
+                    )}
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="relative block h-[18px] w-[18px] text-white drop-shadow-[0_0_6px_rgba(236,72,153,0.9)] transition-transform group-active:scale-110"
+                      fill="currentColor"
+                    >
+                      <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={duration || 0}
+                    step={0.1}
+                    value={currentTime}
+                    onChange={handleSeek}
+                    disabled={!duration}
+                    aria-label="재생 위치"
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-default"
+                  />
+                </>
+              )}
             </div>
 
             <div className="mt-1 flex items-center justify-between text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45">
               <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
+              {liveStream ? (
+                <span className="flex items-center gap-1 font-semibold text-purple-500 dark:text-purple-300">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-pink-500" />
+                  실시간 생성 중
+                </span>
+              ) : (
+                <span>{formatTime(duration)}</span>
+              )}
             </div>
           </div>
         </div>
