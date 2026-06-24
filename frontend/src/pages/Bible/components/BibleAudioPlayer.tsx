@@ -19,10 +19,10 @@ const LOADING_MESSAGES = [
   '곧 들려드릴게요…',
 ]
 
-const loadVoice = (): BibleTTSVoice => {
-  const v = localStorage.getItem(VOICE_STORAGE_KEY)
-  return v === 'male' ? 'male' : 'female'
-}
+// 현재는 음성 선택 UI를 숨기고 남성으로 고정한다(여성/남성 토글은 코드만 보존).
+// 나중에 다시 노출하려면 아래 한 줄을 예전 로직으로 되돌리면 된다.
+//   const v = localStorage.getItem(VOICE_STORAGE_KEY); return v === 'male' ? 'male' : 'female'
+const loadVoice = (): BibleTTSVoice => 'male'
 
 const loadRate = (): number => {
   const r = Number(localStorage.getItem(RATE_STORAGE_KEY))
@@ -282,9 +282,10 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
           </div>
         </div>
 
-        {/* 음성 선택 — 슬라이딩 인디케이터 세그먼트 */}
+        {/* 음성 선택 — 슬라이딩 인디케이터 세그먼트
+            (현재는 숨기고 남성 고정. 다시 노출하려면 아래 첫 div의 `!hidden` 제거) */}
         <div className="mt-3 flex items-center justify-between">
-          <div className="relative inline-flex rounded-full bg-black/[0.05] p-0.5 dark:bg-white/[0.07]">
+          <div className="relative !hidden inline-flex rounded-full bg-black/[0.05] p-0.5 dark:bg-white/[0.07]">
             <span
               className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_4px_12px_-4px_rgba(217,70,239,0.6)] transition-transform duration-300 ease-out"
               style={{ transform: voice === 'male' ? 'translateX(100%)' : 'translateX(0)' }}
