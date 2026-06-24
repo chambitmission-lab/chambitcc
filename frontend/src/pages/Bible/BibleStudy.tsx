@@ -5,6 +5,7 @@ import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
 import { useResumeReading, useReadingProgress } from '../../hooks/useBibleReading'
 import { useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
 import { useAuth } from '../../hooks/useAuth'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
 import type { ResumePosition } from '../../api/bibleReading'
 import {
@@ -146,6 +147,10 @@ const BibleStudy = () => {
     setSelectedBookId(0)
     setSelectedBook('')
   }
+
+  // 본문(장) 보기는 책 목록 위에 뜬 오버레이처럼 취급한다.
+  // 모바일/브라우저 뒤로가기 시 메인으로 빠져나가는 대신 책 목록으로 돌아간다.
+  useModalBackButton(handleChangeBook, !showBookList)
   
   const handleChapterChange = (chapter: number) => {
     setSelectedChapter(chapter)
