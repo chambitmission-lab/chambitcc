@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useBibleChapterAudio } from '../../../hooks/useBible'
+import { API_V1 } from '../../../config/api'
 import type { BibleTTSVoice } from '../../../types/bible'
 
 interface BibleAudioPlayerProps {
@@ -38,8 +38,11 @@ const formatTime = (sec: number): string => {
 
 /**
  * 성경 한 장을 오디오북처럼 들려주는 플레이어.
- * - 재생 버튼을 누른 시점에만 백엔드 TTS를 요청(지연 로딩)
- * - 한 번 받은 mp3 URL은 React Query(staleTime: Infinity)로 캐시되어 즉시 재생
+ * - 재생 버튼을 누른 시점에만 백엔드 TTS 엔드포인트를 src로 걸어 지연 로딩
+ * - 캐시가 없으면 백엔드가 mp3를 "생성되는 즉시" 스트리밍하므로, 장 전체 생성을
+ *   기다리지 않고 첫 절(+머리말)만 준비되면 바로 재생이 시작된다.
+ * - 한 번 들으면 백엔드가 Supabase에 캐시 → 다음 재생은 캐시 파일로 리다이렉트되어
+ *   즉시 재생 + 탐색바/총 길이까지 정상.
  * - 음성(여성/남성)·배속은 localStorage에 기억
  *
  * 부모에서 key={`${bookNumber}-${chapter}`} 로 렌더하므로, 장이 바뀌면
@@ -47,28 +50,31 @@ const formatTime = (sec: number): string => {
  */
 const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null)
-  const wantPlayRef = useRef(false) // URL 로드 완료 시 자동 재생할지
+  const wantPlayRef = useRef(false) // src 로드 시 자동 재생할지
 
   const [voice, setVoice] = useState<BibleTTSVoice>(loadVoice)
   const [rate, setRate] = useState<number>(loadRate)
-  const [started, setStarted] = useState(false) // 첫 재생 이후에만 TTS 요청
+  const [started, setStarted] = useState(false) // 첫 재생 이후에만 src 설정
   const [isPlaying, setIsPlaying] = useState(false)
+  const [preparing, setPreparing] = useState(false) // 첫 소리가 나기 전 대기 상태
+  const [isError, setIsError] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0)
 
-  const { data, isFetching, isError } = useBibleChapterAudio(bookNumber, chapter, voice, started)
-  const audioUrl = data?.audio_url
+  // 재생을 누른 시점에만 백엔드 스트리밍 엔드포인트를 src로 건다.
+  // 음성이 바뀌면 URL이 바뀌어 audio 요소가 새 음성으로 다시 로드된다.
+  const audioUrl = started
+    ? `${API_V1}/bible/tts/${bookNumber}/${chapter}?voice=${voice}`
+    : undefined
 
-  // URL이 준비되면 배속을 적용하고, 대기 중이던 재생 요청을 실행
+  // src가 준비되면 배속을 적용하고, 대기 중이던 재생 요청을 실행
   useEffect(() => {
     const audio = audioRef.current
     if (!audio || !audioUrl) return
     audio.playbackRate = rate
     if (wantPlayRef.current) {
       wantPlayRef.current = false
-      // iOS Safari 등에서 비동기 fetch 후 play()가 거부될 수 있음 →
-      // 사용자가 한 번 더 누르면 그때는 URL이 캐시돼 동기 재생으로 성공한다.
       audio.play().catch(() => {})
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,11 +90,15 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
 
   const requestPlay = () => {
     const audio = audioRef.current
-    if (audioUrl && audio) {
+    if (started && audio) {
+      // 이미 src가 걸려 있음 → 즉시(또는 버퍼되면) 재생
+      if (audio.readyState < 2) setPreparing(true)
       audio.play().catch(() => {})
       return
     }
-    // 아직 URL이 없으면 → TTS 요청을 켜고, 로드되면 자동 재생
+    // 첫 재생 → src를 걸고, 로드되면 자동 재생
+    setIsError(false)
+    setPreparing(true)
     wantPlayRef.current = true
     setStarted(true)
   }
@@ -107,8 +117,12 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
     audioRef.current?.pause()
     setVoice(v)
     localStorage.setItem(VOICE_STORAGE_KEY, v)
+    setIsError(false)
     // 이미 듣고 있었다면 새 음성으로 이어서 재생
-    if (started) wantPlayRef.current = wasPlaying
+    if (started) {
+      wantPlayRef.current = wasPlaying
+      if (wasPlaying) setPreparing(true)
+    }
   }
 
   const cycleRate = () => {
@@ -125,7 +139,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
     if (audioRef.current) audioRef.current.currentTime = t
   }
 
-  const loading = isFetching && !audioUrl
+  const loading = preparing && !isError
   const pct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0
 
   // 로딩 중에는 잔잔한 문구를 천천히 교체
@@ -303,15 +317,32 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
         src={audioUrl}
         preload="none"
         onPlay={() => setIsPlaying(true)}
+        onPlaying={() => {
+          // 첫 소리가 실제로 나기 시작 → 대기 상태 해제
+          setIsPlaying(true)
+          setPreparing(false)
+        }}
         onPause={() => setIsPlaying(false)}
         onEnded={() => {
           setIsPlaying(false)
           setCurrentTime(0)
         }}
+        onError={() => {
+          setPreparing(false)
+          setIsPlaying(false)
+          // started 후에만 실제 오류로 간주(초기 src 없는 상태 제외)
+          if (started) setIsError(true)
+        }}
         onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
         onLoadedMetadata={(e) => {
-          setDuration(e.currentTarget.duration)
+          // 스트리밍(미캐시) 최초 재생 땐 길이를 모를 수 있다(Infinity/NaN) → 0 처리
+          const d = e.currentTarget.duration
+          setDuration(Number.isFinite(d) ? d : 0)
           e.currentTarget.playbackRate = rate
+        }}
+        onDurationChange={(e) => {
+          const d = e.currentTarget.duration
+          if (Number.isFinite(d)) setDuration(d)
         }}
       />
     </div>
