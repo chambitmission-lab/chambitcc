@@ -297,13 +297,16 @@ body {
   animation: breath-fade 5s ease-in-out infinite;
 }
 
-/* 오디오북 실시간 생성 — 총길이를 모를 때 좌→우로 흐르는 불확정 진행 표시 */
-@keyframes bible-stream-sweep {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(300%); }
+/* 오디오북 실시간 생성 — 동방박사가 별을 따라가듯, 별이 천천히 길을 가로지른다.
+   총길이를 모르는 스트리밍 구간을 "별똥별의 동행"으로 표현(양끝에서 살짝 페이드). */
+@keyframes bible-star-travel {
+  0%   { left: 0%;   opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
 }
-.animate-bible-stream-sweep {
-  animation: bible-stream-sweep 1.5s linear infinite;
+.animate-bible-star-travel {
+  animation: bible-star-travel 5s linear infinite;
 }
 
 /* Liquid Pill Button Effects */

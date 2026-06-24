@@ -233,11 +233,24 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
               )}
 
               {liveStream ? (
-                /* 실시간 생성 중 — 총길이를 모르므로 좌→우로 흐르는 불확정 바
-                   (멈춘 듯 보이지 않게 "라이브 생성"임을 표현) */
-                <span className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 overflow-hidden rounded-full">
-                  <span className="absolute left-0 top-0 h-full w-1/3 animate-bible-stream-sweep rounded-full bg-gradient-to-r from-purple-500/0 via-pink-500 to-purple-500/0" />
-                </span>
+                /* 실시간 생성 중 — 동방박사가 별을 따라가듯, 별이 천천히 길을 가로지른다.
+                   총길이를 모르므로 진행률 대신 "별의 동행"으로 라이브 상태를 표현. */
+                <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2">
+                  <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 animate-bible-star-travel">
+                    {/* 별똥별 꼬리 — 지나온 길에 남는 빛의 자취 */}
+                    <span className="absolute right-1/2 top-1/2 h-[2px] w-8 -translate-y-1/2 rounded-full bg-gradient-to-l from-pink-400/90 via-pink-400/40 to-transparent blur-[0.5px]" />
+                    {/* 은은한 빛무리(후광) */}
+                    <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-pink-400/35 blur-[3px] [animation-duration:1.6s]" />
+                    {/* 별 — 정상 재생 때와 같은 네 갈래 별 */}
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="relative block h-[16px] w-[16px] text-white drop-shadow-[0_0_6px_rgba(236,72,153,0.9)]"
+                      fill="currentColor"
+                    >
+                      <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
+                    </svg>
+                  </div>
+                </div>
               ) : (
                 <>
                   <div
