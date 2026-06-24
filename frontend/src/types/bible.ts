@@ -46,6 +46,7 @@ export interface BibleSearchResult {
   chapter?: number | null
   is_book_search?: boolean
   book?: BibleSearchBook | null
+  books?: BibleSearchBook[] | null
 }
 
 // 페이지네이션 장 조회 응답

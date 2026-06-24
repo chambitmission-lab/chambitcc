@@ -69,113 +69,123 @@ const BibleSearch = () => {
         <div className="loading-spinner">
           <span className="material-icons-round spinning">refresh</span>
         </div>
-      ) : searchResults?.is_book_search && searchResults.book ? (
-        // 책 단독 검색 → 책 카드 + 장 그리드
-        <div
-          style={{
-            background: 'var(--ig-primary-background)',
-            border: '1px solid var(--ig-border)',
-            borderRadius: '12px',
-            padding: '1.25rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              paddingBottom: '0.875rem',
-              borderBottom: '1px solid var(--ig-border)',
-              marginBottom: '1rem',
-            }}
-          >
-            <span
-              className="material-icons-round"
-              style={{ fontSize: '2rem', color: '#a855f7' }}
+      ) : searchResults?.is_book_search && (searchResults.books?.length || searchResults.book) ? (
+        // 책 단독 검색 → 매칭된 모든 책 카드 + 장 그리드 (예: "고린도" → 전·후서)
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {(searchResults.books && searchResults.books.length > 0
+            ? searchResults.books
+            : searchResults.book
+              ? [searchResults.book]
+              : []
+          ).map(book => (
+            <div
+              key={book.book_number}
+              style={{
+                background: 'var(--ig-primary-background)',
+                border: '1px solid var(--ig-border)',
+                borderRadius: '12px',
+                padding: '1.25rem',
+              }}
             >
-              menu_book
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
-                  fontSize: '1.125rem',
-                  fontWeight: 700,
-                  color: 'var(--ig-primary-text)',
-                  letterSpacing: '-0.01em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  paddingBottom: '0.875rem',
+                  borderBottom: '1px solid var(--ig-border)',
+                  marginBottom: '1rem',
                 }}
               >
-                {searchResults.book.book_name_ko}
                 <span
-                  style={{
-                    marginLeft: '0.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: 'var(--ig-secondary-text)',
-                  }}
+                  className="material-icons-round"
+                  style={{ fontSize: '2rem', color: '#a855f7' }}
                 >
-                  {searchResults.book.book_name_en}
+                  menu_book
                 </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: '1.125rem',
+                      fontWeight: 700,
+                      color: 'var(--ig-primary-text)',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    {book.book_name_ko}
+                    <span
+                      style={{
+                        marginLeft: '0.5rem',
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        color: 'var(--ig-secondary-text)',
+                      }}
+                    >
+                      {book.book_name_en}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.8125rem',
+                      color: 'var(--ig-secondary-text)',
+                      marginTop: '0.125rem',
+                    }}
+                  >
+                    {book.testament === 'OLD' ? t.old : t.new} ·{' '}
+                    {book.chapter_count}{t.chapters}
+                  </div>
+                </div>
               </div>
+
               <div
                 style={{
                   fontSize: '0.8125rem',
+                  fontWeight: 600,
                   color: 'var(--ig-secondary-text)',
-                  marginTop: '0.125rem',
+                  marginBottom: '0.625rem',
                 }}
               >
-                {searchResults.book.testament === 'OLD' ? t.old : t.new} ·{' '}
-                {searchResults.book.chapter_count}{t.chapters}
+                {t.selectChapter}
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))',
+                  gap: '0.375rem',
+                }}
+              >
+                {Array.from({ length: book.chapter_count }, (_, i) => i + 1).map(ch => (
+                  <button
+                    key={ch}
+                    onClick={() => goToChapter(book.book_number, ch)}
+                    style={{
+                      padding: '0.625rem 0',
+                      border: '1px solid var(--ig-border)',
+                      background: 'var(--ig-secondary-background)',
+                      borderRadius: '8px',
+                      color: 'var(--ig-primary-text)',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#a855f7'
+                      e.currentTarget.style.color = 'white'
+                      e.currentTarget.style.borderColor = '#a855f7'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'var(--ig-secondary-background)'
+                      e.currentTarget.style.color = 'var(--ig-primary-text)'
+                      e.currentTarget.style.borderColor = 'var(--ig-border)'
+                    }}
+                  >
+                    {ch}
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
-
-          <div
-            style={{
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              color: 'var(--ig-secondary-text)',
-              marginBottom: '0.625rem',
-            }}
-          >
-            {t.selectChapter}
-          </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))',
-              gap: '0.375rem',
-            }}
-          >
-            {Array.from({ length: searchResults.book.chapter_count }, (_, i) => i + 1).map(ch => (
-              <button
-                key={ch}
-                onClick={() => goToChapter(searchResults.book!.book_number, ch)}
-                style={{
-                  padding: '0.625rem 0',
-                  border: '1px solid var(--ig-border)',
-                  background: 'var(--ig-secondary-background)',
-                  borderRadius: '8px',
-                  color: 'var(--ig-primary-text)',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#a855f7'
-                  e.currentTarget.style.color = 'white'
-                  e.currentTarget.style.borderColor = '#a855f7'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--ig-secondary-background)'
-                  e.currentTarget.style.color = 'var(--ig-primary-text)'
-                  e.currentTarget.style.borderColor = 'var(--ig-border)'
-                }}
-              >
-                {ch}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
       ) : searchResults && searchResults.results.length > 0 ? (
         <div className="search-results">
