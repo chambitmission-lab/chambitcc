@@ -102,7 +102,9 @@
       "Bash(curl -s -m 4 -o /dev/null -w \"8000:%{http_code}\\\\n\" http://localhost:8000/docs)",
       "Bash(curl -s -m 4 -o /dev/null -w \"8000api:%{http_code}\\\\n\" http://localhost:8000/api/v1/prayer-sessions/stats)",
       "Bash(netstat -ano)",
-      "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1 | Select-Object -First 30)"
+      "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1 | Select-Object -First 30)",
+      "Bash(grep -rhoE \"queryKey: \\\\[['\\\\\"\\\\`][a-zA-Z0-9_-]+\" src)",
+      "Bash(grep -vE \"queryKey: \\\\[['\\\\\"\\\\`]\\(account|bible|community|dailyVerse|meditation|prayers|profile|sermon|sermons|sermon-bible-references\\)\")"
     ]
   }
 }
