@@ -17,7 +17,9 @@ import {
   VerseList,
   BibleSearch,
   ResumeReadingCard,
+  FavoritesPlaylistModal,
 } from './components'
+import { useBookmarkStats } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
 import './BibleStudy.css'
 
@@ -30,9 +32,12 @@ const BibleStudy = () => {
   const [activeTab, setActiveTab] = useState<'read' | 'search'>('read')
   const [showBookList, setShowBookList] = useState<boolean>(true)
   const [pendingScrollVerse, setPendingScrollVerse] = useState<number | null>(null)
+  const [showPlaylist, setShowPlaylist] = useState<boolean>(false)
 
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
   const { isLoggedIn } = useAuth()
+  const { data: bookmarkStats } = useBookmarkStats()
+  const favoritesCount = bookmarkStats?.favorites_count ?? 0
   const { data: resumeData } = useResumeReading(20, isLoggedIn())
   const { data: progressData } = useReadingProgress(isLoggedIn())
 
@@ -180,6 +185,31 @@ const BibleStudy = () => {
               />
             )}
 
+            {/* 즐겨찾기 구절 듣기 — 책 목록 화면에서만 노출 */}
+            {showBookList && isLoggedIn() && (
+              <button
+                onClick={() => setShowPlaylist(true)}
+                className="relative mx-3 mt-2 mb-1 flex w-[calc(100%-1.5rem)] items-center gap-3 overflow-hidden rounded-2xl border border-purple-200/60 dark:border-purple-400/15 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-500/[0.08] dark:to-pink-500/[0.05] px-4 py-3 text-left transition active:scale-[0.99]"
+              >
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_8px_22px_-8px_rgba(217,70,239,0.7)]">
+                  <span className="material-icons-round text-[24px]">headphones</span>
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[14px] font-bold text-gray-900 dark:text-white">
+                    즐겨찾기 구절 듣기
+                  </span>
+                  <span className="block text-[12px] text-gray-500 dark:text-white/55">
+                    {favoritesCount > 0
+                      ? `즐겨찾기한 ${favoritesCount}개 구절을 묵상 플레이리스트로`
+                      : '마음에 닿는 절을 모아 자기 전에 다시 듣기'}
+                  </span>
+                </span>
+                <span className="material-icons-round text-purple-400 dark:text-purple-300/70 text-[22px]">
+                  chevron_right
+                </span>
+              </button>
+            )}
+
             {/* 책 선택 */}
             {showBookList && (
               <BookSelector
@@ -240,6 +270,9 @@ const BibleStudy = () => {
         {/* 검색 탭 */}
         {activeTab === 'search' && <BibleSearch />}
       </div>
+
+      {/* 즐겨찾기 묵상 플레이리스트 모달 */}
+      {showPlaylist && <FavoritesPlaylistModal onClose={() => setShowPlaylist(false)} />}
     </div>
   )
 }
