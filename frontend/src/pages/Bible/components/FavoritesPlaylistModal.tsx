@@ -309,7 +309,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                 ) : (
                   <>
                     <div
-                      className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+                      className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-[width] duration-300 ease-linear"
                       style={{ width: `${pct}%` }}
                     />
 
@@ -328,7 +328,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
 
                     {/* 인도하는 빛 — 처음부터 끝까지 길을 함께 걷는 별빛 동행 */}
                     <div
-                      className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2"
+                      className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-[left] duration-300 ease-linear"
                       style={{ left: `${pct}%` }}
                     >
                       {isPlaying && (
