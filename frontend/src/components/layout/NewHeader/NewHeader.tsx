@@ -15,7 +15,7 @@ const NewHeader = () => {
   // Custom hooks
   const { isMenuOpen, setIsMenuOpen, menuRef } = useMenuState()
   const { isLoggedIn, isAdminUser, setIsLoggedIn, setIsAdminUser } = useAuthState()
-  const { handleLogout } = useLogout(setIsLoggedIn, setIsAdminUser)
+  const { handleLogout } = useLogout(setIsLoggedIn, setIsAdminUser, () => setIsMenuOpen(false))
   
   // React Query로 알림 개수 조회
   const { data } = useNotifications()
