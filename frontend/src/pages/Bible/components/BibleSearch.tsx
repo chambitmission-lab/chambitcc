@@ -2,7 +2,16 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import { useBibleSearch } from '../../../hooks/useBible'
+import { useBibleSearch, useBibleBooks } from '../../../hooks/useBible'
+
+// 책 카드 렌더에 필요한 최소 형태 — 백엔드 검색 결과(BibleSearchBook)와 전체 책 목록(BibleBook) 공통 필드
+interface BookCard {
+  book_number: number
+  book_name_ko: string
+  book_name_en: string
+  testament: string
+  chapter_count: number
+}
 
 const BibleSearch = () => {
   const { language } = useLanguage()
@@ -11,6 +20,36 @@ const BibleSearch = () => {
   const [searchQuery, setSearchQuery] = useState('')
 
   const { data: searchResults, isLoading: searchLoading } = useBibleSearch(searchQuery)
+  const { data: allBooks } = useBibleBooks()
+
+  // 책 이름 부분일치를 프론트에서 직접 처리 — "고린" → 고린도전서·후서처럼 모든 매칭 책을 보장.
+  // 장/절 검색(숫자 포함)이나 본문 키워드 검색은 건드리지 않는다.
+  const normalize = (s: string) => s.replace(/\s/g, '').toLowerCase()
+  const trimmedQuery = searchQuery.trim()
+  const isChapterLike = /\d/.test(trimmedQuery)
+  const localBookMatches: BookCard[] =
+    trimmedQuery && !isChapterLike
+      ? (allBooks || []).filter(
+          b =>
+            normalize(b.book_name_ko).includes(normalize(trimmedQuery)) ||
+            normalize(b.book_name_en).includes(normalize(trimmedQuery))
+        )
+      : []
+
+  const backendIsBookSearch = !!(
+    searchResults?.is_book_search && (searchResults.books?.length || searchResults.book)
+  )
+  // 백엔드가 책 검색으로 인식했으면, 누락 없이 전체 로컬 매칭으로 카드를 그린다(없으면 백엔드 응답 사용).
+  const booksToShow: BookCard[] =
+    localBookMatches.length > 0
+      ? localBookMatches
+      : backendIsBookSearch
+        ? searchResults!.books && searchResults!.books.length > 0
+          ? searchResults!.books
+          : searchResults!.book
+            ? [searchResults!.book]
+            : []
+        : []
 
   const texts = {
     ko: {
@@ -69,15 +108,10 @@ const BibleSearch = () => {
         <div className="loading-spinner">
           <span className="material-icons-round spinning">refresh</span>
         </div>
-      ) : searchResults?.is_book_search && (searchResults.books?.length || searchResults.book) ? (
-        // 책 단독 검색 → 매칭된 모든 책 카드 + 장 그리드 (예: "고린도" → 전·후서)
+      ) : booksToShow.length > 0 ? (
+        // 책 단독 검색 → 매칭된 모든 책 카드 + 장 그리드 (예: "고린" → 전·후서)
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {(searchResults.books && searchResults.books.length > 0
-            ? searchResults.books
-            : searchResults.book
-              ? [searchResults.book]
-              : []
-          ).map(book => (
+          {booksToShow.map(book => (
             <div
               key={book.book_number}
               style={{

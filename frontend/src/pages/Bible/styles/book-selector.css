@@ -5,6 +5,134 @@
   background: var(--ig-secondary-background);
 }
 
+/* 최근 읽은 책 — 가로 스크롤 슬라이더 (그리드 위에서 빠르게 재진입) */
+.recent-strip {
+  margin-bottom: 1.25rem;
+}
+
+.recent-strip__title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  margin-bottom: 0.6rem;
+}
+
+.recent-scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.recent-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.recent-chip {
+  flex: 0 0 auto;
+  min-width: 8.75rem;
+  max-width: 11rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.7rem;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 0.875rem;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.15s, border-color 0.15s;
+}
+[data-theme="dark"] .recent-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.recent-chip:hover {
+  border-color: rgba(168, 85, 247, 0.4);
+}
+.recent-chip:active {
+  transform: scale(0.98);
+}
+
+.recent-chip__play {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+  background: rgba(168, 85, 247, 0.14);
+  color: #a855f7;
+}
+[data-theme="dark"] .recent-chip__play {
+  background: rgba(168, 85, 247, 0.22);
+  color: #c084fc;
+}
+.recent-chip__play .material-icons-round {
+  font-size: 1.1rem;
+}
+
+.recent-chip__body {
+  min-width: 0;
+}
+.recent-chip__name {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recent-chip__meta {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #a855f7;
+}
+[data-theme="dark"] .recent-chip__meta {
+  color: #c084fc;
+}
+
+/* 분류 필터 칩 — 모세오경/역사서/시가서… 으로 그리드를 한눈에 줄인다 */
+.book-filter {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.book-filter::-webkit-scrollbar {
+  display: none;
+}
+
+.book-filter-chip {
+  flex: 0 0 auto;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--ig-secondary-background);
+  border: 1px solid var(--ig-border);
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+[data-theme="dark"] .book-filter-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.book-filter-chip.active {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px -4px rgba(168, 85, 247, 0.5);
+}
+
 .testament-section {
   margin-bottom: 1.5rem;
 }
@@ -36,6 +164,28 @@
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
+}
+
+/* 마지막 읽은 곳 뱃지 — 배경 칩으로 대비를 높여 가독성 확보 */
+.book-resume-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-top: 0.3rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.14);
+  color: #9333ea;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+[data-theme="dark"] .book-resume-badge {
+  background: rgba(168, 85, 247, 0.24);
+  color: #d8b4fe;
+}
+.book-resume-badge .material-icons-round {
+  font-size: 0.7rem;
 }
 
 /* 완독률 게이지바 — 카드 하단 가장자리 */

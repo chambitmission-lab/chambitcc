@@ -53,6 +53,16 @@ const BibleStudy = () => {
     progressData?.books?.forEach(b => map.set(b.book_id, b.progress_rate))
     return map
   }, [progressData])
+
+  // 최근 읽은 책 슬라이더용 — 전역 최신(이어 읽기 카드)은 제외한 "다른 책" 목록
+  const recentForSlider = useMemo(() => {
+    const list = resumeData?.recent_books ?? []
+    const latest = resumeData?.latest
+    if (!latest) return list
+    return list.filter(
+      p => !(p.book_number === latest.book_number && p.verse_id === latest.verse_id)
+    )
+  }, [resumeData])
   
   const selectedBookData = books?.find(b => b.id === selectedBookId)
   
@@ -176,38 +186,34 @@ const BibleStudy = () => {
         {/* 읽기 탭 */}
         {activeTab === 'read' && (
           <div className="bible-read-section">
-            {/* 이어 읽기 카드 - 책 목록 화면에서만 노출 */}
-            {showBookList && resumeData?.latest && (
-              <ResumeReadingCard
-                latest={resumeData.latest}
-                recentBooks={resumeData.recent_books}
-                onResume={handleResume}
-              />
-            )}
+            {/* 나의 서재 — 이어 읽기(강조) + 즐겨찾기(보조)를 통일된 카드로. 책 목록 화면에서만 노출 */}
+            {showBookList && (resumeData?.latest || isLoggedIn()) && (
+              <div className="bible-dash">
+                {resumeData?.latest && (
+                  <ResumeReadingCard latest={resumeData.latest} onResume={handleResume} />
+                )}
 
-            {/* 즐겨찾기 구절 듣기 — 책 목록 화면에서만 노출 */}
-            {showBookList && isLoggedIn() && (
-              <button
-                onClick={() => setShowPlaylist(true)}
-                className="relative mx-3 mt-2 mb-1 flex w-[calc(100%-1.5rem)] items-center gap-3 overflow-hidden rounded-2xl border border-purple-200/60 dark:border-purple-400/15 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-500/[0.08] dark:to-pink-500/[0.05] px-4 py-3 text-left transition active:scale-[0.99]"
-              >
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_8px_22px_-8px_rgba(217,70,239,0.7)]">
-                  <span className="material-icons-round text-[24px]">headphones</span>
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[14px] font-bold text-gray-900 dark:text-white">
-                    즐겨찾기 구절 듣기
-                  </span>
-                  <span className="block text-[12px] text-gray-500 dark:text-white/55">
-                    {favoritesCount > 0
-                      ? `즐겨찾기한 ${favoritesCount}개 구절을 묵상 플레이리스트로`
-                      : '마음에 닿는 절을 모아 자기 전에 다시 듣기'}
-                  </span>
-                </span>
-                <span className="material-icons-round text-purple-400 dark:text-purple-300/70 text-[22px]">
-                  chevron_right
-                </span>
-              </button>
+                {isLoggedIn() && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPlaylist(true)}
+                    className="dash-card dash-card--fav"
+                  >
+                    <span className="dash-card__icon">
+                      <span className="material-icons-round">headphones</span>
+                    </span>
+                    <span className="dash-card__body">
+                      <span className="dash-card__title">즐겨찾기 구절 듣기</span>
+                      <span className="dash-card__text">
+                        {favoritesCount > 0
+                          ? `즐겨찾기한 ${favoritesCount}개 구절을 묵상 플레이리스트로`
+                          : '마음에 닿는 절을 모아 자기 전에 다시 듣기'}
+                      </span>
+                    </span>
+                    <span className="material-icons-round dash-card__chevron">chevron_right</span>
+                  </button>
+                )}
+              </div>
             )}
 
             {/* 책 선택 */}
@@ -219,6 +225,7 @@ const BibleStudy = () => {
                 onBookSelect={handleBookSelect}
                 resumeMap={resumeMap}
                 progressMap={progressMap}
+                recentBooks={recentForSlider}
               />
             )}
             

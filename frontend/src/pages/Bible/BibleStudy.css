@@ -9,6 +9,9 @@
 /* Layout - 레이아웃 및 컨테이너 */
 @import './styles/layout.css';
 
+/* Dashboard - 이어 읽기 / 즐겨찾기 카드 */
+@import './styles/dashboard.css';
+
 /* Book Selector - 성경 책 선택 */
 @import './styles/book-selector.css';
 

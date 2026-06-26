@@ -1,0 +1,121 @@
+/* Bible 나의 서재(Dashboard) - 이어 읽기 / 즐겨찾기 카드 통일 디자인 */
+
+/* 카드들을 공통 좌우 여백으로 묶는 컨테이너 */
+.bible-dash {
+  padding: 0.875rem 1rem 0.25rem;
+}
+
+/* 공통 카드 골격 */
+.dash-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.dash-card:active {
+  transform: scale(0.99);
+}
+
+/* 이어 읽기 — 가장 자주 누르는 본연 기능: 강조(primary) */
+.dash-card--resume {
+  padding: 1rem;
+  margin-bottom: 0.625rem;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(236, 72, 153, 0.13));
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 10px 28px -14px rgba(168, 85, 247, 0.55);
+}
+[data-theme="dark"] .dash-card--resume {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(236, 72, 153, 0.12));
+  border-color: rgba(168, 85, 247, 0.32);
+}
+
+/* 즐겨찾기 — 보조(secondary): 더 작고 차분하게 */
+.dash-card--fav {
+  padding: 0.75rem 1rem;
+  background: var(--ig-secondary-background);
+  border-color: var(--ig-border);
+}
+[data-theme="dark"] .dash-card--fav {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 좌측 아이콘 타일 */
+.dash-card__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 0.875rem;
+  color: #fff;
+}
+.dash-card--resume .dash-card__icon {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: 0 8px 20px -8px rgba(168, 85, 247, 0.8);
+}
+.dash-card--resume .dash-card__icon .material-icons-round {
+  font-size: 1.7rem;
+}
+.dash-card--fav .dash-card__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  opacity: 0.92;
+}
+.dash-card--fav .dash-card__icon .material-icons-round {
+  font-size: 1.3rem;
+}
+
+/* 본문 */
+.dash-card__body {
+  flex: 1;
+  min-width: 0;
+}
+.dash-card__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #a855f7;
+  margin-bottom: 0.15rem;
+}
+[data-theme="dark"] .dash-card__label {
+  color: #c084fc;
+}
+.dash-card__title {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+}
+.dash-card--fav .dash-card__title {
+  font-size: 0.875rem;
+}
+.dash-card__text {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.78rem;
+  color: var(--ig-secondary-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 우측 화살표 */
+.dash-card__chevron {
+  flex-shrink: 0;
+  font-size: 1.3rem;
+  color: var(--ig-secondary-text);
+}
+.dash-card--resume .dash-card__chevron {
+  color: #a855f7;
+}
+[data-theme="dark"] .dash-card--resume .dash-card__chevron {
+  color: #c084fc;
+}

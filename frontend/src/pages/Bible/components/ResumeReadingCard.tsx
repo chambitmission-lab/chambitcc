@@ -1,10 +1,8 @@
-import { useState } from 'react'
 import type { ResumePosition } from '../../../api/bibleReading'
 import { parseApiDate } from '../../../utils/dateUtils'
 
 interface ResumeReadingCardProps {
   latest: ResumePosition | null
-  recentBooks: ResumePosition[]
   onResume: (pos: ResumePosition) => void
 }
 
@@ -25,165 +23,25 @@ const formatRelativeTime = (iso: string): string => {
   return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
 }
 
-const ResumeReadingCard = ({ latest, recentBooks, onResume }: ResumeReadingCardProps) => {
-  const [expanded, setExpanded] = useState(false)
-
+// 이어 읽기 — 사용자가 가장 자주 누르는 본연 기능이라 강조 카드로 단독 노출.
+// 다른 책의 이어 읽기는 책 선택 영역의 "최근 읽은 책" 슬라이더가 담당한다.
+const ResumeReadingCard = ({ latest, onResume }: ResumeReadingCardProps) => {
   if (!latest) return null
 
-  // 전역 최신은 recent_books[0] 과 동일하므로 더보기 목록에서는 제외
-  const others = recentBooks.filter(
-    p => !(p.book_number === latest.book_number && p.verse_id === latest.verse_id)
-  )
-
   return (
-    <div
-      style={{
-        margin: '0 1rem 1rem',
-        borderRadius: '0.875rem',
-        background: 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12))',
-        border: '1px solid rgba(99,102,241,0.25)',
-        overflow: 'hidden',
-      }}
-    >
-      <button
-        type="button"
-        onClick={() => onResume(latest)}
-        style={{
-          width: '100%',
-          padding: '0.875rem 1rem',
-          background: 'transparent',
-          border: 'none',
-          textAlign: 'left',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-        }}
-      >
-        <span
-          className="material-icons-round"
-          style={{
-            fontSize: '1.75rem',
-            color: '#a855f7',
-            flexShrink: 0,
-          }}
-        >
-          play_circle
+    <button type="button" onClick={() => onResume(latest)} className="dash-card dash-card--resume">
+      <span className="dash-card__icon">
+        <span className="material-icons-round">play_arrow</span>
+      </span>
+      <span className="dash-card__body">
+        <span className="dash-card__label">이어 읽기 · {formatRelativeTime(latest.read_at)}</span>
+        <span className="dash-card__title">
+          {latest.book_name_ko} {latest.chapter}장 {latest.verse}절
         </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--ig-secondary-text)',
-              marginBottom: '0.125rem',
-              fontWeight: 600,
-              letterSpacing: '0.02em',
-            }}
-          >
-            이어 읽기 · {formatRelativeTime(latest.read_at)}
-          </div>
-          <div
-            style={{
-              fontSize: '0.95rem',
-              fontWeight: 700,
-              color: 'var(--ig-primary-text)',
-              marginBottom: '0.25rem',
-            }}
-          >
-            {latest.book_name_ko} {latest.chapter}장 {latest.verse}절
-          </div>
-          <div
-            style={{
-              fontSize: '0.8rem',
-              color: 'var(--ig-secondary-text)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 1,
-              WebkitBoxOrient: 'vertical',
-            }}
-          >
-            {latest.text}
-          </div>
-        </div>
-        <span
-          className="material-icons-round"
-          style={{ fontSize: '1.25rem', color: 'var(--ig-secondary-text)', flexShrink: 0 }}
-        >
-          chevron_right
-        </span>
-      </button>
-
-      {others.length > 0 && (
-        <>
-          <button
-            type="button"
-            onClick={() => setExpanded(v => !v)}
-            style={{
-              width: '100%',
-              padding: '0.5rem 1rem',
-              background: 'transparent',
-              border: 'none',
-              borderTop: '1px solid rgba(99,102,241,0.18)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.25rem',
-              fontSize: '0.8rem',
-              color: 'var(--ig-secondary-text)',
-              fontWeight: 500,
-            }}
-          >
-            다른 책 이어 읽기 ({others.length})
-            <span className="material-icons-round" style={{ fontSize: '1rem' }}>
-              {expanded ? 'expand_less' : 'expand_more'}
-            </span>
-          </button>
-
-          {expanded && (
-            <div style={{ padding: '0.25rem 0.5rem 0.75rem' }}>
-              {others.map(pos => (
-                <button
-                  key={pos.book_number}
-                  type="button"
-                  onClick={() => onResume(pos)}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem 0.75rem',
-                    background: 'transparent',
-                    border: 'none',
-                    borderRadius: '0.5rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    textAlign: 'left',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(99,102,241,0.08)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--ig-primary-text)' }}>
-                      {pos.book_name_ko} {pos.chapter}:{pos.verse}
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--ig-secondary-text)' }}>
-                      {formatRelativeTime(pos.read_at)}
-                    </div>
-                  </div>
-                  <span
-                    className="material-icons-round"
-                    style={{ fontSize: '1.125rem', color: 'var(--ig-secondary-text)' }}
-                  >
-                    chevron_right
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </>
-      )}
-    </div>
+        <span className="dash-card__text">{latest.text}</span>
+      </span>
+      <span className="material-icons-round dash-card__chevron">chevron_right</span>
+    </button>
   )
 }
 
