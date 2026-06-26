@@ -150,7 +150,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const recentItems = (recentBooks || [])
     .map(pos => ({ pos, book: books?.find(b => b.book_number === pos.book_number) }))
     .filter((x): x is { pos: ResumePosition; book: BibleBook } => !!x.book)
-    .slice(0, 8)
+    .slice(0, 4)
 
   return (
     <div className="bible-books-section">

@@ -18,21 +18,14 @@
 }
 
 .recent-scroll {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.recent-scroll::-webkit-scrollbar {
-  display: none;
 }
 
 .recent-chip {
-  flex: 0 0 auto;
-  min-width: 8.75rem;
-  max-width: 11rem;
+  width: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -98,15 +91,9 @@
 /* 분류 필터 칩 — 모세오경/역사서/시가서… 으로 그리드를 한눈에 줄인다 */
 .book-filter {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
   margin-bottom: 1rem;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.book-filter::-webkit-scrollbar {
-  display: none;
 }
 
 .book-filter-chip {
