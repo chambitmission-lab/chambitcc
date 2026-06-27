@@ -21,17 +21,18 @@
   transform: scale(0.99);
 }
 
-/* 이어 읽기 — 가장 자주 누르는 본연 기능: 강조(primary) */
+/* 이어 읽기 — 가장 자주 누르는 본연 기능: 화면의 핵심 CTA로 보라 강조를 집중시킨다 */
 .dash-card--resume {
   padding: 1rem;
   margin-bottom: 0.625rem;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(236, 72, 153, 0.13));
-  border-color: rgba(168, 85, 247, 0.3);
-  box-shadow: 0 10px 28px -14px rgba(168, 85, 247, 0.55);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(236, 72, 153, 0.18));
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 12px 32px -12px rgba(168, 85, 247, 0.6);
 }
 [data-theme="dark"] .dash-card--resume {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(236, 72, 153, 0.12));
-  border-color: rgba(168, 85, 247, 0.32);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.26), rgba(236, 72, 153, 0.18));
+  border-color: rgba(168, 85, 247, 0.42);
+  box-shadow: 0 12px 32px -12px rgba(168, 85, 247, 0.55);
 }
 
 /* 즐겨찾기 — 보조(secondary): 더 작고 차분하게 */
