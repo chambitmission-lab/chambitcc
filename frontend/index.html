@@ -6,10 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <title>참빛교회</title>
-    
+
+    <!-- 테마 선적용: React 마운트 전(첫 페인트 전)에 .dark 클래스를 동기로 붙여
+         새로고침 시 라이트→다크로 튀는 FOUC(테마 플래시)를 제거한다.
+         저장 키/기본값은 ThemeContext.tsx 와 동일하게 'theme', 기본 'dark'. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme') || 'dark';
+          document.documentElement.setAttribute('data-theme', t);
+          if (t === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+
+        // 아이콘 폰트가 준비되기 전 ligature 원문("home" 등 글자)이 잠깐 보이는 것을 막는다.
+        // JS 가 동작할 때만 .fonts-pending 을 붙여 아이콘 글자를 감추고(공간은 유지),
+        // 폰트가 로드되거나 안전장치 타임아웃 후 풀어준다. (no-JS 면 그대로 노출)
+        var de = document.documentElement;
+        de.classList.add('fonts-pending');
+        var reveal = function () { de.classList.remove('fonts-pending'); };
+        try {
+          if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(reveal);
+          } else {
+            reveal();
+          }
+        } catch (e) { reveal(); }
+        // 폰트 로드가 지연/실패해도 아이콘이 영영 숨지 않도록 최대 2초 뒤 강제 노출
+        setTimeout(reveal, 2000);
+    </script>
+
+    <!-- 폰트 CDN 사전 연결 — 핸드셰이크를 미리 끝내 폰트 도착을 앞당긴다 -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <!-- Pretendard Font (MZ세대 선호 폰트) -->
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
     <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">

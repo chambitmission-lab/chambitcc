@@ -1,9 +1,17 @@
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Outlined');
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
+/* Material Icons 는 index.html 의 <link> 로 로드한다.
+   여기서 @import 로 또 불러오면 CSS 로딩이 직렬로 막혀(render-blocking) 첫 렌더가 느려진다. */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 아이콘 폰트 로드 전, ligature 원문("home"·"menu" 등)이 글자로 잠깐 보이는 것을 막는다.
+   index.html 의 인라인 스크립트가 .fonts-pending 을 붙였다가 폰트 준비 후 제거한다.
+   visibility 만 숨겨 레이아웃 공간은 유지하므로 깜빡임 없이 자리만 비워 둔다. */
+html.fonts-pending .material-icons-outlined,
+html.fonts-pending .material-icons-round {
+  visibility: hidden;
+}
 
 * {
   margin: 0;

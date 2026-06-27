@@ -104,7 +104,13 @@
       "Bash(netstat -ano)",
       "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1 | Select-Object -First 30)",
       "Bash(grep -rhoE \"queryKey: \\\\[['\\\\\"\\\\`][a-zA-Z0-9_-]+\" src)",
-      "Bash(grep -vE \"queryKey: \\\\[['\\\\\"\\\\`]\\(account|bible|community|dailyVerse|meditation|prayers|profile|sermon|sermons|sermon-bible-references\\)\")"
+      "Bash(grep -vE \"queryKey: \\\\[['\\\\\"\\\\`]\\(account|bible|community|dailyVerse|meditation|prayers|profile|sermon|sermons|sermon-bible-references\\)\")",
+      "Bash(ls venv/bin/python)",
+      "Bash(venv/bin/python -c \"import ast; ast.parse\\(open\\('app/api/deps.py'\\).read\\(\\)\\)\")",
+      "Bash(venv/bin/python -c \"from app.api import deps; print\\('import OK:', deps.get_optional_current_user.__name__\\)\")",
+      "Bash(venv/bin/python -c \"from app.main import app\")",
+      "Bash(venv/bin/pip install *)",
+      "Bash(venv/bin/python -c \"from app.main import app; print\\('✅ app import OK'\\)\")"
     ]
   }
 }
