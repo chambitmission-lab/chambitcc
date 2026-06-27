@@ -150,6 +150,11 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  /* 책 이름은 1줄, '마지막 읽은 곳' 배지는 아래 줄로 — 세로 정렬 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
