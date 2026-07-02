@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   useNotifications,
   useMarkAsRead,
@@ -11,6 +11,14 @@ import type { Notification } from '../../types/notification'
 interface NotificationModalProps {
   isOpen: boolean
   onClose: () => void
+}
+
+type DateGroup = 'today' | 'week' | 'older'
+
+const GROUP_LABELS: Record<DateGroup, string> = {
+  today: '오늘',
+  week: '이번 주',
+  older: '이전',
 }
 
 const formatDate = (iso: string) => {
@@ -33,8 +41,23 @@ const formatDate = (iso: string) => {
   })
 }
 
+const getDateGroup = (iso: string): DateGroup => {
+  const now = new Date()
+  const date = new Date(iso)
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const weekAgo = new Date(todayStart.getTime() - 6 * 24 * 60 * 60 * 1000)
+
+  if (date >= todayStart) return 'today'
+  if (date >= weekAgo) return 'week'
+  return 'older'
+}
+
+// 2줄을 넘을 것으로 예상되는 컨텐츠 여부 판단
+const needsExpand = (content: string) =>
+  content.length > 80 || content.includes('\n')
+
 const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
-  const [readingIds, setReadingIds] = useState<Set<number>>(new Set())
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
   const isLoggedIn = !!localStorage.getItem('access_token')
 
   const { data, isLoading } = useNotifications()
@@ -44,23 +67,26 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const markAsReadMutation = useMarkAsRead()
   const markAllAsReadMutation = useMarkAllAsRead()
 
-  const handleNotificationClick = async (notification: Notification) => {
-    if (
-      isLoggedIn &&
-      !notification.is_read &&
-      !readingIds.has(notification.id)
-    ) {
+  const grouped = useMemo(() => {
+    const groups: Record<DateGroup, Notification[]> = { today: [], week: [], older: [] }
+    notifications.forEach((n) => groups[getDateGroup(n.created_at)].push(n))
+    return groups
+  }, [notifications])
+
+  const groupOrder: DateGroup[] = ['today', 'week', 'older']
+
+  const toggleExpand = async (notification: Notification) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      next.has(notification.id) ? next.delete(notification.id) : next.add(notification.id)
+      return next
+    })
+
+    if (isLoggedIn && !notification.is_read) {
       try {
-        setReadingIds((prev) => new Set(prev).add(notification.id))
         await markAsReadMutation.mutateAsync(notification.id)
-      } catch (error) {
-        console.error('읽음 처리 실패:', error)
-      } finally {
-        setReadingIds((prev) => {
-          const newSet = new Set(prev)
-          newSet.delete(notification.id)
-          return newSet
-        })
+      } catch {
+        // 읽음 처리 실패는 조용히 무시
       }
     }
   }
@@ -78,7 +104,6 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
     }
   }
 
-  // 뒤로가기 → 모달만 닫기
   useModalBackButton(onClose, isOpen)
 
   if (!isOpen) return null
@@ -101,15 +126,19 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
           animation: notification-modal-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
           transform-origin: top right;
         }
+        .content-clamp {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
       `}</style>
 
-      {/* Backdrop */}
       <div
         className="notification-backdrop fixed inset-0 bg-black/40 z-[999]"
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div className="notification-modal fixed top-[60px] right-5 w-[400px] max-w-[calc(100vw-40px)] max-h-[calc(100vh-100px)] z-[1000] flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
@@ -161,54 +190,88 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
               </p>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-              {notifications.map((notification) => {
-                const unread = !notification.is_read
-                return (
-                  <li key={notification.id}>
-                    <button
-                      type="button"
-                      onClick={() => handleNotificationClick(notification)}
-                      className={`group w-full text-left px-5 py-4 transition-colors ${
-                        unread
-                          ? 'bg-purple-50/40 dark:bg-purple-500/[0.04] hover:bg-purple-50/70 dark:hover:bg-purple-500/[0.07]'
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
-                      }`}
-                    >
-                      <div className="flex items-start gap-3">
-                        {/* Unread indicator */}
-                        <span className="flex-shrink-0 w-2 h-2 mt-2 rounded-full" aria-hidden>
-                          {unread && (
-                            <span className="block w-2 h-2 rounded-full bg-purple-500" />
-                          )}
-                        </span>
+            <div>
+              {groupOrder.map((group) => {
+                const items = grouped[group]
+                if (items.length === 0) return null
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline justify-between gap-3 mb-1">
-                            <h3
-                              className={`text-[15px] leading-snug truncate ${
+                return (
+                  <div key={group}>
+                    {/* 날짜 그룹 헤더 */}
+                    <div className="sticky top-0 px-5 py-2 bg-gray-50/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
+                      <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 tracking-wider uppercase">
+                        {GROUP_LABELS[group]}
+                      </span>
+                    </div>
+
+                    <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                      {items.map((notification) => {
+                        const unread = !notification.is_read
+                        const expanded = expandedIds.has(notification.id)
+                        const expandable = needsExpand(notification.content)
+
+                        return (
+                          <li key={notification.id}>
+                            <button
+                              type="button"
+                              onClick={() => toggleExpand(notification)}
+                              className={`group w-full text-left px-5 py-4 transition-colors ${
                                 unread
-                                  ? 'font-semibold text-gray-900 dark:text-gray-50'
-                                  : 'font-medium text-gray-700 dark:text-gray-300'
+                                  ? 'bg-purple-50/40 dark:bg-purple-500/[0.04] hover:bg-purple-50/70 dark:hover:bg-purple-500/[0.07]'
+                                  : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
                               }`}
                             >
-                              {notification.title}
-                            </h3>
-                            <span className="flex-shrink-0 text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
-                              {formatDate(notification.created_at)}
-                            </span>
-                          </div>
+                              <div className="flex items-start gap-3">
+                                {/* 읽지 않음 점 */}
+                                <span className="flex-shrink-0 w-2 h-2 mt-[7px]" aria-hidden>
+                                  {unread && (
+                                    <span className="block w-2 h-2 rounded-full bg-purple-500" />
+                                  )}
+                                </span>
 
-                          <p className="text-[13.5px] text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap break-words">
-                            {notification.content}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  </li>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-baseline justify-between gap-3 mb-1">
+                                    <h3
+                                      className={`text-[15px] leading-snug truncate ${
+                                        unread
+                                          ? 'font-semibold text-gray-900 dark:text-gray-50'
+                                          : 'font-medium text-gray-700 dark:text-gray-300'
+                                      }`}
+                                    >
+                                      {notification.title}
+                                    </h3>
+                                    <span className="flex-shrink-0 text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+                                      {formatDate(notification.created_at)}
+                                    </span>
+                                  </div>
+
+                                  <p
+                                    className={`text-[13.5px] text-gray-600 dark:text-gray-400 leading-relaxed break-words ${
+                                      expandable && !expanded ? 'content-clamp' : 'whitespace-pre-wrap'
+                                    }`}
+                                  >
+                                    {notification.content}
+                                  </p>
+
+                                  {expandable && (
+                                    <div className="mt-2 flex items-center gap-0.5 text-[12px] font-medium text-purple-500 dark:text-purple-400">
+                                      <span>{expanded ? '접기' : '더 보기'}</span>
+                                      <span className="material-icons-outlined text-[14px] leading-none">
+                                        {expanded ? 'expand_less' : 'expand_more'}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
                 )
               })}
-            </ul>
+            </div>
           )}
         </div>
       </div>

@@ -20,10 +20,10 @@ export const useNotifications = () => {
     queryKey: notificationKeys.list(),
     queryFn: getNotifications,
     enabled: !!token, // 로그인 상태일 때만 실행
-    staleTime: 1000 * 60 * 5, // 5분간 fresh 상태 유지
+    staleTime: 0, // 항상 stale → 마운트/새로고침 시 재조회
     refetchInterval: 1000 * 60 * 5, // 5분마다 자동 갱신
-    refetchOnMount: false, // 마운트 시 중복 호출 방지 (StrictMode 대응)
-    refetchOnWindowFocus: false, // 창 포커스 시 갱신 비활성화 (공지사항은 자주 변경되지 않음)
+    refetchOnMount: true, // 새로고침 시 최신 공지 즉시 반영
+    refetchOnWindowFocus: false,
   })
 }
 
