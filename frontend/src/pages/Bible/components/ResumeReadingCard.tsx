@@ -31,7 +31,7 @@ const ResumeReadingCard = ({ latest, onResume }: ResumeReadingCardProps) => {
   return (
     <button type="button" onClick={() => onResume(latest)} className="dash-card dash-card--resume">
       <span className="dash-card__icon">
-        <span className="material-icons-round">play_arrow</span>
+        <span className="material-icons-round">menu_book</span>
       </span>
       <span className="dash-card__body">
         <span className="dash-card__label">이어 읽기 · {formatRelativeTime(latest.read_at)}</span>
