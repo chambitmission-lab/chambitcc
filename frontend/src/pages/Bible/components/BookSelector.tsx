@@ -99,8 +99,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         <span>{book.book_name_ko}</span>
         {resume && (
           <span className="book-resume-badge">
-            <span className="material-icons-round">bookmark</span>
-            {resume.chapter}:{resume.verse} · {formatRelativeShort(resume.read_at)}
+            <span className="material-icons-round">restore</span>
+            이어읽기 {resume.chapter}장
           </span>
         )}
         {hasProgress && (
@@ -177,14 +177,17 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                 className="recent-chip"
                 onClick={() => onBookSelect(book.id, book.book_name_ko, pos)}
               >
-                <span className="recent-chip__play">
-                  <span className="material-icons-round">play_arrow</span>
+                <span className="recent-chip__icon">
+                  <span className="material-icons-round">auto_stories</span>
                 </span>
                 <span className="recent-chip__body">
                   <span className="recent-chip__name">{book.book_name_ko}</span>
                   <span className="recent-chip__meta">
-                    {pos.chapter}:{pos.verse} · {formatRelativeShort(pos.read_at)}
+                    {pos.chapter}장 {pos.verse}절 · {formatRelativeShort(pos.read_at)}
                   </span>
+                </span>
+                <span className="recent-chip__arrow">
+                  <span className="material-icons-round">chevron_right</span>
                 </span>
               </button>
             ))}

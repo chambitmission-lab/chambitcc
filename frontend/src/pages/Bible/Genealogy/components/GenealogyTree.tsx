@@ -4,6 +4,7 @@ import { useTheme } from '../../../../contexts/ThemeContext'
 import type {
   BibleFigureSummary,
   GenealogyLink,
+  RelationshipType,
 } from '../../../../types/bibleFigure'
 
 interface GenealogyTreeProps {
@@ -129,20 +130,23 @@ export const GenealogyTree = ({
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const spineOffsetRef = useRef<number>(0)
 
-  const { root, spouseMap } = useMemo(() => {
+  const { root, spouseMap, parentLinkType } = useMemo(() => {
     const nodeBySlug = new Map<string, BibleFigureSummary>(
       nodes.map((n) => [n.slug, n]),
     )
 
     const parentOf = new Map<string, string>()
+    const parentLinkType = new Map<string, RelationshipType>()
     for (const link of links) {
       if (link.type === 'father') {
         parentOf.set(link.target, link.source)
+        parentLinkType.set(link.target, 'father')
       }
     }
     for (const link of links) {
       if (link.type === 'mother' && !parentOf.has(link.target)) {
         parentOf.set(link.target, link.source)
+        parentLinkType.set(link.target, 'mother')
       }
     }
 
@@ -200,7 +204,7 @@ export const GenealogyTree = ({
     const visited = new Set<string>()
     const tree = rootSlug ? buildNode(rootSlug, visited) : null
 
-    return { root: tree, spouseMap: sm }
+    return { root: tree, spouseMap: sm, parentLinkType }
   }, [nodes, links])
 
   useEffect(() => {
@@ -288,12 +292,13 @@ export const GenealogyTree = ({
     // 부모/자식 링크 — 카드 중심이 아니라 가장자리(부모 카드 하단 → 자식 카드 상단)에서
     // 시작/종료하도록 직접 그린다. 카드 배경이 반투명이라 라인이 카드 중앙을 관통하면
     // 이름 텍스트 위로 비쳐 보이기 때문.
+    const hierarchyLinks = laidOut.links() as d3.HierarchyPointLink<TreeDatum>[]
+
     g.append('g')
       .attr('class', 'links')
       .attr('fill', 'none')
-      .attr('stroke-width', 1.5)
       .selectAll('path')
-      .data(laidOut.links() as d3.HierarchyPointLink<TreeDatum>[])
+      .data(hierarchyLinks)
       .join('path')
       .attr('d', (d) => {
         const sx = d.source.x
@@ -304,20 +309,73 @@ export const GenealogyTree = ({
         return `M${sx},${sy}C${sx},${my},${tx},${my},${tx},${ty}`
       })
       .attr('stroke', (d) => {
-        const targetMessianic = d.target.data.figure.is_messianic_line
-        const sourceMessianic = d.source.data.figure.is_messianic_line
-        if (targetMessianic && sourceMessianic) {
-          return theme === 'dark'
-            ? 'rgba(168,85,247,0.45)'
-            : 'rgba(168,85,247,0.55)'
+        const ltype = parentLinkType.get(d.target.data.slug)
+        const targetM = d.target.data.figure.is_messianic_line
+        const sourceM = d.source.data.figure.is_messianic_line
+        if (targetM && sourceM) {
+          return theme === 'dark' ? 'rgba(168,85,247,0.45)' : 'rgba(168,85,247,0.55)'
+        }
+        if (ltype === 'mother') {
+          return theme === 'dark' ? 'rgba(244,114,182,0.55)' : 'rgba(219,39,119,0.45)'
         }
         return palette.link
       })
       .attr('stroke-width', (d) => {
-        const targetMessianic = d.target.data.figure.is_messianic_line
-        const sourceMessianic = d.source.data.figure.is_messianic_line
-        return targetMessianic && sourceMessianic ? 2.2 : 1.5
+        const targetM = d.target.data.figure.is_messianic_line
+        const sourceM = d.source.data.figure.is_messianic_line
+        return targetM && sourceM ? 2.2 : 1.5
       })
+      .attr('stroke-dasharray', (d) => {
+        const ltype = parentLinkType.get(d.target.data.slug)
+        return ltype === 'mother' ? '6 3' : null
+      })
+
+    // 링크 중간 세대 배지 — "N대" 로 현재 세대를 한눈에 파악
+    const linkLabelGroup = g.append('g').attr('class', 'link-labels')
+    hierarchyLinks.forEach((d) => {
+      const ltype = parentLinkType.get(d.target.data.slug) ?? 'father'
+      const gen = d.target.depth + 1
+      const isMother = ltype === 'mother'
+      const labelText = isMother ? `모·${gen}대` : `${gen}대`
+
+      const mx = (d.source.x + d.target.x) / 2
+      const my = (d.source.y + d.target.y) / 2
+
+      const charW = 7.5
+      const padH = 6
+      const padV = 3
+      const labelW = labelText.length * charW + padH * 2
+      const labelH = 9 + padV * 2
+
+      const grp = linkLabelGroup
+        .append('g')
+        .attr('transform', `translate(${mx},${my})`)
+        .attr('pointer-events', 'none')
+
+      grp
+        .append('rect')
+        .attr('x', -labelW / 2)
+        .attr('y', -labelH / 2)
+        .attr('width', labelW)
+        .attr('height', labelH)
+        .attr('rx', labelH / 2)
+        .attr('fill', palette.bg)
+        .attr('stroke', isMother
+          ? (theme === 'dark' ? 'rgba(244,114,182,0.35)' : 'rgba(219,39,119,0.3)')
+          : palette.link)
+        .attr('stroke-width', 0.8)
+
+      grp
+        .append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central')
+        .attr('font-size', 8.5)
+        .attr('font-weight', 600)
+        .attr('fill', isMother
+          ? (theme === 'dark' ? '#f472b6' : '#be185d')
+          : palette.textSecondary)
+        .text(labelText)
+    })
 
     // 노드
     const nodeG = g
@@ -560,6 +618,7 @@ export const GenealogyTree = ({
     isLoggedIn,
     onSelect,
     spouseMap,
+    parentLinkType,
     theme,
     palette,
     highlightSlugs,

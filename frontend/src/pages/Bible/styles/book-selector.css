@@ -48,7 +48,7 @@
   transform: scale(0.98);
 }
 
-.recent-chip__play {
+.recent-chip__icon {
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -58,12 +58,27 @@
   background: rgba(168, 85, 247, 0.14);
   color: #a855f7;
 }
-[data-theme="dark"] .recent-chip__play {
+[data-theme="dark"] .recent-chip__icon {
   background: rgba(168, 85, 247, 0.22);
   color: #c084fc;
 }
-.recent-chip__play .material-icons-round {
+.recent-chip__icon .material-icons-round {
   font-size: 1.1rem;
+}
+
+.recent-chip__arrow {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--ig-secondary-text);
+  opacity: 0.5;
+}
+.recent-chip__arrow .material-icons-round {
+  font-size: 1rem;
+}
+.recent-chip:hover .recent-chip__arrow {
+  opacity: 1;
+  color: #a855f7;
 }
 
 .recent-chip__body {
@@ -240,7 +255,7 @@
   color: #d8b4fe;
 }
 .book-resume-badge .material-icons-round {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
 }
 
 /* 완독률 게이지바 — 카드 하단 가장자리 */
