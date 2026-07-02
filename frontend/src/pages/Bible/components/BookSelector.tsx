@@ -16,16 +16,22 @@ interface BookSelectorProps {
   recentBooks?: ResumePosition[]
 }
 
-// 성경 분류 필터 — book_number(1~66) 범위로 구약/신약을 묶는다.
-// id 'all'은 구약/신약 전체 그리드를 그대로 노출.
-const BOOK_CATEGORIES: { id: string; label: string; min: number; max: number }[] = [
-  { id: 'all', label: '전체', min: 1, max: 66 },
+type Testament = 'OT' | 'NT'
+
+const OT_CATEGORIES: { id: string; label: string; min: number; max: number }[] = [
+  { id: 'all', label: '전체', min: 1, max: 39 },
   { id: 'law', label: '모세오경', min: 1, max: 5 },
   { id: 'history', label: '역사서', min: 6, max: 17 },
   { id: 'poetry', label: '시가서', min: 18, max: 22 },
   { id: 'prophets', label: '선지서', min: 23, max: 39 },
-  { id: 'gospels', label: '복음·행전', min: 40, max: 44 },
-  { id: 'epistles', label: '서신·계시', min: 45, max: 66 },
+]
+
+const NT_CATEGORIES: { id: string; label: string; min: number; max: number }[] = [
+  { id: 'all', label: '전체', min: 40, max: 66 },
+  { id: 'gospels', label: '복음서', min: 40, max: 43 },
+  { id: 'acts', label: '사도행전', min: 44, max: 44 },
+  { id: 'epistles', label: '서신서', min: 45, max: 65 },
+  { id: 'revelation', label: '요한계시록', min: 66, max: 66 },
 ]
 
 const formatRelativeShort = (iso: string): string => {
@@ -39,8 +45,9 @@ const formatRelativeShort = (iso: string): string => {
 
 const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progressMap, recentBooks }: BookSelectorProps) => {
   const { language } = useLanguage()
+  const [testament, setTestament] = useState<Testament>('OT')
   const [filter, setFilter] = useState<string>('all')
-  
+
   const texts = {
     ko: {
       selectBook: '책 선택',
@@ -61,11 +68,16 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       noBooks: 'No bible book data available.',
     }
   }
-  
+
   const t = texts[language]
 
-  const oldTestament = books?.filter(b => b.testament === 'OLD') || []
-  const newTestament = books?.filter(b => b.testament === 'NEW') || []
+  const handleTestamentChange = (next: Testament) => {
+    setTestament(next)
+    setFilter('all')
+  }
+
+  const categories = testament === 'OT' ? OT_CATEGORIES : NT_CATEGORIES
+  const activeCategory = categories.find(c => c.id === filter) ?? categories[0]
 
   const renderBook = (book: BibleBook) => {
     const resume = resumeMap?.get(book.book_number)
@@ -141,8 +153,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     )
   }
   
-  // 분류 필터 적용 — 'all'이면 구약/신약 섹션을 그대로, 그 외엔 해당 범위만 단일 그리드로
-  const activeCategory = BOOK_CATEGORIES.find(c => c.id === filter) ?? BOOK_CATEGORIES[0]
   const filteredBooks =
     books?.filter(b => b.book_number >= activeCategory.min && b.book_number <= activeCategory.max) || []
 
@@ -182,9 +192,29 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         </div>
       )}
 
-      {/* 분류 필터 칩 */}
+      {/* 구약 / 신약 상단 탭 */}
+      <div className="testament-tabs">
+        <button
+          type="button"
+          className={`testament-tab${testament === 'OT' ? ' active' : ''}`}
+          onClick={() => handleTestamentChange('OT')}
+        >
+          {t.oldTestament}
+          <span className="testament-tab__count">39</span>
+        </button>
+        <button
+          type="button"
+          className={`testament-tab${testament === 'NT' ? ' active' : ''}`}
+          onClick={() => handleTestamentChange('NT')}
+        >
+          {t.newTestament}
+          <span className="testament-tab__count">27</span>
+        </button>
+      </div>
+
+      {/* 서브 카테고리 칩 */}
       <div className="book-filter">
-        {BOOK_CATEGORIES.map(cat => (
+        {categories.map(cat => (
           <button
             key={cat.id}
             type="button"
@@ -196,30 +226,17 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         ))}
       </div>
 
-      {filter === 'all' ? (
-        <>
-          <div className="testament-section">
-            <h3 className="testament-title">{t.oldTestament} ({oldTestament.length})</h3>
-            <div className="books-grid">
-              {oldTestament.map(renderBook)}
-            </div>
-          </div>
-
-          <div className="testament-section">
-            <h3 className="testament-title">{t.newTestament} ({newTestament.length})</h3>
-            <div className="books-grid">
-              {newTestament.map(renderBook)}
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="testament-section">
-          <h3 className="testament-title">{activeCategory.label} ({filteredBooks.length})</h3>
-          <div className="books-grid">
-            {filteredBooks.map(renderBook)}
-          </div>
+      <div className="testament-section">
+        <h3 className="testament-title">
+          {activeCategory.id === 'all'
+            ? (testament === 'OT' ? t.oldTestament : t.newTestament)
+            : activeCategory.label}
+          {' '}({filteredBooks.length})
+        </h3>
+        <div className="books-grid">
+          {filteredBooks.map(renderBook)}
         </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -88,6 +88,69 @@
   color: #c084fc;
 }
 
+/* 구약 / 신약 상단 탭 */
+.testament-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0.75rem;
+  background: var(--ig-secondary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 12px;
+  padding: 3px;
+}
+
+[data-theme="dark"] .testament-tabs {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.testament-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.5rem;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  transition: all 0.2s;
+}
+
+.testament-tab.active {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: #fff;
+  box-shadow: 0 2px 10px -2px rgba(168, 85, 247, 0.45);
+}
+
+.testament-tab__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  padding: 0 0.3rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
+.testament-tab:not(.active) .testament-tab__count {
+  background: rgba(168, 85, 247, 0.12);
+  color: #a855f7;
+}
+
+[data-theme="dark"] .testament-tab:not(.active) .testament-tab__count {
+  background: rgba(168, 85, 247, 0.18);
+  color: #c084fc;
+}
+
 /* 분류 필터 칩 — 모세오경/역사서/시가서… 으로 그리드를 한눈에 줄인다 */
 .book-filter {
   display: flex;
