@@ -17,9 +17,9 @@ const NewHeader = () => {
   const { isLoggedIn, isAdminUser, setIsLoggedIn, setIsAdminUser } = useAuthState()
   const { handleLogout } = useLogout(setIsLoggedIn, setIsAdminUser, () => setIsMenuOpen(false))
   
-  // React Query로 알림 개수 조회
+  // React Query로 알림 개수 조회 (첫 페이지 기준 전체 unread_count)
   const { data } = useNotifications()
-  const unreadCount = data?.unread_count || 0
+  const unreadCount = data?.pages[0]?.unread_count ?? 0
 
   return (
     <>

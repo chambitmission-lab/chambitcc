@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import {
   useNotifications,
   useMarkAsRead,
@@ -52,20 +52,49 @@ const getDateGroup = (iso: string): DateGroup => {
   return 'older'
 }
 
-// 2줄을 넘을 것으로 예상되는 컨텐츠 여부 판단
 const needsExpand = (content: string) =>
   content.length > 80 || content.includes('\n')
 
 const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
   const isLoggedIn = !!localStorage.getItem('access_token')
+  const sentinelRef = useRef<HTMLDivElement>(null)
 
-  const { data, isLoading } = useNotifications()
-  const notifications = data?.notifications || []
-  const unreadCount = data?.unread_count || 0
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useNotifications()
+
+  // 전 페이지 notifications 합산
+  const notifications = useMemo(
+    () => data?.pages.flatMap((p) => p.notifications) ?? [],
+    [data],
+  )
+  const unreadCount = data?.pages[0]?.unread_count ?? 0
+  const total = data?.pages[0]?.total ?? 0
 
   const markAsReadMutation = useMarkAsRead()
   const markAllAsReadMutation = useMarkAllAsRead()
+
+  // 스크롤 끝 감지 → 다음 페이지 로드
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 },
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const grouped = useMemo(() => {
     const groups: Record<DateGroup, Notification[]> = { today: [], week: [], older: [] }
@@ -151,6 +180,11 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                 {unreadCount}
               </span>
             )}
+            {total > 0 && (
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                총 {total}건
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-1">
@@ -197,7 +231,6 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
 
                 return (
                   <div key={group}>
-                    {/* 날짜 그룹 헤더 */}
                     <div className="sticky top-0 px-5 py-2 bg-gray-50/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
                       <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 tracking-wider uppercase">
                         {GROUP_LABELS[group]}
@@ -222,7 +255,6 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                               }`}
                             >
                               <div className="flex items-start gap-3">
-                                {/* 읽지 않음 점 */}
                                 <span className="flex-shrink-0 w-2 h-2 mt-[7px]" aria-hidden>
                                   {unread && (
                                     <span className="block w-2 h-2 rounded-full bg-purple-500" />
@@ -247,7 +279,9 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
 
                                   <p
                                     className={`text-[13.5px] text-gray-600 dark:text-gray-400 leading-relaxed break-words ${
-                                      expandable && !expanded ? 'content-clamp' : 'whitespace-pre-wrap'
+                                      expandable && !expanded
+                                        ? 'content-clamp'
+                                        : 'whitespace-pre-wrap'
                                     }`}
                                   >
                                     {notification.content}
@@ -271,6 +305,20 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                   </div>
                 )
               })}
+
+              {/* 무한 스크롤 sentinel */}
+              <div ref={sentinelRef} className="py-2">
+                {isFetchingNextPage && (
+                  <div className="flex justify-center py-3">
+                    <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-purple-500 rounded-full animate-spin" />
+                  </div>
+                )}
+                {!hasNextPage && notifications.length > 0 && (
+                  <p className="text-center text-[11px] text-gray-300 dark:text-gray-700 py-3">
+                    공지사항을 모두 불러왔습니다
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>

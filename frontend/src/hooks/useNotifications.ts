@@ -1,41 +1,40 @@
-// 알림 관련 React Query 훅
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getNotifications, markAsRead, markAllAsRead } from '../api/notification'
 
-// Query Keys
+const PAGE_SIZE = 20
+
 export const notificationKeys = {
   all: ['notifications'] as const,
-  list: () => [...notificationKeys.all, 'list'] as const,
-  unreadCount: () => [...notificationKeys.all, 'unread-count'] as const,
+  list: () => [...notificationKeys.all, 'infinite'] as const,
 }
 
 /**
- * 공지사항 목록 및 읽지 않은 개수 조회
- * /api/v1/notifications 한 번 호출로 두 정보 모두 가져옴
+ * 공지사항 무한 스크롤 조회
  */
 export const useNotifications = () => {
   const token = localStorage.getItem('access_token')
-  
-  return useQuery({
+
+  return useInfiniteQuery({
     queryKey: notificationKeys.list(),
-    queryFn: getNotifications,
-    enabled: !!token, // 로그인 상태일 때만 실행
-    staleTime: 0, // 항상 stale → 마운트/새로고침 시 재조회
-    refetchInterval: 1000 * 60 * 5, // 5분마다 자동 갱신
-    refetchOnMount: true, // 새로고침 시 최신 공지 즉시 반영
+    queryFn: ({ pageParam }) =>
+      getNotifications({ page: pageParam as number, limit: PAGE_SIZE }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.has_next ? lastPage.page + 1 : undefined,
+    enabled: !!token,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchInterval: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
   })
 }
 
 /**
- * 읽지 않은 알림 개수만 조회
- * useNotifications의 캐시에서 파생 (별도 API 호출 없음)
+ * 읽지 않은 알림 개수 (첫 페이지 응답 기준 — 전체 카운트)
  */
 export const useUnreadCount = () => {
   const { data } = useNotifications()
-  return data && typeof data === 'object' && 'unread_count' in data
-    ? (data.unread_count as number)
-    : 0
+  return data?.pages[0]?.unread_count ?? 0
 }
 
 /**

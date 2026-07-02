@@ -12,7 +12,10 @@ export interface Notification {
 
 export interface NotificationsResponse {
   notifications: Notification[]
+  total: number
   unread_count: number
+  page: number
+  has_next: boolean
 }
 
 export interface CreateNotificationRequest {

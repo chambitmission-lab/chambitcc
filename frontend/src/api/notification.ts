@@ -3,50 +3,40 @@ import { API_V1, apiFetch } from '../config/api'
 import type { Notification, NotificationsResponse, CreateNotificationRequest, UpdateNotificationRequest } from '../types/notification'
 
 /**
- * 공지사항 목록 조회 (모든 사용자)
+ * 공지사항 목록 조회 (페이지네이션)
  * 로그인 시 읽음 상태 및 unread_count 포함
  */
-export const getNotifications = async (): Promise<NotificationsResponse> => {
+export const getNotifications = async (params?: {
+  page?: number
+  limit?: number
+}): Promise<NotificationsResponse> => {
   const token = localStorage.getItem('access_token')
   const headers: HeadersInit = {}
-  
+
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
   }
-  
-  const response = await apiFetch(`${API_V1}/notifications`, {
-    headers
-  })
-  
+
+  const query = new URLSearchParams()
+  if (params?.page) query.set('page', String(params.page))
+  if (params?.limit) query.set('limit', String(params.limit))
+  const qs = query.toString()
+
+  const response = await apiFetch(`${API_V1}/notifications${qs ? `?${qs}` : ''}`, { headers })
+
   if (!response.ok) {
     throw new Error('공지사항을 불러오는데 실패했습니다')
   }
-  
+
   const data = await response.json()
-  
-  // 응답 형식 확인 및 처리
-  let notifications: Notification[] = []
-  let unread_count = 0
-  
-  if (Array.isArray(data)) {
-    notifications = data
-  } else if (data && Array.isArray(data.notifications)) {
-    notifications = data.notifications
-    unread_count = data.unread_count || 0
-  } else if (data && Array.isArray(data.data)) {
-    notifications = data.data
-    unread_count = data.unread_count || 0
-  } else if (data && Array.isArray(data.items)) {
-    notifications = data.items
-    unread_count = data.unread_count || 0
-  } else if (data && data.success && Array.isArray(data.data)) {
-    notifications = data.data
-    unread_count = data.unread_count || 0
-  } else {
-    console.error('예상치 못한 응답 형식:', data)
+
+  return {
+    notifications: data.notifications ?? [],
+    total: data.total ?? 0,
+    unread_count: data.unread_count ?? 0,
+    page: data.page ?? params?.page ?? 1,
+    has_next: data.has_next ?? false,
   }
-  
-  return { notifications, unread_count }
 }
 
 /**

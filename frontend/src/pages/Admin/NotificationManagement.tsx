@@ -33,7 +33,7 @@ const NotificationManagement = () => {
   const loadNotifications = async () => {
     try {
       setLoading(true)
-      const data = await getNotifications()
+      const data = await getNotifications({ limit: 1000 })
       setNotifications(data.notifications || [])
     } catch (error) {
       showToast(error instanceof Error ? error.message : '공지사항을 불러오는데 실패했습니다', 'error')
