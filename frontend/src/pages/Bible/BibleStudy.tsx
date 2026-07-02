@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
 import { useResumeReading, useReadingProgress } from '../../hooks/useBibleReading'
@@ -24,6 +24,7 @@ import BookIntroCard from '../../components/bible/BookIntroCard'
 import './BibleStudy.css'
 
 const BibleStudy = () => {
+  const navigate = useNavigate()
   const { bookNumber, chapter } = useParams<{ bookNumber?: string; chapter?: string }>()
   
   const [selectedBookId, setSelectedBookId] = useState<number>(0)
@@ -192,6 +193,22 @@ const BibleStudy = () => {
                 {resumeData?.latest && (
                   <ResumeReadingCard latest={resumeData.latest} onResume={handleResume} />
                 )}
+
+                {/* 상황별 성구 */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/bible/situation')}
+                  className="dash-card dash-card--fav"
+                >
+                  <span className="dash-card__icon">
+                    <span className="material-icons-round">sentiment_satisfied_alt</span>
+                  </span>
+                  <span className="dash-card__body">
+                    <span className="dash-card__title">상황별 성구</span>
+                    <span className="dash-card__text">두려울 때, 슬플 때… 지금 내 마음에 맞는 말씀</span>
+                  </span>
+                  <span className="material-icons-round dash-card__chevron">chevron_right</span>
+                </button>
 
                 {isLoggedIn() && (
                   <button
