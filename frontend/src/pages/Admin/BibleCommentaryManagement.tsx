@@ -225,11 +225,11 @@ const BibleCommentaryManagement = () => {
           {/* 시작 / 중단 버튼 */}
           {!running ? (
             <button
-              onClick={handleStart}
-              className="w-full inline-flex items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[15px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all"
+              disabled
+              className="w-full inline-flex items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gray-200 dark:bg-white/[0.07] text-gray-400 dark:text-white/30 text-[15px] font-bold cursor-not-allowed"
             >
-              <span className="material-icons-round text-[20px]">auto_awesome</span>
-              {count}개 생성 시작
+              <span className="material-icons-round text-[20px]">block</span>
+              {count}개 생성 시작 (비활성화됨)
             </button>
           ) : (
             <button
