@@ -29,6 +29,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
   const showActions = actionsOpen
   const maxProgressRef = useRef(0) // 목표 진행률(%) — 인식 결과 기준, 뒤로 가지 않음
   const displayProgressRef = useRef(0) // 화면에 그려지는 진행률 — rAF로 목표를 따라감
+  const prevSpokenLenRef = useRef(0) // 지금까지 들린 발화 길이(정규화) — 전진 상한 계산용
   const [karaokeSplitIndex, setKaraokeSplitIndex] = useState(0) // 색칠 경계(원본 텍스트 인덱스)
   const isAdminUser = isAdmin()
   const { data: bookmark } = useVerseBookmark(verse.id)
@@ -66,6 +67,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     if (!isReading) {
       maxProgressRef.current = 0
       displayProgressRef.current = 0
+      prevSpokenLenRef.current = 0
       setKaraokeSplitIndex(0)
     }
   }, [isReading])
@@ -98,9 +100,19 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
 
     // 직전 매칭 위치(정규화 글자 수) — 여기서 크게 벗어난 매칭은 신뢰하지 않는다
     const prevLength = Math.round((maxProgressRef.current / 100) * verseNormalized.length)
+
+    // 퍼지 매칭 전진 상한: "이번에 새로 들린 글자 수 + 약간"까지만.
+    // 인식 엔진이 아직 읽지 않은 단어를 예측해 내놓거나, 마지막 단어가 본문
+    // 뒤쪽의 같은 단어에 매칭되면 색칠이 낭독을 앞질러 가는데, 실제로 들린
+    // 만큼만 전진을 허용해 그것을 막는다. (발화 길이는 최대값으로 추적 —
+    // interim 교정으로 길이가 줄었다 다시 늘어도 이중으로 credit하지 않음)
+    const newChars = Math.max(0, spokenNormalized.length - prevSpokenLenRef.current)
+    prevSpokenLenRef.current = Math.max(prevSpokenLenRef.current, spokenNormalized.length)
+    const fuzzyLimit = prevLength + newChars + 4
+
     let matchLength = 0
 
-    // 방법 1: 앞에서부터 순차 매칭 (인식이 정확할 때 가장 신뢰도 높음)
+    // 방법 1: 앞에서부터 순차 매칭 (완전 일치 증거이므로 상한 없이 신뢰)
     const seqLimit = Math.min(verseNormalized.length, spokenNormalized.length)
     for (let i = 0; i < seqLimit; i++) {
       if (verseNormalized[i] !== spokenNormalized[i]) {
@@ -117,21 +129,28 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         Math.max(0, prevLength - recentSpoken.length)
       )
       if (foundIndex !== -1) {
-        matchLength = Math.max(matchLength, foundIndex + recentSpoken.length)
+        matchLength = Math.max(
+          matchLength,
+          Math.min(foundIndex + recentSpoken.length, fuzzyLimit)
+        )
       }
     }
 
-    // 방법 3: 마지막 단어를 직전 위치 부근부터 검색 (가장 유연함)
+    // 방법 3: 마지막 단어를 직전 위치 부근부터 검색 (가장 유연함).
+    // 한 글자짜리 단어("이", "그" 등)는 본문 어디에나 있어 오매칭만 만드므로 제외.
     const spokenWords = spokenText.trim().split(/\s+/).filter(w => w.length > 0)
     if (spokenWords.length > 0) {
       const lastWordNormalized = normalizeText(spokenWords[spokenWords.length - 1])
-      if (lastWordNormalized) {
+      if (lastWordNormalized.length >= 2) {
         const wordIndex = verseNormalized.indexOf(
           lastWordNormalized,
           Math.max(0, prevLength - lastWordNormalized.length)
         )
         if (wordIndex !== -1) {
-          matchLength = Math.max(matchLength, wordIndex + lastWordNormalized.length)
+          matchLength = Math.max(
+            matchLength,
+            Math.min(wordIndex + lastWordNormalized.length, fuzzyLimit)
+          )
         }
       }
     }
@@ -259,7 +278,29 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           ...rowAccent,
         }}
       >
-        <span className="bible-verse-number">{verse.verse}</span>
+        <span className="bible-verse-number" style={{ position: 'relative' }}>
+          {verse.verse}
+          {/* 읽음 완료 체크 — absolute 오버레이라 나타나도 본문이 재줄바꿈되지 않는다.
+              (예전처럼 본문 행 안에 아이콘을 끼우면 텍스트 폭이 줄어 높이가 출렁였다) */}
+          {isRead && (
+            <span
+              className="material-icons-round"
+              title="읽음 완료"
+              style={{
+                position: 'absolute',
+                top: '-0.5rem',
+                right: '-0.45rem',
+                fontSize: '0.8125rem',
+                lineHeight: 1,
+                color: 'var(--ig-success)',
+                animation: 'verseCheckPop 0.35s ease-out',
+                pointerEvents: 'none',
+              }}
+            >
+              check_circle
+            </span>
+          )}
+        </span>
         <span
           className={`bible-verse-text ${highlightBg && !isReading ? 'is-highlighted' : ''}`}
           style={{ flex: 1, minWidth: 0 }}
@@ -283,8 +324,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           )}
         </span>
 
-        {/* 가벼운 상태 인디케이터 (점/체크) - 본문 폭을 거의 잡아먹지 않음 */}
-        {(isRead || (bookmark && (bookmark.is_favorite || bookmark.highlight_color)) || hasCommentary) && (
+        {/* 가벼운 상태 인디케이터 (점) - 본문 폭을 거의 잡아먹지 않음.
+            읽음 체크는 절 번호 위 오버레이로 이동 — 읽음 처리 순간 이 행에
+            아이콘이 끼어들며 본문이 재줄바꿈되던 출렁임을 없앤다. */}
+        {((bookmark && (bookmark.is_favorite || bookmark.highlight_color)) || hasCommentary) && (
           <div
             style={{
               display: 'flex',
@@ -294,15 +337,6 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               paddingTop: '0.375rem',
             }}
           >
-            {isRead && (
-              <span
-                className="material-icons-round"
-                style={{ color: 'var(--ig-success)', fontSize: '1rem' }}
-                title="읽음 완료"
-              >
-                check_circle
-              </span>
-            )}
             {/* 노트 전용 북마크는 아래 칩+좌측 강조로 이미 보이므로 점 생략(중복 방지).
                 즐겨찾기/하이라이트만 점으로 표시. */}
             {bookmark && (bookmark.is_favorite || bookmark.highlight_color) && (
