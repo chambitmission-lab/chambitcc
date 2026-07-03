@@ -226,6 +226,7 @@ const BibleCommentaryManagement = () => {
           {!running ? (
             <button
               disabled
+              onClick={handleStart}
               className="w-full inline-flex items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gray-200 dark:bg-white/[0.07] text-gray-400 dark:text-white/30 text-[15px] font-bold cursor-not-allowed"
             >
               <span className="material-icons-round text-[20px]">block</span>

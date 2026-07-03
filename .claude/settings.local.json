@@ -110,7 +110,8 @@
       "Bash(venv/bin/python -c \"from app.api import deps; print\\('import OK:', deps.get_optional_current_user.__name__\\)\")",
       "Bash(venv/bin/python -c \"from app.main import app\")",
       "Bash(venv/bin/pip install *)",
-      "Bash(venv/bin/python -c \"from app.main import app; print\\('✅ app import OK'\\)\")"
+      "Bash(venv/bin/python -c \"from app.main import app; print\\('✅ app import OK'\\)\")",
+      "Bash(npx tsc *)"
     ]
   }
 }
