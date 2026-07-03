@@ -26,11 +26,15 @@ import './BibleStudy.css'
 const BibleStudy = () => {
   const navigate = useNavigate()
   const { bookNumber, chapter } = useParams<{ bookNumber?: string; chapter?: string }>()
-  
+  const [searchParams, setSearchParams] = useSearchParams()
+
   const [selectedBookId, setSelectedBookId] = useState<number>(0)
   const [selectedBook, setSelectedBook] = useState<string>('')
   const [selectedChapter, setSelectedChapter] = useState<number>(1)
-  const [activeTab, setActiveTab] = useState<'read' | 'search'>('read')
+  // 첫 렌더부터 URL의 ?tab= 을 반영해야 새로고침 시 읽기 화면이 깜빡이지 않는다
+  const [activeTab, setActiveTab] = useState<'read' | 'search'>(() =>
+    searchParams.get('tab') === 'search' ? 'search' : 'read'
+  )
   const [showBookList, setShowBookList] = useState<boolean>(true)
   const [pendingScrollVerse, setPendingScrollVerse] = useState<number | null>(null)
   const [showPlaylist, setShowPlaylist] = useState<boolean>(false)
@@ -104,8 +108,6 @@ const BibleStudy = () => {
   // ── 읽기 플랜 연동 ──
   // PlanDetail에서 "오늘 분량 읽기"로 진입하면 ?plan=&day= 가 붙는다.
   // 그 본문(장)을 끝까지 읽으면 해당 일차를 자동 완료 처리한다.
-  const [searchParams, setSearchParams] = useSearchParams()
-
   // 하단 네비게이션에서 다른 페이지(플랜/가계도)로부터 검색 탭으로 진입 (?tab=search)
   // URL을 탭 상태의 원본으로 삼아 새로고침해도 보고 있던 탭이 유지되게 한다.
   const tabParam = searchParams.get('tab')
