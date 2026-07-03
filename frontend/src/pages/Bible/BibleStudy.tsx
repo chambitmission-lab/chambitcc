@@ -10,7 +10,6 @@ import { showToast } from '../../utils/toast'
 import type { ResumePosition } from '../../api/bibleReading'
 import {
   BibleHeader,
-  BibleTabs,
   BookSelector,
   ChapterNavigation,
   BibleAudioPlayer,
@@ -21,6 +20,7 @@ import {
 } from './components'
 import { useBookmarkStats } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
+import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import './BibleStudy.css'
 
 const BibleStudy = () => {
@@ -105,6 +105,14 @@ const BibleStudy = () => {
   // PlanDetail에서 "오늘 분량 읽기"로 진입하면 ?plan=&day= 가 붙는다.
   // 그 본문(장)을 끝까지 읽으면 해당 일차를 자동 완료 처리한다.
   const [searchParams] = useSearchParams()
+
+  // 하단 네비게이션에서 다른 페이지(플랜/가계도)로부터 검색 탭으로 진입 (?tab=search)
+  const tabParam = searchParams.get('tab')
+  useEffect(() => {
+    if (tabParam === 'search') {
+      setActiveTab('search')
+    }
+  }, [tabParam])
   const planId = Number(searchParams.get('plan')) || 0
   const planDayNumber = Number(searchParams.get('day')) || 0
   const { data: planData } = useBiblePlan(planId, planId > 0)
@@ -179,11 +187,10 @@ const BibleStudy = () => {
   
   return (
     <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
+      {/* 하단 고정 네비게이션에 가리지 않도록 컨테이너에 바 높이만큼 하단 여백 */}
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen pb-[calc(4.25rem+env(safe-area-inset-bottom))]">
         <BibleHeader />
-        
-        <BibleTabs activeTab={activeTab} onTabChange={setActiveTab} />
-        
+
         {/* 읽기 탭 */}
         {activeTab === 'read' && (
           <div className="bible-read-section">
@@ -297,6 +304,9 @@ const BibleStudy = () => {
 
       {/* 즐겨찾기 묵상 플레이리스트 모달 */}
       {showPlaylist && <FavoritesPlaylistModal onClose={() => setShowPlaylist(false)} />}
+
+      {/* 성경 섹션 하단 네비게이션 — 읽기/검색은 탭 전환, 플랜/가계도는 라우팅 */}
+      <BibleBottomNav active={activeTab} onSelectTab={setActiveTab} />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useBiblePlans } from '../../../hooks/useBiblePlan'
 import type { PlanSummary } from '../../../types/biblePlan'
 import { accentGradient, gradientTextStyle, planHashtags } from './planVisuals'
+import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 
 const PlanList = () => {
   const navigate = useNavigate()
@@ -112,6 +113,9 @@ const PlanList = () => {
           </>
         )}
       </div>
+
+      {/* 성경 섹션 하단 네비게이션 */}
+      <BibleBottomNav active="plans" />
     </div>
   )
 }

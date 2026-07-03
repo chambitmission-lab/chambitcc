@@ -117,7 +117,12 @@
       "Bash(/usr/bin/python3 *)",
       "Bash(./venv/bin/python -)",
       "Bash(afinfo /private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/af5c194c-e077-46fd-b58a-f129c3d8c05c/scratchpad/genesis1_before.mp3)",
-      "Bash(afinfo /private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/af5c194c-e077-46fd-b58a-f129c3d8c05c/scratchpad/genesis1_after.mp3)"
+      "Bash(afinfo /private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/af5c194c-e077-46fd-b58a-f129c3d8c05c/scratchpad/genesis1_after.mp3)",
+      "Bash(grep -n \"^  \\)$\\\\|^    </div>$\\\\|^      </div>$\" /Users/kimhuisik/idea/chambit_f/frontend/src/pages/Bible/Plans/PlanList.tsx)",
+      "Bash(python3 *)",
+      "Bash(curl -s http://localhost:5199/bible -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(lsof -ti:5199)",
+      "Bash(xargs kill)"
     ]
   }
 }

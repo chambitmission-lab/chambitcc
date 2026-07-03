@@ -6,6 +6,7 @@ import GenealogyTree from './components/GenealogyTree'
 import FigureDetailPanel from './components/FigureDetailPanel'
 import EraTimeline from './components/EraTimeline'
 import type { BibleFigureSummary } from '../../../types/bibleFigure'
+import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 
 type ViewMode = 'tree' | 'timeline'
 type RoleFilter = 'all' | 'messianic' | 'king' | 'prophet' | 'woman' | 'patriarch'
@@ -314,6 +315,9 @@ export const Genealogy = () => {
           </>
         )}
       </AnimatePresence>
+
+      {/* 성경 섹션 하단 네비게이션 */}
+      <BibleBottomNav active="genealogy" />
     </div>
   )
 }
