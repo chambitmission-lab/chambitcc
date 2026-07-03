@@ -104,15 +104,32 @@ const BibleStudy = () => {
   // ── 읽기 플랜 연동 ──
   // PlanDetail에서 "오늘 분량 읽기"로 진입하면 ?plan=&day= 가 붙는다.
   // 그 본문(장)을 끝까지 읽으면 해당 일차를 자동 완료 처리한다.
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // 하단 네비게이션에서 다른 페이지(플랜/가계도)로부터 검색 탭으로 진입 (?tab=search)
+  // URL을 탭 상태의 원본으로 삼아 새로고침해도 보고 있던 탭이 유지되게 한다.
   const tabParam = searchParams.get('tab')
   useEffect(() => {
-    if (tabParam === 'search') {
-      setActiveTab('search')
-    }
+    setActiveTab(tabParam === 'search' ? 'search' : 'read')
   }, [tabParam])
+
+  // 하단 네비 탭 전환 시 상태와 함께 ?tab= 쿼리도 동기화한다.
+  // (쿼리가 남아 있으면 새로고침 시 이전 탭으로 되돌아가는 버그가 있었음)
+  const handleSelectTab = useCallback(
+    (tab: 'read' | 'search') => {
+      setActiveTab(tab)
+      setSearchParams(
+        prev => {
+          const next = new URLSearchParams(prev)
+          if (tab === 'search') next.set('tab', 'search')
+          else next.delete('tab')
+          return next
+        },
+        { replace: true }
+      )
+    },
+    [setSearchParams]
+  )
   const planId = Number(searchParams.get('plan')) || 0
   const planDayNumber = Number(searchParams.get('day')) || 0
   const { data: planData } = useBiblePlan(planId, planId > 0)
@@ -306,7 +323,7 @@ const BibleStudy = () => {
       {showPlaylist && <FavoritesPlaylistModal onClose={() => setShowPlaylist(false)} />}
 
       {/* 성경 섹션 하단 네비게이션 — 읽기/검색은 탭 전환, 플랜/가계도는 라우팅 */}
-      <BibleBottomNav active={activeTab} onSelectTab={setActiveTab} />
+      <BibleBottomNav active={activeTab} onSelectTab={handleSelectTab} />
     </div>
   )
 }
