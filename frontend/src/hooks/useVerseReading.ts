@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useSpeechRecognition } from './useSpeechRecognition'
+import { useWakeLock } from './useWakeLock'
 import { verifyVerseReading } from '../utils/textSimilarity'
 
 interface UseVerseReadingProps {
@@ -31,23 +32,14 @@ export const useVerseReading = ({
   // 자동 검증 함수
   const autoVerify = useCallback(() => {
     const currentSpokenText = spokenTextRef.current
-    
-    console.log('autoVerify called:', { 
-      isVerifying: isVerifyingRef.current, 
-      spokenText: currentSpokenText,
-      verseText: verseText.substring(0, 50) + '...'
-    })
-    
+
     if (isVerifyingRef.current || !currentSpokenText) {
-      console.log('Skipping verification:', { isVerifying: isVerifyingRef.current, hasSpokenText: !!currentSpokenText })
       return
     }
 
     isVerifyingRef.current = true
     const result = verifyVerseReading(verseText, currentSpokenText, threshold)
-    
-    console.log('Verification result:', result)
-    
+
     if (result.isValid) {
       setFeedback({
         message: result.message,
@@ -105,29 +97,21 @@ export const useVerseReading = ({
     }
   }, [spokenText, verseText, threshold, onSuccess])
 
-  const handleResult = useCallback((transcript: string, isFinal: boolean) => {
-    console.log('useVerseReading handleResult:', { transcript, isFinal, lastText: lastTextRef.current })
-    
+  const handleResult = useCallback((transcript: string) => {
     // 텍스트가 변경되지 않았으면 타이머를 리셋하지 않음
     if (transcript === lastTextRef.current) {
-      console.log('Same text, skipping timer reset')
       return
     }
-    
+
     lastTextRef.current = transcript
     spokenTextRef.current = transcript
     setSpokenText(transcript)
-    
-    // 기존 타이머 취소
+
+    // 기존 타이머 취소 후 침묵 타이머 재시작 (침묵이 이어지면 자동 검증)
     if (silenceTimerRef.current) {
       clearTimeout(silenceTimerRef.current)
-      console.log('Cleared existing timer')
     }
-    
-    // 새로운 타이머 시작 (3초 후 자동 검증)
-    console.log('Starting new timer for', silenceTimeout, 'ms')
     silenceTimerRef.current = setTimeout(() => {
-      console.log('Timer expired, calling autoVerify')
       autoVerify()
     }, silenceTimeout) as unknown as number
   }, [silenceTimeout, autoVerify])
@@ -153,6 +137,9 @@ export const useVerseReading = ({
     continuous: true, // 계속 듣기 모드 (천천히 읽어도 OK)
     language: 'ko-KR'
   })
+
+  // 낭독 중 화면이 어두워지거나 잠기면 음성 인식이 끊긴다 — 읽는 동안 화면 유지
+  useWakeLock(isListening)
 
   const startReading = useCallback(() => {
     setSpokenText('')

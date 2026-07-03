@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { BibleVerse } from '../../../types/bible'
 import { useVerseReading } from '../../../hooks/useVerseReading'
 import VerseReadingButton from '../../../components/prayer/VerseReadingButton'
@@ -27,7 +27,9 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
   const showActions = actionsOpen
-  const maxProgressRef = useRef(0) // 최대 진행률 추적
+  const maxProgressRef = useRef(0) // 목표 진행률(%) — 인식 결과 기준, 뒤로 가지 않음
+  const displayProgressRef = useRef(0) // 화면에 그려지는 진행률 — rAF로 목표를 따라감
+  const [karaokeSplitIndex, setKaraokeSplitIndex] = useState(0) // 색칠 경계(원본 텍스트 인덱스)
   const isAdminUser = isAdmin()
   const { data: bookmark } = useVerseBookmark(verse.id)
   const highlightBg = bookmark?.highlight_color
@@ -46,12 +48,12 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
   } = useVerseReading({
     verseText: verse.text,
     onSuccess: (similarity) => {
-      // 피드백 메시지는 표시하지 않음 (폭죽만 터트림)
-      // setShowFeedback(true)
+      // 피드백 메시지는 표시하지 않음 (폭죽 + 짧은 진동만)
+      // 햅틱: Android에서 성공 손맛. iOS는 vibrate 미지원이라 조용히 무시된다.
+      if ('vibrate' in navigator) {
+        navigator.vibrate([30, 40, 90])
+      }
       onReadSuccess(verse.id, similarity)
-      // setTimeout(() => {
-      //   setShowFeedback(false)
-      // }, 3000)
     },
     onError: (error) => {
       console.error('Verse reading error:', error)
@@ -59,10 +61,12 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     threshold: 0.5
   })
   
-  // 읽기 시작/종료 시 최대 진행률 초기화
+  // 읽기 시작/종료 시 진행률 초기화
   useEffect(() => {
     if (!isReading) {
       maxProgressRef.current = 0
+      displayProgressRef.current = 0
+      setKaraokeSplitIndex(0)
     }
   }, [isReading])
 
@@ -75,116 +79,115 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReading])
   
-  // 노래방 스타일 하이라이트: 읽은 부분 계산 (유연한 매칭)
-  const highlightedText = useMemo(() => {
-    if (!isReading || !verse.text) {
-      return null
+  // 노래방 하이라이트 1/2 — 목표 진행률 계산.
+  // 인식 결과(spokenText)는 "어디까지 읽었나"의 목표만 갱신하고, 실제 색칠은
+  // 아래 rAF 이펙트가 목표를 향해 부드럽게 따라간다.
+  // 성경은 반복 단어가 많아("하나님이", "낳았고" 등) 검색을 본문 처음부터 하면
+  // 앞/뒤의 같은 단어에 잘못 매칭돼 경계가 튄다 → 항상 직전 매칭 위치 부근부터 찾는다.
+  useEffect(() => {
+    if (!isReading || !verse.text || !spokenText) {
+      return
     }
-    
-    // spokenText가 없으면 이전 최대값 유지
-    if (!spokenText) {
-      if (maxProgressRef.current === 0) {
-        return null
-      }
-      // 이전 최대값으로 표시
-      const charCount = Math.floor((maxProgressRef.current / 100) * verse.text.replace(/\s+/g, '').length)
-      let count = 0
-      let splitIndex = 0
-      for (let i = 0; i < verse.text.length; i++) {
-        if (verse.text[i] !== ' ') {
-          count++
-          if (count === charCount) {
-            splitIndex = i + 1
-            break
-          }
-        }
-      }
-      const readPart = verse.text.substring(0, splitIndex)
-      const unreadPart = verse.text.substring(splitIndex)
-      return { readPart, unreadPart, progress: maxProgressRef.current }
-    }
-    
-    // 공백 제거 후 비교
+
     const normalizeText = (text: string) => text.replace(/\s+/g, '').toLowerCase()
     const verseNormalized = normalizeText(verse.text)
     const spokenNormalized = normalizeText(spokenText)
-    
-    // 유연한 매칭: 읽은 텍스트의 마지막 부분이 성경 텍스트 어디까지 포함되는지 찾기
+    if (!verseNormalized || !spokenNormalized) {
+      return
+    }
+
+    // 직전 매칭 위치(정규화 글자 수) — 여기서 크게 벗어난 매칭은 신뢰하지 않는다
+    const prevLength = Math.round((maxProgressRef.current / 100) * verseNormalized.length)
     let matchLength = 0
-    
-    // 방법 1: 순차적 매칭 (기존 방식)
-    for (let i = 0; i < Math.min(verseNormalized.length, spokenNormalized.length); i++) {
-      if (verseNormalized[i] === spokenNormalized[i]) {
-        matchLength = i + 1
-      } else {
+
+    // 방법 1: 앞에서부터 순차 매칭 (인식이 정확할 때 가장 신뢰도 높음)
+    const seqLimit = Math.min(verseNormalized.length, spokenNormalized.length)
+    for (let i = 0; i < seqLimit; i++) {
+      if (verseNormalized[i] !== spokenNormalized[i]) {
         break
       }
+      matchLength = i + 1
     }
-    
-    // 방법 2: 부분 문자열 매칭 (더 유연함)
-    // 읽은 텍스트의 마지막 5-10글자가 성경 텍스트 어디에 있는지 찾기
+
+    // 방법 2: 최근 발화 꼬리(마지막 10글자)를 직전 위치 부근부터 검색
     if (spokenNormalized.length >= 5) {
-      const recentSpoken = spokenNormalized.slice(-10) // 마지막 10글자
-      const foundIndex = verseNormalized.indexOf(recentSpoken)
-      
+      const recentSpoken = spokenNormalized.slice(-10)
+      const foundIndex = verseNormalized.indexOf(
+        recentSpoken,
+        Math.max(0, prevLength - recentSpoken.length)
+      )
       if (foundIndex !== -1) {
-        const potentialMatch = foundIndex + recentSpoken.length
-        // 더 긴 매칭을 선택
-        matchLength = Math.max(matchLength, potentialMatch)
+        matchLength = Math.max(matchLength, foundIndex + recentSpoken.length)
       }
     }
-    
-    // 방법 3: 단어 단위 매칭 (가장 유연함)
-    // 읽은 텍스트를 단어로 분리해서 성경 텍스트에서 찾기
+
+    // 방법 3: 마지막 단어를 직전 위치 부근부터 검색 (가장 유연함)
     const spokenWords = spokenText.trim().split(/\s+/).filter(w => w.length > 0)
     if (spokenWords.length > 0) {
-      const lastWord = spokenWords[spokenWords.length - 1]
-      const lastWordNormalized = normalizeText(lastWord)
-      
-      // 마지막 단어가 성경 텍스트 어디에 있는지 찾기
-      const wordIndex = verseNormalized.indexOf(lastWordNormalized)
-      if (wordIndex !== -1) {
-        const potentialMatch = wordIndex + lastWordNormalized.length
-        matchLength = Math.max(matchLength, potentialMatch)
-      }
-    }
-    
-    const currentProgress = (matchLength / verseNormalized.length) * 100
-
-    // 최대 진행률 업데이트 (뒤로 가지 않도록)
-    // 보조 다듬기: 한 번의 인식 업데이트로 경계가 훌쩍 점프하지 않게 전진 폭을 제한한다.
-    // (반복 단어를 indexOf가 본문 뒤쪽에서 잘못 매칭하면 진행률이 급등해 색칠 영역이
-    //  확 튀는데, 이를 단계적으로 따라가게 만들어 어지럼증을 줄인다.)
-    const MAX_FORWARD_STEP = 15 // % — 정상 낭독은 한 번에 이 정도 이상 잘 안 뛴다
-    if (currentProgress > maxProgressRef.current) {
-      maxProgressRef.current = Math.min(
-        currentProgress,
-        maxProgressRef.current + MAX_FORWARD_STEP
-      )
-    }
-    
-    // 최대 진행률 기준으로 표시
-    const displayProgress = maxProgressRef.current
-    
-    // 원본 텍스트에서 매칭된 위치 찾기 (공백 포함)
-    const displayMatchLength = Math.floor((displayProgress / 100) * verseNormalized.length)
-    let charCount = 0
-    let splitIndex = 0
-    for (let i = 0; i < verse.text.length; i++) {
-      if (verse.text[i] !== ' ') {
-        charCount++
-        if (charCount === displayMatchLength) {
-          splitIndex = i + 1
-          break
+      const lastWordNormalized = normalizeText(spokenWords[spokenWords.length - 1])
+      if (lastWordNormalized) {
+        const wordIndex = verseNormalized.indexOf(
+          lastWordNormalized,
+          Math.max(0, prevLength - lastWordNormalized.length)
+        )
+        if (wordIndex !== -1) {
+          matchLength = Math.max(matchLength, wordIndex + lastWordNormalized.length)
         }
       }
     }
-    
-    const readPart = verse.text.substring(0, splitIndex)
-    const unreadPart = verse.text.substring(splitIndex)
 
-    return { readPart, unreadPart, progress: displayProgress }
+    const currentProgress = (matchLength / verseNormalized.length) * 100
+    if (currentProgress > maxProgressRef.current) {
+      maxProgressRef.current = currentProgress
+    }
   }, [isReading, spokenText, verse.text])
+
+  // 노래방 하이라이트 2/2 — rAF 보간으로 경계를 "스르륵" 전진.
+  // 모바일은 인식 이벤트 간격이 듬성듬성해(iOS interim 빈도 낮음, Android는
+  // continuous=false 재시작 공백) 경계가 여러 글자씩 점프하는데, 프레임마다
+  // 남은 거리에 비례해 전진(멀수록 빠르게, 가까울수록 살살)하며 그 사이를 메운다.
+  // setState는 경계 "글자"가 실제로 바뀔 때만 값이 달라져 리렌더 부담이 없다.
+  useEffect(() => {
+    if (!isReading || !verse.text) {
+      return
+    }
+    const text = verse.text
+    const nonSpaceTotal = text.replace(/\s+/g, '').length
+    if (nonSpaceTotal === 0) {
+      return
+    }
+    // 진행률(%) → 원본 텍스트의 색칠 경계 인덱스(공백 건너뛰며 계산)
+    const splitIndexFor = (progress: number): number => {
+      const chars = Math.floor((progress / 100) * nonSpaceTotal)
+      if (chars <= 0) return 0
+      let count = 0
+      for (let i = 0; i < text.length; i++) {
+        if (!/\s/.test(text[i])) {
+          count++
+          if (count === chars) return i + 1
+        }
+      }
+      return text.length
+    }
+
+    let raf = 0
+    let last = performance.now()
+    const tick = (now: number) => {
+      const dt = Math.min((now - last) / 1000, 0.1) // 백그라운드 복귀 시 순간이동 방지
+      last = now
+      const target = maxProgressRef.current
+      const current = displayProgressRef.current
+      if (current < target) {
+        // 남은 거리의 400%/s + 최소 8%/s(자연 낭독 속도 ~7%/s보다 살짝 빠르게)
+        const speed = Math.max((target - current) * 4, 8)
+        displayProgressRef.current = Math.min(target, current + speed * dt)
+        setKaraokeSplitIndex(splitIndexFor(displayProgressRef.current))
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [isReading, verse.text])
   
   const hasNote = !!bookmark?.note
 
@@ -261,19 +264,18 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           className={`bible-verse-text ${highlightBg && !isReading ? 'is-highlighted' : ''}`}
           style={{ flex: 1, minWidth: 0 }}
         >
-          {isReading && highlightedText ? (
+          {isReading && verse.text ? (
             <>
               <span style={{
                 color: '#f0abfc',
                 // 읽은 부분도 본문과 동일한 굵기(400) 유지 — bold면 경계가 전진할 때마다
                 // 폭이 바뀌어 줄바꿈이 재계산된다(출렁임).
                 textShadow: '0 0 8px rgba(236, 72, 153, 0.35)',
-                transition: 'color 0.2s ease'
               }}>
-                {highlightedText.readPart}
+                {verse.text.slice(0, karaokeSplitIndex)}
               </span>
               <span style={{ color: 'var(--ig-primary-text)' }}>
-                {highlightedText.unreadPart}
+                {verse.text.slice(karaokeSplitIndex)}
               </span>
             </>
           ) : (

@@ -77,7 +77,6 @@ export const useSpeechRecognition = ({
 
     // 실제 인식이 시작된 시점을 단일 진실로 사용 (버튼 상태가 실제 상태와 어긋나지 않도록)
     recognition.onstart = () => {
-      console.log('Speech recognition started')
       if (startWatchdogRef.current) {
         clearTimeout(startWatchdogRef.current)
         startWatchdogRef.current = null
@@ -105,15 +104,6 @@ export const useSpeechRecognition = ({
         }
       }
       
-      console.log('Speech recognition result:', {
-        currentFinal,
-        currentInterim,
-        initialText: initialTextRef.current,
-        accumulatedText: accumulatedTextRef.current,
-        resultIndex: event.resultIndex,
-        resultsLength: event.results.length
-      })
-      
       // 최종 텍스트 조합
       // fullText = initialText + accumulatedText + currentText
       let fullText = ''
@@ -136,45 +126,38 @@ export const useSpeechRecognition = ({
       }
       
       fullText = fullText.trim()
-      
-      console.log('Composed fullText:', fullText)
-      
+
       // 빈 결과 무시
       if (!fullText || fullText === initialTextRef.current) {
-        console.log('Ignoring empty or initial-only text:', fullText)
         return
       }
-      
+
       const isFinalResult = !!currentFinal
-      
+
       // 중복 체크 (interim 결과만 체크, final은 항상 처리)
       if (!isFinalResult && fullText === lastSentTextRef.current) {
-        console.log('Ignoring duplicate interim text:', fullText)
         return
       }
-      
+
       // interim이 이전과 같으면 무시 (모바일에서 같은 interim이 반복됨)
       if (!isFinalResult && currentInterim === lastInterimRef.current) {
-        console.log('Ignoring duplicate interim:', currentInterim)
         return
       }
-      
+
       if (!isFinalResult) {
         lastInterimRef.current = currentInterim
       }
-      
-      console.log('Sending result to callback:', { fullText, isFinalResult })
+
       lastSentTextRef.current = fullText
       onResult(fullText, isFinalResult)
-      
+
       // final 결과면 accumulatedText에 추가 (initialText는 포함하지 않음!)
       if (isFinalResult && currentFinal) {
         // accumulatedText는 initialText를 제외한 순수 누적 텍스트만
-        accumulatedTextRef.current = accumulatedTextRef.current 
+        accumulatedTextRef.current = accumulatedTextRef.current
           ? `${accumulatedTextRef.current} ${currentFinal}`.trim()
           : currentFinal
-        
-        console.log('Updated accumulatedText:', accumulatedTextRef.current)
+
         lastInterimRef.current = ''
       }
     }
@@ -214,18 +197,14 @@ export const useSpeechRecognition = ({
 
     // 종료 처리
     recognition.onend = () => {
-      console.log('Speech recognition ended. shouldRestart:', shouldRestartRef.current, 'isListening:', isListeningRef.current)
-      
       // 모바일에서는 자동으로 재시작 (continuous false이므로)
       if (shouldRestartRef.current && isListeningRef.current) {
         setTimeout(() => {
           if (isListeningRef.current) {
             try {
-              console.log('Restarting speech recognition with accumulated text:', accumulatedTextRef.current)
               // 기존 인스턴스는 그대로 재시작 (ref는 유지됨)
               if (recognitionRef.current) {
                 recognitionRef.current.start()
-                console.log('Speech recognition restarted successfully')
               }
             } catch (err: any) {
               if (!err.message?.includes('already started')) {
@@ -281,6 +260,15 @@ export const useSpeechRecognition = ({
     if (isListeningRef.current || startingRef.current) {
       return
     }
+
+    // 페이지에서 재생 중인 오디오(오디오북 등)를 먼저 멈춘다 — 마이크가 스피커의
+    // TTS 소리를 주워 들으면 인식이 오염되고, 심하면 기계 음성이 본문을 대신
+    // 읽어 완료 처리될 수 있다.
+    document.querySelectorAll('audio').forEach((el) => {
+      if (!el.paused) {
+        el.pause()
+      }
+    })
 
     // 다른 절이 듣는 중/시작 중이면 먼저 종료시킨다 (마지막에 누른 절이 우선).
     // 동시에 두 음성 인식이 마이크를 잡으면 새 인스턴스의 onstart가 뜨지 않아

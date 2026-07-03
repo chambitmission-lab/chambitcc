@@ -111,7 +111,13 @@
       "Bash(venv/bin/python -c \"from app.main import app\")",
       "Bash(venv/bin/pip install *)",
       "Bash(venv/bin/python -c \"from app.main import app; print\\('✅ app import OK'\\)\")",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Read(//Users/kimhuisik/idea/chambit/backend/**)",
+      "Bash(/usr/bin/python3 -c \"import pymysql\")",
+      "Bash(/usr/bin/python3 *)",
+      "Bash(./venv/bin/python -)",
+      "Bash(afinfo /private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/af5c194c-e077-46fd-b58a-f129c3d8c05c/scratchpad/genesis1_before.mp3)",
+      "Bash(afinfo /private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/af5c194c-e077-46fd-b58a-f129c3d8c05c/scratchpad/genesis1_after.mp3)"
     ]
   }
 }
