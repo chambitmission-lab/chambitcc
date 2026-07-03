@@ -280,28 +280,23 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           ...rowAccent,
         }}
       >
-        <span className="bible-verse-number" style={{ position: 'relative' }}>
+        {/* 읽음 완료 표시는 번호 자체의 색(초록) + 등장 팝으로 —
+            체크 아이콘을 본문 행에 끼우면 재줄바꿈으로 높이가 출렁이고,
+            absolute 오버레이는 어디에 둬도 붕 떠 보여서 요소 추가 없이 해결.
+            (읽은 절은 행 전체 흐림 + 초록 틴트가 함께 깔려 상태가 충분히 읽힌다) */}
+        <span
+          className="bible-verse-number"
+          title={isRead ? '읽음 완료' : undefined}
+          style={
+            isRead
+              ? {
+                  color: 'var(--ig-success)',
+                  animation: 'verseNumberPop 0.4s ease-out',
+                }
+              : undefined
+          }
+        >
           {verse.verse}
-          {/* 읽음 완료 체크 — absolute 오버레이라 나타나도 본문이 재줄바꿈되지 않는다.
-              (예전처럼 본문 행 안에 아이콘을 끼우면 텍스트 폭이 줄어 높이가 출렁였다) */}
-          {isRead && (
-            <span
-              className="material-icons-round"
-              title="읽음 완료"
-              style={{
-                position: 'absolute',
-                top: '-0.5rem',
-                right: '-0.45rem',
-                fontSize: '0.8125rem',
-                lineHeight: 1,
-                color: 'var(--ig-success)',
-                animation: 'verseCheckPop 0.35s ease-out',
-                pointerEvents: 'none',
-              }}
-            >
-              check_circle
-            </span>
-          )}
         </span>
         <span
           className={`bible-verse-text ${highlightBg && !isReading ? 'is-highlighted' : ''}`}

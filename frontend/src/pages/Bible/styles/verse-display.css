@@ -73,19 +73,17 @@
     0 6px 22px -6px rgba(0, 0, 0, 0.35);
 }
 
-/* 읽음 완료 체크(절 번호 위 오버레이)가 폭죽처럼 톡 튀어나오는 등장 */
-@keyframes verseCheckPop {
+/* 읽음 완료 순간 절 번호가 초록으로 물들며 톡 튀는 등장.
+   transform(scale)만 사용 — 레이아웃 재계산 없이 시각적으로만 커졌다 돌아온다 */
+@keyframes verseNumberPop {
   0% {
-    transform: scale(0);
-    opacity: 0;
+    transform: scale(1);
   }
-  60% {
-    transform: scale(1.3);
-    opacity: 1;
+  40% {
+    transform: scale(1.4);
   }
   100% {
     transform: scale(1);
-    opacity: 1;
   }
 }
 
