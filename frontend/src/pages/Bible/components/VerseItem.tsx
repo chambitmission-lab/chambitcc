@@ -49,9 +49,11 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
   } = useVerseReading({
     verseText: verse.text,
     onSuccess: (similarity) => {
-      // 피드백 메시지는 표시하지 않음 (폭죽 + 짧은 진동만)
-      // 햅틱: Android에서 성공 손맛. iOS는 vibrate 미지원이라 조용히 무시된다.
-      if ('vibrate' in navigator) {
+      // 피드백 메시지는 표시하지 않음 (폭죽만)
+      // 햅틱(성공 진동)은 현재 비활성화. 다시 켜려면 아래 상수만 true로.
+      // Android 전용 — iOS는 vibrate 미지원이라 조용히 무시된다.
+      const HAPTIC_ENABLED = false
+      if (HAPTIC_ENABLED && 'vibrate' in navigator) {
         navigator.vibrate([30, 40, 90])
       }
       onReadSuccess(verse.id, similarity)
