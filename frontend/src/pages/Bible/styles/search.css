@@ -9,7 +9,9 @@
 .search-form {
   margin-bottom: 1.5rem;
   position: sticky;
-  top: 176px;
+  /* 헤더(.bible-study-header, top 56 + 높이 ~64) 바로 아래. 탭 바가 하단 네비로
+     이동했으므로 176px(구 탭 바 포함 오프셋)을 쓰면 폼이 아래로 밀려 뒤 콘텐츠를 가린다. */
+  top: 120px;
   z-index: 8;
   background: var(--ig-secondary-background);
   padding-bottom: 1rem;
@@ -37,6 +39,13 @@
   border-color: #a855f7;
 }
 
+.search-input-area {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+}
+
 .search-input {
   flex: 1 1 0;
   min-width: 0;
@@ -54,6 +63,206 @@
 
 .search-input::placeholder {
   color: var(--ig-secondary-text);
+}
+
+/* 검색어 지우기(✕) — 검색 결과에서 시작 화면으로 돌아가는 버튼 */
+.search-clear-button {
+  flex-shrink: 0;
+  align-self: center;
+  border: none;
+  background: none;
+  padding: 0.375rem;
+  margin-right: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.search-clear-button:hover {
+  color: var(--ig-primary-text);
+  background: rgba(128, 128, 128, 0.12);
+}
+
+.search-clear-button .material-icons-round {
+  font-size: 1.125rem;
+}
+
+/* 롤링 플레이스홀더 — 입력이 비어 있을 때 검색 예시를 순차 노출 */
+.search-placeholder-rolling {
+  position: absolute;
+  left: 1rem;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--ig-secondary-text);
+  font-size: 0.9375rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: placeholder-roll-in 0.4s ease both;
+}
+
+@keyframes placeholder-roll-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-50% + 8px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+}
+
+/* 검색 범위 필터 (전체 / 구약 / 신약) */
+.search-scope-filter {
+  display: flex;
+  gap: 0.375rem;
+  margin-top: 0.625rem;
+}
+
+.scope-chip {
+  padding: 0.375rem 0.875rem;
+  border: 1px solid var(--ig-border);
+  border-radius: 999px;
+  background: var(--ig-primary-background);
+  color: var(--ig-secondary-text);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+[data-theme="dark"] .scope-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.scope-chip:hover {
+  border-color: #a855f7;
+  color: #a855f7;
+}
+
+.scope-chip--active,
+[data-theme="dark"] .scope-chip--active {
+  background: var(--accent-gradient, linear-gradient(135deg, #a855f7 0%, #ec4899 100%));
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+}
+
+.scope-chip--active:hover {
+  color: white;
+}
+
+/* 최근 검색어 · 추천 키워드 */
+.search-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-chip-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+}
+
+.search-chip-clear {
+  border: none;
+  background: none;
+  padding: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.search-chip-clear:hover {
+  color: #a855f7;
+  opacity: 1;
+}
+
+.search-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.search-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--ig-border);
+  border-radius: 999px;
+  background: var(--ig-primary-background);
+  overflow: hidden;
+  transition: all 0.15s;
+}
+
+[data-theme="dark"] .search-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.search-chip:hover {
+  border-color: #a855f7;
+}
+
+.search-chip-label {
+  border: none;
+  background: none;
+  padding: 0.4375rem 0.375rem 0.4375rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ig-primary-text);
+  cursor: pointer;
+}
+
+.search-chip-remove {
+  border: none;
+  background: none;
+  padding: 0.4375rem 0.625rem 0.4375rem 0.125rem;
+  display: flex;
+  align-items: center;
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+}
+
+.search-chip-remove .material-icons-round {
+  font-size: 0.875rem;
+}
+
+.search-chip-remove:hover {
+  color: #ec4899;
+}
+
+/* 추천 키워드 칩 — 단일 버튼 형태 */
+.search-chip--suggest {
+  padding: 0.4375rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #a855f7;
+  cursor: pointer;
+  border-color: rgba(168, 85, 247, 0.35);
+  background: rgba(168, 85, 247, 0.06);
+}
+
+[data-theme="dark"] .search-chip--suggest {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.search-chip--suggest:hover {
+  background: rgba(168, 85, 247, 0.15);
 }
 
 .search-button {

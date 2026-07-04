@@ -83,12 +83,23 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
                     : 'text-gray-400 dark:text-white/45'
                 }`}
               >
-                {/* 활성 인디케이터 — 상단의 짧은 그라데이션 바 */}
+                {/* 활성 인디케이터 — 검색 버튼과 동일한 브랜드 그라데이션(135° #a855f7→#ec4899) + 은은한 글로우 */}
                 {isActive && (
-                  <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-gradient-to-r from-purple-500 to-pink-500" />
+                  <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-[linear-gradient(135deg,#a855f7_0%,#ec4899_100%)] shadow-[0_2px_6px_rgba(168,85,247,0.45)]" />
                 )}
-                <span className="material-icons-round text-[22px] leading-none">{icon}</span>
-                <span className="text-[10.5px] font-semibold leading-none">{label}</span>
+                {/* 활성 아이콘 — 미세 확대 + 그라데이션 채색으로 현재 위치를 직관적으로 표시 */}
+                <span
+                  className={`material-icons-round text-[22px] leading-none transition-transform duration-200 ${
+                    isActive
+                      ? 'scale-110 bg-[linear-gradient(135deg,#a855f7_0%,#ec4899_100%)] bg-clip-text text-transparent dark:bg-[linear-gradient(135deg,#c084fc_0%,#f472b6_100%)]'
+                      : ''
+                  }`}
+                >
+                  {icon}
+                </span>
+                <span className={`text-[10.5px] leading-none ${isActive ? 'font-bold' : 'font-semibold'}`}>
+                  {label}
+                </span>
               </button>
             )
           })}
