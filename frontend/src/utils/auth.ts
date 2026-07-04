@@ -44,10 +44,31 @@ export const logout = async () => {
 }
 
 /**
+ * JWT payload 의 exp(초) 를 읽어 만료 여부를 판정한다.
+ * 파싱 불가(비 JWT/손상) 토큰은 만료로 단정하지 않고 서버 판정에 맡긴다(false).
+ * skewMs: 전송 지연 중 만료되는 경계 케이스를 피하기 위한 여유 시간.
+ */
+export const isTokenExpired = (token: string, skewMs = 30_000): boolean => {
+  try {
+    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(atob(base64))
+    if (typeof payload.exp !== 'number') return false
+    return payload.exp * 1000 - skewMs <= Date.now()
+  } catch {
+    return false
+  }
+}
+
+/**
  * 로그인 상태 확인
+ * 토큰 문자열 존재만 보면 만료된 뒤에도 "로그인됨"으로 오판하므로 exp 까지 확인한다.
+ * access 가 만료됐어도 refresh token 이 살아있으면 apiFetch 가 자동 갱신하므로 로그인 상태로 본다.
  */
 export const isAuthenticated = (): boolean => {
-  return !!localStorage.getItem('access_token')
+  const accessToken = localStorage.getItem('access_token')
+  if (!accessToken) return false
+  if (!isTokenExpired(accessToken)) return true
+  return !!localStorage.getItem('refresh_token')
 }
 
 /**

@@ -122,7 +122,19 @@
       "Bash(python3 *)",
       "Bash(curl -s http://localhost:5199/bible -o /dev/null -w \"%{http_code}\\\\n\")",
       "Bash(lsof -ti:5199)",
-      "Bash(xargs kill)"
+      "Bash(xargs kill)",
+      "Bash(./venv/bin/python -c ' *)",
+      "Bash(./venv/bin/python seed_bible_plan_365.py)",
+      "Bash(curl -s --max-time 5 http://localhost:8000/api/v1/bible-plans)",
+      "Bash(curl -s --max-time 3 -o /dev/null -w \"%{http_code}\" http://localhost:5173/)",
+      "Bash(lsof -nP -iTCP -sTCP:LISTEN)",
+      "Bash(npm ls *)",
+      "Bash(npm init *)",
+      "Bash(npx playwright *)",
+      "Bash(node verify_plans.mjs .)",
+      "Bash(node verify_token.mjs)",
+      "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' -H 'Authorization: Bearer __CMDSUB_OUTPUT__' http://localhost:8000/api/v1/bible-plans/5)",
+      "Bash(curl -s -H \"Content-Type: application/json\" http://localhost:8000/api/v1/bible-plans/5)"
     ]
   }
 }

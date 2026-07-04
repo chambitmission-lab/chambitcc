@@ -23,6 +23,11 @@ interface ReflectionState {
   error?: string
 }
 
+// 긴 플랜(90/120/365일)은 일정을 30일 단위로 접어 스크롤 부담을 줄인다.
+// 짧은 플랜(7/30일)은 그룹 헤더가 오히려 방해라 플랫 렌더 유지.
+const GROUP_SIZE = 30
+const GROUP_THRESHOLD = 60
+
 // 방어적 정규화 — 백엔드가 이미 정리하지만, 혹시 캐시에 남은 <br> 등 HTML 이 흘러와도
 // 화면에 태그가 그대로 노출되지 않도록 줄바꿈으로 바꾸고 잔여 태그를 제거한다.
 const normalizeReflection = (s: string): string =>
@@ -50,6 +55,9 @@ const PlanDetail = () => {
   const [editingDay, setEditingDay] = useState<number | null>(null)
   const [regeneratingDay, setRegeneratingDay] = useState<number | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  // 그룹 접힘 상태 — 명시적으로 토글한 그룹만 기록하고,
+  // 기록이 없으면 "현재 일차가 속한 그룹만 펼침"을 기본값으로 쓴다 (플랜 로딩 타이밍 무관)
+  const [openGroups, setOpenGroups] = useState<Record<number, boolean>>({})
   const admin = isAdmin()
 
   const grad = accentGradient(plan?.accent)
@@ -223,6 +231,41 @@ const PlanDetail = () => {
     )
   }
 
+  const grouped = plan.days.length > GROUP_THRESHOLD
+  const groups: PlanDay[][] = []
+  if (grouped) {
+    for (let i = 0; i < plan.days.length; i += GROUP_SIZE) {
+      groups.push(plan.days.slice(i, i + GROUP_SIZE))
+    }
+  }
+  const currentGroupIdx = subscribed
+    ? Math.floor(((progress?.current_day ?? 1) - 1) / GROUP_SIZE)
+    : 0
+  const isGroupOpen = (gi: number) => openGroups[gi] ?? gi === currentGroupIdx
+  const toggleGroup = (gi: number) =>
+    setOpenGroups((prev) => ({ ...prev, [gi]: !isGroupOpen(gi) }))
+
+  const renderDay = (day: PlanDay) => (
+    <DayCard
+      key={day.id}
+      domId={`plan-day-${day.day_number}`}
+      day={day}
+      grad={grad}
+      subscribed={subscribed}
+      isToday={subscribed && day.day_number === progress?.current_day}
+      busy={completeDay.isPending || uncompleteDay.isPending}
+      onToggle={() => handleToggleDay(day)}
+      onRead={() => handleRead(day)}
+      onReflect={() => handleReflect(day)}
+      reflectionOpen={openReflection === day.day_number}
+      reflection={reflections[day.day_number]}
+      admin={admin}
+      regenerating={regeneratingDay === day.day_number}
+      onEditReflection={() => setEditingDay(day.day_number)}
+      onRegenerate={() => handleRegenerate(day.day_number)}
+    />
+  )
+
   // 다시 시작/그만두기 — 파괴적·부정적 액션이라 메인 CTA 옆이 아닌 헤더 ⋮ 메뉴로 격리
   const planMenu = subscribed ? (
     <div className="relative shrink-0">
@@ -367,28 +410,69 @@ const PlanDetail = () => {
         <h3 className="text-[13px] font-bold text-gray-500 dark:text-white/55 mb-3 px-1">
           전체 일정 ({plan.days.length}일)
         </h3>
-        <div className="space-y-2.5">
-          {plan.days.map((day) => (
-            <DayCard
-              key={day.id}
-              domId={`plan-day-${day.day_number}`}
-              day={day}
-              grad={grad}
-              subscribed={subscribed}
-              isToday={subscribed && day.day_number === progress?.current_day}
-              busy={completeDay.isPending || uncompleteDay.isPending}
-              onToggle={() => handleToggleDay(day)}
-              onRead={() => handleRead(day)}
-              onReflect={() => handleReflect(day)}
-              reflectionOpen={openReflection === day.day_number}
-              reflection={reflections[day.day_number]}
-              admin={admin}
-              regenerating={regeneratingDay === day.day_number}
-              onEditReflection={() => setEditingDay(day.day_number)}
-              onRegenerate={() => handleRegenerate(day.day_number)}
-            />
-          ))}
-        </div>
+        {grouped ? (
+          <div className="space-y-2.5">
+            {groups.map((groupDays, gi) => {
+              const open = isGroupOpen(gi)
+              const first = groupDays[0].day_number
+              const last = groupDays[groupDays.length - 1].day_number
+              const doneCount = groupDays.filter((d) => d.completed).length
+              const groupDone = doneCount === groupDays.length
+              const isCurrentGroup = subscribed && gi === currentGroupIdx
+              return (
+                <div key={gi}>
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(gi)}
+                    aria-expanded={open}
+                    className={[
+                      'w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl border transition-all text-left',
+                      'bg-white/80 dark:bg-card-dark shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
+                      isCurrentGroup
+                        ? 'border-purple-300/60 dark:border-purple-400/40'
+                        : 'border-gray-200/70 dark:border-white/[0.08]',
+                    ].join(' ')}
+                  >
+                    <span
+                      className={[
+                        'shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold',
+                        groupDone
+                          ? `bg-gradient-to-br ${grad} text-white`
+                          : 'bg-purple-500/10 text-purple-600 dark:text-purple-300',
+                      ].join(' ')}
+                    >
+                      {groupDone ? (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : (
+                        gi + 1
+                      )}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-[14px] font-bold tracking-[-0.01em] text-gray-900 dark:text-white">
+                        {gi + 1}개월차
+                      </span>
+                      <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5">
+                        {first}~{last}일차{subscribed ? ` · ${doneCount}/${groupDays.length} 완료` : ''}
+                      </span>
+                    </span>
+                    <svg
+                      width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+                      className={`shrink-0 text-gray-400 dark:text-white/40 transition-transform ${open ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  {open && <div className="space-y-2.5 mt-2.5">{groupDays.map(renderDay)}</div>}
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="space-y-2.5">{plan.days.map(renderDay)}</div>
+        )}
       </section>
 
       {/* 관리자 — AI 묵상 수정 모달 */}
