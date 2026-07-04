@@ -125,13 +125,14 @@
   margin-top: 0.625rem;
 }
 
+/* 칩 공통 규격 — 범위 필터·최근 검색어·추천 키워드 모두 동일한 곡률/높이/글자 크기 */
 .scope-chip {
-  padding: 0.375rem 0.875rem;
+  padding: 0.4375rem 0.875rem;
   border: 1px solid var(--ig-border);
   border-radius: 999px;
   background: var(--ig-primary-background);
   color: var(--ig-secondary-text);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
@@ -180,8 +181,10 @@
 .search-chip-clear {
   border: none;
   background: none;
-  padding: 0.25rem;
-  font-size: 0.75rem;
+  /* 모바일 터치 타깃 확보 — 패딩을 넓히되 음수 마진으로 헤더 행 높이는 유지 */
+  padding: 0.625rem 0.75rem;
+  margin: -0.625rem -0.75rem -0.625rem 0;
+  font-size: 0.8125rem;
   color: var(--ig-secondary-text);
   cursor: pointer;
   opacity: 0.8;
@@ -245,24 +248,32 @@
   color: #ec4899;
 }
 
-/* 추천 키워드 칩 — 단일 버튼 형태 */
+/* 추천 키워드 칩 — 시스템 제안(보조 정보)이므로 옅은 보라 톤으로 낮춰
+   사용자가 직접 쌓은 '최근 검색어'가 상대적으로 도드라지게 한다 */
 .search-chip--suggest {
   padding: 0.4375rem 0.875rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #a855f7;
+  color: rgba(147, 51, 234, 0.6);
   cursor: pointer;
-  border-color: rgba(168, 85, 247, 0.35);
-  background: rgba(168, 85, 247, 0.06);
+  border-color: rgba(168, 85, 247, 0.18);
+  background: rgba(168, 85, 247, 0.04);
 }
 
 [data-theme="dark"] .search-chip--suggest {
-  background: rgba(168, 85, 247, 0.12);
-  border-color: rgba(168, 85, 247, 0.3);
+  color: rgba(216, 180, 254, 0.6);
+  background: rgba(168, 85, 247, 0.07);
+  border-color: rgba(168, 85, 247, 0.16);
 }
 
 .search-chip--suggest:hover {
-  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(168, 85, 247, 0.1);
+}
+
+[data-theme="dark"] .search-chip--suggest:hover {
+  color: #d8b4fe;
 }
 
 .search-button {
