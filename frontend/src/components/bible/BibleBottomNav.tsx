@@ -83,9 +83,9 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
                     : 'text-gray-400 dark:text-white/45'
                 }`}
               >
-                {/* 활성 인디케이터 — 검색 버튼과 동일한 브랜드 그라데이션(135° #a855f7→#ec4899) + 은은한 글로우 */}
+                {/* 활성 인디케이터 — 브랜드 그라데이션. 3px 얇은 바에서는 135°가 핑크로만 보여 90°로 좌→우 보라→핑크가 온전히 드러나게 한다 */}
                 {isActive && (
-                  <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-[linear-gradient(135deg,#a855f7_0%,#ec4899_100%)] shadow-[0_2px_6px_rgba(168,85,247,0.45)]" />
+                  <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-[linear-gradient(90deg,#a855f7_0%,#ec4899_100%)] shadow-[0_2px_6px_rgba(168,85,247,0.45)]" />
                 )}
                 {/* 활성 아이콘 — 미세 확대 + 그라데이션 채색으로 현재 위치를 직관적으로 표시 */}
                 <span

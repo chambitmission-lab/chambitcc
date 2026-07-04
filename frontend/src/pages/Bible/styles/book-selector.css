@@ -17,19 +17,29 @@
   margin-bottom: 0.6rem;
 }
 
+/* 가로 스크롤 스트립 — 세로 공간을 아끼고, 아래 전체 그리드와의 중복 체감을 줄인다 */
 .recent-scroll {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 0.5rem;
+  overflow-x: auto;
+  /* 컨테이너 패딩 밖까지 풀블리드로 스크롤되게 */
+  margin: 0 -1rem;
+  padding: 0 1rem 0.25rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.recent-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .recent-chip {
-  width: 100%;
-  min-width: 0;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 0.7rem;
+  padding: 0.5rem 0.75rem 0.5rem 0.55rem;
   background: var(--ig-primary-background);
   border: 1px solid var(--ig-border);
   border-radius: 0.875rem;
@@ -66,21 +76,6 @@
   font-size: 1.1rem;
 }
 
-.recent-chip__arrow {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  color: var(--ig-secondary-text);
-  opacity: 0.5;
-}
-.recent-chip__arrow .material-icons-round {
-  font-size: 1rem;
-}
-.recent-chip:hover .recent-chip__arrow {
-  opacity: 1;
-  color: #a855f7;
-}
-
 .recent-chip__body {
   min-width: 0;
 }
@@ -90,33 +85,45 @@
   font-weight: 700;
   color: var(--ig-primary-text);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .recent-chip__meta {
   display: block;
   font-size: 0.7rem;
   font-weight: 600;
   color: #a855f7;
+  white-space: nowrap;
 }
 [data-theme="dark"] .recent-chip__meta {
   color: #c084fc;
+}
+
+/* 구약/신약 탭 + 분류 칩을 하나의 패널로 묶는 컨테이너
+   — "칩은 선택된 탭의 하위 분류"라는 종속 관계를 시각적으로 드러낸다 */
+.book-nav {
+  margin-bottom: 1rem;
+  padding: 0.375rem 0.375rem 0.5rem;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 16px;
+}
+
+[data-theme="dark"] .book-nav {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* 구약 / 신약 상단 탭 */
 .testament-tabs {
   display: flex;
   gap: 0;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   background: var(--ig-secondary-background);
-  border: 1px solid var(--ig-border);
   border-radius: 12px;
   padding: 3px;
 }
 
 [data-theme="dark"] .testament-tabs {
   background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .testament-tab {
@@ -171,7 +178,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin-bottom: 1rem;
+  padding: 0 0.125rem;
 }
 
 .book-filter-chip {
@@ -186,6 +193,25 @@
   color: var(--ig-secondary-text);
   cursor: pointer;
   transition: all 0.15s;
+  /* 탭 전환 시(.book-filter key 변경) 새 칩들이 순차적으로 떠오른다 — delay는 인라인 스타일 */
+  animation: chip-in 0.25s ease both;
+}
+
+@keyframes chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-filter-chip {
+    animation: none;
+  }
 }
 [data-theme="dark"] .book-filter-chip {
   background: rgba(255, 255, 255, 0.05);
@@ -236,26 +262,18 @@
   text-align: center;
 }
 
-/* 마지막 읽은 곳 뱃지 — 배경 칩으로 대비를 높여 가독성 확보 */
+/* 마지막 읽은 곳 — 버튼처럼 보이지 않는 텍스트 레이블.
+   카드 전체가 이어읽기 지점으로 이동하는 단일 터치 타겟이며, 진행도는 하단 게이지바가 보조한다 */
 .book-resume-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.15rem;
-  margin-top: 0.3rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: 999px;
-  background: rgba(168, 85, 247, 0.14);
+  display: block;
+  margin-top: 0.2rem;
   color: #9333ea;
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   line-height: 1.3;
 }
 [data-theme="dark"] .book-resume-badge {
-  background: rgba(168, 85, 247, 0.24);
-  color: #d8b4fe;
-}
-.book-resume-badge .material-icons-round {
-  font-size: 0.75rem;
+  color: #c084fc;
 }
 
 /* 완독률 게이지바 — 카드 하단 가장자리 */

@@ -25,13 +25,27 @@
   gap: 0.5rem;
   font-size: 1.5rem;
   font-weight: 800;
-  color: var(--ig-primary-text);
   letter-spacing: -0.02em;
+  /* 브랜드 그라데이션 텍스트 — 구약/신약 탭·하단 네비 인디케이터와 동일 톤으로 아이덴티티 통일 */
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-theme="dark"] .bible-study-title {
+  background: linear-gradient(135deg, #c084fc 0%, #f472b6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .bible-study-title .material-icons-round {
   font-size: 1.75rem;
   color: #a855f7;
+}
+
+[data-theme="dark"] .bible-study-title .material-icons-round {
+  color: #c084fc;
 }
 
 /* 헤더 부가기능 칩(읽기 플랜 / 가계도) — 메인 흐름보다 한 단계 낮춘 보조 톤 */

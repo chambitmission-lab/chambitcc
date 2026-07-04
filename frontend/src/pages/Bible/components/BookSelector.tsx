@@ -98,10 +98,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         )}
         <span>{book.book_name_ko}</span>
         {resume && (
-          <span className="book-resume-badge">
-            <span className="material-icons-round">restore</span>
-            이어읽기 {resume.chapter}장
-          </span>
+          <span className="book-resume-badge">{resume.chapter}장까지 읽음</span>
         )}
         {hasProgress && (
           <span className="book-progress-track" aria-hidden="true">
@@ -160,7 +157,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const recentItems = (recentBooks || [])
     .map(pos => ({ pos, book: books?.find(b => b.book_number === pos.book_number) }))
     .filter((x): x is { pos: ResumePosition; book: BibleBook } => !!x.book)
-    .slice(0, 4)
+    .slice(0, 8)
 
   return (
     <div className="bible-books-section">
@@ -183,11 +180,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                 <span className="recent-chip__body">
                   <span className="recent-chip__name">{book.book_name_ko}</span>
                   <span className="recent-chip__meta">
-                    {pos.chapter}장 {pos.verse}절 · {formatRelativeShort(pos.read_at)}
+                    {pos.chapter}장 · {formatRelativeShort(pos.read_at)}
                   </span>
-                </span>
-                <span className="recent-chip__arrow">
-                  <span className="material-icons-round">chevron_right</span>
                 </span>
               </button>
             ))}
@@ -195,38 +189,41 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         </div>
       )}
 
-      {/* 구약 / 신약 상단 탭 */}
-      <div className="testament-tabs">
-        <button
-          type="button"
-          className={`testament-tab${testament === 'OT' ? ' active' : ''}`}
-          onClick={() => handleTestamentChange('OT')}
-        >
-          {t.oldTestament}
-          <span className="testament-tab__count">39</span>
-        </button>
-        <button
-          type="button"
-          className={`testament-tab${testament === 'NT' ? ' active' : ''}`}
-          onClick={() => handleTestamentChange('NT')}
-        >
-          {t.newTestament}
-          <span className="testament-tab__count">27</span>
-        </button>
-      </div>
-
-      {/* 서브 카테고리 칩 */}
-      <div className="book-filter">
-        {categories.map(cat => (
+      {/* 구약/신약 탭 + 서브 카테고리 칩 — 한 패널로 묶어 "칩은 탭에 종속"임을 시각적으로 표현.
+          탭 전환 시 key가 바뀌며 칩들이 순차적으로 슬라이드 인 된다. */}
+      <div className="book-nav">
+        <div className="testament-tabs">
           <button
-            key={cat.id}
             type="button"
-            className={`book-filter-chip${filter === cat.id ? ' active' : ''}`}
-            onClick={() => setFilter(cat.id)}
+            className={`testament-tab${testament === 'OT' ? ' active' : ''}`}
+            onClick={() => handleTestamentChange('OT')}
           >
-            {cat.label}
+            {t.oldTestament}
+            <span className="testament-tab__count">39</span>
           </button>
-        ))}
+          <button
+            type="button"
+            className={`testament-tab${testament === 'NT' ? ' active' : ''}`}
+            onClick={() => handleTestamentChange('NT')}
+          >
+            {t.newTestament}
+            <span className="testament-tab__count">27</span>
+          </button>
+        </div>
+
+        <div className="book-filter" key={testament}>
+          {categories.map((cat, i) => (
+            <button
+              key={cat.id}
+              type="button"
+              className={`book-filter-chip${filter === cat.id ? ' active' : ''}`}
+              style={{ animationDelay: `${i * 40}ms` }}
+              onClick={() => setFilter(cat.id)}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="testament-section">
