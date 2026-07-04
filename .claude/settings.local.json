@@ -134,7 +134,8 @@
       "Bash(node verify_plans.mjs .)",
       "Bash(node verify_token.mjs)",
       "Bash(curl -s -o /dev/null -w '%{http_code}\\\\n' -H 'Authorization: Bearer __CMDSUB_OUTPUT__' http://localhost:8000/api/v1/bible-plans/5)",
-      "Bash(curl -s -H \"Content-Type: application/json\" http://localhost:8000/api/v1/bible-plans/5)"
+      "Bash(curl -s -H \"Content-Type: application/json\" http://localhost:8000/api/v1/bible-plans/5)",
+      "Bash(grep -rn \"plan=5\\\\|?plan=\\\\|plan=\\\\${\" /Users/kimhuisik/idea/chambit_f/frontend/src -l)"
     ]
   }
 }

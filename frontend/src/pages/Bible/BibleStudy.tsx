@@ -193,7 +193,9 @@ const BibleStudy = () => {
 
   // 본문(장) 보기는 책 목록 위에 뜬 오버레이처럼 취급한다.
   // 모바일/브라우저 뒤로가기 시 메인으로 빠져나가는 대신 책 목록으로 돌아간다.
-  useModalBackButton(handleChangeBook, !showBookList)
+  // 단, 읽기 플랜(?plan=)에서 진입한 경우는 예외 — 뒤로가기가 플랜 상세로
+  // 자연스럽게 돌아가야 하므로 가로채지 않는다.
+  useModalBackButton(handleChangeBook, !showBookList && planId === 0)
   
   const handleChapterChange = (chapter: number) => {
     setSelectedChapter(chapter)
