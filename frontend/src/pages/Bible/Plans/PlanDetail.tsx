@@ -1,6 +1,6 @@
 // 읽기 플랜 상세 (/bible/plans/:planId)
 // 구독 · 일자별 완료 토글(+confetti) · 스트릭 · AI 묵상 · 본문 바로 읽기
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import {
@@ -49,11 +49,30 @@ const PlanDetail = () => {
   const [openReflection, setOpenReflection] = useState<number | null>(null)
   const [editingDay, setEditingDay] = useState<number | null>(null)
   const [regeneratingDay, setRegeneratingDay] = useState<number | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const admin = isAdmin()
 
   const grad = accentGradient(plan?.accent)
   const progress = plan?.progress
   const subscribed = !!progress?.subscribed
+
+  // 긴 플랜(50일차쯤)에서 매번 스크롤해 내려가지 않도록, 진입 시 오늘 일차 카드로 자동 스크롤.
+  // 초반(1~3일차)은 카드가 이미 화면 근처라 스크롤하면 오히려 대시보드가 가려져 스킵한다.
+  const autoScrolledRef = useRef(false)
+  useEffect(() => {
+    if (autoScrolledRef.current) return
+    if (!plan || !subscribed || !progress) return
+    if (progress.status === 'completed') return
+    const currentDay = progress.current_day ?? 1
+    if (currentDay <= 3) return
+    const el = document.getElementById(`plan-day-${currentDay}`)
+    if (!el) return
+    autoScrolledRef.current = true
+    const timer = setTimeout(() => {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }, 200)
+    return () => clearTimeout(timer)
+  }, [plan, subscribed, progress])
 
   const fireConfetti = () => {
     confetti({
@@ -204,8 +223,62 @@ const PlanDetail = () => {
     )
   }
 
+  // 다시 시작/그만두기 — 파괴적·부정적 액션이라 메인 CTA 옆이 아닌 헤더 ⋮ 메뉴로 격리
+  const planMenu = subscribed ? (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setMenuOpen((v) => !v)}
+        aria-label="플랜 관리"
+        aria-expanded={menuOpen}
+        className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="5" r="1.9" />
+          <circle cx="12" cy="12" r="1.9" />
+          <circle cx="12" cy="19" r="1.9" />
+        </svg>
+      </button>
+      {menuOpen && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+          <div className="absolute right-0 top-9 z-40 w-44 py-1.5 rounded-xl bg-white dark:bg-[#1c1c26] border border-gray-200 dark:border-white/[0.1] shadow-[0_12px_32px_-8px_rgba(0,0,0,0.35)]">
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false)
+                handleRestart()
+              }}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-semibold text-gray-700 dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/[0.05]"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+              </svg>
+              처음부터 다시 시작
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false)
+                handleUnsubscribe()
+              }}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-semibold text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                <line x1="12" y1="2" x2="12" y2="12" />
+              </svg>
+              플랜 그만두기
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  ) : undefined
+
   return (
-    <Shell onBack={() => navigate('/bible/plans')} title={plan.title}>
+    <Shell onBack={() => navigate('/bible/plans')} title={plan.title} actions={planMenu}>
       {/* Hero */}
       <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 p-5 border border-purple-200/60 dark:border-white/[0.08] bg-gradient-to-br from-purple-50 to-pink-50 dark:from-[#1e1b4b]/60 dark:to-[#4c1d95]/35 shadow-[0_4px_18px_-8px_rgba(168,85,247,0.4)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_0_0_1px_rgba(168,85,247,0.12)]">
         <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-purple-500 to-pink-500" />
@@ -273,14 +346,6 @@ const PlanDetail = () => {
               오늘 분량 읽기 · {progress.current_day}일차
             </button>
           )}
-          <div className="mt-3 flex items-center justify-center gap-4">
-            <button onClick={handleRestart} className="text-[12px] text-gray-400 dark:text-white/45 hover:text-purple-500">
-              다시 시작
-            </button>
-            <button onClick={handleUnsubscribe} className="text-[12px] text-gray-400 dark:text-white/45 hover:text-red-500">
-              그만두기
-            </button>
-          </div>
         </section>
       ) : (
         <section className="mx-4 mt-4">
@@ -306,6 +371,7 @@ const PlanDetail = () => {
           {plan.days.map((day) => (
             <DayCard
               key={day.id}
+              domId={`plan-day-${day.day_number}`}
               day={day}
               grad={grad}
               subscribed={subscribed}
@@ -344,10 +410,12 @@ const PlanDetail = () => {
 const Shell = ({
   onBack,
   title,
+  actions,
   children,
 }: {
   onBack: () => void
   title: string
+  actions?: React.ReactNode
   children: React.ReactNode
 }) => (
   <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
@@ -362,9 +430,10 @@ const Shell = ({
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
-        <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white truncate">
+        <h1 className="flex-1 min-w-0 text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white truncate">
           {title}
         </h1>
+        {actions}
       </div>
       {children}
     </div>
@@ -383,7 +452,9 @@ const Stat = ({ value, label, plain }: { value: string; label: string; plain?: b
 const Divider = () => <span className="w-px h-8 bg-gray-200 dark:bg-white/[0.08]" />
 
 // ── 하루치 카드 ──
+// 상태별 시각 위계: 완료(과거) = 딤드 / 오늘 = 보라 하이라이트 / 예정(미래) = 아웃라인 원 + 차분한 텍스트
 const DayCard = ({
+  domId,
   day,
   grad,
   subscribed,
@@ -399,6 +470,7 @@ const DayCard = ({
   onEditReflection,
   onRegenerate,
 }: {
+  domId?: string
   day: PlanDay
   grad: string
   subscribed: boolean
@@ -414,15 +486,22 @@ const DayCard = ({
   onEditReflection: () => void
   onRegenerate: () => void
 }) => {
+  const isPast = day.completed && !isToday
+  const isFuture = subscribed && !day.completed && !isToday
+  // AI 묵상·묵상 프롬프트는 "읽은(읽는) 날"에만 — 미래 일차에 미리 노출하면 플로우가 어색하고 카드만 길어진다.
+  // 미구독 상태에서는 둘러보기용 미리보기로 그대로 열어둔다.
+  const showReflectionArea = !subscribed || day.completed || isToday
+
   return (
     <div
+      id={domId}
       className={[
         'relative overflow-hidden rounded-2xl border transition-all',
         'bg-white/80 dark:bg-card-dark shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
         isToday
           ? 'border-purple-300/60 dark:border-purple-400/40 ring-1 ring-purple-300/40 dark:ring-purple-400/25'
           : 'border-gray-200/70 dark:border-white/[0.08]',
-        day.completed && !isToday ? 'opacity-80' : '',
+        isPast ? 'opacity-55' : '',
       ].join(' ')}
     >
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
@@ -438,7 +517,9 @@ const DayCard = ({
               'shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-[13px] transition-all',
               day.completed
                 ? `bg-gradient-to-br ${grad} text-white shadow-[0_4px_12px_-4px_rgba(168,85,247,0.55)]`
-                : 'bg-gray-100 dark:bg-white/[0.06] text-gray-500 dark:text-white/55 hover:bg-gray-200 dark:hover:bg-white/[0.1]',
+                : isToday
+                  ? 'border-2 border-purple-400/70 bg-purple-500/10 text-purple-600 dark:text-purple-300 hover:bg-purple-500/20'
+                  : 'border-2 border-gray-200 dark:border-white/[0.13] bg-transparent text-gray-400 dark:text-white/40 hover:border-purple-400/50 hover:text-purple-500 dark:hover:text-purple-300',
             ].join(' ')}
           >
             {day.completed ? (
@@ -450,7 +531,7 @@ const DayCard = ({
             )}
           </button>
         ) : (
-          <div className="shrink-0 w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-500 dark:text-white/55 flex items-center justify-center font-bold text-[13px]">
+          <div className="shrink-0 w-9 h-9 rounded-full border-2 border-gray-200 dark:border-white/[0.13] text-gray-400 dark:text-white/45 flex items-center justify-center font-bold text-[13px]">
             {day.day_number}
           </div>
         )}
@@ -468,11 +549,21 @@ const DayCard = ({
             </span>
           </div>
           {day.title && (
-            <p className="text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.01em] truncate mt-0.5">
+            <p
+              className={`text-[14px] font-bold tracking-[-0.01em] truncate mt-0.5 ${
+                isFuture ? 'text-gray-600 dark:text-white/65' : 'text-gray-900 dark:text-white'
+              }`}
+            >
               {day.title}
             </p>
           )}
-          <p className="text-[12px] text-purple-600 dark:text-purple-300/90 truncate mt-0.5">
+          <p
+            className={`text-[12px] truncate mt-0.5 ${
+              isFuture
+                ? 'text-purple-600/70 dark:text-purple-300/60'
+                : 'text-purple-600 dark:text-purple-300/90'
+            }`}
+          >
             {day.passages.map((p) => p.reference).filter(Boolean).join(' · ')}
           </p>
         </button>
@@ -490,7 +581,8 @@ const DayCard = ({
         </button>
       </div>
 
-      {/* 묵상 영역 */}
+      {/* 묵상 영역 — 완료했거나 오늘인 일차에만 (미구독 시엔 미리보기로 항상) */}
+      {showReflectionArea && (
       <div className="relative z-10 px-3.5 pb-3 -mt-1">
         {day.reflection_prompt && (
           <p className="text-[12.5px] leading-[1.6] text-gray-600 dark:text-white/65 bg-gray-50 dark:bg-white/[0.03] rounded-xl px-3 py-2 mb-2">
@@ -555,6 +647,7 @@ const DayCard = ({
           </div>
         )}
       </div>
+      )}
     </div>
   )
 }
