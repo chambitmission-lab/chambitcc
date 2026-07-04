@@ -2,11 +2,12 @@
 import type { CSSProperties } from 'react'
 
 // accent 키 → 그라데이션 (purple/pink/fuchsia/rose 만 허용)
+// pink/rose 계열은 시작색을 한 단계 밝혀(400) 어두운 배경에서 죽은 느낌(비활성 오인)을 방지
 export const ACCENT_GRADIENT: Record<string, string> = {
   purple: 'from-purple-500 to-pink-500',
-  pink: 'from-pink-500 to-rose-500',
+  pink: 'from-pink-400 to-rose-500',
   fuchsia: 'from-fuchsia-500 to-purple-500',
-  rose: 'from-rose-500 to-pink-500',
+  rose: 'from-rose-400 to-pink-500',
 }
 
 export const accentGradient = (accent?: string | null): string =>

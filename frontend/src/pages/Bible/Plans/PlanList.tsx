@@ -2,6 +2,7 @@
 // 인스타 감성 리디자인: 스토리형 Hero + 피드형 카드 그리드 + 해시태그 칩.
 // 플랜 데이터에 커버 이미지가 없어 실사 대신 accent 그라데이션 + 이모지를
 // '감성 그래픽'으로 사용한다. (추후 plan.cover_image 추가 시 PlanVisual 교체만 하면 됨)
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBiblePlans } from '../../../hooks/useBiblePlan'
 import type { PlanSummary } from '../../../types/biblePlan'
@@ -11,9 +12,14 @@ import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 const PlanList = () => {
   const navigate = useNavigate()
   const { data, isLoading, error } = useBiblePlans()
+  // 완주한 플랜은 기본 접힘 — 화면의 주인공은 "오늘 읽어야 할 플랜"
+  const [showCompleted, setShowCompleted] = useState(false)
 
   const plans = data?.items ?? []
   const myPlans = plans.filter((p) => p.progress?.subscribed)
+  // 진행 중인 플랜을 최상단으로, 완주한 플랜은 별도 접이식 섹션으로 분리
+  const activePlans = myPlans.filter((p) => p.progress?.status !== 'completed')
+  const completedPlans = myPlans.filter((p) => p.progress?.status === 'completed')
   const otherPlans = plans.filter((p) => !p.progress?.subscribed)
 
   return (
@@ -81,11 +87,11 @@ const PlanList = () => {
           </div>
         ) : (
           <>
-            {myPlans.length > 0 && (
+            {activePlans.length > 0 && (
               <section className="px-4 pt-9">
                 <SectionTitle>이어서 읽기</SectionTitle>
                 <div className="space-y-3.5">
-                  {myPlans.map((plan) => (
+                  {activePlans.map((plan) => (
                     <FeaturedPlanCard
                       key={plan.id}
                       plan={plan}
@@ -93,6 +99,51 @@ const PlanList = () => {
                     />
                   ))}
                 </div>
+              </section>
+            )}
+
+            {/* 완주한 플랜 — 기본 접힘 아코디언. 펼쳐도 톤을 낮춰(투명도) 진행 중 플랜에 시선이 가게 한다 */}
+            {completedPlans.length > 0 && (
+              <section className="px-4 pt-8">
+                <button
+                  type="button"
+                  onClick={() => setShowCompleted((v) => !v)}
+                  aria-expanded={showCompleted}
+                  className="w-full flex items-center justify-between px-0.5 py-1"
+                >
+                  <span className="flex items-center gap-1.5 text-[15px] font-extrabold text-gray-500 dark:text-white/55 tracking-[-0.02em]">
+                    완주한 플랜
+                    <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300">
+                      {completedPlans.length}
+                    </span>
+                  </span>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`text-gray-400 dark:text-white/40 transition-transform duration-200 ${showCompleted ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                {showCompleted && (
+                  <div className="space-y-3.5 mt-4">
+                    {completedPlans.map((plan) => (
+                      /* 끝난 플랜은 채도까지 죽여 회색조에 가깝게 — 진행 중 카드만 화면의 주인공 */
+                      <div key={plan.id} className="opacity-70 saturate-[0.35]">
+                        <FeaturedPlanCard
+                          plan={plan}
+                          onClick={() => navigate(`/bible/plans/${plan.id}`)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             )}
 
@@ -155,15 +206,15 @@ const PlanVisual = ({
 }) => {
   const grad = accentGradient(plan.accent)
   const emoji = plan.emoji || '📖'
-  const mainSize = size === 'feed' ? 'text-[41px]' : 'text-[34px]'
+  const mainSize = size === 'feed' ? 'text-[41px]' : 'text-[38px]'
   const markSize = size === 'feed' ? 'text-[88px]' : 'text-[72px]'
 
   return (
     <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${grad}`}>
-      {/* 밝은 하이라이트 글로우 */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgba(255,255,255,0.4),transparent_58%)]" />
-      {/* 하단 살짝 어둡게 (이모지 입체감) */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      {/* 밝은 하이라이트 글로우 — 카드가 '눌러도 되는 활성 상태'로 읽히도록 충분히 밝게 */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgba(255,255,255,0.48),transparent_60%)]" />
+      {/* 하단 살짝 어둡게 (이모지 입체감) — 과하면 비활성처럼 보여 최소한만 */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
       {/* 워터마크 이모지 */}
       <span
         className={`absolute -right-3 -bottom-5 ${markSize} leading-none opacity-20 blur-[1px] rotate-12 select-none pointer-events-none`}
@@ -172,7 +223,7 @@ const PlanVisual = ({
       </span>
       {/* 중앙 이모지 */}
       <span
-        className={`absolute inset-0 flex items-center justify-center ${mainSize} drop-shadow-[0_4px_14px_rgba(0,0,0,0.28)] select-none`}
+        className={`absolute inset-0 flex items-center justify-center ${mainSize} drop-shadow-[0_5px_16px_rgba(0,0,0,0.35)] select-none`}
       >
         {emoji}
       </span>
@@ -202,10 +253,13 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
 )
 
 // 피처형 카드 (이어서 읽기 · 가로형) — 진행률 강조
+// 상태 색 규칙: 진행 중 = 브랜드 그라데이션(보라→핑크)으로 통일, 완주 = 차분한 에메랄드.
+// 플랜별 accent 그라데이션은 커버 비주얼에만 쓰고 게이지에서는 빼서 "색 = 상태"가 되게 한다.
 const FeaturedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => void }) => {
-  const grad = accentGradient(plan.accent)
   const progress = plan.progress
   const subscribed = !!progress?.subscribed
+  const completed = progress?.status === 'completed'
+  const streak = progress?.streak_count ?? 0
 
   return (
     <button
@@ -223,8 +277,25 @@ const FeaturedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () =>
             {plan.title}
           </h4>
           {subscribed && progress && (
-            <span className="shrink-0 text-[17px] font-extrabold leading-none" style={gradientTextStyle}>
-              {progress.percent}%
+            <span className="shrink-0 flex flex-col items-end gap-1.5">
+              {completed ? (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300 text-[12px] font-extrabold leading-none">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  완주
+                </span>
+              ) : (
+                <span className="text-[17px] font-extrabold leading-none" style={gradientTextStyle}>
+                  {progress.percent}%
+                </span>
+              )}
+              {/* 연속 기록 — 게임화의 핵심이라 우측 상단 독립 배지로 승격 */}
+              {!completed && streak > 0 && (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-400/15 dark:bg-amber-400/20 text-[11px] font-bold leading-none text-amber-600 dark:text-amber-300">
+                  🔥 {streak}일
+                </span>
+              )}
             </span>
           )}
         </div>
@@ -237,17 +308,18 @@ const FeaturedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () =>
           <div className="mt-3">
             <div className="h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
               <div
-                className={`h-full rounded-full bg-gradient-to-r ${grad}`}
+                className={`h-full rounded-full ${
+                  completed
+                    ? 'bg-emerald-400/80 dark:bg-emerald-400/70'
+                    : 'bg-[linear-gradient(90deg,#a855f7,#ec4899)]'
+                }`}
                 style={{ width: `${Math.min(100, progress.percent)}%` }}
               />
             </div>
             <p className="text-[11px] font-light text-gray-400 dark:text-white/45 mt-1.5">
-              {progress.status === 'completed'
+              {completed
                 ? '완주했어요 🎉'
                 : `${progress.completed_days} / ${progress.total_days}일 · ${progress.current_day}일차 진행 중`}
-              {progress.streak_count > 0 && progress.status !== 'completed' && (
-                <span className="ml-1">· 🔥 {progress.streak_count}일</span>
-              )}
             </p>
           </div>
         )}
