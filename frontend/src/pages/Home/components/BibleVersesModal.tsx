@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { BibleVerse, RecommendedVerses } from '../../../types/prayer'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -14,36 +14,18 @@ interface VerseCardProps {
   verse: BibleVerse
   index: number
   total: number
-  summary: string
 }
 
-const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
-  const handleShare = async () => {
-    const body =
-      `📖 ${verse.reference}\n\n"${verse.text}"\n\n💡 ${verse.message}\n\n` +
-      `— 참빛교회 함께 묵상 (${index + 1}/${total})\n${summary}`
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: verse.reference, text: body })
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(body)
-        showToast('말씀을 복사했어요', 'success')
-      } else {
-        showToast('이 브라우저는 공유를 지원하지 않아요', 'info')
-      }
-    } catch (e) {
-      if ((e as DOMException)?.name === 'AbortError') return
-      showToast('공유 중 문제가 발생했어요', 'error')
-    }
-  }
+const CAROUSEL_GAP = 12 // gap-3, 인덱스 계산에 사용
 
+const VerseCard = ({ verse, index, total }: VerseCardProps) => {
   return (
-    <article className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+    <article className="relative h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
       <div className="pointer-events-none absolute inset-0 hidden dark:block bg-gradient-to-br from-white/[0.05] via-transparent to-white/[0.02]" />
 
-      <div className="relative p-5">
+      <div className="relative flex h-full flex-col p-5">
         {/* head: index + reference */}
-        <div className="mb-3 flex items-center gap-2.5">
+        <div className="mb-3.5 flex items-center gap-2.5">
           <div
             className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-purple-300/40 dark:border-purple-500/35 text-white shadow-[0_4px_14px_rgba(168,85,247,0.35)]"
             style={{
@@ -64,8 +46,8 @@ const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
           </div>
         </div>
 
-        {/* serif blockquote */}
-        <blockquote className="relative mb-3 pl-3">
+        {/* serif blockquote — 말씀이 주인공 */}
+        <blockquote className="relative mb-3.5 pl-4 pr-2">
           <span
             className="pointer-events-none absolute -top-1 -left-1 select-none text-[40px] leading-none text-purple-400/40 dark:text-purple-400/35"
             style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
@@ -74,7 +56,7 @@ const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
             “
           </span>
           <p
-            className="m-0 text-[15.5px] font-medium leading-[1.75] tracking-[-0.005em] text-gray-800 dark:text-purple-50/95"
+            className="m-0 text-[17.5px] font-semibold leading-[1.8] tracking-[-0.005em] text-gray-900 dark:text-purple-50"
             style={{
               fontFamily:
                 'Georgia, "Noto Serif KR", "Times New Roman", serif',
@@ -85,29 +67,16 @@ const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
           </p>
         </blockquote>
 
-        {/* insight message */}
-        <div className="bvm-insight rounded-xl px-3.5 py-3">
+        {/* insight message — 톤다운된 보조 가이드 */}
+        <div className="bvm-insight mt-auto rounded-xl px-3.5 py-3">
           <div className="flex items-start gap-2">
-            <span className="material-icons-round flex-shrink-0 text-[18px] text-purple-600 dark:text-purple-300">
+            <span className="material-icons-round flex-shrink-0 text-[16px] text-purple-500/70 dark:text-purple-300/60">
               auto_awesome
             </span>
-            <p className="m-0 text-[13.5px] leading-[1.7] text-gray-700 dark:text-purple-100/85">
+            <p className="m-0 text-[13px] leading-[1.65] text-gray-500 dark:text-purple-100/60">
               {verse.message}
             </p>
           </div>
-        </div>
-
-        {/* actions */}
-        <div className="mt-3.5 flex items-center justify-end">
-          <button
-            type="button"
-            onClick={handleShare}
-            className="inline-flex items-center gap-1.5 rounded-full border border-purple-300/50 dark:border-purple-500/35 bg-purple-50 dark:bg-purple-500/10 px-3 py-1.5 text-[12px] font-semibold text-purple-700 dark:text-purple-200 transition-all hover:bg-purple-100 dark:hover:bg-purple-500/20"
-            aria-label="가족·소그룹에 공유"
-          >
-            <span className="material-icons-round text-[15px]">ios_share</span>
-            공유
-          </button>
         </div>
       </div>
     </article>
@@ -117,6 +86,17 @@ const VerseCard = ({ verse, index, total, summary }: VerseCardProps) => {
 const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
   const { t, language } = useLanguage()
   const [isVisible, setIsVisible] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [shareMenuOpen, setShareMenuOpen] = useState(false)
+
+  // 헤더 스와이프 다운으로 닫기 (Bottom Sheet 제스처)
+  const [dragY, setDragY] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const dragStartYRef = useRef<number | null>(null)
+
+  const scrollerRef = useRef<HTMLDivElement>(null)
+
+  const total = verses.verses.length
 
   // 등장 애니메이션
   useEffect(() => {
@@ -138,12 +118,39 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
 
   const heroTitle = useMemo(() => {
     if (language === 'en') {
-      return `${verses.verses.length} verses for you`
+      return `${total} verses for you`
     }
-    return `당신을 위한 ${verses.verses.length}개의 말씀`
-  }, [language, verses.verses.length])
+    return `당신을 위한 ${total}개의 말씀`
+  }, [language, total])
+
+  const shareText = async (title: string, body: string, copiedMsg: string) => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text: body })
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(body)
+        showToast(copiedMsg, 'success')
+      } else {
+        showToast('이 브라우저는 공유를 지원하지 않아요', 'info')
+      }
+    } catch (e) {
+      if ((e as DOMException)?.name === 'AbortError') return
+      showToast('공유 중 문제가 발생했어요', 'error')
+    }
+  }
+
+  const handleShareCurrent = async () => {
+    setShareMenuOpen(false)
+    const verse = verses.verses[activeIndex]
+    if (!verse) return
+    const body =
+      `📖 ${verse.reference}\n\n"${verse.text}"\n\n💡 ${verse.message}\n\n` +
+      `— 참빛교회 함께 묵상 (${activeIndex + 1}/${total})\n${verses.summary}`
+    await shareText(verse.reference, body, '말씀을 복사했어요')
+  }
 
   const handleShareAll = async () => {
+    setShareMenuOpen(false)
     const lines = verses.verses
       .map(
         (v, i) =>
@@ -151,18 +158,45 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
       )
       .join('\n\n')
     const body = `📖 ${heroTitle}\n\n${verses.summary}\n\n${lines}\n\n— 참빛교회 함께 묵상`
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: heroTitle, text: body })
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(body)
-        showToast('말씀 묶음을 복사했어요', 'success')
-      } else {
-        showToast('이 브라우저는 공유를 지원하지 않아요', 'info')
-      }
-    } catch (e) {
-      if ((e as DOMException)?.name === 'AbortError') return
-      showToast('공유 중 문제가 발생했어요', 'error')
+    await shareText(heroTitle, body, '말씀 묶음을 복사했어요')
+  }
+
+  // 캐러셀 스크롤 → 현재 인덱스 추적
+  const handleCarouselScroll = () => {
+    const el = scrollerRef.current
+    if (!el) return
+    const idx = Math.round(el.scrollLeft / (el.clientWidth + CAROUSEL_GAP))
+    setActiveIndex(Math.max(0, Math.min(total - 1, idx)))
+  }
+
+  const scrollToIndex = (idx: number) => {
+    const el = scrollerRef.current
+    if (!el) return
+    el.scrollTo({
+      left: idx * (el.clientWidth + CAROUSEL_GAP),
+      behavior: 'smooth',
+    })
+  }
+
+  // 스와이프 다운 닫기 제스처 (헤더/핸들 영역에서만)
+  const handleDragStart = (e: React.TouchEvent) => {
+    dragStartYRef.current = e.touches[0].clientY
+    setIsDragging(true)
+  }
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (dragStartYRef.current === null) return
+    const delta = e.touches[0].clientY - dragStartYRef.current
+    setDragY(delta > 0 ? delta : 0)
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+    dragStartYRef.current = null
+    if (dragY > 90) {
+      onClose()
+    } else {
+      setDragY(0)
     }
   }
 
@@ -175,54 +209,48 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
       aria-label={t('versesToMeditateOn')}
     >
       <div
-        className={`relative w-full sm:max-w-lg max-h-[92vh] overflow-hidden rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-card-dark shadow-[0_-16px_60px_rgba(168,85,247,0.2)] sm:shadow-[0_24px_60px_rgba(168,85,247,0.25)] transition-all duration-300 ${
+        className={`relative flex w-full flex-col sm:max-w-lg max-h-[calc(100dvh-env(safe-area-inset-top,0px)-1.25rem)] sm:max-h-[92vh] overflow-hidden rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-card-dark shadow-[0_-16px_60px_rgba(168,85,247,0.2)] sm:shadow-[0_24px_60px_rgba(168,85,247,0.25)] ${
+          isDragging ? '' : 'transition-all duration-300'
+        } ${
           isVisible
             ? 'opacity-100 translate-y-0 scale-100'
             : 'opacity-0 translate-y-6 sm:translate-y-0 sm:scale-[0.97]'
         }`}
+        style={dragY > 0 ? { transform: `translateY(${dragY}px)` } : undefined}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* drag handle (mobile) */}
+        {/* Header — 스와이프 다운으로 닫기 */}
         <div
-          aria-hidden="true"
-          className="absolute top-2 left-1/2 -translate-x-1/2 h-1 w-10 rounded-full bg-gray-300/60 dark:bg-white/15 sm:hidden"
-        />
-
-        {/* Header */}
-        <div className="sticky top-0 z-20 flex items-center justify-between px-4 pt-5 pb-3 bg-white/95 dark:bg-card-dark/95 backdrop-blur-sm border-b border-gray-100 dark:border-white/[0.05]">
+          className="relative z-20 flex flex-shrink-0 touch-none items-center justify-between border-b border-gray-100 dark:border-white/[0.05] bg-white/95 dark:bg-card-dark/95 px-4 pt-5 pb-3 backdrop-blur-sm"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+        >
+          {/* drag handle (mobile) */}
+          <div
+            aria-hidden="true"
+            className="absolute top-2 left-1/2 h-1 w-10 -translate-x-1/2 rounded-full bg-gray-300/60 dark:bg-white/15 sm:hidden"
+          />
           <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-purple-700 dark:text-purple-300">
             <span className="material-icons-round text-[14px]">
               auto_stories
             </span>
             함께 묵상
           </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={handleShareAll}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] text-gray-600 dark:text-white/70 hover:border-purple-300 dark:hover:border-purple-500/35 hover:bg-purple-50 dark:hover:bg-purple-500/15 hover:text-purple-700 dark:hover:text-purple-200 transition-all"
-              aria-label="전체 묶음 공유"
-              title="전체 묶음 공유"
-            >
-              <span className="material-icons-round text-[19px]">
-                ios_share
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] text-gray-600 dark:text-white/70 hover:border-purple-300 dark:hover:border-purple-500/35 hover:bg-purple-50 dark:hover:bg-purple-500/15 hover:text-purple-700 dark:hover:text-purple-200 transition-all"
-              aria-label="닫기"
-            >
-              <span className="material-icons-round text-[20px]">close</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-400 dark:text-white/35 transition-all hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-600 dark:hover:text-white/70"
+            aria-label="닫기"
+          >
+            <span className="material-icons-round text-[17px]">close</span>
+          </button>
         </div>
 
         {/* Scrollable body */}
-        <div className="overflow-y-auto max-h-[calc(92vh-64px)] px-4 pb-8 pt-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-5 pt-4">
           {/* Hero card */}
-          <section className="bvm-hero relative mb-5 overflow-hidden rounded-2xl p-5">
+          <section className="bvm-hero relative mb-4 overflow-hidden rounded-2xl p-5">
             <span aria-hidden="true" className="bvm-hero-accent-line" />
 
             <div className="relative flex items-start gap-3">
@@ -252,42 +280,113 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
                 {verses.summary}
               </p>
             )}
-
-            <div className="bvm-hero-divider relative mt-4 flex items-center gap-2 pt-3">
-              <span className="bvm-hero-stat-label text-[12px] font-semibold">
-                <span
-                  className="font-bold tabular-nums text-[14px]"
-                  style={{
-                    background: 'linear-gradient(135deg, #a855f7, #ec4899)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }}
-                >
-                  {verses.verses.length}
-                </span>{' '}
-                개의 말씀이 준비되어 있어요
-              </span>
-            </div>
           </section>
 
-          {/* Verse cards */}
-          <div className="space-y-3">
+          {/* Verse carousel — 한 번에 한 구절씩 */}
+          <div
+            ref={scrollerRef}
+            onScroll={handleCarouselScroll}
+            className="bvm-carousel flex snap-x snap-mandatory gap-3 overflow-x-auto"
+          >
             {verses.verses.map((verse, index) => (
-              <VerseCard
+              <div
                 key={index}
-                verse={verse}
-                index={index}
-                total={verses.verses.length}
-                summary={verses.summary}
-              />
+                className="w-full flex-shrink-0 snap-center"
+              >
+                <VerseCard verse={verse} index={index} total={total} />
+              </div>
             ))}
           </div>
 
-          {/* Footer hint */}
-          <p className="mt-6 text-center text-[11.5px] text-gray-400 dark:text-white/40">
-            잠시 멈춰서, 한 절씩 천천히 묵상해보세요.
+          {/* Dots + hint */}
+          {total > 1 && (
+            <div
+              className="mt-4 flex items-center justify-center gap-2"
+              role="tablist"
+              aria-label="말씀 카드 이동"
+            >
+              {verses.verses.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  role="tab"
+                  aria-selected={idx === activeIndex}
+                  aria-label={`${idx + 1}번째 말씀`}
+                  onClick={() => scrollToIndex(idx)}
+                  className={`rounded-full transition-all duration-300 ${
+                    idx === activeIndex
+                      ? 'h-2 w-6 bg-purple-500'
+                      : 'h-2 w-2 bg-gray-300 dark:bg-white/20 hover:bg-purple-300 dark:hover:bg-purple-500/40'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          <p className="mt-3 mb-0 text-center text-[11.5px] text-gray-400 dark:text-white/40">
+            옆으로 넘기며 한 절씩 천천히 묵상해보세요.
           </p>
+        </div>
+
+        {/* Bottom action bar — 한 손 조작 영역 */}
+        <div className="relative z-20 flex flex-shrink-0 items-center gap-2 border-t border-gray-100 dark:border-white/[0.05] bg-white/95 dark:bg-card-dark/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-sm">
+          {/* 공유 메뉴 팝오버 */}
+          {shareMenuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-30"
+                onClick={() => setShareMenuOpen(false)}
+                aria-hidden="true"
+              />
+              <div className="absolute bottom-full left-4 z-40 mb-2 w-56 overflow-hidden rounded-xl border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-card-dark shadow-[0_12px_32px_rgba(0,0,0,0.25)]">
+                <button
+                  type="button"
+                  onClick={handleShareCurrent}
+                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13.5px] font-medium text-gray-800 dark:text-white/85 transition-colors hover:bg-purple-50 dark:hover:bg-purple-500/15"
+                >
+                  <span className="material-icons-round text-[17px] text-purple-600 dark:text-purple-300">
+                    article
+                  </span>
+                  지금 보는 말씀 공유
+                </button>
+                <div className="h-px bg-gray-100 dark:bg-white/[0.06]" />
+                <button
+                  type="button"
+                  onClick={handleShareAll}
+                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13.5px] font-medium text-gray-800 dark:text-white/85 transition-colors hover:bg-purple-50 dark:hover:bg-purple-500/15"
+                >
+                  <span className="material-icons-round text-[17px] text-purple-600 dark:text-purple-300">
+                    library_books
+                  </span>
+                  말씀 {total}개 전체 공유
+                </button>
+              </div>
+            </>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setShareMenuOpen((v) => !v)}
+            className="inline-flex h-12 items-center gap-1.5 rounded-2xl border border-gray-200 dark:border-white/[0.1] bg-gray-50 dark:bg-white/[0.04] px-4 text-[14px] font-semibold text-gray-700 dark:text-white/80 transition-all hover:border-purple-300 dark:hover:border-purple-500/35 hover:bg-purple-50 dark:hover:bg-purple-500/15 hover:text-purple-700 dark:hover:text-purple-200"
+            aria-label="공유 옵션 열기"
+            aria-expanded={shareMenuOpen}
+          >
+            <span className="material-icons-round text-[18px]">ios_share</span>
+            공유
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-2xl text-[15px] font-bold text-white shadow-[0_6px_18px_rgba(168,85,247,0.35)] transition-transform active:scale-[0.98]"
+            style={{
+              background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+            }}
+          >
+            <span className="material-icons-round text-[18px]">
+              check_circle
+            </span>
+            묵상 완료
+          </button>
         </div>
       </div>
     </div>

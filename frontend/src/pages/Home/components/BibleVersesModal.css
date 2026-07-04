@@ -102,21 +102,33 @@
   color: rgba(196, 181, 253, 0.78);
 }
 
-/* 인사이트 박스 (각 카드의 적용 메시지) */
+/* 인사이트 박스 (각 카드의 적용 메시지)
+ * 말씀 본문이 주인공이 되도록 배경/보더/글자 톤을 낮춰 보조 역할로 유지 */
 .bvm-insight {
   background: linear-gradient(
     135deg,
-    rgba(168, 85, 247, 0.06),
-    rgba(236, 72, 153, 0.04)
+    rgba(168, 85, 247, 0.04),
+    rgba(236, 72, 153, 0.025)
   );
-  border: 1px solid rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(168, 85, 247, 0.12);
 }
 
 .dark .bvm-insight {
   background: linear-gradient(
     135deg,
-    rgba(168, 85, 247, 0.1),
-    rgba(236, 72, 153, 0.07)
+    rgba(168, 85, 247, 0.06),
+    rgba(236, 72, 153, 0.04)
   );
-  border-color: rgba(168, 85, 247, 0.22);
+  border-color: rgba(168, 85, 247, 0.15);
+}
+
+/* 가로 스와이프 캐러셀 — 스크롤바 숨김 */
+.bvm-carousel {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bvm-carousel::-webkit-scrollbar {
+  display: none;
 }
