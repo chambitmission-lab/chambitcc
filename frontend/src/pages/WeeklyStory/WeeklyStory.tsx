@@ -48,6 +48,27 @@ const buildCards = (story: WeeklyStoryData): CardKind[] => {
   return cards
 }
 
+/** 카드 전환 시 한 번씩 터지는 별빛 버스트 (key 교체로 매 장마다 재생) */
+const SPARK_GLYPHS = ['✦', '✧', '✨', '⋆']
+const SparkleBurst = () => (
+  <div className="ws-spark-burst" aria-hidden="true">
+    {Array.from({ length: 10 }).map((_, i) => (
+      <span
+        key={i}
+        className="ws-spark"
+        style={{
+          left: `${(11 + i * 37) % 90}%`,
+          top: `${(12 + i * 53) % 72}%`,
+          fontSize: `${11 + (i % 3) * 5}px`,
+          animationDelay: `${(i % 5) * 0.07}s`,
+        }}
+      >
+        {SPARK_GLYPHS[i % SPARK_GLYPHS.length]}
+      </span>
+    ))}
+  </div>
+)
+
 const EMOJI_BY_EMOTION: Record<string, string> = {
   tired: '😮‍💨',
   anxious: '😟',
@@ -239,6 +260,9 @@ export default function WeeklyStory() {
             weekRange={`${story.week_start} – ${story.week_end}`}
           />
         ))}
+
+        {/* index가 바뀔 때마다 remount되어 버스트가 한 번씩 재생됨 */}
+        <SparkleBurst key={index} />
 
         <div className="ws-tap-zones">
           <button
