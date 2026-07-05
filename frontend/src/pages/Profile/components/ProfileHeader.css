@@ -1,0 +1,102 @@
+/* ===== NBA 트레이딩 카드 스타일 프로필 ===== */
+
+/* 홀로그램 시트 — 정적인 무지갯빛 사선 (색이 움직이지 않음) */
+.ph-holo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 18%,
+    rgba(168, 85, 247, 0.16) 32%,
+    rgba(56, 189, 248, 0.13) 44%,
+    rgba(236, 72, 153, 0.14) 56%,
+    rgba(250, 204, 21, 0.1) 66%,
+    transparent 80%
+  );
+}
+
+/* 느리게 지나가는 광 스윕 */
+@keyframes ph-shine {
+  0% {
+    transform: translateX(-200%) skewX(-18deg);
+  }
+  60%,
+  100% {
+    transform: translateX(460%) skewX(-18deg);
+  }
+}
+
+.ph-shine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 26%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255, 255, 255, 0.14),
+    transparent
+  );
+  animation: ph-shine 5.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ph-shine {
+    animation: none;
+    display: none;
+  }
+}
+
+/* ===== 카드 뒤집기 (3D flip) ===== */
+.ph-flip-scene {
+  perspective: 1200px;
+}
+
+.ph-flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.2, 0.7, 0.3, 1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ph-flip-inner.ph-flipped {
+  transform: rotateY(180deg);
+}
+
+.ph-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.ph-face-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ph-flip-inner {
+    transition: none;
+  }
+}
+
+/* 바코드 — CSS 스트라이프로 표현 */
+.ph-barcode {
+  height: 22px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.75) 0 2px,
+    transparent 2px 4px,
+    rgba(255, 255, 255, 0.75) 4px 7px,
+    transparent 7px 9px,
+    rgba(255, 255, 255, 0.75) 9px 10px,
+    transparent 10px 14px,
+    rgba(255, 255, 255, 0.75) 14px 15px,
+    transparent 15px 18px
+  );
+}

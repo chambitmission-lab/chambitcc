@@ -180,6 +180,10 @@ const Profile = () => {
           fullName={stats.full_name}
           glowLevel={glowLevel}
           activityPoints={activityPoints}
+          thisWeekCount={stats.activity.this_week_count}
+          totalCount={stats.activity.total_count}
+          streakDays={stats.activity.streak_days}
+          pointsToNext={pointsToNext}
         />
 
         {/* 레벨 진행도 */}
