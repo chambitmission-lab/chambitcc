@@ -291,7 +291,7 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
             {verses.verses.map((verse, index) => (
               <div
                 key={index}
-                className="w-full flex-shrink-0 snap-center"
+                className="w-full flex-shrink-0 snap-center snap-always"
               >
                 <VerseCard verse={verse} index={index} total={total} />
               </div>
