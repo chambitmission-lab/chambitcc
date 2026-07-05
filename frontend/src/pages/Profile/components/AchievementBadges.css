@@ -1,0 +1,51 @@
+/* 해금된 배지 위를 주기적으로 스치는 하이라이트 스윕 */
+@keyframes ach-badge-shine {
+  0% {
+    transform: translateX(-180%) rotate(20deg);
+  }
+  45%,
+  100% {
+    transform: translateX(280%) rotate(20deg);
+  }
+}
+
+.ach-badge-shine {
+  position: absolute;
+  top: -25%;
+  bottom: -25%;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(
+    105deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  animation: ach-badge-shine 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* 해금 배지 링의 은은한 숨쉬기 글로우 */
+@keyframes ach-badge-glow {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}
+
+.ach-ring-unlocked {
+  animation: ach-badge-glow 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ach-badge-shine,
+  .ach-ring-unlocked {
+    animation: none;
+  }
+  .ach-badge-shine {
+    display: none;
+  }
+}
