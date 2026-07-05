@@ -84,6 +84,20 @@
   }
 }
 
+/* ===== 스코어보드 숫자 폰트 ===== */
+/* 스탯 수치 — 크고 볼드한 미래지향 고딕 */
+.ph-stat-num {
+  font-family: 'Orbitron', 'Pretendard', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+/* 시리얼/포인트 코드 — 카드에 각인된 넘버링 */
+.ph-code {
+  font-family: 'Orbitron', 'Pretendard', sans-serif;
+  font-weight: 700;
+}
+
 /* 바코드 — CSS 스트라이프로 표현 */
 .ph-barcode {
   height: 22px;

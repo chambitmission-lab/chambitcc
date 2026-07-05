@@ -1,10 +1,24 @@
 import { useState } from 'react'
 import { TitleEquippedChip } from '../../../components/titles/TitleEquippedChip'
-import { LambCharacter } from '../../../components/garden/LambCharacter'
-import { calculateLambStage } from '../../../utils/gardenCalculator'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { GlowLevel } from '../../../types/achievement'
 import './ProfileHeader.css'
+
+// 등급(GLOW_LEVELS)별 플레이어 클래스 — 영문 칭호 · 한글 수식어 · 시리얼 코드 · 엠블럼
+const CLASS_BY_LEVEL: Record<
+  number,
+  { title: string; tagline: string; code: string; icon: string }
+> = {
+  0: { title: 'SEED PLANTER', tagline: '새싹을 틔우는 자', code: 'SEED', icon: 'spa' },
+  1: { title: 'SPARK HOLDER', tagline: '불씨를 지닌 자', code: 'SPARK', icon: 'local_fire_department' },
+  2: { title: 'FLAME KEEPER', tagline: '불꽃을 지키는 자', code: 'FLAME', icon: 'local_fire_department' },
+  3: { title: 'BLAZE RUNNER', tagline: '불길을 달리는 자', code: 'BLAZE', icon: 'whatshot' },
+  4: { title: 'SOUL IGNITER', tagline: '영혼에 불을 붙이는 자', code: 'SOUL', icon: 'whatshot' },
+  5: { title: 'LIGHT WALKER', tagline: '빛을 걷는 자', code: 'LIGHT', icon: 'flare' },
+  6: { title: 'GLORY BEARER', tagline: '하늘의 광채를 두른 자', code: 'GLORY', icon: 'flare' },
+  7: { title: 'LAMP KEEPER', tagline: '꺼지지 않는 등불을 지키는 자', code: 'LAMP', icon: 'lightbulb' },
+  8: { title: 'SALVATION STAR', tagline: '구원의 별로 빛나는 자', code: 'STAR', icon: 'auto_awesome' },
+}
 
 interface ProfileHeaderProps {
   username: string
@@ -32,8 +46,8 @@ const ProfileHeader = ({
   const { t } = useLanguage()
   const [flipped, setFlipped] = useState(false)
   const auraColor = specialAchievementColor || glowLevel.glowColor
-  const serial = `LIGHT-${String(glowLevel.level).padStart(2, '0')}`
-  const lambStage = calculateLambStage(activityPoints)
+  const playerClass = CLASS_BY_LEVEL[glowLevel.level] ?? CLASS_BY_LEVEL[0]
+  const serial = `${playerClass.code}-${String(glowLevel.level).padStart(2, '0')}`
   const nextProgress = pointsToNext
     ? ((pointsToNext.total - pointsToNext.needed) / pointsToNext.total) * 100
     : 100
@@ -76,7 +90,7 @@ const ProfileHeader = ({
                 Chambit
               </span>
               <span
-                className="text-[9.5px] font-bold uppercase tracking-[0.14em]"
+                className="ph-code text-[9.5px] uppercase tracking-[0.14em]"
                 style={{ color: auraColor, textShadow: `0 0 10px ${auraColor}` }}
               >
                 Serial No. {serial}
@@ -133,7 +147,7 @@ const ProfileHeader = ({
             <div className="relative z-10 px-4 pb-2.5 pt-3">
               <div className="flex items-end justify-between gap-3">
                 <div className="ph-barcode w-28 opacity-70" aria-hidden="true" />
-                <span className="pb-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/40 tabular-nums">
+                <span className="ph-code pb-0.5 text-[9px] uppercase tracking-[0.1em] text-white/40">
                   {activityPoints.toLocaleString()} PTS · @{username}
                 </span>
               </div>
@@ -159,11 +173,11 @@ const ProfileHeader = ({
                   Chambit
                 </span>
                 <span className="text-[9.5px] font-bold uppercase tracking-[0.14em] text-white/35">
-                  Official Mascot
+                  Official Agent
                 </span>
               </div>
 
-              {/* 마스코트 — 등급 링 안의 어린 양 */}
+              {/* 플레이어 클래스 엠블럼 — 네온 광원 */}
               <div className="mt-3 flex flex-1 flex-col items-center justify-center px-4">
                 <div
                   className="rounded-full p-[3px]"
@@ -172,32 +186,38 @@ const ProfileHeader = ({
                     boxShadow: `0 0 22px ${auraColor}`,
                   }}
                 >
-                  <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-[#211d2e]">
-                    <LambCharacter
-                      stage={lambStage}
-                      points={activityPoints}
-                      size={78}
-                      showInfo={false}
-                      variant="avatar"
-                    />
+                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#211d2e]">
+                    <span
+                      className="material-icons-round text-[42px]"
+                      style={{
+                        color: auraColor,
+                        filter: `drop-shadow(0 0 14px ${auraColor})`,
+                      }}
+                      aria-hidden="true"
+                    >
+                      {playerClass.icon}
+                    </span>
                   </div>
                 </div>
 
-                <div className="mt-2.5 text-[15px] font-bold tracking-[-0.01em] text-white">
-                  {lambStage.name}
+                <div
+                  className="mt-3 bg-gradient-to-b from-white via-white to-purple-200/80 bg-clip-text text-[21px] font-black italic leading-none tracking-[0.06em] text-transparent"
+                  style={{ filter: `drop-shadow(0 1px 10px ${auraColor})` }}
+                >
+                  {playerClass.title}
                 </div>
                 <p
-                  className="mx-2 mt-1 mb-0 text-center text-[11px] leading-[1.5] text-white/50"
+                  className="mx-2 mt-1.5 mb-0 text-center text-[11px] leading-[1.5] text-white/50"
                   style={{ wordBreak: 'keep-all' }}
                 >
-                  {lambStage.description}
+                  {playerClass.tagline} · Lv.{glowLevel.level} {t(glowLevel.nameKey)}
                 </p>
 
                 {/* 다음 레벨 게이지 */}
                 <div className="mt-3.5 w-full max-w-[220px]">
                   <div className="mb-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.12em]">
                     <span className="text-white/40">Next Level</span>
-                    <span style={{ color: auraColor }}>
+                    <span className="ph-code" style={{ color: auraColor }}>
                       {pointsToNext
                         ? `${pointsToNext.needed.toLocaleString()}P`
                         : 'MAX'}
@@ -219,7 +239,7 @@ const ProfileHeader = ({
               {/* 뒷면 풋터 */}
               <div className="px-4 pb-2.5 pt-3">
                 <div className="flex items-end justify-between gap-3">
-                  <span className="pb-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/40">
+                  <span className="ph-code pb-0.5 text-[9px] uppercase tracking-[0.1em] text-white/40">
                     Serial No. {serial}
                   </span>
                   <div className="ph-barcode w-28 opacity-70" aria-hidden="true" />
@@ -237,11 +257,11 @@ const ProfileHeader = ({
 }
 
 const CardStat = ({ value, label }: { value: number; label: string }) => (
-  <div className="px-2 py-2.5 text-center">
-    <div className="text-[19px] font-black leading-none text-white">
+  <div className="px-2 py-3 text-center">
+    <div className="ph-stat-num text-[23px] leading-none text-white">
       {value.toLocaleString()}
     </div>
-    <div className="mt-1 text-[9.5px] font-semibold text-white/45 whitespace-nowrap">
+    <div className="mt-1.5 text-[9.5px] font-semibold text-white/45 whitespace-nowrap">
       {label}
     </div>
   </div>
