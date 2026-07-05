@@ -60,6 +60,28 @@
   --lamb-cheek-opacity: 0.9;
 }
 
+/* 아바타 프레임용 — 원형 프레임에 딱 맞게, 여백 제거 */
+.lamb-avatar-frame {
+  padding: 0;
+  gap: 0;
+}
+
+/* 아바타 모드 — 큰 점프 없이 잔잔한 숨쉬기만 (원형 크롭 안에서 안 잘리게) */
+.lamb-avatar {
+  animation: lamb-breathe-gentle 3.5s ease-in-out infinite;
+}
+
+@keyframes lamb-breathe-gentle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lamb-avatar {
+    animation: none;
+  }
+}
+
 /* 애니메이션 상태 */
 .lamb-sleeping {
   animation: lamb-sleep 3s ease-in-out infinite;

@@ -90,7 +90,7 @@ const ProfileHeader = ({ username, fullName, glowLevel, activityPoints, specialA
               }}
             >
               <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-purple-50/90 dark:bg-[#211d2e]">
-                <LambCharacter stage={lambStage} points={activityPoints} size={92} showInfo={false} />
+                <LambCharacter stage={lambStage} points={activityPoints} size={92} showInfo={false} variant="avatar" />
               </div>
             </div>
           </div>

@@ -7,6 +7,8 @@ interface LambCharacterProps {
   points: number
   size?: number
   showInfo?: boolean
+  /** avatar: 원형 프레임용 — 여백 없이, 큰 점프 대신 잔잔한 숨쉬기만 */
+  variant?: 'full' | 'avatar'
 }
 
 export const LambCharacter: React.FC<LambCharacterProps> = ({
@@ -14,6 +16,7 @@ export const LambCharacter: React.FC<LambCharacterProps> = ({
   points,
   size = 120,
   showInfo = true,
+  variant = 'full',
 }) => {
   const gradientId = useId()
   const highlightId = `${gradientId}-hl`
@@ -34,22 +37,28 @@ export const LambCharacter: React.FC<LambCharacterProps> = ({
   }, [points])
 
   const animationClass = useMemo(() => {
+    if (variant === 'avatar') return 'lamb-avatar'
     if (stage.level >= 5) return 'lamb-heavenly'
     if (stage.level >= 3) return 'lamb-happy'
     if (stage.level >= 1) return 'lamb-active'
     return 'lamb-sleeping'
-  }, [stage.level])
+  }, [stage.level, variant])
 
   const glowFilter = useMemo(() => {
-    if (stage.level >= 6) return 'drop-shadow(0 0 24px rgba(255, 255, 255, 0.9))'
-    if (stage.level >= 4) return 'drop-shadow(0 0 16px rgba(251, 191, 36, 0.7))'
+    const radius = variant === 'avatar' ? 12 : 24
+    if (stage.level >= 6) return `drop-shadow(0 0 ${radius}px rgba(253, 230, 138, 0.8))`
+    if (stage.level >= 4) return `drop-shadow(0 0 ${radius * 0.7}px rgba(251, 191, 36, 0.7))`
     return 'none'
-  }, [stage.level])
+  }, [stage.level, variant])
 
   const woolFill = stage.level >= 6 ? `url(#${gradientId})` : 'var(--lamb-wool)'
 
   return (
-    <div className="lamb-character-container">
+    <div
+      className={`lamb-character-container${
+        variant === 'avatar' ? ' lamb-avatar-frame' : ''
+      }`}
+    >
       <div
         className={`lamb-character ${animationClass}`}
         style={{ filter: glowFilter }}
@@ -63,13 +72,13 @@ export const LambCharacter: React.FC<LambCharacterProps> = ({
           aria-label={stage.name}
         >
           <defs>
+            {/* 최고 단계 털 — 원색 무지개 대신 진주빛 오팔 파스텔 */}
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#ff6b6b" />
-              <stop offset="20%" stopColor="#ffd93d" />
-              <stop offset="40%" stopColor="#6bcb77" />
-              <stop offset="60%" stopColor="#4d96ff" />
-              <stop offset="80%" stopColor="#b47eff" />
-              <stop offset="100%" stopColor="#ff6bcb" />
+              <stop offset="0%" stopColor="#fdf4ff" />
+              <stop offset="28%" stopColor="#ede9fe" />
+              <stop offset="52%" stopColor="#dbeafe" />
+              <stop offset="76%" stopColor="#fce7f3" />
+              <stop offset="100%" stopColor="#fef3c7" />
             </linearGradient>
             <radialGradient id={highlightId} cx="30%" cy="25%" r="70%">
               <stop offset="0%" stopColor="rgba(255,255,255,0.55)" />
