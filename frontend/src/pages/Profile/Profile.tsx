@@ -184,6 +184,7 @@ const Profile = () => {
           totalCount={stats.activity.total_count}
           streakDays={stats.activity.streak_days}
           pointsToNext={pointsToNext}
+          achievements={achievements}
         />
 
         {/* 레벨 진행도 */}

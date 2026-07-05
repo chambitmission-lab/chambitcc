@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { TitleEquippedChip } from '../../../components/titles/TitleEquippedChip'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import type { GlowLevel } from '../../../types/achievement'
+import type { Achievement, GlowLevel } from '../../../types/achievement'
 import './ProfileHeader.css'
 
 // 등급(GLOW_LEVELS)별 플레이어 클래스 — 영문 칭호 · 한글 수식어 · 시리얼 코드 · 엠블럼
@@ -30,6 +30,7 @@ interface ProfileHeaderProps {
   totalCount?: number
   streakDays?: number
   pointsToNext?: { needed: number; total: number } | null
+  achievements?: Achievement[]
 }
 
 const ProfileHeader = ({
@@ -42,10 +43,12 @@ const ProfileHeader = ({
   totalCount = 0,
   streakDays = 0,
   pointsToNext = null,
+  achievements = [],
 }: ProfileHeaderProps) => {
   const { t } = useLanguage()
   const [flipped, setFlipped] = useState(false)
   const auraColor = specialAchievementColor || glowLevel.glowColor
+  const unlockedBadges = achievements.filter((a) => a.unlocked)
   const playerClass = CLASS_BY_LEVEL[glowLevel.level] ?? CLASS_BY_LEVEL[0]
   const serial = `${playerClass.code}-${String(glowLevel.level).padStart(2, '0')}`
   const nextProgress = pointsToNext
@@ -177,21 +180,21 @@ const ProfileHeader = ({
                 </span>
               </div>
 
-              {/* 플레이어 클래스 엠블럼 — 네온 광원 */}
-              <div className="mt-3 flex flex-1 flex-col items-center justify-center px-4">
+              {/* 클래스 스트립 — 엠블럼 + 클래스명 */}
+              <div className="mx-4 mt-2.5 flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2">
                 <div
-                  className="rounded-full p-[3px]"
+                  className="shrink-0 rounded-full p-[2px]"
                   style={{
                     background: `conic-gradient(from 210deg, ${auraColor}, rgba(168,85,247,0.9), rgba(236,72,153,0.9), ${auraColor})`,
-                    boxShadow: `0 0 22px ${auraColor}`,
+                    boxShadow: `0 0 12px ${auraColor}`,
                   }}
                 >
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#211d2e]">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#211d2e]">
                     <span
-                      className="material-icons-round text-[42px]"
+                      className="material-icons-round text-[19px]"
                       style={{
                         color: auraColor,
-                        filter: `drop-shadow(0 0 14px ${auraColor})`,
+                        filter: `drop-shadow(0 0 8px ${auraColor})`,
                       }}
                       aria-hidden="true"
                     >
@@ -199,22 +202,71 @@ const ProfileHeader = ({
                     </span>
                   </div>
                 </div>
-
-                <div
-                  className="mt-3 bg-gradient-to-b from-white via-white to-purple-200/80 bg-clip-text text-[21px] font-black italic leading-none tracking-[0.06em] text-transparent"
-                  style={{ filter: `drop-shadow(0 1px 10px ${auraColor})` }}
-                >
-                  {playerClass.title}
+                <div className="min-w-0 flex-1 text-left">
+                  <div
+                    className="ph-code truncate text-[12.5px] tracking-[0.05em] text-white"
+                    style={{ textShadow: `0 0 12px ${auraColor}` }}
+                  >
+                    {playerClass.title}
+                  </div>
+                  <div className="truncate text-[9.5px] text-white/45">
+                    {playerClass.tagline} · Lv.{glowLevel.level} {t(glowLevel.nameKey)}
+                  </div>
                 </div>
-                <p
-                  className="mx-2 mt-1.5 mb-0 text-center text-[11px] leading-[1.5] text-white/50"
-                  style={{ wordBreak: 'keep-all' }}
-                >
-                  {playerClass.tagline} · Lv.{glowLevel.level} {t(glowLevel.nameKey)}
-                </p>
+              </div>
 
-                {/* 다음 레벨 게이지 */}
-                <div className="mt-3.5 w-full max-w-[220px]">
+              {/* SEASON STATS — NBA 카드 뒷면식 스탯 테이블 */}
+              <div className="mx-4 mt-2.5 flex-1">
+                <div className="text-left text-[8.5px] font-bold uppercase tracking-[0.22em] text-white/35">
+                  Season Stats
+                </div>
+                <div className="mt-1 divide-y divide-white/[0.06] rounded-xl border border-white/[0.08] bg-white/[0.03] px-3">
+                  <BackStatRow label={t('totalPrayers')} value={totalCount} />
+                  <BackStatRow label={t('profileThisWeek')} value={thisWeekCount} />
+                  <BackStatRow
+                    label={t('consecutivePrayers')}
+                    value={streakDays}
+                    suffix={streakDays >= 7 ? '🔥' : undefined}
+                  />
+                </div>
+
+                {/* BADGES — 획득한 핵심 업적 */}
+                <div className="mt-2.5 flex items-center justify-between">
+                  <span className="text-[8.5px] font-bold uppercase tracking-[0.22em] text-white/35">
+                    Badges
+                  </span>
+                  <span className="ph-code text-[9px] text-white/40">
+                    {unlockedBadges.length}/{achievements.length}
+                  </span>
+                </div>
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  {unlockedBadges.length === 0 ? (
+                    <span className="text-[10px] text-white/35">
+                      아직 획득한 배지가 없어요 — 첫 배지를 노려보세요!
+                    </span>
+                  ) : (
+                    <>
+                      {unlockedBadges.slice(0, 6).map((badge) => (
+                        <span
+                          key={badge.id}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.06] text-[15px]"
+                          style={{ boxShadow: `0 0 10px ${badge.glowColor}` }}
+                          title={badge.title}
+                        >
+                          {badge.icon}
+                        </span>
+                      ))}
+                      {unlockedBadges.length > 6 && (
+                        <span className="ph-code flex h-8 items-center rounded-full border border-white/[0.12] bg-white/[0.06] px-2 text-[10px] text-white/60">
+                          +{unlockedBadges.length - 6}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* NEXT LEVEL 게이지 */}
+                <div className="mt-2.5">
                   <div className="mb-1 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.12em]">
                     <span className="text-white/40">Next Level</span>
                     <span className="ph-code" style={{ color: auraColor }}>
@@ -255,6 +307,24 @@ const ProfileHeader = ({
     </div>
   )
 }
+
+const BackStatRow = ({
+  label,
+  value,
+  suffix,
+}: {
+  label: string
+  value: number
+  suffix?: string
+}) => (
+  <div className="flex items-center justify-between py-[7px]">
+    <span className="text-[10.5px] font-semibold text-white/50">{label}</span>
+    <span className="ph-stat-num text-[15px] leading-none text-white">
+      {value.toLocaleString()}
+      {suffix && <span className="ml-0.5 text-[11px]">{suffix}</span>}
+    </span>
+  </div>
+)
 
 const CardStat = ({ value, label }: { value: number; label: string }) => (
   <div className="px-2 py-3 text-center">
