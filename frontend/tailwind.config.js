@@ -27,6 +27,29 @@ export default {
       borderRadius: {
         DEFAULT: "8px",
       },
+      keyframes: {
+        // 스트릭 유지 시 불꽃 — 미세한 스케일 + 네온 글로우 맥동
+        "streak-flame": {
+          "0%, 100%": {
+            transform: "scale(1)",
+            filter: "drop-shadow(0 0 3px rgba(251,146,60,0.45))",
+          },
+          "50%": {
+            transform: "scale(1.08)",
+            filter:
+              "drop-shadow(0 0 10px rgba(251,146,60,0.9)) drop-shadow(0 0 22px rgba(239,68,68,0.45))",
+          },
+        },
+        // 숫자 주변 은은한 글로우 맥동 (스케일 없음)
+        "streak-glow": {
+          "0%, 100%": { filter: "drop-shadow(0 0 2px rgba(251,146,60,0.3))" },
+          "50%": { filter: "drop-shadow(0 0 9px rgba(251,146,60,0.75))" },
+        },
+      },
+      animation: {
+        "streak-flame": "streak-flame 1.8s ease-in-out infinite",
+        "streak-glow": "streak-glow 1.8s ease-in-out infinite",
+      },
     },
   },
   plugins: [],

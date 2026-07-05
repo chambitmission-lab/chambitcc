@@ -23,14 +23,45 @@ const SectionTitle = ({ icon, children }: { icon: string; children: React.ReactN
   </h3>
 )
 
-const StatCell = ({ icon, value, label }: { icon: string; value: string; label: string }) => (
+type StatTone = 'top' | 'zero' | 'normal'
+
+const toneNum: Record<StatTone, string> = {
+  // 가장 활발한 항목 — 더 밝은 네온 + 글로우
+  top:
+    'text-[22px] bg-gradient-to-br from-fuchsia-400 via-pink-400 to-rose-400 ' +
+    'bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(244,114,182,0.45)]',
+  // 아직 0인 항목 — 톤다운
+  zero: 'text-[20px] text-gray-300 dark:text-white/25',
+  normal: `text-[20px] ${gradientNum}`,
+}
+
+const StatCell = ({
+  icon,
+  value,
+  label,
+  tone = 'normal',
+}: {
+  icon: string
+  value: string
+  label: string
+  tone?: StatTone
+}) => (
   <div className={`${cardCls} text-center`}>
     <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
-    <div className="relative z-10 text-base mb-0.5">{icon}</div>
-    <div className={`relative z-10 text-[20px] font-bold tracking-[-0.015em] ${gradientNum}`}>
+    <div className={`relative z-10 text-base mb-0.5 ${tone === 'zero' ? 'grayscale opacity-50' : ''}`}>
+      {icon}
+    </div>
+    <div className={`relative z-10 font-bold tracking-[-0.015em] ${toneNum[tone]}`}>
       {value}
     </div>
-    <div className="relative z-10 text-[10px] font-medium text-gray-700 dark:text-white/70 whitespace-nowrap">
+    <div
+      className={
+        'relative z-10 text-[10px] font-medium whitespace-nowrap ' +
+        (tone === 'zero'
+          ? 'text-gray-400 dark:text-white/40'
+          : 'text-gray-700 dark:text-white/70')
+      }
+    >
       {label}
     </div>
   </div>
@@ -69,18 +100,99 @@ const DeltaRow = ({ d }: { d: MonthDelta }) => {
 const GrowthStats = ({ summary }: GrowthStatsProps) => {
   const { totals, streak, deltas, milestones } = summary
 
+  // 오늘 활동을 완료해 스트릭을 지킨 상태 (구버전 백엔드면 current>0으로 근사)
+  const keptToday = streak.active_today ?? streak.current > 0
+
+  // 발자취 6칸 — 가장 활발한 항목(상위 2개)은 네온 강조, 0인 항목은 톤다운
+  const footprints = [
+    { key: 'prayers', icon: '🙏', value: totals.prayers, label: '기도' },
+    { key: 'intercessions', icon: '🤝', value: totals.intercessions, label: '함께 기도' },
+    { key: 'answered', icon: '✨', value: totals.answered, label: '응답', zeroLabel: '응답 대기 중 ✨' },
+    { key: 'verses_read', icon: '📖', value: totals.verses_read, label: '읽은 절' },
+    { key: 'devotional_notes', icon: '📝', value: totals.devotional_notes, label: '묵상 노트' },
+    { key: 'thanks', icon: '🌸', value: totals.thanks, label: '감사', zeroLabel: '첫 감사 기다리는 중' },
+  ]
+  const topKeys = footprints
+    .filter((c) => c.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 2)
+    .map((c) => c.key)
+
   return (
     <div className="px-4 pt-5 space-y-5">
-      {/* 연속 활동 */}
+      {/* 연속 활동 — 불꽃 강조 (네온 글로우) */}
       <div>
         <SectionTitle icon="local_fire_department">연속 활동</SectionTitle>
-        <div className="grid grid-cols-2 gap-2">
-          <StatCell
-            icon="🔥"
-            value={`${streak.current}일`}
-            label="현재 연속"
+        <div
+          className="
+            relative overflow-hidden rounded-2xl p-3.5
+            bg-gradient-to-br from-orange-500/[0.10] via-red-500/[0.06] to-transparent
+            dark:from-orange-500/[0.14] dark:via-red-500/[0.08]
+            border border-orange-300/50 dark:border-orange-400/20
+            shadow-[0_0_20px_rgba(251,146,60,0.22)]
+            dark:shadow-[0_0_28px_rgba(251,146,60,0.16)]
+          "
+        >
+          <div
+            className="pointer-events-none absolute -top-10 -right-8 w-32 h-32 rounded-full bg-orange-400/20 blur-2xl"
+            aria-hidden="true"
           />
-          <StatCell icon="🏆" value={`${streak.best}일`} label="최장 연속" />
+          <div className="relative grid grid-cols-2 gap-2">
+            <div className="flex flex-col items-center justify-center rounded-xl py-3 bg-white/70 dark:bg-white/[0.04] border border-orange-200/60 dark:border-orange-400/10">
+              <div className="flex items-end gap-1">
+                <span
+                  className={
+                    'text-[34px] leading-none ' +
+                    (streak.current === 0
+                      ? 'grayscale opacity-40'
+                      : keptToday
+                        ? 'animate-streak-flame motion-reduce:animate-none'
+                        : '')
+                  }
+                >
+                  🔥
+                </span>
+                <span
+                  className={
+                    'text-[30px] leading-none font-extrabold tracking-[-0.02em] ' +
+                    'bg-gradient-to-br from-orange-400 to-red-500 bg-clip-text text-transparent ' +
+                    (keptToday && streak.current > 0
+                      ? 'animate-streak-glow motion-reduce:animate-none'
+                      : '')
+                  }
+                >
+                  {streak.current}
+                </span>
+                <span className="text-[13px] font-bold text-orange-500/80 dark:text-orange-300/80 pb-0.5">
+                  일
+                </span>
+              </div>
+              <div className="mt-1.5 text-[10px] font-medium text-gray-700 dark:text-white/70">
+                현재 연속
+              </div>
+            </div>
+            <div className="flex flex-col items-center justify-center rounded-xl py-3 bg-white/70 dark:bg-white/[0.04] border border-orange-200/60 dark:border-orange-400/10">
+              <div className="flex items-end gap-1">
+                <span className="text-[22px] leading-none">🏆</span>
+                <span className="text-[24px] leading-none font-extrabold tracking-[-0.02em] bg-gradient-to-br from-amber-400 to-orange-500 bg-clip-text text-transparent">
+                  {streak.best}
+                </span>
+                <span className="text-[12px] font-bold text-amber-500/80 dark:text-amber-300/80 pb-0.5">
+                  일
+                </span>
+              </div>
+              <div className="mt-1.5 text-[10px] font-medium text-gray-700 dark:text-white/70">
+                최장 연속
+              </div>
+            </div>
+          </div>
+          <p className="relative mt-2.5 text-center text-[11px] font-semibold text-orange-600/90 dark:text-orange-300/80">
+            {keptToday && streak.current > 0
+              ? '오늘도 불꽃을 지켰어요! 내일도 이어가 볼까요? 🔥'
+              : streak.current > 0
+                ? '오늘 활동하면 불꽃이 계속 타올라요!'
+                : '오늘 말씀 한 절이면 불꽃이 다시 타올라요'}
+          </p>
         </div>
       </div>
 
@@ -88,12 +200,18 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
       <div>
         <SectionTitle icon="insights">지금까지의 발자취</SectionTitle>
         <div className="grid grid-cols-3 gap-2">
-          <StatCell icon="🙏" value={fmt(totals.prayers)} label="기도" />
-          <StatCell icon="🤝" value={fmt(totals.intercessions)} label="함께 기도" />
-          <StatCell icon="✨" value={fmt(totals.answered)} label="응답" />
-          <StatCell icon="📖" value={fmt(totals.verses_read)} label="읽은 절" />
-          <StatCell icon="📝" value={fmt(totals.devotional_notes)} label="묵상 노트" />
-          <StatCell icon="🌸" value={fmt(totals.thanks)} label="감사" />
+          {footprints.map((c) => {
+            const isZero = c.value === 0
+            return (
+              <StatCell
+                key={c.key}
+                icon={c.icon}
+                value={fmt(c.value)}
+                label={isZero && c.zeroLabel ? c.zeroLabel : c.label}
+                tone={isZero ? 'zero' : topKeys.includes(c.key) ? 'top' : 'normal'}
+              />
+            )
+          })}
         </div>
 
         {/* 보조 기록 */}

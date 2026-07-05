@@ -91,6 +91,25 @@ const Growth = () => {
 
         {summary.has_activity && <GrowthStats summary={summary} />}
 
+        {/* 발자취 → 활동 기록 트랜지션: 은은한 페이드 + 스크롤 유도 */}
+        {summary.has_activity && (
+          <div className="relative mt-3 pt-6 pb-1 flex flex-col items-center gap-0.5">
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent via-purple-500/[0.04] to-purple-500/[0.08] dark:via-purple-400/[0.05] dark:to-purple-400/[0.10]"
+              aria-hidden="true"
+            />
+            <span className="relative text-[11px] font-medium text-gray-400 dark:text-white/40">
+              아래로 내려 지난 발자취를 이어보세요
+            </span>
+            <span
+              className="relative material-icons-outlined text-xl text-purple-400/80 dark:text-purple-300/60 animate-bounce"
+              aria-hidden="true"
+            >
+              keyboard_double_arrow_down
+            </span>
+          </div>
+        )}
+
         <ActivityTimeline
           events={events}
           hasMore={!!hasNextPage}

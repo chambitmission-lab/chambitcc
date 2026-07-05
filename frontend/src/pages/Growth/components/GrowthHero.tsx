@@ -7,6 +7,8 @@ interface GrowthHeroProps {
 /** 여정의 첫 카드 — 함께한 일수 + 한 줄 요약 (brand 그라데이션) */
 const GrowthHero = ({ summary }: GrowthHeroProps) => {
   const { days_together, headline, sub, has_activity } = summary
+  // 구버전 백엔드 문구("N일째, …")가 오더라도 큰 숫자와 중복되지 않게 정리
+  const narrative = headline.replace(/^\d+\s*일째[,，]?\s*/, '')
 
   return (
     <div className="px-4 pt-4">
@@ -46,10 +48,10 @@ const GrowthHero = ({ summary }: GrowthHeroProps) => {
                 </span>
                 <span className="text-[18px] font-bold text-white/90 pb-1">일째</span>
               </div>
-              <h2 className="mt-3 text-[17px] font-bold text-white leading-snug tracking-[-0.015em]">
-                {headline}
+              <h2 className="mt-3 text-[18px] font-bold text-white leading-snug tracking-[-0.015em]">
+                {narrative}
               </h2>
-              <p className="mt-1 text-[13px] text-white/85 leading-relaxed">{sub}</p>
+              <p className="mt-2 pb-0.5 text-[14px] text-white/85 leading-relaxed">{sub}</p>
             </>
           ) : (
             <>

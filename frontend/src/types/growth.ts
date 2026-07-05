@@ -29,6 +29,8 @@ export interface MonthDelta {
 export interface StreakInfo {
   current: number
   best: number
+  /** 오늘 활동 완료 여부 — 구버전 백엔드 응답엔 없을 수 있음 */
+  active_today?: boolean
 }
 
 export interface GrowthMilestone {
