@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { GlowLevel } from '../../../types/achievement'
 import { getReadableTextStyle, toOpaqueColor } from '../../../utils/contrastText'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -10,6 +11,7 @@ interface LevelProgressProps {
 
 const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgressProps) => {
   const { t } = useLanguage()
+  const [guideOpen, setGuideOpen] = useState(false)
   const progress = pointsToNext
     ? ((pointsToNext.total - pointsToNext.needed) / pointsToNext.total) * 100
     : 100
@@ -91,28 +93,57 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
           )}
         </div>
 
-        {/* 포인트 획득 방법 안내 */}
+        {/* 포인트 획득 방법 안내 — 기본 접힘, 탭하면 펼침 */}
         <div
           className="
-            relative z-10 mt-5 rounded-xl p-3
+            relative z-10 mt-4 overflow-hidden rounded-xl
             bg-purple-50/70 dark:bg-purple-500/10
             border border-purple-200/40 dark:border-purple-400/20
           "
         >
-          <p className="text-[12px] text-gray-700 dark:text-white/80 mb-2 font-semibold">
-            💡 {t('levelHowToEarn')}
-          </p>
-          <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-[11.5px] text-gray-600 dark:text-white/60 leading-relaxed">
-            <div>• {t('earnPrayer')}: 10P</div>
-            <div>• {t('earnReply')}: 10P</div>
-            <div>• {t('earnVerse')}: 3P</div>
-            <div>• {t('earnPrayingFor')}: 5P</div>
-            <div>• {t('earnChapter')}: 20P</div>
-            <div>• {t('earnBook')}: 200P</div>
-            <div>• {t('earnStreak')}: 5P</div>
-            <div>• {t('earnHighlight')}: 5P</div>
-            <div>• {t('earnNote')}: 15P</div>
-            <div>• {t('earnFavorite')}: 3P</div>
+          <button
+            type="button"
+            onClick={() => setGuideOpen((v) => !v)}
+            aria-expanded={guideOpen}
+            aria-controls="level-earn-guide"
+            className="
+              flex w-full items-center justify-between px-3 py-2.5
+              text-left transition-colors
+              hover:bg-purple-100/50 dark:hover:bg-purple-500/[0.08]
+            "
+          >
+            <span className="text-[12px] font-semibold text-gray-700 dark:text-white/80">
+              💡 {t('levelHowToEarn')}
+            </span>
+            <span
+              className={`material-icons-round text-[18px] text-purple-500/70 dark:text-purple-300/60 transition-transform duration-300 ${
+                guideOpen ? 'rotate-180' : ''
+              }`}
+              aria-hidden="true"
+            >
+              expand_more
+            </span>
+          </button>
+          <div
+            id="level-earn-guide"
+            className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+              guideOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+            }`}
+          >
+            <div className="overflow-hidden">
+              <div className="grid grid-cols-2 gap-y-1 gap-x-2 px-3 pb-3 text-[11.5px] text-gray-600 dark:text-white/60 leading-relaxed">
+                <div>• {t('earnPrayer')}: 10P</div>
+                <div>• {t('earnReply')}: 10P</div>
+                <div>• {t('earnVerse')}: 3P</div>
+                <div>• {t('earnPrayingFor')}: 5P</div>
+                <div>• {t('earnChapter')}: 20P</div>
+                <div>• {t('earnBook')}: 200P</div>
+                <div>• {t('earnStreak')}: 5P</div>
+                <div>• {t('earnHighlight')}: 5P</div>
+                <div>• {t('earnNote')}: 15P</div>
+                <div>• {t('earnFavorite')}: 3P</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
