@@ -1,6 +1,7 @@
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { MyPrayer } from '../../../types/profile'
 import { getRelativeTime } from '../../../utils/dateUtils'
+import ExpandableText from './ExpandableText'
 
 interface MyPrayersListProps {
   prayers: MyPrayer[]
@@ -50,9 +51,12 @@ const MyPrayersList = ({ prayers, onPrayerClick }: MyPrayersListProps) => {
             <h4 className="text-[16px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-[1.3] mb-2">
               {prayer.title}
             </h4>
-            <p className="text-[14px] text-gray-700 dark:text-white/75 leading-[1.7] line-clamp-2 mb-3">
-              {prayer.content}
-            </p>
+            <ExpandableText
+              text={prayer.content}
+              lines={3}
+              className="mb-3"
+              textClassName="text-[14px] text-gray-700 dark:text-white/75 leading-[1.7]"
+            />
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-gray-500 dark:text-white/50">
               <span>🙏 {prayer.prayer_count}{language === 'ko' ? '명 ' : ' '}{t('peopleArePraying')}</span>
               <span>💬 {t('reply')} {prayer.reply_count}{t('replyCount')}</span>

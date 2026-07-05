@@ -1,6 +1,7 @@
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { MyReply } from '../../../types/profile'
 import { getRelativeTime } from '../../../utils/dateUtils'
+import ExpandableText from './ExpandableText'
 
 interface MyRepliesListProps {
   replies: MyReply[]
@@ -58,9 +59,11 @@ const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
 
             <div className="relative pl-3 mb-3">
               <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-full bg-gradient-to-b from-purple-500 to-pink-500" />
-              <p className="text-[14px] text-gray-700 dark:text-white/80 leading-[1.7] line-clamp-3 italic">
-                {reply.content}
-              </p>
+              <ExpandableText
+                text={reply.content}
+                lines={3}
+                textClassName="text-[14px] text-gray-700 dark:text-white/80 leading-[1.7] italic"
+              />
             </div>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-gray-500 dark:text-white/50">

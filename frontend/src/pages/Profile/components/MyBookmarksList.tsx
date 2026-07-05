@@ -3,6 +3,7 @@ import { useMyBookmarks } from '../../../hooks/useBibleBookmark'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
 import { HIGHLIGHT_COLOR_BG } from '../../Bible/components/VerseBookmarkModal'
+import ExpandableText from './ExpandableText'
 
 const FILTERS = [
   { value: 'all', labelKey: 'bookmarksFilterAll' },
@@ -105,18 +106,26 @@ const BookmarkCard = ({ item }: { item: VerseBookmarkWithVerse }) => {
           )}
         </div>
 
-        <p className="text-[14px] text-gray-800 dark:text-white/85 leading-[1.7] mb-2">
-          {item.text}
-        </p>
+        <ExpandableText
+          text={item.text}
+          lines={3}
+          className="mb-2"
+          textClassName="text-[14px] text-gray-800 dark:text-white/85 leading-[1.7]"
+        />
 
         {item.note && (
           <div className="mt-3 pt-3 border-t border-dashed border-gray-300/70 dark:border-white/[0.08]">
-            <p className="text-[12.5px] text-gray-600 dark:text-white/70 italic leading-relaxed whitespace-pre-wrap flex items-start gap-1.5">
+            <div className="flex items-start gap-1.5">
               <span className="material-icons-round text-[14px] text-purple-500 dark:text-purple-300 mt-0.5 shrink-0">
                 edit_note
               </span>
-              <span>{item.note}</span>
-            </p>
+              <ExpandableText
+                text={item.note}
+                lines={3}
+                className="min-w-0 flex-1"
+                textClassName="text-[12.5px] text-gray-600 dark:text-white/70 italic leading-relaxed whitespace-pre-wrap"
+              />
+            </div>
           </div>
         )}
 
