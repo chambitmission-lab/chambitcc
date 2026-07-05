@@ -118,7 +118,7 @@ const ProfileHeader = ({
                 className="relative mt-2.5 flex justify-center"
                 onClick={(e) => e.stopPropagation()}
               >
-                <TitleEquippedChip />
+                <TitleEquippedChip variant="slot" />
               </div>
             </div>
 

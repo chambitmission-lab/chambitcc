@@ -1,3 +1,74 @@
+/* ===== slot variant — 트레이딩 카드에 '인쇄된 슬롯' ===== */
+.title-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 2px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.title-slot-line {
+  width: 26px;
+  height: 1px;
+  background: linear-gradient(to left, rgba(168, 85, 247, 0.85), transparent);
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.5);
+  transition: width 0.2s ease;
+}
+
+.title-slot-line-r {
+  background: linear-gradient(to right, rgba(168, 85, 247, 0.85), transparent);
+}
+
+.title-slot:hover .title-slot-line {
+  width: 34px;
+}
+
+.title-slot-bracket {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(168, 85, 247, 0.55);
+}
+
+.title-slot-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.title-slot-name {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, #c084fc, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+.title-slot:hover .title-slot-name {
+  filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.6));
+}
+
+.title-slot:active {
+  transform: scale(0.97);
+}
+
+/* slot 빈 상태 — 각진 점선 슬롯 */
+.title-slot-empty {
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px dashed rgba(168, 85, 247, 0.4);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(192, 132, 252, 0.85);
+}
+
 /* 장착 칭호 칩 + 반짝이 파티클 */
 .title-chip {
   position: relative;

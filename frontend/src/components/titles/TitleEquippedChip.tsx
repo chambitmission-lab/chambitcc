@@ -6,7 +6,14 @@ import './TitleEquippedChip.css'
 
 const SPARKLES = [0, 1, 2, 3, 4, 5]
 
-export const TitleEquippedChip: React.FC = () => {
+interface TitleEquippedChipProps {
+  /** slot: 트레이딩 카드용 — 둥근 칩 대신 네온 라인 + 브래킷의 각진 '인쇄 슬롯' */
+  variant?: 'pill' | 'slot'
+}
+
+export const TitleEquippedChip: React.FC<TitleEquippedChipProps> = ({
+  variant = 'pill',
+}) => {
   const navigate = useNavigate()
   const { data: equipped, isLoading } = useEquippedTitle()
 
@@ -20,11 +27,33 @@ export const TitleEquippedChip: React.FC = () => {
     return (
       <button
         type="button"
-        className="title-chip title-chip-empty"
+        className={
+          variant === 'slot'
+            ? 'title-slot title-slot-empty'
+            : 'title-chip title-chip-empty'
+        }
         onClick={() => navigate('/garden')}
       >
         <span className="material-icons-round title-chip-empty-icon">military_tech</span>
         칭호 달기
+      </button>
+    )
+  }
+
+  if (variant === 'slot') {
+    return (
+      <button
+        type="button"
+        className="title-slot"
+        onClick={() => navigate('/garden')}
+        aria-label={`장착한 칭호 ${equipped.name} — 변경하기`}
+      >
+        <span className="title-slot-line" aria-hidden />
+        <span className="title-slot-bracket" aria-hidden>[</span>
+        <span className="title-slot-icon">{equipped.icon}</span>
+        <span className="title-slot-name">{equipped.name}</span>
+        <span className="title-slot-bracket" aria-hidden>]</span>
+        <span className="title-slot-line title-slot-line-r" aria-hidden />
       </button>
     )
   }
