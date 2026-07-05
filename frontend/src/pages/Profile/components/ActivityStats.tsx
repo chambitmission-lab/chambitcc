@@ -18,10 +18,20 @@ const ActivityStats = ({ thisWeekCount, totalCount, streakDays }: ActivityStatsP
         {t('profileMyActivity')}
       </h3>
       <div className="grid grid-cols-3 gap-2">
-        <StatCard value={thisWeekCount} label={t('profileThisWeek')} />
-        <StatCard value={totalCount} label={t('totalPrayers')} />
         <StatCard
-          value={`${streakDays}${streakDays >= 7 ? '🔥' : ''}`}
+          icon="event_available"
+          value={thisWeekCount}
+          label={t('profileThisWeek')}
+        />
+        <StatCard
+          icon="volunteer_activism"
+          value={totalCount}
+          label={t('totalPrayers')}
+        />
+        <StatCard
+          icon="local_fire_department"
+          value={streakDays}
+          suffix={streakDays >= 7 ? '🔥' : undefined}
           label={t('consecutivePrayers')}
         />
       </div>
@@ -30,14 +40,16 @@ const ActivityStats = ({ thisWeekCount, totalCount, streakDays }: ActivityStatsP
 }
 
 interface StatCardProps {
-  value: number | string
+  icon: string
+  value: number
+  suffix?: string
   label: string
 }
 
-const StatCard = ({ value, label }: StatCardProps) => (
+const StatCard = ({ icon, value, suffix, label }: StatCardProps) => (
   <div
     className="
-      relative overflow-hidden rounded-xl text-center p-3
+      relative overflow-hidden rounded-2xl text-center px-2 pt-3.5 pb-3
       bg-white/80 dark:bg-card-dark
       border border-gray-200/70 dark:border-white/[0.06]
       shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]
@@ -48,10 +60,23 @@ const StatCard = ({ value, label }: StatCardProps) => (
     {/* 상단 purple glow */}
     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full blur-xl pointer-events-none bg-gradient-to-b from-purple-300/30 to-transparent dark:from-purple-500/25" />
 
-    <div className="relative z-10 text-[20px] font-bold tracking-[-0.015em] text-gray-900 dark:text-white mb-0.5">
-      {value}
+    <span
+      className="material-icons-round relative z-10 text-[17px] text-purple-500/70 dark:text-purple-300/60"
+      aria-hidden="true"
+    >
+      {icon}
+    </span>
+
+    <div className="relative z-10 mt-1 text-[32px] font-bold leading-none tracking-[-0.02em] text-gray-900 dark:text-white">
+      {value.toLocaleString()}
+      {suffix && (
+        <span className="ml-0.5 align-baseline text-[17px] leading-none">
+          {suffix}
+        </span>
+      )}
     </div>
-    <div className="relative z-10 text-[10px] font-medium text-gray-700 dark:text-white/70 whitespace-nowrap">
+
+    <div className="relative z-10 mt-1.5 text-[11px] font-medium text-gray-500 dark:text-white/55 whitespace-nowrap">
       {label}
     </div>
   </div>
