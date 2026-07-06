@@ -99,3 +99,37 @@
 [data-theme="dark"] .credential-value {
   color: #f9fafb;
 }
+
+/* 학력·경력·수상을 줄 단위 리스트로 정돈 */
+.credential-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.credential-line {
+  position: relative;
+  padding-left: 0.95rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.5;
+}
+
+.credential-line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+}
+
+[data-theme="dark"] .credential-line {
+  color: #f9fafb;
+}

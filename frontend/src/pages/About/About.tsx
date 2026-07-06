@@ -1,11 +1,20 @@
 import type { CSSProperties } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { EditableText, HeroEditButton } from '../../components/AboutEditor'
 import './styles/index.css'
 
+// 멀티라인 크리덴셜 값을 스캔하기 쉬운 줄 단위 리스트로 분해
+const toLines = (value: string): string[] =>
+  value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+
 const About = () => {
+  const navigate = useNavigate()
   const { language } = useLanguage()
   const { tx, heroBackgroundUrl } = useAboutContent()
   const isAdminUser = isAdmin()
@@ -145,6 +154,34 @@ const About = () => {
                   {tx('aboutCtaText')}
                 </EditableText>
               </p>
+
+              <div className="cta-actions">
+                <button
+                  type="button"
+                  className="cta-action cta-action--primary"
+                  onClick={() => navigate('/worship')}
+                >
+                  <span className="cta-action-icon">🕊️</span>
+                  <span>{language === 'ko' ? '예배 시간 안내' : 'Worship Times'}</span>
+                </button>
+                <button
+                  type="button"
+                  className="cta-action"
+                  onClick={() => navigate('/register')}
+                >
+                  <span className="cta-action-icon">🌱</span>
+                  <span>{language === 'ko' ? '처음 오셨나요?' : 'New Here?'}</span>
+                </button>
+                <button
+                  type="button"
+                  className="cta-action"
+                  onClick={() => navigate('/sermon')}
+                >
+                  <span className="cta-action-icon">📖</span>
+                  <span>{language === 'ko' ? '최근 설교 보기' : 'Recent Sermons'}</span>
+                </button>
+              </div>
+
               <div className="cta-badge">
                 <EditableText fieldKey="aboutCtaBadge" isAdmin={isAdminUser}>
                   {tx('aboutCtaBadge')}
@@ -200,9 +237,15 @@ const About = () => {
                       {tx('aboutEducationLabel')}
                     </EditableText>
                   </div>
-                  <div className="credential-value" style={{ whiteSpace: 'pre-line' }}>
+                  <div className="credential-value">
                     <EditableText fieldKey="aboutEducationValue" multiline isAdmin={isAdminUser}>
-                      {tx('aboutEducationValue')}
+                      <ul className="credential-list">
+                        {toLines(tx('aboutEducationValue')).map((line, i) => (
+                          <li key={i} className="credential-line">
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
                     </EditableText>
                   </div>
                 </div>
@@ -215,9 +258,15 @@ const About = () => {
                       {tx('aboutCareerLabel')}
                     </EditableText>
                   </div>
-                  <div className="credential-value" style={{ whiteSpace: 'pre-line' }}>
+                  <div className="credential-value">
                     <EditableText fieldKey="aboutCareerValue" multiline isAdmin={isAdminUser}>
-                      {tx('aboutCareerValue')}
+                      <ul className="credential-list">
+                        {toLines(tx('aboutCareerValue')).map((line, i) => (
+                          <li key={i} className="credential-line">
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
                     </EditableText>
                   </div>
                 </div>
@@ -230,9 +279,15 @@ const About = () => {
                       {tx('aboutAwardLabel')}
                     </EditableText>
                   </div>
-                  <div className="credential-value" style={{ whiteSpace: 'pre-line' }}>
+                  <div className="credential-value">
                     <EditableText fieldKey="aboutAwardValue" multiline isAdmin={isAdminUser}>
-                      {tx('aboutAwardValue')}
+                      <ul className="credential-list">
+                        {toLines(tx('aboutAwardValue')).map((line, i) => (
+                          <li key={i} className="credential-line">
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
                     </EditableText>
                   </div>
                 </div>
