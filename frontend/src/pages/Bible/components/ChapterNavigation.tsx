@@ -1,4 +1,5 @@
 import { useLanguage } from '../../../contexts/LanguageContext'
+import ReaderSettings from './ReaderSettings'
 
 interface ChapterNavigationProps {
   selectedBook: string
@@ -62,7 +63,7 @@ const ChapterNavigation = ({
           </select>
         </div>
         
-        <button 
+        <button
           className="nav-button next"
           onClick={() => onChapterChange(selectedChapter + 1)}
           disabled={selectedChapter === totalChapters}
@@ -70,6 +71,9 @@ const ChapterNavigation = ({
         >
           <span className="material-icons-round">chevron_right</span>
         </button>
+
+        {/* Aa 읽기 설정 — 서체/글자 크기/줄 간격 개인화 */}
+        <ReaderSettings />
       </div>
     </>
   )

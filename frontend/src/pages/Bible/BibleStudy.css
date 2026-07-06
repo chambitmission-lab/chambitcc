@@ -18,6 +18,9 @@
 /* Chapter Navigation - 장 네비게이션 */
 @import './styles/chapter-navigation.css';
 
+/* Aa 읽기 설정 (서체/크기/줄간격) */
+@import './styles/reader-settings.css';
+
 /* Verse Display - 성경 본문 표시 */
 @import './styles/verse-display.css';
 

@@ -50,6 +50,7 @@ const formatTime = (sec: number): string => {
  */
 const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const wantPlayRef = useRef(false) // src 로드 시 자동 재생할지
 
   const [voice, setVoice] = useState<BibleTTSVoice>(loadVoice)
@@ -61,6 +62,21 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0)
+  const [cardVisible, setCardVisible] = useState(true) // 본 카드가 뷰포트에 보이는지
+
+  // 본문을 읽으러 스크롤을 내려 카드가 화면 밖으로 나가면,
+  // 재생을 시작한 경우에 한해 상단에 한 줄짜리 미니 플레이어를 띄운다.
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const obs = new IntersectionObserver(
+      ([entry]) => setCardVisible(entry.isIntersecting),
+      // 상단 고정 헤더(56px)에 가려진 것도 "안 보임"으로 취급
+      { rootMargin: '-56px 0px 0px 0px' }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
 
   // 재생을 누른 시점에만 백엔드 스트리밍 엔드포인트를 src로 건다.
   // 음성이 바뀌면 URL이 바뀌어 audio 요소가 새 음성으로 다시 로드된다.
@@ -176,8 +192,12 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
         ? '재생 중'
         : '듣기'
 
+  // 미니 플레이어: 재생을 한 번이라도 시작했고, 본 카드가 스크롤로 가려졌을 때만
+  const showMini = started && !cardVisible
+
   return (
-    <div className="relative mx-3 my-2.5 overflow-hidden rounded-3xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-card-dark shadow-[0_10px_30px_-16px_rgba(217,70,239,0.5)]">
+    <>
+    <div ref={cardRef} className="relative mx-3 my-2.5 overflow-hidden rounded-3xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-card-dark shadow-[0_10px_30px_-16px_rgba(217,70,239,0.5)]">
       {/* 장식용 그라데이션 오브 */}
       <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-gradient-to-br from-purple-400/25 to-pink-400/15 dark:from-purple-500/25 dark:to-pink-500/12 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-gradient-to-tr from-pink-400/15 to-purple-400/10 blur-3xl" />
@@ -402,6 +422,61 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
         }}
       />
     </div>
+
+    {/* 미니 플레이어 — 본문을 읽으러 스크롤하면 카드 대신 앱바 아래 한 줄로.
+        항상 렌더하고 transform/opacity로만 보였다 숨겨 전환이 부드럽다. */}
+    <div
+      className={`fixed inset-x-0 top-14 z-40 transition-all duration-300 ${
+        showMini ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-3 opacity-0'
+      }`}
+    >
+      <div className="mx-auto max-w-md px-3">
+        <div className="flex items-center gap-2.5 rounded-2xl border border-black/[0.06] bg-white/95 px-3 py-2 shadow-[0_10px_24px_-10px_rgba(0,0,0,0.35)] backdrop-blur-md dark:border-white/[0.1] dark:bg-[#1c1c26]/95">
+          <button
+            type="button"
+            onClick={togglePlay}
+            disabled={loading}
+            aria-label={isPlaying ? '일시정지' : '재생'}
+            className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_4px_12px_-4px_rgba(217,70,239,0.7)] transition active:scale-95 disabled:cursor-default"
+          >
+            <span className={`material-icons-round text-[20px] leading-none ${loading ? 'animate-pulse' : ''}`}>
+              {loading ? 'auto_awesome' : isPlaying ? 'pause' : 'play_arrow'}
+            </span>
+          </button>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate text-[12px] font-bold text-gray-700 dark:text-white/85">
+                오디오북 <span className="font-medium text-gray-400 dark:text-white/45">· {statusText}</span>
+              </span>
+              <span className="flex-shrink-0 text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45">
+                {liveStream ? '실시간 생성 중' : `${formatTime(currentTime)} / ${formatTime(duration)}`}
+              </span>
+            </div>
+            {/* 얇은 진행바 (미니에서는 seek 없이 상태 표시만) */}
+            <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-black/10 dark:bg-white/[0.12]">
+              {liveStream ? (
+                <div className="h-full w-full animate-pulse bg-gradient-to-r from-purple-500/40 via-pink-500/70 to-purple-500/40" />
+              ) : (
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-[width] duration-200"
+                  style={{ width: `${pct}%` }}
+                />
+              )}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={cycleRate}
+            className="flex-shrink-0 rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[11px] font-bold text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
+          >
+            {rate}×
+          </button>
+        </div>
+      </div>
+    </div>
+    </>
   )
 }
 

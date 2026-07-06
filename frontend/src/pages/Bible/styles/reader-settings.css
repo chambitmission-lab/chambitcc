@@ -1,0 +1,160 @@
+/* Aa 읽기 설정 — 장 네비게이션 옆 버튼 + 드롭다운 패널 */
+
+.reader-settings {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.reader-settings__btn {
+  /* .nav-button 지오메트리를 그대로 쓰되 텍스트 로고만 */
+  font-weight: 800;
+}
+
+.reader-settings__aa {
+  font-size: 0.9375rem;
+  letter-spacing: -0.02em;
+}
+
+.reader-settings__btn.is-open {
+  border-color: #a855f7;
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.08);
+}
+
+.reader-settings__panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 264px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid var(--ig-border);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.22), 0 2px 10px rgba(168, 85, 247, 0.14);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: versePopIn 0.18s ease-out;
+}
+
+[data-theme="dark"] .reader-settings__panel {
+  background: #1c1c26;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(168, 85, 247, 0.2);
+}
+
+.reader-settings__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.reader-settings__label {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+
+/* 세그먼트 (서체 / 줄 간격) */
+.reader-settings__seg {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--ig-secondary-background);
+  border: 1px solid var(--ig-border);
+}
+
+[data-theme="dark"] .reader-settings__seg {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.reader-settings__seg button {
+  padding: 5px 11px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.reader-settings__seg button.active {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  color: #ffffff;
+  box-shadow: 0 3px 8px -3px rgba(168, 85, 247, 0.6);
+}
+
+/* 스텝퍼 (글자 크기) */
+.reader-settings__stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reader-settings__stepper button {
+  width: 34px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--ig-border);
+  background: var(--ig-secondary-background);
+  color: var(--ig-primary-text);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+[data-theme="dark"] .reader-settings__stepper button {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.reader-settings__stepper button:hover:not(:disabled) {
+  border-color: #a855f7;
+  color: #a855f7;
+}
+
+.reader-settings__stepper button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.reader-settings__dots {
+  display: flex;
+  gap: 4px;
+}
+
+.reader-settings__dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ig-border);
+}
+
+.reader-settings__dots span.on {
+  background: #a855f7;
+  box-shadow: 0 0 5px rgba(168, 85, 247, 0.7);
+}
+
+/* 미리보기 */
+.reader-settings__preview {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.06);
+  border: 1px solid rgba(168, 85, 247, 0.16);
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+
+[data-theme="dark"] .reader-settings__preview {
+  background: rgba(168, 85, 247, 0.1);
+  color: #e7e7ec;
+}
