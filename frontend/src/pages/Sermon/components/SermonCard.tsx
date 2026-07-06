@@ -8,23 +8,30 @@ interface SermonCardProps {
 }
 
 const SermonCard = ({ sermon, onClick }: SermonCardProps) => {
-  const formatDate = (dateString: string) => {
+  // 예배 날짜는 정확히 인지되는 것이 중요 — 요일까지 표기
+  const formatFullDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'short',
+    })
+  }
+
+  // 상대 시간은 보조 정보로만
+  const formatRelative = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
     const diffTime = Math.abs(now.getTime() - date.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
+
     if (diffDays === 0) return '오늘'
     if (diffDays === 1) return '어제'
     if (diffDays < 7) return `${diffDays}일 전`
     if (diffDays < 30) return `${Math.floor(diffDays / 7)}주 전`
     if (diffDays < 365) return `${Math.floor(diffDays / 30)}개월 전`
-    
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+    return `${Math.floor(diffDays / 365)}년 전`
   }
 
   return (
@@ -37,7 +44,11 @@ const SermonCard = ({ sermon, onClick }: SermonCardProps) => {
           </div>
           <div className="sermon-header-info">
             <div className="sermon-pastor-name">{sermon.pastor}</div>
-            <div className="sermon-date">{formatDate(sermon.sermon_date)}</div>
+            <div className="sermon-date">
+              <span className="sermon-date-full">{formatFullDate(sermon.sermon_date)}</span>
+              <span className="sermon-date-sep">·</span>
+              <span className="sermon-date-relative">{formatRelative(sermon.sermon_date)}</span>
+            </div>
           </div>
         </div>
       </div>

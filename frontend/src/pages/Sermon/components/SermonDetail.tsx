@@ -195,6 +195,10 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
 
           {/* 메타 정보 */}
           <div className="sermon-detail-meta">
+            <div className="sermon-detail-meta-item sermon-detail-meta-date">
+              <span className="material-icons-outlined">event</span>
+              <span>{formatDate(sermon.sermon_date)}</span>
+            </div>
             <div className="sermon-detail-meta-item">
               <span className="material-icons-outlined">person</span>
               <span>{sermon.pastor}</span>

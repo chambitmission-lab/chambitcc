@@ -233,12 +233,13 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
         .sermon-section-text {
           color: #262626;
           font-size: 15px;
-          line-height: 1.7;
-          letter-spacing: -0.01em;
+          line-height: 1.9;
+          letter-spacing: 0.01em;
         }
 
+        /* 장시간 읽는 본문 — 순백 대신 살짝 톤다운, 자간·행간 여유 */
         .dark .sermon-section-text {
-          color: #d1d5db;
+          color: #cbd5e1;
         }
 
         .sermon-bible-ref {

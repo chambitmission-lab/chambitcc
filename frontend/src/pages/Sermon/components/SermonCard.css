@@ -156,7 +156,31 @@
 }
 
 .sermon-date {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem;
   font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+}
+
+/* 정확한 예배 날짜 — 또렷하게 (인지 우선) */
+.sermon-date-full {
+  font-weight: 600;
+  color: var(--ig-primary-text);
+}
+
+[data-theme="dark"] .sermon-date-full {
+  color: #e5e7eb;
+}
+
+.sermon-date-sep {
+  color: var(--ig-secondary-text);
+  opacity: 0.6;
+}
+
+/* 상대 시간 — 보조 정보 */
+.sermon-date-relative {
   color: var(--ig-secondary-text);
 }
 
@@ -208,8 +232,8 @@
 .sermon-preview {
   color: var(--ig-primary-text);
   font-size: 15px;
-  line-height: 1.7;
-  letter-spacing: -0.01em;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
   margin-bottom: 0.375rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;

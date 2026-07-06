@@ -255,6 +255,16 @@
   font-size: 1rem;
 }
 
+/* 예배 날짜는 메타 영역에서 또렷하게 (인지 우선) */
+.sermon-detail-meta-date {
+  color: #6b21a8;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .sermon-detail-meta-date {
+  color: #d8b4fe;
+}
+
 /* 음성 플레이어 */
 .sermon-detail-audio {
   margin: 0;
@@ -348,16 +358,16 @@
 .sermon-detail-body-text {
   color: #262626;
   font-size: 15px;
-  line-height: 1.7;
+  line-height: 1.9;
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
 }
 
 .dark .sermon-detail-body-text,
 [data-theme="dark"] .sermon-detail-body-text {
-  color: #d1d5db;
+  color: #cbd5e1;
 }
 
 /* 삭제 확인 모달 */
