@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import {
   upsertBookmark,
   deleteBookmark,
@@ -130,6 +130,8 @@ export const useMyBookmarks = (params?: {
     queryKey: bookmarkKeys.list(params),
     queryFn: () => listBookmarks(params),
     staleTime: 1000 * 60 * 2,
+    // 필터(전체/노트/즐겨찾기) 전환 시 이전 목록을 유지해 높이 붕괴로 인한 화면 흔들림 방지
+    placeholderData: keepPreviousData,
   })
 }
 

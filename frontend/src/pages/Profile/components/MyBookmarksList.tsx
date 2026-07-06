@@ -26,7 +26,20 @@ const MyBookmarksList = () => {
   const { data, isLoading, error } = useMyBookmarks(queryParams)
 
   if (isLoading) {
-    return <div className="text-center text-[13px] text-gray-500 dark:text-white/55 py-8">{t('bookmarksLoading')}</div>
+    // 최초 로딩(캐시 없음)에는 실제 카드와 비슷한 높이의 스켈레톤을 깔아
+    // 로딩 → 데이터 전환 시 페이지 높이가 급변하며 화면이 튀는 것을 막는다
+    return (
+      <div className="space-y-3">
+        <div className="flex gap-1.5 pb-2">
+          {FILTERS.map((f) => (
+            <div key={f.value} className="h-[26px] w-16 rounded-full bg-gray-200/70 dark:bg-white/[0.06] animate-pulse" />
+          ))}
+        </div>
+        {[0, 1, 2].map((i) => (
+          <BookmarkCardSkeleton key={i} />
+        ))}
+      </div>
+    )
   }
 
   if (error) {
@@ -72,6 +85,24 @@ const MyBookmarksList = () => {
     </div>
   )
 }
+
+const BookmarkCardSkeleton = () => (
+  <div
+    className="
+      relative overflow-hidden rounded-2xl p-4
+      bg-white/80 dark:bg-card-dark
+      border border-gray-200/70 dark:border-white/[0.08]
+      shadow-sm animate-pulse
+    "
+  >
+    <div className="h-[14px] w-24 rounded bg-gray-200/80 dark:bg-white/[0.08] mb-3" />
+    <div className="space-y-2 mb-3">
+      <div className="h-[13px] w-full rounded bg-gray-200/70 dark:bg-white/[0.06]" />
+      <div className="h-[13px] w-4/5 rounded bg-gray-200/70 dark:bg-white/[0.06]" />
+    </div>
+    <div className="h-[11px] w-16 rounded bg-gray-200/60 dark:bg-white/[0.05]" />
+  </div>
+)
 
 const BookmarkCard = ({ item }: { item: VerseBookmarkWithVerse }) => {
   const bg = item.highlight_color ? HIGHLIGHT_COLOR_BG[item.highlight_color] : null
