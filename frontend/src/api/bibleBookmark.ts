@@ -110,6 +110,19 @@ export const listBookmarks = async (params?: {
   return data.data
 }
 
+/** 즐겨찾기 플레이리스트 순서 저장 — id 나열 순서가 곧 재생 순서 */
+export const reorderBookmarks = async (bookmarkIds: number[]): Promise<void> => {
+  requireAuth()
+  const response = await apiFetch(`${API_V1}/bible/bookmarks/reorder`, {
+    method: 'PUT',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ bookmark_ids: bookmarkIds }),
+  })
+  if (!response.ok) {
+    throw new Error('순서 저장에 실패했습니다')
+  }
+}
+
 export const getBookmarkStats = async (): Promise<BookmarkStats> => {
   requireAuth()
   const response = await apiFetch(`${API_V1}/bible/bookmarks/stats`, {

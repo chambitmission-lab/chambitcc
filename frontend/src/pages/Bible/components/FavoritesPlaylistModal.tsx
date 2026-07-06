@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { Reorder, useDragControls } from 'framer-motion'
 import { API_V1 } from '../../../config/api'
-import { useMyBookmarks } from '../../../hooks/useBibleBookmark'
+import { useMyBookmarks, useReorderBookmarks } from '../../../hooks/useBibleBookmark'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
 
@@ -26,13 +27,13 @@ const formatTime = (sec: number): string => {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-const shuffled = (n: number, keepFirst: number): number[] => {
-  const rest = Array.from({ length: n }, (_, i) => i).filter((i) => i !== keepFirst)
+const shuffledIds = (ids: number[], keepFirst?: number): number[] => {
+  const rest = ids.filter((id) => id !== keepFirst)
   for (let i = rest.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[rest[i], rest[j]] = [rest[j], rest[i]]
   }
-  return [keepFirst, ...rest]
+  return keepFirst !== undefined ? [keepFirst, ...rest] : rest
 }
 
 const verseUrl = (item: VerseBookmarkWithVerse) =>
@@ -46,12 +47,17 @@ const verseUrl = (item: VerseBookmarkWithVerse) =>
  * - 한 절이 끝나면(onEnded) 큐의 다음 절로 자동 이동하며 이어서 재생
  * - 다음 절은 숨은 오디오로 미리 받아둬(preload) 끊김을 줄인다
  * - 셔플/연속재생(전체 반복) 지원, 목록에서 절을 탭하면 그 절로 점프
+ * - 우측 핸들 드래그로 순서 변경 → 서버(sort_order)에 저장되어 모든 기기에서 유지
+ *
+ * 재생 큐는 목록 인덱스가 아니라 북마크 id로 관리한다 — 드래그로 목록 순서가
+ * 바뀌어도 재생 중인 절이 다른 절로 튀지 않게 하기 위함.
  */
 const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   useModalBackButton(onClose)
 
   const { data, isLoading } = useMyBookmarks({ favorites_only: true, page_size: 100 })
-  const items = useMemo<VerseBookmarkWithVerse[]>(() => data?.items ?? [], [data])
+  const serverItems = useMemo<VerseBookmarkWithVerse[]>(() => data?.items ?? [], [data])
+  const reorderMutation = useReorderBookmarks()
 
   const audioRef = useRef<HTMLAudioElement>(null)
   const preloadRef = useRef<HTMLAudioElement>(null)
@@ -60,8 +66,10 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   const [rate, setRate] = useState<number>(loadRate)
   const [isShuffle, setIsShuffle] = useState(false)
   const [isRepeat, setIsRepeat] = useState(true) // 기본: 마지막 절 후 처음으로 돌아 계속
-  const [order, setOrder] = useState<number[]>([])
-  const [pos, setPos] = useState(0) // order 내 현재 위치
+  // 드래그 순서를 즉시 반영하기 위한 로컬 목록 (서버 데이터와 동기화)
+  const [items, setItems] = useState<VerseBookmarkWithVerse[]>([])
+  const [queue, setQueue] = useState<number[]>([]) // 재생 순서 (북마크 id 배열)
+  const [pos, setPos] = useState(0) // queue 내 현재 위치
   const [started, setStarted] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [preparing, setPreparing] = useState(false)
@@ -69,17 +77,30 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
 
-  // 즐겨찾기 목록이 로드되면 자연 순서로 큐 초기화
+  const itemsRef = useRef(items)
+  itemsRef.current = items
+  const dirtyRef = useRef(false) // 드래그로 순서가 실제로 바뀌었는지
+
   useEffect(() => {
-    if (items.length > 0 && order.length !== items.length) {
-      setOrder(Array.from({ length: items.length }, (_, i) => i))
+    setItems(serverItems)
+  }, [serverItems])
+
+  // 목록 구성이 바뀌면(최초 로드·추가·삭제) 큐 재구성.
+  // 순서만 바뀐 경우(드래그)는 handleReorder가 큐를 직접 관리하므로 건드리지 않는다(셔플 큐 보존).
+  useEffect(() => {
+    const ids = items.map((it) => it.id)
+    const sameSet = queue.length === ids.length && queue.every((id) => ids.includes(id))
+    if (!sameSet) {
+      setQueue(ids)
       setPos(0)
     }
-  }, [items.length, order.length])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items])
 
-  const currentIndex = order[pos] ?? 0
-  const current = items[currentIndex]
-  const nextIndex = order[pos + 1] ?? (isRepeat ? order[0] : undefined)
+  const currentId = queue[pos]
+  const current = items.find((it) => it.id === currentId) ?? items[0]
+  const nextId = queue[pos + 1] ?? (isRepeat ? queue[0] : undefined)
+  const nextItem = nextId !== undefined ? items.find((it) => it.id === nextId) : undefined
 
   const audioUrl = started && current ? verseUrl(current) : undefined
 
@@ -100,12 +121,10 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   // 다음 절 미리 받기 — 재생 중이고 캐시되지 않았을 때 끊김 완화
   useEffect(() => {
     const pre = preloadRef.current
-    if (!pre || !isPlaying || nextIndex === undefined) return
-    const nextItem = items[nextIndex]
-    if (!nextItem) return
+    if (!pre || !isPlaying || !nextItem) return
     pre.src = verseUrl(nextItem)
     pre.load()
-  }, [isPlaying, nextIndex, items])
+  }, [isPlaying, nextItem])
 
   // 언마운트 시 재생 정지
   useEffect(() => {
@@ -163,8 +182,8 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   }
 
   const goNext = () => {
-    if (pos + 1 < order.length) playAt(pos + 1)
-    else if (isRepeat && order.length > 0) playAt(0)
+    if (pos + 1 < queue.length) playAt(pos + 1)
+    else if (isRepeat && queue.length > 0) playAt(0)
   }
 
   const goPrev = () => {
@@ -175,15 +194,15 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
       return
     }
     if (pos - 1 >= 0) playAt(pos - 1)
-    else if (isRepeat && order.length > 0) playAt(order.length - 1)
+    else if (isRepeat && queue.length > 0) playAt(queue.length - 1)
   }
 
   const handleEnded = () => {
     setCurrentTime(0)
-    if (pos + 1 < order.length) {
+    if (pos + 1 < queue.length) {
       wantPlayRef.current = true
       setPos(pos + 1)
-    } else if (isRepeat && order.length > 1) {
+    } else if (isRepeat && queue.length > 1) {
       wantPlayRef.current = true
       setPos(0)
     } else {
@@ -192,17 +211,34 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   }
 
   const toggleShuffle = () => {
-    setIsShuffle((prev) => {
-      const next = !prev
-      if (next) {
-        setOrder(shuffled(items.length, currentIndex))
-        setPos(0)
-      } else {
-        setOrder(Array.from({ length: items.length }, (_, i) => i))
-        setPos(currentIndex)
-      }
-      return next
-    })
+    const next = !isShuffle
+    const ids = items.map((it) => it.id)
+    if (next) {
+      setQueue(shuffledIds(ids, currentId))
+      setPos(0)
+    } else {
+      setQueue(ids)
+      setPos(currentId !== undefined ? Math.max(0, ids.indexOf(currentId)) : 0)
+    }
+    setIsShuffle(next)
+  }
+
+  // 드래그 중 순서 변경 — 목록을 즉시 갱신하고, 셔플이 아니면 재생 큐도 새 순서를 따른다
+  const handleReorder = (newItems: VerseBookmarkWithVerse[]) => {
+    dirtyRef.current = true
+    setItems(newItems)
+    if (!isShuffle) {
+      const ids = newItems.map((it) => it.id)
+      setQueue(ids)
+      setPos(currentId !== undefined ? Math.max(0, ids.indexOf(currentId)) : 0)
+    }
+  }
+
+  // 드래그를 놓으면 서버에 순서 저장
+  const handleDragEnd = () => {
+    if (!dirtyRef.current) return
+    dirtyRef.current = false
+    reorderMutation.mutate(itemsRef.current.map((it) => it.id))
   }
 
   const cycleRate = () => {
@@ -450,13 +486,15 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
           </div>
         )}
 
-        {/* 목록 */}
-        <div className="relative z-10 flex-1 overflow-y-auto px-5 py-4 space-y-2">
-          {isLoading ? (
+        {/* 목록 — 우측 핸들 드래그로 순서 변경 */}
+        {isLoading ? (
+          <div className="relative z-10 flex-1 overflow-y-auto px-5 py-4">
             <div className="text-center text-[13px] text-gray-500 dark:text-white/55 py-8">
               불러오는 중…
             </div>
-          ) : items.length === 0 ? (
+          </div>
+        ) : items.length === 0 ? (
+          <div className="relative z-10 flex-1 overflow-y-auto px-5 py-4">
             <div className="text-center py-12">
               <span className="material-icons-outlined text-4xl text-gray-300 dark:text-white/25 block mb-2">
                 favorite_border
@@ -468,49 +506,31 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                 성경을 읽다가 마음에 닿는 절을 즐겨찾기 해보세요
               </p>
             </div>
-          ) : (
-            items.map((item, i) => {
-              const active = i === currentIndex
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => playAt(order.indexOf(i))}
-                  className={`w-full text-left rounded-2xl px-3.5 py-2.5 transition-colors flex items-center gap-3 ${
-                    active
-                      ? 'bg-purple-50 dark:bg-purple-500/15'
-                      : 'hover:bg-gray-100 dark:hover:bg-white/[0.04]'
-                  }`}
-                >
-                  <span
-                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
-                      active
-                        ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
-                        : 'bg-black/[0.04] dark:bg-white/[0.07] text-gray-400 dark:text-white/45'
-                    }`}
-                  >
-                    <span className="material-icons-round text-[18px]">
-                      {active && isPlaying ? 'graphic_eq' : 'play_arrow'}
-                    </span>
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span
-                      className={`block text-[12px] font-bold ${
-                        active
-                          ? 'text-purple-700 dark:text-purple-300'
-                          : 'text-gray-500 dark:text-white/55'
-                      }`}
-                    >
-                      {item.book_name_ko} {item.chapter}:{item.verse}
-                    </span>
-                    <span className="block text-[13px] text-gray-700 dark:text-white/75 truncate">
-                      {item.text}
-                    </span>
-                  </span>
-                </button>
-              )
-            })
-          )}
-        </div>
+          </div>
+        ) : (
+          <Reorder.Group
+            as="div"
+            axis="y"
+            values={items}
+            onReorder={handleReorder}
+            layoutScroll
+            className="relative z-10 flex-1 overflow-y-auto px-5 py-4 space-y-2"
+          >
+            {items.map((item) => (
+              <PlaylistRow
+                key={item.id}
+                item={item}
+                active={current?.id === item.id}
+                playing={isPlaying}
+                onPlay={() => {
+                  const qp = queue.indexOf(item.id)
+                  if (qp >= 0) playAt(qp)
+                }}
+                onDragEnd={handleDragEnd}
+              />
+            ))}
+          </Reorder.Group>
+        )}
       </div>
 
       <audio
@@ -551,6 +571,86 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
       <audio ref={preloadRef} preload="auto" muted className="hidden" />
     </div>,
     document.body
+  )
+}
+
+interface PlaylistRowProps {
+  item: VerseBookmarkWithVerse
+  active: boolean
+  playing: boolean
+  onPlay: () => void
+  onDragEnd: () => void
+}
+
+/**
+ * 플레이리스트 한 줄 — 본문 탭은 재생, 우측 핸들만 드래그 시작점.
+ * dragListener={false} + dragControls로 핸들 외 영역에서는 리스트 스크롤이 그대로 동작한다.
+ */
+const PlaylistRow = ({ item, active, playing, onPlay, onDragEnd }: PlaylistRowProps) => {
+  const dragControls = useDragControls()
+
+  return (
+    <Reorder.Item
+      as="div"
+      value={item}
+      dragListener={false}
+      dragControls={dragControls}
+      onDragEnd={onDragEnd}
+      whileDrag={{
+        scale: 1.02,
+        zIndex: 20,
+        boxShadow: '0 10px 26px rgba(0,0,0,0.35)',
+      }}
+      className={`relative flex items-center rounded-2xl transition-colors ${
+        active
+          ? 'bg-purple-50 dark:bg-purple-500/15'
+          : 'bg-background-light dark:bg-card-dark hover:bg-gray-100 dark:hover:bg-white/[0.04]'
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onPlay}
+        className="min-w-0 flex-1 text-left rounded-2xl pl-3.5 py-2.5 flex items-center gap-3"
+      >
+        <span
+          className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
+            active
+              ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+              : 'bg-black/[0.04] dark:bg-white/[0.07] text-gray-400 dark:text-white/45'
+          }`}
+        >
+          <span className="material-icons-round text-[18px]">
+            {active && playing ? 'graphic_eq' : 'play_arrow'}
+          </span>
+        </span>
+        <span className="min-w-0 flex-1">
+          <span
+            className={`block text-[12px] font-bold ${
+              active
+                ? 'text-purple-700 dark:text-purple-300'
+                : 'text-gray-500 dark:text-white/55'
+            }`}
+          >
+            {item.book_name_ko} {item.chapter}:{item.verse}
+          </span>
+          <span className="block text-[13px] text-gray-700 dark:text-white/75 truncate">
+            {item.text}
+          </span>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        onPointerDown={(e) => {
+          e.preventDefault()
+          dragControls.start(e)
+        }}
+        aria-label="순서 변경 (드래그)"
+        className="shrink-0 self-stretch px-2.5 grid place-items-center cursor-grab active:cursor-grabbing text-gray-300 dark:text-white/25 hover:text-gray-500 dark:hover:text-white/50 transition-colors touch-none"
+      >
+        <span className="material-icons-round text-[20px]">drag_indicator</span>
+      </button>
+    </Reorder.Item>
   )
 }
 

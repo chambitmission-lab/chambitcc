@@ -4,6 +4,7 @@ import {
   deleteBookmark,
   getBookmark,
   listBookmarks,
+  reorderBookmarks,
   getBookmarkStats,
   type UpsertBookmarkPayload,
   type VerseBookmark,
@@ -118,6 +119,22 @@ export const useDeleteBookmark = (verseId: number) => {
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' })
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.stats() })
       queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+    },
+  })
+}
+
+/**
+ * 즐겨찾기 플레이리스트 순서 저장 (드래그 앤 드랍)
+ * UI는 로컬 상태로 이미 새 순서를 보여주고 있으므로 optimistic 처리 불필요 —
+ * 성공 시 목록 캐시만 동기화한다
+ */
+export const useReorderBookmarks = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (bookmarkIds: number[]) => reorderBookmarks(bookmarkIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' })
     },
   })
 }
