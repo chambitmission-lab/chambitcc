@@ -142,7 +142,8 @@
       "Bash(node overflow.js)",
       "Bash(node shot.js)",
       "Bash(node vprobe.js)",
-      "Bash(npx tailwindcss *)"
+      "Bash(npx tailwindcss *)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }

@@ -13,7 +13,10 @@ import {
 export const bookmarkKeys = {
   all: ['bookmark'] as const,
   detail: (verseId: number) => [...bookmarkKeys.all, 'detail', verseId] as const,
-  list: (params?: object) => [...bookmarkKeys.all, 'list', params] as const,
+  // 무효화용 prefix. list(undefined)는 ['bookmark','list',undefined]가 되어
+  // params가 있는 실제 쿼리 키와 부분 매칭이 안 되므로 반드시 이 키로 invalidate할 것
+  lists: () => [...bookmarkKeys.all, 'list'] as const,
+  list: (params?: object) => [...bookmarkKeys.lists(), params] as const,
   stats: () => [...bookmarkKeys.all, 'stats'] as const,
 }
 
@@ -71,7 +74,10 @@ export const useUpsertBookmark = (verseId: number) => {
         }
       })
 
-      queryClient.invalidateQueries({ queryKey: bookmarkKeys.list() })
+      // refetchType:'all' — 프로필의 북마크 목록은 성경 화면에서 저장/삭제하는 시점엔
+      // 비활성 쿼리라, 기본값 'active'로는 stale 마크만 되고 전역 refetchOnMount:false
+      // (queryClient.ts)와 결합되면 프로필 재진입 시에도 옛 캐시가 그대로 보인다
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' })
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.stats() })
       queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
     },
@@ -109,7 +115,7 @@ export const useDeleteBookmark = (verseId: number) => {
         }
       })
 
-      queryClient.invalidateQueries({ queryKey: bookmarkKeys.list() })
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' })
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.stats() })
       queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
     },
