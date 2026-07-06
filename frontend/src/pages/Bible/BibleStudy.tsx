@@ -71,12 +71,14 @@ const BibleStudy = () => {
   
   const selectedBookData = books?.find(b => b.id === selectedBookId)
   
-  // URL 파라미터로 책과 장이 전달된 경우 자동으로 선택
+  // URL 파라미터로 책과 장이 전달된 경우 자동으로 선택.
+  // ?verse=N 이 함께 오면(프로필 묵상노트 카드 등에서 딥링크) 해당 절로 스크롤+하이라이트.
+  const verseParam = Number(searchParams.get('verse')) || 0
   useEffect(() => {
     if (bookNumber && chapter && books && books.length > 0) {
       const bookNum = parseInt(bookNumber)
       const chapterNum = parseInt(chapter)
-      
+
       const book = books.find(b => b.book_number === bookNum)
       if (book) {
         setSelectedBookId(book.id)
@@ -84,14 +86,19 @@ const BibleStudy = () => {
         setSelectedChapter(chapterNum)
         setShowBookList(false)
         setActiveTab('read')
-        
-        // 페이지 상단으로 스크롤
-        setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' })
-        }, 100)
+
+        if (verseParam > 0) {
+          // 절 스크롤은 본문 로드 후 VerseList가 수행
+          setPendingScrollVerse(verseParam)
+        } else {
+          // 페이지 상단으로 스크롤
+          setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }, 100)
+        }
       }
     }
-  }, [bookNumber, chapter, books])
+  }, [bookNumber, chapter, books, verseParam])
   
   const { 
     data: chapterData, 

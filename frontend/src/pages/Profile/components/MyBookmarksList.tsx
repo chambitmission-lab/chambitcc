@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useMyBookmarks } from '../../../hooks/useBibleBookmark'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
@@ -105,16 +106,35 @@ const BookmarkCardSkeleton = () => (
 )
 
 const BookmarkCard = ({ item }: { item: VerseBookmarkWithVerse }) => {
+  const navigate = useNavigate()
   const bg = item.highlight_color ? HIGHLIGHT_COLOR_BG[item.highlight_color] : null
+
+  // 카드를 탭하면 성경 읽기 화면의 해당 절로 이동(스크롤+하이라이트)
+  const goToVerse = () => {
+    navigate(`/bible/${item.book_number}/${item.chapter}?verse=${item.verse}`)
+  }
 
   return (
     <div
+      onClick={goToVerse}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          goToVerse()
+        }
+      }}
+      aria-label={`${item.book_name_ko} ${item.chapter}장 ${item.verse}절로 이동`}
       className="
         relative overflow-hidden rounded-2xl p-4
         bg-white/80 dark:bg-card-dark
         border border-gray-200/70 dark:border-white/[0.08]
         shadow-sm
         dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(168,85,247,0.08)]
+        cursor-pointer transition-colors
+        hover:border-purple-300/70 dark:hover:border-purple-500/35
+        active:bg-purple-50/60 dark:active:bg-purple-500/[0.07]
       "
       style={bg ? { borderLeft: `4px solid ${bg}` } : undefined}
     >

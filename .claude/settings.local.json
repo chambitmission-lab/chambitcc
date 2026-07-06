@@ -144,7 +144,8 @@
       "Bash(node vprobe.js)",
       "Bash(npx tailwindcss *)",
       "Bash(echo \"EXIT:$?\")",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(grep -rn \"navigate\\(\\\\`/bible/\\\\|navigate\\('/bible/\" /Users/kimhuisik/idea/chambit_f/frontend/src --include=\"*.tsx\")"
     ]
   }
 }
