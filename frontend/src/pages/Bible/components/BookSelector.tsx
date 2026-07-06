@@ -98,7 +98,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         )}
         <span>{book.book_name_ko}</span>
         {resume && (
-          <span className="book-resume-badge">{resume.chapter}장까지 읽음</span>
+          <span className="book-resume-badge">{resume.chapter}장 읽는 중</span>
         )}
         {hasProgress && (
           <span className="book-progress-track" aria-hidden="true">
