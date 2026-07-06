@@ -50,7 +50,6 @@ const EventCalendar = () => {
   }, [events, heroEvent])
 
   const totalCount = events.length
-  const isFiltered = selectedCategory !== undefined
 
   const handlePrevMonth = () => {
     setViewDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))
@@ -120,7 +119,7 @@ const EventCalendar = () => {
             ))}
           </div>
         ) : groups.length === 0 && !heroEvent ? (
-          <EmptyState filtered={isFiltered} />
+          <EmptyState category={selectedCategory} />
         ) : (
           groups.map(group => <AgendaSection key={group.key} group={group} />)
         )}

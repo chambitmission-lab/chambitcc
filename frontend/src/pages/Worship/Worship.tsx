@@ -13,6 +13,27 @@ const weekdayIcon = (name: string): string => {
   return 'volunteer_activism'
 }
 
+// 관리자 자유 입력 시간("오전 11시 20분", "7:30" 등) → 자정 기준 분.
+// 형식을 해석할 수 없으면 null 을 반환해 다음 예배 강조만 조용히 생략한다.
+const parseServiceTime = (time: string): number | null => {
+  const m = time.match(/(오전|오후)?\s*(\d{1,2})\s*[시:]\s*(\d{1,2})?/)
+  if (!m) return null
+  let hour = parseInt(m[2], 10)
+  const minute = m[3] ? parseInt(m[3], 10) : 0
+  if (m[1] === '오후' && hour < 12) hour += 12
+  if (m[1] === '오전' && hour === 12) hour = 0
+  if (hour > 23 || minute > 59) return null
+  return hour * 60 + minute
+}
+
+const formatRemaining = (minutes: number): string => {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h > 0 && m > 0) return `${h}시간 ${m}분`
+  if (h > 0) return `${h}시간`
+  return `${m}분`
+}
+
 const Worship = () => {
   const { t } = useLanguage()
   const isAdminUser = isAdmin()
@@ -21,10 +42,17 @@ const Worship = () => {
   const [sundayServices, setSundayServices] = useState<WorshipService[]>([])
   const [weekdayServices, setWeekdayServices] = useState<WorshipService[]>([])
   const [loading, setLoading] = useState(true)
+  const [now, setNow] = useState(() => new Date())
 
   // 예배 시간 데이터 로드
   useEffect(() => {
     loadServices()
+  }, [])
+
+  // 다음 예배 카운트다운 갱신용 (30초 주기)
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30_000)
+    return () => clearInterval(timer)
   }, [])
 
   const loadServices = async () => {
@@ -95,6 +123,23 @@ const Worship = () => {
   const activeSunday = sundayServices.filter(s => s.is_active)
   const activeWeekday = weekdayServices.filter(s => s.is_active)
 
+  // 일요일에만: 지금 이후 가장 가까운 주일예배를 찾아 강조 (지각 방지 넛지)
+  // 예배는 서울에서 열리므로 기기 시간대와 무관하게 항상 Asia/Seoul 기준으로 판정
+  const nextService = (() => {
+    const seoulNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+    if (seoulNow.getDay() !== 0) return null
+    const nowMin = seoulNow.getHours() * 60 + seoulNow.getMinutes()
+    let best: { id: number; remaining: number } | null = null
+    for (const s of activeSunday) {
+      if (!s.id) continue
+      const start = parseServiceTime(s.time)
+      if (start === null || start < nowMin) continue
+      const remaining = start - nowMin
+      if (!best || remaining < best.remaining) best = { id: s.id, remaining }
+    }
+    return best
+  })()
+
   return (
     <div className="worship-page">
       <div className="worship-shell">
@@ -137,7 +182,10 @@ const Worship = () => {
               <div className="worship-state">등록된 예배 시간이 없습니다</div>
             ) : (
               activeSunday.map((service) => (
-                <div key={service.id} className="worship-item">
+                <div
+                  key={service.id}
+                  className={`worship-item${nextService?.id === service.id ? ' worship-item--next' : ''}`}
+                >
                   {editingId === service.id && editingData ? (
                     // 편집 모드
                     <div className="worship-edit">
@@ -190,6 +238,15 @@ const Worship = () => {
                     </div>
                   ) : (
                     // 일반 모드
+                    <>
+                    {nextService && nextService.id === service.id && (
+                      <div className="worship-next-banner">
+                        <span className="worship-next-dot" aria-hidden />
+                        {nextService.remaining === 0
+                          ? '⏳ 지금 시작해요!'
+                          : `⏳ 시작까지 ${formatRemaining(nextService.remaining)} 남았어요!`}
+                      </div>
+                    )}
                     <div className="worship-item-row">
                       <div className="worship-item-left">
                         <div className="worship-item-emblem">{service.order}부</div>
@@ -203,7 +260,10 @@ const Worship = () => {
                       <div className="worship-item-meta">
                         <p className="worship-item-time">{service.time}</p>
                         {service.location && (
-                          <p className="worship-item-loc">{service.location}</p>
+                          <p className="worship-item-loc worship-item-loc--place">
+                            <span className="material-icons-round" aria-hidden>place</span>
+                            {service.location}
+                          </p>
                         )}
                       </div>
                       {isAdminUser && (
@@ -217,6 +277,7 @@ const Worship = () => {
                         </button>
                       )}
                     </div>
+                    </>
                   )}
                 </div>
               ))
@@ -281,7 +342,7 @@ const Worship = () => {
                     <>
                       <div className="worship-item-row">
                         <div className="worship-item-left">
-                          <div className="worship-item-emblem">
+                          <div className="worship-item-emblem worship-item-emblem--weekday">
                             <span className="material-icons-round">{weekdayIcon(service.name)}</span>
                           </div>
                           <h3 className="worship-item-name">{service.name}</h3>

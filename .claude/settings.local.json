@@ -143,7 +143,8 @@
       "Bash(node shot.js)",
       "Bash(node vprobe.js)",
       "Bash(npx tailwindcss *)",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(node *)"
     ]
   }
 }

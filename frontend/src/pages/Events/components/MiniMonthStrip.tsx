@@ -54,34 +54,34 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
         className="absolute inset-x-0 top-0 h-px"
         style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)' }}
       />
-      {/* 헤더 */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <button
-          type="button"
-          onClick={onToday}
-          className="px-2.5 h-7 rounded-full bg-gray-100 dark:bg-white/[0.06] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 text-[12px] font-semibold transition-colors"
-        >
-          오늘
-        </button>
+      {/* 헤더 — 달력 제어(오늘/이전/다음)를 우측 한곳에 모아 위계를 정리 */}
+      <div className="flex items-center justify-between px-4 py-2.5">
         <div className="text-gray-900 dark:text-white text-[15px] font-bold tracking-[-0.01em]">{monthLabel}</div>
         <div className="flex items-center gap-1">
           <button
             type="button"
+            onClick={onToday}
+            className="px-3 h-8 mr-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 text-[12px] font-semibold transition-colors"
+          >
+            오늘
+          </button>
+          <button
+            type="button"
             onClick={onPrev}
-            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/[0.04] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 flex items-center justify-center transition-colors"
+            className="relative w-10 h-10 rounded-full bg-gray-100 dark:bg-white/[0.04] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 flex items-center justify-center transition-colors after:absolute after:-inset-1 after:content-['']"
             aria-label="이전 달"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
           <button
             type="button"
             onClick={onNext}
-            className="w-8 h-8 rounded-full bg-gray-100 dark:bg-white/[0.04] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 flex items-center justify-center transition-colors"
+            className="relative w-10 h-10 rounded-full bg-gray-100 dark:bg-white/[0.04] hover:bg-gray-200 dark:hover:bg-white/[0.1] text-gray-600 dark:text-white/80 flex items-center justify-center transition-colors after:absolute after:-inset-1 after:content-['']"
             aria-label="다음 달"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
@@ -95,7 +95,7 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
             key={d}
             className={[
               'text-center text-[11px] font-bold py-1',
-              i === 0 ? 'text-pink-500 dark:text-pink-300/80' : i === 6 ? 'text-purple-500 dark:text-purple-300/80' : 'text-gray-400 dark:text-white/45',
+              i === 0 ? 'text-pink-500 dark:text-pink-200/90' : i === 6 ? 'text-purple-500 dark:text-purple-200/90' : 'text-gray-400 dark:text-white/45',
             ].join(' ')}
           >
             {d}
@@ -131,9 +131,9 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
                   isToday
                     ? 'text-white'
                     : dow === 0
-                      ? 'text-pink-500 dark:text-pink-300'
+                      ? 'text-pink-500 dark:text-pink-200'
                       : dow === 6
-                        ? 'text-purple-500 dark:text-purple-300'
+                        ? 'text-purple-500 dark:text-purple-200'
                         : 'text-gray-700 dark:text-white/85',
                 ].join(' ')}
               >
@@ -145,13 +145,13 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
                   d.getDate()
                 )}
               </span>
-              {/* 일정 dot */}
+              {/* 일정 dot — 네온 글로우로 다크 배경에서도 한눈에 보이도록 */}
               {dayEvents.length > 0 && (
-                <div className="absolute bottom-1 flex items-center gap-0.5">
+                <div className="absolute bottom-1 flex items-center gap-[3px]">
                   {dayEvents.slice(0, 3).map((ev, i) => (
                     <span
                       key={i}
-                      className={`block w-1 h-1 rounded-full ${CATEGORY_VISUAL[ev.category].dot}`}
+                      className={`block w-[5px] h-[5px] rounded-full ${CATEGORY_VISUAL[ev.category].dot} ${CATEGORY_VISUAL[ev.category].dotGlow}`}
                     />
                   ))}
                 </div>
