@@ -155,7 +155,10 @@
       "Bash(sed -i '' \"s|viewport: { width: 390, height: 844 } }|viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 }|\" shot.mjs)",
       "Bash(sips -g pixelWidth -g pixelHeight bible.png)",
       "Bash(sips -c 150 1170 --cropOffset 1210 0 bible.png --out verse-crop-3x.png)",
-      "Bash(sips -g pixelWidth -g pixelHeight verse-crop-3x.png)"
+      "Bash(sips -g pixelWidth -g pixelHeight verse-crop-3x.png)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)",
+      "Bash(CHROMIUM_PATH=/Users/kimhuisik/Library/Caches/ms-playwright/chromium-1228/chrome-mac/Chromium.app/Contents/MacOS/Chromium node menu-shot.mjs)",
+      "Bash(CHROMIUM_PATH=/Users/kimhuisik/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell node menu-shot.mjs)"
     ]
   }
 }

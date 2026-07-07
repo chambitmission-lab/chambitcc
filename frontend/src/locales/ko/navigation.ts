@@ -28,6 +28,10 @@ export const navigation = {
   garden: '🏷️ 성경 칭호',
   bluemarble: '🎲 바이블 퀘스트',
   answeredPrayers: '✨ 응답의 전당',
-  missionStatus: '🌍 선교 현황',
+  missionStatus: '선교 현황',
   adminMenu: '관리자 메뉴',
+  navGroupChurch: '교회 안내',
+  navGroupContent: '말씀과 콘텐츠',
+  navGroupCommunity: '소통과 참여',
+  navGroupActivity: '신앙 액티비티',
 } as const

@@ -28,6 +28,10 @@ export const navigation = {
   garden: '🏷️ Bible Titles',
   bluemarble: '🎲 Bible Quest',
   answeredPrayers: '✨ Answered Prayers',
-  missionStatus: '🌍 Mission Status',
+  missionStatus: 'Mission Status',
   adminMenu: 'Admin Menu',
+  navGroupChurch: 'Church Info',
+  navGroupContent: 'Word & Media',
+  navGroupCommunity: 'Community',
+  navGroupActivity: 'Faith Activities',
 } as const
