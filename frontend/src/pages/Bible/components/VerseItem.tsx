@@ -274,6 +274,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           position: 'relative',
           display: 'flex',
           gap: '1.25rem',
+          // 번호/점은 첫 줄 라인박스(--verse-line-box) 중앙에 맞춘다.
+          // baseline 정렬은 작은 숫자가 한글 본문 대비 살짝 처져 보였음.
           alignItems: 'flex-start',
           cursor: 'pointer',
           userSelect: 'text',
@@ -331,7 +333,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               alignItems: 'center',
               gap: '0.25rem',
               flexShrink: 0,
-              paddingTop: '0.375rem',
+              // 본문 첫 줄 라인박스 중앙에 6px 점을 맞춘다 (변수는 verse-display.css 정의)
+              paddingTop: 'calc(var(--verse-line-box) / 2 - 3px)',
             }}
           >
             {/* 노트 전용 북마크는 아래 칩+좌측 강조로 이미 보이므로 점 생략(중복 방지).

@@ -145,7 +145,17 @@
       "Bash(npx tailwindcss *)",
       "Bash(echo \"EXIT:$?\")",
       "Bash(node *)",
-      "Bash(grep -rn \"navigate\\(\\\\`/bible/\\\\|navigate\\('/bible/\" /Users/kimhuisik/idea/chambit_f/frontend/src --include=\"*.tsx\")"
+      "Bash(grep -rn \"navigate\\(\\\\`/bible/\\\\|navigate\\('/bible/\" /Users/kimhuisik/idea/chambit_f/frontend/src --include=\"*.tsx\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/docs --max-time 2)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173 --max-time 2)",
+      "Bash(curl -s --max-time 3 \"http://localhost:8000/api/bible/books\")",
+      "Bash(curl -s --max-time 3 \"http://localhost:8000/api/v1/bible/books\")",
+      "Bash(sips -c 120 390 --cropOffset 400 0 bible.png --out verse-crop.png)",
+      "Bash(sips -z 240 780 verse-crop.png --out verse-crop-2x.png)",
+      "Bash(sed -i '' \"s|viewport: { width: 390, height: 844 } }|viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 }|\" shot.mjs)",
+      "Bash(sips -g pixelWidth -g pixelHeight bible.png)",
+      "Bash(sips -c 150 1170 --cropOffset 1210 0 bible.png --out verse-crop-3x.png)",
+      "Bash(sips -g pixelWidth -g pixelHeight verse-crop-3x.png)"
     ]
   }
 }
