@@ -1,4 +1,5 @@
-/* Aa 읽기 설정 — 장 네비게이션 옆 버튼 + 드롭다운 패널 */
+/* Aa 읽기 설정 — 책 정보 헤더 우측 버튼 + 드롭다운 패널
+   ('보기 설정' 성격이라 장 이동 줄이 아닌 헤더에 둔다. back-button과 같은 룩) */
 
 .reader-settings {
   position: relative;
@@ -6,8 +7,29 @@
 }
 
 .reader-settings__btn {
-  /* .nav-button 지오메트리를 그대로 쓰되 텍스트 로고만 */
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ig-secondary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 50%;
+  color: var(--ig-primary-text);
   font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+[data-theme="dark"] .reader-settings__btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.reader-settings__btn:hover {
+  background: var(--ig-hover);
+  border-color: #a855f7;
+  color: #a855f7;
 }
 
 .reader-settings__aa {

@@ -75,7 +75,7 @@ const ReaderSettings = () => {
     <div ref={wrapRef} className="reader-settings">
       <button
         type="button"
-        className={`nav-button reader-settings__btn ${open ? 'is-open' : ''}`}
+        className={`reader-settings__btn ${open ? 'is-open' : ''}`}
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
         aria-label="읽기 설정"

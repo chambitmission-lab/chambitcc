@@ -38,6 +38,8 @@ const ChapterNavigation = ({
             {selectedChapter}장 / {totalChapters}장
           </p>
         </div>
+        {/* Aa 읽기 설정 — '보기 설정'이므로 장 이동(콘텐츠 탐색) 줄과 분리해 헤더 우측에 둔다 */}
+        <ReaderSettings />
       </div>
       
       {/* 장 네비게이션 */}
@@ -71,9 +73,6 @@ const ChapterNavigation = ({
         >
           <span className="material-icons-round">chevron_right</span>
         </button>
-
-        {/* Aa 읽기 설정 — 서체/글자 크기/줄 간격 개인화 */}
-        <ReaderSettings />
       </div>
     </>
   )
