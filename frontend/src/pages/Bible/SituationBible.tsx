@@ -47,6 +47,17 @@ const KEYWORDS: Record<string, string[]> = {
   '용서가 어려울 때': ['용서', '화해', '관계'],
 }
 
+// "오늘 마음이 어떠세요?" 무드 칩 — 감정을 먼저 고르면 맞는 카테고리로 필터링
+const MOODS: { emoji: string; label: string; color: string; names: string[] }[] = [
+  { emoji: '😔', label: '힘들어요', color: '#f4a940', names: ['우울할 때', '괴로울 때', '낙심될 때'] },
+  { emoji: '😟', label: '불안해요', color: '#6366f1', names: ['두려울 때', '걱정될 때', '위기일 때', '재난·재해시'] },
+  { emoji: '😢', label: '슬퍼요', color: '#3b82f6', names: ['슬플 때', '고독할 때'] },
+  { emoji: '🤒', label: '아파요', color: '#f43f5e', names: ['몸이 아플 때'] },
+  { emoji: '😶', label: '멀게 느껴져요', color: '#ec4899', names: ['하나님과 멀어졌을 때', '하나님을 의심할 때', '용서가 어려울 때'] },
+  { emoji: '😌', label: '쉬고 싶어요', color: '#22c55e', names: ['평안이 필요할 때', '인도가 필요할 때'] },
+  { emoji: '🙏', label: '감사해요', color: '#f59e0b', names: ['감사할 때'] },
+]
+
 // 감성 틴트 — 카드 배경 그라데이션용. 아이콘 색(cat.color)이 감정적으로 차갑게 느껴지는
 // 카테고리만 치유 톤으로 보정하고, 나머지는 카테고리 색을 그대로 쓴다.
 const TINTS: Record<string, string> = {
@@ -65,6 +76,7 @@ const SituationBible = () => {
   const [selected, setSelected] = useState<SituationCategory | null>(null)
   const [query, setQuery] = useState('')
   const [activeGroup, setActiveGroup] = useState('전체')
+  const [mood, setMood] = useState<string | null>(null)
   const [heroNonce, setHeroNonce] = useState(0)
 
   const { data: categories = [], isLoading } = useSituationCategories()
@@ -100,10 +112,14 @@ const SituationBible = () => {
   // ── 검색 / 그룹 필터 ───────────────────────────────────────────────
   const visibleCategories = useMemo(() => {
     if (q) return categories.filter((c) => matchesQuery(c, q))
+    if (mood) {
+      const m = MOODS.find((x) => x.label === mood)
+      if (m) return categories.filter((c) => m.names.includes(c.name))
+    }
     if (activeGroup === '전체') return categories
     const group = GROUPS.find((g) => g.label === activeGroup)
     return group ? categories.filter((c) => group.names.includes(c.name)) : categories
-  }, [categories, q, activeGroup])
+  }, [categories, q, mood, activeGroup])
 
   const handleVerseClick = (v: SituationVerse) => {
     navigate(`/bible/${v.book_number}/${v.chapter}`)
@@ -146,6 +162,31 @@ const SituationBible = () => {
               </div>
             ) : (
               <>
+                {/* 오늘 마음이 어떠세요? — 무드 칩 */}
+                {!q && (
+                  <div className="px-4 pt-4">
+                    <p className="situation-mood__title">오늘 마음이 어떠세요?</p>
+                    <div className="situation-mood__chips">
+                      {MOODS.map((m) => (
+                        <button
+                          key={m.label}
+                          onClick={() => {
+                            setMood((prev) => (prev === m.label ? null : m.label))
+                            setActiveGroup('전체')
+                          }}
+                          className={`situation-mood-chip${
+                            mood === m.label ? ' is-active' : mood ? ' is-dimmed' : ''
+                          }`}
+                          style={{ '--mood-color': m.color } as React.CSSProperties}
+                        >
+                          <span className="situation-mood-chip__emoji">{m.emoji}</span>
+                          {m.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* 검색창 */}
                 <div className="px-4 pt-4">
                   <div className="situation-search">
@@ -202,10 +243,18 @@ const SituationBible = () => {
                           <span className="situation-hero__ref">
                             {heroVerse.book_name_ko} {heroVerse.chapter}:{heroVerse.verse}
                           </span>
-                          <span className="situation-hero__cat">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelected(heroCat)
+                            }}
+                            className="situation-hero__cat"
+                            aria-label={`${heroCat.name} 말씀 전체 보기`}
+                          >
                             <span className="material-icons-round text-[13px]">{heroCat.icon}</span>
                             {heroCat.name}
-                          </span>
+                            <span className="material-icons-round text-[13px]">chevron_right</span>
+                          </button>
                         </div>
                       </div>
                     ) : (
@@ -214,8 +263,8 @@ const SituationBible = () => {
                   </div>
                 )}
 
-                {/* 그룹 탭 (검색 중에는 숨김) */}
-                {!q && (
+                {/* 그룹 탭 (검색·무드 선택 중에는 숨김) */}
+                {!q && !mood && (
                   <div className="situation-tabs">
                     {['전체', ...GROUPS.map((g) => g.label)].map((label) => (
                       <button
@@ -241,7 +290,7 @@ const SituationBible = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="situation-grid">
+                    <div className="situation-grid" key={`${q}|${mood ?? ''}|${activeGroup}`}>
                       {visibleCategories.map((cat) => {
                         const tags = (KEYWORDS[cat.name] ?? []).slice(0, 2)
                         return (
