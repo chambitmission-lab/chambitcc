@@ -162,7 +162,14 @@
       "Bash(grep -ril \"situation\" /Users/kimhuisik/idea/chambit_f --include=\"*.tsx\" --include=\"*.ts\" --include=\"*.css\" -g '!node_modules')",
       "Bash(curl -s -o /dev/null -w \"5173:%{http_code} \" http://localhost:5173)",
       "Bash(curl -s -o /dev/null -w \"8000:%{http_code}\\\\n\" http://localhost:8000/docs)",
-      "Bash(curl -s http://localhost:8000/api/v1/situations)"
+      "Bash(curl -s http://localhost:8000/api/v1/situations)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/api/situations/categories)",
+      "Bash(curl -s http://localhost:8000/docs)",
+      "Bash(curl -s \"http://localhost:8000/openapi.json\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/api/v1/situations/categories)",
+      "Bash(curl -s \"http://localhost:8000/api/v1/situations/categories/\")",
+      "Bash(curl -s \"http://localhost:8000/api/v1/situations\")",
+      "Bash(export SCRATCH=/private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/7c03b815-1491-45fb-88c3-a15ae207b849/scratchpad)"
     ]
   }
 }

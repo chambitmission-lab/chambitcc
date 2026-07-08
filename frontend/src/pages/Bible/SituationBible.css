@@ -1,70 +1,142 @@
-/* ── 무드 칩 (오늘 마음이 어떠세요?) ────────────────────────────── */
+/* ── 페이지 톤앤매너 ─────────────────────────────────────────────
+   채도 낮춘 웜베이지 단일 악센트로 통일해 차분하고 평안한 인상을 준다.
+   카테고리별 무지개색(cat.color)은 이 화면에서 쓰지 않는다. */
 
-.situation-mood__title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #374151;
-  margin-bottom: 9px;
+.situation-bible {
+  --sb-accent: #8b7a58; /* 웜 토프 — 라벨·아이콘·활성 상태 */
+  --sb-accent-deep: #6f6146; /* 본문 옆 강조 텍스트 */
+  --sb-surface: #f5f3ef; /* 중립 서피스 (검색창·칩) */
+  --sb-ink: #1f1f2b;
 }
 
-.dark .situation-mood__title {
-  color: #d1d5db;
+.dark .situation-bible {
+  --sb-accent: #c9b98f;
+  --sb-accent-deep: #d8cba8;
+  --sb-surface: #26262f;
+  --sb-ink: #ecebe6;
 }
 
-.situation-mood__chips {
+/* ── 오늘의 위로 말씀 (Hero) — 화면의 중심 ───────────────────────── */
+
+.situation-hero {
+  position: relative;
+  border-radius: 20px;
+  padding: 24px 22px 20px;
+  cursor: pointer;
+  background: linear-gradient(160deg, #faf6ec 0%, #fffdf8 100%);
+  border: 1px solid #ece3ce;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.situation-hero:active {
+  transform: scale(0.985);
+}
+
+.dark .situation-hero {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--sb-accent) 15%, #1c1c25) 0%,
+    color-mix(in srgb, var(--sb-accent) 5%, #1c1c25) 100%
+  );
+  border-color: color-mix(in srgb, var(--sb-accent) 22%, transparent);
+}
+
+.situation-hero--skeleton {
+  height: 190px;
+  cursor: default;
+  background: #f3f4f6;
+  border-color: transparent;
+  animation: situation-pulse 1.4s ease-in-out infinite;
+}
+
+.dark .situation-hero--skeleton {
+  background: #26262f;
+}
+
+@keyframes situation-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.situation-hero__top {
   display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
 
-.situation-mood-chip {
+.situation-hero__label {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--sb-accent);
+}
+
+.situation-hero__shuffle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--sb-accent);
+  background: color-mix(in srgb, var(--sb-accent) 10%, transparent);
+  transition: background 0.15s ease, transform 0.3s ease;
+}
+
+.situation-hero__shuffle:active {
+  transform: rotate(180deg);
+}
+
+/* 말씀 자체에 집중 — 큰 글자, 넉넉한 행간 */
+.situation-hero__text {
+  font-size: 17px;
+  line-height: 1.85;
+  color: var(--sb-ink);
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.situation-hero__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.situation-hero__ref {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sb-accent-deep);
+}
+
+.situation-hero__cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px 4px 11px;
   border-radius: 999px;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 600;
-  color: color-mix(in srgb, var(--mood-color) 70%, #1a1a2e);
-  background: color-mix(in srgb, var(--mood-color) 9%, white);
-  border: 1.5px solid color-mix(in srgb, var(--mood-color) 22%, transparent);
-  transition: all 0.15s ease;
+  color: var(--sb-accent);
+  background: color-mix(in srgb, var(--sb-accent) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sb-accent) 20%, transparent);
   cursor: pointer;
+  transition: background 0.15s ease;
 }
 
-.dark .situation-mood-chip {
-  color: color-mix(in srgb, var(--mood-color) 65%, white);
-  background: color-mix(in srgb, var(--mood-color) 14%, #1e1e2e);
-  border-color: color-mix(in srgb, var(--mood-color) 28%, transparent);
+.situation-hero__cat:hover {
+  background: color-mix(in srgb, var(--sb-accent) 18%, transparent);
 }
 
-.situation-mood-chip:active {
+.situation-hero__cat:active {
   transform: scale(0.95);
-}
-
-.situation-mood-chip.is-active {
-  color: white;
-  background: var(--mood-color);
-  border-color: color-mix(in srgb, var(--mood-color) 55%, white);
-  box-shadow:
-    0 3px 12px color-mix(in srgb, var(--mood-color) 45%, transparent),
-    0 0 0 3px color-mix(in srgb, var(--mood-color) 18%, transparent);
-}
-
-/* 무드 선택 중 나머지 칩은 흐리게 → 현재 적용된 필터가 한눈에 보이도록 */
-.situation-mood-chip.is-dimmed {
-  opacity: 0.4;
-  filter: saturate(0.5);
-}
-
-.dark .situation-mood-chip.is-active {
-  color: white;
-  background: color-mix(in srgb, var(--mood-color) 85%, #1e1e2e);
-}
-
-.situation-mood-chip__emoji {
-  font-size: 14px;
-  line-height: 1;
 }
 
 /* ── 검색창 ─────────────────────────────────────────────────────── */
@@ -76,23 +148,19 @@
   padding: 0 12px;
   height: 44px;
   border-radius: 12px;
-  background: #f3f4f6;
+  background: var(--sb-surface);
   border: 1.5px solid transparent;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .situation-search:focus-within {
   background: white;
-  border-color: #a855f7;
-}
-
-.dark .situation-search {
-  background: #26263a;
+  border-color: var(--sb-accent);
 }
 
 .dark .situation-search:focus-within {
-  background: #1e1e2e;
-  border-color: #a78bfa;
+  background: #1e1e28;
+  border-color: color-mix(in srgb, var(--sb-accent) 70%, transparent);
 }
 
 .situation-search__icon {
@@ -108,15 +176,11 @@
   border: none;
   outline: none;
   font-size: 14px;
-  color: #1a1a2e;
+  color: var(--sb-ink);
 }
 
 .situation-search__input::placeholder {
   color: #b0b3bd;
-}
-
-.dark .situation-search__input {
-  color: #e8e8f0;
 }
 
 .dark .situation-search__input::placeholder {
@@ -139,149 +203,73 @@
   background: #4b4b60;
 }
 
-/* ── 오늘의 추천 성구 (Hero) ────────────────────────────────────── */
+/* ── 무드 태그 (오늘 마음이 어떠세요?) — 한 줄 추천 태그 ─────────── */
 
-.situation-hero {
-  position: relative;
-  border-radius: 18px;
-  padding: 18px 18px 16px;
-  cursor: pointer;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--hero-color) 14%, white),
-    color-mix(in srgb, var(--hero-color) 4%, white)
-  );
-  border: 1.5px solid color-mix(in srgb, var(--hero-color) 22%, transparent);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+.situation-mood {
+  padding: 12px 0 0;
 }
 
-.situation-hero:active {
-  transform: scale(0.98);
-}
-
-.dark .situation-hero {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--hero-color) 22%, #1e1e2e),
-    color-mix(in srgb, var(--hero-color) 8%, #1e1e2e)
-  );
-  border-color: color-mix(in srgb, var(--hero-color) 35%, transparent);
-}
-
-.situation-hero--skeleton {
-  height: 148px;
-  cursor: default;
-  background: #f3f4f6;
-  border-color: transparent;
-  animation: situation-pulse 1.4s ease-in-out infinite;
-}
-
-.dark .situation-hero--skeleton {
-  background: #26263a;
-}
-
-@keyframes situation-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
-}
-
-.situation-hero__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.situation-hero__label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.situation-mood__label {
+  display: block;
+  padding: 0 16px;
+  margin-bottom: 8px;
   font-size: 12px;
-  font-weight: 700;
-  color: var(--hero-color);
-}
-
-.dark .situation-hero__label {
-  color: color-mix(in srgb, var(--hero-color) 70%, white);
-}
-
-.situation-hero__shuffle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  color: var(--hero-color);
-  background: color-mix(in srgb, var(--hero-color) 12%, transparent);
-  transition: background 0.15s ease, transform 0.3s ease;
-}
-
-.situation-hero__shuffle:active {
-  transform: rotate(180deg);
-}
-
-.dark .situation-hero__shuffle {
-  color: color-mix(in srgb, var(--hero-color) 70%, white);
-}
-
-.situation-hero__text {
-  font-size: 15px;
-  line-height: 1.7;
-  color: #2a2a3e;
-  word-break: keep-all;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.dark .situation-hero__text {
-  color: #e8e8f0;
-}
-
-.situation-hero__bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 12px;
-}
-
-.situation-hero__ref {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--hero-color);
-}
-
-.dark .situation-hero__ref {
-  color: color-mix(in srgb, var(--hero-color) 70%, white);
-}
-
-.situation-hero__cat {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px 3px 10px;
-  border-radius: 999px;
-  font-size: 11.5px;
   font-weight: 600;
-  color: var(--hero-color);
-  background: color-mix(in srgb, var(--hero-color) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--hero-color) 25%, transparent);
+  color: #8a8a99;
+}
+
+.dark .situation-mood__label {
+  color: #8f8fa3;
+}
+
+.situation-mood__row {
+  display: flex;
+  gap: 6px;
+  padding: 0 16px 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.situation-mood__row::-webkit-scrollbar {
+  display: none;
+}
+
+.situation-mood-chip {
+  flex-shrink: 0;
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #6b6b7a;
+  background: var(--sb-surface);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s ease;
   cursor: pointer;
-  transition: background 0.15s ease;
 }
 
-.situation-hero__cat:hover {
-  background: color-mix(in srgb, var(--hero-color) 22%, transparent);
+.dark .situation-mood-chip {
+  color: #a5a5b5;
 }
 
-.situation-hero__cat:active {
+.situation-mood-chip:active {
   transform: scale(0.95);
 }
 
-.dark .situation-hero__cat {
-  color: color-mix(in srgb, var(--hero-color) 70%, white);
+.situation-mood-chip.is-active {
+  color: white;
+  font-weight: 600;
+  background: var(--sb-accent);
+}
+
+.dark .situation-mood-chip.is-active {
+  color: #1c1c25;
+  background: var(--sb-accent);
+}
+
+/* 무드 선택 중 나머지 태그는 흐리게 → 현재 필터가 한눈에 보이도록 */
+.situation-mood-chip.is-dimmed {
+  opacity: 0.45;
 }
 
 /* ── 그룹 탭 ────────────────────────────────────────────────────── */
@@ -289,7 +277,7 @@
 .situation-tabs {
   display: flex;
   gap: 8px;
-  padding: 16px 16px 0;
+  padding: 18px 16px 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -305,7 +293,7 @@
   font-size: 13px;
   font-weight: 600;
   color: #6b7280;
-  background: #f3f4f6;
+  background: var(--sb-surface);
   border: 1.5px solid transparent;
   transition: all 0.15s ease;
   white-space: nowrap;
@@ -313,53 +301,44 @@
 
 .dark .situation-tab {
   color: #9ca3af;
-  background: #26263a;
 }
 
 .situation-tab.is-active {
   color: white;
-  background: #a855f7;
+  background: var(--sb-accent);
 }
 
 .dark .situation-tab.is-active {
-  color: white;
-  background: #8b5cf6;
+  color: #1c1c25;
 }
 
-/* ── 카테고리 카드 ──────────────────────────────────────────────── */
+/* ── 카테고리 리스트 ────────────────────────────────────────────── */
 
-.situation-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.situation-card {
+.situation-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 20px 12px 14px;
-  border-radius: 16px;
-  /* 감성 틴트: 상단에서 은은하게 스며드는 치유 톤 그라데이션 */
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--card-tint) 9%, white) 0%,
-    color-mix(in srgb, var(--card-tint) 3%, white) 45%,
-    white 100%
-  );
-  border: 1.5px solid color-mix(in srgb, var(--card-tint) 12%, #f0f0f0);
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  cursor: pointer;
-  /* 필터 변경 시 부드럽게 등장 (backwards: 종료 후 transform 해제 → :active scale 유지) */
-  animation: situation-card-in 0.25s ease backwards;
 }
 
-@keyframes situation-card-in {
+.situation-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px;
+  text-align: left;
+  border-bottom: 1px solid #f0efeb;
+  transition: background 0.15s ease;
+  cursor: pointer;
+  animation: situation-row-in 0.25s ease backwards;
+}
+
+.situation-row:last-child {
+  border-bottom: none;
+}
+
+@keyframes situation-row-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -367,99 +346,54 @@
   }
 }
 
-.dark .situation-card {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--card-tint) 15%, #1e1e2e) 0%,
-    color-mix(in srgb, var(--card-tint) 6%, #1e1e2e) 45%,
-    #1e1e2e 100%
-  );
-  border-color: color-mix(in srgb, var(--card-tint) 20%, #2e2e3e);
+.dark .situation-row {
+  border-bottom-color: #26262f;
 }
 
-.situation-card:active {
-  transform: scale(0.97);
+.situation-row:hover {
+  background: color-mix(in srgb, var(--sb-accent) 4%, transparent);
 }
 
-.situation-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+.situation-row:active {
+  background: color-mix(in srgb, var(--sb-accent) 8%, transparent);
 }
 
-.situation-card__icon-wrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
+.situation-row__icon-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(
-    circle at 32% 28%,
-    color-mix(in srgb, var(--card-tint) 26%, transparent),
-    color-mix(in srgb, var(--card-color) 12%, transparent)
-  );
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--card-tint) 20%, transparent);
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--sb-accent) 10%, transparent);
 }
 
-.situation-card:hover .situation-card__icon-wrap {
-  background: radial-gradient(
-    circle at 32% 28%,
-    color-mix(in srgb, var(--card-tint) 36%, transparent),
-    color-mix(in srgb, var(--card-color) 20%, transparent)
-  );
-  box-shadow: 0 5px 18px color-mix(in srgb, var(--card-tint) 30%, transparent);
+.situation-row__icon {
+  font-size: 20px;
+  color: var(--sb-accent);
 }
 
-.dark .situation-card__icon-wrap {
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--card-tint) 28%, transparent);
-}
-
-.situation-card__icon {
-  font-size: 26px;
-  color: var(--card-color);
-}
-
-.situation-card__name {
-  font-size: 13.5px;
+.situation-row__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
   font-weight: 600;
-  color: #1a1a2e;
-  text-align: center;
-  line-height: 1.3;
+  color: var(--sb-ink);
   word-break: keep-all;
 }
 
-.dark .situation-card__name {
-  color: #e8e8f0;
+.situation-row__chevron {
+  font-size: 20px;
+  color: #c8c8d0;
+  flex-shrink: 0;
 }
 
-.situation-card__tags {
-  font-size: 10.5px;
-  color: #9ca3af;
-  letter-spacing: 0.02em;
+.dark .situation-row__chevron {
+  color: #4b4b5c;
 }
 
-.dark .situation-card__tags {
-  color: #9191ab;
-}
-
-.situation-card__count {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 2px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--card-color);
-  background: color-mix(in srgb, var(--card-color) 10%, transparent);
-}
-
-.situation-card__count-icon {
-  font-size: 13px;
-}
-
-/* ── 구절 배지 ─────────────────────────────────────────────────── */
+/* ── 구절 목록 화면 ─────────────────────────────────────────────── */
 
 .situation-verse__badge {
   display: inline-flex;
@@ -468,6 +402,18 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  background: color-mix(in srgb, var(--badge-color) 12%, transparent);
-  color: var(--badge-color);
+  background: color-mix(in srgb, var(--sb-accent) 11%, transparent);
+  color: var(--sb-accent-deep);
+}
+
+.situation-verse__more {
+  color: #9ca3af;
+}
+
+.dark .situation-verse__more {
+  color: #6b6b7a;
+}
+
+.group:hover .situation-verse__more {
+  color: var(--sb-accent);
 }

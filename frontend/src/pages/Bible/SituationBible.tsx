@@ -47,24 +47,17 @@ const KEYWORDS: Record<string, string[]> = {
   '용서가 어려울 때': ['용서', '화해', '관계'],
 }
 
-// "오늘 마음이 어떠세요?" 무드 칩 — 감정을 먼저 고르면 맞는 카테고리로 필터링
-const MOODS: { emoji: string; label: string; color: string; names: string[] }[] = [
-  { emoji: '😔', label: '힘들어요', color: '#f4a940', names: ['우울할 때', '괴로울 때', '낙심될 때'] },
-  { emoji: '😟', label: '불안해요', color: '#6366f1', names: ['두려울 때', '걱정될 때', '위기일 때', '재난·재해시'] },
-  { emoji: '😢', label: '슬퍼요', color: '#3b82f6', names: ['슬플 때', '고독할 때'] },
-  { emoji: '🤒', label: '아파요', color: '#f43f5e', names: ['몸이 아플 때'] },
-  { emoji: '😶', label: '멀게 느껴져요', color: '#ec4899', names: ['하나님과 멀어졌을 때', '하나님을 의심할 때', '용서가 어려울 때'] },
-  { emoji: '😌', label: '쉬고 싶어요', color: '#22c55e', names: ['평안이 필요할 때', '인도가 필요할 때'] },
-  { emoji: '🙏', label: '감사해요', color: '#f59e0b', names: ['감사할 때'] },
+// "오늘 마음이 어떠세요?" 무드 태그 — 감정을 먼저 고르면 맞는 카테고리로 필터링.
+// 검색창 아래 추천 태그 형태로 텍스트만 배치해 시각 부담을 줄인다.
+const MOODS: { label: string; names: string[] }[] = [
+  { label: '힘들어요', names: ['우울할 때', '괴로울 때', '낙심될 때'] },
+  { label: '불안해요', names: ['두려울 때', '걱정될 때', '위기일 때', '재난·재해시'] },
+  { label: '슬퍼요', names: ['슬플 때', '고독할 때'] },
+  { label: '아파요', names: ['몸이 아플 때'] },
+  { label: '멀게 느껴져요', names: ['하나님과 멀어졌을 때', '하나님을 의심할 때', '용서가 어려울 때'] },
+  { label: '쉬고 싶어요', names: ['평안이 필요할 때', '인도가 필요할 때'] },
+  { label: '감사해요', names: ['감사할 때'] },
 ]
-
-// 감성 틴트 — 카드 배경 그라데이션용. 아이콘 색(cat.color)이 감정적으로 차갑게 느껴지는
-// 카테고리만 치유 톤으로 보정하고, 나머지는 카테고리 색을 그대로 쓴다.
-const TINTS: Record<string, string> = {
-  '우울할 때': '#f4a940', // 회색 구름 아이콘 + 따뜻한 노란빛 배경
-  '괴로울 때': '#fb923c', // 포근한 주황빛
-  '재난·재해시': '#38bdf8', // 차분한 하늘빛
-}
 
 const matchesQuery = (cat: SituationCategory, q: string) => {
   if (cat.name.includes(q)) return true
@@ -158,65 +151,16 @@ const SituationBible = () => {
           <div className="pb-8">
             {isLoading ? (
               <div className="flex justify-center py-20">
-                <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-purple-500 rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-gray-400 dark:border-t-gray-300 rounded-full animate-spin" />
               </div>
             ) : (
               <>
-                {/* 오늘 마음이 어떠세요? — 무드 칩 */}
-                {!q && (
-                  <div className="px-4 pt-4">
-                    <p className="situation-mood__title">오늘 마음이 어떠세요?</p>
-                    <div className="situation-mood__chips">
-                      {MOODS.map((m) => (
-                        <button
-                          key={m.label}
-                          onClick={() => {
-                            setMood((prev) => (prev === m.label ? null : m.label))
-                            setActiveGroup('전체')
-                          }}
-                          className={`situation-mood-chip${
-                            mood === m.label ? ' is-active' : mood ? ' is-dimmed' : ''
-                          }`}
-                          style={{ '--mood-color': m.color } as React.CSSProperties}
-                        >
-                          <span className="situation-mood-chip__emoji">{m.emoji}</span>
-                          {m.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 검색창 */}
-                <div className="px-4 pt-4">
-                  <div className="situation-search">
-                    <span className="material-icons-round situation-search__icon">search</span>
-                    <input
-                      type="text"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="외로움, 취업, 위로… 마음을 검색해보세요"
-                      className="situation-search__input"
-                    />
-                    {query && (
-                      <button
-                        onClick={() => setQuery('')}
-                        className="situation-search__clear"
-                        aria-label="검색어 지우기"
-                      >
-                        <span className="material-icons-round text-[16px]">close</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 오늘의 추천 성구 (검색 중에는 숨김) */}
+                {/* 오늘의 위로 말씀 — 화면의 중심. 최상단에 크고 여유 있게 (검색 중에는 숨김) */}
                 {!q && heroCat && (
-                  <div className="px-4 pt-4">
+                  <div className="px-4 pt-5">
                     {heroVerse ? (
                       <div
                         className="situation-hero"
-                        style={{ '--hero-color': heroCat.color } as React.CSSProperties}
                         onClick={() => handleVerseClick(heroVerse)}
                         role="button"
                         tabIndex={0}
@@ -251,7 +195,6 @@ const SituationBible = () => {
                             className="situation-hero__cat"
                             aria-label={`${heroCat.name} 말씀 전체 보기`}
                           >
-                            <span className="material-icons-round text-[13px]">{heroCat.icon}</span>
                             {heroCat.name}
                             <span className="material-icons-round text-[13px]">chevron_right</span>
                           </button>
@@ -260,6 +203,52 @@ const SituationBible = () => {
                     ) : (
                       <div className="situation-hero situation-hero--skeleton" />
                     )}
+                  </div>
+                )}
+
+                {/* 검색창 */}
+                <div className="px-4 pt-5">
+                  <div className="situation-search">
+                    <span className="material-icons-round situation-search__icon">search</span>
+                    <input
+                      type="text"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="외로움, 취업, 위로… 마음을 검색해보세요"
+                      className="situation-search__input"
+                    />
+                    {query && (
+                      <button
+                        onClick={() => setQuery('')}
+                        className="situation-search__clear"
+                        aria-label="검색어 지우기"
+                      >
+                        <span className="material-icons-round text-[16px]">close</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 오늘 마음이 어떠세요? — 검색창 아래 추천 태그 (한 줄 스크롤) */}
+                {!q && (
+                  <div className="situation-mood">
+                    <span className="situation-mood__label">오늘 마음이 어떠세요?</span>
+                    <div className="situation-mood__row">
+                      {MOODS.map((m) => (
+                        <button
+                          key={m.label}
+                          onClick={() => {
+                            setMood((prev) => (prev === m.label ? null : m.label))
+                            setActiveGroup('전체')
+                          }}
+                          className={`situation-mood-chip${
+                            mood === m.label ? ' is-active' : mood ? ' is-dimmed' : ''
+                          }`}
+                        >
+                          {m.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -278,8 +267,8 @@ const SituationBible = () => {
                   </div>
                 )}
 
-                {/* 카드 그리드 */}
-                <div className="px-4 pt-3">
+                {/* 카테고리 리스트 */}
+                <div className="px-4 pt-2">
                   {visibleCategories.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center px-6">
                       <span className="material-icons-outlined text-[44px] text-gray-300 dark:text-gray-600 mb-3">
@@ -290,41 +279,24 @@ const SituationBible = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="situation-grid" key={`${q}|${mood ?? ''}|${activeGroup}`}>
-                      {visibleCategories.map((cat) => {
-                        const tags = (KEYWORDS[cat.name] ?? []).slice(0, 2)
-                        return (
-                          <button
-                            key={cat.id}
-                            onClick={() => setSelected(cat)}
-                            className="situation-card group"
-                            style={{
-                              '--card-color': cat.color,
-                              '--card-tint': TINTS[cat.name] ?? cat.color,
-                            } as React.CSSProperties}
-                          >
-                            <div className="situation-card__icon-wrap">
-                              <span className="material-icons-round situation-card__icon">
-                                {cat.icon}
-                              </span>
-                            </div>
-                            <span className="situation-card__name">{cat.name}</span>
-                            {tags.length > 0 && (
-                              <span className="situation-card__tags">
-                                {tags.map((t) => `#${t}`).join(' ')}
-                              </span>
-                            )}
-                            {cat.verse_count > 0 && (
-                              <span className="situation-card__count">
-                                <span className="material-icons-round situation-card__count-icon">
-                                  auto_stories
-                                </span>
-                                {cat.verse_count}
-                              </span>
-                            )}
-                          </button>
-                        )
-                      })}
+                    <div className="situation-list" key={`${q}|${mood ?? ''}|${activeGroup}`}>
+                      {visibleCategories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          onClick={() => setSelected(cat)}
+                          className="situation-row"
+                        >
+                          <span className="situation-row__icon-wrap">
+                            <span className="material-icons-round situation-row__icon">
+                              {cat.icon}
+                            </span>
+                          </span>
+                          <span className="situation-row__name">{cat.name}</span>
+                          <span className="material-icons-round situation-row__chevron">
+                            chevron_right
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -338,7 +310,7 @@ const SituationBible = () => {
           <div className="pb-8">
             {versesLoading ? (
               <div className="flex justify-center py-20">
-                <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-purple-500 rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-gray-400 dark:border-t-gray-300 rounded-full animate-spin" />
               </div>
             ) : !detail || detail.verses.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center px-6">
@@ -359,10 +331,7 @@ const SituationBible = () => {
                     >
                       {/* 참조 배지 */}
                       <div className="flex items-center gap-2 mb-2">
-                        <span
-                          className="situation-verse__badge"
-                          style={{ '--badge-color': selected.color } as React.CSSProperties}
-                        >
+                        <span className="situation-verse__badge">
                           {v.book_name_ko} {v.chapter}:{v.verse}
                         </span>
                         <span className="text-[11px] text-gray-300 dark:text-gray-600 tabular-nums">
@@ -376,7 +345,7 @@ const SituationBible = () => {
                       </p>
 
                       {/* 성경 바로가기 */}
-                      <div className="flex items-center gap-1 mt-3 text-[12px] font-medium text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors">
+                      <div className="situation-verse__more flex items-center gap-1 mt-3 text-[12px] font-medium transition-colors">
                         <span>본문 보기</span>
                         <span className="material-icons-outlined text-[14px]">chevron_right</span>
                       </div>
