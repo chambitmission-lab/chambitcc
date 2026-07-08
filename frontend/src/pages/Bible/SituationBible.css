@@ -1,3 +1,253 @@
+/* ── 검색창 ─────────────────────────────────────────────────────── */
+
+.situation-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: 44px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  border: 1.5px solid transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.situation-search:focus-within {
+  background: white;
+  border-color: #a855f7;
+}
+
+.dark .situation-search {
+  background: #26263a;
+}
+
+.dark .situation-search:focus-within {
+  background: #1e1e2e;
+  border-color: #a78bfa;
+}
+
+.situation-search__icon {
+  font-size: 20px;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.situation-search__input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #1a1a2e;
+}
+
+.situation-search__input::placeholder {
+  color: #b0b3bd;
+}
+
+.dark .situation-search__input {
+  color: #e8e8f0;
+}
+
+.dark .situation-search__input::placeholder {
+  color: #5c5c72;
+}
+
+.situation-search__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #d1d5db;
+  color: white;
+  flex-shrink: 0;
+}
+
+.dark .situation-search__clear {
+  background: #4b4b60;
+}
+
+/* ── 오늘의 추천 성구 (Hero) ────────────────────────────────────── */
+
+.situation-hero {
+  position: relative;
+  border-radius: 18px;
+  padding: 18px 18px 16px;
+  cursor: pointer;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--hero-color) 14%, white),
+    color-mix(in srgb, var(--hero-color) 4%, white)
+  );
+  border: 1.5px solid color-mix(in srgb, var(--hero-color) 22%, transparent);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.situation-hero:active {
+  transform: scale(0.98);
+}
+
+.dark .situation-hero {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--hero-color) 22%, #1e1e2e),
+    color-mix(in srgb, var(--hero-color) 8%, #1e1e2e)
+  );
+  border-color: color-mix(in srgb, var(--hero-color) 35%, transparent);
+}
+
+.situation-hero--skeleton {
+  height: 148px;
+  cursor: default;
+  background: #f3f4f6;
+  border-color: transparent;
+  animation: situation-pulse 1.4s ease-in-out infinite;
+}
+
+.dark .situation-hero--skeleton {
+  background: #26263a;
+}
+
+@keyframes situation-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.situation-hero__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.situation-hero__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--hero-color);
+}
+
+.dark .situation-hero__label {
+  color: color-mix(in srgb, var(--hero-color) 70%, white);
+}
+
+.situation-hero__shuffle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--hero-color);
+  background: color-mix(in srgb, var(--hero-color) 12%, transparent);
+  transition: background 0.15s ease, transform 0.3s ease;
+}
+
+.situation-hero__shuffle:active {
+  transform: rotate(180deg);
+}
+
+.dark .situation-hero__shuffle {
+  color: color-mix(in srgb, var(--hero-color) 70%, white);
+}
+
+.situation-hero__text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #2a2a3e;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dark .situation-hero__text {
+  color: #e8e8f0;
+}
+
+.situation-hero__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.situation-hero__ref {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--hero-color);
+}
+
+.dark .situation-hero__ref {
+  color: color-mix(in srgb, var(--hero-color) 70%, white);
+}
+
+.situation-hero__cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--hero-color);
+  background: color-mix(in srgb, var(--hero-color) 12%, transparent);
+}
+
+.dark .situation-hero__cat {
+  color: color-mix(in srgb, var(--hero-color) 70%, white);
+}
+
+/* ── 그룹 탭 ────────────────────────────────────────────────────── */
+
+.situation-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 16px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.situation-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.situation-tab {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1.5px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.dark .situation-tab {
+  color: #9ca3af;
+  background: #26263a;
+}
+
+.situation-tab.is-active {
+  color: white;
+  background: #a855f7;
+}
+
+.dark .situation-tab.is-active {
+  color: white;
+  background: #8b5cf6;
+}
+
+/* ── 카테고리 카드 ──────────────────────────────────────────────── */
+
 .situation-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -8,19 +258,30 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 20px 12px 16px;
+  gap: 6px;
+  padding: 20px 12px 14px;
   border-radius: 16px;
-  background: white;
-  border: 1.5px solid #f0f0f0;
+  /* 감성 틴트: 상단에서 은은하게 스며드는 치유 톤 그라데이션 */
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--card-tint) 9%, white) 0%,
+    color-mix(in srgb, var(--card-tint) 3%, white) 45%,
+    white 100%
+  );
+  border: 1.5px solid color-mix(in srgb, var(--card-tint) 12%, #f0f0f0);
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   cursor: pointer;
 }
 
 .dark .situation-card {
-  background: #1e1e2e;
-  border-color: #2e2e3e;
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--card-tint) 15%, #1e1e2e) 0%,
+    color-mix(in srgb, var(--card-tint) 6%, #1e1e2e) 45%,
+    #1e1e2e 100%
+  );
+  border-color: color-mix(in srgb, var(--card-tint) 20%, #2e2e3e);
 }
 
 .situation-card:active {
@@ -38,12 +299,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--card-color) 15%, transparent);
-  transition: background 0.15s ease;
+  background: radial-gradient(
+    circle at 32% 28%,
+    color-mix(in srgb, var(--card-tint) 26%, transparent),
+    color-mix(in srgb, var(--card-color) 12%, transparent)
+  );
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--card-tint) 20%, transparent);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .situation-card:hover .situation-card__icon-wrap {
-  background: color-mix(in srgb, var(--card-color) 25%, transparent);
+  background: radial-gradient(
+    circle at 32% 28%,
+    color-mix(in srgb, var(--card-tint) 36%, transparent),
+    color-mix(in srgb, var(--card-color) 20%, transparent)
+  );
+  box-shadow: 0 5px 18px color-mix(in srgb, var(--card-tint) 30%, transparent);
+}
+
+.dark .situation-card__icon-wrap {
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--card-tint) 28%, transparent);
 }
 
 .situation-card__icon {
@@ -64,10 +339,31 @@
   color: #e8e8f0;
 }
 
+.situation-card__tags {
+  font-size: 10.5px;
+  color: #b0b3bd;
+  letter-spacing: 0.01em;
+}
+
+.dark .situation-card__tags {
+  color: #5c5c72;
+}
+
 .situation-card__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  padding: 3px 9px;
+  border-radius: 999px;
   font-size: 11px;
+  font-weight: 600;
   color: var(--card-color);
-  font-weight: 500;
+  background: color-mix(in srgb, var(--card-color) 10%, transparent);
+}
+
+.situation-card__count-icon {
+  font-size: 13px;
 }
 
 /* ── 구절 배지 ─────────────────────────────────────────────────── */

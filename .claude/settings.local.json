@@ -158,7 +158,11 @@
       "Bash(sips -g pixelWidth -g pixelHeight verse-crop-3x.png)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)",
       "Bash(CHROMIUM_PATH=/Users/kimhuisik/Library/Caches/ms-playwright/chromium-1228/chrome-mac/Chromium.app/Contents/MacOS/Chromium node menu-shot.mjs)",
-      "Bash(CHROMIUM_PATH=/Users/kimhuisik/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell node menu-shot.mjs)"
+      "Bash(CHROMIUM_PATH=/Users/kimhuisik/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell node menu-shot.mjs)",
+      "Bash(grep -ril \"situation\" /Users/kimhuisik/idea/chambit_f --include=\"*.tsx\" --include=\"*.ts\" --include=\"*.css\" -g '!node_modules')",
+      "Bash(curl -s -o /dev/null -w \"5173:%{http_code} \" http://localhost:5173)",
+      "Bash(curl -s -o /dev/null -w \"8000:%{http_code}\\\\n\" http://localhost:8000/docs)",
+      "Bash(curl -s http://localhost:8000/api/v1/situations)"
     ]
   }
 }
