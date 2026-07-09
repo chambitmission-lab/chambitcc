@@ -47,6 +47,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const { language } = useLanguage()
   const [testament, setTestament] = useState<Testament>('OT')
   const [filter, setFilter] = useState<string>('all')
+  // 서브 필터가 어느 방향에서 슬라이드 인 될지 — OT→NT는 우측(forward), NT→OT는 좌측(back)에서 들어온다
+  const [dir, setDir] = useState<'forward' | 'back'>('forward')
 
   const texts = {
     ko: {
@@ -72,6 +74,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const t = texts[language]
 
   const handleTestamentChange = (next: Testament) => {
+    if (next === testament) return
+    setDir(next === 'NT' ? 'forward' : 'back')
     setTestament(next)
     setFilter('all')
   }
@@ -97,7 +101,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
           </span>
         )}
         <span>{book.book_name_ko}</span>
-        {resume && (
+        {resume && !isComplete && (
           <span className="book-resume-badge">{resume.chapter}장 읽는 중</span>
         )}
         {hasProgress && (
@@ -192,32 +196,40 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       {/* 구약/신약 탭 + 서브 카테고리 칩 — 한 패널로 묶어 "칩은 탭에 종속"임을 시각적으로 표현.
           탭 전환 시 key가 바뀌며 칩들이 순차적으로 슬라이드 인 된다. */}
       <div className="book-nav">
-        <div className="testament-tabs">
+        <div className="testament-tabs" role="tablist" data-active={testament}>
+          {/* 슬라이딩 선택 마커 — 트랙 위를 부드럽게 이동한다 */}
+          <span className="testament-marker" aria-hidden="true" />
           <button
             type="button"
+            role="tab"
+            aria-selected={testament === 'OT'}
             className={`testament-tab${testament === 'OT' ? ' active' : ''}`}
             onClick={() => handleTestamentChange('OT')}
           >
-            {t.oldTestament}
+            <span className="material-icons-round testament-tab__icon">auto_stories</span>
+            <span className="testament-tab__label">{t.oldTestament}</span>
             <span className="testament-tab__count">39</span>
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={testament === 'NT'}
             className={`testament-tab${testament === 'NT' ? ' active' : ''}`}
             onClick={() => handleTestamentChange('NT')}
           >
-            {t.newTestament}
+            <span className="material-icons-round testament-tab__icon">menu_book</span>
+            <span className="testament-tab__label">{t.newTestament}</span>
             <span className="testament-tab__count">27</span>
           </button>
         </div>
 
-        <div className="book-filter" key={testament}>
+        <div className="book-filter" key={testament} data-dir={dir}>
           {categories.map((cat, i) => (
             <button
               key={cat.id}
               type="button"
               className={`book-filter-chip${filter === cat.id ? ' active' : ''}`}
-              style={{ animationDelay: `${i * 40}ms` }}
+              style={{ animationDelay: `${i * 45}ms` }}
               onClick={() => setFilter(cat.id)}
             >
               {cat.label}
