@@ -175,7 +175,7 @@ const NewHome = () => {
             <AnnualThemeVerse />
 
             {/* 오늘의 묵상 카드 (통독표 + 시간대/감정 컨텍스트) */}
-            <DailyMeditationCard />
+            <DailyMeditationCard onWriteMeditation={handleComposerOpen} />
 
             {/* 오늘의 읽기 — 진행 중인 구독형 읽기 플랜(bible_plans) */}
             <TodayPlanCard />

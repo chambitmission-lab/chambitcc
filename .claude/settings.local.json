@@ -177,7 +177,9 @@
       "Bash(curl -s http://localhost:9222/json)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/docs)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://localhost:8000/api/notifications?limit=5\")",
-      "Bash(curl -s \"http://localhost:8000/api/notifications?limit=5\")"
+      "Bash(curl -s \"http://localhost:8000/api/notifications?limit=5\")",
+      "Bash(curl -s http://localhost:8000/api/v1/health --max-time 2)",
+      "Bash(curl -s \"http://localhost:8000/api/daily-verse\" --max-time 2 -o /dev/null -w \"%{http_code}\")"
     ]
   }
 }
