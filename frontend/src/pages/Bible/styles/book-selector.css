@@ -134,7 +134,7 @@
   display: flex;
   gap: 0;
   /* 상위(세그먼트) ↔ 하위(필터 칩) 위계 구분을 위해 여백을 조금 넉넉히 */
-  margin-bottom: 0.875rem;
+  margin-bottom: 1.25rem;
   background: var(--ig-secondary-background);
   border-radius: 12px;
   padding: 3px;
