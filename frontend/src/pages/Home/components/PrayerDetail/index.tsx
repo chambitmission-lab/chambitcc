@@ -137,16 +137,13 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
             displayName={prayer.display_name}
             timeAgo={prayer.time_ago}
             isOwner={prayer.is_owner || false}
-          />
-
-          <PrayerContent
-            title={displayTitle}
-            content={displayContent}
             hasTranslation={hasTranslation}
             showTranslation={showTranslation}
             nextLanguage={nextLanguage}
             onTranslationToggle={toggleTranslation}
           />
+
+          <PrayerContent title={displayTitle} content={displayContent} />
 
           {/* 통계를 버튼 바로 위에 붙여 "5명이 함께 기도 중 → 나도 기도하기" 흐름으로 */}
           <PrayerStats

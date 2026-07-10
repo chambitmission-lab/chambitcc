@@ -18,7 +18,7 @@ type DateGroup = 'today' | 'week' | 'older'
 const GROUP_LABELS: Record<DateGroup, string> = {
   today: '오늘',
   week: '이번 주',
-  older: '이전',
+  older: '지난 공지',
 }
 
 const formatDate = (iso: string) => {
@@ -201,9 +201,20 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
             <button
               onClick={onClose}
               aria-label="닫기"
-              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/60 rounded-md transition-colors"
+              className="w-11 h-11 -my-1.5 -mr-2 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 active:bg-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/60 dark:active:bg-gray-800 rounded-full transition-colors"
             >
-              <span className="material-icons-outlined text-[18px]">close</span>
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                aria-hidden
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
@@ -231,13 +242,16 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
 
                 return (
                   <div key={group}>
-                    <div className="sticky top-0 px-5 py-2 bg-gray-50/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
-                      <span className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 tracking-wider uppercase">
+                    <div className="sticky top-0 z-10 px-5 pt-4 pb-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
+                      <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 tracking-wider">
                         {GROUP_LABELS[group]}
+                        <span className="ml-1.5 font-normal text-gray-400 dark:text-gray-500">
+                          {items.length}건
+                        </span>
                       </span>
                     </div>
 
-                    <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                    <ul className="px-3 pb-1 space-y-2">
                       {items.map((notification) => {
                         const unread = !notification.is_read
                         const expanded = expandedIds.has(notification.id)
@@ -248,10 +262,10 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                             <button
                               type="button"
                               onClick={() => toggleExpand(notification)}
-                              className={`group w-full text-left px-5 py-4 transition-colors ${
+                              className={`group w-full text-left px-4 py-3.5 rounded-xl border transition-colors ${
                                 unread
-                                  ? 'bg-purple-50/40 dark:bg-purple-500/[0.04] hover:bg-purple-50/70 dark:hover:bg-purple-500/[0.07]'
-                                  : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
+                                  ? 'border-purple-200/70 dark:border-purple-500/20 bg-purple-50/50 dark:bg-purple-500/[0.06] hover:bg-purple-50/80 dark:hover:bg-purple-500/[0.1]'
+                                  : 'border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/30 hover:bg-gray-100/70 dark:hover:bg-gray-800/50'
                               }`}
                             >
                               <div className="flex items-start gap-3">
@@ -288,11 +302,22 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                   </p>
 
                                   {expandable && (
-                                    <div className="mt-2 flex items-center gap-0.5 text-[12px] font-medium text-purple-500 dark:text-purple-400">
+                                    <div className="mt-2 flex items-center gap-1 text-[12px] font-medium text-purple-500 dark:text-purple-400">
                                       <span>{expanded ? '접기' : '더 보기'}</span>
-                                      <span className="material-icons-outlined text-[14px] leading-none">
-                                        {expanded ? 'expand_less' : 'expand_more'}
-                                      </span>
+                                      <svg
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                                        aria-hidden
+                                      >
+                                        <path d="M6 9l6 6 6-6" />
+                                      </svg>
                                     </div>
                                   )}
                                 </div>
@@ -307,16 +332,20 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
               })}
 
               {/* 무한 스크롤 sentinel */}
-              <div ref={sentinelRef} className="py-2">
+              <div ref={sentinelRef} className="py-1">
                 {isFetchingNextPage && (
                   <div className="flex justify-center py-3">
                     <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-purple-500 rounded-full animate-spin" />
                   </div>
                 )}
                 {!hasNextPage && notifications.length > 0 && (
-                  <p className="text-center text-[11px] text-gray-300 dark:text-gray-700 py-3">
-                    공지사항을 모두 불러왔습니다
-                  </p>
+                  <div className="flex items-center gap-3 px-8 py-4">
+                    <span className="flex-1 h-px bg-gray-200/70 dark:bg-gray-800" aria-hidden />
+                    <span className="text-[11px] text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                      모든 공지사항을 확인했습니다
+                    </span>
+                    <span className="flex-1 h-px bg-gray-200/70 dark:bg-gray-800" aria-hidden />
+                  </div>
                 )}
               </div>
             </div>

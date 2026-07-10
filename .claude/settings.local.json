@@ -174,7 +174,10 @@
       "Bash(lsof -ti:5173)",
       "Bash(\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" --headless --disable-gpu --hide-scrollbars --remote-debugging-port=9222 --user-data-dir=\"/private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/e46bc604-6d7a-4be2-9fe4-c688fdce883a/scratchpad/cdp-profile\" \"about:blank\")",
       "Bash(curl -s http://localhost:9222/json/version)",
-      "Bash(curl -s http://localhost:9222/json)"
+      "Bash(curl -s http://localhost:9222/json)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/docs)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://localhost:8000/api/notifications?limit=5\")",
+      "Bash(curl -s \"http://localhost:8000/api/notifications?limit=5\")"
     ]
   }
 }
