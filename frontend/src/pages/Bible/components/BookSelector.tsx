@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
 import type { ResumePosition } from '../../../api/bibleReading'
@@ -50,6 +50,30 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   // 서브 필터가 어느 방향에서 슬라이드 인 될지 — OT→NT는 우측(forward), NT→OT는 좌측(back)에서 들어온다
   const [dir, setDir] = useState<'forward' | 'back'>('forward')
 
+  // 최근 읽은 책 슬라이더 — 스크롤 여지가 있는 방향에만 엣지 페이드를 켠다
+  const recentScrollRef = useRef<HTMLDivElement>(null)
+  const [recentFade, setRecentFade] = useState({ left: false, right: false })
+
+  const updateRecentFade = useCallback(() => {
+    const el = recentScrollRef.current
+    if (!el) return
+    const left = el.scrollLeft > 4
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 4
+    setRecentFade(prev => (prev.left === left && prev.right === right ? prev : { left, right }))
+  }, [])
+
+  // 최근 읽은 책 — book_number로 실제 책을 찾아 onBookSelect에 resume까지 넘긴다
+  const recentItems = (recentBooks || [])
+    .map(pos => ({ pos, book: books?.find(b => b.book_number === pos.book_number) }))
+    .filter((x): x is { pos: ResumePosition; book: BibleBook } => !!x.book)
+    .slice(0, 8)
+
+  useEffect(() => {
+    updateRecentFade()
+    window.addEventListener('resize', updateRecentFade)
+    return () => window.removeEventListener('resize', updateRecentFade)
+  }, [recentItems.length, updateRecentFade])
+
   const texts = {
     ko: {
       selectBook: '책 선택',
@@ -83,7 +107,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const categories = testament === 'OT' ? OT_CATEGORIES : NT_CATEGORIES
   const activeCategory = categories.find(c => c.id === filter) ?? categories[0]
 
-  const renderBook = (book: BibleBook) => {
+  const renderBook = (book: BibleBook, index: number) => {
     const resume = resumeMap?.get(book.book_number)
     const progress = Math.max(0, Math.min(100, progressMap?.get(book.id) ?? 0))
     const isComplete = progress >= 100
@@ -93,6 +117,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       <button
         key={book.id}
         className={`book-button${resume ? ' book-button-has-resume' : ''}${isComplete ? ' book-button-complete' : ''}`}
+        // 필터 전환 시 앞에서부터 순차적으로 떠오르는 스태거 — 뒤쪽 카드는 딜레이 상한으로 묶는다
+        style={{ animationDelay: `${Math.min(index * 14, 320)}ms` }}
         onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
       >
         {isComplete && (
@@ -157,12 +183,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const filteredBooks =
     books?.filter(b => b.book_number >= activeCategory.min && b.book_number <= activeCategory.max) || []
 
-  // 최근 읽은 책 슬라이더 — book_number로 실제 책을 찾아 onBookSelect에 resume까지 넘긴다
-  const recentItems = (recentBooks || [])
-    .map(pos => ({ pos, book: books?.find(b => b.book_number === pos.book_number) }))
-    .filter((x): x is { pos: ResumePosition; book: BibleBook } => !!x.book)
-    .slice(0, 8)
-
   return (
     <div className="bible-books-section">
       <h2 className="section-title">{t.selectBook}</h2>
@@ -170,25 +190,33 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       {recentItems.length > 0 && (
         <div className="recent-strip">
           <h3 className="recent-strip__title">{t.recentTitle}</h3>
-          <div className="recent-scroll">
-            {recentItems.map(({ pos, book }) => (
-              <button
-                key={book.id}
-                type="button"
-                className="recent-chip"
-                onClick={() => onBookSelect(book.id, book.book_name_ko, pos)}
-              >
-                <span className="recent-chip__icon">
-                  <span className="material-icons-round">auto_stories</span>
-                </span>
-                <span className="recent-chip__body">
-                  <span className="recent-chip__name">{book.book_name_ko}</span>
-                  <span className="recent-chip__meta">
-                    {pos.chapter}장 · {formatRelativeShort(pos.read_at)}
+          {/* peek-and-pop: 카드 폭을 고정해 다음 카드가 항상 오른쪽에 살짝 걸치고,
+              스크롤 여지가 있는 쪽에만 엣지 페이드가 켜져 "더 있음"을 알린다 */}
+          <div
+            className="recent-scroll-wrap"
+            data-fade-left={recentFade.left}
+            data-fade-right={recentFade.right}
+          >
+            <div className="recent-scroll" ref={recentScrollRef} onScroll={updateRecentFade}>
+              {recentItems.map(({ pos, book }) => (
+                <button
+                  key={book.id}
+                  type="button"
+                  className="recent-chip"
+                  onClick={() => onBookSelect(book.id, book.book_name_ko, pos)}
+                >
+                  <span className="recent-chip__icon">
+                    <span className="material-icons-round">auto_stories</span>
                   </span>
-                </span>
-              </button>
-            ))}
+                  <span className="recent-chip__body">
+                    <span className="recent-chip__name">{book.book_name_ko}</span>
+                    <span className="recent-chip__meta">
+                      {pos.chapter}장 · {formatRelativeShort(pos.read_at)}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -238,7 +266,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         </div>
       </div>
 
-      <div className="testament-section">
+      {/* key로 탭·칩 변경마다 리마운트 — 제목 페이드 + 카드 스태거 애니메이션이 다시 재생된다 */}
+      <div className="testament-section" key={`${testament}-${filter}`}>
         <h3 className="testament-title">
           {activeCategory.id === 'all'
             ? (testament === 'OT' ? t.oldTestament : t.newTestament)

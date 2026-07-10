@@ -17,15 +17,46 @@
   margin-bottom: 0.6rem;
 }
 
+/* 스크롤 힌트 래퍼 — 풀블리드 확장을 담당하고, 스크롤 여지가 있는 쪽 가장자리에 페이드를 띄운다 */
+.recent-scroll-wrap {
+  position: relative;
+  /* 컨테이너 패딩 밖까지 풀블리드로 스크롤되게 */
+  margin: 0 -1rem;
+}
+
+.recent-scroll-wrap::before,
+.recent-scroll-wrap::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0.25rem;
+  width: 2.5rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.recent-scroll-wrap::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--ig-secondary-background), transparent);
+}
+.recent-scroll-wrap::after {
+  right: 0;
+  background: linear-gradient(270deg, var(--ig-secondary-background), transparent);
+}
+.recent-scroll-wrap[data-fade-left="true"]::before,
+.recent-scroll-wrap[data-fade-right="true"]::after {
+  opacity: 1;
+}
+
 /* 가로 스크롤 스트립 — 세로 공간을 아끼고, 아래 전체 그리드와의 중복 체감을 줄인다 */
 .recent-scroll {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
-  /* 컨테이너 패딩 밖까지 풀블리드로 스크롤되게 */
-  margin: 0 -1rem;
   padding: 0 1rem 0.25rem;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 1rem;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
@@ -35,6 +66,8 @@
 
 .recent-chip {
   flex: 0 0 auto;
+  /* peek-and-pop: 뷰포트 기준 고정 폭 → 마지막으로 보이는 카드가 항상 오른쪽에 걸쳐 스크롤 가능함을 암시 */
+  width: clamp(9.25rem, 42vw, 11rem);
   scroll-snap-align: start;
   display: flex;
   align-items: center;
@@ -77,6 +110,7 @@
 }
 
 .recent-chip__body {
+  flex: 1;
   min-width: 0;
 }
 .recent-chip__name {
@@ -85,6 +119,8 @@
   font-weight: 700;
   color: var(--ig-primary-text);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .recent-chip__meta {
   display: block;
@@ -320,12 +356,49 @@
   color: var(--ig-secondary-text);
   margin-bottom: 0.75rem;
   letter-spacing: -0.005em;
+  /* 필터 전환(섹션 리마운트) 시 제목이 살짝 밀려 들어오며 교체 */
+  animation: title-fade-in 0.24s ease both;
+}
+
+@keyframes title-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .books-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
+}
+
+/* 필터 칩 선택 시(그리드 리마운트) 카드가 앞에서부터 순차적으로 떠오른다 — delay는 인라인 스타일.
+   fill-mode는 backwards: 종료 후 keyframe이 hover 트랜지션(transform)을 덮어쓰지 않도록 */
+.books-grid .book-button {
+  animation: book-pop-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes book-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testament-title,
+  .books-grid .book-button {
+    animation: none;
+  }
 }
 
 .book-button {

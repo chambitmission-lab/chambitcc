@@ -179,7 +179,18 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://localhost:8000/api/notifications?limit=5\")",
       "Bash(curl -s \"http://localhost:8000/api/notifications?limit=5\")",
       "Bash(curl -s http://localhost:8000/api/v1/health --max-time 2)",
-      "Bash(curl -s \"http://localhost:8000/api/daily-verse\" --max-time 2 -o /dev/null -w \"%{http_code}\")"
+      "Bash(curl -s \"http://localhost:8000/api/daily-verse\" --max-time 2 -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s -o /dev/null -w \"5173:%{http_code}\\\\n\" http://localhost:5173 --max-time 3)",
+      "Bash(curl -s -o /dev/null -w \"8000:%{http_code}\\\\n\" http://localhost:8000/docs --max-time 3)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8000/api/bible/books --max-time 3)",
+      "Bash(curl -s -o /dev/null -w \"root:%{http_code}\\\\n\" http://localhost:8000/ --max-time 3)",
+      "Bash(curl -s http://localhost:8000/openapi.json --max-time 3)",
+      "Bash(curl -s \"http://localhost:8000/api/v1/bible/books\" --max-time 3 -o /dev/null -w \"v1books:%{http_code}\\\\n\")",
+      "Bash(OUT=/private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/a0c22b0d-8085-456f-9209-93411153eadc/scratchpad/bible-default.png node *)",
+      "Read(//Users/kimhuisik/.cache/**)",
+      "Read(//Users/kimhuisik/Library/Caches/ms-playwright/**)",
+      "Read(//Users/kimhuisik/idea/chambit/frontend/node_modules/**)",
+      "Read(//Users/kimhuisik/idea/**)"
     ]
   }
 }
