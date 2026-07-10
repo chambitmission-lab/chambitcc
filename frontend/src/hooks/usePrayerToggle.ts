@@ -213,6 +213,13 @@ export const usePrayerToggle = ({
       if (previousProfileData) {
         queryClient.setQueryData(['profile', 'detail'], previousProfileData)
       }
+      // 롤백한 캐시 자체가 서버와 어긋나 있을 수 있다(어긋남이 이 에러의
+      // 원인일 가능성이 높다) — 서버 진실로 강제 재동기화해서 잘못된
+      // is_prayed에 갇히지 않게 한다.
+      queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+      if (detailQueryKey) {
+        queryClient.invalidateQueries({ queryKey: detailQueryKey })
+      }
       throw error
     }
   }
