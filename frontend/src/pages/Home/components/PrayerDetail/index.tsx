@@ -13,7 +13,6 @@ import PrayerAuthorInfo from './PrayerAuthorInfo'
 import PrayerContent from './PrayerContent'
 import PrayerActions from './PrayerActions'
 import PrayerStats from './PrayerStats'
-import OwnerBadge from './OwnerBadge'
 import RepliesSection from './RepliesSection'
 import DeleteConfirmModal from './DeleteConfirmModal'
 
@@ -74,9 +73,9 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
   const {
     toggleTranslation,
     hasTranslation,
+    showTranslation,
     displayTitle,
     displayContent,
-    translationButtonText,
     nextLanguage,
   } = useTranslation(prayer || null)
 
@@ -137,13 +136,25 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
           <PrayerAuthorInfo
             displayName={prayer.display_name}
             timeAgo={prayer.time_ago}
+            isOwner={prayer.is_owner || false}
+          />
+
+          <PrayerContent
+            title={displayTitle}
+            content={displayContent}
             hasTranslation={hasTranslation}
-            translationButtonText={translationButtonText}
+            showTranslation={showTranslation}
             nextLanguage={nextLanguage}
             onTranslationToggle={toggleTranslation}
           />
 
-          <PrayerContent title={displayTitle} content={displayContent} />
+          {/* 통계를 버튼 바로 위에 붙여 "5명이 함께 기도 중 → 나도 기도하기" 흐름으로 */}
+          <PrayerStats
+            prayerCount={prayer.prayer_count}
+            replyCount={prayer.reply_count}
+            onPrayerCountClick={handlePrayerToggle}
+            onReplyCountClick={() => setShowReplies(true)}
+          />
 
           <PrayerActions
             isPrayed={prayer.is_prayed}
@@ -152,15 +163,6 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
             onPrayerToggle={handlePrayerToggle}
             onRepliesToggle={() => setShowReplies(!showReplies)}
           />
-
-          <PrayerStats
-            prayerCount={prayer.prayer_count}
-            replyCount={prayer.reply_count}
-            onPrayerCountClick={handlePrayerToggle}
-            onReplyCountClick={() => setShowReplies(true)}
-          />
-
-          {prayer.is_owner && <OwnerBadge />}
 
           {showReplies && (
             <div ref={repliesSectionRef}>

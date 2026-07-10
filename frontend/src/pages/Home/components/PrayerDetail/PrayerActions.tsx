@@ -1,4 +1,6 @@
 // 기도하기, 댓글 버튼 컴포넌트
+// 기도 버튼은 명확한 토글: 누르기 전 = 댓글 버튼과 같은 무난한 스타일(사용자 확정),
+// 누른 후 = 그라데이션 채움 + 체크 "함께 기도했어요"(완료 피드백).
 interface PrayerActionsProps {
   isPrayed: boolean
   isToggling: boolean
@@ -19,20 +21,21 @@ const PrayerActions = ({
       <button
         onClick={onPrayerToggle}
         disabled={isToggling}
-        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all ${
+        aria-pressed={isPrayed}
+        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 active:scale-[0.97] ${
           isPrayed
             ? 'bg-gradient-to-tr from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 dark:shadow-purple-500/20'
             : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-purple-50 dark:hover:bg-white/[0.08]'
         }`}
       >
         <span className={`text-xl ${isPrayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
-          volunteer_activism
+          {isPrayed ? 'task_alt' : 'volunteer_activism'}
         </span>
-        <span>{isPrayed ? '기도중' : '기도하기'}</span>
+        <span>{isPrayed ? '함께 기도했어요' : '함께 기도하기'}</span>
       </button>
       <button
         onClick={onRepliesToggle}
-        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all ${
+        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 active:scale-[0.97] ${
           showReplies
             ? 'bg-gradient-to-tr from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30 dark:shadow-purple-500/20'
             : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-purple-50 dark:hover:bg-white/[0.08]'

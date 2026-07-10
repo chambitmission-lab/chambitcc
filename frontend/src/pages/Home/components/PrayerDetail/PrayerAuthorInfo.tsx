@@ -1,23 +1,13 @@
-import LangFlag from '../../../../components/common/LangFlag'
-import { getLanguageName } from '../../../../utils/languageFlags'
-
 // 작성자 정보 컴포넌트
+// 번역 버튼은 본문(PrayerContent) 쪽으로 이동 — 프로필 옆 국기는 작성자
+// 국적처럼 오인된다. 내 글 여부는 큰 안내 박스 대신 이름 옆 작은 태그로.
 interface PrayerAuthorInfoProps {
   displayName: string
   timeAgo: string
-  hasTranslation: boolean
-  translationButtonText: string
-  nextLanguage: string
-  onTranslationToggle: () => void
+  isOwner: boolean
 }
 
-const PrayerAuthorInfo = ({
-  displayName,
-  timeAgo,
-  hasTranslation,
-  nextLanguage,
-  onTranslationToggle,
-}: PrayerAuthorInfoProps) => {
+const PrayerAuthorInfo = ({ displayName, timeAgo, isOwner }: PrayerAuthorInfoProps) => {
   return (
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-3">
@@ -29,38 +19,17 @@ const PrayerAuthorInfo = ({
           </div>
         </div>
         <div className="flex flex-col">
-          <p className="text-sm font-semibold text-gray-900 dark:text-white leading-none mb-1">{displayName}</p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-white leading-none mb-1 flex items-center gap-1.5">
+            {displayName}
+            {isOwner && (
+              <span className="px-1.5 py-0.5 rounded-full bg-purple-500/[0.12] dark:bg-purple-400/[0.16] text-[10px] font-bold leading-none text-purple-600 dark:text-purple-300">
+                내 기도
+              </span>
+            )}
+          </p>
           <p className="text-[11px] text-gray-500 dark:text-gray-400">{timeAgo}</p>
         </div>
       </div>
-      {hasTranslation && (
-        <button
-          onClick={onTranslationToggle}
-          className="group px-3 py-1.5 bg-surface-light dark:bg-white/[0.05] border border-border-light dark:border-white/[0.08] rounded-full text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-500/15 transition-all duration-300"
-          style={{
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        >
-          <span
-            style={{
-              display: 'inline-block',
-              transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            }}
-            className="group-hover:scale-110 group-hover:rotate-12"
-          >
-            <LangFlag code={nextLanguage} className="rounded-[2px]" />
-          </span>
-          {' '}
-          <span
-            style={{
-              transition: 'letter-spacing 0.2s ease-in-out',
-            }}
-            className="group-hover:tracking-wider"
-          >
-            {getLanguageName(nextLanguage)}
-          </span>
-        </button>
-      )}
     </div>
   )
 }

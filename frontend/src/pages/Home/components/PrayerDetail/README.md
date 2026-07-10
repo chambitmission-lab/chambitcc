@@ -9,11 +9,10 @@ PrayerDetail/
 ├── index.tsx                    # 메인 컨테이너 (데이터 페칭, 상태 관리)
 ├── PrayerDetailModal.tsx        # 모달 래퍼
 ├── PrayerDetailHeader.tsx       # 헤더 (닫기, 삭제 버튼)
-├── PrayerAuthorInfo.tsx         # 작성자 정보
-├── PrayerContent.tsx            # 기도 내용 (번역 포함)
-├── PrayerActions.tsx            # 기도하기, 댓글 버튼
-├── PrayerStats.tsx              # 통계 정보
-├── OwnerBadge.tsx               # 작성자 배지
+├── PrayerAuthorInfo.tsx         # 작성자 정보 (내 기도 태그 포함)
+├── PrayerContent.tsx            # 기도 내용 (번역 버튼 포함)
+├── PrayerActions.tsx            # 기도하기 토글, 댓글 버튼
+├── PrayerStats.tsx              # 통계 정보 (기도 버튼 위 배치)
 ├── RepliesSection.tsx           # 댓글 섹션
 ├── LoadingState.tsx             # 로딩 상태
 ├── ErrorState.tsx               # 에러 상태
