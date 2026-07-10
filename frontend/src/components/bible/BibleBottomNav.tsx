@@ -91,7 +91,7 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
                 <span
                   className={`material-icons-round text-[22px] leading-none transition-transform duration-200 ${
                     isActive
-                      ? 'scale-110 bg-[linear-gradient(135deg,#a855f7_0%,#ec4899_100%)] bg-clip-text text-transparent dark:bg-[linear-gradient(135deg,#c084fc_0%,#f472b6_100%)]'
+                      ? 'scale-110 bg-[linear-gradient(135deg,#a855f7_0%,#ec4899_100%)] bg-clip-text text-transparent dark:bg-[linear-gradient(135deg,#c084fc_0%,#f472b6_100%)] drop-shadow-[0_2px_8px_rgba(168,85,247,0.5)]'
                       : ''
                   }`}
                 >
