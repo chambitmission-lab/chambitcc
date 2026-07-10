@@ -152,7 +152,7 @@ const WorldMap = ({ points, onHover, selectedCountry }: WorldMapProps) => {
                 fill={isSelected ? '#ffffff' : p.color}
                 stroke={isSelected ? p.color : 'none'}
                 strokeWidth={isSelected ? 2 : 0}
-                opacity={p.active || isSelected ? 1 : 0.55}
+                opacity={p.active || isSelected ? 1 : 0.3}
                 style={{
                   filter: isSelected
                     ? `drop-shadow(0 0 14px ${p.color}) drop-shadow(0 0 6px ${p.color})`

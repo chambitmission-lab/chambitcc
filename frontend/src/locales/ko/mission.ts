@@ -22,4 +22,6 @@ export const mission = {
   missionDomesticOrgs: '협력 기관',
   missionFooterLine1: '참빛교회는 세계 곳곳에 복음의 빛을 밝히는',
   missionFooterLine2: '선교사님들을 위해 오늘도 기도합니다.',
+  missionPrayCta: '함께 기도하기',
+  missionPrayDone: '오늘 함께 기도했어요',
 } as const

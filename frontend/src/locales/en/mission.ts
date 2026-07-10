@@ -22,4 +22,6 @@ export const mission = {
   missionDomesticOrgs: 'Partner Organizations',
   missionFooterLine1: 'Chambit Church prays today for the missionaries',
   missionFooterLine2: 'bringing the light of the gospel across the world.',
+  missionPrayCta: 'Pray Together',
+  missionPrayDone: 'You prayed together today',
 } as const

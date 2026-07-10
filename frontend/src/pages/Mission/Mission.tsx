@@ -3,6 +3,7 @@ import {
   missionaryByRegion,
   regionMeta,
   countryCoordinates,
+  countryFlag,
   domesticChurches,
   domesticOrganizations,
   missionStats,
@@ -28,6 +29,16 @@ const Mission = () => {
   const [hoverCountry, setHoverCountry] = useState<string | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null) // "country|name"
   const mapRef = useRef<HTMLDivElement>(null)
+
+  // 함께 기도하기 — 개인 기기 기준 하루 한 번. 서버 없이도 참여감을 주는 소박한 액션
+  const prayKey = `mission-prayed-${new Date().toISOString().slice(0, 10)}`
+  const [prayedToday, setPrayedToday] = useState(
+    () => localStorage.getItem(prayKey) === '1'
+  )
+  const handlePray = () => {
+    localStorage.setItem(prayKey, '1')
+    setPrayedToday(true)
+  }
 
   const missionaries = useMemo(
     () => missionaryByRegion[activeRegion],
@@ -120,35 +131,37 @@ const Mission = () => {
             onHover={setHoverCountry}
             selectedCountry={selectedCountry}
           />
+
+          {/* 대륙 탭을 지도 카드 안에 붙여 "탭 → 지도 점·명단이 함께 반응"이
+              한 덩어리 인터랙션으로 읽히게 한다 */}
+          <div className="region-tabs in-map">
+            {REGION_ORDER.map(key => {
+              const meta = regionMeta[key]
+              const count = missionaryByRegion[key].length
+              return (
+                <button
+                  key={key}
+                  className={`region-tab ${activeRegion === key ? 'active' : ''}`}
+                  onClick={() => handleRegionChange(key)}
+                  style={activeRegion === key ? {
+                    borderColor: meta.color,
+                    boxShadow: `0 0 20px ${meta.color}55`,
+                  } : undefined}
+                >
+                  <span>{meta.emoji}</span>
+                  <span>{t(REGION_LABEL_KEY[key])}</span>
+                  <span className="tab-count">{count}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        {/* ===== REGION TABS ===== */}
+        {/* ===== OVERSEAS LIST ===== */}
         <div className="mission-section-title">
           <span className="line" />
           <span>OVERSEAS MISSION</span>
           <span className="line" />
-        </div>
-
-        <div className="region-tabs">
-          {REGION_ORDER.map(key => {
-            const meta = regionMeta[key]
-            const count = missionaryByRegion[key].length
-            return (
-              <button
-                key={key}
-                className={`region-tab ${activeRegion === key ? 'active' : ''}`}
-                onClick={() => handleRegionChange(key)}
-                style={activeRegion === key ? {
-                  borderColor: meta.color,
-                  boxShadow: `0 0 20px ${meta.color}55`,
-                } : undefined}
-              >
-                <span>{meta.emoji}</span>
-                <span>{t(REGION_LABEL_KEY[key])}</span>
-                <span className="tab-count">{count}</span>
-              </button>
-            )
-          })}
         </div>
 
         <div className="region-header">
@@ -170,7 +183,8 @@ const Mission = () => {
         />
 
         {/* ===== DOMESTIC SECTION ===== */}
-        <div className="mission-section-title">
+        {/* 해외 → 국내 전환점: 따뜻한 색의 구분선으로 공간이 바뀌었음을 명확히 */}
+        <div className="mission-section-title domestic">
           <span className="line" />
           <span>DOMESTIC MISSION</span>
           <span className="line" />
@@ -209,6 +223,15 @@ const Mission = () => {
             <br />
             {t('missionFooterLine2')}
           </p>
+          {/* 읽고 끝나는 화면이 아니라 마음을 보태는 화면으로 — 하루 한 번 리셋 */}
+          <button
+            type="button"
+            className={`footer-pray-btn ${prayedToday ? 'done' : ''}`}
+            onClick={handlePray}
+            disabled={prayedToday}
+          >
+            {prayedToday ? `✓ ${t('missionPrayDone')}` : `🙏 ${t('missionPrayCta')}`}
+          </button>
           <span className="footer-sign">FOR HIS GLORY</span>
         </section>
       </div>
@@ -248,6 +271,7 @@ const MissionaryGrid = ({
             }}
           >
             <div className="card-country" style={{ color }}>
+              <span className="card-flag">{countryFlag[m.country] ?? '🌐'}</span>
               {m.country}
             </div>
             <div className="card-name">{m.name}</div>
