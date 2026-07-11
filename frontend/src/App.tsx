@@ -68,6 +68,7 @@ const WeeklyStory = lazy(() => import('./pages/WeeklyStory/WeeklyStory'))
 const Growth = lazy(() => import('./pages/Growth/Growth'))
 const SituationBible = lazy(() => import('./pages/Bible/SituationBible'))
 const SituationManagement = lazy(() => import('./pages/Admin/SituationManagement'))
+const CultureManagement = lazy(() => import('./pages/Admin/CultureManagement'))
 
 import './App.css'
 import './styles/common.css'
@@ -159,6 +160,7 @@ function App() {
                 <Route path="/admin/bible-plans" element={<BiblePlanManagement />} />
                 <Route path="/admin/bible-commentaries" element={<BibleCommentaryManagement />} />
                 <Route path="/admin/situations" element={<SituationManagement />} />
+                <Route path="/admin/culture" element={<CultureManagement />} />
                 <Route path="/events" element={<EventCalendar />} />
                 <Route path="/events/:id" element={<EventDetail />} />
                 <Route path="/groups" element={<MyGroups />} />

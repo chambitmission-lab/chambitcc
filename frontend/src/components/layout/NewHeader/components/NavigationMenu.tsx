@@ -4,6 +4,7 @@ import { useLanguage } from '../../../../contexts/LanguageContext'
 type NavKey =
   | 'about' | 'worship' | 'sermon' | 'bible' | 'garden' | 'bluemarble'
   | 'answeredPrayers' | 'events' | 'missionStatus' | 'ministry' | 'news' | 'myGroups'
+  | 'culture'
 
 interface NavItem {
   path: string
@@ -22,7 +23,8 @@ const MENU_SECTIONS: NavSection[] = [
     items: [
       { path: '/about', key: 'about' },
       { path: '/worship', key: 'worship' },
-      { path: '/events', key: 'events' }
+      { path: '/events', key: 'events' },
+      { path: '/culture', key: 'culture' }
     ]
   },
   {

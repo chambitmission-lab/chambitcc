@@ -10,6 +10,7 @@ const ADMIN_MENU_ITEMS = [
   { path: '/admin/bible-plans', key: 'biblePlanManagement' as const },
   { path: '/admin/bible-commentaries', key: 'bibleCommentaryManagement' as const },
   { path: '/admin/situations', key: 'situationManagement' as const },
+  { path: '/admin/culture', key: 'cultureManagement' as const },
   { path: '/admin/push', key: 'pushNotificationManagement' as const },
   { path: '/admin/users', key: 'userManagement' as const },
   { path: '/admin/groups', key: 'groupManagement' as const }
