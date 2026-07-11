@@ -9,7 +9,7 @@ import { FilterChip } from './components/FilterControls'
 
 const TITLE_MAX = 50
 const BODY_MAX = 200
-const DEFAULT_ICON = '/chambitcc/pwa-192x192.png'
+const DEFAULT_ICON = '/chambitcc/notification-icon-192.png'
 
 interface Preset {
   key: string

@@ -148,12 +148,14 @@ self.addEventListener('pushsubscriptionchange', (event) => {
 self.addEventListener('push', (event) => {
   console.log('📬 푸시 알림 수신:', event);
   
+  // icon: 투명 배경 글리프(알림 카드용), badge: 흰색 불꽃 실루엣(안드로이드 상태바는
+  // 알파 마스크만 렌더링하므로 컬러 아이콘을 주면 회색 덩어리가 된다).
+  // image(큰 이미지)는 기본값을 두지 않는다 — 페이로드가 명시할 때만 표시.
   const defaultData = {
     title: '알림',
     body: '새로운 알림이 도착했습니다.',
-    icon: getAbsoluteUrl('pwa-192x192.png'),
-    badge: getAbsoluteUrl('pwa-192x192.png'),
-    image: getAbsoluteUrl('pwa-512x512.png'),
+    icon: getAbsoluteUrl('notification-icon-192.png'),
+    badge: getAbsoluteUrl('notification-badge-96.png'),
     url: BASE_PATH
   };
 
@@ -166,7 +168,12 @@ self.addEventListener('push', (event) => {
       try {
         const parsedData = event.data.json();
         console.log('📦 파싱된 데이터:', parsedData);
-        data = { ...defaultData, ...parsedData };
+        // 백엔드는 icon/badge 미지정 시 null을 담아 보내는데, 그대로 스프레드하면
+        // null이 기본 아이콘을 덮어써 아이콘 없는 알림이 된다. null/undefined는 버린다.
+        const cleaned = Object.fromEntries(
+          Object.entries(parsedData).filter(([, v]) => v !== null && v !== undefined)
+        );
+        data = { ...defaultData, ...cleaned };
       } catch (e) {
         console.error('❌ 데이터 파싱 실패:', e);
         try {
@@ -242,8 +249,8 @@ self.addEventListener('push', (event) => {
         console.log('🔄 기본 알림으로 재시도...');
         return await self.registration.showNotification('알림', {
           body: data.body || '새로운 알림이 도착했습니다.',
-          icon: getAbsoluteUrl('pwa-192x192.png'),
-          badge: getAbsoluteUrl('pwa-192x192.png')
+          icon: getAbsoluteUrl('notification-icon-192.png'),
+          badge: getAbsoluteUrl('notification-badge-96.png')
         });
       } catch (retryError) {
         console.error('❌ 재시도도 실패:', retryError);

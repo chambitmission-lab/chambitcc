@@ -2,7 +2,12 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/pwa-192x192.png" />
+    <!-- 파비콘: 검정 사각 배경의 PWA 아이콘 대신 투명 배경 글리프 사용.
+         탭 크기(16/32px)에 맞춰 미리 다운스케일+샤픈한 파일을 제공해 축소 뭉개짐을 방지.
+         PWA/애플 아이콘(pwa-192/512)은 마스커블 요건상 불투명 배경이 필요해 그대로 유지. -->
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <title>참빛교회</title>

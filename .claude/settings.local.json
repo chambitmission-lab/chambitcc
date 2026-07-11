@@ -211,7 +211,17 @@
       "Bash(./venv/bin/python /private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/1cc33758-359a-4d48-a01a-6839d70029ea/scratchpad/check-dasol.py)",
       "Bash(./venv/bin/python /private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/1cc33758-359a-4d48-a01a-6839d70029ea/scratchpad/verify-backend.py)",
       "Bash(curl -s http://localhost:8000/api/v1/bible/reading-progress?book_id=1 -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMCIsImV4cCI6MTc4Mzc2MDMxOCwidHlwZSI6ImFjY2VzcyJ9.bujhgt68Fx__-epjzn8tIueufJC5wuOBM2aQpx97cYI')",
-      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMCIsImV4cCI6MTc4Mzc2MDMxOCwidHlwZSI6ImFjY2VzcyJ9.bujhgt68Fx__-epjzn8tIueufJC5wuOBM2aQpx97cYI\" SHOT_DIR=. node verify-dasol.mjs)"
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMCIsImV4cCI6MTc4Mzc2MDMxOCwidHlwZSI6ImFjY2VzcyJ9.bujhgt68Fx__-epjzn8tIueufJC5wuOBM2aQpx97cYI\" SHOT_DIR=. node verify-dasol.mjs)",
+      "Bash(sips *)",
+      "Bash(magick -version)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/favicon-32.png)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Skill(artifact-design)",
+      "Artifact",
+      "Bash(cp notification-icon-192.png /Users/kimhuisik/idea/chambit_f/frontend/public/)",
+      "Bash(cp badge_flame_96.png /Users/kimhuisik/idea/chambit_f/frontend/public/notification-badge-96.png)",
+      "Bash(curl -s -o /dev/null -w \"icon %{http_code} \" http://localhost:5173/notification-icon-192.png)",
+      "Bash(curl -s -o /dev/null -w \"badge %{http_code}\\\\n\" http://localhost:5173/notification-badge-96.png)"
     ]
   }
 }
