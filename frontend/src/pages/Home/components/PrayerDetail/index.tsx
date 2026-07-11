@@ -1,7 +1,7 @@
 // 기도 요청 상세 페이지 - 메인 컨테이너
 import { useState, useEffect, useRef } from 'react'
 import { usePrayerDetail } from '../../../../hooks/usePrayersQuery'
-import { useReplies, useCreateReply } from '../../../../hooks/useReplies'
+import { useReplies, useCreateReply, useUpdateReply, useDeleteReply } from '../../../../hooks/useReplies'
 import { usePrayerDelete } from '../../../../hooks/usePrayerDelete'
 import type { Prayer } from '../../../../types/prayer'
 import { useTranslation } from './useTranslation'
@@ -109,8 +109,19 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
     },
   })
 
+  const { updateReply, isUpdating } = useUpdateReply({ prayerId })
+  const { deleteReply } = useDeleteReply({ prayerId })
+
   const handleReplySubmit = (content: string, displayName: string) => {
     createReply({ content, display_name: displayName })
+  }
+
+  const handleReplyUpdate = (replyId: number, content: string) => {
+    updateReply({ replyId, content })
+  }
+
+  const handleReplyDelete = (replyId: number) => {
+    deleteReply(replyId)
   }
 
   // 로딩 상태
@@ -149,7 +160,6 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
           <PrayerStats
             prayerCount={prayer.prayer_count}
             replyCount={prayer.reply_count}
-            onPrayerCountClick={handlePrayerToggle}
             onReplyCountClick={() => setShowReplies(true)}
           />
 
@@ -157,6 +167,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
             isPrayed={prayer.is_prayed}
             isToggling={isToggling}
             showReplies={showReplies}
+            replyCount={prayer.reply_count}
             onPrayerToggle={handlePrayerToggle}
             onRepliesToggle={() => setShowReplies(!showReplies)}
           />
@@ -168,9 +179,12 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
                 replies={replies}
                 isLoading={repliesLoading}
                 isCreating={isCreating}
+                isUpdating={isUpdating}
                 hasNextPage={hasNextPage}
                 isFetchingNextPage={isFetchingNextPage}
                 onReplySubmit={handleReplySubmit}
+                onReplyUpdate={handleReplyUpdate}
+                onReplyDelete={handleReplyDelete}
                 onLoadMore={fetchNextPage}
               />
             </div>

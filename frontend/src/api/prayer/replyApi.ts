@@ -1,9 +1,10 @@
 // 댓글 API
 import { API_V1, apiFetch } from '../../config/api'
 import { getAuthHeaders, requireAuth } from '../utils/apiHelpers'
-import type { 
+import type {
   ReplyListResponse,
   CreateReplyRequest,
+  UpdateReplyRequest,
   ReplyResponse
 } from '../../types/prayer'
 
@@ -49,6 +50,52 @@ export const createReply = async (
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.detail || '댓글 작성에 실패했습니다')
+  }
+
+  return response.json()
+}
+
+/**
+ * 댓글 수정 (본인 댓글만, 로그인 필수)
+ */
+export const updateReply = async (
+  prayerId: number,
+  replyId: number,
+  data: UpdateReplyRequest
+): Promise<ReplyResponse> => {
+  requireAuth()
+
+  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/replies/${replyId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '댓글 수정에 실패했습니다')
+  }
+
+  return response.json()
+}
+
+/**
+ * 댓글 삭제 (본인 댓글만, 로그인 필수)
+ */
+export const deleteReply = async (
+  prayerId: number,
+  replyId: number
+): Promise<{ success: boolean; message: string }> => {
+  requireAuth()
+
+  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/replies/${replyId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '댓글 삭제에 실패했습니다')
   }
 
   return response.json()

@@ -1,6 +1,6 @@
 // 댓글 관련 로직을 담당하는 커스텀 훅 (Single Responsibility)
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchReplies, createReply } from '../api/prayer'
+import { fetchReplies, createReply, updateReply, deleteReply } from '../api/prayer'
 import { showToast } from '../utils/toast'
 import type { CreateReplyRequest, Reply } from '../types/prayer'
 
@@ -157,5 +157,140 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
   return {
     createReply: mutation.mutate,
     isCreating: mutation.isPending,
+  }
+}
+
+interface UseUpdateReplyOptions {
+  prayerId: number
+  onSuccess?: () => void
+}
+
+/**
+ * 댓글 수정 훅 (본인 댓글만)
+ * - Optimistic Update로 즉각적인 UI 반응, 실패 시 롤백
+ */
+export const useUpdateReply = ({ prayerId, onSuccess }: UseUpdateReplyOptions) => {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: ({ replyId, content }: { replyId: number; content: string }) =>
+      updateReply(prayerId, replyId, { content }),
+    onMutate: async ({ replyId, content }) => {
+      const repliesQueryKey = ['prayers', prayerId, 'replies']
+      await queryClient.cancelQueries({ queryKey: repliesQueryKey })
+
+      const previousReplies = queryClient.getQueryData(repliesQueryKey)
+
+      // Optimistic Update - 해당 댓글 내용 즉시 교체 + 수정됨 표시
+      queryClient.setQueryData(repliesQueryKey, (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            data: {
+              ...page.data,
+              items: page.data.items.map((item: Reply) =>
+                item.id === replyId ? { ...item, content, is_edited: true } : item
+              ),
+            },
+          })),
+        }
+      })
+
+      return { previousReplies }
+    },
+    onError: (error: Error, _variables, context) => {
+      if (context?.previousReplies) {
+        queryClient.setQueryData(['prayers', prayerId, 'replies'], context.previousReplies)
+      }
+      showToast(error.message, 'error')
+    },
+    onSuccess: (response) => {
+      showToast(response.message, 'success')
+      onSuccess?.()
+      queryClient.invalidateQueries({ queryKey: ['prayers', prayerId, 'replies'] })
+    },
+  })
+
+  return {
+    updateReply: mutation.mutate,
+    isUpdating: mutation.isPending,
+  }
+}
+
+interface UseDeleteReplyOptions {
+  prayerId: number
+  onSuccess?: () => void
+}
+
+/**
+ * 댓글 삭제 훅 (본인 댓글만)
+ * - Optimistic Update로 목록에서 즉시 제거, 실패 시 롤백
+ */
+export const useDeleteReply = ({ prayerId, onSuccess }: UseDeleteReplyOptions) => {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: (replyId: number) => deleteReply(prayerId, replyId),
+    onMutate: async (replyId) => {
+      const repliesQueryKey = ['prayers', prayerId, 'replies']
+      await queryClient.cancelQueries({ queryKey: repliesQueryKey })
+
+      const previousReplies = queryClient.getQueryData(repliesQueryKey)
+      const previousDetail = queryClient.getQueryData(['prayers', 'detail', prayerId])
+
+      // Optimistic Update - 목록에서 즉시 제거
+      queryClient.setQueryData(repliesQueryKey, (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          pages: old.pages.map((page: any) => ({
+            ...page,
+            data: {
+              ...page.data,
+              items: page.data.items.filter((item: Reply) => item.id !== replyId),
+            },
+          })),
+        }
+      })
+
+      // 기도 상세의 댓글 수 감소 (Optimistic)
+      queryClient.setQueryData(['prayers', 'detail', prayerId], (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          reply_count: Math.max((old.reply_count || 0) - 1, 0),
+        }
+      })
+
+      return { previousReplies, previousDetail }
+    },
+    onError: (error: Error, _replyId, context) => {
+      if (context?.previousReplies) {
+        queryClient.setQueryData(['prayers', prayerId, 'replies'], context.previousReplies)
+      }
+      if (context?.previousDetail) {
+        queryClient.setQueryData(['prayers', 'detail', prayerId], context.previousDetail)
+      }
+      showToast(error.message, 'error')
+    },
+    onSuccess: (response) => {
+      showToast(response.message, 'success')
+      onSuccess?.()
+
+      queryClient.invalidateQueries({ queryKey: ['prayers', prayerId, 'replies'] })
+
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['prayers', 'list'] })
+        queryClient.invalidateQueries({ queryKey: ['prayers', 'detail', prayerId] })
+        queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+      }, 0)
+    },
+  })
+
+  return {
+    deleteReply: mutation.mutate,
+    isDeleting: mutation.isPending,
   }
 }

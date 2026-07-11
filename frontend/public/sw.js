@@ -155,7 +155,7 @@ self.addEventListener('push', (event) => {
     title: '알림',
     body: '새로운 알림이 도착했습니다.',
     icon: getAbsoluteUrl('notification-icon-192.png'),
-    badge: getAbsoluteUrl('notification-badge-96.png'),
+    badge: getAbsoluteUrl('notification-badge-96.png?v=2'),
     url: BASE_PATH
   };
 
@@ -250,7 +250,7 @@ self.addEventListener('push', (event) => {
         return await self.registration.showNotification('알림', {
           body: data.body || '새로운 알림이 도착했습니다.',
           icon: getAbsoluteUrl('notification-icon-192.png'),
-          badge: getAbsoluteUrl('notification-badge-96.png')
+          badge: getAbsoluteUrl('notification-badge-96.png?v=2')
         });
       } catch (retryError) {
         console.error('❌ 재시도도 실패:', retryError);

@@ -64,7 +64,10 @@ const PrayerArticle = ({
   }
 
   const handleArticleClick = () => onPrayerClick(prayer.id)
-  const handleReplyClick = () => onPrayerClick(prayer.id, true)
+  const handleReplyClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onPrayerClick(prayer.id, true)
+  }
 
   return (
     <article

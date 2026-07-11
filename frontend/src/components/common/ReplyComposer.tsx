@@ -52,7 +52,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
   return (
     <form onSubmit={handleSubmit} className="reply-composer">
       <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/80 to-purple-600/60 dark:from-purple-500/55 dark:to-purple-700/35 border border-purple-400/40 dark:border-purple-400/25 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+        <div className="mt-0.5 w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/80 to-purple-600/60 dark:from-purple-500/55 dark:to-purple-700/35 border border-purple-400/40 dark:border-purple-400/25 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
           {displayName.charAt(0).toUpperCase()}
         </div>
 
@@ -61,14 +61,14 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={isLoggedIn ? "함께 기도하는 마음을 전해주세요..." : "로그인 후 댓글을 작성할 수 있습니다"}
-            className="w-full px-4 py-3 border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40 resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="w-full px-4 py-4 border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40 resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             rows={3}
             disabled={isSubmitting || !isLoggedIn}
           />
 
-          <div className="flex flex-col gap-3 mt-3">
-            {isLoggedIn && (
-              <label className="flex items-center gap-2 cursor-pointer">
+          <div className="flex items-center justify-between gap-4 mt-4">
+            {isLoggedIn ? (
+              <label className="flex items-center gap-2 cursor-pointer pl-1 py-1">
                 <input
                   type="checkbox"
                   checked={isAnonymous}
@@ -84,12 +84,14 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
                   )
                 </span>
               </label>
+            ) : (
+              <span />
             )}
 
             <button
               type="submit"
               disabled={!content.trim() || isSubmitting || !isLoggedIn}
-              className="w-full px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full shadow-md shadow-purple-500/20 dark:shadow-purple-900/30 hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-md"
+              className="flex-shrink-0 px-5 py-2 text-sm bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full shadow-md shadow-purple-500/20 dark:shadow-purple-900/30 hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-md"
             >
               {isSubmitting ? '작성중...' : isLoggedIn ? '댓글 작성' : '로그인이 필요합니다'}
             </button>

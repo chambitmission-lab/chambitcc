@@ -5,6 +5,7 @@ interface PrayerActionsProps {
   isPrayed: boolean
   isToggling: boolean
   showReplies: boolean
+  replyCount: number
   onPrayerToggle: () => void
   onRepliesToggle: () => void
 }
@@ -13,6 +14,7 @@ const PrayerActions = ({
   isPrayed,
   isToggling,
   showReplies,
+  replyCount,
   onPrayerToggle,
   onRepliesToggle,
 }: PrayerActionsProps) => {
@@ -43,6 +45,17 @@ const PrayerActions = ({
       >
         <span className="material-icons-outlined text-xl transform -scale-x-100">chat_bubble_outline</span>
         <span>댓글</span>
+        {replyCount > 0 && (
+          <span
+            className={`inline-flex items-center justify-center min-w-[1.375rem] px-1.5 py-0.5 rounded-full text-xs font-bold leading-none ${
+              showReplies
+                ? 'bg-white/25 text-white'
+                : 'bg-purple-100 dark:bg-white/[0.1] text-purple-600 dark:text-purple-300'
+            }`}
+          >
+            {replyCount}
+          </span>
+        )}
       </button>
     </div>
   )

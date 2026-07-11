@@ -8,9 +8,12 @@ interface RepliesSectionProps {
   replies: Reply[]
   isLoading: boolean
   isCreating: boolean
+  isUpdating: boolean
   hasNextPage: boolean
   isFetchingNextPage: boolean
   onReplySubmit: (content: string, displayName: string) => void
+  onReplyUpdate: (replyId: number, content: string) => void
+  onReplyDelete: (replyId: number) => void
   onLoadMore: () => void
 }
 
@@ -19,9 +22,12 @@ const RepliesSection = ({
   replies,
   isLoading,
   isCreating,
+  isUpdating,
   hasNextPage,
   isFetchingNextPage,
   onReplySubmit,
+  onReplyUpdate,
+  onReplyDelete,
   onLoadMore,
 }: RepliesSectionProps) => {
   return (
@@ -42,6 +48,9 @@ const RepliesSection = ({
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
         onLoadMore={onLoadMore}
+        onReplyUpdate={onReplyUpdate}
+        onReplyDelete={onReplyDelete}
+        isUpdating={isUpdating}
       />
     </div>
   )

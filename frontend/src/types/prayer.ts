@@ -90,6 +90,8 @@ export interface Reply {
   content: string
   created_at: string
   time_ago: string
+  is_owner?: boolean   // 내가 작성한 댓글 여부 (로그인 시)
+  is_edited?: boolean  // 수정된 댓글 여부
 }
 
 export interface ReplyListResponse {
@@ -104,6 +106,10 @@ export interface ReplyListResponse {
 export interface CreateReplyRequest {
   content: string
   display_name?: string  // 선택 (기본값: "익명")
+}
+
+export interface UpdateReplyRequest {
+  content: string
 }
 
 export interface ReplyResponse {
