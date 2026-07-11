@@ -197,7 +197,14 @@
       "Bash(awk '/^const FilterRow/,/^\\\\\\)$/' DailyVerseManagement.tsx)",
       "Bash(awk '/^const FilterRow/,/^\\\\\\)$/' BiblePlanManagement.tsx)",
       "Bash(awk '/^const FilterRow/,/^\\\\\\)$/' UserManagement.tsx)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(curl -s -o /dev/null -w \"5173:%{http_code} \" http://localhost:5173/)",
+      "Bash(curl -s \"http://localhost:8000/api/v1/worship-services/?service_type=weekday\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8000/api/v1/worship-services/)",
+      "Bash(curl -s \"http://localhost:8000/api/v1/worship/sunday\")",
+      "Bash(curl -s \"http://localhost:8000/api/v1/worship/weekday\")",
+      "Bash(echo \"eslint exit: $?\")"
     ]
   }
 }

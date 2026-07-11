@@ -172,6 +172,226 @@
   color: rgba(196, 181, 253, 0.7);
 }
 
+/* ── 실시간 다음 예배 배너 (Hero 내부) ──── */
+.worship-live {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  border-radius: 14px;
+  border: 1px solid rgba(168, 85, 247, 0.32);
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+[data-theme="dark"] .worship-live {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(196, 181, 253, 0.3);
+}
+.worship-live:hover {
+  border-color: rgba(168, 85, 247, 0.55);
+  box-shadow: 0 6px 16px -8px rgba(168, 85, 247, 0.4);
+}
+
+.worship-live-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #7c3aed;
+}
+[data-theme="dark"] .worship-live-label {
+  color: #d8b4fe;
+}
+
+.worship-live-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.worship-live-name {
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  word-break: keep-all;
+  color: #1e1b4b;
+}
+[data-theme="dark"] .worship-live-name {
+  color: #f5f3ff;
+}
+
+.worship-live-time {
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  word-break: keep-all;
+  color: #9333ea;
+}
+[data-theme="dark"] .worship-live-time {
+  color: #d8b4fe;
+}
+
+.worship-live-count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.worship-live-clock {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.worship-live-after {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(91, 33, 182, 0.7);
+}
+[data-theme="dark"] .worship-live-after {
+  color: rgba(196, 181, 253, 0.7);
+}
+
+/* ── 요일 필터 칩 ─────────────────────── */
+.worship-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.worship-filter {
+  flex: 1;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  cursor: pointer;
+  background: #ffffff;
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  color: #6b7280;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+[data-theme="dark"] .worship-filter {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.55);
+}
+.worship-filter:hover {
+  border-color: rgba(168, 85, 247, 0.45);
+  color: #7c3aed;
+}
+[data-theme="dark"] .worship-filter:hover {
+  color: #d8b4fe;
+}
+.worship-filter--active,
+.worship-filter--active:hover {
+  font-weight: 700;
+  color: #ffffff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: 0 6px 14px -6px rgba(168, 85, 247, 0.5);
+}
+[data-theme="dark"] .worship-filter--active,
+[data-theme="dark"] .worship-filter--active:hover {
+  color: #ffffff;
+}
+
+/* ── 예배 상태 배지 (입장 가능/예배 중/대기/종료) ── */
+.worship-item-namewrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.worship-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.worship-status-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.worship-status--open {
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+[data-theme="dark"] .worship-status--open {
+  color: #4ade80;
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(74, 222, 128, 0.35);
+}
+.worship-status--open .worship-status-dot {
+  animation: worship-dot-pulse 1.4s ease-in-out infinite;
+}
+
+.worship-status--ongoing {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+[data-theme="dark"] .worship-status--ongoing {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(248, 113, 113, 0.35);
+}
+.worship-status--ongoing .worship-status-dot {
+  animation: worship-dot-pulse 1.4s ease-in-out infinite;
+}
+
+.worship-status--waiting {
+  color: #6b7280;
+  background: rgba(107, 114, 128, 0.08);
+  border: 1px solid rgba(107, 114, 128, 0.28);
+}
+[data-theme="dark"] .worship-status--waiting {
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.worship-status--ended {
+  color: #9ca3af;
+  background: rgba(156, 163, 175, 0.08);
+  border: 1px solid rgba(156, 163, 175, 0.25);
+}
+[data-theme="dark"] .worship-status--ended {
+  color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .worship-status--open .worship-status-dot,
+  .worship-status--ongoing .worship-status-dot {
+    animation: none;
+  }
+}
+
 /* ── 섹션 ─────────────────────────────── */
 .worship-block {
   display: flex;
@@ -536,6 +756,19 @@
 .worship-btn--save:hover {
   opacity: 0.92;
 }
+.worship-btn--outline {
+  margin-top: 12px;
+  background: transparent;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #7c3aed;
+}
+[data-theme="dark"] .worship-btn--outline {
+  border-color: rgba(196, 181, 253, 0.35);
+  color: #d8b4fe;
+}
+.worship-btn--outline:hover {
+  background: rgba(168, 85, 247, 0.08);
+}
 
 /* ── 상태 (로딩/빈) ───────────────────── */
 .worship-state {
@@ -546,6 +779,15 @@
 }
 [data-theme="dark"] .worship-state {
   color: rgba(255, 255, 255, 0.5);
+}
+.worship-state-hint {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #7c3aed;
+}
+[data-theme="dark"] .worship-state-hint {
+  color: #c4b5fd;
 }
 .worship-spinner {
   width: 32px;
