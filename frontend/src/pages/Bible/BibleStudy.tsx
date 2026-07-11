@@ -217,7 +217,7 @@ const BibleStudy = () => {
     <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
       {/* 하단 고정 네비게이션에 가리지 않도록 컨테이너에 바 높이만큼 하단 여백 */}
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen pb-[calc(4.25rem+env(safe-area-inset-bottom))]">
-        <BibleHeader />
+        <BibleHeader tab={activeTab} />
 
         {/* 읽기 탭 */}
         {activeTab === 'read' && (

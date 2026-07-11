@@ -204,7 +204,14 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8000/api/v1/worship-services/)",
       "Bash(curl -s \"http://localhost:8000/api/v1/worship/sunday\")",
       "Bash(curl -s \"http://localhost:8000/api/v1/worship/weekday\")",
-      "Bash(echo \"eslint exit: $?\")"
+      "Bash(echo \"eslint exit: $?\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/api/v1/bible/books)",
+      "Bash(SHOT_DIR=/private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/1cc33758-359a-4d48-a01a-6839d70029ea/scratchpad node *)",
+      "Bash(SHOT_DIR=. node verify-search.mjs)",
+      "Bash(./venv/bin/python /private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/1cc33758-359a-4d48-a01a-6839d70029ea/scratchpad/check-dasol.py)",
+      "Bash(./venv/bin/python /private/tmp/claude-501/-Users-kimhuisik-idea-chambit-f/1cc33758-359a-4d48-a01a-6839d70029ea/scratchpad/verify-backend.py)",
+      "Bash(curl -s http://localhost:8000/api/v1/bible/reading-progress?book_id=1 -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMCIsImV4cCI6MTc4Mzc2MDMxOCwidHlwZSI6ImFjY2VzcyJ9.bujhgt68Fx__-epjzn8tIueufJC5wuOBM2aQpx97cYI')",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMCIsImV4cCI6MTc4Mzc2MDMxOCwidHlwZSI6ImFjY2VzcyJ9.bujhgt68Fx__-epjzn8tIueufJC5wuOBM2aQpx97cYI\" SHOT_DIR=. node verify-dasol.mjs)"
     ]
   }
 }

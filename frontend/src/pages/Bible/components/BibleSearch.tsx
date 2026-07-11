@@ -4,15 +4,10 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleSearch, useBibleBooks } from '../../../hooks/useBible'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-
-// 책 카드 렌더에 필요한 최소 형태 — 백엔드 검색 결과(BibleSearchBook)와 전체 책 목록(BibleBook) 공통 필드
-interface BookCard {
-  book_number: number
-  book_name_ko: string
-  book_name_en: string
-  testament: string
-  chapter_count: number
-}
+import type { BibleBook } from '../../../types/bible'
+import SearchBookCard from './SearchBookCard'
+import type { BookCard } from './SearchBookCard'
+import BookQuickPicker from './BookQuickPicker'
 
 type SearchScope = 'ALL' | 'OLD' | 'NEW'
 
@@ -46,6 +41,8 @@ const BibleSearch = () => {
   const [recentSearches, setRecentSearches] = useState<string[]>(loadRecentSearches)
   const [scope, setScope] = useState<SearchScope>('ALL')
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
+  // 책 퀵 피커가 열려 있으면 그 트리거가 된 책의 book_number, 닫혀 있으면 null
+  const [pickerFor, setPickerFor] = useState<number | null>(null)
 
   const { data: searchResults, isLoading: searchLoading } = useBibleSearch(searchQuery)
   const { data: allBooks } = useBibleBooks()
@@ -84,6 +81,7 @@ const BibleSearch = () => {
       searchAria: '성경 검색 — 책 이름, 책+장, 또는 본문 키워드',
       placeholderExamples: [
         '"창세기 1장"을 검색해보세요',
+        '"창 1"처럼 줄여서 검색해도 돼요',
         '"하나님 사랑"을 검색해보세요',
         '"고린도전서"를 검색해보세요',
         '책 이름 · 장 · 키워드로 검색',
@@ -102,10 +100,6 @@ const BibleSearch = () => {
       noResults: '검색 결과가 없습니다',
       noResultsInScope: '선택한 범위에 검색 결과가 없습니다',
       bookFound: '해당 책을 찾았습니다',
-      selectChapter: '장 선택',
-      old: '구약',
-      new: '신약',
-      chapters: '장',
     },
     en: {
       searchAria: 'Bible search — book name, book+chapter, or keyword',
@@ -129,10 +123,6 @@ const BibleSearch = () => {
       noResults: 'No results found',
       noResultsInScope: 'No results in the selected scope',
       bookFound: 'Book found',
-      selectChapter: 'Select chapter',
-      old: 'OT',
-      new: 'NT',
-      chapters: 'chapters',
     }
   }
 
@@ -194,10 +184,22 @@ const BibleSearch = () => {
     navigate(`/bible/${bookNumber}/${chapter}`)
   }
 
+  // 퀵 피커에서 책 선택 — 타이핑 없이 그 책의 장 그리드로 바로 전환.
+  // 검색 행위가 아니라 탐색이므로 최근 검색어에는 쌓지 않는다.
+  const handlePickBook = (book: BibleBook) => {
+    setPickerFor(null)
+    setSearchKeyword(book.book_name_ko)
+    setSearchQuery(book.book_name_ko)
+    // 현재 범위 필터에 걸러져 방금 고른 책이 안 보이는 일이 없게
+    if (scope !== 'ALL' && book.testament !== scope) setScope('ALL')
+  }
+
   // 구약/신약 범위 필터 — 백엔드는 범위 파라미터가 없으므로 프론트에서 거른다.
   // 구절의 book_number(없으면 책 이름)로 신·구약을 판별하고, 판별 불가 시에는 표시를 유지한다.
   const testamentByNumber = new Map((allBooks || []).map(b => [b.book_number, b.testament]))
   const testamentByName = new Map((allBooks || []).map(b => [b.book_name_ko, b.testament]))
+  // 검색 결과 카드(book_number 기반)에 읽기 진행도(book_id 기반)를 연결하기 위한 매핑
+  const bookIdByNumber = new Map((allBooks || []).map(b => [b.book_number, b.id]))
   const matchesScope = (bookNumber?: number | null, bookNameKo?: string) => {
     if (scope === 'ALL') return true
     const testament =
@@ -336,115 +338,15 @@ const BibleSearch = () => {
         </div>
       ) : scopedBooks.length > 0 ? (
         // 책 단독 검색 → 매칭된 모든 책 카드 + 장 그리드 (예: "고린" → 전·후서)
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="search-book-list">
           {scopedBooks.map(book => (
-            <div
+            <SearchBookCard
               key={book.book_number}
-              style={{
-                background: 'var(--ig-primary-background)',
-                border: '1px solid var(--ig-border)',
-                borderRadius: '12px',
-                padding: '1.25rem',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  paddingBottom: '0.875rem',
-                  borderBottom: '1px solid var(--ig-border)',
-                  marginBottom: '1rem',
-                }}
-              >
-                <span
-                  className="material-icons-round"
-                  style={{ fontSize: '2rem', color: '#a855f7' }}
-                >
-                  menu_book
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: '1.125rem',
-                      fontWeight: 700,
-                      color: 'var(--ig-primary-text)',
-                      letterSpacing: '-0.01em',
-                    }}
-                  >
-                    {book.book_name_ko}
-                    <span
-                      style={{
-                        marginLeft: '0.5rem',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        color: 'var(--ig-secondary-text)',
-                      }}
-                    >
-                      {book.book_name_en}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.8125rem',
-                      color: 'var(--ig-secondary-text)',
-                      marginTop: '0.125rem',
-                    }}
-                  >
-                    {book.testament === 'OLD' ? t.old : t.new} ·{' '}
-                    {book.chapter_count}{t.chapters}
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  color: 'var(--ig-secondary-text)',
-                  marginBottom: '0.625rem',
-                }}
-              >
-                {t.selectChapter}
-              </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))',
-                  gap: '0.375rem',
-                }}
-              >
-                {Array.from({ length: book.chapter_count }, (_, i) => i + 1).map(ch => (
-                  <button
-                    key={ch}
-                    onClick={() => goToChapter(book.book_number, ch)}
-                    style={{
-                      padding: '0.625rem 0',
-                      border: '1px solid var(--ig-border)',
-                      background: 'var(--ig-secondary-background)',
-                      borderRadius: '8px',
-                      color: 'var(--ig-primary-text)',
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#a855f7'
-                      e.currentTarget.style.color = 'white'
-                      e.currentTarget.style.borderColor = '#a855f7'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'var(--ig-secondary-background)'
-                      e.currentTarget.style.color = 'var(--ig-primary-text)'
-                      e.currentTarget.style.borderColor = 'var(--ig-border)'
-                    }}
-                  >
-                    {ch}
-                  </button>
-                ))}
-              </div>
-            </div>
+              book={book}
+              bookId={bookIdByNumber.get(book.book_number) ?? 0}
+              onSelectChapter={goToChapter}
+              onOpenPicker={() => setPickerFor(book.book_number)}
+            />
           ))}
         </div>
       ) : searchResults && scopedVerses.length > 0 ? (
@@ -485,6 +387,16 @@ const BibleSearch = () => {
           <p>{scope !== 'ALL' && hasAnyResult ? t.noResultsInScope : t.noResults}</p>
         </div>
       ) : null}
+
+      {/* 책 퀵 전환 바텀시트 — 책 카드 헤더 탭으로 열림 */}
+      {pickerFor !== null && allBooks && allBooks.length > 0 && (
+        <BookQuickPicker
+          books={allBooks}
+          currentBookNumber={pickerFor}
+          onPick={handlePickBook}
+          onClose={() => setPickerFor(null)}
+        />
+      )}
     </div>
   )
 }

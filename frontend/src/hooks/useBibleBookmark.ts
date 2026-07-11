@@ -142,16 +142,22 @@ export const useReorderBookmarks = () => {
 /**
  * 북마크 목록 조회
  */
-export const useMyBookmarks = (params?: {
-  favorites_only?: boolean
-  notes_only?: boolean
-  color?: HighlightColor
-  page?: number
-  page_size?: number
-}) => {
+export const useMyBookmarks = (
+  params?: {
+    favorites_only?: boolean
+    notes_only?: boolean
+    color?: HighlightColor
+    book_number?: number
+    page?: number
+    page_size?: number
+  },
+  enabled: boolean = true
+) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
   return useQuery({
     queryKey: bookmarkKeys.list(params),
     queryFn: () => listBookmarks(params),
+    enabled: enabled && !!token,
     staleTime: 1000 * 60 * 2,
     // 필터(전체/노트/즐겨찾기) 전환 시 이전 목록을 유지해 높이 붕괴로 인한 화면 흔들림 방지
     placeholderData: keepPreviousData,

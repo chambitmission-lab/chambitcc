@@ -90,6 +90,7 @@ export const listBookmarks = async (params?: {
   favorites_only?: boolean
   notes_only?: boolean
   color?: HighlightColor
+  book_number?: number
   page?: number
   page_size?: number
 }): Promise<BookmarkListResponse> => {
@@ -98,6 +99,7 @@ export const listBookmarks = async (params?: {
   if (params?.favorites_only) query.append('favorites_only', 'true')
   if (params?.notes_only) query.append('notes_only', 'true')
   if (params?.color) query.append('color', params.color)
+  if (params?.book_number) query.append('book_number', String(params.book_number))
   if (params?.page) query.append('page', String(params.page))
   if (params?.page_size) query.append('page_size', String(params.page_size))
 

@@ -122,6 +122,26 @@ interface VerseListProps {
 
 ---
 
+### 7. SearchBookCard.tsx
+**책임**: 검색 결과의 책 카드 + 장 선택 그리드
+- 5열 고정 그리드 (두 줄 = 10장, 십진법 스캔)
+- 로그인 시 장별 컨텍스트: 완독 ✓ / 읽는 중 진행바 / 밑줄·메모 점
+- 책 헤더 탭 → BookQuickPicker 열기
+
+**Props**: `book`, `bookId`, `onSelectChapter`, `onOpenPicker`
+
+---
+
+### 8. BookQuickPicker.tsx
+**책임**: 책 퀵 전환 바텀시트
+- 구약/신약 섹션 + 3열 책 그리드
+- 현재 책 하이라이트 + 열릴 때 해당 위치로 스크롤
+- 뒤로가기 시 시트만 닫기 (useModalBackButton)
+
+**Props**: `books`, `currentBookNumber`, `onPick`, `onClose`
+
+---
+
 ## 사용 방법
 
 ### 개별 import

@@ -110,15 +110,11 @@ export interface ChapterProgress {
   last_read_at: string | null
 }
 
+// GET /bible/reading-progress?book_id=N — 전체 조회와 같은 형태에
+// 해당 책의 books 1건 + 장별 진행률(chapters)이 추가로 실려 온다
 export interface BookDetailProgressResponse {
   success: boolean
-  data: {
-    book_id: number
-    book_name_ko: string
-    book_name_en: string
-    total_verses: number
-    read_verses: number
-    progress: number
+  data: ReadingProgressResponse['data'] & {
     chapters: ChapterProgress[]
   }
 }
