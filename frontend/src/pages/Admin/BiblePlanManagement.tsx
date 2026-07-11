@@ -1,6 +1,6 @@
 // 읽기 플랜 관리 (admin, /admin/bible-plans)
 // 컴팩트 행 + accordion + 검색/필터 + 통계 chip + FAB → Composer (admin_list_pattern)
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
@@ -8,6 +8,7 @@ import { useAllBiblePlans, useDeletePlan } from '../../hooks/useBiblePlan'
 import type { PlanSummary } from '../../types/biblePlan'
 import { accentGradient } from '../Bible/Plans/planVisuals'
 import BiblePlanComposer from './components/BiblePlanComposer'
+import { FilterChip, FilterRow } from './components/FilterControls'
 
 type PublishFilter = 'all' | 'published' | 'draft'
 
@@ -280,27 +281,6 @@ const StatChip = ({ label, value, accent, muted }: { label: string; value: numbe
     </span>
   )
 }
-
-const FilterRow = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex items-start gap-2 flex-wrap">
-    <span className="text-[11px] font-semibold text-gray-500 dark:text-white/45 w-9 shrink-0 pt-1">{label}</span>
-    <div className="flex gap-1.5 flex-wrap min-w-0">{children}</div>
-  </div>
-)
-
-const FilterChip = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
-      active
-        ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
-        : 'text-gray-500 dark:text-white/45 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100/70 dark:hover:bg-white/[0.04]'
-    }`}
-  >
-    {children}
-  </button>
-)
 
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex items-center justify-between gap-2">

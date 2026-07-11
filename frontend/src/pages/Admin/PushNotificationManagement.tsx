@@ -1,12 +1,11 @@
-import { useState, useEffect, useMemo, type ReactNode } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sendPush, type PushPayload, type SendPushResult } from '../../api/push'
-import { getUserList, type User } from '../../api/user'
+import { useAudiencePicker } from '../../hooks/useAudiencePicker'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
-
-type AudienceMode = 'all' | 'active' | 'admin' | 'selected'
-type UserListFilter = 'all' | 'active' | 'admin'
+import AudiencePicker from './components/AudiencePicker'
+import { FilterChip } from './components/FilterControls'
 
 const TITLE_MAX = 50
 const BODY_MAX = 200
@@ -81,15 +80,11 @@ export const PushNotificationManagement = () => {
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
 
-  // 대상 상태
-  const [audienceMode, setAudienceMode] = useState<AudienceMode>('all')
-  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([])
-  const [userListFilter, setUserListFilter] = useState<UserListFilter>('all')
-  const [userSearch, setUserSearch] = useState('')
+  // 대상 상태 (사용자 목록 로딩 포함)
+  const picker = useAudiencePicker()
+  const { audienceMode, audienceUserIds, audienceCount, audienceLabel } = picker
 
-  // 사용자 / 전송 상태
-  const [users, setUsers] = useState<User[]>([])
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false)
+  // 전송 상태
   const [isSending, setIsSending] = useState(false)
   const [result, setResult] = useState<
     | { ok: true; data: SendPushResult; audienceLabel: string }
@@ -103,56 +98,9 @@ export const PushNotificationManagement = () => {
       navigate('/')
       return
     }
-    void loadUsers()
+    void picker.loadUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate])
-
-  const loadUsers = async () => {
-    try {
-      setIsLoadingUsers(true)
-      const data = await getUserList()
-      setUsers(data.users)
-    } catch (error) {
-      console.error('사용자 목록 조회 실패:', error)
-      showToast('사용자 목록을 불러오는데 실패했습니다', 'error')
-    } finally {
-      setIsLoadingUsers(false)
-    }
-  }
-
-  const adminCount = users.filter((u) => u.is_admin).length
-  const activeCount = users.filter((u) => u.is_active).length
-
-  // 사용자 리스트 (선택 발송 모드용)
-  const filteredUsers = useMemo(() => {
-    const q = userSearch.trim().toLowerCase()
-    return users.filter((u) => {
-      if (userListFilter === 'active' && !u.is_active) return false
-      if (userListFilter === 'admin' && !u.is_admin) return false
-      if (!q) return true
-      return (
-        u.username.toLowerCase().includes(q) ||
-        (u.full_name?.toLowerCase().includes(q) ?? false)
-      )
-    })
-  }, [users, userListFilter, userSearch])
-
-  // 실제 발송 대상 user_ids (audienceMode 별)
-  const audienceUserIds = useMemo<number[] | undefined>(() => {
-    if (audienceMode === 'all') return undefined
-    if (audienceMode === 'active') return users.filter((u) => u.is_active).map((u) => u.id)
-    if (audienceMode === 'admin') return users.filter((u) => u.is_admin).map((u) => u.id)
-    return selectedUserIds
-  }, [audienceMode, users, selectedUserIds])
-
-  const audienceCount =
-    audienceMode === 'all' ? users.length : (audienceUserIds?.length ?? 0)
-
-  const audienceLabel = (() => {
-    if (audienceMode === 'all') return `전체 ${users.length}명`
-    if (audienceMode === 'active') return `활성 회원 ${audienceCount}명`
-    if (audienceMode === 'admin') return `관리자 ${audienceCount}명`
-    return `선택 ${audienceCount}명`
-  })()
 
   // 액션
   const applyPreset = (p: Preset) => {
@@ -161,20 +109,6 @@ export const PushNotificationManagement = () => {
     setUrl(p.url)
     setTag(p.tag)
     showToast(`'${p.title}' 템플릿이 적용되었습니다`, 'success')
-  }
-
-  const toggleUser = (id: number) => {
-    setSelectedUserIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
-  }
-
-  const toggleSelectAllVisible = () => {
-    const visibleIds = filteredUsers.map((u) => u.id)
-    const allSelected = visibleIds.every((id) => selectedUserIds.includes(id))
-    if (allSelected) {
-      setSelectedUserIds((prev) => prev.filter((id) => !visibleIds.includes(id)))
-    } else {
-      setSelectedUserIds((prev) => Array.from(new Set([...prev, ...visibleIds])))
-    }
   }
 
   const handleSend = async () => {
@@ -225,8 +159,7 @@ export const PushNotificationManagement = () => {
     setUrl('/home')
     setTag('notification')
     setIcon(DEFAULT_ICON)
-    setSelectedUserIds([])
-    setAudienceMode('all')
+    picker.reset()
     setResult(null)
   }
 
@@ -252,9 +185,9 @@ export const PushNotificationManagement = () => {
 
         {/* 통계 칩 */}
         <div className="px-4 pt-4 pb-1 flex gap-2 flex-wrap">
-          <StatChip label="회원" value={users.length} />
-          <StatChip label="활성" value={activeCount} />
-          <StatChip label="관리자" value={adminCount} accent />
+          <StatChip label="회원" value={picker.users.length} />
+          <StatChip label="활성" value={picker.activeCount} />
+          <StatChip label="관리자" value={picker.adminCount} accent />
         </div>
 
         {/* 빠른 템플릿 */}
@@ -374,102 +307,7 @@ export const PushNotificationManagement = () => {
 
         {/* 대상 */}
         <SectionCard title="전송 대상">
-          <FilterRow label="대상">
-            <FilterChip active={audienceMode === 'all'} onClick={() => setAudienceMode('all')}>
-              전체
-            </FilterChip>
-            <FilterChip active={audienceMode === 'active'} onClick={() => setAudienceMode('active')}>
-              활성 회원
-            </FilterChip>
-            <FilterChip active={audienceMode === 'admin'} onClick={() => setAudienceMode('admin')}>
-              관리자
-            </FilterChip>
-            <FilterChip active={audienceMode === 'selected'} onClick={() => setAudienceMode('selected')}>
-              직접 선택
-            </FilterChip>
-          </FilterRow>
-
-          <div className="mt-3 rounded-xl bg-purple-50/60 dark:bg-purple-500/[0.08] border border-purple-200/60 dark:border-purple-400/20 px-3.5 py-2.5 flex items-center justify-between">
-            <span className="text-[12.5px] text-gray-700 dark:text-white/80">
-              발송 대상
-            </span>
-            <span className="text-[13px] font-bold text-purple-700 dark:text-purple-300">
-              {audienceLabel}
-            </span>
-          </div>
-
-          {audienceMode === 'selected' && (
-            <div className="mt-3 space-y-3">
-              {/* 검색 */}
-              <div className="relative">
-                <span className="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 text-[20px] pointer-events-none">
-                  search
-                </span>
-                <input
-                  type="text"
-                  value={userSearch}
-                  onChange={(e) => setUserSearch(e.target.value)}
-                  placeholder="아이디 · 이름 검색"
-                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
-                />
-                {userSearch && (
-                  <button
-                    type="button"
-                    onClick={() => setUserSearch('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
-                    aria-label="검색어 지우기"
-                  >
-                    <span className="material-icons-outlined text-[18px]">close</span>
-                  </button>
-                )}
-              </div>
-
-              {/* 필터 + 일괄 선택 */}
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex gap-1.5 flex-wrap">
-                  <FilterChip active={userListFilter === 'all'} onClick={() => setUserListFilter('all')}>
-                    전체
-                  </FilterChip>
-                  <FilterChip active={userListFilter === 'active'} onClick={() => setUserListFilter('active')}>
-                    활성
-                  </FilterChip>
-                  <FilterChip active={userListFilter === 'admin'} onClick={() => setUserListFilter('admin')}>
-                    관리자
-                  </FilterChip>
-                </div>
-                <button
-                  type="button"
-                  onClick={toggleSelectAllVisible}
-                  className="text-[11.5px] font-semibold text-purple-700 dark:text-purple-300 hover:underline px-2 py-1"
-                >
-                  {filteredUsers.every((u) => selectedUserIds.includes(u.id)) && filteredUsers.length > 0
-                    ? '보이는 행 해제'
-                    : '보이는 행 선택'}
-                </button>
-              </div>
-
-              {/* 사용자 리스트 */}
-              <div className="max-h-72 overflow-y-auto pr-1 space-y-1.5 -mx-1 px-1">
-                {isLoadingUsers ? (
-                  <SkeletonRows />
-                ) : filteredUsers.length === 0 ? (
-                  <div className="text-center py-8">
-                    <span className="text-3xl block mb-2">🔍</span>
-                    <p className="text-[12.5px] text-gray-500 dark:text-white/55">검색 결과가 없습니다</p>
-                  </div>
-                ) : (
-                  filteredUsers.map((u) => (
-                    <UserPickRow
-                      key={u.id}
-                      user={u}
-                      selected={selectedUserIds.includes(u.id)}
-                      onToggle={() => toggleUser(u.id)}
-                    />
-                  ))
-                )}
-              </div>
-            </div>
-          )}
+          <AudiencePicker picker={picker} />
         </SectionCard>
 
         {/* 전송 결과 */}
@@ -625,35 +463,6 @@ const StatChip = ({ label, value, accent }: { label: string; value: number; acce
   </span>
 )
 
-const FilterRow = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex items-center gap-2 flex-wrap">
-    <span className="text-[11px] font-semibold text-gray-500 dark:text-white/45 w-9 shrink-0">{label}</span>
-    <div className="flex gap-1.5 flex-wrap min-w-0">{children}</div>
-  </div>
-)
-
-const FilterChip = ({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: ReactNode
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
-      active
-        ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
-        : 'text-gray-500 dark:text-white/45 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100/70 dark:hover:bg-white/[0.04]'
-    }`}
-  >
-    {children}
-  </button>
-)
-
 const FieldLabel = ({
   htmlFor,
   children,
@@ -680,71 +489,6 @@ const CharCount = ({ current, max }: { current: number; max: number }) => {
     </span>
   )
 }
-
-const SkeletonRows = () => (
-  <div className="space-y-1.5">
-    {Array.from({ length: 4 }).map((_, i) => (
-      <div key={i} className="h-[52px] rounded-xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
-    ))}
-  </div>
-)
-
-// ─── 사용자 선택 행 ───────────────────────────────────────
-
-const UserPickRow = ({
-  user,
-  selected,
-  onToggle,
-}: {
-  user: User
-  selected: boolean
-  onToggle: () => void
-}) => (
-  <button
-    type="button"
-    onClick={onToggle}
-    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all border ${
-      selected
-        ? 'bg-purple-50 dark:bg-purple-500/10 border-purple-300/60 dark:border-purple-400/30'
-        : 'bg-white/60 dark:bg-white/[0.03] border-gray-200/70 dark:border-white/[0.06] hover:border-purple-200 dark:hover:border-purple-400/20'
-    }`}
-  >
-    <span
-      className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
-        selected
-          ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
-          : 'bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.1]'
-      }`}
-    >
-      {selected && <span className="material-icons-outlined text-[14px]">check</span>}
-    </span>
-
-    <div className="relative shrink-0">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-[12px] font-bold">
-        {(user.full_name || user.username).charAt(0).toUpperCase()}
-      </div>
-      <span
-        className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-background-light dark:ring-card-dark ${
-          user.is_active ? 'bg-green-500' : 'bg-gray-400 dark:bg-white/30'
-        }`}
-      />
-    </div>
-
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-1.5">
-        <span className="text-[13px] font-semibold text-gray-900 dark:text-white truncate">
-          {user.full_name || user.username}
-        </span>
-        {user.is_admin && (
-          <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.05em] shrink-0">
-            ADMIN
-          </span>
-        )}
-      </div>
-      <div className="text-[11px] text-gray-500 dark:text-white/45 truncate">@{user.username}</div>
-    </div>
-  </button>
-)
 
 // ─── 알림 미리보기 ────────────────────────────────────────
 

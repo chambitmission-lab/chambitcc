@@ -6,6 +6,7 @@ import { showToast } from '../../utils/toast'
 import { getAllDailyVerses, deleteDailyVerse } from '../../api/dailyVerse'
 import type { DailyVerse } from '../../types/dailyVerse'
 import DailyVerseComposer from './components/DailyVerseComposer'
+import { FilterChip, FilterRow } from './components/FilterControls'
 
 type VerseFilter = 'all' | 'today' | 'upcoming' | 'past'
 type SortKey = 'recent' | 'oldest'
@@ -492,37 +493,6 @@ const StatChip = ({
     {label}
     <span className="font-bold">{value}</span>
   </span>
-)
-
-const FilterRow = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex items-start gap-2 flex-wrap">
-    <span className="text-[11px] font-semibold text-gray-500 dark:text-white/45 w-9 shrink-0 pt-1">
-      {label}
-    </span>
-    <div className="flex gap-1.5 flex-wrap min-w-0">{children}</div>
-  </div>
-)
-
-const FilterChip = ({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: ReactNode
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
-      active
-        ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
-        : 'text-gray-500 dark:text-white/45 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100/70 dark:hover:bg-white/[0.04]'
-    }`}
-  >
-    {children}
-  </button>
 )
 
 const SkeletonRows = () => (

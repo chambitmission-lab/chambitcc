@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import type { BibleVerse } from '../../../types/bible'
 import { useVerseReading } from '../../../hooks/useVerseReading'
+import { useKaraokeProgress } from '../../../hooks/useKaraokeProgress'
 import VerseReadingButton from '../../../components/prayer/VerseReadingButton'
 import { isAdmin } from '../../../utils/auth'
 import { useVerseBookmark } from '../../../hooks/useBibleBookmark'
@@ -27,10 +28,6 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
   const showActions = actionsOpen
-  const maxProgressRef = useRef(0) // 목표 진행률(%) — 인식 결과 기준, 뒤로 가지 않음
-  const displayProgressRef = useRef(0) // 화면에 그려지는 진행률 — rAF로 목표를 따라감
-  const prevSpokenLenRef = useRef(0) // 지금까지 들린 발화 길이(정규화) — 전진 상한 계산용
-  const [karaokeSplitIndex, setKaraokeSplitIndex] = useState(0) // 색칠 경계(원본 텍스트 인덱스)
   const isAdminUser = isAdmin()
   const { data: bookmark } = useVerseBookmark(verse.id)
   const highlightBg = bookmark?.highlight_color
@@ -63,16 +60,13 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     },
     threshold: 0.5
   })
-  
-  // 읽기 시작/종료 시 진행률 초기화
-  useEffect(() => {
-    if (!isReading) {
-      maxProgressRef.current = 0
-      displayProgressRef.current = 0
-      prevSpokenLenRef.current = 0
-      setKaraokeSplitIndex(0)
-    }
-  }, [isReading])
+
+  // 노래방 하이라이트 — 색칠 경계(원본 텍스트 인덱스). 매칭/보간 로직은 훅에.
+  const karaokeSplitIndex = useKaraokeProgress({
+    isReading,
+    verseText: verse.text,
+    spokenText,
+  })
 
   // 음성 인식 중에는 액션바가 닫혀서 마이크 버튼이 가려지지 않도록 보장
   useEffect(() => {
@@ -82,134 +76,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     // onActionsOpenChange는 매 렌더 새로 생성되지만, 의도적으로 isReading 변화에만 반응한다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReading])
-  
-  // 노래방 하이라이트 1/2 — 목표 진행률 계산.
-  // 인식 결과(spokenText)는 "어디까지 읽었나"의 목표만 갱신하고, 실제 색칠은
-  // 아래 rAF 이펙트가 목표를 향해 부드럽게 따라간다.
-  // 성경은 반복 단어가 많아("하나님이", "낳았고" 등) 검색을 본문 처음부터 하면
-  // 앞/뒤의 같은 단어에 잘못 매칭돼 경계가 튄다 → 항상 직전 매칭 위치 부근부터 찾는다.
-  useEffect(() => {
-    if (!isReading || !verse.text || !spokenText) {
-      return
-    }
 
-    const normalizeText = (text: string) => text.replace(/\s+/g, '').toLowerCase()
-    const verseNormalized = normalizeText(verse.text)
-    const spokenNormalized = normalizeText(spokenText)
-    if (!verseNormalized || !spokenNormalized) {
-      return
-    }
-
-    // 직전 매칭 위치(정규화 글자 수) — 여기서 크게 벗어난 매칭은 신뢰하지 않는다
-    const prevLength = Math.round((maxProgressRef.current / 100) * verseNormalized.length)
-
-    // 퍼지 매칭 전진 상한: "이번에 새로 들린 글자 수 + 약간"까지만.
-    // 인식 엔진이 아직 읽지 않은 단어를 예측해 내놓거나, 마지막 단어가 본문
-    // 뒤쪽의 같은 단어에 매칭되면 색칠이 낭독을 앞질러 가는데, 실제로 들린
-    // 만큼만 전진을 허용해 그것을 막는다. (발화 길이는 최대값으로 추적 —
-    // interim 교정으로 길이가 줄었다 다시 늘어도 이중으로 credit하지 않음)
-    const newChars = Math.max(0, spokenNormalized.length - prevSpokenLenRef.current)
-    prevSpokenLenRef.current = Math.max(prevSpokenLenRef.current, spokenNormalized.length)
-    const fuzzyLimit = prevLength + newChars + 4
-
-    let matchLength = 0
-
-    // 방법 1: 앞에서부터 순차 매칭 (완전 일치 증거이므로 상한 없이 신뢰)
-    const seqLimit = Math.min(verseNormalized.length, spokenNormalized.length)
-    for (let i = 0; i < seqLimit; i++) {
-      if (verseNormalized[i] !== spokenNormalized[i]) {
-        break
-      }
-      matchLength = i + 1
-    }
-
-    // 방법 2: 최근 발화 꼬리(마지막 10글자)를 직전 위치 부근부터 검색
-    if (spokenNormalized.length >= 5) {
-      const recentSpoken = spokenNormalized.slice(-10)
-      const foundIndex = verseNormalized.indexOf(
-        recentSpoken,
-        Math.max(0, prevLength - recentSpoken.length)
-      )
-      if (foundIndex !== -1) {
-        matchLength = Math.max(
-          matchLength,
-          Math.min(foundIndex + recentSpoken.length, fuzzyLimit)
-        )
-      }
-    }
-
-    // 방법 3: 마지막 단어를 직전 위치 부근부터 검색 (가장 유연함).
-    // 한 글자짜리 단어("이", "그" 등)는 본문 어디에나 있어 오매칭만 만드므로 제외.
-    const spokenWords = spokenText.trim().split(/\s+/).filter(w => w.length > 0)
-    if (spokenWords.length > 0) {
-      const lastWordNormalized = normalizeText(spokenWords[spokenWords.length - 1])
-      if (lastWordNormalized.length >= 2) {
-        const wordIndex = verseNormalized.indexOf(
-          lastWordNormalized,
-          Math.max(0, prevLength - lastWordNormalized.length)
-        )
-        if (wordIndex !== -1) {
-          matchLength = Math.max(
-            matchLength,
-            Math.min(wordIndex + lastWordNormalized.length, fuzzyLimit)
-          )
-        }
-      }
-    }
-
-    const currentProgress = (matchLength / verseNormalized.length) * 100
-    if (currentProgress > maxProgressRef.current) {
-      maxProgressRef.current = currentProgress
-    }
-  }, [isReading, spokenText, verse.text])
-
-  // 노래방 하이라이트 2/2 — rAF 보간으로 경계를 "스르륵" 전진.
-  // 모바일은 인식 이벤트 간격이 듬성듬성해(iOS interim 빈도 낮음, Android는
-  // continuous=false 재시작 공백) 경계가 여러 글자씩 점프하는데, 프레임마다
-  // 남은 거리에 비례해 전진(멀수록 빠르게, 가까울수록 살살)하며 그 사이를 메운다.
-  // setState는 경계 "글자"가 실제로 바뀔 때만 값이 달라져 리렌더 부담이 없다.
-  useEffect(() => {
-    if (!isReading || !verse.text) {
-      return
-    }
-    const text = verse.text
-    const nonSpaceTotal = text.replace(/\s+/g, '').length
-    if (nonSpaceTotal === 0) {
-      return
-    }
-    // 진행률(%) → 원본 텍스트의 색칠 경계 인덱스(공백 건너뛰며 계산)
-    const splitIndexFor = (progress: number): number => {
-      const chars = Math.floor((progress / 100) * nonSpaceTotal)
-      if (chars <= 0) return 0
-      let count = 0
-      for (let i = 0; i < text.length; i++) {
-        if (!/\s/.test(text[i])) {
-          count++
-          if (count === chars) return i + 1
-        }
-      }
-      return text.length
-    }
-
-    let raf = 0
-    let last = performance.now()
-    const tick = (now: number) => {
-      const dt = Math.min((now - last) / 1000, 0.1) // 백그라운드 복귀 시 순간이동 방지
-      last = now
-      const target = maxProgressRef.current
-      const current = displayProgressRef.current
-      if (current < target) {
-        // 남은 거리의 400%/s + 최소 8%/s(자연 낭독 속도 ~7%/s보다 살짝 빠르게)
-        const speed = Math.max((target - current) * 4, 8)
-        displayProgressRef.current = Math.min(target, current + speed * dt)
-        setKaraokeSplitIndex(splitIndexFor(displayProgressRef.current))
-      }
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [isReading, verse.text])
-  
   const hasNote = !!bookmark?.note
 
   // 구절 본문에 줄 좌측 강조(블록 지정). 색 형광펜이 우선, 없으면 노트가 있을 때

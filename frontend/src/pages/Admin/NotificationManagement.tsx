@@ -5,6 +5,7 @@ import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import type { Notification } from '../../types/notification'
 import NotificationComposer from './components/NotificationComposer'
+import { FilterChip, FilterRow } from './components/FilterControls'
 
 type ActiveFilter = 'all' | 'active' | 'inactive'
 type SortKey = 'recent' | 'oldest' | 'title'
@@ -416,37 +417,6 @@ const StatChip = ({
     </span>
   )
 }
-
-const FilterRow = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex items-start gap-2 flex-wrap">
-    <span className="text-[11px] font-semibold text-gray-500 dark:text-white/45 w-9 shrink-0 pt-1">
-      {label}
-    </span>
-    <div className="flex gap-1.5 flex-wrap min-w-0">{children}</div>
-  </div>
-)
-
-const FilterChip = ({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: ReactNode
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
-      active
-        ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
-        : 'text-gray-500 dark:text-white/45 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100/70 dark:hover:bg-white/[0.04]'
-    }`}
-  >
-    {children}
-  </button>
-)
 
 const SkeletonRows = () => (
   <div className="space-y-2">

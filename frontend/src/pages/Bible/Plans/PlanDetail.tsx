@@ -11,32 +11,18 @@ import {
   useUncompleteDay,
   useUnsubscribePlan,
 } from '../../../hooks/useBiblePlan'
-import { generateReflection, updateReflection } from '../../../api/biblePlan'
-import type { PlanDay, PlanReflection } from '../../../types/biblePlan'
+import { usePlanReflections } from '../../../hooks/usePlanReflections'
+import type { PlanDay } from '../../../types/biblePlan'
 import { isAdmin, isAuthenticated } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import { accentGradient, gradientTextStyle } from './planVisuals'
-
-interface ReflectionState {
-  loading: boolean
-  data?: PlanReflection
-  error?: string
-}
+import DayCard from './components/DayCard'
+import ReflectionEditModal from './components/ReflectionEditModal'
 
 // 긴 플랜(90/120/365일)은 일정을 30일 단위로 접어 스크롤 부담을 줄인다.
 // 짧은 플랜(7/30일)은 그룹 헤더가 오히려 방해라 플랫 렌더 유지.
 const GROUP_SIZE = 30
 const GROUP_THRESHOLD = 60
-
-// 방어적 정규화 — 백엔드가 이미 정리하지만, 혹시 캐시에 남은 <br> 등 HTML 이 흘러와도
-// 화면에 태그가 그대로 노출되지 않도록 줄바꿈으로 바꾸고 잔여 태그를 제거한다.
-const normalizeReflection = (s: string): string =>
-  (s || '')
-    .replace(/<\s*br\s*\/?\s*>/gi, '\n')
-    .replace(/<\/?\s*(p|div|li|ul|ol)\b[^>]*>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()
 
 const PlanDetail = () => {
   const navigate = useNavigate()
@@ -50,10 +36,16 @@ const PlanDetail = () => {
   const completeDay = useCompleteDay()
   const uncompleteDay = useUncompleteDay()
 
-  const [reflections, setReflections] = useState<Record<number, ReflectionState>>({})
-  const [openReflection, setOpenReflection] = useState<number | null>(null)
-  const [editingDay, setEditingDay] = useState<number | null>(null)
-  const [regeneratingDay, setRegeneratingDay] = useState<number | null>(null)
+  const {
+    reflections,
+    openReflection,
+    editingDay,
+    setEditingDay,
+    regeneratingDay,
+    toggleReflection,
+    regenerateReflection,
+    saveReflection,
+  } = usePlanReflections(id)
   const [menuOpen, setMenuOpen] = useState(false)
   // 그룹 접힘 상태 — 명시적으로 토글한 그룹만 기록하고,
   // 기록이 없으면 "현재 일차가 속한 그룹만 펼침"을 기본값으로 쓴다 (플랜 로딩 타이밍 무관)
@@ -133,52 +125,6 @@ const PlanDetail = () => {
     }
   }
 
-  const handleReflect = async (day: PlanDay) => {
-    setOpenReflection((prev) => (prev === day.day_number ? null : day.day_number))
-    if (reflections[day.day_number]?.data || reflections[day.day_number]?.loading) return
-    setReflections((prev) => ({ ...prev, [day.day_number]: { loading: true } }))
-    try {
-      const data = await generateReflection(id, day.day_number)
-      setReflections((prev) => ({ ...prev, [day.day_number]: { loading: false, data } }))
-    } catch (e) {
-      setReflections((prev) => ({
-        ...prev,
-        [day.day_number]: {
-          loading: false,
-          error: e instanceof Error ? e.message : '생성 실패',
-        },
-      }))
-    }
-  }
-
-  // 관리자 — 캐시 무시하고 AI 묵상 새로 생성
-  const handleRegenerate = async (dayNumber: number) => {
-    if (regeneratingDay !== null) return
-    if (!confirm('이 일자의 AI 묵상을 새로 생성할까요? 기존 내용은 교체됩니다.')) return
-    setRegeneratingDay(dayNumber)
-    try {
-      const data = await generateReflection(id, dayNumber, true)
-      setReflections((prev) => ({ ...prev, [dayNumber]: { loading: false, data } }))
-      showToast('AI 묵상을 새로 생성했어요', 'success')
-    } catch (e) {
-      showToast(e instanceof Error ? e.message : '다시 생성에 실패했습니다', 'error')
-    } finally {
-      setRegeneratingDay(null)
-    }
-  }
-
-  // 관리자 — 수정 모달 저장
-  const handleSaveReflection = async (
-    dayNumber: number,
-    reflection: string,
-    questions: string[],
-  ) => {
-    const data = await updateReflection(id, dayNumber, { reflection, questions })
-    setReflections((prev) => ({ ...prev, [dayNumber]: { loading: false, data } }))
-    setEditingDay(null)
-    showToast('묵상을 수정했어요', 'success')
-  }
-
   const handleUnsubscribe = async () => {
     if (!confirm('이 플랜을 그만두시겠어요? 진행 기록이 사라집니다.')) return
     try {
@@ -256,13 +202,13 @@ const PlanDetail = () => {
       busy={completeDay.isPending || uncompleteDay.isPending}
       onToggle={() => handleToggleDay(day)}
       onRead={() => handleRead(day)}
-      onReflect={() => handleReflect(day)}
+      onReflect={() => toggleReflection(day.day_number)}
       reflectionOpen={openReflection === day.day_number}
       reflection={reflections[day.day_number]}
       admin={admin}
       regenerating={regeneratingDay === day.day_number}
       onEditReflection={() => setEditingDay(day.day_number)}
-      onRegenerate={() => handleRegenerate(day.day_number)}
+      onRegenerate={() => regenerateReflection(day.day_number)}
     />
   )
 
@@ -482,7 +428,7 @@ const PlanDetail = () => {
           initial={reflections[editingDay]!.data!}
           onClose={() => setEditingDay(null)}
           onSave={(reflection, questions) =>
-            handleSaveReflection(editingDay, reflection, questions)
+            saveReflection(editingDay, reflection, questions)
           }
         />
       )}
@@ -534,394 +480,5 @@ const Stat = ({ value, label, plain }: { value: string; label: string; plain?: b
 )
 
 const Divider = () => <span className="w-px h-8 bg-gray-200 dark:bg-white/[0.08]" />
-
-// ── 하루치 카드 ──
-// 상태별 시각 위계: 완료(과거) = 딤드 / 오늘 = 보라 하이라이트 / 예정(미래) = 아웃라인 원 + 차분한 텍스트
-const DayCard = ({
-  domId,
-  day,
-  grad,
-  subscribed,
-  isToday,
-  busy,
-  onToggle,
-  onRead,
-  onReflect,
-  reflectionOpen,
-  reflection,
-  admin,
-  regenerating,
-  onEditReflection,
-  onRegenerate,
-}: {
-  domId?: string
-  day: PlanDay
-  grad: string
-  subscribed: boolean
-  isToday: boolean
-  busy: boolean
-  onToggle: () => void
-  onRead: () => void
-  onReflect: () => void
-  reflectionOpen: boolean
-  reflection?: ReflectionState
-  admin: boolean
-  regenerating: boolean
-  onEditReflection: () => void
-  onRegenerate: () => void
-}) => {
-  const isPast = day.completed && !isToday
-  const isFuture = subscribed && !day.completed && !isToday
-  // AI 묵상·묵상 프롬프트는 "읽은(읽는) 날"에만 — 미래 일차에 미리 노출하면 플로우가 어색하고 카드만 길어진다.
-  // 미구독 상태에서는 둘러보기용 미리보기로 그대로 열어둔다.
-  const showReflectionArea = !subscribed || day.completed || isToday
-
-  return (
-    <div
-      id={domId}
-      className={[
-        'relative overflow-hidden rounded-2xl border transition-all',
-        'bg-white/80 dark:bg-card-dark shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
-        isToday
-          ? 'border-purple-300/60 dark:border-purple-400/40 ring-1 ring-purple-300/40 dark:ring-purple-400/25'
-          : 'border-gray-200/70 dark:border-white/[0.08]',
-        isPast ? 'opacity-55' : '',
-      ].join(' ')}
-    >
-      <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-      <div className="relative z-10 flex items-center gap-3 p-3.5">
-        {/* 완료 토글 / 일자 */}
-        {subscribed ? (
-          <button
-            type="button"
-            onClick={onToggle}
-            disabled={busy}
-            aria-label={day.completed ? '완료 취소' : '완료'}
-            className={[
-              'shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-[13px] transition-all',
-              day.completed
-                ? `bg-gradient-to-br ${grad} text-white shadow-[0_4px_12px_-4px_rgba(168,85,247,0.55)]`
-                : isToday
-                  ? 'border-2 border-purple-400/70 bg-purple-500/10 text-purple-600 dark:text-purple-300 hover:bg-purple-500/20'
-                  : 'border-2 border-gray-200 dark:border-white/[0.13] bg-transparent text-gray-400 dark:text-white/40 hover:border-purple-400/50 hover:text-purple-500 dark:hover:text-purple-300',
-            ].join(' ')}
-          >
-            {day.completed ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            ) : (
-              day.day_number
-            )}
-          </button>
-        ) : (
-          <div className="shrink-0 w-9 h-9 rounded-full border-2 border-gray-200 dark:border-white/[0.13] text-gray-400 dark:text-white/45 flex items-center justify-center font-bold text-[13px]">
-            {day.day_number}
-          </div>
-        )}
-
-        {/* 본문 정보 */}
-        <button type="button" onClick={onRead} className="flex-1 min-w-0 text-left">
-          <div className="flex items-center gap-1.5">
-            {isToday && (
-              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 tracking-[0.05em]">
-                오늘
-              </span>
-            )}
-            <span className="text-[10px] font-semibold text-gray-400 dark:text-white/40">
-              {day.day_number}일차
-            </span>
-          </div>
-          {day.title && (
-            <p
-              className={`text-[14px] font-bold tracking-[-0.01em] truncate mt-0.5 ${
-                isFuture ? 'text-gray-600 dark:text-white/65' : 'text-gray-900 dark:text-white'
-              }`}
-            >
-              {day.title}
-            </p>
-          )}
-          <p
-            className={`text-[12px] truncate mt-0.5 ${
-              isFuture
-                ? 'text-purple-600/70 dark:text-purple-300/60'
-                : 'text-purple-600 dark:text-purple-300/90'
-            }`}
-          >
-            {day.passages.map((p) => p.reference).filter(Boolean).join(' · ')}
-          </p>
-        </button>
-
-        {/* 읽기 화살표 */}
-        <button
-          type="button"
-          onClick={onRead}
-          aria-label="본문 읽기"
-          className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-white/40 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-      </div>
-
-      {/* 묵상 영역 — 완료했거나 오늘인 일차에만 (미구독 시엔 미리보기로 항상) */}
-      {showReflectionArea && (
-      <div className="relative z-10 px-3.5 pb-3 -mt-1">
-        {day.reflection_prompt && (
-          <p className="text-[12.5px] leading-[1.6] text-gray-600 dark:text-white/65 bg-gray-50 dark:bg-white/[0.03] rounded-xl px-3 py-2 mb-2">
-            💬 {day.reflection_prompt}
-          </p>
-        )}
-        <button
-          type="button"
-          onClick={onReflect}
-          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-purple-600 dark:text-purple-300 hover:underline"
-        >
-          <span>✨</span>
-          {reflectionOpen ? 'AI 묵상 닫기' : 'AI 묵상 보기'}
-        </button>
-
-        {reflectionOpen && (
-          <div className="mt-2 rounded-xl bg-purple-50/70 dark:bg-purple-500/[0.06] border border-purple-200/50 dark:border-purple-400/20 px-3.5 py-3">
-            {reflection?.loading ? (
-              <p className="text-[12.5px] text-gray-500 dark:text-white/55">묵상을 준비하고 있어요…</p>
-            ) : reflection?.error ? (
-              <p className="text-[12.5px] text-red-500 dark:text-red-300">{reflection.error}</p>
-            ) : reflection?.data ? (
-              <div>
-                <p className="text-[13px] leading-[1.7] text-gray-700 dark:text-white/80 whitespace-pre-wrap">
-                  {normalizeReflection(reflection.data.reflection)}
-                </p>
-                {reflection.data.questions.length > 0 && (
-                  <ul className="mt-2.5 space-y-1.5">
-                    {reflection.data.questions.map((q, i) => (
-                      <li key={i} className="text-[12.5px] text-purple-700 dark:text-purple-200 flex gap-1.5">
-                        <span className="opacity-60">Q{i + 1}.</span>
-                        <span>{normalizeReflection(q)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {admin && (
-                  <div className="mt-3 pt-2.5 flex items-center gap-2 border-t border-purple-200/50 dark:border-purple-400/15">
-                    <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 tracking-[0.06em]">
-                      ADMIN
-                    </span>
-                    <button
-                      type="button"
-                      onClick={onEditReflection}
-                      className="text-[12px] font-semibold text-purple-600 dark:text-purple-300 hover:underline"
-                    >
-                      수정
-                    </button>
-                    <span className="text-gray-300 dark:text-white/15">·</span>
-                    <button
-                      type="button"
-                      onClick={onRegenerate}
-                      disabled={regenerating}
-                      className="text-[12px] font-semibold text-gray-500 dark:text-white/55 hover:text-purple-500 dark:hover:text-purple-300 disabled:opacity-50"
-                    >
-                      {regenerating ? '생성 중…' : 'AI로 다시 생성'}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </div>
-        )}
-      </div>
-      )}
-    </div>
-  )
-}
-
-// ── 관리자 AI 묵상 수정 모달 (slide-up) ──
-const ReflectionEditModal = ({
-  dayNumber,
-  initial,
-  onClose,
-  onSave,
-}: {
-  dayNumber: number
-  initial: PlanReflection
-  onClose: () => void
-  onSave: (reflection: string, questions: string[]) => Promise<void>
-}) => {
-  const [reflection, setReflection] = useState(() => normalizeReflection(initial.reflection))
-  const [questions, setQuestions] = useState<string[]>(() =>
-    (initial.questions ?? []).map((q) => normalizeReflection(q)),
-  )
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !saving) onClose()
-    }
-    document.addEventListener('keydown', onKey)
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
-    }
-  }, [onClose, saving])
-
-  const updateQuestion = (i: number, value: string) =>
-    setQuestions((prev) => prev.map((q, idx) => (idx === i ? value : q)))
-  const removeQuestion = (i: number) =>
-    setQuestions((prev) => prev.filter((_, idx) => idx !== i))
-  const addQuestion = () =>
-    setQuestions((prev) => (prev.length >= 3 ? prev : [...prev, '']))
-
-  const handleSave = async () => {
-    const body = reflection.trim()
-    if (!body) {
-      setError('묵상 내용을 입력해주세요')
-      return
-    }
-    setSaving(true)
-    setError(null)
-    try {
-      await onSave(
-        body,
-        questions.map((q) => q.trim()).filter(Boolean),
-      )
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '저장에 실패했습니다')
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <div
-        className="absolute inset-0 bg-black/55 backdrop-blur-sm"
-        onClick={() => !saving && onClose()}
-      />
-      <div className="relative w-full max-w-md max-h-[88vh] overflow-y-auto rounded-t-3xl bg-white dark:bg-[#1c1c26] border-t border-x border-gray-200 dark:border-white/[0.08] shadow-[0_-12px_40px_-8px_rgba(0,0,0,0.4)]">
-        {/* 핸들바 */}
-        <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm pt-2.5 pb-3 px-5 border-b border-gray-100 dark:border-white/[0.06]">
-          <div className="mx-auto w-10 h-1 rounded-full bg-gray-300 dark:bg-white/15 mb-3" />
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <h3 className="text-[20px] font-bold tracking-[-0.015em] text-gray-900 dark:text-white">
-                AI 묵상 수정
-              </h3>
-              <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">
-                {dayNumber}일차 · {initial.reference}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => !saving && onClose()}
-              aria-label="닫기"
-              className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-white/45 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div className="px-5 py-4 space-y-4">
-          {/* 묵상 본문 */}
-          <div>
-            <label className="block text-[12px] font-semibold text-gray-500 dark:text-white/55 mb-1.5">
-              묵상 본문
-            </label>
-            <textarea
-              value={reflection}
-              onChange={(e) => setReflection(e.target.value)}
-              rows={9}
-              placeholder="묵상 내용을 입력하세요"
-              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13.5px] leading-[1.7] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-y"
-            />
-            <p className="text-[11px] text-gray-400 dark:text-white/35 mt-1">
-              줄바꿈은 Enter 로 입력하세요. HTML 태그는 자동으로 정리됩니다.
-            </p>
-          </div>
-
-          {/* 묵상 질문 */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[12px] font-semibold text-gray-500 dark:text-white/55">
-                묵상 질문 ({questions.length}/3)
-              </label>
-              {questions.length < 3 && (
-                <button
-                  type="button"
-                  onClick={addQuestion}
-                  className="text-[12px] font-semibold text-purple-600 dark:text-purple-300 hover:underline"
-                >
-                  + 질문 추가
-                </button>
-              )}
-            </div>
-            <div className="space-y-2">
-              {questions.length === 0 && (
-                <p className="text-[12px] text-gray-400 dark:text-white/35">
-                  등록된 질문이 없습니다.
-                </p>
-              )}
-              {questions.map((q, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="shrink-0 text-[12px] font-bold text-purple-500 dark:text-purple-300/80 w-7">
-                    Q{i + 1}
-                  </span>
-                  <input
-                    type="text"
-                    value={q}
-                    onChange={(e) => updateQuestion(i, e.target.value)}
-                    placeholder="묵상 질문"
-                    className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeQuestion(i)}
-                    aria-label="질문 삭제"
-                    className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-gray-400 dark:text-white/40 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {error && (
-            <p className="text-[12.5px] text-red-500 dark:text-red-300">{error}</p>
-          )}
-        </div>
-
-        {/* 하단 액션 */}
-        <div className="sticky bottom-0 bg-white/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm px-5 py-3.5 border-t border-gray-100 dark:border-white/[0.06] flex gap-2.5">
-          <button
-            type="button"
-            onClick={() => !saving && onClose()}
-            disabled={saving}
-            className="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 text-[14px] font-semibold border border-gray-200 dark:border-white/[0.08] disabled:opacity-50"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-[1.4] py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all disabled:opacity-50"
-          >
-            {saving ? '저장 중…' : '저장'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export default PlanDetail

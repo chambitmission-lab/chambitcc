@@ -190,7 +190,14 @@
       "Read(//Users/kimhuisik/.cache/**)",
       "Read(//Users/kimhuisik/Library/Caches/ms-playwright/**)",
       "Read(//Users/kimhuisik/idea/chambit/frontend/node_modules/**)",
-      "Read(//Users/kimhuisik/idea/**)"
+      "Read(//Users/kimhuisik/idea/**)",
+      "Bash(sort -t: -k2 -rn)",
+      "Bash(awk '/^const FilterChip/,/^\\\\\\)$/' DailyVerseManagement.tsx)",
+      "Bash(awk '/^const FilterChip/,/^\\\\\\)$/' BiblePlanManagement.tsx)",
+      "Bash(awk '/^const FilterRow/,/^\\\\\\)$/' DailyVerseManagement.tsx)",
+      "Bash(awk '/^const FilterRow/,/^\\\\\\)$/' BiblePlanManagement.tsx)",
+      "Bash(awk '/^const FilterRow/,/^\\\\\\)$/' UserManagement.tsx)",
+      "Bash(npm install *)"
     ]
   }
 }

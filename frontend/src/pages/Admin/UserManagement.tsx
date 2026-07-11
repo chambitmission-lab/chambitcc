@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo, type ReactNode } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { getUserList, updateUserRole, updateUserStatus, type User } from '../../api/user'
+import { FilterChip, FilterRow } from './components/FilterControls'
 
 type RoleFilter = 'all' | 'admin' | 'user'
 type StatusFilter = 'all' | 'active' | 'inactive'
@@ -166,21 +167,21 @@ const UserManagement = () => {
               </div>
 
               {/* 권한 */}
-              <FilterRow label="권한">
+              <FilterRow align="center" label="권한">
                 {([['all', '전체'], ['admin', '관리자'], ['user', '일반']] as const).map(([v, l]) => (
                   <FilterChip key={v} active={filterRole === v} onClick={() => setFilterRole(v)}>{l}</FilterChip>
                 ))}
               </FilterRow>
 
               {/* 상태 */}
-              <FilterRow label="상태">
+              <FilterRow align="center" label="상태">
                 {([['all', '전체'], ['active', '활성'], ['inactive', '비활성']] as const).map(([v, l]) => (
                   <FilterChip key={v} active={filterStatus === v} onClick={() => setFilterStatus(v)}>{l}</FilterChip>
                 ))}
               </FilterRow>
 
               {/* 정렬 */}
-              <FilterRow label="정렬">
+              <FilterRow align="center" label="정렬">
                 {([['recentLogin', '최근 로그인'], ['createdAt', '가입일'], ['name', '이름']] as const).map(([v, l]) => (
                   <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>{l}</FilterChip>
                 ))}
@@ -249,26 +250,6 @@ const StatChip = ({ label, value, accent }: StatChipProps) => (
 )
 
 // ── 필터 행 ─────────────────────────────────────────────
-const FilterRow = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex items-center gap-2 flex-wrap">
-    <span className="text-[11px] font-semibold text-gray-500 dark:text-white/45 w-9 shrink-0">{label}</span>
-    <div className="flex gap-1.5 flex-wrap min-w-0">{children}</div>
-  </div>
-)
-
-const FilterChip = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
-      active
-        ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
-        : 'text-gray-500 dark:text-white/45 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100/70 dark:hover:bg-white/[0.04]'
-    }`}
-  >
-    {children}
-  </button>
-)
 
 // ── 스켈레톤 ─────────────────────────────────────────────
 const SkeletonRows = () => (
