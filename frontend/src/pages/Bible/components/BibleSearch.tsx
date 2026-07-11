@@ -371,7 +371,6 @@ const BibleSearch = () => {
                     goToChapter(verse.book_number ?? searchResults.book_number ?? 0, verse.chapter)
                   }
                 }}
-                title="이 장으로 이동"
               >
                 <div className="bible-verse-reference">
                   {verse.book_name_ko} {verse.chapter}:{verse.verse}

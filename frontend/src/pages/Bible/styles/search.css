@@ -357,21 +357,17 @@
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.bible-verse-item--search:hover {
-  border-color: #a855f7;
+/* 호버 하이라이트 — 베이스 .bible-verse-item:hover가 margin/padding을 덮어써
+   카드 폭이 변하며 본문이 재줄바꿈되던 문제 → 특이성을 높여 쉬는 상태와
+   '동일한' 지오메트리로 고정한다. 좌측 보라 바는 ::before(둥근 모서리 밖으로
+   삐져나옴) 대신 inset 그림자로 그려 레이아웃·모서리를 건드리지 않는다. */
+.bible-verse-item.bible-verse-item--search:hover {
+  margin: 0 0 0.75rem;
+  padding: 1.125rem 1rem;
+  border: 1px solid #a855f7;
+  border-radius: 14px;
   background: rgba(168, 85, 247, 0.05);
-  margin-bottom: 0.75rem;
-}
-
-.bible-verse-item--search:hover::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: #a855f7;
-  border-radius: 2px 0 0 2px;
+  box-shadow: inset 3px 0 0 #a855f7;
 }
 
 .bible-verse-item--search .bible-verse-text {
