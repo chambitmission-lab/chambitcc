@@ -226,7 +226,10 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/docs --max-time 3)",
       "Bash(curl -s \"http://localhost:8000/api/v1/prayers?limit=1\" --max-time 3)",
       "Bash(curl -s \"http://localhost:8000/api/prayers?limit=1\" --max-time 3)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(mkdir -p src/assets/hero)",
+      "Bash(wait)",
+      "Bash(file *.jpg)"
     ]
   }
 }

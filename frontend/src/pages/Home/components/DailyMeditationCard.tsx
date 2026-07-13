@@ -3,12 +3,34 @@ import { useDailyMeditation } from '../../../hooks/useDailyMeditation'
 import { getCurrentUser } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import type { TimeOfDay } from '../../../types/meditation'
+import heroMorning from '../../../assets/hero/morning.jpg'
+import heroAfternoon from '../../../assets/hero/afternoon.jpg'
+import heroEvening from '../../../assets/hero/evening.jpg'
 import './DailyMeditationCard.css'
 
 const GREETINGS: Record<TimeOfDay, string> = {
   morning: '좋은 아침이에요',
   afternoon: '오늘 하루도 평안하시길',
   evening: '오늘 하루도 수고하셨어요',
+}
+
+/* 시간대별 히어로 — 이미지·이모지·헤드라인이 함께 바뀌며 분위기를 만든다 */
+const HERO_IMAGES: Record<TimeOfDay, string> = {
+  morning: heroMorning,
+  afternoon: heroAfternoon,
+  evening: heroEvening,
+}
+
+const HERO_EMOJI: Record<TimeOfDay, string> = {
+  morning: '☀️',
+  afternoon: '🌤️',
+  evening: '🌙',
+}
+
+const HERO_HEADLINES: Record<TimeOfDay, [string, string]> = {
+  morning: ['오늘도 말씀과 함께', '빛나는 하루 보내세요!'],
+  afternoon: ['잠시 멈추어', '말씀 안에서 쉬어가세요'],
+  evening: ['오늘 하루의 끝을', '말씀으로 마무리해요'],
 }
 
 const SEASON_LABELS: Record<string, string> = {
@@ -86,14 +108,30 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
 
   return (
     <section className="meditation-section">
-      {/* 인사말 — 카드 밖 섹션 타이틀로 가볍게 */}
-      <h2 className="meditation-greeting">{buildGreeting(timeOfDay, fullName)}</h2>
-
       <article
         className="meditation-card"
         data-time={timeOfDay}
         data-season={season}
       >
+        {/* 시간대별 히어로 — 배경 이미지 위에 인사말 + 헤드라인 */}
+        <div
+          className="meditation-hero"
+          style={{ backgroundImage: `url(${HERO_IMAGES[timeOfDay]})` }}
+        >
+          <div className="meditation-hero-overlay" aria-hidden />
+          <div className="meditation-hero-text">
+            <p className="meditation-hero-greeting">
+              {buildGreeting(timeOfDay, fullName)} {HERO_EMOJI[timeOfDay]}
+            </p>
+            <h2 className="meditation-hero-headline">
+              {HERO_HEADLINES[timeOfDay][0]}
+              <br />
+              {HERO_HEADLINES[timeOfDay][1]}
+            </h2>
+          </div>
+        </div>
+
+        <div className="meditation-body">
         <header className="meditation-meta-row">
           <div className="meditation-day-tags">
             <span className="meditation-season-tag" data-season={season}>
@@ -158,6 +196,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               나의 묵상 나누기
             </button>
           )}
+        </div>
         </div>
       </article>
     </section>
