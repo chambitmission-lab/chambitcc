@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { TitleEquippedChip } from '../../../components/titles/TitleEquippedChip'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { useUploadAvatar, useDeleteAvatar } from '../../../hooks/useProfile'
+import { resizeImageToBlob } from '../../../utils/imageResize'
+import { showToast } from '../../../utils/toast'
 import type { Achievement, GlowLevel } from '../../../types/achievement'
 import './ProfileHeader.css'
 
@@ -23,6 +26,7 @@ const CLASS_BY_LEVEL: Record<
 interface ProfileHeaderProps {
   username: string
   fullName: string
+  avatarUrl?: string | null
   glowLevel: GlowLevel
   activityPoints: number
   specialAchievementColor?: string
@@ -36,6 +40,7 @@ interface ProfileHeaderProps {
 const ProfileHeader = ({
   username,
   fullName,
+  avatarUrl = null,
   glowLevel,
   activityPoints,
   specialAchievementColor,
@@ -47,6 +52,34 @@ const ProfileHeader = ({
 }: ProfileHeaderProps) => {
   const { t } = useLanguage()
   const [flipped, setFlipped] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadAvatar = useUploadAvatar()
+  const deleteAvatar = useDeleteAvatar()
+  const avatarBusy = uploadAvatar.isPending || deleteAvatar.isPending
+
+  const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // 같은 파일 재선택 허용
+    if (!file || avatarBusy) return
+    try {
+      const resized = await resizeImageToBlob(file, 512)
+      await uploadAvatar.mutateAsync(resized)
+      showToast('프로필 사진을 등록했어요', 'success')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : '사진 업로드에 실패했어요', 'error')
+    }
+  }
+
+  const handleAvatarDelete = async () => {
+    if (avatarBusy) return
+    if (!window.confirm('프로필 사진을 삭제할까요?')) return
+    try {
+      await deleteAvatar.mutateAsync()
+      showToast('프로필 사진을 삭제했어요', 'success')
+    } catch {
+      showToast('사진 삭제에 실패했어요', 'error')
+    }
+  }
   const auraColor = specialAchievementColor || glowLevel.glowColor
   const unlockedBadges = achievements.filter((a) => a.unlocked)
   const playerClass = CLASS_BY_LEVEL[glowLevel.level] ?? CLASS_BY_LEVEL[0]
@@ -109,6 +142,73 @@ const ProfileHeader = ({
               >
                 {String(glowLevel.level).padStart(2, '0')}
               </span>
+
+              {/* 아바타 — 사진(있으면) / 이니셜(없으면), 카메라 배지로 등록·교체 */}
+              <div
+                className="relative mb-2 flex justify-center"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
+                <div className="relative">
+                  <div
+                    className="rounded-full p-[2px]"
+                    style={{
+                      background: `conic-gradient(from 210deg, ${auraColor}, rgba(168,85,247,0.9), rgba(236,72,153,0.9), ${auraColor})`,
+                      boxShadow: `0 0 14px ${auraColor}`,
+                    }}
+                  >
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="프로필 사진"
+                        className="block h-16 w-16 rounded-full bg-[#211d2e] object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#211d2e] text-[26px] font-black text-white/85">
+                        {(fullName || username).charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 카메라 배지 — 등록/교체 */}
+                  <button
+                    type="button"
+                    className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-[#2b2638] text-white/90 shadow-[0_2px_8px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 disabled:opacity-60"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={avatarBusy}
+                    aria-label={avatarUrl ? '프로필 사진 변경' : '프로필 사진 등록'}
+                  >
+                    <span
+                      className={`material-icons-round text-[13px] ${avatarBusy ? 'animate-spin' : ''}`}
+                      aria-hidden
+                    >
+                      {avatarBusy ? 'autorenew' : 'photo_camera'}
+                    </span>
+                  </button>
+
+                  {/* 사진이 있을 때만 — 삭제 배지 */}
+                  {avatarUrl && !avatarBusy && (
+                    <button
+                      type="button"
+                      className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-white/15 bg-black/70 text-white/75 transition-colors hover:bg-black/90 hover:text-white"
+                      onClick={handleAvatarDelete}
+                      aria-label="프로필 사진 삭제"
+                    >
+                      <span className="material-icons-round text-[11px]" aria-hidden>
+                        close
+                      </span>
+                    </button>
+                  )}
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarFile}
+                />
+              </div>
 
               <div
                 className="relative mb-1.5 text-[10.5px] font-bold uppercase tracking-[0.2em]"

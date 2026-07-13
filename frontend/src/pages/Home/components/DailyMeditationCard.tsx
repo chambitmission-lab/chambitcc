@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useDailyMeditation } from '../../../hooks/useDailyMeditation'
+import { useAuth } from '../../../hooks/useAuth'
+import { useChapterReadStatus } from '../../../hooks/useBibleReading'
 import { getCurrentUser } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import type { TimeOfDay } from '../../../types/meditation'
@@ -47,6 +49,12 @@ const buildGreeting = (timeOfDay: TimeOfDay, fullName: string | null): string =>
   return `${fullName} 님, ${base}`
 }
 
+/* 예상 소요시간 — 절당 약 10초(묵독 기준) 가정, 최소 1분 */
+const READ_SECONDS_PER_VERSE = 10
+
+const estimateMinutes = (verseCount: number): number =>
+  Math.max(1, Math.ceil((verseCount * READ_SECONDS_PER_VERSE) / 60))
+
 interface DailyMeditationCardProps {
   /** [나의 묵상 나누기] 버튼 — 기도/묵상 작성기를 여는 콜백 (없으면 버튼 미노출) */
   onWriteMeditation?: () => void
@@ -56,6 +64,14 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const navigate = useNavigate()
   const { data, isLoading, error } = useDailyMeditation()
   const { fullName } = getCurrentUser()
+  const { isLoggedIn } = useAuth()
+
+  // 오늘 본문(장)의 절 단위 읽음 상태 — 비로그인/로딩 중엔 미조회
+  const { data: readStatus } = useChapterReadStatus(
+    data?.passage.book_number ?? 0,
+    data?.passage.chapter ?? 0,
+    isLoggedIn(),
+  )
 
   if (error) {
     return null
@@ -81,8 +97,28 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
     Math.round((data.day_number / Math.max(1, data.total_days)) * 100),
   )
 
+  /* ── 본문 읽기 CTA 상태 (안 읽음 / 읽는 중 / 완료) ──
+   * 오늘 본문 범위(verse_start~verse_end)의 읽음 상태로 레이블·딥링크가 바뀐다.
+   * 읽는 중이면 첫 안 읽은 절로 이어가고, 완료면 처음부터 다시 읽기. */
+  const rangeStatuses = readStatus?.verses.filter(
+    (v) =>
+      v.verse >= data.passage.verse_start && v.verse <= data.passage.verse_end,
+  )
+  const readCount = rangeStatuses?.filter((v) => v.is_read).length ?? 0
+  const firstUnreadVerse =
+    rangeStatuses?.find((v) => !v.is_read)?.verse ?? data.passage.verse_start
+  const totalVerses =
+    rangeStatuses?.length ??
+    data.passage.verse_end - data.passage.verse_start + 1
+  const isDone = readCount > 0 && readCount >= totalVerses
+  const inProgress = !isDone && readCount > 0
+  const remainingMinutes = estimateMinutes(totalVerses - (isDone ? 0 : readCount))
+
   const handleContinueReading = () => {
-    navigate(`/bible/${data.passage.book_number}/${data.passage.chapter}`)
+    const resumeVerse = inProgress ? firstUnreadVerse : data.passage.verse_start
+    navigate(
+      `/bible/${data.passage.book_number}/${data.passage.chapter}?verse=${resumeVerse}`,
+    )
   }
 
   const handleShare = async () => {
@@ -163,6 +199,14 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           {data.passage.theme && (
             <span className="meditation-passage-theme">{data.passage.theme}</span>
           )}
+          {!isDone && (
+            <span className="meditation-passage-time">
+              <span className="material-icons-round" aria-hidden>schedule</span>
+              {inProgress
+                ? `${firstUnreadVerse}절부터 · 약 ${remainingMinutes}분`
+                : `약 ${remainingMinutes}분`}
+            </span>
+          )}
         </div>
 
         <blockquote className="meditation-verse-quote">
@@ -180,11 +224,25 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         <div className="meditation-actions">
           <button
             type="button"
-            className="meditation-cta is-primary"
+            className={`meditation-cta is-primary${isDone ? ' is-done' : ''}`}
             onClick={handleContinueReading}
           >
-            <span className="material-icons-round">menu_book</span>
-            본문 이어 읽기
+            {isDone ? (
+              <>
+                <span className="material-icons-round" aria-hidden>check_circle</span>
+                오늘 본문 완료
+              </>
+            ) : (
+              <>
+                {inProgress ? '이어 읽기' : '오늘 본문 읽기'}
+                <span
+                  className="material-icons-round meditation-cta-arrow"
+                  aria-hidden
+                >
+                  arrow_forward
+                </span>
+              </>
+            )}
           </button>
           {onWriteMeditation && (
             <button

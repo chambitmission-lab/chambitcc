@@ -77,6 +77,7 @@ const PrayerArticle = ({
     >
       <PrayerHeader
         displayName={prayer.display_name}
+        avatarUrl={prayer.avatar_url ?? null}
         timeAgo={prayer.time_ago}
         groupName={prayer.group?.name}
         colorTheme={colorTheme}

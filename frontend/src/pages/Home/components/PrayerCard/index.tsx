@@ -45,6 +45,7 @@ const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
     <article className="prayer-card">
       <CardHeader
         displayName={displayName}
+        avatarUrl={prayer.avatar_url ?? null}
         timeAgo={timeAgo}
         hasTranslation={hasTranslation}
         showEnglish={showEnglish}

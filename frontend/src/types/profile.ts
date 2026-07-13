@@ -4,6 +4,7 @@ export interface ProfileStats {
   user_id: number
   username: string
   full_name: string
+  avatar_url?: string | null // 프로필 사진 (미등록 시 null → 이니셜 아바타)
   activity: {
     this_week_count: number
     total_count: number

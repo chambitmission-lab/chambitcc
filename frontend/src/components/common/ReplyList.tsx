@@ -90,9 +90,18 @@ const ReplyList = ({
     <div className="reply-list space-y-5">
       {replies.map((reply) => (
         <div key={reply.id} className="reply-item flex gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/80 to-purple-600/60 dark:from-purple-500/55 dark:to-purple-700/35 border border-purple-400/40 dark:border-purple-400/25 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-            {reply.display_name.charAt(0).toUpperCase()}
-          </div>
+          {reply.avatar_url ? (
+            <img
+              src={reply.avatar_url}
+              alt=""
+              loading="lazy"
+              className="w-9 h-9 rounded-full object-cover border border-purple-400/40 dark:border-purple-400/25 flex-shrink-0"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/80 to-purple-600/60 dark:from-purple-500/55 dark:to-purple-700/35 border border-purple-400/40 dark:border-purple-400/25 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+              {reply.display_name.charAt(0).toUpperCase()}
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">

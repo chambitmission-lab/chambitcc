@@ -178,6 +178,7 @@ const Profile = () => {
         <ProfileHeader
           username={stats.username}
           fullName={stats.full_name}
+          avatarUrl={stats.avatar_url ?? null}
           glowLevel={glowLevel}
           activityPoints={activityPoints}
           thisWeekCount={stats.activity.this_week_count}

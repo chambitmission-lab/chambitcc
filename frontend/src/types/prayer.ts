@@ -13,6 +13,7 @@ export type PrayerEmotion =
 export interface Prayer {
   id: number
   display_name: string
+  avatar_url?: string | null // 작성자 프로필 사진 (익명/별명이면 null)
   title: string
   content: string
   title_en?: string  // 한글→영어 번역 제목
@@ -87,6 +88,7 @@ export type PrayerFilterType = 'all' | 'my_prayers' | 'prayed_by_me'
 export interface Reply {
   id: number
   display_name: string
+  avatar_url?: string | null // 작성자 프로필 사진 (익명/별명이면 null)
   content: string
   created_at: string
   time_ago: string

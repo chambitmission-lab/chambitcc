@@ -2,6 +2,7 @@ import type { GroupColorTheme } from '../../../../utils/groupColors'
 
 interface PrayerHeaderProps {
   displayName: string
+  avatarUrl?: string | null
   timeAgo: string
   groupName?: string
   colorTheme: GroupColorTheme
@@ -9,6 +10,7 @@ interface PrayerHeaderProps {
 
 const PrayerHeader = ({
   displayName,
+  avatarUrl = null,
   timeAgo,
   groupName,
   colorTheme
@@ -23,25 +25,43 @@ const PrayerHeader = ({
           {/* 주변 빛 확산 효과 */}
           {useGroupColor ? (
             <>
-              <div 
+              <div
                 className="absolute inset-0 rounded-full blur-md animate-pulse"
                 style={{
                   background: colorTheme.glow,
                   opacity: 0.3
                 }}
               ></div>
-              <div 
-                className="w-8 h-8 rounded-full backdrop-blur-md border-2 flex items-center justify-center text-xs font-bold relative z-10"
-                style={{
-                  background: colorTheme.gradient,
-                  borderColor: colorTheme.primary,
-                  boxShadow: colorTheme.shadow,
-                  color: '#5D4E37'
-                }}
-              >
-                {displayName.charAt(0).toUpperCase()}
-              </div>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  className="w-8 h-8 rounded-full border-2 object-cover relative z-10"
+                  style={{
+                    borderColor: colorTheme.primary,
+                    boxShadow: colorTheme.shadow,
+                  }}
+                />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full backdrop-blur-md border-2 flex items-center justify-center text-xs font-bold relative z-10"
+                  style={{
+                    background: colorTheme.gradient,
+                    borderColor: colorTheme.primary,
+                    boxShadow: colorTheme.shadow,
+                    color: '#5D4E37'
+                  }}
+                >
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
             </>
+          ) : avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className="w-9 h-9 rounded-full object-cover shadow-[0_2px_10px_var(--brand-glow)]"
+            />
           ) : (
             <div className="w-9 h-9 rounded-full brand-gradient flex items-center justify-center text-xs font-bold shadow-[0_2px_10px_var(--brand-glow)]">
               {displayName.charAt(0).toUpperCase()}

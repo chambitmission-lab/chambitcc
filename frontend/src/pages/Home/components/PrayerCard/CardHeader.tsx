@@ -3,6 +3,7 @@ import LangFlag from '../../../../components/common/LangFlag'
 
 interface CardHeaderProps {
   displayName: string
+  avatarUrl?: string | null
   timeAgo: string
   hasTranslation: boolean
   showEnglish: boolean
@@ -12,6 +13,7 @@ interface CardHeaderProps {
 
 const CardHeader = ({
   displayName,
+  avatarUrl = null,
   timeAgo,
   hasTranslation,
   showEnglish,
@@ -31,9 +33,18 @@ const CardHeader = ({
       )}
       
       <div className="card-header">
-        <div className="card-avatar">
-          {displayName.charAt(0).toUpperCase()}
-        </div>
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt=""
+            className="card-avatar object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="card-avatar">
+            {displayName.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="card-meta">
           <span className="card-author">{displayName}</span>
           <span className="card-time">{timeAgo}</span>

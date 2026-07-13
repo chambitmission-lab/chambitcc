@@ -1,5 +1,12 @@
-import { useQuery } from '@tanstack/react-query'
-import { getProfileDetail, getMyPrayers, getPrayingFor, getMyReplies } from '../api/profile'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  getProfileDetail,
+  getMyPrayers,
+  getPrayingFor,
+  getMyReplies,
+  uploadProfileAvatar,
+  deleteProfileAvatar,
+} from '../api/profile'
 
 // 프로필 전체 정보 조회 (React Query persist-client가 localStorage 영속화 담당)
 export const useProfileDetail = () => {
@@ -45,5 +52,29 @@ export const useMyReplies = (skip: number = 0, limit: number = 20) => {
     queryKey: ['profile', 'my-replies', skip, limit],
     queryFn: () => getMyReplies({ skip, limit }),
     staleTime: 1000 * 60 * 3,
+  })
+}
+
+// 프로필 사진 업로드/교체
+export const useUploadAvatar = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (file: Blob) => uploadProfileAvatar(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    },
+  })
+}
+
+// 프로필 사진 삭제
+export const useDeleteAvatar = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => deleteProfileAvatar(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    },
   })
 }

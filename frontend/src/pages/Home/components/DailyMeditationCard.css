@@ -4,7 +4,8 @@
  *   - 카드: 글래스 서피스 (상단 고정 카드이므로 blur 허용)
  *   - 시간대(morning/afternoon/evening)는 은은한 tint 차이만
  *   - 핵심 절은 카드 안의 인셋 박스, 질문은 대시 보더 소프트 박스
- *   - CTA: 주(브랜드 그라데이션) / 보조(아웃라인) 페어
+ *   - CTA: 주(브랜드 그라데이션, 1.4배 폭) / 보조(아웃라인) 페어
+ *     주 CTA는 읽음 상태에 따라 읽기 → 이어 읽기 → 완료(소프트)로 전환
  */
 
 .meditation-section {
@@ -244,6 +245,26 @@
   font-weight: 600;
 }
 
+/* 예상 소요시간 / 이어 읽을 절 — 실행 마찰을 낮추는 마이크로 카피 */
+.meditation-passage-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2.5px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+}
+
+.meditation-passage-time .material-icons-round {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
 /* ── 핵심 절 — 독립된 내부 인셋 박스 ─────── */
 .meditation-verse-quote {
   margin: 0 0 12px;
@@ -301,7 +322,7 @@
   margin: 0;
 }
 
-/* ── 액션 버튼 행 — 두 버튼 규격 완전 통일 ── */
+/* ── 액션 버튼 행 — 주 CTA 우세(1.4:1) 비대칭 위계 ── */
 .meditation-actions {
   display: flex;
   align-items: stretch;
@@ -309,17 +330,17 @@
 }
 
 .meditation-cta {
-  /* 두 버튼(솔리드/보더)의 박스 규격을 픽셀 단위로 동일하게 유지한다 */
+  /* 높이·radius는 두 버튼 동일, 폭·타이포로만 위계를 가른다 */
   flex: 1 1 0;
   min-width: 0;
   box-sizing: border-box;
-  height: 42px;
+  height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 0 14px;
-  border-radius: 12px;
+  padding: 0 12px;
+  border-radius: 14px;
   border: 1px solid var(--card-border);
   background: var(--brand-soft);
   color: var(--text-strong);
@@ -343,9 +364,11 @@
 }
 
 .meditation-cta.is-primary {
+  flex-grow: 1.4;
   border-color: transparent;
   background: var(--brand-gradient);
   color: var(--on-brand);
+  font-size: 14px;
   box-shadow: 0 2px 12px var(--brand-glow);
 }
 
@@ -353,8 +376,29 @@
   box-shadow: 0 4px 16px var(--brand-glow);
 }
 
+/* 완료 상태 — 솔리드를 내려놓고 "끝났다"는 안정감 있는 소프트 톤 */
+.meditation-cta.is-primary.is-done {
+  background: var(--brand-soft-strong);
+  border-color: var(--card-border);
+  color: var(--brand);
+  box-shadow: none;
+}
+
+.meditation-cta.is-primary.is-done:hover {
+  box-shadow: none;
+}
+
 .meditation-cta .material-icons-round {
-  font-size: 15px;
+  font-size: 16px;
+}
+
+/* 이동 어포던스 — 호버 시 셰브런이 살짝 앞으로 */
+.meditation-cta-arrow {
+  transition: transform 0.2s ease;
+}
+
+.meditation-cta.is-primary:hover .meditation-cta-arrow {
+  transform: translateX(2px);
 }
 
 /* ── 로딩 ──────────────────────────── */

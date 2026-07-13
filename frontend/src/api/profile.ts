@@ -124,3 +124,38 @@ export const getMyReplies = async (params?: {
 
   return response.json()
 }
+
+// 프로필 사진 업로드/교체 — FormData 전송이므로 Content-Type은 브라우저가 지정
+export const uploadProfileAvatar = async (
+  file: Blob,
+): Promise<{ avatar_url: string }> => {
+  const formData = new FormData()
+  formData.append('file', file, 'avatar.jpg')
+
+  const response = await apiFetch(`${PROFILE_BASE}/avatar`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const detail = await response.json().catch(() => null)
+    throw new Error(detail?.detail ?? '프로필 사진 업로드에 실패했습니다')
+  }
+
+  return response.json()
+}
+
+// 프로필 사진 삭제 (이니셜 아바타로 복귀)
+export const deleteProfileAvatar = async (): Promise<{ avatar_url: null }> => {
+  const response = await apiFetch(`${PROFILE_BASE}/avatar`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  })
+
+  if (!response.ok) {
+    throw new Error('프로필 사진 삭제에 실패했습니다')
+  }
+
+  return response.json()
+}
