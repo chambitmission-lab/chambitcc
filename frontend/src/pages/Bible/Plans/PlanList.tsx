@@ -299,17 +299,19 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
   <button
     type="button"
     onClick={onClick}
-    className="group relative w-full text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-purple-300/50 dark:hover:border-purple-400/30 active:scale-[0.97]"
+    className="group relative flex h-full w-full flex-col text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-purple-300/50 dark:hover:border-purple-400/30 active:scale-[0.97]"
   >
     {/* 정사각 → 5:4로 살짝 낮춰 무게중심을 텍스트 쪽으로 — 글씨가 먼저 읽힌다 */}
-    <div className="relative aspect-[5/4]">
+    <div className="relative aspect-[5/4] shrink-0">
       <PlanVisual plan={plan} size="feed" />
     </div>
     {/* 텍스트와 화살표를 한 flex 행으로 완전히 분리 — 제목·태그가 길어져도
-        겹치지 않고, 배경 없는 맨 화살표라 "카드 전체가 눌린다"로 읽힌다 */}
-    <div className="px-3.5 pt-3.5 pb-[18px] flex items-center gap-1.5">
+        겹치지 않고, 배경 없는 맨 화살표라 "카드 전체가 눌린다"로 읽힌다.
+        flex-1 로 남는 높이를 흡수해 2열 카드가 항상 같은 높이로 정렬된다 */}
+    <div className="flex-1 px-3.5 pt-3.5 pb-[18px] flex items-center gap-1.5">
       <div className="flex-1 min-w-0">
-        <h4 className="text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-snug line-clamp-2">
+        {/* 제목은 1~2줄로 갈리므로 최소 2줄 높이를 확보해 해시태그 baseline 을 맞춘다 */}
+        <h4 className="min-h-[2.5em] text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-snug line-clamp-2">
           {plan.title}
         </h4>
         <div className="mt-1">
