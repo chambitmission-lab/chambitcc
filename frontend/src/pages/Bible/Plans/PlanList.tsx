@@ -8,6 +8,7 @@ import { useBiblePlans, useTodayReadings } from '../../../hooks/useBiblePlan'
 import type { PlanSummary, TodayReading } from '../../../types/biblePlan'
 import { isAuthenticated } from '../../../utils/auth'
 import { accentGradient, gradientTextStyle, planHashtags } from './planVisuals'
+import { planCover } from './planCovers'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 
 const PlanList = () => {
@@ -265,11 +266,38 @@ const PlanVisual = ({
 }) => {
   const grad = accentGradient(plan.accent)
   const emoji = plan.emoji || '📖'
-  // 격자(feed)에서는 오브젝트를 작게 두고 그라데이션 여백을 넉넉히 남긴다 —
-  // 꽉 찬 일러스트보다 여백이 있어야 여유롭고 정돈된 인상
+  const cover = planCover(plan.slug)
+  // 이모지 배지 — 사진 위에선 좌상단 작은 유리 배지, 그라데이션 폴백에선 중앙 크게
+  const badgeSize = size === 'feed' ? 'text-[15px]' : 'text-[17px]'
+
+  // 실제 커버 사진이 있으면 사진을 배경으로 — 브랜드 톤/가독성을 위해 위에 살짝 틴트를 얹는다
+  if (cover) {
+    return (
+      <div className="relative h-full w-full overflow-hidden bg-gray-200 dark:bg-white/5">
+        <img
+          src={cover}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {/* 브랜드 틴트(보라→핑크, 저채도) — 사진마다 다른 색감을 하나의 톤으로 묶는다 */}
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(168,85,247,0.28),rgba(236,72,153,0.22))] mix-blend-multiply" />
+        {/* 하단 그라데이션 — 이모지 배지 대비 확보 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
+        {/* 이모지 유리 배지 — 사진 위에 플랜 정체성을 한 점 남긴다 */}
+        <span
+          className={`absolute left-2 top-2 inline-flex items-center justify-center ${badgeSize} leading-none rounded-full w-7 h-7 bg-white/20 backdrop-blur-md ring-1 ring-white/30 shadow-sm select-none`}
+        >
+          {emoji}
+        </span>
+      </div>
+    )
+  }
+
+  // ── 폴백: 커버 사진이 없는 플랜은 기존 accent 그라데이션 + 이모지 ──
+  // 격자(feed)에서는 오브젝트를 작게 두고 그라데이션 여백을 넉넉히 남긴다
   const mainSize = size === 'feed' ? 'text-[28px]' : 'text-[34px]'
   const markSize = size === 'feed' ? 'text-[72px]' : 'text-[64px]'
-  // 워터마크는 2열 격자에서 요소 과잉의 주범 — 겨우 느껴질 만큼만 남긴다
   const markOpacity = size === 'feed' ? 'opacity-[0.09]' : 'opacity-[0.14]'
 
   return (
