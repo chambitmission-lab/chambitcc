@@ -7,6 +7,7 @@ import { initPWAInstallPrompt, registerPushServiceWorker } from './utils/pwa'
 import { LanguageProvider } from './contexts/LanguageContext'
 import 'flag-icons/css/flag-icons.min.css'
 import './index.css'
+import './styles/theme.css'
 import './styles/common.css'
 import App from './App.tsx'
 

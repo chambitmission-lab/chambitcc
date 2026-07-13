@@ -16,10 +16,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--group-gradient, linear-gradient(135deg,
-    rgba(168, 85, 247, 0.07) 0%,
-    rgba(217, 70, 239, 0.05) 50%,
-    rgba(236, 72, 153, 0.07) 100%));
+  background: var(--group-gradient, var(--brand-soft));
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -27,11 +24,7 @@
 }
 
 .prayer-card:hover {
-  background: linear-gradient(135deg,
-    rgba(168, 85, 247, 0.06) 0%,
-    rgba(217, 70, 239, 0.04) 50%,
-    rgba(236, 72, 153, 0.06) 100%);
-  box-shadow: 0 2px 12px var(--group-glow, rgba(168, 85, 247, 0.16));
+  box-shadow: 0 2px 12px var(--group-glow, var(--brand-glow));
 }
 
 .prayer-card:hover::before {
@@ -52,20 +45,20 @@
   border-bottom: none;
 }
 
-/* 프로필 아바타 - 브랜드 purple→pink (정적) */
+/* 프로필 아바타 - 브랜드 새벽 블루 그라데이션 (정적) */
 .card-avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  background: var(--brand-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: var(--on-brand);
   font-weight: 600;
   font-size: 0.875rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.28);
+  box-shadow: 0 2px 8px var(--brand-glow);
 }
 
 .card-avatar::before {

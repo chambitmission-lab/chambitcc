@@ -4,6 +4,7 @@
  *   - 말씀 본문이 가장 크고 먼저 읽히는 위계
  *   - "올해의 말씀" 태그 + 출처는 하단 메타 한 줄로
  *   - 좌측 emblem 은 참빛(빛) 아이덴티티의 밝은 광원 그래픽
+ * 색·질감은 새벽 블루 글래스 테마 토큰(src/styles/theme.css)을 참조한다.
  */
 
 .annual-theme-section {
@@ -17,12 +18,12 @@
   gap: 13px;
   padding: 13px 16px 12px 15px;
   border-radius: 16px;
-  border: 1px solid rgba(168, 85, 247, 0.28);
-  background: linear-gradient(
-    135deg,
-    rgba(30, 27, 75, 0.55) 0%,
-    rgba(76, 29, 149, 0.32) 100%
-  );
+  border: 1px solid var(--card-border);
+  background:
+    linear-gradient(135deg, var(--brand-soft-strong) 0%, var(--brand-soft) 100%),
+    var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   overflow: hidden;
 }
 
@@ -43,15 +44,6 @@
   border-radius: 0 3px 3px 0;
 }
 
-[data-theme="light"] .annual-theme-card {
-  background: linear-gradient(
-    135deg,
-    rgba(245, 243, 255, 0.95) 0%,
-    rgba(237, 233, 254, 0.85) 100%
-  );
-  border-color: rgba(168, 85, 247, 0.3);
-}
-
 /* ── 좌측 emblem — 참빛의 '빛' 그래픽 ─────── */
 .annual-theme-emblem {
   width: 36px;
@@ -60,9 +52,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.85), rgba(168, 85, 247, 0.75));
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.85), var(--brand));
   border: 1px solid rgba(253, 230, 138, 0.5);
-  box-shadow: 0 0 14px rgba(251, 191, 36, 0.28);
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.24);
   color: #fffbeb;
   flex-shrink: 0;
 }
@@ -70,13 +62,6 @@
 .annual-theme-emblem .material-icons-round {
   font-size: 19px;
   text-shadow: 0 0 6px rgba(255, 251, 235, 0.6);
-}
-
-[data-theme="light"] .annual-theme-emblem {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.9), rgba(168, 85, 247, 0.8));
-  border-color: rgba(217, 119, 6, 0.35);
-  box-shadow: 0 0 12px rgba(251, 191, 36, 0.35);
-  color: #ffffff;
 }
 
 /* ── 본문 영역 ─────────────────────────── */
@@ -96,8 +81,7 @@
   font-weight: 700;
   letter-spacing: -0.015em;
   word-break: keep-all;
-  color: #f5f3ff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  color: var(--text-strong);
 }
 
 .annual-theme-text::before {
@@ -112,16 +96,6 @@
   margin-left: 2px;
   font-family: Georgia, 'Times New Roman', serif;
   color: rgba(251, 191, 36, 0.85);
-}
-
-[data-theme="light"] .annual-theme-text {
-  color: #1e1b4b;
-  text-shadow: none;
-}
-
-[data-theme="light"] .annual-theme-text::before,
-[data-theme="light"] .annual-theme-text::after {
-  color: rgba(217, 119, 6, 0.85);
 }
 
 /* ── 메타 (태그 + 출처) — 하단 한 줄 ─────── */
@@ -139,39 +113,29 @@
   letter-spacing: 0.06em;
   padding: 2.5px 9px;
   border-radius: 999px;
-  background: rgba(168, 85, 247, 0.26);
-  border: 1px solid rgba(196, 181, 253, 0.45);
-  color: #f3e8ff;
+  background: var(--brand-soft-strong);
+  border: 1px solid var(--card-border);
+  color: var(--brand);
   white-space: nowrap;
   flex-shrink: 0;
-}
-
-[data-theme="light"] .annual-theme-label {
-  background: rgba(168, 85, 247, 0.14);
-  border-color: rgba(139, 92, 246, 0.4);
-  color: rgba(88, 28, 135, 0.98);
 }
 
 .annual-theme-reference {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: rgba(221, 214, 254, 0.95);
+  color: var(--text-muted);
   white-space: nowrap;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-[data-theme="light"] .annual-theme-reference {
-  color: rgba(91, 33, 182, 0.9);
-}
-
 /* ── 로딩 ──────────────────────────── */
 .annual-theme-skeleton {
   height: 24px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-inset);
   animation: annual-theme-pulse 1.6s ease-in-out infinite;
 }
 

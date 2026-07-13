@@ -214,7 +214,7 @@ const NewHome = () => {
                 </p>
                 <button
                   onClick={() => prayerHook.refresh()}
-                  className="px-5 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-bold rounded-full hover:shadow-lg transition-all"
+                  className="px-5 py-2 brand-gradient text-sm font-bold rounded-full hover:shadow-lg transition-all"
                 >
                   다시 시도
                 </button>

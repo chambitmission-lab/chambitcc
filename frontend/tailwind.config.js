@@ -11,14 +11,26 @@ export default {
         primary: "#0095f6",
         "ig-red": "#ed4956",
         "background-light": "#ffffff",
-        "background-dark": "#0b0b12",
+        "background-dark": "#131313",
         "surface-light": "#fafafa",
-        "surface-dark": "#15151d",
-        "card-dark": "#1c1c26",
+        "surface-dark": "#1a1a1a",
+        "card-dark": "#201f1f",
         "border-light": "#dbdbdb",
-        "border-dark": "#23232e",
+        "border-dark": "#2b2a2a",
         "accent-purple": "#a855f7",
         "accent-pink": "#ec4899",
+        // 새벽 블루 글래스 테마 토큰 — 값은 src/styles/theme.css의 CSS 변수가
+        // 라이트/다크를 분기한다. 컴포넌트에서는 dark: 프리픽스 없이 사용 가능.
+        brand: {
+          DEFAULT: "var(--brand)",
+          dim: "var(--brand-dim)",
+          on: "var(--on-brand)",
+        },
+        surface: {
+          DEFAULT: "var(--surface)",
+          container: "var(--surface-container)",
+          high: "var(--surface-container-high)",
+        },
       },
       fontFamily: {
         display: ["Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "sans-serif"],

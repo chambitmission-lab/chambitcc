@@ -20,13 +20,13 @@ const BottomNavigation = ({
       <button
         onClick={onComposeClick}
         aria-label="기도 작성"
-        className="absolute left-1/2 -translate-x-1/2 top-0 z-20 w-14 h-14 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 shadow-[0_0_0_6px_rgba(168,85,247,0.10),0_10px_28px_rgba(168,85,247,0.55),0_4px_12px_rgba(236,72,153,0.30)] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+        className="absolute left-1/2 -translate-x-1/2 top-0 z-20 w-14 h-14 rounded-full brand-gradient shadow-[0_0_0_6px_var(--brand-soft),0_10px_28px_var(--brand-glow)] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
       >
-        <span className="absolute inset-0 rounded-full bg-purple-500/40 animate-ping opacity-40 pointer-events-none" />
+        <span className="absolute inset-0 rounded-full bg-[var(--brand-glow)] animate-ping opacity-40 pointer-events-none" />
         <svg
           className="w-7 h-7 relative z-10"
           fill="none"
-          stroke="white"
+          stroke="currentColor"
           strokeWidth={2.5}
           strokeLinecap="round"
           viewBox="0 0 24 24"
@@ -38,7 +38,7 @@ const BottomNavigation = ({
 
       {/* Glass dock — 카드 시스템과 동일한 #1c1c26/80 + 상단 1px 빛줄 + soft purple shadow */}
       <nav
-        className="relative backdrop-blur-xl bg-white/80 dark:bg-[#1c1c26]/85 border border-black/[0.04] dark:border-white/[0.08] rounded-2xl px-5 py-2 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_rgba(168,85,247,0.10)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.5),0_12px_28px_rgba(168,85,247,0.20),inset_0_1px_0_rgba(255,255,255,0.06)]"
+        className="relative backdrop-blur-xl bg-white/80 dark:bg-[#201f1f]/90 border border-black/[0.04] dark:border-white/[0.08] rounded-2xl px-5 py-2 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_var(--brand-soft)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.5),0_12px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]"
       >
         {/* 다크모드 카드 표면 그라데이션 — 카드 시스템과 동일 */}
         <div className="hidden dark:block absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
@@ -47,7 +47,7 @@ const BottomNavigation = ({
         <button
           onClick={onScrollToTop}
           aria-label="홈"
-          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
+          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
         >
           <svg
             className="w-[26px] h-[26px]"
@@ -67,7 +67,7 @@ const BottomNavigation = ({
         <button
           onClick={onBibleClick}
           aria-label="성경"
-          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
+          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
         >
           <span className="material-icons-outlined text-[26px]">menu_book</span>
         </button>
@@ -82,7 +82,7 @@ const BottomNavigation = ({
         <button
           onClick={onFocusModeClick}
           aria-label="집중 기도 모드"
-          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
+          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
         >
           <svg className="w-[26px] h-[26px]" viewBox="0 0 24 24">
             <defs>
@@ -93,7 +93,7 @@ const BottomNavigation = ({
             {/* 발광(글로우) — 십자가 뒤에 깔리는 보라 빛 */}
             <g
               filter="url(#crossGlow)"
-              stroke="#a855f7"
+              style={{ stroke: "var(--brand)" }}
               strokeWidth={3.4}
               strokeLinecap="round"
               fill="none"
@@ -113,7 +113,7 @@ const BottomNavigation = ({
         <button
           onClick={onProfileClick}
           aria-label="프로필"
-          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
+          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
         >
           <svg
             className="w-[26px] h-[26px]"

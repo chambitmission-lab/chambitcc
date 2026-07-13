@@ -32,7 +32,7 @@ const NewHeader = () => {
       )}
 
       <header 
-        className="fixed top-0 left-0 right-0 z-[60] bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark" 
+        className="fixed top-0 left-0 right-0 z-[60] bg-background-light/85 dark:bg-background-dark/85 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06]"
         ref={menuRef}
       >
         <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">

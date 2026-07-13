@@ -65,7 +65,7 @@ const PrayerFeed = ({
       {/* Loading State */}
       {loading && (
         <div className="py-8 text-center">
-          <div className="inline-block w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="inline-block w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin"></div>
           <p className="mt-2 text-sm text-gray-500">{t('loadingPrayers')}</p>
         </div>
       )}
@@ -85,7 +85,7 @@ const PrayerFeed = ({
       {/* Loading More State */}
       {isFetchingMore && (
         <div className="py-4 text-center">
-          <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="inline-block w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
     </div>

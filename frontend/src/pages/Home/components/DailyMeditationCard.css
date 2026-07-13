@@ -1,8 +1,10 @@
-/* DailyMeditationCard
- * 응답의 전당/오늘의 감사와 같은 디자인 언어를 따른다:
- *   - mx-4 my-3 rounded-2xl border 1px
- *   - 시간대(morning/afternoon/evening)별로 그라데이션 색만 차이
- *   - 인사말은 카드 밖 섹션 타이틀 / 말씀 구절은 카드 내부의 독립 박스
+/* DailyMeditationCard — 새벽 블루 글래스 테마
+ * 색·질감은 토큰(src/styles/theme.css)만 참조한다. 라이트/다크 분기는
+ * 토큰이 담당하므로 이 파일에는 [data-theme] 분기를 두지 않는다.
+ *   - 카드: 글래스 서피스 (상단 고정 카드이므로 blur 허용)
+ *   - 시간대(morning/afternoon/evening)는 은은한 tint 차이만
+ *   - 핵심 절은 카드 안의 인셋 박스, 질문은 대시 보더 소프트 박스
+ *   - CTA: 주(브랜드 그라데이션) / 보조(아웃라인) 페어
  */
 
 .meditation-section {
@@ -15,7 +17,7 @@
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: inherit;
+  color: var(--text-strong);
   opacity: 0.92;
 }
 
@@ -23,55 +25,32 @@
   position: relative;
   border-radius: 16px;
   padding: 16px 18px 18px;
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  box-shadow:
-    0 0 18px rgba(139, 92, 246, 0.15),
-    inset 0 0 16px rgba(139, 92, 246, 0.06);
-  backdrop-filter: blur(10px);
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.16) 0%,
-    rgba(236, 72, 153, 0.16) 100%
-  );
-  color: #f3f4f6;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: var(--glass-bg);
+  color: var(--text-body);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* ── 시간대별 그라데이션 (브랜드 purple→pink 안에서 미묘하게) ── */
+/* ── 시간대별 tint — 값은 테마 토큰(--tint-*)이 결정 ── */
 .meditation-card[data-time="morning"] {
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.14) 0%,
-    rgba(244, 114, 182, 0.18) 100%
-  );
-  border-color: rgba(244, 114, 182, 0.4);
-  box-shadow:
-    0 0 18px rgba(244, 114, 182, 0.12),
-    inset 0 0 16px rgba(168, 85, 247, 0.06);
+  background:
+    linear-gradient(135deg, var(--tint-morning) 0%, var(--brand-soft) 100%),
+    var(--glass-bg);
 }
 
 .meditation-card[data-time="afternoon"] {
-  background: linear-gradient(
-    135deg,
-    rgba(139, 92, 246, 0.17) 0%,
-    rgba(217, 70, 239, 0.17) 100%
-  );
-  border-color: rgba(168, 85, 247, 0.42);
-  box-shadow:
-    0 0 18px rgba(168, 85, 247, 0.14),
-    inset 0 0 16px rgba(139, 92, 246, 0.06);
+  background:
+    linear-gradient(135deg, var(--brand-soft) 0%, var(--tint-afternoon) 100%),
+    var(--glass-bg);
 }
 
 .meditation-card[data-time="evening"] {
-  background: linear-gradient(
-    135deg,
-    rgba(124, 58, 237, 0.20) 0%,
-    rgba(168, 85, 247, 0.22) 100%
-  );
-  border-color: rgba(139, 92, 246, 0.45);
-  box-shadow:
-    0 0 18px rgba(139, 92, 246, 0.14),
-    inset 0 0 16px rgba(124, 58, 237, 0.06);
+  background:
+    linear-gradient(135deg, var(--tint-evening) 0%, var(--brand-soft) 100%),
+    var(--glass-bg);
 }
 
 /* ── 메타 행 (절기·진도 태그 + 공유 버튼) ──── */
@@ -98,37 +77,42 @@
   padding: 3.5px 10px;
   border-radius: 999px;
   white-space: nowrap;
-  background: rgba(168, 85, 247, 0.22);
-  border: 1px solid rgba(196, 181, 253, 0.4);
-  color: #ede9fe;
+  background: var(--brand-soft-strong);
+  border: 1px solid var(--card-border);
+  color: var(--brand);
 }
 
-/* 교회력 절기별 액센트 컬러 */
+/* 교회력 절기별 액센트 컬러 — 절기 구분은 기능적 색상이므로 유지 */
 .meditation-season-tag[data-season="advent"] {
-  background: rgba(139, 92, 246, 0.24);
-  border-color: rgba(196, 181, 253, 0.45);
-  color: #ede9fe;
+  background: var(--brand-soft-strong);
+  border-color: var(--card-border);
+  color: var(--brand);
 }
 .meditation-season-tag[data-season="lent"] {
-  background: rgba(120, 63, 4, 0.28);
-  border-color: rgba(217, 119, 6, 0.4);
-  color: #fde68a;
+  background: rgba(120, 63, 4, 0.22);
+  border-color: rgba(217, 119, 6, 0.35);
+  color: #fbbf24;
 }
 .meditation-season-tag[data-season="easter"] {
-  background: rgba(234, 179, 8, 0.2);
-  border-color: rgba(253, 224, 71, 0.45);
-  color: #fef08a;
+  background: rgba(234, 179, 8, 0.16);
+  border-color: rgba(253, 224, 71, 0.4);
+  color: #fde047;
 }
 .meditation-season-tag[data-season="epiphany"] {
-  background: rgba(251, 191, 36, 0.18);
-  border-color: rgba(252, 211, 77, 0.45);
-  color: #fde68a;
+  background: rgba(251, 191, 36, 0.14);
+  border-color: rgba(252, 211, 77, 0.4);
+  color: #fcd34d;
 }
 .meditation-season-tag[data-season="ordinary"] {
-  background: rgba(52, 211, 153, 0.16);
-  border-color: rgba(110, 231, 183, 0.4);
-  color: #a7f3d0;
+  background: rgba(52, 211, 153, 0.13);
+  border-color: rgba(110, 231, 183, 0.35);
+  color: #6ee7b7;
 }
+
+[data-theme="light"] .meditation-season-tag[data-season="lent"] { color: #92400e; background: rgba(180, 83, 9, 0.1); }
+[data-theme="light"] .meditation-season-tag[data-season="easter"],
+[data-theme="light"] .meditation-season-tag[data-season="epiphany"] { color: #854d0e; background: rgba(234, 179, 8, 0.14); }
+[data-theme="light"] .meditation-season-tag[data-season="ordinary"] { color: #065f46; background: rgba(16, 185, 129, 0.1); }
 
 .meditation-day-tag {
   display: inline-flex;
@@ -139,9 +123,9 @@
   padding: 3.5px 10px;
   border-radius: 999px;
   white-space: nowrap;
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.92);
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+  color: var(--text-body);
 }
 
 .meditation-day-tag .material-icons-round {
@@ -154,8 +138,8 @@
   width: 42px;
   height: 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.24);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  background: var(--surface-inset);
+  box-shadow: inset 0 0 0 1px var(--card-border);
   overflow: hidden;
 }
 
@@ -163,8 +147,7 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #c084fc, #f472b6);
-  box-shadow: 0 0 5px rgba(236, 72, 153, 0.55);
+  background: var(--brand-gradient);
 }
 
 /* ── 공유 버튼 ────────────────────────── */
@@ -176,15 +159,15 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.07);
-  color: inherit;
+  border: 1px solid var(--card-border);
+  background: var(--surface-inset);
+  color: var(--text-body);
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .meditation-share-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--brand-soft-strong);
 }
 
 .meditation-share-btn .material-icons-round {
@@ -205,25 +188,26 @@
   font-size: 16px;
   font-weight: 800;
   letter-spacing: -0.01em;
+  color: var(--brand);
 }
 
 .meditation-passage-theme {
   font-size: 10.5px;
   padding: 2.5px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+  color: var(--text-body);
   font-weight: 600;
-  opacity: 0.92;
 }
 
-/* ── 핵심 절 — 독립된 내부 카드 박스 ─────── */
+/* ── 핵심 절 — 독립된 내부 인셋 박스 ─────── */
 .meditation-verse-quote {
   margin: 0 0 12px;
   padding: 15px 16px 13px;
   border-radius: 12px;
-  background: rgba(10, 6, 30, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
 }
 
 .meditation-verse-text {
@@ -232,7 +216,7 @@
   font-weight: 500;
   letter-spacing: -0.01em;
   word-break: keep-all;
-  color: #f8f7ff;
+  color: var(--text-strong);
   margin: 0;
 }
 
@@ -241,7 +225,7 @@
   margin-top: 10px;
   font-size: 11.5px;
   font-weight: 600;
-  opacity: 0.7;
+  color: var(--text-muted);
   text-align: right;
   font-style: normal;
 }
@@ -251,8 +235,8 @@
   margin-bottom: 14px;
   padding: 11px 14px 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background: var(--brand-soft);
+  border: 1px dashed var(--card-border);
 }
 
 .meditation-question-label {
@@ -263,13 +247,13 @@
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: rgba(233, 213, 255, 0.9);
+  color: var(--brand);
 }
 
 .meditation-question-text {
   font-size: 13px;
   line-height: 1.65;
-  opacity: 0.92;
+  color: var(--text-strong);
   word-break: keep-all;
   margin: 0;
 }
@@ -286,16 +270,16 @@
   flex: 1 1 0;
   min-width: 0;
   box-sizing: border-box;
-  height: 40px;
+  height: 42px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.06);
-  color: inherit;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--brand-soft);
+  color: var(--text-strong);
   font-size: 12.5px;
   font-weight: 700;
   line-height: 1;
@@ -307,19 +291,23 @@
 }
 
 .meditation-cta:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--brand-soft-strong);
   transform: translateY(-1px);
+}
+
+.meditation-cta:active {
+  transform: scale(0.98);
 }
 
 .meditation-cta.is-primary {
   border-color: transparent;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  color: #ffffff;
-  box-shadow: 0 2px 10px rgba(168, 85, 247, 0.35);
+  background: var(--brand-gradient);
+  color: var(--on-brand);
+  box-shadow: 0 2px 12px var(--brand-glow);
 }
 
 .meditation-cta.is-primary:hover {
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.45);
+  box-shadow: 0 4px 16px var(--brand-glow);
 }
 
 .meditation-cta .material-icons-round {
@@ -328,16 +316,12 @@
 
 /* ── 로딩 ──────────────────────────── */
 .meditation-card.is-loading {
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.10) 0%,
-    rgba(139, 92, 246, 0.10) 100%
-  );
+  background: var(--glass-bg);
 }
 
 .meditation-skeleton {
   height: 10px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-inset);
   border-radius: 4px;
   margin-bottom: 8px;
   animation: meditation-pulse 1.6s ease-in-out infinite;
@@ -349,115 +333,4 @@
 @keyframes meditation-pulse {
   0%, 100% { opacity: 0.55; }
   50% { opacity: 0.85; }
-}
-
-/* ── 라이트 모드 ──────────────────────── */
-[data-theme="light"] .meditation-card {
-  color: #1f2937;
-  border-color: rgba(168, 85, 247, 0.35);
-}
-
-[data-theme="light"] .meditation-card[data-time="morning"] {
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.18) 0%,
-    rgba(244, 114, 182, 0.22) 100%
-  );
-}
-
-[data-theme="light"] .meditation-card[data-time="afternoon"] {
-  background: linear-gradient(
-    135deg,
-    rgba(139, 92, 246, 0.20) 0%,
-    rgba(217, 70, 239, 0.20) 100%
-  );
-}
-
-[data-theme="light"] .meditation-card[data-time="evening"] {
-  background: linear-gradient(
-    135deg,
-    rgba(124, 58, 237, 0.22) 0%,
-    rgba(168, 85, 247, 0.24) 100%
-  );
-}
-
-[data-theme="light"] .meditation-season-tag {
-  background: rgba(168, 85, 247, 0.14);
-  border-color: rgba(139, 92, 246, 0.35);
-  color: #6b21a8;
-}
-[data-theme="light"] .meditation-season-tag[data-season="lent"] {
-  background: rgba(180, 83, 9, 0.12);
-  border-color: rgba(180, 83, 9, 0.3);
-  color: #92400e;
-}
-[data-theme="light"] .meditation-season-tag[data-season="easter"],
-[data-theme="light"] .meditation-season-tag[data-season="epiphany"] {
-  background: rgba(234, 179, 8, 0.16);
-  border-color: rgba(202, 138, 4, 0.35);
-  color: #854d0e;
-}
-[data-theme="light"] .meditation-season-tag[data-season="ordinary"] {
-  background: rgba(16, 185, 129, 0.12);
-  border-color: rgba(5, 150, 105, 0.3);
-  color: #065f46;
-}
-
-[data-theme="light"] .meditation-day-tag {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.1);
-  color: rgba(31, 41, 55, 0.9);
-}
-
-[data-theme="light"] .meditation-day-bar {
-  background: rgba(0, 0, 0, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="light"] .meditation-day-bar-fill {
-  background: linear-gradient(90deg, #a855f7, #ec4899);
-  box-shadow: 0 0 4px rgba(236, 72, 153, 0.4);
-}
-
-[data-theme="light"] .meditation-share-btn {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-[data-theme="light"] .meditation-share-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="light"] .meditation-verse-quote {
-  background: rgba(255, 255, 255, 0.65);
-  border-color: rgba(0, 0, 0, 0.07);
-}
-
-[data-theme="light"] .meditation-verse-text {
-  color: #111827;
-}
-
-[data-theme="light"] .meditation-passage-theme {
-  background: rgba(0, 0, 0, 0.06);
-  border-color: rgba(0, 0, 0, 0.08);
-}
-
-[data-theme="light"] .meditation-question-block {
-  background: rgba(255, 255, 255, 0.45);
-  border-color: rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="light"] .meditation-question-label {
-  color: rgba(107, 33, 168, 0.95);
-}
-
-[data-theme="light"] .meditation-cta {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-[data-theme="light"] .meditation-cta.is-primary {
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  border-color: transparent;
-  color: #ffffff;
 }

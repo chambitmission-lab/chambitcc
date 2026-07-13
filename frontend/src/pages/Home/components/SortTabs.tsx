@@ -18,7 +18,7 @@ const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
           onClick={() => onSortChange('popular')}
           className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
             currentSort === 'popular'
-              ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
+              ? 'bg-[var(--brand-soft-strong)] text-brand'
               : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
           }`}
         >
@@ -28,7 +28,7 @@ const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
           onClick={() => onSortChange('latest')}
           className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
             currentSort === 'latest'
-              ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
+              ? 'bg-[var(--brand-soft-strong)] text-brand'
               : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
           }`}
         >

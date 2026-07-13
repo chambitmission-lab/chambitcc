@@ -22,16 +22,15 @@ const TodayPlanCard = () => {
       <button
         type="button"
         onClick={() => navigate(`/bible/plans/${today.plan_id}`)}
-        className="relative overflow-hidden w-full text-left rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4"
+        className="glass-card relative overflow-hidden w-full text-left rounded-2xl p-4"
       >
-        <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
         <span className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${grad}`} />
 
         <div className="relative z-10">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-[15px]">{today.emoji || '📖'}</span>
-              <span className="text-[11px] font-bold tracking-[0.08em] text-purple-600 dark:text-purple-300">
+              <span className="text-[11px] font-bold tracking-[0.08em] text-brand">
                 오늘의 읽기
               </span>
               <span className="text-[11.5px] text-gray-400 dark:text-white/45 truncate">
@@ -49,7 +48,7 @@ const TodayPlanCard = () => {
             {today.day_number}일차{today.day_title ? ` · ${today.day_title}` : ''}
           </p>
           {refs && (
-            <p className="text-[12.5px] text-purple-600 dark:text-purple-300/90 mt-0.5">{refs}</p>
+            <p className="text-[12.5px] text-brand mt-0.5">{refs}</p>
           )}
 
           <div className="flex items-center gap-3 mt-3">

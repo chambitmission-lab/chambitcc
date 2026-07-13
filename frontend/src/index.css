@@ -62,15 +62,15 @@ html.fonts-pending .material-icons-round {
   color-scheme: light;
 }
 
-/* 다크 테마 */
+/* 다크 테마 — 새벽 블루 글래스 테마(theme.css)와 같은 뉴트럴 다크 계열 */
 [data-theme="dark"] {
-  --ig-primary-background: #0b0b12;
-  --ig-secondary-background: #0b0b12;
-  --ig-primary-text: #fafafa;
+  --ig-primary-background: #131313;
+  --ig-secondary-background: #131313;
+  --ig-primary-text: #e5e2e1;
   --ig-secondary-text: #a8a8a8;
   --ig-tertiary-text: #737373;
-  --ig-border: #23232e;
-  --ig-hover: #1c1c26;
+  --ig-border: #2b2a2a;
+  --ig-hover: #201f1f;
   color: var(--ig-primary-text);
   background-color: var(--ig-primary-background);
   color-scheme: dark;

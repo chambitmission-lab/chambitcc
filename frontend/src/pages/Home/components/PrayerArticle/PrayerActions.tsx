@@ -71,8 +71,8 @@ const PrayerActions = ({
             onClick={handlePrayClick}
             disabled={isPraying}
             className={`relative group flex items-center gap-1 transition-all duration-300 ${
-              !useGroupColor && isPrayed ? 'text-purple-500 dark:text-purple-400' :
-              !useGroupColor ? 'text-gray-700 dark:text-gray-300 hover:text-purple-500 dark:hover:text-purple-400' : ''
+              !useGroupColor && isPrayed ? 'text-brand' :
+              !useGroupColor ? 'text-gray-700 dark:text-gray-300 hover:text-brand' : ''
             }`}
             style={useGroupColor && isPrayed ? {
               color: colorTheme.accent,
@@ -103,7 +103,7 @@ const PrayerActions = ({
         {isOwner && !isAnswered && onAnswerClick && (
           <button
             onClick={onAnswerClick}
-            className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors text-sm font-semibold"
+            className="flex items-center gap-1 text-brand hover:opacity-80 transition-opacity text-sm font-semibold"
           >
             <span className="text-base">✨</span>
             <span>{language === 'ko' ? '응답등록' : 'Answer'}</span>
@@ -116,7 +116,7 @@ const PrayerActions = ({
             {onEditAnswerClick && (
               <button
                 onClick={onEditAnswerClick}
-                className="flex items-center gap-1 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors text-sm font-semibold"
+                className="flex items-center gap-1 text-brand hover:opacity-80 transition-opacity text-sm font-semibold"
               >
                 <span className="text-base">✏️</span>
                 <span>{language === 'ko' ? '간증수정' : 'Edit'}</span>

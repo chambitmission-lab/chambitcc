@@ -14,13 +14,13 @@ const AnsweredPrayersBanner = () => {
         aria-label="응답의 전당 — 하나님께서 응답하신 기도들"
       >
         <span className="answered-sparkle text-base shrink-0" aria-hidden>✨</span>
-        <span className="text-xs font-bold text-purple-900 dark:text-purple-100 whitespace-nowrap shrink-0">
+        <span className="text-xs font-bold text-[var(--text-strong)] whitespace-nowrap shrink-0">
           응답의 전당
         </span>
-        <span className="flex-1 min-w-0 text-[11px] text-purple-800/70 dark:text-purple-200/70 truncate">
+        <span className="flex-1 min-w-0 text-[11px] text-[var(--text-muted)] truncate">
           하나님께서 응답하신 기도들
         </span>
-        <span className="text-purple-500 dark:text-purple-300 shrink-0 text-base leading-none" aria-hidden>→</span>
+        <span className="text-brand shrink-0 text-base leading-none" aria-hidden>→</span>
       </button>
     </section>
   )

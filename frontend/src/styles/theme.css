@@ -1,0 +1,130 @@
+/* ============================================================
+   참빛 디자인 토큰 — "토스 블루" 테마 (20~30대 벤치마킹: 플랫 솔리드 + 일렉트릭 블루)
+   ------------------------------------------------------------
+   홈(기도 목록)부터 적용하고 화면별로 점진 확장한다.
+   원칙:
+     1. 컴포넌트는 색상을 하드코딩하지 않고 이 파일의
+        CSS 변수(--brand-*, --surface-*)나 클래스(.glass-card 등)를 참조한다.
+     2. 라이트/다크 값은 여기서만 분기한다 — 컴포넌트 CSS에는
+        [data-theme] 분기를 새로 만들지 않는다.
+     3. blur(backdrop-filter)는 화면당 소수의 고정 카드에만 사용.
+        무한스크롤 피드 카드는 .feed-card(불투명)를 쓴다 (저사양 성능).
+   ============================================================ */
+
+:root,
+[data-theme="light"] {
+  /* Brand — 토스 스타일 일렉트릭 블루. 그라데이션 대신 플랫 솔리드
+     (--brand-gradient는 호환을 위해 단색 그라데이션으로 유지) */
+  --brand: #3182f6;
+  --brand-dim: #1b6ef3;
+  --on-brand: #ffffff;
+  --brand-gradient: linear-gradient(0deg, #3182f6, #3182f6);
+  --brand-glow: rgba(49, 130, 246, 0.25);
+  --brand-soft: rgba(49, 130, 246, 0.08);   /* 은은한 tint 배경 */
+  --brand-soft-strong: rgba(49, 130, 246, 0.15);
+
+  /* 묵상 카드 시간대 tint — 아침(여명)/낮/저녁 */
+  --tint-morning: rgba(255, 200, 150, 0.10);
+  --tint-afternoon: rgba(49, 130, 246, 0.07);
+  --tint-evening: rgba(27, 80, 170, 0.10);
+
+  /* Surface 스케일 */
+  --surface: #faf9fc;
+  --surface-container: #ffffff;
+  --surface-container-high: #f3f1f7;
+  --surface-inset: rgba(0, 0, 0, 0.04);     /* 카드 안의 한 단계 깊은 박스 */
+
+  /* 질감 */
+  --card-border: rgba(0, 0, 0, 0.07);
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --card-shadow: 0 1px 3px rgba(28, 25, 45, 0.06), 0 6px 18px rgba(28, 25, 45, 0.05);
+
+  /* 텍스트 */
+  --text-strong: #191722;
+  --text-body: #45414f;
+  --text-muted: #8b8695;
+}
+
+[data-theme="dark"] {
+  /* Brand — 토스 스타일 일렉트릭 블루.
+     다크에서도 파스텔이 아닌 원색 블루 + 흰 텍스트(토스 다크와 동일 문법).
+     아이콘·텍스트 액센트는 한 톤 밝은 #4593fc로 가독성 확보. */
+  --brand: #4593fc;
+  --brand-dim: #3182f6;
+  --on-brand: #ffffff;
+  --brand-gradient: linear-gradient(0deg, #3182f6, #3182f6);
+  --brand-glow: rgba(49, 130, 246, 0.35);
+  --brand-soft: rgba(69, 147, 252, 0.10);
+  --brand-soft-strong: rgba(69, 147, 252, 0.18);
+
+  /* 묵상 카드 시간대 tint — 아침(여명)/낮/저녁 */
+  --tint-morning: rgba(255, 214, 165, 0.06);
+  --tint-afternoon: rgba(69, 147, 252, 0.08);
+  --tint-evening: rgba(49, 90, 180, 0.12);
+
+  /* Surface 스케일 — 목업의 뉴트럴 다크 */
+  --surface: #131313;
+  --surface-container: #201f1f;
+  --surface-container-high: #2a2a2a;
+  --surface-inset: rgba(10, 8, 20, 0.4);
+
+  /* 질감 */
+  --card-border: rgba(147, 143, 154, 0.14);
+  --glass-bg: rgba(32, 31, 31, 0.55);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.35);
+
+  /* 텍스트 */
+  --text-strong: #e5e2e1;
+  --text-body: #cac4d4;
+  --text-muted: #938f9a;
+}
+
+/* ── 재사용 컴포넌트 클래스 ─────────────────────────────── */
+
+/* 글래스 카드 — 상단 고정 카드(말씀·묵상·읽기)용. 피드에는 쓰지 않는다. */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+/* 피드 카드 — blur 없는 불투명 서피스 (무한스크롤 성능) */
+.feed-card {
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+/* 브랜드 그라데이션 채움 (버튼·FAB·프로그레스바) */
+.brand-gradient {
+  background-image: var(--brand-gradient);
+  color: var(--on-brand);
+}
+
+/* 언더라인·바 등 배경만 필요한 경우 */
+.brand-gradient-bg {
+  background-image: var(--brand-gradient);
+}
+
+/* 브랜드 텍스트 그라데이션 */
+.brand-text-gradient {
+  background-image: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 카드 안의 한 단계 깊은 인셋 박스 (인용구 등) */
+.surface-inset {
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+}
+
+/* 보조(아웃라인) 버튼 — 브랜드 버튼과 짝을 이루는 낮은 위계 */
+.outline-button {
+  background: var(--brand-soft);
+  border: 1px solid var(--card-border);
+  color: var(--text-strong);
+}

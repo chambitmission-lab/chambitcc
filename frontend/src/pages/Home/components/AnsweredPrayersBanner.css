@@ -1,24 +1,16 @@
 /* 응답의 전당 — 슬림 라인 카드
- * 카드 시스템(rounded-2xl, border 1px, 차분한 tint)에 맞춘다.
- * 과한 inset shadow / glow / drop-shadow는 제거하고,
- * sparkle 아이콘의 미세한 호흡 애니메이션만 유지.
+ * 새벽 블루 글래스 테마 토큰(src/styles/theme.css) 참조.
+ * 라이트/다크 분기는 토큰이 담당한다.
  */
 
 .answered-prayers-banner {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(147, 51, 234, 0.08) 100%);
-  border-color: rgba(168, 85, 247, 0.25);
+  background: linear-gradient(135deg, var(--brand-soft-strong) 0%, var(--brand-soft) 100%);
+  border-color: var(--card-border);
   cursor: pointer;
 }
 
-@media (prefers-color-scheme: dark) {
-  .answered-prayers-banner {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.16) 0%, rgba(147, 51, 234, 0.16) 100%);
-    border-color: rgba(168, 85, 247, 0.4);
-  }
-}
-
 .answered-prayers-banner:hover {
-  border-color: rgba(168, 85, 247, 0.45);
+  border-color: var(--brand);
 }
 
 .answered-sparkle {

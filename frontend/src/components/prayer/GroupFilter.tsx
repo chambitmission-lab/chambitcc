@@ -61,14 +61,14 @@ const GroupFilter = ({
       
       {/* 언더라인 탭 스타일 */}
       <div className="relative z-50">
-        <div className="flex items-center border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center border-b border-black/[0.06] dark:border-white/[0.08]">
           {/* 전체 공개 */}
           <button
             className={`
               relative flex-1 px-4 py-3 text-sm font-medium
               transition-all duration-200
               ${selectedGroupId === null && selectedFilter === 'all'
-                ? 'text-purple-600 dark:text-purple-400'
+                ? 'text-brand'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }
             `}
@@ -79,7 +79,7 @@ const GroupFilter = ({
           >
             {t('allPublic')}
             {selectedGroupId === null && selectedFilter === 'all' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full" />
             )}
           </button>
           
@@ -90,7 +90,7 @@ const GroupFilter = ({
               relative flex-1 flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium
               transition-all duration-200
               ${selectedGroupId !== null
-                ? 'text-purple-600 dark:text-purple-400'
+                ? 'text-brand'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }
             `}
@@ -106,7 +106,7 @@ const GroupFilter = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
             {selectedGroupId !== null && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full" />
             )}
           </button>
 
@@ -116,7 +116,7 @@ const GroupFilter = ({
               relative flex-1 px-4 py-3 text-sm font-medium
               transition-all duration-200
               ${selectedFilter === 'my_prayers'
-                ? 'text-purple-600 dark:text-purple-400'
+                ? 'text-brand'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }
             `}
@@ -129,7 +129,7 @@ const GroupFilter = ({
           >
             {t('myPrayers')}
             {selectedFilter === 'my_prayers' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full" />
             )}
           </button>
 
@@ -139,7 +139,7 @@ const GroupFilter = ({
               relative flex-1 px-4 py-3 text-sm font-medium
               transition-all duration-200
               ${selectedFilter === 'prayed_by_me'
-                ? 'text-purple-600 dark:text-purple-400'
+                ? 'text-brand'
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }
             `}
@@ -152,7 +152,7 @@ const GroupFilter = ({
           >
             {t('prayedByMe')}
             {selectedFilter === 'prayed_by_me' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 brand-gradient-bg rounded-full" />
             )}
           </button>
         </div>
@@ -161,7 +161,7 @@ const GroupFilter = ({
       {isExpanded && (
         <div 
           style={dropdownStyle}
-          className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
+          className="bg-white/95 dark:bg-[#201f1f]/95 backdrop-blur-xl border border-[var(--card-border)] rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
         >
           {isLoading ? (
             <div className="p-6 text-center text-gray-500">{t('loading')}</div>
@@ -172,13 +172,13 @@ const GroupFilter = ({
               <div className="flex gap-2">
                 <button
                   onClick={() => requireAuth(onCreateGroup)}
-                  className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-xs rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
+                  className="flex-1 px-3 py-2 brand-gradient font-semibold text-xs rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
                 >
                   + {t('createGroupShort')}
                 </button>
                 <button
                   onClick={() => requireAuth(onJoinGroup)}
-                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                  className="flex-1 px-3 py-2 outline-button font-semibold text-xs rounded-full hover:bg-[var(--brand-soft-strong)] transition-all"
                 >
                   {t('joinGroupShort')}
                 </button>
@@ -265,16 +265,16 @@ const GroupFilter = ({
                 </div>
               </div>
               
-              <div className="px-3 pb-3 pt-2 border-t border-gray-200/50 dark:border-gray-700/50 flex gap-2">
+              <div className="px-3 pb-3 pt-2 border-t border-[var(--card-border)] flex gap-2">
                 <button
                   onClick={() => requireAuth(onCreateGroup)}
-                  className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-xs rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
+                  className="flex-1 px-3 py-2 brand-gradient font-semibold text-xs rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all"
                 >
                   + {t('createGroupShort')}
                 </button>
                 <button
                   onClick={() => requireAuth(onJoinGroup)}
-                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+                  className="flex-1 px-3 py-2 outline-button font-semibold text-xs rounded-full hover:bg-[var(--brand-soft-strong)] transition-all"
                 >
                   {t('joinGroupShort')}
                 </button>
