@@ -171,14 +171,15 @@ const NewHome = () => {
               </div>
             )}
             
-            {/* 올해의 말씀 — 교회 연간 표어 (메인 화면 위계 최상단) */}
-            <AnnualThemeVerse />
-
-            {/* 오늘의 묵상 카드 (통독표 + 시간대/감정 컨텍스트) */}
+            {/* 오늘의 묵상 카드 — 시간대별 히어로가 홈의 첫인사 역할 (위계 최상단) */}
             <DailyMeditationCard onWriteMeditation={handleComposerOpen} />
 
             {/* 오늘의 읽기 — 진행 중인 구독형 읽기 플랜(bible_plans) */}
             <TodayPlanCard />
+
+            {/* 올해의 말씀 — 교회 연간 비전. 매일 바뀌는 '오늘' 영역과
+                커뮤니티(감사·기도) 영역 사이를 잇는 다리 위치 */}
+            <AnnualThemeVerse />
 
             {/* 오늘의 감사 한 줄 (전광판 마퀴) */}
             <ThanksTicker />
