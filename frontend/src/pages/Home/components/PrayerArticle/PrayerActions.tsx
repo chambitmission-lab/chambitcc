@@ -65,7 +65,7 @@ const PrayerActions = ({
 
   return (
     <>
-      <div className="px-4 flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             onClick={handlePrayClick}

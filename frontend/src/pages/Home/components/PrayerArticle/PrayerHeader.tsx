@@ -19,7 +19,7 @@ const PrayerHeader = ({
   const useGroupColor = !!groupName
   
   return (
-    <div className="px-4 py-3 flex items-center justify-between">
+    <div className="px-5 pt-4 pb-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="relative">
           {/* 주변 빛 확산 효과 */}

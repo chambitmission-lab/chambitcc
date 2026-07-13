@@ -69,54 +69,77 @@ const PrayerArticle = ({
     onPrayerClick(prayer.id, true)
   }
 
+  const hasVerses = !!prayer.recommended_verses && prayer.recommended_verses.verses.length > 0
+  const hasMeta = prayer.prayer_count > 0 || prayer.reply_count > 0 || hasVerses
+
   return (
     <article
-      className={`prayer-card bg-background-light dark:bg-background-dark pb-6 mb-5 cursor-pointer transition-all ${prayer.is_answered ? 'answered-article' : ''}`}
+      className={`prayer-card !bg-transparent !border-0 mb-4 cursor-pointer ${prayer.is_answered ? 'answered-article' : ''}`}
       onClick={handleArticleClick}
       style={cssVars as React.CSSProperties}
     >
-      <PrayerHeader
-        displayName={prayer.display_name}
-        avatarUrl={prayer.avatar_url ?? null}
-        timeAgo={prayer.time_ago}
-        groupName={prayer.group?.name}
-        colorTheme={colorTheme}
-      />
+      {/* 하나의 카드 = 하나의 서사. 헤더·본문·푸터를 한 표면 안에 묶는다. */}
+      <div className="feed-card relative overflow-hidden rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--brand-glow)] hover:shadow-[0_8px_24px_-8px_var(--brand-glow)]">
+        {/* 다크모드 표면 그라데이션 — 평평한 회색 박스 느낌을 깨기 위함 */}
+        <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-transparent pointer-events-none rounded-2xl"></div>
 
-      <PrayerContent
-        title={prayer.title}
-        content={prayer.content}
-        testimony={prayer.testimony}
-        isAnswered={prayer.is_answered}
-        transitionStyles={{}}
-      />
+        {/* 응답된 기도 전용 은은한 앰버 빛 (기능적 색상 — 브랜드 블루와 구분) */}
+        {prayer.is_answered && (
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-gradient-to-b from-amber-300/25 to-transparent dark:from-amber-400/15 dark:to-transparent rounded-full blur-2xl pointer-events-none"></div>
+        )}
 
-      <PrayerActions
-        isPrayed={prayer.is_prayed}
-        isPraying={isPraying}
-        onPray={handlePray}
-        prayerText={`${prayer.title}. ${prayer.content}`}
-        colorTheme={colorTheme}
-        isOwner={prayer.is_owner}
-        isAnswered={prayer.is_answered}
-        onAnswerClick={handleAnswer}
-        onEditAnswerClick={handleEditAnswer}
-        onCancelAnswerClick={handleCancelAnswer}
-      />
+        <div className="relative z-10">
+          <PrayerHeader
+            displayName={prayer.display_name}
+            avatarUrl={prayer.avatar_url ?? null}
+            timeAgo={prayer.time_ago}
+            groupName={prayer.group?.name}
+            colorTheme={colorTheme}
+          />
 
-      <PrayerStats
-        prayerCount={prayer.prayer_count}
-        replyCount={prayer.reply_count}
-        isOwner={prayer.is_owner}
-        onReplyClick={handleReplyClick}
-      />
+          <PrayerContent
+            title={prayer.title}
+            content={prayer.content}
+            testimony={prayer.testimony}
+            isAnswered={prayer.is_answered}
+            transitionStyles={{}}
+          />
 
-      {prayer.recommended_verses && prayer.recommended_verses.verses.length > 0 && (
-        <PrayerVersePreview
-          verses={prayer.recommended_verses}
-          onVersesClick={handleVersesClick}
-        />
-      )}
+          {/* 통합 푸터 — 흩어졌던 액션·통계·말씀을 한 구획으로 묶는다 */}
+          <div className="mt-1 pt-3 px-5 pb-4 border-t border-[var(--card-border)]">
+            <PrayerActions
+              isPrayed={prayer.is_prayed}
+              isPraying={isPraying}
+              onPray={handlePray}
+              prayerText={`${prayer.title}. ${prayer.content}`}
+              colorTheme={colorTheme}
+              isOwner={prayer.is_owner}
+              isAnswered={prayer.is_answered}
+              onAnswerClick={handleAnswer}
+              onEditAnswerClick={handleEditAnswer}
+              onCancelAnswerClick={handleCancelAnswer}
+            />
+
+            {hasMeta && (
+              <div className="mt-2.5 flex items-center justify-between gap-3">
+                <PrayerStats
+                  prayerCount={prayer.prayer_count}
+                  replyCount={prayer.reply_count}
+                  isOwner={prayer.is_owner}
+                  onReplyClick={handleReplyClick}
+                />
+
+                {hasVerses && prayer.recommended_verses && (
+                  <PrayerVersePreview
+                    verses={prayer.recommended_verses}
+                    onVersesClick={handleVersesClick}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {showVersesModal && prayer.recommended_verses && (
         <BibleVersesModal
