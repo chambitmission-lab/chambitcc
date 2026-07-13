@@ -3,7 +3,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useTodayReadings } from '../../../hooks/useBiblePlan'
 import { isAuthenticated } from '../../../utils/auth'
-import { accentGradient, gradientTextStyle } from '../../Bible/Plans/planVisuals'
 
 const TodayPlanCard = () => {
   const navigate = useNavigate()
@@ -14,7 +13,6 @@ const TodayPlanCard = () => {
   if (!authed || items.length === 0) return null
 
   const today = items[0]
-  const grad = accentGradient(today.accent)
   const refs = today.passages.map((p) => p.reference).filter(Boolean).join(' · ')
 
   return (
@@ -24,7 +22,7 @@ const TodayPlanCard = () => {
         onClick={() => navigate(`/bible/plans/${today.plan_id}`)}
         className="glass-card relative overflow-hidden w-full text-left rounded-2xl p-4"
       >
-        <span className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${grad}`} />
+        <span className="absolute left-0 top-0 bottom-0 w-1 brand-gradient-bg" />
 
         <div className="relative z-10">
           <div className="flex items-center justify-between gap-2">
@@ -54,11 +52,11 @@ const TodayPlanCard = () => {
           <div className="flex items-center gap-3 mt-3">
             <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
               <div
-                className={`h-full rounded-full bg-gradient-to-r ${grad}`}
+                className="h-full rounded-full brand-gradient-bg"
                 style={{ width: `${Math.min(100, today.percent)}%` }}
               />
             </div>
-            <span className="text-[12px] font-bold" style={gradientTextStyle}>
+            <span className="text-[12px] font-bold text-brand">
               {today.percent}%
             </span>
           </div>
@@ -73,7 +71,7 @@ const TodayPlanCard = () => {
               </span>
             ) : (
               <span
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r ${grad} text-white text-[12.5px] font-bold`}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full brand-gradient text-[12.5px] font-bold"
               >
                 지금 읽기
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">

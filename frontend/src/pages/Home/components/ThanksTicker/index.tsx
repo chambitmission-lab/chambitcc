@@ -29,8 +29,9 @@ const ThanksTicker = () => {
   const durationSec = Math.max(20, items.length * 6)
 
   return (
-    <section className="px-4 py-1.5">
-      <div className="w-full rounded-2xl overflow-hidden bg-[var(--brand-soft)] border border-[var(--card-border)] hover:bg-[var(--brand-soft-strong)] transition-colors flex items-stretch">
+    // 공동체 그룹 리스트 카드의 한 행(row) — 배경·테두리는 부모 그룹 카드가 담당
+    <div>
+      <div className="w-full hover:bg-[var(--brand-soft)] transition-colors flex items-stretch">
         {/* 본문 영역: 탭하면 /thanks 목록으로 이동 */}
         <button
           type="button"
@@ -120,7 +121,7 @@ const ThanksTicker = () => {
       {showComposer && (
         <ThanksComposer onClose={() => setShowComposer(false)} onSubmit={add} />
       )}
-    </section>
+    </div>
   )
 }
 

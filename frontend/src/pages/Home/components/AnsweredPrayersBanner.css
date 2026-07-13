@@ -1,17 +1,7 @@
-/* 응답의 전당 — 슬림 라인 카드
- * 새벽 블루 글래스 테마 토큰(src/styles/theme.css) 참조.
- * 라이트/다크 분기는 토큰이 담당한다.
+/* 응답의 전당 행 — 공동체 그룹 리스트 카드의 한 행.
+ * 배경·테두리는 부모 그룹 카드(.feed-card)가 담당하고,
+ * 여기서는 sparkle 아이콘의 미세한 호흡 애니메이션만 유지한다.
  */
-
-.answered-prayers-banner {
-  background: linear-gradient(135deg, var(--brand-soft-strong) 0%, var(--brand-soft) 100%);
-  border-color: var(--card-border);
-  cursor: pointer;
-}
-
-.answered-prayers-banner:hover {
-  border-color: var(--brand);
-}
 
 .answered-sparkle {
   animation: sparkle-pulse 2.4s ease-in-out infinite;

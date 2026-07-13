@@ -181,11 +181,17 @@ const NewHome = () => {
                 커뮤니티(감사·기도) 영역 사이를 잇는 다리 위치 */}
             <AnnualThemeVerse />
 
-            {/* 오늘의 감사 한 줄 (전광판 마퀴) */}
-            <ThanksTicker />
-
-            {/* 응답의 전당 배너 */}
-            <AnsweredPrayersBanner />
+            {/* 공동체 소식 — 감사 한 줄 + 응답의 전당을 하나의 그룹 리스트 카드로 묶어
+                "관련 항목 한 덩어리"로 스캔되게 한다 (토스식 grouped list) */}
+            <section className="px-4 pt-3 pb-1.5">
+              <p className="px-1 mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
+                함께 나누는 은혜
+              </p>
+              <div className="feed-card rounded-2xl overflow-hidden divide-y divide-[var(--card-border)]">
+                <ThanksTicker />
+                <AnsweredPrayersBanner />
+              </div>
+            </section>
 
             {/* 오늘의 감사 (Small Thanks Thread) — 임시 비활성화 */}
             {/* <ThanksThread /> */}
