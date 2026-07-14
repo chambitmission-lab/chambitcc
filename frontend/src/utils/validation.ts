@@ -1,21 +1,17 @@
 // 입력 검증 유틸리티
 export const validation = {
-  // 제목 검증
+  // 제목 검증 (선택 — 비워도 되며, 쓴 경우 길이만 확인)
   validateTitle: (title: string): { valid: boolean; error?: string } => {
     const trimmed = title.trim()
-    
+
     if (!trimmed) {
-      return { valid: false, error: '제목을 입력해주세요' }
+      return { valid: true }  // 제목 없이 내용만으로도 작성 가능
     }
-    
-    if (trimmed.length < 2) {
-      return { valid: false, error: '제목은 최소 2자 이상이어야 합니다' }
-    }
-    
+
     if (trimmed.length > 100) {
       return { valid: false, error: '제목은 100자를 초과할 수 없습니다' }
     }
-    
+
     return { valid: true }
   },
 

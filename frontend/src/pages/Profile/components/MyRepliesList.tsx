@@ -53,7 +53,7 @@ const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
                 {t('profileReplyLabel')}
               </span>
               <span className="text-[12px] font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent truncate min-w-0">
-                {reply.prayer_title}
+                {reply.prayer_title || t('profileUntitledPrayer')}
               </span>
             </div>
 

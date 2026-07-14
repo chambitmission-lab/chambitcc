@@ -22,6 +22,7 @@ export const profile = {
   profilePrayingBadge: '기도중',
   profilePrayedAt: '기도함',
   profileReplyLabel: '댓글 작성',
+  profileUntitledPrayer: '제목 없는 기도',
   profileWrittenAs: '로 작성',
   
   // 업적 시스템

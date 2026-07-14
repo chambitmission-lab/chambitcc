@@ -28,7 +28,7 @@ export interface ProfileStats {
 
 export interface MyPrayer {
   id: number
-  title: string
+  title?: string | null  // 제목은 선택
   content: string
   prayer_count: number
   reply_count: number
@@ -38,7 +38,7 @@ export interface MyPrayer {
 
 export interface PrayingFor {
   id: number
-  title: string
+  title?: string | null  // 제목은 선택
   content: string
   display_name: string
   prayer_count: number
@@ -48,7 +48,7 @@ export interface PrayingFor {
 export interface MyReply {
   id: number
   prayer_id: number
-  prayer_title: string
+  prayer_title?: string | null  // 제목은 선택
   content: string
   display_name: string
   created_at: string

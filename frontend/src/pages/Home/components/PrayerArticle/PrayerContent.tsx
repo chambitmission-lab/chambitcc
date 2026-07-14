@@ -1,5 +1,5 @@
 interface PrayerContentProps {
-  title: string
+  title?: string | null
   content: string
   testimony?: string
   isAnswered?: boolean
@@ -15,12 +15,14 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
         </div>
       )}
 
-      <h3
-        className="text-[19px] font-bold text-gray-900 dark:text-white mb-3 tracking-[-0.015em] leading-[1.35] text-left"
-        style={transitionStyles}
-      >
-        {title}
-      </h3>
+      {title && (
+        <h3
+          className="text-[19px] font-bold text-gray-900 dark:text-white mb-3 tracking-[-0.015em] leading-[1.35] text-left"
+          style={transitionStyles}
+        >
+          {title}
+        </h3>
+      )}
 
       <p
         className="text-[15px] text-gray-700 dark:text-gray-300 leading-[1.7] font-normal tracking-[-0.01em] line-clamp-3 text-left"

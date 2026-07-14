@@ -14,7 +14,7 @@ export interface Prayer {
   id: number
   display_name: string
   avatar_url?: string | null // 작성자 프로필 사진 (익명/별명이면 null)
-  title: string
+  title?: string | null  // 제목 (선택 — 없으면 내용만)
   content: string
   title_en?: string  // 한글→영어 번역 제목
   content_en?: string  // 한글→영어 번역 내용
@@ -52,7 +52,7 @@ export interface PrayerListResponse {
 }
 
 export interface CreatePrayerRequest {
-  title: string
+  title?: string  // 제목 (선택)
   content: string
   display_name?: string  // 선택 (기본값: "익명")
   is_fully_anonymous: boolean

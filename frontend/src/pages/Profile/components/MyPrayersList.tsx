@@ -48,9 +48,11 @@ const MyPrayersList = ({ prayers, onPrayerClick }: MyPrayersListProps) => {
           <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
 
           <div className="relative z-10">
-            <h4 className="text-[16px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-[1.3] mb-2">
-              {prayer.title}
-            </h4>
+            {prayer.title && (
+              <h4 className="text-[16px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-[1.3] mb-2">
+                {prayer.title}
+              </h4>
+            )}
             <ExpandableText
               text={prayer.content}
               lines={3}

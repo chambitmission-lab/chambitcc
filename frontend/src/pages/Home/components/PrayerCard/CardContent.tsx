@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
 interface CardContentProps {
-  title: string
+  title?: string | null
   content: string
   isExpanded: boolean
   onToggleExpand: () => void
@@ -15,17 +15,17 @@ const CardContent = ({
 }: CardContentProps) => {
   const MAX_LENGTH = 120
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [displayTitle, setDisplayTitle] = useState(title)
+  const [displayTitle, setDisplayTitle] = useState(title ?? '')
   const [displayContent, setDisplayContent] = useState(content)
 
   // 언어 전환 애니메이션
   useEffect(() => {
-    if (title !== displayTitle || content !== displayContent) {
+    if ((title ?? '') !== displayTitle || content !== displayContent) {
       setIsTransitioning(true)
-      
+
       // 페이드아웃 후 텍스트 변경
       const timer = setTimeout(() => {
-        setDisplayTitle(title)
+        setDisplayTitle(title ?? '')
         setDisplayContent(content)
         setIsTransitioning(false)
       }, 200) // 블러 페이드아웃 시간
@@ -51,12 +51,14 @@ const CardContent = ({
 
   return (
     <>
-      <h3 
-        className="card-title"
-        style={transitionStyles}
-      >
-        {displayTitle}
-      </h3>
+      {displayTitle && (
+        <h3
+          className="card-title"
+          style={transitionStyles}
+        >
+          {displayTitle}
+        </h3>
+      )}
 
       <div className="card-content">
         <p 

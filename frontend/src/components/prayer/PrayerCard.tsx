@@ -51,9 +51,9 @@ const PrayerCard = ({
         </div>
       </div>
       
-      {/* 제목 */}
-      <h3 className="prayer-title">{prayer.title}</h3>
-      
+      {/* 제목 (선택) */}
+      {prayer.title && <h3 className="prayer-title">{prayer.title}</h3>}
+
       {/* 내용 */}
       <p className="prayer-content">{prayer.content}</p>
       

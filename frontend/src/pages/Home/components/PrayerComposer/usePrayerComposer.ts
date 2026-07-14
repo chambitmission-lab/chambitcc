@@ -64,7 +64,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
 
     try {
       const response = await createPrayer({
-        title: title.trim(),
+        title: title.trim() || undefined,  // 제목은 선택 — 비면 보내지 않음
         content: content.trim(),
         display_name: displayName,
         is_fully_anonymous: isAnonymous,

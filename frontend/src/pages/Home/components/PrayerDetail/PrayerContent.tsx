@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 
 interface PrayerContentProps {
-  title: string
+  title?: string | null
   content: string
 }
 
@@ -10,16 +10,16 @@ const FADE_OUT_MS = 150
 
 const PrayerContent = ({ title, content }: PrayerContentProps) => {
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [displayTitle, setDisplayTitle] = useState(title)
+  const [displayTitle, setDisplayTitle] = useState(title ?? '')
   const [displayContent, setDisplayContent] = useState(content)
 
   // 🎨 Blur Fade Transition - Apple/Notion 스타일
   useEffect(() => {
-    if (title !== displayTitle || content !== displayContent) {
+    if ((title ?? '') !== displayTitle || content !== displayContent) {
       setIsTransitioning(true)
 
       const timer = setTimeout(() => {
-        setDisplayTitle(title)
+        setDisplayTitle(title ?? '')
         setDisplayContent(content)
         setIsTransitioning(false)
       }, FADE_OUT_MS)
@@ -41,12 +41,14 @@ const PrayerContent = ({ title, content }: PrayerContentProps) => {
 
   return (
     <div className="mb-7">
-      <h3
-        className="text-[22px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-[1.3] mb-8"
-        style={transitionStyles}
-      >
-        {displayTitle}
-      </h3>
+      {displayTitle && (
+        <h3
+          className="text-[22px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-[1.3] mb-8"
+          style={transitionStyles}
+        >
+          {displayTitle}
+        </h3>
+      )}
       <p
         className="text-[15px] text-gray-700 dark:text-gray-300 leading-[1.75] whitespace-pre-wrap tracking-[-0.01em]"
         style={transitionStyles}

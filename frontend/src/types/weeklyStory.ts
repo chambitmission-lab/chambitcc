@@ -11,7 +11,7 @@ export interface WeeklyHook {
 
 export interface WeeklyPrayerSummary {
   id: number
-  title: string
+  title?: string | null  // 제목은 선택 — 없으면 snippet만 표시
   snippet: string
   emotion?: PrayerEmotion
   is_answered: boolean

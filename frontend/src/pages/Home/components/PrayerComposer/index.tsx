@@ -33,7 +33,8 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     handleVersesModalClose,
   } = usePrayerComposer({ onClose, onSuccess, sort, groupId })  // ✅ groupId 전달
 
-  const canSubmit = title.trim() && content.trim()
+  // 제목은 선택 — 내용만 있으면 저장 가능
+  const canSubmit = !!content.trim()
 
   return (
     <>

@@ -28,7 +28,7 @@ export const prayer = {
   prayerComposerSubmitting: 'Submitting...',
   prayerComposerAnonymous: 'Post anonymously',
   prayerComposerCategory: 'Prayer Request',
-  prayerComposerTitlePlaceholder: 'Title (e.g., Family health, Career guidance)',
+  prayerComposerTitlePlaceholder: 'Title (optional) — feel free to leave it blank',
   prayerComposerContentPlaceholder: 'Share your prayer request... Please let us know specifically what prayer you need.',
   prayerComposerCharCount: 'characters',
   

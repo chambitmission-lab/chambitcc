@@ -467,7 +467,7 @@ const PrayerLine = ({
     <div className="ws-pray-title">
       {prayer.emotion && <span>{EMOJI_BY_EMOTION[prayer.emotion]}</span>}
       {prayer.is_answered && <span>✨</span>}
-      <span>{prayer.title}</span>
+      {prayer.title && <span>{prayer.title}</span>}
     </div>
     <div className="ws-pray-snippet">{prayer.snippet}</div>
     {prayer.prayer_count > 0 && (

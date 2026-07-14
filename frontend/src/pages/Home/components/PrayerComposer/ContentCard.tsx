@@ -137,7 +137,6 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
               onChange={handleManualTitleChange}
               placeholder={t('prayerComposerTitlePlaceholder')}
               maxLength={100}
-              required
               className={`
                 flex-1 min-w-0 bg-transparent border-none text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white
                 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none py-1
