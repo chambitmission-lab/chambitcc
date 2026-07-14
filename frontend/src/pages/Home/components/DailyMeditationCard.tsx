@@ -4,6 +4,11 @@ import { useAuth } from '../../../hooks/useAuth'
 import { useChapterReadStatus } from '../../../hooks/useBibleReading'
 import { getCurrentUser } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
+import {
+  dayOfYear,
+  getCurrentSeason,
+  getSeasonSegments,
+} from '../../../utils/churchCalendar'
 import type { TimeOfDay } from '../../../types/meditation'
 import heroMorning from '../../../assets/hero/morning.jpg'
 import heroAfternoon from '../../../assets/hero/afternoon.jpg'
@@ -37,10 +42,21 @@ const HERO_HEADLINES: Record<TimeOfDay, [string, string]> = {
 
 const SEASON_LABELS: Record<string, string> = {
   advent: '대림절',
+  christmas: '성탄절기',
   lent: '사순절',
-  easter: '부활절',
-  epiphany: '주현절',
+  easter: '부활절기',
+  epiphany: '주현절기',
   ordinary: '연중',
+}
+
+/* 절기 리본 탭 시 보여줄 한 줄 의미 — 모바일에서 절기를 배우는 통로 */
+const SEASON_MEANINGS: Record<string, string> = {
+  advent: '예수님의 오심을 기다리며 준비하는 절기',
+  christmas: '우리 가운데 오신 예수님의 탄생을 기뻐하는 절기',
+  epiphany: '세상에 나타나신 그리스도의 빛을 묵상하는 절기',
+  lent: '회개와 절제로 부활절을 준비하는 40일',
+  easter: '부활의 기쁨을 성령강림까지 누리는 절기',
+  ordinary: '말씀과 함께 일상에서 자라가는 시간',
 }
 
 const buildGreeting = (timeOfDay: TimeOfDay, fullName: string | null): string => {
@@ -91,11 +107,33 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   }
 
   const timeOfDay: TimeOfDay = data.context.time_of_day ?? 'morning'
-  const season = data.season ?? 'ordinary'
-  const progressPercent = Math.min(
-    100,
-    Math.round((data.day_number / Math.max(1, data.total_days)) * 100),
-  )
+
+  /* ── 교회력 절기 리본 ──
+   * 백엔드 plan_day.season은 시드 플레이스홀더(전부 epiphany)라
+   * 절기 태그·리본 모두 프론트 계산값(churchCalendar)을 쓴다. */
+  const today = new Date()
+  const season = getCurrentSeason(today)
+  const todayDoy = dayOfYear(today)
+  const ribbonSegments = getSeasonSegments(today.getFullYear()).map((seg) => {
+    const startDoy = dayOfYear(seg.start)
+    const endDoy = dayOfYear(seg.end)
+    const span = endDoy - startDoy + 1
+    const fillPercent =
+      todayDoy > endDoy
+        ? 100
+        : todayDoy < startDoy
+          ? 0
+          : ((todayDoy - startDoy + 1) / span) * 100
+    const range = `${seg.start.getMonth() + 1}/${seg.start.getDate()}~${seg.end.getMonth() + 1}/${seg.end.getDate()}`
+    return {
+      key: seg.key,
+      span,
+      fillPercent,
+      isCurrent: todayDoy >= startDoy && todayDoy <= endDoy,
+      title: `${SEASON_LABELS[seg.key]} · ${range}`,
+      description: `${SEASON_LABELS[seg.key]} (${range}) — ${SEASON_MEANINGS[seg.key]}`,
+    }
+  })
 
   /* ── 본문 읽기 CTA 상태 (안 읽음 / 읽는 중 / 완료) ──
    * 오늘 본문 범위(verse_start~verse_end)의 읽음 상태로 레이블·딥링크가 바뀐다.
@@ -170,21 +208,9 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
 
         <div className="meditation-body">
         <header className="meditation-meta-row">
-          <div className="meditation-day-tags">
-            <span className="meditation-season-tag" data-season={season}>
-              {SEASON_LABELS[season] ?? '연중'}
-            </span>
-            <span className="meditation-day-tag">
-              <span className="material-icons-round" aria-hidden>auto_stories</span>
-              {data.day_number}/{data.total_days}일
-              <span className="meditation-day-bar" aria-hidden>
-                <span
-                  className="meditation-day-bar-fill"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </span>
-            </span>
-          </div>
+          <span className="meditation-season-tag" data-season={season}>
+            {SEASON_LABELS[season] ?? '연중'}
+          </span>
           <button
             type="button"
             className="meditation-share-btn"
@@ -194,6 +220,58 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             <span className="material-icons-round">ios_share</span>
           </button>
         </header>
+
+        {/* 연간 여정 — 교회력 절기 리본. 한 해를 절기 색 구간으로 펼치고
+         * 지나온 길은 채워지며, 오늘 위치에 빛 마커가 놓인다. */}
+        <div
+          className="meditation-journey"
+          aria-label={`올해 말씀 여정 ${data.day_number}일째, 현재 ${SEASON_LABELS[season]}`}
+        >
+          <div className="meditation-journey-label">
+            <span className="meditation-journey-day">
+              <span className="material-icons-round" aria-hidden>auto_stories</span>
+              올해 말씀 여정 <strong>{data.day_number}일째</strong>
+              <span className="meditation-journey-total">/ {data.total_days}일</span>
+            </span>
+            <span className="meditation-journey-date">
+              {today.getMonth() + 1}월 {today.getDate()}일
+            </span>
+          </div>
+          {/* 각 구간은 탭 가능 — 모바일에서 절기 이름·기간·의미를 토스트로 알려준다 */}
+          <div className="meditation-ribbon">
+            {ribbonSegments.map((seg, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`meditation-ribbon-seg${seg.isCurrent ? ' is-current' : ''}`}
+                data-season={seg.key}
+                style={{ flexGrow: seg.span }}
+                title={seg.title}
+                aria-label={seg.description}
+                onClick={() => showToast(seg.description, 'info')}
+              >
+                <span className="meditation-ribbon-track" aria-hidden>
+                  <span
+                    className="meditation-ribbon-fill"
+                    style={{ width: `${seg.fillPercent}%` }}
+                  />
+                </span>
+                {/* 오늘 위치 — 오디오 플레이어와 같은 네 갈래 별이 여정 위에서 빛난다 */}
+                {seg.isCurrent && (
+                  <span
+                    className="meditation-ribbon-star"
+                    style={{ left: `${seg.fillPercent}%` }}
+                    aria-hidden
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
+                    </svg>
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="meditation-passage">
           <span className="meditation-passage-label">{data.passage.label}</span>

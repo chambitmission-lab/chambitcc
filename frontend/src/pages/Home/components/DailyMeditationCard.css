@@ -157,12 +157,159 @@
   margin-bottom: 12px;
 }
 
-.meditation-day-tags {
+/* ── 연간 통독 여정 — 문장 라벨 + 카드 전폭 프로그레스 바 ── */
+.meditation-journey {
+  margin-bottom: 14px;
+}
+
+.meditation-journey-label {
   display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-body);
+}
+
+.meditation-journey-day {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 5px;
   min-width: 0;
+}
+
+.meditation-journey-day .material-icons-round {
+  font-size: 14px;
+  color: var(--brand);
+  opacity: 0.9;
+}
+
+.meditation-journey-day strong {
+  font-weight: 800;
+  color: var(--text-strong);
+}
+
+.meditation-journey-total {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.meditation-journey-date {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/* ── 교회력 절기 리본 ──
+ * 한 해를 절기 색 구간(대림-성탄-주현-사순-부활-연중)으로 펼친다.
+ * 각 구간은 옅은 절기색 트랙, 지나온 날만큼 진한 절기색으로 채워지고
+ * 오늘이 속한 구간은 은은한 글로우 + 채움 끝에 빛 마커가 놓인다. */
+.meditation-ribbon {
+  display: flex;
+  gap: 3px;
+  /* 버튼 상하 패딩이 히트 영역을 만들므로 시각 높이(7px)보다 크다 */
+  margin: -9px 0;
+}
+
+/* 구간 = 탭 가능한 버튼 — 보이지 않는 상하 패딩으로 터치 영역 확보 */
+.meditation-ribbon-seg {
+  --ribbon-c: #34d399; /* ordinary 기본 */
+  position: relative;
+  flex-basis: 0;
+  min-width: 4px;
+  padding: 9px 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: block;
+}
+
+/* 시각적 트랙 — 옅은 절기색 바탕 */
+.meditation-ribbon-track {
+  display: block;
+  height: 7px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ribbon-c) 16%, transparent);
+}
+
+/* 절기별 색 — 전통 전례색을 앱 다크 팔레트에 맞게 순화 */
+.meditation-ribbon-seg[data-season='advent'] { --ribbon-c: #818cf8; }   /* 대림 — 청보라 */
+.meditation-ribbon-seg[data-season='christmas'] { --ribbon-c: #fcd34d; } /* 성탄 — 금빛 */
+.meditation-ribbon-seg[data-season='epiphany'] { --ribbon-c: #7dd3fc; }  /* 주현 — 별빛 하늘 */
+.meditation-ribbon-seg[data-season='lent'] { --ribbon-c: #c084fc; }      /* 사순 — 자색 */
+.meditation-ribbon-seg[data-season='easter'] { --ribbon-c: #fbbf24; }    /* 부활 — 새벽 금빛 */
+.meditation-ribbon-seg[data-season='ordinary'] { --ribbon-c: #34d399; }  /* 연중 — 초록 */
+
+.meditation-ribbon-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ribbon-c);
+  transition: width 0.6s ease;
+}
+
+/* 오늘이 속한 절기 — 살아있는 구간임을 알리는 글로우 */
+.meditation-ribbon-seg.is-current .meditation-ribbon-track {
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ribbon-c) 50%, transparent);
+}
+
+/* 오늘 위치의 별 — 오디오 플레이어의 네 갈래 별과 같은 형태.
+ * 후광은 현재 절기 색으로 숨 쉬듯 맥동한다. */
+.meditation-ribbon-star {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  color: #ffffff;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ribbon-c) 90%, white));
+}
+
+.meditation-ribbon-star svg {
+  position: relative;
+  display: block;
+  width: 13px;
+  height: 13px;
+}
+
+.meditation-ribbon-star::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ribbon-c) 45%, transparent);
+  filter: blur(3px);
+  animation: meditation-star-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes meditation-star-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meditation-ribbon-star::before {
+    animation: none;
+    opacity: 0.5;
+  }
 }
 
 .meditation-season-tag {
@@ -177,25 +324,30 @@
   color: var(--brand);
 }
 
-/* 교회력 절기별 액센트 컬러 — 절기 구분은 기능적 색상이므로 유지 */
+/* 교회력 절기별 액센트 컬러 — 아래 절기 리본과 같은 팔레트로 통일 */
 .meditation-season-tag[data-season="advent"] {
-  background: var(--brand-soft-strong);
-  border-color: var(--card-border);
-  color: var(--brand);
+  background: rgba(129, 140, 248, 0.14);
+  border-color: rgba(129, 140, 248, 0.35);
+  color: #a5b4fc;
 }
-.meditation-season-tag[data-season="lent"] {
-  background: rgba(120, 63, 4, 0.22);
-  border-color: rgba(217, 119, 6, 0.35);
-  color: #fbbf24;
-}
-.meditation-season-tag[data-season="easter"] {
-  background: rgba(234, 179, 8, 0.16);
-  border-color: rgba(253, 224, 71, 0.4);
-  color: #fde047;
+.meditation-season-tag[data-season="christmas"] {
+  background: rgba(252, 211, 77, 0.14);
+  border-color: rgba(252, 211, 77, 0.38);
+  color: #fde68a;
 }
 .meditation-season-tag[data-season="epiphany"] {
+  background: rgba(125, 211, 252, 0.12);
+  border-color: rgba(125, 211, 252, 0.32);
+  color: #7dd3fc;
+}
+.meditation-season-tag[data-season="lent"] {
+  background: rgba(192, 132, 252, 0.13);
+  border-color: rgba(192, 132, 252, 0.32);
+  color: #d8b4fe;
+}
+.meditation-season-tag[data-season="easter"] {
   background: rgba(251, 191, 36, 0.14);
-  border-color: rgba(252, 211, 77, 0.4);
+  border-color: rgba(251, 191, 36, 0.38);
   color: #fcd34d;
 }
 .meditation-season-tag[data-season="ordinary"] {
@@ -204,46 +356,12 @@
   color: #6ee7b7;
 }
 
-[data-theme="light"] .meditation-season-tag[data-season="lent"] { color: #92400e; background: rgba(180, 83, 9, 0.1); }
-[data-theme="light"] .meditation-season-tag[data-season="easter"],
-[data-theme="light"] .meditation-season-tag[data-season="epiphany"] { color: #854d0e; background: rgba(234, 179, 8, 0.14); }
+[data-theme="light"] .meditation-season-tag[data-season="advent"] { color: #4338ca; background: rgba(99, 102, 241, 0.1); }
+[data-theme="light"] .meditation-season-tag[data-season="christmas"],
+[data-theme="light"] .meditation-season-tag[data-season="easter"] { color: #854d0e; background: rgba(234, 179, 8, 0.14); }
+[data-theme="light"] .meditation-season-tag[data-season="epiphany"] { color: #075985; background: rgba(14, 165, 233, 0.1); }
+[data-theme="light"] .meditation-season-tag[data-season="lent"] { color: #7e22ce; background: rgba(168, 85, 247, 0.1); }
 [data-theme="light"] .meditation-season-tag[data-season="ordinary"] { color: #065f46; background: rgba(16, 185, 129, 0.1); }
-
-.meditation-day-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3.5px 10px;
-  border-radius: 999px;
-  white-space: nowrap;
-  background: var(--surface-inset);
-  border: 1px solid var(--card-border);
-  color: var(--text-body);
-}
-
-.meditation-day-tag .material-icons-round {
-  font-size: 12px;
-  opacity: 0.85;
-}
-
-/* 연간 통독 진척도 미니 바 */
-.meditation-day-bar {
-  width: 42px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--surface-inset);
-  box-shadow: inset 0 0 0 1px var(--card-border);
-  overflow: hidden;
-}
-
-.meditation-day-bar-fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--brand-gradient);
-}
 
 /* ── 공유 버튼 ────────────────────────── */
 .meditation-share-btn {
