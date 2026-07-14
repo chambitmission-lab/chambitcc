@@ -26,11 +26,19 @@ const PrayerAuthorInfo = ({
   nextLanguage,
   onTranslationToggle,
 }: PrayerAuthorInfoProps) => {
+  // 익명 기도는 아바타를 튀지 않게(뉴트럴) 처리 — 보랏빛 글로우 미사용
+  const isAnonymous = displayName === '익명'
   return (
     <div className="flex items-center justify-between gap-3 mb-6">
       <div className="flex items-center gap-3 min-w-0">
         {/* 피드 PrayerHeader와 동일한 보랏빛 글로우 아바타 — 화면 간 일관성 */}
         <div className="relative shrink-0">
+          {isAnonymous ? (
+            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-400 dark:text-gray-500">
+              <span className="material-icons-outlined text-[20px]">person</span>
+            </div>
+          ) : (
+            <>
           <div className="absolute inset-0 rounded-full bg-purple-400/30 dark:bg-purple-500/40 blur-md animate-pulse"></div>
           {avatarUrl ? (
             <img
@@ -43,9 +51,15 @@ const PrayerAuthorInfo = ({
               {displayName.charAt(0).toUpperCase()}
             </div>
           )}
+            </>
+          )}
         </div>
         <div className="flex flex-col min-w-0">
-          <p className="text-sm font-semibold text-gray-900 dark:text-white leading-none mb-1 flex items-center gap-1.5">
+          <p className={`text-sm leading-none mb-1 flex items-center gap-1.5 ${
+            isAnonymous
+              ? 'font-medium text-gray-500 dark:text-gray-400'
+              : 'font-semibold text-gray-900 dark:text-white'
+          }`}>
             <span className="truncate">{displayName}</span>
             {isOwner && (
               <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-purple-500/[0.12] dark:bg-purple-400/[0.16] text-[10px] font-bold leading-none text-purple-600 dark:text-purple-300">

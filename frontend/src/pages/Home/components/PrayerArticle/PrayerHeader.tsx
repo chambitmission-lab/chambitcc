@@ -15,15 +15,21 @@ const PrayerHeader = ({
   groupName,
   colorTheme
 }: PrayerHeaderProps) => {
+  // 익명 기도는 아바타를 튀지 않게(뉴트럴) 처리 — 브랜드/그룹 색 미사용
+  const isAnonymous = displayName === '익명'
   // 그룹이 없으면 기존 퍼플 스타일 사용
-  const useGroupColor = !!groupName
-  
+  const useGroupColor = !!groupName && !isAnonymous
+
   return (
     <div className="px-5 pt-4 pb-3 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="relative">
           {/* 주변 빛 확산 효과 */}
-          {useGroupColor ? (
+          {isAnonymous ? (
+            <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-400 dark:text-gray-500">
+              <span className="material-icons-outlined text-[18px]">person</span>
+            </div>
+          ) : useGroupColor ? (
             <>
               <div
                 className="absolute inset-0 rounded-full blur-md animate-pulse"
@@ -69,7 +75,11 @@ const PrayerHeader = ({
           )}
         </div>
         <div className="flex flex-col">
-          <span className="text-sm font-semibold text-gray-900 dark:text-white leading-none mb-1">
+          <span className={`text-sm leading-none mb-1 ${
+            isAnonymous
+              ? 'font-medium text-gray-500 dark:text-gray-400'
+              : 'font-semibold text-gray-900 dark:text-white'
+          }`}>
             {displayName}
           </span>
           <div className="flex items-center gap-2">
