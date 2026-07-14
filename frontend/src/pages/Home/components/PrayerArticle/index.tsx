@@ -81,7 +81,7 @@ const PrayerArticle = ({
 
   return (
     <article
-      className={`prayer-card !bg-transparent !border-0 mb-4 cursor-pointer ${prayer.is_answered ? 'answered-article' : ''}`}
+      className={`prayer-card !bg-transparent !border-0 mb-5 cursor-pointer ${prayer.is_answered ? 'answered-article' : ''}`}
       onClick={handleArticleClick}
       style={cssVars as React.CSSProperties}
     >
