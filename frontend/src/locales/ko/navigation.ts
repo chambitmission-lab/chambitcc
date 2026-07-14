@@ -35,4 +35,8 @@ export const navigation = {
   navGroupContent: '말씀과 콘텐츠',
   navGroupCommunity: '소통과 참여',
   navGroupActivity: '신앙 액티비티',
+  adminGroupContent: '말씀·콘텐츠',
+  adminGroupComm: '알림·소통',
+  adminGroupOps: '교회 운영',
+  adminGroupMembers: '회원·그룹',
 } as const

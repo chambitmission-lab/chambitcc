@@ -35,4 +35,8 @@ export const navigation = {
   navGroupContent: 'Word & Media',
   navGroupCommunity: 'Community',
   navGroupActivity: 'Faith Activities',
+  adminGroupContent: 'Word & Content',
+  adminGroupComm: 'Notices & Push',
+  adminGroupOps: 'Church Operations',
+  adminGroupMembers: 'Members & Groups',
 } as const
