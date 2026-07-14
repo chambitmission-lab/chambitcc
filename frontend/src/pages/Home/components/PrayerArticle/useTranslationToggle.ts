@@ -8,9 +8,9 @@ export const useTranslationToggle = (prayer: Prayer) => {
   const [displayTitle, setDisplayTitle] = useState(prayer.title)
   const [displayContent, setDisplayContent] = useState(prayer.content)
 
-  // 번역이 있는지 확인
-  const hasEnTranslation = !!(prayer.title_en && prayer.content_en)
-  const hasKoTranslation = !!(prayer.title_ko && prayer.content_ko)
+  // 번역이 있는지 확인 (제목은 선택 항목이므로 내용 번역 유무로 판단)
+  const hasEnTranslation = !!prayer.content_en
+  const hasKoTranslation = !!prayer.content_ko
   const hasTranslation = hasEnTranslation || hasKoTranslation
   
   // 원본 언어 (기본값: 한글)

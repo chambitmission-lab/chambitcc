@@ -21,8 +21,9 @@ export const useTranslation = (prayer: Prayer | null) => {
       }
     }
 
-    const hasEnTranslation = !!(prayer.title_en && prayer.content_en)
-    const hasKoTranslation = !!(prayer.title_ko && prayer.content_ko)
+    // 제목은 선택 항목이므로 내용 번역 유무로 판단
+    const hasEnTranslation = !!prayer.content_en
+    const hasKoTranslation = !!prayer.content_ko
     const hasTranslation = hasEnTranslation || hasKoTranslation
 
     // 원본 언어 (기본값: 한글)

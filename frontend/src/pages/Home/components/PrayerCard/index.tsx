@@ -20,9 +20,9 @@ const PrayerCard = ({ prayer, onPrayerToggle }: PrayerCardProps) => {
   // 백엔드에서 계산된 시간 사용 (타임존 일관성 보장)
   const timeAgo = prayer.time_ago
   
-  // 번역이 있는지 확인 (한글→영어 또는 영어→한글)
-  const hasEnTranslation = !!(prayer.title_en && prayer.content_en)
-  const hasKoTranslation = !!(prayer.title_ko && prayer.content_ko)
+  // 번역이 있는지 확인 (제목은 선택 항목이므로 내용 번역 유무로 판단)
+  const hasEnTranslation = !!prayer.content_en
+  const hasKoTranslation = !!prayer.content_ko
   const hasTranslation = hasEnTranslation || hasKoTranslation
 
   // 현재 표시할 제목과 내용 결정

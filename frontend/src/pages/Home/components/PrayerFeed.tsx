@@ -49,7 +49,7 @@ const PrayerFeed = ({
   }, [loading, hasMore, isFetchingMore, onLoadMore])
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col pt-3">
       {prayers.map((prayer) => (
         <PrayerArticle
           key={prayer.id}
