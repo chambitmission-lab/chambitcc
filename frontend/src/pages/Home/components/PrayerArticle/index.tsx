@@ -113,7 +113,7 @@ const PrayerArticle = ({
           />
 
           {/* 통합 액션바 — 흩어졌던 통계·말씀을 아이콘+숫자로 흡수 (스레드형) */}
-          <div className="px-5 pb-4">
+          <div className="px-5 pt-3 pb-4">
             <PrayerActions
               isPrayed={prayer.is_prayed}
               isPraying={isPraying}

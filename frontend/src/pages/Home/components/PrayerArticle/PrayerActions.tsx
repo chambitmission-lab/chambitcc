@@ -95,7 +95,7 @@ const PrayerActions = ({
             } : {}}
           >
             <span
-              className={`text-[20px] leading-none transition-transform duration-300 ${
+              className={`text-[18px] leading-none transition-transform duration-300 ${
                 isPrayed ? 'material-icons-round scale-110' : 'material-icons-outlined'
               }`}
             >
@@ -111,7 +111,7 @@ const PrayerActions = ({
             onClick={onReplyClick}
             className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
           >
-            <span className="material-icons-outlined text-[20px] leading-none">chat_bubble_outline</span>
+            <span className="material-icons-round text-[18px] leading-none">chat_bubble_outline</span>
             {replyCount > 0 && (
               <span className="text-[13px] font-semibold tabular-nums">{replyCount}</span>
             )}
@@ -124,7 +124,7 @@ const PrayerActions = ({
               title={language === 'ko' ? '함께 묵상해볼 수 있는 말씀' : 'Verses to meditate on'}
               className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
             >
-              <span className="material-icons-outlined text-[20px] leading-none">auto_stories</span>
+              <span className="material-icons-round text-[18px] leading-none">auto_stories</span>
               <span className="text-[13px] font-semibold tabular-nums">{versesCount}</span>
             </button>
           )}
