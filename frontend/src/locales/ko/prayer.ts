@@ -28,7 +28,7 @@ export const prayer = {
   prayerComposerTitle: '새 기도 요청',
   prayerComposerSubmit: '작성',
   prayerComposerSubmitting: '작성중...',
-  prayerComposerAnonymous: '익명으로 작성',
+  prayerComposerAnonymous: '골방 기도자로 작성',
   prayerComposerCategory: '기도 요청',
   prayerComposerTitlePlaceholder: '제목 (선택) — 없어도 괜찮아요',
   prayerComposerContentPlaceholder: '기도 제목을 나눠주세요... 구체적으로 어떤 기도가 필요한지 알려주세요.',

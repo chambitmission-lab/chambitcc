@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { usePrayersInfinite } from '../../../../hooks/usePrayersQuery'
+import { useProfileDetail } from '../../../../hooks/useProfile'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { validation } from '../../../../utils/validation'
 import type { PrayerEmotion, RecommendedVerses, SortType } from '../../../../types/prayer'
@@ -26,6 +27,10 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
   useModalBackButton(onClose)
 
   const isLoggedIn = !!localStorage.getItem('access_token')
+
+  // 프로필 사진 — 캐시된 프로필 상세에서 가져온다 (미등록/비로그인 시 null → 이니셜 아바타)
+  const { data: profileDetail } = useProfileDetail()
+  const avatarUrl = profileDetail?.stats.avatar_url ?? null
 
   const getUserName = (): string => {
     if (!isLoggedIn || isAnonymous) return '익명'
@@ -129,6 +134,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     isCreating,
     isLoggedIn,
     displayName,
+    avatarUrl,
 
     // Handlers
     setTitle: handleTitleChange,

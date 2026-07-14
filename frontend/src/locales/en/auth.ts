@@ -63,6 +63,6 @@ export const auth = {
   // Anonymous/Real Name
   anonymous: 'Anonymous',
   realName: 'Real Name',
-  anonymousNotice: 'Prayer request will be posted anonymously. Only display name will be visible.',
+  anonymousNotice: "Posted as 'Praying in Secret' — your name stays hidden. (Matt 6:6)",
   realNameNotice: 'Prayer request will be posted with your real name. Others can see who wrote it.',
 } as const

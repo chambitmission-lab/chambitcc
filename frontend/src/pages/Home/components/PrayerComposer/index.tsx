@@ -24,6 +24,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     isCreating,
     isLoggedIn,
     displayName,
+    avatarUrl,
     setTitle,
     setContent,
     setIsAnonymous,
@@ -69,6 +70,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
           <form onSubmit={handleSubmit} className="relative z-10 p-4 overflow-x-hidden">
             <UserInfoSection
               displayName={displayName}
+              avatarUrl={avatarUrl}
               isLoggedIn={isLoggedIn}
               isAnonymous={isAnonymous}
               onAnonymousChange={setIsAnonymous}
