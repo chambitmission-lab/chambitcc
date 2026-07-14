@@ -72,30 +72,38 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
       const previousReplies = queryClient.getQueryData(repliesQueryKey)
 
       // Optimistic Update - 임시 댓글 추가
+      // 익명이 아니면 프로필 사진도 미리 반영 (재조회 후 아바타가 바뀌는 깜빡임 방지)
+      const isAnonReply =
+        !data.display_name || data.display_name === '익명' || data.display_name === 'Anonymous'
+      const cachedProfile: any = queryClient.getQueryData(['profile', 'detail'])
       const tempReply: Reply = {
         id: Date.now(), // 임시 ID
         display_name: data.display_name || '익명',
         content: data.content,
         created_at: new Date().toISOString(),
         time_ago: '방금 전',
+        avatar_url: isAnonReply ? null : cachedProfile?.stats?.avatar_url ?? null,
       }
 
+      // 서버가 오래된 순으로 내려주므로 임시 댓글도 마지막 페이지 끝에 붙인다
+      // (맨 앞에 넣으면 재조회 시 맨 아래로 점프해 새로고침처럼 보인다)
       queryClient.setQueryData(repliesQueryKey, (old: any) => {
         if (!old) return old
 
-        const firstPage = old.pages[0]
+        const lastIndex = old.pages.length - 1
         return {
           ...old,
-          pages: [
-            {
-              ...firstPage,
-              data: {
-                ...firstPage.data,
-                items: [tempReply, ...firstPage.data.items],
-              },
-            },
-            ...old.pages.slice(1),
-          ],
+          pages: old.pages.map((page: any, i: number) =>
+            i === lastIndex
+              ? {
+                  ...page,
+                  data: {
+                    ...page.data,
+                    items: [...page.data.items, tempReply],
+                  },
+                }
+              : page
+          ),
         }
       })
 
