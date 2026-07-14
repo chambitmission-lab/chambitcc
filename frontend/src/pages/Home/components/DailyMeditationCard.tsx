@@ -149,10 +149,11 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         data-time={timeOfDay}
         data-season={season}
       >
-        {/* 시간대별 히어로 — 배경 이미지 위에 인사말 + 헤드라인 */}
+        {/* 시간대별 히어로 — 배경 이미지 위에 인사말 + 헤드라인.
+         * 이미지는 ::before 레이어에서 하단 마스크로 카드 배경에 녹아든다 (Apple TV/Netflix식 페이드) */}
         <div
           className="meditation-hero"
-          style={{ backgroundImage: `url(${HERO_IMAGES[timeOfDay]})` }}
+          style={{ '--hero-image': `url(${HERO_IMAGES[timeOfDay]})` } as React.CSSProperties}
         >
           <div className="meditation-hero-overlay" aria-hidden />
           <div className="meditation-hero-text">

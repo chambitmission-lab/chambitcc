@@ -26,23 +26,62 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* ── 시간대별 히어로 — 배경 사진 + 하단 그라데이션 위 인사말/헤드라인 ── */
+/* ── 시간대별 히어로 — 배경 사진이 카드 배경으로 녹아드는 페이드 ──
+ * Apple TV/Netflix 상세 페이지 벤치마크: 사진 하단을 마스크로 서서히
+ * 투명하게 만들고, 본문 첫 행이 그 소멸 구간 위로 겹쳐 올라온다.
+ * "여기서 사진 끝"이라는 경계선 자체를 없애는 것이 목적. */
 .meditation-hero {
   position: relative;
-  height: 152px;
+  height: 192px;
+}
+
+/* 사진 레이어 — 텍스트는 마스크의 영향을 받지 않도록 ::before로 분리 */
+.meditation-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--hero-image);
   background-size: cover;
   background-position: center;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 42%,
+    rgba(0, 0, 0, 0.75) 62%,
+    rgba(0, 0, 0, 0.3) 82%,
+    transparent 99%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    black 42%,
+    rgba(0, 0, 0, 0.75) 62%,
+    rgba(0, 0, 0, 0.3) 82%,
+    transparent 99%
+  );
 }
 
 .meditation-hero-overlay {
   position: absolute;
   inset: 0;
-  /* 하단으로 갈수록 어두워져 텍스트 가독성 확보 + 카드 본문과 자연스럽게 연결 */
+  /* 텍스트 구간(중하단)만 은은히 어둡게 — 스크림도 사진과 함께 사라지도록 동일 마스크 */
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.62) 0%,
-    rgba(0, 0, 0, 0.18) 55%,
-    rgba(0, 0, 0, 0.05) 100%
+    rgba(0, 0, 0, 0.5) 20%,
+    rgba(0, 0, 0, 0.15) 60%,
+    rgba(0, 0, 0, 0.04) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 42%,
+    rgba(0, 0, 0, 0.75) 62%,
+    rgba(0, 0, 0, 0.3) 82%,
+    transparent 99%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    black 42%,
+    rgba(0, 0, 0, 0.75) 62%,
+    rgba(0, 0, 0, 0.3) 82%,
+    transparent 99%
   );
 }
 
@@ -50,7 +89,8 @@
   position: absolute;
   left: 18px;
   right: 18px;
-  bottom: 14px;
+  /* 페이드가 시작되기 전, 사진이 아직 선명한 구간에 앉힌다 */
+  bottom: 56px;
 }
 
 .meditation-hero-greeting {
@@ -76,6 +116,17 @@
 /* ── 본문 영역 (기존 카드 콘텐츠) ── */
 .meditation-body {
   padding: 14px 18px 18px;
+}
+
+/* 마스크 페이드를 지원하면 본문 첫 행을 소멸 구간 위로 끌어올려 겹친다 */
+@supports (mask-image: linear-gradient(black, transparent)) or
+  (-webkit-mask-image: linear-gradient(black, transparent)) {
+  .meditation-body {
+    position: relative;
+    z-index: 1;
+    margin-top: -44px;
+    padding-top: 0;
+  }
 }
 
 /* ── 시간대별 tint — 값은 테마 토큰(--tint-*)이 결정 ── */
