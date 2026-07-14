@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-// import TextToSpeechButton from '../../../../components/common/TextToSpeechButton' // TTS 비활성화
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import type { GroupColorTheme } from '../../../../utils/groupColors'
 
@@ -7,8 +6,12 @@ interface PrayerActionsProps {
   isPrayed: boolean
   isPraying: boolean
   onPray: (e: React.MouseEvent) => void
-  prayerText: string
   colorTheme: GroupColorTheme
+  prayerCount: number
+  replyCount: number
+  onReplyClick: (e: React.MouseEvent) => void
+  versesCount?: number
+  onVersesClick?: (e: React.MouseEvent) => void
   isOwner?: boolean
   isAnswered?: boolean
   onAnswerClick?: (e: React.MouseEvent) => void
@@ -26,8 +29,12 @@ const PrayerActions = ({
   isPrayed,
   isPraying,
   onPray,
-  // prayerText, // TTS 비활성화로 미사용 (인터페이스에는 유지)
   colorTheme,
+  prayerCount,
+  replyCount,
+  onReplyClick,
+  versesCount = 0,
+  onVersesClick,
   isOwner,
   isAnswered,
   onAnswerClick,
@@ -39,11 +46,11 @@ const PrayerActions = ({
 
   const handlePrayClick = (e: React.MouseEvent) => {
     onPray(e)
-    
+
     // 빛 알갱이 생성
     const rect = e.currentTarget.getBoundingClientRect()
     const newParticles: LightParticle[] = []
-    
+
     const particleCount = Math.floor(Math.random() * 3) + 3
     for (let i = 0; i < particleCount; i++) {
       newParticles.push({
@@ -52,9 +59,9 @@ const PrayerActions = ({
         y: rect.top + rect.height / 2
       })
     }
-    
+
     setParticles(prev => [...prev, ...newParticles])
-    
+
     setTimeout(() => {
       setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)))
     }, 2000)
@@ -63,49 +70,73 @@ const PrayerActions = ({
   // 그룹 색상 사용 여부 (기본 테마가 아닐 때만)
   const useGroupColor = colorTheme.name !== '참빛'
 
+  const prayLabel = isOwner
+    ? language === 'ko' ? `${prayerCount}명이 당신을 위해 기도했어요` : `${prayerCount} prayed for you`
+    : language === 'ko' ? `${prayerCount}명이 함께 기도했어요` : `${prayerCount} prayed together`
+
   return (
     <>
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        {/* 트렌디한 아이콘+숫자 액션 클러스터 */}
+        <div className="flex items-center gap-5">
+          {/* 기도 — 손하트, 눌렀을 때만 브랜드 컬러+글로우 */}
           <button
             onClick={handlePrayClick}
             disabled={isPraying}
-            className={`relative group flex items-center gap-1 transition-all duration-300 ${
+            title={prayLabel}
+            className={`relative flex items-center gap-1.5 transition-all duration-300 ${
               !useGroupColor && isPrayed ? 'text-brand' :
-              !useGroupColor ? 'text-gray-700 dark:text-gray-300 hover:text-brand' : ''
+              !useGroupColor ? 'text-gray-500 dark:text-gray-400 hover:text-brand' : ''
             }`}
             style={useGroupColor && isPrayed ? {
               color: colorTheme.accent,
-              filter: `drop-shadow(0 0 8px ${colorTheme.glow}) drop-shadow(0 0 16px ${colorTheme.glow})`,
+              filter: `drop-shadow(0 0 6px ${colorTheme.glow})`,
               animation: 'holy-glow-icon 2s ease-in-out infinite'
             } : {}}
           >
-            <span 
-              className={`text-[24px] transition-transform duration-300 ${
+            <span
+              className={`text-[20px] leading-none transition-transform duration-300 ${
                 isPrayed ? 'material-icons-round scale-110' : 'material-icons-outlined'
               }`}
-              style={useGroupColor && isPrayed ? {
-                filter: `drop-shadow(0 0 4px ${colorTheme.glow})`
-              } : {}}
             >
               volunteer_activism
             </span>
+            {prayerCount > 0 && (
+              <span className="text-[13px] font-semibold tabular-nums">{prayerCount}</span>
+            )}
           </button>
-          
-          {/* 기도내용 읽어주기(TTS) 기능 비활성화 - 화면에서 숨김
-          <TextToSpeechButton
-            text={prayerText}
-            size="md"
-          /> */}
+
+          {/* 댓글 */}
+          <button
+            onClick={onReplyClick}
+            className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
+          >
+            <span className="material-icons-outlined text-[20px] leading-none">chat_bubble_outline</span>
+            {replyCount > 0 && (
+              <span className="text-[13px] font-semibold tabular-nums">{replyCount}</span>
+            )}
+          </button>
+
+          {/* 함께 묵상할 말씀 */}
+          {versesCount > 0 && onVersesClick && (
+            <button
+              onClick={onVersesClick}
+              title={language === 'ko' ? '함께 묵상해볼 수 있는 말씀' : 'Verses to meditate on'}
+              className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
+            >
+              <span className="material-icons-outlined text-[20px] leading-none">auto_stories</span>
+              <span className="text-[13px] font-semibold tabular-nums">{versesCount}</span>
+            </button>
+          )}
         </div>
 
         {/* 응답 등록 버튼 (내 기도이고 아직 응답 안됨) */}
         {isOwner && !isAnswered && onAnswerClick && (
           <button
             onClick={onAnswerClick}
-            className="flex items-center gap-1 text-brand hover:opacity-80 transition-opacity text-sm font-semibold"
+            className="flex items-center gap-1 text-brand hover:opacity-80 transition-opacity text-[13px] font-semibold"
           >
-            <span className="text-base">✨</span>
+            <span className="text-sm">✨</span>
             <span>{language === 'ko' ? '응답등록' : 'Answer'}</span>
           </button>
         )}
@@ -116,19 +147,19 @@ const PrayerActions = ({
             {onEditAnswerClick && (
               <button
                 onClick={onEditAnswerClick}
-                className="flex items-center gap-1 text-brand hover:opacity-80 transition-opacity text-sm font-semibold"
+                className="flex items-center gap-1 text-brand hover:opacity-80 transition-opacity text-[13px] font-semibold"
               >
-                <span className="text-base">✏️</span>
+                <span className="text-sm">✏️</span>
                 <span>{language === 'ko' ? '간증수정' : 'Edit'}</span>
               </button>
             )}
             {onCancelAnswerClick && (
               <button
                 onClick={onCancelAnswerClick}
-                className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-sm"
+                className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-[13px]"
                 title={language === 'ko' ? '응답 등록 취소' : 'Cancel answer'}
               >
-                <span className="text-base">↩️</span>
+                <span className="text-sm">↩️</span>
                 <span>{language === 'ko' ? '응답취소' : 'Cancel'}</span>
               </button>
             )}
@@ -150,14 +181,14 @@ const PrayerActions = ({
           {useGroupColor ? colorTheme.particle : '✨'}
         </div>
       ))}
-      
+
       <style>{`
         @keyframes holy-glow-icon {
           0%, 100% {
-            filter: drop-shadow(0 0 8px ${colorTheme.glow}) drop-shadow(0 0 16px ${colorTheme.glow});
+            filter: drop-shadow(0 0 6px ${colorTheme.glow});
           }
           50% {
-            filter: drop-shadow(0 0 12px ${colorTheme.glow}) drop-shadow(0 0 24px ${colorTheme.glow});
+            filter: drop-shadow(0 0 10px ${colorTheme.glow});
           }
         }
 
