@@ -53,6 +53,12 @@ export const auth = {
   accountChangePasswordFailed: 'Failed to change password',
   accountCannotLoad: 'Could not load account info',
   accountBack: 'Back',
+  accountChangeNameSection: 'Change Name',
+  accountNamePlaceholder: 'Enter your name',
+  accountChangeNameButton: 'Change Name',
+  accountNameChanged: 'Your name has been updated',
+  accountNameEmpty: 'Please enter your name',
+  accountChangeNameFailed: 'Failed to update name',
 
   // Anonymous/Real Name
   anonymous: 'Anonymous',

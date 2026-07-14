@@ -37,6 +37,28 @@ export const getMe = async (): Promise<MeResponse> => {
   return response.json()
 }
 
+// 이름(프로필) 변경 실패 종류
+export type UpdateNameError = 'invalid' | 'failed'
+
+// 이름(full_name) 변경
+export const updateName = async (fullName: string): Promise<MeResponse> => {
+  const response = await apiFetch(`${AUTH_BASE}/me`, {
+    method: 'PATCH',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ full_name: fullName }),
+  })
+
+  if (!response.ok) {
+    const kind: UpdateNameError = response.status === 422 ? 'invalid' : 'failed'
+    throw new Error(kind)
+  }
+
+  return response.json()
+}
+
 // 비밀번호 변경 실패 종류 (프론트에서 번역 메시지로 매핑)
 export type ChangePasswordError = 'wrong_current' | 'too_short' | 'failed'
 

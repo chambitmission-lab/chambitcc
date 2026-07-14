@@ -53,6 +53,12 @@ export const auth = {
   accountChangePasswordFailed: '비밀번호 변경에 실패했습니다',
   accountCannotLoad: '내 정보를 불러올 수 없습니다',
   accountBack: '뒤로',
+  accountChangeNameSection: '이름 변경',
+  accountNamePlaceholder: '이름을 입력하세요',
+  accountChangeNameButton: '이름 변경',
+  accountNameChanged: '이름이 변경되었습니다',
+  accountNameEmpty: '이름을 입력해주세요',
+  accountChangeNameFailed: '이름 변경에 실패했습니다',
 
   // 익명/실명
   anonymous: '익명',

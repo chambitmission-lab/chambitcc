@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { getMe, changePassword, type ChangePasswordError } from '../../api/account'
+import { getMe, changePassword, updateName, type ChangePasswordError, type UpdateNameError } from '../../api/account'
 import { logout } from '../../utils/auth'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 
 const AccountSettings = () => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
+  const queryClient = useQueryClient()
 
   // 로그인 체크
   useEffect(() => {
@@ -24,6 +25,46 @@ const AccountSettings = () => {
     enabled: !!localStorage.getItem('access_token'),
     staleTime: 1000 * 60,
   })
+
+  // 이름 변경 폼 상태
+  const [fullName, setFullName] = useState('')
+  const [nameError, setNameError] = useState('')
+  const [nameSuccess, setNameSuccess] = useState('')
+  const [nameSubmitting, setNameSubmitting] = useState(false)
+
+  // 조회된 정보로 이름 입력값 초기화
+  useEffect(() => {
+    if (me) setFullName(me.full_name || '')
+  }, [me])
+
+  const handleNameSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setNameError('')
+    setNameSuccess('')
+
+    const trimmed = fullName.trim()
+    if (!trimmed) {
+      setNameError(t('accountNameEmpty'))
+      return
+    }
+    if (trimmed === (me?.full_name || '')) {
+      return
+    }
+
+    setNameSubmitting(true)
+    try {
+      await updateName(trimmed)
+      // 기도/답글 작성 시 참조하는 로컬 이름도 동기화
+      localStorage.setItem('user_full_name', trimmed)
+      setNameSuccess(t('accountNameChanged'))
+      queryClient.invalidateQueries({ queryKey: ['account', 'me'] })
+    } catch (err) {
+      const kind = (err instanceof Error ? err.message : 'failed') as UpdateNameError
+      setNameError(t(kind === 'invalid' ? 'accountNameEmpty' : 'accountChangeNameFailed'))
+    } finally {
+      setNameSubmitting(false)
+    }
+  }
 
   // 비밀번호 변경 폼 상태
   const [currentPassword, setCurrentPassword] = useState('')
@@ -128,6 +169,50 @@ const AccountSettings = () => {
                     language === 'ko' ? 'ko-KR' : 'en-US'
                   )}
                 />
+              </div>
+            </section>
+
+            {/* 이름 변경 */}
+            <section>
+              <h2 className="text-sm font-bold text-gray-500 dark:text-white/55 mb-2 px-1">
+                {t('accountChangeNameSection')}
+              </h2>
+              <div className="rounded-2xl border border-border-light dark:border-white/[0.08] bg-white/80 dark:bg-card-dark p-4">
+                {nameError && (
+                  <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-400">{nameError}</p>
+                  </div>
+                )}
+                {nameSuccess && (
+                  <div className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p className="text-sm text-green-600 dark:text-green-400">{nameSuccess}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleNameSubmit} className="space-y-3">
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => {
+                      setFullName(e.target.value)
+                      setNameError('')
+                      setNameSuccess('')
+                    }}
+                    placeholder={t('accountNamePlaceholder')}
+                    maxLength={50}
+                    required
+                    disabled={nameSubmitting}
+                    autoComplete="name"
+                    className={inputClass}
+                  />
+                  <button
+                    type="submit"
+                    disabled={nameSubmitting || !fullName.trim() || fullName.trim() === (me.full_name || '')}
+                    className="w-full py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg text-sm hover:from-purple-600 hover:to-pink-600 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-sm"
+                  >
+                    {nameSubmitting ? t('accountChanging') : t('accountChangeNameButton')}
+                  </button>
+                </form>
               </div>
             </section>
 
