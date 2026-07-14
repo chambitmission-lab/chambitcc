@@ -78,7 +78,7 @@ const PrayerActions = ({
     <>
       <div className="flex items-center justify-between">
         {/* 트렌디한 아이콘+숫자 액션 클러스터 */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
           {/* 기도 — 손하트, 눌렀을 때만 브랜드 컬러+글로우 */}
           <button
             onClick={handlePrayClick}
@@ -95,14 +95,14 @@ const PrayerActions = ({
             } : {}}
           >
             <span
-              className={`text-[18px] leading-none transition-transform duration-300 ${
+              className={`text-[16px] leading-none transition-transform duration-300 ${
                 isPrayed ? 'material-icons-round scale-110' : 'material-icons-outlined'
               }`}
             >
               volunteer_activism
             </span>
             {prayerCount > 0 && (
-              <span className="text-[13px] font-semibold tabular-nums">{prayerCount}</span>
+              <span className="text-[12px] font-semibold tabular-nums">{prayerCount}</span>
             )}
           </button>
 
@@ -111,9 +111,9 @@ const PrayerActions = ({
             onClick={onReplyClick}
             className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
           >
-            <span className="material-icons-round text-[18px] leading-none">chat_bubble_outline</span>
+            <span className="material-icons-round text-[16px] leading-none">chat_bubble_outline</span>
             {replyCount > 0 && (
-              <span className="text-[13px] font-semibold tabular-nums">{replyCount}</span>
+              <span className="text-[12px] font-semibold tabular-nums">{replyCount}</span>
             )}
           </button>
 
@@ -124,8 +124,8 @@ const PrayerActions = ({
               title={language === 'ko' ? '함께 묵상해볼 수 있는 말씀' : 'Verses to meditate on'}
               className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
             >
-              <span className="material-icons-round text-[18px] leading-none">auto_stories</span>
-              <span className="text-[13px] font-semibold tabular-nums">{versesCount}</span>
+              <span className="material-icons-round text-[16px] leading-none">auto_stories</span>
+              <span className="text-[12px] font-semibold tabular-nums">{versesCount}</span>
             </button>
           )}
         </div>

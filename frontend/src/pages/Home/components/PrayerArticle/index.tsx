@@ -134,12 +134,8 @@ const PrayerArticle = ({
 
             {/* 살아있는 기도 — 지금 함께 기도하는 사람 수 (따뜻한 문구) */}
             {prayer.prayer_count > 0 && (
-              <div className="mt-2.5 flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-gray-400">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-brand opacity-60 animate-ping"></span>
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand"></span>
-                </span>
-                <span>{liveStatusText}</span>
+              <div className="mt-2.5 text-[12px] text-gray-500 dark:text-gray-400">
+                {liveStatusText}
               </div>
             )}
           </div>
