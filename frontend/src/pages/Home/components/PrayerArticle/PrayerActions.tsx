@@ -95,15 +95,16 @@ const PrayerActions = ({
             } : {}}
           >
             <span
-              className={`text-[16px] leading-none transition-transform duration-300 ${
-                isPrayed ? 'material-icons-round scale-110' : 'material-icons-outlined'
+              className={`text-[16px] leading-none ${
+                isPrayed ? 'material-icons-round' : 'material-icons-outlined'
               }`}
             >
               volunteer_activism
             </span>
-            {prayerCount > 0 && (
-              <span className="text-[12px] font-semibold tabular-nums">{prayerCount}</span>
-            )}
+            {/* 숫자 자리는 항상 확보 — 0→1이 될 때 옆 버튼들이 밀리지 않도록 */}
+            <span className="text-[12px] font-semibold tabular-nums min-w-[10px]">
+              {prayerCount > 0 ? prayerCount : ''}
+            </span>
           </button>
 
           {/* 댓글 */}
@@ -134,9 +135,9 @@ const PrayerActions = ({
         {isOwner && !isAnswered && onAnswerClick && (
           <button
             onClick={onAnswerClick}
-            className="flex items-center gap-1 text-brand hover:opacity-80 transition-opacity text-[13px] font-semibold"
+            className="flex items-center gap-1 text-[#5b82b8] dark:text-[#8fb3e0] hover:text-brand transition-colors text-[12px] font-medium"
           >
-            <span className="text-sm">✨</span>
+            <span className="text-xs">✨</span>
             <span>{language === 'ko' ? '응답등록' : 'Answer'}</span>
           </button>
         )}
@@ -147,19 +148,19 @@ const PrayerActions = ({
             {onEditAnswerClick && (
               <button
                 onClick={onEditAnswerClick}
-                className="flex items-center gap-1 text-brand hover:opacity-80 transition-opacity text-[13px] font-semibold"
+                className="flex items-center gap-1 text-[#5b82b8] dark:text-[#8fb3e0] hover:text-brand transition-colors text-[12px] font-medium"
               >
-                <span className="text-sm">✏️</span>
+                <span className="text-xs">✏️</span>
                 <span>{language === 'ko' ? '간증수정' : 'Edit'}</span>
               </button>
             )}
             {onCancelAnswerClick && (
               <button
                 onClick={onCancelAnswerClick}
-                className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-[13px]"
+                className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors text-[12px]"
                 title={language === 'ko' ? '응답 등록 취소' : 'Cancel answer'}
               >
-                <span className="text-sm">↩️</span>
+                <span className="text-xs">↩️</span>
                 <span>{language === 'ko' ? '응답취소' : 'Cancel'}</span>
               </button>
             )}
