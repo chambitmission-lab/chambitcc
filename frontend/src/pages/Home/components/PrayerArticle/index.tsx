@@ -97,6 +97,7 @@ const PrayerArticle = ({
 
         <div className="relative z-10">
           <PrayerHeader
+            prayerId={prayer.id}
             displayName={prayer.display_name}
             avatarUrl={prayer.avatar_url ?? null}
             timeAgo={prayer.time_ago}

@@ -36,12 +36,12 @@
   z-index: 1;
 }
 
-/* 카드 헤더 */
+/* 카드 헤더 — 인스타 피드식 컴팩트 한 줄 */
 .card-header {
-  padding: 16px 20px; /* 패딩 증가 */
+  padding: 12px 20px 10px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   border-bottom: none;
 }
 
@@ -71,17 +71,40 @@
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
+/* 프로필 사진 — 인스타 스토리 링(브랜드 그라데이션 2px + 서피스색 갭 2px)
+ * 사진이 배경에 그대로 뜨면 어색해서 링으로 경계를 만들어준다 */
+.card-avatar-ring {
+  flex-shrink: 0;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--brand-gradient);
+  box-shadow: 0 2px 8px var(--brand-glow);
+}
+
+.card-avatar-img {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--surface);
+}
+
+/* 메타 — "이름 · 시간" 한 줄 (인스타/스레드식) */
 .card-meta {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
   flex: 1;
   min-width: 0;
 }
 
 .card-author {
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 0.9063rem;
+  letter-spacing: -0.01em;
   color: var(--ig-primary-text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -89,8 +112,13 @@
 }
 
 .card-time {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--ig-secondary-text);
+  white-space: nowrap;
+}
+
+.card-time::before {
+  content: '· ';
 }
 
 /* 언어 토글 버튼 - 다크 그레이 톤 */

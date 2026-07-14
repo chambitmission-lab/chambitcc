@@ -4,6 +4,8 @@ export const prayer = {
   prayerRequest: '기도 요청',
   newPrayerRequest: '새 기도 요청',
   anonymousPrayerRequest: '익명 기도 요청',
+  // 익명 작성자 표시 이름 — 마 6:6 골방 기도에서
+  anonymousDisplayName: '골방 기도자',
   prayerTitle: '기도 제목',
   prayerContent: '기도 내용',
   prayerPlaceholder: '기도 제목을 나눠주세요...',

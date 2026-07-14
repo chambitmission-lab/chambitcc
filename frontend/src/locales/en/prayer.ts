@@ -4,6 +4,8 @@ export const prayer = {
   prayerRequest: 'Prayer Request',
   newPrayerRequest: 'New Prayer Request',
   anonymousPrayerRequest: 'Anonymous Prayer Request',
+  // 익명 작성자 표시 이름 — 마 6:6 골방 기도에서
+  anonymousDisplayName: 'Praying in Secret',
   prayerTitle: 'Prayer Title',
   prayerContent: 'Prayer Content',
   prayerPlaceholder: 'Share your prayer request...',

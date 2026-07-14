@@ -4,6 +4,7 @@
 // 작성자 국적으로 오인될 여지도 없다.
 import LangFlag from '../../../../components/common/LangFlag'
 import { getLanguageName } from '../../../../utils/languageFlags'
+import { useLanguage } from '../../../../contexts/LanguageContext'
 
 interface PrayerAuthorInfoProps {
   displayName: string
@@ -26,8 +27,11 @@ const PrayerAuthorInfo = ({
   nextLanguage,
   onTranslationToggle,
 }: PrayerAuthorInfoProps) => {
+  const { t } = useLanguage()
   // 익명 기도는 아바타를 튀지 않게(뉴트럴) 처리 — 보랏빛 글로우 미사용
-  const isAnonymous = displayName === '익명'
+  const isAnonymous = displayName === '익명' || displayName === 'Anonymous'
+  // 익명 표시 이름 — "익명" 대신 마 6:6의 골방 기도자 (데이터 값은 그대로 둔다)
+  const shownName = isAnonymous ? t('anonymousDisplayName') : displayName
   return (
     <div className="flex items-center justify-between gap-3 mb-6">
       <div className="flex items-center gap-3 min-w-0">
@@ -60,7 +64,7 @@ const PrayerAuthorInfo = ({
               ? 'font-medium text-gray-500 dark:text-gray-400'
               : 'font-semibold text-gray-900 dark:text-white'
           }`}>
-            <span className="truncate">{displayName}</span>
+            <span className="truncate">{shownName}</span>
             {isOwner && (
               <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-purple-500/[0.12] dark:bg-purple-400/[0.16] text-[10px] font-bold leading-none text-purple-600 dark:text-purple-300">
                 내 기도

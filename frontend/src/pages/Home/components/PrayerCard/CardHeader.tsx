@@ -34,12 +34,14 @@ const CardHeader = ({
       
       <div className="card-header">
         {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt=""
-            className="card-avatar object-cover"
-            loading="lazy"
-          />
+          <span className="card-avatar-ring">
+            <img
+              src={avatarUrl}
+              alt=""
+              className="card-avatar-img"
+              loading="lazy"
+            />
+          </span>
         ) : (
           <div className="card-avatar">
             {displayName.charAt(0).toUpperCase()}

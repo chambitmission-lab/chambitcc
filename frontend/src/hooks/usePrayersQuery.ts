@@ -81,8 +81,11 @@ export const usePrayersInfinite = (
     initialPageParam: 1,
     staleTime: 1000 * 60 * 5, // 5분간 fresh (캐시 활용)
     gcTime: 1000 * 60 * 60 * 2, // 2시간 메모리 유지 (무한스크롤 데이터 누적 방지)
-    refetchOnMount: false, // 캐시 우선
-    refetchOnWindowFocus: false,
+    // 캐시를 즉시 그리되 stale이면 백그라운드 재조회 — persist로 복원된
+    // 지난 세션 목록의 is_prayed 가 액션 전까지 안 갱신되던 문제 방지.
+    // (PWA 백그라운드 복귀는 remount 가 아니라 focus 로만 감지된다)
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     retry: createRetry(2), // 전역(1회)보다 여유 있게 재시도
   })
 
@@ -301,6 +304,9 @@ export const usePrayerDetail = (prayerId: number, initialData?: Prayer) => {
     enabled: !!prayerId,
     staleTime: 1000 * 60 * 10, // 10분간 fresh (사용자별 캐시로 is_owner 문제 해결)
     gcTime: 1000 * 60 * 30, // 30분간 메모리 유지 (가비지 컬렉션 시간)
+    // 목록 쿼리와 동일 — stale 캐시는 백그라운드에서 조용히 갱신
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     initialData: initialData ? {
       ...initialData,
       // initialData의 is_owner도 재계산

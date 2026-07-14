@@ -1,0 +1,69 @@
+/* 피드 작성자 아바타 — 과한 링 대신 은은한 헤어라인 + "주인공 스포트라이트"
+ * - 사진 경계: 1px 헤어라인 (테마 토큰)
+ * - 후광: 사진 뒤에서 천천히 숨 쉬는 라디얼 글로우 (브랜드/그룹 컬러)
+ * - 스침광: 좌상단에 렌즈에 빛이 스치는 듯한 스페큘러 하이라이트
+ */
+.feed-avatar {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  border-radius: 50%;
+}
+
+/* 후광 — img 앞에 선언된 ::before는 img 뒤에 그려진다 */
+.feed-avatar::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--avatar-glow, var(--brand-glow)) 0%, transparent 70%);
+  animation: feed-avatar-breathe 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.feed-avatar-img {
+  position: relative;
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px var(--card-border); /* 헤어라인 */
+}
+
+/* 스페큘러 하이라이트 — 사진 위에 아주 옅게 */
+.feed-avatar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), transparent 42%);
+  pointer-events: none;
+}
+
+@keyframes feed-avatar-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feed-avatar::before {
+    animation: none;
+    opacity: 0.45;
+  }
+}
+
+/* 익명 아바타 — 뉴트럴 원 위에 기도마다 다른 컬러 헤어라인 링.
+ * 배경/아이콘은 회색 유지, 1.5px 링 + 같은 색의 아주 옅은 글로우만 얹는다. */
+.anon-avatar {
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--anon-ring) 40%, transparent),
+    0 0 10px color-mix(in srgb, var(--anon-ring) 18%, transparent);
+}
