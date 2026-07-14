@@ -32,12 +32,15 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
   const { data: profileDetail } = useProfileDetail()
   const avatarUrl = profileDetail?.stats.avatar_url ?? null
 
+  // 로그인 응답에 full_name이 없으면 localStorage에 이름이 저장되지 않으므로
+  // 프로필 상세(stats.full_name)를 최우선으로 사용한다 — 실제 노출도 이름 기준
   const getUserName = (): string => {
     if (!isLoggedIn || isAnonymous) return '익명'
-    
-    const fullName = localStorage.getItem('user_full_name')
+
+    const fullName =
+      profileDetail?.stats.full_name || localStorage.getItem('user_full_name')
     const username = localStorage.getItem('user_username')
-    
+
     return fullName || username || '익명'
   }
 

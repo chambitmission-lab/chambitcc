@@ -1,5 +1,7 @@
 // 댓글 작성 컴포넌트 (Single Responsibility: 댓글 입력만 담당)
 import { useState, useEffect } from 'react'
+import { useLanguage } from '../../contexts/LanguageContext'
+import { useProfileDetail } from '../../hooks/useProfile'
 
 interface ReplyComposerProps {
   onSubmit: (content: string, displayName: string) => void
@@ -7,22 +9,31 @@ interface ReplyComposerProps {
 }
 
 const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
+  const { t } = useLanguage()
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
   const isLoggedIn = !!localStorage.getItem('access_token')
 
+  // 프로필 사진 — 캐시된 프로필 상세에서 (미등록/비로그인 시 null → 이니셜 아바타)
+  const { data: profileDetail } = useProfileDetail()
+  const avatarUrl = profileDetail?.stats.avatar_url ?? null
+
   // 로그인한 사용자 이름 가져오기
+  // 로그인 응답에 full_name이 없으면 localStorage에 이름이 저장되지 않으므로
+  // 프로필 상세(stats.full_name)를 최우선으로 사용한다 — 실제 노출도 이름 기준
   const getUserName = (): string => {
     if (!isLoggedIn || isAnonymous) return '익명'
-    
-    // 우선순위: full_name > username
-    const fullName = localStorage.getItem('user_full_name')
+
+    const fullName =
+      profileDetail?.stats.full_name || localStorage.getItem('user_full_name')
     const username = localStorage.getItem('user_username')
-    
+
     return fullName || username || '익명'
   }
 
   const displayName = getUserName()
+  // 화면 표시용 이름 — 데이터 값('익명')은 그대로 두고 골방 기도자로 보여준다 (마 6:6)
+  const shownName = isAnonymous ? t('anonymousDisplayName') : displayName
 
   // 로그인 상태가 아니면 항상 익명
   useEffect(() => {
@@ -52,9 +63,24 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
   return (
     <form onSubmit={handleSubmit} className="reply-composer">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/80 to-purple-600/60 dark:from-purple-500/55 dark:to-purple-700/35 border border-purple-400/40 dark:border-purple-400/25 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-          {displayName.charAt(0).toUpperCase()}
-        </div>
+        {isAnonymous ? (
+          /* 골방 기도자 — 피드/작성 모달과 동일한 뉴트럴 아바타 */
+          <div className="mt-0.5 w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500 shadow-[0_0_0_1.5px_rgba(168,85,247,0.28)] flex-shrink-0">
+            <span className="material-icons-outlined text-[18px]">person</span>
+          </div>
+        ) : avatarUrl ? (
+          /* 프로필 사진 아바타 */
+          <img
+            src={avatarUrl}
+            alt=""
+            className="mt-0.5 w-9 h-9 rounded-full object-cover border border-purple-400/40 dark:border-purple-400/25 flex-shrink-0"
+          />
+        ) : (
+          /* 사진 미등록 시 이니셜 아바타 */
+          <div className="mt-0.5 w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/80 to-purple-600/60 dark:from-purple-500/55 dark:to-purple-700/35 border border-purple-400/40 dark:border-purple-400/25 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+            {displayName.charAt(0).toUpperCase()}
+          </div>
+        )}
 
         <div className="flex-1">
           <textarea
@@ -77,9 +103,9 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
                   disabled={isSubmitting}
                 />
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  익명으로 작성 (
-                  <span className="font-semibold text-amber-600 dark:text-amber-400">
-                    {isAnonymous ? '익명' : displayName}
+                  {t('prayerComposerAnonymous')} (
+                  <span className="font-semibold text-purple-600 dark:text-purple-300">
+                    {shownName}
                   </span>
                   )
                 </span>

@@ -1,5 +1,6 @@
 // 댓글 목록 컴포넌트 (Single Responsibility: 댓글 표시만 담당)
 import { useState } from 'react'
+import { useLanguage } from '../../contexts/LanguageContext'
 import type { Reply } from '../../types/prayer'
 
 interface ReplyListProps {
@@ -23,8 +24,13 @@ const ReplyList = ({
   onReplyDelete,
   isUpdating,
 }: ReplyListProps) => {
+  const { t } = useLanguage()
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editContent, setEditContent] = useState('')
+
+  // 익명 댓글 — 데이터 값('익명')은 그대로 두고 골방 기도자로 보여준다 (피드와 동일)
+  const isAnonymousReply = (reply: Reply) =>
+    reply.display_name === '익명' || reply.display_name === 'Anonymous'
 
   const startEdit = (reply: Reply) => {
     setEditingId(reply.id)
@@ -90,7 +96,11 @@ const ReplyList = ({
     <div className="reply-list space-y-5">
       {replies.map((reply) => (
         <div key={reply.id} className="reply-item flex gap-3">
-          {reply.avatar_url ? (
+          {isAnonymousReply(reply) ? (
+            <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500 shadow-[0_0_0_1.5px_rgba(168,85,247,0.28)] flex-shrink-0">
+              <span className="material-icons-outlined text-[18px]">person</span>
+            </div>
+          ) : reply.avatar_url ? (
             <img
               src={reply.avatar_url}
               alt=""
@@ -105,8 +115,12 @@ const ReplyList = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                {reply.display_name}
+              <span className={`text-sm ${
+                isAnonymousReply(reply)
+                  ? 'font-medium text-gray-500 dark:text-gray-400'
+                  : 'font-semibold text-gray-900 dark:text-white'
+              }`}>
+                {isAnonymousReply(reply) ? t('anonymousDisplayName') : reply.display_name}
               </span>
               <span className="text-xs text-gray-400 dark:text-gray-500">
                 {reply.time_ago}
