@@ -124,6 +124,15 @@ body {
   min-height: calc(var(--vvh, 100dvh) - 3.5rem);
 }
 
+/* 위와 동일한 실측 높이를 max-height 캡으로 쓰는 유틸 — 헤더에 붙는 오버레이(햄버거 메뉴 등)용.
+   raw 100vh 기준 max-h는 WebAPK에서 시스템 바 포함 높이로 과대 계산돼
+   내부 스크롤이 생기지 않은 채 메뉴 하단이 화면 밖으로 밀리는 문제가 있다. */
+.screen-cap-minus-header {
+  max-height: calc(100vh - 3.5rem);
+  max-height: calc(100dvh - 3.5rem);
+  max-height: calc(var(--vvh, 100dvh) - 3.5rem);
+}
+
 .container {
   max-width: 80rem;
   margin: 0 auto;

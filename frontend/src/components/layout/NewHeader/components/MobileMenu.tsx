@@ -16,7 +16,7 @@ const MobileMenu = ({ isAdminUser, isLoggedIn, onLogout }: MobileMenuProps) => {
         bg-background-light dark:bg-background-dark
         border-b border-border-light dark:border-border-dark
         shadow-lg
-        max-h-[calc(100vh-3.5rem)] overflow-y-auto overscroll-contain
+        screen-cap-minus-header overflow-y-auto overscroll-contain
       "
     >
       <div className="max-w-md mx-auto pb-4">
