@@ -52,8 +52,8 @@ const SEASON_LABELS: Record<string, string> = {
 /* 절기 리본 탭 시 보여줄 한 줄 의미 — 모바일에서 절기를 배우는 통로 */
 const SEASON_MEANINGS: Record<string, string> = {
   advent: '예수님의 오심을 기다리며 준비하는 절기',
-  christmas: '우리 가운데 오신 예수님의 탄생을 기뻐하는 절기',
-  epiphany: '세상에 나타나신 그리스도의 빛을 묵상하는 절기',
+  christmas: '예수님의 탄생을 기뻐하는 절기',
+  epiphany: '그리스도의 빛을 묵상하는 절기',
   lent: '회개와 절제로 부활절을 준비하는 40일',
   easter: '부활의 기쁨을 성령강림까지 누리는 절기',
   ordinary: '말씀과 함께 일상에서 자라가는 시간',

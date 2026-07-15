@@ -59,7 +59,7 @@ export const showToast = (
     background: ${bgColor};
     color: ${textColor};
     border: ${border};
-    padding: 14px 24px;
+    padding: 14px 20px;
     border-radius: 12px;
     box-shadow: ${shadow};
     z-index: 9999;
@@ -67,7 +67,8 @@ export const showToast = (
     font-weight: 500;
     line-height: 1.5;
     animation: toastSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    max-width: min(90%, 340px);
+    width: max-content;
+    max-width: min(90vw, 480px);
     text-align: ${options?.title ? 'left' : 'center'};
     word-break: keep-all;
   `
