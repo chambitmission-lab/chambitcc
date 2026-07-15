@@ -124,6 +124,9 @@
 
 .testimony-icon {
   font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  color: rgb(168, 85, 247);
 }
 
 .testimony-label {
@@ -183,6 +186,8 @@
 
 .action-icon {
   font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
 }
 
 .action-text {

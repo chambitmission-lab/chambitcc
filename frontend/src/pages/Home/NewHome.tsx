@@ -54,11 +54,12 @@ const NewHome = () => {
     }
   }, [isLoggedIn, selectedFilter])
 
-  // 프로필에서 넘어온 기도 ID 처리
+  // 프로필/응답의 전당에서 넘어온 기도 ID 처리
   useEffect(() => {
-    const state = location.state as { openPrayerId?: number } | null
+    const state = location.state as { openPrayerId?: number; openReplies?: boolean } | null
     if (state?.openPrayerId) {
       setSelectedPrayerId(state.openPrayerId)
+      setOpenReplies(!!state.openReplies)
       // state 초기화 (뒤로가기 시 다시 열리지 않도록)
       window.history.replaceState({}, document.title)
     }

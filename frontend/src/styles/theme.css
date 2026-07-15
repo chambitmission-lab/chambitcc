@@ -29,6 +29,12 @@
   --tint-afternoon: rgba(49, 130, 246, 0.07);
   --tint-evening: rgba(27, 80, 170, 0.10);
 
+  /* 기능적 앰버 — 응답됨(✨)/영광/빛의 표징. 브랜드 블루로 덮지 않는 유일한 액센트 */
+  --amber: #b45309;                          /* 텍스트/라벨 */
+  --amber-icon: #f59e0b;                     /* 아이콘/장식 */
+  --amber-soft: rgba(245, 158, 11, 0.10);
+  --amber-soft-strong: rgba(245, 158, 11, 0.28);
+
   /* Surface 스케일 */
   --surface: #faf9fc;
   --surface-container: #ffffff;
@@ -64,6 +70,12 @@
   --tint-morning: rgba(255, 214, 165, 0.06);
   --tint-afternoon: rgba(69, 147, 252, 0.08);
   --tint-evening: rgba(49, 90, 180, 0.07);
+
+  /* 기능적 앰버 — 응답됨(✨)/영광/빛의 표징 */
+  --amber: #fbbf24;
+  --amber-icon: #fbbf24;
+  --amber-soft: rgba(251, 191, 36, 0.10);
+  --amber-soft-strong: rgba(251, 191, 36, 0.30);
 
   /* Surface 스케일 — 목업의 뉴트럴 다크 */
   --surface: #131313;

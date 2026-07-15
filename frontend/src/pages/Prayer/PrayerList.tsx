@@ -1,5 +1,6 @@
 // 기도 목록 페이지 (소그룹 기능 포함)
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
@@ -9,6 +10,7 @@ import type { SortType, PrayerFilterType, Prayer } from '../../types/prayer'
 import './PrayerList.css'
 
 const PrayerList = () => {
+  const navigate = useNavigate()
   const [sort, setSort] = useState<SortType>('popular')
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
   const [selectedFilter, setSelectedFilter] = useState<PrayerFilterType>('all')
@@ -31,6 +33,11 @@ const PrayerList = () => {
     cancelPrayerAnswer,
     isAnswering,
   } = usePrayersInfinite(sort, selectedGroupId, selectedFilter)
+
+  // 댓글 클릭 → 홈의 기도 상세 모달을 댓글 열린 상태로 연다
+  const handleReplyClick = (prayerId: number) => {
+    navigate('/', { state: { openPrayerId: prayerId, openReplies: true } })
+  }
 
   const handleAnswerToggle = (prayerId: number) => {
     const prayer = prayers.find(p => p.id === prayerId)
@@ -163,6 +170,7 @@ const PrayerList = () => {
                   key={prayer.id}
                   prayer={prayer}
                   onPrayerToggle={handlePrayerToggle}
+                  onReplyClick={handleReplyClick}
                   onAnswerToggle={handleAnswerToggle}
                   onEditAnswer={handleEditAnswer}
                   onCancelAnswer={handleCancelAnswer}

@@ -1,5 +1,6 @@
 // 기도 카드 컴포넌트 (그룹 배지 포함)
 import type { Prayer } from '../../types/prayer'
+import { HandHeartIcon, CommentIcon, SparklesIcon } from '../icons/ActionIcons'
 import './PrayerCard.css'
 
 interface PrayerCardProps {
@@ -61,7 +62,9 @@ const PrayerCard = ({
       {prayer.is_answered && prayer.testimony && (
         <div className="testimony-section">
           <div className="testimony-header">
-            <span className="testimony-icon">🎉</span>
+            <span className="testimony-icon">
+              <SparklesIcon size={15} />
+            </span>
             <span className="testimony-label">간증</span>
           </div>
           <p className="testimony-content">{prayer.testimony}</p>
@@ -75,7 +78,9 @@ const PrayerCard = ({
           onClick={() => onPrayerToggle?.(prayer.id)}
           disabled={isToggling}
         >
-          <span className="action-icon">🙏</span>
+          <span className="action-icon">
+            <HandHeartIcon size={16} filled={prayer.is_prayed} />
+          </span>
           <span className="action-text">
             {prayer.is_prayed ? '기도했어요' : '기도하기'}
           </span>
@@ -86,7 +91,9 @@ const PrayerCard = ({
           className="action-button"
           onClick={() => onReplyClick?.(prayer.id)}
         >
-          <span className="action-icon">💬</span>
+          <span className="action-icon">
+            <CommentIcon size={16} />
+          </span>
           <span className="action-text">댓글</span>
           <span className="action-count">{prayer.reply_count}</span>
         </button>

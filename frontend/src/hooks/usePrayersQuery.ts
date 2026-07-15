@@ -94,6 +94,7 @@ export const usePrayersInfinite = (
     sort,
     groupId,
     filter,
+    isAnswered,
     username: currentUser.username,
   })
 

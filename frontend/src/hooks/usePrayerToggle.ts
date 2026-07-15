@@ -9,6 +9,7 @@ interface UsePrayerToggleOptions {
   sort?: SortType
   groupId?: number | null // 그룹 필터링용
   filter?: PrayerFilterType | null // 기도 필터링용
+  isAnswered?: boolean // 응답의 전당 등 isAnswered 필터 목록용 — 캐시 키 구성 요소
   prayerId?: number // 상세 페이지용
   username?: string | null // 사용자별 캐시 키용
   onSuccess?: (message: string) => void
@@ -32,6 +33,7 @@ export const usePrayerToggle = ({
   sort = 'popular',
   groupId = null,
   filter = null,
+  isAnswered,
   prayerId: detailPrayerId,
   username = null,
   onSuccess,
@@ -68,7 +70,7 @@ export const usePrayerToggle = ({
 
   // 통합 토글 함수 (기도 시간 파라미터 추가)
   const togglePrayer = async (prayerId: number, isPrayed: boolean, durationMinutes?: number) => {
-    const listQueryKey = prayerKeys.list(sort, groupId, filter, username)
+    const listQueryKey = prayerKeys.list(sort, groupId, filter, username, isAnswered)
     const detailQueryKey = detailPrayerId 
       ? prayerKeys.detail(detailPrayerId, username)
       : null
@@ -187,7 +189,7 @@ export const usePrayerToggle = ({
       const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
       otherSorts.forEach(otherSort => {
         queryClient.invalidateQueries({
-          queryKey: prayerKeys.list(otherSort, groupId, filter, username),
+          queryKey: prayerKeys.list(otherSort, groupId, filter, username, isAnswered),
           refetchType: 'none',
         })
       })

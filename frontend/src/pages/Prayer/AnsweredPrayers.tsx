@@ -1,5 +1,6 @@
 // 응답의 전당 — 응답된 기도만 보여주는 페이지
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import PrayerCard from '../../components/prayer/PrayerCard'
 import AnswerModal from '../../components/prayer/AnswerModal'
@@ -9,6 +10,7 @@ import './AnsweredPrayers.css'
 
 const AnsweredPrayers = () => {
   const { t } = useLanguage()
+  const navigate = useNavigate()
   const [sort, setSort] = useState<SortType>('latest')
   const [editingPrayer, setEditingPrayer] = useState<Prayer | null>(null)
 
@@ -30,6 +32,11 @@ const AnsweredPrayers = () => {
   const handleEditAnswer = (prayerId: number) => {
     const prayer = answeredPrayers.find(p => p.id === prayerId)
     if (prayer) setEditingPrayer(prayer)
+  }
+
+  // 댓글 클릭 → 홈의 기도 상세 모달을 댓글 열린 상태로 연다
+  const handleReplyClick = (prayerId: number) => {
+    navigate('/', { state: { openPrayerId: prayerId, openReplies: true } })
   }
 
   const handleCancelAnswer = async (prayerId: number) => {
@@ -154,6 +161,7 @@ const AnsweredPrayers = () => {
                   key={prayer.id}
                   prayer={prayer}
                   onPrayerToggle={handlePrayerToggle}
+                  onReplyClick={handleReplyClick}
                   onEditAnswer={handleEditAnswer}
                   onCancelAnswer={handleCancelAnswer}
                   isToggling={isToggling}

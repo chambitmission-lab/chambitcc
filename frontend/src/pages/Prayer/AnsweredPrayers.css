@@ -1,14 +1,10 @@
-/* 응답의 전당 — 성소(聖所) 톤
- * AnnualThemeVerse / DailyMeditationCard 와 같은 카드 시스템(rounded-2xl,
- * border 1px, mx-4 my-3)에 정렬한다. 다만 "응답"의 위계를 위해
- *   - 깊은 슬레이트/보라 베이스 (AnnualThemeVerse 와 동일 베이스)
- *   - 좌측 amber 액센트 라인 (영광/응답의 표징)
- *   - 좌측 emblem (auto_awesome)
- *   - 본문에 짧은 말씀 인용 한 줄
- * 으로 무게감을 더한다. 과한 glow / drop-shadow 는 쓰지 않는다.
- *
- * ※ 테마는 ThemeContext 의 [data-theme="light"|"dark"] 토글을 따른다.
- *   기본은 다크 톤을 베이스로 깔고, light 일 때만 오버라이드한다.
+/* 응답의 전당 — 메인 테마(토스 블루 플랫) 버전
+ * 원칙 (src/styles/theme.css):
+ *   1. 색은 하드코딩하지 않고 --brand-* / --surface-* / --text-* 토큰만 참조
+ *   2. 라이트/다크 분기는 theme.css 토큰이 담당 — 여기서는 [data-theme] 분기 금지
+ *   3. 피드 카드는 blur 없는 불투명 서피스 (.feed-card 문법)
+ * 헤더는 홈 히어로와 같은 플랫 카드 + 브랜드 블루 위계,
+ * 간증(응답의 표징)만 브랜드 soft 틴트로 살짝 들어 올린다.
  */
 
 /* ── 페이지 쉘 ───────────────────────────
@@ -19,110 +15,52 @@
  */
 .answered-page {
   min-height: 100vh;
-  background-color: var(--ig-secondary-background);
+  background-color: var(--surface);
   padding-bottom: 5rem;
 }
 
 .answered-shell {
   max-width: 28rem; /* tailwind max-w-md */
   margin: 0 auto;
-  background-color: var(--ig-primary-background);
-  border-left: 1px solid var(--ig-border);
-  border-right: 1px solid var(--ig-border);
+  background-color: var(--surface);
+  border-left: 1px solid var(--card-border);
+  border-right: 1px solid var(--card-border);
   min-height: 100vh;
 }
 
-/* ── 헤더 카드 (성소 톤) ─────────────────── */
+/* ── 헤더 카드 (플랫 히어로) ─────────────── */
 .answered-hall-section {
   margin: 12px 16px;
 }
 
 .answered-hall-card {
-  position: relative;
   display: grid;
   grid-template-columns: auto 1fr;
   column-gap: 14px;
   align-items: start;
   padding: 18px 20px 16px;
-  border-radius: 16px;
-  border: 1px solid rgba(168, 85, 247, 0.28);
-  background: linear-gradient(
-    135deg,
-    rgba(30, 27, 75, 0.55) 0%,
-    rgba(76, 29, 149, 0.32) 100%
-  );
-  overflow: hidden;
-  color: #f5f3ff;
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+  color: var(--text-strong);
 }
 
-/* 좌측 amber 액센트 라인 — 응답/영광의 표징 */
-.answered-hall-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 14%;
-  bottom: 14%;
-  width: 3px;
-  background: linear-gradient(
-    180deg,
-    rgba(251, 191, 36, 0) 0%,
-    rgba(251, 191, 36, 0.85) 50%,
-    rgba(251, 191, 36, 0) 100%
-  );
-  border-radius: 0 3px 3px 0;
-}
-
-[data-theme="light"] .answered-hall-card {
-  background: linear-gradient(
-    135deg,
-    rgba(245, 243, 255, 0.95) 0%,
-    rgba(237, 233, 254, 0.85) 100%
-  );
-  border-color: rgba(168, 85, 247, 0.32);
-  color: #1e1b4b;
-}
-
-/* emblem (auto_awesome) */
+/* emblem — 토스식 스쿼클. 응답(✨)은 기능적 앰버 액센트 유지 */
 .answered-hall-emblem {
   width: 40px;
   height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    rgba(251, 191, 36, 0.22),
-    rgba(168, 85, 247, 0.22)
-  );
-  border: 1px solid rgba(251, 191, 36, 0.4);
-  color: rgba(254, 243, 199, 0.95);
+  border-radius: 14px;
+  background: var(--amber-soft);
+  color: var(--amber-icon);
   flex-shrink: 0;
-  box-shadow: 0 0 12px rgba(251, 191, 36, 0.18);
 }
 
 .answered-hall-emblem .material-icons-round {
   font-size: 22px;
-  animation: hall-emblem-glow 2.6s ease-in-out infinite;
-}
-
-@keyframes hall-emblem-glow {
-  0%, 100% { opacity: 0.85; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.06); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .answered-hall-emblem .material-icons-round { animation: none; }
-}
-
-[data-theme="light"] .answered-hall-emblem {
-  background: linear-gradient(
-    135deg,
-    rgba(251, 191, 36, 0.18),
-    rgba(168, 85, 247, 0.14)
-  );
-  color: rgba(120, 53, 15, 0.9);
-  box-shadow: 0 0 10px rgba(251, 191, 36, 0.12);
 }
 
 /* 본문(emblem 우측 컬럼) */
@@ -144,30 +82,20 @@
   letter-spacing: 0.06em;
   padding: 3px 9px;
   border-radius: 999px;
-  background: rgba(251, 191, 36, 0.16);
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  color: rgba(254, 243, 199, 0.95);
+  background: var(--amber-soft);
+  border: 1px solid var(--amber-soft-strong);
+  color: var(--amber);
   white-space: nowrap;
-}
-
-[data-theme="light"] .answered-hall-label {
-  background: rgba(251, 191, 36, 0.18);
-  border-color: rgba(180, 83, 9, 0.35);
-  color: rgba(120, 53, 15, 0.95);
 }
 
 .answered-hall-reference {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: rgba(196, 181, 253, 0.75);
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-[data-theme="light"] .answered-hall-reference {
-  color: rgba(91, 33, 182, 0.75);
 }
 
 /* 타이틀 + 부제 */
@@ -176,13 +104,7 @@
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #f5f3ff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
-}
-
-[data-theme="light"] .answered-hall-title {
-  color: #1e1b4b;
-  text-shadow: none;
+  color: var(--text-strong);
 }
 
 .answered-hall-subtitle {
@@ -190,42 +112,34 @@
   font-size: 12px;
   font-weight: 500;
   letter-spacing: -0.01em;
-  color: rgba(233, 213, 255, 0.78);
+  color: var(--text-muted);
 }
 
-[data-theme="light"] .answered-hall-subtitle {
-  color: rgba(91, 33, 182, 0.78);
-}
-
-/* 본문 말씀 인용 */
+/* 본문 말씀 인용 — 카드 안 한 단계 깊은 인셋 박스 */
 .answered-hall-verse {
-  position: relative;
   margin: 10px 0 0;
-  padding: 10px 2px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
   font-size: 12.5px;
   line-height: 1.6;
   font-weight: 500;
   letter-spacing: -0.01em;
-  color: rgba(233, 213, 255, 0.9);
+  color: var(--text-body);
   word-break: keep-all;
-}
-
-[data-theme="light"] .answered-hall-verse {
-  border-top-color: rgba(0, 0, 0, 0.08);
-  color: rgba(67, 20, 142, 0.9);
 }
 
 .answered-hall-verse-mark {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 18px;
   line-height: 0;
-  color: rgba(251, 191, 36, 0.55);
+  color: var(--amber-icon);
   margin-right: 4px;
   vertical-align: -2px;
 }
 
-/* 카운트 칩 */
+/* 카운트 칩 — 응답 개수도 앰버 위계 */
 .answered-hall-count {
   display: inline-flex;
   align-items: center;
@@ -233,17 +147,11 @@
   margin-top: 10px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(251, 191, 36, 0.12);
-  border: 1px solid rgba(251, 191, 36, 0.3);
+  background: var(--amber-soft);
+  border: 1px solid var(--amber-soft-strong);
   font-size: 11px;
   font-weight: 700;
-  color: rgba(254, 243, 199, 0.95);
-}
-
-[data-theme="light"] .answered-hall-count {
-  background: rgba(251, 191, 36, 0.18);
-  border-color: rgba(180, 83, 9, 0.32);
-  color: rgba(120, 53, 15, 0.95);
+  color: var(--amber);
 }
 
 /* ── 정렬 탭 (SortTabs 패턴) ─────────────── */
@@ -253,7 +161,7 @@
   justify-content: space-between;
   gap: 1.5rem;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--ig-border);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .answered-sort-tab {
@@ -264,18 +172,18 @@
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  color: var(--ig-tertiary-text);
+  color: var(--text-muted);
   border-bottom: 2px solid transparent;
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 
 .answered-sort-tab:hover {
-  color: var(--ig-secondary-text);
+  color: var(--text-body);
 }
 
 .answered-sort-tab.is-active {
-  color: var(--ig-primary-text);
-  border-bottom-color: var(--ig-primary-text);
+  color: var(--text-strong);
+  border-bottom-color: var(--brand);
 }
 
 .answered-sort-tab-group {
@@ -286,12 +194,8 @@
 .answered-sort-count {
   font-size: 11px;
   font-weight: 700;
-  color: rgb(168, 85, 247);
+  color: var(--amber);
   letter-spacing: -0.01em;
-}
-
-[data-theme="light"] .answered-sort-count {
-  color: rgb(126, 34, 206);
 }
 
 /* ── 기도 목록 영역 ───────────────────── */
@@ -306,33 +210,20 @@
 .answered-state-card {
   margin: 16px;
   padding: 48px 24px;
-  border-radius: 16px;
-  border: 1px solid rgba(168, 85, 247, 0.22);
-  background: linear-gradient(
-    135deg,
-    rgba(30, 27, 75, 0.4) 0%,
-    rgba(76, 29, 149, 0.22) 100%
-  );
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
   text-align: center;
-  color: #f5f3ff;
-}
-
-[data-theme="light"] .answered-state-card {
-  background: linear-gradient(
-    135deg,
-    rgba(245, 243, 255, 0.85) 0%,
-    rgba(237, 233, 254, 0.75) 100%
-  );
-  border-color: rgba(168, 85, 247, 0.25);
-  color: #1e1b4b;
+  color: var(--text-strong);
 }
 
 .answered-state-spinner {
   width: 36px;
   height: 36px;
   margin: 0 auto 14px;
-  border: 3px solid rgba(168, 85, 247, 0.2);
-  border-top-color: rgb(168, 85, 247);
+  border: 3px solid var(--brand-soft-strong);
+  border-top-color: var(--brand);
   border-radius: 50%;
   animation: answered-spin 1s linear infinite;
 }
@@ -348,22 +239,13 @@
   width: 60px;
   height: 60px;
   margin-bottom: 14px;
-  border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    rgba(251, 191, 36, 0.18),
-    rgba(168, 85, 247, 0.18)
-  );
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  color: rgba(254, 243, 199, 0.95);
+  border-radius: 20px;
+  background: var(--amber-soft);
+  color: var(--amber-icon);
 }
 
 .answered-state-emblem .material-icons-round {
   font-size: 30px;
-}
-
-[data-theme="light"] .answered-state-emblem {
-  color: rgba(120, 53, 15, 0.9);
 }
 
 .answered-state-title {
@@ -371,49 +253,36 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   margin: 0 0 6px;
+  color: var(--text-strong);
 }
 
 .answered-state-desc {
   margin: 0;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(233, 213, 255, 0.78);
-}
-
-[data-theme="light"] .answered-state-desc {
-  color: rgba(91, 33, 182, 0.78);
+  color: var(--text-muted);
 }
 
 .answered-state-error {
-  color: #fca5a5;
+  color: #ef4444;
   margin: 0 0 14px;
   font-weight: 600;
 }
 
-[data-theme="light"] .answered-state-error {
-  color: #b91c1c;
-}
-
 .answered-state-retry {
-  padding: 9px 18px;
+  padding: 9px 20px;
   border-radius: 999px;
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  background: rgba(168, 85, 247, 0.18);
-  color: rgba(233, 213, 255, 0.95);
+  border: none;
+  background: var(--brand);
+  color: var(--on-brand);
   font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease;
 }
 
 .answered-state-retry:hover {
-  background: rgba(168, 85, 247, 0.28);
-  border-color: rgba(168, 85, 247, 0.55);
-}
-
-[data-theme="light"] .answered-state-retry {
-  background: rgba(168, 85, 247, 0.14);
-  color: rgba(88, 28, 135, 0.95);
+  background: var(--brand-dim);
 }
 
 /* ── 더 보기 ───────────────────────── */
@@ -425,9 +294,9 @@
 .answered-load-more-btn {
   padding: 11px 28px;
   border-radius: 999px;
-  border: 1px solid rgba(168, 85, 247, 0.35);
-  background: rgba(168, 85, 247, 0.1);
-  color: rgba(216, 180, 254, 0.95);
+  border: 1px solid var(--card-border);
+  background: var(--brand-soft);
+  color: var(--brand);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -435,8 +304,8 @@
 }
 
 .answered-load-more-btn:hover:not(:disabled) {
-  background: rgba(168, 85, 247, 0.18);
-  border-color: rgba(168, 85, 247, 0.55);
+  background: var(--brand-soft-strong);
+  border-color: var(--brand-soft-strong);
 }
 
 .answered-load-more-btn:disabled {
@@ -444,229 +313,105 @@
   cursor: not-allowed;
 }
 
-[data-theme="light"] .answered-load-more-btn {
-  background: rgba(168, 85, 247, 0.08);
-  color: rgba(88, 28, 135, 0.95);
-}
-
-/* ── PrayerCard 텍스트/카드 톤 오버라이드 ─────
- * PrayerCard 는 라이트 테마 전용으로 작성돼 있어 (.prayer-title #222,
- * .prayer-content #555, .testimony-content #333, .prayer-card.answered
- * 배경 3% 보라) 다크 톤 응답의 전당 페이지에 그대로 두면 검정 위
- * 검정 글씨가 된다. .answered-list 스코프 안에서만 다크 가독성에
- * 맞게 색을 올린다.
+/* ── PrayerCard 오버라이드 ────────────────
+ * PrayerCard 는 라이트 전용 하드코딩(흰 배경, #222 텍스트, 보라 액센트)이라
+ * 토큰 기반 페이지에 그대로 두면 다크에서 깨지고 보라가 남는다.
+ * .answered-list 스코프 안에서만 메인 테마 토큰으로 올린다.
  */
 
-/* 카드 자체 — 검정 위에서 카드로 인식되도록 살짝 lift */
+/* 카드 자체 — .feed-card 문법 (불투명 서피스) */
 .answered-list .prayer-card,
 .answered-list .prayer-card.answered {
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.08) 0%,
-    rgba(147, 51, 234, 0.06) 100%
-  );
-  border: 1px solid rgba(168, 85, 247, 0.22);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  margin-bottom: 0; /* 목록 gap 으로 간격 처리 */
+}
+
+.answered-list .prayer-card:hover,
+.answered-list .prayer-card.answered:hover {
+  box-shadow: var(--card-shadow);
 }
 
 .answered-list .prayer-card .author-name {
-  color: rgba(243, 232, 255, 0.95);
+  color: var(--text-strong);
 }
 
 .answered-list .prayer-card .prayer-time {
-  color: rgba(216, 180, 254, 0.65);
+  color: var(--text-muted);
 }
 
 .answered-list .prayer-card .prayer-title {
-  color: rgba(245, 243, 255, 0.96);
+  color: var(--text-strong);
 }
 
 .answered-list .prayer-card .prayer-content {
-  color: rgba(229, 215, 255, 0.85);
+  color: var(--text-body);
 }
 
-/* 간증 섹션 — 영적 톤
- * 단순한 좌측 보라 라인 대신
- *   - 좌측에 위/아래로 페이드아웃되는 amber "빛기둥" (영광/응답의 표징)
- *   - 카드 내부 좌상단에서 새어 나오는 미세한 radial 광선
- *   - amber + 보라 그라데이션 베이스
- * 로 거룩한 느낌을 더한다.
- */
+/* 배지 — 응답됨(✨)은 기능적 앰버, 나머지는 뉴트럴 토큰 */
+.answered-list .prayer-card .answered-badge {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+.answered-list .prayer-card .owner-badge {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.answered-list .prayer-card .prayer-group-badge {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+/* 간증 섹션 — 응답의 표징은 기능적 앰버 유지 (플랫 틴트, 라인/이모지 없음) */
 .answered-list .prayer-card .testimony-section {
-  position: relative;
-  background:
-    radial-gradient(
-      circle at 8% 18%,
-      rgba(251, 191, 36, 0.18) 0%,
-      rgba(251, 191, 36, 0) 55%
-    ),
-    linear-gradient(
-      135deg,
-      rgba(251, 191, 36, 0.08) 0%,
-      rgba(168, 85, 247, 0.08) 100%
-    );
+  background: var(--amber-soft);
   border-left: 0;
-  padding-left: 1.25rem;
-  box-shadow:
-    inset 0 0 0 1px rgba(251, 191, 36, 0.18),
-    0 0 18px rgba(251, 191, 36, 0.06);
-  overflow: hidden;
-}
-
-/* 좌측 빛기둥 — 위/아래 페이드아웃 */
-.answered-list .prayer-card .testimony-section::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 12%;
-  bottom: 12%;
-  width: 2px;
-  background: linear-gradient(
-    180deg,
-    rgba(251, 191, 36, 0) 0%,
-    rgba(251, 191, 36, 0.85) 28%,
-    rgba(254, 243, 199, 1) 50%,
-    rgba(251, 191, 36, 0.85) 72%,
-    rgba(251, 191, 36, 0) 100%
-  );
-  border-radius: 0 2px 2px 0;
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.55);
-}
-
-/* 우상단 미세한 반사광 */
-.answered-list .prayer-card .testimony-section::after {
-  content: '';
-  position: absolute;
-  right: -20px;
-  top: -20px;
-  width: 80px;
-  height: 80px;
-  background: radial-gradient(
-    circle,
-    rgba(251, 191, 36, 0.1) 0%,
-    rgba(251, 191, 36, 0) 70%
-  );
-  pointer-events: none;
+  border-radius: 12px;
 }
 
 .answered-list .prayer-card .testimony-icon {
-  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.5));
+  color: var(--amber-icon);
 }
 
 .answered-list .prayer-card .testimony-label {
-  color: rgba(254, 243, 199, 0.95);
-  letter-spacing: 0.01em;
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.25);
+  color: var(--amber);
 }
 
 .answered-list .prayer-card .testimony-content {
-  color: rgba(254, 243, 199, 0.92);
-}
-
-/* 라이트 테마 — 카드 베이스가 보라/연보라이므로 원본 색 유지하되
- * 흰 카드 대신 약간 보라 틴트로 페이지와 어우러지게 한다. */
-[data-theme="light"] .answered-list .prayer-card,
-[data-theme="light"] .answered-list .prayer-card.answered {
-  background: linear-gradient(
-    135deg,
-    rgba(245, 243, 255, 0.95) 0%,
-    rgba(237, 233, 254, 0.85) 100%
-  );
-  border: 1px solid rgba(168, 85, 247, 0.22);
-  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.08);
-}
-
-[data-theme="light"] .answered-list .prayer-card .author-name {
-  color: #1f2937;
-}
-
-[data-theme="light"] .answered-list .prayer-card .prayer-time {
-  color: #6b7280;
-}
-
-[data-theme="light"] .answered-list .prayer-card .prayer-title {
-  color: #1e1b4b;
-}
-
-[data-theme="light"] .answered-list .prayer-card .prayer-content {
-  color: #374151;
-}
-
-[data-theme="light"] .answered-list .prayer-card .testimony-section {
-  background:
-    radial-gradient(
-      circle at 8% 18%,
-      rgba(251, 191, 36, 0.22) 0%,
-      rgba(251, 191, 36, 0) 55%
-    ),
-    linear-gradient(
-      135deg,
-      rgba(254, 243, 199, 0.8) 0%,
-      rgba(237, 233, 254, 0.7) 100%
-    );
-  box-shadow:
-    inset 0 0 0 1px rgba(180, 83, 9, 0.18),
-    0 0 14px rgba(251, 191, 36, 0.1);
-}
-
-[data-theme="light"] .answered-list .prayer-card .testimony-section::before {
-  background: linear-gradient(
-    180deg,
-    rgba(180, 83, 9, 0) 0%,
-    rgba(217, 119, 6, 0.8) 28%,
-    rgba(245, 158, 11, 1) 50%,
-    rgba(217, 119, 6, 0.8) 72%,
-    rgba(180, 83, 9, 0) 100%
-  );
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
-}
-
-[data-theme="light"] .answered-list .prayer-card .testimony-icon {
-  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.4));
-}
-
-[data-theme="light"] .answered-list .prayer-card .testimony-label {
-  color: rgba(120, 53, 15, 0.95);
-  text-shadow: none;
-}
-
-[data-theme="light"] .answered-list .prayer-card .testimony-content {
-  color: rgba(67, 20, 142, 0.92);
+  color: var(--text-body);
 }
 
 /* ── PrayerCard 액션 버튼 오버라이드 ─────
- * PrayerCard 의 기본 .action-button 은 background: white / color: #666 로
- * 라이트 톤에 맞춰져 있고, .prayer-card.answered 에서도 강제로 흰 배경을
- * 깐다. 응답의 전당은 카드 시스템 자체가 슬레이트/보라 톤이라 그대로
- * 두면 버튼만 흰 패치로 떠 보인다.
- *
- * 메인 홈 (.prayer-feed 등) 의 동일 컴포넌트를 건드리지 않도록
- * .answered-list 스코프 안에서만 오버라이드한다.
+ * 기본 .action-button 은 흰 배경 + 2px 회색 보더(구형).
+ * 토스 플랫 문법: 얇은 보더 + 서피스, 활성은 브랜드 솔리드 채움.
+ * 4개 버튼(기도했어요/댓글/간증 수정/응답 취소) 가로 한 줄 유지.
  */
-
 .answered-list .prayer-card .prayer-actions {
-  border-top-color: rgba(168, 85, 247, 0.18);
-  /* 4개 버튼(기도했어요/댓글/간증 수정/응답 취소) 가로 한 줄 강제 */
+  border-top-color: var(--card-border);
   gap: 0.4rem;
   flex-wrap: nowrap;
 }
 
-/* 버튼 자체 — 폭 좁아도 텍스트 줄바꿈 없이 들어가도록 컴팩트하게 */
 .answered-list .prayer-card .action-button {
   flex: 1 1 0;
   min-width: 0;
   padding: 0.5rem 0.35rem;
-  gap: 0.25rem;
+  gap: 0.3rem;
   font-size: 0.72rem;
   font-weight: 700;
   white-space: nowrap;
   border-width: 1px;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .answered-list .prayer-card .action-icon {
   font-size: 0.95rem;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
 }
 
 .answered-list .prayer-card .action-text {
@@ -679,91 +424,46 @@
 .answered-list .prayer-card .action-count {
   font-size: 0.72rem;
   font-weight: 800;
-  opacity: 0.92;
 }
 
 .answered-list .prayer-card .action-button,
 .answered-list .prayer-card.answered .action-button {
-  background: rgba(30, 27, 75, 0.55);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  color: rgba(216, 180, 254, 0.92);
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  color: var(--text-body);
 }
 
 .answered-list .prayer-card .action-button:hover:not(:disabled) {
-  background: rgba(76, 29, 149, 0.5);
-  border-color: rgba(168, 85, 247, 0.55);
-  color: rgba(233, 213, 255, 1);
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
 }
 
 .answered-list .prayer-card .action-button.active,
 .answered-list .prayer-card.answered .action-button.active {
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.95) 0%,
-    rgba(147, 51, 234, 0.95) 100%
-  );
-  border-color: rgba(216, 180, 254, 0.55);
-  color: #ffffff;
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
 }
 
-.answered-list .prayer-card .action-count {
-  color: rgba(254, 243, 199, 0.95);
+.answered-list .prayer-card .action-button.active .action-count {
+  color: var(--on-brand);
 }
 
-/* 응답(✨) / 간증 수정 버튼은 amber 액센트로 위계 부여 */
+/* 응답(간증 수정) 버튼 — 브랜드 soft 위계 */
 .answered-list .prayer-card .answer-button,
 .answered-list .prayer-card.answered .answer-button {
-  background: rgba(251, 191, 36, 0.14);
-  border: 1px solid rgba(251, 191, 36, 0.4);
-  color: rgba(254, 243, 199, 0.95);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  color: var(--brand);
 }
 
 .answered-list .prayer-card .answer-button:hover:not(:disabled) {
-  background: rgba(251, 191, 36, 0.22);
-  border-color: rgba(251, 191, 36, 0.6);
-  color: #fef3c7;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(251, 191, 36, 0.18);
-}
-
-/* 라이트 테마 — 카드 베이스(슬레이트/보라 light)에 맞춰 부드럽게 */
-[data-theme="light"] .answered-list .prayer-card .action-button,
-[data-theme="light"] .answered-list .prayer-card.answered .action-button {
-  background: rgba(245, 243, 255, 0.9);
-  border-color: rgba(168, 85, 247, 0.3);
-  color: rgba(88, 28, 135, 0.88);
-}
-
-[data-theme="light"] .answered-list .prayer-card .action-button:hover:not(:disabled) {
-  background: rgba(237, 233, 254, 1);
-  border-color: rgba(168, 85, 247, 0.5);
-  color: rgba(76, 29, 149, 1);
-}
-
-[data-theme="light"] .answered-list .prayer-card .action-button.active,
-[data-theme="light"] .answered-list .prayer-card.answered .action-button.active {
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 1) 0%,
-    rgba(147, 51, 234, 1) 100%
-  );
-  border-color: rgba(126, 34, 206, 0.65);
-  color: #ffffff;
-}
-
-[data-theme="light"] .answered-list .prayer-card .action-count {
-  color: rgba(120, 53, 15, 0.95);
-}
-
-[data-theme="light"] .answered-list .prayer-card .answer-button,
-[data-theme="light"] .answered-list .prayer-card.answered .answer-button {
-  background: rgba(251, 191, 36, 0.18);
-  border-color: rgba(180, 83, 9, 0.35);
-  color: rgba(120, 53, 15, 0.95);
-}
-
-[data-theme="light"] .answered-list .prayer-card .prayer-actions {
-  border-top-color: rgba(168, 85, 247, 0.18);
+  background: var(--brand-soft-strong);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+  transform: none;
+  box-shadow: none;
 }
 
 /* ── 반응형 ────────────────────────── */
