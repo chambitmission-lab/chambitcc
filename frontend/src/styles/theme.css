@@ -22,6 +22,7 @@
   --brand-glow: rgba(49, 130, 246, 0.25);
   --brand-soft: rgba(49, 130, 246, 0.08);   /* 은은한 tint 배경 */
   --brand-soft-strong: rgba(49, 130, 246, 0.15);
+  --brand-muted: #3d5a85;                    /* 채도 낮춘 스틸 블루 텍스트 — 제목 등 은은한 강조 */
 
   /* 묵상 카드 시간대 tint — 아침(여명)/낮/저녁 */
   --tint-morning: rgba(255, 200, 150, 0.10);
@@ -56,6 +57,7 @@
   --brand-glow: rgba(49, 130, 246, 0.35);
   --brand-soft: rgba(69, 147, 252, 0.10);
   --brand-soft-strong: rgba(69, 147, 252, 0.18);
+  --brand-muted: #9db8dd;                    /* 채도 낮춘 스틸 블루 텍스트 — 제목 등 은은한 강조 */
 
   /* 묵상 카드 시간대 tint — 아침(여명)/낮/저녁
    * evening은 피드 카드와의 톤 차이가 크지 않도록 은은하게(0.12 → 0.07) */

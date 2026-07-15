@@ -363,31 +363,6 @@
 [data-theme="light"] .meditation-season-tag[data-season="lent"] { color: #7e22ce; background: rgba(168, 85, 247, 0.1); }
 [data-theme="light"] .meditation-season-tag[data-season="ordinary"] { color: #065f46; background: rgba(16, 185, 129, 0.1); }
 
-/* ── 공유 버튼 ────────────────────────── */
-.meditation-share-btn {
-  flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  border: 1px solid var(--card-border);
-  background: var(--surface-inset);
-  color: var(--text-body);
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.meditation-share-btn:hover {
-  background: var(--brand-soft-strong);
-}
-
-.meditation-share-btn .material-icons-round {
-  font-size: 15px;
-  opacity: 0.9;
-}
-
 /* ── 본문 표기 / 주제 ──────────────────── */
 .meditation-passage {
   display: flex;
@@ -397,11 +372,13 @@
   flex-wrap: wrap;
 }
 
+/* 본문 표기는 액션(브랜드 블루)이 아닌 제목 — 원색 대신 채도를 낮춘
+ * 스틸 블루로 은은하게만 물들인다 (원색 블루는 [오늘 본문 읽기] 버튼 몫) */
 .meditation-passage-label {
   font-size: 16px;
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: var(--brand);
+  color: var(--brand-muted);
 }
 
 .meditation-passage-theme {
@@ -472,6 +449,8 @@
   border: 1px dashed var(--card-border);
 }
 
+/* 라벨은 뉴트럴 — 파란 기운은 배경 틴트(--brand-soft)가 이미 담당하므로
+ * 글자까지 파랗게 하면 톤이 탁해진다. 포인트는 💭 이모지가 맡는다 */
 .meditation-question-label {
   display: inline-flex;
   align-items: center;
@@ -480,7 +459,7 @@
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: var(--brand);
+  color: var(--text-muted);
 }
 
 .meditation-question-text {

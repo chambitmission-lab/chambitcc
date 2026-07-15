@@ -160,27 +160,6 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
     )
   }
 
-  const handleShare = async () => {
-    const body =
-      `📖 ${data.passage.label}${data.passage.theme ? ` · ${data.passage.theme}` : ''}\n\n` +
-      `"${data.verse.text}"\n— ${data.verse.reference}\n\n` +
-      `💭 ${data.meditation_question}\n\n` +
-      `— 참빛교회 오늘의 묵상`
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: data.verse.reference, text: body })
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(body)
-        showToast('오늘의 말씀을 복사했어요', 'success')
-      } else {
-        showToast('이 브라우저는 공유를 지원하지 않아요', 'info')
-      }
-    } catch (e) {
-      if ((e as DOMException)?.name === 'AbortError') return
-      showToast('공유 중 문제가 발생했어요', 'error')
-    }
-  }
-
   return (
     <section className="meditation-section">
       <article
@@ -212,14 +191,6 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           <span className="meditation-season-tag" data-season={season}>
             {SEASON_LABELS[season] ?? '연중'}
           </span>
-          <button
-            type="button"
-            className="meditation-share-btn"
-            onClick={handleShare}
-            aria-label="오늘의 말씀 공유하기"
-          >
-            <span className="material-icons-round">ios_share</span>
-          </button>
         </header>
 
         {/* 연간 여정 — 교회력 절기 리본. 한 해를 절기 색 구간으로 펼치고
