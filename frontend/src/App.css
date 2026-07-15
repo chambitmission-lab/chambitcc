@@ -1,5 +1,8 @@
 .app {
+  /* 모바일 주소창이 펼쳐진 상태에서도 실제 보이는 높이에 맞도록 dvh 사용
+     (100vh는 주소창 숨김 기준이라 새로고침 직후 세로 스크롤이 생긴다) */
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;

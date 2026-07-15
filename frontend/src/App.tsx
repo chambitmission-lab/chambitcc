@@ -128,7 +128,7 @@ function App() {
   return (
     <ThemeProvider>
       <Router>
-        <div className="app min-h-screen">
+        <div className="app">
           <NewHeader />
           <main className="main-content">
             <Suspense fallback={<RouteFallback />}>
