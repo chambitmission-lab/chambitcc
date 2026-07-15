@@ -1,26 +1,13 @@
 /* BibleVersesModal — 함께 묵상 모달
- * 다크/라이트 모드 별로 Hero/카드/액션 톤을 분리.
- * AnnualThemeVerse Hero 톤을 따라 다크에서는 깊은 indigo/violet 단색,
- * 라이트에서는 부드러운 purple-50/100 그라데이션.
+ * 우리 기도(홈 피드)와 같은 토스 블루 플랫 테마.
+ * 색은 theme.css 토큰(--brand-*, --surface-*, --text-*)만 참조 —
+ * 라이트/다크 분기는 토큰 쪽에서 끝나므로 여기서는 만들지 않는다.
  */
 
 .bvm-hero {
   position: relative;
-  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-  border: 1px solid rgba(168, 85, 247, 0.28);
-  box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-.dark .bvm-hero {
-  background: linear-gradient(
-    135deg,
-    rgba(30, 27, 75, 0.92) 0%,
-    rgba(46, 16, 101, 0.88) 100%
-  );
-  border-color: rgba(168, 85, 247, 0.32);
-  box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
 }
 
 .bvm-hero-accent-line {
@@ -32,94 +19,37 @@
   border-radius: 0 3px 3px 0;
   background: linear-gradient(
     180deg,
-    rgba(168, 85, 247, 0),
-    rgba(168, 85, 247, 0.7) 50%,
-    rgba(168, 85, 247, 0)
+    transparent,
+    var(--brand) 50%,
+    transparent
   );
+  opacity: 0.7;
 }
 
 .bvm-hero-emblem {
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.18),
-    rgba(236, 72, 153, 0.12)
-  );
-  border: 1px solid rgba(168, 85, 247, 0.32);
-  color: #6b21a8;
-}
-
-.dark .bvm-hero-emblem {
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.28),
-    rgba(236, 72, 153, 0.2)
-  );
-  border-color: rgba(168, 85, 247, 0.42);
-  color: #f3e8ff;
+  background: var(--brand-soft-strong);
+  border: 1px solid var(--brand-soft-strong);
+  color: var(--brand);
 }
 
 .bvm-hero-label {
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.32);
-  color: #6b21a8;
-}
-
-.dark .bvm-hero-label {
-  background: rgba(168, 85, 247, 0.2);
-  border-color: rgba(168, 85, 247, 0.42);
-  color: #e9d5ff;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
 }
 
 .bvm-hero-title {
-  color: #1e1b4b;
-}
-
-.dark .bvm-hero-title {
-  color: #f5f3ff;
+  color: var(--text-strong);
 }
 
 .bvm-hero-summary {
-  color: rgba(76, 29, 149, 0.85);
-}
-
-.dark .bvm-hero-summary {
-  color: rgba(233, 213, 255, 0.82);
-}
-
-.bvm-hero-divider {
-  border-top: 1px solid rgba(168, 85, 247, 0.22);
-}
-
-.dark .bvm-hero-divider {
-  border-top-color: rgba(255, 255, 255, 0.06);
-}
-
-.bvm-hero-stat-label {
-  color: rgba(91, 33, 182, 0.75);
-}
-
-.dark .bvm-hero-stat-label {
-  color: rgba(196, 181, 253, 0.78);
+  color: var(--text-body);
 }
 
 /* 인사이트 박스 (각 카드의 적용 메시지)
  * 말씀 본문이 주인공이 되도록 배경/보더/글자 톤을 낮춰 보조 역할로 유지 */
 .bvm-insight {
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.04),
-    rgba(236, 72, 153, 0.025)
-  );
-  border: 1px solid rgba(168, 85, 247, 0.12);
-}
-
-.dark .bvm-insight {
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.06),
-    rgba(236, 72, 153, 0.04)
-  );
-  border-color: rgba(168, 85, 247, 0.15);
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
 }
 
 /* 가로 스와이프 캐러셀 — 스크롤바 숨김 */

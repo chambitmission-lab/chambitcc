@@ -20,27 +20,20 @@ const CAROUSEL_GAP = 12 // gap-3, 인덱스 계산에 사용
 
 const VerseCard = ({ verse, index, total }: VerseCardProps) => {
   return (
-    <article className="relative h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="pointer-events-none absolute inset-0 hidden dark:block bg-gradient-to-br from-white/[0.05] via-transparent to-white/[0.02]" />
-
+    <article className="feed-card relative h-full overflow-hidden rounded-2xl">
       <div className="relative flex h-full flex-col p-5">
         {/* head: index + reference */}
         <div className="mb-3.5 flex items-center gap-2.5">
-          <div
-            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-purple-300/40 dark:border-purple-500/35 text-white shadow-[0_4px_14px_rgba(168,85,247,0.35)]"
-            style={{
-              background: 'linear-gradient(135deg, #a855f7, #ec4899)',
-            }}
-          >
+          <div className="brand-gradient flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl shadow-[0_4px_14px_var(--brand-glow)]">
             <span className="text-[13px] font-bold tabular-nums">
               {index + 1}
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <span className="block text-[10.5px] font-bold uppercase tracking-[0.08em] text-purple-700 dark:text-purple-300">
+            <span className="block text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--brand)]">
               SCRIPTURE · {index + 1}/{total}
             </span>
-            <h3 className="m-0 text-[17px] font-bold leading-[1.3] tracking-[-0.015em] text-gray-900 dark:text-purple-50">
+            <h3 className="m-0 text-[17px] font-bold leading-[1.3] tracking-[-0.015em] text-[var(--text-strong)]">
               {verse.reference}
             </h3>
           </div>
@@ -49,14 +42,14 @@ const VerseCard = ({ verse, index, total }: VerseCardProps) => {
         {/* serif blockquote — 말씀이 주인공 */}
         <blockquote className="relative mb-3.5 pl-4 pr-2">
           <span
-            className="pointer-events-none absolute -top-1 -left-1 select-none text-[40px] leading-none text-purple-400/40 dark:text-purple-400/35"
+            className="pointer-events-none absolute -top-1 -left-1 select-none text-[40px] leading-none text-[var(--brand)] opacity-35"
             style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
             aria-hidden="true"
           >
             “
           </span>
           <p
-            className="m-0 text-[17.5px] font-semibold leading-[1.8] tracking-[-0.005em] text-gray-900 dark:text-purple-50"
+            className="m-0 text-[17.5px] font-semibold leading-[1.8] tracking-[-0.005em] text-[var(--text-strong)]"
             style={{
               fontFamily:
                 'Georgia, "Noto Serif KR", "Times New Roman", serif',
@@ -70,10 +63,10 @@ const VerseCard = ({ verse, index, total }: VerseCardProps) => {
         {/* insight message — 톤다운된 보조 가이드 */}
         <div className="bvm-insight mt-auto rounded-xl px-3.5 py-3">
           <div className="flex items-start gap-2">
-            <span className="material-icons-round flex-shrink-0 text-[16px] text-purple-500/70 dark:text-purple-300/60">
+            <span className="material-icons-round flex-shrink-0 text-[16px] text-[var(--brand)] opacity-70">
               auto_awesome
             </span>
-            <p className="m-0 text-[13px] leading-[1.65] text-gray-500 dark:text-purple-100/60">
+            <p className="m-0 text-[13px] leading-[1.65] text-[var(--text-muted)]">
               {verse.message}
             </p>
           </div>
@@ -209,7 +202,7 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
       aria-label={t('versesToMeditateOn')}
     >
       <div
-        className={`relative flex w-full flex-col sm:max-w-lg max-h-[calc(100dvh-env(safe-area-inset-top,0px)-1.25rem)] sm:max-h-[92vh] overflow-hidden rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-card-dark shadow-[0_-16px_60px_rgba(168,85,247,0.2)] sm:shadow-[0_24px_60px_rgba(168,85,247,0.25)] ${
+        className={`relative flex w-full flex-col sm:max-w-lg max-h-[calc(100dvh-env(safe-area-inset-top,0px)-1.25rem)] sm:max-h-[92vh] overflow-hidden rounded-t-3xl sm:rounded-3xl border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-card-dark shadow-[0_-16px_60px_var(--brand-glow)] sm:shadow-[0_24px_60px_var(--brand-glow)] ${
           isDragging ? '' : 'transition-all duration-300'
         } ${
           isVisible
@@ -231,7 +224,7 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
             aria-hidden="true"
             className="absolute top-2 left-1/2 h-1 w-10 -translate-x-1/2 rounded-full bg-gray-300/60 dark:bg-white/15 sm:hidden"
           />
-          <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-purple-700 dark:text-purple-300">
+          <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-[var(--brand)]">
             <span className="material-icons-round text-[14px]">
               auto_stories
             </span>
@@ -315,8 +308,8 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
                   onClick={() => scrollToIndex(idx)}
                   className={`rounded-full transition-all duration-300 ${
                     idx === activeIndex
-                      ? 'h-2 w-6 bg-purple-500'
-                      : 'h-2 w-2 bg-gray-300 dark:bg-white/20 hover:bg-purple-300 dark:hover:bg-purple-500/40'
+                      ? 'h-2 w-6 bg-[var(--brand)]'
+                      : 'h-2 w-2 bg-gray-300 dark:bg-white/20 hover:bg-[var(--brand-soft-strong)]'
                   }`}
                 />
               ))}
@@ -342,9 +335,9 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
                 <button
                   type="button"
                   onClick={handleShareCurrent}
-                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13.5px] font-medium text-gray-800 dark:text-white/85 transition-colors hover:bg-purple-50 dark:hover:bg-purple-500/15"
+                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13.5px] font-medium text-gray-800 dark:text-white/85 transition-colors hover:bg-[var(--brand-soft)]"
                 >
-                  <span className="material-icons-round text-[17px] text-purple-600 dark:text-purple-300">
+                  <span className="material-icons-round text-[17px] text-[var(--brand)]">
                     article
                   </span>
                   지금 보는 말씀 공유
@@ -353,9 +346,9 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
                 <button
                   type="button"
                   onClick={handleShareAll}
-                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13.5px] font-medium text-gray-800 dark:text-white/85 transition-colors hover:bg-purple-50 dark:hover:bg-purple-500/15"
+                  className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-[13.5px] font-medium text-gray-800 dark:text-white/85 transition-colors hover:bg-[var(--brand-soft)]"
                 >
-                  <span className="material-icons-round text-[17px] text-purple-600 dark:text-purple-300">
+                  <span className="material-icons-round text-[17px] text-[var(--brand)]">
                     library_books
                   </span>
                   말씀 {total}개 전체 공유
@@ -367,7 +360,7 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
           <button
             type="button"
             onClick={() => setShareMenuOpen((v) => !v)}
-            className="inline-flex h-12 items-center gap-1.5 rounded-2xl border border-gray-200 dark:border-white/[0.1] bg-gray-50 dark:bg-white/[0.04] px-4 text-[14px] font-semibold text-gray-700 dark:text-white/80 transition-all hover:border-purple-300 dark:hover:border-purple-500/35 hover:bg-purple-50 dark:hover:bg-purple-500/15 hover:text-purple-700 dark:hover:text-purple-200"
+            className="inline-flex h-12 items-center gap-1.5 rounded-2xl border border-gray-200 dark:border-white/[0.1] bg-gray-50 dark:bg-white/[0.04] px-4 text-[14px] font-semibold text-gray-700 dark:text-white/80 transition-all hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand)]"
             aria-label="공유 옵션 열기"
             aria-expanded={shareMenuOpen}
           >
@@ -377,10 +370,7 @@ const BibleVersesModal = ({ verses, onClose }: BibleVersesModalProps) => {
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-2xl text-[15px] font-bold text-white shadow-[0_6px_18px_rgba(168,85,247,0.35)] transition-transform active:scale-[0.98]"
-            style={{
-              background: 'linear-gradient(135deg, #a855f7, #ec4899)',
-            }}
+            className="brand-gradient inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-2xl text-[15px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-transform active:scale-[0.98]"
           >
             <span className="material-icons-round text-[18px]">
               check_circle
