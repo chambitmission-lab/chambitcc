@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router-dom'
 import { useTodayReadings } from '../../../hooks/useBiblePlan'
 import { isAuthenticated } from '../../../utils/auth'
 
+const RING_SIZE = 54
+const RING_STROKE = 5
+const RING_R = (RING_SIZE - RING_STROKE) / 2
+const RING_C = 2 * Math.PI * RING_R
+
 const TodayPlanCard = () => {
   const navigate = useNavigate()
   const authed = isAuthenticated()
@@ -20,11 +25,9 @@ const TodayPlanCard = () => {
       <button
         type="button"
         onClick={() => navigate(`/bible/plans/${today.plan_id}`)}
-        className="glass-card relative overflow-hidden w-full text-left rounded-2xl p-4"
+        className="glass-card w-full text-left rounded-2xl p-4"
       >
-        <span className="absolute left-0 top-0 bottom-0 w-1 brand-gradient-bg" />
-
-        <div className="relative z-10">
+        <div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-[15px]">{today.emoji || '📖'}</span>
@@ -42,23 +45,45 @@ const TodayPlanCard = () => {
             )}
           </div>
 
-          <p className="text-[15.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em] mt-2">
-            {today.day_number}일차{today.day_title ? ` · ${today.day_title}` : ''}
-          </p>
-          {refs && (
-            <p className="text-[12.5px] text-brand mt-0.5">{refs}</p>
-          )}
-
-          <div className="flex items-center gap-3 mt-3">
-            <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
-              <div
-                className="h-full rounded-full brand-gradient-bg"
-                style={{ width: `${Math.min(100, today.percent)}%` }}
-              />
+          <div className="flex items-center gap-3.5 mt-3">
+            <div
+              className="relative shrink-0"
+              style={{ width: RING_SIZE, height: RING_SIZE }}
+            >
+              <svg width={RING_SIZE} height={RING_SIZE} className="-rotate-90">
+                <circle
+                  cx={RING_SIZE / 2}
+                  cy={RING_SIZE / 2}
+                  r={RING_R}
+                  fill="none"
+                  strokeWidth={RING_STROKE}
+                  className="stroke-gray-100 dark:stroke-white/[0.08]"
+                />
+                <circle
+                  cx={RING_SIZE / 2}
+                  cy={RING_SIZE / 2}
+                  r={RING_R}
+                  fill="none"
+                  strokeWidth={RING_STROKE}
+                  strokeLinecap="round"
+                  stroke="var(--brand)"
+                  strokeDasharray={RING_C}
+                  strokeDashoffset={RING_C * (1 - Math.min(100, today.percent) / 100)}
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-[12px] font-bold text-brand">
+                {today.percent}%
+              </span>
             </div>
-            <span className="text-[12px] font-bold text-brand">
-              {today.percent}%
-            </span>
+
+            <div className="min-w-0">
+              <p className="text-[15.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
+                {today.day_number}일차{today.day_title ? ` · ${today.day_title}` : ''}
+              </p>
+              {refs && (
+                <p className="text-[12.5px] text-brand mt-0.5">{refs}</p>
+              )}
+            </div>
           </div>
 
           <div className="mt-3">

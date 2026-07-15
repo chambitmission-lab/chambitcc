@@ -1,85 +1,60 @@
-/* AnnualThemeVerse — 교회 연간 표어 말씀 전용 슬림 배너
- * 매일 방문하는 사용자에게 고정 정보가 부담이 되지 않도록
- * 세로로 슬림한 배너(Topper) 형태를 유지한다.
- *   - 말씀 본문이 가장 크고 먼저 읽히는 위계
- *   - "올해의 말씀" 태그 + 출처는 하단 메타 한 줄로
- *   - 좌측 emblem 은 참빛(빛) 아이덴티티의 밝은 광원 그래픽
- * 색·질감은 새벽 블루 글래스 테마 토큰(src/styles/theme.css)을 참조한다.
+/* AnnualThemeVerse — 교회 연간 표어 말씀
+ * 기능 카드(글래스 박스)가 아니라 "새겨진 문장(epigraph)"으로 처리한다.
+ *   - 배경/테두리 없이 중앙 정렬 타이포그래피만으로 구성
+ *   - 상단에 참빛(빛) 아이덴티티의 미세한 장식 디바이더(라인 + flare)
+ *   - 하단 캡션 한 줄: 올해의 말씀 · 출처
+ * 색은 테마 토큰(src/styles/theme.css) + 앰버(빛) 포인트를 참조한다.
  */
 
 .annual-theme-section {
-  margin: 12px 16px 6px;
+  margin: 20px 24px 10px;
 }
 
-.annual-theme-card {
-  position: relative;
+.annual-theme-epigraph {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* ── 상단 장식 디바이더 — 가는 라인 + 빛 ─── */
+.annual-theme-ornament {
   display: flex;
   align-items: center;
-  gap: 13px;
-  padding: 13px 16px 12px 15px;
-  border-radius: 16px;
-  border: 1px solid var(--card-border);
-  background:
-    linear-gradient(135deg, var(--brand-soft-strong) 0%, var(--brand-soft) 100%),
-    var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  overflow: hidden;
+  gap: 8px;
+  width: 100%;
+  max-width: 220px;
+  margin-bottom: 11px;
 }
 
-.annual-theme-card::before {
-  /* 좌측 미세한 액센트 라인 — 연중 비전임을 암시 */
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 18%;
-  bottom: 18%;
-  width: 3px;
-  background: linear-gradient(
-    180deg,
-    rgba(251, 191, 36, 0) 0%,
-    rgba(251, 191, 36, 0.65) 50%,
-    rgba(251, 191, 36, 0) 100%
-  );
-  border-radius: 0 3px 3px 0;
-}
-
-/* ── 좌측 emblem — 참빛의 '빛' 그래픽 ─────── */
-.annual-theme-emblem {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.85), var(--brand));
-  border: 1px solid rgba(253, 230, 138, 0.5);
-  box-shadow: 0 0 14px rgba(251, 191, 36, 0.24);
-  color: #fffbeb;
-  flex-shrink: 0;
-}
-
-.annual-theme-emblem .material-icons-round {
-  font-size: 19px;
-  text-shadow: 0 0 6px rgba(255, 251, 235, 0.6);
-}
-
-/* ── 본문 영역 ─────────────────────────── */
-.annual-theme-body {
+.annual-theme-ornament-line {
   flex: 1;
-  min-width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.4));
 }
 
+.annual-theme-ornament-line:last-child {
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.4), transparent);
+}
+
+.annual-theme-ornament-icon {
+  font-size: 14px;
+  color: rgba(251, 191, 36, 0.85);
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.35);
+}
+
+/* ── 말씀 본문 ─────────────────────────── */
 .annual-theme-quote {
   margin: 0;
 }
 
 .annual-theme-text {
   margin: 0;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 16.5px;
+  line-height: 1.55;
   font-weight: 700;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   word-break: keep-all;
   color: var(--text-strong);
 }
@@ -98,42 +73,27 @@
   color: rgba(251, 191, 36, 0.85);
 }
 
-/* ── 메타 (태그 + 출처) — 하단 한 줄 ─────── */
+/* ── 캡션 (라벨 + 출처) ──────────────────── */
 .annual-theme-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  min-width: 0;
-}
-
-.annual-theme-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 2.5px 9px;
-  border-radius: 999px;
-  background: var(--brand-soft-strong);
-  border: 1px solid var(--card-border);
-  color: var(--brand);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.annual-theme-reference {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  gap: 6px;
+  margin-top: 7px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
   white-space: nowrap;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+
+.annual-theme-meta-dot {
+  opacity: 0.6;
 }
 
 /* ── 로딩 ──────────────────────────── */
 .annual-theme-skeleton {
-  height: 24px;
+  width: 60%;
+  height: 22px;
   border-radius: 6px;
   background: var(--surface-inset);
   animation: annual-theme-pulse 1.6s ease-in-out infinite;
