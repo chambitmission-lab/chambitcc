@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import type { GroupColorTheme } from '../../../../utils/groupColors'
+import { HandHeartIcon, CommentIcon, BookOpenIcon } from '../../../../components/icons/ActionIcons'
 
 interface PrayerActionsProps {
   isPrayed: boolean
@@ -43,9 +44,14 @@ const PrayerActions = ({
 }: PrayerActionsProps) => {
   const { language } = useLanguage()
   const [particles, setParticles] = useState<LightParticle[]>([])
+  const [isPopping, setIsPopping] = useState(false)
 
   const handlePrayClick = (e: React.MouseEvent) => {
     onPray(e)
+
+    // 탭 순간에만 팝 애니메이션 (이미 기도된 카드가 로드될 때는 안 튀도록)
+    setIsPopping(true)
+    setTimeout(() => setIsPopping(false), 450)
 
     // 빛 알갱이 생성
     const rect = e.currentTarget.getBoundingClientRect()
@@ -94,13 +100,11 @@ const PrayerActions = ({
               animation: 'holy-glow-icon 2s ease-in-out infinite'
             } : {}}
           >
-            <span
-              className={`text-[16px] leading-none ${
-                isPrayed ? 'material-icons-round' : 'material-icons-outlined'
-              }`}
-            >
-              volunteer_activism
-            </span>
+            <HandHeartIcon
+              size={18}
+              filled={isPrayed}
+              style={isPopping ? { animation: 'pray-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)' } : undefined}
+            />
             {/* 숫자 자리는 항상 확보 — 0→1이 될 때 옆 버튼들이 밀리지 않도록 */}
             <span className="text-[12px] font-semibold tabular-nums min-w-[10px]">
               {prayerCount > 0 ? prayerCount : ''}
@@ -112,7 +116,7 @@ const PrayerActions = ({
             onClick={onReplyClick}
             className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
           >
-            <span className="material-icons-round text-[16px] leading-none">chat_bubble_outline</span>
+            <CommentIcon size={18} />
             {replyCount > 0 && (
               <span className="text-[12px] font-semibold tabular-nums">{replyCount}</span>
             )}
@@ -125,7 +129,7 @@ const PrayerActions = ({
               title={language === 'ko' ? '함께 묵상해볼 수 있는 말씀' : 'Verses to meditate on'}
               className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
             >
-              <span className="material-icons-round text-[16px] leading-none">auto_stories</span>
+              <BookOpenIcon size={18} />
               <span className="text-[12px] font-semibold tabular-nums">{versesCount}</span>
             </button>
           )}
@@ -184,6 +188,13 @@ const PrayerActions = ({
       ))}
 
       <style>{`
+        @keyframes pray-pop {
+          0% { transform: scale(1); }
+          35% { transform: scale(1.35) rotate(-8deg); }
+          65% { transform: scale(0.92); }
+          100% { transform: scale(1); }
+        }
+
         @keyframes holy-glow-icon {
           0%, 100% {
             filter: drop-shadow(0 0 6px ${colorTheme.glow});

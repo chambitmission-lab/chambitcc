@@ -1,6 +1,9 @@
 // 기도하기, 댓글 버튼 컴포넌트
 // 기도 버튼은 명확한 토글: 누르기 전 = 댓글 버튼과 같은 무난한 스타일(사용자 확정),
 // 누른 후 = 브랜드 블루 채움 + 체크 "함께 기도했어요"(완료 피드백).
+import { useState } from 'react'
+import { HandHeartIcon, CommentIcon } from '../../../../components/icons/ActionIcons'
+
 interface PrayerActionsProps {
   isPrayed: boolean
   isToggling: boolean
@@ -18,10 +21,20 @@ const PrayerActions = ({
   onPrayerToggle,
   onRepliesToggle,
 }: PrayerActionsProps) => {
+  const [isPopping, setIsPopping] = useState(false)
+
+  const handlePrayerToggle = () => {
+    onPrayerToggle()
+
+    // 탭 순간에만 팝 애니메이션 (이미 기도된 상태로 로드될 때는 안 튀도록)
+    setIsPopping(true)
+    setTimeout(() => setIsPopping(false), 450)
+  }
+
   return (
     <div className="flex items-center gap-3 mb-4">
       <button
-        onClick={onPrayerToggle}
+        onClick={handlePrayerToggle}
         disabled={isToggling}
         aria-pressed={isPrayed}
         className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 active:scale-[0.97] ${
@@ -30,9 +43,11 @@ const PrayerActions = ({
             : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08]'
         }`}
       >
-        <span className={`text-xl ${isPrayed ? 'material-icons-round' : 'material-icons-outlined'}`}>
-          {isPrayed ? 'task_alt' : 'volunteer_activism'}
-        </span>
+        <HandHeartIcon
+          size={20}
+          filled={isPrayed}
+          style={isPopping ? { animation: 'pray-pop-detail 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)' } : undefined}
+        />
         <span>{isPrayed ? '함께 기도했어요' : '함께 기도하기'}</span>
       </button>
       <button
@@ -43,7 +58,7 @@ const PrayerActions = ({
             : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08]'
         }`}
       >
-        <span className="material-icons-outlined text-xl transform -scale-x-100">chat_bubble_outline</span>
+        <CommentIcon size={20} />
         <span>댓글</span>
         {replyCount > 0 && (
           <span
@@ -57,6 +72,15 @@ const PrayerActions = ({
           </span>
         )}
       </button>
+
+      <style>{`
+        @keyframes pray-pop-detail {
+          0% { transform: scale(1); }
+          35% { transform: scale(1.35) rotate(-8deg); }
+          65% { transform: scale(0.92); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
     </div>
   )
 }
