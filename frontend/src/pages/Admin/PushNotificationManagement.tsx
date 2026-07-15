@@ -9,7 +9,9 @@ import { FilterChip } from './components/FilterControls'
 
 const TITLE_MAX = 50
 const BODY_MAX = 200
-const DEFAULT_ICON = '/chambitcc/notification-icon-192.png'
+// 상대 경로로 보내면 수신 측 sw.js가 자기 배포 위치(BASE_PATH) 기준으로 절대 URL을 만든다.
+// (Vercel 구독자는 루트, 구 GitHub Pages 구독자는 /chambitcc/ 기준으로 각각 올바르게 해석됨)
+const DEFAULT_ICON = 'notification-icon-192.png'
 
 interface Preset {
   key: string
@@ -131,7 +133,7 @@ export const PushNotificationManagement = () => {
         title: title.trim(),
         body: body.trim(),
         icon: icon.trim() || DEFAULT_ICON,
-        image: '/chambitcc/pwa-512x512.png',
+        image: 'pwa-512x512.png',
         url: url.trim() || '/',
         tag: tag.trim() || 'notification',
       }
