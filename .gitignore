@@ -9,9 +9,10 @@ ENV/
 .env.local
 .env.*.local
 
-# IDE
+# IDE / 로컬 도구 설정
 .vscode/
 .idea/
+.claude/settings.local.json
 *.swp
 *.swo
 *~
