@@ -8,12 +8,30 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
-    <!-- minimum/maximum-scale=1 고정: 설치형 PWA(standalone)에서 당겨서 새로고침하면
-         크롬이 이전 확대 배율을 복원하거나 initial-scale을 잘못 계산해
-         화면이 확대된 채(=커 보이고 스크롤 생김) 로드되는 문제를 차단한다.
-         브라우저 탭에서는 같은 코드가 정상인 이유가 바로 이 배율 복원 차이.
+    <!-- 배율 잠금: 설치형 PWA(standalone)에서 당겨서 새로고침하면 크롬이 이전 배율을
+         복원해 화면이 확대된 채(=스크롤 생기고 깨져 보임) 로드되는 버그 차단.
+         maximum-scale=1만으로 안 막히는 기기가 있어 user-scalable=no까지 잠그고,
+         그래도 scale≠1로 뜨면 아래 워치독 스크립트가 메타 재적용으로 강제 리셋한다.
+         viewport-fit=cover는 Android 15 엣지투엣지에서 상태바 겹침을 유발할 수 있어 뺐다.
          (확대가 필요한 사용자는 크롬 접근성 '강제 확대 사용'으로 여전히 핀치 줌 가능) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script>
+      // 배율 워치독: 로드 직후 visualViewport.scale이 1이 아니면(새로고침 배율 복원 버그)
+      // viewport 메타 내용을 잠깐 바꿨다 되돌려 브라우저가 배율을 다시 계산하게 만든다.
+      // 로드/복원 시점에만 동작하므로 사용자가 접근성 강제 확대로 직접 키운 배율과는 안 싸운다.
+      (function () {
+        var resetScale = function () {
+          var vv = window.visualViewport;
+          var meta = document.querySelector('meta[name="viewport"]');
+          if (!vv || !meta || Math.abs(vv.scale - 1) < 0.01) return;
+          var content = meta.getAttribute('content');
+          meta.setAttribute('content', content.replace('initial-scale=1.0', 'initial-scale=1.01'));
+          setTimeout(function () { meta.setAttribute('content', content); }, 50);
+        };
+        window.addEventListener('load', resetScale);
+        window.addEventListener('pageshow', resetScale); // bfcache 복원·앱 재진입 대비
+      })();
+    </script>
     <meta name="color-scheme" content="light dark" />
     <title>참빛교회</title>
 
