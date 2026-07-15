@@ -65,7 +65,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
       <div className="flex items-start gap-3">
         {isAnonymous ? (
           /* 골방 기도자 — 피드/작성 모달과 동일한 뉴트럴 아바타 */
-          <div className="mt-0.5 w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500 shadow-[0_0_0_1.5px_rgba(168,85,247,0.28)] flex-shrink-0">
+          <div className="mt-0.5 w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
             <span className="material-icons-outlined text-[18px]">person</span>
           </div>
         ) : avatarUrl ? (
@@ -73,11 +73,11 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
           <img
             src={avatarUrl}
             alt=""
-            className="mt-0.5 w-9 h-9 rounded-full object-cover border border-purple-400/40 dark:border-purple-400/25 flex-shrink-0"
+            className="mt-0.5 w-9 h-9 rounded-full object-cover shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0"
           />
         ) : (
-          /* 사진 미등록 시 이니셜 아바타 */
-          <div className="mt-0.5 w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/80 to-purple-600/60 dark:from-purple-500/55 dark:to-purple-700/35 border border-purple-400/40 dark:border-purple-400/25 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+          /* 사진 미등록 시 이니셜 아바타 — 피드 아바타와 같은 브랜드 채움 */
+          <div className="mt-0.5 w-9 h-9 rounded-full brand-gradient flex items-center justify-center text-sm font-semibold shadow-[0_2px_10px_var(--brand-glow)] flex-shrink-0">
             {displayName.charAt(0).toUpperCase()}
           </div>
         )}
@@ -87,27 +87,34 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={isLoggedIn ? "함께 기도하는 마음을 전해주세요..." : "로그인 후 댓글을 작성할 수 있습니다"}
-            className="w-full px-4 py-4 border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/40 resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="w-full px-4 py-4 border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-glow)] resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             rows={3}
             disabled={isSubmitting || !isLoggedIn}
           />
 
           <div className="flex items-center justify-between gap-4 mt-4">
             {isLoggedIn ? (
-              <label className="flex items-center gap-2 cursor-pointer pl-1 py-1">
+              <label className="flex items-center gap-2 cursor-pointer pl-1 py-1 min-w-0">
                 <input
                   type="checkbox"
                   checked={isAnonymous}
                   onChange={(e) => setIsAnonymous(e.target.checked)}
-                  className="w-4 h-4 text-purple-500 border-gray-300 dark:border-gray-600 rounded focus:ring-purple-500"
+                  className="w-4 h-4 shrink-0 text-[var(--brand)] border-gray-300 dark:border-gray-600 rounded focus:ring-[var(--brand)]"
                   disabled={isSubmitting}
                 />
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {t('prayerComposerAnonymous')} (
-                  <span className="font-semibold text-purple-600 dark:text-purple-300">
-                    {shownName}
-                  </span>
-                  )
+                {/* 익명 체크 시 괄호 이름은 라벨과 중복이라 생략 — 실명 작성일 때만 노출 이름을 보여준다.
+                 * 좁은 화면에서는 두 줄까지 허용하되 "(골방 기도/자)"처럼 단어 중간이 아니라
+                 * 어절 경계에서 꺾이고, "(이름)" 묶음은 통째로 다음 줄로 내려간다 */}
+                <span className="text-sm text-gray-600 dark:text-gray-400 break-keep">
+                  {t('prayerComposerAnonymous')}
+                  {!isAnonymous && (
+                    <>
+                      {' '}
+                      <span className="font-semibold text-[var(--brand)] whitespace-nowrap">
+                        ({shownName})
+                      </span>
+                    </>
+                  )}
                 </span>
               </label>
             ) : (
@@ -117,7 +124,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
             <button
               type="submit"
               disabled={!content.trim() || isSubmitting || !isLoggedIn}
-              className="flex-shrink-0 px-5 py-2 text-sm bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full shadow-md shadow-purple-500/20 dark:shadow-purple-900/30 hover:shadow-lg hover:shadow-purple-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-md"
+              className="flex-shrink-0 px-5 py-2 text-sm brand-gradient font-semibold rounded-full shadow-[0_4px_14px_-4px_var(--brand-glow)] hover:shadow-[0_6px_18px_-4px_var(--brand-glow)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? '작성중...' : isLoggedIn ? '댓글 작성' : '로그인이 필요합니다'}
             </button>

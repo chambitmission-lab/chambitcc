@@ -27,7 +27,7 @@ const DeleteConfirmModal = ({ isDeleting, onConfirm, onCancel }: DeleteConfirmMo
           <button
             onClick={onCancel}
             disabled={isDeleting}
-            className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-purple-50 dark:hover:bg-white/[0.08] transition-colors disabled:opacity-50"
+            className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-colors disabled:opacity-50"
           >
             취소
           </button>

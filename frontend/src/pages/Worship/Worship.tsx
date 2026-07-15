@@ -98,7 +98,7 @@ const nextOccurrence = (service: WorshipService, seoulNow: Date): Occurrence | n
 // 그 이후엔 이동 시간을 고려해 다음 예배를 추천하는 편이 현실적이기 때문.
 const RECOMMEND_LEAD_MIN = 15
 // 예배 진행 시간 가정치 — '예배 중' 표시 판정에만 사용
-const SERVICE_DURATION_MIN = 90
+const SERVICE_DURATION_MIN = 60
 // 시작 30분 전 ~ 시작 10분 후까지를 '입장 가능'으로 본다
 const OPEN_BEFORE_MIN = 30
 const OPEN_AFTER_MIN = 10

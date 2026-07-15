@@ -145,6 +145,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
 
         <div className="flex-1 overflow-y-auto p-5">
           <PrayerAuthorInfo
+            prayerId={prayer.id}
             displayName={prayer.display_name}
             avatarUrl={prayer.avatar_url ?? null}
             timeAgo={prayer.time_ago}

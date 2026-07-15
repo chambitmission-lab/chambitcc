@@ -14,7 +14,7 @@ const PrayerStats = ({
   return (
     <div className="flex items-center justify-between gap-4 text-xs text-gray-500 dark:text-gray-400 mb-3 px-1">
       <span className="inline-flex items-center gap-1">
-        <span className="material-icons-outlined text-[14px] leading-none text-purple-500 dark:text-purple-300">
+        <span className="material-icons-outlined text-[14px] leading-none text-[var(--brand)]">
           groups
         </span>
         {prayerCount > 0 ? (

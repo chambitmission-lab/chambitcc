@@ -61,7 +61,7 @@ const ReplyList = ({
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
-        <div className="w-8 h-8 border-4 border-purple-500 dark:border-white border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-[var(--brand)] border-t-transparent rounded-full animate-spin"></div>
       </div>
     )
   }
@@ -76,7 +76,7 @@ const ReplyList = ({
           strokeWidth={1.25}
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="w-14 h-14 mx-auto text-purple-300/70 dark:text-purple-300/20"
+          className="w-14 h-14 mx-auto text-blue-300/70 dark:text-blue-300/20"
           aria-hidden="true"
         >
           <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
@@ -97,7 +97,7 @@ const ReplyList = ({
       {replies.map((reply) => (
         <div key={reply.id} className="reply-item flex gap-3">
           {isAnonymousReply(reply) ? (
-            <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500 shadow-[0_0_0_1.5px_rgba(168,85,247,0.28)] flex-shrink-0">
+            <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
               <span className="material-icons-outlined text-[18px]">person</span>
             </div>
           ) : reply.avatar_url ? (
@@ -105,10 +105,10 @@ const ReplyList = ({
               src={reply.avatar_url}
               alt=""
               loading="lazy"
-              className="w-9 h-9 rounded-full object-cover border border-purple-400/40 dark:border-purple-400/25 flex-shrink-0"
+              className="w-9 h-9 rounded-full object-cover shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0"
             />
           ) : (
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500/80 to-purple-600/60 dark:from-purple-500/55 dark:to-purple-700/35 border border-purple-400/40 dark:border-purple-400/25 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+            <div className="w-9 h-9 rounded-full brand-gradient flex items-center justify-center text-sm font-semibold shadow-[0_2px_10px_var(--brand-glow)] flex-shrink-0">
               {reply.display_name.charAt(0).toUpperCase()}
             </div>
           )}
@@ -133,7 +133,7 @@ const ReplyList = ({
                   {onReplyUpdate && (
                     <button
                       onClick={() => startEdit(reply)}
-                      className="text-xs text-gray-400 dark:text-gray-500 hover:text-purple-500 dark:hover:text-purple-300 transition-colors"
+                      className="text-xs text-gray-400 dark:text-gray-500 hover:text-[var(--brand)] transition-colors"
                     >
                       수정
                     </button>
@@ -159,7 +159,7 @@ const ReplyList = ({
                   maxLength={500}
                   autoFocus
                   disabled={isUpdating}
-                  className="w-full px-3 py-2.5 text-[14px] leading-[1.65] border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40 resize-none disabled:opacity-50 transition-all"
+                  className="w-full px-3 py-2.5 text-[14px] leading-[1.65] border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-glow)] resize-none disabled:opacity-50 transition-all"
                 />
                 <div className="flex items-center justify-end gap-2 mt-2">
                   <button
@@ -172,7 +172,7 @@ const ReplyList = ({
                   <button
                     onClick={() => saveEdit(reply)}
                     disabled={!editContent.trim() || isUpdating}
-                    className="px-4 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-sm shadow-purple-500/20 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-1.5 text-xs font-semibold brand-gradient rounded-full shadow-[0_3px_10px_-3px_var(--brand-glow)] active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUpdating ? '저장중...' : '저장'}
                   </button>
@@ -192,7 +192,7 @@ const ReplyList = ({
           <button
             onClick={onLoadMore}
             disabled={isFetchingNextPage}
-            className="px-5 py-2 text-xs font-semibold text-purple-600 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2 text-xs font-semibold text-[var(--brand)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isFetchingNextPage ? '불러오는 중...' : '댓글 더보기'}
           </button>

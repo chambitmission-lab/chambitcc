@@ -13,7 +13,7 @@ const PrayerDetailHeader = ({ isOwner, onClose, onDeleteClick }: PrayerDetailHea
       <div className="flex items-center gap-1.5">
         <button
           onClick={onClose}
-          className="md:hidden -ml-2 w-9 h-9 flex items-center justify-center rounded-full hover:bg-purple-50 dark:hover:bg-purple-500/15 transition-colors"
+          className="md:hidden -ml-2 w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
           aria-label="뒤로가기"
           title="뒤로가기"
         >
@@ -33,7 +33,7 @@ const PrayerDetailHeader = ({ isOwner, onClose, onDeleteClick }: PrayerDetailHea
         )}
         <button
           onClick={onClose}
-          className="hidden md:flex w-9 h-9 items-center justify-center rounded-full hover:bg-purple-50 dark:hover:bg-purple-500/15 transition-colors"
+          className="hidden md:flex w-9 h-9 items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
           aria-label="닫기"
           title="닫기"
         >
