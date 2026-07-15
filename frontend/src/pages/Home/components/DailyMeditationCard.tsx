@@ -124,13 +124,14 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         : todayDoy < startDoy
           ? 0
           : ((todayDoy - startDoy + 1) / span) * 100
-    const range = `${seg.start.getMonth() + 1}/${seg.start.getDate()}~${seg.end.getMonth() + 1}/${seg.end.getDate()}`
+    const range = `${seg.start.getMonth() + 1}/${seg.start.getDate()} ~ ${seg.end.getMonth() + 1}/${seg.end.getDate()}`
     return {
       key: seg.key,
       span,
       fillPercent,
       isCurrent: todayDoy >= startDoy && todayDoy <= endDoy,
       title: `${SEASON_LABELS[seg.key]} · ${range}`,
+      meaning: SEASON_MEANINGS[seg.key],
       description: `${SEASON_LABELS[seg.key]} (${range}) — ${SEASON_MEANINGS[seg.key]}`,
     }
   })
@@ -248,7 +249,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
                 style={{ flexGrow: seg.span }}
                 title={seg.title}
                 aria-label={seg.description}
-                onClick={() => showToast(seg.description, 'info')}
+                onClick={() => showToast(seg.meaning, 'info', { title: seg.title })}
               >
                 <span className="meditation-ribbon-track" aria-hidden>
                   <span

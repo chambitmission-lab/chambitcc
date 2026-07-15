@@ -1,5 +1,10 @@
 // 인스타그램 스타일 토스트 알림 유틸리티
-export const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+// options.title을 주면 굵은 제목 줄 + 설명 줄의 2단 구조로 좌측 정렬되어 보여진다 (절기 안내 등)
+export const showToast = (
+  message: string,
+  type: 'success' | 'error' | 'info' = 'success',
+  options?: { title?: string },
+) => {
   // 기존 토스트 제거
   const existingToast = document.querySelector('.toast-notification')
   if (existingToast) {
@@ -38,8 +43,14 @@ export const showToast = (message: string, type: 'success' | 'error' | 'info' = 
     textColor = isDark ? '#262626' : '#fafafa'
   }
   
-  toast.innerHTML = `<span>${message}</span>`
-  
+  if (options?.title) {
+    toast.innerHTML =
+      `<strong style="display: block; font-size: 15px; font-weight: 700; margin-bottom: 4px;">${options.title}</strong>` +
+      `<span style="display: block; font-weight: 400; opacity: 0.85;">${message}</span>`
+  } else {
+    toast.innerHTML = `<span>${message}</span>`
+  }
+
   toast.style.cssText = `
     position: fixed;
     top: 80px;
@@ -56,8 +67,8 @@ export const showToast = (message: string, type: 'success' | 'error' | 'info' = 
     font-weight: 500;
     line-height: 1.5;
     animation: toastSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    max-width: 90%;
-    text-align: center;
+    max-width: min(90%, 340px);
+    text-align: ${options?.title ? 'left' : 'center'};
     word-break: keep-all;
   `
 
