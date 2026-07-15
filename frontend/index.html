@@ -61,6 +61,21 @@
         } catch (e) { reveal(); }
         // 폰트 로드가 지연/실패해도 아이콘이 영영 숨지 않도록 최대 2초 뒤 강제 노출
         setTimeout(reveal, 2000);
+
+        // --vvh: JS로 실측한 "실제 보이는 높이".
+        // 설치형 WebAPK는 새로고침 후 vh/dvh를 시스템 바(상태바·제스처바)를 포함한
+        // 높이로 잘못 계산하는 경우가 있어, 화면에 딱 맞춰야 하는 레이아웃
+        // (로그인·회원가입·성경 등)은 이 변수를 우선 사용한다. 크롬 탭에서는 dvh와 동일값.
+        // 배율≠1(확대 복원 버그) 상태에서는 visualViewport.height가 축소값이므로 innerHeight로 폴백.
+        var setVvh = function () {
+          var vv = window.visualViewport;
+          var h = (vv && Math.abs(vv.scale - 1) < 0.01) ? vv.height : window.innerHeight;
+          de.style.setProperty('--vvh', Math.round(h) + 'px');
+        };
+        setVvh();
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', setVvh);
+        window.addEventListener('resize', setVvh);
+        window.addEventListener('pageshow', setVvh);
       })();
     </script>
 

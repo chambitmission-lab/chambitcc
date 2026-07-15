@@ -3,6 +3,9 @@
      (100vh는 주소창 숨김 기준이라 새로고침 직후 세로 스크롤이 생긴다) */
   min-height: 100vh;
   min-height: 100dvh;
+  /* 설치형 WebAPK가 새로고침 후 dvh를 시스템 바 포함 높이로 오계산하는 버그 대응:
+     index.html이 실측해 주입하는 --vvh(visualViewport.height)를 최우선 사용 */
+  min-height: var(--vvh, 100dvh);
   display: flex;
   flex-direction: column;
   position: relative;

@@ -63,7 +63,7 @@ const Register = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-black min-h-[calc(100dvh-3.5rem)] flex items-center justify-center p-4">
+    <div className="bg-gray-50 dark:bg-black screen-fit-minus-header flex items-center justify-center p-4">
       <div className="max-w-sm w-full my-auto">
         {/* Logo */}
         <div className="text-center mb-8">

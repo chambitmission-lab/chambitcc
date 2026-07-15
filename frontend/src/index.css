@@ -114,6 +114,16 @@ body {
   max-width: 100vw;
 }
 
+/* 헤더(3.5rem)를 뺀 "실제 보이는 높이"에 화면을 딱 맞추는 유틸.
+   vh/dvh 대신 index.html이 실측 주입하는 --vvh를 우선 사용한다 —
+   설치형 WebAPK가 새로고침 후 vh/dvh를 시스템 바 포함 높이로 오계산해
+   콘텐츠가 아래로 밀리고 스크롤이 생기는 버그를 피하기 위함. */
+.screen-fit-minus-header {
+  min-height: calc(100vh - 3.5rem);
+  min-height: calc(100dvh - 3.5rem);
+  min-height: calc(var(--vvh, 100dvh) - 3.5rem);
+}
+
 .container {
   max-width: 80rem;
   margin: 0 auto;
