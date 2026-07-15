@@ -109,7 +109,7 @@ const Login = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-black h-[calc(100vh-3.5rem)] flex items-center justify-center p-4 overflow-y-auto">
+    <div className="bg-gray-50 dark:bg-black min-h-[calc(100dvh-3.5rem)] flex items-center justify-center p-4">
       <div className="max-w-sm w-full my-auto">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -144,7 +144,7 @@ const Login = () => {
                 placeholder={t('loginUsername')}
                 required
                 disabled={loading}
-                className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-base text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
 
@@ -157,7 +157,7 @@ const Login = () => {
                 placeholder={t('loginPassword')}
                 required
                 disabled={loading}
-                className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-base text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
 
