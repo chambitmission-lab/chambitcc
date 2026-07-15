@@ -8,7 +8,12 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- minimum/maximum-scale=1 고정: 설치형 PWA(standalone)에서 당겨서 새로고침하면
+         크롬이 이전 확대 배율을 복원하거나 initial-scale을 잘못 계산해
+         화면이 확대된 채(=커 보이고 스크롤 생김) 로드되는 문제를 차단한다.
+         브라우저 탭에서는 같은 코드가 정상인 이유가 바로 이 배율 복원 차이.
+         (확대가 필요한 사용자는 크롬 접근성 '강제 확대 사용'으로 여전히 핀치 줌 가능) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <title>참빛교회</title>
 
