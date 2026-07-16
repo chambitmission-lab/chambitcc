@@ -80,8 +80,9 @@ export const Genealogy = () => {
   )
 
   return (
-    <div className="bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen pb-bottomnav-safe">
-      <div className="max-w-5xl mx-auto px-4 pt-5">
+    <div className="bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen">
+      {/* 패딩은 루트가 아닌 내부 래퍼에 — 루트는 .main-content > * { padding: 0 } (App.css)에 걸려 pb가 제거된다 */}
+      <div className="max-w-5xl mx-auto px-4 pt-5 pb-bottomnav-safe">
         {/* Breadcrumb + 헤더 */}
         <header className="mb-5">
           <div className="flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-gray-400 mb-3">
