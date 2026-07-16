@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNotifications } from '../../../hooks/useNotifications'
+import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
 import NotificationModal from '../../common/NotificationModal'
 import Logo from './components/Logo'
 import HeaderActions from './components/HeaderActions'
@@ -20,6 +20,9 @@ const NewHeader = () => {
   // React Query로 알림 개수 조회 (첫 페이지 기준 전체 unread_count)
   const { data } = useNotifications()
   const unreadCount = data?.pages[0]?.unread_count ?? 0
+
+  // SSE 실시간 알림 스트림 — 새 공지/개인 알림 시 뱃지·목록 즉시 갱신 (폴링 대체)
+  useNotificationStream(isLoggedIn)
 
   return (
     <>

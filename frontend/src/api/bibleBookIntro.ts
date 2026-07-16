@@ -1,5 +1,6 @@
 import { API_V1, apiFetch } from '../config/api'
 import { getAuthHeaders } from './utils/apiHelpers'
+import { streamSSE } from './sse'
 import type {
   BibleBookIntro,
   BibleBookIntroAIGenerateRequest,
@@ -54,6 +55,36 @@ export const generateBookIntroDraft = async (
     throw new Error(error.detail || 'AI 개관 초안 생성에 실패했습니다')
   }
   return response.json()
+}
+
+/**
+ * AI 권 개관 초안 SSE 스트리밍 생성 (관리자 전용).
+ * 개관(overview) 마크다운 조각이 onDelta로 실시간 전달되고, 완료 시 onDone에
+ * 블로킹 API와 동일한 스키마가 온다.
+ */
+export const streamBookIntroDraft = async (
+  payload: BibleBookIntroAIGenerateRequest,
+  handlers: {
+    onDelta: (text: string) => void
+    onDone: (data: BibleBookIntroAIGenerateResponse) => void
+  },
+  signal?: AbortSignal,
+): Promise<void> => {
+  await streamSSE(
+    `${BASE}/ai-generate/stream`,
+    { method: 'POST', body: payload, signal },
+    (event, data) => {
+      if (event === 'delta') {
+        handlers.onDelta(JSON.parse(data).text as string)
+      } else if (event === 'done') {
+        handlers.onDone(JSON.parse(data) as BibleBookIntroAIGenerateResponse)
+      } else if (event === 'error') {
+        throw new Error(
+          (JSON.parse(data).detail as string) || 'AI 개관 초안 생성에 실패했습니다',
+        )
+      }
+    },
+  )
 }
 
 /** 책 개관 삭제 (관리자 전용) */

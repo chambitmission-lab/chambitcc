@@ -331,7 +331,14 @@ const API_CACHE_DURATION = 1000 * 60 * 60 * 24; // 1일 (React Query persist가 
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  
+
+  // SSE(실시간 스트림)는 절대 가로채지 않는다 — clone()+cache.put이
+  // 끝나지 않는 스트림을 무한 버퍼링하게 된다 (알림 스트림 등)
+  const accept = event.request.headers.get('accept') || '';
+  if (accept.includes('text/event-stream') || url.pathname.endsWith('/stream')) {
+    return;
+  }
+
   // API 요청만 캐싱 (GET 요청만)
   if (event.request.method === 'GET' && url.pathname.includes('/api/')) {
     event.respondWith(

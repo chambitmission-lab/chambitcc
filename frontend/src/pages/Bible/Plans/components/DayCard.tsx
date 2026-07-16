@@ -152,7 +152,18 @@ const DayCard = ({
         {reflectionOpen && (
           <div className="mt-2 rounded-xl bg-purple-50/70 dark:bg-purple-500/[0.06] border border-purple-200/50 dark:border-purple-400/20 px-3.5 py-3">
             {reflection?.loading ? (
-              <p className="text-[12.5px] text-gray-500 dark:text-white/55">묵상을 준비하고 있어요…</p>
+              reflection.streamText ? (
+                // SSE 스트리밍 중 — 도착한 본문을 실시간 표시 (타자기 효과)
+                <p className="text-[13px] leading-[1.7] text-gray-700 dark:text-white/80 whitespace-pre-wrap">
+                  {normalizeReflection(reflection.streamText)}
+                  <span
+                    className="inline-block w-[2px] h-[1em] ml-0.5 align-[-0.15em] bg-purple-500 dark:bg-purple-300 animate-pulse"
+                    aria-hidden
+                  />
+                </p>
+              ) : (
+                <p className="text-[12.5px] text-gray-500 dark:text-white/55">묵상을 준비하고 있어요…</p>
+              )
             ) : reflection?.error ? (
               <p className="text-[12.5px] text-red-500 dark:text-red-300">{reflection.error}</p>
             ) : reflection?.data ? (

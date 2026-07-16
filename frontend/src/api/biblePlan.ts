@@ -1,5 +1,6 @@
 import { API_V1, apiFetch } from '../config/api'
 import { getAuthHeaders } from './utils/apiHelpers'
+import { streamSSE } from './sse'
 import type {
   GenerateScheduleResponse,
   PlanCreateRequest,
@@ -120,6 +121,39 @@ export const generateReflection = async (
     throw new Error(error.detail || 'AI 묵상 생성에 실패했습니다')
   }
   return response.json()
+}
+
+/**
+ * AI 묵상 SSE 스트리밍 생성 — 토큰이 도착하는 대로 onDelta로 전달된다.
+ * 캐시 적중 시엔 delta 없이 곧바로 onDone이 호출된다.
+ * 스트림 도중 서버가 error 이벤트를 보내면 해당 메시지로 throw.
+ */
+export const streamReflection = async (
+  planId: number,
+  dayNumber: number,
+  force: boolean,
+  handlers: {
+    onDelta: (text: string) => void
+    onDone: (data: PlanReflection) => void
+  },
+  signal?: AbortSignal,
+): Promise<void> => {
+  const query = force ? '?force=true' : ''
+  await streamSSE(
+    `${BASE}/${planId}/days/${dayNumber}/reflection/stream${query}`,
+    { method: 'POST', signal },
+    (event, data) => {
+      if (event === 'delta') {
+        handlers.onDelta(JSON.parse(data).text as string)
+      } else if (event === 'done' || event === 'cached') {
+        handlers.onDone(JSON.parse(data) as PlanReflection)
+      } else if (event === 'error') {
+        throw new Error(
+          (JSON.parse(data).detail as string) || 'AI 묵상 생성에 실패했습니다',
+        )
+      }
+    },
+  )
 }
 
 // 관리자 — AI 묵상 직접 수정

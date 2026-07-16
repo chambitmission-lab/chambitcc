@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   useNotifications,
   useMarkAsRead,
@@ -59,6 +60,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
   const isLoggedIn = !!localStorage.getItem('access_token')
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
 
   const {
     data,
@@ -118,6 +120,19 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
         // 읽음 처리 실패는 조용히 무시
       }
     }
+  }
+
+  // 개인 알림(기도응답 등)의 바로가기 — 읽음 처리 후 해당 화면으로 이동
+  const goToLink = async (notification: Notification) => {
+    if (isLoggedIn && !notification.is_read) {
+      try {
+        await markAsReadMutation.mutateAsync(notification.id)
+      } catch {
+        // 읽음 처리 실패는 조용히 무시
+      }
+    }
+    onClose()
+    if (notification.link_url) navigate(notification.link_url)
   }
 
   const handleMarkAllAsRead = async () => {
@@ -300,6 +315,40 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                   >
                                     {notification.content}
                                   </p>
+
+                                  {notification.link_url && (
+                                    <span
+                                      role="link"
+                                      tabIndex={0}
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        void goToLink(notification)
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                          e.preventDefault()
+                                          e.stopPropagation()
+                                          void goToLink(notification)
+                                        }
+                                      }}
+                                      className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-purple-600 dark:text-purple-400 hover:underline"
+                                    >
+                                      <span>바로가기</span>
+                                      <svg
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden
+                                      >
+                                        <path d="M9 18l6-6-6-6" />
+                                      </svg>
+                                    </span>
+                                  )}
 
                                   {expandable && (
                                     <div className="mt-2 flex items-center gap-1 text-[12px] font-medium text-purple-500 dark:text-purple-400">

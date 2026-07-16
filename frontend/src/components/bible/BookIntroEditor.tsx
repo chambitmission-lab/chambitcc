@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Markdown } from '../../utils/markdown'
-import { generateBookIntroDraft } from '../../api/bibleBookIntro'
+import { generateBookIntroDraft, streamBookIntroDraft } from '../../api/bibleBookIntro'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import type {
   BibleBookIntro,
@@ -54,15 +54,42 @@ const BookIntroEditor = ({
     }
     setAiError(null)
     setAiLoading(true)
-    try {
-      const draft = await generateBookIntroDraft({ book_number: bookNumber })
+    setShowPreview(false)
+    const applyDraft = (draft: {
+      one_liner: string
+      theme?: string | null
+      author_period?: string | null
+      key_chapters?: string | null
+      overview: string
+      christ_connection?: string | null
+    }) => {
       setOneLiner(draft.one_liner)
       setTheme(draft.theme ?? '')
       setAuthorPeriod(draft.author_period ?? '')
       setKeyChapters(draft.key_chapters ?? '')
       setOverview(draft.overview)
       setChristConnection(draft.christ_connection ?? '')
-      setShowPreview(false)
+    }
+    try {
+      // SSE 스트리밍 — 개관 본문이 생성되는 대로 실시간으로 채워진다
+      let receivedAny = false
+      setOverview('')
+      try {
+        await streamBookIntroDraft(
+          { book_number: bookNumber },
+          {
+            onDelta: (text) => {
+              receivedAny = true
+              setOverview((prev) => prev + text)
+            },
+            onDone: applyDraft,
+          },
+        )
+      } catch (e) {
+        if (receivedAny) throw e
+        // 스트림 시작 전 실패 — 기존 블로킹 API로 폴백
+        applyDraft(await generateBookIntroDraft({ book_number: bookNumber }))
+      }
     } catch (e) {
       setAiError(e instanceof Error ? e.message : 'AI 초안 생성에 실패했습니다')
     } finally {

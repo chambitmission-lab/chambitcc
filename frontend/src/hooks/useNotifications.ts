@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getNotifications, markAsRead, markAllAsRead } from '../api/notification'
+import { notificationStream } from '../utils/notificationStream'
 
 const PAGE_SIZE = 20
 
@@ -10,6 +12,9 @@ export const notificationKeys = {
 
 /**
  * 공지사항 무한 스크롤 조회
+ *
+ * 실시간 갱신은 SSE(useNotificationStream)가 담당한다.
+ * refetchInterval은 SSE가 끊겨 있을 때만 동작하는 폴백 폴링.
  */
 export const useNotifications = () => {
   const token = localStorage.getItem('access_token')
@@ -24,9 +29,28 @@ export const useNotifications = () => {
     enabled: !!token,
     staleTime: 0,
     refetchOnMount: true,
-    refetchInterval: 1000 * 60 * 5,
+    refetchInterval: () => (notificationStream.connected ? false : 1000 * 60 * 5),
     refetchOnWindowFocus: false,
   })
+}
+
+/**
+ * 알림 SSE 실시간 스트림 연결 (항상 떠 있는 컴포넌트에서 한 번만 호출)
+ *
+ * 새 공지/개인 알림이 push되면 알림 쿼리를 invalidate해 뱃지·목록이
+ * 즉시 갱신된다. 로그아웃 상태에서는 연결하지 않는다.
+ */
+export const useNotificationStream = (enabled: boolean) => {
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    if (!enabled) {
+      notificationStream.stop()
+      return
+    }
+    notificationStream.start(queryClient)
+    return () => notificationStream.stop()
+  }, [enabled, queryClient])
 }
 
 /**

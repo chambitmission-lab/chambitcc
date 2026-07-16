@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Markdown } from '../../utils/markdown'
-import { generateCommentaryDraft } from '../../api/bibleCommentary'
+import { generateCommentaryDraft, streamCommentaryDraft } from '../../api/bibleCommentary'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import {
   COMMENTARY_CATEGORIES,
@@ -133,18 +133,40 @@ const BibleCommentaryEditor = ({
     }
     setAiError(null)
     setAiLoading(true)
-    try {
-      const draft = await generateCommentaryDraft({
-        book_number: bookNumber,
-        chapter,
-        verse_start: verseStart,
-        verse_end: verseEnd,
-        category: category || undefined,
-      })
+    setShowPreview(false)
+    const payload = {
+      book_number: bookNumber,
+      chapter,
+      verse_start: verseStart,
+      verse_end: verseEnd,
+      category: category || undefined,
+    }
+    const applyDraft = (draft: {
+      title?: string | null
+      content: string
+      category?: string | null
+    }) => {
       setContent(draft.content)
       if (draft.title) setTitle(draft.title)
       if (draft.category) setCategory(draft.category)
-      setShowPreview(false)
+    }
+    try {
+      // SSE 스트리밍 — 본문이 생성되는 대로 textarea에 실시간으로 채워진다
+      let receivedAny = false
+      setContent('')
+      try {
+        await streamCommentaryDraft(payload, {
+          onDelta: (text) => {
+            receivedAny = true
+            setContent((prev) => prev + text)
+          },
+          onDone: applyDraft,
+        })
+      } catch (e) {
+        if (receivedAny) throw e
+        // 스트림 시작 전 실패 — 기존 블로킹 API로 폴백
+        applyDraft(await generateCommentaryDraft(payload))
+      }
     } catch (e) {
       setAiError(e instanceof Error ? e.message : 'AI 초안 생성에 실패했습니다')
     } finally {

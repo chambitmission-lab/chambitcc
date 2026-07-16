@@ -56,7 +56,7 @@ const NewHome = () => {
       import('../Profile/Profile')
     }
     // Safari는 requestIdleCallback 미지원 → setTimeout fallback
-    if ('requestIdleCallback' in window) {
+    if (typeof window.requestIdleCallback === 'function') {
       const id = window.requestIdleCallback(prefetch, { timeout: 3000 })
       return () => window.cancelIdleCallback(id)
     }
