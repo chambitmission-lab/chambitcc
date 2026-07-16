@@ -7,29 +7,19 @@
 .intro-text {
   font-size: 1rem;
   line-height: 1.8;
-  color: #4b5563;
+  color: var(--text-body);
   margin-bottom: 2rem;
 }
 
-[data-theme="dark"] .intro-text {
-  color: #c4b5fd;
-}
-
-/* Quote Card */
+/* Quote Card — 약속의 말씀. 브랜드 블루 tint 서피스 */
 .quote-card {
   position: relative;
-  background: linear-gradient(135deg, #faf5ff 0%, #fdf2f8 100%);
+  background: var(--brand-soft);
   border-radius: 1.5rem;
   padding: 2rem;
   margin: 2rem 0;
-  border: 2px solid rgba(168, 85, 247, 0.3);
-  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.15);
-}
-
-[data-theme="dark"] .quote-card {
-  background: linear-gradient(135deg, #1c1c26 0%, #2a1438 100%);
-  border-color: rgba(236, 72, 153, 0.3);
-  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.25);
+  border: 1px solid var(--brand-soft-strong);
+  box-shadow: var(--card-shadow);
 }
 
 .quote-icon {
@@ -37,7 +27,7 @@
   top: -10px;
   left: 20px;
   font-size: 4rem;
-  color: #a855f7;
+  color: var(--brand);
   opacity: 0.4;
   font-family: Georgia, serif;
 }
@@ -45,24 +35,16 @@
 .quote-text {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #6b21a8;
+  color: var(--brand-muted);
   line-height: 1.7;
   margin-bottom: 1rem;
   position: relative;
   z-index: 1;
 }
 
-[data-theme="dark"] .quote-text {
-  color: #f9a8d4;
-}
-
 .quote-author {
   font-size: 0.875rem;
-  color: #9333ea;
+  color: var(--brand);
   font-weight: 600;
   text-align: right;
-}
-
-[data-theme="dark"] .quote-author {
-  color: #c4b5fd;
 }

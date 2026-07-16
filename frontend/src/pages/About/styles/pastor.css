@@ -7,17 +7,12 @@
 .pastor-nickname {
   display: inline-block;
   padding: 0.5rem 1.25rem;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.15));
+  background: var(--brand-soft);
   border-radius: 50px;
   font-size: 1rem;
   font-weight: 700;
-  color: #9333ea;
+  color: var(--brand);
   margin-bottom: 2rem;
-}
-
-[data-theme="dark"] .pastor-nickname {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2));
-  color: #f9a8d4;
 }
 
 .pastor-intro {
@@ -27,27 +22,17 @@
 .pastor-text {
   font-size: 0.9375rem;
   line-height: 1.8;
-  color: #4b5563;
+  color: var(--text-body);
   margin-bottom: 1.25rem;
-}
-
-[data-theme="dark"] .pastor-text {
-  color: #c4b5fd;
 }
 
 .pastor-text.highlight {
   padding: 1.25rem;
-  background: rgba(168, 85, 247, 0.06);
-  border-left: 4px solid #a855f7;
+  background: var(--brand-soft);
+  border-left: 4px solid var(--brand);
   border-radius: 0.5rem;
   font-weight: 600;
-  color: #6b21a8;
-}
-
-[data-theme="dark"] .pastor-text.highlight {
-  background: rgba(168, 85, 247, 0.12);
-  border-left-color: #ec4899;
-  color: #f9a8d4;
+  color: var(--brand-muted);
 }
 
 /* Credentials */
@@ -62,14 +47,9 @@
   align-items: flex-start;
   gap: 1rem;
   padding: 1.25rem;
-  background: #f9fafb;
+  background: var(--surface-container-high);
   border-radius: 1rem;
-  border: 2px solid #e5e7eb;
-}
-
-[data-theme="dark"] .credential-item {
-  background: #1c1c26;
-  border-color: rgba(168, 85, 247, 0.2);
+  border: 1px solid var(--card-border);
 }
 
 .credential-icon {
@@ -80,24 +60,16 @@
 .credential-label {
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #a855f7;
+  color: var(--brand);
   letter-spacing: 0.02em;
   margin-bottom: 0.25rem;
-}
-
-[data-theme="dark"] .credential-label {
-  color: #f9a8d4;
 }
 
 .credential-value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-strong);
   line-height: 1.6;
-}
-
-[data-theme="dark"] .credential-value {
-  color: #f9fafb;
 }
 
 /* 학력·경력·수상을 줄 단위 리스트로 정돈 */
@@ -115,7 +87,7 @@
   padding-left: 0.95rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-strong);
   line-height: 1.5;
 }
 
@@ -127,9 +99,5 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-}
-
-[data-theme="dark"] .credential-line {
-  color: #f9fafb;
+  background: var(--brand);
 }

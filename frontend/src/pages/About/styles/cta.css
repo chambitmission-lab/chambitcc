@@ -4,15 +4,16 @@
   margin-bottom: 3rem;
 }
 
+/* 히어로와 같은 딥 블루 계열 — 라이트/다크 공통 다크 서피스 */
 .cta-card {
-  background: linear-gradient(135deg, #1c1c26 0%, #2a1438 100%);
+  background: linear-gradient(135deg, #0c1a33 0%, #14305f 100%);
   border-radius: 1.5rem;
   padding: 2.5rem 2rem;
   text-align: center;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(168, 85, 247, 0.2);
-  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(49, 130, 246, 0.25);
+  box-shadow: 0 10px 30px rgba(49, 130, 246, 0.2);
 }
 
 .cta-card::before {
@@ -75,13 +76,13 @@
 }
 
 .cta-action--primary {
-  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  background: #3182f6;
   border-color: transparent;
-  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.45);
+  box-shadow: 0 6px 18px rgba(49, 130, 246, 0.45);
 }
 
 .cta-action--primary:hover {
-  background: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
+  background: #1b6ef3;
 }
 
 .cta-action-icon {
@@ -92,10 +93,10 @@
 .cta-badge {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  background: #3182f6;
   color: white;
   border-radius: 50px;
   font-weight: 700;
   font-size: 0.9375rem;
-  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 4px 16px rgba(49, 130, 246, 0.4);
 }

@@ -3,24 +3,16 @@
 .meeting-section {
   margin-bottom: 3rem;
   padding: 2rem 1rem;
-  background: #f9fafb;
+  background: var(--surface-container-high);
   border-radius: 1.5rem;
-}
-
-[data-theme="dark"] .meeting-section {
-  background: #1c1c26;
 }
 
 .meeting-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-strong);
   margin-bottom: 1.5rem;
   text-align: center;
-}
-
-[data-theme="dark"] .meeting-title {
-  color: #f9fafb;
 }
 
 .meeting-grid {
@@ -36,6 +28,7 @@
   transition: all 0.3s ease;
 }
 
+/* bad 카드의 레드 톤은 "아닌 모임"을 뜻하는 기능적 색 — 브랜드로 덮지 않는다 */
 .meeting-card.bad {
   background: #fee;
   border: 2px solid #fecaca;
@@ -48,15 +41,9 @@
 
 .meeting-card.good {
   grid-column: 1 / -1;
-  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-  border: 2px solid rgba(236, 72, 153, 0.5);
-  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
-}
-
-[data-theme="dark"] .meeting-card.good {
-  background: linear-gradient(135deg, #2a1438 0%, #1c1c26 100%);
-  border-color: rgba(236, 72, 153, 0.5);
-  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
+  background: var(--brand);
+  border: 2px solid transparent;
+  box-shadow: 0 8px 24px var(--brand-glow);
 }
 
 .meeting-emoji {
@@ -67,21 +54,13 @@
 
 .meeting-card p {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-muted);
   font-weight: 600;
   line-height: 1.4;
 }
 
-[data-theme="dark"] .meeting-card p {
-  color: #9ca3af;
-}
-
 .meeting-card.good .good-text {
   font-size: 1rem;
-  color: white;
+  color: var(--on-brand);
   font-weight: 700;
-}
-
-[data-theme="dark"] .meeting-card.good .good-text {
-  color: #f9a8d4;
 }

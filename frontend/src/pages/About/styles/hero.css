@@ -1,22 +1,20 @@
-/* About Page - Hero Section */
+/* About Page - Hero Section
+   토스 블루 테마 — 네온 퍼플 대신 딥 블루 그라데이션 + 은은한 광원.
+   색은 theme.css 토큰(--brand-*)을 따르고, 사진 배경(heroStyle)이 오면 덮인다. */
 
 .about-hero {
   position: relative;
   height: 280px;
-  background: linear-gradient(135deg, #1a0b2e 0%, #2a1438 50%, #3d1b5c 100%);
+  background: linear-gradient(160deg, #0c1a33 0%, #14305f 55%, #1b6ef3 160%);
   overflow: hidden;
-}
-
-[data-theme="dark"] .about-hero {
-  background: linear-gradient(135deg, #0b0b12 0%, #1c1c26 50%, #2a1438 100%);
 }
 
 .hero-overlay {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 30%, rgba(168, 85, 247, 0.18) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.18) 0%, transparent 50%);
+    radial-gradient(circle at 20% 30%, rgba(69, 147, 252, 0.20) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(49, 130, 246, 0.16) 0%, transparent 50%);
 }
 
 .hero-content {
@@ -34,7 +32,7 @@
   position: relative;
   display: inline-block;
   padding: 0.5rem 1.25rem;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.10);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-radius: 50px;
@@ -42,29 +40,11 @@
   font-weight: 600;
   color: white;
   margin-bottom: 1.5rem;
-  border: 1px solid rgba(236, 72, 153, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow:
-    0 8px 32px rgba(168, 85, 247, 0.25),
+    0 8px 32px rgba(49, 130, 246, 0.30),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   animation: float 3s ease-in-out infinite;
-}
-
-.hero-badge::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 50px;
-  padding: 2px;
-  background: linear-gradient(
-    135deg,
-    rgba(168, 85, 247, 0.8),
-    rgba(236, 72, 153, 0.8),
-    rgba(168, 85, 247, 0.8)
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: borderRotate 3s linear infinite;
 }
 
 @keyframes float {
@@ -76,33 +56,6 @@
   }
 }
 
-@keyframes borderRotate {
-  0% {
-    background: linear-gradient(
-      0deg,
-      rgba(168, 85, 247, 0.8),
-      rgba(236, 72, 153, 0.8),
-      rgba(168, 85, 247, 0.8)
-    );
-  }
-  50% {
-    background: linear-gradient(
-      180deg,
-      rgba(236, 72, 153, 0.8),
-      rgba(168, 85, 247, 0.8),
-      rgba(236, 72, 153, 0.8)
-    );
-  }
-  100% {
-    background: linear-gradient(
-      360deg,
-      rgba(168, 85, 247, 0.8),
-      rgba(236, 72, 153, 0.8),
-      rgba(168, 85, 247, 0.8)
-    );
-  }
-}
-
 .hero-title {
   font-size: 3rem;
   font-weight: 800;
@@ -110,32 +63,8 @@
   margin-bottom: 0.75rem;
   letter-spacing: -0.02em;
   text-shadow:
-    0 0 10px rgba(255, 255, 255, 0.8),
-    0 0 20px rgba(236, 72, 153, 0.6),
-    0 0 30px rgba(168, 85, 247, 0.6),
-    0 0 40px rgba(168, 85, 247, 0.4),
+    0 0 24px rgba(49, 130, 246, 0.45),
     0 4px 20px rgba(0, 0, 0, 0.4);
-  animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-  from {
-    text-shadow:
-      0 0 10px rgba(255, 255, 255, 0.8),
-      0 0 20px rgba(236, 72, 153, 0.6),
-      0 0 30px rgba(168, 85, 247, 0.6),
-      0 0 40px rgba(168, 85, 247, 0.4),
-      0 4px 20px rgba(0, 0, 0, 0.4);
-  }
-  to {
-    text-shadow:
-      0 0 20px rgba(255, 255, 255, 1),
-      0 0 30px rgba(236, 72, 153, 0.8),
-      0 0 40px rgba(168, 85, 247, 0.8),
-      0 0 50px rgba(236, 72, 153, 0.6),
-      0 0 60px rgba(168, 85, 247, 0.4),
-      0 4px 20px rgba(0, 0, 0, 0.4);
-  }
 }
 
 .hero-subtitle {
@@ -143,22 +72,5 @@
   color: rgba(255, 255, 255, 0.95);
   font-weight: 500;
   letter-spacing: 0.05em;
-  text-shadow:
-    0 0 10px rgba(255, 255, 255, 0.5),
-    0 0 20px rgba(236, 72, 153, 0.4);
-  animation: subtleGlow 3s ease-in-out infinite alternate;
-}
-
-@keyframes subtleGlow {
-  from {
-    text-shadow:
-      0 0 10px rgba(255, 255, 255, 0.5),
-      0 0 20px rgba(236, 72, 153, 0.4);
-  }
-  to {
-    text-shadow:
-      0 0 15px rgba(255, 255, 255, 0.7),
-      0 0 25px rgba(168, 85, 247, 0.5),
-      0 0 35px rgba(236, 72, 153, 0.4);
-  }
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
