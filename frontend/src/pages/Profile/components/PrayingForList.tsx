@@ -46,7 +46,7 @@ const PrayingForList = ({ prayers, onPrayerClick }: PrayingForListProps) => {
             bg-white/80 dark:bg-card-dark
             border border-gray-200/70 dark:border-white/[0.08]
             shadow-sm
-            dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(168,85,247,0.08)]
+            dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
             transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md
           "
         >

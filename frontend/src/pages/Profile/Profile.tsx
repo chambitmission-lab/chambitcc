@@ -141,7 +141,7 @@ const Profile = () => {
           <p className="text-red-500 mb-4">{t('profileCannotLoad')}</p>
           <button
             onClick={() => navigate('/')}
-            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-all"
+            className="px-6 py-2 brand-gradient font-bold rounded-full shadow-[0_2px_10px_var(--brand-glow)] hover:scale-105 transition-all"
           >
             {t('profileBackHome')}
           </button>
@@ -158,7 +158,7 @@ const Profile = () => {
         {/* 헤더 */}
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
           <button
-            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
             onClick={() => navigate('/')}
           >
             <span className="material-icons-outlined">arrow_back</span>
@@ -166,10 +166,10 @@ const Profile = () => {
           </button>
           <h1 className="text-base font-bold text-gray-900 dark:text-white tracking-[-0.015em]">{t('profileTitle')}</h1>
           <button
-            className="flex items-center gap-1 text-sm font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-purple-600 hover:to-pink-600 transition-all"
+            className="flex items-center gap-1 text-sm font-semibold text-brand hover:text-brand-dim transition-colors"
             onClick={handleLogout}
           >
-            <span className="material-icons-outlined text-lg bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">logout</span>
+            <span className="material-icons-outlined text-lg">logout</span>
             <span>{t('logout')}</span>
           </button>
         </div>
@@ -222,7 +222,7 @@ const Profile = () => {
               bg-white/80 dark:bg-card-dark
               border border-gray-200/70 dark:border-white/[0.08]
               shadow-sm
-              dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(168,85,247,0.10)]
+              dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
             "
           >
             <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />

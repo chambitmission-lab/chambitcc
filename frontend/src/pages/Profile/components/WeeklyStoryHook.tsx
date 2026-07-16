@@ -16,20 +16,20 @@ const WeeklyStoryHook = ({ thisWeekCount }: WeeklyStoryHookProps) => {
         className="
           group relative w-full overflow-hidden text-left
           rounded-2xl px-5 py-4
-          bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500
-          shadow-[0_4px_16px_rgba(0,0,0,0.10),0_8px_24px_rgba(168,85,247,0.30)]
-          dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),0_12px_28px_rgba(168,85,247,0.35),inset_0_1px_0_rgba(255,255,255,0.10)]
+          bg-gradient-to-br from-[#1b6ef3] via-[#3182f6] to-[#5ba3ff]
+          shadow-[0_4px_16px_rgba(0,0,0,0.10),0_8px_24px_var(--brand-glow)]
+          dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),0_12px_28px_var(--brand-glow),inset_0_1px_0_rgba(255,255,255,0.10)]
           transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl
           active:scale-[0.99]
         "
       >
         {/* 글로우 장식 */}
         <div
-          className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 rounded-full bg-pink-300/25 blur-2xl"
+          className="pointer-events-none absolute -top-10 -right-10 w-32 h-32 rounded-full bg-sky-300/25 blur-2xl"
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-purple-300/25 blur-2xl"
+          className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-blue-300/25 blur-2xl"
           aria-hidden="true"
         />
 
@@ -72,7 +72,7 @@ const WeeklyStoryHook = ({ thisWeekCount }: WeeklyStoryHookProps) => {
                 : '이번 주 첫 발자국을 남겨보세요'}
             </div>
 
-            <span className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-white px-3.5 py-1.5 text-[12.5px] font-bold text-purple-600 shadow-md transition-transform group-hover:scale-[1.03] group-active:scale-95">
+            <span className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-white px-3.5 py-1.5 text-[12.5px] font-bold text-brand shadow-md transition-transform group-hover:scale-[1.03] group-active:scale-95">
               <span className="material-icons-round text-[15px]">
                 play_arrow
               </span>

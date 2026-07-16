@@ -25,7 +25,7 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
           bg-white/80 dark:bg-card-dark
           border border-gray-200/70 dark:border-white/[0.08]
           shadow-sm
-          dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(168,85,247,0.10)]
+          dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
         "
       >
         {/* 다크 카드 표면 미세 그라데이션 */}
@@ -62,9 +62,9 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
               className="h-3 rounded-full transition-all duration-500 relative"
               style={{
                 width: `${progress}%`,
-                // fill 은 브랜드 purple→pink 솔리드(라이트 트랙 위에서도 항상 가독).
+                // fill 은 브랜드 블루 솔리드(라이트 트랙 위에서도 항상 가독).
                 // 레벨 색은 glow(box-shadow)로 표현 — 흰색/회색 레벨도 사라지지 않게.
-                background: 'linear-gradient(to right, #a855f7, #ec4899)',
+                background: 'var(--brand)',
                 boxShadow: `0 0 10px ${currentLevel.glowColor}`,
               }}
             >
@@ -80,13 +80,13 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
               <span className="text-gray-600 dark:text-white/65">
                 {t(currentLevel.nameKey)}
               </span>
-              <span className="font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <span className="font-semibold text-brand">
                 {t('levelToNext')} {pointsToNext.needed.toLocaleString()}P
               </span>
             </div>
           ) : (
             <div className="text-center mt-2">
-              <span className="text-[12px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <span className="text-[12px] font-bold text-brand">
                 🎉 {t('levelMaxReached')} 🎉
               </span>
             </div>
@@ -97,8 +97,8 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
         <div
           className="
             relative z-10 mt-4 overflow-hidden rounded-xl
-            bg-purple-50/70 dark:bg-purple-500/10
-            border border-purple-200/40 dark:border-purple-400/20
+            bg-[var(--brand-soft)]
+            border border-[var(--brand-soft-strong)]
           "
         >
           <button
@@ -109,14 +109,14 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
             className="
               flex w-full items-center justify-between px-3 py-2.5
               text-left transition-colors
-              hover:bg-purple-100/50 dark:hover:bg-purple-500/[0.08]
+              hover:bg-[var(--brand-soft-strong)]
             "
           >
             <span className="text-[12px] font-semibold text-gray-700 dark:text-white/80">
               💡 {t('levelHowToEarn')}
             </span>
             <span
-              className={`material-icons-round text-[18px] text-purple-500/70 dark:text-purple-300/60 transition-transform duration-300 ${
+              className={`material-icons-round text-[18px] text-[var(--brand-muted)] transition-transform duration-300 ${
                 guideOpen ? 'rotate-180' : ''
               }`}
               aria-hidden="true"

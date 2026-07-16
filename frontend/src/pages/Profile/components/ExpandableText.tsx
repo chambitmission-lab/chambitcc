@@ -61,7 +61,7 @@ const ExpandableText = ({
               setExpanded((v) => !v)
             }}
             onKeyDown={(e) => e.stopPropagation()}
-            className="mt-1 text-[12px] font-semibold text-purple-500 dark:text-purple-300 transition-colors hover:text-purple-700 dark:hover:text-purple-200"
+            className="mt-1 text-[12px] font-semibold text-brand transition-colors hover:text-brand-dim"
             aria-expanded={expanded}
           >
             {expanded ? t('achievementCollapse') : `…${t('viewMore')}`}

@@ -59,7 +59,7 @@ const MyBookmarksList = () => {
             onClick={() => setFilter(f.value)}
             className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
               filter === f.value
-                ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
+                ? 'bg-[var(--brand-soft-strong)] text-brand'
                 : 'text-gray-400 dark:text-white/45 hover:text-gray-600 dark:hover:text-white/70'
             }`}
           >
@@ -131,10 +131,10 @@ const BookmarkCard = ({ item }: { item: VerseBookmarkWithVerse }) => {
         bg-white/80 dark:bg-card-dark
         border border-gray-200/70 dark:border-white/[0.08]
         shadow-sm
-        dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(168,85,247,0.08)]
+        dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
         cursor-pointer transition-colors
-        hover:border-purple-300/70 dark:hover:border-purple-500/35
-        active:bg-purple-50/60 dark:active:bg-purple-500/[0.07]
+        hover:border-[var(--brand-glow)]
+        active:bg-[var(--brand-soft)]
       "
       style={bg ? { borderLeft: `4px solid ${bg}` } : undefined}
     >
@@ -149,7 +149,7 @@ const BookmarkCard = ({ item }: { item: VerseBookmarkWithVerse }) => {
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[12px] font-bold text-purple-700 dark:text-purple-300 tracking-[-0.01em]">
+          <span className="text-[12px] font-bold text-brand tracking-[-0.01em]">
             {item.book_name_ko} {item.chapter}:{item.verse}
           </span>
           {item.is_favorite && (
@@ -167,7 +167,7 @@ const BookmarkCard = ({ item }: { item: VerseBookmarkWithVerse }) => {
         {item.note && (
           <div className="mt-3 pt-3 border-t border-dashed border-gray-300/70 dark:border-white/[0.08]">
             <div className="flex items-start gap-1.5">
-              <span className="material-icons-round text-[14px] text-purple-500 dark:text-purple-300 mt-0.5 shrink-0">
+              <span className="material-icons-round text-[14px] text-brand mt-0.5 shrink-0">
                 edit_note
               </span>
               <ExpandableText

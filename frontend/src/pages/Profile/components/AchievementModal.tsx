@@ -74,7 +74,7 @@ const AchievementModal = ({ achievement, onClose }: AchievementModalProps) => {
         
         {/* 보상 정보 */}
         {achievement.unlocked && (
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl mb-4">
+          <div className="p-4 bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] rounded-xl mb-4">
             <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
               🎁 {t('achievementReward')}
             </p>
@@ -89,7 +89,7 @@ const AchievementModal = ({ achievement, onClose }: AchievementModalProps) => {
         {/* 닫기 버튼 */}
         <button
           onClick={onClose}
-          className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg"
+          className="w-full py-3 brand-gradient font-bold rounded-xl shadow-[0_2px_10px_var(--brand-glow)] hover:shadow-[0_4px_16px_var(--brand-glow)] transition-all"
         >
           {t('achievementConfirm')}
         </button>

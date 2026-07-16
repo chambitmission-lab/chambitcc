@@ -90,8 +90,8 @@ const ProfileHeader = ({
 
   const cardFrame = `
     relative w-full overflow-hidden rounded-[20px]
-    border border-white/[0.14] bg-[#14111d]
-    shadow-[0_18px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(168,85,247,0.12),0_8px_32px_rgba(168,85,247,0.22)]
+    border border-white/[0.14] bg-[#10151d]
+    shadow-[0_18px_50px_rgba(0,0,0,0.45),0_0_0_1px_rgba(49,130,246,0.12),0_8px_32px_rgba(49,130,246,0.22)]
   `
 
   return (
@@ -153,7 +153,7 @@ const ProfileHeader = ({
                   <div
                     className="rounded-full p-[2px]"
                     style={{
-                      background: `conic-gradient(from 210deg, ${auraColor}, rgba(168,85,247,0.9), rgba(236,72,153,0.9), ${auraColor})`,
+                      background: `conic-gradient(from 210deg, ${auraColor}, rgba(49,130,246,0.9), rgba(96,165,250,0.9), ${auraColor})`,
                       boxShadow: `0 0 14px ${auraColor}`,
                     }}
                   >
@@ -161,10 +161,10 @@ const ProfileHeader = ({
                       <img
                         src={avatarUrl}
                         alt="프로필 사진"
-                        className="block h-16 w-16 rounded-full bg-[#211d2e] object-cover"
+                        className="block h-16 w-16 rounded-full bg-[#1a212c] object-cover"
                       />
                     ) : (
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#211d2e] text-[26px] font-black text-white/85">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1a212c] text-[26px] font-black text-white/85">
                         {(fullName || username).charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -173,7 +173,7 @@ const ProfileHeader = ({
                   {/* 카메라 배지 — 등록/교체 */}
                   <button
                     type="button"
-                    className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-[#2b2638] text-white/90 shadow-[0_2px_8px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 disabled:opacity-60"
+                    className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-[#243044] text-white/90 shadow-[0_2px_8px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 disabled:opacity-60"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={avatarBusy}
                     aria-label={avatarUrl ? '프로필 사진 변경' : '프로필 사진 등록'}
@@ -218,7 +218,7 @@ const ProfileHeader = ({
               </div>
 
               <h2
-                className="relative m-0 bg-gradient-to-b from-white via-white to-purple-200/80 bg-clip-text text-[38px] font-black italic leading-[1.1] tracking-[-0.03em] text-transparent"
+                className="relative m-0 bg-gradient-to-b from-white via-white to-blue-200/80 bg-clip-text text-[38px] font-black italic leading-[1.1] tracking-[-0.03em] text-transparent"
                 style={{
                   filter: `drop-shadow(0 2px 14px ${auraColor})`,
                   wordBreak: 'keep-all',
@@ -285,11 +285,11 @@ const ProfileHeader = ({
                 <div
                   className="shrink-0 rounded-full p-[2px]"
                   style={{
-                    background: `conic-gradient(from 210deg, ${auraColor}, rgba(168,85,247,0.9), rgba(236,72,153,0.9), ${auraColor})`,
+                    background: `conic-gradient(from 210deg, ${auraColor}, rgba(49,130,246,0.9), rgba(96,165,250,0.9), ${auraColor})`,
                     boxShadow: `0 0 12px ${auraColor}`,
                   }}
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#211d2e]">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1a212c]">
                     <span
                       className="material-icons-round text-[19px]"
                       style={{
@@ -380,7 +380,7 @@ const ProfileHeader = ({
                       className="h-full rounded-full"
                       style={{
                         width: `${nextProgress}%`,
-                        background: 'linear-gradient(to right, #a855f7, #ec4899)',
+                        background: 'linear-gradient(to right, #3182f6, #60a5fa)',
                         boxShadow: `0 0 8px ${auraColor}`,
                       }}
                     />

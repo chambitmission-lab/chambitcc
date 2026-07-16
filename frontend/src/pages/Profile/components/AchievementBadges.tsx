@@ -28,11 +28,11 @@ const BadgeMedallion = ({ achievement, shineDelay }: BadgeMedallionProps) => {
         className="ach-ring-unlocked relative h-16 w-16 rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-110 group-active:scale-95"
         style={{
           background:
-            'conic-gradient(from 210deg, #a855f7, #ec4899, #f59e0b, #ec4899, #a855f7)',
+            'conic-gradient(from 210deg, #3182f6, #60a5fa, #f59e0b, #60a5fa, #3182f6)',
           boxShadow: `0 0 16px ${achievement.glowColor}`,
         }}
       >
-        <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white dark:bg-[#241f33]">
+        <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white dark:bg-card-dark">
           {/* 배지 색상 은은한 내부 틴트 */}
           <div
             className="pointer-events-none absolute inset-0"
@@ -61,10 +61,10 @@ const BadgeMedallion = ({ achievement, shineDelay }: BadgeMedallionProps) => {
       className="relative h-16 w-16 rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-105 group-active:scale-95"
       style={{
         // 링 자체가 진행률 게이지 — 채워질수록 해금이 가까워 보이게
-        background: `conic-gradient(rgba(168, 85, 247, 0.75) ${progressPct}%, rgba(148, 163, 184, 0.28) 0)`,
+        background: `conic-gradient(rgba(49, 130, 246, 0.75) ${progressPct}%, rgba(148, 163, 184, 0.28) 0)`,
       }}
     >
-      <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-100 dark:bg-[#211d2e]">
+      <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-100 dark:bg-card-dark">
         <span
           className="text-[26px] leading-none opacity-40"
           style={{ filter: 'grayscale(1)' }}
@@ -72,7 +72,7 @@ const BadgeMedallion = ({ achievement, shineDelay }: BadgeMedallionProps) => {
           {achievement.icon}
         </span>
       </div>
-      <div className="absolute -right-0.5 -bottom-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-300 dark:bg-[#3a3547] ring-2 ring-white dark:ring-card-dark">
+      <div className="absolute -right-0.5 -bottom-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-300 dark:bg-[#3a3a3a] ring-2 ring-white dark:ring-card-dark">
         <span className="material-icons-round text-[11px] text-gray-500 dark:text-white/45">
           lock
         </span>
@@ -100,7 +100,7 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
           bg-white/80 dark:bg-card-dark
           border border-gray-200/70 dark:border-white/[0.08]
           shadow-sm
-          dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(168,85,247,0.10)]
+          dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
         "
       >
         <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
@@ -108,14 +108,14 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
         <div className="relative z-10 flex items-center justify-between mb-4">
           <h3 className="text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
             🏆 {t('achievementTitle')}{' '}
-            <span className="font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent tabular-nums">
+            <span className="font-semibold text-brand tabular-nums">
               {unlockedCount}/{achievements.length}
             </span>
           </h3>
           {achievements.length > INITIAL_COUNT && (
             <button
               onClick={() => setShowAll(!showAll)}
-              className="text-[12px] font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-purple-600 hover:to-pink-600 transition-all"
+              className="text-[12px] font-semibold text-brand hover:text-brand-dim transition-colors"
             >
               {showAll ? t('achievementCollapse') : t('achievementShowAll')}
             </button>

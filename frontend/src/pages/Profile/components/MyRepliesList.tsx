@@ -45,7 +45,7 @@ const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
             bg-white/80 dark:bg-card-dark
             border border-gray-200/70 dark:border-white/[0.08]
             shadow-sm
-            dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(168,85,247,0.08)]
+            dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
             transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md
           "
         >
@@ -53,13 +53,13 @@ const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
 
           <div className="relative z-10">
             {reply.prayer_title && (
-              <div className="mb-1.5 text-[12px] font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent truncate">
+              <div className="mb-1.5 text-[12px] font-semibold text-brand truncate">
                 {reply.prayer_title}
               </div>
             )}
 
             <div className="relative pl-3 mb-2.5">
-              <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-full bg-gradient-to-b from-purple-500 to-pink-500" />
+              <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-full bg-brand" />
               <ExpandableText
                 text={reply.content}
                 lines={3}

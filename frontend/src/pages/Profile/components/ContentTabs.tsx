@@ -30,15 +30,6 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
 
   return (
     <div className="flex gap-1.5 px-4 pb-3 mt-1 border-b border-border-light dark:border-border-dark">
-      {/* 활성 탭 아이콘의 보라→핑크 그라데이션 (SVG stroke는 bg-clip-text가 안 되므로 defs 참조) */}
-      <svg width="0" height="0" className="absolute" aria-hidden="true">
-        <defs>
-          <linearGradient id="profile-tab-icon-grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#a855f7" />
-            <stop offset="100%" stopColor="#ec4899" />
-          </linearGradient>
-        </defs>
-      </svg>
       {tabs.map((tab) => {
         const isActive = activeTab === tab.key
         return (
@@ -56,7 +47,7 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
           >
             <tab.Icon
               size={20}
-              style={isActive ? { stroke: 'url(#profile-tab-icon-grad)' } : undefined}
+              className={isActive ? 'text-brand' : undefined}
             />
             <span
               className={`text-[11px] font-semibold tracking-[-0.01em] ${
@@ -74,8 +65,8 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
             </span>
             {isActive && (
               <>
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.6),0_0_20px_rgba(236,72,153,0.4)]" />
-                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-sm" />
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand rounded-full shadow-[0_0_10px_var(--brand-glow)]" />
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand rounded-full blur-sm" />
               </>
             )}
           </button>
