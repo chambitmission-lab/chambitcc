@@ -46,6 +46,24 @@ const NewHome = () => {
   const prayerHookRef = useRef(prayerHook)
   prayerHookRef.current = prayerHook
 
+  // 하단 네비 목적지(성경/집중기도/프로필) lazy 청크 prefetch — 첫 탭에서 다운로드를 시작하면
+  // react-router v7의 startTransition 탓에 청크가 올 때까지 화면이 안 바뀌어 "안 눌린 것처럼" 느껴짐.
+  // 홈이 뜬 뒤 idle 타임에 미리 받아두면 첫 클릭도 즉시 전환된다.
+  useEffect(() => {
+    const prefetch = () => {
+      import('../Bible/BibleStudy')
+      import('../PrayerFocus')
+      import('../Profile/Profile')
+    }
+    // Safari는 requestIdleCallback 미지원 → setTimeout fallback
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(prefetch, { timeout: 3000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = window.setTimeout(prefetch, 1500)
+    return () => window.clearTimeout(id)
+  }, [])
+
   // 로그인 상태 변경 시 필터 초기화
   useEffect(() => {
     if (!isLoggedIn() && (selectedFilter === 'my_prayers' || selectedFilter === 'prayed_by_me')) {

@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 interface BottomNavigationProps {
   onProfileClick: () => void
   onComposeClick: () => void
@@ -13,6 +15,17 @@ const BottomNavigation = ({
   onFocusModeClick,
   onBibleClick,
 }: BottomNavigationProps) => {
+  // FAB ping은 진입 직후 시선 유도용으로만 몇 초 돌리고 멈춤 — 무한 애니메이션은 저사양 기기에서 상시 리페인트 비용
+  const [showPing, setShowPing] = useState(true)
+  useEffect(() => {
+    const id = window.setTimeout(() => setShowPing(false), 6000)
+    return () => window.clearTimeout(id)
+  }, [])
+
+  // 모바일엔 hover가 없어 탭 피드백이 전혀 없었음 — active로 즉각 반응을 준다
+  const navItemClass =
+    'relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] active:text-brand active:bg-[var(--brand-soft)] active:scale-90 transition-[color,background-color,transform] duration-150'
+
   return (
     <div className="relative px-3 pb-3 pt-6">
       {/* 중앙 Compose FAB — dock 위로 살짝 들어올린 유일한 saturated 액센트.
@@ -22,7 +35,9 @@ const BottomNavigation = ({
         aria-label="기도 작성"
         className="absolute left-1/2 -translate-x-1/2 top-0 z-20 w-14 h-14 rounded-full brand-gradient shadow-[0_0_0_6px_var(--brand-soft),0_10px_28px_var(--brand-glow)] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
       >
-        <span className="absolute inset-0 rounded-full bg-[var(--brand-glow)] animate-ping opacity-40 pointer-events-none" />
+        {showPing && (
+          <span className="absolute inset-0 rounded-full bg-[var(--brand-glow)] animate-ping opacity-40 pointer-events-none" />
+        )}
         <svg
           className="w-7 h-7 relative z-10"
           fill="none"
@@ -47,7 +62,7 @@ const BottomNavigation = ({
         <button
           onClick={onScrollToTop}
           aria-label="홈"
-          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+          className={navItemClass}
         >
           <svg
             className="w-[26px] h-[26px]"
@@ -67,7 +82,7 @@ const BottomNavigation = ({
         <button
           onClick={onBibleClick}
           aria-label="성경"
-          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+          className={navItemClass}
         >
           <span className="material-icons-outlined text-[26px]">menu_book</span>
         </button>
@@ -82,7 +97,7 @@ const BottomNavigation = ({
         <button
           onClick={onFocusModeClick}
           aria-label="집중 기도 모드"
-          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+          className={navItemClass}
         >
           <svg className="w-[26px] h-[26px]" viewBox="0 0 24 24">
             <defs>
@@ -113,7 +128,7 @@ const BottomNavigation = ({
         <button
           onClick={onProfileClick}
           aria-label="프로필"
-          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+          className={navItemClass}
         >
           <svg
             className="w-[26px] h-[26px]"
