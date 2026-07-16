@@ -19,7 +19,6 @@ export const profile = {
   profileEmptyPrayers: '아직 작성한 기도가 없습니다',
   profileEmptyPraying: '아직 기도중인 항목이 없습니다',
   profileEmptyReplies: '아직 작성한 댓글이 없습니다',
-  profilePrayingBadge: '기도중',
   profilePrayedAt: '기도함',
   profileReplyLabel: '댓글 작성',
   profileUntitledPrayer: '제목 없는 기도',

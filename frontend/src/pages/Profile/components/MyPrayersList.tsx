@@ -2,6 +2,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import type { MyPrayer } from '../../../types/profile'
 import { getRelativeTime } from '../../../utils/dateUtils'
 import ExpandableText from './ExpandableText'
+import { HandHeartIcon, CommentIcon } from '../../../components/icons/ActionIcons'
 
 interface MyPrayersListProps {
   prayers: MyPrayer[]
@@ -60,8 +61,14 @@ const MyPrayersList = ({ prayers, onPrayerClick }: MyPrayersListProps) => {
               textClassName="text-[14px] text-gray-700 dark:text-white/75 leading-[1.7]"
             />
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-gray-500 dark:text-white/50">
-              <span>🙏 {prayer.prayer_count}{language === 'ko' ? '명 ' : ' '}{t('peopleArePraying')}</span>
-              <span>💬 {t('reply')} {prayer.reply_count}{t('replyCount')}</span>
+              <span className="flex items-center gap-1">
+                <HandHeartIcon size={14} filled className="text-brand" />
+                {prayer.prayer_count}{language === 'ko' ? '' : ' '}{t('peopleArePraying')}
+              </span>
+              <span className="flex items-center gap-1">
+                <CommentIcon size={14} />
+                {prayer.reply_count}
+              </span>
               <span className="ml-auto">{getRelativeTime(prayer.created_at)}</span>
             </div>
           </div>

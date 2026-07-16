@@ -11,6 +11,10 @@ interface MyRepliesListProps {
 const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
   const { t } = useLanguage()
 
+  // 익명 표시 이름 — "익명" 대신 마 6:6의 골방 기도자 (피드와 동일, 데이터 값은 그대로 둔다)
+  const shownName = (displayName: string) =>
+    displayName === '익명' || displayName === 'Anonymous' ? t('anonymousDisplayName') : displayName
+
   if (replies.length === 0) {
     return (
       <div className="text-center py-12">
@@ -67,7 +71,7 @@ const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
             </div>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-gray-500 dark:text-white/50">
-              <span>{reply.display_name}{t('profileWrittenAs')}</span>
+              <span>{shownName(reply.display_name)}{t('profileWrittenAs')}</span>
               <span className="ml-auto">{getRelativeTime(reply.created_at)}</span>
             </div>
           </div>

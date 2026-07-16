@@ -1,5 +1,11 @@
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { ProfileTab } from '../../../types/profile'
+import {
+  PenLineIcon,
+  HandHeartIcon,
+  CommentIcon,
+  BookOpenIcon,
+} from '../../../components/icons/ActionIcons'
 
 interface ContentTabsProps {
   activeTab: ProfileTab
@@ -16,14 +22,23 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
   const { t } = useLanguage()
 
   const tabs = [
-    { key: 'prayers', icon: 'edit_note', labelKey: 'myPrayers', count: counts.prayers },
-    { key: 'praying', icon: 'volunteer_activism', labelKey: 'prayingFor', count: counts.praying },
-    { key: 'replies', icon: 'chat_bubble', labelKey: 'myReplies', count: counts.replies },
-    { key: 'notes', icon: 'auto_stories', labelKey: 'meditationNotes', count: counts.notes },
+    { key: 'prayers', Icon: PenLineIcon, labelKey: 'myPrayers', count: counts.prayers },
+    { key: 'praying', Icon: HandHeartIcon, labelKey: 'prayingFor', count: counts.praying },
+    { key: 'replies', Icon: CommentIcon, labelKey: 'myReplies', count: counts.replies },
+    { key: 'notes', Icon: BookOpenIcon, labelKey: 'meditationNotes', count: counts.notes },
   ] as const
 
   return (
     <div className="flex gap-1.5 px-4 pb-3 mt-1 border-b border-border-light dark:border-border-dark">
+      {/* 활성 탭 아이콘의 보라→핑크 그라데이션 (SVG stroke는 bg-clip-text가 안 되므로 defs 참조) */}
+      <svg width="0" height="0" className="absolute" aria-hidden="true">
+        <defs>
+          <linearGradient id="profile-tab-icon-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#a855f7" />
+            <stop offset="100%" stopColor="#ec4899" />
+          </linearGradient>
+        </defs>
+      </svg>
       {tabs.map((tab) => {
         const isActive = activeTab === tab.key
         return (
@@ -39,15 +54,10 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
               }
             `}
           >
-            <span
-              className={`material-icons-outlined text-[20px] ${
-                isActive
-                  ? 'bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent'
-                  : ''
-              }`}
-            >
-              {tab.icon}
-            </span>
+            <tab.Icon
+              size={20}
+              style={isActive ? { stroke: 'url(#profile-tab-icon-grad)' } : undefined}
+            />
             <span
               className={`text-[11px] font-semibold tracking-[-0.01em] ${
                 isActive ? 'text-gray-900 dark:text-white' : ''

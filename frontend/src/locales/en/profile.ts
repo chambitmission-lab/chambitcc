@@ -19,7 +19,6 @@ export const profile = {
   profileEmptyPrayers: 'No prayers written yet',
   profileEmptyPraying: 'Not praying for anything yet',
   profileEmptyReplies: 'No replies written yet',
-  profilePrayingBadge: 'Praying',
   profilePrayedAt: 'Prayed',
   profileReplyLabel: 'Reply written',
   profileUntitledPrayer: 'Untitled prayer',

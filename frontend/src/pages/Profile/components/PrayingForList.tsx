@@ -2,6 +2,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import type { PrayingFor } from '../../../types/profile'
 import { getRelativeTime } from '../../../utils/dateUtils'
 import ExpandableText from './ExpandableText'
+import { HandHeartIcon } from '../../../components/icons/ActionIcons'
 
 interface PrayingForListProps {
   prayers: PrayingFor[]
@@ -10,6 +11,10 @@ interface PrayingForListProps {
 
 const PrayingForList = ({ prayers, onPrayerClick }: PrayingForListProps) => {
   const { t, language } = useLanguage()
+
+  // 익명 표시 이름 — "익명" 대신 마 6:6의 골방 기도자 (피드와 동일, 데이터 값은 그대로 둔다)
+  const shownName = (displayName: string) =>
+    displayName === '익명' || displayName === 'Anonymous' ? t('anonymousDisplayName') : displayName
 
   if (prayers.length === 0) {
     return (
@@ -48,12 +53,9 @@ const PrayingForList = ({ prayers, onPrayerClick }: PrayingForListProps) => {
           <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
 
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-2">
+            <div className="mb-2">
               <span className="text-[12px] font-semibold text-gray-600 dark:text-white/60">
-                {prayer.display_name}
-              </span>
-              <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/20">
-                {t('profilePrayingBadge')}
+                {shownName(prayer.display_name)}
               </span>
             </div>
 
@@ -69,7 +71,10 @@ const PrayingForList = ({ prayers, onPrayerClick }: PrayingForListProps) => {
               textClassName="text-[14px] text-gray-700 dark:text-white/75 leading-[1.7]"
             />
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-gray-500 dark:text-white/50">
-              <span>🙏 {prayer.prayer_count}{language === 'ko' ? '명 ' : ' '}{t('peopleArePraying')}</span>
+              <span className="flex items-center gap-1">
+                <HandHeartIcon size={14} filled className="text-brand" />
+                {prayer.prayer_count}{language === 'ko' ? '' : ' '}{t('peopleArePraying')}
+              </span>
               <span className="ml-auto">
                 {getRelativeTime(prayer.prayed_at)} {t('profilePrayedAt')}
               </span>
