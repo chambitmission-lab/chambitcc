@@ -356,11 +356,11 @@ const Ministry = () => {
         {/* Detail Modal */}
         {selectedColumn && (
           <div
-            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4 pt-[4.5rem]"
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[110] flex items-center justify-center p-4"
             onClick={() => setSelectedColumn(null)}
           >
             <div
-              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[calc(100dvh-5.5rem)] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
+              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
@@ -442,11 +442,11 @@ const Ministry = () => {
         {/* Edit Modal */}
         {isEditing && (
           <div
-            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4 pt-[4.5rem]"
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[110] flex items-center justify-center p-4"
             onClick={handleCancel}
           >
             <div
-              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[calc(100dvh-5.5rem)] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
+              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark p-5 z-10">
@@ -569,7 +569,7 @@ const Ministry = () => {
         {/* Delete Confirm Modal — 기도 DeleteConfirmModal과 동일 패턴 */}
         {showDeleteConfirm && (
           <div
-            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[60] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[120] flex items-center justify-center p-4"
             onClick={() => setShowDeleteConfirm(false)}
           >
             <div
