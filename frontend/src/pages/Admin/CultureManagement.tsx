@@ -24,7 +24,7 @@ import type {
 type TabKey = 'classes' | 'applications' | 'notices'
 
 const inputClass =
-  'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
+  'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
 const labelClass =
   'text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block'
@@ -190,7 +190,7 @@ const ClassFormPanel = ({
             ).map(({ key, label }) => (
               <label key={key} className="flex items-center gap-2 cursor-pointer mt-5">
                 <div
-                  className={`w-10 h-6 rounded-full transition-colors ${form[key] ? 'bg-purple-500' : 'bg-gray-200 dark:bg-white/10'}`}
+                  className={`w-10 h-6 rounded-full transition-colors ${form[key] ? 'bg-brand' : 'bg-gray-200 dark:bg-white/10'}`}
                   onClick={() => set({ [key]: !form[key] } as Partial<ClassForm>)}
                 >
                   <div
@@ -207,7 +207,7 @@ const ClassFormPanel = ({
           <button
             onClick={() => onSave(form)}
             disabled={isPending}
-            className="flex-1 py-2.5 text-sm font-semibold bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors"
           >
             {isPending ? '저장 중...' : '저장'}
           </button>
@@ -274,7 +274,7 @@ const NoticeFormPanel = ({
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
             <div
-              className={`w-10 h-6 rounded-full transition-colors ${form.is_active ? 'bg-purple-500' : 'bg-gray-200 dark:bg-white/10'}`}
+              className={`w-10 h-6 rounded-full transition-colors ${form.is_active ? 'bg-brand' : 'bg-gray-200 dark:bg-white/10'}`}
               onClick={() => setForm((f) => ({ ...f, is_active: !f.is_active }))}
             >
               <div
@@ -288,7 +288,7 @@ const NoticeFormPanel = ({
           <button
             onClick={() => onSave(form)}
             disabled={isPending}
-            className="flex-1 py-2.5 text-sm font-semibold bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors"
           >
             {isPending ? '저장 중...' : '저장'}
           </button>
@@ -473,7 +473,7 @@ const CultureManagement = () => {
 
   const spinner = (
     <div className="flex justify-center py-20">
-      <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-purple-500 rounded-full animate-spin" />
+      <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
     </div>
   )
 
@@ -484,7 +484,7 @@ const CultureManagement = () => {
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
           >
             <svg
               width="18"
@@ -503,7 +503,7 @@ const CultureManagement = () => {
           <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white">
             문화교실 관리
           </h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand tracking-[0.08em]">
             ADMIN
           </span>
         </div>
@@ -522,8 +522,8 @@ const CultureManagement = () => {
               onClick={() => setTab(t.key)}
               className={`flex-1 py-2 text-[13px] font-semibold rounded-xl border transition-colors ${
                 tab === t.key
-                  ? 'border-purple-400/60 dark:border-purple-400/40 bg-purple-50/80 dark:bg-purple-500/[0.12] text-purple-700 dark:text-purple-300'
-                  : 'border-gray-200/70 dark:border-white/[0.06] text-gray-500 dark:text-white/50 hover:border-purple-300/50'
+                  ? 'border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] text-brand'
+                  : 'border-gray-200/70 dark:border-white/[0.06] text-gray-500 dark:text-white/50 hover:border-[var(--brand-soft-strong)]'
               }`}
             >
               {t.label}
@@ -549,7 +549,7 @@ const CultureManagement = () => {
                       {c.title}
                     </span>
                     {c.is_open ? (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 font-bold">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand font-bold">
                         모집중
                       </span>
                     ) : (
@@ -566,7 +566,7 @@ const CultureManagement = () => {
                   <p className="text-[12px] text-gray-400 dark:text-white/40 mt-1">
                     {[c.instructor, c.schedule, c.fee].filter(Boolean).join(' · ') || '—'}
                   </p>
-                  <p className="text-[12px] text-purple-600/80 dark:text-purple-300/70 font-semibold mt-0.5">
+                  <p className="text-[12px] text-[var(--brand-muted)] font-semibold mt-0.5">
                     신청 {c.application_count}명{c.capacity ? ` / 정원 ${c.capacity}명` : ''}
                   </p>
                   <div className="flex gap-1 mt-2">
@@ -575,7 +575,7 @@ const CultureManagement = () => {
                         setTab('applications')
                         setClassFilter(c.id)
                       }}
-                      className="px-2.5 py-1 text-[12px] font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10 rounded-lg transition-colors"
+                      className="px-2.5 py-1 text-[12px] font-medium text-brand hover:bg-[var(--brand-soft)] rounded-lg transition-colors"
                     >
                       신청자
                     </button>
@@ -651,7 +651,7 @@ const CultureManagement = () => {
                         {STATUS_LABEL[a.status]}
                       </span>
                     </div>
-                    <p className="text-[12px] text-purple-600/80 dark:text-purple-300/70 font-medium mt-0.5">
+                    <p className="text-[12px] text-[var(--brand-muted)] font-medium mt-0.5">
                       {a.class_title ?? '삭제된 강좌'}
                     </p>
                     <p className="text-[12px] text-gray-400 dark:text-white/40 mt-0.5">
@@ -760,7 +760,7 @@ const CultureManagement = () => {
               setShowNoticeForm(true)
             }
           }}
-          className="fixed bottom-6 right-1/2 translate-x-[calc(50%+min(calc(100vw/2),24rem)-4.5rem)] z-30 flex items-center gap-2 px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-2xl shadow-[0_4px_20px_rgba(147,51,234,0.45)] transition-colors"
+          className="fixed bottom-6 right-1/2 translate-x-[calc(50%+min(calc(100vw/2),24rem)-4.5rem)] z-30 flex items-center gap-2 px-5 py-3 bg-brand hover:bg-brand-dim text-white text-sm font-bold rounded-2xl shadow-[0_4px_20px_var(--brand-glow)] transition-colors"
         >
           <span className="material-icons-round text-[18px]">add</span>
           {tab === 'classes' ? '강좌 추가' : '공지 추가'}
