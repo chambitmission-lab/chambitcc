@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { getColumns, createColumn, updateColumn, deleteColumn } from '../../api/column'
 import type { Column } from '../../types/column'
+import andongProfile from '../../assets/andong.png'
 import './Ministry.css'
 
 // 중요한 문구를 하이라이트하는 함수 (상세 화면용)
@@ -62,9 +64,8 @@ const highlightKeyword = (text: string, keyword: string) => {
 const Ministry = () => {
   const { language } = useLanguage()
   const isAdminUser = isAdmin()
+  const queryClient = useQueryClient()
   const [selectedColumn, setSelectedColumn] = useState<Column | null>(null)
-  const [columns, setColumns] = useState<Column[]>([])
-  const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [editingColumn, setEditingColumn] = useState<Partial<Column>>({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -74,10 +75,9 @@ const Ministry = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // 검색어 변경 시 디바운스로 백엔드 호출
+  // 검색어 변경 시 디바운스 — appliedQuery가 바뀌면 아래 쿼리가 자동 실행됨
   useEffect(() => {
     const timer = setTimeout(() => {
-      loadColumns(searchQuery)
       setAppliedQuery(searchQuery.trim())
     }, 300)
     return () => clearTimeout(timer)
@@ -90,17 +90,35 @@ const Ministry = () => {
     }
   }, [showSearch])
 
-  const loadColumns = async (q?: string) => {
-    try {
-      setLoading(true)
-      const data = await getColumns(q)
-      setColumns(data.filter(c => c.is_active))
-    } catch (error) {
-      console.error('Failed to load columns:', error)
+  // 칼럼은 주 1건 수준이라 캐시 우선: 재방문 시 캐시를 즉시 보여주고,
+  // 30분 지난 경우에만 백그라운드에서 조용히 갱신 (persister로 앱 재시작에도 유지)
+  const {
+    data: columns = [],
+    isPending: loading,
+    isError,
+  } = useQuery({
+    queryKey: ['columns', appliedQuery],
+    queryFn: async () => {
+      const data = await getColumns(appliedQuery)
+      return data.filter(c => c.is_active)
+    },
+    staleTime: 1000 * 60 * 30,
+    refetchOnMount: true, // 전역 기본(false)을 덮어써야 stale 시 백그라운드 갱신이 됨
+    placeholderData: keepPreviousData, // 검색어 타이핑 중 스피너 깜빡임 방지
+  })
+
+  useEffect(() => {
+    if (isError) {
       showToast('목양컬럼을 불러오는데 실패했습니다', 'error')
-    } finally {
-      setLoading(false)
     }
+  }, [isError])
+
+  // 관리자 변경 사항을 캐시에 즉시 반영하고, 서버 기준으로 재검증
+  const syncColumnsCache = (updater: (prev: Column[]) => Column[]) => {
+    queryClient.setQueriesData<Column[]>({ queryKey: ['columns'] }, (prev) =>
+      prev ? updater(prev) : prev
+    )
+    queryClient.invalidateQueries({ queryKey: ['columns'] })
   }
 
   const toggleSearch = () => {
@@ -139,12 +157,12 @@ const Ministry = () => {
       if (editingColumn.id) {
         // 수정
         const updated = await updateColumn(editingColumn.id, editingColumn)
-        setColumns(prev => prev.map(c => c.id === updated.id ? updated : c))
+        syncColumnsCache(prev => prev.map(c => c.id === updated.id ? updated : c))
         showToast('목양컬럼이 수정되었습니다', 'success')
       } else {
         // 생성
         const created = await createColumn(editingColumn as any)
-        setColumns(prev => [created, ...prev])
+        syncColumnsCache(prev => [created, ...prev])
         showToast('목양컬럼이 추가되었습니다', 'success')
       }
       setIsEditing(false)
@@ -160,7 +178,7 @@ const Ministry = () => {
 
     try {
       await deleteColumn(selectedColumn.id)
-      setColumns(prev => prev.filter(c => c.id !== selectedColumn.id))
+      syncColumnsCache(prev => prev.filter(c => c.id !== selectedColumn.id))
       showToast('목양컬럼이 삭제되었습니다', 'success')
       setSelectedColumn(null)
       setShowDeleteConfirm(false)
@@ -305,9 +323,11 @@ const Ministry = () => {
               <div className="p-4 flex items-center gap-3">
                 <div className="relative flex-shrink-0">
                   <div className="absolute inset-0 rounded-full bg-purple-400/30 dark:bg-purple-500/40 blur-md animate-pulse"></div>
-                  <div className="w-10 h-10 rounded-full backdrop-blur-md bg-gradient-to-b from-purple-400/60 via-purple-500/40 to-purple-600/25 dark:from-purple-400/50 dark:via-purple-500/30 dark:to-purple-600/20 border-2 border-purple-500/70 dark:border-purple-400/50 flex items-center justify-center text-white text-base font-bold shadow-[0_0_20px_rgba(168,85,247,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_20px_rgba(168,85,247,0.35),inset_0_1px_3px_rgba(255,255,255,0.3)] relative z-10">
-                    {column.author[0]}
-                  </div>
+                  <img
+                    src={andongProfile}
+                    alt={column.author}
+                    className="w-10 h-10 rounded-full object-cover border-2 border-purple-500/70 dark:border-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.5)] dark:shadow-[0_0_20px_rgba(168,85,247,0.35)] relative z-10"
+                  />
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-gray-900 dark:text-white text-sm leading-none mb-1">
@@ -336,11 +356,11 @@ const Ministry = () => {
         {/* Detail Modal */}
         {selectedColumn && (
           <div
-            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4 pt-[4.5rem]"
             onClick={() => setSelectedColumn(null)}
           >
             <div
-              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
+              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[calc(100dvh-5.5rem)] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
@@ -350,9 +370,11 @@ const Ministry = () => {
                     {/* 작성자 아바타 — 다른 화면과 동일한 펄스 글로우 패턴 */}
                     <div className="relative flex-shrink-0">
                       <div className="absolute inset-0 rounded-full bg-purple-400/30 dark:bg-purple-500/40 blur-md animate-pulse"></div>
-                      <div className="w-10 h-10 rounded-full backdrop-blur-md bg-gradient-to-b from-purple-400/60 via-purple-500/40 to-purple-600/25 dark:from-purple-400/50 dark:via-purple-500/30 dark:to-purple-600/20 border-2 border-purple-500/70 dark:border-purple-400/50 flex items-center justify-center text-white text-base font-bold shadow-[0_0_20px_rgba(168,85,247,0.5),inset_0_1px_3px_rgba(255,255,255,0.8)] dark:shadow-[0_0_20px_rgba(168,85,247,0.35),inset_0_1px_3px_rgba(255,255,255,0.3)] relative z-10">
-                        {selectedColumn.author[0]}
-                      </div>
+                      <img
+                        src={andongProfile}
+                        alt={selectedColumn.author}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-purple-500/70 dark:border-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.5)] dark:shadow-[0_0_20px_rgba(168,85,247,0.35)] relative z-10"
+                      />
                     </div>
                     <div className="flex flex-col">
                       <div className="text-sm font-semibold text-gray-900 dark:text-white leading-none mb-1">
@@ -420,11 +442,11 @@ const Ministry = () => {
         {/* Edit Modal */}
         {isEditing && (
           <div
-            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4 pt-[4.5rem]"
             onClick={handleCancel}
           >
             <div
-              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
+              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[calc(100dvh-5.5rem)] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark p-5 z-10">
