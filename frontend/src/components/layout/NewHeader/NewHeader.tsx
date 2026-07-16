@@ -23,16 +23,18 @@ const NewHeader = () => {
 
   return (
     <>
-      {/* Backdrop Blur Overlay */}
+      {/* Backdrop Blur Overlay — 하단 dock(z-100)까지 덮도록 dock보다 위 */}
       {isMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-md z-[55]" 
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-md z-[101]"
           onClick={() => setIsMenuOpen(false)}
         />
       )}
 
-      <header 
-        className="fixed top-0 left-0 right-0 z-[60] bg-background-light/85 dark:bg-background-dark/85 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06]"
+      {/* 메뉴가 열리면 헤더(와 그 안의 드롭다운 메뉴)를 하단 dock(z-100) 위,
+          모달류(z-110+) 아래로 올린다 — 평소 z-60을 유지해야 모달이 헤더를 덮을 수 있음 */}
+      <header
+        className={`fixed top-0 left-0 right-0 ${isMenuOpen ? 'z-[105]' : 'z-[60]'} bg-background-light/85 dark:bg-background-dark/85 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06]`}
         ref={menuRef}
       >
         <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
