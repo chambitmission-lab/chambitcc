@@ -320,67 +320,67 @@
  */
 
 /* 카드 자체 — .feed-card 문법 (불투명 서피스) */
-.answered-list .prayer-card,
-.answered-list .prayer-card.answered {
+.answered-list .legacy-prayer-card,
+.answered-list .legacy-prayer-card.answered {
   background: var(--surface-container);
   border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
   margin-bottom: 0; /* 목록 gap 으로 간격 처리 */
 }
 
-.answered-list .prayer-card:hover,
-.answered-list .prayer-card.answered:hover {
+.answered-list .legacy-prayer-card:hover,
+.answered-list .legacy-prayer-card.answered:hover {
   box-shadow: var(--card-shadow);
 }
 
-.answered-list .prayer-card .author-name {
+.answered-list .legacy-prayer-card .author-name {
   color: var(--text-strong);
 }
 
-.answered-list .prayer-card .prayer-time {
+.answered-list .legacy-prayer-card .prayer-time {
   color: var(--text-muted);
 }
 
-.answered-list .prayer-card .prayer-title {
+.answered-list .legacy-prayer-card .prayer-title {
   color: var(--text-strong);
 }
 
-.answered-list .prayer-card .prayer-content {
+.answered-list .legacy-prayer-card .prayer-content {
   color: var(--text-body);
 }
 
 /* 배지 — 응답됨(✨)은 기능적 앰버, 나머지는 뉴트럴 토큰 */
-.answered-list .prayer-card .answered-badge {
+.answered-list .legacy-prayer-card .answered-badge {
   background: var(--amber-soft);
   color: var(--amber);
 }
 
-.answered-list .prayer-card .owner-badge {
+.answered-list .legacy-prayer-card .owner-badge {
   background: var(--surface-inset);
   color: var(--text-muted);
 }
 
-.answered-list .prayer-card .prayer-group-badge {
+.answered-list .legacy-prayer-card .prayer-group-badge {
   background: var(--brand);
   color: var(--on-brand);
 }
 
 /* 간증 섹션 — 응답의 표징은 기능적 앰버 유지 (플랫 틴트, 라인/이모지 없음) */
-.answered-list .prayer-card .testimony-section {
+.answered-list .legacy-prayer-card .testimony-section {
   background: var(--amber-soft);
   border-left: 0;
   border-radius: 12px;
 }
 
-.answered-list .prayer-card .testimony-icon {
+.answered-list .legacy-prayer-card .testimony-icon {
   color: var(--amber-icon);
 }
 
-.answered-list .prayer-card .testimony-label {
+.answered-list .legacy-prayer-card .testimony-label {
   color: var(--amber);
 }
 
-.answered-list .prayer-card .testimony-content {
+.answered-list .legacy-prayer-card .testimony-content {
   color: var(--text-body);
 }
 
@@ -389,13 +389,13 @@
  * 토스 플랫 문법: 얇은 보더 + 서피스, 활성은 브랜드 솔리드 채움.
  * 4개 버튼(기도했어요/댓글/간증 수정/응답 취소) 가로 한 줄 유지.
  */
-.answered-list .prayer-card .prayer-actions {
+.answered-list .legacy-prayer-card .prayer-actions {
   border-top-color: var(--card-border);
   gap: 0.4rem;
   flex-wrap: nowrap;
 }
 
-.answered-list .prayer-card .action-button {
+.answered-list .legacy-prayer-card .action-button {
   flex: 1 1 0;
   min-width: 0;
   padding: 0.5rem 0.35rem;
@@ -407,58 +407,58 @@
   border-radius: 12px;
 }
 
-.answered-list .prayer-card .action-icon {
+.answered-list .legacy-prayer-card .action-icon {
   font-size: 0.95rem;
   line-height: 1;
   display: inline-flex;
   align-items: center;
 }
 
-.answered-list .prayer-card .action-text {
+.answered-list .legacy-prayer-card .action-text {
   font-size: 0.72rem;
   letter-spacing: -0.02em;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.answered-list .prayer-card .action-count {
+.answered-list .legacy-prayer-card .action-count {
   font-size: 0.72rem;
   font-weight: 800;
 }
 
-.answered-list .prayer-card .action-button,
-.answered-list .prayer-card.answered .action-button {
+.answered-list .legacy-prayer-card .action-button,
+.answered-list .legacy-prayer-card.answered .action-button {
   background: var(--surface-container);
   border: 1px solid var(--card-border);
   color: var(--text-body);
 }
 
-.answered-list .prayer-card .action-button:hover:not(:disabled) {
+.answered-list .legacy-prayer-card .action-button:hover:not(:disabled) {
   background: var(--brand-soft);
   border-color: var(--brand-soft-strong);
   color: var(--brand);
 }
 
-.answered-list .prayer-card .action-button.active,
-.answered-list .prayer-card.answered .action-button.active {
+.answered-list .legacy-prayer-card .action-button.active,
+.answered-list .legacy-prayer-card.answered .action-button.active {
   background: var(--brand);
   border-color: var(--brand);
   color: var(--on-brand);
 }
 
-.answered-list .prayer-card .action-button.active .action-count {
+.answered-list .legacy-prayer-card .action-button.active .action-count {
   color: var(--on-brand);
 }
 
 /* 응답(간증 수정) 버튼 — 브랜드 soft 위계 */
-.answered-list .prayer-card .answer-button,
-.answered-list .prayer-card.answered .answer-button {
+.answered-list .legacy-prayer-card .answer-button,
+.answered-list .legacy-prayer-card.answered .answer-button {
   background: var(--brand-soft);
   border: 1px solid var(--brand-soft-strong);
   color: var(--brand);
 }
 
-.answered-list .prayer-card .answer-button:hover:not(:disabled) {
+.answered-list .legacy-prayer-card .answer-button:hover:not(:disabled) {
   background: var(--brand-soft-strong);
   border-color: var(--brand-soft-strong);
   color: var(--brand);

@@ -27,7 +27,7 @@ const PrayerCard = ({
   showAnswerButton = true
 }: PrayerCardProps) => {
   return (
-    <div className={`prayer-card ${prayer.is_answered ? 'answered' : ''}`}>
+    <div className={`legacy-prayer-card ${prayer.is_answered ? 'answered' : ''}`}>
       {/* 그룹 배지 */}
       {prayer.group && (
         <div className="prayer-group-badge">

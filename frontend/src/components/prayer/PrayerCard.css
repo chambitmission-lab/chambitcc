@@ -1,4 +1,4 @@
-.prayer-card {
+.legacy-prayer-card {
   background: white;
   border-radius: 16px;
   padding: 1.5rem;
@@ -7,18 +7,18 @@
   transition: all 0.2s;
 }
 
-.prayer-card:hover {
+.legacy-prayer-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* 응답된 기도 카드 스타일 - 기존 디자인 유지하되 미묘한 강조 */
-.prayer-card.answered {
+.legacy-prayer-card.answered {
   background: linear-gradient(135deg, rgba(168, 85, 247, 0.03) 0%, rgba(147, 51, 234, 0.03) 100%);
   border: 1px solid rgba(168, 85, 247, 0.15);
   box-shadow: 0 2px 8px rgba(168, 85, 247, 0.1);
 }
 
-.prayer-card.answered:hover {
+.legacy-prayer-card.answered:hover {
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2);
 }
 
@@ -215,11 +215,11 @@
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
 }
 
-.prayer-card.answered .action-button {
+.legacy-prayer-card.answered .action-button {
   background: white;
 }
 
-.prayer-card.answered .action-button.active {
+.legacy-prayer-card.answered .action-button.active {
   background: rgb(168, 85, 247);
   color: white;
 }
