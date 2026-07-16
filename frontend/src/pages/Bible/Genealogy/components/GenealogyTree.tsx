@@ -51,13 +51,13 @@ const LIGHT: Palette = {
   textPrimary: '#111827',
   textSecondary: '#6b7280',
   link: '#cbd5e1',
-  selectedStroke: '#a855f7',
+  selectedStroke: '#3182f6',
   defaultStroke: '#e5e7eb',
-  messianicStroke: '#c084fc',
-  messianicGlow: 'rgba(168,85,247,0.35)',
+  messianicStroke: '#93c5fd',
+  messianicGlow: 'rgba(49,130,246,0.35)',
   jesusFill: 'url(#jesusGradLight)',
   jesusText: '#ffffff',
-  messianicFill: '#faf5ff',
+  messianicFill: '#eff6ff',
   defaultFill: '#f9fafb',
   spouseFill: '#fdf2f8',
   spouseStroke: '#f9a8d4',
@@ -68,18 +68,18 @@ const LIGHT: Palette = {
 }
 
 const DARK: Palette = {
-  bg: '#15151d',
+  bg: '#201f1f',
   textPrimary: '#f3f4f6',
   textSecondary: 'rgba(255,255,255,0.55)',
   link: 'rgba(255,255,255,0.18)',
-  selectedStroke: '#c084fc',
+  selectedStroke: '#4593fc',
   defaultStroke: 'rgba(255,255,255,0.10)',
-  messianicStroke: 'rgba(168,85,247,0.55)',
-  messianicGlow: 'rgba(168,85,247,0.5)',
+  messianicStroke: 'rgba(69,147,252,0.55)',
+  messianicGlow: 'rgba(49,130,246,0.5)',
   jesusFill: 'url(#jesusGradDark)',
   jesusText: '#ffffff',
-  messianicFill: 'rgba(168,85,247,0.10)',
-  defaultFill: '#1c1c26',
+  messianicFill: 'rgba(69,147,252,0.10)',
+  defaultFill: '#2a2a2a',
   spouseFill: 'rgba(236,72,153,0.10)',
   spouseStroke: 'rgba(236,72,153,0.55)',
   spouseText: '#f9a8d4',
@@ -110,8 +110,8 @@ const roleLabel = (figure: BibleFigureSummary): string | null => {
 /**
  * 메시아 직계 라인 수직 트리.
  * - 다크/라이트 자동 전환
- * - 메시아 직계는 보라 ring + 글로우, 예수는 솔리드 그라데이션
- * - 배우자(여인)는 핑크 pill
+ * - 메시아 직계는 브랜드 블루 ring + 글로우, 예수는 솔리드 블루
+ * - 배우자(여인)는 핑크 pill (기능색 — 브랜드로 덮지 않음)
  * - highlightSlugs 가 있으면 비매칭 노드 흐리게
  */
 export const GenealogyTree = ({
@@ -225,8 +225,9 @@ export const GenealogyTree = ({
       .attr('y1', '0%')
       .attr('x2', '100%')
       .attr('y2', '100%')
-    jesusGrad.append('stop').attr('offset', '0%').attr('stop-color', '#a855f7')
-    jesusGrad.append('stop').attr('offset', '100%').attr('stop-color', '#ec4899')
+    // 토스 블루 플랫 솔리드 — 그라데이션 구조는 유지하되 단색으로
+    jesusGrad.append('stop').attr('offset', '0%').attr('stop-color', '#3182f6')
+    jesusGrad.append('stop').attr('offset', '100%').attr('stop-color', '#3182f6')
 
     const glow = defs
       .append('filter')
@@ -239,7 +240,7 @@ export const GenealogyTree = ({
       .append('feGaussianBlur')
       .attr('in', 'SourceAlpha')
       .attr('stdDeviation', '4')
-    glow.append('feFlood').attr('flood-color', '#a855f7').attr('flood-opacity', '0.6')
+    glow.append('feFlood').attr('flood-color', '#3182f6').attr('flood-opacity', '0.6')
     glow.append('feComposite').attr('in2', 'SourceAlpha').attr('operator', 'in')
     const merge = glow.append('feMerge')
     merge.append('feMergeNode')
@@ -313,7 +314,7 @@ export const GenealogyTree = ({
         const targetM = d.target.data.figure.is_messianic_line
         const sourceM = d.source.data.figure.is_messianic_line
         if (targetM && sourceM) {
-          return theme === 'dark' ? 'rgba(168,85,247,0.45)' : 'rgba(168,85,247,0.55)'
+          return theme === 'dark' ? 'rgba(69,147,252,0.45)' : 'rgba(49,130,246,0.55)'
         }
         if (ltype === 'mother') {
           return theme === 'dark' ? 'rgba(244,114,182,0.55)' : 'rgba(219,39,119,0.45)'
@@ -411,7 +412,7 @@ export const GenealogyTree = ({
       .attr('stroke-width', 1.5)
       .style(
         'filter',
-        theme === 'dark' ? 'drop-shadow(0 0 8px rgba(168,85,247,0.35))' : 'none',
+        theme === 'dark' ? 'drop-shadow(0 0 8px rgba(49,130,246,0.35))' : 'none',
       )
 
     // 카드 배경
@@ -437,7 +438,7 @@ export const GenealogyTree = ({
       .attr('stroke-width', (d) => (d.data.slug === selectedSlug ? 2.5 : 1))
       .style('filter', (d) =>
         d.data.figure.slug === 'jesus_christ'
-          ? 'drop-shadow(0 8px 18px rgba(236,72,153,0.45))'
+          ? 'drop-shadow(0 8px 18px rgba(49,130,246,0.45))'
           : 'none',
       )
       .attr('opacity', (d) => {
@@ -453,7 +454,7 @@ export const GenealogyTree = ({
         .select('rect:last-of-type')
         .style('filter', (d) =>
           d.data.figure.slug === 'jesus_christ'
-            ? 'drop-shadow(0 8px 18px rgba(236,72,153,0.45))'
+            ? 'drop-shadow(0 8px 18px rgba(49,130,246,0.45))'
             : 'blur(0.8px)',
         )
     }
@@ -626,7 +627,7 @@ export const GenealogyTree = ({
 
   if (!root) {
     return (
-      <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#1c1c26] py-16 text-center text-gray-500 dark:text-white/50 text-[14px]">
+      <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark py-16 text-center text-gray-500 dark:text-white/50 text-[14px]">
         가계도를 그릴 데이터가 없습니다.
       </div>
     )
@@ -635,7 +636,7 @@ export const GenealogyTree = ({
   return (
     <div
       ref={scrollRef}
-      className="w-full max-h-[78vh] overflow-auto rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#15151d] relative"
+      className="w-full max-h-[78vh] overflow-auto rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark relative"
     >
       <div className="absolute inset-0 opacity-0 dark:opacity-100 pointer-events-none bg-gradient-to-br from-white/[0.04] via-transparent to-white/[0.02]" />
       <div className="flex justify-center min-w-min relative py-4 px-4">

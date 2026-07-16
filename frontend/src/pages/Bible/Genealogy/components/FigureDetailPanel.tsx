@@ -23,19 +23,16 @@ export const FigureDetailPanel = ({
   useModalBackButton(onClose, variant === 'sheet' && !!slug)
 
   const shellBase =
-    'relative rounded-2xl border bg-white dark:bg-[#1c1c26] border-gray-200 dark:border-white/[0.08] overflow-hidden'
-  const shellShadow =
-    variant === 'card'
-      ? 'shadow-[0_4px_24px_-8px_rgba(168,85,247,0.08)] dark:shadow-[0_10px_40px_-12px_rgba(168,85,247,0.2)]'
-      : ''
+    'relative rounded-2xl border bg-white dark:bg-card-dark border-gray-200 dark:border-white/[0.08] overflow-hidden'
+  const shellShadow = variant === 'card' ? 'shadow-[var(--card-shadow)]' : ''
 
   if (!slug) {
     return (
       <div className={`${shellBase} ${shellShadow} p-6`}>
         <div className="absolute inset-0 opacity-0 dark:opacity-100 pointer-events-none bg-gradient-to-br from-white/[0.05] via-transparent to-white/[0.02]" />
         <div className="relative text-center text-gray-500 dark:text-white/55 text-[13px] py-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/15 mb-3">
-            <span className="material-icons-round text-purple-500 dark:text-purple-300" style={{ fontSize: 22 }}>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[var(--brand-soft)] mb-3">
+            <span className="material-icons-round text-brand" style={{ fontSize: 22 }}>
               touch_app
             </span>
           </div>
@@ -86,12 +83,12 @@ export const FigureDetailPanel = ({
                 className={[
                   'inline-flex items-center gap-1 px-2.5 h-7 rounded-full text-[12px] font-semibold transition-all',
                   isMessianic
-                    ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 hover:bg-purple-100 dark:hover:bg-purple-500/25'
+                    ? 'bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft-strong)]'
                     : 'bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 border border-transparent hover:bg-gray-200 dark:hover:bg-white/[0.10]',
                 ].join(' ')}
               >
                 {isMessianic && (
-                  <span className="w-1 h-1 rounded-full bg-gradient-to-br from-purple-500 to-pink-500" />
+                  <span className="w-1 h-1 rounded-full bg-brand" />
                 )}
                 {p.name_ko}
               </button>
@@ -116,10 +113,10 @@ export const FigureDetailPanel = ({
               </h2>
               {data.is_messianic_line && (
                 <span
-                  className="inline-flex items-center gap-1 px-2 h-6 rounded-full text-[11px] font-bold bg-gradient-to-r from-purple-500/15 to-pink-500/15 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30"
+                  className="inline-flex items-center gap-1 px-2 h-6 rounded-full text-[11px] font-bold bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)]"
                   title="메시아 직계 라인"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-purple-500 to-pink-500" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand" />
                   메시아 라인
                 </span>
               )}
@@ -139,7 +136,7 @@ export const FigureDetailPanel = ({
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-white/45 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-500/15 transition-colors"
+            className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-white/45 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -160,13 +157,13 @@ export const FigureDetailPanel = ({
               <span className="text-gray-500 dark:text-white/55 font-medium">
                 키 구절 통독 진도
               </span>
-              <span className="font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <span className="font-bold text-brand">
                 {Math.round((data.reading_progress || 0) * 100)}%
               </span>
             </div>
             <div className="h-2 bg-gray-100 dark:bg-white/[0.06] rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+                className="h-full bg-brand transition-all duration-500"
                 style={{
                   width: `${Math.max(
                     (data.reading_progress || 0) > 0 ? 3 : 0,
@@ -207,20 +204,20 @@ export const FigureDetailPanel = ({
                     className={[
                       'relative rounded-xl border p-3.5 transition-all overflow-hidden',
                       kv.is_read
-                        ? 'border-purple-200 dark:border-purple-500/30 bg-purple-50/60 dark:bg-purple-500/10'
+                        ? 'border-[var(--brand-soft-strong)] bg-[var(--brand-soft)]'
                         : 'border-gray-200 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.03]',
                     ].join(' ')}
                   >
                     {kv.is_read && (
                       <div
-                        className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-pink-500"
+                        className="absolute left-0 top-0 bottom-0 w-1 bg-brand"
                         aria-hidden
                       />
                     )}
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <Link
                         to={linkTo}
-                        className="inline-flex items-center gap-1 text-[12.5px] font-bold text-purple-700 dark:text-purple-300 hover:underline"
+                        className="inline-flex items-center gap-1 text-[12.5px] font-bold text-brand hover:underline"
                       >
                         {ref}
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -228,7 +225,7 @@ export const FigureDetailPanel = ({
                         </svg>
                       </Link>
                       {kv.is_read && (
-                        <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-purple-600 dark:text-purple-300">
+                        <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-brand">
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12" />
                           </svg>

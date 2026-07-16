@@ -70,7 +70,7 @@ export const EraTimeline = ({
 
   if (nodes.length === 0) {
     return (
-      <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#1c1c26] py-16 text-center text-gray-500 dark:text-white/50 text-[14px]">
+      <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark py-16 text-center text-gray-500 dark:text-white/50 text-[14px]">
         조건에 맞는 인물이 없습니다.
       </div>
     )
@@ -87,7 +87,7 @@ export const EraTimeline = ({
           <section key={group.key} className="relative">
             {/* 시대 헤더 */}
             <div className="flex items-center gap-2 mb-3">
-              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white text-[12px] font-bold shadow-[0_4px_12px_-2px_rgba(168,85,247,0.5)]">
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand text-white text-[12px] font-bold shadow-[0_4px_12px_-2px_var(--brand-glow)]">
                 {gi + 1}
               </span>
               <h3 className="text-[15.5px] font-bold tracking-[-0.01em] text-gray-900 dark:text-white">
@@ -150,12 +150,12 @@ const FigureRow = ({ figure, selected, progress, isLoggedIn, onSelect }: FigureR
       className={[
         'relative w-full text-left rounded-2xl px-3.5 py-3 border transition-all group overflow-hidden',
         isJesus
-          ? 'bg-gradient-to-br from-purple-500 to-pink-500 border-transparent shadow-[0_10px_28px_-12px_rgba(236,72,153,0.6)]'
+          ? 'bg-brand border-transparent shadow-[0_10px_28px_-12px_var(--brand-glow)]'
           : selected
-            ? 'bg-purple-50 dark:bg-purple-500/15 border-purple-300 dark:border-purple-500/40'
+            ? 'bg-[var(--brand-soft)] border-[color:var(--brand)]'
             : isMessianic
-              ? 'bg-white dark:bg-[#1c1c26] border-purple-200 dark:border-purple-500/25 hover:border-purple-300 dark:hover:border-purple-500/40'
-              : 'bg-white dark:bg-[#1c1c26] border-gray-200 dark:border-white/[0.06] hover:border-gray-300 dark:hover:border-white/[0.15]',
+              ? 'bg-white dark:bg-card-dark border-[var(--brand-soft-strong)] hover:border-[color:var(--brand)]'
+              : 'bg-white dark:bg-card-dark border-gray-200 dark:border-white/[0.06] hover:border-gray-300 dark:hover:border-white/[0.15]',
       ].join(' ')}
     >
       {/* 다크 카드 미세 광택 */}
@@ -171,7 +171,7 @@ const FigureRow = ({ figure, selected, progress, isLoggedIn, onSelect }: FigureR
             isJesus
               ? 'bg-white/25 text-white backdrop-blur-sm'
               : isMessianic
-                ? 'bg-gradient-to-br from-purple-500/15 to-pink-500/15 text-purple-700 dark:text-purple-300 ring-1 ring-purple-300 dark:ring-purple-500/30'
+                ? 'bg-[var(--brand-soft)] text-brand ring-1 ring-[var(--brand-soft-strong)]'
                 : isFemale
                   ? 'bg-pink-50 dark:bg-pink-500/10 text-pink-700 dark:text-pink-300'
                   : 'bg-gray-100 dark:bg-white/[0.05] text-gray-600 dark:text-white/70',
@@ -192,7 +192,7 @@ const FigureRow = ({ figure, selected, progress, isLoggedIn, onSelect }: FigureR
             </span>
             {isMessianic && !isJesus && (
               <span
-                className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0"
+                className="w-1.5 h-1.5 rounded-full bg-brand flex-shrink-0"
                 title="메시아 직계"
               />
             )}
@@ -211,7 +211,7 @@ const FigureRow = ({ figure, selected, progress, isLoggedIn, onSelect }: FigureR
                   : isFemale
                     ? 'bg-pink-50 dark:bg-pink-500/15 text-pink-700 dark:text-pink-300'
                     : isMessianic
-                      ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
+                      ? 'bg-[var(--brand-soft)] text-brand'
                       : 'bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-white/60',
               ].join(' ')}
             >
@@ -233,7 +233,7 @@ const FigureRow = ({ figure, selected, progress, isLoggedIn, onSelect }: FigureR
                   'h-full rounded-full transition-all duration-500',
                   isJesus
                     ? 'bg-white'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500',
+                    : 'bg-brand',
                 ].join(' ')}
                 style={{ width: `${Math.max(progress > 0 ? 4 : 0, progress * 100)}%` }}
               />

@@ -88,7 +88,7 @@ export const Genealogy = () => {
           <div className="flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-gray-400 mb-3">
             <Link
               to="/bible"
-              className="hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+              className="hover:text-brand transition-colors"
             >
               성경
             </Link>
@@ -96,7 +96,7 @@ export const Genealogy = () => {
             <span className="text-gray-700 dark:text-gray-300">믿음의 가계도</span>
           </div>
 
-          <p className="text-purple-600 dark:text-purple-300/90 text-[11.5px] font-bold tracking-[0.14em] uppercase mb-1.5">
+          <p className="text-brand text-[11.5px] font-bold tracking-[0.14em] uppercase mb-1.5">
             Genealogy · 구속사 라인
           </p>
           <h1 className="text-gray-900 dark:text-white text-[26px] md:text-[30px] font-bold leading-[1.2] tracking-[-0.02em]">
@@ -111,7 +111,7 @@ export const Genealogy = () => {
                 {' '}
                 <Link
                   to="/login"
-                  className="text-purple-600 dark:text-purple-300 hover:underline font-medium"
+                  className="text-brand hover:underline font-medium"
                 >
                   로그인
                 </Link>
@@ -136,22 +136,22 @@ export const Genealogy = () => {
 
         {/* 로그인 사용자 진도 바 */}
         {overallProgress !== null && (
-          <div className="mb-4 rounded-2xl bg-white dark:bg-[#1c1c26] border border-gray-200 dark:border-white/[0.08] p-4 relative overflow-hidden">
+          <div className="mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] p-4 relative overflow-hidden">
             <div
-              className="absolute inset-0 opacity-50 dark:opacity-100 pointer-events-none bg-gradient-to-br from-purple-500/[0.04] via-transparent to-pink-500/[0.04] dark:from-white/[0.05] dark:via-transparent dark:to-white/[0.02]"
+              className="absolute inset-0 opacity-50 dark:opacity-100 pointer-events-none bg-gradient-to-br from-[var(--brand-soft)] via-transparent to-transparent dark:from-white/[0.05] dark:via-transparent dark:to-white/[0.02]"
             />
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[13px] font-semibold text-gray-700 dark:text-white/90">
                   메시아 라인 통독 진도
                 </span>
-                <span className="text-[13px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+                <span className="text-[13px] font-bold text-brand">
                   {Math.round(overallProgress * 100)}%
                 </span>
               </div>
               <div className="h-2 rounded-full bg-gray-100 dark:bg-white/[0.06] overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-700 rounded-full"
+                  className="h-full bg-brand transition-all duration-700 rounded-full"
                   style={{ width: `${Math.max(2, overallProgress * 100)}%` }}
                 />
               </div>
@@ -160,7 +160,7 @@ export const Genealogy = () => {
         )}
 
         {/* 검색 + 필터 + 뷰 토글 카드 */}
-        <div className="mb-5 rounded-2xl bg-white dark:bg-[#1c1c26] border border-gray-200 dark:border-white/[0.08] p-3 relative overflow-hidden">
+        <div className="mb-5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] p-3 relative overflow-hidden">
           <div className="absolute inset-0 opacity-0 dark:opacity-100 pointer-events-none bg-gradient-to-br from-white/[0.05] via-transparent to-white/[0.02]" />
           <div className="relative flex flex-col gap-3">
             {/* 검색 + 뷰 토글 한 줄 */}
@@ -174,14 +174,14 @@ export const Genealogy = () => {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="인물·시대·역할 검색"
-                  className="w-full h-10 pl-10 pr-3 rounded-xl text-[13.5px] bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 focus:outline-none focus:border-purple-400 dark:focus:border-purple-500/60 transition-colors"
+                  className="w-full h-10 pl-10 pr-3 rounded-xl text-[13.5px] bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 focus:outline-none focus:border-brand transition-colors"
                 />
                 {query && (
                   <button
                     type="button"
                     onClick={() => setQuery('')}
                     aria-label="검색 지우기"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-500/15 transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
                   >
                     ×
                   </button>
@@ -202,7 +202,7 @@ export const Genealogy = () => {
                     className={[
                       'inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-medium whitespace-nowrap flex-shrink-0 transition-all',
                       active
-                        ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30'
+                        ? 'bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)]'
                         : 'bg-gray-50 dark:bg-white/[0.04] text-gray-600 dark:text-white/60 border border-transparent hover:bg-gray-100 dark:hover:bg-white/[0.08]',
                     ].join(' ')}
                   >
@@ -218,7 +218,7 @@ export const Genealogy = () => {
         {/* 검색/필터 결과 안내 */}
         {data && (query || roleFilter !== 'all') && (
           <div className="mb-3 text-[12.5px] text-gray-500 dark:text-white/55">
-            <span className="font-semibold text-purple-600 dark:text-purple-300">
+            <span className="font-semibold text-brand">
               {filteredNodes.length}명
             </span>
             의 인물이 일치합니다
@@ -226,7 +226,7 @@ export const Genealogy = () => {
         )}
 
         {isLoading && (
-          <div className="rounded-2xl bg-white dark:bg-[#1c1c26] border border-gray-200 dark:border-white/[0.08] py-16 text-center text-gray-500 dark:text-white/50 text-[14px]">
+          <div className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] py-16 text-center text-gray-500 dark:text-white/50 text-[14px]">
             가계도를 불러오는 중...
           </div>
         )}
@@ -299,7 +299,7 @@ export const Genealogy = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 32, stiffness: 280 }}
-              className="lg:hidden fixed bottom-0 left-0 right-0 z-50 max-h-[88vh] bg-white dark:bg-[#1c1c26] rounded-t-[28px] shadow-[0_-20px_60px_-10px_rgba(168,85,247,0.35)] border-t border-x border-gray-200 dark:border-white/[0.08] flex flex-col overflow-hidden"
+              className="lg:hidden fixed bottom-0 left-0 right-0 z-50 max-h-[88vh] bg-white dark:bg-card-dark rounded-t-[28px] shadow-[0_-20px_60px_-10px_var(--brand-glow)] border-t border-x border-gray-200 dark:border-white/[0.08] flex flex-col overflow-hidden"
             >
               <div className="flex-shrink-0 flex justify-center py-2.5">
                 <div className="w-10 h-1.5 bg-gray-300 dark:bg-white/20 rounded-full" />
@@ -335,12 +335,9 @@ const StatChip = ({
   progress?: boolean
 }) => {
   let cls = 'bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/75 border border-gray-200 dark:border-white/[0.06]'
-  if (accent) {
+  if (accent || progress) {
     cls =
-      'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30'
-  } else if (progress) {
-    cls =
-      'bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-500/15 dark:to-pink-500/15 text-purple-700 dark:text-pink-300 border border-purple-200 dark:border-purple-500/30'
+      'bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)]'
   }
   return (
     <span
@@ -375,7 +372,7 @@ const ViewToggle = ({
             className={[
               'inline-flex items-center gap-1 px-2.5 h-8 rounded-lg text-[12px] font-semibold transition-all',
               active
-                ? 'bg-white dark:bg-purple-500/20 text-purple-700 dark:text-purple-200 shadow-sm'
+                ? 'bg-white dark:bg-[var(--brand-soft-strong)] text-brand shadow-sm'
                 : 'text-gray-500 dark:text-white/55 hover:text-gray-700 dark:hover:text-white/80',
             ].join(' ')}
           >

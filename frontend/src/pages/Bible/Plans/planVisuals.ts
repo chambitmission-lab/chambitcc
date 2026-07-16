@@ -1,24 +1,21 @@
-// 읽기 플랜 공통 비주얼 토큰 — brand purple→pink 통일 (메모리 다크모드 합의)
+// 읽기 플랜 공통 비주얼 토큰 — 토스 블루 테마(theme.css)에 맞춘 블루 계열 통일
 import type { CSSProperties } from 'react'
 
-// accent 키 → 그라데이션 (purple/pink/fuchsia/rose 만 허용)
-// pink/rose 계열은 시작색을 한 단계 밝혀(400) 어두운 배경에서 죽은 느낌(비활성 오인)을 방지
+// accent 키 → 그라데이션. DB에는 기존 purple/pink/fuchsia/rose 키가 저장돼 있어
+// 키는 유지하고 값만 블루 패밀리로 매핑한다 (플랜별 톤 변주는 블루 안에서만)
 export const ACCENT_GRADIENT: Record<string, string> = {
-  purple: 'from-purple-500 to-pink-500',
-  pink: 'from-pink-400 to-rose-500',
-  fuchsia: 'from-fuchsia-500 to-purple-500',
-  rose: 'from-rose-400 to-pink-500',
+  purple: 'from-blue-500 to-blue-600',
+  pink: 'from-sky-400 to-blue-500',
+  fuchsia: 'from-indigo-400 to-blue-600',
+  rose: 'from-cyan-400 to-sky-500',
 }
 
 export const accentGradient = (accent?: string | null): string =>
   ACCENT_GRADIENT[accent ?? 'purple'] ?? ACCENT_GRADIENT.purple
 
-// 통계 숫자용 brand 그라데이션 텍스트
+// 통계 숫자용 brand 강조 텍스트 — 플랫 솔리드 블루 (그라데이션 대신 단색)
 export const gradientTextStyle: CSSProperties = {
-  backgroundImage: 'linear-gradient(135deg,#a855f7,#ec4899)',
-  WebkitBackgroundClip: 'text',
-  backgroundClip: 'text',
-  color: 'transparent',
+  color: 'var(--brand)',
   fontVariantNumeric: 'tabular-nums',
 }
 

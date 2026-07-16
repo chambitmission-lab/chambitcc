@@ -54,7 +54,7 @@ const PlanList = () => {
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
             onClick={() => navigate('/bible')}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
             aria-label="성경 공부로"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -67,29 +67,25 @@ const PlanList = () => {
           </h1>
         </div>
 
-        {/* Hero — 인스타 스토리 그라데이션 링 */}
-        <section className="mx-4 mt-5 rounded-[26px] p-[2.5px] bg-gradient-to-tr from-amber-400 via-pink-500 to-purple-600 shadow-[0_10px_34px_-12px_rgba(168,85,247,0.65)]">
-          <div className="relative overflow-hidden rounded-[23.5px] px-6 py-8 bg-gradient-to-br from-white to-purple-50 dark:from-[#16131f] dark:to-[#251a36]">
-            {/* 감성 글로우 + 워터마크 */}
-            <div className="absolute -top-10 -right-8 w-40 h-40 rounded-full bg-pink-400/25 dark:bg-pink-500/20 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-12 -left-10 w-44 h-44 rounded-full bg-purple-400/20 dark:bg-purple-600/20 blur-3xl pointer-events-none" />
-            <span className="absolute -right-2 -bottom-6 text-[120px] leading-none opacity-[0.08] dark:opacity-[0.12] rotate-12 select-none pointer-events-none">
-              📖
-            </span>
+        {/* Hero — 토스 블루 플랫 솔리드 배너 */}
+        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-brand shadow-[0_10px_34px_-12px_var(--brand-glow)]">
+          {/* 워터마크 이모지 — 단색 배경 위 은은한 질감 */}
+          <span className="absolute -right-2 -bottom-6 text-[120px] leading-none opacity-[0.14] rotate-12 select-none pointer-events-none">
+            📖
+          </span>
 
-            <div className="relative z-10">
-              <span className="block text-[11px] font-medium uppercase tracking-[0.34em] text-purple-500 dark:text-purple-300/90">
-                Reading&nbsp;Plan
-              </span>
-              <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] text-gray-900 dark:text-white mt-3">
-                오늘부터,
-                <br />
-                함께 읽어요
-              </h2>
-              <p className="text-[13px] font-light leading-[1.7] text-gray-500 dark:text-white/55 mt-3 max-w-[15rem]">
-                계획을 골라 시작하면 매일 분량과 진행률·연속 기록을 챙겨드려요.
-              </p>
-            </div>
+          <div className="relative z-10">
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/70">
+              Reading&nbsp;Plan
+            </span>
+            <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] text-white mt-3">
+              오늘부터,
+              <br />
+              함께 읽어요
+            </h2>
+            <p className="text-[13px] font-light leading-[1.7] text-white/75 mt-3 max-w-[15rem]">
+              계획을 골라 시작하면 매일 분량과 진행률·연속 기록을 챙겨드려요.
+            </p>
           </div>
         </section>
 
@@ -192,8 +188,8 @@ const PlanList = () => {
                           onClick={() => setTagFilter(tag)}
                           className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold tracking-[-0.01em] transition-all duration-150 active:scale-95 ${
                             active
-                              ? 'bg-[linear-gradient(135deg,#a855f7,#ec4899)] text-white shadow-[0_4px_12px_-4px_rgba(168,85,247,0.6)]'
-                              : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60 hover:bg-purple-100 dark:hover:bg-white/[0.12]'
+                              ? 'bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
+                              : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60 hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.12]'
                           }`}
                         >
                           {tag ? `#${tag}` : '전체'}
@@ -246,7 +242,7 @@ const Hashtags = ({ plan }: { plan: PlanSummary }) => {
       {tags.map((t) => (
         <span
           key={t}
-          className="text-[11px] font-medium tracking-[-0.02em] text-purple-500 dark:text-purple-300/80"
+          className="text-[11px] font-medium tracking-[-0.02em] text-brand"
         >
           #{t}
         </span>
@@ -280,8 +276,8 @@ const PlanVisual = ({
           loading="lazy"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        {/* 브랜드 틴트(보라→핑크, 저채도) — 사진마다 다른 색감을 하나의 톤으로 묶는다 */}
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(168,85,247,0.28),rgba(236,72,153,0.22))] mix-blend-multiply" />
+        {/* 브랜드 틴트(블루, 저채도) — 사진마다 다른 색감을 하나의 톤으로 묶는다 */}
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(49,130,246,0.30),rgba(96,165,250,0.18))] mix-blend-multiply" />
         {/* 하단 그라데이션 — 이모지 배지 대비 확보 */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
         {/* 이모지 유리 배지 — 사진 위에 플랜 정체성을 한 점 남긴다 */}
@@ -327,7 +323,7 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
   <button
     type="button"
     onClick={onClick}
-    className="group relative flex h-full w-full flex-col text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-purple-300/50 dark:hover:border-purple-400/30 active:scale-[0.97]"
+    className="group relative flex h-full w-full flex-col text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.97]"
   >
     {/* 정사각 → 5:4로 살짝 낮춰 무게중심을 텍스트 쪽으로 — 글씨가 먼저 읽힌다 */}
     <div className="relative aspect-[5/4] shrink-0">
@@ -355,7 +351,7 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
         strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="shrink-0 text-gray-300 dark:text-white/30 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-purple-500 dark:group-hover:text-purple-300"
+        className="shrink-0 text-gray-300 dark:text-white/30 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-brand"
       >
         <polyline points="9 18 15 12 9 6" />
       </svg>
@@ -364,7 +360,7 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
 )
 
 // 피처형 카드 (이어서 읽기 · 가로형) — 진행률 강조
-// 상태 색 규칙: 진행 중 = 브랜드 그라데이션(보라→핑크)으로 통일, 완주 = 차분한 에메랄드.
+// 상태 색 규칙: 진행 중 = 브랜드 블루로 통일, 완주 = 차분한 에메랄드.
 // 플랜별 accent 그라데이션은 커버 비주얼에만 쓰고 게이지에서는 빼서 "색 = 상태"가 되게 한다.
 // today(오늘 분량)가 있으면 "N일차 · 본문" 미리보기 + [오늘 분량 읽기] CTA를 노출해
 // 텍스트 정보만으로는 약했던 "지금 뭘 읽어야 하는지"를 카드에서 바로 답해준다.
@@ -392,7 +388,7 @@ const FeaturedPlanCard = ({
     <button
       type="button"
       onClick={onClick}
-      className="group relative flex w-full text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-purple-300/50 dark:hover:border-purple-400/30 active:scale-[0.985]"
+      className="group relative flex w-full text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985]"
     >
       <div className="relative w-[104px] shrink-0 self-stretch">
         <PlanVisual plan={plan} size="feature" />
@@ -433,20 +429,18 @@ const FeaturedPlanCard = ({
 
         {subscribed && progress && (
           <div className="mt-3">
-            {/* 진행 게이지 — 트랙에 브랜드 틴트(연보라→연핑크)를 깔아 카드 배경과
+            {/* 진행 게이지 — 트랙에 브랜드 틴트를 깔아 카드 배경과
                 확실히 분리하고, "앞으로 채워질 길"이 눈에 보이게 한다 */}
             <div
               className={`h-2.5 rounded-full overflow-hidden ${
-                completed
-                  ? 'bg-emerald-500/[0.12]'
-                  : 'bg-[linear-gradient(90deg,rgba(168,85,247,0.22),rgba(236,72,153,0.22))] dark:bg-[linear-gradient(90deg,rgba(168,85,247,0.32),rgba(236,72,153,0.32))]'
+                completed ? 'bg-emerald-500/[0.12]' : 'bg-[var(--brand-soft-strong)]'
               }`}
             >
               <div
                 className={`h-full rounded-full transition-[width] duration-500 ${
                   completed
                     ? 'bg-emerald-400/80 dark:bg-emerald-400/70'
-                    : 'bg-[linear-gradient(90deg,#a855f7,#ec4899)] shadow-[0_0_8px_rgba(236,72,153,0.55)]'
+                    : 'bg-brand shadow-[0_0_8px_var(--brand-glow)]'
                 }`}
                 style={{ width: `${Math.min(100, progress.percent)}%` }}
               />
@@ -469,7 +463,7 @@ const FeaturedPlanCard = ({
                 {today?.day_title ? ` · ${today.day_title}` : ''}
               </p>
               {todayRefs && (
-                <p className="text-[11.5px] tracking-[-0.02em] text-purple-600 dark:text-purple-300/90 truncate mt-0.5">
+                <p className="text-[11.5px] tracking-[-0.02em] text-brand truncate mt-0.5">
                   {todayRefs}
                 </p>
               )}
@@ -482,7 +476,7 @@ const FeaturedPlanCard = ({
                 오늘 완료
               </span>
             ) : (
-              <span className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-[linear-gradient(135deg,#a855f7,#ec4899)] text-white text-[11.5px] font-bold tracking-[-0.02em] leading-none shadow-[0_4px_14px_-4px_rgba(236,72,153,0.7)] transition-transform group-hover:scale-[1.04]">
+              <span className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-brand text-white text-[11.5px] font-bold tracking-[-0.02em] leading-none shadow-[0_4px_14px_-4px_var(--brand-glow)] transition-transform group-hover:scale-[1.04]">
                 오늘 분량 읽기
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="9 18 15 12 9 6" />
