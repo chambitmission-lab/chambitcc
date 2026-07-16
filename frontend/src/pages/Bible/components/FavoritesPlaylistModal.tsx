@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Reorder, useDragControls } from 'framer-motion'
+import { useQueryClient } from '@tanstack/react-query'
 import { API_V1 } from '../../../config/api'
-import { useMyBookmarks, useReorderBookmarks } from '../../../hooks/useBibleBookmark'
+import {
+  bookmarkKeys,
+  useMyBookmarks,
+  useReorderBookmarks,
+  useUpsertBookmark,
+} from '../../../hooks/useBibleBookmark'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
 
@@ -239,6 +245,19 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
     if (!dirtyRef.current) return
     dirtyRef.current = false
     reorderMutation.mutate(itemsRef.current.map((it) => it.id))
+  }
+
+  // 행의 즐겨찾기 해제 — 서버 반영(행 컴포넌트)과 별개로 목록·큐에서 즉시 제거.
+  // 듣던 절이 남아 있으면 재생 위치를 따라가 pos가 다른 절로 튀지 않게 한다.
+  const removeFromPlaylist = (target: VerseBookmarkWithVerse) => {
+    // 듣던 절을 지우면 일시정지 — src만 갈아끼우면 pause 이벤트 없이 멎어 버튼 상태가 어긋난다
+    if (target.id === currentId) audioRef.current?.pause()
+    const nextQueue = queue.filter((id) => id !== target.id)
+    const keepId = currentId !== target.id ? currentId : undefined
+    const keepIdx = keepId !== undefined ? nextQueue.indexOf(keepId) : -1
+    setPos(keepIdx >= 0 ? keepIdx : Math.min(pos, Math.max(0, nextQueue.length - 1)))
+    setQueue(nextQueue)
+    setItems((prev) => prev.filter((it) => it.id !== target.id))
   }
 
   const cycleRate = () => {
@@ -527,6 +546,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                   const qp = queue.indexOf(item.id)
                   if (qp >= 0) playAt(qp)
                 }}
+                onRemove={() => removeFromPlaylist(item)}
                 onDragEnd={handleDragEnd}
               />
             ))}
@@ -580,15 +600,33 @@ interface PlaylistRowProps {
   active: boolean
   playing: boolean
   onPlay: () => void
+  onRemove: () => void
   onDragEnd: () => void
 }
 
 /**
  * 플레이리스트 한 줄 — 본문 탭은 재생, 우측 핸들만 드래그 시작점.
  * dragListener={false} + dragControls로 핸들 외 영역에서는 리스트 스크롤이 그대로 동작한다.
+ * 하트 탭 = 즐겨찾기 해제(목록에서 제거). 북마크 삭제가 아니라 is_favorite만 끄므로
+ * 절에 남긴 형광펜·노트는 보존된다.
  */
-const PlaylistRow = ({ item, active, playing, onPlay, onDragEnd }: PlaylistRowProps) => {
+const PlaylistRow = ({ item, active, playing, onPlay, onRemove, onDragEnd }: PlaylistRowProps) => {
   const dragControls = useDragControls()
+  const queryClient = useQueryClient()
+  const unfavorite = useUpsertBookmark(item.verse_id)
+
+  const handleRemove = () => {
+    if (unfavorite.isPending) return
+    onRemove() // 목록·큐에서 즉시 제거 (optimistic)
+    unfavorite.mutate(
+      { highlight_color: item.highlight_color, note: item.note, is_favorite: false },
+      {
+        // 실패하면 서버 목록을 다시 받아 되살린다
+        onError: () =>
+          queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' }),
+      }
+    )
+  }
 
   return (
     <Reorder.Item
@@ -642,12 +680,21 @@ const PlaylistRow = ({ item, active, playing, onPlay, onDragEnd }: PlaylistRowPr
 
       <button
         type="button"
+        onClick={handleRemove}
+        aria-label="즐겨찾기 해제"
+        className="shrink-0 self-stretch px-1.5 grid place-items-center text-pink-400/80 dark:text-pink-300/70 hover:text-pink-600 dark:hover:text-pink-400 transition-colors active:scale-90"
+      >
+        <span className="material-icons-round text-[18px]">favorite</span>
+      </button>
+
+      <button
+        type="button"
         onPointerDown={(e) => {
           e.preventDefault()
           dragControls.start(e)
         }}
         aria-label="순서 변경 (드래그)"
-        className="shrink-0 self-stretch px-2.5 grid place-items-center cursor-grab active:cursor-grabbing text-gray-300 dark:text-white/25 hover:text-gray-500 dark:hover:text-white/50 transition-colors touch-none"
+        className="shrink-0 self-stretch pl-1 pr-2.5 grid place-items-center cursor-grab active:cursor-grabbing text-gray-300 dark:text-white/25 hover:text-gray-500 dark:hover:text-white/50 transition-colors touch-none"
       >
         <span className="material-icons-round text-[20px]">drag_indicator</span>
       </button>
