@@ -50,32 +50,30 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
           <span>{language === 'ko' ? 'English' : '한국어'}</span>
         </button>
 
-        {/* 로그인/로그아웃 — brand purple→pink 통일 */}
+        {/* 로그인/로그아웃 — 브랜드 블루 통일 */}
         {isLoggedIn ? (
           <button
             onClick={onLogout}
             className="
               px-3 py-2.5 rounded-xl text-[14px] font-bold tracking-[-0.01em]
-              hover:bg-purple-50/70 dark:hover:bg-purple-500/10
+              text-brand
+              hover:bg-[var(--brand-soft)]
               transition-colors
             "
           >
-            <span className="bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
-              {t('logout')}
-            </span>
+            {t('logout')}
           </button>
         ) : (
           <Link
             to="/login"
             className="
               px-3 py-2.5 rounded-xl text-[14px] font-bold tracking-[-0.01em]
-              hover:bg-purple-50/70 dark:hover:bg-purple-500/10
+              text-brand
+              hover:bg-[var(--brand-soft)]
               transition-colors
             "
           >
-            <span className="bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
-              {t('login')}
-            </span>
+            {t('login')}
           </Link>
         )}
       </div>

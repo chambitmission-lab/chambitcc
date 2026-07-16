@@ -1,4 +1,4 @@
-// 정원 → "성경 칭호" 페이지로 전면 개편. 다크모드 토큰(#0b0b12 / #1c1c26 / purple→pink).
+// 정원 → "성경 칭호" 페이지로 전면 개편. 토스 블루 플랫 테마(theme.css 토큰).
 // 신앙 나무(GrowingTree)는 삭제하지 않고 SHOW_FAITH_TREE 플래그로 휴면 처리(언제든 복구 가능).
 
 import { useState } from 'react'
@@ -48,7 +48,7 @@ export const Garden: React.FC = () => {
 
   return (
     <div className="garden-page">
-      {/* Hero — NewHome 의 AnnualThemeVerse 톤과 정렬한 보라/핑크 그라데이션 카드 */}
+      {/* Hero — 브랜드 블루 액센트의 플랫 서피스 카드 */}
       <section className="garden-hero">
         <div className="garden-hero-emblem" aria-hidden>
           <span className="material-icons-round">{SHOW_FAITH_TREE ? 'park' : 'military_tech'}</span>

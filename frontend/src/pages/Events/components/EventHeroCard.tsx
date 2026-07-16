@@ -29,7 +29,7 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
           'relative overflow-hidden rounded-3xl p-5',
           'bg-gradient-to-br',
           v.gradient,
-          'shadow-[0_18px_44px_-18px_rgba(168,85,247,0.6)]',
+          'shadow-[0_18px_44px_-18px_var(--brand-glow)]',
           'transition-transform duration-200 group-active:scale-[0.99]',
         ].join(' ')}
       >

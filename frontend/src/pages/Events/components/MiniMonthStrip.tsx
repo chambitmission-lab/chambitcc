@@ -49,7 +49,7 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
   const monthLabel = `${date.getFullYear()}년 ${date.getMonth() + 1}월`
 
   return (
-    <div className="relative mx-4 mb-4 rounded-2xl bg-white dark:bg-[#1c1c26] border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none overflow-hidden">
+    <div className="relative mx-4 mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none overflow-hidden">
       <div
         className="absolute inset-x-0 top-0 h-px"
         style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)' }}
@@ -95,7 +95,7 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
             key={d}
             className={[
               'text-center text-[11px] font-bold py-1',
-              i === 0 ? 'text-pink-500 dark:text-pink-200/90' : i === 6 ? 'text-purple-500 dark:text-purple-200/90' : 'text-gray-400 dark:text-white/45',
+              i === 0 ? 'text-rose-500 dark:text-rose-300/90' : i === 6 ? 'text-brand' : 'text-gray-400 dark:text-white/45',
             ].join(' ')}
           >
             {d}
@@ -131,14 +131,14 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
                   isToday
                     ? 'text-white'
                     : dow === 0
-                      ? 'text-pink-500 dark:text-pink-200'
+                      ? 'text-rose-500 dark:text-rose-300'
                       : dow === 6
-                        ? 'text-purple-500 dark:text-purple-200'
+                        ? 'text-brand'
                         : 'text-gray-700 dark:text-white/85',
                 ].join(' ')}
               >
                 {isToday ? (
-                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold shadow-[0_4px_12px_-2px_rgba(168,85,247,0.6)]">
+                  <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand text-white font-bold shadow-[0_4px_12px_-2px_var(--brand-glow)]">
                     {d.getDate()}
                   </span>
                 ) : (

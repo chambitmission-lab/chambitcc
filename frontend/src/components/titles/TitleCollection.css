@@ -1,4 +1,4 @@
-/* 성경 칭호 컬렉션 레이아웃 */
+/* 성경 칭호 컬렉션 레이아웃 — 토스 블루 플랫 테마(theme.css 토큰) */
 .title-collection {
   display: flex;
   flex-direction: column;
@@ -12,9 +12,9 @@
   gap: 10px;
   padding: 16px;
   border-radius: 20px;
-  background: #1c1c26;
-  border: 1px solid rgba(168, 85, 247, 0.2);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
 }
 
 .title-stat {
@@ -33,10 +33,7 @@
 }
 
 .gradient-num {
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--brand);
 }
 
 .title-stat-unit {
@@ -50,12 +47,12 @@
 
 .title-stat-sub {
   font-size: 12px;
-  color: #8b8b97;
+  color: var(--text-muted);
 }
 
 .title-stat-label {
   font-size: 12px;
-  color: #b9b9c4;
+  color: var(--text-body);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -83,17 +80,17 @@
   margin: 0;
   font-size: 16px;
   font-weight: 700;
-  color: #f4f4f6;
+  color: var(--text-strong);
 }
 
 .title-section-count {
   margin-left: auto;
   font-size: 12px;
   font-weight: 700;
-  color: #a78bfa;
+  color: var(--brand);
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(168, 85, 247, 0.14);
+  background: var(--brand-soft);
 }
 
 .title-grid {
@@ -109,7 +106,7 @@
   align-items: center;
   gap: 10px;
   padding: 60px 16px;
-  color: #b9b9c4;
+  color: var(--text-muted);
 }
 
 .title-collection-spinner {
@@ -128,14 +125,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .title-collection-spinner { animation: none; }
-}
-
-/* 라이트 모드 */
-:root:not([data-theme='dark']) .title-collection-stats {
-  background: #ffffff;
-}
-:root:not([data-theme='dark']) .title-section-title {
-  color: #1f2937;
 }
 
 @media (max-width: 768px) {

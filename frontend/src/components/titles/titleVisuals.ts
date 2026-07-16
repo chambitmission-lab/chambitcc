@@ -1,5 +1,5 @@
 // 칭호 티어/카테고리 시각 토큰 — 카드와 해금 팝업이 공유.
-// 티어 색은 메달(게임 시맨틱) 색으로 브랜드 purple→pink 예외 허용.
+// 티어 색은 메달(게임 시맨틱) 색으로 브랜드 블루를 따르지 않는 예외 허용.
 import type { TitleTier, TitleCategory } from '../../api/titles'
 
 export interface TierVisual {

@@ -32,7 +32,7 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
           name="title"
           value={formData.title}
           onChange={onChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand focus:border-transparent"
           placeholder="설교 제목을 입력하세요"
           required
         />
@@ -48,7 +48,7 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
           name="pastor"
           value={formData.pastor}
           onChange={onChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand focus:border-transparent"
           placeholder="목사님 성함을 입력하세요"
           required
         />
@@ -64,7 +64,7 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
           name="bible_verse"
           value={formData.bible_verse}
           onChange={onChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand focus:border-transparent"
           placeholder="예: 요한복음 3:16"
           required
         />
@@ -92,7 +92,7 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
           value={formData.content}
           onChange={onChange}
           rows={6}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand focus:border-transparent resize-none"
           placeholder="설교 내용을 입력하세요 (트랜스크립트 업로드 시 자동 생성 가능)"
           required
         />
@@ -111,7 +111,7 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
           name="video_url"
           value={formData.video_url || ''}
           onChange={onChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand focus:border-transparent"
           placeholder="https://www.youtube.com/watch?v=..."
         />
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -129,7 +129,7 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
           name="thumbnail_url"
           value={formData.thumbnail_url || ''}
           onChange={onChange}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand focus:border-transparent"
           placeholder="https://example.com/image.jpg"
         />
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">

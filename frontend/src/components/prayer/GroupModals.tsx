@@ -1,4 +1,4 @@
-// 그룹 생성/가입 모달 — 다크 합의 토큰 (purple→pink, #1c1c26 솔리드, outline X 버튼)
+// 그룹 생성/가입 모달 — 토스 블루 플랫 테마 (theme.css 브랜드 토큰, card-dark 솔리드, outline X 버튼)
 import { useState, type ReactNode } from 'react'
 import { useCreateGroup, useJoinGroup } from '../../hooks/useGroups'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -25,14 +25,14 @@ const ModalShell = ({ title, onClose, children }: ModalShellProps) => {
     onClick={onClose}
   >
     <div
-      className="relative w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18)] flex flex-col"
+      className="relative w-full sm:max-w-md max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="hidden dark:block absolute inset-0 pointer-events-none">
         <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent" />
       </div>
-      <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/15 dark:to-pink-500/8 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-purple-400/10 dark:from-pink-500/10 dark:to-purple-500/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/15 to-sky-400/10 dark:from-blue-500/15 dark:to-sky-500/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-sky-400/10 to-blue-400/10 dark:from-sky-500/10 dark:to-blue-500/8 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
         <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
@@ -41,7 +41,7 @@ const ModalShell = ({ title, onClose, children }: ModalShellProps) => {
         <button
           type="button"
           onClick={onClose}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-purple-500 dark:hover:text-purple-300 transition-colors"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
           aria-label="닫기"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -123,7 +123,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
 
           {/* 그룹 미리보기 */}
           <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] mb-3">
-            <div className="shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[22px] shadow-[0_6px_18px_-6px_rgba(168,85,247,0.55)]">
+            <div className="shrink-0 w-12 h-12 rounded-2xl bg-brand flex items-center justify-center text-[22px] shadow-[0_6px_18px_-6px_var(--brand-glow)]">
               {createdGroup.icon || '👥'}
             </div>
             <div className="min-w-0">
@@ -137,7 +137,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
           </div>
 
           {/* 초대 코드 카드 */}
-          <div className="relative overflow-hidden rounded-2xl p-4 bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_18px_44px_-18px_rgba(168,85,247,0.6)]">
+          <div className="relative overflow-hidden rounded-2xl p-4 bg-brand shadow-[0_18px_44px_-18px_var(--brand-glow)]">
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
@@ -197,8 +197,8 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
             )}
 
             {/* 미리보기 */}
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-purple-500/5 dark:bg-purple-500/8 border border-purple-500/15 dark:border-purple-500/20">
-              <div className="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[20px] shadow-[0_4px_14px_-4px_rgba(168,85,247,0.55)]">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
+              <div className="shrink-0 w-11 h-11 rounded-xl bg-brand flex items-center justify-center text-[20px] shadow-[0_4px_14px_-4px_var(--brand-glow)]">
                 {icon}
               </div>
               <div className="min-w-0">
@@ -223,7 +223,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 placeholder={t('groupNamePlaceholder')}
                 required
                 maxLength={50}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
               />
             </FieldGroup>
 
@@ -235,7 +235,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 placeholder={t('groupDescriptionPlaceholder')}
                 rows={3}
                 maxLength={200}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.6]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.6]"
               />
               <p className="text-[11px] font-semibold text-gray-400 dark:text-white/40 mt-1 text-right tabular-nums">
                 {description.length}/200
@@ -255,7 +255,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                       className={[
                         'aspect-square flex items-center justify-center text-[22px] rounded-xl transition-all',
                         active
-                          ? 'bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_4px_14px_-4px_rgba(168,85,247,0.55)] ring-2 ring-purple-400/40 dark:ring-purple-400/30'
+                          ? 'bg-brand shadow-[0_4px_14px_-4px_var(--brand-glow)] ring-2 ring-[var(--brand-soft-strong)]'
                           : 'bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06]',
                       ].join(' ')}
                     >
@@ -268,7 +268,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
           </div>
 
           {/* 푸터 */}
-          <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+          <div className="sticky bottom-0 bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
             <button
               type="button"
               onClick={handleClose}
@@ -279,7 +279,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
             <button
               type="submit"
               disabled={!name.trim() || createMutation.isPending}
-              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {createMutation.isPending ? (
                 <>
@@ -340,7 +340,7 @@ export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
         <div className="flex-1 px-5 py-5 space-y-5">
           {/* 안내 일러스트 */}
           <div className="text-center pt-2">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-3">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--brand-soft-strong)] mb-3">
               <span className="text-[28px]">🎟️</span>
             </div>
             <p className="text-[13.5px] text-gray-600 dark:text-white/70 leading-[1.6]">
@@ -358,7 +358,7 @@ export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
               onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
               placeholder={t('enterInviteCode')}
               required
-              className="w-full px-3 py-3.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[18px] font-bold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors uppercase tracking-[0.2em] font-mono text-center"
+              className="w-full px-3 py-3.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[18px] font-bold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors uppercase tracking-[0.2em] font-mono text-center"
             />
             <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-2 pl-0.5 leading-[1.5]">
               💡 {t('inviteCodeAdminHint')}
@@ -367,7 +367,7 @@ export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
         </div>
 
         {/* 푸터 */}
-        <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
+        <div className="sticky bottom-0 bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
           <button
             type="button"
             onClick={handleClose}
@@ -378,7 +378,7 @@ export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
           <button
             type="submit"
             disabled={!inviteCode.trim() || joinMutation.isPending}
-            className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+            className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {joinMutation.isPending ? (
               <>
@@ -417,7 +417,7 @@ const FieldGroup = ({
       <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
         {label}
       </p>
-      {required && <span className="text-pink-500 text-[12px] font-bold">*</span>}
+      {required && <span className="text-rose-500 text-[12px] font-bold">*</span>}
     </div>
     {children}
   </div>

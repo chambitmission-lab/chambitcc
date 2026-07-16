@@ -128,7 +128,7 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
         {recordingState === 'idle' && (
           <button
             onClick={handleStart}
-            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all text-lg"
+            className="flex items-center gap-2 px-8 py-4 bg-brand text-white font-bold rounded-full hover:shadow-lg transition-all text-lg"
           >
             <span className="material-icons-outlined text-2xl">mic</span>
             녹음 시작
@@ -184,7 +184,7 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
             </button>
             <button
               onClick={handleComplete}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all"
+              className="flex items-center gap-2 px-6 py-3 bg-brand text-white font-bold rounded-full hover:shadow-lg transition-all"
             >
               <span className="material-icons-outlined">check</span>
               완료

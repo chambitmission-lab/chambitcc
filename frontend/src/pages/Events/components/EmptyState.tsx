@@ -19,8 +19,8 @@ const EmptyState = ({ category }: EmptyStateProps) => {
   const label = category ? t.categories[category] : null
 
   return (
-    <div className="mx-4 my-2 rounded-2xl bg-white dark:bg-[#1c1c26] border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none py-10 px-6 text-center">
-      <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-4">
+    <div className="mx-4 my-2 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none py-10 px-6 text-center">
+      <div className="relative inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-4">
         <span className="text-3xl">{visual ? visual.emoji : '☕'}</span>
         <div className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
       </div>
@@ -37,7 +37,7 @@ const EmptyState = ({ category }: EmptyStateProps) => {
           <button
             type="button"
             onClick={() => navigate('/admin/events')}
-            className="inline-flex items-center gap-1.5 px-4 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13px] font-bold shadow-[0_4px_14px_-4px_rgba(168,85,247,0.55)] hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-1.5 px-4 h-10 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_4px_14px_-4px_var(--brand-glow)] hover:opacity-90 transition-opacity"
           >
             ➕ 새 일정 만들기
           </button>
@@ -45,7 +45,7 @@ const EmptyState = ({ category }: EmptyStateProps) => {
         <button
           type="button"
           onClick={() => navigate('/groups')}
-          className="inline-flex items-center gap-1.5 px-4 h-10 rounded-full bg-purple-500/10 dark:bg-purple-500/15 border border-purple-400/40 dark:border-purple-500/30 text-purple-600 dark:text-purple-300 text-[13px] font-bold hover:bg-purple-500/20 dark:hover:bg-purple-500/25 transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 h-10 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand text-[13px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
         >
           💬 내 모임 둘러보기
         </button>

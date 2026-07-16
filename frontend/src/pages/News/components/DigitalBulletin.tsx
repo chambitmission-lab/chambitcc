@@ -20,22 +20,22 @@ const SECTION_META: Record<SectionKey, { emoji: string; title: string; bar: stri
   worship: {
     emoji: '🙏',
     title: '주일오전예배',
-    bar: 'from-purple-500 to-pink-500',
+    bar: 'from-blue-500 to-blue-600',
   },
   announcements: {
     emoji: '📢',
     title: '교회 소식',
-    bar: 'from-fuchsia-500 to-pink-500',
+    bar: 'from-sky-400 to-blue-500',
   },
   groups: {
     emoji: '👥',
     title: '구역 보고',
-    bar: 'from-purple-400 to-fuchsia-500',
+    bar: 'from-cyan-400 to-sky-500',
   },
   schedule: {
     emoji: '📅',
     title: '이번 주 일정',
-    bar: 'from-pink-500 to-rose-500',
+    bar: 'from-indigo-400 to-blue-600',
   },
 }
 
@@ -152,7 +152,7 @@ const DigitalBulletin = () => {
     <div className="space-y-3">
       {/* Hero — 표어 카드 */}
       <div className="px-4">
-        <div className="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_18px_44px_-18px_rgba(168,85,247,0.6)]">
+        <div className="relative overflow-hidden rounded-3xl p-5 bg-brand shadow-[0_18px_44px_-18px_var(--brand-glow)]">
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -227,7 +227,7 @@ const DigitalBulletin = () => {
                     {service.name}
                   </EditableField>
                 </p>
-                <span className="text-[11.5px] font-semibold text-purple-600 dark:text-purple-300 shrink-0">
+                <span className="text-[11.5px] font-semibold text-brand shrink-0">
                   <EditableField
                     value={service.time}
                     isAdmin={isAdminUser}
@@ -284,8 +284,8 @@ const DigitalBulletin = () => {
           />
 
           {/* 설교 카드 */}
-          <div className="mt-2 rounded-xl bg-purple-500/8 dark:bg-purple-500/10 border border-purple-500/20 dark:border-purple-500/25 p-3">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-purple-600 dark:text-purple-300 mb-1.5">
+          <div className="mt-2 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] p-3">
+            <p className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-brand mb-1.5">
               ✨ 설교
             </p>
             <p className="text-[14px] font-bold text-gray-900 dark:text-white leading-[1.4] tracking-[-0.01em] mb-0.5 whitespace-pre-line">
@@ -363,7 +363,7 @@ const DigitalBulletin = () => {
             <ItemCard key={idx}>
               <RemoveItemButton isAdmin={isAdminUser} onClick={() => removeGroup(idx)} />
               <div className="flex items-center gap-2 mb-2">
-                <div className="shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-[14px] font-bold shadow-[0_4px_12px_-4px_rgba(168,85,247,0.5)]">
+                <div className="shrink-0 w-9 h-9 rounded-xl bg-brand flex items-center justify-center text-white text-[14px] font-bold shadow-[0_4px_12px_-4px_var(--brand-glow)]">
                   {(group.name || '?').slice(0, 1)}
                 </div>
                 <p className="text-[13.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em] truncate min-w-0">
@@ -441,7 +441,7 @@ const DigitalBulletin = () => {
               <RemoveItemButton isAdmin={isAdminUser} onClick={() => removeSchedule(idx)} />
               <div className="flex items-start gap-3">
                 {/* 요일 배지 */}
-                <div className="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white text-[14px] font-bold shadow-[0_4px_12px_-4px_rgba(236,72,153,0.5)]">
+                <div className="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white text-[14px] font-bold shadow-[0_4px_12px_-4px_var(--brand-glow)]">
                   <EditableField
                     value={item.day}
                     isAdmin={isAdminUser}
@@ -496,8 +496,8 @@ const DigitalBulletin = () => {
       </SectionCard>
 
       {isAdminUser && (
-        <div className="mx-4 mt-2 px-3 py-2.5 rounded-xl bg-purple-500/8 dark:bg-purple-500/10 border border-purple-500/20 dark:border-purple-500/25">
-          <p className="text-[11.5px] text-purple-700 dark:text-purple-200 leading-[1.6]">
+        <div className="mx-4 mt-2 px-3 py-2.5 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
+          <p className="text-[11.5px] text-brand leading-[1.6]">
             ✏️ 텍스트 옆 연필로 수정 · ➕ 항목 추가 · 🗑️ 항목 삭제 · 변경은 즉시 저장됩니다.
           </p>
         </div>
@@ -524,7 +524,7 @@ const SectionCard = ({ sectionKey, expanded, onToggle, badge, children }: Sectio
           'relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border transition-all duration-200',
           'shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]',
           expanded
-            ? 'border-purple-300/50 dark:border-purple-400/30'
+            ? 'border-[var(--brand-soft-strong)]'
             : 'border-gray-200/70 dark:border-white/[0.08]',
         ].join(' ')}
       >
@@ -538,7 +538,7 @@ const SectionCard = ({ sectionKey, expanded, onToggle, badge, children }: Sectio
           className="relative z-10 w-full flex items-center gap-3 pl-3.5 pr-3 py-3 text-left"
           aria-expanded={expanded}
         >
-          <div className={`shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${meta.bar} flex items-center justify-center text-[19px] shadow-[0_4px_12px_-4px_rgba(168,85,247,0.45)]`}>
+          <div className={`shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${meta.bar} flex items-center justify-center text-[19px] shadow-[0_4px_12px_-4px_var(--brand-glow)]`}>
             {meta.emoji}
           </div>
           <div className="flex-1 min-w-0">

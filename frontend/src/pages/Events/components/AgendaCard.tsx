@@ -26,7 +26,7 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
       className="w-full text-left group"
     >
       <article
-        className="relative overflow-hidden rounded-2xl bg-white dark:bg-[#1c1c26] border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all group-hover:border-purple-300/50 dark:group-hover:border-white/[0.12] group-hover:bg-purple-50/40 dark:group-hover:bg-[#1e1e2a] group-active:scale-[0.995]"
+        className="relative overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all group-hover:border-[var(--brand-soft-strong)] group-hover:bg-[var(--brand-soft)] group-active:scale-[0.995]"
       >
         {/* 좌측 컬러 바 */}
         <div

@@ -65,11 +65,11 @@ const News = () => {
   const latest = bulletins[0]
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-20">
+    <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100">
+      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-2">
-          <p className="text-purple-600/80 dark:text-purple-300/80 text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
+          <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
             NEWS
           </p>
           <h1 className="text-gray-900 dark:text-white text-[26px] font-bold leading-none tracking-[-0.02em]">
@@ -157,7 +157,7 @@ const TabPill = ({
     className={[
       'px-4 h-9 rounded-full text-[12.5px] font-bold transition-all',
       active
-        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_4px_14px_-4px_rgba(168,85,247,0.55)]'
+        ? 'bg-brand text-white shadow-[0_4px_14px_-4px_var(--brand-glow)]'
         : 'text-gray-600 dark:text-white/65 hover:text-gray-900 dark:hover:text-white',
     ].join(' ')}
   >
@@ -174,9 +174,9 @@ const FeaturedCard = ({
   onClick: () => void
 }) => (
   <button type="button" onClick={onClick} className="block w-full text-left group">
-    <article className="relative overflow-hidden rounded-3xl bg-[#1c1c26] border border-white/[0.06] shadow-[0_18px_44px_-18px_rgba(168,85,247,0.5)] transition-transform duration-200 group-active:scale-[0.99]">
+    <article className="relative overflow-hidden rounded-3xl bg-card-dark border border-white/[0.06] shadow-[0_18px_44px_-18px_var(--brand-glow)] transition-transform duration-200 group-active:scale-[0.99]">
       {/* 썸네일 */}
-      <div className="relative aspect-[4/3] bg-gradient-to-br from-purple-500/15 to-pink-500/15">
+      <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-500/15 to-sky-500/15">
         {bulletin.thumbnail_url ? (
           <img
             src={bulletin.thumbnail_url}
@@ -191,7 +191,7 @@ const FeaturedCard = ({
         {/* 상단 chip들 */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
           {isThisMonth(bulletin.bulletin_date) && (
-            <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10.5px] font-bold tracking-wide shadow-[0_4px_12px_-2px_rgba(168,85,247,0.55)]">
+            <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full bg-brand text-white text-[10.5px] font-bold tracking-wide shadow-[0_4px_12px_-2px_var(--brand-glow)]">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               최신
             </span>
@@ -242,14 +242,14 @@ const CompactCard = ({
 }) => (
   <button type="button" onClick={onClick} className="block w-full text-left group">
     <article
-      className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200 group-hover:border-purple-300/60 dark:group-hover:border-purple-400/30 group-active:scale-[0.995]"
+      className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200 group-hover:border-[var(--brand-soft-strong)] group-active:scale-[0.995]"
     >
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-fuchsia-500/60 to-purple-500/40" />
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-sky-400/60 to-blue-500/40" />
 
       <div className="relative z-10 flex items-center gap-3 pl-3.5 pr-3 py-3">
         {/* 썸네일 */}
-        <div className="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-purple-500/15 to-pink-500/15 border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
+        <div className="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500/15 to-sky-500/15 border border-gray-200/70 dark:border-white/[0.08] flex items-center justify-center">
           {bulletin.thumbnail_url ? (
             <img
               src={bulletin.thumbnail_url}
@@ -284,7 +284,7 @@ const CompactCard = ({
           strokeWidth="2.4"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="shrink-0 text-gray-400 dark:text-white/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-purple-500 dark:group-hover:text-purple-300"
+          className="shrink-0 text-gray-400 dark:text-white/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-brand"
         >
           <polyline points="9 18 15 12 9 6" />
         </svg>
@@ -308,7 +308,7 @@ const SkeletonCards = () => (
 
 const EmptyState = () => (
   <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-12 px-6 text-center">
-    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-3">
+    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
       <span className="text-[28px]">📰</span>
     </div>
     <p className="text-gray-900 dark:text-white text-[14.5px] font-bold mb-1">

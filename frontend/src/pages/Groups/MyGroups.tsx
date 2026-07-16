@@ -20,9 +20,9 @@ const MyGroups = () => {
   // 로그인 안 됨 — 합의 톤으로
   if (!loggedIn) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6 py-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-5">
+      <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100">
+        <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6 py-12">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[var(--brand-soft-strong)] mb-5">
             <span className="text-[36px]">👥</span>
           </div>
           <h2 className="text-gray-900 dark:text-white text-[18px] font-bold tracking-[-0.015em] mb-1.5">
@@ -34,7 +34,7 @@ const MyGroups = () => {
           <button
             type="button"
             onClick={() => navigate('/login')}
-            className="inline-flex items-center gap-1.5 px-6 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all"
+            className="inline-flex items-center gap-1.5 px-6 h-11 rounded-full bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
@@ -52,11 +52,11 @@ const MyGroups = () => {
   const totalMembers = groups.reduce((sum, g) => sum + (g.member_count ?? 0), 0)
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-20">
+    <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100">
+      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-2">
-          <p className="text-purple-600/80 dark:text-purple-300/80 text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
+          <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
             GROUPS
           </p>
           <h1 className="text-gray-900 dark:text-white text-[26px] font-bold leading-none tracking-[-0.02em]">
@@ -128,18 +128,18 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => (
     className="block group"
   >
     <article
-      className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200 group-hover:border-purple-300/60 dark:group-hover:border-purple-400/30 group-hover:-translate-y-0.5 group-active:translate-y-0"
+      className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200 group-hover:border-[var(--brand-soft-strong)] group-hover:-translate-y-0.5 group-active:translate-y-0"
     >
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
       <div
         className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${
-          group.is_admin ? 'from-purple-500 to-pink-500' : 'from-fuchsia-500/60 to-purple-500/40'
+          group.is_admin ? 'from-blue-500 to-blue-600' : 'from-sky-400/60 to-blue-500/40'
         }`}
       />
 
       <div className="relative z-10 flex items-center gap-3 pl-3.5 pr-3 py-3.5">
         {/* 이모지 아바타 */}
-        <div className="shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[22px] shadow-[0_6px_18px_-6px_rgba(168,85,247,0.55)]">
+        <div className="shrink-0 w-12 h-12 rounded-2xl bg-brand flex items-center justify-center text-[22px] shadow-[0_6px_18px_-6px_var(--brand-glow)]">
           {group.icon || '👥'}
         </div>
 
@@ -149,7 +149,7 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => (
               {group.name}
             </span>
             {group.is_admin && (
-              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.05em] shrink-0">
+              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand tracking-[0.05em] shrink-0">
                 ADMIN
               </span>
             )}
@@ -189,7 +189,7 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => (
           strokeWidth="2.4"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="shrink-0 text-gray-400 dark:text-white/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-purple-500 dark:group-hover:text-purple-300"
+          className="shrink-0 text-gray-400 dark:text-white/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-brand"
         >
           <polyline points="9 18 15 12 9 6" />
         </svg>
@@ -213,7 +213,7 @@ const ActionCard = ({ icon, label, sublabel, variant, onClick }: ActionCardProps
       <button
         type="button"
         onClick={onClick}
-        className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_10px_28px_-10px_rgba(168,85,247,0.6)] hover:shadow-[0_14px_36px_-8px_rgba(236,72,153,0.7)] hover:-translate-y-0.5 active:translate-y-0 transition-all"
+        className="relative overflow-hidden rounded-2xl p-4 text-left bg-brand shadow-[0_10px_28px_-10px_var(--brand-glow)] hover:shadow-[0_14px_36px_-8px_var(--brand-glow)] hover:-translate-y-0.5 active:translate-y-0 transition-all"
       >
         <div
           className="absolute inset-0 pointer-events-none"
@@ -236,11 +236,11 @@ const ActionCard = ({ icon, label, sublabel, variant, onClick }: ActionCardProps
     <button
       type="button"
       onClick={onClick}
-      className="relative overflow-hidden rounded-2xl p-4 text-left bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] hover:border-purple-300/60 dark:hover:border-purple-400/30 hover:-translate-y-0.5 active:translate-y-0 transition-all"
+      className="relative overflow-hidden rounded-2xl p-4 text-left bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] hover:border-[var(--brand-soft-strong)] hover:-translate-y-0.5 active:translate-y-0 transition-all"
     >
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
       <div className="relative">
-        <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-purple-500/12 dark:bg-purple-500/15 border border-purple-500/20 dark:border-purple-500/25 mb-2.5">
+        <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand mb-2.5">
           {icon}
         </div>
         <p className="text-gray-900 dark:text-white text-[14px] font-bold tracking-[-0.01em]">
@@ -265,7 +265,7 @@ const StatChip = ({
   <span
     className={
       accent
-        ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-[12px] font-semibold text-purple-700 dark:text-purple-300'
+        ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-[12px] font-semibold text-brand'
         : 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-[12px] font-semibold text-gray-700 dark:text-white/75'
     }
   >
@@ -289,7 +289,7 @@ const SkeletonRows = () => (
 // ── Empty ──────────────────────────────────────────────
 const EmptyState = () => (
   <div className="mx-0 my-2 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-10 px-6 text-center">
-    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-3">
+    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
       <span className="text-[28px]">🤝</span>
     </div>
     <p className="text-gray-900 dark:text-white text-[14.5px] font-bold mb-1">

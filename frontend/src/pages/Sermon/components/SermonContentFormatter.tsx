@@ -168,7 +168,7 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
         }
 
         .dark .sermon-section-header:hover {
-          background: rgba(168, 85, 247, 0.08);
+          background: rgba(69, 147, 252, 0.08);
         }
 
         .sermon-section-header:active {
@@ -176,7 +176,7 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
         }
 
         .dark .sermon-section-header:active {
-          background: rgba(168, 85, 247, 0.12);
+          background: rgba(69, 147, 252, 0.12);
         }
         
         .sermon-section-title-wrapper {
@@ -195,12 +195,8 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
           font-size: 0.9375rem;
           font-weight: 700;
           letter-spacing: -0.015em;
-          color: #a855f7;
+          color: var(--brand);
           flex: 1;
-        }
-
-        .dark .sermon-section-title {
-          color: #d8b4fe;
         }
         
         .sermon-section-arrow {
@@ -243,17 +239,12 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
         }
 
         .sermon-bible-ref {
-          color: #a855f7;
+          color: var(--brand);
           font-weight: 600;
-          background: rgba(168, 85, 247, 0.10);
+          background: var(--brand-soft);
           padding: 0.125rem 0.375rem;
           border-radius: 0.25rem;
           font-size: 0.875rem;
-        }
-
-        .dark .sermon-bible-ref {
-          color: #d8b4fe;
-          background: rgba(168, 85, 247, 0.18);
         }
         
         .sermon-emphasis {

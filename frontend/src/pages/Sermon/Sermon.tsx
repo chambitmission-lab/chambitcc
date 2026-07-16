@@ -38,11 +38,11 @@ const Sermon = () => {
   if (isLoading) {
     return (
       <ErrorBoundary>
-        <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
-          <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
+        <div className="bg-surface min-h-screen">
+          <div className="max-w-md mx-auto bg-surface shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
             <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
-                <div className="inline-block w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <div className="inline-block w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
                 <p className="text-gray-900 dark:text-white font-semibold">설교 목록을 불러오는 중...</p>
               </div>
             </div>
@@ -56,8 +56,8 @@ const Sermon = () => {
   if (error) {
     return (
       <ErrorBoundary>
-        <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
-          <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
+        <div className="bg-surface min-h-screen">
+          <div className="max-w-md mx-auto bg-surface shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
             <div className="flex items-center justify-center min-h-screen p-8">
               <div className="text-center">
                 <span className="text-6xl mb-4 block">⚠️</span>
@@ -65,7 +65,7 @@ const Sermon = () => {
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{error.message}</p>
                 <button
                   onClick={() => refetch()}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all"
+                  className="px-6 py-2 bg-brand text-white font-bold rounded-full hover:shadow-lg transition-all"
                 >
                   새로고침
                 </button>
@@ -79,8 +79,8 @@ const Sermon = () => {
 
   return (
     <ErrorBoundary>
-      <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
+      <div className="bg-surface min-h-screen">
+        <div className="max-w-md mx-auto bg-surface shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
           {/* 헤더 */}
           <div className="sermon-page-header">
             {/* 배경 효과 */}
@@ -99,7 +99,7 @@ const Sermon = () => {
               {adminUser && (
                 <button
                   onClick={() => setShowForm(true)}
-                  className="flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full hover:shadow-lg transition-all"
+                  className="flex items-center gap-1 px-4 py-2 bg-brand text-white font-semibold rounded-full hover:shadow-lg transition-all"
                 >
                   <span className="material-icons-outlined text-sm">add</span>
                   등록
@@ -117,7 +117,7 @@ const Sermon = () => {
                 {adminUser && (
                   <button
                     onClick={() => setShowForm(true)}
-                    className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full hover:shadow-lg transition-all"
+                    className="mt-4 px-6 py-2 bg-brand text-white font-bold rounded-full hover:shadow-lg transition-all"
                   >
                     첫 설교 등록하기
                   </button>

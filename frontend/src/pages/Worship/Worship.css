@@ -1,31 +1,25 @@
-/* Worship 예배 안내 — 다크모드 합의 토큰 적용
- * 배경 #0b0b12 / 카드 #1c1c26(+미세 그라데이션·상단 빛줄) / 액센트 purple(#a855f7)→pink(#ec4899).
- * Hero 는 NewHome AnnualThemeVerse 톤(보라/핑크 그라데이션 카드 + emblem + label chip),
- * 통계 숫자는 brand 그라데이션 텍스트. amber/yellow 톤은 전부 제거.
- * 홈 WorshipTimes.tsx 와 공유하던 yellow 클래스(.worship-card 등)에는 의존하지 않는다.
+/* Worship 예배 안내 — 메인 테마(토스 블루 플랫) 버전
+ * 원칙 (src/styles/theme.css):
+ *   1. 색은 하드코딩하지 않고 --brand-* / --surface-* / --text-* 토큰만 참조
+ *   2. 라이트/다크 분기는 theme.css 토큰이 담당 — 여기서는 [data-theme] 분기 금지
+ *      (예외: '예배 중' 라이브 레드는 토큰이 없어 양 테마에서 읽히는 단일 값 사용)
+ * 보라→핑크 그라데이션은 전부 플랫 브랜드 블루로 교체.
+ * 주일 emblem 은 솔리드 블루, 평일 emblem 은 soft 틴트로 위계만 구분한다.
  */
 
 /* ── 페이지 셸 ─────────────────────────── */
 .worship-page {
   min-height: 100vh;
-  background: #f8f8fb;
-}
-[data-theme="dark"] .worship-page {
-  background: #0b0b12;
+  background: var(--surface);
 }
 
 .worship-shell {
   max-width: 28rem;
   margin: 0 auto;
   min-height: 100vh;
-  background: #ffffff;
-  border-left: 1px solid #dbdbdb;
-  border-right: 1px solid #dbdbdb;
-}
-[data-theme="dark"] .worship-shell {
-  background: #0b0b12;
-  border-color: #23232e;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  background: var(--surface);
+  border-left: 1px solid var(--card-border);
+  border-right: 1px solid var(--card-border);
 }
 
 .worship-body {
@@ -35,29 +29,15 @@
   gap: 28px;
 }
 
-/* ── Hero 카드 ─────────────────────────── */
+/* ── Hero 카드 (플랫) ─────────────────── */
 .worship-hero {
   position: relative;
   padding: 20px 22px;
-  border-radius: 18px;
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  background: linear-gradient(135deg, rgba(245, 243, 255, 0.95) 0%, rgba(237, 233, 254, 0.85) 100%);
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
-}
-[data-theme="dark"] .worship-hero {
-  border-color: rgba(168, 85, 247, 0.28);
-  background: linear-gradient(135deg, rgba(30, 27, 75, 0.55) 0%, rgba(76, 29, 149, 0.32) 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 0 1px rgba(168, 85, 247, 0.12);
-}
-.worship-hero::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 16%;
-  bottom: 16%;
-  width: 3px;
-  background: linear-gradient(180deg, rgba(168, 85, 247, 0) 0%, rgba(168, 85, 247, 0.7) 50%, rgba(168, 85, 247, 0) 100%);
-  border-radius: 0 3px 3px 0;
 }
 
 .worship-hero-top {
@@ -66,6 +46,7 @@
   gap: 14px;
 }
 
+/* emblem — 토스식 스쿼클 + 솔리드 브랜드 블루 */
 .worship-hero-emblem {
   width: 44px;
   height: 44px;
@@ -73,10 +54,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  color: #ffffff;
-  box-shadow: 0 8px 18px -6px rgba(168, 85, 247, 0.55), inset 0 2px 4px rgba(255, 255, 255, 0.3), inset 0 -3px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 14px;
+  background: var(--brand);
+  color: var(--on-brand);
+  box-shadow: 0 8px 18px -6px var(--brand-glow);
 }
 .worship-hero-emblem .material-icons-round,
 .worship-hero-emblem .material-icons-outlined {
@@ -97,13 +78,9 @@
   letter-spacing: 0.08em;
   padding: 3px 9px;
   border-radius: 999px;
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.35);
-  color: rgba(88, 28, 135, 0.95);
-}
-[data-theme="dark"] .worship-hero-label {
-  background: rgba(168, 85, 247, 0.18);
-  color: rgba(233, 213, 255, 0.95);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  color: var(--brand);
 }
 
 .worship-hero-title {
@@ -112,21 +89,14 @@
   font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1.3;
-  color: #1e1b4b;
-}
-[data-theme="dark"] .worship-hero-title {
-  color: #f5f3ff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  color: var(--text-strong);
 }
 
 .worship-hero-subtitle {
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
-  color: rgba(91, 33, 182, 0.7);
-}
-[data-theme="dark"] .worship-hero-subtitle {
-  color: rgba(196, 181, 253, 0.75);
+  color: var(--text-muted);
 }
 
 /* ── Hero 통계 ─────────────────────────── */
@@ -141,12 +111,8 @@
   padding: 10px 12px;
   border-radius: 12px;
   text-align: center;
-  background: rgba(168, 85, 247, 0.08);
-  border: 1px solid rgba(168, 85, 247, 0.2);
-}
-[data-theme="dark"] .worship-stat {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(168, 85, 247, 0.22);
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
 }
 
 .worship-stat-num {
@@ -154,11 +120,7 @@
   font-weight: 800;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: var(--brand);
 }
 
 .worship-stat-label {
@@ -166,10 +128,7 @@
   margin-top: 3px;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(91, 33, 182, 0.7);
-}
-[data-theme="dark"] .worship-stat-label {
-  color: rgba(196, 181, 253, 0.7);
+  color: var(--text-muted);
 }
 
 /* ── 실시간 다음 예배 배너 (Hero 내부) ──── */
@@ -182,18 +141,14 @@
   gap: 6px;
   text-align: left;
   border-radius: 14px;
-  border: 1px solid rgba(168, 85, 247, 0.32);
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--brand-soft-strong);
+  background: var(--brand-soft);
   cursor: pointer;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-[data-theme="dark"] .worship-live {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(196, 181, 253, 0.3);
-}
 .worship-live:hover {
-  border-color: rgba(168, 85, 247, 0.55);
-  box-shadow: 0 6px 16px -8px rgba(168, 85, 247, 0.4);
+  border-color: var(--brand);
+  box-shadow: 0 6px 16px -8px var(--brand-glow);
 }
 
 .worship-live-label {
@@ -203,10 +158,7 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.01em;
-  color: #7c3aed;
-}
-[data-theme="dark"] .worship-live-label {
-  color: #d8b4fe;
+  color: var(--brand);
 }
 
 .worship-live-row {
@@ -222,10 +174,7 @@
   font-weight: 700;
   letter-spacing: -0.015em;
   word-break: keep-all;
-  color: #1e1b4b;
-}
-[data-theme="dark"] .worship-live-name {
-  color: #f5f3ff;
+  color: var(--text-strong);
 }
 
 .worship-live-time {
@@ -233,10 +182,7 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   word-break: keep-all;
-  color: #9333ea;
-}
-[data-theme="dark"] .worship-live-time {
-  color: #d8b4fe;
+  color: var(--brand);
 }
 
 .worship-live-count {
@@ -249,19 +195,12 @@
   font-weight: 800;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: var(--brand);
 }
 .worship-live-after {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(91, 33, 182, 0.7);
-}
-[data-theme="dark"] .worship-live-after {
-  color: rgba(196, 181, 253, 0.7);
+  color: var(--text-muted);
 }
 
 /* ── 요일 필터 칩 ─────────────────────── */
@@ -277,34 +216,22 @@
   font-weight: 600;
   border-radius: 999px;
   cursor: pointer;
-  background: #ffffff;
-  border: 1px solid rgba(168, 85, 247, 0.22);
-  color: #6b7280;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-[data-theme="dark"] .worship-filter {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.55);
-}
 .worship-filter:hover {
-  border-color: rgba(168, 85, 247, 0.45);
-  color: #7c3aed;
-}
-[data-theme="dark"] .worship-filter:hover {
-  color: #d8b4fe;
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
 }
 .worship-filter--active,
 .worship-filter--active:hover {
   font-weight: 700;
-  color: #ffffff;
+  color: var(--on-brand);
   border-color: transparent;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  box-shadow: 0 6px 14px -6px rgba(168, 85, 247, 0.5);
-}
-[data-theme="dark"] .worship-filter--active,
-[data-theme="dark"] .worship-filter--active:hover {
-  color: #ffffff;
+  background: var(--brand);
+  box-shadow: 0 6px 14px -6px var(--brand-glow);
 }
 
 /* ── 예배 상태 배지 (입장 가능/예배 중/대기/종료) ── */
@@ -335,54 +262,37 @@
   background: currentColor;
 }
 
+/* 입장 가능 — 지금 행동 가능한 상태이므로 브랜드 블루 위계 */
 .worship-status--open {
-  color: #15803d;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-}
-[data-theme="dark"] .worship-status--open {
-  color: #4ade80;
-  background: rgba(34, 197, 94, 0.14);
-  border-color: rgba(74, 222, 128, 0.35);
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
 }
 .worship-status--open .worship-status-dot {
   animation: worship-dot-pulse 1.4s ease-in-out infinite;
 }
 
+/* 예배 중 — 라이브 시그널만 레드 유지 */
 .worship-status--ongoing {
-  color: #b91c1c;
-  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.35);
-}
-[data-theme="dark"] .worship-status--ongoing {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.14);
-  border-color: rgba(248, 113, 113, 0.35);
 }
 .worship-status--ongoing .worship-status-dot {
   animation: worship-dot-pulse 1.4s ease-in-out infinite;
 }
 
 .worship-status--waiting {
-  color: #6b7280;
-  background: rgba(107, 114, 128, 0.08);
-  border: 1px solid rgba(107, 114, 128, 0.28);
-}
-[data-theme="dark"] .worship-status--waiting {
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--text-muted);
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
 }
 
 .worship-status--ended {
-  color: #9ca3af;
-  background: rgba(156, 163, 175, 0.08);
-  border: 1px solid rgba(156, 163, 175, 0.25);
-}
-[data-theme="dark"] .worship-status--ended {
-  color: rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--card-border);
+  opacity: 0.7;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -407,11 +317,8 @@
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: #2e1065;
+  color: var(--text-strong);
   word-break: keep-all;
-}
-[data-theme="dark"] .worship-block-title {
-  color: #e9d5ff;
 }
 .worship-block-title::before {
   content: '';
@@ -422,32 +329,23 @@
   width: 4px;
   height: 16px;
   border-radius: 2px;
-  background: linear-gradient(180deg, #a855f7, #ec4899);
+  background: var(--brand);
 }
 
-/* ── 예배 카드 ─────────────────────────── */
+/* ── 예배 카드 (.feed-card 문법 — 불투명 서피스) ── */
 .worship-item {
   position: relative;
   padding: 16px;
   border-radius: 16px;
-  background: linear-gradient(180deg, rgba(168, 85, 247, 0.04), rgba(168, 85, 247, 0.01)), #ffffff;
-  border: 1px solid rgba(168, 85, 247, 0.16);
-  box-shadow: 0 4px 16px -8px rgba(168, 85, 247, 0.18);
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-[data-theme="dark"] .worship-item {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)), #1c1c26;
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .worship-item:hover {
   transform: translateY(-2px);
-  border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: 0 10px 24px -10px rgba(168, 85, 247, 0.35);
-}
-[data-theme="dark"] .worship-item:hover {
-  border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 0 1px rgba(168, 85, 247, 0.18);
+  border-color: var(--brand-soft-strong);
+  box-shadow: 0 10px 24px -10px var(--brand-glow);
 }
 
 .worship-item-row {
@@ -465,8 +363,8 @@
   min-width: 0;
 }
 
-/* 배지는 주일/평일 모두 원형으로 통일하고 컬러로만 구분한다
- * (주일: 보라→핑크 / 평일: 하늘→인디고) */
+/* 배지는 주일/평일 모두 스쿼클로 통일하고 채움으로만 구분한다
+ * (주일: 솔리드 블루 / 평일: soft 틴트 + 블루 아이콘) */
 .worship-item-emblem {
   width: 46px;
   height: 46px;
@@ -474,21 +372,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 15px;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #ffffff;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  box-shadow: 0 6px 14px -6px rgba(168, 85, 247, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  color: var(--on-brand);
+  background: var(--brand);
+  box-shadow: 0 6px 14px -6px var(--brand-glow);
 }
 .worship-item-emblem .material-icons-round,
 .worship-item-emblem .material-icons-outlined {
   font-size: 22px;
 }
 .worship-item-emblem--weekday {
-  background: linear-gradient(135deg, #38bdf8, #6366f1);
-  box-shadow: 0 6px 14px -6px rgba(99, 102, 241, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  box-shadow: none;
 }
 
 .worship-item-name {
@@ -496,20 +396,14 @@
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.015em;
-  color: #111827;
+  color: var(--text-strong);
   word-break: keep-all;
-}
-[data-theme="dark"] .worship-item-name {
-  color: #f4f4f6;
 }
 
 .worship-item-sub {
   margin: 2px 0 0;
   font-size: 12.5px;
-  color: #6b7280;
-}
-[data-theme="dark"] .worship-item-sub {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
 }
 
 .worship-item-meta {
@@ -527,10 +421,7 @@
   line-height: 1.45;
   font-variant-numeric: tabular-nums;
   word-break: keep-all;
-  color: #9333ea;
-}
-[data-theme="dark"] .worship-item-time {
-  color: #d8b4fe;
+  color: var(--brand);
 }
 
 .worship-item-loc {
@@ -538,10 +429,7 @@
   font-size: 11.5px;
   line-height: 1.45;
   word-break: keep-all;
-  color: #6b7280;
-}
-[data-theme="dark"] .worship-item-loc {
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-muted);
 }
 
 /* 장소(어디로 가야 하는지)는 새신자·학생에게 시간만큼 중요 → 핀 + 크기·대비 강화 */
@@ -553,10 +441,7 @@
   margin-top: 4px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #7c3aed;
-}
-[data-theme="dark"] .worship-item-loc--place {
-  color: #c4b5fd;
+  color: var(--brand-muted);
 }
 .worship-item-loc--place .material-icons-round {
   font-size: 14px;
@@ -578,13 +463,9 @@
   letter-spacing: 0.01em;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(168, 85, 247, 0.1);
-  border: 1px solid rgba(168, 85, 247, 0.28);
-  color: #7c3aed;
-}
-[data-theme="dark"] .worship-sched-day {
-  background: rgba(168, 85, 247, 0.16);
-  color: #d8b4fe;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  color: var(--brand);
 }
 .worship-sched-time {
   margin: 0;
@@ -594,32 +475,26 @@
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
   word-break: keep-all;
-  color: #9333ea;
-}
-[data-theme="dark"] .worship-sched-time {
-  color: #d8b4fe;
+  color: var(--brand);
 }
 
 /* ── 다음 예배 강조 (일요일 지각 방지 넛지) ── */
 .worship-item--next {
-  border-color: rgba(168, 85, 247, 0.55);
+  border-color: var(--brand-soft-strong);
   animation: worship-glow 2.4s ease-in-out infinite;
-}
-[data-theme="dark"] .worship-item--next {
-  border-color: rgba(196, 181, 253, 0.5);
 }
 @keyframes worship-glow {
   0%, 100% {
-    box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.25), 0 0 14px -2px rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 0 1px var(--brand-soft-strong), 0 0 14px -2px var(--brand-glow);
   }
   50% {
-    box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.4), 0 0 24px -2px rgba(236, 72, 153, 0.55);
+    box-shadow: 0 0 0 1px var(--brand-glow), 0 0 24px -2px var(--brand-glow);
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .worship-item--next {
     animation: none;
-    box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.3), 0 0 16px -2px rgba(168, 85, 247, 0.45);
+    box-shadow: 0 0 0 1px var(--brand-soft-strong), 0 0 16px -2px var(--brand-glow);
   }
 }
 
@@ -633,21 +508,16 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: #9333ea;
-  background: rgba(168, 85, 247, 0.09);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-}
-[data-theme="dark"] .worship-next-banner {
-  color: #e9d5ff;
-  background: rgba(168, 85, 247, 0.16);
-  border-color: rgba(196, 181, 253, 0.35);
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
 }
 .worship-next-dot {
   width: 7px;
   height: 7px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
+  background: var(--brand);
   animation: worship-dot-pulse 1.4s ease-in-out infinite;
 }
 @keyframes worship-dot-pulse {
@@ -672,14 +542,14 @@
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  color: #ffffff;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  box-shadow: 0 6px 14px -6px rgba(236, 72, 153, 0.5);
+  color: var(--on-brand);
+  background: var(--brand);
+  box-shadow: 0 6px 14px -6px var(--brand-glow);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .worship-edit-btn:hover {
   transform: scale(1.06);
-  box-shadow: 0 8px 18px -6px rgba(236, 72, 153, 0.6);
+  box-shadow: 0 8px 18px -6px var(--brand-glow);
 }
 .worship-edit-btn .material-icons-round,
 .worship-edit-btn .material-icons-outlined {
@@ -701,20 +571,15 @@
   padding: 9px 12px;
   font-size: 14px;
   border-radius: 10px;
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  color: #111827;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  color: var(--text-strong);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-[data-theme="dark"] .worship-input {
-  background: #15151d;
-  border-color: #2c2c3a;
-  color: #f4f4f6;
 }
 .worship-input:focus {
   outline: none;
-  border-color: #a855f7;
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.18);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
 }
 .worship-input--order {
   width: 64px;
@@ -741,17 +606,13 @@
   transition: opacity 0.15s ease, background 0.15s ease;
 }
 .worship-btn--cancel {
-  background: #e5e7eb;
-  color: #374151;
-}
-[data-theme="dark"] .worship-btn--cancel {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.8);
+  background: var(--surface-container-high);
+  color: var(--text-body);
 }
 .worship-btn--save {
-  color: #ffffff;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  box-shadow: 0 6px 14px -6px rgba(236, 72, 153, 0.5);
+  color: var(--on-brand);
+  background: var(--brand);
+  box-shadow: 0 6px 14px -6px var(--brand-glow);
 }
 .worship-btn--save:hover {
   opacity: 0.92;
@@ -759,43 +620,33 @@
 .worship-btn--outline {
   margin-top: 12px;
   background: transparent;
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  color: #7c3aed;
-}
-[data-theme="dark"] .worship-btn--outline {
-  border-color: rgba(196, 181, 253, 0.35);
-  color: #d8b4fe;
+  border: 1px solid var(--brand-soft-strong);
+  color: var(--brand);
 }
 .worship-btn--outline:hover {
-  background: rgba(168, 85, 247, 0.08);
+  background: var(--brand-soft);
 }
 
 /* ── 상태 (로딩/빈) ───────────────────── */
 .worship-state {
   text-align: center;
   padding: 28px 0;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 14px;
-}
-[data-theme="dark"] .worship-state {
-  color: rgba(255, 255, 255, 0.5);
 }
 .worship-state-hint {
   margin-top: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #7c3aed;
-}
-[data-theme="dark"] .worship-state-hint {
-  color: #c4b5fd;
+  color: var(--brand);
 }
 .worship-spinner {
   width: 32px;
   height: 32px;
   margin: 0 auto 8px;
   border-radius: 50%;
-  border: 3px solid rgba(168, 85, 247, 0.2);
-  border-top-color: #a855f7;
+  border: 3px solid var(--brand-soft-strong);
+  border-top-color: var(--brand);
   animation: worship-spin 0.8s linear infinite;
 }
 @keyframes worship-spin {
@@ -807,13 +658,9 @@
   position: relative;
   padding: 16px 16px 16px 18px;
   border-radius: 14px;
-  background: rgba(168, 85, 247, 0.06);
-  border: 1px solid rgba(168, 85, 247, 0.18);
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
   overflow: hidden;
-}
-[data-theme="dark"] .worship-note {
-  background: rgba(168, 85, 247, 0.08);
-  border-color: rgba(168, 85, 247, 0.22);
 }
 .worship-note::before {
   content: '';
@@ -822,23 +669,17 @@
   top: 0;
   bottom: 0;
   width: 3px;
-  background: linear-gradient(180deg, #a855f7, #ec4899);
+  background: var(--brand);
 }
 .worship-note-line {
   font-size: 13px;
   line-height: 1.7;
-  color: #4b5563;
-}
-[data-theme="dark"] .worship-note-line {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--text-body);
 }
 .worship-note-line + .worship-note-line {
   margin-top: 4px;
 }
 .worship-note-key {
   font-weight: 700;
-  color: #7c3aed;
-}
-[data-theme="dark"] .worship-note-key {
-  color: #c4b5fd;
+  color: var(--brand);
 }

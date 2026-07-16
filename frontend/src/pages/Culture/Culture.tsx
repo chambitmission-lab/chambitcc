@@ -40,7 +40,7 @@ const STATUS_BADGE: Record<CultureApplicationStatus, string> = {
 }
 
 const inputClass =
-  'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
+  'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
 const labelClass =
   'text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block'
@@ -72,7 +72,7 @@ const ClassCard = ({
             {cultureClass.title}
           </h3>
           {cultureClass.is_open ? (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand">
               모집중
             </span>
           ) : (
@@ -82,7 +82,7 @@ const ClassCard = ({
           )}
         </div>
         {cultureClass.quarter && (
-          <p className="text-[11.5px] text-purple-600/80 dark:text-purple-300/70 font-semibold mt-0.5">
+          <p className="text-[11.5px] text-brand font-semibold mt-0.5">
             {cultureClass.quarter}
           </p>
         )}
@@ -117,7 +117,7 @@ const ClassCard = ({
     {cultureClass.is_open && (
       <button
         onClick={() => onApply(cultureClass)}
-        className="mt-3.5 w-full py-2.5 text-sm font-semibold bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-colors"
+        className="mt-3.5 w-full py-2.5 text-sm font-semibold bg-brand hover:bg-brand-dim text-white rounded-xl transition-colors"
       >
         이 강좌 수강신청
       </button>
@@ -245,11 +245,11 @@ const Culture = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-20">
+    <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100">
+      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-2">
-          <p className="text-purple-600/80 dark:text-purple-300/80 text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
+          <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
             CULTURE CLASS
           </p>
           <h1 className="text-gray-900 dark:text-white text-[26px] font-bold leading-none tracking-[-0.02em]">
@@ -273,14 +273,14 @@ const Culture = () => {
                 }}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all ${
                   active
-                    ? 'border-purple-400/60 dark:border-purple-400/40 bg-purple-50/70 dark:bg-purple-500/[0.10] shadow-[inset_3px_0_0_0_rgb(147,51,234)]'
-                    : 'border-gray-200/70 dark:border-white/[0.06] bg-white/80 dark:bg-card-dark hover:border-purple-300/50 dark:hover:border-purple-400/25'
+                    ? 'border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] shadow-[inset_3px_0_0_0_var(--brand)]'
+                    : 'border-gray-200/70 dark:border-white/[0.06] bg-white/80 dark:bg-card-dark hover:border-[var(--brand-soft-strong)]'
                 }`}
               >
                 <span
                   className={`text-[14px] font-semibold ${
                     active
-                      ? 'text-purple-700 dark:text-purple-300'
+                      ? 'text-brand'
                       : 'text-gray-700 dark:text-white/75'
                   }`}
                 >
@@ -289,7 +289,7 @@ const Culture = () => {
                 <span
                   className={`material-icons-outlined text-[18px] ${
                     active
-                      ? 'text-purple-500 dark:text-purple-300'
+                      ? 'text-brand'
                       : 'text-gray-300 dark:text-white/25'
                   }`}
                 >
@@ -306,7 +306,7 @@ const Culture = () => {
         <div className="px-4 pt-4 space-y-3">
           {loading ? (
             <div className="flex justify-center py-16">
-              <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-purple-500 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
             </div>
           ) : (
             <>
@@ -382,7 +382,7 @@ const Culture = () => {
                     </div>
                     <button
                       onClick={() => setSubmitted(null)}
-                      className="mt-4 px-5 py-2.5 text-sm font-semibold text-purple-600 dark:text-purple-300 border border-purple-200 dark:border-purple-400/30 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors"
+                      className="mt-4 px-5 py-2.5 text-sm font-semibold text-brand border border-[var(--brand-soft-strong)] rounded-xl hover:bg-[var(--brand-soft)] transition-colors"
                     >
                       다른 강좌 신청하기
                     </button>
@@ -445,7 +445,7 @@ const Culture = () => {
                             }
                             className={`flex-1 py-2.5 text-sm font-semibold rounded-xl border transition-colors ${
                               form.gender === g
-                                ? 'border-purple-500 bg-purple-50 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300'
+                                ? 'border-brand bg-[var(--brand-soft)] text-brand'
                                 : 'border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-white/50 hover:border-gray-300 dark:hover:border-white/20'
                             }`}
                           >
@@ -483,7 +483,7 @@ const Culture = () => {
                     <button
                       onClick={handleSubmit}
                       disabled={submitting || openClasses.length === 0}
-                      className="w-full py-3 text-sm font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-xl disabled:opacity-50 transition-colors"
+                      className="w-full py-3 text-sm font-bold bg-brand hover:bg-brand-dim text-white rounded-xl disabled:opacity-50 transition-colors"
                     >
                       {submitting ? '신청 중...' : '수강신청 하기'}
                     </button>
@@ -524,7 +524,7 @@ const Culture = () => {
                     <button
                       onClick={handleLookup}
                       disabled={lookingUp}
-                      className="w-full py-3 text-sm font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-xl disabled:opacity-50 transition-colors"
+                      className="w-full py-3 text-sm font-bold bg-brand hover:bg-brand-dim text-white rounded-xl disabled:opacity-50 transition-colors"
                     >
                       {lookingUp ? '조회 중...' : '신청 내역 조회'}
                     </button>
@@ -637,8 +637,8 @@ const Culture = () => {
                   ].map((row) => {
                     const content = (
                       <>
-                        <div className="w-9 h-9 rounded-full bg-purple-50 dark:bg-purple-500/15 flex items-center justify-center flex-shrink-0">
-                          <span className="material-icons-outlined text-[18px] text-purple-500 dark:text-purple-300">
+                        <div className="w-9 h-9 rounded-full bg-[var(--brand-soft)] flex items-center justify-center flex-shrink-0">
+                          <span className="material-icons-outlined text-[18px] text-brand">
                             {row.icon}
                           </span>
                         </div>

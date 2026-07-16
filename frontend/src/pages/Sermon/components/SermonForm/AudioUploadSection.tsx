@@ -53,7 +53,7 @@ export const AudioUploadSection = ({
           <button
             type="button"
             onClick={handleRecordingClick}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-purple-500 text-white font-semibold rounded-lg hover:bg-purple-600 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-brand text-white font-semibold rounded-lg hover:bg-brand-dim transition-colors"
           >
             <span className="material-icons-outlined">mic</span>
             녹음하기
