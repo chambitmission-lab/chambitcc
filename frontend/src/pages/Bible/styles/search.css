@@ -39,7 +39,7 @@
 }
 
 .search-input-wrapper:focus-within {
-  border-color: #a855f7;
+  border-color: var(--brand);
 }
 
 .search-input-area {
@@ -151,16 +151,16 @@
 }
 
 .scope-chip:hover {
-  border-color: #a855f7;
-  color: #a855f7;
+  border-color: var(--brand);
+  color: var(--brand);
 }
 
 .scope-chip--active,
 [data-theme="dark"] .scope-chip--active {
-  background: var(--accent-gradient, linear-gradient(135deg, #a855f7 0%, #ec4899 100%));
+  background: var(--brand);
   border-color: transparent;
   color: white;
-  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 2px 8px rgba(49, 130, 246, 0.3);
 }
 
 .scope-chip--active:hover {
@@ -201,7 +201,7 @@
 }
 
 .search-chip-clear:hover {
-  color: #a855f7;
+  color: var(--brand);
   opacity: 1;
 }
 
@@ -228,7 +228,7 @@
 }
 
 .search-chip:hover {
-  border-color: #a855f7;
+  border-color: var(--brand);
 }
 
 .search-chip-label {
@@ -260,10 +260,10 @@
 }
 
 .search-chip-remove:hover {
-  color: #ec4899;
+  color: var(--brand);
 }
 
-/* 추천 키워드 칩 — 시스템 제안(보조 정보)이므로 회색조에 가까운 아주 옅은 보라 톤.
+/* 추천 키워드 칩 — 시스템 제안(보조 정보)이므로 회색조에 가까운 아주 옅은 브랜드 톤.
    사용자가 직접 쌓은 '최근 검색어'가 상대적으로 도드라지게 한다 */
 .search-chip--suggest {
   padding: 0 0.875rem;
@@ -271,30 +271,30 @@
   font-weight: 500;
   color: var(--ig-secondary-text);
   cursor: pointer;
-  border-color: rgba(168, 85, 247, 0.14);
-  background: rgba(168, 85, 247, 0.035);
+  border-color: rgba(49, 130, 246, 0.14);
+  background: rgba(49, 130, 246, 0.035);
 }
 
 [data-theme="dark"] .search-chip--suggest {
   color: var(--ig-secondary-text);
-  background: rgba(168, 85, 247, 0.06);
-  border-color: rgba(168, 85, 247, 0.14);
+  background: rgba(49, 130, 246, 0.06);
+  border-color: rgba(49, 130, 246, 0.14);
 }
 
 .search-chip--suggest:hover {
-  color: #a855f7;
-  border-color: rgba(168, 85, 247, 0.4);
-  background: rgba(168, 85, 247, 0.1);
+  color: var(--brand);
+  border-color: rgba(49, 130, 246, 0.4);
+  background: rgba(49, 130, 246, 0.1);
 }
 
 [data-theme="dark"] .search-chip--suggest:hover {
-  color: #d8b4fe;
+  color: var(--brand);
 }
 
 .search-button {
   flex-shrink: 0;
   padding: 0.75rem 1.25rem;
-  background: var(--accent-gradient, linear-gradient(135deg, #a855f7 0%, #ec4899 100%));
+  background: var(--brand);
   border: none;
   border-radius: 12px;
   color: white;
@@ -304,12 +304,12 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 4px 14px rgba(49, 130, 246, 0.3);
 }
 
 .search-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 6px 18px rgba(49, 130, 246, 0.4);
 }
 
 .search-button:active {
@@ -359,15 +359,15 @@
 
 /* 호버 하이라이트 — 베이스 .bible-verse-item:hover가 margin/padding을 덮어써
    카드 폭이 변하며 본문이 재줄바꿈되던 문제 → 특이성을 높여 쉬는 상태와
-   '동일한' 지오메트리로 고정한다. 좌측 보라 바는 ::before(둥근 모서리 밖으로
+   '동일한' 지오메트리로 고정한다. 좌측 브랜드 바는 ::before(둥근 모서리 밖으로
    삐져나옴) 대신 inset 그림자로 그려 레이아웃·모서리를 건드리지 않는다. */
 .bible-verse-item.bible-verse-item--search:hover {
   margin: 0 0 0.75rem;
   padding: 1.125rem 1rem;
-  border: 1px solid #a855f7;
+  border: 1px solid var(--brand);
   border-radius: 14px;
-  background: rgba(168, 85, 247, 0.05);
-  box-shadow: inset 3px 0 0 #a855f7;
+  background: rgba(49, 130, 246, 0.05);
+  box-shadow: inset 3px 0 0 var(--brand);
 }
 
 .bible-verse-item--search .bible-verse-text {
@@ -382,7 +382,7 @@
 }
 
 .bible-verse-item--search:hover .bible-verse-reference {
-  color: #a855f7;
+  color: var(--brand);
 }
 
 /* ── 책 카드 + 장 선택 그리드 ─────────────────────────────── */
@@ -423,7 +423,7 @@
 
 .search-book-head__icon {
   font-size: 2rem;
-  color: #a855f7;
+  color: var(--brand);
 }
 
 .search-book-head__body {
@@ -463,12 +463,12 @@
 }
 
 .search-book-head:hover .search-book-head__chevron {
-  color: #a855f7;
+  color: var(--brand);
   opacity: 1;
 }
 
 .search-book-head:hover .search-book-head__title {
-  color: #a855f7;
+  color: var(--brand);
 }
 
 .chapter-grid-header {
@@ -503,21 +503,21 @@
 
 .chapter-legend__check {
   font-size: 0.8125rem !important;
-  color: #a855f7;
+  color: var(--brand);
 }
 
 .chapter-legend__bar {
   width: 0.75rem;
   height: 2.5px;
   border-radius: 2px;
-  background: linear-gradient(90deg, #a855f7, #ec4899);
+  background: var(--brand);
 }
 
 .chapter-legend__dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #ec4899;
+  background: var(--brand);
 }
 
 /* 5열 고정 그리드 — 두 줄이 정확히 10장이라 원하는 장의 위치를 십진법 감각으로 짚을 수 있다 */
@@ -546,27 +546,27 @@
 }
 
 .chapter-cell:hover {
-  background: #a855f7;
-  border-color: #a855f7;
+  background: var(--brand);
+  border-color: var(--brand);
   color: white;
 }
 
 /* 완독한 장 — 숫자를 눌러 쓴 톤 + 체크로 "이미 읽었음"이 스캔만으로 보이게 */
 .chapter-cell--read {
-  background: rgba(168, 85, 247, 0.07);
-  border-color: rgba(168, 85, 247, 0.22);
+  background: rgba(49, 130, 246, 0.07);
+  border-color: rgba(49, 130, 246, 0.22);
   color: var(--ig-secondary-text);
 }
 
 [data-theme="dark"] .chapter-cell--read {
-  background: rgba(168, 85, 247, 0.12);
-  border-color: rgba(168, 85, 247, 0.28);
+  background: rgba(49, 130, 246, 0.12);
+  border-color: rgba(49, 130, 246, 0.28);
 }
 
 .chapter-cell__check {
   font-size: 0.8125rem !important;
   line-height: 1;
-  color: #a855f7;
+  color: var(--brand);
 }
 
 .chapter-cell:hover .chapter-cell__check {
@@ -579,9 +579,9 @@
   left: 0;
   bottom: 0;
   height: 3px;
-  background: linear-gradient(90deg, #a855f7, #ec4899);
+  background: var(--brand);
   border-radius: 0 3px 3px 0;
-  box-shadow: 0 0 6px rgba(236, 72, 153, 0.5);
+  box-shadow: 0 0 6px rgba(69, 147, 252, 0.5);
   pointer-events: none;
 }
 
@@ -593,7 +593,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #ec4899;
+  background: var(--brand);
   pointer-events: none;
 }
 

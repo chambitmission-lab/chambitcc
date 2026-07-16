@@ -25,21 +25,21 @@ const VerseNoteSheet = ({ verseReference, verseText, bookmark, onEdit, onClose }
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-md max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18)] flex flex-col"
+        className="relative w-full sm:max-w-md max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 표면 그라데이션 + 글로우 */}
         <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
-        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/15 dark:to-pink-500/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-purple-500/15 to-pink-500/10 text-purple-600 dark:text-purple-300 shrink-0">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
             <span className="material-icons-round text-[22px]">menu_book</span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.1em]">
+            <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">
               내 묵상 노트
             </p>
             <h3 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em] truncate">
@@ -48,7 +48,7 @@ const VerseNoteSheet = ({ verseReference, verseText, bookmark, onEdit, onClose }
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-purple-500 dark:hover:text-purple-300 transition-colors shrink-0"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors shrink-0"
             aria-label="닫기"
           >
             <span className="material-icons-round text-[20px]">close</span>
@@ -58,13 +58,13 @@ const VerseNoteSheet = ({ verseReference, verseText, bookmark, onEdit, onClose }
         {/* 본문 */}
         <div className="relative z-10 flex-1 overflow-y-auto px-5 py-5 space-y-4">
           {/* 말씀 본문 (참고용, 톤다운) */}
-          <div className="rounded-xl border-l-[3px] border-purple-400/60 dark:border-purple-400/50 bg-gray-50 dark:bg-white/[0.03] px-4 py-3 text-[13.5px] leading-[1.7] text-gray-600 dark:text-white/65">
+          <div className="rounded-xl border-l-[3px] border-brand bg-gray-50 dark:bg-white/[0.03] px-4 py-3 text-[13.5px] leading-[1.7] text-gray-600 dark:text-white/65">
             {verseText}
           </div>
 
           {/* 내가 적은 묵상 */}
-          <div className="rounded-2xl bg-gradient-to-br from-purple-500/[0.07] to-pink-500/[0.04] border border-purple-400/20 dark:border-purple-400/15 px-4 py-4">
-            <div className="flex items-center gap-1.5 mb-2 text-purple-600 dark:text-purple-300">
+          <div className="rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] px-4 py-4">
+            <div className="flex items-center gap-1.5 mb-2 text-brand">
               <span className="material-icons-round text-[16px]">format_quote</span>
               <span className="text-[11.5px] font-bold tracking-[0.04em]">나의 묵상</span>
             </div>
@@ -84,7 +84,7 @@ const VerseNoteSheet = ({ verseReference, verseText, bookmark, onEdit, onClose }
           </button>
           <button
             onClick={onEdit}
-            className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all"
+            className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all"
           >
             <span className="material-icons-round text-[18px]">edit</span>
             수정

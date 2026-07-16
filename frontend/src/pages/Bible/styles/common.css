@@ -18,7 +18,7 @@
 .spinning {
   animation: spin 1s linear infinite;
   font-size: 2.5rem;
-  color: #a855f7;
+  color: var(--brand);
 }
 
 @keyframes spin {
@@ -66,19 +66,19 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 2px solid rgba(168, 85, 247, 0.55);
+  border: 2px solid rgba(49, 130, 246, 0.55);
   opacity: 0;
   animation: chapterHalo 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 .chapter-loader__ring:nth-child(2) {
   animation-delay: 0.8s;
-  border-color: rgba(236, 72, 153, 0.5);
+  border-color: rgba(69, 147, 252, 0.5);
 }
 
 .chapter-loader__ring:nth-child(3) {
   animation-delay: 1.6s;
-  border-color: rgba(192, 132, 252, 0.45);
+  border-color: rgba(147, 197, 253, 0.45);
 }
 
 /* 중앙의 빛나는 말씀(펼쳐진 책) */
@@ -91,10 +91,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 50% 35%, rgba(236, 72, 153, 0.28), rgba(168, 85, 247, 0.16));
+  background: radial-gradient(circle at 50% 35%, rgba(69, 147, 252, 0.28), rgba(49, 130, 246, 0.16));
   box-shadow:
-    0 0 0 1px rgba(168, 85, 247, 0.35),
-    inset 0 0 12px rgba(236, 72, 153, 0.25);
+    0 0 0 1px rgba(49, 130, 246, 0.35),
+    inset 0 0 12px rgba(69, 147, 252, 0.25);
   animation: chapterGlow 2.4s ease-in-out infinite, chapterFloat 3.6s ease-in-out infinite;
 }
 
@@ -105,11 +105,11 @@
 
 .chapter-loader__core .material-icons-round {
   font-size: 1.75rem;
-  background: linear-gradient(135deg, #c084fc, #ec4899);
+  background: var(--brand-gradient);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.45));
+  filter: drop-shadow(0 0 6px rgba(49, 130, 246, 0.45));
 }
 
 .chapter-loader--sm .chapter-loader__core .material-icons-round {
@@ -122,8 +122,8 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #f0abfc;
-  box-shadow: 0 0 8px rgba(236, 72, 153, 0.8);
+  background: #93c5fd;
+  box-shadow: 0 0 8px rgba(69, 147, 252, 0.8);
   opacity: 0;
   z-index: 3;
 }
@@ -174,7 +174,7 @@
   inset: 0;
   width: 40%;
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent, #a855f7, #ec4899, transparent);
+  background: linear-gradient(90deg, transparent, var(--brand), var(--brand), transparent);
   animation: chapterShimmer 1.6s ease-in-out infinite;
 }
 
@@ -199,10 +199,10 @@
 
 @keyframes chapterGlow {
   0%, 100% {
-    box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.3), inset 0 0 10px rgba(236, 72, 153, 0.2);
+    box-shadow: 0 0 0 1px rgba(49, 130, 246, 0.3), inset 0 0 10px rgba(69, 147, 252, 0.2);
   }
   50% {
-    box-shadow: 0 0 22px rgba(168, 85, 247, 0.5), inset 0 0 16px rgba(236, 72, 153, 0.35);
+    box-shadow: 0 0 22px rgba(49, 130, 246, 0.5), inset 0 0 16px rgba(69, 147, 252, 0.35);
   }
 }
 

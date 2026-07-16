@@ -61,8 +61,8 @@ const BookIntroCard = ({ bookNumber, bookNameKo }: BookIntroCardProps) => {
   if (!intro) {
     return (
       <>
-        <div className="mx-4 mt-3 mb-2 rounded-2xl border border-dashed border-purple-300/50 dark:border-purple-400/25 bg-purple-50/50 dark:bg-purple-500/[0.06] px-4 py-3.5 flex items-center gap-3">
-          <span className="material-icons-round text-purple-500 dark:text-purple-300 text-[22px]">
+        <div className="mx-4 mt-3 mb-2 rounded-2xl border border-dashed border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-3.5 flex items-center gap-3">
+          <span className="material-icons-round text-brand text-[22px]">
             auto_stories
           </span>
           <div className="min-w-0 flex-1">
@@ -78,7 +78,7 @@ const BookIntroCard = ({ bookNumber, bookNameKo }: BookIntroCardProps) => {
               setErrorMessage(null)
               setEditorOpen(true)
             }}
-            className="shrink-0 inline-flex items-center gap-1 px-3 h-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[12.5px] font-bold shadow-[0_6px_18px_-6px_rgba(168,85,247,0.6)]"
+            className="shrink-0 inline-flex items-center gap-1 px-3 h-9 rounded-full bg-brand text-white text-[12.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)]"
           >
             <span className="material-icons-round text-[16px]">add</span>
             추가
@@ -102,22 +102,22 @@ const BookIntroCard = ({ bookNumber, bookNameKo }: BookIntroCardProps) => {
 
   return (
     <>
-      <section className="relative mx-4 mt-3 mb-2 rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] bg-surface-light dark:bg-card-dark shadow-[0_6px_24px_-12px_rgba(168,85,247,0.35)]">
+      <section className="relative mx-4 mt-3 mb-2 rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] bg-surface-light dark:bg-card-dark shadow-[0_6px_24px_-12px_var(--brand-glow)]">
         {/* 표면 그라데이션 + 글로우 */}
         <div className="hidden dark:block absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
-        <div className="absolute -top-6 -right-6 w-36 h-36 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/18 dark:to-pink-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-6 -right-6 w-36 h-36 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 px-5 pt-5 pb-4">
           {/* 엠블럼 + 라벨 + 제목 */}
           <div className="flex items-start gap-3">
-            <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-gradient-to-br from-purple-500/15 to-pink-500/10 text-purple-600 dark:text-purple-300 shrink-0">
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
               <span className="material-icons-round text-[24px]">menu_book</span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
+              <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
                 Book Intro
               </p>
-              <h3 className="text-[20px] font-bold tracking-[-0.02em] leading-tight bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
+              <h3 className="text-[20px] font-bold tracking-[-0.02em] leading-tight text-brand">
                 {bookNameKo}
               </h3>
               <p className="mt-0.5 text-[14px] font-semibold leading-snug text-gray-700 dark:text-white/80">
@@ -130,7 +130,7 @@ const BookIntroCard = ({ bookNumber, bookNameKo }: BookIntroCardProps) => {
           {(intro.theme || intro.author_period) && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {intro.theme && (
-                <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold px-2.5 py-1 rounded-full bg-purple-500/10 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300">
+                <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-brand">
                   <span className="material-icons-round text-[14px]">label</span>
                   {intro.theme}
                 </span>
@@ -157,8 +157,8 @@ const BookIntroCard = ({ bookNumber, bookNameKo }: BookIntroCardProps) => {
           {expanded && (
             <>
               {intro.key_chapters && (
-                <div className="mt-3.5 rounded-2xl bg-purple-50/60 dark:bg-purple-500/[0.07] border border-purple-200/50 dark:border-purple-400/15 px-3.5 py-3">
-                  <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.08em] text-purple-600 dark:text-purple-300 mb-1">
+                <div className="mt-3.5 rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] px-3.5 py-3">
+                  <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.08em] text-brand mb-1">
                     <span className="material-icons-round text-[15px]">bookmark</span>
                     핵심 장
                   </p>
@@ -169,8 +169,8 @@ const BookIntroCard = ({ bookNumber, bookNameKo }: BookIntroCardProps) => {
               )}
 
               {intro.christ_connection && (
-                <div className="mt-3 rounded-2xl bg-gradient-to-br from-pink-50/70 to-purple-50/50 dark:from-pink-500/[0.08] dark:to-purple-500/[0.06] border border-pink-200/50 dark:border-pink-400/15 px-3.5 py-3">
-                  <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.08em] text-pink-600 dark:text-pink-300 mb-1">
+                <div className="mt-3 rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] px-3.5 py-3">
+                  <p className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.08em] text-brand mb-1">
                     <span className="material-icons-round text-[15px]">auto_awesome</span>
                     그리스도와의 연결
                   </p>
@@ -185,7 +185,7 @@ const BookIntroCard = ({ bookNumber, bookNameKo }: BookIntroCardProps) => {
           {/* 더보기 / 접기 */}
           <button
             onClick={() => setExpanded((v) => !v)}
-            className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-purple-600 dark:text-purple-300 hover:text-pink-500 dark:hover:text-pink-300 transition-colors"
+            className="mt-3 inline-flex items-center gap-1 text-[13px] font-bold text-brand hover:text-[var(--brand-dim)] transition-colors"
           >
             {expanded ? '접기' : '더보기'}
             <span className="material-icons-round text-[18px]">
@@ -201,7 +201,7 @@ const BookIntroCard = ({ bookNumber, bookNameKo }: BookIntroCardProps) => {
                   setErrorMessage(null)
                   setEditorOpen(true)
                 }}
-                className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-bold bg-purple-500/10 dark:bg-purple-500/12 text-purple-700 dark:text-purple-300 border border-purple-500/20 dark:border-purple-500/25 hover:bg-purple-500/15 dark:hover:bg-purple-500/20 transition-colors"
+                className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-bold bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft-strong)] transition-colors"
               >
                 <span className="material-icons-round text-[15px]">edit</span>
                 수정

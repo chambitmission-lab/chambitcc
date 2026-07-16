@@ -93,8 +93,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         }
       : hasNote && !isReading
         ? {
-            background: 'linear-gradient(to right, rgba(168,85,247,0.10), rgba(168,85,247,0.02))',
-            borderLeft: '3px solid rgba(168,85,247,0.55)',
+            background: 'var(--brand-soft)',
+            borderLeft: '3px solid var(--brand)',
             borderRadius: '0.375rem',
             padding: '0.375rem 0.5rem',
           }
@@ -174,10 +174,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           {isReading && verse.text ? (
             <>
               <span style={{
-                color: '#f0abfc',
+                color: 'var(--brand)',
                 // 읽은 부분도 본문과 동일한 굵기(400) 유지 — bold면 경계가 전진할 때마다
                 // 폭이 바뀌어 줄바꿈이 재계산된다(출렁임).
-                textShadow: '0 0 8px rgba(236, 72, 153, 0.35)',
+                textShadow: '0 0 8px var(--brand-glow)',
               }}>
                 {verse.text.slice(0, karaokeSplitIndex)}
               </span>
@@ -213,7 +213,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  background: bookmark.is_favorite ? '#ec4899' : '#a855f7',
+                  background: 'var(--brand)',
                 }}
               />
             )}
@@ -224,7 +224,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   width: '6px',
                   height: '6px',
                   borderRadius: '50%',
-                  background: '#a855f7',
+                  background: 'var(--brand)',
                 }}
               />
             )}
@@ -260,19 +260,19 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               style={
                 bookmark?.is_favorite
                   ? {
-                      background: 'rgba(236, 72, 153, 0.16)',
-                      border: '1px solid rgba(236, 72, 153, 0.5)',
-                      boxShadow: '0 2px 10px rgba(236, 72, 153, 0.18)',
+                      background: 'var(--brand-soft-strong)',
+                      border: '1px solid var(--brand)',
+                      boxShadow: '0 2px 10px var(--brand-glow)',
                     }
                   : bookmark
                     ? {
-                        background: 'rgba(236, 72, 153, 0.14)',
-                        border: '1px solid rgba(236, 72, 153, 0.45)',
-                        boxShadow: '0 2px 10px rgba(236, 72, 153, 0.16)',
+                        background: 'var(--brand-soft-strong)',
+                        border: '1px solid var(--brand)',
+                        boxShadow: '0 2px 10px var(--brand-glow)',
                       }
                     : {
-                        background: 'rgba(236, 72, 153, 0.09)',
-                        border: '1px solid rgba(236, 72, 153, 0.22)',
+                        background: 'var(--brand-soft)',
+                        border: '1px solid var(--brand-soft-strong)',
                       }
               }
               title={bookmark ? '묵상 노트 수정' : '묵상/북마크 추가'}
@@ -282,7 +282,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                 className="material-icons-round"
                 style={{
                   fontSize: '1.125rem',
-                  color: bookmark?.is_favorite ? '#ec4899' : '#f472b6',
+                  color: 'var(--brand)',
                   opacity: bookmark ? 1 : 0.85,
                 }}
               >
@@ -303,13 +303,13 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                 style={
                   hasCommentary
                     ? {
-                        background: 'rgba(168, 85, 247, 0.16)',
-                        border: '1px solid rgba(168, 85, 247, 0.5)',
-                        boxShadow: '0 2px 10px rgba(168, 85, 247, 0.18)',
+                        background: 'var(--brand-soft-strong)',
+                        border: '1px solid var(--brand)',
+                        boxShadow: '0 2px 10px var(--brand-glow)',
                       }
                     : {
-                        background: 'rgba(168, 85, 247, 0.1)',
-                        border: '1px solid rgba(168, 85, 247, 0.22)',
+                        background: 'var(--brand-soft)',
+                        border: '1px solid var(--brand-soft-strong)',
                       }
                 }
                 title={hasCommentary ? '해석 보기' : '해석 (등록된 해석 없음)'}
@@ -319,7 +319,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   className="material-icons-round"
                   style={{
                     fontSize: '1.125rem',
-                    color: '#a855f7',
+                    color: 'var(--brand)',
                     opacity: hasCommentary ? 1 : 0.8,
                   }}
                 >
@@ -487,8 +487,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             gap: '0.375rem',
             maxWidth: 'calc(100% - 3.25rem)',
             padding: '0.3rem 0.7rem 0.3rem 0.55rem',
-            background: 'rgba(168, 85, 247, 0.1)',
-            border: '1px solid rgba(168, 85, 247, 0.28)',
+            background: 'var(--brand-soft)',
+            border: '1px solid var(--brand-soft-strong)',
             borderRadius: '999px',
             cursor: 'pointer',
             fontSize: '0.8125rem',
@@ -498,10 +498,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           }}
           title="묵상 노트 보기"
         >
-          <span className="material-icons-round" style={{ fontSize: '1rem', color: '#a855f7', flexShrink: 0 }}>
+          <span className="material-icons-round" style={{ fontSize: '1rem', color: 'var(--brand)', flexShrink: 0 }}>
             sticky_note_2
           </span>
-          <span style={{ fontWeight: 700, color: '#a855f7', flexShrink: 0 }}>묵상 노트</span>
+          <span style={{ fontWeight: 700, color: 'var(--brand)', flexShrink: 0 }}>묵상 노트</span>
           <span
             style={{
               overflow: 'hidden',

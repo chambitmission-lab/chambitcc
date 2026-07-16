@@ -44,7 +44,7 @@ const BookQuickPicker = ({ books, currentBookNumber, onPick, onClose }: BookQuic
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-md max-h-[82vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18)] flex flex-col"
+        className="relative w-full sm:max-w-md max-h-[82vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -53,7 +53,7 @@ const BookQuickPicker = ({ books, currentBookNumber, onPick, onClose }: BookQuic
         {/* 헤더 */}
         <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-purple-500/15 to-pink-500/10 text-purple-600 dark:text-purple-300 shrink-0">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
             <span className="material-icons-round text-[22px]">auto_stories</span>
           </div>
           <div className="min-w-0 flex-1">
@@ -64,7 +64,7 @@ const BookQuickPicker = ({ books, currentBookNumber, onPick, onClose }: BookQuic
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-purple-500 dark:hover:text-purple-300 transition-colors shrink-0"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors shrink-0"
             aria-label={t.close}
           >
             <span className="material-icons-round text-[20px]">close</span>
@@ -78,7 +78,7 @@ const BookQuickPicker = ({ books, currentBookNumber, onPick, onClose }: BookQuic
             if (sectionBooks.length === 0) return null
             return (
               <div key={key}>
-                <p className="px-1 mb-2 text-[11.5px] font-bold tracking-[0.08em] text-purple-600/80 dark:text-purple-300/80">
+                <p className="px-1 mb-2 text-[11.5px] font-bold tracking-[0.08em] text-brand">
                   {label}
                 </p>
                 <div className="grid grid-cols-3 gap-1.5">
@@ -93,8 +93,8 @@ const BookQuickPicker = ({ books, currentBookNumber, onPick, onClose }: BookQuic
                         aria-current={isCurrent ? 'true' : undefined}
                         className={`flex flex-col items-start gap-0.5 rounded-xl px-3 py-2.5 text-left transition-colors border ${
                           isCurrent
-                            ? 'border-transparent bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_4px_14px_rgba(168,85,247,0.35)]'
-                            : 'border-black/[0.06] dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] text-gray-800 dark:text-white/85 hover:border-purple-400/60 hover:text-purple-600 dark:hover:text-purple-300'
+                            ? 'border-transparent bg-brand text-white shadow-[0_4px_14px_var(--brand-glow)]'
+                            : 'border-black/[0.06] dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] text-gray-800 dark:text-white/85 hover:border-brand hover:text-brand'
                         }`}
                       >
                         <span className="w-full truncate text-[13px] font-semibold leading-tight">

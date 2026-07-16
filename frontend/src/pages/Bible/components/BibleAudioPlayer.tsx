@@ -197,10 +197,10 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
 
   return (
     <>
-    <div ref={cardRef} className="relative mx-3 my-2 overflow-hidden rounded-2xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-card-dark shadow-[0_8px_24px_-14px_rgba(217,70,239,0.45)]">
+    <div ref={cardRef} className="relative mx-3 my-2 overflow-hidden rounded-2xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-card-dark shadow-[0_8px_24px_-14px_var(--brand-glow)]">
       {/* 장식용 그라데이션 오브 */}
-      <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-gradient-to-br from-purple-400/25 to-pink-400/15 dark:from-purple-500/25 dark:to-pink-500/12 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-gradient-to-tr from-pink-400/15 to-purple-400/10 blur-3xl" />
+      <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-[var(--brand-soft-strong)] blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-[var(--brand-soft)] blur-3xl" />
 
       <div className="relative px-3 py-2.5">
         <div className="flex items-center gap-3">
@@ -210,10 +210,10 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
             onClick={togglePlay}
             disabled={loading}
             aria-label={isPlaying ? '일시정지' : '재생'}
-            className="relative grid h-11 w-11 flex-shrink-0 place-items-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_6px_16px_-5px_rgba(217,70,239,0.7)] transition active:scale-95 disabled:cursor-default"
+            className="relative grid h-11 w-11 flex-shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_6px_16px_-5px_var(--brand-glow)] transition active:scale-95 disabled:cursor-default"
           >
             {isPlaying && !loading && (
-              <span className="absolute inset-0 rounded-full bg-pink-500/40 animate-ping [animation-duration:1.6s]" />
+              <span className="absolute inset-0 rounded-full bg-[var(--brand-glow)] animate-ping [animation-duration:1.6s]" />
             )}
             {loading ? (
               <>
@@ -238,10 +238,10 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
           <div className="min-w-0 flex-1">
             <div className="mb-1.5 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <span className="material-icons-round text-[15px] text-purple-500 dark:text-purple-300">
+                <span className="material-icons-round text-[15px] text-brand">
                   headphones
                 </span>
-                <span className="bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-[13px] font-extrabold tracking-tight text-transparent">
+                <span className="text-[13px] font-extrabold tracking-tight text-brand">
                   오디오북
                 </span>
                 <span className="text-[11px] font-medium text-gray-400 dark:text-white/40">
@@ -261,7 +261,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
             <div className="group relative h-2">
               <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-black/10 dark:bg-white/12" />
               {loading && (
-                <span className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 animate-pulse rounded-full bg-gradient-to-r from-purple-500/0 via-pink-500/70 to-purple-500/0 [animation-duration:1.8s]" />
+                <span className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 animate-pulse rounded-full bg-brand [animation-duration:1.8s]" />
               )}
 
               {liveStream ? (
@@ -270,13 +270,13 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
                 <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2">
                   <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 animate-bible-star-travel">
                     {/* 별똥별 꼬리 — 지나온 길에 남는 빛의 자취 */}
-                    <span className="absolute right-1/2 top-1/2 h-[2px] w-8 -translate-y-1/2 rounded-full bg-gradient-to-l from-pink-400/90 via-pink-400/40 to-transparent blur-[0.5px]" />
+                    <span className="absolute right-1/2 top-1/2 h-[2px] w-8 -translate-y-1/2 rounded-full bg-gradient-to-l from-[var(--brand)] via-[var(--brand-glow)] to-transparent blur-[0.5px]" />
                     {/* 은은한 빛무리(후광) */}
-                    <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-pink-400/35 blur-[3px] [animation-duration:1.6s]" />
+                    <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--brand-glow)] blur-[3px] [animation-duration:1.6s]" />
                     {/* 별 — 정상 재생 때와 같은 네 갈래 별 */}
                     <svg
                       viewBox="0 0 24 24"
-                      className="relative block h-[14px] w-[14px] text-white drop-shadow-[0_0_6px_rgba(236,72,153,0.9)]"
+                      className="relative block h-[14px] w-[14px] text-white drop-shadow-[0_0_6px_var(--brand-glow)]"
                       fill="currentColor"
                     >
                       <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
@@ -286,19 +286,19 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
               ) : (
                 <>
                   <div
-                    className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+                    className="absolute left-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-brand"
                     style={{ width: `${pct}%` }}
                   />
 
                   {/* 시작점 — 함께 출발한 자리 */}
-                  <span className="pointer-events-none absolute left-0 top-1/2 h-1 w-1 -translate-y-1/2 rounded-full bg-purple-400/70 dark:bg-purple-300/60" />
+                  <span className="pointer-events-none absolute left-0 top-1/2 h-1 w-1 -translate-y-1/2 rounded-full bg-brand" />
 
                   {/* 도착점 — 빛이 향해 가는 목적지(가까워질수록 환해진다) */}
                   <span
                     className="pointer-events-none absolute left-full top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity"
                     style={{ opacity: 0.3 + (pct / 100) * 0.7 }}
                   >
-                    <span className="material-icons-round block text-[12px] leading-none text-pink-400 dark:text-pink-300">
+                    <span className="material-icons-round block text-[12px] leading-none text-brand">
                       auto_awesome
                     </span>
                   </span>
@@ -309,11 +309,11 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
                     style={{ left: `${pct}%` }}
                   >
                     {isPlaying && (
-                      <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-pink-400/35 blur-[3px] [animation-duration:1.6s]" />
+                      <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--brand-glow)] blur-[3px] [animation-duration:1.6s]" />
                     )}
                     <svg
                       viewBox="0 0 24 24"
-                      className="relative block h-[14px] w-[14px] text-white drop-shadow-[0_0_6px_rgba(236,72,153,0.9)] transition-transform group-active:scale-110"
+                      className="relative block h-[14px] w-[14px] text-white drop-shadow-[0_0_6px_var(--brand-glow)] transition-transform group-active:scale-110"
                       fill="currentColor"
                     >
                       <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
@@ -339,12 +339,12 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
               {loading ? (
                 /* 힌트를 별도 줄이 아닌 이 자리(총길이 자리)에 보여 카드 높이가 변하지 않는다 */
                 <span className="flex items-center gap-1">
-                  <span className="h-1 w-1 animate-pulse rounded-full bg-pink-500" />
+                  <span className="h-1 w-1 animate-pulse rounded-full bg-brand" />
                   처음 재생은 조금 걸려요
                 </span>
               ) : liveStream ? (
-                <span className="flex items-center gap-1 font-semibold text-purple-500 dark:text-purple-300">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-pink-500" />
+                <span className="flex items-center gap-1 font-semibold text-brand">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
                   실시간 생성 중
                 </span>
               ) : (
@@ -360,7 +360,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
         <div className="hidden">
           <div className="relative !hidden inline-flex rounded-full bg-black/[0.05] p-0.5 dark:bg-white/[0.07]">
             <span
-              className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-full bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_4px_12px_-4px_rgba(217,70,239,0.6)] transition-transform duration-300 ease-out"
+              className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] rounded-full bg-brand shadow-[0_4px_12px_-4px_var(--brand-glow)] transition-transform duration-300 ease-out"
               style={{ transform: voice === 'male' ? 'translateX(100%)' : 'translateX(0)' }}
             />
             {(['female', 'male'] as BibleTTSVoice[]).map((v) => (
@@ -438,7 +438,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
             onClick={togglePlay}
             disabled={loading}
             aria-label={isPlaying ? '일시정지' : '재생'}
-            className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_4px_12px_-4px_rgba(217,70,239,0.7)] transition active:scale-95 disabled:cursor-default"
+            className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)] transition active:scale-95 disabled:cursor-default"
           >
             <span className={`material-icons-round text-[20px] leading-none ${loading ? 'animate-pulse' : ''}`}>
               {loading ? 'auto_awesome' : isPlaying ? 'pause' : 'play_arrow'}
@@ -457,10 +457,10 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
             {/* 얇은 진행바 (미니에서는 seek 없이 상태 표시만) */}
             <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-black/10 dark:bg-white/[0.12]">
               {liveStream ? (
-                <div className="h-full w-full animate-pulse bg-gradient-to-r from-purple-500/40 via-pink-500/70 to-purple-500/40" />
+                <div className="h-full w-full animate-pulse bg-brand" />
               ) : (
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-[width] duration-200"
+                  className="h-full rounded-full bg-brand transition-[width] duration-200"
                   style={{ width: `${pct}%` }}
                 />
               )}

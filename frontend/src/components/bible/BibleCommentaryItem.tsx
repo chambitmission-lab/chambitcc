@@ -38,7 +38,7 @@ const BibleCommentaryItem = ({
       <div className="hidden dark:block absolute inset-x-0 top-0 h-px bg-white/[0.05] pointer-events-none" />
 
       <header className="flex items-center gap-2 flex-wrap mb-2">
-        <span className="inline-flex items-center text-[12px] font-bold px-2.5 py-0.5 rounded-full bg-purple-500/12 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300">
+        <span className="inline-flex items-center text-[12px] font-bold px-2.5 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand">
           {formatRange(commentary)}
         </span>
         {commentary.category && (
@@ -72,7 +72,7 @@ const BibleCommentaryItem = ({
           {onEdit && (
             <button
               onClick={() => onEdit(commentary)}
-              className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-bold bg-purple-500/10 dark:bg-purple-500/12 text-purple-700 dark:text-purple-300 border border-purple-500/20 dark:border-purple-500/25 hover:bg-purple-500/15 dark:hover:bg-purple-500/20 transition-colors"
+              className="inline-flex items-center gap-1 px-3 h-8 rounded-full text-[12px] font-bold bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft-strong)] transition-colors"
             >
               <span className="material-icons-round text-[15px]">edit</span>
               수정

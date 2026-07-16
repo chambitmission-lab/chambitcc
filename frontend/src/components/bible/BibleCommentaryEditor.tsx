@@ -207,7 +207,7 @@ const BibleCommentaryEditor = ({
   }
 
   const inputClass =
-    'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
+    'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
   return (
     <div
@@ -215,19 +215,19 @@ const BibleCommentaryEditor = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[94vh] sm:max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18)] flex flex-col"
+        className="relative w-full sm:max-w-lg max-h-[94vh] sm:max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 카드 표면 그라데이션 + 글로우 */}
         <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
-        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/15 dark:to-pink-500/8 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-purple-400/10 dark:from-pink-500/10 dark:to-purple-500/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
           <div>
-            <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
+            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
               Admin
             </p>
             <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
@@ -237,7 +237,7 @@ const BibleCommentaryEditor = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-purple-500 dark:hover:text-purple-300 transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
             aria-label="닫기"
           >
             <span className="material-icons-round text-[20px]">close</span>
@@ -265,12 +265,12 @@ const BibleCommentaryEditor = ({
                       className={[
                         'flex flex-col items-start gap-0.5 px-3.5 py-2.5 rounded-xl text-left transition-all border',
                         active
-                          ? 'bg-gradient-to-br from-purple-500/15 to-pink-500/10 border-purple-400/50 dark:border-purple-400/50'
+                          ? 'bg-[var(--brand-soft)] border-brand'
                           : 'bg-gray-50 dark:bg-white/[0.03] border-gray-200 dark:border-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06]',
                       ].join(' ')}
                     >
                       <span className="flex items-center gap-1.5">
-                        <span className={`material-icons-round text-[18px] ${active ? 'text-purple-600 dark:text-purple-300' : 'text-gray-400 dark:text-white/40'}`}>
+                        <span className={`material-icons-round text-[18px] ${active ? 'text-brand' : 'text-gray-400 dark:text-white/40'}`}>
                           {opt.icon}
                         </span>
                         <span className={`text-[13.5px] font-bold ${active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-white/65'}`}>
@@ -347,7 +347,7 @@ const BibleCommentaryEditor = ({
                       className={[
                         'inline-flex items-center gap-1.5 px-3.5 h-9 rounded-full text-[12.5px] font-bold transition-all',
                         active
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_4px_14px_-4px_rgba(168,85,247,0.55)]'
+                          ? 'bg-brand text-white shadow-[0_4px_14px_-4px_var(--brand-glow)]'
                           : 'bg-gray-50 dark:bg-white/[0.03] text-gray-700 dark:text-white/70 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06]',
                       ].join(' ')}
                     >
@@ -369,7 +369,7 @@ const BibleCommentaryEditor = ({
                   'w-full inline-flex items-center justify-center gap-1.5 h-12 rounded-xl text-[14px] font-bold transition-all',
                   aiLoading
                     ? 'bg-gray-100 dark:bg-white/[0.05] text-gray-400 dark:text-white/40 cursor-wait'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] disabled:opacity-40',
+                    : 'bg-brand text-white shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] disabled:opacity-40',
                 ].join(' ')}
               >
                 <span className={`material-icons-round text-[19px] ${aiLoading ? 'animate-pulse' : ''}`}>
@@ -395,12 +395,12 @@ const BibleCommentaryEditor = ({
                   <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
                     본문 (마크다운 지원)
                   </p>
-                  <span className="text-pink-500 text-[12px] font-bold">*</span>
+                  <span className="text-brand text-[12px] font-bold">*</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowPreview((v) => !v)}
-                  className="inline-flex items-center px-3 h-7 rounded-full bg-purple-500/8 dark:bg-purple-500/12 text-purple-700 dark:text-purple-300 text-[11.5px] font-bold border border-purple-500/20 dark:border-purple-500/25 hover:bg-purple-500/15 dark:hover:bg-purple-500/20 transition-colors"
+                  className="inline-flex items-center px-3 h-7 rounded-full bg-[var(--brand-soft)] text-brand text-[11.5px] font-bold border border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft-strong)] transition-colors"
                 >
                   {showPreview ? '편집' : '미리보기'}
                 </button>
@@ -424,7 +424,7 @@ const BibleCommentaryEditor = ({
                   rows={12}
                   required
                   placeholder={`# 제목\n\n**핵심 단어**, *원어 분석*\n\n- 요점 1\n- 요점 2\n\n> 적용 묵상`}
-                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-y min-h-[200px] font-mono text-[13.5px] leading-[1.6]"
+                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-y min-h-[200px] font-mono text-[13.5px] leading-[1.6]"
                 />
               )}
               <p className="mt-1.5 text-[11px] text-gray-400 dark:text-white/35">
@@ -456,7 +456,7 @@ const BibleCommentaryEditor = ({
             <button
               type="submit"
               disabled={!canSubmit}
-              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
             >
               <span className="material-icons-round text-[18px]">
                 {saving ? 'hourglass_empty' : 'check'}
@@ -482,7 +482,7 @@ const FieldGroup = ({ label, required, children }: FieldGroupProps) => (
       <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
         {label}
       </p>
-      {required && <span className="text-pink-500 text-[12px] font-bold">*</span>}
+      {required && <span className="text-brand text-[12px] font-bold">*</span>}
     </div>
     {children}
   </div>

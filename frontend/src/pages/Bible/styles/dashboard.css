@@ -21,18 +21,13 @@
   transform: scale(0.99);
 }
 
-/* 이어 읽기 — 가장 자주 누르는 본연 기능: 화면의 핵심 CTA로 보라 강조를 집중시킨다 */
+/* 이어 읽기 — 가장 자주 누르는 본연 기능: 화면의 핵심 CTA로 브랜드 강조를 집중시킨다 */
 .dash-card--resume {
   padding: 1rem;
   margin-bottom: 0.625rem;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(236, 72, 153, 0.18));
-  border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: 0 12px 32px -12px rgba(168, 85, 247, 0.6);
-}
-[data-theme="dark"] .dash-card--resume {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.26), rgba(236, 72, 153, 0.18));
-  border-color: rgba(168, 85, 247, 0.42);
-  box-shadow: 0 12px 32px -12px rgba(168, 85, 247, 0.55);
+  background: var(--brand-soft-strong);
+  border-color: var(--brand-glow);
+  box-shadow: 0 12px 32px -12px var(--brand-glow);
 }
 
 /* 즐겨찾기 — 보조(secondary): 더 작고 차분하게 */
@@ -57,8 +52,8 @@
 .dash-card--resume .dash-card__icon {
   width: 3rem;
   height: 3rem;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
-  box-shadow: 0 8px 20px -8px rgba(168, 85, 247, 0.8);
+  background: var(--brand);
+  box-shadow: 0 8px 20px -8px var(--brand-glow);
 }
 .dash-card--resume .dash-card__icon .material-icons-round {
   font-size: 1.7rem;
@@ -66,7 +61,7 @@
 .dash-card--fav .dash-card__icon {
   width: 2.5rem;
   height: 2.5rem;
-  background: linear-gradient(135deg, #a855f7, #ec4899);
+  background: var(--brand);
   opacity: 0.92;
 }
 .dash-card--fav .dash-card__icon .material-icons-round {
@@ -83,11 +78,8 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #a855f7;
+  color: var(--brand);
   margin-bottom: 0.15rem;
-}
-[data-theme="dark"] .dash-card__label {
-  color: #c084fc;
 }
 .dash-card__title {
   display: block;
@@ -115,8 +107,5 @@
   color: var(--ig-secondary-text);
 }
 .dash-card--resume .dash-card__chevron {
-  color: #a855f7;
-}
-[data-theme="dark"] .dash-card--resume .dash-card__chevron {
-  color: #c084fc;
+  color: var(--brand);
 }

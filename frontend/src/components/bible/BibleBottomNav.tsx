@@ -95,19 +95,19 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
                 aria-current={isActive ? 'page' : undefined}
                 className={`relative flex flex-1 flex-col items-center gap-0.5 pb-1.5 pt-2.5 transition-[color,transform] duration-150 active:scale-90 ${
                   isActive
-                    ? 'text-purple-600 dark:text-purple-300'
-                    : 'text-gray-400 dark:text-white/45 active:text-purple-600 dark:active:text-purple-300'
+                    ? 'text-brand'
+                    : 'text-gray-400 dark:text-white/45 active:text-brand'
                 }`}
               >
-                {/* 활성 인디케이터 — 브랜드 그라데이션. 3px 얇은 바에서는 135°가 핑크로만 보여 90°로 좌→우 보라→핑크가 온전히 드러나게 한다 */}
+                {/* 활성 인디케이터 — 브랜드 블루 바 */}
                 {isActive && (
-                  <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-[linear-gradient(90deg,#a855f7_0%,#ec4899_100%)] shadow-[0_2px_6px_rgba(168,85,247,0.45)]" />
+                  <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-brand shadow-[0_2px_6px_var(--brand-glow)]" />
                 )}
-                {/* 활성 아이콘 — 미세 확대 + 그라데이션 채색으로 현재 위치를 직관적으로 표시 */}
+                {/* 활성 아이콘 — 미세 확대 + 브랜드 채색으로 현재 위치를 직관적으로 표시 */}
                 <span
                   className={`material-icons-round text-[22px] leading-none transition-transform duration-200 ${
                     isActive
-                      ? 'scale-110 bg-[linear-gradient(135deg,#a855f7_0%,#ec4899_100%)] bg-clip-text text-transparent dark:bg-[linear-gradient(135deg,#c084fc_0%,#f472b6_100%)] drop-shadow-[0_2px_8px_rgba(168,85,247,0.5)]'
+                      ? 'scale-110 text-brand drop-shadow-[0_2px_8px_var(--brand-glow)]'
                       : ''
                   }`}
                 >

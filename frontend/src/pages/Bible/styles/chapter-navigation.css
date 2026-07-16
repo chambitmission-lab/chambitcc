@@ -33,12 +33,12 @@
 
 .nav-button:hover:not(:disabled) {
   background: var(--ig-hover);
-  color: #a855f7;
+  color: var(--brand);
 }
 
 .nav-button:active:not(:disabled) {
-  background: rgba(168, 85, 247, 0.1);
-  color: #a855f7;
+  background: var(--brand-soft);
+  color: var(--brand);
 }
 
 .nav-button:disabled {
@@ -72,7 +72,7 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23a855f7' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%233182f6' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 1.25rem;
@@ -98,13 +98,13 @@
 
 .chapter-select:focus {
   outline: none;
-  border-color: #a855f7;
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft);
 }
 
 .chapter-select:hover {
-  border-color: #a855f7;
-  background-color: rgba(168, 85, 247, 0.02);
+  border-color: var(--brand);
+  background-color: var(--brand-soft);
 }
 
 /* 장 선택 버튼 그리드 (사용되지 않을 수 있음) */
@@ -135,15 +135,15 @@
 }
 
 .chapter-button:hover {
-  border-color: #a855f7;
-  background: rgba(168, 85, 247, 0.05);
+  border-color: var(--brand);
+  background: var(--brand-soft);
 }
 
 .chapter-button.selected {
-  background: var(--accent-gradient, linear-gradient(135deg, #a855f7 0%, #ec4899 100%));
+  background: var(--brand);
   border-color: transparent;
   color: white;
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 4px 12px var(--brand-glow);
 }
 
 /* 반응형 */

@@ -164,7 +164,7 @@ const BibleStudy = () => {
         particleCount: 90,
         spread: 75,
         origin: { y: 0.7 },
-        colors: ['#a855f7', '#ec4899', '#d946ef', '#f472b6'],
+        colors: ['#3182f6', '#4593fc', '#60a5fa', '#93c5fd'],
       })
       showToast(`오늘 분량 완료! ${planDayNumber}일차를 마쳤어요 🎉`, 'success')
     } catch (e) {

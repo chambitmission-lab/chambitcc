@@ -54,16 +54,16 @@
   background: rgba(34, 197, 94, 0.05);
 }
 
-/* 읽는 중 상태 - 은은한 브랜드 빛(purple→pink) 효과.
+/* 읽는 중 상태 - 은은한 브랜드 빛(블루) 효과.
    verse-selected와 '동일한' 박스 지오메트리를 써서, 음성 시작 시 카드 크기/위치가
    바뀌며 본문이 꿈뻑 출렁이던 현상을 제거한다. 좌측 바는 border-left(3px) 대신
    inset 그림자로 줘서 텍스트가 3px 밀리지 않게 한다. */
 .bible-verse-item.verse-reading {
   background: linear-gradient(
     to right,
-    rgba(168, 85, 247, 0.10),
-    rgba(236, 72, 153, 0.07),
-    rgba(168, 85, 247, 0.10)
+    rgba(49, 130, 246, 0.10),
+    rgba(69, 147, 252, 0.07),
+    rgba(49, 130, 246, 0.10)
   );
   background-size: 200% 100%;
   margin: 0 -0.75rem;
@@ -72,8 +72,8 @@
   border-bottom: 1px solid transparent;
   animation: gentleShimmer 3s ease-in-out infinite;
   box-shadow:
-    inset 3px 0 0 rgba(168, 85, 247, 0.85),
-    inset 0 0 20px rgba(168, 85, 247, 0.1),
+    inset 3px 0 0 rgba(49, 130, 246, 0.85),
+    inset 0 0 20px rgba(49, 130, 246, 0.1),
     0 6px 22px -6px rgba(0, 0, 0, 0.35);
 }
 
@@ -102,10 +102,10 @@
 
 @keyframes pulseReading {
   0%, 100% {
-    background: rgba(168, 85, 247, 0.05);
+    background: rgba(49, 130, 246, 0.05);
   }
   50% {
-    background: rgba(168, 85, 247, 0.08);
+    background: rgba(49, 130, 246, 0.08);
   }
 }
 
@@ -113,10 +113,10 @@
   border-bottom: none;
 }
 
-/* 선택/호버 시 차분한 하이라이트 - 새 다크 패널과 어울리는 은은한 보라 힌트.
+/* 선택/호버 시 차분한 하이라이트 - 새 다크 패널과 어울리는 은은한 브랜드 힌트.
    (이전의 크림색 '독서등' 방사형 글로우는 톤이 튀어 제거) */
 .bible-verse-item:hover {
-  background: rgba(168, 85, 247, 0.06);
+  background: rgba(49, 130, 246, 0.06);
   margin: 0 -0.75rem;
   padding: 1.125rem 0.75rem;
   border-radius: 12px;
@@ -125,39 +125,39 @@
   overflow: visible;
 }
 
-/* 선택(탭하여 액션바 펼침) 상태 - 또렷한 좌측 보라 바 + 살짝 떠보이는 카드.
+/* 선택(탭하여 액션바 펼침) 상태 - 또렷한 좌측 브랜드 바 + 살짝 떠보이는 카드.
    hover와 동일한 margin/padding을 써서 탭 시 추가 레이아웃 이동(출렁임)이 없게 한다. */
 .bible-verse-item.verse-selected {
-  background: rgba(168, 85, 247, 0.08);
+  background: rgba(49, 130, 246, 0.08);
   margin: 0 -0.75rem;
   padding: 1.125rem 0.75rem;
   border-radius: 12px;
   border-bottom: 1px solid transparent;
   box-shadow:
-    inset 3px 0 0 rgba(168, 85, 247, 0.85),
+    inset 3px 0 0 rgba(49, 130, 246, 0.85),
     0 6px 22px -6px rgba(0, 0, 0, 0.35);
 }
 
 .bible-verse-item.verse-selected .bible-verse-number {
-  color: #a855f7;
+  color: var(--brand);
   font-weight: 800;
 }
 
 [data-theme="light"] .bible-verse-item.verse-selected {
-  background: rgba(168, 85, 247, 0.07);
+  background: rgba(49, 130, 246, 0.07);
   box-shadow:
-    inset 3px 0 0 rgba(168, 85, 247, 0.7),
-    0 6px 20px -8px rgba(168, 85, 247, 0.35);
+    inset 3px 0 0 rgba(49, 130, 246, 0.7),
+    0 6px 20px -8px rgba(49, 130, 246, 0.35);
 }
 
 /* 읽는 중 상태도 selected/hover와 동일한 지오메트리라 별도 hover 보정이 필요 없다.
    (예전엔 margin -1rem로 덮어써서 음성 시작 시 폭이 바뀌는 원인이었음) */
 
 [data-theme="light"] .bible-verse-item:hover {
-  background: rgba(168, 85, 247, 0.05);
+  background: rgba(49, 130, 246, 0.05);
 }
 
-/* 절 번호 — 본문보다 작게 + 톤다운 보라로 시각적으로 분리해 줄글의 흐름을 지킨다.
+/* 절 번호 — 본문보다 작게 + 톤다운 브랜드 블루로 시각적으로 분리해 줄글의 흐름을 지킨다.
    (좌측 고정폭 거터 + 우측 정렬이라 본문 시작 라인은 세로로 일렬) */
 .bible-verse-number {
   flex-shrink: 0;
@@ -181,7 +181,7 @@
 }
 
 .bible-verse-item:hover .bible-verse-number {
-  color: #a855f7;
+  color: var(--brand);
   font-weight: 800;
 }
 
@@ -263,7 +263,7 @@
 }
 
 .verse-action-btn:focus-visible {
-  outline: 2px solid rgba(168, 85, 247, 0.7);
+  outline: 2px solid rgba(49, 130, 246, 0.7);
   outline-offset: 2px;
 }
 
@@ -274,7 +274,7 @@
   border: 1px solid var(--ig-border);
   box-shadow:
     0 12px 30px -8px rgba(0, 0, 0, 0.22),
-    0 2px 10px rgba(168, 85, 247, 0.14);
+    0 2px 10px rgba(49, 130, 246, 0.14);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
@@ -284,7 +284,7 @@
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow:
     0 12px 30px -8px rgba(0, 0, 0, 0.6),
-    0 2px 10px rgba(168, 85, 247, 0.2);
+    0 2px 10px rgba(49, 130, 246, 0.2);
 }
 
 @keyframes versePopIn {
@@ -319,8 +319,8 @@
 
 .expand-button:hover {
   background: var(--ig-hover);
-  border-color: #a855f7;
-  color: #a855f7;
+  border-color: var(--brand);
+  color: var(--brand);
 }
 
 .expand-button .material-icons-round {
@@ -367,15 +367,15 @@
 
 @keyframes verse-resume-flash {
   0% {
-    background-color: rgba(168, 85, 247, 0.0);
-    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.0);
+    background-color: rgba(49, 130, 246, 0.0);
+    box-shadow: 0 0 0 0 rgba(49, 130, 246, 0.0);
   }
   20% {
-    background-color: rgba(168, 85, 247, 0.18);
-    box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.25);
+    background-color: rgba(49, 130, 246, 0.18);
+    box-shadow: 0 0 0 4px rgba(49, 130, 246, 0.25);
   }
   100% {
-    background-color: rgba(168, 85, 247, 0.0);
-    box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.0);
+    background-color: rgba(49, 130, 246, 0.0);
+    box-shadow: 0 0 0 0 rgba(49, 130, 246, 0.0);
   }
 }

@@ -294,20 +294,20 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-md max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18)] flex flex-col"
+        className="relative w-full sm:max-w-md max-h-[90vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
-        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/15 dark:to-pink-500/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-purple-500/15 to-pink-500/10 text-purple-600 dark:text-purple-300 shrink-0">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
             <span className="material-icons-round text-[22px]">headphones</span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.1em]">
+            <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">
               나의 묵상 플레이리스트
             </p>
             <h3 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em] truncate">
@@ -316,7 +316,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-purple-500 dark:hover:text-purple-300 transition-colors shrink-0"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors shrink-0"
             aria-label="닫기"
           >
             <span className="material-icons-round text-[20px]">close</span>
@@ -326,12 +326,12 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
         {/* 플레이어 카드 */}
         {items.length > 0 && (
           <div className="relative z-10 px-5 pt-4">
-            <div className="relative overflow-hidden rounded-3xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-background-dark p-4 shadow-[0_10px_30px_-16px_rgba(217,70,239,0.5)]">
-              <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-gradient-to-br from-purple-400/25 to-pink-400/15 blur-3xl" />
+            <div className="relative overflow-hidden rounded-3xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-background-dark p-4 shadow-[0_10px_30px_-16px_var(--brand-glow)]">
+              <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-[var(--brand-soft-strong)] blur-3xl" />
 
               {/* 현재 절 */}
               <div className="relative mb-3 min-h-[3.5rem]">
-                <p className="text-[12px] font-bold text-purple-600 dark:text-purple-300 mb-1">
+                <p className="text-[12px] font-bold text-brand mb-1">
                   {current ? `${current.book_name_ko} ${current.chapter}:${current.verse}` : ''}
                 </p>
                 {/* 묵상용이라 절 전문을 그대로 보여준다 — 극단적으로 긴 절만 내부 스크롤로 흘린다 */}
@@ -344,18 +344,18 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
               <div className="group relative h-2 mb-1">
                 <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-black/10 dark:bg-white/12" />
                 {loading && (
-                  <span className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 animate-pulse rounded-full bg-gradient-to-r from-purple-500/0 via-pink-500/70 to-purple-500/0 [animation-duration:1.8s]" />
+                  <span className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 animate-pulse rounded-full bg-brand [animation-duration:1.8s]" />
                 )}
 
                 {liveStream ? (
                   /* 실시간 생성 중 — 별이 천천히 길을 가로지른다 */
                   <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2">
                     <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 animate-bible-star-travel">
-                      <span className="absolute right-1/2 top-1/2 h-[2px] w-8 -translate-y-1/2 rounded-full bg-gradient-to-l from-pink-400/90 via-pink-400/40 to-transparent blur-[0.5px]" />
-                      <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-pink-400/35 blur-[3px] [animation-duration:1.6s]" />
+                      <span className="absolute right-1/2 top-1/2 h-[2px] w-8 -translate-y-1/2 rounded-full bg-gradient-to-l from-[var(--brand)] via-[var(--brand-glow)] to-transparent blur-[0.5px]" />
+                      <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--brand-glow)] blur-[3px] [animation-duration:1.6s]" />
                       <svg
                         viewBox="0 0 24 24"
-                        className="relative block h-[16px] w-[16px] text-white drop-shadow-[0_0_6px_rgba(236,72,153,0.9)]"
+                        className="relative block h-[16px] w-[16px] text-white drop-shadow-[0_0_6px_var(--brand-glow)]"
                         fill="currentColor"
                       >
                         <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
@@ -365,19 +365,19 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                 ) : (
                   <>
                     <div
-                      className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-[width] duration-300 ease-linear"
+                      className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand transition-[width] duration-300 ease-linear"
                       style={{ width: `${pct}%` }}
                     />
 
                     {/* 시작점 — 함께 출발한 자리 */}
-                    <span className="pointer-events-none absolute left-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-purple-400/70 dark:bg-purple-300/60" />
+                    <span className="pointer-events-none absolute left-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-brand" />
 
                     {/* 도착점 — 빛이 향해 가는 목적지(가까워질수록 환해진다) */}
                     <span
                       className="pointer-events-none absolute left-full top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity"
                       style={{ opacity: 0.3 + (pct / 100) * 0.7 }}
                     >
-                      <span className="material-icons-round block text-[14px] leading-none text-pink-400 dark:text-pink-300">
+                      <span className="material-icons-round block text-[14px] leading-none text-brand">
                         auto_awesome
                       </span>
                     </span>
@@ -388,11 +388,11 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                       style={{ left: `${pct}%` }}
                     >
                       {isPlaying && (
-                        <span className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-pink-400/35 blur-[3px] [animation-duration:1.6s]" />
+                        <span className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--brand-glow)] blur-[3px] [animation-duration:1.6s]" />
                       )}
                       <svg
                         viewBox="0 0 24 24"
-                        className="relative block h-[18px] w-[18px] text-white drop-shadow-[0_0_6px_rgba(236,72,153,0.9)] transition-transform group-active:scale-110"
+                        className="relative block h-[18px] w-[18px] text-white drop-shadow-[0_0_6px_var(--brand-glow)] transition-transform group-active:scale-110"
                         fill="currentColor"
                       >
                         <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
@@ -415,10 +415,10 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
 
               <div className="flex items-center justify-between text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45 mb-2">
                 <span>{formatTime(currentTime)}</span>
-                <span className="text-purple-500 dark:text-purple-300 font-semibold">{statusText}</span>
+                <span className="text-brand font-semibold">{statusText}</span>
                 {liveStream ? (
-                  <span className="flex items-center gap-1 font-semibold text-purple-500 dark:text-purple-300">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-pink-500" />
+                  <span className="flex items-center gap-1 font-semibold text-brand">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
                     생성 중
                   </span>
                 ) : (
@@ -434,7 +434,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                   aria-label="셔플"
                   className={`grid h-9 w-9 place-items-center rounded-full transition active:scale-95 ${
                     isShuffle
-                      ? 'text-pink-500 bg-pink-500/10'
+                      ? 'text-brand bg-[var(--brand-soft)]'
                       : 'text-gray-400 dark:text-white/45'
                   }`}
                 >
@@ -455,10 +455,10 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                   onClick={togglePlay}
                   disabled={loading}
                   aria-label={isPlaying ? '일시정지' : '재생'}
-                  className="relative grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-[0_8px_22px_-6px_rgba(217,70,239,0.75)] transition active:scale-95 disabled:cursor-default"
+                  className="relative grid h-14 w-14 flex-shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_8px_22px_-6px_var(--brand-glow)] transition active:scale-95 disabled:cursor-default"
                 >
                   {isPlaying && !loading && (
-                    <span className="absolute inset-0 rounded-full bg-pink-500/40 animate-ping [animation-duration:1.6s]" />
+                    <span className="absolute inset-0 rounded-full bg-[var(--brand-glow)] animate-ping [animation-duration:1.6s]" />
                   )}
                   {loading ? (
                     <span className="material-icons-round relative animate-pulse text-[24px] leading-none">
@@ -485,7 +485,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                   onClick={() => setIsRepeat((v) => !v)}
                   aria-label="전체 반복"
                   className={`relative grid h-9 w-9 place-items-center rounded-full transition active:scale-95 ${
-                    isRepeat ? 'text-pink-500 bg-pink-500/10' : 'text-gray-400 dark:text-white/45'
+                    isRepeat ? 'text-brand bg-[var(--brand-soft)]' : 'text-gray-400 dark:text-white/45'
                   }`}
                 >
                   <span className="material-icons-round text-[20px]">repeat</span>
@@ -642,7 +642,7 @@ const PlaylistRow = ({ item, active, playing, onPlay, onRemove, onDragEnd }: Pla
       }}
       className={`relative flex items-center rounded-2xl transition-colors ${
         active
-          ? 'bg-purple-50 dark:bg-purple-500/15'
+          ? 'bg-[var(--brand-soft)]'
           : 'bg-background-light dark:bg-card-dark hover:bg-gray-100 dark:hover:bg-white/[0.04]'
       }`}
     >
@@ -654,7 +654,7 @@ const PlaylistRow = ({ item, active, playing, onPlay, onRemove, onDragEnd }: Pla
         <span
           className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
             active
-              ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+              ? 'bg-brand text-white'
               : 'bg-black/[0.04] dark:bg-white/[0.07] text-gray-400 dark:text-white/45'
           }`}
         >
@@ -666,7 +666,7 @@ const PlaylistRow = ({ item, active, playing, onPlay, onRemove, onDragEnd }: Pla
           <span
             className={`block text-[12px] font-bold ${
               active
-                ? 'text-purple-700 dark:text-purple-300'
+                ? 'text-brand'
                 : 'text-gray-500 dark:text-white/55'
             }`}
           >
@@ -682,7 +682,7 @@ const PlaylistRow = ({ item, active, playing, onPlay, onRemove, onDragEnd }: Pla
         type="button"
         onClick={handleRemove}
         aria-label="즐겨찾기 해제"
-        className="shrink-0 self-stretch px-1.5 grid place-items-center text-pink-400/80 dark:text-pink-300/70 hover:text-pink-600 dark:hover:text-pink-400 transition-colors active:scale-90"
+        className="shrink-0 self-stretch px-1.5 grid place-items-center text-brand hover:text-[var(--brand-dim)] transition-colors active:scale-90"
       >
         <span className="material-icons-round text-[18px]">favorite</span>
       </button>
