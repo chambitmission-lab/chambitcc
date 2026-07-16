@@ -11,12 +11,11 @@ const cardCls =
   'border border-gray-200/70 dark:border-white/[0.06] shadow-sm ' +
   'dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]'
 
-const gradientNum =
-  'bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent'
+const gradientNum = 'text-brand'
 
 const SectionTitle = ({ icon, children }: { icon: string; children: React.ReactNode }) => (
   <h3 className="text-[14px] font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 tracking-[-0.01em]">
-    <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
+    <span className="material-icons-outlined text-xl text-brand">
       {icon}
     </span>
     {children}
@@ -26,10 +25,8 @@ const SectionTitle = ({ icon, children }: { icon: string; children: React.ReactN
 type StatTone = 'top' | 'zero' | 'normal'
 
 const toneNum: Record<StatTone, string> = {
-  // 가장 활발한 항목 — 더 밝은 네온 + 글로우
-  top:
-    'text-[22px] bg-gradient-to-br from-fuchsia-400 via-pink-400 to-rose-400 ' +
-    'bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(244,114,182,0.45)]',
+  // 가장 활발한 항목 — 브랜드 블루 + 글로우
+  top: 'text-[22px] text-brand drop-shadow-[0_0_10px_var(--brand-glow)]',
   // 아직 0인 항목 — 톤다운
   zero: 'text-[20px] text-gray-300 dark:text-white/25',
   normal: `text-[20px] ${gradientNum}`,
@@ -120,25 +117,24 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
 
   return (
     <div className="px-4 pt-5 space-y-5">
-      {/* 연속 활동 — 불꽃 강조 (네온 글로우) */}
+      {/* 연속 활동 — 블루 서피스, 온기는 불꽃 이모지에만 */}
       <div>
         <SectionTitle icon="local_fire_department">연속 활동</SectionTitle>
         <div
           className="
             relative overflow-hidden rounded-2xl p-3.5
-            bg-gradient-to-br from-orange-500/[0.10] via-red-500/[0.06] to-transparent
-            dark:from-orange-500/[0.14] dark:via-red-500/[0.08]
-            border border-orange-300/50 dark:border-orange-400/20
-            shadow-[0_0_20px_rgba(251,146,60,0.22)]
-            dark:shadow-[0_0_28px_rgba(251,146,60,0.16)]
+            bg-white/80 dark:bg-card-dark
+            border border-gray-200/70 dark:border-white/[0.06] shadow-sm
+            dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]
           "
         >
+          <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
           <div
-            className="pointer-events-none absolute -top-10 -right-8 w-32 h-32 rounded-full bg-orange-400/20 blur-2xl"
+            className="pointer-events-none absolute -top-10 -right-8 w-32 h-32 rounded-full bg-[var(--brand-soft-strong)] blur-2xl"
             aria-hidden="true"
           />
           <div className="relative grid grid-cols-2 gap-2">
-            <div className="flex flex-col items-center justify-center rounded-xl py-3 bg-white/70 dark:bg-white/[0.04] border border-orange-200/60 dark:border-orange-400/10">
+            <div className="flex flex-col items-center justify-center rounded-xl py-3 bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
               <div className="flex items-end gap-1">
                 <span
                   className={
@@ -152,18 +148,10 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
                 >
                   🔥
                 </span>
-                <span
-                  className={
-                    'text-[30px] leading-none font-extrabold tracking-[-0.02em] ' +
-                    'bg-gradient-to-br from-orange-400 to-red-500 bg-clip-text text-transparent ' +
-                    (keptToday && streak.current > 0
-                      ? 'animate-streak-glow motion-reduce:animate-none'
-                      : '')
-                  }
-                >
+                <span className="text-[30px] leading-none font-extrabold tracking-[-0.02em] text-brand">
                   {streak.current}
                 </span>
-                <span className="text-[13px] font-bold text-orange-500/80 dark:text-orange-300/80 pb-0.5">
+                <span className="text-[13px] font-bold text-[var(--brand-muted)] pb-0.5">
                   일
                 </span>
               </div>
@@ -171,13 +159,13 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
                 현재 연속
               </div>
             </div>
-            <div className="flex flex-col items-center justify-center rounded-xl py-3 bg-white/70 dark:bg-white/[0.04] border border-orange-200/60 dark:border-orange-400/10">
+            <div className="flex flex-col items-center justify-center rounded-xl py-3 bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
               <div className="flex items-end gap-1">
                 <span className="text-[22px] leading-none">🏆</span>
-                <span className="text-[24px] leading-none font-extrabold tracking-[-0.02em] bg-gradient-to-br from-amber-400 to-orange-500 bg-clip-text text-transparent">
+                <span className="text-[24px] leading-none font-extrabold tracking-[-0.02em] text-brand">
                   {streak.best}
                 </span>
-                <span className="text-[12px] font-bold text-amber-500/80 dark:text-amber-300/80 pb-0.5">
+                <span className="text-[12px] font-bold text-[var(--brand-muted)] pb-0.5">
                   일
                 </span>
               </div>
@@ -186,7 +174,7 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
               </div>
             </div>
           </div>
-          <p className="relative mt-2.5 text-center text-[11px] font-semibold text-orange-600/90 dark:text-orange-300/80">
+          <p className="relative mt-2.5 text-center text-[11px] font-semibold text-[var(--brand-muted)]">
             {keptToday && streak.current > 0
               ? '오늘도 불꽃을 지켰어요! 내일도 이어가 볼까요? 🔥'
               : streak.current > 0
@@ -257,8 +245,8 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
                 key={m.key}
                 className="
                   shrink-0 flex items-center gap-2 rounded-full pl-2.5 pr-3 py-2
-                  bg-gradient-to-r from-purple-500/10 to-pink-500/10
-                  border border-purple-300/40 dark:border-purple-400/20
+                  bg-[var(--brand-soft)]
+                  border border-[var(--brand-soft-strong)]
                 "
               >
                 <span className="text-base">{m.icon}</span>

@@ -46,7 +46,7 @@ const Growth = () => {
   if (summaryLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-background-dark flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -60,7 +60,7 @@ const Growth = () => {
           </p>
           <button
             onClick={() => navigate('/profile')}
-            className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full shadow-lg"
+            className="px-6 py-2 brand-gradient font-bold rounded-full shadow-[0_2px_10px_var(--brand-glow)]"
           >
             돌아가기
           </button>
@@ -75,7 +75,7 @@ const Growth = () => {
         {/* 헤더 */}
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
           <button
-            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
             onClick={() => navigate('/profile')}
           >
             <span className="material-icons-outlined">arrow_back</span>
@@ -95,14 +95,14 @@ const Growth = () => {
         {summary.has_activity && (
           <div className="relative mt-3 pt-6 pb-1 flex flex-col items-center gap-0.5">
             <div
-              className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent via-purple-500/[0.04] to-purple-500/[0.08] dark:via-purple-400/[0.05] dark:to-purple-400/[0.10]"
+              className="pointer-events-none absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent to-[var(--brand-soft)]"
               aria-hidden="true"
             />
             <span className="relative text-[11px] font-medium text-gray-400 dark:text-white/40">
               아래로 내려 지난 발자취를 이어보세요
             </span>
             <span
-              className="relative material-icons-outlined text-xl text-purple-400/80 dark:text-purple-300/60 animate-bounce"
+              className="relative material-icons-outlined text-xl text-[var(--brand-muted)] animate-bounce"
               aria-hidden="true"
             >
               keyboard_double_arrow_down

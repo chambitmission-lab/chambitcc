@@ -39,15 +39,15 @@ const TimelineNode = ({ icon }: { icon: string }) => (
     <div
       className="
         z-10 w-9 h-9 rounded-full flex items-center justify-center text-[17px]
-        bg-gradient-to-br from-purple-500 to-pink-500
-        shadow-[0_2px_8px_rgba(168,85,247,0.35)]
+        bg-brand
+        shadow-[0_2px_8px_var(--brand-glow)]
         ring-4 ring-background-light dark:ring-background-dark
       "
     >
       {icon}
     </div>
     {/* 세로 연결선 */}
-    <div className="absolute top-9 bottom-0 w-px bg-gradient-to-b from-purple-300/50 to-transparent dark:from-purple-400/25" />
+    <div className="absolute top-9 bottom-0 w-px bg-gradient-to-b from-[var(--brand-soft-strong)] to-transparent" />
   </div>
 )
 
@@ -100,7 +100,7 @@ const ActivityTimeline = ({
   return (
     <div className="px-4 pt-6 pb-10">
       <h3 className="text-[14px] font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 tracking-[-0.01em]">
-        <span className="material-icons-outlined text-xl bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
+        <span className="material-icons-outlined text-xl text-brand">
           history
         </span>
         활동 기록
@@ -124,7 +124,7 @@ const ActivityTimeline = ({
               <Fragment key={event.id}>
                 {showMonth && (
                   <div className="flex items-center gap-3 mt-5 mb-3 first:mt-0">
-                    <span className="text-[12px] font-bold text-purple-500 dark:text-purple-300">
+                    <span className="text-[12px] font-bold text-brand">
                       {monthLabel(event.date)}
                     </span>
                     <span className="flex-1 h-px bg-gray-200 dark:bg-white/[0.08]" />
@@ -152,9 +152,9 @@ const ActivityTimeline = ({
             disabled={isLoadingMore}
             className="
               px-5 py-2.5 rounded-full text-[13px] font-semibold
-              text-purple-600 dark:text-purple-300
-              bg-purple-50 dark:bg-white/[0.06]
-              border border-purple-200/60 dark:border-white/[0.08]
+              text-brand
+              bg-[var(--brand-soft)]
+              border border-[var(--brand-soft-strong)]
               disabled:opacity-60 transition-colors
             "
           >
