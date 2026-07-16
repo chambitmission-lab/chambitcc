@@ -315,7 +315,8 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
                 <p className="text-[12px] font-bold text-purple-600 dark:text-purple-300 mb-1">
                   {current ? `${current.book_name_ko} ${current.chapter}:${current.verse}` : ''}
                 </p>
-                <p className="text-[14px] leading-[1.6] text-gray-800 dark:text-white/85 line-clamp-2">
+                {/* 묵상용이라 절 전문을 그대로 보여준다 — 극단적으로 긴 절만 내부 스크롤로 흘린다 */}
+                <p className="text-[14px] leading-[1.6] text-gray-800 dark:text-white/85 max-h-40 overflow-y-auto overscroll-contain">
                   {current?.text}
                 </p>
               </div>
