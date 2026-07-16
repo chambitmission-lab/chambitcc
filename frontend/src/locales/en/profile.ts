@@ -20,8 +20,6 @@ export const profile = {
   profileEmptyPraying: 'Not praying for anything yet',
   profileEmptyReplies: 'No replies written yet',
   profilePrayedAt: 'Prayed',
-  profileReplyLabel: 'Reply written',
-  profileUntitledPrayer: 'Untitled prayer',
   profileWrittenAs: 'Written as',
   
   // Achievement System

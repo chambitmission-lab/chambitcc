@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
+import { preloadMenuRoutes } from '../../../utils/routePreload'
 import NotificationModal from '../../common/NotificationModal'
 import Logo from './components/Logo'
 import HeaderActions from './components/HeaderActions'
@@ -23,6 +24,12 @@ const NewHeader = () => {
 
   // SSE 실시간 알림 스트림 — 새 공지/개인 알림 시 뱃지·목록 즉시 갱신 (폴링 대체)
   useNotificationStream(isLoggedIn)
+
+  // 메뉴를 여는 순간 = 곧 이동한다는 신호 → 메뉴 페이지 청크를 미리 로드
+  // (이미 받은 청크는 스킵되므로 유휴 프리로드와 중복돼도 비용 없음)
+  useEffect(() => {
+    if (isMenuOpen) void preloadMenuRoutes()
+  }, [isMenuOpen])
 
   return (
     <>

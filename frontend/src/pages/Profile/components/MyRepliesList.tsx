@@ -41,7 +41,7 @@ const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
             }
           }}
           className="
-            relative overflow-hidden rounded-2xl p-4 cursor-pointer
+            relative overflow-hidden rounded-2xl px-4 py-3 cursor-pointer
             bg-white/80 dark:bg-card-dark
             border border-gray-200/70 dark:border-white/[0.08]
             shadow-sm
@@ -52,16 +52,13 @@ const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
           <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
 
           <div className="relative z-10">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11px] font-semibold text-gray-500 dark:text-white/45">
-                {t('profileReplyLabel')}
-              </span>
-              <span className="text-[12px] font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent truncate min-w-0">
-                {reply.prayer_title || t('profileUntitledPrayer')}
-              </span>
-            </div>
+            {reply.prayer_title && (
+              <div className="mb-1.5 text-[12px] font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent truncate">
+                {reply.prayer_title}
+              </div>
+            )}
 
-            <div className="relative pl-3 mb-3">
+            <div className="relative pl-3 mb-2.5">
               <div className="absolute left-0 top-1 bottom-1 w-[3px] rounded-full bg-gradient-to-b from-purple-500 to-pink-500" />
               <ExpandableText
                 text={reply.content}

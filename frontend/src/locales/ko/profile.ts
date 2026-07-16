@@ -20,8 +20,6 @@ export const profile = {
   profileEmptyPraying: '아직 기도중인 항목이 없습니다',
   profileEmptyReplies: '아직 작성한 댓글이 없습니다',
   profilePrayedAt: '기도함',
-  profileReplyLabel: '댓글 작성',
-  profileUntitledPrayer: '제목 없는 기도',
   profileWrittenAs: '로 작성',
   
   // 업적 시스템

@@ -7,26 +7,28 @@ import NewHeader from './components/layout/NewHeader/NewHeader'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
+import { menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
 // 즉시 진입 가능성이 높은 페이지는 eager import 유지
 import NewHome from './pages/Home/NewHome'
 import Login from './pages/Auth/Login'
 
 // 보조/관리/대형 페이지는 lazy로 분리 → 메인 번들 축소
+// 햄버거 메뉴 페이지는 routePreload의 로더를 공유해 프리로드 청크를 재사용
 const Home = lazy(() => import('./pages/Home/Home'))
-const About = lazy(() => import('./pages/About/About'))
+const About = lazy(menuRouteLoaders['/about'])
 const TV = lazy(() => import('./pages/TV/TV'))
 const Education = lazy(() => import('./pages/Education/Education'))
-const Mission = lazy(() => import('./pages/Mission/Mission'))
-const Ministry = lazy(() => import('./pages/Ministry/Ministry'))
-const News = lazy(() => import('./pages/News/News'))
+const Mission = lazy(menuRouteLoaders['/mission'])
+const Ministry = lazy(menuRouteLoaders['/ministry'])
+const News = lazy(menuRouteLoaders['/news'])
 const Participate = lazy(() => import('./pages/Participate/Participate'))
 const Online = lazy(() => import('./pages/Online/Online'))
-const Culture = lazy(() => import('./pages/Culture/Culture'))
-const Worship = lazy(() => import('./pages/Worship/Worship'))
-const Sermon = lazy(() => import('./pages/Sermon/Sermon'))
+const Culture = lazy(menuRouteLoaders['/culture'])
+const Worship = lazy(menuRouteLoaders['/worship'])
+const Sermon = lazy(menuRouteLoaders['/sermon'])
 const Register = lazy(() => import('./pages/Auth/Register'))
-const Profile = lazy(() => import('./pages/Profile/Profile'))
-const AccountSettings = lazy(() => import('./pages/Account/AccountSettings'))
+const Profile = lazy(menuRouteLoaders['/profile'])
+const AccountSettings = lazy(menuRouteLoaders['/account'])
 const NotificationManagement = lazy(
   () => import('./pages/Admin/NotificationManagement'),
 )
@@ -44,25 +46,21 @@ const PushNotificationManagement = lazy(() =>
 const EventManagement = lazy(() => import('./pages/Admin/EventManagement'))
 const UserManagement = lazy(() => import('./pages/Admin/UserManagement'))
 const GroupManagement = lazy(() => import('./pages/Admin/GroupManagement'))
-const EventCalendar = lazy(() => import('./pages/Events/EventCalendar'))
+const EventCalendar = lazy(menuRouteLoaders['/events'])
 const EventDetail = lazy(() => import('./pages/Events/EventDetail'))
-const MyGroups = lazy(() => import('./pages/Groups/MyGroups'))
+const MyGroups = lazy(menuRouteLoaders['/groups'])
 const GroupDetail = lazy(() => import('./pages/Groups/GroupDetail'))
 const PrayerFocus = lazy(() => import('./pages/PrayerFocus'))
-const BibleStudy = lazy(() => import('./pages/Bible/BibleStudy'))
+const BibleStudy = lazy(menuRouteLoaders['/bible'])
 const Genealogy = lazy(() => import('./pages/Bible/Genealogy/Genealogy'))
 const PlanList = lazy(() => import('./pages/Bible/Plans/PlanList'))
 const PlanDetail = lazy(() => import('./pages/Bible/Plans/PlanDetail'))
 const BiblePlanManagement = lazy(() => import('./pages/Admin/BiblePlanManagement'))
 const BibleCommentaryManagement = lazy(() => import('./pages/Admin/BibleCommentaryManagement'))
-const AnsweredPrayers = lazy(
-  () => import('./pages/Prayer/AnsweredPrayers'),
-)
+const AnsweredPrayers = lazy(menuRouteLoaders['/answered-prayers'])
 const Thanks = lazy(() => import('./pages/Thanks/Thanks'))
-const Garden = lazy(() =>
-  import('./pages/Garden/Garden').then((m) => ({ default: m.Garden })),
-)
-const Bluemarble = lazy(() => import('./pages/Bluemarble/Bluemarble'))
+const Garden = lazy(menuRouteLoaders['/garden'])
+const Bluemarble = lazy(menuRouteLoaders['/bluemarble'])
 const RabbitGallery = lazy(() => import('./pages/Bluemarble/RabbitGallery'))
 const WeeklyStory = lazy(() => import('./pages/WeeklyStory/WeeklyStory'))
 const Growth = lazy(() => import('./pages/Growth/Growth'))
@@ -124,6 +122,11 @@ function App() {
 
     checkCacheConsistency()
   }, [queryClient])
+
+  // 첫 화면 렌더 후 유휴 시간에 메뉴 페이지 청크를 미리 받아 메뉴 진입 딜레이 제거
+  useEffect(() => {
+    schedulePreloadOnIdle()
+  }, [])
 
   return (
     <ThemeProvider>
