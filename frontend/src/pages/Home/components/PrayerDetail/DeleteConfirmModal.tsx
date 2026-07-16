@@ -1,11 +1,12 @@
 // 삭제 확인 모달 컴포넌트
 interface DeleteConfirmModalProps {
+  isAdminDelete?: boolean
   isDeleting: boolean
   onConfirm: () => void
   onCancel: () => void
 }
 
-const DeleteConfirmModal = ({ isDeleting, onConfirm, onCancel }: DeleteConfirmModalProps) => {
+const DeleteConfirmModal = ({ isAdminDelete = false, isDeleting, onConfirm, onCancel }: DeleteConfirmModalProps) => {
   return (
     <div className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[120] flex items-center justify-center p-4">
       <div className="bg-background-light dark:bg-background-dark rounded-3xl p-6 max-w-sm w-full border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(239,68,68,0.25),0_0_0_1px_rgba(255,255,255,0.04)]">
@@ -20,6 +21,12 @@ const DeleteConfirmModal = ({ isDeleting, onConfirm, onCancel }: DeleteConfirmMo
           <h3 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-[-0.015em]">기도 요청 삭제</h3>
         </div>
         <p className="text-sm text-gray-600 dark:text-gray-400 leading-[1.7] mb-6">
+          {isAdminDelete && (
+            <>
+              <span className="font-semibold text-red-500 dark:text-red-400">관리자 권한으로 다른 성도의 기도 요청을 삭제합니다.</span>
+              <br />
+            </>
+          )}
           이 기도 요청을 삭제하시겠습니까?<br />
           삭제된 내용은 복구할 수 없습니다.
         </p>

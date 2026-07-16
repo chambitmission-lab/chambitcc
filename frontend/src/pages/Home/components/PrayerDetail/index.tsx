@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { usePrayerDetail } from '../../../../hooks/usePrayersQuery'
 import { useReplies, useCreateReply, useUpdateReply, useDeleteReply } from '../../../../hooks/useReplies'
 import { usePrayerDelete } from '../../../../hooks/usePrayerDelete'
+import { isAdmin } from '../../../../utils/auth'
 import type { Prayer } from '../../../../types/prayer'
 import { useTranslation } from './useTranslation'
 import PrayerDetailModal from './PrayerDetailModal'
@@ -134,11 +135,15 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
     return <ErrorState error={error || '기도 요청을 찾을 수 없습니다'} onClose={onClose} />
   }
 
+  // 관리자는 부적절한 글을 즉시 정리할 수 있도록 남의 글에도 삭제 버튼 노출 (백엔드도 is_admin 허용)
+  const isOwner = prayer.is_owner || false
+  const isAdminDelete = !isOwner && isAdmin()
+
   return (
     <>
       <PrayerDetailModal>
         <PrayerDetailHeader
-          isOwner={prayer.is_owner || false}
+          canDelete={isOwner || isAdminDelete}
           onClose={onClose}
           onDeleteClick={() => setShowDeleteConfirm(true)}
         />
@@ -149,7 +154,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
             displayName={prayer.display_name}
             avatarUrl={prayer.avatar_url ?? null}
             timeAgo={prayer.time_ago}
-            isOwner={prayer.is_owner || false}
+            isOwner={isOwner}
             hasTranslation={hasTranslation}
             showTranslation={showTranslation}
             nextLanguage={nextLanguage}
@@ -196,6 +201,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
 
       {showDeleteConfirm && (
         <DeleteConfirmModal
+          isAdminDelete={isAdminDelete}
           isDeleting={isDeleting}
           onConfirm={handleDelete}
           onCancel={() => setShowDeleteConfirm(false)}

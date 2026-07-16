@@ -2,12 +2,12 @@
 // 모바일에서는 전체 화면(페이지처럼 보임) → 좌측 상단 뒤로가기(←),
 // 데스크톱에서는 중앙 모달 → 우측 상단 닫기(X). 플랫폼 관례에 맞춘다.
 interface PrayerDetailHeaderProps {
-  isOwner: boolean
+  canDelete: boolean
   onClose: () => void
   onDeleteClick: () => void
 }
 
-const PrayerDetailHeader = ({ isOwner, onClose, onDeleteClick }: PrayerDetailHeaderProps) => {
+const PrayerDetailHeader = ({ canDelete, onClose, onDeleteClick }: PrayerDetailHeaderProps) => {
   return (
     <div className="flex-shrink-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark px-5 py-3.5 flex items-center justify-between">
       <div className="flex items-center gap-1.5">
@@ -22,7 +22,7 @@ const PrayerDetailHeader = ({ isOwner, onClose, onDeleteClick }: PrayerDetailHea
         <h2 className="text-[15px] font-semibold text-gray-900 dark:text-white tracking-[-0.01em]">기도 요청 상세</h2>
       </div>
       <div className="flex items-center gap-1">
-        {isOwner && (
+        {canDelete && (
           <button
             onClick={onDeleteClick}
             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-light dark:hover:bg-white/[0.06] transition-colors"
