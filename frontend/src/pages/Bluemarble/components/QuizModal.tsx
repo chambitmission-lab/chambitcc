@@ -19,7 +19,7 @@ interface Props {
 }
 
 const DIFFICULTY_LABEL = ['', '쉬움', '보통', '어려움']
-const DIFFICULTY_COLOR = ['', 'text-green-400', 'text-purple-300', 'text-rose-400']
+const DIFFICULTY_COLOR = ['', 'text-green-400', 'text-sky-300', 'text-rose-400']
 
 const CONFETTI_PIECES = Array.from({ length: 18 }, (_, i) => i)
 const CONFETTI_EMOJI = ['✨', '🎉', '⭐', '💫', '🌟', '🕊️']
