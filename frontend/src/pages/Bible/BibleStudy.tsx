@@ -245,6 +245,22 @@ const BibleStudy = () => {
                   <span className="material-icons-round dash-card__chevron">chevron_right</span>
                 </button>
 
+                {/* 말씀 사진 카드 — 내 사진 위에 말씀을 올려 저장·공유 */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/bible/photo-verse')}
+                  className="dash-card dash-card--fav"
+                >
+                  <span className="dash-card__icon">
+                    <span className="material-icons-round">photo_filter</span>
+                  </span>
+                  <span className="dash-card__body">
+                    <span className="dash-card__title">말씀 사진 카드</span>
+                    <span className="dash-card__text">내 사진 위에 말씀을 담아 간직하고 나누기</span>
+                  </span>
+                  <span className="material-icons-round dash-card__chevron">chevron_right</span>
+                </button>
+
                 {isLoggedIn() && (
                   <button
                     type="button"

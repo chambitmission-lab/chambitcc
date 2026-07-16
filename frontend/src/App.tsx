@@ -65,6 +65,7 @@ const RabbitGallery = lazy(() => import('./pages/Bluemarble/RabbitGallery'))
 const WeeklyStory = lazy(() => import('./pages/WeeklyStory/WeeklyStory'))
 const Growth = lazy(() => import('./pages/Growth/Growth'))
 const SituationBible = lazy(() => import('./pages/Bible/SituationBible'))
+const PhotoVerse = lazy(() => import('./pages/Bible/PhotoVerse/PhotoVerse'))
 const SituationManagement = lazy(() => import('./pages/Admin/SituationManagement'))
 const CultureManagement = lazy(() => import('./pages/Admin/CultureManagement'))
 
@@ -176,6 +177,7 @@ function App() {
                 <Route path="/bible/plans" element={<PlanList />} />
                 <Route path="/bible/plans/:planId" element={<PlanDetail />} />
                 <Route path="/bible/situation" element={<SituationBible />} />
+                <Route path="/bible/photo-verse" element={<PhotoVerse />} />
                 <Route path="/bible/:bookNumber/:chapter" element={<BibleStudy />} />
                 <Route path="/garden" element={<Garden />} />
                 <Route path="/bluemarble" element={<Bluemarble />} />
