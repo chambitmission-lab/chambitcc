@@ -12,6 +12,8 @@ interface ContentCardProps {
 const ContentCard = ({ title, content, onTitleChange, onContentChange }: ContentCardProps) => {
   const { t } = useLanguage()
   const [voiceError, setVoiceError] = useState<string>('')
+  // 제목은 선택 입력 — 기본은 숨기고 "제목 추가"로 필요할 때만 펼친다
+  const [showTitle, setShowTitle] = useState<boolean>(() => !!title.trim())
   const lastTitleRef = useRef<string>('')
   const lastContentRef = useRef<string>('')
   const isVoiceInputActiveRef = useRef<boolean>(false)  // 음성 입력 활성 상태
@@ -71,6 +73,13 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
     isVoiceInputActiveRef.current = false
   }
 
+  // 제목 입력란 제거 — 음성 인식 중이면 중지하고 입력값도 비운다
+  const handleRemoveTitle = () => {
+    if (titleVoice.isListening) handleTitleStop()
+    onTitleChange('')
+    setShowTitle(false)
+  }
+
   const handleContentStart = () => {
     // 제목 음성 인식이 실행 중이면 중지
     if (titleVoice.isListening) {
@@ -119,16 +128,31 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
         </div>
       )}
 
-      {/* 기도 카드 — 카드 시스템과 동일 토큰 (#1c1c26 솔리드 + 그라데이션 한 겹 + 1px 상단 빛줄, 보라/핑크 글로우) */}
-      <div className="relative bg-white/60 dark:bg-[#23232e] backdrop-blur-xl rounded-2xl p-5 border border-black/[0.04] dark:border-white/[0.08] shadow-[0_2px_8px_rgba(168,85,247,0.10)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),0_8px_24px_rgba(168,85,247,0.15),inset_0_1px_0_rgba(255,255,255,0.05)] overflow-hidden">
+      {/* 기도 카드 — 토스 블루 플랫 테마 (theme.css 브랜드 토큰, surface-high 솔리드 + 그라데이션 한 겹 + 1px 상단 빛줄) */}
+      <div className="relative bg-white/60 dark:bg-surface-high backdrop-blur-xl rounded-2xl p-5 border border-black/[0.04] dark:border-white/[0.08] shadow-[0_2px_8px_var(--brand-soft)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),0_8px_24px_var(--brand-soft-strong),inset_0_1px_0_rgba(255,255,255,0.05)] overflow-hidden">
         {/* 다크모드 카드 표면 그라데이션 */}
         <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl"></div>
 
-        {/* 보랏빛/핑크 글로우 — 무채색 금지 */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-purple-300/25 to-transparent dark:from-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-purple-400/15 to-pink-400/15 dark:from-pink-500/15 dark:to-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        {/* 블루 글로우 — 무채색 금지 */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-gradient-to-b from-blue-300/25 to-transparent dark:from-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-400/15 to-sky-400/15 dark:from-sky-500/15 dark:to-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
         
+        {/* 제목은 선택 — 기본은 숨기고 칩 버튼으로 필요할 때만 펼친다 */}
+        {!showTitle && (
+          <div className="mb-4 relative z-20">
+            <button
+              type="button"
+              onClick={() => setShowTitle(true)}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] font-medium bg-[var(--brand-soft)] text-brand hover:bg-[var(--brand-soft-strong)] transition-colors"
+            >
+              <span className="material-icons-outlined text-[14px]">add</span>
+              {t('prayerComposerAddTitle')}
+            </button>
+          </div>
+        )}
+
         {/* Title with Voice Input — 한글 제목: uppercase 금지, 20px/700, leading 1.3 */}
+        {showTitle && (
         <div className="mb-4 relative z-20">
           <div className="flex items-center gap-2">
             <input
@@ -137,6 +161,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
               onChange={handleManualTitleChange}
               placeholder={t('prayerComposerTitlePlaceholder')}
               maxLength={100}
+              autoFocus
               className={`
                 flex-1 min-w-0 bg-transparent border-none text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white
                 placeholder:text-[13.5px] placeholder:font-normal placeholder:tracking-normal
@@ -145,12 +170,21 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
               `}
             />
             <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleRemoveTitle}
+                aria-label={t('prayerComposerRemoveTitle')}
+                title={t('prayerComposerRemoveTitle')}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-white/40 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+              >
+                <span className="material-icons-outlined text-[18px]">close</span>
+              </button>
               {!titleVoice.isListening ? (
                 <button
                   type="button"
                   onClick={handleTitleStart}
                   disabled={!titleVoice.isSupported}
-                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-gradient-to-tr from-purple-500 to-pink-500 text-white shadow-[0_4px_12px_rgba(168,85,247,0.35)] hover:shadow-[0_6px_18px_rgba(168,85,247,0.5)] hover:scale-105 active:scale-95 transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-brand text-white shadow-[0_4px_12px_var(--brand-glow)] hover:shadow-[0_6px_18px_var(--brand-glow)] hover:scale-105 active:scale-95 transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   title={titleVoice.isSupported ? (t('startVoiceInput') || '음성 입력 시작') : '음성 인식 미지원'}
                 >
                   🎤
@@ -175,9 +209,12 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
             </div>
           )}
         </div>
+        )}
 
-        {/* 제목/본문 구분선 — 카드 시스템과 동일한 미세 라인 */}
-        <div className="h-px bg-black/[0.06] dark:bg-white/[0.06] mb-4 relative z-10" />
+        {/* 제목/본문 구분선 — 제목 입력란이 펼쳐진 경우에만 */}
+        {showTitle && (
+          <div className="h-px bg-black/[0.06] dark:bg-white/[0.06] mb-4 relative z-10" />
+        )}
 
         {/* Content with Voice Input — 본문 15px/leading 1.7 */}
         <div className="relative z-10">
@@ -203,7 +240,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
                   type="button"
                   onClick={handleContentStart}
                   disabled={!contentVoice.isSupported}
-                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-gradient-to-tr from-purple-500 to-pink-500 text-white shadow-[0_4px_12px_rgba(168,85,247,0.35)] hover:shadow-[0_6px_18px_rgba(168,85,247,0.5)] hover:scale-105 active:scale-95 transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="w-10 h-10 min-w-[2.5rem] rounded-full flex items-center justify-center bg-brand text-white shadow-[0_4px_12px_var(--brand-glow)] hover:shadow-[0_6px_18px_var(--brand-glow)] hover:scale-105 active:scale-95 transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   title={contentVoice.isSupported ? (t('startVoiceInput') || '음성 입력 시작') : '음성 인식 미지원'}
                 >
                   🎤

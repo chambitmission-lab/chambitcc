@@ -109,25 +109,20 @@ const Login = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-black screen-fit-minus-header flex items-center justify-center p-4">
+    <div className="bg-surface screen-fit-minus-header flex items-center justify-center p-4">
       <div className="max-w-sm w-full my-auto">
-        {/* Logo */}
+        {/* Logo — 토스 블루 플랫: 앰버 글로우 대신 담백한 타이포 + 브랜드 포인트 */}
         <div className="text-center mb-8">
-          <div className="relative inline-block">
-            {/* 주변 빛 확산 효과 */}
-            <div className="absolute inset-0 bg-amber-300/30 blur-md animate-pulse"></div>
-            
-            <h1 className="text-3xl font-bold tracking-tighter font-display text-gray-900 dark:text-white mb-2 relative z-10 drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]">
-              {t('aboutChurchName')}
-            </h1>
-          </div>
+          <h1 className="text-3xl font-bold tracking-tighter font-display text-gray-900 dark:text-white mb-2">
+            {t('aboutChurchName')}
+          </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {t('loginWelcome')}
           </p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-8 mb-4">
+        <div className="feed-card rounded-2xl p-8 mb-4">
           {error && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
@@ -144,7 +139,7 @@ const Login = () => {
                 placeholder={t('loginUsername')}
                 required
                 disabled={loading}
-                className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-base text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] rounded-xl text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-brand transition-colors"
               />
             </div>
 
@@ -157,14 +152,14 @@ const Login = () => {
                 placeholder={t('loginPassword')}
                 required
                 disabled={loading}
-                className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-base text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] rounded-xl text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-brand transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg text-sm hover:from-purple-600 hover:to-pink-600 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-sm"
+              className="w-full py-2.5 bg-brand hover:bg-brand-dim text-white font-semibold rounded-xl text-sm active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-[0_8px_24px_-8px_var(--brand-glow)]"
             >
               {loading ? t('loginLoading') : t('loginButton')}
             </button>
@@ -172,12 +167,12 @@ const Login = () => {
         </div>
 
         {/* Sign Up Link */}
-        <div className="bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg p-4 text-center">
+        <div className="feed-card rounded-2xl p-4 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {t('loginNoAccount')}{' '}
-            <Link 
-              to="/register" 
-              className="font-semibold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent hover:from-purple-600 hover:to-pink-600 transition-all"
+            <Link
+              to="/register"
+              className="font-semibold text-brand hover:text-brand-dim transition-colors"
             >
               {t('loginSignUp')}
             </Link>
@@ -186,17 +181,11 @@ const Login = () => {
 
         {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link 
-            to="/" 
-            className="inline-block text-sm font-medium relative group"
+          <Link
+            to="/"
+            className="inline-block text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
           >
-            {/* 은은한 빛 효과 */}
-            <span className="absolute inset-0 bg-gradient-to-r from-amber-300 to-yellow-300 blur-md opacity-30 group-hover:opacity-50 transition-opacity duration-300"></span>
-            
-            {/* 텍스트 */}
-            <span className="relative bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent group-hover:from-amber-300 group-hover:to-yellow-300 transition-all duration-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]">
-              {t('loginBackHome')}
-            </span>
+            {t('loginBackHome')}
           </Link>
         </div>
       </div>

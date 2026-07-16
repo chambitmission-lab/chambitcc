@@ -35,7 +35,7 @@ const EmotionSelector = ({ selected, onChange, disabled }: EmotionSelectorProps)
             type="button"
             onClick={() => onChange(null)}
             disabled={disabled}
-            className="text-[11px] font-medium text-purple-600 dark:text-purple-300 hover:text-purple-700 dark:hover:text-purple-200"
+            className="text-[11px] font-medium text-brand hover:text-brand-dim"
           >
             지우기
           </button>
@@ -55,8 +55,8 @@ const EmotionSelector = ({ selected, onChange, disabled }: EmotionSelectorProps)
                 transition-all duration-200
                 ${
                   isActive
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_2px_8px_rgba(168,85,247,0.35)]'
-                    : 'bg-purple-500/[0.06] dark:bg-purple-500/10 text-gray-600 dark:text-gray-300 hover:bg-purple-500/[0.12] dark:hover:bg-purple-500/15 hover:text-purple-700 dark:hover:text-purple-300'
+                    ? 'bg-brand text-white shadow-[0_2px_8px_var(--brand-glow)]'
+                    : 'bg-[var(--brand-soft)] text-gray-600 dark:text-gray-300 hover:bg-[var(--brand-soft-strong)] hover:text-brand'
                 }
                 disabled:opacity-50 disabled:cursor-not-allowed
               `}
