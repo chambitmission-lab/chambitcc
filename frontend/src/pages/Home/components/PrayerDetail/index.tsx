@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { usePrayerDetail } from '../../../../hooks/usePrayersQuery'
 import { useReplies, useCreateReply, useUpdateReply, useDeleteReply } from '../../../../hooks/useReplies'
 import { usePrayerDelete } from '../../../../hooks/usePrayerDelete'
+import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { isAdmin } from '../../../../utils/auth'
 import type { Prayer } from '../../../../types/prayer'
 import { useTranslation } from './useTranslation'
@@ -30,36 +31,13 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
   const [showReplies, setShowReplies] = useState(initialOpenReplies)
   const repliesSectionRef = useRef<HTMLDivElement>(null)
 
-  // 브라우저 뒤로가기 처리 - 모달 열림
-  useEffect(() => {
-    // 모달이 열릴 때 히스토리 엔트리 추가
-    window.history.pushState({ modal: 'prayer-detail', replies: false }, '')
+  // 브라우저/안드로이드 뒤로가기: 댓글이 열려 있으면 댓글만 닫고, 아니면 모달을 닫는다
+  useModalBackButton(onClose)
+  useModalBackButton(() => setShowReplies(false), showReplies)
 
-    const handlePopState = () => {
-      // 댓글이 열려있으면 댓글만 닫기
-      if (showReplies) {
-        setShowReplies(false)
-        // 댓글을 닫았으니 다시 히스토리 엔트리 추가
-        window.history.pushState({ modal: 'prayer-detail', replies: false }, '')
-      } else {
-        // 댓글이 닫혀있으면 모달 전체 닫기
-        onClose()
-      }
-    }
-
-    window.addEventListener('popstate', handlePopState)
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState)
-    }
-  }, [onClose, showReplies])
-
-  // 댓글 열림/닫힘 상태 변경 시 히스토리 관리 및 스크롤
+  // 댓글 열릴 때 댓글 섹션으로 스크롤
   useEffect(() => {
     if (showReplies) {
-      // 댓글이 열릴 때 히스토리 엔트리 추가
-      window.history.pushState({ modal: 'prayer-detail', replies: true }, '')
-      
       // 댓글 섹션으로 스크롤 (약간의 딜레이를 주어 렌더링 완료 후 스크롤)
       setTimeout(() => {
         repliesSectionRef.current?.scrollIntoView({ 

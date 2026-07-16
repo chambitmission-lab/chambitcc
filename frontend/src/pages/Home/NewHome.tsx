@@ -78,10 +78,11 @@ const NewHome = () => {
     if (state?.openPrayerId) {
       setSelectedPrayerId(state.openPrayerId)
       setOpenReplies(!!state.openReplies)
-      // state 초기화 (뒤로가기 시 다시 열리지 않도록)
-      window.history.replaceState({}, document.title)
+      // state 초기화 (뒤로가기 시 다시 열리지 않도록) — 라우터 히스토리 state(idx/key)를
+      // 건드리지 않도록 raw replaceState 대신 navigate로 정리한다
+      navigate(location.pathname, { replace: true })
     }
-  }, [location])
+  }, [location, navigate])
 
   const handleComposerOpen = () => {
     requireAuth(() => setShowComposer(true))
