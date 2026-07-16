@@ -25,6 +25,22 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
   const { language } = useLanguage()
   const [keyboardOpen, setKeyboardOpen] = useState(false)
 
+  // 네비 목적지(읽기·플랜·가계도) lazy 청크 prefetch — 홈 BottomNavigation과 동일 패턴.
+  // 특히 Genealogy는 87KB라 첫 탭에서 받기 시작하면 전환이 눈에 띄게 늦다.
+  useEffect(() => {
+    const prefetch = () => {
+      import('../../pages/Bible/BibleStudy')
+      import('../../pages/Bible/Plans/PlanList')
+      import('../../pages/Bible/Genealogy/Genealogy')
+    }
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(prefetch, { timeout: 3000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = window.setTimeout(prefetch, 1500)
+    return () => window.clearTimeout(id)
+  }, [])
+
   useEffect(() => {
     const vv = window.visualViewport
     if (!vv) return
@@ -77,10 +93,10 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
                 type="button"
                 onClick={() => handleSelect(key)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`relative flex flex-1 flex-col items-center gap-0.5 pb-1.5 pt-2.5 transition-colors ${
+                className={`relative flex flex-1 flex-col items-center gap-0.5 pb-1.5 pt-2.5 transition-[color,transform] duration-150 active:scale-90 ${
                   isActive
                     ? 'text-purple-600 dark:text-purple-300'
-                    : 'text-gray-400 dark:text-white/45'
+                    : 'text-gray-400 dark:text-white/45 active:text-purple-600 dark:active:text-purple-300'
                 }`}
               >
                 {/* 활성 인디케이터 — 브랜드 그라데이션. 3px 얇은 바에서는 135°가 핑크로만 보여 90°로 좌→우 보라→핑크가 온전히 드러나게 한다 */}
