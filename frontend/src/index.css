@@ -133,6 +133,22 @@ body {
   max-height: calc(var(--vvh, 100dvh) - 3.5rem);
 }
 
+/* 하단 고정 네비게이션이 있는 body-스크롤 페이지의 바닥 여백.
+   설치형 WebAPK가 레이아웃 뷰포트(=100vh)를 시스템 바 포함 높이로 과대 계산하면
+   (100vh − --vvh) 만큼 문서 끝부분이 스크롤로 도달 불가가 돼, 고정 패딩만으로는
+   마지막 콘텐츠가 네비 뒤에 반쯤 가려진 채 더는 안 올라온다.
+   그 차이를 여백에 보태 항상 네비 위까지 스크롤되게 한다 — 정상 상태에선 차이가 0. */
+.pb-bottomnav-safe {
+  /* 성경 하단 네비(약 52px)용: 기본 6rem */
+  padding-bottom: 6rem;
+  padding-bottom: calc(6rem + max(0px, 100vh - var(--vvh, 100vh)));
+}
+.pb-dock-safe {
+  /* 홈 플로팅 dock(FAB 포함 약 100px)용: 기본 7rem */
+  padding-bottom: 7rem;
+  padding-bottom: calc(7rem + max(0px, 100vh - var(--vvh, 100vh)));
+}
+
 .container {
   max-width: 80rem;
   margin: 0 auto;

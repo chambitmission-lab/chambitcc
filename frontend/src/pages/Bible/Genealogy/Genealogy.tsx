@@ -80,7 +80,7 @@ export const Genealogy = () => {
   )
 
   return (
-    <div className="bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen pb-24">
+    <div className="bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen pb-bottomnav-safe">
       <div className="max-w-5xl mx-auto px-4 pt-5">
         {/* Breadcrumb + 헤더 */}
         <header className="mb-5">
