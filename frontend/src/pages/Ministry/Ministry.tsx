@@ -6,7 +6,6 @@ import { showToast } from '../../utils/toast'
 import { getColumns, createColumn, updateColumn, deleteColumn } from '../../api/column'
 import type { Column } from '../../types/column'
 import andongProfile from '../../assets/andong.png'
-import './Ministry.css'
 
 // 중요한 문구를 하이라이트하는 함수 (상세 화면용)
 const renderHighlightedText = (text: string) => {
@@ -17,13 +16,7 @@ const renderHighlightedText = (text: string) => {
     if (part.startsWith('[[') && part.endsWith(']]')) {
       const highlightedText = part.slice(2, -2)
       return (
-        <span
-          key={index}
-          className="font-bold text-purple-600 dark:text-purple-400"
-          style={{
-            textShadow: '0 0 15px rgba(168, 85, 247, 0.8), 0 0 25px rgba(168, 85, 247, 0.5)',
-          }}
-        >
+        <span key={index} className="font-bold text-[var(--brand)]">
           {highlightedText}
         </span>
       )
@@ -250,8 +243,8 @@ const Ministry = () => {
                   onClick={toggleSearch}
                   className={`p-2 rounded-full transition-colors ${
                     showSearch
-                      ? 'bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-white/[0.06]'
+                      ? 'bg-[var(--brand-soft-strong)] text-[var(--brand)]'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-[var(--brand-soft)]'
                   }`}
                   aria-label={language === 'ko' ? '검색' : 'Search'}
                   title={language === 'ko' ? '검색' : 'Search'}
@@ -263,7 +256,7 @@ const Ministry = () => {
                 {isAdminUser && (
                   <button
                     onClick={handleAddNew}
-                    className="px-4 py-2 bg-gradient-to-tr from-purple-500 to-pink-500 text-white rounded-full font-semibold text-sm shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all flex items-center gap-1.5"
+                    className="px-4 py-2 brand-gradient rounded-full font-semibold text-sm shadow-[0_2px_10px_var(--brand-glow)] hover:shadow-[0_4px_16px_var(--brand-glow)] transition-all flex items-center gap-1.5"
                   >
                     <span className="material-icons-outlined text-lg">add</span>
                     <span>{language === 'ko' ? '추가' : 'Add'}</span>
@@ -282,7 +275,7 @@ const Ministry = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={language === 'ko' ? '제목 또는 본문에서 검색…' : 'Search title or content…'}
-                  className="w-full pl-10 pr-10 py-2.5 border border-border-light dark:border-white/[0.08] rounded-full bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
+                  className="w-full pl-10 pr-10 py-2.5 border border-border-light dark:border-white/[0.08] rounded-full bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                 />
                 {searchQuery && (
                   <button
@@ -301,7 +294,7 @@ const Ministry = () => {
         {/* Column List */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--brand)]"></div>
           </div>
         ) : columns.length === 0 ? (
           <div className="text-center py-20 text-gray-600 dark:text-gray-400">
@@ -316,17 +309,20 @@ const Ministry = () => {
           {columns.map((column) => (
             <article
               key={column.id}
-              className="bg-white dark:bg-[#1c1c26] rounded-2xl overflow-hidden border border-border-light dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(168,85,247,0.08)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.5),0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.08),0_8px_20px_rgba(168,85,247,0.16)] dark:hover:shadow-[0_2px_6px_rgba(0,0,0,0.6),0_12px_28px_rgba(168,85,247,0.18)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+              className="feed-card relative rounded-2xl overflow-hidden hover:-translate-y-0.5 hover:border-[var(--brand-glow)] hover:shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-all duration-200 cursor-pointer"
               onClick={() => setSelectedColumn(column)}
             >
-              {/* Author Info — 다른 화면 아바타와 동일한 펄스 글로우 패턴 */}
-              <div className="p-4 flex items-center gap-3">
+              {/* 다크모드 표면 그라데이션 — 홈 피드 카드와 동일 문법 */}
+              <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-transparent pointer-events-none rounded-2xl"></div>
+
+              {/* Author Info — 1px 헤어라인 + 숨 쉬는 브랜드 블루 후광 */}
+              <div className="relative z-10 p-4 flex items-center gap-3">
                 <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 rounded-full bg-purple-400/30 dark:bg-purple-500/40 blur-md animate-pulse"></div>
+                  <div className="absolute -inset-1 rounded-full bg-[var(--brand-glow)] blur-md animate-pulse pointer-events-none"></div>
                   <img
                     src={andongProfile}
                     alt={column.author}
-                    className="w-10 h-10 rounded-full object-cover border-2 border-purple-500/70 dark:border-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.5)] dark:shadow-[0_0_20px_rgba(168,85,247,0.35)] relative z-10"
+                    className="relative w-10 h-10 rounded-full object-cover ring-1 ring-black/[0.07] dark:ring-white/[0.12]"
                   />
                 </div>
                 <div className="flex-1">
@@ -340,7 +336,7 @@ const Ministry = () => {
               </div>
 
               {/* Content Preview */}
-              <div className="px-4 pb-5">
+              <div className="relative z-10 px-4 pb-5">
                 <h2 className="text-[20px] font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 tracking-[-0.015em] leading-[1.3]">
                   {highlightKeyword(column.title, appliedQuery)}
                 </h2>
@@ -356,24 +352,24 @@ const Ministry = () => {
         {/* Detail Modal */}
         {selectedColumn && (
           <div
-            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[110] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[110] flex items-stretch md:items-center justify-center p-0 md:p-4"
             onClick={() => setSelectedColumn(null)}
           >
             <div
-              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
+              className="bg-background-light dark:bg-background-dark w-full h-full rounded-none md:rounded-3xl md:max-w-md md:h-auto md:max-h-[calc(100dvh-2rem)] overflow-y-auto md:border md:border-border-light md:dark:border-border-dark md:shadow-[0_30px_80px_-20px_var(--brand-glow),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
               <div className="sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark p-5 z-10">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    {/* 작성자 아바타 — 다른 화면과 동일한 펄스 글로우 패턴 */}
+                    {/* 작성자 아바타 — 1px 헤어라인 + 숨 쉬는 브랜드 블루 후광 */}
                     <div className="relative flex-shrink-0">
-                      <div className="absolute inset-0 rounded-full bg-purple-400/30 dark:bg-purple-500/40 blur-md animate-pulse"></div>
+                      <div className="absolute -inset-1 rounded-full bg-[var(--brand-glow)] blur-md animate-pulse pointer-events-none"></div>
                       <img
                         src={andongProfile}
                         alt={selectedColumn.author}
-                        className="w-10 h-10 rounded-full object-cover border-2 border-purple-500/70 dark:border-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.5)] dark:shadow-[0_0_20px_rgba(168,85,247,0.35)] relative z-10"
+                        className="relative w-10 h-10 rounded-full object-cover ring-1 ring-black/[0.07] dark:ring-white/[0.12]"
                       />
                     </div>
                     <div className="flex flex-col">
@@ -385,22 +381,17 @@ const Ministry = () => {
                       </div>
                     </div>
                   </div>
-                  {/* 닫기 버튼 — 시안 글로우 제거, 다른 모달과 동일한 표준 패턴 */}
+                  {/* 닫기 버튼 — 다른 모달과 동일한 표준 패턴 */}
                   <button
                     onClick={() => setSelectedColumn(null)}
-                    className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-full hover:bg-purple-50 dark:hover:bg-purple-500/15 transition-colors"
+                    className="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
                     aria-label="닫기"
                   >
                     <span className="material-icons-outlined text-[20px] text-gray-600 dark:text-gray-400">close</span>
                   </button>
                 </div>
-                {/* 제목 — 기존 보라/핑크 그라데이션 텍스트는 칼럼 화면의 시그니처라 유지하되, 글로우만 토큰화 */}
-                <h2
-                  className="text-[22px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400 tracking-[-0.015em] leading-[1.3]"
-                  style={{
-                    filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.4))',
-                  }}
-                >
+                {/* 제목 — 플랫 스틸 블루(--brand-muted), 그라데이션·글로우 없이 은은한 강조 */}
+                <h2 className="text-[22px] font-bold text-[var(--brand-muted)] tracking-[-0.015em] leading-[1.3]">
                   {selectedColumn.title}
                 </h2>
               </div>
@@ -421,7 +412,7 @@ const Ministry = () => {
                 <div className="sticky bottom-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-border-light dark:border-border-dark p-4 flex items-center gap-2">
                   <button
                     onClick={() => handleEdit(selectedColumn)}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-white/[0.08] hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-700 dark:text-gray-300 hover:bg-[var(--brand-soft)] hover:text-[var(--brand)] transition-colors"
                   >
                     <span className="material-icons-outlined text-lg">edit</span>
                     <span className="text-sm font-semibold">{language === 'ko' ? '수정' : 'Edit'}</span>
@@ -442,11 +433,11 @@ const Ministry = () => {
         {/* Edit Modal */}
         {isEditing && (
           <div
-            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[110] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-lg z-[110] flex items-stretch md:items-center justify-center p-0 md:p-4"
             onClick={handleCancel}
           >
             <div
-              className="bg-background-light dark:bg-background-dark rounded-3xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto border border-border-light dark:border-border-dark shadow-[0_30px_80px_-20px_rgba(168,85,247,0.25),0_0_0_1px_rgba(255,255,255,0.04)]"
+              className="bg-background-light dark:bg-background-dark w-full h-full rounded-none md:rounded-3xl md:max-w-md md:h-auto md:max-h-[calc(100dvh-2rem)] overflow-y-auto md:border md:border-border-light md:dark:border-border-dark md:shadow-[0_30px_80px_-20px_var(--brand-glow),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark p-5 z-10">
@@ -456,7 +447,7 @@ const Ministry = () => {
                   </h2>
                   <button
                     onClick={handleCancel}
-                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-purple-50 dark:hover:bg-purple-500/15 transition-colors"
+                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
                     aria-label="닫기"
                   >
                     <span className="material-icons-outlined text-[20px] text-gray-600 dark:text-gray-400">close</span>
@@ -473,7 +464,7 @@ const Ministry = () => {
                     type="text"
                     value={editingColumn.title || ''}
                     onChange={(e) => setEditingColumn({ ...editingColumn, title: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
+                    className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                     placeholder={language === 'ko' ? '컬럼 제목을 입력하세요' : 'Enter column title'}
                   />
                 </div>
@@ -487,7 +478,7 @@ const Ministry = () => {
                       type="text"
                       value={editingColumn.author || ''}
                       onChange={(e) => setEditingColumn({ ...editingColumn, author: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
+                      className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                       placeholder={language === 'ko' ? '작성자 이름' : 'Author name'}
                     />
                   </div>
@@ -500,7 +491,7 @@ const Ministry = () => {
                       type="text"
                       value={editingColumn.role || ''}
                       onChange={(e) => setEditingColumn({ ...editingColumn, role: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
+                      className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                       placeholder={language === 'ko' ? '담임목사' : 'Senior Pastor'}
                     />
                   </div>
@@ -514,7 +505,7 @@ const Ministry = () => {
                     type="text"
                     value={editingColumn.date || ''}
                     onChange={(e) => setEditingColumn({ ...editingColumn, date: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
+                    className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                     placeholder="2026.02"
                   />
                 </div>
@@ -527,7 +518,7 @@ const Ministry = () => {
                     <button
                       type="button"
                       onClick={handleHighlight}
-                      className="px-3 py-1 bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 rounded-full text-xs font-semibold hover:bg-purple-200 dark:hover:bg-purple-500/25 transition-colors flex items-center gap-1"
+                      className="px-3 py-1 bg-[var(--brand-soft-strong)] text-[var(--brand)] rounded-full text-xs font-semibold hover:bg-[var(--brand-soft)] transition-colors flex items-center gap-1"
                       title={language === 'ko' ? '선택한 텍스트를 하이라이트' : 'Highlight selected text'}
                     >
                       <span className="material-icons-outlined text-sm">highlight</span>
@@ -539,7 +530,7 @@ const Ministry = () => {
                     value={editingColumn.content || ''}
                     onChange={(e) => setEditingColumn({ ...editingColumn, content: e.target.value })}
                     rows={12}
-                    className="w-full px-4 py-3 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm leading-[1.7] resize-none focus:outline-none focus:border-purple-400 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-colors"
+                    className="w-full px-4 py-3 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm leading-[1.7] resize-none focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                     placeholder={language === 'ko' ? '컬럼 내용을 입력하세요...\n\n중요한 문구를 선택하고 "하이라이트" 버튼을 누르면 강조 효과가 적용됩니다.' : 'Enter column content...\n\nSelect important text and click "Highlight" button to apply emphasis effect.'}
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
@@ -551,13 +542,13 @@ const Ministry = () => {
               <div className="sticky bottom-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-border-light dark:border-border-dark p-4 flex gap-3">
                 <button
                   onClick={handleCancel}
-                  className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-purple-50 dark:hover:bg-white/[0.08] transition-colors"
+                  className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors"
                 >
                   {language === 'ko' ? '취소' : 'Cancel'}
                 </button>
                 <button
                   onClick={handleSave}
-                  className="flex-1 py-3 px-4 bg-gradient-to-tr from-purple-500 to-pink-500 text-white rounded-2xl font-semibold text-sm shadow-lg shadow-purple-500/30 dark:shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/40 transition-all"
+                  className="flex-1 py-3 px-4 brand-gradient rounded-2xl font-semibold text-sm shadow-[0_2px_10px_var(--brand-glow)] hover:shadow-[0_4px_16px_var(--brand-glow)] transition-all"
                 >
                   {language === 'ko' ? '저장' : 'Save'}
                 </button>
@@ -577,11 +568,9 @@ const Ministry = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 rounded-full bg-red-400/30 dark:bg-red-500/40 blur-md animate-pulse"></div>
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-b from-red-400/60 via-red-500/40 to-red-600/25 dark:from-red-400/50 dark:via-red-500/30 dark:to-red-600/20 border-2 border-red-500/70 dark:border-red-400/50 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.4),inset_0_1px_3px_rgba(255,255,255,0.6)] dark:shadow-[0_0_20px_rgba(239,68,68,0.3),inset_0_1px_3px_rgba(255,255,255,0.25)] relative z-10">
-                    <span className="material-icons-outlined text-white text-xl">warning</span>
-                  </div>
+                {/* 플랫 tint 서클 — 글로우·펄스 없이 기능색(빨강)만 */}
+                <div className="w-12 h-12 flex-shrink-0 rounded-full bg-red-500/10 dark:bg-red-500/15 flex items-center justify-center">
+                  <span className="material-icons-outlined text-red-500 dark:text-red-400 text-xl">warning</span>
                 </div>
                 <h3 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
                   {language === 'ko' ? '컬럼 삭제' : 'Delete Column'}
@@ -593,13 +582,13 @@ const Ministry = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-purple-50 dark:hover:bg-white/[0.08] transition-colors"
+                  className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors"
                 >
                   {language === 'ko' ? '취소' : 'Cancel'}
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="flex-1 py-3 px-4 bg-gradient-to-tr from-red-500 to-rose-500 text-white rounded-2xl font-semibold text-sm shadow-lg shadow-red-500/30 dark:shadow-red-500/20 hover:shadow-xl hover:shadow-red-500/40 transition-all"
+                  className="flex-1 py-3 px-4 bg-red-500 hover:bg-red-600 text-white rounded-2xl font-semibold text-sm shadow-[0_2px_10px_rgba(239,68,68,0.25)] transition-colors"
                 >
                   {language === 'ko' ? '삭제' : 'Delete'}
                 </button>
