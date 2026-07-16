@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { getColumns, createColumn, updateColumn, deleteColumn } from '../../api/column'
@@ -67,6 +68,11 @@ const Ministry = () => {
   const [appliedQuery, setAppliedQuery] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // 모바일 뒤로가기 → 페이지 이탈 대신 열린 모달만 닫기
+  useModalBackButton(() => setSelectedColumn(null), !!selectedColumn)
+  useModalBackButton(() => { setIsEditing(false); setEditingColumn({}) }, isEditing)
+  useModalBackButton(() => setShowDeleteConfirm(false), showDeleteConfirm)
 
   // 검색어 변경 시 디바운스 — appliedQuery가 바뀌면 아래 쿼리가 자동 실행됨
   useEffect(() => {
