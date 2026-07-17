@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import { useBibleSearch } from '../../../hooks/useBible'
+import { useBibleBooks, useBibleSearch } from '../../../hooks/useBible'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { BibleVerse } from '../../../types/bible'
 
@@ -33,6 +33,7 @@ const VersePickerSheet = ({ onPick, onClose }: VersePickerSheetProps) => {
   const [selected, setSelected] = useState<BibleVerse[]>([])
 
   const { data: results, isLoading } = useBibleSearch(query)
+  const { data: allBooks } = useBibleBooks()
 
   useModalBackButton(onClose)
 
@@ -110,10 +111,14 @@ const VersePickerSheet = ({ onPick, onClose }: VersePickerSheetProps) => {
   const isBookOnlySearch = !!(
     results?.is_book_search && (results.books?.length || results.book)
   )
-  // 장 검색("창 1")은 책 이름이 절 객체가 아닌 응답 최상위에만 있으므로 여기서 채워준다
+  // 검색 응답의 절 객체에는 책 이름이 없다:
+  // 장 검색("창 1")은 응답 최상위 book_name_ko에서, 키워드 검색은 book_number를
+  // 책 목록으로 되짚어 이름을 복원한다 (없으면 출처가 "3:4"처럼 잘려 보였음)
+  const nameByNumber = new Map((allBooks ?? []).map((b) => [b.book_number, b.book_name_ko]))
   const verses = (results?.results ?? []).map((v) => ({
     ...v,
-    book_name_ko: v.book_name_ko || results?.book_name_ko || '',
+    book_name_ko:
+      v.book_name_ko || results?.book_name_ko || nameByNumber.get(v.book_number ?? -1) || '',
   }))
 
   return (

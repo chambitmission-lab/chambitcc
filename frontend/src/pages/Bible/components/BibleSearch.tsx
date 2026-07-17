@@ -202,6 +202,8 @@ const BibleSearch = () => {
   const testamentByName = new Map((allBooks || []).map(b => [b.book_name_ko, b.testament]))
   // 검색 결과 카드(book_number 기반)에 읽기 진행도(book_id 기반)를 연결하기 위한 매핑
   const bookIdByNumber = new Map((allBooks || []).map(b => [b.book_number, b.id]))
+  // 키워드 검색 응답의 절 객체에는 책 이름이 없다(book_number만) → 책 목록으로 이름을 복원
+  const nameByNumber = new Map((allBooks || []).map(b => [b.book_number, b.book_name_ko]))
   const matchesScope = (bookNumber?: number | null, bookNameKo?: string) => {
     if (scope === 'ALL') return true
     const testament =
@@ -375,7 +377,7 @@ const BibleSearch = () => {
                 }}
               >
                 <div className="bible-verse-reference">
-                  {verse.book_name_ko} {verse.chapter}:{verse.verse}
+                  {verse.book_name_ko || nameByNumber.get(verse.book_number ?? -1) || searchResults.book_name_ko || ''} {verse.chapter}:{verse.verse}
                 </div>
                 <div className="bible-verse-text">{verse.text}</div>
               </div>
