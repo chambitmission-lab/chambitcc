@@ -176,6 +176,12 @@ export const useMyBookmarks = (
     queryFn: () => listBookmarks(params),
     enabled: enabled && !!token,
     staleTime: 1000 * 60 * 2,
+    // 전역 refetchOnMount:false의 예외. persist 복원만 되고 이 세션에서 아직
+    // 마운트된 적 없는 목록 쿼리는 queryFn이 없어 refetchType:'all' 무효화로도
+    // 재요청이 조용히 실패한다 — 저장 직후 플레이리스트/프로필을 열면 옛 목록이
+    // 그대로 보이는 원인. 마운트 시 stale이면 다시 받아 새 저장분을 반영한다
+    // (캐시된 목록은 즉시 보여주고 뒤에서 갱신).
+    refetchOnMount: true,
     // 필터(전체/노트/즐겨찾기) 전환 시 이전 목록을 유지해 높이 붕괴로 인한 화면 흔들림 방지
     placeholderData: keepPreviousData,
   })
@@ -189,5 +195,7 @@ export const useBookmarkStats = () => {
     queryKey: bookmarkKeys.stats(),
     queryFn: () => getBookmarkStats(),
     staleTime: 1000 * 60 * 5,
+    // 목록과 같은 이유(persist 복원 쿼리는 무효화로 재요청 불가) — 마운트 시 갱신
+    refetchOnMount: true,
   })
 }
