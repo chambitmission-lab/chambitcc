@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMyBookmarks } from '../../../hooks/useBibleBookmark'
+import { useMyBookmarks, useDeleteBookmark } from '../../../hooks/useBibleBookmark'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
 import { HIGHLIGHT_COLOR_BG } from '../../Bible/components/VerseBookmarkModal'
@@ -106,13 +106,29 @@ const BookmarkCardSkeleton = () => (
 )
 
 const BookmarkCard = ({ item }: { item: VerseBookmarkWithVerse }) => {
+  const { t } = useLanguage()
   const navigate = useNavigate()
+  const [removed, setRemoved] = useState(false)
+  const removeBookmark = useDeleteBookmark(item.verse_id)
   const bg = item.highlight_color ? HIGHLIGHT_COLOR_BG[item.highlight_color] : null
 
   // 카드를 탭하면 성경 읽기 화면의 해당 절로 이동(스크롤+하이라이트)
   const goToVerse = () => {
     navigate(`/bible/${item.book_number}/${item.chapter}?verse=${item.verse}`)
   }
+
+  // X 탭 = 북마크 통째 삭제(성경 화면 묵상 노트 모달의 삭제 버튼과 동일).
+  // 메모만 지우고 형광펜을 남기면 전체 필터에 빈 형광펜 카드가 남아
+  // 삭제가 안 된 것처럼 보인다는 피드백으로 통째 삭제로 확정(2026-07-17).
+  // 목록 정리는 훅의 invalidate가 처리하고, 그 사이에는 removed로 미리 숨긴다.
+  const remove = (e: MouseEvent) => {
+    e.stopPropagation()
+    if (removeBookmark.isPending || removed) return
+    setRemoved(true)
+    removeBookmark.mutate(undefined, { onError: () => setRemoved(false) })
+  }
+
+  if (removed) return null
 
   return (
     <div
@@ -152,9 +168,28 @@ const BookmarkCard = ({ item }: { item: VerseBookmarkWithVerse }) => {
           <span className="text-[12px] font-bold text-brand tracking-[-0.01em]">
             {item.book_name_ko} {item.chapter}:{item.verse}
           </span>
-          {item.is_favorite && (
-            <span className="material-icons-round text-[16px] text-pink-500">favorite</span>
-          )}
+          <div className="flex items-center gap-1">
+            {item.is_favorite && (
+              <span className="material-icons-round text-[16px] text-pink-500">favorite</span>
+            )}
+            <button
+              type="button"
+              onClick={remove}
+              onKeyDown={(e) => e.stopPropagation()}
+              disabled={removeBookmark.isPending}
+              aria-label={t('bookmarkDelete')}
+              title={t('bookmarkDelete')}
+              className="
+                -my-1 -mr-1.5 grid h-7 w-7 place-items-center rounded-full
+                text-gray-400 dark:text-white/40
+                hover:text-gray-600 dark:hover:text-white/70
+                hover:bg-black/[0.04] dark:hover:bg-white/[0.06]
+                transition-colors
+              "
+            >
+              <span className="material-icons-round text-[16px]">close</span>
+            </button>
+          </div>
         </div>
 
         <ExpandableText

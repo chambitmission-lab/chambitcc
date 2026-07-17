@@ -57,6 +57,7 @@ export const profile = {
   bookmarksLoadError: "Couldn't load",
   bookmarksEmpty: 'No saved meditation notes',
   bookmarksEmptyHint: 'Highlight a verse or add a meditation note from the Bible ✨',
+  bookmarkDelete: 'Delete',
 
   // Level Names
   levelNameSprout: 'Sprout',

@@ -57,6 +57,7 @@ export const profile = {
   bookmarksLoadError: '불러올 수 없어요',
   bookmarksEmpty: '저장된 묵상 노트가 없어요',
   bookmarksEmptyHint: '성경에서 구절을 하이라이트하거나 묵상 메모를 남겨보세요 ✨',
+  bookmarkDelete: '삭제',
 
   // 레벨 이름
   levelNameSprout: '새싹',
