@@ -63,7 +63,7 @@ const AdminMenu = () => {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="px-3 pb-2">
+    <div className="px-3 pt-3 pb-2">
       {/* 섹션 토글 */}
       <button
         type="button"
@@ -79,9 +79,6 @@ const AdminMenu = () => {
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[10px] font-bold tracking-[0.08em] px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)]">
-            ADMIN
-          </span>
           <span className="text-[13.5px] font-semibold text-gray-900 dark:text-white tracking-[-0.01em]">
             {t('adminMenu')}
           </span>
