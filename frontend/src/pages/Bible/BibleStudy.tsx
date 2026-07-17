@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
 import { useResumeReading, useReadingProgress } from '../../hooks/useBibleReading'
@@ -25,6 +25,7 @@ import './BibleStudy.css'
 
 const BibleStudy = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { bookNumber, chapter } = useParams<{ bookNumber?: string; chapter?: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -73,7 +74,16 @@ const BibleStudy = () => {
   
   // URL 파라미터로 책과 장이 전달된 경우 자동으로 선택.
   // ?verse=N 이 함께 오면(프로필 묵상노트 카드 등에서 딥링크) 해당 절로 스크롤+하이라이트.
+  //
+  // 검색 탭에서 현재 URL과 동일한 책·장을 클릭하면 경로 파라미터가 그대로라 이 effect가
+  // 재실행되지 않아 읽기 화면 대신 책 목록이 뜨는 버그가 있었다. goToChapter가 navigate
+  // state로 넘긴 타임스탬프(chapterNav)를 재진입 신호로 의존성에 추가하되, 탭 전환처럼
+  // state 없는 내비게이션에는 반응하지 않도록 마지막 신호값을 ref로 유지한다.
   const verseParam = Number(searchParams.get('verse')) || 0
+  const chapterNavSignal = (location.state as { chapterNav?: number } | null)?.chapterNav
+  const lastChapterNavRef = useRef(0)
+  if (chapterNavSignal) lastChapterNavRef.current = chapterNavSignal
+  const chapterNav = lastChapterNavRef.current
   useEffect(() => {
     if (bookNumber && chapter && books && books.length > 0) {
       const bookNum = parseInt(bookNumber)
@@ -98,7 +108,7 @@ const BibleStudy = () => {
         }
       }
     }
-  }, [bookNumber, chapter, books, verseParam])
+  }, [bookNumber, chapter, books, verseParam, chapterNav])
   
   const { 
     data: chapterData, 

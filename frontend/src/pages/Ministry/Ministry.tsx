@@ -323,7 +323,8 @@ const Ministry = () => {
 
               {/* Author Info — 1px 헤어라인 + 숨 쉬는 브랜드 블루 후광 */}
               <div className="relative z-10 p-4 flex items-center gap-3">
-                <div className="relative flex-shrink-0">
+                {/* -translate-y: 날짜 숫자는 아래(디센더) 공간이 비어 있어 아바타가 낮아 보이는 착시 보정 */}
+                <div className="relative flex-shrink-0 -translate-y-[2px]">
                   <div className="absolute -inset-1 rounded-full bg-[var(--brand-glow)] blur-md animate-pulse pointer-events-none"></div>
                   <img
                     src={andongProfile}
@@ -332,10 +333,12 @@ const Ministry = () => {
                   />
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-gray-900 dark:text-white text-sm leading-none mb-1">
+                  {/* 두 줄 모두 leading-none — 날짜 줄이 기본 행간을 상속하면 텍스트 블록이
+                      위로 쏠려 아바타가 내려와 보인다. 간격은 mb로만 잡아 대칭 유지 */}
+                  <div className="font-semibold text-gray-900 dark:text-white text-sm leading-none mb-1.5">
                     {column.author} {column.role}
                   </div>
-                  <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                  <div className="text-[11px] leading-none text-gray-500 dark:text-gray-400">
                     {column.date}
                   </div>
                 </div>
@@ -369,8 +372,8 @@ const Ministry = () => {
               <div className="sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark p-5 z-10">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    {/* 작성자 아바타 — 1px 헤어라인 + 숨 쉬는 브랜드 블루 후광 */}
-                    <div className="relative flex-shrink-0">
+                    {/* 작성자 아바타 — 1px 헤어라인 + 숨 쉬는 브랜드 블루 후광 (목록 카드와 동일한 착시 보정) */}
+                    <div className="relative flex-shrink-0 -translate-y-[2px]">
                       <div className="absolute -inset-1 rounded-full bg-[var(--brand-glow)] blur-md animate-pulse pointer-events-none"></div>
                       <img
                         src={andongProfile}
@@ -379,10 +382,10 @@ const Ministry = () => {
                       />
                     </div>
                     <div className="flex flex-col">
-                      <div className="text-sm font-semibold text-gray-900 dark:text-white leading-none mb-1">
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white leading-none mb-1.5">
                         {selectedColumn.author} {selectedColumn.role}
                       </div>
-                      <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                      <div className="text-[11px] leading-none text-gray-500 dark:text-gray-400">
                         {selectedColumn.date}
                       </div>
                     </div>
