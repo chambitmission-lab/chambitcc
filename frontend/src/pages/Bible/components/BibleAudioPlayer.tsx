@@ -1,12 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 import { API_V1 } from '../../../config/api'
+import { showToast } from '../../../utils/toast'
 import type { BibleTTSVoice } from '../../../types/bible'
+
+// 절 메뉴 '여기부터 듣기' 요청. seq가 바뀔 때마다 새 요청으로 처리한다.
+// book/chapter는 장 이동 직후 남은 이전 장 요청을 무시하기 위한 대조용.
+export interface PlayFromVerseRequest {
+  book: number
+  chapter: number
+  verse: number
+  seq: number
+}
 
 interface BibleAudioPlayerProps {
   bookNumber: number
   chapter: number
   // 듣기-보기 동기화: 지금 낭독 중인 절이 바뀔 때마다 호출 (재생 전/머리말 구간은 null)
   onActiveVerseChange?: (verse: number | null) => void
+  // 특정 절부터 재생 요청 (절 메뉴 '여기부터 듣기')
+  playFromVerse?: PlayFromVerseRequest | null
 }
 
 // 절별 낭독 시작 시각(초) — 백엔드가 mp3 생성 시 WordBoundary로 산출해 캐시
@@ -56,10 +68,14 @@ const formatTime = (sec: number): string => {
  * 부모에서 key={`${bookNumber}-${chapter}`} 로 렌더하므로, 장이 바뀌면
  * 컴포넌트가 새로 마운트되어 상태가 초기화되고 이전 재생은 정리된다.
  */
-const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange }: BibleAudioPlayerProps) => {
+const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, playFromVerse }: BibleAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const wantPlayRef = useRef(false) // src 로드 시 자동 재생할지
+  // '여기부터 듣기'로 요청됐지만 아직 점프하지 못한 절.
+  // 타이밍/총길이가 준비되는 즉시(타이밍 도착·메타데이터 로드 등) 점프를 재시도한다.
+  const pendingVerseRef = useRef<number | null>(null)
+  const firstGenNoticeRef = useRef(false) // 첫 생성 중 안내 토스트는 장당 1회만
 
   const [voice, setVoice] = useState<BibleTTSVoice>(loadVoice)
   const [rate, setRate] = useState<number>(loadRate)
@@ -125,9 +141,36 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange }: BibleAud
     }
   }
 
-  // 타이밍이 재생 도중(첫 스트리밍 완료 후) 늦게 도착하면 즉시 한 번 동기화
+  // 해당 절의 시작 시각으로 점프. 절별 타이밍과 총길이(캐시 mp3)가 있어야 가능 —
+  // 첫 스트리밍 생성 중엔 둘 다 없어 실패하고, 준비되면 tryPendingSeek로 재시도된다.
+  const trySeekToVerse = (verse: number): boolean => {
+    const audio = audioRef.current
+    if (!audio || !timings) return false
+    const t = timings.find((x) => x.verse === verse)
+    if (!t) return false
+    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return false
+    audio.currentTime = t.start
+    setCurrentTime(t.start)
+    syncActiveVerse(t.start)
+    return true
+  }
+
+  const tryPendingSeek = () => {
+    const v = pendingVerseRef.current
+    if (v == null) return
+    if (trySeekToVerse(v)) pendingVerseRef.current = null
+  }
+
+  // 타이밍이 재생 도중(첫 스트리밍 완료 후) 늦게 도착하면 즉시 한 번 동기화.
+  // 대기 중인 절 점프가 있으면 그 절로 이동하는 것이 곧 동기화다.
   useEffect(() => {
-    if (timings) syncActiveVerse(audioRef.current?.currentTime ?? null)
+    if (!timings) return
+    const v = pendingVerseRef.current
+    if (v != null && trySeekToVerse(v)) {
+      pendingVerseRef.current = null
+      return
+    }
+    syncActiveVerse(audioRef.current?.currentTime ?? null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timings])
 
@@ -214,6 +257,27 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange }: BibleAud
     }
   }
 
+  // 절 메뉴 '여기부터 듣기' — 요청된 절로 점프해 재생.
+  // 캐시된 장(타이밍·총길이 보유)은 즉시 점프하고, 아직 준비 전이면 pending으로
+  // 보관해 타이밍/메타데이터가 도착하는 시점에 점프한다.
+  useEffect(() => {
+    if (!playFromVerse) return
+    // 장 이동 직후 남아 있던 이전 장 요청은 무시
+    if (playFromVerse.book !== bookNumber || playFromVerse.chapter !== chapter) return
+    pendingVerseRef.current = playFromVerse.verse
+    const audio = audioRef.current
+    if (started && audio && !audio.ended && !audio.error) {
+      tryPendingSeek()
+      if (audio.paused) {
+        if (audio.readyState < 2) setPreparing(true)
+        audio.play().catch(() => {})
+      }
+    } else {
+      requestPlay()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playFromVerse?.seq])
+
   const handleVoiceChange = (v: BibleTTSVoice) => {
     if (v === voice) return
     const wasPlaying = isPlaying
@@ -238,6 +302,8 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange }: BibleAud
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const t = Number(e.target.value)
+    // 직접 위치를 고르면 대기 중이던 절 점프는 취소 (나중에 갑자기 이동하지 않도록)
+    pendingVerseRef.current = null
     setCurrentTime(t)
     if (audioRef.current) audioRef.current.currentTime = t
   }
@@ -464,6 +530,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange }: BibleAud
         onCanPlay={(e) => {
           // load() 재로딩(재생 종료 후 다시 재생) 시 src가 그대로라 audioUrl
           // effect가 다시 돌지 않으므로, 데이터가 준비되면 여기서 대기 재생을 실행한다.
+          tryPendingSeek()
           if (wantPlayRef.current) {
             wantPlayRef.current = false
             e.currentTarget.playbackRate = rate
@@ -475,11 +542,20 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange }: BibleAud
           // 첫 소리가 실제로 나기 시작 → 대기 상태 해제
           setIsPlaying(true)
           setPreparing(false)
+          // '여기부터 듣기'를 눌렀지만 아직 절 위치 정보가 없는 경우(미캐시 첫 생성):
+          // 일단 처음부터 들려주고 있음을 안내한다. 생성이 끝나 타이밍이 도착하면
+          // 요청한 절로 자동 이동한다.
+          if (pendingVerseRef.current != null && !timings && !firstGenNoticeRef.current) {
+            firstGenNoticeRef.current = true
+            showToast('이 장은 처음 준비 중이라 잠시 처음부터 들려드려요. 준비되면 선택한 절로 이동해요', 'info')
+          }
         }}
         onPause={() => setIsPlaying(false)}
         onEnded={() => {
           setIsPlaying(false)
           setCurrentTime(0)
+          // 끝까지 재생됐으면 절 점프 요청도 소멸 — 다음 재생은 처음부터
+          pendingVerseRef.current = null
           syncActiveVerse(null)
         }}
         onError={() => {
@@ -497,10 +573,12 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange }: BibleAud
           const d = e.currentTarget.duration
           setDuration(Number.isFinite(d) ? d : 0)
           e.currentTarget.playbackRate = rate
+          tryPendingSeek()
         }}
         onDurationChange={(e) => {
           const d = e.currentTarget.duration
           if (Number.isFinite(d)) setDuration(d)
+          tryPendingSeek()
         }}
       />
     </div>

@@ -30,6 +30,8 @@ interface VerseListProps {
   onChapterFullyRead?: () => void
   // 오디오북이 지금 낭독 중인 절 — 하이라이트 + 자동 스크롤 따라가기
   audioActiveVerse?: number | null
+  // 절 메뉴 '여기부터 듣기' — 오디오북을 해당 절부터 재생
+  onListenFromVerse?: (verse: number) => void
 }
 
 const VerseList = ({
@@ -46,6 +48,7 @@ const VerseList = ({
   onScrolled,
   onChapterFullyRead,
   audioActiveVerse,
+  onListenFromVerse,
 }: VerseListProps) => {
   const observerRef = useRef<IntersectionObserver | null>(null)
   const fullReadFiredRef = useRef(false)
@@ -388,6 +391,7 @@ const VerseList = ({
                   onReadSuccess={handleReadSuccess}
                   onEdit={handleEditVerse}
                   onShowCommentary={handleShowCommentary}
+                  onListenFrom={onListenFromVerse ? (v) => onListenFromVerse(v.verse) : undefined}
                   hasCommentary={verseHasCommentaryMap.has(verse.verse)}
                   isAudioActive={verse.verse === audioActiveVerse}
                   actionsOpen={openVerseId === verse.id}

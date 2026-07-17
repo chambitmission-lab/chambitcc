@@ -18,6 +18,7 @@ import {
   ResumeReadingCard,
   FavoritesPlaylistModal,
 } from './components'
+import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
@@ -41,6 +42,8 @@ const BibleStudy = () => {
   const [showPlaylist, setShowPlaylist] = useState<boolean>(false)
   // 오디오북 듣기-보기 동기화: 지금 낭독 중인 절 (플레이어가 통지, VerseList가 표시)
   const [audioActiveVerse, setAudioActiveVerse] = useState<number | null>(null)
+  // 절 메뉴 '여기부터 듣기' 요청 (VerseList → 플레이어). seq로 같은 절 재요청도 구분
+  const [playFromVerse, setPlayFromVerse] = useState<PlayFromVerseRequest | null>(null)
 
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
   const { isLoggedIn } = useAuth()
@@ -185,12 +188,27 @@ const BibleStudy = () => {
     }
   }, [planAutoComplete, completeDay, planId, planDayNumber])
 
+  // 절 메뉴 '여기부터 듣기' — 현재 장 기준 요청을 만들어 플레이어에 전달
+  const handleListenFromVerse = useCallback(
+    (verse: number) => {
+      if (!selectedBookData) return
+      setPlayFromVerse(prev => ({
+        book: selectedBookData.book_number,
+        chapter: selectedChapter,
+        verse,
+        seq: (prev?.seq ?? 0) + 1,
+      }))
+    },
+    [selectedBookData, selectedChapter]
+  )
+
   const handleBookSelect = (bookId: number, bookName: string, resume?: ResumePosition) => {
     setSelectedBookId(bookId)
     setSelectedBook(bookName)
     setSelectedChapter(resume?.chapter ?? 1)
     setPendingScrollVerse(resume?.verse ?? null)
     setShowBookList(false)
+    setPlayFromVerse(null)
   }
 
   const handleResume = (pos: ResumePosition) => {
@@ -202,6 +220,7 @@ const BibleStudy = () => {
     setPendingScrollVerse(pos.verse)
     setShowBookList(false)
     setActiveTab('read')
+    setPlayFromVerse(null)
   }
   
   const handleChangeBook = () => {
@@ -219,6 +238,7 @@ const BibleStudy = () => {
   const handleChapterChange = (chapter: number) => {
     setSelectedChapter(chapter)
     setPendingScrollVerse(null)
+    setPlayFromVerse(null)
     // 여러 스크롤 컨테이너를 모두 처리
     window.scrollTo({ top: 0, behavior: 'smooth' })
     document.documentElement.scrollTop = 0
@@ -326,6 +346,7 @@ const BibleStudy = () => {
                   bookNumber={selectedBookData.book_number}
                   chapter={selectedChapter}
                   onActiveVerseChange={setAudioActiveVerse}
+                  playFromVerse={playFromVerse}
                 />
 
                 {/* 권 개관 — 책 진입 시 큰 그림 노출 (1장에서만 보여 가독성 유지) */}
@@ -349,6 +370,7 @@ const BibleStudy = () => {
                   scrollToVerse={pendingScrollVerse}
                   onScrolled={() => setPendingScrollVerse(null)}
                   audioActiveVerse={audioActiveVerse}
+                  onListenFromVerse={handleListenFromVerse}
                   onChapterFullyRead={planAutoComplete ? handleChapterFullyRead : undefined}
                 />
               </div>

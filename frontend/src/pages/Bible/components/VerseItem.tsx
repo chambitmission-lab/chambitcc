@@ -17,6 +17,8 @@ interface VerseItemProps {
   onReadSuccess: (verseId: number, similarity: number) => void
   onEdit?: (verse: BibleVerse) => void
   onShowCommentary?: (verse: BibleVerse) => void
+  // 오디오북을 이 절부터 재생 (절 메뉴 '여기부터 듣기')
+  onListenFrom?: (verse: BibleVerse) => void
   hasCommentary?: boolean
   // 오디오북이 지금 낭독 중인 절 — 듣기-보기 동기화 하이라이트
   isAudioActive?: boolean
@@ -26,7 +28,7 @@ interface VerseItemProps {
   onActionsOpenChange: (open: boolean) => void
 }
 
-const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
@@ -318,6 +320,27 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   }}
                 >
                   menu_book
+                </span>
+              </button>
+            )}
+
+            {/* 여기부터 듣기 — 오디오북을 이 절부터 재생 */}
+            {onListenFrom && (
+              <button
+                onClick={() => { onActionsOpenChange(false); onListenFrom(verse) }}
+                className="verse-action-btn"
+                style={{
+                  background: 'var(--brand-soft)',
+                  border: '1px solid var(--brand-soft-strong)',
+                }}
+                title="여기부터 듣기"
+                tabIndex={showActions ? 0 : -1}
+              >
+                <span
+                  className="material-icons-round"
+                  style={{ fontSize: '1.125rem', color: 'var(--brand)', opacity: 0.85 }}
+                >
+                  play_circle
                 </span>
               </button>
             )}
