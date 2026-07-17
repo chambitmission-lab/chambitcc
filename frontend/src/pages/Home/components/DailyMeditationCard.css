@@ -570,3 +570,59 @@
   0%, 100% { opacity: 0.55; }
   50% { opacity: 0.85; }
 }
+
+/* ── 구절 알람 진입 버튼 (메타 행 우측) ── */
+.meditation-alarm-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(139, 122, 88, 0.1);
+  color: #6f6146;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.meditation-alarm-btn:hover {
+  background: rgba(139, 122, 88, 0.2);
+}
+
+.dark .meditation-alarm-btn {
+  background: rgba(201, 185, 143, 0.14);
+  color: #d8cba8;
+}
+
+.meditation-alarm-btn .material-icons-round {
+  font-size: 19px;
+}
+
+/* ── 1분 묵상 이어가기 링크 (질문 블록 하단) ── */
+.meditation-deepen-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  border: none;
+  background: transparent;
+  color: #6f6146;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dark .meditation-deepen-link {
+  color: #d8cba8;
+}
+
+.meditation-deepen-link .material-icons-round {
+  font-size: 16px;
+  transition: transform 0.15s ease;
+}
+
+.meditation-deepen-link:hover .material-icons-round {
+  transform: translateX(3px);
+}

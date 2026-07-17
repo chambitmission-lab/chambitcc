@@ -191,6 +191,16 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           <span className="meditation-season-tag" data-season={season}>
             {SEASON_LABELS[season] ?? '연중'}
           </span>
+          {/* 구절 알람 설정 진입점 — 원하는 시간에 오늘의 말씀 푸시 */}
+          <button
+            type="button"
+            className="meditation-alarm-btn"
+            onClick={() => navigate('/bible/alarm')}
+            aria-label="구절 알람 설정"
+            title="구절 알람 설정"
+          >
+            <span className="material-icons-round" aria-hidden>notifications</span>
+          </button>
         </header>
 
         {/* 연간 여정 — 교회력 절기 리본. 한 해를 절기 색 구간으로 펼치고
@@ -270,6 +280,14 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             <span aria-hidden>💭</span> 오늘의 질문
           </span>
           <p className="meditation-question-text">{data.meditation_question}</p>
+          <button
+            type="button"
+            className="meditation-deepen-link"
+            onClick={() => navigate('/bible/meditation')}
+          >
+            1분 묵상 이어가기
+            <span className="material-icons-round" aria-hidden>arrow_forward</span>
+          </button>
         </div>
 
         <div className="meditation-actions">

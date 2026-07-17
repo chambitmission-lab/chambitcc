@@ -85,13 +85,11 @@ const Login = () => {
       // 로그아웃 시 브라우저 구독은 정리되지만 사용자별 'push_pref_<username>'
       // 플래그는 localStorage에 남아있어 복원이 가능하다. 다른 사용자로 로그인하면
       // 그 사용자의 플래그가 따로 적용되므로 사용자 간 격리는 유지된다.
-      // 함수 자체가 실패를 삼키므로 try/catch는 굳이 필요 없지만 방어적으로 감싼다.
+      // 화면 전환을 막지 않도록 await 없이 백그라운드로 복원한다.
       const loggedInUsername = data.username || formData.username
-      try {
-        await restorePushSubscriptionForUser(loggedInUsername)
-      } catch (pushError) {
+      restorePushSubscriptionForUser(loggedInUsername).catch((pushError) => {
         console.warn('로그인 후 푸시 자동 복원 중 에러 (무시):', pushError)
-      }
+      })
 
       // 저장된 리다이렉트 경로가 있으면 그곳으로, 없으면 홈으로
       const redirectPath = sessionStorage.getItem('redirect_after_login')

@@ -1,0 +1,622 @@
+/* ── 구절 알람 — 차분한 웜베이지 악센트 (SituationBible 톤과 통일) ── */
+
+.verse-alarm-page {
+  --va-accent: #8b7a58;
+  --va-accent-deep: #6f6146;
+  --va-surface: #f5f3ef;
+  --va-ink: #1f1f2b;
+  --va-card-bg: #ffffff;
+  --va-border: #ece3ce;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px 16px 48px;
+}
+
+.dark .verse-alarm-page {
+  --va-accent: #c9b98f;
+  --va-accent-deep: #d8cba8;
+  --va-surface: #26262f;
+  --va-ink: #ecebe6;
+  --va-card-bg: #1c1c25;
+  --va-border: rgba(201, 185, 143, 0.22);
+}
+
+/* ── 헤더 ── */
+.va-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.va-header h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--va-ink);
+  flex: 1;
+}
+
+.va-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--va-ink);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.va-back:hover {
+  background: var(--va-surface);
+}
+
+.va-header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: none;
+  background: transparent;
+  color: var(--va-accent-deep);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.va-header-link .material-icons-round {
+  font-size: 18px;
+}
+
+.va-intro {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.dark .va-intro {
+  color: #9ca3af;
+}
+
+/* ── 푸시 상태 배너 ── */
+.va-banner {
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.va-banner--ok {
+  background: #ecf7ee;
+  color: #256a3a;
+}
+
+.dark .va-banner--ok {
+  background: rgba(52, 168, 83, 0.14);
+  color: #7fd497;
+}
+
+.va-banner--warn {
+  background: #fdf3e7;
+  color: #8a5a1e;
+}
+
+.dark .va-banner--warn {
+  background: rgba(240, 173, 78, 0.12);
+  color: #e5b878;
+}
+
+.va-banner--action {
+  background: var(--va-surface);
+  color: var(--va-ink);
+  justify-content: space-between;
+}
+
+.va-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.va-banner-text span {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.dark .va-banner-text span {
+  color: #9ca3af;
+}
+
+.va-enable-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--va-accent);
+  cursor: pointer;
+}
+
+.va-enable-btn:disabled {
+  opacity: 0.6;
+}
+
+/* iOS 설치 안내 */
+.va-banner--guide {
+  flex-direction: column;
+  align-items: stretch;
+  background: var(--va-surface);
+  color: var(--va-ink);
+  gap: 10px;
+}
+
+.va-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.va-banner-title .material-icons-round {
+  color: var(--va-accent);
+  font-size: 20px;
+}
+
+.va-guide-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.va-guide-steps strong {
+  color: var(--va-accent-deep);
+}
+
+.va-guide-note {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.dark .va-guide-note {
+  color: #9ca3af;
+}
+
+/* ── 알람 목록 ── */
+.va-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.va-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--va-card-bg);
+  border: 1px solid var(--va-border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  transition: opacity 0.15s ease;
+}
+
+.va-card.is-off .va-card-main {
+  opacity: 0.45;
+}
+
+.va-card-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+
+.va-card-time {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--va-ink);
+}
+
+.va-card-period {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.va-card-clock {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.va-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.va-card-days {
+  color: var(--va-accent-deep);
+  font-weight: 600;
+}
+
+.va-card-label {
+  color: #6b7280;
+}
+
+.dark .va-card-label {
+  color: #9ca3af;
+}
+
+/* 토글 스위치 — 활성 시에만 악센트 컬러 */
+.va-switch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.va-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.va-switch-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #d1d5db;
+  transition: background 0.2s ease;
+}
+
+.dark .va-switch-slider {
+  background: #3f3f4a;
+}
+
+.va-switch-slider::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.va-switch input:checked + .va-switch-slider {
+  background: var(--va-accent);
+}
+
+.va-switch input:checked + .va-switch-slider::before {
+  transform: translateX(20px);
+}
+
+/* ── 빈 상태 / 스켈레톤 ── */
+.va-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.dark .va-empty {
+  color: #9ca3af;
+}
+
+.va-empty-emoji {
+  font-size: 2.2rem;
+}
+
+.va-skeleton {
+  height: 84px;
+  border-radius: 16px;
+  background: var(--va-surface);
+  animation: va-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes va-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* ── 버튼 ── */
+.va-add-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px;
+  border: 1.5px dashed var(--va-accent);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--va-accent-deep);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.va-add-btn:hover {
+  background: var(--va-surface);
+}
+
+.va-primary-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--va-accent);
+  cursor: pointer;
+}
+
+.va-primary-btn:disabled {
+  opacity: 0.6;
+}
+
+/* ── 편집 바텀시트 ── */
+.va-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.va-sheet {
+  width: 100%;
+  max-width: 560px;
+  background: var(--va-card-bg, #fff);
+  border-radius: 24px 24px 0 0;
+  padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
+  animation: va-sheet-up 0.25s ease;
+}
+
+.dark .va-sheet {
+  background: #1c1c25;
+}
+
+@keyframes va-sheet-up {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.va-sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: #d1d5db;
+  margin: 0 auto 14px;
+}
+
+.dark .va-sheet-handle {
+  background: #3f3f4a;
+}
+
+.va-sheet-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--va-ink, #1f1f2b);
+  margin-bottom: 16px;
+}
+
+.dark .va-sheet-title {
+  color: #ecebe6;
+}
+
+/* 시간 선택 */
+.va-time-picker {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.va-ampm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.va-ampm-btn {
+  border: 1px solid var(--va-border, #ece3ce);
+  background: transparent;
+  color: #6b7280;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.va-ampm-btn.is-active {
+  background: var(--va-accent, #8b7a58);
+  border-color: var(--va-accent, #8b7a58);
+  color: #fff;
+}
+
+.va-time-selects {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.va-time-selects select {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border: none;
+  background: var(--va-surface, #f5f3ef);
+  color: var(--va-ink, #1f1f2b);
+  border-radius: 14px;
+  padding: 10px 14px;
+  text-align: center;
+  appearance: none;
+  cursor: pointer;
+}
+
+.dark .va-time-selects select {
+  background: #26262f;
+  color: #ecebe6;
+}
+
+.va-time-colon {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--va-ink, #1f1f2b);
+}
+
+.dark .va-time-colon {
+  color: #ecebe6;
+}
+
+/* 요일 선택 */
+.va-days-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.va-day-chip {
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--va-border, #ece3ce);
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.va-day-chip.is-weekend {
+  color: #b0685e;
+}
+
+.dark .va-day-chip {
+  color: #9ca3af;
+}
+
+.va-day-chip.is-active {
+  background: var(--va-accent, #8b7a58);
+  border-color: var(--va-accent, #8b7a58);
+  color: #fff;
+}
+
+.va-day-presets {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.va-day-presets button {
+  border: none;
+  background: var(--va-surface, #f5f3ef);
+  color: var(--va-accent-deep, #6f6146);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dark .va-day-presets button {
+  background: #26262f;
+  color: #d8cba8;
+}
+
+/* 이름 입력 */
+.va-label-input {
+  width: 100%;
+  border: 1px solid var(--va-border, #ece3ce);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  background: transparent;
+  color: var(--va-ink, #1f1f2b);
+  margin-bottom: 20px;
+}
+
+.dark .va-label-input {
+  color: #ecebe6;
+}
+
+.va-label-input:focus {
+  outline: none;
+  border-color: var(--va-accent, #8b7a58);
+}
+
+/* 시트 액션 */
+.va-sheet-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.va-sheet-actions .va-primary-btn {
+  flex: 1;
+}
+
+.va-cancel-btn {
+  border: 1px solid var(--va-border, #ece3ce);
+  background: transparent;
+  color: #6b7280;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.va-delete-btn {
+  border: none;
+  background: transparent;
+  color: #c0564a;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: auto;
+}
