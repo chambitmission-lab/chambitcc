@@ -62,7 +62,8 @@ const VerseBookmarkModal = ({
 
   const handleDelete = async () => {
     try {
-      await del.mutateAsync()
+      // undefined = 통째 삭제 (프로필 탭별 삭제와 달리 여기선 형광펜·노트·즐겨찾기 전부)
+      await del.mutateAsync(undefined)
       showToast('북마크가 삭제되었어요', 'success')
       onClose()
     } catch (e: any) {

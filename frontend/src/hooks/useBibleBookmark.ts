@@ -9,6 +9,7 @@ import {
   type UpsertBookmarkPayload,
   type VerseBookmark,
   type HighlightColor,
+  type BookmarkDeleteTarget,
 } from '../api/bibleBookmark'
 
 export const bookmarkKeys = {
@@ -87,30 +88,46 @@ export const useUpsertBookmark = (verseId: number) => {
 
 /**
  * 북마크 삭제
+ * - mutate(undefined): 통째 삭제 (형광펜·노트·즐겨찾기 전부)
+ * - mutate('note') / mutate('favorite'): 해당 필드만 삭제.
+ *   서버는 필드만 지운 뒤 남은 표시가 없으면 행 자체를 정리한다.
  */
 export const useDeleteBookmark = (verseId: number) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: () => deleteBookmark(verseId),
-    onSuccess: () => {
+    mutationFn: (target?: BookmarkDeleteTarget) => deleteBookmark(verseId, target),
+    onSuccess: (_data, target) => {
       const previous = queryClient.getQueryData<VerseBookmark | null>(bookmarkKeys.detail(verseId))
-      queryClient.setQueryData(bookmarkKeys.detail(verseId), null)
+
+      // 필드만 지웠을 때는 detail 캐시도 필드만 반영하고, 남은 표시가 없으면
+      // 서버와 동일하게 행 삭제(null) 취급한다
+      let next: VerseBookmark | null = null
+      if (target && previous) {
+        next = target === 'note' ? { ...previous, note: null } : { ...previous, is_favorite: false }
+        const empty =
+          !next.highlight_color && !(next.note && next.note.trim().length > 0) && !next.is_favorite
+        if (empty) next = null
+      }
+      queryClient.setQueryData(bookmarkKeys.detail(verseId), next)
 
       queryClient.setQueryData(['profile', 'detail'], (old: any) => {
         if (!old) return old
         const bible = old.stats?.bible_reading ?? {}
         const hadNote = !!(previous?.note && previous.note.trim().length > 0)
         const wasFav = !!previous?.is_favorite
+        const rowGone = next === null
+        const noteCleared = (!target || target === 'note') && hadNote
+        const favCleared = (!target || target === 'favorite') && wasFav
         return {
           ...old,
           stats: {
             ...old.stats,
             bible_reading: {
               ...bible,
-              bookmarks_count: Math.max(0, (bible.bookmarks_count || 0) - 1),
-              notes_count: Math.max(0, (bible.notes_count || 0) - (hadNote ? 1 : 0)),
-              favorites_count: Math.max(0, (bible.favorites_count || 0) - (wasFav ? 1 : 0)),
+              bookmarks_count: Math.max(0, (bible.bookmarks_count || 0) - (rowGone ? 1 : 0)),
+              notes_count: Math.max(0, (bible.notes_count || 0) - (noteCleared ? 1 : 0)),
+              favorites_count: Math.max(0, (bible.favorites_count || 0) - (favCleared ? 1 : 0)),
             },
           },
         }

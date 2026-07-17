@@ -63,9 +63,16 @@ export const upsertBookmark = async (
   return data.data
 }
 
-export const deleteBookmark = async (verseId: number): Promise<void> => {
+/** 필드 단위 삭제 대상 — note: 묵상 노트만, favorite: 즐겨찾기만. 미지정 시 통째 삭제 */
+export type BookmarkDeleteTarget = 'note' | 'favorite'
+
+export const deleteBookmark = async (
+  verseId: number,
+  target?: BookmarkDeleteTarget
+): Promise<void> => {
   requireAuth()
-  const response = await apiFetch(bookmarkPath(verseId), {
+  const url = target ? `${bookmarkPath(verseId)}?target=${target}` : bookmarkPath(verseId)
+  const response = await apiFetch(url, {
     method: 'DELETE',
     headers: getAuthHeaders(true),
   })

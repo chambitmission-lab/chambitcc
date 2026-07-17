@@ -2,7 +2,7 @@ import { useMemo, useState, type MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMyBookmarks, useDeleteBookmark } from '../../../hooks/useBibleBookmark'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import type { VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
+import type { BookmarkDeleteTarget, VerseBookmarkWithVerse } from '../../../api/bibleBookmark'
 import { HIGHLIGHT_COLOR_BG } from '../../Bible/components/VerseBookmarkModal'
 import ExpandableText from './ExpandableText'
 
@@ -81,7 +81,15 @@ const MyBookmarksList = () => {
           </p>
         </div>
       ) : (
-        items.map((item) => <BookmarkCard key={item.id} item={item} />)
+        items.map((item) => (
+          <BookmarkCard
+            key={item.id}
+            item={item}
+            // 탭별 삭제 범위: 묵상 노트 탭 → 노트만, 즐겨찾기 탭 → 즐겨찾기만,
+            // 전체 탭 → 통째 삭제(기존 피드백대로, 2026-07-17)
+            deleteTarget={filter === 'notes' ? 'note' : filter === 'favorites' ? 'favorite' : undefined}
+          />
+        ))
       )}
     </div>
   )
@@ -105,7 +113,13 @@ const BookmarkCardSkeleton = () => (
   </div>
 )
 
-const BookmarkCard = ({ item }: { item: VerseBookmarkWithVerse }) => {
+const BookmarkCard = ({
+  item,
+  deleteTarget,
+}: {
+  item: VerseBookmarkWithVerse
+  deleteTarget?: BookmarkDeleteTarget
+}) => {
   const { t } = useLanguage()
   const navigate = useNavigate()
   const [removed, setRemoved] = useState(false)
@@ -117,15 +131,16 @@ const BookmarkCard = ({ item }: { item: VerseBookmarkWithVerse }) => {
     navigate(`/bible/${item.book_number}/${item.chapter}?verse=${item.verse}`)
   }
 
-  // X 탭 = 북마크 통째 삭제(성경 화면 묵상 노트 모달의 삭제 버튼과 동일).
-  // 메모만 지우고 형광펜을 남기면 전체 필터에 빈 형광펜 카드가 남아
-  // 삭제가 안 된 것처럼 보인다는 피드백으로 통째 삭제로 확정(2026-07-17).
+  // X 탭 = 현재 탭 범위만 삭제. deleteTarget 미지정(전체 탭)이면 통째 삭제 —
+  // 필드만 지우면 전체 필터에 빈 형광펜 카드가 남아 삭제가 안 된 것처럼
+  // 보인다는 피드백 반영(2026-07-17). 노트/즐겨찾기 탭에서는 해당 필드만 지우고,
+  // 남은 표시가 없으면 서버가 행을 정리한다.
   // 목록 정리는 훅의 invalidate가 처리하고, 그 사이에는 removed로 미리 숨긴다.
   const remove = (e: MouseEvent) => {
     e.stopPropagation()
     if (removeBookmark.isPending || removed) return
     setRemoved(true)
-    removeBookmark.mutate(undefined, { onError: () => setRemoved(false) })
+    removeBookmark.mutate(deleteTarget, { onError: () => setRemoved(false) })
   }
 
   if (removed) return null
