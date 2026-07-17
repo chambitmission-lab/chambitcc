@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 
-export type BibleNavKey = 'read' | 'search' | 'plans' | 'genealogy'
+export type BibleNavKey = 'read' | 'search' | 'plans' | 'wordbook' | 'genealogy'
 
 interface BibleBottomNavProps {
   active: BibleNavKey
@@ -54,13 +54,14 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
 
   const labels =
     language === 'ko'
-      ? { read: '읽기', search: '검색', plans: '플랜', genealogy: '가계도' }
-      : { read: 'Read', search: 'Search', plans: 'Plans', genealogy: 'Genealogy' }
+      ? { read: '읽기', search: '검색', plans: '플랜', wordbook: '단어장', genealogy: '가계도' }
+      : { read: 'Read', search: 'Search', plans: 'Plans', wordbook: 'Words', genealogy: 'Genealogy' }
 
   const items: { key: BibleNavKey; icon: string; label: string }[] = [
     { key: 'read', icon: 'menu_book', label: labels.read },
     { key: 'search', icon: 'search', label: labels.search },
     { key: 'plans', icon: 'event_available', label: labels.plans },
+    { key: 'wordbook', icon: 'spellcheck', label: labels.wordbook },
     { key: 'genealogy', icon: 'account_tree', label: labels.genealogy },
   ]
 
@@ -74,7 +75,12 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
       }
       return
     }
-    navigate(key === 'plans' ? '/bible/plans' : '/bible/genealogy')
+    const paths: Record<'plans' | 'wordbook' | 'genealogy', string> = {
+      plans: '/bible/plans',
+      wordbook: '/bible/wordbook',
+      genealogy: '/bible/genealogy',
+    }
+    navigate(paths[key])
   }
 
   if (keyboardOpen) {

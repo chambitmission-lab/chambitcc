@@ -13,6 +13,7 @@ import { showToast } from '../../../utils/toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useOptimisticUpdateVerse } from '../../../hooks/useBibleAdmin'
 import { useChapterCommentaries } from '../../../hooks/useBibleCommentary'
+import { useChapterWordNotes, groupWordNotesByVerse } from '../../../hooks/useBibleWordNote'
 
 interface VerseListProps {
   chapterData: InfiniteData<BibleChapterPaginatedResponse> | undefined
@@ -68,6 +69,17 @@ const VerseList = ({
     bookNumber,
     selectedChapter,
     bookNumber > 0 && selectedChapter > 0,
+  )
+
+  // 이 장의 내 단어 노트 전체 (절마다 개별 요청하지 않도록 배치 조회)
+  const { data: chapterWordNotes } = useChapterWordNotes(
+    bookNumber,
+    selectedChapter,
+    isLoggedIn(),
+  )
+  const wordNotesByVerse = useMemo(
+    () => groupWordNotesByVerse(chapterWordNotes),
+    [chapterWordNotes],
   )
 
   // 절 → 해석 존재 여부 맵
@@ -396,6 +408,7 @@ const VerseList = ({
                   isAudioActive={verse.verse === audioActiveVerse}
                   actionsOpen={openVerseId === verse.id}
                   onActionsOpenChange={(open) => setOpenVerseId(open ? verse.id : null)}
+                  wordNotes={wordNotesByVerse.get(verse.id)}
                 />
               ))}
             </div>

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, Fragment, type ReactNode } from 'react'
 import type { BibleVerse } from '../../../types/bible'
+import type { WordNote } from '../../../api/bibleWordNote'
 import { useVerseReading } from '../../../hooks/useVerseReading'
 import { useKaraokeProgress } from '../../../hooks/useKaraokeProgress'
 import VerseReadingButton from '../../../components/prayer/VerseReadingButton'
@@ -7,6 +8,7 @@ import { isAdmin } from '../../../utils/auth'
 import { useVerseBookmark } from '../../../hooks/useBibleBookmark'
 import VerseBookmarkModal, { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 import VerseNoteSheet from './VerseNoteSheet'
+import WordNoteSheet from './WordNoteSheet'
 import { HeartIcon, BookOpenIcon } from '../../../components/icons/ActionIcons'
 
 interface VerseItemProps {
@@ -26,12 +28,49 @@ interface VerseItemProps {
   // 다른 절을 탭하면 이전 메뉴가 닫힌다(예전 풀스크린 백드롭의 역할을 대체).
   actionsOpen: boolean
   onActionsOpenChange: (open: boolean) => void
+  // 이 절에 저장된 단어 노트들 — 부모가 장 단위로 배치 조회해 나눠준다
+  wordNotes?: WordNote[]
 }
 
-const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange }: VerseItemProps) => {
+/** 토큰 앞뒤의 문장부호를 떼고 단어만 남긴다 ("긍휼히," → "긍휼히") */
+const cleanWord = (token: string) =>
+  token.replace(/^[^0-9A-Za-z가-힣]+|[^0-9A-Za-z가-힣]+$/g, '')
+
+/**
+ * 단어 노트의 밑줄 범위를 확정한다. 저장된 위치가 현재 본문과 맞으면 그대로,
+ * 본문이 수정돼 어긋났으면 단어 검색으로 fallback, 그래도 없으면 null(밑줄 생략).
+ */
+const resolveNoteRange = (note: WordNote, text: string): [number, number] | null => {
+  if (
+    note.char_start != null &&
+    note.char_end != null &&
+    note.char_start >= 0 &&
+    note.char_start < note.char_end &&
+    note.char_end <= text.length
+  ) {
+    const slice = text.slice(note.char_start, note.char_end)
+    // 토큰(조사 포함)에서 단어를 다듬어 저장하므로 포함 관계면 유효한 위치로 본다
+    if (slice.includes(note.word) || note.word.includes(slice)) {
+      return [note.char_start, note.char_end]
+    }
+  }
+  const idx = text.indexOf(note.word)
+  return idx >= 0 ? [idx, idx + note.word.length] : null
+}
+
+const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange, wordNotes }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
+  // 단어 선택 모드 — 켜지면 본문이 단어 단위 탭 타깃으로 바뀐다
+  const [wordSelectMode, setWordSelectMode] = useState(false)
+  // 단어 뜻 입력/보기 시트. existing이 있으면 수정 모드
+  const [wordSheet, setWordSheet] = useState<{
+    initialWord: string
+    charStart: number | null
+    charEnd: number | null
+    existing: WordNote | null
+  } | null>(null)
   const showActions = actionsOpen
   const isAdminUser = isAdmin()
   const { data: bookmark } = useVerseBookmark(verse.id)
@@ -72,6 +111,125 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     verseText: verse.text,
     spokenText,
   })
+
+  // 저장된 단어 노트의 밑줄 구간 (위치순 정렬, 겹치는 건 앞선 것만)
+  const noteSegments = useMemo(() => {
+    if (!wordNotes?.length || !verse.text) return []
+    const resolved = wordNotes
+      .map((n) => ({ note: n, range: resolveNoteRange(n, verse.text) }))
+      .filter((r): r is { note: WordNote; range: [number, number] } => r.range !== null)
+      .sort((a, b) => a.range[0] - b.range[0])
+    const out: { note: WordNote; start: number; end: number }[] = []
+    let lastEnd = 0
+    for (const { note, range } of resolved) {
+      if (range[0] < lastEnd) continue
+      out.push({ note, start: range[0], end: range[1] })
+      lastEnd = range[1]
+    }
+    return out
+  }, [wordNotes, verse.text])
+
+  // 단어 선택 모드용 토큰 (원본 텍스트 내 위치 보존 — 공백/줄바꿈 그대로 복원)
+  const wordTokens = useMemo(() => {
+    if (!verse.text) return []
+    const out: { text: string; start: number; end: number }[] = []
+    const re = /\S+/g
+    let m: RegExpExecArray | null
+    while ((m = re.exec(verse.text))) {
+      out.push({ text: m[0], start: m.index, end: m.index + m[0].length })
+    }
+    return out
+  }, [verse.text])
+
+  const openWordSheetForToken = (token: { text: string; start: number; end: number }) => {
+    setWordSelectMode(false)
+    // 같은 위치에 이미 저장한 노트가 있으면 수정 모드로 연다 (중복 생성 방지)
+    const existing =
+      noteSegments.find((s) => s.start === token.start)?.note ??
+      wordNotes?.find((n) => n.char_start === token.start) ??
+      null
+    setWordSheet({
+      initialWord: cleanWord(token.text) || token.text,
+      charStart: token.start,
+      charEnd: token.end,
+      existing,
+    })
+  }
+
+  // 단어 선택 모드: 본문을 단어 단위 탭 타깃으로 렌더링
+  const renderSelectableText = () => {
+    const parts: ReactNode[] = []
+    let cursor = 0
+    wordTokens.forEach((token, i) => {
+      if (token.start > cursor) {
+        parts.push(<Fragment key={`gap-${i}`}>{verse.text.slice(cursor, token.start)}</Fragment>)
+      }
+      const isMarked = noteSegments.some((s) => s.start === token.start)
+      parts.push(
+        <span
+          key={`tok-${i}`}
+          role="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            openWordSheetForToken(token)
+          }}
+          style={{
+            background: isMarked ? 'var(--brand-soft-strong)' : 'var(--brand-soft)',
+            borderRadius: '0.25rem',
+            boxShadow: '0 0 0 1px var(--brand-soft-strong)',
+            cursor: 'pointer',
+          }}
+        >
+          {token.text}
+        </span>
+      )
+      cursor = token.end
+    })
+    if (cursor < verse.text.length) {
+      parts.push(<Fragment key="tail">{verse.text.slice(cursor)}</Fragment>)
+    }
+    return parts
+  }
+
+  // 일반 모드: 저장된 단어에 점선 밑줄 — 탭하면 뜻 시트가 열린다
+  const renderDecoratedText = () => {
+    if (!noteSegments.length) return verse.text
+    const parts: ReactNode[] = []
+    let cursor = 0
+    noteSegments.forEach((seg, i) => {
+      if (seg.start > cursor) {
+        parts.push(<Fragment key={`plain-${i}`}>{verse.text.slice(cursor, seg.start)}</Fragment>)
+      }
+      parts.push(
+        <span
+          key={`note-${seg.note.id}`}
+          role="button"
+          title={seg.note.note || seg.note.word}
+          onClick={(e) => {
+            e.stopPropagation()
+            setWordSheet({
+              initialWord: seg.note.word,
+              charStart: seg.start,
+              charEnd: seg.end,
+              existing: seg.note,
+            })
+          }}
+          style={{
+            textDecoration: 'underline dotted var(--brand) 2px',
+            textUnderlineOffset: '0.25em',
+            cursor: 'pointer',
+          }}
+        >
+          {verse.text.slice(seg.start, seg.end)}
+        </span>
+      )
+      cursor = seg.end
+    })
+    if (cursor < verse.text.length) {
+      parts.push(<Fragment key="tail">{verse.text.slice(cursor)}</Fragment>)
+    }
+    return parts
+  }
 
   // 음성 인식 중에는 액션바가 닫혀서 마이크 버튼이 가려지지 않도록 보장
   useEffect(() => {
@@ -131,12 +289,23 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     >
       {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}
       <div
-        onClick={() => onActionsOpenChange(!showActions)}
+        onClick={() => {
+          // 단어 선택 모드에서 빈 곳을 탭하면 모드만 종료 (액션바 토글 방지)
+          if (wordSelectMode) {
+            setWordSelectMode(false)
+            return
+          }
+          onActionsOpenChange(!showActions)
+        }}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
+            if (wordSelectMode) {
+              setWordSelectMode(false)
+              return
+            }
             onActionsOpenChange(!showActions)
           }
         }}
@@ -190,8 +359,12 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                 {verse.text.slice(karaokeSplitIndex)}
               </span>
             </>
+          ) : wordSelectMode && verse.text ? (
+            renderSelectableText()
+          ) : verse.text ? (
+            renderDecoratedText()
           ) : (
-            verse.text || '(구절 내용 없음)'
+            '(구절 내용 없음)'
           )}
         </span>
 
@@ -227,6 +400,46 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           </div>
         )}
       </div>
+
+      {/* 단어 선택 모드 안내 칩 */}
+      {wordSelectMode && (
+        <div
+          style={{
+            alignSelf: 'flex-start',
+            marginLeft: '3.25rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.375rem',
+            padding: '0.3rem 0.7rem',
+            background: 'var(--brand-soft)',
+            border: '1px solid var(--brand-soft-strong)',
+            borderRadius: '999px',
+            fontSize: '0.8125rem',
+            fontWeight: 700,
+            color: 'var(--brand)',
+            animation: 'versePopIn 0.16s ease-out',
+          }}
+        >
+          <span className="material-icons-round" style={{ fontSize: '1rem' }}>touch_app</span>
+          뜻을 남길 단어를 탭하세요
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setWordSelectMode(false) }}
+            style={{
+              marginLeft: '0.25rem',
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--ig-secondary-text)',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            취소
+          </button>
+        </div>
+      )}
 
       {/* 액션 메뉴 - 절을 탭하면 본문 흐름 안에서 바로 아래에 펼쳐진다.
           예전 absolute 오버레이는 다음 절을 가렸고, 닫기용 풀스크린 fixed 백드롭이
@@ -289,6 +502,37 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                       ? 'bookmark'
                       : 'brush'
                   : 'bookmark_border'}
+              </span>
+            </button>
+
+            {/* 모르는 단어 체크 — 단어 선택 모드 진입 */}
+            <button
+              onClick={() => { onActionsOpenChange(false); setWordSelectMode(true) }}
+              className="verse-action-btn"
+              style={
+                (wordNotes?.length ?? 0) > 0
+                  ? {
+                      background: 'var(--brand-soft-strong)',
+                      border: '1px solid var(--brand)',
+                      boxShadow: '0 2px 10px var(--brand-glow)',
+                    }
+                  : {
+                      background: 'var(--brand-soft)',
+                      border: '1px solid var(--brand-soft-strong)',
+                    }
+              }
+              title="모르는 단어 체크"
+              tabIndex={showActions ? 0 : -1}
+            >
+              <span
+                className="material-icons-round"
+                style={{
+                  fontSize: '1.125rem',
+                  color: 'var(--brand)',
+                  opacity: (wordNotes?.length ?? 0) > 0 ? 1 : 0.85,
+                }}
+              >
+                spellcheck
               </span>
             </button>
 
@@ -540,6 +784,20 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           verseText={verse.text}
           existing={bookmark ?? null}
           onClose={() => setShowBookmarkModal(false)}
+        />
+      )}
+
+      {/* 단어 뜻/메모 시트 - 단어 선택 또는 밑줄 단어 탭으로 열림 */}
+      {wordSheet && (
+        <WordNoteSheet
+          verseId={verse.id}
+          verseReference={`${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verse.verse}`.trim()}
+          verseText={verse.text}
+          initialWord={wordSheet.initialWord}
+          charStart={wordSheet.charStart}
+          charEnd={wordSheet.charEnd}
+          existing={wordSheet.existing}
+          onClose={() => setWordSheet(null)}
         />
       )}
 

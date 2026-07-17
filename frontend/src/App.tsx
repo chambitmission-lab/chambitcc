@@ -55,6 +55,7 @@ const BibleStudy = lazy(menuRouteLoaders['/bible'])
 const Genealogy = lazy(() => import('./pages/Bible/Genealogy/Genealogy'))
 const PlanList = lazy(() => import('./pages/Bible/Plans/PlanList'))
 const PlanDetail = lazy(() => import('./pages/Bible/Plans/PlanDetail'))
+const BibleWordbook = lazy(() => import('./pages/Bible/Wordbook/WordbookPage'))
 const BiblePlanManagement = lazy(() => import('./pages/Admin/BiblePlanManagement'))
 const BibleCommentaryManagement = lazy(() => import('./pages/Admin/BibleCommentaryManagement'))
 const AnsweredPrayers = lazy(menuRouteLoaders['/answered-prayers'])
@@ -176,6 +177,7 @@ function App() {
                 <Route path="/bible/genealogy" element={<Genealogy />} />
                 <Route path="/bible/plans" element={<PlanList />} />
                 <Route path="/bible/plans/:planId" element={<PlanDetail />} />
+                <Route path="/bible/wordbook" element={<BibleWordbook />} />
                 <Route path="/bible/situation" element={<SituationBible />} />
                 <Route path="/bible/photo-verse" element={<PhotoVerse />} />
                 <Route path="/bible/:bookNumber/:chapter" element={<BibleStudy />} />
