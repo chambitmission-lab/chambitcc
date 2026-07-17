@@ -104,7 +104,7 @@ const ReflectionEditModal = ({
               onChange={(e) => setReflection(e.target.value)}
               rows={9}
               placeholder="묵상 내용을 입력하세요"
-              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13.5px] leading-[1.7] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-y"
+              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13.5px] leading-[1.7] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-blue-400 dark:focus:border-blue-400/60 transition-colors resize-y"
             />
             <p className="text-[11px] text-gray-400 dark:text-white/35 mt-1">
               줄바꿈은 Enter 로 입력하세요. HTML 태그는 자동으로 정리됩니다.
@@ -121,7 +121,7 @@ const ReflectionEditModal = ({
                 <button
                   type="button"
                   onClick={addQuestion}
-                  className="text-[12px] font-semibold text-purple-600 dark:text-purple-300 hover:underline"
+                  className="text-[12px] font-semibold text-blue-600 dark:text-blue-300 hover:underline"
                 >
                   + 질문 추가
                 </button>
@@ -135,7 +135,7 @@ const ReflectionEditModal = ({
               )}
               {questions.map((q, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="shrink-0 text-[12px] font-bold text-purple-500 dark:text-purple-300/80 w-7">
+                  <span className="shrink-0 text-[12px] font-bold text-blue-500 dark:text-blue-300/80 w-7">
                     Q{i + 1}
                   </span>
                   <input
@@ -143,7 +143,7 @@ const ReflectionEditModal = ({
                     value={q}
                     onChange={(e) => updateQuestion(i, e.target.value)}
                     placeholder="묵상 질문"
-                    className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                    className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-blue-400 dark:focus:border-blue-400/60 transition-colors"
                   />
                   <button
                     type="button"
@@ -180,7 +180,7 @@ const ReflectionEditModal = ({
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="flex-[1.4] py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all disabled:opacity-50"
+            className="flex-[1.4] py-3 rounded-xl bg-gradient-to-r from-blue-500 to-sky-400 text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(49,130,246,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(49,130,246,0.7)] transition-all disabled:opacity-50"
           >
             {saving ? '저장 중…' : '저장'}
           </button>

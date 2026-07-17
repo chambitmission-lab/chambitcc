@@ -1,5 +1,5 @@
 // ── 하루치 카드 ──
-// 상태별 시각 위계: 완료(과거) = 딤드 / 오늘 = 보라 하이라이트 / 예정(미래) = 아웃라인 원 + 차분한 텍스트
+// 상태별 시각 위계: 완료(과거) = 딤드 / 오늘 = 블루 하이라이트 / 예정(미래) = 아웃라인 원 + 차분한 텍스트
 import type { PlanDay } from '../../../../types/biblePlan'
 import type { ReflectionState } from '../../../../hooks/usePlanReflections'
 import { normalizeReflection } from '../reflectionText'
@@ -50,7 +50,7 @@ const DayCard = ({
         'relative overflow-hidden rounded-2xl border transition-all',
         'bg-white/80 dark:bg-card-dark shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
         isToday
-          ? 'border-purple-300/60 dark:border-purple-400/40 ring-1 ring-purple-300/40 dark:ring-purple-400/25'
+          ? 'border-blue-300/60 dark:border-blue-400/40 ring-1 ring-blue-300/40 dark:ring-blue-400/25'
           : 'border-gray-200/70 dark:border-white/[0.08]',
         isPast ? 'opacity-55' : '',
       ].join(' ')}
@@ -67,10 +67,10 @@ const DayCard = ({
             className={[
               'shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-[13px] transition-all',
               day.completed
-                ? `bg-gradient-to-br ${grad} text-white shadow-[0_4px_12px_-4px_rgba(168,85,247,0.55)]`
+                ? `bg-gradient-to-br ${grad} text-white shadow-[0_4px_12px_-4px_rgba(49,130,246,0.55)]`
                 : isToday
-                  ? 'border-2 border-purple-400/70 bg-purple-500/10 text-purple-600 dark:text-purple-300 hover:bg-purple-500/20'
-                  : 'border-2 border-gray-200 dark:border-white/[0.13] bg-transparent text-gray-400 dark:text-white/40 hover:border-purple-400/50 hover:text-purple-500 dark:hover:text-purple-300',
+                  ? 'border-2 border-blue-400/70 bg-blue-500/10 text-blue-600 dark:text-blue-300 hover:bg-blue-500/20'
+                  : 'border-2 border-gray-200 dark:border-white/[0.13] bg-transparent text-gray-400 dark:text-white/40 hover:border-blue-400/50 hover:text-blue-500 dark:hover:text-blue-300',
             ].join(' ')}
           >
             {day.completed ? (
@@ -91,7 +91,7 @@ const DayCard = ({
         <button type="button" onClick={onRead} className="flex-1 min-w-0 text-left">
           <div className="flex items-center gap-1.5">
             {isToday && (
-              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 tracking-[0.05em]">
+              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-300 tracking-[0.05em]">
                 오늘
               </span>
             )}
@@ -111,8 +111,8 @@ const DayCard = ({
           <p
             className={`text-[12px] truncate mt-0.5 ${
               isFuture
-                ? 'text-purple-600/70 dark:text-purple-300/60'
-                : 'text-purple-600 dark:text-purple-300/90'
+                ? 'text-blue-600/70 dark:text-blue-300/60'
+                : 'text-blue-600 dark:text-blue-300/90'
             }`}
           >
             {day.passages.map((p) => p.reference).filter(Boolean).join(' · ')}
@@ -124,7 +124,7 @@ const DayCard = ({
           type="button"
           onClick={onRead}
           aria-label="본문 읽기"
-          className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-white/40 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors"
+          className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-white/40 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6" />
@@ -143,21 +143,21 @@ const DayCard = ({
         <button
           type="button"
           onClick={onReflect}
-          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-purple-600 dark:text-purple-300 hover:underline"
+          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-blue-600 dark:text-blue-300 hover:underline"
         >
           <span>✨</span>
           {reflectionOpen ? 'AI 묵상 닫기' : 'AI 묵상 보기'}
         </button>
 
         {reflectionOpen && (
-          <div className="mt-2 rounded-xl bg-purple-50/70 dark:bg-purple-500/[0.06] border border-purple-200/50 dark:border-purple-400/20 px-3.5 py-3">
+          <div className="mt-2 rounded-xl bg-blue-50/70 dark:bg-blue-500/[0.06] border border-blue-200/50 dark:border-blue-400/20 px-3.5 py-3">
             {reflection?.loading ? (
               reflection.streamText ? (
                 // SSE 스트리밍 중 — 도착한 본문을 실시간 표시 (타자기 효과)
                 <p className="text-[13px] leading-[1.7] text-gray-700 dark:text-white/80 whitespace-pre-wrap">
                   {normalizeReflection(reflection.streamText)}
                   <span
-                    className="inline-block w-[2px] h-[1em] ml-0.5 align-[-0.15em] bg-purple-500 dark:bg-purple-300 animate-pulse"
+                    className="inline-block w-[2px] h-[1em] ml-0.5 align-[-0.15em] bg-blue-500 dark:bg-blue-300 animate-pulse"
                     aria-hidden
                   />
                 </p>
@@ -174,7 +174,7 @@ const DayCard = ({
                 {reflection.data.questions.length > 0 && (
                   <ul className="mt-2.5 space-y-1.5">
                     {reflection.data.questions.map((q, i) => (
-                      <li key={i} className="text-[12.5px] text-purple-700 dark:text-purple-200 flex gap-1.5">
+                      <li key={i} className="text-[12.5px] text-blue-700 dark:text-blue-200 flex gap-1.5">
                         <span className="opacity-60">Q{i + 1}.</span>
                         <span>{normalizeReflection(q)}</span>
                       </li>
@@ -182,14 +182,14 @@ const DayCard = ({
                   </ul>
                 )}
                 {admin && (
-                  <div className="mt-3 pt-2.5 flex items-center gap-2 border-t border-purple-200/50 dark:border-purple-400/15">
-                    <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 tracking-[0.06em]">
+                  <div className="mt-3 pt-2.5 flex items-center gap-2 border-t border-blue-200/50 dark:border-blue-400/15">
+                    <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-300 tracking-[0.06em]">
                       ADMIN
                     </span>
                     <button
                       type="button"
                       onClick={onEditReflection}
-                      className="text-[12px] font-semibold text-purple-600 dark:text-purple-300 hover:underline"
+                      className="text-[12px] font-semibold text-blue-600 dark:text-blue-300 hover:underline"
                     >
                       수정
                     </button>
@@ -198,7 +198,7 @@ const DayCard = ({
                       type="button"
                       onClick={onRegenerate}
                       disabled={regenerating}
-                      className="text-[12px] font-semibold text-gray-500 dark:text-white/55 hover:text-purple-500 dark:hover:text-purple-300 disabled:opacity-50"
+                      className="text-[12px] font-semibold text-gray-500 dark:text-white/55 hover:text-blue-500 dark:hover:text-blue-300 disabled:opacity-50"
                     >
                       {regenerating ? '생성 중…' : 'AI로 다시 생성'}
                     </button>

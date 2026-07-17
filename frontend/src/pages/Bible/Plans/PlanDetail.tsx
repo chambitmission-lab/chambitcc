@@ -79,7 +79,7 @@ const PlanDetail = () => {
       particleCount: 80,
       spread: 70,
       origin: { y: 0.7 },
-      colors: ['#a855f7', '#ec4899', '#d946ef', '#f472b6'],
+      colors: ['#3182f6', '#60a5fa', '#38bdf8', '#93c5fd'],
     })
   }
 
@@ -269,15 +269,15 @@ const PlanDetail = () => {
   return (
     <Shell onBack={() => navigate('/bible/plans')} title={plan.title} actions={planMenu}>
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 p-5 border border-purple-200/60 dark:border-white/[0.08] bg-gradient-to-br from-purple-50 to-pink-50 dark:from-[#1e1b4b]/60 dark:to-[#4c1d95]/35 shadow-[0_4px_18px_-8px_rgba(168,85,247,0.4)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_0_0_1px_rgba(168,85,247,0.12)]">
-        <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-purple-500 to-pink-500" />
+      <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35 shadow-[0_4px_18px_-8px_rgba(49,130,246,0.4)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_0_0_1px_rgba(49,130,246,0.12)]">
+        <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-blue-500 to-sky-400" />
         <div className="relative z-10 flex items-start gap-3.5">
-          <div className={`shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-[22px] shadow-[0_6px_18px_-6px_rgba(168,85,247,0.6)]`}>
+          <div className={`shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-[22px] shadow-[0_6px_18px_-6px_rgba(49,130,246,0.6)]`}>
             {plan.emoji || '📖'}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10.5px] font-bold tracking-[0.1em] text-purple-600 dark:text-purple-300">
+              <span className="text-[10.5px] font-bold tracking-[0.1em] text-blue-600 dark:text-blue-300">
                 {plan.total_days}일 플랜
               </span>
               {plan.level && (
@@ -322,7 +322,7 @@ const PlanDetail = () => {
               <p className="text-[14px] font-bold text-gray-900 dark:text-white">🎉 완주를 축하해요!</p>
               <button
                 onClick={handleRestart}
-                className="mt-2 text-[13px] font-semibold text-purple-600 dark:text-purple-300 hover:underline"
+                className="mt-2 text-[13px] font-semibold text-blue-600 dark:text-blue-300 hover:underline"
               >
                 처음부터 다시 시작
               </button>
@@ -330,7 +330,7 @@ const PlanDetail = () => {
           ) : (
             <button
               onClick={startTodaysReading}
-              className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all"
+              className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(49,130,246,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(49,130,246,0.7)] transition-all"
             >
               오늘 분량 읽기 · {progress.current_day}일차
             </button>
@@ -341,7 +341,7 @@ const PlanDetail = () => {
           <button
             onClick={handleSubscribe}
             disabled={subscribe.isPending}
-            className={`w-full py-3.5 rounded-2xl bg-gradient-to-r ${grad} text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_rgba(168,85,247,0.65)] hover:-translate-y-0.5 transition-all disabled:opacity-50`}
+            className={`w-full py-3.5 rounded-2xl bg-gradient-to-r ${grad} text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_rgba(49,130,246,0.65)] hover:-translate-y-0.5 transition-all disabled:opacity-50`}
           >
             {subscribe.isPending ? '시작하는 중...' : '이 플랜 시작하기'}
           </button>
@@ -375,7 +375,7 @@ const PlanDetail = () => {
                       'w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl border transition-all text-left',
                       'bg-white/80 dark:bg-card-dark shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
                       isCurrentGroup
-                        ? 'border-purple-300/60 dark:border-purple-400/40'
+                        ? 'border-blue-300/60 dark:border-blue-400/40'
                         : 'border-gray-200/70 dark:border-white/[0.08]',
                     ].join(' ')}
                   >
@@ -384,7 +384,7 @@ const PlanDetail = () => {
                         'shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold',
                         groupDone
                           ? `bg-gradient-to-br ${grad} text-white`
-                          : 'bg-purple-500/10 text-purple-600 dark:text-purple-300',
+                          : 'bg-blue-500/10 text-blue-600 dark:text-blue-300',
                       ].join(' ')}
                     >
                       {groupDone ? (
@@ -453,7 +453,7 @@ const Shell = ({
       <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+          className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-blue-600 dark:hover:text-blue-300 transition-colors"
           aria-label="뒤로"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">

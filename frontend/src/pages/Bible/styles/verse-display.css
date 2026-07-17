@@ -163,7 +163,7 @@
   flex-shrink: 0;
   width: 2rem;
   font-weight: 700;
-  color: rgba(147, 51, 234, 0.55);
+  color: rgba(49, 130, 246, 0.6);
   text-align: right;
   font-size: 0.8125rem;
   /* 번호의 라인박스를 본문 첫 줄과 같은 높이로 → 글리프가 그 중앙에 앉아
@@ -177,7 +177,7 @@
 }
 
 [data-theme="dark"] .bible-verse-number {
-  color: rgba(216, 180, 254, 0.55);
+  color: rgba(147, 197, 253, 0.6);
 }
 
 .bible-verse-item:hover .bible-verse-number {
