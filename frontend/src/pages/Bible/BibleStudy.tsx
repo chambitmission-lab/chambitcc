@@ -39,6 +39,8 @@ const BibleStudy = () => {
   const [showBookList, setShowBookList] = useState<boolean>(true)
   const [pendingScrollVerse, setPendingScrollVerse] = useState<number | null>(null)
   const [showPlaylist, setShowPlaylist] = useState<boolean>(false)
+  // 오디오북 듣기-보기 동기화: 지금 낭독 중인 절 (플레이어가 통지, VerseList가 표시)
+  const [audioActiveVerse, setAudioActiveVerse] = useState<number | null>(null)
 
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
   const { isLoggedIn } = useAuth()
@@ -323,6 +325,7 @@ const BibleStudy = () => {
                   key={`${selectedBookData.book_number}-${selectedChapter}`}
                   bookNumber={selectedBookData.book_number}
                   chapter={selectedChapter}
+                  onActiveVerseChange={setAudioActiveVerse}
                 />
 
                 {/* 권 개관 — 책 진입 시 큰 그림 노출 (1장에서만 보여 가독성 유지) */}
@@ -345,6 +348,7 @@ const BibleStudy = () => {
                   bookNumber={selectedBookData.book_number}
                   scrollToVerse={pendingScrollVerse}
                   onScrolled={() => setPendingScrollVerse(null)}
+                  audioActiveVerse={audioActiveVerse}
                   onChapterFullyRead={planAutoComplete ? handleChapterFullyRead : undefined}
                 />
               </div>

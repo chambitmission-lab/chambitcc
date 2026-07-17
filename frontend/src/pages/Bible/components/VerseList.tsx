@@ -28,6 +28,8 @@ interface VerseListProps {
   onScrolled?: () => void
   // 이 장의 모든 절을 읽었을 때 1회 호출 (읽기 플랜 자동 완료용)
   onChapterFullyRead?: () => void
+  // 오디오북이 지금 낭독 중인 절 — 하이라이트 + 자동 스크롤 따라가기
+  audioActiveVerse?: number | null
 }
 
 const VerseList = ({
@@ -43,6 +45,7 @@ const VerseList = ({
   scrollToVerse,
   onScrolled,
   onChapterFullyRead,
+  audioActiveVerse,
 }: VerseListProps) => {
   const observerRef = useRef<IntersectionObserver | null>(null)
   const fullReadFiredRef = useRef(false)
@@ -257,6 +260,54 @@ const VerseList = ({
     }
   }, [scrollToVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled])
 
+  // ---------- 오디오북 듣기-보기 동기화 ----------
+  // 따라가기(자동 스크롤) 여부. 사용자가 직접 스크롤하면 끄고,
+  // "지금 낭독 절로" 버튼이나 재생 종료 시 다시 켠다.
+  const [audioFollow, setAudioFollow] = useState(true)
+  const audioFollowRef = useRef(audioFollow)
+  audioFollowRef.current = audioFollow
+  const audioSyncActive = audioActiveVerse != null
+
+  // 낭독 절이 바뀌면: 따라가기 중이면 해당 절을 화면 중앙으로.
+  // 아직 로드 안 된 절(무한 스크롤 뒷페이지)이면 다음 페이지를 미리 받는다.
+  useEffect(() => {
+    if (audioActiveVerse == null) {
+      setAudioFollow(true) // 다음 재생을 위해 초기화
+      return
+    }
+    if (!chapterData) return
+    const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
+    if (el) {
+      if (audioFollowRef.current) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    } else if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [audioActiveVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  // 낭독 중 사용자가 직접 스크롤(휠/터치)하면 따라가기를 잠시 멈춘다.
+  // scrollIntoView가 만드는 scroll 이벤트는 wheel/touchmove를 발생시키지 않아 안전.
+  useEffect(() => {
+    if (!audioSyncActive) return
+    const disableFollow = () => setAudioFollow(false)
+    window.addEventListener('wheel', disableFollow, { passive: true })
+    window.addEventListener('touchmove', disableFollow, { passive: true })
+    return () => {
+      window.removeEventListener('wheel', disableFollow)
+      window.removeEventListener('touchmove', disableFollow)
+    }
+  }, [audioSyncActive])
+
+  const resumeAudioFollow = () => {
+    setAudioFollow(true)
+    if (audioActiveVerse != null) {
+      document
+        .getElementById(`bible-verse-${audioActiveVerse}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }
+
   // 디버깅: 챕터 데이터 확인
   useEffect(() => {
     if (import.meta.env.DEV && chapterData) {
@@ -338,6 +389,7 @@ const VerseList = ({
                   onEdit={handleEditVerse}
                   onShowCommentary={handleShowCommentary}
                   hasCommentary={verseHasCommentaryMap.has(verse.verse)}
+                  isAudioActive={verse.verse === audioActiveVerse}
                   actionsOpen={openVerseId === verse.id}
                   onActionsOpenChange={(open) => setOpenVerseId(open ? verse.id : null)}
                 />
@@ -450,6 +502,38 @@ const VerseList = ({
           onSave={handleSaveVerse}
           onClose={() => setEditingVerse(null)}
         />
+      )}
+
+      {/* 낭독 따라가기 재개 — 듣던 중 직접 스크롤해 따라가기가 꺼졌을 때만 */}
+      {audioSyncActive && !audioFollow && (
+        <button
+          onClick={resumeAudioFollow}
+          style={{
+            position: 'fixed',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bottom: '5.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.375rem',
+            padding: '0.5rem 0.875rem',
+            borderRadius: '999px',
+            border: 'none',
+            background: 'var(--brand)',
+            color: 'white',
+            fontSize: '0.8125rem',
+            fontWeight: 700,
+            boxShadow: '0 6px 18px var(--brand-glow)',
+            cursor: 'pointer',
+            zIndex: 50,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <span className="material-icons-round" style={{ fontSize: '1rem' }}>
+            my_location
+          </span>
+          지금 낭독 중인 절로
+        </button>
       )}
 
       {/* 장 전체 해석 보기 플로팅 버튼 */}

@@ -18,13 +18,15 @@ interface VerseItemProps {
   onEdit?: (verse: BibleVerse) => void
   onShowCommentary?: (verse: BibleVerse) => void
   hasCommentary?: boolean
+  // 오디오북이 지금 낭독 중인 절 — 듣기-보기 동기화 하이라이트
+  isAudioActive?: boolean
   // 액션바 열림 상태는 부모(VerseList)가 관리한다 — 한 번에 한 절의 메뉴만 열려
   // 다른 절을 탭하면 이전 메뉴가 닫힌다(예전 풀스크린 백드롭의 역할을 대체).
   actionsOpen: boolean
   onActionsOpenChange: (open: boolean) => void
 }
 
-const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, hasCommentary, actionsOpen, onActionsOpenChange }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
@@ -113,7 +115,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     <div
       id={`bible-verse-${verse.verse}`}
       data-verse={verse.verse}
-      className={`bible-verse-item ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''} ${showActions && !isReading ? 'verse-selected' : ''}`}
+      className={`bible-verse-item ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''} ${showActions && !isReading ? 'verse-selected' : ''} ${isAudioActive ? 'verse-audio-active' : ''}`}
       style={{
         position: 'relative',
         // 'all'을 쓰면 :hover의 margin/padding 같은 레이아웃 속성까지 애니메이션돼 버벅인다.

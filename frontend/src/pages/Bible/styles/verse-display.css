@@ -360,6 +360,15 @@
   }
 }
 
+/* 오디오북 듣기-보기 동기화 — 지금 낭독 중인 절을 은은하게 강조.
+   배경은 형광펜(rowAccent 인라인 스타일)이 있으면 그쪽이 이기므로,
+   왼쪽 브랜드 바(inset shadow)로 어떤 절에서든 위치가 보이게 한다. */
+.bible-verse-item.verse-audio-active {
+  background-color: var(--brand-soft, rgba(49, 130, 246, 0.08));
+  box-shadow: inset 3px 0 0 var(--brand, #3182f6);
+  border-radius: 0.375rem;
+}
+
 /* 이어 읽기 하이라이트 - 도착한 절을 잠깐 강조 */
 .bible-verse-item.verse-resume-highlight {
   animation: verse-resume-flash 2.4s ease-out;

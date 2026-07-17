@@ -5,6 +5,14 @@ import type { BibleTTSVoice } from '../../../types/bible'
 interface BibleAudioPlayerProps {
   bookNumber: number
   chapter: number
+  // 듣기-보기 동기화: 지금 낭독 중인 절이 바뀔 때마다 호출 (재생 전/머리말 구간은 null)
+  onActiveVerseChange?: (verse: number | null) => void
+}
+
+// 절별 낭독 시작 시각(초) — 백엔드가 mp3 생성 시 WordBoundary로 산출해 캐시
+interface VerseTiming {
+  verse: number
+  start: number
 }
 
 const VOICE_STORAGE_KEY = 'bible-tts-voice'
@@ -48,7 +56,7 @@ const formatTime = (sec: number): string => {
  * 부모에서 key={`${bookNumber}-${chapter}`} 로 렌더하므로, 장이 바뀌면
  * 컴포넌트가 새로 마운트되어 상태가 초기화되고 이전 재생은 정리된다.
  */
-const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
+const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange }: BibleAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const wantPlayRef = useRef(false) // src 로드 시 자동 재생할지
@@ -63,6 +71,73 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
   const [duration, setDuration] = useState(0)
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0)
   const [cardVisible, setCardVisible] = useState(true) // 본 카드가 뷰포트에 보이는지
+  const [timings, setTimings] = useState<VerseTiming[] | null>(null)
+  const [activeVerse, setActiveVerse] = useState<number | null>(null)
+  const activeVerseRef = useRef<number | null>(null)
+  // 부모 콜백은 ref로 보관 — 렌더마다 바뀌어도 이펙트/핸들러를 재구성하지 않는다
+  const onActiveVerseChangeRef = useRef(onActiveVerseChange)
+  onActiveVerseChangeRef.current = onActiveVerseChange
+
+  // 절별 타이밍 로드. 첫 재생(스트리밍 생성 중)엔 아직 없어 404 → 재생이
+  // 이어지는 동안 주기적으로 다시 조회한다(생성 완료 시 mp3와 함께 캐시됨).
+  // 음성이 바뀌면 오디오가 달라지므로 타이밍도 다시 받는다.
+  useEffect(() => {
+    if (!started) return
+    let cancelled = false
+    let timer: number | undefined
+    let attempts = 0
+    setTimings(null)
+    const load = async () => {
+      try {
+        const res = await fetch(
+          `${API_V1}/bible/tts/${bookNumber}/${chapter}/timings?voice=${voice}`
+        )
+        if (res.ok) {
+          const data = await res.json()
+          if (!cancelled && Array.isArray(data?.verses)) setTimings(data.verses)
+          return
+        }
+      } catch {
+        // 네트워크 오류 → 아래에서 재시도
+      }
+      if (!cancelled && ++attempts < 40) timer = window.setTimeout(load, 8000)
+    }
+    load()
+    return () => {
+      cancelled = true
+      if (timer) clearTimeout(timer)
+    }
+  }, [started, voice, bookNumber, chapter])
+
+  // 재생 시각 → 지금 낭독 중인 절 (마지막으로 start를 지난 절)
+  const syncActiveVerse = (time: number | null) => {
+    let v: number | null = null
+    if (time !== null && timings && timings.length > 0) {
+      for (const t of timings) {
+        if (time >= t.start) v = t.verse
+        else break
+      }
+    }
+    if (v !== activeVerseRef.current) {
+      activeVerseRef.current = v
+      setActiveVerse(v)
+      onActiveVerseChangeRef.current?.(v)
+    }
+  }
+
+  // 타이밍이 재생 도중(첫 스트리밍 완료 후) 늦게 도착하면 즉시 한 번 동기화
+  useEffect(() => {
+    if (timings) syncActiveVerse(audioRef.current?.currentTime ?? null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timings])
+
+  // 장 이동 등으로 언마운트되면 본문 하이라이트도 해제
+  useEffect(
+    () => () => {
+      onActiveVerseChangeRef.current?.(null)
+    },
+    []
+  )
 
   // 본문을 읽으러 스크롤을 내려 카드가 화면 밖으로 나가면,
   // 재생을 시작한 경우에 한해 상단에 한 줄짜리 미니 플레이어를 띄운다.
@@ -189,7 +264,9 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
     : loading
       ? LOADING_MESSAGES[loadingMsgIdx]
       : isPlaying
-        ? '재생 중'
+        ? activeVerse
+          ? `재생 중 · ${activeVerse}절`
+          : '재생 중'
         : '듣기'
 
   // 미니 플레이어: 재생을 한 번이라도 시작했고, 본 카드가 스크롤로 가려졌을 때만
@@ -403,6 +480,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
         onEnded={() => {
           setIsPlaying(false)
           setCurrentTime(0)
+          syncActiveVerse(null)
         }}
         onError={() => {
           setPreparing(false)
@@ -410,7 +488,10 @@ const BibleAudioPlayer = ({ bookNumber, chapter }: BibleAudioPlayerProps) => {
           // started 후에만 실제 오류로 간주(초기 src 없는 상태 제외)
           if (started) setIsError(true)
         }}
-        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+        onTimeUpdate={(e) => {
+          setCurrentTime(e.currentTarget.currentTime)
+          syncActiveVerse(e.currentTarget.currentTime)
+        }}
         onLoadedMetadata={(e) => {
           // 스트리밍(미캐시) 최초 재생 땐 길이를 모를 수 있다(Infinity/NaN) → 0 처리
           const d = e.currentTarget.duration
