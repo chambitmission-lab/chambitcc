@@ -7,6 +7,7 @@ import { isAdmin } from '../../../utils/auth'
 import { useVerseBookmark } from '../../../hooks/useBibleBookmark'
 import VerseBookmarkModal, { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 import VerseNoteSheet from './VerseNoteSheet'
+import { HeartIcon, BookOpenIcon } from '../../../components/icons/ActionIcons'
 
 interface VerseItemProps {
   verse: BibleVerse
@@ -190,43 +191,34 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           )}
         </span>
 
-        {/* 가벼운 상태 인디케이터 (점) - 본문 폭을 거의 잡아먹지 않음.
-            읽음 체크는 절 번호 위 오버레이로 이동 — 읽음 처리 순간 이 행에
+        {/* 가벼운 상태 인디케이터 - 본문 폭을 거의 잡아먹지 않음.
+            하이라이트는 좌측 바+배경, 노트는 아래 칩으로 이미 보이므로 여기선 생략(중복 방지).
+            남는 두 상태는 모양으로 구분: 채운 하트=즐겨찾기(내 표시), 라인 책=해석 있음(콘텐츠).
+            읽음 체크는 절 번호 색으로 이동 — 읽음 처리 순간 이 행에
             아이콘이 끼어들며 본문이 재줄바꿈되던 출렁임을 없앤다. */}
-        {((bookmark && (bookmark.is_favorite || bookmark.highlight_color)) || hasCommentary) && (
+        {(bookmark?.is_favorite || hasCommentary) && (
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.25rem',
+              gap: '0.3rem',
               flexShrink: 0,
-              // 본문 첫 줄 라인박스 중앙에 6px 점을 맞춘다 (변수는 verse-display.css 정의)
-              paddingTop: 'calc(var(--verse-line-box) / 2 - 3px)',
+              // 본문 첫 줄 라인박스 중앙에 11px 아이콘을 맞춘다 (변수는 verse-display.css 정의)
+              paddingTop: 'calc(var(--verse-line-box) / 2 - 5.5px)',
             }}
           >
-            {/* 노트 전용 북마크는 아래 칩+좌측 강조로 이미 보이므로 점 생략(중복 방지).
-                즐겨찾기/하이라이트만 점으로 표시. */}
-            {bookmark && (bookmark.is_favorite || bookmark.highlight_color) && (
-              <span
-                title={bookmark.is_favorite ? '즐겨찾기' : '하이라이트'}
-                style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: 'var(--brand)',
-                }}
-              />
+            {bookmark?.is_favorite && (
+              <span title="즐겨찾기" style={{ display: 'inline-flex', color: 'var(--brand)' }}>
+                <HeartIcon size={11} filled />
+              </span>
             )}
             {hasCommentary && (
               <span
                 title="해석 있음"
-                style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: 'var(--brand)',
-                }}
-              />
+                style={{ display: 'inline-flex', color: 'var(--brand)', opacity: 0.75 }}
+              >
+                <BookOpenIcon size={11} strokeWidth={2.2} />
+              </span>
             )}
           </div>
         )}
