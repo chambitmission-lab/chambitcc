@@ -341,6 +341,12 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
         <div className="mt-1">
           <Hashtags plan={plan} />
         </div>
+        {/* 사회적 증거 — 몇 명이 함께 읽는지 보여 시작 문턱을 낮춘다 */}
+        {(plan.participant_count ?? 0) > 0 && (
+          <p className="mt-1 text-[11px] font-medium tracking-[-0.01em] text-gray-400 dark:text-white/45">
+            👥 {(plan.participant_count ?? 0).toLocaleString()}명 참여 중
+          </p>
+        )}
       </div>
       <svg
         width="15"

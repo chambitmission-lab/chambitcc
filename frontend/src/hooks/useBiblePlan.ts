@@ -14,6 +14,7 @@ import {
   updatePlan,
 } from '../api/biblePlan'
 import type { PlanCreateRequest, PlanUpdateRequest } from '../types/biblePlan'
+import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 
 export const biblePlanKeys = {
   all: ['biblePlan'] as const,
@@ -84,7 +85,12 @@ export const useCompleteDay = () => {
   return useMutation({
     mutationFn: ({ planId, dayNumber }: { planId: number; dayNumber: number }) =>
       completeDay(planId, dayNumber),
-    onSuccess: () => invalidatePlanData(qc),
+    onSuccess: () => {
+      invalidatePlanData(qc)
+      // 마지막 일차 완료가 플랜 완주 칭호(유종의 미 등)로 이어질 수 있어
+      // 자유 읽기와 동일하게 칭호 평가를 예약한다 (전역 TitleUnlockHost 가 팝업 처리)
+      scheduleTitleEvaluation()
+    },
   })
 }
 

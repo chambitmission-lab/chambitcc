@@ -47,6 +47,9 @@ export interface PlanSummary {
   accent?: string | null
   total_days: number
   day_count: number
+  // 구버전 백엔드 응답에는 없을 수 있어 optional — UI 에서 ?? 0 처리
+  participant_count?: number
+  completed_count?: number
   is_published: boolean
   sort_order: number
   progress?: PlanProgress | null

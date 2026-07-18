@@ -285,6 +285,16 @@ const PlanDetail = () => {
                   · {plan.level}
                 </span>
               )}
+              {(plan.participant_count ?? 0) > 0 && (
+                <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                  · 👥 {(plan.participant_count ?? 0).toLocaleString()}명 참여
+                </span>
+              )}
+              {(plan.completed_count ?? 0) > 0 && (
+                <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                  · 🏁 {(plan.completed_count ?? 0).toLocaleString()}명 완주
+                </span>
+              )}
             </div>
             <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white mt-0.5">
               {plan.title}
@@ -346,7 +356,9 @@ const PlanDetail = () => {
             {subscribe.isPending ? '시작하는 중...' : '이 플랜 시작하기'}
           </button>
           <p className="text-center text-[12px] text-gray-400 dark:text-white/45 mt-2">
-            {plan.total_days}일 동안 매일 함께 읽어요
+            {(plan.participant_count ?? 0) > 0
+              ? `지금 ${(plan.participant_count ?? 0).toLocaleString()}명이 함께 읽고 있어요`
+              : `${plan.total_days}일 동안 매일 함께 읽어요`}
           </p>
         </section>
       )}
