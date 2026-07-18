@@ -50,7 +50,10 @@ export const apiFetch = async (url: string, options: RequestInit = {}): Promise<
       response = await fetch(url, withNewToken(options, newToken))
     } else {
       // Refresh token도 만료됨 - 로그인 페이지로
-      const currentPath = window.location.pathname + window.location.search
+      // HashRouter 라우트는 pathname이 아닌 hash에 있다 (#/rooms/3 → /rooms/3)
+      const currentPath = window.location.hash
+        ? window.location.hash.slice(1)
+        : window.location.pathname + window.location.search
       if (currentPath !== '/login' && currentPath !== '/register') {
         sessionStorage.setItem('redirect_after_login', currentPath)
       }

@@ -89,6 +89,28 @@ const PlanList = () => {
           </div>
         </section>
 
+        {/* 공동 묵상방 진입 — 혼자 읽는 플랜과 달리 "함께" 읽는 새 기능 */}
+        <button
+          type="button"
+          onClick={() => navigate('/rooms')}
+          className="mx-4 mt-3.5 w-[calc(100%-2rem)] flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] text-left"
+        >
+          <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] flex items-center justify-center text-[19px]">
+            🕊️
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
+              공동 묵상방
+            </span>
+            <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5">
+              초대 링크로 모여 같은 본문을 함께 묵상해요
+            </span>
+          </span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-300 dark:text-white/30">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+
         {/* 본문 */}
         {isLoading ? (
           <PlanSkeletons />

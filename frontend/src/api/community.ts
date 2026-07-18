@@ -7,8 +7,10 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // 현재 페이지 저장
-      const currentPath = window.location.pathname + window.location.search
+      // 현재 페이지 저장 — HashRouter 라우트는 hash에 있다 (#/rooms/3 → /rooms/3)
+      const currentPath = window.location.hash
+        ? window.location.hash.slice(1)
+        : window.location.pathname + window.location.search
       if (currentPath !== '/login' && currentPath !== '/register') {
         sessionStorage.setItem('redirect_after_login', currentPath)
       }
