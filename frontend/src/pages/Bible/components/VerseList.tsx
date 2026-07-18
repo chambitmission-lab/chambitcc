@@ -274,7 +274,7 @@ const VerseList = ({
       cancelVerseScroll()
       // 실제 스크롤 컨테이너가 기기/브라우저에 따라 갈린다(이 앱은 html/body
       // overflow-x:hidden + height:100% 구조라 body가 스크롤러인 환경이 있음).
-      // 첫 프레임에 후보들에 차례로 적용해 실제로 움직이는 쪽을 채택한다.
+      // 1px 나눠보기로 실제 스크롤되는 쪽을 먼저 확정한다.
       const candidates = Array.from(
         new Set(
           [
@@ -285,50 +285,49 @@ const VerseList = ({
         )
       )
       let scroller: HTMLElement | null = null
-      let stall = 0
+      for (const c of candidates) {
+        const before = c.scrollTop
+        c.scrollTop = before + 1
+        if (c.scrollTop !== before) {
+          c.scrollTop = before
+          scroller = c
+          break
+        }
+        c.scrollTop = before - 1
+        if (c.scrollTop !== before) {
+          c.scrollTop = before
+          scroller = c
+          break
+        }
+      }
+      if (!scroller) return // 스크롤 자체가 불가능한 상태
+
       // 목표 위치: 상단 정렬은 고정 헤더+미니 플레이어 아래(112px), 중앙 정렬은
       // 뷰포트 중앙(단, 헤더 아래로는 안 올라가게)
-      const targetTop = () =>
+      const viewportTarget =
         block === 'start'
           ? 112
           : Math.max(112, (window.innerHeight - el.clientHeight) / 2)
-      let lastTime = performance.now()
+      // 시작 시 한 번만 측정해 목표 scrollTop을 확정하고, 이후엔 경과 시간만으로
+      // 절대 위치를 계산한다(easeOutCubic 고정 곡선). 매 프레임 요소 위치를
+      // 재측정하는 피드백 방식은 강제 레이아웃 + dt 널뜀으로 이동량이 프레임마다
+      // 들쭉날쭉해져 모바일에서 드득거리는 스크롤이 됐다. 절대 곡선은 프레임이
+      // 떨어져도 곡선 위 제 위치로 건너뛰므로 항상 고르게 보인다.
+      const startTop = scroller.scrollTop
+      const dist = el.getBoundingClientRect().top - viewportTarget
+      if (Math.abs(dist) < 2) return // 이미 제자리
+      const maxTop = scroller.scrollHeight - scroller.clientHeight
+      const endTop = Math.max(0, Math.min(startTop + dist, maxTop))
+      // 거리에 비례하되 240~550ms로 클램프 — 한 절 이동은 ~0.3초, 먼 복귀도 과하지 않게
+      const duration = Math.max(240, Math.min(200 + Math.abs(endTop - startTop) * 0.35, 550))
+      const t0 = performance.now()
+      const target = scroller
       const step = (now: number) => {
         scrollAnimRef.current = null
-        if (!el.isConnected) return
-        const dt = now - lastTime
-        lastTime = now
-        const remaining = el.getBoundingClientRect().top - targetTop()
-        if (Math.abs(remaining) < 1) return // 도착
-        // 시간 기반 지수 감속(τ=80ms): 프레임레이트가 떨어지는 모바일에서도
-        // 항상 같은 속도(~0.3초)로 붙는다. 프레임당 고정 비율(18%) 방식은
-        // 30fps 구간에서 두 배로 느려져 "딜레이 있게 자리 잡는" 느낌을 줬다.
-        // 마지막 8px는 한 번에 스냅해 꼬리가 기어가는 느낌을 없앤다.
-        const delta =
-          Math.abs(remaining) < 8
-            ? remaining
-            : remaining * (1 - Math.exp(-dt / 80))
-        if (scroller) {
-          const before = scroller.scrollTop
-          scroller.scrollTop = before + delta
-          if (scroller.scrollTop === before && Math.abs(delta) >= 1) {
-            // 문서 끝에 닿아 더 못 가는 경우 — 몇 프레임 확인 후 종료
-            if (++stall > 2) return
-          } else {
-            stall = 0
-          }
-        } else {
-          for (const c of candidates) {
-            const before = c.scrollTop
-            c.scrollTop = before + delta
-            if (c.scrollTop !== before) {
-              scroller = c
-              break
-            }
-          }
-          if (!scroller && ++stall > 2) return
-        }
-        scrollAnimRef.current = requestAnimationFrame(step)
+        const p = Math.min(1, (now - t0) / duration)
+        const eased = 1 - Math.pow(1 - p, 3)
+        target.scrollTop = startTop + (endTop - startTop) * eased
+        if (p < 1) scrollAnimRef.current = requestAnimationFrame(step)
       }
       scrollAnimRef.current = requestAnimationFrame(step)
     },
