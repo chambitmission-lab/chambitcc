@@ -255,23 +255,75 @@ const VerseList = ({
   // 언마운트 시 옵저버 정리
   useEffect(() => () => observerRef.current?.disconnect(), [])
   
-  // smooth scrollIntoView가 일부 모바일 브라우저(iOS 사파리·인앱 웹뷰)에서
-  // 소리 없이 실패하는 사례가 있어, 잠시 후 실제로 움직였는지 확인하고
-  // 전혀 안 움직였으면 즉시 이동으로 한 번 더 시도한다.
-  // block='start'는 절 요소의 scroll-margin-top이 고정 헤더/미니 플레이어를 피한다.
+  // 절 스크롤은 브라우저 smooth scrollIntoView를 쓰지 않고 rAF로 직접 애니메이션한다.
+  // smooth scrollIntoView는 모바일 브라우저에서 소리 없이 실패하는 일이 잦아
+  // "어떤 절은 안 움직이다가 다음 절에서 훅 점프"하는 증상을 만들었다.
+  // 매 프레임 남은 거리의 일정 비율만큼 움직이는 방식(지수 감속)이라 항상 부드럽고,
+  // 목표 지점을 프레임마다 다시 재기 때문에 도중 레이아웃 변화에도 안전하다.
+  const scrollAnimRef = useRef<number | null>(null)
+  const cancelVerseScroll = useCallback(() => {
+    if (scrollAnimRef.current != null) {
+      cancelAnimationFrame(scrollAnimRef.current)
+      scrollAnimRef.current = null
+    }
+  }, [])
+  useEffect(() => () => cancelVerseScroll(), [cancelVerseScroll])
+
   const scrollVerseIntoView = useCallback(
     (el: HTMLElement, block: ScrollLogicalPosition = 'center') => {
-      const before = el.getBoundingClientRect().top
-      el.scrollIntoView({ behavior: 'smooth', block })
-      window.setTimeout(() => {
-        const after = el.getBoundingClientRect().top
-        const target = block === 'start' ? 112 : window.innerHeight / 2
-        if (Math.abs(after - before) < 4 && Math.abs(after - target) > 120) {
-          el.scrollIntoView({ block })
+      cancelVerseScroll()
+      // 실제 스크롤 컨테이너가 기기/브라우저에 따라 갈린다(이 앱은 html/body
+      // overflow-x:hidden + height:100% 구조라 body가 스크롤러인 환경이 있음).
+      // 첫 프레임에 후보들에 차례로 적용해 실제로 움직이는 쪽을 채택한다.
+      const candidates = Array.from(
+        new Set(
+          [
+            document.scrollingElement as HTMLElement | null,
+            document.body,
+            document.documentElement,
+          ].filter((c): c is HTMLElement => c != null)
+        )
+      )
+      let scroller: HTMLElement | null = null
+      let stall = 0
+      // 목표 위치: 상단 정렬은 고정 헤더+미니 플레이어 아래(112px), 중앙 정렬은
+      // 뷰포트 중앙(단, 헤더 아래로는 안 올라가게)
+      const targetTop = () =>
+        block === 'start'
+          ? 112
+          : Math.max(112, (window.innerHeight - el.clientHeight) / 2)
+      const step = () => {
+        scrollAnimRef.current = null
+        if (!el.isConnected) return
+        const remaining = el.getBoundingClientRect().top - targetTop()
+        if (Math.abs(remaining) < 1) return // 도착
+        // 남은 거리의 18%씩 → 지수 감속. 6px 미만은 한 번에 마무리.
+        const delta = Math.abs(remaining) < 6 ? remaining : remaining * 0.18
+        if (scroller) {
+          const before = scroller.scrollTop
+          scroller.scrollTop = before + delta
+          if (scroller.scrollTop === before && Math.abs(delta) >= 1) {
+            // 문서 끝에 닿아 더 못 가는 경우 — 몇 프레임 확인 후 종료
+            if (++stall > 2) return
+          } else {
+            stall = 0
+          }
+        } else {
+          for (const c of candidates) {
+            const before = c.scrollTop
+            c.scrollTop = before + delta
+            if (c.scrollTop !== before) {
+              scroller = c
+              break
+            }
+          }
+          if (!scroller && ++stall > 2) return
         }
-      }, 450)
+        scrollAnimRef.current = requestAnimationFrame(step)
+      }
+      scrollAnimRef.current = requestAnimationFrame(step)
     },
-    []
+    [cancelVerseScroll]
   )
 
   // 이어 읽기: 지정된 절로 자동 스크롤 + 일시적 하이라이트.
@@ -346,6 +398,7 @@ const VerseList = ({
     if (!audioSyncActive) return
     let touchStartY: number | null = null
     const pauseFollow = () => {
+      cancelVerseScroll() // 진행 중인 자동 스크롤이 손가락과 싸우지 않게 즉시 중단
       setAudioFollow(false)
       if (followResumeTimerRef.current) clearTimeout(followResumeTimerRef.current)
       followResumeTimerRef.current = window.setTimeout(() => {
@@ -374,7 +427,7 @@ const VerseList = ({
         followResumeTimerRef.current = null
       }
     }
-  }, [audioSyncActive])
+  }, [audioSyncActive, cancelVerseScroll])
 
   // 디버깅: 챕터 데이터 확인
   useEffect(() => {
