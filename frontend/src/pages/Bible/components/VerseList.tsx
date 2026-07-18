@@ -292,13 +292,22 @@ const VerseList = ({
         block === 'start'
           ? 112
           : Math.max(112, (window.innerHeight - el.clientHeight) / 2)
-      const step = () => {
+      let lastTime = performance.now()
+      const step = (now: number) => {
         scrollAnimRef.current = null
         if (!el.isConnected) return
+        const dt = now - lastTime
+        lastTime = now
         const remaining = el.getBoundingClientRect().top - targetTop()
         if (Math.abs(remaining) < 1) return // 도착
-        // 남은 거리의 18%씩 → 지수 감속. 6px 미만은 한 번에 마무리.
-        const delta = Math.abs(remaining) < 6 ? remaining : remaining * 0.18
+        // 시간 기반 지수 감속(τ=80ms): 프레임레이트가 떨어지는 모바일에서도
+        // 항상 같은 속도(~0.3초)로 붙는다. 프레임당 고정 비율(18%) 방식은
+        // 30fps 구간에서 두 배로 느려져 "딜레이 있게 자리 잡는" 느낌을 줬다.
+        // 마지막 8px는 한 번에 스냅해 꼬리가 기어가는 느낌을 없앤다.
+        const delta =
+          Math.abs(remaining) < 8
+            ? remaining
+            : remaining * (1 - Math.exp(-dt / 80))
         if (scroller) {
           const before = scroller.scrollTop
           scroller.scrollTop = before + delta
