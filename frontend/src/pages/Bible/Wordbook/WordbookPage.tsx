@@ -151,6 +151,16 @@ const WordbookPage = () => {
                         <span className="material-icons-round text-[13px]">menu_book</span>
                         {item.book_name_ko} {item.chapter}:{item.verse}
                       </button>
+                      {/* 수정/삭제 진입점 — 단어 영역 탭과 같은 시트지만,
+                          눈에 보이는 버튼이 없으면 편집 가능하다는 걸 모른다 */}
+                      <button
+                        onClick={() => setEditing(item)}
+                        className="shrink-0 w-7 h-7 rounded-full inline-flex items-center justify-center text-gray-400 dark:text-white/40 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+                        title="수정 · 삭제"
+                        aria-label={`${item.word} 수정 또는 삭제`}
+                      >
+                        <span className="material-icons-round text-[16px]">edit</span>
+                      </button>
                     </div>
 
                     {/* 출처 구절 미리보기 — 단어 강조 */}
@@ -158,7 +168,7 @@ const WordbookPage = () => {
                       onClick={() => goToVerse(item)}
                       className="mt-2 w-full text-left text-[12.5px] leading-[1.65] text-gray-400 dark:text-white/40 line-clamp-2"
                     >
-                      {highlightWord(item.text, item.word)}
+                      {highlightWord(item)}
                     </button>
                   </div>
                 ))
@@ -198,15 +208,37 @@ const WordbookPage = () => {
   )
 }
 
-/** 구절 미리보기에서 저장한 단어를 강조 */
-const highlightWord = (text: string, word: string) => {
-  const idx = text.indexOf(word)
-  if (idx < 0) return text
+/** 구절 미리보기에서 저장한 단어를 강조.
+ * 저장된 위치(char 범위)가 본문과 맞으면 그 자리를, 아니면 단어 검색으로 fallback —
+ * 같은 단어가 절에 두 번 나올 때 indexOf만 쓰면 엉뚱한 쪽이 칠해진다. */
+const highlightWord = (item: WordNoteWithVerse) => {
+  const { text, word, char_start, char_end } = item
+  let start = -1
+  let end = -1
+  if (
+    char_start != null &&
+    char_end != null &&
+    char_start >= 0 &&
+    char_end > char_start &&
+    char_end <= text.length
+  ) {
+    const slice = text.slice(char_start, char_end)
+    if (slice.includes(word) || word.includes(slice)) {
+      start = char_start
+      end = char_end
+    }
+  }
+  if (start < 0) {
+    const idx = text.indexOf(word)
+    if (idx < 0) return text
+    start = idx
+    end = idx + word.length
+  }
   return (
     <>
-      {text.slice(0, idx)}
-      <span className="font-bold text-brand">{word}</span>
-      {text.slice(idx + word.length)}
+      {text.slice(0, start)}
+      <span className="font-bold text-brand">{text.slice(start, end)}</span>
+      {text.slice(end)}
     </>
   )
 }

@@ -143,10 +143,17 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
 
   const openWordSheetForToken = (token: { text: string; start: number; end: number }) => {
     setWordSelectMode(false)
-    // 같은 위치에 이미 저장한 노트가 있으면 수정 모드로 연다 (중복 생성 방지)
+    // 이 토큰과 범위가 겹치는 노트가 있으면 수정 모드로 연다 (중복 생성 방지).
+    // 단어 다듬기로 범위가 토큰 일부("완악")로 좁혀질 수 있어 시작 위치 일치만으론 부족.
     const existing =
-      noteSegments.find((s) => s.start === token.start)?.note ??
-      wordNotes?.find((n) => n.char_start === token.start) ??
+      noteSegments.find((s) => s.start < token.end && s.end > token.start)?.note ??
+      wordNotes?.find(
+        (n) =>
+          n.char_start != null &&
+          n.char_end != null &&
+          n.char_start < token.end &&
+          n.char_end > token.start
+      ) ??
       null
     setWordSheet({
       initialWord: cleanWord(token.text) || token.text,
@@ -164,7 +171,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
       if (token.start > cursor) {
         parts.push(<Fragment key={`gap-${i}`}>{verse.text.slice(cursor, token.start)}</Fragment>)
       }
-      const isMarked = noteSegments.some((s) => s.start === token.start)
+      const isMarked = noteSegments.some((s) => s.start < token.end && s.end > token.start)
       parts.push(
         <span
           key={`tok-${i}`}

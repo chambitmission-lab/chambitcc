@@ -38,6 +38,9 @@ export interface CreateWordNotePayload {
 export interface UpdateWordNotePayload {
   word: string
   note?: string | null
+  /** 단어를 다듬으면 밑줄 범위도 함께 좁혀 보낸다. 생략 시 기존 위치 유지 */
+  char_start?: number | null
+  char_end?: number | null
 }
 
 export const createWordNote = async (
@@ -70,7 +73,14 @@ export const updateWordNote = async (
   const response = await apiFetch(`${API_V1}/bible/word-notes/${noteId}`, {
     method: 'PUT',
     headers: getAuthHeaders(true),
-    body: JSON.stringify({ word: payload.word, note: payload.note ?? null }),
+    body: JSON.stringify({
+      word: payload.word,
+      note: payload.note ?? null,
+      // 백엔드는 범위 생략 시 기존 위치를 유지한다 (null 반쪽 전송 금지)
+      ...(payload.char_start != null && payload.char_end != null
+        ? { char_start: payload.char_start, char_end: payload.char_end }
+        : {}),
+    }),
   })
   if (!response.ok) {
     throw new Error('단어 수정에 실패했습니다')

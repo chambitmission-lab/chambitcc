@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { WordNote } from '../../../api/bibleWordNote'
 import {
@@ -40,6 +40,33 @@ const WordNoteSheet = ({
   const [word, setWord] = useState(existing?.word ?? initialWord)
   const [note, setNote] = useState(existing?.note ?? '')
 
+  // 선택 시점의 기준 범위 (토큰 전체 또는 기존 노트의 저장 위치)
+  const baseStart = existing?.char_start ?? charStart
+  const baseEnd = existing?.char_end ?? charEnd
+  const baseValid =
+    baseStart != null &&
+    baseEnd != null &&
+    baseStart >= 0 &&
+    baseEnd > baseStart &&
+    baseEnd <= verseText.length
+
+  // 단어 입력을 다듬으면 밑줄 범위도 실시간으로 따라 좁아진다.
+  // "완악하게" 토큰에서 "완악"만 남기면 그 두 글자에만 밑줄이 남는 식.
+  // 토큰 안에서 먼저 찾고, 없으면 절 전체에서 찾고(범위 넓히기·구절 선택),
+  // 그래도 없으면 기준 범위를 그대로 쓴다.
+  const liveRange = useMemo<[number, number] | null>(() => {
+    const w = word.trim()
+    if (w) {
+      if (baseValid) {
+        const idx = verseText.slice(baseStart!, baseEnd!).indexOf(w)
+        if (idx >= 0) return [baseStart! + idx, baseStart! + idx + w.length]
+      }
+      const idx = verseText.indexOf(w)
+      if (idx >= 0) return [idx, idx + w.length]
+    }
+    return baseValid ? [baseStart!, baseEnd!] : null
+  }, [word, verseText, baseStart, baseEnd, baseValid])
+
   const create = useCreateWordNote(verseId)
   const update = useUpdateWordNote()
   const del = useDeleteWordNote()
@@ -66,14 +93,19 @@ const WordNoteSheet = ({
       if (existing) {
         await update.mutateAsync({
           noteId: existing.id,
-          payload: { word: trimmed, note: note.trim() || null },
+          payload: {
+            word: trimmed,
+            note: note.trim() || null,
+            char_start: liveRange?.[0] ?? null,
+            char_end: liveRange?.[1] ?? null,
+          },
         })
       } else {
         await create.mutateAsync({
           word: trimmed,
           note: note.trim() || null,
-          char_start: charStart,
-          char_end: charEnd,
+          char_start: liveRange?.[0] ?? null,
+          char_end: liveRange?.[1] ?? null,
         })
       }
       showToast('단어장에 저장되었어요 ✨', 'success')
@@ -94,11 +126,10 @@ const WordNoteSheet = ({
     }
   }
 
-  // 본문 미리보기에서 선택한 단어를 강조 (범위가 유효할 때만)
-  const start = existing?.char_start ?? charStart
-  const end = existing?.char_end ?? charEnd
-  const validRange =
-    start != null && end != null && start >= 0 && end > start && end <= verseText.length
+  // 본문 미리보기 강조 — 단어 입력에 맞춰 실시간으로 좁아지는 범위
+  const start = liveRange?.[0] ?? null
+  const end = liveRange?.[1] ?? null
+  const validRange = liveRange !== null
 
   return createPortal(
     <div
@@ -154,7 +185,7 @@ const WordNoteSheet = ({
           {/* 단어 */}
           <div>
             <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em] mb-2">
-              단어 <span className="font-medium text-gray-400 dark:text-white/40">(조사는 지워도 돼요)</span>
+              단어 <span className="font-medium text-gray-400 dark:text-white/40">(조사를 지우면 밑줄도 그만큼만 남아요)</span>
             </p>
             <input
               type="text"
