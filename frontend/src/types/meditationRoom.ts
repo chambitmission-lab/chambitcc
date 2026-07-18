@@ -35,6 +35,7 @@ export interface RoomSummary {
   invite_code?: string | null
   today_reference?: string | null
   today_read_by_me: boolean
+  my_read_count: number
 }
 
 export interface RoomDetail extends RoomSummary {

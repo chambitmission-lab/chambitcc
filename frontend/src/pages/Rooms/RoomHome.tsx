@@ -161,6 +161,36 @@ const RoomHome = () => {
           </div>
         </div>
 
+        {/* 내 여정 — 방 상태(날짜 기준)와 별개인 개인 진행률.
+            "읽었는데 왜 계속 진행 중?"의 답을 화면에서 바로 준다 */}
+        <div className="mt-4">
+          {room.my_read_count >= room.total_days ? (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/[0.12]">
+              <span className="text-[15px]">🎉</span>
+              <span className="text-[12.5px] font-bold text-emerald-600 dark:text-emerald-300">
+                내 몫 완주! {room.total_days}일치 본문을 모두 읽었어요
+              </span>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between text-[11.5px] font-semibold mb-1.5">
+                <span className="text-gray-500 dark:text-white/55">내 여정</span>
+                <span className="text-brand">
+                  ✓ {room.my_read_count} / {room.total_days}일 읽음
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-white/70 dark:bg-white/[0.08] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-brand transition-[width] duration-500"
+                  style={{
+                    width: `${Math.min(100, Math.round((room.my_read_count / Math.max(1, room.total_days)) * 100))}%`,
+                  }}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
         {/* 참여자 */}
         <div className="mt-4 flex items-center justify-between gap-3">
           <div className="flex items-center">

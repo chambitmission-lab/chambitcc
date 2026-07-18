@@ -177,6 +177,17 @@ const RoomCard = ({ room, onClick }: { room: RoomSummary; onClick: () => void })
             {room.status === 'upcoming'
               ? `${room.start_date}부터 ${room.total_days}일`
               : `${room.current_day}/${room.total_days}일차`}
+            {room.my_read_count >= room.total_days ? (
+              <span className="ml-1.5 font-bold text-emerald-600 dark:text-emerald-300">
+                🎉 내 몫 완주
+              </span>
+            ) : (
+              room.my_read_count > 0 && (
+                <span className="ml-1.5 font-semibold text-brand">
+                  ✓ 내 여정 {room.my_read_count}/{room.total_days}
+                </span>
+              )
+            )}
           </p>
           {room.today_reference && room.status === 'active' && (
             <p className="text-[12px] font-semibold mt-1 truncate">
