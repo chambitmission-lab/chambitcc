@@ -69,6 +69,18 @@ export const leaveRoom = async (roomId: number): Promise<void> => {
   }
 }
 
+export const markRoomDayRead = async (
+  roomId: number,
+  dayNumber: number,
+): Promise<{ day_number: number; read_by_me: boolean; read_count: number }> => {
+  const response = await apiFetch(`${BASE}/${roomId}/days/${dayNumber}/read`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) return parseError(response, '읽음 처리에 실패했습니다')
+  return response.json()
+}
+
 export const listRoomPosts = async (
   roomId: number,
   dayNumber?: number,

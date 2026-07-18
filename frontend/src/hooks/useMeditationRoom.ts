@@ -11,6 +11,7 @@ import {
   listMyRooms,
   listRoomPosts,
   listRoomReplies,
+  markRoomDayRead,
   previewRoom,
   toggleRoomPostLike,
 } from '../api/meditationRoom'
@@ -88,6 +89,17 @@ export const useLeaveRoom = () => {
   return useMutation({
     mutationFn: (roomId: number) => leaveRoom(roomId),
     onSuccess: () => qc.invalidateQueries({ queryKey: roomKeys.all, refetchType: 'all' }),
+  })
+}
+
+export const useMarkRoomDayRead = (roomId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (dayNumber: number) => markRoomDayRead(roomId, dayNumber),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId) })
+      qc.invalidateQueries({ queryKey: roomKeys.list() })
+    },
   })
 }
 

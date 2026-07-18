@@ -179,8 +179,14 @@ const RoomCard = ({ room, onClick }: { room: RoomSummary; onClick: () => void })
               : `${room.current_day}/${room.total_days}일차`}
           </p>
           {room.today_reference && room.status === 'active' && (
-            <p className="text-[12px] font-semibold text-brand mt-1 truncate">
-              오늘 · {room.today_reference}
+            <p className="text-[12px] font-semibold mt-1 truncate">
+              {room.today_read_by_me ? (
+                <span className="text-emerald-600 dark:text-emerald-300">
+                  ✓ 오늘 읽음 · {room.today_reference}
+                </span>
+              ) : (
+                <span className="text-brand">오늘 · {room.today_reference}</span>
+              )}
             </p>
           )}
         </div>

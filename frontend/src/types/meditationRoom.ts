@@ -14,6 +14,8 @@ export interface RoomDay {
   passages: PlanPassage[]
   date?: string | null
   post_count: number
+  read_count: number
+  read_by_me: boolean
 }
 
 export type RoomStatus = 'upcoming' | 'active' | 'finished'
@@ -32,6 +34,7 @@ export interface RoomSummary {
   is_admin: boolean
   invite_code?: string | null
   today_reference?: string | null
+  today_read_by_me: boolean
 }
 
 export interface RoomDetail extends RoomSummary {

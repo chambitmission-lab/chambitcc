@@ -8,6 +8,7 @@ import {
   useDeleteRoomPost,
   useDeleteRoomReply,
   useLeaveRoom,
+  useMarkRoomDayRead,
   useRoom,
   useRoomPosts,
   useRoomReplies,
@@ -38,6 +39,7 @@ const RoomHome = () => {
 
   const { data: room, isLoading, error } = useRoom(id, isAuthenticated())
   const leaveRoom = useLeaveRoom()
+  const markDayRead = useMarkRoomDayRead(id)
 
   // 선택 일차 — 기본은 오늘 일차 (시작 전이면 1일차)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
@@ -93,10 +95,13 @@ const RoomHome = () => {
 
   const handleReadPassage = () => {
     const first = dayInfo?.passages[0]
-    if (first) {
-      const verse = first.verse_start ? `?verse=${first.verse_start}` : ''
-      navigate(`/bible/${first.book_number}/${first.chapter_start}${verse}`)
+    if (!first) return
+    // 본문 읽기 진입 = 그 일차 읽음 처리 (멱등, 실패해도 읽기 흐름은 방해하지 않음)
+    if (dayInfo && !dayInfo.read_by_me) {
+      markDayRead.mutate(dayInfo.day_number)
     }
+    const verse = first.verse_start ? `?verse=${first.verse_start}` : ''
+    navigate(`/bible/${first.book_number}/${first.chapter_start}${verse}`)
   }
 
   if (isLoading || !room) {
@@ -202,6 +207,7 @@ const RoomHome = () => {
                   : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
               }`}
             >
+              {d.read_by_me && <span className="mr-0.5">✓</span>}
               {d.day_number}일차
               {d.post_count > 0 && (
                 <span className={`ml-1 text-[10px] ${active ? 'text-white/80' : 'text-brand'}`}>
@@ -227,14 +233,32 @@ const RoomHome = () => {
               📖 {dayInfo?.title ?? '본문 없음'}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleReadPassage}
-            className="shrink-0 px-3.5 py-2 rounded-full bg-[var(--brand-soft)] text-brand text-[12px] font-bold active:scale-95 transition-transform"
-          >
-            본문 읽기
-          </button>
+          {dayInfo?.read_by_me ? (
+            <button
+              type="button"
+              onClick={handleReadPassage}
+              className="shrink-0 inline-flex items-center gap-1 px-3.5 py-2 rounded-full bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300 text-[12px] font-bold active:scale-95 transition-transform"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              읽었어요
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleReadPassage}
+              className="shrink-0 px-3.5 py-2 rounded-full bg-brand text-white text-[12px] font-bold shadow-[0_4px_14px_-4px_var(--brand-glow)] active:scale-95 transition-transform"
+            >
+              본문 읽기
+            </button>
+          )}
         </div>
+        {(dayInfo?.read_count ?? 0) > 0 && (
+          <p className="text-[11.5px] text-gray-400 dark:text-white/45 mt-2">
+            👀 {dayInfo!.read_count}명이 이 본문을 읽었어요
+          </p>
+        )}
       </section>
 
       {/* 작성 + 피드 */}
