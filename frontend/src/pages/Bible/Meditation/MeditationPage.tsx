@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useDailyMeditation } from '../../../hooks/useDailyMeditation'
+import { deriveTimeOfDay, useDailyMeditation } from '../../../hooks/useDailyMeditation'
 import {
   useCreateMeditationRecord,
   useMeditationRecords,
@@ -25,6 +25,12 @@ const TOD_TITLES: Record<TimeOfDay, string> = {
   morning: '아침 묵상',
   afternoon: '오후 묵상',
   evening: '저녁 묵상',
+}
+
+const TOD_GREETINGS: Record<TimeOfDay, string> = {
+  morning: '고요한 아침, 말씀으로 하루를 열어보세요',
+  afternoon: '분주한 오후, 잠시 멈춰 숨을 고르세요',
+  evening: '하루를 마무리하며 말씀 안에서 쉬어가세요',
 }
 
 /* "오늘의 기도" 예시 — 시간대·감정에 따라 조합되는 짧은 기도문 */
@@ -65,6 +71,9 @@ const MeditationPage = () => {
   /* ── 구절 듣기 (TTS) ── */
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const [playing, setPlaying] = useState(false)
+  // 첫 재생은 TTS 생성 때문에 수 초 걸릴 수 있어, 준비 중임을 보여주지
+  // 않으면 사용자가 반응이 없다고 여겨 연타하게 된다
+  const [audioLoading, setAudioLoading] = useState(false)
 
   const stopAudio = () => {
     if (audioRef.current) {
@@ -72,6 +81,7 @@ const MeditationPage = () => {
       audioRef.current = null
     }
     setPlaying(false)
+    setAudioLoading(false)
   }
 
   useEffect(() => stopAudio, [])
@@ -84,25 +94,35 @@ const MeditationPage = () => {
   }, [verseKey])
 
   const toggleAudio = () => {
-    if (!data) return
+    if (!data || audioLoading) return
     if (playing) {
       stopAudio()
       return
     }
     const { book_number, chapter, verse } = data.verse
     const audio = new Audio(
-      `${API_V1}/bible/tts/${book_number}/${chapter}/${verse}?voice=female`
+      `${API_V1}/bible/tts/${book_number}/${chapter}/${verse}?voice=male`
     )
     audioRef.current = audio
+    setAudioLoading(true)
     audio.onended = () => setPlaying(false)
     audio.onerror = () => {
-      setPlaying(false)
+      stopAudio()
       showToast('음성을 불러오지 못했어요', 'error')
     }
     audio
       .play()
-      .then(() => setPlaying(true))
-      .catch(() => showToast('음성을 불러오지 못했어요', 'error'))
+      .then(() => {
+        // 준비 중 멈추기·절 변경으로 stopAudio()가 먼저 불렸으면 무시
+        if (audioRef.current !== audio) return
+        setAudioLoading(false)
+        setPlaying(true)
+      })
+      .catch(() => {
+        if (audioRef.current !== audio) return
+        stopAudio()
+        showToast('음성을 불러오지 못했어요', 'error')
+      })
   }
 
   /* ── 1분 침묵 타이머 ── */
@@ -157,10 +177,13 @@ const MeditationPage = () => {
     return lines.join(' ')
   }, [data, emotion])
 
-  const pageTitle = TOD_TITLES[data?.context.time_of_day ?? timeOfDay ?? 'morning']
+  /* 응답이 오기 전에도 시간대 무드가 바로 잡히도록 로컬 시간으로 폴백 */
+  const tod: TimeOfDay =
+    data?.context.time_of_day ?? timeOfDay ?? deriveTimeOfDay(new Date().getHours())
+  const pageTitle = TOD_TITLES[tod]
 
   return (
-    <div className="meditation-page">
+    <div className="meditation-page" data-tod={tod}>
       <header className="mp-header">
         <button type="button" className="mp-back" onClick={() => navigate('/bible')} aria-label="성경으로">
           <span className="material-icons-round">arrow_back</span>
@@ -180,6 +203,8 @@ const MeditationPage = () => {
           <span className="material-icons-round">notifications</span>
         </button>
       </header>
+
+      <p className="mp-greeting">{TOD_GREETINGS[tod]}</p>
 
       {/* 감정 선택 — 고르면 본문 안에서 맞는 절이 다시 선택된다 */}
       <section className="mp-emotions" aria-label="지금 마음">
@@ -217,11 +242,19 @@ const MeditationPage = () => {
               <cite>— {data.verse.reference}</cite>
             </blockquote>
             <div className="mp-verse-actions">
-              <button type="button" className="mp-chip-btn" onClick={toggleAudio}>
-                <span className="material-icons-round" aria-hidden>
-                  {playing ? 'stop' : 'volume_up'}
+              <button
+                type="button"
+                className="mp-chip-btn"
+                onClick={toggleAudio}
+                aria-busy={audioLoading}
+              >
+                <span
+                  className={`material-icons-round ${audioLoading ? 'animate-spin' : ''}`}
+                  aria-hidden
+                >
+                  {audioLoading ? 'autorenew' : playing ? 'stop' : 'volume_up'}
                 </span>
-                {playing ? '멈추기' : '말씀 듣기'}
+                {audioLoading ? '준비 중…' : playing ? '멈추기' : '말씀 듣기'}
               </button>
               <button
                 type="button"

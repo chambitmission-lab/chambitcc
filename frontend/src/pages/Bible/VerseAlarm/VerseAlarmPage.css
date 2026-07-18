@@ -1,24 +1,9 @@
-/* ── 구절 알람 — 차분한 웜베이지 악센트 (SituationBible 톤과 통일) ── */
+/* ── 구절 알람 — 토스 블루 플랫 테마 (theme.css 토큰 참조, 다크 분기는 theme.css가 담당) ── */
 
 .verse-alarm-page {
-  --va-accent: #8b7a58;
-  --va-accent-deep: #6f6146;
-  --va-surface: #f5f3ef;
-  --va-ink: #1f1f2b;
-  --va-card-bg: #ffffff;
-  --va-border: #ece3ce;
   max-width: 560px;
   margin: 0 auto;
   padding: 16px 16px 48px;
-}
-
-.dark .verse-alarm-page {
-  --va-accent: #c9b98f;
-  --va-accent-deep: #d8cba8;
-  --va-surface: #26262f;
-  --va-ink: #ecebe6;
-  --va-card-bg: #1c1c25;
-  --va-border: rgba(201, 185, 143, 0.22);
 }
 
 /* ── 헤더 ── */
@@ -32,7 +17,7 @@
 .va-header h1 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: var(--va-ink);
+  color: var(--text-strong);
   flex: 1;
 }
 
@@ -44,13 +29,13 @@
   height: 36px;
   border: none;
   background: transparent;
-  color: var(--va-ink);
+  color: var(--text-strong);
   border-radius: 50%;
   cursor: pointer;
 }
 
 .va-back:hover {
-  background: var(--va-surface);
+  background: var(--surface-container-high);
 }
 
 .va-header-link {
@@ -59,12 +44,16 @@
   gap: 2px;
   border: none;
   background: transparent;
-  color: var(--va-accent-deep);
+  color: var(--brand);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   padding: 6px 8px;
   border-radius: 8px;
+}
+
+.va-header-link:hover {
+  background: var(--brand-soft);
 }
 
 .va-header-link .material-icons-round {
@@ -74,12 +63,8 @@
 .va-intro {
   font-size: 0.9rem;
   line-height: 1.6;
-  color: #6b7280;
+  color: var(--text-muted);
   margin-bottom: 16px;
-}
-
-.dark .va-intro {
-  color: #9ca3af;
 }
 
 /* ── 푸시 상태 배너 ── */
@@ -93,29 +78,29 @@
   gap: 10px;
 }
 
-.va-banner--ok {
-  background: #ecf7ee;
-  color: #256a3a;
+/* 구독 상태 확인 중 자리 잡기용 — 배너와 같은 높이로 레이아웃 점프 방지 */
+.va-banner-skeleton {
+  height: 52px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  background: var(--surface-container-high);
+  animation: va-pulse 1.4s ease-in-out infinite;
 }
 
-.dark .va-banner--ok {
-  background: rgba(52, 168, 83, 0.14);
-  color: #7fd497;
+.va-banner--ok {
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 600;
 }
 
 .va-banner--warn {
-  background: #fdf3e7;
-  color: #8a5a1e;
-}
-
-.dark .va-banner--warn {
-  background: rgba(240, 173, 78, 0.12);
-  color: #e5b878;
+  background: var(--amber-soft);
+  color: var(--amber);
 }
 
 .va-banner--action {
-  background: var(--va-surface);
-  color: var(--va-ink);
+  background: var(--brand-soft);
+  color: var(--text-strong);
   justify-content: space-between;
 }
 
@@ -127,11 +112,7 @@
 
 .va-banner-text span {
   font-size: 0.8rem;
-  color: #6b7280;
-}
-
-.dark .va-banner-text span {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 .va-enable-btn {
@@ -141,9 +122,13 @@
   padding: 9px 16px;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #fff;
-  background: var(--va-accent);
+  color: var(--on-brand);
+  background: var(--brand);
   cursor: pointer;
+}
+
+.va-enable-btn:hover {
+  background: var(--brand-dim);
 }
 
 .va-enable-btn:disabled {
@@ -154,8 +139,9 @@
 .va-banner--guide {
   flex-direction: column;
   align-items: stretch;
-  background: var(--va-surface);
-  color: var(--va-ink);
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  color: var(--text-strong);
   gap: 10px;
 }
 
@@ -167,7 +153,7 @@
 }
 
 .va-banner-title .material-icons-round {
-  color: var(--va-accent);
+  color: var(--brand);
   font-size: 20px;
 }
 
@@ -179,19 +165,16 @@
   gap: 6px;
   font-size: 0.85rem;
   line-height: 1.5;
+  color: var(--text-body);
 }
 
 .va-guide-steps strong {
-  color: var(--va-accent-deep);
+  color: var(--brand);
 }
 
 .va-guide-note {
   font-size: 0.78rem;
-  color: #6b7280;
-}
-
-.dark .va-guide-note {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 /* ── 알람 목록 ── */
@@ -206,8 +189,9 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--va-card-bg);
-  border: 1px solid var(--va-border);
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
   border-radius: 16px;
   padding: 14px 16px;
   transition: opacity 0.15s ease;
@@ -234,7 +218,7 @@
   display: flex;
   align-items: baseline;
   gap: 6px;
-  color: var(--va-ink);
+  color: var(--text-strong);
 }
 
 .va-card-period {
@@ -257,19 +241,15 @@
 }
 
 .va-card-days {
-  color: var(--va-accent-deep);
+  color: var(--brand);
   font-weight: 600;
 }
 
 .va-card-label {
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
-.dark .va-card-label {
-  color: #9ca3af;
-}
-
-/* 토글 스위치 — 활성 시에만 악센트 컬러 */
+/* 토글 스위치 — 활성 시에만 브랜드 블루 */
 .va-switch {
   position: relative;
   width: 48px;
@@ -289,12 +269,8 @@
   position: absolute;
   inset: 0;
   border-radius: 999px;
-  background: #d1d5db;
+  background: color-mix(in srgb, var(--text-muted) 38%, transparent);
   transition: background 0.2s ease;
-}
-
-.dark .va-switch-slider {
-  background: #3f3f4a;
 }
 
 .va-switch-slider::before {
@@ -311,7 +287,7 @@
 }
 
 .va-switch input:checked + .va-switch-slider {
-  background: var(--va-accent);
+  background: var(--brand);
 }
 
 .va-switch input:checked + .va-switch-slider::before {
@@ -322,17 +298,13 @@
 .va-empty {
   text-align: center;
   padding: 40px 16px;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.9rem;
   line-height: 1.7;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-}
-
-.dark .va-empty {
-  color: #9ca3af;
 }
 
 .va-empty-emoji {
@@ -342,7 +314,7 @@
 .va-skeleton {
   height: 84px;
   border-radius: 16px;
-  background: var(--va-surface);
+  background: var(--surface-container-high);
   animation: va-pulse 1.4s ease-in-out infinite;
 }
 
@@ -359,10 +331,10 @@
   justify-content: center;
   gap: 6px;
   padding: 14px;
-  border: 1.5px dashed var(--va-accent);
+  border: none;
   border-radius: 16px;
-  background: transparent;
-  color: var(--va-accent-deep);
+  background: var(--brand-soft);
+  color: var(--brand);
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
@@ -370,7 +342,7 @@
 }
 
 .va-add-btn:hover {
-  background: var(--va-surface);
+  background: var(--brand-soft-strong);
 }
 
 .va-primary-btn {
@@ -379,9 +351,13 @@
   padding: 12px 24px;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #fff;
-  background: var(--va-accent);
+  color: var(--on-brand);
+  background: var(--brand);
   cursor: pointer;
+}
+
+.va-primary-btn:hover {
+  background: var(--brand-dim);
 }
 
 .va-primary-btn:disabled {
@@ -402,14 +378,10 @@
 .va-sheet {
   width: 100%;
   max-width: 560px;
-  background: var(--va-card-bg, #fff);
+  background: var(--surface-container);
   border-radius: 24px 24px 0 0;
   padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
   animation: va-sheet-up 0.25s ease;
-}
-
-.dark .va-sheet {
-  background: #1c1c25;
 }
 
 @keyframes va-sheet-up {
@@ -421,23 +393,15 @@
   width: 40px;
   height: 4px;
   border-radius: 999px;
-  background: #d1d5db;
+  background: color-mix(in srgb, var(--text-muted) 35%, transparent);
   margin: 0 auto 14px;
-}
-
-.dark .va-sheet-handle {
-  background: #3f3f4a;
 }
 
 .va-sheet-title {
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--va-ink, #1f1f2b);
+  color: var(--text-strong);
   margin-bottom: 16px;
-}
-
-.dark .va-sheet-title {
-  color: #ecebe6;
 }
 
 /* 시간 선택 */
@@ -455,9 +419,9 @@
 }
 
 .va-ampm-btn {
-  border: 1px solid var(--va-border, #ece3ce);
+  border: 1px solid var(--card-border);
   background: transparent;
-  color: #6b7280;
+  color: var(--text-muted);
   border-radius: 10px;
   padding: 8px 14px;
   font-size: 0.85rem;
@@ -466,9 +430,9 @@
 }
 
 .va-ampm-btn.is-active {
-  background: var(--va-accent, #8b7a58);
-  border-color: var(--va-accent, #8b7a58);
-  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
 }
 
 .va-time-selects {
@@ -484,8 +448,8 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   border: none;
-  background: var(--va-surface, #f5f3ef);
-  color: var(--va-ink, #1f1f2b);
+  background: var(--surface-container-high);
+  color: var(--text-strong);
   border-radius: 14px;
   padding: 10px 14px;
   text-align: center;
@@ -493,19 +457,10 @@
   cursor: pointer;
 }
 
-.dark .va-time-selects select {
-  background: #26262f;
-  color: #ecebe6;
-}
-
 .va-time-colon {
   font-size: 1.6rem;
   font-weight: 700;
-  color: var(--va-ink, #1f1f2b);
-}
-
-.dark .va-time-colon {
-  color: #ecebe6;
+  color: var(--text-strong);
 }
 
 /* 요일 선택 */
@@ -521,9 +476,9 @@
   aspect-ratio: 1;
   max-width: 44px;
   border-radius: 50%;
-  border: 1px solid var(--va-border, #ece3ce);
+  border: 1px solid var(--card-border);
   background: transparent;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -531,17 +486,13 @@
 }
 
 .va-day-chip.is-weekend {
-  color: #b0685e;
-}
-
-.dark .va-day-chip {
-  color: #9ca3af;
+  color: #e06a5e;
 }
 
 .va-day-chip.is-active {
-  background: var(--va-accent, #8b7a58);
-  border-color: var(--va-accent, #8b7a58);
-  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
 }
 
 .va-day-presets {
@@ -552,8 +503,8 @@
 
 .va-day-presets button {
   border: none;
-  background: var(--va-surface, #f5f3ef);
-  color: var(--va-accent-deep, #6f6146);
+  background: var(--brand-soft);
+  color: var(--brand);
   border-radius: 999px;
   padding: 6px 14px;
   font-size: 0.8rem;
@@ -561,30 +512,29 @@
   cursor: pointer;
 }
 
-.dark .va-day-presets button {
-  background: #26262f;
-  color: #d8cba8;
+.va-day-presets button:hover {
+  background: var(--brand-soft-strong);
 }
 
 /* 이름 입력 */
 .va-label-input {
   width: 100%;
-  border: 1px solid var(--va-border, #ece3ce);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 12px 14px;
   font-size: 0.9rem;
   background: transparent;
-  color: var(--va-ink, #1f1f2b);
+  color: var(--text-strong);
   margin-bottom: 20px;
 }
 
-.dark .va-label-input {
-  color: #ecebe6;
+.va-label-input::placeholder {
+  color: var(--text-muted);
 }
 
 .va-label-input:focus {
   outline: none;
-  border-color: var(--va-accent, #8b7a58);
+  border-color: var(--brand);
 }
 
 /* 시트 액션 */
@@ -599,9 +549,9 @@
 }
 
 .va-cancel-btn {
-  border: 1px solid var(--va-border, #ece3ce);
+  border: 1px solid var(--card-border);
   background: transparent;
-  color: #6b7280;
+  color: var(--text-muted);
   border-radius: 12px;
   padding: 12px 20px;
   font-size: 0.95rem;
@@ -612,7 +562,7 @@
 .va-delete-btn {
   border: none;
   background: transparent;
-  color: #c0564a;
+  color: #e5484d;
   border-radius: 12px;
   padding: 12px 16px;
   font-size: 0.95rem;

@@ -36,6 +36,8 @@ export const useCreateMeditationRecord = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RECORDS_KEY })
       queryClient.invalidateQueries({ queryKey: STREAK_KEY })
+      // 묵상 기록은 프로필 "나의 신앙 여정" 요약·타임라인에도 집계된다
+      queryClient.invalidateQueries({ queryKey: ['growth'] })
     },
   })
 }

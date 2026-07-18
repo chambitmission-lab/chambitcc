@@ -13,6 +13,9 @@ export const usePushNotification = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [isLoading, setIsLoading] = useState(false);
+  // 초기 구독 상태 확인이 끝나기 전에는 isSubscribed가 기본값(false)이므로,
+  // UI가 "꺼짐"을 먼저 그렸다가 뒤집히는 깜빡임을 막으려면 이 값을 함께 봐야 한다.
+  const [isChecking, setIsChecking] = useState(true);
 
   // 초기 상태 확인
   // 브라우저 pushManager의 구독은 origin 단위로 유지되므로, 그것만 보면
@@ -23,12 +26,12 @@ export const usePushNotification = () => {
     const checkStatus = async () => {
       setPermission(checkNotificationPermission());
 
-      if (!('serviceWorker' in navigator)) {
-        setIsSubscribed(false);
-        return;
-      }
-
       try {
+        if (!('serviceWorker' in navigator)) {
+          setIsSubscribed(false);
+          return;
+        }
+
         const registration = await navigator.serviceWorker.ready;
         const browserSub = await registration.pushManager.getSubscription();
 
@@ -49,6 +52,8 @@ export const usePushNotification = () => {
       } catch (error) {
         console.error('❌ 푸시 구독 상태 확인 실패:', error);
         setIsSubscribed(false);
+      } finally {
+        setIsChecking(false);
       }
     };
 
@@ -97,6 +102,7 @@ export const usePushNotification = () => {
     isSubscribed,
     permission,
     isLoading,
+    isChecking,
     subscribe,
     unsubscribe,
     sendTestNotification

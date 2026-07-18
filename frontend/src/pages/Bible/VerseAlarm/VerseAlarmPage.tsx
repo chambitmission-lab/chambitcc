@@ -80,8 +80,13 @@ const VerseAlarmPage = () => {
   const createAlarm = useCreateVerseAlarm()
   const updateAlarm = useUpdateVerseAlarm()
   const deleteAlarm = useDeleteVerseAlarm()
-  const { isSubscribed, permission, isLoading: pushLoading, subscribe } =
-    usePushNotification()
+  const {
+    isSubscribed,
+    permission,
+    isLoading: pushLoading,
+    isChecking: pushChecking,
+    subscribe,
+  } = usePushNotification()
 
   const [editor, setEditor] = useState<EditorState | null>(null)
   const [saving, setSaving] = useState(false)
@@ -202,6 +207,10 @@ const VerseAlarmPage = () => {
           알림 권한이 차단되어 있어요. 브라우저 설정에서 참빛교회 알림을 허용해주세요.
         </div>
       )
+    }
+    /* 구독 상태 확인이 끝나기 전에 "꺼져 있어요"를 그렸다가 뒤집히는 깜빡임 방지 */
+    if (pushChecking) {
+      return <div className="va-banner-skeleton" aria-hidden />
     }
     if (!isSubscribed) {
       return (

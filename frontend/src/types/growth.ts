@@ -16,6 +16,8 @@ export interface GrowthTotals {
   games_completed: number
   quiz_correct: number
   posts: number
+  /** 오늘의 묵상 저널 기록 수 (구버전 백엔드엔 없음) */
+  meditations?: number
 }
 
 export interface MonthDelta {

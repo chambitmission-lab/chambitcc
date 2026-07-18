@@ -214,6 +214,9 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
           {totals.plan_days > 0 && (
             <MiniChip label={`플랜 ${fmt(totals.plan_days)}일`} />
           )}
+          {(totals.meditations ?? 0) > 0 && (
+            <MiniChip label={`묵상 기록 ${fmt(totals.meditations ?? 0)}개`} />
+          )}
           {totals.games_completed > 0 && (
             <MiniChip label={`게임 ${totals.games_completed}완주`} />
           )}
