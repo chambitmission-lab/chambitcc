@@ -255,6 +255,21 @@ const VerseList = ({
   // 언마운트 시 옵저버 정리
   useEffect(() => () => observerRef.current?.disconnect(), [])
   
+  // smooth scrollIntoView가 일부 모바일 브라우저(iOS 사파리·인앱 웹뷰)에서
+  // 소리 없이 실패하는 사례가 있어, 잠시 후 실제로 움직였는지 확인하고
+  // 전혀 안 움직였으면 즉시 이동으로 한 번 더 시도한다.
+  const scrollVerseIntoView = useCallback((el: HTMLElement) => {
+    const before = el.getBoundingClientRect().top
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    window.setTimeout(() => {
+      const after = el.getBoundingClientRect().top
+      const center = window.innerHeight / 2
+      if (Math.abs(after - before) < 4 && Math.abs(after - center) > 120) {
+        el.scrollIntoView({ block: 'center' })
+      }
+    }, 450)
+  }, [])
+
   // 이어 읽기: 지정된 절로 자동 스크롤 + 일시적 하이라이트.
   // 무한 스크롤 페이지가 새로 로드될 때마다 DOM 존재 여부를 재확인하고,
   // 없으면 자동으로 다음 페이지를 미리 받는다.
@@ -282,21 +297,6 @@ const VerseList = ({
   const audioFollowRef = useRef(audioFollow)
   audioFollowRef.current = audioFollow
   const audioSyncActive = audioActiveVerse != null
-
-  // smooth scrollIntoView가 일부 모바일 브라우저(iOS 사파리·인앱 웹뷰)에서
-  // 소리 없이 실패하는 사례가 있어, 잠시 후 실제로 움직였는지 확인하고
-  // 전혀 안 움직였으면 즉시 이동으로 한 번 더 시도한다.
-  const scrollVerseIntoView = useCallback((el: HTMLElement) => {
-    const before = el.getBoundingClientRect().top
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    window.setTimeout(() => {
-      const after = el.getBoundingClientRect().top
-      const center = window.innerHeight / 2
-      if (Math.abs(after - before) < 4 && Math.abs(after - center) > 120) {
-        el.scrollIntoView({ block: 'center' })
-      }
-    }, 450)
-  }, [])
 
   // 낭독 절이 바뀌면: 따라가기 중이면 해당 절을 화면 중앙으로.
   // 아직 로드 안 된 절(무한 스크롤 뒷페이지)이면 다음 페이지를 미리 받는다.
