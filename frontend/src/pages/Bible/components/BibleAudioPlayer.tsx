@@ -94,8 +94,10 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, playFromVe
   const onActiveVerseChangeRef = useRef(onActiveVerseChange)
   onActiveVerseChangeRef.current = onActiveVerseChange
 
-  // 절별 타이밍 로드. 첫 재생(스트리밍 생성 중)엔 아직 없어 404 → 재생이
-  // 이어지는 동안 주기적으로 다시 조회한다(생성 완료 시 mp3와 함께 캐시됨).
+  // 절별 타이밍 로드. 캐시된 장은 첫 응답에 최종본이 온다.
+  // 첫 재생(스트리밍 생성 중)엔 서버가 "지금까지 합성된 구간"의 부분(partial)
+  // 타이밍을 돌려주므로, 최종본이 올 때까지 짧은 간격으로 다시 조회한다 —
+  // 앞 절들 하이라이트가 생성 완료를 기다리지 않고 거의 바로 붙는다.
   // 음성이 바뀌면 오디오가 달라지므로 타이밍도 다시 받는다.
   useEffect(() => {
     if (!started) return
@@ -110,13 +112,16 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, playFromVe
         )
         if (res.ok) {
           const data = await res.json()
-          if (!cancelled && Array.isArray(data?.verses)) setTimings(data.verses)
-          return
+          if (cancelled) return
+          if (Array.isArray(data?.verses) && data.verses.length > 0) {
+            setTimings(data.verses)
+          }
+          if (!data?.partial) return // 최종본 도착 → 조회 종료
         }
       } catch {
         // 네트워크 오류 → 아래에서 재시도
       }
-      if (!cancelled && ++attempts < 40) timer = window.setTimeout(load, 8000)
+      if (!cancelled && ++attempts < 120) timer = window.setTimeout(load, 2500)
     }
     load()
     return () => {

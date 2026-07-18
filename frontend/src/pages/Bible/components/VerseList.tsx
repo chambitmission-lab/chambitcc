@@ -258,17 +258,21 @@ const VerseList = ({
   // smooth scrollIntoView가 일부 모바일 브라우저(iOS 사파리·인앱 웹뷰)에서
   // 소리 없이 실패하는 사례가 있어, 잠시 후 실제로 움직였는지 확인하고
   // 전혀 안 움직였으면 즉시 이동으로 한 번 더 시도한다.
-  const scrollVerseIntoView = useCallback((el: HTMLElement) => {
-    const before = el.getBoundingClientRect().top
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    window.setTimeout(() => {
-      const after = el.getBoundingClientRect().top
-      const center = window.innerHeight / 2
-      if (Math.abs(after - before) < 4 && Math.abs(after - center) > 120) {
-        el.scrollIntoView({ block: 'center' })
-      }
-    }, 450)
-  }, [])
+  // block='start'는 절 요소의 scroll-margin-top이 고정 헤더/미니 플레이어를 피한다.
+  const scrollVerseIntoView = useCallback(
+    (el: HTMLElement, block: ScrollLogicalPosition = 'center') => {
+      const before = el.getBoundingClientRect().top
+      el.scrollIntoView({ behavior: 'smooth', block })
+      window.setTimeout(() => {
+        const after = el.getBoundingClientRect().top
+        const target = block === 'start' ? 112 : window.innerHeight / 2
+        if (Math.abs(after - before) < 4 && Math.abs(after - target) > 120) {
+          el.scrollIntoView({ block })
+        }
+      }, 450)
+    },
+    []
+  )
 
   // 이어 읽기: 지정된 절로 자동 스크롤 + 일시적 하이라이트.
   // 무한 스크롤 페이지가 새로 로드될 때마다 DOM 존재 여부를 재확인하고,
@@ -291,14 +295,17 @@ const VerseList = ({
   }, [scrollToVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
 
   // ---------- 오디오북 듣기-보기 동기화 ----------
-  // 따라가기(자동 스크롤) 여부. 사용자가 직접 스크롤하면 잠시 멈추고,
-  // "지금 낭독 절로" 버튼·일정 시간 무조작·재생 종료 시 다시 켠다.
+  // 낭독 절을 자동으로 따라간다. 정렬은 화면 중앙이 아니라 항상 "맨 위"
+  // (고정 헤더 아래) — 절이 바뀔 때마다 화면이 절 높이만큼 아래로만 착착
+  // 이동해 텔레프롬프터처럼 안정적이고, 다음 절들이 항상 화면에 보인다.
+  // 사용자가 직접 스크롤하면 잠시 멈추고 pill을 띄우며, pill 탭 또는
+  // 마지막 조작 6초 후 자동으로 다시 따라간다.
   const [audioFollow, setAudioFollow] = useState(true)
   const audioFollowRef = useRef(audioFollow)
   audioFollowRef.current = audioFollow
   const audioSyncActive = audioActiveVerse != null
 
-  // 낭독 절이 바뀌면: 따라가기 중이면 해당 절을 화면 중앙으로.
+  // 낭독 절이 바뀌면: 따라가기 중이면 맨 위로 스크롤.
   // 아직 로드 안 된 절(무한 스크롤 뒷페이지)이면 다음 페이지를 미리 받는다.
   useEffect(() => {
     if (audioActiveVerse == null) {
@@ -308,9 +315,7 @@ const VerseList = ({
     if (!chapterData) return
     const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
     if (el) {
-      if (audioFollowRef.current) {
-        scrollVerseIntoView(el)
-      }
+      if (audioFollowRef.current) scrollVerseIntoView(el, 'start')
     } else if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
     }
@@ -325,7 +330,7 @@ const VerseList = ({
     setAudioFollow(true)
     if (audioActiveVerse != null) {
       const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
-      if (el) scrollVerseIntoView(el)
+      if (el) scrollVerseIntoView(el, 'start')
     }
   }
   // 자동 재개 타이머에서 항상 최신 상태(현재 낭독 절)를 보도록 ref로 보관
@@ -333,8 +338,8 @@ const VerseList = ({
   resumeAudioFollowRef.current = resumeAudioFollow
 
   // 낭독 중 사용자가 직접 스크롤(휠/터치)하면 따라가기를 잠시 멈춘다.
-  // - 모바일은 화면에 손가락이 스치기만 해도 touchmove가 오므로, 일정 거리
-  //   이상 실제로 드래그했을 때만 '직접 스크롤'로 간주한다 (탭 떨림 방어).
+  // - 모바일은 화면에 손가락이 스치기만 해도 touchmove가 오므로, 12px 이상
+  //   실제로 드래그했을 때만 '직접 스크롤'로 간주한다 (탭 떨림 방어).
   // - 멈춘 따라가기는 마지막 조작 후 6초가 지나면 현재 낭독 절로 자동 복귀한다.
   // scrollIntoView가 만드는 scroll 이벤트는 wheel/touchmove를 발생시키지 않아 안전.
   useEffect(() => {
@@ -597,7 +602,7 @@ const VerseList = ({
           <span className="material-icons-round" style={{ fontSize: '1rem' }}>
             my_location
           </span>
-          지금 낭독 중인 절로
+          {audioActiveVerse}절 낭독 중
         </button>
       )}
 

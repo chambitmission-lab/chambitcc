@@ -291,7 +291,9 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         display: 'flex',
         flexDirection: 'column',
         gap: '0.5rem',
-        scrollMarginTop: '5rem',
+        // 상단 정렬 스크롤(block:'start') 시 고정 헤더(56px)+오디오 미니 플레이어
+        // (top-14에 뜨는 한 줄 바)에 가려지지 않도록 그 아래 지점으로 맞춘다.
+        scrollMarginTop: '7rem',
       }}
     >
       {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}
