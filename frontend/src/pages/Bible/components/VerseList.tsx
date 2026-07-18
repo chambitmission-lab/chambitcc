@@ -262,7 +262,7 @@ const VerseList = ({
     if (!scrollToVerse || !chapterData) return
     const el = document.getElementById(`bible-verse-${scrollToVerse}`)
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      scrollVerseIntoView(el)
       el.classList.add('verse-resume-highlight')
       const timer = setTimeout(() => {
         el.classList.remove('verse-resume-highlight')
@@ -273,15 +273,30 @@ const VerseList = ({
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
     }
-  }, [scrollToVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled])
+  }, [scrollToVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
 
   // ---------- 오디오북 듣기-보기 동기화 ----------
-  // 따라가기(자동 스크롤) 여부. 사용자가 직접 스크롤하면 끄고,
-  // "지금 낭독 절로" 버튼이나 재생 종료 시 다시 켠다.
+  // 따라가기(자동 스크롤) 여부. 사용자가 직접 스크롤하면 잠시 멈추고,
+  // "지금 낭독 절로" 버튼·일정 시간 무조작·재생 종료 시 다시 켠다.
   const [audioFollow, setAudioFollow] = useState(true)
   const audioFollowRef = useRef(audioFollow)
   audioFollowRef.current = audioFollow
   const audioSyncActive = audioActiveVerse != null
+
+  // smooth scrollIntoView가 일부 모바일 브라우저(iOS 사파리·인앱 웹뷰)에서
+  // 소리 없이 실패하는 사례가 있어, 잠시 후 실제로 움직였는지 확인하고
+  // 전혀 안 움직였으면 즉시 이동으로 한 번 더 시도한다.
+  const scrollVerseIntoView = useCallback((el: HTMLElement) => {
+    const before = el.getBoundingClientRect().top
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    window.setTimeout(() => {
+      const after = el.getBoundingClientRect().top
+      const center = window.innerHeight / 2
+      if (Math.abs(after - before) < 4 && Math.abs(after - center) > 120) {
+        el.scrollIntoView({ block: 'center' })
+      }
+    }, 450)
+  }, [])
 
   // 낭독 절이 바뀌면: 따라가기 중이면 해당 절을 화면 중앙으로.
   // 아직 로드 안 된 절(무한 스크롤 뒷페이지)이면 다음 페이지를 미리 받는다.
@@ -294,34 +309,67 @@ const VerseList = ({
     const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
     if (el) {
       if (audioFollowRef.current) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        scrollVerseIntoView(el)
       }
     } else if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
     }
-  }, [audioActiveVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage])
+  }, [audioActiveVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, scrollVerseIntoView])
+
+  const followResumeTimerRef = useRef<number | null>(null)
+  const resumeAudioFollow = () => {
+    if (followResumeTimerRef.current) {
+      clearTimeout(followResumeTimerRef.current)
+      followResumeTimerRef.current = null
+    }
+    setAudioFollow(true)
+    if (audioActiveVerse != null) {
+      const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
+      if (el) scrollVerseIntoView(el)
+    }
+  }
+  // 자동 재개 타이머에서 항상 최신 상태(현재 낭독 절)를 보도록 ref로 보관
+  const resumeAudioFollowRef = useRef(resumeAudioFollow)
+  resumeAudioFollowRef.current = resumeAudioFollow
 
   // 낭독 중 사용자가 직접 스크롤(휠/터치)하면 따라가기를 잠시 멈춘다.
+  // - 모바일은 화면에 손가락이 스치기만 해도 touchmove가 오므로, 일정 거리
+  //   이상 실제로 드래그했을 때만 '직접 스크롤'로 간주한다 (탭 떨림 방어).
+  // - 멈춘 따라가기는 마지막 조작 후 6초가 지나면 현재 낭독 절로 자동 복귀한다.
   // scrollIntoView가 만드는 scroll 이벤트는 wheel/touchmove를 발생시키지 않아 안전.
   useEffect(() => {
     if (!audioSyncActive) return
-    const disableFollow = () => setAudioFollow(false)
-    window.addEventListener('wheel', disableFollow, { passive: true })
-    window.addEventListener('touchmove', disableFollow, { passive: true })
+    let touchStartY: number | null = null
+    const pauseFollow = () => {
+      setAudioFollow(false)
+      if (followResumeTimerRef.current) clearTimeout(followResumeTimerRef.current)
+      followResumeTimerRef.current = window.setTimeout(() => {
+        followResumeTimerRef.current = null
+        resumeAudioFollowRef.current()
+      }, 6000)
+    }
+    const onWheel = () => pauseFollow()
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0]?.clientY ?? null
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      const y = e.touches[0]?.clientY
+      if (touchStartY == null || y == null) return
+      if (Math.abs(y - touchStartY) > 12) pauseFollow()
+    }
+    window.addEventListener('wheel', onWheel, { passive: true })
+    window.addEventListener('touchstart', onTouchStart, { passive: true })
+    window.addEventListener('touchmove', onTouchMove, { passive: true })
     return () => {
-      window.removeEventListener('wheel', disableFollow)
-      window.removeEventListener('touchmove', disableFollow)
+      window.removeEventListener('wheel', onWheel)
+      window.removeEventListener('touchstart', onTouchStart)
+      window.removeEventListener('touchmove', onTouchMove)
+      if (followResumeTimerRef.current) {
+        clearTimeout(followResumeTimerRef.current)
+        followResumeTimerRef.current = null
+      }
     }
   }, [audioSyncActive])
-
-  const resumeAudioFollow = () => {
-    setAudioFollow(true)
-    if (audioActiveVerse != null) {
-      document
-        .getElementById(`bible-verse-${audioActiveVerse}`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-  }
 
   // 디버깅: 챕터 데이터 확인
   useEffect(() => {
