@@ -63,6 +63,7 @@ export const auth = {
   // 익명/실명
   anonymous: '익명',
   realName: '실명',
-  anonymousNotice: "'골방 기도자'로 게시됩니다. 내 이름은 드러나지 않아요. (마 6:6)",
+  // NBSP( )로 "(마 6:6)"이 중간에 끊기지 않고 통째로 줄바꿈되게 한다
+  anonymousNotice: "'골방 기도자'로 게시됩니다. 내 이름은 드러나지 않아요. (마 6:6)",
   realNameNotice: '기도 요청이 실명으로 게시됩니다. 다른 사람들이 작성자를 확인할 수 있습니다.',
 } as const

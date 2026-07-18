@@ -13,7 +13,7 @@ const PrivacyNotice = ({ isAnonymous }: PrivacyNoticeProps) => {
         <span className="material-icons-outlined text-brand text-[20px] mt-px">
           {isAnonymous ? 'lock' : 'visibility'}
         </span>
-        <p className="text-[12px] text-gray-600 dark:text-gray-300 leading-[1.6] flex-1">
+        <p className="text-[12px] text-gray-600 dark:text-gray-300 leading-[1.6] flex-1 break-keep">
           {isAnonymous ? t('anonymousNotice') : t('realNameNotice')}
         </p>
       </div>

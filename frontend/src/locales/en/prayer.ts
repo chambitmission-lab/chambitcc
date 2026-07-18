@@ -32,6 +32,7 @@ export const prayer = {
   prayerComposerCategory: 'Prayer Request',
   prayerComposerTitlePlaceholder: 'Enter a title',
   prayerComposerAddTitle: 'Add title',
+  prayerComposerTitleOptional: '(optional)',
   prayerComposerRemoveTitle: 'Remove title',
   prayerComposerContentPlaceholder: 'Share your prayer request... Please let us know specifically what prayer you need.',
   prayerComposerCharCount: 'characters',

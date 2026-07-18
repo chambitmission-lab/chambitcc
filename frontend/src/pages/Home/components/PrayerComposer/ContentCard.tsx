@@ -139,7 +139,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
         
         {/* 제목은 선택 — 기본은 숨기고 칩 버튼으로 필요할 때만 펼친다 */}
         {!showTitle && (
-          <div className="mb-4 relative z-20">
+          <div className="mb-4 relative z-20 flex items-center gap-2">
             <button
               type="button"
               onClick={() => setShowTitle(true)}
@@ -148,6 +148,9 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
               <span className="material-icons-outlined text-[14px]">add</span>
               {t('prayerComposerAddTitle')}
             </button>
+            <span className="text-[11px] text-gray-400 dark:text-gray-500">
+              {t('prayerComposerTitleOptional')}
+            </span>
           </div>
         )}
 

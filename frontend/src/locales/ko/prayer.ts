@@ -32,8 +32,9 @@ export const prayer = {
   prayerComposerCategory: '기도 요청',
   prayerComposerTitlePlaceholder: '제목을 입력하세요',
   prayerComposerAddTitle: '제목 추가',
+  prayerComposerTitleOptional: '(선택)',
   prayerComposerRemoveTitle: '제목 제거',
-  prayerComposerContentPlaceholder: '기도 제목을 나눠주세요... 구체적으로 어떤 기도가 필요한지 알려주세요.',
+  prayerComposerContentPlaceholder: '기도 내용을 나눠주세요... 구체적으로 어떤 기도가 필요한지 알려주세요.',
   prayerComposerCharCount: '자',
   
   // 음성 입력
