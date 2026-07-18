@@ -54,9 +54,49 @@ const RoomList = () => {
 
         {/* Hero */}
         <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-brand shadow-[0_10px_34px_-12px_var(--brand-glow)]">
-          <span className="absolute -right-2 -bottom-6 text-[120px] leading-none opacity-[0.14] rotate-12 select-none pointer-events-none">
-            🕊️
-          </span>
+          {/* 배경 일러스트: 올리브 가지를 문 비둘기 + 함께 퍼지는 물결 */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none select-none"
+            viewBox="0 0 400 260"
+            preserveAspectRatio="xMidYMid slice"
+            fill="none"
+            aria-hidden="true"
+          >
+            {/* 오른쪽 위 은은한 빛 */}
+            <circle cx="386" cy="12" r="96" fill="white" opacity="0.05" />
+            <circle cx="386" cy="12" r="56" fill="white" opacity="0.05" />
+
+            {/* 물결 동심원 */}
+            <circle cx="346" cy="206" r="132" stroke="white" strokeWidth="1.4" opacity="0.09" />
+            <circle cx="346" cy="206" r="97" stroke="white" strokeWidth="1.4" opacity="0.11" />
+            <circle cx="346" cy="206" r="64" stroke="white" strokeWidth="1.4" opacity="0.13" />
+
+            {/* 반짝임 */}
+            <path d="M312 42 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 Z" fill="white" opacity="0.26" />
+            <path d="M372 92 l2.2 5 5 2.2 -5 2.2 -2.2 5 -2.2 -5 -5 -2.2 5 -2.2 Z" fill="white" opacity="0.2" />
+            <circle cx="286" cy="66" r="2.2" fill="white" opacity="0.24" />
+            <circle cx="352" cy="140" r="1.8" fill="white" opacity="0.2" />
+
+            {/* 올리브 가지를 문 비둘기 */}
+            <g
+              transform="translate(252 136) rotate(-8)"
+              stroke="white"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.32"
+            >
+              <path d="M14 40 C24 26 44 21 58 27 C72 33 84 31 97 23 C94 41 78 53 58 53 C40 53 26 50 14 40 Z" />
+              <path d="M42 28 C44 13 56 3 72 4 C64 11 59 19 57 28" />
+              <path d="M14 40 L4 38" />
+              <circle cx="26" cy="34" r="1.7" fill="white" stroke="none" />
+              <g strokeWidth="2.4">
+                <path d="M4 38 C-3 44 -6 52 -3 60" />
+                <path d="M-1 46 C-8 44 -12 47 -13 53 C-6 55 -2 51 -1 46 Z" />
+                <path d="M-3 56 C-10 56 -13 60 -13 66 C-6 66 -3 62 -3 56 Z" />
+              </g>
+            </g>
+          </svg>
           <div className="relative z-10">
             <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/70">
               Together

@@ -33,6 +33,10 @@ export const useMyRooms = (enabled = true) =>
     queryFn: listMyRooms,
     enabled,
     staleTime: 1000 * 60,
+    // 읽음·완주 등 사용자별 상태가 담긴 목록 — 전역 refetchOnMount:false의 예외.
+    // persist 복원 쿼리는 refetchType:'all' 무효화로도 재요청되지 않으므로 마운트 시 갱신
+    // (캐시는 즉시 보여주고 뒤에서 갱신).
+    refetchOnMount: true,
   })
 
 export const useRoom = (roomId: number, enabled = true) =>
@@ -41,6 +45,8 @@ export const useRoom = (roomId: number, enabled = true) =>
     queryFn: () => getRoom(roomId),
     enabled: enabled && roomId > 0,
     staleTime: 1000 * 30,
+    // 목록과 같은 이유 — 여러 명이 같은 방을 보므로 재진입 시 읽음 수/글 수를 갱신
+    refetchOnMount: true,
   })
 
 export const useRoomPreview = (inviteCode: string) =>
@@ -56,8 +62,9 @@ export const useRoomPosts = (roomId: number, dayNumber?: number, enabled = true)
     queryKey: roomKeys.posts(roomId, dayNumber),
     queryFn: () => listRoomPosts(roomId, dayNumber),
     enabled: enabled && roomId > 0,
-    // 같은 방을 여러 명이 보는 실시간성 — 포커스 복귀 시 재조회
+    // 같은 방을 여러 명이 보는 실시간성 — 포커스 복귀·재진입 시 재조회
     refetchOnWindowFocus: true,
+    refetchOnMount: true,
     staleTime: 1000 * 15,
   })
 
@@ -97,8 +104,11 @@ export const useMarkRoomDayRead = (roomId: number) => {
   return useMutation({
     mutationFn: (dayNumber: number) => markRoomDayRead(roomId, dayNumber),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId) })
-      qc.invalidateQueries({ queryKey: roomKeys.list() })
+      // '본문 읽기'는 누르자마자 성경 화면으로 이동해 응답 시점엔 detail/list가 비활성 —
+      // 기본 'active'로는 stale 마크만 되고 전역 refetchOnMount:false와 겹치면
+      // /rooms 재진입 시에도 옛 캐시(읽기 전 상태)가 그대로 보인다
+      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId), refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: roomKeys.list(), refetchType: 'all' })
     },
   })
 }
