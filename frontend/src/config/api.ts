@@ -48,6 +48,10 @@ export const apiFetch = async (url: string, options: RequestInit = {}): Promise<
 
     if (newToken) {
       response = await fetch(url, withNewToken(options, newToken))
+    } else if (localStorage.getItem('refresh_token')) {
+      // 갱신 실패했지만 토큰은 살아있음 = 서버 5xx·네트워크 등 일시 장애.
+      // "인증 만료" 로 처리하면 로그인 페이지로 유도되므로 구분해서 던진다.
+      throw new Error('서버에 일시적으로 연결할 수 없습니다. 잠시 후 다시 시도해주세요.')
     } else {
       // Refresh token도 만료됨 - 로그인 페이지로
       // HashRouter 라우트는 pathname이 아닌 hash에 있다 (#/rooms/3 → /rooms/3)

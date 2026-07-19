@@ -112,21 +112,26 @@ export const refreshAccessToken = async (): Promise<string | null> => {
     })
 
     if (!response.ok) {
-      // Refresh token도 만료됨
-      await logout()
+      // 401/403 만 refresh token 무효(만료·위조)로 확정할 수 있다.
+      // 5xx 는 서버 재시작·재배포 중 응답이므로 토큰을 지우면
+      // 멀쩡히 로그인된 사용자가 서버 리스타트 타이밍에 로그아웃된다.
+      if (response.status === 401 || response.status === 403) {
+        await logout()
+      }
       return null
     }
 
     const data = await response.json()
     const newAccessToken = data.access_token
-    
+
     // 새 access token 저장
     localStorage.setItem('access_token', newAccessToken)
-    
+
     return newAccessToken
   } catch (error) {
-    console.error('Token refresh failed:', error)
-    await logout()
+    // 네트워크 오류(오프라인, 앱 복귀 직후 연결 전 등)는 토큰 유효성과
+    // 무관하므로 로그아웃하지 않고 다음 요청에서 재시도하게 둔다.
+    console.error('Token refresh failed (tokens preserved):', error)
     return null
   }
 }
