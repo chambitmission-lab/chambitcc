@@ -33,7 +33,12 @@ const NewHome = () => {
   const [selectedPrayerId, setSelectedPrayerId] = useState<number | null>(null)
   const [openReplies, setOpenReplies] = useState(false) // 댓글 자동 열기 상태
   const [sort, setSort] = useState<SortType>('popular')
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null)
+  // 기도방 홈에서 "이 방의 기도 보러 가기"로 진입하면 ?group=ID 로 필터를 미리 선택
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(() => {
+    const g = new URLSearchParams(location.search).get('group')
+    const parsed = g ? Number(g) : NaN
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+  })
   const [selectedFilter, setSelectedFilter] = useState<PrayerFilterType>('all')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
@@ -41,6 +46,22 @@ const NewHome = () => {
   const [selectedPrayerForAnswer, setSelectedPrayerForAnswer] = useState<Prayer | null>(null)
   const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter)  // ✅ selectedFilter 전달
   const mainRef = useRef<HTMLDivElement>(null)
+  const feedRef = useRef<HTMLDivElement>(null)
+
+  // 기도방 홈에서 ?group= 으로 진입하면 기도 피드로 자동 스크롤,
+  // &compose=1 이면 (첫 기도제목) 작성 모달까지 바로 연다
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    if (!params.get('group')) return
+    const timer = setTimeout(() => {
+      feedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (params.get('compose') === '1') {
+        requireAuth(() => setShowComposer(true))
+      }
+    }, 150)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // 핸들러 안정화용 ref — prayerHook은 매 렌더 새 객체라 useCallback deps에 못 넣음
   const prayerHookRef = useRef(prayerHook)
@@ -216,8 +237,8 @@ const NewHome = () => {
             {/* 오늘의 감사 (Small Thanks Thread) — 임시 비활성화 */}
             {/* <ThanksThread /> */}
 
-            {/* 소그룹 필터 */}
-            <div className="px-4 py-3 overflow-x-auto scrollbar-hide">
+            {/* 소그룹 필터 — scroll-mt는 고정 헤더에 안 가리게 하는 오프셋 */}
+            <div ref={feedRef} className="px-4 py-3 overflow-x-auto scrollbar-hide scroll-mt-16">
               <GroupFilter
                 selectedGroupId={selectedGroupId}
                 selectedFilter={selectedFilter}

@@ -1,12 +1,17 @@
 // 그룹 생성/가입 모달 — 토스 블루 플랫 테마 (theme.css 브랜드 토큰, card-dark 솔리드, outline X 버튼)
 import { useState, type ReactNode } from 'react'
 import { useCreateGroup, useJoinGroup } from '../../hooks/useGroups'
+import { useSituationCategories } from '../../hooks/useSituation'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
 import type { PrayerGroup } from '../../types/prayer'
 
 const ICON_OPTIONS = ['🙏', '⛪', '✝️', '🎵', '📖', '💒', '👥', '🕊️', '🌟', '❤️']
+
+// 초대 링크 — 묵상방과 동일한 방식으로 해시 라우트 링크 생성
+export const groupInviteUrl = (code: string) =>
+  `${window.location.origin}${window.location.pathname}#/groups/join/${code}`
 
 // ── 공통 모달 셸 ──────────────────────────────────────
 interface ModalShellProps {
@@ -68,10 +73,12 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [icon, setIcon] = useState('🙏')
+  const [themeCategoryId, setThemeCategoryId] = useState<number | null>(null)
   const [createdGroup, setCreatedGroup] = useState<PrayerGroup | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
 
   const createMutation = useCreateGroup()
+  const { data: themeCategories } = useSituationCategories()
 
   if (!isOpen) return null
 
@@ -79,7 +86,12 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
     e.preventDefault()
     setErrorMessage('')
     try {
-      const result = await createMutation.mutateAsync({ name, description, icon })
+      const result = await createMutation.mutateAsync({
+        name,
+        description,
+        icon,
+        theme_category_id: themeCategoryId,
+      })
       setCreatedGroup(result.data)
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : ''
@@ -101,10 +113,32 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
     }
   }
 
+  const handleShareLink = async () => {
+    if (!createdGroup?.invite_code) return
+    const url = groupInviteUrl(createdGroup.invite_code)
+    const text = `🙏 '${createdGroup.name}' 기도방에 초대해요!\n함께 기도제목을 나누고, 응답이 쌓이는 걸 지켜봐요.\n\n${url}\n\n앱을 설치했다면 [내 그룹 → 초대 코드로 참여]에 코드 ${createdGroup.invite_code} 를 입력해도 돼요.`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: createdGroup.name, text, url })
+        return
+      } catch {
+        /* 사용자가 취소 — 폴백 없이 종료 */
+        return
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text)
+      showToast('초대 링크를 복사했어요. 카톡에 붙여넣어 보내주세요!', 'success')
+    } catch {
+      showToast('복사에 실패했어요. 초대 코드를 직접 알려주세요: ' + createdGroup.invite_code, 'error')
+    }
+  }
+
   const handleClose = () => {
     setName('')
     setDescription('')
     setIcon('🙏')
+    setThemeCategoryId(null)
     setCreatedGroup(null)
     setErrorMessage('')
     onClose()
@@ -162,17 +196,33 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
               <p className="text-white/85 text-[11.5px] mb-3 leading-[1.5]">
                 {t('shareInviteCode')}
               </p>
-              <button
-                type="button"
-                onClick={handleCopyCode}
-                className="inline-flex items-center gap-1.5 px-4 h-10 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-[13px] font-bold transition-colors"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-                {t('copyCode')}
-              </button>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className="inline-flex items-center gap-1.5 px-4 h-10 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-[13px] font-bold transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                  {t('copyCode')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShareLink}
+                  className="inline-flex items-center gap-1.5 px-4 h-10 rounded-full bg-white text-brand text-[13px] font-bold shadow-sm hover:bg-white/90 transition-colors"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                  링크 공유
+                </button>
+              </div>
             </div>
           </div>
 
@@ -241,6 +291,37 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 {description.length}/200
               </p>
             </FieldGroup>
+
+            {/* 기도방 테마 (선택) — 테마를 고르면 상황별 성구가 방의 오늘의 성구로 이어진다 */}
+            {themeCategories && themeCategories.length > 0 && (
+              <FieldGroup label="기도방 테마 (선택)">
+                <p className="text-[11.5px] text-gray-500 dark:text-white/50 -mt-1 mb-2 leading-[1.5]">
+                  테마를 고르면 매일 그 상황에 맞는 성경 구절이 방에 함께 보여요
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {themeCategories.map((cat) => {
+                    const active = themeCategoryId === cat.id
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setThemeCategoryId(active ? null : cat.id)}
+                        className={[
+                          'inline-flex items-center gap-1 px-2.5 h-8 rounded-full text-[12px] font-semibold transition-all border',
+                          active
+                            ? 'text-white border-transparent shadow-sm'
+                            : 'bg-gray-50 dark:bg-white/[0.03] border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/65 hover:bg-gray-100 dark:hover:bg-white/[0.06]',
+                        ].join(' ')}
+                        style={active ? { backgroundColor: cat.color } : undefined}
+                      >
+                        <span className="material-icons-round text-[14px]">{cat.icon}</span>
+                        {cat.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </FieldGroup>
+            )}
 
             {/* 아이콘 선택 */}
             <FieldGroup label={t('groupIcon')}>

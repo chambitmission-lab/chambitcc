@@ -120,7 +120,21 @@ export interface ReplyResponse {
   data: Reply
 }
 
-// 소그룹 관련 타입 정의
+// 소그룹(기도방) 관련 타입 정의
+export interface GroupTheme {
+  id: number  // 상황별 성구 카테고리 id
+  name: string
+  icon: string  // material icon name
+  color: string  // hex
+}
+
+export interface GroupThemeVerse {
+  book_name_ko: string
+  chapter: number
+  verse: number
+  text: string
+}
+
 export interface PrayerGroup {
   id: number
   name: string
@@ -128,10 +142,29 @@ export interface PrayerGroup {
   icon?: string  // 이모지 또는 아이콘 이름
   member_count: number
   prayer_count: number
+  answered_count?: number  // 응답된 기도 수
+  prayed_count?: number  // '함께 기도했어요' 총 횟수 (상세에서만)
+  theme?: GroupTheme | null
+  theme_verse?: GroupThemeVerse | null  // 오늘의 성구 (상세에서만)
   is_member: boolean
   is_admin: boolean
   created_at: string
   invite_code?: string  // 관리자만 볼 수 있음
+}
+
+// 초대 링크 랜딩용 미리보기
+export interface PrayerGroupPreview {
+  id: number
+  name: string
+  description?: string
+  icon?: string
+  member_count: number
+  prayer_count: number
+  answered_count: number
+  member_names: string[]
+  theme?: GroupTheme | null
+  theme_verse?: GroupThemeVerse | null
+  is_member: boolean
 }
 
 export interface GroupListResponse {
@@ -146,6 +179,7 @@ export interface CreateGroupRequest {
   name: string
   description?: string
   icon?: string
+  theme_category_id?: number | null
 }
 
 export interface JoinGroupRequest {

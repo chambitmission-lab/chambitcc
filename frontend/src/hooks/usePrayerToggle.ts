@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addPrayer, removePrayer } from '../api/prayer'
 import { showToast } from '../utils/toast'
 import { prayerKeys } from './usePrayersQuery'
+import { groupKeys } from './useGroups'
 import type { Prayer, SortType, PrayerFilterType } from '../types/prayer'
 
 interface UsePrayerToggleOptions {
@@ -207,6 +208,9 @@ export const usePrayerToggle = ({
       queryClient.invalidateQueries({
         queryKey: ['profile'],
       })
+
+      // 기도방 통계('함께 기도한 횟수') 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     } catch (error) {
       // 에러 시 롤백
       queryClient.setQueryData(listQueryKey, previousListData)

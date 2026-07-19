@@ -50,6 +50,7 @@ const EventCalendar = lazy(menuRouteLoaders['/events'])
 const EventDetail = lazy(() => import('./pages/Events/EventDetail'))
 const MyGroups = lazy(menuRouteLoaders['/groups'])
 const GroupDetail = lazy(() => import('./pages/Groups/GroupDetail'))
+const JoinGroup = lazy(() => import('./pages/Groups/JoinGroup'))
 const PrayerFocus = lazy(() => import('./pages/PrayerFocus'))
 const BibleStudy = lazy(menuRouteLoaders['/bible'])
 const Genealogy = lazy(() => import('./pages/Bible/Genealogy/Genealogy'))
@@ -174,6 +175,7 @@ function App() {
                 <Route path="/events" element={<EventCalendar />} />
                 <Route path="/events/:id" element={<EventDetail />} />
                 <Route path="/groups" element={<MyGroups />} />
+                <Route path="/groups/join/:code" element={<JoinGroup />} />
                 <Route path="/groups/:id" element={<GroupDetail />} />
                 <Route path="/prayer-focus" element={<PrayerFocus />} />
                 <Route path="/answered-prayers" element={<AnsweredPrayers />} />

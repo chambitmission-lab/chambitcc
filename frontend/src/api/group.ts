@@ -1,7 +1,8 @@
 // Prayer Group API
 import { API_V1, apiFetch } from '../config/api'
-import type { 
-  PrayerGroup, 
+import type {
+  PrayerGroup,
+  PrayerGroupPreview,
   GroupListResponse,
   CreateGroupRequest,
   JoinGroupRequest,
@@ -44,6 +45,50 @@ export const fetchAllGroups = async (): Promise<GroupListResponse> => {
 
   if (!response.ok) {
     throw new Error('그룹 목록을 불러오는데 실패했습니다')
+  }
+
+  return response.json()
+}
+
+// 그룹 상세 조회 (비로그인도 가능, 로그인 시 멤버십 정보 포함)
+export const fetchGroup = async (
+  groupId: number
+): Promise<{ success: boolean; data: PrayerGroup }> => {
+  const headers: HeadersInit = {}
+  const token = localStorage.getItem('access_token')
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}`, {
+    headers,
+  })
+
+  if (!response.ok) {
+    throw new Error('기도방 정보를 불러오는데 실패했습니다')
+  }
+
+  return response.json()
+}
+
+// 초대 링크 랜딩용 미리보기 (비로그인 가능)
+export const fetchGroupPreview = async (
+  inviteCode: string
+): Promise<{ success: boolean; data: PrayerGroupPreview }> => {
+  const headers: HeadersInit = {}
+  const token = localStorage.getItem('access_token')
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const response = await apiFetch(
+    `${API_V1}/prayer-groups/preview/${encodeURIComponent(inviteCode)}`,
+    { headers },
+  )
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null)
+    throw new Error(error?.detail || '초대장을 찾을 수 없습니다')
   }
 
   return response.json()
