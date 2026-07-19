@@ -1,7 +1,6 @@
 // 초대 랜딩 (/join/:code)
 // 카톡 등으로 받은 초대 링크의 도착지 — 방 미리보기 + 참여하기.
 // 비로그인이면 로그인 후 이 페이지로 복귀한다 (redirect_after_login).
-import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useJoinRoom, useRoomPreview } from '../../hooks/useMeditationRoom'
 import { isAuthenticated } from '../../utils/auth'
@@ -15,12 +14,8 @@ const JoinRoom = () => {
 
   const { data: room, isLoading, error } = useRoomPreview(inviteCode)
   const joinRoom = useJoinRoom()
+  // 자동 탈출은 main.tsx에서 전역 처리 — 여기서는 실패 대비 수동 UI만 담당
   const inApp = isInAppBrowser()
-
-  // 카톡 인앱 브라우저면 외부 브라우저로 자동 탈출 (안드로이드는 설치된 PWA가 열림)
-  useEffect(() => {
-    if (isKakaoInApp()) escapeKakaoInApp()
-  }, [])
 
   const handleCopyCode = async () => {
     try {

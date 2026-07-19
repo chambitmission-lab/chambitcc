@@ -4,12 +4,19 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { queryClient } from './config/queryClient'
 import { persister } from './config/persister'
 import { initPWAInstallPrompt, registerPushServiceWorker } from './utils/pwa'
+import { escapeKakaoInApp, isKakaoInApp } from './utils/inappBrowser'
 import { LanguageProvider } from './contexts/LanguageContext'
 import 'flag-icons/css/flag-icons.min.css'
 import './index.css'
 import './styles/theme.css'
 import './styles/common.css'
 import App from './App.tsx'
+
+// 카카오톡 인앱 브라우저로 진입한 경우 어떤 페이지든 외부 브라우저로 탈출
+// (안드로이드: 설치된 PWA가 열리거나 크롬에서 설치 유도 / iOS: Safari로 열림)
+if (isKakaoInApp()) {
+  escapeKakaoInApp()
+}
 
 // PWA 설치 프롬프트 초기화 (프로덕션에서만)
 if (import.meta.env.PROD) {
