@@ -20,6 +20,11 @@ const closeStack: StackEntry[] = []
 let listenerAttached = false
 let suppressNextPop = false
 let counter = 0
+// 닫힌 모달의 엔트리 정리(back) 타이머. history.back()은 비동기 트래버설이라
+// 곧바로 이어지는 pushState(StrictMode 재마운트, 모달 연속 전환)와 순서가 엉키면
+// 모달 엔트리가 forward 쪽 고아로 남아 뒤로가기 한 번에 페이지까지 빠져나간다.
+// 그래서 back을 한 틱 미루고, 그 사이 새 모달이 열리면 취소 후 엔트리를 재사용한다.
+let pendingCleanup: number | null = null
 
 const handlePop = () => {
   // 버튼/배경 클릭 정리용으로 우리가 호출한 history.back() 은 무시
@@ -41,7 +46,15 @@ export function useModalBackButton(onClose: () => void, enabled = true) {
     const id = ++counter
     const entry: StackEntry = { id, close: () => onCloseRef.current() }
     closeStack.push(entry)
-    window.history.pushState({ modalBack: id }, '')
+
+    if (pendingCleanup !== null && window.history.state?.modalBack != null) {
+      // 직전 모달의 엔트리가 아직 정리(back) 전 — back을 취소하고 엔트리를 물려받는다
+      window.clearTimeout(pendingCleanup)
+      pendingCleanup = null
+      window.history.replaceState({ modalBack: id }, '')
+    } else {
+      window.history.pushState({ modalBack: id }, '')
+    }
 
     if (!listenerAttached) {
       window.addEventListener('popstate', handlePop)
@@ -53,10 +66,16 @@ export function useModalBackButton(onClose: () => void, enabled = true) {
       const stillOnTop = idx !== -1
       if (stillOnTop) closeStack.splice(idx, 1)
 
-      // 버튼/배경 클릭으로 닫혔다면(=우리 엔트리가 아직 히스토리 top) 쌓아둔 엔트리 정리
+      // 버튼/배경 클릭으로 닫혔다면(=우리 엔트리가 아직 히스토리 top) 쌓아둔 엔트리 정리.
+      // 실행 시점에 다시 검사하므로 사용자가 그 사이 뒤로가기를 눌렀어도 이중 back이 없다.
       if (stillOnTop && window.history.state?.modalBack === id) {
-        suppressNextPop = true
-        window.history.back()
+        pendingCleanup = window.setTimeout(() => {
+          pendingCleanup = null
+          if (window.history.state?.modalBack === id) {
+            suppressNextPop = true
+            window.history.back()
+          }
+        }, 0)
       }
     }
   }, [enabled])
