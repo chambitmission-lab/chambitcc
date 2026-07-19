@@ -64,7 +64,7 @@ const RoomHome = () => {
   const handleShare = async () => {
     if (!room?.invite_code) return
     const url = inviteUrl(room.invite_code)
-    const text = `📖 '${room.title}' 공동 묵상에 초대해요!\n${room.total_days}일 동안 매일 같은 본문을 읽고 묵상을 나눠요.\n\n${url}`
+    const text = `📖 '${room.title}' 공동 묵상에 초대해요!\n${room.total_days}일 동안 매일 같은 본문을 읽고 묵상을 나눠요.\n\n${url}\n\n앱을 설치했다면 [공동 묵상방 → 초대 코드로 참여]에 코드 ${room.invite_code} 를 입력해도 돼요.`
     if (navigator.share) {
       try {
         await navigator.share({ title: room.title, text, url })
