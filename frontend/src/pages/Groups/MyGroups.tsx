@@ -145,14 +145,10 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
       className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200 group-hover:border-[var(--brand-soft-strong)] group-hover:-translate-y-0.5 group-active:translate-y-0"
     >
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-      <div
-        className="absolute left-0 top-0 bottom-0 w-1"
-        style={{ background: tileColor, opacity: group.is_admin ? 1 : 0.55 }}
-      />
       {/* 그룹 이모지 워터마크 — 카드 오른쪽에 크게, 아주 옅게 */}
       <span
         aria-hidden
-        className="absolute -right-1 -bottom-4 text-[64px] leading-none rotate-[-10deg] pointer-events-none select-none opacity-[0.07] grayscale"
+        className="absolute right-10 top-1/2 -translate-y-1/2 text-[48px] leading-none rotate-[-10deg] pointer-events-none select-none opacity-[0.10] [filter:grayscale(1)_brightness(0)] dark:opacity-[0.18] dark:[filter:grayscale(1)_brightness(0)_invert(1)]"
       >
         {group.icon || '👥'}
       </span>
@@ -209,19 +205,21 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
           </div>
         </div>
 
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="shrink-0 text-gray-400 dark:text-white/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-brand"
-        >
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
+        {/* 화살표 — 워터마크와 겹쳐 보이지 않게 원형 칩 위에 얹는다 */}
+        <span className="shrink-0 w-7 h-7 rounded-full bg-gray-100 dark:bg-white/[0.08] border border-gray-200/60 dark:border-white/[0.06] flex items-center justify-center text-gray-500 dark:text-white/60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-brand group-hover:bg-[var(--brand-soft)] group-hover:border-[var(--brand-soft-strong)]">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </span>
       </div>
     </article>
   </Link>
