@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { deriveTimeOfDay, useDailyMeditation } from '../../../hooks/useDailyMeditation'
 import {
@@ -8,7 +8,6 @@ import {
 } from '../../../hooks/useMeditationRecords'
 import { isAuthenticated } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
-import { API_V1 } from '../../../config/api'
 import type { EmotionTag, TimeOfDay } from '../../../types/meditation'
 import './MeditationPage.css'
 
@@ -67,63 +66,6 @@ const MeditationPage = () => {
   const { data: streak } = useMeditationStreak()
   const { data: records = [] } = useMeditationRecords(5)
   const createRecord = useCreateMeditationRecord()
-
-  /* ── 구절 듣기 (TTS) ── */
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const [playing, setPlaying] = useState(false)
-  // 첫 재생은 TTS 생성 때문에 수 초 걸릴 수 있어, 준비 중임을 보여주지
-  // 않으면 사용자가 반응이 없다고 여겨 연타하게 된다
-  const [audioLoading, setAudioLoading] = useState(false)
-
-  const stopAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current = null
-    }
-    setPlaying(false)
-    setAudioLoading(false)
-  }
-
-  useEffect(() => stopAudio, [])
-  // 절이 바뀌면 재생 중이던 오디오 중지
-  const verseKey = data
-    ? `${data.verse.book_number}-${data.verse.chapter}-${data.verse.verse}`
-    : ''
-  useEffect(() => {
-    stopAudio()
-  }, [verseKey])
-
-  const toggleAudio = () => {
-    if (!data || audioLoading) return
-    if (playing) {
-      stopAudio()
-      return
-    }
-    const { book_number, chapter, verse } = data.verse
-    const audio = new Audio(
-      `${API_V1}/bible/tts/${book_number}/${chapter}/${verse}?voice=male`
-    )
-    audioRef.current = audio
-    setAudioLoading(true)
-    audio.onended = () => setPlaying(false)
-    audio.onerror = () => {
-      stopAudio()
-      showToast('음성을 불러오지 못했어요', 'error')
-    }
-    audio
-      .play()
-      .then(() => {
-        // 준비 중 멈추기·절 변경으로 stopAudio()가 먼저 불렸으면 무시
-        if (audioRef.current !== audio) return
-        setAudioLoading(false)
-        setPlaying(true)
-      })
-      .catch(() => {
-        if (audioRef.current !== audio) return
-        stopAudio()
-        showToast('음성을 불러오지 못했어요', 'error')
-      })
-  }
 
   /* ── 1분 침묵 타이머 ── */
   const [silenceLeft, setSilenceLeft] = useState<number | null>(null)
@@ -242,20 +184,6 @@ const MeditationPage = () => {
               <cite>— {data.verse.reference}</cite>
             </blockquote>
             <div className="mp-verse-actions">
-              <button
-                type="button"
-                className="mp-chip-btn"
-                onClick={toggleAudio}
-                aria-busy={audioLoading}
-              >
-                <span
-                  className={`material-icons-round ${audioLoading ? 'animate-spin' : ''}`}
-                  aria-hidden
-                >
-                  {audioLoading ? 'autorenew' : playing ? 'stop' : 'volume_up'}
-                </span>
-                {audioLoading ? '준비 중…' : playing ? '멈추기' : '말씀 듣기'}
-              </button>
               <button
                 type="button"
                 className="mp-chip-btn"
