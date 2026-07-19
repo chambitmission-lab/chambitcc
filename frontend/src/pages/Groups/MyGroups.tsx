@@ -122,7 +122,21 @@ const MyGroups = () => {
 }
 
 // ── Group Card ────────────────────────────────────────
-const GroupCard = ({ group }: { group: PrayerGroup }) => (
+// 그룹마다 고유 색을 입혀 리스트가 단조로워지지 않게 한다 (id 기반 고정 팔레트).
+// 앰버는 '응답됨' 전용 액센트라 팔레트에서 제외.
+const GROUP_TILE_COLORS = [
+  '#3182f6', // 토스 블루
+  '#0ea5e9', // 스카이
+  '#6366f1', // 인디고
+  '#8b5cf6', // 바이올렛
+  '#14b8a6', // 틸
+  '#10b981', // 에메랄드
+]
+
+const GroupCard = ({ group }: { group: PrayerGroup }) => {
+  const tileColor = GROUP_TILE_COLORS[group.id % GROUP_TILE_COLORS.length]
+
+  return (
   <Link
     to={`/groups/${group.id}`}
     className="block group"
@@ -132,14 +146,29 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => (
     >
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
       <div
-        className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${
-          group.is_admin ? 'from-blue-500 to-blue-600' : 'from-sky-400/60 to-blue-500/40'
-        }`}
+        className="absolute left-0 top-0 bottom-0 w-1"
+        style={{ background: tileColor, opacity: group.is_admin ? 1 : 0.55 }}
+      />
+      {/* 그룹 이모지 워터마크 — 카드 오른쪽에 크게, 아주 옅게 */}
+      <span
+        aria-hidden
+        className="absolute -right-1 -bottom-4 text-[64px] leading-none rotate-[-10deg] pointer-events-none select-none opacity-[0.07] grayscale"
+      >
+        {group.icon || '👥'}
+      </span>
+      {/* 타일 색을 카드 오른쪽에 은은한 틴트로 이어준다 */}
+      <span
+        aria-hidden
+        className="absolute inset-y-0 right-0 w-2/5 pointer-events-none"
+        style={{ background: `linear-gradient(to left, ${tileColor}14, transparent)` }}
       />
 
       <div className="relative z-10 flex items-center gap-3 pl-3.5 pr-3 py-3.5">
         {/* 이모지 아바타 */}
-        <div className="shrink-0 w-12 h-12 rounded-2xl bg-brand flex items-center justify-center text-[22px] shadow-[0_6px_18px_-6px_var(--brand-glow)]">
+        <div
+          className="shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-[22px]"
+          style={{ background: tileColor, boxShadow: `0 6px 18px -6px ${tileColor}88` }}
+        >
           {group.icon || '👥'}
         </div>
 
@@ -196,7 +225,8 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => (
       </div>
     </article>
   </Link>
-)
+  )
+}
 
 // ── Action Card ────────────────────────────────────────
 interface ActionCardProps {
@@ -222,6 +252,27 @@ const ActionCard = ({ icon, label, sublabel, variant, onClick }: ActionCardProps
               'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.12) 100%)',
           }}
         />
+        {/* 배경 일러스트 — 모여드는 사람들 실루엣 + 소프트 서클 (흰색 반투명, 텍스트 가독성 유지) */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl" aria-hidden>
+          <span className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/[0.10]" />
+          <span className="absolute -top-1 right-10 w-10 h-10 rounded-full bg-white/[0.07]" />
+          <svg
+            width="104"
+            height="104"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="rgba(255,255,255,0.16)"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="absolute -bottom-5 -right-3 rotate-[-8deg]"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </div>
         <div className="relative">
           <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/25 backdrop-blur-sm text-white mb-2.5">
             {icon}
