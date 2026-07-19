@@ -172,7 +172,15 @@ const WordNoteSheet = ({
             {validRange ? (
               <>
                 {verseText.slice(0, start!)}
-                <span className="font-bold text-brand underline decoration-dotted decoration-2 underline-offset-4">
+                <span
+                  className="font-bold text-brand underline decoration-solid decoration-2 underline-offset-4 rounded-[3px] px-px"
+                  style={{
+                    background:
+                      'linear-gradient(to top, color-mix(in srgb, var(--brand) 34%, transparent) 0 40%, transparent 40%)',
+                    WebkitBoxDecorationBreak: 'clone',
+                    boxDecorationBreak: 'clone',
+                  }}
+                >
                   {verseText.slice(start!, end!)}
                 </span>
                 {verseText.slice(end!)}

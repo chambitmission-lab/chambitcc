@@ -222,8 +222,15 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             })
           }}
           style={{
-            textDecoration: 'underline dotted var(--brand) 2px',
-            textUnderlineOffset: '0.25em',
+            // 형광펜: 글자 아래쪽 40%에 브랜드 틴트를 깔아 다크 배경에서도 확 띈다
+            background:
+              'linear-gradient(to top, color-mix(in srgb, var(--brand) 34%, transparent) 0 40%, transparent 40%)',
+            WebkitBoxDecorationBreak: 'clone',
+            boxDecorationBreak: 'clone',
+            borderRadius: '3px',
+            padding: '0 1px',
+            textDecoration: 'underline solid var(--brand) 2px',
+            textUnderlineOffset: '0.22em',
             cursor: 'pointer',
           }}
         >
@@ -471,6 +478,35 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               animation: 'versePopIn 0.16s ease-out',
             }}
           >
+            {/* 음성 낭독 — 왼손 엄지로 누르기 쉽게 맨 왼쪽에 배치 */}
+            {isSupported && (
+              <span style={{ display: 'inline-flex', opacity: 0.9 }}>
+                <VerseReadingButton
+                  isReading={isReading}
+                  isStarting={isStarting}
+                  isSupported={isSupported}
+                  onClick={isReading ? stopReading : handleStartReading}
+                  onPrime={primeMicrophone}
+                  disabled={isRead}
+                  size="sm"
+                />
+              </span>
+            )}
+
+            {/* 구분선: 음성 ↔ 묵상 그룹 분리 */}
+            {isSupported && (
+              <span
+                aria-hidden
+                style={{
+                  width: '1px',
+                  height: '1.25rem',
+                  background: 'var(--ig-border, rgba(255,255,255,0.12))',
+                  margin: '0 0.125rem',
+                  flexShrink: 0,
+                }}
+              />
+            )}
+
             {/* 주요 액션: 북마크·해석 (가장 자주 쓰는 묵상 동작을 앞에 배치) */}
             <button
               onClick={() => { onActionsOpenChange(false); setShowBookmarkModal(true) }}
@@ -598,8 +634,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               </button>
             )}
 
-            {/* 구분선: 주요(묵상) ↔ 보조(음성/관리자) 그룹 분리 */}
-            {(isSupported || (isAdminUser && onEdit)) && (
+            {/* 구분선: 묵상 ↔ 관리자 그룹 분리 */}
+            {isAdminUser && onEdit && (
               <span
                 aria-hidden
                 style={{
@@ -610,21 +646,6 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   flexShrink: 0,
                 }}
               />
-            )}
-
-            {/* 보조 액션: 음성 낭독 (톤다운) */}
-            {isSupported && (
-              <span style={{ display: 'inline-flex', opacity: 0.9 }}>
-                <VerseReadingButton
-                  isReading={isReading}
-                  isStarting={isStarting}
-                  isSupported={isSupported}
-                  onClick={isReading ? stopReading : handleStartReading}
-                  onPrime={primeMicrophone}
-                  disabled={isRead}
-                  size="sm"
-                />
-              </span>
             )}
 
             {/* 보조 액션: 구절 수정 (관리자) */}
