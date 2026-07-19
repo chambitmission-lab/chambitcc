@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getProfileDetail,
   getMyPrayers,
@@ -28,29 +28,48 @@ export const useProfileDetail = () => {
   })
 }
 
-// 내가 작성한 기도 목록 (페이지네이션)
-export const useMyPrayers = (skip: number = 0, limit: number = 20) => {
-  return useQuery({
-    queryKey: ['profile', 'my-prayers', skip, limit],
-    queryFn: () => getMyPrayers({ skip, limit }),
+// 프로필 탭 목록 무한 스크롤 페이지 크기
+const LIST_PAGE_SIZE = 20
+
+// skip/limit 기반 무한 스크롤: 마지막 페이지가 꽉 찼으면 지금까지 받은
+// 총 개수를 다음 skip으로 사용, 덜 찼으면 끝
+const nextSkip = <T,>(lastPage: T[], allPages: T[][]) =>
+  lastPage.length < LIST_PAGE_SIZE
+    ? undefined
+    : allPages.reduce((n, p) => n + p.length, 0)
+
+// 내가 작성한 기도 목록 (무한 스크롤)
+export const useMyPrayers = (enabled: boolean = true) => {
+  return useInfiniteQuery({
+    queryKey: ['profile', 'my-prayers', 'infinite'],
+    queryFn: ({ pageParam }) => getMyPrayers({ skip: pageParam, limit: LIST_PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: nextSkip,
+    enabled,
     staleTime: 1000 * 60 * 3,
   })
 }
 
-// 내가 기도중인 목록 (페이지네이션)
-export const usePrayingFor = (skip: number = 0, limit: number = 20) => {
-  return useQuery({
-    queryKey: ['profile', 'praying-for', skip, limit],
-    queryFn: () => getPrayingFor({ skip, limit }),
+// 내가 기도중인 목록 (무한 스크롤)
+export const usePrayingFor = (enabled: boolean = true) => {
+  return useInfiniteQuery({
+    queryKey: ['profile', 'praying-for', 'infinite'],
+    queryFn: ({ pageParam }) => getPrayingFor({ skip: pageParam, limit: LIST_PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: nextSkip,
+    enabled,
     staleTime: 1000 * 60 * 3,
   })
 }
 
-// 내 댓글 목록 (페이지네이션)
-export const useMyReplies = (skip: number = 0, limit: number = 20) => {
-  return useQuery({
-    queryKey: ['profile', 'my-replies', skip, limit],
-    queryFn: () => getMyReplies({ skip, limit }),
+// 내 댓글 목록 (무한 스크롤)
+export const useMyReplies = (enabled: boolean = true) => {
+  return useInfiniteQuery({
+    queryKey: ['profile', 'my-replies', 'infinite'],
+    queryFn: ({ pageParam }) => getMyReplies({ skip: pageParam, limit: LIST_PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: nextSkip,
+    enabled,
     staleTime: 1000 * 60 * 3,
   })
 }

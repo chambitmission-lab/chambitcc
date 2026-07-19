@@ -203,8 +203,9 @@ export const usePrayerToggle = ({
       }
 
       // 프로필 캐시 무효화 및 자동 갱신 (기도 통계 업데이트)
+      // 'profile' 전체 — 프로필 탭 무한 목록(praying-for 등)도 stale 처리
       queryClient.invalidateQueries({
-        queryKey: ['profile', 'detail'],
+        queryKey: ['profile'],
       })
     } catch (error) {
       // 에러 시 롤백

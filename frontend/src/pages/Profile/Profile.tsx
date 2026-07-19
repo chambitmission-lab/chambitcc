@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { useProfileDetail } from '../../hooks/useProfile'
+import { useProfileDetail, useMyPrayers, usePrayingFor, useMyReplies } from '../../hooks/useProfile'
 import { useBluemarbleStats } from '../../hooks/useBluemarble'
 import { logout } from '../../utils/auth'
 import { PushNotificationButton } from '../../components/common/PushNotificationButton'
@@ -17,6 +17,7 @@ import MyPrayersList from './components/MyPrayersList'
 import PrayingForList from './components/PrayingForList'
 import MyRepliesList from './components/MyRepliesList'
 import MyBookmarksList from './components/MyBookmarksList'
+import LoadMoreSentinel from './components/LoadMoreSentinel'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import type { ProfileTab } from '../../types/profile'
 import type { Achievement, UserActivityData } from '../../types/achievement'
@@ -45,6 +46,12 @@ const Profile = () => {
   
   const hasToken = !!localStorage.getItem('access_token')
   const { data, isLoading, error } = useProfileDetail()
+
+  // 탭 목록 무한 스크롤 — detail 응답은 미리보기(5/12/8개)일 뿐이므로,
+  // 활성 탭에서만 페이지 단위(20개)로 이어서 불러온다
+  const myPrayersQuery = useMyPrayers(hasToken && activeTab === 'prayers')
+  const prayingForQuery = usePrayingFor(hasToken && activeTab === 'praying')
+  const myRepliesQuery = useMyReplies(hasToken && activeTab === 'replies')
   // 블루마블 통계도 포인트(=양 단계/레벨)에 기여하므로, 도착 전 렌더하면
   // bluemarble=0 으로 낮게 계산된 양이 먼저 떴다가 점프하는 플래시가 생긴다.
   const { data: bmStats, isLoading: bmLoading } = useBluemarbleStats(hasToken)
@@ -253,25 +260,47 @@ const Profile = () => {
           }}
         />
 
-        {/* 콘텐츠 영역 */}
+        {/* 콘텐츠 영역 — 첫 페이지 도착 전에는 detail의 미리보기 목록으로 채워
+            탭 전환 시 빈 화면/스피너 플래시를 막는다 */}
         <div className="px-4 py-4">
           {activeTab === 'prayers' && (
-            <MyPrayersList
-              prayers={my_prayers}
-              onPrayerClick={handlePrayerClick}
-            />
+            <>
+              <MyPrayersList
+                prayers={myPrayersQuery.data?.pages.flat() ?? my_prayers}
+                onPrayerClick={handlePrayerClick}
+              />
+              <LoadMoreSentinel
+                hasNextPage={myPrayersQuery.hasNextPage}
+                isFetchingNextPage={myPrayersQuery.isFetchingNextPage}
+                fetchNextPage={myPrayersQuery.fetchNextPage}
+              />
+            </>
           )}
           {activeTab === 'praying' && (
-            <PrayingForList
-              prayers={praying_for}
-              onPrayerClick={handlePrayerClick}
-            />
+            <>
+              <PrayingForList
+                prayers={prayingForQuery.data?.pages.flat() ?? praying_for}
+                onPrayerClick={handlePrayerClick}
+              />
+              <LoadMoreSentinel
+                hasNextPage={prayingForQuery.hasNextPage}
+                isFetchingNextPage={prayingForQuery.isFetchingNextPage}
+                fetchNextPage={prayingForQuery.fetchNextPage}
+              />
+            </>
           )}
           {activeTab === 'replies' && (
-            <MyRepliesList
-              replies={my_replies}
-              onReplyClick={handlePrayerClick}
-            />
+            <>
+              <MyRepliesList
+                replies={myRepliesQuery.data?.pages.flat() ?? my_replies}
+                onReplyClick={handlePrayerClick}
+              />
+              <LoadMoreSentinel
+                hasNextPage={myRepliesQuery.hasNextPage}
+                isFetchingNextPage={myRepliesQuery.isFetchingNextPage}
+                fetchNextPage={myRepliesQuery.fetchNextPage}
+              />
+            </>
           )}
           {activeTab === 'notes' && <MyBookmarksList />}
         </div>

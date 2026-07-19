@@ -155,8 +155,9 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
         queryClient.invalidateQueries({ queryKey: ['prayers', 'detail', prayerId] })
 
         // 프로필 캐시 무효화 및 자동 갱신 (내 댓글 +1, 포인트 +3)
+        // 'profile' 전체 — 프로필 탭 무한 목록(my-replies 등)도 stale 처리
         queryClient.invalidateQueries({
-          queryKey: ['profile', 'detail'],
+          queryKey: ['profile'],
         })
       }, 0)
     },
@@ -218,6 +219,8 @@ export const useUpdateReply = ({ prayerId, onSuccess }: UseUpdateReplyOptions) =
       showToast(response.message, 'success')
       onSuccess?.()
       queryClient.invalidateQueries({ queryKey: ['prayers', prayerId, 'replies'] })
+      // 프로필 탭 '내 댓글' 목록에도 수정된 본문이 반영되도록
+      queryClient.invalidateQueries({ queryKey: ['profile'], refetchType: 'none' })
     },
   })
 
@@ -292,7 +295,8 @@ export const useDeleteReply = ({ prayerId, onSuccess }: UseDeleteReplyOptions) =
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['prayers', 'list'] })
         queryClient.invalidateQueries({ queryKey: ['prayers', 'detail', prayerId] })
-        queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+        // 'profile' 전체 — 프로필 탭 무한 목록(my-replies 등)도 stale 처리
+        queryClient.invalidateQueries({ queryKey: ['profile'] })
       }, 0)
     },
   })
