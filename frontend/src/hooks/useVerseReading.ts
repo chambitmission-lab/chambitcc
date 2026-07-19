@@ -28,6 +28,7 @@ export const useVerseReading = ({
   const isVerifyingRef = useRef(false)
   const lastTextRef = useRef('')
   const spokenTextRef = useRef('')
+  const stopReadingRef = useRef<() => void>(() => {})
 
   // 자동 검증 함수
   const autoVerify = useCallback(() => {
@@ -37,30 +38,26 @@ export const useVerseReading = ({
       return
     }
 
-    isVerifyingRef.current = true
     const result = verifyVerseReading(verseText, currentSpokenText, threshold)
 
     if (result.isValid) {
+      isVerifyingRef.current = true
       setFeedback({
         message: result.message,
         type: 'success'
       })
       onSuccess(result.similarity)
-      setTimeout(() => {
-        stopReading()
-        isVerifyingRef.current = false
-      }, 1000)
+      // 곧바로 종료해 마이크를 해제한다 — 다음 절 시작이 죽어가는 세션과
+      // 마이크를 두고 경쟁하면 새 세션이 조용히 실패해 이어 읽기가 끊긴다.
+      stopReadingRef.current()
     } else {
+      // 실패해도 텍스트를 지우지 않고 계속 듣는다 — 사용자가 남은 부분을
+      // 마저 읽으면 handleResult가 검증을 다시 예약한다. (예전 3초 초기화는
+      // 그 사이 도착한 낭독까지 지워 검증이 영영 안 도는 상태를 만들었다)
       setFeedback({
         message: result.message,
         type: 'error'
       })
-      setTimeout(() => {
-        setSpokenText('')
-        spokenTextRef.current = ''
-        setFeedback(null)
-        isVerifyingRef.current = false
-      }, 3000)
     }
   }, [verseText, threshold, onSuccess])
 
@@ -75,25 +72,19 @@ export const useVerseReading = ({
     }
 
     const result = verifyVerseReading(verseText, spokenText, threshold)
-    
+
     if (result.isValid) {
       setFeedback({
         message: result.message,
         type: 'success'
       })
       onSuccess(result.similarity)
-      setTimeout(() => {
-        stopReading()
-      }, 1000)
+      stopReadingRef.current()
     } else {
       setFeedback({
         message: result.message,
         type: 'error'
       })
-      setTimeout(() => {
-        setSpokenText('')
-        setFeedback(null)
-      }, 3000)
     }
   }, [spokenText, verseText, threshold, onSuccess])
 
@@ -164,7 +155,10 @@ export const useVerseReading = ({
     setSpokenText('')
     setFeedback(null)
   }, [stopListening])
-  
+
+  // autoVerify가 성공 시 즉시 종료를 호출할 수 있도록 항상 최신 stopReading 유지
+  stopReadingRef.current = stopReading
+
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {
     return () => {

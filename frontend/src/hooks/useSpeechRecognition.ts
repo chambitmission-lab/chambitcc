@@ -27,6 +27,30 @@ let activeReaderStop: (() => void) | null = null
 // getUserMedia를 다시 수행해 매번 느려진다. 전역 플래그로 페이지당 한 번만 데운다.
 let micGloballyPrimed = false
 
+// 버리는 인스턴스는 핸들러부터 뗀다 — stop()/abort() 후에도 늦게 도착하는
+// onresult/onend가 종료된 리더를 되살리거나 다음 절의 새 세션을 오염시킨다.
+const detachRecognition = (rec: any) => {
+  rec.onstart = null
+  rec.onresult = null
+  rec.onerror = null
+  rec.onend = null
+}
+
+// stop()은 밀린 결과를 마저 전달하느라 엔진 해제가 늦다. 버리는 인스턴스는
+// abort()로 즉시 해제해 다음 세션이 마이크를 빨리 넘겨받게 한다.
+const killRecognition = (rec: any) => {
+  detachRecognition(rec)
+  try {
+    if (typeof rec.abort === 'function') {
+      rec.abort()
+    } else {
+      rec.stop()
+    }
+  } catch {
+    // 이미 종료된 인스턴스면 무시
+  }
+}
+
 export const useSpeechRecognition = ({
   onResult,
   onError,
@@ -48,7 +72,11 @@ export const useSpeechRecognition = ({
   const micPrimedRef = useRef<boolean>(false)     // 마이크 권한 선확보 여부
   const startingRef = useRef<boolean>(false)      // 시작 진행 중 가드 (중복 탭 방지)
   const stopSelfRef = useRef<() => void>(() => {}) // 이 인스턴스의 stop (전역 조율자에 등록용)
-  const startWatchdogRef = useRef<number | null>(null) // onstart가 안 뜰 때 스피너 무한 회전 방지
+  const startWatchdogRef = useRef<number | null>(null) // onstart가 안 뜰 때 무이벤트 실패 감지
+  const sessionActiveRef = useRef<boolean>(false)  // onstart~onend 사이 (엔진이 실제로 듣는 중)
+  const restartAttemptsRef = useRef<number>(0)     // 무이벤트 실패 시 자동 재생성 횟수
+  const restartTimerRef = useRef<number | null>(null)
+  const scheduleRestartRef = useRef<(delay?: number) => void>(() => {})
   
   // 모바일 감지
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
@@ -81,6 +109,8 @@ export const useSpeechRecognition = ({
         clearTimeout(startWatchdogRef.current)
         startWatchdogRef.current = null
       }
+      sessionActiveRef.current = true
+      restartAttemptsRef.current = 0
       startingRef.current = false
       isListeningRef.current = true
       setIsStarting(false)
@@ -197,24 +227,13 @@ export const useSpeechRecognition = ({
 
     // 종료 처리
     recognition.onend = () => {
+      sessionActiveRef.current = false
       // 모바일에서는 자동으로 재시작 (continuous false이므로)
       if (shouldRestartRef.current && isListeningRef.current) {
-        setTimeout(() => {
-          if (isListeningRef.current) {
-            try {
-              // 기존 인스턴스는 그대로 재시작 (ref는 유지됨)
-              if (recognitionRef.current) {
-                recognitionRef.current.start()
-              }
-            } catch (err: any) {
-              if (!err.message?.includes('already started')) {
-                console.error('Failed to restart recognition:', err)
-                setIsListening(false)
-                isListeningRef.current = false
-              }
-            }
-          }
-        }, 100)
+        // 새 인스턴스로 교체해 재시작 — 기존 인스턴스 재사용 start()는
+        // Chrome Android에서 가끔 아무 이벤트 없이 죽어(onstart/onerror 無)
+        // 버튼만 켜진 채 마이크가 먹통이 된다. 워치독이 무이벤트 실패를 감지한다.
+        scheduleRestartRef.current(100)
       } else {
         startingRef.current = false
         setIsStarting(false)
@@ -225,6 +244,66 @@ export const useSpeechRecognition = ({
 
     return recognition
   }, [language, continuous, isMobile, onResult, onError])
+
+  // 워치독: 일정 시간 안에 onstart가 안 뜨면(무이벤트 실패) 새 인스턴스로
+  // 재시도하고, 그래도 안 되면 상태를 풀어 빨간 버튼만 켜진 먹통을 막는다.
+  const armStartWatchdog = useCallback(() => {
+    if (startWatchdogRef.current) {
+      clearTimeout(startWatchdogRef.current)
+    }
+    startWatchdogRef.current = setTimeout(() => {
+      startWatchdogRef.current = null
+      if (sessionActiveRef.current) {
+        return
+      }
+      if (!startingRef.current && !isListeningRef.current) {
+        return
+      }
+      if (restartAttemptsRef.current < 2) {
+        restartAttemptsRef.current += 1
+        console.warn(`Speech recognition silent failure — recreating (attempt ${restartAttemptsRef.current})`)
+        scheduleRestartRef.current(150)
+      } else {
+        console.warn('Speech recognition did not start after retries — resetting')
+        stopSelfRef.current()
+      }
+    }, 2000) as unknown as number
+  }, [])
+
+  // 새 인스턴스로 교체해 (재)시작한다. 모바일 발화 단위 재시작과
+  // 무이벤트 실패 복구가 모두 이 경로를 쓴다.
+  const scheduleRestart = useCallback((delay: number = 100) => {
+    if (restartTimerRef.current) {
+      clearTimeout(restartTimerRef.current)
+    }
+    restartTimerRef.current = setTimeout(() => {
+      restartTimerRef.current = null
+      if (!shouldRestartRef.current) {
+        return
+      }
+      if (!startingRef.current && !isListeningRef.current) {
+        return
+      }
+      const old = recognitionRef.current
+      if (old) {
+        killRecognition(old)
+      }
+      const rec = createRecognition()
+      if (!rec) {
+        stopSelfRef.current()
+        return
+      }
+      recognitionRef.current = rec
+      try {
+        rec.start()
+      } catch (err) {
+        // InvalidStateError 등 — 워치독이 다시 재시도한다
+        console.warn('Recognition restart failed:', err)
+      }
+      armStartWatchdog()
+    }, delay) as unknown as number
+  }, [createRecognition, armStartWatchdog])
+  scheduleRestartRef.current = scheduleRestart
 
   // 마이크 권한/오디오 스택을 미리 확보한다.
   // 모바일(특히 Android Chrome)에서 첫 start()가 권한 프롬프트·오디오 초기화와
@@ -281,13 +360,9 @@ export const useSpeechRecognition = ({
     startingRef.current = true
     setIsStarting(true)  // 클릭 즉시 버튼이 "시작 중"으로 반응하도록 (실제 onstart 전까지)
 
-    // 기존 인스턴스 정리
+    // 기존 인스턴스 정리 (핸들러 분리 + 즉시 해제)
     if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop()
-      } catch (e) {
-        // ignore
-      }
+      killRecognition(recognitionRef.current)
       recognitionRef.current = null
     }
 
@@ -321,6 +396,7 @@ export const useSpeechRecognition = ({
     }
 
     shouldRestartRef.current = true
+    restartAttemptsRef.current = 0
 
     // start()는 직전 인스턴스가 완전히 종료되지 않았을 때 InvalidStateError를
     // 던질 수 있다. 짧게 재시도해 한 번에 시작되도록 한다.
@@ -348,19 +424,10 @@ export const useSpeechRecognition = ({
     }
     tryStart()
 
-    // 워치독: 일정 시간 안에 onstart가 안 뜨면(=마이크 경쟁 등으로 조용히 실패)
-    // 시작 상태를 풀어 스피너가 무한히 돌지 않게 한다.
-    if (startWatchdogRef.current) {
-      clearTimeout(startWatchdogRef.current)
-    }
-    startWatchdogRef.current = setTimeout(() => {
-      startWatchdogRef.current = null
-      if (startingRef.current && !isListeningRef.current) {
-        console.warn('Speech recognition did not start in time — resetting')
-        stopSelfRef.current()
-      }
-    }, 5000) as unknown as number
-  }, [isSupported, isMobile, createRecognition, onError, primeMicrophone])
+    // 워치독: onstart가 안 뜨면(=마이크 경쟁 등으로 조용히 실패) 자동 재생성으로
+    // 복구하고, 반복 실패 시 상태를 풀어 스피너가 무한히 돌지 않게 한다.
+    armStartWatchdog()
+  }, [isSupported, isMobile, createRecognition, onError, primeMicrophone, armStartWatchdog])
 
   // 음성 인식 중지
   const stopListening = useCallback(() => {
@@ -372,35 +439,34 @@ export const useSpeechRecognition = ({
       clearTimeout(startWatchdogRef.current)
       startWatchdogRef.current = null
     }
+    if (restartTimerRef.current) {
+      clearTimeout(restartTimerRef.current)
+      restartTimerRef.current = null
+    }
 
     // 전역 조율자에서 내가 활성이면 해제
     if (activeReaderStop === stopSelfRef.current) {
       activeReaderStop = null
     }
 
-    if (!recognitionRef.current || !isListeningRef.current) {
-      return
+    shouldRestartRef.current = false
+    sessionActiveRef.current = false
+    isListeningRef.current = false
+    setIsListening(false)
+
+    const rec = recognitionRef.current
+    recognitionRef.current = null
+    if (rec) {
+      // 핸들러를 먼저 떼고 abort — 늦게 도착하는 onresult/onend가 종료된
+      // 리더에서 고스트 검증·재시작을 일으키지 않게 하고, 엔진을 즉시
+      // 해제해 다음 절의 새 세션이 마이크를 바로 넘겨받게 한다.
+      killRecognition(rec)
     }
 
-    try {
-      shouldRestartRef.current = false
-      isListeningRef.current = false
-
-      recognitionRef.current.stop()
-      recognitionRef.current = null
-      
-      setIsListening(false)
-      initialTextRef.current = ''
-      accumulatedTextRef.current = ''
-      lastSentTextRef.current = ''
-      lastInterimRef.current = ''
-    } catch (error) {
-      console.error('Failed to stop recognition:', error)
-      shouldRestartRef.current = false
-      recognitionRef.current = null
-      setIsListening(false)
-      isListeningRef.current = false
-    }
+    initialTextRef.current = ''
+    accumulatedTextRef.current = ''
+    lastSentTextRef.current = ''
+    lastInterimRef.current = ''
   }, [])
 
   // 전역 조율자가 호출할 수 있도록 이 인스턴스의 stop을 항상 최신으로 유지
