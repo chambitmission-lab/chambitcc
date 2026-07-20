@@ -318,14 +318,16 @@ const VerseList = ({
       if (Math.abs(dist) < 2) return // 이미 제자리
       const maxTop = scroller.scrollHeight - scroller.clientHeight
       const endTop = Math.max(0, Math.min(startTop + dist, maxTop))
-      // 거리에 비례하되 240~550ms로 클램프 — 한 절 이동은 ~0.3초, 먼 복귀도 과하지 않게
-      const duration = Math.max(240, Math.min(200 + Math.abs(endTop - startTop) * 0.35, 550))
+      // 거리에 비례하되 420~900ms로 클램프. easeInOut(천천히 출발-천천히 정지)이라
+      // easeOut처럼 시작 순간 확 움직이는 '뚝' 느낌이 없다 — 낭독 따라가기처럼
+      // 주기적으로 반복되는 스크롤은 가감속이 완만해야 멀미가 안 난다.
+      const duration = Math.max(420, Math.min(260 + Math.abs(endTop - startTop) * 0.5, 900))
       const t0 = performance.now()
       const target = scroller
       const step = (now: number) => {
         scrollAnimRef.current = null
         const p = Math.min(1, (now - t0) / duration)
-        const eased = 1 - Math.pow(1 - p, 3)
+        const eased = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
         target.scrollTop = startTop + (endTop - startTop) * eased
         if (p < 1) scrollAnimRef.current = requestAnimationFrame(step)
       }
@@ -355,9 +357,11 @@ const VerseList = ({
   }, [scrollToVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
 
   // ---------- 오디오북 듣기-보기 동기화 ----------
-  // 낭독 절을 자동으로 따라간다. 정렬은 화면 중앙이 아니라 항상 "맨 위"
-  // (고정 헤더 아래) — 절이 바뀔 때마다 화면이 절 높이만큼 아래로만 착착
-  // 이동해 텔레프롬프터처럼 안정적이고, 다음 절들이 항상 화면에 보인다.
+  // 낭독 절을 자동으로 따라가되, 매 절 스크롤하지 않는다. 절이 바뀔 때마다
+  // 화면을 움직이면 3~5초 간격으로 화면이 계속 꿈틀거려 멀미가 난다.
+  // 대신 낭독 절이 '편안 구역'(헤더 아래 ~ 화면 중간) 안에 보이는 동안은
+  // 하이라이트만 옮기고 화면은 가만히 두고, 구역을 벗어나면 그때 한 번
+  // 맨 위(고정 헤더 아래)로 부드럽게 올린다 — 몇 절에 한 번, 책장 넘기듯.
   // 사용자가 직접 스크롤하면 잠시 멈추고 pill을 띄우며, pill 탭 또는
   // 마지막 조작 6초 후 자동으로 다시 따라간다.
   const [audioFollow, setAudioFollow] = useState(true)
@@ -365,7 +369,15 @@ const VerseList = ({
   audioFollowRef.current = audioFollow
   const audioSyncActive = audioActiveVerse != null
 
-  // 낭독 절이 바뀌면: 따라가기 중이면 맨 위로 스크롤.
+  // 낭독 절이 편안 구역 안에 온전히 보이면 true — 화면을 움직일 필요가 없다.
+  // 위쪽 경계는 고정 헤더+미니 플레이어(112px), 아래쪽 경계는 화면 높이의 58%.
+  // 58%를 넘어 내려가면 다음 절들이 화면 밖이라 곧 못 따라가게 되므로 그때 올린다.
+  const isVerseInComfortZone = (el: HTMLElement) => {
+    const rect = el.getBoundingClientRect()
+    return rect.top >= 112 && rect.bottom <= window.innerHeight * 0.58
+  }
+
+  // 낭독 절이 바뀌면: 따라가기 중이고 편안 구역을 벗어났을 때만 맨 위로 스크롤.
   // 아직 로드 안 된 절(무한 스크롤 뒷페이지)이면 다음 페이지를 미리 받는다.
   useEffect(() => {
     if (audioActiveVerse == null) {
@@ -375,7 +387,9 @@ const VerseList = ({
     if (!chapterData) return
     const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
     if (el) {
-      if (audioFollowRef.current) scrollVerseIntoView(el, 'start')
+      if (audioFollowRef.current && !isVerseInComfortZone(el)) {
+        scrollVerseIntoView(el, 'start')
+      }
     } else if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
     }
@@ -390,7 +404,8 @@ const VerseList = ({
     setAudioFollow(true)
     if (audioActiveVerse != null) {
       const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
-      if (el) scrollVerseIntoView(el, 'start')
+      // 이미 편안 구역에 보이면 굳이 화면을 움직이지 않는다
+      if (el && !isVerseInComfortZone(el)) scrollVerseIntoView(el, 'start')
     }
   }
   // 자동 재개 타이머에서 항상 최신 상태(현재 낭독 절)를 보도록 ref로 보관
