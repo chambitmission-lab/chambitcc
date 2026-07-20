@@ -162,7 +162,10 @@
   margin-bottom: 0;
 }
 
-.section-title {
+/* .section-title/.section-description은 다른 페이지(성경 등)에서도 쓰는 범용
+   클래스명이라 반드시 모달 루트로 스코프한다 — 전역으로 두면 성경 '책 선택'
+   제목이 이 규칙(0.95rem·좁은 마진)으로 덮여 레이아웃이 깨진 사고가 있었다. */
+.garden-customize-modal .section-title {
   font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -170,18 +173,18 @@
   margin: 0 0 0.375rem 0;
 }
 
-[data-theme='dark'] .section-title {
+[data-theme='dark'] .garden-customize-modal .section-title {
   color: #f5f3ff;
 }
 
-.section-description {
+.garden-customize-modal .section-description {
   font-size: 0.8125rem;
   line-height: 1.55;
   color: rgba(91, 33, 182, 0.7);
   margin: 0 0 1rem 0;
 }
 
-[data-theme='dark'] .section-description {
+[data-theme='dark'] .garden-customize-modal .section-description {
   color: rgba(196, 181, 253, 0.75);
 }
 

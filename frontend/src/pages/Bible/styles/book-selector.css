@@ -159,6 +159,14 @@
   background: var(--ig-secondary-background);
 }
 
+/* 마스크가 위로 1rem 뻗기 때문에 바로 위 "책 선택" 제목의 받침을 덮어
+   "채 서태"처럼 잘려 보였다. 제목을 패널(z-index:8)보다 위 레이어로 올려
+   마스크가 글자를 가리지 못하게 한다. */
+.bible-books-section .section-title {
+  position: relative;
+  z-index: 9;
+}
+
 [data-theme="dark"] .book-nav {
   background: rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.08);
