@@ -17,6 +17,7 @@ interface FavoritesPlaylistModalProps {
 }
 
 const RATE_STORAGE_KEY = 'bible-tts-rate'
+const COLLAPSE_STORAGE_KEY = 'bible-playlist-collapsed'
 const RATE_OPTIONS = [0.75, 1, 1.25, 1.5]
 // 음성은 장 오디오북과 동일하게 남성 고정(여성 토글은 추후 노출용으로 보존)
 const VOICE = 'male'
@@ -70,6 +71,10 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
   const wantPlayRef = useRef(false)
 
   const [rate, setRate] = useState<number>(loadRate)
+  // 플레이어 카드 접기 — 목록을 더 넓게 보고 싶을 때. 상태는 기기에 유지.
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem(COLLAPSE_STORAGE_KEY) === '1'
+  )
   const [isShuffle, setIsShuffle] = useState(false)
   const [isRepeat, setIsRepeat] = useState(true) // 기본: 마지막 절 후 처음으로 돌아 계속
   // 드래그 순서를 즉시 반영하기 위한 로컬 목록 (서버 데이터와 동기화)
@@ -260,6 +265,14 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
     setItems((prev) => prev.filter((it) => it.id !== target.id))
   }
 
+  const toggleCollapse = () => {
+    setCollapsed((v) => {
+      const next = !v
+      localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? '1' : '0')
+      return next
+    })
+  }
+
   const cycleRate = () => {
     const idx = RATE_OPTIONS.indexOf(rate)
     const next = RATE_OPTIONS[(idx + 1) % RATE_OPTIONS.length]
@@ -323,11 +336,67 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
           </button>
         </div>
 
-        {/* 플레이어 카드 */}
-        {items.length > 0 && (
+        {/* 플레이어 카드 — 접힌 상태: 목록을 넓게 보도록 컴팩트 바만 노출 */}
+        {items.length > 0 && collapsed && (
+          <div className="relative z-10 px-5 pt-4">
+            <div className="flex items-center gap-3 overflow-hidden rounded-2xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-background-dark px-3 py-2.5 shadow-[0_10px_30px_-16px_var(--brand-glow)]">
+              <button
+                type="button"
+                onClick={togglePlay}
+                disabled={loading}
+                aria-label={isPlaying ? '일시정지' : '재생'}
+                className="relative grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_6px_16px_-6px_var(--brand-glow)] transition active:scale-95 disabled:cursor-default"
+              >
+                {isPlaying && !loading && (
+                  <span className="absolute inset-0 rounded-full bg-[var(--brand-glow)] animate-ping [animation-duration:1.6s]" />
+                )}
+                <span className="material-icons-round relative text-[24px] leading-none">
+                  {loading ? 'auto_awesome' : isPlaying ? 'pause' : 'play_arrow'}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={toggleCollapse}
+                className="min-w-0 flex-1 text-left"
+                aria-label="플레이어 펼치기"
+              >
+                <span className="block truncate text-[12px] font-bold text-brand">
+                  {current ? `${current.book_name_ko} ${current.chapter}:${current.verse}` : ''}
+                </span>
+                <span className="block truncate text-[11px] text-gray-500 dark:text-white/50">
+                  {statusText}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={toggleCollapse}
+                aria-label="플레이어 펼치기"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-gray-400 dark:text-white/45 hover:text-brand hover:bg-black/[0.03] dark:hover:bg-white/[0.06] transition-colors"
+              >
+                <span className="material-icons-round text-[22px]">expand_more</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 플레이어 카드 — 펼친 상태 */}
+        {items.length > 0 && !collapsed && (
           <div className="relative z-10 px-5 pt-4">
             <div className="relative overflow-hidden rounded-3xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-background-dark p-4 shadow-[0_10px_30px_-16px_var(--brand-glow)]">
               <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-[var(--brand-soft-strong)] blur-3xl" />
+
+              {/* 접기 핸들 */}
+              <div className="relative z-10 -mt-1 mb-1 flex justify-center">
+                <button
+                  type="button"
+                  onClick={toggleCollapse}
+                  aria-label="플레이어 접기"
+                  className="flex items-center gap-1 rounded-full px-3 py-1 text-[10.5px] font-semibold text-gray-400 dark:text-white/40 hover:text-brand hover:bg-black/[0.03] dark:hover:bg-white/[0.06] transition-colors"
+                >
+                  <span className="material-icons-round text-[16px]">expand_less</span>
+                  접기
+                </button>
+              </div>
 
               {/* 현재 절 */}
               <div className="relative mb-3 min-h-[3.5rem]">
