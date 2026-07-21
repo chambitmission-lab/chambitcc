@@ -30,10 +30,9 @@ const MENU_SECTIONS: NavSection[] = [
   {
     titleKey: 'navGroupContent',
     items: [
-      // 설교·칼럼 메뉴 임시 숨김 (되살릴 때 아래 두 줄 주석 해제)
-      // { path: '/sermon', key: 'sermon' },
-      { path: '/bible', key: 'bible' }
-      // { path: '/ministry', key: 'ministry' }
+      { path: '/sermon', key: 'sermon' },
+      { path: '/bible', key: 'bible' },
+      { path: '/ministry', key: 'ministry' }
     ]
   },
   {
