@@ -1,4 +1,5 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { lazy, Suspense, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -208,6 +209,9 @@ function App() {
           <PWAInstallButton />
           {/* 성경 칭호 해금 팝업 호스트 — 읽기 후 새 칭호를 축하 */}
           <TitleUnlockHost />
+          {/* Vercel Web Analytics — 방문자/페이지뷰 트래픽 집계 (쿠키리스).
+              HashRouter라 경로별 세분화는 hash로 잡히지만, 방문자 총계는 정상 집계됨. */}
+          <Analytics />
         </div>
       </Router>
     </ThemeProvider>
