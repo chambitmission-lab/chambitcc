@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- HashRouter(SPA)라 실제 크롤 가능한 URL은 루트 하나뿐이다.
+     내부 경로는 /#/... 해시라 구글이 별도 페이지로 색인하지 않으므로 홈만 등록한다. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://chambitcc.vercel.app/</loc>
+    <lastmod>2026-07-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
