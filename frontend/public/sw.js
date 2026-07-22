@@ -339,6 +339,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // TTS 오디오 스트림도 캐싱 제외 — 장(章)마다 수 MB짜리 MP3를 clone()으로
+  // 이중 버퍼링하고 Cache Storage 를 무한정 키우게 된다 (음성×장 조합만큼 누적)
+  if (url.pathname.includes('/bible/tts/')) {
+    return;
+  }
+
   // API 요청만 캐싱 (GET 요청만)
   if (event.request.method === 'GET' && url.pathname.includes('/api/')) {
     event.respondWith(

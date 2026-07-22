@@ -14,6 +14,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useOptimisticUpdateVerse } from '../../../hooks/useBibleAdmin'
 import { useChapterCommentaries } from '../../../hooks/useBibleCommentary'
 import { useChapterWordNotes, groupWordNotesByVerse } from '../../../hooks/useBibleWordNote'
+import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
+import type { VerseBookmark } from '../../../api/bibleBookmark'
 
 interface VerseListProps {
   chapterData: InfiniteData<BibleChapterPaginatedResponse> | undefined
@@ -81,6 +83,21 @@ const VerseList = ({
     () => groupWordNotesByVerse(chapterWordNotes),
     [chapterWordNotes],
   )
+
+  // 이 장의 내 북마크 전체 (절마다 개별 요청하던 N+1 제거 — 단어 노트와 동일 패턴).
+  // 데이터가 아직 없으면(로딩/백엔드 미배포) null 대신 undefined를 내려보내
+  // VerseItem이 기존 절별 조회로 폴백하게 한다.
+  const { data: chapterBookmarks } = useChapterBookmarks(
+    bookNumber,
+    selectedChapter,
+    isLoggedIn(),
+  )
+  const bookmarksByVerse = useMemo(() => {
+    if (!chapterBookmarks) return null
+    const map = new Map<number, VerseBookmark>()
+    for (const b of chapterBookmarks) map.set(b.verse_id, b)
+    return map
+  }, [chapterBookmarks])
 
   // 절 → 해석 존재 여부 맵
   const verseHasCommentaryMap = useMemo(() => {
@@ -538,6 +555,7 @@ const VerseList = ({
                   actionsOpen={openVerseId === verse.id}
                   onActionsOpenChange={(open) => setOpenVerseId(open ? verse.id : null)}
                   wordNotes={wordNotesByVerse.get(verse.id)}
+                  chapterBookmark={bookmarksByVerse ? (bookmarksByVerse.get(verse.id) ?? null) : undefined}
                 />
               ))}
             </div>

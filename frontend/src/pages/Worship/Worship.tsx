@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { memo, useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
@@ -165,6 +165,21 @@ const dayLabel = (occ: Occurrence, seoulNow: Date): string => {
   return `${DAY_CHARS[(seoulNow.getDay() + occ.dayOffset) % 7]}요일`
 }
 
+// 초 단위 카운트다운만 따로 떼어낸 컴포넌트.
+// 1초 인터벌을 여기서만 돌려, 페이지 전체(히어로·필터·카드 전부)가
+// 매초 재렌더되며 CPU/배터리를 소모하던 것을 이 span 하나의 갱신으로 줄인다.
+const CountdownClock = memo(({ deadlineTs }: { deadlineTs: number }) => {
+  const [remainSec, setRemainSec] = useState(0)
+  useEffect(() => {
+    const update = () =>
+      setRemainSec(Math.max(0, Math.round((deadlineTs - Date.now()) / 1000)))
+    update()
+    const timer = setInterval(update, 1_000)
+    return () => clearInterval(timer)
+  }, [deadlineTs])
+  return <span className="worship-live-clock">{formatCountdown(remainSec)}</span>
+})
+
 type DayFilter = 'today' | 'all' | 'sunday' | 'weekday'
 
 const FILTER_LABEL: Record<DayFilter, string> = {
@@ -190,9 +205,10 @@ const Worship = () => {
     loadServices()
   }, [])
 
-  // 카운트다운(초 단위) 갱신용
+  // 예배 목록/배너 갱신용 — 초 단위 표시는 CountdownClock 이 자체 처리하므로
+  // 페이지 전체 재렌더는 15초 간격이면 충분하다 (분 단위 문구·다음 예배 전환용)
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1_000)
+    const timer = setInterval(() => setNow(new Date()), 15_000)
     return () => clearInterval(timer)
   }, [])
 
@@ -360,7 +376,7 @@ const Worship = () => {
                 </span>
                 {upcoming.occ.dayOffset === 0 && (
                   <span className="worship-live-count" aria-label="시작까지 남은 시간">
-                    <span className="worship-live-clock">{formatCountdown(upcomingRemainSec)}</span>
+                    <CountdownClock deadlineTs={Date.now() + upcomingRemainSec * 1000} />
                     <span className="worship-live-after">후 시작</span>
                   </span>
                 )}

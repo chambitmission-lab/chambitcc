@@ -4,6 +4,7 @@ import {
   deleteBookmark,
   getBookmark,
   listBookmarks,
+  listChapterBookmarks,
   reorderBookmarks,
   getBookmarkStats,
   type UpsertBookmarkPayload,
@@ -15,6 +16,9 @@ import {
 export const bookmarkKeys = {
   all: ['bookmark'] as const,
   detail: (verseId: number) => [...bookmarkKeys.all, 'detail', verseId] as const,
+  chapter: (bookNumber: number, chapter: number) =>
+    [...bookmarkKeys.all, 'chapter', bookNumber, chapter] as const,
+  chapters: () => [...bookmarkKeys.all, 'chapter'] as const,
   // 무효화용 prefix. list(undefined)는 ['bookmark','list',undefined]가 되어
   // params가 있는 실제 쿼리 키와 부분 매칭이 안 되므로 반드시 이 키로 invalidate할 것
   lists: () => [...bookmarkKeys.all, 'list'] as const,
@@ -36,6 +40,29 @@ export const useVerseBookmark = (verseId: number, enabled: boolean = true) => {
 }
 
 /**
+ * 한 장의 내 북마크 전체 — VerseList가 한 번 받아 절별로 나눠준다
+ * (절마다 개별 요청하는 N+1 제거, useChapterWordNotes와 동일 패턴).
+ * 백엔드에 by-chapter 엔드포인트가 아직 없으면(배포 전 404) 쿼리는 에러로 남고,
+ * VerseItem이 기존 절별 조회(useVerseBookmark)로 자동 폴백한다.
+ */
+export const useChapterBookmarks = (
+  bookNumber: number,
+  chapter: number,
+  enabled: boolean = true
+) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  return useQuery({
+    queryKey: bookmarkKeys.chapter(bookNumber, chapter),
+    queryFn: () => listChapterBookmarks(bookNumber, chapter),
+    enabled: enabled && !!token && bookNumber > 0 && chapter > 0,
+    staleTime: 1000 * 60 * 5,
+    // 전역 refetchOnMount:false의 예외 — 재진입 시 stale이면 다른 기기/세션의
+    // 변경분을 반영한다 (useMyBookmarks와 동일 이유)
+    refetchOnMount: true,
+  })
+}
+
+/**
  * 북마크 생성/수정 (upsert)
  * - 프로필 캐시 optimistic 업데이트로 포인트 즉시 반영
  */
@@ -46,6 +73,21 @@ export const useUpsertBookmark = (verseId: number) => {
     mutationFn: (payload: UpsertBookmarkPayload) => upsertBookmark(verseId, payload),
     onSuccess: (bookmark: VerseBookmark, variables) => {
       queryClient.setQueryData(bookmarkKeys.detail(verseId), bookmark)
+
+      // 장 배치 캐시(VerseItem 표시의 소스)에도 즉시 반영 — 이미 있는 절이면 교체.
+      // 새 북마크는 어느 장 캐시 소속인지 verse_id만으로 알 수 없으므로
+      // 아래 chapters() invalidate의 리페치(활성 쿼리 = 열려 있는 장)가 반영한다.
+      queryClient.setQueriesData<VerseBookmark[]>(
+        { queryKey: bookmarkKeys.chapters() },
+        (old) => {
+          if (!old) return old
+          const idx = old.findIndex((b) => b.verse_id === verseId)
+          if (idx < 0) return old
+          const updated = [...old]
+          updated[idx] = bookmark
+          return updated
+        },
+      )
 
       const previous = queryClient.getQueryData<VerseBookmark | null>(bookmarkKeys.detail(verseId))
       const wasExisting = previous != null
@@ -82,6 +124,8 @@ export const useUpsertBookmark = (verseId: number) => {
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' })
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.stats() })
       queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+      // 현재 보고 있는 장의 배치 캐시 갱신 (활성 쿼리만 — 즉시 표시는 detail 캐시가 담당)
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.chapters() })
     },
   })
 }
@@ -111,6 +155,17 @@ export const useDeleteBookmark = (verseId: number) => {
       }
       queryClient.setQueryData(bookmarkKeys.detail(verseId), next)
 
+      // 장 배치 캐시에도 즉시 반영 — 행 삭제면 제거, 필드만 지웠으면 교체
+      const nextRow = next
+      queryClient.setQueriesData<VerseBookmark[]>(
+        { queryKey: bookmarkKeys.chapters() },
+        (old) => {
+          if (!old) return old
+          if (nextRow === null) return old.filter((b) => b.verse_id !== verseId)
+          return old.map((b) => (b.verse_id === verseId ? nextRow : b))
+        },
+      )
+
       queryClient.setQueryData(['profile', 'detail'], (old: any) => {
         if (!old) return old
         const bible = old.stats?.bible_reading ?? {}
@@ -136,6 +191,8 @@ export const useDeleteBookmark = (verseId: number) => {
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' })
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.stats() })
       queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+      // 현재 보고 있는 장의 배치 캐시 갱신 (활성 쿼리만 — 즉시 표시는 detail 캐시가 담당)
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.chapters() })
     },
   })
 }

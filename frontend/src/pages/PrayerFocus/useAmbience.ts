@@ -34,7 +34,9 @@ export const useAmbience = (ambienceId: string): UseAmbienceReturn => {
     const audio = new Audio(resolvedSrc)
     audio.loop = true
     audio.volume = track.volume ?? 0.4
-    audio.preload = 'auto'
+    // 'auto' 면 트랙을 고르기만 해도 수 MB MP3를 즉시 내려받는다.
+    // 실제 재생(play()) 시점에 브라우저가 알아서 로드하므로 선로딩은 끈다.
+    audio.preload = 'none'
     audioRef.current = audio
 
     return () => {

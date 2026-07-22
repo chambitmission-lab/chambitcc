@@ -1,5 +1,6 @@
-/* Garden 페이지 — 토스 블루 플랫 테마(theme.css 토큰). 색상은 --brand-*/--surface-* 토큰만 사용,
-   라이트/다크 분기는 theme.css 에서만 한다. */
+/* Garden 페이지 — 토스 블루 플랫 테마(theme.css 토큰).
+   색상은 --brand- / --surface- 계열 토큰만 사용, 라이트/다크 분기는 theme.css 에서만 한다.
+   (이전 주석은 별표+슬래시 조합이 주석을 조기 종료시켜 CSS 문법 오류를 냈었다) */
 
 .main-content > .garden-page {
   max-width: 28rem; /* max-w-md */

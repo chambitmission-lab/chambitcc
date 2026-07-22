@@ -160,7 +160,14 @@ export const getNewlyUnlockedAchievements = (
   currentAchievements: Achievement[]
 ): Achievement[] => {
   const storageKey = 'unlocked_achievements'
-  const previousUnlocked = JSON.parse(localStorage.getItem(storageKey) || '[]') as string[]
+  // 저장값이 손상돼 있어도 렌더 중 throw 하지 않도록 방어 (파싱 실패 시 빈 목록으로 재시작)
+  let previousUnlocked: string[] = []
+  try {
+    const parsed = JSON.parse(localStorage.getItem(storageKey) || '[]')
+    if (Array.isArray(parsed)) previousUnlocked = parsed
+  } catch {
+    // 손상된 값은 아래에서 정상값으로 덮어써진다
+  }
   
   const newlyUnlocked = currentAchievements.filter(
     achievement => achievement.unlocked && !previousUnlocked.includes(achievement.id)

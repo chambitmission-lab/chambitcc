@@ -4,9 +4,10 @@ export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 export const API_V1 = `${API_URL}/api/v1`
 
 // Token refresh 중복 방지 — 동시에 여러 요청이 만료를 감지해도 갱신은 한 번만 수행
+// (community.ts 의 axios 인터셉터도 이 single-flight 를 공유한다)
 let refreshPromise: Promise<string | null> | null = null
 
-const refreshOnce = (): Promise<string | null> => {
+export const refreshOnce = (): Promise<string | null> => {
   if (!refreshPromise) {
     refreshPromise = refreshAccessToken().finally(() => {
       refreshPromise = null

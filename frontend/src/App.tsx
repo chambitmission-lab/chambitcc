@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { clearPersistedCache } from './config/persister'
 import NewHeader from './components/layout/NewHeader/NewHeader'
+import ErrorBoundary from './components/common/ErrorBoundary'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
@@ -143,6 +144,9 @@ function App() {
         <div className="app">
           <NewHeader />
           <main className="main-content">
+            {/* 루트 에러 경계: 페이지 렌더 에러나 재배포 후 lazy 청크 로드 실패 시
+                앱 전체가 흰 화면이 되는 대신 새로고침 안내를 보여준다 */}
+            <ErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route path="/" element={<NewHome />} />
@@ -203,6 +207,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
+            </ErrorBoundary>
           </main>
           <NewFooter />
           {/* PWA 설치 버튼 */}

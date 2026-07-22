@@ -1,0 +1,16 @@
+/* flag-icons의 .fi 기본 스타일만 복제.
+   패키지 전체 CSS(250여 개국 국기가 data-URI로 인라인되어 600KB+)를 로드하는 대신,
+   실제 쓰는 국기 SVG만 LangFlag.tsx 에서 개별 import 해 배경으로 지정한다. */
+.fi {
+  position: relative;
+  display: inline-block;
+  width: 1.333333em;
+  line-height: 1em;
+  background-size: contain;
+  background-position: 50%;
+  background-repeat: no-repeat;
+}
+
+.fi::before {
+  content: '\00a0';
+}

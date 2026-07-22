@@ -76,13 +76,24 @@ const SermonContentFormatter: React.FC<SermonContentFormatterProps> = ({ content
     setExpandedSections(newExpanded)
   }
   
+  // HTML 이스케이프 — dangerouslySetInnerHTML에 넣기 전에 원문의 태그를 무력화해
+  // 본문에 섞인 <script> 등이 실행되는 저장형 XSS를 차단한다.
+  // 이스케이프 후에 하이라이트 span을 입히므로 주입되는 HTML은 우리가 만든 span뿐이다.
+  const escapeHtml = (text: string) =>
+    text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+
   // 중요 키워드 하이라이트
   const highlightKeywords = (text: string) => {
     const keywords = ['하나님', '예수님', '성령님', '그리스도', '주님', '사랑', '은혜', '믿음', '소망', '구원', '축복']
     const biblePattern = /([가-힣]+\s*\d+(?:장|:)\s*\d+(?:절|편)?(?:-\d+(?:절|편)?)?)/g
-    
-    let result = text
-    
+
+    let result = escapeHtml(text)
+
     // 성경 구절 하이라이트
     result = result.replace(biblePattern, '<span class="sermon-bible-ref">$1</span>')
     

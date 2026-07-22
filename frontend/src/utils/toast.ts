@@ -43,12 +43,20 @@ export const showToast = (
     textColor = isDark ? '#262626' : '#fafafa'
   }
   
+  // innerHTML 대신 textContent 로 조립 — 서버 에러 메시지 등
+  // 외부 유래 문자열이 message 로 들어와도 HTML 로 해석되지 않게 한다(XSS 방어)
   if (options?.title) {
-    toast.innerHTML =
-      `<strong style="display: block; font-size: 15px; font-weight: 700; margin-bottom: 4px;">${options.title}</strong>` +
-      `<span style="display: block; font-weight: 400; opacity: 0.85;">${message}</span>`
+    const titleEl = document.createElement('strong')
+    titleEl.style.cssText = 'display: block; font-size: 15px; font-weight: 700; margin-bottom: 4px;'
+    titleEl.textContent = options.title
+    const messageEl = document.createElement('span')
+    messageEl.style.cssText = 'display: block; font-weight: 400; opacity: 0.85;'
+    messageEl.textContent = message
+    toast.append(titleEl, messageEl)
   } else {
-    toast.innerHTML = `<span>${message}</span>`
+    const messageEl = document.createElement('span')
+    messageEl.textContent = message
+    toast.appendChild(messageEl)
   }
 
   toast.style.cssText = `

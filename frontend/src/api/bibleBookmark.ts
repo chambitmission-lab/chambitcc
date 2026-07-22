@@ -93,6 +93,26 @@ export const getBookmark = async (verseId: number): Promise<VerseBookmark | null
   return data.data
 }
 
+/**
+ * 한 장의 내 북마크 전체 — 절마다 개별 조회하는 N+1 제거용 배치 조회
+ * (word note의 by-chapter와 동일 패턴)
+ */
+export const listChapterBookmarks = async (
+  bookNumber: number,
+  chapter: number
+): Promise<VerseBookmark[]> => {
+  requireAuth()
+  const response = await apiFetch(
+    `${API_V1}/bible/bookmarks/by-chapter?book_number=${bookNumber}&chapter=${chapter}`,
+    { headers: getAuthHeaders(true) }
+  )
+  if (!response.ok) {
+    throw new Error('북마크 조회에 실패했습니다')
+  }
+  const data = await response.json()
+  return data.data.items
+}
+
 export const listBookmarks = async (params?: {
   favorites_only?: boolean
   notes_only?: boolean

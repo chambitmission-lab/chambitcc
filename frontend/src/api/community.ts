@@ -1,24 +1,42 @@
 import axios from 'axios'
-import { API_V1 } from '../config/api'
-import { logout } from '../utils/auth'
+import type { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import { API_V1, refreshOnce } from '../config/api'
 
-// Axios 인터셉터 설정 - 401 에러 자동 처리
+// Axios 인터셉터 - 401 시 토큰 갱신 후 1회 재시도.
+// (기존에는 401 즉시 로그아웃해서, access token 만 만료돼도 refresh token 이
+// 멀쩡한 사용자가 커뮤니티 첫 요청에서 강제 로그아웃되는 문제가 있었다.
+// apiFetch 와 동일하게 갱신→재시도하고, 로그아웃 여부는 refreshAccessToken 내부
+// 판정(리프레시 토큰 401/403 일 때만)에 맡긴다. 5xx·네트워크 장애는 토큰 보존.)
 axios.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // 현재 페이지 저장 — HashRouter 라우트는 hash에 있다 (#/rooms/3 → /rooms/3)
-      const currentPath = window.location.hash
-        ? window.location.hash.slice(1)
-        : window.location.pathname + window.location.search
-      if (currentPath !== '/login' && currentPath !== '/register') {
-        sessionStorage.setItem('redirect_after_login', currentPath)
+  async (error: AxiosError) => {
+    const config = error.config as
+      | (InternalAxiosRequestConfig & { _retried?: boolean })
+      | undefined
+
+    if (
+      error.response?.status === 401 &&
+      config &&
+      !config._retried &&
+      config.headers?.Authorization
+    ) {
+      config._retried = true
+      const newToken = await refreshOnce()
+      if (newToken) {
+        config.headers.Authorization = `Bearer ${newToken}`
+        return axios(config)
       }
 
-      // 로그아웃 처리 (푸시 구독 해제 + 캐시 초기화 포함)
-      // 인터셉터는 동기 흐름이라 await할 수 없지만, logout 내부에서
-      // 푸시 해제 실패는 catch 처리되므로 fire-and-forget으로 호출한다.
-      void logout()
+      // 갱신 실패로 로그아웃된 경우(리프레시 토큰 무효)만 복귀 경로를 저장.
+      // HashRouter 라우트는 hash에 있다 (#/rooms/3 → /rooms/3)
+      if (!localStorage.getItem('refresh_token')) {
+        const currentPath = window.location.hash
+          ? window.location.hash.slice(1)
+          : window.location.pathname + window.location.search
+        if (currentPath !== '/login' && currentPath !== '/register') {
+          sessionStorage.setItem('redirect_after_login', currentPath)
+        }
+      }
     }
     return Promise.reject(error)
   }

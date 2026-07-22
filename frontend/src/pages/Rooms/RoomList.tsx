@@ -2,8 +2,7 @@
 // 내가 참여 중인 방 + 새 방 만들기 (본문 범위를 기간에 절 단위 자동 분배)
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { getBibleBooks } from '../../api/bible'
+import { useBibleBooks } from '../../hooks/useBible'
 import { useCreateRoom, useJoinRoom, useMyRooms } from '../../hooks/useMeditationRoom'
 import type { RoomSummary } from '../../types/meditationRoom'
 import { isAuthenticated } from '../../utils/auth'
@@ -250,7 +249,8 @@ const RoomCard = ({ room, onClick }: { room: RoomSummary; onClick: () => void })
 const CreateRoomSheet = ({ onClose }: { onClose: () => void }) => {
   const navigate = useNavigate()
   const createRoom = useCreateRoom()
-  const { data: books } = useQuery({ queryKey: ['bibleBooks'], queryFn: getBibleBooks, staleTime: Infinity })
+  // 성경 책 목록은 공용 키(['bible','books'])를 재사용 — 별도 키로 같은 데이터를 이중 캐싱하지 않는다
+  const { data: books } = useBibleBooks()
 
   const [title, setTitle] = useState('')
   const [emoji, setEmoji] = useState('🕊️')

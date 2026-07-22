@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, Fragment, type ReactNode } from 'react'
 import type { BibleVerse } from '../../../types/bible'
 import type { WordNote } from '../../../api/bibleWordNote'
+import type { VerseBookmark } from '../../../api/bibleBookmark'
 import { useVerseReading } from '../../../hooks/useVerseReading'
 import { useKaraokeProgress } from '../../../hooks/useKaraokeProgress'
 import VerseReadingButton from '../../../components/prayer/VerseReadingButton'
@@ -30,6 +31,10 @@ interface VerseItemProps {
   onActionsOpenChange: (open: boolean) => void
   // 이 절에 저장된 단어 노트들 — 부모가 장 단위로 배치 조회해 나눠준다
   wordNotes?: WordNote[]
+  // 이 절의 북마크 — 부모(VerseList)가 장 단위로 배치 조회해 나눠준다.
+  // undefined = 장 데이터 없음(로딩/미배포) → 기존 절별 조회로 폴백,
+  // null = 장 데이터는 있는데 이 절엔 북마크 없음
+  chapterBookmark?: VerseBookmark | null
 }
 
 /** 토큰 앞뒤의 문장부호를 떼고 단어만 남긴다 ("긍휼히," → "긍휼히") */
@@ -58,7 +63,7 @@ const resolveNoteRange = (note: WordNote, text: string): [number, number] | null
   return idx >= 0 ? [idx, idx + note.word.length] : null
 }
 
-const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange, wordNotes }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange, wordNotes, chapterBookmark }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
@@ -73,7 +78,12 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
   } | null>(null)
   const showActions = actionsOpen
   const isAdminUser = isAdmin()
-  const { data: bookmark } = useVerseBookmark(verse.id)
+  // 장 배치 데이터(chapterBookmark)가 오면 절별 요청은 끄고 장 데이터를 쓴다 — N+1 제거.
+  // 저장/삭제 직후의 즉시 반영은 뮤테이션이 장 배치 캐시를 직접 갱신해 처리한다.
+  // (detail 캐시를 우선하면 persist로 복원된 오래된 절 캐시가 신선한 장 데이터를 덮는다)
+  const chapterProvided = chapterBookmark !== undefined
+  const { data: fetchedBookmark } = useVerseBookmark(verse.id, !chapterProvided)
+  const bookmark = chapterProvided ? chapterBookmark : fetchedBookmark
   const highlightBg = bookmark?.highlight_color
     ? HIGHLIGHT_COLOR_BG[bookmark.highlight_color]
     : null
