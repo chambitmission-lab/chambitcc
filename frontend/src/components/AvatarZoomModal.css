@@ -1,0 +1,39 @@
+/* 프로필 사진 확대 라이트박스 — 인스타그램식 탭-확대 벤치마크.
+ * 배경은 부드럽게 페이드, 사진은 살짝 작게 시작해 튕기듯 확대된다. */
+@keyframes avatar-zoom-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes avatar-zoom-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.avatar-zoom-backdrop {
+  animation: avatar-zoom-backdrop-in 0.18s ease-out;
+}
+
+.avatar-zoom-figure {
+  animation: avatar-zoom-in 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-zoom-backdrop,
+  .avatar-zoom-figure {
+    animation: none;
+  }
+}
