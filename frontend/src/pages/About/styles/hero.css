@@ -28,7 +28,7 @@
   text-align: center;
 }
 
-.hero-badge {
+.about-hero .hero-badge {
   position: relative;
   display: inline-block;
   padding: 0.5rem 1.25rem;
@@ -56,10 +56,18 @@
   }
 }
 
-.hero-title {
+/* 히어로 제목: 다른 페이지의 전역 `.hero-title`(예: [data-theme="light"] .hero-title)이
+   새어 들어와 색을 덮어쓰지 못하도록 .about-hero .hero-content 로 스코프하고
+   (명시도 0,3,0) 색/그라데이션 clip을 명시적으로 초기화한다. About 히어로는
+   테마와 무관하게 항상 어두운 배경이므로 제목은 항상 흰색이어야 한다. */
+.about-hero .hero-content .hero-title {
   font-size: 3rem;
   font-weight: 800;
   color: white;
+  background: none;
+  -webkit-text-fill-color: white;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
   margin-bottom: 0.75rem;
   letter-spacing: -0.02em;
   text-shadow:
@@ -67,7 +75,7 @@
     0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.hero-subtitle {
+.about-hero .hero-content .hero-subtitle {
   font-size: 1.125rem;
   color: rgba(255, 255, 255, 0.95);
   font-weight: 500;
