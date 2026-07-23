@@ -12,19 +12,30 @@ export interface AnimatedEmoji {
 }
 
 export const ANIMATED_EMOJIS: AnimatedEmoji[] = [
+  // 1행 — 기도·사랑 (교회 앱 핵심 반응)
   { char: '🙏', code: '1f64f', label: '기도' },
   { char: '❤️', code: '2764_fe0f', label: '사랑' },
+  { char: '❤️‍🔥', code: '2764_fe0f_200d_1f525', label: '불타는 사랑' },
+  { char: '🫶', code: '1faf6', label: '손하트' },
   { char: '🥰', code: '1f970', label: '사랑스러움' },
   { char: '😊', code: '1f60a', label: '미소' },
+  { char: '🤗', code: '1f917', label: '포옹' },
+  { char: '💪', code: '1f4aa', label: '힘내요' },
+  // 2행 — 감정 (2030 인기 표현)
+  { char: '🥹', code: '1f979', label: '감동의 눈물' },
+  { char: '🥺', code: '1f97a', label: '간절' },
   { char: '😭', code: '1f62d', label: '눈물' },
   { char: '😢', code: '1f622', label: '슬픔' },
+  { char: '🥲', code: '1f972', label: '웃픈 눈물' },
+  { char: '🫠', code: '1fae0', label: '녹아내림' },
+  { char: '🤩', code: '1f929', label: '반한 눈' },
+  { char: '🥳', code: '1f973', label: '파티' },
+  // 3행 — 찬양·응원
   { char: '🙌', code: '1f64c', label: '찬양' },
   { char: '👏', code: '1f44f', label: '박수' },
-  { char: '🤗', code: '1f917', label: '포옹' },
   { char: '✨', code: '2728', label: '반짝임' },
   { char: '🔥', code: '1f525', label: '불꽃' },
   { char: '🎉', code: '1f389', label: '축하' },
-  { char: '💪', code: '1f4aa', label: '힘내요' },
   { char: '🌈', code: '1f308', label: '무지개' },
   { char: '🌟', code: '1f31f', label: '빛나는 별' },
   { char: '🕊️', code: '1f54a_fe0f', label: '평화' },
