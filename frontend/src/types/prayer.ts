@@ -47,7 +47,8 @@ export interface PrayerListResponse {
     items: Prayer[]
     page: number
     limit: number
-    total: number
+    total: number       // 필터 기준 전체 건수
+    has_next?: boolean  // 다음 페이지 존재 여부 (구버전 백엔드 응답에는 없을 수 있음)
   }
 }
 

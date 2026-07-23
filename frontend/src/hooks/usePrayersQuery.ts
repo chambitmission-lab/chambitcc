@@ -76,8 +76,9 @@ export const usePrayersInfinite = (
     },
     enabled: !requiresAuth || isAuthenticated, // 로그인 필요한 필터는 로그인 시에만 활성화
     getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.data.items.length < 20) return undefined
-      return allPages.length + 1
+      // 서버의 has_next를 신뢰. 없으면(구버전 응답) 페이지 크기로 추론
+      const hasNext = lastPage.data.has_next ?? lastPage.data.items.length === 20
+      return hasNext ? allPages.length + 1 : undefined
     },
     initialPageParam: 1,
     staleTime: 1000 * 60 * 5, // 5분간 fresh (캐시 활용)
@@ -259,6 +260,10 @@ export const usePrayersInfinite = (
   // 모든 페이지의 prayers를 flat하게 변환
   const prayers = query.data?.pages.flatMap(page => page.data.items) ?? []
 
+  // 필터 기준 전체 건수 (가장 최근에 받은 페이지의 total이 최신)
+  const lastLoadedPage = query.data?.pages[query.data.pages.length - 1]
+  const total = lastLoadedPage?.data.total ?? 0
+
   // 기도 토글 핸들러 (Open/Closed: 기존 인터페이스 유지하면서 새 구현 사용)
   const handlePrayerToggle = async (prayerId: number): Promise<void> => {
     const prayer = prayers.find(p => p.id === prayerId)
@@ -269,6 +274,7 @@ export const usePrayersInfinite = (
 
   return {
     prayers,
+    total,
     loading: query.isLoading,
     error: query.error instanceof Error ? query.error.message : null,
     hasMore: query.hasNextPage,

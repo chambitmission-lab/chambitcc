@@ -24,7 +24,7 @@ export const usePrayers = (initialSort: SortType = 'popular') => {
         setPrayers(prev => 
           reset ? response.data.items : [...prev, ...response.data.items]
         )
-        setHasMore(response.data.items.length === 20)
+        setHasMore(response.data.has_next ?? response.data.items.length === 20)
         if (reset) setPage(1)
       }
     } catch (err) {

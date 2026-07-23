@@ -17,6 +17,7 @@ const AnsweredPrayers = () => {
   // 백엔드에 is_answered=true 필터 전달 → 응답된 기도만 페이지네이션으로 받음
   const {
     prayers: answeredPrayers,
+    total,
     loading,
     error,
     hasMore,
@@ -90,7 +91,7 @@ const AnsweredPrayers = () => {
                   <span className="material-icons-round" style={{ fontSize: 13 }}>
                     auto_awesome
                   </span>
-                  {answeredPrayers.length}
+                  {total > 0 ? total : answeredPrayers.length}
                   {t('answeredCountStacked')}
                 </div>
               )}
@@ -119,7 +120,7 @@ const AnsweredPrayers = () => {
 
           {answeredPrayers.length > 0 && (
             <span className="answered-sort-count">
-              ✨ {answeredPrayers.length}
+              ✨ {total > 0 ? total : answeredPrayers.length}
               {t('answeredCountSuffix')}
             </span>
           )}

@@ -21,6 +21,7 @@ const PrayerList = () => {
   
   const {
     prayers,
+    total,
     loading,
     error,
     hasMore,
@@ -132,10 +133,10 @@ const PrayerList = () => {
             </button>
           </div>
           
-          {/* 기도 개수 표시 */}
+          {/* 기도 개수 표시 — 로드된 개수가 아니라 전체 건수 */}
           {prayers.length > 0 && (
             <span className="text-xs text-gray-400 dark:text-gray-500">
-              {prayers.length}개의 기도
+              {total > 0 ? total : prayers.length}개의 기도
             </span>
           )}
         </div>
