@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useProfileDetail } from '../../hooks/useProfile'
+import { ANIMATED_EMOJIS, AnimatedEmojiImg } from './animatedEmoji'
 
 interface ReplyComposerProps {
   onSubmit: (content: string, displayName: string) => void
@@ -12,6 +13,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
   const { t } = useLanguage()
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
+  const [showStickers, setShowStickers] = useState(false)
   const isLoggedIn = !!localStorage.getItem('access_token')
 
   // 프로필 사진 — 캐시된 프로필 상세에서 (미등록/비로그인 시 null → 이니셜 아바타)
@@ -58,6 +60,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
 
     // 폼 초기화
     setContent('')
+    setShowStickers(false)
   }
 
   return (
@@ -92,9 +95,41 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
             disabled={isSubmitting || !isLoggedIn}
           />
 
+          {/* 움직이는 이모티콘 피커 — 문자는 일반 이모지로 입력되고 표시 시 애니메이션으로 그려진다 */}
+          {showStickers && (
+            <div className="mt-2 p-2.5 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark grid grid-cols-8 gap-0.5">
+              {ANIMATED_EMOJIS.map((e) => (
+                <button
+                  key={e.code}
+                  type="button"
+                  aria-label={e.label}
+                  disabled={isSubmitting || !isLoggedIn}
+                  onClick={() => setContent((c) => c + e.char)}
+                  className="h-10 flex items-center justify-center rounded-lg hover:bg-[var(--brand-soft)] active:scale-90 transition-all disabled:opacity-50"
+                >
+                  <AnimatedEmojiImg emoji={e} size={28} />
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center justify-between gap-4 mt-4">
+            <button
+              type="button"
+              aria-label="움직이는 이모티콘"
+              aria-expanded={showStickers}
+              disabled={isSubmitting || !isLoggedIn}
+              onClick={() => setShowStickers((v) => !v)}
+              className={`flex-shrink-0 w-8 h-8 -ml-1 flex items-center justify-center rounded-full transition-colors disabled:opacity-40 ${
+                showStickers
+                  ? 'text-[var(--brand)] bg-[var(--brand-soft)]'
+                  : 'text-gray-400 dark:text-gray-500 hover:text-[var(--brand)]'
+              }`}
+            >
+              <span className="material-icons-round text-[22px]">mood</span>
+            </button>
             {isLoggedIn ? (
-              <label className="flex items-center gap-2 cursor-pointer pl-1 py-1 min-w-0">
+              <label className="flex items-center gap-2 cursor-pointer py-1 min-w-0 mr-auto">
                 <input
                   type="checkbox"
                   checked={isAnonymous}

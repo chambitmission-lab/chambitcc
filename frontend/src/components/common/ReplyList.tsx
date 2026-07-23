@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Reply } from '../../types/prayer'
+import { AnimatedEmojiText } from './animatedEmoji'
 
 interface ReplyListProps {
   replies: Reply[]
@@ -179,9 +180,10 @@ const ReplyList = ({
                 </div>
               </div>
             ) : (
-              <p className="text-gray-700 dark:text-gray-200 text-[14px] leading-[1.65] whitespace-pre-wrap break-words">
-                {reply.content}
-              </p>
+              <AnimatedEmojiText
+                content={reply.content}
+                className="text-gray-700 dark:text-gray-200 text-[14px] leading-[1.65] whitespace-pre-wrap break-words"
+              />
             )}
           </div>
         </div>
