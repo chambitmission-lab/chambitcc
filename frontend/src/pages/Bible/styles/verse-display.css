@@ -72,7 +72,6 @@
   border-bottom: 1px solid transparent;
   animation: gentleShimmer 3s ease-in-out infinite;
   box-shadow:
-    inset 3px 0 0 rgba(49, 130, 246, 0.85),
     inset 0 0 20px rgba(49, 130, 246, 0.1),
     0 6px 22px -6px rgba(0, 0, 0, 0.35);
 }
@@ -133,9 +132,7 @@
   padding: 1.125rem 0.75rem;
   border-radius: 12px;
   border-bottom: 1px solid transparent;
-  box-shadow:
-    inset 3px 0 0 rgba(49, 130, 246, 0.85),
-    0 6px 22px -6px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 6px 22px -6px rgba(0, 0, 0, 0.35);
 }
 
 .bible-verse-item.verse-selected .bible-verse-number {
@@ -145,9 +142,7 @@
 
 [data-theme="light"] .bible-verse-item.verse-selected {
   background: rgba(49, 130, 246, 0.07);
-  box-shadow:
-    inset 3px 0 0 rgba(49, 130, 246, 0.7),
-    0 6px 20px -8px rgba(49, 130, 246, 0.35);
+  box-shadow: 0 6px 20px -8px rgba(49, 130, 246, 0.35);
 }
 
 /* 읽는 중 상태도 selected/hover와 동일한 지오메트리라 별도 hover 보정이 필요 없다.
@@ -362,10 +357,11 @@
 
 /* 오디오북 듣기-보기 동기화 — 지금 낭독 중인 절을 은은하게 강조.
    배경은 형광펜(rowAccent 인라인 스타일)이 있으면 그쪽이 이기므로,
-   왼쪽 브랜드 바(inset shadow)로 어떤 절에서든 위치가 보이게 한다. */
+   좌측 바(선택 상태처럼 보임) 대신 은은한 내부 글로우로 어떤 배경 위에서도
+   위치가 보이게 한다. */
 .bible-verse-item.verse-audio-active {
   background-color: var(--brand-soft, rgba(49, 130, 246, 0.08));
-  box-shadow: inset 3px 0 0 var(--brand, #3182f6);
+  box-shadow: inset 0 0 18px rgba(49, 130, 246, 0.16);
   border-radius: 0.375rem;
 }
 

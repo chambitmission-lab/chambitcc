@@ -10,7 +10,7 @@ import { useVerseBookmark } from '../../../hooks/useBibleBookmark'
 import VerseBookmarkModal, { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 import VerseNoteSheet from './VerseNoteSheet'
 import WordNoteSheet from './WordNoteSheet'
-import { HeartIcon, BookOpenIcon } from '../../../components/icons/ActionIcons'
+import { HeartIcon } from '../../../components/icons/ActionIcons'
 
 interface VerseItemProps {
   verse: BibleVerse
@@ -399,7 +399,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             남는 두 상태는 모양으로 구분: 채운 하트=즐겨찾기(내 표시), 라인 책=해석 있음(콘텐츠).
             읽음 체크는 절 번호 색으로 이동 — 읽음 처리 순간 이 행에
             아이콘이 끼어들며 본문이 재줄바꿈되던 출렁임을 없앤다. */}
-        {(bookmark?.is_favorite || hasCommentary) && (
+        {bookmark?.is_favorite && (
           <div
             style={{
               display: 'flex',
@@ -410,19 +410,9 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               paddingTop: 'calc(var(--verse-line-box) / 2 - 5.5px)',
             }}
           >
-            {bookmark?.is_favorite && (
-              <span title="즐겨찾기" style={{ display: 'inline-flex', color: 'var(--brand)' }}>
-                <HeartIcon size={11} filled />
-              </span>
-            )}
-            {hasCommentary && (
-              <span
-                title="해석 있음"
-                style={{ display: 'inline-flex', color: 'var(--brand)', opacity: 0.75 }}
-              >
-                <BookOpenIcon size={11} strokeWidth={2.2} />
-              </span>
-            )}
+            <span title="즐겨찾기" style={{ display: 'inline-flex', color: 'var(--brand)' }}>
+              <HeartIcon size={11} filled />
+            </span>
           </div>
         )}
       </div>
