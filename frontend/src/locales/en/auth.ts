@@ -13,6 +13,7 @@ export const auth = {
   loginLoading: 'Logging in...',
   loginFailed: 'Login failed',
   loginInvalidCredentials: 'Incorrect username or password',
+  loginInactiveAccount: 'This account has been deactivated. Please contact an administrator.',
   loginNoAccount: "Don't have an account?",
   loginSignUp: 'Sign Up',
   loginBackHome: 'Back to Home',

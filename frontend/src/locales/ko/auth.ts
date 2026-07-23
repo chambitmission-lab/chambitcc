@@ -13,6 +13,7 @@ export const auth = {
   loginLoading: '로그인 중...',
   loginFailed: '로그인에 실패했습니다',
   loginInvalidCredentials: '아이디 또는 비밀번호가 올바르지 않습니다',
+  loginInactiveAccount: '비활성화된 계정입니다. 관리자에게 문의해주세요.',
   loginNoAccount: '계정이 없으신가요?',
   loginSignUp: '회원가입',
   loginBackHome: '홈으로 돌아가기',

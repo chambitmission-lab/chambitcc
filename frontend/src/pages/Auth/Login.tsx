@@ -50,6 +50,8 @@ const Login = () => {
         // 현재 선택된 언어에 맞는 번역 메시지로 변환해서 보여준다.
         const message = response.status === 401
           ? t('loginInvalidCredentials')
+          : response.status === 403
+          ? t('loginInactiveAccount')
           : t('loginFailed')
         throw new Error(message)
       }
