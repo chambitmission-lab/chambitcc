@@ -287,7 +287,7 @@ const VerseList = ({
   useEffect(() => () => cancelVerseScroll(), [cancelVerseScroll])
 
   const scrollVerseIntoView = useCallback(
-    (el: HTMLElement, block: ScrollLogicalPosition = 'center') => {
+    (el: HTMLElement, block: 'start' | 'center' | 'follow' = 'center') => {
       cancelVerseScroll()
       // 실제 스크롤 컨테이너가 기기/브라우저에 따라 갈린다(이 앱은 html/body
       // overflow-x:hidden + height:100% 구조라 body가 스크롤러인 환경이 있음).
@@ -319,12 +319,18 @@ const VerseList = ({
       }
       if (!scroller) return // 스크롤 자체가 불가능한 상태
 
-      // 목표 위치: 상단 정렬은 고정 헤더+미니 플레이어 아래(112px), 중앙 정렬은
-      // 뷰포트 중앙(단, 헤더 아래로는 안 올라가게)
+      // 목표 위치:
+      // - 'start'  : 고정 헤더+미니 플레이어 아래(112px)
+      // - 'center' : 뷰포트 중앙(단, 헤더 아래로는 안 올라가게)
+      // - 'follow' : 낭독 따라가기용 하단 앵커. 절의 '아래쪽'을 화면 82%에 맞춘다.
+      //   → 절이 하단에 닿았을 때만, 딱 한 절만큼만 밀어 올려 계속 하단에 머물게 한다
+      //     (맨 위로 확 끌어올리는 점프가 없어 멀미가 안 난다).
       const viewportTarget =
         block === 'start'
           ? 112
-          : Math.max(112, (window.innerHeight - el.clientHeight) / 2)
+          : block === 'follow'
+            ? Math.max(112, window.innerHeight * 0.82 - el.clientHeight)
+            : Math.max(112, (window.innerHeight - el.clientHeight) / 2)
       // 시작 시 한 번만 측정해 목표 scrollTop을 확정하고, 이후엔 경과 시간만으로
       // 절대 위치를 계산한다(easeOutCubic 고정 곡선). 매 프레임 요소 위치를
       // 재측정하는 피드백 방식은 강제 레이아웃 + dt 널뜀으로 이동량이 프레임마다
@@ -374,11 +380,14 @@ const VerseList = ({
   }, [scrollToVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
 
   // ---------- 오디오북 듣기-보기 동기화 ----------
-  // 낭독 절을 자동으로 따라가되, 매 절 스크롤하지 않는다. 절이 바뀔 때마다
-  // 화면을 움직이면 3~5초 간격으로 화면이 계속 꿈틀거려 멀미가 난다.
-  // 대신 낭독 절이 '편안 구역'(헤더 아래 ~ 화면 중간) 안에 보이는 동안은
-  // 하이라이트만 옮기고 화면은 가만히 두고, 구역을 벗어나면 그때 한 번
-  // 맨 위(고정 헤더 아래)로 부드럽게 올린다 — 몇 절에 한 번, 책장 넘기듯.
+  // 낭독 절을 텔레프롬프터처럼 하단 고정으로 따라간다. 절이 바뀔 때마다
+  // 화면을 움직이거나, 맨 위로 확 끌어올리면(예전 방식) 반 화면이 점프하며
+  // 멀미가 난다. 대신:
+  //  1) 낭독 절이 아직 화면 위쪽~하단 앵커(82%) 사이에 보이는 동안은 스크롤을
+  //     하지 않고 하이라이트만 아래로 내린다 — 이미 화면에 있는 다음 절들을
+  //     자연스럽게 따라 읽는다("하단 하단 하단").
+  //  2) 낭독 절이 하단 앵커에 닿으면, 딱 한 절만큼만 아래로 밀어 그 절을 다시
+  //     앵커에 맞춘다 — 맨 위로 리셋하지 않고 계속 하단에 머문다("한 단계씩").
   // 사용자가 직접 스크롤하면 잠시 멈추고 pill을 띄우며, pill 탭 또는
   // 마지막 조작 6초 후 자동으로 다시 따라간다.
   const [audioFollow, setAudioFollow] = useState(true)
@@ -386,15 +395,15 @@ const VerseList = ({
   audioFollowRef.current = audioFollow
   const audioSyncActive = audioActiveVerse != null
 
-  // 낭독 절이 편안 구역 안에 온전히 보이면 true — 화면을 움직일 필요가 없다.
-  // 위쪽 경계는 고정 헤더+미니 플레이어(112px), 아래쪽 경계는 화면 높이의 58%.
-  // 58%를 넘어 내려가면 다음 절들이 화면 밖이라 곧 못 따라가게 되므로 그때 올린다.
+  // 낭독 절이 편안 구역(헤더 아래 ~ 화면 하단 앵커 82%) 안에 온전히 보이면 true.
+  // 이 안에 있으면 화면을 움직이지 않고 하이라이트만 아래로 흐르게 둔다.
+  // 아래쪽 82%를 넘어가면 그때 딱 한 절만큼만 밀어 하단에 붙여둔다.
   const isVerseInComfortZone = (el: HTMLElement) => {
     const rect = el.getBoundingClientRect()
-    return rect.top >= 112 && rect.bottom <= window.innerHeight * 0.58
+    return rect.top >= 112 && rect.bottom <= window.innerHeight * 0.82
   }
 
-  // 낭독 절이 바뀌면: 따라가기 중이고 편안 구역을 벗어났을 때만 맨 위로 스크롤.
+  // 낭독 절이 바뀌면: 따라가기 중이고 하단 앵커를 벗어났을 때만 한 절만큼 밀어 올린다.
   // 아직 로드 안 된 절(무한 스크롤 뒷페이지)이면 다음 페이지를 미리 받는다.
   useEffect(() => {
     if (audioActiveVerse == null) {
@@ -405,7 +414,7 @@ const VerseList = ({
     const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
     if (el) {
       if (audioFollowRef.current && !isVerseInComfortZone(el)) {
-        scrollVerseIntoView(el, 'start')
+        scrollVerseIntoView(el, 'follow')
       }
     } else if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
@@ -422,7 +431,7 @@ const VerseList = ({
     if (audioActiveVerse != null) {
       const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
       // 이미 편안 구역에 보이면 굳이 화면을 움직이지 않는다
-      if (el && !isVerseInComfortZone(el)) scrollVerseIntoView(el, 'start')
+      if (el && !isVerseInComfortZone(el)) scrollVerseIntoView(el, 'follow')
     }
   }
   // 자동 재개 타이머에서 항상 최신 상태(현재 낭독 절)를 보도록 ref로 보관
