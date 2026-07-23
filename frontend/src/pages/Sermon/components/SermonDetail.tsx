@@ -200,10 +200,6 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
               <span>{formatDate(sermon.sermon_date)}</span>
             </div>
             <div className="sermon-detail-meta-item">
-              <span className="material-icons-outlined">person</span>
-              <span>{sermon.pastor}</span>
-            </div>
-            <div className="sermon-detail-meta-item">
               <span className="material-icons-outlined">visibility</span>
               <span>{sermon.views.toLocaleString()} 조회</span>
             </div>

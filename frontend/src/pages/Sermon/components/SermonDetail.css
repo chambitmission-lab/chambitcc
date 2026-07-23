@@ -232,7 +232,8 @@
 .sermon-detail-meta {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
   padding: 0 1rem 0.875rem 1rem;
   border-bottom: 1px solid #efefef;
 }
@@ -249,6 +250,8 @@
   font-size: 0.8125rem;
   color: #8e8e8e;
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .sermon-detail-meta-item .material-icons-outlined {
