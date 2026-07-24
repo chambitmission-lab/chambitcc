@@ -218,7 +218,7 @@
   background: var(--surface-container);
   border: 1px solid var(--brand-soft-strong);
   box-shadow: 0 4px 14px -8px var(--brand-glow);
-  animation: worship-cd-tick 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: worship-cd-tick 0.5s ease-out;
 }
 
 .worship-cd-lab {
@@ -239,14 +239,15 @@
   opacity: 0.45;
 }
 
+/* 세로 점프 없이 살짝 흐렸다 선명해지는 크로스페이드 — 매초 갱신에도 차분하게 */
 @keyframes worship-cd-tick {
   from {
-    transform: translateY(-24%);
-    opacity: 0;
+    opacity: 0.3;
+    filter: blur(3px);
   }
   to {
-    transform: translateY(0);
     opacity: 1;
+    filter: blur(0);
   }
 }
 
