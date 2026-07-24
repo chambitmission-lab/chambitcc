@@ -57,6 +57,11 @@ export const useNewFamilyPosts = (limit = 10, enabled = true) => {
     },
     initialPageParam: 1,
     enabled,
+    staleTime: 1000 * 60 * 2, // 2분
+    // 전역 refetchOnMount:false(queryClient.ts) + 영속캐시의 예외.
+    // 관리자 등록은 react-query 밖(raw fetch)이라 이 캐시를 안 건드린다 →
+    // /news 진입/새로고침마다 항상 최신 목록을 다시 받아 새 새가족이 바로 뜨게 한다.
+    refetchOnMount: 'always',
   })
 
   const posts: NewFamilyPost[] = query.data?.pages.flatMap((p) => p.data.items) ?? []
@@ -70,6 +75,9 @@ export const useNewFamilyStats = (enabled = true) =>
     queryKey: STATS_KEY,
     queryFn: fetchNewFamilyStats,
     enabled,
+    staleTime: 1000 * 60 * 2,
+    // 목록과 같은 이유 — Hero 통계(이번 달/올해/전체)도 진입 시 최신화
+    refetchOnMount: 'always',
   })
 
 // ── 환영 리액션 ───────────────────────────────────────
