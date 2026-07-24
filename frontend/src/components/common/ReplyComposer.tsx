@@ -2,7 +2,13 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useProfileDetail } from '../../hooks/useProfile'
-import { ANIMATED_EMOJIS, AnimatedEmojiImg } from './animatedEmoji'
+import {
+  EMOJI_CATEGORIES,
+  AnimatedEmojiImg,
+  getRecentEmojis,
+  pushRecentEmoji,
+  type AnimatedEmoji,
+} from './animatedEmoji'
 
 interface ReplyComposerProps {
   onSubmit: (content: string, displayName: string) => void
@@ -14,7 +20,22 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
   const [showStickers, setShowStickers] = useState(false)
+  const [categoryKey, setCategoryKey] = useState(EMOJI_CATEGORIES[0].key)
+  const [recent, setRecent] = useState<AnimatedEmoji[]>([])
   const isLoggedIn = !!localStorage.getItem('access_token')
+
+  const category =
+    EMOJI_CATEGORIES.find((c) => c.key === categoryKey) ?? EMOJI_CATEGORIES[0]
+
+  // 피커를 열 때마다 자주 쓴 목록을 다시 읽는다(다른 화면에서 쓴 것도 반영)
+  useEffect(() => {
+    if (showStickers) setRecent(getRecentEmojis())
+  }, [showStickers])
+
+  const insertEmoji = (emoji: AnimatedEmoji) => {
+    setContent((c) => c + emoji.char)
+    setRecent(pushRecentEmoji(emoji.char))
+  }
 
   // 프로필 사진 — 캐시된 프로필 상세에서 (미등록/비로그인 시 null → 이니셜 아바타)
   const { data: profileDetail } = useProfileDetail()
@@ -95,21 +116,66 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
             disabled={isSubmitting || !isLoggedIn}
           />
 
-          {/* 움직이는 이모티콘 피커 — 문자는 일반 이모지로 입력되고 표시 시 애니메이션으로 그려진다 */}
+          {/* 움직이는 이모티콘 피커 — 문자는 일반 이모지로 입력되고 표시 시 애니메이션으로 그려진다.
+           * 자주 쓴 행(로컬 저장) + 카테고리 탭 구성이라 이모지를 계속 늘려도 높이가 안 터진다 */}
           {showStickers && (
-            <div className="mt-2 p-2.5 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark grid grid-cols-8 gap-0.5">
-              {ANIMATED_EMOJIS.map((e) => (
-                <button
-                  key={e.code}
-                  type="button"
-                  aria-label={e.label}
-                  disabled={isSubmitting || !isLoggedIn}
-                  onClick={() => setContent((c) => c + e.char)}
-                  className="h-10 flex items-center justify-center rounded-lg hover:bg-[var(--brand-soft)] active:scale-90 transition-all disabled:opacity-50"
-                >
-                  <AnimatedEmojiImg emoji={e} size={28} />
-                </button>
-              ))}
+            <div className="mt-2 rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark overflow-hidden">
+              {recent.length > 0 && (
+                <div className="px-2.5 pt-2.5">
+                  <p className="px-1 pb-1 text-[11px] font-semibold text-gray-400 dark:text-gray-500">
+                    자주 쓴 이모티콘
+                  </p>
+                  <div className="grid grid-cols-8 gap-0.5">
+                    {recent.map((e) => (
+                      <button
+                        key={`recent-${e.code}`}
+                        type="button"
+                        aria-label={e.label}
+                        disabled={isSubmitting || !isLoggedIn}
+                        onClick={() => insertEmoji(e)}
+                        className="h-10 flex items-center justify-center rounded-lg hover:bg-[var(--brand-soft)] active:scale-90 transition-all disabled:opacity-50"
+                      >
+                        <AnimatedEmojiImg emoji={e} size={28} />
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-2.5 h-px bg-border-light dark:bg-border-dark" />
+                </div>
+              )}
+
+              {/* 카테고리 탭 — 좁은 화면에서 가로 스크롤 */}
+              <div className="flex gap-1 px-2.5 pt-2.5 overflow-x-auto scrollbar-hide">
+                {EMOJI_CATEGORIES.map((c) => (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => setCategoryKey(c.key)}
+                    aria-pressed={c.key === categoryKey}
+                    className={`flex-shrink-0 px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
+                      c.key === categoryKey
+                        ? 'brand-gradient shadow-[0_2px_10px_-2px_var(--brand-glow)]'
+                        : 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/[0.06] hover:text-[var(--brand)]'
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="p-2.5 grid grid-cols-8 gap-0.5 max-h-[188px] overflow-y-auto">
+                {category.emojis.map((e) => (
+                  <button
+                    key={e.code}
+                    type="button"
+                    aria-label={e.label}
+                    disabled={isSubmitting || !isLoggedIn}
+                    onClick={() => insertEmoji(e)}
+                    className="h-10 flex items-center justify-center rounded-lg hover:bg-[var(--brand-soft)] active:scale-90 transition-all disabled:opacity-50"
+                  >
+                    <AnimatedEmojiImg emoji={e} size={28} />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

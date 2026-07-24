@@ -11,35 +11,114 @@ export interface AnimatedEmoji {
   label: string
 }
 
-export const ANIMATED_EMOJIS: AnimatedEmoji[] = [
-  // 1행 — 기도·사랑 (교회 앱 핵심 반응)
-  { char: '🙏', code: '1f64f', label: '기도' },
-  { char: '❤️', code: '2764_fe0f', label: '사랑' },
-  { char: '❤️‍🔥', code: '2764_fe0f_200d_1f525', label: '불타는 사랑' },
-  { char: '🫶', code: '1faf6', label: '손하트' },
-  { char: '🥰', code: '1f970', label: '사랑스러움' },
-  { char: '😊', code: '1f60a', label: '미소' },
-  { char: '🤗', code: '1f917', label: '포옹' },
-  { char: '💪', code: '1f4aa', label: '힘내요' },
-  // 2행 — 감정 (2030 인기 표현)
-  { char: '🥹', code: '1f979', label: '감동의 눈물' },
-  { char: '🥺', code: '1f97a', label: '간절' },
-  { char: '😭', code: '1f62d', label: '눈물' },
-  { char: '😢', code: '1f622', label: '슬픔' },
-  { char: '🥲', code: '1f972', label: '웃픈 눈물' },
-  { char: '🫠', code: '1fae0', label: '녹아내림' },
-  { char: '🤩', code: '1f929', label: '반한 눈' },
-  { char: '🥳', code: '1f973', label: '파티' },
-  // 3행 — 찬양·응원
-  { char: '🙌', code: '1f64c', label: '찬양' },
-  { char: '👏', code: '1f44f', label: '박수' },
-  { char: '✨', code: '2728', label: '반짝임' },
-  { char: '🔥', code: '1f525', label: '불꽃' },
-  { char: '🎉', code: '1f389', label: '축하' },
-  { char: '🌈', code: '1f308', label: '무지개' },
-  { char: '🌟', code: '1f31f', label: '빛나는 별' },
-  { char: '🕊️', code: '1f54a_fe0f', label: '평화' },
+export interface EmojiCategory {
+  key: string
+  label: string
+  emojis: AnimatedEmoji[]
+}
+
+// 카테고리 탭 구성 — 모든 코드포인트는 Noto CDN에 애니메이션이 실제로 존재하는지
+// 확인한 것만 넣는다(없으면 404 → 정지 이모지로 폴백되어 피커에서 혼자 안 움직인다).
+export const EMOJI_CATEGORIES: EmojiCategory[] = [
+  {
+    key: 'prayer',
+    label: '기도·마음',
+    emojis: [
+      { char: '🙏', code: '1f64f', label: '기도' },
+      { char: '❤️', code: '2764_fe0f', label: '사랑' },
+      { char: '❤️‍🔥', code: '2764_fe0f_200d_1f525', label: '불타는 사랑' },
+      { char: '❤️‍🩹', code: '2764_fe0f_200d_1fa79', label: '회복' },
+      { char: '🫶', code: '1faf6', label: '손하트' },
+      { char: '🫰', code: '1faf0', label: '손가락 하트' },
+      { char: '💜', code: '1f49c', label: '보라 하트' },
+      { char: '😇', code: '1f607', label: '천사' },
+      { char: '🤝', code: '1f91d', label: '함께해요' },
+      { char: '🫂', code: '1fac2', label: '안아줄게요' },
+      { char: '🕊️', code: '1f54a_fe0f', label: '평화' },
+      { char: '🤞', code: '1f91e', label: '기원' },
+      { char: '🥰', code: '1f970', label: '사랑스러움' },
+      { char: '😊', code: '1f60a', label: '미소' },
+      { char: '🤗', code: '1f917', label: '포옹' },
+      { char: '🦅', code: '1f985', label: '독수리 날개치며' },
+    ],
+  },
+  {
+    key: 'feeling',
+    label: '감정',
+    emojis: [
+      { char: '🥹', code: '1f979', label: '감동의 눈물' },
+      { char: '🥺', code: '1f97a', label: '간절' },
+      { char: '😭', code: '1f62d', label: '눈물' },
+      { char: '😢', code: '1f622', label: '슬픔' },
+      { char: '🥲', code: '1f972', label: '웃픈 눈물' },
+      { char: '🫠', code: '1fae0', label: '녹아내림' },
+      { char: '🤩', code: '1f929', label: '반한 눈' },
+      { char: '😍', code: '1f60d', label: '하트 눈' },
+      { char: '😂', code: '1f602', label: '눈물 나게 웃김' },
+      { char: '🤣', code: '1f923', label: '데굴데굴' },
+      { char: '😅', code: '1f605', label: '식은땀' },
+      { char: '🫢', code: '1fae2', label: '헉' },
+      { char: '🤭', code: '1f92d', label: '웃음 참기' },
+      { char: '😴', code: '1f634', label: '졸림' },
+      { char: '🥱', code: '1f971', label: '하품' },
+      { char: '😮‍💨', code: '1f62e_200d_1f4a8', label: '한숨' },
+      { char: '👀', code: '1f440', label: '보고 있어요' },
+      { char: '🫡', code: '1fae1', label: '넵!' },
+      { char: '🫵', code: '1faf5', label: '너!' },
+      { char: '😎', code: '1f60e', label: '멋짐' },
+      { char: '🤔', code: '1f914', label: '생각 중' },
+      { char: '🙄', code: '1f644', label: '눈 굴리기' },
+      { char: '😌', code: '1f60c', label: '안도' },
+      { char: '🤯', code: '1f92f', label: '머리 터짐' },
+    ],
+  },
+  {
+    key: 'cheer',
+    label: '응원·축하',
+    emojis: [
+      { char: '🙌', code: '1f64c', label: '찬양' },
+      { char: '👏', code: '1f44f', label: '박수' },
+      { char: '💪', code: '1f4aa', label: '힘내요' },
+      { char: '👍', code: '1f44d', label: '좋아요' },
+      { char: '👊', code: '1f44a', label: '주먹 인사' },
+      { char: '💯', code: '1f4af', label: '백점' },
+      { char: '🔥', code: '1f525', label: '불꽃' },
+      { char: '🚀', code: '1f680', label: '가즈아' },
+      { char: '🎉', code: '1f389', label: '축하' },
+      { char: '🎊', code: '1f38a', label: '폭죽' },
+      { char: '🥳', code: '1f973', label: '파티' },
+      { char: '🎂', code: '1f382', label: '생일 축하' },
+      { char: '🎁', code: '1f381', label: '선물' },
+      { char: '🎈', code: '1f388', label: '풍선' },
+      { char: '🏆', code: '1f3c6', label: '트로피' },
+      { char: '🥇', code: '1f947', label: '금메달' },
+    ],
+  },
+  {
+    key: 'life',
+    label: '일상·자연',
+    emojis: [
+      { char: '✨', code: '2728', label: '반짝임' },
+      { char: '🌟', code: '1f31f', label: '빛나는 별' },
+      { char: '⭐', code: '2b50', label: '별' },
+      { char: '💫', code: '1f4ab', label: '별똥별' },
+      { char: '🌈', code: '1f308', label: '무지개' },
+      { char: '🌊', code: '1f30a', label: '파도' },
+      { char: '🌞', code: '1f31e', label: '햇살' },
+      { char: '🌝', code: '1f31d', label: '보름달' },
+      { char: '🌱', code: '1f331', label: '새싹' },
+      { char: '🍀', code: '1f340', label: '네잎클로버' },
+      { char: '🌸', code: '1f338', label: '벚꽃' },
+      { char: '💐', code: '1f490', label: '꽃다발' },
+      { char: '☕', code: '2615', label: '커피 한잔' },
+      { char: '📣', code: '1f4e3', label: '전하기' },
+      { char: '🎸', code: '1f3b8', label: '찬양' },
+      { char: '✍️', code: '270d_fe0f', label: '기록' },
+    ],
+  },
 ]
+
+export const ANIMATED_EMOJIS: AnimatedEmoji[] = EMOJI_CATEGORIES.flatMap((c) => c.emojis)
 
 const byChar = new Map<string, AnimatedEmoji>()
 for (const e of ANIMATED_EMOJIS) byChar.set(e.char, e)
@@ -61,6 +140,39 @@ const emojiPattern = new RegExp(
 
 export const animatedEmojiUrl = (code: string) =>
   `https://fonts.gstatic.com/s/e/notoemoji/latest/${code}/512.webp`
+
+// 자주 쓴 이모티콘 — 기기별 로컬 저장(서버 스키마 변경 없음). 최근 사용 순 8개.
+const RECENT_KEY = 'animated_emoji_recent'
+const RECENT_MAX = 8
+
+export const getRecentEmojis = (): AnimatedEmoji[] => {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY)
+    if (!raw) return []
+    const chars: unknown = JSON.parse(raw)
+    if (!Array.isArray(chars)) return []
+    // 목록에서 빠진 이모지는 조용히 버린다
+    return chars
+      .map((c) => (typeof c === 'string' ? byChar.get(c) : undefined))
+      .filter((e): e is AnimatedEmoji => !!e)
+      .slice(0, RECENT_MAX)
+  } catch {
+    return []
+  }
+}
+
+export const pushRecentEmoji = (char: string): AnimatedEmoji[] => {
+  const next = [char, ...getRecentEmojis().map((e) => e.char).filter((c) => c !== char)].slice(
+    0,
+    RECENT_MAX
+  )
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next))
+  } catch {
+    // 저장 실패(프라이빗 모드 등)해도 입력 자체는 막지 않는다
+  }
+  return next.map((c) => byChar.get(c)).filter((e): e is AnimatedEmoji => !!e)
+}
 
 interface AnimatedEmojiImgProps {
   emoji: AnimatedEmoji
