@@ -14,6 +14,8 @@ export const auth = {
   loginFailed: 'Login failed',
   loginInvalidCredentials: 'Incorrect username or password',
   loginInactiveAccount: 'This account has been deactivated. Please contact an administrator.',
+  loginPendingApproval: 'Your sign-up is awaiting approval. You can log in once an administrator approves it.',
+  loginRejectedAccount: 'Your sign-up was not approved. Please contact an administrator.',
   loginNoAccount: "Don't have an account?",
   loginSignUp: 'Sign Up',
   loginBackHome: 'Back to Home',
@@ -32,6 +34,8 @@ export const auth = {
   registerLogin: 'Login',
   registerPasswordMismatch: 'Passwords do not match',
   registerSuccess: 'Registration completed. Please login.',
+  registerApprovalNotice: 'An administrator must approve your sign-up before you can use the service.',
+  registerSuccessPending: 'Your sign-up request was received. You can log in once an administrator approves it.',
   
   // My Account / Account Settings
   accountTitle: 'My Account',

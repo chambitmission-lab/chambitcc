@@ -2,11 +2,19 @@ import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
-import { getUserList, updateUserRole, updateUserStatus, type User } from '../../api/user'
+import {
+  getUserList,
+  updateUserRole,
+  updateUserStatus,
+  updateUserApproval,
+  getAdminSettings,
+  updateAdminSettings,
+  type User,
+} from '../../api/user'
 import { FilterChip, FilterRow } from './components/FilterControls'
 
 type RoleFilter = 'all' | 'admin' | 'user'
-type StatusFilter = 'all' | 'active' | 'inactive'
+type StatusFilter = 'all' | 'active' | 'inactive' | 'pending'
 type SortKey = 'recentLogin' | 'createdAt' | 'name'
 
 const UserManagement = () => {
@@ -18,6 +26,8 @@ const UserManagement = () => {
   const [filterStatus, setFilterStatus] = useState<StatusFilter>('all')
   const [sortKey, setSortKey] = useState<SortKey>('recentLogin')
   const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [requireApproval, setRequireApproval] = useState(false)
+  const [savingApproval, setSavingApproval] = useState(false)
 
   useEffect(() => {
     if (!isAdmin()) {
@@ -26,6 +36,7 @@ const UserManagement = () => {
       return
     }
     loadUsers()
+    loadSettings()
   }, [navigate])
 
   const loadUsers = async () => {
@@ -39,6 +50,49 @@ const UserManagement = () => {
       setUsers([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadSettings = async () => {
+    try {
+      const settings = await getAdminSettings()
+      setRequireApproval(settings.require_signup_approval)
+    } catch (error) {
+      console.error('운영 설정 로드 에러:', error)
+    }
+  }
+
+  const handleToggleRequireApproval = async () => {
+    const next = !requireApproval
+    if (
+      next &&
+      !confirm('이제부터 가입하는 회원은 관리자가 승인해야 로그인할 수 있습니다.\n켜시겠습니까?')
+    ) {
+      return
+    }
+    setSavingApproval(true)
+    // 낙관적 반영 — 실패하면 되돌린다
+    setRequireApproval(next)
+    try {
+      const settings = await updateAdminSettings({ require_signup_approval: next })
+      setRequireApproval(settings.require_signup_approval)
+      showToast(next ? '가입 승인제를 켰습니다' : '가입 승인제를 껐습니다', 'success')
+    } catch {
+      setRequireApproval(!next)
+      showToast('설정 변경에 실패했습니다', 'error')
+    } finally {
+      setSavingApproval(false)
+    }
+  }
+
+  const handleApproval = async (userId: number, approve: boolean) => {
+    if (!approve && !confirm('가입을 거절하시겠습니까?\n계정은 남지만 로그인이 차단됩니다.')) return
+    try {
+      await updateUserApproval(userId, approve)
+      showToast(approve ? '승인되었습니다' : '가입을 거절했습니다', 'success')
+      loadUsers()
+    } catch {
+      showToast('승인 처리에 실패했습니다', 'error')
     }
   }
 
@@ -78,11 +132,17 @@ const UserManagement = () => {
       const matchesStatus =
         filterStatus === 'all' ||
         (filterStatus === 'active' && user.is_active) ||
-        (filterStatus === 'inactive' && !user.is_active)
+        (filterStatus === 'inactive' && !user.is_active) ||
+        (filterStatus === 'pending' && user.approval_status === 'pending')
       return matchesSearch && matchesRole && matchesStatus
     })
 
+    // 승인 대기는 항상 맨 위로 — 처리해야 할 일이 정렬 기준에 묻히지 않게
     return [...filtered].sort((a, b) => {
+      const aPending = a.approval_status === 'pending' ? 1 : 0
+      const bPending = b.approval_status === 'pending' ? 1 : 0
+      if (aPending !== bPending) return bPending - aPending
+
       if (sortKey === 'recentLogin') {
         const av = a.last_login ? new Date(a.last_login).getTime() : 0
         const bv = b.last_login ? new Date(b.last_login).getTime() : 0
@@ -97,6 +157,7 @@ const UserManagement = () => {
 
   const adminCount = users.filter(u => u.is_admin).length
   const activeCount = users.filter(u => u.is_active).length
+  const pendingCount = users.filter(u => u.approval_status === 'pending').length
 
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -136,6 +197,58 @@ const UserManagement = () => {
           <StatChip label="전체" value={users.length} />
           <StatChip label="관리자" value={adminCount} accent />
           <StatChip label="활성" value={activeCount} />
+          {pendingCount > 0 && <StatChip label="승인 대기" value={pendingCount} warn />}
+        </div>
+
+        {/* 가입 승인제 토글 */}
+        <div className="px-4 pt-3">
+          <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
+            <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
+
+            <div className="relative z-10 flex items-start gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
+                  가입 승인제
+                </p>
+                <p className="text-[12px] text-gray-500 dark:text-white/55 mt-1 leading-relaxed">
+                  {requireApproval
+                    ? '새로 가입한 회원은 관리자 승인 후에만 로그인할 수 있습니다.'
+                    : '누구나 회원가입 후 바로 이용할 수 있습니다.'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleToggleRequireApproval}
+                disabled={savingApproval}
+                role="switch"
+                aria-checked={requireApproval}
+                aria-label="가입 승인제"
+                className={`relative shrink-0 w-[52px] h-[30px] rounded-full transition-all duration-200 disabled:opacity-50 ${
+                  requireApproval
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_0_16px_rgba(168,85,247,0.40)]'
+                    : 'bg-gray-300 dark:bg-white/[0.12]'
+                }`}
+              >
+                <span
+                  className={`absolute top-1/2 -translate-y-1/2 w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-all duration-200 ${
+                    requireApproval ? 'left-[25px]' : 'left-[3px]'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {requireApproval && pendingCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setFilterStatus('pending')}
+                className="relative z-10 mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-400/30 hover:bg-amber-100 dark:hover:bg-amber-500/15 transition-colors"
+              >
+                <span className="material-icons-outlined text-[16px]">how_to_reg</span>
+                <span>승인 대기 {pendingCount}명 보기</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 검색 + 필터 카드 */}
@@ -175,7 +288,7 @@ const UserManagement = () => {
 
               {/* 상태 */}
               <FilterRow align="center" label="상태">
-                {([['all', '전체'], ['active', '활성'], ['inactive', '비활성']] as const).map(([v, l]) => (
+                {([['all', '전체'], ['active', '활성'], ['inactive', '비활성'], ['pending', '승인 대기']] as const).map(([v, l]) => (
                   <FilterChip key={v} active={filterStatus === v} onClick={() => setFilterStatus(v)}>{l}</FilterChip>
                 ))}
               </FilterRow>
@@ -219,6 +332,7 @@ const UserManagement = () => {
                 onToggleExpand={() => setExpandedId(prev => (prev === user.id ? null : user.id))}
                 onToggleAdmin={() => handleToggleAdmin(user.id, user.is_admin)}
                 onToggleStatus={() => handleToggleStatus(user.id, user.is_active)}
+                onApproval={(approve) => handleApproval(user.id, approve)}
                 formatDate={formatDate}
                 formatRelative={formatRelative}
               />
@@ -235,19 +349,23 @@ interface StatChipProps {
   label: string
   value: number
   accent?: boolean
+  /** 처리 대기 중인 항목 — 앰버로 눈에 띄게 (브랜드 purple과 역할 구분) */
+  warn?: boolean
 }
-const StatChip = ({ label, value, accent }: StatChipProps) => (
-  <span
-    className={
-      accent
-        ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-[12px] font-semibold text-purple-700 dark:text-purple-300'
-        : 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-[12px] font-semibold text-gray-700 dark:text-white/75'
-    }
-  >
-    {label}
-    <span className="font-bold">{value}</span>
-  </span>
-)
+const StatChip = ({ label, value, accent, warn }: StatChipProps) => {
+  const base = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[12px] font-semibold '
+  const tone = warn
+    ? 'bg-amber-500/15 dark:bg-amber-500/20 border-amber-500/30 text-amber-700 dark:text-amber-300'
+    : accent
+      ? 'bg-purple-500/15 dark:bg-purple-500/20 border-purple-500/30 text-purple-700 dark:text-purple-300'
+      : 'bg-gray-100 dark:bg-white/[0.05] border-gray-200 dark:border-white/[0.06] text-gray-700 dark:text-white/75'
+  return (
+    <span className={base + tone}>
+      {label}
+      <span className="font-bold">{value}</span>
+    </span>
+  )
+}
 
 // ── 필터 행 ─────────────────────────────────────────────
 
@@ -267,6 +385,7 @@ interface UserRowProps {
   onToggleExpand: () => void
   onToggleAdmin: () => void
   onToggleStatus: () => void
+  onApproval: (approve: boolean) => void
   formatDate: (d: string) => string
   formatRelative: (d?: string) => string
 }
@@ -277,10 +396,17 @@ const UserRow = ({
   onToggleExpand,
   onToggleAdmin,
   onToggleStatus,
+  onApproval,
   formatDate,
   formatRelative,
 }: UserRowProps) => (
-  <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200">
+  <div
+    className={`relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200 ${
+      user.approval_status === 'pending'
+        ? 'border-amber-300 dark:border-amber-400/40'
+        : 'border-gray-200/70 dark:border-white/[0.08]'
+    }`}
+  >
     <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
 
     {/* 컴팩트 헤더 — 행 전체 클릭으로 펼침 */}
@@ -296,9 +422,23 @@ const UserRow = ({
         </div>
         <span
           className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-background-light dark:ring-card-dark ${
-            user.is_active ? 'bg-green-500' : 'bg-gray-400 dark:bg-white/30'
+            user.approval_status === 'pending'
+              ? 'bg-amber-500'
+              : user.approval_status === 'rejected'
+                ? 'bg-red-500'
+                : user.is_active
+                  ? 'bg-green-500'
+                  : 'bg-gray-400 dark:bg-white/30'
           }`}
-          aria-label={user.is_active ? '활성' : '비활성'}
+          aria-label={
+            user.approval_status === 'pending'
+              ? '승인 대기'
+              : user.approval_status === 'rejected'
+                ? '가입 거절'
+                : user.is_active
+                  ? '활성'
+                  : '비활성'
+          }
         />
       </div>
 
@@ -312,9 +452,23 @@ const UserRow = ({
               ADMIN
             </span>
           )}
+          {user.approval_status === 'pending' && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 dark:bg-amber-500/20 border border-amber-500/30 text-amber-700 dark:text-amber-300 shrink-0">
+              승인 대기
+            </span>
+          )}
+          {user.approval_status === 'rejected' && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500/10 dark:bg-red-500/15 border border-red-400/30 text-red-600 dark:text-red-300 shrink-0">
+              거절됨
+            </span>
+          )}
         </div>
         <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate">
-          @{user.username} · {formatRelative(user.last_login)}
+          {/* 승인 대기 회원은 로그인 기록이 없으므로 가입 시점을 보여준다 */}
+          @{user.username} ·{' '}
+          {user.approval_status === 'pending'
+            ? `${formatRelative(user.created_at)} 가입 신청`
+            : formatRelative(user.last_login)}
         </div>
       </div>
 
@@ -337,6 +491,26 @@ const UserRow = ({
           label="최근 로그인"
           value={user.last_login ? formatDate(user.last_login) : '로그인 기록 없음'}
         />
+
+        {/* 승인 처리 — 대기/거절 상태일 때만 노출 */}
+        {user.approval_status !== 'approved' && (
+          <div className="flex gap-2 pt-3">
+            <RowAction
+              onClick={() => onApproval(true)}
+              accent
+              icon="how_to_reg"
+              label={user.approval_status === 'pending' ? '가입 승인' : '승인으로 되돌리기'}
+            />
+            {user.approval_status === 'pending' && (
+              <RowAction
+                onClick={() => onApproval(false)}
+                destructive
+                icon="person_off"
+                label="가입 거절"
+              />
+            )}
+          </div>
+        )}
 
         <div className="flex gap-2 pt-3">
           <RowAction

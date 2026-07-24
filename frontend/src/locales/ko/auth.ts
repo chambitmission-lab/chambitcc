@@ -14,6 +14,8 @@ export const auth = {
   loginFailed: '로그인에 실패했습니다',
   loginInvalidCredentials: '아이디 또는 비밀번호가 올바르지 않습니다',
   loginInactiveAccount: '비활성화된 계정입니다. 관리자에게 문의해주세요.',
+  loginPendingApproval: '가입 승인 대기 중입니다. 관리자 승인 후 로그인할 수 있어요.',
+  loginRejectedAccount: '가입이 승인되지 않았습니다. 관리자에게 문의해주세요.',
   loginNoAccount: '계정이 없으신가요?',
   loginSignUp: '회원가입',
   loginBackHome: '홈으로 돌아가기',
@@ -32,6 +34,8 @@ export const auth = {
   registerLogin: '로그인',
   registerPasswordMismatch: '비밀번호가 일치하지 않습니다',
   registerSuccess: '회원가입이 완료되었습니다. 로그인해주세요.',
+  registerApprovalNotice: '가입 신청 후 관리자 승인을 받아야 이용할 수 있습니다.',
+  registerSuccessPending: '가입 신청이 접수되었습니다. 관리자 승인 후 로그인할 수 있어요.',
   
   // 내 정보 / 계정 설정
   accountTitle: '내 정보',

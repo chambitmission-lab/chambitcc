@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { API_V1 } from '../../config/api'
@@ -14,6 +14,19 @@ const Register = () => {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  // 관리자가 가입 승인제를 켰는지 — 가입 전에 미리 안내하기 위해 조회한다
+  const [requireApproval, setRequireApproval] = useState(false)
+
+  useEffect(() => {
+    fetch(`${API_V1}/auth/signup-policy`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data) setRequireApproval(!!data.require_approval)
+      })
+      .catch(() => {
+        // 정책 조회 실패는 가입 자체를 막지 않는다 — 안내만 생략된다
+      })
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -53,7 +66,12 @@ const Register = () => {
         throw new Error(data.detail || t('registerFailed'))
       }
 
-      alert(t('registerSuccess'))
+      // 정책이 도중에 바뀌었을 수 있으니 실제 생성된 상태를 기준으로 안내한다
+      alert(
+        data.approval_status === 'pending'
+          ? t('registerSuccessPending')
+          : t('registerSuccess')
+      )
       navigate('/login')
     } catch (err) {
       setError(err instanceof Error ? err.message : t('registerFailed'))
@@ -77,6 +95,17 @@ const Register = () => {
 
         {/* Register Card */}
         <div className="feed-card rounded-2xl p-8 mb-4">
+          {requireApproval && (
+            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-400/30 rounded-lg flex items-start gap-2">
+              <span className="material-icons-outlined text-[18px] text-amber-600 dark:text-amber-300 shrink-0">
+                how_to_reg
+              </span>
+              <p className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
+                {t('registerApprovalNotice')}
+              </p>
+            </div>
+          )}
+
           {error && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <p className="text-sm text-red-600 dark:text-red-400">{error}</p>

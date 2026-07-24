@@ -46,13 +46,21 @@ const Login = () => {
       const data = await response.json()
 
       if (!response.ok) {
-        // 백엔드가 내려주는 detail은 영어로 고정되어 있으므로 그대로 노출하지 않고,
+        // 백엔드 detail 문구는 한국어/영어로 고정되어 있으므로 그대로 노출하지 않고,
         // 현재 선택된 언어에 맞는 번역 메시지로 변환해서 보여준다.
-        const message = response.status === 401
-          ? t('loginInvalidCredentials')
-          : response.status === 403
-          ? t('loginInactiveAccount')
-          : t('loginFailed')
+        // 403은 사유가 여러 개(승인 대기 / 거절 / 정지)라 X-Auth-Reason 헤더로 구분한다.
+        let message = t('loginFailed')
+        if (response.status === 401) {
+          message = t('loginInvalidCredentials')
+        } else if (response.status === 403) {
+          const reason = response.headers.get('X-Auth-Reason')
+          message =
+            reason === 'pending_approval'
+              ? t('loginPendingApproval')
+              : reason === 'rejected'
+                ? t('loginRejectedAccount')
+                : t('loginInactiveAccount')
+        }
         throw new Error(message)
       }
 
