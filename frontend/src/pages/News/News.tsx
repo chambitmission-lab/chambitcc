@@ -1,11 +1,24 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { getBulletins, getBulletinDetail } from '../../api/bulletin'
 import { showToast } from '../../utils/toast'
 import type { Bulletin } from '../../types/bulletin'
 import InstagramBulletinViewer from './components/InstagramBulletinViewer'
 import DigitalBulletin from './components/DigitalBulletin'
+import NewFamilySection from './components/NewFamilySection'
 
-type TabKey = 'image' | 'digital'
+/** 최상위 그룹 — 소식 허브 */
+type SectionKey = 'bulletin' | 'new-family'
+/** 주보 하위 탭 */
+type BulletinTabKey = 'image' | 'digital'
+
+const SECTIONS: { key: SectionKey; emoji: string; label: string }[] = [
+  { key: 'bulletin', emoji: '📖', label: '주보' },
+  { key: 'new-family', emoji: '🌱', label: '새가족' },
+]
+
+const isSectionKey = (value: string | null): value is SectionKey =>
+  value === 'bulletin' || value === 'new-family'
 
 const formatLongDate = (date: string) =>
   new Date(date).toLocaleDateString('ko-KR', {
@@ -21,11 +34,20 @@ const isThisMonth = (date: string): boolean => {
 }
 
 const News = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tabParam = searchParams.get('tab')
+  const section: SectionKey = isSectionKey(tabParam) ? tabParam : 'bulletin'
+
   const [bulletins, setBulletins] = useState<Bulletin[]>([])
   const [selectedBulletin, setSelectedBulletin] = useState<Bulletin | null>(null)
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
-  const [tab, setTab] = useState<TabKey>('image')
+  const [tab, setTab] = useState<BulletinTabKey>('image')
+
+  const handleSectionChange = (next: SectionKey) => {
+    // replace — 탭 전환마다 히스토리가 쌓여 뒤로가기가 먹통이 되는 걸 막는다
+    setSearchParams(next === 'bulletin' ? {} : { tab: next }, { replace: true })
+  }
 
   useEffect(() => {
     loadBulletins()
@@ -80,22 +102,50 @@ const News = () => {
           </p>
         </header>
 
-        {/* 탭 pill */}
-        <div className="px-4 pt-3 pb-1">
-          <div className="inline-flex p-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]">
-            <TabPill active={tab === 'image'} onClick={() => setTab('image')}>
-              <span className="mr-1">🖼️</span>
-              이미지 주보
-            </TabPill>
-            <TabPill active={tab === 'digital'} onClick={() => setTab('digital')}>
-              <span className="mr-1">📄</span>
-              디지털 주보
-            </TabPill>
+        {/* 그룹 세그먼트 — 주보 / 새가족 */}
+        <div className="px-4 pt-2 pb-1">
+          <div className="flex p-1 rounded-2xl bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]">
+            {SECTIONS.map(s => (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => handleSectionChange(s.key)}
+                aria-pressed={section === s.key}
+                className={[
+                  'flex-1 h-10 rounded-xl text-[13px] font-bold transition-all',
+                  section === s.key
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_4px_14px_-4px_rgba(168,85,247,0.65)]'
+                    : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white',
+                ].join(' ')}
+              >
+                <span className="mr-1">{s.emoji}</span>
+                {s.label}
+              </button>
+            ))}
           </div>
         </div>
 
+        {/* 새가족 앨범 */}
+        {section === 'new-family' && <NewFamilySection />}
+
+        {/* 주보 하위 탭 pill */}
+        {section === 'bulletin' && (
+          <div className="px-4 pt-3 pb-1">
+            <div className="inline-flex p-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]">
+              <TabPill active={tab === 'image'} onClick={() => setTab('image')}>
+                <span className="mr-1">🖼️</span>
+                이미지 주보
+              </TabPill>
+              <TabPill active={tab === 'digital'} onClick={() => setTab('digital')}>
+                <span className="mr-1">📄</span>
+                디지털 주보
+              </TabPill>
+            </div>
+          </div>
+        )}
+
         {/* 이미지 주보 */}
-        {tab === 'image' && (
+        {section === 'bulletin' && tab === 'image' && (
           <div className="px-4 pt-3 pb-8">
             {loading ? (
               <SkeletonCards />
@@ -131,7 +181,7 @@ const News = () => {
         )}
 
         {/* 디지털 주보 */}
-        {tab === 'digital' && (
+        {section === 'bulletin' && tab === 'digital' && (
           <div className="pt-3 pb-8">
             <DigitalBulletin />
           </div>

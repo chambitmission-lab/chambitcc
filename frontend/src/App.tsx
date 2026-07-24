@@ -40,6 +40,9 @@ const DailyVerseManagement = lazy(
 const BulletinManagement = lazy(
   () => import('./pages/Admin/BulletinManagement'),
 )
+const NewFamilyManagement = lazy(
+  () => import('./pages/Admin/NewFamilyManagement'),
+)
 const PushNotificationManagement = lazy(() =>
   import('./pages/Admin/PushNotificationManagement').then((m) => ({
     default: m.PushNotificationManagement,
@@ -169,6 +172,7 @@ function App() {
                 <Route path="/admin/notifications" element={<NotificationManagement />} />
                 <Route path="/admin/daily-verse" element={<DailyVerseManagement />} />
                 <Route path="/admin/bulletins" element={<BulletinManagement />} />
+                <Route path="/admin/new-family" element={<NewFamilyManagement />} />
                 <Route path="/admin/push" element={<PushNotificationManagement />} />
                 <Route path="/admin/events" element={<EventManagement />} />
                 <Route path="/admin/users" element={<UserManagement />} />

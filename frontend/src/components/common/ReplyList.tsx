@@ -13,6 +13,8 @@ interface ReplyListProps {
   onReplyUpdate?: (replyId: number, content: string) => void
   onReplyDelete?: (replyId: number) => void
   isUpdating?: boolean
+  /** 관리자 모더레이션 — 남의 댓글도 '삭제'만 노출 (수정은 본인만) */
+  canModerate?: boolean
 }
 
 const ReplyList = ({
@@ -24,6 +26,7 @@ const ReplyList = ({
   onReplyUpdate,
   onReplyDelete,
   isUpdating,
+  canModerate,
 }: ReplyListProps) => {
   const { t } = useLanguage()
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -129,9 +132,10 @@ const ReplyList = ({
               {reply.is_edited && (
                 <span className="text-xs text-gray-400/80 dark:text-gray-600">(수정됨)</span>
               )}
-              {reply.is_owner && editingId !== reply.id && (
+              {(reply.is_owner || canModerate) && editingId !== reply.id && (
                 <span className="ml-auto flex items-center gap-2.5">
-                  {onReplyUpdate && (
+                  {/* 수정은 언제나 본인만 — 관리자에게 띄우면 서버에서 403이 난다 */}
+                  {reply.is_owner && onReplyUpdate && (
                     <button
                       onClick={() => startEdit(reply)}
                       className="text-xs text-gray-400 dark:text-gray-500 hover:text-[var(--brand)] transition-colors"

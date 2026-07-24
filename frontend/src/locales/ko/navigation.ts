@@ -18,6 +18,7 @@ export const navigation = {
   notificationManagement: '📢 공지사항 관리',
   dailyVerseManagement: '📖 오늘의 말씀 관리',
   bulletinManagement: '📰 주보 관리',
+  newFamilyManagement: '🌱 새가족 앨범 관리',
   events: '일정',
   eventManagement: '📅 일정 관리',
   biblePlanManagement: '📚 읽기 플랜 관리',

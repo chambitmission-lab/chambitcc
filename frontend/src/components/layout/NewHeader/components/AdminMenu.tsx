@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 
 type AdminItemKey =
-  | 'notificationManagement' | 'dailyVerseManagement' | 'bulletinManagement'
+  | 'notificationManagement' | 'dailyVerseManagement' | 'bulletinManagement' | 'newFamilyManagement'
   | 'eventManagement' | 'biblePlanManagement' | 'bibleCommentaryManagement'
   | 'situationManagement' | 'cultureManagement' | 'pushNotificationManagement'
   | 'userManagement' | 'groupManagement'
@@ -28,6 +28,7 @@ const ADMIN_GROUPS: AdminGroup[] = [
     items: [
       { path: '/admin/daily-verse', key: 'dailyVerseManagement' },
       { path: '/admin/bulletins', key: 'bulletinManagement' },
+      { path: '/admin/new-family', key: 'newFamilyManagement' },
       { path: '/admin/bible-plans', key: 'biblePlanManagement' },
       { path: '/admin/bible-commentaries', key: 'bibleCommentaryManagement' },
       { path: '/admin/situations', key: 'situationManagement' }
