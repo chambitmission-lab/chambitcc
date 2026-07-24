@@ -4,13 +4,9 @@ import { addPrayer, removePrayer } from '../api/prayer'
 import { showToast } from '../utils/toast'
 import { prayerKeys } from './usePrayersQuery'
 import { groupKeys } from './useGroups'
-import type { Prayer, SortType, PrayerFilterType } from '../types/prayer'
+import type { Prayer, SortType } from '../types/prayer'
 
 interface UsePrayerToggleOptions {
-  sort?: SortType
-  groupId?: number | null // 그룹 필터링용
-  filter?: PrayerFilterType | null // 기도 필터링용
-  isAnswered?: boolean // 응답의 전당 등 isAnswered 필터 목록용 — 캐시 키 구성 요소
   prayerId?: number // 상세 페이지용
   username?: string | null // 사용자별 캐시 키용
   onSuccess?: (message: string) => void
@@ -31,10 +27,6 @@ interface PrayerToggleResult {
  * - 기도 시간 추적 지원
  */
 export const usePrayerToggle = ({
-  sort = 'popular',
-  groupId = null,
-  filter = null,
-  isAnswered,
   prayerId: detailPrayerId,
   username = null,
   onSuccess,
@@ -71,48 +63,55 @@ export const usePrayerToggle = ({
 
   // 통합 토글 함수 (기도 시간 파라미터 추가)
   const togglePrayer = async (prayerId: number, isPrayed: boolean, durationMinutes?: number) => {
-    const listQueryKey = prayerKeys.list(sort, groupId, filter, username, isAnswered)
-    const detailQueryKey = detailPrayerId 
+    const detailQueryKey = detailPrayerId
       ? prayerKeys.detail(detailPrayerId, username)
       : null
 
-    // Optimistic Update - 목록 캐시
-    await queryClient.cancelQueries({ queryKey: listQueryKey })
-    const previousListData = queryClient.getQueryData(listQueryKey)
+    // Optimistic Update - 캐시에 있는 모든 목록 (정렬·그룹·필터 불문)
+    // 상세 모달에서 토글하면 토글 훅이 지금 보고 있는 목록의 정렬/필터를
+    // 알 수 없다 — 특정 키 하나만 찍어 갱신하면 다른 키로 떠 있는 목록은
+    // 새로고침 전까지 is_prayed 체크가 안 바뀐다. 그래서 전체를 순회한다.
+    await queryClient.cancelQueries({ queryKey: prayerKeys.lists() })
+    const previousListEntries = queryClient.getQueriesData({ queryKey: prayerKeys.lists() })
 
-    queryClient.setQueryData(listQueryKey, (old: any) => {
-      if (!old) return old
+    previousListEntries.forEach(([listKey]) => {
+      // prayerKeys.list 구조: ['prayers', 'list', sort, groupId, filter, username, answered]
+      const listSort = listKey[2] as SortType | undefined
 
-      // 기도 수 업데이트
-      const updatedPages = old.pages.map((page: any) => ({
-        ...page,
-        data: {
-          ...page.data,
-          items: page.data.items.map((prayer: Prayer) =>
-            prayer.id === prayerId
-              ? {
-                  ...prayer,
-                  is_prayed: !isPrayed,
-                  prayer_count: isPrayed
-                    ? prayer.prayer_count - 1
-                    : prayer.prayer_count + 1,
-                }
-              : prayer
-          ),
-        },
-      }))
+      queryClient.setQueryData(listKey, (old: any) => {
+        if (!old) return old
 
-      // 따뜻한 관심순일 때만 정렬 (prayer_count 내림차순)
-      if (sort === 'popular') {
-        updatedPages.forEach((page: any) => {
-          page.data.items.sort((a: Prayer, b: Prayer) => b.prayer_count - a.prayer_count)
-        })
-      }
+        // 기도 수 업데이트
+        const updatedPages = old.pages.map((page: any) => ({
+          ...page,
+          data: {
+            ...page.data,
+            items: page.data.items.map((prayer: Prayer) =>
+              prayer.id === prayerId
+                ? {
+                    ...prayer,
+                    is_prayed: !isPrayed,
+                    prayer_count: isPrayed
+                      ? prayer.prayer_count - 1
+                      : prayer.prayer_count + 1,
+                  }
+                : prayer
+            ),
+          },
+        }))
 
-      return {
-        ...old,
-        pages: updatedPages,
-      }
+        // 따뜻한 관심순일 때만 정렬 (prayer_count 내림차순)
+        if (listSort === 'popular') {
+          updatedPages.forEach((page: any) => {
+            page.data.items.sort((a: Prayer, b: Prayer) => b.prayer_count - a.prayer_count)
+          })
+        }
+
+        return {
+          ...old,
+          pages: updatedPages,
+        }
+      })
     })
 
     // Optimistic Update - 상세 캐시 (있는 경우)
@@ -186,13 +185,11 @@ export const usePrayerToggle = ({
         await addMutation.mutateAsync({ prayerId, durationMinutes })
       }
 
-      // 다른 정렬의 목록만 백그라운드 무효화 (같은 사용자)
-      const otherSorts: SortType[] = sort === 'popular' ? ['latest'] : ['popular']
-      otherSorts.forEach(otherSort => {
-        queryClient.invalidateQueries({
-          queryKey: prayerKeys.list(otherSort, groupId, filter, username, isAnswered),
-          refetchType: 'none',
-        })
+      // 모든 목록을 백그라운드 stale 처리 — 낙관적 갱신은 이미 반영됐고,
+      // 다음 포커스/마운트 때 서버 진실로 조용히 재동기화된다
+      queryClient.invalidateQueries({
+        queryKey: prayerKeys.lists(),
+        refetchType: 'none',
       })
 
       // 다른 상세 캐시들도 백그라운드 무효화
@@ -212,8 +209,10 @@ export const usePrayerToggle = ({
       // 기도방 통계('함께 기도한 횟수') 캐시 무효화
       queryClient.invalidateQueries({ queryKey: groupKeys.all })
     } catch (error) {
-      // 에러 시 롤백
-      queryClient.setQueryData(listQueryKey, previousListData)
+      // 에러 시 롤백 — 순회하며 갱신했던 모든 목록 캐시를 스냅샷으로 복원
+      previousListEntries.forEach(([listKey, previousData]) => {
+        queryClient.setQueryData(listKey, previousData)
+      })
       if (detailQueryKey && previousDetailData) {
         queryClient.setQueryData(detailQueryKey, previousDetailData)
       }

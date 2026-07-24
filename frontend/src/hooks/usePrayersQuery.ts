@@ -93,10 +93,6 @@ export const usePrayersInfinite = (
 
   // 기도 토글 훅 사용 (Dependency Inversion)
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
-    sort,
-    groupId,
-    filter,
-    isAnswered,
     username: currentUser.username,
   })
 
