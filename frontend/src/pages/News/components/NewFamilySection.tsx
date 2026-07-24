@@ -261,7 +261,7 @@ const SkeletonFeed = () => (
         className="rounded-3xl bg-gray-100/70 dark:bg-white/[0.04] overflow-hidden animate-pulse"
       >
         <div className="h-16" />
-        <div className="aspect-square bg-gray-200/60 dark:bg-white/[0.05]" />
+        <div className="aspect-[4/5] bg-gray-200/60 dark:bg-white/[0.05]" />
         <div className="h-20" />
       </div>
     ))}

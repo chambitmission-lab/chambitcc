@@ -9,16 +9,21 @@ interface NewFamilyPhotoCarouselProps {
   photos: NewFamilyPhoto[]
   alt: string
   onPhotoClick?: (index: number) => void
-  /** 정사각(피드) 기본, false면 원본 비율 유지 */
-  square?: boolean
+  /**
+   * 크롭 비율. 4:5 세로(요즘 인스타 기본, 인물 사진이 덜 잘림)가 기본.
+   * false면 크롭 없이 원본 비율 유지.
+   */
+  ratio?: '4/5' | '1/1' | false
 }
 
 const NewFamilyPhotoCarousel = ({
   photos,
   alt,
   onPhotoClick,
-  square = true,
+  ratio = '4/5',
 }: NewFamilyPhotoCarouselProps) => {
+  // Tailwind JIT가 문자열 결합 클래스를 못 잡으므로 정적 매핑으로 지정
+  const ratioClass = ratio === '4/5' ? 'aspect-[4/5]' : ratio === '1/1' ? 'aspect-square' : ''
   const scrollRef = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(0)
 
@@ -51,7 +56,7 @@ const NewFamilyPhotoCarousel = ({
             onClick={() => onPhotoClick?.(i)}
             className={[
               'relative flex-shrink-0 w-full snap-center',
-              square ? 'aspect-square' : '',
+              ratioClass,
             ].join(' ')}
             aria-label={`${alt} 사진 ${i + 1}`}
           >
@@ -62,7 +67,7 @@ const NewFamilyPhotoCarousel = ({
               draggable={false}
               className={[
                 'w-full',
-                square ? 'absolute inset-0 h-full object-cover' : 'h-auto',
+                ratioClass ? 'absolute inset-0 h-full object-cover' : 'h-auto',
               ].join(' ')}
             />
           </button>
