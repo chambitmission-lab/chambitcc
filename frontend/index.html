@@ -5,8 +5,12 @@
     <!-- 파비콘: 검정 사각 배경의 PWA 아이콘 대신 투명 배경 글리프 사용.
          탭 크기(16/32px)에 맞춰 미리 다운스케일+샤픈한 파일을 제공해 축소 뭉개짐을 방지.
          PWA/애플 아이콘(pwa-192/512)은 마스커블 요건상 불투명 배경이 필요해 그대로 유지. -->
+    <!-- /favicon.ico(16/32/48 멀티): 구글 파비콘 크롤러가 루트에서 1순위로 찾는 파일.
+         구글 검색 결과 파비콘은 48px 배수를 권장하므로 48도 함께 선언한다. -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png" />
     <!-- 배율 잠금: 설치형 PWA(standalone)에서 당겨서 새로고침하면 크롬이 이전 배율을
          복원해 화면이 확대된 채(=스크롤 생기고 깨져 보임) 로드되는 버그 차단.
