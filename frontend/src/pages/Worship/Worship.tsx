@@ -142,12 +142,17 @@ const formatRemaining = (minutes: number): string => {
   return `${m}분`
 }
 
-// 세그먼트 한 칸 — 값이 바뀌면 key 교체로 remount 되며 tick 애니메이션이 재생된다
+// 세그먼트 한 칸 — 카드는 고정하고, 바뀐 자리 숫자만 key 교체로 remount 되어
+// 아래에서 굴러 올라오는 롤 애니메이션이 재생된다 (자리별 key = 위치+값)
 const CountdownSeg = ({ value, label }: { value: number; label: string }) => {
   const text = String(value).padStart(2, '0')
   return (
     <div className="worship-cd-box">
-      <span key={text} className="worship-cd-num">{text}</span>
+      <span className="worship-cd-num">
+        {text.split('').map((ch, i) => (
+          <span key={`${i}${ch}`} className="worship-cd-digit">{ch}</span>
+        ))}
+      </span>
       <span className="worship-cd-lab">{label}</span>
     </div>
   )

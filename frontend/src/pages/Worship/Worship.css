@@ -200,7 +200,6 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  perspective: 340px;
 }
 
 .worship-cd-num {
@@ -219,8 +218,14 @@
   background: var(--surface-container);
   border: 1px solid var(--brand-soft-strong);
   box-shadow: 0 4px 14px -8px var(--brand-glow);
-  transform-origin: top center;
-  animation: worship-cd-flip 0.45s cubic-bezier(0.3, 0.7, 0.3, 1);
+  overflow: hidden;
+}
+
+.worship-cd-digit {
+  display: inline-block;
+  min-width: 1ch;
+  text-align: center;
+  animation: worship-cd-roll 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 
 .worship-cd-lab {
@@ -241,20 +246,20 @@
   opacity: 0.45;
 }
 
-/* 카드가 위 경첩에서 젖혀지며 넘어오는 플립 — 플립 클럭 느낌 */
-@keyframes worship-cd-flip {
+/* 바뀐 자리 숫자만 아래에서 부드럽게 굴러 올라오는 롤 — 카드는 고정 */
+@keyframes worship-cd-roll {
   from {
-    transform: rotateX(-86deg);
-    opacity: 0.15;
+    transform: translateY(45%);
+    opacity: 0;
   }
   to {
-    transform: rotateX(0deg);
+    transform: translateY(0);
     opacity: 1;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .worship-cd-num {
+  .worship-cd-digit {
     animation: none;
   }
 }
