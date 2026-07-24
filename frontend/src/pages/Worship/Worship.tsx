@@ -142,13 +142,15 @@ const formatRemaining = (minutes: number): string => {
   return `${m}분`
 }
 
-const formatCountdown = (totalSec: number): string => {
-  const sec = Math.max(0, totalSec)
-  const h = Math.floor(sec / 3600)
-  const m = Math.floor((sec % 3600) / 60)
-  const s = sec % 60
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${pad(h)}:${pad(m)}:${pad(s)}`
+// 세그먼트 한 칸 — 값이 바뀌면 key 교체로 remount 되며 tick 애니메이션이 재생된다
+const CountdownSeg = ({ value, label }: { value: number; label: string }) => {
+  const text = String(value).padStart(2, '0')
+  return (
+    <div className="worship-cd-box">
+      <span key={text} className="worship-cd-num">{text}</span>
+      <span className="worship-cd-lab">{label}</span>
+    </div>
+  )
 }
 
 const formatTimeLabel = (startMin: number): string => {
@@ -177,7 +179,19 @@ const CountdownClock = memo(({ deadlineTs }: { deadlineTs: number }) => {
     const timer = setInterval(update, 1_000)
     return () => clearInterval(timer)
   }, [deadlineTs])
-  return <span className="worship-live-clock">{formatCountdown(remainSec)}</span>
+  const sec = Math.max(0, remainSec)
+  const h = Math.floor(sec / 3600)
+  const m = Math.floor((sec % 3600) / 60)
+  const s = sec % 60
+  return (
+    <div className="worship-cd" role="timer" aria-label="시작까지 남은 시간">
+      <CountdownSeg value={h} label="시간" />
+      <span className="worship-cd-sep" aria-hidden>:</span>
+      <CountdownSeg value={m} label="분" />
+      <span className="worship-cd-sep" aria-hidden>:</span>
+      <CountdownSeg value={s} label="초" />
+    </div>
+  )
 })
 
 type DayFilter = 'today' | 'all' | 'sunday' | 'weekday'
@@ -375,10 +389,7 @@ const Worship = () => {
                   </span>
                 </span>
                 {upcoming.occ.dayOffset === 0 && (
-                  <span className="worship-live-count" aria-label="시작까지 남은 시간">
-                    <CountdownClock deadlineTs={Date.now() + upcomingRemainSec * 1000} />
-                    <span className="worship-live-after">후 시작</span>
-                  </span>
+                  <CountdownClock deadlineTs={Date.now() + upcomingRemainSec * 1000} />
                 )}
               </button>
             )}

@@ -185,22 +185,75 @@
   color: var(--brand);
 }
 
-.worship-live-count {
-  display: inline-flex;
-  align-items: baseline;
+/* ── 세그먼트 카운트다운 (시 : 분 : 초) ─── */
+.worship-cd {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.worship-cd-box {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 6px;
 }
-.worship-live-clock {
-  font-size: 22px;
+
+.worship-cd-num {
+  width: 100%;
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 26px;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  line-height: 1;
+  letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   color: var(--brand);
+  background: var(--surface-container);
+  border: 1px solid var(--brand-soft-strong);
+  box-shadow: 0 4px 14px -8px var(--brand-glow);
+  animation: worship-cd-tick 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.worship-live-after {
-  font-size: 12px;
-  font-weight: 600;
+
+.worship-cd-lab {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   color: var(--text-muted);
+}
+
+/* 콜론은 숫자 카드 중앙 높이에 맞춘다 (padding 10*2 + font 26 = 46px) */
+.worship-cd-sep {
+  height: 46px;
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--brand);
+  opacity: 0.45;
+}
+
+@keyframes worship-cd-tick {
+  from {
+    transform: translateY(-24%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .worship-cd-num {
+    animation: none;
+  }
 }
 
 /* ── 요일 필터 칩 ─────────────────────── */
