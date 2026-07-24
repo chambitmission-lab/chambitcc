@@ -136,6 +136,34 @@ export const updateUserApproval = async (
   }
 }
 
+// 회원 비밀번호 초기화 (임시 비밀번호로 재설정)
+// 반환된 temp_password를 회원에게 알려주면, 회원이 로그인 후 직접 변경한다
+export const resetUserPassword = async (
+  userId: number
+): Promise<{ message: string; temp_password: string }> => {
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
+  }
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  }
+
+  const response = await apiFetch(`${API_V1}/admin/users/${userId}/reset-password`, {
+    method: 'POST',
+    headers,
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.detail || '비밀번호 초기화에 실패했습니다')
+  }
+
+  return response.json()
+}
+
 // 전역 운영 설정 조회
 export const getAdminSettings = async (): Promise<AdminSettings> => {
   const token = localStorage.getItem('access_token')

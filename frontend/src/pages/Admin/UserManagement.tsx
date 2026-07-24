@@ -7,6 +7,7 @@ import {
   updateUserRole,
   updateUserStatus,
   updateUserApproval,
+  resetUserPassword,
   getAdminSettings,
   updateAdminSettings,
   type User,
@@ -115,6 +116,18 @@ const UserManagement = () => {
       loadUsers()
     } catch {
       showToast('상태 변경에 실패했습니다', 'error')
+    }
+  }
+
+  const handleResetPassword = async (userId: number, name: string) => {
+    if (!confirm(`'${name}' 회원의 비밀번호를 임시 비밀번호로 초기화하시겠습니까?`)) return
+    try {
+      const { temp_password } = await resetUserPassword(userId)
+      // 임시 비밀번호를 놓치지 않도록 alert로 확실히 안내 (회원에게 전달 후 직접 변경)
+      alert(`비밀번호가 초기화되었습니다.\n\n임시 비밀번호: ${temp_password}\n\n회원에게 전달해 주세요. 로그인 후 직접 변경할 수 있습니다.`)
+      showToast('비밀번호가 초기화되었습니다', 'success')
+    } catch {
+      showToast('비밀번호 초기화에 실패했습니다', 'error')
     }
   }
 
@@ -333,6 +346,7 @@ const UserManagement = () => {
                 onToggleAdmin={() => handleToggleAdmin(user.id, user.is_admin)}
                 onToggleStatus={() => handleToggleStatus(user.id, user.is_active)}
                 onApproval={(approve) => handleApproval(user.id, approve)}
+                onResetPassword={() => handleResetPassword(user.id, user.full_name || user.username)}
                 formatDate={formatDate}
                 formatRelative={formatRelative}
               />
@@ -386,6 +400,7 @@ interface UserRowProps {
   onToggleAdmin: () => void
   onToggleStatus: () => void
   onApproval: (approve: boolean) => void
+  onResetPassword: () => void
   formatDate: (d: string) => string
   formatRelative: (d?: string) => string
 }
@@ -397,6 +412,7 @@ const UserRow = ({
   onToggleAdmin,
   onToggleStatus,
   onApproval,
+  onResetPassword,
   formatDate,
   formatRelative,
 }: UserRowProps) => (
@@ -524,6 +540,15 @@ const UserRow = ({
             destructive={user.is_active}
             icon={user.is_active ? 'block' : 'check_circle'}
             label={user.is_active ? '비활성화' : '활성화'}
+          />
+        </div>
+
+        {/* 비밀번호 분실 회원용 — 임시 비밀번호로 초기화 (중립 톤) */}
+        <div className="flex gap-2 pt-2">
+          <RowAction
+            onClick={onResetPassword}
+            icon="lock_reset"
+            label="비밀번호 초기화"
           />
         </div>
       </div>
