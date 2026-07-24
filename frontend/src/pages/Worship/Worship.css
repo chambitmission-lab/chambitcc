@@ -200,6 +200,7 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  perspective: 340px;
 }
 
 .worship-cd-num {
@@ -218,7 +219,8 @@
   background: var(--surface-container);
   border: 1px solid var(--brand-soft-strong);
   box-shadow: 0 4px 14px -8px var(--brand-glow);
-  animation: worship-cd-tick 0.5s ease-out;
+  transform-origin: top center;
+  animation: worship-cd-flip 0.45s cubic-bezier(0.3, 0.7, 0.3, 1);
 }
 
 .worship-cd-lab {
@@ -239,15 +241,15 @@
   opacity: 0.45;
 }
 
-/* 세로 점프 없이 살짝 흐렸다 선명해지는 크로스페이드 — 매초 갱신에도 차분하게 */
-@keyframes worship-cd-tick {
+/* 카드가 위 경첩에서 젖혀지며 넘어오는 플립 — 플립 클럭 느낌 */
+@keyframes worship-cd-flip {
   from {
-    opacity: 0.3;
-    filter: blur(3px);
+    transform: rotateX(-86deg);
+    opacity: 0.15;
   }
   to {
+    transform: rotateX(0deg);
     opacity: 1;
-    filter: blur(0);
   }
 }
 
