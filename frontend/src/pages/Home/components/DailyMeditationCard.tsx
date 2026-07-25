@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDailyMeditation } from '../../../hooks/useDailyMeditation'
 import { useAuth } from '../../../hooks/useAuth'
 import { useChapterReadStatus } from '../../../hooks/useBibleReading'
-import { useWeatherEmoji } from '../../../hooks/useWeather'
+import { useCurrentWeather } from '../../../hooks/useWeather'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Language } from '../../../locales'
 import { getCurrentUser } from '../../../utils/auth'
@@ -88,8 +88,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const navigate = useNavigate()
   const { t, language } = useLanguage()
   const { data, isLoading, error } = useDailyMeditation()
-  // 실제 날씨 이모지 — 못 불러오면 null이라 기존 시간대 이모지로 폴백
-  const weatherEmoji = useWeatherEmoji()
+  // 실황 날씨(이모지+기온) — 못 불러오면 null: 칩을 숨기고 인사말 이모지로 폴백
+  const weather = useCurrentWeather()
   const { fullName } = getCurrentUser()
   const { isLoggedIn } = useAuth()
 
@@ -187,9 +187,21 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           style={{ '--hero-image': `url(${HERO_IMAGES[timeOfDay]})` } as React.CSSProperties}
         >
           <div className="meditation-hero-overlay" aria-hidden />
+          {/* 실황 날씨 칩 — 우측 상단 유리 칩(이모지+기온). 맑으면 시간대 이모지,
+           * API 실패 시엔 칩을 숨기고 인사말 끝 이모지로 폴백한다. */}
+          {weather && (
+            <span
+              className="meditation-weather-chip"
+              aria-label={`${t('homeWeatherAria')} ${weather.temperature}°C`}
+            >
+              <span aria-hidden>{weather.emoji ?? HERO_EMOJI[timeOfDay]}</span>
+              {weather.temperature}°
+            </span>
+          )}
           <div className="meditation-hero-text">
             <p className="meditation-hero-greeting">
-              {buildGreeting(t(GREETING_KEYS[timeOfDay]), fullName, language)} {weatherEmoji ?? HERO_EMOJI[timeOfDay]}
+              {buildGreeting(t(GREETING_KEYS[timeOfDay]), fullName, language)}
+              {!weather && ` ${HERO_EMOJI[timeOfDay]}`}
             </p>
             <h2 className="meditation-hero-headline">
               {t(HEADLINE_KEYS[timeOfDay][0])}

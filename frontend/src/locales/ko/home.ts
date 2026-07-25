@@ -25,6 +25,7 @@ export const home = {
   homeJourneyDay: '{n}일째',
   homeJourneyTotal: '/ {n}일',
   homeVerseAlarmAria: '구절 알람 설정',
+  homeWeatherAria: '현재 날씨',
   homePassageFromVerse: '{v}절부터 · 약 {m}분',
   homePassageMinutes: '약 {m}분',
   homeTodaysQuestion: '오늘의 질문',

@@ -25,6 +25,7 @@ export const home = {
   homeJourneyDay: 'Day {n}',
   homeJourneyTotal: '/ {n} days',
   homeVerseAlarmAria: 'Set verse alarm',
+  homeWeatherAria: 'Current weather',
   homePassageFromVerse: 'From v.{v} · ~{m} min',
   homePassageMinutes: '~{m} min',
   homeTodaysQuestion: "Today's Question",
