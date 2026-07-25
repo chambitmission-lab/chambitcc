@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDailyMeditation } from '../../../hooks/useDailyMeditation'
 import { useAuth } from '../../../hooks/useAuth'
 import { useChapterReadStatus } from '../../../hooks/useBibleReading'
+import { useWeatherEmoji } from '../../../hooks/useWeather'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Language } from '../../../locales'
 import { getCurrentUser } from '../../../utils/auth'
@@ -87,6 +88,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const navigate = useNavigate()
   const { t, language } = useLanguage()
   const { data, isLoading, error } = useDailyMeditation()
+  // 실제 날씨 이모지 — 못 불러오면 null이라 기존 시간대 이모지로 폴백
+  const weatherEmoji = useWeatherEmoji()
   const { fullName } = getCurrentUser()
   const { isLoggedIn } = useAuth()
 
@@ -186,7 +189,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           <div className="meditation-hero-overlay" aria-hidden />
           <div className="meditation-hero-text">
             <p className="meditation-hero-greeting">
-              {buildGreeting(t(GREETING_KEYS[timeOfDay]), fullName, language)} {HERO_EMOJI[timeOfDay]}
+              {buildGreeting(t(GREETING_KEYS[timeOfDay]), fullName, language)} {weatherEmoji ?? HERO_EMOJI[timeOfDay]}
             </p>
             <h2 className="meditation-hero-headline">
               {t(HEADLINE_KEYS[timeOfDay][0])}
