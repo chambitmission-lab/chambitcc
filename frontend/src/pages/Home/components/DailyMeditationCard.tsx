@@ -2,12 +2,15 @@ import { useNavigate } from 'react-router-dom'
 import { useDailyMeditation } from '../../../hooks/useDailyMeditation'
 import { useAuth } from '../../../hooks/useAuth'
 import { useChapterReadStatus } from '../../../hooks/useBibleReading'
+import { useLanguage } from '../../../contexts/LanguageContext'
+import type { Language } from '../../../locales'
 import { getCurrentUser } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import {
   dayOfYear,
   getCurrentSeason,
   getSeasonSegments,
+  type ChurchSeason,
 } from '../../../utils/churchCalendar'
 import type { TimeOfDay } from '../../../types/meditation'
 import heroMorning from '../../../assets/hero/morning.jpg'
@@ -15,11 +18,11 @@ import heroAfternoon from '../../../assets/hero/afternoon.jpg'
 import heroEvening from '../../../assets/hero/evening.jpg'
 import './DailyMeditationCard.css'
 
-const GREETINGS: Record<TimeOfDay, string> = {
-  morning: '좋은 아침이에요',
-  afternoon: '오늘 하루도 평안하시길',
-  evening: '오늘 하루도 수고하셨어요',
-}
+const GREETING_KEYS = {
+  morning: 'homeGreetingMorning',
+  afternoon: 'homeGreetingAfternoon',
+  evening: 'homeGreetingEvening',
+} as const satisfies Record<TimeOfDay, string>
 
 /* 시간대별 히어로 — 이미지·이모지·헤드라인이 함께 바뀌며 분위기를 만든다 */
 const HERO_IMAGES: Record<TimeOfDay, string> = {
@@ -34,35 +37,39 @@ const HERO_EMOJI: Record<TimeOfDay, string> = {
   evening: '🌙',
 }
 
-const HERO_HEADLINES: Record<TimeOfDay, [string, string]> = {
-  morning: ['오늘도 말씀과 함께', '빛나는 하루 보내세요!'],
-  afternoon: ['잠시 멈추어', '말씀 안에서 쉬어가세요'],
-  evening: ['오늘 하루의 끝을', '말씀으로 마무리해요'],
-}
+const HEADLINE_KEYS = {
+  morning: ['homeHeadlineMorning1', 'homeHeadlineMorning2'],
+  afternoon: ['homeHeadlineAfternoon1', 'homeHeadlineAfternoon2'],
+  evening: ['homeHeadlineEvening1', 'homeHeadlineEvening2'],
+} as const satisfies Record<TimeOfDay, readonly [string, string]>
 
-const SEASON_LABELS: Record<string, string> = {
-  advent: '대림절',
-  christmas: '성탄절기',
-  lent: '사순절',
-  easter: '부활절기',
-  epiphany: '주현절기',
-  ordinary: '연중',
-}
+const SEASON_LABEL_KEYS = {
+  advent: 'homeSeasonAdvent',
+  christmas: 'homeSeasonChristmas',
+  lent: 'homeSeasonLent',
+  easter: 'homeSeasonEaster',
+  epiphany: 'homeSeasonEpiphany',
+  ordinary: 'homeSeasonOrdinary',
+} as const satisfies Record<ChurchSeason, string>
 
 /* 절기 리본 탭 시 보여줄 한 줄 의미 — 모바일에서 절기를 배우는 통로 */
-const SEASON_MEANINGS: Record<string, string> = {
-  advent: '예수님의 오심을 기다리며 준비하는 절기',
-  christmas: '예수님의 탄생을 기뻐하는 절기',
-  epiphany: '그리스도의 빛을 묵상하는 절기',
-  lent: '회개와 절제로 부활절을 준비하는 40일',
-  easter: '부활의 기쁨을 성령강림까지 누리는 절기',
-  ordinary: '말씀과 함께 일상에서 자라가는 시간',
-}
+const SEASON_MEANING_KEYS = {
+  advent: 'homeSeasonMeaningAdvent',
+  christmas: 'homeSeasonMeaningChristmas',
+  epiphany: 'homeSeasonMeaningEpiphany',
+  lent: 'homeSeasonMeaningLent',
+  easter: 'homeSeasonMeaningEaster',
+  ordinary: 'homeSeasonMeaningOrdinary',
+} as const satisfies Record<ChurchSeason, string>
 
-const buildGreeting = (timeOfDay: TimeOfDay, fullName: string | null): string => {
-  const base = GREETINGS[timeOfDay]
+const MONTH_NAMES_EN = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+] as const
+
+const buildGreeting = (base: string, fullName: string | null, language: Language): string => {
   if (!fullName) return base
-  return `${fullName} 님, ${base}`
+  return language === 'en' ? `${base}, ${fullName}` : `${fullName} 님, ${base}`
 }
 
 /* 예상 소요시간 — 절당 약 10초(묵독 기준) 가정, 최소 1분 */
@@ -78,6 +85,7 @@ interface DailyMeditationCardProps {
 
 const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) => {
   const navigate = useNavigate()
+  const { t, language } = useLanguage()
   const { data, isLoading, error } = useDailyMeditation()
   const { fullName } = getCurrentUser()
   const { isLoggedIn } = useAuth()
@@ -125,14 +133,16 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           ? 0
           : ((todayDoy - startDoy + 1) / span) * 100
     const range = `${seg.start.getMonth() + 1}/${seg.start.getDate()} ~ ${seg.end.getMonth() + 1}/${seg.end.getDate()}`
+    const label = t(SEASON_LABEL_KEYS[seg.key])
+    const meaning = t(SEASON_MEANING_KEYS[seg.key])
     return {
       key: seg.key,
       span,
       fillPercent,
       isCurrent: todayDoy >= startDoy && todayDoy <= endDoy,
-      title: `${SEASON_LABELS[seg.key]} · ${range}`,
-      meaning: SEASON_MEANINGS[seg.key],
-      description: `${SEASON_LABELS[seg.key]} (${range}) — ${SEASON_MEANINGS[seg.key]}`,
+      title: `${label} · ${range}`,
+      meaning,
+      description: `${label} (${range}) — ${meaning}`,
     }
   })
 
@@ -176,12 +186,12 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           <div className="meditation-hero-overlay" aria-hidden />
           <div className="meditation-hero-text">
             <p className="meditation-hero-greeting">
-              {buildGreeting(timeOfDay, fullName)} {HERO_EMOJI[timeOfDay]}
+              {buildGreeting(t(GREETING_KEYS[timeOfDay]), fullName, language)} {HERO_EMOJI[timeOfDay]}
             </p>
             <h2 className="meditation-hero-headline">
-              {HERO_HEADLINES[timeOfDay][0]}
+              {t(HEADLINE_KEYS[timeOfDay][0])}
               <br />
-              {HERO_HEADLINES[timeOfDay][1]}
+              {t(HEADLINE_KEYS[timeOfDay][1])}
             </h2>
           </div>
         </div>
@@ -189,15 +199,15 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         <div className="meditation-body">
         <header className="meditation-meta-row">
           <span className="meditation-season-tag" data-season={season}>
-            {SEASON_LABELS[season] ?? '연중'}
+            {t(SEASON_LABEL_KEYS[season])}
           </span>
           {/* 구절 알람 설정 진입점 — 원하는 시간에 오늘의 말씀 푸시 */}
           <button
             type="button"
             className="meditation-alarm-btn"
             onClick={() => navigate('/bible/alarm')}
-            aria-label="구절 알람 설정"
-            title="구절 알람 설정"
+            aria-label={t('homeVerseAlarmAria')}
+            title={t('homeVerseAlarmAria')}
           >
             <span className="material-icons-round" aria-hidden>notifications</span>
           </button>
@@ -207,16 +217,21 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
          * 지나온 길은 채워지며, 오늘 위치에 빛 마커가 놓인다. */}
         <div
           className="meditation-journey"
-          aria-label={`올해 말씀 여정 ${data.day_number}일째, 현재 ${SEASON_LABELS[season]}`}
+          aria-label={`${t('homeJourneyLabel')} ${t('homeJourneyDay').replace('{n}', String(data.day_number))}, ${t(SEASON_LABEL_KEYS[season])}`}
         >
           <div className="meditation-journey-label">
             <span className="meditation-journey-day">
               <span className="material-icons-round" aria-hidden>auto_stories</span>
-              올해 말씀 여정 <strong>{data.day_number}일째</strong>
-              <span className="meditation-journey-total">/ {data.total_days}일</span>
+              {t('homeJourneyLabel')}{' '}
+              <strong>{t('homeJourneyDay').replace('{n}', String(data.day_number))}</strong>
+              <span className="meditation-journey-total">
+                {t('homeJourneyTotal').replace('{n}', String(data.total_days))}
+              </span>
             </span>
             <span className="meditation-journey-date">
-              {today.getMonth() + 1}월 {today.getDate()}일
+              {language === 'en'
+                ? `${MONTH_NAMES_EN[today.getMonth()]} ${today.getDate()}`
+                : `${today.getMonth() + 1}월 ${today.getDate()}일`}
             </span>
           </div>
           {/* 각 구간은 탭 가능 — 모바일에서 절기 이름·기간·의미를 토스트로 알려준다 */}
@@ -264,8 +279,10 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             <span className="meditation-passage-time">
               <span className="material-icons-round" aria-hidden>schedule</span>
               {inProgress
-                ? `${firstUnreadVerse}절부터 · 약 ${remainingMinutes}분`
-                : `약 ${remainingMinutes}분`}
+                ? t('homePassageFromVerse')
+                    .replace('{v}', String(firstUnreadVerse))
+                    .replace('{m}', String(remainingMinutes))
+                : t('homePassageMinutes').replace('{m}', String(remainingMinutes))}
             </span>
           )}
         </div>
@@ -277,7 +294,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
 
         <div className="meditation-question-block">
           <span className="meditation-question-label">
-            <span aria-hidden>💭</span> 오늘의 질문
+            <span aria-hidden>💭</span> {t('homeTodaysQuestion')}
           </span>
           <p className="meditation-question-text">{data.meditation_question}</p>
           <button
@@ -285,7 +302,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             className="meditation-deepen-link"
             onClick={() => navigate('/bible/meditation')}
           >
-            1분 묵상 이어가기
+            {t('homeContinueMeditation')}
             <span className="material-icons-round" aria-hidden>arrow_forward</span>
           </button>
         </div>
@@ -299,11 +316,11 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             {isDone ? (
               <>
                 <span className="material-icons-round" aria-hidden>check_circle</span>
-                오늘 본문 완료
+                {t('homePassageDone')}
               </>
             ) : (
               <>
-                {inProgress ? '이어 읽기' : '오늘 본문 읽기'}
+                {inProgress ? t('homeContinueReading') : t('homeReadPassage')}
                 <span
                   className="material-icons-round meditation-cta-arrow"
                   aria-hidden
@@ -320,7 +337,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               onClick={onWriteMeditation}
             >
               <span className="material-icons-round">edit_note</span>
-              나의 묵상 나누기
+              {t('homeShareMeditation')}
             </button>
           )}
         </div>

@@ -12,6 +12,7 @@ import { event } from './event'
 import { garden } from './garden'
 import { answered } from './answered'
 import { mission } from './mission'
+import { home } from './home'
 
 export const en = {
   ...common,
@@ -27,4 +28,5 @@ export const en = {
   ...garden,
   ...answered,
   ...mission,
+  ...home,
 } as const
