@@ -59,54 +59,29 @@ const BottomNavigation = ({
         {/* 중앙 자리 비움 — 떠 있는 FAB(아래 형제 요소)가 이 위에 얹힌다 */}
         <div aria-hidden className="w-12 h-12" />
 
-        {/* Focus — 집중 기도 모드. 십자가는 중앙 '기도 등록'(+)과 의미가 겹쳐 촛불로 교체,
-            다른 아이콘과 같은 조용한 스트로크로 통일해 dock의 강조는 중앙 채움 원 하나만 남긴다 */}
+        {/* Focus — 집중 기도 모드. 촛불·두 손 같은 구상적 은유는 유치하다는 피드백으로,
+            '정해진 시간 동안 집중'을 그대로 말하는 스톱워치로 확정.
+            상단 버튼 + 바늘 하나뿐인 최소 형태(Lucide timer 계열) */}
         <button
           onClick={onFocusModeClick}
           aria-label="집중 기도 모드"
           className={navItemClass}
         >
-          <svg className="w-[26px] h-[26px]" viewBox="0 0 24 24">
-            <defs>
-              <radialGradient id="candleGlow">
-                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.9" />
-                <stop offset="40%" stopColor="#fbbf24" stopOpacity="0.45" />
-                <stop offset="75%" stopColor="#fbbf24" stopOpacity="0.15" />
-                <stop offset="100%" stopColor="#fbbf24" stopOpacity="0" />
-              </radialGradient>
-            </defs>
-            {/* 불꽃이 주변을 비추는 빛 무리 */}
-            <circle cx="12" cy="6.6" r="7" fill="url(#candleGlow)" />
-            {/* 불꽃 — 앰버 겉불꽃 + 노랑 속불꽃. hover 색 변화와 무관하게 항상 따뜻한 색 유지 */}
-            <path
-              d="M12 2.4c-1.8 2.1-2.7 3.5-2.7 4.8a2.7 2.7 0 0 0 5.4 0c0-1.3-.9-2.7-2.7-4.8Z"
-              fill="#f59e0b"
-            />
-            <path
-              d="M12 5.1c-.9 1.1-1.3 1.9-1.3 2.5a1.3 1.3 0 0 0 2.6 0c0-.6-.4-1.4-1.3-2.5Z"
-              fill="#fde047"
-            />
-            <g
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {/* 심지 */}
-              <path d="M12 10.1v1.4" />
-              {/* 몸통 — 윗면이 녹아 내려앉은 물결 림 */}
-              <path d="M8.8 12.6c1.1.8 2.1-.6 3.2-.3 1.1.3 2.1.9 3.2.3V19.2a1.6 1.6 0 0 1-1.6 1.6h-3.2A1.6 1.6 0 0 1 8.8 19.2Z" />
-            </g>
-            {/* 흘러내린 촛농 — 림에서 가늘게 흘러 끝에 방울로 맺힘 */}
-            <path
-              d="M10.7 13.2v2.4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.3}
-              strokeLinecap="round"
-            />
-            <circle cx="10.7" cy="16.4" r="1" fill="currentColor" />
+          <svg
+            className="w-[26px] h-[26px]"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            {/* 상단 누름 버튼 */}
+            <path d="M10 2.5h4" />
+            {/* 몸통 다이얼 */}
+            <circle cx="12" cy="14" r="7.5" />
+            {/* 바늘 — 1~2시 방향 한 개만 */}
+            <path d="M12 14l2.7-2.7" />
           </svg>
         </button>
 
