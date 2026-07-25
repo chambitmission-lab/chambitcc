@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react'
-
 interface BottomNavigationProps {
   onProfileClick: () => void
   onComposeClick: () => void
@@ -15,42 +13,12 @@ const BottomNavigation = ({
   onFocusModeClick,
   onBibleClick,
 }: BottomNavigationProps) => {
-  // FAB ping은 진입 직후 시선 유도용으로만 몇 초 돌리고 멈춤 — 무한 애니메이션은 저사양 기기에서 상시 리페인트 비용
-  const [showPing, setShowPing] = useState(true)
-  useEffect(() => {
-    const id = window.setTimeout(() => setShowPing(false), 6000)
-    return () => window.clearTimeout(id)
-  }, [])
-
   // 모바일엔 hover가 없어 탭 피드백이 전혀 없었음 — active로 즉각 반응을 준다
   const navItemClass =
     'relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] active:text-brand active:bg-[var(--brand-soft)] active:scale-90 transition-[color,background-color,transform] duration-150'
 
   return (
-    <div className="relative px-3 pb-3 pt-6">
-      {/* 중앙 Compose FAB — dock 위로 살짝 들어올린 유일한 saturated 액센트.
-          FAB 윗쪽은 페이지 배경(#0b0b12) 위, 아랫쪽은 dock 카드(#1c1c26) 위에 걸쳐 있어 단일 색 ring으로는 한쪽이 항상 도넛처럼 보임 → ring 제거하고 보라 halo + 부드러운 그림자로만 부유감 표현. */}
-      <button
-        onClick={onComposeClick}
-        aria-label="기도 작성"
-        className="absolute left-1/2 -translate-x-1/2 top-0 z-20 w-14 h-14 rounded-full brand-gradient shadow-[0_0_0_6px_var(--brand-soft),0_10px_28px_var(--brand-glow)] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
-      >
-        {showPing && (
-          <span className="absolute inset-0 rounded-full bg-[var(--brand-glow)] animate-ping opacity-40 pointer-events-none" />
-        )}
-        <svg
-          className="w-7 h-7 relative z-10"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          viewBox="0 0 24 24"
-        >
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-      </button>
-
+    <div className="relative px-3 pb-3 pt-2">
       {/* Glass dock — 카드 시스템과 동일한 #1c1c26/80 + 상단 1px 빛줄 + soft purple shadow */}
       <nav
         className="relative backdrop-blur-xl bg-white/80 dark:bg-[#201f1f]/90 border border-black/[0.04] dark:border-white/[0.08] rounded-2xl px-5 py-2 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_var(--brand-soft)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.5),0_12px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]"
@@ -87,9 +55,24 @@ const BottomNavigation = ({
           <span className="material-icons-outlined text-[26px]">menu_book</span>
         </button>
 
-        {/* Compose 슬롯 — FAB이 위로 들어올려져 시각적 빈자리. 폭만 확보.
-            5개 배치(홈·성경·[FAB]·집중·프로필)가 되면서 이 spacer가 정확히 중앙(50%)에 와 FAB(left-1/2)과 정렬됨 */}
-        <div className="w-14 h-12" aria-hidden="true" />
+        {/* Compose — dock 행 안에 앉힌 단색 채움 원. 채움 자체가 유일한 강조라 halo·glow·애니메이션은 두지 않는다 */}
+        <button
+          onClick={onComposeClick}
+          aria-label="기도 작성"
+          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-[var(--brand)] text-white active:scale-90 transition-transform duration-150"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            viewBox="0 0 24 24"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
 
         {/* Focus — FAB 오른쪽 '기도' 자리. 빛이 나는 십자가.
             라틴 십자가 본체(currentColor, hover 시 보라) 뒤에 보라 글로우(feGaussianBlur)를 깔아
