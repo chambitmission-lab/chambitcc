@@ -16,6 +16,14 @@ type Phase = 'sealed' | 'opening' | 'letter'
 const capsuleInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/capsule/invite/${code}`
 
+/** 음성 길이 표기: 60초 미만은 "45초", 그 이상은 "2분 30초" */
+const formatAudioDuration = (seconds: number): string => {
+  if (seconds < 60) return `${seconds}초`
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return s > 0 ? `${m}분 ${s}초` : `${m}분`
+}
+
 const senderLine = (capsule: CapsuleDetail): string => {
   if (capsule.role === 'self') return '과거의 나로부터'
   if (capsule.role === 'recipient') return `${capsule.sender_name}님으로부터`
@@ -236,7 +244,7 @@ const CapsuleOpen = () => {
                 <div className="px-6 pb-5 pt-1">
                   <p className="text-[12px] font-bold text-[var(--text-muted)] mb-2">
                     🎙️ 그날의 목소리
-                    {content.audio_duration ? ` · ${content.audio_duration}초` : ''}
+                    {content.audio_duration ? ` · ${formatAudioDuration(content.audio_duration)}` : ''}
                   </p>
                   <audio controls src={content.audio_url} className="w-full" preload="metadata" />
                 </div>

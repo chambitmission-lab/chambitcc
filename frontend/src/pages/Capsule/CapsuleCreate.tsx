@@ -1,5 +1,5 @@
 // 타임캡슐 작성 (/capsule/new)
-// 편지 글 + 30초 음성 녹음 + 개봉일(기간/절기 프리셋)을 골라 봉인한다.
+// 편지 글 + 3분 음성 녹음 + 개봉일(기간/절기 프리셋)을 골라 봉인한다.
 // 봉인한 날의 스냅샷(절기·오늘의 말씀)은 여기서 계산해 함께 보낸다
 // (절기 계산의 진실은 프론트 churchCalendar — 백엔드 season은 플레이스홀더).
 import { useEffect, useMemo, useState } from 'react'
@@ -14,7 +14,7 @@ import { getCurrentSeason } from '../../utils/churchCalendar'
 import { showToast } from '../../utils/toast'
 import { buildPresets, formatKoreanDate, toDateStr } from './capsuleDates'
 
-const MAX_RECORD_SECONDS = 30
+const MAX_RECORD_SECONDS = 180
 const MAX_MESSAGE_LEN = 5000
 
 const SEASON_LABELS: Record<string, string> = {
@@ -26,7 +26,7 @@ const SEASON_LABELS: Record<string, string> = {
   ordinary: '연중',
 }
 
-const formatSeconds = (s: number) => `0:${String(Math.min(s, 99)).padStart(2, '0')}`
+const formatSeconds = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
 const capsuleInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/capsule/invite/${code}`
@@ -61,11 +61,11 @@ const CapsuleCreate = () => {
     }
   }, [navigate])
 
-  // 30초 자동 컷 — 1년 뒤 듣기 좋은 길이로 제한
+  // 3분 자동 컷 — 1년 뒤 듣기 좋은 길이로 제한
   useEffect(() => {
     if (recordingState === 'recording' && recordingTime >= MAX_RECORD_SECONDS) {
       stopRecording()
-      showToast('30초 녹음이 완료됐어요', 'success')
+      showToast('3분 녹음이 완료됐어요', 'success')
     }
   }, [recordingState, recordingTime, stopRecording])
 
@@ -281,7 +281,7 @@ const CapsuleCreate = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[13.5px] font-bold text-gray-900 dark:text-white">
-                  🎙️ 목소리 남기기 <span className="text-gray-400 dark:text-white/40 font-normal">(선택 · 최대 30초)</span>
+                  🎙️ 목소리 남기기 <span className="text-gray-400 dark:text-white/40 font-normal">(선택 · 최대 3분)</span>
                 </p>
                 <p className="text-[11.5px] text-gray-400 dark:text-white/40 mt-0.5">
                   시간이 지나 다시 듣는 목소리는 글과는 다른 울림이 있어요
@@ -308,7 +308,7 @@ const CapsuleCreate = () => {
                 <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse shrink-0" />
                 <span className="text-[15px] font-extrabold tabular-nums text-gray-900 dark:text-white">
                   {formatSeconds(recordingTime)}
-                  <span className="text-gray-400 dark:text-white/40 font-normal"> / 0:{MAX_RECORD_SECONDS}</span>
+                  <span className="text-gray-400 dark:text-white/40 font-normal"> / {formatSeconds(MAX_RECORD_SECONDS)}</span>
                 </span>
                 <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
                   <div
