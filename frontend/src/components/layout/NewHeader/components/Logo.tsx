@@ -1,7 +1,9 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useLanguage } from '../../../../contexts/LanguageContext'
 
 const Logo = () => {
   const location = useLocation()
+  const { t } = useLanguage()
 
   const handleLogoClick = (e: React.MouseEvent) => {
     if (location.pathname === '/') {
@@ -21,7 +23,7 @@ const Logo = () => {
         className="text-xl font-extrabold tracking-tighter font-display select-none text-gray-900 dark:text-white relative z-10"
         style={{ filter: 'drop-shadow(0 0 10px var(--brand-glow)) drop-shadow(0 0 20px var(--brand-glow))' }}
       >
-        참빛교회
+        {t('churchName')}
       </h1>
     </Link>
   )

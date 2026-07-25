@@ -1,26 +1,29 @@
+import { useLanguage } from '../../../contexts/LanguageContext'
 import './Footer.css'
 
 const Footer = () => {
+  const { t } = useLanguage()
+
   return (
     <footer className="footer">
       <div className="container">
         <div className="footer-content">
           <div className="footer-section">
-            <h3>참빛교회</h3>
-            <p>어둠 속에서 빛을 비추는 교회</p>
+            <h3>{t('churchName')}</h3>
+            <p>{t('footerSlogan')}</p>
           </div>
           <div className="footer-section">
-            <h4>연락처</h4>
+            <h4>{t('footerContactTitle')}</h4>
             <p>Tel: 032-323-1004</p>
           </div>
           <div className="footer-section">
-            <h4>주소</h4>
-            <p>(14542) 경기도 부천시 송내대로265번길 29</p>
-            <p>(상동, 참빛교회)</p>
+            <h4>{t('footerAddressTitle')}</h4>
+            <p>{t('footerAddressLine1')}</p>
+            <p>{t('footerAddressLine2')}</p>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>copyright ⓒ 참빛교회 All rights reserved. Provided By교회사랑넷</p>
+          <p>{t('footerCopyright')}</p>
         </div>
       </div>
     </footer>

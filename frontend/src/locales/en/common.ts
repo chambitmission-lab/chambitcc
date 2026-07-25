@@ -1,5 +1,6 @@
 // Common translations
 export const common = {
+  churchName: 'Chambit Church',
   close: 'Close',
   back: 'Back',
   save: 'Save',
@@ -25,6 +26,13 @@ export const common = {
   deleteConfirm: 'Are you sure you want to delete?',
   versesToMeditateOn: 'Verses to meditate on',
   actions: 'Actions',
+  // Footer
+  footerSlogan: 'A church shining light in the darkness',
+  footerContactTitle: 'Contact',
+  footerAddressTitle: 'Address',
+  footerAddressLine1: '29, Songnae-daero 265beon-gil, Bucheon-si, Gyeonggi-do (14542)',
+  footerAddressLine2: '(Sang-dong, Chambit Church)',
+  footerCopyright: 'copyright ⓒ Chambit Church All rights reserved. Provided by 교회사랑넷',
   // Admin menu items
   notificationManagement: 'Notification Management',
   dailyVerseManagement: 'Daily Verse Management',

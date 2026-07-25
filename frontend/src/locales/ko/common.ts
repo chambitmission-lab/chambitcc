@@ -1,5 +1,6 @@
 // 공통 번역
 export const common = {
+  churchName: '참빛교회',
   close: '닫기',
   back: '뒤로',
   save: '저장',
@@ -25,6 +26,13 @@ export const common = {
   deleteConfirm: '정말 삭제하시겠습니까?',
   versesToMeditateOn: '함께 묵상해볼 수 있는 해설',
   actions: '작업',
+  // Footer
+  footerSlogan: '어둠 속에서 빛을 비추는 교회',
+  footerContactTitle: '연락처',
+  footerAddressTitle: '주소',
+  footerAddressLine1: '(14542) 경기도 부천시 송내대로265번길 29',
+  footerAddressLine2: '(상동, 참빛교회)',
+  footerCopyright: 'copyright ⓒ 참빛교회 All rights reserved. Provided By교회사랑넷',
   // Admin menu items
   notificationManagement: '공지사항 관리',
   dailyVerseManagement: '오늘의 말씀 관리',
