@@ -28,25 +28,28 @@ interface PrayerDetailProps {
 
 const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenReplies = false }: PrayerDetailProps) => {
   const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData)
-  const [showReplies, setShowReplies] = useState(initialOpenReplies)
   const repliesSectionRef = useRef<HTMLDivElement>(null)
 
-  // 브라우저/안드로이드 뒤로가기: 댓글이 열려 있으면 댓글만 닫고, 아니면 모달을 닫는다
+  // 브라우저/안드로이드 뒤로가기: 모달을 닫는다 (댓글은 항상 펼쳐져 있어 별도 단계 없음)
   useModalBackButton(onClose)
-  useModalBackButton(() => setShowReplies(false), showReplies)
 
-  // 댓글 열릴 때 댓글 섹션으로 스크롤
+  // 댓글 섹션으로 스크롤 (약간의 딜레이를 주어 렌더링 완료 후 스크롤)
+  const scrollToReplies = () => {
+    setTimeout(() => {
+      repliesSectionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    }, 100)
+  }
+
+  // 피드에서 댓글 아이콘으로 진입한 경우 댓글 위치로 바로 이동
   useEffect(() => {
-    if (showReplies) {
-      // 댓글 섹션으로 스크롤 (약간의 딜레이를 주어 렌더링 완료 후 스크롤)
-      setTimeout(() => {
-        repliesSectionRef.current?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        })
-      }, 100)
+    if (initialOpenReplies) {
+      scrollToReplies()
     }
-  }, [showReplies])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // 번역 관련
   const {
@@ -81,12 +84,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
     isFetchingNextPage,
   } = useReplies({ prayerId })
 
-  const { createReply, isCreating } = useCreateReply({
-    prayerId,
-    onSuccess: () => {
-      setShowReplies(true)
-    },
-  })
+  const { createReply, isCreating } = useCreateReply({ prayerId })
 
   const { updateReply, isUpdating } = useUpdateReply({ prayerId })
   const { deleteReply } = useDeleteReply({ prayerId })
@@ -141,39 +139,37 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
 
           <PrayerContent title={displayTitle} content={displayContent} />
 
-          {/* 통계를 버튼 바로 위에 붙여 "5명이 함께 기도 중 → 나도 기도하기" 흐름으로 */}
-          <PrayerStats
-            prayerCount={prayer.prayer_count}
-            replyCount={prayer.reply_count}
-            onReplyCountClick={() => setShowReplies(true)}
-          />
+          <PrayerStats prayerCount={prayer.prayer_count} />
 
+          {/* 댓글은 토글 없이 항상 인라인 — 짧은 글일 때 하단이 텅 비지 않고
+              댓글·입력창이 자연스럽게 이어져 화면을 채운다 */}
+          <div ref={repliesSectionRef} className="scroll-mt-2">
+            <RepliesSection
+              replyCount={prayer.reply_count}
+              replies={replies}
+              isLoading={repliesLoading}
+              isCreating={isCreating}
+              isUpdating={isUpdating}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              onReplySubmit={handleReplySubmit}
+              onReplyUpdate={handleReplyUpdate}
+              onReplyDelete={handleReplyDelete}
+              onLoadMore={fetchNextPage}
+            />
+          </div>
+        </div>
+
+        {/* 하단 고정 액션 바 — 짧은 글에서도 버튼이 어중간한 높이에 뜨지 않고
+            항상 엄지 존에 머문다. 설치형 PWA 홈 인디케이터 영역만큼 safe-area 패딩 */}
+        <div className="shrink-0 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-black/[0.06] dark:border-white/[0.08] bg-background-light dark:bg-background-dark">
           <PrayerActions
             isPrayed={prayer.is_prayed}
             isToggling={isToggling}
-            showReplies={showReplies}
             replyCount={prayer.reply_count}
             onPrayerToggle={handlePrayerToggle}
-            onRepliesToggle={() => setShowReplies(!showReplies)}
+            onCommentClick={scrollToReplies}
           />
-
-          {showReplies && (
-            <div ref={repliesSectionRef}>
-              <RepliesSection
-                replyCount={prayer.reply_count}
-                replies={replies}
-                isLoading={repliesLoading}
-                isCreating={isCreating}
-                isUpdating={isUpdating}
-                hasNextPage={hasNextPage}
-                isFetchingNextPage={isFetchingNextPage}
-                onReplySubmit={handleReplySubmit}
-                onReplyUpdate={handleReplyUpdate}
-                onReplyDelete={handleReplyDelete}
-                onLoadMore={fetchNextPage}
-              />
-            </div>
-          )}
         </div>
       </PrayerDetailModal>
 

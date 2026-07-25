@@ -1,25 +1,23 @@
-// 기도하기, 댓글 버튼 컴포넌트
-// 기도 버튼은 명확한 토글: 누르기 전 = 댓글 버튼과 같은 무난한 스타일(사용자 확정),
-// 누른 후 = 브랜드 블루 채움 + 체크 "함께 기도했어요"(완료 피드백).
+// 하단 고정 액션 바 — 기도하기(풀폭 주 버튼) + 댓글로 이동(컴팩트 아이콘 버튼).
+// 같은 폭 버튼 두 개가 나란히 붙어 답답하다는 피드백으로, 주행동 하나만 넓게 남기고
+// 댓글은 인라인 섹션으로 항상 펼쳐두되 여기서는 스크롤 바로가기만 제공한다.
 import { useState } from 'react'
 import { HandHeartIcon, CommentIcon } from '../../../../components/icons/ActionIcons'
 
 interface PrayerActionsProps {
   isPrayed: boolean
   isToggling: boolean
-  showReplies: boolean
   replyCount: number
   onPrayerToggle: () => void
-  onRepliesToggle: () => void
+  onCommentClick: () => void
 }
 
 const PrayerActions = ({
   isPrayed,
   isToggling,
-  showReplies,
   replyCount,
   onPrayerToggle,
-  onRepliesToggle,
+  onCommentClick,
 }: PrayerActionsProps) => {
   const [isPopping, setIsPopping] = useState(false)
 
@@ -32,12 +30,12 @@ const PrayerActions = ({
   }
 
   return (
-    <div className="flex items-center gap-3 mb-4">
+    <div className="flex items-center gap-3">
       <button
         onClick={handlePrayerToggle}
         disabled={isToggling}
         aria-pressed={isPrayed}
-        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 active:scale-[0.97] ${
+        className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-200 active:scale-[0.97] ${
           isPrayed
             ? 'brand-gradient shadow-[0_8px_24px_-8px_var(--brand-glow)]'
             : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08]'
@@ -50,24 +48,16 @@ const PrayerActions = ({
         />
         <span>{isPrayed ? '함께 기도했어요' : '함께 기도하기'}</span>
       </button>
+
+      {/* 댓글 바로가기 — 섹션은 항상 펼쳐져 있으므로 스크롤 이동만 담당 */}
       <button
-        onClick={onRepliesToggle}
-        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm transition-all duration-200 active:scale-[0.97] ${
-          showReplies
-            ? 'brand-gradient shadow-[0_8px_24px_-8px_var(--brand-glow)]'
-            : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08]'
-        }`}
+        onClick={onCommentClick}
+        aria-label={`댓글${replyCount > 0 ? ` ${replyCount}개` : ''}로 이동`}
+        className="relative shrink-0 flex items-center justify-center w-[52px] h-[52px] rounded-2xl bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-all duration-200 active:scale-[0.97]"
       >
-        <CommentIcon size={20} />
-        <span>댓글</span>
+        <CommentIcon size={22} />
         {replyCount > 0 && (
-          <span
-            className={`inline-flex items-center justify-center min-w-[1.375rem] px-1.5 py-0.5 rounded-full text-xs font-bold leading-none ${
-              showReplies
-                ? 'bg-white/25 text-white'
-                : 'bg-[var(--brand-soft-strong)] text-[var(--brand)]'
-            }`}
-          >
+          <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold leading-none bg-[var(--brand)] text-white shadow-sm">
             {replyCount}
           </span>
         )}
