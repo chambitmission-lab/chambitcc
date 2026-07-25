@@ -74,35 +74,36 @@ const BottomNavigation = ({
           </svg>
         </button>
 
-        {/* Focus — FAB 오른쪽 '기도' 자리. 빛이 나는 십자가.
-            라틴 십자가 본체(currentColor, hover 시 보라) 뒤에 보라 글로우(feGaussianBlur)를 깔아
-            "빛나는 십자가"를 표현. 글로우 색은 브랜드 액센트(purple) 고정 — 집중 기도 모드를 은은히 강조 */}
+        {/* Focus — 집중 기도 모드. 십자가는 중앙 '기도 등록'(+)과 의미가 겹쳐 촛불로 교체,
+            다른 아이콘과 같은 조용한 스트로크로 통일해 dock의 강조는 중앙 채움 원 하나만 남긴다 */}
         <button
           onClick={onFocusModeClick}
           aria-label="집중 기도 모드"
           className={navItemClass}
         >
           <svg className="w-[26px] h-[26px]" viewBox="0 0 24 24">
-            <defs>
-              <filter id="crossGlow" x="-60%" y="-60%" width="220%" height="220%">
-                <feGaussianBlur stdDeviation="1.1" />
-              </filter>
-            </defs>
-            {/* 발광(글로우) — 십자가 뒤에 깔리는 보라 빛 */}
+            {/* 불꽃 — 앰버 겉불꽃 + 노랑 속불꽃. hover 색 변화와 무관하게 항상 따뜻한 색 유지 */}
+            <path
+              d="M12 2.6c-1.7 2-2.5 3.3-2.5 4.5a2.5 2.5 0 0 0 5 0c0-1.2-.8-2.5-2.5-4.5Z"
+              fill="#f59e0b"
+            />
+            <path
+              d="M12 5.2c-.8 1-1.2 1.7-1.2 2.3a1.2 1.2 0 0 0 2.4 0c0-.6-.4-1.3-1.2-2.3Z"
+              fill="#fde047"
+            />
             <g
-              filter="url(#crossGlow)"
-              style={{ stroke: "var(--brand)" }}
-              strokeWidth={3.4}
-              strokeLinecap="round"
               fill="none"
+              stroke="currentColor"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <path d="M12 4.2V19.8" />
-              <path d="M8 9H16" />
-            </g>
-            {/* 십자가 본체 */}
-            <g stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" fill="none">
-              <path d="M12 4.2V19.8" />
-              <path d="M8 9H16" />
+              {/* 심지 */}
+              <path d="M12 9.9v1.5" />
+              {/* 몸통 — 윗면이 녹아 내려앉은 물결 림 */}
+              <path d="M8.8 12.6c1.1.8 2.1-.6 3.2-.3 1.1.3 2.1.9 3.2.3V19.2a1.6 1.6 0 0 1-1.6 1.6h-3.2A1.6 1.6 0 0 1 8.8 19.2Z" />
+              {/* 왼쪽으로 흘러내리는 촛농 줄기 */}
+              <path d="M8.8 13v2.3a.8.8 0 0 0 1.6 0v-1.6" />
             </g>
           </svg>
         </button>
