@@ -64,6 +64,10 @@ const PlanDetail = lazy(() => import('./pages/Bible/Plans/PlanDetail'))
 const RoomList = lazy(() => import('./pages/Rooms/RoomList'))
 const RoomHome = lazy(() => import('./pages/Rooms/RoomHome'))
 const JoinRoom = lazy(() => import('./pages/Rooms/JoinRoom'))
+const CapsuleList = lazy(() => import('./pages/Capsule/CapsuleList'))
+const CapsuleCreate = lazy(() => import('./pages/Capsule/CapsuleCreate'))
+const CapsuleOpen = lazy(() => import('./pages/Capsule/CapsuleOpen'))
+const CapsuleInvite = lazy(() => import('./pages/Capsule/CapsuleInvite'))
 const BibleWordbook = lazy(() => import('./pages/Bible/Wordbook/WordbookPage'))
 const BiblePlanManagement = lazy(() => import('./pages/Admin/BiblePlanManagement'))
 const BibleCommentaryManagement = lazy(() => import('./pages/Admin/BibleCommentaryManagement'))
@@ -196,6 +200,10 @@ function App() {
                 <Route path="/rooms" element={<RoomList />} />
                 <Route path="/rooms/:roomId" element={<RoomHome />} />
                 <Route path="/join/:code" element={<JoinRoom />} />
+                <Route path="/capsule" element={<CapsuleList />} />
+                <Route path="/capsule/new" element={<CapsuleCreate />} />
+                <Route path="/capsule/invite/:code" element={<CapsuleInvite />} />
+                <Route path="/capsule/:id" element={<CapsuleOpen />} />
                 <Route path="/bible/wordbook" element={<BibleWordbook />} />
                 <Route path="/bible/situation" element={<SituationBible />} />
                 <Route path="/bible/photo-verse" element={<PhotoVerse />} />
