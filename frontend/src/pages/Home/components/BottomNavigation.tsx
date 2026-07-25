@@ -55,22 +55,32 @@ const BottomNavigation = ({
           <span className="material-icons-outlined text-[26px]">menu_book</span>
         </button>
 
-        {/* Compose — dock 행 안에 앉힌 단색 채움 원. 채움 자체가 유일한 강조라 halo·glow·애니메이션은 두지 않는다 */}
+        {/* Compose — 기도를 '쓰는' 버튼이라 + 대신 깃펜. 단색 원이 밋밋하다는 피드백으로
+            브랜드 블루 그라데이션 + 상단 글로시 하이라이트 + 촛불과 같은 노랑 반짝임 한 점만 얹는다 */}
         <button
           onClick={onComposeClick}
           aria-label="기도 작성"
-          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-full bg-[var(--brand)] text-white active:scale-90 transition-transform duration-150"
+          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-full text-white bg-gradient-to-br from-[#69a8ff] via-[var(--brand)] to-[#3f5efb] shadow-[0_5px_14px_-3px_var(--brand-glow)] ring-1 ring-white/20 dark:ring-white/15 active:scale-90 transition-transform duration-150"
         >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            viewBox="0 0 24 24"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
+          {/* 위쪽 절반 유리 광택 — 평면 채움이 아니라 살짝 부푼 버튼처럼 보이게 */}
+          <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 via-white/5 to-transparent pointer-events-none" />
+          <svg className="relative w-[26px] h-[26px]" viewBox="0 0 24 24">
+            {/* 만년필 — 스트로크론 색연필처럼 보인다는 피드백으로 면(fill) 실루엣으로 전환.
+                다이아몬드형으로 벌어진 펜촉(숨구멍 컷아웃) + 분리된 두툼한 펜대가 만년필의 정체성 */}
+            <g fill="currentColor">
+              {/* 펜촉 — 팁에서 어깨로 벌어졌다 다시 좁아지는 다이아몬드, 가운데 숨구멍은 뚫려서 배경이 비친다 */}
+              <path
+                fillRule="evenodd"
+                d="M3 21 4.13 16.19 6.61 14.71 9.29 17.39 7.81 19.87Z M5.4 17.65a.95.95 0 1 0 0 1.9.95.95 0 1 0 0-1.9Z"
+              />
+              {/* 펜대 — 펜촉과 살짝 띄워 단면(그립)을 표현, 끝은 라운드 캡 */}
+              <path d="M7.32 14 12.41 8.91a1.9 1.9 0 0 1 2.68 2.68L10 16.68Z" />
+            </g>
+            {/* 반짝임 — 촛불 속불꽃과 같은 노랑, 펜촉 곁에서 반짝이는 한 점 */}
+            <path
+              d="M19.6 4.1l.75 1.75 1.75.75-1.75.75-.75 1.75-.75-1.75-1.75-.75 1.75-.75Z"
+              fill="#fde047"
+            />
           </svg>
         </button>
 
