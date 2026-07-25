@@ -1,4 +1,4 @@
-import { getVapidPublicKey, subscribePush, unsubscribePush } from '../api/push';
+import { getVapidPublicKey, subscribePush, unsubscribePush, getMySubscriptions } from '../api/push';
 
 // 사용자별 푸시 알림 선호도를 localStorage에 저장하기 위한 키 prefix.
 // 같은 브라우저에서 사용자가 바뀌면 각자 자기 키를 갖기 때문에 격리가 유지된다.
@@ -250,6 +250,60 @@ export const restorePushSubscriptionForUser = async (
     }
   } catch (error) {
     console.warn('자동 푸시 재구독 중 예상치 못한 에러 (무시):', error);
+  }
+};
+
+// healPushSubscription 중복 실행 방지용 (앱 시작 + visibilitychange가 겹칠 수 있음)
+let lastHealAttemptAt = 0;
+const HEAL_MIN_INTERVAL_MS = 60 * 60 * 1000; // 1시간
+
+/**
+ * 앱 시작·포그라운드 복귀 시 호출하는 푸시 구독 자가 치유.
+ *
+ * restorePushSubscriptionForUser는 로그인 순간 한 번만 실행되고 실패해도
+ * 재시도가 없어서, 그때 놓치면 사용자가 켜둔 알림이 꺼진 채 남는다.
+ * (예: 같은 기기에서 다른 계정이 endpoint를 가져갔거나, 로그인 시점의
+ * 네트워크/서비스워커 타이밍 문제, 푸시 서비스의 endpoint 만료 등)
+ *
+ * 이 함수는 "사용자가 켜둔 상태(push_pref=on) + 권한 granted"인데
+ * 실제 구독이 현재 사용자와 어긋나 있으면 조용히 재구독해서 복구한다.
+ * 정상 상태면 백엔드 조회 1회 외에 아무것도 하지 않으며,
+ * 과도한 호출을 막기 위해 1시간에 한 번만 실제 검사를 수행한다.
+ *
+ * 안전 장치:
+ * - 권한이 'granted'가 아니면 아무것도 하지 않음 (프롬프트 자동 재출현 방지).
+ * - 절대 예외를 던지지 않음 — 앱 시작 흐름을 막으면 안 된다.
+ */
+export const healPushSubscription = async (username: string | null): Promise<void> => {
+  if (!username) return;
+  if (!getPushPreference(username)) return;
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+  if (checkNotificationPermission() !== 'granted') return;
+
+  const now = Date.now();
+  if (now - lastHealAttemptAt < HEAL_MIN_INTERVAL_MS) return;
+  lastHealAttemptAt = now;
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const browserSub = await registration.pushManager.getSubscription();
+
+    if (browserSub) {
+      const mySubs = await getMySubscriptions();
+      const matched = mySubs.some((sub) => sub.endpoint === browserSub.endpoint);
+      if (matched) return; // 브라우저 구독이 현재 사용자 소유로 정상 등록됨
+    }
+
+    // 브라우저 구독이 없거나(만료·해제됨), 있어도 내 것이 아님(다른 계정이
+    // 이 기기를 썼던 경우) → 재구독으로 현재 사용자에게 되돌린다.
+    const success = await subscribeToPushNotifications();
+    if (success) {
+      console.log(`✅ ${username}의 푸시 구독을 자가 치유했습니다`);
+    } else {
+      console.warn(`푸시 구독 자가 치유 실패 (${username}): subscribe가 false 반환`);
+    }
+  } catch (error) {
+    console.warn('푸시 구독 자가 치유 중 에러 (무시):', error);
   }
 };
 
