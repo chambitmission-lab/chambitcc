@@ -133,6 +133,24 @@ body {
   max-height: calc(var(--vvh, 100dvh) - 3.5rem);
 }
 
+/* 하단 독 상단을 중앙 FAB 곡선으로 부드럽게 깎아내는 마스크.
+   radial 원형 펀치는 바 상단 모서리와 만나는 지점이 각져 보여,
+   양끝이 수평으로 눕는 S-커브(SVG 조각)를 가운데 두고 좌우는 사각 레이어로 채운다.
+   좌우 레이어를 1px씩 겹쳐 서브픽셀 경계선(헤어라인)을 방지. */
+.dock-notch {
+  --dock-notch-piece: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 126 64' preserveAspectRatio='none'%3E%3Cpath d='M0 0C35 0 35 38 63 38C91 38 91 0 126 0V64H0Z'/%3E%3C/svg%3E");
+  -webkit-mask-image: linear-gradient(#000, #000), var(--dock-notch-piece),
+    linear-gradient(#000, #000);
+  -webkit-mask-position: left top, center top, right top;
+  -webkit-mask-size: calc(50% - 62px) 100%, 126px 100%, calc(50% - 62px) 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-image: linear-gradient(#000, #000), var(--dock-notch-piece),
+    linear-gradient(#000, #000);
+  mask-position: left top, center top, right top;
+  mask-size: calc(50% - 62px) 100%, 126px 100%, calc(50% - 62px) 100%;
+  mask-repeat: no-repeat;
+}
+
 /* 하단 고정 네비게이션이 있는 body-스크롤 페이지의 바닥 여백.
    설치형 WebAPK가 레이아웃 뷰포트(=100vh)를 시스템 바 포함 높이로 과대 계산하면
    (100vh − --vvh) 만큼 문서 끝부분이 스크롤로 도달 불가가 돼, 고정 패딩만으로는

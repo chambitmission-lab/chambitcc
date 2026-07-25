@@ -18,10 +18,11 @@ const BottomNavigation = ({
     'relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] active:text-brand active:bg-[var(--brand-soft)] active:scale-90 transition-[color,background-color,transform] duration-150'
 
   return (
-    <div className="relative px-3 pb-3 pt-2">
-      {/* Glass dock — 카드 시스템과 동일한 #1c1c26/80 + 상단 1px 빛줄 + soft purple shadow */}
+    <div className="relative px-3 pb-3 pt-7">
+      {/* Glass dock — 카드 시스템과 동일한 #1c1c26/80 + 상단 1px 빛줄 + soft purple shadow.
+          상단 중앙은 dock-notch 마스크(S-커브 SVG)로 부드럽게 깎아내려 FAB가 안기게 한다 */}
       <nav
-        className="relative backdrop-blur-xl bg-white/80 dark:bg-[#201f1f]/90 border border-black/[0.04] dark:border-white/[0.08] rounded-2xl px-5 py-2 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_var(--brand-soft)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.5),0_12px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]"
+        className="dock-notch relative backdrop-blur-xl bg-white/80 dark:bg-[#201f1f]/90 border border-black/[0.04] dark:border-white/[0.08] rounded-2xl px-5 py-2 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_var(--brand-soft)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.5),0_12px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]"
       >
         {/* 다크모드 카드 표면 그라데이션 — 카드 시스템과 동일 */}
         <div className="hidden dark:block absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
@@ -55,34 +56,8 @@ const BottomNavigation = ({
           <span className="material-icons-outlined text-[26px]">menu_book</span>
         </button>
 
-        {/* Compose — 기도를 '쓰는' 버튼이라 + 대신 깃펜. 단색 원이 밋밋하다는 피드백으로
-            브랜드 블루 그라데이션 + 상단 글로시 하이라이트 + 촛불과 같은 노랑 반짝임 한 점만 얹는다 */}
-        <button
-          onClick={onComposeClick}
-          aria-label="기도 작성"
-          className="relative z-10 flex items-center justify-center w-12 h-12 rounded-full text-white bg-gradient-to-br from-[#69a8ff] via-[var(--brand)] to-[#3f5efb] shadow-[0_5px_14px_-3px_var(--brand-glow)] ring-1 ring-white/20 dark:ring-white/15 active:scale-90 transition-transform duration-150"
-        >
-          {/* 위쪽 절반 유리 광택 — 평면 채움이 아니라 살짝 부푼 버튼처럼 보이게 */}
-          <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 via-white/5 to-transparent pointer-events-none" />
-          <svg className="relative w-[26px] h-[26px]" viewBox="0 0 24 24">
-            {/* 만년필 — 스트로크론 색연필처럼 보인다는 피드백으로 면(fill) 실루엣으로 전환.
-                다이아몬드형으로 벌어진 펜촉(숨구멍 컷아웃) + 분리된 두툼한 펜대가 만년필의 정체성 */}
-            <g fill="currentColor">
-              {/* 펜촉 — 팁에서 어깨로 벌어졌다 다시 좁아지는 다이아몬드, 가운데 숨구멍은 뚫려서 배경이 비친다 */}
-              <path
-                fillRule="evenodd"
-                d="M3 21 4.13 16.19 6.61 14.71 9.29 17.39 7.81 19.87Z M5.4 17.65a.95.95 0 1 0 0 1.9.95.95 0 1 0 0-1.9Z"
-              />
-              {/* 펜대 — 펜촉과 살짝 띄워 단면(그립)을 표현, 끝은 라운드 캡 */}
-              <path d="M7.32 14 12.41 8.91a1.9 1.9 0 0 1 2.68 2.68L10 16.68Z" />
-            </g>
-            {/* 반짝임 — 촛불 속불꽃과 같은 노랑, 펜촉 곁에서 반짝이는 한 점 */}
-            <path
-              d="M19.6 4.1l.75 1.75 1.75.75-1.75.75-.75 1.75-.75-1.75-1.75-.75 1.75-.75Z"
-              fill="#fde047"
-            />
-          </svg>
-        </button>
+        {/* 중앙 자리 비움 — 떠 있는 FAB(아래 형제 요소)가 이 위에 얹힌다 */}
+        <div aria-hidden className="w-12 h-12" />
 
         {/* Focus — 집중 기도 모드. 십자가는 중앙 '기도 등록'(+)과 의미가 겹쳐 촛불로 교체,
             다른 아이콘과 같은 조용한 스트로크로 통일해 dock의 강조는 중앙 채움 원 하나만 남긴다 */}
@@ -155,6 +130,27 @@ const BottomNavigation = ({
           </svg>
         </button>
       </nav>
+
+      {/* Compose FAB — 노치 위에 떠 있는 원형 + 버튼. 바(mask)와 분리된 형제 요소라 잘리지 않는다.
+          원 중심이 바 상단 모서리에 오도록 배치해 절반은 위로 솟고 절반은 노치에 안긴다 */}
+      <button
+        onClick={onComposeClick}
+        aria-label="기도 작성"
+        className="absolute left-1/2 -translate-x-1/2 top-0 z-20 flex items-center justify-center w-14 h-14 rounded-full text-white bg-gradient-to-br from-[#69a8ff] via-[var(--brand)] to-[#3f5efb] shadow-[0_6px_16px_-2px_var(--brand-glow)] ring-1 ring-white/20 dark:ring-white/15 active:scale-90 transition-transform duration-150"
+      >
+        {/* 위쪽 절반 유리 광택 — 평면 채움이 아니라 살짝 부푼 버튼처럼 보이게 */}
+        <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 via-white/5 to-transparent pointer-events-none" />
+        <svg
+          className="relative w-7 h-7"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.2}
+          strokeLinecap="round"
+        >
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
     </div>
   )
 }
