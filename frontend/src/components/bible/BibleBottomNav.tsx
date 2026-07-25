@@ -14,7 +14,8 @@ interface BibleBottomNavProps {
 }
 
 /**
- * 성경 섹션 전용 하단 네비게이션 (읽기 | 검색 | 플랜 | 가계도).
+ * 성경 섹션 전용 하단 네비게이션 (읽기 | 검색 | 플랜 | 단어장 | 가계도).
+ * - 홈 BottomNavigation과 동일한 글래스 독(떠 있는 라운드 카드) 형태로 통일
  * - PWA 홈 인디케이터 영역은 safe-area 패딩으로 확보
  * - 검색 등에서 모바일 키보드가 올라오면 바를 숨긴다
  *   (Android에서 키보드 바로 위에 바가 떠서 화면을 잡아먹는 것 방지)
@@ -89,8 +90,11 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40" aria-label="성경 메뉴">
-      <div className="mx-auto max-w-md border-t border-black/[0.06] bg-background-light/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md dark:border-white/[0.08] dark:bg-background-dark/95">
-        <div className="flex">
+      <div className="mx-auto max-w-md px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+        {/* Glass dock — 홈 BottomNavigation과 동일한 표면(블러 + 상단 빛줄 + soft shadow) */}
+        <div className="relative backdrop-blur-xl bg-white/80 dark:bg-[#201f1f]/90 border border-black/[0.04] dark:border-white/[0.08] rounded-2xl px-5 py-2 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_var(--brand-soft)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.5),0_12px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]">
+          {/* 다크모드 카드 표면 그라데이션 — 카드 시스템과 동일 */}
+          <div className="hidden dark:block absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
           {items.map(({ key, icon, label }) => {
             const isActive = key === active
             return (
@@ -98,29 +102,16 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
                 key={key}
                 type="button"
                 onClick={() => handleSelect(key)}
+                aria-label={label}
                 aria-current={isActive ? 'page' : undefined}
-                className={`relative flex flex-1 flex-col items-center gap-0.5 pb-1.5 pt-2.5 transition-[color,transform] duration-150 active:scale-90 ${
+                className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-xl transition-[color,background-color,transform] duration-150 active:scale-90 ${
                   isActive
-                    ? 'text-brand'
-                    : 'text-gray-400 dark:text-white/45 active:text-brand'
+                    ? 'text-brand bg-[var(--brand-soft)]'
+                    : 'text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] active:text-brand active:bg-[var(--brand-soft)]'
                 }`}
               >
-                {/* 활성 인디케이터 — 브랜드 블루 바 */}
-                {isActive && (
-                  <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-brand shadow-[0_2px_6px_var(--brand-glow)]" />
-                )}
-                {/* 활성 아이콘 — 미세 확대 + 브랜드 채색으로 현재 위치를 직관적으로 표시 */}
-                <span
-                  className={`material-icons-round text-[22px] leading-none transition-transform duration-200 ${
-                    isActive
-                      ? 'scale-110 text-brand drop-shadow-[0_2px_8px_var(--brand-glow)]'
-                      : ''
-                  }`}
-                >
+                <span className="material-icons-outlined text-[26px] leading-none">
                   {icon}
-                </span>
-                <span className={`text-[10.5px] leading-none ${isActive ? 'font-bold' : 'font-semibold'}`}>
-                  {label}
                 </span>
               </button>
             )

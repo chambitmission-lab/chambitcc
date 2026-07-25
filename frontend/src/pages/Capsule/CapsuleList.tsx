@@ -180,9 +180,23 @@ const CapsuleList = () => {
             <button
               type="button"
               onClick={() => navigate('/capsule/new')}
-              className="mt-4 px-5 py-2.5 rounded-full bg-white text-brand text-[13.5px] font-extrabold shadow-sm active:scale-[0.97]"
+              className="mt-4 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-brand text-[13.5px] font-extrabold shadow-sm active:scale-[0.97]"
             >
-              ✍️ 새 캡슐 봉인하기
+              {/* 봉인된 편지 — 손+펜 이모지가 사진 히어로 위에서 겉돌아 스트로크 아이콘으로 교체 */}
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <rect x="3" y="5" width="18" height="14" rx="2.5" />
+                <path d="m3.5 6.5 8.5 6 8.5-6" />
+              </svg>
+              새 캡슐 봉인하기
             </button>
           </div>
         </section>

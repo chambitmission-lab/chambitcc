@@ -215,20 +215,49 @@ const CapsuleCreate = () => {
           <div className="flex gap-2">
             {(
               [
-                { type: 'self' as const, label: '🕰️ 미래의 나에게' },
-                { type: 'invite' as const, label: '💌 소중한 사람에게' },
+                {
+                  type: 'self' as const,
+                  label: '미래의 나에게',
+                  // 시계 — 시간이 흘러 도착하는 캡슐
+                  icon: (
+                    <>
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7.5V12l3 2" />
+                    </>
+                  ),
+                },
+                {
+                  type: 'invite' as const,
+                  label: '소중한 사람에게',
+                  // 하트 — 사랑하는 이에게 보내는 마음
+                  icon: (
+                    <path d="M12 20.2 5.4 13.6a4.7 4.7 0 0 1 0-6.6 4.6 4.6 0 0 1 6.6 0 4.6 4.6 0 0 1 6.6 0 4.7 4.7 0 0 1 0 6.6Z" />
+                  ),
+                },
               ]
-            ).map(({ type, label }) => (
+            ).map(({ type, label, icon }) => (
               <button
                 key={type}
                 type="button"
                 onClick={() => setCapsuleType(type)}
-                className={`flex-1 py-3 rounded-2xl text-[13.5px] font-bold border transition-colors ${
+                className={`flex-1 py-3 rounded-2xl text-[13.5px] font-bold border transition-colors inline-flex items-center justify-center gap-1.5 ${
                   capsuleType === type
                     ? 'bg-brand text-white border-brand'
                     : 'bg-white dark:bg-card-dark text-gray-600 dark:text-white/60 border-gray-200/70 dark:border-white/[0.08]'
                 }`}
               >
+                <svg
+                  className="w-4 h-4 shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  {icon}
+                </svg>
                 {label}
               </button>
             ))}
