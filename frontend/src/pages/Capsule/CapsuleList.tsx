@@ -7,6 +7,7 @@ import type { CapsuleSummary } from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
+import capsuleHero from '../../assets/capsule/hero.jpg'
 
 const capsuleInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/capsule/invite/${code}`
@@ -152,9 +153,16 @@ const CapsuleList = () => {
 
         {/* 히어로 */}
         <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-7 bg-brand shadow-[0_10px_34px_-12px_var(--brand-glow)] text-white">
-          <span className="absolute -right-2 -bottom-6 text-[120px] leading-none opacity-[0.14] rotate-12 select-none pointer-events-none">
-            🕰️
-          </span>
+          {/* 배경 사진(별 쏟아지는 밤하늘) — 은하수·별똥별이 보이는 상단 하늘 위주로 크롭 */}
+          <img
+            src={capsuleHero}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover object-[50%_38%] select-none pointer-events-none"
+          />
+          {/* 스크림 — 사진이 원래 어두워 왼쪽 텍스트 구간만 은은히 눌러준다 */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0c1a38]/75 via-[#122a55]/45 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0c1a38]/60 to-transparent pointer-events-none" />
           <div className="relative z-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/70">
               Time Capsule

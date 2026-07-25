@@ -82,13 +82,23 @@ const BottomNavigation = ({
           className={navItemClass}
         >
           <svg className="w-[26px] h-[26px]" viewBox="0 0 24 24">
+            <defs>
+              <radialGradient id="candleGlow">
+                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.9" />
+                <stop offset="40%" stopColor="#fbbf24" stopOpacity="0.45" />
+                <stop offset="75%" stopColor="#fbbf24" stopOpacity="0.15" />
+                <stop offset="100%" stopColor="#fbbf24" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            {/* 불꽃이 주변을 비추는 빛 무리 */}
+            <circle cx="12" cy="6.6" r="7" fill="url(#candleGlow)" />
             {/* 불꽃 — 앰버 겉불꽃 + 노랑 속불꽃. hover 색 변화와 무관하게 항상 따뜻한 색 유지 */}
             <path
-              d="M12 2.6c-1.7 2-2.5 3.3-2.5 4.5a2.5 2.5 0 0 0 5 0c0-1.2-.8-2.5-2.5-4.5Z"
+              d="M12 2.4c-1.8 2.1-2.7 3.5-2.7 4.8a2.7 2.7 0 0 0 5.4 0c0-1.3-.9-2.7-2.7-4.8Z"
               fill="#f59e0b"
             />
             <path
-              d="M12 5.2c-.8 1-1.2 1.7-1.2 2.3a1.2 1.2 0 0 0 2.4 0c0-.6-.4-1.3-1.2-2.3Z"
+              d="M12 5.1c-.9 1.1-1.3 1.9-1.3 2.5a1.3 1.3 0 0 0 2.6 0c0-.6-.4-1.4-1.3-2.5Z"
               fill="#fde047"
             />
             <g
@@ -99,12 +109,19 @@ const BottomNavigation = ({
               strokeLinejoin="round"
             >
               {/* 심지 */}
-              <path d="M12 9.9v1.5" />
+              <path d="M12 10.1v1.4" />
               {/* 몸통 — 윗면이 녹아 내려앉은 물결 림 */}
               <path d="M8.8 12.6c1.1.8 2.1-.6 3.2-.3 1.1.3 2.1.9 3.2.3V19.2a1.6 1.6 0 0 1-1.6 1.6h-3.2A1.6 1.6 0 0 1 8.8 19.2Z" />
-              {/* 왼쪽으로 흘러내리는 촛농 줄기 */}
-              <path d="M8.8 13v2.3a.8.8 0 0 0 1.6 0v-1.6" />
             </g>
+            {/* 흘러내린 촛농 — 림에서 가늘게 흘러 끝에 방울로 맺힘 */}
+            <path
+              d="M10.7 13.2v2.4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.3}
+              strokeLinecap="round"
+            />
+            <circle cx="10.7" cy="16.4" r="1" fill="currentColor" />
           </svg>
         </button>
 
