@@ -143,3 +143,213 @@
     transform: translateY(-7px);
   }
 }
+
+/* ── 폴라로이드 사진 ─────────────────────────────────────────────
+   기본 상태 = 현상 전(뿌연 인화지). --developed가 붙는 순간 서서히 인화된다.
+   작성 프리뷰는 처음부터 --developed로 렌더해 애니메이션 없이 선명하게 보인다.
+   흰 프레임은 다크모드에서도 유지 — 실물 인화지의 질감이 목적이다. */
+
+.capsule-polaroid {
+  display: block;
+  width: min(268px, 100%);
+  background: #fdfdf8;
+  border-radius: 6px;
+  padding: 12px 12px 14px;
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.3);
+}
+
+.capsule-polaroid__img-wrap {
+  position: relative;
+  overflow: hidden;
+  background: #e8e4da;
+}
+
+.capsule-polaroid__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: #e8e4da;
+  /* 현상 전 — 뿌옇게 바랜 상태 */
+  filter: blur(14px) saturate(0.35) sepia(0.4) brightness(1.4);
+  transform: scale(1.07);
+  transition:
+    filter 2.6s cubic-bezier(0.3, 0.1, 0.25, 1),
+    transform 2.6s cubic-bezier(0.3, 0.1, 0.25, 1);
+}
+
+.capsule-polaroid--developed .capsule-polaroid__img {
+  filter: none;
+  transform: scale(1);
+}
+
+/* 필름 그레인 — 인화가 끝나면 옅게 가라앉는다 */
+.capsule-polaroid__img-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  transition: opacity 2.6s ease;
+}
+
+.capsule-polaroid--developed .capsule-polaroid__img-wrap::after {
+  opacity: 0.14;
+}
+
+/* 필름 카메라 날짜 각인 — 인화 후반부에 떠오른다 */
+.capsule-polaroid__stamp {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ffb03a;
+  text-shadow: 0 0 7px rgba(255, 140, 40, 0.9);
+  opacity: 0;
+  transition: opacity 0.9s ease 1.7s;
+}
+
+.capsule-polaroid--developed .capsule-polaroid__stamp {
+  opacity: 0.92;
+}
+
+/* 프레임 하단 여백의 손글씨 캡션 */
+.capsule-polaroid__caption,
+.capsule-polaroid__caption-input {
+  display: block;
+  width: 100%;
+  margin-top: 11px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5f584a;
+  word-break: keep-all;
+}
+
+.capsule-polaroid__caption {
+  opacity: 0;
+  transition: opacity 1s ease 2s;
+}
+
+.capsule-polaroid--developed .capsule-polaroid__caption {
+  opacity: 1;
+}
+
+.capsule-polaroid__caption-input {
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.capsule-polaroid__caption-input::placeholder {
+  color: #b8b09e;
+  font-weight: 400;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-polaroid__img,
+  .capsule-polaroid__img-wrap::after,
+  .capsule-polaroid__stamp,
+  .capsule-polaroid__caption {
+    transition: none;
+  }
+}
+
+/* ── 목소리 들으며 사진 보기 (전체화면 슬라이드쇼) ─────────────────
+   음성이 흐르는 동안 사진이 천천히 줌·팬되며 크로스페이드로 넘어간다. */
+
+.capsule-show {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: #000;
+  overflow: hidden;
+}
+
+.capsule-show__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+
+.capsule-show__slide--active {
+  opacity: 1;
+}
+
+.capsule-show__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+}
+
+/* Ken Burns — 슬라이드마다 다른 방향으로 아주 천천히 */
+.capsule-kenburns-a {
+  animation: capsule-kb-a 16s ease-out forwards;
+}
+.capsule-kenburns-b {
+  animation: capsule-kb-b 16s ease-out forwards;
+}
+.capsule-kenburns-c {
+  animation: capsule-kb-c 16s ease-out forwards;
+}
+
+@keyframes capsule-kb-a {
+  from {
+    transform: scale(1.02) translate(0, 0);
+  }
+  to {
+    transform: scale(1.14) translate(-1.8%, -1.4%);
+  }
+}
+
+@keyframes capsule-kb-b {
+  from {
+    transform: scale(1.16) translate(1.6%, 1.2%);
+  }
+  to {
+    transform: scale(1.03) translate(0, 0);
+  }
+}
+
+@keyframes capsule-kb-c {
+  from {
+    transform: scale(1.02) translate(0, 1.2%);
+  }
+  to {
+    transform: scale(1.15) translate(1.5%, -1.2%);
+  }
+}
+
+/* 위아래 그라데이션 스크림 — 텍스트 가독성 */
+.capsule-show__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent 22%),
+    linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 30%);
+}
+
+/* 캡션 — 슬라이드가 바뀔 때 아래에서 살며시 */
+.capsule-show__caption {
+  animation: capsule-fade-up 1s ease 0.4s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-kenburns-a,
+  .capsule-kenburns-b,
+  .capsule-kenburns-c,
+  .capsule-show__caption {
+    animation: none;
+  }
+  .capsule-show__slide {
+    transition: opacity 0.3s ease;
+  }
+}

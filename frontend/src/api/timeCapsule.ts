@@ -41,6 +41,15 @@ export const createCapsule = async (
       formData.append('audio_duration', String(payload.audioDuration))
     }
   }
+  if (payload.photos?.length) {
+    payload.photos.forEach((photo, i) => {
+      formData.append('photos', photo.blob, `photo_${i + 1}.jpg`)
+    })
+    formData.append(
+      'photo_captions',
+      JSON.stringify(payload.photos.map((p) => p.caption.trim())),
+    )
+  }
   const response = await apiFetch(BASE, {
     method: 'POST',
     // Content-Type은 브라우저가 multipart boundary와 함께 설정한다

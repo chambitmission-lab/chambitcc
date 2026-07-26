@@ -99,6 +99,7 @@ const CapsuleInvite = () => {
                   <p className="text-[13px] text-white/80 mt-2.5">
                     {formatKoreanDate(preview.sealed_at)}에 봉인
                     {preview.has_audio && ' · 🎙️ 음성 포함'}
+                    {(preview.photo_count ?? 0) > 0 && ` · 📷 사진 ${preview.photo_count}장`}
                   </p>
                   <p className="text-[13px] text-white/80 mt-1">
                     {formatKoreanDate(preview.open_at)}

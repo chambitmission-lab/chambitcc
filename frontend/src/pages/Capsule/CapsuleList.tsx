@@ -66,6 +66,7 @@ const SealedRow = ({ capsule }: { capsule: CapsuleSummary }) => {
             {counterpartLabel(capsule)} · {formatKoreanDate(capsule.open_at)}
             {capsule.open_label ? ` · ${capsule.open_label}` : ''}
             {capsule.has_audio ? ' · 🎙️' : ''}
+            {(capsule.photo_count ?? 0) > 0 ? ' · 📷' : ''}
           </span>
         </span>
         <span className="shrink-0 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/[0.07] text-[12px] font-extrabold text-gray-600 dark:text-white/70 tabular-nums">
@@ -104,6 +105,7 @@ const ArrivedRow = ({ capsule }: { capsule: CapsuleSummary }) => {
         <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5 truncate">
           {counterpartLabel(capsule)} · {formatKoreanDate(capsule.sealed_at)} 봉인
           {capsule.has_audio ? ' · 🎙️' : ''}
+          {(capsule.photo_count ?? 0) > 0 ? ' · 📷' : ''}
         </span>
       </span>
       {unopened ? (

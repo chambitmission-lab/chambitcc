@@ -2,20 +2,29 @@
 // 편지 글 + 3분 음성 녹음 + 개봉일(기간/절기 프리셋)을 골라 봉인한다.
 // 봉인한 날의 스냅샷(절기·오늘의 말씀)은 여기서 계산해 함께 보낸다
 // (절기 계산의 진실은 프론트 churchCalendar — 백엔드 season은 플레이스홀더).
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DatePicker from '../../components/common/DatePicker'
 import { getTodayVerse } from '../../api/dailyVerse'
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'
 import { useCreateCapsule } from '../../hooks/useTimeCapsule'
-import type { CapsuleSummary, CapsuleType } from '../../types/timeCapsule'
+import type { CapsuleDraftPhoto, CapsuleSummary, CapsuleType } from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { getCurrentSeason } from '../../utils/churchCalendar'
+import { resizeImageToBlob } from '../../utils/imageResize'
 import { showToast } from '../../utils/toast'
 import { buildPresets, formatKoreanDate, toDateStr } from './capsuleDates'
+import './capsule.css'
 
 const MAX_RECORD_SECONDS = 180
 const MAX_MESSAGE_LEN = 5000
+const MAX_PHOTOS = 3
+const MAX_CAPTION_LEN = 100
+// 개봉 때 전체화면 감상까지 견디는 해상도 — 원본(수 MB)은 올리지 않는다
+const PHOTO_MAX_SIZE = 1600
+
+// 폴라로이드가 편지지 위에 아무렇게나 놓인 느낌 — 순서별 고정 기울기
+const POLAROID_TILTS = ['-2.2deg', '2.4deg', '-1.4deg']
 
 const SEASON_LABELS: Record<string, string> = {
   advent: '대림절',
@@ -43,6 +52,12 @@ const CapsuleCreate = () => {
   const [customDate, setCustomDate] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [created, setCreated] = useState<CapsuleSummary | null>(null)
+  const [photos, setPhotos] = useState<CapsuleDraftPhoto[]>([])
+  const [photoProcessing, setPhotoProcessing] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+  // 언마운트 시점의 프리뷰 URL 정리를 위해 최신 목록을 ref로 추적
+  const photosRef = useRef<CapsuleDraftPhoto[]>([])
+  photosRef.current = photos
 
   const {
     recordingState,
@@ -85,10 +100,56 @@ const CapsuleCreate = () => {
     }
   }, [audioUrl])
 
+  useEffect(() => {
+    return () => {
+      photosRef.current.forEach((p) => URL.revokeObjectURL(p.previewUrl))
+    }
+  }, [])
+
+  const handlePickPhotos = async (files: FileList | null) => {
+    if (!files?.length) return
+    const room = MAX_PHOTOS - photos.length
+    const picked = Array.from(files).slice(0, room)
+    if (files.length > room) {
+      showToast(`사진은 최대 ${MAX_PHOTOS}장까지 담을 수 있어요`, 'error')
+      if (room <= 0) return
+    }
+    setPhotoProcessing(true)
+    try {
+      const drafts: CapsuleDraftPhoto[] = []
+      for (const file of picked) {
+        // 리사이즈 + JPEG 재인코딩 — 위치정보 등 EXIF 메타데이터도 함께 제거된다
+        const blob = await resizeImageToBlob(file, PHOTO_MAX_SIZE, 0.82)
+        drafts.push({ blob, previewUrl: URL.createObjectURL(blob), caption: '' })
+      }
+      setPhotos((prev) => [...prev, ...drafts].slice(0, MAX_PHOTOS))
+    } catch {
+      showToast('사진을 불러오지 못했어요. 다른 사진으로 시도해주세요', 'error')
+    } finally {
+      setPhotoProcessing(false)
+      if (photoInputRef.current) photoInputRef.current.value = ''
+    }
+  }
+
+  const handleRemovePhoto = (index: number) => {
+    setPhotos((prev) => {
+      const target = prev[index]
+      if (target) URL.revokeObjectURL(target.previewUrl)
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+
+  const handleCaptionChange = (index: number, caption: string) => {
+    setPhotos((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, caption: caption.slice(0, MAX_CAPTION_LEN) } : p)),
+    )
+  }
+
   const canSubmit =
     !!openDate &&
     (message.trim().length > 0 || !!audioBlob) &&
     (capsuleType === 'self' || recipientName.trim().length > 0) &&
+    !photoProcessing &&
     !createCapsule.isPending
 
   const handleSeal = async () => {
@@ -120,6 +181,7 @@ const CapsuleCreate = () => {
         clientSnapshot,
         audioBlob,
         audioDuration: audioBlob ? Math.min(recordingTime, MAX_RECORD_SECONDS) : undefined,
+        photos: photos.length > 0 ? photos : undefined,
       })
       if (summary.capsule_type === 'invite') {
         setCreated(summary)
@@ -303,6 +365,75 @@ const CapsuleCreate = () => {
             }
             className="w-full mt-2.5 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] leading-[1.7] outline-none focus:border-brand resize-none placeholder:text-gray-400 dark:placeholder:text-white/30"
           />
+        </section>
+
+        {/* 사진 — 폴라로이드처럼 편지에 끼워 보낸다 */}
+        <section className="px-4 pt-4">
+          <div className="p-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
+            <p className="text-[13.5px] font-bold text-gray-900 dark:text-white">
+              📷 사진 끼우기{' '}
+              <span className="text-gray-400 dark:text-white/40 font-normal">
+                (선택 · 최대 {MAX_PHOTOS}장)
+              </span>
+            </p>
+            <p className="text-[11.5px] text-gray-400 dark:text-white/40 mt-0.5">
+              개봉하는 날, 사진이 그 시절 그대로 인화되어 나와요
+            </p>
+
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => handlePickPhotos(e.target.files)}
+            />
+
+            {photos.length > 0 && (
+              <div className="mt-3.5 flex flex-col gap-4">
+                {photos.map((photo, i) => (
+                  <div
+                    key={photo.previewUrl}
+                    className="capsule-polaroid capsule-polaroid--developed relative mx-auto"
+                    style={{ transform: `rotate(${POLAROID_TILTS[i % POLAROID_TILTS.length]})` }}
+                  >
+                    <img src={photo.previewUrl} alt="" className="capsule-polaroid__img" />
+                    <input
+                      type="text"
+                      value={photo.caption}
+                      onChange={(e) => handleCaptionChange(i, e.target.value)}
+                      maxLength={MAX_CAPTION_LEN}
+                      placeholder="한 줄 캡션 (선택)"
+                      className="capsule-polaroid__caption-input"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePhoto(i)}
+                      aria-label="사진 빼기"
+                      className="absolute -top-2.5 -right-2.5 w-7 h-7 rounded-full bg-gray-800/85 text-white text-[13px] font-bold flex items-center justify-center shadow"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {photos.length < MAX_PHOTOS && (
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={photoProcessing}
+                className="mt-3 w-full py-3 rounded-xl bg-[var(--brand-soft)] text-brand text-[13.5px] font-bold disabled:opacity-60"
+              >
+                {photoProcessing
+                  ? '사진 담는 중...'
+                  : photos.length > 0
+                    ? '사진 더 끼우기'
+                    : '앨범에서 고르기'}
+              </button>
+            )}
+          </div>
         </section>
 
         {/* 음성 */}

@@ -2,16 +2,81 @@
 // - 개봉 전: 봉인된 봉투 + D-day (내용은 서버가 내려주지 않는다)
 // - 개봉 가능: 봉투 뜯는 연출 → 편지(글·음성·봉인한 날의 스냅샷)
 // - 읽은 뒤: 답장 캡슐 이어쓰기 CTA (개봉이 다음 봉인의 입구)
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCapsule, useDeleteCapsule, useOpenCapsule } from '../../hooks/useTimeCapsule'
-import type { CapsuleDetail } from '../../types/timeCapsule'
+import type { CapsuleDetail, CapsulePhoto } from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
+import CapsuleSlideshow from './CapsuleSlideshow'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
 import './capsule.css'
 
 type Phase = 'sealed' | 'opening' | 'letter'
+
+// 작성 화면과 같은 규칙의 기울기 — 편지지 위에 놓인 인화지 느낌
+const POLAROID_TILTS = ['-2.2deg', '2.4deg', '-1.4deg']
+
+/** 필름 카메라 날짜 각인: 2025-07-26 → '25 7 26 */
+const filmStamp = (dateStr: string): string => {
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return ''
+  return `'${String(d.getFullYear()).slice(2)} ${d.getMonth() + 1} ${d.getDate()}`
+}
+
+/** 화면에 들어오고 이미지 로드가 끝나면 서서히 인화되는 폴라로이드 */
+const DevelopingPolaroid = ({
+  photo,
+  tilt,
+  stamp,
+}: {
+  photo: CapsulePhoto
+  tilt: string
+  stamp: string
+}) => {
+  const ref = useRef<HTMLElement>(null)
+  const [visible, setVisible] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.35 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const developed = visible && loaded
+  return (
+    <figure
+      ref={ref}
+      className={`capsule-polaroid ${developed ? 'capsule-polaroid--developed' : ''}`}
+      style={{ transform: `rotate(${tilt})` }}
+    >
+      <div className="capsule-polaroid__img-wrap">
+        <img
+          src={photo.url}
+          alt={photo.caption || '캡슐에 동봉된 사진'}
+          className="capsule-polaroid__img"
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+        />
+        {stamp && <span className="capsule-polaroid__stamp">{stamp}</span>}
+      </div>
+      {photo.caption && (
+        <figcaption className="capsule-polaroid__caption">{photo.caption}</figcaption>
+      )}
+    </figure>
+  )
+}
 
 const capsuleInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/capsule/invite/${code}`
@@ -39,6 +104,7 @@ const CapsuleOpen = () => {
   const openCapsule = useOpenCapsule(capsuleId)
   const deleteCapsule = useDeleteCapsule()
   const [phase, setPhase] = useState<Phase>('sealed')
+  const [showSlideshow, setShowSlideshow] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -57,6 +123,8 @@ const CapsuleOpen = () => {
   const handleOpen = async () => {
     try {
       await openCapsule.mutateAsync()
+      // 봉투가 뜯기는 순간의 촉감 — 미지원 브라우저(iOS Safari)는 조용히 무시
+      navigator.vibrate?.([28, 45, 34])
       setPhase('opening')
       // 봉투 연출이 끝나면 편지로 전환
       window.setTimeout(() => setPhase('letter'), 1700)
@@ -102,6 +170,8 @@ const CapsuleOpen = () => {
   const content = capsule?.content ?? null
   const snapshot = content?.snapshot ?? null
   const stats = snapshot?.stats ?? null
+  // 배포 전 캐시 응답에는 photos가 없을 수 있다
+  const photos = content?.photos ?? []
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
@@ -172,6 +242,7 @@ const CapsuleOpen = () => {
             <p className="text-[13px] text-gray-500 dark:text-white/55 mt-2 leading-[1.7]">
               {formatKoreanDate(capsule.sealed_at)}에 봉인
               {capsule.has_audio && ' · 🎙️ 음성 편지 포함'}
+              {(capsule.photo_count ?? 0) > 0 && ` · 📷 사진 ${capsule.photo_count}장 동봉`}
             </p>
 
             {capsule.openable ? (
@@ -250,7 +321,47 @@ const CapsuleOpen = () => {
                   <audio controls src={content.audio_url} className="w-full" preload="metadata" />
                 </div>
               )}
+
+              {/* 사진 — 봉인됐던 인화지가 이제야 현상된다 */}
+              {photos.length > 0 && (
+                <div className="px-6 pb-7 pt-2">
+                  <p className="text-[12px] font-bold text-[var(--text-muted)] mb-4">
+                    📷 그날의 사진 · 지금 막 인화되고 있어요
+                  </p>
+                  <div className="flex flex-col items-center gap-6">
+                    {photos.map((photo, i) => (
+                      <DevelopingPolaroid
+                        key={photo.url}
+                        photo={photo}
+                        tilt={POLAROID_TILTS[i % POLAROID_TILTS.length]}
+                        stamp={filmStamp(capsule.sealed_at)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* 피날레 — 그 사람 목소리를 들으며 그날 사진을 본다 */}
+                  {content.audio_url && (
+                    <button
+                      type="button"
+                      onClick={() => setShowSlideshow(true)}
+                      className="mt-6 w-full py-3.5 rounded-2xl bg-gray-900 dark:bg-white/[0.1] text-white text-[14px] font-bold inline-flex items-center justify-center gap-2"
+                    >
+                      🎞️ 목소리 들으며 사진 보기
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
+
+            {showSlideshow && content.audio_url && (
+              <CapsuleSlideshow
+                photos={photos}
+                audioUrl={content.audio_url}
+                audioDuration={content.audio_duration}
+                senderLine={senderLine(capsule)}
+                onClose={() => setShowSlideshow(false)}
+              />
+            )}
 
             {/* 봉인하던 그날 스냅샷 */}
             {snapshot && (

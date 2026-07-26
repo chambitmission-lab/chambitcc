@@ -32,6 +32,7 @@ export interface CapsuleSummary {
   openable: boolean
   has_audio: boolean
   has_message: boolean
+  photo_count: number // 동봉 사진 수 (내용은 개봉 전 비공개)
   claimed: boolean
   invite_code: string | null // 발신자에게만 내려온다
 }
@@ -48,9 +49,15 @@ export interface CapsulePreview {
   open_label: string | null
   sealed_at: string
   has_audio: boolean
+  photo_count: number
   openable: boolean
   claimed: boolean
   is_mine: boolean
+}
+
+export interface CapsulePhoto {
+  url: string
+  caption: string | null
 }
 
 export interface CapsuleContent {
@@ -58,6 +65,7 @@ export interface CapsuleContent {
   message: string | null
   audio_url: string | null
   audio_duration: number | null
+  photos: CapsulePhoto[]
   snapshot: CapsuleSnapshot | null
 }
 
@@ -75,4 +83,12 @@ export interface CapsuleCreateRequest {
   clientSnapshot?: Pick<CapsuleSnapshot, 'season_label' | 'verse_reference' | 'verse_text'>
   audioBlob?: Blob | null
   audioDuration?: number
+  photos?: CapsuleDraftPhoto[]
+}
+
+// 작성 중 첨부한 사진 — 리사이즈된 Blob + 프리뷰 URL + 캡션
+export interface CapsuleDraftPhoto {
+  blob: Blob
+  previewUrl: string
+  caption: string
 }
