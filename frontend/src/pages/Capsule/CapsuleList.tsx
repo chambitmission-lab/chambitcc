@@ -18,9 +18,10 @@ const shareInvite = async (capsule: CapsuleSummary) => {
   const toName = capsule.recipient_name ? `${capsule.recipient_name}님께` : '당신에게'
   const text = `🕰️ ${toName} 보내는 타임캡슐이 도착 예정이에요.\n${formatKoreanDate(
     capsule.open_at,
-  )}${capsule.open_label ? ` (${capsule.open_label})` : ''}에 열려요.\n\n${url}`
+  )}${capsule.open_label ? ` (${capsule.open_label})` : ''}에 열려요.`
   if (navigator.share) {
     try {
+      // text에 URL을 넣고 url도 함께 넘기면 공유 대상 앱이 링크를 두 번 붙임
       await navigator.share({ title: '타임캡슐 초대장', text, url })
       return
     } catch {
@@ -28,7 +29,7 @@ const shareInvite = async (capsule: CapsuleSummary) => {
     }
   }
   try {
-    await navigator.clipboard.writeText(text)
+    await navigator.clipboard.writeText(`${text}\n\n${url}`)
     showToast('초대 링크를 복사했어요. 받는 분께 전해주세요', 'success')
   } catch {
     showToast('링크 복사에 실패했어요', 'error')
