@@ -180,6 +180,14 @@ const About = () => {
                   <span className="cta-action-icon">📖</span>
                   <span>{language === 'ko' ? '최근 설교 보기' : 'Recent Sermons'}</span>
                 </button>
+                <button
+                  type="button"
+                  className="cta-action"
+                  onClick={() => navigate('/history')}
+                >
+                  <span className="cta-action-icon">🕯️</span>
+                  <span>{language === 'ko' ? '참빛의 발자취' : 'Our Story'}</span>
+                </button>
               </div>
 
               <div className="cta-badge">

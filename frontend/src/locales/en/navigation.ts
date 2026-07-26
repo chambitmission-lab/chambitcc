@@ -6,6 +6,7 @@ export const navigation = {
   bulletin: 'Bulletin',
   worship: 'Worship',
   about: 'About',
+  history: 'Our Story',
   ministry: 'Column',
   news: 'News',
   mission: 'Mission',

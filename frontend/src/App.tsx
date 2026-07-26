@@ -20,6 +20,7 @@ import Login from './pages/Auth/Login'
 // 햄버거 메뉴 페이지는 routePreload의 로더를 공유해 프리로드 청크를 재사용
 const Home = lazy(() => import('./pages/Home/Home'))
 const About = lazy(menuRouteLoaders['/about'])
+const History = lazy(menuRouteLoaders['/history'])
 const TV = lazy(() => import('./pages/TV/TV'))
 const Education = lazy(() => import('./pages/Education/Education'))
 const Mission = lazy(menuRouteLoaders['/mission'])
@@ -181,6 +182,7 @@ function App() {
                 <Route path="/" element={<NewHome />} />
                 <Route path="/old-home" element={<Home />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/history" element={<History />} />
                 <Route path="/tv" element={<TV />} />
                 <Route path="/education" element={<Education />} />
                 <Route path="/mission" element={<Mission />} />

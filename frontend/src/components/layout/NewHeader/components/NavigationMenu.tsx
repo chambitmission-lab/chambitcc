@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 
 type NavKey =
-  | 'about' | 'worship' | 'sermon' | 'bible' | 'garden' | 'bluemarble'
+  | 'about' | 'history' | 'worship' | 'sermon' | 'bible' | 'garden' | 'bluemarble'
   | 'answeredPrayers' | 'events' | 'missionStatus' | 'ministry' | 'news' | 'myGroups'
   | 'culture'
 
@@ -22,6 +22,7 @@ const MENU_SECTIONS: NavSection[] = [
     titleKey: 'navGroupChurch',
     items: [
       { path: '/about', key: 'about' },
+      { path: '/history', key: 'history' },
       { path: '/worship', key: 'worship' },
       { path: '/events', key: 'events' },
       { path: '/culture', key: 'culture' }

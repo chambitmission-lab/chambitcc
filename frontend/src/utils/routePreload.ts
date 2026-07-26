@@ -6,6 +6,7 @@ type RouteLoader = () => Promise<{ default: ComponentType }>
 // App.tsx의 lazy()와 같은 함수를 공유해야 프리로드한 청크가 그대로 재사용된다.
 export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/about': () => import('../pages/About/About'),
+  '/history': () => import('../pages/History/History'),
   '/worship': () => import('../pages/Worship/Worship'),
   '/events': () => import('../pages/Events/EventCalendar'),
   '/culture': () => import('../pages/Culture/Culture'),
