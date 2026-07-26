@@ -87,6 +87,7 @@ const MeditationPage = lazy(() => import('./pages/Bible/Meditation/MeditationPag
 const VerseAlarmPage = lazy(() => import('./pages/Bible/VerseAlarm/VerseAlarmPage'))
 const SituationManagement = lazy(() => import('./pages/Admin/SituationManagement'))
 const CultureManagement = lazy(() => import('./pages/Admin/CultureManagement'))
+const BibleEngagementManagement = lazy(() => import('./pages/Admin/BibleEngagementManagement'))
 
 import './App.css'
 import './styles/common.css'
@@ -209,6 +210,7 @@ function App() {
                 <Route path="/admin/bible-commentaries" element={<BibleCommentaryManagement />} />
                 <Route path="/admin/situations" element={<SituationManagement />} />
                 <Route path="/admin/culture" element={<CultureManagement />} />
+                <Route path="/admin/bible-engagement" element={<BibleEngagementManagement />} />
                 <Route path="/events" element={<EventCalendar />} />
                 <Route path="/events/:id" element={<EventDetail />} />
                 <Route path="/groups" element={<MyGroups />} />

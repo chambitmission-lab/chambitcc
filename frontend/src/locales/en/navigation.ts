@@ -25,6 +25,7 @@ export const navigation = {
   biblePlanManagement: '📚 Reading Plan Management',
   bibleCommentaryManagement: '✍️ Bible Commentary Generation',
   situationManagement: '🙏 Situation Verse Management',
+  bibleEngagementManagement: '📊 Bible Engagement Stats',
   cultureManagement: '🎨 Culture Class Management',
   pushNotificationManagement: '📢 Push Notification Management',
   userManagement: '👥 User Management',

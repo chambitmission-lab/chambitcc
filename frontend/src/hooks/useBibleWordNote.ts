@@ -40,6 +40,9 @@ export const useChapterWordNotes = (
     queryFn: () => listChapterWordNotes(bookNumber, chapter),
     enabled: enabled && !!token && bookNumber > 0 && chapter > 0,
     staleTime: 1000 * 60 * 5,
+    // 전역 refetchOnMount:false의 예외 — persist로 복원된 옛 스냅샷이 영영
+    // 안 갱신되는 것을 막는다 (useChapterBookmarks와 동일 이유)
+    refetchOnMount: true,
   })
 }
 
