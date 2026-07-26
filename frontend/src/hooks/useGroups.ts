@@ -27,6 +27,10 @@ export const useMyGroups = () => {
     queryKey: groupKeys.myGroups(),
     queryFn: fetchMyGroups,
     staleTime: 1000 * 60 * 5, // 5분
+    // 가입·탈퇴 시점엔 이 쿼리가 비활성이라 stale 마크만 되는데,
+    // 전역 refetchOnMount:false와 겹치면 목록 재진입 시에도 옛 캐시가 보인다
+    // (캐시는 즉시 보여주고 뒤에서 갱신)
+    refetchOnMount: true,
   })
 }
 
@@ -36,6 +40,8 @@ export const useAllGroups = () => {
     queryKey: groupKeys.allGroups(),
     queryFn: fetchAllGroups,
     staleTime: 1000 * 60 * 5,
+    // 내 그룹 목록과 같은 이유 — 가입 여부·인원수가 담겨 있다
+    refetchOnMount: true,
   })
 }
 
@@ -67,7 +73,8 @@ export const useCreateGroup = () => {
     mutationFn: (data: CreateGroupRequest) => createGroup(data),
     onSuccess: () => {
       // 토스트는 모달에서 처리하므로 제거 — 상세 포함 전체 무효화
-      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      // refetchType:'all' — 비활성 쿼리도 즉시 재요청 (전역 refetchOnMount:false 대응)
+      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
     },
     onError: () => {
       // 에러는 모달에서 처리하므로 토스트 제거
@@ -83,7 +90,7 @@ export const useJoinGroup = () => {
     mutationFn: (data: JoinGroupRequest) => joinGroup(data),
     onSuccess: () => {
       showToast('그룹에 가입했습니다', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
     },
     onError: (error: Error) => {
       showToast(error.message || '그룹 가입에 실패했습니다', 'error')
@@ -99,7 +106,7 @@ export const useLeaveGroup = () => {
     mutationFn: (groupId: number) => leaveGroup(groupId),
     onSuccess: () => {
       showToast('그룹에서 탈퇴했습니다', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
     },
     onError: (error: Error) => {
       showToast(error.message || '그룹 탈퇴에 실패했습니다', 'error')
