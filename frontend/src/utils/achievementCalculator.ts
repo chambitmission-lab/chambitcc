@@ -172,12 +172,20 @@ export const getNewlyUnlockedAchievements = (
   const newlyUnlocked = currentAchievements.filter(
     achievement => achievement.unlocked && !previousUnlocked.includes(achievement.id)
   )
-  
-  // 현재 해금된 업적 ID 저장
+
+  // 저장은 기존 목록과의 합집합으로 — "현재 해금"만으로 덮어쓰면
+  // 오래된 캐시(persist 복원본 등)로 계산된 순간 기존 항목이 빠지고,
+  // 신선한 데이터가 도착할 때 같은 업적이 매번 "새 해금"으로 재등장한다.
+  // 한 번 확인한 업적은 영구히 본 것으로 취급한다.
   const currentUnlocked = currentAchievements
     .filter(a => a.unlocked)
     .map(a => a.id)
-  localStorage.setItem(storageKey, JSON.stringify(currentUnlocked))
-  
+  const merged = Array.from(new Set([...previousUnlocked, ...currentUnlocked]))
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(merged))
+  } catch {
+    // 저장 실패 시 다음 방문에 팝업이 한 번 더 뜰 수 있을 뿐, 동작은 유지
+  }
+
   return newlyUnlocked
 }
