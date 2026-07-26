@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   useVerseAlarms,
@@ -64,6 +64,225 @@ const formatDays = (days: string): string => {
   return DAY_LABELS.filter((_, i) => days[i] === '1').join(' ')
 }
 
+/* ── 원형 다이얼 좌표 — frac 0은 12시 방향, 시계 방향으로 증가 ── */
+const dialPoint = (frac: number, radius: number) => {
+  const rad = frac * 2 * Math.PI - Math.PI / 2
+  return { x: 100 + radius * Math.cos(rad), y: 100 + radius * Math.sin(rad) }
+}
+
+/* 12시간 시계판 위의 위치 (0~1) */
+const hhmmToFaceFrac = (hhmm: string): number => {
+  const [h, m] = hhmm.split(':').map(Number)
+  return ((h % 12) * 60 + m) / 720
+}
+
+/* days_of_week 인덱스는 월=0…일=6, Date.getDay()는 일=0…토=6 */
+const findNextAlarm = (
+  alarms: VerseAlarm[],
+  now: Date
+): { alarm: VerseAlarm; at: Date } | null => {
+  let best: { alarm: VerseAlarm; at: Date } | null = null
+  for (const alarm of alarms) {
+    if (!alarm.is_active) continue
+    const [h, m] = alarm.time_hhmm.split(':').map(Number)
+    for (let offset = 0; offset <= 7; offset++) {
+      const at = new Date(now)
+      at.setDate(at.getDate() + offset)
+      at.setHours(h, m, 0, 0)
+      if (at <= now) continue
+      if (alarm.days_of_week[(at.getDay() + 6) % 7] !== '1') continue
+      if (!best || at < best.at) best = { alarm, at }
+      break
+    }
+  }
+  return best
+}
+
+const countdownLabel = (from: Date, to: Date): string => {
+  const totalMin = Math.ceil((to.getTime() - from.getTime()) / 60000)
+  if (totalMin < 1) return '곧 울려요'
+  const d = Math.floor(totalMin / 1440)
+  const h = Math.floor((totalMin % 1440) / 60)
+  const m = totalMin % 60
+  if (d > 0) return h > 0 ? `${d}일 ${h}시간 후` : `${d}일 후`
+  if (h > 0) return m > 0 ? `${h}시간 ${m}분 후` : `${h}시간 후`
+  return `${m}분 후`
+}
+
+/* ── 메인 히어로 — 뽀모도로풍 다이얼: 틱 + 알람 마커 + 남은 시간 아크 ── */
+const AlarmDial = ({ alarms }: { alarms: VerseAlarm[] }) => {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30_000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const next = useMemo(() => findNextAlarm(alarms, now), [alarms, now])
+  const activeAlarms = alarms.filter((a) => a.is_active)
+  const nowFrac = ((now.getHours() % 12) * 60 + now.getMinutes()) / 720
+
+  /* 12시간 이내 다음 알람이면 현재 시각 → 알람 시각 아크를 그린다 */
+  let arcPath: string | null = null
+  if (next && next.at.getTime() - now.getTime() <= 12 * 3600_000) {
+    const delta = (hhmmToFaceFrac(next.alarm.time_hhmm) - nowFrac + 1) % 1
+    const p0 = dialPoint(nowFrac, 95)
+    const p1 = dialPoint(nowFrac + delta, 95)
+    arcPath = `M ${p0.x} ${p0.y} A 95 95 0 ${delta > 0.5 ? 1 : 0} 1 ${p1.x} ${p1.y}`
+  }
+  const nowDot = dialPoint(nowFrac, 95)
+
+  return (
+    <div className="va-dial-wrap">
+      <svg className="va-dial" viewBox="0 0 200 200" aria-hidden>
+        {Array.from({ length: 60 }, (_, i) => {
+          const major = i % 5 === 0
+          const p1 = dialPoint(i / 60, major ? 82 : 85.5)
+          const p2 = dialPoint(i / 60, 90)
+          return (
+            <line
+              key={i}
+              x1={p1.x}
+              y1={p1.y}
+              x2={p2.x}
+              y2={p2.y}
+              className={`va-dial-tick${major ? ' va-dial-tick--major' : ''}`}
+            />
+          )
+        })}
+        {arcPath && <path d={arcPath} className="va-dial-arc" />}
+        <circle cx={nowDot.x} cy={nowDot.y} r={3} className="va-dial-now" />
+        {activeAlarms.map((a) => {
+          const p = dialPoint(hhmmToFaceFrac(a.time_hhmm), 74)
+          const isNext = next?.alarm.id === a.id
+          return (
+            <circle
+              key={a.id}
+              cx={p.x}
+              cy={p.y}
+              r={isNext ? 5 : 3.5}
+              className={`va-dial-marker${isNext ? ' va-dial-marker--next' : ''}`}
+            />
+          )
+        })}
+      </svg>
+      <div className="va-dial-center">
+        {next ? (
+          <>
+            <span className="va-dial-caption">다음 알람</span>
+            <span className="va-dial-countdown">{countdownLabel(now, next.at)}</span>
+            <span className="va-dial-sub">
+              {formatTime(next.alarm.time_hhmm).period} {formatTime(next.alarm.time_hhmm).time}
+              {next.alarm.label ? ` · ${next.alarm.label}` : ''}
+            </span>
+          </>
+        ) : alarms.length === 0 ? (
+          <p className="va-dial-empty">
+            아직 알람이 없어요.
+            <br />
+            나의 묵상 리듬을 만들어보세요.
+          </p>
+        ) : (
+          <p className="va-dial-empty">켜져 있는 알람이 없어요</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ── 바텀시트 시계판 피커 — 시계 숫자를 탭/드래그해서 선택 ── */
+interface ClockDialProps {
+  mode: 'hour' | 'minute'
+  hour12: number
+  minute: number
+  onPick: (value: number) => void
+  onRelease: () => void
+}
+
+const ClockDial = ({ mode, hour12, minute, onPick, onRelease }: ClockDialProps) => {
+  const svgRef = useRef<SVGSVGElement>(null)
+  const draggingRef = useRef(false)
+
+  const valueFromPointer = (e: React.PointerEvent): number | null => {
+    const el = svgRef.current
+    if (!el) return null
+    const rect = el.getBoundingClientRect()
+    const x = e.clientX - (rect.left + rect.width / 2)
+    const y = e.clientY - (rect.top + rect.height / 2)
+    let deg = (Math.atan2(y, x) * 180) / Math.PI + 90
+    if (deg < 0) deg += 360
+    if (mode === 'hour') {
+      const h = Math.round(deg / 30) % 12
+      return h === 0 ? 12 : h
+    }
+    return Math.round(deg / 6) % 60
+  }
+
+  const handleDown = (e: React.PointerEvent) => {
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    draggingRef.current = true
+    const v = valueFromPointer(e)
+    if (v !== null) onPick(v)
+  }
+  const handleMove = (e: React.PointerEvent) => {
+    if (!draggingRef.current) return
+    const v = valueFromPointer(e)
+    if (v !== null) onPick(v)
+  }
+  const handleUp = () => {
+    if (!draggingRef.current) return
+    draggingRef.current = false
+    onRelease()
+  }
+
+  const selected = mode === 'hour' ? hour12 : minute
+  const frac = mode === 'hour' ? (hour12 % 12) / 12 : minute / 60
+  const handPos = dialPoint(frac, 72)
+  const labels =
+    mode === 'hour'
+      ? Array.from({ length: 12 }, (_, i) => i + 1)
+      : Array.from({ length: 12 }, (_, i) => i * 5)
+  /* 5분 단위가 아닌 분은 라벨 사이에 있으므로 작은 점으로 표시 */
+  const onLabel = mode === 'hour' || minute % 5 === 0
+
+  return (
+    <svg
+      ref={svgRef}
+      className="va-clock"
+      viewBox="0 0 200 200"
+      role="slider"
+      aria-label={mode === 'hour' ? '시 선택' : '분 선택'}
+      aria-valuenow={selected}
+      onPointerDown={handleDown}
+      onPointerMove={handleMove}
+      onPointerUp={handleUp}
+      onPointerCancel={handleUp}
+    >
+      <circle cx={100} cy={100} r={98} className="va-clock-face" />
+      <line x1={100} y1={100} x2={handPos.x} y2={handPos.y} className="va-clock-hand" />
+      <circle cx={100} cy={100} r={3} className="va-clock-pivot" />
+      <circle cx={handPos.x} cy={handPos.y} r={15} className="va-clock-sel" />
+      {!onLabel && (
+        <circle cx={handPos.x} cy={handPos.y} r={2.5} className="va-clock-sel-dot" />
+      )}
+      {labels.map((v) => {
+        const p = dialPoint(mode === 'hour' ? (v % 12) / 12 : v / 60, 72)
+        const isSelected = onLabel && v === selected
+        return (
+          <text
+            key={v}
+            x={p.x}
+            y={p.y}
+            className={`va-clock-num${isSelected ? ' is-selected' : ''}`}
+          >
+            {mode === 'hour' ? v : String(v).padStart(2, '0')}
+          </text>
+        )
+      })}
+    </svg>
+  )
+}
+
 /* iOS Safari(미설치)에서는 웹 푸시 API 자체가 없다 — 홈 화면 추가 안내가 필요 */
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
 const isStandalone =
@@ -89,6 +308,7 @@ const VerseAlarmPage = () => {
   } = usePushNotification()
 
   const [editor, setEditor] = useState<EditorState | null>(null)
+  const [pickerMode, setPickerMode] = useState<'hour' | 'minute'>('hour')
   const [saving, setSaving] = useState(false)
 
   const sortedAlarms = useMemo(
@@ -101,10 +321,12 @@ const VerseAlarmPage = () => {
       showToast('알람은 최대 5개까지 등록할 수 있어요', 'info')
       return
     }
+    setPickerMode('hour')
     setEditor({ ...DEFAULT_EDITOR, days: [...DEFAULT_EDITOR.days] })
   }
 
   const openEdit = (alarm: VerseAlarm) => {
+    setPickerMode('hour')
     setEditor({
       id: alarm.id,
       ...fromHHMM(alarm.time_hhmm),
@@ -282,16 +504,13 @@ const VerseAlarmPage = () => {
 
       {renderPushBanner()}
 
-      <section className="va-list" aria-label="알람 목록">
-        {isLoading ? (
-          <div className="va-skeleton" />
-        ) : sortedAlarms.length === 0 ? (
-          <div className="va-empty">
-            <span className="va-empty-emoji" aria-hidden>⏰</span>
-            <p>아직 등록된 알람이 없어요.<br />아침 7시, 잠들기 전 10시… 나의 묵상 리듬을 만들어보세요.</p>
-          </div>
-        ) : (
-          sortedAlarms.map((alarm) => {
+      <section className="va-hero" aria-label="다음 알람">
+        {isLoading ? <div className="va-hero-skeleton" /> : <AlarmDial alarms={alarms} />}
+      </section>
+
+      {sortedAlarms.length > 0 && (
+        <section className="va-list" aria-label="알람 목록">
+          {sortedAlarms.map((alarm) => {
             const { period, time } = formatTime(alarm.time_hhmm)
             return (
               <div
@@ -322,9 +541,9 @@ const VerseAlarmPage = () => {
                 </label>
               </div>
             )
-          })
-        )}
-      </section>
+          })}
+        </section>
+      )}
 
       <button type="button" className="va-add-btn" onClick={openCreate}>
         <span className="material-icons-round" aria-hidden>add</span>
@@ -345,7 +564,24 @@ const VerseAlarmPage = () => {
               {editor.id === null ? '알람 추가' : '알람 수정'}
             </h2>
 
-            <div className="va-time-picker">
+            <div className="va-clock-head">
+              <div className="va-clock-digits">
+                <button
+                  type="button"
+                  className={pickerMode === 'hour' ? 'is-active' : ''}
+                  onClick={() => setPickerMode('hour')}
+                >
+                  {editor.hour12}
+                </button>
+                <span className="va-time-colon">:</span>
+                <button
+                  type="button"
+                  className={pickerMode === 'minute' ? 'is-active' : ''}
+                  onClick={() => setPickerMode('minute')}
+                >
+                  {String(editor.minute).padStart(2, '0')}
+                </button>
+              </div>
               <div className="va-ampm" role="radiogroup" aria-label="오전/오후">
                 {(['am', 'pm'] as AmPm[]).map((p) => (
                   <button
@@ -360,32 +596,23 @@ const VerseAlarmPage = () => {
                   </button>
                 ))}
               </div>
-              <div className="va-time-selects">
-                <select
-                  aria-label="시"
-                  value={editor.hour12}
-                  onChange={(e) =>
-                    setEditor({ ...editor, hour12: Number(e.target.value) })
-                  }
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
-                    <option key={h} value={h}>{h}</option>
-                  ))}
-                </select>
-                <span className="va-time-colon">:</span>
-                <select
-                  aria-label="분"
-                  value={editor.minute}
-                  onChange={(e) =>
-                    setEditor({ ...editor, minute: Number(e.target.value) })
-                  }
-                >
-                  {Array.from({ length: 60 }, (_, i) => i).map((m) => (
-                    <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
-                  ))}
-                </select>
-              </div>
             </div>
+
+            <ClockDial
+              mode={pickerMode}
+              hour12={editor.hour12}
+              minute={editor.minute}
+              onPick={(v) =>
+                setEditor(
+                  pickerMode === 'hour'
+                    ? { ...editor, hour12: v }
+                    : { ...editor, minute: v }
+                )
+              }
+              onRelease={() => {
+                if (pickerMode === 'hour') setPickerMode('minute')
+              }}
+            />
 
             <div className="va-days-row">
               {DAY_LABELS.map((label, i) => (

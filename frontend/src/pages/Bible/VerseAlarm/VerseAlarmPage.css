@@ -294,6 +294,104 @@
   transform: translateX(20px);
 }
 
+/* ── 히어로 다이얼 — 뽀모도로풍 시계판 ── */
+.va-hero {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 24px;
+}
+
+.va-hero-skeleton {
+  width: min(70vw, 260px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--surface-container-high);
+  animation: va-pulse 1.4s ease-in-out infinite;
+}
+
+.va-dial-wrap {
+  position: relative;
+  width: min(70vw, 260px);
+  aspect-ratio: 1;
+}
+
+.va-dial {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.va-dial-tick {
+  stroke: color-mix(in srgb, var(--text-muted) 28%, transparent);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+.va-dial-tick--major {
+  stroke: color-mix(in srgb, var(--text-muted) 52%, transparent);
+  stroke-width: 2;
+}
+
+.va-dial-arc {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+.va-dial-now {
+  fill: var(--text-muted);
+}
+
+.va-dial-marker {
+  fill: color-mix(in srgb, var(--brand) 45%, transparent);
+}
+
+.va-dial-marker--next {
+  fill: var(--brand);
+  animation: va-pulse 2s ease-in-out infinite;
+}
+
+.va-dial-center {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.va-dial-caption {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.va-dial-countdown {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.va-dial-sub {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.va-dial-empty {
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+
 /* ── 빈 상태 / 스켈레톤 ── */
 .va-empty {
   text-align: center;
@@ -383,6 +481,8 @@
   border-radius: 24px 24px 0 0;
   padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
   animation: va-sheet-up 0.25s ease;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
 }
 
 @keyframes va-sheet-up {
@@ -405,17 +505,49 @@
   margin-bottom: 16px;
 }
 
-/* 시간 선택 */
-.va-time-picker {
+/* 시간 선택 — 시계판 피커 */
+.va-clock-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.va-clock-digits {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 6px;
+}
+
+.va-clock-digits button {
+  min-width: 72px;
+  border: none;
+  background: var(--surface-container-high);
+  color: var(--text-strong);
+  border-radius: 14px;
+  padding: 8px 14px;
+  font-size: 2.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.va-clock-digits button.is-active {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.va-time-colon {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-strong);
 }
 
 .va-ampm {
   display: flex;
-  flex-direction: column;
   gap: 6px;
 }
 
@@ -423,8 +555,8 @@
   border: 1px solid var(--card-border);
   background: transparent;
   color: var(--text-muted);
-  border-radius: 10px;
-  padding: 8px 14px;
+  border-radius: 999px;
+  padding: 7px 16px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -436,32 +568,51 @@
   color: var(--on-brand);
 }
 
-.va-time-selects {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.va-time-selects select {
-  font-size: 2rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  border: none;
-  background: var(--surface-container-high);
-  color: var(--text-strong);
-  border-radius: 14px;
-  padding: 10px 14px;
-  text-align: center;
-  appearance: none;
+.va-clock {
+  display: block;
+  width: min(64vw, 224px);
+  margin: 0 auto 18px;
+  touch-action: none;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.va-time-colon {
-  font-size: 1.6rem;
+.va-clock-face {
+  fill: var(--surface-container-high);
+}
+
+.va-clock-hand {
+  stroke: var(--brand);
+  stroke-width: 2;
+}
+
+.va-clock-pivot {
+  fill: var(--brand);
+}
+
+.va-clock-sel {
+  fill: var(--brand);
+}
+
+.va-clock-sel-dot {
+  fill: var(--on-brand);
+}
+
+.va-clock-num {
+  fill: var(--text-body);
+  font-size: 13px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.va-clock-num.is-selected {
+  fill: var(--on-brand);
   font-weight: 700;
-  color: var(--text-strong);
 }
 
 /* 요일 선택 */
