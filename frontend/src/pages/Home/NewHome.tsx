@@ -7,6 +7,7 @@ import PrayerDetail from './components/PrayerDetail'
 // import TodaysVerse from './components/TodaysVerse'
 import AnnualThemeVerse from './components/AnnualThemeVerse'
 import DailyMeditationCard from './components/DailyMeditationCard'
+import TimeCapsuleCard from './components/TimeCapsuleCard'
 import TodayPlanCard from './components/TodayPlanCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import ThanksTicker from './components/ThanksTicker'
@@ -234,27 +235,8 @@ const NewHome = () => {
               </div>
             </section>
 
-            {/* 타임캡슐 — 미래에 열리는 봉인 편지 진입점 */}
-            <button
-              type="button"
-              onClick={() => navigate('/capsule')}
-              className="mx-4 mt-3 w-[calc(100%-2rem)] flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm active:scale-[0.985] transition-transform text-left"
-            >
-              <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] flex items-center justify-center text-[19px]">
-                🕰️
-              </span>
-              <span className="flex-1 min-w-0">
-                <span className="block text-[14px] font-bold text-gray-900 dark:text-white">
-                  타임캡슐
-                </span>
-                <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5">
-                  미래의 나에게, 사랑하는 이에게 — 정해진 날 열리는 편지
-                </span>
-              </span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-300 dark:text-white/25">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
+            {/* 타임캡슐 — 밤하늘 봉인 편지 히어로 (내 캡슐 상태 반영 동적 문구) */}
+            <TimeCapsuleCard />
 
             {/* 오늘의 감사 (Small Thanks Thread) — 임시 비활성화 */}
             {/* <ThanksThread /> */}

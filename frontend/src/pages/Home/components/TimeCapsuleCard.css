@@ -1,0 +1,228 @@
+/* 홈 타임캡슐 히어로 카드 — 밤하늘에 봉인된 편지.
+   깊은 남색 밤하늘은 라이트/다크 모두에서 그대로 쓴다 (카드 자체가 밤의 정체성). */
+
+.tc-card {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 18px 16px 17px 18px;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 150% at 88% 18%, rgba(96, 140, 255, 0.24), transparent 55%),
+    linear-gradient(135deg, #0e1830 0%, #152347 55%, #1a2a5c 100%);
+  border: 1px solid rgba(140, 170, 255, 0.16);
+  box-shadow: 0 14px 34px -16px rgba(20, 40, 110, 0.6);
+  transition: transform 0.15s ease;
+}
+
+.tc-card:active {
+  transform: scale(0.985);
+}
+
+/* 별 — 두 겹 중 한 겹만 느리게 깜빡인다 */
+.tc-card__stars,
+.tc-card__stars::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 11% 26%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1px 1px at 31% 68%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1.4px 1.4px at 52% 22%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 66% 74%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1.2px 1.2px at 86% 62%, rgba(255, 255, 255, 0.7), transparent);
+}
+
+.tc-card__stars::after {
+  background-image:
+    radial-gradient(1.3px 1.3px at 22% 44%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 44% 84%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1.5px 1.5px at 74% 30%, rgba(190, 210, 255, 0.95), transparent),
+    radial-gradient(1px 1px at 93% 16%, rgba(255, 255, 255, 0.6), transparent);
+  animation: tc-twinkle 3.4s ease-in-out infinite alternate;
+}
+
+@keyframes tc-twinkle {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tc-card__body {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  display: block;
+}
+
+.tc-card__label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(160, 190, 255, 0.75);
+}
+
+.tc-card__title {
+  display: block;
+  margin-top: 7px;
+  font-size: 17.5px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: #fff;
+  word-break: keep-all;
+}
+
+.tc-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 9px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.55);
+  word-break: keep-all;
+}
+
+.tc-card__status--sealed {
+  color: rgba(157, 184, 255, 0.95);
+  font-weight: 600;
+}
+
+.tc-card__status--sealed strong {
+  font-weight: 800;
+  color: #c3d4ff;
+}
+
+.tc-card__status--arrived {
+  color: #ffd479;
+  font-weight: 700;
+}
+
+.tc-card__pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffd479;
+  box-shadow: 0 0 8px rgba(255, 212, 121, 0.9);
+  animation: tc-pulse 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes tc-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.72);
+    opacity: 0.55;
+  }
+}
+
+/* ── 우측 비주얼: 떠 있는 크림색 봉투 + 뒤에 폴라로이드 ── */
+
+.tc-card__visual {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  padding-right: 4px;
+}
+
+.tc-env {
+  position: relative;
+  display: block;
+  width: 72px;
+  height: 54px;
+  transform: rotate(5deg);
+  animation: tc-env-float 3.8s ease-in-out infinite;
+}
+
+@keyframes tc-env-float {
+  0%,
+  100% {
+    transform: rotate(5deg) translateY(0);
+  }
+  50% {
+    transform: rotate(6.5deg) translateY(-5px);
+  }
+}
+
+/* 봉투 뒤로 삐져나온 폴라로이드 — 사진 동봉의 암시 */
+.tc-env__polaroid {
+  position: absolute;
+  left: -15px;
+  top: -13px;
+  width: 33px;
+  height: 39px;
+  background: #fdfdf8;
+  border-radius: 2.5px;
+  transform: rotate(-11deg);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.tc-env__polaroid::before {
+  content: '';
+  position: absolute;
+  left: 3.5px;
+  right: 3.5px;
+  top: 3.5px;
+  height: 25px;
+  background: linear-gradient(140deg, #f4c477 0%, #e58f5a 60%, #b96a8e 100%);
+  border-radius: 1.5px;
+}
+
+.tc-env__body {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: linear-gradient(160deg, #f7f0e1 0%, #eadfc6 100%);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.55);
+}
+
+.tc-env__flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 29px;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(#f0e7d1, #e0d3b4);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* 밀랍 인장 */
+.tc-env__seal {
+  position: absolute;
+  left: 50%;
+  top: 21px;
+  transform: translateX(-50%);
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #da8172, #a63f33);
+  box-shadow:
+    0 2px 5px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 2.5px rgba(255, 255, 255, 0.14);
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-card__stars::after,
+  .tc-card__pulse,
+  .tc-env {
+    animation: none;
+  }
+}
