@@ -44,12 +44,22 @@ const counterpartLabel = (c: CapsuleSummary): string => {
   return `${c.sender_name}님이 보냄`
 }
 
-/** 인장에 새길 글자 — counterpartLabel과 같은 상대(나/받는 이/보낸 이)의 첫 글자 */
-const sealChar = (c: CapsuleSummary): string => {
-  if (c.role === 'self') return '나'
-  const name = c.role === 'sender' ? c.recipient_name : c.sender_name
-  return (name || '·').trim().charAt(0) || '·'
-}
+/** 밀랍 인장 — 누가 보냈는지는 옆 텍스트가 이미 말한다.
+    그래서 인장에는 이름 대신 이 편지가 지금 어떤 상태인지를 새긴다. */
+const WaxSeal = ({ state }: { state: 'sealed' | 'new' | 'read' }) => (
+  <span className={`capsule-mail__seal capsule-mail__seal--${state}`} aria-hidden>
+    <svg
+      className="capsule-mail__sigil"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+    >
+      <path d="M12 3.5v17M6.6 9.2h10.8" />
+    </svg>
+  </span>
+)
 
 /** 봉인 → 개봉까지 얼마나 왔는지 (0~1) — 기다림의 진행바 */
 const waitProgress = (c: CapsuleSummary): number => {
@@ -76,9 +86,7 @@ const SealedRow = ({ capsule }: { capsule: CapsuleSummary }) => {
         onClick={() => navigate(`/capsule/${capsule.id}`)}
         className="capsule-mail__hit"
       >
-        <span className="capsule-mail__seal" aria-hidden>
-          {sealChar(capsule)}
-        </span>
+        <WaxSeal state="sealed" />
 
         <span className="flex-1 min-w-0">
           <span className="capsule-mail__title">
@@ -167,9 +175,7 @@ const ArrivedRow = ({ capsule }: { capsule: CapsuleSummary }) => {
         onClick={() => navigate(`/capsule/${capsule.id}`)}
         className="capsule-mail__hit"
       >
-        <span className="capsule-mail__seal" aria-hidden>
-          {sealChar(capsule)}
-        </span>
+        <WaxSeal state={unopened ? 'new' : 'read'} />
 
         <span className="flex-1 min-w-0">
           <span className="capsule-mail__title">
