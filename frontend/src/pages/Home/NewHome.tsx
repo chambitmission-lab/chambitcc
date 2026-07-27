@@ -23,6 +23,7 @@ import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import { useAuth } from '../../hooks/useAuth'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
+import { preloadNavRoutes, preloadRoute, isRoutePreloaded } from '../../utils/routePreload'
 import type { SortType, PrayerFilterType, Prayer } from '../../types/prayer'
 
 const NewHome = () => {
@@ -45,6 +46,8 @@ const NewHome = () => {
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [showAnswerModal, setShowAnswerModal] = useState(false)
   const [selectedPrayerForAnswer, setSelectedPrayerForAnswer] = useState<Prayer | null>(null)
+  // 하단 네비에서 lazy 청크를 받는 중인 경로 — 해당 아이콘에 스피너를 띄운다
+  const [navPending, setNavPending] = useState<string | null>(null)
   const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter)  // ✅ selectedFilter 전달
   const mainRef = useRef<HTMLDivElement>(null)
   const feedRef = useRef<HTMLDivElement>(null)
@@ -70,20 +73,9 @@ const NewHome = () => {
 
   // 하단 네비 목적지(성경/집중기도/프로필) lazy 청크 prefetch — 첫 탭에서 다운로드를 시작하면
   // react-router v7의 startTransition 탓에 청크가 올 때까지 화면이 안 바뀌어 "안 눌린 것처럼" 느껴짐.
-  // 홈이 뜬 뒤 idle 타임에 미리 받아두면 첫 클릭도 즉시 전환된다.
+  // idle 대기(최대 3초)를 두면 콜드 스타트 직후 누른 첫 탭이 그대로 먹히므로 마운트 즉시 시작한다.
   useEffect(() => {
-    const prefetch = () => {
-      import('../Bible/BibleStudy')
-      import('../PrayerFocus')
-      import('../Profile/Profile')
-    }
-    // Safari는 requestIdleCallback 미지원 → setTimeout fallback
-    if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(prefetch, { timeout: 3000 })
-      return () => window.cancelIdleCallback(id)
-    }
-    const id = window.setTimeout(prefetch, 1500)
-    return () => window.clearTimeout(id)
+    void preloadNavRoutes()
   }, [])
 
   // 로그인 상태 변경 시 필터 초기화
@@ -110,8 +102,30 @@ const NewHome = () => {
     requireAuth(() => setShowComposer(true))
   }
 
+  // 청크가 아직 안 왔으면 다운로드를 기다렸다가 이동한다.
+  // 기다리는 동안 눌린 아이콘에 스피너를 띄워 "안 눌렸다"는 오해를 없앤다
+  // (startTransition 중에는 Suspense fallback이 뜨지 않아 화면이 그대로 멈춘 것처럼 보임).
+  const goLazy = useCallback(async (path: string) => {
+    if (isRoutePreloaded(path)) {
+      navigate(path)
+      return
+    }
+    setNavPending(path)
+    try {
+      await preloadRoute(path)
+    } finally {
+      setNavPending(null)
+    }
+    navigate(path)
+  }, [navigate])
+
   const handleProfileClick = () => {
-    requireAuthWithRedirect('/profile')
+    // 비로그인이면 기존 경로 그대로 (토스트 후 /login)
+    if (!isLoggedIn()) {
+      requireAuthWithRedirect('/profile')
+      return
+    }
+    void goLazy('/profile')
   }
 
   const handlePrayerToggle = useCallback(async (prayerId: number) => {
@@ -185,11 +199,11 @@ const NewHome = () => {
   }
 
   const handleFocusModeClick = () => {
-    navigate('/prayer-focus')
+    void goLazy('/prayer-focus')
   }
 
   const handleBibleClick = () => {
-    navigate('/bible')
+    void goLazy('/bible')
   }
 
   // 초기 로딩/에러는 PrayerFeed 영역 안에서만 표시 — 상단 카드(올해의 말씀, 묵상, 감사)는
@@ -355,6 +369,7 @@ const NewHome = () => {
               onScrollToTop={handleScrollToTop}
               onFocusModeClick={handleFocusModeClick}
               onBibleClick={handleBibleClick}
+              pendingPath={navPending}
             />
           </div>
         </div>

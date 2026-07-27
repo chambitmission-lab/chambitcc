@@ -4,7 +4,14 @@ interface BottomNavigationProps {
   onScrollToTop: () => void
   onFocusModeClick: () => void
   onBibleClick: () => void
+  /** lazy 청크를 받는 중인 목적지 경로 — 해당 아이콘 자리에 스피너를 띄운다 */
+  pendingPath?: string | null
 }
+
+// 청크 대기 중 표시 — 아이콘과 같은 크기라 눌린 자리가 흔들리지 않는다
+const NavSpinner = () => (
+  <span className="w-[22px] h-[22px] rounded-full border-2 border-current border-t-transparent animate-spin" />
+)
 
 const BottomNavigation = ({
   onProfileClick,
@@ -12,6 +19,7 @@ const BottomNavigation = ({
   onScrollToTop,
   onFocusModeClick,
   onBibleClick,
+  pendingPath = null,
 }: BottomNavigationProps) => {
   // 모바일엔 hover가 없어 탭 피드백이 전혀 없었음 — active로 즉각 반응을 준다
   const navItemClass =
@@ -51,9 +59,14 @@ const BottomNavigation = ({
         <button
           onClick={onBibleClick}
           aria-label="성경"
+          aria-busy={pendingPath === '/bible'}
           className={navItemClass}
         >
-          <span className="material-icons-outlined text-[26px]">menu_book</span>
+          {pendingPath === '/bible' ? (
+            <NavSpinner />
+          ) : (
+            <span className="material-icons-outlined text-[26px]">menu_book</span>
+          )}
         </button>
 
         {/* 중앙 자리 비움 — 떠 있는 FAB(아래 형제 요소)가 이 위에 얹힌다 */}
@@ -65,44 +78,54 @@ const BottomNavigation = ({
         <button
           onClick={onFocusModeClick}
           aria-label="집중 기도 모드"
+          aria-busy={pendingPath === '/prayer-focus'}
           className={navItemClass}
         >
-          <svg
-            className="w-[26px] h-[26px]"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            {/* 상단 누름 버튼 */}
-            <path d="M10 2.5h4" />
-            {/* 몸통 다이얼 */}
-            <circle cx="12" cy="14" r="7.5" />
-            {/* 바늘 — 1~2시 방향 한 개만 */}
-            <path d="M12 14l2.7-2.7" />
-          </svg>
+          {pendingPath === '/prayer-focus' ? (
+            <NavSpinner />
+          ) : (
+            <svg
+              className="w-[26px] h-[26px]"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              {/* 상단 누름 버튼 */}
+              <path d="M10 2.5h4" />
+              {/* 몸통 다이얼 */}
+              <circle cx="12" cy="14" r="7.5" />
+              {/* 바늘 — 1~2시 방향 한 개만 */}
+              <path d="M12 14l2.7-2.7" />
+            </svg>
+          )}
         </button>
 
         {/* Profile — saturated 원형 금지, outline으로 평탄화 */}
         <button
           onClick={onProfileClick}
           aria-label="프로필"
+          aria-busy={pendingPath === '/profile'}
           className={navItemClass}
         >
-          <svg
-            className="w-[26px] h-[26px]"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            viewBox="0 0 24 24"
-          >
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
-          </svg>
+          {pendingPath === '/profile' ? (
+            <NavSpinner />
+          ) : (
+            <svg
+              className="w-[26px] h-[26px]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
+            </svg>
+          )}
         </button>
       </nav>
 
