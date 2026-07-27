@@ -12,6 +12,30 @@ import './History.css'
 
 type Lens = 'era' | 'theme'
 
+const HEADER_H = 56 // 고정 헤더 높이
+const NAV_GAP = 8 // 고정 네비와 목적지 사이 여백
+
+/** 실제로 스크롤되는 조상을 찾는다. #root의 overflow-x:hidden 때문에 이 앱은 body가 스크롤러다. */
+const scrollBoxOf = (el: HTMLElement): HTMLElement => {
+  let node = el.parentElement
+  while (node) {
+    const { overflowY } = getComputedStyle(node)
+    if (/(auto|scroll|hidden)/.test(overflowY) && node.scrollHeight > node.clientHeight + 1) return node
+    node = node.parentElement
+  }
+  return (document.scrollingElement as HTMLElement) ?? document.documentElement
+}
+
+/** 스크롤 컨테이너 기준 목적지 좌표 (매 프레임 다시 재서 레이아웃 변화에 따라간다). */
+const targetTopOf = (el: HTMLElement, box: HTMLElement, offset: number) => {
+  const boxTop =
+    box === document.documentElement || box === document.scrollingElement
+      ? 0
+      : box.getBoundingClientRect().top
+  const max = box.scrollHeight - box.clientHeight
+  return Math.max(0, Math.min(max, box.scrollTop + el.getBoundingClientRect().top - boxTop - offset))
+}
+
 const History = () => {
   const navigate = useNavigate()
   const { language } = useLanguage()
@@ -28,6 +52,8 @@ const History = () => {
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
   /** 렌즈 전환 후 한 프레임 뒤에 실행할 스크롤 작업 */
   const pendingScroll = useRef<(() => void) | null>(null)
+  /** 진행 중인 자체 스크롤 애니메이션 프레임 */
+  const scrollAnim = useRef(0)
 
   // #root에 overflow-y:auto가 걸려 있어 position:sticky가 동작하지 않는다(앱 전역 설정).
   // 전역 CSS를 건드리는 대신 이 페이지 안에서만 fixed로 전환한다.
@@ -60,6 +86,66 @@ const History = () => {
     })
   }, [])
 
+  /**
+   * 목적지까지 직접 굴리는 스크롤.
+   * scrollIntoView({ behavior: 'smooth' })는 스크롤 도중 레이아웃이 바뀌면
+   * (네비가 fixed↔static으로 전환되는 순간) 모바일 브라우저에서 애니메이션이
+   * 통째로 취소돼 "탭해도 아무 반응이 없는" 것처럼 보인다. 그래서 rAF로 직접 굴린다.
+   */
+  const scrollToEl = useCallback(
+    (el: HTMLElement | null, opts?: { offset?: number; instant?: boolean }) => {
+      if (!el) return
+      const box = scrollBoxOf(el)
+      const offset =
+        opts?.offset ?? HEADER_H + (navRef.current?.getBoundingClientRect().height ?? 0) + NAV_GAP
+      if (scrollAnim.current) window.cancelAnimationFrame(scrollAnim.current)
+      scrollAnim.current = 0
+
+      if (opts?.instant) {
+        box.scrollTop = targetTopOf(el, box, offset)
+        return
+      }
+
+      const started = performance.now()
+      const stop = () => {
+        if (scrollAnim.current) window.cancelAnimationFrame(scrollAnim.current)
+        scrollAnim.current = 0
+        box.removeEventListener('touchstart', stop)
+        box.removeEventListener('wheel', stop)
+      }
+      const step = () => {
+        const target = targetTopOf(el, box, offset)
+        const delta = target - box.scrollTop
+        // 매 프레임 목적지를 다시 재기 때문에 도중에 레이아웃이 흔들려도 수렴한다.
+        // 700ms를 넘기면(경계에서 미세하게 진동하는 경우) 목적지에 붙이고 끝낸다.
+        if (Math.abs(delta) < 1.5 || performance.now() - started > 700) {
+          box.scrollTop = target
+          stop()
+          return
+        }
+        box.scrollTop += delta * 0.22
+        scrollAnim.current = window.requestAnimationFrame(step)
+      }
+      // 사용자가 직접 스크롤하기 시작하면 애니메이션은 즉시 물러난다.
+      box.addEventListener('touchstart', stop, { passive: true })
+      box.addEventListener('wheel', stop, { passive: true })
+      scrollAnim.current = window.requestAnimationFrame(step)
+    },
+    [],
+  )
+
+  const scrollToId = useCallback(
+    (id: string) => scrollToEl(document.getElementById(id)),
+    [scrollToEl],
+  )
+
+  useEffect(
+    () => () => {
+      if (scrollAnim.current) window.cancelAnimationFrame(scrollAnim.current)
+    },
+    [],
+  )
+
   // 연대순 렌즈에서만 스크롤 위치로 활성 연대를 추적한다.
   useEffect(() => {
     if (lens !== 'era') return
@@ -88,7 +174,10 @@ const History = () => {
       frame = 0
       const sentinel = navSentinelRef.current
       if (!sentinel) return
-      setPinned(sentinel.getBoundingClientRect().top < 56)
+      // 경계에 히스테리시스를 둔다. 딱 한 지점으로 판정하면 고정/해제가 되풀이되며
+      // 레이아웃이 1~2px씩 떨려 스크롤이 목적지 근처에서 진동한다.
+      const top = sentinel.getBoundingClientRect().top
+      setPinned((prev) => (prev ? top < HEADER_H + 12 : top < HEADER_H))
     }
     const onScroll = () => {
       if (frame) return
@@ -108,9 +197,11 @@ const History = () => {
   useEffect(() => {
     const nav = navRef.current
     if (!nav || typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(() => setNavHeight(nav.offsetHeight))
+    // offsetHeight는 정수로 반올림돼 고정 전환 순간 1px씩 튄다 — 소수점까지 그대로 쓴다.
+    const measure = () => setNavHeight(nav.getBoundingClientRect().height)
+    const observer = new ResizeObserver(measure)
     observer.observe(nav)
-    setNavHeight(nav.offsetHeight)
+    measure()
     return () => observer.disconnect()
   }, [])
 
@@ -128,8 +219,8 @@ const History = () => {
     }
     // 내용이 통째로 바뀌는 전환이라 부드러운 스크롤 대신 즉시 이동한다
     // (연속된 smooth 스크롤은 서로를 취소시켜 아예 안 움직인다).
-    navSentinelRef.current?.scrollIntoView({ block: 'start' })
-  }, [activeTheme, lens])
+    scrollToEl(navSentinelRef.current, { offset: HEADER_H + 2, instant: true })
+  }, [activeTheme, lens, scrollToEl])
 
   // 렌즈가 연대순으로 바뀐 뒤 DOM이 붙으면 예약해 둔 스크롤을 실행한다.
   useEffect(() => {
@@ -140,14 +231,10 @@ const History = () => {
     return () => window.cancelAnimationFrame(id)
   }, [lens])
 
-  const scrollToEl = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
   /** 미니맵에서 연도를 고르면 연대순 렌즈로 돌아가 그 해로 이동한다. */
   const handlePickYear = (year: number) => {
     setActiveDecade(decadeOf(year))
-    const go = () => scrollToEl(`hyear-${year}`)
+    const go = () => scrollToId(`hyear-${year}`)
     if (lens === 'era') go()
     else {
       pendingScroll.current = go
@@ -161,7 +248,7 @@ const History = () => {
     const target = INDEXED_EVENTS[index]
     setActiveDecade(target.decade)
     const go = () => {
-      scrollToEl(`hrec-${index}`)
+      scrollToId(`hrec-${index}`)
       setFlashedIndex(index)
       window.setTimeout(() => setFlashedIndex((cur) => (cur === index ? null : cur)), 2400)
     }
@@ -175,7 +262,7 @@ const History = () => {
 
   const handleDecadeChip = (key: string) => {
     setActiveDecade(key)
-    const go = () => sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const go = () => scrollToEl(sectionRefs.current[key])
     if (lens === 'era') go()
     else {
       pendingScroll.current = go
@@ -188,8 +275,8 @@ const History = () => {
     if (next === lens) return
     setLens(next)
     if (next === 'theme') setActiveTheme(null)
-    // 실제 스크롤 컨테이너가 window가 아니라서 scrollTo가 먹지 않는다. scrollIntoView로 올린다.
-    heroRef.current?.scrollIntoView({ block: 'start' })
+    // 실제 스크롤 컨테이너가 window가 아니라서 window.scrollTo는 먹지 않는다.
+    scrollToEl(heroRef.current, { offset: HEADER_H, instant: true })
   }
 
   return (
