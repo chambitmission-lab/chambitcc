@@ -1,71 +1,68 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { DECADES, HISTORY_EVENTS, decadeOf } from './historyData'
-import type { HistoryEvent } from './historyData'
+import { INDEXED_EVENTS, MILESTONES } from './historyThemes'
+import type { ThemeKey } from './historyThemes'
+import HistoryMinimap from './components/HistoryMinimap'
+import MilestoneReel from './components/MilestoneReel'
+import EraTimeline from './components/EraTimeline'
+import ThemeLens from './components/ThemeLens'
 import './History.css'
 
-type ViewMode = 'story' | 'all'
-
-interface YearGroup {
-  year: number
-  events: Array<{ event: HistoryEvent; index: number }>
-}
-
-interface DecadeGroup {
-  key: string
-  years: YearGroup[]
-}
-
-const yearOf = (event: HistoryEvent) => Number(event.d.slice(0, 4))
-
-// '1995-07-31' (+ 종료일) → '7월 31일' / '7월 31일 – 8월 2일'
-const formatDate = (event: HistoryEvent): string => {
-  const fmt = (iso: string) => `${Number(iso.slice(5, 7))}월 ${Number(iso.slice(8, 10))}일`
-  if (!event.d2) return fmt(event.d)
-  const sameYear = event.d.slice(0, 4) === event.d2.slice(0, 4)
-  const end = sameYear ? fmt(event.d2) : `${event.d2.slice(0, 4)}년 ${fmt(event.d2)}`
-  return `${fmt(event.d)} – ${end}`
-}
-
-// 접기 기준 — 이보다 길거나 명단(줄바꿈)이 있으면 탭해서 펼친다
-const COLLAPSE_THRESHOLD = 90
+type Lens = 'era' | 'theme'
 
 const History = () => {
   const navigate = useNavigate()
   const { language } = useLanguage()
   const ko = language === 'ko'
 
-  const [mode, setMode] = useState<ViewMode>('story')
+  const [lens, setLens] = useState<Lens>('era')
   const [activeDecade, setActiveDecade] = useState(DECADES[0].key)
-  const [expanded, setExpanded] = useState<Set<number>>(() => new Set())
+  const [activeTheme, setActiveTheme] = useState<ThemeKey | null>(null)
+  const [openYears, setOpenYears] = useState<Set<number>>(() => new Set())
+  const [openItems, setOpenItems] = useState<Set<number>>(() => new Set())
+  const [flashedIndex, setFlashedIndex] = useState<number | null>(null)
+
+  const heroRef = useRef<HTMLElement | null>(null)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
+  /** 렌즈 전환 후 한 프레임 뒤에 실행할 스크롤 작업 */
+  const pendingScroll = useRef<(() => void) | null>(null)
 
-  const groups = useMemo<DecadeGroup[]>(() => {
-    const byDecade = new Map<string, Map<number, YearGroup>>()
-    HISTORY_EVENTS.forEach((event, index) => {
-      if (mode === 'story' && !event.icon) return
-      const year = yearOf(event)
-      const dKey = decadeOf(year)
-      if (!byDecade.has(dKey)) byDecade.set(dKey, new Map())
-      const years = byDecade.get(dKey)!
-      if (!years.has(year)) years.set(year, { year, events: [] })
-      years.get(year)!.events.push({ event, index })
-    })
-    return DECADES.filter((d) => byDecade.has(d.key)).map((d) => ({
-      key: d.key,
-      years: [...byDecade.get(d.key)!.values()].sort((a, b) => a.year - b.year),
-    }))
-  }, [mode])
+  // #root에 overflow-y:auto가 걸려 있어 position:sticky가 동작하지 않는다(앱 전역 설정).
+  // 전역 CSS를 건드리는 대신 이 페이지 안에서만 fixed로 전환한다.
+  const navRef = useRef<HTMLDivElement | null>(null)
+  const navSentinelRef = useRef<HTMLDivElement | null>(null)
+  const [pinned, setPinned] = useState(false)
+  const [navHeight, setNavHeight] = useState(0)
 
-  const milestoneCount = useMemo(
-    () => HISTORY_EVENTS.filter((e) => e.icon).length,
-    [],
-  )
   const journeyYears = new Date().getFullYear() - 1994
 
-  // 스크롤 위치에 따라 활성 연대 추적
+  const registerSection = useCallback((key: string, el: HTMLElement | null) => {
+    sectionRefs.current[key] = el
+  }, [])
+
+  const toggleYear = useCallback((year: number) => {
+    setOpenYears((prev) => {
+      const next = new Set(prev)
+      if (next.has(year)) next.delete(year)
+      else next.add(year)
+      return next
+    })
+  }, [])
+
+  const toggleItem = useCallback((index: number) => {
+    setOpenItems((prev) => {
+      const next = new Set(prev)
+      if (next.has(index)) next.delete(index)
+      else next.add(index)
+      return next
+    })
+  }, [])
+
+  // 연대순 렌즈에서만 스크롤 위치로 활성 연대를 추적한다.
   useEffect(() => {
+    if (lens !== 'era') return
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -80,19 +77,119 @@ const History = () => {
       if (el) observer.observe(el)
     })
     return () => observer.disconnect()
-  }, [groups])
+  }, [lens])
 
-  const scrollToDecade = (key: string) => {
-    sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  // 네비가 헤더 밑으로 올라가면 고정한다.
+  // 실제 스크롤 컨테이너가 body라 IntersectionObserver의 암묵적 root로는 잡히지 않는다.
+  // 캡처 단계 scroll 리스너로 어떤 컨테이너가 스크롤되든 받아서 직접 잰다.
+  useEffect(() => {
+    let frame = 0
+    const measure = () => {
+      frame = 0
+      const sentinel = navSentinelRef.current
+      if (!sentinel) return
+      setPinned(sentinel.getBoundingClientRect().top < 56)
+    }
+    const onScroll = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(measure)
+    }
+    measure()
+    document.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', onScroll)
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame)
+      document.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
+
+  // 렌즈에 따라 네비 높이가 달라지므로 자리 확보용 높이를 계속 맞춰준다.
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => setNavHeight(nav.offsetHeight))
+    observer.observe(nav)
+    setNavHeight(nav.offsetHeight)
+    return () => observer.disconnect()
+  }, [])
+
+  // 테마를 고르거나 목록으로 돌아오면 새 내용이 그려진 뒤 네비 위치까지 올려준다.
+  // (렌더 커밋 후여야 해서 이벤트 핸들러가 아니라 effect에서 처리한다.)
+  const themeMounted = useRef(false)
+  useEffect(() => {
+    if (lens !== 'theme') {
+      themeMounted.current = false
+      return
+    }
+    if (!themeMounted.current) {
+      themeMounted.current = true
+      return
+    }
+    // 내용이 통째로 바뀌는 전환이라 부드러운 스크롤 대신 즉시 이동한다
+    // (연속된 smooth 스크롤은 서로를 취소시켜 아예 안 움직인다).
+    navSentinelRef.current?.scrollIntoView({ block: 'start' })
+  }, [activeTheme, lens])
+
+  // 렌즈가 연대순으로 바뀐 뒤 DOM이 붙으면 예약해 둔 스크롤을 실행한다.
+  useEffect(() => {
+    if (lens !== 'era' || !pendingScroll.current) return
+    const run = pendingScroll.current
+    pendingScroll.current = null
+    const id = window.requestAnimationFrame(() => run())
+    return () => window.cancelAnimationFrame(id)
+  }, [lens])
+
+  const scrollToEl = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const toggleExpand = (index: number) => {
-    setExpanded((prev) => {
-      const next = new Set(prev)
-      if (next.has(index)) next.delete(index)
-      else next.add(index)
-      return next
-    })
+  /** 미니맵에서 연도를 고르면 연대순 렌즈로 돌아가 그 해로 이동한다. */
+  const handlePickYear = (year: number) => {
+    setActiveDecade(decadeOf(year))
+    const go = () => scrollToEl(`hyear-${year}`)
+    if (lens === 'era') go()
+    else {
+      pendingScroll.current = go
+      setActiveTheme(null)
+      setLens('era')
+    }
+  }
+
+  /** 이정표 릴에서 카드를 고르면 본문의 해당 기록으로 이동 + 잠깐 강조한다. */
+  const handlePickMilestone = (index: number) => {
+    const target = INDEXED_EVENTS[index]
+    setActiveDecade(target.decade)
+    const go = () => {
+      scrollToEl(`hrec-${index}`)
+      setFlashedIndex(index)
+      window.setTimeout(() => setFlashedIndex((cur) => (cur === index ? null : cur)), 2400)
+    }
+    if (lens === 'era') go()
+    else {
+      pendingScroll.current = go
+      setActiveTheme(null)
+      setLens('era')
+    }
+  }
+
+  const handleDecadeChip = (key: string) => {
+    setActiveDecade(key)
+    const go = () => sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (lens === 'era') go()
+    else {
+      pendingScroll.current = go
+      setActiveTheme(null)
+      setLens('era')
+    }
+  }
+
+  const switchLens = (next: Lens) => {
+    if (next === lens) return
+    setLens(next)
+    if (next === 'theme') setActiveTheme(null)
+    // 실제 스크롤 컨테이너가 window가 아니라서 scrollTo가 먹지 않는다. scrollIntoView로 올린다.
+    heroRef.current?.scrollIntoView({ block: 'start' })
   }
 
   return (
@@ -100,7 +197,7 @@ const History = () => {
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
         <div className="history-page">
           {/* Hero */}
-          <header className="history-hero">
+          <header ref={heroRef} className="history-hero">
             <div className="history-hero-badge">SINCE 1994</div>
             <h1 className="history-hero-title">
               참으로, 빛으로
@@ -125,128 +222,83 @@ const History = () => {
               </div>
               <div className="history-stat-divider" />
               <div className="history-stat">
-                <span className="history-stat-value">{milestoneCount}</span>
+                <span className="history-stat-value">{MILESTONES.length}</span>
                 <span className="history-stat-label">{ko ? '주요 이정표' : 'Milestones'}</span>
               </div>
             </div>
           </header>
 
-          {/* 모드 토글 + 연대 네비 (스티키) */}
-          <div className="history-nav glass-card">
-            <div className="history-mode-toggle" role="tablist">
+          {/* 32년 미니맵 — 한눈에 리듬 보기 */}
+          <HistoryMinimap activeDecade={activeDecade} onPickYear={handlePickYear} ko={ko} />
+
+          {/* 이정표 가로 릴 */}
+          <MilestoneReel onPick={handlePickMilestone} ko={ko} />
+
+          {/* 렌즈 전환 + 연대 칩 (헤더 아래 고정) */}
+          <div ref={navSentinelRef} className="history-nav-sentinel" aria-hidden="true" />
+          <div
+            className="history-nav-slot"
+            style={pinned ? { height: navHeight } : undefined}
+          >
+          <div ref={navRef} className={`history-nav glass-card ${pinned ? 'is-pinned' : ''}`}>
+            <div className="history-lens-toggle" role="tablist">
               <button
                 type="button"
                 role="tab"
-                aria-selected={mode === 'story'}
-                className={mode === 'story' ? 'active' : ''}
-                onClick={() => setMode('story')}
+                aria-selected={lens === 'era'}
+                className={lens === 'era' ? 'active' : ''}
+                onClick={() => switchLens('era')}
               >
-                {ko ? '주요 순간' : 'Highlights'}
+                {ko ? '연대순' : 'By era'}
               </button>
               <button
                 type="button"
                 role="tab"
-                aria-selected={mode === 'all'}
-                className={mode === 'all' ? 'active' : ''}
-                onClick={() => setMode('all')}
+                aria-selected={lens === 'theme'}
+                className={lens === 'theme' ? 'active' : ''}
+                onClick={() => switchLens('theme')}
               >
-                {ko ? '전체 기록' : 'Full Record'}
+                {ko ? '테마별' : 'By theme'}
               </button>
             </div>
-            <div className="history-decade-chips">
-              {DECADES.map((d) => (
-                <button
-                  key={d.key}
-                  type="button"
-                  className={activeDecade === d.key ? 'active' : ''}
-                  onClick={() => scrollToDecade(d.key)}
-                >
-                  {d.label}
-                </button>
-              ))}
+            {lens === 'era' && (
+              <div className="history-decade-chips">
+                {DECADES.map((d) => (
+                  <button
+                    key={d.key}
+                    type="button"
+                    className={activeDecade === d.key ? 'active' : ''}
+                    onClick={() => handleDecadeChip(d.key)}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+            )}
             </div>
           </div>
 
-          {/* 타임라인 */}
+          {/* 본문 */}
           <div className="history-body">
-            {groups.map((group) => {
-              const meta = DECADES.find((d) => d.key === group.key)!
-              return (
-                <section
-                  key={`${mode}-${group.key}`}
-                  data-decade={group.key}
-                  ref={(el) => {
-                    sectionRefs.current[group.key] = el
-                  }}
-                  className="history-decade"
-                >
-                  {/* 연대 챕터 헤더 */}
-                  <div className="history-chapter">
-                    <div className="history-chapter-era">
-                      <span>{meta.label}</span>
-                      <span className="history-chapter-period">{meta.period}</span>
-                    </div>
-                    <h2 className="history-chapter-title">{meta.title}</h2>
-                    <p className="history-chapter-copy">{meta.copy}</p>
-                  </div>
-
-                  {/* 연도별 이벤트 */}
-                  <div className="history-timeline">
-                    {group.years.map((yg) => (
-                      <div key={yg.year} className="history-year">
-                        <div className="history-year-label">
-                          <span>{yg.year}</span>
-                        </div>
-                        {yg.events.map(({ event, index }) => {
-                          const isMilestone = Boolean(event.icon)
-                          const collapsible =
-                            event.text.length > COLLAPSE_THRESHOLD || event.text.includes('\n')
-                          const isOpen = expanded.has(index)
-                          return (
-                            <div
-                              key={index}
-                              className={`history-item ${isMilestone ? 'milestone' : ''}`}
-                            >
-                              <div className="history-item-marker">
-                                {isMilestone ? (
-                                  <span className="history-item-icon">{event.icon}</span>
-                                ) : (
-                                  <span className="history-item-dot" />
-                                )}
-                              </div>
-                              <button
-                                type="button"
-                                className={`history-item-card ${isOpen ? 'open' : ''} ${
-                                  collapsible ? 'collapsible' : ''
-                                }`}
-                                onClick={() => collapsible && toggleExpand(index)}
-                              >
-                                <span className="history-item-date">{formatDate(event)}</span>
-                                {isMilestone && (
-                                  <span className="history-item-title">{event.title}</span>
-                                )}
-                                <span
-                                  className={`history-item-text ${
-                                    collapsible && !isOpen ? 'clamped' : ''
-                                  }`}
-                                >
-                                  {event.text}
-                                </span>
-                                {collapsible && (
-                                  <span className="history-item-more">
-                                    {isOpen ? (ko ? '접기' : 'Less') : ko ? '더보기' : 'More'}
-                                  </span>
-                                )}
-                              </button>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )
-            })}
+            {lens === 'era' ? (
+              <EraTimeline
+                openYears={openYears}
+                onToggleYear={toggleYear}
+                openItems={openItems}
+                onToggleItem={toggleItem}
+                flashedIndex={flashedIndex}
+                sectionRef={registerSection}
+                ko={ko}
+              />
+            ) : (
+              <ThemeLens
+                active={activeTheme}
+                onSelect={setActiveTheme}
+                openItems={openItems}
+                onToggleItem={toggleItem}
+                ko={ko}
+              />
+            )}
           </div>
 
           {/* 마무리 */}

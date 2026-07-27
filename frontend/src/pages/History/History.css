@@ -1,4 +1,6 @@
-/* 참빛 발자취 — 토스 블루 플랫 테마 (theme.css 토큰 참조) */
+/* 참빛 발자취 — 토스 블루 플랫 테마 (theme.css 토큰 참조)
+   구조: Hero → 32년 미니맵 → 이정표 릴 → 렌즈(연대순/테마별) → 에필로그
+   테마 구분은 색이 아니라 이모지 + 이름으로 한다 (색맹 안전 + 단일 브랜드 컬러 유지). */
 
 .history-page {
   min-height: 100vh;
@@ -9,7 +11,7 @@
 
 /* ── Hero ─────────────────────────────────────────────── */
 .history-hero {
-  padding: 44px 24px 32px;
+  padding: 44px 24px 28px;
   text-align: center;
 }
 
@@ -73,10 +75,255 @@
   background: var(--card-border);
 }
 
-/* ── 스티키 네비 (모드 토글 + 연대 칩) ─────────────────── */
+/* ── 32년 미니맵 ──────────────────────────────────────── */
+.hmap {
+  margin: 4px 16px 0;
+  padding: 16px 16px 12px;
+  border-radius: 20px;
+}
+
+.hmap-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.hmap-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.hmap-title span {
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 0 2px;
+}
+
+.hmap-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.hmap-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  height: 72px;
+}
+
+/* 한 해 = 한 컬럼. 좌우 1px 패딩이 막대 사이 2px 여백을 만든다. */
+.hmap-col {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  padding: 0 1px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.38;
+  transition: opacity 0.2s ease;
+}
+
+.hmap-col.is-active {
+  opacity: 1;
+}
+
+.hmap-col:hover {
+  opacity: 1;
+}
+
+.hmap-bar {
+  display: block;
+  width: 100%;
+  height: var(--h, 0px);
+  min-height: 0;
+  border-radius: 3px 3px 0 0;
+  background: var(--brand);
+}
+
+/* 이정표 표시 — 막대와 헷갈리지 않게 가운데 점 하나로 찍는다. */
+.hmap-tick {
+  display: block;
+  width: 4px;
+  height: 4px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.hmap-tick.has-milestone {
+  background: var(--brand);
+  box-shadow: 0 0 0 1.5px var(--surface-container);
+}
+
+.hmap-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--card-border);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.hmap-legend-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--brand);
+  flex-shrink: 0;
+}
+
+/* ── 이정표 가로 릴 ───────────────────────────────────── */
+.hreel {
+  margin-top: 26px;
+}
+
+.hreel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 20px;
+  margin-bottom: 12px;
+}
+
+.hreel-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-strong);
+}
+
+.hreel-count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.hreel-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.hreel-track {
+  display: flex;
+  gap: 10px;
+  padding: 2px 20px 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.hreel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.hreel-track > li {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+}
+
+.hreel-card {
+  width: 148px;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px;
+  text-align: left;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.hreel-card:active {
+  transform: scale(0.97);
+}
+
+.hreel-card:hover {
+  border-color: var(--brand-soft-strong);
+}
+
+.hreel-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  font-size: 16px;
+}
+
+.hreel-year {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.hreel-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── 네비 (렌즈 토글 + 연대 칩) ───────────────────────────
+   #root에 overflow-y:auto가 걸려 있어 position:sticky가 먹지 않는다.
+   그래서 sentinel이 헤더 위로 올라가면 .is-pinned로 fixed 전환한다. */
+.history-nav-sentinel {
+  height: 1px;
+  margin-top: 18px;
+  scroll-margin-top: 58px; /* 고정 헤더 밑에 정확히 붙게 */
+}
+
+.history-nav-slot {
+  position: relative;
+}
+
 .history-nav {
-  position: sticky;
-  top: 56px; /* 고정 헤더 높이 */
   z-index: 30;
   margin: 0 12px;
   padding: 10px 12px;
@@ -86,7 +333,22 @@
   gap: 10px;
 }
 
-.history-mode-toggle {
+.history-nav.is-pinned {
+  position: fixed;
+  top: 56px; /* 고정 헤더 높이 */
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100vw - 24px), 424px);
+  margin: 0;
+  box-shadow: 0 8px 24px rgba(28, 25, 45, 0.14);
+}
+
+:root[data-theme='dark'] .history-nav.is-pinned,
+.dark .history-nav.is-pinned {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.history-lens-toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
@@ -95,7 +357,7 @@
   background: var(--surface-inset);
 }
 
-.history-mode-toggle button {
+.history-lens-toggle button {
   padding: 8px 0;
   border: none;
   border-radius: 10px;
@@ -107,7 +369,7 @@
   transition: all 0.18s ease;
 }
 
-.history-mode-toggle button.active {
+.history-lens-toggle button.active {
   background: var(--surface-container);
   color: var(--brand);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
@@ -138,18 +400,18 @@
   color: var(--on-brand);
 }
 
-/* ── 연대 챕터 ────────────────────────────────────────── */
-.history-decade {
-  scroll-margin-top: 130px; /* 헤더 + 스티키 네비 */
-  content-visibility: auto;
-  contain-intrinsic-size: auto 1200px;
+/* ── 연대순 렌즈 ──────────────────────────────────────── */
+/* content-visibility는 쓰지 않는다 — 연도가 기본으로 접혀 DOM이 이미 작고,
+   추정 높이와 실제 높이 차이 때문에 스크롤이 튀는 부작용이 더 크다. */
+.hera-decade {
+  scroll-margin-top: 172px; /* 고정 헤더(56) + 고정 네비 높이만큼 비운다 */
 }
 
-.history-chapter {
-  padding: 40px 24px 8px;
+.hera-chapter {
+  padding: 36px 24px 4px;
 }
 
-.history-chapter-era {
+.hera-chapter-era {
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -160,14 +422,23 @@
   font-variant-numeric: tabular-nums;
 }
 
-.history-chapter-period {
+.hera-chapter-period {
   font-size: 11.5px;
   font-weight: 600;
   color: var(--text-muted);
   letter-spacing: 0.02em;
 }
 
-.history-chapter-title {
+.hera-chapter-total {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hera-chapter-title {
   margin: 6px 0 8px;
   font-size: 22px;
   font-weight: 800;
@@ -175,43 +446,45 @@
   color: var(--text-strong);
 }
 
-.history-chapter-copy {
+.hera-chapter-copy {
   font-size: 13px;
   line-height: 1.7;
   color: var(--text-muted);
+  word-break: keep-all;
 }
 
-/* ── 타임라인 ─────────────────────────────────────────── */
-.history-timeline {
+.hera-years {
+  padding: 8px 16px 0;
+}
+
+/* 한 해 = 한 블록. 왼쪽 레일로 연속감을 준다. */
+.hyear {
   position: relative;
-  padding: 12px 16px 0 0;
+  padding: 14px 0 14px 22px;
+  scroll-margin-top: 172px;
 }
 
-/* 세로 레일 */
-.history-year {
-  position: relative;
-  padding-left: 52px;
-}
-
-.history-year::before {
+.hyear::before {
   content: '';
   position: absolute;
-  left: 31px;
+  left: 5px;
   top: 0;
   bottom: 0;
   width: 2px;
   background: var(--brand-soft-strong);
 }
 
-.history-year-label {
-  position: relative;
-  padding: 14px 0 8px;
+.hyear-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
-.history-year-label span {
+.hyear-label {
   position: relative;
-  left: -52px;
-  display: inline-block;
+  left: -22px;
+  margin-right: -14px;
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--brand);
@@ -220,38 +493,96 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  margin-left: 12px;
-  z-index: 1;
 }
 
-.history-item {
+.hyear-count {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hyear-icons {
+  margin-left: auto;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.hyear-preview {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hyear-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.hyear-toggle:hover,
+.hyear-toggle.is-open {
+  color: var(--brand);
+  border-color: var(--brand-soft-strong);
+  background: var(--brand-soft);
+}
+
+.hyear-chevron {
+  width: 6px;
+  height: 6px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform 0.2s ease;
+}
+
+.hyear-toggle.is-open .hyear-chevron {
+  transform: rotate(-135deg) translate(-1px, -1px);
+}
+
+/* ── 기록 카드 (두 렌즈 공용) ─────────────────────────── */
+.hrec {
   position: relative;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  padding-left: 16px;
+  scroll-margin-top: 172px; /* 이정표 릴에서 점프해 올 때 고정 네비에 가리지 않게 */
 }
 
-.history-item-marker {
+.hrec-marker {
   position: absolute;
-  left: -52px;
+  left: -22px;
   top: 14px;
-  width: 40px;
+  width: 12px;
   display: flex;
   justify-content: center;
 }
 
-.history-item-dot {
+.hrec-dot {
   width: 8px;
   height: 8px;
-  margin-left: 12px;
   border-radius: 50%;
   background: var(--surface);
   border: 2px solid var(--brand);
   box-sizing: border-box;
 }
 
-.history-item-icon {
-  margin-left: 12px;
-  width: 30px;
-  height: 30px;
+.hrec-icon {
+  width: 28px;
+  height: 28px;
+  margin-left: -8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -259,12 +590,11 @@
   background: var(--surface-container);
   border: 1.5px solid var(--brand-soft-strong);
   box-shadow: 0 0 0 4px var(--brand-soft);
-  font-size: 15px;
-  transform: translateY(-8px);
+  font-size: 14px;
+  transform: translateY(-6px);
 }
 
-/* 카드 */
-.history-item-card {
+.hrec-card {
   display: block;
   width: 100%;
   text-align: left;
@@ -274,20 +604,24 @@
   box-shadow: var(--card-shadow);
   padding: 12px 14px;
   cursor: default;
-  transition: border-color 0.18s ease;
+  transition: border-color 0.18s ease, box-shadow 0.3s ease;
 }
 
-.history-item-card.collapsible {
+.hrec-card.is-collapsible {
   cursor: pointer;
 }
 
-.history-item.milestone .history-item-card {
+.hrec.is-milestone .hrec-card {
   border-color: var(--brand-soft-strong);
-  background: linear-gradient(0deg, var(--brand-soft), var(--brand-soft)),
-    var(--surface-container);
+  background: linear-gradient(0deg, var(--brand-soft), var(--brand-soft)), var(--surface-container);
 }
 
-.history-item-date {
+.hrec.is-flashed .hrec-card {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-glow);
+}
+
+.hrec-date {
   display: block;
   font-size: 11.5px;
   font-weight: 700;
@@ -296,7 +630,7 @@
   margin-bottom: 3px;
 }
 
-.history-item-title {
+.hrec-title {
   display: block;
   font-size: 15px;
   font-weight: 800;
@@ -304,9 +638,10 @@
   line-height: 1.45;
   color: var(--text-strong);
   margin-bottom: 4px;
+  word-break: keep-all;
 }
 
-.history-item-text {
+.hrec-text {
   display: block;
   font-size: 13px;
   line-height: 1.65;
@@ -316,24 +651,257 @@
   overflow-wrap: anywhere;
 }
 
-.history-item.milestone .history-item-text {
+.hrec.is-milestone .hrec-text {
   color: var(--text-muted);
   font-size: 12.5px;
 }
 
-.history-item-text.clamped {
+.hrec-text.is-clamped {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.history-item-more {
+.hrec-more {
   display: inline-block;
   margin-top: 6px;
   font-size: 12px;
   font-weight: 700;
   color: var(--brand);
+}
+
+/* ── 테마 렌즈 ────────────────────────────────────────── */
+.hthm {
+  padding: 22px 16px 0;
+}
+
+.hthm-lead {
+  margin: 0 4px 16px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+
+.hthm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.hthm-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px 14px 14px;
+  text-align: left;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.hthm-card:active {
+  transform: scale(0.98);
+}
+
+.hthm-card:hover {
+  border-color: var(--brand-soft-strong);
+}
+
+.hthm-card-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  font-size: 18px;
+}
+
+.hthm-card-label {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text-strong);
+}
+
+.hthm-card-count {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.hthm-card-count em {
+  margin-left: 2px;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-style: normal;
+  color: var(--text-muted);
+}
+
+/* 연대별 분포 스파크 — 이 테마가 언제 뜨거웠는지 */
+.hthm-card-spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.hthm-card-spark-slot {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  min-width: 0;
+}
+
+.hthm-card-spark-track {
+  display: flex;
+  align-items: flex-end;
+  height: 24px;
+  border-radius: 4px;
+  background: var(--surface-inset);
+}
+
+.hthm-card-spark-fill {
+  width: 100%;
+  height: var(--f, 0%);
+  min-height: 2px;
+  border-radius: 4px;
+  background: var(--brand);
+  opacity: 0.62;
+}
+
+.hthm-card-spark-tick {
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hthm-card-peak {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* 테마 상세 */
+.hthm-detail {
+  padding: 18px 16px 0;
+}
+
+.hthm-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.hthm-back:hover {
+  color: var(--brand);
+  border-color: var(--brand-soft-strong);
+}
+
+.hthm-detail-head {
+  padding: 20px 4px 8px;
+}
+
+.hthm-detail-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--brand-soft);
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.hthm-detail-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.hthm-detail-copy {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+
+.hthm-detail-count {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.hthm-group {
+  position: relative;
+  padding: 18px 0 6px 22px;
+}
+
+.hthm-group::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 26px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--brand-soft-strong);
+}
+
+.hthm-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.hthm-group-era {
+  position: relative;
+  left: -22px;
+  margin-right: -14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 12.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.hthm-group-count {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── 에필로그 ─────────────────────────────────────────── */
@@ -388,4 +956,14 @@
 .history-epilogue-actions button:not(.primary) {
   background: rgba(255, 255, 255, 0.14);
   color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hmap-col,
+  .hreel-card,
+  .hthm-card,
+  .hyear-chevron,
+  .hrec-card {
+    transition: none;
+  }
 }
