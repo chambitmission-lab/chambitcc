@@ -134,7 +134,7 @@ const RoomList = () => {
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
               placeholder="초대 코드로 참여 (예: AB12CD34)"
               maxLength={8}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[13px] font-semibold tracking-[0.08em] placeholder:font-normal placeholder:tracking-normal placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand"
+              className="flex-1 min-w-0 px-4 py-2.5 rounded-xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[13px] font-semibold tracking-[0.08em] placeholder:font-normal placeholder:tracking-normal placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand"
             />
             <button
               type="button"

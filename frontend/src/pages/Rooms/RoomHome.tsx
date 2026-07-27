@@ -524,6 +524,8 @@ const Replies = ({
           </div>
         ))
       )}
+      {/* min-w-0 없으면 input이 기본 intrinsic 폭(size=20) 아래로 줄어들지 못해
+          좁은 화면에서 옆의 [등록] 버튼을 카드 밖으로 밀어낸다 */}
       <div className="flex items-center gap-2 mt-2">
         <input
           value={text}
@@ -533,7 +535,7 @@ const Replies = ({
           }}
           maxLength={1000}
           placeholder="따뜻한 댓글을 남겨보세요"
-          className="flex-1 px-3.5 py-2 rounded-full bg-gray-50 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.08] text-[13px] focus:outline-none focus:border-brand"
+          className="flex-1 min-w-0 px-3.5 py-2 rounded-full bg-gray-50 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.08] text-[13px] focus:outline-none focus:border-brand"
         />
         <button
           type="button"
