@@ -50,6 +50,9 @@
   --text-strong: #191722;
   --text-body: #45414f;
   --text-muted: #8b8695;
+
+  /* 사진·아바타 감광 — 라이트에서는 원본 그대로 */
+  --media-dim: none;
 }
 
 [data-theme="dark"] {
@@ -92,6 +95,9 @@
   --text-strong: #e5e2e1;
   --text-body: #cac4d4;
   --text-muted: #938f9a;
+
+  /* 사진·아바타 감광 — 밝은 사진이 다크 카드에서 튀지 않게 (Material 다크 가이드) */
+  --media-dim: brightness(0.92);
 }
 
 /* ── 재사용 컴포넌트 클래스 ─────────────────────────────── */
@@ -142,4 +148,12 @@
   background: var(--brand-soft);
   border: 1px solid var(--card-border);
   color: var(--text-strong);
+}
+
+/* 무한 글로우류 애니메이션 — 움직임 최소화 설정 시 정지 (다크에서 특히 시선 피로 유발) */
+@media (prefers-reduced-motion: reduce) {
+  .animate-streak-flame,
+  .animate-streak-glow {
+    animation: none;
+  }
 }

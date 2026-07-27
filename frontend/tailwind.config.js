@@ -31,6 +31,13 @@ export default {
           container: "var(--surface-container)",
           high: "var(--surface-container-high)",
         },
+        // 텍스트 스케일 — 다크에서 순백(#fff) 대신 --text-strong(#e5e2e1)을 쓰게 하는
+        // 눈부심(halation) 방지 토큰. dark: 프리픽스 없이 text-ink-strong 등으로 사용.
+        ink: {
+          strong: "var(--text-strong)",
+          DEFAULT: "var(--text-body)",
+          muted: "var(--text-muted)",
+        },
       },
       fontFamily: {
         display: ["Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "sans-serif"],

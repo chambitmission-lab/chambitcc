@@ -19,7 +19,7 @@ const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
           className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
             currentSort === 'popular'
               ? 'bg-[var(--brand-soft-strong)] text-brand'
-              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
           }`}
         >
           {t('popular')}
@@ -29,7 +29,7 @@ const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
           className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
             currentSort === 'latest'
               ? 'bg-[var(--brand-soft-strong)] text-brand'
-              : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
           }`}
         >
           {t('latest')}

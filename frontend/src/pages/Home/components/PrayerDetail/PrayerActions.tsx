@@ -38,7 +38,7 @@ const PrayerActions = ({
         className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-[15px] transition-all duration-200 active:scale-[0.97] ${
           isPrayed
             ? 'brand-gradient shadow-[0_8px_24px_-8px_var(--brand-glow)]'
-            : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08]'
+            : 'bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08]'
         }`}
       >
         <HandHeartIcon
@@ -53,7 +53,7 @@ const PrayerActions = ({
       <button
         onClick={onCommentClick}
         aria-label={`댓글${replyCount > 0 ? ` ${replyCount}개` : ''}로 이동`}
-        className="relative shrink-0 flex items-center justify-center w-[52px] h-[52px] rounded-2xl bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-all duration-200 active:scale-[0.97]"
+        className="relative shrink-0 flex items-center justify-center w-[52px] h-[52px] rounded-2xl bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-all duration-200 active:scale-[0.97]"
       >
         <CommentIcon size={22} />
         {replyCount > 0 && (

@@ -148,7 +148,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
               <span className="material-icons-outlined text-[14px]">add</span>
               {t('prayerComposerAddTitle')}
             </button>
-            <span className="text-[11px] text-gray-400 dark:text-gray-500">
+            <span className="text-[11px] text-gray-500 dark:text-gray-400">
               {t('prayerComposerTitleOptional')}
             </span>
           </div>
@@ -166,7 +166,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
               maxLength={100}
               autoFocus
               className={`
-                flex-1 min-w-0 bg-transparent border-none text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white
+                flex-1 min-w-0 bg-transparent border-none text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong
                 placeholder:text-[13.5px] placeholder:font-normal placeholder:tracking-normal
                 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none py-1
                 ${titleVoice.isListening ? 'animate-pulse' : ''}
@@ -267,7 +267,7 @@ const ContentCard = ({ title, content, onTitleChange, onContentChange }: Content
               {t('listeningContent') || '내용 음성 인식 중... (중지 버튼을 클릭하세요)'}
             </div>
           )}
-          <div className="text-[11px] text-gray-400 dark:text-gray-500 text-right mt-1">
+          <div className="text-[11px] text-gray-500 dark:text-gray-400 text-right mt-1">
             {content.length}/1000
           </div>
         </div>

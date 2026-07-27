@@ -29,6 +29,7 @@
   border-radius: 50%;
   object-fit: cover;
   box-shadow: 0 0 0 1px var(--card-border); /* 헤어라인 */
+  filter: var(--media-dim); /* 다크에서만 살짝 감광 */
 }
 
 /* 스페큘러 하이라이트 — 사진 위에 아주 옅게 */

@@ -102,7 +102,7 @@ const PrayerHeader = ({
           <span className={`text-[14.5px] tracking-[-0.01em] truncate ${
             isAnonymous
               ? 'font-medium text-gray-500 dark:text-gray-400'
-              : 'font-semibold text-gray-900 dark:text-white'
+              : 'font-semibold text-ink-strong'
           }`}>
             {shownName}
           </span>

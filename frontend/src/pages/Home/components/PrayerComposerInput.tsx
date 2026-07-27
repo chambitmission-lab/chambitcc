@@ -21,7 +21,7 @@ const PrayerComposerInput = ({ onComposerOpen }: PrayerComposerInputProps) => {
       </div>
       <div className="flex-1">
         <input
-          className="w-full bg-surface-light dark:bg-surface-dark border-none rounded-full px-4 py-2 text-sm focus:ring-1 focus:ring-primary dark:text-white placeholder-gray-500"
+          className="w-full bg-surface-light dark:bg-surface-dark border-none rounded-full px-4 py-2 text-sm focus:ring-1 focus:ring-primary text-ink-strong placeholder-gray-500"
           placeholder={t('prayerPlaceholder')}
           type="text"
           onClick={onComposerOpen}

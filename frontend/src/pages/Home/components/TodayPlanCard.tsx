@@ -77,7 +77,7 @@ const TodayPlanCard = () => {
             </div>
 
             <div className="min-w-0">
-              <p className="text-[15.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
+              <p className="text-[15.5px] font-bold text-ink-strong tracking-[-0.01em]">
                 {today.day_number}일차{today.day_title ? ` · ${today.day_title}` : ''}
               </p>
               {refs && (

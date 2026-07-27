@@ -17,7 +17,7 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
 
       {title && (
         <h3
-          className="text-[19px] font-bold text-gray-900 dark:text-white mb-3 tracking-[-0.015em] leading-[1.35] text-left"
+          className="text-[19px] font-bold text-ink-strong mb-3 tracking-[-0.015em] leading-[1.35] text-left"
           style={transitionStyles}
         >
           {title}

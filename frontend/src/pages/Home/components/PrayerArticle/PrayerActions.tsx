@@ -180,7 +180,7 @@ const PrayerActions = ({
           style={{
             left: `${particle.x}px`,
             top: `${particle.y}px`,
-            filter: useGroupColor ? `drop-shadow(0 0 4px ${colorTheme.glow})` : 'drop-shadow(0 0 4px rgba(168, 85, 247, 0.8))'
+            filter: useGroupColor ? `drop-shadow(0 0 4px ${colorTheme.glow})` : 'drop-shadow(0 0 4px rgba(245, 158, 11, 0.7))'
           }}
         >
           {useGroupColor ? colorTheme.particle : '✨'}

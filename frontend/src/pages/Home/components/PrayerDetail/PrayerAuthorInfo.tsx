@@ -65,7 +65,7 @@ const PrayerAuthorInfo = ({
           <p className={`text-sm leading-none mb-1 flex items-center gap-1.5 ${
             isAnonymous
               ? 'font-medium text-gray-500 dark:text-gray-400'
-              : 'font-semibold text-gray-900 dark:text-white'
+              : 'font-semibold text-ink-strong'
           }`}>
             <span className="truncate">{shownName}</span>
             {isOwner && (

@@ -13,7 +13,7 @@ const PrayerStats = ({ prayerCount }: PrayerStatsProps) => {
         </span>
         {prayerCount > 0 ? (
           <span>
-            <span className="font-semibold text-gray-900 dark:text-white">{prayerCount}명</span>
+            <span className="font-semibold text-ink-strong">{prayerCount}명</span>
             의 성도가 함께 기도하고 있어요
           </span>
         ) : (

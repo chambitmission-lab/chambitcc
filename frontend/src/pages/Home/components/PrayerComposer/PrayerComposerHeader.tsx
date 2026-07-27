@@ -9,7 +9,7 @@ const PrayerComposerHeader = ({ onClose }: PrayerComposerHeaderProps) => {
 
   return (
     <div className="sticky top-0 z-20 backdrop-blur-xl bg-background-light/85 dark:bg-card-dark/90 border-b border-black/[0.04] dark:border-white/[0.08] px-5 py-3.5 flex items-center justify-between">
-      <h2 className="text-[18px] font-bold tracking-[-0.015em] text-gray-900 dark:text-white">
+      <h2 className="text-[18px] font-bold tracking-[-0.015em] text-ink-strong">
         {t('prayerComposerTitle')}
       </h2>
       <button

@@ -18,7 +18,7 @@ const DeleteConfirmModal = ({ isAdminDelete = false, isDeleting, onConfirm, onCa
               <span className="material-icons-outlined text-white text-xl">warning</span>
             </div>
           </div>
-          <h3 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-[-0.015em]">기도 요청 삭제</h3>
+          <h3 className="text-[18px] font-bold text-ink-strong tracking-[-0.015em]">기도 요청 삭제</h3>
         </div>
         <p className="text-sm text-gray-600 dark:text-gray-400 leading-[1.7] mb-6">
           {isAdminDelete && (
@@ -34,7 +34,7 @@ const DeleteConfirmModal = ({ isAdminDelete = false, isDeleting, onConfirm, onCa
           <button
             onClick={onCancel}
             disabled={isDeleting}
-            className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-colors disabled:opacity-50"
+            className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong rounded-2xl font-semibold text-sm hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-colors disabled:opacity-50"
           >
             취소
           </button>

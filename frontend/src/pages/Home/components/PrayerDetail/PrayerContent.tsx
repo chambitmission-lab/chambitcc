@@ -43,7 +43,7 @@ const PrayerContent = ({ title, content }: PrayerContentProps) => {
     <div className="mb-7">
       {displayTitle && (
         <h3
-          className="text-[22px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-[1.3] mb-8"
+          className="text-[22px] font-bold text-ink-strong tracking-[-0.015em] leading-[1.3] mb-8"
           style={transitionStyles}
         >
           {displayTitle}

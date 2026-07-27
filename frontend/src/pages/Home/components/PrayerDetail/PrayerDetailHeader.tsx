@@ -19,7 +19,7 @@ const PrayerDetailHeader = ({ canDelete, onClose, onDeleteClick }: PrayerDetailH
         >
           <span className="material-icons-outlined text-[20px] text-gray-600 dark:text-gray-400">arrow_back</span>
         </button>
-        <h2 className="text-[15px] font-semibold text-gray-900 dark:text-white tracking-[-0.01em]">기도 요청 상세</h2>
+        <h2 className="text-[15px] font-semibold text-ink-strong tracking-[-0.01em]">기도 요청 상세</h2>
       </div>
       <div className="flex items-center gap-1">
         {canDelete && (

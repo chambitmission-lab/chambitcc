@@ -25,6 +25,14 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     } else {
       document.documentElement.classList.remove('dark')
     }
+
+    // 상태바(theme-color)를 앱 테마에 맞춤 — index.html의 메타는 OS 설정
+    // (prefers-color-scheme) 기준이라, OS 라이트+앱 다크 조합에서 상태바만
+    // 흰색으로 어긋난다. 두 메타 모두 앱 테마 색으로 덮어쓴다.
+    const themeColor = theme === 'dark' ? '#131313' : '#ffffff'
+    document.querySelectorAll('meta[name="theme-color"]').forEach(meta => {
+      meta.setAttribute('content', themeColor)
+    })
   }, [theme])
 
   const toggleTheme = useCallback(() => {

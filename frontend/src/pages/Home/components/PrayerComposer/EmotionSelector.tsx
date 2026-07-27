@@ -67,7 +67,7 @@ const EmotionSelector = ({ selected, onChange, disabled }: EmotionSelectorProps)
           )
         })}
       </div>
-      <p className="mt-2 text-[11px] text-gray-400 dark:text-gray-500">
+      <p className="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
         주간 기도 스토리에서 마음의 변화를 보여드려요
       </p>
     </div>

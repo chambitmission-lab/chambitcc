@@ -32,8 +32,8 @@ const RepliesSection = ({
 }: RepliesSectionProps) => {
   return (
     <div className="mt-8">
-      <h3 className="text-[15px] font-semibold text-gray-900 dark:text-white mb-5">
-        댓글 {replyCount > 0 && <span className="text-gray-400 dark:text-gray-500 font-normal">({replyCount})</span>}
+      <h3 className="text-[15px] font-semibold text-ink-strong mb-5">
+        댓글 {replyCount > 0 && <span className="text-gray-500 dark:text-gray-400 font-normal">({replyCount})</span>}
       </h3>
 
       {/* Reply Composer */}

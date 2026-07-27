@@ -50,7 +50,7 @@ const UserInfoSection = ({
             className={`text-[15px] tracking-[-0.015em] ${
               isAnonymous
                 ? 'font-medium text-gray-500 dark:text-gray-400'
-                : 'font-bold text-gray-900 dark:text-white'
+                : 'font-bold text-ink-strong'
             }`}
           >
             {isAnonymous ? t('anonymousDisplayName') : displayName}
