@@ -1,2 +1,6 @@
+# 개발/테스트 기간 색인 차단 중.
+# 주의: 여기에 Disallow: / 를 넣으면 안 된다.
+# 크롤을 막으면 봇이 index.html 의 noindex 메타와 X-Robots-Tag 헤더를 읽지 못해
+# 이미 등록된 검색 결과가 오히려 그대로 남는다. 크롤은 열어두고 noindex 로 빼내야 한다.
 User-agent: *
 Allow: /
