@@ -86,38 +86,83 @@ const SealedRow = ({ capsule }: { capsule: CapsuleSummary }) => {
   )
 }
 
+/** 인장에 새길 글자 — 보낸 이의 첫 글자 (나에게 보낸 편지는 '나') */
+const sealChar = (c: CapsuleSummary): string => {
+  if (c.role === 'self') return '나'
+  return (c.sender_name || '?').trim().charAt(0) || '?'
+}
+
+/** 봉인부터 도착까지 건너온 시간 — 이 편지의 감정선 */
+const journeyLabel = (c: CapsuleSummary): string | null => {
+  const sealed = new Date(c.sealed_at).getTime()
+  const opened = new Date(c.open_at).getTime()
+  if (Number.isNaN(sealed) || Number.isNaN(opened)) return null
+  const days = Math.round((opened - sealed) / 86_400_000)
+  if (days >= 365) return `${Math.floor(days / 365)}년을 건너온 마음`
+  if (days >= 28) return `${Math.round(days / 30)}개월을 건너온 마음`
+  if (days >= 1) return `${days}일을 건너온 마음`
+  return '오늘 봉인해 오늘 도착한 마음'
+}
+
+/** 소인(우표)에 찍히는 봉인 날짜 */
+const postmarkParts = (iso: string): { year: string; day: string } | null => {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return { year: String(d.getFullYear()), day: `${mm}.${dd}` }
+}
+
 const ArrivedRow = ({ capsule }: { capsule: CapsuleSummary }) => {
   const navigate = useNavigate()
   const unopened = !capsule.opened_at
+  const journey = journeyLabel(capsule)
+  const stamp = postmarkParts(capsule.sealed_at)
+  const photos = capsule.photo_count ?? 0
+
   return (
-    <button
-      type="button"
-      onClick={() => navigate(`/capsule/${capsule.id}`)}
-      className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
-    >
-      <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--amber-soft)] flex items-center justify-center text-[19px]">
-        {unopened ? '📬' : '📖'}
-      </span>
-      <span className="flex-1 min-w-0">
-        <span className="block text-[14px] font-bold text-gray-900 dark:text-white truncate">
-          {capsule.title || counterpartLabel(capsule)}
+    <article className={`capsule-mail ${unopened ? 'capsule-mail--new' : ''}`}>
+      <span className="capsule-mail__flap" aria-hidden />
+      <button
+        type="button"
+        onClick={() => navigate(`/capsule/${capsule.id}`)}
+        className="capsule-mail__hit"
+      >
+        <span className="capsule-mail__seal" aria-hidden>
+          {sealChar(capsule)}
         </span>
-        <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5 truncate">
-          {counterpartLabel(capsule)} · {formatKoreanDate(capsule.sealed_at)} 봉인
-          {capsule.has_audio ? ' · 🎙️' : ''}
-          {(capsule.photo_count ?? 0) > 0 ? ' · 📷' : ''}
+
+        <span className="flex-1 min-w-0">
+          <span className="capsule-mail__title">
+            {capsule.title || counterpartLabel(capsule)}
+          </span>
+          <span className="capsule-mail__from">
+            {/* 제목이 없으면 제목 자리에 이미 쓰인 문구라 겹치지 않게 뺀다 */}
+            {capsule.title ? `${counterpartLabel(capsule)}${journey ? ' · ' : ''}` : ''}
+            {journey && <span className="capsule-mail__journey">{journey}</span>}
+          </span>
+          <span className="capsule-mail__chips">
+            {capsule.has_audio && <i className="capsule-mail__chip">🎙️ 음성편지</i>}
+            {photos > 0 && <i className="capsule-mail__chip">📷 사진 {photos}장</i>}
+            {!unopened && <i className="capsule-mail__chip">읽음</i>}
+          </span>
         </span>
-      </span>
-      {unopened ? (
-        <span className="shrink-0 px-2.5 py-1 rounded-full bg-brand text-white text-[12px] font-extrabold animate-pulse">
-          열어보기
-        </span>
-      ) : (
-        <span className="shrink-0 text-[12px] font-bold text-gray-400 dark:text-white/40">
-          읽음
-        </span>
-      )}
-    </button>
+
+        {unopened ? (
+          <span className="capsule-mail__cta">열어보기</span>
+        ) : (
+          stamp && (
+            <span
+              className="capsule-mail__postmark"
+              aria-label={`${formatKoreanDate(capsule.sealed_at)} 봉인`}
+            >
+              <b>{stamp.year}</b>
+              <i>{stamp.day}</i>
+            </span>
+          )
+        )}
+      </button>
+    </article>
   )
 }
 
@@ -134,6 +179,7 @@ const CapsuleList = () => {
 
   const sealed = data?.sealed ?? []
   const arrived = data?.arrived ?? []
+  const unreadCount = arrived.filter((c) => !c.opened_at).length
   const isEmpty = !isLoading && sealed.length === 0 && arrived.length === 0
 
   return (
@@ -211,13 +257,25 @@ const CapsuleList = () => {
           </div>
         )}
 
-        {/* 도착한 캡슐 */}
+        {/* 도착한 캡슐 — 우편함 */}
         {arrived.length > 0 && (
-          <section className="px-4 pt-6">
-            <p className="px-1 mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
-              도착한 캡슐
-            </p>
-            <div className="feed-card rounded-2xl overflow-hidden divide-y divide-[var(--card-border)]">
+          <section className="px-4 pt-7">
+            <div className="px-1 mb-2.5 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
+                  도착한 캡슐 {arrived.length}통
+                </p>
+                <p className="text-[12.5px] mt-1 leading-[1.6] text-[var(--text-body)] break-keep">
+                  지난 날 봉인한 마음이 여기 도착해 있어요
+                </p>
+              </div>
+              {unreadCount > 0 && (
+                <span className="shrink-0 mt-0.5 px-2.5 py-1 rounded-full bg-[var(--brand-soft-strong)] text-brand text-[11px] font-extrabold">
+                  {unreadCount}통 안 읽음
+                </span>
+              )}
+            </div>
+            <div className="space-y-2.5">
               {arrived.map((c) => (
                 <ArrivedRow key={c.id} capsule={c} />
               ))}

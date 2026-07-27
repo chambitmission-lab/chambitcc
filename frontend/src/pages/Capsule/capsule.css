@@ -251,6 +251,232 @@
   font-weight: 400;
 }
 
+/* ── 도착한 캡슐 = 우편함에 놓인 편지 ─────────────────────────────
+   납작한 목록 행 대신 봉투 한 통씩. 개봉 전엔 인장이 살아있고,
+   읽은 편지엔 인장이 갈라진 자국과 봉인일 소인(우표)이 남는다. */
+
+.capsule-mail {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.capsule-mail:active {
+  transform: scale(0.985);
+}
+
+/* 봉투 덮개가 접힌 자국 — 카드 상단의 아주 옅은 삼각형 */
+.capsule-mail__flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: linear-gradient(180deg, var(--card-border), transparent);
+  pointer-events: none;
+}
+
+/* 편지지 결 — 폴라로이드 그레인과 같은 질감, 훨씬 옅게 */
+.capsule-mail::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity: 0.05;
+}
+
+/* 아직 열지 않은 편지 — 브랜드 링으로 살짝 떠 있게 */
+.capsule-mail--new {
+  border-color: var(--brand-soft-strong);
+  box-shadow:
+    inset 0 0 0 1px var(--brand-soft),
+    0 10px 28px -16px var(--brand-glow);
+}
+
+.capsule-mail__hit {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 15px 15px 14px;
+  text-align: left;
+}
+
+/* 밀랍 인장 — 보낸 이의 첫 글자를 새긴다 */
+.capsule-mail__seal {
+  position: relative;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: var(--surface-container-high);
+  color: var(--text-muted);
+  box-shadow: inset 0 0 0 1px var(--card-border);
+}
+
+/* 개봉된 인장 — 갈라진 자국 */
+.capsule-mail__seal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(
+    102deg,
+    transparent calc(50% - 0.6px),
+    var(--card-border) calc(50% - 0.6px),
+    var(--card-border) calc(50% + 0.6px),
+    transparent calc(50% + 0.6px)
+  );
+}
+
+.capsule-mail--new .capsule-mail__seal {
+  background: var(--brand-gradient, var(--brand));
+  color: var(--on-brand);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+    0 7px 16px -7px var(--brand-glow);
+}
+
+.capsule-mail--new .capsule-mail__seal::after {
+  display: none;
+}
+
+.capsule-mail__title {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.capsule-mail__from {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 건너온 시간 — 이 편지의 감정선 */
+.capsule-mail__journey {
+  color: var(--brand-muted);
+}
+
+.capsule-mail__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 7px;
+}
+
+.capsule-mail__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* 봉인일 소인 — 필름 날짜 각인과 같은 monospace */
+.capsule-mail__postmark {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 44px;
+  border-radius: 9px;
+  border: 1px dashed var(--card-border);
+  font-family: 'Courier New', monospace;
+  color: var(--text-muted);
+  transform: rotate(-6deg);
+  opacity: 0.9;
+}
+
+.capsule-mail__postmark b {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  opacity: 0.7;
+}
+
+.capsule-mail__postmark i {
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* 아직 안 읽은 편지의 행동 유도 */
+.capsule-mail__cta {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 7px 16px -8px var(--brand-glow);
+}
+
+.capsule-mail__cta::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: capsule-mail-blink 1.8s ease-in-out infinite;
+}
+
+@keyframes capsule-mail-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-mail__cta::before {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .capsule-polaroid__img,
   .capsule-polaroid__img-wrap::after,
@@ -275,6 +501,7 @@
   position: absolute;
   inset: 0;
   opacity: 0;
+  overflow: hidden;
   transition: opacity 1.4s ease;
 }
 
@@ -282,10 +509,21 @@
   opacity: 1;
 }
 
+/* 흐린 배경 — 사진 비율이 화면과 달라 생기는 여백을 사진 자신으로 채운다.
+   (예전엔 object-fit: cover라 세로 모바일에서 사진이 심하게 잘렸다) */
+.capsule-show__bg {
+  position: absolute;
+  inset: -8%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(30px) brightness(0.45) saturate(1.1);
+}
+
 .capsule-show__img {
+  position: relative;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   will-change: transform;
 }
 
@@ -300,30 +538,31 @@
   animation: capsule-kb-c 16s ease-out forwards;
 }
 
+/* contain이라 크게 키우면 사진 끝이 잘린다 — 아주 얕은 줌·팬으로만 */
 @keyframes capsule-kb-a {
   from {
-    transform: scale(1.02) translate(0, 0);
+    transform: scale(1) translate(0, 0);
   }
   to {
-    transform: scale(1.14) translate(-1.8%, -1.4%);
+    transform: scale(1.05) translate(-0.8%, -0.6%);
   }
 }
 
 @keyframes capsule-kb-b {
   from {
-    transform: scale(1.16) translate(1.6%, 1.2%);
+    transform: scale(1.05) translate(0.7%, 0.5%);
   }
   to {
-    transform: scale(1.03) translate(0, 0);
+    transform: scale(1) translate(0, 0);
   }
 }
 
 @keyframes capsule-kb-c {
   from {
-    transform: scale(1.02) translate(0, 1.2%);
+    transform: scale(1) translate(0, 0.5%);
   }
   to {
-    transform: scale(1.15) translate(1.5%, -1.2%);
+    transform: scale(1.05) translate(0.7%, -0.6%);
   }
 }
 

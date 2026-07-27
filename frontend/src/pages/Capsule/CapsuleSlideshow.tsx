@@ -72,6 +72,11 @@ const CapsuleSlideshow = ({ photos, audioUrl, audioDuration, senderLine, onClose
           key={photo.url}
           className={`capsule-show__slide ${i === index ? 'capsule-show__slide--active' : ''}`}
         >
+          <div
+            className="capsule-show__bg"
+            style={{ backgroundImage: `url(${photo.url})` }}
+            aria-hidden
+          />
           <img
             src={photo.url}
             alt=""
