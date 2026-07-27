@@ -52,7 +52,7 @@ const BibleCommentaryItem = ({
       </header>
 
       {commentary.title && (
-        <h4 className="mt-0 mb-1.5 text-[16px] font-bold tracking-[-0.015em] leading-[1.35] text-gray-900 dark:text-white">
+        <h4 className="mt-0 mb-1.5 text-[16px] font-bold tracking-[-0.015em] leading-[1.35] text-ink-strong">
           {commentary.title}
         </h4>
       )}

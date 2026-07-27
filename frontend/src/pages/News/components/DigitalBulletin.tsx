@@ -217,7 +217,7 @@ const DigitalBulletin = () => {
             <ItemCard key={idx}>
               <RemoveItemButton isAdmin={isAdminUser} onClick={() => removeService(idx)} />
               <div className="flex items-baseline justify-between gap-2 mb-1">
-                <p className="text-[13.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
+                <p className="text-[13.5px] font-bold text-ink-strong tracking-[-0.01em]">
                   <EditableField
                     value={service.name}
                     isAdmin={isAdminUser}
@@ -288,7 +288,7 @@ const DigitalBulletin = () => {
             <p className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-brand mb-1.5">
               ✨ 설교
             </p>
-            <p className="text-[14px] font-bold text-gray-900 dark:text-white leading-[1.4] tracking-[-0.01em] mb-0.5 whitespace-pre-line">
+            <p className="text-[14px] font-bold text-ink-strong leading-[1.4] tracking-[-0.01em] mb-0.5 whitespace-pre-line">
               <EditableField
                 value={data.worship.sermon.title}
                 isAdmin={isAdminUser}
@@ -324,7 +324,7 @@ const DigitalBulletin = () => {
           {data.announcements.map((item, idx) => (
             <ItemCard key={idx}>
               <RemoveItemButton isAdmin={isAdminUser} onClick={() => removeAnnouncement(idx)} />
-              <p className="text-[13.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em] mb-1.5">
+              <p className="text-[13.5px] font-bold text-ink-strong tracking-[-0.01em] mb-1.5">
                 <EditableField
                   value={item.title}
                   isAdmin={isAdminUser}
@@ -366,7 +366,7 @@ const DigitalBulletin = () => {
                 <div className="shrink-0 w-9 h-9 rounded-xl bg-brand flex items-center justify-center text-white text-[14px] font-bold shadow-[0_4px_12px_-4px_var(--brand-glow)]">
                   {(group.name || '?').slice(0, 1)}
                 </div>
-                <p className="text-[13.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em] truncate min-w-0">
+                <p className="text-[13.5px] font-bold text-ink-strong tracking-[-0.01em] truncate min-w-0">
                   <EditableField
                     value={group.name}
                     isAdmin={isAdminUser}
@@ -452,7 +452,7 @@ const DigitalBulletin = () => {
                   </EditableField>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em] mb-1">
+                  <p className="text-[13.5px] font-bold text-ink-strong tracking-[-0.01em] mb-1">
                     <EditableField
                       value={item.event}
                       isAdmin={isAdminUser}
@@ -542,7 +542,7 @@ const SectionCard = ({ sectionKey, expanded, onToggle, badge, children }: Sectio
             {meta.emoji}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
+            <p className="text-[15px] font-bold text-ink-strong tracking-[-0.01em]">
               {meta.title}
             </p>
             {badge && (

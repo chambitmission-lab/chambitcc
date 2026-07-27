@@ -134,11 +134,11 @@ const SituationBible = () => {
               </button>
             )}
             <div>
-              <h1 className="text-[17px] font-bold text-gray-900 dark:text-gray-50">
+              <h1 className="text-[17px] font-bold text-ink-strong">
                 {selected ? selected.name : '상황별 성구'}
               </h1>
               {!selected && (
-                <p className="text-[12px] text-gray-400 dark:text-gray-500 mt-0.5">
+                <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
                   지금 내 마음에 맞는 말씀을 찾아보세요
                 </p>
               )}

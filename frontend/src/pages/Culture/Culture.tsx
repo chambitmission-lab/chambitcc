@@ -40,7 +40,7 @@ const STATUS_BADGE: Record<CultureApplicationStatus, string> = {
 }
 
 const inputClass =
-  'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
+  'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
 const labelClass =
   'text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block'
@@ -252,7 +252,7 @@ const Culture = () => {
           <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
             CULTURE CLASS
           </p>
-          <h1 className="text-gray-900 dark:text-white text-[26px] font-bold leading-none tracking-[-0.02em]">
+          <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
             문화교실
           </h1>
           <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
@@ -360,7 +360,7 @@ const Culture = () => {
                         check
                       </span>
                     </div>
-                    <h2 className="text-[16px] font-bold text-gray-900 dark:text-white">
+                    <h2 className="text-[16px] font-bold text-ink-strong">
                       수강신청이 접수되었습니다
                     </h2>
                     <p className="text-[13px] text-gray-500 dark:text-white/55 mt-1.5">

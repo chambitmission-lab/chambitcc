@@ -81,7 +81,7 @@ const Growth = () => {
             <span className="material-icons-outlined">arrow_back</span>
             <span className="text-sm font-semibold">프로필</span>
           </button>
-          <h1 className="text-base font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
+          <h1 className="text-base font-bold text-ink-strong tracking-[-0.015em]">
             신앙 여정
           </h1>
           <span className="w-16" />

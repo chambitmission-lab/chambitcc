@@ -57,7 +57,7 @@ const BookQuickPicker = ({ books, currentBookNumber, onPick, onClose }: BookQuic
             <span className="material-icons-round text-[22px]">auto_stories</span>
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+            <h3 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
               {t.title}
             </h3>
             <p className="text-gray-500 dark:text-white/45 text-[12px]">{t.subtitle}</p>

@@ -152,7 +152,7 @@ const RoomHome = () => {
                   ? '여정 마침 🎉'
                   : `${room.current_day} / ${room.total_days}일차 진행 중`}
             </div>
-            <h2 className="text-[19px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white mt-0.5 break-keep">
+            <h2 className="text-[19px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong mt-0.5 break-keep">
               {room.title}
             </h2>
             {room.description && (
@@ -259,7 +259,7 @@ const RoomHome = () => {
             <p className="text-[11px] font-bold text-gray-400 dark:text-white/45">
               {day}일차 본문{dayInfo?.date ? ` · ${dayInfo.date}` : ''}
             </p>
-            <p className="text-[15px] font-bold text-gray-900 dark:text-white mt-0.5 truncate">
+            <p className="text-[15px] font-bold text-ink-strong mt-0.5 truncate">
               📖 {dayInfo?.title ?? '본문 없음'}
             </p>
           </div>
@@ -404,7 +404,7 @@ const PostCard = ({ post, roomAdmin }: { post: RoomPost; roomAdmin: boolean }) =
         <Avatar name={post.name} avatarUrl={post.avatar_url} size={34} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[13.5px] font-bold text-gray-900 dark:text-white truncate">
+            <span className="text-[13.5px] font-bold text-ink-strong truncate">
               {post.name}
             </span>
             {post.post_type === 'prayer' && (
@@ -612,7 +612,7 @@ const Shell = ({
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
-        <h1 className="flex-1 min-w-0 text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white truncate">
+        <h1 className="flex-1 min-w-0 text-base font-bold tracking-[-0.015em] text-ink-strong truncate">
           {title}
         </h1>
         {actions}

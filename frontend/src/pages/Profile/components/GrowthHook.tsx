@@ -38,7 +38,7 @@ const GrowthHook = () => {
             <div className="text-[11px] font-semibold text-brand mb-1">
               나의 신앙 여정
             </div>
-            <div className="text-[16px] font-bold text-gray-900 dark:text-white leading-snug tracking-[-0.015em]">
+            <div className="text-[16px] font-bold text-ink-strong leading-snug tracking-[-0.015em]">
               {teaser}
             </div>
             <div className="text-[12px] text-gray-500 dark:text-white/55 mt-1">

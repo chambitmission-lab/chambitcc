@@ -117,7 +117,7 @@ const BulletinManagement = () => {
             </svg>
             <span className="text-sm font-semibold">뒤로</span>
           </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white">
+          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">
             주보 관리
           </h1>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
@@ -151,7 +151,7 @@ const BulletinManagement = () => {
                   placeholder="제목 · 설명 검색"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
                 />
                 {searchTerm && (
                   <button
@@ -202,7 +202,7 @@ const BulletinManagement = () => {
         {/* 결과 카운트 */}
         <div className="px-5 pb-2 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
           <span>
-            검색 결과 <span className="font-bold text-gray-900 dark:text-white">{filtered.length}</span>건
+            검색 결과 <span className="font-bold text-ink-strong">{filtered.length}</span>건
           </span>
           {searchTerm && (
             <span className="text-purple-600 dark:text-purple-300 truncate">"{searchTerm}"</span>
@@ -321,7 +321,7 @@ const BulletinRow = ({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[14.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em] truncate">
+            <span className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
               {bulletin.title}
             </span>
             {isCurrent && (

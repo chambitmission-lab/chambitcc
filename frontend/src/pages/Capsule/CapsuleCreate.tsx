@@ -370,7 +370,7 @@ const CapsuleCreate = () => {
         {/* 사진 — 폴라로이드처럼 편지에 끼워 보낸다 */}
         <section className="px-4 pt-4">
           <div className="p-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
-            <p className="text-[13.5px] font-bold text-gray-900 dark:text-white">
+            <p className="text-[13.5px] font-bold text-ink-strong">
               📷 사진 끼우기{' '}
               <span className="text-gray-400 dark:text-white/40 font-normal">
                 (선택 · 최대 {MAX_PHOTOS}장)
@@ -441,7 +441,7 @@ const CapsuleCreate = () => {
           <div className="p-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[13.5px] font-bold text-gray-900 dark:text-white">
+                <p className="text-[13.5px] font-bold text-ink-strong">
                   🎙️ 목소리 남기기 <span className="text-gray-400 dark:text-white/40 font-normal">(선택 · 최대 3분)</span>
                 </p>
                 <p className="text-[11.5px] text-gray-400 dark:text-white/40 mt-0.5">
@@ -467,7 +467,7 @@ const CapsuleCreate = () => {
             {(recordingState === 'recording' || recordingState === 'paused') && (
               <div className="mt-3 flex items-center gap-3">
                 <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse shrink-0" />
-                <span className="text-[15px] font-extrabold tabular-nums text-gray-900 dark:text-white">
+                <span className="text-[15px] font-extrabold tabular-nums text-ink-strong">
                   {formatSeconds(recordingTime)}
                   <span className="text-gray-400 dark:text-white/40 font-normal"> / {formatSeconds(MAX_RECORD_SECONDS)}</span>
                 </span>
@@ -539,7 +539,7 @@ const CapsuleCreate = () => {
           )}
           {openDate && (
             <p className="px-1 mt-2.5 text-[12.5px] text-gray-500 dark:text-white/55">
-              📅 <strong className="text-gray-900 dark:text-white">{formatKoreanDate(openDate)}</strong> 아침 7시에 열려요
+              📅 <strong className="text-ink-strong">{formatKoreanDate(openDate)}</strong> 아침 7시에 열려요
             </p>
           )}
         </section>

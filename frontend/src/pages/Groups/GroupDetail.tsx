@@ -149,7 +149,7 @@ const GroupDetail = () => {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-[20px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] truncate">
+              <h1 className="text-[20px] font-bold text-ink-strong tracking-[-0.015em] truncate">
                 {group.name}
               </h1>
               {group.is_admin && (
@@ -203,7 +203,7 @@ const GroupDetail = () => {
                 오늘의 성구 · {group.theme.name}
               </p>
             </div>
-            <p className="text-[14px] text-gray-800 dark:text-white/90 leading-[1.7] break-keep">
+            <p className="text-[14px] text-ink-strong/90 leading-[1.7] break-keep">
               {group.theme_verse.text}
             </p>
             <div className="flex items-center justify-between mt-2.5">
@@ -234,7 +234,7 @@ const GroupDetail = () => {
 
           {total === 0 ? (
             <div className="py-3 text-center">
-              <p className="text-[13.5px] font-bold text-gray-800 dark:text-white/85 mb-1">
+              <p className="text-[13.5px] font-bold text-ink-strong/85 mb-1">
                 아직 올라온 기도제목이 없어요
               </p>
               <p className="text-[12px] text-gray-500 dark:text-white/50 leading-[1.5]">
@@ -244,7 +244,7 @@ const GroupDetail = () => {
           ) : (
             <>
               <div className="flex items-baseline gap-1.5 mb-2">
-                <span className="text-[22px] font-bold text-gray-900 dark:text-white tabular-nums">
+                <span className="text-[22px] font-bold text-ink-strong tabular-nums">
                   {answered}
                 </span>
                 <span className="text-[13px] text-gray-500 dark:text-white/55">
@@ -288,7 +288,7 @@ const GroupDetail = () => {
         {group.is_member && (
           <div className="px-4 pb-4">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-bold text-gray-900 dark:text-white">📅 다가오는 모임</h2>
+              <h2 className="text-sm font-bold text-ink-strong">📅 다가오는 모임</h2>
               {group.is_admin && (
                 <button
                   type="button"
@@ -324,7 +324,7 @@ const GroupDetail = () => {
                       to={`/events/${m.id}`}
                       className="block p-3 bg-white/80 dark:bg-card-dark rounded-xl border border-gray-200/70 dark:border-white/[0.08] hover:border-[var(--brand-soft-strong)] transition-colors"
                     >
-                      <div className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                      <div className="font-semibold text-sm text-ink-strong truncate">
                         {m.title}
                       </div>
                       <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
@@ -351,7 +351,7 @@ const GroupDetail = () => {
         {group.is_admin && group.invite_code && (
           <div className="mx-4 mb-4 p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] rounded-2xl text-center">
             <div className="text-xs text-gray-500 dark:text-white/55 mb-1">{t('inviteCode')}</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white tracking-widest font-mono mb-1.5 select-all">
+            <div className="text-2xl font-bold text-ink-strong tracking-widest font-mono mb-1.5 select-all">
               {group.invite_code}
             </div>
             <div className="text-[11px] text-gray-500 dark:text-white/50 mb-3">
@@ -361,7 +361,7 @@ const GroupDetail = () => {
               <button
                 type="button"
                 onClick={handleCopy}
-                className="flex-1 h-11 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-800 dark:text-white text-[13px] font-bold hover:bg-gray-200 dark:hover:bg-white/[0.1] transition-colors"
+                className="flex-1 h-11 rounded-full bg-gray-100 dark:bg-white/[0.06] text-ink-strong text-[13px] font-bold hover:bg-gray-200 dark:hover:bg-white/[0.1] transition-colors"
               >
                 {copied ? `✓ ${t('inviteCodeCopied')}` : t('copyInviteCode')}
               </button>

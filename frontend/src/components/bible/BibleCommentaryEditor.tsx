@@ -207,7 +207,7 @@ const BibleCommentaryEditor = ({
   }
 
   const inputClass =
-    'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
+    'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
   return (
     <div
@@ -230,7 +230,7 @@ const BibleCommentaryEditor = ({
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
               Admin
             </p>
-            <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
               {isEditing ? '해석 수정' : '해석 추가'}
             </h2>
           </div>
@@ -273,7 +273,7 @@ const BibleCommentaryEditor = ({
                         <span className={`material-icons-round text-[18px] ${active ? 'text-brand' : 'text-gray-400 dark:text-white/40'}`}>
                           {opt.icon}
                         </span>
-                        <span className={`text-[13.5px] font-bold ${active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-white/65'}`}>
+                        <span className={`text-[13.5px] font-bold ${active ? 'text-ink-strong' : 'text-gray-600 dark:text-white/65'}`}>
                           {opt.label}
                         </span>
                       </span>
@@ -424,7 +424,7 @@ const BibleCommentaryEditor = ({
                   rows={12}
                   required
                   placeholder={`# 제목\n\n**핵심 단어**, *원어 분석*\n\n- 요점 1\n- 요점 2\n\n> 적용 묵상`}
-                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-y min-h-[200px] font-mono text-[13.5px] leading-[1.6]"
+                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-y min-h-[200px] font-mono text-[13.5px] leading-[1.6]"
                 />
               )}
               <p className="mt-1.5 text-[11px] text-gray-400 dark:text-white/35">

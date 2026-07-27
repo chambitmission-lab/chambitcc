@@ -50,7 +50,7 @@ const NewFamilyPostCard = ({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <span className="text-[14.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em] truncate">
+            <span className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
               {post.member_name}
             </span>
             {post.group_name && (

@@ -102,7 +102,7 @@ const DayCard = ({
           {day.title && (
             <p
               className={`text-[14px] font-bold tracking-[-0.01em] truncate mt-0.5 ${
-                isFuture ? 'text-gray-600 dark:text-white/65' : 'text-gray-900 dark:text-white'
+                isFuture ? 'text-gray-600 dark:text-white/65' : 'text-ink-strong'
               }`}
             >
               {day.title}

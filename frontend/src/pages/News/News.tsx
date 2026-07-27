@@ -94,7 +94,7 @@ const News = () => {
           <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
             NEWS
           </p>
-          <h1 className="text-gray-900 dark:text-white text-[26px] font-bold leading-none tracking-[-0.02em]">
+          <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
             교회소식
           </h1>
           <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
@@ -312,7 +312,7 @@ const CompactCard = ({
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-[14.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em] truncate">
+          <p className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
             {bulletin.title}
           </p>
           <p className="text-[11.5px] text-gray-500 dark:text-white/55 truncate mt-0.5">
@@ -361,7 +361,7 @@ const EmptyState = () => (
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
       <span className="text-[28px]">📰</span>
     </div>
-    <p className="text-gray-900 dark:text-white text-[14.5px] font-bold mb-1">
+    <p className="text-ink-strong text-[14.5px] font-bold mb-1">
       아직 등록된 주보가 없어요
     </p>
     <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">

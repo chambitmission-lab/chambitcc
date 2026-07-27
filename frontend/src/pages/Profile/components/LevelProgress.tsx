@@ -34,7 +34,7 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
         {/* 헤더 */}
         <div className="relative z-10 flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
+            <h3 className="text-[14px] font-bold text-ink-strong tracking-[-0.01em]">
               {t('levelTitle')}
             </h3>
             <p className="text-[12px] text-gray-500 dark:text-white/55 mt-0.5">

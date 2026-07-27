@@ -365,7 +365,7 @@ const CapsuleList = () => {
         {isEmpty && (
           <div className="mx-4 mt-6 p-8 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] text-center">
             <span className="text-4xl block mb-3">💌</span>
-            <p className="text-[14.5px] font-bold text-gray-900 dark:text-white">
+            <p className="text-[14.5px] font-bold text-ink-strong">
               아직 봉인한 캡슐이 없어요
             </p>
             <p className="text-[12.5px] text-gray-500 dark:text-white/50 mt-1.5 leading-[1.6]">

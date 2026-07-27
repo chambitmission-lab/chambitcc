@@ -91,7 +91,7 @@ const CreateGroupMeetingModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-border-light dark:border-border-dark">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+          <h2 className="text-lg font-bold text-ink-strong">
             {t.create} · {groupName}
           </h2>
           <button
@@ -121,7 +121,7 @@ const CreateGroupMeetingModal = ({
               placeholder={t.enterTitle}
               required
               maxLength={200}
-              className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white"
+              className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-ink-strong"
             />
           </div>
 
@@ -135,7 +135,7 @@ const CreateGroupMeetingModal = ({
                 value={startDt}
                 onChange={(e) => setStartDt(e.target.value)}
                 required
-                className="w-full px-2 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white"
+                className="w-full px-2 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-ink-strong"
               />
             </div>
             <div>
@@ -148,7 +148,7 @@ const CreateGroupMeetingModal = ({
                 onChange={(e) => setEndDt(e.target.value)}
                 required
                 min={startDt || undefined}
-                className="w-full px-2 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white"
+                className="w-full px-2 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-ink-strong"
               />
             </div>
           </div>
@@ -163,7 +163,7 @@ const CreateGroupMeetingModal = ({
               onChange={(e) => setLocation(e.target.value)}
               placeholder={t.enterLocation}
               maxLength={200}
-              className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white"
+              className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-ink-strong"
             />
           </div>
 
@@ -176,7 +176,7 @@ const CreateGroupMeetingModal = ({
               value={rsvpDeadline}
               onChange={(e) => setRsvpDeadline(e.target.value)}
               max={startDt || undefined}
-              className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white"
+              className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-ink-strong"
             />
           </div>
 
@@ -189,7 +189,7 @@ const CreateGroupMeetingModal = ({
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t.enterDescription}
               rows={3}
-              className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-gray-900 dark:text-white resize-none"
+              className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-ink-strong resize-none"
             />
           </div>
 

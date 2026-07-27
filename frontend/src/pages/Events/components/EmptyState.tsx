@@ -24,7 +24,7 @@ const EmptyState = ({ category }: EmptyStateProps) => {
         <span className="text-3xl">{visual ? visual.emoji : '☕'}</span>
         <div className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
       </div>
-      <p className="text-gray-900 dark:text-white text-[15px] font-bold mb-1">
+      <p className="text-ink-strong text-[15px] font-bold mb-1">
         {label ? `아직 예정된 ${label} 일정이 없어요` : '이번 주는 조금 여유로운 한 주네요!'}
       </p>
       <p className="text-gray-500 dark:text-white/55 text-[13px] leading-[1.5]">

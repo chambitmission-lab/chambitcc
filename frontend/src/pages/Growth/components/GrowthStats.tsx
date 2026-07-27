@@ -14,7 +14,7 @@ const cardCls =
 const gradientNum = 'text-brand'
 
 const SectionTitle = ({ icon, children }: { icon: string; children: React.ReactNode }) => (
-  <h3 className="text-[14px] font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 tracking-[-0.01em]">
+  <h3 className="text-[14px] font-bold text-ink-strong mb-3 flex items-center gap-2 tracking-[-0.01em]">
     <span className="material-icons-outlined text-xl text-brand">
       {icon}
     </span>
@@ -74,7 +74,7 @@ const DeltaRow = ({ d }: { d: MonthDelta }) => {
       <span className="flex-1 text-[13px] font-semibold text-gray-800 dark:text-white/85">
         {d.label}
       </span>
-      <span className="text-[13px] font-bold text-gray-900 dark:text-white tabular-nums">
+      <span className="text-[13px] font-bold text-ink-strong tabular-nums">
         {fmt(d.this_month)}
       </span>
       <span

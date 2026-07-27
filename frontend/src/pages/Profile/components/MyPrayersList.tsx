@@ -50,7 +50,7 @@ const MyPrayersList = ({ prayers, onPrayerClick }: MyPrayersListProps) => {
 
           <div className="relative z-10">
             {prayer.title && (
-              <h4 className="text-[16px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-[1.3] mb-2">
+              <h4 className="text-[16px] font-bold text-ink-strong tracking-[-0.015em] leading-[1.3] mb-2">
                 {prayer.title}
               </h4>
             )}

@@ -99,7 +99,7 @@ export const Genealogy = () => {
           <p className="text-brand text-[11.5px] font-bold tracking-[0.14em] uppercase mb-1.5">
             Genealogy · 구속사 라인
           </p>
-          <h1 className="text-gray-900 dark:text-white text-[26px] md:text-[30px] font-bold leading-[1.2] tracking-[-0.02em]">
+          <h1 className="text-ink-strong text-[26px] md:text-[30px] font-bold leading-[1.2] tracking-[-0.02em]">
             믿음의 가계도
           </h1>
           <p className="mt-2 text-[14px] text-gray-600 dark:text-white/65 leading-[1.65]">
@@ -174,7 +174,7 @@ export const Genealogy = () => {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="인물·시대·역할 검색"
-                  className="w-full h-10 pl-10 pr-3 rounded-xl text-[13.5px] bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 focus:outline-none focus:border-brand transition-colors"
+                  className="w-full h-10 pl-10 pr-3 rounded-xl text-[13.5px] bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06] text-ink-strong placeholder-gray-400 dark:placeholder-white/40 focus:outline-none focus:border-brand transition-colors"
                 />
                 {query && (
                   <button

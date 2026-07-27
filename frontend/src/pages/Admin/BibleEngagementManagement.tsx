@@ -105,7 +105,7 @@ const BibleEngagementManagement = () => {
             <span className="material-icons-outlined">arrow_back</span>
             <span className="text-sm font-semibold">뒤로</span>
           </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white">말씀 반응 통계</h1>
+          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">말씀 반응 통계</h1>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
             ADMIN
           </span>
@@ -181,7 +181,7 @@ const BibleEngagementManagement = () => {
                           {index + 1}
                         </span>
                         <span className="flex-1 min-w-0">
-                          <span className="block text-[13px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
+                          <span className="block text-[13px] font-bold text-ink-strong tracking-[-0.01em]">
                             {item.book_name} {item.chapter}:{item.verse}
                           </span>
                           <span className="block text-[12px] text-gray-500 dark:text-white/55 leading-relaxed line-clamp-2 mt-0.5">
@@ -266,7 +266,7 @@ const SummaryCard = ({
         <span className="mr-1">{icon}</span>
         {label}
       </p>
-      <p className="mt-1 text-[20px] font-bold text-gray-900 dark:text-white tracking-[-0.02em]">
+      <p className="mt-1 text-[20px] font-bold text-ink-strong tracking-[-0.02em]">
         {data.total.toLocaleString()}
         <span className="text-[12px] font-semibold text-gray-400 dark:text-white/40 ml-0.5">건</span>
       </p>
@@ -282,7 +282,7 @@ const SectionCard = ({ title, children }: { title: string; children: React.React
     <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
       <div className="relative z-10 space-y-3">
-        <h2 className="text-[13.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">{title}</h2>
+        <h2 className="text-[13.5px] font-bold text-ink-strong tracking-[-0.01em]">{title}</h2>
         {children}
       </div>
     </div>

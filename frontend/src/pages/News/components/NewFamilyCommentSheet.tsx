@@ -70,7 +70,7 @@ const NewFamilyCommentSheet = ({ post, onClose }: NewFamilyCommentSheetProps) =>
           </div>
           <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.04] dark:border-white/[0.06]">
             <div className="min-w-0">
-              <p className="text-[16px] font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
+              <p className="text-[16px] font-bold text-ink-strong tracking-[-0.015em]">
                 환영 댓글
               </p>
               <p className="text-[12px] text-gray-500 dark:text-white/50 truncate">
@@ -146,7 +146,7 @@ const NewFamilyCommentSheet = ({ post, onClose }: NewFamilyCommentSheetProps) =>
                 className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-colors disabled:opacity-40 ${
                   showStickers
                     ? 'text-[var(--brand)] bg-[var(--brand-soft)]'
-                    : 'text-gray-400 dark:text-gray-500 hover:text-[var(--brand)]'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-[var(--brand)]'
                 }`}
               >
                 <span className="material-icons-round text-[21px]">mood</span>
@@ -157,7 +157,7 @@ const NewFamilyCommentSheet = ({ post, onClose }: NewFamilyCommentSheetProps) =>
                 placeholder="환영 인사를 남겨주세요"
                 rows={1}
                 disabled={isCreating}
-                className="flex-1 min-w-0 bg-transparent resize-none py-1.5 text-[14px] leading-[1.5] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none max-h-24 disabled:opacity-50"
+                className="flex-1 min-w-0 bg-transparent resize-none py-1.5 text-[14px] leading-[1.5] text-ink-strong placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none max-h-24 disabled:opacity-50"
               />
             </div>
 

@@ -187,7 +187,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-baseline gap-2">
-            <h2 className="text-base font-bold text-gray-900 dark:text-gray-50 tracking-tight">
+            <h2 className="text-base font-bold text-ink-strong tracking-tight">
               공지사항
             </h2>
             {unreadCount > 0 && (
@@ -196,7 +196,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
               </span>
             )}
             {total > 0 && (
-              <span className="text-xs text-gray-400 dark:text-gray-500">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 총 {total}건
               </span>
             )}
@@ -260,7 +260,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                     <div className="sticky top-0 z-10 px-5 pt-4 pb-2 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
                       <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 tracking-wider">
                         {GROUP_LABELS[group]}
-                        <span className="ml-1.5 font-normal text-gray-400 dark:text-gray-500">
+                        <span className="ml-1.5 font-normal text-gray-500 dark:text-gray-400">
                           {items.length}건
                         </span>
                       </span>
@@ -295,13 +295,13 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                     <h3
                                       className={`text-[15px] leading-snug truncate ${
                                         unread
-                                          ? 'font-semibold text-gray-900 dark:text-gray-50'
+                                          ? 'font-semibold text-ink-strong'
                                           : 'font-medium text-gray-700 dark:text-gray-300'
                                       }`}
                                     >
                                       {notification.title}
                                     </h3>
-                                    <span className="flex-shrink-0 text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+                                    <span className="flex-shrink-0 text-[11px] text-gray-500 dark:text-gray-400 tabular-nums">
                                       {formatDate(notification.created_at)}
                                     </span>
                                   </div>
@@ -390,7 +390,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                 {!hasNextPage && notifications.length > 0 && (
                   <div className="flex items-center gap-3 px-8 py-4">
                     <span className="flex-1 h-px bg-gray-200/70 dark:bg-gray-800" aria-hidden />
-                    <span className="text-[11px] text-gray-400 dark:text-gray-500 whitespace-nowrap">
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
                       모든 공지사항을 확인했습니다
                     </span>
                     <span className="flex-1 h-px bg-gray-200/70 dark:bg-gray-800" aria-hidden />

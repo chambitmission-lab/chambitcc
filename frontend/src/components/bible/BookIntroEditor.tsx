@@ -111,7 +111,7 @@ const BookIntroEditor = ({
   }
 
   const inputClass =
-    'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
+    'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
   return (
     <div
@@ -134,7 +134,7 @@ const BookIntroEditor = ({
             <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
               Admin · {bookNameKo}
             </p>
-            <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
               {isEditing ? '권 개관 수정' : '권 개관 추가'}
             </h2>
           </div>
@@ -263,7 +263,7 @@ const BookIntroEditor = ({
                   rows={12}
                   required
                   placeholder={`이 책이 무엇을 다루는지, 어떻게 흘러가는지 풀어주세요.\n\n**핵심 단어**는 굵게\n\n- 구조/흐름 요점\n\n> 한 줄 적용`}
-                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-y min-h-[180px] font-mono text-[13.5px] leading-[1.6]"
+                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-y min-h-[180px] font-mono text-[13.5px] leading-[1.6]"
                 />
               )}
             </div>
@@ -275,7 +275,7 @@ const BookIntroEditor = ({
                 onChange={(e) => setChristConnection(e.target.value)}
                 rows={4}
                 placeholder="이 책이 예수 그리스도와 복음을 어떻게 가리키는지 (구속사적 연결)"
-                className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-y min-h-[90px] font-mono text-[13.5px] leading-[1.6]"
+                className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-y min-h-[90px] font-mono text-[13.5px] leading-[1.6]"
               />
             </FieldGroup>
 

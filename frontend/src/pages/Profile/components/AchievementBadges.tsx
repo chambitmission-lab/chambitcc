@@ -106,7 +106,7 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
         <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
 
         <div className="relative z-10 flex items-center justify-between mb-4">
-          <h3 className="text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
+          <h3 className="text-[14px] font-bold text-ink-strong tracking-[-0.01em]">
             🏆 {t('achievementTitle')}{' '}
             <span className="font-semibold text-brand tabular-nums">
               {unlockedCount}/{achievements.length}

@@ -56,7 +56,7 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
       />
       {/* 헤더 — 달력 제어(오늘/이전/다음)를 우측 한곳에 모아 위계를 정리 */}
       <div className="flex items-center justify-between px-4 py-2.5">
-        <div className="text-gray-900 dark:text-white text-[15px] font-bold tracking-[-0.01em]">{monthLabel}</div>
+        <div className="text-ink-strong text-[15px] font-bold tracking-[-0.01em]">{monthLabel}</div>
         <div className="flex items-center gap-1">
           <button
             type="button"

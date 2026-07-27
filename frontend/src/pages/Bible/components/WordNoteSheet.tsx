@@ -152,7 +152,7 @@ const WordNoteSheet = ({
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">단어장</p>
-            <h3 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em] truncate">
+            <h3 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em] truncate">
               {verseReference}
             </h3>
           </div>
@@ -200,7 +200,7 @@ const WordNoteSheet = ({
               value={word}
               onChange={(e) => setWord(e.target.value.slice(0, 100))}
               placeholder="예: 긍휼"
-              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[16px] font-bold text-gray-900 dark:text-white placeholder:font-normal placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
+              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[16px] font-bold text-ink-strong placeholder:font-normal placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
             />
           </div>
 
@@ -217,7 +217,7 @@ const WordNoteSheet = ({
               onChange={(e) => setNote(e.target.value.slice(0, 2000))}
               rows={4}
               placeholder="찾아본 뜻이나 기억하고 싶은 내용을 적어보세요..."
-              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 resize-y min-h-[100px] focus:outline-none focus:border-brand transition-colors"
+              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 resize-y min-h-[100px] focus:outline-none focus:border-brand transition-colors"
             />
           </div>
         </div>

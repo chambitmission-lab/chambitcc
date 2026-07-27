@@ -38,7 +38,7 @@ const CapsuleInvite = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen flex flex-col">
         <div className="px-4 py-3 border-b border-border-light dark:border-border-dark">
-          <h1 className="text-base font-bold text-center text-gray-900 dark:text-white">
+          <h1 className="text-base font-bold text-center text-ink-strong">
             타임캡슐 초대장
           </h1>
         </div>
@@ -71,7 +71,7 @@ const CapsuleInvite = () => {
           ) : error || !preview ? (
             <div className="text-center">
               <span className="text-5xl block mb-4">😢</span>
-              <p className="text-[15px] font-bold text-gray-900 dark:text-white">
+              <p className="text-[15px] font-bold text-ink-strong">
                 초대장을 찾을 수 없어요
               </p>
               <p className="text-[13px] text-gray-500 dark:text-white/55 mt-1.5">

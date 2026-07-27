@@ -51,14 +51,14 @@ const ContentTabs = ({ activeTab, onTabChange, counts }: ContentTabsProps) => {
             />
             <span
               className={`text-[11px] font-semibold tracking-[-0.01em] ${
-                isActive ? 'text-gray-900 dark:text-white' : ''
+                isActive ? 'text-ink-strong' : ''
               }`}
             >
               {t(tab.labelKey)}
             </span>
             <span
               className={`text-[11px] font-semibold ${
-                isActive ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-white/40'
+                isActive ? 'text-ink-strong' : 'text-gray-400 dark:text-white/40'
               }`}
             >
               {tab.count}

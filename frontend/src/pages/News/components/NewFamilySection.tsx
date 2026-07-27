@@ -61,7 +61,7 @@ const NewFamilySection = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-3">
               <span className="text-[28px]">🔒</span>
             </div>
-            <p className="text-gray-900 dark:text-white text-[15px] font-bold mb-1.5">
+            <p className="text-ink-strong text-[15px] font-bold mb-1.5">
               성도님만 볼 수 있어요
             </p>
             <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.65] mb-5">
@@ -98,7 +98,7 @@ const NewFamilySection = () => {
               <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
                 NEW FAMILY
               </p>
-              <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+              <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
                 새가족 등록 앨범
               </h2>
             </div>
@@ -273,7 +273,7 @@ const EmptyState = () => (
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
       <span className="text-[28px]">🌱</span>
     </div>
-    <p className="text-gray-900 dark:text-white text-[14.5px] font-bold mb-1">
+    <p className="text-ink-strong text-[14.5px] font-bold mb-1">
       아직 등록된 새가족이 없어요
     </p>
     <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">

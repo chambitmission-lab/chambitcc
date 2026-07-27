@@ -265,7 +265,7 @@ const PhotoVerse = () => {
             >
               <span className="material-icons-round text-[22px]">arrow_back</span>
             </button>
-            <h1 className="text-[17px] font-bold text-gray-900 dark:text-gray-50 flex-1">
+            <h1 className="text-[17px] font-bold text-ink-strong flex-1">
               {t.title}
             </h1>
             {photo && verse && (

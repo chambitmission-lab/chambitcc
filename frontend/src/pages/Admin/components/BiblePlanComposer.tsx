@@ -181,7 +181,7 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
             <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
               ADMIN
             </p>
-            <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
               {editingPlan ? '읽기 플랜 수정' : '새 읽기 플랜'}
             </h2>
           </div>
@@ -335,7 +335,7 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
                   max={400}
                   value={totalDays}
                   onChange={(e) => setTotalDays(Number(e.target.value))}
-                  className="w-20 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-gray-900 dark:text-white focus:outline-none focus:border-purple-400"
+                  className="w-20 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-purple-400"
                 />
                 <button
                   type="button"
@@ -355,7 +355,7 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
             {/* 공개 */}
             <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
               <div className="min-w-0">
-                <p className="text-[13.5px] font-bold text-gray-900 dark:text-white">공개하기</p>
+                <p className="text-[13.5px] font-bold text-ink-strong">공개하기</p>
                 <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">
                   끄면 임시 저장 (성도들에게 보이지 않음)
                 </p>
@@ -408,7 +408,7 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
 }
 
 const inputCls =
-  'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
+  'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
 
 const FieldGroup = ({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) => (
   <div>

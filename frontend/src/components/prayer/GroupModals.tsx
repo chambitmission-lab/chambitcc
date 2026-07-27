@@ -40,7 +40,7 @@ const ModalShell = ({ title, onClose, children }: ModalShellProps) => {
       <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-sky-400/10 to-blue-400/10 dark:from-sky-500/10 dark:to-blue-500/8 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-        <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+        <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
           {title}
         </h2>
         <button
@@ -161,7 +161,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
               {createdGroup.icon || '👥'}
             </div>
             <div className="min-w-0">
-              <p className="text-[14.5px] font-bold text-gray-900 dark:text-white truncate">
+              <p className="text-[14.5px] font-bold text-ink-strong truncate">
                 {createdGroup.name}
               </p>
               <p className="text-[11.5px] text-gray-500 dark:text-white/55">
@@ -229,7 +229,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
           <button
             type="button"
             onClick={handleClose}
-            className="w-full mt-4 px-4 h-11 rounded-full bg-gray-900 dark:bg-white/[0.08] text-white dark:text-white text-[13.5px] font-bold hover:bg-gray-800 dark:hover:bg-white/[0.12] transition-colors"
+            className="w-full mt-4 px-4 h-11 rounded-full bg-gray-900 dark:bg-white/[0.08] text-white dark:text-ink-strong text-[13.5px] font-bold hover:bg-gray-800 dark:hover:bg-white/[0.12] transition-colors"
           >
             {t('confirm')}
           </button>
@@ -252,7 +252,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 {icon}
               </div>
               <div className="min-w-0">
-                <p className="text-[13.5px] font-bold text-gray-900 dark:text-white truncate">
+                <p className="text-[13.5px] font-bold text-ink-strong truncate">
                   {name.trim() || '그룹 이름'}
                 </p>
                 <p className="text-[11.5px] text-gray-500 dark:text-white/55 truncate">
@@ -273,7 +273,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 placeholder={t('groupNamePlaceholder')}
                 required
                 maxLength={50}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
               />
             </FieldGroup>
 
@@ -285,7 +285,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 placeholder={t('groupDescriptionPlaceholder')}
                 rows={3}
                 maxLength={200}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.6]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.6]"
               />
               <p className="text-[11px] font-semibold text-gray-400 dark:text-white/40 mt-1 text-right tabular-nums">
                 {description.length}/200
@@ -439,7 +439,7 @@ export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
               onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
               placeholder={t('enterInviteCode')}
               required
-              className="w-full px-3 py-3.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[18px] font-bold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors uppercase tracking-[0.2em] font-mono text-center"
+              className="w-full px-3 py-3.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[18px] font-bold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors uppercase tracking-[0.2em] font-mono text-center"
             />
             <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-2 pl-0.5 leading-[1.5]">
               💡 {t('inviteCodeAdminHint')}

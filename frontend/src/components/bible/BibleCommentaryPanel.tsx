@@ -148,7 +148,7 @@ const BibleCommentaryPanel = ({
               <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">
                 말씀 해석
               </p>
-              <h3 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em] truncate">
+              <h3 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em] truncate">
                 {headerLabel}
               </h3>
             </div>

@@ -114,7 +114,7 @@ const AccountSettings = () => {
   }
 
   const inputClass =
-    'w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary'
+    'w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded text-sm text-ink-strong placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary'
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
@@ -128,7 +128,7 @@ const AccountSettings = () => {
             <span className="material-icons-outlined">arrow_back</span>
             <span className="text-sm font-semibold">{t('accountBack')}</span>
           </button>
-          <h1 className="text-base font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
+          <h1 className="text-base font-bold text-ink-strong tracking-[-0.015em]">
             {t('accountTitle')}
           </h1>
           <button
@@ -284,7 +284,7 @@ const AccountSettings = () => {
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex items-center justify-between px-4 py-3">
     <span className="text-sm text-gray-500 dark:text-white/55">{label}</span>
-    <span className="text-sm font-semibold text-gray-900 dark:text-white text-right break-all">
+    <span className="text-sm font-semibold text-ink-strong text-right break-all">
       {value}
     </span>
   </div>

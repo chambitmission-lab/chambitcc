@@ -137,7 +137,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
             <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
               ADMIN
             </p>
-            <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
               새 주보 등록
             </h2>
           </div>
@@ -166,7 +166,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                 placeholder="예) 2026년 5월 셋째 주 주보"
                 maxLength={120}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
               />
             </FieldGroup>
 
@@ -185,7 +185,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                 value={bulletinDate}
                 onChange={(e) => setBulletinDate(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-gray-900 dark:text-white focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
               />
             </FieldGroup>
 
@@ -197,7 +197,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                 placeholder="이번 주 주보의 핵심 메시지나 안내사항을 적어주세요."
                 rows={3}
                 maxLength={400}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.6]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.6]"
               />
               <p className="text-[11px] font-semibold text-gray-400 dark:text-white/40 mt-1 text-right tabular-nums">
                 {description.length}/400
@@ -230,7 +230,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                     <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
                 </div>
-                <p className="text-[13px] font-bold text-gray-800 dark:text-white">
+                <p className="text-[13px] font-bold text-ink-strong">
                   이미지 페이지 추가
                 </p>
                 <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">

@@ -71,7 +71,7 @@ const SermonForm = ({ sermon, onClose, onSuccess }: SermonFormProps) => {
           <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-hidden">
             {/* 헤더 - 고정 */}
             <div className="flex-shrink-0 bg-background-light dark:bg-background-dark border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-base font-semibold text-ink-strong">
                 {isEditMode ? '설교 수정' : '설교 등록'}
               </h2>
               <button

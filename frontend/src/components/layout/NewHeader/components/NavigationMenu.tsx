@@ -80,7 +80,7 @@ const NavigationMenu = () => {
                   border border-gray-200/70 dark:border-white/[0.08]
                   shadow-sm
                   dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]
-                  text-[13.5px] font-semibold tracking-[-0.015em] text-gray-900 dark:text-white
+                  text-[13.5px] font-semibold tracking-[-0.015em] text-ink-strong
                   transition-all duration-200
                   hover:-translate-y-0.5
                   hover:border-[var(--brand-soft-strong)]
@@ -116,7 +116,7 @@ const NavigationMenu = () => {
                   bg-[var(--brand-soft)]
                   border border-[var(--brand-soft-strong)]
                   shadow-sm
-                  text-[12px] font-semibold tracking-[-0.01em] text-gray-900 dark:text-white
+                  text-[12px] font-semibold tracking-[-0.01em] text-ink-strong
                   transition-all duration-200
                   hover:-translate-y-0.5
                   hover:border-brand

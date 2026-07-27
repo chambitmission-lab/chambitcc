@@ -90,7 +90,7 @@ export const EraTimeline = ({
               <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand text-white text-[12px] font-bold shadow-[0_4px_12px_-2px_var(--brand-glow)]">
                 {gi + 1}
               </span>
-              <h3 className="text-[15.5px] font-bold tracking-[-0.01em] text-gray-900 dark:text-white">
+              <h3 className="text-[15.5px] font-bold tracking-[-0.01em] text-ink-strong">
                 {group.label}
               </h3>
               <span className="text-[11.5px] font-semibold text-gray-500 dark:text-white/45">
@@ -185,7 +185,7 @@ const FigureRow = ({ figure, selected, progress, isLoggedIn, onSelect }: FigureR
             <span
               className={[
                 'text-[14.5px] font-bold tracking-[-0.01em] truncate',
-                isJesus ? 'text-white' : 'text-gray-900 dark:text-white',
+                isJesus ? 'text-white' : 'text-ink-strong',
               ].join(' ')}
             >
               {figure.name_ko}

@@ -296,7 +296,7 @@ const PlanDetail = () => {
                 </span>
               )}
             </div>
-            <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white mt-0.5">
+            <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong mt-0.5">
               {plan.title}
             </h2>
             {plan.subtitle && (
@@ -329,7 +329,7 @@ const PlanDetail = () => {
           </div>
           {progress.status === 'completed' ? (
             <div className="mt-4 text-center">
-              <p className="text-[14px] font-bold text-gray-900 dark:text-white">🎉 완주를 축하해요!</p>
+              <p className="text-[14px] font-bold text-ink-strong">🎉 완주를 축하해요!</p>
               <button
                 onClick={handleRestart}
                 className="mt-2 text-[13px] font-semibold text-blue-600 dark:text-blue-300 hover:underline"
@@ -408,7 +408,7 @@ const PlanDetail = () => {
                       )}
                     </span>
                     <span className="flex-1 min-w-0">
-                      <span className="block text-[14px] font-bold tracking-[-0.01em] text-gray-900 dark:text-white">
+                      <span className="block text-[14px] font-bold tracking-[-0.01em] text-ink-strong">
                         {gi + 1}개월차
                       </span>
                       <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5">
@@ -472,7 +472,7 @@ const Shell = ({
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
-        <h1 className="flex-1 min-w-0 text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white truncate">
+        <h1 className="flex-1 min-w-0 text-base font-bold tracking-[-0.015em] text-ink-strong truncate">
           {title}
         </h1>
         {actions}

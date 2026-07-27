@@ -57,7 +57,7 @@ const WordbookPage = () => {
             </svg>
             <span className="text-sm font-semibold">성경</span>
           </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white mx-auto pr-10">
+          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong mx-auto pr-10">
             내 단어장
           </h1>
         </div>
@@ -80,7 +80,7 @@ const WordbookPage = () => {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   placeholder="단어·뜻 검색"
-                  className="flex-1 min-w-0 bg-transparent text-[14.5px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none"
+                  className="flex-1 min-w-0 bg-transparent text-[14.5px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none"
                 />
                 {searchInput && (
                   <button
@@ -134,7 +134,7 @@ const WordbookPage = () => {
                         className="min-w-0 flex-1 text-left"
                         title="뜻 보기 · 수정"
                       >
-                        <p className="text-[16.5px] font-bold text-gray-900 dark:text-white tracking-[-0.01em]">
+                        <p className="text-[16.5px] font-bold text-ink-strong tracking-[-0.01em]">
                           {item.word}
                         </p>
                         {item.note && (

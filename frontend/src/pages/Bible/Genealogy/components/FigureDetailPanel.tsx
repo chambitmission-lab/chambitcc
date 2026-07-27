@@ -108,7 +108,7 @@ export const FigureDetailPanel = ({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white">
+              <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong">
                 {data.name_ko}
               </h2>
               {data.is_messianic_line && (

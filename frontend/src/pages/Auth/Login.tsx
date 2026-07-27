@@ -121,7 +121,7 @@ const Login = () => {
       <div className="max-w-sm w-full my-auto">
         {/* Logo — 토스 블루 플랫: 앰버 글로우 대신 담백한 타이포 + 브랜드 포인트 */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tighter font-display text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold tracking-tighter font-display text-ink-strong mb-2">
             {t('aboutChurchName')}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -147,7 +147,7 @@ const Login = () => {
                 placeholder={t('loginUsername')}
                 required
                 disabled={loading}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] rounded-xl text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-brand transition-colors"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] rounded-xl text-base text-ink-strong placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-brand transition-colors"
               />
             </div>
 
@@ -160,7 +160,7 @@ const Login = () => {
                 placeholder={t('loginPassword')}
                 required
                 disabled={loading}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] rounded-xl text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-brand transition-colors"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] rounded-xl text-base text-ink-strong placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-brand transition-colors"
               />
             </div>
 

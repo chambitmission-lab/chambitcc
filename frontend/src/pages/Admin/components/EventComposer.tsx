@@ -169,7 +169,7 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
             <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
               ADMIN
             </p>
-            <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
               {editingEvent ? '일정 수정' : '새 일정 등록'}
             </h2>
           </div>
@@ -198,7 +198,7 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
                 placeholder="예) 청년부 봄 수련회"
                 maxLength={120}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
               />
             </FieldGroup>
 
@@ -264,7 +264,7 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
                   value={form.location}
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
                   placeholder="예) 본당 / 청년부실"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
                 />
               </div>
             </FieldGroup>
@@ -299,7 +299,7 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="모임 안내, 준비물, 참고사항 등을 자유롭게 적어주세요."
                 rows={4}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.6]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.6]"
               />
             </FieldGroup>
 
@@ -365,7 +365,7 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
             {/* 공개 여부 */}
             <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
               <div className="min-w-0">
-                <p className="text-[13.5px] font-bold text-gray-900 dark:text-white">
+                <p className="text-[13.5px] font-bold text-ink-strong">
                   공개하기
                 </p>
                 <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">
@@ -509,7 +509,7 @@ const DateField = ({ label, type = 'datetime-local', value, onChange, min, max }
       onChange={(e) => onChange(e.target.value)}
       min={min}
       max={max}
-      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-gray-900 dark:text-white focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
     />
   </label>
 )

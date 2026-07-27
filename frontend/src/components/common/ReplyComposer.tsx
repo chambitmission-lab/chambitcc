@@ -77,7 +77,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
 
   const avatarEl = isAnonymous ? (
     /* 골방 기도자 — 피드/작성 모달과 동일한 뉴트럴 아바타 */
-    <div className="mt-0.5 w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
+    <div className="mt-0.5 w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-500 dark:text-gray-400 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
       <span className="material-icons-outlined text-[18px]">person</span>
     </div>
   ) : avatarUrl ? (
@@ -102,7 +102,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="flex-1 text-left px-4 py-2.5 rounded-full text-sm bg-surface-light dark:bg-white/[0.05] border border-border-light dark:border-border-dark text-gray-400 dark:text-gray-500 hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-colors"
+          className="flex-1 text-left px-4 py-2.5 rounded-full text-sm bg-surface-light dark:bg-white/[0.05] border border-border-light dark:border-border-dark text-gray-500 dark:text-gray-400 hover:bg-[var(--brand-soft)] dark:hover:bg-white/[0.08] transition-colors"
         >
           {isLoggedIn
             ? '함께 기도하는 마음을 전해주세요...'
@@ -123,7 +123,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={isLoggedIn ? "함께 기도하는 마음을 전해주세요..." : "로그인 후 댓글을 작성할 수 있습니다"}
-            className="w-full px-4 py-4 border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-glow)] resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="w-full px-4 py-4 border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-ink-strong placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-glow)] resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             rows={3}
             disabled={isSubmitting || !isLoggedIn}
           />
@@ -148,7 +148,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
               className={`flex-shrink-0 w-8 h-8 -ml-1 flex items-center justify-center rounded-full transition-colors disabled:opacity-40 ${
                 showStickers
                   ? 'text-[var(--brand)] bg-[var(--brand-soft)]'
-                  : 'text-gray-400 dark:text-gray-500 hover:text-[var(--brand)]'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-[var(--brand)]'
               }`}
             >
               <span className="material-icons-round text-[22px]">mood</span>

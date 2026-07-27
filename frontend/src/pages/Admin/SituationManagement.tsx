@@ -60,7 +60,7 @@ const VersePanel = ({ category, onClose }: { category: SituationCategory; onClos
         {/* 패널 헤더 */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
           <div>
-            <h3 className="font-bold text-gray-900 dark:text-white text-[15px]">{category.name}</h3>
+            <h3 className="font-bold text-ink-strong text-[15px]">{category.name}</h3>
             <p className="text-xs text-gray-400 dark:text-white/40 mt-0.5">구절 관리</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
@@ -80,7 +80,7 @@ const VersePanel = ({ category, onClose }: { category: SituationCategory; onClos
               { val: vs, set: setVs, ph: '절', w: 'w-16' },
             ].map(({ val, set, ph, w }) => (
               <input key={ph} value={val} onChange={e => set(e.target.value)} placeholder={ph} type="number" min="1"
-                className={`${w} px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors`} />
+                className={`${w} px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors`} />
             ))}
             <button onClick={handleAdd} disabled={addVerse.isPending}
               className="px-4 py-2 text-sm font-semibold bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors flex-shrink-0">
@@ -132,7 +132,7 @@ const CategoryForm = ({
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
       <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
-          <h3 className="font-bold text-gray-900 dark:text-white text-[15px]">
+          <h3 className="font-bold text-ink-strong text-[15px]">
             {initial.name ? '카테고리 수정' : '새 카테고리'}
           </h3>
           <button onClick={onCancel} className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
@@ -146,7 +146,7 @@ const CategoryForm = ({
             <label className="text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block">상황 이름</label>
             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               placeholder="예: 두려울 때"
-              className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors" />
+              className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors" />
           </div>
 
           {/* 아이콘 */}
@@ -179,7 +179,7 @@ const CategoryForm = ({
             <div>
               <label className="text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block">순서</label>
               <input type="number" value={form.order} onChange={e => setForm(f => ({ ...f, order: +e.target.value }))}
-                className="w-20 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white focus:outline-none focus:border-purple-400 transition-colors" />
+                className="w-20 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong focus:outline-none focus:border-purple-400 transition-colors" />
             </div>
             <label className="flex items-center gap-2 cursor-pointer mt-5">
               <div className={`w-10 h-6 rounded-full transition-colors ${form.is_active ? 'bg-purple-500' : 'bg-gray-200 dark:bg-white/10'}`}
@@ -276,7 +276,7 @@ const SituationManagement = () => {
             </svg>
             <span className="text-sm font-semibold">뒤로</span>
           </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white">상황별 성구 관리</h1>
+          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">상황별 성구 관리</h1>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
             ADMIN
           </span>

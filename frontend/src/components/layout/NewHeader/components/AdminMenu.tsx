@@ -81,7 +81,7 @@ const AdminMenu = () => {
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[13.5px] font-semibold text-gray-900 dark:text-white tracking-[-0.01em]">
+          <span className="text-[13.5px] font-semibold text-ink-strong tracking-[-0.01em]">
             {t('adminMenu')}
           </span>
           <span className="text-[12px] font-semibold text-[var(--brand-muted)]">

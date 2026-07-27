@@ -171,7 +171,7 @@ const Profile = () => {
             <span className="material-icons-outlined">arrow_back</span>
             <span className="text-sm font-semibold">{t('profileBack')}</span>
           </button>
-          <h1 className="text-base font-bold text-gray-900 dark:text-white tracking-[-0.015em]">{t('profileTitle')}</h1>
+          <h1 className="text-base font-bold text-ink-strong tracking-[-0.015em]">{t('profileTitle')}</h1>
           <button
             className="flex items-center gap-1 text-sm font-semibold text-brand hover:text-brand-dim transition-colors"
             onClick={handleLogout}
@@ -236,7 +236,7 @@ const Profile = () => {
 
             <div className="relative z-10 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <h3 className="text-[14px] font-bold text-gray-900 dark:text-white mb-0.5 tracking-[-0.01em]">
+                <h3 className="text-[14px] font-bold text-ink-strong mb-0.5 tracking-[-0.01em]">
                   푸시 알림
                 </h3>
                 <p className="text-[12px] text-gray-500 dark:text-white/55">

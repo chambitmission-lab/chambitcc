@@ -323,7 +323,7 @@ const FavoritesPlaylistModal = ({ onClose }: FavoritesPlaylistModalProps) => {
             <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">
               나의 묵상 플레이리스트
             </p>
-            <h3 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em] truncate">
+            <h3 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em] truncate">
               즐겨찾기 구절 듣기
             </h3>
           </div>

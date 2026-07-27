@@ -11,7 +11,7 @@ const ActivityStats = ({ thisWeekCount, totalCount, streakDays }: ActivityStatsP
 
   return (
     <div className="px-4 pb-3">
-      <h3 className="text-[14px] font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 tracking-[-0.01em]">
+      <h3 className="text-[14px] font-bold text-ink-strong mb-3 flex items-center gap-2 tracking-[-0.01em]">
         <span className="material-icons-outlined text-xl text-brand">
           insights
         </span>
@@ -67,7 +67,7 @@ const StatCard = ({ icon, value, suffix, label }: StatCardProps) => (
       {icon}
     </span>
 
-    <div className="relative z-10 mt-1 text-[32px] font-bold leading-none tracking-[-0.02em] text-gray-900 dark:text-white">
+    <div className="relative z-10 mt-1 text-[32px] font-bold leading-none tracking-[-0.02em] text-ink-strong">
       {value.toLocaleString()}
       {suffix && (
         <span className="ml-0.5 align-baseline text-[17px] leading-none">

@@ -46,7 +46,7 @@ const RoomList = () => {
             </svg>
             <span className="text-sm font-semibold">성경</span>
           </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white mx-auto pr-10">
+          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong mx-auto pr-10">
             공동 묵상방
           </h1>
         </div>
@@ -149,7 +149,7 @@ const RoomList = () => {
 
         {/* 내 방 목록 */}
         <section className="px-4 pt-8">
-          <h3 className="text-[15px] font-extrabold text-gray-900 dark:text-white tracking-[-0.02em] mb-4 px-0.5">
+          <h3 className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em] mb-4 px-0.5">
             내 묵상방
           </h3>
           {!authed ? (
@@ -204,7 +204,7 @@ const RoomCard = ({ room, onClick }: { room: RoomSummary; onClick: () => void })
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h4 className="flex-1 min-w-0 text-[15px] font-bold text-gray-900 dark:text-white truncate">
+            <h4 className="flex-1 min-w-0 text-[15px] font-bold text-ink-strong truncate">
               {room.title}
             </h4>
             <span className={`shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold leading-none ${meta.cls}`}>
@@ -298,7 +298,7 @@ const CreateRoomSheet = ({ onClose }: { onClose: () => void }) => {
       <div className="absolute inset-0 bg-black/45" onClick={onClose} />
       <div className="relative w-full max-w-md max-h-[88vh] overflow-y-auto rounded-t-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
         <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
-        <h3 className="text-[17px] font-bold text-gray-900 dark:text-white mb-4">새 묵상방 만들기</h3>
+        <h3 className="text-[17px] font-bold text-ink-strong mb-4">새 묵상방 만들기</h3>
 
         {/* 이름 + 이모지 */}
         <label className="block text-[12px] font-bold text-gray-500 dark:text-white/55 mb-1.5">방 이름</label>

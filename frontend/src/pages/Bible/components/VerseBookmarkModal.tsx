@@ -98,7 +98,7 @@ const VerseBookmarkModal = ({
             <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">
               묵상 노트
             </p>
-            <h3 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em] truncate">
+            <h3 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em] truncate">
               {verseReference}
             </h3>
           </div>
@@ -166,14 +166,14 @@ const VerseBookmarkModal = ({
               onChange={(e) => setNote(e.target.value.slice(0, 2000))}
               rows={5}
               placeholder="이 구절이 마음에 와닿은 이유나 받은 은혜를 적어보세요..."
-              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 resize-y min-h-[120px] focus:outline-none focus:border-brand transition-colors"
+              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 resize-y min-h-[120px] focus:outline-none focus:border-brand transition-colors"
             />
           </div>
 
           {/* 즐겨찾기 토글 */}
           <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
             <div className="min-w-0">
-              <p className="text-[13.5px] font-bold text-gray-900 dark:text-white">
+              <p className="text-[13.5px] font-bold text-ink-strong">
                 ⭐ 즐겨찾기에 추가
               </p>
               <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">

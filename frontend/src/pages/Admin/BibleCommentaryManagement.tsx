@@ -123,7 +123,7 @@ const BibleCommentaryManagement = () => {
   const progressPct = count > 0 ? Math.round((done / count) * 100) : 0
 
   const inputCls =
-    'w-full h-11 rounded-xl px-3 bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] text-[14px] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-400/40'
+    'w-full h-11 rounded-xl px-3 bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] text-[14px] text-ink-strong focus:outline-none focus:ring-2 focus:ring-purple-400/40'
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
@@ -139,7 +139,7 @@ const BibleCommentaryManagement = () => {
             </svg>
             <span className="text-sm font-semibold">뒤로</span>
           </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white">성경 해석 생성</h1>
+          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">성경 해석 생성</h1>
           <span className="w-12" />
         </div>
 
@@ -235,7 +235,7 @@ const BibleCommentaryManagement = () => {
           ) : (
             <button
               onClick={handleStop}
-              className="w-full inline-flex items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-white text-[15px] font-bold transition-all"
+              className="w-full inline-flex items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-ink-strong text-[15px] font-bold transition-all"
             >
               <span className="material-icons-round text-[20px] animate-spin">refresh</span>
               생성 중... (눌러서 중단)

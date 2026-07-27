@@ -42,7 +42,7 @@ const VerseNoteSheet = ({ verseReference, verseText, bookmark, onEdit, onClose }
             <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">
               내 묵상 노트
             </p>
-            <h3 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em] truncate">
+            <h3 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em] truncate">
               {verseReference}
             </h3>
           </div>

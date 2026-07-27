@@ -62,7 +62,7 @@ const PlanList = () => {
             </svg>
             <span className="text-sm font-semibold">성경</span>
           </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white mx-auto pr-10">
+          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong mx-auto pr-10">
             읽기 플랜
           </h1>
         </div>
@@ -99,7 +99,7 @@ const PlanList = () => {
             🕊️
           </span>
           <span className="flex-1 min-w-0">
-            <span className="block text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
+            <span className="block text-[14px] font-bold text-ink-strong tracking-[-0.015em]">
               공동 묵상방
             </span>
             <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5">
@@ -250,7 +250,7 @@ const PlanList = () => {
 }
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="text-[15px] font-extrabold text-gray-900 dark:text-white tracking-[-0.02em] mb-5 px-0.5">
+  <h3 className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em] mb-5 px-0.5">
     {children}
   </h3>
 )
@@ -357,7 +357,7 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
     <div className="flex-1 px-3.5 pt-3.5 pb-[18px] flex items-center gap-1.5">
       <div className="flex-1 min-w-0">
         {/* 제목은 1~2줄로 갈리므로 최소 2줄 높이를 확보해 해시태그 baseline 을 맞춘다 */}
-        <h4 className="min-h-[2.5em] text-[14px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-snug line-clamp-2">
+        <h4 className="min-h-[2.5em] text-[14px] font-bold text-ink-strong tracking-[-0.015em] leading-snug line-clamp-2">
           {plan.title}
         </h4>
         <div className="mt-1">
@@ -424,7 +424,7 @@ const FeaturedPlanCard = ({
 
       <div className="flex-1 min-w-0 p-4">
         <div className="flex items-start gap-2">
-          <h4 className="flex-1 text-[16px] font-bold text-gray-900 dark:text-white tracking-[-0.015em] leading-snug truncate">
+          <h4 className="flex-1 text-[16px] font-bold text-ink-strong tracking-[-0.015em] leading-snug truncate">
             {plan.title}
           </h4>
           {subscribed && progress && (

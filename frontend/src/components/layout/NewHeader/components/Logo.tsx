@@ -20,7 +20,7 @@ const Logo = () => {
       <div className="absolute inset-0 bg-[var(--brand-glow)] blur-md animate-pulse" />
 
       <h1
-        className="text-xl font-extrabold tracking-tighter font-display select-none text-gray-900 dark:text-white relative z-10"
+        className="text-xl font-extrabold tracking-tighter font-display select-none text-ink-strong relative z-10"
         style={{ filter: 'drop-shadow(0 0 10px var(--brand-glow)) drop-shadow(0 0 20px var(--brand-glow))' }}
       >
         {t('churchName')}

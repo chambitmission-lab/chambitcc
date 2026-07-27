@@ -46,7 +46,7 @@ const JoinRoom = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen flex flex-col">
         <div className="px-4 py-3 border-b border-border-light dark:border-border-dark">
-          <h1 className="text-base font-bold text-center text-gray-900 dark:text-white">
+          <h1 className="text-base font-bold text-center text-ink-strong">
             공동 묵상 초대장
           </h1>
         </div>
@@ -79,7 +79,7 @@ const JoinRoom = () => {
           ) : error || !room ? (
             <div className="text-center">
               <span className="text-5xl block mb-4">😢</span>
-              <p className="text-[15px] font-bold text-gray-900 dark:text-white">
+              <p className="text-[15px] font-bold text-ink-strong">
                 초대장을 찾을 수 없어요
               </p>
               <p className="text-[13px] text-gray-500 dark:text-white/55 mt-1.5">
@@ -167,7 +167,7 @@ const JoinRoom = () => {
                   onClick={handleCopyCode}
                   className="mt-2.5 w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]"
                 >
-                  <span className="text-[15px] font-extrabold tracking-[0.14em] text-gray-900 dark:text-white">
+                  <span className="text-[15px] font-extrabold tracking-[0.14em] text-ink-strong">
                     {inviteCode}
                   </span>
                   <span className="text-[12px] font-bold text-brand">복사</span>

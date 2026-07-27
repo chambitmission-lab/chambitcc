@@ -69,7 +69,7 @@ const EventRow = ({ event }: { event: TimelineEvent }) => {
         }
       >
         <div className="flex items-start justify-between gap-2">
-          <div className="text-[14px] font-bold text-gray-900 dark:text-white leading-snug tracking-[-0.01em]">
+          <div className="text-[14px] font-bold text-ink-strong leading-snug tracking-[-0.01em]">
             {event.title}
           </div>
           {event.time && (
@@ -99,7 +99,7 @@ const ActivityTimeline = ({
 
   return (
     <div className="px-4 pt-6 pb-10">
-      <h3 className="text-[14px] font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 tracking-[-0.01em]">
+      <h3 className="text-[14px] font-bold text-ink-strong mb-4 flex items-center gap-2 tracking-[-0.01em]">
         <span className="material-icons-outlined text-xl text-brand">
           history
         </span>

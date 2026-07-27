@@ -59,7 +59,7 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
           </div>
 
           {/* 제목 */}
-          <h3 className="text-gray-900 dark:text-white text-[15.5px] font-bold leading-[1.35] tracking-[-0.012em] mb-2 line-clamp-2">
+          <h3 className="text-ink-strong text-[15.5px] font-bold leading-[1.35] tracking-[-0.012em] mb-2 line-clamp-2">
             <span className="mr-1.5">{v.emoji}</span>
             {event.title}
           </h3>

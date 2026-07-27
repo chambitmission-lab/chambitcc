@@ -25,7 +25,7 @@ const MyGroups = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[var(--brand-soft-strong)] mb-5">
             <span className="text-[36px]">👥</span>
           </div>
-          <h2 className="text-gray-900 dark:text-white text-[18px] font-bold tracking-[-0.015em] mb-1.5">
+          <h2 className="text-ink-strong text-[18px] font-bold tracking-[-0.015em] mb-1.5">
             함께 기도하는 그룹
           </h2>
           <p className="text-gray-500 dark:text-white/55 text-[13px] text-center leading-[1.6] mb-6">
@@ -59,7 +59,7 @@ const MyGroups = () => {
           <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
             GROUPS
           </p>
-          <h1 className="text-gray-900 dark:text-white text-[26px] font-bold leading-none tracking-[-0.02em]">
+          <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
             내 그룹
           </h1>
           <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
@@ -170,7 +170,7 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-[15px] font-bold text-gray-900 dark:text-white tracking-[-0.01em] truncate">
+            <span className="text-[15px] font-bold text-ink-strong tracking-[-0.01em] truncate">
               {group.name}
             </span>
             {group.is_admin && (
@@ -292,7 +292,7 @@ const ActionCard = ({ icon, label, sublabel, variant, onClick }: ActionCardProps
         <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand mb-2.5">
           {icon}
         </div>
-        <p className="text-gray-900 dark:text-white text-[14px] font-bold tracking-[-0.01em]">
+        <p className="text-ink-strong text-[14px] font-bold tracking-[-0.01em]">
           {label}
         </p>
         <p className="text-gray-500 dark:text-white/55 text-[11px] mt-0.5">{sublabel}</p>
@@ -341,7 +341,7 @@ const EmptyState = () => (
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
       <span className="text-[28px]">🤝</span>
     </div>
-    <p className="text-gray-900 dark:text-white text-[14.5px] font-bold mb-1">
+    <p className="text-ink-strong text-[14.5px] font-bold mb-1">
       아직 참여한 그룹이 없어요
     </p>
     <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">

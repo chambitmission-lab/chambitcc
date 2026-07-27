@@ -88,7 +88,7 @@ const ReplyList = ({
           <circle cx="12" cy="11.5" r="0.9" fill="currentColor" stroke="none" />
           <circle cx="15.8" cy="11.5" r="0.9" fill="currentColor" stroke="none" />
         </svg>
-        <p className="mt-4 text-sm font-medium text-gray-400 dark:text-gray-500">아직 댓글이 없습니다</p>
+        <p className="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400">아직 댓글이 없습니다</p>
         <p className="mt-1 text-[13px] text-gray-400/80 dark:text-gray-600">
           첫 번째 댓글을 작성해보세요
         </p>
@@ -101,7 +101,7 @@ const ReplyList = ({
       {replies.map((reply) => (
         <div key={reply.id} className="reply-item flex gap-3">
           {isAnonymousReply(reply) ? (
-            <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-400 dark:text-gray-500 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
+            <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/[0.06] flex items-center justify-center text-gray-500 dark:text-gray-400 shadow-[0_0_0_1px_var(--card-border)] flex-shrink-0">
               <span className="material-icons-outlined text-[18px]">person</span>
             </div>
           ) : reply.avatar_url ? (
@@ -122,11 +122,11 @@ const ReplyList = ({
               <span className={`text-sm ${
                 isAnonymousReply(reply)
                   ? 'font-medium text-gray-500 dark:text-gray-400'
-                  : 'font-semibold text-gray-900 dark:text-white'
+                  : 'font-semibold text-ink-strong'
               }`}>
                 {isAnonymousReply(reply) ? t('anonymousDisplayName') : reply.display_name}
               </span>
-              <span className="text-xs text-gray-400 dark:text-gray-500">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {reply.time_ago}
               </span>
               {reply.is_edited && (
@@ -138,7 +138,7 @@ const ReplyList = ({
                   {reply.is_owner && onReplyUpdate && (
                     <button
                       onClick={() => startEdit(reply)}
-                      className="text-xs text-gray-400 dark:text-gray-500 hover:text-[var(--brand)] transition-colors"
+                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-[var(--brand)] transition-colors"
                     >
                       수정
                     </button>
@@ -146,7 +146,7 @@ const ReplyList = ({
                   {onReplyDelete && (
                     <button
                       onClick={() => handleDelete(reply)}
-                      className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                     >
                       삭제
                     </button>
@@ -164,7 +164,7 @@ const ReplyList = ({
                   maxLength={500}
                   autoFocus
                   disabled={isUpdating}
-                  className="w-full px-3 py-2.5 text-[14px] leading-[1.65] border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--brand-glow)] resize-none disabled:opacity-50 transition-all"
+                  className="w-full px-3 py-2.5 text-[14px] leading-[1.65] border border-border-light dark:border-border-dark rounded-xl bg-surface-light dark:bg-surface-dark text-ink-strong focus:outline-none focus:ring-2 focus:ring-[var(--brand-glow)] resize-none disabled:opacity-50 transition-all"
                 />
                 <div className="flex items-center justify-end gap-2 mt-2">
                   <button

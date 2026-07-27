@@ -58,7 +58,7 @@ const AudiencePicker = ({ picker }: { picker: AudiencePickerState }) => {
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
               placeholder="아이디 · 이름 검색"
-              className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+              className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
             />
             {userSearch && (
               <button
@@ -171,7 +171,7 @@ const UserPickRow = ({
 
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-1.5">
-        <span className="text-[13px] font-semibold text-gray-900 dark:text-white truncate">
+        <span className="text-[13px] font-semibold text-ink-strong truncate">
           {user.full_name || user.username}
         </span>
         {user.is_admin && (

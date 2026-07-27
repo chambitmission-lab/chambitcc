@@ -67,7 +67,7 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
     <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">음성 녹음</h3>
+        <h3 className="text-lg font-bold text-ink-strong">음성 녹음</h3>
         <button
           onClick={handleCancel}
           className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -103,14 +103,14 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }: AudioRecorderProps) =>
           <span className={`material-icons-outlined text-5xl ${
             recordingState === 'recording' 
               ? 'text-red-500' 
-              : 'text-gray-400 dark:text-gray-500'
+              : 'text-gray-500 dark:text-gray-400'
           }`}>
             mic
           </span>
         </div>
 
         {/* 녹음 시간 */}
-        <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="text-3xl font-bold text-ink-strong mb-2">
           {formatTime(recordingTime)}
         </div>
 

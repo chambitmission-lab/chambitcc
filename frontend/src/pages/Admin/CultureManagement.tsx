@@ -24,7 +24,7 @@ import type {
 type TabKey = 'classes' | 'applications' | 'notices'
 
 const inputClass =
-  'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
+  'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
 const labelClass =
   'text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block'
@@ -83,7 +83,7 @@ const ClassFormPanel = ({
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
       <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
-          <h3 className="font-bold text-gray-900 dark:text-white text-[15px]">
+          <h3 className="font-bold text-ink-strong text-[15px]">
             {initial.title ? '강좌 수정' : '새 강좌'}
           </h3>
           <button
@@ -244,7 +244,7 @@ const NoticeFormPanel = ({
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
       <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
-          <h3 className="font-bold text-gray-900 dark:text-white text-[15px]">
+          <h3 className="font-bold text-ink-strong text-[15px]">
             {initial.title ? '공지 수정' : '새 공지'}
           </h3>
           <button
@@ -500,7 +500,7 @@ const CultureManagement = () => {
             </svg>
             <span className="text-sm font-semibold">뒤로</span>
           </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white">
+          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">
             문화교실 관리
           </h1>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand tracking-[0.08em]">

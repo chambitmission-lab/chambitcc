@@ -92,7 +92,7 @@ const NotificationComposer = ({
             <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
               ADMIN
             </p>
-            <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
               {editingNotification ? '공지사항 수정' : '새 공지사항 작성'}
             </h2>
           </div>
@@ -120,7 +120,7 @@ const NotificationComposer = ({
                 placeholder="예) 5월 청년부 헌신예배 안내"
                 maxLength={120}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
               />
               <p className="mt-1 text-right text-[11px] text-gray-400 dark:text-white/35">
                 {form.title.length} / 120
@@ -134,14 +134,14 @@ const NotificationComposer = ({
                 placeholder="공지사항 내용을 입력해주세요. 일시·장소·준비물 등 성도들이 알아야 할 정보를 명확하게 적어주세요."
                 rows={8}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.7]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.7]"
               />
             </FieldGroup>
 
             {/* 공개 여부 */}
             <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
               <div className="min-w-0">
-                <p className="text-[13.5px] font-bold text-gray-900 dark:text-white">
+                <p className="text-[13.5px] font-bold text-ink-strong">
                   공개하기
                 </p>
                 <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">

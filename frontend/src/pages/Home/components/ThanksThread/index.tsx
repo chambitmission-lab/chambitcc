@@ -46,12 +46,12 @@ const ThanksThread = () => {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+          <h2 className="text-base font-bold text-ink-strong flex items-center gap-1.5">
             <span>🙏</span>
             <span>{language === 'ko' ? '오늘의 감사' : 'Today’s Thanks'}</span>
           </h2>
           {total > 0 && (
-            <span className="text-xs text-gray-400 dark:text-gray-500">{total}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{total}</span>
           )}
         </div>
         <div className="flex items-center gap-1">

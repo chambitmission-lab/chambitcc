@@ -69,7 +69,7 @@ const EventCalendar = () => {
               <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
                 CALENDAR
               </p>
-              <h1 className="text-gray-900 dark:text-white text-[26px] font-bold leading-none tracking-[-0.02em]">
+              <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
                 {t.title}
               </h1>
               <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">

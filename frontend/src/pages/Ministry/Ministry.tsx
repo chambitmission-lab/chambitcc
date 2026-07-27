@@ -236,7 +236,7 @@ const Ministry = () => {
           <div className="px-4 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-[22px] font-bold text-gray-900 dark:text-white flex items-center gap-2 tracking-[-0.015em] leading-[1.2]">
+                <h1 className="text-[22px] font-bold text-ink-strong flex items-center gap-2 tracking-[-0.015em] leading-[1.2]">
                   <span>✍️</span>
                   <span>{language === 'ko' ? '목양칼럼' : 'Pastoral Column'}</span>
                 </h1>
@@ -281,7 +281,7 @@ const Ministry = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={language === 'ko' ? '제목 또는 본문에서 검색…' : 'Search title or content…'}
-                  className="w-full pl-10 pr-10 py-2.5 border border-border-light dark:border-white/[0.08] rounded-full bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
+                  className="w-full pl-10 pr-10 py-2.5 border border-border-light dark:border-white/[0.08] rounded-full bg-white dark:bg-white/[0.04] text-ink-strong text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                 />
                 {searchQuery && (
                   <button
@@ -335,7 +335,7 @@ const Ministry = () => {
                 <div className="flex-1">
                   {/* 두 줄 모두 leading-none — 날짜 줄이 기본 행간을 상속하면 텍스트 블록이
                       위로 쏠려 아바타가 내려와 보인다. 간격은 mb로만 잡아 대칭 유지 */}
-                  <div className="font-semibold text-gray-900 dark:text-white text-sm leading-none mb-1.5">
+                  <div className="font-semibold text-ink-strong text-sm leading-none mb-1.5">
                     {column.author} {column.role}
                   </div>
                   <div className="text-[11px] leading-none text-gray-500 dark:text-gray-400">
@@ -346,7 +346,7 @@ const Ministry = () => {
 
               {/* Content Preview */}
               <div className="relative z-10 px-4 pb-5">
-                <h2 className="text-[20px] font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 tracking-[-0.015em] leading-[1.3]">
+                <h2 className="text-[20px] font-bold text-ink-strong mb-3 line-clamp-2 tracking-[-0.015em] leading-[1.3]">
                   {highlightKeyword(column.title, appliedQuery)}
                 </h2>
                 <p className="text-[15px] text-gray-600 dark:text-gray-300 line-clamp-3 leading-[1.7] tracking-[-0.01em]">
@@ -382,7 +382,7 @@ const Ministry = () => {
                       />
                     </div>
                     <div className="flex flex-col">
-                      <div className="text-sm font-semibold text-gray-900 dark:text-white leading-none mb-1.5">
+                      <div className="text-sm font-semibold text-ink-strong leading-none mb-1.5">
                         {selectedColumn.author} {selectedColumn.role}
                       </div>
                       <div className="text-[11px] leading-none text-gray-500 dark:text-gray-400">
@@ -451,7 +451,7 @@ const Ministry = () => {
             >
               <div className="sticky top-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-border-light dark:border-border-dark p-5 z-10">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
+                  <h2 className="text-[18px] font-bold text-ink-strong tracking-[-0.015em]">
                     {editingColumn.id ? (language === 'ko' ? '컬럼 수정' : 'Edit Column') : (language === 'ko' ? '컬럼 추가' : 'Add Column')}
                   </h2>
                   <button
@@ -473,7 +473,7 @@ const Ministry = () => {
                     type="text"
                     value={editingColumn.title || ''}
                     onChange={(e) => setEditingColumn({ ...editingColumn, title: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
+                    className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-ink-strong text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                     placeholder={language === 'ko' ? '컬럼 제목을 입력하세요' : 'Enter column title'}
                   />
                 </div>
@@ -487,7 +487,7 @@ const Ministry = () => {
                       type="text"
                       value={editingColumn.author || ''}
                       onChange={(e) => setEditingColumn({ ...editingColumn, author: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
+                      className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-ink-strong text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                       placeholder={language === 'ko' ? '작성자 이름' : 'Author name'}
                     />
                   </div>
@@ -500,7 +500,7 @@ const Ministry = () => {
                       type="text"
                       value={editingColumn.role || ''}
                       onChange={(e) => setEditingColumn({ ...editingColumn, role: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
+                      className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-ink-strong text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                       placeholder={language === 'ko' ? '담임목사' : 'Senior Pastor'}
                     />
                   </div>
@@ -514,7 +514,7 @@ const Ministry = () => {
                     type="text"
                     value={editingColumn.date || ''}
                     onChange={(e) => setEditingColumn({ ...editingColumn, date: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
+                    className="w-full px-4 py-2.5 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-ink-strong text-sm focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                     placeholder="2026.02"
                   />
                 </div>
@@ -539,7 +539,7 @@ const Ministry = () => {
                     value={editingColumn.content || ''}
                     onChange={(e) => setEditingColumn({ ...editingColumn, content: e.target.value })}
                     rows={12}
-                    className="w-full px-4 py-3 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white text-sm leading-[1.7] resize-none focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
+                    className="w-full px-4 py-3 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-ink-strong text-sm leading-[1.7] resize-none focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
                     placeholder={language === 'ko' ? '컬럼 내용을 입력하세요...\n\n중요한 문구를 선택하고 "하이라이트" 버튼을 누르면 강조 효과가 적용됩니다.' : 'Enter column content...\n\nSelect important text and click "Highlight" button to apply emphasis effect.'}
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
@@ -551,7 +551,7 @@ const Ministry = () => {
               <div className="sticky bottom-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-border-light dark:border-border-dark p-4 flex gap-3">
                 <button
                   onClick={handleCancel}
-                  className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors"
+                  className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong rounded-2xl font-semibold text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors"
                 >
                   {language === 'ko' ? '취소' : 'Cancel'}
                 </button>
@@ -581,7 +581,7 @@ const Ministry = () => {
                 <div className="w-12 h-12 flex-shrink-0 rounded-full bg-red-500/10 dark:bg-red-500/15 flex items-center justify-center">
                   <span className="material-icons-outlined text-red-500 dark:text-red-400 text-xl">warning</span>
                 </div>
-                <h3 className="text-[18px] font-bold text-gray-900 dark:text-white tracking-[-0.015em]">
+                <h3 className="text-[18px] font-bold text-ink-strong tracking-[-0.015em]">
                   {language === 'ko' ? '컬럼 삭제' : 'Delete Column'}
                 </h3>
               </div>
@@ -591,7 +591,7 @@ const Ministry = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-gray-900 dark:text-white rounded-2xl font-semibold text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors"
+                  className="flex-1 py-3 px-4 bg-surface-light dark:bg-white/[0.05] border border-transparent dark:border-white/[0.08] text-ink-strong rounded-2xl font-semibold text-sm hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors"
                 >
                   {language === 'ko' ? '취소' : 'Cancel'}
                 </button>

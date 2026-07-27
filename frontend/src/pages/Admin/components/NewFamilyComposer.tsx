@@ -210,7 +210,7 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
             <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
               ADMIN
             </p>
-            <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
               {isEdit ? '새가족 수정' : '새가족 등록'}
             </h2>
           </div>
@@ -238,7 +238,7 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
                 placeholder="예) 김OO 형제 / 이OO 집사님 가정"
                 maxLength={50}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
               />
             </FieldGroup>
 
@@ -257,7 +257,7 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
                 value={registeredAt}
                 onChange={(e) => setRegisteredAt(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-gray-900 dark:text-white focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
               />
             </FieldGroup>
 
@@ -280,7 +280,7 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
                 onChange={(e) => setGroupName(e.target.value)}
                 placeholder="직접 입력도 가능해요"
                 maxLength={50}
-                className="mt-2 w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13.5px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                className="mt-2 w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13.5px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
               />
             </FieldGroup>
 
@@ -291,7 +291,7 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
                 onChange={(e) => setGreeting(e.target.value.slice(0, 1000))}
                 placeholder="새가족의 한마디나 간단한 소개를 적어주세요."
                 rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.6]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.6]"
               />
               <p className="text-[11px] font-semibold text-gray-400 dark:text-white/40 mt-1 text-right tabular-nums">
                 {greeting.length}/1000
@@ -321,7 +321,7 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
                     <line x1="12" y1="3" x2="12" y2="15" />
                   </svg>
                 </div>
-                <p className="text-[13px] font-bold text-gray-800 dark:text-white">사진 추가</p>
+                <p className="text-[13px] font-bold text-ink-strong">사진 추가</p>
                 <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">여러 장 선택 가능</p>
               </label>
 
@@ -368,7 +368,7 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
                 className="w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-left"
               >
                 <div className="min-w-0">
-                  <p className="text-[13.5px] font-bold text-gray-900 dark:text-white">
+                  <p className="text-[13.5px] font-bold text-ink-strong">
                     {isPublished ? '성도에게 공개' : '비공개 (관리자만)'}
                   </p>
                   <p className="text-[11.5px] text-gray-500 dark:text-white/45 mt-0.5">

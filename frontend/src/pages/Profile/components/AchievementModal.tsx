@@ -43,7 +43,7 @@ const AchievementModal = ({ achievement, onClose }: AchievementModalProps) => {
         </div>
         
         {/* 제목 */}
-        <h3 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-2">
+        <h3 className="text-2xl font-bold text-center text-ink-strong mb-2">
           {t(achievement.titleKey)}
         </h3>
 
@@ -56,7 +56,7 @@ const AchievementModal = ({ achievement, onClose }: AchievementModalProps) => {
         <div className="mb-6">
           <div className="flex items-center justify-between text-sm mb-2">
             <span className="text-gray-600 dark:text-gray-400">{t('achievementProgress')}</span>
-            <span className="font-semibold text-gray-900 dark:text-white">
+            <span className="font-semibold text-ink-strong">
               {achievement.progress} / {achievement.requirement}
             </span>
           </div>
@@ -75,7 +75,7 @@ const AchievementModal = ({ achievement, onClose }: AchievementModalProps) => {
         {/* 보상 정보 */}
         {achievement.unlocked && (
           <div className="p-4 bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] rounded-xl mb-4">
-            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+            <p className="text-sm font-semibold text-ink-strong mb-2">
               🎁 {t('achievementReward')}
             </p>
             <div className="text-xs text-gray-600 dark:text-gray-400">

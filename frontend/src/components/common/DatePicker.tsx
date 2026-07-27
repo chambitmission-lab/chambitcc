@@ -122,9 +122,9 @@ const DatePicker = ({ value, onChange, placeholder = '날짜를 선택하세요'
       {/* 입력 필드 */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white cursor-pointer flex items-center justify-between hover:border-purple-500 dark:hover:border-purple-400 transition-colors"
+        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-ink-strong cursor-pointer flex items-center justify-between hover:border-purple-500 dark:hover:border-purple-400 transition-colors"
       >
-        <span className={value ? '' : 'text-gray-400 dark:text-gray-500'}>
+        <span className={value ? '' : 'text-gray-500 dark:text-gray-400'}>
           {value ? formatDateToKorean(value) : placeholder}
         </span>
         <span className="material-icons-outlined text-gray-500">calendar_today</span>
@@ -143,7 +143,7 @@ const DatePicker = ({ value, onChange, placeholder = '날짜를 선택하세요'
               <span className="material-icons-outlined text-gray-600 dark:text-gray-400 text-xl">chevron_left</span>
             </button>
             
-            <div className="text-base font-bold text-gray-900 dark:text-white">
+            <div className="text-base font-bold text-ink-strong">
               {currentYear}년 {monthNames[currentMonth]}
             </div>
 
@@ -188,7 +188,7 @@ const DatePicker = ({ value, onChange, placeholder = '날짜를 선택하세요'
                     ${!day.isCurrentMonth ? 'text-gray-300 dark:text-gray-600' : ''}
                     ${day.isCurrentMonth && isSunday ? 'text-red-500' : ''}
                     ${day.isCurrentMonth && isSaturday ? 'text-blue-500' : ''}
-                    ${day.isCurrentMonth && !isSunday && !isSaturday ? 'text-gray-900 dark:text-white' : ''}
+                    ${day.isCurrentMonth && !isSunday && !isSaturday ? 'text-ink-strong' : ''}
                     ${selected ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold shadow-lg scale-105' : ''}
                     ${!selected && day.isCurrentMonth ? 'hover:bg-purple-100 dark:hover:bg-purple-900/30' : ''}
                     ${today && !selected ? 'ring-2 ring-purple-500 font-bold' : ''}

@@ -43,7 +43,7 @@ const Sermon = () => {
             <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
                 <div className="inline-block w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-gray-900 dark:text-white font-semibold">설교 목록을 불러오는 중...</p>
+                <p className="text-ink-strong font-semibold">설교 목록을 불러오는 중...</p>
               </div>
             </div>
           </div>
@@ -61,7 +61,7 @@ const Sermon = () => {
             <div className="flex items-center justify-center min-h-screen p-8">
               <div className="text-center">
                 <span className="text-6xl mb-4 block">⚠️</span>
-                <p className="text-gray-900 dark:text-white font-semibold mb-2">데이터를 불러올 수 없습니다</p>
+                <p className="text-ink-strong font-semibold mb-2">데이터를 불러올 수 없습니다</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{error.message}</p>
                 <button
                   onClick={() => refetch()}
@@ -94,7 +94,7 @@ const Sermon = () => {
             <div className="sermon-header-content">
               <div className="flex items-center gap-2">
                 <span className="text-3xl">📖</span>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">설교 말씀</h1>
+                <h1 className="text-xl font-bold text-ink-strong">설교 말씀</h1>
               </div>
               {adminUser && (
                 <button

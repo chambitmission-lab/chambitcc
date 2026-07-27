@@ -72,7 +72,7 @@ const ReflectionEditModal = ({
           <div className="mx-auto w-10 h-1 rounded-full bg-gray-300 dark:bg-white/15 mb-3" />
           <div className="flex items-center justify-between gap-2">
             <div>
-              <h3 className="text-[20px] font-bold tracking-[-0.015em] text-gray-900 dark:text-white">
+              <h3 className="text-[20px] font-bold tracking-[-0.015em] text-ink-strong">
                 AI 묵상 수정
               </h3>
               <p className="text-[12px] text-gray-500 dark:text-white/50 mt-0.5">
@@ -104,7 +104,7 @@ const ReflectionEditModal = ({
               onChange={(e) => setReflection(e.target.value)}
               rows={9}
               placeholder="묵상 내용을 입력하세요"
-              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13.5px] leading-[1.7] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-blue-400 dark:focus:border-blue-400/60 transition-colors resize-y"
+              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13.5px] leading-[1.7] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-blue-400 dark:focus:border-blue-400/60 transition-colors resize-y"
             />
             <p className="text-[11px] text-gray-400 dark:text-white/35 mt-1">
               줄바꿈은 Enter 로 입력하세요. HTML 태그는 자동으로 정리됩니다.
@@ -143,7 +143,7 @@ const ReflectionEditModal = ({
                     value={q}
                     onChange={(e) => updateQuestion(i, e.target.value)}
                     placeholder="묵상 질문"
-                    className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-blue-400 dark:focus:border-blue-400/60 transition-colors"
+                    className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-blue-400 dark:focus:border-blue-400/60 transition-colors"
                   />
                   <button
                     type="button"

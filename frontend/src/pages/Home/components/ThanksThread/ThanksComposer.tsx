@@ -75,7 +75,7 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
             <span className="material-icons-round text-[20px] bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
               volunteer_activism
             </span>
-            <h2 className="text-[18px] font-bold tracking-[-0.015em] text-gray-900 dark:text-white">
+            <h2 className="text-[18px] font-bold tracking-[-0.015em] text-ink-strong">
               {language === 'ko' ? '오늘의 감사 나누기' : 'Share Today’s Thanks'}
             </h2>
           </div>

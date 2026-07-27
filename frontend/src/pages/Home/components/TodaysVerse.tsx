@@ -28,7 +28,7 @@ const TodaysVerse = () => {
                 <p className="text-[11px] text-gray-700 dark:text-gray-300 font-medium truncate flex-1 leading-tight">
                   "{verse.verse_text}"
                 </p>
-                <span className="text-[9px] text-gray-400 dark:text-gray-500 flex-shrink-0 font-normal">
+                <span className="text-[9px] text-gray-500 dark:text-gray-400 flex-shrink-0 font-normal">
                   {verse.verse_reference}
                 </span>
               </div>

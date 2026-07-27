@@ -102,7 +102,7 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
             <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
               ADMIN
             </p>
-            <h2 className="text-gray-900 dark:text-white text-[17px] font-bold tracking-[-0.015em]">
+            <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
               {editingVerse ? '말씀 수정' : '새 말씀 등록'}
             </h2>
           </div>
@@ -173,7 +173,7 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
                   placeholder="예) 에스겔 37:5, 10  /  요한복음 3:16"
                   maxLength={80}
                   required
-                  className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-bold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-bold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
                 />
               </div>
               <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1.5 pl-0.5">
@@ -190,7 +190,7 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
                 rows={5}
                 required
                 maxLength={800}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.7]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.7]"
               />
               <div className="flex items-center justify-between mt-1.5 pl-0.5">
                 <p className="text-[11px] text-gray-400 dark:text-white/40">
@@ -223,7 +223,7 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
                   type="date"
                   value={verseDate}
                   onChange={(e) => setVerseDate(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-gray-900 dark:text-white focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
                 />
                 <div className="mt-2.5 px-3 py-2 rounded-xl bg-purple-500/8 dark:bg-purple-500/10 border border-purple-500/20 dark:border-purple-500/25">
                   <p className="text-[11.5px] text-purple-700 dark:text-purple-200 leading-[1.5]">

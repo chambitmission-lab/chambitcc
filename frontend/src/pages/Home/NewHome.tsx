@@ -272,7 +272,7 @@ const NewHome = () => {
             {showOfflineWithoutCache ? (
               <div className="px-4 py-12 text-center">
                 <span className="text-5xl mb-3 block">📡</span>
-                <p className="text-gray-900 dark:text-white font-semibold mb-1">
+                <p className="text-ink-strong font-semibold mb-1">
                   오프라인 상태입니다
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">

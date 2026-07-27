@@ -190,7 +190,7 @@ const Thanks = () => {
             >
               <span className="material-icons-outlined text-[22px]">arrow_back</span>
             </button>
-            <h1 className="text-[15px] font-bold tracking-[-0.01em] text-gray-900 dark:text-white">
+            <h1 className="text-[15px] font-bold tracking-[-0.01em] text-ink-strong">
               {language === 'ko' ? '오늘의 감사' : 'Today’s Thanks'}
             </h1>
             <button
@@ -231,7 +231,7 @@ const Thanks = () => {
                     </span>
                   )}
                 </div>
-                <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-gray-900 dark:text-white mb-1.5">
+                <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong mb-1.5">
                   {language === 'ko' ? '오늘의 감사' : 'Today’s Thanks'}
                 </h2>
                 <p className="text-[13px] leading-[1.6] text-gray-600 dark:text-white/60">

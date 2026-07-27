@@ -179,7 +179,7 @@ export const PushNotificationManagement = () => {
             <span className="material-icons-outlined">arrow_back</span>
             <span className="text-sm font-semibold">뒤로</span>
           </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-gray-900 dark:text-white">푸시 알림</h1>
+          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">푸시 알림</h1>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
             ADMIN
           </span>
@@ -204,7 +204,7 @@ export const PushNotificationManagement = () => {
               >
                 <div className="flex items-center gap-1.5">
                   <span className="text-[16px]">{p.emoji}</span>
-                  <span className="text-[12.5px] font-semibold text-gray-900 dark:text-white truncate">{p.title}</span>
+                  <span className="text-[12.5px] font-semibold text-ink-strong truncate">{p.title}</span>
                 </div>
                 <span className="text-[10.5px] text-gray-500 dark:text-white/50 truncate">{p.hint}</span>
               </button>
@@ -224,7 +224,7 @@ export const PushNotificationManagement = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
             placeholder="알림 제목"
-            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
           />
 
           <FieldLabel htmlFor="push-body" className="mt-4">
@@ -237,7 +237,7 @@ export const PushNotificationManagement = () => {
             onChange={(e) => setBody(e.target.value.slice(0, BODY_MAX))}
             placeholder="알림 내용"
             rows={4}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none"
           />
 
           <FieldLabel className="mt-4">이동 위치</FieldLabel>
@@ -333,7 +333,7 @@ export const PushNotificationManagement = () => {
                       ? 'check_circle'
                       : 'info'}
                   </span>
-                  <span className="text-[13px] font-semibold text-gray-900 dark:text-white">
+                  <span className="text-[13px] font-semibold text-ink-strong">
                     {result.audienceLabel} 대상 전송 완료
                   </span>
                 </div>
@@ -441,7 +441,7 @@ const SectionCard = ({
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
       <div className="relative z-10">
         <div className="mb-3">
-          <h2 className="text-[15px] font-bold tracking-[-0.01em] text-gray-900 dark:text-white">{title}</h2>
+          <h2 className="text-[15px] font-bold tracking-[-0.01em] text-ink-strong">{title}</h2>
           {subtitle && (
             <p className="mt-0.5 text-[11.5px] text-gray-500 dark:text-white/55">{subtitle}</p>
           )}
@@ -523,7 +523,7 @@ const NotificationPreview = ({
             <span className="text-[10.5px] font-semibold text-gray-500 dark:text-white/55">참빛교회</span>
             <span className="text-[10.5px] text-gray-400 dark:text-white/40">{timeLabel}</span>
           </div>
-          <p className="text-[13px] font-bold text-gray-900 dark:text-white truncate">{title}</p>
+          <p className="text-[13px] font-bold text-ink-strong truncate">{title}</p>
           <p className="text-[12px] text-gray-700 dark:text-white/75 leading-snug line-clamp-2 break-words">{body}</p>
         </div>
       </div>
