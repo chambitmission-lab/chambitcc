@@ -43,53 +43,91 @@ const counterpartLabel = (c: CapsuleSummary): string => {
   return `${c.sender_name}님이 보냄`
 }
 
+/** 인장에 새길 글자 — counterpartLabel과 같은 상대(나/받는 이/보낸 이)의 첫 글자 */
+const sealChar = (c: CapsuleSummary): string => {
+  if (c.role === 'self') return '나'
+  const name = c.role === 'sender' ? c.recipient_name : c.sender_name
+  return (name || '·').trim().charAt(0) || '·'
+}
+
+/** 봉인 → 개봉까지 얼마나 왔는지 (0~1) — 기다림의 진행바 */
+const waitProgress = (c: CapsuleSummary): number => {
+  const sealed = new Date(c.sealed_at).getTime()
+  const opened = new Date(c.open_at).getTime()
+  if (Number.isNaN(sealed) || Number.isNaN(opened) || opened <= sealed) return 1
+  const now = Date.now()
+  return Math.min(1, Math.max(0.02, (now - sealed) / (opened - sealed)))
+}
+
 const SealedRow = ({ capsule }: { capsule: CapsuleSummary }) => {
   const navigate = useNavigate()
   const dday = daysUntil(capsule.open_at)
   const needsShare =
     capsule.role === 'sender' && capsule.capsule_type === 'invite' && !!capsule.invite_code
+  const photos = capsule.photo_count ?? 0
+  const progress = waitProgress(capsule)
+
   return (
-    <div className="flex items-center gap-3 px-4 py-3.5">
+    <article className="capsule-mail capsule-mail--sealed">
+      <span className="capsule-mail__flap" aria-hidden />
       <button
         type="button"
         onClick={() => navigate(`/capsule/${capsule.id}`)}
-        className="flex-1 min-w-0 flex items-center gap-3 text-left"
+        className="capsule-mail__hit"
       >
-        <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] flex items-center justify-center text-[19px]">
-          ✉️
+        <span className="capsule-mail__seal" aria-hidden>
+          {sealChar(capsule)}
         </span>
+
         <span className="flex-1 min-w-0">
-          <span className="block text-[14px] font-bold text-gray-900 dark:text-white truncate">
+          <span className="capsule-mail__title">
             {capsule.title || counterpartLabel(capsule)}
           </span>
-          <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5 truncate">
-            {counterpartLabel(capsule)} · {formatKoreanDate(capsule.open_at)}
-            {capsule.open_label ? ` · ${capsule.open_label}` : ''}
-            {capsule.has_audio ? ' · 🎙️' : ''}
-            {(capsule.photo_count ?? 0) > 0 ? ' · 📷' : ''}
+          <span className="capsule-mail__from">
+            {capsule.title ? `${counterpartLabel(capsule)} · ` : ''}
+            <span className="capsule-mail__journey">
+              {formatKoreanDate(capsule.open_at)} 아침에 열려요
+            </span>
+          </span>
+          <span className="capsule-mail__chips">
+            {capsule.open_label && <i className="capsule-mail__chip">✦ {capsule.open_label}</i>}
+            {capsule.has_audio && <i className="capsule-mail__chip">🎙️ 음성편지</i>}
+            {photos > 0 && <i className="capsule-mail__chip">📷 사진 {photos}장</i>}
           </span>
         </span>
-        <span className="shrink-0 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/[0.07] text-[12px] font-extrabold text-gray-600 dark:text-white/70 tabular-nums">
-          D-{dday}
+
+        <span
+          className="capsule-mail__dday"
+          aria-label={dday > 0 ? `${dday}일 남음` : '오늘 열려요'}
+        >
+          {dday > 0 ? (
+            <>
+              <b>D-</b>
+              <i>{dday}</i>
+            </>
+          ) : (
+            <b className="capsule-mail__dday--today">오늘</b>
+          )}
         </span>
       </button>
-      {needsShare && (
-        <button
-          type="button"
-          onClick={() => shareInvite(capsule)}
-          className="shrink-0 px-3 py-1.5 rounded-full bg-[var(--brand-soft)] text-brand text-[12px] font-bold"
-        >
-          {capsule.claimed ? '전달됨' : '전달'}
-        </button>
-      )}
-    </div>
-  )
-}
 
-/** 인장에 새길 글자 — 보낸 이의 첫 글자 (나에게 보낸 편지는 '나') */
-const sealChar = (c: CapsuleSummary): string => {
-  if (c.role === 'self') return '나'
-  return (c.sender_name || '?').trim().charAt(0) || '?'
+      {needsShare && (
+        <div className="capsule-mail__foot">
+          <span className="capsule-mail__foot-text">
+            {capsule.claimed ? '받는 분이 초대를 확인했어요' : '아직 초대장을 전하지 않았어요'}
+          </span>
+          <button type="button" onClick={() => shareInvite(capsule)} className="capsule-mail__share">
+            {capsule.claimed ? '다시 전달' : '초대 전달'}
+          </button>
+        </div>
+      )}
+
+      {/* 봉인부터 개봉까지 — 기다림이 얼마나 흘렀는지 */}
+      <span className="capsule-mail__wait" aria-hidden>
+        <i style={{ width: `${progress * 100}%` }} />
+      </span>
+    </article>
+  )
 }
 
 /** 봉인부터 도착까지 건너온 시간 — 이 편지의 감정선 */
@@ -180,6 +218,9 @@ const CapsuleList = () => {
   const sealed = data?.sealed ?? []
   const arrived = data?.arrived ?? []
   const unreadCount = arrived.filter((c) => !c.opened_at).length
+  const nextOpenDday = sealed.length
+    ? Math.min(...sealed.map((c) => daysUntil(c.open_at)))
+    : null
   const isEmpty = !isLoading && sealed.length === 0 && arrived.length === 0
 
   return (
@@ -285,17 +326,29 @@ const CapsuleList = () => {
 
         {/* 봉인 중인 캡슐 */}
         {sealed.length > 0 && (
-          <section className="px-4 pt-6">
-            <p className="px-1 mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
-              봉인 중인 캡슐 {sealed.length}개
-            </p>
-            <div className="feed-card rounded-2xl overflow-hidden divide-y divide-[var(--card-border)]">
+          <section className="px-4 pt-7">
+            <div className="px-1 mb-2.5 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
+                  봉인 중인 캡슐 {sealed.length}통
+                </p>
+                <p className="text-[12.5px] mt-1 leading-[1.6] text-[var(--text-body)] break-keep">
+                  아직 아무도 열어볼 수 없어요. 그날까지 조용히 기다립니다
+                </p>
+              </div>
+              {nextOpenDday !== null && (
+                <span className="shrink-0 mt-0.5 px-2.5 py-1 rounded-full bg-[var(--surface-inset)] border border-[var(--card-border)] text-[11px] font-extrabold text-[var(--text-body)] tabular-nums">
+                  {nextOpenDday > 0 ? `가장 가까운 개봉 D-${nextOpenDday}` : '오늘 열려요'}
+                </span>
+              )}
+            </div>
+            <div className="space-y-2.5">
               {sealed.map((c) => (
                 <SealedRow key={c.id} capsule={c} />
               ))}
             </div>
-            <p className="px-1 mt-2 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
-              선물 캡슐은 [전달]로 받는 분께 초대 링크를 보내주세요. 개봉일이 되면
+            <p className="px-1 mt-2.5 text-[11px] text-[var(--text-muted)] leading-[1.6] break-keep">
+              선물 캡슐은 [초대 전달]로 받는 분께 링크를 보내주세요. 개봉일 아침이 되면
               받는 분께 알림이 갑니다.
             </p>
           </section>
