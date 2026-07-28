@@ -61,6 +61,27 @@ export const formatKoreanDate = (isoLike: string): string => {
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`
 }
 
+/** 봉인일 → 개봉일 구간에서 지금까지 지난 비율 (0~1). 봉인 다이얼 링에 쓴다. */
+export const sealProgress = (sealedAt: string, openAt: string): number => {
+  const sealed = new Date(sealedAt).getTime()
+  const open = new Date(openAt)
+  if (Number.isNaN(sealed) || Number.isNaN(open.getTime())) return 0
+  // 개봉은 그날 아침 — 날짜 경계로 맞춘다
+  const end = new Date(open.getFullYear(), open.getMonth(), open.getDate()).getTime()
+  if (end <= sealed) return 1
+  return Math.min(1, Math.max(0, (Date.now() - sealed) / (end - sealed)))
+}
+
+/** 봉인한 지 며칠째인지 (봉인 당일이 1일째) */
+export const daysSealed = (sealedAt: string): number => {
+  const sealed = new Date(sealedAt)
+  if (Number.isNaN(sealed.getTime())) return 1
+  const now = new Date()
+  const a = new Date(sealed.getFullYear(), sealed.getMonth(), sealed.getDate()).getTime()
+  const b = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  return Math.max(1, Math.round((b - a) / 86_400_000) + 1)
+}
+
 /** 개봉일까지 남은 일수 (오늘 개봉 가능이면 0) */
 export const daysUntil = (openAt: string): number => {
   const target = new Date(openAt)

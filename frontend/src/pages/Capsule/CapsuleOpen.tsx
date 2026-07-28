@@ -3,13 +3,14 @@
 // - 개봉 가능: 봉투 뜯는 연출 → 편지(글·음성·봉인한 날의 스냅샷)
 // - 읽은 뒤: 답장 캡슐 이어쓰기 CTA (개봉이 다음 봉인의 입구)
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCapsule, useDeleteCapsule, useOpenCapsule } from '../../hooks/useTimeCapsule'
 import type { CapsuleDetail, CapsulePhoto } from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import CapsuleSlideshow from './CapsuleSlideshow'
-import { daysUntil, formatKoreanDate } from './capsuleDates'
+import { daysSealed, daysUntil, formatKoreanDate, sealProgress } from './capsuleDates'
 import './capsule.css'
 
 type Phase = 'sealed' | 'opening' | 'letter'
@@ -77,6 +78,155 @@ const DevelopingPolaroid = ({
     </figure>
   )
 }
+
+/* ── hairline 아이콘 — 이모지는 재질(3D 그라데이션)이 플랫 UI와 따로 논다 ── */
+const Icon = ({ size = 14, children }: { size?: number; children: ReactNode }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.8}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    {children}
+  </svg>
+)
+
+const LockShackle = ({ open = false }: { open?: boolean }) => (
+  <>
+    <rect x="5" y="10.5" width="14" height="10.5" rx="2.4" />
+    {open ? <path d="M8 10.5V7a4 4 0 0 1 7.7-1.4" /> : <path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" />}
+  </>
+)
+
+const CalendarGlyph = () => (
+  <>
+    <rect x="3" y="5" width="18" height="16" rx="2.6" />
+    <path d="M8 3v4M16 3v4M3 10h18" />
+  </>
+)
+
+const PhotoGlyph = () => (
+  <>
+    <rect x="3" y="4.5" width="18" height="15" rx="2.6" />
+    <circle cx="8.8" cy="10" r="1.5" />
+    <path d="m4 17.5 4.6-4.6 3.6 3.6 2.8-2.8L21 18" />
+  </>
+)
+
+const MicGlyph = () => (
+  <>
+    <rect x="9" y="3" width="6" height="11" rx="3" />
+    <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3" />
+  </>
+)
+
+const EnvelopeGlyph = () => (
+  <>
+    <rect x="3" y="5" width="18" height="14" rx="2.5" />
+    <path d="m3.5 6.5 8.5 6 8.5-6" />
+  </>
+)
+
+/** 봉인 정보 칩 — 이모지 나열 대신 한 줄로 정리 */
+const MetaChip = ({ icon, children }: { icon: ReactNode; children: ReactNode }) => (
+  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-white/[0.06] text-[12px] font-bold text-gray-600 dark:text-white/60">
+    <Icon>{icon}</Icon>
+    {children}
+  </span>
+)
+
+/* ── 봉인 다이얼 ──────────────────────────────────────────────
+   눈금 60개는 요소가 아니라 dasharray로 그린다.
+   stroke-width가 반지름 방향이므로 짧은 dash = 방사형 눈금. */
+const DIAL = 208
+const TICK_R = 98
+const ARC_R = 86
+const TICK_LEN = 2 * Math.PI * TICK_R
+const ARC_LEN = 2 * Math.PI * ARC_R
+const TICK_GAP = TICK_LEN / 60
+
+const SealDial = ({ sealedAt, openAt }: { sealedAt: string; openAt: string }) => {
+  const progress = sealProgress(sealedAt, openAt)
+  return (
+    <div className="capsule-dial">
+      <div className="capsule-dial__halo" />
+      <svg className="capsule-dial__svg" viewBox={`0 0 ${DIAL} ${DIAL}`}>
+        <circle
+          className="capsule-dial__ticks"
+          cx={DIAL / 2}
+          cy={DIAL / 2}
+          r={TICK_R}
+          fill="none"
+          strokeWidth={7}
+          strokeDasharray={`${(TICK_GAP * 0.2).toFixed(2)} ${(TICK_GAP * 0.8).toFixed(2)}`}
+        />
+        <circle
+          className="capsule-dial__track"
+          cx={DIAL / 2}
+          cy={DIAL / 2}
+          r={ARC_R}
+          fill="none"
+          strokeWidth={4.5}
+        />
+        <circle
+          className="capsule-dial__arc"
+          cx={DIAL / 2}
+          cy={DIAL / 2}
+          r={ARC_R}
+          fill="none"
+          strokeWidth={4.5}
+          strokeDasharray={ARC_LEN}
+          strokeDashoffset={ARC_LEN * (1 - progress)}
+        />
+      </svg>
+      <div className="capsule-dial__core">
+        <span className="capsule-dial__lock">
+          <Icon size={17}>
+            <LockShackle />
+          </Icon>
+        </span>
+        <span className="capsule-dial__label">개봉까지</span>
+        <span className="capsule-dial__dday">D-{daysUntil(openAt)}</span>
+        <span className="capsule-dial__elapsed">봉인 {daysSealed(sealedAt)}일째</span>
+      </div>
+    </div>
+  )
+}
+
+/** 봉인된 편지 프리뷰 — 내용을 못 받는다는 사실 자체를 화면 언어로 쓴다 */
+const REDACTED_WIDTHS = ['100%', '93%', '76%', '88%', '48%']
+
+const SealedLetterPreview = ({ capsule }: { capsule: CapsuleDetail }) => (
+  <div className="capsule-redacted">
+    <p className="capsule-redacted__label">
+      <Icon size={13}>
+        <LockShackle />
+      </Icon>
+      봉인된 편지
+    </p>
+    <div className="capsule-redacted__lines" aria-hidden>
+      {REDACTED_WIDTHS.map((w) => (
+        <span key={w} className="capsule-redacted__line" style={{ width: w }} />
+      ))}
+    </div>
+    {(capsule.photo_count ?? 0) > 0 && (
+      <div className="capsule-redacted__strip" aria-hidden>
+        {Array.from({ length: Math.min(capsule.photo_count ?? 0, 4) }).map((_, i) => (
+          <span key={i} className="capsule-redacted__thumb" />
+        ))}
+      </div>
+    )}
+    <p className="capsule-redacted__foot">
+      {formatKoreanDate(capsule.open_at)}
+      {capsule.open_label ? ` (${capsule.open_label})` : ''} 아침에 열려요
+    </p>
+  </div>
+)
 
 const capsuleInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/capsule/invite/${code}`
@@ -219,55 +369,63 @@ const CapsuleOpen = () => {
         )}
 
         {capsule && phase !== 'letter' && (
-          <div className="px-6 pt-12 text-center">
-            {/* 봉투 */}
-            <div
-              className={`capsule-envelope ${
-                phase === 'opening' ? 'capsule-envelope--opening' : 'capsule-envelope--sealed'
-              }`}
-            >
-              <div className="capsule-envelope__letter">💌</div>
-              <div className="capsule-envelope__body" />
-              <div className="capsule-envelope__flap" />
-              <span className="capsule-envelope__seal">{capsule.openable ? '🔓' : '🔒'}</span>
-            </div>
+          <div className="px-6 pt-10 text-center">
+            {/* 봉투는 "열 수 있다"는 신호다 — 잠긴 캡슐엔 봉인 다이얼만 보여준다 */}
+            {capsule.openable ? (
+              <div
+                className={`capsule-envelope ${
+                  phase === 'opening' ? 'capsule-envelope--opening' : 'capsule-envelope--sealed'
+                }`}
+              >
+                <div className="capsule-envelope__letter" />
+                <div className="capsule-envelope__body" />
+                <div className="capsule-envelope__flap" />
+                <span className="capsule-envelope__seal">
+                  <Icon size={20}>
+                    <LockShackle open />
+                  </Icon>
+                </span>
+              </div>
+            ) : (
+              <SealDial sealedAt={capsule.sealed_at} openAt={capsule.open_at} />
+            )}
 
-            <p className="mt-10 text-[12.5px] font-bold text-[var(--text-muted)]">
+            <p className="mt-9 text-[12.5px] font-bold text-[var(--text-muted)]">
               {senderLine(capsule)}
             </p>
             <h2 className="text-[20px] font-extrabold mt-1.5 break-keep">
               {capsule.title ||
                 (capsule.openable ? '캡슐이 도착했어요' : '봉인된 타임캡슐')}
             </h2>
-            <p className="text-[13px] text-gray-500 dark:text-white/55 mt-2 leading-[1.7]">
-              {formatKoreanDate(capsule.sealed_at)}에 봉인
-              {capsule.has_audio && ' · 🎙️ 음성 편지 포함'}
-              {(capsule.photo_count ?? 0) > 0 && ` · 📷 사진 ${capsule.photo_count}장 동봉`}
-            </p>
+
+            <div className="mt-3.5 flex flex-wrap justify-center gap-1.5">
+              <MetaChip icon={<CalendarGlyph />}>
+                {formatKoreanDate(capsule.sealed_at)} 봉인
+              </MetaChip>
+              {(capsule.photo_count ?? 0) > 0 && (
+                <MetaChip icon={<PhotoGlyph />}>사진 {capsule.photo_count}장</MetaChip>
+              )}
+              {capsule.has_audio && <MetaChip icon={<MicGlyph />}>음성 편지</MetaChip>}
+            </div>
 
             {capsule.openable ? (
               <button
                 type="button"
                 onClick={handleOpen}
                 disabled={openCapsule.isPending || phase === 'opening'}
-                className="mt-8 w-full py-4 rounded-2xl bg-brand text-white text-[15.5px] font-extrabold shadow-[0_10px_30px_-8px_var(--brand-glow)] disabled:opacity-60"
+                className="mt-8 w-full py-4 rounded-2xl bg-brand text-white text-[15.5px] font-extrabold shadow-[0_10px_30px_-8px_var(--brand-glow)] disabled:opacity-60 inline-flex items-center justify-center gap-2"
               >
-                {phase === 'opening' ? '봉투를 여는 중...' : '💌 봉투 열기'}
+                <Icon size={18}>
+                  <EnvelopeGlyph />
+                </Icon>
+                {phase === 'opening' ? '봉투를 여는 중...' : '봉투 열기'}
               </button>
             ) : (
               <>
-                <div className="mt-8 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-100 dark:bg-white/[0.07]">
-                  <span className="text-[13px] font-bold text-gray-600 dark:text-white/65">
-                    개봉까지
-                  </span>
-                  <span className="text-[17px] font-extrabold text-brand tabular-nums">
-                    D-{daysUntil(capsule.open_at)}
-                  </span>
+                <div className="mt-7">
+                  <SealedLetterPreview capsule={capsule} />
                 </div>
-                <p className="text-[12.5px] text-gray-400 dark:text-white/40 mt-3 leading-[1.7]">
-                  {formatKoreanDate(capsule.open_at)}
-                  {capsule.open_label ? ` (${capsule.open_label})` : ''} 아침에 열려요.
-                  <br />
+                <p className="text-[12.5px] text-gray-400 dark:text-white/40 mt-4 leading-[1.7]">
                   그날까지는 누구도 — 쓴 사람도 — 열어볼 수 없어요.
                 </p>
                 {capsule.role === 'sender' &&

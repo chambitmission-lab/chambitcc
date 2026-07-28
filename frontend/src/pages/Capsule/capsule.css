@@ -8,15 +8,20 @@
   perspective: 800px;
 }
 
+/* 봉투 몸통 — 종이 재질. 브랜드 원색은 인장과 글로우에만 쓴다.
+   z-index는 반드시 속지(1)보다 위 — 아래면 봉투 안이 뚫려 보인다. */
 .capsule-envelope__body {
   position: absolute;
   inset: 0;
+  z-index: 2;
   border-radius: 18px;
-  background: var(--brand-gradient, var(--brand));
-  box-shadow: 0 18px 44px -14px var(--brand-glow);
+  background: linear-gradient(165deg, var(--surface-container-high), var(--surface-container));
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow), 0 22px 48px -22px var(--brand-glow);
 }
 
-/* 봉투 덮개 — 위쪽 기준으로 뒤로 젖혀진다 */
+/* 봉투 덮개 — 위쪽 기준으로 뒤로 젖혀진다.
+   clip-path 때문에 border가 안 먹으므로 V자 모서리는 drop-shadow로 그린다. */
 .capsule-envelope__flap {
   position: absolute;
   top: 0;
@@ -24,25 +29,34 @@
   right: 0;
   height: 88px;
   border-radius: 18px 18px 6px 6px;
-  background: var(--brand-dim, var(--brand));
+  background: linear-gradient(180deg, var(--surface-container), var(--surface-container-high));
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   transform-origin: top center;
   z-index: 3;
-  filter: brightness(0.94);
+  filter: drop-shadow(0 1px 0 var(--card-border)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.14));
 }
 
-/* 밀랍 인장 */
+/* 밀랍 인장 — 이모지 대신 브랜드 디스크 + hairline 글리프 */
 .capsule-envelope__seal {
   position: absolute;
-  top: 68px;
+  top: 64px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 4;
-  font-size: 34px;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, var(--brand), var(--brand-dim));
+  box-shadow:
+    0 8px 18px -6px var(--brand-glow),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.26);
+  color: var(--on-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 봉투 속 편지 */
+/* 봉투 속 편지 — 개봉 연출에서 솟아오르는 종이 */
 .capsule-envelope__letter {
   position: absolute;
   left: 16px;
@@ -50,13 +64,17 @@
   bottom: 12px;
   height: 120px;
   border-radius: 12px;
-  background: var(--surface, #fff);
+  background:
+    repeating-linear-gradient(
+        180deg,
+        transparent 0 15px,
+        var(--card-border) 15px 16px
+      )
+      center 22px / 72% 92px no-repeat,
+    var(--surface-container);
+  border: 1px solid var(--card-border);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 34px;
 }
 
 /* 개봉 연출 단계 */
@@ -142,6 +160,170 @@
   50% {
     transform: translateY(-7px);
   }
+}
+
+/* ── 봉인 다이얼 ─────────────────────────────────────────────────
+   아직 못 여는 캡슐은 봉투를 보여주지 않는다. 봉투는 "열 수 있다"는 신호라서다.
+   대신 금고 다이얼 — 봉인일→개봉일의 경과를 눈금과 링으로 읽힌다.
+   기다림이 빈 화면이 아니라 진행 중인 상태로 보이는 게 목적. */
+.capsule-dial {
+  position: relative;
+  width: 208px;
+  height: 208px;
+  margin: 0 auto;
+  animation: capsule-dial-in 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.capsule-dial__halo {
+  position: absolute;
+  inset: -16%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--brand-glow) 0%, transparent 62%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 12시 방향에서 시계 방향으로 차오르게 */
+.capsule-dial__svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+/* 눈금 60개 — dasharray로 그린다(요소 60개를 만들지 않는다).
+   stroke-width가 반지름 방향이라 짧은 dash가 방사형 눈금이 된다. */
+.capsule-dial__ticks {
+  stroke: var(--text-muted);
+  opacity: 0.3;
+}
+
+.capsule-dial__track {
+  stroke: var(--card-border);
+}
+
+.capsule-dial__arc {
+  stroke: var(--brand);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.capsule-dial__core {
+  position: absolute;
+  inset: 30px;
+  border-radius: 50%;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.capsule-dial__lock {
+  color: var(--brand);
+  opacity: 0.85;
+}
+
+.capsule-dial__label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.capsule-dial__dday {
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.capsule-dial__elapsed {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+@keyframes capsule-dial-in {
+  from {
+    opacity: 0;
+    transform: scale(0.93);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── 봉인된 편지 프리뷰 ───────────────────────────────────────────
+   서버가 내용을 내려주지 않는다는 사실 자체를 화면 언어로 쓴다.
+   블러 처리된 글줄 = "안에 뭔가 들어 있다"는 촉감. */
+.capsule-redacted {
+  border-radius: 20px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  padding: 20px 20px 0;
+  text-align: left;
+  overflow: hidden;
+}
+
+.capsule-redacted__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.capsule-redacted__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  filter: blur(4px);
+  opacity: 0.42;
+  user-select: none;
+}
+
+.capsule-redacted__line {
+  height: 10px;
+  border-radius: 99px;
+  background: var(--text-muted);
+}
+
+.capsule-redacted__strip {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  filter: blur(4px);
+  opacity: 0.32;
+  user-select: none;
+}
+
+.capsule-redacted__thumb {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  background: var(--text-muted);
+}
+
+.capsule-redacted__foot {
+  margin: 20px -20px 0;
+  padding: 13px 20px 15px;
+  border-top: 1px dashed var(--card-border);
+  background: var(--brand-soft);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand);
+  text-align: center;
 }
 
 /* ── 폴라로이드 사진 ─────────────────────────────────────────────
