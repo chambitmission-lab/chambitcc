@@ -90,6 +90,14 @@ export const usePrayerTimer = ({ onComplete, onHalfway }: UsePrayerTimerProps = 
     }
   }, [isPaused, clearTimer, onComplete, onHalfway])
 
+  // 기도가 길어질 때 남은 시간을 늘린다 (일시정지 중에도 허용)
+  const extendTimer = useCallback((seconds: number) => {
+    if (!isRunning) return
+    totalRef.current += seconds
+    setTotalSeconds((prev) => prev + seconds)
+    setTimeLeft((prev) => prev + seconds)
+  }, [isRunning])
+
   const resetTimer = useCallback(() => {
     clearTimer()
     setTimeLeft(0)
@@ -131,5 +139,6 @@ export const usePrayerTimer = ({ onComplete, onHalfway }: UsePrayerTimerProps = 
     pauseTimer,
     resumeTimer,
     resetTimer,
+    extendTimer,
   }
 }

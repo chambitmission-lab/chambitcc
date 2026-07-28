@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useDailyVerse } from '../../hooks/useDailyVerse'
@@ -15,6 +15,9 @@ import { PRAYER_THEMES } from './prayerThemes'
 import type { PrayerTheme } from './prayerThemes'
 import { AMBIENCE_TRACKS } from './ambienceTracks'
 import { useAmbience } from './useAmbience'
+import { useWakeLock } from './useWakeLock'
+import { ACTS_SEGMENTS } from './actsSegments'
+import SegmentGuide from './SegmentGuide'
 
 type Stage = 'setup' | 'ritual' | 'praying'
 
@@ -35,11 +38,15 @@ const PrayerFocus = () => {
   const [selectedTheme, setSelectedTheme] = useState<PrayerTheme | null>(null)
   const [ambienceId, setAmbienceId] = useState<string>('silent')
   const [showMidVerse, setShowMidVerse] = useState(false)
+  const [guidedMode, setGuidedMode] = useState(false)
+  const [soundMuted, setSoundMuted] = useState(false)
+  const [guideSegIndex, setGuideSegIndex] = useState<number | null>(null)
 
   const ambience = useAmbience(ambienceId)
 
   const {
     timeLeft,
+    totalSeconds,
     isRunning,
     isPaused,
     isComplete,
@@ -47,6 +54,7 @@ const PrayerFocus = () => {
     pauseTimer,
     resumeTimer,
     resetTimer,
+    extendTimer,
   } = usePrayerTimer({
     onComplete: () => {
       if ('vibrate' in navigator) {
@@ -56,6 +64,31 @@ const PrayerFocus = () => {
     },
     onHalfway: () => setShowMidVerse(true),
   })
+
+  // 기도 중 화면이 자동으로 꺼지지 않도록 유지
+  useWakeLock(stage === 'praying' && !isComplete)
+
+  // ACTS 구간 안내 — 경과 시간을 4등분해 현재 구간을 계산
+  const actsIndex =
+    guidedMode && totalSeconds > 0
+      ? Math.min(3, Math.floor(((totalSeconds - timeLeft) / totalSeconds) * 4))
+      : -1
+  const prevActsRef = useRef(-1)
+  useEffect(() => {
+    if (actsIndex < 0) {
+      prevActsRef.current = -1
+      return
+    }
+    // 앞으로 나아갈 때만 안내를 띄운다 (+5분 연장으로 인덱스가 되돌아가는 경우는 무시)
+    if (actsIndex > prevActsRef.current) {
+      const isFirst = prevActsRef.current === -1
+      prevActsRef.current = actsIndex
+      setGuideSegIndex(actsIndex)
+      if (!isFirst && 'vibrate' in navigator) {
+        navigator.vibrate(40)
+      }
+    }
+  }, [actsIndex])
 
   // 주제별 시작 멘트(없으면 기본 골방 말씀)
   const ritualQuoteKey = selectedTheme?.startQuoteKey
@@ -70,6 +103,7 @@ const PrayerFocus = () => {
     if (!selectedMinutes) return
     setStage('praying')
     setShowMidVerse(false)
+    setSoundMuted(false)
     ambience.play()
     startTimer(selectedMinutes * 60)
   }
@@ -83,12 +117,25 @@ const PrayerFocus = () => {
 
   const handleResume = () => {
     resumeTimer()
-    ambience.play()
+    if (!soundMuted) ambience.play()
+  }
+
+  // 기도 중 배경음만 켜고 끄기 (타이머와 무관)
+  const handleToggleSound = () => {
+    if (soundMuted) {
+      setSoundMuted(false)
+      if (!isPaused) ambience.play()
+    } else {
+      setSoundMuted(true)
+      ambience.pause()
+    }
   }
 
   const handleReset = () => {
     resetTimer()
     setShowMidVerse(false)
+    setGuideSegIndex(null)
+    setSoundMuted(false)
     ambience.stop()
     setStage('setup')
     setSelectedMinutes(null)
@@ -107,7 +154,7 @@ const PrayerFocus = () => {
   if (isComplete && selectedMinutes) {
     return (
       <SessionComplete
-        duration={selectedMinutes}
+        duration={Math.round(totalSeconds / 60) || selectedMinutes}
         theme={selectedTheme}
         mood={mood}
         verseId={verse?.id}
@@ -147,32 +194,69 @@ const PrayerFocus = () => {
           <span className="material-icons-outlined text-lg text-white/60">close</span>
         </button>
 
-        {/* 중간 말씀(절반 시점 fade-in) */}
+        {/* 중간 말씀(절반 시점 fade-in) — 구간 안내 모드에서는 구간 안내가 대신한다 */}
         <MidPrayerVerse
-          show={showMidVerse}
+          show={showMidVerse && !guidedMode}
           verseText={selectedTheme?.midVerseTextKey ? tx(selectedTheme.midVerseTextKey) : verse?.content}
           verseRef={selectedTheme?.midVerseRefKey ? tx(selectedTheme.midVerseRefKey) : verse?.reference}
           onHide={() => setShowMidVerse(false)}
         />
 
-        {/* 컴팩트 타이머 — 화면 가운데 작게 */}
+        {/* ACTS 구간 진입 안내 */}
+        {guidedMode && (
+          <SegmentGuide
+            segment={guideSegIndex !== null ? ACTS_SEGMENTS[guideSegIndex] : null}
+            accentText={mood.accentText}
+            onHide={() => setGuideSegIndex(null)}
+          />
+        )}
+
+        {/* 포모도로 다이얼 — 화면 가운데 */}
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
+          {/* 상단 칩 — 구간 안내 모드면 현재 구간, 아니면 선택한 테마.
+              위쪽 안내/말씀이 떠 있는 동안은 겹치지 않게 잠깐 숨긴다 */}
+          {guidedMode && actsIndex >= 0 ? (
+            <div
+              className={`mb-8 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md transition-opacity duration-700 ${
+                guideSegIndex !== null ? 'opacity-0' : 'opacity-100'
+              }`}
+            >
+              <span className="material-icons-outlined text-sm text-white/60">{ACTS_SEGMENTS[actsIndex].icon}</span>
+              <span className="text-xs text-white/70 tracking-wide">{tx(ACTS_SEGMENTS[actsIndex].labelKey)}</span>
+              <span className="text-[10px] text-white/35 tabular-nums">{actsIndex + 1}/4</span>
+            </div>
+          ) : selectedTheme ? (
+            <div
+              className={`mb-8 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md transition-opacity duration-700 ${
+                showMidVerse ? 'opacity-0' : 'opacity-100'
+              }`}
+            >
+              <span className="material-icons-outlined text-sm text-white/60">{selectedTheme.icon}</span>
+              <span className="text-xs text-white/70 tracking-wide">{tx(selectedTheme.labelKey)}</span>
+            </div>
+          ) : null}
+
           <TimerDisplay
             timeLeft={timeLeft}
-            totalSeconds={selectedMinutes * 60}
-            compact
+            totalSeconds={totalSeconds}
+            isPaused={isPaused}
+            statusLabel={isPaused ? t('timerPausedBadge') : t('praying')}
             ringFrom={mood.ringFrom}
             ringTo={mood.ringTo}
+            segmented={guidedMode}
           />
 
-          {/* 일시정지/재개 버튼은 매우 작게 */}
-          <div className="mt-12">
+          <div className="mt-14">
             <TimerControls
-              isRunning={isRunning}
               isPaused={isPaused}
+              buttonGradient={mood.buttonGradient}
               onPause={handlePause}
               onResume={handleResume}
               onReset={handleReset}
+              onExtend={() => extendTimer(5 * 60)}
+              showSoundToggle={ambienceId !== 'silent'}
+              isMuted={soundMuted}
+              onToggleSound={handleToggleSound}
             />
           </div>
         </div>
@@ -247,6 +331,41 @@ const PrayerFocus = () => {
               })}
             </div>
             <p className="text-white/30 text-[10px] text-center mt-2">{t('prayerThemeOptional')}</p>
+          </div>
+
+          {/* 구간 안내 기도(ACTS) 토글 */}
+          <div className="w-full mb-6">
+            <button
+              onClick={() => setGuidedMode((v) => !v)}
+              role="switch"
+              aria-checked={guidedMode}
+              className={`w-full rounded-2xl py-3.5 px-4 flex items-center justify-between border transition-all backdrop-blur-md ${
+                guidedMode
+                  ? 'bg-white/[0.09] border-white/25'
+                  : 'bg-white/[0.04] border-white/10 hover:bg-white/[0.07]'
+              }`}
+            >
+              <div className="flex items-center gap-3 text-left">
+                <span className={`material-icons-outlined text-xl ${guidedMode ? mood.accentText : 'text-white/45'}`}>
+                  signpost
+                </span>
+                <div>
+                  <div className="text-sm font-semibold text-white/90">{t('guidedPrayerTitle')}</div>
+                  <div className="text-[11px] text-white/45 mt-0.5">{t('guidedPrayerDesc')}</div>
+                </div>
+              </div>
+              <div
+                className={`shrink-0 w-10 h-6 rounded-full p-0.5 transition-colors ${
+                  guidedMode ? `bg-gradient-to-r ${mood.buttonGradient}` : 'bg-white/15'
+                }`}
+              >
+                <div
+                  className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                    guidedMode ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                ></div>
+              </div>
+            </button>
           </div>
 
           {/* 사운드(ambience) 선택 */}

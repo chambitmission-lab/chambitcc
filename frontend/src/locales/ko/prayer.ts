@@ -53,6 +53,25 @@ export const prayer = {
   startAgain: '다시 시작하기',
   confirmExitTimer: '타이머가 실행 중입니다. 종료하시겠습니까?',
 
+  // 기도 중 타이머 컨트롤
+  timerPause: '잠시 멈춤',
+  timerResume: '이어서 기도',
+  timerRestart: '처음부터',
+  timerExtendFive: '5분 더',
+  timerPausedBadge: '잠시 멈춤',
+
+  // 구간 안내 기도 (ACTS)
+  guidedPrayerTitle: '구간 안내 기도',
+  guidedPrayerDesc: '경배 → 회개 → 감사 → 간구 순서로 이끌어드려요',
+  actsAdoration: '경배',
+  actsAdorationGuide: '하나님이 어떤 분이신지 먼저 높여드리세요',
+  actsConfession: '회개',
+  actsConfessionGuide: '정직하게 마음을 열고 하나님께 돌이키세요',
+  actsThanksgiving: '감사',
+  actsThanksgivingGuide: '베풀어주신 은혜를 하나하나 세어보세요',
+  actsSupplication: '간구',
+  actsSupplicationGuide: '나와 이웃을 위해 구체적으로 간구하세요',
+
   // 감성형 시간 라벨
   timeShortStay: '짧게 머물기',
   timeQuietFocus: '조용히 집중하기',

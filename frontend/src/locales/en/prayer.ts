@@ -53,6 +53,25 @@ export const prayer = {
   startAgain: 'Start Again',
   confirmExitTimer: 'Timer is running. Do you want to exit?',
 
+  // In-prayer timer controls
+  timerPause: 'Pause',
+  timerResume: 'Resume',
+  timerRestart: 'Restart',
+  timerExtendFive: '+5 min',
+  timerPausedBadge: 'Paused',
+
+  // Guided prayer (ACTS)
+  guidedPrayerTitle: 'Guided Prayer',
+  guidedPrayerDesc: 'Adoration → Confession → Thanksgiving → Supplication',
+  actsAdoration: 'Adoration',
+  actsAdorationGuide: 'Begin by praising God for who He is',
+  actsConfession: 'Confession',
+  actsConfessionGuide: 'Open your heart honestly and turn back to Him',
+  actsThanksgiving: 'Thanksgiving',
+  actsThanksgivingGuide: 'Count His graces one by one',
+  actsSupplication: 'Supplication',
+  actsSupplicationGuide: 'Bring your needs and your neighbors before Him',
+
   // Emotional time labels
   timeShortStay: 'A brief moment',
   timeQuietFocus: 'Quiet focus',
