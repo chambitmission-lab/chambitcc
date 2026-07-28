@@ -64,10 +64,16 @@ export default {
           "0%, 100%": { filter: "drop-shadow(0 0 2px rgba(251,146,60,0.3))" },
           "50%": { filter: "drop-shadow(0 0 9px rgba(251,146,60,0.75))" },
         },
+        // 달력 드롭다운 등장 — 트리거 쪽에서 살짝 내려오며 또렷해진다
+        "pop-in": {
+          from: { opacity: "0", transform: "translateY(-4px) scale(0.98)" },
+          to: { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
       },
       animation: {
         "streak-flame": "streak-flame 1.8s ease-in-out infinite",
         "streak-glow": "streak-glow 1.8s ease-in-out infinite",
+        "pop-in": "pop-in 0.14s ease-out",
       },
     },
   },

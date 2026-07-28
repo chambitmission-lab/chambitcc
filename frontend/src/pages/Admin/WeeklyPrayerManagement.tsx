@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
+import DatePicker from '../../components/common/DatePicker'
 import {
   getAllWeeklyPrayers,
   getWeeklyPrayer,
@@ -234,8 +235,10 @@ const WeeklyPrayerManagement = () => {
     window.open(`${window.location.origin}${window.location.pathname}${hash}`, '_blank')
   }
 
+  // brand 계열은 CSS 변수 색이라 투명도 수식자(border-brand/60 등)가 생성되지
+  // 않는다 — 옅은 톤이 필요하면 --brand-soft / --brand-glow 토큰을 쓴다
   const inputCls =
-    'w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
+    'w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors'
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
@@ -244,7 +247,7 @@ const WeeklyPrayerManagement = () => {
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
@@ -252,7 +255,7 @@ const WeeklyPrayerManagement = () => {
             <span className="text-sm font-semibold">뒤로</span>
           </button>
           <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">공동 기도제목</h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
             ADMIN
           </span>
         </div>
@@ -261,7 +264,7 @@ const WeeklyPrayerManagement = () => {
         <div className="px-4 pt-4 flex gap-2">
           <button
             onClick={openNew}
-            className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-sm font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors active:scale-[0.98]"
           >
             + 새 기도제목
           </button>
@@ -297,25 +300,25 @@ const WeeklyPrayerManagement = () => {
                 </button>
               </div>
 
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <label className="block text-[11px] font-semibold text-gray-500 dark:text-white/50 mb-1">주일 날짜</label>
-                  <input
-                    type="date"
-                    value={composer.weekDate}
-                    onChange={(e) => setComposer((c) => ({ ...c, weekDate: e.target.value }))}
-                    className={inputCls}
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-[11px] font-semibold text-gray-500 dark:text-white/50 mb-1">제목</label>
-                  <input
-                    type="text"
-                    value={composer.title}
-                    onChange={(e) => setComposer((c) => ({ ...c, title: e.target.value }))}
-                    className={inputCls}
-                  />
-                </div>
+              {/* 날짜는 "2026년 8월 2일 (일)"까지 다 보여야 해 한 줄을 통째로 쓴다
+                  (반폭이면 좁은 화면에서 요일이 잘린다) */}
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-500 dark:text-white/50 mb-1">주일 날짜</label>
+                <DatePicker
+                  value={composer.weekDate}
+                  onChange={(weekDate) => setComposer((c) => ({ ...c, weekDate }))}
+                  sundayMode
+                  className={`${inputCls} flex items-center justify-between gap-2 text-left`}
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-500 dark:text-white/50 mb-1">제목</label>
+                <input
+                  type="text"
+                  value={composer.title}
+                  onChange={(e) => setComposer((c) => ({ ...c, title: e.target.value }))}
+                  className={inputCls}
+                />
               </div>
 
               {/* 붙여넣기 파싱 */}
@@ -333,7 +336,7 @@ const WeeklyPrayerManagement = () => {
                 <button
                   onClick={handleParse}
                   disabled={parsing}
-                  className="mt-1.5 w-full py-2 rounded-xl bg-purple-500/10 dark:bg-purple-500/15 border border-purple-500/30 text-purple-700 dark:text-purple-300 text-sm font-bold hover:bg-purple-500/20 disabled:opacity-50 transition-colors"
+                  className="mt-1.5 w-full py-2 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-glow)] text-brand text-sm font-bold hover:bg-[var(--brand-soft-strong)] disabled:opacity-50 transition-colors"
                 >
                   {parsing ? '정리 중...' : '✨ 항목으로 자동 정리'}
                 </button>
@@ -348,7 +351,7 @@ const WeeklyPrayerManagement = () => {
                       className="rounded-xl border border-gray-200 dark:border-white/[0.08] p-3 space-y-2 bg-gray-50/60 dark:bg-white/[0.02]"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-purple-600 dark:text-purple-300">{i + 1}번</span>
+                        <span className="text-xs font-bold text-brand">{i + 1}번</span>
                         <div className="flex gap-1 text-gray-400">
                           <button onClick={() => moveItem(i, -1)} disabled={i === 0} className="px-1.5 disabled:opacity-30 hover:text-gray-700 dark:hover:text-white">↑</button>
                           <button onClick={() => moveItem(i, 1)} disabled={i === composer.items.length - 1} className="px-1.5 disabled:opacity-30 hover:text-gray-700 dark:hover:text-white">↓</button>
@@ -383,7 +386,7 @@ const WeeklyPrayerManagement = () => {
 
               <button
                 onClick={addItem}
-                className="w-full py-2 rounded-xl border border-dashed border-gray-300 dark:border-white/[0.15] text-sm text-gray-500 dark:text-white/50 hover:border-purple-400 hover:text-purple-600 transition-colors"
+                className="w-full py-2 rounded-xl border border-dashed border-gray-300 dark:border-white/[0.15] text-sm text-gray-500 dark:text-white/50 hover:border-brand hover:text-brand transition-colors"
               >
                 + 항목 직접 추가
               </button>
@@ -393,7 +396,7 @@ const WeeklyPrayerManagement = () => {
                   type="checkbox"
                   checked={composer.isPublished}
                   onChange={(e) => setComposer((c) => ({ ...c, isPublished: e.target.checked }))}
-                  className="w-4 h-4 accent-purple-600"
+                  className="w-4 h-4 accent-[var(--brand)]"
                 />
                 바로 공개 (해제하면 임시저장 상태)
               </label>
@@ -401,7 +404,7 @@ const WeeklyPrayerManagement = () => {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold disabled:opacity-50 transition-colors"
+                className="w-full py-3 rounded-xl bg-brand hover:bg-brand-dim text-white text-sm font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] disabled:opacity-50 transition-colors active:scale-[0.99]"
               >
                 {saving ? '저장 중...' : composer.editingId ? '수정 저장' : '등록하기'}
               </button>
