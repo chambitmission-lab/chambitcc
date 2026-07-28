@@ -19,6 +19,10 @@ interface VerseItemProps {
   isRead: boolean
   onReadSuccess: (verseId: number, similarity: number) => void
   onEdit?: (verse: BibleVerse) => void
+  // 관리자 전용: 음성 낭독 없이 읽음/읽음취소를 수동으로 처리
+  onToggleRead?: (verse: BibleVerse, nextRead: boolean) => void
+  // 이 절의 수동 읽음 처리가 진행 중 (중복 클릭 방지)
+  isTogglingRead?: boolean
   onShowCommentary?: (verse: BibleVerse) => void
   // 오디오북을 이 절부터 재생 (절 메뉴 '여기부터 듣기')
   onListenFrom?: (verse: BibleVerse) => void
@@ -63,7 +67,7 @@ const resolveNoteRange = (note: WordNote, text: string): [number, number] | null
   return idx >= 0 ? [idx, idx + note.word.length] : null
 }
 
-const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange, wordNotes, chapterBookmark }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onToggleRead, isTogglingRead, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange, wordNotes, chapterBookmark }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
@@ -635,7 +639,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             )}
 
             {/* 구분선: 묵상 ↔ 관리자 그룹 분리 */}
-            {isAdminUser && onEdit && (
+            {isAdminUser && (onEdit || onToggleRead) && (
               <span
                 aria-hidden
                 style={{
@@ -646,6 +650,44 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
                   flexShrink: 0,
                 }}
               />
+            )}
+
+            {/* 수동 읽음 처리 (관리자) — 일반 사용자는 음성 낭독으로만 읽음 처리되지만,
+                관리자는 검수/보정을 위해 이 버튼으로 바로 읽음/읽음취소를 토글한다. */}
+            {isAdminUser && onToggleRead && (
+              <button
+                onClick={() => { if (!isTogglingRead) onToggleRead(verse, !isRead) }}
+                className="verse-action-btn"
+                disabled={isTogglingRead}
+                style={
+                  isRead
+                    ? {
+                        background: 'color-mix(in srgb, var(--ig-success) 18%, transparent)',
+                        border: '1px solid color-mix(in srgb, var(--ig-success) 45%, transparent)',
+                        opacity: isTogglingRead ? 0.5 : 1,
+                        cursor: isTogglingRead ? 'wait' : 'pointer',
+                      }
+                    : {
+                        background: 'rgba(148, 163, 184, 0.1)',
+                        border: '1px solid rgba(148, 163, 184, 0.24)',
+                        opacity: isTogglingRead ? 0.5 : 0.85,
+                        cursor: isTogglingRead ? 'wait' : 'pointer',
+                      }
+                }
+                title={isRead ? '읽음 취소 (관리자)' : '읽음 처리 (관리자)'}
+                aria-label={isRead ? '읽음 취소 (관리자)' : '읽음 처리 (관리자)'}
+                tabIndex={showActions ? 0 : -1}
+              >
+                <span
+                  className="material-icons-round"
+                  style={{
+                    fontSize: '1.125rem',
+                    color: isRead ? 'var(--ig-success)' : '#94a3b8',
+                  }}
+                >
+                  {isRead ? 'remove_done' : 'task_alt'}
+                </span>
+              </button>
             )}
 
             {/* 보조 액션: 구절 수정 (관리자) */}

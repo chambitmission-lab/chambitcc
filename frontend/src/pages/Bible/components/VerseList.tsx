@@ -5,7 +5,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
 import VerseItem from './VerseItem'
 import ChapterLoader from './ChapterLoader'
-import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
+import { useChapterReadStatus, useMarkVerseAsRead, useUnmarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { celebrateFlowerBloom } from '../../../utils/confettiEffects'
 import VerseEditModal from '../../../components/bible/VerseEditModal'
 import BibleCommentaryPanel from '../../../components/bible/BibleCommentaryPanel'
@@ -135,7 +135,11 @@ const VerseList = ({
   
   // 읽음 처리 Mutation
   const markAsReadMutation = useMarkVerseAsRead()
-  
+  // 읽음 취소 Mutation (관리자 수동 처리용)
+  const unmarkAsReadMutation = useUnmarkVerseAsRead()
+  // 관리자 수동 읽음 처리 중인 절 — 중복 클릭 방지
+  const [togglingVerseId, setTogglingVerseId] = useState<number | null>(null)
+
   // 읽은 구절 Set 생성 (백엔드 데이터 기반)
   const readVerses = useMemo(() => {
     if (!readStatusData?.verses) return new Set<number>()
@@ -181,6 +185,33 @@ const VerseList = ({
     }
   }
   
+  // 관리자 수동 읽음 처리/취소 — 음성 낭독 없이 상태만 바꾼다.
+  // similarity는 수동 처리임을 뜻하는 1.0으로 보낸다(백엔드 최소 임계값 0.75 충족).
+  const handleToggleRead = async (verse: BibleVerse, nextRead: boolean) => {
+    if (togglingVerseId != null) return
+    setTogglingVerseId(verse.id)
+    try {
+      if (nextRead) {
+        await markAsReadMutation.mutateAsync({ verseId: verse.id, similarity: 1 })
+        showToast(`${verse.verse}절을 읽음 처리했습니다`, 'success')
+      } else {
+        await unmarkAsReadMutation.mutateAsync(verse.id)
+        showToast(`${verse.verse}절 읽음을 취소했습니다`, 'info')
+      }
+      await refetchReadStatus()
+    } catch (error: any) {
+      // 이미 읽음 상태면 화면만 동기화하면 된다
+      if (error?.message === 'ALREADY_READ') {
+        await refetchReadStatus()
+      } else {
+        console.error('Failed to toggle read state:', error)
+        showToast(nextRead ? '읽음 처리에 실패했습니다' : '읽음 취소에 실패했습니다', 'error')
+      }
+    } finally {
+      setTogglingVerseId(null)
+    }
+  }
+
   // 구절 수정 핸들러 (관리자용)
   const handleEditVerse = (verse: BibleVerse) => {
     setEditingVerse(verse)
@@ -557,6 +588,8 @@ const VerseList = ({
                   isRead={readVerses.has(verse.id)}
                   onReadSuccess={handleReadSuccess}
                   onEdit={handleEditVerse}
+                  onToggleRead={handleToggleRead}
+                  isTogglingRead={togglingVerseId === verse.id}
                   onShowCommentary={handleShowCommentary}
                   onListenFrom={onListenFromVerse ? (v) => onListenFromVerse(v.verse) : undefined}
                   hasCommentary={verseHasCommentaryMap.has(verse.verse)}
