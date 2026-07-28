@@ -78,13 +78,23 @@ const WeeklyPrayerScreen = () => {
           <div className="flex-1 flex flex-col justify-center gap-[4.5vh] pb-[4vh]">
             {prayer.items.map((item, i) => (
               <div key={item.id ?? i}>
-                <p
-                  className="font-bold leading-[1.55]"
-                  style={{ fontSize: 'clamp(20px, 3.1vmin, 44px)' }}
-                >
-                  {i + 1}. {item.title}
-                </p>
-                {item.body && (
+                {item.title ? (
+                  <p
+                    className="font-bold leading-[1.55]"
+                    style={{ fontSize: 'clamp(20px, 3.1vmin, 44px)' }}
+                  >
+                    {i + 1}. {item.title}
+                  </p>
+                ) : (
+                  // 제목 없는 통문단 형태 — 번호 + 기도문 전문
+                  <p
+                    className="leading-[1.75]"
+                    style={{ fontSize: 'clamp(18px, 2.8vmin, 40px)' }}
+                  >
+                    <span className="font-bold">{i + 1}.</span> {item.body}
+                  </p>
+                )}
+                {item.title && item.body && (
                   <p
                     className="mt-[1.2vh] pl-[2.2vw] leading-[1.75]"
                     style={{

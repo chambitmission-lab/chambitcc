@@ -171,7 +171,8 @@ const WeeklyPrayerManagement = () => {
         body: i.body?.trim() || null,
         scripture: i.scripture?.trim() || null,
       }))
-      .filter((i) => i.title.length > 0)
+      // 제목 없이 기도문만 있는 항목도 허용
+      .filter((i) => i.title.length > 0 || (i.body ?? '').length > 0)
     if (items.length === 0) {
       showToast('기도제목 항목을 1개 이상 입력해 주세요', 'error')
       return
@@ -358,7 +359,7 @@ const WeeklyPrayerManagement = () => {
                         type="text"
                         value={item.title}
                         onChange={(e) => setItem(i, { title: e.target.value })}
-                        placeholder="기도제목 (한 줄)"
+                        placeholder="기도제목 (한 줄) — 비우면 기도문만 표시됩니다"
                         className={inputCls}
                       />
                       <textarea

@@ -211,11 +211,18 @@ const WeeklyPrayerTopics = () => {
                     <span className="shrink-0 w-7 h-7 rounded-full bg-[var(--brand-soft-strong)] text-brand text-sm font-bold flex items-center justify-center">
                       {i + 1}
                     </span>
-                    <p className="text-[15px] font-bold leading-relaxed text-ink-strong pt-0.5">
-                      {item.title}
-                    </p>
+                    {item.title ? (
+                      <p className="text-[15px] font-bold leading-relaxed text-ink-strong pt-0.5">
+                        {item.title}
+                      </p>
+                    ) : (
+                      // 제목 없는 통문단 형태 — 기도문 자체를 본문으로
+                      <p className="text-[14.5px] leading-[1.8] text-ink-strong pt-0.5">
+                        {item.body}
+                      </p>
+                    )}
                   </div>
-                  {item.body && (
+                  {item.title && item.body && (
                     <p className="mt-3 pl-10 text-[14px] leading-[1.8] text-gray-600 dark:text-white/70">
                       “{item.body}”
                     </p>
