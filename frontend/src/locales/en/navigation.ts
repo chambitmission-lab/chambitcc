@@ -19,6 +19,7 @@ export const navigation = {
   notificationManagement: '📢 Notification Management',
   dailyVerseManagement: '📖 Daily Verse Management',
   bulletinManagement: '📰 Bulletin Management',
+  weeklyPrayerManagement: '🙏 Weekly Prayer Topics',
   newFamilyManagement: '🌱 New Family Album',
   events: 'Events',
   eventManagement: '📅 Event Management',

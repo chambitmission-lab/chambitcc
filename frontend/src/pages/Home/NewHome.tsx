@@ -11,6 +11,7 @@ import TimeCapsuleCard from './components/TimeCapsuleCard'
 import TodayPlanCard from './components/TodayPlanCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import ThanksTicker from './components/ThanksTicker'
+import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
 // 오늘의 감사 — 임시 비활성화. 다시 활성화하려면 아래 import와 <ThanksThread /> 주석을 해제하세요.
 // import ThanksThread from './components/ThanksThread'
 import SortTabs from './components/SortTabs'
@@ -245,6 +246,7 @@ const NewHome = () => {
               </p>
               <div className="feed-card rounded-2xl overflow-hidden divide-y divide-[var(--card-border)]">
                 <ThanksTicker />
+                <WeeklyPrayerBanner />
                 <AnsweredPrayersBanner />
               </div>
             </section>

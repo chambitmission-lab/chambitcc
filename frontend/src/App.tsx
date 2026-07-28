@@ -88,6 +88,9 @@ const VerseAlarmPage = lazy(() => import('./pages/Bible/VerseAlarm/VerseAlarmPag
 const SituationManagement = lazy(() => import('./pages/Admin/SituationManagement'))
 const CultureManagement = lazy(() => import('./pages/Admin/CultureManagement'))
 const BibleEngagementManagement = lazy(() => import('./pages/Admin/BibleEngagementManagement'))
+const WeeklyPrayerManagement = lazy(() => import('./pages/Admin/WeeklyPrayerManagement'))
+const WeeklyPrayerTopics = lazy(() => import('./pages/Prayer/WeeklyPrayerTopics'))
+const WeeklyPrayerScreen = lazy(() => import('./pages/Prayer/WeeklyPrayerScreen'))
 
 import './App.css'
 import './styles/common.css'
@@ -217,6 +220,9 @@ function App() {
                 <Route path="/groups/join/:code" element={<JoinGroup />} />
                 <Route path="/groups/:id" element={<GroupDetail />} />
                 <Route path="/prayer-focus" element={<PrayerFocus />} />
+                <Route path="/prayer-topics" element={<WeeklyPrayerTopics />} />
+                <Route path="/prayer-topics/screen" element={<WeeklyPrayerScreen />} />
+                <Route path="/admin/weekly-prayers" element={<WeeklyPrayerManagement />} />
                 <Route path="/answered-prayers" element={<AnsweredPrayers />} />
                 <Route path="/thanks" element={<Thanks />} />
                 <Route path="/bible" element={<BibleStudy />} />

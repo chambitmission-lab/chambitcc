@@ -7,6 +7,7 @@ type AdminItemKey =
   | 'eventManagement' | 'biblePlanManagement' | 'bibleCommentaryManagement'
   | 'situationManagement' | 'cultureManagement' | 'pushNotificationManagement'
   | 'userManagement' | 'groupManagement' | 'bibleEngagementManagement'
+  | 'weeklyPrayerManagement'
 
 type AdminGroupKey =
   | 'adminGroupContent' | 'adminGroupComm' | 'adminGroupOps' | 'adminGroupMembers'
@@ -28,6 +29,7 @@ const ADMIN_GROUPS: AdminGroup[] = [
     items: [
       { path: '/admin/daily-verse', key: 'dailyVerseManagement' },
       { path: '/admin/bulletins', key: 'bulletinManagement' },
+      { path: '/admin/weekly-prayers', key: 'weeklyPrayerManagement' },
       { path: '/admin/new-family', key: 'newFamilyManagement' },
       { path: '/admin/bible-plans', key: 'biblePlanManagement' },
       { path: '/admin/bible-commentaries', key: 'bibleCommentaryManagement' },
