@@ -400,22 +400,31 @@
   opacity: 0.92;
 }
 
-/* 프레임 하단 여백의 손글씨 캡션 */
+/* 프레임 하단 여백의 손글씨 캡션 —
+   본문 산세리프(Pretendard)로 두면 인화지 위에 인쇄한 라벨처럼 보여 어색하다.
+   실제 펜으로 눌러 쓴 손편지 느낌을 내려고 나눔손글씨 펜을 쓰고,
+   글자가 가늘고 작게 나오는 서체라 크기를 키우고 잉크색으로 살짝 내렸다. */
 .capsule-polaroid__caption,
 .capsule-polaroid__caption-input {
   display: block;
   width: 100%;
-  margin-top: 11px;
+  margin-top: 8px;
   text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: #5f584a;
+  font-family: 'Nanum Pen Script', 'Pretendard', cursive;
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: #4a4335;
   word-break: keep-all;
 }
 
 .capsule-polaroid__caption {
   opacity: 0;
   transition: opacity 1s ease 2s;
+  /* 손글씨는 살짝 기울어 있을 때 더 자연스럽다.
+     (입력 중에는 캐럿까지 같이 기울어 어색하므로 완성된 캡션에만 준다) */
+  transform: rotate(-0.7deg);
 }
 
 .capsule-polaroid--developed .capsule-polaroid__caption {
@@ -429,8 +438,9 @@
 }
 
 .capsule-polaroid__caption-input::placeholder {
-  color: #b8b09e;
+  color: #bdb6a4;
   font-weight: 400;
+  letter-spacing: 0;
 }
 
 /* ── 도착한 캡슐 = 우편함에 놓인 편지 ─────────────────────────────
