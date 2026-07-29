@@ -41,7 +41,7 @@ const SegmentGuide = ({ segment, accentText, visibleMs = 6000, onHide }: Segment
 
   return (
     <div
-      className={`pointer-events-none absolute inset-x-0 top-16 z-20 flex flex-col items-center px-8 text-center transition-all duration-[800ms] ease-out ${
+      className={`pointer-events-none absolute inset-x-0 top-16 z-20 flex flex-col items-center px-5 text-center transition-all duration-[800ms] ease-out ${
         mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
       }`}
     >
@@ -49,7 +49,9 @@ const SegmentGuide = ({ segment, accentText, visibleMs = 6000, onHide }: Segment
         <span className="material-icons-outlined text-base">{segment.icon}</span>
         {tx(segment.labelKey)}
       </div>
-      <p className="mt-3 font-serif italic text-white/90 text-lg leading-relaxed max-w-md">
+      {/* 한글 안내문(18자 내외)이 좁은 폰에서 마지막 한 글자만 떨어지지 않도록
+          폭에 맞춘 clamp 크기 + 단어 단위 줄바꿈(break-keep) + 줄 균형(text-balance) */}
+      <p className="mt-3 font-serif italic text-white/90 text-[clamp(0.875rem,4.1vw,1.125rem)] leading-relaxed max-w-md break-keep text-balance">
         {tx(segment.guideKey)}
       </p>
     </div>
