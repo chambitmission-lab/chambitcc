@@ -799,6 +799,329 @@
   }
 }
 
+/* ── 초대장 = 도착한 편지 한 통 ───────────────────────────────────
+   외부인이 이 앱을 처음 보는 유일한 화면. 브랜드 원색 슬래브 한 장은
+   면적이 커질수록 깊이가 사라져서, 대신 실물 우편물의 재질로 그린다.
+   항공우편 테두리 · 우표 · 소인 · 손글씨 수취인 · 밀랍 인장 · 봉인된 편지지. */
+
+/* 무대 — 봉투가 떠 있을 여백과 브랜드 halo */
+.capsule-invite-stage {
+  position: relative;
+  background: var(--surface);
+  color: var(--text-body);
+  overflow: hidden;
+}
+
+.capsule-invite-stage::before {
+  content: '';
+  position: absolute;
+  top: -18%;
+  left: 50%;
+  width: 132vw;
+  height: 62vh;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, var(--brand-glow) 0%, transparent 68%);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.capsule-invite {
+  position: relative;
+  border-radius: 22px;
+  background: var(--surface-container);
+  box-shadow:
+    var(--card-shadow),
+    0 26px 60px -26px var(--brand-glow);
+  overflow: hidden;
+  animation: capsule-fade-up 0.62s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* 편지지 결 — 폴라로이드/우편 카드와 같은 그레인 */
+.capsule-invite::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity: 0.055;
+}
+
+/* 항공우편 사선 테두리 — 그라데이션을 테두리 폭에만 남기는 mask 조합.
+   (border-image는 radius를 따라가지 않아 모서리가 깨진다) */
+.capsule-invite__border {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 7px;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--brand) 0 7px,
+    transparent 7px 15px,
+    var(--brand-muted) 15px 22px,
+    transparent 22px 30px
+  );
+  opacity: 0.6;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* 우표 + 소인 */
+.capsule-invite__head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 22px 22px 0;
+}
+
+/* 우표 — 가장자리 톱니는 배경색 점선 테두리로 뚫는다 */
+.capsule-invite__stamp {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 54px;
+  border: 3px dotted var(--surface-container);
+  border-radius: 3px;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+  transform: rotate(-2.5deg);
+}
+
+.capsule-invite__stamp svg {
+  width: 20px;
+  height: 20px;
+  opacity: 0.9;
+}
+
+/* 봉인일 소인 — 필름 각인·캡슐함 소인과 같은 monospace */
+.capsule-invite__postmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 11px 6px;
+  border: 1px dashed var(--card-border);
+  border-radius: 10px;
+  font-family: 'Courier New', monospace;
+  color: var(--text-muted);
+  transform: rotate(5deg);
+  opacity: 0.9;
+}
+
+.capsule-invite__postmark b {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  opacity: 0.75;
+}
+
+.capsule-invite__postmark i {
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.capsule-invite__postmark em {
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  opacity: 0.6;
+}
+
+/* 수취인 — 이 편지가 "나에게" 왔다는 사실이 화면의 주인공.
+   본문 산세리프로 두면 인쇄 라벨처럼 보여서, 폴라로이드 캡션과 같은 펜 서체를 쓴다. */
+.capsule-invite__address {
+  position: relative;
+  z-index: 1;
+  margin: 18px 22px 0;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--card-border);
+  font-family: 'Nanum Pen Script', 'Pretendard', cursive;
+  transform: rotate(-0.6deg);
+}
+
+.capsule-invite__from,
+.capsule-invite__to {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+}
+
+.capsule-invite__from {
+  font-size: 21px;
+}
+
+.capsule-invite__to {
+  font-size: 21px;
+  margin-top: 2px;
+}
+
+.capsule-invite__from b {
+  font-weight: 400;
+  font-size: 25px;
+  color: var(--text-body);
+}
+
+.capsule-invite__to b {
+  font-weight: 400;
+  font-size: 33px;
+  line-height: 1.15;
+  color: var(--brand);
+}
+
+/* 밀랍 인장 + D-day */
+.capsule-invite__seal-zone {
+  position: relative;
+  z-index: 1;
+  padding: 22px 22px 4px;
+  text-align: center;
+}
+
+.capsule-invite__seal {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  /* 완전한 원이 아니라 눌려 퍼진 밀랍 — 캡슐함 인장과 같은 규칙 */
+  border-radius: 47% 53% 52% 48% / 50% 46% 54% 50%;
+  transform: rotate(-6deg);
+  background: linear-gradient(160deg, var(--brand), var(--brand-dim));
+  color: var(--on-brand);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.3),
+    0 10px 22px -8px var(--brand-glow);
+}
+
+.capsule-invite__seal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(115% 105% at 30% 22%, rgba(255, 255, 255, 0.5), transparent 58%);
+  mix-blend-mode: soft-light;
+}
+
+.capsule-invite__dday {
+  margin-top: 12px;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.capsule-invite__dday--now {
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  color: var(--brand);
+}
+
+.capsule-invite__dday-sub {
+  margin-top: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* 봉인된 편지지 — 서버가 내용을 안 내려준다는 사실을 촉감으로 */
+.capsule-invite__letter {
+  position: relative;
+  z-index: 1;
+  margin: 20px 22px 0;
+  padding: 18px 18px 16px;
+  border-radius: 16px;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+}
+
+.capsule-invite__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  filter: blur(4px);
+  opacity: 0.4;
+  user-select: none;
+}
+
+.capsule-invite__lines span {
+  height: 9px;
+  border-radius: 99px;
+  background: var(--text-muted);
+}
+
+.capsule-invite__enclosed {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.capsule-invite__enclosed span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* 개봉일 — 봉투 아랫단 */
+.capsule-invite__foot {
+  position: relative;
+  z-index: 1;
+  margin-top: 20px;
+  padding: 14px 22px 16px;
+  border-top: 1px dashed var(--card-border);
+  background: var(--brand-soft);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--brand);
+  word-break: keep-all;
+}
+
+/* 만료·오류 상태 */
+.capsule-invite__lost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--surface-inset);
+  border: 1px dashed var(--card-border);
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-invite {
+    animation: none;
+  }
+}
+
 /* ── 목소리 들으며 사진 보기 (전체화면 슬라이드쇼) ─────────────────
    음성이 흐르는 동안 사진이 천천히 줌·팬되며 크로스페이드로 넘어간다. */
 
