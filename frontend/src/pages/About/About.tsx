@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
@@ -19,19 +19,38 @@ const About = () => {
   const { tx, heroBackgroundUrl } = useAboutContent()
   const isAdminUser = isAdmin()
 
-  const heroStyle: CSSProperties | undefined = heroBackgroundUrl
-    ? {
-        backgroundImage: `url(${heroBackgroundUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }
-    : undefined
+  // 배경은 CSS background-image 가 아니라 <img> 로 그린다.
+  // background-image 는 로드 상태를 알 수 없어 그라데이션에서 사진으로 툭 튀지만,
+  // <img> 는 onLoad 로 페이드인할 수 있고 fetchPriority 힌트도 줄 수 있다.
+  const [heroLoaded, setHeroLoaded] = useState(false)
+
+  // 브라우저 캐시에 이미 있으면 React 가 리스너를 붙이기 전에 로드가 끝나 onLoad 가
+  // 영영 안 올 수 있다. ref 콜백 시점에 complete 를 직접 확인해 그 경우를 메운다.
+  const heroImageRef = useCallback((node: HTMLImageElement | null) => {
+    if (node?.complete) setHeroLoaded(true)
+  }, [])
 
   return (
     <div className="bg-gray-50 dark:bg-black min-h-screen">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
         {/* Hero Section */}
-        <div className="about-hero" style={heroStyle}>
+        <div className="about-hero">
+          {/* crossOrigin: CORS 응답이어야 서비스워커가 상태 코드를 보고 캐싱할 수 있다
+              (no-cors 는 opaque 라 404 도 그대로 캐싱된다).
+              index.html 의 preload 링크도 같은 crossorigin 이어야 재사용된다. */}
+          {heroBackgroundUrl && (
+            <img
+              ref={heroImageRef}
+              className={`hero-image${heroLoaded ? ' is-loaded' : ''}`}
+              src={heroBackgroundUrl}
+              alt=""
+              aria-hidden="true"
+              decoding="async"
+              fetchPriority="high"
+              crossOrigin="anonymous"
+              onLoad={() => setHeroLoaded(true)}
+            />
+          )}
           <div className="hero-overlay"></div>
           <div className="hero-content">
             <div className="hero-badge">

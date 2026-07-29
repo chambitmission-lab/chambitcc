@@ -329,8 +329,48 @@ self.addEventListener('activate', (event) => {
 const CACHE_NAME = 'chambit-api-cache-v1';
 const API_CACHE_DURATION = 1000 * 60 * 60 * 24; // 1일 (React Query persist가 장기 캐싱 담당)
 
+// 소개 페이지 히어로 배경 캐시 (Cache First)
+//
+// 이 프로젝트의 Supabase Storage 는 업로드 시 cacheControl 을 지정해도 실제 응답은
+// `cache-control: no-cache` 로 나간다(sb-gateway-mode: direct). 그래서 브라우저는
+// 방문할 때마다 조건부 요청을 보내고, 그 왕복(304)이 끝나야 배경을 그린다.
+// 파일명에 timestamp+uuid 가 들어가 배경을 바꾸면 URL 자체가 달라지므로
+// 캐시를 먼저 쓰더라도 옛 이미지가 남을 일이 없다.
+const HERO_CACHE_NAME = 'chambit-about-hero-v1';
+
+const isAboutImageRequest = (url) =>
+  url.hostname.endsWith('.supabase.co') &&
+  url.pathname.includes('/storage/v1/object/public/') &&
+  url.pathname.includes('/about/');
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+
+  if (event.request.method === 'GET' && isAboutImageRequest(url)) {
+    event.respondWith(
+      caches.open(HERO_CACHE_NAME).then((cache) =>
+        cache.match(event.request).then((cached) => {
+          if (cached) return cached; // 네트워크 왕복 없이 즉시 표시
+
+          return fetch(event.request).then((response) => {
+            // <img crossorigin> 이라 응답은 type 'cors' — 실제 상태 코드를 볼 수 있다.
+            // (no-cors 였다면 opaque 라 404 도 구분 못 하고 캐싱된다)
+            if (response && response.ok) {
+              cache.put(event.request, response.clone());
+              // 배경 교체 시 URL이 바뀌므로 이전 항목은 즉시 정리 (히어로는 항상 1장)
+              cache.keys().then((keys) => {
+                keys.forEach((key) => {
+                  if (key.url !== event.request.url) cache.delete(key);
+                });
+              });
+            }
+            return response;
+          });
+        })
+      )
+    );
+    return;
+  }
 
   // SSE(실시간 스트림)는 절대 가로채지 않는다 — clone()+cache.put이
   // 끝나지 않는 스트림을 무한 버퍼링하게 된다 (알림 스트림 등)

@@ -1,4 +1,5 @@
 // 소개 페이지 컨텐츠 훅 - React Query
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getAboutContent,
@@ -7,6 +8,7 @@ import {
 } from '../api/aboutContent'
 import { useLanguage } from '../contexts/LanguageContext'
 import { translations } from '../locales'
+import { readAboutContentCache, writeAboutContentCache } from '../utils/aboutContentCache'
 import type {
   AboutContent,
   AboutFieldKey,
@@ -24,9 +26,18 @@ export const useAboutContent = () => {
     queryKey: aboutContentKeys.all,
     queryFn: getAboutContent,
     staleTime: 1000 * 60 * 5,
+    // 지난 방문 응답을 즉시 렌더해 히어로 배경 요청이 API 왕복을 기다리지 않게 한다.
+    // initialData 가 아니라 placeholderData 라 백그라운드 재검증은 그대로 수행된다.
+    placeholderData: readAboutContentCache,
   })
 
   const content: AboutContent = query.data ?? { fields: {}, hero_background_url: null }
+
+  // 실제 서버 응답만 캐시한다(placeholder 를 되쓰면 오래된 값이 계속 연장된다).
+  const fetchedContent = query.isPlaceholderData ? undefined : query.data
+  useEffect(() => {
+    if (fetchedContent) writeAboutContentCache(fetchedContent)
+  }, [fetchedContent])
 
   // DB 우선, 없으면 i18n 기본값
   const tx = (key: AboutFieldKey): string => {
@@ -65,6 +76,7 @@ export const useUpdateAboutContent = () => {
     mutationFn: (data: UpdateAboutContentRequest) => updateAboutContent(data),
     onSuccess: (data) => {
       queryClient.setQueryData(aboutContentKeys.all, data)
+      writeAboutContentCache(data) // 편집 직후 다음 진입이 옛 배경을 먼저 그리지 않도록
     },
   })
 }

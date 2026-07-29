@@ -83,6 +83,33 @@
       })();
     </script>
 
+    <!-- /about 히어로 배경 선요청: 배경 URL은 /about-content API 응답 안에 있어
+         (라우트 청크 → API 왕복 → 렌더) 뒤에야 발견된다. CSS background-image 나
+         React가 그리는 <img> 모두 프리로드 스캐너가 못 보므로, 지난 방문에 저장해 둔
+         URL이 있으면 여기서 직접 preload를 걸어 문서 파싱 시점에 다운로드를 시작한다.
+         키는 src/utils/aboutContentCache.ts 의 ABOUT_CONTENT_STORAGE_KEY 와 동일. -->
+    <script>
+      (function () {
+        try {
+          // HashRouter 라 진입 경로는 해시에 있다 (#/about, #/about?foo)
+          if (!/^#\/about(\/|\?|$)/.test(location.hash)) return;
+          var raw = localStorage.getItem('about_content_cache');
+          if (!raw) return;
+          var url = JSON.parse(raw).hero_background_url;
+          if (!url) return;
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = url;
+          link.fetchPriority = 'high';
+          // About.tsx 의 <img crossOrigin="anonymous"> 와 일치해야 프리로드가 재사용된다
+          // (불일치하면 브라우저가 같은 이미지를 두 번 받는다)
+          link.crossOrigin = 'anonymous';
+          document.head.appendChild(link);
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- 폰트 CDN 사전 연결 — 핸드셰이크를 미리 끝내 폰트 도착을 앞당긴다 -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
