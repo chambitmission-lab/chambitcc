@@ -65,6 +65,14 @@ export const event = {
   writeComment: 'Write Comment',
   deleteComment: 'Delete Comment',
   
+  // Empty state card
+  emptyTitleAll: 'A calm week ahead!',
+  emptyTitleCategory: 'No {label} events scheduled yet',
+  emptyDescAll: 'How about suggesting a gathering to your friends first? ✨',
+  emptyDescCategory: 'Try another category — new updates are on the way ✨',
+  emptyCreateEvent: 'Create Event',
+  emptyBrowseGroups: 'Browse My Groups',
+
   // Messages
   noEvents: 'No events found',
   loadMore: 'Load More',

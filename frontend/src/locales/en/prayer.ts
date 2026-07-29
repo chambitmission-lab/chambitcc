@@ -202,6 +202,22 @@ export const prayer = {
   admin: 'Admin',
   publicScope: 'Visibility',
 
+  // My Groups page (/groups)
+  groupsLoginTitle: 'Groups that pray together',
+  groupsLoading: 'Loading...',
+  groupsNoneYet: "You haven't joined any groups yet",
+  groupsCountSummary: 'Praying together in {count} groups',
+  groupsCountSummaryOne: 'Praying together in 1 group',
+  groupMemberCount: '{count} members',
+  groupMemberCountOne: '1 member',
+  groupsStatJoined: 'Joined',
+  groupsStatAdmin: 'Admin',
+  groupsStatMembers: 'Total Members',
+  groupsCreateSub: 'Start a new group',
+  groupsJoinSub: 'With an invite code',
+  groupsEmptyLine1: 'Create a new group',
+  groupsEmptyLine2: 'or join with an invite code',
+
   // Group modals / short button labels
   createGroupShort: 'Create',
   joinGroupShort: 'Join',

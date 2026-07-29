@@ -26,7 +26,7 @@ const MyGroups = () => {
             <span className="text-[36px]">👥</span>
           </div>
           <h2 className="text-ink-strong text-[18px] font-bold tracking-[-0.015em] mb-1.5">
-            함께 기도하는 그룹
+            {t('groupsLoginTitle')}
           </h2>
           <p className="text-gray-500 dark:text-white/55 text-[13px] text-center leading-[1.6] mb-6">
             {t('loginRequired')}
@@ -60,23 +60,24 @@ const MyGroups = () => {
             GROUPS
           </p>
           <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
-            내 그룹
+            {t('myGroups')}
           </h1>
           <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
             {isLoading
-              ? '불러오는 중...'
+              ? t('groupsLoading')
               : groups.length === 0
-                ? '아직 참여한 그룹이 없어요'
-                : `${groups.length}개 그룹에서 함께 기도하고 있어요`}
+                ? t('groupsNoneYet')
+                : t(groups.length === 1 ? 'groupsCountSummaryOne' : 'groupsCountSummary')
+                    .replace('{count}', String(groups.length))}
           </p>
         </header>
 
         {/* 통계 */}
         {groups.length > 0 && (
           <div className="px-4 pt-3 pb-1 flex gap-2 flex-wrap">
-            <StatChip label="참여 중" value={groups.length} accent />
-            {adminCount > 0 && <StatChip label="관리자" value={adminCount} />}
-            <StatChip label="전체 멤버" value={totalMembers} />
+            <StatChip label={t('groupsStatJoined')} value={groups.length} accent />
+            {adminCount > 0 && <StatChip label={t('groupsStatAdmin')} value={adminCount} />}
+            <StatChip label={t('groupsStatMembers')} value={totalMembers} />
           </div>
         )}
 
@@ -90,14 +91,14 @@ const MyGroups = () => {
               </svg>
             }
             label={t('createGroup')}
-            sublabel="새 모임 시작"
+            sublabel={t('groupsCreateSub')}
             variant="primary"
             onClick={() => setShowCreate(true)}
           />
           <ActionCard
             icon={<span className="text-[20px]">🎟️</span>}
             label={t('joinGroup')}
-            sublabel="초대 코드로"
+            sublabel={t('groupsJoinSub')}
             variant="secondary"
             onClick={() => setShowJoin(true)}
           />
@@ -134,7 +135,11 @@ const GROUP_TILE_COLORS = [
 ]
 
 const GroupCard = ({ group }: { group: PrayerGroup }) => {
+  const { t } = useLanguage()
   const tileColor = GROUP_TILE_COLORS[group.id % GROUP_TILE_COLORS.length]
+  const memberCount = group.member_count ?? 0
+  const memberLabel = t(memberCount === 1 ? 'groupMemberCountOne' : 'groupMemberCount')
+    .replace('{count}', String(memberCount))
 
   return (
   <Link
@@ -192,7 +197,7 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
-              {group.member_count}명
+              {memberLabel}
             </span>
             {group.prayer_count > 0 && (
               <>
@@ -336,20 +341,23 @@ const SkeletonRows = () => (
 )
 
 // ── Empty ──────────────────────────────────────────────
-const EmptyState = () => (
-  <div className="mx-0 my-2 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-10 px-6 text-center">
-    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
-      <span className="text-[28px]">🤝</span>
+const EmptyState = () => {
+  const { t } = useLanguage()
+  return (
+    <div className="mx-0 my-2 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-10 px-6 text-center">
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
+        <span className="text-[28px]">🤝</span>
+      </div>
+      <p className="text-ink-strong text-[14.5px] font-bold mb-1">
+        {t('groupsNoneYet')}
+      </p>
+      <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
+        {t('groupsEmptyLine1')}
+        <br />
+        {t('groupsEmptyLine2')}
+      </p>
     </div>
-    <p className="text-ink-strong text-[14.5px] font-bold mb-1">
-      아직 참여한 그룹이 없어요
-    </p>
-    <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
-      새 그룹을 만들거나
-      <br />
-      초대 코드로 함께해보세요
-    </p>
-  </div>
-)
+  )
+}
 
 export default MyGroups

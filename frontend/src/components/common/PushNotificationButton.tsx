@@ -1,23 +1,25 @@
 import { usePushNotification } from '../../hooks/usePushNotification';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { showToast } from '../../utils/toast';
 
 export const PushNotificationButton = () => {
   const { isSubscribed, permission, isLoading, subscribe, unsubscribe } = usePushNotification();
+  const { t } = useLanguage();
 
   const handleToggle = async () => {
     if (isSubscribed) {
       const success = await unsubscribe();
       if (success) {
-        showToast('알림이 비활성화되었습니다', 'info');
+        showToast(t('pushToastDisabled'), 'info');
       }
     } else {
       const success = await subscribe();
       if (success) {
-        showToast('알림이 활성화되었습니다', 'success');
+        showToast(t('pushToastEnabled'), 'success');
       } else if (permission === 'denied') {
-        alert('알림 권한이 차단되었습니다. 브라우저 설정에서 알림을 허용해주세요.');
+        alert(t('pushPermissionDenied'));
       } else {
-        showToast('알림 구독에 실패했습니다', 'error');
+        showToast(t('pushToastFailed'), 'error');
       }
     }
   };
@@ -35,7 +37,7 @@ export const PushNotificationButton = () => {
       className="flex items-center gap-3 shrink-0"
     >
       <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-        {isLoading ? '처리 중...' : '알림'}
+        {isLoading ? t('pushToggleLoading') : t('pushToggleLabel')}
       </span>
 
       <div

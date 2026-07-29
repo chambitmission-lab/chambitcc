@@ -65,6 +65,14 @@ export const event = {
   writeComment: '댓글 작성',
   deleteComment: '댓글 삭제',
   
+  // 빈 상태 카드
+  emptyTitleAll: '이번 주는 조금 여유로운 한 주네요!',
+  emptyTitleCategory: '아직 예정된 {label} 일정이 없어요',
+  emptyDescAll: '친구들에게 먼저 모임을 제안해 보는 건 어떨까요? ✨',
+  emptyDescCategory: '다른 카테고리도 눌러 보세요. 새 소식이 곧 올라올 거예요 ✨',
+  emptyCreateEvent: '새 일정 만들기',
+  emptyBrowseGroups: '내 모임 둘러보기',
+
   // 메시지
   noEvents: '등록된 일정이 없습니다',
   loadMore: '더 보기',

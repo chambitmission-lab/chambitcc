@@ -237,10 +237,10 @@ const Profile = () => {
             <div className="relative z-10 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="text-[14px] font-bold text-ink-strong mb-0.5 tracking-[-0.01em]">
-                  푸시 알림
+                  {t('pushCardTitle')}
                 </h3>
                 <p className="text-[12px] text-gray-500 dark:text-white/55">
-                  새로운 소식을 실시간으로 받아보세요
+                  {t('pushCardSubtitle')}
                 </p>
               </div>
               <PushNotificationButton />

@@ -25,12 +25,10 @@ const EmptyState = ({ category }: EmptyStateProps) => {
         <div className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
       </div>
       <p className="text-ink-strong text-[15px] font-bold mb-1">
-        {label ? `아직 예정된 ${label} 일정이 없어요` : '이번 주는 조금 여유로운 한 주네요!'}
+        {label ? t.emptyTitleCategory.replace('{label}', label) : t.emptyTitleAll}
       </p>
       <p className="text-gray-500 dark:text-white/55 text-[13px] leading-[1.5]">
-        {label
-          ? '다른 카테고리도 눌러 보세요. 새 소식이 곧 올라올 거예요 ✨'
-          : '친구들에게 먼저 모임을 제안해 보는 건 어떨까요? ✨'}
+        {label ? t.emptyDescCategory : t.emptyDescAll}
       </p>
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
         {admin && (
@@ -39,7 +37,7 @@ const EmptyState = ({ category }: EmptyStateProps) => {
             onClick={() => navigate('/admin/events')}
             className="inline-flex items-center gap-1.5 px-4 h-10 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_4px_14px_-4px_var(--brand-glow)] hover:opacity-90 transition-opacity"
           >
-            ➕ 새 일정 만들기
+            ➕ {t.emptyCreateEvent}
           </button>
         )}
         <button
@@ -47,7 +45,7 @@ const EmptyState = ({ category }: EmptyStateProps) => {
           onClick={() => navigate('/groups')}
           className="inline-flex items-center gap-1.5 px-4 h-10 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand text-[13px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
         >
-          💬 내 모임 둘러보기
+          💬 {t.emptyBrowseGroups}
         </button>
       </div>
     </div>

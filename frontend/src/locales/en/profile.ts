@@ -21,7 +21,27 @@ export const profile = {
   profileEmptyReplies: 'No replies written yet',
   profilePrayedAt: 'Prayed',
   profileWrittenAs: 'Written as',
-  
+
+  // Faith journey entry card
+  growthHookLabel: 'My Faith Journey',
+  growthHookEmpty: 'See your whole journey at a glance',
+  growthHookSub: 'Prayer, the Word, meditation and answers — all in one flow →',
+
+  // Weekly story entry card
+  storyHookLabel: "This Week's Faith Timeline",
+  storyHookEmpty: 'Leave your first footprint this week',
+  storyHookCta: 'Look back on your week',
+
+  // Push notification settings
+  pushCardTitle: 'Push Notifications',
+  pushCardSubtitle: 'Get new updates in real time',
+  pushToggleLabel: 'Alerts',
+  pushToggleLoading: 'Working...',
+  pushToastEnabled: 'Notifications enabled',
+  pushToastDisabled: 'Notifications disabled',
+  pushToastFailed: 'Failed to subscribe to notifications',
+  pushPermissionDenied: 'Notification permission is blocked. Please allow notifications in your browser settings.',
+
   // Achievement System
   achievementTitle: 'Achievements',
   achievementNoUnlocked: 'No achievements unlocked yet',

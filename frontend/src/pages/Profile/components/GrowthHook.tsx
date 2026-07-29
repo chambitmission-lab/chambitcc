@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useGrowthSummary } from '../../../hooks/useGrowth'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 /** 프로필 → 신앙 여정(/growth) 진입 카드 */
 const GrowthHook = () => {
@@ -7,11 +8,15 @@ const GrowthHook = () => {
   const hasToken = !!localStorage.getItem('access_token')
   const { data } = useGrowthSummary(hasToken)
   const summary = data?.data
+  const { t, language } = useLanguage()
 
+  const days = summary?.days_together ?? 0
   const teaser =
     summary && summary.has_activity
-      ? `함께한 지 ${summary.days_together}일째`
-      : '지금까지의 발자취를 한눈에'
+      ? (language === 'en'
+          ? `Day ${days} together`
+          : `함께한 지 ${days}일째`)
+      : t('growthHookEmpty')
 
   return (
     <div className="px-4 py-3">
@@ -36,13 +41,13 @@ const GrowthHook = () => {
         <div className="relative flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="text-[11px] font-semibold text-brand mb-1">
-              나의 신앙 여정
+              {t('growthHookLabel')}
             </div>
             <div className="text-[16px] font-bold text-ink-strong leading-snug tracking-[-0.015em]">
               {teaser}
             </div>
             <div className="text-[12px] text-gray-500 dark:text-white/55 mt-1">
-              기도·말씀·묵상·응답을 한 흐름으로 →
+              {t('growthHookSub')}
             </div>
           </div>
           <div

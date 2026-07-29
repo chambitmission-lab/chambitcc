@@ -21,7 +21,27 @@ export const profile = {
   profileEmptyReplies: '아직 작성한 댓글이 없습니다',
   profilePrayedAt: '기도함',
   profileWrittenAs: '로 작성',
-  
+
+  // 신앙 여정 진입 카드
+  growthHookLabel: '나의 신앙 여정',
+  growthHookEmpty: '지금까지의 발자취를 한눈에',
+  growthHookSub: '기도·말씀·묵상·응답을 한 흐름으로 →',
+
+  // 주간 스토리 진입 카드
+  storyHookLabel: '이번 주 신앙 타임라인',
+  storyHookEmpty: '이번 주 첫 발자국을 남겨보세요',
+  storyHookCta: '스토리로 한 주 돌아보기',
+
+  // 푸시 알림 설정
+  pushCardTitle: '푸시 알림',
+  pushCardSubtitle: '새로운 소식을 실시간으로 받아보세요',
+  pushToggleLabel: '알림',
+  pushToggleLoading: '처리 중...',
+  pushToastEnabled: '알림이 활성화되었습니다',
+  pushToastDisabled: '알림이 비활성화되었습니다',
+  pushToastFailed: '알림 구독에 실패했습니다',
+  pushPermissionDenied: '알림 권한이 차단되었습니다. 브라우저 설정에서 알림을 허용해주세요.',
+
   // 업적 시스템
   achievementTitle: '업적',
   achievementNoUnlocked: '아직 해금된 업적이 없습니다',

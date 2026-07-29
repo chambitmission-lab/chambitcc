@@ -202,6 +202,22 @@ export const prayer = {
   admin: '관리자',
   publicScope: '공개 범위',
 
+  // 내 그룹 페이지(/groups)
+  groupsLoginTitle: '함께 기도하는 그룹',
+  groupsLoading: '불러오는 중...',
+  groupsNoneYet: '아직 참여한 그룹이 없어요',
+  groupsCountSummary: '{count}개 그룹에서 함께 기도하고 있어요',
+  groupsCountSummaryOne: '{count}개 그룹에서 함께 기도하고 있어요',
+  groupMemberCount: '{count}명',
+  groupMemberCountOne: '{count}명',
+  groupsStatJoined: '참여 중',
+  groupsStatAdmin: '관리자',
+  groupsStatMembers: '전체 멤버',
+  groupsCreateSub: '새 모임 시작',
+  groupsJoinSub: '초대 코드로',
+  groupsEmptyLine1: '새 그룹을 만들거나',
+  groupsEmptyLine2: '초대 코드로 함께해보세요',
+
   // 그룹 모달 / 짧은 버튼 라벨
   createGroupShort: '만들기',
   joinGroupShort: '가입하기',

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useLanguage } from '../../../contexts/LanguageContext'
 import './WeeklyStoryHook.css'
 
 interface WeeklyStoryHookProps {
@@ -7,6 +8,13 @@ interface WeeklyStoryHookProps {
 
 const WeeklyStoryHook = ({ thisWeekCount }: WeeklyStoryHookProps) => {
   const navigate = useNavigate()
+  const { t, language } = useLanguage()
+
+  const headline = thisWeekCount > 0
+    ? (language === 'en'
+        ? `You prayed ${thisWeekCount} time${thisWeekCount > 1 ? 's' : ''} this week`
+        : `이번 주 ${thisWeekCount}번 기도했어요`)
+    : t('storyHookEmpty')
 
   return (
     <div className="px-4 py-3">
@@ -62,21 +70,19 @@ const WeeklyStoryHook = ({ thisWeekCount }: WeeklyStoryHookProps) => {
                 STORY
               </span>
               <span className="text-[11px] font-semibold text-white/80">
-                이번 주 신앙 타임라인
+                {t('storyHookLabel')}
               </span>
             </div>
 
             <div className="text-[17px] font-bold text-white leading-snug tracking-[-0.015em]">
-              {thisWeekCount > 0
-                ? `이번 주 ${thisWeekCount}번 기도했어요`
-                : '이번 주 첫 발자국을 남겨보세요'}
+              {headline}
             </div>
 
             <span className="mt-2.5 inline-flex items-center gap-1 rounded-full bg-white px-3.5 py-1.5 text-[12.5px] font-bold text-brand shadow-md transition-transform group-hover:scale-[1.03] group-active:scale-95">
               <span className="material-icons-round text-[15px]">
                 play_arrow
               </span>
-              스토리로 한 주 돌아보기
+              {t('storyHookCta')}
             </span>
           </div>
 
