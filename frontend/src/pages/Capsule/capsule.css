@@ -804,7 +804,9 @@
    면적이 커질수록 깊이가 사라져서, 대신 실물 우편물의 재질로 그린다.
    항공우편 테두리 · 우표 · 소인 · 손글씨 수취인 · 밀랍 인장 · 봉인된 편지지. */
 
-/* 무대 — 봉투가 떠 있을 여백과 브랜드 halo */
+/* 무대 — 봉투가 밤하늘에서 내려온 것처럼 상단만 밤이다.
+   남색은 홈 히어로 카드(tc-card)와 같은 값을 쓴다. 라이트/다크 모두 그대로 —
+   밤은 테마가 아니라 이 기능의 정체성이라서다. 아래쪽은 var(--surface)로 녹아든다. */
 .capsule-invite-stage {
   position: relative;
   background: var(--surface);
@@ -815,22 +817,60 @@
 .capsule-invite-stage::before {
   content: '';
   position: absolute;
-  top: -18%;
-  left: 50%;
-  width: 132vw;
-  height: 62vh;
-  transform: translateX(-50%);
-  background: radial-gradient(ellipse at center, var(--brand-glow) 0%, transparent 68%);
-  opacity: 0.55;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
   pointer-events: none;
+  background:
+    radial-gradient(112% 88% at 82% 10%, rgba(96, 140, 255, 0.3), transparent 58%),
+    linear-gradient(180deg, #0e1830 0%, #16264d 44%, var(--surface) 100%);
+}
+
+/* 별 — 아래로 갈수록 사라지게 mask. 전부 같이 깜빡이면 눈에 띄므로 아주 얕은 폭으로만 */
+.capsule-invite-stage::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 11% 24%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1.4px 1.4px at 24% 52%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.2px 1.2px at 38% 15%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 57% 40%, rgba(190, 210, 255, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 72% 20%, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(1px 1px at 84% 48%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1.2px 1.2px at 93% 12%, rgba(190, 210, 255, 0.8), transparent);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 34%, transparent 76%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 34%, transparent 76%);
+  animation: capsule-twinkle 3.6s ease-in-out infinite alternate;
+}
+
+@keyframes capsule-twinkle {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 밤하늘 위에 얹히는 캡션 — 테마와 무관하게 별빛 톤 */
+.capsule-invite__eyebrow {
+  color: rgba(168, 196, 255, 0.8);
 }
 
 .capsule-invite {
   position: relative;
   border-radius: 22px;
   background: var(--surface-container);
+  /* 위쪽 절반이 밤하늘 위에 뜨므로 그림자를 더 깊게 — 종이가 하늘에서 떨어져 나온 느낌 */
   box-shadow:
     var(--card-shadow),
+    0 30px 66px -28px rgba(6, 12, 32, 0.72),
     0 26px 60px -26px var(--brand-glow);
   overflow: hidden;
   animation: capsule-fade-up 0.62s cubic-bezier(0.2, 0.7, 0.3, 1) both;
@@ -1118,6 +1158,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .capsule-invite {
+    animation: none;
+  }
+  .capsule-invite-stage::after {
     animation: none;
   }
 }

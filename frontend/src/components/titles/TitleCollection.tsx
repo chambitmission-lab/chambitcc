@@ -3,13 +3,16 @@ import { useEffect, useMemo } from 'react'
 import type { TitleStatus } from '../../api/titles'
 import { useTitles, useEquipTitle } from '../../hooks/useTitles'
 import { evaluateTitlesNow } from '../../utils/titleUnlockBus'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { TitleCard } from './TitleCard'
+import { localizeTitle } from './titleI18n'
 import { CATEGORY_ORDER, CATEGORY_META } from './titleVisuals'
 import './TitleCollection.css'
 
 export const TitleCollection: React.FC = () => {
   const { data, isLoading, error } = useTitles()
   const equipMut = useEquipTitle()
+  const { t, language } = useLanguage()
 
   // 칭호 페이지 진입 시 즉시 평가 — 그동안 쌓인 해금이 있으면 팝업으로 축하
   useEffect(() => {
@@ -19,8 +22,8 @@ export const TitleCollection: React.FC = () => {
   const grouped = useMemo(() => {
     const map: Record<string, TitleStatus[]> = {}
     for (const cat of CATEGORY_ORDER) map[cat] = []
-    for (const t of data?.titles ?? []) {
-      ;(map[t.category] ??= []).push(t)
+    for (const item of data?.titles ?? []) {
+      ;(map[item.category] ??= []).push(item)
     }
     return map
   }, [data])
@@ -34,7 +37,7 @@ export const TitleCollection: React.FC = () => {
     return (
       <div className="title-collection-state">
         <div className="title-collection-spinner">🏷️</div>
-        <p>칭호를 불러오는 중…</p>
+        <p>{t('titleCollectionLoading')}</p>
       </div>
     )
   }
@@ -43,7 +46,7 @@ export const TitleCollection: React.FC = () => {
     return (
       <div className="title-collection-state">
         <div className="title-collection-state-icon">😢</div>
-        <p>칭호를 불러오지 못했어요</p>
+        <p>{t('titleCollectionError')}</p>
       </div>
     )
   }
@@ -57,23 +60,26 @@ export const TitleCollection: React.FC = () => {
       <div className="title-collection-stats">
         <div className="title-stat">
           <span className="title-stat-value gradient-num">{summary.earned}</span>
-          <span className="title-stat-sub">/ {summary.total} 획득</span>
-          <span className="title-stat-label">모은 칭호</span>
+          <span className="title-stat-sub">/ {summary.total} {t('titleStatEarnedSuffix')}</span>
+          <span className="title-stat-label">{t('titleStatCollected')}</span>
         </div>
         <div className="title-stat">
           <span className="title-stat-value gradient-num">{pct}<span className="title-stat-unit">%</span></span>
-          <span className="title-stat-label">수집률</span>
+          <span className="title-stat-label">{t('titleStatRate')}</span>
         </div>
         <div className="title-stat">
           <span className="title-stat-value title-stat-emoji">
             {summary.equipped_key
-              ? (data.titles.find((t) => t.key === summary.equipped_key)?.icon ?? '🏷️')
+              ? (data.titles.find((it) => it.key === summary.equipped_key)?.icon ?? '🏷️')
               : '—'}
           </span>
           <span className="title-stat-label">
             {summary.equipped_key
-              ? (data.titles.find((t) => t.key === summary.equipped_key)?.name ?? '장착중')
-              : '장착 없음'}
+              ? (() => {
+                  const eq = data.titles.find((it) => it.key === summary.equipped_key)
+                  return eq ? localizeTitle(eq, language).name : t('titleStatEquipped')
+                })()
+              : t('titleStatNoneEquipped')}
           </span>
         </div>
       </div>
@@ -83,19 +89,19 @@ export const TitleCollection: React.FC = () => {
         const items = grouped[cat] ?? []
         if (items.length === 0) return null
         const meta = CATEGORY_META[cat]
-        const earnedCount = items.filter((t) => t.earned).length
+        const earnedCount = items.filter((item) => item.earned).length
         return (
           <section key={cat} className="title-section">
             <div className="title-section-head">
               <span className="title-section-icon">{meta.icon}</span>
-              <h2 className="title-section-title">{meta.label}</h2>
+              <h2 className="title-section-title">{t(meta.labelKey)}</h2>
               <span className="title-section-count">{earnedCount}/{items.length}</span>
             </div>
             <div className="title-grid">
-              {items.map((t) => (
+              {items.map((item) => (
                 <TitleCard
-                  key={t.key}
-                  title={t}
+                  key={item.key}
+                  title={item}
                   onToggleEquip={handleToggle}
                   busy={equipMut.isPending}
                 />

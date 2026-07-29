@@ -3,6 +3,8 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import type { TitleStatus } from '../../api/titles'
+import { useLanguage } from '../../contexts/LanguageContext'
+import { localizeTitle } from './titleI18n'
 import { TIER_VISUALS } from './titleVisuals'
 import './TitleUnlockModal.css'
 
@@ -35,8 +37,10 @@ const fireConfetti = (legendary = false) => {
 export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
   title, remaining, onEquip, onClose,
 }) => {
+  const { t, language } = useLanguage()
   const tier = TIER_VISUALS[title.tier]
   const isLegendary = title.tier === 'legendary'
+  const text = localizeTitle(title, language)
 
   useEffect(() => {
     fireConfetti(isLegendary)
@@ -67,7 +71,7 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.12 }}
         >
-          {isLegendary ? '🏆 전설 칭호 획득!' : '✨ 새로운 칭호 획득'}
+          {isLegendary ? t('titleUnlockEyebrowLegendary') : t('titleUnlockEyebrow')}
         </motion.span>
 
         <motion.div
@@ -86,7 +90,7 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.18 }}
         >
-          [{title.name}]
+          [{text.name}]
         </motion.h2>
         <motion.p
           className="title-unlock-congrats"
@@ -94,7 +98,7 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.24 }}
         >
-          축하합니다! 칭호를 획득하셨습니다
+          {t('titleUnlockCongrats')}
         </motion.p>
         <motion.p
           className="title-unlock-desc"
@@ -102,7 +106,7 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          {title.description}
+          {text.description}
         </motion.p>
 
         <motion.div
@@ -112,15 +116,15 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
           transition={{ delay: 0.36 }}
         >
           <button type="button" className="title-unlock-equip" onClick={() => onEquip(title)}>
-            바로 장착하기
+            {t('titleUnlockEquipNow')}
           </button>
           <button type="button" className="title-unlock-later" onClick={onClose}>
-            {remaining > 0 ? `다음 (${remaining})` : '나중에'}
+            {remaining > 0 ? `${t('titleUnlockNext')} (${remaining})` : t('titleUnlockLater')}
           </button>
         </motion.div>
 
         <span className="title-unlock-tier-chip" style={{ background: tier.chipBg, color: tier.chipText }}>
-          {tier.label}
+          {t(tier.labelKey)}
         </span>
       </motion.div>
     </motion.div>

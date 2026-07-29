@@ -1,6 +1,8 @@
 // 칭호 카드 — 획득(풀컬러+티어 글로우+장착) / 미획득(그레이+진척/힌트) / 히든
 import type { TitleStatus } from '../../api/titles'
-import { TIER_VISUALS } from './titleVisuals'
+import { useLanguage } from '../../contexts/LanguageContext'
+import { localizeTitle } from './titleI18n'
+import { TIER_VISUALS, CATEGORY_META } from './titleVisuals'
 import './TitleCard.css'
 
 interface TitleCardProps {
@@ -10,12 +12,14 @@ interface TitleCardProps {
 }
 
 export const TitleCard: React.FC<TitleCardProps> = ({ title, onToggleEquip, busy }) => {
+  const { t, language } = useLanguage()
   const tier = TIER_VISUALS[title.tier]
   const locked = !title.earned
   const concealed = locked && title.hidden
+  const text = localizeTitle(title, language)
 
-  const displayName = concealed ? '??? 칭호' : title.name
-  const displayDesc = concealed ? '숨겨진 칭호 — 조건을 달성하면 공개됩니다' : title.description
+  const displayName = concealed ? t('titleConcealedName') : text.name
+  const displayDesc = concealed ? t('titleConcealedDesc') : text.description
 
   const pct = title.progress && title.progress.target > 0
     ? Math.min(100, Math.round((title.progress.current / title.progress.target) * 100))
@@ -33,16 +37,18 @@ export const TitleCard: React.FC<TitleCardProps> = ({ title, onToggleEquip, busy
         <div className="title-card-headings">
           <div className="title-card-name-row">
             <h3 className="title-card-name">{displayName}</h3>
-            {title.equipped && <span className="title-card-equipped-chip">장착중</span>}
+            {title.equipped && <span className="title-card-equipped-chip">{t('titleEquippedChip')}</span>}
           </div>
           <div className="title-card-meta">
             <span
               className={`title-card-tier${title.tier === 'legendary' ? ' is-legendary' : ''}`}
               style={title.tier === 'legendary' ? undefined : { background: tier.chipBg, color: tier.chipText }}
             >
-              {title.tier === 'legendary' ? '★ 전설' : tier.label}
+              {title.tier === 'legendary' ? `★ ${t('titleTierLegendary')}` : t(tier.labelKey)}
             </span>
-            <span className="title-card-cat">{title.category_label}</span>
+            <span className="title-card-cat">
+              {CATEGORY_META[title.category] ? t(CATEGORY_META[title.category].labelKey) : title.category_label}
+            </span>
           </div>
         </div>
       </div>
@@ -51,7 +57,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({ title, onToggleEquip, busy
 
       {locked ? (
         <div className="title-card-locked-foot">
-          <p className="title-card-hint">{concealed ? '🎁 히든 칭호' : title.hint}</p>
+          <p className="title-card-hint">{concealed ? t('titleHiddenHint') : text.hint}</p>
           {title.progress && !concealed && (
             <div className="title-card-progress">
               <div className="title-card-progress-bar">
@@ -66,7 +72,11 @@ export const TitleCard: React.FC<TitleCardProps> = ({ title, onToggleEquip, busy
       ) : (
         <div className="title-card-earned-foot">
           <span className="title-card-earned-at">
-            {title.earned_at ? `${title.earned_at.slice(0, 10)} 획득` : '획득 완료'}
+            {title.earned_at
+              ? (language === 'en'
+                  ? `Earned ${title.earned_at.slice(0, 10)}`
+                  : `${title.earned_at.slice(0, 10)} 획득`)
+              : t('titleEarnedDone')}
           </span>
           <button
             type="button"
@@ -74,7 +84,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({ title, onToggleEquip, busy
             onClick={() => onToggleEquip(title)}
             disabled={busy}
           >
-            {title.equipped ? '해제' : '장착'}
+            {title.equipped ? t('titleUnequip') : t('titleEquip')}
           </button>
         </div>
       )}

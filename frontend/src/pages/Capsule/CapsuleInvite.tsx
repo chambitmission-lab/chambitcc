@@ -61,7 +61,7 @@ const CapsuleInvite = () => {
     <div className="capsule-invite-stage min-h-screen">
       <div className="relative z-[1] max-w-md mx-auto min-h-screen flex flex-col px-5 pb-10">
         {/* 초대장이 스스로 말하게 두고, 헤더는 최소한의 이정표만 */}
-        <p className="pt-5 pb-1 text-center text-[11px] font-bold tracking-[0.34em] text-[var(--text-muted)]">
+        <p className="capsule-invite__eyebrow pt-5 pb-1 text-center text-[11px] font-bold tracking-[0.34em]">
           TIME CAPSULE
         </p>
 
@@ -88,7 +88,7 @@ const CapsuleInvite = () => {
         )}
 
         {isLoading ? (
-          <div className="mt-6 h-[520px] rounded-[22px] bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+          <div className="mt-3 h-[520px] rounded-[22px] bg-white/[0.07] border border-white/[0.06] animate-pulse" />
         ) : error || !preview ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
             <span className="capsule-invite__lost">

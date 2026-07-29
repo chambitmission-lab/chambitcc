@@ -2,6 +2,8 @@
 // 클릭하면 성경 칭호 페이지(/garden)로 이동해 칭호를 바꿀 수 있다.
 import { useNavigate } from 'react-router-dom'
 import { useEquippedTitle } from '../../hooks/useTitles'
+import { useLanguage } from '../../contexts/LanguageContext'
+import { localizeTitle } from './titleI18n'
 import './TitleEquippedChip.css'
 
 const SPARKLES = [0, 1, 2, 3, 4, 5]
@@ -16,6 +18,7 @@ export const TitleEquippedChip: React.FC<TitleEquippedChipProps> = ({
 }) => {
   const navigate = useNavigate()
   const { data: equipped, isLoading } = useEquippedTitle()
+  const { t, language } = useLanguage()
 
   // 첫 로드(캐시 없음)에는 equipped 가 undefined 라 "칭호 달기" 빈 상태가 잠깐 떴다가
   // 실제 칭호로 바뀌는 플래시가 생긴다. 로딩 중에는 같은 크기의 스켈레톤을 보여 깜빡임을 막는다.
@@ -35,10 +38,15 @@ export const TitleEquippedChip: React.FC<TitleEquippedChipProps> = ({
         onClick={() => navigate('/garden')}
       >
         <span className="material-icons-round title-chip-empty-icon">military_tech</span>
-        칭호 달기
+        {t('titleChipEmpty')}
       </button>
     )
   }
+
+  const name = localizeTitle(equipped, language).name
+  const changeAria = language === 'en'
+    ? `Equipped title ${name} — change`
+    : `장착한 칭호 ${name} — 변경하기`
 
   if (variant === 'slot') {
     return (
@@ -46,12 +54,12 @@ export const TitleEquippedChip: React.FC<TitleEquippedChipProps> = ({
         type="button"
         className="title-slot"
         onClick={() => navigate('/garden')}
-        aria-label={`장착한 칭호 ${equipped.name} — 변경하기`}
+        aria-label={changeAria}
       >
         <span className="title-slot-line" aria-hidden />
         <span className="title-slot-bracket" aria-hidden>[</span>
         <span className="title-slot-icon">{equipped.icon}</span>
-        <span className="title-slot-name">{equipped.name}</span>
+        <span className="title-slot-name">{name}</span>
         <span className="title-slot-bracket" aria-hidden>]</span>
         <span className="title-slot-line title-slot-line-r" aria-hidden />
       </button>
@@ -63,10 +71,10 @@ export const TitleEquippedChip: React.FC<TitleEquippedChipProps> = ({
       type="button"
       className="title-chip"
       onClick={() => navigate('/garden')}
-      aria-label={`장착한 칭호 ${equipped.name} — 변경하기`}
+      aria-label={changeAria}
     >
       <span className="title-chip-icon">{equipped.icon}</span>
-      <span className="title-chip-name">[{equipped.name}]</span>
+      <span className="title-chip-name">[{name}]</span>
       <span className="title-chip-sparkles" aria-hidden>
         {SPARKLES.map((i) => (
           <span key={i} className={`title-chip-sparkle s${i}`}>✦</span>

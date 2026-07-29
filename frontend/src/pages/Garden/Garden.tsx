@@ -54,9 +54,9 @@ export const Garden: React.FC = () => {
           <span className="material-icons-round">{SHOW_FAITH_TREE ? 'park' : 'military_tech'}</span>
         </div>
         <div className="garden-hero-body">
-          <span className="garden-hero-label">나의 신앙 여정</span>
-          <h1 className="garden-hero-title">성경 칭호</h1>
-          <p className="garden-hero-subtitle">말씀을 읽으며 모으는 나만의 성경 칭호</p>
+          <span className="garden-hero-label">{t('gardenHeroLabel')}</span>
+          <h1 className="garden-hero-title">{t('gardenHeroTitle')}</h1>
+          <p className="garden-hero-subtitle">{t('gardenHeroSubtitle')}</p>
         </div>
         {SHOW_FAITH_TREE && (
           <button

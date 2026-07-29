@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { MoodPalette } from './moodPalette'
@@ -23,6 +23,24 @@ interface SessionCompleteProps {
 
 const isLoggedIn = (): boolean => !!localStorage.getItem('access_token')
 
+/* 세션 기록은 마운트 시 POST 한 번 — 그런데 이 화면은 두 번 기록되기 쉬운 자리에 있다.
+   ① StrictMode(main.tsx)는 개발 중 마운트 이펙트를 setup→cleanup→setup 으로 두 번 돌린다.
+   ② 완료 화면이 어떤 이유로든 언마운트 후 다시 마운트되면 같은 세션이 또 적재된다.
+   ①은 컴포넌트 인스턴스가 유지되므로 ref 로 막히지만, ②는 ref 가 초기화돼 못 막는다.
+   그래서 모듈 스코프에 "방금 기록한 세션"의 지문을 짧게 남겨 둘 다 차단한다.
+   같은 지문의 진짜 두 번째 세션은 최소 duration 만큼 뒤에 오므로 창을 좁게 잡아도 안전하다. */
+const RECORD_DEDUPE_MS = 15_000
+let lastRecorded: { key: string; at: number } | null = null
+
+const isDuplicateRecord = (key: string): boolean => {
+  const now = Date.now()
+  if (lastRecorded && lastRecorded.key === key && now - lastRecorded.at < RECORD_DEDUPE_MS) {
+    return true
+  }
+  lastRecorded = { key, at: now }
+  return false
+}
+
 const SessionComplete = ({
   duration,
   theme,
@@ -45,7 +63,9 @@ const SessionComplete = ({
   const [amenPressed, setAmenPressed] = useState(false)
   const [recordError, setRecordError] = useState<string | null>(null)
 
-  // 마운트 시 세션 기록 + 통계 조회
+  // 마운트 시 세션 기록 + 통계 조회 (중복 적재 방지는 위 isDuplicateRecord 주석 참고)
+  const recordedRef = useRef(false)
+
   useEffect(() => {
     const seconds = duration * 60
     const payload = {
@@ -56,23 +76,30 @@ const SessionComplete = ({
       completed_at: new Date().toISOString(),
     }
 
+    if (recordedRef.current) return
+    recordedRef.current = true
+    // 이미 적재된 세션이면 POST 만 건너뛴다 — 통계는 읽기 전용이라 그대로 보여준다
+    const alreadyRecorded = isDuplicateRecord(`${seconds}|${theme?.id ?? ''}|${verseId ?? ''}`)
+
     if (!isLoggedIn()) {
       // 비로그인 — 로컬에만 저장, 통계는 표시 안 함
-      recordLocalSession(payload)
+      if (!alreadyRecorded) recordLocalSession(payload)
       return
     }
 
     setStatsLoading(true)
     ;(async () => {
       try {
-        const session = await createPrayerSession(payload)
-        setSessionId(session.id)
+        if (!alreadyRecorded) {
+          const session = await createPrayerSession(payload)
+          setSessionId(session.id)
+        }
         const s = await getPrayerSessionStats()
         setStats(s)
       } catch (err) {
         setRecordError((err as Error).message)
         // 실패 시 로컬에라도 남김
-        recordLocalSession(payload)
+        if (!alreadyRecorded) recordLocalSession(payload)
       } finally {
         setStatsLoading(false)
       }
