@@ -342,13 +342,15 @@ const BibleStudy = () => {
                   playFromVerse={playFromVerse}
                 />
 
-                {/* 권 개관 — 책 진입 시 큰 그림 노출 (1장에서만 보여 가독성 유지) */}
-                {selectedChapter === 1 && (
-                  <BookIntroCard
-                    bookNumber={selectedBookData.book_number}
-                    bookNameKo={selectedBook}
-                  />
-                )}
+                {/* 권 개관 — 한 줄 진입 바. 실제 소개는 탭하면 열리는 읽기 시트라
+                    본문을 밀지 않는다. 그래서 1장뿐 아니라 모든 장에서 열 수 있다. */}
+                <BookIntroCard
+                  bookNumber={selectedBookData.book_number}
+                  bookNameKo={selectedBook}
+                  totalChapters={selectedBookData.chapter_count}
+                  currentChapter={selectedChapter}
+                  onJumpToChapter={handleChapterChange}
+                />
                 
                 <VerseList
                   chapterData={chapterData}

@@ -35,6 +35,19 @@
   --amber-soft: rgba(245, 158, 11, 0.10);
   --amber-soft-strong: rgba(245, 158, 11, 0.28);
 
+  /* 성경 장르 액센트 — 권 개관(책 소개)에서만 쓰는 미세 톤 차이.
+     브랜드 블루를 대체하지 않고, 아이브로우/구조 막대/아이콘에만 얹어
+     "지금 어떤 결의 책을 펼쳤는지"를 색으로 기억하게 한다. */
+  --genre-law: #a1621f;              /* 모세오경 — 돌판·광야의 브론즈 */
+  --genre-history: #a1503c;          /* 역사서 — 테라코타 */
+  --genre-poetry: #7c4fbf;           /* 시가서 — 자수정 */
+  --genre-prophets: #0f766e;         /* 선지서 — 딥 틸 */
+  --genre-gospels: #3182f6;          /* 복음서 — 브랜드 블루(중심) */
+  --genre-acts: #0e7490;             /* 사도행전 — 청록 */
+  --genre-epistles: #4a7c59;         /* 서신서 — 세이지 그린 */
+  --genre-revelation: #6d28d9;       /* 요한계시록 — 로얄 퍼플 */
+  --genre-soft-pct: 9%;              /* tint 배경 농도 — color-mix로 섞는다 (다크에서 상향) */
+
   /* Surface 스케일 */
   --surface: #faf9fc;
   --surface-container: #ffffff;
@@ -79,6 +92,17 @@
   --amber-icon: #fbbf24;
   --amber-soft: rgba(251, 191, 36, 0.10);
   --amber-soft-strong: rgba(251, 191, 36, 0.30);
+
+  /* 성경 장르 액센트 — 다크에서는 한 톤 밝히고 채도를 낮춰 눈부심을 막는다 */
+  --genre-law: #d9a35c;
+  --genre-history: #d98570;
+  --genre-poetry: #a98cf0;
+  --genre-prophets: #4fbfae;
+  --genre-gospels: #4593fc;
+  --genre-acts: #45b6cf;
+  --genre-epistles: #7fb992;
+  --genre-revelation: #a78bfa;
+  --genre-soft-pct: 12%;
 
   /* Surface 스케일 — 목업의 뉴트럴 다크 */
   --surface: #131313;

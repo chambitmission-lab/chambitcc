@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Markdown } from '../../utils/markdown'
 import { generateBookIntroDraft, streamBookIntroDraft } from '../../api/bibleBookIntro'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
+import { parseBookStructure } from './bookGenre'
 import type {
   BibleBookIntro,
   BibleBookIntroUpsertRequest,
@@ -30,6 +31,7 @@ const BookIntroEditor = ({
   const [theme, setTheme] = useState(existing?.theme ?? '')
   const [authorPeriod, setAuthorPeriod] = useState(existing?.author_period ?? '')
   const [keyChapters, setKeyChapters] = useState(existing?.key_chapters ?? '')
+  const [structure, setStructure] = useState(existing?.structure ?? '')
   const [overview, setOverview] = useState(existing?.overview ?? '')
   const [christConnection, setChristConnection] = useState(
     existing?.christ_connection ?? '',
@@ -60,6 +62,7 @@ const BookIntroEditor = ({
       theme?: string | null
       author_period?: string | null
       key_chapters?: string | null
+      structure?: string | null
       overview: string
       christ_connection?: string | null
     }) => {
@@ -67,6 +70,7 @@ const BookIntroEditor = ({
       setTheme(draft.theme ?? '')
       setAuthorPeriod(draft.author_period ?? '')
       setKeyChapters(draft.key_chapters ?? '')
+      setStructure(draft.structure ?? '')
       setOverview(draft.overview)
       setChristConnection(draft.christ_connection ?? '')
     }
@@ -105,6 +109,7 @@ const BookIntroEditor = ({
       theme: theme.trim() || undefined,
       author_period: authorPeriod.trim() || undefined,
       key_chapters: keyChapters.trim() || undefined,
+      structure: structure.trim() || undefined,
       overview: overview.trim(),
       christ_connection: christConnection.trim() || undefined,
     })
@@ -228,6 +233,23 @@ const BookIntroEditor = ({
               />
             </FieldGroup>
 
+            {/* 책 구조 — 읽기 시트의 '책의 흐름' 막대가 된다 */}
+            <FieldGroup label="책 구조 (선택)">
+              <textarea
+                value={structure}
+                onChange={(e) => setStructure(e.target.value)}
+                rows={4}
+                maxLength={1000}
+                placeholder={'1-11 원역사\n12-25 아브라함\n26-36 이삭과 야곱\n37-50 요셉'}
+                className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-y min-h-[90px] font-mono text-[13.5px] leading-[1.6]"
+              />
+              <p className="mt-1.5 text-[11.5px] text-ink-muted leading-[1.5]">
+                한 줄에 하나씩 <b>시작장-끝장 단락이름</b>. 교인 화면에서 장 범위 막대로
+                그려지고, 탭하면 그 장으로 이동합니다. 형식이 어긋난 줄은 무시됩니다.
+              </p>
+              <StructurePreview raw={structure} />
+            </FieldGroup>
+
             {/* 개관 본문 */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -249,7 +271,8 @@ const BookIntroEditor = ({
               {showPreview ? (
                 <div className="min-h-[180px] px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.03]">
                   {overview.trim() ? (
-                    <Markdown source={overview} />
+                    /* 교인 화면(읽기 시트)과 같은 담백한 볼드로 미리보기 */
+                    <Markdown source={overview} emphasis="plain" />
                   ) : (
                     <span className="text-gray-400 dark:text-white/35 text-[13px]">
                       미리보기할 내용이 없습니다
@@ -309,6 +332,34 @@ const BookIntroEditor = ({
           </div>
         </form>
       </div>
+    </div>
+  )
+}
+
+/** 입력한 책 구조가 실제로 몇 개 단락으로 파싱되는지 즉시 보여준다 (형식 오타 방지) */
+const StructurePreview = ({ raw }: { raw: string }) => {
+  const sections = parseBookStructure(raw, 0)
+  if (!raw.trim()) return null
+  if (sections.length === 0) {
+    return (
+      <p className="mt-1.5 text-[11.5px] font-semibold text-amber-600 dark:text-amber-300">
+        인식된 단락이 없습니다 — "1-11 원역사" 형식인지 확인해주세요
+      </p>
+    )
+  }
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {sections.map((s, i) => (
+        <span
+          key={`${s.from}-${i}`}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-brand text-[11.5px] font-semibold"
+        >
+          <b className="tabular-nums">
+            {s.from === s.to ? `${s.from}장` : `${s.from}–${s.to}장`}
+          </b>
+          {s.label}
+        </span>
+      ))}
     </div>
   )
 }

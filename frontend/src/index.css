@@ -393,3 +393,33 @@ body {
 .liquid-pill:hover::before {
   left: 100%;
 }
+
+/* 권 개관(책 소개) 읽기 타이포.
+   Markdown 렌더러가 문단·리스트에 인라인 style로 line-height/margin을 직접 박아서
+   클래스만으로는 덮이지 않는다. 이어 읽는 긴 글이라 행간을 넓히고 문단 사이를
+   벌려야 해서, 이 스코프에 한해 !important로 되돌린다. */
+.book-intro-prose p,
+.book-intro-prose li {
+  line-height: 1.85 !important;
+}
+.book-intro-prose p {
+  margin: 0 0 1.05em !important;
+}
+.book-intro-prose > :last-child {
+  margin-bottom: 0 !important;
+}
+.book-intro-prose h2,
+.book-intro-prose h3 {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  margin: 1.5em 0 0.5em !important;
+  letter-spacing: -0.01em;
+}
+.book-intro-prose ul {
+  margin: 0 0 1.05em !important;
+}
+.book-intro-prose blockquote {
+  border-left-color: var(--genre, var(--brand)) !important;
+  background: var(--genre-soft, var(--brand-soft)) !important;
+  color: var(--text-body) !important;
+}

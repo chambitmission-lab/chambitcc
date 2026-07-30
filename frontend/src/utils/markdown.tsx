@@ -14,7 +14,19 @@ import { Fragment, type ReactNode } from 'react'
  * React가 자동으로 텍스트를 escape 하므로 XSS 안전.
  */
 
-const renderInline = (text: string, keyPrefix: string): ReactNode[] => {
+/**
+ * `**볼드**`를 어떻게 그릴지.
+ *  - 'glow': 금빛 + 글로우. 짧은 묵상/해석처럼 한두 군데만 강조하는 글에 쓴다.
+ *  - 'plain': 본문색 그대로 굵게만. 여러 문단을 이어 읽는 글(권 개관 등)에서
+ *    강조가 문장마다 튀어 읽기를 끊는 걸 막는다.
+ */
+export type MarkdownEmphasis = 'glow' | 'plain'
+
+const renderInline = (
+  text: string,
+  keyPrefix: string,
+  emphasis: MarkdownEmphasis,
+): ReactNode[] => {
   // **bold** 와 *italic* 처리. 패턴 우선순위: bold > italic.
   // 캡처 그룹 사용해서 split.
   const tokens = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g)
@@ -23,6 +35,13 @@ const renderInline = (text: string, keyPrefix: string): ReactNode[] => {
     .map((token, idx) => {
       const key = `${keyPrefix}-${idx}`
       if (token.startsWith('**') && token.endsWith('**')) {
+        if (emphasis === 'plain') {
+          return (
+            <strong key={key} className="font-bold text-ink-strong">
+              {token.slice(2, -2)}
+            </strong>
+          )
+        }
         // 성경 해석의 중요 문구를 신적 영광·빛을 상징하는 금빛 글로우로 강조한다.
         return (
           <strong
@@ -123,10 +142,13 @@ const buildBlocks = (markdown: string): Block[] => {
 interface MarkdownProps {
   source: string
   className?: string
+  /** `**볼드**` 렌더 방식. 기본은 기존 금빛 글로우 */
+  emphasis?: MarkdownEmphasis
 }
 
-export const Markdown = ({ source, className }: MarkdownProps) => {
+export const Markdown = ({ source, className, emphasis = 'glow' }: MarkdownProps) => {
   const blocks = buildBlocks(source)
+  const inline = (text: string, key: string) => renderInline(text, key, emphasis)
   return (
     <div className={className}>
       {blocks.map((block, i) => {
@@ -134,21 +156,21 @@ export const Markdown = ({ source, className }: MarkdownProps) => {
         if (block.type === 'h1') {
           return (
             <h1 key={key} style={{ fontSize: '1.5rem', fontWeight: 700, margin: '1rem 0 0.5rem' }}>
-              {renderInline(block.lines[0], key)}
+              {inline(block.lines[0], key)}
             </h1>
           )
         }
         if (block.type === 'h2') {
           return (
             <h2 key={key} style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.875rem 0 0.5rem' }}>
-              {renderInline(block.lines[0], key)}
+              {inline(block.lines[0], key)}
             </h2>
           )
         }
         if (block.type === 'h3') {
           return (
             <h3 key={key} style={{ fontSize: '1.0625rem', fontWeight: 600, margin: '0.75rem 0 0.375rem' }}>
-              {renderInline(block.lines[0], key)}
+              {inline(block.lines[0], key)}
             </h3>
           )
         }
@@ -157,7 +179,7 @@ export const Markdown = ({ source, className }: MarkdownProps) => {
             <ul key={key} style={{ paddingLeft: '1.25rem', margin: '0.5rem 0', listStyle: 'disc' }}>
               {block.lines.map((item, j) => (
                 <li key={`${key}-${j}`} style={{ margin: '0.125rem 0', lineHeight: 1.65 }}>
-                  {renderInline(item, `${key}-${j}`)}
+                  {inline(item, `${key}-${j}`)}
                 </li>
               ))}
             </ul>
@@ -178,7 +200,7 @@ export const Markdown = ({ source, className }: MarkdownProps) => {
             >
               {block.lines.map((line, j) => (
                 <div key={`${key}-${j}`} style={{ lineHeight: 1.6 }}>
-                  {renderInline(line, `${key}-${j}`)}
+                  {inline(line, `${key}-${j}`)}
                 </div>
               ))}
             </blockquote>
@@ -188,7 +210,7 @@ export const Markdown = ({ source, className }: MarkdownProps) => {
           <p key={key} style={{ margin: '0.5rem 0', lineHeight: 1.7 }}>
             {block.lines.map((line, j) => (
               <Fragment key={`${key}-${j}`}>
-                {renderInline(line, `${key}-${j}`)}
+                {inline(line, `${key}-${j}`)}
                 {j < block.lines.length - 1 && <br />}
               </Fragment>
             ))}

@@ -12,6 +12,8 @@ export interface BibleBookIntro {
   theme?: string | null
   author_period?: string | null
   key_chapters?: string | null
+  /** 책 구조 — 한 줄에 "1-11 원역사" 형태. parseBookStructure로 파싱 */
+  structure?: string | null
   overview: string
   christ_connection?: string | null
   author_id?: number | null
@@ -26,6 +28,7 @@ export interface BibleBookIntroUpsertRequest {
   theme?: string
   author_period?: string
   key_chapters?: string
+  structure?: string
   overview: string
   christ_connection?: string
 }
@@ -39,6 +42,7 @@ export interface BibleBookIntroAIGenerateResponse {
   theme?: string | null
   author_period?: string | null
   key_chapters?: string | null
+  structure?: string | null
   overview: string
   christ_connection?: string | null
   book_name: string
