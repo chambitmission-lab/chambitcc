@@ -14,9 +14,19 @@ import {
   type ChurchSeason,
 } from '../../../utils/churchCalendar'
 import type { TimeOfDay } from '../../../types/meditation'
-import heroMorning from '../../../assets/hero/morning.jpg'
-import heroAfternoon from '../../../assets/hero/afternoon.jpg'
-import heroEvening from '../../../assets/hero/evening.jpg'
+import { getNaturalSeason, type NaturalSeason } from '../../../utils/naturalSeason'
+import heroSummerMorning from '../../../assets/hero/morning.jpg'
+import heroSummerAfternoon from '../../../assets/hero/afternoon.jpg'
+import heroSummerEvening from '../../../assets/hero/evening.jpg'
+import heroSpringMorning from '../../../assets/hero/spring-morning.jpg'
+import heroSpringAfternoon from '../../../assets/hero/spring-afternoon.jpg'
+import heroSpringEvening from '../../../assets/hero/spring-evening.jpg'
+import heroAutumnMorning from '../../../assets/hero/autumn-morning.jpg'
+import heroAutumnAfternoon from '../../../assets/hero/autumn-afternoon.jpg'
+import heroAutumnEvening from '../../../assets/hero/autumn-evening.jpg'
+import heroWinterMorning from '../../../assets/hero/winter-morning.jpg'
+import heroWinterAfternoon from '../../../assets/hero/winter-afternoon.jpg'
+import heroWinterEvening from '../../../assets/hero/winter-evening.jpg'
 import './DailyMeditationCard.css'
 
 const GREETING_KEYS = {
@@ -25,12 +35,48 @@ const GREETING_KEYS = {
   evening: 'homeGreetingEvening',
 } as const satisfies Record<TimeOfDay, string>
 
-/* 시간대별 히어로 — 이미지·이모지·헤드라인이 함께 바뀌며 분위기를 만든다 */
-const HERO_IMAGES: Record<TimeOfDay, string> = {
-  morning: heroMorning,
-  afternoon: heroAfternoon,
-  evening: heroEvening,
+/* 계절 × 시간대 히어로 — 이미지·이모지·헤드라인이 함께 바뀌며 분위기를 만든다.
+ * CSS 배경으로만 참조되므로 실제 다운로드는 현재 계절·시간대 1장뿐이다. */
+const HERO_IMAGES: Record<NaturalSeason, Record<TimeOfDay, string>> = {
+  spring: {
+    morning: heroSpringMorning,
+    afternoon: heroSpringAfternoon,
+    evening: heroSpringEvening,
+  },
+  summer: {
+    morning: heroSummerMorning,
+    afternoon: heroSummerAfternoon,
+    evening: heroSummerEvening,
+  },
+  autumn: {
+    morning: heroAutumnMorning,
+    afternoon: heroAutumnAfternoon,
+    evening: heroAutumnEvening,
+  },
+  winter: {
+    morning: heroWinterMorning,
+    afternoon: heroWinterAfternoon,
+    evening: heroWinterEvening,
+  },
 }
+
+/* 계절 앰비언트 — 히어로 안에서만 아주 은은하게 떨어지는 글리프.
+ * 여름은 배경 자체가 청량해 연출 없이 둔다. */
+const AMBIENT_GLYPHS: Partial<Record<NaturalSeason, string>> = {
+  spring: '🌸',
+  autumn: '🍂',
+  winter: '❄️',
+}
+
+/* 파티클 배치 상수 — 렌더마다 흔들리지 않도록 고정값 사용 */
+const AMBIENT_PARTICLES = [
+  { left: '8%', delay: '0s', duration: '13s', drift: '18px', size: '11px', opacity: 0.5 },
+  { left: '24%', delay: '4.5s', duration: '16s', drift: '-14px', size: '9px', opacity: 0.4 },
+  { left: '43%', delay: '9s', duration: '12s', drift: '22px', size: '12px', opacity: 0.55 },
+  { left: '61%', delay: '2s', duration: '17s', drift: '-20px', size: '10px', opacity: 0.45 },
+  { left: '76%', delay: '6.5s', duration: '14s', drift: '16px', size: '13px', opacity: 0.5 },
+  { left: '90%', delay: '11s', duration: '15s', drift: '-12px', size: '9px', opacity: 0.4 },
+] as const
 
 const HERO_EMOJI: Record<TimeOfDay, string> = {
   morning: '☀️',
@@ -124,6 +170,9 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
    * 절기 태그·리본 모두 프론트 계산값(churchCalendar)을 쓴다. */
   const today = new Date()
   const season = getCurrentSeason(today)
+  /* 자연 계절 — 히어로 배경·앰비언트 연출용 (교회력 절기와 별개) */
+  const naturalSeason = getNaturalSeason(today)
+  const ambientGlyph = AMBIENT_GLYPHS[naturalSeason]
   const todayDoy = dayOfYear(today)
   const ribbonSegments = getSeasonSegments(today.getFullYear()).map((seg) => {
     const startDoy = dayOfYear(seg.start)
@@ -180,13 +229,34 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         data-time={timeOfDay}
         data-season={season}
       >
-        {/* 시간대별 히어로 — 배경 이미지 위에 인사말 + 헤드라인.
+        {/* 계절 × 시간대 히어로 — 배경 이미지 위에 인사말 + 헤드라인.
          * 이미지는 ::before 레이어에서 하단 마스크로 카드 배경에 녹아든다 (Apple TV/Netflix식 페이드) */}
         <div
           className="meditation-hero"
-          style={{ '--hero-image': `url(${HERO_IMAGES[timeOfDay]})` } as React.CSSProperties}
+          style={{ '--hero-image': `url(${HERO_IMAGES[naturalSeason][timeOfDay]})` } as React.CSSProperties}
         >
           <div className="meditation-hero-overlay" aria-hidden />
+          {/* 계절 앰비언트 — 봄 꽃잎·가을 낙엽·겨울 눈이 은은히 내린다 (여름은 없음) */}
+          {ambientGlyph && (
+            <div className="meditation-hero-ambient" aria-hidden>
+              {AMBIENT_PARTICLES.map((p, i) => (
+                <span
+                  key={i}
+                  className="meditation-ambient-particle"
+                  style={{
+                    left: p.left,
+                    fontSize: p.size,
+                    '--fall-delay': p.delay,
+                    '--fall-duration': p.duration,
+                    '--fall-drift': p.drift,
+                    '--fall-opacity': p.opacity,
+                  } as React.CSSProperties}
+                >
+                  {ambientGlyph}
+                </span>
+              ))}
+            </div>
+          )}
           {/* 실황 날씨 칩 — 우측 상단 유리 칩(이모지+기온). 맑으면 시간대 이모지,
            * API 실패 시엔 칩을 숨기고 인사말 끝 이모지로 폴백한다. */}
           {weather && (
