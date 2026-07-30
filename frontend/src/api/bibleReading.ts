@@ -75,28 +75,32 @@ export interface BookProgress {
   book_name_en?: string
   total_verses: number
   read_verses: number
-  progress_rate: number // 완독률 0~100
+  progress_rate: number // 완독률 0~100 (절 기준)
+  /** 전체 장 수 */
+  total_chapters?: number
+  /** 완독한 장 수 — 그 장의 모든 절을 읽은 장만 카운트 */
+  read_chapters?: number
+  /** 완독률 0~100 (장 기준) = read_chapters / total_chapters */
+  chapter_progress_rate?: number
   last_read_at: string | null
+}
+
+// 구약/신약/전체 요약 — 절 기준과 장 기준을 함께 제공한다.
+// UI는 "몇 장 중 몇 장"이 사람의 성경 읽기 감각에 맞으므로 장 기준을 주 지표로 쓴다.
+export interface TestamentProgress {
+  total_verses: number
+  read_verses: number
+  progress_rate: number
+  total_chapters?: number
+  read_chapters?: number
 }
 
 export interface ReadingProgressResponse {
   success: boolean
   data: {
-    overall: {
-      total_verses: number
-      read_verses: number
-      progress_rate: number
-    }
-    old_testament: {
-      total_verses: number
-      read_verses: number
-      progress_rate: number
-    }
-    new_testament: {
-      total_verses: number
-      read_verses: number
-      progress_rate: number
-    }
+    overall: TestamentProgress
+    old_testament: TestamentProgress
+    new_testament: TestamentProgress
     books: BookProgress[]
   }
 }

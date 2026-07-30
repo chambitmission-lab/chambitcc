@@ -58,13 +58,6 @@ const BibleStudy = () => {
     return map
   }, [resumeData])
 
-  // book_id → 완독률(0~100) 매핑. 카드 하단 게이지바에 사용
-  const progressMap = useMemo(() => {
-    const map = new Map<number, number>()
-    progressData?.books?.forEach(b => map.set(b.book_id, b.progress_rate))
-    return map
-  }, [progressData])
-
   // 최근 읽은 책 슬라이더용 — 전역 최신(이어 읽기 카드)은 제외한 "다른 책" 목록
   const recentForSlider = useMemo(() => {
     const list = resumeData?.recent_books ?? []
@@ -324,7 +317,7 @@ const BibleStudy = () => {
                 error={booksError}
                 onBookSelect={handleBookSelect}
                 resumeMap={resumeMap}
-                progressMap={progressMap}
+                progress={progressData}
                 recentBooks={recentForSlider}
               />
             )}
