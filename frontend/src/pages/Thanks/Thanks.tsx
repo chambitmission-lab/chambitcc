@@ -25,6 +25,7 @@ import { showToast } from '../../utils/toast'
 import ThanksCard from '../Home/components/ThanksThread/ThanksCard'
 import ThanksComposer from '../Home/components/ThanksThread/ThanksComposer'
 import ThanksAvatar from '../Home/components/ThanksThread/ThanksAvatar'
+import gratitudeHero from '../../assets/hero/gratitude.jpg'
 import '../Home/components/ThanksThread/thanks.css'
 
 /* 히어로에 하루 하나씩 도는 감사 말씀 */
@@ -266,27 +267,49 @@ const Thanks = () => {
           </div>
         </div>
 
-        {/* Hero — 플랫 브랜드 배너 + 오늘의 감사 말씀 */}
+        {/* Hero — 추수의 들녘 사진 + 오늘의 감사 말씀 */}
         <section className="px-4 pt-4">
           <article
-            className="relative overflow-hidden rounded-[22px] px-5 py-5 text-[var(--on-brand)]"
+            className="relative overflow-hidden rounded-[22px] px-5 py-5 min-h-[232px] flex flex-col justify-end text-white"
             style={{
               background: 'var(--brand)',
               boxShadow: '0 12px 30px var(--brand-glow)',
             }}
           >
-            {/* 은은한 광원 — 종이 위에 스민 빛 */}
+            {/* 사진 — 해 뜨는 밀밭(추수의 감사) */}
             <div
-              className="absolute -right-10 -top-14 w-44 h-44 rounded-full blur-3xl pointer-events-none"
-              style={{ background: 'rgba(255,255,255,0.20)' }}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `url(${gratitudeHero})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center 62%',
+              }}
+              aria-hidden
             />
+            {/* 브랜드 블루 워시 — 왼쪽(글씨 자리)은 진하게, 오른쪽 해는 살려둔다 */}
             <div
-              className="absolute -left-12 bottom-[-3rem] w-40 h-40 rounded-full blur-3xl pointer-events-none"
-              style={{ background: 'rgba(255,255,255,0.12)' }}
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  'linear-gradient(100deg, rgba(21,68,158,0.92) 0%, rgba(30,96,206,0.62) 44%, rgba(49,130,246,0.10) 100%)',
+              }}
+              aria-hidden
+            />
+            {/* 하단 가독성 스크림 */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  'linear-gradient(180deg, rgba(6,22,55,0) 38%, rgba(6,22,55,0.42) 74%, rgba(6,22,55,0.78) 100%)',
+              }}
+              aria-hidden
             />
 
-            <div className="relative">
-              <div className="flex items-center gap-1.5 mb-3 text-[11px] font-bold tracking-[0.1em] opacity-80">
+            <div
+              className="relative"
+              style={{ textShadow: '0 1px 14px rgba(4,16,44,0.45)' }}
+            >
+              <div className="flex items-center gap-1.5 mb-3 text-[11px] font-bold tracking-[0.1em] opacity-90">
                 <span className="material-icons-round text-[15px]">volunteer_activism</span>
                 GRATITUDE
               </div>
@@ -294,11 +317,11 @@ const Thanks = () => {
               <p className="text-[21px] font-extrabold leading-[1.35] tracking-[-0.02em]">
                 “{ko ? verse.ko : verse.en}”
               </p>
-              <p className="mt-1 text-[12px] font-semibold opacity-80">
+              <p className="mt-1 text-[12px] font-semibold opacity-85">
                 {ko ? verse.ref : verse.refEn}
               </p>
 
-              <div className="mt-4 pt-3.5 border-t border-white/20 flex items-center justify-between gap-3">
+              <div className="mt-4 pt-3.5 border-t border-white/25 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[13px] font-bold">
                     {ko ? `지금까지 ${total}개의 감사` : `${total} thanks so far`}
