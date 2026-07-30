@@ -11,10 +11,12 @@ import VerseBookmarkModal, { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 import VerseNoteSheet from './VerseNoteSheet'
 import WordNoteSheet from './WordNoteSheet'
 import { HeartIcon } from '../../../components/icons/ActionIcons'
+import { copyVerses, shareVerses } from './verseCopy'
 
 interface VerseItemProps {
   verse: BibleVerse
   bookNameKo?: string
+  bookNumber?: number
   chapter?: number
   isRead: boolean
   onReadSuccess: (verseId: number, similarity: number) => void
@@ -39,6 +41,12 @@ interface VerseItemProps {
   // undefined = 장 데이터 없음(로딩/미배포) → 기존 절별 조회로 폴백,
   // null = 장 데이터는 있는데 이 절엔 북마크 없음
   chapterBookmark?: VerseBookmark | null
+  // 여러 절 선택 모드 — 켜지면 절을 탭할 때 액션바 대신 선택이 토글된다
+  selectionMode?: boolean
+  isSelected?: boolean
+  onToggleSelect?: () => void
+  // 액션바의 '여러 절' 버튼 — 이 절을 첫 선택으로 두고 선택 모드에 진입
+  onEnterSelection?: () => void
 }
 
 /** 토큰 앞뒤의 문장부호를 떼고 단어만 남긴다 ("긍휼히," → "긍휼히") */
@@ -67,7 +75,7 @@ const resolveNoteRange = (note: WordNote, text: string): [number, number] | null
   return idx >= 0 ? [idx, idx + note.word.length] : null
 }
 
-const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, onToggleRead, isTogglingRead, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange, wordNotes, chapterBookmark }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSuccess, onEdit, onToggleRead, isTogglingRead, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange, wordNotes, chapterBookmark, selectionMode, isSelected, onToggleSelect, onEnterSelection }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
@@ -80,7 +88,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
     charEnd: number | null
     existing: WordNote | null
   } | null>(null)
-  const showActions = actionsOpen
+  // 선택 모드에선 액션바가 뜨지 않는다 (탭은 선택 토글에 쓰인다)
+  const showActions = actionsOpen && !selectionMode
   const isAdminUser = isAdmin()
   // 장 배치 데이터(chapterBookmark)가 오면 절별 요청은 끄고 장 데이터를 쓴다 — N+1 제거.
   // 저장/삭제 직후의 즉시 반영은 뮤테이션이 장 배치 캐시를 직접 갱신해 처리한다.
@@ -270,10 +279,25 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
 
   const hasNote = !!bookmark?.note
 
-  // 구절 본문에 줄 좌측 강조(블록 지정). 색 형광펜이 우선, 없으면 노트가 있을 때
-  // 은은한 보라 틴트로 "여긴 내가 묵상한 절"임을 본문 읽기를 방해하지 않는 선에서 표시.
-  const rowAccent =
-    highlightBg && !isReading
+  // 복사/공유 대상 — 이 절 하나 (여러 절은 VerseList의 선택 바가 따로 만든다)
+  const copyTarget = {
+    bookNameKo: bookNameKo ?? verse.book_name_ko ?? '',
+    bookNumber: bookNumber ?? verse.book_number ?? 0,
+    chapter: chapter ?? verse.chapter,
+    verses: [{ verse: verse.verse, text: verse.text }],
+  }
+
+  // 구절 본문에 줄 좌측 강조(블록 지정). 선택 모드에서는 선택 여부가 최우선,
+  // 그다음 색 형광펜, 없으면 노트가 있을 때 은은한 브랜드 틴트로
+  // "여긴 내가 묵상한 절"임을 본문 읽기를 방해하지 않는 선에서 표시.
+  const rowAccent = isSelected
+    ? {
+        background: 'var(--brand-soft-strong)',
+        borderLeft: '3px solid var(--brand)',
+        borderRadius: '0.375rem',
+        padding: '0.375rem 0.5rem',
+      }
+    : highlightBg && !isReading
       ? {
           // 다크 배경 위에서 파스텔 형광펜이 탁하게 떡지지 않도록:
           // 색 정체성은 왼쪽 바로 또렷하게 주고, 면은 아주 옅은 틴트만.
@@ -320,6 +344,11 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
       {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}
       <div
         onClick={() => {
+          // 여러 절 선택 모드에서는 탭이 선택 토글로 동작한다
+          if (selectionMode) {
+            onToggleSelect?.()
+            return
+          }
           // 단어 선택 모드에서 빈 곳을 탭하면 모드만 종료 (액션바 토글 방지)
           if (wordSelectMode) {
             setWordSelectMode(false)
@@ -332,6 +361,10 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
+            if (selectionMode) {
+              onToggleSelect?.()
+              return
+            }
             if (wordSelectMode) {
               setWordSelectMode(false)
               return
@@ -339,8 +372,13 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             onActionsOpenChange(!showActions)
           }
         }}
-        aria-expanded={showActions}
-        aria-label={`${verse.verse}절 메뉴 ${showActions ? '닫기' : '열기'}`}
+        aria-expanded={selectionMode ? undefined : showActions}
+        aria-pressed={selectionMode ? !!isSelected : undefined}
+        aria-label={
+          selectionMode
+            ? `${verse.verse}절 ${isSelected ? '선택 해제' : '선택'}`
+            : `${verse.verse}절 메뉴 ${showActions ? '닫기' : '열기'}`
+        }
         style={{
           position: 'relative',
           display: 'flex',
@@ -349,7 +387,8 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
           // baseline 정렬은 작은 숫자가 한글 본문 대비 살짝 처져 보였음.
           alignItems: 'flex-start',
           cursor: 'pointer',
-          userSelect: 'text',
+          // 선택 모드에선 탭마다 텍스트가 파랗게 잡히는 걸 막는다
+          userSelect: selectionMode ? 'none' : 'text',
           ...rowAccent,
         }}
       >
@@ -403,7 +442,39 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
             남는 두 상태는 모양으로 구분: 채운 하트=즐겨찾기(내 표시), 라인 책=해석 있음(콘텐츠).
             읽음 체크는 절 번호 색으로 이동 — 읽음 처리 순간 이 행에
             아이콘이 끼어들며 본문이 재줄바꿈되던 출렁임을 없앤다. */}
-        {bookmark?.is_favorite && (
+        {selectionMode ? (
+          // 선택 모드에선 이 자리를 항상 체크 슬롯으로 고정 —
+          // 토글할 때마다 아이콘이 생겼다 사라지면 본문이 재줄바꿈된다.
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              flexShrink: 0,
+              paddingTop: 'calc(var(--verse-line-box) / 2 - 9px)',
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                border: isSelected ? '1px solid var(--brand)' : '1.5px solid var(--ig-border)',
+                background: isSelected ? 'var(--brand)' : 'transparent',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.15s ease, border-color 0.15s ease',
+              }}
+            >
+              {isSelected && (
+                <span className="material-icons-round" style={{ fontSize: '0.875rem', color: '#fff' }}>
+                  check
+                </span>
+              )}
+            </span>
+          </div>
+        ) : bookmark?.is_favorite ? (
           <div
             style={{
               display: 'flex',
@@ -418,7 +489,7 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               <HeartIcon size={11} filled />
             </span>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* 단어 선택 모드 안내 칩 */}
@@ -638,7 +709,72 @@ const VerseItem = ({ verse, bookNameKo, chapter, isRead, onReadSuccess, onEdit, 
               </button>
             )}
 
-            {/* 구분선: 묵상 ↔ 관리자 그룹 분리 */}
+            {/* 구분선: 묵상 ↔ 나눔 그룹 분리 */}
+            <span
+              aria-hidden
+              style={{
+                width: '1px',
+                height: '1.25rem',
+                background: 'var(--ig-border, rgba(255,255,255,0.12))',
+                margin: '0 0.125rem',
+                flexShrink: 0,
+              }}
+            />
+
+            {/* 나눔: 복사 — 좋은 구절을 바로 클립보드로 */}
+            <button
+              onClick={() => { onActionsOpenChange(false); copyVerses(copyTarget) }}
+              className="verse-action-btn"
+              style={{ background: 'var(--brand-soft)', border: '1px solid var(--brand-soft-strong)' }}
+              title="구절 복사"
+              aria-label="구절 복사"
+              tabIndex={showActions ? 0 : -1}
+            >
+              <span
+                className="material-icons-round"
+                style={{ fontSize: '1.0625rem', color: 'var(--brand)', opacity: 0.85 }}
+              >
+                content_copy
+              </span>
+            </button>
+
+            {/* 나눔: 공유 — 카톡 등 네이티브 공유 시트 (미지원이면 복사로 폴백) */}
+            <button
+              onClick={() => { onActionsOpenChange(false); shareVerses(copyTarget) }}
+              className="verse-action-btn"
+              style={{ background: 'var(--brand-soft)', border: '1px solid var(--brand-soft-strong)' }}
+              title="구절 공유"
+              aria-label="구절 공유"
+              tabIndex={showActions ? 0 : -1}
+            >
+              <span
+                className="material-icons-round"
+                style={{ fontSize: '1.0625rem', color: 'var(--brand)', opacity: 0.85 }}
+              >
+                share
+              </span>
+            </button>
+
+            {/* 나눔: 여러 절 선택 — 이 절부터 구간으로 묶어 복사/공유 */}
+            {onEnterSelection && (
+              <button
+                onClick={() => { onActionsOpenChange(false); onEnterSelection() }}
+                className="verse-action-btn"
+                style={{ background: 'var(--brand-soft)', border: '1px solid var(--brand-soft-strong)' }}
+                title="여러 절 선택"
+                aria-label="여러 절 선택"
+                tabIndex={showActions ? 0 : -1}
+              >
+                <span
+                  className="material-icons-round"
+                  style={{ fontSize: '1.0625rem', color: 'var(--brand)', opacity: 0.85 }}
+                >
+                  checklist
+                </span>
+              </button>
+            )}
+
+            {/* 구분선: 나눔 ↔ 관리자 그룹 분리 */}
             {isAdminUser && (onEdit || onToggleRead) && (
               <span
                 aria-hidden

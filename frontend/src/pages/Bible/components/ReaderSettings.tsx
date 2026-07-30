@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { loadCopyPrefs, saveCopyPrefs, type CopyPrefs, type CopyStyle } from './verseCopy'
 
 /**
- * Aa 읽기 설정 — 성경 본문의 서체/글자 크기/줄 간격을 개인화한다.
+ * Aa 읽기 설정 — 성경 본문의 서체/글자 크기/줄 간격 + 구절 복사 형식을 개인화한다.
  * 설정은 :root CSS 변수(--bible-font-scale 등)로 심어지고 verse-display.css가 참조한다.
  * localStorage에 저장되어 다음 방문에도 유지된다.
  */
@@ -46,9 +47,17 @@ const applyPrefs = (p: ReaderPrefs) => {
   }
 }
 
+const COPY_STYLE_OPTIONS: { key: CopyStyle; label: string }[] = [
+  { key: 'refAfter', label: '본문+출처' },
+  { key: 'refBefore', label: '출처+본문' },
+  { key: 'textOnly', label: '본문만' },
+]
+
 const ReaderSettings = () => {
   const [open, setOpen] = useState(false)
   const [prefs, setPrefs] = useState<ReaderPrefs>(loadPrefs)
+  // 복사 형식은 읽기 설정과 저장소를 따로 쓴다 (복사 유틸이 매번 직접 읽어간다)
+  const [copyPrefs, setCopyPrefs] = useState<CopyPrefs>(loadCopyPrefs)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   // 마운트 시(및 변경 시) 저장된 설정을 CSS 변수로 반영
@@ -70,6 +79,13 @@ const ReaderSettings = () => {
   }, [open])
 
   const update = (patch: Partial<ReaderPrefs>) => setPrefs(prev => ({ ...prev, ...patch }))
+
+  const updateCopy = (patch: Partial<CopyPrefs>) =>
+    setCopyPrefs(prev => {
+      const next = { ...prev, ...patch }
+      saveCopyPrefs(next)
+      return next
+    })
 
   return (
     <div ref={wrapRef} className="reader-settings">
@@ -159,6 +175,55 @@ const ReaderSettings = () => {
             lineHeight: LINE_HEIGHTS[prefs.leadingIdx],
           }}>
             태초에 하나님이 천지를 창조하시니라
+          </p>
+
+          <div className="reader-settings__divider" aria-hidden />
+
+          {/* 복사 형식 — 절 액션바의 복사/공유가 만드는 문자열 모양 */}
+          <div className="reader-settings__row reader-settings__row--stack">
+            <span className="reader-settings__label">구절 복사 형식</span>
+            <div className="reader-settings__seg">
+              {COPY_STYLE_OPTIONS.map(opt => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  className={copyPrefs.style === opt.key ? 'active' : ''}
+                  onClick={() => updateCopy({ style: opt.key })}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 링크 첨부 — 받은 사람이 누르면 그 절로 앱이 열린다 */}
+          <div className="reader-settings__row">
+            <span className="reader-settings__label">링크 첨부</span>
+            <div className="reader-settings__seg">
+              <button
+                type="button"
+                className={copyPrefs.withLink ? 'active' : ''}
+                onClick={() => updateCopy({ withLink: true })}
+              >
+                켜기
+              </button>
+              <button
+                type="button"
+                className={!copyPrefs.withLink ? 'active' : ''}
+                onClick={() => updateCopy({ withLink: false })}
+              >
+                끄기
+              </button>
+            </div>
+          </div>
+
+          <p className="reader-settings__hint">
+            {copyPrefs.style === 'textOnly'
+              ? '태초에 하나님이 천지를 창조하시니라'
+              : copyPrefs.style === 'refBefore'
+                ? '창세기 1:1\n태초에 하나님이 천지를 창조하시니라'
+                : '태초에 하나님이 천지를 창조하시니라\n— 창세기 1:1'}
+            {copyPrefs.withLink ? '\n(+ 바로 열리는 링크)' : ''}
           </p>
         </div>
       )}

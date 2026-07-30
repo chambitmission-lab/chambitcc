@@ -1,6 +1,15 @@
 // 타임캡슐 타입 정의 — 개봉 전에는 서버가 content를 내려주지 않는다
-export type CapsuleType = 'self' | 'invite'
+// self: 미래의 나 / invite: 초대 링크 전달 / direct: 앱 사용자에게 바로
+export type CapsuleType = 'self' | 'invite' | 'direct'
 export type CapsuleRole = 'self' | 'sender' | 'recipient'
+
+// 받는 사람 검색 결과 (direct 캡슐 수신자 선택용)
+export interface CapsuleRecipient {
+  id: number
+  display_name: string
+  username: string
+  avatar_url: string | null
+}
 
 export interface CapsuleSnapshotStats {
   meditations?: number
@@ -80,6 +89,7 @@ export interface CapsuleCreateRequest {
   message?: string
   title?: string
   recipientName?: string
+  recipientUserId?: number // direct 전용 — 받는 앱 사용자
   clientSnapshot?: Pick<CapsuleSnapshot, 'season_label' | 'verse_reference' | 'verse_text'>
   audioBlob?: Blob | null
   audioDuration?: number

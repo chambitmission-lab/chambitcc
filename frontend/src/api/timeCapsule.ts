@@ -6,6 +6,7 @@ import type {
   CapsuleDetail,
   CapsuleListResponse,
   CapsulePreview,
+  CapsuleRecipient,
   CapsuleSummary,
 } from '../types/timeCapsule'
 
@@ -32,6 +33,9 @@ export const createCapsule = async (
   if (payload.message) formData.append('message', payload.message)
   if (payload.title) formData.append('title', payload.title)
   if (payload.recipientName) formData.append('recipient_name', payload.recipientName)
+  if (payload.recipientUserId != null) {
+    formData.append('recipient_user_id', String(payload.recipientUserId))
+  }
   if (payload.clientSnapshot) {
     formData.append('client_snapshot', JSON.stringify(payload.clientSnapshot))
   }
@@ -57,6 +61,15 @@ export const createCapsule = async (
     body: formData,
   })
   if (!response.ok) return parseError(response, '캡슐 봉인에 실패했습니다')
+  return response.json()
+}
+
+// 받는 사람 검색 — 이름/아이디 부분 일치, 서버가 최대 8명만 내려준다
+export const searchCapsuleRecipients = async (q: string): Promise<CapsuleRecipient[]> => {
+  const response = await apiFetch(`${BASE}/recipients?q=${encodeURIComponent(q)}`, {
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) return parseError(response, '받는 분을 찾지 못했습니다')
   return response.json()
 }
 

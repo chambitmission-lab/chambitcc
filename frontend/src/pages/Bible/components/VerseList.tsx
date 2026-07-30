@@ -16,6 +16,7 @@ import { useChapterCommentaries } from '../../../hooks/useBibleCommentary'
 import { useChapterWordNotes, groupWordNotesByVerse } from '../../../hooks/useBibleWordNote'
 import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
+import { buildReference, copyVerses, shareVerses, type VerseCopyTarget } from './verseCopy'
 
 interface VerseListProps {
   chapterData: InfiniteData<BibleChapterPaginatedResponse> | undefined
@@ -63,6 +64,9 @@ const VerseList = ({
   const [openVerseId, setOpenVerseId] = useState<number | null>(null)
   const [commentaryFocusVerse, setCommentaryFocusVerse] = useState<number | null>(null)
   const [commentaryPanelOpen, setCommentaryPanelOpen] = useState(false)
+  // 여러 절 선택 — 액션바의 '여러 절' 버튼으로 진입, 탭으로 절을 담고 하단 바에서 복사/공유
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
   const queryClient = useQueryClient()
   const updateVerseMutation = useOptimisticUpdateVerse()
 
@@ -256,6 +260,74 @@ const VerseList = ({
     })
     return map
   }, [chapterData])
+
+  // ---------- 여러 절 선택 ----------
+  const bookNameKo = chapterData?.pages[0]?.book_name_ko ?? ''
+
+  const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds])
+
+  // 선택된 절을 절 번호 순으로 — 탭한 순서가 아니라 본문 순서로 복사돼야 한다
+  const selectedVerses = useMemo(() => {
+    if (!selectedIds.length || !chapterData) return []
+    const picked: BibleVerse[] = []
+    chapterData.pages.forEach((page) => {
+      page.verses.forEach((v) => {
+        if (selectedIdSet.has(v.id)) picked.push(v)
+      })
+    })
+    return picked.sort((a, b) => a.verse - b.verse)
+  }, [selectedIds, selectedIdSet, chapterData])
+
+  const selectionTarget: VerseCopyTarget = {
+    bookNameKo,
+    bookNumber,
+    chapter: selectedChapter,
+    verses: selectedVerses.map((v) => ({ verse: v.verse, text: v.text })),
+  }
+
+  // 선택 구간에 빈 절이 있는지 (16, 19만 골랐다면 17·18) — 있으면 '구간 채우기' 제안
+  const selectionGapCount = useMemo(() => {
+    if (selectedVerses.length < 2) return 0
+    const span = selectedVerses[selectedVerses.length - 1].verse - selectedVerses[0].verse + 1
+    return span - selectedVerses.length
+  }, [selectedVerses])
+
+  const enterSelection = (verse: BibleVerse) => {
+    setOpenVerseId(null)
+    setSelectedIds([verse.id])
+    setSelectionMode(true)
+  }
+
+  const toggleSelect = (verseId: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(verseId) ? prev.filter((id) => id !== verseId) : [...prev, verseId]
+    )
+  }
+
+  const exitSelection = () => {
+    setSelectionMode(false)
+    setSelectedIds([])
+  }
+
+  // 선택된 첫 절~끝 절 사이의 빠진 절을 모두 채운다
+  const fillSelectionGap = () => {
+    if (selectedVerses.length < 2 || !chapterData) return
+    const from = selectedVerses[0].verse
+    const to = selectedVerses[selectedVerses.length - 1].verse
+    const ids: number[] = []
+    chapterData.pages.forEach((page) => {
+      page.verses.forEach((v) => {
+        if (v.verse >= from && v.verse <= to) ids.push(v.id)
+      })
+    })
+    setSelectedIds(ids)
+  }
+
+  // 장이 바뀌면 선택은 초기화 (다른 장의 절이 섞여 복사되지 않도록)
+  useEffect(() => {
+    setSelectionMode(false)
+    setSelectedIds([])
+  }, [bookNumber, selectedChapter])
 
   const readCount = readStatusData?.read_verses || 0
   const progress = readStatusData?.progress || 0
@@ -594,6 +666,7 @@ const VerseList = ({
                   key={verse.id}
                   verse={verse}
                   bookNameKo={page.book_name_ko}
+                  bookNumber={bookNumber}
                   chapter={page.chapter}
                   isRead={readVerses.has(verse.id)}
                   onReadSuccess={handleReadSuccess}
@@ -608,6 +681,10 @@ const VerseList = ({
                   onActionsOpenChange={(open) => setOpenVerseId(open ? verse.id : null)}
                   wordNotes={wordNotesByVerse.get(verse.id)}
                   chapterBookmark={bookmarksByVerse ? (bookmarksByVerse.get(verse.id) ?? null) : undefined}
+                  selectionMode={selectionMode}
+                  isSelected={selectedIdSet.has(verse.id)}
+                  onToggleSelect={() => toggleSelect(verse.id)}
+                  onEnterSelection={() => enterSelection(verse)}
                 />
               ))}
             </div>
@@ -720,8 +797,132 @@ const VerseList = ({
         />
       )}
 
+      {/* 여러 절 선택 바 — 선택 중에만 하단에 떠서 개수/참조를 보여주고 복사·공유를 받는다 */}
+      {selectionMode && (
+        <div
+          role="toolbar"
+          aria-label="선택한 절 복사·공유"
+          style={{
+            position: 'fixed',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bottom: '5.5rem',
+            width: 'calc(100% - 1.5rem)',
+            maxWidth: '32rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.375rem',
+            padding: '0.5rem 0.5rem 0.5rem 0.875rem',
+            borderRadius: '1rem',
+            background: 'var(--ig-primary-background)',
+            border: '1px solid var(--ig-border)',
+            boxShadow: '0 12px 32px -12px rgba(0, 0, 0, 0.45)',
+            zIndex: 60,
+            animation: 'versePopIn 0.16s ease-out',
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--ig-primary-text)' }}>
+              {selectedVerses.length ? `${selectedVerses.length}개 절 선택` : '담을 절을 탭하세요'}
+            </div>
+            {selectedVerses.length > 0 && (
+              <div
+                style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--ig-secondary-text)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {buildReference(selectionTarget)}
+              </div>
+            )}
+          </div>
+
+          {/* 16·19처럼 띄엄띄엄 골랐을 때만 — 사이 절을 한 번에 채운다 */}
+          {selectionGapCount > 0 && (
+            <button
+              type="button"
+              onClick={fillSelectionGap}
+              style={{
+                flexShrink: 0,
+                padding: '0.375rem 0.625rem',
+                borderRadius: '999px',
+                border: '1px solid var(--brand-soft-strong)',
+                background: 'var(--brand-soft)',
+                color: 'var(--brand)',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              구간 채우기
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => copyVerses(selectionTarget)}
+            className="verse-action-btn"
+            disabled={!selectedVerses.length}
+            title="선택한 절 복사"
+            aria-label="선택한 절 복사"
+            style={{
+              background: 'var(--brand-soft)',
+              border: '1px solid var(--brand-soft-strong)',
+              opacity: selectedVerses.length ? 1 : 0.4,
+              cursor: selectedVerses.length ? 'pointer' : 'not-allowed',
+            }}
+          >
+            <span className="material-icons-round" style={{ fontSize: '1.0625rem', color: 'var(--brand)' }}>
+              content_copy
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => shareVerses(selectionTarget)}
+            className="verse-action-btn"
+            disabled={!selectedVerses.length}
+            title="선택한 절 공유"
+            aria-label="선택한 절 공유"
+            style={{
+              background: 'var(--brand)',
+              border: '1px solid var(--brand)',
+              opacity: selectedVerses.length ? 1 : 0.4,
+              cursor: selectedVerses.length ? 'pointer' : 'not-allowed',
+            }}
+          >
+            <span className="material-icons-round" style={{ fontSize: '1.0625rem', color: '#fff' }}>
+              share
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={exitSelection}
+            className="verse-action-btn"
+            title="선택 취소"
+            aria-label="선택 취소"
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--ig-border)',
+            }}
+          >
+            <span
+              className="material-icons-round"
+              style={{ fontSize: '1.0625rem', color: 'var(--ig-secondary-text)' }}
+            >
+              close
+            </span>
+          </button>
+        </div>
+      )}
+
       {/* 낭독 따라가기 재개 — 듣던 중 직접 스크롤해 따라가기가 꺼졌을 때만 */}
-      {audioSyncActive && !audioFollow && (
+      {audioSyncActive && !audioFollow && !selectionMode && (
         <button
           onClick={resumeAudioFollow}
           style={{
@@ -753,7 +954,7 @@ const VerseList = ({
       )}
 
       {/* 장 전체 해석 보기 플로팅 버튼 */}
-      {(chapterCommentaries?.items?.length ?? 0) > 0 && !commentaryPanelOpen && (
+      {(chapterCommentaries?.items?.length ?? 0) > 0 && !commentaryPanelOpen && !selectionMode && (
         <button
           onClick={handleShowChapterCommentaries}
           title="이 장의 해석 모두 보기"

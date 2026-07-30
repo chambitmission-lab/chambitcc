@@ -1,93 +1,519 @@
 /* 타임캡슐 봉투 개봉 연출 — 색은 theme.css 토큰만 사용 */
 
-.capsule-envelope {
+/* ── 도착한 캡슐 = 밤하늘 아래 놓인 실물 우편물 ───────────────────
+   회색 도형 봉투 + 파란 버튼 조합은 "열어보고 싶은 마음"을 만들지 못한다.
+   초대장(capsule-invite)·폴라로이드와 같은 재질 언어(크림 종이·우표·소인·
+   밀랍 인장)로 통일하고, 개봉은 버튼이 아니라 인장을 직접 뜯는 동작으로 옮긴다.
+   종이색은 라이트/다크 모두 크림 그대로 — 재질이 이 기능의 정체성이라서다. */
+
+.capsule-arrival {
+  --paper: #f8f2e6;
+  --paper-dim: #eae0ca;
+  --paper-ink: #4a4335;
+  /* 밤은 봉투 주변에서 끝난다 — 그 아래 문구는 테마 색을 그대로 쓴다 */
+  --sky-h: 360px;
   position: relative;
-  width: 240px;
-  height: 168px;
-  margin: 0 auto;
-  perspective: 800px;
+  overflow: hidden;
 }
 
-/* 봉투 몸통 — 종이 재질. 브랜드 원색은 인장과 글로우에만 쓴다.
-   z-index는 반드시 속지(1)보다 위 — 아래면 봉투 안이 뚫려 보인다. */
-.capsule-envelope__body {
+/* 무대 — 봉투만 밤하늘에서 내려온 것처럼 상단만 밤이다.
+   페이지 배경색(#fff / #131313)이 --surface와 미세하게 달라 이음선이 생기므로
+   바닥은 var(--surface)가 아니라 남색 자신의 alpha를 0으로 뺀다. */
+.capsule-arrival::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--sky-h);
+  pointer-events: none;
+  background:
+    radial-gradient(108% 72% at 78% 14%, rgba(96, 140, 255, 0.28), transparent 60%),
+    linear-gradient(180deg, #0e1830 0%, #16264d 46%, rgba(22, 38, 77, 0) 100%);
+}
+
+/* 별 — 아래로 갈수록 사라지게 mask */
+.capsule-arrival::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--sky-h);
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 11% 18%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1.4px 1.4px at 24% 40%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.2px 1.2px at 38% 11%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 57% 31%, rgba(190, 210, 255, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 72% 15%, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(1px 1px at 86% 37%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1.2px 1.2px at 93% 9%, rgba(190, 210, 255, 0.8), transparent);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 66%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 66%);
+  animation: capsule-twinkle 3.6s ease-in-out infinite alternate;
+}
+
+.capsule-arrival__inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* 개봉 순간 화면을 채우는 빛 — 봉인이 풀리는 감각 */
+.capsule-arrival__bloom {
+  position: absolute;
+  inset: -10% -20%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle at 50% 38%,
+    rgba(255, 248, 228, 0.95),
+    rgba(255, 236, 190, 0.5) 32%,
+    rgba(255, 236, 190, 0) 66%
+  );
+}
+
+.capsule-arrival--opening .capsule-arrival__bloom {
+  animation: capsule-bloom 1.15s ease-out 0.6s both;
+}
+
+@keyframes capsule-bloom {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  38% {
+    opacity: 0.92;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+/* ── 봉투 ─────────────────────────────────────────────────────── */
+.capsule-mailpiece {
+  position: relative;
+  width: min(300px, 100%);
+  margin: 0 auto;
+  aspect-ratio: 300 / 200;
+  perspective: 900px;
+  animation: capsule-mail-land 0.9s cubic-bezier(0.16, 0.9, 0.3, 1) both;
+}
+
+/* 봉투가 밤하늘에서 막 내려앉는다 */
+@keyframes capsule-mail-land {
+  from {
+    opacity: 0;
+    transform: translateY(-26px) rotate(-2.5deg) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0) scale(1);
+  }
+}
+
+/* 봉인 상태의 미세한 부유감 — 착지 후 숨 쉬듯 */
+.capsule-mailpiece--idle {
+  animation:
+    capsule-mail-land 0.9s cubic-bezier(0.16, 0.9, 0.3, 1) both,
+    capsule-float 4.2s ease-in-out 1s infinite;
+}
+
+/* 개봉이 시작되면 부유는 그 자리에서 멈춘다 (클래스를 떼면 위치가 튄다) */
+.capsule-arrival--opening .capsule-mailpiece--idle {
+  animation-play-state: running, paused;
+}
+
+/* 몸통 — z-index는 반드시 속지(1)보다 위. 아래면 봉투 안이 뚫려 보인다. */
+.capsule-mailpiece__body {
   position: absolute;
   inset: 0;
   z-index: 2;
-  border-radius: 18px;
-  background: linear-gradient(165deg, var(--surface-container-high), var(--surface-container));
-  border: 1px solid var(--card-border);
-  box-shadow: var(--card-shadow), 0 22px 48px -22px var(--brand-glow);
+  border-radius: 14px;
+  background: linear-gradient(168deg, var(--paper) 0%, var(--paper-dim) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(74, 67, 53, 0.1),
+    0 26px 52px -22px rgba(6, 12, 32, 0.6),
+    0 10px 22px -14px rgba(6, 12, 32, 0.4);
+  overflow: hidden;
 }
 
-/* 봉투 덮개 — 위쪽 기준으로 뒤로 젖혀진다.
+/* 종이 결 — 폴라로이드·초대장과 같은 그레인 */
+.capsule-mailpiece__body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+  opacity: 0.06;
+}
+
+/* 항공우편 사선 테두리 — 붉은/푸른 줄무늬가 "우편물"을 즉시 읽히게 한다.
+   (border-image는 radius를 따라가지 않아 mask-composite로 테두리 폭만 남긴다) */
+.capsule-mailpiece__air {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  padding: 6px;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(178, 74, 66, 0.9) 0 7px,
+    transparent 7px 15px,
+    var(--brand-dim) 15px 22px,
+    transparent 22px 30px
+  );
+  opacity: 0.5;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* 덮개 — 위쪽 기준으로 뒤로 젖혀진다.
    clip-path 때문에 border가 안 먹으므로 V자 모서리는 drop-shadow로 그린다. */
-.capsule-envelope__flap {
+.capsule-mailpiece__flap {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 88px;
-  border-radius: 18px 18px 6px 6px;
-  background: linear-gradient(180deg, var(--surface-container), var(--surface-container-high));
+  height: 118px;
+  border-radius: 14px 14px 5px 5px;
+  background: linear-gradient(180deg, #fcf7ed 0%, #ece2cd 100%);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   transform-origin: top center;
   z-index: 3;
-  filter: drop-shadow(0 1px 0 var(--card-border)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.14));
+  filter: drop-shadow(0 1px 0 rgba(74, 67, 53, 0.16)) drop-shadow(0 10px 15px rgba(6, 12, 32, 0.22));
 }
 
-/* 밀랍 인장 — 이모지 대신 브랜드 디스크 + hairline 글리프 */
-.capsule-envelope__seal {
+/* 우표 · 소인 · 손글씨 수취인 — 덮개(z3) 위에 얹힌다 */
+.capsule-mailpiece__stamp {
   position: absolute;
-  top: 64px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 4;
+  top: 13px;
+  right: 14px;
+  z-index: 5;
+  display: grid;
+  place-items: center;
   width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(160deg, var(--brand), var(--brand-dim));
-  box-shadow:
-    0 8px 18px -6px var(--brand-glow),
-    inset 0 0 0 1.5px rgba(255, 255, 255, 0.26);
-  color: var(--on-brand);
+  height: 52px;
+  border: 3px dotted var(--paper);
+  border-radius: 3px;
+  background: #e3d8bf;
+  color: rgba(74, 67, 53, 0.72);
+  transform: rotate(-3deg);
+}
+
+.capsule-mailpiece__stamp svg {
+  width: 19px;
+  height: 19px;
+}
+
+.capsule-mailpiece__postmark {
+  position: absolute;
+  bottom: 15px;
+  right: 13px;
+  z-index: 5;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 1px;
+  padding: 5px 9px 4px;
+  border: 1px dashed rgba(74, 67, 53, 0.35);
+  border-radius: 9px;
+  font-family: 'Courier New', monospace;
+  color: rgba(74, 67, 53, 0.66);
+  transform: rotate(-6deg);
+}
+
+.capsule-mailpiece__postmark b {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.capsule-mailpiece__postmark i {
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.capsule-mailpiece__postmark em {
+  font-size: 7.5px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  opacity: 0.75;
+}
+
+/* 수취인 — 인쇄 라벨이 아니라 사람이 펜으로 쓴 이름이어야 한다 */
+.capsule-mailpiece__to {
+  position: absolute;
+  bottom: 14px;
+  left: 20px;
+  z-index: 5;
+  max-width: 58%;
+  font-family: 'Nanum Pen Script', 'Pretendard', cursive;
+  font-size: 20px;
+  line-height: 1.2;
+  color: rgba(74, 67, 53, 0.62);
+  text-align: left;
+  transform: rotate(-1.4deg);
+  word-break: keep-all;
+}
+
+.capsule-mailpiece__to b {
+  font-weight: 400;
+  font-size: 29px;
+  color: var(--paper-ink);
+}
+
+/* 봉투 밖으로 삐져나온 것들 — "안에 뭔가 들어 있다"는 촉감.
+   몸통(z2) 뒤(z1)에서 위쪽 테두리만 넘어온다. */
+.capsule-mailpiece__peek {
+  position: absolute;
+  z-index: 1;
+  top: -18px;
+  border-radius: 4px;
+  box-shadow: 0 10px 20px -12px rgba(6, 12, 32, 0.7);
+}
+
+.capsule-mailpiece__peek--photo {
+  left: 24px;
+  width: 74px;
+  height: 86px;
+  padding: 6px 6px 0;
+  background: #fdfdf8;
+  transform: rotate(-7deg);
+}
+
+.capsule-mailpiece__peek--photo i {
+  display: block;
+  height: 62px;
+  background: #d9d2c2;
+}
+
+.capsule-mailpiece__peek--paper {
+  right: 28px;
+  width: 92px;
+  height: 74px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 13px, rgba(74, 67, 53, 0.16) 13px 14px) center
+      14px / 74% 56px no-repeat,
+    #fbf7ee;
+  transform: rotate(5deg);
 }
 
 /* 봉투 속 편지 — 개봉 연출에서 솟아오르는 종이 */
-.capsule-envelope__letter {
+.capsule-mailpiece__letter {
   position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 12px;
-  height: 120px;
-  border-radius: 12px;
-  background:
-    repeating-linear-gradient(
-        180deg,
-        transparent 0 15px,
-        var(--card-border) 15px 16px
-      )
-      center 22px / 72% 92px no-repeat,
-    var(--surface-container);
-  border: 1px solid var(--card-border);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  left: 20px;
+  right: 20px;
+  bottom: 10px;
+  height: 148px;
   z-index: 1;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 16px, rgba(74, 67, 53, 0.15) 16px 17px) center
+      24px / 76% 112px no-repeat,
+    linear-gradient(170deg, #fdfaf2, #f4ecdb);
+  box-shadow:
+    inset 0 0 0 1px rgba(74, 67, 53, 0.08),
+    0 6px 18px rgba(6, 12, 32, 0.14);
 }
 
-/* 개봉 연출 단계 */
-.capsule-envelope--opening .capsule-envelope__flap {
-  animation: capsule-flap-open 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+/* ── 밀랍 인장 — 꾹 눌러 뜯는다 ─────────────────────────────────
+   버튼 한 번으로 끝나면 기대감이 쌓일 틈이 없다. 1초간 링이 차오르고
+   밀랍이 버티다 갈라지는 시간 자체가 이 화면의 감정이다. */
+.capsule-wax {
+  position: absolute;
+  top: 89px;
+  left: 50%;
+  z-index: 6;
+  width: 58px;
+  height: 58px;
+  transform: translateX(-50%);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.capsule-envelope--opening .capsule-envelope__seal {
-  animation: capsule-seal-pop 0.5s ease-out forwards;
+/* 차오르는 진행 링 — 누르는 동안만 */
+.capsule-wax__ring {
+  position: absolute;
+  inset: -7px;
+  width: 72px;
+  height: 72px;
+  transform: rotate(-90deg);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.capsule-envelope--opening .capsule-envelope__letter {
-  animation: capsule-letter-rise 1s cubic-bezier(0.2, 0.7, 0.3, 1) 0.55s forwards;
+.capsule-wax__ring circle {
+  fill: none;
+  stroke: rgba(255, 246, 224, 0.9);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  /* r=34 → 원주 213.6. 살짝 넉넉하게 잡아 끝에서 틈이 보이지 않게 */
+  stroke-dasharray: 214;
+  stroke-dashoffset: 214;
+}
+
+.capsule-wax--holding .capsule-wax__ring {
+  opacity: 1;
+}
+
+.capsule-wax--holding .capsule-wax__ring circle {
+  animation: capsule-wax-fill 1s linear forwards;
+}
+
+@keyframes capsule-wax-fill {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* 밀랍 반쪽 두 개 — 갈라짐이 진짜로 보이게 */
+.capsule-wax__half {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background: linear-gradient(160deg, var(--brand), var(--brand-dim));
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.28);
+}
+
+/* 완전한 원이 아니라 눌려 퍼진 밀랍 — 캡슐함 인장과 같은 규칙 */
+.capsule-wax__half--l {
+  left: 0;
+  border-radius: 52% 0 0 48% / 54% 0 0 46%;
+}
+
+.capsule-wax__half--r {
+  right: 0;
+  border-radius: 0 47% 53% 0 / 0 51% 49% 0;
+}
+
+/* 밀랍의 광택 — 왼쪽 위에서 빛이 든다 */
+.capsule-wax__glare {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(115% 105% at 30% 22%, rgba(255, 255, 255, 0.5), transparent 58%);
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.capsule-wax__sigil {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--on-brand);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.18));
+}
+
+.capsule-wax__disc {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 9px 18px var(--brand-glow));
+}
+
+/* 누르는 동안 — 밀랍이 힘을 받아 미세하게 뒤틀린다 */
+.capsule-wax--holding .capsule-wax__disc {
+  animation: capsule-wax-strain 1s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+/* 다 눌렀다 — 서버 응답을 기다리는 사이 밀랍이 원래 크기로 튕겨 돌아가지 않게 붙잡는다 */
+.capsule-wax--released .capsule-wax__disc {
+  transform: scale(1.075);
+}
+
+@keyframes capsule-wax-strain {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  55% {
+    transform: scale(0.955) rotate(-1.6deg);
+  }
+  85% {
+    transform: scale(1.045) rotate(1.4deg);
+  }
+  100% {
+    transform: scale(1.075) rotate(0deg);
+  }
+}
+
+/* ── 개봉 연출 ─────────────────────────────────────────────────
+   인장이 갈라져 떨어짐 → 덮개가 젖혀짐 → 속지가 솟아오름 → 빛 */
+.capsule-arrival--opening .capsule-wax {
+  pointer-events: none;
+}
+
+.capsule-arrival--opening .capsule-wax__half--l {
+  animation: capsule-wax-break-l 0.85s cubic-bezier(0.3, 0.1, 0.4, 1) forwards;
+}
+
+.capsule-arrival--opening .capsule-wax__half--r {
+  animation: capsule-wax-break-r 0.85s cubic-bezier(0.3, 0.1, 0.4, 1) forwards;
+}
+
+.capsule-arrival--opening .capsule-wax__sigil {
+  animation: capsule-wax-sigil-out 0.3s ease-out forwards;
+}
+
+@keyframes capsule-wax-break-l {
+  0% {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-26px, 30px) rotate(-38deg);
+    opacity: 0;
+  }
+}
+
+@keyframes capsule-wax-break-r {
+  0% {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(26px, 34px) rotate(42deg);
+    opacity: 0;
+  }
+}
+
+@keyframes capsule-wax-sigil-out {
+  to {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+.capsule-arrival--opening .capsule-mailpiece__flap {
+  animation: capsule-flap-open 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.22s forwards;
+}
+
+.capsule-arrival--opening .capsule-mailpiece__letter {
+  animation: capsule-letter-rise 1s cubic-bezier(0.2, 0.7, 0.3, 1) 0.62s forwards;
+}
+
+.capsule-arrival--opening .capsule-mailpiece__peek {
+  animation: capsule-peek-out 0.5s ease-out forwards;
+}
+
+@keyframes capsule-peek-out {
+  to {
+    opacity: 0;
+    transform: translateY(-12px) rotate(0deg);
+  }
 }
 
 @keyframes capsule-flap-open {
@@ -100,30 +526,95 @@
   }
 }
 
-@keyframes capsule-seal-pop {
-  0% {
-    transform: translateX(-50%) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-50%) scale(1.6) translateY(-18px);
-    opacity: 0;
-  }
-}
-
 @keyframes capsule-letter-rise {
   0% {
     transform: translateY(0);
     z-index: 1;
   }
   60% {
-    transform: translateY(-96px) scale(1.04);
+    transform: translateY(-104px) scale(1.04);
     z-index: 5;
   }
   100% {
-    transform: translateY(-72px) scale(1.06);
+    transform: translateY(-80px) scale(1.06);
     z-index: 5;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 18px 38px rgba(6, 12, 32, 0.24);
+  }
+}
+
+/* ── 개봉 안내 ─────────────────────────────────────────────────
+   버튼이 없어졌으니 "무엇을 해야 하는지"는 말로 분명히 알려준다.
+   밤하늘 끝자락에 걸치는 위치라, 배경에 의존하지 않는 짙은 글래스 알약으로 둔다. */
+.capsule-arrival__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(11, 20, 40, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(234, 241, 255, 0.95);
+  backdrop-filter: blur(6px);
+  letter-spacing: -0.01em;
+}
+
+.capsule-arrival__hint i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: capsule-mail-blink 1.9s ease-in-out infinite;
+}
+
+/* 짧게 탭했을 때 — 손을 떼면 안 된다는 걸 몸으로 알려준다 */
+.capsule-arrival__hint--nudge {
+  animation: capsule-hint-nudge 0.5s ease-in-out;
+  background: var(--brand);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--on-brand);
+}
+
+@keyframes capsule-hint-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  22% {
+    transform: translateX(-5px);
+  }
+  48% {
+    transform: translateX(5px);
+  }
+  74% {
+    transform: translateX(-3px);
+  }
+}
+
+/* 꾹 누르기를 못 찾은 사람을 위한 보조 경로 — 잠시 뒤 조용히 나타난다 */
+.capsule-arrival__bypass {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  animation: capsule-fade-up 0.5s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-arrival::after,
+  .capsule-mailpiece,
+  .capsule-mailpiece--idle,
+  .capsule-arrival__hint i,
+  .capsule-arrival__hint--nudge,
+  .capsule-arrival__bypass {
+    animation: none;
+  }
+  .capsule-wax--holding .capsule-wax__disc {
+    animation: none;
+    transform: scale(1.05);
   }
 }
 
@@ -147,11 +638,7 @@
   }
 }
 
-/* 봉인 상태의 미세한 부유감 */
-.capsule-envelope--sealed {
-  animation: capsule-float 3.2s ease-in-out infinite;
-}
-
+/* 부유감 — 봉투(capsule-mailpiece--idle)가 숨 쉬듯 아주 얕게 */
 @keyframes capsule-float {
   0%,
   100% {

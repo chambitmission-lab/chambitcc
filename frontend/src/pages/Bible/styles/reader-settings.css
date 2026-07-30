@@ -165,6 +165,38 @@
   box-shadow: 0 0 5px rgba(49, 130, 246, 0.7);
 }
 
+/* 읽기 ↔ 복사 설정 구분선 */
+.reader-settings__divider {
+  height: 1px;
+  background: var(--ig-border);
+  margin: 2px 0;
+}
+
+/* 라벨을 윗줄에 두고 세그먼트를 패널 폭 전체로 — 항목이 3개라 한 줄에 안 들어간다 */
+.reader-settings__row--stack {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.reader-settings__row--stack .reader-settings__seg button {
+  flex: 1;
+  padding: 5px 4px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 복사 결과 미리보기 문구 */
+.reader-settings__hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ig-secondary-text);
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
 /* 미리보기 */
 .reader-settings__preview {
   margin: 0;

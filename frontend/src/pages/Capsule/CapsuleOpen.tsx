@@ -1,6 +1,6 @@
 // 타임캡슐 상세/개봉 (/capsule/:id)
 // - 개봉 전: 봉인된 봉투 + D-day (내용은 서버가 내려주지 않는다)
-// - 개봉 가능: 봉투 뜯는 연출 → 편지(글·음성·봉인한 날의 스냅샷)
+// - 개봉 가능: 밤하늘에 내려앉은 우편물 → 인장 뜯기 → 편지(글·음성·스냅샷)
 // - 읽은 뒤: 답장 캡슐 이어쓰기 CTA (개봉이 다음 봉인의 입구)
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
@@ -13,11 +13,11 @@ import CapsuleSlideshow from './CapsuleSlideshow'
 import { daysSealed, daysUntil, formatKoreanDate, sealProgress } from './capsuleDates'
 import {
   CalendarGlyph,
-  EnvelopeGlyph,
   Icon,
   LockShackle,
   MicGlyph,
   PhotoGlyph,
+  SigilGlyph,
 } from './capsuleIcons'
 import './capsule.css'
 
@@ -200,6 +200,180 @@ const senderLine = (capsule: CapsuleDetail): string => {
   return `${capsule.recipient_name || '소중한 분'}에게 보낸 캡슐`
 }
 
+/** 봉투에 손글씨로 적히는 수취인 */
+const addressTo = (capsule: CapsuleDetail): string => {
+  if (capsule.role === 'self') return '미래의 나'
+  return capsule.recipient_name || '당신'
+}
+
+/** 소인 각인: 2026-07-29 → { year: "'26", day: "7 · 29" } — 초대장 소인과 같은 규칙 */
+const postmark = (dateStr: string): { year: string; day: string } => {
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return { year: '', day: '' }
+  return {
+    year: `'${String(d.getFullYear()).slice(2)}`,
+    day: `${d.getMonth() + 1} · ${d.getDate()}`,
+  }
+}
+
+/** 건너온 시간 — 이 편지의 감정선. 날짜 사실("7월 29일 봉인")보다 먼저 읽혀야 한다. */
+const journeyLine = (sealedAt: string): string => {
+  const days = daysSealed(sealedAt)
+  if (days <= 1) return '오늘 봉인한 편지가 열렸어요'
+  if (days < 365) return `${days.toLocaleString()}일을 건너 도착했어요`
+  const years = Math.floor(days / 365)
+  return `${years}년 ${(days - years * 365).toLocaleString()}일, ${days.toLocaleString()}일을 건너왔어요`
+}
+
+/* ── 도착한 캡슐 = 밀랍 인장을 직접 뜯는 우편물 ────────────────────
+   파란 버튼 한 번으로 끝내면 기대감이 쌓일 틈이 없다. 인장을 1초간 꾹 누르는
+   동안 링이 차오르고 밀랍이 버티다 갈라지는 시간이 이 화면의 감정이다.
+   (키보드·보조기기는 Enter/Space로 즉시 개봉 — 꾹 누르기는 촉감이지 관문이 아니다) */
+const HOLD_MS = 1000
+const BYPASS_AFTER_MS = 9000
+
+const ArrivalEnvelope = ({
+  capsule,
+  opening,
+  onOpen,
+}: {
+  capsule: CapsuleDetail
+  opening: boolean
+  onOpen: () => void
+}) => {
+  const [holding, setHolding] = useState(false)
+  const [nudge, setNudge] = useState(false)
+  const [bypass, setBypass] = useState(false)
+  const timer = useRef<number | undefined>(undefined)
+  const nudgeTimer = useRef<number | undefined>(undefined)
+
+  const mark = postmark(capsule.sealed_at)
+  const hasPhoto = (capsule.photo_count ?? 0) > 0
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setBypass(true), BYPASS_AFTER_MS)
+    return () => {
+      window.clearTimeout(t)
+      window.clearTimeout(timer.current)
+      window.clearTimeout(nudgeTimer.current)
+    }
+  }, [])
+
+  const startHold = () => {
+    if (opening || timer.current !== undefined) return
+    setHolding(true)
+    // 밀랍에 손이 닿은 순간의 촉감 (미지원 브라우저는 조용히 무시)
+    navigator.vibrate?.(10)
+    timer.current = window.setTimeout(() => {
+      timer.current = undefined
+      setHolding(false)
+      onOpen()
+    }, HOLD_MS)
+  }
+
+  // 다 누르기 전에 손을 뗐다 — 밀랍이 다시 굳고, 안내가 흔들려 알려준다
+  const abortHold = () => {
+    if (timer.current === undefined) return
+    window.clearTimeout(timer.current)
+    timer.current = undefined
+    setHolding(false)
+    setNudge(true)
+    window.clearTimeout(nudgeTimer.current)
+    nudgeTimer.current = window.setTimeout(() => setNudge(false), 700)
+  }
+
+  return (
+    <>
+      {/* 부유 애니메이션은 클래스를 떼지 않고 --opening에서 정지시킨다.
+          중간에 떼면 봉투가 원위치로 톡 떨어지듯 튄다. */}
+      <div className="capsule-mailpiece capsule-mailpiece--idle">
+        {/* 봉투 밖으로 삐져나온 것들 — 안에 뭔가 들어 있다 */}
+        {hasPhoto && (
+          <span className="capsule-mailpiece__peek capsule-mailpiece__peek--photo" aria-hidden>
+            <i />
+          </span>
+        )}
+        <span className="capsule-mailpiece__peek capsule-mailpiece__peek--paper" aria-hidden />
+
+        {/* 개봉 연출에서 솟아오르는 속지 (몸통 뒤에 숨어 있다) */}
+        <div className="capsule-mailpiece__letter" aria-hidden />
+
+        <div className="capsule-mailpiece__body">
+          <span className="capsule-mailpiece__air" aria-hidden />
+        </div>
+        <div className="capsule-mailpiece__flap" aria-hidden />
+
+        <span className="capsule-mailpiece__stamp" aria-hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round">
+            <SigilGlyph />
+          </svg>
+        </span>
+        <span className="capsule-mailpiece__postmark" aria-hidden>
+          <b>{mark.year}</b>
+          <i>{mark.day}</i>
+          <em>SEALED</em>
+        </span>
+        <p className="capsule-mailpiece__to">
+          To. <b>{addressTo(capsule)}</b>
+        </p>
+
+        <button
+          type="button"
+          className={`capsule-wax ${holding ? 'capsule-wax--holding' : ''} ${
+            opening ? 'capsule-wax--released' : ''
+          }`}
+          onPointerDown={startHold}
+          onPointerUp={abortHold}
+          onPointerLeave={abortHold}
+          onPointerCancel={abortHold}
+          onContextMenu={(e) => e.preventDefault()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onOpen()
+            }
+          }}
+          disabled={opening}
+          aria-label="밀랍 인장을 꾹 눌러 봉투 뜯기"
+        >
+          <span className="capsule-wax__disc">
+            <span className="capsule-wax__half capsule-wax__half--l" />
+            <span className="capsule-wax__half capsule-wax__half--r" />
+            <span className="capsule-wax__glare" aria-hidden />
+            <span className="capsule-wax__sigil">
+              <Icon size={19}>
+                <LockShackle open />
+              </Icon>
+            </span>
+          </span>
+          <svg className="capsule-wax__ring" viewBox="0 0 72 72" aria-hidden>
+            <circle cx="36" cy="36" r="34" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="mt-7">
+        {opening ? (
+          <span className="capsule-arrival__hint">봉인이 풀렸어요</span>
+        ) : (
+          <span className={`capsule-arrival__hint ${nudge ? 'capsule-arrival__hint--nudge' : ''}`}>
+            <i aria-hidden />
+            {nudge ? '떼지 말고 조금만 더 —' : '인장을 꾹 눌러 뜯어주세요'}
+          </span>
+        )}
+      </div>
+
+      {bypass && !opening && (
+        <div className="mt-3.5">
+          <button type="button" className="capsule-arrival__bypass" onClick={onOpen}>
+            바로 열기
+          </button>
+        </div>
+      )}
+    </>
+  )
+}
+
 const CapsuleOpen = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -323,34 +497,55 @@ const CapsuleOpen = () => {
           </div>
         )}
 
-        {capsule && phase !== 'letter' && (
-          <div className="px-6 pt-10 text-center">
-            {/* 봉투는 "열 수 있다"는 신호다 — 잠긴 캡슐엔 봉인 다이얼만 보여준다 */}
-            {capsule.openable ? (
-              <div
-                className={`capsule-envelope ${
-                  phase === 'opening' ? 'capsule-envelope--opening' : 'capsule-envelope--sealed'
-                }`}
-              >
-                <div className="capsule-envelope__letter" />
-                <div className="capsule-envelope__body" />
-                <div className="capsule-envelope__flap" />
-                <span className="capsule-envelope__seal">
-                  <Icon size={20}>
-                    <LockShackle open />
-                  </Icon>
-                </span>
+        {/* 개봉 가능 — 밤하늘에서 내려앉은 우편물 한 통.
+            "열어보고 싶은 마음"은 파란 버튼이 아니라 봉투의 재질과 뜯는 동작에서 온다. */}
+        {capsule && phase !== 'letter' && capsule.openable && (
+          <div className={`capsule-arrival ${phase === 'opening' ? 'capsule-arrival--opening' : ''}`}>
+            <span className="capsule-arrival__bloom" aria-hidden />
+            <div className="capsule-arrival__inner px-6 pt-6 pb-10 text-center">
+              <p className="capsule-invite__eyebrow pb-7 text-[11px] font-bold tracking-[0.3em]">
+                {capsule.role === 'recipient' ? '편지가 도착했어요' : '오늘 열 수 있어요'}
+              </p>
+
+              <ArrivalEnvelope
+                capsule={capsule}
+                opening={phase === 'opening' || openCapsule.isPending}
+                onOpen={handleOpen}
+              />
+
+              <p className="mt-9 text-[12.5px] font-bold text-[var(--text-muted)]">
+                {senderLine(capsule)}
+              </p>
+              <h2 className="text-[21px] font-extrabold mt-1.5 break-keep">
+                {capsule.title || '캡슐이 도착했어요'}
+              </h2>
+              <p className="mt-2 text-[13px] font-bold text-brand">
+                {journeyLine(capsule.sealed_at)}
+              </p>
+
+              <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+                <MetaChip icon={<CalendarGlyph />}>
+                  {formatKoreanDate(capsule.sealed_at)} 봉인
+                </MetaChip>
+                {(capsule.photo_count ?? 0) > 0 && (
+                  <MetaChip icon={<PhotoGlyph />}>사진 {capsule.photo_count}장</MetaChip>
+                )}
+                {capsule.has_audio && <MetaChip icon={<MicGlyph />}>음성 편지</MetaChip>}
               </div>
-            ) : (
-              <SealDial sealedAt={capsule.sealed_at} openAt={capsule.open_at} />
-            )}
+            </div>
+          </div>
+        )}
+
+        {/* 아직 못 여는 캡슐 — 봉투는 "열 수 있다"는 신호라서 다이얼만 보여준다 */}
+        {capsule && phase !== 'letter' && !capsule.openable && (
+          <div className="px-6 pt-10 text-center">
+            <SealDial sealedAt={capsule.sealed_at} openAt={capsule.open_at} />
 
             <p className="mt-9 text-[12.5px] font-bold text-[var(--text-muted)]">
               {senderLine(capsule)}
             </p>
             <h2 className="text-[20px] font-extrabold mt-1.5 break-keep">
-              {capsule.title ||
-                (capsule.openable ? '캡슐이 도착했어요' : '봉인된 타임캡슐')}
+              {capsule.title || '봉인된 타임캡슐'}
             </h2>
 
             <div className="mt-3.5 flex flex-wrap justify-center gap-1.5">
@@ -363,39 +558,23 @@ const CapsuleOpen = () => {
               {capsule.has_audio && <MetaChip icon={<MicGlyph />}>음성 편지</MetaChip>}
             </div>
 
-            {capsule.openable ? (
-              <button
-                type="button"
-                onClick={handleOpen}
-                disabled={openCapsule.isPending || phase === 'opening'}
-                className="mt-8 w-full py-4 rounded-2xl bg-brand text-white text-[15.5px] font-extrabold shadow-[0_10px_30px_-8px_var(--brand-glow)] disabled:opacity-60 inline-flex items-center justify-center gap-2"
-              >
-                <Icon size={18}>
-                  <EnvelopeGlyph />
-                </Icon>
-                {phase === 'opening' ? '봉투를 여는 중...' : '봉투 열기'}
-              </button>
-            ) : (
-              <>
-                <div className="mt-7">
-                  <SealedLetterPreview capsule={capsule} />
-                </div>
-                <p className="text-[12.5px] text-gray-400 dark:text-white/40 mt-4 leading-[1.7]">
-                  그날까지는 누구도 — 쓴 사람도 — 열어볼 수 없어요.
-                </p>
-                {capsule.role === 'sender' &&
-                  capsule.capsule_type === 'invite' &&
-                  capsule.invite_code && (
-                    <button
-                      type="button"
-                      onClick={handleShare}
-                      className="mt-6 w-full py-3.5 rounded-2xl bg-[var(--brand-soft)] text-brand text-[14px] font-bold"
-                    >
-                      {capsule.claimed ? '받는 분이 등록을 마쳤어요 · 링크 다시 보내기' : '초대 링크 전달하기'}
-                    </button>
-                  )}
-              </>
-            )}
+            <div className="mt-7">
+              <SealedLetterPreview capsule={capsule} />
+            </div>
+            <p className="text-[12.5px] text-gray-400 dark:text-white/40 mt-4 leading-[1.7]">
+              그날까지는 누구도 — 쓴 사람도 — 열어볼 수 없어요.
+            </p>
+            {capsule.role === 'sender' &&
+              capsule.capsule_type === 'invite' &&
+              capsule.invite_code && (
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="mt-6 w-full py-3.5 rounded-2xl bg-[var(--brand-soft)] text-brand text-[14px] font-bold"
+                >
+                  {capsule.claimed ? '받는 분이 등록을 마쳤어요 · 링크 다시 보내기' : '초대 링크 전달하기'}
+                </button>
+              )}
           </div>
         )}
 

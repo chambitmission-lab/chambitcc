@@ -6,9 +6,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DatePicker from '../../components/common/DatePicker'
 import { getTodayVerse } from '../../api/dailyVerse'
+import { searchCapsuleRecipients } from '../../api/timeCapsule'
 import { useAudioRecorder } from '../../hooks/useAudioRecorder'
 import { useCreateCapsule } from '../../hooks/useTimeCapsule'
-import type { CapsuleDraftPhoto, CapsuleSummary, CapsuleType } from '../../types/timeCapsule'
+import type {
+  CapsuleDraftPhoto,
+  CapsuleRecipient,
+  CapsuleSummary,
+  CapsuleType,
+} from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { getCurrentSeason } from '../../utils/churchCalendar'
 import { resizeImageToBlob } from '../../utils/imageResize'
@@ -44,8 +50,14 @@ const CapsuleCreate = () => {
   const navigate = useNavigate()
   const createCapsule = useCreateCapsule()
 
+  // '소중한 사람에게'는 direct(교인에게 바로)와 invite(초대 링크) 두 방식 —
+  // 서로 아는 공동체 앱이라 바로 보내기를 기본으로 둔다
   const [capsuleType, setCapsuleType] = useState<CapsuleType>('self')
   const [recipientName, setRecipientName] = useState('')
+  const [recipientQuery, setRecipientQuery] = useState('')
+  const [recipientResults, setRecipientResults] = useState<CapsuleRecipient[]>([])
+  const [recipientSearching, setRecipientSearching] = useState(false)
+  const [selectedRecipient, setSelectedRecipient] = useState<CapsuleRecipient | null>(null)
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
   const [presetKey, setPresetKey] = useState('1y')
@@ -83,6 +95,32 @@ const CapsuleCreate = () => {
       showToast('3분 녹음이 완료됐어요', 'success')
     }
   }, [recordingState, recordingTime, stopRecording])
+
+  // 받는 사람 검색 — 300ms 디바운스, 응답 역전 방지
+  useEffect(() => {
+    const q = recipientQuery.trim()
+    if (capsuleType !== 'direct' || selectedRecipient || !q) {
+      setRecipientResults([])
+      setRecipientSearching(false)
+      return
+    }
+    setRecipientSearching(true)
+    let stale = false
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchCapsuleRecipients(q)
+        if (!stale) setRecipientResults(results)
+      } catch {
+        if (!stale) setRecipientResults([])
+      } finally {
+        if (!stale) setRecipientSearching(false)
+      }
+    }, 300)
+    return () => {
+      stale = true
+      clearTimeout(timer)
+    }
+  }, [recipientQuery, capsuleType, selectedRecipient])
 
   const presets = useMemo(() => buildPresets(), [])
   const selectedPreset = presets.find((p) => p.key === presetKey)
@@ -145,10 +183,14 @@ const CapsuleCreate = () => {
     )
   }
 
+  const recipientReady =
+    capsuleType === 'self' ||
+    (capsuleType === 'direct' ? !!selectedRecipient : recipientName.trim().length > 0)
+
   const canSubmit =
     !!openDate &&
     (message.trim().length > 0 || !!audioBlob) &&
-    (capsuleType === 'self' || recipientName.trim().length > 0) &&
+    recipientReady &&
     !photoProcessing &&
     !createCapsule.isPending
 
@@ -177,13 +219,20 @@ const CapsuleCreate = () => {
         openLabel,
         message: message.trim() || undefined,
         title: title.trim() || undefined,
-        recipientName: capsuleType === 'invite' ? recipientName.trim() : undefined,
+        recipientName:
+          capsuleType === 'invite'
+            ? recipientName.trim()
+            : capsuleType === 'direct'
+              ? recipientName.trim() || undefined
+              : undefined,
+        recipientUserId:
+          capsuleType === 'direct' ? selectedRecipient?.id : undefined,
         clientSnapshot,
         audioBlob,
         audioDuration: audioBlob ? Math.min(recordingTime, MAX_RECORD_SECONDS) : undefined,
         photos: photos.length > 0 ? photos : undefined,
       })
-      if (summary.capsule_type === 'invite') {
+      if (summary.capsule_type === 'invite' || summary.capsule_type === 'direct') {
         setCreated(summary)
       } else {
         showToast(`봉인 완료! ${formatKoreanDate(summary.open_at)} 아침에 만나요 🕰️`, 'success')
@@ -218,34 +267,62 @@ const CapsuleCreate = () => {
     }
   }
 
-  // 선물 캡슐 봉인 완료 화면 — 초대 링크 전달이 다음 행동
+  // 선물 캡슐 봉인 완료 화면 — direct는 배달 완료 안내, invite는 초대 링크 전달
   if (created) {
+    const isDirect = created.capsule_type === 'direct'
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6">
           <span className="text-[64px]">💌</span>
           <h2 className="text-[20px] font-extrabold mt-4 text-center break-keep">
-            {created.recipient_name || '소중한 분'}에게 보낼
-            <br />
-            캡슐이 봉인됐어요
+            {isDirect ? (
+              <>
+                {created.recipient_name || '소중한 분'}님의 캡슐함에
+                <br />
+                바로 담아드렸어요
+              </>
+            ) : (
+              <>
+                {created.recipient_name || '소중한 분'}에게 보낼
+                <br />
+                캡슐이 봉인됐어요
+              </>
+            )}
           </h2>
           <p className="text-[13px] text-gray-500 dark:text-white/55 mt-2.5 text-center leading-[1.7]">
-            아래 링크를 받는 분께 전해주세요.
-            <br />
-            {formatKoreanDate(created.open_at)}
-            {created.open_label ? ` (${created.open_label})` : ''} 아침에 열 수 있어요.
+            {isDirect ? (
+              <>
+                받는 분께 캡슐이 도착했다는 알림이 갔어요.
+                <br />
+                내용은 {formatKoreanDate(created.open_at)}
+                {created.open_label ? ` (${created.open_label})` : ''} 아침까지 봉인돼요.
+              </>
+            ) : (
+              <>
+                아래 링크를 받는 분께 전해주세요.
+                <br />
+                {formatKoreanDate(created.open_at)}
+                {created.open_label ? ` (${created.open_label})` : ''} 아침에 열 수 있어요.
+              </>
+            )}
           </p>
-          <button
-            type="button"
-            onClick={handleShareCreated}
-            className="w-full mt-7 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)]"
-          >
-            초대 링크 전달하기
-          </button>
+          {!isDirect && (
+            <button
+              type="button"
+              onClick={handleShareCreated}
+              className="w-full mt-7 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)]"
+            >
+              초대 링크 전달하기
+            </button>
+          )}
           <button
             type="button"
             onClick={() => navigate('/capsule', { replace: true })}
-            className="w-full mt-2.5 py-3.5 rounded-2xl bg-[var(--brand-soft)] text-brand text-[14px] font-bold"
+            className={
+              isDirect
+                ? 'w-full mt-7 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)]'
+                : 'w-full mt-2.5 py-3.5 rounded-2xl bg-[var(--brand-soft)] text-brand text-[14px] font-bold'
+            }
           >
             캡슐함으로 가기
           </button>
@@ -290,7 +367,7 @@ const CapsuleCreate = () => {
                   ),
                 },
                 {
-                  type: 'invite' as const,
+                  type: 'direct' as const,
                   label: '소중한 사람에게',
                   // 하트 — 사랑하는 이에게 보내는 마음
                   icon: (
@@ -298,13 +375,15 @@ const CapsuleCreate = () => {
                   ),
                 },
               ]
-            ).map(({ type, label, icon }) => (
+            ).map(({ type, label, icon }) => {
+              const active = type === 'self' ? capsuleType === 'self' : capsuleType !== 'self'
+              return (
               <button
                 key={type}
                 type="button"
                 onClick={() => setCapsuleType(type)}
                 className={`flex-1 py-3 rounded-2xl text-[13.5px] font-bold border transition-colors inline-flex items-center justify-center gap-1.5 ${
-                  capsuleType === type
+                  active
                     ? 'bg-brand text-white border-brand'
                     : 'bg-white dark:bg-card-dark text-gray-600 dark:text-white/60 border-gray-200/70 dark:border-white/[0.08]'
                 }`}
@@ -323,22 +402,150 @@ const CapsuleCreate = () => {
                 </svg>
                 {label}
               </button>
-            ))}
+              )
+            })}
           </div>
-          {capsuleType === 'invite' && (
+          {capsuleType !== 'self' && (
             <div className="mt-2.5">
-              <input
-                type="text"
-                value={recipientName}
-                onChange={(e) => setRecipientName(e.target.value)}
-                maxLength={20}
-                placeholder="받는 분 이름이나 애칭 (예: 아들 민준)"
-                className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] outline-none focus:border-brand placeholder:text-gray-400 dark:placeholder:text-white/30"
-              />
-              <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
-                봉인 후 초대 링크를 전달하면, 받는 분이 자신의 캡슐로 등록해요.
-                아직 앱이 없어도 가입하면 이어져요.
-              </p>
+              {/* 전달 방식 — 같은 앱 사용자면 바로, 아니면 초대 링크 */}
+              <div className="flex gap-1.5 p-1 rounded-xl bg-gray-100 dark:bg-white/[0.06]">
+                {(
+                  [
+                    { mode: 'direct' as const, label: '앱에서 바로 보내기' },
+                    { mode: 'invite' as const, label: '초대 링크로 보내기' },
+                  ]
+                ).map(({ mode, label }) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setCapsuleType(mode)}
+                    className={`flex-1 py-2 rounded-lg text-[12.5px] font-bold transition-colors ${
+                      capsuleType === mode
+                        ? 'bg-white dark:bg-card-dark text-brand shadow-sm'
+                        : 'text-gray-500 dark:text-white/50'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {capsuleType === 'direct' && (
+                <div className="mt-2.5">
+                  {selectedRecipient ? (
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-[var(--brand-soft)] border border-brand/20">
+                      {selectedRecipient.avatar_url ? (
+                        <img
+                          src={selectedRecipient.avatar_url}
+                          alt=""
+                          className="w-9 h-9 rounded-full object-cover shrink-0"
+                        />
+                      ) : (
+                        <span className="w-9 h-9 rounded-full bg-brand/15 text-brand text-[15px] font-extrabold flex items-center justify-center shrink-0">
+                          {selectedRecipient.display_name.charAt(0)}
+                        </span>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[14px] font-bold text-ink-strong truncate">
+                          {selectedRecipient.display_name}
+                        </p>
+                        <p className="text-[11.5px] text-gray-400 dark:text-white/40 truncate">
+                          @{selectedRecipient.username}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedRecipient(null)
+                          setRecipientQuery('')
+                        }}
+                        aria-label="받는 분 다시 고르기"
+                        className="shrink-0 w-7 h-7 rounded-full bg-gray-200/80 dark:bg-white/10 text-gray-500 dark:text-white/60 text-[12px] font-bold flex items-center justify-center"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        value={recipientQuery}
+                        onChange={(e) => setRecipientQuery(e.target.value)}
+                        maxLength={20}
+                        placeholder="받는 분 이름을 검색하세요"
+                        className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] outline-none focus:border-brand placeholder:text-gray-400 dark:placeholder:text-white/30"
+                      />
+                      {recipientQuery.trim() && (
+                        <div className="mt-1.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] overflow-hidden">
+                          {recipientSearching ? (
+                            <p className="px-4 py-3 text-[12.5px] text-gray-400 dark:text-white/40">
+                              찾는 중...
+                            </p>
+                          ) : recipientResults.length === 0 ? (
+                            <p className="px-4 py-3 text-[12.5px] text-gray-400 dark:text-white/40 leading-[1.6]">
+                              앱에서 찾을 수 없어요.
+                              아직 가입 전이라면 초대 링크로 보내주세요.
+                            </p>
+                          ) : (
+                            recipientResults.map((u) => (
+                              <button
+                                key={u.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedRecipient(u)
+                                  setRecipientResults([])
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-left border-b last:border-b-0 border-gray-100 dark:border-white/[0.05] active:bg-gray-50 dark:active:bg-white/[0.04]"
+                              >
+                                {u.avatar_url ? (
+                                  <img
+                                    src={u.avatar_url}
+                                    alt=""
+                                    className="w-8 h-8 rounded-full object-cover shrink-0"
+                                  />
+                                ) : (
+                                  <span className="w-8 h-8 rounded-full bg-[var(--brand-soft)] text-brand text-[13.5px] font-extrabold flex items-center justify-center shrink-0">
+                                    {u.display_name.charAt(0)}
+                                  </span>
+                                )}
+                                <span className="flex-1 min-w-0">
+                                  <span className="block text-[13.5px] font-bold text-ink-strong truncate">
+                                    {u.display_name}
+                                  </span>
+                                  <span className="block text-[11px] text-gray-400 dark:text-white/40 truncate">
+                                    @{u.username}
+                                  </span>
+                                </span>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                  <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
+                    봉인하면 받는 분 캡슐함에 바로 담기고, 도착 알림이 가요.
+                    내용은 개봉일까지 아무도 볼 수 없어요.
+                  </p>
+                </div>
+              )}
+
+              {capsuleType === 'invite' && (
+                <div className="mt-2.5">
+                  <input
+                    type="text"
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    maxLength={20}
+                    placeholder="받는 분 이름이나 애칭 (예: 아들 민준)"
+                    className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] outline-none focus:border-brand placeholder:text-gray-400 dark:placeholder:text-white/30"
+                  />
+                  <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
+                    봉인 후 초대 링크를 전달하면, 받는 분이 자신의 캡슐로 등록해요.
+                    아직 앱이 없어도 가입하면 이어져요.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -571,13 +778,15 @@ const CapsuleCreate = () => {
           </button>
           {!canSubmit && !createCapsule.isPending && (
             <p className="text-center text-[11.5px] text-gray-400 dark:text-white/35 mt-2">
-              {capsuleType === 'invite' && !recipientName.trim()
-                ? '받는 분 이름을 적어주세요'
-                : !message.trim() && !audioBlob
-                  ? '편지 글이나 음성 중 하나는 담아야 해요'
-                  : !openDate
-                    ? '개봉일을 선택해주세요'
-                    : ''}
+              {capsuleType === 'direct' && !selectedRecipient
+                ? '받는 분을 검색해 선택해주세요'
+                : capsuleType === 'invite' && !recipientName.trim()
+                  ? '받는 분 이름을 적어주세요'
+                  : !message.trim() && !audioBlob
+                    ? '편지 글이나 음성 중 하나는 담아야 해요'
+                    : !openDate
+                      ? '개봉일을 선택해주세요'
+                      : ''}
             </p>
           )}
         </section>
