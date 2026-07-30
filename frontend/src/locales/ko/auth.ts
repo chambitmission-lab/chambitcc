@@ -64,6 +64,22 @@ export const auth = {
   accountNameChanged: '이름이 변경되었습니다',
   accountNameEmpty: '이름을 입력해주세요',
   accountChangeNameFailed: '이름 변경에 실패했습니다',
+  // 내 정보 UX 개선 — 인라인 수정 / 잠금 항목 / 비밀번호 규칙
+  accountEdit: '수정',
+  accountSave: '저장',
+  accountCancel: '취소',
+  accountRetry: '다시 시도',
+  accountLockedHint: '변경 불가',
+  accountAdminBadge: '관리자',
+  accountTogetherDays: '일째 함께하는 중',
+  accountSecuritySection: '보안',
+  accountPasswordRowDesc: '주기적으로 바꾸면 더 안전해요',
+  accountPwRuleLength: '6자 이상',
+  accountPwRuleMatch: '새 비밀번호 확인 일치',
+  accountPwRuleDifferent: '현재 비밀번호와 다름',
+  accountShowPassword: '비밀번호 보기',
+  accountHidePassword: '비밀번호 숨기기',
+  accountLogoutConfirm: '로그아웃 할까요?',
 
   // 익명/실명
   anonymous: '익명',

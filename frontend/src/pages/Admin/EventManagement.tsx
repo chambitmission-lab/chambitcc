@@ -6,6 +6,7 @@ import { fetchAllEvents, deleteEvent } from '../../api/event'
 import type { Event, EventCategory } from '../../types/event'
 import { ALL_CATEGORIES, CATEGORY_VISUAL } from '../Events/utils/categoryConfig'
 import { formatDDay, formatEventTime, formatEventDateLabel } from '../Events/utils/dateGrouping'
+import { formatKstDateTime, parseKstDate } from '../../utils/kstTime'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { translations } from '../../locales'
 import EventComposer from './components/EventComposer'
@@ -106,13 +107,13 @@ const EventManagement = () => {
         return (b.attendance_count ?? 0) - (a.attendance_count ?? 0)
       }
       // upcoming
-      return new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime()
+      return parseKstDate(a.start_datetime).getTime() - parseKstDate(b.start_datetime).getTime()
     })
   }, [events, searchTerm, filterCategory, filterPublish, sortKey])
 
   const publishedCount = events.filter(e => e.is_published).length
   const draftCount = events.length - publishedCount
-  const upcomingCount = events.filter(e => new Date(e.start_datetime).getTime() >= Date.now()).length
+  const upcomingCount = events.filter(e => parseKstDate(e.start_datetime).getTime() >= Date.now()).length
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
@@ -325,7 +326,7 @@ const EventRow = ({
   const dday = formatDDay(event.start_datetime)
   const time = formatEventTime(event.start_datetime)
   const dateLabel = formatEventDateLabel(event.start_datetime)
-  const isPast = new Date(event.start_datetime).getTime() < Date.now()
+  const isPast = parseKstDate(event.start_datetime).getTime() < Date.now()
 
   return (
     <div
@@ -441,7 +442,9 @@ const EventRow = ({
             {event.rsvp_deadline && (
               <InfoRow
                 label="RSVP 마감"
-                value={`${formatEventDateLabel(event.rsvp_deadline)} ${formatEventTime(event.rsvp_deadline)}`}
+                value={`${formatKstDateTime(event.rsvp_deadline)}${
+                  parseKstDate(event.rsvp_deadline).getTime() <= Date.now() ? ' · 마감됨' : ''
+                }`}
               />
             )}
             <InfoRow label="참석 예정" value={`${event.attendance_count}명`} />

@@ -64,6 +64,22 @@ export const auth = {
   accountNameChanged: 'Your name has been updated',
   accountNameEmpty: 'Please enter your name',
   accountChangeNameFailed: 'Failed to update name',
+  // Account UX — inline editing / locked fields / password rules
+  accountEdit: 'Edit',
+  accountSave: 'Save',
+  accountCancel: 'Cancel',
+  accountRetry: 'Try again',
+  accountLockedHint: 'Locked',
+  accountAdminBadge: 'Admin',
+  accountTogetherDays: ' days together',
+  accountSecuritySection: 'Security',
+  accountPasswordRowDesc: 'Changing it now and then keeps you safer',
+  accountPwRuleLength: 'At least 6 characters',
+  accountPwRuleMatch: 'Confirmation matches',
+  accountPwRuleDifferent: 'Different from current password',
+  accountShowPassword: 'Show password',
+  accountHidePassword: 'Hide password',
+  accountLogoutConfirm: 'Log out?',
 
   // Anonymous/Real Name
   anonymous: 'Anonymous',

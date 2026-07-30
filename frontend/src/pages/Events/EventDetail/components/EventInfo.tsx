@@ -1,3 +1,5 @@
+import { parseKstDate } from '../../../../utils/kstTime'
+
 interface EventInfoProps {
   startDate: string
   endDate: string
@@ -8,8 +10,9 @@ interface EventInfoProps {
 }
 
 const formatDateTime = (datetime: string) => {
-  const date = new Date(datetime)
-  return date.toLocaleString('ko-KR', {
+  // 교회 현지(서울) 시각으로 고정 표시
+  return parseKstDate(datetime).toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
     year: 'numeric',
     month: 'long',
     day: 'numeric',

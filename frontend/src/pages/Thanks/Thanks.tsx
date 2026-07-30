@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   useInfiniteQuery,
@@ -19,14 +19,41 @@ import {
   type ThanksInfiniteData,
   type ThanksPage,
 } from '../Home/components/ThanksThread/useThanks'
-import type { CreateThanksRequest } from '../../types/thanks'
+import type { CreateThanksRequest, Thanks as ThanksItem } from '../../types/thanks'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import ThanksCard from '../Home/components/ThanksThread/ThanksCard'
 import ThanksComposer from '../Home/components/ThanksThread/ThanksComposer'
+import ThanksAvatar from '../Home/components/ThanksThread/ThanksAvatar'
+import '../Home/components/ThanksThread/thanks.css'
+
+/* 히어로에 하루 하나씩 도는 감사 말씀 */
+const THANKS_VERSES = [
+  { ko: '범사에 감사하라', en: 'Give thanks in all circumstances', ref: '살전 5:18', refEn: '1 Thess 5:18' },
+  { ko: '감사함으로 그의 문에 들어가며', en: 'Enter his gates with thanksgiving', ref: '시 100:4', refEn: 'Psalm 100:4' },
+  { ko: '여호와께 감사하라 그는 선하시며', en: 'Give thanks to the Lord, for he is good', ref: '시 107:1', refEn: 'Psalm 107:1' },
+  { ko: '항상 기뻐하라 쉬지 말고 기도하라', en: 'Rejoice always, pray continually', ref: '살전 5:16-17', refEn: '1 Thess 5:16-17' },
+  { ko: '온갖 좋은 은사는 위로부터 내려오나니', en: 'Every good gift is from above', ref: '약 1:17', refEn: 'James 1:17' },
+  { ko: '내 영혼아 여호와를 송축하라', en: 'Praise the Lord, my soul', ref: '시 103:1', refEn: 'Psalm 103:1' },
+  { ko: '이 날은 여호와께서 정하신 것이라', en: 'This is the day the Lord has made', ref: '시 118:24', refEn: 'Psalm 118:24' },
+]
+
+/* 하루 단위로 도는 말씀 — 렌더 중 시각을 읽지 않도록 모듈 로드 시 한 번 고른다 */
+const TODAYS_VERSE =
+  THANKS_VERSES[Math.floor(Date.now() / 86_400_000) % THANKS_VERSES.length]
+
+/** created_at은 KST 벽시계 문자열(예: 2026-07-30T22:10:00) — 날짜 부분만 그대로 쓴다 */
+const dateKeyOf = (iso: string) => (iso || '').slice(0, 10)
+
+const kstDateKey = (offsetDays = 0) => {
+  const now = new Date()
+  now.setDate(now.getDate() + offsetDays)
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(now)
+}
 
 const Thanks = () => {
   const { language } = useLanguage()
+  const ko = language === 'ko'
   const { requireAuth } = useAuth()
   const navigate = useNavigate()
   const admin = isAdmin()
@@ -53,8 +80,48 @@ const Thanks = () => {
     gcTime: 1000 * 60 * 30,
   })
 
-  const items = query.data?.pages.flatMap((p) => p.items) ?? []
+  const items = useMemo(
+    () => query.data?.pages.flatMap((p) => p.items) ?? [],
+    [query.data],
+  )
   const total = query.data?.pages[0]?.total ?? 0
+
+  // 날짜별 묶음 — 오늘 / 어제 / 그 이전
+  const groups = useMemo(() => {
+    const today = kstDateKey()
+    const yesterday = kstDateKey(-1)
+    const buckets: { key: string; label: string; items: ThanksItem[] }[] = []
+
+    items.forEach((item) => {
+      const key = dateKeyOf(item.created_at) || 'unknown'
+      let label: string
+      if (key === today) label = ko ? '오늘' : 'Today'
+      else if (key === yesterday) label = ko ? '어제' : 'Yesterday'
+      else if (key === 'unknown') label = ko ? '지난 감사' : 'Earlier'
+      else {
+        const [, m, d] = key.split('-')
+        label = ko ? `${Number(m)}월 ${Number(d)}일` : `${m}/${d}`
+      }
+
+      const last = buckets[buckets.length - 1]
+      if (last && last.key === key) last.items.push(item)
+      else buckets.push({ key, label, items: [item] })
+    })
+
+    return buckets
+  }, [items, ko])
+
+  // 최근 감사를 나눈 사람들 (히어로 아바타 스택) — 같은 사람은 한 번만
+  const recentAuthors = useMemo(() => {
+    const seen = new Map<number, ThanksItem>()
+    for (const item of items) {
+      if (!seen.has(item.user_id)) seen.set(item.user_id, item)
+      if (seen.size >= 4) break
+    }
+    return [...seen.values()]
+  }, [items])
+
+  const verse = TODAYS_VERSE
 
   const updatePages = (
     updater: (page: ThanksPage, index: number) => ThanksPage,
@@ -131,7 +198,7 @@ const Thanks = () => {
       if (context?.previous) {
         queryClient.setQueryData(queryKey, context.previous)
       }
-      showToast(language === 'ko' ? '실패했습니다' : 'Failed', 'error')
+      showToast(ko ? '실패했습니다' : 'Failed', 'error')
     },
   })
 
@@ -148,13 +215,13 @@ const Thanks = () => {
       return { previous }
     },
     onSuccess: () => {
-      showToast(language === 'ko' ? '삭제되었습니다' : 'Deleted', 'success')
+      showToast(ko ? '삭제되었습니다' : 'Deleted', 'success')
     },
     onError: (_e, _id, context) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKey, context.previous)
       }
-      showToast(language === 'ko' ? '실패했습니다' : 'Failed', 'error')
+      showToast(ko ? '실패했습니다' : 'Failed', 'error')
     },
   })
 
@@ -167,121 +234,176 @@ const Thanks = () => {
   }
 
   const handleDelete = async (id: number) => {
-    const ok = window.confirm(
-      language === 'ko' ? '이 감사를 삭제할까요?' : 'Delete this thanks?',
-    )
+    const ok = window.confirm(ko ? '이 감사를 삭제할까요?' : 'Delete this thanks?')
     if (!ok) return
     removeMutation.mutate(id)
   }
 
   const handleOpenComposer = () => requireAuth(() => setShowComposer(true))
   const showSpinner = query.isLoading || query.isFetchingNextPage
+  const isEmpty = items.length === 0 && !query.isLoading
 
   return (
-    <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen border-x border-black/[0.04] dark:border-white/[0.06]">
-        {/* Sticky 헤더 — 컴팩트 네비 */}
-        <div className="sticky top-14 z-10 backdrop-blur-xl bg-background-light/85 dark:bg-background-dark/85 border-b border-black/[0.04] dark:border-white/[0.06]">
+    <div className="min-h-screen bg-[var(--surface)]">
+      <div className="max-w-md mx-auto min-h-screen bg-[var(--surface)] border-x border-[var(--card-border)]">
+        {/* Sticky 헤더 */}
+        <div
+          className="sticky top-14 z-10 backdrop-blur-xl border-b border-[var(--card-border)]"
+          style={{ background: 'var(--glass-bg)' }}
+        >
           <div className="px-4 py-3 flex items-center justify-between">
             <button
               onClick={() => navigate(-1)}
-              className="w-9 h-9 -ml-1 flex items-center justify-center rounded-full text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-500/5 dark:hover:bg-purple-500/10 transition-colors"
-              aria-label={language === 'ko' ? '뒤로' : 'Back'}
+              className="w-9 h-9 -ml-1 flex items-center justify-center rounded-full text-ink hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+              aria-label={ko ? '뒤로' : 'Back'}
             >
               <span className="material-icons-outlined text-[22px]">arrow_back</span>
             </button>
             <h1 className="text-[15px] font-bold tracking-[-0.01em] text-ink-strong">
-              {language === 'ko' ? '오늘의 감사' : 'Today’s Thanks'}
+              {ko ? '오늘의 감사' : 'Today’s Thanks'}
             </h1>
-            <button
-              onClick={handleOpenComposer}
-              className="w-9 h-9 -mr-1 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/30 hover:shadow-lg hover:shadow-purple-500/40 transition-all"
-              aria-label={language === 'ko' ? '감사 나누기' : 'Share thanks'}
-            >
-              <span className="material-icons-round text-[20px]">add</span>
-            </button>
+            <span className="w-9 h-9" aria-hidden />
           </div>
         </div>
 
-        {/* Hero 카드 — 보조 페이지 Hero + brand 그라데이션 카운트 */}
+        {/* Hero — 플랫 브랜드 배너 + 오늘의 감사 말씀 */}
         <section className="px-4 pt-4">
-          <article className="relative overflow-hidden rounded-2xl border border-black/[0.05] dark:border-white/[0.08] bg-background-light dark:bg-[#1c1c26] shadow-[0_8px_32px_rgba(168,85,247,0.10)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.45),0_8px_28px_rgba(168,85,247,0.18),inset_0_1px_0_rgba(255,255,255,0.05)]">
-            {/* 좌측 3px 그라데이션 액센트 라인 */}
-            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-purple-500 to-pink-500" />
-            {/* 보랏빛 글로우 */}
-            <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/15 dark:to-pink-500/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-10 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-purple-400/10 dark:from-pink-500/10 dark:to-purple-500/8 rounded-full blur-3xl pointer-events-none" />
+          <article
+            className="relative overflow-hidden rounded-[22px] px-5 py-5 text-[var(--on-brand)]"
+            style={{
+              background: 'var(--brand)',
+              boxShadow: '0 12px 30px var(--brand-glow)',
+            }}
+          >
+            {/* 은은한 광원 — 종이 위에 스민 빛 */}
+            <div
+              className="absolute -right-10 -top-14 w-44 h-44 rounded-full blur-3xl pointer-events-none"
+              style={{ background: 'rgba(255,255,255,0.20)' }}
+            />
+            <div
+              className="absolute -left-12 bottom-[-3rem] w-40 h-40 rounded-full blur-3xl pointer-events-none"
+              style={{ background: 'rgba(255,255,255,0.12)' }}
+            />
 
-            <div className="relative z-10 p-5 flex items-start gap-4">
-              <div className="shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500/15 to-pink-500/15 dark:from-purple-500/20 dark:to-pink-500/20 border border-purple-500/20 dark:border-purple-400/20 flex items-center justify-center">
-                <span className="material-icons-round text-[24px] bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                  volunteer_activism
-                </span>
+            <div className="relative">
+              <div className="flex items-center gap-1.5 mb-3 text-[11px] font-bold tracking-[0.1em] opacity-80">
+                <span className="material-icons-round text-[15px]">volunteer_activism</span>
+                GRATITUDE
               </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[11px] font-semibold tracking-[0.08em] uppercase text-purple-600 dark:text-purple-300">
-                    GRATITUDE
-                  </span>
-                  {total > 0 && (
-                    <span className="text-[11px] font-bold tabular-nums bg-gradient-to-br from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                      {total}
-                      {language === 'ko' ? '개' : ''}
-                    </span>
-                  )}
+              <p className="text-[21px] font-extrabold leading-[1.35] tracking-[-0.02em]">
+                “{ko ? verse.ko : verse.en}”
+              </p>
+              <p className="mt-1 text-[12px] font-semibold opacity-80">
+                {ko ? verse.ref : verse.refEn}
+              </p>
+
+              <div className="mt-4 pt-3.5 border-t border-white/20 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[13px] font-bold">
+                    {ko ? `지금까지 ${total}개의 감사` : `${total} thanks so far`}
+                  </p>
+                  <p className="text-[11.5px] opacity-80 mt-0.5">
+                    {ko
+                      ? '한 줄이 모여 우리 교회의 하루가 돼요'
+                      : 'One line at a time, our church’s day'}
+                  </p>
                 </div>
-                <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong mb-1.5">
-                  {language === 'ko' ? '오늘의 감사' : 'Today’s Thanks'}
-                </h2>
-                <p className="text-[13px] leading-[1.6] text-gray-600 dark:text-white/60">
-                  {language === 'ko'
-                    ? '일상 속 작은 감사를 함께 나눕니다'
-                    : 'Share the little joys of daily life'}
-                </p>
+
+                {recentAuthors.length > 0 && (
+                  <div className="flex -space-x-2 shrink-0" aria-hidden>
+                    {recentAuthors.map((author) => (
+                      <ThanksAvatar
+                        key={author.user_id}
+                        name={author.display_name}
+                        avatarUrl={author.avatar_url}
+                        size={28}
+                        tone="onBrand"
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </article>
         </section>
 
         {/* List */}
-        <div className="px-4 pt-4 pb-24 space-y-3">
-          {items.length === 0 && !query.isLoading ? (
+        <div className="px-4 pt-5 pb-28">
+          {isEmpty ? (
             <button
               onClick={handleOpenComposer}
-              className="w-full text-left p-6 rounded-2xl border border-dashed border-purple-300/60 dark:border-purple-400/30 bg-purple-50/40 dark:bg-purple-500/[0.06] text-[14px] text-purple-700 dark:text-purple-200 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors flex items-center gap-2"
+              className="w-full p-7 rounded-2xl border border-dashed border-[var(--card-border)] hover:border-brand transition-colors flex flex-col items-center gap-2 text-center"
+              style={{ background: 'var(--brand-soft)' }}
             >
-              <span className="material-icons-round text-[18px] text-purple-500 dark:text-purple-300">
-                add_circle_outline
+              <span className="text-[34px] thanks-nudge leading-none">🫙</span>
+              <span className="text-[15px] font-bold text-ink-strong">
+                {ko ? '감사 항아리가 비어 있어요' : 'The gratitude jar is empty'}
               </span>
-              <span>
-                {language === 'ko'
-                  ? '오늘 첫 감사를 나눠주세요'
-                  : 'Be the first to share thanks today'}
+              <span className="text-[13px] text-ink-muted leading-relaxed">
+                {ko
+                  ? '첫 한 조각을 넣어주세요.\n정말 사소한 것도 괜찮아요'
+                  : 'Drop in the first piece.\nEven the tiniest one counts'}
               </span>
             </button>
           ) : (
-            items.map((t) => (
-              <ThanksCard
-                key={t.id}
-                thanks={t}
-                canDelete={t.is_mine || admin}
-                onAmen={handleAmen}
-                onDelete={handleDelete}
-                variant="list"
-              />
+            groups.map((group) => (
+              <section key={group.key} className="mb-5 last:mb-0">
+                {/* 날짜 라벨 */}
+                <div className="flex items-center gap-2.5 mb-2.5">
+                  <span className="text-[12px] font-bold tracking-[-0.01em] text-ink-muted">
+                    {group.label}
+                  </span>
+                  <span className="flex-1 h-px bg-[var(--card-border)]" />
+                </div>
+
+                <div className="space-y-3">
+                  {group.items.map((t, i) => (
+                    <ThanksCard
+                      key={t.id}
+                      thanks={t}
+                      canDelete={t.is_mine || admin}
+                      onAmen={handleAmen}
+                      onDelete={handleDelete}
+                      variant="list"
+                      enterDelay={Math.min(i * 40, 240)}
+                    />
+                  ))}
+                </div>
+              </section>
             ))
           )}
 
           {showSpinner && (
             <div className="flex items-center justify-center py-6">
-              <div className="w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 dark:border-purple-400/30 dark:border-t-purple-300 rounded-full animate-spin" />
+              <div
+                className="w-8 h-8 rounded-full animate-spin"
+                style={{
+                  border: '2px solid var(--brand-soft-strong)',
+                  borderTopColor: 'var(--brand)',
+                }}
+              />
             </div>
+          )}
+
+          {!query.hasNextPage && items.length > 0 && !showSpinner && (
+            <p className="pt-4 text-center text-[12px] text-ink-muted">
+              {ko ? '여기까지가 우리의 감사예요 🙏' : 'That’s all our thanks 🙏'}
+            </p>
           )}
 
           {/* infinite scroll sentinel */}
           <div ref={sentinelRef} className="h-1" />
         </div>
+
+        {/* 감사 남기기 — 눈에 띄는 알약 버튼 */}
+        <button
+          onClick={handleOpenComposer}
+          className="fixed z-30 bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 flex items-center gap-2 pl-4 pr-5 h-12 rounded-full bg-brand text-[var(--on-brand)] text-[14.5px] font-extrabold tracking-[-0.01em] shadow-[0_10px_26px_var(--brand-glow)] hover:bg-brand-dim active:scale-95 transition-all"
+        >
+          <span className="material-icons-round text-[19px]">edit</span>
+          {ko ? '감사 남기기' : 'Share thanks'}
+        </button>
 
         {showComposer && (
           <ThanksComposer

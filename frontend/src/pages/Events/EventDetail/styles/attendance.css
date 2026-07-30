@@ -42,6 +42,32 @@
   font-size: 1rem;
 }
 
+/* RSVP 마감 후: 새 참석 등록 버튼은 잠긴 상태임이 분명히 보이게 */
+.attend-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.attend-btn:disabled:hover {
+  background: white;
+}
+
+[data-theme="dark"] .attend-btn:disabled:hover {
+  background: #000000;
+}
+
+.attend-btn.attending:disabled:hover {
+  color: #22c55e;
+}
+
+.attend-btn.maybe:disabled:hover {
+  color: #f59e0b;
+}
+
+.attend-btn.not-attending:disabled:hover {
+  color: #ef4444;
+}
+
 .attend-btn.attending {
   border-color: #22c55e;
   color: #22c55e;

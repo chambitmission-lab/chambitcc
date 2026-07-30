@@ -1,4 +1,10 @@
 import type { Event } from '../../../types/event'
+import { calendarDateKey, kstNow, toKstCalendarDate } from '../../../utils/kstTime'
+
+/* 이 파일의 모든 날짜 계산은 서울(KST) 기준이다.
+ * 서버가 주는 일정 시각엔 오프셋이 없어 new Date() 로 파싱하면 기기 타임존을 타므로,
+ * 반드시 toKstCalendarDate 로 서울 벽시계 필드를 담은 Date 를 만들어 쓴다. */
+const eventDate = (datetime: string): Date => toKstCalendarDate(datetime)
 
 export interface AgendaGroup {
   key: 'today' | 'tomorrow' | 'thisWeek' | 'thisMonth' | 'later' | 'past'
@@ -24,20 +30,20 @@ const isSameMonth = (a: Date, b: Date): boolean =>
  * 다음 일요일까지 같은 주로 판단 (월~일 또는 일~토 어느 쪽이든 7일 범위 내).
  * 간단하게 "오늘로부터 7일 이내"를 이번 주로 봄.
  */
-const isWithinThisWeek = (eventDate: Date, today: Date): boolean => {
-  const d = diffInDays(eventDate, today)
+const isWithinThisWeek = (target: Date, today: Date): boolean => {
+  const d = diffInDays(target, today)
   return d >= 2 && d <= 7
 }
 
-export const groupEventsByDate = (events: Event[], now: Date = new Date()): AgendaGroup[] => {
+export const groupEventsByDate = (events: Event[], now: Date = kstNow()): AgendaGroup[] => {
   const today = startOfDay(now)
   const sorted = [...events].sort(
-    (a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime(),
+    (a, b) => eventDate(a.start_datetime).getTime() - eventDate(b.start_datetime).getTime(),
   )
 
-  const upcoming = sorted.filter(e => new Date(e.start_datetime).getTime() >= today.getTime())
+  const upcoming = sorted.filter(e => eventDate(e.start_datetime).getTime() >= today.getTime())
   const pastEvents = sorted
-    .filter(e => new Date(e.start_datetime).getTime() < today.getTime())
+    .filter(e => eventDate(e.start_datetime).getTime() < today.getTime())
     .reverse()
 
   const buckets: Record<AgendaGroup['key'], Event[]> = {
@@ -50,7 +56,7 @@ export const groupEventsByDate = (events: Event[], now: Date = new Date()): Agen
   }
 
   for (const ev of upcoming) {
-    const d = new Date(ev.start_datetime)
+    const d = eventDate(ev.start_datetime)
     const diff = diffInDays(d, today)
 
     if (diff === 0) buckets.today.push(ev)
@@ -85,12 +91,12 @@ export const groupEventsByDate = (events: Event[], now: Date = new Date()): Agen
  * 가장 가까운 다가오는 일정 1건 (Hero 카드용).
  * 오늘 시작한 이벤트가 있으면 우선, 없으면 다음 일정.
  */
-export const getNextEvent = (events: Event[], now: Date = new Date()): Event | null => {
+export const getNextEvent = (events: Event[], now: Date = kstNow()): Event | null => {
   const todayStart = startOfDay(now).getTime()
   const sorted = [...events].sort(
-    (a, b) => new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime(),
+    (a, b) => eventDate(a.start_datetime).getTime() - eventDate(b.start_datetime).getTime(),
   )
-  return sorted.find(e => new Date(e.start_datetime).getTime() >= todayStart) ?? null
+  return sorted.find(e => eventDate(e.start_datetime).getTime() >= todayStart) ?? null
 }
 
 /**
@@ -99,8 +105,8 @@ export const getNextEvent = (events: Event[], now: Date = new Date()): Event | n
  * 같은 주 7일 이내 → "이번 주 N요일",
  * 그 외 → "M월 D일"
  */
-export const formatDDay = (datetime: string, now: Date = new Date()): string => {
-  const d = new Date(datetime)
+export const formatDDay = (datetime: string, now: Date = kstNow()): string => {
+  const d = eventDate(datetime)
   const diff = diffInDays(d, now)
   if (diff < 0) return '지남'
   if (diff === 0) return '오늘'
@@ -110,7 +116,7 @@ export const formatDDay = (datetime: string, now: Date = new Date()): string => 
 }
 
 export const formatEventTime = (datetime: string): string => {
-  const d = new Date(datetime)
+  const d = eventDate(datetime)
   const hh = d.getHours()
   const mm = d.getMinutes().toString().padStart(2, '0')
   const ampm = hh < 12 ? '오전' : '오후'
@@ -119,7 +125,7 @@ export const formatEventTime = (datetime: string): string => {
 }
 
 export const formatEventDateLabel = (datetime: string): string => {
-  const d = new Date(datetime)
+  const d = eventDate(datetime)
   const days = ['일', '월', '화', '수', '목', '금', '토']
   return `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`
 }
@@ -131,8 +137,7 @@ export const formatEventDateLabel = (datetime: string): string => {
 export const buildEventDateMap = (events: Event[]): Map<string, Event[]> => {
   const map = new Map<string, Event[]>()
   for (const ev of events) {
-    const d = new Date(ev.start_datetime)
-    const key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
+    const key = calendarDateKey(eventDate(ev.start_datetime))
     const arr = map.get(key)
     if (arr) arr.push(ev)
     else map.set(key, [ev])

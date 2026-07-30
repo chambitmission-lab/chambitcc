@@ -1,5 +1,9 @@
+import { useState } from 'react'
 import { useLanguage } from '../../../../contexts/LanguageContext'
+import { HandHeartIcon } from '../../../../components/icons/ActionIcons'
+import ThanksAvatar from './ThanksAvatar'
 import { THANKS_EMOTIONS, type Thanks } from '../../../../types/thanks'
+import './thanks.css'
 
 interface ThanksCardProps {
   thanks: Thanks
@@ -7,40 +11,74 @@ interface ThanksCardProps {
   onAmen: (id: number) => void
   onDelete: (id: number) => void
   variant?: 'card' | 'list'
+  /** 목록 등장 애니메이션 지연 (ms) */
+  enterDelay?: number
 }
 
-const ThanksCard = ({ thanks, canDelete, onAmen, onDelete, variant = 'card' }: ThanksCardProps) => {
+const ThanksCard = ({
+  thanks,
+  canDelete,
+  onAmen,
+  onDelete,
+  variant = 'card',
+  enterDelay = 0,
+}: ThanksCardProps) => {
   const { language } = useLanguage()
+  const ko = language === 'ko'
   const emotion = thanks.emotion ? THANKS_EMOTIONS[thanks.emotion] : null
-
   const isList = variant === 'list'
 
+  // 누를 때마다 다시 터지도록 key를 올린다
+  const [popKey, setPopKey] = useState(0)
+
+  const handleAmen = () => {
+    if (!thanks.is_amened) setPopKey((k) => k + 1)
+    onAmen(thanks.id)
+  }
+
   return (
-    <div
-      className={`relative overflow-hidden rounded-2xl bg-background-light dark:bg-[#1c1c26] border border-black/[0.04] dark:border-white/[0.08] shadow-[0_4px_18px_rgba(168,85,247,0.06)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.04)] transition-shadow ${
+    <article
+      className={`thanks-card-in feed-card relative overflow-hidden rounded-2xl transition-shadow ${
         isList ? 'p-4' : 'p-4 w-64 flex-shrink-0 snap-start'
       }`}
+      style={{ animationDelay: `${enterDelay}ms` }}
     >
-      {/* 다크모드 미세 그라데이션 */}
-      <div className="hidden dark:block absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
+      {/* 감정 액센트 — 왼쪽 얇은 띠 + 모서리 후광 */}
+      {emotion && (
+        <>
+          <div
+            className="absolute left-0 top-0 bottom-0 w-[3px]"
+            style={{ background: `color-mix(in srgb, ${emotion.hue} 75%, transparent)` }}
+          />
+          <div
+            className="absolute -right-8 -top-8 w-24 h-24 rounded-full blur-2xl pointer-events-none"
+            style={{ background: `color-mix(in srgb, ${emotion.hue} 16%, transparent)` }}
+          />
+        </>
+      )}
 
-      {/* 상단: 감정 이모지 + 삭제 */}
-      <div className="relative flex items-start justify-between mb-2">
-        <div className="flex items-center gap-1 min-h-[24px]">
-          {emotion && (
-            <span
-              className="text-lg leading-none"
-              title={language === 'ko' ? emotion.label : emotion.labelEn}
-            >
-              {emotion.emoji}
-            </span>
-          )}
-        </div>
+      {/* 상단: 감정 배지 + 삭제 */}
+      <div className="relative flex items-start justify-between gap-2 mb-2.5 min-h-[26px]">
+        {emotion ? (
+          <span
+            className="inline-flex items-center gap-1.5 h-[26px] pl-1.5 pr-2.5 rounded-full text-[11.5px] font-bold"
+            style={{
+              background: `color-mix(in srgb, ${emotion.hue} 12%, transparent)`,
+              color: emotion.hue,
+            }}
+          >
+            <span className="text-[14px] leading-none">{emotion.emoji}</span>
+            {ko ? emotion.label : emotion.labelEn}
+          </span>
+        ) : (
+          <span />
+        )}
+
         {canDelete && (
           <button
             onClick={() => onDelete(thanks.id)}
-            className="w-7 h-7 -m-1 flex items-center justify-center rounded-full text-gray-400 dark:text-white/40 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/5 dark:hover:bg-red-500/10 transition-colors"
-            aria-label={language === 'ko' ? '삭제' : 'Delete'}
+            className="shrink-0 w-7 h-7 -mt-0.5 -mr-1 flex items-center justify-center rounded-full text-ink-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+            aria-label={ko ? '삭제' : 'Delete'}
           >
             <span className="material-icons-outlined text-[16px]">close</span>
           </button>
@@ -49,34 +87,68 @@ const ThanksCard = ({ thanks, canDelete, onAmen, onDelete, variant = 'card' }: T
 
       {/* 본문 */}
       <p
-        className={`relative text-[14px] text-gray-800 dark:text-white/85 leading-[1.65] mb-3 break-words whitespace-pre-wrap ${
+        className={`relative text-[15px] text-ink-strong leading-[1.65] mb-3.5 break-words whitespace-pre-wrap ${
           isList ? '' : 'line-clamp-4'
         }`}
       >
         {thanks.content}
       </p>
 
-      {/* 하단: 작성자 + 시간 + 아멘 */}
+      {/* 하단: 작성자 + 함께 감사하기 */}
       <div className="relative flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-white/50 min-w-0">
-          <span className="truncate font-medium">{thanks.display_name}</span>
-          <span className="opacity-60">·</span>
-          <span className="whitespace-nowrap">{thanks.time_ago}</span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <ThanksAvatar
+            name={thanks.display_name}
+            avatarUrl={thanks.avatar_url}
+            size={24}
+          />
+          <span className="truncate text-[12px] font-semibold text-ink">
+            {thanks.display_name}
+          </span>
+          <span className="text-[12px] text-ink-muted opacity-60">·</span>
+          <span className="whitespace-nowrap text-[12px] text-ink-muted">
+            {thanks.time_ago}
+          </span>
         </div>
+
         <button
-          onClick={() => onAmen(thanks.id)}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold tabular-nums transition-all ${
+          onClick={handleAmen}
+          className="relative shrink-0 flex items-center gap-1.5 h-8 pl-2.5 pr-3 rounded-full text-[12.5px] font-bold tabular-nums active:scale-95 transition-all"
+          style={
             thanks.is_amened
-              ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-200 border border-purple-200/60 dark:border-purple-400/25'
-              : 'bg-surface-light dark:bg-white/[0.05] text-gray-600 dark:text-white/65 border border-black/[0.04] dark:border-white/[0.06] hover:bg-purple-50/60 dark:hover:bg-purple-500/10 hover:text-purple-700 dark:hover:text-purple-200'
-          }`}
-          aria-label={language === 'ko' ? '아멘' : 'Amen'}
+              ? {
+                  background: 'var(--brand-soft-strong)',
+                  color: 'var(--brand)',
+                  border: '1px solid color-mix(in srgb, var(--brand) 45%, transparent)',
+                }
+              : {
+                  background: 'var(--surface-inset)',
+                  color: 'var(--text-muted)',
+                  border: '1px solid var(--card-border)',
+                }
+          }
+          aria-label={ko ? '함께 감사해요' : 'Give thanks together'}
+          title={ko ? '함께 감사해요' : 'Give thanks together'}
         >
-          <span>🙏</span>
+          <HandHeartIcon
+            size={15}
+            filled={thanks.is_amened}
+            className={popKey > 0 && thanks.is_amened ? 'thanks-heart-pop' : ''}
+          />
           <span>{thanks.amen_count}</span>
+
+          {popKey > 0 && thanks.is_amened && (
+            <span
+              key={popKey}
+              className="thanks-plus-one absolute -top-1 right-2 text-[12px] font-extrabold pointer-events-none"
+              style={{ color: 'var(--brand)' }}
+            >
+              +1
+            </span>
+          )}
         </button>
       </div>
-    </div>
+    </article>
   )
 }
 

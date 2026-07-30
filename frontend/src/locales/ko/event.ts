@@ -49,9 +49,18 @@ export const event = {
   },
   attend: '참석 의사 표시',
   cancelAttendance: '참석 취소',
+  currentStatus: '현재 상태',
+  changeTo: '{status}(으)로 변경',
   rsvpDeadline: 'RSVP 마감',
   rsvpClosed: 'RSVP 마감되었습니다',
   rsvpClosesOn: 'RSVP 마감: {date}',
+  rsvpDeadlineAfterStart: 'RSVP 마감은 일정 시작 시각보다 늦을 수 없어요.',
+  rsvpRemaining: '마감까지 {time} 남음',
+  rsvpClosedBadge: '접수 마감',
+  rsvpClosedForResponder: '마감 후에도 응답 변경과 취소는 할 수 있어요.',
+  rsvpClosedForNewcomer: '새 참석 등록은 더 이상 받지 않아요.',
+  rsvpCancelAfterCloseConfirm:
+    '마감이 지나서, 지금 취소하면 다시 참석 등록을 할 수 없어요. 취소할까요?',
 
   // 소그룹 전용 모임
   groupOnlyBadge: '소그룹 전용',

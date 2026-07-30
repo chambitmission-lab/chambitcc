@@ -15,6 +15,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { kstNow } from '../../../utils/kstTime'
 
 interface EventComposerProps {
   editingEvent: Event | null
@@ -92,7 +93,8 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
   }, [editingEvent])
 
   const handleQuickDate = (mode: 'today' | 'tomorrow' | 'nextWeek') => {
-    const base = new Date()
+    // 입력값은 서울 벽시계 그대로 서버에 저장되므로, 기준일도 서울 '오늘'로 잡는다
+    const base = kstNow()
     base.setSeconds(0, 0)
     if (mode === 'tomorrow') base.setDate(base.getDate() + 1)
     if (mode === 'nextWeek') base.setDate(base.getDate() + 7)
@@ -112,11 +114,29 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
     })
   }
 
+  // 반복 일정은 회차별로 펼쳐지지 않아 마감을 걸면 이후 전 회차가 잠긴다 → 아예 못 넣게 막는다
+  const isRepeating = form.repeat_type !== 'none'
+
+  const handleRepeatChange = (value: RepeatType) => {
+    setForm(prev => ({
+      ...prev,
+      repeat_type: value,
+      rsvp_deadline: value === 'none' ? prev.rsvp_deadline : '',
+    }))
+  }
+
+  // 두 값 모두 'YYYY-MM-DDTHH:mm' 같은 형식이라 문자열 비교로 시각 순서를 그대로 판정할 수 있다
+  const rsvpAfterStart =
+    !!form.rsvp_deadline &&
+    !!form.start_datetime &&
+    form.rsvp_deadline > form.start_datetime
+
   const canSubmit =
     form.title.trim().length > 0 &&
     form.start_datetime !== '' &&
     form.end_datetime !== '' &&
     new Date(form.end_datetime) >= new Date(form.start_datetime) &&
+    !rsvpAfterStart &&
     !submitting
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -311,7 +331,7 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
                   <ScopeChip
                     key={o.value}
                     active={form.repeat_type === o.value}
-                    onClick={() => setForm({ ...form, repeat_type: o.value })}
+                    onClick={() => handleRepeatChange(o.value)}
                   >
                     {o.label}
                   </ScopeChip>
@@ -335,7 +355,23 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
                 value={form.rsvp_deadline ?? ''}
                 onChange={(v) => setForm({ ...form, rsvp_deadline: v })}
                 max={form.start_datetime || undefined}
+                disabled={isRepeating}
               />
+              {isRepeating ? (
+                <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-white/50">
+                  반복 일정에는 RSVP 마감을 걸 수 없어요. 마감은 회차별로 적용되지 않아서,
+                  한 번 지나면 이후 모든 회차가 잠깁니다.
+                </p>
+              ) : rsvpAfterStart ? (
+                <p className="mt-1.5 text-[11.5px] font-semibold leading-[1.5] text-red-500 dark:text-red-400">
+                  마감은 일정 시작 시각보다 늦을 수 없어요.
+                </p>
+              ) : (
+                <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-white/45">
+                  한국 시간 기준이며, 마감 후에는 새 참석 등록만 막히고 기존 응답의 변경·취소는
+                  계속 가능합니다.
+                </p>
+              )}
             </FieldGroup>
 
             {/* 첨부 (등록 시만) */}
@@ -495,6 +531,7 @@ interface DateFieldProps {
   onChange: (v: string) => void
   min?: string
   max?: string
+  disabled?: boolean
 }
 
 const dateFieldInputClass =
@@ -505,7 +542,15 @@ const dateFieldInputClass =
 const dateFieldLabelClass =
   'block text-[10.5px] font-bold uppercase tracking-[0.05em] text-gray-500 dark:text-white/45 mb-1'
 
-const DateField = ({ label, type = 'datetime-local', value, onChange, min, max }: DateFieldProps) =>
+const DateField = ({
+  label,
+  type = 'datetime-local',
+  value,
+  onChange,
+  min,
+  max,
+  disabled = false,
+}: DateFieldProps) =>
   /* 달력 팝오버 안의 버튼들이 <label>의 클릭 전달에 휘말리지 않게, 날짜 전용은 div로 감싼다 */
   type === 'date' ? (
     <div className="block">
@@ -527,7 +572,8 @@ const DateField = ({ label, type = 'datetime-local', value, onChange, min, max }
         onChange={(e) => onChange(e.target.value)}
         min={min}
         max={max}
-        className={dateFieldInputClass}
+        disabled={disabled}
+        className={`${dateFieldInputClass} disabled:opacity-45 disabled:cursor-not-allowed`}
       />
     </label>
   )

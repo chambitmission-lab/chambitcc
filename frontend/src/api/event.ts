@@ -11,6 +11,25 @@ import type {
   EventCategory,
 } from '../types/event'
 
+// 에러 응답 → 사람이 읽을 수 있는 한 줄
+// FastAPI 는 상황에 따라 detail 이 문자열(HTTPException)일 수도,
+// 검증 오류 배열(422 RequestValidationError)일 수도 있다. 배열을 그대로 쓰면 "[object Object]" 가 뜬다.
+const readErrorMessage = async (response: Response, fallback: string): Promise<string> => {
+  try {
+    const body = await response.json()
+    const detail = body?.detail
+    if (typeof detail === 'string' && detail.trim()) return detail
+    if (Array.isArray(detail)) {
+      const msg = detail.find((d) => typeof d?.msg === 'string')?.msg
+      if (msg) return String(msg).replace(/^Value error,\s*/, '')
+    }
+    if (typeof detail?.msg === 'string') return detail.msg
+  } catch {
+    // JSON 이 아니면 fallback
+  }
+  return fallback
+}
+
 // 이벤트 목록 조회
 // - groupId 미지정 → 전체 공개 이벤트만
 // - groupId 지정 → 해당 그룹 이벤트만 (해당 그룹 멤버여야 함, 토큰 필요)
@@ -132,8 +151,7 @@ export const createEvent = async (
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '이벤트 생성에 실패했습니다')
+    throw new Error(await readErrorMessage(response, '이벤트 생성에 실패했습니다'))
   }
 
   return response.json()
@@ -159,8 +177,7 @@ export const updateEvent = async (
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '이벤트 수정에 실패했습니다')
+    throw new Error(await readErrorMessage(response, '이벤트 수정에 실패했습니다'))
   }
 
   return response.json()
@@ -181,8 +198,7 @@ export const deleteEvent = async (eventId: number): Promise<ApiResponse> => {
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '이벤트 삭제에 실패했습니다')
+    throw new Error(await readErrorMessage(response, '이벤트 삭제에 실패했습니다'))
   }
 
   return response.json()
@@ -208,8 +224,7 @@ export const attendEvent = async (
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '참석 의사 표시에 실패했습니다')
+    throw new Error(await readErrorMessage(response, '참석 의사 표시에 실패했습니다'))
   }
 
   return response.json()
@@ -230,8 +245,7 @@ export const cancelAttendance = async (eventId: number): Promise<ApiResponse> =>
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '참석 취소에 실패했습니다')
+    throw new Error(await readErrorMessage(response, '참석 취소에 실패했습니다'))
   }
 
   return response.json()
@@ -257,8 +271,7 @@ export const createEventComment = async (
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '댓글 작성에 실패했습니다')
+    throw new Error(await readErrorMessage(response, '댓글 작성에 실패했습니다'))
   }
 
   return response.json()
@@ -279,8 +292,7 @@ export const deleteEventComment = async (commentId: number): Promise<ApiResponse
   })
 
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '댓글 삭제에 실패했습니다')
+    throw new Error(await readErrorMessage(response, '댓글 삭제에 실패했습니다'))
   }
 
   return response.json()

@@ -11,6 +11,7 @@ import MiniMonthStrip from './components/MiniMonthStrip'
 import AgendaSection from './components/AgendaSection'
 import EmptyState from './components/EmptyState'
 import { getNextEvent, groupEventsByDate } from './utils/dateGrouping'
+import { kstNow } from '../../utils/kstTime'
 import './styles/index.css'
 
 const formatYMD = (d: Date): string =>
@@ -22,12 +23,13 @@ const EventCalendar = () => {
   const navigate = useNavigate()
   const admin = isAdmin()
 
-  const [viewDate, setViewDate] = useState(() => new Date())
+  // 달력의 '오늘'과 보이는 달은 기기 타임존이 아니라 서울 기준
+  const [viewDate, setViewDate] = useState(() => kstNow())
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | undefined>()
 
   // 현재 보이는 달의 1일 ~ (과거 달이면 해당 달 말일 / 현재·미래 달이면 다음 달 말일) 까지 fetch
   const { startDate, endDate } = useMemo(() => {
-    const now = new Date()
+    const now = kstNow()
     const isPastMonth =
       viewDate.getFullYear() < now.getFullYear() ||
       (viewDate.getFullYear() === now.getFullYear() && viewDate.getMonth() < now.getMonth())
@@ -57,7 +59,7 @@ const EventCalendar = () => {
   const handleNextMonth = () => {
     setViewDate(d => new Date(d.getFullYear(), d.getMonth() + 1, 1))
   }
-  const handleToday = () => setViewDate(new Date())
+  const handleToday = () => setViewDate(kstNow())
 
   return (
     <div className="bg-surface text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen">

@@ -58,14 +58,14 @@ const ThanksThread = () => {
           {total > items.length && (
             <button
               onClick={() => navigate('/thanks')}
-              className="text-[12px] font-medium text-purple-600 dark:text-purple-300 hover:underline"
+              className="text-[12px] font-medium text-brand hover:underline"
             >
               {language === 'ko' ? '더보기' : 'See all'}
             </button>
           )}
           <button
             onClick={handleOpenComposer}
-            className="ml-1 p-1.5 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/30 hover:shadow-lg hover:shadow-purple-500/40 transition-all"
+            className="ml-1 p-1.5 rounded-full bg-brand text-[var(--on-brand)] shadow-[0_4px_14px_var(--brand-glow)] hover:bg-brand-dim transition-all"
             aria-label={language === 'ko' ? '감사 나누기' : 'Share thanks'}
             title={language === 'ko' ? '감사 나누기' : 'Share thanks'}
           >
@@ -87,9 +87,9 @@ const ThanksThread = () => {
       ) : items.length === 0 ? (
         <button
           onClick={handleOpenComposer}
-          className="w-full text-left p-4 rounded-2xl border border-dashed border-purple-300/60 dark:border-purple-400/30 bg-purple-50/40 dark:bg-purple-500/[0.06] text-[14px] text-purple-700 dark:text-purple-200 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors flex items-center gap-2"
+          className="w-full text-left p-4 rounded-2xl border border-dashed border-[var(--card-border)] bg-[var(--brand-soft)] text-[14px] text-ink hover:border-brand transition-colors flex items-center gap-2"
         >
-          <span className="material-icons-round text-[18px] text-purple-500 dark:text-purple-300">
+          <span className="material-icons-round text-[18px] text-brand">
             add_circle_outline
           </span>
           <span>

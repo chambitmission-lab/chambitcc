@@ -49,9 +49,18 @@ export const event = {
   },
   attend: 'RSVP',
   cancelAttendance: 'Cancel RSVP',
+  currentStatus: 'Your response',
+  changeTo: 'Change to {status}',
   rsvpDeadline: 'RSVP Deadline',
   rsvpClosed: 'RSVP closed',
   rsvpClosesOn: 'RSVP closes on {date}',
+  rsvpDeadlineAfterStart: 'The RSVP deadline cannot be later than the event start time.',
+  rsvpRemaining: '{time} left',
+  rsvpClosedBadge: 'RSVP closed',
+  rsvpClosedForResponder: 'You can still change or cancel your response.',
+  rsvpClosedForNewcomer: 'New RSVPs are no longer accepted.',
+  rsvpCancelAfterCloseConfirm:
+    'RSVP has closed. If you cancel now you will not be able to sign up again. Cancel anyway?',
 
   // Small-group-only meeting
   groupOnlyBadge: 'Group only',

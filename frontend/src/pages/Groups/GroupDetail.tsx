@@ -9,9 +9,10 @@ import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { groupInviteUrl } from '../../components/prayer/GroupModals'
 import CreateGroupMeetingModal from '../../components/group/CreateGroupMeetingModal'
+import { formatKstDateTime, kstDateKey, parseKstDate } from '../../utils/kstTime'
 
 const GroupDetail = () => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const loggedIn = isAuthenticated()
@@ -25,11 +26,8 @@ const GroupDetail = () => {
   const [showCreate, setShowCreate] = useState(false)
 
   // 오늘 자정(KST) 부터의 일정만 (이미 끝난 모임 숨김)
-  const todayIso = useMemo(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d.toISOString().slice(0, 10) // YYYY-MM-DD
-  }, [])
+  // toISOString() 은 UTC 로 밀려 하루 어긋나므로 KST 날짜 키를 그대로 쓴다
+  const todayIso = useMemo(() => kstDateKey(new Date()), [])
   const { events: meetings, loading: meetingsLoading } = useEvents(
     group?.is_member ? todayIso : undefined,
     undefined,
@@ -308,13 +306,16 @@ const GroupDetail = () => {
             ) : (
               <div className="space-y-2">
                 {meetings.map((m) => {
-                  const start = new Date(m.start_datetime)
+                  // 모임 시각은 교회 현지(서울) 기준으로 고정 표시
+                  const start = parseKstDate(m.start_datetime)
                   const dateStr = start.toLocaleDateString(undefined, {
+                    timeZone: 'Asia/Seoul',
                     month: 'short',
                     day: 'numeric',
                     weekday: 'short',
                   })
                   const timeStr = start.toLocaleTimeString(undefined, {
+                    timeZone: 'Asia/Seoul',
                     hour: '2-digit',
                     minute: '2-digit',
                   })
@@ -335,7 +336,8 @@ const GroupDetail = () => {
                         👤 {m.attendance_count}
                         {m.rsvp_deadline && (
                           <span className="ml-2">
-                            ⏰ {new Date(m.rsvp_deadline).toLocaleDateString()}
+                            ⏰ {formatKstDateTime(m.rsvp_deadline, language)}
+                            {parseKstDate(m.rsvp_deadline).getTime() <= Date.now() && ' · 접수 마감'}
                           </span>
                         )}
                       </div>

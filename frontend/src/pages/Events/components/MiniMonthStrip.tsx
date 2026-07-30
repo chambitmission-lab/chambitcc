@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { Event } from '../../../types/event'
 import { CATEGORY_VISUAL } from '../utils/categoryConfig'
 import { buildEventDateMap } from '../utils/dateGrouping'
+import { kstNow } from '../../../utils/kstTime'
 
 interface MiniMonthStripProps {
   date: Date
@@ -19,7 +20,7 @@ const formatKey = (d: Date) =>
 
 const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }: MiniMonthStripProps) => {
   const eventMap = useMemo(() => buildEventDateMap(events), [events])
-  const today = new Date()
+  const today = kstNow()  // 서울 기준 '오늘'
   const todayKey = formatKey(today)
 
   const cells = useMemo(() => {

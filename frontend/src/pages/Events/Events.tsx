@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvents } from '../../hooks/useEvents'
 import { translations } from '../../locales'
 import type { EventCategory } from '../../types/event'
+import { parseKstDate } from '../../utils/kstTime'
 import './Events.css'
 
 const Events = () => {
@@ -22,8 +23,9 @@ const Events = () => {
   )
 
   const formatDateTime = (datetime: string) => {
-    const date = new Date(datetime)
-    return date.toLocaleString('ko-KR', {
+    // 교회 현지(서울) 시각으로 고정 표시
+    return parseKstDate(datetime).toLocaleString('ko-KR', {
+      timeZone: 'Asia/Seoul',
       year: 'numeric',
       month: 'long',
       day: 'numeric',

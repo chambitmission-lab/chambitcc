@@ -34,6 +34,9 @@ const CreateGroupMeetingModal = ({
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
+  // 같은 'YYYY-MM-DDTHH:mm' 형식이라 문자열 비교로 시각 순서를 판정할 수 있다
+  const rsvpAfterStart = !!rsvpDeadline && !!startDt && rsvpDeadline > startDt
+
   const handleClose = () => {
     if (submitting) return
     setTitle('')
@@ -56,6 +59,10 @@ const CreateGroupMeetingModal = ({
     setErrorMsg('')
 
     if (!title.trim() || !startDt || !endDt) return
+    if (rsvpAfterStart) {
+      setErrorMsg(t.rsvpDeadlineAfterStart)
+      return
+    }
 
     setSubmitting(true)
     try {
@@ -178,6 +185,11 @@ const CreateGroupMeetingModal = ({
               max={startDt || undefined}
               className="w-full px-3 py-2 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm text-ink-strong"
             />
+            {rsvpAfterStart && (
+              <p className="mt-1 text-xs font-semibold text-red-500 dark:text-red-400">
+                {t.rsvpDeadlineAfterStart}
+              </p>
+            )}
           </div>
 
           <div>

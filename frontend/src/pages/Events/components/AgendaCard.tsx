@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import type { Event } from '../../../types/event'
 import { CATEGORY_VISUAL } from '../utils/categoryConfig'
 import { formatDDay, formatEventTime, formatEventDateLabel } from '../utils/dateGrouping'
+import { parseKstDate } from '../../../utils/kstTime'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
 
@@ -18,6 +19,8 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
   const dday = formatDDay(event.start_datetime)
   const time = formatEventTime(event.start_datetime)
   const dateLabel = formatEventDateLabel(event.start_datetime)
+  // 마감 여부는 상세에 들어가지 않아도 목록에서 바로 보이게 (KST 기준)
+  const rsvpClosed = !!event.rsvp_deadline && parseKstDate(event.rsvp_deadline).getTime() <= Date.now()
 
   return (
     <button
@@ -71,6 +74,11 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
             >
               {t.categories[event.category]}
             </span>
+            {rsvpClosed && (
+              <span className="inline-flex items-center px-1.5 h-5 rounded-md bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-white/55 text-[10.5px] font-bold shrink-0">
+                {t.rsvpClosedBadge}
+              </span>
+            )}
             {event.location && (
               <span className="inline-flex items-center gap-1 min-w-0 max-w-[55%]">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
