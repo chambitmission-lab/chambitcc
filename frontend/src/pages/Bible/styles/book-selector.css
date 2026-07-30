@@ -330,13 +330,19 @@
 
 .recent-chip {
   flex: 0 0 auto;
-  /* peek-and-pop: 뷰포트 기준 고정 폭 → 마지막으로 보이는 카드가 항상 오른쪽에 걸쳐 스크롤 가능함을 암시 */
-  width: clamp(9.25rem, 42vw, 11rem);
+  /* 내용 폭으로 — 예전 고정폭(clamp)은 "요한일서 · 2장부터" 같은 짧은 카드에서
+     오른쪽 60px가 늘 비어 보였다. 스크롤 가능 힌트는 엣지 페이드가 이미 담당한다. */
+  width: auto;
+  min-width: 8.5rem;
+  max-width: 12rem;
   scroll-snap-align: start;
+  /* 하단 진행 게이지(.book-progress-track)의 기준 박스 */
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem 0.5rem 0.55rem;
+  /* 아래쪽은 게이지 자리만큼 더 준다 */
+  padding: 0.5rem 0.75rem 0.85rem 0.55rem;
   background: var(--ig-primary-background);
   border: 1px solid var(--ig-border);
   border-radius: 0.875rem;
@@ -371,6 +377,33 @@
 }
 .recent-chip__icon .material-icons-round {
   font-size: 1.1rem;
+}
+
+/* 진행률 배지 — 아이콘 자리를 수치로 쓴다.
+   책 이름과 겹치는 약칭 대신, 하단 게이지가 못 주는 정확한 값을 담는다
+   (summary-stat이 이미 쓰는 '숫자 + 게이지' 조합과 같은 문법) */
+.recent-chip__pct {
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.recent-chip__pct small {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+/* 완독 — 숫자 대신 체크. 배지 자체를 채워 다 읽은 책이 한눈에 구분된다 */
+.recent-chip__icon[data-complete="true"] {
+  background: var(--brand);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .recent-chip__icon[data-complete="true"] {
+  background: var(--brand);
+  color: #ffffff;
 }
 
 .recent-chip__body {
