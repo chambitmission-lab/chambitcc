@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import DatePicker from '../../components/common/DatePicker'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvents } from '../../hooks/useEvents'
 import { translations } from '../../locales'
@@ -58,21 +59,24 @@ const Events = () => {
           </select>
         </div>
 
+        {/* 네이티브 date 입력은 mm/dd/yyyy·OS 달력이라 앱 공통 DatePicker로 */}
         <div className="filter-group">
           <label>{t.startDate}</label>
-          <input
-            type="date"
+          <DatePicker
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={setStartDate}
+            maxDate={endDate || undefined}
+            className="filter-date-trigger"
           />
         </div>
 
         <div className="filter-group">
           <label>{t.endDate}</label>
-          <input
-            type="date"
+          <DatePicker
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            onChange={setEndDate}
+            minDate={startDate || undefined}
+            className="filter-date-trigger"
           />
         </div>
       </div>

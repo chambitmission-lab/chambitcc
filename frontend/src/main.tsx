@@ -44,6 +44,8 @@ createRoot(document.getElementById('root')!).render(
               // 발자취 게임 상태는 서버 권위 데이터이므로 persist 제외
               // (stale pending_quiz가 캐시되면 진입 시 잘못된 퀴즈가 뜸)
               if (Array.isArray(key) && key[0] === 'bluemarble') return false
+              // 실황 날씨는 persist 제외 — 저장하면 다음 실행 때 며칠 전 기온이 먼저 뜬다
+              if (Array.isArray(key) && key[0] === 'weather') return false
               // pageParams가 있는 infinite query도 제외 (커뮤니티, 기도, 댓글 등)
               if (query.state.data && typeof query.state.data === 'object' && 'pageParams' in query.state.data) {
                 const pageParams = (query.state.data as any).pageParams

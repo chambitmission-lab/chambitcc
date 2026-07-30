@@ -3,12 +3,17 @@ import { createDailyVerse, updateDailyVerse } from '../../../api/dailyVerse'
 import type { DailyVerse } from '../../../types/dailyVerse'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import DatePicker from '../../../components/common/DatePicker'
 
 interface DailyVerseComposerProps {
   editingVerse: DailyVerse | null
   onClose: () => void
   onSuccess: () => void
 }
+
+/* DatePicker 트리거 — 이 폼의 다른 입력과 같은 테두리·높이·글자 크기로 맞춘다 */
+const datePickerTriggerClass =
+  'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-left text-ink-strong hover:border-purple-400 dark:hover:border-purple-400/60 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
 
 const pad = (n: number) => n.toString().padStart(2, '0')
 const toDateInput = (d: Date) =>
@@ -45,8 +50,12 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
     setVerseDate(toDateInput(d))
   }
 
+  // 날짜는 DatePicker로 옮기며 네이티브 required가 없어졌으니 여기서 직접 확인한다
   const canSubmit =
-    verseReference.trim().length > 0 && verseText.trim().length > 0 && !submitting
+    verseReference.trim().length > 0 &&
+    verseText.trim().length > 0 &&
+    verseDate.length > 0 &&
+    !submitting
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -219,11 +228,11 @@ const DailyVerseComposer = ({ editingVerse, onClose, onSuccess }: DailyVerseComp
                     모레
                   </QuickChip>
                 </div>
-                <input
-                  type="date"
+                {/* 네이티브 date 입력은 mm/dd/yyyy·OS 달력이라 앱 공통 DatePicker로 */}
+                <DatePicker
                   value={verseDate}
-                  onChange={(e) => setVerseDate(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                  onChange={setVerseDate}
+                  className={datePickerTriggerClass}
                 />
                 <div className="mt-2.5 px-3 py-2 rounded-xl bg-purple-500/8 dark:bg-purple-500/10 border border-purple-500/20 dark:border-purple-500/25">
                   <p className="text-[11.5px] text-purple-700 dark:text-purple-200 leading-[1.5]">

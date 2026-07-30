@@ -7,6 +7,7 @@ import {
 import { showToast } from '../../../utils/toast'
 import { resizeImageToBlob } from '../../../utils/imageResize'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import DatePicker from '../../../components/common/DatePicker'
 import type { NewFamilyPost } from '../../../types/newFamily'
 
 interface NewFamilyComposerProps {
@@ -32,6 +33,10 @@ const GROUP_PRESETS = [
   '영아부', '유치부', '유년부', '초등부', '중등부', '고등부',
   '청년1부', '청년2부', '장년부', '새가족부',
 ]
+
+/* DatePicker 트리거 — 이 폼의 다른 입력과 같은 테두리·높이·글자 크기로 맞춘다 */
+const datePickerTriggerClass =
+  'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-left text-ink-strong hover:border-purple-400 dark:hover:border-purple-400/60 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
 
 const pad = (n: number) => n.toString().padStart(2, '0')
 const toDateInput = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -124,8 +129,13 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
 
   const photosChanged = slotSignature(slots) !== initialSignature.current
 
+  // 날짜는 DatePicker로 옮기며 네이티브 required가 없어졌으니 여기서 직접 확인한다
   const canSubmit =
-    memberName.trim().length > 0 && slots.length > 0 && consent && !submitting
+    memberName.trim().length > 0 &&
+    registeredAt.length > 0 &&
+    slots.length > 0 &&
+    consent &&
+    !submitting
 
   /** 새로 고른 파일만 리사이즈해 files 배열과 order 토큰을 만든다 */
   const buildPhotoPayload = async () => {
@@ -252,12 +262,13 @@ const NewFamilyComposer = ({ post, onClose, onSuccess }: NewFamilyComposerProps)
                   지난 주일
                 </QuickChip>
               </div>
-              <input
-                type="date"
+              {/* 네이티브 date 입력은 mm/dd/yyyy·OS 달력이라 앱 공통 DatePicker로.
+                  등록은 주일 기준이라 sundayMode로 일요일을 도드라지게 한다 */}
+              <DatePicker
                 value={registeredAt}
-                onChange={(e) => setRegisteredAt(e.target.value)}
-                required
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                onChange={setRegisteredAt}
+                sundayMode
+                className={datePickerTriggerClass}
               />
             </FieldGroup>
 

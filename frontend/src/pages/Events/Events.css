@@ -79,6 +79,35 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+/* DatePicker 트리거 — 옆의 select와 같은 테두리·높이·배경으로 맞춘다 */
+.filter-date-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  text-align: left;
+  background: white;
+  color: #111827;
+  transition: all 0.2s;
+}
+
+:root[data-theme="dark"] .filter-date-trigger {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.filter-date-trigger:hover,
+.filter-date-trigger:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
 .events-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

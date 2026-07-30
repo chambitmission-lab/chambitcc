@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import DatePicker from '../../components/common/DatePicker'
 import { showToast } from '../../utils/toast'
 import {
   getCultureClasses,
@@ -41,6 +42,10 @@ const STATUS_BADGE: Record<CultureApplicationStatus, string> = {
 
 const inputClass =
   'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
+
+/* DatePicker 트리거를 이 폼의 입력들과 같은 테두리·높이로 맞춘다 (inputClass + 좌우 정렬) */
+const datePickerTriggerClass =
+  `${inputClass} flex items-center justify-between gap-2 text-left hover:border-brand`
 
 const labelClass =
   'text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block'
@@ -425,11 +430,13 @@ const Culture = () => {
 
                     <div>
                       <label className={labelClass}>생년월일 *</label>
-                      <input
-                        type="date"
+                      {/* 네이티브 date 입력은 mm/dd/yyyy·영문 달력이라 앱 공통 DatePicker로 */}
+                      <DatePicker
                         value={form.birth_date}
-                        onChange={(e) => setForm((f) => ({ ...f, birth_date: e.target.value }))}
-                        className={inputClass}
+                        onChange={(date) => setForm((f) => ({ ...f, birth_date: date }))}
+                        placeholder="생년월일을 선택해주세요"
+                        birthMode
+                        className={datePickerTriggerClass}
                       />
                     </div>
 
@@ -512,13 +519,14 @@ const Culture = () => {
                     </div>
                     <div>
                       <label className={labelClass}>생년월일</label>
-                      <input
-                        type="date"
+                      <DatePicker
                         value={lookupForm.birth_date}
-                        onChange={(e) =>
-                          setLookupForm((f) => ({ ...f, birth_date: e.target.value }))
+                        onChange={(date) =>
+                          setLookupForm((f) => ({ ...f, birth_date: date }))
                         }
-                        className={inputClass}
+                        placeholder="생년월일을 선택해주세요"
+                        birthMode
+                        className={datePickerTriggerClass}
                       />
                     </div>
                     <button

@@ -1,0 +1,103 @@
+/* 활동 기록 타임라인 — 좌측 거터를 '시간 축 + 도메인 색' 으로 쓴다.
+   예전엔 브랜드 블루 원 안의 이모지였는데, 원이 전부 같은 색·같은 크기라
+   4개가 쌓여도 구분이 안 되고 40px를 장식에만 썼다. */
+
+/* 도메인 색 — 백엔드 accent 는 대부분 "purple" 로 고정돼 쓸 수 없어 프론트에서 정한다.
+   다크에서는 한 단계 밝은 값으로 바꿔 어두운 배경 위 대비를 확보한다. */
+:root {
+  --atl-prayer: #2f7ff0;
+  --atl-bible: #15a34a;
+  --atl-devotional: #7c58e8;
+  --atl-thanks: #e0446a;
+  --atl-community: #d18009;
+  --atl-game: #0f9a90;
+}
+
+[data-theme='dark'] {
+  --atl-prayer: #74aaff;
+  --atl-bible: #4ed687;
+  --atl-devotional: #b39bff;
+  --atl-thanks: #ff859c;
+  --atl-community: #f0b542;
+  --atl-game: #3fd3c6;
+}
+
+/* 거터 — 시간(위) 과 점(아래)이 한 열에 정렬된다 */
+.atl-gutter {
+  position: relative;
+  flex-shrink: 0;
+  width: 3.375rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-right: 0.5rem;
+}
+
+/* 세로 연결선 — 점의 중심(오른쪽에서 0.5rem + 점 반지름)을 지난다 */
+.atl-gutter::before {
+  content: '';
+  position: absolute;
+  top: 1.6rem;
+  bottom: -0.25rem;
+  right: 0.75rem;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--brand-soft-strong),
+    transparent
+  );
+}
+
+.atl-time {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ig-secondary-text);
+  white-space: nowrap;
+}
+
+/* 하루 단위로 묶인 기록(읽기·함께 기도 롤업)은 시각이 없다 —
+   빈 칸으로 두면 축이 흔들려서 '하루' 라고 밝혀 준다 */
+.atl-time.is-allday {
+  opacity: 0.55;
+  font-weight: 500;
+}
+
+.atl-dot {
+  margin-top: 0.4rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: var(--atl-dot, var(--atl-prayer));
+  /* 배경색 링으로 세로선을 끊어 점이 선 위에 얹힌 것처럼 보이게 */
+  box-shadow: 0 0 0 3px var(--ig-primary-background);
+  position: relative;
+  z-index: 1;
+}
+
+/* 하루 헤더 — '오늘' 옆에 그날의 도메인별 개수를 색 글자로 붙여
+   색이 무엇을 뜻하는지 범례 없이 스스로 설명하게 한다 */
+.atl-day-domains {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.atl-day-domain {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+  color: var(--atl-dot);
+}
+
+.atl-day-domain::before {
+  content: '';
+  width: 0.3125rem;
+  height: 0.3125rem;
+  border-radius: 50%;
+  background: currentColor;
+}

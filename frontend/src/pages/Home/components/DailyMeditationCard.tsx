@@ -1,8 +1,9 @@
+import { lazy, Suspense, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDailyMeditation } from '../../../hooks/useDailyMeditation'
 import { useAuth } from '../../../hooks/useAuth'
 import { useChapterReadStatus } from '../../../hooks/useBibleReading'
-import { useCurrentWeather } from '../../../hooks/useWeather'
+import { useCurrentWeather, type WeatherCondition } from '../../../hooks/useWeather'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Language } from '../../../locales'
 import { getCurrentUser } from '../../../utils/auth'
@@ -28,6 +29,9 @@ import heroWinterMorning from '../../../assets/hero/winter-morning.jpg'
 import heroWinterAfternoon from '../../../assets/hero/winter-afternoon.jpg'
 import heroWinterEvening from '../../../assets/hero/winter-evening.jpg'
 import './DailyMeditationCard.css'
+
+/* 주간 예보 시트 — 칩을 누를 때만 필요하므로 홈 첫 로딩에서 분리한다 */
+const WeatherForecastSheet = lazy(() => import('./WeatherForecastSheet'))
 
 const GREETING_KEYS = {
   morning: 'homeGreetingMorning',
@@ -77,6 +81,34 @@ const AMBIENT_PARTICLES = [
   { left: '76%', delay: '6.5s', duration: '14s', drift: '16px', size: '13px', opacity: 0.5 },
   { left: '90%', delay: '11s', duration: '15s', drift: '-12px', size: '9px', opacity: 0.4 },
 ] as const
+
+/* 비 앰비언트 — 눈·꽃잎과 달리 이모지가 아니라 얇은 빗줄기(CSS 선)로 떨어진다.
+ * 사진 위에서 이모지 비는 장난스러워 보여 사선 스트릭으로 대신했다. */
+const RAIN_DROPS = [
+  { left: '6%', delay: '0s', duration: '1.1s', length: '16px', opacity: 0.5 },
+  { left: '14%', delay: '0.5s', duration: '1.35s', length: '12px', opacity: 0.38 },
+  { left: '23%', delay: '0.2s', duration: '1s', length: '18px', opacity: 0.46 },
+  { left: '31%', delay: '0.8s', duration: '1.25s', length: '14px', opacity: 0.34 },
+  { left: '39%', delay: '0.35s', duration: '1.15s', length: '17px', opacity: 0.5 },
+  { left: '48%', delay: '0.95s', duration: '1.05s', length: '13px', opacity: 0.4 },
+  { left: '56%', delay: '0.15s', duration: '1.3s', length: '15px', opacity: 0.44 },
+  { left: '64%', delay: '0.65s', duration: '1.1s', length: '18px', opacity: 0.36 },
+  { left: '72%', delay: '0.3s', duration: '1.2s', length: '13px', opacity: 0.48 },
+  { left: '81%', delay: '0.85s', duration: '1.05s', length: '16px', opacity: 0.38 },
+  { left: '89%', delay: '0.45s', duration: '1.3s', length: '14px', opacity: 0.44 },
+  { left: '96%', delay: '0.1s', duration: '1.15s', length: '17px', opacity: 0.34 },
+] as const
+
+/* 젖은 하늘일 때만 칩에 한 단어를 붙인다 — 맑음·흐림·안개는 이모지로 충분 */
+const WEATHER_LABEL_KEYS = {
+  drizzle: 'homeWeatherDrizzle',
+  rain: 'homeWeatherRain',
+  snow: 'homeWeatherSnow',
+  thunder: 'homeWeatherThunder',
+} as const satisfies Partial<Record<WeatherCondition, string>>
+
+/* 이 확률 이상이면 강수확률을 함께 보여준다 (우산 챙길 판단선) */
+const POP_VISIBLE_THRESHOLD = 40
 
 const HERO_EMOJI: Record<TimeOfDay, string> = {
   morning: '☀️',
@@ -136,6 +168,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const { data, isLoading, error } = useDailyMeditation()
   // 실황 날씨(이모지+기온) — 못 불러오면 null: 칩을 숨기고 인사말 이모지로 폴백
   const weather = useCurrentWeather()
+  // 날씨 칩을 누르면 열리는 주간 예보 시트
+  const [isForecastOpen, setIsForecastOpen] = useState(false)
   const { fullName } = getCurrentUser()
   const { isLoggedIn } = useAuth()
 
@@ -172,7 +206,26 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const season = getCurrentSeason(today)
   /* 자연 계절 — 히어로 배경·앰비언트 연출용 (교회력 절기와 별개) */
   const naturalSeason = getNaturalSeason(today)
-  const ambientGlyph = AMBIENT_GLYPHS[naturalSeason]
+
+  /* ── 날씨 연출 ──
+   * 비·눈이 오는 날은 계절 앰비언트(꽃잎·낙엽)를 덮어쓴다 — 오늘 실제 하늘이
+   * 계절 무드보다 먼저 읽혀야 "지금 비 온다"가 전달된다. */
+  const condition = weather?.condition
+  const isRaining =
+    condition === 'rain' || condition === 'drizzle' || condition === 'thunder'
+  const isSnowing = condition === 'snow'
+  const ambientGlyph = isRaining
+    ? undefined
+    : isSnowing
+      ? AMBIENT_GLYPHS.winter
+      : AMBIENT_GLYPHS[naturalSeason]
+
+  const weatherLabel =
+    condition && condition in WEATHER_LABEL_KEYS
+      ? t(WEATHER_LABEL_KEYS[condition as keyof typeof WEATHER_LABEL_KEYS])
+      : null
+  const pop = weather?.precipitationProbability ?? null
+  const showPop = pop !== null && pop >= POP_VISIBLE_THRESHOLD
   const todayDoy = dayOfYear(today)
   const ribbonSegments = getSeasonSegments(today.getFullYear()).map((seg) => {
     const startDoy = dayOfYear(seg.start)
@@ -236,7 +289,26 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           style={{ '--hero-image': `url(${HERO_IMAGES[naturalSeason][timeOfDay]})` } as React.CSSProperties}
         >
           <div className="meditation-hero-overlay" aria-hidden />
-          {/* 계절 앰비언트 — 봄 꽃잎·가을 낙엽·겨울 눈이 은은히 내린다 (여름은 없음) */}
+          {/* 비 앰비언트 — 비·가랑비·뇌우일 때 계절 연출 대신 빗줄기가 흐른다 */}
+          {isRaining && (
+            <div className="meditation-hero-ambient" aria-hidden>
+              {RAIN_DROPS.map((d, i) => (
+                <span
+                  key={i}
+                  className="meditation-rain-drop"
+                  style={{
+                    left: d.left,
+                    '--fall-delay': d.delay,
+                    '--fall-duration': d.duration,
+                    '--drop-length': d.length,
+                    '--fall-opacity': d.opacity,
+                  } as React.CSSProperties}
+                />
+              ))}
+            </div>
+          )}
+          {/* 계절 앰비언트 — 봄 꽃잎·가을 낙엽·겨울 눈이 은은히 내린다 (여름은 없음).
+           * 눈 오는 날은 계절과 무관하게 ❄️로 대체된다 */}
           {ambientGlyph && (
             <div className="meditation-hero-ambient" aria-hidden>
               {AMBIENT_PARTICLES.map((p, i) => (
@@ -258,15 +330,39 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             </div>
           )}
           {/* 실황 날씨 칩 — 우측 상단 유리 칩(이모지+기온). 맑으면 시간대 이모지,
+           * 비·눈이면 한 단어 라벨, 강수확률 40% 이상이면 확률까지 붙는다.
            * API 실패 시엔 칩을 숨기고 인사말 끝 이모지로 폴백한다. */}
           {weather && (
-            <span
+            <button
+              type="button"
               className="meditation-weather-chip"
-              aria-label={`${t('homeWeatherAria')} ${weather.temperature}°C`}
+              data-wet={isRaining || isSnowing ? '' : undefined}
+              aria-haspopup="dialog"
+              aria-expanded={isForecastOpen}
+              onClick={() => setIsForecastOpen(true)}
+              aria-label={[
+                `${t('homeWeatherAria')}${weatherLabel ? ` ${weatherLabel}` : ''}`,
+                `${weather.temperature}°C`,
+                showPop ? t('homeWeatherPopAria').replace('{n}', String(pop)) : null,
+              ]
+                .filter(Boolean)
+                .join(', ')}
             >
               <span aria-hidden>{weather.emoji ?? HERO_EMOJI[timeOfDay]}</span>
-              {weather.temperature}°
-            </span>
+              {weatherLabel && (
+                <span className="meditation-weather-label">{weatherLabel}</span>
+              )}
+              <span className="meditation-weather-temp">{weather.temperature}°</span>
+              {showPop && (
+                <span className="meditation-weather-pop" aria-hidden>
+                  {t('homeWeatherPop').replace('{n}', String(pop))}
+                </span>
+              )}
+              {/* 누르면 주간 예보가 열린다는 힌트 */}
+              <span className="material-icons-round meditation-weather-caret" aria-hidden>
+                expand_more
+              </span>
+            </button>
           )}
           <div className="meditation-hero-text">
             <p className="meditation-hero-greeting">
@@ -428,6 +524,16 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         </div>
         </div>
       </article>
+
+      {/* 주간 예보 시트 — 열릴 때 청크를 받으므로 fallback 없이 잠깐 비어 있다 */}
+      {isForecastOpen && (
+        <Suspense fallback={null}>
+          <WeatherForecastSheet
+            onClose={() => setIsForecastOpen(false)}
+            currentTemperature={weather?.temperature}
+          />
+        </Suspense>
+      )}
     </section>
   )
 }

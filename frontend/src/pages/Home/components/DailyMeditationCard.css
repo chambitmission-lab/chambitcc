@@ -137,8 +137,46 @@
   }
 }
 
+/* 빗줄기 — 이모지가 아니라 위가 투명한 얇은 사선 스트릭.
+ * 사진 위에서 과하지 않게 1px 폭 + 낮은 불투명도로 흐른다. */
+.meditation-rain-drop {
+  position: absolute;
+  top: -24px;
+  width: 1px;
+  height: var(--drop-length, 15px);
+  border-radius: 1px;
+  opacity: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(214, 233, 255, 0.85) 100%
+  );
+  animation: meditation-rain-fall var(--fall-duration, 1.15s) linear infinite;
+  animation-delay: var(--fall-delay, 0s);
+  will-change: transform, opacity;
+}
+
+@keyframes meditation-rain-fall {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--fall-opacity, 0.45);
+  }
+  88% {
+    opacity: var(--fall-opacity, 0.45);
+  }
+  100% {
+    /* 살짝 왼쪽으로 기울여 바람 맞은 비처럼 보이게 한다 */
+    transform: translate3d(-12px, 232px, 0);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .meditation-ambient-particle {
+  .meditation-ambient-particle,
+  .meditation-rain-drop {
     display: none;
   }
 }
@@ -164,6 +202,47 @@
   letter-spacing: -0.01em;
   color: rgba(255, 255, 255, 0.95);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  /* 주간 예보 시트를 여는 버튼 — 히어로 위 유리 칩 모양은 그대로 유지 */
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.meditation-weather-chip:active {
+  transform: scale(0.96);
+  background: rgba(20, 24, 32, 0.5);
+}
+
+/* 눌러서 펼칠 수 있다는 힌트 — 아주 작게, 기온 뒤에 */
+.meditation-weather-caret {
+  margin-left: -2px;
+  font-size: 16px;
+  opacity: 0.75;
+}
+
+/* 비·눈 오는 날은 칩도 젖은 톤(푸른 유리)으로 바뀐다 */
+.meditation-weather-chip[data-wet] {
+  background: rgba(24, 40, 64, 0.46);
+  border-color: rgba(178, 214, 255, 0.32);
+}
+
+.meditation-weather-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.meditation-weather-temp {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 강수확률 — 기온과 구분되게 얇은 세로선 뒤 작은 숫자 */
+.meditation-weather-pop {
+  padding-left: 6px;
+  border-left: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(196, 226, 255, 0.95);
+  font-variant-numeric: tabular-nums;
 }
 
 .meditation-hero-text {

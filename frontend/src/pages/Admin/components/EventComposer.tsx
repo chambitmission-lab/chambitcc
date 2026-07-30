@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import DatePicker from '../../../components/common/DatePicker'
 import { createEvent, updateEvent } from '../../../api/event'
 import { useAllGroups } from '../../../hooks/useGroups'
 import type {
@@ -496,22 +497,39 @@ interface DateFieldProps {
   max?: string
 }
 
-const DateField = ({ label, type = 'datetime-local', value, onChange, min, max }: DateFieldProps) => (
-  <label className="block">
-    {label && (
-      <span className="block text-[10.5px] font-bold uppercase tracking-[0.05em] text-gray-500 dark:text-white/45 mb-1">
-        {label}
-      </span>
-    )}
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      min={min}
-      max={max}
-      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
-    />
-  </label>
-)
+const dateFieldInputClass =
+  'w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
+
+/* 날짜만 받는 필드는 앱 공통 DatePicker(한국식 표기)로, 시각까지 받는
+ * datetime-local은 시간 입력이 필요해 네이티브 입력을 그대로 쓴다. */
+const dateFieldLabelClass =
+  'block text-[10.5px] font-bold uppercase tracking-[0.05em] text-gray-500 dark:text-white/45 mb-1'
+
+const DateField = ({ label, type = 'datetime-local', value, onChange, min, max }: DateFieldProps) =>
+  /* 달력 팝오버 안의 버튼들이 <label>의 클릭 전달에 휘말리지 않게, 날짜 전용은 div로 감싼다 */
+  type === 'date' ? (
+    <div className="block">
+      {label && <span className={dateFieldLabelClass}>{label}</span>}
+      <DatePicker
+        value={value}
+        onChange={onChange}
+        minDate={min}
+        maxDate={max}
+        className={`${dateFieldInputClass} flex items-center justify-between gap-2 text-left hover:border-purple-400 dark:hover:border-purple-400/60`}
+      />
+    </div>
+  ) : (
+    <label className="block">
+      {label && <span className={dateFieldLabelClass}>{label}</span>}
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        min={min}
+        max={max}
+        className={dateFieldInputClass}
+      />
+    </label>
+  )
 
 export default EventComposer

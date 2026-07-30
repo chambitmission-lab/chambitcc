@@ -35,15 +35,18 @@ const TimerDisplay = ({
   const minutes = Math.floor(timeLeft / 60)
   const seconds = timeLeft % 60
   const remaining = totalSeconds > 0 ? timeLeft / totalSeconds : 0
-  const remainingAngle = remaining * 360
+  // 소모된 비율 — 12시에서 출발해 시계방향으로 아크를 깎아 나간다
+  const elapsed = 1 - remaining
+  const elapsedAngle = elapsed * 360
+  const elapsedLength = CIRCUMFERENCE * elapsed
 
   const ticks = Array.from({ length: TICK_COUNT }, (_, i) => {
     const deg = i * (360 / TICK_COUNT)
     const major = i % 5 === 0
     const rad = ((deg - 90) * Math.PI) / 180
     const inner = major ? TICK_OUTER - 10 : TICK_OUTER - 5
-    // 남은 시간 구간의 눈금은 밝게, 이미 지나간 구간은 어둡게
-    const active = deg <= remainingAngle
+    // 남은 시간 구간의 눈금은 밝게, 이미 지나간 구간(12시~현재 위치)은 어둡게
+    const active = deg >= elapsedAngle
     return {
       key: i,
       x1: CENTER + Math.cos(rad) * inner,
@@ -97,7 +100,8 @@ const TimerDisplay = ({
             fill="none"
           />
 
-          {/* 남은 시간 아크 — 위에서 시작해 시계방향으로, 시간이 갈수록 줄어든다 */}
+          {/* 남은 시간 아크 — 12시부터 시계방향으로 지워지고, 끝은 항상 12시에 고정된다
+              (아크 길이 = 남은 시간, 비어가는 방향은 시계방향) */}
           <circle
             cx={CENTER}
             cy={CENTER}
@@ -106,8 +110,8 @@ const TimerDisplay = ({
             strokeWidth={ARC_STROKE}
             fill="none"
             strokeLinecap="round"
-            strokeDasharray={`${CIRCUMFERENCE}`}
-            strokeDashoffset={`${CIRCUMFERENCE * (1 - remaining)}`}
+            strokeDasharray={`${CIRCUMFERENCE * remaining} ${CIRCUMFERENCE}`}
+            strokeDashoffset={`${-elapsedLength}`}
             transform={`rotate(-90 ${CENTER} ${CENTER})`}
             className={`transition-all duration-1000 ease-linear ${isPaused ? 'opacity-40' : ''}`}
           />
@@ -128,11 +132,11 @@ const TimerDisplay = ({
               )
             })}
 
-          {/* 아크 끝 발광 노브 */}
+          {/* 아크 선두 발광 노브 — 12시에서 출발해 시계방향으로 진행 */}
           {remaining > 0 && (
             <g
               style={{
-                transform: `rotate(${remainingAngle}deg)`,
+                transform: `rotate(${elapsedAngle}deg)`,
                 transformOrigin: '50% 50%',
                 transition: 'transform 1s linear',
               }}
