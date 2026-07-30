@@ -247,6 +247,16 @@ const VerseList = ({
   
   // 전체 구절 수 계산
   const totalVerses = chapterData?.pages.reduce((sum, page) => sum + page.verses.length, 0) || 0
+
+  // 해석 패널이 해석 위에 실제 말씀을 띄울 수 있게 절 번호 → 본문 맵을 넘긴다
+  const verseTextMap = useMemo(() => {
+    const map = new Map<number, string>()
+    chapterData?.pages.forEach((page) => {
+      page.verses.forEach((v) => map.set(v.verse, v.text))
+    })
+    return map
+  }, [chapterData])
+
   const readCount = readStatusData?.read_verses || 0
   const progress = readStatusData?.progress || 0
 
@@ -779,6 +789,7 @@ const VerseList = ({
           bookNameKo={chapterData.pages[0].book_name_ko}
           focusVerse={commentaryFocusVerse}
           totalVerses={chapterData.pages[0].total_verses}
+          verseTexts={verseTextMap}
           onClose={() => {
             setCommentaryPanelOpen(false)
             setCommentaryFocusVerse(null)

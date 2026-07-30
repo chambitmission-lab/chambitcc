@@ -14,6 +14,7 @@ import type {
 } from '../../types/bibleCommentary'
 import BibleCommentaryEditor from './BibleCommentaryEditor'
 import BibleCommentaryItem from './BibleCommentaryItem'
+import { genreStyle } from './bookGenre'
 
 interface BibleCommentaryPanelProps {
   bookNumber: number
@@ -22,6 +23,8 @@ interface BibleCommentaryPanelProps {
   /** 패널이 열려있을 때 표시할 절 번호 (이 절을 포함하는 해석만 보여줌). null 이면 장 전체 */
   focusVerse: number | null
   totalVerses?: number
+  /** 절 번호 → 본문. 해석 위에 실제 말씀을 띄우는 데 쓴다 */
+  verseTexts?: Map<number, string>
   onClose: () => void
 }
 
@@ -31,6 +34,7 @@ const BibleCommentaryPanel = ({
   bookNameKo,
   focusVerse,
   totalVerses,
+  verseTexts,
   onClose,
 }: BibleCommentaryPanelProps) => {
   const admin = isAdmin()
@@ -66,6 +70,17 @@ const BibleCommentaryPanel = ({
     focusVerse != null
       ? `${bookNameKo} ${chapter}:${focusVerse}`
       : `${bookNameKo} ${chapter}장`
+
+  /** 해석이 덮는 절 범위의 본문을 이어 붙인다 — 해석 위에 띄울 "읽는 말씀" */
+  const scriptureFor = (c: BibleCommentary): string | null => {
+    if (!verseTexts?.size) return null
+    const parts: string[] = []
+    for (let v = c.verse_start; v <= c.verse_end; v += 1) {
+      const text = verseTexts.get(v)?.trim()
+      if (text) parts.push(text)
+    }
+    return parts.length > 0 ? parts.join(' ') : null
+  }
 
   const handleCreateClick = () => {
     setEditing(null)
@@ -126,56 +141,54 @@ const BibleCommentaryPanel = ({
   return (
     <>
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+        className="fixed inset-0 bg-black/55 backdrop-blur-[2px] z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
         onClick={onClose}
+        role="presentation"
       >
         <section
-          className="relative w-full sm:max-w-lg max-h-[85vh] sm:max-h-[88vh] bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
+          className="relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col"
+          style={{ ...genreStyle(bookNumber), maxHeight: 'calc(var(--vvh, 100dvh) * 0.92)' }}
           onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${headerLabel} 말씀 해석`}
         >
-          {/* 카드 표면 그라데이션 + 글로우 */}
-          <div className="hidden dark:block absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
-          <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
-
-          {/* 헤더 */}
-          <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
-            <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--brand-soft)] text-brand shrink-0">
-              <span className="material-icons-round text-[22px]">menu_book</span>
-            </div>
+          {/* 헤더 — 색은 책 장르 액센트 하나로 통일해서 권 개관 시트와 같은 결로 읽힌다 */}
+          <div className="relative shrink-0 flex items-center gap-3 px-5 pt-5 pb-3.5 border-b border-[var(--card-border)]">
+            <div className="w-9 h-1 rounded-full bg-[var(--text-muted)]/40 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
             <div className="min-w-0 flex-1">
-              <p className="text-brand text-[10.5px] font-bold tracking-[0.1em]">
+              <p
+                className="text-[11px] font-bold tracking-[0.14em]"
+                style={{ color: 'var(--genre)' }}
+              >
                 말씀 해석
               </p>
-              <h3 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em] truncate">
+              <h3 className="text-ink-strong text-[19px] font-bold tracking-[-0.025em] truncate">
                 {headerLabel}
               </h3>
             </div>
             <button
               onClick={onClose}
               aria-label="닫기"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors shrink-0"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-ink-muted hover:bg-[var(--surface-inset)] transition-colors shrink-0"
             >
               <span className="material-icons-round text-[20px]">close</span>
             </button>
           </div>
 
           {/* 본문 */}
-          <div className="relative z-10 flex-1 overflow-y-auto px-5 py-4">
+          <div className="flex-1 overflow-y-auto overscroll-contain px-6 pb-6">
             {isLoading && (
-              <div className="text-center py-10 text-gray-400 dark:text-white/45">
+              <div className="text-center py-10 text-ink-muted">
                 <span className="material-icons-round animate-spin text-[28px]">refresh</span>
                 <p className="mt-2 text-[13.5px]">해석 불러오는 중...</p>
               </div>
             )}
 
             {!isLoading && total === 0 && (
-              <div className="text-center py-12 px-4 text-gray-400 dark:text-white/45">
+              <div className="text-center py-12 px-4 text-ink-muted">
                 <span className="material-icons-round text-[40px] opacity-40">auto_stories</span>
-                <p className="mt-2 text-[15px] text-gray-500 dark:text-white/55">
-                  아직 등록된 해석이 없습니다
-                </p>
+                <p className="mt-2 text-[15px] text-ink">아직 등록된 해석이 없습니다</p>
                 {admin && (
                   <p className="mt-1 text-[13px]">
                     아래 버튼으로 첫 해석을 추가해보세요
@@ -185,39 +198,45 @@ const BibleCommentaryPanel = ({
             )}
 
             {!isLoading && summaries.length > 0 && (
-              <section className="mb-1">
-                <SectionLabel icon="auto_stories" text="요약 해석" />
-                {summaries.map((c) => (
-                  <BibleCommentaryItem
-                    key={c.id}
-                    commentary={c}
-                    isAdmin={admin}
-                    onEdit={handleEditClick}
-                    onDelete={handleDelete}
-                  />
-                ))}
+              <section>
+                <SectionLabel text="요약 해석" count={summaries.length} />
+                <div className="divide-y divide-[var(--card-border)]">
+                  {summaries.map((c) => (
+                    <BibleCommentaryItem
+                      key={c.id}
+                      commentary={c}
+                      isAdmin={admin}
+                      scriptureText={scriptureFor(c)}
+                      onEdit={handleEditClick}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
               </section>
             )}
 
             {!isLoading && verses.length > 0 && (
               <section>
-                <SectionLabel icon="format_list_numbered" text="절별 해석" />
-                {verses.map((c) => (
-                  <BibleCommentaryItem
-                    key={c.id}
-                    commentary={c}
-                    isAdmin={admin}
-                    onEdit={handleEditClick}
-                    onDelete={handleDelete}
-                  />
-                ))}
+                <SectionLabel text="절별 해석" count={verses.length} />
+                <div className="divide-y divide-[var(--card-border)]">
+                  {verses.map((c) => (
+                    <BibleCommentaryItem
+                      key={c.id}
+                      commentary={c}
+                      isAdmin={admin}
+                      scriptureText={scriptureFor(c)}
+                      onEdit={handleEditClick}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </div>
               </section>
             )}
           </div>
 
           {/* 관리자: 해석 추가 */}
           {admin && (
-            <div className="relative z-10 px-5 py-3 border-t border-black/[0.04] dark:border-white/[0.06] bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-sm">
+            <div className="shrink-0 px-6 py-3 border-t border-[var(--card-border)] bg-surface-container">
               <button
                 onClick={handleCreateClick}
                 className="w-full inline-flex items-center justify-center gap-1.5 h-12 rounded-xl bg-brand text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all"
@@ -252,19 +271,18 @@ const BibleCommentaryPanel = ({
 }
 
 interface SectionLabelProps {
-  icon: string
   text: string
+  count: number
 }
 
-/** 요약/절별 해석 그룹을 구분하는 작은 머리글 */
-const SectionLabel = ({ icon, text }: SectionLabelProps) => (
-  <div className="flex items-center gap-1.5 px-0.5 mb-2 mt-1">
-    <span className="material-icons-round text-[16px] text-brand">
-      {icon}
-    </span>
-    <span className="text-[12px] font-bold tracking-[0.04em] text-brand">
+/** 요약/절별 해석 그룹을 구분하는 규칙선 머리글 — 아이콘 칩 대신 지면 구분자로 */
+const SectionLabel = ({ text, count }: SectionLabelProps) => (
+  <div className="flex items-center gap-2.5 pt-6 pb-1">
+    <span className="text-[12px] font-bold tracking-[0.08em] text-ink-strong shrink-0">
       {text}
     </span>
+    <span className="text-[11.5px] text-ink-muted tabular-nums shrink-0">{count}</span>
+    <span className="flex-1 h-px" style={{ background: 'var(--genre-line)' }} />
   </div>
 )
 
