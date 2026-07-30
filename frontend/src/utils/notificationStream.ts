@@ -1,6 +1,7 @@
-// 알림 SSE 스트림 싱글턴
+// 실시간 SSE 스트림 싱글턴 (/notifications/stream 하나로 알림 + 기도 반응)
 // 5분 폴링을 대체한다 — 서버가 새 공지/개인 알림을 push하면 react-query
-// 캐시를 invalidate해 목록·뱃지를 즉시 갱신한다.
+// 캐시를 invalidate해 목록·뱃지를 즉시 갱신하고, 기도 반응(prayer_reaction)·
+// 댓글(prayer_reply) 이벤트는 피드·상세 캐시의 카운트만 서버 값으로 덮어쓴다.
 // 연결이 끊기면 지수 백오프로 재연결하고, 그동안 useNotifications의
 // 폴백 폴링(refetchInterval)이 다시 동작한다.
 import type { QueryClient } from '@tanstack/react-query'
@@ -42,6 +43,61 @@ class NotificationStreamManager {
     this.queryClient?.invalidateQueries({ queryKey: ['notifications'] })
   }
 
+  /** 다른 사용자의 기도 반응/댓글 — 캐시된 카운트만 서버 값으로 동기화한다.
+   * is_prayed 같은 사용자별 상태는 건드리지 않고, refetch 없이 setQueryData만
+   * 쓰므로 네트워크 비용도 없다. 관심순 재정렬은 하지 않는다 — 읽는 중인
+   * 피드의 행이 갑자기 자리를 바꾸면 오히려 방해라서 다음 refetch에 맡긴다. */
+  private applyPrayerCount(event: 'prayer_reaction' | 'prayer_reply', payload: string): void {
+    if (!this.queryClient) return
+
+    const field = event === 'prayer_reaction' ? 'prayer_count' : 'reply_count'
+    let prayerId: number
+    let count: number
+    try {
+      const data = JSON.parse(payload)
+      prayerId = data.prayer_id
+      count = data[field]
+    } catch {
+      return
+    }
+    if (typeof prayerId !== 'number' || typeof count !== 'number') return
+
+    // 기도 목록(무한 스크롤) 캐시 — prayerKeys.lists()와 동일한 리터럴 키
+    this.queryClient.setQueriesData(
+      { queryKey: ['prayers', 'list'] },
+      (old: any) => {
+        if (!old?.pages) return old
+        let touched = false
+        const pages = old.pages.map((page: any) => {
+          const items = page?.data?.items
+          if (!items?.some((p: any) => p.id === prayerId && p[field] !== count)) {
+            return page
+          }
+          touched = true
+          return {
+            ...page,
+            data: {
+              ...page.data,
+              items: items.map((p: any) =>
+                p.id === prayerId ? { ...p, [field]: count } : p,
+              ),
+            },
+          }
+        })
+        return touched ? { ...old, pages } : old
+      },
+    )
+
+    // 기도 상세 캐시
+    this.queryClient.setQueriesData(
+      { queryKey: ['prayers', 'detail'] },
+      (old: any) => {
+        if (!old || old.id !== prayerId || old[field] === count) return old
+        return { ...old, [field]: count }
+      },
+    )
+  }
+
   private async loop(gen: number): Promise<void> {
     while (this.running && gen === this.generation) {
       const token = localStorage.getItem('access_token')
@@ -56,7 +112,7 @@ class NotificationStreamManager {
         await streamSSE(
           `${API_V1}/notifications/stream`,
           { signal: this.controller.signal },
-          (event) => {
+          (event, data) => {
             if (event === 'connected') {
               this.connected = true
               this.retryMs = INITIAL_RETRY_MS
@@ -64,6 +120,8 @@ class NotificationStreamManager {
               this.invalidate()
             } else if (event === 'notification' || event === 'refresh') {
               this.invalidate()
+            } else if (event === 'prayer_reaction' || event === 'prayer_reply') {
+              this.applyPrayerCount(event, data)
             }
           },
         )
