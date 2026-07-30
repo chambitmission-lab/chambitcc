@@ -1,0 +1,88 @@
+/* 신앙 여정 진입 카드 — 성장 링 + 최근 2주 발자국 스트립 */
+
+/* 링은 0에서 현재값까지 한 번 차오른다 (숫자 없이도 "진행 중"이 읽히게) */
+/* 164 = 2πr (r=26, GrowthHook의 상수와 맞춰 둔 값) */
+@keyframes gh-ring-draw {
+  from {
+    stroke-dashoffset: 164;
+  }
+}
+
+.gh-ring-fill {
+  animation: gh-ring-draw 0.9s ease-out both;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+/* 오늘 활동을 마쳤을 때만 불꽃이 살아 있게 — 아직이면 차분히 둔다 */
+.gh-flame {
+  display: inline-block;
+  font-size: 12px;
+  opacity: 0.55;
+  filter: grayscale(0.5);
+}
+
+.gh-flame.is-lit {
+  opacity: 1;
+  filter: none;
+  animation: gh-flicker 2.4s ease-in-out infinite;
+}
+
+@keyframes gh-flicker {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  35% {
+    transform: scale(1.14) rotate(-4deg);
+  }
+  70% {
+    transform: scale(1.05) rotate(3deg);
+  }
+}
+
+/* 발자국 한 칸 — 활동량에 따라 3단계로 진해진다 (GitHub 잔디 문법) */
+.gh-cell {
+  flex: 1 1 0;
+  height: 18px;
+  min-width: 0;
+  border-radius: 4px;
+  background: rgba(120, 120, 130, 0.14);
+  animation: gh-cell-in 0.34s ease-out both;
+}
+
+[data-theme='dark'] .gh-cell {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.gh-cell[data-level='1'] {
+  background: color-mix(in srgb, var(--brand) 28%, transparent);
+}
+
+.gh-cell[data-level='2'] {
+  background: color-mix(in srgb, var(--brand) 55%, transparent);
+}
+
+.gh-cell[data-level='3'] {
+  background: var(--brand);
+  box-shadow: 0 2px 8px var(--brand-glow);
+}
+
+/* 오늘 칸은 테두리로 위치를 알려준다 (색은 활동량이 담당) */
+.gh-cell[data-today='true'] {
+  box-shadow: 0 0 0 1.5px var(--brand);
+}
+
+@keyframes gh-cell-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scaleY(0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gh-cell,
+  .gh-ring-fill,
+  .gh-flame.is-lit {
+    animation: none;
+  }
+}

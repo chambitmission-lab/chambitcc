@@ -9,6 +9,7 @@ import type {
 export const growthKeys = {
   summary: ['growth', 'summary'] as const,
   timeline: ['growth', 'timeline'] as const,
+  recent: ['growth', 'recent'] as const,
 }
 
 /**
@@ -24,6 +25,25 @@ export const useGrowthSummary = (enabled = true) => {
   return useQuery<GrowthSummaryResponse>({
     queryKey: growthKeys.summary,
     queryFn: getGrowthSummary,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    refetchOnMount: 'always',
+    enabled,
+    retry: 1,
+  })
+}
+
+/**
+ * 최근 N일 활동만 (프로필의 발자국 스트립·주간 스토리 트레이용).
+ *
+ * /growth 의 무한 타임라인(60일 x 여러 페이지)과 캐시를 분리해 두는 이유:
+ * 프로필은 2주치 날짜별 유무만 필요한데 60일 전체를 매 진입마다 받는 건 과하다.
+ * 두 카드가 같은 days 값으로 부르므로 React Query 가 요청을 하나로 합친다.
+ */
+export const useGrowthRecentDays = (days = 14, enabled = true) => {
+  return useQuery<GrowthTimelineResponse>({
+    queryKey: [...growthKeys.recent, days],
+    queryFn: () => getGrowthTimeline(undefined, days),
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
     refetchOnMount: 'always',

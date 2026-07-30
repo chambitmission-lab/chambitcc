@@ -192,11 +192,6 @@ body {
   scrollbar-width: none;
 }
 
-/* Story Ring Gradient */
-.story-ring-gradient {
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-}
-
 /* ===== 성경 말씀 모달 애니메이션 - 성령의 임재 표현 ===== */
 
 /* 떠다니는 빛 입자 애니메이션 */
