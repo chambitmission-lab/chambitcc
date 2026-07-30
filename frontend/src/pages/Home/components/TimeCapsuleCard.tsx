@@ -46,6 +46,8 @@ const TimeCapsuleCard = () => {
   return (
     <section className="px-4 mt-3">
       <button type="button" onClick={() => navigate('/capsule')} className="tc-card">
+        {/* 밤사막 사진 배경 + 좌측 스크림(텍스트 가독성) */}
+        <span className="tc-card__bg" aria-hidden />
         <span className="tc-card__stars" aria-hidden />
         <span className="tc-card__body">
           <span className="tc-card__label">Time Capsule</span>
@@ -57,14 +59,21 @@ const TimeCapsuleCard = () => {
           {status}
         </span>
 
-        {/* 밤하늘에 떠 있는 봉인 편지 + 뒤에 살짝 보이는 폴라로이드 */}
+        {/* 봉인 편지 — 사진 속 금빛 궤적과 같은 언어(빛으로 그린 선)로 그린다.
+            입체 일러스트는 실사 배경과 재질이 충돌해서 선화로 대체 */}
         <span className="tc-card__visual" aria-hidden>
-          <span className="tc-env">
-            <span className="tc-env__polaroid" />
-            <span className="tc-env__body" />
-            <span className="tc-env__flap" />
-            <span className="tc-env__seal" />
-          </span>
+          <svg className="tc-env" viewBox="0 0 68 50" fill="none">
+            <rect
+              x="1.1"
+              y="1.1"
+              width="65.8"
+              height="47.8"
+              rx="7"
+              className="tc-env__stroke tc-env__panel"
+            />
+            <path d="M3 6.5 L34 30 L65 6.5" className="tc-env__stroke" />
+            <circle cx="34" cy="27.5" r="4.6" className="tc-env__seal" />
+          </svg>
         </span>
       </button>
     </section>
