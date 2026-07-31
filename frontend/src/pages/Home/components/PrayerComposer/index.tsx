@@ -171,14 +171,18 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
   const accent = meta?.hue ?? 'var(--brand)'
 
   // 음성 입력 — 제목·본문 각각. 한쪽을 켜면 다른 쪽은 끈다 (마이크는 하나)
+  // 인식 언어는 앱 언어를 따라간다 — 영어 모드에서 한국어 고정이면 엉뚱한 한글이 찍힌다
+  const voiceLang = ko ? 'ko-KR' : 'en-US'
   const contentVoice = useSpeechRecognition({
     onResult: (transcript: string) => setContent(transcript),
     onError: (msg: string) => showToast(msg, 'error'),
+    language: voiceLang,
     continuous: true,
   })
   const titleVoice = useSpeechRecognition({
     onResult: (transcript: string) => setTitle(transcript.slice(0, TITLE_MAX)),
     onError: (msg: string) => showToast(msg, 'error'),
+    language: voiceLang,
     continuous: true,
   })
 

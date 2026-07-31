@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 
 interface UseSpeechRecognitionProps {
   onResult: (transcript: string, isFinal: boolean) => void
@@ -78,8 +78,10 @@ export const useSpeechRecognition = ({
   const restartTimerRef = useRef<number | null>(null)
   const scheduleRestartRef = useRef<(delay?: number) => void>(() => {})
   
-  // 모바일 감지
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  // 모바일 감지 — 요즘 iPadOS는 UA가 "Macintosh"로 나오므로 터치 지점 수로 보강한다
+  const isMobile =
+    /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+    (/Mac/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
   
   // 간단한 중복 방지
   const lastSentTextRef = useRef<string>('')
@@ -471,6 +473,10 @@ export const useSpeechRecognition = ({
 
   // 전역 조율자가 호출할 수 있도록 이 인스턴스의 stop을 항상 최신으로 유지
   stopSelfRef.current = stopListening
+
+  // unmount 시 정리 — 듣는 중에 화면(모달)이 닫히면 인식 세션이 살아남아
+  // 마이크 사용 표시가 계속 켜져 있게 된다. ref 경유라 stale 클로저 걱정 없음.
+  useEffect(() => () => stopSelfRef.current(), [])
 
   // 토글
   const toggleListening = useCallback(() => {
