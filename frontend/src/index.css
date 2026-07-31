@@ -82,6 +82,9 @@ html {
   overflow-x: hidden;
   width: 100%;
   max-width: 100vw;
+  /* 브라우저 기본 당겨서 새로고침(전체 페이지 리로드) 차단 —
+     커스텀 PTR(components/common/PullToRefresh)로 대체 */
+  overscroll-behavior-y: none;
 }
 
 [data-theme="dark"] html {
@@ -97,6 +100,8 @@ body {
   min-width: 320px;
   height: 100%;
   overflow-x: hidden;
+  /* html과 동일 — 실제 스크롤 컨테이너가 body라서 여기에도 걸어야 확실히 막힌다 */
+  overscroll-behavior-y: none;
   width: 100%;
   max-width: 100vw;
   background-color: var(--ig-secondary-background);

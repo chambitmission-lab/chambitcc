@@ -8,6 +8,7 @@ import NewHeader from './components/layout/NewHeader/NewHeader'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
+import PullToRefresh from './components/common/PullToRefresh'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
 import { menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
 import { healPushSubscription } from './utils/pushNotification'
@@ -254,6 +255,8 @@ function App() {
             </ErrorBoundary>
           </main>
           <NewFooter />
+          {/* 커스텀 당겨서 새로고침 — 전체 리로드 대신 활성 쿼리만 refetch */}
+          <PullToRefresh />
           {/* PWA 설치 버튼 */}
           <PWAInstallButton />
           {/* 성경 칭호 해금 팝업 호스트 — 읽기 후 새 칭호를 축하 */}

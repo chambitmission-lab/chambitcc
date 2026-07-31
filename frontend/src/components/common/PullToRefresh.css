@@ -1,0 +1,85 @@
+/* 토스 스타일 당겨서 새로고침 버블.
+   위치·투명도·스케일은 제스처 중 JS가 인라인으로 매 프레임 갱신하고,
+   여기서는 정지 상태 모양과 phase별(스피너/체크) 애니메이션만 정의한다. */
+
+.ptr-bubble {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  margin-left: -20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-container, #ffffff);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 헤더(z 1000) 아래 — 헤더 밑에서 미끄러져 내려오는 연출 */
+  z-index: 900;
+  opacity: 0;
+  transform: translate3d(0, 8px, 0) scale(0.5);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+[data-theme='dark'] .ptr-bubble {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.ptr-svg {
+  width: 22px;
+  height: 22px;
+  overflow: visible;
+}
+
+.ptr-arc {
+  stroke: var(--brand, #3182f6);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-90deg);
+}
+
+.ptr-check {
+  stroke: var(--brand, #3182f6);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* 경로 길이만큼 dash를 걸어두고 done에서 dashoffset을 풀며 "그려지는" 체크 */
+  stroke-dasharray: 12;
+  stroke-dashoffset: 12;
+}
+
+/* 새로고침 중 — 4분의 3 원호가 회전하는 스피너 */
+.ptr-refreshing .ptr-arc {
+  stroke-dashoffset: 11.8; /* 둘레(약 47.1)의 75%만 남긴 호 */
+  animation: ptr-rotate 0.85s linear infinite;
+}
+
+@keyframes ptr-rotate {
+  from {
+    transform: rotate(-90deg);
+  }
+  to {
+    transform: rotate(270deg);
+  }
+}
+
+/* 완료 — 원이 닫히고 체크가 그려진다 */
+.ptr-done .ptr-arc {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.25s ease;
+}
+
+.ptr-done .ptr-check {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.25s ease 0.1s;
+}
