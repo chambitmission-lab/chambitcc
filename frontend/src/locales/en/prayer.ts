@@ -53,6 +53,27 @@ export const prayer = {
   startAgain: 'Start Again',
   confirmExitTimer: 'Timer is running. Do you want to exit?',
 
+  // One-tap restart with last setup
+  quickStartTitle: 'Start like last time',
+
+  // Exit sheet (partial session)
+  exitSheetTitle: 'Finish praying?',
+  exitSheetElapsed: "You've stayed {minutes} min so far",
+  exitStayMore: 'Stay a little longer',
+  exitSaveAndFinish: 'Save this time & finish',
+  exitWithoutSave: 'Leave without saving',
+
+  // Segment transition chime
+  chimeToggleTitle: 'Segment chime',
+  chimeToggleDesc: 'A gentle bell when the segment changes',
+
+  // Intercession — this week's shared prayers
+  intercessionSharedTitle: "This week's prayers together",
+
+  // Completion — verse card link + week dots
+  makeVerseCard: 'Make a verse card with this',
+  weekdaysShort: 'M,T,W,T,F,S,S',
+
   // In-prayer timer controls
   timerPause: 'Pause',
   timerResume: 'Resume',

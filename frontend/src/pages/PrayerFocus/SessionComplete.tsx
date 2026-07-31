@@ -16,6 +16,9 @@ interface SessionCompleteProps {
   theme: PrayerTheme | null
   mood: MoodPalette
   verseId?: number
+  /** 이 세션에 쓰인 말씀 — "말씀 카드로 간직하기" 연결에 사용 */
+  verseText?: string
+  verseRef?: string
   ambienceId?: string
   onRestart: () => void
   onClose: () => void
@@ -46,6 +49,8 @@ const SessionComplete = ({
   theme,
   mood,
   verseId,
+  verseText,
+  verseRef,
   ambienceId,
   onRestart,
   onClose,
@@ -198,6 +203,7 @@ const SessionComplete = ({
                     String(duration),
                   )}
                 </p>
+                {stats.week_days && <WeekDots weekDays={stats.week_days} mood={mood} labels={t('weekdaysShort')} />}
                 <div className="grid grid-cols-4 gap-2 text-center">
                   <Stat value={stats.streak_days} unit={t('daysUnit')} label={t('streakDaysLabel')} mood={mood} />
                   <Stat value={stats.this_week_minutes} unit={t('minutesUnit')} label={t('thisWeekMinutesLabel')} mood={mood} />
@@ -255,11 +261,24 @@ const SessionComplete = ({
           </div>
         )}
 
-        {/* 격려 말씀 */}
+        {/* 격려 말씀 + 세션 말씀 카드 만들기 */}
         <div className="bg-[rgba(20,20,25,0.6)] backdrop-blur-xl rounded-2xl p-4 border border-white/8">
           <p className="text-white/75 leading-relaxed font-serif italic text-sm">
             "쉬지 말고 기도하라" — 데살로니가전서 5:17
           </p>
+          {verseText && verseRef && (
+            <button
+              onClick={() =>
+                navigate('/bible/photo-verse', {
+                  state: { presetVerse: { text: verseText, refLabel: verseRef } },
+                })
+              }
+              className="mt-3 w-full py-2.5 rounded-xl text-xs font-medium text-white/80 bg-white/8 border border-white/12 hover:bg-white/15 transition-all flex items-center justify-center gap-1.5"
+            >
+              <span className="material-icons-outlined text-sm">photo_camera</span>
+              {t('makeVerseCard')}
+            </button>
+          )}
         </div>
 
         {/* 아멘 / 다시 / 닫기 */}
@@ -293,6 +312,48 @@ const SessionComplete = ({
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// 이번 주(월~일) 기도한 날 도트 — 오늘은 링으로 강조
+const WeekDots = ({ weekDays, mood, labels }: { weekDays: string[]; mood: MoodPalette; labels: string }) => {
+  const toLocalISO = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+  const today = new Date()
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7))
+
+  const prayed = new Set(weekDays)
+  const todayISO = toLocalISO(today)
+  const dayLabels = (labels || '월,화,수,목,금,토,일').split(',')
+
+  return (
+    <div className="flex justify-between mb-5 px-1">
+      {Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(monday)
+        d.setDate(monday.getDate() + i)
+        const iso = toLocalISO(d)
+        const done = prayed.has(iso)
+        const isToday = iso === todayISO
+        return (
+          <div key={i} className="flex flex-col items-center gap-1.5">
+            <div
+              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                done
+                  ? `bg-gradient-to-br ${mood.buttonGradient} shadow-[0_2px_8px_rgba(0,0,0,0.3)]`
+                  : 'bg-white/[0.06] border border-white/10'
+              } ${isToday ? 'ring-2 ring-white/40 ring-offset-2 ring-offset-transparent' : ''}`}
+            >
+              {done && <span className="material-icons-outlined text-[14px] text-white">check</span>}
+            </div>
+            <span className={`text-[10px] ${isToday ? 'text-white/80 font-semibold' : 'text-white/35'}`}>
+              {dayLabels[i] ?? ''}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }

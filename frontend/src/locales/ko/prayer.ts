@@ -53,6 +53,27 @@ export const prayer = {
   startAgain: '다시 시작하기',
   confirmExitTimer: '타이머가 실행 중입니다. 종료하시겠습니까?',
 
+  // 지난 설정 원탭 재시작
+  quickStartTitle: '지난 기도 그대로 시작',
+
+  // 기도 중 이탈 시트 (부분 기록)
+  exitSheetTitle: '기도를 마칠까요?',
+  exitSheetElapsed: '지금까지 {minutes}분 머물렀어요',
+  exitStayMore: '조금 더 머물기',
+  exitSaveAndFinish: '여기까지 기록하고 마치기',
+  exitWithoutSave: '기록 없이 나가기',
+
+  // 구간 전환 차임
+  chimeToggleTitle: '구간 전환 차임',
+  chimeToggleDesc: '구간이 바뀔 때 잔잔한 종소리로 알려드려요',
+
+  // 중보 — 이번 주 공동 기도제목
+  intercessionSharedTitle: '이번 주 함께 드리는 기도',
+
+  // 완료 화면 — 말씀 카드 연결 + 주간 도트
+  makeVerseCard: '이 말씀으로 카드 만들기',
+  weekdaysShort: '월,화,수,목,금,토,일',
+
   // 기도 중 타이머 컨트롤
   timerPause: '잠시 멈춤',
   timerResume: '이어서 기도',

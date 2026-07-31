@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, PointerEvent as ReactPointerEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import VersePickerSheet from './VersePickerSheet'
 import type { PickedVerse } from './VersePickerSheet'
@@ -83,11 +83,17 @@ const FilterStrip = ({
 
 const PhotoVerse = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { language } = useLanguage()
+
+  // 다른 화면(예: 기도 완료)에서 말씀을 미리 실어 보낼 수 있다
+  const presetVerse = (location.state as { presetVerse?: PickedVerse } | null)?.presetVerse
 
   const [photo, setPhoto] = useState<{ url: string; img: HTMLImageElement } | null>(null)
   const [bgId, setBgId] = useState<string | null>(null)
-  const [verse, setVerse] = useState<PickedVerse | null>(null)
+  const [verse, setVerse] = useState<PickedVerse | null>(
+    presetVerse && presetVerse.text && presetVerse.refLabel ? presetVerse : null,
+  )
   const [style, setStyle] = useState<VerseCardStyle>(DEFAULT_CARD_STYLE)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [fontsReady, setFontsReady] = useState(false)

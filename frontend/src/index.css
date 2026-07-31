@@ -233,6 +233,22 @@ body {
   }
 }
 
+/* 진입 의식 호흡 원 — 4초 들숨, 4초 날숨 */
+@keyframes ritual-breath {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.45);
+    opacity: 0.75;
+  }
+}
+
+.animate-ritual-breath {
+  animation: ritual-breath 8s ease-in-out infinite;
+}
+
 /* 반짝이는 효과 */
 @keyframes twinkle {
   0%, 100% {

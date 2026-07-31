@@ -63,12 +63,21 @@ const RitualIntro = ({ mood, themeQuoteKey, themeQuoteRefKey, autoAdvanceMs = 0,
           </p>
         </div>
 
-        {/* 호흡 멘트 */}
+        {/* 호흡 원 + 호흡 멘트 — 4초 들숨 / 4초 날숨 리듬 */}
         <div
-          className={`mt-16 transition-all duration-[1400ms] ease-out ${
+          className={`mt-14 flex flex-col items-center transition-all duration-[1400ms] ease-out ${
             step >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
         >
+          <div className="relative w-24 h-24 mb-8 flex items-center justify-center">
+            {/* 확장·수축하는 링 */}
+            <div
+              className="absolute inset-0 rounded-full border border-white/40 animate-ritual-breath"
+              style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.10) 0%, transparent 70%)' }}
+            />
+            {/* 중심의 작은 고정 점 — 시선 둘 곳 */}
+            <div className="w-2 h-2 rounded-full bg-white/70" />
+          </div>
           <p className="text-white/70 text-base md:text-lg leading-loose">
             {t('ritualBreathe')}
             <br />

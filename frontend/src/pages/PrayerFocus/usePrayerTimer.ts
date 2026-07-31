@@ -6,6 +6,9 @@ interface UsePrayerTimerProps {
   onHalfway?: () => void
 }
 
+// 모바일 브라우저는 백그라운드 탭의 setInterval 을 심하게 스로틀하므로
+// "매 틱 -1초" 방식 대신 종료 시각(deadline)을 기준으로 남은 시간을 재계산한다.
+// 화면 복귀(visibilitychange/focus) 시 즉시 보정되어 잠금·전화·앱 전환에도 시간이 밀리지 않는다.
 export const usePrayerTimer = ({ onComplete, onHalfway }: UsePrayerTimerProps = {}) => {
   const [timeLeft, setTimeLeft] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
@@ -14,10 +17,17 @@ export const usePrayerTimer = ({ onComplete, onHalfway }: UsePrayerTimerProps = 
   const [totalSeconds, setTotalSeconds] = useState(0)
 
   const intervalRef = useRef<number | null>(null)
-  const startTimeRef = useRef<number>(0)
-  const pausedTimeRef = useRef<number>(0)
+  const endAtRef = useRef<number>(0)            // 실행 중 종료 시각 (epoch ms)
+  const pausedRemainingRef = useRef<number>(0)  // 일시정지 시점 남은 ms
   const halfwayFiredRef = useRef<boolean>(false)
+  const completeFiredRef = useRef<boolean>(false)
   const totalRef = useRef<number>(0)
+  const runningRef = useRef<boolean>(false)
+
+  const onCompleteRef = useRef(onComplete)
+  const onHalfwayRef = useRef(onHalfway)
+  onCompleteRef.current = onComplete
+  onHalfwayRef.current = onHalfway
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
@@ -26,88 +36,106 @@ export const usePrayerTimer = ({ onComplete, onHalfway }: UsePrayerTimerProps = 
     }
   }, [])
 
-  const startTimer = useCallback((seconds: number) => {
+  // deadline 기준으로 남은 시간을 다시 계산해 상태에 반영
+  const sync = useCallback(() => {
+    if (!runningRef.current) return
+    const leftMs = endAtRef.current - Date.now()
+    const left = Math.max(0, Math.ceil(leftMs / 1000))
+    setTimeLeft(left)
+
+    if (!halfwayFiredRef.current && totalRef.current > 0 && left <= totalRef.current / 2 && left > 0) {
+      halfwayFiredRef.current = true
+      onHalfwayRef.current?.()
+    }
+
+    if (left <= 0 && !completeFiredRef.current) {
+      completeFiredRef.current = true
+      runningRef.current = false
+      clearTimer()
+      setIsRunning(false)
+      setIsComplete(true)
+      onCompleteRef.current?.()
+    }
+  }, [clearTimer])
+
+  const startTicking = useCallback(() => {
     clearTimer()
+    // 500ms 틱 — 초 표시가 밀리지 않을 만큼만 촘촘하게
+    intervalRef.current = window.setInterval(sync, 500)
+  }, [clearTimer, sync])
+
+  const startTimer = useCallback((seconds: number) => {
     setTimeLeft(seconds)
     setTotalSeconds(seconds)
     setIsRunning(true)
     setIsPaused(false)
     setIsComplete(false)
-    startTimeRef.current = Date.now()
-    pausedTimeRef.current = 0
+    endAtRef.current = Date.now() + seconds * 1000
+    pausedRemainingRef.current = 0
     halfwayFiredRef.current = false
+    completeFiredRef.current = false
     totalRef.current = seconds
-
-    intervalRef.current = window.setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearTimer()
-          setIsRunning(false)
-          setIsComplete(true)
-          onComplete?.()
-          return 0
-        }
-        const next = prev - 1
-        // 중간 지점(50%) 통과 시점에 1회 발사
-        if (!halfwayFiredRef.current && totalRef.current > 0 && next <= totalRef.current / 2) {
-          halfwayFiredRef.current = true
-          onHalfway?.()
-        }
-        return next
-      })
-    }, 1000)
-  }, [clearTimer, onComplete, onHalfway])
+    runningRef.current = true
+    startTicking()
+  }, [startTicking])
 
   const pauseTimer = useCallback(() => {
-    if (isRunning && !isPaused) {
-      clearTimer()
-      setIsPaused(true)
-      pausedTimeRef.current = Date.now()
-    }
-  }, [isRunning, isPaused, clearTimer])
+    if (!runningRef.current) return
+    pausedRemainingRef.current = Math.max(0, endAtRef.current - Date.now())
+    runningRef.current = false
+    clearTimer()
+    setIsPaused(true)
+  }, [clearTimer])
 
   const resumeTimer = useCallback(() => {
-    if (isPaused) {
-      setIsPaused(false)
-
-      intervalRef.current = window.setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearTimer()
-            setIsRunning(false)
-            setIsComplete(true)
-            onComplete?.()
-            return 0
-          }
-          const next = prev - 1
-          if (!halfwayFiredRef.current && totalRef.current > 0 && next <= totalRef.current / 2) {
-            halfwayFiredRef.current = true
-            onHalfway?.()
-          }
-          return next
-        })
-      }, 1000)
-    }
-  }, [isPaused, clearTimer, onComplete, onHalfway])
+    if (completeFiredRef.current) return
+    setIsPaused(false)
+    endAtRef.current = Date.now() + pausedRemainingRef.current
+    runningRef.current = true
+    startTicking()
+  }, [startTicking])
 
   // 기도가 길어질 때 남은 시간을 늘린다 (일시정지 중에도 허용)
   const extendTimer = useCallback((seconds: number) => {
-    if (!isRunning) return
+    if (completeFiredRef.current) return
     totalRef.current += seconds
     setTotalSeconds((prev) => prev + seconds)
-    setTimeLeft((prev) => prev + seconds)
-  }, [isRunning])
+    if (runningRef.current) {
+      endAtRef.current += seconds * 1000
+      sync()
+    } else {
+      pausedRemainingRef.current += seconds * 1000
+      setTimeLeft((prev) => prev + seconds)
+    }
+  }, [sync])
 
   const resetTimer = useCallback(() => {
     clearTimer()
+    runningRef.current = false
     setTimeLeft(0)
     setTotalSeconds(0)
     setIsRunning(false)
     setIsPaused(false)
     setIsComplete(false)
-    startTimeRef.current = 0
-    pausedTimeRef.current = 0
+    endAtRef.current = 0
+    pausedRemainingRef.current = 0
+    halfwayFiredRef.current = false
+    completeFiredRef.current = false
+    totalRef.current = 0
   }, [clearTimer])
+
+  // 백그라운드에서 복귀하면 즉시 보정 (스로틀된 인터벌을 기다리지 않는다)
+  useEffect(() => {
+    const handleVisible = () => {
+      if (document.visibilityState === 'visible') sync()
+    }
+    document.addEventListener('visibilitychange', handleVisible)
+    window.addEventListener('focus', sync)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisible)
+      window.removeEventListener('focus', sync)
+    }
+  }, [sync])
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {

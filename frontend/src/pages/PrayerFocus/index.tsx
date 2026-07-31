@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useDailyVerse } from '../../hooks/useDailyVerse'
@@ -9,17 +9,24 @@ import TimerControls from './TimerControls'
 import SessionComplete from './SessionComplete'
 import RitualIntro from './RitualIntro'
 import MidPrayerVerse from './MidPrayerVerse'
+import ExitSheet from './ExitSheet'
+import SharedIntercession from './SharedIntercession'
 import { PRAYER_TIME_PRESETS } from './presets'
 import { getCurrentMood } from './moodPalette'
-import { PRAYER_THEMES } from './prayerThemes'
+import { PRAYER_THEMES, findTheme } from './prayerThemes'
 import type { PrayerTheme } from './prayerThemes'
-import { AMBIENCE_TRACKS } from './ambienceTracks'
+import { AMBIENCE_TRACKS, findAmbience } from './ambienceTracks'
 import { useAmbience } from './useAmbience'
 import { useWakeLock } from './useWakeLock'
 import { ACTS_SEGMENTS } from './actsSegments'
 import SegmentGuide from './SegmentGuide'
+import { warmupChime, playChime } from './chime'
+import { saveLastSetup, loadLastSetup } from './lastSetup'
 
 type Stage = 'setup' | 'ritual' | 'praying'
+
+// 무접촉 시 화면을 추가로 어둡게 하기까지의 대기 시간
+const DIM_AFTER_MS = 20000
 
 const PrayerFocus = () => {
   const navigate = useNavigate()
@@ -32,6 +39,7 @@ const PrayerFocus = () => {
     : null
 
   const mood = useMemo(() => getCurrentMood(), [])
+  const lastSetup = useMemo(() => loadLastSetup(), [])
 
   const [stage, setStage] = useState<Stage>('setup')
   const [selectedMinutes, setSelectedMinutes] = useState<number | null>(null)
@@ -39,8 +47,13 @@ const PrayerFocus = () => {
   const [ambienceId, setAmbienceId] = useState<string>('silent')
   const [showMidVerse, setShowMidVerse] = useState(false)
   const [guidedMode, setGuidedMode] = useState(false)
+  const [chimeOn, setChimeOn] = useState(true)
   const [soundMuted, setSoundMuted] = useState(false)
   const [guideSegIndex, setGuideSegIndex] = useState<number | null>(null)
+  const [showExitSheet, setShowExitSheet] = useState(false)
+  // 중도 종료로 부분 세션을 기록할 때의 실제 기도 초 (null 이면 정상 진행 중)
+  const [earlyFinishSeconds, setEarlyFinishSeconds] = useState<number | null>(null)
+  const [dimmed, setDimmed] = useState(false)
 
   const ambience = useAmbience(ambienceId)
 
@@ -66,9 +79,41 @@ const PrayerFocus = () => {
   })
 
   // 기도 중 화면이 자동으로 꺼지지 않도록 유지
-  useWakeLock(stage === 'praying' && !isComplete)
+  useWakeLock(stage === 'praying' && !isComplete && earlyFinishSeconds === null)
 
-  // ACTS 구간 안내 — 경과 시간을 4등분해 현재 구간을 계산
+  // ── 무접촉 디밍 — 일정 시간 터치가 없으면 다이얼을 은은하게 낮춘다 ──
+  const dimTimerRef = useRef<number | null>(null)
+  const clearDimTimer = useCallback(() => {
+    if (dimTimerRef.current) {
+      clearTimeout(dimTimerRef.current)
+      dimTimerRef.current = null
+    }
+  }, [])
+  const wake = useCallback(() => {
+    setDimmed(false)
+    clearDimTimer()
+    dimTimerRef.current = window.setTimeout(() => setDimmed(true), DIM_AFTER_MS)
+  }, [clearDimTimer])
+
+  useEffect(() => {
+    const active = stage === 'praying' && isRunning && !isPaused && !isComplete && !showExitSheet
+    if (active) {
+      wake()
+    } else {
+      clearDimTimer()
+      setDimmed(false)
+    }
+    return clearDimTimer
+  }, [stage, isRunning, isPaused, isComplete, showExitSheet, wake, clearDimTimer])
+
+  // 안내/말씀이 떠오르는 순간엔 화면을 깨워 보여준다 (이후 디밍 대기 재시작)
+  useEffect(() => {
+    if (showMidVerse || guideSegIndex !== null) {
+      wake()
+    }
+  }, [showMidVerse, guideSegIndex, wake])
+
+  // ── ACTS 구간 안내 — 경과 시간을 4등분해 현재 구간을 계산 ──
   const actsIndex =
     guidedMode && totalSeconds > 0
       ? Math.min(3, Math.floor(((totalSeconds - timeLeft) / totalSeconds) * 4))
@@ -84,11 +129,24 @@ const PrayerFocus = () => {
       const isFirst = prevActsRef.current === -1
       prevActsRef.current = actsIndex
       setGuideSegIndex(actsIndex)
-      if (!isFirst && 'vibrate' in navigator) {
-        navigator.vibrate(40)
+      if (!isFirst) {
+        if ('vibrate' in navigator) {
+          navigator.vibrate(40)
+        }
+        if (chimeOn) playChime()
       }
     }
-  }, [actsIndex])
+  }, [actsIndex, chimeOn])
+
+  // ── 설정 화면에서 배경음 트랙을 바꾸면 짧게 미리 들려준다 ──
+  const prevAmbienceRef = useRef(ambienceId)
+  useEffect(() => {
+    if (prevAmbienceRef.current === ambienceId) return
+    prevAmbienceRef.current = ambienceId
+    if (stage === 'setup' && ambienceId !== 'silent') {
+      ambience.preview()
+    }
+  }, [ambienceId, stage, ambience])
 
   // 주제별 시작 멘트(없으면 기본 골방 말씀)
   const ritualQuoteKey = selectedTheme?.startQuoteKey
@@ -99,8 +157,26 @@ const PrayerFocus = () => {
     setStage('ritual')
   }
 
+  // "지난 기도 그대로 시작" — 마지막 설정을 복원하고 바로 진입 의식으로
+  const handleQuickStart = () => {
+    if (!lastSetup) return
+    setSelectedTheme(findTheme(lastSetup.themeId))
+    setAmbienceId(lastSetup.ambienceId)
+    setGuidedMode(lastSetup.guidedMode)
+    setSelectedMinutes(lastSetup.minutes)
+    setStage('ritual')
+  }
+
   const handleRitualEnter = () => {
     if (!selectedMinutes) return
+    // 사용자 제스처 시점에 차임용 AudioContext 를 깨워둔다
+    warmupChime()
+    saveLastSetup({
+      minutes: selectedMinutes,
+      themeId: selectedTheme?.id ?? null,
+      ambienceId,
+      guidedMode,
+    })
     setStage('praying')
     setShowMidVerse(false)
     setSoundMuted(false)
@@ -136,28 +212,72 @@ const PrayerFocus = () => {
     setShowMidVerse(false)
     setGuideSegIndex(null)
     setSoundMuted(false)
+    setShowExitSheet(false)
+    setEarlyFinishSeconds(null)
     ambience.stop()
     setStage('setup')
     setSelectedMinutes(null)
     setSelectedTheme(null)
   }
 
+  // ── 이탈 흐름 — 기도 중엔 OS confirm 대신 인앱 시트로 ──
+  const wasPausedBeforeSheetRef = useRef(false)
+
   const handleClose = () => {
-    if (isRunning && !window.confirm(t('confirmExitTimer') || '타이머가 실행 중입니다. 종료하시겠습니까?')) {
+    if (stage === 'praying' && (isRunning || isPaused) && !isComplete) {
+      wasPausedBeforeSheetRef.current = isPaused
+      if (!isPaused) {
+        pauseTimer()
+        ambience.pause()
+      }
+      setShowExitSheet(true)
       return
     }
     ambience.stop()
     navigate(-1)
   }
 
-  // 완료 화면
-  if (isComplete && selectedMinutes) {
+  const handleExitStay = () => {
+    setShowExitSheet(false)
+    if (!wasPausedBeforeSheetRef.current) {
+      resumeTimer()
+      if (!soundMuted) ambience.play()
+    }
+  }
+
+  const handleExitSaveAndFinish = () => {
+    const elapsed = Math.max(60, totalSeconds - timeLeft)
+    setShowExitSheet(false)
+    ambience.stop()
+    // 타이머 상태를 정리해 완료 화면에서 이탈 경고(beforeunload)가 남지 않게 한다
+    resetTimer()
+    setEarlyFinishSeconds(elapsed)
+  }
+
+  const handleExitDiscard = () => {
+    setShowExitSheet(false)
+    ambience.stop()
+    navigate(-1)
+  }
+
+  // 기도 화면/완료 화면에 쓰이는 세션 말씀 (주제 중간 말씀 > 오늘의 말씀)
+  const sessionVerseText = selectedTheme?.midVerseTextKey ? tx(selectedTheme.midVerseTextKey) : verse?.content
+  const sessionVerseRef = selectedTheme?.midVerseRefKey ? tx(selectedTheme.midVerseRefKey) : verse?.reference
+
+  // 완료 화면 (정상 완료 또는 중도 종료 부분 기록)
+  if ((isComplete || earlyFinishSeconds !== null) && selectedMinutes) {
+    const durationMinutes =
+      earlyFinishSeconds !== null
+        ? Math.max(1, Math.round(earlyFinishSeconds / 60))
+        : Math.round(totalSeconds / 60) || selectedMinutes
     return (
       <SessionComplete
-        duration={Math.round(totalSeconds / 60) || selectedMinutes}
+        duration={durationMinutes}
         theme={selectedTheme}
         mood={mood}
         verseId={verse?.id}
+        verseText={sessionVerseText}
+        verseRef={sessionVerseRef}
         ambienceId={ambienceId}
         onRestart={handleReset}
         onClose={() => navigate(-1)}
@@ -180,7 +300,10 @@ const PrayerFocus = () => {
   // 기도 중 화면 — UI 최소화
   if (stage === 'praying' && selectedMinutes) {
     return (
-      <div className={`min-h-screen ${mood.bgBase} text-white relative overflow-hidden`}>
+      <div
+        className={`min-h-screen ${mood.bgBase} text-white relative overflow-hidden`}
+        onPointerDown={wake}
+      >
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] ${mood.glowA} rounded-full blur-[120px] opacity-50`}></div>
         </div>
@@ -188,7 +311,9 @@ const PrayerFocus = () => {
         {/* 닫기 버튼만 최소한으로 */}
         <button
           onClick={handleClose}
-          className="absolute top-10 right-6 z-20 w-10 h-10 rounded-full bg-white/5 backdrop-blur-md border border-white/5 flex items-center justify-center hover:bg-white/15 transition-colors"
+          className={`absolute top-10 right-6 z-20 w-10 h-10 rounded-full bg-white/5 backdrop-blur-md border border-white/5 flex items-center justify-center hover:bg-white/15 transition-all duration-1000 ${
+            dimmed ? 'opacity-25' : 'opacity-100'
+          }`}
           aria-label="close"
         >
           <span className="material-icons-outlined text-lg text-white/60">close</span>
@@ -197,8 +322,8 @@ const PrayerFocus = () => {
         {/* 중간 말씀(절반 시점 fade-in) — 구간 안내 모드에서는 구간 안내가 대신한다 */}
         <MidPrayerVerse
           show={showMidVerse && !guidedMode}
-          verseText={selectedTheme?.midVerseTextKey ? tx(selectedTheme.midVerseTextKey) : verse?.content}
-          verseRef={selectedTheme?.midVerseRefKey ? tx(selectedTheme.midVerseRefKey) : verse?.reference}
+          verseText={sessionVerseText}
+          verseRef={sessionVerseRef}
           onHide={() => setShowMidVerse(false)}
         />
 
@@ -211,8 +336,18 @@ const PrayerFocus = () => {
           />
         )}
 
-        {/* 포모도로 다이얼 — 화면 가운데 */}
-        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
+        {/* 중보 기도 — 이번 주 공동 기도제목을 하단에 잔잔히 순환 표시 */}
+        <SharedIntercession
+          show={selectedTheme?.id === 'intercession' || (guidedMode && actsIndex === 3)}
+          accentText={mood.accentText}
+        />
+
+        {/* 포모도로 다이얼 — 화면 가운데. 무접촉 시 은은하게 디밍 */}
+        <div
+          className={`relative z-10 min-h-screen flex flex-col items-center justify-center px-6 transition-opacity duration-[2000ms] ease-in-out ${
+            dimmed ? 'opacity-30' : 'opacity-100'
+          }`}
+        >
           {/* 상단 칩 — 구간 안내 모드면 현재 구간, 아니면 선택한 테마.
               위쪽 안내/말씀이 떠 있는 동안은 겹치지 않게 잠깐 숨긴다 */}
           {guidedMode && actsIndex >= 0 ? (
@@ -260,6 +395,16 @@ const PrayerFocus = () => {
             />
           </div>
         </div>
+
+        {/* 이탈 확인 시트 — 부분 기록 지원 */}
+        <ExitSheet
+          show={showExitSheet}
+          elapsedSeconds={totalSeconds - timeLeft}
+          mood={mood}
+          onStay={handleExitStay}
+          onSaveAndFinish={handleExitSaveAndFinish}
+          onDiscard={handleExitDiscard}
+        />
       </div>
     )
   }
@@ -306,6 +451,34 @@ const PrayerFocus = () => {
             </p>
           </div>
 
+          {/* 지난 기도 그대로 시작 — 마지막 설정 원탭 재시작 */}
+          {lastSetup && (
+            <button
+              onClick={handleQuickStart}
+              className={`w-full mb-6 rounded-2xl py-4 px-5 flex items-center justify-between border border-white/20 bg-gradient-to-br ${mood.buttonGradient} bg-opacity-40 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-0.5 shadow-lg`}
+            >
+              <div className="flex items-center gap-3 text-left">
+                <span className="material-icons-outlined text-2xl text-white/90">play_circle</span>
+                <div>
+                  <div className="text-sm font-semibold text-white">{t('quickStartTitle')}</div>
+                  <div className="text-[11px] text-white/70 mt-0.5">
+                    {[
+                      `${lastSetup.minutes}${t('minutes')}`,
+                      findTheme(lastSetup.themeId) ? tx(findTheme(lastSetup.themeId)!.labelKey) : null,
+                      lastSetup.ambienceId !== 'silent' && findAmbience(lastSetup.ambienceId)
+                        ? tx(findAmbience(lastSetup.ambienceId)!.labelKey)
+                        : null,
+                      lastSetup.guidedMode ? t('guidedPrayerTitle') : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </div>
+                </div>
+              </div>
+              <span className="material-icons-outlined text-white/70">arrow_forward</span>
+            </button>
+          )}
+
           {/* 기도 주제 선택 */}
           <div className="w-full mb-6">
             <p className="text-white/50 text-xs tracking-widest uppercase mb-3 text-center">
@@ -341,7 +514,7 @@ const PrayerFocus = () => {
               aria-checked={guidedMode}
               className={`w-full rounded-2xl py-3.5 px-4 flex items-center justify-between border transition-all backdrop-blur-md ${
                 guidedMode
-                  ? 'bg-white/[0.09] border-white/25'
+                  ? 'bg-white/[0.09] border-white/25 rounded-b-none'
                   : 'bg-white/[0.04] border-white/10 hover:bg-white/[0.07]'
               }`}
             >
@@ -366,9 +539,40 @@ const PrayerFocus = () => {
                 ></div>
               </div>
             </button>
+
+            {/* 구간 전환 차임 — 안내 모드일 때만 노출되는 하위 옵션 */}
+            {guidedMode && (
+              <button
+                onClick={() => setChimeOn((v) => !v)}
+                role="switch"
+                aria-checked={chimeOn}
+                className="w-full rounded-b-2xl py-3 px-4 flex items-center justify-between border border-t-0 border-white/25 bg-white/[0.05] backdrop-blur-md transition-all"
+              >
+                <div className="flex items-center gap-3 text-left">
+                  <span className={`material-icons-outlined text-lg ${chimeOn ? mood.accentText : 'text-white/45'}`}>
+                    notifications
+                  </span>
+                  <div>
+                    <div className="text-[13px] font-medium text-white/85">{t('chimeToggleTitle')}</div>
+                    <div className="text-[11px] text-white/40 mt-0.5">{t('chimeToggleDesc')}</div>
+                  </div>
+                </div>
+                <div
+                  className={`shrink-0 w-9 h-5 rounded-full p-0.5 transition-colors ${
+                    chimeOn ? `bg-gradient-to-r ${mood.buttonGradient}` : 'bg-white/15'
+                  }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                      chimeOn ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                  ></div>
+                </div>
+              </button>
+            )}
           </div>
 
-          {/* 사운드(ambience) 선택 */}
+          {/* 사운드(ambience) 선택 — 탭하면 짧게 미리 들려준다 */}
           <div className="w-full mb-6">
             <p className="text-white/50 text-xs tracking-widest uppercase mb-3 text-center">
               {t('ambience')}

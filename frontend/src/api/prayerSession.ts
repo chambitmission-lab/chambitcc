@@ -46,6 +46,8 @@ export interface PrayerSessionStats {
   average_duration_minutes: number
   most_used_duration: number | null
   last_session_date: string | null
+  /** 이번 주(월~일, KST) 기도한 날짜 목록 (YYYY-MM-DD) — 구버전 백엔드는 미제공 */
+  week_days?: string[]
 }
 
 const cleanPayload = (data: CreatePrayerSessionRequest): Record<string, unknown> => {
