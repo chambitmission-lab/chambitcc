@@ -61,6 +61,26 @@
   transform: scale(0.97);
 }
 
+/* 인트로 — 사진 없이 시작하는 감성 배경 섹션 */
+.pv-intro__bg {
+  width: 100%;
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px dashed var(--card-border);
+}
+
+.pv-intro__bg-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.pv-intro__bg-body {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 3px 0 12px;
+}
+
 .pv-intro__privacy {
   display: inline-flex;
   align-items: center;
@@ -154,6 +174,119 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* 감성 필터 스트립 — 내 사진에 필터를 입힌 실사 썸네일 */
+.pv-filters {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pv-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.pv-filter {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pv-filter__thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 2px solid var(--card-border);
+  display: block;
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+
+.pv-filter--active .pv-filter__thumb {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+  transform: scale(1.05);
+}
+
+.pv-filter__name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pv-filter--active .pv-filter__name {
+  color: var(--brand);
+}
+
+/* 감성 배경 스와치 — 인트로/에디터 공용 */
+.pv-bg-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pv-bg-row::-webkit-scrollbar {
+  display: none;
+}
+
+.pv-bg-dot {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pv-bg-dot__swatch {
+  width: 44px;
+  height: 56px;
+  border-radius: 12px;
+  border: 2px solid var(--card-border);
+  display: block;
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+
+.pv-bg-dot--active .pv-bg-dot__swatch {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+  transform: scale(1.05);
+}
+
+.pv-bg-dot__name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pv-bg-dot--active .pv-bg-dot__name {
+  color: var(--brand);
+}
+
+.pv-bg-section {
+  padding-top: 4px;
+}
+
+.pv-bg-section__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 8px;
 }
 
 .pv-swatches {
@@ -436,6 +569,54 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* 오늘의 말씀 — 추천 섹션 맨 위의 피처드 카드 */
+.pv-today {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1.5px solid var(--brand);
+  background: var(--brand-soft);
+  cursor: pointer;
+}
+
+.pv-today__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pv-today__text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-strong);
+  font-weight: 500;
+}
+
+.pv-today__ref {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.pv-sheet__section {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin: 18px 0 8px;
 }
 
 .pv-sheet__loading {
