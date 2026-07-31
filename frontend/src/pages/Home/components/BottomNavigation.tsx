@@ -1,6 +1,13 @@
+import { useState } from 'react'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
+
 interface BottomNavigationProps {
   onProfileClick: () => void
   onComposeClick: () => void
+  /** 감사 한 줄 작성 (스피드 다이얼) */
+  onThanksClick: () => void
+  /** 말씀 사진 카드 만들기 (스피드 다이얼) */
+  onVerseCardClick: () => void
   onScrollToTop: () => void
   onFocusModeClick: () => void
   onBibleClick: () => void
@@ -13,9 +20,33 @@ const NavSpinner = () => (
   <span className="w-[22px] h-[22px] rounded-full border-2 border-current border-t-transparent animate-spin" />
 )
 
+// 스피드 다이얼 액션 — 위에서부터 렌더되고, 엄지에 가까운 아래쪽이 주 액션(기도)
+const DIAL_ACTIONS = [
+  {
+    key: 'verse-card',
+    emoji: '💌',
+    label: '말씀 카드 만들기',
+    tint: 'bg-[rgba(234,179,8,0.14)]',
+  },
+  {
+    key: 'thanks',
+    emoji: '🌼',
+    label: '감사 한 줄 남기기',
+    tint: 'bg-[rgba(236,95,143,0.12)]',
+  },
+  {
+    key: 'prayer',
+    emoji: '🙏',
+    label: '기도제목 나누기',
+    tint: 'bg-[var(--brand-soft-strong)]',
+  },
+] as const
+
 const BottomNavigation = ({
   onProfileClick,
   onComposeClick,
+  onThanksClick,
+  onVerseCardClick,
   onScrollToTop,
   onFocusModeClick,
   onBibleClick,
@@ -25,8 +56,71 @@ const BottomNavigation = ({
   const navItemClass =
     'relative z-10 flex items-center justify-center w-12 h-12 rounded-xl text-gray-500 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] active:text-brand active:bg-[var(--brand-soft)] active:scale-90 transition-[color,background-color,transform] duration-150'
 
+  // FAB 스피드 다이얼 — 기도·감사·말씀카드 세 가지 "나눔"의 허브
+  const [dialOpen, setDialOpen] = useState(false)
+  useModalBackButton(() => setDialOpen(false), dialOpen)
+
+  const runAction = (key: (typeof DIAL_ACTIONS)[number]['key']) => {
+    setDialOpen(false)
+    if (key === 'prayer') onComposeClick()
+    else if (key === 'thanks') onThanksClick()
+    else onVerseCardClick()
+  }
+
   return (
     <div className="relative px-3 pb-3 pt-7">
+      {/* 다이얼 열림 — 배경을 살짝 눌러 시선을 모은다 */}
+      {dialOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/45 backdrop-blur-[2px] dial-fade"
+          onClick={() => setDialOpen(false)}
+          aria-hidden
+        />
+      )}
+
+      {/* 스피드 다이얼 액션 — FAB 위로 순서대로 튀어오른다 */}
+      {dialOpen && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-[-14px] -translate-y-full z-30 flex flex-col items-center gap-2.5">
+          {DIAL_ACTIONS.map((action, i) => (
+            <button
+              key={action.key}
+              type="button"
+              onClick={() => runAction(action.key)}
+              className="dial-item flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full bg-white dark:bg-[#26262e] shadow-[0_8px_24px_rgba(0,0,0,0.25)] ring-1 ring-black/[0.05] dark:ring-white/10 active:scale-95 transition-transform"
+              // 아래(기도)부터 위로 순서대로 등장
+              style={{ animationDelay: `${(DIAL_ACTIONS.length - 1 - i) * 45}ms` }}
+            >
+              <span
+                className={`w-9 h-9 rounded-full ${action.tint} flex items-center justify-center text-[17px]`}
+                aria-hidden
+              >
+                {action.emoji}
+              </span>
+              <span className="text-[13.5px] font-bold text-ink-strong whitespace-nowrap">
+                {action.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes dial-pop {
+          from { opacity: 0; transform: translateY(14px) scale(0.9); }
+          to { opacity: 1; transform: none; }
+        }
+        .dial-item {
+          animation: dial-pop 0.22s cubic-bezier(0.2, 0.9, 0.35, 1.2) both;
+        }
+        @keyframes dial-fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .dial-fade { animation: dial-fade-in 0.18s ease both; }
+        @media (prefers-reduced-motion: reduce) {
+          .dial-item, .dial-fade { animation: none; }
+        }
+      `}</style>
       {/* Glass dock — 카드 시스템과 동일한 #1c1c26/80 + 상단 1px 빛줄 + soft purple shadow.
           상단 중앙은 dock-notch 마스크(S-커브 SVG)로 부드럽게 깎아내려 FAB가 안기게 한다 */}
       <nav
@@ -130,16 +224,18 @@ const BottomNavigation = ({
       </nav>
 
       {/* Compose FAB — 노치 위에 떠 있는 원형 + 버튼. 바(mask)와 분리된 형제 요소라 잘리지 않는다.
-          원 중심이 바 상단 모서리에 오도록 배치해 절반은 위로 솟고 절반은 노치에 안긴다 */}
+          원 중심이 바 상단 모서리에 오도록 배치해 절반은 위로 솟고 절반은 노치에 안긴다.
+          탭하면 기도·감사·말씀카드 스피드 다이얼이 열리고 +가 ×로 회전한다 */}
       <button
-        onClick={onComposeClick}
-        aria-label="기도 작성"
-        className="absolute left-1/2 -translate-x-1/2 top-0 z-20 flex items-center justify-center w-14 h-14 rounded-full text-white bg-gradient-to-br from-[#69a8ff] via-[var(--brand)] to-[#3f5efb] shadow-[0_6px_16px_-2px_var(--brand-glow)] ring-1 ring-white/20 dark:ring-white/15 active:scale-90 transition-transform duration-150"
+        onClick={() => setDialOpen((v) => !v)}
+        aria-label={dialOpen ? '나눔 메뉴 닫기' : '나눔 메뉴 열기'}
+        aria-expanded={dialOpen}
+        className="absolute left-1/2 -translate-x-1/2 top-0 z-30 flex items-center justify-center w-14 h-14 rounded-full text-white bg-gradient-to-br from-[#69a8ff] via-[var(--brand)] to-[#3f5efb] shadow-[0_6px_16px_-2px_var(--brand-glow)] ring-1 ring-white/20 dark:ring-white/15 active:scale-90 transition-transform duration-150"
       >
         {/* 위쪽 절반 유리 광택 — 평면 채움이 아니라 살짝 부푼 버튼처럼 보이게 */}
         <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 via-white/5 to-transparent pointer-events-none" />
         <svg
-          className="relative w-7 h-7"
+          className={`relative w-7 h-7 transition-transform duration-200 ${dialOpen ? 'rotate-45' : ''}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

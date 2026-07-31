@@ -11,6 +11,7 @@ import TimeCapsuleCard from './components/TimeCapsuleCard'
 import TodayPlanCard from './components/TodayPlanCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import ThanksTicker from './components/ThanksTicker'
+import GlobalThanksComposer from './components/GlobalThanksComposer'
 import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
 // 오늘의 감사 — 임시 비활성화. 다시 활성화하려면 아래 import와 <ThanksThread /> 주석을 해제하세요.
 // import ThanksThread from './components/ThanksThread'
@@ -101,6 +102,12 @@ const NewHome = () => {
 
   const handleComposerOpen = () => {
     requireAuth(() => setShowComposer(true))
+  }
+
+  // FAB 스피드 다이얼 — 감사 한 줄 작성 (티커와 같은 캐시라 등록 즉시 반영)
+  const [showThanksComposer, setShowThanksComposer] = useState(false)
+  const handleThanksOpen = () => {
+    requireAuth(() => setShowThanksComposer(true))
   }
 
   // 청크가 아직 안 왔으면 다운로드를 기다렸다가 이동한다.
@@ -366,12 +373,19 @@ const NewHome = () => {
           />
         </div>
 
+        {/* FAB 스피드 다이얼 → 감사 한 줄 작성 */}
+        {showThanksComposer && (
+          <GlobalThanksComposer onClose={() => setShowThanksComposer(false)} />
+        )}
+
         {/* Bottom Navigation - Fixed at bottom, centered with max-w-md */}
         <div className="fixed bottom-0 left-0 right-0 z-[100] pointer-events-none">
           <div className="max-w-md mx-auto pointer-events-auto">
             <BottomNavigation
               onProfileClick={handleProfileClick}
               onComposeClick={handleComposerOpen}
+              onThanksClick={handleThanksOpen}
+              onVerseCardClick={() => void goLazy('/bible/photo-verse')}
               onScrollToTop={handleScrollToTop}
               onFocusModeClick={handleFocusModeClick}
               onBibleClick={handleBibleClick}

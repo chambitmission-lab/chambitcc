@@ -23,6 +23,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/account': () => import('../pages/Account/AccountSettings'),
   '/profile': () => import('../pages/Profile/Profile'),
   '/prayer-focus': () => import('../pages/PrayerFocus'),
+  // 홈 FAB 스피드 다이얼의 "말씀 카드 만들기" 목적지
+  '/bible/photo-verse': () => import('../pages/Bible/PhotoVerse/PhotoVerse'),
 }
 
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다
