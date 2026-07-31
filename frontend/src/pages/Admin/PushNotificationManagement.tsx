@@ -174,13 +174,13 @@ export const PushNotificationManagement = () => {
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
           >
             <span className="material-icons-outlined">arrow_back</span>
             <span className="text-sm font-semibold">뒤로</span>
           </button>
           <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">푸시 알림</h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
             ADMIN
           </span>
         </div>
@@ -200,7 +200,7 @@ export const PushNotificationManagement = () => {
                 key={p.key}
                 type="button"
                 onClick={() => applyPreset(p)}
-                className="group text-left rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] hover:border-purple-300 dark:hover:border-purple-400/40 hover:bg-purple-50/40 dark:hover:bg-purple-500/[0.06] transition-all p-3 flex flex-col gap-1"
+                className="group text-left rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] hover:border-brand hover:bg-[var(--brand-soft)] transition-all p-3 flex flex-col gap-1"
               >
                 <div className="flex items-center gap-1.5">
                   <span className="text-[16px]">{p.emoji}</span>
@@ -224,7 +224,7 @@ export const PushNotificationManagement = () => {
             value={title}
             onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
             placeholder="알림 제목"
-            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
           />
 
           <FieldLabel htmlFor="push-body" className="mt-4">
@@ -237,7 +237,7 @@ export const PushNotificationManagement = () => {
             onChange={(e) => setBody(e.target.value.slice(0, BODY_MAX))}
             placeholder="알림 내용"
             rows={4}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors resize-none"
           />
 
           <FieldLabel className="mt-4">이동 위치</FieldLabel>
@@ -253,7 +253,7 @@ export const PushNotificationManagement = () => {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="/news"
-            className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors font-mono"
+            className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
           />
 
           {/* 고급 옵션 */}
@@ -279,7 +279,7 @@ export const PushNotificationManagement = () => {
                   value={tag}
                   onChange={(e) => setTag(e.target.value)}
                   placeholder="notification"
-                  className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors font-mono"
+                  className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
                 />
                 <p className="mt-1 text-[10.5px] text-gray-400 dark:text-white/40">같은 태그의 이전 알림은 새 알림으로 대체됩니다</p>
               </div>
@@ -291,7 +291,7 @@ export const PushNotificationManagement = () => {
                   value={icon}
                   onChange={(e) => setIcon(e.target.value)}
                   placeholder={DEFAULT_ICON}
-                  className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors font-mono"
+                  className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
                 />
               </div>
             </div>
@@ -404,7 +404,7 @@ export const PushNotificationManagement = () => {
               type="button"
               onClick={handleSend}
               disabled={!canSend}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13.5px] font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-[0_0_18px_rgba(168,85,247,0.45)] disabled:opacity-50 disabled:hover:shadow-none transition-all"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13.5px] font-semibold bg-brand hover:bg-brand-dim text-white disabled:opacity-50 transition-all"
             >
               {isSending ? (
                 <>
@@ -456,7 +456,7 @@ const StatChip = ({ label, value, accent }: { label: string; value: number; acce
   <span
     className={
       accent
-        ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-[12px] font-semibold text-purple-700 dark:text-purple-300'
+        ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-[12px] font-semibold text-brand'
         : 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-[12px] font-semibold text-gray-700 dark:text-white/75'
     }
   >
@@ -508,7 +508,7 @@ const NotificationPreview = ({
   return (
     <div className="rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 dark:from-white/[0.06] dark:to-white/[0.02] border border-gray-200/70 dark:border-white/[0.06] p-3">
       <div className="rounded-xl bg-white dark:bg-[#1f1f2a] border border-gray-200/80 dark:border-white/[0.06] shadow-sm p-3 flex items-start gap-3">
-        <div className="shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+        <div className="shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-brand flex items-center justify-center">
           <img
             src={icon}
             alt="icon"

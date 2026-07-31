@@ -123,7 +123,7 @@ const BibleCommentaryManagement = () => {
   const progressPct = count > 0 ? Math.round((done / count) * 100) : 0
 
   const inputCls =
-    'w-full h-11 rounded-xl px-3 bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] text-[14px] text-ink-strong focus:outline-none focus:ring-2 focus:ring-purple-400/40'
+    'w-full h-11 rounded-xl px-3 bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] text-[14px] text-ink-strong focus:outline-none focus:border-brand'
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
@@ -132,7 +132,7 @@ const BibleCommentaryManagement = () => {
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
@@ -249,11 +249,11 @@ const BibleCommentaryManagement = () => {
                 <span className="text-gray-700 dark:text-white/80">
                   진행 {done} / {count}
                 </span>
-                <span className="text-purple-600 dark:text-purple-300">{progressPct}%</span>
+                <span className="text-brand">{progressPct}%</span>
               </div>
               <div className="h-2 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
+                  className="h-full bg-brand transition-all duration-300"
                   style={{ width: `${progressPct}%` }}
                 />
               </div>
@@ -267,7 +267,7 @@ const BibleCommentaryManagement = () => {
                   </span>
                 )}
                 {remaining != null && (
-                  <span className="px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-300 font-semibold">
+                  <span className="px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-brand font-semibold">
                     남은 절 {remaining}
                   </span>
                 )}

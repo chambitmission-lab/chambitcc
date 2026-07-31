@@ -37,11 +37,11 @@ const AudiencePicker = ({ picker }: { picker: AudiencePickerState }) => {
         </FilterChip>
       </FilterRow>
 
-      <div className="mt-3 rounded-xl bg-purple-50/60 dark:bg-purple-500/[0.08] border border-purple-200/60 dark:border-purple-400/20 px-3.5 py-2.5 flex items-center justify-between">
+      <div className="mt-3 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-glow)] px-3.5 py-2.5 flex items-center justify-between">
         <span className="text-[12.5px] text-gray-700 dark:text-white/80">
           발송 대상
         </span>
-        <span className="text-[13px] font-bold text-purple-700 dark:text-purple-300">
+        <span className="text-[13px] font-bold text-brand">
           {audienceLabel}
         </span>
       </div>
@@ -58,7 +58,7 @@ const AudiencePicker = ({ picker }: { picker: AudiencePickerState }) => {
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
               placeholder="아이디 · 이름 검색"
-              className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+              className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
             />
             {userSearch && (
               <button
@@ -88,7 +88,7 @@ const AudiencePicker = ({ picker }: { picker: AudiencePickerState }) => {
             <button
               type="button"
               onClick={toggleSelectAllVisible}
-              className="text-[11.5px] font-semibold text-purple-700 dark:text-purple-300 hover:underline px-2 py-1"
+              className="text-[11.5px] font-semibold text-brand hover:underline px-2 py-1"
             >
               {filteredUsers.every((u) => selectedUserIds.includes(u.id)) && filteredUsers.length > 0
                 ? '보이는 행 해제'
@@ -144,14 +144,14 @@ const UserPickRow = ({
     onClick={onToggle}
     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all border ${
       selected
-        ? 'bg-purple-50 dark:bg-purple-500/10 border-purple-300/60 dark:border-purple-400/30'
-        : 'bg-white/60 dark:bg-white/[0.03] border-gray-200/70 dark:border-white/[0.06] hover:border-purple-200 dark:hover:border-purple-400/20'
+        ? 'bg-[var(--brand-soft)] border-[var(--brand-glow)]'
+        : 'bg-white/60 dark:bg-white/[0.03] border-gray-200/70 dark:border-white/[0.06] hover:border-brand'
     }`}
   >
     <span
       className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
         selected
-          ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+          ? 'bg-brand text-white'
           : 'bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.1]'
       }`}
     >
@@ -159,7 +159,7 @@ const UserPickRow = ({
     </span>
 
     <div className="relative shrink-0">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-[12px] font-bold">
+      <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white text-[12px] font-bold">
         {(user.full_name || user.username).charAt(0).toUpperCase()}
       </div>
       <span
@@ -175,7 +175,7 @@ const UserPickRow = ({
           {user.full_name || user.username}
         </span>
         {user.is_admin && (
-          <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.05em] shrink-0">
+          <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.05em] shrink-0">
             ADMIN
           </span>
         )}

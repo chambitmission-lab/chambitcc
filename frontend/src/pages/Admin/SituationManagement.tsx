@@ -80,10 +80,10 @@ const VersePanel = ({ category, onClose }: { category: SituationCategory; onClos
               { val: vs, set: setVs, ph: '절', w: 'w-16' },
             ].map(({ val, set, ph, w }) => (
               <input key={ph} value={val} onChange={e => set(e.target.value)} placeholder={ph} type="number" min="1"
-                className={`${w} px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors`} />
+                className={`${w} px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors`} />
             ))}
             <button onClick={handleAdd} disabled={addVerse.isPending}
-              className="px-4 py-2 text-sm font-semibold bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors flex-shrink-0">
+              className="px-4 py-2 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors flex-shrink-0">
               추가
             </button>
           </div>
@@ -93,14 +93,14 @@ const VersePanel = ({ category, onClose }: { category: SituationCategory; onClos
         <div className="overflow-y-auto flex-1 divide-y divide-border-light dark:divide-border-dark">
           {isLoading ? (
             <div className="py-12 flex justify-center">
-              <div className="w-6 h-6 border-2 border-gray-200 dark:border-white/20 border-t-purple-500 rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
             </div>
           ) : !data?.verses.length ? (
             <p className="py-12 text-center text-sm text-gray-400 dark:text-white/30">등록된 구절이 없습니다</p>
           ) : data.verses.map(v => (
             <div key={v.id} className="flex items-start gap-3 px-5 py-4">
               <div className="flex-1 min-w-0">
-                <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                <span className="text-xs font-semibold text-brand">
                   {v.book_name_ko} {v.chapter}:{v.verse}
                 </span>
                 <p className="text-sm text-gray-700 dark:text-white/70 mt-0.5 line-clamp-2 leading-relaxed">{v.text}</p>
@@ -146,7 +146,7 @@ const CategoryForm = ({
             <label className="text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block">상황 이름</label>
             <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
               placeholder="예: 두려울 때"
-              className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors" />
+              className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors" />
           </div>
 
           {/* 아이콘 */}
@@ -155,7 +155,7 @@ const CategoryForm = ({
             <div className="flex flex-wrap gap-2">
               {ICON_OPTIONS.map(ic => (
                 <button key={ic} type="button" onClick={() => setForm(f => ({ ...f, icon: ic }))}
-                  className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-colors ${form.icon === ic ? 'border-purple-500 bg-purple-50 dark:bg-purple-500/20' : 'border-gray-200 dark:border-white/[0.08] hover:border-gray-300 dark:hover:border-white/20'}`}>
+                  className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-colors ${form.icon === ic ? 'border-brand bg-[var(--brand-soft-strong)]' : 'border-gray-200 dark:border-white/[0.08] hover:border-gray-300 dark:hover:border-white/20'}`}>
                   <span className="material-icons-round text-[20px] text-gray-700 dark:text-white/70">{ic}</span>
                 </button>
               ))}
@@ -179,10 +179,10 @@ const CategoryForm = ({
             <div>
               <label className="text-[11px] font-semibold text-gray-400 dark:text-white/40 uppercase tracking-wider mb-1.5 block">순서</label>
               <input type="number" value={form.order} onChange={e => setForm(f => ({ ...f, order: +e.target.value }))}
-                className="w-20 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong focus:outline-none focus:border-purple-400 transition-colors" />
+                className="w-20 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong focus:outline-none focus:border-brand transition-colors" />
             </div>
             <label className="flex items-center gap-2 cursor-pointer mt-5">
-              <div className={`w-10 h-6 rounded-full transition-colors ${form.is_active ? 'bg-purple-500' : 'bg-gray-200 dark:bg-white/10'}`}
+              <div className={`w-10 h-6 rounded-full transition-colors ${form.is_active ? 'bg-brand' : 'bg-gray-200 dark:bg-white/10'}`}
                 onClick={() => setForm(f => ({ ...f, is_active: !f.is_active }))}>
                 <div className={`w-5 h-5 bg-white rounded-full shadow m-0.5 transition-transform ${form.is_active ? 'translate-x-4' : 'translate-x-0'}`} />
               </div>
@@ -204,7 +204,7 @@ const CategoryForm = ({
 
         <div className="px-5 py-4 border-t border-border-light dark:border-border-dark flex gap-2 flex-shrink-0">
           <button onClick={() => onSave(form)} disabled={isPending}
-            className="flex-1 py-2.5 text-sm font-semibold bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors">
+            className="flex-1 py-2.5 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors">
             {isPending ? '저장 중...' : '저장'}
           </button>
           <button onClick={onCancel} className="px-5 py-2.5 text-sm text-gray-600 dark:text-white/60 border border-gray-200 dark:border-white/[0.08] rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors">
@@ -270,14 +270,14 @@ const SituationManagement = () => {
         {/* 스티키 헤더 */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors">
+            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
             </svg>
             <span className="text-sm font-semibold">뒤로</span>
           </button>
           <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">상황별 성구 관리</h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
             ADMIN
           </span>
         </div>
@@ -285,7 +285,7 @@ const SituationManagement = () => {
         {/* 통계 + 씨드 버튼 */}
         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
           <div className="flex gap-2">
-            <span className="text-[13px] px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 font-semibold border border-purple-200/50 dark:border-purple-500/20">
+            <span className="text-[13px] px-3 py-1 rounded-full bg-[var(--brand-soft-strong)] text-brand font-semibold border border-[var(--brand-glow)]">
               전체 {categories.length}
             </span>
             <span className="text-[13px] px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-500 dark:text-white/50 font-medium border border-gray-200/50 dark:border-white/[0.06]">
@@ -301,14 +301,14 @@ const SituationManagement = () => {
         {/* 카테고리 목록 */}
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-purple-500 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
           </div>
         ) : categories.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-6">
             <span className="material-icons-outlined text-[48px] text-gray-200 dark:text-white/20 mb-3">sentiment_satisfied_alt</span>
             <p className="text-sm text-gray-400 dark:text-white/30 mb-4">아직 카테고리가 없습니다</p>
             <button onClick={handleSeed} disabled={seed.isPending}
-              className="px-4 py-2 text-sm font-semibold bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors">
+              className="px-4 py-2 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors">
               초기 씨드 삽입하기
             </button>
           </div>
@@ -341,7 +341,7 @@ const SituationManagement = () => {
                 {/* 액션 버튼 */}
                 <div className="relative z-10 flex gap-1">
                   <button onClick={() => setVerseTarget(cat)}
-                    className="px-2.5 py-1 text-[12px] font-medium text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/10 rounded-lg transition-colors">
+                    className="px-2.5 py-1 text-[12px] font-medium text-brand hover:bg-[var(--brand-soft)] rounded-lg transition-colors">
                     구절
                   </button>
                   <button onClick={() => { setFormTarget(cat); setShowForm(true) }}
@@ -362,7 +362,7 @@ const SituationManagement = () => {
       {/* FAB — 카테고리 추가 */}
       <button
         onClick={() => { setFormTarget(null); setShowForm(true) }}
-        className="fixed bottom-6 right-1/2 translate-x-[calc(50%+min(calc(100vw/2),24rem)-4.5rem)] z-30 flex items-center gap-2 px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-2xl shadow-[0_4px_20px_rgba(147,51,234,0.45)] transition-colors"
+        className="fixed bottom-6 right-1/2 translate-x-[calc(50%+min(calc(100vw/2),24rem)-4.5rem)] z-30 flex items-center gap-2 px-5 py-3 bg-brand hover:bg-brand-dim text-white text-sm font-bold rounded-2xl shadow-[0_4px_20px_var(--brand-glow)] transition-colors"
       >
         <span className="material-icons-round text-[18px]">add</span>
         카테고리 추가

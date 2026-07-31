@@ -46,7 +46,7 @@ const renderTextWithWords = (text: string, words?: string[]): React.ReactNode =>
     parts.push(
       <span
         key={i}
-        className="font-bold text-purple-600 dark:text-purple-300 underline decoration-2 underline-offset-2"
+        className="font-bold text-brand underline decoration-2 underline-offset-2"
       >
         {text.slice(start, end)}
       </span>
@@ -100,13 +100,13 @@ const BibleEngagementManagement = () => {
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
           >
             <span className="material-icons-outlined">arrow_back</span>
             <span className="text-sm font-semibold">뒤로</span>
           </button>
           <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">말씀 반응 통계</h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
             ADMIN
           </span>
         </div>
@@ -129,7 +129,7 @@ const BibleEngagementManagement = () => {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
-            <div className="w-8 h-8 border-[3px] border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
+            <div className="w-8 h-8 border-[3px] border-[var(--brand-glow)] border-t-brand rounded-full animate-spin" />
             <p className="text-[13px] text-gray-500 dark:text-white/50">집계 중...</p>
           </div>
         ) : !data ? (
@@ -169,12 +169,12 @@ const BibleEngagementManagement = () => {
                       <button
                         type="button"
                         onClick={() => navigate(`/bible/${item.book_number}/${item.chapter}`)}
-                        className="w-full text-left flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] hover:border-purple-300/60 dark:hover:border-purple-400/30 transition-colors"
+                        className="w-full text-left flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] hover:border-brand transition-colors"
                       >
                         <span
                           className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold mt-0.5 ${
                             index < 3
-                              ? 'bg-purple-500/15 dark:bg-purple-500/25 text-purple-700 dark:text-purple-300'
+                              ? 'bg-[var(--brand-soft-strong)] text-brand'
                               : 'bg-gray-200/70 dark:bg-white/[0.06] text-gray-500 dark:text-white/45'
                           }`}
                         >
@@ -188,7 +188,7 @@ const BibleEngagementManagement = () => {
                             {renderTextWithWords(item.text, item.words)}
                           </span>
                         </span>
-                        <span className="shrink-0 text-[11.5px] font-semibold text-purple-700 dark:text-purple-300 mt-0.5">
+                        <span className="shrink-0 text-[11.5px] font-semibold text-brand mt-0.5">
                           {item.count !== item.users ? `${item.count}건 · ${item.users}명` : `${item.users}명`}
                         </span>
                       </button>
@@ -211,7 +211,7 @@ const BibleEngagementManagement = () => {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] font-semibold bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-gray-800 dark:text-white/80"
                     >
                       {w.word}
-                      <span className="text-[11px] font-bold text-purple-600 dark:text-purple-300">{w.count}</span>
+                      <span className="text-[11px] font-bold text-brand">{w.count}</span>
                     </span>
                   ))}
                 </div>
@@ -231,7 +231,7 @@ const BibleEngagementManagement = () => {
                       </span>
                       <div className="flex-1 h-[10px] rounded-full bg-gray-100 dark:bg-white/[0.05] overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+                          className="h-full rounded-full bg-brand transition-all duration-500"
                           style={{ width: `${Math.max(6, (book.count / maxBookCount) * 100)}%` }}
                         />
                       </div>
@@ -270,7 +270,7 @@ const SummaryCard = ({
         {data.total.toLocaleString()}
         <span className="text-[12px] font-semibold text-gray-400 dark:text-white/40 ml-0.5">건</span>
       </p>
-      <p className="text-[11px] font-medium text-purple-600 dark:text-purple-300">
+      <p className="text-[11px] font-medium text-brand">
         {data.users.toLocaleString()}명 참여
       </p>
     </div>

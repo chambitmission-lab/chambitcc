@@ -9,9 +9,10 @@ interface BulletinComposerProps {
   onSuccess: () => void
 }
 
-/* DatePicker 트리거 — 이 폼의 다른 입력과 같은 테두리·높이·글자 크기로 맞춘다 */
+/* DatePicker 트리거 — 이 폼의 다른 입력과 같은 테두리·높이·글자 크기로 맞춘다.
+   brand는 CSS 변수 색이라 border-brand/60 같은 투명도 수식자를 쓸 수 없다 */
 const datePickerTriggerClass =
-  'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-left text-ink-strong hover:border-purple-400 dark:hover:border-purple-400/60 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
+  'w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-left text-ink-strong hover:border-brand focus:outline-none focus:border-brand transition-colors'
 
 const pad = (n: number) => n.toString().padStart(2, '0')
 const toDateInput = (d: Date) =>
@@ -129,19 +130,19 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18)] flex flex-col"
+        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-0 pointer-events-none">
           <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent" />
         </div>
-        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/15 to-pink-400/10 dark:from-purple-500/15 dark:to-pink-500/8 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-pink-400/10 to-purple-400/10 dark:from-pink-500/10 dark:to-purple-500/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 left-0 w-32 h-32 bg-[var(--brand-soft)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
-            <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
+            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
               ADMIN
             </p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
@@ -151,7 +152,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-purple-500 dark:hover:text-purple-300 transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
             aria-label="닫기"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -173,7 +174,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                 placeholder="예) 2026년 5월 셋째 주 주보"
                 maxLength={120}
                 required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
               />
             </FieldGroup>
 
@@ -205,7 +206,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                 placeholder="이번 주 주보의 핵심 메시지나 안내사항을 적어주세요."
                 rows={3}
                 maxLength={400}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors resize-none leading-[1.6]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.6]"
               />
               <p className="text-[11px] font-semibold text-gray-400 dark:text-white/40 mt-1 text-right tabular-nums">
                 {description.length}/400
@@ -220,7 +221,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
 
               {/* 드롭존 */}
               <label
-                className="relative block rounded-2xl border-2 border-dashed border-purple-300/50 dark:border-purple-400/30 bg-purple-500/5 dark:bg-purple-500/8 hover:bg-purple-500/10 dark:hover:bg-purple-500/15 transition-colors cursor-pointer p-5 text-center"
+                className="relative block rounded-2xl border-2 border-dashed border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] transition-colors cursor-pointer p-5 text-center"
               >
                 <input
                   ref={fileInputRef}
@@ -231,8 +232,8 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                   className="hidden"
                   disabled={submitting}
                 />
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-2">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500 dark:text-purple-300">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--brand-soft-strong)] mb-2">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                     <polyline points="17 8 12 3 7 8" />
                     <line x1="12" y1="3" x2="12" y2="15" />
@@ -253,7 +254,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                     <span className="text-[12px] font-bold text-gray-700 dark:text-white/80">
                       등록된 페이지
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2 h-5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 text-[10.5px] font-bold">
+                    <span className="inline-flex items-center gap-1 px-2 h-5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand text-[10.5px] font-bold">
                       {files.length}장
                     </span>
                   </div>
@@ -295,7 +296,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {submitting ? (
                 <>
@@ -335,7 +336,7 @@ const FieldGroup = ({
       <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
         {label}
       </p>
-      {required && <span className="text-pink-500 text-[12px] font-bold">*</span>}
+      {required && <span className="text-brand text-[12px] font-bold">*</span>}
     </div>
     {children}
   </div>
@@ -356,8 +357,8 @@ const QuickChip = ({
     className={[
       'inline-flex items-center px-3 h-8 rounded-full text-[11.5px] font-bold border transition-colors',
       active
-        ? 'bg-purple-500/15 dark:bg-purple-500/20 border-purple-500/30 text-purple-700 dark:text-purple-300'
-        : 'bg-purple-500/5 dark:bg-purple-500/10 border-purple-500/15 dark:border-purple-500/20 text-purple-600 dark:text-purple-300/80 hover:bg-purple-500/12 dark:hover:bg-purple-500/18',
+        ? 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
+        : 'bg-transparent border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/60 hover:bg-[var(--brand-soft)] hover:text-brand',
     ].join(' ')}
   >
     {children}
@@ -390,7 +391,7 @@ const PagePreviewItem = ({
     <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black/65 to-transparent pointer-events-none" />
 
     {/* 페이지 번호 */}
-    <span className="absolute bottom-1.5 left-1.5 inline-flex items-center px-2 h-5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10.5px] font-bold tracking-wide">
+    <span className="absolute bottom-1.5 left-1.5 inline-flex items-center px-2 h-5 rounded-full bg-brand text-white text-[10.5px] font-bold tracking-wide">
       P.{index + 1}
     </span>
 
@@ -413,7 +414,7 @@ const PagePreviewItem = ({
         type="button"
         onClick={onMoveLeft}
         disabled={!canMoveLeft}
-        className="w-6 h-6 rounded-full bg-black/55 hover:bg-purple-500/80 text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-black/55"
+        className="w-6 h-6 rounded-full bg-black/55 hover:bg-brand text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-black/55"
         aria-label="앞으로"
       >
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
@@ -424,7 +425,7 @@ const PagePreviewItem = ({
         type="button"
         onClick={onMoveRight}
         disabled={!canMoveRight}
-        className="w-6 h-6 rounded-full bg-black/55 hover:bg-purple-500/80 text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-black/55"
+        className="w-6 h-6 rounded-full bg-black/55 hover:bg-brand text-white flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-black/55"
         aria-label="뒤로"
       >
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">

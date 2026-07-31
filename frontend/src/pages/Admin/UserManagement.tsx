@@ -194,13 +194,13 @@ const UserManagement = () => {
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
           >
             <span className="material-icons-outlined">arrow_back</span>
             <span className="text-sm font-semibold">뒤로</span>
           </button>
           <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">회원 관리</h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
             ADMIN
           </span>
         </div>
@@ -239,7 +239,7 @@ const UserManagement = () => {
                 aria-label="가입 승인제"
                 className={`relative shrink-0 w-[52px] h-[30px] rounded-full transition-all duration-200 disabled:opacity-50 ${
                   requireApproval
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_0_16px_rgba(168,85,247,0.40)]'
+                    ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]'
                     : 'bg-gray-300 dark:bg-white/[0.12]'
                 }`}
               >
@@ -278,7 +278,7 @@ const UserManagement = () => {
                   placeholder="아이디 · 이름 검색"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
                 />
                 {searchTerm && (
                   <button
@@ -322,7 +322,7 @@ const UserManagement = () => {
             검색 결과 <span className="font-bold text-ink-strong">{filteredAndSorted.length}</span>명
           </span>
           {searchTerm && (
-            <span className="text-purple-600 dark:text-purple-300 truncate">"{searchTerm}"</span>
+            <span className="text-brand truncate">"{searchTerm}"</span>
           )}
         </div>
 
@@ -363,7 +363,7 @@ interface StatChipProps {
   label: string
   value: number
   accent?: boolean
-  /** 처리 대기 중인 항목 — 앰버로 눈에 띄게 (브랜드 purple과 역할 구분) */
+  /** 처리 대기 중인 항목 — 앰버로 눈에 띄게 (브랜드 블루와 역할 구분) */
   warn?: boolean
 }
 const StatChip = ({ label, value, accent, warn }: StatChipProps) => {
@@ -371,7 +371,7 @@ const StatChip = ({ label, value, accent, warn }: StatChipProps) => {
   const tone = warn
     ? 'bg-amber-500/15 dark:bg-amber-500/20 border-amber-500/30 text-amber-700 dark:text-amber-300'
     : accent
-      ? 'bg-purple-500/15 dark:bg-purple-500/20 border-purple-500/30 text-purple-700 dark:text-purple-300'
+      ? 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
       : 'bg-gray-100 dark:bg-white/[0.05] border-gray-200 dark:border-white/[0.06] text-gray-700 dark:text-white/75'
   return (
     <span className={base + tone}>
@@ -433,7 +433,7 @@ const UserRow = ({
       aria-expanded={expanded}
     >
       <div className="relative shrink-0">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-[15px] font-bold">
+        <div className="w-10 h-10 rounded-full bg-brand flex items-center justify-center text-white text-[15px] font-bold">
           {(user.full_name || user.username).charAt(0).toUpperCase()}
         </div>
         <span
@@ -464,7 +464,7 @@ const UserRow = ({
             {user.full_name || user.username}
           </span>
           {user.is_admin && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.05em] shrink-0">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.05em] shrink-0">
               ADMIN
             </span>
           )}
@@ -575,8 +575,7 @@ const RowAction = ({ onClick, accent, destructive, icon, label }: RowActionProps
   let cls =
     'flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold transition-all '
   if (accent) {
-    cls +=
-      'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-[0_0_16px_rgba(168,85,247,0.40)]'
+    cls += 'bg-brand hover:bg-brand-dim text-white'
   } else if (destructive) {
     cls +=
       'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-400/30 hover:bg-red-100 dark:hover:bg-red-500/15'

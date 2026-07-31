@@ -110,7 +110,7 @@ const NotificationManagement = () => {
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
@@ -120,7 +120,7 @@ const NotificationManagement = () => {
           <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">
             공지사항 관리
           </h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
             ADMIN
           </span>
         </div>
@@ -151,7 +151,7 @@ const NotificationManagement = () => {
                   placeholder="제목 · 내용 검색"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
                 />
                 {searchTerm && (
                   <button
@@ -205,7 +205,7 @@ const NotificationManagement = () => {
             검색 결과 <span className="font-bold text-ink-strong">{filtered.length}</span>건
           </span>
           {searchTerm && (
-            <span className="text-purple-600 dark:text-purple-300 truncate">"{searchTerm}"</span>
+            <span className="text-brand truncate">"{searchTerm}"</span>
           )}
         </div>
 
@@ -247,7 +247,7 @@ const NotificationManagement = () => {
         <button
           type="button"
           onClick={handleCreate}
-          className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_rgba(168,85,247,0.65)] hover:shadow-[0_14px_36px_-4px_rgba(236,72,153,0.7)] hover:-translate-y-0.5 transition-all"
+          className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -296,7 +296,8 @@ const NotificationRow = ({
 }: NotificationRowProps) => {
   const active = notification.is_active
   const dateLabel = formatDate(notification.created_at)
-  const barGradient = active ? 'from-purple-500 to-pink-500' : 'from-gray-400 to-gray-500 dark:from-white/20 dark:to-white/10'
+  // 활성 공지만 브랜드 솔리드, 비활성은 중립 회색
+  const barTone = active ? 'bg-brand' : 'bg-gray-300 dark:bg-white/10'
 
   return (
     <div
@@ -304,7 +305,7 @@ const NotificationRow = ({
         'relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border transition-all duration-200',
         'shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]',
         expanded
-          ? 'border-purple-300/50 dark:border-purple-400/30'
+          ? 'border-[var(--brand-glow)]'
           : 'border-gray-200/70 dark:border-white/[0.08]',
         !active && !expanded && 'opacity-70',
       ]
@@ -312,7 +313,7 @@ const NotificationRow = ({
         .join(' ')}
     >
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-      <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${barGradient}`} />
+      <div className={`absolute left-0 top-0 bottom-0 w-1 ${barTone}`} />
 
       <button
         type="button"
@@ -323,7 +324,7 @@ const NotificationRow = ({
         <div
           className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-[18px] ${
             active
-              ? 'bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_4px_12px_-4px_rgba(168,85,247,0.5)]'
+              ? 'bg-brand shadow-[0_4px_12px_-4px_var(--brand-glow)]'
               : 'bg-gray-200 dark:bg-white/[0.06] text-gray-500 dark:text-white/45'
           }`}
         >
@@ -405,8 +406,7 @@ const StatChip = ({
   let tone =
     'bg-gray-100 dark:bg-white/[0.05] border-gray-200 dark:border-white/[0.06] text-gray-700 dark:text-white/75'
   if (accent)
-    tone =
-      'bg-purple-500/15 dark:bg-purple-500/20 border-purple-500/30 text-purple-700 dark:text-purple-300'
+    tone = 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
   else if (muted)
     tone =
       'bg-gray-50 dark:bg-white/[0.03] border-gray-200/70 dark:border-white/[0.05] text-gray-500 dark:text-white/55'
@@ -471,8 +471,7 @@ const RowAction = ({
   let cls =
     'flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold transition-all '
   if (accent) {
-    cls +=
-      'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-[0_0_16px_rgba(168,85,247,0.40)]'
+    cls += 'bg-brand hover:bg-brand-dim text-white'
   } else if (destructive) {
     cls +=
       'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-400/30 hover:bg-red-100 dark:hover:bg-red-500/15'

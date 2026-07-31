@@ -38,7 +38,7 @@ export const FilterChip = ({
     onClick={onClick}
     className={`text-[12px] font-medium px-3 py-1 rounded-full transition-all duration-150 ${
       active
-        ? 'bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300'
+        ? 'bg-[var(--brand-soft-strong)] text-brand'
         : 'text-gray-500 dark:text-white/45 hover:text-gray-700 dark:hover:text-white/70 hover:bg-gray-100/70 dark:hover:bg-white/[0.04]'
     }`}
   >

@@ -15,11 +15,14 @@ interface Props {
 
 const CATEGORIES = ['습관', '복음서', '개관', '통독', '주제']
 const LEVELS = ['입문', '초급', '중급', '고급']
+/* 스와치 색은 planVisuals.ts의 ACCENT_GRADIENT와 같은 값이어야 한다 —
+   키(purple/pink/…)는 DB에 저장된 옛 이름이라 그대로 두고 색만 블루 패밀리로 맞춘다.
+   (전에는 스와치만 보라라서 고른 색과 실제 플랜 카드 색이 달랐다) */
 const ACCENTS: { key: string; from: string; to: string }[] = [
-  { key: 'purple', from: '#a855f7', to: '#ec4899' },
-  { key: 'pink', from: '#ec4899', to: '#f43f5e' },
-  { key: 'fuchsia', from: '#d946ef', to: '#a855f7' },
-  { key: 'rose', from: '#f43f5e', to: '#ec4899' },
+  { key: 'purple', from: '#3b82f6', to: '#2563eb' },   // blue-500 → blue-600
+  { key: 'pink', from: '#38bdf8', to: '#3b82f6' },     // sky-400 → blue-500
+  { key: 'fuchsia', from: '#818cf8', to: '#2563eb' },  // indigo-400 → blue-600
+  { key: 'rose', from: '#22d3ee', to: '#0ea5e9' },     // cyan-400 → sky-500
 ]
 
 const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i)
@@ -167,18 +170,18 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_rgba(168,85,247,0.18)] flex flex-col"
+        className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="hidden dark:block absolute inset-0 pointer-events-none">
           <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/[0.05] to-transparent" />
         </div>
-        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-500/15 to-pink-500/8 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
 
         {/* 헤더 */}
         <div className="relative z-10 flex items-center justify-between px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div>
-            <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
+            <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
               ADMIN
             </p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
@@ -188,7 +191,7 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-purple-500 dark:hover:text-purple-300 transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
             aria-label="닫기"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -299,7 +302,7 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
                       onClick={() => setForm({ ...form, accent: a.key })}
                       aria-label={a.key}
                       className={`w-8 h-8 rounded-full transition-all ${
-                        form.accent === a.key ? 'ring-2 ring-offset-2 ring-purple-400 dark:ring-offset-[#1c1c26]' : ''
+                        form.accent === a.key ? 'ring-2 ring-offset-2 ring-brand dark:ring-offset-[#1c1c26]' : ''
                       }`}
                       style={{ backgroundImage: `linear-gradient(135deg, ${a.from}, ${a.to})` }}
                     />
@@ -309,7 +312,7 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
             </div>
 
             {/* 일정 자동 생성 */}
-            <div className="rounded-2xl border border-purple-200/50 dark:border-purple-400/20 bg-purple-50/50 dark:bg-purple-500/[0.05] p-4">
+            <div className="rounded-2xl border border-[var(--brand-glow)] bg-[var(--brand-soft)] p-4">
               <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 mb-2">
                 일정 자동 생성 <span className="font-normal text-gray-400 dark:text-white/40">(균등 분배)</span>
               </p>
@@ -335,13 +338,13 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
                   max={400}
                   value={totalDays}
                   onChange={(e) => setTotalDays(Number(e.target.value))}
-                  className="w-20 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-purple-400"
+                  className="w-20 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-brand"
                 />
                 <button
                   type="button"
                   onClick={handleGenerate}
                   disabled={generating || presetIdx === null}
-                  className="ml-auto px-3.5 py-1.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[12.5px] font-bold disabled:opacity-40"
+                  className="ml-auto px-3.5 py-1.5 rounded-full bg-brand hover:bg-brand-dim text-white text-[12.5px] font-bold disabled:opacity-40"
                 >
                   {generating ? '생성 중…' : '일정 만들기'}
                 </button>
@@ -366,7 +369,7 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
                 aria-checked={form.is_published}
                 onClick={() => setForm({ ...form, is_published: !form.is_published })}
                 className={`relative shrink-0 w-12 h-7 rounded-full transition-colors ${
-                  form.is_published ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-gray-300 dark:bg-white/[0.1]'
+                  form.is_published ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]' : 'bg-gray-300 dark:bg-white/[0.1]'
                 }`}
               >
                 <span
@@ -396,7 +399,7 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_rgba(168,85,247,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(168,85,247,0.7)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+              className="ml-auto inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {submitting ? '저장 중...' : editingPlan ? '수정 저장' : '등록하기'}
             </button>
@@ -408,13 +411,13 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
 }
 
 const inputCls =
-  'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors'
+  'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
 const FieldGroup = ({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) => (
   <div>
     <div className="flex items-center gap-1 mb-2">
       <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">{label}</p>
-      {required && <span className="text-pink-500 text-[12px] font-bold">*</span>}
+      {required && <span className="text-brand text-[12px] font-bold">*</span>}
     </div>
     {children}
   </div>
@@ -427,7 +430,7 @@ const Pill = ({ active, onClick, children }: { active: boolean; onClick: () => v
     className={[
       'inline-flex items-center px-3.5 h-9 rounded-full text-[12.5px] font-bold transition-all',
       active
-        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_4px_14px_-4px_rgba(168,85,247,0.55)]'
+        ? 'bg-brand text-white shadow-[0_4px_14px_-4px_var(--brand-glow)]'
         : 'bg-gray-50 dark:bg-white/[0.03] text-gray-700 dark:text-white/70 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06]',
     ].join(' ')}
   >

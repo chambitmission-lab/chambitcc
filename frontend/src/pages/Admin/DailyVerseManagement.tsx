@@ -155,7 +155,7 @@ const DailyVerseManagement = () => {
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
@@ -165,7 +165,7 @@ const DailyVerseManagement = () => {
           <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">
             오늘의 말씀
           </h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-purple-700 dark:text-purple-300 tracking-[0.08em]">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
             ADMIN
           </span>
         </div>
@@ -196,7 +196,7 @@ const DailyVerseManagement = () => {
                   placeholder="성경 구절 · 말씀 본문 검색"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-purple-400 dark:focus:border-purple-400/60 transition-colors"
+                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
                 />
                 {searchTerm && (
                   <button
@@ -252,7 +252,7 @@ const DailyVerseManagement = () => {
             검색 결과 <span className="font-bold text-ink-strong">{filtered.length}</span>건
           </span>
           {searchTerm && (
-            <span className="text-purple-600 dark:text-purple-300 truncate">"{searchTerm}"</span>
+            <span className="text-brand truncate">"{searchTerm}"</span>
           )}
         </div>
 
@@ -294,7 +294,7 @@ const DailyVerseManagement = () => {
         <button
           type="button"
           onClick={handleCreate}
-          className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_rgba(168,85,247,0.65)] hover:shadow-[0_14px_36px_-4px_rgba(236,72,153,0.7)] hover:-translate-y-0.5 transition-all"
+          className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -324,22 +324,25 @@ interface VerseRowProps {
   onDelete: () => void
 }
 
+// 오늘=브랜드 솔리드, 예정=브랜드 옅은 톤, 지난=중립 회색.
+// brand 계열은 CSS 변수 색이라 투명도 수식자(bg-brand/15 등)가 생성되지 않는다 —
+// 옅은 톤은 --brand-soft / --brand-glow / --brand-muted 토큰으로 쓴다.
 const STATUS_STYLE: Record<
   'today' | 'upcoming' | 'past',
   { bar: string; chipBg: string; chipText: string }
 > = {
   today: {
-    bar: 'from-purple-500 to-pink-500',
-    chipBg: 'bg-purple-500/15 dark:bg-purple-500/20',
-    chipText: 'text-purple-700 dark:text-purple-300',
+    bar: 'bg-brand',
+    chipBg: 'bg-[var(--brand-soft-strong)]',
+    chipText: 'text-brand',
   },
   upcoming: {
-    bar: 'from-fuchsia-500 to-purple-500',
-    chipBg: 'bg-fuchsia-500/12 dark:bg-fuchsia-500/15',
-    chipText: 'text-fuchsia-700 dark:text-fuchsia-300',
+    bar: 'bg-[var(--brand-glow)]',
+    chipBg: 'bg-[var(--brand-soft)]',
+    chipText: 'text-[var(--brand-muted)]',
   },
   past: {
-    bar: 'from-white/15 to-white/5',
+    bar: 'bg-gray-200 dark:bg-white/10',
     chipBg: 'bg-gray-100 dark:bg-white/[0.06]',
     chipText: 'text-gray-500 dark:text-white/55',
   },
@@ -356,7 +359,7 @@ const VerseRow = ({ verse, expanded, onToggleExpand, onEdit, onDelete }: VerseRo
         'relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border transition-all duration-200',
         'shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]',
         expanded
-          ? 'border-purple-300/50 dark:border-purple-400/30'
+          ? 'border-[var(--brand-glow)]'
           : 'border-gray-200/70 dark:border-white/[0.08]',
         status === 'past' && !expanded && 'opacity-75',
       ]
@@ -365,7 +368,7 @@ const VerseRow = ({ verse, expanded, onToggleExpand, onEdit, onDelete }: VerseRo
     >
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
       {/* 좌측 컬러 바 */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${style.bar}`} />
+      <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.bar}`} />
 
       <button
         type="button"
@@ -373,7 +376,7 @@ const VerseRow = ({ verse, expanded, onToggleExpand, onEdit, onDelete }: VerseRo
         className="relative z-10 w-full flex items-center gap-3 pl-3.5 pr-3 py-3 text-left"
         aria-expanded={expanded}
       >
-        <div className="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[18px] shadow-[0_4px_12px_-4px_rgba(168,85,247,0.5)]">
+        <div className="shrink-0 w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-[18px] shadow-[0_4px_12px_-4px_var(--brand-glow)]">
           📖
         </div>
 
@@ -416,7 +419,7 @@ const VerseRow = ({ verse, expanded, onToggleExpand, onEdit, onDelete }: VerseRo
       {expanded && (
         <div className="relative z-10 px-3.5 pb-3.5 border-t border-gray-200/60 dark:border-white/[0.05] pt-3 space-y-2.5">
           {/* 그라데이션 미니 카드 (사용자 화면 미리보기) */}
-          <div className="relative overflow-hidden rounded-xl p-3.5 bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_8px_22px_-10px_rgba(168,85,247,0.5)]">
+          <div className="relative overflow-hidden rounded-xl p-3.5 bg-brand shadow-[0_8px_22px_-10px_var(--brand-glow)]">
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
@@ -486,7 +489,7 @@ const StatChip = ({
   <span
     className={
       accent
-        ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 dark:bg-purple-500/20 border border-purple-500/30 text-[12px] font-semibold text-purple-700 dark:text-purple-300'
+        ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-[12px] font-semibold text-brand'
         : 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-[12px] font-semibold text-gray-700 dark:text-white/75'
     }
   >
@@ -548,8 +551,7 @@ const RowAction = ({
   let cls =
     'flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold transition-all '
   if (accent) {
-    cls +=
-      'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-[0_0_16px_rgba(168,85,247,0.40)]'
+    cls += 'bg-brand hover:bg-brand-dim text-white'
   } else if (destructive) {
     cls +=
       'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-400/30 hover:bg-red-100 dark:hover:bg-red-500/15'
