@@ -170,9 +170,14 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
   const meta = emotion ? EMOTIONS.find((e) => e.key === emotion) ?? null : null
   const accent = meta?.hue ?? 'var(--brand)'
 
-  // 음성 입력 — 본문만 지원 (제목은 짧아서 타이핑이 빠르다)
+  // 음성 입력 — 제목·본문 각각. 한쪽을 켜면 다른 쪽은 끈다 (마이크는 하나)
   const contentVoice = useSpeechRecognition({
     onResult: (transcript: string) => setContent(transcript),
+    onError: (msg: string) => showToast(msg, 'error'),
+    continuous: true,
+  })
+  const titleVoice = useSpeechRecognition({
+    onResult: (transcript: string) => setTitle(transcript.slice(0, TITLE_MAX)),
     onError: (msg: string) => showToast(msg, 'error'),
     continuous: true,
   })
@@ -182,8 +187,21 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
       contentVoice.stopListening()
       voiceActiveRef.current = false
     } else {
+      if (titleVoice.isListening) titleVoice.stopListening()
       voiceActiveRef.current = true
       contentVoice.startListening(content)
+    }
+  }
+
+  const toggleTitleVoice = () => {
+    if (titleVoice.isListening) {
+      titleVoice.stopListening()
+    } else {
+      if (contentVoice.isListening) {
+        contentVoice.stopListening()
+        voiceActiveRef.current = false
+      }
+      titleVoice.startListening(title)
     }
   }
 
@@ -192,10 +210,16 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     setContent(e.target.value.slice(0, MAX_LEN))
   }
 
+  const handleManualTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (titleVoice.isListening) return
+    setTitle(e.target.value.slice(0, TITLE_MAX))
+  }
+
   // 등록 성공 → 폭죽 + 토스트 (닫기는 훅이 780ms 뒤에 처리)
   useEffect(() => {
     if (!celebrating) return
     if (contentVoice.isListening) contentVoice.stopListening()
+    if (titleVoice.isListening) titleVoice.stopListening()
     setBurst(makeBurst(meta?.emoji ?? '🙏'))
     showToast(ko ? '기도가 올라갔어요 🙏' : 'Your prayer is up 🙏', 'success')
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -214,6 +238,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
   }
 
   const handleRemoveTitle = () => {
+    if (titleVoice.isListening) titleVoice.stopListening()
     setTitle('')
     setShowTitle(false)
   }
@@ -496,16 +521,36 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
               >
                 {/* 제목은 선택 — 기본은 숨기고 칩으로 필요할 때만 펼친다 */}
                 {showTitle ? (
-                  <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[var(--card-border)]">
+                  <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-[var(--card-border)]">
                     <input
                       type="text"
                       value={title}
-                      onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
+                      onChange={handleManualTitleChange}
                       placeholder={t('prayerComposerTitlePlaceholder')}
                       maxLength={TITLE_MAX}
                       autoFocus
-                      className="flex-1 min-w-0 bg-transparent outline-none text-[15.5px] font-bold tracking-[-0.015em] text-ink-strong placeholder:text-[13px] placeholder:font-normal placeholder:text-ink-muted"
+                      className={`flex-1 min-w-0 bg-transparent outline-none text-[15.5px] font-bold tracking-[-0.015em] text-ink-strong placeholder:text-[13px] placeholder:font-normal placeholder:text-ink-muted ${
+                        titleVoice.isListening ? 'animate-pulse' : ''
+                      }`}
                     />
+                    {titleVoice.isSupported && (
+                      <button
+                        type="button"
+                        onClick={toggleTitleVoice}
+                        aria-label={
+                          titleVoice.isListening ? t('stopVoiceInput') : t('startVoiceInput')
+                        }
+                        className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-full transition-colors ${
+                          titleVoice.isListening
+                            ? 'text-red-500 bg-red-500/10 animate-pulse'
+                            : 'text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)]'
+                        }`}
+                      >
+                        <span className="material-icons-outlined text-[16px]">
+                          {titleVoice.isListening ? 'stop_circle' : 'mic'}
+                        </span>
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={handleRemoveTitle}

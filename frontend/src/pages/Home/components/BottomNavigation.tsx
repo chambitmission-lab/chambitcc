@@ -50,6 +50,16 @@ const GREETINGS = [
   '오늘 하루, 어떠셨어요?',
 ]
 
+// 열리는 순간 FAB에서 퍼지는 반짝 파편 — "발견" 손맛 (위쪽 반원으로만)
+const FAB_SPARKS = [
+  { x: -30, y: -36, s: 1, d: 0 },
+  { x: 27, y: -40, s: 0.8, d: 40 },
+  { x: -46, y: -12, s: 0.7, d: 80 },
+  { x: 45, y: -15, s: 0.9, d: 60 },
+  { x: -12, y: -50, s: 0.7, d: 100 },
+  { x: 13, y: -52, s: 0.85, d: 20 },
+] as const
+
 const BottomNavigation = ({
   onProfileClick,
   onComposeClick,
@@ -105,6 +115,7 @@ const BottomNavigation = ({
             className="dial-item text-[13px] font-medium text-white/85 mb-1 select-none"
             style={{ animationDelay: `${DIAL_ACTIONS.length * 45 + 60}ms` }}
           >
+            <span aria-hidden className="mr-1 text-[11px] opacity-70">✦</span>
             {greeting}
           </p>
           {DIAL_ACTIONS.map((action, i) => (
@@ -112,12 +123,15 @@ const BottomNavigation = ({
               key={action.key}
               type="button"
               onClick={() => runAction(action.key)}
-              className="dial-item flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full bg-white dark:bg-[#26262e] shadow-[0_8px_24px_rgba(0,0,0,0.25)] ring-1 ring-black/[0.05] dark:ring-white/10 active:scale-95 transition-transform"
+              // 도크와 같은 유리 질감 — 바에서 떠올라온 조각처럼 보이게 키를 맞춘다
+              className="dial-item flex items-center gap-2.5 pl-2 pr-4 py-1.5 rounded-full backdrop-blur-xl bg-white/95 dark:bg-[#201f1f]/95 shadow-[0_8px_24px_rgba(0,0,0,0.25)] ring-1 ring-black/[0.05] dark:ring-white/[0.08] active:scale-95 transition-transform"
               // 아래(기도)부터 위로 순서대로 등장
               style={{ animationDelay: `${(DIAL_ACTIONS.length - 1 - i) * 45}ms` }}
             >
               <span
-                className={`w-9 h-9 rounded-full ${action.tint} flex items-center justify-center text-[17px]`}
+                className={`dial-emoji w-9 h-9 rounded-full ${action.tint} flex items-center justify-center text-[17px]`}
+                // 알약이 자리잡은 직후 이모지가 통통 튀며 착지
+                style={{ animationDelay: `${(DIAL_ACTIONS.length - 1 - i) * 45 + 90}ms` }}
                 aria-hidden
               >
                 {action.emoji}
@@ -154,8 +168,62 @@ const BottomNavigation = ({
         /* fill 없음 — 끝나면 transform 잠금을 풀어 ×를 다시 누를 때의 active:scale이 살아있게 */
         .fab-pop { animation: fab-pop 0.4s cubic-bezier(0.3, 1.4, 0.5, 1); }
 
+        /* 얼굴 전환 — 스파클이 접혀 들어가고 ×가 스프링 회전으로 나온다 */
+        .fab-face {
+          transition: transform 0.32s cubic-bezier(0.34, 1.6, 0.5, 1), opacity 0.18s ease;
+          transform-box: fill-box;
+          transform-origin: center;
+        }
+        .fab-face-hidden { opacity: 0; transform: rotate(-90deg) scale(0.3); }
+
+        /* 잔잔한 윙크 — 작은 스파클이 이따금 반짝이며 "눌러볼래?" */
+        @keyframes fab-wink {
+          0%, 74%, 100% { opacity: 1; transform: scale(1); }
+          80% { opacity: 0.15; transform: scale(0.5); }
+          87% { opacity: 1; transform: scale(1.3); }
+          93% { transform: scale(1); }
+        }
+        .fab-wink {
+          animation: fab-wink 3.8s ease-in-out infinite;
+          transform-box: fill-box;
+          transform-origin: center;
+        }
+
+        /* 숨쉬는 후광 — 도크에 안긴 채 조용히 살아있다는 신호 */
+        @keyframes fab-breathe {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 0.75; transform: scale(1.12); }
+        }
+        .fab-halo { animation: fab-breathe 3.2s ease-in-out infinite; }
+
+        /* 열림 — 한 번 퍼지는 링 */
+        @keyframes fab-ring {
+          from { opacity: 0.5; transform: scale(0.72); }
+          to { opacity: 0; transform: scale(1.8); }
+        }
+        .fab-ring { animation: fab-ring 0.5s ease-out forwards; }
+
+        /* 열림 — 반짝 파편이 위로 흩어진다 */
+        @keyframes fab-spark {
+          0% { opacity: 0; transform: translate(0, 0) scale(0.4) rotate(0deg); }
+          18% { opacity: 1; }
+          100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(var(--ss)) rotate(120deg); }
+        }
+        .fab-spark { animation: fab-spark 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
+
+        /* 알약 이모지 착지 — 자리를 잡은 뒤 통통 */
+        @keyframes dial-emoji-pop {
+          0% { transform: scale(0.3) rotate(-14deg); }
+          60% { transform: scale(1.18) rotate(6deg); }
+          100% { transform: scale(1) rotate(0deg); }
+        }
+        .dial-emoji { animation: dial-emoji-pop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
         @media (prefers-reduced-motion: reduce) {
-          .dial-item, .dial-fade, .fab-pop { animation: none; }
+          .dial-item, .dial-fade, .fab-pop, .fab-wink, .fab-halo, .fab-ring, .fab-spark, .dial-emoji {
+            animation: none;
+          }
+          .fab-spark { display: none; }
         }
       `}</style>
       {/* Glass dock — 카드 시스템과 동일한 #1c1c26/80 + 상단 1px 빛줄 + soft purple shadow.
@@ -260,26 +328,72 @@ const BottomNavigation = ({
         </button>
       </nav>
 
-      {/* Compose FAB — 노치 위에 떠 있는 원형 + 버튼. 바(mask)와 분리된 형제 요소라 잘리지 않는다.
+      {/* Compose FAB — 노치 위에 떠 있는 원형 버튼. 바(mask)와 분리된 형제 요소라 잘리지 않는다.
           원 중심이 바 상단 모서리에 오도록 배치해 절반은 위로 솟고 절반은 노치에 안긴다.
-          평소엔 조용히 있다가, 누르는 순간 젤리처럼 튕기며 +가 스프링 회전으로 ×가 된다 */}
+          얼굴은 +가 아니라 반짝임(✦) — 평소엔 작은 스파클이 이따금 윙크하며 숨 쉬고,
+          누르는 순간 반짝 파편이 퍼지며 스파클이 접히고 ×가 스프링 회전으로 나온다.
+          "반짝이는 걸 발견해서 눌렀더니 나눌 거리가 쏟아진다"는 손맛 */}
       <button
         onClick={toggleDial}
         aria-label={dialOpen ? '나눔 메뉴 닫기' : '나눔 메뉴 열기'}
         aria-expanded={dialOpen}
         className={`absolute left-1/2 -translate-x-1/2 top-0 z-30 flex items-center justify-center w-14 h-14 rounded-full text-white bg-gradient-to-br from-[#69a8ff] via-[var(--brand)] to-[#3f5efb] shadow-[0_6px_16px_-2px_var(--brand-glow)] ring-1 ring-white/20 dark:ring-white/15 active:scale-[0.82] transition-transform duration-150${dialOpen ? ' fab-pop' : ''}`}
       >
+        {/* 숨쉬는 후광 — 도크 뒤에서 은은하게 (버튼 첫 자식이라 광택·아이콘 뒤에 깔린다) */}
+        <span
+          aria-hidden
+          className="fab-halo absolute -inset-1 rounded-full bg-[var(--brand-glow)] blur-md pointer-events-none"
+        />
         {/* 위쪽 절반 유리 광택 — 평면 채움이 아니라 살짝 부푼 버튼처럼 보이게 */}
         <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 via-white/5 to-transparent pointer-events-none" />
-        <svg
-          className={`relative w-7 h-7 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.34,1.8,0.5,1)] ${dialOpen ? 'rotate-[135deg]' : ''}`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2.2}
-          strokeLinecap="round"
-        >
-          <path d="M12 5v14M5 12h14" />
+
+        {/* 열림 — 퍼지는 링 + 반짝 파편 (열 때마다 새로 마운트되어 재생) */}
+        {dialOpen && (
+          <>
+            <span
+              aria-hidden
+              className="fab-ring absolute inset-0 rounded-full ring-2 ring-white/50 pointer-events-none"
+            />
+            {FAB_SPARKS.map((spark, i) => (
+              <span
+                key={i}
+                aria-hidden
+                className="fab-spark absolute left-1/2 top-1/2 -ml-[5px] -mt-[6px] text-[11px] leading-none text-white pointer-events-none"
+                style={
+                  {
+                    '--sx': `${spark.x}px`,
+                    '--sy': `${spark.y}px`,
+                    '--ss': `${spark.s}`,
+                    animationDelay: `${spark.d}ms`,
+                  } as React.CSSProperties
+                }
+              >
+                ✦
+              </span>
+            ))}
+          </>
+        )}
+
+        {/* 얼굴 — 스파클(닫힘) ↔ ×(열림) 크로스페이드, 두 얼굴을 겹쳐두고 회전·스케일로 교대 */}
+        <svg className="relative w-7 h-7" viewBox="0 0 24 24" aria-hidden>
+          {/* 스파클 얼굴 — 큰 별 + 윙크하는 작은 별 */}
+          <g className={`fab-face${dialOpen ? ' fab-face-hidden' : ''}`} fill="currentColor">
+            <path d="M11 6.5 C11.65 10.4 13.8 12.55 17.7 13.2 C13.8 13.85 11.65 16 11 19.9 C10.35 16 8.2 13.85 4.3 13.2 C8.2 12.55 10.35 10.4 11 6.5 Z" />
+            <path
+              className="fab-wink"
+              d="M17.8 4.6 C18.08 6.06 18.94 6.92 20.4 7.2 C18.94 7.48 18.08 8.34 17.8 9.8 C17.52 8.34 16.66 7.48 15.2 7.2 C16.66 6.92 17.52 6.06 17.8 4.6 Z"
+            />
+          </g>
+          {/* × 얼굴 */}
+          <g
+            className={`fab-face${dialOpen ? '' : ' fab-face-hidden'}`}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.2}
+            strokeLinecap="round"
+          >
+            <path d="M7.5 7.5l9 9M16.5 7.5l-9 9" />
+          </g>
         </svg>
       </button>
     </div>
