@@ -7,16 +7,19 @@ import { useDeleteSermon } from '../../../hooks/useSermons'
 import { useSermonBibleReferences } from '../../../hooks/useSermonBibleReferences'
 import { BibleReferencesSection } from './BibleReferencesSection'
 import SermonContentFormatter from './SermonContentFormatter'
+import { extractYouTubeVideoId } from '../utils/sermonMeta'
 import './SermonDetail.css'
 
 interface SermonDetailProps {
   sermon: Sermon
+  /** 목록에서 음성/영상 버튼으로 진입한 경우 해당 미디어를 바로 재생 */
+  initialMedia?: 'audio' | 'video' | null
   onClose: () => void
   onDelete?: () => void
   onEdit?: () => void
 }
 
-const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) => {
+const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }: SermonDetailProps) => {
   const modalRef = useRef<HTMLDivElement>(null)
   const videoPlayerRef = useRef<HTMLIFrameElement>(null)
   const audioPlayerRef = useRef<HTMLAudioElement>(null)
@@ -79,27 +82,26 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
     return `${API_URL}${sermon.audio_url}`
   }
 
-  // YouTube Video ID 추출
-  const extractYouTubeVideoId = (url: string): string | null => {
-    if (!url) return null
-    
-    // 다양한 YouTube URL 형식 지원
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-      /^([a-zA-Z0-9_-]{11})$/ // 직접 Video ID인 경우
-    ]
-    
-    for (const pattern of patterns) {
-      const match = url.match(pattern)
-      if (match && match[1]) {
-        return match[1]
-      }
-    }
-    
-    return null
-  }
-
   const videoId = sermon.video_url ? extractYouTubeVideoId(sermon.video_url) : null
+
+  // 목록에서 음성/영상 버튼으로 진입 — 해당 플레이어 위치로 스크롤 (음성은 바로 재생, 영상은 autoplay 파라미터)
+  useEffect(() => {
+    if (!initialMedia) return
+
+    const timer = setTimeout(() => {
+      if (initialMedia === 'audio' && audioPlayerRef.current) {
+        audioPlayerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        audioPlayerRef.current.play().catch(() => {
+          // 브라우저 자동재생 정책에 막히면 사용자가 직접 재생
+        })
+      } else if (initialMedia === 'video' && videoPlayerRef.current) {
+        videoPlayerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 300)
+
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // 타임스탬프 클릭 핸들러 - 오디오 우선, 없으면 비디오
   const handleTimestampClick = (timestamp: number) => {
@@ -229,7 +231,7 @@ const SermonDetail = ({ sermon, onClose, onDelete, onEdit }: SermonDetailProps) 
             <div className="sermon-detail-video-container">
               <iframe
                 ref={videoPlayerRef}
-                src={`https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1`}
+                src={`https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1${initialMedia === 'video' ? '&autoplay=1' : ''}`}
                 title="설교 영상"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen

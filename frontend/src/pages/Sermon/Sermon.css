@@ -1,140 +1,193 @@
-/* 설교 페이지 헤더 스타일 */
+/* 설교 페이지 — 토스 블루 플랫 */
+
+/* 헤더: 장식 없는 스티키 바 */
 .sermon-page-header {
   position: sticky;
   top: 0;
   z-index: 10;
-  border-bottom: 1px solid var(--ig-border);
-  overflow: hidden;
-  background: linear-gradient(135deg,
-    rgba(49, 130, 246, 0.05) 0%,
-    rgba(56, 189, 248, 0.05) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-/* 다크모드 */
-[data-theme="dark"] .sermon-page-header {
-  background: linear-gradient(135deg,
-    rgba(49, 130, 246, 0.12) 0%,
-    rgba(56, 189, 248, 0.10) 100%);
-}
-
-/* 배경 효과 컨테이너 */
-.sermon-header-bg-effects {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-/* 빛나는 효과 */
-.sermon-header-glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-  opacity: 0.3;
-  animation: float-glow 8s ease-in-out infinite;
-}
-
-.sermon-header-glow-1 {
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(49, 130, 246, 0.55) 0%, transparent 70%);
-  top: -100px;
-  left: -50px;
-  animation-delay: 0s;
-}
-
-.sermon-header-glow-2 {
-  width: 150px;
-  height: 150px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, transparent 70%);
-  top: -50px;
-  right: -30px;
-  animation-delay: 2s;
-}
-
-.sermon-header-glow-3 {
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(circle, rgba(147, 197, 253, 0.35) 0%, transparent 70%);
-  bottom: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  animation-delay: 4s;
-}
-
-@keyframes float-glow {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translateY(-10px) scale(1.1);
-    opacity: 0.5;
-  }
-}
-
-/* 헤더 내용 */
-.sermon-header-content {
-  position: relative;
-  z-index: 1;
-  padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0.875rem 1rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--card-border);
 }
 
-/* 반짝이는 효과 추가 */
-.sermon-page-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
+[data-theme="dark"] .sermon-page-header {
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+.sermon-page-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  margin: 0;
+}
+
+.sermon-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.sermon-add-btn:hover {
+  filter: brightness(1.06);
+}
+
+.sermon-add-btn .material-icons-outlined {
+  font-size: 1rem;
+}
+
+/* 예배 유형 필터 칩 */
+.sermon-filter-chips {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: 1rem;
+  padding-bottom: 2px;
+}
+
+.sermon-filter-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.sermon-filter-chip {
+  flex-shrink: 0;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  color: var(--text-body);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+[data-theme="dark"] .sermon-filter-chip {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.sermon-filter-chip.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+}
+
+.sermon-filter-empty {
+  text-align: center;
+  padding: 2.5rem 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* 지난 말씀 아카이브 */
+.sermon-archive {
+  margin-top: 1.5rem;
+}
+
+.sermon-archive-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  margin-bottom: 0.25rem;
+}
+
+.sermon-month-group {
+  margin-top: 0.875rem;
+}
+
+.sermon-month-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.sermon-month-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* 무한 스크롤 */
+.sermon-load-more {
+  display: flex;
+  justify-content: center;
+  padding: 1.25rem 0 0.5rem;
+  min-height: 1px;
+}
+
+.sermon-load-spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--brand-soft-strong);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: sermon-spin 0.8s linear infinite;
+}
+
+@keyframes sermon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 로딩 스켈레톤 */
+.sermon-skeleton {
+  border-radius: 14px;
   background: linear-gradient(
     90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
+    var(--surface-inset) 25%,
+    var(--surface-container-high) 50%,
+    var(--surface-inset) 75%
   );
-  animation: shimmer 3s infinite;
+  background-size: 200% 100%;
+  animation: sermon-shimmer 1.4s ease-in-out infinite;
 }
 
-@keyframes shimmer {
+[data-theme="dark"] .sermon-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+}
+
+.sermon-skeleton-hero {
+  height: 230px;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+}
+
+.sermon-skeleton-row {
+  height: 66px;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes sermon-shimmer {
   0% {
-    left: -100%;
+    background-position: 200% 0;
   }
   100% {
-    left: 100%;
-  }
-}
-
-/* 다크모드 반짝임 */
-[data-theme="dark"] .sermon-page-header::before {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.05),
-    transparent
-  );
-}
-
-/* 반응형 */
-@media (max-width: 768px) {
-  .sermon-header-glow-1 {
-    width: 150px;
-    height: 150px;
-  }
-
-  .sermon-header-glow-2 {
-    width: 120px;
-    height: 120px;
-  }
-
-  .sermon-header-glow-3 {
-    width: 80px;
-    height: 80px;
+    background-position: -200% 0;
   }
 }

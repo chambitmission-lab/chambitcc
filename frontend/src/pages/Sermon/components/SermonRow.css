@@ -1,0 +1,151 @@
+/* 지난 말씀 콤팩트 행 */
+.sermon-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 14px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.sermon-row:hover {
+  border-color: var(--brand-soft-strong);
+}
+
+.sermon-row:active {
+  transform: scale(0.99);
+}
+
+[data-theme="dark"] .sermon-row {
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="dark"] .sermon-row:hover {
+  border-color: rgba(69, 147, 252, 0.3);
+}
+
+/* 날짜 칩 — 달력 한 칸 느낌 */
+.sermon-row-date {
+  flex-shrink: 0;
+  width: 42px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0;
+  border-radius: 11px;
+  background: var(--surface-inset);
+}
+
+.sermon-row-date.sunday {
+  background: var(--brand-soft);
+}
+
+.sermon-row-day {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.sermon-row-date.sunday .sermon-row-day {
+  color: var(--brand);
+}
+
+[data-theme="dark"] .sermon-row-date.sunday .sermon-row-day {
+  color: var(--brand-muted);
+}
+
+.sermon-row-weekday {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sermon-row-date.sunday .sermon-row-weekday {
+  color: var(--brand);
+  opacity: 0.85;
+}
+
+[data-theme="dark"] .sermon-row-date.sunday .sermon-row-weekday {
+  color: var(--brand-muted);
+}
+
+/* 가운데 정보 */
+.sermon-row-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sermon-row-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.15rem;
+}
+
+.sermon-row-sub {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sermon-row-verse {
+  font-weight: 600;
+  color: var(--brand-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sermon-row-sep {
+  opacity: 0.5;
+}
+
+.sermon-row-pastor {
+  flex-shrink: 0;
+}
+
+/* 미디어 바로가기 */
+.sermon-row-media {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.375rem;
+}
+
+.sermon-row-media-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--brand-soft-strong);
+  background: var(--brand-soft);
+  color: var(--brand);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+[data-theme="dark"] .sermon-row-media-btn {
+  color: var(--brand-muted);
+}
+
+.sermon-row-media-btn:hover {
+  background: var(--brand-soft-strong);
+}
+
+.sermon-row-media-btn .material-icons-outlined {
+  font-size: 1.05rem;
+}

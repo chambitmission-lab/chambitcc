@@ -1,5 +1,5 @@
 // 설교 데이터 관리 훅
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getSermons, createSermon, updateSermon, uploadAudio, deleteSermon, deleteAudioOnly } from '../api/sermon'
 import type { SermonCreateRequest } from '../types/sermon'
 import { showToast } from '../utils/toast'
@@ -9,6 +9,20 @@ export const useSermons = (skip = 0, limit = 10) => {
     queryKey: ['sermons', skip, limit],
     queryFn: () => getSermons(skip, limit),
     staleTime: 1000 * 60 * 5, // 5분
+  })
+}
+
+const SERMON_PAGE_SIZE = 10
+
+// 설교 목록 무한 스크롤 — skip/limit 기반, 마지막 페이지가 꽉 차지 않으면 종료
+export const useInfiniteSermons = () => {
+  return useInfiniteQuery({
+    queryKey: ['sermons', 'infinite'],
+    queryFn: ({ pageParam }) => getSermons(pageParam as number, SERMON_PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === SERMON_PAGE_SIZE ? allPages.length * SERMON_PAGE_SIZE : undefined,
+    staleTime: 1000 * 60 * 5,
   })
 }
 

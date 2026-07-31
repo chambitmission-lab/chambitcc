@@ -1,4 +1,4 @@
-// 오디오 업로드 섹션 컴포넌트
+// 오디오 업로드 섹션 컴포넌트 — 부모 섹션 카드 안에서 버튼/파일 상태만 렌더
 import type { AudioUploadState } from './types'
 
 interface AudioUploadSectionProps {
@@ -28,48 +28,32 @@ export const AudioUploadSection = ({
     onRecordingStart()
   }
 
+  if (audioState.file) {
+    return (
+      <div className="sf-audio-file">
+        <span className="material-icons-outlined sf-audio-file-icon">graphic_eq</span>
+        <span className="sf-audio-file-name">{audioState.file.name}</span>
+        <button type="button" onClick={onRemove} className="sf-audio-file-remove" aria-label="음성 파일 제거">
+          <span className="material-icons-outlined">delete</span>
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <div>
-      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-        음성 파일
-      </label>
-      {audioState.file ? (
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              선택된 파일: {audioState.file.name}
-            </p>
-            <button
-              type="button"
-              onClick={onRemove}
-              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-            >
-              <span className="material-icons-outlined">delete</span>
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={handleRecordingClick}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-brand text-white font-semibold rounded-lg hover:bg-brand-dim transition-colors"
-          >
-            <span className="material-icons-outlined">mic</span>
-            녹음하기
-          </button>
-          <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
-            <span className="material-icons-outlined">upload_file</span>
-            파일 선택
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </label>
-        </div>
-      )}
-    </div>
+    <>
+      <div className="sf-audio-actions">
+        <button type="button" onClick={handleRecordingClick} className="sf-audio-btn record">
+          <span className="material-icons-outlined">mic</span>
+          녹음하기
+        </button>
+        <label className="sf-audio-btn upload">
+          <span className="material-icons-outlined">upload_file</span>
+          파일 선택
+          <input type="file" accept="audio/*" onChange={handleFileChange} className="hidden" />
+        </label>
+      </div>
+      <p className="sf-hint">녹음하거나 음성 파일을 올리면 목록·상세에서 바로 들을 수 있습니다</p>
+    </>
   )
 }
