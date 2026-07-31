@@ -28,30 +28,57 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다
 export const NAV_ROUTES = ['/bible', '/prayer-focus', '/profile']
 
+// 알림 '바로가기'·푸시로 들어오는 딥링크 경로. :id가 붙어 메뉴 테이블에 못 넣는데,
+// 라우터(v7)가 화면 전환을 startTransition으로 돌리기 때문에 청크가 도착할 때까지
+// 이전 화면(홈)을 그대로 붙잡고 있는다 → 모바일에선 "홈에 갔다가 상세로" 두 번
+// 이동한 것처럼 보인다. 링크가 화면에 뜨는 순간 미리 받아두면 탭 즉시 전환된다.
+// (loaded/inflight 키는 경로가 아니라 아래 key — /capsule/1 과 /capsule/2 는 같은 청크)
+const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] = [
+  { key: 'capsule/new', match: /^\/capsule\/new$/, load: () => import('../pages/Capsule/CapsuleCreate') },
+  { key: 'capsule/invite', match: /^\/capsule\/invite\//, load: () => import('../pages/Capsule/CapsuleInvite') },
+  { key: 'capsule/detail', match: /^\/capsule\/[^/]+$/, load: () => import('../pages/Capsule/CapsuleOpen') },
+  { key: 'capsule', match: /^\/capsule$/, load: () => import('../pages/Capsule/CapsuleList') },
+]
+
 // 진행 중인 로드는 promise 자체를 캐싱한다. Set으로 "시작했음"만 기록하면
 // 아직 안 끝난 로드에 await 해도 즉시 resolve돼서 청크 없이 이동하게 된다.
 const inflight = new Map<string, Promise<void>>()
 const loaded = new Set<string>()
 
+/** 경로 → (캐시 키, 청크 로더). 쿼리·해시·끝 슬래시는 떼고 본다 */
+const resolveLoader = (path: string): { key: string; load: RouteLoader } | null => {
+  const clean = path.split(/[?#]/)[0].replace(/\/+$/, '') || '/'
+
+  const menu = menuRouteLoaders[clean]
+  if (menu) return { key: clean, load: menu }
+
+  const deep = deepLinkRouteLoaders.find((r) => r.match.test(clean))
+  return deep ? { key: deep.key, load: deep.load } : null
+}
+
 // 이미 받아둔 청크인지 동기로 확인 — 스피너를 한 프레임도 깜빡이지 않게 하는 데 쓴다
-export const isRoutePreloaded = (path: string): boolean => loaded.has(path)
+export const isRoutePreloaded = (path: string): boolean => {
+  const resolved = resolveLoader(path)
+  return resolved ? loaded.has(resolved.key) : false
+}
 
 // 실패(오프라인 등) 시 캐시에서 제거해 다음 기회에 재시도할 수 있게 한다
 export const preloadRoute = (path: string): Promise<void> => {
-  const cached = inflight.get(path)
+  const resolved = resolveLoader(path)
+  if (!resolved) return Promise.resolve()
+
+  const cached = inflight.get(resolved.key)
   if (cached) return cached
 
-  const loader = menuRouteLoaders[path]
-  if (!loader) return Promise.resolve()
-
-  const promise = loader()
+  const promise = resolved
+    .load()
     .then(() => {
-      loaded.add(path)
+      loaded.add(resolved.key)
     })
     .catch(() => {
-      inflight.delete(path)
+      inflight.delete(resolved.key)
     })
-  inflight.set(path, promise)
+  inflight.set(resolved.key, promise)
   return promise
 }
 

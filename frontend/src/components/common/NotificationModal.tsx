@@ -6,6 +6,7 @@ import {
   useMarkAllAsRead,
 } from '../../hooks/useNotifications'
 import { showToast } from '../../utils/toast'
+import { preloadRoute } from '../../utils/routePreload'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import type { Notification } from '../../types/notification'
 
@@ -56,6 +57,19 @@ const getDateGroup = (iso: string): DateGroup => {
 const needsExpand = (content: string) =>
   content.length > 80 || content.includes('\n')
 
+/**
+ * 알림 링크 → 실제 이동 대상.
+ * /prayers/:id 는 전용 페이지가 아니라 홈의 기도 상세 모달이라 state로 넘겨야 한다.
+ * (그대로 navigate 하면 매칭되는 라우트가 없어 catch-all로 홈에 튕기기만 하고 기도는 안 열린다)
+ */
+const resolveTarget = (
+  linkUrl: string,
+): { path: string; state?: Record<string, unknown> } => {
+  const prayer = linkUrl.match(/^\/prayers\/(\d+)$/)
+  if (prayer) return { path: '/', state: { openPrayerId: Number(prayer[1]) } }
+  return { path: linkUrl }
+}
+
 const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
   const isLoggedIn = !!localStorage.getItem('access_token')
@@ -98,6 +112,16 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
+  // 바로가기 대상 페이지 청크를 목록이 뜨는 동안 미리 받아둔다.
+  // 라우터가 화면 전환을 startTransition으로 돌리기 때문에, 탭한 뒤에야 청크를 받으면
+  // 도착할 때까지 이전 화면(홈)이 그대로 남아 "홈 갔다가 상세로" 두 번 이동처럼 보인다.
+  useEffect(() => {
+    if (!isOpen) return
+    notifications.forEach((n) => {
+      if (n.link_url) void preloadRoute(n.link_url)
+    })
+  }, [isOpen, notifications])
+
   const grouped = useMemo(() => {
     const groups: Record<DateGroup, Notification[]> = { today: [], week: [], older: [] }
     notifications.forEach((n) => groups[getDateGroup(n.created_at)].push(n))
@@ -122,17 +146,21 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
     }
   }
 
-  // 개인 알림(기도응답 등)의 바로가기 — 읽음 처리 후 해당 화면으로 이동
-  const goToLink = async (notification: Notification) => {
+  // 개인 알림(기도응답 등)의 바로가기 — 이동이 먼저, 읽음 처리는 뒤따라간다.
+  // 읽음 API를 await 하면 모바일 지연(수백 ms)만큼 탭이 먹통처럼 느껴지고,
+  // 그 사이 모달만 닫힌 홈 화면이 먼저 보여서 화면이 두 번 바뀐 것처럼 읽힌다.
+  const goToLink = (notification: Notification) => {
     if (isLoggedIn && !notification.is_read) {
-      try {
-        await markAsReadMutation.mutateAsync(notification.id)
-      } catch {
-        // 읽음 처리 실패는 조용히 무시
-      }
+      // 읽음 처리 실패는 조용히 무시 (이동을 막지 않는다)
+      markAsReadMutation.mutate(notification.id, { onError: () => {} })
     }
     onClose()
-    if (notification.link_url) navigate(notification.link_url)
+    if (!notification.link_url) return
+
+    const target = resolveTarget(notification.link_url)
+    // replace — 모달이 뒤로가기용으로 쌓아둔 히스토리 엔트리(주소는 현재 화면 그대로)를
+    // 재사용한다. push 하면 그 엔트리가 사이에 남아 상세에서 뒤로가기를 두 번 눌러야 한다.
+    navigate(target.path, { state: target.state, replace: true })
   }
 
   const handleMarkAllAsRead = async () => {
@@ -322,13 +350,13 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                       tabIndex={0}
                                       onClick={(e) => {
                                         e.stopPropagation()
-                                        void goToLink(notification)
+                                        goToLink(notification)
                                       }}
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
                                           e.preventDefault()
                                           e.stopPropagation()
-                                          void goToLink(notification)
+                                          goToLink(notification)
                                         }
                                       }}
                                       className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-purple-600 dark:text-purple-400 hover:underline"
