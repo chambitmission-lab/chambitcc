@@ -22,6 +22,8 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
   const [error, setError] = useState('')
   const [recommendedVerses, setRecommendedVerses] = useState<RecommendedVerses | null>(null)
   const [showVersesModal, setShowVersesModal] = useState(false)
+  // 등록 성공 → 이모지 폭죽을 잠깐 보여주고 닫는다 (추천 구절 모달이 뜨는 경우는 모달이 보상)
+  const [celebrating, setCelebrating] = useState(false)
 
   // 브라우저 뒤로가기 → 모달만 닫기
   useModalBackButton(onClose)
@@ -91,7 +93,8 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
         if (response.processing) {
           console.log('성경 구절이 백그라운드에서 처리 중입니다')
         }
-        onClose()
+        setCelebrating(true)
+        window.setTimeout(onClose, 780)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '등록에 실패했습니다')
@@ -134,6 +137,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     error,
     recommendedVerses,
     showVersesModal,
+    celebrating,
     isCreating,
     isLoggedIn,
     displayName,
