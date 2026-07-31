@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useWeeklyForecast } from '../../../hooks/useWeather'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { consumeShellShown, WeatherSheetLoading } from './WeatherSheetFallback'
 import './WeatherForecastSheet.css'
 
 const DAY_LABELS_KO = ['일', '월', '화', '수', '목', '금', '토'] as const
@@ -38,6 +39,13 @@ const WeatherForecastSheet = ({
   const { t, language } = useLanguage()
   const { data: days, isLoading, isError } = useWeeklyForecast()
   const dayLabels = language === 'en' ? DAY_LABELS_EN : DAY_LABELS_KO
+  /* 로딩 껍데기를 거쳐 왔다면 시트는 이미 올라와 있던 자리를 그대로 물려받는다 —
+   * 진입 애니메이션을 다시 재생하면 시트가 두 번 튀어 오른다.
+   * useState 초기화 함수는 StrictMode에서 두 번 불려 표시를 두 번 소비하므로
+   * ref로 이 인스턴스에서 딱 한 번만 읽는다. */
+  const continuedRef = useRef<boolean | null>(null)
+  if (continuedRef.current === null) continuedRef.current = consumeShellShown()
+  const isContinued = continuedRef.current
 
   // 뒤로가기 대신 ESC로도 닫히게 — 데스크톱에서 시트를 닫을 방법이 필요하다
   useEffect(() => {
@@ -56,7 +64,7 @@ const WeatherForecastSheet = ({
   const toPercent = (temp: number) => ((temp - weekMin) / span) * 100
 
   return (
-    <div className="wf-overlay" onClick={onClose}>
+    <div className="wf-overlay" data-continued={isContinued ? '' : undefined} onClick={onClose}>
       <div
         className="wf-sheet"
         role="dialog"
@@ -81,13 +89,8 @@ const WeatherForecastSheet = ({
         </div>
 
         <div className="wf-body">
-          {isLoading && (
-            <div className="wf-skeletons" aria-hidden>
-              {Array.from({ length: 7 }, (_, i) => (
-                <div key={i} className="wf-skeleton" />
-              ))}
-            </div>
-          )}
+          {/* 청크 로딩 폴백과 같은 모양 — 시트가 뜬 뒤 예보를 받는 동안 이어진다 */}
+          {isLoading && <WeatherSheetLoading />}
 
           {isError && <p className="wf-empty">{t('homeWeatherWeekError')}</p>}
 
@@ -130,7 +133,18 @@ const WeatherForecastSheet = ({
                     }}
                   />
                   {nowPercent !== null && (
-                    <span className="wf-bar-now" style={{ left: `${nowPercent}%` }} />
+                    <span
+                      className="wf-bar-now"
+                      style={{ left: `${nowPercent}%` }}
+                      title={t('homeWeatherNowAria').replace(
+                        '{n}',
+                        String(currentTemperature),
+                      )}
+                      aria-label={t('homeWeatherNowAria').replace(
+                        '{n}',
+                        String(currentTemperature),
+                      )}
+                    />
                   )}
                 </span>
                 <span className="wf-temp wf-temp-max">{day.tempMax}°</span>

@@ -6,6 +6,7 @@ import { useChapterReadStatus } from '../../../hooks/useBibleReading'
 import { useCurrentWeather, type WeatherCondition } from '../../../hooks/useWeather'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Language } from '../../../locales'
+import WeatherSheetFallback, { resetSheetShell } from './WeatherSheetFallback'
 import { getCurrentUser } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import {
@@ -31,7 +32,15 @@ import heroWinterEvening from '../../../assets/hero/winter-evening.jpg'
 import './DailyMeditationCard.css'
 
 /* 주간 예보 시트 — 칩을 누를 때만 필요하므로 홈 첫 로딩에서 분리한다 */
-const WeatherForecastSheet = lazy(() => import('./WeatherForecastSheet'))
+const importForecastSheet = () => import('./WeatherForecastSheet')
+const WeatherForecastSheet = lazy(importForecastSheet)
+
+/* 칩에 손이 닿는 순간(hover·터치 시작) 청크를 미리 받아둔다 — 실제 클릭까지의
+ * 수십 ms를 벌어 대부분의 경우 폴백 없이 바로 시트가 열린다.
+ * 같은 모듈이라 lazy()와 캐시를 공유하고, 두 번 호출해도 요청은 한 번이다. */
+const preloadForecastSheet = () => {
+  void importForecastSheet()
+}
 
 const GREETING_KEYS = {
   morning: 'homeGreetingMorning',
@@ -172,6 +181,11 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const { weather, isLoading: isWeatherLoading } = useCurrentWeather()
   // 날씨 칩을 누르면 열리는 주간 예보 시트
   const [isForecastOpen, setIsForecastOpen] = useState(false)
+  /* 청크 도착 전에 닫았을 수 있으니 껍데기 표시도 함께 되돌린다 */
+  const closeForecast = () => {
+    setIsForecastOpen(false)
+    resetSheetShell()
+  }
   const { fullName } = getCurrentUser()
   const { isLoggedIn } = useAuth()
 
@@ -346,6 +360,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               data-wet={isRaining || isSnowing ? '' : undefined}
               aria-haspopup="dialog"
               aria-expanded={isForecastOpen}
+              onPointerEnter={preloadForecastSheet}
+              onPointerDown={preloadForecastSheet}
               onClick={() => setIsForecastOpen(true)}
               aria-label={[
                 `${t('homeWeatherAria')}${weatherLabel ? ` ${weatherLabel}` : ''}`,
@@ -539,11 +555,11 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         </div>
       </article>
 
-      {/* 주간 예보 시트 — 열릴 때 청크를 받으므로 fallback 없이 잠깐 비어 있다 */}
+      {/* 주간 예보 시트 — 청크가 아직 안 왔으면 같은 모양의 로딩 껍데기를 먼저 띄운다 */}
       {isForecastOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<WeatherSheetFallback onClose={closeForecast} />}>
           <WeatherForecastSheet
-            onClose={() => setIsForecastOpen(false)}
+            onClose={closeForecast}
             currentTemperature={weather?.temperature}
           />
         </Suspense>

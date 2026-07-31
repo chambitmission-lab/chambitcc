@@ -52,6 +52,12 @@
   }
 }
 
+/* 로딩 껍데기에서 이어받은 시트 — 이미 올라와 있으므로 다시 올리지 않는다 */
+.wf-overlay[data-continued],
+.wf-overlay[data-continued] .wf-sheet {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wf-overlay,
   .wf-sheet {
@@ -186,17 +192,22 @@
   border-radius: 999px;
 }
 
-/* 오늘 실황 기온 위치 — 흰 테두리 점으로 막대 위에 찍는다 */
+/* 오늘 실황 기온 위치 — 막대를 살짝 넘는 얇은 눈금.
+ * 예전엔 흰 점 + 브랜드 링(지름 12px)이었는데 슬라이더 손잡이처럼 보이고
+ * 링 색이 막대 그라데이션과 부딪혔다. 계기 바늘처럼 가늘게 세워 위치만 짚는다. */
 .wf-bar-now {
   position: absolute;
   top: 50%;
-  width: 8px;
-  height: 8px;
-  margin-left: -4px;
-  border-radius: 50%;
+  width: 3px;
+  height: 12px;
+  margin-left: -1.5px;
+  border-radius: 999px;
   transform: translateY(-50%);
-  background: var(--surface-container);
-  box-shadow: 0 0 0 2px var(--brand);
+  background: #fff;
+  /* 밝은 노랑 구간 위에서도 눈금이 사라지지 않게 얇은 외곽선 + 그림자 */
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.32),
+    0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .wf-empty {
@@ -204,6 +215,33 @@
   font-size: 13px;
   text-align: center;
   color: var(--text-muted);
+}
+
+/* 로딩 — 청크를 받는 동안(폴백)과 예보를 받는 동안(시트) 같은 화면을 쓴다 */
+.wf-loading-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 4px 0 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.wf-spinner {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-inset);
+  border-top-color: var(--brand);
+  animation: wf-spin 0.7s linear infinite;
+}
+
+@keyframes wf-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .wf-skeletons {
@@ -233,5 +271,10 @@
 @media (prefers-reduced-motion: reduce) {
   .wf-skeleton {
     animation: none;
+  }
+
+  /* 스피너는 회전이 곧 의미라 멈추는 대신 아주 느리게 돌린다 */
+  .wf-spinner {
+    animation-duration: 2.4s;
   }
 }
