@@ -479,14 +479,23 @@ const CapsuleOpen = () => {
           )}
         </div>
 
+        {/* 다크 모드에서 4%짜리 블록 하나만 두면 그냥 검은 화면으로 읽힌다 —
+            불러오는 중이라는 게 보이도록 대비를 올리고 형태를 잡아둔다 */}
         {isLoading && (
-          <div className="mx-4 mt-6 h-72 rounded-3xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+          <div className="mx-4 mt-6 space-y-3">
+            <div className="h-64 rounded-3xl bg-gray-100/70 dark:bg-white/[0.07] animate-pulse" />
+            <div className="h-4 w-1/2 mx-auto rounded-full bg-gray-100/70 dark:bg-white/[0.07] animate-pulse" />
+            <div className="h-4 w-2/3 mx-auto rounded-full bg-gray-100/70 dark:bg-white/[0.05] animate-pulse" />
+          </div>
         )}
 
         {(error || (!isLoading && !capsule)) && (
           <div className="text-center pt-24 px-6">
             <span className="text-5xl block mb-4">😢</span>
-            <p className="text-[15px] font-bold">캡슐을 찾을 수 없어요</p>
+            <p className="text-[15px] font-bold">삭제되었거나 볼 수 없는 캡슐이에요</p>
+            <p className="mt-2 text-[13px] text-gray-500 dark:text-white/45 leading-[1.7]">
+              보낸 사람이 캡슐을 지웠을 수 있어요. 알림은 남아 있어도 내용은 열 수 없습니다.
+            </p>
             <button
               type="button"
               onClick={() => navigate('/capsule')}

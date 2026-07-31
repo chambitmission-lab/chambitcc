@@ -1,6 +1,6 @@
 // 타임캡슐 API 클라이언트
 import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders } from './utils/apiHelpers'
+import { ApiError, getAuthHeaders } from './utils/apiHelpers'
 import type {
   CapsuleCreateRequest,
   CapsuleDetail,
@@ -14,7 +14,7 @@ const BASE = `${API_V1}/time-capsules`
 
 const parseError = async (response: Response, fallback: string): Promise<never> => {
   const error = await response.json().catch(() => ({}))
-  throw new Error(error.detail || fallback)
+  throw new ApiError(response.status, error.detail || fallback)
 }
 
 const audioFileName = (blob: Blob): string => {

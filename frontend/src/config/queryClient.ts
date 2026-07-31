@@ -7,10 +7,18 @@ const isNetworkError = (error: any) =>
   error?.message?.includes('Network request failed') ||
   error?.message?.includes('ERR_CONNECTION_REFUSED')
 
+// 4xx는 다시 물어봐도 답이 안 바뀐다 (삭제된 캡슐 404, 권한 없음 403 등).
+// 재시도하면 그 시간만큼 화면이 빈 채로 남아 "왜 이렇게 오래 걸리지" 가 된다.
+const isClientError = (error: unknown) => {
+  const status = (error as { status?: unknown })?.status
+  return typeof status === 'number' && status >= 400 && status < 500
+}
+
 // 재사용 가능한 retry 함수 (maxRetries로 횟수 조절)
 export const createRetry = (maxRetries: number) =>
   (failureCount: number, error: unknown) => {
     if (isNetworkError(error)) return false
+    if (isClientError(error)) return false
     return failureCount < maxRetries
   }
 
