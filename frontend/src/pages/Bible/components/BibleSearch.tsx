@@ -83,6 +83,7 @@ const BibleSearch = () => {
         '"창세기 1장"을 검색해보세요',
         '"창 1"처럼 줄여서 검색해도 돼요',
         '"하나님 사랑"을 검색해보세요',
+        '"주 그리스도 아들"처럼 여러 단어로 좁혀보세요',
         '"고린도전서"를 검색해보세요',
         '책 이름 · 장 · 키워드로 검색',
       ],
@@ -106,6 +107,7 @@ const BibleSearch = () => {
       placeholderExamples: [
         'Try "Genesis 1"',
         'Try "God\'s love"',
+        'Narrow down with multiple words, e.g. "Lord Christ Son"',
         'Try "1 Corinthians"',
         'Search by book, chapter, or keyword',
       ],

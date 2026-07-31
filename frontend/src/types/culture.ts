@@ -15,6 +15,8 @@ export interface CultureClass {
   display_order: number
   created_at: string
   updated_at: string
+  /** 취소 제외 신청자 수 — 구버전 백엔드 응답엔 없을 수 있음 */
+  application_count?: number
 }
 
 export interface CultureClassAdmin extends CultureClass {

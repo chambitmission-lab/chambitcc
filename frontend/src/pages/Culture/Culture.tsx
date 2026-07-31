@@ -4,7 +4,6 @@ import { showToast } from '../../utils/toast'
 import {
   getCultureClasses,
   getCultureNotices,
-  createCultureApplication,
   lookupCultureApplications,
   cancelCultureApplication,
 } from '../../api/culture'
@@ -14,15 +13,21 @@ import type {
   CultureApplication,
   CultureApplicationStatus,
 } from '../../types/culture'
+import ApplySheet, { AccountCopyRow, BANK_ACCOUNT } from './ApplySheet'
+import {
+  getCultureAccent,
+  withAlpha,
+  parseScheduleDays,
+  quarterEmoji,
+} from './cultureAccents'
 
-type SectionKey = 'guide' | 'apply' | 'lookup' | 'notice' | 'contact'
+type SectionKey = 'classes' | 'lookup' | 'notice' | 'contact'
 
-const SECTIONS: { key: SectionKey; label: string }[] = [
-  { key: 'guide', label: '문화교실 안내' },
-  { key: 'apply', label: '수강신청' },
-  { key: 'lookup', label: '신청 확인 · 취소' },
-  { key: 'notice', label: '공지사항' },
-  { key: 'contact', label: '강좌 문의' },
+const SECTIONS: { key: SectionKey; label: string; icon: string }[] = [
+  { key: 'classes', label: '강좌', icon: 'palette' },
+  { key: 'lookup', label: '신청 내역', icon: 'fact_check' },
+  { key: 'notice', label: '공지사항', icon: 'campaign' },
+  { key: 'contact', label: '문의', icon: 'support_agent' },
 ]
 
 const STATUS_LABEL: Record<CultureApplicationStatus, string> = {
@@ -43,7 +48,7 @@ const STATUS_BADGE: Record<CultureApplicationStatus, string> = {
 const inputClass =
   'w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors'
 
-/* DatePicker 트리거를 이 폼의 입력들과 같은 테두리·높이로 맞춘다 (inputClass + 좌우 정렬) */
+/* DatePicker 트리거를 이 폼의 입력들과 같은 테두리·높이로 맞춘다 */
 const datePickerTriggerClass =
   `${inputClass} flex items-center justify-between gap-2 text-left hover:border-brand`
 
@@ -60,6 +65,9 @@ const formatDate = (date: string) =>
     day: 'numeric',
   })
 
+const isRecentNotice = (createdAt: string) =>
+  Date.now() - new Date(createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+
 // ── 강좌 카드 ─────────────────────────────────────────────────────────
 
 const ClassCard = ({
@@ -68,95 +76,184 @@ const ClassCard = ({
 }: {
   cultureClass: CultureClass
   onApply: (c: CultureClass) => void
-}) => (
-  <div className={`${cardClass} p-4`}>
-    <div className="flex items-start justify-between gap-2">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-[15px] font-bold text-gray-900 dark:text-white/90">
-            {cultureClass.title}
-          </h3>
-          {cultureClass.is_open ? (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand">
-              모집중
-            </span>
-          ) : (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/40">
-              모집 마감
-            </span>
-          )}
+}) => {
+  const accent = getCultureAccent(cultureClass.title)
+  const days = parseScheduleDays(cultureClass.schedule)
+
+  const capacity = cultureClass.capacity ?? null
+  const count = cultureClass.application_count
+  const hasSeatInfo = capacity !== null && capacity > 0 && typeof count === 'number'
+  const remaining = hasSeatInfo ? Math.max(0, capacity - count) : null
+  const ratio = hasSeatInfo ? Math.min(1, count / capacity) : 0
+  const isFull = remaining === 0
+  const almostFull = hasSeatInfo && !isFull && (remaining! <= 3 || ratio >= 0.8)
+
+  return (
+    <div className={`${cardClass} overflow-hidden`}>
+      {/* 상단 파스텔 틴트 헤더 */}
+      <div
+        className="flex items-center gap-3 px-4 pt-4 pb-3"
+        style={{
+          background: `linear-gradient(135deg, ${withAlpha(accent.color, 0.1)}, transparent 70%)`,
+        }}
+      >
+        <div
+          className="w-12 h-12 rounded-2xl flex items-center justify-center text-[24px] shrink-0"
+          style={{
+            background: withAlpha(accent.color, 0.14),
+            border: `1px solid ${withAlpha(accent.color, 0.22)}`,
+          }}
+        >
+          {accent.emoji}
         </div>
-        {cultureClass.quarter && (
-          <p className="text-[11.5px] text-brand font-semibold mt-0.5">
-            {cultureClass.quarter}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <h3 className="text-[15.5px] font-bold text-gray-900 dark:text-white/90">
+              {cultureClass.title}
+            </h3>
+            {cultureClass.is_open ? (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand">
+                모집중
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/40">
+                모집 마감
+              </span>
+            )}
+            {almostFull && cultureClass.is_open && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 text-amber-600 dark:text-amber-300">
+                마감 임박
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+            {cultureClass.quarter && (
+              <span className="text-[11.5px] font-semibold" style={{ color: accent.color }}>
+                {cultureClass.quarter}
+              </span>
+            )}
+            {days.length > 0 && (
+              <span className="flex items-center gap-1">
+                {days.map((d) => (
+                  <span
+                    key={d}
+                    className="w-[18px] h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center"
+                    style={{
+                      background: withAlpha(accent.color, 0.13),
+                      color: accent.color,
+                    }}
+                  >
+                    {d}
+                  </span>
+                ))}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 pb-4">
+        {cultureClass.description && (
+          <p className="text-[13px] text-gray-600 dark:text-white/60 leading-relaxed whitespace-pre-wrap">
+            {cultureClass.description}
           </p>
+        )}
+
+        <div className="mt-3 space-y-1.5">
+          {[
+            { icon: 'person', value: cultureClass.instructor && `강사 ${cultureClass.instructor}` },
+            { icon: 'schedule', value: cultureClass.schedule },
+            { icon: 'payments', value: cultureClass.fee },
+            { icon: 'place', value: cultureClass.location },
+          ]
+            .filter((row) => row.value)
+            .map((row) => (
+              <div key={row.icon} className="flex items-center gap-2">
+                <span className="material-icons-outlined text-[15px] text-gray-400 dark:text-white/35">
+                  {row.icon}
+                </span>
+                <span className="text-[12.5px] text-gray-600 dark:text-white/55">{row.value}</span>
+              </div>
+            ))}
+        </div>
+
+        {/* 잔여석 게이지 */}
+        {hasSeatInfo ? (
+          <div className="mt-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[11.5px] text-gray-400 dark:text-white/40">
+                정원 {capacity}명
+              </span>
+              <span
+                className={`text-[11.5px] font-bold ${
+                  isFull
+                    ? 'text-gray-400 dark:text-white/40'
+                    : almostFull
+                      ? 'text-amber-600 dark:text-amber-300'
+                      : ''
+                }`}
+                style={isFull || almostFull ? undefined : { color: accent.color }}
+              >
+                {isFull ? '정원이 모두 찼어요' : `${remaining}자리 남았어요`}
+              </span>
+            </div>
+            <div
+              className="h-1.5 rounded-full overflow-hidden"
+              style={{ background: withAlpha(accent.color, 0.12) }}
+            >
+              <div
+                className="h-full rounded-full transition-[width] duration-500"
+                style={{ width: `${ratio * 100}%`, background: accent.color }}
+              />
+            </div>
+          </div>
+        ) : (
+          capacity !== null &&
+          capacity > 0 && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="material-icons-outlined text-[15px] text-gray-400 dark:text-white/35">
+                groups
+              </span>
+              <span className="text-[12.5px] text-gray-600 dark:text-white/55">
+                정원 {capacity}명
+              </span>
+            </div>
+          )
+        )}
+
+        {cultureClass.is_open && (
+          <button
+            onClick={() => onApply(cultureClass)}
+            disabled={isFull}
+            className="mt-3.5 w-full py-2.5 text-sm font-semibold bg-brand hover:bg-brand-dim text-white rounded-xl transition-colors disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-white/[0.06] dark:disabled:text-white/35"
+          >
+            {isFull ? '정원 마감' : '이 강좌 수강신청'}
+          </button>
         )}
       </div>
     </div>
-
-    {cultureClass.description && (
-      <p className="text-[13px] text-gray-600 dark:text-white/60 mt-2 leading-relaxed whitespace-pre-wrap">
-        {cultureClass.description}
-      </p>
-    )}
-
-    <div className="mt-3 space-y-1.5">
-      {[
-        { icon: 'person', value: cultureClass.instructor && `강사 ${cultureClass.instructor}` },
-        { icon: 'schedule', value: cultureClass.schedule },
-        { icon: 'payments', value: cultureClass.fee },
-        { icon: 'place', value: cultureClass.location },
-        { icon: 'groups', value: cultureClass.capacity ? `정원 ${cultureClass.capacity}명` : null },
-      ]
-        .filter((row) => row.value)
-        .map((row) => (
-          <div key={row.icon} className="flex items-center gap-2">
-            <span className="material-icons-outlined text-[15px] text-gray-400 dark:text-white/35">
-              {row.icon}
-            </span>
-            <span className="text-[12.5px] text-gray-600 dark:text-white/55">{row.value}</span>
-          </div>
-        ))}
-    </div>
-
-    {cultureClass.is_open && (
-      <button
-        onClick={() => onApply(cultureClass)}
-        className="mt-3.5 w-full py-2.5 text-sm font-semibold bg-brand hover:bg-brand-dim text-white rounded-xl transition-colors"
-      >
-        이 강좌 수강신청
-      </button>
-    )}
-  </div>
-)
+  )
+}
 
 // ── 메인 ─────────────────────────────────────────────────────────────
 
 const Culture = () => {
-  const [section, setSection] = useState<SectionKey>('guide')
+  const [section, setSection] = useState<SectionKey>('classes')
   const [classes, setClasses] = useState<CultureClass[]>([])
   const [notices, setNotices] = useState<CultureNotice[]>([])
   const [loading, setLoading] = useState(true)
 
-  // 수강신청 폼
-  const [form, setForm] = useState({
-    class_id: 0,
-    name: '',
-    phone: '',
-    birth_date: '',
-    gender: '',
-    memo: '',
-  })
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState<CultureApplication | null>(null)
+  // 수강신청 바텀시트
+  const [applyTarget, setApplyTarget] = useState<CultureClass | null>(null)
 
   // 신청 확인·취소
   const [lookupForm, setLookupForm] = useState({ phone: '', birth_date: '' })
   const [lookupResults, setLookupResults] = useState<CultureApplication[] | null>(null)
   const [lookingUp, setLookingUp] = useState(false)
 
-  // 공지 펼침
+  // 공지 펼침 / 이용 안내 펼침
   const [openNoticeId, setOpenNoticeId] = useState<number | null>(null)
+  const [guideOpen, setGuideOpen] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -181,37 +278,18 @@ const Culture = () => {
   }, [])
 
   const openClasses = classes.filter((c) => c.is_open)
+  const heroQuarter = openClasses.find((c) => c.quarter)?.quarter ?? null
+  const newNoticeCount = notices.filter((n) => isRecentNotice(n.created_at)).length
 
-  const goApply = (cultureClass: CultureClass) => {
-    setForm((f) => ({ ...f, class_id: cultureClass.id }))
-    setSubmitted(null)
-    setSection('apply')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const handleSubmit = async () => {
-    if (!form.class_id) return showToast('신청할 강좌를 선택해주세요', 'error')
-    if (!form.name.trim()) return showToast('이름을 입력해주세요', 'error')
-    if (!form.phone.trim()) return showToast('전화번호를 입력해주세요', 'error')
-    if (!form.birth_date.trim()) return showToast('생년월일을 입력해주세요', 'error')
-
-    try {
-      setSubmitting(true)
-      const result = await createCultureApplication({
-        class_id: form.class_id,
-        name: form.name.trim(),
-        phone: form.phone.trim(),
-        birth_date: form.birth_date.trim(),
-        gender: form.gender || undefined,
-        memo: form.memo.trim() || undefined,
-      })
-      setSubmitted(result)
-      setForm({ class_id: 0, name: '', phone: '', birth_date: '', gender: '', memo: '' })
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : '수강신청에 실패했습니다', 'error')
-    } finally {
-      setSubmitting(false)
-    }
+  const handleSubmitted = (application: CultureApplication) => {
+    // 방금 신청한 강좌의 잔여석을 바로 반영
+    setClasses((prev) =>
+      prev.map((c) =>
+        c.id === application.class_id && typeof c.application_count === 'number'
+          ? { ...c, application_count: c.application_count + 1 }
+          : c
+      )
+    )
   }
 
   const handleLookup = async () => {
@@ -243,6 +321,16 @@ const Culture = () => {
       setLookupResults((prev) =>
         prev ? prev.map((a) => (a.id === updated.id ? updated : a)) : prev
       )
+      // 취소된 만큼 잔여석 복구
+      setClasses((prev) =>
+        prev.map((c) =>
+          c.id === updated.class_id &&
+          typeof c.application_count === 'number' &&
+          c.application_count > 0
+            ? { ...c, application_count: c.application_count - 1 }
+            : c
+        )
+      )
       showToast('수강신청이 취소되었습니다', 'success')
     } catch (error) {
       showToast(error instanceof Error ? error.message : '취소에 실패했습니다', 'error')
@@ -253,7 +341,7 @@ const Culture = () => {
     <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100">
       <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20">
         {/* 헤더 */}
-        <header className="px-4 pt-5 pb-2">
+        <header className="px-4 pt-5 pb-3">
           <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
             CULTURE CLASS
           </p>
@@ -265,47 +353,37 @@ const Culture = () => {
           </p>
         </header>
 
-        {/* 섹션 메뉴 — 옛 홈페이지 사이드메뉴 느낌 */}
-        <nav className="px-4 pt-3 space-y-1.5">
-          {SECTIONS.map((s) => {
-            const active = section === s.key
-            return (
-              <button
-                key={s.key}
-                onClick={() => {
-                  setSection(s.key)
-                  if (s.key !== 'apply') setSubmitted(null)
-                }}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all ${
-                  active
-                    ? 'border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] shadow-[inset_3px_0_0_0_var(--brand)]'
-                    : 'border-gray-200/70 dark:border-white/[0.06] bg-white/80 dark:bg-card-dark hover:border-[var(--brand-soft-strong)]'
-                }`}
-              >
-                <span
-                  className={`text-[14px] font-semibold ${
+        {/* 칩 탭 — 강좌가 첫 화면의 주인공이 되도록 메뉴를 압축 */}
+        <nav className="sticky top-0 z-20 bg-surface/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
+          <div className="flex gap-2 px-4 py-2.5 overflow-x-auto no-scrollbar">
+            {SECTIONS.map((s) => {
+              const active = section === s.key
+              return (
+                <button
+                  key={s.key}
+                  onClick={() => setSection(s.key)}
+                  className={`relative flex items-center gap-1.5 flex-shrink-0 px-3.5 py-2 rounded-full border text-[13px] font-semibold transition-all ${
                     active
-                      ? 'text-brand'
-                      : 'text-gray-700 dark:text-white/75'
+                      ? 'border-brand bg-brand text-white shadow-[0_2px_10px_var(--brand-glow)]'
+                      : 'border-gray-200/80 dark:border-white/[0.08] bg-white/80 dark:bg-card-dark text-gray-600 dark:text-white/65 hover:border-[var(--brand-soft-strong)]'
                   }`}
                 >
+                  <span className="material-icons-outlined text-[16px]">{s.icon}</span>
                   {s.label}
-                </span>
-                <span
-                  className={`material-icons-outlined text-[18px] ${
-                    active
-                      ? 'text-brand'
-                      : 'text-gray-300 dark:text-white/25'
-                  }`}
-                >
-                  chevron_right
-                </span>
-              </button>
-            )
-          })}
+                  {s.key === 'notice' && newNoticeCount > 0 && (
+                    <span
+                      className={`min-w-[16px] h-4 px-1 rounded-full text-[9.5px] font-bold flex items-center justify-center ${
+                        active ? 'bg-white text-brand' : 'bg-red-500 text-white'
+                      }`}
+                    >
+                      {newNoticeCount}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </nav>
-
-        <div className="border-t border-border-light dark:border-border-dark mt-4" />
 
         {/* 섹션 콘텐츠 */}
         <div className="px-4 pt-4 space-y-3">
@@ -315,187 +393,86 @@ const Culture = () => {
             </div>
           ) : (
             <>
-              {/* ── 문화교실 안내 ── */}
-              {section === 'guide' && (
+              {/* ── 강좌 ── */}
+              {section === 'classes' && (
                 <>
-                  <div className={`${cardClass} p-4`}>
-                    <h2 className="text-[14px] font-bold text-gray-900 dark:text-white/90 mb-2">
-                      참빛 문화교실을 소개합니다
-                    </h2>
-                    <p className="text-[13px] text-gray-600 dark:text-white/60 leading-relaxed">
-                      다양한 강좌가 개설되어 있으며, 분기별로 수강생을 모집합니다.
-                      모집 기간 이후에도 상시 신청하실 수 있으니 편하게 문의해 주세요.
-                    </p>
-                    <div className="mt-3 pt-3 border-t border-gray-100 dark:border-white/[0.06] space-y-1.5">
-                      {[
-                        '① 아래 수강신청 메뉴에서 신청서를 작성해 주세요',
-                        '② 수강료를 입금하시면 등록이 완료됩니다',
-                        '③ 12회 일괄 또는 5회 분할 입금이 가능합니다',
-                      ].map((step) => (
-                        <p key={step} className="text-[12.5px] text-gray-600 dark:text-white/55">
-                          {step}
-                        </p>
-                      ))}
+                  {/* 시즌 모집 히어로 배너 */}
+                  {openClasses.length > 0 && (
+                    <div className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
+                      <div className="absolute -top-6 -right-4 text-[64px] opacity-20 rotate-12 pointer-events-none select-none">
+                        {quarterEmoji(heroQuarter)}
+                      </div>
+                      <p className="text-[11px] font-bold tracking-[0.1em] text-brand uppercase">
+                        Now Open
+                      </p>
+                      <h2 className="text-[17px] font-bold text-ink-strong mt-1">
+                        {quarterEmoji(heroQuarter)}{' '}
+                        {heroQuarter ? `${heroQuarter} 수강생 모집 중` : '수강생 모집 중'}
+                      </h2>
+                      <p className="text-[12.5px] text-gray-600 dark:text-white/60 mt-1">
+                        {openClasses.length}개 강좌가 성도님을 기다리고 있어요
+                      </p>
                     </div>
-                  </div>
+                  )}
 
-                  <h2 className="text-[13px] font-bold text-gray-500 dark:text-white/45 uppercase tracking-wider pt-1 px-1">
-                    개설 강좌
-                  </h2>
                   {classes.length === 0 ? (
-                    <div className={`${cardClass} py-12 text-center`}>
-                      <p className="text-sm text-gray-400 dark:text-white/35">
+                    <div className={`${cardClass} py-14 text-center`}>
+                      <p className="text-[32px] mb-2">🌱</p>
+                      <p className="text-sm font-semibold text-gray-500 dark:text-white/50">
                         현재 개설된 강좌가 없습니다
+                      </p>
+                      <p className="text-[12.5px] text-gray-400 dark:text-white/35 mt-1">
+                        다음 분기 강좌를 기대해 주세요
                       </p>
                     </div>
                   ) : (
                     classes.map((c) => (
-                      <ClassCard key={c.id} cultureClass={c} onApply={goApply} />
+                      <ClassCard key={c.id} cultureClass={c} onApply={setApplyTarget} />
                     ))
                   )}
+
+                  {/* 이용 안내 — 접이식으로 강좌 아래에 배치 */}
+                  <div className={`${cardClass} overflow-hidden`}>
+                    <button
+                      onClick={() => setGuideOpen((v) => !v)}
+                      className="w-full flex items-center justify-between px-4 py-3.5 text-left"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="material-icons-outlined text-[18px] text-brand">
+                          info
+                        </span>
+                        <span className="text-[13.5px] font-bold text-gray-800 dark:text-white/85">
+                          문화교실 이용 안내
+                        </span>
+                      </span>
+                      <span
+                        className={`material-icons-outlined text-[18px] text-gray-300 dark:text-white/25 transition-transform ${guideOpen ? 'rotate-180' : ''}`}
+                      >
+                        expand_more
+                      </span>
+                    </button>
+                    {guideOpen && (
+                      <div className="px-4 pb-4 animate-fade-in">
+                        <p className="text-[13px] text-gray-600 dark:text-white/60 leading-relaxed">
+                          다양한 강좌가 개설되어 있으며, 분기별로 수강생을 모집합니다. 모집 기간
+                          이후에도 상시 신청하실 수 있으니 편하게 문의해 주세요.
+                        </p>
+                        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-white/[0.06] space-y-1.5">
+                          {[
+                            '① 강좌 카드에서 수강신청 버튼을 눌러 신청서를 작성해 주세요',
+                            '② 수강료를 입금하시면 등록이 완료됩니다',
+                            '③ 12회 일괄 또는 5회 분할 입금이 가능합니다',
+                          ].map((step) => (
+                            <p key={step} className="text-[12.5px] text-gray-600 dark:text-white/55">
+                              {step}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
-
-              {/* ── 수강신청 ── */}
-              {section === 'apply' &&
-                (submitted ? (
-                  <div className={`${cardClass} p-5 text-center`}>
-                    <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 dark:bg-emerald-500/15 flex items-center justify-center mb-3">
-                      <span className="material-icons-round text-[26px] text-emerald-500">
-                        check
-                      </span>
-                    </div>
-                    <h2 className="text-[16px] font-bold text-ink-strong">
-                      수강신청이 접수되었습니다
-                    </h2>
-                    <p className="text-[13px] text-gray-500 dark:text-white/55 mt-1.5">
-                      {submitted.class_title} · {submitted.name}님
-                    </p>
-                    <div className="mt-4 p-3.5 rounded-xl bg-gray-50 dark:bg-white/[0.04] text-left">
-                      <p className="text-[12.5px] text-gray-600 dark:text-white/60 leading-relaxed">
-                        수강료를 입금하시면 등록이 완료됩니다.
-                        <br />
-                        12회 일괄 또는 5회 분할 입금이 가능합니다.
-                      </p>
-                      <p className="text-[13px] font-semibold text-gray-800 dark:text-white/80 mt-2">
-                        농협 301-0254-9469-31
-                        <span className="font-normal text-gray-500 dark:text-white/50">
-                          {' '}
-                          (대한예수교장로회 참빛교회)
-                        </span>
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setSubmitted(null)}
-                      className="mt-4 px-5 py-2.5 text-sm font-semibold text-brand border border-[var(--brand-soft-strong)] rounded-xl hover:bg-[var(--brand-soft)] transition-colors"
-                    >
-                      다른 강좌 신청하기
-                    </button>
-                  </div>
-                ) : (
-                  <div className={`${cardClass} p-4 space-y-4`}>
-                    <div>
-                      <label className={labelClass}>신청 강좌 *</label>
-                      <select
-                        value={form.class_id || ''}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, class_id: Number(e.target.value) }))
-                        }
-                        className={inputClass}
-                      >
-                        <option value="">강좌를 선택해주세요</option>
-                        {openClasses.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.title}
-                            {c.schedule ? ` — ${c.schedule}` : ''}
-                          </option>
-                        ))}
-                      </select>
-                      {openClasses.length === 0 && (
-                        <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1.5">
-                          현재 모집 중인 강좌가 없습니다
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>이름 (수강생) *</label>
-                      <input
-                        value={form.name}
-                        onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                        placeholder="성함을 입력해주세요"
-                        className={inputClass}
-                      />
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>생년월일 *</label>
-                      {/* 네이티브 date 입력은 mm/dd/yyyy·영문 달력이라 앱 공통 DatePicker로 */}
-                      <DatePicker
-                        value={form.birth_date}
-                        onChange={(date) => setForm((f) => ({ ...f, birth_date: date }))}
-                        placeholder="생년월일을 선택해주세요"
-                        birthMode
-                        className={datePickerTriggerClass}
-                      />
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>성별</label>
-                      <div className="flex gap-2">
-                        {['남', '여'].map((g) => (
-                          <button
-                            key={g}
-                            type="button"
-                            onClick={() =>
-                              setForm((f) => ({ ...f, gender: f.gender === g ? '' : g }))
-                            }
-                            className={`flex-1 py-2.5 text-sm font-semibold rounded-xl border transition-colors ${
-                              form.gender === g
-                                ? 'border-brand bg-[var(--brand-soft)] text-brand'
-                                : 'border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-white/50 hover:border-gray-300 dark:hover:border-white/20'
-                            }`}
-                          >
-                            {g}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>전화번호 *</label>
-                      <input
-                        type="tel"
-                        value={form.phone}
-                        onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                        placeholder="010-0000-0000"
-                        className={inputClass}
-                      />
-                      <p className="text-[11.5px] text-gray-400 dark:text-white/35 mt-1.5">
-                        신청 확인과 취소 시 본인 확인에 사용됩니다
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className={labelClass}>남기실 말씀</label>
-                      <textarea
-                        value={form.memo}
-                        onChange={(e) => setForm((f) => ({ ...f, memo: e.target.value }))}
-                        placeholder="문의사항이 있으시면 남겨주세요 (선택)"
-                        rows={3}
-                        className={`${inputClass} resize-none`}
-                      />
-                    </div>
-
-                    <button
-                      onClick={handleSubmit}
-                      disabled={submitting || openClasses.length === 0}
-                      className="w-full py-3 text-sm font-bold bg-brand hover:bg-brand-dim text-white rounded-xl disabled:opacity-50 transition-colors"
-                    >
-                      {submitting ? '신청 중...' : '수강신청 하기'}
-                    </button>
-                  </div>
-                ))}
 
               {/* ── 신청 확인 · 취소 ── */}
               {section === 'lookup' && (
@@ -539,33 +516,47 @@ const Culture = () => {
                   </div>
 
                   {lookupResults !== null &&
-                    lookupResults.map((application) => (
-                      <div key={application.id} className={`${cardClass} p-4`}>
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="text-[14px] font-bold text-gray-900 dark:text-white/90 truncate">
-                            {application.class_title ?? '강좌'}
-                          </h3>
-                          <span
-                            className={`flex-shrink-0 text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${STATUS_BADGE[application.status]}`}
-                          >
-                            {STATUS_LABEL[application.status]}
-                          </span>
+                    lookupResults.map((application) => {
+                      const accent = getCultureAccent(application.class_title ?? '')
+                      return (
+                        <div key={application.id} className={`${cardClass} p-4`}>
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className="w-9 h-9 rounded-xl flex items-center justify-center text-[18px] shrink-0"
+                              style={{ background: withAlpha(accent.color, 0.14) }}
+                            >
+                              {accent.emoji}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <h3 className="text-[14px] font-bold text-gray-900 dark:text-white/90 truncate">
+                                  {application.class_title ?? '강좌'}
+                                </h3>
+                                <span
+                                  className={`flex-shrink-0 text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${STATUS_BADGE[application.status]}`}
+                                >
+                                  {STATUS_LABEL[application.status]}
+                                </span>
+                              </div>
+                              <p className="text-[12px] text-gray-400 dark:text-white/40 mt-0.5">
+                                {application.name} · {formatDate(application.created_at)} 신청
+                              </p>
+                            </div>
+                          </div>
+                          {application.status !== 'cancelled' && (
+                            <button
+                              onClick={() => handleCancel(application)}
+                              className="mt-3 w-full py-2 text-[13px] font-semibold text-red-500 dark:text-red-400 border border-red-200 dark:border-red-500/25 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                            >
+                              수강신청 취소
+                            </button>
+                          )}
                         </div>
-                        <p className="text-[12px] text-gray-400 dark:text-white/40 mt-1">
-                          {application.name} · {formatDate(application.created_at)} 신청
-                        </p>
-                        {application.status !== 'cancelled' && (
-                          <button
-                            onClick={() => handleCancel(application)}
-                            className="mt-3 w-full py-2 text-[13px] font-semibold text-red-500 dark:text-red-400 border border-red-200 dark:border-red-500/25 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                          >
-                            수강신청 취소
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                      )
+                    })}
                   {lookupResults !== null && lookupResults.length === 0 && (
                     <div className={`${cardClass} py-10 text-center`}>
+                      <p className="text-[28px] mb-2">🔍</p>
                       <p className="text-sm text-gray-400 dark:text-white/35">
                         신청 내역이 없습니다
                       </p>
@@ -577,7 +568,8 @@ const Culture = () => {
               {/* ── 공지사항 ── */}
               {section === 'notice' &&
                 (notices.length === 0 ? (
-                  <div className={`${cardClass} py-12 text-center`}>
+                  <div className={`${cardClass} py-14 text-center`}>
+                    <p className="text-[32px] mb-2">📭</p>
                     <p className="text-sm text-gray-400 dark:text-white/35">
                       등록된 공지사항이 없습니다
                     </p>
@@ -592,8 +584,13 @@ const Culture = () => {
                         className={`${cardClass} w-full p-4 text-left`}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <h3 className="text-[14px] font-bold text-gray-900 dark:text-white/90">
-                            {notice.title}
+                          <h3 className="text-[14px] font-bold text-gray-900 dark:text-white/90 flex items-center gap-1.5 min-w-0">
+                            <span className="truncate">{notice.title}</span>
+                            {isRecentNotice(notice.created_at) && (
+                              <span className="flex-shrink-0 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
+                                N
+                              </span>
+                            )}
                           </h3>
                           <span
                             className={`material-icons-outlined text-[18px] text-gray-300 dark:text-white/25 transition-transform ${open ? 'rotate-180' : ''}`}
@@ -614,7 +611,7 @@ const Culture = () => {
                   })
                 ))}
 
-              {/* ── 강좌 문의 ── */}
+              {/* ── 문의 ── */}
               {section === 'contact' && (
                 <div className={`${cardClass} p-4 space-y-4`}>
                   <h2 className="text-[14px] font-bold text-gray-900 dark:text-white/90">
@@ -636,11 +633,6 @@ const Culture = () => {
                       icon: 'edit_note',
                       title: '방문 접수',
                       desc: '신청서를 작성하셔서 2층 교역자 사무실에 제출하셔도 됩니다',
-                    },
-                    {
-                      icon: 'account_balance',
-                      title: '수강료 입금 계좌',
-                      desc: '농협 301-0254-9469-31 (대한예수교장로회 참빛교회)',
                     },
                   ].map((row) => {
                     const content = (
@@ -670,12 +662,41 @@ const Culture = () => {
                       </div>
                     )
                   })}
+
+                  {/* 수강료 입금 계좌 — 복사 버튼 포함 */}
+                  <div>
+                    <div className="flex items-start gap-3 mb-2">
+                      <div className="w-9 h-9 rounded-full bg-[var(--brand-soft)] flex items-center justify-center flex-shrink-0">
+                        <span className="material-icons-outlined text-[18px] text-brand">
+                          account_balance
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-semibold text-gray-800 dark:text-white/80">
+                          수강료 입금 계좌
+                        </p>
+                        <p className="text-[12.5px] text-gray-500 dark:text-white/50 mt-0.5">
+                          {BANK_ACCOUNT.holder}
+                        </p>
+                      </div>
+                    </div>
+                    <AccountCopyRow />
+                  </div>
                 </div>
               )}
             </>
           )}
         </div>
       </div>
+
+      {/* 수강신청 바텀시트 */}
+      {applyTarget && (
+        <ApplySheet
+          cultureClass={applyTarget}
+          onClose={() => setApplyTarget(null)}
+          onSubmitted={handleSubmitted}
+        />
+      )}
     </div>
   )
 }
