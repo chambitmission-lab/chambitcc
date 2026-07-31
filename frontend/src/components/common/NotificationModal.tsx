@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, useTransition } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   useNotifications,
   useMarkAsRead,
   useMarkAllAsRead,
 } from '../../hooks/useNotifications'
+import { prefetchCapsule } from '../../hooks/useTimeCapsule'
 import { showToast } from '../../utils/toast'
 import { preloadRoute } from '../../utils/routePreload'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
@@ -72,9 +74,13 @@ const resolveTarget = (
 
 const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
+  // 목적지가 준비될 때까지 모달이 떠 있으므로, 어느 바로가기를 눌렀는지 표시해준다
+  const [isNavigating, startNavTransition] = useTransition()
+  const [pendingLinkId, setPendingLinkId] = useState<number | null>(null)
   const isLoggedIn = !!localStorage.getItem('access_token')
   const sentinelRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const {
     data,
@@ -112,15 +118,18 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  // 바로가기 대상 페이지 청크를 목록이 뜨는 동안 미리 받아둔다.
-  // 라우터가 화면 전환을 startTransition으로 돌리기 때문에, 탭한 뒤에야 청크를 받으면
-  // 도착할 때까지 이전 화면(홈)이 그대로 남아 "홈 갔다가 상세로" 두 번 이동처럼 보인다.
+  // 바로가기 대상의 청크와 데이터를 목록이 뜨는 동안 미리 받아둔다.
+  // 탭한 뒤에 받기 시작하면 도착할 때까지 전환이 지연되고, 그 사이 이전 화면이 남는다.
   useEffect(() => {
     if (!isOpen) return
     notifications.forEach((n) => {
-      if (n.link_url) void preloadRoute(n.link_url)
+      if (!n.link_url) return
+      void preloadRoute(n.link_url)
+
+      const capsuleId = n.link_url.match(/^\/capsule\/(\d+)$/)?.[1]
+      if (capsuleId && isLoggedIn) void prefetchCapsule(queryClient, Number(capsuleId))
     })
-  }, [isOpen, notifications])
+  }, [isOpen, notifications, isLoggedIn, queryClient])
 
   const grouped = useMemo(() => {
     const groups: Record<DateGroup, Notification[]> = { today: [], week: [], older: [] }
@@ -154,13 +163,23 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
       // 읽음 처리 실패는 조용히 무시 (이동을 막지 않는다)
       markAsReadMutation.mutate(notification.id, { onError: () => {} })
     }
-    onClose()
-    if (!notification.link_url) return
+    if (!notification.link_url) {
+      onClose()
+      return
+    }
 
     const target = resolveTarget(notification.link_url)
-    // replace — 모달이 뒤로가기용으로 쌓아둔 히스토리 엔트리(주소는 현재 화면 그대로)를
-    // 재사용한다. push 하면 그 엔트리가 사이에 남아 상세에서 뒤로가기를 두 번 눌러야 한다.
-    navigate(target.path, { state: target.state, replace: true })
+    setPendingLinkId(notification.id)
+    // 모달 닫기와 화면 이동을 같은 transition에 묶는다. 따로 두면 닫기는 urgent라
+    // 먼저 커밋돼 뒤에 있던 홈이 한 프레임 그려지고, 라우터 전환(내부적으로 transition)이
+    // 그 다음에 커밋되면서 "홈이 보였다가 확 바뀌는" 두 번의 페인트가 된다.
+    // 한 transition으로 묶으면 목적지가 준비될 때까지 모달이 떠 있다가 한 번에 교체된다.
+    startNavTransition(() => {
+      onClose()
+      // replace — 모달이 뒤로가기용으로 쌓아둔 히스토리 엔트리(주소는 현재 화면 그대로)를
+      // 재사용한다. push 하면 그 엔트리가 사이에 남아 상세에서 뒤로가기를 두 번 눌러야 한다.
+      navigate(target.path, { state: target.state, replace: true })
+    })
   }
 
   const handleMarkAllAsRead = async () => {
@@ -299,6 +318,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                         const unread = !notification.is_read
                         const expanded = expandedIds.has(notification.id)
                         const expandable = needsExpand(notification.content)
+                        const navigating = isNavigating && pendingLinkId === notification.id
 
                         return (
                           <li key={notification.id}>
@@ -359,22 +379,30 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                           goToLink(notification)
                                         }
                                       }}
+                                      aria-busy={navigating}
                                       className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-purple-600 dark:text-purple-400 hover:underline"
                                     >
-                                      <span>바로가기</span>
-                                      <svg
-                                        width="12"
-                                        height="12"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        aria-hidden
-                                      >
-                                        <path d="M9 18l6-6-6-6" />
-                                      </svg>
+                                      <span>{navigating ? '여는 중' : '바로가기'}</span>
+                                      {navigating ? (
+                                        <span
+                                          className="w-3 h-3 border-[1.5px] border-current border-t-transparent rounded-full animate-spin"
+                                          aria-hidden
+                                        />
+                                      ) : (
+                                        <svg
+                                          width="12"
+                                          height="12"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          strokeWidth="2.5"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          aria-hidden
+                                        >
+                                          <path d="M9 18l6-6-6-6" />
+                                        </svg>
+                                      )}
                                     </span>
                                   )}
 

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import {
   claimCapsule,
   createCapsule,
@@ -34,6 +35,18 @@ export const useCapsule = (capsuleId: number, enabled = true) =>
     enabled: enabled && capsuleId > 0,
     staleTime: 1000 * 30,
     refetchOnMount: true,
+  })
+
+/**
+ * 알림 '바로가기'처럼 진입이 예정된 캡슐의 상세를 미리 받아둔다.
+ * useCapsule과 staleTime을 맞춰야 진입 직후 refetchOnMount가 다시 돌지 않는다
+ * (안 맞추면 미리 받아두고도 스켈레톤이 한 번 깜빡인다).
+ */
+export const prefetchCapsule = (qc: QueryClient, capsuleId: number) =>
+  qc.prefetchQuery({
+    queryKey: capsuleKeys.detail(capsuleId),
+    queryFn: () => getCapsule(capsuleId),
+    staleTime: 1000 * 30,
   })
 
 export const useCapsulePreview = (inviteCode: string) =>
