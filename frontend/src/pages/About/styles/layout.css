@@ -2,7 +2,7 @@
    색은 theme.css 토큰을 참조 — 라이트/다크 분기는 토큰이 담당한다. */
 
 .about-content {
-  padding: 2.25rem 1.5rem 2rem;
+  padding: 1.75rem 1.5rem 2rem;
 }
 
 /* Section Overline — 필 배지 대신 작은 브랜드 라벨 (토스식 오버라인) */

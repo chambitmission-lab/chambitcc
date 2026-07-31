@@ -1,11 +1,13 @@
 /* About Page - Hero Section
-   사진이 주인공: 텍스트는 하단 스크림 위에 좌측 정렬로 얹는다.
-   장식(떠다니는 필·네온 글로우)은 걷어내고 토스식 플랫 타이포만 남긴다.
-   사진이 없으면 딥 블루 그라데이션이 그대로 배경이 된다. */
+   사진이 주인공: 하단 경계선 없이 페이지 배경으로 스르륵 녹아드는 디졸브.
+   텍스트는 페이드가 충분히 진해진 하단에 좌측 정렬로 얹고,
+   색은 테마 배경(light 흰색 / dark #131313)에 맞춰 뒤집는다.
+   사진이 없으면 딥 블루 그라데이션이 그대로 배경이 되고 같은 페이드로 마무리된다. */
 
 .about-hero {
   position: relative;
-  height: 340px;
+  /* 하단 40%가 페이드 구간이라 그만큼 키워 사진 노출량을 유지한다 */
+  height: 360px;
   background: linear-gradient(160deg, #0c1a33 0%, #14305f 55%, #1b6ef3 160%);
   overflow: hidden;
 }
@@ -35,19 +37,32 @@
   }
 }
 
-/* 하단 스크림 — 사진 위 텍스트 가독성은 글로우가 아니라 이 그라데이션이 담당한다 */
+/* 디졸브 — 사진이 아래로 갈수록 페이지 배경색에 녹아든다.
+   마지막 색이 페이지 배경(#fff / #131313)과 정확히 같아 경계선이 아예 없다.
+   텍스트 가독성도 이 페이드가 담당한다 (별도 스크림 없음). */
 .hero-scrim {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(8, 15, 30, 0) 32%,
-    rgba(8, 15, 30, 0.18) 58%,
-    rgba(8, 15, 30, 0.86) 100%
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 255, 255, 0.45) 64%,
+    rgba(255, 255, 255, 0.85) 82%,
+    rgba(255, 255, 255, 1) 100%
   );
 }
 
-/* 텍스트는 하단 좌측 앵커 */
+.dark .hero-scrim {
+  background: linear-gradient(
+    180deg,
+    rgba(19, 19, 19, 0) 42%,
+    rgba(19, 19, 19, 0.45) 64%,
+    rgba(19, 19, 19, 0.85) 82%,
+    rgba(19, 19, 19, 1) 100%
+  );
+}
+
+/* 텍스트는 하단 좌측 앵커 — 페이드가 진한 구간에 앉는다 */
 .hero-content {
   position: absolute;
   inset: auto 0 0 0;
@@ -55,30 +70,42 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 0.3rem;
-  padding: 0 1.5rem 1.4rem;
+  padding: 0 1.5rem 0.9rem;
   text-align: left;
 }
 
 /* 다른 페이지의 전역 .hero-title 스타일이 새어 들어오지 못하도록 스코프 +
-   색/그라데이션 clip 명시 초기화. About 히어로는 테마와 무관하게 어두운 배경. */
+   색/그라데이션 clip 명시 초기화. 페이드 배경 위라 텍스트 색은 테마를 따른다. */
 .about-hero .hero-content .hero-title {
   font-size: 1.9rem;
   font-weight: 800;
-  color: white;
+  color: #191722;
   background: none;
-  -webkit-text-fill-color: white;
+  -webkit-text-fill-color: #191722;
   -webkit-background-clip: border-box;
   background-clip: border-box;
   margin: 0;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
+  /* 사진이 살짝 비치는 자리라 배경색 글로우로 한 겹 받쳐준다 */
+  text-shadow: 0 1px 14px rgba(255, 255, 255, 0.65);
+}
+
+.dark .about-hero .hero-content .hero-title {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  text-shadow: 0 1px 14px rgba(19, 19, 19, 0.65);
 }
 
 .about-hero .hero-content .hero-subtitle {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(25, 23, 34, 0.72);
   font-weight: 500;
   letter-spacing: 0.01em;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.6);
+}
+
+.dark .about-hero .hero-content .hero-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 10px rgba(19, 19, 19, 0.6);
 }
