@@ -5,6 +5,7 @@ import { API_URL } from '../../../config/api'
 import { isAdmin } from '../../../utils/auth'
 import { useDeleteSermon } from '../../../hooks/useSermons'
 import { useSermonBibleReferences } from '../../../hooks/useSermonBibleReferences'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { BibleReferencesSection } from './BibleReferencesSection'
 import SermonContentFormatter from './SermonContentFormatter'
 import { extractYouTubeVideoId } from '../utils/sermonMeta'
@@ -34,6 +35,15 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
   
   // 설교 상세에 포함된 구절 또는 별도 조회한 구절 사용
   const displayReferences = sermon.bible_references || bibleReferences || []
+
+  // 뒤로가기 → 삭제 확인이 떠있으면 그것만, 아니면 상세 닫기 (목록에서 벗어나지 않도록)
+  useModalBackButton(() => {
+    if (showDeleteConfirm) {
+      setShowDeleteConfirm(false)
+    } else {
+      onClose()
+    }
+  })
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
