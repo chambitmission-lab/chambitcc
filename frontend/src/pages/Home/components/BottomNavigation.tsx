@@ -42,6 +42,14 @@ const DIAL_ACTIONS = [
   },
 ] as const
 
+// 다이얼을 열 때마다 하나씩 — 화려함 대신 "써볼까" 하게 만드는 다정한 질문
+const GREETINGS = [
+  '오늘은 어떤 마음을 나눌까요?',
+  '나누고 싶은 은혜가 있나요?',
+  '작은 것도 좋아요, 함께 나눠요',
+  '오늘 하루, 어떠셨어요?',
+]
+
 const BottomNavigation = ({
   onProfileClick,
   onComposeClick,
@@ -58,7 +66,18 @@ const BottomNavigation = ({
 
   // FAB 스피드 다이얼 — 기도·감사·말씀카드 세 가지 "나눔"의 허브
   const [dialOpen, setDialOpen] = useState(false)
+  // 열 때마다 바뀌는 인사 — "작성해볼까" 하는 마음을 여는 한 줄
+  const [greeting, setGreeting] = useState(GREETINGS[0])
   useModalBackButton(() => setDialOpen(false), dialOpen)
+
+  const toggleDial = () => {
+    if (!dialOpen) {
+      setGreeting(GREETINGS[Math.floor(Math.random() * GREETINGS.length)])
+      // 지원 기기(안드로이드)에서만 아주 짧은 햅틱 — 눌린 손맛
+      navigator.vibrate?.(8)
+    }
+    setDialOpen((v) => !v)
+  }
 
   const runAction = (key: (typeof DIAL_ACTIONS)[number]['key']) => {
     setDialOpen(false)
@@ -81,6 +100,13 @@ const BottomNavigation = ({
       {/* 스피드 다이얼 액션 — FAB 위로 순서대로 튀어오른다 */}
       {dialOpen && (
         <div className="absolute left-1/2 -translate-x-1/2 top-[-14px] -translate-y-full z-30 flex flex-col items-center gap-2.5">
+          {/* 인사 한 줄 — 알약들이 자리잡은 뒤 마지막에 스르륵 */}
+          <p
+            className="dial-item text-[13px] font-medium text-white/85 mb-1 select-none"
+            style={{ animationDelay: `${DIAL_ACTIONS.length * 45 + 60}ms` }}
+          >
+            {greeting}
+          </p>
           {DIAL_ACTIONS.map((action, i) => (
             <button
               key={action.key}
@@ -117,8 +143,19 @@ const BottomNavigation = ({
           to { opacity: 1; }
         }
         .dial-fade { animation: dial-fade-in 0.18s ease both; }
+
+        /* 젤리 팝 — 누르는 순간 눌렸다가 통통 튀며 제자리로 (transform엔 센터링 translate 포함) */
+        @keyframes fab-pop {
+          0% { transform: translateX(-50%) scale(0.82); }
+          45% { transform: translateX(-50%) scale(1.1); }
+          70% { transform: translateX(-50%) scale(0.96); }
+          100% { transform: translateX(-50%) scale(1); }
+        }
+        /* fill 없음 — 끝나면 transform 잠금을 풀어 ×를 다시 누를 때의 active:scale이 살아있게 */
+        .fab-pop { animation: fab-pop 0.4s cubic-bezier(0.3, 1.4, 0.5, 1); }
+
         @media (prefers-reduced-motion: reduce) {
-          .dial-item, .dial-fade { animation: none; }
+          .dial-item, .dial-fade, .fab-pop { animation: none; }
         }
       `}</style>
       {/* Glass dock — 카드 시스템과 동일한 #1c1c26/80 + 상단 1px 빛줄 + soft purple shadow.
@@ -225,17 +262,17 @@ const BottomNavigation = ({
 
       {/* Compose FAB — 노치 위에 떠 있는 원형 + 버튼. 바(mask)와 분리된 형제 요소라 잘리지 않는다.
           원 중심이 바 상단 모서리에 오도록 배치해 절반은 위로 솟고 절반은 노치에 안긴다.
-          탭하면 기도·감사·말씀카드 스피드 다이얼이 열리고 +가 ×로 회전한다 */}
+          평소엔 조용히 있다가, 누르는 순간 젤리처럼 튕기며 +가 스프링 회전으로 ×가 된다 */}
       <button
-        onClick={() => setDialOpen((v) => !v)}
+        onClick={toggleDial}
         aria-label={dialOpen ? '나눔 메뉴 닫기' : '나눔 메뉴 열기'}
         aria-expanded={dialOpen}
-        className="absolute left-1/2 -translate-x-1/2 top-0 z-30 flex items-center justify-center w-14 h-14 rounded-full text-white bg-gradient-to-br from-[#69a8ff] via-[var(--brand)] to-[#3f5efb] shadow-[0_6px_16px_-2px_var(--brand-glow)] ring-1 ring-white/20 dark:ring-white/15 active:scale-90 transition-transform duration-150"
+        className={`absolute left-1/2 -translate-x-1/2 top-0 z-30 flex items-center justify-center w-14 h-14 rounded-full text-white bg-gradient-to-br from-[#69a8ff] via-[var(--brand)] to-[#3f5efb] shadow-[0_6px_16px_-2px_var(--brand-glow)] ring-1 ring-white/20 dark:ring-white/15 active:scale-[0.82] transition-transform duration-150${dialOpen ? ' fab-pop' : ''}`}
       >
         {/* 위쪽 절반 유리 광택 — 평면 채움이 아니라 살짝 부푼 버튼처럼 보이게 */}
         <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 via-white/5 to-transparent pointer-events-none" />
         <svg
-          className={`relative w-7 h-7 transition-transform duration-200 ${dialOpen ? 'rotate-45' : ''}`}
+          className={`relative w-7 h-7 transition-transform duration-300 [transition-timing-function:cubic-bezier(0.34,1.8,0.5,1)] ${dialOpen ? 'rotate-[135deg]' : ''}`}
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
