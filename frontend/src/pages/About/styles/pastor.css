@@ -1,27 +1,68 @@
-/* About Page - Pastor Section */
+/* About Page - Pastor Section
+   이력서가 아니라 편지: 사진 + 세리프 본문 + 서명.
+   약력(학력·경력·수상)은 details 아코디언으로 접어 정보는 유지하되 벽을 없앤다.
+   세리프는 목양칼럼(주간 편지)과 같은 Noto Serif KR 을 재사용해 앱 안 문법을 맞춘다. */
 
 .pastor-section {
   margin-bottom: 3rem;
 }
 
-.pastor-nickname {
-  display: inline-block;
-  padding: 0.5rem 1.25rem;
-  background: var(--brand-soft);
-  border-radius: 50px;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--brand);
-  margin-bottom: 2rem;
+.pastor-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.pastor-intro {
-  margin-bottom: 2rem;
+.pastor-photo {
+  width: 84px;
+  height: 84px;
+  border-radius: 24px;
+  object-fit: cover;
+  background: var(--surface-container-high);
+  filter: var(--media-dim);
+}
+
+/* 사진 미등록 시 관리자에게만 보이는 등록 플레이스홀더 */
+.pastor-photo--empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed var(--brand-soft-strong);
+  color: var(--text-muted);
+  filter: none;
+}
+
+.pastor-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.pastor-name {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.pastor-nickname {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--brand);
+}
+
+/* 편지 본문 */
+.pastor-letter {
+  font-family: 'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+  margin-bottom: 1.75rem;
 }
 
 .pastor-text {
   font-size: 0.9375rem;
-  line-height: 1.8;
+  line-height: 1.95;
   color: var(--text-body);
   margin-bottom: 1.25rem;
 }
@@ -29,32 +70,59 @@
 .pastor-text.highlight {
   padding: 1.25rem;
   background: var(--brand-soft);
-  border-left: 4px solid var(--brand);
+  border-left: 3px solid var(--brand);
   border-radius: 0.5rem;
   font-weight: 600;
   color: var(--brand-muted);
 }
 
-/* Credentials */
+.pastor-signature {
+  text-align: right;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-top: 1.5rem;
+}
+
+/* Credentials — 접힌 약력 */
+.pastor-credentials {
+  background: var(--surface-container-high);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.pastor-credentials summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pastor-credentials summary::-webkit-details-marker {
+  display: none;
+}
+
+.pastor-credentials-chevron {
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.pastor-credentials[open] .pastor-credentials-chevron {
+  transform: rotate(180deg);
+}
+
 .credentials {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-}
-
-.credential-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: var(--surface-container-high);
-  border-radius: 1rem;
-  border: 1px solid var(--card-border);
-}
-
-.credential-icon {
-  font-size: 1.75rem;
-  flex-shrink: 0;
+  gap: 1.25rem;
+  padding: 0.25rem 1.25rem 1.25rem;
 }
 
 .credential-label {
@@ -62,14 +130,7 @@
   font-weight: 700;
   color: var(--brand);
   letter-spacing: 0.02em;
-  margin-bottom: 0.25rem;
-}
-
-.credential-value {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-strong);
-  line-height: 1.6;
+  margin-bottom: 0.4rem;
 }
 
 /* 학력·경력·수상을 줄 단위 리스트로 정돈 */

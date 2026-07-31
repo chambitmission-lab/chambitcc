@@ -1,8 +1,11 @@
-/* About Page - Meeting Section */
+/* About Page - Meeting Section
+   "비교표"가 아니라 반전이 있는 스토리:
+   스쳐가는 만남들은 낮은 대비의 리스트로 지나가고,
+   손수건 같은 만남 하나가 브랜드 카드로 크게 받는다. */
 
 .meeting-section {
   margin-bottom: 3rem;
-  padding: 2rem 1rem;
+  padding: 1.75rem 1.25rem;
   background: var(--surface-container-high);
   border-radius: 1.5rem;
 }
@@ -11,56 +14,54 @@
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-strong);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   text-align: center;
 }
 
-.meeting-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
+.meeting-pass {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-bottom: 1.25rem;
+  padding: 0 0.25rem;
 }
 
-.meeting-card {
-  padding: 1.25rem;
-  border-radius: 1rem;
-  text-align: center;
-  transition: all 0.3s ease;
+.meeting-pass-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.5rem;
 }
 
-/* bad 카드의 레드 톤은 "아닌 모임"을 뜻하는 기능적 색 — 브랜드로 덮지 않는다 */
-.meeting-card.bad {
-  background: #fee;
-  border: 2px solid #fecaca;
-}
-
-[data-theme="dark"] .meeting-card.bad {
-  background: #1f1416;
-  border-color: #3f1f23;
-}
-
-.meeting-card.good {
-  grid-column: 1 / -1;
-  background: var(--brand);
-  border: 2px solid transparent;
-  box-shadow: 0 8px 24px var(--brand-glow);
-}
-
-.meeting-emoji {
-  display: block;
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.meeting-card p {
-  font-size: 0.875rem;
+.meeting-pass-x {
+  flex-shrink: 0;
   color: var(--text-muted);
+  opacity: 0.65;
+}
+
+.meeting-pass-row p {
+  font-size: 0.9rem;
   font-weight: 600;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
-.meeting-card.good .good-text {
-  font-size: 1rem;
+.meeting-good-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 1.6rem 1.5rem;
+  background: var(--brand);
+  border-radius: 1.25rem;
+  text-align: center;
   color: var(--on-brand);
+  box-shadow: 0 8px 24px var(--brand-glow);
+}
+
+.meeting-good-card .good-text {
+  font-size: 1.0625rem;
   font-weight: 700;
+  color: var(--on-brand);
+  line-height: 1.55;
 }

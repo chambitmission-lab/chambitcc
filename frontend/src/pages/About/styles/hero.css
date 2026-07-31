@@ -1,17 +1,18 @@
 /* About Page - Hero Section
-   토스 블루 테마 — 네온 퍼플 대신 딥 블루 그라데이션 + 은은한 광원.
-   색은 theme.css 토큰(--brand-*)을 따르고, 사진 배경(heroStyle)이 오면 덮인다. */
+   사진이 주인공: 텍스트는 하단 스크림 위에 좌측 정렬로 얹는다.
+   장식(떠다니는 필·네온 글로우)은 걷어내고 토스식 플랫 타이포만 남긴다.
+   사진이 없으면 딥 블루 그라데이션이 그대로 배경이 된다. */
 
 .about-hero {
   position: relative;
-  height: 280px;
+  height: 340px;
   background: linear-gradient(160deg, #0c1a33 0%, #14305f 55%, #1b6ef3 160%);
   overflow: hidden;
 }
 
 /* 배경 사진 레이어. 도착 전에는 위 그라데이션이 그대로 보이고,
    로드되면 페이드인해 "툭 바뀌는" 느낌을 없앤다.
-   (.hero-overlay 처럼 이름이 겹치는 클래스가 다른 페이지에도 있어 .about-hero 로 스코프) */
+   (.hero-image 처럼 이름이 겹치는 클래스가 다른 페이지에도 있어 .about-hero 로 스코프) */
 .about-hero .hero-image {
   position: absolute;
   inset: 0;
@@ -34,76 +35,50 @@
   }
 }
 
-.hero-overlay {
+/* 하단 스크림 — 사진 위 텍스트 가독성은 글로우가 아니라 이 그라데이션이 담당한다 */
+.hero-scrim {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(69, 147, 252, 0.20) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(49, 130, 246, 0.16) 0%, transparent 50%);
+  background: linear-gradient(
+    180deg,
+    rgba(8, 15, 30, 0) 32%,
+    rgba(8, 15, 30, 0.18) 58%,
+    rgba(8, 15, 30, 0.86) 100%
+  );
 }
 
+/* 텍스트는 하단 좌측 앵커 */
 .hero-content {
-  position: relative;
-  height: 100%;
+  position: absolute;
+  inset: auto 0 0 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  text-align: center;
+  align-items: flex-start;
+  gap: 0.3rem;
+  padding: 0 1.5rem 1.4rem;
+  text-align: left;
 }
 
-.about-hero .hero-badge {
-  position: relative;
-  display: inline-block;
-  padding: 0.5rem 1.25rem;
-  background: rgba(255, 255, 255, 0.10);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-radius: 50px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow:
-    0 8px 32px rgba(49, 130, 246, 0.30),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-/* 히어로 제목: 다른 페이지의 전역 `.hero-title`(예: [data-theme="light"] .hero-title)이
-   새어 들어와 색을 덮어쓰지 못하도록 .about-hero .hero-content 로 스코프하고
-   (명시도 0,3,0) 색/그라데이션 clip을 명시적으로 초기화한다. About 히어로는
-   테마와 무관하게 항상 어두운 배경이므로 제목은 항상 흰색이어야 한다. */
+/* 다른 페이지의 전역 .hero-title 스타일이 새어 들어오지 못하도록 스코프 +
+   색/그라데이션 clip 명시 초기화. About 히어로는 테마와 무관하게 어두운 배경. */
 .about-hero .hero-content .hero-title {
-  font-size: 3rem;
+  font-size: 1.9rem;
   font-weight: 800;
   color: white;
   background: none;
   -webkit-text-fill-color: white;
   -webkit-background-clip: border-box;
   background-clip: border-box;
-  margin-bottom: 0.75rem;
+  margin: 0;
   letter-spacing: -0.02em;
-  text-shadow:
-    0 0 24px rgba(49, 130, 246, 0.45),
-    0 4px 20px rgba(0, 0, 0, 0.4);
+  line-height: 1.2;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
 }
 
 .about-hero .hero-content .hero-subtitle {
-  font-size: 1.125rem;
-  color: rgba(255, 255, 255, 0.95);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.88);
   font-weight: 500;
-  letter-spacing: 0.05em;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
 }

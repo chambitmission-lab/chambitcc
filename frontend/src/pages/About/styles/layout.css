@@ -2,19 +2,17 @@
    색은 theme.css 토큰을 참조 — 라이트/다크 분기는 토큰이 담당한다. */
 
 .about-content {
-  padding: 2rem 1.5rem;
+  padding: 2.25rem 1.5rem 2rem;
 }
 
-/* Section Badge */
+/* Section Overline — 필 배지 대신 작은 브랜드 라벨 (토스식 오버라인) */
 .section-badge {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  background: var(--brand-soft);
-  border-radius: 50px;
-  font-size: 0.875rem;
+  display: block;
+  font-size: 0.8125rem;
   font-weight: 700;
   color: var(--brand);
-  margin-bottom: 1rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
 }
 
 /* Section Title */

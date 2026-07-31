@@ -20,7 +20,7 @@ const aboutContentKeys = {
 }
 
 export const useAboutContent = () => {
-  const { language, t } = useLanguage()
+  const { language } = useLanguage()
 
   const query = useQuery({
     queryKey: aboutContentKeys.all,
@@ -49,7 +49,10 @@ export const useAboutContent = () => {
       const fallback = stored.ko || stored.en
       if (fallback && fallback.trim().length > 0) return fallback
     }
-    return t(key)
+    // i18n 기본값은 직접 조회한다 — t() 는 빈 문자열을 falsy 로 보고 키 이름을
+    // 돌려주므로, aboutPhone 처럼 "비우면 숨김"인 필드에서 키가 화면에 노출된다.
+    const defaultValue = translations[language][key]
+    return typeof defaultValue === 'string' ? defaultValue : ''
   }
 
   // 편집 모달에서 두 언어 값을 모두 표시하기 위한 헬퍼

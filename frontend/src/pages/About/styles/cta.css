@@ -8,27 +8,18 @@
 .cta-card {
   background: linear-gradient(135deg, #0c1a33 0%, #14305f 100%);
   border-radius: 1.5rem;
-  padding: 2.5rem 2rem;
+  padding: 2.25rem 1.75rem;
   text-align: center;
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(49, 130, 246, 0.25);
-  box-shadow: 0 10px 30px rgba(49, 130, 246, 0.2);
-}
-
-.cta-card::before {
-  content: '✨';
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 3rem;
-  opacity: 0.1;
 }
 
 .cta-title {
-  font-size: 1.75rem;
+  font-size: 1.625rem;
   font-weight: 800;
   color: white;
+  letter-spacing: -0.02em;
   margin-bottom: 1rem;
 }
 
@@ -85,18 +76,17 @@
   background: #1b6ef3;
 }
 
-.cta-action-icon {
-  font-size: 1.15rem;
-  line-height: 1;
+.cta-action svg {
+  flex-shrink: 0;
 }
 
 .cta-badge {
   display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: #3182f6;
-  color: white;
+  padding: 0.7rem 1.4rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.92);
   border-radius: 50px;
-  font-weight: 700;
-  font-size: 0.9375rem;
-  box-shadow: 0 4px 16px rgba(49, 130, 246, 0.4);
+  font-weight: 600;
+  font-size: 0.875rem;
 }

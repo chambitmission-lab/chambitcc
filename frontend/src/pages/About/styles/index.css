@@ -1,6 +1,7 @@
 /* About Page - Main Import File */
 
 @import './hero.css';
+@import './quickinfo.css';
 @import './layout.css';
 @import './intro.css';
 @import './meeting.css';
