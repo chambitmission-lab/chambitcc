@@ -213,6 +213,19 @@
   background: rgba(20, 24, 32, 0.5);
 }
 
+/* 날씨 로딩 자리표시자 — 칩과 같은 유리 모양·크기의 빈 알약.
+ * 내용이 없으므로 폭을 직접 잡아준다(⛅ 24° ⌄ 기준). */
+.meditation-weather-chip.is-skeleton {
+  width: 74px;
+  height: 28px;
+  padding: 0;
+  cursor: default;
+  pointer-events: none;
+  background: rgba(20, 24, 32, 0.24);
+  border-color: rgba(255, 255, 255, 0.12);
+  animation: meditation-pulse 1.6s ease-in-out infinite;
+}
+
 /* 눌러서 펼칠 수 있다는 힌트 — 아주 작게, 기온 뒤에 */
 .meditation-weather-caret {
   margin-left: -2px;
@@ -260,6 +273,22 @@
   letter-spacing: -0.01em;
   color: rgba(255, 255, 255, 0.88);
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* 날씨 실패 시에만 붙는 폴백 이모지 — 늦게 나타나도 튀지 않게 부드럽게 */
+.meditation-hero-greeting-emoji {
+  animation: meditation-emoji-in 0.35s ease-out both;
+}
+
+@keyframes meditation-emoji-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meditation-hero-greeting-emoji {
+    animation: none;
+  }
 }
 
 .meditation-hero-headline {

@@ -166,8 +166,10 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const navigate = useNavigate()
   const { t, language } = useLanguage()
   const { data, isLoading, error } = useDailyMeditation()
-  // 실황 날씨(이모지+기온) — 못 불러오면 null: 칩을 숨기고 인사말 이모지로 폴백
-  const weather = useCurrentWeather()
+  /* 실황 날씨(이모지+기온) — 못 불러오면 null: 칩을 숨기고 인사말 이모지로 폴백.
+   * 로딩 중(isWeatherLoading)에는 폴백을 띄우지 않는다 — 띄우면 응답이 도착하는
+   * 순간 사라져 새로고침마다 이모지가 깜빡인다. 대신 칩 자리에 스켈레톤을 둔다. */
+  const { weather, isLoading: isWeatherLoading } = useCurrentWeather()
   // 날씨 칩을 누르면 열리는 주간 예보 시트
   const [isForecastOpen, setIsForecastOpen] = useState(false)
   const { fullName } = getCurrentUser()
@@ -332,6 +334,11 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           {/* 실황 날씨 칩 — 우측 상단 유리 칩(이모지+기온). 맑으면 시간대 이모지,
            * 비·눈이면 한 단어 라벨, 강수확률 40% 이상이면 확률까지 붙는다.
            * API 실패 시엔 칩을 숨기고 인사말 끝 이모지로 폴백한다. */}
+          {/* 로딩 동안은 칩 크기의 스켈레톤으로 자리를 잡아둔다 — 칩이 뒤늦게
+            * 나타나며 히어로 우측이 흔들리는 것을 막는다 */}
+          {isWeatherLoading && (
+            <span className="meditation-weather-chip is-skeleton" aria-hidden />
+          )}
           {weather && (
             <button
               type="button"
@@ -367,7 +374,14 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           <div className="meditation-hero-text">
             <p className="meditation-hero-greeting">
               {buildGreeting(t(GREETING_KEYS[timeOfDay]), fullName, language)}
-              {!weather && ` ${HERO_EMOJI[timeOfDay]}`}
+              {/* 날씨 조회가 끝났는데도 값이 없을 때(실패)만 폴백 이모지.
+                * 타임아웃(4초) 뒤에 붙을 수 있어 살짝 페이드인시킨다 */}
+              {!weather && !isWeatherLoading && (
+                <span className="meditation-hero-greeting-emoji" aria-hidden>
+                  {' '}
+                  {HERO_EMOJI[timeOfDay]}
+                </span>
+              )}
             </p>
             <h2 className="meditation-hero-headline">
               {t(HEADLINE_KEYS[timeOfDay][0])}

@@ -122,15 +122,23 @@ const fetchCurrentWeather = async (): Promise<CurrentWeather | null> => {
   }
 }
 
-/* 현재 날씨(이모지+기온+강수). 로딩 중이거나 실패하면 null — 호출부는
- * null일 때 날씨 칩을 숨기고 기존 시간대 이모지로 폴백해 화면이 끊기지 않는다.
+export interface CurrentWeatherState {
+  /* 아직 못 받았거나 실패하면 null */
+  weather: CurrentWeather | null
+  /* 첫 조회가 진행 중. 실패와 반드시 구분해야 한다 — 둘 다 null로 뭉뚱그리면
+   * 호출부의 폴백 이모지가 로딩 동안 떴다가 응답 도착과 함께 사라진다. */
+  isLoading: boolean
+}
+
+/* 현재 날씨(이모지+기온+강수). 호출부는 weather가 null이고 로딩도 끝났을 때만
+ * 날씨 칩 대신 시간대 이모지로 폴백해 화면이 끊기지 않는다.
  *
  * 전역 기본값(refetchOnMount: false, gcTime 7일 + localStorage persist)은
  * 오프라인 PWA용 캐시 우선 전략이라 날씨엔 맞지 않는다 — 그대로 두면 며칠 전
  * 기온이 그대로 남는다. 그래서 이 쿼리만 mount·포커스·주기 리페치를 되살린다.
  * (persist 제외는 main.tsx의 shouldDehydrateQuery에서 처리) */
-export const useCurrentWeather = (): CurrentWeather | null => {
-  const { data } = useQuery({
+export const useCurrentWeather = (): CurrentWeatherState => {
+  const { data, isLoading } = useQuery({
     queryKey: ['weather', 'current'],
     queryFn: fetchCurrentWeather,
     staleTime: WEATHER_REFRESH_MS,
@@ -142,7 +150,9 @@ export const useCurrentWeather = (): CurrentWeather | null => {
     /* 백그라운드에서는 멈춘다 — 앱 복귀 시 포커스 리페치가 대신 최신화한다 */
     refetchIntervalInBackground: false,
   })
-  return data ?? null
+  /* 캐시가 이미 있으면(세션 내 재진입) 백그라운드 리페치 중이어도 isLoading은
+   * false다 — 이전 값이 그대로 보이므로 깜빡임이 없다. */
+  return { weather: data ?? null, isLoading }
 }
 
 export interface ForecastDay {
