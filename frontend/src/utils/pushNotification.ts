@@ -323,8 +323,8 @@ export const showTestNotification = async (title: string, body: string): Promise
   const registration = await navigator.serviceWorker.ready;
   await registration.showNotification(title, {
     body,
-    icon: `${import.meta.env.BASE_URL}notification-icon-192.png`,
-    badge: `${import.meta.env.BASE_URL}notification-badge-96.png`,
+    icon: `${import.meta.env.BASE_URL}notification-icon-192.png?v=2`,
+    badge: `${import.meta.env.BASE_URL}notification-badge-96.png?v=3`,
     tag: 'test-notification'
   });
 };

@@ -11,7 +11,7 @@ const TITLE_MAX = 50
 const BODY_MAX = 200
 // 상대 경로로 보내면 수신 측 sw.js가 자기 배포 위치(BASE_PATH) 기준으로 절대 URL을 만든다.
 // (Vercel 구독자는 루트, 구 GitHub Pages 구독자는 /chambitcc/ 기준으로 각각 올바르게 해석됨)
-const DEFAULT_ICON = 'notification-icon-192.png'
+const DEFAULT_ICON = 'notification-icon-192.png?v=2'
 
 interface Preset {
   key: string
