@@ -9,6 +9,7 @@ import type { PlanSummary, TodayReading } from '../../../types/biblePlan'
 import { isAuthenticated } from '../../../utils/auth'
 import { accentGradient, gradientTextStyle, planHashtags } from './planVisuals'
 import { planCover } from './planCovers'
+import heroCover from '../../../assets/plans/bible-365.jpg'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 
 const PlanList = () => {
@@ -67,23 +68,31 @@ const PlanList = () => {
           </h1>
         </div>
 
-        {/* Hero — 토스 블루 플랫 솔리드 배너 */}
-        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-brand shadow-[0_10px_34px_-12px_var(--brand-glow)]">
-          {/* 워터마크 이모지 — 단색 배경 위 은은한 질감 */}
-          <span className="absolute -right-2 -bottom-6 text-[120px] leading-none opacity-[0.14] rotate-12 select-none pointer-events-none">
-            📖
-          </span>
+        {/* Hero — 말씀 읽는 손 실사 + 좌→우 스크림 (홈 묵상 히어로와 같은 문법).
+            사진이 원래 푸른 톤이라 브랜드 블루와 자연스럽게 이어진다 */}
+        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[#0b1224] ring-1 ring-white/[0.08] shadow-[0_10px_34px_-12px_rgba(0,0,0,0.55)]">
+          <img
+            src={heroCover}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover object-[68%_32%]"
+          />
+          {/* 좌측을 짙게 — 텍스트 가독성 확보, 우측엔 펼친 성경이 비친다 */}
+          <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(9,16,34,0.92)_0%,rgba(9,16,34,0.66)_46%,rgba(9,16,34,0.22)_100%)]" />
+          {/* 하단 정돈 + 은은한 브랜드 틴트로 앱 톤과 묶는다 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(9,16,34,0.55)] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[rgba(49,130,246,0.14)] mix-blend-multiply" />
 
           <div className="relative z-10">
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/70">
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/65">
               Reading&nbsp;Plan
             </span>
-            <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] text-white mt-3">
+            <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] text-white mt-3 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
               오늘부터,
               <br />
               함께 읽어요
             </h2>
-            <p className="text-[13px] font-light leading-[1.7] text-white/75 mt-3 max-w-[15rem]">
+            <p className="text-[13px] font-light leading-[1.7] text-white/80 mt-3 max-w-[15rem]">
               계획을 골라 시작하면 매일 분량과 진행률·연속 기록을 챙겨드려요.
             </p>
           </div>

@@ -20,6 +20,14 @@ const TodayPlanCard = () => {
   const today = items[0]
   const refs = today.passages.map((p) => p.reference).filter(Boolean).join(' · ')
 
+  // 성경 일독처럼 day_title이 본문 범위와 같으면 제목·부제가 중복되므로
+  // 부제를 "여정 문구"로 바꿔 카드에 온기를 더한다
+  const titleDupsRefs = !today.day_title || today.day_title.trim() === refs.trim()
+  const journeyLine =
+    today.completed_days > 0
+      ? `총 ${today.total_days}일 여정 · ${today.completed_days}일 함께 걸었어요`
+      : `총 ${today.total_days}일의 여정, 오늘 첫 걸음이에요`
+
   return (
     <section className="px-4 pt-3">
       <button
@@ -72,16 +80,24 @@ const TodayPlanCard = () => {
                 />
               </svg>
               <span className="absolute inset-0 flex items-center justify-center text-[12px] font-bold text-brand">
-                {today.percent}%
+                {/* 시작 전 0%는 삭막해서 새싹으로 — 여정의 시작을 알린다 */}
+                {today.percent <= 0 ? '🌱' : today.percent >= 100 ? '🎉' : `${today.percent}%`}
               </span>
             </div>
 
             <div className="min-w-0">
               <p className="text-[15.5px] font-bold text-ink-strong tracking-[-0.01em]">
-                {today.day_number}일차{today.day_title ? ` · ${today.day_title}` : ''}
+                {today.day_number}일차
+                {titleDupsRefs
+                  ? refs ? ` · ${refs}` : ''
+                  : ` · ${today.day_title}`}
               </p>
-              {refs && (
-                <p className="text-[12.5px] text-brand mt-0.5">{refs}</p>
+              {titleDupsRefs ? (
+                <p className="text-[12px] text-gray-400 dark:text-white/45 mt-0.5">
+                  {journeyLine}
+                </p>
+              ) : (
+                refs && <p className="text-[12.5px] text-brand mt-0.5">{refs}</p>
               )}
             </div>
           </div>

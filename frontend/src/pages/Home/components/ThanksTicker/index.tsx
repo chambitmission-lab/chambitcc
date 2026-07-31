@@ -43,11 +43,16 @@ const ThanksTicker = () => {
               : "See all today's gratitude"
           }
         >
-          <div className="flex items-center gap-2 pl-3 pr-2 py-2.5">
-            <span className="material-icons-round text-[18px] shrink-0 text-brand" aria-hidden>
-              volunteer_activism
+          <div className="flex items-center gap-2.5 pl-3 pr-2 py-2.5">
+            <span
+              className="w-8 h-8 rounded-[10px] bg-[rgba(236,95,143,0.12)] flex items-center justify-center shrink-0"
+              aria-hidden
+            >
+              <span className="material-icons-round text-[17px] text-[#ec5f8f]">
+                volunteer_activism
+              </span>
             </span>
-            <span className="text-[12px] font-bold tracking-[-0.01em] text-brand whitespace-nowrap shrink-0">
+            <span className="text-xs font-bold text-[var(--text-strong)] whitespace-nowrap shrink-0">
               {language === 'ko' ? '오늘의 감사 한 줄' : "Today's Gratitude"}
             </span>
 

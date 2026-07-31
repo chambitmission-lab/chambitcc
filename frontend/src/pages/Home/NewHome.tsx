@@ -241,7 +241,11 @@ const NewHome = () => {
             {/* 공동체 소식 — 감사 한 줄 + 응답의 전당을 하나의 그룹 리스트 카드로 묶어
                 "관련 항목 한 덩어리"로 스캔되게 한다 (토스식 grouped list) */}
             <section className="px-4 pt-3 pb-1.5">
-              <p className="px-1 mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
+              <p className="px-1 mb-1.5 flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
+                {/* 올해의 말씀 장식과 같은 금색 반짝임 — 두 섹션을 은은하게 잇는다 */}
+                <svg width="10" height="10" viewBox="0 0 10 10" className="text-[#d9a514] shrink-0" aria-hidden>
+                  <path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" fill="currentColor" />
+                </svg>
                 함께 나누는 은혜
               </p>
               <div className="feed-card rounded-2xl overflow-hidden divide-y divide-[var(--card-border)]">

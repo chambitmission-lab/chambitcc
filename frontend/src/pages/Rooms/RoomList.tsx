@@ -7,6 +7,7 @@ import { useCreateRoom, useJoinRoom, useMyRooms } from '../../hooks/useMeditatio
 import type { RoomSummary } from '../../types/meditationRoom'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
+import heroCover from '../../assets/plans/nt-120.jpg'
 
 const DURATION_PRESETS = [3, 7, 14, 21, 30]
 const EMOJI_PRESETS = ['🕊️', '🌱', '🔥', '🌙', '🌊', '⭐']
@@ -51,61 +52,30 @@ const RoomList = () => {
           </h1>
         </div>
 
-        {/* Hero */}
-        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-brand shadow-[0_10px_34px_-12px_var(--brand-glow)]">
-          {/* 배경 일러스트: 올리브 가지를 문 비둘기 + 함께 퍼지는 물결 */}
-          <svg
-            className="absolute inset-0 w-full h-full pointer-events-none select-none"
-            viewBox="0 0 400 260"
-            preserveAspectRatio="xMidYMid slice"
-            fill="none"
-            aria-hidden="true"
-          >
-            {/* 오른쪽 위 은은한 빛 */}
-            <circle cx="386" cy="12" r="96" fill="white" opacity="0.05" />
-            <circle cx="386" cy="12" r="56" fill="white" opacity="0.05" />
+        {/* Hero — 운해 위 새벽 봉우리 실사 + 좌→우 스크림 (플랜 히어로와 같은 문법) */}
+        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[#0b1224] ring-1 ring-white/[0.08] shadow-[0_10px_34px_-12px_rgba(0,0,0,0.55)]">
+          <img
+            src={heroCover}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover object-[75%_40%]"
+          />
+          {/* 좌측을 짙게 — 텍스트 가독성 확보, 우측엔 새벽 하늘이 비친다 */}
+          <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(9,16,34,0.9)_0%,rgba(9,16,34,0.62)_46%,rgba(9,16,34,0.2)_100%)]" />
+          {/* 하단 정돈 + 은은한 브랜드 틴트로 앱 톤과 묶는다 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(9,16,34,0.5)] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[rgba(49,130,246,0.12)] mix-blend-multiply" />
 
-            {/* 물결 동심원 */}
-            <circle cx="346" cy="206" r="132" stroke="white" strokeWidth="1.4" opacity="0.09" />
-            <circle cx="346" cy="206" r="97" stroke="white" strokeWidth="1.4" opacity="0.11" />
-            <circle cx="346" cy="206" r="64" stroke="white" strokeWidth="1.4" opacity="0.13" />
-
-            {/* 반짝임 */}
-            <path d="M312 42 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 Z" fill="white" opacity="0.26" />
-            <path d="M372 92 l2.2 5 5 2.2 -5 2.2 -2.2 5 -2.2 -5 -5 -2.2 5 -2.2 Z" fill="white" opacity="0.2" />
-            <circle cx="286" cy="66" r="2.2" fill="white" opacity="0.24" />
-            <circle cx="352" cy="140" r="1.8" fill="white" opacity="0.2" />
-
-            {/* 올리브 가지를 문 비둘기 */}
-            <g
-              transform="translate(252 136) rotate(-8)"
-              stroke="white"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity="0.32"
-            >
-              <path d="M14 40 C24 26 44 21 58 27 C72 33 84 31 97 23 C94 41 78 53 58 53 C40 53 26 50 14 40 Z" />
-              <path d="M42 28 C44 13 56 3 72 4 C64 11 59 19 57 28" />
-              <path d="M14 40 L4 38" />
-              <circle cx="26" cy="34" r="1.7" fill="white" stroke="none" />
-              <g strokeWidth="2.4">
-                <path d="M4 38 C-3 44 -6 52 -3 60" />
-                <path d="M-1 46 C-8 44 -12 47 -13 53 C-6 55 -2 51 -1 46 Z" />
-                <path d="M-3 56 C-10 56 -13 60 -13 66 C-6 66 -3 62 -3 56 Z" />
-              </g>
-            </g>
-          </svg>
           <div className="relative z-10">
             <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/70">
               Together
             </span>
-            <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] text-white mt-3">
+            <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] text-white mt-3 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
               같은 말씀,
               <br />
               함께 묵상해요
             </h2>
-            <p className="text-[13px] font-light leading-[1.7] text-white/75 mt-3 max-w-[16rem]">
+            <p className="text-[13px] font-light leading-[1.7] text-white/80 mt-3 max-w-[16rem]">
               방을 만들어 초대 링크를 보내면, 매일 같은 본문을 읽고 서로의 묵상에
               마음을 나눌 수 있어요.
             </p>
