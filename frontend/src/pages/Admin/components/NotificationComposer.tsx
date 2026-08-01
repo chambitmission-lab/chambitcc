@@ -10,6 +10,7 @@ import type {
 } from '../../../types/notification'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import DatePicker from '../../../components/common/DatePicker'
 
 interface NotificationComposerProps {
   editingNotification: Notification | null
@@ -33,6 +34,22 @@ const toDateInput = (iso?: string | null) => (iso ? iso.slice(0, 10) : '')
 
 /** date input 값 → 그 날 23:59:59 (KST 기준, 타임존 없이 보낸다) */
 const toPopupUntil = (date: string) => (date ? `${date}T23:59:59` : null)
+
+/** 오늘(로컬) YYYY-MM-DD — 종료일 하한 */
+const todayISO = () => {
+  const t = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`
+}
+
+/** 안내 문구용 한국식 표기 — 2026-08-02 → 2026년 8월 2일 (일) */
+const formatKo = (iso: string) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+  if (!m) return iso
+  const [y, mo, d] = [+m[1], +m[2], +m[3]]
+  const weekday = ['일', '월', '화', '수', '목', '금', '토'][new Date(y, mo - 1, d).getDay()]
+  return `${y}년 ${mo}월 ${d}일 (${weekday})`
+}
 
 const NotificationComposer = ({
   editingNotification,
@@ -93,6 +110,12 @@ const NotificationComposer = ({
       setUploading(false)
     }
   }
+
+  // 지난 날짜를 종료일로 고르면 팝업이 곧바로 사라진다 — 오늘부터만 고르게 한다.
+  // 다만 이미 지난 종료일이 저장된 공지를 수정할 때는 그 값이 달력에서
+  // 비활성으로 보이지 않도록 하한을 그 날짜까지 열어 둔다.
+  const minPopupDate =
+    popupUntilDate && popupUntilDate < todayISO() ? popupUntilDate : todayISO()
 
   const canSubmit =
     form.title.trim().length > 0 &&
@@ -301,12 +324,16 @@ const NotificationComposer = ({
                     팝업 종료일
                   </p>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="date"
-                      value={popupUntilDate}
-                      onChange={(e) => setPopupUntilDate(e.target.value)}
-                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong focus:outline-none focus:border-brand transition-colors"
-                    />
+                    {/* 네이티브 date 입력은 브라우저 로케일을 따라 08/02/2026처럼 보인다 —
+                        앱 전역에서 쓰는 한국식 달력(요일·주말 색)으로 통일한다 */}
+                    <div className="flex-1 min-w-0">
+                      <DatePicker
+                        value={popupUntilDate}
+                        onChange={setPopupUntilDate}
+                        placeholder="종료일을 선택하세요"
+                        minDate={minPopupDate}
+                      />
+                    </div>
                     {popupUntilDate && (
                       <button
                         type="button"
@@ -319,7 +346,7 @@ const NotificationComposer = ({
                   </div>
                   <p className="mt-1.5 text-[11.5px] text-gray-500 dark:text-white/50">
                     {popupUntilDate
-                      ? `${popupUntilDate} 자정까지 팝업으로 노출됩니다`
+                      ? `${formatKo(popupUntilDate)} 자정까지 팝업으로 노출됩니다`
                       : '비워두면 팝업을 끌 때까지 계속 노출됩니다'}
                   </p>
                 </div>

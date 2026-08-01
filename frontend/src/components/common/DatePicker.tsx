@@ -2,7 +2,8 @@
 // 네이티브 <input type="date">는 브라우저 로케일을 따라 08/02/2026처럼
 // 미국식으로 보이고 달력 디자인도 OS 기본이라, 앱 전역에서 이 컴포넌트를 쓴다.
 // 앱 언어(ko/en)를 따라 라벨·표기가 바뀐다 — 영어 화면에서도 그대로 쓸 수 있게.
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 
 interface DatePickerProps {
@@ -61,6 +62,12 @@ const TEXT = {
 
 /** 연도 격자 한 장에 담는 개수 — 3열 × 4행 (월 선택 격자와 같은 모양) */
 const YEAR_PAGE = 12
+
+/** 달력 패널 크기·여백 (px) — 화면 안에 넣을 위치를 계산할 때 쓴다 */
+const PANEL_W = 288 // w-72
+const PANEL_GAP = 8 // 트리거와의 간격
+const VIEWPORT_PAD = 12 // 화면 가장자리 최소 여백
+const PANEL_H_FALLBACK = 360 // 첫 렌더에서 실제 높이를 재기 전 어림값
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const toISO = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`
@@ -146,6 +153,10 @@ const DatePicker = ({
     m: parsed?.m ?? now.getMonth(),
   })
   const containerRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  /* 달력은 body로 포털해 띄운다 — 모달·스크롤 영역(overflow) 안에서 잘리지 않게.
+   * 그래서 위치를 직접 계산해 fixed로 붙인다. */
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
 
   /* 생년월일은 미래가 있을 수 없으니 오늘을 상한으로 둔다 (maxDate가 오면 그쪽 우선) */
   const upperBound = maxDate ?? (birthMode ? todayISO() : undefined)
@@ -169,11 +180,60 @@ const DatePicker = ({
     setIsOpen(true)
   }
 
+  /* 트리거 기준으로 화면 안에 들어오는 자리를 잡는다.
+   * 아래 공간이 모자라면 위로 뒤집고, 그것도 안 되면 화면 안쪽으로 밀어 넣는다.
+   * 패널 높이는 일/월/연 화면마다 다르므로 실제 높이를 재서 다시 계산한다. */
+  useLayoutEffect(() => {
+    // 닫힐 때 좌표를 비우지 않는다 — 다시 열 때 paint 전에 layout effect가
+    // 새로 계산하므로 이전 값이 보일 일이 없고, 불필요한 렌더도 줄어든다
+    if (!isOpen) return
+    const place = () => {
+      const trigger = containerRef.current
+      if (!trigger) return
+      const r = trigger.getBoundingClientRect()
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      const panelH = panelRef.current?.offsetHeight || PANEL_H_FALLBACK
+      const width = Math.min(PANEL_W, vw - VIEWPORT_PAD * 2)
+
+      const left = Math.max(
+        VIEWPORT_PAD,
+        Math.min(r.left, vw - width - VIEWPORT_PAD),
+      )
+
+      const below = r.bottom + PANEL_GAP
+      const above = r.top - PANEL_GAP - panelH
+      const top =
+        below + panelH <= vh - VIEWPORT_PAD
+          ? below
+          : above >= VIEWPORT_PAD
+            ? above
+            : Math.max(VIEWPORT_PAD, vh - panelH - VIEWPORT_PAD)
+
+      setPos((prev) =>
+        prev && prev.top === top && prev.left === left && prev.width === width
+          ? prev
+          : { top, left, width },
+      )
+    }
+    place()
+    window.addEventListener('resize', place)
+    // capture — 모달 내부 스크롤 컨테이너의 스크롤도 잡아 위치를 따라가게
+    window.addEventListener('scroll', place, true)
+    return () => {
+      window.removeEventListener('resize', place)
+      window.removeEventListener('scroll', place, true)
+    }
+  }, [isOpen, panel])
+
   // 바깥 클릭 · Esc 로 닫기
   useEffect(() => {
     if (!isOpen) return
     const onDown = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setIsOpen(false)
+      const target = e.target as Node
+      // 패널은 포털이라 containerRef 밖에 있다 — 따로 확인해야 클릭이 씹히지 않는다
+      if (panelRef.current?.contains(target)) return
+      if (containerRef.current && !containerRef.current.contains(target)) setIsOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsOpen(false)
@@ -262,12 +322,23 @@ const DatePicker = ({
         </svg>
       </button>
 
-      {/* 달력 */}
-      {isOpen && (
+      {/* 달력 — body로 포털해 모달·스크롤 영역에 잘리지 않게 띄운다 */}
+      {isOpen && createPortal(
         <div
+          ref={panelRef}
           role="dialog"
           aria-label={text.dialog}
-          className="absolute left-0 top-full z-50 mt-2 w-72 max-w-[calc(100vw-3rem)] origin-top animate-pop-in rounded-2xl border border-black/[0.06] bg-white p-3 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)] dark:border-white/[0.08] dark:bg-card-dark"
+          className="fixed z-[300] origin-top animate-pop-in rounded-2xl border border-black/[0.06] bg-white p-3 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)] dark:border-white/[0.08] dark:bg-card-dark"
+          style={{
+            top: pos?.top ?? 0,
+            left: pos?.left ?? 0,
+            width: pos?.width ?? PANEL_W,
+            // 화면이 아주 낮을 때(가로 모드 등)만 내부 스크롤로 물러난다
+            maxHeight: `calc(100vh - ${VIEWPORT_PAD * 2}px)`,
+            overflowY: 'auto',
+            // 자리를 잡기 전 한 프레임이 엉뚱한 곳에 스쳐 보이지 않게
+            visibility: pos ? 'visible' : 'hidden',
+          }}
         >
           {/* 헤더 — 제목을 누르면 일 → 월 → 연 순으로 넓혀 고른다 */}
           <div className="mb-2 flex items-center justify-between">
@@ -505,7 +576,8 @@ const DatePicker = ({
               )
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )

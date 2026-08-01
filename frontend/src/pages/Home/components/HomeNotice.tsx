@@ -33,6 +33,19 @@ const resolveTarget = (
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
 
+/** 오늘/어제는 날짜 대신 사람 말로 — 방금 올라온 공지라는 게 먼저 읽힌다 */
+const formatRelative = (iso: string) => {
+  const d = new Date(iso)
+  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
+  const days = Math.round((startOf(new Date()) - startOf(d)) / 86_400_000)
+  if (days <= 0) return '오늘'
+  if (days === 1) return '어제'
+  return formatDate(iso)
+}
+
+/** 배너 미리보기 — 줄바꿈을 한 줄로 눕혀 truncate가 자연스럽게 걸리도록 */
+const previewOf = (content: string) => content.replace(/\s+/g, ' ').trim()
+
 const HomeNotice = () => {
   const navigate = useNavigate()
   const { data } = usePopupNotices()
@@ -116,47 +129,116 @@ const HomeNotice = () => {
           from { opacity: 0; transform: translateY(12px) scale(0.98); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
+        @keyframes notice-banner-in {
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: none; }
+        }
         .notice-backdrop { animation: notice-backdrop-in 0.16s ease-out; }
         .notice-card { animation: notice-card-in 0.24s cubic-bezier(0.16, 1, 0.3, 1); }
+        .notice-banner { animation: notice-banner-in 0.32s cubic-bezier(0.16, 1, 0.3, 1); }
         @media (prefers-reduced-motion: reduce) {
-          .notice-backdrop, .notice-card { animation: none; }
+          .notice-backdrop, .notice-card, .notice-banner { animation: none; }
         }
       `}</style>
 
-      {/* 홈 상단 배너 — 팝업을 닫아도 확인 경로가 남는다 */}
-      <button
-        type="button"
-        onClick={reopen}
-        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-left transition-colors active:opacity-80"
-        style={{
-          background: 'var(--brand-soft)',
-          borderBottom: '1px solid var(--card-border)',
-        }}
-      >
-        <span
-          className="shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full"
-          style={{ background: 'var(--brand)', color: 'var(--on-brand)' }}
-          aria-hidden
+      {/* 홈 상단 배너 — 팝업을 닫아도 확인 경로가 남는다.
+          풀블리드 알림 띠가 아니라 홈의 다른 카드와 같은 리듬(px-4 · 라운드 카드)으로
+          앉혀 아래 히어로 카드와 경쟁하지 않게 한다. 브랜드색은 채움이 아니라
+          아이콘·키커 같은 작은 액센트로만 — 공지는 '경고'가 아니라 '소식'이라서. */}
+      <div className="px-4 pt-3">
+        <button
+          type="button"
+          onClick={reopen}
+          aria-label={`공지사항 ${latest.title} 자세히 보기`}
+          className="notice-banner feed-card relative w-full overflow-hidden rounded-2xl text-left transition-transform active:scale-[0.985]"
         >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 11v3a1 1 0 0 0 1 1h2.5l4.5 4V6l-4.5 4H4a1 1 0 0 0-1 1Z" />
-            <path d="M16 9a4 4 0 0 1 0 6" />
-          </svg>
-        </span>
-        <span className="flex-1 min-w-0">
-          <span className="block text-[13px] font-bold truncate" style={{ color: 'var(--text-strong)' }}>
-            {latest.title}
-          </span>
-          {notices.length > 1 && (
-            <span className="block text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-              외 {notices.length - 1}건의 공지
+          {/* 카드 모서리의 은은한 브랜드 광 */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -left-8 -top-10 h-24 w-24 rounded-full blur-2xl"
+            style={{ background: 'var(--brand-soft-strong)' }}
+          />
+
+          <div className="relative flex items-center gap-3 py-3 pl-3.5 pr-3">
+            {/* 포스터가 붙은 공지는 썸네일이 곧 내용 — 없으면 게시판 압정 */}
+            {latest.image_url ? (
+              <img
+                src={latest.image_url}
+                alt=""
+                className="h-11 w-11 shrink-0 rounded-[13px] object-cover"
+                style={{ background: 'var(--surface-inset)', filter: 'var(--media-dim)' }}
+              />
+            ) : (
+              <span
+                aria-hidden
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px]"
+                style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}
+              >
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 17v5" />
+                  <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
+                </svg>
+              </span>
+            )}
+
+            <span className="min-w-0 flex-1">
+              <span className="flex items-center gap-1.5">
+                <span
+                  className="text-[10.5px] font-bold tracking-[0.1em]"
+                  style={{ color: 'var(--brand)' }}
+                >
+                  공지
+                </span>
+                <span
+                  aria-hidden
+                  className="h-2.5 w-px"
+                  style={{ background: 'var(--card-border)' }}
+                />
+                <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                  {formatRelative(latest.created_at)}
+                </span>
+                {notices.length > 1 && (
+                  <span
+                    className="ml-0.5 rounded-full px-1.5 py-[1.5px] text-[10px] font-bold leading-none"
+                    style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}
+                  >
+                    +{notices.length - 1}
+                  </span>
+                )}
+              </span>
+              <span
+                className="mt-1 block truncate text-[14.5px] font-bold tracking-[-0.01em]"
+                style={{ color: 'var(--text-strong)' }}
+              >
+                {latest.title}
+              </span>
+              {/* 제목만 있으면 '알림'이고, 한 줄이 보이면 '소식'이 된다 */}
+              <span
+                className="mt-[1px] block truncate text-[12px] leading-snug"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                {previewOf(latest.content)}
+              </span>
             </span>
-          )}
-        </span>
-        <span className="shrink-0 text-[11.5px] font-semibold" style={{ color: 'var(--brand)' }}>
-          보기
-        </span>
-      </button>
+
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="shrink-0"
+              style={{ color: 'var(--text-muted)' }}
+              aria-hidden
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </div>
+        </button>
+      </div>
 
       {/* 전면 팝업 */}
       {current && (

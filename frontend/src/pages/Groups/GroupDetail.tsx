@@ -7,7 +7,7 @@ import { useGroup, useLeaveGroup } from '../../hooks/useGroups'
 import { useEvents } from '../../hooks/useEvents'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
-import { groupInviteUrl } from '../../components/prayer/GroupModals'
+import { groupInviteUrl } from '../../utils/inviteLink'
 import CreateGroupMeetingModal from '../../components/group/CreateGroupMeetingModal'
 import { formatKstDateTime, kstDateKey, parseKstDate } from '../../utils/kstTime'
 

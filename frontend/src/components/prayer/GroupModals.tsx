@@ -6,12 +6,9 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
 import type { PrayerGroup } from '../../types/prayer'
+import { groupInviteUrl } from '../../utils/inviteLink'
 
 const ICON_OPTIONS = ['🙏', '⛪', '✝️', '🎵', '📖', '💒', '👥', '🕊️', '🌟', '❤️']
-
-// 초대 링크 — 묵상방과 동일한 방식으로 해시 라우트 링크 생성
-export const groupInviteUrl = (code: string) =>
-  `${window.location.origin}${window.location.pathname}#/groups/join/${code}`
 
 // ── 공통 모달 셸 ──────────────────────────────────────
 interface ModalShellProps {
