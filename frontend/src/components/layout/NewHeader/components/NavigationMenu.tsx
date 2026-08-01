@@ -42,18 +42,59 @@ const MENU_SECTIONS: NavSection[] = [
   }
 ]
 
-// 게임·이벤트성 메뉴는 일반 탐색 메뉴와 톤을 분리해 배치
-const ACTIVITY_ITEMS = [
+// 게임·이벤트성 메뉴 — 구조는 같게 두고 아이콘 색으로만 톤을 분리한다
+const ACTIVITY_ITEMS: NavItem[] = [
   { path: '/garden', key: 'garden' },
   { path: '/bluemarble', key: 'bluemarble' },
   { path: '/answered-prayers', key: 'answeredPrayers' }
-] as const
+]
 
 const SectionTitle = ({ children }: { children: string }) => (
   <h3 className="px-1.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted">
     {children}
   </h3>
 )
+
+/* 카드 테두리를 걷어낸 런처 셀 — 아이콘이 위계를 만들고
+   빈 자리는 상자가 아니라 여백으로 읽힌다.
+   accent=true면 칩 배경·아이콘이 브랜드 블루로 바뀐다(신앙 액티비티). */
+const LauncherItem = ({
+  item,
+  label,
+  accent = false,
+}: {
+  item: NavItem
+  label: string
+  accent?: boolean
+}) => {
+  const Icon = NAV_ICONS[item.key]
+  return (
+    <Link
+      to={item.path}
+      className="
+        group flex flex-col items-center gap-1.5
+        rounded-2xl px-1 py-2.5
+        transition-colors duration-150
+        hover:bg-[var(--brand-soft)] active:bg-[var(--brand-soft-strong)]
+      "
+    >
+      <span
+        className={`
+          flex items-center justify-center w-11 h-11 rounded-2xl
+          transition-colors duration-150
+          ${accent
+            ? 'bg-[var(--brand-soft)] text-brand group-hover:bg-[var(--brand-soft-strong)]'
+            : 'bg-surface-high text-ink group-hover:text-brand'}
+        `}
+      >
+        <Icon />
+      </span>
+      <span className="text-[11.5px] font-medium leading-tight text-center text-ink">
+        {label}
+      </span>
+    </Link>
+  )
+}
 
 const NavigationMenu = () => {
   const { t } = useLanguage()
@@ -63,69 +104,22 @@ const NavigationMenu = () => {
       {MENU_SECTIONS.map(section => (
         <div key={section.titleKey}>
           <SectionTitle>{t(section.titleKey)}</SectionTitle>
-          {/* 카드 테두리를 걷어낸 4열 런처 — 아이콘이 위계를 만들고
-              빈 자리는 상자가 아니라 여백으로 읽힌다 */}
           <div className="grid grid-cols-4 gap-0.5">
-            {section.items.map(item => {
-              const Icon = NAV_ICONS[item.key]
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className="
-                    group flex flex-col items-center gap-1.5
-                    rounded-2xl px-1 py-2.5
-                    transition-colors duration-150
-                    hover:bg-[var(--brand-soft)] active:bg-[var(--brand-soft-strong)]
-                  "
-                >
-                  <span
-                    className="
-                      flex items-center justify-center w-11 h-11 rounded-2xl
-                      bg-surface-high text-ink
-                      group-hover:text-brand transition-colors duration-150
-                    "
-                  >
-                    <Icon />
-                  </span>
-                  <span className="text-[11.5px] font-medium leading-tight text-center text-ink">
-                    {t(item.key)}
-                  </span>
-                </Link>
-              )
-            })}
+            {section.items.map(item => (
+              <LauncherItem key={item.path} item={item} label={t(item.key)} />
+            ))}
           </div>
         </div>
       ))}
 
-      {/* 신앙 액티비티 — 여기만 브랜드 틴트 카드로 남겨 탐색 메뉴와 구분한다 */}
+      {/* 신앙 액티비티 — 구조는 위와 동일하고 아이콘만 브랜드 블루로 강조한다.
+          OS마다 다르게 그려지는 이모지 대신 직접 그린 아이콘을 쓴다. */}
       <div>
         <SectionTitle>{t('navGroupActivity')}</SectionTitle>
-        <div className="grid grid-cols-3 gap-2">
-          {ACTIVITY_ITEMS.map(item => {
-            const [icon, ...rest] = t(item.key).split(' ')
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className="
-                  group relative overflow-hidden
-                  px-2 py-3 rounded-2xl
-                  flex flex-col items-center justify-center gap-1
-                  bg-[var(--brand-soft)]
-                  border border-[var(--brand-soft-strong)]
-                  text-[12px] font-semibold tracking-[-0.01em] text-ink-strong
-                  transition-all duration-200
-                  hover:-translate-y-0.5 hover:border-brand
-                  hover:shadow-[0_0_18px_var(--brand-glow),0_4px_16px_rgba(0,0,0,0.10)]
-                  dark:hover:shadow-[0_0_22px_var(--brand-glow),0_8px_24px_rgba(0,0,0,0.25)]
-                "
-              >
-                <span className="text-[20px] leading-none">{icon}</span>
-                <span className="text-center leading-tight">{rest.join(' ')}</span>
-              </Link>
-            )
-          })}
+        <div className="grid grid-cols-4 gap-0.5">
+          {ACTIVITY_ITEMS.map(item => (
+            <LauncherItem key={item.path} item={item} label={t(item.key)} accent />
+          ))}
         </div>
       </div>
     </nav>

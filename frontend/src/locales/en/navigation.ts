@@ -30,9 +30,10 @@ export const navigation = {
   cultureManagement: '🎨 Culture Class Management',
   pushNotificationManagement: '📢 Push Notification Management',
   userManagement: '👥 User Management',
-  garden: '🏷️ Bible Titles',
-  bluemarble: '🎲 Bible Quest',
-  answeredPrayers: '✨ Answered Prayers',
+  // Emoji replaced by line icons (NavIcons.tsx) — keep the label text only
+  garden: 'Bible Titles',
+  bluemarble: 'Bible Quest',
+  answeredPrayers: 'Answered Prayers',
   missionStatus: 'Mission Status',
   adminMenu: 'Admin Menu',
   navGroupChurch: 'Church Info',

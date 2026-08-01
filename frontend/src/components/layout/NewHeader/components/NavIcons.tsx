@@ -119,6 +119,34 @@ const IconMegaphone = (p: IconProps) => (
   </Svg>
 )
 
+/* 성경 칭호 — 훈장 */
+const IconMedal = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="9" r="6" />
+    <path d="M8.2 13.9 7 22l5-3 5 3-1.2-8.1" />
+  </Svg>
+)
+
+/* 바이블 퀘스트 — 주사위 (보드게임) */
+const IconDice = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="3" width="18" height="18" rx="3.5" />
+    <circle cx="8.2" cy="8.2" r="1.15" fill="currentColor" stroke="none" />
+    <circle cx="15.8" cy="8.2" r="1.15" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none" />
+    <circle cx="8.2" cy="15.8" r="1.15" fill="currentColor" stroke="none" />
+    <circle cx="15.8" cy="15.8" r="1.15" fill="currentColor" stroke="none" />
+  </Svg>
+)
+
+/* 응답의 전당 — 반짝임 */
+const IconSparkle = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M11 3.2 12.7 8.3 17.8 10 12.7 11.7 11 16.8 9.3 11.7 4.2 10 9.3 8.3 11 3.2Z" />
+    <path d="M18 15.2l.75 1.9 1.9.75-1.9.75-.75 1.9-.75-1.9-1.9-.75 1.9-.75.75-1.9Z" />
+  </Svg>
+)
+
 /* 내 정보 — 사람 */
 export const IconPerson = (p: IconProps) => (
   <Svg {...p}>
@@ -139,6 +167,9 @@ export const NAV_ICONS = {
   myGroups: IconUsers,
   missionStatus: IconGlobe,
   news: IconMegaphone,
+  garden: IconMedal,
+  bluemarble: IconDice,
+  answeredPrayers: IconSparkle,
 } as const
 
 export type NavIconKey = keyof typeof NAV_ICONS

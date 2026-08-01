@@ -30,9 +30,10 @@ export const navigation = {
   cultureManagement: '🎨 문화교실 관리',
   pushNotificationManagement: '📢 푸시 알림 관리',
   userManagement: '👥 회원 관리',
-  garden: '🏷️ 성경 칭호',
-  bluemarble: '🎲 바이블 퀘스트',
-  answeredPrayers: '✨ 응답의 전당',
+  // 이모지는 라인 아이콘(NavIcons.tsx)으로 대체됐다 — 라벨엔 텍스트만 둔다
+  garden: '성경 칭호',
+  bluemarble: '바이블 퀘스트',
+  answeredPrayers: '응답의 전당',
   missionStatus: '선교 현황',
   adminMenu: '관리자 메뉴',
   navGroupChurch: '교회 안내',
