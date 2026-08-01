@@ -341,6 +341,16 @@ const NotificationRow = ({
                 비공개
               </span>
             )}
+            {notification.is_popup && (
+              <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-brand tracking-[0.05em] shrink-0">
+                팝업
+              </span>
+            )}
+            {notification.image_url && (
+              <span className="text-[9.5px] shrink-0" title="이미지 첨부" aria-label="이미지 첨부">
+                🖼
+              </span>
+            )}
           </div>
           <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
             {dateLabel}

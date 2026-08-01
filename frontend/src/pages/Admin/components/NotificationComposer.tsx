@@ -1,5 +1,9 @@
-import { useEffect, useState, type ReactNode } from 'react'
-import { createNotification, updateNotification } from '../../../api/notification'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  createNotification,
+  updateNotification,
+  uploadNotificationImage,
+} from '../../../api/notification'
 import type {
   CreateNotificationRequest,
   Notification,
@@ -17,7 +21,18 @@ const DEFAULT_FORM: CreateNotificationRequest = {
   title: '',
   content: '',
   is_active: true,
+  is_popup: false,
+  popup_until: null,
+  image_url: null,
 }
+
+const MAX_IMAGE_MB = 10
+
+/** 서버가 준 popup_until(ISO) → date input 값(YYYY-MM-DD) */
+const toDateInput = (iso?: string | null) => (iso ? iso.slice(0, 10) : '')
+
+/** date input 값 → 그 날 23:59:59 (KST 기준, 타임존 없이 보낸다) */
+const toPopupUntil = (date: string) => (date ? `${date}T23:59:59` : null)
 
 const NotificationComposer = ({
   editingNotification,
@@ -25,8 +40,11 @@ const NotificationComposer = ({
   onSuccess,
 }: NotificationComposerProps) => {
   const [form, setForm] = useState<CreateNotificationRequest>(DEFAULT_FORM)
+  const [popupUntilDate, setPopupUntilDate] = useState('')
+  const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // 뒤로가기 → 모달만 닫기
   useModalBackButton(onClose)
@@ -37,17 +55,62 @@ const NotificationComposer = ({
         title: editingNotification.title,
         content: editingNotification.content,
         is_active: editingNotification.is_active,
+        is_popup: !!editingNotification.is_popup,
+        popup_until: editingNotification.popup_until ?? null,
+        image_url: editingNotification.image_url ?? null,
       })
+      setPopupUntilDate(toDateInput(editingNotification.popup_until))
     } else {
       setForm(DEFAULT_FORM)
+      setPopupUntilDate('')
     }
     setError(null)
   }, [editingNotification])
 
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    // 같은 파일을 다시 골라도 change가 발생하도록 값을 비운다
+    e.target.value = ''
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      showToast('이미지 파일만 첨부할 수 있습니다', 'error')
+      return
+    }
+    if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+      showToast(`이미지는 최대 ${MAX_IMAGE_MB}MB까지 첨부할 수 있습니다`, 'error')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const url = await uploadNotificationImage(file)
+      setForm((prev) => ({ ...prev, image_url: url }))
+      showToast('이미지를 첨부했습니다. 저장해야 공지에 반영됩니다', 'success')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : '이미지 업로드에 실패했습니다', 'error')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const canSubmit =
     form.title.trim().length > 0 &&
     form.content.trim().length > 0 &&
-    !submitting
+    !submitting &&
+    !uploading
+
+  // 배경 탭 한 번에 작성 내용(특히 방금 올린 이미지)이 통째로 날아가지 않게 한다.
+  // 첨부는 업로드가 끝나도 "저장"을 눌러야 공지에 반영되므로 여기서 유실되면 원인을 알기 어렵다.
+  const hasDraft =
+    form.title.trim().length > 0 ||
+    form.content.trim().length > 0 ||
+    !!form.image_url
+
+  const handleClose = () => {
+    if (hasDraft && !window.confirm('작성 중인 내용이 사라집니다. 닫으시겠습니까?')) return
+    onClose()
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,11 +118,16 @@ const NotificationComposer = ({
     setError(null)
     setSubmitting(true)
     try {
+      // 팝업을 끄면 노출 기간은 의미가 없으므로 함께 비운다
+      const payload: CreateNotificationRequest = {
+        ...form,
+        popup_until: form.is_popup ? toPopupUntil(popupUntilDate) : null,
+      }
       if (editingNotification) {
-        await updateNotification(editingNotification.id, form)
+        await updateNotification(editingNotification.id, payload)
         showToast('공지사항이 수정되었습니다', 'success')
       } else {
-        await createNotification(form)
+        await createNotification(payload)
         showToast('공지사항이 등록되었습니다', 'success')
       }
       onSuccess()
@@ -73,7 +141,7 @@ const NotificationComposer = ({
   return (
     <div
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[90vh] bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl overflow-hidden border border-black/[0.04] dark:border-white/[0.08] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_12px_40px_rgba(0,0,0,0.6),0_8px_28px_var(--brand-glow)] flex flex-col"
@@ -98,7 +166,7 @@ const NotificationComposer = ({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
             aria-label="닫기"
           >
@@ -137,6 +205,126 @@ const NotificationComposer = ({
                 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.7]"
               />
             </FieldGroup>
+
+            {/* 이미지 첨부 — 포스터·안내문을 그대로 보여줄 때 */}
+            <FieldGroup label="이미지 (선택)">
+              {form.image_url ? (
+                <div className="relative rounded-xl overflow-hidden border border-gray-200 dark:border-white/[0.08]">
+                  <img
+                    src={form.image_url}
+                    alt="첨부 이미지 미리보기"
+                    className="w-full max-h-64 object-contain bg-gray-50 dark:bg-white/[0.03]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, image_url: null })}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/75 transition-colors"
+                    aria-label="이미지 삭제"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                  <p className="absolute left-2 bottom-2 px-2 py-1 rounded-lg bg-black/60 text-white text-[10.5px] font-semibold">
+                    아래 저장 버튼을 눌러야 반영됩니다
+                  </p>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="w-full py-6 rounded-xl border border-dashed border-gray-300 dark:border-white/[0.14] flex flex-col items-center gap-1.5 text-gray-500 dark:text-white/50 hover:border-brand hover:text-brand transition-colors disabled:opacity-50"
+                >
+                  {uploading ? (
+                    <>
+                      <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      </svg>
+                      <span className="text-[12.5px] font-semibold">업로드 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <path d="M21 15l-5-5L5 21" />
+                      </svg>
+                      <span className="text-[12.5px] font-semibold">이미지 첨부하기</span>
+                      <span className="text-[11px]">JPG·PNG·WebP · 최대 {MAX_IMAGE_MB}MB</span>
+                    </>
+                  )}
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+            </FieldGroup>
+
+            {/* 팝업 노출 — 홈(기도 목록) 진입 시 전면 팝업 */}
+            <div className="rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] overflow-hidden">
+              <div className="flex items-center justify-between gap-3 px-3.5 py-3">
+                <div className="min-w-0">
+                  <p className="text-[13.5px] font-bold text-ink-strong">
+                    홈 팝업으로 띄우기
+                  </p>
+                  <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-0.5">
+                    기도 목록 진입 시 전면 팝업 + 상단 배너로 노출
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={!!form.is_popup}
+                  onClick={() => setForm({ ...form, is_popup: !form.is_popup })}
+                  className={`relative shrink-0 w-12 h-7 rounded-full transition-colors ${
+                    form.is_popup
+                      ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]'
+                      : 'bg-gray-300 dark:bg-white/[0.1]'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${
+                      form.is_popup ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {form.is_popup && (
+                <div className="px-3.5 pb-3.5 pt-0.5 border-t border-gray-200 dark:border-white/[0.08]">
+                  <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 mt-3 mb-2">
+                    팝업 종료일
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={popupUntilDate}
+                      onChange={(e) => setPopupUntilDate(e.target.value)}
+                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong focus:outline-none focus:border-brand transition-colors"
+                    />
+                    {popupUntilDate && (
+                      <button
+                        type="button"
+                        onClick={() => setPopupUntilDate('')}
+                        className="px-3 h-11 rounded-xl text-[12.5px] font-semibold text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
+                      >
+                        지우기
+                      </button>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-[11.5px] text-gray-500 dark:text-white/50">
+                    {popupUntilDate
+                      ? `${popupUntilDate} 자정까지 팝업으로 노출됩니다`
+                      : '비워두면 팝업을 끌 때까지 계속 노출됩니다'}
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* 공개 여부 */}
             <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
@@ -178,7 +366,7 @@ const NotificationComposer = ({
           <div className="sticky bottom-0 bg-background-light/95 dark:bg-[#1c1c26]/95 backdrop-blur-sm border-t border-black/[0.04] dark:border-white/[0.06] px-5 py-3 flex items-center gap-2">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
             >
               취소

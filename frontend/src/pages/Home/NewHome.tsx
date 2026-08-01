@@ -6,6 +6,7 @@ import PrayerDetail from './components/PrayerDetail'
 // TodaysVerse — AnnualThemeVerse 전용 카드로 대체. 다시 살리려면 아래 import와 <TodaysVerse /> 주석을 해제하세요.
 // import TodaysVerse from './components/TodaysVerse'
 import AnnualThemeVerse from './components/AnnualThemeVerse'
+import HomeNotice from './components/HomeNotice'
 import DailyMeditationCard from './components/DailyMeditationCard'
 import TimeCapsuleCard from './components/TimeCapsuleCard'
 import TodayPlanCard from './components/TodayPlanCard'
@@ -235,6 +236,9 @@ const NewHome = () => {
               </div>
             )}
             
+            {/* 관리자 팝업 공지 — 진입 시 전면 팝업, 닫으면 이 자리에 배너로 남는다 */}
+            <HomeNotice />
+
             {/* 오늘의 묵상 카드 — 시간대별 히어로가 홈의 첫인사 역할 (위계 최상단) */}
             <DailyMeditationCard onWriteMeditation={handleComposerOpen} />
 

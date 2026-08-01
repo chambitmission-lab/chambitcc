@@ -317,7 +317,9 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                       {items.map((notification) => {
                         const unread = !notification.is_read
                         const expanded = expandedIds.has(notification.id)
-                        const expandable = needsExpand(notification.content)
+                        // 이미지가 있으면 펼쳐야 볼 수 있으므로 항상 확장 가능
+                        const expandable =
+                          needsExpand(notification.content) || !!notification.image_url
                         const navigating = isNavigating && pendingLinkId === notification.id
 
                         return (
@@ -363,6 +365,15 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                   >
                                     {notification.content}
                                   </p>
+
+                                  {notification.image_url && expanded && (
+                                    <img
+                                      src={notification.image_url}
+                                      alt=""
+                                      loading="lazy"
+                                      className="mt-2.5 w-full max-h-64 object-contain rounded-xl bg-gray-50 dark:bg-gray-800/50"
+                                    />
+                                  )}
 
                                   {notification.link_url && (
                                     <span

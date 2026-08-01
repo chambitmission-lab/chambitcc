@@ -1,6 +1,11 @@
 import { useEffect } from 'react'
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getNotifications, markAsRead, markAllAsRead } from '../api/notification'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  getNotifications,
+  getPopupNotifications,
+  markAsRead,
+  markAllAsRead,
+} from '../api/notification'
 import { notificationStream } from '../utils/notificationStream'
 
 const PAGE_SIZE = 20
@@ -8,6 +13,7 @@ const PAGE_SIZE = 20
 export const notificationKeys = {
   all: ['notifications'] as const,
   list: () => [...notificationKeys.all, 'infinite'] as const,
+  popups: () => [...notificationKeys.all, 'popups'] as const,
 }
 
 /**
@@ -33,6 +39,24 @@ export const useNotifications = () => {
     refetchOnWindowFocus: false,
   })
 }
+
+/**
+ * 홈 팝업 공지 (관리자가 팝업으로 지정한 활성 공지)
+ *
+ * 비로그인 방문자도 봐야 하므로 토큰 없이도 조회한다.
+ * 전역 기본값(staleTime 5분 + refetchOnMount false)은 "캐시 우선"이라 여기엔 맞지 않는다 —
+ * 방금 올라온 공지를 놓치지 않도록 홈에 들어올 때마다/앱으로 돌아올 때마다 다시 확인한다.
+ * 응답은 최대 5건이라 비용이 거의 없고, 실시간 갱신은 SSE(['notifications'] invalidate)가 함께 돕는다.
+ */
+export const usePopupNotices = () =>
+  useQuery({
+    queryKey: notificationKeys.popups(),
+    queryFn: getPopupNotifications,
+    staleTime: 1000 * 30, // 짧은 중복 진입만 캐시로 흡수
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    retry: 1,
+  })
 
 /**
  * 알림 SSE 실시간 스트림 연결 (항상 떠 있는 컴포넌트에서 한 번만 호출)
