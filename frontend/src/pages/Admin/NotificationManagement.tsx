@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getNotifications, deleteNotification } from '../../api/notification'
+import { getAdminNotifications, deleteNotification } from '../../api/notification'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import type { Notification } from '../../types/notification'
@@ -34,7 +34,8 @@ const NotificationManagement = () => {
   const loadNotifications = async () => {
     try {
       setLoading(true)
-      const data = await getNotifications({ limit: 1000 })
+      // 관리 전용 목록 — 비공개 공지 포함, 개인 알림(시스템 발송) 제외
+      const data = await getAdminNotifications({ limit: 1000 })
       setNotifications(data.notifications || [])
     } catch (error) {
       showToast(error instanceof Error ? error.message : '공지사항을 불러오는데 실패했습니다', 'error')

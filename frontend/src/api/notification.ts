@@ -40,6 +40,42 @@ export const getNotifications = async (params?: {
 }
 
 /**
+ * 공지사항 관리 목록 (관리자 전용)
+ *
+ * 공개용 목록과 달리 비공개 공지까지 포함하고, 개인 알림(기도 응답·타임캡슐 등
+ * 시스템이 사용자별로 만든 알림)은 제외한다 — 관리 화면에서 남의 알림을
+ * 수정·삭제하는 일이 없도록.
+ */
+export const getAdminNotifications = async (params?: {
+  page?: number
+  limit?: number
+}): Promise<NotificationsResponse> => {
+  const token = localStorage.getItem('access_token')
+  const query = new URLSearchParams()
+  if (params?.page) query.set('page', String(params.page))
+  if (params?.limit) query.set('limit', String(params.limit))
+  const qs = query.toString()
+
+  const response = await apiFetch(`${API_V1}/notifications/admin${qs ? `?${qs}` : ''}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok) {
+    throw new Error('공지사항을 불러오는데 실패했습니다')
+  }
+
+  const data = await response.json()
+
+  return {
+    notifications: data.notifications ?? [],
+    total: data.total ?? 0,
+    unread_count: 0,
+    page: data.page ?? params?.page ?? 1,
+    has_next: data.has_next ?? false,
+  }
+}
+
+/**
  * 홈 팝업 공지 조회 (최신순, 최대 5건)
  * 로그인/비로그인 모두 조회 가능 — 로그인 시 is_read 포함
  */
