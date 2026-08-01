@@ -19,13 +19,33 @@ export const auth = {
   loginNoAccount: '계정이 없으신가요?',
   loginSignUp: '회원가입',
   loginBackHome: '홈으로 돌아가기',
+  // 시간대별 인사 — 헤드라인 첫 줄
+  loginGreetingMorning: '좋은 아침이에요',
+  loginGreetingAfternoon: '반가워요',
+  loginGreetingEvening: '오늘 하루도 수고하셨어요',
+  loginHeadline: '로그인해 주세요',
+  loginRemember: '아이디 저장',
+  loginForgot: '비밀번호를 잊으셨나요?',
+  // 셀프 비밀번호 재설정 기능이 없어 관리자 문의로 안내한다
+  loginForgotHelp: '교회 사무실이나 관리자에게 말씀해 주시면 비밀번호를 다시 설정해 드려요.',
+  loginShowPassword: '비밀번호 표시',
+  loginHidePassword: '비밀번호 숨기기',
+  loginFirstTime: '처음이신가요?',
+  loginBrowse: '둘러보기',
   
   // 회원가입
   registerTitle: '회원가입',
   registerWelcome: '참빛교회 온라인 서비스를 이용하세요',
+  // 헤드라인 2줄 — 로그인 화면과 같은 톤
+  registerGreeting: '환영해요',
+  registerHeadline: '몇 가지만 알려주세요',
   registerFullName: '이름 (선택)',
+  registerFullNameHelp: '교회 안에서 이렇게 불러드릴게요.',
   registerUsername: '아이디',
-  registerPassword: '비밀번호 (최소 6자)',
+  // 최소 길이는 라벨이 아니라 필드 아래 힌트로 안내한다
+  registerPassword: '비밀번호',
+  registerPasswordRule: '6자 이상 입력해 주세요',
+  registerPasswordOk: '비밀번호가 일치해요',
   registerConfirmPassword: '비밀번호 확인',
   registerButton: '회원가입',
   registerLoading: '가입 중...',

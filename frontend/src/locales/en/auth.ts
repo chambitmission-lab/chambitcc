@@ -19,13 +19,33 @@ export const auth = {
   loginNoAccount: "Don't have an account?",
   loginSignUp: 'Sign Up',
   loginBackHome: 'Back to Home',
+  // Time-of-day greeting — first line of the headline
+  loginGreetingMorning: 'Good morning',
+  loginGreetingAfternoon: 'Good to see you',
+  loginGreetingEvening: 'You did well today',
+  loginHeadline: 'Please sign in',
+  loginRemember: 'Remember me',
+  loginForgot: 'Forgot your password?',
+  // No self-serve password reset yet — point people to an administrator
+  loginForgotHelp: 'Let the church office or an administrator know and we will reset it for you.',
+  loginShowPassword: 'Show password',
+  loginHidePassword: 'Hide password',
+  loginFirstTime: 'First time here?',
+  loginBrowse: 'Look around',
   
   // Register
   registerTitle: 'Sign Up',
   registerWelcome: 'Use Chambit Church online services',
+  // Two-line headline — same tone as the login screen
+  registerGreeting: 'Welcome',
+  registerHeadline: 'Just a few details',
   registerFullName: 'Full Name (Optional)',
+  registerFullNameHelp: 'This is how we will greet you at church.',
   registerUsername: 'Username',
-  registerPassword: 'Password (min 6 characters)',
+  // The minimum length is shown as a hint under the field, not in the label
+  registerPassword: 'Password',
+  registerPasswordRule: 'Use at least 6 characters',
+  registerPasswordOk: 'Passwords match',
   registerConfirmPassword: 'Confirm Password',
   registerButton: 'Sign Up',
   registerLoading: 'Signing up...',

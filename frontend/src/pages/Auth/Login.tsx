@@ -1,21 +1,54 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { API_V1 } from '../../config/api'
 import { clearAllPersistedCache } from '../../config/persister'
 import { restorePushSubscriptionForUser } from '../../utils/pushNotification'
+import { deriveTimeOfDay } from '../../hooks/useDailyMeditation'
+import { EyeIcon, StatusIcon } from './AuthIcons'
+import './AuthForm.css'
+
+/* 아이디 저장 — 사용자가 명시적으로 켰을 때만 남긴다.
+   (로그인 성공 시 저장되는 last_cached_username은 캐시 분리용이라 별개) */
+const REMEMBER_KEY = 'login_remembered_username'
+
+const GREETING_KEYS = {
+  morning: 'loginGreetingMorning',
+  afternoon: 'loginGreetingAfternoon',
+  evening: 'loginGreetingEvening',
+} as const
 
 const Login = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { t } = useLanguage()
   const [formData, setFormData] = useState({
-    username: '',
+    username: localStorage.getItem(REMEMBER_KEY) || '',
     password: ''
   })
   const [error, setError] = useState('')
+  /* 승인 대기는 사용자 잘못이 아니라 상태 안내라 빨강 대신 브랜드 톤으로 보여준다 */
+  const [errorTone, setErrorTone] = useState<'error' | 'info'>('error')
+  /* 같은 메시지가 반복돼도 흔들림이 다시 재생되도록 세는 카운터 */
+  const [errorSeq, setErrorSeq] = useState(0)
+  const fieldsRef = useRef<HTMLDivElement>(null)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [remember, setRemember] = useState(() => !!localStorage.getItem(REMEMBER_KEY))
+  const [showForgotHelp, setShowForgotHelp] = useState(false)
+
+  const greeting = t(GREETING_KEYS[deriveTimeOfDay(new Date().getHours())])
+
+  /* 로그인 실패 시 흔들림 재생. 리마운트(key 교체)로 처리하면 입력 포커스가
+     날아가므로, 클래스를 뗐다 붙이며 reflow로 애니메이션만 다시 돌린다. */
+  useEffect(() => {
+    const el = fieldsRef.current
+    if (!errorSeq || !el) return
+    el.classList.remove('auth-shake')
+    void el.offsetWidth
+    el.classList.add('auth-shake')
+  }, [errorSeq])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -29,6 +62,7 @@ const Login = () => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setErrorTone('error')
 
     try {
       const formBody = new URLSearchParams()
@@ -60,8 +94,17 @@ const Login = () => {
               : reason === 'rejected'
                 ? t('loginRejectedAccount')
                 : t('loginInactiveAccount')
+          // 승인 대기는 "기다리면 되는 상태"라 경고가 아닌 안내 톤으로
+          if (reason === 'pending_approval') setErrorTone('info')
         }
         throw new Error(message)
+      }
+
+      // 아이디 저장 — 체크했을 때만 다음 방문에 프리필한다 (비밀번호는 저장하지 않음)
+      if (remember) {
+        localStorage.setItem(REMEMBER_KEY, formData.username)
+      } else {
+        localStorage.removeItem(REMEMBER_KEY)
       }
 
       // 토큰 저장
@@ -111,91 +154,136 @@ const Login = () => {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('loginFailed'))
+      setErrorSeq((seq) => seq + 1)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="bg-surface screen-fit-minus-header flex items-center justify-center p-4">
-      <div className="max-w-sm w-full my-auto">
-        {/* Logo — 토스 블루 플랫: 앰버 글로우 대신 담백한 타이포 + 브랜드 포인트 */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tighter font-display text-ink-strong mb-2">
-            {t('aboutChurchName')}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('loginWelcome')}
-          </p>
-        </div>
+    /* 세로 중앙 정렬 + 아래쪽 여백을 더 줘 광학적으로 살짝 위에 앉힌다.
+       min-height라 내용이 길어지면 컨테이너가 같이 늘어나 잘리지 않는다. */
+    <div className="bg-surface screen-fit-minus-header flex flex-col justify-center px-6 pt-10 pb-20">
+      <div className="w-full max-w-sm mx-auto">
+        {/* 헤드라인 — 좌측 정렬 2줄. 헤더에 이미 로고가 있어 브랜드 마크는 넣지 않는다.
+            카드도 부제도 없이 여백이 위계를 만든다. */}
+        <h1 className="font-display text-[28px] leading-[1.35] font-bold tracking-tight text-ink-strong">
+          {greeting}
+          <br />
+          {t('loginHeadline')}
+        </h1>
 
-        {/* Login Card */}
-        <div className="feed-card rounded-2xl p-8 mb-4">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+        <form onSubmit={handleSubmit} className="mt-9">
+          <div ref={fieldsRef}>
+            <div className="auth-field">
               <input
+                id="login-username"
                 type="text"
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                placeholder={t('loginUsername')}
+                placeholder=" "
                 required
                 disabled={loading}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] rounded-xl text-base text-ink-strong placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-brand transition-colors"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                enterKeyHint="next"
               />
+              <label htmlFor="login-username">{t('loginUsername')}</label>
             </div>
 
-            <div>
+            <div className="auth-field mt-6">
               <input
-                type="password"
+                id="login-password"
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder={t('loginPassword')}
+                placeholder=" "
                 required
                 disabled={loading}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] rounded-xl text-base text-ink-strong placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-brand transition-colors"
+                autoComplete="current-password"
+                enterKeyHint="go"
               />
+              <label htmlFor="login-password">{t('loginPassword')}</label>
+              <button
+                type="button"
+                className="auth-eye"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={t(showPassword ? 'loginHidePassword' : 'loginShowPassword')}
+                aria-pressed={showPassword}
+                tabIndex={-1}
+              >
+                <EyeIcon off={showPassword} />
+              </button>
             </div>
+          </div>
 
+          {/* 에러는 배너가 아니라 필드 바로 아래 인라인으로 — 레이아웃이 튀지 않는다 */}
+          {error && (
+            <p
+              className={`auth-msg mt-3 ${errorTone === 'info' ? 'auth-msg--info' : 'auth-msg--error'}`}
+              role="alert"
+            >
+              <StatusIcon tone={errorTone} />
+              <span>{error}</span>
+            </p>
+          )}
+
+          <div className="flex items-center justify-between mt-5">
+            <label className="flex items-center gap-2 text-[13px] text-ink cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="auth-check"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+              />
+              {t('loginRemember')}
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowForgotHelp((v) => !v)}
+              className="text-[13px] text-ink-muted hover:text-brand transition-colors"
+              aria-expanded={showForgotHelp}
+            >
+              {t('loginForgot')}
+            </button>
+          </div>
+
+          {showForgotHelp && (
+            <p className="mt-3 rounded-xl bg-[var(--brand-soft)] px-3.5 py-2.5 text-[13px] leading-relaxed text-ink animate-pop-in">
+              {t('loginForgotHelp')}
+            </p>
+          )}
+
+          {/* CTA는 폼 바로 아래 — 바닥에 붙이면 큰 화면에서 가운데가 텅 빈다 */}
+          <div className="mt-9">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 bg-brand hover:bg-brand-dim text-white font-semibold rounded-xl text-sm active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-[0_8px_24px_-8px_var(--brand-glow)]"
+              className="w-full h-[52px] flex items-center justify-center gap-2 bg-brand hover:bg-brand-dim text-white font-semibold rounded-2xl text-[15px] active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 shadow-[0_10px_28px_-10px_var(--brand-glow)]"
             >
+              {loading && <span className="auth-spinner" aria-hidden="true" />}
               {loading ? t('loginLoading') : t('loginButton')}
             </button>
-          </form>
-        </div>
 
-        {/* Sign Up Link */}
-        <div className="feed-card rounded-2xl p-4 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {t('loginNoAccount')}{' '}
-            <Link
-              to="/register"
-              className="font-semibold text-brand hover:text-brand-dim transition-colors"
-            >
-              {t('loginSignUp')}
-            </Link>
-          </p>
-        </div>
-
-        {/* Back to Home */}
-        <div className="text-center mt-6">
-          <Link
-            to="/"
-            className="inline-block text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
-          >
-            {t('loginBackHome')}
-          </Link>
-        </div>
+            <p className="mt-5 text-center text-[13px] text-ink-muted">
+              {t('loginFirstTime')}{' '}
+              <Link
+                to="/register"
+                className="font-semibold text-brand hover:text-brand-dim transition-colors"
+              >
+                {t('loginSignUp')}
+              </Link>
+              <span className="mx-2 opacity-40">·</span>
+              <Link to="/" className="hover:text-brand transition-colors">
+                {t('loginBrowse')}
+              </Link>
+            </p>
+          </div>
+        </form>
       </div>
     </div>
   )

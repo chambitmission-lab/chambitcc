@@ -61,7 +61,8 @@ const ReflectionEditModal = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    // 묵상 읽기 시트(z-120) 위에 겹쳐 열리므로 그보다 높게
+    <div className="fixed inset-0 z-[130] flex items-end justify-center">
       <div
         className="absolute inset-0 bg-black/55 backdrop-blur-sm"
         onClick={() => !saving && onClose()}

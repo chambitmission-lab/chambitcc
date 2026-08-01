@@ -1,8 +1,6 @@
 // ── 하루치 카드 ──
 // 상태별 시각 위계: 완료(과거) = 딤드 / 오늘 = 블루 하이라이트 / 예정(미래) = 아웃라인 원 + 차분한 텍스트
 import type { PlanDay } from '../../../../types/biblePlan'
-import type { ReflectionState } from '../../../../hooks/usePlanReflections'
-import { normalizeReflection } from '../reflectionText'
 
 const DayCard = ({
   domId,
@@ -14,12 +12,6 @@ const DayCard = ({
   onToggle,
   onRead,
   onReflect,
-  reflectionOpen,
-  reflection,
-  admin,
-  regenerating,
-  onEditReflection,
-  onRegenerate,
 }: {
   domId?: string
   day: PlanDay
@@ -30,12 +22,6 @@ const DayCard = ({
   onToggle: () => void
   onRead: () => void
   onReflect: () => void
-  reflectionOpen: boolean
-  reflection?: ReflectionState
-  admin: boolean
-  regenerating: boolean
-  onEditReflection: () => void
-  onRegenerate: () => void
 }) => {
   const isPast = day.completed && !isToday
   const isFuture = subscribed && !day.completed && !isToday
@@ -140,74 +126,18 @@ const DayCard = ({
             💬 {day.reflection_prompt}
           </p>
         )}
+        {/* 묵상은 카드 안에 펼치지 않고 전용 읽기 시트(ReflectionSheet)로 연다 */}
         <button
           type="button"
           onClick={onReflect}
           className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-blue-600 dark:text-blue-300 hover:underline"
         >
           <span>✨</span>
-          {reflectionOpen ? 'AI 묵상 닫기' : 'AI 묵상 보기'}
+          AI 묵상 읽기
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className="opacity-70">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </button>
-
-        {reflectionOpen && (
-          <div className="mt-2 rounded-xl bg-blue-50/70 dark:bg-blue-500/[0.06] border border-blue-200/50 dark:border-blue-400/20 px-3.5 py-3">
-            {reflection?.loading ? (
-              reflection.streamText ? (
-                // SSE 스트리밍 중 — 도착한 본문을 실시간 표시 (타자기 효과)
-                <p className="text-[13px] leading-[1.7] text-gray-700 dark:text-white/80 whitespace-pre-wrap">
-                  {normalizeReflection(reflection.streamText)}
-                  <span
-                    className="inline-block w-[2px] h-[1em] ml-0.5 align-[-0.15em] bg-blue-500 dark:bg-blue-300 animate-pulse"
-                    aria-hidden
-                  />
-                </p>
-              ) : (
-                <p className="text-[12.5px] text-gray-500 dark:text-white/55">묵상을 준비하고 있어요…</p>
-              )
-            ) : reflection?.error ? (
-              <p className="text-[12.5px] text-red-500 dark:text-red-300">{reflection.error}</p>
-            ) : reflection?.data ? (
-              <div>
-                <p className="text-[13px] leading-[1.7] text-gray-700 dark:text-white/80 whitespace-pre-wrap">
-                  {normalizeReflection(reflection.data.reflection)}
-                </p>
-                {reflection.data.questions.length > 0 && (
-                  <ul className="mt-2.5 space-y-1.5">
-                    {reflection.data.questions.map((q, i) => (
-                      <li key={i} className="text-[12.5px] text-blue-700 dark:text-blue-200 flex gap-1.5">
-                        <span className="opacity-60">Q{i + 1}.</span>
-                        <span>{normalizeReflection(q)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {admin && (
-                  <div className="mt-3 pt-2.5 flex items-center gap-2 border-t border-blue-200/50 dark:border-blue-400/15">
-                    <span className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-300 tracking-[0.06em]">
-                      ADMIN
-                    </span>
-                    <button
-                      type="button"
-                      onClick={onEditReflection}
-                      className="text-[12px] font-semibold text-blue-600 dark:text-blue-300 hover:underline"
-                    >
-                      수정
-                    </button>
-                    <span className="text-gray-300 dark:text-white/15">·</span>
-                    <button
-                      type="button"
-                      onClick={onRegenerate}
-                      disabled={regenerating}
-                      className="text-[12px] font-semibold text-gray-500 dark:text-white/55 hover:text-blue-500 dark:hover:text-blue-300 disabled:opacity-50"
-                    >
-                      {regenerating ? '생성 중…' : 'AI로 다시 생성'}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </div>
-        )}
       </div>
       )}
     </div>

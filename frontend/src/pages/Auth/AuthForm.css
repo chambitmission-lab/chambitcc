@@ -1,0 +1,206 @@
+/* 로그인·회원가입 공용 폼 스타일 — 토스식 미니멀.
+   카드로 감싸지 않고 여백과 밑줄 인풋만으로 위계를 만든다.
+   색은 전부 theme.css 토큰을 쓰므로 라이트/다크가 자동으로 따라온다. */
+
+/* ── 밑줄 인풋 + 떠오르는 라벨 ─────────────────────────────
+   라벨을 input 뒤에 두어 :placeholder-shown 형제 선택자로 상태를 읽는다.
+   (placeholder는 공백 한 칸이어야 :placeholder-shown이 동작한다) */
+.auth-field {
+  position: relative;
+  padding-top: 1.15rem;
+}
+
+.auth-field input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1.5px solid var(--card-border);
+  border-radius: 0; /* iOS 사파리 기본 라운드 제거 */
+  padding: 0.3rem 2.5rem 0.6rem 0;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--text-strong);
+  transition: border-color 0.2s ease;
+}
+
+.auth-field input:focus {
+  outline: none;
+  border-bottom-color: var(--brand);
+}
+
+.auth-field input:disabled {
+  opacity: 0.55;
+}
+
+.auth-field label {
+  position: absolute;
+  left: 0;
+  top: 1.35rem;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  pointer-events: none;
+  transform-origin: left top;
+  transition:
+    transform 0.18s ease,
+    color 0.18s ease;
+}
+
+/* 값이 있거나 포커스면 라벨이 위로 작아지며 올라간다 */
+.auth-field input:focus + label,
+.auth-field input:not(:placeholder-shown) + label {
+  transform: translateY(-1.4rem) scale(0.76);
+}
+
+.auth-field input:focus + label {
+  color: var(--brand);
+}
+
+/* 브라우저/키체인 자동완성이 채운 값도 "채워진 상태"로 보이게.
+   기본 노란 배경과 검은 글자색을 테마 색으로 덮어쓴다. */
+.auth-field input:-webkit-autofill,
+.auth-field input:-webkit-autofill:hover,
+.auth-field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-strong);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+  caret-color: var(--text-strong);
+  /* 배경 전환을 사실상 무한히 지연시켜 노란 배경이 그려지지 않게 한다 */
+  transition: background-color 9999s ease-out;
+}
+
+/* 비밀번호 보기 토글 — 밑줄 오른쪽 끝에 겹쳐 놓는다 */
+.auth-eye {
+  position: absolute;
+  right: -0.4rem;
+  bottom: 0.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  color: var(--text-muted);
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.auth-eye:hover {
+  color: var(--text-body);
+  background: var(--surface-inset);
+}
+
+.auth-eye:active {
+  transform: scale(0.92);
+}
+
+/* ── 아이디 저장 체크박스 ───────────────────────────────── */
+.auth-check {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 1.5px solid var(--card-border);
+  border-radius: 0.375rem;
+  background: var(--surface-container);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.auth-check:checked {
+  background-color: var(--brand);
+  border-color: var(--brand);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  background-size: 0.75rem;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.auth-check:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* ── 에러/안내 메시지 ───────────────────────────────────── */
+.auth-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.auth-msg--error {
+  color: #dc2626;
+}
+
+[data-theme='dark'] .auth-msg--error {
+  color: #f87171;
+}
+
+.auth-msg--info {
+  color: var(--brand);
+}
+
+.auth-msg--success {
+  color: #059669;
+}
+
+[data-theme='dark'] .auth-msg--success {
+  color: #34d399;
+}
+
+/* 규칙 안내(6자 이상 등) — 아직 틀린 게 아니라 알려주는 단계 */
+.auth-msg--hint {
+  color: var(--text-muted);
+}
+
+/* 인증 실패 시 폼이 살짝 튕긴다 — 레이아웃은 그대로 두고 시선만 끈다 */
+@keyframes auth-shake {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(3px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-5px);
+  }
+  40%,
+  60% {
+    transform: translateX(5px);
+  }
+}
+
+.auth-shake {
+  animation: auth-shake 0.45s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-shake {
+    animation: none;
+  }
+}
+
+/* ── 제출 버튼 안 스피너 ────────────────────────────────── */
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 9999px;
+  animation: auth-spin 0.6s linear infinite;
+}

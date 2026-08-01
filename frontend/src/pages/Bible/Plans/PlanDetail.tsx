@@ -17,6 +17,7 @@ import { isAdmin, isAuthenticated } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import { accentGradient, gradientTextStyle } from './planVisuals'
 import DayCard from './components/DayCard'
+import ReflectionSheet from './components/ReflectionSheet'
 import ReflectionEditModal from './components/ReflectionEditModal'
 
 // 긴 플랜(90/120/365일)은 일정을 30일 단위로 접어 스크롤 부담을 줄인다.
@@ -203,14 +204,13 @@ const PlanDetail = () => {
       onToggle={() => handleToggleDay(day)}
       onRead={() => handleRead(day)}
       onReflect={() => toggleReflection(day.day_number)}
-      reflectionOpen={openReflection === day.day_number}
-      reflection={reflections[day.day_number]}
-      admin={admin}
-      regenerating={regeneratingDay === day.day_number}
-      onEditReflection={() => setEditingDay(day.day_number)}
-      onRegenerate={() => regenerateReflection(day.day_number)}
     />
   )
+
+  const reflectionDay =
+    openReflection !== null
+      ? plan.days.find((d) => d.day_number === openReflection) ?? null
+      : null
 
   // 다시 시작/그만두기 — 파괴적·부정적 액션이라 메인 CTA 옆이 아닌 헤더 ⋮ 메뉴로 격리
   const planMenu = subscribed ? (
@@ -432,6 +432,25 @@ const PlanDetail = () => {
           <div className="space-y-2.5">{plan.days.map(renderDay)}</div>
         )}
       </section>
+
+      {/* AI 묵상 읽기 시트 */}
+      {reflectionDay && (
+        <ReflectionSheet
+          dayNumber={reflectionDay.day_number}
+          dayTitle={reflectionDay.title}
+          passageLabel={reflectionDay.passages
+            .map((p) => p.reference)
+            .filter(Boolean)
+            .join(' · ')}
+          state={reflections[reflectionDay.day_number]}
+          admin={admin}
+          regenerating={regeneratingDay === reflectionDay.day_number}
+          onEdit={() => setEditingDay(reflectionDay.day_number)}
+          onRegenerate={() => regenerateReflection(reflectionDay.day_number)}
+          onRead={() => handleRead(reflectionDay)}
+          onClose={() => toggleReflection(reflectionDay.day_number)}
+        />
+      )}
 
       {/* 관리자 — AI 묵상 수정 모달 */}
       {editingDay !== null && reflections[editingDay]?.data && (
