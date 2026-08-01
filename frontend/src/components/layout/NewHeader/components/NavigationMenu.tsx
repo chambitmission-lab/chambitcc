@@ -1,14 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
-
-type NavKey =
-  | 'about' | 'history' | 'worship' | 'sermon' | 'bible' | 'garden' | 'bluemarble'
-  | 'answeredPrayers' | 'events' | 'missionStatus' | 'ministry' | 'news' | 'myGroups'
-  | 'culture'
+import { NAV_ICONS, type NavIconKey } from './NavIcons'
 
 interface NavItem {
   path: string
-  key: NavKey
+  key: NavIconKey
 }
 
 interface NavSection {
@@ -47,14 +43,14 @@ const MENU_SECTIONS: NavSection[] = [
 ]
 
 // 게임·이벤트성 메뉴는 일반 탐색 메뉴와 톤을 분리해 배치
-const ACTIVITY_ITEMS: NavItem[] = [
+const ACTIVITY_ITEMS = [
   { path: '/garden', key: 'garden' },
   { path: '/bluemarble', key: 'bluemarble' },
   { path: '/answered-prayers', key: 'answeredPrayers' }
-]
+] as const
 
 const SectionTitle = ({ children }: { children: string }) => (
-  <h3 className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400 dark:text-white/40">
+  <h3 className="px-1.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted">
     {children}
   </h3>
 )
@@ -63,43 +59,46 @@ const NavigationMenu = () => {
   const { t } = useLanguage()
 
   return (
-    <nav className="p-3 space-y-4">
+    <nav className="p-3 space-y-5">
       {MENU_SECTIONS.map(section => (
         <div key={section.titleKey}>
           <SectionTitle>{t(section.titleKey)}</SectionTitle>
-          <div className="grid grid-cols-3 gap-2">
-            {section.items.map(item => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className="
-                  group relative overflow-hidden
-                  px-1.5 py-3 rounded-2xl min-h-[48px]
-                  flex items-center justify-center text-center
-                  bg-white/80 dark:bg-card-dark
-                  border border-gray-200/70 dark:border-white/[0.08]
-                  shadow-sm
-                  dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]
-                  text-[13.5px] font-semibold tracking-[-0.015em] text-ink-strong
-                  transition-all duration-200
-                  hover:-translate-y-0.5
-                  hover:border-[var(--brand-soft-strong)]
-                  hover:shadow-[0_0_18px_var(--brand-glow),0_4px_16px_rgba(0,0,0,0.10)]
-                  dark:hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_22px_var(--brand-glow),0_8px_24px_rgba(0,0,0,0.25)]
-                "
-              >
-                {/* 다크 카드 표면 미세 그라데이션 */}
-                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-                {/* 호버 시 브랜드 블루 워시 */}
-                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none rounded-2xl bg-[var(--brand-soft)]" />
-                <span className="relative z-10 leading-tight">{t(item.key)}</span>
-              </Link>
-            ))}
+          {/* 카드 테두리를 걷어낸 4열 런처 — 아이콘이 위계를 만들고
+              빈 자리는 상자가 아니라 여백으로 읽힌다 */}
+          <div className="grid grid-cols-4 gap-0.5">
+            {section.items.map(item => {
+              const Icon = NAV_ICONS[item.key]
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="
+                    group flex flex-col items-center gap-1.5
+                    rounded-2xl px-1 py-2.5
+                    transition-colors duration-150
+                    hover:bg-[var(--brand-soft)] active:bg-[var(--brand-soft-strong)]
+                  "
+                >
+                  <span
+                    className="
+                      flex items-center justify-center w-11 h-11 rounded-2xl
+                      bg-surface-high text-ink
+                      group-hover:text-brand transition-colors duration-150
+                    "
+                  >
+                    <Icon />
+                  </span>
+                  <span className="text-[11.5px] font-medium leading-tight text-center text-ink">
+                    {t(item.key)}
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </div>
       ))}
 
-      {/* 신앙 액티비티 — 아이콘 강조형 카드로 일반 메뉴와 구분 */}
+      {/* 신앙 액티비티 — 여기만 브랜드 틴트 카드로 남겨 탐색 메뉴와 구분한다 */}
       <div>
         <SectionTitle>{t('navGroupActivity')}</SectionTitle>
         <div className="grid grid-cols-3 gap-2">
@@ -115,11 +114,9 @@ const NavigationMenu = () => {
                   flex flex-col items-center justify-center gap-1
                   bg-[var(--brand-soft)]
                   border border-[var(--brand-soft-strong)]
-                  shadow-sm
                   text-[12px] font-semibold tracking-[-0.01em] text-ink-strong
                   transition-all duration-200
-                  hover:-translate-y-0.5
-                  hover:border-brand
+                  hover:-translate-y-0.5 hover:border-brand
                   hover:shadow-[0_0_18px_var(--brand-glow),0_4px_16px_rgba(0,0,0,0.10)]
                   dark:hover:shadow-[0_0_22px_var(--brand-glow),0_8px_24px_rgba(0,0,0,0.25)]
                 "

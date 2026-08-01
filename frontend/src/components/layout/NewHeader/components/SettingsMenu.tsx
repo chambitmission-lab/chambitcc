@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import LangFlag from '../../../common/LangFlag'
+import { IconPerson } from './NavIcons'
 
 interface SettingsMenuProps {
   isLoggedIn: boolean
@@ -24,9 +25,7 @@ const SettingsMenu = ({ isLoggedIn, onLogout }: SettingsMenuProps) => {
               transition-colors
             "
           >
-            <span className="material-icons-outlined text-[18px] text-gray-500 dark:text-white/55">
-              person
-            </span>
+            <IconPerson className="w-[18px] h-[18px] text-ink-muted" />
             <span>{t('accountTitle')}</span>
           </Link>
 
