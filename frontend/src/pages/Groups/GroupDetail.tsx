@@ -28,6 +28,10 @@ const GroupDetail = () => {
   // 오늘 자정(KST) 부터의 일정만 (이미 끝난 모임 숨김)
   // toISOString() 은 UTC 로 밀려 하루 어긋나므로 KST 날짜 키를 그대로 쓴다
   const todayIso = useMemo(() => kstDateKey(new Date()), [])
+  // RSVP 마감 여부 판정 기준 시각 — 렌더 중에 Date.now()를 부르면 같은 렌더가
+  // 매번 다른 결과를 낼 수 있어(비순수) 진입 시점 한 번만 고정한다.
+  // 화면을 열어 둔 채 마감이 지나가면 다음 진입 때 반영된다.
+  const nowMs = useMemo(() => new Date().getTime(), [])
   const { events: meetings, loading: meetingsLoading } = useEvents(
     group?.is_member ? todayIso : undefined,
     undefined,
@@ -337,7 +341,7 @@ const GroupDetail = () => {
                         {m.rsvp_deadline && (
                           <span className="ml-2">
                             ⏰ {formatKstDateTime(m.rsvp_deadline, language)}
-                            {parseKstDate(m.rsvp_deadline).getTime() <= Date.now() && ' · 접수 마감'}
+                            {parseKstDate(m.rsvp_deadline).getTime() <= nowMs && ' · 접수 마감'}
                           </span>
                         )}
                       </div>

@@ -91,6 +91,7 @@ export const auth = {
   accountRetry: '다시 시도',
   accountLockedHint: '변경 불가',
   accountAdminBadge: '관리자',
+  accountAvatarAlt: '내 프로필 사진',
   accountTogetherDays: '일째 함께하는 중',
   accountSecuritySection: '보안',
   accountPasswordRowDesc: '주기적으로 바꾸면 더 안전해요',

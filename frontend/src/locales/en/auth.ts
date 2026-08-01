@@ -91,6 +91,7 @@ export const auth = {
   accountRetry: 'Try again',
   accountLockedHint: 'Locked',
   accountAdminBadge: 'Admin',
+  accountAvatarAlt: 'My profile photo',
   accountTogetherDays: ' days together',
   accountSecuritySection: 'Security',
   accountPasswordRowDesc: 'Changing it now and then keeps you safer',

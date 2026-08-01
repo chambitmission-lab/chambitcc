@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { getMe, changePassword, updateName, type ChangePasswordError, type UpdateNameError } from '../../api/account'
+import { getProfileStats } from '../../api/profile'
+import type { ProfileDetail } from '../../types/profile'
 import { logout } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
@@ -100,6 +102,27 @@ const AccountSettings = () => {
     enabled: !!localStorage.getItem('access_token'),
     staleTime: 1000 * 60,
   })
+
+  /* 프로필 사진 — /auth/me 응답에는 avatar_url이 없어 프로필 통계에서 가져온다.
+     /profile을 다녀왔다면 이미 받아 둔 값이 캐시에 있으므로 첫 프레임부터 사진이 뜨고,
+     사진을 바꾸면 업로드 훅의 ['profile'] 무효화가 이 키에도 걸려 함께 갱신된다. */
+  const { data: profileStats } = useQuery({
+    queryKey: ['profile', 'stats'],
+    queryFn: getProfileStats,
+    enabled: !!localStorage.getItem('access_token'),
+    staleTime: 1000 * 60 * 5,
+    initialData: () =>
+      queryClient.getQueryData<ProfileDetail>(['profile', 'detail'])?.stats,
+    initialDataUpdatedAt: () =>
+      queryClient.getQueryState(['profile', 'detail'])?.dataUpdatedAt,
+  })
+
+  // 이미지 주소가 깨졌을 때(파일 삭제 등) 조용히 이니셜로 되돌아간다
+  const [avatarBroken, setAvatarBroken] = useState(false)
+  const avatarUrl = profileStats?.avatar_url ?? null
+  useEffect(() => {
+    setAvatarBroken(false)
+  }, [avatarUrl])
 
   /* ── 이름 인라인 수정 ─────────────────────────────────── */
   const [editingName, setEditingName] = useState(false)
@@ -283,12 +306,22 @@ const AccountSettings = () => {
           <div className="px-4 pt-4 space-y-5">
             {/* 아이덴티티 카드 */}
             <div className="rounded-2xl bg-[var(--brand-soft)] border border-[var(--card-border)] p-4 flex items-center gap-3.5">
-              <div
-                className="shrink-0 w-14 h-14 rounded-full bg-brand text-white flex items-center justify-center text-[22px] font-bold tracking-[-0.02em] shadow-[0_4px_14px_var(--brand-glow)]"
-                aria-hidden="true"
-              >
-                {initial}
-              </div>
+              {avatarUrl && !avatarBroken ? (
+                <img
+                  src={avatarUrl}
+                  alt={t('accountAvatarAlt')}
+                  onError={() => setAvatarBroken(true)}
+                  className="shrink-0 w-14 h-14 rounded-full object-cover bg-[var(--surface-inset)] shadow-[0_4px_14px_var(--brand-glow)]"
+                  style={{ filter: 'var(--media-dim)' }}
+                />
+              ) : (
+                <div
+                  className="shrink-0 w-14 h-14 rounded-full bg-brand text-white flex items-center justify-center text-[22px] font-bold tracking-[-0.02em] shadow-[0_4px_14px_var(--brand-glow)]"
+                  aria-hidden="true"
+                >
+                  {initial}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[18px] font-bold text-ink-strong tracking-[-0.02em] break-all">
