@@ -22,12 +22,13 @@ const PlanList = () => {
   // 둘러보기 해시태그 필터 (null = 전체)
   const [tagFilter, setTagFilter] = useState<string | null>(null)
 
-  const plans = data?.items ?? []
+  // 로딩 중엔 매 렌더 새 빈 배열이 되어 아래 useMemo 들이 무력화된다 — 참조를 고정
+  const plans = useMemo(() => data?.items ?? [], [data])
   const myPlans = plans.filter((p) => p.progress?.subscribed)
   // 진행 중인 플랜을 최상단으로, 완주한 플랜은 별도 접이식 섹션으로 분리
   const activePlans = myPlans.filter((p) => p.progress?.status !== 'completed')
   const completedPlans = myPlans.filter((p) => p.progress?.status === 'completed')
-  const otherPlans = plans.filter((p) => !p.progress?.subscribed)
+  const otherPlans = useMemo(() => plans.filter((p) => !p.progress?.subscribed), [plans])
 
   const todayByPlan = useMemo(
     () => new Map((todayData?.items ?? []).map((t) => [t.plan_id, t])),

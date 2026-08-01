@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { toggleLike, toggleRetweet, type Post } from '../api/community'
+import type { ApiError } from '../types/queryCache'
 
 interface UsePostActionsProps {
   posts: Post[]
@@ -37,13 +38,14 @@ export const usePostActions = ({ posts, setPosts }: UsePostActionsProps): UsePos
             : post
         ))
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('좋아요 실패:', err)
-      
-      if (err.response?.status === 401) {
+      const e = err as ApiError
+
+      if (e.response?.status === 401) {
         alert('로그인이 필요합니다.')
-      } else if (err.response?.status === 400) {
-        const errorMsg = err.response?.data?.detail || err.response?.data?.message
+      } else if (e.response?.status === 400) {
+        const errorMsg = e.response?.data?.detail || e.response?.data?.message
         if (errorMsg?.includes('already liked')) {
           alert('이미 좋아요를 누르셨습니다.')
           setPosts(posts.map(post => 
@@ -81,13 +83,14 @@ export const usePostActions = ({ posts, setPosts }: UsePostActionsProps): UsePos
             : post
         ))
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('리트윗 실패:', err)
-      
-      if (err.response?.status === 401) {
+      const e = err as ApiError
+
+      if (e.response?.status === 401) {
         alert('로그인이 필요합니다.')
-      } else if (err.response?.status === 400) {
-        const errorMsg = err.response?.data?.detail || err.response?.data?.message
+      } else if (e.response?.status === 400) {
+        const errorMsg = e.response?.data?.detail || e.response?.data?.message
         if (errorMsg?.includes('already')) {
           alert('이미 리트윗하셨습니다.')
           setPosts(posts.map(post => 

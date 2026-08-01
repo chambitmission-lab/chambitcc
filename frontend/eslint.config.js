@@ -19,5 +19,17 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // `_` 접두사는 "쓰지 않는 걸 알고 남겨 둔 것"이라는 관례 —
+      // 시그니처를 맞추려고 남긴 인자(_keyword)까지 에러로 만들 필요는 없다.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
   },
 ])

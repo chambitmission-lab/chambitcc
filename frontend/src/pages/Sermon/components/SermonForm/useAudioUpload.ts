@@ -62,7 +62,7 @@ export const useAudioUpload = () => {
     if (audioState.uploadedUrl) {
       try {
         await deleteAudioMutation.mutateAsync(audioState.uploadedUrl)
-      } catch (error) {
+      } catch {
         // 삭제 실패 시 무시
       }
     }
@@ -78,7 +78,7 @@ export const useAudioUpload = () => {
     if (audioState.uploadedUrl) {
       try {
         await deleteAudioMutation.mutateAsync(audioState.uploadedUrl)
-      } catch (error) {
+      } catch {
         // 정리 실패 시 무시
       }
     }

@@ -2,10 +2,15 @@
 import { QueryClient } from '@tanstack/react-query'
 
 // 네트워크 에러 판별 (캐시 사용을 위해 재시도하지 않음)
-const isNetworkError = (error: any) =>
-  error?.message?.includes('Failed to fetch') ||
-  error?.message?.includes('Network request failed') ||
-  error?.message?.includes('ERR_CONNECTION_REFUSED')
+const isNetworkError = (error: unknown) => {
+  const message = (error as { message?: unknown } | null)?.message
+  if (typeof message !== 'string') return false
+  return (
+    message.includes('Failed to fetch') ||
+    message.includes('Network request failed') ||
+    message.includes('ERR_CONNECTION_REFUSED')
+  )
+}
 
 // 4xx는 다시 물어봐도 답이 안 바뀐다 (삭제된 캡슐 404, 권한 없음 403 등).
 // 재시도하면 그 시간만큼 화면이 빈 채로 남아 "왜 이렇게 오래 걸리지" 가 된다.

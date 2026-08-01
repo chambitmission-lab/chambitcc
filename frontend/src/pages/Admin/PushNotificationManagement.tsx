@@ -146,8 +146,9 @@ export const PushNotificationManagement = () => {
       } else {
         showToast(`${data.sent}명 성공 · ${data.failed}명 실패`, 'success')
       }
-    } catch (error: any) {
-      const message = error?.message ?? '푸시 알림 전송에 실패했습니다'
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : '푸시 알림 전송에 실패했습니다'
       setResult({ ok: false, message })
       showToast(message, 'error')
     } finally {

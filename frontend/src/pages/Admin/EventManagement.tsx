@@ -7,6 +7,7 @@ import type { Event, EventCategory } from '../../types/event'
 import { ALL_CATEGORIES, CATEGORY_VISUAL } from '../Events/utils/categoryConfig'
 import { formatDDay, formatEventTime, formatEventDateLabel } from '../Events/utils/dateGrouping'
 import { formatKstDateTime, parseKstDate } from '../../utils/kstTime'
+import { useNowMs } from '../../hooks/useNowMs'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { translations } from '../../locales'
 import EventComposer from './components/EventComposer'
@@ -326,7 +327,8 @@ const EventRow = ({
   const dday = formatDDay(event.start_datetime)
   const time = formatEventTime(event.start_datetime)
   const dateLabel = formatEventDateLabel(event.start_datetime)
-  const isPast = parseKstDate(event.start_datetime).getTime() < Date.now()
+  const nowMs = useNowMs()
+  const isPast = parseKstDate(event.start_datetime).getTime() < nowMs
 
   return (
     <div
@@ -443,7 +445,7 @@ const EventRow = ({
               <InfoRow
                 label="RSVP 마감"
                 value={`${formatKstDateTime(event.rsvp_deadline)}${
-                  parseKstDate(event.rsvp_deadline).getTime() <= Date.now() ? ' · 마감됨' : ''
+                  parseKstDate(event.rsvp_deadline).getTime() <= nowMs ? ' · 마감됨' : ''
                 }`}
               />
             )}

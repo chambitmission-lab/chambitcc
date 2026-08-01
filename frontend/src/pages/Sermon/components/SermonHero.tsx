@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
 import { getBibleVerse } from '../../../api/bible'
+import { useNowMs } from '../../../hooks/useNowMs'
 import { parseBibleReference, formatReference, stripTitleDate } from '../utils/sermonMeta'
 import './SermonHero.css'
 
@@ -25,7 +26,7 @@ const SermonHero = ({ sermon, onOpen }: SermonHeroProps) => {
     retry: 1,
   })
 
-  const isThisWeek = Date.now() - new Date(sermon.sermon_date).getTime() < WEEK_MS
+  const isThisWeek = useNowMs() - new Date(sermon.sermon_date).getTime() < WEEK_MS
   const dateLabel = new Date(sermon.sermon_date).toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',

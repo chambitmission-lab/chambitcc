@@ -12,6 +12,7 @@ import {
   type HighlightColor,
   type BookmarkDeleteTarget,
 } from '../api/bibleBookmark'
+import type { ProfileDetail } from '../types/profile'
 
 export const bookmarkKeys = {
   all: ['bookmark'] as const,
@@ -92,9 +93,15 @@ export const useUpsertBookmark = (verseId: number) => {
       const previous = queryClient.getQueryData<VerseBookmark | null>(bookmarkKeys.detail(verseId))
       const wasExisting = previous != null
 
-      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
         if (!old) return old
-        const bible = old.stats?.bible_reading ?? {}
+        // 타입상 필수인 세 필드까지 채운 폴백 — 통계가 아직 없는 계정에서도
+        // bible_reading 모양이 깨지지 않는다
+        const bible = old.stats?.bible_reading ?? {
+          verses_read: 0,
+          chapters_read: 0,
+          books_completed: [],
+        }
         const prevBookmarks = bible.bookmarks_count || 0
         const prevNotes = bible.notes_count || 0
         const prevFavorites = bible.favorites_count || 0
@@ -166,9 +173,15 @@ export const useDeleteBookmark = (verseId: number) => {
         },
       )
 
-      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
         if (!old) return old
-        const bible = old.stats?.bible_reading ?? {}
+        // 타입상 필수인 세 필드까지 채운 폴백 — 통계가 아직 없는 계정에서도
+        // bible_reading 모양이 깨지지 않는다
+        const bible = old.stats?.bible_reading ?? {
+          verses_read: 0,
+          chapters_read: 0,
+          books_completed: [],
+        }
         const hadNote = !!(previous?.note && previous.note.trim().length > 0)
         const wasFav = !!previous?.is_favorite
         const rowGone = next === null

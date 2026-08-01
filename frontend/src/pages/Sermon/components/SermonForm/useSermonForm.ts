@@ -75,7 +75,7 @@ export const useSermonForm = (onSuccess: () => void, onClose: () => void, sermon
 
       onSuccess()
       onClose()
-    } catch (error) {
+    } catch {
       showToast(sermon ? '설교 수정에 실패했습니다' : '설교 등록에 실패했습니다', 'error')
     }
   }

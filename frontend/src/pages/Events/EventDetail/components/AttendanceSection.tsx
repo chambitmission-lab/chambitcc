@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import type { AttendanceStatus } from '../../../../types/event'
 import { formatKstDateTime, formatRemaining, parseKstDate } from '../../../../utils/kstTime'
 import { useLanguage } from '../../../../contexts/LanguageContext'
+import type { Translation } from '../../../../locales'
 
 interface AttendanceSectionProps {
   userAttendanceStatus?: AttendanceStatus
   onAttend: (status: AttendanceStatus) => void
   onCancel: () => void
   rsvpDeadline?: string | null
-  t: any
+  t: Translation
 }
 
 const STATUS_OPTIONS: { value: AttendanceStatus; icon: string; className: string }[] = [

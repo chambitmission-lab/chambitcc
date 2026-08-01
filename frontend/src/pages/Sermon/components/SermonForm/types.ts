@@ -7,7 +7,7 @@ export interface SermonFormProps {
   onSuccess: () => void
 }
 
-export interface SermonFormData extends SermonCreateRequest {}
+export type SermonFormData = SermonCreateRequest
 
 export interface AudioUploadState {
   file: File | null

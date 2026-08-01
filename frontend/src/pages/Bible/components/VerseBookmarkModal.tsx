@@ -55,8 +55,8 @@ const VerseBookmarkModal = ({
       })
       showToast('묵상 노트가 저장되었어요 ✨', 'success')
       onClose()
-    } catch (e: any) {
-      showToast(e?.message || '저장에 실패했어요', 'error')
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '저장에 실패했어요', 'error')
     }
   }
 
@@ -66,8 +66,8 @@ const VerseBookmarkModal = ({
       await del.mutateAsync(undefined)
       showToast('북마크가 삭제되었어요', 'success')
       onClose()
-    } catch (e: any) {
-      showToast(e?.message || '삭제에 실패했어요', 'error')
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '삭제에 실패했어요', 'error')
     }
   }
 

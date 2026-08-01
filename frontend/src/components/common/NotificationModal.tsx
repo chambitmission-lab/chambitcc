@@ -142,7 +142,8 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const toggleExpand = async (notification: Notification) => {
     setExpandedIds((prev) => {
       const next = new Set(prev)
-      next.has(notification.id) ? next.delete(notification.id) : next.add(notification.id)
+      if (next.has(notification.id)) next.delete(notification.id)
+      else next.add(notification.id)
       return next
     })
 

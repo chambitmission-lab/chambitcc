@@ -30,7 +30,8 @@ const BiblePlanManagement = () => {
     }
   }, [navigate])
 
-  const plans = data?.items ?? []
+  // 로딩 중엔 매 렌더 새 빈 배열이 되어 아래 filtered useMemo 가 무력화된다 — 참조를 고정
+  const plans = useMemo(() => data?.items ?? [], [data])
 
   const filtered = useMemo(() => {
     const q = searchTerm.trim().toLowerCase()

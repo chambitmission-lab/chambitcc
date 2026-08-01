@@ -1,8 +1,12 @@
 // 댓글 관련 로직을 담당하는 커스텀 훅 (Single Responsibility)
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import { fetchReplies, createReply, updateReply, deleteReply } from '../api/prayer'
 import { showToast } from '../utils/toast'
-import type { CreateReplyRequest, Reply } from '../types/prayer'
+import type { CreateReplyRequest, Prayer, Reply, ReplyListResponse } from '../types/prayer'
+import type { ProfileDetail } from '../types/profile'
+
+/** 댓글 무한 스크롤 캐시 — setQueryData 콜백의 old 타입 */
+type RepliesCache = InfiniteData<ReplyListResponse>
 
 interface UseRepliesOptions {
   prayerId: number
@@ -75,7 +79,7 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
       // 익명이 아니면 프로필 사진도 미리 반영 (재조회 후 아바타가 바뀌는 깜빡임 방지)
       const isAnonReply =
         !data.display_name || data.display_name === '익명' || data.display_name === 'Anonymous'
-      const cachedProfile: any = queryClient.getQueryData(['profile', 'detail'])
+      const cachedProfile = queryClient.getQueryData<ProfileDetail>(['profile', 'detail'])
       const tempReply: Reply = {
         id: Date.now(), // 임시 ID
         display_name: data.display_name || '익명',
@@ -87,13 +91,13 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
 
       // 서버가 오래된 순으로 내려주므로 임시 댓글도 마지막 페이지 끝에 붙인다
       // (맨 앞에 넣으면 재조회 시 맨 아래로 점프해 새로고침처럼 보인다)
-      queryClient.setQueryData(repliesQueryKey, (old: any) => {
+      queryClient.setQueryData<RepliesCache>(repliesQueryKey, (old) => {
         if (!old) return old
 
         const lastIndex = old.pages.length - 1
         return {
           ...old,
-          pages: old.pages.map((page: any, i: number) =>
+          pages: old.pages.map((page, i) =>
             i === lastIndex
               ? {
                   ...page,
@@ -108,7 +112,7 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
       })
 
       // 기도 상세의 댓글 수 증가 (Optimistic)
-      queryClient.setQueryData(['prayers', 'detail', prayerId], (old: any) => {
+      queryClient.setQueryData<Prayer>(['prayers', 'detail', prayerId], (old) => {
         if (!old) return old
         return {
           ...old,
@@ -117,7 +121,7 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
       })
 
       // 프로필 댓글 수 증가 (Optimistic) - 포인트 즉시 반영
-      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
         if (!old) return old
         return {
           ...old,
@@ -191,15 +195,15 @@ export const useUpdateReply = ({ prayerId, onSuccess }: UseUpdateReplyOptions) =
       const previousReplies = queryClient.getQueryData(repliesQueryKey)
 
       // Optimistic Update - 해당 댓글 내용 즉시 교체 + 수정됨 표시
-      queryClient.setQueryData(repliesQueryKey, (old: any) => {
+      queryClient.setQueryData<RepliesCache>(repliesQueryKey, (old) => {
         if (!old) return old
         return {
           ...old,
-          pages: old.pages.map((page: any) => ({
+          pages: old.pages.map((page) => ({
             ...page,
             data: {
               ...page.data,
-              items: page.data.items.map((item: Reply) =>
+              items: page.data.items.map((item) =>
                 item.id === replyId ? { ...item, content, is_edited: true } : item
               ),
             },
@@ -252,22 +256,22 @@ export const useDeleteReply = ({ prayerId, onSuccess }: UseDeleteReplyOptions) =
       const previousDetail = queryClient.getQueryData(['prayers', 'detail', prayerId])
 
       // Optimistic Update - 목록에서 즉시 제거
-      queryClient.setQueryData(repliesQueryKey, (old: any) => {
+      queryClient.setQueryData<RepliesCache>(repliesQueryKey, (old) => {
         if (!old) return old
         return {
           ...old,
-          pages: old.pages.map((page: any) => ({
+          pages: old.pages.map((page) => ({
             ...page,
             data: {
               ...page.data,
-              items: page.data.items.filter((item: Reply) => item.id !== replyId),
+              items: page.data.items.filter((item) => item.id !== replyId),
             },
           })),
         }
       })
 
       // 기도 상세의 댓글 수 감소 (Optimistic)
-      queryClient.setQueryData(['prayers', 'detail', prayerId], (old: any) => {
+      queryClient.setQueryData<Prayer>(['prayers', 'detail', prayerId], (old) => {
         if (!old) return old
         return {
           ...old,

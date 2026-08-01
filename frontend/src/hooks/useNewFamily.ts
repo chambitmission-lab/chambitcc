@@ -17,9 +17,14 @@ import {
 import { showToast } from '../utils/toast'
 import type {
   NewFamilyComment,
+  NewFamilyCommentListResponse,
   NewFamilyListResponse,
   NewFamilyPost,
 } from '../types/newFamily'
+import type { InfiniteData } from '@tanstack/react-query'
+
+type PostsCache = InfiniteData<NewFamilyListResponse>
+type CommentsCache = InfiniteData<NewFamilyCommentListResponse>
 
 const POSTS_KEY = ['new-family', 'posts']
 const STATS_KEY = ['new-family', 'stats']
@@ -31,11 +36,11 @@ const patchPostInCache = (
   postId: number,
   patch: (post: NewFamilyPost) => NewFamilyPost,
 ) => {
-  queryClient.setQueryData(POSTS_KEY, (old: any) => {
+  queryClient.setQueryData<PostsCache>(POSTS_KEY, (old) => {
     if (!old) return old
     return {
       ...old,
-      pages: old.pages.map((page: NewFamilyListResponse) => ({
+      pages: old.pages.map((page) => ({
         ...page,
         data: {
           ...page.data,
@@ -195,15 +200,15 @@ export const useUpdateNewFamilyComment = (postId: number) => {
       await queryClient.cancelQueries({ queryKey: key })
       const previous = queryClient.getQueryData(key)
 
-      queryClient.setQueryData(key, (old: any) => {
+      queryClient.setQueryData<CommentsCache>(key, (old) => {
         if (!old) return old
         return {
           ...old,
-          pages: old.pages.map((page: any) => ({
+          pages: old.pages.map((page) => ({
             ...page,
             data: {
               ...page.data,
-              items: page.data.items.map((c: NewFamilyComment) =>
+              items: page.data.items.map((c) =>
                 c.id === commentId ? { ...c, content, is_edited: true } : c,
               ),
             },
@@ -236,15 +241,15 @@ export const useDeleteNewFamilyComment = (postId: number) => {
       await queryClient.cancelQueries({ queryKey: key })
       const previous = queryClient.getQueryData(key)
 
-      queryClient.setQueryData(key, (old: any) => {
+      queryClient.setQueryData<CommentsCache>(key, (old) => {
         if (!old) return old
         return {
           ...old,
-          pages: old.pages.map((page: any) => ({
+          pages: old.pages.map((page) => ({
             ...page,
             data: {
               ...page.data,
-              items: page.data.items.filter((c: NewFamilyComment) => c.id !== commentId),
+              items: page.data.items.filter((c) => c.id !== commentId),
             },
           })),
         }

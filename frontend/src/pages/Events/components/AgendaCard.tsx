@@ -3,6 +3,7 @@ import type { Event } from '../../../types/event'
 import { CATEGORY_VISUAL } from '../utils/categoryConfig'
 import { formatDDay, formatEventTime, formatEventDateLabel } from '../utils/dateGrouping'
 import { parseKstDate } from '../../../utils/kstTime'
+import { useNowMs } from '../../../hooks/useNowMs'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
 
@@ -20,7 +21,8 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
   const time = formatEventTime(event.start_datetime)
   const dateLabel = formatEventDateLabel(event.start_datetime)
   // 마감 여부는 상세에 들어가지 않아도 목록에서 바로 보이게 (KST 기준)
-  const rsvpClosed = !!event.rsvp_deadline && parseKstDate(event.rsvp_deadline).getTime() <= Date.now()
+  const nowMs = useNowMs()
+  const rsvpClosed = !!event.rsvp_deadline && parseKstDate(event.rsvp_deadline).getTime() <= nowMs
 
   return (
     <button

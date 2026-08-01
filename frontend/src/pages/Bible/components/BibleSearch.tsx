@@ -185,7 +185,7 @@ const BibleSearch = () => {
   const goToChapter = (bookNumber: number, chapter: number) => {
     // 현재 URL이 이미 같은 책·장이어도(예: 나훔 2장을 읽다가 검색에서 다시 나훔 2장 클릭)
     // 읽기 화면으로 전환되도록 재진입 신호를 state로 함께 넘긴다
-    navigate(`/bible/${bookNumber}/${chapter}`, { state: { chapterNav: Date.now() } })
+    navigate(`/bible/${bookNumber}/${chapter}`, { state: { chapterNav: new Date().getTime() } })
   }
 
   // 퀵 피커에서 책 선택 — 타이핑 없이 그 책의 장 그리드로 바로 전환.

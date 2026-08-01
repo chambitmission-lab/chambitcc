@@ -369,10 +369,10 @@ const About = () => {
                 role="button"
                 tabIndex={0}
                 onClick={() => {
-                  if (phone) window.location.href = `tel:${phone.replace(/[^0-9+]/g, '')}`
+                  if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
                 }}
                 onKeyDown={rowKeyDown(() => {
-                  if (phone) window.location.href = `tel:${phone.replace(/[^0-9+]/g, '')}`
+                  if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
                 })}
               >
                 <span className="quickinfo-icon">

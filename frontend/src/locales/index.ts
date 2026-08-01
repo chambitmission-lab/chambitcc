@@ -9,6 +9,9 @@ export const translations = {
   en,
 } as const
 
+/** 한 언어분 번역 사전 — `t: any` 대신 프로퍼티 오타까지 잡히는 타입 */
+export type Translation = (typeof translations)[Language]
+
 // 브라우저 언어 감지
 export const detectLanguage = (): Language => {
   const browserLang = navigator.language.toLowerCase()

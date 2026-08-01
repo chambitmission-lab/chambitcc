@@ -1,4 +1,5 @@
 import { parseKstDate } from '../../../../utils/kstTime'
+import type { Translation } from '../../../../locales'
 
 interface EventInfoProps {
   startDate: string
@@ -6,7 +7,7 @@ interface EventInfoProps {
   location?: string
   attendanceCount: number
   views: number
-  t: any
+  t: Translation
 }
 
 const formatDateTime = (datetime: string) => {

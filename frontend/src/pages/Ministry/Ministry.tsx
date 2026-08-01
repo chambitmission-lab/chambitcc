@@ -5,7 +5,7 @@ import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { getColumns, createColumn, updateColumn, deleteColumn } from '../../api/column'
-import type { Column } from '../../types/column'
+import type { Column, CreateColumnRequest } from '../../types/column'
 import andongProfile from '../../assets/andong.png'
 
 // 편지·에세이 톤의 서체 — 성경 읽기 설정과 동일한 스택(이미 index.html에서 로드됨)
@@ -207,7 +207,7 @@ const Ministry = () => {
         showToast('목양컬럼이 수정되었습니다', 'success')
       } else {
         // 생성
-        const created = await createColumn(editingColumn as any)
+        const created = await createColumn(editingColumn as CreateColumnRequest)
         syncColumnsCache(prev => [created, ...prev])
         showToast('목양컬럼이 추가되었습니다', 'success')
       }

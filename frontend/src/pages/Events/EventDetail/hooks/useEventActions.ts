@@ -1,8 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { attendEvent, cancelAttendance } from '../../../../api/event'
 import type { AttendanceStatus } from '../../../../types/event'
+import type { Translation } from '../../../../locales'
 
-export const useEventActions = (eventId: number, refresh: () => void, t: any) => {
+export const useEventActions = (eventId: number, refresh: () => void, t: Translation) => {
   const navigate = useNavigate()
   const isLoggedIn = !!localStorage.getItem('access_token')
 

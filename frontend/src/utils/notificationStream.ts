@@ -7,6 +7,8 @@
 import type { QueryClient } from '@tanstack/react-query'
 import { API_V1 } from '../config/api'
 import { streamSSE } from '../api/sse'
+import type { Prayer } from '../types/prayer'
+import type { PrayerListCache } from '../types/queryCache'
 
 const INITIAL_RETRY_MS = 5_000
 const MAX_RETRY_MS = 60_000
@@ -63,14 +65,14 @@ class NotificationStreamManager {
     if (typeof prayerId !== 'number' || typeof count !== 'number') return
 
     // 기도 목록(무한 스크롤) 캐시 — prayerKeys.lists()와 동일한 리터럴 키
-    this.queryClient.setQueriesData(
+    this.queryClient.setQueriesData<PrayerListCache>(
       { queryKey: ['prayers', 'list'] },
-      (old: any) => {
+      (old) => {
         if (!old?.pages) return old
         let touched = false
-        const pages = old.pages.map((page: any) => {
+        const pages = old.pages.map((page) => {
           const items = page?.data?.items
-          if (!items?.some((p: any) => p.id === prayerId && p[field] !== count)) {
+          if (!items?.some((p) => p.id === prayerId && p[field] !== count)) {
             return page
           }
           touched = true
@@ -78,7 +80,7 @@ class NotificationStreamManager {
             ...page,
             data: {
               ...page.data,
-              items: items.map((p: any) =>
+              items: items.map((p) =>
                 p.id === prayerId ? { ...p, [field]: count } : p,
               ),
             },
@@ -89,9 +91,9 @@ class NotificationStreamManager {
     )
 
     // 기도 상세 캐시
-    this.queryClient.setQueriesData(
+    this.queryClient.setQueriesData<Prayer>(
       { queryKey: ['prayers', 'detail'] },
-      (old: any) => {
+      (old) => {
         if (!old || old.id !== prayerId || old[field] === count) return old
         return { ...old, [field]: count }
       },

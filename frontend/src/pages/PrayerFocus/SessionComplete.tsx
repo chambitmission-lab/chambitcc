@@ -8,6 +8,7 @@ import {
   getPrayerSessionStats,
   recordLocalSession,
   updatePrayerSessionNote,
+  type AmbienceId,
   type PrayerSessionStats,
 } from '../../api/prayerSession'
 
@@ -77,7 +78,7 @@ const SessionComplete = ({
       duration: seconds,
       theme: theme?.id ?? null,
       verse_id: verseId ?? null,
-      ambience: ambienceId as any,
+      ambience: (ambienceId as AmbienceId | undefined) ?? null,
       completed_at: new Date().toISOString(),
     }
 

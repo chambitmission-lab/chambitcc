@@ -178,9 +178,9 @@ const VerseList = ({
       
       // 명시적으로 읽음 상태 다시 조회
       await refetchReadStatus()
-    } catch (error: any) {
+    } catch (error) {
       // 이미 읽음 처리된 경우는 에러로 처리하지 않음
-      if (error?.message === 'ALREADY_READ') {
+      if (error instanceof Error && error.message === 'ALREADY_READ') {
         console.log('Verse already marked as read, refreshing status...')
         await refetchReadStatus()
       } else {
@@ -203,9 +203,9 @@ const VerseList = ({
         showToast(`${verse.verse}절 읽음을 취소했습니다`, 'info')
       }
       await refetchReadStatus()
-    } catch (error: any) {
+    } catch (error) {
       // 이미 읽음 상태면 화면만 동기화하면 된다
-      if (error?.message === 'ALREADY_READ') {
+      if (error instanceof Error && error.message === 'ALREADY_READ') {
         await refetchReadStatus()
       } else {
         console.error('Failed to toggle read state:', error)

@@ -1,3 +1,4 @@
+import type { Translation } from '../../../../locales'
 interface Comment {
   id: number
   user_name: string
@@ -13,7 +14,7 @@ interface CommentsSectionProps {
   isLoggedIn: boolean
   onSubmit: (e: React.FormEvent) => void
   onDelete: (commentId: number) => void
-  t: any
+  t: Translation
 }
 
 export const CommentsSection = ({

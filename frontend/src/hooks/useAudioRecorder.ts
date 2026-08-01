@@ -87,7 +87,7 @@ export const useAudioRecorder = (): UseAudioRecorderReturn => {
       
       isRequestingPermissionRef.current = false
       
-    } catch (err) {
+    } catch {
       setError('녹음 시작 중 오류가 발생했습니다')
       isRequestingPermissionRef.current = false
     }

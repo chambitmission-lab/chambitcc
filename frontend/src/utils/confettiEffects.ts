@@ -1,6 +1,6 @@
 // Confetti 보상 효과 유틸리티
 
-import confetti from 'canvas-confetti'
+import confetti, { type Shape } from 'canvas-confetti'
 
 /**
  * 레벨업 축하 효과
@@ -139,7 +139,8 @@ export const celebrateStreak = (days: number) => {
     spread: 70,
     origin: { y: 0.6 },
     scalar: 1.2,
-    shapes: [emoji as any],
+    // canvas-confetti 타입에는 이모지 문자열이 없지만 런타임은 그대로 받는다
+    shapes: [emoji as unknown as Shape],
     zIndex: 9999,
   })
 }

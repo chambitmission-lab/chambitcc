@@ -9,6 +9,7 @@ import {
   unmarkVerseAsRead
 } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
+import type { ProfileDetail } from '../types/profile'
 
 // Query Keys
 export const bibleReadingKeys = {
@@ -44,7 +45,7 @@ export const useMarkVerseAsRead = () => {
       scheduleTitleEvaluation()
 
       // 프로필 캐시 즉시 업데이트 (구절 읽기 +1P)
-      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
         if (!old) return old
         return {
           ...old,
@@ -153,7 +154,7 @@ export const useUnmarkVerseAsRead = () => {
       queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
       
       // 프로필 캐시 즉시 업데이트 (구절 읽기 -1P)
-      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
         if (!old) return old
         return {
           ...old,

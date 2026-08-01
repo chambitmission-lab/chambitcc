@@ -48,7 +48,7 @@ createRoot(document.getElementById('root')!).render(
               if (Array.isArray(key) && key[0] === 'weather') return false
               // pageParams가 있는 infinite query도 제외 (커뮤니티, 기도, 댓글 등)
               if (query.state.data && typeof query.state.data === 'object' && 'pageParams' in query.state.data) {
-                const pageParams = (query.state.data as any).pageParams
+                const pageParams = (query.state.data as { pageParams?: unknown }).pageParams
                 // 첫 페이지만 있으면 persist 허용, 2페이지 이상이면 제외
                 if (Array.isArray(pageParams) && pageParams.length > 1) return false
               }

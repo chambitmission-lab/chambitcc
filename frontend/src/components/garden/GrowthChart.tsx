@@ -49,16 +49,20 @@ export const GrowthChart: React.FC<GrowthChartProps> = ({
   }, [flowers])
 
   // 누적 데이터
-  const cumulativeData = useMemo(() => {
-    let cumulative = 0
-    return dailyData.map((item) => {
-      cumulative += item.count
-      return {
-        ...item,
-        cumulative,
-      }
-    })
-  }, [dailyData])
+  const cumulativeData = useMemo(
+    () =>
+      // 바깥 변수를 재대입하며 map 하면 렌더 이후에도 값이 살아 있어(비순수)
+      // 컴파일러가 막는다 — 직전 항목의 누적값을 읽어 쌓는다
+      dailyData.reduce<Array<{ date: string; count: number; cumulative: number }>>(
+        (acc, item) => {
+          const prev = acc.length > 0 ? acc[acc.length - 1].cumulative : 0
+          acc.push({ ...item, cumulative: prev + item.count })
+          return acc
+        },
+        [],
+      ),
+    [dailyData],
+  )
 
   if (dailyData.length === 0) {
     return (

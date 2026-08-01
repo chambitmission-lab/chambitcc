@@ -11,6 +11,7 @@ import {
 import { usePrayerToggle } from './usePrayerToggle'
 import { groupKeys } from './useGroups'
 import { showToast } from '../utils/toast'
+import type { PrayerListCache } from '../types/queryCache'
 import { getCurrentUser } from '../utils/auth'
 import { createRetry } from '../config/queryClient'
 import type { SortType, Prayer, CreatePrayerRequest, PrayerFilterType } from '../types/prayer'
@@ -121,7 +122,7 @@ export const usePrayersInfinite = (
         group_id: data.group_id,
       }
 
-      queryClient.setQueryData(prayerKeys.list(sort, groupId, filter), (old: any) => {
+      queryClient.setQueryData<PrayerListCache>(prayerKeys.list(sort, groupId, filter), (old) => {
         if (!old) return old
 
         const firstPage = old.pages[0]

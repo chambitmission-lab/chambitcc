@@ -19,7 +19,7 @@ const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
 
   // URL-safe base64를 일반 base64로 변환
   base64 = base64
-    .replace(/\-/g, '+')
+    .replace(/-/g, '+')
     .replace(/_/g, '/');
 
   // 패딩 추가

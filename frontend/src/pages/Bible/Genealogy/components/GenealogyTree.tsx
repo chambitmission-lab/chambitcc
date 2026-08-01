@@ -590,7 +590,7 @@ export const GenealogyTree = ({
     const zoomBehavior = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.5, 2.5])
-      .filter((event: any) => {
+      .filter((event) => {
         if (event.type === 'wheel') return event.ctrlKey || event.metaKey
         if (event.type === 'touchstart') {
           return !!event.touches && event.touches.length >= 2
@@ -601,8 +601,10 @@ export const GenealogyTree = ({
         g.attr('transform', event.transform.toString())
       })
 
-    svg.call(zoomBehavior as any)
-    svg.call(zoomBehavior.transform as any, d3.zoomIdentity)
+    // d3 의 call 오버로드가 zoom behavior 시그니처를 좁게 잡아 그대로는 안 맞는다 —
+    // 런타임 계약은 동일하므로 selection 타입만 맞춰 넘긴다
+    svg.call(zoomBehavior)
+    svg.call(zoomBehavior.transform, d3.zoomIdentity)
 
     // 트리가 컨테이너보다 넓으면 spine(x=0)을 가로 중앙으로 스크롤
     // 내부 flex wrapper 의 px-4 (16px) padding 보정

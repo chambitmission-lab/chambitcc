@@ -74,7 +74,7 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
       await deleteSermonMutation.mutateAsync(sermon.id)
       onDelete?.()
       onClose()
-    } catch (error) {
+    } catch {
       // 삭제 실패는 mutation에서 처리
     }
   }

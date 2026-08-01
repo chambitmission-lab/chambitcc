@@ -1,7 +1,8 @@
+import type { Translation } from '../../../../locales'
 interface EventDescriptionProps {
   description?: string
   attachmentUrl?: string
-  t: any
+  t: Translation
 }
 
 export const EventDescription = ({

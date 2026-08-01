@@ -110,8 +110,8 @@ const WordNoteSheet = ({
       }
       showToast('단어장에 저장되었어요 ✨', 'success')
       onClose()
-    } catch (e: any) {
-      showToast(e?.message || '저장에 실패했어요', 'error')
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '저장에 실패했어요', 'error')
     }
   }
 
@@ -121,8 +121,8 @@ const WordNoteSheet = ({
       await del.mutateAsync(existing.id)
       showToast('단어가 삭제되었어요', 'success')
       onClose()
-    } catch (e: any) {
-      showToast(e?.message || '삭제에 실패했어요', 'error')
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '삭제에 실패했어요', 'error')
     }
   }
 

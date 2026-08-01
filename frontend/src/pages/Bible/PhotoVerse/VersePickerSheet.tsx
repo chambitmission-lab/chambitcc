@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleBooks, useBibleSearch } from '../../../hooks/useBible'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { useNowMs } from '../../../hooks/useNowMs'
 import type { BibleVerse } from '../../../types/bible'
 
 /** 사진 카드에 올릴 말씀 — 같은 장의 연속된 절 묶음 */
@@ -127,7 +128,7 @@ const VersePickerSheet = ({ onPick, onClose }: VersePickerSheetProps) => {
   }
 
   // 하루 단위로 순환하는 오늘의 말씀 인덱스
-  const todayIndex = Math.floor(Date.now() / 86_400_000) % RECOMMENDED.length
+  const todayIndex = Math.floor(useNowMs() / 86_400_000) % RECOMMENDED.length
 
   const isBookOnlySearch = !!(
     results?.is_book_search && (results.books?.length || results.book)

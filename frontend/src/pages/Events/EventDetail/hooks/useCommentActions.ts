@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createEventComment, deleteEventComment } from '../../../../api/event'
+import type { Translation } from '../../../../locales'
 
-export const useCommentActions = (eventId: number, refresh: () => void, t: any) => {
+export const useCommentActions = (eventId: number, refresh: () => void, t: Translation) => {
   const navigate = useNavigate()
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)

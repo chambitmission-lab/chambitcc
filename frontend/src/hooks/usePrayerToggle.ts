@@ -5,6 +5,8 @@ import { showToast } from '../utils/toast'
 import { prayerKeys } from './usePrayersQuery'
 import { groupKeys } from './useGroups'
 import type { Prayer, SortType } from '../types/prayer'
+import type { PrayerListCache } from '../types/queryCache'
+import type { ProfileDetail } from '../types/profile'
 
 interface UsePrayerToggleOptions {
   prayerId?: number // 상세 페이지용
@@ -78,15 +80,15 @@ export const usePrayerToggle = ({
       // prayerKeys.list 구조: ['prayers', 'list', sort, groupId, filter, username, answered]
       const listSort = listKey[2] as SortType | undefined
 
-      queryClient.setQueryData(listKey, (old: any) => {
+      queryClient.setQueryData<PrayerListCache>(listKey, (old) => {
         if (!old) return old
 
         // 기도 수 업데이트
-        const updatedPages = old.pages.map((page: any) => ({
+        const updatedPages = old.pages.map((page) => ({
           ...page,
           data: {
             ...page.data,
-            items: page.data.items.map((prayer: Prayer) =>
+            items: page.data.items.map((prayer) =>
               prayer.id === prayerId
                 ? {
                     ...prayer,
@@ -102,7 +104,7 @@ export const usePrayerToggle = ({
 
         // 따뜻한 관심순일 때만 정렬 (prayer_count 내림차순)
         if (listSort === 'popular') {
-          updatedPages.forEach((page: any) => {
+          updatedPages.forEach((page) => {
             page.data.items.sort((a: Prayer, b: Prayer) => b.prayer_count - a.prayer_count)
           })
         }
@@ -137,7 +139,7 @@ export const usePrayerToggle = ({
     const previousProfileData = queryClient.getQueryData(['profile', 'detail'])
     if (!isPrayed) {
       // 기도 추가 시 total_count +1, praying_for +1
-      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
         if (!old) return old
         return {
           ...old,
@@ -157,7 +159,7 @@ export const usePrayerToggle = ({
       })
     } else {
       // 기도 취소 시 total_count -1, praying_for -1
-      queryClient.setQueryData(['profile', 'detail'], (old: any) => {
+      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
         if (!old) return old
         return {
           ...old,

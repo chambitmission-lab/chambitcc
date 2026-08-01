@@ -2,6 +2,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getPosts, createPost, type Post } from '../api/community'
 import { showToast } from '../utils/toast'
+import type { CommunityPostsCache } from '../types/queryCache'
 
 // Query Keys
 export const communityKeys = {
@@ -60,7 +61,7 @@ export const useCommunityFeed = (initialSort: string = 'latest') => {
         isRetweeted: false,
       }
 
-      queryClient.setQueryData(communityKeys.posts(initialSort), (old: any) => {
+      queryClient.setQueryData<CommunityPostsCache>(communityKeys.posts(initialSort), (old) => {
         if (!old) return old
 
         const firstPage = old.pages[0]
@@ -81,7 +82,7 @@ export const useCommunityFeed = (initialSort: string = 'latest') => {
 
       return { previousData }
     },
-    onError: (error: any, _variables, context) => {
+    onError: (error: Error, _variables, context) => {
       // 에러 시 롤백
       if (context?.previousData) {
         queryClient.setQueryData(communityKeys.posts(initialSort), context.previousData)

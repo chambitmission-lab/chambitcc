@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ApiError } from '../../types/queryCache'
 import './PostComposer.css'
 
 interface PostComposerProps {
@@ -29,9 +30,9 @@ export const PostComposer = ({ onPostCreated }: PostComposerProps) => {
       setIsPosting(true)
       await onPostCreated(content)
       setContent('')
-    } catch (err: any) {
+    } catch (err) {
       console.error('게시물 작성 실패:', err)
-      if (err.response?.status === 401) {
+      if ((err as ApiError).response?.status === 401) {
         alert('로그인이 필요합니다.')
       } else {
         alert('게시물 작성에 실패했습니다.')

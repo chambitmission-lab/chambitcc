@@ -1,7 +1,13 @@
 // PWA 캐시 관리 유틸리티
 
+/** 아직 표준 lib.dom 에 없는 설치 프롬프트 이벤트 — 우리가 쓰는 부분만 선언 */
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
 // PWA 설치 프롬프트 이벤트 저장
-let deferredPrompt: any = null
+let deferredPrompt: BeforeInstallPromptEvent | null = null
 
 /**
  * PWA 설치 프롬프트 초기화
@@ -11,7 +17,7 @@ export const initPWAInstallPrompt = (): void => {
     // 기본 브라우저 프롬프트 방지
     e.preventDefault()
     // 나중에 사용하기 위해 이벤트 저장
-    deferredPrompt = e
+    deferredPrompt = e as BeforeInstallPromptEvent
     if (import.meta.env.DEV) {
       console.log('✅ PWA 설치 가능 - 설치 프롬프트 준비됨')
     }

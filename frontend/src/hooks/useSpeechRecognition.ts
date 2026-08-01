@@ -17,6 +17,35 @@ interface SpeechRecognitionErrorEvent extends Event {
   message: string
 }
 
+/**
+ * Web Speech API — 표준 lib.dom 에 아직 타입이 없어(webkit 접두사 시절 그대로)
+ * 우리가 실제로 쓰는 속성만 최소로 선언한다. `any` 로 두면 오타가 그대로 통과한다.
+ */
+interface SpeechRecognitionLike {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  maxAlternatives: number
+  start: () => void
+  stop: () => void
+  abort?: () => void
+  onstart: (() => void) | null
+  onresult: ((event: SpeechRecognitionEvent) => void) | null
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null
+  onend: (() => void) | null
+}
+
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike
+
+/** 브라우저 전역에서 생성자 찾기 (Safari/구 Chrome 은 webkit 접두사) */
+const getSpeechRecognitionCtor = (): SpeechRecognitionCtor | undefined => {
+  const w = window as unknown as {
+    SpeechRecognition?: SpeechRecognitionCtor
+    webkitSpeechRecognition?: SpeechRecognitionCtor
+  }
+  return w.SpeechRecognition || w.webkitSpeechRecognition
+}
+
 // 모듈 전역 조율자: 화면에 절마다 별도 훅 인스턴스가 있어 서로를 모르기 때문에,
 // 동시에 하나의 음성 인식만 활성화되도록 여기서 "현재 활성 리더의 stop"을 들고 있는다.
 // 새 절이 시작되면 이전 절을 자동 종료시킨다 (= 마지막에 누른 것이 우선).
@@ -29,7 +58,7 @@ let micGloballyPrimed = false
 
 // 버리는 인스턴스는 핸들러부터 뗀다 — stop()/abort() 후에도 늦게 도착하는
 // onresult/onend가 종료된 리더를 되살리거나 다음 절의 새 세션을 오염시킨다.
-const detachRecognition = (rec: any) => {
+const detachRecognition = (rec: SpeechRecognitionLike) => {
   rec.onstart = null
   rec.onresult = null
   rec.onerror = null
@@ -38,7 +67,7 @@ const detachRecognition = (rec: any) => {
 
 // stop()은 밀린 결과를 마저 전달하느라 엔진 해제가 늦다. 버리는 인스턴스는
 // abort()로 즉시 해제해 다음 세션이 마이크를 빨리 넘겨받게 한다.
-const killRecognition = (rec: any) => {
+const killRecognition = (rec: SpeechRecognitionLike) => {
   detachRecognition(rec)
   try {
     if (typeof rec.abort === 'function') {
@@ -59,12 +88,9 @@ export const useSpeechRecognition = ({
 }: UseSpeechRecognitionProps) => {
   const [isListening, setIsListening] = useState(false)
   const [isStarting, setIsStarting] = useState(false)  // 클릭~실제 인식 시작 사이의 과도 상태 (즉각 시각 피드백용)
-  const isSupported = !!(
-    (window as any).SpeechRecognition || 
-    (window as any).webkitSpeechRecognition
-  )
+  const isSupported = !!getSpeechRecognitionCtor()
   
-  const recognitionRef = useRef<any>(null)
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null)
   const isListeningRef = useRef<boolean>(false)
   const shouldRestartRef = useRef<boolean>(false)
   const initialTextRef = useRef<string>('')
@@ -89,15 +115,13 @@ export const useSpeechRecognition = ({
 
   // 새로운 recognition 인스턴스 생성
   const createRecognition = useCallback(() => {
-    const SpeechRecognition = 
-      (window as any).SpeechRecognition || 
-      (window as any).webkitSpeechRecognition
+    const SpeechRecognition = getSpeechRecognitionCtor()
 
     if (!SpeechRecognition) {
       return null
     }
 
-    const recognition = new SpeechRecognition()
+    const recognition: SpeechRecognitionLike = new SpeechRecognition()
 
     // 모바일에서는 continuous false, 데스크톱에서는 true
     recognition.continuous = isMobile ? false : continuous

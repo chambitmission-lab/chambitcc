@@ -5,6 +5,7 @@ import { showToast } from '../utils/toast'
 import { getCurrentUser } from '../utils/auth'
 import { prayerKeys } from './usePrayersQuery'
 import { groupKeys } from './useGroups'
+import type { PrayerListCache } from '../types/queryCache'
 
 interface UsePrayerDeleteOptions {
   onSuccess?: () => void
@@ -31,20 +32,23 @@ export const usePrayerDelete = ({ onSuccess, onError }: UsePrayerDeleteOptions =
       // 특정 키 조합만 골라 패치하면 그룹방처럼 키가 다른 목록이 갱신되지 않는다.
       const previousListsData = queryClient.getQueriesData({ queryKey: prayerKeys.lists() })
 
-      queryClient.setQueriesData({ queryKey: prayerKeys.lists() }, (old: any) => {
-        if (!old?.pages) return old
+      queryClient.setQueriesData<PrayerListCache>(
+        { queryKey: prayerKeys.lists() },
+        (old) => {
+          if (!old?.pages) return old
 
-        return {
-          ...old,
-          pages: old.pages.map((page: any) => ({
-            ...page,
-            data: {
-              ...page.data,
-              items: page.data.items.filter((prayer: any) => prayer.id !== prayerId),
-            },
-          })),
-        }
-      })
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              data: {
+                ...page.data,
+                items: page.data.items.filter((prayer) => prayer.id !== prayerId),
+              },
+            })),
+          }
+        },
+      )
 
       // 상세 캐시 제거 - 사용자별 캐시 키 사용
       queryClient.removeQueries({
