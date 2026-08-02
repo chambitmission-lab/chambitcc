@@ -18,6 +18,18 @@ const ClassList = () => {
   const [joinCode, setJoinCode] = useState('')
   const joinClass = useJoinClass()
 
+  // 히어로 문구용 — 내 반이 있으면 소개 대신 현황을 띄운다
+  const hasClasses = (classes?.length ?? 0) > 0
+  // 마지막 알림이 가장 최근인 반 (알림이 한 번도 없는 반은 제외)
+  const latestPost = classes?.reduce<ClassSummary | null>(
+    (best, cls) =>
+      cls.last_post_at &&
+      (!best || cls.last_post_at > best.last_post_at!)
+        ? cls
+        : best,
+    null,
+  )
+
   const handleJoinByCode = async () => {
     const code = joinCode.trim().toUpperCase()
     if (!code) return
@@ -54,8 +66,9 @@ const ClassList = () => {
           </h1>
         </div>
 
-        {/* Hero — 수채화 배경 + 브랜드 블루 워시 */}
-        <section className="relative overflow-hidden rounded-[26px] mx-4 mt-5 px-6 py-7 bg-brand text-white shadow-[0_16px_44px_-14px_var(--brand-glow)]">
+        {/* Hero — 수채화 배경 + 브랜드 블루 워시.
+            이미 반에 속한 사람에겐 기능 소개 대신 "내 반 현황"을 보여준다. */}
+        <section className="relative overflow-hidden rounded-[26px] mx-4 mt-5 px-6 py-7 min-h-[168px] flex flex-col justify-center bg-brand text-white shadow-[0_16px_44px_-14px_var(--brand-glow)]">
           {/* 배경 그림 — 교회와 주일학교 풍경(수채화) */}
           <div
             className="absolute inset-0 pointer-events-none"
@@ -91,15 +104,34 @@ const ClassList = () => {
             <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/75">
               Class Note
             </span>
-            <h2 className="text-[24px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2.5">
-              단톡방에 묻히던 공지,
-              <br />
-              이제 알림장으로
-            </h2>
-            <p className="text-[13px] font-light leading-[1.7] text-white/90 mt-2.5 max-w-[17rem]">
-              선생님은 공지·암송요절·일정을 올리고, 학부모님은 확인 버튼과 댓글로
-              바로 답할 수 있어요.
-            </p>
+            {hasClasses ? (
+              <>
+                <h2 className="text-[24px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2.5">
+                  참여 중인 반 {classes!.length}곳
+                </h2>
+                <p className="text-[13px] leading-[1.7] text-white/90 mt-2.5 max-w-[17rem]">
+                  {latestPost ? (
+                    <>
+                      가장 최근 소식은{' '}
+                      <span className="font-bold">{latestPost.name}</span>,{' '}
+                      {timeAgo(latestPost.last_post_at!)}에 올라왔어요.
+                    </>
+                  ) : (
+                    '아직 올라온 알림이 없어요. 반에 들어가 첫 소식을 남겨보세요.'
+                  )}
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-[24px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2.5">
+                  반에 참여해 보세요
+                </h2>
+                <p className="text-[13px] font-light leading-[1.7] text-white/90 mt-2.5 max-w-[17rem]">
+                  공지·암송요절·일정을 반별로 받아보고, 확인 버튼과 댓글로 바로
+                  답할 수 있어요.
+                </p>
+              </>
+            )}
           </div>
         </section>
 
