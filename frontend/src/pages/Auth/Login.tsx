@@ -161,19 +161,20 @@ const Login = () => {
   }
 
   return (
-    /* 세로 중앙 정렬 + 아래쪽 여백을 더 줘 광학적으로 살짝 위에 앉힌다.
+    /* 세로 중앙 정렬. 여백·간격은 auth-page 토큰이 기기 높이에 따라 조절한다
+       (작은 폰에서 고정 여백이 화면을 꽉 채워 답답해 보이던 문제).
        min-height라 내용이 길어지면 컨테이너가 같이 늘어나 잘리지 않는다. */
-    <div className="bg-surface screen-fit-minus-header flex flex-col justify-center px-6 pt-10 pb-20">
+    <div className="bg-surface screen-fit-minus-header auth-page flex flex-col justify-center">
       <div className="w-full max-w-sm mx-auto">
         {/* 헤드라인 — 좌측 정렬 2줄. 헤더에 이미 로고가 있어 브랜드 마크는 넣지 않는다.
             카드도 부제도 없이 여백이 위계를 만든다. */}
-        <h1 className="font-display text-[28px] leading-[1.35] font-bold tracking-tight text-ink-strong">
+        <h1 className="auth-title font-display font-bold tracking-tight text-ink-strong">
           {greeting}
           <br />
           {t('loginHeadline')}
         </h1>
 
-        <form onSubmit={handleSubmit} className="mt-9">
+        <form onSubmit={handleSubmit} className="auth-lead">
           <div ref={fieldsRef}>
             <div className="auth-field">
               <input
@@ -194,7 +195,7 @@ const Login = () => {
               <label htmlFor="login-username">{t('loginUsername')}</label>
             </div>
 
-            <div className="auth-field mt-6">
+            <div className="auth-field auth-gap">
               <input
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
@@ -259,7 +260,7 @@ const Login = () => {
           )}
 
           {/* CTA는 폼 바로 아래 — 바닥에 붙이면 큰 화면에서 가운데가 텅 빈다 */}
-          <div className="mt-9">
+          <div className="auth-cta">
             <button
               type="submit"
               disabled={loading}

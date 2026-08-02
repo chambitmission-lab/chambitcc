@@ -112,12 +112,13 @@ const Register = () => {
   }
 
   return (
-    /* 세로 중앙 정렬 + 아래쪽 여백을 더 줘 광학적으로 살짝 위에 앉힌다.
+    /* 세로 중앙 정렬. 여백·간격은 auth-page 토큰이 기기 높이에 따라 조절한다
+       (필드가 4개라 작은 폰에서 특히 꽉 차 보이던 문제).
        min-height라 내용이 길어지면 컨테이너가 같이 늘어나 잘리지 않는다. */
-    <div className="bg-surface screen-fit-minus-header flex flex-col justify-center px-6 pt-10 pb-16">
+    <div className="bg-surface screen-fit-minus-header auth-page flex flex-col justify-center">
       <div className="w-full max-w-sm mx-auto">
         {/* 헤드라인 — 헤더에 이미 로고가 있어 브랜드 마크는 넣지 않는다 */}
-        <h1 className="font-display text-[28px] leading-[1.35] font-bold tracking-tight text-ink-strong">
+        <h1 className="auth-title font-display font-bold tracking-tight text-ink-strong">
           {t('registerGreeting')}
           <br />
           {t('registerHeadline')}
@@ -126,13 +127,13 @@ const Register = () => {
         {/* 승인제가 켜져 있으면 가입 "전에" 알려준다 — 나중에 로그인이 막혀
             당황하는 일이 없도록 */}
         {requireApproval && (
-          <p className="auth-msg auth-msg--info mt-5 rounded-xl bg-[var(--brand-soft)] px-3.5 py-3">
+          <p className="auth-msg auth-msg--info auth-gap rounded-xl bg-[var(--brand-soft)] px-3.5 py-3">
             <StatusIcon tone="info" />
             <span>{t('registerApprovalNotice')}</span>
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-8">
+        <form onSubmit={handleSubmit} className="auth-lead">
           <div ref={fieldsRef}>
             <div className="auth-field">
               <input
@@ -153,7 +154,7 @@ const Register = () => {
               <label htmlFor="register-username">{t('registerUsername')}</label>
             </div>
 
-            <div className="auth-field mt-6">
+            <div className="auth-field auth-gap">
               <input
                 id="register-fullname"
                 type="text"
@@ -171,7 +172,7 @@ const Register = () => {
               <span>{t('registerFullNameHelp')}</span>
             </p>
 
-            <div className="auth-field mt-6">
+            <div className="auth-field auth-gap">
               <input
                 id="register-password"
                 type={showPassword ? 'text' : 'password'}
@@ -204,7 +205,7 @@ const Register = () => {
               <span>{t('registerPasswordRule')}</span>
             </p>
 
-            <div className="auth-field mt-6">
+            <div className="auth-field auth-gap">
               <input
                 id="register-confirm"
                 type={showPassword ? 'text' : 'password'}
@@ -241,7 +242,7 @@ const Register = () => {
             </p>
           )}
 
-          <div className="mt-9">
+          <div className="auth-cta">
             <button
               type="submit"
               disabled={loading}

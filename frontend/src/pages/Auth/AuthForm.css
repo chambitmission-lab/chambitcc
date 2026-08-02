@@ -2,12 +2,76 @@
    카드로 감싸지 않고 여백과 밑줄 인풋만으로 위계를 만든다.
    색은 전부 theme.css 토큰을 쓰므로 라이트/다크가 자동으로 따라온다. */
 
+/* ── 페이지 리듬 ───────────────────────────────────────────
+   여백·간격·헤드라인을 전부 토큰으로 묶어 기기 높이에 따라 함께 줄인다.
+   고정값으로 두면 가용 높이가 600px대인 폰(또는 키보드가 올라온 상태)에서
+   같은 리듬이 그대로 유지돼 화면이 꽉 찬 것처럼 답답해 보인다. */
+.auth-page {
+  --auth-pad-y: 2.5rem; /* 페이지 위 여백 (아래는 여기에 비례) */
+  --auth-gap: 1.5rem; /* 필드 사이 */
+  --auth-lead: 2.25rem; /* 헤드라인 ↔ 폼 */
+  --auth-cta: 2.25rem; /* 폼 ↔ 제출 버튼 */
+  --auth-headline: 1.75rem;
+  --auth-field-top: 1.15rem;
+}
+
+/* 이 페이지는 .main-content의 직계 자식이라 App.css의
+   `.main-content > * { padding: 0 }`와 특이도가 같아진다.
+   번들 순서에 따라 패딩이 지워질 수 있어 태그를 붙여 확실히 이긴다. */
+div.auth-page {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-top: var(--auth-pad-y);
+  /* 아래를 조금 더 줘야 광학적으로 가운데(살짝 위)에 앉는다 */
+  padding-bottom: calc(var(--auth-pad-y) * 1.5);
+}
+
+/* 세로가 짧은 기기 — 보급형 폰, 소형 아이폰, 키보드가 올라온 상태 */
+@media (max-height: 780px) {
+  .auth-page {
+    --auth-pad-y: 1.75rem;
+    --auth-gap: 1.25rem;
+    --auth-lead: 1.75rem;
+    --auth-cta: 1.75rem;
+    --auth-headline: 1.5rem;
+    --auth-field-top: 1.05rem;
+  }
+}
+
+@media (max-height: 660px) {
+  .auth-page {
+    --auth-pad-y: 1.125rem;
+    --auth-gap: 1rem;
+    --auth-lead: 1.25rem;
+    --auth-cta: 1.5rem;
+    --auth-headline: 1.375rem;
+    --auth-field-top: 0.95rem;
+  }
+}
+
+.auth-title {
+  font-size: var(--auth-headline);
+  line-height: 1.35;
+}
+
+.auth-lead {
+  margin-top: var(--auth-lead);
+}
+
+.auth-gap {
+  margin-top: var(--auth-gap);
+}
+
+.auth-cta {
+  margin-top: var(--auth-cta);
+}
+
 /* ── 밑줄 인풋 + 떠오르는 라벨 ─────────────────────────────
    라벨을 input 뒤에 두어 :placeholder-shown 형제 선택자로 상태를 읽는다.
    (placeholder는 공백 한 칸이어야 :placeholder-shown이 동작한다) */
 .auth-field {
   position: relative;
-  padding-top: 1.15rem;
+  padding-top: var(--auth-field-top, 1.15rem);
 }
 
 .auth-field input {
@@ -17,6 +81,7 @@
   border-bottom: 1.5px solid var(--card-border);
   border-radius: 0; /* iOS 사파리 기본 라운드 제거 */
   padding: 0.3rem 2.5rem 0.6rem 0;
+  /* 16px 미만으로 내리면 iOS가 포커스 때 화면을 확대하므로 여기가 하한 */
   font-size: 1.0625rem;
   line-height: 1.5;
   color: var(--text-strong);
@@ -35,7 +100,8 @@
 .auth-field label {
   position: absolute;
   left: 0;
-  top: 1.35rem;
+  /* 인풋 텍스트 baseline에 맞춰 padding-top과 함께 움직인다 */
+  top: calc(var(--auth-field-top, 1.15rem) + 0.2rem);
   font-size: 1.0625rem;
   line-height: 1.5;
   color: var(--text-muted);
@@ -49,7 +115,8 @@
 /* 값이 있거나 포커스면 라벨이 위로 작아지며 올라간다 */
 .auth-field input:focus + label,
 .auth-field input:not(:placeholder-shown) + label {
-  transform: translateY(-1.4rem) scale(0.76);
+  /* 필드 상단 여백만큼 올라가야 좁은 화면에서도 위로 잘리지 않는다 */
+  transform: translateY(calc((var(--auth-field-top, 1.15rem) + 0.25rem) * -1)) scale(0.76);
 }
 
 .auth-field input:focus + label {
