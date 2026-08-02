@@ -26,27 +26,27 @@ div.auth-page {
   padding-bottom: calc(var(--auth-pad-y) * 1.5);
 }
 
-/* 세로가 짧은 기기 — 보급형 폰, 소형 아이폰, 키보드가 올라온 상태 */
-@media (max-height: 780px) {
-  .auth-page {
-    --auth-pad-y: 1.75rem;
-    --auth-gap: 1.25rem;
-    --auth-lead: 1.75rem;
-    --auth-cta: 1.75rem;
-    --auth-headline: 1.5rem;
-    --auth-field-top: 1.05rem;
-  }
+/* 세로가 짧은 상태 — 보급형 폰, 소형 아이폰, 키보드가 올라온 상태.
+   @media (max-height)가 아니라 index.html이 실측 높이(--vvh와 동일 소스)로
+   스탬프하는 data-vh-tier를 쓴다 — 미디어쿼리는 레이아웃 뷰포트만 보므로
+   폰에서 키보드가 올라와도, 설치형 PWA(뷰포트 800px+)에서도 발동하지 않는다.
+   visualViewport resize마다 갱신되므로 키보드 개폐에 실시간 반응한다. */
+:root[data-vh-tier='short'] .auth-page {
+  --auth-pad-y: 1.75rem;
+  --auth-gap: 1.25rem;
+  --auth-lead: 1.75rem;
+  --auth-cta: 1.75rem;
+  --auth-headline: 1.5rem;
+  --auth-field-top: 1.05rem;
 }
 
-@media (max-height: 660px) {
-  .auth-page {
-    --auth-pad-y: 1.125rem;
-    --auth-gap: 1rem;
-    --auth-lead: 1.25rem;
-    --auth-cta: 1.5rem;
-    --auth-headline: 1.375rem;
-    --auth-field-top: 0.95rem;
-  }
+:root[data-vh-tier='tiny'] .auth-page {
+  --auth-pad-y: 1.125rem;
+  --auth-gap: 1rem;
+  --auth-lead: 1.25rem;
+  --auth-cta: 1.5rem;
+  --auth-headline: 1.375rem;
+  --auth-field-top: 0.95rem;
 }
 
 .auth-title {

@@ -75,6 +75,10 @@
           var vv = window.visualViewport;
           var h = (vv && Math.abs(vv.scale - 1) < 0.01) ? vv.height : window.innerHeight;
           de.style.setProperty('--vvh', Math.round(h) + 'px');
+          // 높이 티어 — @media (max-height)는 레이아웃 뷰포트만 보므로
+          // 폰에서 키보드가 올라와도, 설치형 PWA(뷰포트 800px+)에서도 안 걸린다.
+          // 실측 높이로 스탬프해 CSS가 [data-vh-tier]로 반응하게 한다 (로그인 등).
+          de.setAttribute('data-vh-tier', h <= 660 ? 'tiny' : h <= 780 ? 'short' : 'tall');
         };
         setVvh();
         if (window.visualViewport) window.visualViewport.addEventListener('resize', setVvh);
