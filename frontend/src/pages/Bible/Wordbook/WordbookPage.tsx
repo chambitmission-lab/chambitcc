@@ -137,11 +137,6 @@ const WordbookPage = () => {
                         <p className="text-[16.5px] font-bold text-ink-strong tracking-[-0.01em]">
                           {item.word}
                         </p>
-                        {item.note && (
-                          <p className="mt-1 text-[13.5px] leading-[1.65] text-gray-600 dark:text-white/65 whitespace-pre-wrap break-words">
-                            {item.note}
-                          </p>
-                        )}
                       </button>
                       <button
                         onClick={() => goToVerse(item)}
@@ -162,6 +157,8 @@ const WordbookPage = () => {
                         <span className="material-icons-round text-[16px]">edit</span>
                       </button>
                     </div>
+
+                    {item.note && <NoteText note={item.note} />}
 
                     {/* 출처 구절 미리보기 — 단어 강조 */}
                     <button
@@ -205,6 +202,36 @@ const WordbookPage = () => {
 
       <BibleBottomNav active="wordbook" />
     </div>
+  )
+}
+
+/** 뜻·메모 — 긴 설명(붙여넣은 인물 해설 등)이 카드를 통째로 차지하지 않게
+ * 3줄로 접고, 탭하면 카드 안에서 펼친다. 수정 진입(시트)은 단어·연필 탭에 그대로 둔다. */
+const NoteText = ({ note }: { note: string }) => {
+  const [expanded, setExpanded] = useState(false)
+  const isLong = note.length > 100 || note.split('\n').length > 3
+  const body = (
+    <p
+      className={`text-[13.5px] leading-[1.65] text-gray-600 dark:text-white/65 whitespace-pre-wrap break-words ${
+        isLong && !expanded ? 'line-clamp-3' : ''
+      }`}
+    >
+      {note}
+    </p>
+  )
+  if (!isLong) return <div className="mt-1">{body}</div>
+  return (
+    <button
+      type="button"
+      onClick={() => setExpanded((v) => !v)}
+      className="mt-1 w-full text-left"
+      aria-expanded={expanded}
+    >
+      {body}
+      <span className="mt-0.5 inline-block text-[12px] font-bold text-brand">
+        {expanded ? '접기' : '더보기'}
+      </span>
+    </button>
   )
 }
 
