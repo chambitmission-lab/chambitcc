@@ -103,7 +103,9 @@ const BibleStudy = () => {
           // 페이지 상단으로 스크롤.
           // 뒤로가기(POP)는 ScrollRestoration이 이전 읽던 위치를 복원하므로 건드리지 않는다
           setTimeout(() => {
+            // 실제 스크롤러가 window가 아니라 body라서 둘 다 스크롤한다
             window.scrollTo({ top: 0, behavior: 'smooth' })
+            document.body.scrollTo({ top: 0, behavior: 'smooth' })
           }, 100)
         }
       }

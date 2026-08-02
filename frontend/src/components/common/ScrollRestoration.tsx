@@ -6,12 +6,35 @@ import { useLocation, useNavigationType } from 'react-router-dom'
    ① 새 이동(PUSH/REPLACE)은 맨 위에서 시작하고
    ② 뒤로/앞으로가기(POP)는 떠날 때의 위치로 되돌린다.
    위치는 history 엔트리별 고유값인 location.key로 기억하고,
-   sessionStorage에 남겨 새로고침 후의 뒤로가기까지 복원한다. */
+   sessionStorage에 남겨 새로고침 후의 뒤로가기까지 복원한다.
+
+   주의: 이 앱은 html/body에 overflow-x:hidden이 걸려 있어 overflow-y가
+   auto로 계산되고, 그 결과 실제 페이지 스크롤러가 뷰포트(window)가 아니라
+   body 요소다. window.scrollY는 항상 0이고 window.scrollTo는 무력하므로
+   기록·복원 모두 실제 스크롤러 기준으로 처리해야 한다. */
 
 const STORAGE_KEY = 'scroll-positions'
 
 // 데이터 로딩·lazy 청크로 문서가 아직 짧을 수 있어 복원을 재시도하는 최대 시간
 const RESTORE_TIMEOUT_MS = 1000
+
+const getScrollTop = () =>
+  window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
+
+const setScrollTop = (y: number) => {
+  // html의 scroll-behavior:smooth에 끌려가지 않도록 즉시 이동으로 통일
+  window.scrollTo({ top: y, left: 0, behavior: 'instant' as ScrollBehavior })
+  document.body.scrollTop = y
+}
+
+const maxScrollTop = () => {
+  const html = document.documentElement
+  const body = document.body
+  return Math.max(
+    html.scrollHeight - html.clientHeight,
+    body.scrollHeight - body.clientHeight,
+  )
+}
 
 function loadPositions(): Record<string, number> {
   try {
@@ -41,10 +64,8 @@ function restoreScroll(y: number) {
 
   const attempt = () => {
     if (cancelled) return
-    window.scrollTo(0, y)
-    const doc = document.scrollingElement || document.documentElement
-    const reachable = doc.scrollHeight - window.innerHeight >= y
-    if (reachable || performance.now() > deadline) {
+    setScrollTop(y)
+    if (maxScrollTop() >= y || performance.now() > deadline) {
       cancel()
       return
     }
@@ -66,9 +87,10 @@ export default function ScrollRestoration() {
     }
 
     const record = () => {
-      positions.current[currentKey.current] = window.scrollY
+      positions.current[currentKey.current] = getScrollTop()
     }
-    window.addEventListener('scroll', record, { passive: true })
+    // 요소 스크롤(body)은 window까지 버블되지 않으므로 capture로 가로챈다
+    window.addEventListener('scroll', record, { passive: true, capture: true })
 
     // 새로고침·탭 종료 직전 위치를 저장해 두면 복귀 후 뒤로가기도 이어진다
     const persist = () => {
@@ -82,7 +104,7 @@ export default function ScrollRestoration() {
     window.addEventListener('pagehide', persist)
 
     return () => {
-      window.removeEventListener('scroll', record)
+      window.removeEventListener('scroll', record, { capture: true })
       window.removeEventListener('pagehide', persist)
     }
   }, [])
@@ -97,7 +119,7 @@ export default function ScrollRestoration() {
         return
       }
     }
-    window.scrollTo(0, 0)
+    setScrollTop(0)
   }, [location.key, navigationType])
 
   return null
