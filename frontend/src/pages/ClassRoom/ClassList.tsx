@@ -8,6 +8,7 @@ import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { Avatar, DEPARTMENTS, DeptBadge, timeAgo } from './classUi'
+import classNoteHero from '../../assets/hero/class-note.jpg'
 
 const ClassList = () => {
   const navigate = useNavigate()
@@ -53,13 +54,41 @@ const ClassList = () => {
           </h1>
         </div>
 
-        {/* Hero — 브랜드 블루 플랫 카드 */}
+        {/* Hero — 수채화 배경 + 브랜드 블루 워시 */}
         <section className="relative overflow-hidden rounded-[26px] mx-4 mt-5 px-6 py-7 bg-brand text-white shadow-[0_16px_44px_-14px_var(--brand-glow)]">
-          <span className="absolute -right-4 -bottom-8 text-[120px] leading-none opacity-[0.14] -rotate-12 select-none pointer-events-none">
-            🏫
-          </span>
-          <div className="relative z-10">
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/70">
+          {/* 배경 그림 — 교회와 주일학교 풍경(수채화) */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `url(${classNoteHero})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center 46%',
+            }}
+            aria-hidden
+          />
+          {/* 브랜드 워시 — 글씨가 앉는 왼쪽은 진하게, 오른쪽 교회·게시판은 살려둔다 */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'linear-gradient(102deg, rgba(18,62,150,0.96) 0%, rgba(22,76,180,0.93) 46%, rgba(32,100,214,0.74) 80%, rgba(49,130,246,0.24) 100%)',
+            }}
+            aria-hidden
+          />
+          {/* 하단 가독성 스크림 */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(6,22,55,0) 42%, rgba(6,22,55,0.32) 76%, rgba(6,22,55,0.58) 100%)',
+            }}
+            aria-hidden
+          />
+          <div
+            className="relative z-10"
+            style={{ textShadow: '0 1px 14px rgba(4,16,44,0.45)' }}
+          >
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/75">
               Class Note
             </span>
             <h2 className="text-[24px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2.5">
@@ -67,7 +96,7 @@ const ClassList = () => {
               <br />
               이제 알림장으로
             </h2>
-            <p className="text-[13px] font-light leading-[1.7] text-white/85 mt-2.5 max-w-[17rem]">
+            <p className="text-[13px] font-light leading-[1.7] text-white/90 mt-2.5 max-w-[17rem]">
               선생님은 공지·암송요절·일정을 올리고, 학부모님은 확인 버튼과 댓글로
               바로 답할 수 있어요.
             </p>
