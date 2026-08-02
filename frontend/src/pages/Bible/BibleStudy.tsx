@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useSearchParams, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
 import { useResumeReading, useReadingProgress } from '../../hooks/useBibleReading'
@@ -27,6 +27,7 @@ import './BibleStudy.css'
 const BibleStudy = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const navigationType = useNavigationType()
   const { bookNumber, chapter } = useParams<{ bookNumber?: string; chapter?: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -98,8 +99,9 @@ const BibleStudy = () => {
         if (verseParam > 0) {
           // 절 스크롤은 본문 로드 후 VerseList가 수행
           setPendingScrollVerse(verseParam)
-        } else {
-          // 페이지 상단으로 스크롤
+        } else if (navigationType !== 'POP') {
+          // 페이지 상단으로 스크롤.
+          // 뒤로가기(POP)는 ScrollRestoration이 이전 읽던 위치를 복원하므로 건드리지 않는다
           setTimeout(() => {
             window.scrollTo({ top: 0, behavior: 'smooth' })
           }, 100)

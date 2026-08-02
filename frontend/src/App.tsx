@@ -9,6 +9,7 @@ import ErrorBoundary from './components/common/ErrorBoundary'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
 import PullToRefresh from './components/common/PullToRefresh'
+import ScrollRestoration from './components/common/ScrollRestoration'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
 import { menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
 import { healPushSubscription } from './utils/pushNotification'
@@ -179,6 +180,7 @@ function App() {
   return (
     <ThemeProvider>
       <Router>
+        <ScrollRestoration />
         <div className="app">
           <NewHeader />
           <main className="main-content">
