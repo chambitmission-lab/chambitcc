@@ -25,6 +25,7 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/prayer-focus': () => import('../pages/PrayerFocus'),
   // 홈 FAB 스피드 다이얼의 "말씀 카드 만들기" 목적지
   '/bible/photo-verse': () => import('../pages/Bible/PhotoVerse/PhotoVerse'),
+  '/classes': () => import('../pages/ClassRoom/ClassList'),
 }
 
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다
@@ -40,6 +41,8 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'capsule/invite', match: /^\/capsule\/invite\//, load: () => import('../pages/Capsule/CapsuleInvite') },
   { key: 'capsule/detail', match: /^\/capsule\/[^/]+$/, load: () => import('../pages/Capsule/CapsuleOpen') },
   { key: 'capsule', match: /^\/capsule$/, load: () => import('../pages/Capsule/CapsuleList') },
+  { key: 'classes/join', match: /^\/classes\/join\//, load: () => import('../pages/ClassRoom/JoinClass') },
+  { key: 'classes/detail', match: /^\/classes\/[^/]+$/, load: () => import('../pages/ClassRoom/ClassHome') },
 ]
 
 // 진행 중인 로드는 promise 자체를 캐싱한다. Set으로 "시작했음"만 기록하면

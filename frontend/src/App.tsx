@@ -65,6 +65,9 @@ const BibleStudy = lazy(menuRouteLoaders['/bible'])
 const Genealogy = lazy(() => import('./pages/Bible/Genealogy/Genealogy'))
 const PlanList = lazy(() => import('./pages/Bible/Plans/PlanList'))
 const PlanDetail = lazy(() => import('./pages/Bible/Plans/PlanDetail'))
+const ClassList = lazy(menuRouteLoaders['/classes'])
+const ClassHome = lazy(() => import('./pages/ClassRoom/ClassHome'))
+const JoinClass = lazy(() => import('./pages/ClassRoom/JoinClass'))
 const RoomList = lazy(() => import('./pages/Rooms/RoomList'))
 const RoomHome = lazy(() => import('./pages/Rooms/RoomHome'))
 const JoinRoom = lazy(() => import('./pages/Rooms/JoinRoom'))
@@ -230,6 +233,9 @@ function App() {
                 <Route path="/bible/genealogy" element={<Genealogy />} />
                 <Route path="/bible/plans" element={<PlanList />} />
                 <Route path="/bible/plans/:planId" element={<PlanDetail />} />
+                <Route path="/classes" element={<ClassList />} />
+                <Route path="/classes/join/:code" element={<JoinClass />} />
+                <Route path="/classes/:classId" element={<ClassHome />} />
                 <Route path="/rooms" element={<RoomList />} />
                 <Route path="/rooms/:roomId" element={<RoomHome />} />
                 <Route path="/join/:code" element={<JoinRoom />} />

@@ -34,6 +34,7 @@ export const navigation = {
   garden: '성경 칭호',
   bluemarble: '바이블 퀘스트',
   answeredPrayers: '응답의 전당',
+  classNote: '우리반 알림장',
   missionStatus: '선교 현황',
   adminMenu: '관리자 메뉴',
   navGroupChurch: '교회 안내',

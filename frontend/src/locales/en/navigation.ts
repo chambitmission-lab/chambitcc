@@ -34,6 +34,7 @@ export const navigation = {
   garden: 'Bible Titles',
   bluemarble: 'Bible Quest',
   answeredPrayers: 'Answered Prayers',
+  classNote: 'Class Notes',
   missionStatus: 'Mission Status',
   adminMenu: 'Admin Menu',
   navGroupChurch: 'Church Info',

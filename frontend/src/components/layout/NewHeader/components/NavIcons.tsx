@@ -147,6 +147,17 @@ const IconSparkle = (p: IconProps) => (
   </Svg>
 )
 
+/* 우리반 알림장 — 종이 달린 알림판 */
+const IconClassNote = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="4" y="4.5" width="16" height="16.5" rx="2.5" />
+    <path d="M9 4.5V3M15 4.5V3" />
+    <path d="M8 10h8" />
+    <path d="M8 13.5h8" />
+    <path d="M8 17h4.5" />
+  </Svg>
+)
+
 /* 내 정보 — 사람 */
 export const IconPerson = (p: IconProps) => (
   <Svg {...p}>
@@ -165,6 +176,7 @@ export const NAV_ICONS = {
   bible: IconBible,
   ministry: IconPen,
   myGroups: IconUsers,
+  classNote: IconClassNote,
   missionStatus: IconGlobe,
   news: IconMegaphone,
   garden: IconMedal,

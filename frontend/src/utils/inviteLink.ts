@@ -3,3 +3,7 @@
 // 화면이 이 한 줄을 쓰려고 모달 번들 전체를 끌어오지 않게.
 export const groupInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/groups/join/${code}`
+
+// 우리반 알림장 초대 링크
+export const classInviteUrl = (code: string) =>
+  `${window.location.origin}${window.location.pathname}#/classes/join/${code}`
