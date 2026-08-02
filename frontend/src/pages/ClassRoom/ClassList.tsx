@@ -109,24 +109,30 @@ const ClassList = () => {
                 <h2 className="text-[24px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2.5">
                   참여 중인 반 {classes!.length}곳
                 </h2>
-                <p className="text-[13px] leading-[1.7] text-white/90 mt-2.5 max-w-[17rem]">
-                  {latestPost ? (
-                    <>
-                      가장 최근 소식은{' '}
-                      <span className="font-bold">{latestPost.name}</span>,{' '}
-                      {timeAgo(latestPost.last_post_at!)}에 올라왔어요.
-                    </>
-                  ) : (
-                    '아직 올라온 알림이 없어요. 반에 들어가 첫 소식을 남겨보세요.'
-                  )}
-                </p>
+                {latestPost ? (
+                  // 반 이름이 길어도 줄바꿈으로 무너지지 않게 — 이름만 줄이고 한 줄 유지
+                  <p className="flex items-center gap-2 text-[13px] text-white/90 mt-3 max-w-[19rem]">
+                    <span className="shrink-0 opacity-75">최근 소식</span>
+                    <span aria-hidden className="shrink-0 w-px h-3 bg-white/30" />
+                    <span className="min-w-0 truncate font-bold">
+                      {latestPost.name}
+                    </span>
+                    <span className="shrink-0 opacity-90">
+                      {timeAgo(latestPost.last_post_at!)}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="text-[13px] font-light leading-[1.7] text-white/90 mt-2.5 max-w-[17rem] break-keep">
+                    아직 올라온 알림이 없어요. 반에 들어가 첫 소식을 남겨보세요.
+                  </p>
+                )}
               </>
             ) : (
               <>
                 <h2 className="text-[24px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2.5">
                   반에 참여해 보세요
                 </h2>
-                <p className="text-[13px] font-light leading-[1.7] text-white/90 mt-2.5 max-w-[17rem]">
+                <p className="text-[13px] font-light leading-[1.7] text-white/90 mt-2.5 max-w-[17rem] break-keep">
                   공지·암송요절·일정을 반별로 받아보고, 확인 버튼과 댓글로 바로
                   답할 수 있어요.
                 </p>
