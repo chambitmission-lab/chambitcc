@@ -20,6 +20,9 @@ export interface ProfileStats {
     verses_read: number // 읽은 구절 수
     chapters_read: number // 완독한 장 수
     books_completed: string[] // 완독한 책 목록
+    // 책별 읽은 장 수 { book_number: read_chapters }. 읽은 적 있는 책만 포함.
+    // JSON 키는 문자열이므로 조회 시 String(bookNumber) 로 접근할 것.
+    books_progress?: Record<string, number>
     bookmarks_count?: number // 하이라이트 개수
     notes_count?: number // 묵상 노트 개수
     favorites_count?: number // 즐겨찾기 개수

@@ -43,6 +43,9 @@ const THANKS_VERSES = [
 const TODAYS_VERSE =
   THANKS_VERSES[Math.floor(Date.now() / 86_400_000) % THANKS_VERSES.length]
 
+/** 히어로 아바타 스택에 얼굴을 띄우는 최대 인원 — 넘으면 "+N"으로 접는다 */
+const MAX_HERO_AVATARS = 4
+
 /** created_at은 KST 벽시계 문자열(예: 2026-07-30T22:10:00) — 날짜 부분만 그대로 쓴다 */
 const dateKeyOf = (iso: string) => (iso || '').slice(0, 10)
 
@@ -70,7 +73,12 @@ const Thanks = () => {
     queryKey,
     queryFn: async ({ pageParam = 1 }): Promise<ThanksPage> => {
       const data = await getThanksList(pageParam, THANKS_PAGE_SIZE)
-      return { items: data.items, total: data.total, page: pageParam }
+      return {
+        items: data.items,
+        total: data.total,
+        page: pageParam,
+        authorCount: data.author_count ?? 0,
+      }
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
@@ -117,10 +125,23 @@ const Thanks = () => {
     const seen = new Map<number, ThanksItem>()
     for (const item of items) {
       if (!seen.has(item.user_id)) seen.set(item.user_id, item)
-      if (seen.size >= 4) break
+      if (seen.size >= MAX_HERO_AVATARS) break
     }
     return [...seen.values()]
   }, [items])
+
+  // 아바타에 담기지 못한 나머지 인원 → "+N" 칩.
+  // 서버 집계(authorCount)를 쓰되, 방금 쓴 새 작성자가 아직 반영 안 됐을 수 있어
+  // 로드된 목록의 고유 작성자 수와 큰 쪽을 택한다.
+  const loadedAuthorCount = useMemo(
+    () => new Set(items.map((item) => item.user_id)).size,
+    [items],
+  )
+  const hiddenAuthorCount = Math.max(
+    0,
+    Math.max(query.data?.pages[0]?.authorCount ?? 0, loadedAuthorCount) -
+      recentAuthors.length,
+  )
 
   const verse = TODAYS_VERSE
 
@@ -334,7 +355,15 @@ const Thanks = () => {
                 </div>
 
                 {recentAuthors.length > 0 && (
-                  <div className="flex -space-x-2 shrink-0" aria-hidden>
+                  <div
+                    className="flex -space-x-2 shrink-0"
+                    role="img"
+                    aria-label={
+                      ko
+                        ? `${recentAuthors.length + hiddenAuthorCount}명이 감사를 나눴어요`
+                        : `${recentAuthors.length + hiddenAuthorCount} people shared thanks`
+                    }
+                  >
                     {recentAuthors.map((author) => (
                       <ThanksAvatar
                         key={author.user_id}
@@ -344,6 +373,23 @@ const Thanks = () => {
                         tone="onBrand"
                       />
                     ))}
+                    {hiddenAuthorCount > 0 && (
+                      <span
+                        className="shrink-0 rounded-full flex items-center justify-center font-bold text-white"
+                        style={{
+                          width: 28,
+                          height: 28,
+                          fontSize: 11,
+                          letterSpacing: '-0.02em',
+                          background: 'rgba(255,255,255,0.22)',
+                          backdropFilter: 'blur(2px)',
+                          boxShadow: '0 0 0 1px rgba(255,255,255,0.35)',
+                        }}
+                        aria-hidden
+                      >
+                        +{hiddenAuthorCount}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

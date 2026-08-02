@@ -93,8 +93,10 @@ export const calculateAchievements = (activity: UserActivityData): Achievement[]
         break
         
       case 'bible_reading':
-        progress = achievement.id === 'bible_genesis' 
-          ? activity.bibleBooksCompleted.includes('창세기') ? 50 : 0
+        // bookNumber가 있으면 그 책에서 읽은 장 수(부분 진행도), 없으면 전체 읽은 장 수.
+        // 과거에는 완독 여부만 보고 0 또는 requirement로 튀어서 진행바가 항상 0이었다.
+        progress = achievement.bookNumber !== undefined
+          ? activity.bibleBookChapters[String(achievement.bookNumber)] ?? 0
           : activity.bibleChaptersRead
         unlocked = progress >= achievement.requirement
         break

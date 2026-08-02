@@ -51,10 +51,13 @@ export const useMarkVerseAsRead = () => {
           ...old,
           stats: {
             ...old.stats,
+            // 스프레드로 병합 — 필드를 새로 나열하면 books_progress·북마크 카운트 등
+            // 여기서 다루지 않는 통계가 재조회 전까지 사라진다
             bible_reading: {
+              chapters_read: 0,
+              books_completed: [],
+              ...old.stats.bible_reading,
               verses_read: (old.stats.bible_reading?.verses_read || 0) + 1,
-              chapters_read: old.stats.bible_reading?.chapters_read || 0,
-              books_completed: old.stats.bible_reading?.books_completed || [],
             },
           },
         }
@@ -161,9 +164,10 @@ export const useUnmarkVerseAsRead = () => {
           stats: {
             ...old.stats,
             bible_reading: {
+              chapters_read: 0,
+              books_completed: [],
+              ...old.stats.bible_reading,
               verses_read: Math.max(0, (old.stats.bible_reading?.verses_read || 0) - 1),
-              chapters_read: old.stats.bible_reading?.chapters_read || 0,
-              books_completed: old.stats.bible_reading?.books_completed || [],
             },
           },
         }

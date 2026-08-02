@@ -67,6 +67,7 @@ const Profile = () => {
       bibleVersesRead: data.stats.bible_reading?.verses_read || 0,
       bibleChaptersRead: data.stats.bible_reading?.chapters_read || 0,
       bibleBooksCompleted: data.stats.bible_reading?.books_completed || [],
+      bibleBookChapters: data.stats.bible_reading?.books_progress || {},
       repliesCount: data.stats.content.my_replies,
       prayingForCount: data.stats.content.praying_for,
       bookmarksCount: data.stats.bible_reading?.bookmarks_count || 0,

@@ -77,6 +77,8 @@ export interface ThanksListResponse {
     page: number
     limit: number
     total: number
+    /** 감사를 남긴 사람 수 (중복 제거) — 히어로 아바타 스택 "+N"용 */
+    author_count?: number
   }
 }
 

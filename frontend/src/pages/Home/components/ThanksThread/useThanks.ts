@@ -24,6 +24,8 @@ export interface ThanksPage {
   items: Thanks[]
   total: number
   page: number
+  /** 감사를 남긴 사람 수 (서버 집계, 중복 제거) */
+  authorCount: number
 }
 
 export type ThanksInfiniteData = InfiniteData<ThanksPage, number>
@@ -46,7 +48,12 @@ export const useThanks = ({ limit = THANKS_PAGE_SIZE }: UseThanksOptions = {}) =
     queryKey,
     queryFn: async ({ pageParam = 1 }): Promise<ThanksPage> => {
       const data = await getThanksList(pageParam, THANKS_PAGE_SIZE)
-      return { items: data.items, total: data.total, page: pageParam }
+      return {
+        items: data.items,
+        total: data.total,
+        page: pageParam,
+        authorCount: data.author_count ?? 0,
+      }
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {

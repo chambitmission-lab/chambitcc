@@ -17,6 +17,11 @@ export interface Achievement {
   titleKey: TranslationKey
   descKey: TranslationKey
   requirement: number
+  /**
+   * 특정 책 완독 업적일 때 대상 책 번호(창세기=1).
+   * 지정되면 진행도를 '전체 읽은 장 수'가 아니라 '그 책에서 읽은 장 수'로 센다.
+   */
+  bookNumber?: number
   glowColor: string
   glowIntensity: number
   icon: string
@@ -46,6 +51,7 @@ export interface UserActivityData {
   bibleVersesRead: number // 읽은 구절 수
   bibleChaptersRead: number // 완독한 장 수
   bibleBooksCompleted: string[] // 완독한 책 목록
+  bibleBookChapters: Record<string, number> // 책별 읽은 장 수 { book_number: chapters }
 
   // 커뮤니티 활동
   repliesCount: number
@@ -204,6 +210,7 @@ export const ACHIEVEMENTS: Omit<Achievement, 'unlocked' | 'progress'>[] = [
     titleKey: 'achBibleGenesisT',
     descKey: 'achBibleGenesisD',
     requirement: 50,
+    bookNumber: 1,
     glowColor: 'rgba(34, 197, 94, 0.7)',
     glowIntensity: 0.7,
     icon: '📖',
