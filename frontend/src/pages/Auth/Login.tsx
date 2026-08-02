@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { API_V1 } from '../../config/api'
 import { clearAllPersistedCache } from '../../config/persister'
 import { restorePushSubscriptionForUser } from '../../utils/pushNotification'
+import { playWelcomeTransition } from '../../utils/welcomeTransition'
 import { deriveTimeOfDay } from '../../hooks/useDailyMeditation'
 import { EyeIcon, StatusIcon } from './AuthIcons'
 import './AuthForm.css'
@@ -22,7 +23,7 @@ const GREETING_KEYS = {
 const Login = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [formData, setFormData] = useState({
     username: localStorage.getItem(REMEMBER_KEY) || '',
     password: ''
@@ -33,6 +34,8 @@ const Login = () => {
   /* 같은 메시지가 반복돼도 흔들림이 다시 재생되도록 세는 카운터 */
   const [errorSeq, setErrorSeq] = useState(0)
   const fieldsRef = useRef<HTMLDivElement>(null)
+  /* 마중 모먼트의 번짐 원점 — 브랜드색이 이 버튼에서 화면으로 퍼진다 */
+  const submitRef = useRef<HTMLButtonElement>(null)
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(() => !!localStorage.getItem(REMEMBER_KEY))
@@ -146,16 +149,23 @@ const Login = () => {
 
       // 저장된 리다이렉트 경로가 있으면 그곳으로, 없으면 홈으로
       const redirectPath = sessionStorage.getItem('redirect_after_login')
-      if (redirectPath) {
-        sessionStorage.removeItem('redirect_after_login')
-        navigate(redirectPath, { replace: true })
-      } else {
-        navigate('/', { replace: true })
-      }
+      sessionStorage.removeItem('redirect_after_login')
+
+      // 마중 모먼트 — 이름을 부르며 맞아주는 짧은 환대 연출.
+      // 라우트 교체는 화면이 브랜드색으로 덮인 정점에 실행돼 보이지 않고,
+      // 연출이 어떤 이유로 실패해도 내부에서 navigate를 정확히 한 번 보장한다.
+      playWelcomeTransition({
+        name: data.full_name || loggedInUsername,
+        username: loggedInUsername,
+        language,
+        originEl: submitRef.current,
+        onNavigate: () => navigate(redirectPath || '/', { replace: true }),
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : t('loginFailed'))
       setErrorSeq((seq) => seq + 1)
-    } finally {
+      // 성공 경로에서는 로딩을 풀지 않는다 — 폼이 되살아나면 연출이 걷힐 때
+      // 스쳐 보인다. 라우트 교체로 어차피 언마운트된다.
       setLoading(false)
     }
   }
@@ -262,6 +272,7 @@ const Login = () => {
           {/* CTA는 폼 바로 아래 — 바닥에 붙이면 큰 화면에서 가운데가 텅 빈다 */}
           <div className="auth-cta">
             <button
+              ref={submitRef}
               type="submit"
               disabled={loading}
               className="w-full h-[52px] flex items-center justify-center gap-2 bg-brand hover:bg-brand-dim text-white font-semibold rounded-2xl text-[15px] active:scale-[0.98] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 shadow-[0_10px_28px_-10px_var(--brand-glow)]"

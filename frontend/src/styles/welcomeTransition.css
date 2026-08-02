@@ -1,0 +1,122 @@
+/* 로그인 성공 "마중 모먼트" — 앱 배경색 그대로의 조용한 화면이 CTA 버튼에서
+   부드럽게 번져 폼을 지우고, 그 위로 이름 → 마중 문구 → 날짜·절기가 떠오른다.
+   풀스크린 브랜드 블루는 광고판처럼 어색해서 서페이스 톤 + 은은한 빛으로 간다 —
+   친구 집 현관은 파란 조명이 아니라 그냥 따뜻한 실내다. 라이트/다크는 토큰이 따라온다.
+   퇴장은 위로 살짝 밀려나며 홈을 드러낸다 (커튼이 아니라 같이 걸어 들어가는 방향감).
+   원점(--wx/--wy)과 반지름(--wr)은 welcomeTransition.ts가 실측해 주입한다. */
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000; /* 토스트(9999) 바로 위 — 앱 내 최고값 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--text-body);
+  clip-path: circle(0px at var(--wx) var(--wy));
+  transition:
+    clip-path 0.55s cubic-bezier(0.3, 0, 0.2, 1),
+    opacity 0.45s ease,
+    transform 0.45s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 인사말 뒤에 아침 햇살처럼 아주 옅은 브랜드 빛 한 점 — 색이 아니라 온기만 */
+.welcome-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 45% at 50% 38%, var(--brand-soft-strong), transparent 70%);
+  pointer-events: none;
+}
+
+.welcome-overlay.is-open {
+  clip-path: circle(var(--wr) at var(--wx) var(--wy));
+}
+
+.welcome-overlay.is-leaving {
+  opacity: 0;
+  transform: translateY(-2.5%);
+  pointer-events: none;
+}
+
+.welcome-inner {
+  position: relative; /* ::before 글로우 위에 얹는다 */
+  width: 100%;
+  max-width: 24rem; /* 로그인 폼 칼럼(max-w-sm)과 같은 축 — 시선이 이어진다 */
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.welcome-name,
+.welcome-line,
+.welcome-sub {
+  margin: 0;
+  opacity: 0;
+  animation: welcome-rise 0.65s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+.welcome-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--text-strong);
+  animation-delay: 0.5s; /* 번짐이 끝나는 순간 이름부터 */
+}
+
+.welcome-line {
+  margin-top: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-body);
+  animation-delay: 0.85s;
+}
+
+.welcome-sub {
+  margin-top: 1.4rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+  animation-delay: 1.15s;
+}
+
+@keyframes welcome-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 모션 최소화 — 번짐·떠오름 없이 인사만 잠깐 보이고 물러난다.
+   JS 감지(is-reduced)와 미디어쿼리 이중 방어. */
+.welcome-overlay.is-reduced {
+  clip-path: none;
+  transition: opacity 0.3s ease;
+}
+
+.welcome-overlay.is-reduced .welcome-name,
+.welcome-overlay.is-reduced .welcome-line,
+.welcome-overlay.is-reduced .welcome-sub {
+  animation: none;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-overlay {
+    clip-path: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .welcome-overlay .welcome-name,
+  .welcome-overlay .welcome-line,
+  .welcome-overlay .welcome-sub {
+    animation: none;
+    opacity: 1;
+  }
+}
