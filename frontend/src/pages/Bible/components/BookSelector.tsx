@@ -20,6 +20,18 @@ interface BookSelectorProps {
 }
 
 type Testament = 'OT' | 'NT'
+type BookViewMode = 'journey' | 'grid'
+
+/** 보기 방식 선택 저장 키 — 여정(경로)과 격자(그리드)는 취향 문제라 사용자별로 기억한다 */
+const VIEW_MODE_KEY = 'bible-book-view-mode'
+
+const loadViewMode = (): BookViewMode => {
+  try {
+    return localStorage.getItem(VIEW_MODE_KEY) === 'grid' ? 'grid' : 'journey'
+  } catch {
+    return 'journey'
+  }
+}
 
 const OT_CATEGORIES: { id: string; label: string; labelEn: string; min: number; max: number }[] = [
   { id: 'all', label: '전체', labelEn: 'All', min: 1, max: 39 },
@@ -67,6 +79,17 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   // 서브 필터가 어느 방향에서 슬라이드 인 될지 — OT→NT는 우측(forward), NT→OT는 좌측(back)에서 들어온다
   const [dir, setDir] = useState<'forward' | 'back'>('forward')
   const [showMap, setShowMap] = useState(false)
+  // 책 목록 보기 방식 — 여정 경로(기본)와 예전 격자 중 취향대로. 선택은 기기에 기억된다
+  const [viewMode, setViewMode] = useState<BookViewMode>(loadViewMode)
+
+  const handleViewModeChange = (mode: BookViewMode) => {
+    setViewMode(mode)
+    try {
+      localStorage.setItem(VIEW_MODE_KEY, mode)
+    } catch {
+      // 저장 실패(시크릿 모드 등)해도 이번 세션 동안은 상태로 동작한다
+    }
+  }
 
   // 최근 읽은 책 슬라이더 — 스크롤 여지가 있는 방향에만 엣지 페이드를 켠다
   const recentScrollRef = useRef<HTMLDivElement>(null)
@@ -113,6 +136,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       complete: '완독',
       reading: '읽는 중',
       read: '읽음',
+      journeyView: '여정으로 보기',
+      gridView: '격자로 보기',
     },
     en: {
       selectBook: 'Select Book',
@@ -131,6 +156,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       complete: 'Done',
       reading: 'Reading',
       read: 'read',
+      journeyView: 'Journey view',
+      gridView: 'Grid view',
     }
   }
 
@@ -187,6 +214,74 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     },
     [onBookSelect, resumeMap]
   )
+
+  // 격자 보기 — 여정 도입 전에 쓰던 카드 그리드. 한눈에 전체를 훑는 밀도를 선호하는
+  // 사용자를 위해 보기 옵션으로 남겨 둔다 (CSS는 book-selector.css에 그대로 있다)
+  const renderBook = (book: BibleBook, index: number) => {
+    const resume = resumeMap?.get(book.book_number)
+    const info = infoMap.get(book.book_number)
+    const rate = info?.rate ?? 0
+    const readChapters = info?.readChapters ?? null
+    const totalChapters = info?.totalChapters ?? book.chapter_count
+    const isComplete = rate >= 100
+    const hasProgress = rate > 0
+
+    // 이어 읽기 위치는 진행률과 다른 값이므로 숫자로 섞지 않고, 게이지에서 읽은 양보다
+    // 앞서 있을 때만 연한 구간으로 이어 붙인다 (뒤쪽이면 채움에 묻히므로 그리지 않는다)
+    const resumePct =
+      resume && !isComplete && totalChapters > 0
+        ? Math.max(0, Math.min(100, (resume.chapter / totalChapters) * 100))
+        : 0
+    const aheadPct = resumePct > rate + 1 ? resumePct : 0
+
+    let meta: { ratio: string; pct: string } | null = null
+    if (isComplete) {
+      meta = { ratio: `${t.complete} · ${totalChapters}${t.chapterUnit}`, pct: '' }
+    } else if (readChapters !== null && readChapters > 0) {
+      meta = { ratio: `${readChapters}/${totalChapters}${t.chapterUnit}`, pct: `${pctLabel(rate)}%` }
+    } else if (hasProgress) {
+      // 완독한 장이 아직 없는 단계 — 비율 대신 "몇 장을 읽는 중"이라는 위치를 알려주고,
+      // 퍼센트는 절 기준으로 채운다
+      const label = resume ? `${resume.chapter}${t.chapterUnit} ${t.reading}` : t.reading
+      meta = { ratio: label, pct: `${pctLabel(rate)}%` }
+    }
+
+    return (
+      <button
+        key={book.id}
+        className={`book-button${resume ? ' book-button-has-resume' : ''}${isComplete ? ' book-button-complete' : ''}`}
+        // 필터 전환 시 앞에서부터 순차적으로 떠오르는 스태거 — 뒤쪽 카드는 딜레이 상한으로 묶는다
+        style={{ animationDelay: `${Math.min(index * 14, 320)}ms` }}
+        aria-label={
+          meta
+            ? `${book.book_name_ko} · ${meta.ratio}${meta.pct ? ` · ${meta.pct}` : ''}`
+            : book.book_name_ko
+        }
+        onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
+      >
+        {isComplete && (
+          <span className="book-complete-badge" aria-label={t.complete}>
+            <span className="material-icons-round">check</span>
+          </span>
+        )}
+        <span className="book-button__name">{book.book_name_ko}</span>
+        {meta && (
+          <span className="book-button__meta" aria-hidden="true">
+            <span className="book-button__ratio">{meta.ratio}</span>
+            {meta.pct && <span className="book-button__pct">{meta.pct}</span>}
+          </span>
+        )}
+        {hasProgress && (
+          <span className="book-progress-track" aria-hidden="true">
+            {aheadPct > 0 && (
+              <span className="book-progress-ahead" style={{ width: `${aheadPct}%` }} />
+            )}
+            <span className="book-progress-fill" style={{ width: `${gaugeWidth(rate)}%` }} />
+          </span>
+        )}
+      </button>
+    )
+  }
 
   if (isLoading) {
     return (
@@ -406,35 +501,67 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         </div>
       </div>
 
-      {/* key로 탭·칩 변경마다 리마운트 — 제목 페이드 + 정거장 스태거 애니메이션이 다시 재생된다 */}
+      {/* key로 탭·칩 변경마다 리마운트 — 제목 페이드 + 정거장/카드 스태거 애니메이션이 다시 재생된다 */}
       <div className="testament-section" key={`${testament}-${filter}`}>
-        <h3 className="testament-title">
-          {activeCategory.id === 'all'
-            ? (testament === 'OT' ? t.oldTestament : t.newTestament)
-            : (language === 'en' ? activeCategory.labelEn : activeCategory.label)}
-          {' '}({filteredBooks.length})
-        </h3>
-        <BookJourneyPath
-          books={filteredBooks}
-          infoMap={infoMap}
-          resumeMap={resumeMap}
-          onBookSelect={onBookSelect}
-          // 전체 필터일 때만 분류 경계 이정표 — 분류 필터 중에는 칩이 그 역할을 이미 한다
-          milestones={
-            activeCategory.id === 'all'
-              ? categories
-                  .filter(c => c.id !== 'all')
-                  .map(c => ({
-                    id: c.id,
-                    label: language === 'en' ? c.labelEn : c.label,
-                    min: c.min,
-                    max: c.max,
-                  }))
-              : undefined
-          }
-          showRates={hasAnyProgress}
-          language={language}
-        />
+        <div className="testament-head">
+          <h3 className="testament-title">
+            {activeCategory.id === 'all'
+              ? (testament === 'OT' ? t.oldTestament : t.newTestament)
+              : (language === 'en' ? activeCategory.labelEn : activeCategory.label)}
+            {' '}({filteredBooks.length})
+          </h3>
+          {/* 여정/격자 보기 전환 — 취향 문제라 강요하지 않고 선택을 기기에 기억한다 */}
+          <div className="view-toggle" role="group" aria-label={`${t.journeyView} / ${t.gridView}`}>
+            <button
+              type="button"
+              className={`view-toggle__btn${viewMode === 'journey' ? ' active' : ''}`}
+              aria-pressed={viewMode === 'journey'}
+              aria-label={t.journeyView}
+              title={t.journeyView}
+              onClick={() => handleViewModeChange('journey')}
+            >
+              <span className="material-icons-round">route</span>
+            </button>
+            <button
+              type="button"
+              className={`view-toggle__btn${viewMode === 'grid' ? ' active' : ''}`}
+              aria-pressed={viewMode === 'grid'}
+              aria-label={t.gridView}
+              title={t.gridView}
+              onClick={() => handleViewModeChange('grid')}
+            >
+              <span className="material-icons-round">grid_view</span>
+            </button>
+          </div>
+        </div>
+
+        {viewMode === 'journey' ? (
+          <BookJourneyPath
+            books={filteredBooks}
+            infoMap={infoMap}
+            resumeMap={resumeMap}
+            onBookSelect={onBookSelect}
+            // 전체 필터일 때만 분류 경계 이정표 — 분류 필터 중에는 칩이 그 역할을 이미 한다
+            milestones={
+              activeCategory.id === 'all'
+                ? categories
+                    .filter(c => c.id !== 'all')
+                    .map(c => ({
+                      id: c.id,
+                      label: language === 'en' ? c.labelEn : c.label,
+                      min: c.min,
+                      max: c.max,
+                    }))
+                : undefined
+            }
+            showRates={hasAnyProgress}
+            language={language}
+          />
+        ) : (
+          <div className="books-grid">
+            {filteredBooks.map(renderBook)}
+          </div>
+        )}
       </div>
     </div>
   )

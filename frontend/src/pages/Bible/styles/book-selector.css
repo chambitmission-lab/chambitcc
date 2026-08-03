@@ -706,6 +706,54 @@
   animation: title-fade-in 0.24s ease both;
 }
 
+/* 제목 + 여정/격자 보기 토글을 한 줄에 — 토글은 목록 바로 위, 대상이 명확한 자리 */
+.testament-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.testament-head .testament-title {
+  margin-bottom: 0;
+}
+
+.view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  background: rgba(120, 120, 130, 0.1);
+}
+
+[data-theme="dark"] .view-toggle {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.view-toggle__btn {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 1.6rem;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.view-toggle__btn .material-icons-round {
+  font-size: 1rem;
+}
+
+.view-toggle__btn.active {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 2px 8px -2px rgba(49, 130, 246, 0.5);
+}
+
 @keyframes title-fade-in {
   from {
     opacity: 0;
