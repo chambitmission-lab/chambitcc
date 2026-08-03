@@ -102,16 +102,22 @@ const BookJourneyPath = ({
         jump: '지금 위치로',
       }
 
-  // 여정의 현재 위치 — 표시 중인 책들 가운데 가장 최근에 읽은 책
+  // 여정의 현재 위치 — 표시 중인 책들 가운데 가장 최근에 읽은 책.
+  // 객체 하나에 담지 않고 원시값 둘로 두는 이유: 콜백 안에서만 재할당되는 let 객체는
+  // TS가 반환 지점에서 null로 좁혀 버려(tsc -b에서 never 에러) 빌드가 깨진다
   const currentBookNumber = useMemo(() => {
-    let best: { n: number; time: number } | null = null
+    let bestNumber: number | undefined
+    let bestTime = -Infinity
     books.forEach(b => {
       const pos = resumeMap?.get(b.book_number)
       if (!pos?.read_at) return
       const time = parseApiDate(pos.read_at).getTime()
-      if (!best || time > best.time) best = { n: b.book_number, time }
+      if (time > bestTime) {
+        bestTime = time
+        bestNumber = b.book_number
+      }
     })
-    return best?.n
+    return bestNumber
   }, [books, resumeMap])
 
   // 레이아웃 계산 — 이정표를 사이사이 끼워 넣으며 y를 누적하고,
