@@ -139,9 +139,9 @@ const VerseList = ({
   
   // 읽음 처리 Mutation
   const markAsReadMutation = useMarkVerseAsRead()
-  // 읽음 취소 Mutation (관리자 수동 처리용)
+  // 읽음 취소 Mutation (수동 처리용)
   const unmarkAsReadMutation = useUnmarkVerseAsRead()
-  // 관리자 수동 읽음 처리 중인 절 — 중복 클릭 방지
+  // 수동 읽음 처리 중인 절 — 중복 클릭 방지
   const [togglingVerseId, setTogglingVerseId] = useState<number | null>(null)
 
   // 읽은 구절 Set 생성 (백엔드 데이터 기반)
@@ -189,7 +189,7 @@ const VerseList = ({
     }
   }
   
-  // 관리자 수동 읽음 처리/취소 — 음성 낭독 없이 상태만 바꾼다.
+  // 수동 읽음 처리/취소 — 음성 낭독 없이 상태만 바꾼다. 로그인한 사용자면 누구나.
   // similarity는 수동 처리임을 뜻하는 1.0으로 보낸다(백엔드 최소 임계값 0.75 충족).
   const handleToggleRead = async (verse: BibleVerse, nextRead: boolean) => {
     if (togglingVerseId != null) return
