@@ -738,26 +738,43 @@
   transform: translateX(2px);
 }
 
-/* ── 로딩 ──────────────────────────── */
-.meditation-card.is-loading {
-  background: var(--glass-bg);
-  padding: 16px 18px 18px; /* 로딩 카드는 히어로 없이 기존 여백 유지 */
-}
-
+/* ── 로딩 — 쉘 먼저, 본문만 스켈레톤 ──────────
+ * 히어로·인사말·절기 리본은 API 없이 즉시 완성형으로 그려지고,
+ * API에 기대는 본문 블록 자리만 실제 높이대로 예약한다.
+ * 각 스켈레톤은 대응하는 실제 블록의 radius·보더를 그대로 흉내내
+ * 채워지는 순간 "교체"가 아니라 "선명해지는" 느낌만 남긴다. */
 .meditation-skeleton {
-  height: 10px;
   background: var(--surface-inset);
-  border-radius: 4px;
-  margin-bottom: 8px;
+  border: 1px solid var(--card-border);
   animation: meditation-pulse 1.6s ease-in-out infinite;
 }
 
-.meditation-skeleton.lg { height: 16px; width: 80%; }
-.meditation-skeleton.sm { height: 8px; width: 40%; }
+/* 높이는 실제 블록 기준: 구절 행(라벨 22px + 마진), 핵심 절(2줄 인용),
+ * 질문 박스(라벨+2줄+링크), CTA 행(48px 버튼) */
+.meditation-skeleton.passage { height: 24px; width: 62%; border-radius: 7px; margin-bottom: 10px; }
+.meditation-skeleton.quote { height: 108px; border-radius: 12px; margin-bottom: 12px; }
+.meditation-skeleton.question { height: 118px; border-radius: 12px; margin-bottom: 14px; }
+.meditation-skeleton.actions { height: 48px; border-radius: 14px; }
 
 @keyframes meditation-pulse {
   0%, 100% { opacity: 0.55; }
   50% { opacity: 0.85; }
+}
+
+/* 스켈레톤을 거쳐 데이터가 채워질 때만 본문 페이드인 — 캐시 즉시 표시(재방문)엔
+ * 클래스가 붙지 않아 애니메이션이 없다 */
+.meditation-content.is-entering {
+  animation: meditation-content-in 0.28s ease-out both;
+}
+
+@keyframes meditation-content-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meditation-skeleton { animation: none; opacity: 0.65; }
+  .meditation-content.is-entering { animation: none; }
 }
 
 /* ── 구절 알람 진입 버튼 (메타 행 우측) ── */

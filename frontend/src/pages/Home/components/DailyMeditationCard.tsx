@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useDailyMeditation } from '../../../hooks/useDailyMeditation'
+import { useDailyMeditation, deriveTimeOfDay } from '../../../hooks/useDailyMeditation'
 import { useAuth } from '../../../hooks/useAuth'
 import { useChapterReadStatus } from '../../../hooks/useBibleReading'
 import { useCurrentWeather, type WeatherCondition } from '../../../hooks/useWeather'
@@ -174,7 +174,11 @@ interface DailyMeditationCardProps {
 const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
-  const { data, isLoading, error } = useDailyMeditation()
+  const { data, error } = useDailyMeditation()
+  /* 스켈레톤을 거쳐 데이터가 채워진 경우에만 본문을 페이드인한다 —
+   * 캐시로 즉시 그려질 때(재방문)는 애니메이션 없이 바로 완성형으로.
+   * lazy initializer라 마운트 첫 렌더의 상태가 그대로 고정된다. */
+  const [enteredFromSkeleton] = useState(() => !data)
   /* 실황 날씨(이모지+기온) — 못 불러오면 null: 칩을 숨기고 인사말 이모지로 폴백.
    * 로딩 중(isWeatherLoading)에는 폴백을 띄우지 않는다 — 띄우면 응답이 도착하는
    * 순간 사라져 새로고침마다 이모지가 깜빡인다. 대신 칩 자리에 스켈레톤을 둔다. */
@@ -200,25 +204,18 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
     return null
   }
 
-  if (isLoading || !data) {
-    return (
-      <section className="meditation-section">
-        <div className="meditation-card is-loading" data-time="morning">
-          <div className="meditation-skeleton sm" />
-          <div className="meditation-skeleton lg" />
-          <div className="meditation-skeleton" />
-          <div className="meditation-skeleton" />
-        </div>
-      </section>
-    )
-  }
-
-  const timeOfDay: TimeOfDay = data.context.time_of_day ?? 'morning'
+  /* ── 첫 진입 최적화: 쉘 먼저, 데이터만 스켈레톤 ──
+   * 히어로 사진·인사말·헤드라인·절기 태그·여정 리본은 API 없이 전부
+   * 클라이언트에서 계산되므로 로딩 중에도 완성형 그대로 그린다.
+   * API에 기대는 본문(구절·핵심 절·질문·CTA) 자리만 실제 높이의
+   * 스켈레톤으로 예약해, 데이터가 와도 카드 상단은 1px도 안 움직인다. */
+  const today = new Date()
+  const timeOfDay: TimeOfDay =
+    data?.context.time_of_day ?? deriveTimeOfDay(today.getHours())
 
   /* ── 교회력 절기 리본 ──
    * 백엔드 plan_day.season은 시드 플레이스홀더(전부 epiphany)라
    * 절기 태그·리본 모두 프론트 계산값(churchCalendar)을 쓴다. */
-  const today = new Date()
   const season = getCurrentSeason(today)
   /* 자연 계절 — 히어로 배경·앰비언트 연출용 (교회력 절기와 별개) */
   const naturalSeason = getNaturalSeason(today)
@@ -267,25 +264,31 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
     }
   })
 
+  /* 여정 일수 — 로딩 중엔 서버 값과 같게 수렴하는 클라이언트 계산치(연중 일차)를
+   * 먼저 보여준다. 응답이 와도 값이 같아 화면은 바뀌지 않는다. */
+  const journeyDay = data?.day_number ?? todayDoy
+  const journeyTotal =
+    data?.total_days ?? dayOfYear(new Date(today.getFullYear(), 11, 31))
+
   /* ── 본문 읽기 CTA 상태 (안 읽음 / 읽는 중 / 완료) ──
    * 오늘 본문 범위(verse_start~verse_end)의 읽음 상태로 레이블·딥링크가 바뀐다.
    * 읽는 중이면 첫 안 읽은 절로 이어가고, 완료면 처음부터 다시 읽기. */
+  const verseStart = data?.passage.verse_start ?? 0
+  const verseEnd = data?.passage.verse_end ?? 0
   const rangeStatuses = readStatus?.verses.filter(
-    (v) =>
-      v.verse >= data.passage.verse_start && v.verse <= data.passage.verse_end,
+    (v) => v.verse >= verseStart && v.verse <= verseEnd,
   )
   const readCount = rangeStatuses?.filter((v) => v.is_read).length ?? 0
   const firstUnreadVerse =
-    rangeStatuses?.find((v) => !v.is_read)?.verse ?? data.passage.verse_start
-  const totalVerses =
-    rangeStatuses?.length ??
-    data.passage.verse_end - data.passage.verse_start + 1
+    rangeStatuses?.find((v) => !v.is_read)?.verse ?? verseStart
+  const totalVerses = rangeStatuses?.length ?? verseEnd - verseStart + 1
   const isDone = readCount > 0 && readCount >= totalVerses
   const inProgress = !isDone && readCount > 0
   const remainingMinutes = estimateMinutes(totalVerses - (isDone ? 0 : readCount))
 
   const handleContinueReading = () => {
-    const resumeVerse = inProgress ? firstUnreadVerse : data.passage.verse_start
+    if (!data) return
+    const resumeVerse = inProgress ? firstUnreadVerse : verseStart
     navigate(
       `/bible/${data.passage.book_number}/${data.passage.chapter}?verse=${resumeVerse}`,
     )
@@ -297,6 +300,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         className="meditation-card"
         data-time={timeOfDay}
         data-season={season}
+        aria-busy={!data}
       >
         {/* 계절 × 시간대 히어로 — 배경 이미지 위에 인사말 + 헤드라인.
          * 이미지는 ::before 레이어에서 하단 마스크로 카드 배경에 녹아든다 (Apple TV/Netflix식 페이드) */}
@@ -428,15 +432,15 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
          * 지나온 길은 채워지며, 오늘 위치에 빛 마커가 놓인다. */}
         <div
           className="meditation-journey"
-          aria-label={`${t('homeJourneyLabel')} ${t('homeJourneyDay').replace('{n}', String(data.day_number))}, ${t(SEASON_LABEL_KEYS[season])}`}
+          aria-label={`${t('homeJourneyLabel')} ${t('homeJourneyDay').replace('{n}', String(journeyDay))}, ${t(SEASON_LABEL_KEYS[season])}`}
         >
           <div className="meditation-journey-label">
             <span className="meditation-journey-day">
               <span className="material-icons-round" aria-hidden>auto_stories</span>
               {t('homeJourneyLabel')}{' '}
-              <strong>{t('homeJourneyDay').replace('{n}', String(data.day_number))}</strong>
+              <strong>{t('homeJourneyDay').replace('{n}', String(journeyDay))}</strong>
               <span className="meditation-journey-total">
-                {t('homeJourneyTotal').replace('{n}', String(data.total_days))}
+                {t('homeJourneyTotal').replace('{n}', String(journeyTotal))}
               </span>
             </span>
             <span className="meditation-journey-date">
@@ -481,6 +485,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           </div>
         </div>
 
+        {data ? (
+        <div className={`meditation-content${enteredFromSkeleton ? ' is-entering' : ''}`}>
         <div className="meditation-passage">
           <span className="meditation-passage-label">{data.passage.label}</span>
           {data.passage.theme && (
@@ -552,6 +558,17 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             </button>
           )}
         </div>
+        </div>
+        ) : (
+          /* 본문 스켈레톤 — 실제 블록(구절 행·핵심 절·질문·CTA)과 같은 높이로
+           * 자리를 예약해, 데이터 도착 시 레이아웃 시프트 없이 채워지기만 한다 */
+          <div className="meditation-content" aria-hidden>
+            <div className="meditation-skeleton passage" />
+            <div className="meditation-skeleton quote" />
+            <div className="meditation-skeleton question" />
+            <div className="meditation-skeleton actions" />
+          </div>
+        )}
         </div>
       </article>
 
