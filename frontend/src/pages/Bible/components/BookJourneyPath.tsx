@@ -9,7 +9,7 @@
  *
  * 잠금(lock)은 없다 — 통독은 순서 강제가 아니라 자유 이동이므로 어느 정거장이든 바로 진입.
  */
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { BibleBook } from '../../../types/bible'
 import type { ResumePosition } from '../../../api/bibleReading'
 import { parseApiDate } from '../../../utils/dateUtils'
@@ -72,6 +72,8 @@ const BookJourneyPath = ({
   const wrapRef = useRef<HTMLDivElement>(null)
   const currentNodeRef = useRef<HTMLButtonElement>(null)
   const [width, setWidth] = useState(0)
+  // "지금 위치로" 플로팅 버튼 표시 여부 — 현재 노드가 화면 밖일 때만 띄운다
+  const [showJump, setShowJump] = useState(false)
 
   useLayoutEffect(() => {
     const el = wrapRef.current
@@ -196,6 +198,35 @@ const BookJourneyPath = ({
     currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [])
 
+  // 현재 노드가 화면에 보이는 동안엔 점프 버튼을 숨긴다.
+  // 이 앱은 스크롤 컨테이너가 #root/body라 window scroll 이벤트를 못 믿는다 —
+  // document 캡처 단계에서 모든 스크롤을 받아 rAF로 묶어 판정한다.
+  useEffect(() => {
+    // 현재 노드가 없으면 판정 자체가 무의미 — 렌더 조건이 버튼을 이미 가린다
+    if (currentBookNumber === undefined) return
+    let raf = 0
+    const check = () => {
+      raf = 0
+      const node = currentNodeRef.current
+      const r = node?.getBoundingClientRect()
+      // 위쪽은 상단 헤더+책 내비, 아래쪽은 하단 네비 높이만큼 여유를 두고 "보인다"로 판정
+      const visible = !!r && r.bottom > 140 && r.top < window.innerHeight - 120
+      setShowJump(prev => (prev === !visible ? prev : !visible))
+    }
+    // 초기 판정도 rAF로 — 이펙트 본문 동기 setState는 연쇄 렌더를 만든다(react-hooks 규칙)
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(check)
+    }
+    schedule()
+    document.addEventListener('scroll', schedule, true)
+    window.addEventListener('resize', schedule)
+    return () => {
+      document.removeEventListener('scroll', schedule, true)
+      window.removeEventListener('resize', schedule)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [currentBookNumber, items])
+
   return (
     <div className="bjp-wrap" ref={wrapRef} style={{ height: totalHeight }}>
       {width > 0 && (
@@ -212,7 +243,9 @@ const BookJourneyPath = ({
         </svg>
       )}
 
-      {currentBookNumber !== undefined && books.length > 9 && (
+      {/* 화면 고정 플로팅 — 컨테이너 안 absolute였을 땐 페이지와 함께 스크롤돼
+          정작 필요한 순간(멀리 내려갔을 때)엔 버튼이 화면 밖에 있었다 */}
+      {currentBookNumber !== undefined && showJump && (
         <button type="button" className="bjp-jump" onClick={scrollToCurrent}>
           <span className="material-icons-round">my_location</span>
           {t.jump}

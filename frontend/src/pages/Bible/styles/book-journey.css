@@ -287,40 +287,65 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── 지금 위치로 점프 ────────────────────────────────────── */
+/* ── 지금 위치로 점프 ────────────────────────────────────────
+   화면 고정 플로팅 버튼. 현재 노드가 화면 밖일 때만 나타난다(표시 제어는 TSX).
+   컨테이너 안 absolute로 두면 페이지와 함께 스크롤돼 정작 필요한 순간에 사라진다.
+   sticky는 이 앱에서 전역으로 깨져 있으므로(#root overflow) fixed를 쓴다. */
 .bjp-jump {
-  position: absolute;
-  top: -0.25rem;
-  right: 0.25rem;
-  z-index: 3;
+  position: fixed;
+  /* 하단 고정 네비(높이+세이프에어리어) 위에 띄운다 */
+  bottom: calc(5rem + max(0.75rem, env(safe-area-inset-bottom)));
+  /* 데스크톱에서 앱 컬럼(max-w-md=28rem) 오른쪽 가장자리에 붙인다 */
+  right: max(1rem, calc((100vw - 28rem) / 2 + 1rem));
+  z-index: 30;
   display: inline-flex;
   align-items: center;
-  gap: 0.28rem;
-  padding: 0.3rem 0.65rem 0.3rem 0.5rem;
+  gap: 0.3rem;
+  padding: 0.5rem 0.85rem 0.5rem 0.65rem;
   border-radius: 999px;
   border: 1px solid rgba(49, 130, 246, 0.35);
   background: var(--ig-primary-background);
   color: var(--brand);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.35);
+  transition: box-shadow 0.15s, transform 0.15s;
+  animation: bjp-jump-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes bjp-jump-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .bjp-jump .material-icons-round {
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .bjp-jump:hover {
-  box-shadow: 0 3px 10px -3px rgba(49, 130, 246, 0.4);
+  box-shadow: 0 8px 22px -6px rgba(49, 130, 246, 0.45);
+}
+
+.bjp-jump:active {
+  transform: scale(0.96);
 }
 
 [data-theme="dark"] .bjp-jump {
-  background: rgba(255, 255, 255, 0.05);
+  background: #1c1c22;
+  border-color: rgba(49, 130, 246, 0.45);
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.6);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bjp-row {
+  .bjp-row,
+  .bjp-jump {
     animation: none;
   }
   .bjp-row--current .bjp-node::before {
