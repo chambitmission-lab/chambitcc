@@ -35,6 +35,7 @@ const Profile = () => {
   const { t } = useLanguage()
   const [activeTab, setActiveTab] = useState<ProfileTab>('prayers')
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null)
+  const [celebrateUnlock, setCelebrateUnlock] = useState(false)
   
   // 로그인 체크
   useEffect(() => {
@@ -110,6 +111,7 @@ const Profile = () => {
     if (achievements.length > 0) {
       const newlyUnlocked = getNewlyUnlockedAchievements(achievements)
       if (newlyUnlocked.length > 0) {
+        setCelebrateUnlock(true)
         setSelectedAchievement(newlyUnlocked[0])
       }
     }
@@ -125,9 +127,10 @@ const Profile = () => {
   }
   
   const handleAchievementClick = (achievement: Achievement) => {
+    setCelebrateUnlock(false) // 이미 해금된 배지를 다시 볼 때는 폭죽 없이
     setSelectedAchievement(achievement)
   }
-  
+
   const handleCloseAchievementModal = () => {
     setSelectedAchievement(null)
   }
@@ -309,6 +312,9 @@ const Profile = () => {
         {/* 업적 모달 */}
         <AchievementModal
           achievement={selectedAchievement}
+          achievements={achievements}
+          celebrate={celebrateUnlock}
+          onSelect={handleAchievementClick}
           onClose={handleCloseAchievementModal}
         />
       </div>

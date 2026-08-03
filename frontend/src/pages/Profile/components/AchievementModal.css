@@ -1,0 +1,46 @@
+/* 업적 상세 모달 — 해금 축하 / 도전 동기부여 카드 */
+
+/* 해금 카드 상단에서 번지는 광채 */
+.ach-modal-burst {
+  position: absolute;
+  top: -45%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translateX(-50%);
+  filter: blur(10px);
+  pointer-events: none;
+  animation: ach-modal-glow 2.8s ease-in-out infinite;
+}
+
+@keyframes ach-modal-glow {
+  0%, 100% { opacity: 0.65; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.07); }
+}
+
+/* 골드 진행바 위를 스치는 빛줄기 */
+.ach-modal-bar-shine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 46px;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 100%
+  );
+  animation: ach-modal-bar-sweep 2.2s ease-in-out infinite;
+}
+
+@keyframes ach-modal-bar-sweep {
+  0% { left: -50px; }
+  60%, 100% { left: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ach-modal-burst,
+  .ach-modal-bar-shine {
+    animation: none;
+  }
+}
