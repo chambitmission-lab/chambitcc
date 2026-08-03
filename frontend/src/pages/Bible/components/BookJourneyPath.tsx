@@ -35,7 +35,8 @@ interface BookJourneyPathProps {
   language: 'ko' | 'en'
 }
 
-/** 노드 지름·행 높이 — CSS(.jp-node 등)와 함께 맞춰야 한다 */
+/** 노드 지름·행 높이 — CSS(.bjp-node 등)와 함께 맞춰야 한다.
+ *  클래스 접두사가 bjp-인 이유: jp-는 블루마블 CSS가 선점한 전역 이름이라 충돌한다. */
 const NODE = 56
 const BOOK_H = 88
 const MILESTONE_H = 60
@@ -196,23 +197,23 @@ const BookJourneyPath = ({
   }, [])
 
   return (
-    <div className="jp-wrap" ref={wrapRef} style={{ height: totalHeight }}>
+    <div className="bjp-wrap" ref={wrapRef} style={{ height: totalHeight }}>
       {width > 0 && (
         <svg
-          className="jp-trail"
+          className="bjp-trail"
           width={width}
           height={totalHeight}
           viewBox={`0 0 ${width} ${totalHeight}`}
           aria-hidden="true"
         >
           {segments.map(seg => (
-            <path key={seg.key} className={`jp-seg jp-seg--${seg.state}`} d={seg.d} />
+            <path key={seg.key} className={`bjp-seg bjp-seg--${seg.state}`} d={seg.d} />
           ))}
         </svg>
       )}
 
       {currentBookNumber !== undefined && books.length > 9 && (
-        <button type="button" className="jp-jump" onClick={scrollToCurrent}>
+        <button type="button" className="bjp-jump" onClick={scrollToCurrent}>
           <span className="material-icons-round">my_location</span>
           {t.jump}
         </button>
@@ -221,12 +222,12 @@ const BookJourneyPath = ({
       {items.map(item => {
         if (item.kind === 'milestone') {
           return (
-            <div className="jp-milestone" key={item.key} style={{ top: item.top, height: MILESTONE_H }}>
-              <span className="jp-milestone__pill">
-                <span className="material-icons-round jp-milestone__flag">flag</span>
-                <span className="jp-milestone__label">{item.label}</span>
+            <div className="bjp-milestone" key={item.key} style={{ top: item.top, height: MILESTONE_H }}>
+              <span className="bjp-milestone__pill">
+                <span className="material-icons-round bjp-milestone__flag">flag</span>
+                <span className="bjp-milestone__label">{item.label}</span>
                 {showRates && item.hasRead && (
-                  <span className="jp-milestone__pct">{pctLabel(item.rate)}%</span>
+                  <span className="bjp-milestone__pct">{pctLabel(item.rate)}%</span>
                 )}
               </span>
             </div>
@@ -271,7 +272,7 @@ const BookJourneyPath = ({
             key={item.key}
             type="button"
             ref={isCurrent ? currentNodeRef : undefined}
-            className={`jp-row jp-row--${side} jp-row--${state}${isCurrent ? ' jp-row--current' : ''}`}
+            className={`bjp-row bjp-row--${side} bjp-row--${state}${isCurrent ? ' bjp-row--current' : ''}`}
             style={{
               top: item.top,
               height: BOOK_H,
@@ -283,30 +284,30 @@ const BookJourneyPath = ({
             onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
           >
             <span
-              className="jp-node"
-              style={hasProgress && !isComplete ? { ['--jp-rate' as string]: `${Math.max(4, rate)}%` } : undefined}
+              className="bjp-node"
+              style={hasProgress && !isComplete ? { ['--bjp-rate' as string]: `${Math.max(4, rate)}%` } : undefined}
             >
-              <span className="jp-node__inner">
+              <span className="bjp-node__inner">
                 {isComplete ? (
-                  <span className="material-icons-round jp-node__check">check</span>
+                  <span className="material-icons-round bjp-node__check">check</span>
                 ) : hasProgress ? (
-                  <span className="jp-node__pct">
+                  <span className="bjp-node__pct">
                     {pctLabel(rate)}
                     <small>%</small>
                   </span>
                 ) : (
-                  <span className="jp-node__abbrev">{bookAbbrev(book.book_number, language)}</span>
+                  <span className="bjp-node__abbrev">{bookAbbrev(book.book_number, language)}</span>
                 )}
               </span>
               {isCurrent && (
-                <span className="jp-here" aria-hidden="true">
+                <span className="bjp-here" aria-hidden="true">
                   {t.here}
                 </span>
               )}
             </span>
-            <span className="jp-label">
-              <span className="jp-label__name">{book.book_name_ko}</span>
-              <span className={`jp-label__meta jp-label__meta--${metaTone}`}>{meta}</span>
+            <span className="bjp-label">
+              <span className="bjp-label__name">{book.book_name_ko}</span>
+              <span className={`bjp-label__meta bjp-label__meta--${metaTone}`}>{meta}</span>
             </span>
           </button>
         )
