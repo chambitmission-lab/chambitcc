@@ -206,6 +206,11 @@ const BibleStudy = () => {
     setPendingScrollVerse(resume?.verse ?? null)
     setShowBookList(false)
     setPlayFromVerse(null)
+    // 책 목록(특히 여정 보기)은 세로로 길어서, 아래쪽 책을 고르면 스크롤이 그 위치에
+    // 남은 채 본문 화면이 열린다. URL 진입 effect는 state 전환에는 타지 않으므로 여기서 직접 올린다.
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
   }
 
   const handleResume = (pos: ResumePosition) => {
