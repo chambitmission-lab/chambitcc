@@ -21,6 +21,10 @@ import Login from './pages/Auth/Login'
 // 보조/관리/대형 페이지는 lazy로 분리 → 메인 번들 축소
 // 햄버거 메뉴 페이지는 routePreload의 로더를 공유해 프리로드 청크를 재사용
 const Home = lazy(() => import('./pages/Home/Home'))
+// dev 전용 — 업적 모달 미리보기 (프로덕션 번들에는 라우트 자체가 빠짐)
+const AchievementModalPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Profile/components/AchievementModalPreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const History = lazy(menuRouteLoaders['/history'])
 const TV = lazy(() => import('./pages/TV/TV'))
@@ -256,6 +260,9 @@ function App() {
                 <Route path="/bluemarble/rabbit" element={<RabbitGallery />} />
                 <Route path="/weekly-story" element={<WeeklyStory />} />
                 <Route path="/growth" element={<Growth />} />
+                {AchievementModalPreview && (
+                  <Route path="/dev/achievements" element={<AchievementModalPreview />} />
+                )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

@@ -1,6 +1,6 @@
-// 업적 상세 모달 — 단순 '확인 창'이 아니라 동기부여 카드.
+// 업적 상세 모달 — 게임 전리품 카드 감성의 동기부여 카드.
 // 해금 전: 큰 % 카운트업 + 남은 양 + 격려 문구 + 바로 실행 CTA + 보상 미리보기(욕구 자극)
-// 해금 후: 글로우 엠블럼 + 골드 진행바 + (새 해금 시) 컨페티 + 다음 목표 티저(체인 유도)
+// 해금 후: 회전 빛살/오라/스파클 + 도장 스탬프 + 골드 진행바 + (새 해금 시) 컨페티 + 다음 목표 티저
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
@@ -51,8 +51,18 @@ const CTA_BY_TYPE: Record<AchievementType, { route: string; labelKey: Translatio
   bluemarble_score: { route: '/bluemarble', labelKey: 'achievementGoBluemarble' },
 }
 
+// 해금 카드 위로 떠오르는 스파클 배치 (left%, top%, delay s, char)
+const SPARKLES: Array<[number, number, number, string]> = [
+  [14, 22, 0.0, '✦'],
+  [84, 18, 0.7, '✧'],
+  [8, 46, 1.3, '✦'],
+  [90, 42, 1.9, '✦'],
+  [22, 10, 2.4, '✧'],
+  [72, 8, 1.1, '✦'],
+]
+
 /** 0 → target 으로 차오르는 숫자 (ease-out) */
-const useCountUp = (target: number, duration = 850) => {
+const useCountUp = (target: number, duration = 900) => {
   const [value, setValue] = useState(0)
   useEffect(() => {
     let raf: number
@@ -89,6 +99,7 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
   const unit = t(UNIT_KEYS[type])
   const sep = language === 'ko' ? '' : ' '
   const cta = CTA_BY_TYPE[type]
+  const nearUnlock = !unlocked && pct >= 70
 
   // 새로 해금된 순간에만 축하 폭죽 — 이미 해금된 배지를 다시 볼 때는 조용히
   useEffect(() => {
@@ -117,76 +128,84 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
 
   return (
     <motion.div
-      className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="ach-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        className="
-          relative overflow-hidden w-full max-w-sm rounded-[26px] p-6
-          bg-white dark:bg-card-dark
-          border border-gray-200/80 dark:border-white/[0.09]
-          dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_24px_60px_rgba(0,0,0,0.45)]
-        "
-        style={unlocked ? { boxShadow: `0 0 54px ${glowColor}, 0 24px 60px rgba(0, 0, 0, 0.35)` } : undefined}
+        className={`ach-card ${unlocked ? 'is-unlocked' : 'is-locked'}`}
+        style={{ ['--ach-glow' as string]: glowColor }}
         onClick={(e) => e.stopPropagation()}
-        initial={{ scale: 0.8, y: 26, opacity: 0 }}
+        initial={{ scale: 0.78, y: 28, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.86, y: 18, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 320, damping: 24 }}
       >
-        {/* 해금 카드 상단 광채 */}
-        {unlocked && (
-          <div
-            className="ach-modal-burst"
-            style={{ background: `radial-gradient(circle, ${glowColor} 0%, transparent 68%)` }}
-            aria-hidden
-          />
-        )}
+        {/* 앰비언트 레이어: 오라 → 빛살 → 스파클 → 시인 */}
+        <div className="ach-aura" aria-hidden />
+        {unlocked && <div className="ach-rays" aria-hidden />}
+        {unlocked &&
+          SPARKLES.map(([left, top, delay, char], i) => (
+            <span
+              key={i}
+              className="ach-sparkle"
+              style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${delay}s` }}
+              aria-hidden
+            >
+              {char}
+            </span>
+          ))}
+        <div className="ach-sheen" aria-hidden />
 
-        {/* 엠블럼 — 배지 그리드와 같은 메달 문법 */}
+        {/* 엠블럼 — 배지 그리드와 같은 메달 문법, 해금 시 둥실 떠다닌다 */}
         <div className="relative z-10 flex flex-col items-center mb-4">
           <motion.div
-            className="relative h-[92px] w-[92px] rounded-full p-[3px]"
-            style={{
-              background: unlocked
-                ? 'conic-gradient(from 210deg, #3182f6, #60a5fa, #f59e0b, #60a5fa, #3182f6)'
-                : `conic-gradient(rgba(49, 130, 246, 0.75) ${pct}%, rgba(148, 163, 184, 0.28) 0)`,
-              boxShadow: unlocked ? `0 0 26px ${glowColor}` : 'none',
-            }}
-            initial={{ scale: 0.4, rotate: -12, opacity: 0 }}
+            initial={{ scale: 0.35, rotate: -14, opacity: 0 }}
             animate={{ scale: 1, rotate: 0, opacity: 1 }}
-            transition={{ delay: 0.06, type: 'spring', stiffness: 260, damping: 16 }}
+            transition={{ delay: 0.06, type: 'spring', stiffness: 240, damping: 15 }}
           >
-            <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white dark:bg-black/40">
-              {unlocked && (
-                <div
-                  className="pointer-events-none absolute inset-0"
-                  style={{ background: `radial-gradient(circle at 50% 35%, ${glowColor}, transparent 72%)` }}
-                />
-              )}
-              <span
-                className={`relative text-[42px] leading-none ${unlocked ? 'drop-shadow-md' : 'opacity-40'}`}
-                style={unlocked ? undefined : { filter: 'grayscale(1)' }}
+            <div className={unlocked ? 'ach-emblem-float' : undefined}>
+              <div
+                className={`relative h-[104px] w-[104px] rounded-full p-[3px] ${nearUnlock ? 'ach-ring-near' : ''}`}
+                style={{
+                  background: unlocked
+                    ? 'conic-gradient(from 210deg, #3182f6, #60a5fa, #f59e0b, #60a5fa, #3182f6)'
+                    : `conic-gradient(rgba(49, 130, 246, 0.8) ${pct}%, rgba(148, 163, 184, 0.28) 0)`,
+                  boxShadow: unlocked ? `0 0 34px ${glowColor}` : undefined,
+                }}
               >
-                {icon}
-              </span>
-            </div>
-            {!unlocked && (
-              <div className="absolute -right-0.5 -bottom-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-gray-300 dark:bg-[#3a3a3a] ring-[3px] ring-white dark:ring-card-dark">
-                <span className="material-icons-round text-[14px] text-gray-500 dark:text-white/45">lock</span>
+                <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white dark:bg-[#1c202c]">
+                  {unlocked && (
+                    <div
+                      className="pointer-events-none absolute inset-0"
+                      style={{ background: `radial-gradient(circle at 50% 32%, ${glowColor}, transparent 74%)` }}
+                    />
+                  )}
+                  <span
+                    className={`relative text-[48px] leading-none ${unlocked ? 'drop-shadow-lg' : 'opacity-40'}`}
+                    style={unlocked ? undefined : { filter: 'grayscale(1)' }}
+                  >
+                    {icon}
+                  </span>
+                </div>
+                {!unlocked && (
+                  <div className="absolute -right-1 -bottom-1 flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 dark:bg-[#3a3a3a] ring-[3px] ring-white dark:ring-[#1a1a20]">
+                    <span className="material-icons-round text-[15px] text-gray-500 dark:text-white/45">lock</span>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </motion.div>
 
+          {/* 도장 쾅 — 스탬프 애니메이션 */}
           {unlocked && (
             <motion.div
-              className="mt-3 inline-block px-4 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[13px] font-bold rounded-full shadow-lg"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.16 }}
+              className="mt-3 inline-block px-4 py-1 -rotate-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-[13px] font-extrabold rounded-full shadow-[0_4px_16px_rgba(251,146,60,0.5)] ring-2 ring-yellow-200/70 dark:ring-yellow-300/30"
+              initial={{ scale: 2.4, rotate: -16, opacity: 0 }}
+              animate={{ scale: 1, rotate: -3, opacity: 1 }}
+              transition={{ delay: 0.3, type: 'spring', stiffness: 420, damping: 17 }}
             >
               ✓ {t('achievementComplete')}
             </motion.div>
@@ -195,7 +214,9 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
 
         {/* 제목 · 설명 */}
         <motion.h3
-          className="relative z-10 text-[21px] font-extrabold tracking-[-0.01em] text-center text-ink-strong mb-1.5"
+          className={`relative z-10 text-[22px] font-extrabold tracking-[-0.01em] text-center mb-1.5 ${
+            unlocked ? 'ach-title-gold' : 'text-ink-strong'
+          }`}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.14 }}
@@ -220,25 +241,21 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
         >
           {!unlocked && (
             <div className="text-center mb-3">
-              <span className="brand-text-gradient text-[36px] font-extrabold leading-none tabular-nums">
-                {animatedPct}%
+              <span className="brand-text-gradient text-[40px] font-extrabold leading-none tabular-nums">
+                {animatedPct}
               </span>
+              <span className="brand-text-gradient text-[22px] font-extrabold">%</span>
             </div>
           )}
 
-          <div className="relative w-full h-2.5 rounded-full overflow-hidden bg-gray-200 dark:bg-white/10">
+          <div className="ach-bar-track">
             <motion.div
-              className="relative h-full rounded-full overflow-hidden"
-              style={{
-                background: unlocked
-                  ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
-                  : 'linear-gradient(90deg, var(--brand), #60a5fa)',
-              }}
+              className={`ach-bar-fill ${unlocked ? 'is-gold' : `is-brand ${pct >= 8 ? 'has-tip' : ''}`}`}
               initial={{ width: 0 }}
               animate={{ width: `${unlocked ? 100 : pct}%` }}
-              transition={{ delay: 0.3, duration: 0.7, ease: 'easeOut' }}
+              transition={{ delay: 0.32, duration: 0.75, ease: 'easeOut' }}
             >
-              {unlocked && <span className="ach-modal-bar-shine" aria-hidden />}
+              {unlocked && <span className="ach-bar-shine" aria-hidden />}
             </motion.div>
           </div>
 
@@ -268,19 +285,19 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
 
         {/* 보상 — 잠긴 상태에서도 미리 보여줘 해금 욕구를 자극 */}
         <motion.div
-          className={`relative z-10 p-4 rounded-xl mb-4 border ${
+          className={`relative z-10 p-4 rounded-xl mb-4 text-left ${
             unlocked
-              ? 'bg-[var(--brand-soft)] border-[var(--brand-soft-strong)]'
-              : 'bg-gray-50 dark:bg-white/[0.04] border-gray-200/80 dark:border-white/[0.07]'
+              ? 'ach-reward-unlocked'
+              : 'bg-gray-50 dark:bg-white/[0.04] border border-dashed border-gray-300 dark:border-white/[0.12]'
           }`}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.28 }}
         >
-          <p className="text-[13px] font-semibold text-ink-strong mb-1.5">
+          <p className="text-[13px] font-bold text-ink-strong mb-1.5">
             {unlocked ? <>🎁 {t('achievementReward')}</> : <>🔒 {t('achievementRewardPreview')}</>}
           </p>
-          <div className={`text-[12px] leading-relaxed ${unlocked ? 'text-gray-600 dark:text-white/60' : 'text-gray-400 dark:text-white/35'}`}>
+          <div className={`text-[12px] leading-relaxed ${unlocked ? 'text-amber-800/80 dark:text-amber-100/70' : 'text-gray-400 dark:text-white/35'}`}>
             • {t('achievementRewardGlow')}
             <br />
             • {t('achievementRewardBadge')}
@@ -296,13 +313,16 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
               relative z-10 w-full flex items-center gap-3 p-3 mb-4 rounded-xl text-left
               bg-gray-50 dark:bg-white/[0.04]
               border border-gray-200/80 dark:border-white/[0.07]
-              hover:border-[var(--brand-soft-strong)] transition-colors
+              hover:border-[var(--brand-soft-strong)] active:scale-[0.98] transition-all
             "
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.32 }}
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200/70 dark:bg-white/[0.07] text-[20px]" style={{ filter: 'grayscale(1)' }}>
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200/70 dark:bg-white/[0.07] text-[20px]"
+              style={{ filter: 'grayscale(1)' }}
+            >
               {nextGoal.icon}
             </span>
             <span className="flex-1 min-w-0">
