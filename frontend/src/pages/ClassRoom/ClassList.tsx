@@ -2,8 +2,15 @@
 // 내가 속한 반 + 반 만들기(교사) + 초대 코드로 참여(학부모)
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCreateClass, useJoinClass, useMyClasses } from '../../hooks/useClassRoom'
+import {
+  useAddClassMembers,
+  useCreateClass,
+  useJoinClass,
+  useMyClasses,
+} from '../../hooks/useClassRoom'
 import type { ClassSummary } from '../../types/classRoom'
+import type { CapsuleRecipient } from '../../types/timeCapsule'
+import MemberSearchInput from './components/MemberSearchInput'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
@@ -256,9 +263,12 @@ const ClassCard = ({ cls, onClick }: { cls: ClassSummary; onClick: () => void })
 const CreateClassSheet = ({ onClose }: { onClose: () => void }) => {
   const navigate = useNavigate()
   const createClass = useCreateClass()
+  const addMembers = useAddClassMembers()
   const [name, setName] = useState('')
   const [department, setDepartment] = useState(DEPARTMENTS[2])
   const [description, setDescription] = useState('')
+  // 앱 사용자 바로 추가 — 검색해서 여러 명 선택, 반 생성 직후 한 번에 추가한다
+  const [picked, setPicked] = useState<CapsuleRecipient[]>([])
 
   useModalBackButton(onClose)
 
@@ -273,7 +283,24 @@ const CreateClassSheet = ({ onClose }: { onClose: () => void }) => {
         department,
         description: description.trim() || null,
       })
-      showToast('반이 만들어졌어요! 학부모님들을 초대해볼까요?', 'success')
+      let addFailed = false
+      if (picked.length > 0) {
+        try {
+          await addMembers.mutateAsync({
+            classId: cls.id,
+            userIds: picked.map((p) => p.id),
+          })
+        } catch {
+          addFailed = true
+        }
+      }
+      if (addFailed) {
+        showToast('반은 만들어졌지만 멤버 추가에 실패했어요. 초대 코드를 공유해주세요', 'error')
+      } else if (picked.length > 0) {
+        showToast(`반이 만들어졌어요! ${picked.length}명을 바로 초대했어요`, 'success')
+      } else {
+        showToast('반이 만들어졌어요! 학부모님들을 초대해볼까요?', 'success')
+      }
       onClose()
       navigate(`/classes/${cls.id}`)
     } catch (e) {
@@ -333,13 +360,52 @@ const CreateClassSheet = ({ onClose }: { onClose: () => void }) => {
           className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.08] text-[14px] focus:outline-none focus:border-brand"
         />
 
+        <label className="block text-[12px] font-bold text-gray-500 dark:text-white/55 mt-5 mb-1.5">
+          멤버 바로 추가 (선택)
+        </label>
+        {picked.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {picked.map((u) => (
+              <span
+                key={u.id}
+                className="inline-flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-full bg-[var(--brand-soft)] text-brand"
+              >
+                {u.avatar_url ? (
+                  <img src={u.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                ) : (
+                  <span className="w-5 h-5 rounded-full bg-brand/15 text-[10px] font-extrabold flex items-center justify-center">
+                    {u.display_name.charAt(0)}
+                  </span>
+                )}
+                <span className="text-[12.5px] font-bold">{u.display_name}</span>
+                <button
+                  type="button"
+                  onClick={() => setPicked((prev) => prev.filter((p) => p.id !== u.id))}
+                  aria-label={`${u.display_name} 빼기`}
+                  className="text-[11px] font-bold opacity-60 hover:opacity-100"
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <MemberSearchInput
+          excludeIds={picked.map((p) => p.id)}
+          onPick={(u) => setPicked((prev) => [...prev, u])}
+          emptyHint="앱에서 찾을 수 없어요. 아직 가입 전이라면 만든 뒤 초대 코드를 공유해주세요."
+        />
+        <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
+          선택한 분들은 반이 만들어지면 바로 멤버로 들어오고, 초대 알림을 받아요.
+        </p>
+
         <button
           type="button"
           onClick={handleCreate}
-          disabled={createClass.isPending}
+          disabled={createClass.isPending || addMembers.isPending}
           className="w-full mt-6 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] disabled:opacity-50"
         >
-          {createClass.isPending ? '만드는 중...' : '반 만들기'}
+          {createClass.isPending || addMembers.isPending ? '만드는 중...' : '반 만들기'}
         </button>
         <p className="text-center text-[11.5px] text-gray-400 dark:text-white/40 mt-2">
           만든 뒤 초대 링크를 카톡방에 공유하면 학부모님들이 바로 들어올 수 있어요

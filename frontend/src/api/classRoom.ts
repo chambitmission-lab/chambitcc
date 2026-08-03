@@ -105,6 +105,20 @@ export const updateMyChildName = async (
   return response.json()
 }
 
+// 앱 사용자를 반에 바로 추가 — 선생님 전용, 이미 멤버면 서버가 건너뛴다(멱등)
+export const addClassMembers = async (
+  classId: number,
+  userIds: number[],
+): Promise<ClassMember[]> => {
+  const response = await apiFetch(`${BASE}/${classId}/members`, {
+    method: 'POST',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ user_ids: userIds }),
+  })
+  if (!response.ok) return parseError(response, '멤버 추가에 실패했습니다')
+  return response.json()
+}
+
 export const setMemberTeacher = async (
   classId: number,
   userId: number,

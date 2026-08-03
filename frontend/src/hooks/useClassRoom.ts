@@ -7,6 +7,7 @@ import {
   type QueryClient,
 } from '@tanstack/react-query'
 import {
+  addClassMembers,
   cancelClassPostRsvp,
   createClass,
   createClassPost,
@@ -130,6 +131,15 @@ export const useCreateClass = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: ClassCreateRequest) => createClass(payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all, refetchType: 'all' }),
+  })
+}
+
+export const useAddClassMembers = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ classId, userIds }: { classId: number; userIds: number[] }) =>
+      addClassMembers(classId, userIds),
     onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all, refetchType: 'all' }),
   })
 }

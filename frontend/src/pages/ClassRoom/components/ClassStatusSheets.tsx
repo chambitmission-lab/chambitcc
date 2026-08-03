@@ -1,6 +1,7 @@
 // 현황 시트 모음 — 확인 명단(교사) · 암송 현황 · 참석 현황(교사) · 멤버 목록
 import { useState } from 'react'
 import {
+  useAddClassMembers,
   useClassPostChecks,
   useClassPostRecitations,
   useClassPostRsvps,
@@ -10,8 +11,10 @@ import {
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useProfileDetail } from '../../../hooks/useProfile'
 import type { ClassDetail, ClassPost } from '../../../types/classRoom'
+import type { CapsuleRecipient } from '../../../types/timeCapsule'
 import { showToast } from '../../../utils/toast'
 import { Avatar, memberLabel, timeAgo } from '../classUi'
+import MemberSearchInput from './MemberSearchInput'
 
 // ── 공용 시트 껍데기 ──
 const SheetShell = ({
@@ -213,6 +216,7 @@ export const MembersSheet = ({
   const myUserId = profileDetail?.stats.user_id
   const setTeacher = useSetMemberTeacher(cls.id)
   const updateChildName = useUpdateMyChildName(cls.id)
+  const addMembers = useAddClassMembers()
   const [editingChild, setEditingChild] = useState(false)
   const me = cls.members.find((m) => m.user_id === myUserId)
   const [childDraft, setChildDraft] = useState(me?.child_name ?? '')
@@ -240,11 +244,35 @@ export const MembersSheet = ({
     }
   }
 
+  const handleAddMember = async (u: CapsuleRecipient) => {
+    try {
+      await addMembers.mutateAsync({ classId: cls.id, userIds: [u.id] })
+      showToast(`${u.display_name}님을 반에 추가했어요`, 'success')
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '멤버 추가에 실패했습니다', 'error')
+    }
+  }
+
   const teachers = cls.members.filter((m) => m.is_teacher)
   const parents = cls.members.filter((m) => !m.is_teacher)
 
   return (
     <SheetShell title="반 멤버" subtitle={`${cls.member_count}명 함께해요`} onClose={onClose}>
+      {/* 멤버 바로 추가 — 교사 전용, 앱 사용자를 검색해 즉시 넣는다 */}
+      {cls.is_teacher && (
+        <div className="mb-5">
+          <p className="text-[12.5px] font-bold text-gray-500 dark:text-white/55 mb-1.5">
+            멤버 바로 추가
+          </p>
+          <MemberSearchInput
+            excludeIds={cls.members.map((m) => m.user_id)}
+            onPick={handleAddMember}
+          />
+          <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
+            선택하면 바로 반에 들어오고 초대 알림이 가요. 앱이 없는 분은 초대 링크를 공유해주세요.
+          </p>
+        </div>
+      )}
       {/* 내 자녀 이름 */}
       {me && !me.is_teacher && (
         <div className="mb-4 p-3.5 rounded-2xl bg-[var(--brand-soft)]">
