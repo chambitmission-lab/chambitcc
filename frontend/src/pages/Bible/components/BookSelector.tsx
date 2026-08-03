@@ -4,6 +4,7 @@ import type { BibleBook } from '../../../types/bible'
 import type { ReadingProgressResponse, ResumePosition } from '../../../api/bibleReading'
 import { parseApiDate } from '../../../utils/dateUtils'
 import BibleProgressMap from './BibleProgressMap'
+import BookJourneyPath from './BookJourneyPath'
 import { aggregateRange, buildBookInfoMap } from './readingProgressInfo'
 
 interface BookSelectorProps {
@@ -186,73 +187,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     },
     [onBookSelect, resumeMap]
   )
-
-  const renderBook = (book: BibleBook, index: number) => {
-    const resume = resumeMap?.get(book.book_number)
-    const info = infoMap.get(book.book_number)
-    const rate = info?.rate ?? 0
-    const readChapters = info?.readChapters ?? null
-    const totalChapters = info?.totalChapters ?? book.chapter_count
-    const isComplete = rate >= 100
-    const hasProgress = rate > 0
-
-    // 이어 읽기 위치는 진행률과 다른 값이므로 숫자로 섞지 않고, 게이지에서 읽은 양보다
-    // 앞서 있을 때만 연한 구간으로 이어 붙인다 (뒤쪽이면 채움에 묻히므로 그리지 않는다)
-    const resumePct =
-      resume && !isComplete && totalChapters > 0
-        ? Math.max(0, Math.min(100, (resume.chapter / totalChapters) * 100))
-        : 0
-    const aheadPct = resumePct > rate + 1 ? resumePct : 0
-
-    let meta: { ratio: string; pct: string } | null = null
-    if (isComplete) {
-      meta = { ratio: `${t.complete} · ${totalChapters}${t.chapterUnit}`, pct: '' }
-    } else if (readChapters !== null && readChapters > 0) {
-      meta = { ratio: `${readChapters}/${totalChapters}${t.chapterUnit}`, pct: `${pctLabel(rate)}%` }
-    } else if (hasProgress) {
-      // 완독한 장이 아직 없는 단계 — 비율 대신 "몇 장을 읽는 중"이라는 위치를 알려주고,
-      // 퍼센트는 절 기준으로 채운다. (완독한 장이 없으므로 '읽은 장' 비율은 0/N이 되어
-      // 시작했다는 사실이 오히려 지워진다)
-      const label = resume ? `${resume.chapter}${t.chapterUnit} ${t.reading}` : t.reading
-      meta = { ratio: label, pct: `${pctLabel(rate)}%` }
-    }
-
-    return (
-      <button
-        key={book.id}
-        className={`book-button${resume ? ' book-button-has-resume' : ''}${isComplete ? ' book-button-complete' : ''}`}
-        // 필터 전환 시 앞에서부터 순차적으로 떠오르는 스태거 — 뒤쪽 카드는 딜레이 상한으로 묶는다
-        style={{ animationDelay: `${Math.min(index * 14, 320)}ms` }}
-        aria-label={
-          meta
-            ? `${book.book_name_ko} · ${meta.ratio}${meta.pct ? ` · ${meta.pct}` : ''}`
-            : book.book_name_ko
-        }
-        onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
-      >
-        {isComplete && (
-          <span className="book-complete-badge" aria-label={t.complete}>
-            <span className="material-icons-round">check</span>
-          </span>
-        )}
-        <span className="book-button__name">{book.book_name_ko}</span>
-        {meta && (
-          <span className="book-button__meta" aria-hidden="true">
-            <span className="book-button__ratio">{meta.ratio}</span>
-            {meta.pct && <span className="book-button__pct">{meta.pct}</span>}
-          </span>
-        )}
-        {hasProgress && (
-          <span className="book-progress-track" aria-hidden="true">
-            {aheadPct > 0 && (
-              <span className="book-progress-ahead" style={{ width: `${aheadPct}%` }} />
-            )}
-            <span className="book-progress-fill" style={{ width: `${gaugeWidth(rate)}%` }} />
-          </span>
-        )}
-      </button>
-    )
-  }
 
   if (isLoading) {
     return (
@@ -472,7 +406,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         </div>
       </div>
 
-      {/* key로 탭·칩 변경마다 리마운트 — 제목 페이드 + 카드 스태거 애니메이션이 다시 재생된다 */}
+      {/* key로 탭·칩 변경마다 리마운트 — 제목 페이드 + 정거장 스태거 애니메이션이 다시 재생된다 */}
       <div className="testament-section" key={`${testament}-${filter}`}>
         <h3 className="testament-title">
           {activeCategory.id === 'all'
@@ -480,9 +414,27 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
             : (language === 'en' ? activeCategory.labelEn : activeCategory.label)}
           {' '}({filteredBooks.length})
         </h3>
-        <div className="books-grid">
-          {filteredBooks.map(renderBook)}
-        </div>
+        <BookJourneyPath
+          books={filteredBooks}
+          infoMap={infoMap}
+          resumeMap={resumeMap}
+          onBookSelect={onBookSelect}
+          // 전체 필터일 때만 분류 경계 이정표 — 분류 필터 중에는 칩이 그 역할을 이미 한다
+          milestones={
+            activeCategory.id === 'all'
+              ? categories
+                  .filter(c => c.id !== 'all')
+                  .map(c => ({
+                    id: c.id,
+                    label: language === 'en' ? c.labelEn : c.label,
+                    min: c.min,
+                    max: c.max,
+                  }))
+              : undefined
+          }
+          showRates={hasAnyProgress}
+          language={language}
+        />
       </div>
     </div>
   )

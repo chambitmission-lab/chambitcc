@@ -1,0 +1,312 @@
+/**
+ * 성경 여정 경로 — 창세기에서 계시록까지, 굽이치는 길 위의 정거장으로 책을 표현한다.
+ *
+ * 균일한 버튼 그리드가 "메뉴 목록"으로 읽히던 것을 "걸어온 길"의 서사로 바꾼다:
+ * - 점선 트레일 = 아직 걷지 않은 길, 완독한 책 사이 구간은 실선(포장된 길)으로 바뀐다
+ * - 노드 상태: 완독(채움+체크) / 읽는 중(진행률 링+%) / 안 읽음(약칭이 든 빈 원)
+ * - 가장 최근 읽은 책 위에 펄스 + "지금 여기" 칩 — 여정의 현재 위치
+ * - 전체 필터에서는 분류 경계마다 이정표 배너(모세오경 42% 등)가 길을 끊어 준다
+ *
+ * 잠금(lock)은 없다 — 통독은 순서 강제가 아니라 자유 이동이므로 어느 정거장이든 바로 진입.
+ */
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { BibleBook } from '../../../types/bible'
+import type { ResumePosition } from '../../../api/bibleReading'
+import { parseApiDate } from '../../../utils/dateUtils'
+import { bookAbbrev } from './bibleBookAbbrev'
+import { aggregateRange, type BookInfoMap } from './readingProgressInfo'
+
+interface Milestone {
+  id: string
+  label: string
+  min: number
+  max: number
+}
+
+interface BookJourneyPathProps {
+  books: BibleBook[]
+  infoMap: BookInfoMap
+  resumeMap?: Map<number, ResumePosition>
+  onBookSelect: (bookId: number, bookName: string, resume?: ResumePosition) => void
+  /** 전체 필터일 때만 전달 — 분류 경계 이정표 배너 */
+  milestones?: Milestone[]
+  /** 진행 기록이 하나도 없으면 이정표의 0%는 노이즈이므로 숨긴다 */
+  showRates: boolean
+  language: 'ko' | 'en'
+}
+
+/** 노드 지름·행 높이 — CSS(.jp-node 등)와 함께 맞춰야 한다 */
+const NODE = 56
+const BOOK_H = 88
+const MILESTONE_H = 60
+const PAD_TOP = 16
+const PAD_BOTTOM = 24
+
+/** 0보다 크면 최소 1% — 시작했는데 0%로 보이는 일을 막는다(그리드 시절과 동일 규칙) */
+const pctLabel = (rate: number) => (rate > 0 ? Math.max(1, Math.round(rate)) : 0)
+
+type PathItem =
+  | { kind: 'milestone'; key: string; top: number; label: string; rate: number; hasRead: boolean }
+  | {
+      kind: 'book'
+      key: string
+      top: number
+      /** 노드 중심 좌표 */
+      cx: number
+      cy: number
+      side: 'left' | 'right'
+      book: BibleBook
+      bookIdx: number
+    }
+
+const BookJourneyPath = ({
+  books,
+  infoMap,
+  resumeMap,
+  onBookSelect,
+  milestones,
+  showRates,
+  language,
+}: BookJourneyPathProps) => {
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const currentNodeRef = useRef<HTMLButtonElement>(null)
+  const [width, setWidth] = useState(0)
+
+  useLayoutEffect(() => {
+    const el = wrapRef.current
+    if (!el) return
+    const ro = new ResizeObserver(entries => {
+      const w = Math.round(entries[0].contentRect.width)
+      setWidth(prev => (prev === w ? prev : w))
+    })
+    ro.observe(el)
+    setWidth(el.clientWidth)
+    return () => ro.disconnect()
+  }, [])
+
+  const t = language === 'en'
+    ? {
+        complete: 'Done',
+        reading: (ch: number) => `Reading ch ${ch}`,
+        readingNoCh: 'Reading',
+        chapters: (n: number) => `${n} ch`,
+        here: 'You are here',
+        jump: 'My position',
+      }
+    : {
+        complete: '완독',
+        reading: (ch: number) => `${ch}장 읽는 중`,
+        readingNoCh: '읽는 중',
+        chapters: (n: number) => `${n}장`,
+        here: '지금 여기',
+        jump: '지금 위치로',
+      }
+
+  // 여정의 현재 위치 — 표시 중인 책들 가운데 가장 최근에 읽은 책
+  const currentBookNumber = useMemo(() => {
+    let best: { n: number; time: number } | null = null
+    books.forEach(b => {
+      const pos = resumeMap?.get(b.book_number)
+      if (!pos?.read_at) return
+      const time = parseApiDate(pos.read_at).getTime()
+      if (!best || time > best.time) best = { n: b.book_number, time }
+    })
+    return best?.n
+  }, [books, resumeMap])
+
+  // 레이아웃 계산 — 이정표를 사이사이 끼워 넣으며 y를 누적하고,
+  // 책 노드 x는 사인 곡선(주기 6)으로 좌우를 오가는 뱀길을 그린다
+  const { items, totalHeight } = useMemo(() => {
+    const out: PathItem[] = []
+    if (width === 0) return { items: out, totalHeight: 240 }
+
+    // 라벨이 들어갈 반대편 공간을 남기고 진폭을 정한다
+    const amp = Math.min(width * 0.26, 120)
+    const msByFirstBook = new Map<number, Milestone>()
+    ;(milestones ?? []).forEach(m => {
+      const first = books.find(b => b.book_number >= m.min && b.book_number <= m.max)
+      if (first) msByFirstBook.set(first.book_number, m)
+    })
+
+    let y = PAD_TOP
+    let bookIdx = 0
+    books.forEach(book => {
+      const m = msByFirstBook.get(book.book_number)
+      if (m) {
+        const agg = aggregateRange(books, infoMap, m.min, m.max)
+        out.push({
+          kind: 'milestone',
+          key: `ms-${m.id}`,
+          top: y,
+          label: m.label,
+          rate: agg.rate,
+          hasRead: agg.readVerses > 0 || agg.readChapters > 0,
+        })
+        y += MILESTONE_H
+      }
+      const offset = Math.sin(bookIdx * (Math.PI / 3))
+      const cx = width / 2 + offset * amp
+      out.push({
+        kind: 'book',
+        key: `b-${book.id}`,
+        top: y,
+        cx,
+        cy: y + BOOK_H / 2,
+        side: cx > width / 2 ? 'left' : 'right',
+        book,
+        bookIdx,
+      })
+      y += BOOK_H
+      bookIdx += 1
+    })
+
+    return { items: out, totalHeight: y + PAD_BOTTOM }
+  }, [books, infoMap, milestones, width])
+
+  // 트레일 세그먼트 — 연속한 두 정거장을 세로 접선 베지어로 잇는다.
+  // 양끝 모두 완독이면 '포장된 길'(실선), 한쪽만 완독이면 절반쯤 닦인 길(반투명 파선)
+  const segments = useMemo(() => {
+    const nodes = items.filter((it): it is Extract<PathItem, { kind: 'book' }> => it.kind === 'book')
+    const segs: { d: string; state: 'done' | 'half' | 'todo'; key: string }[] = []
+    for (let i = 1; i < nodes.length; i++) {
+      const a = nodes[i - 1]
+      const b = nodes[i]
+      const dy = (b.cy - a.cy) * 0.55
+      const d = `M ${a.cx} ${a.cy} C ${a.cx} ${a.cy + dy}, ${b.cx} ${b.cy - dy}, ${b.cx} ${b.cy}`
+      const aDone = (infoMap.get(a.book.book_number)?.rate ?? 0) >= 100
+      const bDone = (infoMap.get(b.book.book_number)?.rate ?? 0) >= 100
+      segs.push({
+        d,
+        state: aDone && bDone ? 'done' : aDone || bDone ? 'half' : 'todo',
+        key: `${a.book.id}-${b.book.id}`,
+      })
+    }
+    return segs
+  }, [items, infoMap])
+
+  const scrollToCurrent = useCallback(() => {
+    // window.scrollTo는 이 앱에서 무력하다(#root overflow) — scrollIntoView로 우회
+    currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [])
+
+  return (
+    <div className="jp-wrap" ref={wrapRef} style={{ height: totalHeight }}>
+      {width > 0 && (
+        <svg
+          className="jp-trail"
+          width={width}
+          height={totalHeight}
+          viewBox={`0 0 ${width} ${totalHeight}`}
+          aria-hidden="true"
+        >
+          {segments.map(seg => (
+            <path key={seg.key} className={`jp-seg jp-seg--${seg.state}`} d={seg.d} />
+          ))}
+        </svg>
+      )}
+
+      {currentBookNumber !== undefined && books.length > 9 && (
+        <button type="button" className="jp-jump" onClick={scrollToCurrent}>
+          <span className="material-icons-round">my_location</span>
+          {t.jump}
+        </button>
+      )}
+
+      {items.map(item => {
+        if (item.kind === 'milestone') {
+          return (
+            <div className="jp-milestone" key={item.key} style={{ top: item.top, height: MILESTONE_H }}>
+              <span className="jp-milestone__pill">
+                <span className="material-icons-round jp-milestone__flag">flag</span>
+                <span className="jp-milestone__label">{item.label}</span>
+                {showRates && item.hasRead && (
+                  <span className="jp-milestone__pct">{pctLabel(item.rate)}%</span>
+                )}
+              </span>
+            </div>
+          )
+        }
+
+        const { book, cx, side, bookIdx } = item
+        const info = infoMap.get(book.book_number)
+        const rate = info?.rate ?? 0
+        const readChapters = info?.readChapters ?? null
+        const totalChapters = info?.totalChapters ?? book.chapter_count
+        const isComplete = rate >= 100
+        const hasProgress = rate > 0
+        const resume = resumeMap?.get(book.book_number)
+        const isCurrent = book.book_number === currentBookNumber
+
+        let meta: string
+        let metaTone: 'brand' | 'muted' = 'brand'
+        if (isComplete) {
+          meta = `${t.complete} · ${t.chapters(totalChapters)}`
+        } else if (readChapters !== null && readChapters > 0) {
+          meta = `${readChapters}/${t.chapters(totalChapters)} · ${pctLabel(rate)}%`
+        } else if (hasProgress) {
+          meta = `${resume ? t.reading(resume.chapter) : t.readingNoCh} · ${pctLabel(rate)}%`
+        } else {
+          meta = t.chapters(totalChapters)
+          metaTone = 'muted'
+        }
+
+        const state = isComplete ? 'done' : hasProgress ? 'active' : 'todo'
+        const horizontal =
+          side === 'right'
+            ? { left: cx - NODE / 2 }
+            : { right: width - cx - NODE / 2 }
+        // 노드 시작점부터 반대편 가장자리까지가 행(노드+라벨)이 쓸 수 있는 전체 폭 —
+        // 이를 넘으면 긴 책 이름이 컨테이너 밖으로 흘러 가로 스크롤이 생긴다
+        const maxRowWidth =
+          (side === 'right' ? width - (cx - NODE / 2) : cx + NODE / 2) - 8
+
+        return (
+          <button
+            key={item.key}
+            type="button"
+            ref={isCurrent ? currentNodeRef : undefined}
+            className={`jp-row jp-row--${side} jp-row--${state}${isCurrent ? ' jp-row--current' : ''}`}
+            style={{
+              top: item.top,
+              height: BOOK_H,
+              maxWidth: maxRowWidth,
+              ...horizontal,
+              animationDelay: `${Math.min(bookIdx * 18, 360)}ms`,
+            }}
+            aria-label={`${book.book_name_ko} · ${meta}${isCurrent ? ` · ${t.here}` : ''}`}
+            onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
+          >
+            <span
+              className="jp-node"
+              style={hasProgress && !isComplete ? { ['--jp-rate' as string]: `${Math.max(4, rate)}%` } : undefined}
+            >
+              <span className="jp-node__inner">
+                {isComplete ? (
+                  <span className="material-icons-round jp-node__check">check</span>
+                ) : hasProgress ? (
+                  <span className="jp-node__pct">
+                    {pctLabel(rate)}
+                    <small>%</small>
+                  </span>
+                ) : (
+                  <span className="jp-node__abbrev">{bookAbbrev(book.book_number, language)}</span>
+                )}
+              </span>
+              {isCurrent && (
+                <span className="jp-here" aria-hidden="true">
+                  {t.here}
+                </span>
+              )}
+            </span>
+            <span className="jp-label">
+              <span className="jp-label__name">{book.book_name_ko}</span>
+              <span className={`jp-label__meta jp-label__meta--${metaTone}`}>{meta}</span>
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+export default BookJourneyPath

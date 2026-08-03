@@ -1,0 +1,328 @@
+/* Bible Book Journey Path — 창세기→계시록 여정 경로
+   레이아웃 상수(NODE=56, BOOK_H=88 등)는 BookJourneyPath.tsx와 짝을 이룬다 */
+
+.jp-wrap {
+  position: relative;
+  margin: 0 -0.25rem;
+}
+
+/* ── 트레일 ──────────────────────────────────────────────── */
+.jp-trail {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.jp-seg {
+  fill: none;
+  stroke-linecap: round;
+}
+
+/* 아직 걷지 않은 길 — 점점이 찍힌 발자국 */
+.jp-seg--todo {
+  stroke: rgba(120, 120, 130, 0.35);
+  stroke-width: 3;
+  stroke-dasharray: 0.5 10;
+}
+
+[data-theme="dark"] .jp-seg--todo {
+  stroke: rgba(255, 255, 255, 0.16);
+}
+
+/* 절반쯤 닦인 길 — 한쪽 정거장만 완독 */
+.jp-seg--half {
+  stroke: rgba(49, 130, 246, 0.4);
+  stroke-width: 3.5;
+  stroke-dasharray: 7 9;
+}
+
+/* 포장된 길 — 양끝 모두 완독 */
+.jp-seg--done {
+  stroke: var(--brand);
+  stroke-width: 4;
+  opacity: 0.85;
+}
+
+/* ── 정거장 행(노드 + 라벨) ─────────────────────────────── */
+.jp-row {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  animation: jp-pop-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.jp-row--left {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+@keyframes jp-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.jp-row:active .jp-node {
+  transform: scale(0.94);
+}
+
+/* ── 노드 ────────────────────────────────────────────────── */
+.jp-node {
+  position: relative;
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transition: transform 0.15s;
+}
+
+.jp-node__inner {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--ig-primary-background);
+  border: 1.5px solid var(--ig-border);
+  color: var(--ig-secondary-text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+[data-theme="dark"] .jp-node__inner {
+  background: #1c1c22;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.jp-row:hover .jp-node__inner {
+  border-color: rgba(49, 130, 246, 0.55);
+  box-shadow: 0 4px 14px -4px rgba(49, 130, 246, 0.35);
+}
+
+.jp-node__abbrev {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* 읽는 중 — 노드 테두리가 진행률만큼 브랜드색 링으로 차오른다 */
+.jp-row--active .jp-node {
+  background: conic-gradient(var(--brand) var(--jp-rate, 0%), rgba(49, 130, 246, 0.16) 0);
+  padding: 3.5px;
+}
+
+[data-theme="dark"] .jp-row--active .jp-node {
+  background: conic-gradient(var(--brand) var(--jp-rate, 0%), rgba(255, 255, 255, 0.1) 0);
+}
+
+.jp-row--active .jp-node__inner {
+  border: none;
+}
+
+.jp-node__pct {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--ig-primary-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.jp-node__pct small {
+  font-size: 0.55rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+/* 완독 — 채워진 정거장 */
+.jp-row--done .jp-node__inner {
+  background: linear-gradient(150deg, #4593fc, var(--brand));
+  border-color: transparent;
+  box-shadow: 0 4px 14px -4px rgba(49, 130, 246, 0.55);
+}
+
+.jp-node__check {
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+/* ── 지금 여기 ───────────────────────────────────────────── */
+/* 펄스 링 — 현재 정거장 주위로 퍼져 나간다 */
+.jp-row--current .jp-node::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(49, 130, 246, 0.55);
+  animation: jp-pulse 2.2s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes jp-pulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.28);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.jp-here {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  box-shadow: 0 3px 10px -2px rgba(49, 130, 246, 0.5);
+  z-index: 2;
+}
+
+/* 말풍선 꼬리 */
+.jp-here::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--brand);
+}
+
+/* ── 라벨 ────────────────────────────────────────────────── */
+.jp-label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.jp-label__name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ig-primary-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jp-label__meta {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jp-label__meta--brand {
+  color: var(--brand);
+}
+
+.jp-label__meta--muted {
+  color: var(--ig-secondary-text);
+  opacity: 0.75;
+  font-weight: 600;
+}
+
+/* ── 이정표 배너 ─────────────────────────────────────────── */
+.jp-milestone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.jp-milestone__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.85rem;
+  border-radius: 999px;
+  /* 섹션 배경과 같은 색으로 뒤를 지나는 트레일을 가린다 */
+  background: var(--ig-secondary-background);
+  border: 1px solid var(--ig-border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+
+[data-theme="dark"] .jp-milestone__pill {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.jp-milestone__flag {
+  font-size: 0.9rem;
+  color: var(--brand);
+}
+
+.jp-milestone__pct {
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 지금 위치로 점프 ────────────────────────────────────── */
+.jp-jump {
+  position: absolute;
+  top: -0.25rem;
+  right: 0.25rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.3rem 0.65rem 0.3rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(49, 130, 246, 0.35);
+  background: var(--ig-primary-background);
+  color: var(--brand);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.jp-jump .material-icons-round {
+  font-size: 0.9rem;
+}
+
+.jp-jump:hover {
+  box-shadow: 0 3px 10px -3px rgba(49, 130, 246, 0.4);
+}
+
+[data-theme="dark"] .jp-jump {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jp-row {
+    animation: none;
+  }
+  .jp-row--current .jp-node::before {
+    animation: none;
+    opacity: 0.7;
+  }
+}

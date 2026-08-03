@@ -14,6 +14,7 @@
 
 /* Book Selector - 성경 책 선택 */
 @import './styles/book-selector.css';
+@import './styles/book-journey.css';
 
 /* Chapter Navigation - 장 네비게이션 */
 @import './styles/chapter-navigation.css';
