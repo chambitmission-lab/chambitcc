@@ -194,8 +194,54 @@ const BookJourneyPath = ({
   }, [items, infoMap])
 
   const scrollToCurrent = useCallback(() => {
-    // window.scrollTo는 이 앱에서 무력하다(#root overflow) — scrollIntoView로 우회
-    currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const node = currentNodeRef.current
+    if (!node) return
+    // 이 앱의 실제 페이지 스크롤러는 window가 아니라 body다(html/body overflow-x:hidden 구조,
+    // ScrollRestoration 참고). scrollIntoView(smooth)는 위쪽 방향 스크롤이 환경에 따라
+    // 무시되는 문제가 실제로 보고되어, 스크롤러를 직접 찾아 scrollTop을 rAF로 애니메이션한다.
+    const scroller =
+      [document.body, document.documentElement, document.getElementById('root')].find(
+        el => el && el.scrollHeight > el.clientHeight + 1
+      ) ?? document.body
+    const rect = node.getBoundingClientRect()
+    const start = scroller.scrollTop
+    const maxTop = scroller.scrollHeight - scroller.clientHeight
+    const target = Math.min(
+      maxTop,
+      Math.max(0, start + rect.top + rect.height / 2 - window.innerHeight / 2)
+    )
+    const dist = target - start
+    if (Math.abs(dist) < 2) return
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      scroller.scrollTop = target
+      return
+    }
+
+    // 거리 비례 + 상한 — 창세기→계시록 끝에서 끝이라도 0.7초 안에 도착
+    const duration = Math.min(700, 250 + Math.abs(dist) * 0.15)
+    const t0 = performance.now()
+    const easeInOutCubic = (p: number) =>
+      p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+    let raf = 0
+    // 사용자가 직접 스크롤을 시작하면 즉시 양보한다
+    const cancel = () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('wheel', cancel)
+      window.removeEventListener('touchstart', cancel)
+    }
+    window.addEventListener('wheel', cancel, { passive: true })
+    window.addEventListener('touchstart', cancel, { passive: true })
+    const step = (now: number) => {
+      const p = Math.min(1, (now - t0) / duration)
+      scroller.scrollTop = start + dist * easeInOutCubic(p)
+      if (p < 1) {
+        raf = requestAnimationFrame(step)
+      } else {
+        cancel()
+      }
+    }
+    raf = requestAnimationFrame(step)
   }, [])
 
   // 현재 노드가 화면에 보이는 동안엔 점프 버튼을 숨긴다.
