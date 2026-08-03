@@ -68,7 +68,7 @@ const ClassList = () => {
 
         {/* Hero — 수채화 배경 + 브랜드 블루 워시.
             이미 반에 속한 사람에겐 기능 소개 대신 "내 반 현황"을 보여준다. */}
-        <section className="relative overflow-hidden rounded-[26px] mx-4 mt-5 px-6 py-7 min-h-[168px] flex flex-col justify-center bg-brand text-white shadow-[0_16px_44px_-14px_var(--brand-glow)]">
+        <section className="relative isolate overflow-hidden rounded-[26px] mx-4 mt-5 px-6 py-7 min-h-[168px] flex flex-col justify-center bg-brand text-white shadow-[0_12px_32px_-16px_var(--brand-glow)] ring-1 ring-white/[0.14] dark:ring-white/[0.1]">
           {/* 배경 그림 — 교회와 주일학교 풍경(수채화) */}
           <div
             className="absolute inset-0 pointer-events-none"
@@ -79,12 +79,12 @@ const ClassList = () => {
             }}
             aria-hidden
           />
-          {/* 브랜드 워시 — 글씨가 앉는 왼쪽은 진하게, 오른쪽 교회·게시판은 살려둔다 */}
+          {/* 브랜드 워시 — 왼쪽은 글씨 가독성만 확보할 정도로 은은하게, 오른쪽 교회·게시판은 살려둔다 */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
               background:
-                'linear-gradient(102deg, rgba(18,62,150,0.96) 0%, rgba(22,76,180,0.93) 46%, rgba(32,100,214,0.74) 80%, rgba(49,130,246,0.24) 100%)',
+                'linear-gradient(102deg, rgba(20,66,158,0.82) 0%, rgba(24,80,186,0.72) 46%, rgba(34,102,216,0.5) 80%, rgba(49,130,246,0.16) 100%)',
             }}
             aria-hidden
           />
