@@ -6,11 +6,12 @@
 .ach-overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  /* 헤더(z-60)·하단 dock(z-100) 위로 — 앱 전역 모달 레이어는 110+ */
+  z-index: 110;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px 16px;
+  padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
   /* 카드가 뷰포트보다 길어질 때 상단이 잘리지 않도록 스크롤 허용 */
   overflow-y: auto;
   overscroll-behavior: contain;
