@@ -18,6 +18,8 @@ export interface User {
 /** 관리자만 볼 수 있는 전역 운영 설정 */
 export interface AdminSettings {
   require_signup_approval: boolean
+  /** 기도 묵상 구절 추천 모드 — ai: AI 우선(실패 시 관리자 구절 폴백) / admin: 항상 관리자 구절 */
+  verse_recommendation_mode: 'ai' | 'admin'
 }
 
 export interface UsersResponse {

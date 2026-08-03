@@ -8,6 +8,7 @@ import {
   deleteSituationCategory,
   addSituationVerse,
   removeSituationVerse,
+  updateSituationVerseMessage,
   seedSituations,
 } from '../api/situation'
 
@@ -81,6 +82,15 @@ export const useRemoveSituationVerse = () => {
   return useMutation({
     mutationFn: ({ situationVerseId }: { situationVerseId: number; categoryId: number }) =>
       removeSituationVerse(situationVerseId),
+    onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: situationKeys.verses(vars.categoryId) }),
+  })
+}
+
+export const useUpdateSituationVerseMessage = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ situationVerseId, message }: { situationVerseId: number; message: string | null; categoryId: number }) =>
+      updateSituationVerseMessage(situationVerseId, message),
     onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: situationKeys.verses(vars.categoryId) }),
   })
 }

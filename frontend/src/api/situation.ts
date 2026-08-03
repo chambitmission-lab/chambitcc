@@ -84,6 +84,17 @@ export const removeSituationVerse = async (situationVerseId: number): Promise<vo
   if (!res.ok) throw new Error('구절 제거에 실패했습니다')
 }
 
+export const updateSituationVerseMessage = async (
+  situationVerseId: number, message: string | null
+): Promise<void> => {
+  const res = await apiFetch(`${BASE}/verses/${situationVerseId}`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ message }),
+  })
+  if (!res.ok) throw new Error('위로 메시지 저장에 실패했습니다')
+}
+
 export const seedSituations = async (): Promise<{ message: string; seeded: boolean }> => {
   const res = await apiFetch(`${BASE}/seed`, {
     method: 'POST',
