@@ -160,7 +160,7 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
         <div className="ach-sheen" aria-hidden />
 
         {/* 엠블럼 — 배지 그리드와 같은 메달 문법, 해금 시 둥실 떠다닌다 */}
-        <div className="relative z-10 flex flex-col items-center mb-4">
+        <div className="relative z-10 flex flex-col items-center mb-3">
           <motion.div
             initial={{ scale: 0.35, rotate: -14, opacity: 0 }}
             animate={{ scale: 1, rotate: 0, opacity: 1 }}
@@ -168,7 +168,7 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
           >
             <div className={unlocked ? 'ach-emblem-float' : undefined}>
               <div
-                className={`relative h-[104px] w-[104px] rounded-full p-[3px] ${nearUnlock ? 'ach-ring-near' : ''}`}
+                className={`relative h-[96px] w-[96px] rounded-full p-[3px] ${nearUnlock ? 'ach-ring-near' : ''}`}
                 style={{
                   background: unlocked
                     ? 'conic-gradient(from 210deg, #3182f6, #60a5fa, #f59e0b, #60a5fa, #3182f6)'
@@ -184,7 +184,7 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
                     />
                   )}
                   <span
-                    className={`relative text-[48px] leading-none ${unlocked ? 'drop-shadow-lg' : 'opacity-40'}`}
+                    className={`relative text-[44px] leading-none ${unlocked ? 'drop-shadow-lg' : 'opacity-40'}`}
                     style={unlocked ? undefined : { filter: 'grayscale(1)' }}
                   >
                     {icon}
@@ -224,7 +224,7 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
           {t(achievement.titleKey)}
         </motion.h3>
         <motion.p
-          className="relative z-10 text-center text-[13.5px] text-gray-500 dark:text-white/55 mb-5"
+          className="relative z-10 text-center text-[13.5px] text-gray-500 dark:text-white/55 mb-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -234,14 +234,14 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
 
         {/* 진행도 */}
         <motion.div
-          className="relative z-10 mb-5"
+          className="relative z-10 mb-4"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.24 }}
         >
           {!unlocked && (
-            <div className="text-center mb-3">
-              <span className="brand-text-gradient text-[40px] font-extrabold leading-none tabular-nums">
+            <div className="text-center mb-2.5">
+              <span className="brand-text-gradient text-[38px] font-extrabold leading-none tabular-nums">
                 {animatedPct}
               </span>
               <span className="brand-text-gradient text-[22px] font-extrabold">%</span>
@@ -285,7 +285,7 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
 
         {/* 보상 — 잠긴 상태에서도 미리 보여줘 해금 욕구를 자극 */}
         <motion.div
-          className={`relative z-10 p-4 rounded-xl mb-4 text-left ${
+          className={`relative z-10 p-3.5 rounded-xl mb-3 text-left ${
             unlocked
               ? 'ach-reward-unlocked'
               : 'bg-gray-50 dark:bg-white/[0.04] border border-dashed border-gray-300 dark:border-white/[0.12]'
