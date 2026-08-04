@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useMyGroups } from '../../hooks/useGroups'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
 import { isAuthenticated } from '../../utils/auth'
+import groupPixelArt from '../../assets/hero/group-pixel.png'
 import type { PrayerGroup } from '../../types/prayer'
 
 const MyGroups = () => {
@@ -255,27 +256,18 @@ const ActionCard = ({ icon, label, sublabel, variant, onClick }: ActionCardProps
               'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.12) 100%)',
           }}
         />
-        {/* 배경 일러스트 — 모여드는 사람들 실루엣 + 소프트 서클 (흰색 반투명, 텍스트 가독성 유지) */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl" aria-hidden>
-          <span className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/[0.10]" />
-          <span className="absolute -top-1 right-10 w-10 h-10 rounded-full bg-white/[0.07]" />
-          <svg
-            width="104"
-            height="104"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="rgba(255,255,255,0.16)"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="absolute -bottom-5 -right-3 rotate-[-8deg]"
-          >
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-        </div>
+        {/* 배경 일러스트 — 함께 모인 교인들 도트아트 (흰색 반투명, 왼쪽으로 페이드되어 텍스트 가독성 유지) */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.30]"
+          style={{
+            backgroundImage: `url(${groupPixelArt})`,
+            backgroundSize: 'auto 100%',
+            backgroundPosition: 'right bottom',
+            backgroundRepeat: 'no-repeat',
+            imageRendering: 'pixelated',
+          }}
+          aria-hidden
+        />
         <div className="relative">
           <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/25 backdrop-blur-sm text-white mb-2.5">
             {icon}
