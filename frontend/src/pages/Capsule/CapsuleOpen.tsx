@@ -70,6 +70,8 @@ const DevelopingPolaroid = ({
       className={`capsule-polaroid ${developed ? 'capsule-polaroid--developed' : ''}`}
       style={{ transform: `rotate(${tilt})` }}
     >
+      {/* 편지지에 마스킹테이프로 붙여둔 인화지 */}
+      <i className="capsule-polaroid__tape" aria-hidden />
       <div className="capsule-polaroid__img-wrap">
         <img
           src={photo.url}
@@ -186,12 +188,139 @@ const SealedLetterPreview = ({ capsule }: { capsule: CapsuleDetail }) => (
 const capsuleInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/capsule/invite/${code}`
 
-/** 음성 길이 표기: 60초 미만은 "45초", 그 이상은 "2분 30초" */
-const formatAudioDuration = (seconds: number): string => {
-  if (seconds < 60) return `${seconds}초`
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return s > 0 ? `${m}분 ${s}초` : `${m}분`
+/** 카세트 카운터 표기: 83초 → 1:23 */
+const fmtClock = (seconds: number): string => {
+  const s = Math.max(0, Math.floor(seconds))
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}
+
+/* ── 그날의 목소리 = 카세트 테이프 ────────────────────────────────
+   네이티브 <audio> 컨트롤은 편지지 위에 놓인 순간 "앱 UI"로 돌아가 버린다.
+   음성이 봉인되던 시절의 물성 — 릴이 돌고 테이프가 왼쪽에서 오른쪽으로
+   감겨 가는 카세트 — 로 그려서 소리에도 세월의 질감을 입힌다. */
+
+/** 릴 하나 — 가운데 톱니 허브가 돌고, 감긴 테이프(어두운 원)는 재생에 따라 두께가 변한다 */
+const TapeReel = ({ spinning, tapeR }: { spinning: boolean; tapeR: number }) => (
+  <svg viewBox="0 0 36 36" className="capsule-tape__reel" aria-hidden>
+    <circle cx="18" cy="18" r={tapeR} fill="#171310" />
+    <circle
+      className={`capsule-tape__hub ${spinning ? 'capsule-tape__hub--spin' : ''}`}
+      cx="18"
+      cy="18"
+      r="6.5"
+      fill="none"
+      stroke="#f4ecdb"
+      strokeWidth="2.6"
+      strokeDasharray="3.1 3.7"
+    />
+    <circle cx="18" cy="18" r="2.1" fill="#f4ecdb" opacity="0.9" />
+  </svg>
+)
+
+const VoiceTape = ({ src, duration }: { src: string; duration: number | null }) => {
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const barRef = useRef<HTMLDivElement>(null)
+  const [playing, setPlaying] = useState(false)
+  const [now, setNow] = useState(0)
+  const [total, setTotal] = useState(duration ?? 0)
+
+  const toggle = () => {
+    const el = audioRef.current
+    if (!el) return
+    if (el.paused) void el.play()
+    else el.pause()
+  }
+
+  const seekBy = (delta: number) => {
+    const el = audioRef.current
+    if (!el || !total) return
+    el.currentTime = Math.min(total, Math.max(0, el.currentTime + delta))
+    setNow(el.currentTime)
+  }
+
+  const seekTo = (clientX: number) => {
+    const el = audioRef.current
+    const bar = barRef.current
+    if (!el || !bar || !total) return
+    const rect = bar.getBoundingClientRect()
+    const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
+    el.currentTime = ratio * total
+    setNow(el.currentTime)
+  }
+
+  const progress = total > 0 ? Math.min(1, now / total) : 0
+
+  return (
+    <div className="capsule-tape">
+      <audio
+        ref={audioRef}
+        src={src}
+        preload="metadata"
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setNow(0)}
+        onTimeUpdate={(e) => setNow(e.currentTarget.currentTime)}
+        onLoadedMetadata={(e) => {
+          const d = e.currentTarget.duration
+          if (Number.isFinite(d) && d > 0) setTotal(d)
+        }}
+      />
+      <button
+        type="button"
+        className="capsule-tape__hit"
+        onClick={toggle}
+        aria-label={playing ? '음성 편지 일시정지' : '음성 편지 재생'}
+      >
+        <span className="capsule-tape__strip">
+          <b>그날의 목소리</b>
+          <i>
+            {fmtClock(now)} / {total > 0 ? fmtClock(total) : '--:--'}
+          </i>
+        </span>
+        <span className="capsule-tape__window">
+          {/* 테이프는 왼쪽 릴에서 풀려 오른쪽 릴로 감긴다 */}
+          <TapeReel spinning={playing} tapeR={8 + 7 * (1 - progress)} />
+          <span className="capsule-tape__toggle" aria-hidden>
+            {playing ? (
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6.5" y="5" width="4" height="14" rx="1.2" />
+                <rect x="13.5" y="5" width="4" height="14" rx="1.2" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8.2 5.4c0-1 1.1-1.6 2-1.1l9.4 6.1c.8.5.8 1.7 0 2.2l-9.4 6.1c-.9.5-2-.1-2-1.1V5.4Z" />
+              </svg>
+            )}
+          </span>
+          <TapeReel spinning={playing} tapeR={8 + 7 * progress} />
+        </span>
+      </button>
+      <div
+        ref={barRef}
+        className="capsule-tape__track"
+        role="slider"
+        tabIndex={0}
+        aria-label="재생 위치"
+        aria-valuemin={0}
+        aria-valuemax={Math.round(total)}
+        aria-valuenow={Math.round(now)}
+        aria-valuetext={fmtClock(now)}
+        onPointerDown={(e) => seekTo(e.clientX)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft') {
+            e.preventDefault()
+            seekBy(-5)
+          }
+          if (e.key === 'ArrowRight') {
+            e.preventDefault()
+            seekBy(5)
+          }
+        }}
+      >
+        <i style={{ width: `${progress * 100}%` }} />
+      </div>
+    </div>
+  )
 }
 
 const senderLine = (capsule: CapsuleDetail): string => {
@@ -204,6 +333,13 @@ const senderLine = (capsule: CapsuleDetail): string => {
 const addressTo = (capsule: CapsuleDetail): string => {
   if (capsule.role === 'self') return '미래의 나'
   return capsule.recipient_name || '당신'
+}
+
+/** 편지 끝 서명 — 편지는 "~로부터" 머리말이 아니라 손글씨 서명으로 끝난다 */
+const signatureFrom = (capsule: CapsuleDetail): string => {
+  if (capsule.role === 'self') return '과거의 나'
+  if (capsule.role === 'recipient') return capsule.sender_name || '보낸 사람'
+  return '그날의 나'
 }
 
 /** 소인 각인: 2026-07-29 → { year: "'26", day: "7 · 29" } — 초대장 소인과 같은 규칙 */
@@ -587,49 +723,62 @@ const CapsuleOpen = () => {
           </div>
         )}
 
-        {/* 편지 */}
+        {/* 편지 — 봉투에서 방금 꺼낸 크림 편지지.
+            봉투·초대장·폴라로이드가 쌓아온 재질 언어(크림 종이·소인·손글씨·밀랍)를
+            여기서 끊지 않는다. 앱 카드가 아니라 세 겹으로 접혀 있던 종이 한 장이다. */}
         {capsule && phase === 'letter' && content && (
-          <div className="px-4 pt-6">
-            <div className="capsule-letter-enter rounded-[24px] bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm overflow-hidden">
-              {/* 편지 머리 */}
-              <div className="px-6 pt-6 pb-4 border-b border-dashed border-gray-200 dark:border-white/[0.08]">
-                <p className="text-[12px] font-bold text-[var(--text-muted)]">
-                  {senderLine(capsule)}
+          <div className="capsule-reading px-4 pt-7">
+            <article className="capsule-paper capsule-letter-enter">
+              {/* 편지 머리 — 뜯긴 인장 자국과 소인 */}
+              <header className="capsule-paper__head">
+                <div className="capsule-paper__marks">
+                  <span className="capsule-paper__remnant" aria-hidden>
+                    <Icon size={15}>
+                      <SigilGlyph />
+                    </Icon>
+                  </span>
+                  <span className="capsule-paper__postmark" aria-hidden>
+                    <b>{postmark(capsule.sealed_at).year}</b>
+                    <i>{postmark(capsule.sealed_at).day}</i>
+                    <em>SEALED</em>
+                  </span>
+                </div>
+
+                <p className="capsule-paper__to">
+                  To. <b>{addressTo(capsule)}</b>
                 </p>
-                <h2 className="text-[19px] font-extrabold mt-1 break-keep leading-[1.4]">
+                <h2 className="capsule-paper__title">
                   {content.title || capsule.title || '봉인됐던 편지'}
                 </h2>
-                <p className="text-[11.5px] text-gray-400 dark:text-white/40 mt-1.5">
-                  {formatKoreanDate(capsule.sealed_at)} 봉인 →{' '}
-                  {formatKoreanDate(capsule.open_at)} 개봉
+                <p className="capsule-paper__journey">{journeyLine(capsule.sealed_at)}</p>
+                <p className="capsule-paper__dates">
+                  {formatKoreanDate(capsule.sealed_at)} 봉인 · {formatKoreanDate(capsule.open_at)} 개봉
                 </p>
-              </div>
+              </header>
 
-              {/* 본문 */}
-              {content.message && (
-                <p className="px-6 py-5 text-[14.5px] leading-[1.9] whitespace-pre-wrap break-keep text-gray-800 dark:text-white/85">
-                  {content.message}
-                </p>
-              )}
+              <div className="capsule-paper__rule" aria-hidden />
 
-              {/* 음성 */}
+              {/* 본문 — 괘선 위에 명조 잉크로. 잉크가 스미듯 반 박자 늦게 떠오른다 */}
+              {content.message && <p className="capsule-paper__message">{content.message}</p>}
+
+              {/* 음성 — 릴이 돌아가는 카세트 */}
               {content.audio_url && (
-                <div className="px-6 pb-5 pt-1">
-                  <p className="text-[12px] font-bold text-[var(--text-muted)] mb-2">
-                    🎙️ 그날의 목소리
-                    {content.audio_duration ? ` · ${formatAudioDuration(content.audio_duration)}` : ''}
-                  </p>
-                  <audio controls src={content.audio_url} className="w-full" preload="metadata" />
+                <div className="mt-7">
+                  <VoiceTape src={content.audio_url} duration={content.audio_duration ?? null} />
                 </div>
               )}
 
               {/* 사진 — 봉인됐던 인화지가 이제야 현상된다 */}
               {photos.length > 0 && (
-                <div className="px-6 pb-7 pt-2">
-                  <p className="text-[12px] font-bold text-[var(--text-muted)] mb-4">
-                    📷 그날의 사진 · 지금 막 인화되고 있어요
+                <div className="mt-8">
+                  <p className="capsule-paper__label">
+                    <Icon size={13}>
+                      <PhotoGlyph />
+                    </Icon>
+                    동봉된 사진
+                    <i>지금 막 인화되는 중</i>
                   </p>
-                  <div className="flex flex-col items-center gap-6">
+                  <div className="mt-5 flex flex-col items-center gap-7">
                     {photos.map((photo, i) => (
                       <DevelopingPolaroid
                         key={photo.url}
@@ -645,14 +794,38 @@ const CapsuleOpen = () => {
                     <button
                       type="button"
                       onClick={() => setShowSlideshow(true)}
-                      className="mt-6 w-full py-3.5 rounded-2xl bg-gray-900 dark:bg-white/[0.1] text-white text-[14px] font-bold inline-flex items-center justify-center gap-2"
+                      className="capsule-paper__show"
                     >
-                      🎞️ 목소리 들으며 사진 보기
+                      <svg
+                        width="17"
+                        height="17"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.8}
+                        strokeLinecap="round"
+                        aria-hidden
+                      >
+                        <rect x="2.5" y="5" width="19" height="14" rx="2.2" />
+                        <path d="M7 5v14M17 5v14M2.5 9.5H7M2.5 14.5H7M17 9.5h4.5M17 14.5h4.5" />
+                      </svg>
+                      목소리 들으며 사진 보기
                     </button>
                   )}
                 </div>
               )}
-            </div>
+
+              {/* 서명 — 편지는 손글씨 이름으로 끝난다 */}
+              <footer className="capsule-paper__sign">
+                <p className="capsule-paper__sign-close">그날의 마음을 담아,</p>
+                <p className="capsule-paper__sign-from">
+                  From. <b>{signatureFrom(capsule)}</b>
+                </p>
+                <p className="capsule-paper__sign-date">
+                  {formatKoreanDate(capsule.sealed_at)}에 씀
+                </p>
+              </footer>
+            </article>
 
             {showSlideshow && content.audio_url && (
               <CapsuleSlideshow
@@ -664,52 +837,48 @@ const CapsuleOpen = () => {
               />
             )}
 
-            {/* 봉인하던 그날 스냅샷 */}
+            {/* P.S. — 편지에 클립으로 끼워둔 그날의 기록 카드 */}
             {snapshot && (
-              <div className="capsule-letter-enter capsule-letter-enter--delayed mt-4 rounded-[24px] bg-[var(--brand-soft)] px-6 py-5">
-                <p className="text-[12px] font-bold text-brand">
-                  🗓️ 봉인하던 그날 — {snapshot.sealed_date ? formatKoreanDate(snapshot.sealed_date) : ''}
+              <aside className="capsule-ps capsule-letter-enter capsule-letter-enter--delayed">
+                <span className="capsule-ps__clip" aria-hidden>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round">
+                    <path d="M8 8.5v7.8a4 4 0 0 0 8 0V7.2a2.7 2.7 0 1 0-5.4 0v8.6a1.35 1.35 0 0 0 2.7 0V8.5" />
+                  </svg>
+                </span>
+                <p className="capsule-ps__label">
+                  P.S. 봉인하던 그날
                   {snapshot.season_label ? ` · ${snapshot.season_label}` : ''}
                 </p>
                 {snapshot.verse_text && (
-                  <p className="mt-2.5 text-[13.5px] leading-[1.8] text-gray-800 dark:text-white/85 break-keep">
+                  <p className="capsule-ps__verse">
                     “{snapshot.verse_text}”
                     {snapshot.verse_reference && (
-                      <span className="block mt-1 text-[12px] text-gray-500 dark:text-white/50">
-                        — {snapshot.verse_reference}
-                      </span>
+                      <span className="capsule-ps__ref">— {snapshot.verse_reference}</span>
                     )}
                   </p>
                 )}
-                {stats && (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {stats.meditation_streak != null && stats.meditation_streak > 0 && (
-                      <span className="px-2.5 py-1 rounded-full bg-white/70 dark:bg-white/[0.08] text-[11.5px] font-bold text-gray-700 dark:text-white/70">
-                        🔥 묵상 {stats.meditation_streak}일 연속 중
-                      </span>
-                    )}
-                    {stats.verses_read != null && stats.verses_read > 0 && (
-                      <span className="px-2.5 py-1 rounded-full bg-white/70 dark:bg-white/[0.08] text-[11.5px] font-bold text-gray-700 dark:text-white/70">
-                        📖 말씀 {stats.verses_read.toLocaleString()}절
-                      </span>
-                    )}
-                    {stats.prayers != null && stats.prayers > 0 && (
-                      <span className="px-2.5 py-1 rounded-full bg-white/70 dark:bg-white/[0.08] text-[11.5px] font-bold text-gray-700 dark:text-white/70">
-                        🙏 기도 {stats.prayers}개
-                      </span>
-                    )}
-                    {stats.thanks != null && stats.thanks > 0 && (
-                      <span className="px-2.5 py-1 rounded-full bg-white/70 dark:bg-white/[0.08] text-[11.5px] font-bold text-gray-700 dark:text-white/70">
-                        💛 감사 {stats.thanks}개
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
+                {stats &&
+                  (() => {
+                    const bits = [
+                      stats.meditation_streak != null &&
+                        stats.meditation_streak > 0 &&
+                        `묵상 ${stats.meditation_streak}일 연속`,
+                      stats.verses_read != null &&
+                        stats.verses_read > 0 &&
+                        `말씀 ${stats.verses_read.toLocaleString()}절`,
+                      stats.prayers != null && stats.prayers > 0 && `기도 ${stats.prayers}개`,
+                      stats.thanks != null && stats.thanks > 0 && `감사 ${stats.thanks}개`,
+                    ].filter(Boolean)
+                    return bits.length > 0 ? (
+                      <p className="capsule-ps__stats">그날의 나 — {bits.join(', ')}</p>
+                    ) : null
+                  })()}
+              </aside>
             )}
 
-            {/* 답장 체인 — 개봉이 다음 봉인의 입구 */}
-            <div className="capsule-letter-enter capsule-letter-enter--delayed mt-5 text-center">
+            {/* 답장 체인 — 개봉이 다음 봉인의 입구.
+                여기부터는 편지가 아니라 앱이다 — 간격을 넉넉히 둬서 세계를 구분한다 */}
+            <div className="capsule-letter-enter capsule-letter-enter--delayed mt-9 text-center">
               <p className="text-[12.5px] text-gray-500 dark:text-white/50 leading-[1.7]">
                 편지를 읽은 지금의 마음, 그대로 흘려보내긴 아깝지 않나요?
               </p>

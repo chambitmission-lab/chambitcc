@@ -819,6 +819,7 @@
    흰 프레임은 다크모드에서도 유지 — 실물 인화지의 질감이 목적이다. */
 
 .capsule-polaroid {
+  position: relative;
   display: block;
   width: min(268px, 100%);
   background: #fdfdf8;
@@ -928,6 +929,596 @@
   color: #bdb6a4;
   font-weight: 400;
   letter-spacing: 0;
+}
+
+/* ── 개봉 후 = 봉투에서 꺼낸 편지지 ───────────────────────────────
+   여기까지 봉투·인장·소인으로 끌어온 감정을 앱 카드 한 장으로 끝내면
+   전부 무너진다. 편지 본문도 같은 재질 — 크림 종이·괘선·명조 잉크·
+   손글씨 서명 — 으로 그린다. 종이색은 라이트/다크 모두 크림 고정. */
+
+/* 무대 — 개봉하던 밤하늘의 끝자락이 편지 위쪽에 남아 있다 */
+.capsule-reading {
+  position: relative;
+}
+
+.capsule-reading::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 235px;
+  pointer-events: none;
+  background:
+    radial-gradient(110% 78% at 80% 0%, rgba(96, 140, 255, 0.16), transparent 58%),
+    linear-gradient(180deg, rgba(14, 24, 48, 0.92) 0%, rgba(22, 38, 77, 0.5) 46%, rgba(22, 38, 77, 0) 100%);
+}
+
+.capsule-reading::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 235px;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 14% 22%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.3px 1.3px at 42% 12%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 68% 30%, rgba(190, 210, 255, 0.6), transparent),
+    radial-gradient(1.2px 1.2px at 88% 15%, rgba(255, 255, 255, 0.75), transparent);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 70%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 70%);
+}
+
+/* ── 편지지 팔레트 ──────────────────────────────────────────────
+   종이 위의 모든 색은 이 토큰만 쓴다(앱 테마 토큰 금지 — 크림 위에
+   쨍한 브랜드 블루가 얹히는 사고의 재발 방지).
+   라이트 = 한낮의 크림 편지지. 다크 = 밤하늘색 편지지 — 이 기능의
+   정체성이 밤하늘이라, 어두운 곳에서는 크림을 억지로 누르는 대신
+   남색 종이에 크림 잉크로 쓴 밤 편지가 된다. */
+.capsule-paper,
+.capsule-ps {
+  --p-hi: #faf5ea;
+  --p-mid: #f8f2e6;
+  --p-lo: #f0e7d2;
+  --p-ink: #4a4335;
+  --p-ink-strong: #3a3428;
+  --p-ink-body: #443d30;
+  --p-ink-soft: rgba(74, 67, 53, 0.62);
+  --p-ink-mute: rgba(74, 67, 53, 0.55);
+  --p-ink-faint: rgba(74, 67, 53, 0.45);
+  --p-line: rgba(74, 67, 53, 0.13);
+  --p-dash: rgba(74, 67, 53, 0.26);
+  --p-edge: rgba(74, 67, 53, 0.1);
+  --p-accent: #a8503f;
+  --p-wax1: #5e76c4;
+  --p-wax2: #41579e;
+  --p-clip: #988f79;
+}
+
+.dark .capsule-paper,
+.dark .capsule-ps {
+  --p-hi: #222e52;
+  --p-mid: #1b2543;
+  --p-lo: #151d35;
+  --p-ink: #e7dfc8;
+  --p-ink-strong: #f0e9d6;
+  --p-ink-body: #dcd3bb;
+  --p-ink-soft: rgba(231, 223, 200, 0.66);
+  --p-ink-mute: rgba(231, 223, 200, 0.55);
+  --p-ink-faint: rgba(231, 223, 200, 0.42);
+  --p-line: rgba(231, 223, 200, 0.16);
+  --p-dash: rgba(231, 223, 200, 0.3);
+  --p-edge: rgba(231, 223, 200, 0.16);
+  /* 남색 위의 악센트는 금색 — 필름 날짜 각인(#ffb03a)과 같은 계열 */
+  --p-accent: #d9a441;
+  --p-wax1: #6f87d8;
+  --p-wax2: #4a63b4;
+  --p-clip: #8b98b8;
+}
+
+/* 편지지 한 장 */
+.capsule-paper {
+  --line: 34px;
+  position: relative;
+  border-radius: 16px;
+  padding: 22px 22px 26px;
+  background: linear-gradient(172deg, var(--p-hi) 0%, var(--p-mid) 52%, var(--p-lo) 100%);
+  box-shadow:
+    inset 0 0 0 1px var(--p-edge),
+    0 30px 60px -30px rgba(6, 12, 32, 0.6),
+    0 12px 28px -18px rgba(6, 12, 32, 0.35);
+  color: var(--p-ink);
+  overflow: hidden;
+}
+
+/* 종이 결 — 봉투·폴라로이드와 같은 그레인 */
+.capsule-paper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+  opacity: 0.055;
+}
+
+/* 남색 종이에서 multiply 그레인은 안 보인다 — overlay로 결만 살린다 */
+.dark .capsule-paper::after,
+.dark .capsule-ps::after {
+  mix-blend-mode: overlay;
+  opacity: 0.08;
+}
+
+.capsule-paper__head {
+  position: relative;
+}
+
+/* 뜯긴 인장 자국 + 소인 */
+.capsule-paper__marks {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+/* 뜯고 남은 밀랍 자국 — 캡슐함의 "개봉됨 인장"과 같은 문법(갈라진 금).
+   ★종이 위의 색은 테마 토큰을 쓰지 않는다. 종이가 라이트/다크 모두 크림
+   고정이므로 그 위의 잉크·밀랍도 고정색이어야 한다 — 다크 테마의 쨍한
+   브랜드 블루가 크림 위에 얹히면 앱 UI가 편지에 침입한 것처럼 보인다. */
+.capsule-paper__remnant {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 47% 53% 52% 48% / 50% 46% 54% 50%;
+  transform: rotate(-8deg);
+  background: linear-gradient(160deg, var(--p-wax1), var(--p-wax2));
+  color: rgba(248, 242, 230, 0.85);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.22);
+  opacity: 0.85;
+}
+
+/* 뜯을 때 갈라진 금 — 틈으로 종이가 비친다 */
+.capsule-paper__remnant::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    99deg,
+    transparent calc(50% - 1px),
+    var(--p-mid) calc(50% - 1px),
+    var(--p-mid) calc(50% + 1px),
+    transparent calc(50% + 1px)
+  );
+}
+
+/* 소인 — 봉투·초대장과 같은 monospace 문법 */
+.capsule-paper__postmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 10px 5px;
+  border: 1px dashed var(--p-dash);
+  border-radius: 9px;
+  font-family: 'Courier New', monospace;
+  color: var(--p-ink-soft);
+  transform: rotate(5deg);
+}
+
+.capsule-paper__postmark b {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.capsule-paper__postmark i {
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.capsule-paper__postmark em {
+  font-size: 7.5px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  opacity: 0.75;
+}
+
+/* 인사 — 봉투 겉면과 같은 펜글씨가 편지 안에서 이어진다 */
+.capsule-paper__to {
+  margin-top: 16px;
+  font-family: 'Nanum Pen Script', 'Pretendard', cursive;
+  font-size: 21px;
+  line-height: 1.2;
+  color: var(--p-ink-soft);
+  transform: rotate(-0.5deg);
+  word-break: keep-all;
+}
+
+.capsule-paper__to b {
+  font-weight: 400;
+  font-size: 31px;
+  color: var(--p-ink);
+}
+
+.capsule-paper__title {
+  margin-top: 10px;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--p-ink-strong);
+  word-break: keep-all;
+}
+
+/* 감정선 — 라이트는 밀랍 레드, 다크(남색 종이)는 금색 */
+.capsule-paper__journey {
+  margin-top: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--p-accent);
+}
+
+.capsule-paper__dates {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--p-ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 머리와 본문 사이 — 봉투 아랫단과 같은 점선 */
+.capsule-paper__rule {
+  margin: 18px -22px 0;
+  border-top: 1px dashed var(--p-dash);
+}
+
+/* 본문 — 괘선 편지지 위의 명조 잉크.
+   줄 간격을 px로 고정해 괘선(repeating-gradient)이 글줄 바로 밑에 깔린다.
+   잉크가 종이에 스미듯 반 박자 늦게 떠오른다. */
+.capsule-paper__message {
+  margin-top: 4px;
+  padding-top: 8px;
+  font-family: 'Noto Serif KR', 'Pretendard', serif;
+  font-size: 15px;
+  line-height: var(--line);
+  white-space: pre-wrap;
+  word-break: keep-all;
+  color: var(--p-ink-body);
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 calc(var(--line) - 1px),
+    var(--p-line) calc(var(--line) - 1px) var(--line)
+  );
+  background-position: 0 8px;
+  animation: capsule-ink-in 1.2s ease 0.35s both;
+}
+
+@keyframes capsule-ink-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 동봉물 섹션 라벨 */
+.capsule-paper__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  color: var(--p-ink-mute);
+}
+
+.capsule-paper__label i {
+  margin-left: 2px;
+  font-family: 'Nanum Pen Script', 'Pretendard', cursive;
+  font-style: normal;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--p-ink-mute);
+  transform: rotate(-1deg);
+}
+
+/* 편지지에 마스킹테이프로 붙인 폴라로이드 */
+.capsule-polaroid__tape {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  z-index: 1;
+  width: 76px;
+  height: 22px;
+  transform: translateX(-50%) rotate(-2.2deg);
+  background: rgba(233, 214, 158, 0.55);
+  border-left: 1px dashed rgba(255, 255, 255, 0.55);
+  border-right: 1px dashed rgba(255, 255, 255, 0.55);
+  box-shadow: 0 1px 3px rgba(60, 50, 30, 0.12);
+}
+
+/* 슬라이드쇼 진입 — 카세트와 같은 재질의 짙은 나무 버튼 */
+.capsule-paper__show {
+  margin-top: 22px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(170deg, #4a4230, #332c20);
+  color: #f4ecdb;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 12px 24px -14px rgba(40, 32, 16, 0.65);
+}
+
+/* 서명 — 오른쪽 아래로 흘려 쓴 마무리 */
+.capsule-paper__sign {
+  margin-top: 30px;
+  text-align: right;
+  font-family: 'Nanum Pen Script', 'Pretendard', cursive;
+  transform: rotate(-0.8deg);
+  word-break: keep-all;
+}
+
+.capsule-paper__sign-close {
+  font-size: 19px;
+  line-height: 1.3;
+  color: var(--p-ink-soft);
+}
+
+.capsule-paper__sign-from {
+  margin-top: 2px;
+  font-size: 21px;
+  color: var(--p-ink-soft);
+}
+
+.capsule-paper__sign-from b {
+  font-weight: 400;
+  font-size: 30px;
+  color: var(--p-ink);
+}
+
+.capsule-paper__sign-date {
+  margin-top: 3px;
+  font-size: 16px;
+  color: var(--p-ink-faint);
+}
+
+/* ── 그날의 목소리 = 카세트 테이프 ──────────────────────────────
+   릴 허브가 돌고, 감긴 테이프가 왼쪽에서 오른쪽으로 옮겨 간다. */
+.capsule-tape {
+  border-radius: 14px;
+  padding: 10px 12px 12px;
+  background: linear-gradient(170deg, #4a4230, #332c20);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.2),
+    0 14px 28px -16px rgba(40, 32, 16, 0.7);
+}
+
+.capsule-tape__hit {
+  display: block;
+  width: 100%;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 라벨 스티커 — 크림 종이에 펜으로 쓴 제목 */
+.capsule-tape__strip {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 12px 6px;
+  border-radius: 6px;
+  background: linear-gradient(174deg, #faf5ea, #efe6d0);
+  box-shadow: inset 0 0 0 1px rgba(74, 67, 53, 0.12);
+}
+
+.capsule-tape__strip b {
+  font-family: 'Nanum Pen Script', 'Pretendard', cursive;
+  font-size: 19px;
+  font-weight: 400;
+  color: #4a4335;
+  transform: rotate(-0.6deg);
+}
+
+.capsule-tape__strip i {
+  font-family: 'Courier New', monospace;
+  font-size: 11.5px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(74, 67, 53, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 테이프 창 — 릴 두 개가 들여다보인다 */
+.capsule-tape__window {
+  margin-top: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 16px;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.capsule-tape__reel {
+  width: 40px;
+  height: 40px;
+}
+
+.capsule-tape__hub {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+}
+
+.capsule-tape__hub--spin {
+  animation: capsule-reel-spin 2.2s linear infinite;
+}
+
+@keyframes capsule-reel-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.capsule-tape__toggle {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(244, 236, 219, 0.14);
+  color: #f4ecdb;
+}
+
+.capsule-tape__toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 재생 위치 — 필름 날짜 각인과 같은 앰버 */
+.capsule-tape__track {
+  position: relative;
+  margin-top: 10px;
+  height: 14px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.capsule-tape__track::before {
+  content: '';
+  position: absolute;
+  inset: 5px 0;
+  border-radius: 99px;
+  background: rgba(244, 236, 219, 0.18);
+}
+
+.capsule-tape__track i {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 0;
+  border-radius: 99px;
+  background: #ffb03a;
+  box-shadow: 0 0 8px rgba(255, 140, 40, 0.5);
+}
+
+.capsule-tape__track:focus-visible {
+  outline: 2px solid rgba(255, 176, 58, 0.7);
+  outline-offset: 2px;
+  border-radius: 99px;
+}
+
+/* ── P.S. 카드 — 편지에 클립으로 끼워둔 그날의 기록 ─────────────── */
+.capsule-ps {
+  position: relative;
+  margin: 20px 10px 0;
+  padding: 18px 18px 15px;
+  border-radius: 5px;
+  background: linear-gradient(174deg, var(--p-hi), var(--p-lo));
+  box-shadow:
+    inset 0 0 0 1px var(--p-edge),
+    0 16px 32px -20px rgba(6, 12, 32, 0.45);
+  transform: rotate(-1deg);
+  color: var(--p-ink);
+}
+
+.capsule-ps::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+  opacity: 0.05;
+}
+
+.capsule-ps__clip {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  color: var(--p-clip);
+  transform: rotate(8deg);
+  filter: drop-shadow(0 1px 1px rgba(60, 50, 30, 0.25));
+}
+
+.capsule-ps__label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  color: var(--p-ink-mute);
+}
+
+.capsule-ps__verse {
+  margin-top: 10px;
+  font-family: 'Noto Serif KR', 'Pretendard', serif;
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: var(--p-ink-body);
+  word-break: keep-all;
+}
+
+.capsule-ps__ref {
+  display: block;
+  margin-top: 4px;
+  font-family: 'Pretendard', sans-serif;
+  font-size: 12px;
+  color: var(--p-ink-mute);
+}
+
+/* capsule-fade-up의 to(translateY(0))가 fill 상태로 남아 rotate를 덮어쓴다 —
+   기울기를 키프레임 안에 넣은 전용 등장 애니메이션을 쓴다 */
+.capsule-ps.capsule-letter-enter,
+.capsule-ps.capsule-letter-enter--delayed {
+  animation-name: capsule-ps-in;
+}
+
+@keyframes capsule-ps-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(-1deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-1deg);
+  }
+}
+
+.capsule-ps__stats {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--p-dash);
+  font-family: 'Nanum Pen Script', 'Pretendard', cursive;
+  font-size: 19px;
+  line-height: 1.4;
+  color: var(--p-ink-soft);
+  transform: rotate(-0.4deg);
+  word-break: keep-all;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-tape__hub--spin {
+    animation: none;
+  }
+  .capsule-paper__message {
+    animation: none;
+  }
 }
 
 /* ── 도착한 캡슐 = 우편함에 놓인 편지 ─────────────────────────────
