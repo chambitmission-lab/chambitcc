@@ -1,0 +1,133 @@
+name: Cloudtype Keep-Alive
+
+# 클라우드타입 프리티어는 매일 1회 자동으로 중지된다.
+# (요청이 없어서 슬립되는 게 아니라 강제 중지라, HTTP 핑으로는 깨울 수 없다.)
+# 대시보드의 ▶ 버튼이 호출하는 API를 그대로 불러서 꺼진 서비스만 다시 기동한다.
+#
+# 깨우는 대상은 백엔드(chambitmission-lab/chambit)의 서비스지만, 이 워크플로는
+# 저장소 파일을 전혀 읽지 않고 클라우드타입 API만 호출하므로 어디에 두어도 동작한다.
+# public 저장소는 Actions 실행 시간이 무료·무제한이라 이쪽에 두었다.
+
+on:
+  schedule:
+    # 새벽 기도 시간 대비: KST 04:00~07:59 구간은 10분마다
+    - cron: '*/10 19-22 * * *'
+    # 그 외 시간대 안전망: 30분마다
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: cloudtype-keep-alive
+  cancel-in-progress: false
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TOKEN: ${{ secrets.CLOUDTYPE_TOKEN }}
+      API: https://api.cloudtype.io
+      SCOPE: chambit.mission
+      PROJECT: chambit
+      STAGE: main
+      # 기동 순서대로 나열한다. DB가 먼저 떠야 앱이 정상 기동한다.
+      SERVICES: 'mariadb chambit'
+
+    steps:
+      - name: 상태 확인 후 중지된 서비스만 기동
+        run: |
+          set -uo pipefail
+
+          if [ -z "${TOKEN}" ]; then
+            echo "::error::CLOUDTYPE_TOKEN 시크릿이 설정되지 않았습니다."
+            exit 1
+          fi
+
+          fetch_stat() {
+            curl -sS --max-time 30 \
+              -H "Authorization: Bearer ${TOKEN}" \
+              "${API}/scope/${SCOPE}/resource/stat"
+          }
+
+          # 서비스 이름으로 status 값을 뽑는다. 항목이 없으면 "absent".
+          status_of() {
+            printf '%s' "$1" | jq -r --arg n "$2" --arg s "${STAGE}" \
+              'first(.stats[]? | select(.name == $n and .stage == $s) | .status) // "absent"'
+          }
+
+          stat_json="$(fetch_stat)" || {
+            echo "::warning::상태 조회 실패(네트워크/API). 이번 회차는 건너뛴다. 다음 정시에 재시도."
+            exit 0
+          }
+
+          # 응답이 비었으면 토큰 만료나 API 변경일 수 있다.
+          # 이 상태에서 무작정 start를 때리면 멀쩡한 서비스를 재시작시킬 위험이 있으므로 중단한다.
+          total="$(printf '%s' "$stat_json" | jq -r '.stats | length' 2>/dev/null || echo 0)"
+          if [ "${total}" = "0" ] || [ "${total}" = "null" ]; then
+            echo "::error::상태 응답에 서비스가 없습니다. 토큰이 만료됐거나 API 형식이 바뀌었을 수 있습니다."
+            printf '%s\n' "$stat_json" | head -c 500
+            exit 1
+          fi
+
+          started=''
+          for svc in ${SERVICES}; do
+            st="$(status_of "$stat_json" "$svc")"
+            echo "[${svc}] status=${st}"
+
+            # 이미 올라오는 중인 서비스에 start를 또 보내면 처음부터 다시 시작되어
+            # 오히려 다운타임이 길어진다. 기동 중인 상태는 건드리지 않고 기다린다.
+            case "${st}" in
+              running)
+                continue
+                ;;
+              starting|pending|deploying|building|provisioning|initializing|creating)
+                echo "[${svc}] 기동 중 → 그대로 둔다"
+                continue
+                ;;
+            esac
+
+            echo "[${svc}] 중지 상태 → 기동 요청"
+            code="$(curl -sS --max-time 60 -o /tmp/start.out -w '%{http_code}' \
+              -X PUT \
+              -H "Authorization: Bearer ${TOKEN}" \
+              -H 'Content-Length: 0' \
+              "${API}/project/${SCOPE}/${PROJECT}/stage/${STAGE}/deployment/${svc}/start")"
+
+            if [ "${code}" -ge 200 ] && [ "${code}" -lt 300 ]; then
+              echo "[${svc}] 기동 요청 성공 (HTTP ${code})"
+              started="${started} ${svc}"
+              # DB가 먼저 자리를 잡아야 앱이 붙는다.
+              [ "${svc}" = "mariadb" ] && sleep 20
+            else
+              echo "::error::[${svc}] 기동 요청 실패 (HTTP ${code})"
+              head -c 500 /tmp/start.out
+              exit 1
+            fi
+          done
+
+          if [ -z "${started}" ]; then
+            echo "모든 서비스가 정상 실행 중. 할 일 없음."
+            exit 0
+          fi
+
+          # 기동을 요청했으면 실제로 떴는지 확인한다. 최대 3분.
+          echo "기동 확인 중:${started}"
+          for i in $(seq 1 18); do
+            sleep 10
+            stat_json="$(fetch_stat)" || continue
+
+            pending=''
+            for svc in ${started}; do
+              st="$(status_of "$stat_json" "$svc")"
+              [ "${st}" = "running" ] || pending="${pending} ${svc}"
+            done
+
+            if [ -z "${pending}" ]; then
+              echo "기동 완료:${started}"
+              exit 0
+            fi
+            echo "  (${i}/18) 대기 중:${pending}"
+          done
+
+          echo "::warning::3분 내에 running 상태가 되지 않았습니다:${pending}"
+          echo "빌드가 오래 걸리는 중일 수 있습니다. 다음 회차에 다시 확인합니다."
