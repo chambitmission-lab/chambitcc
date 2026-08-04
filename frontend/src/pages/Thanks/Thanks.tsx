@@ -335,7 +335,15 @@ const Thanks = () => {
                 GRATITUDE
               </div>
 
-              <p className="text-[21px] font-extrabold leading-[1.35] tracking-[-0.02em]">
+              <p
+                className="text-[19px] font-extrabold leading-[1.4] tracking-[-0.02em]"
+                style={{
+                  // 한글은 어절 단위로만 줄바꿈(‘내려오나 / 니’ 방지) + 두 줄일 때 길이 균형
+                  wordBreak: 'keep-all',
+                  overflowWrap: 'break-word',
+                  textWrap: 'balance',
+                }}
+              >
                 “{ko ? verse.ko : verse.en}”
               </p>
               <p className="mt-1 text-[12px] font-semibold opacity-85">
