@@ -261,7 +261,11 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     <>
       {/* 성경 구절 모달 */}
       {showVersesModal && recommendedVerses && (
-        <BibleVersesModal verses={recommendedVerses} onClose={handleVersesModalClose} />
+        <BibleVersesModal
+          verses={recommendedVerses}
+          authorName={displayName}
+          onClose={handleVersesModalClose}
+        />
       )}
 
       <div

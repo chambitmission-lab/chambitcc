@@ -1,55 +1,125 @@
-/* BibleVersesModal — 함께 묵상 모달
- * 우리 기도(홈 피드)와 같은 토스 블루 플랫 테마.
- * 색은 theme.css 토큰(--brand-*, --surface-*, --text-*)만 참조 —
- * 라이트/다크 분기는 토큰 쪽에서 끝나므로 여기서는 만들지 않는다.
+/* BibleVersesModal — 함께 묵상 "모먼트" 화면
+ *
+ * 정보 화면이 아니라 편지·가사 화면이다: 카드/뱃지/라벨 같은 정보 계층을
+ * 걷어내고, 풀블리드 앰비언트 배경 위에 말씀만 남긴 뒤 순차 페이드로
+ * 묵상의 호흡을 만든다 (스토리 진행바 + 한 화면에 한 구절).
+ *
+ * 이 화면은 사진 카드처럼 라이트/다크 공통의 "작품" 트리트먼트라서
+ * 앱 테마 토큰(--brand 등)을 참조하지 않고 고유 팔레트를 쓴다.
  */
 
-.bvm-hero {
-  position: relative;
-  background: var(--brand-soft);
-  border: 1px solid var(--brand-soft-strong);
+/* 시트 높이 — 설치 PWA의 vh 오계산 회피를 위해 실측 --vvh 우선 */
+.bvm-sheet {
+  height: calc(var(--vvh, 100dvh) - env(safe-area-inset-top, 0px) - 1.25rem);
+}
+@media (min-width: 640px) {
+  .bvm-sheet {
+    height: min(85vh, 780px);
+  }
 }
 
-.bvm-hero-accent-line {
+.bvm-serif {
+  font-family: 'Noto Serif KR', Georgia, 'Times New Roman', serif;
+}
+
+/* ---- 페이지별 앰비언트 배경 (구절 정서에 맞춘 새벽/노을/밤 순환) ---- */
+.bvm-amb-intro {
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(84, 118, 255, 0.26), transparent 62%),
+    linear-gradient(180deg, #0d1526 0%, #0a0f1c 100%);
+}
+.bvm-amb-0 {
+  /* 새벽 초원 — 푸른 풀밭, 쉴 만한 물가 */
+  background:
+    radial-gradient(110% 80% at 50% -10%, rgba(74, 222, 168, 0.15), transparent 60%),
+    linear-gradient(180deg, #0c1a21 0%, #0a121e 100%);
+}
+.bvm-amb-1 {
+  /* 해질녘 — 따뜻한 위로 */
+  background:
+    radial-gradient(110% 80% at 50% -10%, rgba(251, 191, 100, 0.13), transparent 60%),
+    linear-gradient(180deg, #191420 0%, #0e0d17 100%);
+}
+.bvm-amb-2 {
+  /* 깊은 밤 — 고요한 신뢰 */
+  background:
+    radial-gradient(110% 80% at 50% -10%, rgba(96, 165, 250, 0.17), transparent 60%),
+    linear-gradient(180deg, #0b1730 0%, #090f1e 100%);
+}
+.bvm-amb-closing {
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(250, 208, 120, 0.14), transparent 62%),
+    linear-gradient(180deg, #101828 0%, #0a0f1c 100%);
+}
+
+/* ---- 느리게 흐르는 빛 (앰비언트 오브) ---- */
+.bvm-orb {
   position: absolute;
-  left: 0;
-  top: 18%;
-  bottom: 18%;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    var(--brand) 50%,
-    transparent
-  );
-  opacity: 0.7;
+  border-radius: 9999px;
+  filter: blur(52px);
+  pointer-events: none;
+  will-change: transform;
+  animation: bvmDrift 17s ease-in-out infinite alternate;
+}
+.bvm-orb-a {
+  top: 6%;
+  left: 50%;
+  width: 280px;
+  height: 280px;
+  margin-left: -140px;
+}
+.bvm-orb-b {
+  bottom: 4%;
+  left: -60px;
+  width: 220px;
+  height: 220px;
+  animation-duration: 23s;
+  animation-direction: alternate-reverse;
+}
+.bvm-amb-intro .bvm-orb { background: rgba(96, 132, 255, 0.2); }
+.bvm-amb-0 .bvm-orb { background: rgba(74, 222, 168, 0.13); }
+.bvm-amb-1 .bvm-orb { background: rgba(251, 191, 100, 0.11); }
+.bvm-amb-2 .bvm-orb { background: rgba(96, 165, 250, 0.15); }
+.bvm-amb-closing .bvm-orb { background: rgba(250, 208, 120, 0.12); }
+
+@keyframes bvmDrift {
+  from {
+    transform: translate3d(-5%, 2%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(7%, -6%, 0) scale(1.14);
+  }
 }
 
-.bvm-hero-emblem {
-  background: var(--brand-soft-strong);
-  border: 1px solid var(--brand-soft-strong);
-  color: var(--brand);
+/* ---- 순차 페이드 — 활성 페이지에서만 재생, 지연이 묵상의 호흡을 만든다 ---- */
+.bvm-fade {
+  opacity: 0;
+}
+.bvm-page.is-active .bvm-fade {
+  animation: bvmRise 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.bvm-page.is-active .bvm-d1 { animation-delay: 0.15s; }
+.bvm-page.is-active .bvm-d2 { animation-delay: 0.6s; }
+.bvm-page.is-active .bvm-d3 { animation-delay: 1.15s; }
+.bvm-page.is-active .bvm-d4 { animation-delay: 1.7s; }
+
+@keyframes bvmRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.bvm-hero-label {
-  background: var(--brand-soft-strong);
-  color: var(--brand);
-}
-
-.bvm-hero-title {
-  color: var(--text-strong);
-}
-
-.bvm-hero-summary {
-  color: var(--text-body);
-}
-
-/* 인사이트 박스 (각 카드의 적용 메시지)
- * 말씀 본문이 주인공이 되도록 배경/보더/글자 톤을 낮춰 보조 역할로 유지 */
-.bvm-insight {
-  background: var(--surface-inset);
-  border: 1px solid var(--card-border);
+/* 긴 해설은 4줄에서 접고 "더 읽기"로 펼친다 */
+.bvm-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* 가로 스와이프 캐러셀 — 스크롤바 숨김 */
@@ -58,7 +128,16 @@
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
-
 .bvm-carousel::-webkit-scrollbar {
   display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bvm-orb {
+    animation: none;
+  }
+  .bvm-page.is-active .bvm-fade {
+    animation-duration: 0.01s;
+    animation-delay: 0s !important;
+  }
 }

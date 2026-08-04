@@ -145,6 +145,7 @@ const PrayerArticle = ({
       {showVersesModal && prayer.recommended_verses && (
         <BibleVersesModal
           verses={prayer.recommended_verses}
+          authorName={prayer.display_name}
           onClose={() => setShowVersesModal(false)}
         />
       )}
