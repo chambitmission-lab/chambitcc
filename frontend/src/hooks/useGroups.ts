@@ -7,7 +7,8 @@ import {
   fetchGroupPreview,
   createGroup,
   joinGroup,
-  leaveGroup
+  leaveGroup,
+  addGroupMembers
 } from '../api/group'
 import { showToast } from '../utils/toast'
 import type { CreateGroupRequest, JoinGroupRequest } from '../types/prayer'
@@ -94,6 +95,23 @@ export const useJoinGroup = () => {
     },
     onError: (error: Error) => {
       showToast(error.message || '그룹 가입에 실패했습니다', 'error')
+    },
+  })
+}
+
+// 앱 사용자 바로 초대 (관리자 전용)
+export const useAddGroupMembers = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ groupId, userIds }: { groupId: number; userIds: number[] }) =>
+      addGroupMembers(groupId, userIds),
+    onSuccess: () => {
+      // 성공 토스트는 호출부에서 처리 (추가/건너뜀을 구분해 안내)
+      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '멤버 추가에 실패했습니다', 'error')
     },
   })
 }

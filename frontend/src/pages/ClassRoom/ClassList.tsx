@@ -10,7 +10,7 @@ import {
 } from '../../hooks/useClassRoom'
 import type { ClassSummary } from '../../types/classRoom'
 import type { CapsuleRecipient } from '../../types/timeCapsule'
-import MemberSearchInput from './components/MemberSearchInput'
+import MemberSearchInput from '../../components/common/MemberSearchInput'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { useModalBackButton } from '../../hooks/useModalBackButton'

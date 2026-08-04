@@ -14,7 +14,7 @@ import type { ClassDetail, ClassPost } from '../../../types/classRoom'
 import type { CapsuleRecipient } from '../../../types/timeCapsule'
 import { showToast } from '../../../utils/toast'
 import { Avatar, memberLabel, timeAgo } from '../classUi'
-import MemberSearchInput from './MemberSearchInput'
+import MemberSearchInput from '../../../components/common/MemberSearchInput'
 
 // ── 공용 시트 껍데기 ──
 const SheetShell = ({

@@ -150,6 +150,35 @@ export const joinGroup = async (
   return response.json()
 }
 
+// 앱 사용자를 기도방에 바로 추가 — 관리자 전용, 이미 멤버면 서버가 건너뛴다(멱등)
+export const addGroupMembers = async (
+  groupId: number,
+  userIds: number[],
+): Promise<{ success: boolean; data: { added_count: number } }> => {
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
+  }
+
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  }
+
+  const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}/members`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ user_ids: userIds }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null)
+    throw new Error(error?.detail || '멤버 추가에 실패했습니다')
+  }
+
+  return response.json()
+}
+
 // 그룹 탈퇴
 export const leaveGroup = async (
   groupId: number

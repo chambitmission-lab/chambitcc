@@ -1,8 +1,8 @@
 // 앱 사용자 검색 인풋 — 캡슐 "앱에서 바로 보내기"의 검색 API를 재사용한다.
-// 반 만들기(여러 명 담기)와 멤버 시트(즉시 추가)가 함께 쓴다.
+// 반 만들기(여러 명 담기)·멤버 시트(즉시 추가)·기도방 초대가 함께 쓴다.
 import { useEffect, useState } from 'react'
-import { searchCapsuleRecipients } from '../../../api/timeCapsule'
-import type { CapsuleRecipient } from '../../../types/timeCapsule'
+import { searchCapsuleRecipients } from '../../api/timeCapsule'
+import type { CapsuleRecipient } from '../../types/timeCapsule'
 
 const MemberSearchInput = ({
   excludeIds,

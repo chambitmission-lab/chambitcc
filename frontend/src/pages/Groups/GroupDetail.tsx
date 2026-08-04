@@ -3,12 +3,14 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { useGroup, useLeaveGroup } from '../../hooks/useGroups'
+import { useAddGroupMembers, useGroup, useLeaveGroup } from '../../hooks/useGroups'
 import { useEvents } from '../../hooks/useEvents'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { groupInviteUrl } from '../../utils/inviteLink'
 import CreateGroupMeetingModal from '../../components/group/CreateGroupMeetingModal'
+import MemberSearchInput from '../../components/common/MemberSearchInput'
+import type { CapsuleRecipient } from '../../types/timeCapsule'
 import { formatKstDateTime, kstDateKey, parseKstDate } from '../../utils/kstTime'
 
 const GroupDetail = () => {
@@ -21,9 +23,12 @@ const GroupDetail = () => {
   const { data, isLoading } = useGroup(groupId)
   const group = data?.data
   const leaveGroup = useLeaveGroup()
+  const addMembers = useAddGroupMembers()
 
   const [copied, setCopied] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
+  // 이번 화면에서 초대한 사용자 — 검색 결과에서 바로 숨겨 중복 초대를 막는다
+  const [invitedIds, setInvitedIds] = useState<number[]>([])
 
   // 오늘 자정(KST) 부터의 일정만 (이미 끝난 모임 숨김)
   // toISOString() 은 UTC 로 밀려 하루 어긋나므로 KST 날짜 키를 그대로 쓴다
@@ -120,6 +125,20 @@ const GroupDetail = () => {
       showToast('초대 링크를 복사했어요. 카톡에 붙여넣어 보내주세요!', 'success')
     } catch {
       showToast('복사에 실패했어요. 초대 코드를 직접 알려주세요: ' + group.invite_code, 'error')
+    }
+  }
+
+  const handleInviteUser = async (user: CapsuleRecipient) => {
+    try {
+      const res = await addMembers.mutateAsync({ groupId, userIds: [user.id] })
+      setInvitedIds((prev) => [...prev, user.id])
+      if (res.data.added_count > 0) {
+        showToast(`${user.display_name}님을 기도방에 초대했어요 🙏`, 'success')
+      } else {
+        showToast(`${user.display_name}님은 이미 멤버예요`, 'info')
+      }
+    } catch {
+      /* 토스트는 훅에서 처리 */
     }
   }
 
@@ -378,6 +397,19 @@ const GroupDetail = () => {
               >
                 🔗 초대 링크 공유
               </button>
+            </div>
+
+            {/* 앱 사용자 바로 초대 — 코드 공유 없이 검색해서 즉시 추가 */}
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/[0.06] text-left">
+              <div className="text-xs font-bold text-gray-500 dark:text-white/55 mb-2">
+                앱 사용자 바로 초대
+              </div>
+              <MemberSearchInput
+                excludeIds={invitedIds}
+                onPick={handleInviteUser}
+                placeholder="이름을 검색해 바로 초대해요"
+                emptyHint="앱에서 찾을 수 없어요. 아직 가입 전이라면 위 초대 링크를 공유해주세요."
+              />
             </div>
           </div>
         )}
