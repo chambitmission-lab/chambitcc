@@ -11,6 +11,10 @@ const DAY_LABELS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const
  * 줄마다 숫자가 붙으면 온도 막대가 잘 안 보인다. */
 const POP_ROW_THRESHOLD = 20
 
+/* 주일 비 안내는 이 확률부터 — 낮은 확률까지 알리면 양치기 소년이 된다.
+ * 홈 칩의 표시 기준(POP_VISIBLE_THRESHOLD)과 같은 값. */
+const SUNDAY_RAIN_THRESHOLD = 40
+
 /* 기온 → 색. 파랑(추움) ~ 빨강(더움)을 hue로 잇는다.
  * 막대 양끝 색이 실제 기온을 뜻하므로 줄끼리 비교가 된다. */
 const TEMP_MIN_SCALE = -5
@@ -37,8 +41,29 @@ const WeatherForecastSheet = ({
   currentTemperature,
 }: WeatherForecastSheetProps) => {
   const { t, language } = useLanguage()
-  const { data: days, isLoading, isError } = useWeeklyForecast()
+  const { data, isLoading, isError } = useWeeklyForecast()
+  const days = data?.days
   const dayLabels = language === 'en' ? DAY_LABELS_EN : DAY_LABELS_KO
+
+  /* "어제보다 N°" — 오늘·어제의 최고기온끼리 비교(실황과 섞으면 기준이 어긋난다).
+   * days[0]은 오늘이라는 가정은 아래 isToday(i === 0)와 같은 전제다. */
+  const yesterdayMax = data?.yesterdayMax ?? null
+  const delta =
+    yesterdayMax !== null && days?.length ? days[0].tempMax - yesterdayMax : null
+  const deltaNote =
+    delta === null
+      ? null
+      : delta > 0
+        ? t('homeWeatherDeltaWarmer').replace('{n}', String(delta))
+        : delta < 0
+          ? t('homeWeatherDeltaCooler').replace('{n}', String(-delta))
+          : t('homeWeatherDeltaSame')
+
+  /* 다가오는 주일 — 오늘이 주일이면 오늘 줄 강조가 이미 있으니 따로 표시하지 않는다 */
+  const sundayIndex = days?.findIndex((d, i) => i > 0 && d.weekday === 0) ?? -1
+  const sundayPop =
+    sundayIndex >= 0 ? days?.[sundayIndex]?.precipitationProbability ?? null : null
+  const showSundayRain = sundayPop !== null && sundayPop >= SUNDAY_RAIN_THRESHOLD
   /* 로딩 껍데기를 거쳐 왔다면 시트는 이미 올라와 있던 자리를 그대로 물려받는다 —
    * 진입 애니메이션을 다시 재생하면 시트가 두 번 튀어 오른다.
    * useState 초기화 함수는 StrictMode에서 두 번 불려 표시를 두 번 소비하므로
@@ -76,7 +101,12 @@ const WeatherForecastSheet = ({
         <div className="wf-header">
           <div>
             <h2 className="wf-title">{t('homeWeatherWeekTitle')}</h2>
-            <p className="wf-note">{t('homeWeatherWeekNote')}</p>
+            {/* 어제 대비 한 줄이 "오늘부터 7일"보다 판단에 쓸모 있다 — 있을 때만 교체 */}
+            <p className="wf-note">
+              {deltaNote
+                ? `${t('homeWeatherLocation')} · ${deltaNote}`
+                : t('homeWeatherWeekNote')}
+            </p>
           </div>
           <button
             type="button"
@@ -96,6 +126,7 @@ const WeatherForecastSheet = ({
 
           {days?.map((day, i) => {
             const isToday = i === 0
+            const isSunday = i === sundayIndex
             const showPop =
               day.precipitationProbability !== null &&
               day.precipitationProbability >= POP_ROW_THRESHOLD
@@ -112,9 +143,14 @@ const WeatherForecastSheet = ({
                 key={day.date}
                 className="wf-row"
                 data-today={isToday ? '' : undefined}
+                data-sunday={isSunday ? '' : undefined}
               >
                 <span className="wf-day">
-                  {isToday ? t('homeWeatherToday') : dayLabels[day.weekday]}
+                  {isToday
+                    ? t('homeWeatherToday')
+                    : isSunday
+                      ? t('homeWeatherSunday')
+                      : dayLabels[day.weekday]}
                 </span>
                 <span className="wf-emoji" aria-hidden>
                   {day.emoji}
@@ -151,6 +187,14 @@ const WeatherForecastSheet = ({
               </div>
             )
           })}
+
+          {/* 주일에 비 소식이 있을 때만 — 예배 가는 길 우산 챙김 안내 */}
+          {showSundayRain && (
+            <p className="wf-sunday-note">
+              <span aria-hidden>☔</span>
+              {t('homeWeatherSundayRain')}
+            </p>
+          )}
         </div>
       </div>
     </div>

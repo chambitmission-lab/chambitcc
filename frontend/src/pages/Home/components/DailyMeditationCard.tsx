@@ -382,6 +382,9 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               <span className="meditation-weather-temp">{weather.temperature}°</span>
               {showPop && (
                 <span className="meditation-weather-pop" aria-hidden>
+                  {/* 비·눈 라벨이 없으면(맑음·흐림인데 확률만 높음) 숫자가 습도로
+                    * 오독되기 쉽다 — 그때만 ☔로 강수확률임을 못박는다 */}
+                  {!weatherLabel && '☔ '}
                   {t('homeWeatherPop').replace('{n}', String(pop))}
                 </span>
               )}

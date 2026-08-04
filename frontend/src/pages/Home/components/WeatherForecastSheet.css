@@ -145,6 +145,17 @@
   font-weight: 800;
 }
 
+/* 다가오는 주일 — 교회 앱이므로 예배일이 목록에 묻히지 않게 라벨만 금색으로.
+ * 배경까지 칠하면 오늘 강조와 경쟁하므로 글자색으로 멈춘다. */
+.wf-row[data-sunday] .wf-day {
+  color: #b07714;
+  font-weight: 800;
+}
+
+[data-theme='dark'] .wf-row[data-sunday] .wf-day {
+  color: #e5b158;
+}
+
 .wf-emoji {
   font-size: 17px;
   text-align: center;
@@ -208,6 +219,21 @@
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.32),
     0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* 주일 비 안내 — 조건부 한 줄이라 조용한 인셋 스트립으로 충분하다 */
+.wf-sunday-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 8px 6px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--surface-inset);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-body);
 }
 
 .wf-empty {

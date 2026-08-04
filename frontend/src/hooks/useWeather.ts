@@ -15,13 +15,14 @@ const WEATHER_URL =
  * 같은 주기로 맞춰 불필요한 호출 없이 최신값을 유지한다. */
 const WEATHER_REFRESH_MS = 1000 * 60 * 15
 
-/* 주간 예보 — 오늘부터 7일. 칩을 눌러 시트를 열 때만 호출한다(초기 로딩 부담 0). */
+/* 주간 예보 — 오늘부터 7일. 칩을 눌러 시트를 열 때만 호출한다(초기 로딩 부담 0).
+ * past_days=1로 어제 하루를 함께 받아 "어제보다 N°" 비교에 쓴다(목록엔 안 나온다). */
 const FORECAST_DAYS = 7
 
 const FORECAST_URL =
   `https://api.open-meteo.com/v1/forecast?latitude=${CHURCH_LAT}&longitude=${CHURCH_LON}` +
   `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
-  `&forecast_days=${FORECAST_DAYS}&timezone=Asia%2FSeoul`
+  `&past_days=1&forecast_days=${FORECAST_DAYS}&timezone=Asia%2FSeoul`
 
 interface OpenMeteoResponse {
   current?: {
@@ -169,7 +170,13 @@ export interface ForecastDay {
   precipitationProbability: number | null
 }
 
-const fetchWeeklyForecast = async (): Promise<ForecastDay[]> => {
+export interface WeeklyForecast {
+  days: ForecastDay[]
+  /* 어제 최고기온 — "어제보다 N°" 비교용. 응답에 없으면 null */
+  yesterdayMax: number | null
+}
+
+const fetchWeeklyForecast = async (): Promise<WeeklyForecast> => {
   const response = await fetch(FORECAST_URL, { signal: AbortSignal.timeout(6_000) })
   if (!response.ok) throw new Error('Failed to fetch forecast')
   const data: OpenMeteoResponse = await response.json()
@@ -177,8 +184,15 @@ const fetchWeeklyForecast = async (): Promise<ForecastDay[]> => {
   const dates = daily?.time
   if (!dates?.length) throw new Error('Forecast payload is empty')
 
+  /* past_days=1이므로 첫 항목이 어제다 — 비교값만 뽑고 목록에서는 뺀다 */
+  let yesterdayMax: number | null = null
   const days: ForecastDay[] = []
   dates.forEach((date, i) => {
+    if (i === 0) {
+      const max = daily?.temperature_2m_max?.[0]
+      yesterdayMax = typeof max === 'number' ? Math.round(max) : null
+      return
+    }
     const code = daily?.weather_code?.[i]
     const tempMax = daily?.temperature_2m_max?.[i]
     const tempMin = daily?.temperature_2m_min?.[i]
@@ -206,7 +220,7 @@ const fetchWeeklyForecast = async (): Promise<ForecastDay[]> => {
     })
   })
   if (!days.length) throw new Error('No usable forecast days')
-  return days
+  return { days, yesterdayMax }
 }
 
 /* 오늘부터 7일 예보. 시트가 열릴 때 마운트되는 컴포넌트에서만 호출해
