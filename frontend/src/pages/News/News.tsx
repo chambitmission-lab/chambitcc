@@ -104,7 +104,12 @@ const News = () => {
 
         {/* 그룹 세그먼트 — 주보 / 새가족 */}
         <div className="px-4 pt-2 pb-1">
-          <div className="flex p-1 rounded-2xl bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]">
+          <SegmentTrack
+            count={SECTIONS.length}
+            index={SECTIONS.findIndex(s => s.key === section)}
+            className="flex p-1 rounded-2xl bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]"
+            markerClassName="rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_4px_14px_-4px_rgba(168,85,247,0.65)]"
+          >
             {SECTIONS.map(s => (
               <button
                 key={s.key}
@@ -112,9 +117,9 @@ const News = () => {
                 onClick={() => handleSectionChange(s.key)}
                 aria-pressed={section === s.key}
                 className={[
-                  'flex-1 h-10 rounded-xl text-[13px] font-bold transition-all',
+                  'relative z-10 flex-1 h-10 rounded-xl text-[13px] font-bold transition-colors duration-200',
                   section === s.key
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_4px_14px_-4px_rgba(168,85,247,0.65)]'
+                    ? 'text-white'
                     : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white',
                 ].join(' ')}
               >
@@ -122,7 +127,7 @@ const News = () => {
                 {s.label}
               </button>
             ))}
-          </div>
+          </SegmentTrack>
         </div>
 
         {/* 새가족 앨범 */}
@@ -131,7 +136,12 @@ const News = () => {
         {/* 주보 하위 탭 pill */}
         {section === 'bulletin' && (
           <div className="px-4 pt-3 pb-1">
-            <div className="inline-flex p-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]">
+            <SegmentTrack
+              count={2}
+              index={tab === 'image' ? 0 : 1}
+              className="inline-flex p-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]"
+              markerClassName="rounded-full bg-brand shadow-[0_4px_14px_-4px_var(--brand-glow)]"
+            >
               <TabPill active={tab === 'image'} onClick={() => setTab('image')}>
                 <span className="mr-1">🖼️</span>
                 이미지 주보
@@ -140,7 +150,7 @@ const News = () => {
                 <span className="mr-1">📄</span>
                 디지털 주보
               </TabPill>
-            </div>
+            </SegmentTrack>
           </div>
         )}
 
@@ -191,6 +201,35 @@ const News = () => {
   )
 }
 
+// ── Segment Track ────────────────────────────────
+// 선택 표시를 배경 페이드가 아니라 트랙 위를 미끄러지는 마커로 준다(/bible 구약·신약 세그먼트와 같은 감각).
+// 자식 버튼들은 flex-1 로 폭이 균등해야 마커 위치가 맞는다. 트랙 좌우 패딩은 0.25rem(p-1) 기준.
+const SegmentTrack = ({
+  count,
+  index,
+  className,
+  markerClassName,
+  children,
+}: {
+  count: number
+  index: number
+  className: string
+  markerClassName: string
+  children: React.ReactNode
+}) => (
+  <div className={`relative isolate ${className}`}>
+    <span
+      aria-hidden="true"
+      className={`absolute z-0 top-1 bottom-1 left-1 transition-transform duration-300 ease-[cubic-bezier(0.34,1.3,0.5,1)] will-change-transform motion-reduce:transition-none ${markerClassName}`}
+      style={{
+        width: `calc((100% - 0.5rem) / ${count})`,
+        transform: `translateX(${Math.max(index, 0) * 100}%)`,
+      }}
+    />
+    {children}
+  </div>
+)
+
 // ── Tab Pill ─────────────────────────────────────
 const TabPill = ({
   active,
@@ -205,10 +244,8 @@ const TabPill = ({
     type="button"
     onClick={onClick}
     className={[
-      'px-4 h-9 rounded-full text-[12.5px] font-bold transition-all',
-      active
-        ? 'bg-brand text-white shadow-[0_4px_14px_-4px_var(--brand-glow)]'
-        : 'text-gray-600 dark:text-white/65 hover:text-gray-900 dark:hover:text-white',
+      'relative z-10 flex-1 px-4 h-9 rounded-full text-[12.5px] font-bold whitespace-nowrap transition-colors duration-200',
+      active ? 'text-white' : 'text-gray-600 dark:text-white/65 hover:text-gray-900 dark:hover:text-white',
     ].join(' ')}
   >
     {children}
