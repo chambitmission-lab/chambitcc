@@ -94,6 +94,7 @@ const BookJourneyPath = ({
         readingNoCh: 'Reading',
         chapters: (n: number) => `${n} ch`,
         here: 'You are here',
+        next: 'Up next',
         jump: 'My position',
       }
     : {
@@ -102,6 +103,7 @@ const BookJourneyPath = ({
         readingNoCh: '읽는 중',
         chapters: (n: number) => `${n}장`,
         here: '지금 여기',
+        next: '다음 순서',
         jump: '지금 위치로',
       }
 
@@ -122,6 +124,19 @@ const BookJourneyPath = ({
     })
     return bestNumber
   }, [books, resumeMap])
+
+  // 다음 정거장 — 현재 위치 바로 뒤에서 아직 완독하지 않은 첫 책 하나.
+  // 순서 강제는 아니지만 "여기 다음은 어디"를 눈으로 집어 주는 힌트라 딱 하나만 밝힌다.
+  // 읽은 기록이 아직 없으면 목록의 첫 미완독 책이 곧 출발점이 된다.
+  const nextBookNumber = useMemo(() => {
+    const startIdx =
+      currentBookNumber === undefined
+        ? 0
+        : books.findIndex(b => b.book_number === currentBookNumber) + 1
+    if (startIdx <= 0 && currentBookNumber !== undefined) return undefined
+    const next = books.slice(startIdx).find(b => (infoMap.get(b.book_number)?.rate ?? 0) < 100)
+    return next?.book_number
+  }, [books, infoMap, currentBookNumber])
 
   // 레이아웃 계산 — 이정표를 사이사이 끼워 넣으며 y를 누적하고,
   // 책 노드 x는 사인 곡선(주기 6)으로 좌우를 오가는 뱀길을 그린다
@@ -322,6 +337,7 @@ const BookJourneyPath = ({
         const hasProgress = rate > 0
         const resume = resumeMap?.get(book.book_number)
         const isCurrent = book.book_number === currentBookNumber
+        const isNext = book.book_number === nextBookNumber
 
         let meta: string
         let metaTone: 'brand' | 'muted' = 'brand'
@@ -351,7 +367,7 @@ const BookJourneyPath = ({
             key={item.key}
             type="button"
             ref={isCurrent ? currentNodeRef : undefined}
-            className={`bjp-row bjp-row--${side} bjp-row--${state}${isCurrent ? ' bjp-row--current' : ''}`}
+            className={`bjp-row bjp-row--${side} bjp-row--${state}${isCurrent ? ' bjp-row--current' : ''}${isNext ? ' bjp-row--next' : ''}`}
             style={{
               top: item.top,
               height: BOOK_H,
@@ -359,7 +375,7 @@ const BookJourneyPath = ({
               ...horizontal,
               animationDelay: `${Math.min(bookIdx * 18, 360)}ms`,
             }}
-            aria-label={`${book.book_name_ko} · ${meta}${isCurrent ? ` · ${t.here}` : ''}`}
+            aria-label={`${book.book_name_ko} · ${meta}${isCurrent ? ` · ${t.here}` : ''}${isNext ? ` · ${t.next}` : ''}`}
             onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
           >
             <span

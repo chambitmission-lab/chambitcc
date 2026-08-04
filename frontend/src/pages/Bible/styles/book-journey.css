@@ -113,6 +113,27 @@
   box-shadow: 0 4px 14px -4px rgba(49, 130, 246, 0.35);
 }
 
+/* 아직 한 절도 읽지 않은 정거장 — 진행률 링이 놓일 자리에 흐린 트랙만 미리 깔아 둔다.
+   1.5px 테두리 원(56px)과 링 안쪽 원(49px)이 섞여 노드 크기가 들쭉날쭉해 보이던 것을
+   0%짜리 링으로 통일: 이제 모든 노드의 외곽 지름과 안쪽 원이 상태와 무관하게 같다. */
+.bjp-row--todo .bjp-node {
+  background: rgba(120, 120, 130, 0.2);
+  padding: 3.5px;
+}
+
+[data-theme="dark"] .bjp-row--todo .bjp-node {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.bjp-row--todo .bjp-node__inner {
+  border: none;
+}
+
+/* 테두리가 사라진 만큼 hover 피드백은 트랙 자체가 받는다 */
+.bjp-row--todo:hover .bjp-node {
+  background: rgba(49, 130, 246, 0.35);
+}
+
 .bjp-node__abbrev {
   font-size: 0.82rem;
   font-weight: 700;
@@ -210,6 +231,39 @@
   transform: translateX(-50%);
   border: 4px solid transparent;
   border-top-color: var(--brand);
+}
+
+/* ── 다음 순서 ───────────────────────────────────────────────
+   현재 위치 바로 다음 미완독 책 딱 하나만 한 단계 밝힌다.
+   '지금 여기'(펄스+칩)와 경쟁하지 않도록 정적인 톤 차이만 준다 — 애니메이션 없음. */
+.bjp-row--next .bjp-node__inner {
+  box-shadow: 0 3px 12px -5px rgba(49, 130, 246, 0.5);
+}
+
+[data-theme="dark"] .bjp-row--next .bjp-node__inner {
+  background: #24242c;
+}
+
+/* 안 읽은 상태일 때: 흐린 회색 트랙을 옅은 브랜드 톤으로 바꿔 "여기부터"를 가리킨다 */
+.bjp-row--next.bjp-row--todo .bjp-node {
+  background: rgba(49, 130, 246, 0.3);
+}
+
+[data-theme="dark"] .bjp-row--next.bjp-row--todo .bjp-node {
+  background: rgba(69, 147, 252, 0.34);
+}
+
+.bjp-row--next.bjp-row--todo:hover .bjp-node,
+[data-theme="dark"] .bjp-row--next.bjp-row--todo:hover .bjp-node {
+  background: rgba(49, 130, 246, 0.5);
+}
+
+.bjp-row--next .bjp-node__abbrev {
+  color: var(--brand);
+}
+
+.bjp-row--next .bjp-label__meta--muted {
+  opacity: 1;
 }
 
 /* ── 라벨 ────────────────────────────────────────────────── */
