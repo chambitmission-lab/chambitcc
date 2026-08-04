@@ -19,6 +19,9 @@ import type { VerseBookmark } from '../../../api/bibleBookmark'
 import { buildReference, copyVerses, type VerseCopyTarget } from './verseCopy'
 import VerseShareSheet from './VerseShareSheet'
 
+/** 절 번호 길게 누르기 안내를 이미 본 적 있는지 (한 번 보면 다시 안 뜬다) */
+const HOLD_HINT_KEY = 'bible_hold_read_hint_v1'
+
 interface VerseListProps {
   chapterData: InfiniteData<BibleChapterPaginatedResponse> | undefined
   isLoading: boolean
@@ -71,6 +74,23 @@ const VerseList = ({
   // 공유 시트 — 단일 절(VerseItem)과 여러 절 선택 바가 같은 시트 하나를 공유한다.
   // 절마다 시트를 두면 여러 개가 겹쳐 뜨고 뒤로가기 스택도 꼬인다.
   const [shareTarget, setShareTarget] = useState<VerseCopyTarget | null>(null)
+  // '절 번호 꾹 눌러 읽음 표시' 안내 — 처음 한 번만. 제스처는 눈에 보이지 않아
+  // 알려주지 않으면 아무도 쓰지 않는다. 한 번 써 보면 자동으로 사라진다.
+  const [showHoldHint, setShowHoldHint] = useState(() => {
+    try {
+      return localStorage.getItem(HOLD_HINT_KEY) !== 'done'
+    } catch {
+      return false
+    }
+  })
+  const dismissHoldHint = useCallback(() => {
+    setShowHoldHint(false)
+    try {
+      localStorage.setItem(HOLD_HINT_KEY, 'done')
+    } catch {
+      // 사파리 프라이빗 모드 등 저장 불가 — 안내만 닫고 넘어간다
+    }
+  }, [])
   const queryClient = useQueryClient()
   const updateVerseMutation = useOptimisticUpdateVerse()
 
@@ -202,6 +222,8 @@ const VerseList = ({
       if (nextRead) {
         await markAsReadMutation.mutateAsync({ verseId: verse.id, similarity: 1 })
         showToast(`${verse.verse}절을 읽음 처리했습니다`, 'success')
+        // 한 번 해봤으면 안내는 역할을 다했다
+        dismissHoldHint()
       } else {
         await unmarkAsReadMutation.mutateAsync(verse.id)
         showToast(`${verse.verse}절 읽음을 취소했습니다`, 'info')
@@ -658,6 +680,49 @@ const VerseList = ({
           <span style={{ fontWeight: 600, color: 'var(--ig-primary)', minWidth: '2.5rem', textAlign: 'right' }}>
             {Math.round(progress)}%
           </span>
+        </div>
+      )}
+
+      {/* 길게 누르기 안내 — 로그인 사용자에게 처음 한 번만 */}
+      {showHoldHint && isLoggedIn() && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.5rem 0.75rem 0.5rem 0.875rem',
+            marginBottom: '0.875rem',
+            background: 'var(--brand-soft)',
+            border: '1px solid var(--brand-soft-strong)',
+            borderRadius: '999px',
+            fontSize: '0.8125rem',
+            color: 'var(--ig-secondary-text)',
+            maxWidth: '42rem',
+            marginInline: 'auto',
+          }}
+        >
+          <span className="material-icons-round" style={{ fontSize: '1.0625rem', color: 'var(--brand)', flexShrink: 0 }}>
+            touch_app
+          </span>
+          <span style={{ flex: 1, minWidth: 0, lineHeight: 1.4 }}>
+            <strong style={{ color: 'var(--brand)', fontWeight: 700 }}>절 번호를 꾹 누르면</strong> 바로 읽음 표시돼요
+          </span>
+          <button
+            type="button"
+            onClick={dismissHoldHint}
+            style={{
+              flexShrink: 0,
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--ig-secondary-text)',
+              fontWeight: 700,
+              fontSize: '0.8125rem',
+              cursor: 'pointer',
+              padding: '0.2rem 0.4rem',
+            }}
+          >
+            확인
+          </button>
         </div>
       )}
 

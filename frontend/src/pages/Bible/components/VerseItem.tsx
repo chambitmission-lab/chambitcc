@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, Fragment, type ReactNode } from 'react'
+import { useState, useEffect, useMemo, useRef, Fragment, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react'
 import type { BibleVerse } from '../../../types/bible'
 import type { WordNote } from '../../../api/bibleWordNote'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
@@ -319,6 +319,59 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
           }
         : {}
 
+  // ── 절 번호 길게 누르기 = 읽음 표시 ──────────────────────────────────
+  // 액션바를 열고 체크 버튼까지 두 번 누르던 흐름을 한 동작으로 줄인다.
+  // 짧게 탭하면 기존대로 액션바가 열려서 다른 기능은 그대로 쓸 수 있다.
+  const HOLD_TO_READ_MS = 600
+  const holdTimerRef = useRef<number | null>(null)
+  // 길게 누르기가 성사되면 뒤따라오는 click이 액션바를 열지 않도록 삼킨다
+  const holdFiredRef = useRef(false)
+  const holdOriginRef = useRef<{ x: number; y: number } | null>(null)
+  const [isHoldingNumber, setIsHoldingNumber] = useState(false)
+
+  // 선택/단어 모드나 음성 낭독 중엔 번호 탭이 다른 의미를 가지므로 제스처를 끈다
+  const canHoldToRead = !!(loggedIn && onToggleRead && !selectionMode && !wordSelectMode && !isReading)
+
+  const clearHold = () => {
+    if (holdTimerRef.current !== null) {
+      window.clearTimeout(holdTimerRef.current)
+      holdTimerRef.current = null
+    }
+    holdOriginRef.current = null
+    setIsHoldingNumber(false)
+  }
+
+  // 절이 화면에서 사라질 때(가상 스크롤/장 이동) 타이머가 남지 않도록
+  useEffect(() => () => {
+    if (holdTimerRef.current !== null) window.clearTimeout(holdTimerRef.current)
+  }, [])
+
+  const handleHoldStart = (e: ReactPointerEvent<HTMLSpanElement>) => {
+    if (!canHoldToRead || isTogglingRead) return
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    holdFiredRef.current = false
+    holdOriginRef.current = { x: e.clientX, y: e.clientY }
+    setIsHoldingNumber(true)
+    holdTimerRef.current = window.setTimeout(() => {
+      holdTimerRef.current = null
+      holdFiredRef.current = true
+      setIsHoldingNumber(false)
+      // 화면을 안 봐도 "됐다"를 알 수 있게 한 번만 짧게.
+      // Android 전용 — iOS는 vibrate 미지원이라 조용히 무시된다.
+      if ('vibrate' in navigator) navigator.vibrate(18)
+      onToggleRead?.(verse, !isRead)
+    }, HOLD_TO_READ_MS)
+  }
+
+  // 손가락이 움직이면 스크롤 의도로 보고 취소 (pointercancel이 안 오는 브라우저 대비)
+  const handleHoldMove = (e: ReactPointerEvent<HTMLSpanElement>) => {
+    const origin = holdOriginRef.current
+    if (!origin) return
+    if (Math.abs(e.clientX - origin.x) > 10 || Math.abs(e.clientY - origin.y) > 10) {
+      clearHold()
+    }
+  }
+
   // 이미 읽은 구절은 읽기 시작 방지
   const handleStartReading = () => {
     if (isRead) {
@@ -402,17 +455,54 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
             (읽은 절은 행 전체 흐림 + 초록 틴트가 함께 깔려 상태가 충분히 읽힌다) */}
         <span
           className="bible-verse-number"
-          title={isRead ? '읽음 완료' : undefined}
-          style={
-            isRead
-              ? {
-                  color: 'var(--ig-success)',
-                  animation: 'verseNumberPop 0.4s ease-out',
-                }
-              : undefined
+          title={
+            canHoldToRead
+              ? isRead
+                ? '읽음 완료 — 길게 누르면 읽음 취소'
+                : '길게 누르면 읽음 표시'
+              : isRead
+                ? '읽음 완료'
+                : undefined
           }
+          // 길게 눌러 읽음 처리 — 손가락을 떼거나 스크롤하면 취소된다
+          onPointerDown={handleHoldStart}
+          onPointerMove={handleHoldMove}
+          onPointerUp={clearHold}
+          onPointerCancel={clearHold}
+          onPointerLeave={clearHold}
+          // 길게 누르기가 성사된 뒤의 click은 액션바를 열지 않도록 여기서 끊는다
+          onClick={(e) => {
+            if (holdFiredRef.current) {
+              holdFiredRef.current = false
+              e.preventDefault()
+              e.stopPropagation()
+            }
+          }}
+          // 길게 누를 때 모바일의 텍스트 선택/콜아웃 메뉴가 뜨지 않도록
+          onContextMenu={(e) => { if (canHoldToRead) e.preventDefault() }}
+          style={{
+            ...(isRead
+              ? { color: 'var(--ig-success)', animation: 'verseNumberPop 0.4s ease-out' }
+              : null),
+            ...(canHoldToRead
+              ? {
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  WebkitTouchCallout: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                }
+              : null),
+          }}
         >
-          {verse.verse}
+          {/* 누르고 있는 동안 번호 자리가 브랜드 색으로 차오른다 — 언제 완료되는지 보이게 */}
+          {isHoldingNumber && (
+            <span
+              aria-hidden
+              className="verse-hold-fill"
+              style={{ animationDuration: `${HOLD_TO_READ_MS}ms` }}
+            />
+          )}
+          <span style={{ position: 'relative' }}>{verse.verse}</span>
         </span>
         <span
           className={`bible-verse-text ${highlightBg && !isReading ? 'is-highlighted' : ''}`}

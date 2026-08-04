@@ -180,6 +180,59 @@
   font-weight: 800;
 }
 
+/* 절 번호 길게 누르기(= 읽음 표시)의 탭 타깃 확대.
+   번호 글리프는 13px밖에 안 돼 그대로면 손가락으로 집기 어렵다.
+   레이아웃을 건드리지 않도록 보이지 않는 오버레이로만 넓힌다. */
+.bible-verse-number::before {
+  content: '';
+  position: absolute;
+  inset: -6px -10px -6px -8px;
+}
+
+/* 누르고 있는 동안 번호 자리가 왼쪽에서 오른쪽으로 차오른다 —
+   "몇 초 더 있으면 되는지"가 보여야 길게 누르기가 답답하지 않다.
+   채움 속도는 인라인 animation-duration(=HOLD_TO_READ_MS)을 따른다. */
+.verse-hold-fill {
+  position: absolute;
+  left: -5px;
+  right: -6px;
+  top: 50%;
+  height: 22px;
+  margin-top: -11px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.verse-hold-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--brand-soft-strong);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation-name: verseHoldFill;
+  animation-duration: inherit;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes verseHoldFill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* 손떨림·저사양 기기 배려: 채움 애니메이션 대신 정지된 틴트만 */
+@media (prefers-reduced-motion: reduce) {
+  .verse-hold-fill::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
 /* 본문 — 크기/줄간격/서체는 Aa 읽기 설정(ReaderSettings)이 :root에 심는
    CSS 변수를 따른다. 변수가 없으면 기존 기본값과 동일하게 렌더된다. */
 .bible-verse-text {
