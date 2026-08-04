@@ -219,11 +219,14 @@ const ReaderSettings = () => {
 
           <p className="reader-settings__hint">
             {copyPrefs.style === 'textOnly'
-              ? '태초에 하나님이 천지를 창조하시니라'
+              ? '“태초에 하나님이 천지를 창조하시니라”'
               : copyPrefs.style === 'refBefore'
-                ? '창세기 1:1\n태초에 하나님이 천지를 창조하시니라'
-                : '태초에 하나님이 천지를 창조하시니라\n— 창세기 1:1'}
+                ? '창세기 1:1 · 개역개정\n\n“태초에 하나님이 천지를 창조하시니라”'
+                : '“태초에 하나님이 천지를 창조하시니라”\n\n창세기 1:1 · 개역개정'}
             {copyPrefs.withLink ? '\n(+ 바로 열리는 링크)' : ''}
+          </p>
+          <p className="reader-settings__hint">
+            여러 절을 문단으로 흘릴지, 절 번호를 붙일지는 공유 버튼의 미리보기에서 바꿀 수 있어요.
           </p>
         </div>
       )}

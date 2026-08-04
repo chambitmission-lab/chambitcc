@@ -16,7 +16,8 @@ import { useChapterCommentaries } from '../../../hooks/useBibleCommentary'
 import { useChapterWordNotes, groupWordNotesByVerse } from '../../../hooks/useBibleWordNote'
 import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
-import { buildReference, copyVerses, shareVerses, type VerseCopyTarget } from './verseCopy'
+import { buildReference, copyVerses, type VerseCopyTarget } from './verseCopy'
+import VerseShareSheet from './VerseShareSheet'
 
 interface VerseListProps {
   chapterData: InfiniteData<BibleChapterPaginatedResponse> | undefined
@@ -67,6 +68,9 @@ const VerseList = ({
   // 여러 절 선택 — 액션바의 '여러 절' 버튼으로 진입, 탭으로 절을 담고 하단 바에서 복사/공유
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<number[]>([])
+  // 공유 시트 — 단일 절(VerseItem)과 여러 절 선택 바가 같은 시트 하나를 공유한다.
+  // 절마다 시트를 두면 여러 개가 겹쳐 뜨고 뒤로가기 스택도 꼬인다.
+  const [shareTarget, setShareTarget] = useState<VerseCopyTarget | null>(null)
   const queryClient = useQueryClient()
   const updateVerseMutation = useOptimisticUpdateVerse()
 
@@ -685,6 +689,7 @@ const VerseList = ({
                   isSelected={selectedIdSet.has(verse.id)}
                   onToggleSelect={() => toggleSelect(verse.id)}
                   onEnterSelection={() => enterSelection(verse)}
+                  onShare={setShareTarget}
                 />
               ))}
             </div>
@@ -883,7 +888,7 @@ const VerseList = ({
 
           <button
             type="button"
-            onClick={() => shareVerses(selectionTarget)}
+            onClick={() => setShareTarget(selectionTarget)}
             className="verse-action-btn"
             disabled={!selectedVerses.length}
             title="선택한 절 공유"
@@ -980,6 +985,11 @@ const VerseList = ({
             menu_book
           </span>
         </button>
+      )}
+
+      {/* 공유 시트 — 보내기 전 미리보기 (텍스트/이미지 카드/링크) */}
+      {shareTarget && (
+        <VerseShareSheet target={shareTarget} onClose={() => setShareTarget(null)} />
       )}
 
       {/* 해석 패널 */}

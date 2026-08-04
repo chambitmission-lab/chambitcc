@@ -11,7 +11,7 @@ import VerseBookmarkModal, { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 import VerseNoteSheet from './VerseNoteSheet'
 import WordNoteSheet from './WordNoteSheet'
 import { HeartIcon } from '../../../components/icons/ActionIcons'
-import { copyVerses, shareVerses } from './verseCopy'
+import { copyVerses, shareVerses, type VerseCopyTarget } from './verseCopy'
 
 interface VerseItemProps {
   verse: BibleVerse
@@ -47,6 +47,8 @@ interface VerseItemProps {
   onToggleSelect?: () => void
   // 액션바의 '여러 절' 버튼 — 이 절을 첫 선택으로 두고 선택 모드에 진입
   onEnterSelection?: () => void
+  // 공유 — 부모(VerseList)가 공유 시트를 띄운다. 없으면 네이티브 공유로 폴백.
+  onShare?: (target: VerseCopyTarget) => void
 }
 
 /** 토큰 앞뒤의 문장부호를 떼고 단어만 남긴다 ("긍휼히," → "긍휼히") */
@@ -75,7 +77,7 @@ const resolveNoteRange = (note: WordNote, text: string): [number, number] | null
   return idx >= 0 ? [idx, idx + note.word.length] : null
 }
 
-const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSuccess, onEdit, onToggleRead, isTogglingRead, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange, wordNotes, chapterBookmark, selectionMode, isSelected, onToggleSelect, onEnterSelection }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSuccess, onEdit, onToggleRead, isTogglingRead, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange, wordNotes, chapterBookmark, selectionMode, isSelected, onToggleSelect, onEnterSelection, onShare }: VerseItemProps) => {
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
@@ -780,9 +782,13 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
               </span>
             </button>
 
-            {/* 나눔: 공유 — 카톡 등 네이티브 공유 시트 (미지원이면 복사로 폴백) */}
+            {/* 나눔: 공유 — 미리보기 시트를 띄운다 (부모가 없으면 네이티브 공유로 폴백) */}
             <button
-              onClick={() => { onActionsOpenChange(false); shareVerses(copyTarget) }}
+              onClick={() => {
+                onActionsOpenChange(false)
+                if (onShare) onShare(copyTarget)
+                else shareVerses(copyTarget)
+              }}
               className="verse-action-btn"
               style={{ background: 'var(--brand-soft)', border: '1px solid var(--brand-soft-strong)' }}
               title="구절 공유"

@@ -1,5 +1,9 @@
 {
   "rewrites": [
+    {
+      "source": "/b/:path*",
+      "destination": "https://port-0-chambit-ml1vrmry20fb0cc0.sel3.cloudtype.app/b/:path*"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

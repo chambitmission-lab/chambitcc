@@ -25,6 +25,10 @@ const Home = lazy(() => import('./pages/Home/Home'))
 const AchievementModalPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/AchievementModalPreview'))
   : null
+// dev 전용 — 구절 공유 시트 미리보기 (백엔드 없이 포맷/카드를 확인)
+const VerseSharePreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Bible/components/VerseSharePreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const History = lazy(menuRouteLoaders['/history'])
 const TV = lazy(() => import('./pages/TV/TV'))
@@ -262,6 +266,9 @@ function App() {
                 <Route path="/growth" element={<Growth />} />
                 {AchievementModalPreview && (
                   <Route path="/dev/achievements" element={<AchievementModalPreview />} />
+                )}
+                {VerseSharePreview && (
+                  <Route path="/dev/verse-share" element={<VerseSharePreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
