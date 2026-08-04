@@ -6,6 +6,7 @@ import { useMyGroups } from '../../hooks/useGroups'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
 import { isAuthenticated } from '../../utils/auth'
 import groupPixelArt from '../../assets/hero/group-pixel.png'
+import groupJoinPixelArt from '../../assets/hero/group-join-pixel.png'
 import type { PrayerGroup } from '../../types/prayer'
 
 const MyGroups = () => {
@@ -285,6 +286,22 @@ const ActionCard = ({ icon, label, sublabel, variant, onClick }: ActionCardProps
       className="relative overflow-hidden rounded-2xl p-4 text-left bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] hover:border-[var(--brand-soft-strong)] hover:-translate-y-0.5 active:translate-y-0 transition-all"
     >
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
+      {/* 배경 일러스트 — 손 흔드는 교인 도트아트. 흰 카드에서도 보이도록 mask로 브랜드 색을 입힌다 */}
+      <span
+        className="absolute inset-0 pointer-events-none opacity-[0.16] dark:opacity-[0.26]"
+        style={{
+          backgroundColor: 'var(--brand)',
+          maskImage: `url(${groupJoinPixelArt})`,
+          WebkitMaskImage: `url(${groupJoinPixelArt})`,
+          maskSize: 'auto 100%',
+          WebkitMaskSize: 'auto 100%',
+          maskPosition: 'right bottom',
+          WebkitMaskPosition: 'right bottom',
+          maskRepeat: 'no-repeat',
+          WebkitMaskRepeat: 'no-repeat',
+        }}
+        aria-hidden
+      />
       <div className="relative">
         <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand mb-2.5">
           {icon}
