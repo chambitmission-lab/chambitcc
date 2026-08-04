@@ -15,6 +15,7 @@ export interface MoodPalette {
   ringFrom: string        // 타이머 그라데이션 시작 (svg stop)
   ringTo: string          // 타이머 그라데이션 끝
   buttonGradient: string  // 메인 버튼 그라데이션
+  greetingKey: string     // 설정 화면 시간대별 인사말 (prayer i18n 키)
 }
 
 const PALETTES: Record<TimeOfDay, MoodPalette> = {
@@ -29,6 +30,7 @@ const PALETTES: Record<TimeOfDay, MoodPalette> = {
     ringFrom: '#6366f1',
     ringTo: '#38bdf8',
     buttonGradient: 'from-indigo-500 to-sky-500',
+    greetingKey: 'focusGreetingDawn',
   },
   morning: {
     id: 'morning',
@@ -41,6 +43,7 @@ const PALETTES: Record<TimeOfDay, MoodPalette> = {
     ringFrom: '#f59e0b',
     ringTo: '#fcd34d',
     buttonGradient: 'from-amber-500 to-orange-400',
+    greetingKey: 'focusGreetingMorning',
   },
   day: {
     id: 'day',
@@ -53,6 +56,7 @@ const PALETTES: Record<TimeOfDay, MoodPalette> = {
     ringFrom: '#06b6d4',
     ringTo: '#5eead4',
     buttonGradient: 'from-cyan-500 to-teal-400',
+    greetingKey: 'focusGreetingDay',
   },
   dusk: {
     id: 'dusk',
@@ -65,6 +69,7 @@ const PALETTES: Record<TimeOfDay, MoodPalette> = {
     ringFrom: '#f97316',
     ringTo: '#f43f5e',
     buttonGradient: 'from-orange-500 to-rose-500',
+    greetingKey: 'focusGreetingDusk',
   },
   night: {
     id: 'night',
@@ -78,6 +83,7 @@ const PALETTES: Record<TimeOfDay, MoodPalette> = {
     ringFrom: '#a855f7',
     ringTo: '#ec4899',
     buttonGradient: 'from-purple-500 to-pink-500',
+    greetingKey: 'focusGreetingNight',
   },
 }
 

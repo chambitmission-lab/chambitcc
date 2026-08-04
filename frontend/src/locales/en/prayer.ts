@@ -56,6 +56,19 @@ export const prayer = {
   // One-tap restart with last setup
   quickStartTitle: 'Start like last time',
 
+  // Setup screen redesign — time-of-day greeting + candle concept
+  focusGreetingDawn: 'In the stillness of dawn',
+  focusGreetingMorning: 'Begin your day with the Lord',
+  focusGreetingDay: 'Pause for a moment today',
+  focusGreetingDusk: 'At the close of the day',
+  focusGreetingNight: 'A quiet night, alone with God',
+  focusGreetingSub: 'Like lighting a candle, make room in your heart',
+  stayHowLong: 'How long will you stay?',
+  helpersTitle: 'Things to help you pray',
+  helpersNoneSummary: 'Quietly, without guidance',
+  enterPrayerCta: 'Enter your place of prayer',
+  freePrayerFallback: 'As your heart leads',
+
   // Exit sheet (partial session)
   exitSheetTitle: 'Finish praying?',
   exitSheetElapsed: "You've stayed {minutes} min so far",

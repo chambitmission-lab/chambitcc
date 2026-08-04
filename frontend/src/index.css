@@ -377,6 +377,64 @@ body {
   animation: breath-fade 5s ease-in-out infinite;
 }
 
+/* ── 집중 기도: 촛불 히어로 ── */
+/* 불꽃 흔들림 — 바닥을 축으로 미세하게 키가 변하며 좌우로 기운다 */
+@keyframes candle-flicker {
+  0%, 100% { transform: translateX(-50%) scaleY(1) rotate(-1.2deg); }
+  20% { transform: translateX(calc(-50% + 0.6px)) scaleY(1.08) rotate(1.6deg); }
+  40% { transform: translateX(calc(-50% - 0.5px)) scaleY(0.94) rotate(-0.9deg); }
+  60% { transform: translateX(-50%) scaleY(1.05) rotate(0.8deg); }
+  80% { transform: translateX(calc(-50% + 0.4px)) scaleY(0.97) rotate(-1.6deg); }
+}
+
+.candle-flame-outer {
+  border-radius: 50% 50% 42% 42% / 72% 72% 28% 28%;
+  background: linear-gradient(
+    to top,
+    rgba(251, 146, 60, 0.95) 0%,
+    rgba(251, 191, 36, 0.95) 45%,
+    rgba(254, 240, 199, 0.98) 100%
+  );
+  filter: blur(0.5px) drop-shadow(0 0 14px rgba(251, 146, 60, 0.55));
+  transform-origin: 50% 100%;
+  animation: candle-flicker 3.2s ease-in-out infinite;
+}
+
+.candle-flame-core {
+  border-radius: 50% 50% 45% 45% / 70% 70% 30% 30%;
+  background: linear-gradient(to top, rgba(255, 237, 213, 0.9), #fffbeb);
+  filter: blur(0.4px);
+  transform-origin: 50% 100%;
+  animation: candle-flicker 2.6s ease-in-out infinite reverse;
+}
+
+/* 촛불 할로 호흡 */
+@keyframes candle-halo {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.07); }
+}
+
+.animate-candle-halo {
+  animation: candle-halo 5s ease-in-out infinite;
+}
+
+/* 불꽃 주위로 떠오르는 빛 입자 */
+@keyframes mote-rise {
+  0% { opacity: 0; transform: translateY(8px) translateX(0) scale(0.6); }
+  20% { opacity: 0.75; }
+  70% { opacity: 0.3; }
+  100% { opacity: 0; transform: translateY(-64px) translateX(var(--mote-drift, 6px)) scale(1); }
+}
+
+.animate-mote-rise {
+  animation: mote-rise var(--mote-dur, 7s) linear infinite;
+}
+
+/* 집중 기도 화면의 명조 타이포 — 성경 읽기와 같은 Noto Serif KR (index.html에서 로드) */
+.font-serif-kr {
+  font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', Georgia, serif;
+}
+
 /* 오디오북 실시간 생성 — 동방박사가 별을 따라가듯, 별이 천천히 길을 가로지른다.
    총길이를 모르는 스트리밍 구간을 "별똥별의 동행"으로 표현(양끝에서 살짝 페이드). */
 @keyframes bible-star-travel {

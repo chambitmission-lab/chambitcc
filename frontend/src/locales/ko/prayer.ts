@@ -56,6 +56,19 @@ export const prayer = {
   // 지난 설정 원탭 재시작
   quickStartTitle: '지난 기도 그대로 시작',
 
+  // 설정 화면 개편 — 시간대별 인사 + 촛불 컨셉
+  focusGreetingDawn: '이 새벽, 고요 속에서',
+  focusGreetingMorning: '하루의 시작을 주님과 함께',
+  focusGreetingDay: '분주한 하루, 잠시 멈추어요',
+  focusGreetingDusk: '하루의 끝자락, 노을 앞에서',
+  focusGreetingNight: '고요한 밤, 주님과 단 둘이',
+  focusGreetingSub: '촛불을 켜듯, 마음의 자리를 마련해보세요',
+  stayHowLong: '얼마나 머무를까요?',
+  helpersTitle: '기도를 돕는 것들',
+  helpersNoneSummary: '안내 없이, 조용히',
+  enterPrayerCta: '기도의 자리로 들어가기',
+  freePrayerFallback: '마음 가는 대로',
+
   // 기도 중 이탈 시트 (부분 기록)
   exitSheetTitle: '기도를 마칠까요?',
   exitSheetElapsed: '지금까지 {minutes}분 머물렀어요',

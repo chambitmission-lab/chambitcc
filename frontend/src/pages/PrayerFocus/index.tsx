@@ -8,6 +8,7 @@ import VerseDisplay from './VerseDisplay'
 import TimerControls from './TimerControls'
 import SessionComplete from './SessionComplete'
 import RitualIntro from './RitualIntro'
+import CandleHero from './CandleHero'
 import MidPrayerVerse from './MidPrayerVerse'
 import ExitSheet from './ExitSheet'
 import SharedIntercession from './SharedIntercession'
@@ -42,9 +43,11 @@ const PrayerFocus = () => {
   const lastSetup = useMemo(() => loadLastSetup(), [])
 
   const [stage, setStage] = useState<Stage>('setup')
-  const [selectedMinutes, setSelectedMinutes] = useState<number | null>(null)
+  // 시간은 항상 선택돼 있다 — 마지막 설정 또는 15분(조용히 집중하기)이 기본
+  const [selectedMinutes, setSelectedMinutes] = useState<number>(lastSetup?.minutes ?? 15)
   const [selectedTheme, setSelectedTheme] = useState<PrayerTheme | null>(null)
   const [ambienceId, setAmbienceId] = useState<string>('silent')
+  const [helpersOpen, setHelpersOpen] = useState(false)
   const [showMidVerse, setShowMidVerse] = useState(false)
   const [guidedMode, setGuidedMode] = useState(false)
   const [chimeOn, setChimeOn] = useState(true)
@@ -152,8 +155,8 @@ const PrayerFocus = () => {
   const ritualQuoteKey = selectedTheme?.startQuoteKey
   const ritualQuoteRefKey = selectedTheme?.startQuoteRefKey
 
-  const handlePickTime = (minutes: number) => {
-    setSelectedMinutes(minutes)
+  // 하단 CTA — 선택을 마치고 진입 의식으로
+  const handleEnter = () => {
     setStage('ritual')
   }
 
@@ -215,9 +218,8 @@ const PrayerFocus = () => {
     setShowExitSheet(false)
     setEarlyFinishSeconds(null)
     ambience.stop()
+    // 시간/주제 선택은 유지한 채 설정 화면으로 — 다시 시작하기 편하도록
     setStage('setup')
-    setSelectedMinutes(null)
-    setSelectedTheme(null)
   }
 
   // ── 이탈 흐름 — 기도 중엔 OS confirm 대신 인앱 시트로 ──
@@ -409,13 +411,22 @@ const PrayerFocus = () => {
     )
   }
 
-  // 시작 화면 (setup) — 시간 + 주제 + 사운드
+  // 시작 화면 (setup) — 촛불 히어로 + 마음 → 시간 → 진입 CTA
+  const selectedPreset = PRAYER_TIME_PRESETS.find((p) => p.minutes === selectedMinutes)
+  const helpersSummary =
+    [
+      guidedMode ? t('guidedPrayerTitle') : null,
+      ambienceId !== 'silent' && findAmbience(ambienceId) ? tx(findAmbience(ambienceId)!.labelKey) : null,
+    ]
+      .filter(Boolean)
+      .join(' · ') || t('helpersNoneSummary')
+
   return (
-    <div className={`min-h-screen ${mood.bgBase} text-white relative overflow-hidden`}>
+    // sticky CTA가 동작하도록 루트엔 overflow-hidden을 두지 않는다 (글로우 클리핑은 아래 absolute 컨테이너가 담당)
+    <div className={`min-h-screen ${mood.bgBase} text-white relative`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute top-[20%] left-[10%] w-96 h-96 ${mood.glowA} rounded-full blur-3xl`}></div>
-        <div className={`absolute bottom-[20%] right-[10%] w-96 h-96 ${mood.glowB} rounded-full blur-3xl`}></div>
-        <div className={`absolute top-1/4 left-0 w-64 h-64 ${mood.glowC} rounded-full blur-3xl -translate-x-1/2`}></div>
+        <div className={`absolute top-[18%] left-[8%] w-96 h-96 ${mood.glowA} rounded-full blur-3xl opacity-70`}></div>
+        <div className={`absolute bottom-[18%] right-[8%] w-96 h-96 ${mood.glowB} rounded-full blur-3xl opacity-70`}></div>
         <div className={`absolute bottom-0 right-0 w-80 h-80 ${mood.glowD} rounded-full blur-[100px] translate-x-1/4`}></div>
       </div>
 
@@ -426,209 +437,249 @@ const PrayerFocus = () => {
         >
           <span className="material-icons-outlined text-xl">close</span>
         </button>
-        <h1 className="text-white/90 text-sm font-semibold tracking-wider uppercase">{t('prayerFocusMode')}</h1>
+        <h1 className="text-white/55 text-[13px] font-medium tracking-wide">{t('prayerFocusMode')}</h1>
         <div className="w-10 opacity-0"></div>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center min-h-[calc(100vh-120px)] px-6 mt-6 pb-10 max-w-md mx-auto">
-        <div className="flex-1 flex flex-col items-center w-full animate-fade-in">
-          {/* 3D 아이콘 */}
-          <div className="mb-6 relative group">
-            <div className={`absolute -inset-4 ${mood.glowC} rounded-full blur-xl group-hover:opacity-100 transition-all duration-700`}></div>
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center relative transform transition-transform duration-500 hover:scale-105 hover:rotate-3 bg-gradient-to-br ${mood.buttonGradient} shadow-[0_10px_15px_-3px_rgba(168,85,247,0.25),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-4px_6px_rgba(0,0,0,0.2)]`}>
-              <svg viewBox="0 0 24 24" className="w-9 h-9 drop-shadow-md" fill="currentColor" aria-hidden="true">
-                <path d="M10.5 2h3v4H18v3h-4.5v13h-3V9H6V6h4.5z" />
-              </svg>
-            </div>
-          </div>
+      <div className="relative z-10 flex flex-col items-center px-6 pb-8 max-w-md mx-auto animate-fade-in">
+        {/* 촛불 히어로 */}
+        <div className="mt-4 mb-2">
+          <CandleHero haloTint={mood.ringFrom} />
+        </div>
 
-          <div className="text-center mb-6 space-y-1">
-            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/70">
-              {t('selectPrayerTime')}
-            </h2>
-            <p className="text-white/45 text-sm font-medium tracking-wide">
-              {t('focusedPrayerDescription')}
-            </p>
-          </div>
+        {/* 시간대별 인사 */}
+        <div className="text-center mb-7">
+          <h2 className="font-serif-kr text-[22px] leading-relaxed text-white/95">{tx(mood.greetingKey)}</h2>
+          <p className="mt-1.5 text-[13px] text-white/40">{t('focusGreetingSub')}</p>
+        </div>
 
-          {/* 지난 기도 그대로 시작 — 마지막 설정 원탭 재시작 */}
-          {lastSetup && (
-            <button
-              onClick={handleQuickStart}
-              className={`w-full mb-6 rounded-2xl py-4 px-5 flex items-center justify-between border border-white/20 bg-gradient-to-br ${mood.buttonGradient} bg-opacity-40 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-0.5 shadow-lg`}
-            >
-              <div className="flex items-center gap-3 text-left">
-                <span className="material-icons-outlined text-2xl text-white/90">play_circle</span>
-                <div>
-                  <div className="text-sm font-semibold text-white">{t('quickStartTitle')}</div>
-                  <div className="text-[11px] text-white/70 mt-0.5">
-                    {[
-                      `${lastSetup.minutes}${t('minutes')}`,
-                      findTheme(lastSetup.themeId) ? tx(findTheme(lastSetup.themeId)!.labelKey) : null,
-                      lastSetup.ambienceId !== 'silent' && findAmbience(lastSetup.ambienceId)
-                        ? tx(findAmbience(lastSetup.ambienceId)!.labelKey)
-                        : null,
-                      lastSetup.guidedMode ? t('guidedPrayerTitle') : null,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </div>
-                </div>
-              </div>
-              <span className="material-icons-outlined text-white/70">arrow_forward</span>
-            </button>
-          )}
+        {/* 지난 기도 그대로 — 조용한 원탭 재시작 */}
+        {lastSetup && (
+          <button
+            onClick={handleQuickStart}
+            className="mb-9 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md hover:bg-white/10 transition-colors"
+          >
+            <span className="material-icons-outlined text-[15px] text-white/50">replay</span>
+            <span className="text-[12px] font-medium text-white/80">{t('quickStartTitle')}</span>
+            <span className="text-[11px] text-white/40">
+              {[
+                `${lastSetup.minutes}${t('minutes')}`,
+                findTheme(lastSetup.themeId) ? tx(findTheme(lastSetup.themeId)!.labelKey) : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
+          </button>
+        )}
 
-          {/* 기도 주제 선택 */}
-          <div className="w-full mb-6">
-            <p className="text-white/50 text-xs tracking-widest uppercase mb-3 text-center">
-              {t('selectPrayerTheme')}
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {PRAYER_THEMES.map((theme) => {
-                const active = selectedTheme?.id === theme.id
-                return (
-                  <button
-                    key={theme.id}
-                    onClick={() => setSelectedTheme(active ? null : theme)}
-                    className={`rounded-xl py-3 px-2 text-xs font-medium tracking-wide border transition-all backdrop-blur-md ${
-                      active
-                        ? `bg-gradient-to-br ${mood.buttonGradient} border-white/30 text-white shadow-lg`
-                        : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
-                    }`}
+        {/* ① 마음 — 주제 선택 */}
+        <div className="w-full mb-8">
+          <p className="text-white/55 text-[13px] mb-3 text-center font-serif-kr">{t('selectPrayerTheme')}</p>
+          <div className="grid grid-cols-3 gap-2">
+            {PRAYER_THEMES.map((theme) => {
+              const active = selectedTheme?.id === theme.id
+              return (
+                <button
+                  key={theme.id}
+                  onClick={() => setSelectedTheme(active ? null : theme)}
+                  className={`rounded-2xl py-3.5 px-2 text-xs font-medium tracking-wide border transition-all duration-300 backdrop-blur-md ${
+                    active
+                      ? 'bg-white/[0.10] text-white'
+                      : 'border-white/10 bg-white/[0.04] text-white/60 hover:bg-white/[0.08] hover:text-white/85'
+                  }`}
+                  style={
+                    active
+                      ? { borderColor: `${mood.ringFrom}99`, boxShadow: `0 0 24px ${mood.ringFrom}30` }
+                      : undefined
+                  }
+                >
+                  <span
+                    className={`material-icons-outlined text-lg block mb-1 ${active ? mood.accentText : 'text-white/40'}`}
                   >
-                    <span className="material-icons-outlined text-base block mb-1">{theme.icon}</span>
-                    {tx(theme.labelKey)}
-                  </button>
-                )
-              })}
-            </div>
-            <p className="text-white/30 text-[10px] text-center mt-2">{t('prayerThemeOptional')}</p>
+                    {theme.icon}
+                  </span>
+                  {tx(theme.labelKey)}
+                </button>
+              )
+            })}
           </div>
+          {/* 선택한 마음의 한 줄 설명 — 없으면 주제 없이도 된다는 안내 */}
+          <p
+            key={selectedTheme?.id ?? 'none'}
+            className={`text-[12px] text-center mt-3 animate-fade-in ${selectedTheme ? mood.accentText : 'text-white/30'}`}
+          >
+            {selectedTheme ? tx(selectedTheme.descKey) : t('prayerThemeOptional')}
+          </p>
+        </div>
 
-          {/* 구간 안내 기도(ACTS) 토글 */}
-          <div className="w-full mb-6">
-            <button
-              onClick={() => setGuidedMode((v) => !v)}
-              role="switch"
-              aria-checked={guidedMode}
-              className={`w-full rounded-2xl py-3.5 px-4 flex items-center justify-between border transition-all backdrop-blur-md ${
-                guidedMode
-                  ? 'bg-white/[0.09] border-white/25 rounded-b-none'
-                  : 'bg-white/[0.04] border-white/10 hover:bg-white/[0.07]'
+        {/* ② 머무는 시간 */}
+        <div className="w-full mb-8">
+          <p className="text-white/55 text-[13px] mb-3 text-center font-serif-kr">{t('stayHowLong')}</p>
+          <div className="grid grid-cols-5 gap-2">
+            {PRAYER_TIME_PRESETS.map((preset) => {
+              const active = selectedMinutes === preset.minutes
+              return (
+                <button
+                  key={preset.minutes}
+                  onClick={() => setSelectedMinutes(preset.minutes)}
+                  className={`rounded-xl py-3 flex flex-col items-center border transition-all duration-300 backdrop-blur-md ${
+                    active
+                      ? 'bg-white/[0.10] text-white'
+                      : 'border-white/10 bg-white/[0.04] text-white/55 hover:bg-white/[0.08]'
+                  }`}
+                  style={
+                    active
+                      ? { borderColor: `${mood.ringFrom}99`, boxShadow: `0 0 24px ${mood.ringFrom}30` }
+                      : undefined
+                  }
+                >
+                  <span className="text-lg font-semibold tabular-nums leading-none">{preset.minutes}</span>
+                  <span className={`text-[10px] mt-1 ${active ? 'text-white/60' : 'text-white/35'}`}>
+                    {t('minutes')}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+          {selectedPreset && (
+            <p key={selectedMinutes} className={`text-[12px] text-center mt-3 animate-fade-in ${mood.accentText}`}>
+              {tx(selectedPreset.labelKey)}
+            </p>
+          )}
+        </div>
+
+        {/* ③ 기도를 돕는 것들 — 접이식 (구간 안내 + 차임 + 배경음) */}
+        <div className="w-full mb-4 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md overflow-hidden">
+          <button
+            onClick={() => setHelpersOpen((v) => !v)}
+            aria-expanded={helpersOpen}
+            className="w-full py-3.5 px-4 flex items-center justify-between hover:bg-white/[0.04] transition-colors"
+          >
+            <div className="flex items-center gap-3 text-left">
+              <span className="material-icons-outlined text-lg text-white/40">tune</span>
+              <div>
+                <div className="text-[13px] font-medium text-white/85">{t('helpersTitle')}</div>
+                <div className="text-[11px] text-white/40 mt-0.5">{helpersSummary}</div>
+              </div>
+            </div>
+            <span
+              className={`material-icons-outlined text-white/40 transition-transform duration-300 ${
+                helpersOpen ? 'rotate-180' : ''
               }`}
             >
-              <div className="flex items-center gap-3 text-left">
-                <span className={`material-icons-outlined text-xl ${guidedMode ? mood.accentText : 'text-white/45'}`}>
-                  signpost
-                </span>
-                <div>
-                  <div className="text-sm font-semibold text-white/90">{t('guidedPrayerTitle')}</div>
-                  <div className="text-[11px] text-white/45 mt-0.5">{t('guidedPrayerDesc')}</div>
-                </div>
-              </div>
-              <div
-                className={`shrink-0 w-10 h-6 rounded-full p-0.5 transition-colors ${
-                  guidedMode ? `bg-gradient-to-r ${mood.buttonGradient}` : 'bg-white/15'
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                    guidedMode ? 'translate-x-4' : 'translate-x-0'
-                  }`}
-                ></div>
-              </div>
-            </button>
+              expand_more
+            </span>
+          </button>
 
-            {/* 구간 전환 차임 — 안내 모드일 때만 노출되는 하위 옵션 */}
-            {guidedMode && (
+          {helpersOpen && (
+            <div className="px-4 pb-4 space-y-3 animate-fade-in">
+              {/* 구간 안내 기도(ACTS) 토글 */}
               <button
-                onClick={() => setChimeOn((v) => !v)}
+                onClick={() => setGuidedMode((v) => !v)}
                 role="switch"
-                aria-checked={chimeOn}
-                className="w-full rounded-b-2xl py-3 px-4 flex items-center justify-between border border-t-0 border-white/25 bg-white/[0.05] backdrop-blur-md transition-all"
+                aria-checked={guidedMode}
+                className="w-full rounded-xl py-3 px-3.5 flex items-center justify-between border border-white/10 bg-white/[0.04] transition-all"
               >
                 <div className="flex items-center gap-3 text-left">
-                  <span className={`material-icons-outlined text-lg ${chimeOn ? mood.accentText : 'text-white/45'}`}>
-                    notifications
+                  <span className={`material-icons-outlined text-lg ${guidedMode ? mood.accentText : 'text-white/40'}`}>
+                    signpost
                   </span>
                   <div>
-                    <div className="text-[13px] font-medium text-white/85">{t('chimeToggleTitle')}</div>
-                    <div className="text-[11px] text-white/40 mt-0.5">{t('chimeToggleDesc')}</div>
+                    <div className="text-[13px] font-medium text-white/85">{t('guidedPrayerTitle')}</div>
+                    <div className="text-[11px] text-white/40 mt-0.5">{t('guidedPrayerDesc')}</div>
                   </div>
                 </div>
                 <div
-                  className={`shrink-0 w-9 h-5 rounded-full p-0.5 transition-colors ${
-                    chimeOn ? `bg-gradient-to-r ${mood.buttonGradient}` : 'bg-white/15'
+                  className={`shrink-0 w-10 h-6 rounded-full p-0.5 transition-colors ${
+                    guidedMode ? `bg-gradient-to-r ${mood.buttonGradient}` : 'bg-white/15'
                   }`}
                 >
                   <div
-                    className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                      chimeOn ? 'translate-x-4' : 'translate-x-0'
+                    className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                      guidedMode ? 'translate-x-4' : 'translate-x-0'
                     }`}
                   ></div>
                 </div>
               </button>
-            )}
-          </div>
 
-          {/* 사운드(ambience) 선택 — 탭하면 짧게 미리 들려준다 */}
-          <div className="w-full mb-6">
-            <p className="text-white/50 text-xs tracking-widest uppercase mb-3 text-center">
-              {t('ambience')}
-            </p>
-            <div className="flex flex-wrap justify-center gap-2">
-              {AMBIENCE_TRACKS.map((track) => {
-                const active = ambienceId === track.id
-                return (
-                  <button
-                    key={track.id}
-                    onClick={() => setAmbienceId(track.id)}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-medium tracking-wide border transition-all backdrop-blur-md flex items-center gap-1.5 ${
-                      active
-                        ? `bg-gradient-to-br ${mood.buttonGradient} border-white/30 text-white`
-                        : 'bg-white/5 border-white/10 text-white/65 hover:bg-white/10'
+              {/* 구간 전환 차임 — 안내 모드일 때만 */}
+              {guidedMode && (
+                <button
+                  onClick={() => setChimeOn((v) => !v)}
+                  role="switch"
+                  aria-checked={chimeOn}
+                  className="w-full rounded-xl py-2.5 px-3.5 flex items-center justify-between border border-white/10 bg-white/[0.03] transition-all animate-fade-in"
+                >
+                  <div className="flex items-center gap-3 text-left">
+                    <span className={`material-icons-outlined text-base ${chimeOn ? mood.accentText : 'text-white/40'}`}>
+                      notifications
+                    </span>
+                    <div>
+                      <div className="text-[12px] font-medium text-white/80">{t('chimeToggleTitle')}</div>
+                      <div className="text-[11px] text-white/40 mt-0.5">{t('chimeToggleDesc')}</div>
+                    </div>
+                  </div>
+                  <div
+                    className={`shrink-0 w-9 h-5 rounded-full p-0.5 transition-colors ${
+                      chimeOn ? `bg-gradient-to-r ${mood.buttonGradient}` : 'bg-white/15'
                     }`}
                   >
-                    <span className="material-icons-outlined text-sm">{track.icon}</span>
-                    {tx(track.labelKey)}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+                    <div
+                      className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                        chimeOn ? 'translate-x-4' : 'translate-x-0'
+                      }`}
+                    ></div>
+                  </div>
+                </button>
+              )}
 
-          {/* 시간 선택 — 감성 라벨 포함 */}
-          <div className="w-full grid grid-cols-1 gap-2.5 mb-6">
-            {PRAYER_TIME_PRESETS.map((preset) => (
-              <button
-                key={preset.minutes}
-                onClick={() => handlePickTime(preset.minutes)}
-                className={`liquid-pill group rounded-2xl py-4 px-5 flex items-center justify-between relative overflow-hidden border transition-all duration-300 hover:scale-[1.01] hover:-translate-y-0.5 ${
-                  preset.highlight
-                    ? `bg-gradient-to-br ${mood.buttonGradient} bg-opacity-40 border-white/20`
-                    : 'bg-white/[0.04] border-white/10 hover:bg-white/[0.08] hover:border-white/20'
-                }`}
-              >
-                <div className="text-left">
-                  <div className="text-base font-semibold text-white tracking-wide">
-                    {tx(preset.labelKey)}
-                  </div>
-                  <div className="text-white/45 text-xs mt-0.5">
-                    {preset.minutes} {t('minutes')}
-                  </div>
+              {/* 배경음 — 탭하면 짧게 미리 들려준다 */}
+              <div>
+                <p className="text-white/40 text-[11px] mb-2">{t('ambience')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {AMBIENCE_TRACKS.map((track) => {
+                    const active = ambienceId === track.id
+                    return (
+                      <button
+                        key={track.id}
+                        onClick={() => setAmbienceId(track.id)}
+                        className={`px-3 py-1.5 rounded-full text-[11px] font-medium tracking-wide border transition-all flex items-center gap-1.5 ${
+                          active
+                            ? 'bg-white/[0.12] text-white'
+                            : 'border-white/10 bg-white/[0.04] text-white/55 hover:bg-white/[0.08]'
+                        }`}
+                        style={active ? { borderColor: `${mood.ringFrom}99` } : undefined}
+                      >
+                        <span className={`material-icons-outlined text-sm ${active ? mood.accentText : ''}`}>
+                          {track.icon}
+                        </span>
+                        {tx(track.labelKey)}
+                      </button>
+                    )
+                  })}
                 </div>
-                <span className="material-icons-outlined text-white/40 group-hover:text-white/80 transition-colors">
-                  arrow_forward
-                </span>
-              </button>
-            ))}
-          </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 진입 CTA — 스크롤해도 손 닿는 곳에 */}
+        <div className="sticky bottom-5 w-full mt-4 z-20">
+          <button
+            onClick={handleEnter}
+            className={`w-full rounded-2xl py-4 bg-gradient-to-r ${mood.buttonGradient} shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-transform duration-300 hover:scale-[1.01] active:scale-[0.99]`}
+          >
+            <div className="text-[15px] font-semibold text-white">{t('enterPrayerCta')}</div>
+            <div className="text-[11px] text-white/75 mt-0.5">
+              {`${selectedMinutes}${t('minutes')}`} ·{' '}
+              {selectedTheme ? tx(selectedTheme.labelKey) : t('freePrayerFallback')}
+            </div>
+          </button>
         </div>
 
         {/* 오늘의 말씀 - Footer */}
         {verse && (
-          <div className="w-full">
+          <div className="w-full mt-8">
             <VerseDisplay verse={verse} />
           </div>
         )}
