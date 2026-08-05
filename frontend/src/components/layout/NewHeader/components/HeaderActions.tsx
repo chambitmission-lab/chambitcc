@@ -16,9 +16,11 @@ const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onMenuTog
     'text-gray-700 dark:text-white/80 hover:text-brand transition-colors'
 
   /* 24px 고정 박스 — 아이콘 폰트 로드 전 리가처 원문("dark_mode" 등)이
-   * 헤더 폭을 밀어내 로고를 세로로 꺾는 것을 막는다 */
+   * 헤더 폭을 밀어내 로고를 세로로 꺾는 것을 막는다.
+   * leading-none 필수: text-2xl 의 line-height(32px)가 폰트 CSS의 line-height:1 을
+   * 덮어써 글리프가 24px 박스 아래로 밀려 하단이 잘린다 */
   const iconGlyphClass =
-    'material-icons-outlined text-2xl inline-block w-6 h-6 overflow-hidden'
+    'material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden'
 
   return (
     <div className="flex items-center gap-4">

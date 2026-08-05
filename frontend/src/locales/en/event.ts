@@ -62,6 +62,17 @@ export const event = {
   rsvpCancelAfterCloseConfirm:
     'RSVP has closed. If you cancel now you will not be able to sign up again. Cancel anyway?',
 
+  // Detail page quick actions
+  addToCalendar: 'Add to calendar',
+  viewMap: 'Map',
+  share: 'Share',
+  linkCopied: 'Link copied!',
+
+  // Attendees
+  attendees: "Who's coming",
+  attendeesMaybeCount: '{count} maybe',
+  attendeesNotAttendingCount: '{count} not attending',
+
   // Small-group-only meeting
   groupOnlyBadge: 'Group only',
   groupLabel: 'Group',
@@ -73,6 +84,7 @@ export const event = {
   comments: 'Comments',
   writeComment: 'Write Comment',
   deleteComment: 'Delete Comment',
+  noComments: 'No comments yet — be the first to say hi ✨',
   
   // Empty state card
   emptyTitleAll: 'A calm week ahead!',

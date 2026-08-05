@@ -62,6 +62,17 @@ export const event = {
   rsvpCancelAfterCloseConfirm:
     '마감이 지나서, 지금 취소하면 다시 참석 등록을 할 수 없어요. 취소할까요?',
 
+  // 상세 페이지 퀵 액션
+  addToCalendar: '캘린더 추가',
+  viewMap: '지도 보기',
+  share: '공유',
+  linkCopied: '링크 복사됨!',
+
+  // 참석자
+  attendees: '함께하는 사람들',
+  attendeesMaybeCount: '미정 {count}명',
+  attendeesNotAttendingCount: '불참 {count}명',
+
   // 소그룹 전용 모임
   groupOnlyBadge: '소그룹 전용',
   groupLabel: '그룹',
@@ -73,6 +84,7 @@ export const event = {
   comments: '댓글',
   writeComment: '댓글 작성',
   deleteComment: '댓글 삭제',
+  noComments: '아직 댓글이 없어요. 첫 댓글을 남겨보세요 ✨',
   
   // 빈 상태 카드
   emptyTitleAll: '이번 주는 조금 여유로운 한 주네요!',

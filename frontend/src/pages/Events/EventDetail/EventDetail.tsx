@@ -6,12 +6,21 @@ import { useEventActions } from './hooks/useEventActions'
 import { useCommentActions } from './hooks/useCommentActions'
 import {
   EventHero,
+  QuickActions,
   EventInfo,
   EventDescription,
+  AttendeesCard,
   AttendanceSection,
   CommentsSection,
 } from './components'
-import './styles/index.css'
+
+const Shell = ({ children }: { children: React.ReactNode }) => (
+  <div className="bg-surface text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen">
+    <div className="max-w-md mx-auto bg-surface shadow-2xl relative border-x border-border-light dark:border-border-dark min-h-screen pb-24">
+      {children}
+    </div>
+  </div>
+)
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>()
@@ -20,7 +29,7 @@ const EventDetail = () => {
   const t = translations[language]
   const { event, loading, error, refresh } = useEventDetail(Number(id))
 
-  const { handleAttend, handleCancelAttendance } = 
+  const { handleAttend, handleCancelAttendance } =
     useEventActions(Number(id), refresh, t)
 
   const {
@@ -32,104 +41,97 @@ const EventDetail = () => {
     handleDeleteComment,
   } = useCommentActions(Number(id), refresh, t)
 
+  const backButton = (
+    <div className="px-4 pt-4 pb-3">
+      <button
+        type="button"
+        onClick={() => navigate('/events')}
+        className="inline-flex items-center gap-1 h-9 pl-1.5 pr-3 -ml-1.5 rounded-full text-ink-strong text-[14px] font-bold hover:bg-gray-100 dark:hover:bg-white/[0.06] active:scale-[0.97] transition-all"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        {t.title}
+      </button>
+    </div>
+  )
+
   if (loading) {
     return (
-      <div className="bg-gray-50 dark:bg-black min-h-screen">
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
-          <div className="loading-spinner">
-            <p>{t.loading}</p>
-          </div>
+      <Shell>
+        {backButton}
+        <div className="mx-4 h-48 rounded-3xl bg-gray-100 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] animate-pulse" />
+        <div className="flex gap-2 px-4 mt-3">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="flex-1 h-10 rounded-xl bg-gray-100 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] animate-pulse" />
+          ))}
         </div>
-      </div>
+        <div className="px-4 mt-3 flex flex-col gap-3">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="h-28 rounded-2xl bg-gray-100 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] animate-pulse" />
+          ))}
+        </div>
+      </Shell>
     )
   }
 
   if (error || !event) {
     return (
-      <div className="bg-gray-50 dark:bg-black min-h-screen">
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
-          <div className="error-message">{error || t.error}</div>
-          <button onClick={() => navigate('/events')} className="back-btn">
+      <Shell>
+        {backButton}
+        <div className="mx-4 mt-10 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] p-8 text-center">
+          <p className="text-[32px] mb-3" aria-hidden="true">😢</p>
+          <p className="text-gray-500 dark:text-white/55 text-[14px] mb-5">{error || t.error}</p>
+          <button
+            type="button"
+            onClick={() => navigate('/events')}
+            className="h-10 px-5 rounded-xl bg-[var(--brand)] text-white text-[13.5px] font-bold hover:bg-[var(--brand-dim)] transition-colors"
+          >
             {t.back}
           </button>
         </div>
-      </div>
+      </Shell>
     )
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-black min-h-screen">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
-        <button onClick={() => navigate('/events')} className="back-btn">
-          ← {t.back}
-        </button>
+    <Shell>
+      {backButton}
 
-        <EventHero
-          category={t.categories[event.category]}
-          title={event.title}
+      <EventHero event={event} t={t} />
+      <QuickActions event={event} t={t} />
+
+      <div className="px-4 mt-3 flex flex-col gap-3">
+        <EventInfo event={event} t={t} />
+
+        <EventDescription
+          description={event.description}
+          attachmentUrl={event.attachment_url}
+          t={t}
         />
 
-        <div className="event-detail-content">
-          <div className="event-detail-card">
-            {event.group && (
-              <div
-                className="event-group-badge"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  margin: '0 0 0.75rem',
-                  padding: '0.25rem 0.6rem',
-                  borderRadius: '9999px',
-                  background: '#f3e8ff',
-                  color: '#7e22ce',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                }}
-                aria-label={t.groupOnlyBadge}
-              >
-                <span aria-hidden="true">{event.group.icon || '🔒'}</span>
-                <span>{t.groupOnlyBadge} · {event.group.name}</span>
-              </div>
-            )}
+        <AttendeesCard attendances={event.attendances} t={t} />
 
-            <EventInfo
-              startDate={event.start_datetime}
-              endDate={event.end_datetime}
-              location={event.location}
-              attendanceCount={event.attendance_count}
-              views={event.views}
-              t={t}
-            />
+        <AttendanceSection
+          userAttendanceStatus={event.user_attendance_status ?? undefined}
+          onAttend={handleAttend}
+          onCancel={handleCancelAttendance}
+          rsvpDeadline={event.rsvp_deadline}
+          t={t}
+        />
 
-            <EventDescription
-              description={event.description}
-              attachmentUrl={event.attachment_url}
-              t={t}
-            />
-
-            <AttendanceSection
-              userAttendanceStatus={event.user_attendance_status ?? undefined}
-              onAttend={handleAttend}
-              onCancel={handleCancelAttendance}
-              rsvpDeadline={event.rsvp_deadline}
-              t={t}
-            />
-
-            <CommentsSection
-              comments={event.comments}
-              comment={comment}
-              setComment={setComment}
-              submitting={submitting}
-              isLoggedIn={isLoggedInForComments}
-              onSubmit={handleSubmitComment}
-              onDelete={handleDeleteComment}
-              t={t}
-            />
-          </div>
-        </div>
+        <CommentsSection
+          comments={event.comments}
+          comment={comment}
+          setComment={setComment}
+          submitting={submitting}
+          isLoggedIn={isLoggedInForComments}
+          onSubmit={handleSubmitComment}
+          onDelete={handleDeleteComment}
+          t={t}
+        />
       </div>
-    </div>
+    </Shell>
   )
 }
 

@@ -12,10 +12,27 @@ interface AttendanceSectionProps {
   t: Translation
 }
 
-const STATUS_OPTIONS: { value: AttendanceStatus; icon: string; className: string }[] = [
-  { value: 'attending', icon: '✓', className: 'attending' },
-  { value: 'maybe', icon: '?', className: 'maybe' },
-  { value: 'not_attending', icon: '✗', className: 'not-attending' },
+/* 참석 상태별 시맨틱 색(초록/앰버/로즈)은 RSVP 응답 전용 — 브랜드 색과 구분해 유지 */
+const STATUS_OPTIONS: {
+  value: AttendanceStatus
+  emoji: string
+  idle: string
+}[] = [
+  {
+    value: 'attending',
+    emoji: '🙋',
+    idle: 'border-emerald-500/35 text-emerald-600 dark:text-emerald-400 bg-emerald-500/[0.06] hover:bg-emerald-500/15',
+  },
+  {
+    value: 'maybe',
+    emoji: '🤔',
+    idle: 'border-amber-500/35 text-amber-600 dark:text-amber-400 bg-amber-500/[0.06] hover:bg-amber-500/15',
+  },
+  {
+    value: 'not_attending',
+    emoji: '🙏',
+    idle: 'border-rose-500/35 text-rose-500 dark:text-rose-400 bg-rose-500/[0.06] hover:bg-rose-500/15',
+  },
 ]
 
 export const AttendanceSection = ({
@@ -71,79 +88,99 @@ export const AttendanceSection = ({
   }
 
   return (
-    <div className="attendance-section">
-      <div className="section-badge">✋ {t.attend}</div>
+    <section className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h2 className="text-ink-strong text-[15px] font-bold tracking-[-0.01em]">
+          ✋ {t.attend}
+        </h2>
+        {rsvpDeadline && isClosed && (
+          <span className="inline-flex items-center px-2 h-5 rounded-full bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-white/55 text-[10.5px] font-bold shrink-0">
+            {t.rsvpClosedBadge}
+          </span>
+        )}
+        {rsvpDeadline && !isClosed && showRemaining && (
+          <span className="inline-flex items-center px-2 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10.5px] font-bold shrink-0">
+            {t.rsvpRemaining.replace('{time}', remaining as string)}
+          </span>
+        )}
+      </div>
 
       {rsvpDeadline && (
-        <div
-          className={`rsvp-deadline-note ${isClosed ? 'closed' : ''}`}
-          style={{
-            fontSize: '0.85rem',
-            color: isClosed ? '#b91c1c' : showRemaining ? '#b45309' : '#6b7280',
-            margin: '0.5rem 0',
-            lineHeight: 1.5,
-          }}
+        <p
+          className={`text-[12.5px] leading-[1.55] mb-3 ${
+            isClosed ? 'text-rose-500 dark:text-rose-400' : 'text-gray-500 dark:text-white/55'
+          }`}
         >
           {isClosed ? (
             <>
               {t.rsvpClosed}
               <br />
-              <span style={{ fontSize: '0.8rem' }}>
+              <span className="text-[11.5px] text-gray-400 dark:text-white/45">
                 {userAttendanceStatus ? t.rsvpClosedForResponder : t.rsvpClosedForNewcomer}
               </span>
             </>
           ) : (
             <>
               {t.rsvpDeadline}: {deadlineLabel}
-              {showRemaining && ` · ${t.rsvpRemaining.replace('{time}', remaining as string)}`}
             </>
           )}
-        </div>
+        </p>
       )}
 
       {userAttendanceStatus ? (
-        <div className="attendance-current">
-          <div className="current-status-card">
-            <span className="status-icon">✓</span>
-            <p>
-              {t.currentStatus}: {t.attendanceStatus[userAttendanceStatus]}
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
+            <span className="text-[20px]" aria-hidden="true">
+              {STATUS_OPTIONS.find(o => o.value === userAttendanceStatus)?.emoji ?? '✓'}
+            </span>
+            <p className="text-ink-strong text-[13.5px] font-semibold">
+              {t.currentStatus}:{' '}
+              <span className="text-brand font-bold">
+                {t.attendanceStatus[userAttendanceStatus]}
+              </span>
             </p>
           </div>
 
           {/* 마감 후에도 이미 응답한 사람은 상태를 바꿀 수 있다 */}
-          <div className="attendance-buttons">
+          <div className="grid grid-cols-2 gap-2">
             {STATUS_OPTIONS.filter(o => o.value !== userAttendanceStatus).map(o => (
               <button
                 key={o.value}
+                type="button"
                 onClick={() => onAttend(o.value)}
-                className={`attend-btn ${o.className}`}
+                className={`inline-flex items-center justify-center gap-1.5 h-10 rounded-xl border text-[12.5px] font-bold transition-colors ${o.idle}`}
               >
-                <span className="btn-icon">{o.icon}</span>
+                <span aria-hidden="true">{o.emoji}</span>
                 {t.changeTo.replace('{status}', t.attendanceStatus[o.value])}
               </button>
             ))}
           </div>
 
-          <button onClick={handleCancel} className="cancel-btn">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="h-9 rounded-xl text-gray-400 dark:text-white/45 text-[12.5px] font-semibold hover:bg-gray-50 dark:hover:bg-white/[0.04] hover:text-gray-600 dark:hover:text-white/70 transition-colors"
+          >
             {t.cancelAttendance}
           </button>
         </div>
       ) : (
-        <div className="attendance-buttons">
+        <div className="grid grid-cols-3 gap-2">
           {STATUS_OPTIONS.map(o => (
             <button
               key={o.value}
+              type="button"
               onClick={() => onAttend(o.value)}
-              className={`attend-btn ${o.className}`}
               disabled={isClosed}
               aria-disabled={isClosed}
+              className={`flex flex-col items-center gap-1.5 py-3.5 rounded-xl border text-[13px] font-bold transition-colors active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent ${o.idle}`}
             >
-              <span className="btn-icon">{o.icon}</span>
+              <span className="text-[20px]" aria-hidden="true">{o.emoji}</span>
               {t.attendanceStatus[o.value]}
             </button>
           ))}
         </div>
       )}
-    </div>
+    </section>
   )
 }

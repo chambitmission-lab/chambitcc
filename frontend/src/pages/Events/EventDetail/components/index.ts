@@ -1,5 +1,7 @@
 export { EventHero } from './EventHero'
+export { QuickActions } from './QuickActions'
 export { EventInfo } from './EventInfo'
 export { EventDescription } from './EventDescription'
+export { AttendeesCard } from './AttendeesCard'
 export { AttendanceSection } from './AttendanceSection'
 export { CommentsSection } from './CommentsSection'
