@@ -1,7 +1,12 @@
 // 신앙 성장 여정 — React Query 훅
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { getGrowthSummary, getGrowthTimeline } from '../api/growth'
+import {
+  getFaithJourneyInsight,
+  getGrowthSummary,
+  getGrowthTimeline,
+} from '../api/growth'
 import type {
+  FaithJourneyResponse,
   GrowthSummaryResponse,
   GrowthTimelineResponse,
 } from '../types/growth'
@@ -10,6 +15,7 @@ export const growthKeys = {
   summary: ['growth', 'summary'] as const,
   timeline: ['growth', 'timeline'] as const,
   recent: ['growth', 'recent'] as const,
+  insight: ['growth', 'insight'] as const,
 }
 
 /**
@@ -45,6 +51,23 @@ export const useGrowthRecentDays = (days = 14, enabled = true) => {
     queryKey: [...growthKeys.recent, days],
     queryFn: () => getGrowthTimeline(undefined, days),
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    refetchOnMount: 'always',
+    enabled,
+    retry: 1,
+  })
+}
+
+/**
+ * 말씀 여정 인사이트 (읽기 동선 기반 영적 자리 진단 — 룰 기반).
+ * - 백엔드가 사용자별 10분 캐시로 계산하므로 staleTime 을 넉넉히 둔다.
+ * - refetchOnMount 'always': 요약과 같은 이유 — 진입 시마다 백그라운드 최신화.
+ */
+export const useFaithJourneyInsight = (enabled = true) => {
+  return useQuery<FaithJourneyResponse>({
+    queryKey: growthKeys.insight,
+    queryFn: getFaithJourneyInsight,
+    staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 30,
     refetchOnMount: 'always',
     enabled,

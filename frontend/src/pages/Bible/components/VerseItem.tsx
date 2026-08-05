@@ -51,6 +51,10 @@ interface VerseItemProps {
   onShare?: (target: VerseCopyTarget) => void
 }
 
+// 액션바의 '읽음 표시' 체크 버튼 — 절 번호 길게 누르기(HOLD_TO_READ_MS)로 같은 일을
+// 할 수 있어 중복이라 숨겨둔다. 되살리려면 true로만 바꾸면 된다.
+const SHOW_MANUAL_READ_BUTTON = false
+
 /** 토큰 앞뒤의 문장부호를 떼고 단어만 남긴다 ("긍휼히," → "긍휼히") */
 const cleanWord = (token: string) =>
   token.replace(/^[^0-9A-Za-z가-힣]+|[^0-9A-Za-z가-힣]+$/g, '')
@@ -678,7 +682,7 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
 
             {/* 읽음 표시 — 음성 낭독이 어려운 상황(조용한 곳·마이크 미지원)에서도
                 직접 읽은 절을 체크할 수 있게 한다. 로그인한 사용자면 누구나 사용. */}
-            {loggedIn && onToggleRead && (
+            {SHOW_MANUAL_READ_BUTTON && loggedIn && onToggleRead && (
               <button
                 onClick={() => { if (!isTogglingRead) onToggleRead(verse, !isRead) }}
                 className="verse-action-btn"

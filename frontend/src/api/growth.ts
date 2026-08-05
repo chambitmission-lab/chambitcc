@@ -1,5 +1,6 @@
 import { API_V1, apiFetch } from '../config/api'
 import type {
+  FaithJourneyResponse,
   GrowthSummaryResponse,
   GrowthTimelineResponse,
 } from '../types/growth'
@@ -34,6 +35,17 @@ export const getGrowthTimeline = async (
   })
   if (!response.ok) {
     throw new Error('활동 기록을 불러오지 못했어요')
+  }
+  return response.json()
+}
+
+/** 말씀 여정 인사이트 (읽기 동선 기반 영적 자리 진단 — 룰 기반) */
+export const getFaithJourneyInsight = async (): Promise<FaithJourneyResponse> => {
+  const response = await apiFetch(`${API_V1}/growth/insight`, {
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) {
+    throw new Error('말씀 여정 인사이트를 불러오지 못했어요')
   }
   return response.json()
 }

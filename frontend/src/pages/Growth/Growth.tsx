@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGrowthSummary, useGrowthTimeline } from '../../hooks/useGrowth'
 import type { TimelineEvent } from '../../types/growth'
 import GrowthHero from './components/GrowthHero'
+import JourneyInsightCard from './components/JourneyInsightCard'
 import GrowthStats from './components/GrowthStats'
 import ActivityTimeline from './components/ActivityTimeline'
 
@@ -88,6 +89,9 @@ const Growth = () => {
         </div>
 
         <GrowthHero summary={summary} />
+
+        {/* 말씀 여정 인사이트 — 읽기 동선 기반 영적 자리 진단 (룰 기반) */}
+        <JourneyInsightCard />
 
         {summary.has_activity && <GrowthStats summary={summary} />}
 

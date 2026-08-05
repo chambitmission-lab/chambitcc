@@ -107,3 +107,48 @@ export interface GrowthTimelineResponse {
   success: boolean
   data: GrowthTimelineData
 }
+
+// =========================================================================
+// 말씀 여정 인사이트 (룰 기반 — backend faith_journey_service)
+// =========================================================================
+export type JourneyStageKey =
+  | 'calling'
+  | 'galilee'
+  | 'origin'
+  | 'sinai'
+  | 'wilderness'
+  | 'canaan'
+  | 'zion'
+  | 'pilgrim'
+
+/** 읽기 동선의 한 정거장 — 연속으로 읽은 같은 책 묶음 */
+export interface JourneyFlowStop {
+  book: string
+  theme: string
+  verses: number
+}
+
+/** 지금 단계에 맞게 큐레이션된 추천 말씀 */
+export interface JourneyVerse {
+  reference: string
+  text: string
+  reason: string
+}
+
+export interface FaithJourneyData {
+  has_data: boolean
+  stage_key: JourneyStageKey
+  stage_title: string
+  stage_icon: string
+  headline: string
+  metaphor: string
+  narrative: string
+  emotion_note: string | null
+  flow: JourneyFlowStop[]
+  verses: JourneyVerse[]
+}
+
+export interface FaithJourneyResponse {
+  success: boolean
+  data: FaithJourneyData
+}
