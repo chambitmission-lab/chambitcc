@@ -17,6 +17,9 @@ interface BibleAudioPlayerProps {
   chapter: number
   // 듣기-보기 동기화: 지금 낭독 중인 절이 바뀔 때마다 호출 (재생 전/머리말 구간은 null)
   onActiveVerseChange?: (verse: number | null) => void
+  // 실제로 소리가 나는 중인지. 일시정지하면 본문 자동 따라가기도 멈춰야 하므로
+  // 낭독 절과 별개로 재생 여부를 알려준다.
+  onPlayingChange?: (playing: boolean) => void
   // 특정 절부터 재생 요청 (절 메뉴 '여기부터 듣기')
   playFromVerse?: PlayFromVerseRequest | null
 }
@@ -68,7 +71,7 @@ const formatTime = (sec: number): string => {
  * 부모에서 key={`${bookNumber}-${chapter}`} 로 렌더하므로, 장이 바뀌면
  * 컴포넌트가 새로 마운트되어 상태가 초기화되고 이전 재생은 정리된다.
  */
-const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, playFromVerse }: BibleAudioPlayerProps) => {
+const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingChange, playFromVerse }: BibleAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const wantPlayRef = useRef(false) // src 로드 시 자동 재생할지
@@ -93,6 +96,13 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, playFromVe
   // 부모 콜백은 ref로 보관 — 렌더마다 바뀌어도 이펙트/핸들러를 재구성하지 않는다
   const onActiveVerseChangeRef = useRef(onActiveVerseChange)
   onActiveVerseChangeRef.current = onActiveVerseChange
+  const onPlayingChangeRef = useRef(onPlayingChange)
+  onPlayingChangeRef.current = onPlayingChange
+
+  // 재생/일시정지 상태를 부모에 통지 — 본문 자동 따라가기를 여기에 맞춰 멈춘다
+  useEffect(() => {
+    onPlayingChangeRef.current?.(isPlaying)
+  }, [isPlaying])
 
   // 절별 타이밍 로드. 캐시된 장은 첫 응답에 최종본이 온다.
   // 첫 재생(스트리밍 생성 중)엔 서버가 "지금까지 합성된 구간"의 부분(partial)
@@ -179,10 +189,11 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, playFromVe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timings])
 
-  // 장 이동 등으로 언마운트되면 본문 하이라이트도 해제
+  // 장 이동 등으로 언마운트되면 본문 하이라이트도 해제 (따라가기도 함께 종료)
   useEffect(
     () => () => {
       onActiveVerseChangeRef.current?.(null)
+      onPlayingChangeRef.current?.(false)
     },
     []
   )

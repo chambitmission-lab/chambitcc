@@ -43,6 +43,8 @@ const BibleStudy = () => {
   const [showPlaylist, setShowPlaylist] = useState<boolean>(false)
   // 오디오북 듣기-보기 동기화: 지금 낭독 중인 절 (플레이어가 통지, VerseList가 표시)
   const [audioActiveVerse, setAudioActiveVerse] = useState<number | null>(null)
+  // 오디오북이 실제 재생 중인지 — 멈추면 본문 자동 따라가기도 멈춘다
+  const [audioPlaying, setAudioPlaying] = useState<boolean>(false)
   // 절 메뉴 '여기부터 듣기' 요청 (VerseList → 플레이어). seq로 같은 절 재요청도 구분
   const [playFromVerse, setPlayFromVerse] = useState<PlayFromVerseRequest | null>(null)
 
@@ -348,6 +350,7 @@ const BibleStudy = () => {
                   bookNumber={selectedBookData.book_number}
                   chapter={selectedChapter}
                   onActiveVerseChange={setAudioActiveVerse}
+                  onPlayingChange={setAudioPlaying}
                   playFromVerse={playFromVerse}
                 />
 
@@ -374,6 +377,7 @@ const BibleStudy = () => {
                   scrollToVerse={pendingScrollVerse}
                   onScrolled={() => setPendingScrollVerse(null)}
                   audioActiveVerse={audioActiveVerse}
+                  audioPlaying={audioPlaying}
                   onListenFromVerse={handleListenFromVerse}
                   onChapterFullyRead={planAutoComplete ? handleChapterFullyRead : undefined}
                 />

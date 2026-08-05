@@ -38,6 +38,8 @@ interface VerseListProps {
   onChapterFullyRead?: () => void
   // 오디오북이 지금 낭독 중인 절 — 하이라이트 + 자동 스크롤 따라가기
   audioActiveVerse?: number | null
+  // 오디오북이 실제 재생 중인지. 일시정지하면 하이라이트는 남기되 따라가기는 멈춘다
+  audioPlaying?: boolean
   // 절 메뉴 '여기부터 듣기' — 오디오북을 해당 절부터 재생
   onListenFromVerse?: (verse: number) => void
 }
@@ -56,6 +58,7 @@ const VerseList = ({
   onScrolled,
   onChapterFullyRead,
   audioActiveVerse,
+  audioPlaying = false,
   onListenFromVerse,
 }: VerseListProps) => {
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -532,7 +535,12 @@ const VerseList = ({
   const [audioFollow, setAudioFollow] = useState(true)
   const audioFollowRef = useRef(audioFollow)
   audioFollowRef.current = audioFollow
-  const audioSyncActive = audioActiveVerse != null
+  // 재생이 멈추면 따라가기도 즉시 멈춘다. 하이라이트(audioActiveVerse)는 마지막
+  // 낭독 절에 그대로 남아 있으므로, 재생 여부를 함께 봐야 "멈췄는데 화면만
+  // 계속 그 절로 끌려가는" 현상이 없다.
+  const audioSyncActive = audioActiveVerse != null && audioPlaying
+  const audioPlayingRef = useRef(audioPlaying)
+  audioPlayingRef.current = audioPlaying
 
   // 낭독 절이 편안 구역(헤더 아래 ~ 화면 하단 앵커 82%) 안에 온전히 보이면 true.
   // 이 안에 있으면 화면을 움직이지 않고 하이라이트만 아래로 흐르게 둔다.
@@ -549,6 +557,8 @@ const VerseList = ({
       setAudioFollow(true) // 다음 재생을 위해 초기화
       return
     }
+    // 일시정지 중이면 절이 로드되거나 목록이 갱신돼도 화면을 움직이지 않는다
+    if (!audioPlaying) return
     if (!chapterData) return
     const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
     if (el) {
@@ -558,16 +568,29 @@ const VerseList = ({
     } else if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
     }
-  }, [audioActiveVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, scrollVerseIntoView])
+  }, [audioActiveVerse, audioPlaying, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, scrollVerseIntoView])
 
   const followResumeTimerRef = useRef<number | null>(null)
+
+  // 일시정지(또는 종료) 순간: 진행 중인 따라가기 스크롤과 6초 자동 복귀 예약을 모두 취소.
+  // 이게 없으면 멈춘 뒤에도 예약된 복귀가 살아 있어 화면이 혼자 낭독 절로 돌아간다.
+  useEffect(() => {
+    if (audioPlaying) return
+    cancelVerseScroll()
+    if (followResumeTimerRef.current) {
+      clearTimeout(followResumeTimerRef.current)
+      followResumeTimerRef.current = null
+    }
+    setAudioFollow(true) // 다시 재생하면 곧바로 따라가도록 초기화
+  }, [audioPlaying, cancelVerseScroll])
+
   const resumeAudioFollow = () => {
     if (followResumeTimerRef.current) {
       clearTimeout(followResumeTimerRef.current)
       followResumeTimerRef.current = null
     }
     setAudioFollow(true)
-    if (audioActiveVerse != null) {
+    if (audioActiveVerse != null && audioPlayingRef.current) {
       const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
       // 이미 편안 구역에 보이면 굳이 화면을 움직이지 않는다
       if (el && !isVerseInComfortZone(el)) scrollVerseIntoView(el, 'follow')
