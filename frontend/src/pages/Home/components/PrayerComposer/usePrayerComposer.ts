@@ -1,16 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { usePrayersInfinite } from '../../../../hooks/usePrayersQuery'
 import { useProfileDetail } from '../../../../hooks/useProfile'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
-import { fetchPrayerDetail } from '../../../../api/prayer/prayerApi'
 import { validation } from '../../../../utils/validation'
-import { showToast } from '../../../../utils/toast'
 import type { PrayerEmotion, RecommendedVerses, SortType } from '../../../../types/prayer'
-
-// 구절 추천은 백엔드 BackgroundTask라 등록 응답에는 보통 없다.
-// 잠깐 폴링해서 도착하면 묵상 스토리(기도→말씀→타임캡슐)로 바로 잇는다.
-const VERSE_POLL_INTERVAL = 2500
-const VERSE_POLL_MAX_TRIES = 5
 
 interface UsePrayerComposerProps {
   onClose: () => void
@@ -33,17 +26,6 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
   const [celebrating, setCelebrating] = useState(false)
   // 방금 올린 기도 id — 묵상 모달의 타임캡슐 초대(그날의 기도 봉인)에 넘긴다
   const [createdPrayerId, setCreatedPrayerId] = useState<number | null>(null)
-  // 백그라운드 구절 생성을 기다리는 중 (제출 버튼 문구로 표시)
-  const [awaitingVerses, setAwaitingVerses] = useState(false)
-
-  const pollTimerRef = useRef<number | null>(null)
-  const cancelledRef = useRef(false)
-  useEffect(() => {
-    return () => {
-      cancelledRef.current = true
-      if (pollTimerRef.current !== null) window.clearTimeout(pollTimerRef.current)
-    }
-  }, [])
 
   // 브라우저 뒤로가기 → 모달만 닫기
   useModalBackButton(onClose)
@@ -110,49 +92,18 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
       if (prayer.recommended_verses && prayer.recommended_verses.verses.length > 0) {
         setRecommendedVerses(prayer.recommended_verses)
         setShowVersesModal(true)
-      } else if (response.processing) {
-        // 구절이 백그라운드에서 생성 중 — 폭죽을 보여주며 잠깐 기다렸다가
-        // 도착하면 묵상 스토리로 바로 잇고, 늦으면 조용히 닫는다
-        setCelebrating(true)
-        setAwaitingVerses(true)
-        startVersePolling(prayer.id)
       } else {
+        // 구절 추천은 백그라운드 처리 — 기다리지 않고 바로 닫는다.
+        // 묵상 스토리(와 타임캡슐 초대)는 피드 카드의 말씀 아이콘에서 열린다.
+        if (response.processing) {
+          console.log('성경 구절이 백그라운드에서 처리 중입니다')
+        }
         setCelebrating(true)
         window.setTimeout(onClose, 780)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '등록에 실패했습니다')
     }
-  }
-
-  const startVersePolling = (prayerId: number) => {
-    let tries = 0
-    const poll = async () => {
-      if (cancelledRef.current) return
-      tries += 1
-      try {
-        const detail = await fetchPrayerDetail(prayerId)
-        if (cancelledRef.current) return
-        const verses = detail.recommended_verses
-        if (verses && verses.verses.length > 0) {
-          setAwaitingVerses(false)
-          setCelebrating(false)
-          setRecommendedVerses(verses)
-          setShowVersesModal(true)
-          return
-        }
-      } catch {
-        // 일시 오류는 다음 시도에서 재확인
-      }
-      if (tries < VERSE_POLL_MAX_TRIES) {
-        pollTimerRef.current = window.setTimeout(poll, VERSE_POLL_INTERVAL)
-      } else {
-        setAwaitingVerses(false)
-        showToast('말씀은 잠시 후 기도 카드에서 볼 수 있어요', 'info')
-        onClose()
-      }
-    }
-    pollTimerRef.current = window.setTimeout(poll, VERSE_POLL_INTERVAL)
   }
 
   const handleVersesModalClose = () => {
@@ -193,7 +144,6 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     showVersesModal,
     celebrating,
     createdPrayerId,
-    awaitingVerses,
     isCreating,
     isLoggedIn,
     displayName,

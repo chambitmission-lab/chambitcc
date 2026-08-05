@@ -140,7 +140,6 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     showVersesModal,
     celebrating,
     createdPrayerId,
-    awaitingVerses,
     isCreating,
     isLoggedIn,
     displayName,
@@ -714,13 +713,9 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
               >
                 <span className="text-[16px] leading-none">{meta?.emoji ?? '🙏'}</span>
                 {isCreating || celebrating
-                  ? awaitingVerses
-                    ? ko
-                      ? '당신을 위한 말씀을 고르는 중…'
-                      : 'Choosing verses for you…'
-                    : ko
-                      ? '올리는 중…'
-                      : 'Sharing…'
+                  ? ko
+                    ? '올리는 중…'
+                    : 'Sharing…'
                   : ko
                     ? '기도 올리기'
                     : 'Share prayer'}
