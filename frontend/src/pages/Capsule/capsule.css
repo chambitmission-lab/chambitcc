@@ -970,9 +970,9 @@
 /* ── 편지지 팔레트 ──────────────────────────────────────────────
    종이 위의 모든 색은 이 토큰만 쓴다(앱 테마 토큰 금지 — 크림 위에
    쨍한 브랜드 블루가 얹히는 사고의 재발 방지).
-   라이트 = 한낮의 크림 편지지. 다크 = 밤하늘색 편지지 — 이 기능의
-   정체성이 밤하늘이라, 어두운 곳에서는 크림을 억지로 누르는 대신
-   남색 종이에 크림 잉크로 쓴 밤 편지가 된다. */
+   종이는 라이트/다크 모두 크림 — 남색 종이 실험은 배경과 한 덩어리로
+   녹아 편지가 "물건"이길 멈췄고, 흰 폴라로이드만 혼자 빛을 받아
+   조명 논리가 갈라졌다. 다크는 휘도만 한 단계 낮춘 촛불 아래 크림. */
 .capsule-paper,
 .capsule-ps {
   --p-hi: #faf5ea;
@@ -995,23 +995,9 @@
 
 .dark .capsule-paper,
 .dark .capsule-ps {
-  --p-hi: #222e52;
-  --p-mid: #1b2543;
-  --p-lo: #151d35;
-  --p-ink: #e7dfc8;
-  --p-ink-strong: #f0e9d6;
-  --p-ink-body: #dcd3bb;
-  --p-ink-soft: rgba(231, 223, 200, 0.66);
-  --p-ink-mute: rgba(231, 223, 200, 0.55);
-  --p-ink-faint: rgba(231, 223, 200, 0.42);
-  --p-line: rgba(231, 223, 200, 0.16);
-  --p-dash: rgba(231, 223, 200, 0.3);
-  --p-edge: rgba(231, 223, 200, 0.16);
-  /* 남색 위의 악센트는 금색 — 필름 날짜 각인(#ffb03a)과 같은 계열 */
-  --p-accent: #d9a441;
-  --p-wax1: #6f87d8;
-  --p-wax2: #4a63b4;
-  --p-clip: #8b98b8;
+  --p-hi: #f2e9d3;
+  --p-mid: #ede1c6;
+  --p-lo: #e1d2ae;
 }
 
 /* 편지지 한 장 */
@@ -1038,13 +1024,6 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   mix-blend-mode: multiply;
   opacity: 0.055;
-}
-
-/* 남색 종이에서 multiply 그레인은 안 보인다 — overlay로 결만 살린다 */
-.dark .capsule-paper::after,
-.dark .capsule-ps::after {
-  mix-blend-mode: overlay;
-  opacity: 0.08;
 }
 
 .capsule-paper__head {
