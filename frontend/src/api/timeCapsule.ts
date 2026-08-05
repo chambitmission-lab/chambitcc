@@ -36,6 +36,9 @@ export const createCapsule = async (
   if (payload.recipientUserId != null) {
     formData.append('recipient_user_id', String(payload.recipientUserId))
   }
+  if (payload.prayerId != null) {
+    formData.append('prayer_id', String(payload.prayerId))
+  }
   if (payload.clientSnapshot) {
     formData.append('client_snapshot', JSON.stringify(payload.clientSnapshot))
   }

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { BibleVerse, RecommendedVerses } from '../../../types/prayer'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -10,6 +11,8 @@ interface BibleVersesModalProps {
   onClose: () => void
   /** 기도 작성자 이름 — 있으면 마무리 축복 문장에 이름을 호명한다 */
   authorName?: string
+  /** 기도 id — 타임캡슐 초대 CTA에서 그날의 기도를 함께 봉인할 때 쓴다 (내 기도일 때만) */
+  prayerId?: number
 }
 
 type Page =
@@ -21,7 +24,8 @@ const AMBIENT_CYCLE = ['bvm-amb-0', 'bvm-amb-1', 'bvm-amb-2']
 const KO_COUNT = ['', '한', '두', '세', '네']
 const EN_COUNT = ['', 'one', 'two', 'three', 'four']
 
-const BibleVersesModal = ({ verses, onClose, authorName }: BibleVersesModalProps) => {
+const BibleVersesModal = ({ verses, onClose, authorName, prayerId }: BibleVersesModalProps) => {
+  const navigate = useNavigate()
   const { t, language } = useLanguage()
   const isEn = language === 'en'
   const [isVisible, setIsVisible] = useState(false)
@@ -180,6 +184,21 @@ const BibleVersesModal = ({ verses, onClose, authorName }: BibleVersesModalProps
     ? 'Carry with you the verse that stayed.'
     : '마음에 남은 한 구절을 품고 돌아가세요'
 
+  // 타임캡슐 초대 — AI가 기도에서 명확한 미래 사건을 읽어냈을 때만 존재한다.
+  // "미래의 나에게"라는 초대이므로 내 기도(prayerId 전달)일 때만 보여주고,
+  // 묵상의 마무리를 방해하지 않도록 closing 페이지 안의 조용한 카드로만 놓는다.
+  const capsuleSuggestion = prayerId ? verses.capsule_suggestion || null : null
+
+  const handleCapsuleInvite = () => {
+    if (!capsuleSuggestion) return
+    const params = new URLSearchParams({ from: 'prayer' })
+    if (prayerId) params.set('prayerId', String(prayerId))
+    if (capsuleSuggestion.title) params.set('title', capsuleSuggestion.title)
+    if (capsuleSuggestion.open_date) params.set('openDate', capsuleSuggestion.open_date)
+    if (capsuleSuggestion.open_label) params.set('openLabel', capsuleSuggestion.open_label)
+    navigate(`/capsule/new?${params.toString()}`)
+  }
+
   const renderPage = (page: Page, pageIdx: number) => {
     const isActive = pageIdx === activeIndex
     const ambient =
@@ -306,6 +325,48 @@ const BibleVersesModal = ({ verses, onClose, authorName }: BibleVersesModalProps
                   <p className="bvm-fade bvm-d3 mt-6 text-[13.5px] leading-[1.7] text-white/50">
                     {closingSub}
                   </p>
+
+                  {capsuleSuggestion && (
+                    <div className="bvm-fade bvm-d4 mt-9 rounded-2xl border border-white/10 bg-white/[0.05] p-5 text-left backdrop-blur-sm">
+                      <span className="flex items-center gap-1.5 text-[11.5px] font-semibold uppercase tracking-[0.16em] text-white/40">
+                        <span className="material-icons-round text-[15px]">
+                          hourglass_top
+                        </span>
+                        {isEn ? 'Time capsule' : '타임캡슐'}
+                      </span>
+                      {capsuleSuggestion.hook && (
+                        <p
+                          className="mt-3 text-[13px] leading-[1.6] text-white/55"
+                          style={{ wordBreak: 'keep-all' }}
+                        >
+                          {capsuleSuggestion.hook}
+                        </p>
+                      )}
+                      <p
+                        className={`text-[15px] font-semibold leading-[1.65] text-white/90 ${
+                          capsuleSuggestion.hook ? 'mt-1.5' : 'mt-3'
+                        }`}
+                        style={{ wordBreak: 'keep-all' }}
+                      >
+                        {capsuleSuggestion.invite}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleCapsuleInvite}
+                        className="mt-4 inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-xl bg-brand text-[14px] font-bold text-white transition-transform active:scale-[0.98]"
+                      >
+                        <span className="material-icons-round text-[17px]">
+                          forward_to_inbox
+                        </span>
+                        {isEn ? 'Write to my future self' : '미래의 나에게 편지 쓰기'}
+                      </button>
+                      <p className="mt-2.5 text-center text-[11.5px] leading-[1.6] text-white/35">
+                        {isEn
+                          ? 'Today’s prayer and verse will be sealed together.'
+                          : '오늘의 기도와 말씀이 편지와 함께 봉인돼요'}
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
             </div>

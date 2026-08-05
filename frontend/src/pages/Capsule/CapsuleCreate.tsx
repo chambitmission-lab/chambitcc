@@ -3,7 +3,7 @@
 // 봉인한 날의 스냅샷(절기·오늘의 말씀)은 여기서 계산해 함께 보낸다
 // (절기 계산의 진실은 프론트 churchCalendar — 백엔드 season은 플레이스홀더).
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import DatePicker from '../../components/common/DatePicker'
 import { getTodayVerse } from '../../api/dailyVerse'
 import { searchCapsuleRecipients } from '../../api/timeCapsule'
@@ -43,12 +43,37 @@ const SEASON_LABELS: Record<string, string> = {
 
 const formatSeconds = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
+/** 딥링크로 받은 개봉일이 내일 이후의 유효한 YYYY-MM-DD인지 */
+const isValidFutureDateStr = (s: string | null): s is string => {
+  if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false
+  const d = new Date(`${s}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return d.getTime() > today.getTime()
+}
+
 const capsuleInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/capsule/invite/${code}`
 
 const CapsuleCreate = () => {
   const navigate = useNavigate()
   const createCapsule = useCreateCapsule()
+  const [searchParams] = useSearchParams()
+
+  // 기도→묵상→캡슐 딥링크 (#/capsule/new?from=prayer&prayerId=…&title=…&openDate=…&openLabel=…)
+  // — 묵상 마지막 화면의 타임캡슐 초대에서 넘어온 초기값. 최초 진입 값만 쓴다.
+  const suggested = useMemo(() => {
+    const rawDate = searchParams.get('openDate')
+    return {
+      fromPrayer: searchParams.get('from') === 'prayer',
+      prayerId: Number(searchParams.get('prayerId')) || undefined,
+      title: (searchParams.get('title') || '').slice(0, 50),
+      openDate: isValidFutureDateStr(rawDate) ? rawDate : '',
+      openLabel: (searchParams.get('openLabel') || '').trim().slice(0, 30),
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // '소중한 사람에게'는 direct(교인에게 바로)와 invite(초대 링크) 두 방식 —
   // 서로 아는 공동체 앱이라 바로 보내기를 기본으로 둔다
@@ -58,10 +83,10 @@ const CapsuleCreate = () => {
   const [recipientResults, setRecipientResults] = useState<CapsuleRecipient[]>([])
   const [recipientSearching, setRecipientSearching] = useState(false)
   const [selectedRecipient, setSelectedRecipient] = useState<CapsuleRecipient | null>(null)
-  const [title, setTitle] = useState('')
+  const [title, setTitle] = useState(suggested.title)
   const [message, setMessage] = useState('')
-  const [presetKey, setPresetKey] = useState('1y')
-  const [customDate, setCustomDate] = useState('')
+  const [presetKey, setPresetKey] = useState(suggested.openDate ? 'custom' : '1y')
+  const [customDate, setCustomDate] = useState(suggested.openDate)
   const [confirming, setConfirming] = useState(false)
   const [created, setCreated] = useState<CapsuleSummary | null>(null)
   const [photos, setPhotos] = useState<CapsuleDraftPhoto[]>([])
@@ -83,10 +108,12 @@ const CapsuleCreate = () => {
 
   useEffect(() => {
     if (!isAuthenticated()) {
-      sessionStorage.setItem('redirect_after_login', '/capsule/new')
+      // 딥링크 초기값(기도 연결 등)이 로그인 후에도 살아있도록 쿼리까지 보존
+      const qs = searchParams.toString()
+      sessionStorage.setItem('redirect_after_login', qs ? `/capsule/new?${qs}` : '/capsule/new')
       navigate('/login')
     }
-  }, [navigate])
+  }, [navigate, searchParams])
 
   // 3분 자동 컷 — 1년 뒤 듣기 좋은 길이로 제한
   useEffect(() => {
@@ -126,7 +153,16 @@ const CapsuleCreate = () => {
   const selectedPreset = presets.find((p) => p.key === presetKey)
   const openDate =
     presetKey === 'custom' ? customDate : selectedPreset ? toDateStr(selectedPreset.date) : ''
-  const openLabel = presetKey === 'custom' ? '직접 고른 날' : selectedPreset?.openLabel
+  // AI가 제안한 개봉일 그대로면 제안 라벨("수능을 마친 날")을, 바꿨으면 일반 라벨을 쓴다
+  const openLabel =
+    presetKey === 'custom'
+      ? suggested.openLabel && customDate === suggested.openDate
+        ? suggested.openLabel
+        : '직접 고른 날'
+      : selectedPreset?.openLabel
+
+  // 기도 동봉은 '미래의 나에게'일 때만 — 남에게 보내는 캡슐엔 내 기도를 붙이지 않는다
+  const sealedPrayerId = capsuleType === 'self' ? suggested.prayerId : undefined
 
   const audioUrl = useMemo(
     () => (audioBlob ? URL.createObjectURL(audioBlob) : null),
@@ -227,6 +263,7 @@ const CapsuleCreate = () => {
               : undefined,
         recipientUserId:
           capsuleType === 'direct' ? selectedRecipient?.id : undefined,
+        prayerId: sealedPrayerId,
         clientSnapshot,
         audioBlob,
         audioDuration: audioBlob ? Math.min(recordingTime, MAX_RECORD_SECONDS) : undefined,
@@ -348,6 +385,16 @@ const CapsuleCreate = () => {
           </button>
           <h1 className="text-[16px] font-extrabold">새 타임캡슐</h1>
         </div>
+
+        {/* 기도→캡슐 흐름 안내 — 방금의 기도가 함께 봉인된다 */}
+        {sealedPrayerId && (
+          <div className="mx-4 mt-4 px-4 py-3.5 rounded-2xl bg-[var(--brand-soft)] border border-brand/15">
+            <p className="text-[13px] font-bold text-brand">🙏 방금의 기도가 함께 봉인돼요</p>
+            <p className="text-[12px] text-gray-600 dark:text-white/60 mt-1 leading-[1.6]">
+              캡슐을 여는 날, 이 편지와 함께 그날의 기도와 붙들었던 말씀을 다시 보여드릴게요.
+            </p>
+          </div>
+        )}
 
         {/* 받는 사람 */}
         <section className="px-4 pt-5">

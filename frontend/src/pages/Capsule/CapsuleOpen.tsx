@@ -837,6 +837,38 @@ const CapsuleOpen = () => {
               />
             )}
 
+            {/* 함께 봉인한 그날의 기도 — 기도→묵상→캡슐 흐름으로 봉인된 캡슐에만 있다.
+                편지를 읽은 뒤 "그때 이렇게 기도했었지"를 만나는 순간이 이 카드의 존재 이유 */}
+            {snapshot?.prayer && (snapshot.prayer.content || snapshot.prayer.verses?.length) && (
+              <aside className="capsule-ps capsule-letter-enter capsule-letter-enter--delayed">
+                <span className="capsule-ps__clip" aria-hidden>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round">
+                    <path d="M8 8.5v7.8a4 4 0 0 0 8 0V7.2a2.7 2.7 0 1 0-5.4 0v8.6a1.35 1.35 0 0 0 2.7 0V8.5" />
+                  </svg>
+                </span>
+                <p className="capsule-ps__label">
+                  🙏 함께 봉인한 그날의 기도
+                  {snapshot.prayer.title ? ` · ${snapshot.prayer.title}` : ''}
+                </p>
+                {snapshot.prayer.content && (
+                  <p className="capsule-ps__verse">{snapshot.prayer.content}</p>
+                )}
+                {snapshot.prayer.verses && snapshot.prayer.verses.length > 0 && (
+                  <>
+                    <p className="capsule-ps__label" style={{ marginTop: 14 }}>
+                      그날 붙들었던 말씀
+                    </p>
+                    <p className="capsule-ps__verse">
+                      “{snapshot.prayer.verses[0].text}”
+                      <span className="capsule-ps__ref">
+                        — {snapshot.prayer.verses[0].reference}
+                      </span>
+                    </p>
+                  </>
+                )}
+              </aside>
+            )}
+
             {/* P.S. — 편지에 클립으로 끼워둔 그날의 기록 카드 */}
             {snapshot && (
               <aside className="capsule-ps capsule-letter-enter capsule-letter-enter--delayed">

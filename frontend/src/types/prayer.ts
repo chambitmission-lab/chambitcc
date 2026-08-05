@@ -68,10 +68,21 @@ export interface BibleVerse {
   message: string    // 적용 메시지
 }
 
+// 기도에 명확한 미래 사건(수능·수술·취업 등)이 담긴 경우에만 AI가 만들어주는
+// 타임캡슐 초대 — 묵상 마지막 화면에서 "미래의 나에게 편지"로 이어진다
+export interface CapsuleSuggestion {
+  invite: string       // "수능을 마친 미래의 나에게 편지를 남겨보시겠어요?"
+  hook?: string        // "수능을 준비하고 계시는군요"
+  title?: string       // 편지 제목 제안
+  open_date?: string   // 개봉일 제안 (YYYY-MM-DD)
+  open_label?: string  // 개봉일 별칭 ("수능을 마친 날")
+}
+
 export interface RecommendedVerses {
   summary: string           // 기도 주제 요약
   verses: BibleVerse[]      // 추천 성경 구절 목록
   language: string          // 언어 코드 (ko, en 등)
+  capsule_suggestion?: CapsuleSuggestion | null  // 타임캡슐 초대 (조건부 — 관리자 큐레이션 응답엔 없음)
 }
 
 export interface PrayerResponse {

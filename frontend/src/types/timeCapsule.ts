@@ -19,12 +19,21 @@ export interface CapsuleSnapshotStats {
   meditation_streak?: number
 }
 
+// 기도→묵상→캡슐 흐름으로 봉인된 그날의 기도 (서버가 봉인 시점에 채운다)
+export interface CapsuleSnapshotPrayer {
+  id?: number
+  title?: string
+  content?: string
+  verses?: { reference: string; text: string }[]
+}
+
 export interface CapsuleSnapshot {
   season_label?: string
   verse_reference?: string
   verse_text?: string
   sealed_date?: string
   stats?: CapsuleSnapshotStats
+  prayer?: CapsuleSnapshotPrayer
 }
 
 export interface CapsuleSummary {
@@ -90,6 +99,7 @@ export interface CapsuleCreateRequest {
   title?: string
   recipientName?: string
   recipientUserId?: number // direct 전용 — 받는 앱 사용자
+  prayerId?: number // 기도→캡슐 흐름 — 그날의 기도를 함께 봉인
   clientSnapshot?: Pick<CapsuleSnapshot, 'season_label' | 'verse_reference' | 'verse_text'>
   audioBlob?: Blob | null
   audioDuration?: number
