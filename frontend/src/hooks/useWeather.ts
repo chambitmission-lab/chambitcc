@@ -15,15 +15,6 @@ const WEATHER_URL =
  * 같은 주기로 맞춰 불필요한 호출 없이 최신값을 유지한다. */
 const WEATHER_REFRESH_MS = 1000 * 60 * 15
 
-/* 주간 예보 — 오늘부터 7일. 칩을 눌러 시트를 열 때만 호출한다(초기 로딩 부담 0).
- * past_days=1로 어제 하루를 함께 받아 "어제보다 N°" 비교에 쓴다(목록엔 안 나온다). */
-const FORECAST_DAYS = 7
-
-const FORECAST_URL =
-  `https://api.open-meteo.com/v1/forecast?latitude=${CHURCH_LAT}&longitude=${CHURCH_LON}` +
-  `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max` +
-  `&past_days=1&forecast_days=${FORECAST_DAYS}&timezone=Asia%2FSeoul`
-
 interface OpenMeteoResponse {
   current?: {
     weather_code?: number
@@ -35,10 +26,6 @@ interface OpenMeteoResponse {
     precipitation_probability?: (number | null)[]
   }
   daily?: {
-    time?: string[]
-    weather_code?: (number | null)[]
-    temperature_2m_max?: (number | null)[]
-    temperature_2m_min?: (number | null)[]
     precipitation_probability_max?: (number | null)[]
   }
 }
@@ -156,79 +143,44 @@ export const useCurrentWeather = (): CurrentWeatherState => {
   return { weather: data ?? null, isLoading }
 }
 
-export interface ForecastDay {
-  /* 'YYYY-MM-DD' (Asia/Seoul 기준) */
-  date: string
-  /* 0=일 … 6=토 — 요일 라벨용 */
-  weekday: number
-  condition: WeatherCondition
-  /* 예보엔 낮/밤 구분이 없어 낮 기준 이모지, 맑음도 ☀️로 채운다 */
-  emoji: string
-  tempMax: number
-  tempMin: number
-  /* 그날 최대 강수확률(%) — 없으면 null */
-  precipitationProbability: number | null
-}
+/* ── 주일 우산 안내 ──
+ * 여기서 날씨가 하는 일은 예보를 나열하는 게 아니라 예배 가는 길을 챙기는 것이다.
+ * 그래서 주간 표 대신 "다가오는 주일에 비가 오는가" 하나만 본다.
+ *
+ * 주일이 이 일수 안으로 들어왔을 때만 조회한다 — 그보다 먼 예보는 잘 맞지도 않고,
+ * 월·화·수에는 요청 자체가 나가지 않아 홈 첫 로딩이 그만큼 가볍다. */
+const SUNDAY_LOOKAHEAD_DAYS = 3
 
-export interface WeeklyForecast {
-  days: ForecastDay[]
-  /* 어제 최고기온 — "어제보다 N°" 비교용. 응답에 없으면 null */
-  yesterdayMax: number | null
-}
+/* 오늘부터 다가오는 주일까지 남은 일수. 오늘이 주일이면 0 */
+const daysUntilSunday = (today: Date): number => (7 - today.getDay()) % 7
 
-const fetchWeeklyForecast = async (): Promise<WeeklyForecast> => {
-  const response = await fetch(FORECAST_URL, { signal: AbortSignal.timeout(6_000) })
-  if (!response.ok) throw new Error('Failed to fetch forecast')
-  const data: OpenMeteoResponse = await response.json()
-  const daily = data.daily
-  const dates = daily?.time
-  if (!dates?.length) throw new Error('Forecast payload is empty')
+/* 필요한 건 강수확률 한 칸뿐이라 기온·날씨코드는 받지 않는다 */
+const sundayForecastUrl = (remaining: number) =>
+  `https://api.open-meteo.com/v1/forecast?latitude=${CHURCH_LAT}&longitude=${CHURCH_LON}` +
+  `&daily=precipitation_probability_max&forecast_days=${remaining + 1}&timezone=Asia%2FSeoul`
 
-  /* past_days=1이므로 첫 항목이 어제다 — 비교값만 뽑고 목록에서는 뺀다 */
-  let yesterdayMax: number | null = null
-  const days: ForecastDay[] = []
-  dates.forEach((date, i) => {
-    if (i === 0) {
-      const max = daily?.temperature_2m_max?.[0]
-      yesterdayMax = typeof max === 'number' ? Math.round(max) : null
-      return
-    }
-    const code = daily?.weather_code?.[i]
-    const tempMax = daily?.temperature_2m_max?.[i]
-    const tempMin = daily?.temperature_2m_min?.[i]
-    // 하루라도 값이 비면 그 줄만 건너뛴다 — 나머지 예보는 그대로 보여준다
-    if (
-      typeof code !== 'number' ||
-      typeof tempMax !== 'number' ||
-      typeof tempMin !== 'number'
-    ) {
-      return
-    }
-    const condition = classifyWeatherCode(code)
-    const pop = daily?.precipitation_probability_max?.[i]
-    /* 'YYYY-MM-DD'를 로컬 자정으로 만들어 요일을 얻는다 —
-     * new Date(문자열)은 UTC로 해석돼 한국에선 하루 밀린다. */
-    const [year, month, day] = date.split('-').map(Number)
-    days.push({
-      date,
-      weekday: new Date(year, month - 1, day).getDay(),
-      condition,
-      emoji: conditionToEmoji(condition, code, true) ?? '☀️',
-      tempMax: Math.round(tempMax),
-      tempMin: Math.round(tempMin),
-      precipitationProbability: typeof pop === 'number' ? pop : null,
-    })
+const fetchSundayPop = async (remaining: number): Promise<number | null> => {
+  const response = await fetch(sundayForecastUrl(remaining), {
+    signal: AbortSignal.timeout(6_000),
   })
-  if (!days.length) throw new Error('No usable forecast days')
-  return { days, yesterdayMax }
+  if (!response.ok) throw new Error('Failed to fetch Sunday forecast')
+  const data: OpenMeteoResponse = await response.json()
+  /* forecast_days가 remaining+1이므로 마지막 칸이 곧 주일이다 */
+  const pop = data.daily?.precipitation_probability_max?.[remaining]
+  return typeof pop === 'number' ? pop : null
 }
 
-/* 오늘부터 7일 예보. 시트가 열릴 때 마운트되는 컴포넌트에서만 호출해
- * 홈 첫 로딩에는 아무 비용도 들지 않는다. 실패하면 시트가 안내 문구를 띄운다. */
-export const useWeeklyForecast = () =>
-  useQuery({
-    queryKey: ['weather', 'forecast'],
-    queryFn: fetchWeeklyForecast,
+/* 다가오는 주일의 강수확률(%). 주일이 아직 멀거나 조회에 실패하면 null —
+ * 호출부는 그때 안내 문구를 아예 그리지 않는다(실패해도 화면에 흔적이 없다). */
+export const useSundayRain = (): number | null => {
+  const remaining = daysUntilSunday(new Date())
+  const isNear = remaining <= SUNDAY_LOOKAHEAD_DAYS
+  const { data } = useQuery({
+    /* remaining이 키에 들어가 날짜가 넘어가면 자동으로 새 예보를 받는다 —
+     * 토요일에 받아둔 값이 주일 아침까지 남지 않는다. */
+    queryKey: ['weather', 'sunday', remaining],
+    queryFn: () => fetchSundayPop(remaining),
+    enabled: isNear,
     /* 일별 예보는 실황만큼 자주 바뀌지 않는다 */
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 3,
@@ -236,3 +188,5 @@ export const useWeeklyForecast = () =>
     refetchOnMount: 'always',
     refetchOnWindowFocus: false,
   })
+  return isNear ? data ?? null : null
+}

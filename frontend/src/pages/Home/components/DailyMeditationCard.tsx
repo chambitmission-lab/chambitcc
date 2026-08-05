@@ -1,12 +1,15 @@
-import { lazy, Suspense, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDailyMeditation, deriveTimeOfDay } from '../../../hooks/useDailyMeditation'
 import { useAuth } from '../../../hooks/useAuth'
 import { useChapterReadStatus } from '../../../hooks/useBibleReading'
-import { useCurrentWeather, type WeatherCondition } from '../../../hooks/useWeather'
+import {
+  useCurrentWeather,
+  useSundayRain,
+  type WeatherCondition,
+} from '../../../hooks/useWeather'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { Language } from '../../../locales'
-import WeatherSheetFallback, { resetSheetShell } from './WeatherSheetFallback'
 import { getCurrentUser } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import {
@@ -30,17 +33,6 @@ import heroWinterMorning from '../../../assets/hero/winter-morning.jpg'
 import heroWinterAfternoon from '../../../assets/hero/winter-afternoon.jpg'
 import heroWinterEvening from '../../../assets/hero/winter-evening.jpg'
 import './DailyMeditationCard.css'
-
-/* 주간 예보 시트 — 칩을 누를 때만 필요하므로 홈 첫 로딩에서 분리한다 */
-const importForecastSheet = () => import('./WeatherForecastSheet')
-const WeatherForecastSheet = lazy(importForecastSheet)
-
-/* 칩에 손이 닿는 순간(hover·터치 시작) 청크를 미리 받아둔다 — 실제 클릭까지의
- * 수십 ms를 벌어 대부분의 경우 폴백 없이 바로 시트가 열린다.
- * 같은 모듈이라 lazy()와 캐시를 공유하고, 두 번 호출해도 요청은 한 번이다. */
-const preloadForecastSheet = () => {
-  void importForecastSheet()
-}
 
 const GREETING_KEYS = {
   morning: 'homeGreetingMorning',
@@ -183,13 +175,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
    * 로딩 중(isWeatherLoading)에는 폴백을 띄우지 않는다 — 띄우면 응답이 도착하는
    * 순간 사라져 새로고침마다 이모지가 깜빡인다. 대신 칩 자리에 스켈레톤을 둔다. */
   const { weather, isLoading: isWeatherLoading } = useCurrentWeather()
-  // 날씨 칩을 누르면 열리는 주간 예보 시트
-  const [isForecastOpen, setIsForecastOpen] = useState(false)
-  /* 청크 도착 전에 닫았을 수 있으니 껍데기 표시도 함께 되돌린다 */
-  const closeForecast = () => {
-    setIsForecastOpen(false)
-    resetSheetShell()
-  }
+  /* 다가오는 주일의 강수확률 — 주일이 3일 안으로 들어왔을 때만 조회된다 */
+  const sundayPop = useSundayRain()
   const { fullName } = getCurrentUser()
   const { isLoggedIn } = useAuth()
 
@@ -239,6 +226,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
       : null
   const pop = weather?.precipitationProbability ?? null
   const showPop = pop !== null && pop >= POP_VISIBLE_THRESHOLD
+  /* 우산 안내도 칩과 같은 판단선을 쓴다 — 낮은 확률까지 알리면 양치기 소년이 된다 */
+  const showSundayRain = sundayPop !== null && sundayPop >= POP_VISIBLE_THRESHOLD
   const todayDoy = dayOfYear(today)
   const ribbonSegments = getSeasonSegments(today.getFullYear()).map((seg) => {
     const startDoy = dayOfYear(seg.start)
@@ -358,15 +347,10 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
             <span className="meditation-weather-chip is-skeleton" aria-hidden />
           )}
           {weather && (
-            <button
-              type="button"
+            <span
               className="meditation-weather-chip"
               data-wet={isRaining || isSnowing ? '' : undefined}
-              aria-haspopup="dialog"
-              aria-expanded={isForecastOpen}
-              onPointerEnter={preloadForecastSheet}
-              onPointerDown={preloadForecastSheet}
-              onClick={() => setIsForecastOpen(true)}
+              role="img"
               aria-label={[
                 `${t('homeWeatherAria')}${weatherLabel ? ` ${weatherLabel}` : ''}`,
                 `${weather.temperature}°C`,
@@ -388,11 +372,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
                   {t('homeWeatherPop').replace('{n}', String(pop))}
                 </span>
               )}
-              {/* 누르면 주간 예보가 열린다는 힌트 */}
-              <span className="material-icons-round meditation-weather-caret" aria-hidden>
-                expand_more
-              </span>
-            </button>
+            </span>
           )}
           <div className="meditation-hero-text">
             <p className="meditation-hero-greeting">
@@ -415,6 +395,16 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         </div>
 
         <div className="meditation-body">
+        {/* 주일 우산 안내 — 주일이 가까우면서(3일 내) 비 확률이 높을 때만 뜬다.
+          * 이 카드에서 날씨가 하는 일은 예보를 보여주는 게 아니라 예배 가는 길을
+          * 챙기는 것이라, 평소엔 아무것도 그리지 않는다. */}
+        {showSundayRain && (
+          <p className="meditation-sunday-rain">
+            <span aria-hidden>☔</span>
+            {t('homeWeatherSundayRain')}
+          </p>
+        )}
+
         <header className="meditation-meta-row">
           <span className="meditation-season-tag" data-season={season}>
             {t(SEASON_LABEL_KEYS[season])}
@@ -574,16 +564,6 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         )}
         </div>
       </article>
-
-      {/* 주간 예보 시트 — 청크가 아직 안 왔으면 같은 모양의 로딩 껍데기를 먼저 띄운다 */}
-      {isForecastOpen && (
-        <Suspense fallback={<WeatherSheetFallback onClose={closeForecast} />}>
-          <WeatherForecastSheet
-            onClose={closeForecast}
-            currentTemperature={weather?.temperature}
-          />
-        </Suspense>
-      )}
     </section>
   )
 }

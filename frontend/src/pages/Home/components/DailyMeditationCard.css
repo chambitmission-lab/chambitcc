@@ -202,35 +202,17 @@
   letter-spacing: -0.01em;
   color: rgba(255, 255, 255, 0.95);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-  /* 주간 예보 시트를 여는 버튼 — 히어로 위 유리 칩 모양은 그대로 유지 */
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s ease, background 0.15s ease;
-}
-
-.meditation-weather-chip:active {
-  transform: scale(0.96);
-  background: rgba(20, 24, 32, 0.5);
 }
 
 /* 날씨 로딩 자리표시자 — 칩과 같은 유리 모양·크기의 빈 알약.
- * 내용이 없으므로 폭을 직접 잡아준다(⛅ 24° ⌄ 기준). */
+ * 내용이 없으므로 폭을 직접 잡아준다(⛅ 24° 기준). */
 .meditation-weather-chip.is-skeleton {
-  width: 74px;
+  width: 62px;
   height: 28px;
   padding: 0;
-  cursor: default;
-  pointer-events: none;
   background: rgba(20, 24, 32, 0.24);
   border-color: rgba(255, 255, 255, 0.12);
   animation: meditation-pulse 1.6s ease-in-out infinite;
-}
-
-/* 눌러서 펼칠 수 있다는 힌트 — 아주 작게, 기온 뒤에 */
-.meditation-weather-caret {
-  margin-left: -2px;
-  font-size: 16px;
-  opacity: 0.75;
 }
 
 /* 비·눈 오는 날은 칩도 젖은 톤(푸른 유리)으로 바뀐다 */
@@ -344,6 +326,24 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+/* 주일 우산 안내 — 본문 맨 위 한 줄. 주간 예보를 펼치는 대신
+ * "예배 가는 길에 우산" 하나만 조용히 전한다(조건이 맞는 날에만 렌더된다). */
+.meditation-sunday-rain {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 14px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  border: 1px solid var(--card-border);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--brand);
 }
 
 /* ── 연간 통독 여정 — 문장 라벨 + 카드 전폭 프로그레스 바 ── */
