@@ -89,21 +89,20 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
         avatar_url: isAnonReply ? null : cachedProfile?.stats?.avatar_url ?? null,
       }
 
-      // 서버가 오래된 순으로 내려주므로 임시 댓글도 마지막 페이지 끝에 붙인다
-      // (맨 앞에 넣으면 재조회 시 맨 아래로 점프해 새로고침처럼 보인다)
+      // 서버가 최신순으로 내려주므로 임시 댓글도 첫 페이지 맨 앞에 붙인다
+      // (끝에 넣으면 재조회 시 맨 위로 점프해 새로고침처럼 보인다)
       queryClient.setQueryData<RepliesCache>(repliesQueryKey, (old) => {
         if (!old) return old
 
-        const lastIndex = old.pages.length - 1
         return {
           ...old,
           pages: old.pages.map((page, i) =>
-            i === lastIndex
+            i === 0
               ? {
                   ...page,
                   data: {
                     ...page.data,
-                    items: [...page.data.items, tempReply],
+                    items: [tempReply, ...page.data.items],
                   },
                 }
               : page
