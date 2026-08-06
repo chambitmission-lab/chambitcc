@@ -33,20 +33,28 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
           'transition-transform duration-200 group-active:scale-[0.99]',
         ].join(' ')}
       >
+        {/* 카테고리 배경 일러스트 — 우측 배치, 좌측은 그라데이션 여백 */}
+        <img
+          src={v.bg}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover object-right pointer-events-none"
+        />
+        {/* 좌측·하단 스크림 — 텍스트 가독성 확보 */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(20,45,120,0.42) 0%, rgba(20,45,120,0.16) 42%, rgba(20,45,120,0) 68%), linear-gradient(0deg, rgba(15,32,90,0.35) 0%, rgba(15,32,90,0) 45%)',
+          }}
+        />
         {/* 미세 광택 — 카드 합의안 동일 패턴 */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 45%, rgba(0,0,0,0.18) 100%)',
-          }}
-        />
-        {/* 우상단 점 패턴 */}
-        <div
-          className="absolute -top-8 -right-8 w-40 h-40 opacity-25 pointer-events-none"
-          style={{
-            backgroundImage: 'radial-gradient(rgba(255,255,255,0.55) 1px, transparent 1px)',
-            backgroundSize: '14px 14px',
+              'linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 45%, rgba(0,0,0,0.14) 100%)',
           }}
         />
 

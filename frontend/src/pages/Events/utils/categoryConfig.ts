@@ -13,6 +13,8 @@ export interface CategoryVisual {
   dot: string
   // 달력 dot 네온 글로우 (다크 배경에서 시인성 확보)
   dotGlow: string
+  // Hero 카드 배경 일러스트 (우측 배치, 좌측은 텍스트용 여백)
+  bg: string
 }
 
 export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
@@ -24,6 +26,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     chipText: 'text-blue-700 dark:text-blue-300',
     dot: 'bg-blue-400',
     dotGlow: 'shadow-[0_0_6px_rgba(96,165,250,0.85)]',
+    bg: '/images/events/worship.webp',
   },
   meeting: {
     emoji: '☕',
@@ -33,6 +36,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     chipText: 'text-sky-700 dark:text-sky-300',
     dot: 'bg-sky-400',
     dotGlow: 'shadow-[0_0_6px_rgba(56,189,248,0.85)]',
+    bg: '/images/events/meeting.webp',
   },
   service: {
     emoji: '🤝',
@@ -42,6 +46,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     chipText: 'text-cyan-700 dark:text-cyan-300',
     dot: 'bg-cyan-400',
     dotGlow: 'shadow-[0_0_6px_rgba(34,211,238,0.85)]',
+    bg: '/images/events/service.webp',
   },
   special: {
     emoji: '✨',
@@ -51,6 +56,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     chipText: 'text-indigo-700 dark:text-indigo-300',
     dot: 'bg-indigo-400',
     dotGlow: 'shadow-[0_0_6px_rgba(129,140,248,0.85)]',
+    bg: '/images/events/special.webp',
   },
   education: {
     emoji: '📖',
@@ -60,6 +66,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     chipText: 'text-blue-700 dark:text-blue-200',
     dot: 'bg-blue-300',
     dotGlow: 'shadow-[0_0_6px_rgba(147,197,253,0.85)]',
+    bg: '/images/events/education.webp',
   },
   other: {
     emoji: '📌',
@@ -69,6 +76,7 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
     chipText: 'text-slate-600 dark:text-slate-300',
     dot: 'bg-slate-400',
     dotGlow: 'shadow-[0_0_6px_rgba(148,163,184,0.85)]',
+    bg: '/images/events/other.webp',
   },
 }
 
