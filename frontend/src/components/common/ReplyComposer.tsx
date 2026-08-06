@@ -9,9 +9,11 @@ import EmojiPickerPanel from './EmojiPickerPanel'
 interface ReplyComposerProps {
   onSubmit: (content: string, displayName: string) => void
   isSubmitting: boolean
+  /** 펼침/접힘 상태 알림 — 상세 모달이 작성 중에 하단 기도 바를 숨겨 오탭을 막는 데 사용 */
+  onExpandedChange?: (expanded: boolean) => void
 }
 
-const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
+const ReplyComposer = ({ onSubmit, isSubmitting, onExpandedChange }: ReplyComposerProps) => {
   const { t } = useLanguage()
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
@@ -25,7 +27,26 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
     if (expanded) {
       textareaRef.current?.focus()
     }
+    onExpandedChange?.(expanded)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded])
+
+  // 빈 채로 폼 밖을 탭하면 다시 접는다 — 작성 의사가 없어졌는데 폼(과 숨겨진
+  // 기도 바 상태)만 남아있지 않도록. 초안이 있으면 유지해 내용을 잃지 않는다.
+  const handleBlur = (e: React.FocusEvent<HTMLFormElement>) => {
+    if (content.trim()) return
+    if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget as Node)) return
+    setShowStickers(false)
+    setExpanded(false)
+  }
+
+  // 폼 내부 탭(이모지·체크박스 등)은 텍스트영역 포커스를 뺏지 않게 한다 —
+  // iOS에서 blur가 클릭보다 먼저 처리돼 접히면서 버튼 클릭이 유실되는 것 방지
+  const keepFocusInside = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).tagName !== 'TEXTAREA') {
+      e.preventDefault()
+    }
+  }
 
   // 프로필 사진 — 캐시된 프로필 상세에서 (미등록/비로그인 시 null → 이니셜 아바타)
   const { data: profileDetail } = useProfileDetail()
@@ -113,7 +134,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting }: ReplyComposerProps) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="reply-composer">
+    <form onSubmit={handleSubmit} onBlur={handleBlur} onMouseDown={keepFocusInside} className="reply-composer">
       <div className="flex items-start gap-3">
         {avatarEl}
 

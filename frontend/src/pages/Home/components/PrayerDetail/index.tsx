@@ -30,6 +30,10 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
   const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData)
   const repliesSectionRef = useRef<HTMLDivElement>(null)
 
+  // 댓글 작성 중 여부 — 작성 중엔 하단 기도 바를 접어 "댓글 작성"과
+  // "함께 기도했어요"가 같은 하단 영역에 파란 버튼으로 공존하며 생기는 오탭을 막는다
+  const [isComposing, setIsComposing] = useState(false)
+
   // 브라우저/안드로이드 뒤로가기: 모달을 닫는다 (댓글은 항상 펼쳐져 있어 별도 단계 없음)
   useModalBackButton(onClose)
 
@@ -156,20 +160,30 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
               onReplyUpdate={handleReplyUpdate}
               onReplyDelete={handleReplyDelete}
               onLoadMore={fetchNextPage}
+              onComposerExpandedChange={setIsComposing}
             />
           </div>
         </div>
 
         {/* 하단 고정 액션 바 — 짧은 글에서도 버튼이 어중간한 높이에 뜨지 않고
-            항상 엄지 존에 머문다. 설치형 PWA 홈 인디케이터 영역만큼 safe-area 패딩 */}
-        <div className="shrink-0 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-black/[0.06] dark:border-white/[0.08] bg-background-light dark:bg-background-dark">
-          <PrayerActions
-            isPrayed={prayer.is_prayed}
-            isToggling={isToggling}
-            replyCount={prayer.reply_count}
-            onPrayerToggle={handlePrayerToggle}
-            onCommentClick={scrollToReplies}
-          />
+            항상 엄지 존에 머문다. 설치형 PWA 홈 인디케이터 영역만큼 safe-area 패딩.
+            댓글 작성 중에는 접어둔다 — "댓글 작성"을 누르려다 이 큰 파란 버튼을
+            잘못 누르는 오탭 방지. 작성 완료/취소 시 다시 올라온다 */}
+        <div
+          aria-hidden={isComposing}
+          className={`shrink-0 overflow-hidden transition-all duration-300 ease-out ${
+            isComposing ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-32 opacity-100'
+          }`}
+        >
+          <div className="px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-black/[0.06] dark:border-white/[0.08] bg-background-light dark:bg-background-dark">
+            <PrayerActions
+              isPrayed={prayer.is_prayed}
+              isToggling={isToggling}
+              replyCount={prayer.reply_count}
+              onPrayerToggle={handlePrayerToggle}
+              onCommentClick={scrollToReplies}
+            />
+          </div>
         </div>
       </PrayerDetailModal>
 

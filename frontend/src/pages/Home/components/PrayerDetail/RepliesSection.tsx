@@ -15,6 +15,7 @@ interface RepliesSectionProps {
   onReplyUpdate: (replyId: number, content: string) => void
   onReplyDelete: (replyId: number) => void
   onLoadMore: () => void
+  onComposerExpandedChange?: (expanded: boolean) => void
 }
 
 const RepliesSection = ({
@@ -29,6 +30,7 @@ const RepliesSection = ({
   onReplyUpdate,
   onReplyDelete,
   onLoadMore,
+  onComposerExpandedChange,
 }: RepliesSectionProps) => {
   return (
     <div className="mt-8">
@@ -38,7 +40,11 @@ const RepliesSection = ({
 
       {/* Reply Composer */}
       <div className="mb-6">
-        <ReplyComposer onSubmit={onReplySubmit} isSubmitting={isCreating} />
+        <ReplyComposer
+          onSubmit={onReplySubmit}
+          isSubmitting={isCreating}
+          onExpandedChange={onComposerExpandedChange}
+        />
       </div>
 
       {/* Reply List */}
