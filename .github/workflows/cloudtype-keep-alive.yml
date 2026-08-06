@@ -10,10 +10,9 @@ name: Cloudtype Keep-Alive
 
 on:
   schedule:
-    # 새벽 기도 시간 대비: KST 04:00~07:59 구간은 10분마다
-    - cron: '*/10 19-22 * * *'
-    # 그 외 시간대 안전망: 30분마다
-    - cron: '*/30 * * * *'
+    # 클라우드타입 강제 중지는 KST 새벽 4~6시 사이 1회 → 그 구간(+30분 버퍼)만 감시.
+    # UTC 19:00~21:30 = KST 04:00~06:30, 30분 간격
+    - cron: '*/30 19-21 * * *'
   workflow_dispatch:
 
 concurrency:

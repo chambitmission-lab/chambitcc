@@ -1,0 +1,13 @@
+name = "cloudtype-keepalive"
+main = "src/index.js"
+compatibility_date = "2026-06-01"
+
+# GitHub Actions(cloudtype-keep-alive.yml)와 동일한 스케줄. Cloudflare cron도 UTC 기준.
+# 클라우드타입 강제 중지는 KST 새벽 4~6시 사이 1회 → 그 구간(+30분 버퍼)만 30분 간격 감시.
+# UTC 19:00~21:30 = KST 04:00~06:30
+[triggers]
+crons = ["*/30 19-21 * * *"]
+
+# 대시보드(Workers & Pages → cloudtype-keepalive → Logs)에서 실행 로그 확인용
+[observability]
+enabled = true
