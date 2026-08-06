@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import DatePicker from '../../../components/common/DatePicker'
+import TimePicker from '../../../components/common/TimePicker'
 import { createEvent, updateEvent } from '../../../api/event'
 import { useAllGroups } from '../../../hooks/useGroups'
 import type {
@@ -15,7 +16,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import { kstNow } from '../../../utils/kstTime'
+import { calendarDateKey, formatKstDateTime, kstNow } from '../../../utils/kstTime'
 
 interface EventComposerProps {
   editingEvent: Event | null
@@ -44,17 +45,50 @@ const REPEAT_OPTIONS: { value: RepeatType; label: string }[] = [
   { value: 'monthly', label: '매월' },
 ]
 
+/* 종료 시각은 직접 고르게 하지 않고 "얼마나 하는지"로 받는다.
+ * 수련회처럼 며칠에 걸치는 일정만 '직접 설정'으로 연다. */
+type EndMode = '1h' | '90m' | '2h' | '3h' | 'custom'
+const END_OPTIONS: { key: EndMode; label: string; minutes?: number }[] = [
+  { key: '1h', label: '1시간', minutes: 60 },
+  { key: '90m', label: '1시간 30분', minutes: 90 },
+  { key: '2h', label: '2시간', minutes: 120 },
+  { key: '3h', label: '3시간', minutes: 180 },
+  { key: 'custom', label: '직접 설정' },
+]
+
+/* RSVP 마감도 정확한 일시를 입력받는 대신 시작 기준 상대값으로 받는다.
+ * 시작 시각을 바꾸면 마감도 따라 움직인다. */
+type RsvpMode = 'none' | 'atStart' | '1d' | '3d' | '7d' | 'custom'
+const RSVP_OPTIONS: { key: RsvpMode; label: string; minutesBefore?: number }[] = [
+  { key: 'none', label: '마감 없음' },
+  { key: 'atStart', label: '시작 전까지', minutesBefore: 0 },
+  { key: '1d', label: '하루 전', minutesBefore: 60 * 24 },
+  { key: '3d', label: '3일 전', minutesBefore: 60 * 24 * 3 },
+  { key: '7d', label: '일주일 전', minutesBefore: 60 * 24 * 7 },
+  { key: 'custom', label: '직접 선택' },
+]
+
 const pad = (n: number) => n.toString().padStart(2, '0')
 
 const toLocalDatetimeInput = (d: Date) =>
   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 
-const addHours = (input: string, hours: number): string => {
+const addMinutes = (input: string, minutes: number): string => {
   if (!input) return ''
   const d = new Date(input)
-  d.setHours(d.getHours() + hours)
+  d.setMinutes(d.getMinutes() + minutes)
   return toLocalDatetimeInput(d)
 }
+
+const diffMinutes = (a: string, b: string) =>
+  Math.round((new Date(a).getTime() - new Date(b).getTime()) / 60000)
+
+/** 'YYYY-MM-DDTHH:mm' ↔ 날짜/시간 조각 */
+const splitDT = (v: string) => {
+  const [date = '', time = ''] = v.split('T')
+  return { date, time }
+}
+const joinDT = (date: string, time: string) => (date && time ? `${date}T${time}` : '')
 
 const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps) => {
   const { language } = useLanguage()
@@ -63,6 +97,8 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
   const groups = groupsData?.data.items ?? []
 
   const [form, setForm] = useState<CreateEventRequest>(DEFAULT_FORM)
+  const [endMode, setEndMode] = useState<EndMode>('1h')
+  const [rsvpMode, setRsvpMode] = useState<RsvpMode>('none')
   const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -72,52 +108,131 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
 
   useEffect(() => {
     if (editingEvent) {
+      const start = editingEvent.start_datetime.slice(0, 16)
+      const end = editingEvent.end_datetime.slice(0, 16)
+      const deadline = editingEvent.rsvp_deadline
+        ? editingEvent.rsvp_deadline.slice(0, 16)
+        : ''
       setForm({
         title: editingEvent.title,
         description: editingEvent.description || '',
         category: editingEvent.category,
-        start_datetime: editingEvent.start_datetime.slice(0, 16),
-        end_datetime: editingEvent.end_datetime.slice(0, 16),
+        start_datetime: start,
+        end_datetime: end,
         location: editingEvent.location || '',
         repeat_type: editingEvent.repeat_type,
         repeat_end_date: editingEvent.repeat_end_date || '',
         is_published: editingEvent.is_published,
         group_id: editingEvent.group_id ?? null,
-        rsvp_deadline: editingEvent.rsvp_deadline ? editingEvent.rsvp_deadline.slice(0, 16) : '',
+        rsvp_deadline: deadline,
       })
+      // 저장된 값에서 진행 시간·마감 프리셋을 역산 — 안 맞으면 '직접'으로 연다
+      const dur = diffMinutes(end, start)
+      setEndMode(END_OPTIONS.find(o => o.minutes === dur)?.key ?? 'custom')
+      if (!deadline) {
+        setRsvpMode('none')
+      } else {
+        const before = diffMinutes(start, deadline)
+        setRsvpMode(RSVP_OPTIONS.find(o => o.minutesBefore === before)?.key ?? 'custom')
+      }
     } else {
       setForm(DEFAULT_FORM)
+      setEndMode('1h')
+      setRsvpMode('none')
     }
     setFile(null)
     setError(null)
   }, [editingEvent])
 
-  const handleQuickDate = (mode: 'today' | 'tomorrow' | 'nextWeek') => {
-    // 입력값은 서울 벽시계 그대로 서버에 저장되므로, 기준일도 서울 '오늘'로 잡는다
-    const base = kstNow()
-    base.setSeconds(0, 0)
-    if (mode === 'tomorrow') base.setDate(base.getDate() + 1)
-    if (mode === 'nextWeek') base.setDate(base.getDate() + 7)
-    base.setHours(19, 0)
-    const start = toLocalDatetimeInput(base)
-    setForm(prev => ({ ...prev, start_datetime: start, end_datetime: addHours(start, 1) }))
-  }
-
-  const handleStartChange = (val: string) => {
+  /* 시작 시각이 정해지거나 바뀔 때 한 곳에서 종료·마감을 같이 굴린다 */
+  const applyStart = (start: string, nextEndMode = endMode, nextRsvpMode = rsvpMode) => {
     setForm(prev => {
-      const next = { ...prev, start_datetime: val }
-      // 종료 시간이 비어있거나 시작보다 이르면 +1시간 자동 채움
-      if (!prev.end_datetime || new Date(prev.end_datetime) < new Date(val)) {
-        next.end_datetime = addHours(val, 1)
+      const next = { ...prev, start_datetime: start }
+      const dur = END_OPTIONS.find(o => o.key === nextEndMode)?.minutes
+      if (dur != null) {
+        next.end_datetime = start ? addMinutes(start, dur) : ''
+      } else if (start && (!prev.end_datetime || prev.end_datetime < start)) {
+        // 직접 설정 중이라도 종료가 시작보다 앞서게 두지는 않는다
+        next.end_datetime = addMinutes(start, 60)
+      }
+      if (nextRsvpMode === 'none') {
+        next.rsvp_deadline = ''
+      } else {
+        const before = RSVP_OPTIONS.find(o => o.key === nextRsvpMode)?.minutesBefore
+        if (before != null) next.rsvp_deadline = start ? addMinutes(start, -before) : ''
       }
       return next
     })
   }
 
+  const startParts = splitDT(form.start_datetime)
+  const endParts = splitDT(form.end_datetime)
+  const deadlineParts = splitDT(form.rsvp_deadline ?? '')
+
+  const handleQuickDate = (mode: 'today' | 'tomorrow' | 'sunday' | 'nextWeek') => {
+    // 입력값은 서울 벽시계 그대로 서버에 저장되므로, 기준일도 서울 '오늘'로 잡는다
+    const base = kstNow()
+    base.setSeconds(0, 0)
+    if (mode === 'tomorrow') base.setDate(base.getDate() + 1)
+    if (mode === 'nextWeek') base.setDate(base.getDate() + 7)
+    if (mode === 'sunday') {
+      // 다가오는 주일(오늘이 일요일이면 오늘) 오전 11시
+      base.setDate(base.getDate() + ((7 - base.getDay()) % 7))
+      base.setHours(11, 0)
+    } else {
+      base.setHours(19, 0)
+    }
+    applyStart(toLocalDatetimeInput(base))
+  }
+
+  const handleStartDate = (date: string) =>
+    applyStart(joinDT(date, startParts.time || '19:00'))
+  const handleStartTime = (time: string) =>
+    applyStart(joinDT(startParts.date || calendarDateKey(kstNow()), time))
+
+  const handleEndMode = (mode: EndMode) => {
+    setEndMode(mode)
+    applyStart(form.start_datetime, mode)
+  }
+  const handleEndDate = (date: string) =>
+    setForm(prev => ({
+      ...prev,
+      end_datetime: joinDT(date, endParts.time || startParts.time || '20:00'),
+    }))
+  const handleEndTime = (time: string) =>
+    setForm(prev => ({
+      ...prev,
+      end_datetime: joinDT(endParts.date || startParts.date, time),
+    }))
+
+  const handleRsvpMode = (mode: RsvpMode) => {
+    setRsvpMode(mode)
+    if (mode === 'custom') {
+      // 직접 선택으로 들어올 때 빈칸 대신 시작 시각을 출발점으로 깔아 준다
+      setForm(prev => ({
+        ...prev,
+        rsvp_deadline: prev.rsvp_deadline || prev.start_datetime,
+      }))
+    } else {
+      applyStart(form.start_datetime, endMode, mode)
+    }
+  }
+  const handleDeadlineDate = (date: string) =>
+    setForm(prev => ({
+      ...prev,
+      rsvp_deadline: joinDT(date, deadlineParts.time || startParts.time || '23:30'),
+    }))
+  const handleDeadlineTime = (time: string) =>
+    setForm(prev => ({
+      ...prev,
+      rsvp_deadline: joinDT(deadlineParts.date || startParts.date, time),
+    }))
+
   // 반복 일정은 회차별로 펼쳐지지 않아 마감을 걸면 이후 전 회차가 잠긴다 → 아예 못 넣게 막는다
   const isRepeating = form.repeat_type !== 'none'
 
   const handleRepeatChange = (value: RepeatType) => {
+    if (value !== 'none') setRsvpMode('none')
     setForm(prev => ({
       ...prev,
       repeat_type: value,
@@ -131,11 +246,16 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
     !!form.start_datetime &&
     form.rsvp_deadline > form.start_datetime
 
+  const endBeforeStart =
+    !!form.start_datetime &&
+    !!form.end_datetime &&
+    form.end_datetime < form.start_datetime
+
   const canSubmit =
     form.title.trim().length > 0 &&
     form.start_datetime !== '' &&
     form.end_datetime !== '' &&
-    new Date(form.end_datetime) >= new Date(form.start_datetime) &&
+    !endBeforeStart &&
     !rsvpAfterStart &&
     !submitting
 
@@ -249,25 +369,77 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
               </div>
             </FieldGroup>
 
-            {/* 빠른 날짜 선택 */}
+            {/* 언제 — 날짜(커스텀 달력) + 시간(30분 간격 목록) */}
             <FieldGroup label="언제 열리나요" required>
               <div className="flex gap-1.5 mb-2.5 flex-wrap">
+                <QuickChip onClick={() => handleQuickDate('sunday')}>이번 주일 오전 11시</QuickChip>
                 <QuickChip onClick={() => handleQuickDate('today')}>오늘 저녁 7시</QuickChip>
                 <QuickChip onClick={() => handleQuickDate('tomorrow')}>내일 저녁 7시</QuickChip>
                 <QuickChip onClick={() => handleQuickDate('nextWeek')}>다음 주 같은 요일</QuickChip>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <DateField
-                  label="시작"
-                  value={form.start_datetime}
-                  onChange={handleStartChange}
-                />
-                <DateField
-                  label="종료"
-                  value={form.end_datetime}
-                  onChange={(v) => setForm({ ...form, end_datetime: v })}
-                  min={form.start_datetime || undefined}
-                />
+              <div className="grid grid-cols-[minmax(0,1fr)_108px] gap-2">
+                <div>
+                  <span className={subLabelClass}>날짜</span>
+                  <DatePicker
+                    value={startParts.date}
+                    onChange={handleStartDate}
+                    className={dateTriggerClass}
+                  />
+                </div>
+                <div>
+                  <span className={subLabelClass}>시작 시간</span>
+                  <TimePicker
+                    value={startParts.time}
+                    onChange={handleStartTime}
+                    className={dateTriggerClass}
+                  />
+                </div>
+              </div>
+
+              {/* 종료는 "얼마나 하는지"로 — 며칠짜리 일정만 직접 설정 */}
+              <div className="mt-3">
+                <span className={subLabelClass}>얼마나 하나요</span>
+                <div className="flex gap-1.5 flex-wrap">
+                  {END_OPTIONS.map(o => (
+                    <ScopeChip
+                      key={o.key}
+                      active={endMode === o.key}
+                      onClick={() => handleEndMode(o.key)}
+                    >
+                      {o.label}
+                    </ScopeChip>
+                  ))}
+                </div>
+                {endMode === 'custom' && (
+                  <div className="mt-2 grid grid-cols-[minmax(0,1fr)_108px] gap-2">
+                    <div>
+                      <span className={subLabelClass}>종료 날짜</span>
+                      <DatePicker
+                        value={endParts.date}
+                        onChange={handleEndDate}
+                        minDate={startParts.date || undefined}
+                        className={dateTriggerClass}
+                      />
+                    </div>
+                    <div>
+                      <span className={subLabelClass}>종료 시간</span>
+                      <TimePicker
+                        value={endParts.time}
+                        onChange={handleEndTime}
+                        className={dateTriggerClass}
+                      />
+                    </div>
+                  </div>
+                )}
+                {endBeforeStart ? (
+                  <p className="mt-1.5 text-[11.5px] font-semibold leading-[1.5] text-red-500 dark:text-red-400">
+                    종료가 시작보다 앞설 수 없어요.
+                  </p>
+                ) : form.start_datetime && form.end_datetime ? (
+                  <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-white/45 tabular-nums">
+                    {formatKstDateTime(form.start_datetime)} ~ {formatKstDateTime(form.end_datetime)}
+                  </p>
+                ) : null}
               </div>
             </FieldGroup>
 
@@ -339,24 +511,52 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
               </div>
               {form.repeat_type !== 'none' && (
                 <div className="mt-2.5">
-                  <DateField
-                    label="반복 종료일"
-                    type="date"
+                  <span className={subLabelClass}>반복 종료일</span>
+                  <DatePicker
                     value={form.repeat_end_date ?? ''}
                     onChange={(v) => setForm({ ...form, repeat_end_date: v })}
+                    minDate={startParts.date || undefined}
+                    className={dateTriggerClass}
                   />
                 </div>
               )}
             </FieldGroup>
 
-            {/* RSVP 마감 */}
-            <FieldGroup label="RSVP 마감 (선택)">
-              <DateField
-                value={form.rsvp_deadline ?? ''}
-                onChange={(v) => setForm({ ...form, rsvp_deadline: v })}
-                max={form.start_datetime || undefined}
-                disabled={isRepeating}
-              />
+            {/* RSVP 마감 — 정확한 일시 대신 시작 기준 프리셋으로 */}
+            <FieldGroup label="참석(RSVP) 마감">
+              <div className="flex gap-1.5 flex-wrap">
+                {RSVP_OPTIONS.map(o => (
+                  <ScopeChip
+                    key={o.key}
+                    active={rsvpMode === o.key}
+                    disabled={isRepeating}
+                    onClick={() => handleRsvpMode(o.key)}
+                  >
+                    {o.label}
+                  </ScopeChip>
+                ))}
+              </div>
+              {rsvpMode === 'custom' && !isRepeating && (
+                <div className="mt-2 grid grid-cols-[minmax(0,1fr)_108px] gap-2">
+                  <div>
+                    <span className={subLabelClass}>마감 날짜</span>
+                    <DatePicker
+                      value={deadlineParts.date}
+                      onChange={handleDeadlineDate}
+                      maxDate={startParts.date || undefined}
+                      className={dateTriggerClass}
+                    />
+                  </div>
+                  <div>
+                    <span className={subLabelClass}>마감 시간</span>
+                    <TimePicker
+                      value={deadlineParts.time}
+                      onChange={handleDeadlineTime}
+                      className={dateTriggerClass}
+                    />
+                  </div>
+                </div>
+              )}
               {isRepeating ? (
                 <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-white/50">
                   반복 일정에는 RSVP 마감을 걸 수 없어요. 마감은 회차별로 적용되지 않아서,
@@ -366,10 +566,18 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
                 <p className="mt-1.5 text-[11.5px] font-semibold leading-[1.5] text-red-500 dark:text-red-400">
                   마감은 일정 시작 시각보다 늦을 수 없어요.
                 </p>
+              ) : rsvpMode !== 'none' && !form.start_datetime ? (
+                <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-white/45">
+                  시작 시각을 정하면 마감이 자동으로 계산돼요.
+                </p>
+              ) : rsvpMode !== 'none' && form.rsvp_deadline ? (
+                <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-white/45 tabular-nums">
+                  {formatKstDateTime(form.rsvp_deadline)}까지 참석 등록을 받아요. 마감 후에는
+                  새 등록만 막히고 기존 응답의 변경·취소는 계속 가능합니다.
+                </p>
               ) : (
                 <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-white/45">
-                  한국 시간 기준이며, 마감 후에는 새 참석 등록만 막히고 기존 응답의 변경·취소는
-                  계속 가능합니다.
+                  마감 없이 시작 전까지 언제든 참석 등록을 받아요.
                 </p>
               )}
             </FieldGroup>
@@ -504,78 +712,35 @@ const QuickChip = ({ onClick, children }: { onClick: () => void; children: React
 const ScopeChip = ({
   active,
   onClick,
+  disabled = false,
   children,
 }: {
   active: boolean
   onClick: () => void
+  disabled?: boolean
   children: ReactNode
 }) => (
   <button
     type="button"
     onClick={onClick}
+    disabled={disabled}
     className={[
       'inline-flex items-center gap-1.5 px-3.5 h-9 rounded-full text-[12.5px] font-bold transition-all',
       active
         ? 'bg-brand text-white shadow-[0_4px_14px_-4px_var(--brand-glow)]'
         : 'bg-gray-50 dark:bg-white/[0.03] text-gray-700 dark:text-white/70 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06]',
+      disabled ? 'opacity-40 cursor-not-allowed' : '',
     ].join(' ')}
   >
     {children}
   </button>
 )
 
-interface DateFieldProps {
-  label?: string
-  type?: 'date' | 'datetime-local'
-  value: string
-  onChange: (v: string) => void
-  min?: string
-  max?: string
-  disabled?: boolean
-}
+/* 날짜·시간 트리거를 폼의 다른 입력과 같은 높이·테두리로 맞춘다 */
+const dateTriggerClass =
+  'w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong hover:border-brand focus:outline-none focus:border-brand transition-colors flex items-center justify-between gap-2 text-left'
 
-const dateFieldInputClass =
-  'w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] text-ink-strong focus:outline-none focus:border-brand transition-colors'
-
-/* 날짜만 받는 필드는 앱 공통 DatePicker(한국식 표기)로, 시각까지 받는
- * datetime-local은 시간 입력이 필요해 네이티브 입력을 그대로 쓴다. */
-const dateFieldLabelClass =
+const subLabelClass =
   'block text-[10.5px] font-bold uppercase tracking-[0.05em] text-gray-500 dark:text-white/45 mb-1'
-
-const DateField = ({
-  label,
-  type = 'datetime-local',
-  value,
-  onChange,
-  min,
-  max,
-  disabled = false,
-}: DateFieldProps) =>
-  /* 달력 팝오버 안의 버튼들이 <label>의 클릭 전달에 휘말리지 않게, 날짜 전용은 div로 감싼다 */
-  type === 'date' ? (
-    <div className="block">
-      {label && <span className={dateFieldLabelClass}>{label}</span>}
-      <DatePicker
-        value={value}
-        onChange={onChange}
-        minDate={min}
-        maxDate={max}
-        className={`${dateFieldInputClass} flex items-center justify-between gap-2 text-left hover:border-brand`}
-      />
-    </div>
-  ) : (
-    <label className="block">
-      {label && <span className={dateFieldLabelClass}>{label}</span>}
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        min={min}
-        max={max}
-        disabled={disabled}
-        className={`${dateFieldInputClass} disabled:opacity-45 disabled:cursor-not-allowed`}
-      />
-    </label>
-  )
 
 export default EventComposer
