@@ -40,17 +40,20 @@ export const AttendeesCard = ({ attendances, t }: AttendeesCardProps) => {
 
       {attending.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {visible.map(a => (
-            <span
-              key={a.id}
-              className="inline-flex items-center gap-1.5 pl-1 pr-2.5 h-7 rounded-full bg-gray-50 dark:bg-white/[0.05] border border-gray-100 dark:border-white/[0.06] text-gray-700 dark:text-white/80 text-[12px] font-semibold"
-            >
-              <span className="w-5 h-5 rounded-full bg-[var(--brand-soft-strong)] text-brand text-[10.5px] font-bold flex items-center justify-center">
-                {a.user_name.charAt(0)}
+          {visible.map(a => {
+            const name = a.user_name?.trim() || t.anonymous
+            return (
+              <span
+                key={a.id}
+                className="inline-flex items-center gap-1.5 pl-1 pr-2.5 h-7 rounded-full bg-gray-50 dark:bg-white/[0.05] border border-gray-100 dark:border-white/[0.06] text-gray-700 dark:text-white/80 text-[12px] font-semibold"
+              >
+                <span className="w-5 h-5 rounded-full bg-[var(--brand-soft-strong)] text-brand text-[10.5px] font-bold flex items-center justify-center">
+                  {name.charAt(0)}
+                </span>
+                {name}
               </span>
-              {a.user_name}
-            </span>
-          ))}
+            )
+          })}
           {overflow > 0 && (
             <span className="inline-flex items-center px-2.5 h-7 rounded-full bg-gray-50 dark:bg-white/[0.05] text-gray-500 dark:text-white/55 text-[12px] font-semibold">
               +{overflow}

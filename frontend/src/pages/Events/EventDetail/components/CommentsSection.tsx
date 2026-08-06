@@ -3,7 +3,8 @@ import { toKstCalendarDate } from '../../../../utils/kstTime'
 
 interface Comment {
   id: number
-  user_name: string
+  // 구버전 백엔드 응답에는 없을 수 있음
+  user_name?: string | null
   content: string
   created_at: string
 }
@@ -72,7 +73,9 @@ export const CommentsSection = ({
         </p>
       ) : (
         <div className="flex flex-col">
-          {comments.map((c, i) => (
+          {comments.map((c, i) => {
+            const name = c.user_name?.trim() || t.anonymous
+            return (
             <div
               key={c.id}
               className={`flex items-start gap-2.5 py-3 ${
@@ -80,11 +83,11 @@ export const CommentsSection = ({
               }`}
             >
               <span className="w-8 h-8 rounded-full bg-[var(--brand-soft)] text-brand text-[13px] font-bold flex items-center justify-center shrink-0">
-                {c.user_name.charAt(0)}
+                {name.charAt(0)}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-ink-strong text-[13px] font-bold">{c.user_name}</span>
+                  <span className="text-ink-strong text-[13px] font-bold">{name}</span>
                   <span className="text-gray-400 dark:text-white/40 text-[11.5px]">
                     {formatCommentDate(c.created_at)}
                   </span>
@@ -103,7 +106,8 @@ export const CommentsSection = ({
                 </p>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </section>

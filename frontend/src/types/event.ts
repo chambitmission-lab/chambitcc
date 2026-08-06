@@ -7,7 +7,8 @@ export type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly'
 export interface EventAttendance {
   id: number
   user_id: number
-  user_name: string
+  // 구버전 백엔드 응답에는 없을 수 있음
+  user_name?: string | null
   status: AttendanceStatus
   created_at: string
 }
@@ -15,7 +16,8 @@ export interface EventAttendance {
 export interface EventComment {
   id: number
   user_id: number
-  user_name: string
+  // 구버전 백엔드 응답에는 없을 수 있음
+  user_name?: string | null
   content: string
   created_at: string
 }
