@@ -1,11 +1,16 @@
 // 알림 작성 바텀시트 (교사 전용) — 공지/암송요절/일정/사진/투표 5가지 유형
 // + 예약 발행, 자주 쓰는 템플릿(localStorage)
+// 일정·예약 시각은 네이티브 datetime-local 대신 EventComposer(관리자 일정 등록)와
+// 같은 빠른 칩 + 커스텀 DatePicker/TimePicker 조합으로 받는다.
 import { useMemo, useRef, useState } from 'react'
+import DatePicker from '../../../components/common/DatePicker'
+import TimePicker from '../../../components/common/TimePicker'
 import { useBibleBooks, useBibleChapter } from '../../../hooks/useBible'
 import { useCreateClassPost } from '../../../hooks/useClassRoom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { ClassPostCreateRequest, ClassPostType } from '../../../types/classRoom'
 import { resizeImageToBlob } from '../../../utils/imageResize'
+import { calendarDateKey, formatKstDateTime, kstNow } from '../../../utils/kstTime'
 import { showToast } from '../../../utils/toast'
 
 const MAX_PHOTOS = 10
@@ -51,6 +56,65 @@ const TYPE_TABS: { value: ClassPostType; label: string }[] = [
   { value: 'poll', label: '🗳 투표' },
 ]
 
+/* ── 일정·예약 시각 도우미 (EventComposer와 동일 방식) ── */
+const pad = (n: number) => n.toString().padStart(2, '0')
+
+const toLocalDatetimeInput = (d: Date) =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+
+const addMinutes = (input: string, minutes: number): string => {
+  if (!input) return ''
+  const d = new Date(input)
+  d.setMinutes(d.getMinutes() + minutes)
+  return toLocalDatetimeInput(d)
+}
+
+/** 'YYYY-MM-DDTHH:mm' ↔ 날짜/시간 조각 */
+const splitDT = (v: string) => {
+  const [date = '', time = ''] = v.split('T')
+  return { date, time }
+}
+const joinDT = (date: string, time: string) => (date && time ? `${date}T${time}` : '')
+
+/* 종료는 "얼마나 하는지"로 받는다 — 반 일정은 종료 미정도 흔해서 '미정'이 기본 */
+type EndMode = 'none' | '1h' | '90m' | '2h' | 'custom'
+const END_OPTIONS: { key: EndMode; label: string; minutes?: number }[] = [
+  { key: 'none', label: '종료 미정' },
+  { key: '1h', label: '1시간', minutes: 60 },
+  { key: '90m', label: '1시간 30분', minutes: 90 },
+  { key: '2h', label: '2시간', minutes: 120 },
+  { key: 'custom', label: '직접 설정' },
+]
+
+/* RSVP 마감도 시작 기준 프리셋으로 — 시작을 바꾸면 마감이 따라온다 */
+type RsvpMode = 'none' | 'atStart' | '1d' | '3d' | 'custom'
+const RSVP_PRESETS: { key: RsvpMode; label: string; minutesBefore?: number }[] = [
+  { key: 'none', label: '마감 없음' },
+  { key: 'atStart', label: '시작 전까지', minutesBefore: 0 },
+  { key: '1d', label: '하루 전', minutesBefore: 60 * 24 },
+  { key: '3d', label: '3일 전', minutesBefore: 60 * 24 * 3 },
+  { key: 'custom', label: '직접 선택' },
+]
+
+/* 예약 발행 프리셋 — 주일학교 공지의 단골 시각 */
+type PublishMode = 'now' | 'sat20' | 'sun8' | 'custom'
+const PUBLISH_PRESETS: { key: PublishMode; label: string }[] = [
+  { key: 'now', label: '지금 바로' },
+  { key: 'sat20', label: '토요일 저녁 8시' },
+  { key: 'sun8', label: '주일 아침 8시' },
+  { key: 'custom', label: '직접 선택' },
+]
+
+/** 다가오는 요일(오늘 포함)의 특정 시각 — 이미 지났으면 다음 주 */
+const upcomingAt = (weekday: number, hour: number): string => {
+  const d = kstNow()
+  d.setSeconds(0, 0)
+  d.setDate(d.getDate() + ((weekday - d.getDay() + 7) % 7))
+  d.setHours(hour, 0)
+  if (d.getTime() <= kstNow().getTime()) d.setDate(d.getDate() + 7)
+  return toLocalDatetimeInput(d)
+}
+
 interface ClassComposerSheetProps {
   classId: number
   onClose: () => void
@@ -87,11 +151,83 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
       .join(' ')
   }, [chapterData, verseStart, verseEnd])
 
-  // 일정
+  // 일정 — 값은 'YYYY-MM-DDTHH:mm' 유지, 입력은 칩+피커로
   const [startAt, setStartAt] = useState('')
   const [endAt, setEndAt] = useState('')
   const [location, setLocation] = useState('')
   const [deadline, setDeadline] = useState('')
+  const [endMode, setEndMode] = useState<EndMode>('none')
+  const [rsvpMode, setRsvpMode] = useState<RsvpMode>('none')
+
+  /* 시작이 정해지거나 바뀔 때 종료·마감을 프리셋대로 같이 굴린다 */
+  const applyStart = (
+    start: string,
+    nextEndMode = endMode,
+    nextRsvpMode = rsvpMode,
+  ) => {
+    setStartAt(start)
+    const dur = END_OPTIONS.find((o) => o.key === nextEndMode)?.minutes
+    if (nextEndMode === 'none') {
+      setEndAt('')
+    } else if (dur != null) {
+      setEndAt(start ? addMinutes(start, dur) : '')
+    } else if (start) {
+      // 직접 설정 중이라도 종료가 시작보다 앞서게 두지는 않는다
+      setEndAt((prev) => (!prev || prev < start ? addMinutes(start, 60) : prev))
+    }
+    if (nextRsvpMode === 'none') {
+      setDeadline('')
+    } else {
+      const before = RSVP_PRESETS.find((o) => o.key === nextRsvpMode)?.minutesBefore
+      if (before != null) setDeadline(start ? addMinutes(start, -before) : '')
+    }
+  }
+
+  const startParts = splitDT(startAt)
+  const endParts = splitDT(endAt)
+  const deadlineParts = splitDT(deadline)
+
+  const handleQuickDate = (mode: 'sunday' | 'today' | 'tomorrow' | 'nextWeek') => {
+    const base = kstNow()
+    base.setSeconds(0, 0)
+    if (mode === 'tomorrow') base.setDate(base.getDate() + 1)
+    if (mode === 'nextWeek') base.setDate(base.getDate() + 7)
+    if (mode === 'sunday') {
+      base.setDate(base.getDate() + ((7 - base.getDay()) % 7))
+      base.setHours(11, 0)
+    } else {
+      base.setHours(19, 0)
+    }
+    applyStart(toLocalDatetimeInput(base))
+  }
+
+  const handleEndMode = (mode: EndMode) => {
+    setEndMode(mode)
+    applyStart(startAt, mode)
+  }
+
+  const handleRsvpMode = (mode: RsvpMode) => {
+    setRsvpMode(mode)
+    if (mode === 'custom') {
+      // 직접 선택으로 들어올 때 빈칸 대신 시작 시각을 출발점으로 깔아 준다
+      setDeadline((prev) => prev || startAt)
+    } else {
+      applyStart(startAt, endMode, mode)
+    }
+  }
+
+  // 예약 발행
+  const [publishAt, setPublishAt] = useState('')
+  const [publishMode, setPublishMode] = useState<PublishMode>('now')
+  const publishParts = splitDT(publishAt)
+
+  const handlePublishMode = (mode: PublishMode) => {
+    setPublishMode(mode)
+    if (mode === 'now') setPublishAt('')
+    if (mode === 'sat20') setPublishAt(upcomingAt(6, 20))
+    if (mode === 'sun8') setPublishAt(upcomingAt(0, 8))
+    if (mode === 'custom') setPublishAt((prev) => prev || upcomingAt(0, 8))
+  }
 
   // 사진
   const [photos, setPhotos] = useState<{ file: File; previewUrl: string }[]>([])
@@ -100,9 +236,6 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
   // 투표
   const [pollOptions, setPollOptions] = useState<string[]>(['', ''])
   const [pollMultiple, setPollMultiple] = useState(false)
-
-  // 예약 발행
-  const [publishAt, setPublishAt] = useState('')
 
   // 템플릿
   const [templates, setTemplates] = useState<PostTemplate[]>(loadTemplates)
@@ -259,6 +392,11 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
   const labelCls = 'block text-[12px] font-bold text-gray-500 dark:text-white/55 mb-1.5'
   const selectCls =
     'px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.08] text-[13px] font-semibold focus:outline-none focus:border-brand'
+  // DatePicker/TimePicker 트리거를 다른 입력과 같은 높이·테두리로
+  const pickerCls =
+    'w-full px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.08] text-[13px] text-ink-strong focus:outline-none focus:border-brand transition-colors flex items-center justify-between gap-2 text-left'
+  const subLabelCls =
+    'block text-[10.5px] font-bold uppercase tracking-[0.05em] text-gray-500 dark:text-white/45 mb-1'
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -466,26 +604,104 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                 className={inputCls}
               />
             </div>
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <label className={labelCls}>시작</label>
-                <input
-                  type="datetime-local"
-                  value={startAt}
-                  onChange={(e) => setStartAt(e.target.value)}
-                  className={inputCls}
-                />
+
+            {/* 언제 — 빠른 칩 + 날짜/시간 피커 */}
+            <div>
+              <label className={labelCls}>언제 모이나요</label>
+              <div className="flex gap-1.5 mb-2.5 flex-wrap">
+                {(
+                  [
+                    ['sunday', '이번 주일 오전 11시'],
+                    ['today', '오늘 저녁 7시'],
+                    ['tomorrow', '내일 저녁 7시'],
+                    ['nextWeek', '다음 주 같은 요일'],
+                  ] as const
+                ).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => handleQuickDate(mode)}
+                    className="inline-flex items-center px-3 h-8 rounded-full bg-[var(--brand-soft)] text-brand text-[11.5px] font-bold border border-[var(--brand-glow)] active:scale-95 transition-transform"
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
-              <div>
-                <label className={labelCls}>종료 (선택)</label>
-                <input
-                  type="datetime-local"
-                  value={endAt}
-                  onChange={(e) => setEndAt(e.target.value)}
-                  className={inputCls}
-                />
+              <div className="grid grid-cols-[minmax(0,1fr)_112px] gap-2">
+                <div>
+                  <span className={subLabelCls}>날짜</span>
+                  <DatePicker
+                    value={startParts.date}
+                    onChange={(date) => applyStart(joinDT(date, startParts.time || '11:00'))}
+                    sundayMode
+                    className={pickerCls}
+                  />
+                </div>
+                <div>
+                  <span className={subLabelCls}>시작 시간</span>
+                  <TimePicker
+                    value={startParts.time}
+                    onChange={(time) =>
+                      applyStart(joinDT(startParts.date || calendarDateKey(kstNow()), time))
+                    }
+                    className={pickerCls}
+                  />
+                </div>
+              </div>
+
+              {/* 종료는 "얼마나 하는지"로 */}
+              <div className="mt-3">
+                <span className={subLabelCls}>얼마나 하나요</span>
+                <div className="flex gap-1.5 flex-wrap">
+                  {END_OPTIONS.map((o) => (
+                    <button
+                      key={o.key}
+                      type="button"
+                      onClick={() => handleEndMode(o.key)}
+                      className={`px-3 h-8 rounded-full text-[11.5px] font-bold transition-all active:scale-95 ${
+                        endMode === o.key
+                          ? 'bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
+                          : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
+                      }`}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                {endMode === 'custom' && (
+                  <div className="mt-2 grid grid-cols-[minmax(0,1fr)_112px] gap-2">
+                    <div>
+                      <span className={subLabelCls}>종료 날짜</span>
+                      <DatePicker
+                        value={endParts.date}
+                        onChange={(date) =>
+                          setEndAt(joinDT(date, endParts.time || startParts.time || '13:00'))
+                        }
+                        minDate={startParts.date || undefined}
+                        className={pickerCls}
+                      />
+                    </div>
+                    <div>
+                      <span className={subLabelCls}>종료 시간</span>
+                      <TimePicker
+                        value={endParts.time}
+                        onChange={(time) =>
+                          setEndAt(joinDT(endParts.date || startParts.date, time))
+                        }
+                        className={pickerCls}
+                      />
+                    </div>
+                  </div>
+                )}
+                {startAt && (
+                  <p className="mt-1.5 text-[11.5px] leading-[1.5] text-gray-500 dark:text-white/45 tabular-nums">
+                    {formatKstDateTime(startAt)}
+                    {endAt && ` ~ ${formatKstDateTime(endAt)}`}
+                  </p>
+                )}
               </div>
             </div>
+
             <div>
               <label className={labelCls}>장소 (선택)</label>
               <input
@@ -496,18 +712,62 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                 className={inputCls}
               />
             </div>
+
+            {/* 참석 응답 마감 — 시작 기준 프리셋 */}
             <div>
-              <label className={labelCls}>참석 응답 마감 (선택)</label>
-              <input
-                type="datetime-local"
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
-                className={inputCls}
-              />
-              <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1">
-                마감 후에는 새 응답은 안 되고, 이미 응답한 분만 변경할 수 있어요
+              <label className={labelCls}>참석 응답 마감</label>
+              <div className="flex gap-1.5 flex-wrap">
+                {RSVP_PRESETS.map((o) => (
+                  <button
+                    key={o.key}
+                    type="button"
+                    onClick={() => handleRsvpMode(o.key)}
+                    className={`px-3 h-8 rounded-full text-[11.5px] font-bold transition-all active:scale-95 ${
+                      rsvpMode === o.key
+                        ? 'bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
+                        : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+              {rsvpMode === 'custom' && (
+                <div className="mt-2 grid grid-cols-[minmax(0,1fr)_112px] gap-2">
+                  <div>
+                    <span className={subLabelCls}>마감 날짜</span>
+                    <DatePicker
+                      value={deadlineParts.date}
+                      onChange={(date) =>
+                        setDeadline(
+                          joinDT(date, deadlineParts.time || startParts.time || '23:30'),
+                        )
+                      }
+                      maxDate={startParts.date || undefined}
+                      className={pickerCls}
+                    />
+                  </div>
+                  <div>
+                    <span className={subLabelCls}>마감 시간</span>
+                    <TimePicker
+                      value={deadlineParts.time}
+                      onChange={(time) =>
+                        setDeadline(joinDT(deadlineParts.date || startParts.date, time))
+                      }
+                      className={pickerCls}
+                    />
+                  </div>
+                </div>
+              )}
+              <p className="mt-1.5 text-[11px] leading-[1.6] text-gray-400 dark:text-white/40">
+                {rsvpMode === 'none'
+                  ? '마감 없이 언제든 응답을 받아요'
+                  : deadline
+                    ? `${formatKstDateTime(deadline)}까지 받아요. 마감 후엔 새 응답만 막히고 변경은 돼요`
+                    : '시작 시각을 정하면 마감이 자동으로 계산돼요'}
               </p>
             </div>
+
             <div>
               <label className={labelCls}>안내 내용 (선택)</label>
               <textarea
@@ -661,17 +921,53 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
 
         {/* ── 예약 발행 (공통) ── */}
         <div className="mt-5 p-3.5 rounded-2xl bg-gray-50 dark:bg-white/[0.04] border border-gray-200/60 dark:border-white/[0.06]">
-          <label className={labelCls}>⏰ 예약 발행 (선택)</label>
-          <input
-            type="datetime-local"
-            value={publishAt}
-            onChange={(e) => setPublishAt(e.target.value)}
-            className={inputCls}
-          />
+          <label className={labelCls}>⏰ 언제 보낼까요</label>
+          <div className="flex gap-1.5 flex-wrap">
+            {PUBLISH_PRESETS.map((o) => (
+              <button
+                key={o.key}
+                type="button"
+                onClick={() => handlePublishMode(o.key)}
+                className={`px-3 h-8 rounded-full text-[11.5px] font-bold transition-all active:scale-95 ${
+                  publishMode === o.key
+                    ? 'bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
+                    : 'bg-white dark:bg-white/[0.05] text-gray-600 dark:text-white/60 border border-gray-200/70 dark:border-white/[0.08]'
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          {publishMode === 'custom' && (
+            <div className="mt-2 grid grid-cols-[minmax(0,1fr)_112px] gap-2">
+              <div>
+                <span className={subLabelCls}>발행 날짜</span>
+                <DatePicker
+                  value={publishParts.date}
+                  onChange={(date) =>
+                    setPublishAt(joinDT(date, publishParts.time || '08:00'))
+                  }
+                  sundayMode
+                  minDate={calendarDateKey(kstNow())}
+                  className={pickerCls}
+                />
+              </div>
+              <div>
+                <span className={subLabelCls}>발행 시간</span>
+                <TimePicker
+                  value={publishParts.time}
+                  onChange={(time) =>
+                    setPublishAt(joinDT(publishParts.date || calendarDateKey(kstNow()), time))
+                  }
+                  className={pickerCls}
+                />
+              </div>
+            </div>
+          )}
           <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1.5 leading-[1.6]">
             {publishAt
-              ? '그 시각까지 멤버에게 보이지 않다가, 시간이 되면 자동으로 올라가고 푸시도 그때 가요'
-              : '비워두면 지금 바로 보내요. 주일 아침 공지를 토요일 밤에 미리 써두기 좋아요'}
+              ? `${formatKstDateTime(publishAt)}에 자동으로 올라가고 푸시도 그때 가요. 그 전엔 멤버에게 보이지 않아요`
+              : '지금 바로 보내요. 주일 아침 공지를 토요일 밤에 미리 써두기 좋아요'}
           </p>
         </div>
 
