@@ -2,6 +2,8 @@
 import { API_V1, apiFetch } from '../config/api'
 import { getAuthHeaders } from './utils/apiHelpers'
 import type {
+  AttendanceMonth,
+  AttendanceToggleResult,
   CheckStatus,
   ClassComment,
   ClassCreateRequest,
@@ -12,11 +14,18 @@ import type {
   ClassPostListResponse,
   ClassPostType,
   ClassPreview,
+  ClassReport,
   ClassSummary,
   EventBlock,
+  MyGrowth,
+  PollBlock,
+  PollDetail,
   RecitationRow,
+  RemindResult,
+  RemindTarget,
   RsvpDetail,
   RsvpStatus,
+  StarRow,
 } from '../types/classRoom'
 
 const BASE = `${API_V1}/school-classes`
@@ -270,6 +279,101 @@ export const getClassPostRsvps = async (
     headers: getAuthHeaders(),
   })
   if (!response.ok) return parseError(response, '참석 현황을 불러오지 못했습니다')
+  return response.json()
+}
+
+// ── 투표 ──
+export const voteClassPoll = async (
+  classId: number,
+  postId: number,
+  optionIds: number[],
+): Promise<PollBlock> => {
+  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/vote`, {
+    method: 'PUT',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ option_ids: optionIds }),
+  })
+  if (!response.ok) return parseError(response, '투표에 실패했습니다')
+  return response.json()
+}
+
+export const getClassPollDetail = async (
+  classId: number,
+  postId: number,
+): Promise<PollDetail> => {
+  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/votes`, {
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) return parseError(response, '투표 현황을 불러오지 못했습니다')
+  return response.json()
+}
+
+// ── 콕 찌르기 (미응답자 리마인더) ──
+export const remindClassPost = async (
+  classId: number,
+  postId: number,
+  target: RemindTarget,
+): Promise<RemindResult> => {
+  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/remind`, {
+    method: 'POST',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ target }),
+  })
+  if (!response.ok) return parseError(response, '리마인더 발송에 실패했습니다')
+  return response.json()
+}
+
+// ── 우리반 리포트 / 별 랭킹 / 성장 카드 ──
+export const getClassReport = async (
+  classId: number,
+  weeks = 4,
+): Promise<ClassReport> => {
+  const response = await apiFetch(`${BASE}/${classId}/report?weeks=${weeks}`, {
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) return parseError(response, '리포트를 불러오지 못했습니다')
+  return response.json()
+}
+
+export const getClassStars = async (classId: number): Promise<StarRow[]> => {
+  const response = await apiFetch(`${BASE}/${classId}/stars`, {
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) return parseError(response, '별 랭킹을 불러오지 못했습니다')
+  return response.json()
+}
+
+export const getMyClassGrowth = async (classId: number): Promise<MyGrowth> => {
+  const response = await apiFetch(`${BASE}/${classId}/growth/me`, {
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) return parseError(response, '성장 카드를 불러오지 못했습니다')
+  return response.json()
+}
+
+// ── 출석부 ──
+export const getClassAttendanceMonth = async (
+  classId: number,
+  month: string,
+): Promise<AttendanceMonth> => {
+  const response = await apiFetch(`${BASE}/${classId}/attendance?month=${month}`, {
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) return parseError(response, '출석부를 불러오지 못했습니다')
+  return response.json()
+}
+
+export const toggleClassAttendance = async (
+  classId: number,
+  attDate: string,
+  userId: number,
+): Promise<AttendanceToggleResult> => {
+  const response = await apiFetch(`${BASE}/${classId}/attendance/toggle`, {
+    method: 'POST',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ att_date: attDate, user_id: userId }),
+  })
+  if (!response.ok) return parseError(response, '출석 체크에 실패했습니다')
   return response.json()
 }
 

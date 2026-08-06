@@ -1,4 +1,5 @@
-// 알림 작성 바텀시트 (교사 전용) — 공지/암송요절/일정/사진 4가지 유형
+// 알림 작성 바텀시트 (교사 전용) — 공지/암송요절/일정/사진/투표 5가지 유형
+// + 예약 발행, 자주 쓰는 템플릿(localStorage)
 import { useMemo, useRef, useState } from 'react'
 import { useBibleBooks, useBibleChapter } from '../../../hooks/useBible'
 import { useCreateClassPost } from '../../../hooks/useClassRoom'
@@ -8,12 +9,46 @@ import { resizeImageToBlob } from '../../../utils/imageResize'
 import { showToast } from '../../../utils/toast'
 
 const MAX_PHOTOS = 10
+const MAX_POLL_OPTIONS = 8
+const TEMPLATE_KEY = 'class_post_templates_v1'
+const MAX_TEMPLATES = 10
+
+// 자주 쓰는 글 템플릿 — 텍스트 성격의 필드만 저장한다 (사진/날짜 제외)
+interface PostTemplate {
+  id: number
+  name: string
+  postType: ClassPostType
+  title: string
+  content: string
+  weekLabel: string
+  pollOptions: string[]
+  pollMultiple: boolean
+}
+
+const loadTemplates = (): PostTemplate[] => {
+  try {
+    const raw = localStorage.getItem(TEMPLATE_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+const saveTemplates = (templates: PostTemplate[]) => {
+  try {
+    localStorage.setItem(TEMPLATE_KEY, JSON.stringify(templates))
+  } catch {
+    /* 저장 실패는 조용히 무시 */
+  }
+}
 
 const TYPE_TABS: { value: ClassPostType; label: string }[] = [
   { value: 'notice', label: '📢 공지' },
   { value: 'verse', label: '📖 암송요절' },
   { value: 'event', label: '📅 일정' },
   { value: 'photo', label: '📷 사진' },
+  { value: 'poll', label: '🗳 투표' },
 ]
 
 interface ClassComposerSheetProps {
@@ -62,7 +97,57 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
   const [photos, setPhotos] = useState<{ file: File; previewUrl: string }[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // 투표
+  const [pollOptions, setPollOptions] = useState<string[]>(['', ''])
+  const [pollMultiple, setPollMultiple] = useState(false)
+
+  // 예약 발행
+  const [publishAt, setPublishAt] = useState('')
+
+  // 템플릿
+  const [templates, setTemplates] = useState<PostTemplate[]>(loadTemplates)
+
   useModalBackButton(onClose)
+
+  const applyTemplate = (t: PostTemplate) => {
+    setPostType(t.postType)
+    setTitle(t.title)
+    setContent(t.content)
+    setWeekLabel(t.weekLabel)
+    if (t.pollOptions.length >= 2) setPollOptions(t.pollOptions)
+    setPollMultiple(t.pollMultiple)
+    showToast(`'${t.name}' 템플릿을 불러왔어요`, 'success')
+  }
+
+  const handleSaveTemplate = () => {
+    const name = (title.trim() || content.trim().slice(0, 20) || '').trim()
+    if (!name) {
+      showToast('제목이나 내용을 먼저 적어야 템플릿으로 저장할 수 있어요', 'error')
+      return
+    }
+    const next: PostTemplate[] = [
+      {
+        id: Date.now(),
+        name,
+        postType,
+        title: title.trim(),
+        content,
+        weekLabel,
+        pollOptions: postType === 'poll' ? pollOptions.filter((o) => o.trim()) : [],
+        pollMultiple,
+      },
+      ...templates,
+    ].slice(0, MAX_TEMPLATES)
+    setTemplates(next)
+    saveTemplates(next)
+    showToast('템플릿으로 저장했어요. 다음부터 한 번에 불러올 수 있어요!', 'success')
+  }
+
+  const handleDeleteTemplate = (id: number) => {
+    const next = templates.filter((t) => t.id !== id)
+    setTemplates(next)
+    saveTemplates(next)
+  }
 
   const handlePickPhotos = async (list: FileList | null) => {
     if (!list) return
@@ -105,6 +190,13 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
         return '응답 마감은 일정 시작 전이어야 해요'
     }
     if (postType === 'photo' && photos.length === 0) return '사진을 한 장 이상 골라주세요'
+    if (postType === 'poll') {
+      if (!title.trim() && !content.trim()) return '무엇을 묻는 투표인지 적어주세요'
+      if (pollOptions.filter((o) => o.trim()).length < 2)
+        return '투표 선택지를 2개 이상 적어주세요'
+    }
+    if (publishAt && new Date(publishAt).getTime() <= Date.now())
+      return '예약 시각은 지금보다 뒤여야 해요'
     return null
   }
 
@@ -119,6 +211,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
       title: title.trim() || null,
       content: content.trim(),
       is_pinned: postType === 'notice' ? isPinned : false,
+      publish_at: publishAt || null,
     }
     if (postType === 'verse') {
       payload.verse = {
@@ -137,12 +230,23 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
         rsvp_deadline: deadline || null,
       }
     }
+    if (postType === 'poll') {
+      payload.poll = {
+        options: pollOptions.map((o) => o.trim()).filter(Boolean),
+        multiple: pollMultiple,
+      }
+    }
     try {
       await createPost.mutateAsync({
         payload,
         files: postType === 'photo' ? photos.map((p) => p.file) : [],
       })
-      showToast('알림을 보냈어요! 반 멤버들에게 알림이 가요 📮', 'success')
+      showToast(
+        publishAt
+          ? '예약했어요! 발행 시각에 맞춰 자동으로 알림이 가요 ⏰'
+          : '알림을 보냈어요! 반 멤버들에게 알림이 가요 📮',
+        'success',
+      )
       photos.forEach((p) => URL.revokeObjectURL(p.previewUrl))
       onClose()
     } catch (e) {
@@ -167,7 +271,7 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
         <h3 className="text-[17px] font-bold text-ink-strong mb-4">알림 쓰기</h3>
 
         {/* 유형 탭 */}
-        <div className="flex gap-1.5 flex-wrap mb-5">
+        <div className="flex gap-1.5 flex-wrap mb-4">
           {TYPE_TABS.map((tab) => (
             <button
               key={tab.value}
@@ -183,6 +287,35 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
             </button>
           ))}
         </div>
+
+        {/* 자주 쓰는 템플릿 */}
+        {templates.length > 0 && (
+          <div className="mb-5">
+            <p className="text-[11.5px] font-bold text-gray-400 dark:text-white/40 mb-1.5">
+              자주 쓰는 템플릿
+            </p>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {templates.map((t) => (
+                <span
+                  key={t.id}
+                  className="shrink-0 inline-flex items-center gap-1 pl-3 pr-1.5 py-1.5 rounded-full bg-[var(--brand-soft)] text-[12px] font-semibold text-brand"
+                >
+                  <button type="button" onClick={() => applyTemplate(t)} className="max-w-[140px] truncate">
+                    {t.name}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteTemplate(t.id)}
+                    aria-label="템플릿 삭제"
+                    className="w-4 h-4 rounded-full flex items-center justify-center text-brand/60 hover:text-red-500 text-[11px]"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── 공지 ── */}
         {postType === 'notice' && (
@@ -447,17 +580,125 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
           </div>
         )}
 
+        {/* ── 투표 ── */}
+        {postType === 'poll' && (
+          <div className="space-y-4">
+            <div>
+              <label className={labelCls}>무엇을 물어볼까요?</label>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                maxLength={150}
+                placeholder="예: 여름 소풍, 어느 주가 좋으세요?"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>선택지</label>
+              <div className="space-y-2">
+                {pollOptions.map((opt, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <input
+                      value={opt}
+                      onChange={(e) =>
+                        setPollOptions((prev) =>
+                          prev.map((o, j) => (j === i ? e.target.value : o)),
+                        )
+                      }
+                      maxLength={100}
+                      placeholder={`선택지 ${i + 1}`}
+                      className={inputCls}
+                    />
+                    {pollOptions.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPollOptions((prev) => prev.filter((_, j) => j !== i))
+                        }
+                        aria-label="선택지 빼기"
+                        className="shrink-0 w-8 h-8 rounded-full bg-gray-100 dark:bg-white/[0.07] text-gray-400 dark:text-white/40 hover:text-red-500 text-[15px]"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {pollOptions.length < MAX_POLL_OPTIONS && (
+                <button
+                  type="button"
+                  onClick={() => setPollOptions((prev) => [...prev, ''])}
+                  className="mt-2 text-[12.5px] font-bold text-brand"
+                >
+                  + 선택지 추가
+                </button>
+              )}
+            </div>
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={pollMultiple}
+                onChange={(e) => setPollMultiple(e.target.checked)}
+                className="w-4 h-4 accent-[var(--brand)]"
+              />
+              <span className="text-[13px] font-semibold text-gray-700 dark:text-white/75">
+                복수 선택 허용하기
+              </span>
+            </label>
+            <div>
+              <label className={labelCls}>설명 (선택)</label>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={2}
+                maxLength={2000}
+                placeholder="투표에 대한 안내를 적어주세요"
+                className={`${inputCls} resize-none leading-[1.7]`}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ── 예약 발행 (공통) ── */}
+        <div className="mt-5 p-3.5 rounded-2xl bg-gray-50 dark:bg-white/[0.04] border border-gray-200/60 dark:border-white/[0.06]">
+          <label className={labelCls}>⏰ 예약 발행 (선택)</label>
+          <input
+            type="datetime-local"
+            value={publishAt}
+            onChange={(e) => setPublishAt(e.target.value)}
+            className={inputCls}
+          />
+          <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1.5 leading-[1.6]">
+            {publishAt
+              ? '그 시각까지 멤버에게 보이지 않다가, 시간이 되면 자동으로 올라가고 푸시도 그때 가요'
+              : '비워두면 지금 바로 보내요. 주일 아침 공지를 토요일 밤에 미리 써두기 좋아요'}
+          </p>
+        </div>
+
         <button
           type="button"
           onClick={handleSubmit}
           disabled={createPost.isPending}
-          className="w-full mt-6 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] disabled:opacity-50"
+          className="w-full mt-5 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] disabled:opacity-50"
         >
-          {createPost.isPending ? '보내는 중...' : '알림 보내기'}
+          {createPost.isPending
+            ? '보내는 중...'
+            : publishAt
+              ? '⏰ 이 시각에 예약하기'
+              : '알림 보내기'}
         </button>
-        <p className="text-center text-[11.5px] text-gray-400 dark:text-white/40 mt-2">
-          반 멤버 모두에게 푸시 알림이 함께 전송돼요
-        </p>
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-[11.5px] text-gray-400 dark:text-white/40">
+            {publishAt ? '발행 시각에 푸시가 전송돼요' : '반 멤버 모두에게 푸시가 함께 가요'}
+          </p>
+          <button
+            type="button"
+            onClick={handleSaveTemplate}
+            className="text-[11.5px] font-bold text-brand"
+          >
+            📋 템플릿으로 저장
+          </button>
+        </div>
       </div>
     </div>
   )

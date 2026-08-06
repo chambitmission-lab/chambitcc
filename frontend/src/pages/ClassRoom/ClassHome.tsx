@@ -12,9 +12,12 @@ import ClassComposerSheet from './components/ClassComposerSheet'
 import ClassPostCard from './components/ClassPostCard'
 import {
   CheckStatusSheet,
+  GrowthSheet,
   MembersSheet,
+  PollDetailSheet,
   RecitationSheet,
   RsvpDetailSheet,
+  StarsSheet,
 } from './components/ClassStatusSheets'
 import { Avatar, DeptBadge, Shell } from './classUi'
 
@@ -24,6 +27,7 @@ const FILTER_TABS: { value: ClassPostType | undefined; label: string }[] = [
   { value: 'verse', label: '📖 암송' },
   { value: 'event', label: '📅 일정' },
   { value: 'photo', label: '📷 사진' },
+  { value: 'poll', label: '🗳 투표' },
 ]
 
 const ClassHome = () => {
@@ -37,10 +41,13 @@ const ClassHome = () => {
   const [postType, setPostType] = useState<ClassPostType | undefined>(undefined)
   const [showComposer, setShowComposer] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
+  const [showStars, setShowStars] = useState(false)
+  const [showGrowth, setShowGrowth] = useState(false)
   const [commentPost, setCommentPost] = useState<ClassPost | null>(null)
   const [checkPost, setCheckPost] = useState<ClassPost | null>(null)
   const [recitePost, setRecitePost] = useState<ClassPost | null>(null)
   const [rsvpPost, setRsvpPost] = useState<ClassPost | null>(null)
+  const [pollPost, setPollPost] = useState<ClassPost | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -173,6 +180,21 @@ const ClassHome = () => {
         </div>
       </section>
 
+      {/* 퀵 액션 — 리포트·출석부(교사) / 앨범·별·성장카드 */}
+      <div className="flex gap-2 overflow-x-auto px-4 pt-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {cls.is_teacher && (
+          <>
+            <QuickAction emoji="📊" label="리포트" onClick={() => navigate(`/classes/${id}/report`)} />
+            <QuickAction emoji="📋" label="출석부" onClick={() => navigate(`/classes/${id}/attendance`)} />
+          </>
+        )}
+        <QuickAction emoji="📷" label="앨범" onClick={() => navigate(`/classes/${id}/album`)} />
+        <QuickAction emoji="⭐" label="암송 별" onClick={() => setShowStars(true)} />
+        {!cls.is_teacher && (
+          <QuickAction emoji="🌱" label="성장 카드" onClick={() => setShowGrowth(true)} />
+        )}
+      </div>
+
       {/* 혼자면 초대 넛지 */}
       {cls.member_count <= 1 && (
         <div className="mx-4 mt-3 p-3.5 rounded-2xl bg-[var(--brand-soft)] text-[12.5px] text-gray-600 dark:text-white/70 leading-[1.6]">
@@ -212,6 +234,7 @@ const ClassHome = () => {
         onOpenChecks={setCheckPost}
         onOpenRecitations={setRecitePost}
         onOpenRsvps={setRsvpPost}
+        onOpenPollDetail={setPollPost}
       />
 
       {/* 교사 전용 글쓰기 FAB */}
@@ -244,12 +267,40 @@ const ClassHome = () => {
       )}
       {checkPost && <CheckStatusSheet post={checkPost} onClose={() => setCheckPost(null)} />}
       {recitePost && (
-        <RecitationSheet post={recitePost} onClose={() => setRecitePost(null)} />
+        <RecitationSheet
+          post={recitePost}
+          isTeacher={cls.is_teacher}
+          memberCount={cls.member_count}
+          onClose={() => setRecitePost(null)}
+        />
       )}
       {rsvpPost && <RsvpDetailSheet post={rsvpPost} onClose={() => setRsvpPost(null)} />}
+      {pollPost && <PollDetailSheet post={pollPost} onClose={() => setPollPost(null)} />}
+      {showStars && <StarsSheet classId={id} onClose={() => setShowStars(false)} />}
+      {showGrowth && <GrowthSheet classId={id} onClose={() => setShowGrowth(false)} />}
     </Shell>
   )
 }
+
+// ── 퀵 액션 칩 ──
+const QuickAction = ({
+  emoji,
+  label,
+  onClick,
+}: {
+  emoji: string
+  label: string
+  onClick: () => void
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[12.5px] font-bold text-gray-700 dark:text-white/75 shadow-sm active:scale-95 transition-transform"
+  >
+    <span className="text-[14px] leading-none">{emoji}</span>
+    {label}
+  </button>
+)
 
 // ── 피드 ──
 const Feed = ({
@@ -261,6 +312,7 @@ const Feed = ({
   onOpenChecks,
   onOpenRecitations,
   onOpenRsvps,
+  onOpenPollDetail,
 }: {
   classId: number
   postType: ClassPostType | undefined
@@ -270,6 +322,7 @@ const Feed = ({
   onOpenChecks: (post: ClassPost) => void
   onOpenRecitations: (post: ClassPost) => void
   onOpenRsvps: (post: ClassPost) => void
+  onOpenPollDetail: (post: ClassPost) => void
 }) => {
   const { data, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useClassPosts(classId, postType)
@@ -302,6 +355,7 @@ const Feed = ({
               onOpenChecks={onOpenChecks}
               onOpenRecitations={onOpenRecitations}
               onOpenRsvps={onOpenRsvps}
+              onOpenPollDetail={onOpenPollDetail}
             />
           ))}
           {hasNextPage && (

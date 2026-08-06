@@ -1,16 +1,20 @@
-// 현황 시트 모음 — 확인 명단(교사) · 암송 현황 · 참석 현황(교사) · 멤버 목록
+// 현황 시트 모음 — 확인 명단(교사) · 암송 현황 · 참석 현황(교사) · 투표 현황(교사) · 멤버 목록
 import { useState } from 'react'
 import {
   useAddClassMembers,
+  useClassPollDetail,
   useClassPostChecks,
   useClassPostRecitations,
   useClassPostRsvps,
+  useClassStars,
+  useMyClassGrowth,
+  useRemindClassPost,
   useSetMemberTeacher,
   useUpdateMyChildName,
 } from '../../../hooks/useClassRoom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useProfileDetail } from '../../../hooks/useProfile'
-import type { ClassDetail, ClassPost } from '../../../types/classRoom'
+import type { ClassDetail, ClassPost, RemindTarget } from '../../../types/classRoom'
 import type { CapsuleRecipient } from '../../../types/timeCapsule'
 import { showToast } from '../../../utils/toast'
 import { Avatar, memberLabel, timeAgo } from '../classUi'
@@ -70,6 +74,56 @@ const EmptyLine = ({ text }: { text: string }) => (
   <p className="text-center text-[12.5px] text-gray-400 dark:text-white/40 py-6">{text}</p>
 )
 
+// ── 콕 찌르기 — 미응답자에게만 리마인더 푸시 (교사 전용) ──
+const RemindButton = ({
+  post,
+  target,
+  pendingCount,
+}: {
+  post: ClassPost
+  target: RemindTarget
+  pendingCount: number
+}) => {
+  const remind = useRemindClassPost(post.class_id)
+  const [sentAt, setSentAt] = useState<string | null>(post.reminded_at ?? null)
+  // 1시간 쿨다운 — 서버와 동일 기준으로 버튼 상태만 미리 계산
+  const coolingDown =
+    sentAt != null && Date.now() - new Date(sentAt).getTime() < 60 * 60 * 1000
+
+  if (pendingCount === 0) return null
+
+  const handleRemind = async () => {
+    if (
+      !confirm(
+        `아직 응답하지 않은 ${pendingCount}명에게만 알림을 보낼까요?\n이미 응답한 분에게는 가지 않아요.`,
+      )
+    )
+      return
+    try {
+      const res = await remind.mutateAsync({ postId: post.id, target })
+      setSentAt(res.reminded_at)
+      showToast(`${res.sent}명에게 콕 찔러 알렸어요 👉`, 'success')
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '리마인더 발송에 실패했습니다', 'error')
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleRemind}
+      disabled={remind.isPending || coolingDown}
+      className="w-full mt-3 py-3 rounded-2xl bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] active:scale-[0.98] transition-transform disabled:opacity-45 disabled:shadow-none"
+    >
+      {coolingDown
+        ? '✓ 조금 전에 보냈어요 (1시간 후 재발송 가능)'
+        : remind.isPending
+          ? '보내는 중...'
+          : `👉 ${pendingCount}명에게만 콕 찔러 알리기`}
+    </button>
+  )
+}
+
 // ── 확인 명단 (교사 전용) ──
 export const CheckStatusSheet = ({
   post,
@@ -116,9 +170,16 @@ export const CheckStatusSheet = ({
           {data.unchecked.length === 0 ? (
             <EmptyLine text="모두 확인했어요! 🎉" />
           ) : (
-            data.unchecked.map((p) => (
-              <PersonRow key={p.user_id} name={p.name} childName={p.child_name} />
-            ))
+            <>
+              {data.unchecked.map((p) => (
+                <PersonRow key={p.user_id} name={p.name} childName={p.child_name} />
+              ))}
+              <RemindButton
+                post={post}
+                target="unchecked"
+                pendingCount={data.unchecked.length}
+              />
+            </>
           )}
         </>
       )}
@@ -126,15 +187,21 @@ export const CheckStatusSheet = ({
   )
 }
 
-// ── 암송 현황 (모든 멤버) ──
+// ── 암송 현황 (모든 멤버 · 교사는 콕 찌르기 가능) ──
 export const RecitationSheet = ({
   post,
+  isTeacher = false,
+  memberCount = 0,
   onClose,
 }: {
   post: ClassPost
+  isTeacher?: boolean
+  memberCount?: number
   onClose: () => void
 }) => {
   const { data, isLoading } = useClassPostRecitations(post.class_id, post.id, true)
+  // 작성자(선생님)를 뺀 인원이 암송 대상
+  const pending = Math.max(0, memberCount - 1 - (data?.length ?? 0))
   return (
     <SheetShell
       title="🌟 암송 완료"
@@ -158,6 +225,9 @@ export const RecitationSheet = ({
             }
           />
         ))
+      )}
+      {isTeacher && !isLoading && (
+        <RemindButton post={post} target="unrecited" pendingCount={pending} />
       )}
     </SheetShell>
   )
@@ -185,20 +255,197 @@ export const RsvpDetailSheet = ({
       {isLoading || !data ? (
         <div className="h-32 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
       ) : (
-        groups.map(([label, people, cls]) => (
-          <div key={label} className="mb-4">
-            <p className={`text-[12.5px] font-bold mb-1 ${cls}`}>
-              {label} ({people.length}명)
+        <>
+          {groups.map(([label, people, cls]) => (
+            <div key={label} className="mb-4">
+              <p className={`text-[12.5px] font-bold mb-1 ${cls}`}>
+                {label} ({people.length}명)
+              </p>
+              {people.length === 0 ? (
+                <p className="text-[12px] text-gray-300 dark:text-white/25 py-1">없음</p>
+              ) : (
+                people.map((p) => (
+                  <PersonRow key={p.user_id} name={p.name} childName={p.child_name} />
+                ))
+              )}
+            </div>
+          ))}
+          <RemindButton
+            post={post}
+            target="no_rsvp"
+            pendingCount={data.no_response.length}
+          />
+        </>
+      )}
+    </SheetShell>
+  )
+}
+
+// ── 투표 현황 (교사 전용) ──
+export const PollDetailSheet = ({
+  post,
+  onClose,
+}: {
+  post: ClassPost
+  onClose: () => void
+}) => {
+  const { data, isLoading } = useClassPollDetail(post.class_id, post.id, true)
+  return (
+    <SheetShell
+      title="🗳 투표 현황"
+      subtitle={post.title || post.content.slice(0, 30)}
+      onClose={onClose}
+    >
+      {isLoading || !data ? (
+        <div className="h-32 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+      ) : (
+        <>
+          {data.options.map((opt) => (
+            <div key={opt.option_id} className="mb-4">
+              <p className="text-[12.5px] font-bold text-brand mb-1">
+                {opt.text} ({opt.voters.length}명)
+              </p>
+              {opt.voters.length === 0 ? (
+                <p className="text-[12px] text-gray-300 dark:text-white/25 py-1">없음</p>
+              ) : (
+                opt.voters.map((p) => (
+                  <PersonRow key={p.user_id} name={p.name} childName={p.child_name} />
+                ))
+              )}
+            </div>
+          ))}
+          <p className="text-[12.5px] font-bold text-gray-400 dark:text-white/45 mb-1">
+            응답 전 ({data.no_response.length}명)
+          </p>
+          {data.no_response.length === 0 ? (
+            <EmptyLine text="모두 투표했어요! 🎉" />
+          ) : (
+            data.no_response.map((p) => (
+              <PersonRow key={p.user_id} name={p.name} childName={p.child_name} />
+            ))
+          )}
+          <RemindButton
+            post={post}
+            target="no_vote"
+            pendingCount={data.no_response.length}
+          />
+        </>
+      )}
+    </SheetShell>
+  )
+}
+
+// ── 암송 별 랭킹 (반 멤버 공개) ──
+const RANK_EMOJI = ['🥇', '🥈', '🥉']
+
+export const StarsSheet = ({
+  classId,
+  onClose,
+}: {
+  classId: number
+  onClose: () => void
+}) => {
+  const { data, isLoading } = useClassStars(classId, true)
+  const starred = data?.filter((r) => r.star_count > 0) ?? []
+  const rest = data?.filter((r) => r.star_count === 0) ?? []
+  return (
+    <SheetShell
+      title="⭐ 우리 반 암송 별"
+      subtitle="암송을 완료할 때마다 별이 하나씩 쌓여요"
+      onClose={onClose}
+    >
+      {isLoading || !data ? (
+        <div className="h-32 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+      ) : starred.length === 0 ? (
+        <EmptyLine text="아직 별을 모은 친구가 없어요. 첫 별의 주인공이 되어보세요!" />
+      ) : (
+        <>
+          {starred.map((r, i) => (
+            <PersonRow
+              key={r.user_id}
+              name={r.name}
+              childName={r.child_name}
+              right={
+                <span className="shrink-0 flex items-center gap-1.5">
+                  {i < 3 && <span className="text-[15px]">{RANK_EMOJI[i]}</span>}
+                  <span className="text-[13px] font-extrabold text-amber-600 dark:text-amber-300 tabular-nums">
+                    ⭐ {r.star_count}
+                  </span>
+                </span>
+              }
+            />
+          ))}
+          {rest.length > 0 && (
+            <p className="text-[11.5px] text-gray-400 dark:text-white/40 mt-3">
+              아직 별이 없는 친구 {rest.length}명 — 함께 응원해주세요!
             </p>
-            {people.length === 0 ? (
-              <p className="text-[12px] text-gray-300 dark:text-white/25 py-1">없음</p>
-            ) : (
-              people.map((p) => (
-                <PersonRow key={p.user_id} name={p.name} childName={p.child_name} />
-              ))
-            )}
+          )}
+        </>
+      )}
+    </SheetShell>
+  )
+}
+
+// ── 성장 카드 (내/자녀 누적 기록) ──
+export const GrowthSheet = ({
+  classId,
+  onClose,
+}: {
+  classId: number
+  onClose: () => void
+}) => {
+  const { data, isLoading } = useMyClassGrowth(classId, true)
+  return (
+    <SheetShell
+      title="🌱 성장 카드"
+      subtitle={data ? `${data.class_name} · ${data.child_name || '나'}의 걸음` : undefined}
+      onClose={onClose}
+    >
+      {isLoading || !data ? (
+        <div className="h-40 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: '암송 별', value: data.star_count, emoji: '⭐' },
+              { label: '출석', value: data.attend_count, emoji: '📋' },
+              { label: '공지 확인', value: data.check_count, emoji: '✅' },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="rounded-2xl p-3.5 bg-[var(--brand-soft)] text-center"
+              >
+                <span className="block text-[20px]">{s.emoji}</span>
+                <span className="block text-[20px] font-extrabold text-ink-strong mt-0.5 tabular-nums">
+                  {s.value}
+                </span>
+                <span className="block text-[11px] font-bold text-gray-500 dark:text-white/55 mt-0.5">
+                  {s.label}
+                </span>
+              </div>
+            ))}
           </div>
-        ))
+          {data.recent_verses.length > 0 && (
+            <div className="mt-4">
+              <p className="text-[12.5px] font-bold text-amber-600 dark:text-amber-300 mb-1.5">
+                최근에 외운 말씀
+              </p>
+              {data.recent_verses.map((ref) => (
+                <p
+                  key={ref}
+                  className="text-[13px] text-gray-700 dark:text-white/75 py-1 border-b border-gray-100 dark:border-white/[0.05] last:border-0"
+                >
+                  📖 {ref}
+                </p>
+              ))}
+            </div>
+          )}
+          {data.joined_at && (
+            <p className="text-center text-[11.5px] text-gray-400 dark:text-white/40 mt-4">
+              {timeAgo(data.joined_at)}부터 함께하고 있어요
+            </p>
+          )}
+        </>
       )}
     </SheetShell>
   )

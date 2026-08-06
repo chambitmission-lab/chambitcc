@@ -1,4 +1,4 @@
-// 알림장 글 카드 — 공지/암송요절/일정/사진 유형별 렌더링 + 확인·암송·RSVP 액션
+// 알림장 글 카드 — 공지/암송요절/일정/사진/투표 유형별 렌더링 + 확인·암송·RSVP·투표 액션
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CommentIcon } from '../../../components/icons/ActionIcons'
@@ -9,17 +9,20 @@ import {
   useToggleClassPostCheck,
   useToggleClassPostRecite,
   useUpdateClassPost,
+  useVoteClassPoll,
 } from '../../../hooks/useClassRoom'
 import type { ClassPost, RsvpStatus } from '../../../types/classRoom'
 import { formatKstDateTime, formatRemaining, parseKstDate } from '../../../utils/kstTime'
 import { showToast } from '../../../utils/toast'
 import { Avatar, timeAgo } from '../classUi'
+import VersePracticeSheet from './VersePracticeSheet'
 
 const TYPE_META: Record<string, { label: string; cls: string }> = {
   notice: { label: '📢 공지', cls: 'bg-[var(--brand-soft)] text-brand' },
   verse: { label: '📖 암송요절', cls: 'bg-amber-400/15 text-amber-600 dark:text-amber-300' },
   event: { label: '📅 일정', cls: 'bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300' },
   photo: { label: '📷 사진', cls: 'bg-violet-500/[0.12] text-violet-600 dark:text-violet-300' },
+  poll: { label: '🗳 투표', cls: 'bg-sky-500/[0.12] text-sky-600 dark:text-sky-300' },
 }
 
 interface ClassPostCardProps {
@@ -30,6 +33,7 @@ interface ClassPostCardProps {
   onOpenChecks: (post: ClassPost) => void
   onOpenRecitations: (post: ClassPost) => void
   onOpenRsvps: (post: ClassPost) => void
+  onOpenPollDetail: (post: ClassPost) => void
 }
 
 const ClassPostCard = ({
@@ -40,6 +44,7 @@ const ClassPostCard = ({
   onOpenChecks,
   onOpenRecitations,
   onOpenRsvps,
+  onOpenPollDetail,
 }: ClassPostCardProps) => {
   const deletePost = useDeleteClassPost(post.class_id)
   const updatePost = useUpdateClassPost(post.class_id)
@@ -77,6 +82,11 @@ const ClassPostCard = ({
       {post.is_pinned && (
         <p className="flex items-center gap-1 text-[11px] font-bold text-brand mb-2">
           📌 고정된 알림
+        </p>
+      )}
+      {post.is_scheduled && post.publish_at && (
+        <p className="flex items-center gap-1 text-[11px] font-bold text-violet-600 dark:text-violet-300 mb-2">
+          ⏰ 예약됨 · {formatKstDateTime(post.publish_at)}에 발행돼요 (선생님에게만 보여요)
         </p>
       )}
 
@@ -141,15 +151,26 @@ const ClassPostCard = ({
 
       {/* 유형별 블록 */}
       {post.post_type === 'verse' && post.verse && (
-        <VerseSection post={post} onOpenRecitations={onOpenRecitations} />
+        <VerseSection
+          post={post}
+          memberCount={memberCount}
+          onOpenRecitations={onOpenRecitations}
+        />
       )}
       {post.post_type === 'event' && post.event && (
         <EventSection post={post} isTeacher={isTeacher} onOpenRsvps={onOpenRsvps} />
       )}
+      {post.post_type === 'poll' && post.poll && (
+        <PollSection
+          post={post}
+          isTeacher={isTeacher}
+          onOpenPollDetail={onOpenPollDetail}
+        />
+      )}
       {post.photos.length > 0 && <PhotoGrid urls={post.photos} />}
 
-      {/* 확인했어요 — 공지·암송요절·일정 공통 (사진은 가볍게 댓글만) */}
-      {post.post_type !== 'photo' && (
+      {/* 확인했어요 — 공지·암송요절·일정 공통 (사진·투표는 각자 반응이 따로) */}
+      {post.post_type !== 'photo' && post.post_type !== 'poll' && (
         <CheckSection
           post={post}
           isTeacher={isTeacher}
@@ -239,14 +260,20 @@ const CheckSection = ({
 // ── 암송요절 ──
 const VerseSection = ({
   post,
+  memberCount,
   onOpenRecitations,
 }: {
   post: ClassPost
+  memberCount: number
   onOpenRecitations: (post: ClassPost) => void
 }) => {
   const navigate = useNavigate()
   const toggleRecite = useToggleClassPostRecite(post.class_id)
+  const [showPractice, setShowPractice] = useState(false)
   const verse = post.verse!
+  // 작성자(선생님)를 뺀 인원이 암송 대상
+  const targetCount = Math.max(1, memberCount - 1)
+  const progress = Math.min(1, post.recite_count / targetCount)
 
   return (
     <div className="mt-3.5 rounded-2xl overflow-hidden border border-amber-200/60 dark:border-amber-300/20">
@@ -263,29 +290,53 @@ const VerseSection = ({
           — {verse.reference}
         </p>
       </div>
-      <div className="px-3 py-2.5 bg-white dark:bg-card-dark flex items-center justify-between gap-2">
+      <div className="px-3 py-2.5 bg-white dark:bg-card-dark">
+        {/* 우리 반 진행바 */}
         <button
           type="button"
-          onClick={() => toggleRecite.mutate(post.id)}
-          disabled={toggleRecite.isPending}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 ${
-            post.recited_by_me
-              ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300'
-              : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
-          }`}
+          onClick={() => post.recite_count > 0 && onOpenRecitations(post)}
+          className="w-full mb-2.5 text-left"
         >
-          {post.recited_by_me ? '🌟 암송 완료!' : '⭐ 암송했어요'}
+          <div className="flex items-baseline justify-between mb-1">
+            <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300">
+              우리 반 암송 {post.recite_count}/{targetCount}명
+              {progress >= 1 && ' 🎉 전원 완료!'}
+            </span>
+            {post.recite_count > 0 && (
+              <span className="text-[10.5px] font-bold text-amber-600 dark:text-amber-300">
+                누가 했나 →
+              </span>
+            )}
+          </div>
+          <div className="h-[6px] rounded-full bg-amber-100/80 dark:bg-amber-300/10 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-amber-400 transition-all duration-500"
+              style={{ width: `${Math.round(progress * 100)}%` }}
+            />
+          </div>
         </button>
-        <div className="flex items-center gap-2.5">
-          {post.recite_count > 0 && (
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() => onOpenRecitations(post)}
-              className="text-[11.5px] font-bold text-amber-600 dark:text-amber-300 hover:underline"
+              onClick={() => setShowPractice(true)}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500 text-white text-[12px] font-bold transition-all active:scale-95 shadow-[0_4px_12px_-4px_rgba(245,158,11,0.5)]"
             >
-              {post.recite_count}명 암송 →
+              🎯 외우기 연습
             </button>
-          )}
+            <button
+              type="button"
+              onClick={() => toggleRecite.mutate(post.id)}
+              disabled={toggleRecite.isPending}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all active:scale-95 ${
+                post.recited_by_me
+                  ? 'bg-amber-400/20 text-amber-700 dark:text-amber-300'
+                  : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
+              }`}
+            >
+              {post.recited_by_me ? '🌟 암송 완료!' : '⭐ 암송했어요'}
+            </button>
+          </div>
           <button
             type="button"
             onClick={() =>
@@ -298,6 +349,104 @@ const VerseSection = ({
             🖼 말씀카드
           </button>
         </div>
+      </div>
+      {showPractice && (
+        <VersePracticeSheet post={post} onClose={() => setShowPractice(false)} />
+      )}
+    </div>
+  )
+}
+
+// ── 투표 ──
+const PollSection = ({
+  post,
+  isTeacher,
+  onOpenPollDetail,
+}: {
+  post: ClassPost
+  isTeacher: boolean
+  onOpenPollDetail: (post: ClassPost) => void
+}) => {
+  const vote = useVoteClassPoll(post.class_id)
+  const poll = post.poll!
+  const maxCount = Math.max(1, ...poll.options.map((o) => o.vote_count))
+  const iVoted = poll.options.some((o) => o.voted_by_me)
+
+  const handleVote = async (optionId: number) => {
+    const current = poll.options.filter((o) => o.voted_by_me).map((o) => o.id)
+    let next: number[]
+    if (poll.multiple) {
+      next = current.includes(optionId)
+        ? current.filter((id) => id !== optionId)
+        : [...current, optionId]
+    } else {
+      next = current.includes(optionId) ? [] : [optionId]
+    }
+    try {
+      await vote.mutateAsync({ postId: post.id, optionIds: next })
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '투표에 실패했습니다', 'error')
+    }
+  }
+
+  return (
+    <div className="mt-3.5 rounded-2xl border border-sky-200/60 dark:border-sky-300/20 overflow-hidden">
+      <div className="px-3.5 py-3 bg-sky-50/70 dark:bg-sky-400/[0.06] space-y-1.5">
+        {poll.options.map((opt) => {
+          const ratio = opt.vote_count / maxCount
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => handleVote(opt.id)}
+              disabled={vote.isPending}
+              className={`relative w-full overflow-hidden rounded-xl border text-left transition-all active:scale-[0.99] ${
+                opt.voted_by_me
+                  ? 'border-sky-400 dark:border-sky-300/60 bg-white dark:bg-card-dark'
+                  : 'border-sky-200/60 dark:border-white/[0.08] bg-white/70 dark:bg-white/[0.03]'
+              }`}
+            >
+              {/* 득표 게이지 */}
+              {opt.vote_count > 0 && (
+                <span
+                  className="absolute inset-y-0 left-0 bg-sky-400/15 dark:bg-sky-300/10 transition-all duration-500"
+                  style={{ width: `${Math.round(ratio * 100)}%` }}
+                />
+              )}
+              <span className="relative flex items-center justify-between gap-2 px-3.5 py-2.5">
+                <span
+                  className={`text-[13px] font-semibold break-keep ${
+                    opt.voted_by_me
+                      ? 'text-sky-700 dark:text-sky-200'
+                      : 'text-gray-700 dark:text-white/75'
+                  }`}
+                >
+                  {opt.voted_by_me && '✓ '}
+                  {opt.text}
+                </span>
+                <span className="shrink-0 text-[12px] font-bold text-sky-600 dark:text-sky-300 tabular-nums">
+                  {opt.vote_count}
+                </span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      <div className="px-3.5 py-2 bg-white dark:bg-card-dark flex items-center justify-between">
+        <span className="text-[11.5px] text-gray-400 dark:text-white/40">
+          {poll.total_voters}명 참여
+          {poll.multiple && ' · 복수 선택'}
+          {!iVoted && ' · 눌러서 투표'}
+        </span>
+        {isTeacher && (
+          <button
+            type="button"
+            onClick={() => onOpenPollDetail(post)}
+            className="text-[12px] font-bold text-sky-600 dark:text-sky-300 hover:underline"
+          >
+            누가 골랐는지 보기 →
+          </button>
+        )}
       </div>
     </div>
   )

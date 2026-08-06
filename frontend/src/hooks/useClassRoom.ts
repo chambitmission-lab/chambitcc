@@ -15,8 +15,13 @@ import {
   deleteClassPost,
   deleteClassPostComment,
   getClass,
+  getClassAttendanceMonth,
+  getClassPollDetail,
   getClassPostChecks,
   getClassPostRsvps,
+  getClassReport,
+  getClassStars,
+  getMyClassGrowth,
   joinClass,
   leaveClass,
   listClassPostComments,
@@ -24,14 +29,17 @@ import {
   listClassPosts,
   listMyClasses,
   previewClass,
+  remindClassPost,
   setClassPostRsvp,
   setMemberTeacher,
+  toggleClassAttendance,
   toggleClassPostCheck,
   toggleClassPostRecite,
   updateClass,
   updateClassPost,
   updateClassPostComment,
   updateMyChildName,
+  voteClassPoll,
 } from '../api/classRoom'
 import type {
   ClassCreateRequest,
@@ -39,6 +47,7 @@ import type {
   ClassPostCreateRequest,
   ClassPostListResponse,
   ClassPostType,
+  RemindTarget,
   RsvpStatus,
 } from '../types/classRoom'
 
@@ -60,6 +69,14 @@ export const classKeys = {
     [...classKeys.all, 'recitations', classId, postId] as const,
   rsvps: (classId: number, postId: number) =>
     [...classKeys.all, 'rsvps', classId, postId] as const,
+  pollDetail: (classId: number, postId: number) =>
+    [...classKeys.all, 'pollDetail', classId, postId] as const,
+  report: (classId: number, weeks: number) =>
+    [...classKeys.all, 'report', classId, weeks] as const,
+  stars: (classId: number) => [...classKeys.all, 'stars', classId] as const,
+  attendance: (classId: number, month: string) =>
+    [...classKeys.all, 'attendance', classId, month] as const,
+  growth: (classId: number) => [...classKeys.all, 'growth', classId] as const,
 }
 
 // 확인·암송·RSVP 토글 응답을 피드 캐시에 바로 반영한다 —
@@ -282,6 +299,107 @@ export const useCancelClassPostRsvp = (classId: number) => {
     onSuccess: (event, postId) => {
       patchPostInCache(qc, classId, postId, (p) => ({ ...p, event }))
       qc.invalidateQueries({ queryKey: classKeys.rsvps(classId, postId) })
+    },
+  })
+}
+
+// ── 투표 ──
+export const useVoteClassPoll = (classId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ postId, optionIds }: { postId: number; optionIds: number[] }) =>
+      voteClassPoll(classId, postId, optionIds),
+    onSuccess: (poll, { postId }) => {
+      patchPostInCache(qc, classId, postId, (p) => ({ ...p, poll }))
+      qc.invalidateQueries({ queryKey: classKeys.pollDetail(classId, postId) })
+    },
+  })
+}
+
+export const useClassPollDetail = (classId: number, postId: number, enabled: boolean) =>
+  useQuery({
+    queryKey: classKeys.pollDetail(classId, postId),
+    queryFn: () => getClassPollDetail(classId, postId),
+    enabled: enabled && postId > 0,
+    staleTime: 1000 * 15,
+    refetchOnMount: true,
+  })
+
+// ── 콕 찌르기 ──
+export const useRemindClassPost = (classId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ postId, target }: { postId: number; target: RemindTarget }) =>
+      remindClassPost(classId, postId, target),
+    onSuccess: (res, { postId }) => {
+      patchPostInCache(qc, classId, postId, (p) => ({
+        ...p,
+        reminded_at: res.reminded_at,
+      }))
+    },
+  })
+}
+
+// ── 우리반 리포트 / 별 랭킹 / 성장 카드 ──
+export const useClassReport = (classId: number, weeks: number, enabled = true) =>
+  useQuery({
+    queryKey: classKeys.report(classId, weeks),
+    queryFn: () => getClassReport(classId, weeks),
+    enabled: enabled && classId > 0,
+    staleTime: 1000 * 30,
+    refetchOnMount: true,
+  })
+
+export const useClassStars = (classId: number, enabled = true) =>
+  useQuery({
+    queryKey: classKeys.stars(classId),
+    queryFn: () => getClassStars(classId),
+    enabled: enabled && classId > 0,
+    staleTime: 1000 * 30,
+    refetchOnMount: true,
+  })
+
+export const useMyClassGrowth = (classId: number, enabled = true) =>
+  useQuery({
+    queryKey: classKeys.growth(classId),
+    queryFn: () => getMyClassGrowth(classId),
+    enabled: enabled && classId > 0,
+    staleTime: 1000 * 30,
+    refetchOnMount: true,
+  })
+
+// ── 출석부 ──
+export const useClassAttendanceMonth = (
+  classId: number,
+  month: string,
+  enabled = true,
+) =>
+  useQuery({
+    queryKey: classKeys.attendance(classId, month),
+    queryFn: () => getClassAttendanceMonth(classId, month),
+    enabled: enabled && classId > 0 && month.length === 7,
+    staleTime: 1000 * 15,
+    refetchOnMount: true,
+  })
+
+export const useToggleClassAttendance = (classId: number, month: string) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ attDate, userId }: { attDate: string; userId: number }) =>
+      toggleClassAttendance(classId, attDate, userId),
+    onSuccess: (res) => {
+      // 응답을 월간 캐시에 바로 반영 — 탭탭 체크가 깜빡이지 않게
+      qc.setQueryData(
+        classKeys.attendance(classId, month),
+        (data: { month: string; records: Record<string, number[]> } | undefined) => {
+          if (!data) return data
+          const prev = data.records[res.att_date] ?? []
+          const next = res.present
+            ? [...prev, res.user_id]
+            : prev.filter((id) => id !== res.user_id)
+          return { ...data, records: { ...data.records, [res.att_date]: next } }
+        },
+      )
     },
   })
 }

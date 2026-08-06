@@ -77,6 +77,9 @@ const PlanDetail = lazy(() => import('./pages/Bible/Plans/PlanDetail'))
 const ClassList = lazy(menuRouteLoaders['/classes'])
 const ClassHome = lazy(() => import('./pages/ClassRoom/ClassHome'))
 const JoinClass = lazy(() => import('./pages/ClassRoom/JoinClass'))
+const ClassReport = lazy(() => import('./pages/ClassRoom/ClassReport'))
+const ClassAttendance = lazy(() => import('./pages/ClassRoom/ClassAttendance'))
+const ClassAlbum = lazy(() => import('./pages/ClassRoom/ClassAlbum'))
 const RoomList = lazy(() => import('./pages/Rooms/RoomList'))
 const RoomHome = lazy(() => import('./pages/Rooms/RoomHome'))
 const JoinRoom = lazy(() => import('./pages/Rooms/JoinRoom'))
@@ -246,6 +249,9 @@ function App() {
                 <Route path="/classes" element={<ClassList />} />
                 <Route path="/classes/join/:code" element={<JoinClass />} />
                 <Route path="/classes/:classId" element={<ClassHome />} />
+                <Route path="/classes/:classId/report" element={<ClassReport />} />
+                <Route path="/classes/:classId/attendance" element={<ClassAttendance />} />
+                <Route path="/classes/:classId/album" element={<ClassAlbum />} />
                 <Route path="/rooms" element={<RoomList />} />
                 <Route path="/rooms/:roomId" element={<RoomHome />} />
                 <Route path="/join/:code" element={<JoinRoom />} />
