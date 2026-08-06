@@ -321,6 +321,8 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
       if (!startAt) return '일정 시작 시간을 선택해주세요'
       if (deadline && startAt && deadline > startAt)
         return '응답 마감은 일정 시작 전이어야 해요'
+      if (deadline && deadline <= toLocalDatetimeInput(kstNow()))
+        return '참석 응답 마감이 이미 지난 시각이에요. 마감을 다시 골라주세요'
     }
     if (postType === 'photo' && photos.length === 0) return '사진을 한 장 이상 골라주세요'
     if (postType === 'poll') {
@@ -759,13 +761,19 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                   </div>
                 </div>
               )}
-              <p className="mt-1.5 text-[11px] leading-[1.6] text-gray-400 dark:text-white/40">
-                {rsvpMode === 'none'
-                  ? '마감 없이 언제든 응답을 받아요'
-                  : deadline
-                    ? `${formatKstDateTime(deadline)}까지 받아요. 마감 후엔 새 응답만 막히고 변경은 돼요`
-                    : '시작 시각을 정하면 마감이 자동으로 계산돼요'}
-              </p>
+              {rsvpMode !== 'none' && deadline && deadline <= toLocalDatetimeInput(kstNow()) ? (
+                <p className="mt-1.5 text-[11px] leading-[1.6] font-semibold text-red-500 dark:text-red-400">
+                  ⚠️ {formatKstDateTime(deadline)}은 이미 지난 시각이에요 — 이대로 올리면 아무도 응답할 수 없어요
+                </p>
+              ) : (
+                <p className="mt-1.5 text-[11px] leading-[1.6] text-gray-400 dark:text-white/40">
+                  {rsvpMode === 'none'
+                    ? '마감 없이 언제든 응답을 받아요'
+                    : deadline
+                      ? `${formatKstDateTime(deadline)}까지 받아요. 마감 후엔 새 응답만 막히고 변경은 돼요`
+                      : '시작 시각을 정하면 마감이 자동으로 계산돼요'}
+                </p>
+              )}
             </div>
 
             <div>
