@@ -8,10 +8,23 @@ import {
   createGroup,
   joinGroup,
   leaveGroup,
-  addGroupMembers
+  addGroupMembers,
+  fetchGroupMembers,
+  updateGroup,
+  deleteGroup,
+  kickGroupMember,
+  transferGroupAdmin,
+  checkinGroup,
+  fetchGroupDigest,
+  fetchDiscoverGroups,
+  joinOpenGroup,
+  requestJoinGroup,
+  fetchJoinRequests,
+  decideJoinRequest,
+  fetchGroupCare,
 } from '../api/group'
 import { showToast } from '../utils/toast'
-import type { CreateGroupRequest, JoinGroupRequest } from '../types/prayer'
+import type { CreateGroupRequest, UpdateGroupRequest, JoinGroupRequest } from '../types/prayer'
 
 // Query Keys
 export const groupKeys = {
@@ -20,6 +33,11 @@ export const groupKeys = {
   allGroups: () => [...groupKeys.all, 'all'] as const,
   detail: (id: number) => [...groupKeys.all, 'detail', id] as const,
   preview: (code: string) => [...groupKeys.all, 'preview', code] as const,
+  members: (id: number) => [...groupKeys.all, 'members', id] as const,
+  digest: (id: number) => [...groupKeys.all, 'digest', id] as const,
+  discover: () => [...groupKeys.all, 'discover'] as const,
+  joinRequests: (id: number) => [...groupKeys.all, 'join-requests', id] as const,
+  care: (id: number) => [...groupKeys.all, 'care', id] as const,
 }
 
 // 내 그룹 목록 조회
@@ -119,7 +137,7 @@ export const useAddGroupMembers = () => {
 // 그룹 탈퇴
 export const useLeaveGroup = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: (groupId: number) => leaveGroup(groupId),
     onSuccess: () => {
@@ -129,5 +147,190 @@ export const useLeaveGroup = () => {
     onError: (error: Error) => {
       showToast(error.message || '그룹 탈퇴에 실패했습니다', 'error')
     },
+  })
+}
+
+// 그룹 멤버 목록 (멤버만)
+export const useGroupMembers = (groupId: number, enabled = true) => {
+  return useQuery({
+    queryKey: groupKeys.members(groupId),
+    queryFn: () => fetchGroupMembers(groupId),
+    enabled: enabled && groupId > 0,
+    staleTime: 1000 * 60,
+    refetchOnMount: true,
+  })
+}
+
+// 그룹 정보 수정 (관리자만)
+export const useUpdateGroup = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ groupId, data }: { groupId: number; data: UpdateGroupRequest }) =>
+      updateGroup(groupId, data),
+    onSuccess: () => {
+      showToast('그룹 정보를 수정했어요', 'success')
+      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '그룹 수정에 실패했습니다', 'error')
+    },
+  })
+}
+
+// 그룹 삭제 (관리자만)
+export const useDeleteGroup = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (groupId: number) => deleteGroup(groupId),
+    onSuccess: () => {
+      showToast('그룹을 삭제했어요', 'success')
+      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '그룹 삭제에 실패했습니다', 'error')
+    },
+  })
+}
+
+// 멤버 내보내기 (관리자만)
+export const useKickMember = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ groupId, userId }: { groupId: number; userId: number }) =>
+      kickGroupMember(groupId, userId),
+    onSuccess: () => {
+      showToast('멤버를 내보냈어요', 'success')
+      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '멤버 내보내기에 실패했습니다', 'error')
+    },
+  })
+}
+
+// 관리자 권한 이양
+export const useTransferAdmin = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ groupId, newAdminUserId }: { groupId: number; newAdminUserId: number }) =>
+      transferGroupAdmin(groupId, newAdminUserId),
+    onSuccess: () => {
+      showToast('관리자 권한을 이양했어요', 'success')
+      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '권한 이양에 실패했습니다', 'error')
+    },
+  })
+}
+
+// 이번 주 다이제스트 (멤버만)
+export const useGroupDigest = (groupId: number, enabled = true) => {
+  return useQuery({
+    queryKey: groupKeys.digest(groupId),
+    queryFn: () => fetchGroupDigest(groupId),
+    enabled: enabled && groupId > 0,
+    staleTime: 1000 * 60,
+    refetchOnMount: true,
+  })
+}
+
+// 오늘의 체크인 — 응답(최신 다이제스트)으로 캐시를 바로 채운다
+export const useGroupCheckin = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (groupId: number) => checkinGroup(groupId),
+    onSuccess: (res, groupId) => {
+      queryClient.setQueryData(groupKeys.digest(groupId), res)
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '체크인에 실패했습니다', 'error')
+    },
+  })
+}
+
+// 그룹 둘러보기 — 공개·승인제 그룹
+export const useDiscoverGroups = (enabled = true) => {
+  return useQuery({
+    queryKey: groupKeys.discover(),
+    queryFn: fetchDiscoverGroups,
+    enabled,
+    staleTime: 1000 * 60 * 5,
+    refetchOnMount: true,
+  })
+}
+
+// 공개 그룹 바로 가입
+export const useJoinOpenGroup = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (groupId: number) => joinOpenGroup(groupId),
+    onSuccess: () => {
+      showToast('그룹에 가입했어요 🙌', 'success')
+      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '그룹 가입에 실패했습니다', 'error')
+    },
+  })
+}
+
+// 승인제 그룹 가입 신청
+export const useRequestJoinGroup = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ groupId, message }: { groupId: number; message?: string }) =>
+      requestJoinGroup(groupId, message),
+    onSuccess: () => {
+      showToast('가입을 신청했어요. 승인되면 알려드릴게요', 'success')
+      queryClient.invalidateQueries({ queryKey: groupKeys.discover(), refetchType: 'all' })
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '가입 신청에 실패했습니다', 'error')
+    },
+  })
+}
+
+// 가입 신청 목록 (관리자만)
+export const useJoinRequests = (groupId: number, enabled = true) => {
+  return useQuery({
+    queryKey: groupKeys.joinRequests(groupId),
+    queryFn: () => fetchJoinRequests(groupId),
+    enabled: enabled && groupId > 0,
+    staleTime: 1000 * 30,
+    refetchOnMount: true,
+  })
+}
+
+// 가입 신청 승인/거절 (관리자만)
+export const useDecideJoinRequest = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      groupId,
+      requestId,
+      approve,
+    }: {
+      groupId: number
+      requestId: number
+      approve: boolean
+    }) => decideJoinRequest(groupId, requestId, approve),
+    onSuccess: (_res, { approve }) => {
+      showToast(approve ? '가입을 승인했어요 🎉' : '가입 신청을 거절했어요', 'success')
+      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+    },
+    onError: (error: Error) => {
+      showToast(error.message || '신청 처리에 실패했습니다', 'error')
+    },
+  })
+}
+
+// 리더 케어 신호 (관리자 전용)
+export const useGroupCare = (groupId: number, enabled = true) => {
+  return useQuery({
+    queryKey: groupKeys.care(groupId),
+    queryFn: () => fetchGroupCare(groupId),
+    enabled: enabled && groupId > 0,
+    staleTime: 1000 * 60 * 5,
   })
 }

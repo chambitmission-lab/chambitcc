@@ -2,7 +2,12 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { useMyGroups } from '../../hooks/useGroups'
+import {
+  useMyGroups,
+  useDiscoverGroups,
+  useJoinOpenGroup,
+  useRequestJoinGroup,
+} from '../../hooks/useGroups'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
 import { isAuthenticated } from '../../utils/auth'
 import groupPixelArt from '../../assets/hero/group-pixel.png'
@@ -107,7 +112,7 @@ const MyGroups = () => {
         </div>
 
         {/* 그룹 리스트 */}
-        <div className="px-4 pt-2 pb-8 space-y-2">
+        <div className="px-4 pt-2 pb-4 space-y-2">
           {isLoading ? (
             <SkeletonRows />
           ) : groups.length === 0 ? (
@@ -116,6 +121,9 @@ const MyGroups = () => {
             groups.map(g => <GroupCard key={g.id} group={g} />)
           )}
         </div>
+
+        {/* 둘러보기 — 초대 없이도 공동체를 찾을 수 있는 디렉터리 */}
+        <DiscoverSection />
       </div>
 
       <CreateGroupModal isOpen={showCreate} onClose={() => setShowCreate(false)} />
@@ -312,6 +320,102 @@ const ActionCard = ({ icon, label, sublabel, variant, onClick }: ActionCardProps
         <p className="text-gray-500 dark:text-white/55 text-[11px] mt-0.5">{sublabel}</p>
       </div>
     </button>
+  )
+}
+
+// ── 둘러보기(디렉터리) ─────────────────────────────────
+// 공개·승인제 그룹 중 내가 아직 안 들어간 방 — 새가족도 초대 없이 공동체를 찾는다
+const DiscoverSection = () => {
+  const navigate = useNavigate()
+  const { data, isLoading } = useDiscoverGroups()
+  const joinOpen = useJoinOpenGroup()
+  const requestJoin = useRequestJoinGroup()
+  const [pendingId, setPendingId] = useState<number | null>(null)
+
+  const groups = data?.data.items ?? []
+  if (!isLoading && groups.length === 0) return null
+
+  const handleJoin = async (g: PrayerGroup) => {
+    setPendingId(g.id)
+    try {
+      if (g.visibility === 'public') {
+        await joinOpen.mutateAsync(g.id)
+        navigate(`/groups/${g.id}`)
+      } else {
+        await requestJoin.mutateAsync({ groupId: g.id })
+      }
+    } catch {
+      /* 토스트는 훅에서 처리 */
+    } finally {
+      setPendingId(null)
+    }
+  }
+
+  return (
+    <div className="px-4 pt-2 pb-8">
+      <div className="flex items-center gap-1.5 mb-2 px-1">
+        <span className="text-[13px]">🧭</span>
+        <h2 className="text-[13px] font-bold text-ink-strong">둘러보기</h2>
+        <span className="text-[11px] text-gray-400 dark:text-white/40">
+          함께할 수 있는 모임이에요
+        </span>
+      </div>
+      {isLoading ? (
+        <div className="h-[76px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+      ) : (
+        <div className="space-y-2">
+          {groups.map((g) => {
+            const requested = g.my_join_request_status === 'pending'
+            return (
+              <article
+                key={g.id}
+                className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] px-3.5 py-3 flex items-center gap-3"
+              >
+                <div className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--brand-soft-strong)] flex items-center justify-center text-[20px]">
+                  {g.icon || '👥'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[14px] font-bold text-ink-strong truncate">{g.name}</p>
+                    <span className="shrink-0 text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-500 dark:text-white/55">
+                      {g.visibility === 'public' ? '공개' : '승인제'}
+                    </span>
+                  </div>
+                  {g.description && (
+                    <p className="text-[11.5px] text-gray-500 dark:text-white/55 truncate leading-[1.4]">
+                      {g.description}
+                    </p>
+                  )}
+                  <p className="text-[10.5px] text-gray-400 dark:text-white/40 mt-0.5">
+                    👤 {g.member_count}명
+                    {g.prayer_count > 0 && ` · 🙏 ${g.prayer_count}`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={requested || pendingId === g.id}
+                  onClick={() => handleJoin(g)}
+                  className={[
+                    'shrink-0 px-3.5 h-9 rounded-full text-[12px] font-bold transition-all',
+                    requested
+                      ? 'bg-gray-100 dark:bg-white/[0.05] text-gray-400 dark:text-white/40'
+                      : 'bg-brand text-white shadow-[0_6px_18px_-8px_var(--brand-glow)] disabled:opacity-60',
+                  ].join(' ')}
+                >
+                  {requested
+                    ? '신청됨'
+                    : pendingId === g.id
+                      ? '…'
+                      : g.visibility === 'public'
+                        ? '바로 가입'
+                        : '가입 신청'}
+                </button>
+              </article>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }
 

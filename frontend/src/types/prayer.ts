@@ -147,6 +147,9 @@ export interface GroupThemeVerse {
   text: string
 }
 
+// 그룹 공개 설정 — private(초대만) / public(바로 가입) / approval(신청 승인)
+export type GroupVisibility = 'private' | 'public' | 'approval'
+
 export interface PrayerGroup {
   id: number
   name: string
@@ -162,6 +165,9 @@ export interface PrayerGroup {
   is_admin: boolean
   created_at: string
   invite_code?: string  // 관리자만 볼 수 있음
+  visibility?: GroupVisibility
+  prayer_time?: string | null  // "HH:MM"(KST) — 함께 기도 시간
+  my_join_request_status?: 'pending' | 'approved' | 'rejected' | null  // 둘러보기용
 }
 
 // 초대 링크 랜딩용 미리보기
@@ -192,6 +198,16 @@ export interface CreateGroupRequest {
   description?: string
   icon?: string
   theme_category_id?: number | null
+  visibility?: GroupVisibility
+}
+
+export interface UpdateGroupRequest {
+  name?: string
+  description?: string
+  icon?: string
+  theme_category_id?: number | null  // 0 = 테마 해제
+  visibility?: GroupVisibility
+  prayer_time?: string  // "" = 해제, "HH:MM" = 설정
 }
 
 export interface JoinGroupRequest {
@@ -200,10 +216,48 @@ export interface JoinGroupRequest {
 
 export interface GroupMember {
   id: number
+  user_id: number
   username: string
   display_name: string
+  avatar_url?: string | null
   is_admin: boolean
   joined_at: string
+}
+
+// 이번 주 다이제스트 (그룹 홈 요약 카드)
+export interface GroupDigestDay {
+  date: string  // YYYY-MM-DD (KST)
+  count: number
+  me: boolean
+}
+
+export interface GroupDigest {
+  new_prayers_week: number
+  answered_week: number
+  checkins_today: number
+  my_checked_in: boolean
+  week_days: GroupDigestDay[]
+  checkin_names_today: string[]
+}
+
+// 승인제 가입 신청 (관리자 목록)
+export interface GroupJoinRequestItem {
+  id: number
+  user_id: number
+  display_name: string
+  avatar_url?: string | null
+  message?: string | null
+  status: string
+  created_at: string
+}
+
+// 리더 케어 신호 — 한동안 소식 없는 멤버
+export interface GroupCareMember {
+  user_id: number
+  display_name: string
+  avatar_url?: string | null
+  last_active_at?: string | null
+  days_inactive?: number | null
 }
 
 export interface GroupMembersResponse {

@@ -5,9 +5,30 @@ import type {
   PrayerGroupPreview,
   GroupListResponse,
   CreateGroupRequest,
+  UpdateGroupRequest,
   JoinGroupRequest,
-  GroupMembersResponse
+  GroupMembersResponse,
+  GroupDigest,
+  GroupJoinRequestItem,
+  GroupCareMember,
 } from '../types/prayer'
+
+// 로그인 필수 요청 공통 헤더
+const authHeaders = (json = false): HeadersInit => {
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
+  }
+  const headers: Record<string, string> = { Authorization: `Bearer ${token}` }
+  if (json) headers['Content-Type'] = 'application/json'
+  return headers
+}
+
+// 에러 detail을 살려서 던진다
+const throwDetail = async (response: Response, fallback: string): Promise<never> => {
+  const error = await response.json().catch(() => null)
+  throw new Error(error?.detail || fallback)
+}
 
 // 내가 속한 그룹 목록 조회
 export const fetchMyGroups = async (): Promise<GroupListResponse> => {
@@ -209,22 +230,163 @@ export const leaveGroup = async (
 export const fetchGroupMembers = async (
   groupId: number
 ): Promise<GroupMembersResponse> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const headers: HeadersInit = {
-    'Authorization': `Bearer ${token}`,
-  }
-
   const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}/members`, {
-    headers,
+    headers: authHeaders(),
   })
 
   if (!response.ok) {
     throw new Error('멤버 목록을 불러오는데 실패했습니다')
   }
 
+  return response.json()
+}
+
+// 그룹 수정 (관리자만) — 이름/설명/아이콘/테마/공개설정/기도시간
+export const updateGroup = async (
+  groupId: number,
+  data: UpdateGroupRequest
+): Promise<{ success: boolean; data: PrayerGroup }> => {
+  const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}`, {
+    method: 'PATCH',
+    headers: authHeaders(true),
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) return throwDetail(response, '그룹 수정에 실패했습니다')
+  return response.json()
+}
+
+// 그룹 삭제 (관리자만)
+export const deleteGroup = async (
+  groupId: number
+): Promise<{ success: boolean; message: string }> => {
+  const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
+  if (!response.ok) return throwDetail(response, '그룹 삭제에 실패했습니다')
+  return response.json()
+}
+
+// 멤버 내보내기 (관리자만)
+export const kickGroupMember = async (
+  groupId: number,
+  userId: number
+): Promise<{ success: boolean; message: string }> => {
+  const response = await apiFetch(
+    `${API_V1}/prayer-groups/${groupId}/members/${userId}`,
+    { method: 'DELETE', headers: authHeaders() },
+  )
+  if (!response.ok) return throwDetail(response, '멤버 내보내기에 실패했습니다')
+  return response.json()
+}
+
+// 관리자 권한 이양
+export const transferGroupAdmin = async (
+  groupId: number,
+  newAdminUserId: number
+): Promise<{ success: boolean; message: string }> => {
+  const response = await apiFetch(
+    `${API_V1}/prayer-groups/${groupId}/transfer-admin`,
+    {
+      method: 'POST',
+      headers: authHeaders(true),
+      body: JSON.stringify({ new_admin_user_id: newAdminUserId }),
+    },
+  )
+  if (!response.ok) return throwDetail(response, '권한 이양에 실패했습니다')
+  return response.json()
+}
+
+// 오늘의 그룹 체크인 (멱등) — 최신 다이제스트를 돌려준다
+export const checkinGroup = async (
+  groupId: number
+): Promise<{ success: boolean; data: GroupDigest }> => {
+  const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}/checkin`, {
+    method: 'POST',
+    headers: authHeaders(),
+  })
+  if (!response.ok) return throwDetail(response, '체크인에 실패했습니다')
+  return response.json()
+}
+
+// 이번 주 다이제스트
+export const fetchGroupDigest = async (
+  groupId: number
+): Promise<{ success: boolean; data: GroupDigest }> => {
+  const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}/digest`, {
+    headers: authHeaders(),
+  })
+  if (!response.ok) return throwDetail(response, '다이제스트를 불러오는데 실패했습니다')
+  return response.json()
+}
+
+// 그룹 둘러보기 — 공개·승인제 그룹 중 내가 안 들어간 방
+export const fetchDiscoverGroups = async (): Promise<GroupListResponse> => {
+  const response = await apiFetch(`${API_V1}/prayer-groups/discover`, {
+    headers: authHeaders(),
+  })
+  if (!response.ok) return throwDetail(response, '그룹 둘러보기를 불러오는데 실패했습니다')
+  return response.json()
+}
+
+// 공개 그룹 바로 가입
+export const joinOpenGroup = async (
+  groupId: number
+): Promise<{ success: boolean; data: PrayerGroup }> => {
+  const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}/join-open`, {
+    method: 'POST',
+    headers: authHeaders(),
+  })
+  if (!response.ok) return throwDetail(response, '그룹 가입에 실패했습니다')
+  return response.json()
+}
+
+// 승인제 그룹 가입 신청
+export const requestJoinGroup = async (
+  groupId: number,
+  message?: string
+): Promise<{ success: boolean; data: { status: string } }> => {
+  const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}/join-request`, {
+    method: 'POST',
+    headers: authHeaders(true),
+    body: JSON.stringify({ message: message || null }),
+  })
+  if (!response.ok) return throwDetail(response, '가입 신청에 실패했습니다')
+  return response.json()
+}
+
+// 가입 신청 목록 (관리자만)
+export const fetchJoinRequests = async (
+  groupId: number
+): Promise<{ success: boolean; data: { items: GroupJoinRequestItem[]; total: number } }> => {
+  const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}/join-requests`, {
+    headers: authHeaders(),
+  })
+  if (!response.ok) return throwDetail(response, '가입 신청 목록을 불러오는데 실패했습니다')
+  return response.json()
+}
+
+// 가입 신청 승인/거절 (관리자만)
+export const decideJoinRequest = async (
+  groupId: number,
+  requestId: number,
+  approve: boolean
+): Promise<{ success: boolean; data: { status: string } }> => {
+  const response = await apiFetch(
+    `${API_V1}/prayer-groups/${groupId}/join-requests/${requestId}/${approve ? 'approve' : 'reject'}`,
+    { method: 'POST', headers: authHeaders() },
+  )
+  if (!response.ok) return throwDetail(response, '신청 처리에 실패했습니다')
+  return response.json()
+}
+
+// 리더 케어 신호 — 2주 이상 소식 없는 멤버 (관리자 전용)
+export const fetchGroupCare = async (
+  groupId: number
+): Promise<{ success: boolean; data: { items: GroupCareMember[]; total: number } }> => {
+  const response = await apiFetch(`${API_V1}/prayer-groups/${groupId}/care`, {
+    headers: authHeaders(),
+  })
+  if (!response.ok) return throwDetail(response, '케어 정보를 불러오는데 실패했습니다')
   return response.json()
 }

@@ -1,14 +1,74 @@
 // 그룹 생성/가입 모달 — 토스 블루 플랫 테마 (theme.css 브랜드 토큰, card-dark 솔리드, outline X 버튼)
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { renderSVG } from 'uqr'
 import { useCreateGroup, useJoinGroup } from '../../hooks/useGroups'
 import { useSituationCategories } from '../../hooks/useSituation'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
-import type { PrayerGroup } from '../../types/prayer'
+import type { PrayerGroup, GroupVisibility } from '../../types/prayer'
 import { groupInviteUrl } from '../../utils/inviteLink'
 
 const ICON_OPTIONS = ['🙏', '⛪', '✝️', '🎵', '📖', '💒', '👥', '🕊️', '🌟', '❤️']
+
+// 생성 템플릿 — 교회에서 실제로 만드는 모임 유형을 프리셋으로.
+// 고르면 아이콘·설명이 채워져 3탭이면 방이 만들어진다
+const TEMPLATES: {
+  key: string
+  label: string
+  icon: string
+  emoji: string
+  namePlaceholder: string
+  description: string
+}[] = [
+  {
+    key: 'cell',
+    label: '셀·구역',
+    icon: '👥',
+    emoji: '👥',
+    namePlaceholder: '예: 3구역 사랑셀',
+    description: '매주 모여 말씀과 삶을 나누고, 한 주간 서로의 기도제목을 품는 우리 셀이에요.',
+  },
+  {
+    key: 'intercession',
+    label: '중보기도팀',
+    icon: '🙏',
+    emoji: '🙏',
+    namePlaceholder: '예: 새벽 중보기도팀',
+    description: '맡겨주신 기도제목을 품고 매일 중보하는 방이에요. 응답의 기록이 쌓여가요.',
+  },
+  {
+    key: 'newcomer',
+    label: '새가족반',
+    icon: '🌱',
+    emoji: '🌱',
+    namePlaceholder: '예: 2026 새가족 1기',
+    description: '교회에 새로 오신 분들과 함께 첫걸음을 걷는 방이에요. 편하게 기도제목을 나눠요.',
+  },
+  {
+    key: 'praise',
+    label: '찬양팀',
+    icon: '🎵',
+    emoji: '🎵',
+    namePlaceholder: '예: 호산나 찬양팀',
+    description: '연습 일정과 섬김을 나누고, 예배를 위해 함께 기도하는 방이에요.',
+  },
+  {
+    key: 'youth',
+    label: '청년 소모임',
+    icon: '🌟',
+    emoji: '🌟',
+    namePlaceholder: '예: 청년부 목요모임',
+    description: '또래끼리 신앙과 일상을 나누는 소모임이에요. 부담 없이 함께해요.',
+  },
+]
+
+const VISIBILITY_CHOICES: { value: GroupVisibility; label: string; desc: string }[] = [
+  { value: 'private', label: '비공개', desc: '초대로만' },
+  { value: 'approval', label: '승인제', desc: '신청 후 승인' },
+  { value: 'public', label: '공개', desc: '누구나 바로' },
+]
 
 // ── 공통 모달 셸 ──────────────────────────────────────
 interface ModalShellProps {
@@ -67,17 +127,45 @@ interface CreateGroupModalProps {
 
 export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => {
   const { t } = useLanguage()
+  const navigate = useNavigate()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [icon, setIcon] = useState('🙏')
   const [themeCategoryId, setThemeCategoryId] = useState<number | null>(null)
+  const [visibility, setVisibility] = useState<GroupVisibility>('private')
+  const [templateKey, setTemplateKey] = useState<string | null>(null)
   const [createdGroup, setCreatedGroup] = useState<PrayerGroup | null>(null)
   const [errorMessage, setErrorMessage] = useState('')
 
   const createMutation = useCreateGroup()
   const { data: themeCategories } = useSituationCategories()
 
+  const template = TEMPLATES.find((tpl) => tpl.key === templateKey) ?? null
+
+  // 생성 완료 화면의 QR — 초대 링크를 그 자리에서 찍어 바로 가입
+  const createdInviteCode = createdGroup?.invite_code
+  const inviteQr = useMemo(
+    () => (createdInviteCode ? renderSVG(groupInviteUrl(createdInviteCode), { ecc: 'M', border: 2 }) : null),
+    [createdInviteCode],
+  )
+
   if (!isOpen) return null
+
+  // 템플릿 선택 — 아이콘·설명을 프리셋으로 채운다 (이미 직접 쓴 설명은 덮지 않음)
+  const applyTemplate = (key: string) => {
+    const tpl = TEMPLATES.find((x) => x.key === key)
+    if (!tpl) return
+    if (templateKey === key) {
+      setTemplateKey(null)
+      return
+    }
+    setTemplateKey(key)
+    setIcon(tpl.icon)
+    const isPresetDesc = TEMPLATES.some((x) => x.description === description)
+    if (!description.trim() || isPresetDesc) {
+      setDescription(tpl.description)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,6 +176,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
         description,
         icon,
         theme_category_id: themeCategoryId,
+        visibility,
       })
       setCreatedGroup(result.data)
     } catch (error: unknown) {
@@ -136,9 +225,18 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
     setDescription('')
     setIcon('🙏')
     setThemeCategoryId(null)
+    setVisibility('private')
+    setTemplateKey(null)
     setCreatedGroup(null)
     setErrorMessage('')
     onClose()
+  }
+
+  // 생성 완료 → 방으로 바로 이동해 첫 기도제목·첫 모임으로 이어지게
+  const handleGoToGroup = () => {
+    const id = createdGroup?.id
+    handleClose()
+    if (id) navigate(`/groups/${id}`)
   }
 
   return (
@@ -223,12 +321,39 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
             </div>
           </div>
 
+          {/* QR 초대 — 모임 자리에서 바로 보여줄 수 있게 */}
+          {inviteQr && (
+            <div className="mt-3 flex items-center gap-3 p-3.5 rounded-2xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]">
+              <div
+                className="shrink-0 w-20 h-20 p-1 rounded-xl bg-white border border-gray-200 [&>svg]:w-full [&>svg]:h-full"
+                dangerouslySetInnerHTML={{ __html: inviteQr }}
+              />
+              <p className="text-[11.5px] text-gray-500 dark:text-white/55 leading-[1.6]">
+                모임 자리에서 이 QR을 보여주면
+                <br />
+                카메라로 찍고 바로 들어올 수 있어요.
+                <br />
+                <span className="text-gray-400 dark:text-white/40">멤버 탭에서 언제든 다시 볼 수 있어요</span>
+              </p>
+            </div>
+          )}
+
+          {/* 다음 단계 안내 — 만든 직후 방이 비지 않도록 */}
+          <div className="mt-3 p-3.5 rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
+            <p className="text-[12px] font-bold text-brand mb-1.5">이제 이렇게 시작해보세요</p>
+            <ol className="text-[12px] text-gray-600 dark:text-white/65 space-y-1 leading-[1.6] list-none">
+              <li>① 위 버튼으로 멤버를 초대하고</li>
+              <li>② 첫 기도제목을 나눠보세요</li>
+              <li>③ 모임 탭에서 첫 모임 날짜도 잡을 수 있어요</li>
+            </ol>
+          </div>
+
           <button
             type="button"
-            onClick={handleClose}
+            onClick={handleGoToGroup}
             className="w-full mt-4 px-4 h-11 rounded-full bg-gray-900 dark:bg-white/[0.08] text-white dark:text-ink-strong text-[13.5px] font-bold hover:bg-gray-800 dark:hover:bg-white/[0.12] transition-colors"
           >
-            {t('confirm')}
+            그룹 열어보기 →
           </button>
         </div>
       ) : (
@@ -258,6 +383,31 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
               </div>
             </div>
 
+            {/* 템플릿 — 고르면 아이콘·설명이 채워져 3탭이면 완성 */}
+            <FieldGroup label="어떤 모임인가요? (선택)">
+              <div className="flex flex-wrap gap-1.5">
+                {TEMPLATES.map((tpl) => {
+                  const active = templateKey === tpl.key
+                  return (
+                    <button
+                      key={tpl.key}
+                      type="button"
+                      onClick={() => applyTemplate(tpl.key)}
+                      className={[
+                        'inline-flex items-center gap-1 px-2.5 h-8 rounded-full text-[12px] font-semibold transition-all border',
+                        active
+                          ? 'bg-brand text-white border-transparent shadow-sm'
+                          : 'bg-gray-50 dark:bg-white/[0.03] border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/65 hover:bg-gray-100 dark:hover:bg-white/[0.06]',
+                      ].join(' ')}
+                    >
+                      <span>{tpl.emoji}</span>
+                      {tpl.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </FieldGroup>
+
             {/* 이름 */}
             <FieldGroup label={t('groupName')} required>
               <input
@@ -267,7 +417,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                   setName(e.target.value)
                   setErrorMessage('')
                 }}
-                placeholder={t('groupNamePlaceholder')}
+                placeholder={template?.namePlaceholder ?? t('groupNamePlaceholder')}
                 required
                 maxLength={50}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] font-semibold text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
@@ -319,6 +469,38 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                 </div>
               </FieldGroup>
             )}
+
+            {/* 공개 설정 — 둘러보기 노출 여부 */}
+            <FieldGroup label="공개 설정">
+              <div className="grid grid-cols-3 gap-1.5">
+                {VISIBILITY_CHOICES.map((opt) => {
+                  const active = visibility === opt.value
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setVisibility(opt.value)}
+                      className={[
+                        'px-2 py-2 rounded-xl border text-center transition-all',
+                        active
+                          ? 'bg-[var(--brand-soft)] border-[var(--brand-soft-strong)]'
+                          : 'bg-gray-50 dark:bg-white/[0.03] border-gray-200 dark:border-white/[0.08]',
+                      ].join(' ')}
+                    >
+                      <span className={`block text-[12.5px] font-bold ${active ? 'text-brand' : 'text-ink-strong'}`}>
+                        {opt.label}
+                      </span>
+                      <span className="block text-[10.5px] text-gray-500 dark:text-white/50 mt-0.5">
+                        {opt.desc}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1.5 leading-[1.5]">
+                공개·승인제로 하면 [내 그룹 → 둘러보기]에 소개돼 초대 없이도 성도들이 찾아올 수 있어요
+              </p>
+            </FieldGroup>
 
             {/* 아이콘 선택 */}
             <FieldGroup label={t('groupIcon')}>

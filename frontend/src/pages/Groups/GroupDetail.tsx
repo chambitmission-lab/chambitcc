@@ -1,41 +1,59 @@
 // 기도방 홈 — /groups/:id
-// 오늘의 성구(테마) · 응답률 진행바 · 함께 기도 통계 · 기도 피드 진입 · 다가오는 모임 · 초대 공유
+// 탭 구조(홈/기도/모임/멤버): 홈에서 튕기지 않고 방 안에서 모든 활동이 이뤄진다
+// 홈: 다이제스트+체크인 · 오늘의 성구 · 응답률 · 중보 릴레이 · 함께 기도 시간
+// 기도: 그룹 피드 임베드 + 은혜의 기록 / 모임: 일정+RSVP / 멤버: 관리·초대(QR)·케어
 import { useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { useAddGroupMembers, useGroup, useLeaveGroup } from '../../hooks/useGroups'
+import { useGroup, useGroupMembers } from '../../hooks/useGroups'
 import { useEvents } from '../../hooks/useEvents'
-import { isAuthenticated } from '../../utils/auth'
-import { showToast } from '../../utils/toast'
-import { groupInviteUrl } from '../../utils/inviteLink'
+import { isAuthenticated, getCurrentUser } from '../../utils/auth'
 import CreateGroupMeetingModal from '../../components/group/CreateGroupMeetingModal'
-import MemberSearchInput from '../../components/common/MemberSearchInput'
-import type { CapsuleRecipient } from '../../types/timeCapsule'
+import GroupDigestCard from './components/GroupDigestCard'
+import GroupPrayerTab from './components/GroupPrayerTab'
+import GroupMembersTab from './components/GroupMembersTab'
+import GroupSettingsSheet from './components/GroupSettingsSheet'
+import IntercessionRelayCard from './components/IntercessionRelayCard'
 import { formatKstDateTime, kstDateKey, parseKstDate } from '../../utils/kstTime'
+
+type TabKey = 'home' | 'prayers' | 'meetings' | 'members'
+
+const TABS: { key: TabKey; label: string }[] = [
+  { key: 'home', label: '홈' },
+  { key: 'prayers', label: '기도' },
+  { key: 'meetings', label: '모임' },
+  { key: 'members', label: '멤버' },
+]
 
 const GroupDetail = () => {
   const { t, language } = useLanguage()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const loggedIn = isAuthenticated()
 
   const groupId = Number(id)
   const { data, isLoading } = useGroup(groupId)
   const group = data?.data
-  const leaveGroup = useLeaveGroup()
-  const addMembers = useAddGroupMembers()
 
-  const [copied, setCopied] = useState(false)
+  // 탭 상태는 URL(?tab=)에 실어 뒤로가기·새로고침에도 유지
+  const tabParam = searchParams.get('tab') as TabKey | null
+  const tab: TabKey = TABS.some((t) => t.key === tabParam) ? (tabParam as TabKey) : 'home'
+  const setTab = (next: TabKey) => {
+    setSearchParams(next === 'home' ? {} : { tab: next }, { replace: true })
+  }
+
   const [showCreate, setShowCreate] = useState(false)
-  // 이번 화면에서 초대한 사용자 — 검색 결과에서 바로 숨겨 중복 초대를 막는다
-  const [invitedIds, setInvitedIds] = useState<number[]>([])
+  const [showSettings, setShowSettings] = useState(false)
+
+  // 홈 탭의 중보 릴레이용 멤버 목록 (멤버 탭과 캐시 공유)
+  const { data: membersData } = useGroupMembers(groupId, !!group?.is_member)
+  const members = membersData?.data.items ?? []
+  const myUsername = getCurrentUser().username
 
   // 오늘 자정(KST) 부터의 일정만 (이미 끝난 모임 숨김)
-  // toISOString() 은 UTC 로 밀려 하루 어긋나므로 KST 날짜 키를 그대로 쓴다
   const todayIso = useMemo(() => kstDateKey(new Date()), [])
-  // RSVP 마감 여부 판정 기준 시각 — 렌더 중에 Date.now()를 부르면 같은 렌더가
-  // 매번 다른 결과를 낼 수 있어(비순수) 진입 시점 한 번만 고정한다.
-  // 화면을 열어 둔 채 마감이 지나가면 다음 진입 때 반영된다.
+  // RSVP 마감 판정 기준 시각 — 진입 시점 한 번만 고정 (렌더 순수성)
   const nowMs = useMemo(() => new Date().getTime(), [])
   const { events: meetings, loading: meetingsLoading } = useEvents(
     group?.is_member ? todayIso : undefined,
@@ -96,72 +114,31 @@ const GroupDetail = () => {
   const prayed = group.prayed_count ?? 0
   const answeredRate = total > 0 ? Math.round((answered / total) * 100) : 0
 
-  const handleCopy = async () => {
-    if (!group.invite_code) return
-    try {
-      await navigator.clipboard.writeText(group.invite_code)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
-    } catch {
-      showToast('복사에 실패했어요. 코드를 직접 알려주세요: ' + group.invite_code, 'error')
-    }
-  }
-
-  const handleShare = async () => {
-    if (!group.invite_code) return
-    const url = groupInviteUrl(group.invite_code)
-    const text = `🙏 '${group.name}' 기도방에 초대해요!\n함께 기도제목을 나누고, 응답이 쌓이는 걸 지켜봐요.\n\n${url}\n\n앱을 설치했다면 [내 그룹 → 초대 코드로 참여]에 코드 ${group.invite_code} 를 입력해도 돼요.`
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: group.name, text, url })
-        return
-      } catch {
-        /* 사용자가 취소 — 폴백 없이 종료 */
-        return
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(text)
-      showToast('초대 링크를 복사했어요. 카톡에 붙여넣어 보내주세요!', 'success')
-    } catch {
-      showToast('복사에 실패했어요. 초대 코드를 직접 알려주세요: ' + group.invite_code, 'error')
-    }
-  }
-
-  const handleInviteUser = async (user: CapsuleRecipient) => {
-    try {
-      const res = await addMembers.mutateAsync({ groupId, userIds: [user.id] })
-      setInvitedIds((prev) => [...prev, user.id])
-      if (res.data.added_count > 0) {
-        showToast(`${user.display_name}님을 기도방에 초대했어요 🙏`, 'success')
-      } else {
-        showToast(`${user.display_name}님은 이미 멤버예요`, 'info')
-      }
-    } catch {
-      /* 토스트는 훅에서 처리 */
-    }
-  }
-
-  const handleLeave = async () => {
-    if (!confirm('이 기도방에서 나가시겠어요?')) return
-    try {
-      await leaveGroup.mutateAsync(groupId)
-      navigate('/groups')
-    } catch {
-      /* 토스트는 훅에서 처리 */
-    }
-  }
-
   return (
     <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100">
       <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20">
-        <button
-          type="button"
-          onClick={() => navigate('/groups')}
-          className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300"
-        >
-          ← {t('back')}
-        </button>
+        <div className="flex items-center justify-between pr-3">
+          <button
+            type="button"
+            onClick={() => navigate('/groups')}
+            className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300"
+          >
+            ← {t('back')}
+          </button>
+          {group.is_admin && (
+            <button
+              type="button"
+              onClick={() => setShowSettings(true)}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors"
+              aria-label="그룹 설정"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
+          )}
+        </div>
 
         {/* 방 헤더 */}
         <div className="px-4 pb-3 flex items-center gap-3">
@@ -206,108 +183,166 @@ const GroupDetail = () => {
           </p>
         )}
 
-        {/* 오늘의 성구 — 테마가 있는 방에만 */}
-        {group.theme_verse && group.theme && (
-          <div className="mx-4 mb-3 relative overflow-hidden rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
-            <div
-              className="absolute left-0 top-0 bottom-0 w-1"
-              style={{ backgroundColor: group.theme.color }}
-            />
-            <div className="flex items-center gap-1.5 mb-2">
-              <span
-                className="material-icons-round text-[15px]"
-                style={{ color: group.theme.color }}
-              >
-                {group.theme.icon}
-              </span>
-              <p className="text-[11.5px] font-bold text-gray-500 dark:text-white/55">
-                오늘의 성구 · {group.theme.name}
-              </p>
-            </div>
-            <p className="text-[14px] text-ink-strong/90 leading-[1.7] break-keep">
-              {group.theme_verse.text}
-            </p>
-            <div className="flex items-center justify-between mt-2.5">
-              <p className="text-[12px] font-semibold text-gray-500 dark:text-white/50">
-                {group.theme_verse.book_name_ko} {group.theme_verse.chapter}:{group.theme_verse.verse}
-              </p>
-              <Link
-                to="/bible/situation"
-                className="text-[11.5px] font-bold text-brand inline-flex items-center gap-0.5"
-              >
-                이 상황의 구절 더 보기
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </Link>
+        {/* 탭 바 */}
+        {group.is_member && (
+          <div className="sticky top-0 z-40 bg-surface border-b border-border-light dark:border-border-dark px-4">
+            <div className="flex">
+              {TABS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTab(key)}
+                  className={[
+                    'flex-1 py-2.5 text-[13.5px] transition-colors relative',
+                    tab === key
+                      ? 'font-bold text-ink-strong'
+                      : 'font-medium text-gray-400 dark:text-white/40',
+                  ].join(' ')}
+                >
+                  {label}
+                  {tab === key && (
+                    <span className="absolute left-1/4 right-1/4 bottom-0 h-[2.5px] rounded-full bg-brand" />
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         )}
 
-        {/* 기도 진행률 — 응답이 쌓이는 게 보이는 카드 */}
-        <div className="mx-4 mb-3 rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
-          <div className="flex items-center justify-between mb-1">
-            <p className="text-[12px] font-bold text-gray-500 dark:text-white/55">우리 방의 기도</p>
-            {total > 0 && (
-              <p className="text-[12px] font-bold text-brand tabular-nums">응답률 {answeredRate}%</p>
-            )}
-          </div>
+        {/* ── 홈 탭 ── */}
+        {(!group.is_member || tab === 'home') && (
+          <div className="pt-3">
+            {/* 이번 주 다이제스트 + 오늘의 체크인 */}
+            {group.is_member && <GroupDigestCard groupId={groupId} />}
 
-          {total === 0 ? (
-            <div className="py-3 text-center">
-              <p className="text-[13.5px] font-bold text-ink-strong/85 mb-1">
-                아직 올라온 기도제목이 없어요
-              </p>
-              <p className="text-[12px] text-gray-500 dark:text-white/50 leading-[1.5]">
-                첫 기도제목을 나누면 여기에서 응답이 쌓여가요
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-baseline gap-1.5 mb-2">
-                <span className="text-[22px] font-bold text-ink-strong tabular-nums">
-                  {answered}
-                </span>
-                <span className="text-[13px] text-gray-500 dark:text-white/55">
-                  / {total}개 기도가 응답됐어요 {answered > 0 && '✨'}
-                </span>
-              </div>
-              <div className="h-2 rounded-full bg-gray-100 dark:bg-white/[0.06] overflow-hidden">
+            {/* 오늘의 성구 — 테마가 있는 방에만 */}
+            {group.theme_verse && group.theme && (
+              <div className="mx-4 mb-3 relative overflow-hidden rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
                 <div
-                  className="h-full rounded-full bg-brand transition-[width] duration-500"
-                  style={{ width: `${answeredRate}%` }}
+                  className="absolute left-0 top-0 bottom-0 w-1"
+                  style={{ backgroundColor: group.theme.color }}
                 />
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="material-icons-round text-[15px]" style={{ color: group.theme.color }}>
+                    {group.theme.icon}
+                  </span>
+                  <p className="text-[11.5px] font-bold text-gray-500 dark:text-white/55">
+                    오늘의 성구 · {group.theme.name}
+                  </p>
+                </div>
+                <p className="text-[14px] text-ink-strong/90 leading-[1.7] break-keep">
+                  {group.theme_verse.text}
+                </p>
+                <div className="flex items-center justify-between mt-2.5">
+                  <p className="text-[12px] font-semibold text-gray-500 dark:text-white/50">
+                    {group.theme_verse.book_name_ko} {group.theme_verse.chapter}:{group.theme_verse.verse}
+                  </p>
+                  <Link
+                    to="/bible/situation"
+                    className="text-[11.5px] font-bold text-brand inline-flex items-center gap-0.5"
+                  >
+                    이 상황의 구절 더 보기
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </Link>
+                </div>
               </div>
-              {prayed > 0 && (
-                <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-2">
-                  멤버들이 서로를 위해 <b className="text-brand">{prayed}번</b> 함께 기도했어요
+            )}
+
+            {/* 기도 진행률 — 응답이 쌓이는 게 보이는 카드 */}
+            <div className="mx-4 mb-3 rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-[12px] font-bold text-gray-500 dark:text-white/55">우리 방의 기도</p>
+                {total > 0 && (
+                  <p className="text-[12px] font-bold text-brand tabular-nums">응답률 {answeredRate}%</p>
+                )}
+              </div>
+
+              {total === 0 ? (
+                <div className="py-3 text-center">
+                  <p className="text-[13.5px] font-bold text-ink-strong/85 mb-1">
+                    아직 올라온 기도제목이 없어요
+                  </p>
+                  <p className="text-[12px] text-gray-500 dark:text-white/50 leading-[1.5]">
+                    첫 기도제목을 나누면 여기에서 응답이 쌓여가요
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-baseline gap-1.5 mb-2">
+                    <span className="text-[22px] font-bold text-ink-strong tabular-nums">{answered}</span>
+                    <span className="text-[13px] text-gray-500 dark:text-white/55">
+                      / {total}개 기도가 응답됐어요 {answered > 0 && '✨'}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-100 dark:bg-white/[0.06] overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-brand transition-[width] duration-500"
+                      style={{ width: `${answeredRate}%` }}
+                    />
+                  </div>
+                  {prayed > 0 && (
+                    <p className="text-[11.5px] text-gray-500 dark:text-white/50 mt-2">
+                      멤버들이 서로를 위해 <b className="text-brand">{prayed}번</b> 함께 기도했어요
+                    </p>
+                  )}
+                </>
+              )}
+
+              {group.is_member ? (
+                <button
+                  type="button"
+                  onClick={() => setTab('prayers')}
+                  className="w-full mt-3 h-11 rounded-xl bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all"
+                >
+                  {total === 0 ? '첫 기도제목 나누기' : '이 방의 기도 보기'}
+                </button>
+              ) : (
+                <p className="mt-3 text-[12px] text-gray-500 dark:text-white/50 text-center leading-[1.6]">
+                  멤버만 기도제목을 볼 수 있어요.
+                  <br />
+                  관리자에게 초대 링크나 초대 코드를 받아 참여해주세요.
                 </p>
               )}
-            </>
-          )}
+            </div>
 
-          {group.is_member ? (
-            <button
-              type="button"
-              onClick={() =>
-                navigate(total === 0 ? `/?group=${groupId}&compose=1` : `/?group=${groupId}`)
-              }
-              className="w-full mt-3 h-11 rounded-xl bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all"
-            >
-              {total === 0 ? '첫 기도제목 나누러 가기' : '이 방의 기도 보러 가기'}
-            </button>
-          ) : (
-            <p className="mt-3 text-[12px] text-gray-500 dark:text-white/50 text-center leading-[1.6]">
-              멤버만 기도제목을 볼 수 있어요.
-              <br />
-              관리자에게 초대 링크나 초대 코드를 받아 참여해주세요.
-            </p>
-          )}
-        </div>
+            {/* 중보 릴레이 — 매주 한 명씩 자동 순환 */}
+            {group.is_member && (
+              <IntercessionRelayCard members={members} myUsername={myUsername} />
+            )}
 
-        {/* 다가오는 모임 */}
-        {group.is_member && (
-          <div className="px-4 pb-4">
+            {/* 함께 기도 시간 */}
+            {group.is_member && group.prayer_time && (
+              <div className="mx-4 mb-3 rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] flex items-center gap-3">
+                <div className="shrink-0 w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-400/[0.12] flex items-center justify-center text-[20px]">
+                  🕯️
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13.5px] font-bold text-ink-strong">
+                    매일 {group.prayer_time} 함께 기도해요
+                  </p>
+                  <p className="text-[11.5px] text-gray-500 dark:text-white/55 leading-[1.5]">
+                    시간이 되면 멤버 모두에게 알림이 가요
+                  </p>
+                </div>
+                <Link
+                  to="/prayer-focus"
+                  className="shrink-0 px-3 h-8 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand text-[11.5px] font-bold inline-flex items-center"
+                >
+                  골방 기도
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── 기도 탭 ── */}
+        {group.is_member && tab === 'prayers' && <GroupPrayerTab groupId={groupId} />}
+
+        {/* ── 모임 탭 ── */}
+        {group.is_member && tab === 'meetings' && (
+          <div className="px-4 pt-3 pb-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-bold text-ink-strong">📅 다가오는 모임</h2>
               {group.is_admin && (
@@ -323,7 +358,7 @@ const GroupDetail = () => {
             {meetingsLoading ? (
               <div className="text-xs text-gray-500 py-3">{t('loading')}</div>
             ) : meetings.length === 0 ? (
-              <div className="text-xs text-gray-500 py-3 text-center bg-white/60 dark:bg-white/[0.03] rounded-xl border border-dashed border-border-light dark:border-border-dark">
+              <div className="text-xs text-gray-500 py-6 text-center bg-white/60 dark:bg-white/[0.03] rounded-xl border border-dashed border-border-light dark:border-border-dark">
                 아직 등록된 모임이 없습니다
               </div>
             ) : (
@@ -348,9 +383,7 @@ const GroupDetail = () => {
                       to={`/events/${m.id}`}
                       className="block p-3 bg-white/80 dark:bg-card-dark rounded-xl border border-gray-200/70 dark:border-white/[0.08] hover:border-[var(--brand-soft-strong)] transition-colors"
                     >
-                      <div className="font-semibold text-sm text-ink-strong truncate">
-                        {m.title}
-                      </div>
+                      <div className="font-semibold text-sm text-ink-strong truncate">{m.title}</div>
                       <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
                         {dateStr} · {timeStr}
                         {m.location ? ` · ${m.location}` : ''}
@@ -372,61 +405,8 @@ const GroupDetail = () => {
           </div>
         )}
 
-        {/* 초대 (관리자만) */}
-        {group.is_admin && group.invite_code && (
-          <div className="mx-4 mb-4 p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] rounded-2xl text-center">
-            <div className="text-xs text-gray-500 dark:text-white/55 mb-1">{t('inviteCode')}</div>
-            <div className="text-2xl font-bold text-ink-strong tracking-widest font-mono mb-1.5 select-all">
-              {group.invite_code}
-            </div>
-            <div className="text-[11px] text-gray-500 dark:text-white/50 mb-3">
-              {t('shareInviteCode')}
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="flex-1 h-11 rounded-full bg-gray-100 dark:bg-white/[0.06] text-ink-strong text-[13px] font-bold hover:bg-gray-200 dark:hover:bg-white/[0.1] transition-colors"
-              >
-                {copied ? `✓ ${t('inviteCodeCopied')}` : t('copyInviteCode')}
-              </button>
-              <button
-                type="button"
-                onClick={handleShare}
-                className="flex-1 h-11 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-all"
-              >
-                🔗 초대 링크 공유
-              </button>
-            </div>
-
-            {/* 앱 사용자 바로 초대 — 코드 공유 없이 검색해서 즉시 추가 */}
-            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/[0.06] text-left">
-              <div className="text-xs font-bold text-gray-500 dark:text-white/55 mb-2">
-                앱 사용자 바로 초대
-              </div>
-              <MemberSearchInput
-                excludeIds={invitedIds}
-                onPick={handleInviteUser}
-                placeholder="이름을 검색해 바로 초대해요"
-                emptyHint="앱에서 찾을 수 없어요. 아직 가입 전이라면 위 초대 링크를 공유해주세요."
-              />
-            </div>
-          </div>
-        )}
-
-        {/* 방 나가기 (관리자 아닌 멤버만 — 관리자는 권한 이양 필요) */}
-        {group.is_member && !group.is_admin && (
-          <div className="px-4 pb-6 text-center">
-            <button
-              type="button"
-              onClick={handleLeave}
-              disabled={leaveGroup.isPending}
-              className="text-[12px] text-gray-400 dark:text-white/40 underline underline-offset-2 hover:text-gray-600 dark:hover:text-white/60 transition-colors disabled:opacity-50"
-            >
-              기도방 나가기
-            </button>
-          </div>
-        )}
+        {/* ── 멤버 탭 ── */}
+        {group.is_member && tab === 'members' && <GroupMembersTab group={group} />}
       </div>
 
       <CreateGroupMeetingModal
@@ -435,6 +415,8 @@ const GroupDetail = () => {
         groupId={groupId}
         groupName={group.name}
       />
+
+      {showSettings && <GroupSettingsSheet group={group} onClose={() => setShowSettings(false)} />}
     </div>
   )
 }
