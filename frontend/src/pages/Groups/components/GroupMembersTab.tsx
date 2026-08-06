@@ -39,7 +39,7 @@ const MemberAvatar = ({ member }: { member: GroupMember }) =>
 const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
   const navigate = useNavigate()
   const groupId = group.id
-  const { data: membersData, isLoading } = useGroupMembers(groupId, group.is_member)
+  const { data: membersData, isLoading, isError } = useGroupMembers(groupId, group.is_member)
   const members = membersData?.data.items ?? []
 
   const kick = useKickMember()
@@ -244,6 +244,10 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
               <div key={i} className="h-12 rounded-xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
             ))}
           </div>
+        ) : isError ? (
+          <p className="px-4 pb-4 pt-1 text-[12px] text-gray-500 dark:text-white/50 leading-[1.6]">
+            멤버 목록을 불러오지 못했어요. 잠시 후 다시 열어주세요.
+          </p>
         ) : (
           <ul className="divide-y divide-gray-100 dark:divide-white/[0.05]">
             {members.map((m) => {
