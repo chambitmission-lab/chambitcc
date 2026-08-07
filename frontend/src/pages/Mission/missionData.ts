@@ -19,7 +19,7 @@ export interface CountryInfo {
 
 /** 아시아 지역 선교사 */
 export const asiaMissionaries: Missionary[] = [
-  { country: '터키', name: '곽성' },
+  { country: '튀르키예', name: '곽성' },
   { country: '베트남', name: '김삼성' },
   { country: '태국', name: '김원희' },
   { country: '미얀마', name: '김 인', note: '주파송' },
@@ -52,11 +52,11 @@ export const asiaMissionaries: Missionary[] = [
 /** 유럽 지역 선교사 */
 export const europeMissionaries: Missionary[] = [
   { country: '포르투갈', name: '김영기' },
-  { country: '키르키스탄', name: '김평화' },
+  { country: '키르기스스탄', name: '김평화' },
   { country: '아제르바이잔', name: '김창수' },
   { country: '독일', name: '박지원' },
   { country: '코소보', name: '서원민' },
-  { country: '모스크바', name: '이기영' },
+  { country: '러시아', name: '이기영' },
   { country: '러시아', name: '이전진' },
   { country: '러시아 연해주', name: '이철신' },
   { country: '알바니아', name: '이흔도' },
@@ -106,8 +106,8 @@ export const regionMeta: Record<RegionKey, {
     gradient: 'from-amber-500 via-orange-500 to-red-500',
   },
   europe: {
-    label: '유럽',
-    labelEn: 'EUROPE',
+    label: '유럽·중앙아시아',
+    labelEn: 'EUROPE · CENTRAL ASIA',
     emoji: '🌍',
     color: '#3b82f6',
     gradient: 'from-sky-500 via-blue-500 to-indigo-600',
@@ -134,7 +134,7 @@ export const regionMeta: Record<RegionKey, {
  */
 export const countryCoordinates: Record<string, { x: number; y: number; region: RegionKey }> = {
   // 아시아
-  '터키': { x: 582, y: 205, region: 'asia' },
+  '튀르키예': { x: 582, y: 205, region: 'asia' },
   '베트남': { x: 760, y: 265, region: 'asia' },
   '태국': { x: 745, y: 265, region: 'asia' },
   '미얀마': { x: 725, y: 250, region: 'asia' },
@@ -151,12 +151,11 @@ export const countryCoordinates: Record<string, { x: number; y: number; region: 
 
   // 유럽
   '포르투갈': { x: 475, y: 210, region: 'europe' },
-  '키르키스탄': { x: 675, y: 200, region: 'europe' },
+  '키르기스스탄': { x: 675, y: 200, region: 'europe' },
   '아제르바이잔': { x: 625, y: 205, region: 'europe' },
   '독일': { x: 520, y: 180, region: 'europe' },
   '코소보': { x: 545, y: 200, region: 'europe' },
-  '모스크바': { x: 570, y: 155, region: 'europe' },
-  '러시아': { x: 640, y: 140, region: 'europe' },
+  '러시아': { x: 585, y: 148, region: 'europe' }, // 모스크바 사역 기준
   '러시아 연해주': { x: 820, y: 160, region: 'europe' },
   '알바니아': { x: 545, y: 205, region: 'europe' },
   '우크라이나': { x: 570, y: 180, region: 'europe' },
@@ -178,7 +177,7 @@ export const countryCoordinates: Record<string, { x: number; y: number; region: 
  * 국기가 애매한 지역(위구르 등)은 평화의 비둘기로 대신한다.
  */
 export const countryFlag: Record<string, string> = {
-  '터키': '🇹🇷',
+  '튀르키예': '🇹🇷',
   '베트남': '🇻🇳',
   '태국': '🇹🇭',
   '미얀마': '🇲🇲',
@@ -193,11 +192,10 @@ export const countryFlag: Record<string, string> = {
   '중국': '🇨🇳',
   '캄보디아': '🇰🇭',
   '포르투갈': '🇵🇹',
-  '키르키스탄': '🇰🇬',
+  '키르기스스탄': '🇰🇬',
   '아제르바이잔': '🇦🇿',
   '독일': '🇩🇪',
   '코소보': '🇽🇰',
-  '모스크바': '🇷🇺',
   '러시아': '🇷🇺',
   '러시아 연해주': '🇷🇺',
   '알바니아': '🇦🇱',
@@ -209,6 +207,55 @@ export const countryFlag: Record<string, string> = {
   '탄자니아': '🇹🇿',
   '파라과이': '🇵🇾',
   '페루': '🇵🇪',
+}
+
+/** 서울 실좌표 — 거리 계산용 */
+export const SEOUL_GEO = { lat: 37.57, lng: 126.98 }
+
+/**
+ * 국가 → 상세 정보(타임존·대표 도시·실좌표).
+ * 바텀시트의 "지금 그곳은" 현지 시간·시차·거리 계산에 쓰인다.
+ * 도시는 수도 또는 대표 사역 도시 기준의 근사값.
+ */
+export interface CountryDetail {
+  tz: string
+  city: string
+  cityEn: string
+  lat: number
+  lng: number
+}
+
+export const countryDetail: Record<string, CountryDetail> = {
+  '튀르키예': { tz: 'Europe/Istanbul', city: '앙카라', cityEn: 'Ankara', lat: 39.93, lng: 32.86 },
+  '베트남': { tz: 'Asia/Ho_Chi_Minh', city: '하노이', cityEn: 'Hanoi', lat: 21.03, lng: 105.85 },
+  '태국': { tz: 'Asia/Bangkok', city: '방콕', cityEn: 'Bangkok', lat: 13.76, lng: 100.5 },
+  '미얀마': { tz: 'Asia/Yangon', city: '양곤', cityEn: 'Yangon', lat: 16.87, lng: 96.2 },
+  '인도네시아': { tz: 'Asia/Jakarta', city: '자카르타', cityEn: 'Jakarta', lat: -6.21, lng: 106.85 },
+  '인도': { tz: 'Asia/Kolkata', city: '델리', cityEn: 'Delhi', lat: 28.61, lng: 77.21 },
+  '네팔': { tz: 'Asia/Kathmandu', city: '카트만두', cityEn: 'Kathmandu', lat: 27.72, lng: 85.32 },
+  '말레이시아': { tz: 'Asia/Kuala_Lumpur', city: '쿠알라룸푸르', cityEn: 'Kuala Lumpur', lat: 3.14, lng: 101.69 },
+  '필리핀': { tz: 'Asia/Manila', city: '마닐라', cityEn: 'Manila', lat: 14.6, lng: 120.98 },
+  '요르단': { tz: 'Asia/Amman', city: '암만', cityEn: 'Amman', lat: 31.95, lng: 35.93 },
+  '위구르': { tz: 'Asia/Urumqi', city: '우루무치', cityEn: 'Urumqi', lat: 43.83, lng: 87.62 },
+  '일본': { tz: 'Asia/Tokyo', city: '도쿄', cityEn: 'Tokyo', lat: 35.68, lng: 139.69 },
+  '중국': { tz: 'Asia/Shanghai', city: '베이징', cityEn: 'Beijing', lat: 39.9, lng: 116.4 },
+  '캄보디아': { tz: 'Asia/Phnom_Penh', city: '프놈펜', cityEn: 'Phnom Penh', lat: 11.56, lng: 104.92 },
+  '포르투갈': { tz: 'Europe/Lisbon', city: '리스본', cityEn: 'Lisbon', lat: 38.72, lng: -9.14 },
+  '키르기스스탄': { tz: 'Asia/Bishkek', city: '비슈케크', cityEn: 'Bishkek', lat: 42.87, lng: 74.59 },
+  '아제르바이잔': { tz: 'Asia/Baku', city: '바쿠', cityEn: 'Baku', lat: 40.41, lng: 49.87 },
+  '독일': { tz: 'Europe/Berlin', city: '베를린', cityEn: 'Berlin', lat: 52.52, lng: 13.4 },
+  '코소보': { tz: 'Europe/Belgrade', city: '프리슈티나', cityEn: 'Pristina', lat: 42.66, lng: 21.17 },
+  '러시아': { tz: 'Europe/Moscow', city: '모스크바', cityEn: 'Moscow', lat: 55.76, lng: 37.62 },
+  '러시아 연해주': { tz: 'Asia/Vladivostok', city: '블라디보스토크', cityEn: 'Vladivostok', lat: 43.12, lng: 131.89 },
+  '알바니아': { tz: 'Europe/Tirane', city: '티라나', cityEn: 'Tirana', lat: 41.33, lng: 19.82 },
+  '우크라이나': { tz: 'Europe/Kiev', city: '키이우', cityEn: 'Kyiv', lat: 50.45, lng: 30.52 },
+  '잠비아': { tz: 'Africa/Lusaka', city: '루사카', cityEn: 'Lusaka', lat: -15.39, lng: 28.32 },
+  '우간다': { tz: 'Africa/Kampala', city: '캄팔라', cityEn: 'Kampala', lat: 0.35, lng: 32.58 },
+  '남아프리카공화국': { tz: 'Africa/Johannesburg', city: '요하네스버그', cityEn: 'Johannesburg', lat: -26.2, lng: 28.05 },
+  '모로코': { tz: 'Africa/Casablanca', city: '라바트', cityEn: 'Rabat', lat: 34.02, lng: -6.84 },
+  '탄자니아': { tz: 'Africa/Dar_es_Salaam', city: '다르에스살람', cityEn: 'Dar es Salaam', lat: -6.79, lng: 39.21 },
+  '파라과이': { tz: 'America/Asuncion', city: '아순시온', cityEn: 'Asunción', lat: -25.28, lng: -57.63 },
+  '페루': { tz: 'America/Lima', city: '리마', cityEn: 'Lima', lat: -12.05, lng: -77.04 },
 }
 
 /** 국내 선교 — 미자립 교회 지원 */

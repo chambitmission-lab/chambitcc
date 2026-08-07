@@ -26,6 +26,14 @@ const PrayerCard = ({
   isToggling = false,
   showAnswerButton = true
 }: PrayerCardProps) => {
+  // 간증 서명 줄에 붙는 "응답된 달" — 파싱 실패 시 조용히 숨긴다
+  const answeredMonth = (() => {
+    if (!prayer.answered_at) return null
+    const d = new Date(prayer.answered_at)
+    if (Number.isNaN(d.getTime())) return null
+    return `${d.getFullYear()}년 ${d.getMonth() + 1}월`
+  })()
+
   return (
     <div className={`legacy-prayer-card ${prayer.is_answered ? 'answered' : ''}`}>
       {/* 그룹 배지 */}
@@ -58,83 +66,92 @@ const PrayerCard = ({
       {/* 내용 */}
       <p className="prayer-content">{prayer.content}</p>
       
-      {/* 간증 내용 (응답된 경우) */}
+      {/* 간증 내용 (응답된 경우) — "응답의 기록" 엽서 무드 */}
       {prayer.is_answered && prayer.testimony && (
         <div className="testimony-section">
+          <span className="testimony-spark" aria-hidden>✦</span>
           <div className="testimony-header">
             <span className="testimony-icon">
-              <SparklesIcon size={15} />
+              <SparklesIcon size={13} />
             </span>
-            <span className="testimony-label">간증</span>
+            <span className="testimony-label">응답의 기록</span>
+            <span className="testimony-rule" aria-hidden />
           </div>
           <p className="testimony-content">{prayer.testimony}</p>
+          <div className="testimony-sign">
+            <span className="testimony-sign-name">— {prayer.display_name}</span>
+            {answeredMonth && <span className="testimony-sign-date">{answeredMonth}</span>}
+          </div>
         </div>
       )}
       
-      {/* 액션 버튼 */}
+      {/* 액션 — 좌: 참여(기도·댓글), 우: 소유자 관리(작게, 위계 낮춤) */}
       <div className="prayer-actions">
-        <button
-          className={`action-button ${prayer.is_prayed ? 'active' : ''}`}
-          onClick={() => onPrayerToggle?.(prayer.id)}
-          disabled={isToggling}
-        >
-          <span className="action-icon">
-            <HandHeartIcon size={16} filled={prayer.is_prayed} />
-          </span>
-          <span className="action-text">
-            {prayer.is_prayed ? '기도했어요' : '기도하기'}
-          </span>
-          <span className="action-count">{prayer.prayer_count}</span>
-        </button>
-        
-        <button
-          className="action-button"
-          onClick={() => onReplyClick?.(prayer.id)}
-        >
-          <span className="action-icon">
-            <CommentIcon size={16} />
-          </span>
-          <span className="action-text">댓글</span>
-          <span className="action-count">{prayer.reply_count}</span>
-        </button>
-        
-        {/* 응답 버튼 (내 기도이고, 아직 응답 안됨) */}
-        {showAnswerButton && prayer.is_owner && !prayer.is_answered && (
+        <div className="actions-main">
           <button
-            className="action-button answer-button"
-            onClick={() => onAnswerToggle?.(prayer.id)}
+            className={`action-button ${prayer.is_prayed ? 'active' : ''}`}
+            onClick={() => onPrayerToggle?.(prayer.id)}
             disabled={isToggling}
           >
-            <span className="action-icon">✨</span>
-            <span className="action-text">응답</span>
+            <span className="action-icon">
+              <HandHeartIcon size={16} filled={prayer.is_prayed} />
+            </span>
+            <span className="action-text">
+              {prayer.is_prayed ? '기도했어요' : '기도하기'}
+            </span>
+            <span className="action-count">{prayer.prayer_count}</span>
           </button>
-        )}
 
-        {/* 응답 수정/취소 버튼 (내 기도이고, 이미 응답된 경우) */}
+          <button
+            className="action-button"
+            onClick={() => onReplyClick?.(prayer.id)}
+          >
+            <span className="action-icon">
+              <CommentIcon size={16} />
+            </span>
+            <span className="action-text">댓글</span>
+            <span className="action-count">{prayer.reply_count}</span>
+          </button>
+
+          {/* 응답 버튼 (내 기도이고, 아직 응답 안됨) */}
+          {showAnswerButton && prayer.is_owner && !prayer.is_answered && (
+            <button
+              className="action-button answer-button"
+              onClick={() => onAnswerToggle?.(prayer.id)}
+              disabled={isToggling}
+            >
+              <span className="action-icon">✨</span>
+              <span className="action-text">응답</span>
+            </button>
+          )}
+        </div>
+
+        {/* 응답 수정/취소 (내 기도이고, 이미 응답된 경우) — 조용한 텍스트 링크 */}
         {showAnswerButton && prayer.is_owner && prayer.is_answered && (
-          <>
+          <div className="actions-owner">
             {onEditAnswer && (
               <button
-                className="action-button answer-button"
+                className="owner-link"
                 onClick={() => onEditAnswer(prayer.id)}
                 disabled={isToggling}
               >
-                <span className="action-icon">✏️</span>
-                <span className="action-text">간증 수정</span>
+                간증 수정
               </button>
+            )}
+            {onEditAnswer && onCancelAnswer && (
+              <span className="owner-sep" aria-hidden>·</span>
             )}
             {onCancelAnswer && (
               <button
-                className="action-button"
+                className="owner-link"
                 onClick={() => onCancelAnswer(prayer.id)}
                 disabled={isToggling}
                 title="응답 등록 취소"
               >
-                <span className="action-icon">↩️</span>
-                <span className="action-text">응답 취소</span>
+                응답 취소
               </button>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>

@@ -16,42 +16,90 @@ export interface MapPoint {
 interface WorldMapProps {
   points: MapPoint[]
   onHover?: (country: string | null) => void
+  /** 지도 점 탭 → 국가 선택 (모바일 터치 대응) */
+  onSelect?: (country: string) => void
   /** 카드 클릭으로 선택된 국가 — 초강조 표시 */
   selectedCountry?: string | null
 }
 
-/** 단순화된 대륙 경로들 — 모양새만 알아볼 수 있도록 */
-const CONTINENTS: string[] = [
+/** 파송의 출발점 — 서울 (viewBox 좌표) */
+const SEOUL = { x: 806, y: 199 }
+
+/** 단순화된 대륙 다각형(꼭짓점 목록) — 도트 매트릭스 채움의 밑그림 */
+const CONTINENT_POLYS: [number, number][][] = [
   // North America
-  'M 120 90 Q 160 80 210 95 L 260 110 L 280 150 L 260 175 L 230 210 L 180 225 L 140 215 L 110 180 L 95 140 Z',
-  'M 200 230 L 240 240 L 250 260 L 220 270 L 200 255 Z',
+  [[120, 90], [160, 80], [210, 95], [260, 110], [280, 150], [260, 175], [230, 210], [180, 225], [140, 215], [110, 180], [95, 140]],
+  [[200, 230], [240, 240], [250, 260], [220, 270], [200, 255]],
   // Central America
-  'M 230 250 L 260 260 L 290 290 L 260 285 L 240 270 Z',
+  [[230, 250], [260, 260], [290, 290], [260, 285], [240, 270]],
   // South America
-  'M 270 300 L 305 300 L 330 340 L 325 400 L 300 435 L 275 425 L 260 380 L 265 335 Z',
+  [[270, 300], [305, 300], [330, 340], [325, 400], [300, 435], [275, 425], [260, 380], [265, 335]],
   // Europe
-  'M 470 155 L 540 145 L 585 160 L 590 195 L 565 215 L 515 215 L 475 195 Z',
+  [[470, 155], [540, 145], [585, 160], [590, 195], [565, 215], [515, 215], [475, 195]],
   // Africa
-  'M 490 230 L 560 225 L 605 260 L 615 325 L 590 380 L 555 410 L 520 395 L 495 340 L 480 285 Z',
+  [[490, 230], [560, 225], [605, 260], [615, 325], [590, 380], [555, 410], [520, 395], [495, 340], [480, 285]],
   // Middle East
-  'M 585 215 L 640 210 L 660 245 L 630 270 L 595 255 Z',
+  [[585, 215], [640, 210], [660, 245], [630, 270], [595, 255]],
   // Russia (long horizontal)
-  'M 540 100 L 700 85 L 830 100 L 900 130 L 880 165 L 780 175 L 680 170 L 590 155 Z',
+  [[540, 100], [700, 85], [830, 100], [900, 130], [880, 165], [780, 175], [680, 170], [590, 155]],
   // Asia mainland / China
-  'M 670 180 L 780 180 L 830 210 L 820 255 L 760 270 L 700 260 L 660 225 Z',
+  [[670, 180], [780, 180], [830, 210], [820, 255], [760, 270], [700, 260], [660, 225]],
   // India
-  'M 680 245 L 720 245 L 730 290 L 705 310 L 685 285 Z',
+  [[680, 245], [720, 245], [730, 290], [705, 310], [685, 285]],
   // Southeast Asia
-  'M 735 265 L 775 270 L 790 300 L 765 325 L 740 305 Z',
+  [[735, 265], [775, 270], [790, 300], [765, 325], [740, 305]],
   // Indonesia
-  'M 760 320 L 820 315 L 840 340 L 805 355 L 775 345 Z',
+  [[760, 320], [820, 315], [840, 340], [805, 355], [775, 345]],
   // Japan
-  'M 830 195 L 855 205 L 860 235 L 840 250 L 825 225 Z',
+  [[830, 195], [855, 205], [860, 235], [840, 250], [825, 225]],
   // Australia
-  'M 790 370 L 860 365 L 895 395 L 870 430 L 815 425 L 785 405 Z',
+  [[790, 370], [860, 365], [895, 395], [870, 430], [815, 425], [785, 405]],
 ]
 
-const WorldMap = ({ points, onHover, selectedCountry }: WorldMapProps) => {
+/** ray casting 점-다각형 포함 판정 */
+const pointInPoly = (x: number, y: number, poly: [number, number][]) => {
+  let inside = false
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i]
+    const [xj, yj] = poly[j]
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+      inside = !inside
+    }
+  }
+  return inside
+}
+
+/**
+ * 도트 매트릭스 육지 — 대륙 다각형 안을 육각 오프셋 격자로 채운 점들.
+ * 모듈 로드 시 1회 계산 (그리드 ~3천 점 검사, 결과 ~600점).
+ */
+const LAND_DOTS: { x: number; y: number }[] = (() => {
+  const dots: { x: number; y: number }[] = []
+  const step = 12
+  for (let row = 0; ; row++) {
+    const y = 74 + row * step
+    if (y > 445) break
+    const xOffset = row % 2 === 1 ? step / 2 : 0
+    for (let x = 8 + xOffset; x < 1000; x += step) {
+      if (CONTINENT_POLYS.some(poly => pointInPoly(x, y, poly))) {
+        dots.push({ x, y })
+      }
+    }
+  }
+  return dots
+})()
+
+/** 서울 → 선교지 파송 곡선. 거리에 비례해 위로 떠오르는 아크 */
+const arcPath = (x2: number, y2: number) => {
+  const { x: x1, y: y1 } = SEOUL
+  const mx = (x1 + x2) / 2
+  const my = (y1 + y2) / 2
+  const dist = Math.hypot(x2 - x1, y2 - y1)
+  const lift = Math.min(95, 22 + dist * 0.2)
+  return `M ${x1} ${y1} Q ${mx} ${my - lift} ${x2} ${y2}`
+}
+
+const WorldMap = ({ points, onHover, onSelect, selectedCountry }: WorldMapProps) => {
   return (
     <svg
       className="world-map"
@@ -65,43 +113,82 @@ const WorldMap = ({ points, onHover, selectedCountry }: WorldMapProps) => {
           <stop offset="0%" stopColor="rgba(56,189,248,0.25)" />
           <stop offset="100%" stopColor="rgba(56,189,248,0)" />
         </radialGradient>
-        <linearGradient id="continentFill" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="rgba(186,230,253,0.12)" />
-          <stop offset="100%" stopColor="rgba(99,102,241,0.08)" />
-        </linearGradient>
       </defs>
 
       {/* background glow */}
       <rect x="0" y="0" width="1000" height="500" fill="url(#mapBgGlow)" />
 
-      {/* faint grid */}
-      <g stroke="rgba(255,255,255,0.04)" strokeWidth="0.5">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <line key={`h${i}`} x1="0" y1={i * 50} x2="1000" y2={i * 50} />
-        ))}
-        {Array.from({ length: 20 }).map((_, i) => (
-          <line key={`v${i}`} x1={i * 50} y1="0" x2={i * 50} y2="500" />
+      {/* dot-matrix land */}
+      <g className="map-land">
+        {LAND_DOTS.map((d, i) => (
+          <circle key={i} cx={d.x} cy={d.y} r="1.7" />
         ))}
       </g>
 
-      {/* continents */}
-      <g className="map-continents">
-        {CONTINENTS.map((d, i) => (
-          <path key={i} d={d} />
-        ))}
+      {/* dispatch arcs — 서울에서 각 선교지로 뻗어나가는 파송 라인 */}
+      <g className="map-arcs">
+        {points.map(p => {
+          const isSelected = selectedCountry === p.country
+          const lit = p.active || isSelected
+          const d = arcPath(p.x, p.y)
+          return (
+            <g key={p.country}>
+              <path
+                d={d}
+                className={`arc-base ${lit ? 'on' : ''}`}
+                stroke={p.color}
+              />
+              {lit && (
+                <path
+                  d={d}
+                  className={`arc-flow ${isSelected ? 'strong' : ''}`}
+                  stroke={p.color}
+                />
+              )}
+            </g>
+          )
+        })}
+      </g>
+
+      {/* home marker — 서울 */}
+      <g className="map-home">
+        <circle className="map-home-glow" cx={SEOUL.x} cy={SEOUL.y} r="11" fill="rgba(56,189,248,0.22)" />
+        <circle
+          cx={SEOUL.x}
+          cy={SEOUL.y}
+          r="4.2"
+          fill="#ffffff"
+          stroke="#38bdf8"
+          strokeWidth="2"
+          style={{ filter: 'drop-shadow(0 0 6px rgba(56,189,248,0.9))' }}
+        />
+        <text
+          className="map-home-label"
+          x={SEOUL.x}
+          y={SEOUL.y - 13}
+          textAnchor="middle"
+          fontSize="9"
+          fontWeight="700"
+          letterSpacing="2"
+        >
+          SEOUL
+        </text>
       </g>
 
       {/* mission points */}
       <g>
         {points.map(p => {
           const isSelected = selectedCountry === p.country
+          // 라벨: 이름 길이에 맞춰 폭 계산 + 지도 밖으로 나가지 않게 클램프
+          const labelW = p.country.length * 12 + 18
+          const labelX = Math.min(Math.max(p.x - labelW / 2, 6), 1000 - labelW - 6)
+          const labelAbove = p.y > 48
+          const rectY = labelAbove ? p.y - 34 : p.y + 16
           return (
             <g
               key={p.country}
               className={`map-dot ${p.active ? 'active' : ''} ${isSelected ? 'selected' : ''}`}
               style={{ color: p.color }}
-              onMouseEnter={() => onHover?.(p.country)}
-              onMouseLeave={() => onHover?.(null)}
             >
               {/* 선택된 국가: 넓은 외곽 halo */}
               {isSelected && (
@@ -165,17 +252,17 @@ const WorldMap = ({ points, onHover, selectedCountry }: WorldMapProps) => {
               {isSelected && (
                 <g className="dot-label">
                   <rect
-                    x={p.x - 28}
-                    y={p.y - 32}
-                    width="56"
-                    height="18"
-                    rx="9"
+                    x={labelX}
+                    y={rectY}
+                    width={labelW}
+                    height="20"
+                    rx="10"
                     fill={p.color}
                     opacity="0.95"
                   />
                   <text
-                    x={p.x}
-                    y={p.y - 19}
+                    x={labelX + labelW / 2}
+                    y={rectY + 14}
                     textAnchor="middle"
                     fontSize="11"
                     fontWeight="700"
@@ -185,6 +272,16 @@ const WorldMap = ({ points, onHover, selectedCountry }: WorldMapProps) => {
                   </text>
                 </g>
               )}
+              {/* 투명 히트 영역 — 모바일에서도 점을 탭할 수 있게 실제 점보다 크게 */}
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r="18"
+                fill="transparent"
+                onMouseEnter={() => onHover?.(p.country)}
+                onMouseLeave={() => onHover?.(null)}
+                onClick={() => onSelect?.(p.country)}
+              />
             </g>
           )
         })}
