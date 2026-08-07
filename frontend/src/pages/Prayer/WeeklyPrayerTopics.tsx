@@ -192,7 +192,7 @@ const WeeklyPrayerTopics = () => {
               <p className="text-xs font-semibold tracking-[0.1em] text-brand mb-1">
                 {formatWeekLabel(prayer.week_date)}
               </p>
-              <h2 className="text-xl font-extrabold text-ink-strong tracking-[-0.02em]">{prayer.title}</h2>
+              <h2 className="text-xl font-extrabold text-ink-strong tracking-[-0.02em] break-keep">{prayer.title}</h2>
               {(prayer.prayed_user_count ?? 0) > 0 && (
                 <p className="mt-1.5 text-xs text-gray-500 dark:text-white/50">
                   이번 주 <span className="font-bold text-brand">{prayer.prayed_user_count}명</span>이 함께 기도했어요
@@ -212,18 +212,19 @@ const WeeklyPrayerTopics = () => {
                       {i + 1}
                     </span>
                     {item.title ? (
-                      <p className="text-[15px] font-bold leading-relaxed text-ink-strong pt-0.5">
+                      // 한글은 어절 단위로 끊어야 마지막 한 글자만 넘어가는 줄바꿈을 막을 수 있음
+                      <p className="text-[15px] font-bold leading-[1.55] text-ink-strong pt-0.5 break-keep">
                         {item.title}
                       </p>
                     ) : (
                       // 제목 없는 통문단 형태 — 기도문 자체를 본문으로
-                      <p className="text-[14.5px] leading-[1.8] text-ink-strong pt-0.5">
+                      <p className="text-[14.5px] leading-[1.8] text-ink-strong pt-0.5 break-keep">
                         {item.body}
                       </p>
                     )}
                   </div>
                   {item.title && item.body && (
-                    <p className="mt-3 pl-10 text-[14px] leading-[1.8] text-gray-600 dark:text-white/70">
+                    <p className="mt-3 pl-10 text-[14px] leading-[1.8] text-gray-600 dark:text-white/70 break-keep">
                       “{item.body}”
                     </p>
                   )}
