@@ -38,7 +38,23 @@
   background: var(--surface-container);
   box-shadow: var(--card-shadow);
   overflow: hidden;
+  isolation: isolate; /* ::before 하늘(z-index:-1)이 카드 밖으로 빠지지 않게 */
 }
+
+/* 시간대 하늘 오버레이 — 다음(진행 중) 예배의 '시간의 빛'을 히어로가 입는다.
+ * 색 값은 theme.css의 --worship-sky-* 토큰이 라이트/다크를 각각 담당 */
+.worship-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--worship-sky, none);
+}
+.worship-hero--dawn { --worship-sky: var(--worship-sky-dawn); }
+.worship-hero--day { --worship-sky: var(--worship-sky-day); }
+.worship-hero--dusk { --worship-sky: var(--worship-sky-dusk); }
+.worship-hero--night { --worship-sky: var(--worship-sky-night); }
 
 .worship-hero-top {
   display: flex;
@@ -69,6 +85,37 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+
+.worship-hero-labels {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* 교회력 절기 배지 — 전례색 시맨틱 (대림·사순=보라 / 성탄·부활·추수감사=앰버 토큰) */
+.worship-season {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.worship-season--amber {
+  color: var(--amber);
+  background: var(--amber-soft);
+  border: 1px solid var(--amber-soft-strong);
+}
+/* 전례 보라 — 토큰이 없는 시맨틱 색이라 양 테마에서 읽히는 중간 톤 단일 값 사용 */
+.worship-season--violet {
+  color: #977af5;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.30);
 }
 
 .worship-hero-label {
@@ -185,6 +232,33 @@
   color: var(--brand);
 }
 
+/* 서사 문구 — 숫자 위에 얹는 초대의 언어 */
+.worship-live-narr {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+  color: var(--text-body);
+}
+
+/* 예배 중 라이브 모드 — 카운트다운 대신 조용한 숨쉬기. 라이브 시그널만 레드 */
+.worship-live--ongoing {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+}
+.worship-live--ongoing:hover {
+  border-color: rgba(239, 68, 68, 0.55);
+  box-shadow: 0 6px 16px -8px rgba(239, 68, 68, 0.4);
+}
+.worship-live--ongoing .worship-live-label {
+  color: #ef4444;
+}
+.worship-live--ongoing .worship-next-dot {
+  background: #ef4444;
+  animation-duration: 2.6s; /* 급한 알림이 아니라 예배의 호흡 */
+}
+
 /* ── 세그먼트 카운트다운 (시 : 분 : 초) ─── */
 .worship-cd {
   display: flex;
@@ -262,6 +336,61 @@
   .worship-cd-digit {
     animation: none;
   }
+}
+
+/* ── 주간 리듬 스트립 + 요일 필터 ──────── */
+.worship-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 우리 교회의 일주일 리듬 — 예배가 열리는 요일에 dot, 오늘은 채운 원 */
+.worship-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 10px 8px 8px;
+  border-radius: 14px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+}
+
+.worship-week-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+}
+
+.worship-week-day {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.worship-week-cell--today .worship-week-day {
+  font-weight: 700;
+  color: var(--on-brand);
+  background: var(--brand);
+  box-shadow: 0 4px 10px -4px var(--brand-glow);
+}
+
+.worship-week-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: transparent;
+}
+.worship-week-dot--on {
+  background: var(--brand);
+  opacity: 0.7;
 }
 
 /* ── 요일 필터 칩 ─────────────────────── */
@@ -537,6 +666,40 @@
   font-variant-numeric: tabular-nums;
   word-break: keep-all;
   color: var(--brand);
+}
+
+/* 예배별 한 줄 초대 문구 */
+.worship-item-tagline {
+  margin: 0 0 3px;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: keep-all;
+  color: var(--text-muted);
+}
+
+/* ── 종료된 예배의 따뜻한 마무리 ────────── */
+.worship-item--ended {
+  opacity: 0.92;
+}
+.worship-ended-note {
+  margin: 12px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--surface-inset);
+  border: 1px dashed var(--card-border);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  word-break: keep-all;
+  color: var(--text-body);
+}
+.worship-ended-next {
+  color: var(--brand);
+  font-weight: 700;
 }
 
 /* ── 다음 예배 강조 (일요일 지각 방지 넛지) ── */

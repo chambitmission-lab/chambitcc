@@ -60,4 +60,31 @@ export const worship = {
   worshipLoadFailed: '예배 시간을 불러오는데 실패했습니다',
   worshipUpdateSuccess: '예배 시간이 수정되었습니다',
   worshipUpdateFailed: '예배 시간 수정에 실패했습니다',
+  // 예배별 한 줄 초대 문구 (이름 기반 프리셋)
+  worshipTaglineSunday: '한 주의 중심, 함께 드리는 예배',
+  worshipTaglineDawn: '하루를 말씀으로 여는 시간',
+  worshipTaglineWednesday: '말씀 앞에 머무는 시간',
+  worshipTaglineFriday: '한 주의 짐을 내려놓는 밤',
+  worshipTaglineDefault: '함께 모여 기도하는 시간',
+  // 서사형 카운트다운 — 남은 시간·상태에 따라 문구가 바뀐다
+  worshipNarrativeOngoing: '지금 본당에서 예배가 드려지고 있어요',
+  worshipNarrativeOpen: '본당 문이 열려 있어요. 어서 오세요',
+  worshipNarrativeSoon: '곧 시작돼요. 마음을 준비해 볼까요?',
+  worshipNarrativeDawn: '고요한 새벽, 말씀으로 하루를 열어요',
+  worshipNarrativeDay: '오늘, 함께 모여 예배해요',
+  worshipNarrativeDusk: '하루의 끝, 말씀 앞에 머물러요',
+  worshipNarrativeNight: '오늘 밤, 함께 모여 기도해요',
+  worshipLiveOngoing: '지금 예배 중',
+  // 종료된 예배의 따뜻한 마무리
+  worshipEndedPrayed: '오늘도 함께 기도했어요',
+  worshipEndedWorshiped: '오늘도 함께 예배드렸어요',
+  worshipEndedNext: '{day} {time}에 다시 만나요',
+  // 주간 리듬 스트립
+  worshipWeekAria: '이번 주 예배 리듬',
+  // 교회력 절기 배지
+  worshipSeasonAdvent: '대림절',
+  worshipSeasonChristmas: '성탄절기',
+  worshipSeasonLent: '사순절',
+  worshipSeasonEaster: '부활절기',
+  worshipSeasonThanksgiving: '추수감사주간',
 } as const

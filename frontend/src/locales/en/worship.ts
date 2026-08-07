@@ -60,4 +60,31 @@ export const worship = {
   worshipLoadFailed: 'Failed to load service times',
   worshipUpdateSuccess: 'Service time updated',
   worshipUpdateFailed: 'Failed to update service time',
+  // Per-service invitation taglines (name-based presets)
+  worshipTaglineSunday: 'The heart of the week, worshiping together',
+  worshipTaglineDawn: 'Opening the day with the Word',
+  worshipTaglineWednesday: 'A time to dwell in the Word',
+  worshipTaglineFriday: "A night to lay down the week's burdens",
+  worshipTaglineDefault: 'A time to gather and pray',
+  // Narrative countdown — phrase shifts with time remaining
+  worshipNarrativeOngoing: 'Worship is being held in the sanctuary right now',
+  worshipNarrativeOpen: 'The sanctuary doors are open. Welcome!',
+  worshipNarrativeSoon: 'Starting soon. Shall we prepare our hearts?',
+  worshipNarrativeDawn: 'In the quiet dawn, open the day with the Word',
+  worshipNarrativeDay: 'Today, let us gather and worship',
+  worshipNarrativeDusk: "At the day's end, dwell in the Word",
+  worshipNarrativeNight: 'Tonight, let us gather and pray',
+  worshipLiveOngoing: 'In service now',
+  // Warm closing for ended services
+  worshipEndedPrayed: 'We prayed together today',
+  worshipEndedWorshiped: 'We worshiped together today',
+  worshipEndedNext: 'See you {day} at {time}',
+  // Weekly rhythm strip
+  worshipWeekAria: 'Weekly worship rhythm',
+  // Liturgical season badges
+  worshipSeasonAdvent: 'Advent',
+  worshipSeasonChristmas: 'Christmastide',
+  worshipSeasonLent: 'Lent',
+  worshipSeasonEaster: 'Eastertide',
+  worshipSeasonThanksgiving: 'Thanksgiving Week',
 } as const

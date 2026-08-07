@@ -30,6 +30,26 @@
   --tint-afternoon: rgba(49, 130, 246, 0.07);
   --tint-evening: rgba(27, 80, 170, 0.10);
 
+  /* /worship 히어로 하늘 — 다음 예배의 '시간의 빛'(새벽/낮/저녁/밤).
+     라이트는 파스텔 톤. 카드 배경(surface-container) 위에 얹는 오버레이라 전부 반투명. */
+  --worship-sky-dawn:
+    radial-gradient(120% 55% at 50% 108%, rgba(255, 167, 94, 0.28), rgba(255, 167, 94, 0.08) 45%, transparent 72%),
+    linear-gradient(180deg, rgba(147, 197, 253, 0.20), transparent 48%);
+  --worship-sky-day:
+    radial-gradient(90% 70% at 85% -10%, rgba(253, 224, 71, 0.28), transparent 55%),
+    linear-gradient(180deg, rgba(147, 197, 253, 0.22), transparent 60%);
+  --worship-sky-dusk:
+    linear-gradient(200deg, rgba(165, 180, 252, 0.30), transparent 50%),
+    radial-gradient(110% 60% at 12% 106%, rgba(251, 146, 60, 0.26), transparent 65%);
+  --worship-sky-night:
+    radial-gradient(2px 2px at 18% 22%, rgba(79, 70, 229, 0.45) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 42% 12%, rgba(79, 70, 229, 0.38) 50%, transparent 51%),
+    radial-gradient(2px 2px at 68% 26%, rgba(79, 70, 229, 0.42) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 86% 14%, rgba(79, 70, 229, 0.35) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 30% 34%, rgba(79, 70, 229, 0.30) 50%, transparent 51%),
+    radial-gradient(100% 60% at 50% 112%, rgba(251, 191, 36, 0.18), transparent 60%),
+    linear-gradient(180deg, rgba(99, 102, 241, 0.16), transparent 62%);
+
   /* 기능적 앰버 — 응답됨(✨)/영광/빛의 표징. 브랜드 블루로 덮지 않는 유일한 액센트 */
   --amber: #b45309;                          /* 텍스트/라벨 */
   --amber-icon: #f59e0b;                     /* 아이콘/장식 */
@@ -88,6 +108,25 @@
   --tint-morning: rgba(255, 214, 165, 0.06);
   --tint-afternoon: rgba(69, 147, 252, 0.08);
   --tint-evening: rgba(49, 90, 180, 0.07);
+
+  /* /worship 히어로 하늘 — 다크는 깊은 밤·여명 톤. 밤 하늘엔 흰 별 + 촛불빛 */
+  --worship-sky-dawn:
+    radial-gradient(120% 55% at 50% 108%, rgba(255, 158, 70, 0.30), rgba(255, 130, 60, 0.10) 45%, transparent 72%),
+    linear-gradient(180deg, rgba(45, 70, 130, 0.30), transparent 48%);
+  --worship-sky-day:
+    radial-gradient(90% 70% at 85% -10%, rgba(255, 214, 120, 0.14), transparent 55%),
+    linear-gradient(180deg, rgba(69, 147, 252, 0.12), transparent 60%);
+  --worship-sky-dusk:
+    linear-gradient(200deg, rgba(99, 102, 241, 0.18), transparent 50%),
+    radial-gradient(110% 60% at 12% 106%, rgba(251, 113, 60, 0.24), transparent 65%);
+  --worship-sky-night:
+    radial-gradient(2px 2px at 18% 22%, rgba(255, 255, 255, 0.50) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 42% 12%, rgba(255, 255, 255, 0.40) 50%, transparent 51%),
+    radial-gradient(2px 2px at 68% 26%, rgba(255, 255, 255, 0.45) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 86% 14%, rgba(255, 255, 255, 0.35) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 30% 34%, rgba(255, 255, 255, 0.30) 50%, transparent 51%),
+    radial-gradient(100% 60% at 50% 112%, rgba(255, 180, 80, 0.14), transparent 60%),
+    linear-gradient(180deg, rgba(35, 50, 100, 0.40), transparent 62%);
 
   /* 기능적 앰버 — 응답됨(✨)/영광/빛의 표징 */
   --amber: #fbbf24;
