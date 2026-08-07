@@ -6,6 +6,7 @@ import { parseApiDate } from '../../../utils/dateUtils'
 import BibleProgressMap from './BibleProgressMap'
 import BookJourneyPath from './BookJourneyPath'
 import { aggregateRange, buildBookInfoMap } from './readingProgressInfo'
+import { bookAbbrev } from './bibleBookAbbrev'
 
 interface BookSelectorProps {
   books: BibleBook[] | undefined
@@ -81,6 +82,17 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const [showMap, setShowMap] = useState(false)
   // 책 목록 보기 방식 — 여정 경로(기본)와 예전 격자 중 취향대로. 선택은 기기에 기억된다
   const [viewMode, setViewMode] = useState<BookViewMode>(loadViewMode)
+
+  // 통독표 열 수 — 480px 이하는 2열(CSS 미디어쿼리와 동일 기준). 마지막 줄 빈 칸 수 계산에 쓴다
+  const [narrowGrid, setNarrowGrid] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 480px)').matches
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 480px)')
+    const onChange = (e: MediaQueryListEvent) => setNarrowGrid(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
   const handleViewModeChange = (mode: BookViewMode) => {
     setViewMode(mode)
@@ -215,8 +227,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     [onBookSelect, resumeMap]
   )
 
-  // 격자 보기 — 여정 도입 전에 쓰던 카드 그리드. 한눈에 전체를 훑는 밀도를 선호하는
-  // 사용자를 위해 보기 옵션으로 남겨 둔다 (CSS는 book-selector.css에 그대로 있다)
+  // 격자 보기 — 성경통독표: 괘선으로 나뉜 표에 도장이 쌓인다.
+  // 색은 먹(ink)+인주 둘뿐, 진행률은 게이지가 아니라 인장의 농도로 말한다.
   const renderBook = (book: BibleBook, index: number) => {
     const resume = resumeMap?.get(book.book_number)
     const info = infoMap.get(book.book_number)
@@ -226,59 +238,45 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     const isComplete = rate >= 100
     const hasProgress = rate > 0
 
-    // 이어 읽기 위치는 진행률과 다른 값이므로 숫자로 섞지 않고, 게이지에서 읽은 양보다
-    // 앞서 있을 때만 연한 구간으로 이어 붙인다 (뒤쪽이면 채움에 묻히므로 그리지 않는다)
-    const resumePct =
-      resume && !isComplete && totalChapters > 0
-        ? Math.max(0, Math.min(100, (resume.chapter / totalChapters) * 100))
-        : 0
-    const aheadPct = resumePct > rate + 1 ? resumePct : 0
-
-    let meta: { ratio: string; pct: string } | null = null
+    let metaText: string | null = null
     if (isComplete) {
-      meta = { ratio: `${t.complete} · ${totalChapters}${t.chapterUnit}`, pct: '' }
+      metaText = `${t.complete} · ${totalChapters}${t.chapterUnit}`
     } else if (readChapters !== null && readChapters > 0) {
-      meta = { ratio: `${readChapters}/${totalChapters}${t.chapterUnit}`, pct: `${pctLabel(rate)}%` }
+      metaText = `${readChapters}/${totalChapters}${t.chapterUnit}`
     } else if (hasProgress) {
-      // 완독한 장이 아직 없는 단계 — 비율 대신 "몇 장을 읽는 중"이라는 위치를 알려주고,
-      // 퍼센트는 절 기준으로 채운다
-      const label = resume ? `${resume.chapter}${t.chapterUnit} ${t.reading}` : t.reading
-      meta = { ratio: label, pct: `${pctLabel(rate)}%` }
+      // 완독한 장이 아직 없는 단계 — 비율 대신 "몇 장을 읽는 중"이라는 위치를 알려준다
+      metaText = resume ? `${resume.chapter}${t.chapterUnit} ${t.reading}` : t.reading
     }
+
+    // 인장의 농도 = 진행률 (읽을수록 인주가 진해진다). 완독은 선명한 도장
+    const stampOpacity = isComplete ? 1 : hasProgress ? 0.13 + rate * 0.0045 : undefined
+    // 도장마다 손으로 찍은 듯 살짝 다른 기울기 — book_number 기반이라 리렌더에도 흔들리지 않는다
+    const stampTilt = ((book.book_number % 5) - 2) * 3.5
 
     return (
       <button
         key={book.id}
-        className={`book-button${resume ? ' book-button-has-resume' : ''}${isComplete ? ' book-button-complete' : ''}`}
-        // 필터 전환 시 앞에서부터 순차적으로 떠오르는 스태거 — 뒤쪽 카드는 딜레이 상한으로 묶는다
+        className={`book-cell${isComplete ? ' is-complete' : ''}`}
+        // 필터 전환 시 앞에서부터 순차적으로 떠오르는 스태거 — 뒤쪽 칸은 딜레이 상한으로 묶는다
         style={{ animationDelay: `${Math.min(index * 14, 320)}ms` }}
-        aria-label={
-          meta
-            ? `${book.book_name_ko} · ${meta.ratio}${meta.pct ? ` · ${meta.pct}` : ''}`
-            : book.book_name_ko
-        }
+        aria-label={metaText ? `${book.book_name_ko} · ${metaText}` : book.book_name_ko}
         onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
       >
-        {isComplete && (
-          <span className="book-complete-badge" aria-label={t.complete}>
-            <span className="material-icons-round">check</span>
-          </span>
-        )}
-        <span className="book-button__name">{book.book_name_ko}</span>
-        {meta && (
-          <span className="book-button__meta" aria-hidden="true">
-            <span className="book-button__ratio">{meta.ratio}</span>
-            {meta.pct && <span className="book-button__pct">{meta.pct}</span>}
-          </span>
-        )}
-        {hasProgress && (
-          <span className="book-progress-track" aria-hidden="true">
-            {aheadPct > 0 && (
-              <span className="book-progress-ahead" style={{ width: `${aheadPct}%` }} />
-            )}
-            <span className="book-progress-fill" style={{ width: `${gaugeWidth(rate)}%` }} />
-          </span>
-        )}
+        <span
+          className={`book-stamp${hasProgress ? ' inked' : ''}`}
+          style={{
+            ['--stamp-tilt' as string]: `${stampTilt}deg`,
+            ...(stampOpacity !== undefined && !isComplete ? { opacity: stampOpacity } : {}),
+          }}
+          aria-hidden="true"
+        >
+          {bookAbbrev(book.book_number, language)}
+        </span>
+        <span className="book-cell__name">{book.book_name_ko}</span>
+        {/* 빈 칸도 줄 높이를 유지 — 표의 괘선 리듬이 흐트러지지 않게 */}
+        <span className="book-cell__meta" aria-hidden="true">
+          {metaText ?? ' '}
+        </span>
       </button>
     )
   }
@@ -560,6 +558,20 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         ) : (
           <div className="books-grid">
             {filteredBooks.map(renderBook)}
+            {/* 마지막 줄이 다 안 찼을 때 — 장부처럼 빈 칸에 사선을 그어 "쓰지 않는 칸"으로 메운다.
+                구멍(괘선 배경색이 그대로 보이는 영역)으로 남기지 않기 위한 필러 */}
+            {(() => {
+              const cols = narrowGrid ? 2 : 3
+              const fillerCount = (cols - (filteredBooks.length % cols)) % cols
+              return Array.from({ length: fillerCount }).map((_, i) => (
+                <div
+                  key={`filler-${i}`}
+                  className="book-cell book-cell--filler"
+                  style={{ animationDelay: `${Math.min((filteredBooks.length + i) * 14, 320)}ms` }}
+                  aria-hidden="true"
+                />
+              ))
+            })()}
           </div>
         )}
       </div>
