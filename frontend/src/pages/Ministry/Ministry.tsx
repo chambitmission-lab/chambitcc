@@ -93,6 +93,46 @@ const isThisWeek = (dateStr: string): boolean => {
   return diff >= 0 && diff < 1000 * 60 * 60 * 24 * 7
 }
 
+// 본문의 첫 하이라이트 문장 — 피처드 카드에서 인용구로 노출
+const firstHighlight = (content: string): string | null => {
+  const m = content.match(/\[\[(.*?)\]\]/)
+  const text = m?.[1]?.trim()
+  return text || null
+}
+
+// 읽은 편지 추적 (기기 로컬 — 계정 동기화까지는 불필요한 가벼운 상태)
+const READ_IDS_KEY = 'ministry_read_ids'
+const loadReadIds = (): Set<number> => {
+  try {
+    const arr = JSON.parse(localStorage.getItem(READ_IDS_KEY) || '[]')
+    return new Set(Array.isArray(arr) ? arr : [])
+  } catch {
+    return new Set()
+  }
+}
+const persistReadIds = (ids: Set<number>) => {
+  try {
+    localStorage.setItem(READ_IDS_KEY, JSON.stringify([...ids].slice(-300)))
+  } catch { /* 프라이빗 모드 등 저장 실패는 무시 */ }
+}
+
+// 본문 글자 크기 3단계 — 어르신 성도가 많은 교회 특성상 필수
+const FONT_STEPS = [15.5, 16.5, 18.5]
+const FONT_STEP_KEY = 'ministry_font_step'
+const loadFontStep = (): number => {
+  const n = Number(localStorage.getItem(FONT_STEP_KEY))
+  return Number.isInteger(n) && n >= 0 && n < FONT_STEPS.length ? n : 1
+}
+
+// "2026년 7월" 단위 아카이브 그룹 라벨
+const formatMonthLabel = (dateStr: string, language: string): string => {
+  const d = parseDate(dateStr)
+  if (!d) return dateStr
+  return language === 'ko'
+    ? `${d.getFullYear()}년 ${d.getMonth() + 1}월`
+    : d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
+}
+
 const Ministry = () => {
   const { language } = useLanguage()
   const isAdminUser = isAdmin()
@@ -106,8 +146,11 @@ const Ministry = () => {
   const [appliedQuery, setAppliedQuery] = useState('')
   const [showAdminMenu, setShowAdminMenu] = useState(false)
   const [readProgress, setReadProgress] = useState(0)
+  const [readIds, setReadIds] = useState<Set<number>>(loadReadIds)
+  const [fontStep, setFontStep] = useState<number>(loadFontStep)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const modalScrollRef = useRef<HTMLDivElement>(null)
 
   // 모바일 뒤로가기 → 페이지 이탈 대신 열린 모달만 닫기
   useModalBackButton(() => setSelectedColumn(null), !!selectedColumn)
@@ -129,10 +172,11 @@ const Ministry = () => {
     }
   }, [showSearch])
 
-  // 편지를 열 때마다 읽기 진행 바·관리자 메뉴 초기화
+  // 편지를 열거나 다른 편지로 이동할 때마다 진행 바·관리자 메뉴·스크롤 초기화
   useEffect(() => {
     setReadProgress(0)
     setShowAdminMenu(false)
+    modalScrollRef.current?.scrollTo({ top: 0 })
   }, [selectedColumn])
 
   // 칼럼은 주 1건 수준이라 캐시 우선: 재방문 시 캐시를 즉시 보여주고,
@@ -282,9 +326,97 @@ const Ministry = () => {
     setReadProgress(max > 0 ? Math.min(1, el.scrollTop / max) : 1)
   }
 
+  // 편지 열기 — 여는 순간 읽음으로 기록 (인덱스의 안읽음 점 제거)
+  const openColumn = (column: Column) => {
+    setSelectedColumn(column)
+    if (column.id != null && !readIds.has(column.id)) {
+      const next = new Set(readIds)
+      next.add(column.id)
+      setReadIds(next)
+      persistReadIds(next)
+    }
+  }
+
+  const cycleFontSize = () => {
+    const next = (fontStep + 1) % FONT_STEPS.length
+    setFontStep(next)
+    try { localStorage.setItem(FONT_STEP_KEY, String(next)) } catch { /* 무시 */ }
+  }
+
+  // 공유 — 카톡 전달을 염두에 두고 편지 전문을 텍스트로
+  const handleShareColumn = async () => {
+    if (!selectedColumn) return
+    const body = removeHighlightTags(selectedColumn.content)
+    const signature = language === 'ko' ? `${selectedColumn.author} 드림` : `— ${selectedColumn.author}`
+    const text = `${selectedColumn.title}\n${formatLetterDate(selectedColumn.date, language)}\n\n${body}\n\n${signature}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: selectedColumn.title, text })
+      } catch { /* 사용자가 공유 시트를 닫은 경우 */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(text)
+        showToast(language === 'ko' ? '편지 내용이 복사되었습니다' : 'Letter copied to clipboard', 'success')
+      } catch {
+        showToast(language === 'ko' ? '복사에 실패했습니다' : 'Failed to copy', 'error')
+      }
+    }
+  }
+
   // 검색 중에는 피처드 없이 전부 인덱스 행으로
   const featured = !appliedQuery && columns.length > 0 ? columns[0] : null
   const restColumns = featured ? columns.slice(1) : columns
+  const featuredQuote = featured ? firstHighlight(featured.content) : null
+
+  // 지난 편지 월별 그룹 (목록은 최신순이므로 순서 유지하며 묶기만)
+  const monthGroups: { label: string; items: Column[] }[] = []
+  if (!appliedQuery) {
+    for (const col of restColumns) {
+      const label = formatMonthLabel(col.date, language)
+      const last = monthGroups[monthGroups.length - 1]
+      if (last && last.label === label) last.items.push(col)
+      else monthGroups.push({ label, items: [col] })
+    }
+  }
+
+  // 상세 하단 이어읽기 — 다음(더 최신)·이전(더 과거) 편지
+  const selectedIdx = selectedColumn ? columns.findIndex(c => c.id === selectedColumn.id) : -1
+  const newerColumn = selectedIdx > 0 ? columns[selectedIdx - 1] : null
+  const olderColumn = selectedIdx >= 0 && selectedIdx < columns.length - 1 ? columns[selectedIdx + 1] : null
+
+  // 인덱스 행 — 일반 목록과 검색 결과가 공유
+  const renderIndexRow = (column: Column) => (
+    <button
+      key={column.id}
+      className="w-full text-left py-4 group"
+      onClick={() => openColumn(column)}
+    >
+      <h3 className="flex items-center gap-2 min-w-0">
+        {column.id != null && !readIds.has(column.id) && (
+          <span
+            className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] flex-shrink-0"
+            aria-label={language === 'ko' ? '읽지 않음' : 'Unread'}
+          ></span>
+        )}
+        <span
+          className="text-[16px] font-semibold text-ink-strong line-clamp-1 tracking-[-0.01em] leading-[1.4] group-hover:text-[var(--brand)] transition-colors"
+          style={{ fontFamily: SERIF }}
+        >
+          {highlightKeyword(column.title, appliedQuery)}
+        </span>
+      </h3>
+      <p className="text-[13px] text-gray-500 dark:text-gray-400 line-clamp-1 leading-[1.6] mt-1.5">
+        {highlightKeyword(removeHighlightTags(column.content), appliedQuery)}
+      </p>
+      <div className="text-[11.5px] text-gray-400 dark:text-gray-500 mt-1.5">
+        {formatLetterDate(column.date, language)}
+        <span className="mx-1.5 opacity-60">·</span>
+        {language === 'ko'
+          ? `${readingMinutes(column.content)}분`
+          : `${readingMinutes(column.content)} min`}
+      </div>
+    </button>
+  )
 
   return (
     <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
@@ -392,7 +524,7 @@ const Ministry = () => {
             {featured && (
               <article
                 className="feed-card relative rounded-2xl overflow-hidden hover:-translate-y-0.5 hover:border-[var(--brand-glow)] hover:shadow-[0_8px_24px_-8px_var(--brand-glow)] transition-all duration-200 cursor-pointer"
-                onClick={() => setSelectedColumn(featured)}
+                onClick={() => openColumn(featured)}
               >
                 {/* 다크모드 표면 그라데이션 — 홈 피드 카드와 동일 문법 */}
                 <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-transparent pointer-events-none rounded-2xl"></div>
@@ -416,48 +548,59 @@ const Ministry = () => {
                   >
                     {featured.title}
                   </h2>
-                  <p className="text-[15px] text-gray-600 dark:text-gray-300 line-clamp-4 leading-[1.8] tracking-[-0.01em]">
-                    {removeHighlightTags(featured.content)}
-                  </p>
+                  {featuredQuote ? (
+                    // 목사님이 하이라이트한 문장을 인용구로 — 편지의 핵심 한 줄이 먼저 닿게
+                    <>
+                      <blockquote
+                        className="border-l-2 pl-4 py-0.5"
+                        style={{ borderColor: 'var(--brand-muted)' }}
+                      >
+                        <p
+                          className="text-[15.5px] text-ink-strong line-clamp-3 leading-[1.75] tracking-[-0.01em]"
+                          style={{ fontFamily: SERIF }}
+                        >
+                          “{featuredQuote}”
+                        </p>
+                      </blockquote>
+                      <p className="text-[14px] text-gray-600 dark:text-gray-300 line-clamp-2 leading-[1.8] tracking-[-0.01em] mt-3.5">
+                        {removeHighlightTags(featured.content)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-[15px] text-gray-600 dark:text-gray-300 line-clamp-4 leading-[1.8] tracking-[-0.01em]">
+                      {removeHighlightTags(featured.content)}
+                    </p>
+                  )}
                 </div>
               </article>
             )}
 
-            {/* 지난 편지 — 컴팩트 인덱스 (검색 중에는 결과 전체가 이 형태) */}
+            {/* 지난 편지 — 컴팩트 인덱스, 월별 그룹 (검색 중에는 결과 전체가 평면 리스트) */}
             {restColumns.length > 0 && (
-              <>
-                {!appliedQuery && (
+              appliedQuery ? (
+                <div className="feed-card rounded-2xl px-5 divide-y divide-border-light dark:divide-white/[0.06] mt-4">
+                  {restColumns.map(renderIndexRow)}
+                </div>
+              ) : (
+                <>
                   <div className="px-1 mt-8 mb-3 text-[13px] font-semibold text-gray-500 dark:text-gray-400 tracking-[-0.005em]">
                     {language === 'ko' ? '지난 편지' : 'Earlier Letters'}
                   </div>
-                )}
-                <div className={`feed-card rounded-2xl px-5 divide-y divide-border-light dark:divide-white/[0.06] ${appliedQuery ? 'mt-4' : ''}`}>
-                  {restColumns.map((column) => (
-                    <button
-                      key={column.id}
-                      className="w-full text-left py-4 group"
-                      onClick={() => setSelectedColumn(column)}
-                    >
-                      <h3
-                        className="text-[16px] font-semibold text-ink-strong line-clamp-1 tracking-[-0.01em] leading-[1.4] group-hover:text-[var(--brand)] transition-colors"
-                        style={{ fontFamily: SERIF }}
-                      >
-                        {highlightKeyword(column.title, appliedQuery)}
-                      </h3>
-                      <p className="text-[13px] text-gray-500 dark:text-gray-400 line-clamp-1 leading-[1.6] mt-1.5">
-                        {highlightKeyword(removeHighlightTags(column.content), appliedQuery)}
-                      </p>
-                      <div className="text-[11.5px] text-gray-400 dark:text-gray-500 mt-1.5">
-                        {formatLetterDate(column.date, language)}
-                        <span className="mx-1.5 opacity-60">·</span>
-                        {language === 'ko'
-                          ? `${readingMinutes(column.content)}분`
-                          : `${readingMinutes(column.content)} min`}
+                  {monthGroups.map((group, gi) => (
+                    <div key={group.label}>
+                      {/* 한 달치뿐이면 월 라벨은 소음 — 여러 달 쌓였을 때만 */}
+                      {monthGroups.length > 1 && (
+                        <div className={`px-1 mb-2 text-[12px] font-medium text-gray-400 dark:text-gray-500 ${gi > 0 ? 'mt-6' : ''}`}>
+                          {group.label}
+                        </div>
+                      )}
+                      <div className="feed-card rounded-2xl px-5 divide-y divide-border-light dark:divide-white/[0.06]">
+                        {group.items.map(renderIndexRow)}
                       </div>
-                    </button>
+                    </div>
                   ))}
-                </div>
-              </>
+                </>
+              )
             )}
           </div>
         )}
@@ -469,6 +612,7 @@ const Ministry = () => {
             onClick={() => setSelectedColumn(null)}
           >
             <div
+              ref={modalScrollRef}
               className="bg-background-light dark:bg-background-dark w-full h-full rounded-none md:rounded-3xl md:max-w-md md:h-auto md:max-h-[calc(100dvh-2rem)] overflow-y-auto md:border md:border-border-light md:dark:border-border-dark md:shadow-[0_30px_80px_-20px_var(--brand-glow),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
               onScroll={handleModalScroll}
@@ -484,6 +628,22 @@ const Ministry = () => {
                     {language === 'ko' ? '목양칼럼' : 'Pastoral Column'}
                   </span>
                   <div className="flex items-center gap-0.5">
+                    <button
+                      onClick={cycleFontSize}
+                      className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
+                      aria-label={language === 'ko' ? '글자 크기 조절' : 'Adjust text size'}
+                      title={language === 'ko' ? '글자 크기' : 'Text size'}
+                    >
+                      <span className="material-icons-outlined text-[20px] text-gray-600 dark:text-gray-400">format_size</span>
+                    </button>
+                    <button
+                      onClick={handleShareColumn}
+                      className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-[var(--brand-soft)] transition-colors"
+                      aria-label={language === 'ko' ? '공유' : 'Share'}
+                      title={language === 'ko' ? '공유' : 'Share'}
+                    >
+                      <span className="material-icons-outlined text-[19px] text-gray-600 dark:text-gray-400">share</span>
+                    </button>
                     {isAdminUser && (
                       <div className="relative">
                         <button
@@ -548,8 +708,8 @@ const Ministry = () => {
                 {selectedColumn.content.split('\n\n').map((paragraph, index) => (
                   <p
                     key={index}
-                    className="text-[16.5px] text-gray-700 dark:text-gray-300 leading-[1.95] mb-7"
-                    style={{ fontFamily: SERIF }}
+                    className="text-gray-700 dark:text-gray-300 leading-[1.95] mb-7"
+                    style={{ fontFamily: SERIF, fontSize: `${FONT_STEPS[fontStep]}px` }}
                   >
                     {renderHighlightedText(paragraph)}
                   </p>
@@ -577,6 +737,50 @@ const Ministry = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* 이어 읽기 — 편지를 다 읽은 흐름 그대로 다음 글로 */}
+                {(olderColumn || newerColumn) && (
+                  <div className="mt-10 space-y-3">
+                    {olderColumn && (
+                      <button
+                        onClick={() => openColumn(olderColumn)}
+                        className="feed-card w-full rounded-2xl px-5 py-4 text-left group"
+                      >
+                        <div className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 tracking-[0.03em]">
+                          {language === 'ko' ? '이전 편지' : 'Previous letter'}
+                        </div>
+                        <div
+                          className="text-[15px] font-semibold text-ink-strong line-clamp-1 tracking-[-0.01em] mt-1.5 group-hover:text-[var(--brand)] transition-colors"
+                          style={{ fontFamily: SERIF }}
+                        >
+                          {olderColumn.title}
+                        </div>
+                        <div className="text-[11.5px] text-gray-400 dark:text-gray-500 mt-1">
+                          {formatLetterDate(olderColumn.date, language)}
+                        </div>
+                      </button>
+                    )}
+                    {newerColumn && (
+                      <button
+                        onClick={() => openColumn(newerColumn)}
+                        className="feed-card w-full rounded-2xl px-5 py-4 text-left group"
+                      >
+                        <div className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 tracking-[0.03em]">
+                          {language === 'ko' ? '다음 편지' : 'Next letter'}
+                        </div>
+                        <div
+                          className="text-[15px] font-semibold text-ink-strong line-clamp-1 tracking-[-0.01em] mt-1.5 group-hover:text-[var(--brand)] transition-colors"
+                          style={{ fontFamily: SERIF }}
+                        >
+                          {newerColumn.title}
+                        </div>
+                        <div className="text-[11.5px] text-gray-400 dark:text-gray-500 mt-1">
+                          {formatLetterDate(newerColumn.date, language)}
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
