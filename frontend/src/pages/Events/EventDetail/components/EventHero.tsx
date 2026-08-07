@@ -21,8 +21,19 @@ export const EventHero = ({ event, t }: EventHeroProps) => {
         'bg-gradient-to-br',
         v.gradient,
         'shadow-[0_18px_44px_-18px_var(--brand-glow)]',
+        // 다크: 목록 Hero 카드와 동일한 엣지 처리 (글로우 절제 + 1px 빛줄)
+        'dark:border dark:border-white/10',
+        'dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_16px_36px_-20px_rgba(0,0,0,0.8)]',
       ].join(' ')}
     >
+      {/* 다크 전용 비네트 — 목록 Hero 카드와 동일 */}
+      <div
+        className="absolute inset-0 pointer-events-none hidden dark:block"
+        style={{
+          background:
+            'radial-gradient(135% 135% at 30% 20%, rgba(8,14,36,0) 45%, rgba(8,14,36,0.35) 100%)',
+        }}
+      />
       {/* 미세 광택 — 목록 Hero 카드와 동일 패턴 */}
       <div
         className="absolute inset-0 pointer-events-none"

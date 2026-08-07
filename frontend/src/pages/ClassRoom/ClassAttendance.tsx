@@ -50,12 +50,6 @@ const ClassAttendance = () => {
 
   const sundays = useMemo(() => sundaysOf(month), [month])
   const today = fmtDate(new Date())
-  // 오늘이 이 달에 있고 주일이 아니면 '오늘' 칩도 노출 (수련회 등 평일 모임)
-  const dateChips = useMemo(() => {
-    const chips = [...sundays]
-    if (today.startsWith(month) && !chips.includes(today)) chips.push(today)
-    return chips.sort()
-  }, [sundays, today, month])
 
   const presentIds = new Set(att?.records[selected] ?? [])
   const members = cls?.members ?? []
@@ -85,8 +79,7 @@ const ClassAttendance = () => {
 
   const chipLabel = (iso: string) => {
     const d = new Date(iso)
-    const isSunday = d.getDay() === 0
-    return `${d.getMonth() + 1}/${d.getDate()}${isSunday ? '' : ' (오늘)'}`
+    return `${d.getMonth() + 1}/${d.getDate()}${iso === today ? ' (오늘)' : ''}`
   }
 
   return (
@@ -116,7 +109,7 @@ const ClassAttendance = () => {
 
       {/* 날짜(주일) 칩 */}
       <div className="flex gap-2 overflow-x-auto px-4 pt-4 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {dateChips.map((d) => {
+        {sundays.map((d) => {
           const active = selected === d
           const count = att?.records[d]?.length ?? 0
           return (
@@ -163,7 +156,8 @@ const ClassAttendance = () => {
                 {chipLabel(selected)} 출석
               </h3>
               <span className="text-[12.5px] font-bold text-brand tabular-nums">
-                {presentIds.size}/{students.length}명
+                {students.filter((m) => presentIds.has(m.user_id)).length}/
+                {students.length}명
               </span>
             </div>
             <p className="text-[11.5px] text-gray-400 dark:text-white/40 mb-3">

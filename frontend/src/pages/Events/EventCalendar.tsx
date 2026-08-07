@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvents } from '../../hooks/useEvents'
@@ -10,6 +10,7 @@ import EventHeroCard from './components/EventHeroCard'
 import MiniMonthStrip from './components/MiniMonthStrip'
 import AgendaSection from './components/AgendaSection'
 import EmptyState from './components/EmptyState'
+import { preloadCategoryBackgrounds } from './utils/categoryConfig'
 import { getNextEvent, groupEventsByDate } from './utils/dateGrouping'
 import { kstNow } from '../../utils/kstTime'
 import './styles/index.css'
@@ -26,6 +27,11 @@ const EventCalendar = () => {
   // 달력의 '오늘'과 보이는 달은 기기 타임존이 아니라 서울 기준
   const [viewDate, setViewDate] = useState(() => kstNow())
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | undefined>()
+
+  // 일정 API를 기다리는 동안 Hero 배경을 병렬로 받아둔다 (팝인 방지)
+  useEffect(() => {
+    preloadCategoryBackgrounds()
+  }, [])
 
   // 현재 보이는 달의 1일 ~ (과거 달이면 해당 달 말일 / 현재·미래 달이면 다음 달 말일) 까지 fetch
   const { startDate, endDate } = useMemo(() => {

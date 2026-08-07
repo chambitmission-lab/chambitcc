@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Event } from '../../../types/event'
 import { CATEGORY_VISUAL } from '../utils/categoryConfig'
@@ -18,6 +19,14 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
   const time = formatEventTime(event.start_datetime)
   const dateLabel = formatEventDateLabel(event.start_datetime)
 
+  // 배경 로드 전엔 그라데이션만 보이다가 부드럽게 페이드인 (팝인 방지)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const [imgLoaded, setImgLoaded] = useState(false)
+  useEffect(() => {
+    // 캐시 히트 시 onLoad가 이미 지나갔을 수 있어 complete로 보정
+    setImgLoaded(imgRef.current?.complete ?? false)
+  }, [v.bg])
+
   return (
     <button
       type="button"
@@ -30,16 +39,28 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
           'bg-gradient-to-br',
           v.gradient,
           'shadow-[0_18px_44px_-18px_var(--brand-glow)]',
+          // 다크: 브랜드 글로우 절제 + 1px 빛줄로 카드 경계만 살림
+          'dark:border dark:border-white/10',
+          'dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_16px_36px_-20px_rgba(0,0,0,0.8)]',
           'transition-transform duration-200 group-active:scale-[0.99]',
         ].join(' ')}
       >
         {/* 카테고리 배경 일러스트 — 우측 배치, 좌측은 그라데이션 여백 */}
         <img
+          ref={imgRef}
           src={v.bg}
           alt=""
           aria-hidden="true"
           decoding="async"
-          className="absolute inset-0 w-full h-full object-cover object-right pointer-events-none"
+          fetchPriority="high"
+          onLoad={() => setImgLoaded(true)}
+          className={[
+            'absolute inset-0 w-full h-full object-cover object-right pointer-events-none',
+            'transition-opacity duration-500',
+            imgLoaded ? 'opacity-100' : 'opacity-0',
+            // 다크: 광량·채도를 한 단계 눌러 어두운 배경과 톤 맞춤
+            'dark:brightness-[0.86] dark:saturate-[0.92]',
+          ].join(' ')}
         />
         {/* 좌측·하단 스크림 — 텍스트 가독성 확보 */}
         <div
@@ -47,6 +68,14 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
           style={{
             background:
               'linear-gradient(90deg, rgba(20,45,120,0.42) 0%, rgba(20,45,120,0.16) 42%, rgba(20,45,120,0) 68%), linear-gradient(0deg, rgba(15,32,90,0.35) 0%, rgba(15,32,90,0) 45%)',
+          }}
+        />
+        {/* 다크 전용 비네트 — 가장자리를 배경 쪽으로 가라앉혀 카드가 따로 놀지 않게 */}
+        <div
+          className="absolute inset-0 pointer-events-none hidden dark:block"
+          style={{
+            background:
+              'radial-gradient(135% 135% at 30% 20%, rgba(8,14,36,0) 45%, rgba(8,14,36,0.4) 100%)',
           }}
         />
         {/* 미세 광택 — 카드 합의안 동일 패턴 */}

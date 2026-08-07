@@ -80,6 +80,19 @@ export const CATEGORY_VISUAL: Record<EventCategory, CategoryVisual> = {
   },
 }
 
+// Hero 배경 6장(총 ~140KB)을 페이지 진입 즉시 미리 받아둔다.
+// API 응답 후 카드가 렌더될 때야 다운로드가 시작돼 늦게 '툭' 뜨는 문제 방지.
+let bgPreloaded = false
+export const preloadCategoryBackgrounds = () => {
+  if (bgPreloaded || typeof window === 'undefined') return
+  bgPreloaded = true
+  for (const { bg } of Object.values(CATEGORY_VISUAL)) {
+    const img = new Image()
+    img.decoding = 'async'
+    img.src = bg
+  }
+}
+
 export const ALL_CATEGORIES: EventCategory[] = [
   'worship',
   'meeting',
