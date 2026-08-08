@@ -46,11 +46,11 @@ const TimeCapsuleCard = () => {
   return (
     <section className="px-4 mt-3">
       <button type="button" onClick={() => navigate('/capsule')} className="tc-card">
-        {/* 밤사막 사진 배경 + 좌측 스크림(텍스트 가독성) */}
-        <span className="tc-card__bg" aria-hidden />
+        <span className="tc-card__milkyway" aria-hidden />
         <span className="tc-card__stars" aria-hidden />
+        <span className="tc-card__meteor" aria-hidden />
         <span className="tc-card__body">
-          <span className="tc-card__label">Time Capsule</span>
+          <span className="tc-card__label">타임캡슐</span>
           <span className="tc-card__title">
             시간을 건너,
             <br />
@@ -59,8 +59,7 @@ const TimeCapsuleCard = () => {
           {status}
         </span>
 
-        {/* 봉인 편지 — 사진 속 금빛 궤적과 같은 언어(빛으로 그린 선)로 그린다.
-            입체 일러스트는 실사 배경과 재질이 충돌해서 선화로 대체 */}
+        {/* 봉인 편지 — 빛으로 그린 선화. 아래쪽 앰버 글로우와 같은 금빛 언어 */}
         <span className="tc-card__visual" aria-hidden>
           <svg className="tc-env" viewBox="0 0 68 50" fill="none">
             <rect

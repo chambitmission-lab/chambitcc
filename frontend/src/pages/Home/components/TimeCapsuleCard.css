@@ -1,5 +1,7 @@
-/* 홈 타임캡슐 히어로 카드 — 밤하늘에 봉인된 편지.
-   깊은 남색 밤하늘은 라이트/다크 모두에서 그대로 쓴다 (카드 자체가 밤의 정체성). */
+/* 홈 타임캡슐 히어로 카드 — 해질녘 밤하늘에 봉인된 편지.
+   깊은 인디고 밤하늘은 라이트/다크 모두에서 그대로 쓴다 (카드 자체가 밤의 정체성).
+   사진 대신 플랫 그라데이션 — 홈의 토스식 플랫 문법과 결을 맞추고,
+   아래쪽 앰버 글로우(--worship-sky-night의 촛불빛 문법)로 금색 봉투와 잇는다. */
 
 .tc-card {
   position: relative;
@@ -13,10 +15,11 @@
   border-radius: 20px;
   overflow: hidden;
   background:
-    radial-gradient(120% 150% at 88% 18%, rgba(96, 140, 255, 0.24), transparent 55%),
-    linear-gradient(135deg, #0e1830 0%, #152347 55%, #1a2a5c 100%);
-  border: 1px solid rgba(140, 170, 255, 0.16);
-  box-shadow: 0 14px 34px -16px rgba(20, 40, 110, 0.6);
+    radial-gradient(95% 75% at 78% 115%, rgba(251, 191, 36, 0.2), rgba(251, 176, 66, 0.06) 45%, transparent 68%),
+    radial-gradient(120% 140% at 85% -20%, rgba(120, 140, 235, 0.18), transparent 55%),
+    linear-gradient(168deg, #101a36 0%, #182347 54%, #2b2a52 100%);
+  border: 1px solid rgba(165, 175, 235, 0.16);
+  box-shadow: 0 14px 34px -16px rgba(25, 35, 95, 0.55);
   transition: transform 0.15s ease;
 }
 
@@ -24,52 +27,155 @@
   transform: scale(0.985);
 }
 
-/* 사진 배경 — 별사막 위 빛의 궤적. 이미지가 실패해도 위 그라데이션이 그대로 남는다.
-   position은 우측(빛줄기)이 봉투 뒤에 오도록 잡는다. */
-.tc-card__bg {
+/* 은하수 — 카드를 비스듬히 가로지르는 옅은 빛의 강.
+   회전한 오버사이즈 레이어에 부드러운 밴드 + 성운 덩어리 + 잔별 무리(별가루)를
+   얹어 "별빛이 하늘에 퍼져 있는" 인상을 만든다. 아주 느리게 숨 쉰다. */
+.tc-card__milkyway {
   position: absolute;
-  inset: 0;
+  inset: -35% -12%;
   pointer-events: none;
-  background-image: url('../../../assets/capsule/card-bg.webp');
-  background-size: cover;
-  background-position: 64% 58%;
-}
-
-/* 좌측 스크림 — 텍스트가 은하수/모래언덕 밝은 부분에 묻히지 않게 */
-.tc-card__bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
+  transform: rotate(-12deg);
+  background-image:
+    /* 성운 덩어리 — 밴드 위에서 살짝 뭉친 빛 */
+    radial-gradient(26% 16% at 63% 46%, rgba(255, 238, 208, 0.1), transparent),
+    radial-gradient(22% 13% at 38% 53%, rgba(195, 212, 255, 0.09), transparent),
+    radial-gradient(18% 11% at 80% 50%, rgba(210, 222, 255, 0.08), transparent),
+    /* 별가루 — 밴드를 따라 흩뿌린 잔별 무리 */
+    radial-gradient(0.9px 0.9px at 33% 48%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(0.8px 0.8px at 41% 51%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 49% 47%, rgba(255, 244, 220, 0.5), transparent),
+    radial-gradient(0.8px 0.8px at 55% 52%, rgba(255, 255, 255, 0.38), transparent),
+    radial-gradient(0.9px 0.9px at 61% 49%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(0.8px 0.8px at 68% 53%, rgba(255, 240, 205, 0.42), transparent),
+    radial-gradient(1px 1px at 74% 48%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(0.8px 0.8px at 27% 52%, rgba(255, 255, 255, 0.35), transparent),
+    /* 밴드 본체 — 부드러운 빛의 강 */
     linear-gradient(
-      100deg,
-      rgba(8, 14, 32, 0.94) 0%,
-      rgba(9, 15, 34, 0.86) 34%,
-      rgba(11, 19, 44, 0.5) 62%,
-      rgba(12, 22, 50, 0.3) 100%
-    ),
-    linear-gradient(rgba(10, 16, 36, 0.18), rgba(8, 13, 30, 0.42));
+      180deg,
+      transparent 33%,
+      rgba(185, 205, 255, 0.045) 42%,
+      rgba(228, 236, 255, 0.095) 50%,
+      rgba(185, 205, 255, 0.045) 58%,
+      transparent 67%
+    );
+  animation: tc-milkyway 9s ease-in-out infinite alternate;
 }
 
-/* 별 한 겹만 느리게 깜빡여 사진에 숨을 더한다 (사진 자체에도 별이 있으므로 약하게) */
+@keyframes tc-milkyway {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 별 — 사진이 사라진 자리를 채우는 유일한 하늘 질감.
+   세 겹(상시 베이스 + 어긋난 박자로 깜빡이는 두 겹)으로 나눠서
+   레이어 전체가 통째로 꺼지지 않고, 언제나 어떤 별은 빛나고 어떤 별은
+   숨을 고르는 실제 밤하늘의 호흡을 만든다. 밝은 별 두엇엔 광륜을 얹는다. */
 .tc-card__stars {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  /* 상시 켜져 있는 잔별 베이스 — 깜빡임의 바닥 밝기 */
   background-image:
-    radial-gradient(1.3px 1.3px at 22% 44%, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(1px 1px at 44% 84%, rgba(255, 255, 255, 0.55), transparent),
-    radial-gradient(1.5px 1.5px at 74% 30%, rgba(190, 210, 255, 0.95), transparent),
-    radial-gradient(1px 1px at 93% 16%, rgba(255, 255, 255, 0.6), transparent);
-  animation: tc-twinkle 3.4s ease-in-out infinite alternate;
+    radial-gradient(1px 1px at 44% 78%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 93% 14%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 12% 76%, rgba(255, 236, 190, 0.45), transparent),
+    radial-gradient(1px 1px at 35% 22%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 64% 55%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 8% 30%, rgba(255, 255, 255, 0.4), transparent);
+}
+
+/* 흰 별 겹 — 광륜(같은 좌표에 큰 소프트 헤일로)을 겹쳐 '빛난다'는 인상을 만든다 */
+.tc-card__stars::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(9px 9px at 22% 40%, rgba(210, 225, 255, 0.4), transparent),
+    radial-gradient(1.6px 1.6px at 22% 40%, rgba(255, 255, 255, 1), transparent),
+    radial-gradient(10px 10px at 71% 24%, rgba(200, 215, 255, 0.45), transparent),
+    radial-gradient(1.8px 1.8px at 71% 24%, rgba(235, 242, 255, 1), transparent),
+    radial-gradient(1.2px 1.2px at 48% 12%, rgba(255, 255, 255, 0.85), transparent);
+  animation: tc-twinkle 3.2s ease-in-out infinite alternate;
+}
+
+/* 금빛 별 겹 — 흰 별과 어긋난 박자(다른 주기 + reverse)로 깜빡인다 */
+.tc-card__stars::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(8px 8px at 56% 16%, rgba(253, 224, 150, 0.35), transparent),
+    radial-gradient(1.6px 1.6px at 56% 16%, rgba(255, 233, 175, 1), transparent),
+    radial-gradient(1.3px 1.3px at 82% 62%, rgba(253, 224, 150, 0.9), transparent),
+    radial-gradient(1.2px 1.2px at 30% 60%, rgba(255, 244, 214, 0.7), transparent),
+    radial-gradient(1.1px 1.1px at 88% 40%, rgba(255, 255, 255, 0.75), transparent);
+  animation: tc-twinkle 4.4s ease-in-out infinite alternate-reverse;
 }
 
 @keyframes tc-twinkle {
   from {
-    opacity: 0.15;
+    opacity: 0.35;
   }
   to {
-    opacity: 0.7;
+    opacity: 1;
+  }
+}
+
+/* 별똥별 — 9초에 한 번, 0.6초쯤 하늘 위쪽을 스치고 사라진다.
+   머리(왼쪽 끝)가 밝고 꼬리가 옅어지는 빛줄기 하나가 좌하단으로 떨어진다.
+   자주 나오면 장식이 아니라 소음이라, "어쩌다 마주치는" 빈도로 둔다 */
+.tc-card__meteor {
+  position: absolute;
+  top: 16%;
+  left: 72%;
+  width: 62px;
+  height: 1.4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    270deg,
+    transparent,
+    rgba(200, 218, 255, 0.55) 55%,
+    rgba(255, 255, 255, 0.95)
+  );
+  opacity: 0;
+  transform: rotate(-33deg);
+  animation: tc-meteor 9s linear infinite;
+  animation-delay: 3.2s;
+  pointer-events: none;
+}
+
+/* 머리의 빛 한 점 — 줄기만 있으면 선으로 보여서, 끝에 맺힌 별을 얹는다 */
+.tc-card__meteor::after {
+  content: '';
+  position: absolute;
+  left: -1.5px;
+  top: -1.3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 6px 1.5px rgba(210, 225, 255, 0.7);
+}
+
+@keyframes tc-meteor {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(-33deg);
+  }
+  1.5% {
+    opacity: 0.9;
+  }
+  6.5% {
+    opacity: 0;
+    transform: translate3d(-130px, 84px, 0) rotate(-33deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-130px, 84px, 0) rotate(-33deg);
   }
 }
 
@@ -81,14 +187,14 @@
   display: block;
 }
 
+/* 아이브로우 — 영문 대문자 자간 라벨은 광고 배너 문법이라 한글 소자로.
+   금빛 톤은 봉투·앰버 글로우와 같은 감성 액센트 언어 */
 .tc-card__label {
   display: block;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: rgba(178, 203, 255, 0.85);
-  text-shadow: 0 1px 8px rgba(4, 8, 22, 0.7);
+  letter-spacing: 0.06em;
+  color: rgba(250, 222, 168, 0.88);
 }
 
 .tc-card__title {
@@ -100,7 +206,6 @@
   letter-spacing: -0.02em;
   color: #fff;
   word-break: keep-all;
-  text-shadow: 0 1px 10px rgba(4, 8, 22, 0.65);
 }
 
 .tc-card__status {
@@ -112,7 +217,6 @@
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.62);
   word-break: keep-all;
-  text-shadow: 0 1px 8px rgba(4, 8, 22, 0.7);
 }
 
 .tc-card__status--sealed {
@@ -180,7 +284,7 @@
   }
 }
 
-/* 선은 사진 속 금빛 궤적과 같은 톤 */
+/* 선은 아래쪽 앰버 글로우·금빛 별과 같은 톤 */
 .tc-env__stroke {
   stroke: rgba(250, 226, 178, 0.9);
   /* 봉투를 44px로 줄이면서 선이 얇아 보이므로 축소 비율만큼 굵기 보정 */
@@ -202,9 +306,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tc-card__milkyway,
+  .tc-card__stars::before,
   .tc-card__stars::after,
   .tc-card__pulse,
   .tc-env {
+    animation: none;
+  }
+
+  /* 별똥별은 움직임 그 자체라, 모션 최소화에선 아예 띄우지 않는다 (opacity 0 유지) */
+  .tc-card__meteor {
     animation: none;
   }
 }
