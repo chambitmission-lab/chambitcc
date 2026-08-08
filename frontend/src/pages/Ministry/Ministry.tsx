@@ -351,7 +351,9 @@ const Ministry = () => {
     const text = `${selectedColumn.title}\n${formatLetterDate(selectedColumn.date, language)}\n\n${body}\n\n${signature}`
     if (navigator.share) {
       try {
-        await navigator.share({ title: selectedColumn.title, text })
+        // title은 넘기지 않는다 — 카톡 등 대다수 대상이 title+text를 이어 붙여
+        // 보내서 이미 text 첫 줄에 있는 제목이 두 번 나온다
+        await navigator.share({ text })
       } catch { /* 사용자가 공유 시트를 닫은 경우 */ }
     } else {
       try {

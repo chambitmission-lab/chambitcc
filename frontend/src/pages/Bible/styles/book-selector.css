@@ -775,6 +775,7 @@
   --td-red: #c1352c;                   /* 인주 */
   --td-red-soft: rgba(193, 53, 44, 0.08);
   --td-faint: rgba(88, 76, 60, 0.34);  /* 옅은 먹 — 빈 도장 자리 */
+  --td-ink-dim: rgba(60, 52, 42, 0.42);/* 아직 펼치지 않은 책 이름 */
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
@@ -790,6 +791,7 @@
   --td-red: #e2564a;
   --td-red-soft: rgba(226, 86, 74, 0.12);
   --td-faint: rgba(255, 255, 255, 0.3);
+  --td-ink-dim: rgba(255, 255, 255, 0.38);
 }
 
 /* 필터 칩 선택 시(그리드 리마운트) 칸이 앞에서부터 순차적으로 떠오른다 — delay는 인라인 스타일.
@@ -821,9 +823,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.38rem;
-  min-height: 6.4rem;
-  padding: 0.75rem 0.4rem 0.6rem;
+  gap: 0.42rem;
+  /* 게이지가 들어갈 아래 여백까지 포함 — 칸이 숨 쉬어야 이름·수치가 한 덩어리로 안 뭉친다 */
+  min-height: 7.1rem;
+  padding: 0.85rem 0.45rem 1.05rem;
   background: var(--td-paper);
   border: none;
   border-radius: 0;
@@ -911,6 +914,46 @@
 .book-cell.is-complete .book-cell__meta {
   color: var(--td-red);
   font-weight: 700;
+}
+
+/* 아직 펼치지 않은 책 — 지운 게 아니라 한 걸음 물러선 톤.
+   읽은 칸(진한 먹 + 인주 + 게이지)이 저절로 앞으로 나온다 */
+.book-cell.is-untouched .book-cell__name {
+  color: var(--td-ink-dim);
+  font-weight: 600;
+}
+
+/* 지금 읽는 책 — 표 한 장에 딱 한 칸. 배지 하나로 충분하고,
+   테두리까지 두르면 괘선 위에 선이 하나 더 얹혀 표의 결이 끊긴다.
+   칸 바탕만 아주 옅게 들어 올려 배지를 받쳐 준다 */
+.book-cell.is-current {
+  background:
+    radial-gradient(circle at 50% 30%, var(--brand-soft), transparent 70%),
+    var(--td-paper);
+}
+
+/* "읽는 중" 배지 — 칸 위쪽 모서리에 얹는 작은 딱지 */
+.book-cell__badge {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.32rem;
+  padding: 0.08rem 0.32rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+/* 통독표 칸의 게이지 — 색은 최근 읽은 책 칩과 동일(브랜드), 위치만 칸에 맞춘다 */
+.books-grid .book-cell .book-progress-track {
+  left: 0.55rem;
+  right: 0.55rem;
+  bottom: 0.45rem;
+  height: 3px;
 }
 
 /* 마지막 줄 빈 칸 필러 — 장부의 빈 칸처럼 옅은 사선 하나로 "쓰지 않는 칸"임을 표시.

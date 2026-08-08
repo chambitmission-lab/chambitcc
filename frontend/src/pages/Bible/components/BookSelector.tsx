@@ -129,6 +129,24 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
 
   const infoMap = useMemo(() => buildBookInfoMap(books, progress), [books, progress])
 
+  // 지금 읽는 책 — 가장 최근에 펼친 책. 여정 보기(BookJourneyPath)의 '지금 여기'와 같은 규칙이라
+  // 보기를 바꿔도 강조되는 책이 달라지지 않는다.
+  // 원시값 둘로 나눠 두는 이유: 콜백 안에서만 재할당되는 객체는 tsc가 never로 좁혀 빌드가 깨진다
+  const currentBookNumber = useMemo(() => {
+    let bestNumber: number | undefined
+    let bestTime = -Infinity
+    books?.forEach(b => {
+      const pos = resumeMap?.get(b.book_number)
+      if (!pos?.read_at) return
+      const time = parseApiDate(pos.read_at).getTime()
+      if (time > bestTime) {
+        bestTime = time
+        bestNumber = b.book_number
+      }
+    })
+    return bestNumber
+  }, [books, resumeMap])
+
   const texts = {
     ko: {
       selectBook: '책 선택',
@@ -238,11 +256,14 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     const isComplete = rate >= 100
     const hasProgress = rate > 0
 
+    const isCurrent = book.book_number === currentBookNumber
+
     let metaText: string | null = null
     if (isComplete) {
       metaText = `${t.complete} · ${totalChapters}${t.chapterUnit}`
     } else if (readChapters !== null && readChapters > 0) {
-      metaText = `${readChapters}/${totalChapters}${t.chapterUnit}`
+      // 분수만으론 "얼마나 남았나"가 한눈에 안 잡혀 %를 함께 — 아래 게이지의 눈금 역할
+      metaText = `${readChapters}/${totalChapters}${t.chapterUnit} · ${pctLabel(rate)}%`
     } else if (hasProgress) {
       // 완독한 장이 아직 없는 단계 — 비율 대신 "몇 장을 읽는 중"이라는 위치를 알려준다
       metaText = resume ? `${resume.chapter}${t.chapterUnit} ${t.reading}` : t.reading
@@ -253,15 +274,28 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     // 도장마다 손으로 찍은 듯 살짝 다른 기울기 — book_number 기반이라 리렌더에도 흔들리지 않는다
     const stampTilt = ((book.book_number % 5) - 2) * 3.5
 
+    // 이어 읽기 위치가 읽은 양보다 앞설 때만 연한 구간으로 이어 붙인다 (최근 읽은 책 칩과 같은 규칙)
+    const resumePct =
+      resume && rate < 100 && totalChapters > 0
+        ? Math.max(0, Math.min(100, (resume.chapter / totalChapters) * 100))
+        : 0
+    const aheadPct = resumePct > rate + 1 ? resumePct : 0
+
     return (
       <button
         key={book.id}
-        className={`book-cell${isComplete ? ' is-complete' : ''}`}
+        className={`book-cell${isComplete ? ' is-complete' : ''}${isCurrent ? ' is-current' : ''}${
+          hasProgress ? '' : ' is-untouched'
+        }`}
         // 필터 전환 시 앞에서부터 순차적으로 떠오르는 스태거 — 뒤쪽 칸은 딜레이 상한으로 묶는다
         style={{ animationDelay: `${Math.min(index * 14, 320)}ms` }}
-        aria-label={metaText ? `${book.book_name_ko} · ${metaText}` : book.book_name_ko}
+        aria-label={[book.book_name_ko, isCurrent ? t.reading : null, metaText]
+          .filter(Boolean)
+          .join(' · ')}
         onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
       >
+        {/* 지금 읽는 책은 표 전체에서 딱 한 칸 — 배지 하나로 시선을 먼저 잡는다 */}
+        {isCurrent && !isComplete && <span className="book-cell__badge">{t.reading}</span>}
         <span
           className={`book-stamp${hasProgress ? ' inked' : ''}`}
           style={{
@@ -277,6 +311,15 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         <span className="book-cell__meta" aria-hidden="true">
           {metaText ?? ' '}
         </span>
+        {/* 인장 농도는 눈대중이라 "얼마나 남았나"까지는 못 준다 — 칸 아래 게이지가 그 몫 */}
+        {hasProgress && (
+          <span className="book-progress-track" aria-hidden="true">
+            {aheadPct > 0 && (
+              <span className="book-progress-ahead" style={{ width: `${aheadPct}%` }} />
+            )}
+            <span className="book-progress-fill" style={{ width: `${gaugeWidth(rate)}%` }} />
+          </span>
+        )}
       </button>
     )
   }
