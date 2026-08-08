@@ -59,19 +59,43 @@ const TimeCapsuleCard = () => {
           {status}
         </span>
 
-        {/* 봉인 편지 — 빛으로 그린 선화. 아래쪽 앰버 글로우와 같은 금빛 언어 */}
+        {/* 봉인 편지 — 선화 아이콘이 아니라 '빛을 머금은 오브젝트'로.
+            옅은 종이빛 채움 + 플랩 틈으로 새어 나오는 빛(봉인된 편지 안에
+            미래에 열릴 빛이 담겨 있다는 타임캡슐 서사) + 별 모양 밀랍 도장 */}
         <span className="tc-card__visual" aria-hidden>
           <svg className="tc-env" viewBox="0 0 68 50" fill="none">
+            <defs>
+              <linearGradient id="tc-env-paper" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#ffe9c4" stopOpacity="0.17" />
+                <stop offset="0.55" stopColor="#ffdfae" stopOpacity="0.07" />
+                <stop offset="1" stopColor="#ffd894" stopOpacity="0.14" />
+              </linearGradient>
+              <filter id="tc-env-leak" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="1.7" />
+              </filter>
+            </defs>
             <rect
               x="1.1"
               y="1.1"
               width="65.8"
               height="47.8"
-              rx="7"
+              rx="4.5"
               className="tc-env__stroke tc-env__panel"
             />
-            <path d="M3 6.5 L34 30 L65 6.5" className="tc-env__stroke" />
-            <circle cx="34" cy="27.5" r="4.6" className="tc-env__seal" />
+            {/* 플랩 틈에서 새어 나오는 빛 — 본선 아래에 블러로 깔린다 */}
+            <path
+              d="M2.5 6 L34 29 L65.5 6"
+              className="tc-env__leak"
+              filter="url(#tc-env-leak)"
+            />
+            {/* 봉인 플랩 */}
+            <path d="M2.5 6 L34 29 L65.5 6" className="tc-env__stroke" />
+            {/* 밀랍 인장 + 별 도장 */}
+            <circle cx="34" cy="26.5" r="4.4" className="tc-env__seal" />
+            <path
+              d="M34 23.3 L34.9 25.6 L37.2 26.5 L34.9 27.4 L34 29.7 L33.1 27.4 L30.8 26.5 L33.1 25.6 Z"
+              className="tc-env__seal-star"
+            />
           </svg>
         </span>
       </button>
