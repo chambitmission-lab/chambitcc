@@ -352,13 +352,32 @@ const postmark = (dateStr: string): { year: string; day: string } => {
   }
 }
 
+/** 편지가 여행한 날수 — 봉인일→개봉일. 읽는 시점(오늘)이 아니다:
+    도착한 편지를 열흘 뒤에 다시 읽어도 여행이 길어지지 않는다.
+    (목록의 "N일을 건너온 마음"과 같은 기준) */
+const journeyDays = (sealedAt: string, openAt: string): number => {
+  const sealed = new Date(sealedAt)
+  const open = new Date(openAt)
+  if (Number.isNaN(sealed.getTime()) || Number.isNaN(open.getTime())) return 0
+  const a = new Date(sealed.getFullYear(), sealed.getMonth(), sealed.getDate()).getTime()
+  const b = new Date(open.getFullYear(), open.getMonth(), open.getDate()).getTime()
+  return Math.max(0, Math.round((b - a) / 86_400_000))
+}
+
 /** 건너온 시간 — 이 편지의 감정선. 날짜 사실("7월 29일 봉인")보다 먼저 읽혀야 한다. */
-const journeyLine = (sealedAt: string): string => {
-  const days = daysSealed(sealedAt)
-  if (days <= 1) return '오늘 봉인한 편지가 열렸어요'
+const journeyLine = (sealedAt: string, openAt: string): string => {
+  const days = journeyDays(sealedAt, openAt)
+  if (days === 0) return '오늘 봉인해 오늘 도착한 편지예요'
   if (days < 365) return `${days.toLocaleString()}일을 건너 도착했어요`
   const years = Math.floor(days / 365)
   return `${years}년 ${(days - years * 365).toLocaleString()}일, ${days.toLocaleString()}일을 건너왔어요`
+}
+
+/** 편지지 위 밤하늘의 내레이션 — 앱의 목소리는 편지 밖에서만 말한다.
+    봉인일 사실은 소인·서명에도 있지만, 여기서 감정선과 한 문장으로 묶는다 */
+const arrivalNarration = (sealedAt: string, openAt: string): string => {
+  if (journeyDays(sealedAt, openAt) === 0) return journeyLine(sealedAt, openAt)
+  return `${formatKoreanDate(sealedAt)}에 봉인되어, ${journeyLine(sealedAt, openAt)}`
 }
 
 /* ── 도착한 캡슐 = 밀랍 인장을 직접 뜯는 우편물 ────────────────────
@@ -665,7 +684,7 @@ const CapsuleOpen = () => {
                 {capsule.title || '캡슐이 도착했어요'}
               </h2>
               <p className="mt-2 text-[13px] font-bold text-brand">
-                {journeyLine(capsule.sealed_at)}
+                {journeyLine(capsule.sealed_at, capsule.open_at)}
               </p>
 
               <div className="mt-4 flex flex-wrap justify-center gap-1.5">
@@ -728,6 +747,10 @@ const CapsuleOpen = () => {
             여기서 끊지 않는다. 앱 카드가 아니라 세 겹으로 접혀 있던 종이 한 장이다. */}
         {capsule && phase === 'letter' && content && (
           <div className="capsule-reading px-4 pt-7">
+            {/* 밤하늘의 내레이션 — 편지를 펼치기 전에 집배원이 건네는 한마디 */}
+            <p className="capsule-reading__journey capsule-letter-enter">
+              {arrivalNarration(capsule.sealed_at, capsule.open_at)}
+            </p>
             <article className="capsule-paper capsule-letter-enter">
               {/* 편지 머리 — 뜯긴 인장 자국과 소인 */}
               <header className="capsule-paper__head">
@@ -750,10 +773,6 @@ const CapsuleOpen = () => {
                 <h2 className="capsule-paper__title">
                   {content.title || capsule.title || '봉인됐던 편지'}
                 </h2>
-                <p className="capsule-paper__journey">{journeyLine(capsule.sealed_at)}</p>
-                <p className="capsule-paper__dates">
-                  {formatKoreanDate(capsule.sealed_at)} 봉인 · {formatKoreanDate(capsule.open_at)} 개봉
-                </p>
               </header>
 
               <div className="capsule-paper__rule" aria-hidden />

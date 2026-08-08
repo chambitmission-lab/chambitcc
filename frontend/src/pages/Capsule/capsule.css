@@ -941,6 +941,21 @@
   position: relative;
 }
 
+/* 밤하늘의 내레이션 — 앱의 목소리는 편지지 밖, 하늘에서만 말한다.
+   (편지 안은 그날의 손글씨만 남긴다) */
+.capsule-reading__journey {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  word-break: keep-all;
+  color: rgba(205, 220, 255, 0.9);
+  text-shadow: 0 1px 8px rgba(4, 8, 22, 0.6);
+}
+
 .capsule-reading::before {
   content: '';
   position: absolute;
@@ -1133,22 +1148,6 @@
   letter-spacing: 0.01em;
   color: var(--p-ink-strong);
   word-break: keep-all;
-}
-
-/* 감정선 — 라이트는 밀랍 레드, 다크(남색 종이)는 금색 */
-.capsule-paper__journey {
-  margin-top: 7px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--p-accent);
-}
-
-.capsule-paper__dates {
-  margin-top: 3px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--p-ink-faint);
-  font-variant-numeric: tabular-nums;
 }
 
 /* 머리와 본문 사이 — 봉투 아랫단과 같은 점선 */
