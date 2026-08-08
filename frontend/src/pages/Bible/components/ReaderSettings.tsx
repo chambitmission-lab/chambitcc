@@ -17,9 +17,11 @@ export interface ReaderPrefs {
   font: 'gothic' | 'serif'
   scaleIdx: number // FONT_SCALES 인덱스
   leadingIdx: number // LINE_HEIGHTS 인덱스
+  /** 야간 따뜻한 톤 — 다크 테마에서 본문의 푸른 빛을 걷어내 밤에 눈이 덜 부시게 */
+  warm: boolean
 }
 
-const DEFAULT_PREFS: ReaderPrefs = { font: 'gothic', scaleIdx: 1, leadingIdx: 1 }
+const DEFAULT_PREFS: ReaderPrefs = { font: 'gothic', scaleIdx: 1, leadingIdx: 1, warm: false }
 
 const loadPrefs = (): ReaderPrefs => {
   try {
@@ -30,6 +32,7 @@ const loadPrefs = (): ReaderPrefs => {
       font: p.font === 'serif' ? 'serif' : 'gothic',
       scaleIdx: FONT_SCALES[p.scaleIdx] !== undefined ? p.scaleIdx : 1,
       leadingIdx: LINE_HEIGHTS[p.leadingIdx] !== undefined ? p.leadingIdx : 1,
+      warm: p.warm === true,
     }
   } catch {
     return DEFAULT_PREFS
@@ -44,6 +47,12 @@ const applyPrefs = (p: ReaderPrefs) => {
     root.style.setProperty('--bible-font-family', SERIF_STACK)
   } else {
     root.style.removeProperty('--bible-font-family')
+  }
+  // verse-display.css가 [data-theme="dark"][data-bible-warm="true"] 분기로 참조한다
+  if (p.warm) {
+    root.setAttribute('data-bible-warm', 'true')
+  } else {
+    root.removeAttribute('data-bible-warm')
   }
 }
 
@@ -168,6 +177,30 @@ const ReaderSettings = () => {
               ))}
             </div>
           </div>
+
+          {/* 야간 톤 — 다크 테마에서만 시각 효과가 있다 (라이트에선 저장만 되고 대기) */}
+          <div className="reader-settings__row">
+            <span className="reader-settings__label">야간 따뜻한 톤</span>
+            <div className="reader-settings__seg">
+              <button
+                type="button"
+                className={prefs.warm ? 'active' : ''}
+                onClick={() => update({ warm: true })}
+              >
+                켜기
+              </button>
+              <button
+                type="button"
+                className={!prefs.warm ? 'active' : ''}
+                onClick={() => update({ warm: false })}
+              >
+                끄기
+              </button>
+            </div>
+          </div>
+          <p className="reader-settings__hint">
+            다크 테마에서 본문을 촛불처럼 따뜻한 색감으로 바꿔 밤에 눈이 덜 부셔요.
+          </p>
 
           <p className="reader-settings__preview" style={{
             fontFamily: prefs.font === 'serif' ? SERIF_STACK : undefined,

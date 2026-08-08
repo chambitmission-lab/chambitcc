@@ -48,10 +48,22 @@
   position: relative;
 }
 
+/* 다크에선 기본 구분선(검정 4%)이 배경에 묻혀 안 보인다 — 흰빛 미세 선으로 교체.
+   hover/selected/reading의 투명 보더 규칙보다 '앞'에 둬서(동일 특이도, 소스 순서)
+   강조 상태에선 여전히 선이 사라지게 한다. */
+[data-theme="dark"] .bible-verse-item {
+  border-bottom-color: rgba(255, 255, 255, 0.04);
+}
+
 /* 읽음 완료 상태 - 취소선 대신 살짝 흐리게 처리해 장시간 읽기에도 산만하지 않게 */
 .bible-verse-item.verse-read {
   opacity: 0.55;
   background: rgba(34, 197, 94, 0.05);
+}
+
+/* 다크에선 초록 틴트가 낮은 opacity와 겹쳐 탁한 회녹색으로 떡진다 — 흐림만으로 충분 */
+[data-theme="dark"] .bible-verse-item.verse-read {
+  background: transparent;
 }
 
 /* 읽는 중 상태 - 은은한 브랜드 빛(블루) 효과.
@@ -225,11 +237,18 @@
   }
 }
 
-/* 손떨림·저사양 기기 배려: 채움 애니메이션 대신 정지된 틴트만 */
+/* 손떨림·저사양 기기 배려: 채움 애니메이션 대신 정지된 틴트만.
+   낭독 중 shimmer·이어읽기 플래시도 함께 정지 — 어두운 방에서 움직이는 빛은
+   시선을 끌어 특히 피로하다 (배경 강조는 정적인 상태로 남는다). */
 @media (prefers-reduced-motion: reduce) {
   .verse-hold-fill::after {
     animation: none;
     transform: scaleX(1);
+  }
+
+  .bible-verse-item.verse-reading,
+  .bible-verse-item.verse-resume-highlight {
+    animation: none;
   }
 }
 
@@ -275,6 +294,26 @@
 
 [data-theme="dark"] .chapter-title {
   color: #e7e7ec;
+}
+
+/* 야간 따뜻한 톤(Aa 설정) — 다크의 쿨톤(푸른 기)을 걷어내 밤에 눈이 덜 부시게.
+   전자책 리더의 세피아/촛불 모드 문법: 배경은 따뜻한 흑갈색, 본문은 크림색,
+   절 번호는 하늘색 대신 낮춘 골드. 브랜드 블루 액센트(선택/낭독)는 그대로 둔다. */
+[data-theme="dark"][data-bible-warm="true"] .bible-content {
+  background: #151310;
+}
+
+[data-theme="dark"][data-bible-warm="true"] .bible-verse-text,
+[data-theme="dark"][data-bible-warm="true"] .chapter-title {
+  color: #e8e0d2;
+}
+
+[data-theme="dark"][data-bible-warm="true"] .bible-verse-number {
+  color: rgba(219, 190, 133, 0.55);
+}
+
+[data-theme="dark"][data-bible-warm="true"] .bible-verse-text.is-highlighted {
+  color: #f5ecdc;
 }
 
 /* 구절 액션 버튼 - 원형 글래스, 각 기능별 정체성 컬러는 인라인 스타일로 지정.

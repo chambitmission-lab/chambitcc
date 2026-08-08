@@ -13,12 +13,22 @@ interface VerseBookmarkModalProps {
   onClose: () => void
 }
 
+/** 형광펜 색 → CSS 변수. 실제 값은 theme.css의 --hl-* 토큰이 라이트/다크로 분기한다.
+    hex가 아니므로 알파 이어붙이기(`${bg}26`) 대신 color-mix로 투명도를 섞어야 한다. */
+export const HIGHLIGHT_COLOR_BG: Record<HighlightColor, string> = {
+  yellow: 'var(--hl-yellow)',
+  orange: 'var(--hl-orange)',
+  pink: 'var(--hl-pink)',
+  blue: 'var(--hl-blue)',
+  green: 'var(--hl-green)',
+}
+
 const COLORS: { value: HighlightColor; label: string; bg: string }[] = [
-  { value: 'yellow', label: '노랑', bg: '#fde68a' },
-  { value: 'orange', label: '주황', bg: '#fdba74' },
-  { value: 'pink', label: '분홍', bg: '#fbcfe8' },
-  { value: 'blue', label: '파랑', bg: '#bfdbfe' },
-  { value: 'green', label: '초록', bg: '#bbf7d0' },
+  { value: 'yellow', label: '노랑', bg: HIGHLIGHT_COLOR_BG.yellow },
+  { value: 'orange', label: '주황', bg: HIGHLIGHT_COLOR_BG.orange },
+  { value: 'pink', label: '분홍', bg: HIGHLIGHT_COLOR_BG.pink },
+  { value: 'blue', label: '파랑', bg: HIGHLIGHT_COLOR_BG.blue },
+  { value: 'green', label: '초록', bg: HIGHLIGHT_COLOR_BG.green },
 ]
 
 const VerseBookmarkModal = ({
@@ -237,11 +247,3 @@ const VerseBookmarkModal = ({
 }
 
 export default VerseBookmarkModal
-
-export const HIGHLIGHT_COLOR_BG: Record<HighlightColor, string> = {
-  yellow: '#fef08a',
-  orange: '#fed7aa',
-  pink: '#fbcfe8',
-  blue: '#bfdbfe',
-  green: '#bbf7d0',
-}

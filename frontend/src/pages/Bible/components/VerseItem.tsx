@@ -309,7 +309,8 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
       ? {
           // 다크 배경 위에서 파스텔 형광펜이 탁하게 떡지지 않도록:
           // 색 정체성은 왼쪽 바로 또렷하게 주고, 면은 아주 옅은 틴트만.
-          background: `linear-gradient(to right, ${highlightBg}26, ${highlightBg}0d)`,
+          // (highlightBg는 var(--hl-*)라 hex 알파를 못 붙인다 → color-mix)
+          background: `linear-gradient(to right, color-mix(in srgb, ${highlightBg} 15%, transparent), color-mix(in srgb, ${highlightBg} 5%, transparent))`,
           borderLeft: `3px solid ${highlightBg}`,
           borderRadius: '0.375rem',
           padding: '0.375rem 0.5rem',
