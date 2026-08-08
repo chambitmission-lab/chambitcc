@@ -159,16 +159,20 @@ const BibleStudy = () => {
   const completeDay = useCompleteDay()
 
   const planDay = planData?.days.find((d) => d.day_number === planDayNumber)
-  const planPassage = planDay?.passages[0]
-  // 현재 보고 있는 장이 플랜이 지정한 본문과 일치하고, 아직 완료되지 않은 경우에만 자동 완료를 활성화.
+  // 자동 완료의 기준은 "오늘 분량의 마지막 장"을 끝까지 읽는 순간이다.
+  // 첫 장(chapter_start)에 걸면 여러 장 분량(예: 창 30-32)에서 30장만 읽어도
+  // 완료되거나, 31→32장으로 넘어가 다 읽고도 완료가 안 되는 왜곡이 생긴다.
+  const planLastPassage = planDay?.passages[planDay.passages.length - 1]
+  const planLastChapter =
+    planLastPassage?.chapter_end || planLastPassage?.chapter_start
   const planAutoComplete =
     planId > 0 &&
     planDayNumber > 0 &&
     !!planDay &&
     !planDay.completed &&
-    !!planPassage &&
-    selectedBookData?.book_number === planPassage.book_number &&
-    selectedChapter === planPassage.chapter_start
+    !!planLastPassage &&
+    selectedBookData?.book_number === planLastPassage.book_number &&
+    selectedChapter === planLastChapter
 
   const handleChapterFullyRead = useCallback(async () => {
     if (!planAutoComplete) return
