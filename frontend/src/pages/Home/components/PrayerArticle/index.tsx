@@ -14,6 +14,8 @@ interface PrayerArticleProps {
   onEditAnswer?: (prayerId: number) => void
   onCancelAnswer?: (prayerId: number) => void
   onPrayerClick: (prayerId: number, shouldOpenReplies?: boolean) => void
+  /** 그룹 방 안 피드 — 카드마다 같은 그룹명이 반복되면 노이즈라 숨긴다 */
+  showGroupName?: boolean
 }
 
 const PrayerArticle = ({
@@ -23,6 +25,7 @@ const PrayerArticle = ({
   onEditAnswer,
   onCancelAnswer,
   onPrayerClick,
+  showGroupName = true,
 }: PrayerArticleProps) => {
   const { language } = useLanguage()
   const [isPraying, setIsPraying] = useState(false)
@@ -102,6 +105,7 @@ const PrayerArticle = ({
             avatarUrl={prayer.avatar_url ?? null}
             timeAgo={prayer.time_ago}
             groupName={prayer.group?.name}
+            showGroupName={showGroupName}
             colorTheme={colorTheme}
           />
 

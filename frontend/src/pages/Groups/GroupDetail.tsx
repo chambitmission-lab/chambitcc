@@ -109,6 +109,8 @@ const GroupDetail = () => {
     )
   }
 
+  // 홈이 아닌 탭에서는 방 헤더를 접는다 (기도 피드가 첫 화면에 들어오도록)
+  const compactHeader = !!group.is_member && tab !== 'home'
   const answered = group.answered_count ?? 0
   const total = group.prayer_count ?? 0
   const prayed = group.prayed_count ?? 0
@@ -140,14 +142,23 @@ const GroupDetail = () => {
           )}
         </div>
 
-        {/* 방 헤더 */}
-        <div className="px-4 pb-3 flex items-center gap-3">
-          <div className="shrink-0 w-14 h-14 rounded-2xl bg-brand flex items-center justify-center text-[26px] shadow-[0_6px_18px_-6px_var(--brand-glow)]">
+        {/* 방 헤더 — 홈 밖(기도·모임·멤버)에서는 접어서 콘텐츠에 첫 화면을 내준다.
+            방 정체성(아이콘·이름·테마)만 남기고 크기와 설명을 줄인다 */}
+        <div className={`px-4 flex items-center gap-3 ${compactHeader ? 'pb-2.5' : 'pb-3'}`}>
+          <div
+            className={`shrink-0 rounded-2xl bg-brand flex items-center justify-center shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-all duration-300 ${
+              compactHeader ? 'w-10 h-10 text-[19px]' : 'w-14 h-14 text-[26px]'
+            }`}
+          >
             {group.icon || '🙏'}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-[20px] font-bold text-ink-strong tracking-[-0.015em] truncate">
+              <h1
+                className={`font-bold text-ink-strong tracking-[-0.015em] truncate ${
+                  compactHeader ? 'text-[16.5px]' : 'text-[20px]'
+                }`}
+              >
                 {group.name}
               </h1>
               {group.is_admin && (
@@ -156,7 +167,7 @@ const GroupDetail = () => {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-1 text-[11.5px] text-gray-500 dark:text-white/55">
+            <div className="flex items-center gap-2 mt-0.5 text-[11.5px] text-gray-500 dark:text-white/55">
               <span>👤 {group.member_count}명</span>
               {total > 0 && (
                 <>
@@ -177,7 +188,7 @@ const GroupDetail = () => {
           </div>
         </div>
 
-        {group.description && (
+        {group.description && !compactHeader && (
           <p className="px-4 pb-3 text-[13px] text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-[1.6]">
             {group.description}
           </p>

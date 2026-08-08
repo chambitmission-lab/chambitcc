@@ -10,6 +10,8 @@ interface PrayerHeaderProps {
   avatarUrl?: string | null
   timeAgo: string
   groupName?: string
+  /** 그룹 방 안 피드처럼 모든 카드가 같은 그룹이면 이름은 숨긴다 (색 정체성은 유지) */
+  showGroupName?: boolean
   colorTheme: GroupColorTheme
 }
 
@@ -19,6 +21,7 @@ const PrayerHeader = ({
   avatarUrl = null,
   timeAgo,
   groupName,
+  showGroupName = true,
   colorTheme
 }: PrayerHeaderProps) => {
   const { t } = useLanguage()
@@ -109,7 +112,7 @@ const PrayerHeader = ({
           <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
             · {timeAgo}
           </span>
-          {groupName && (
+          {groupName && showGroupName && (
             <span
               className="text-xs font-semibold truncate"
               style={{ color: colorTheme.accent }}
