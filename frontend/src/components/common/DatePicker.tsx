@@ -328,7 +328,8 @@ const DatePicker = ({
           ref={panelRef}
           role="dialog"
           aria-label={text.dialog}
-          className="fixed z-[300] origin-top animate-pop-in rounded-2xl border border-black/[0.06] bg-white p-3 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)] dark:border-white/[0.08] dark:bg-card-dark"
+          /* body 포털이라 모달(바텀시트 z-9999)과 형제 — 그보다 위에 둬야 가려지지 않는다 */
+          className="fixed z-[10000] origin-top animate-pop-in rounded-2xl border border-black/[0.06] bg-white p-3 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.35)] dark:border-white/[0.08] dark:bg-card-dark"
           style={{
             top: pos?.top ?? 0,
             left: pos?.left ?? 0,
