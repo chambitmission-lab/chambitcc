@@ -503,9 +503,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         </blockquote>
 
         <div className="meditation-question-block">
-          <span className="meditation-question-label">
-            <span aria-hidden>💭</span> {t('homeTodaysQuestion')}
-          </span>
+          <span className="meditation-question-label">{t('homeTodaysQuestion')}</span>
           <p className="meditation-question-text">{data.meditation_question}</p>
           <button
             type="button"

@@ -645,25 +645,22 @@
   font-style: normal;
 }
 
-/* ── 오늘의 질문 — 라벨이 있는 소프트 박스 ── */
+/* ── 오늘의 질문 — 박스가 아니라 인용구(pull-quote) 문법 ──
+   핵심 절 박스 바로 아래 박스를 또 쌓으면 무겁고,
+   점선 테두리는 '빈 자리(드롭존)'의 언어라 콘텐츠가 담기면 어색하다.
+   왼쪽 세로 획 하나로 "말씀이 나에게 건네는 질문"임을 조용히 표시한다 */
 .meditation-question-block {
-  margin-bottom: 14px;
-  padding: 11px 14px 12px;
-  border-radius: 12px;
-  background: var(--brand-soft);
-  border: 1px dashed var(--card-border);
+  margin: 2px 2px 16px;
+  padding: 1px 4px 1px 14px;
+  border-left: 2.5px solid var(--marker);
 }
 
-/* 라벨은 뉴트럴 — 파란 기운은 배경 틴트(--brand-soft)가 이미 담당하므로
- * 글자까지 파랗게 하면 톤이 탁해진다. 포인트는 💭 이모지가 맡는다 */
 .meditation-question-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+  display: block;
   margin-bottom: 5px;
   font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
 }
 
@@ -792,7 +789,7 @@
  * 질문 박스(라벨+2줄+링크), CTA 행(48px 버튼) */
 .meditation-skeleton.passage { height: 24px; width: 62%; border-radius: 7px; margin-bottom: 10px; }
 .meditation-skeleton.quote { height: 108px; border-radius: 12px; margin-bottom: 12px; }
-.meditation-skeleton.question { height: 118px; border-radius: 12px; margin-bottom: 14px; }
+.meditation-skeleton.question { height: 96px; border-radius: 12px; margin-bottom: 16px; }
 .meditation-skeleton.actions { height: 48px; border-radius: 14px; }
 
 @keyframes meditation-shimmer {
@@ -845,23 +842,20 @@
   font-size: 19px;
 }
 
-/* ── 1분 묵상 이어가기 링크 (질문 블록 하단) ── */
+/* ── 1분 묵상 이어가기 링크 (질문 블록 하단) —
+   카드 안 액션 색은 브랜드 블루 하나로 통일 (금색은 응답/영광 전용 액센트) ── */
 .meditation-deepen-link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 10px;
+  margin-top: 9px;
   border: none;
   background: transparent;
-  color: #6f6146;
+  color: var(--brand);
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   padding: 0;
-}
-
-.dark .meditation-deepen-link {
-  color: #d8cba8;
 }
 
 .meditation-deepen-link .material-icons-round {
