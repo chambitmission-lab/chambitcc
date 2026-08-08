@@ -10,6 +10,7 @@ import type { BibleBookIntroUpsertRequest } from '../../types/bibleBookIntro'
 import { getBookGenre, genreStyle } from './bookGenre'
 import BookIntroEditor from './BookIntroEditor'
 import BookIntroSheet from './BookIntroSheet'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 interface BookIntroCardProps {
   bookNumber: number
@@ -59,7 +60,16 @@ const BookIntroCard = ({
   }
 
   const handleDelete = async () => {
-    if (!confirm(`${bookNameKo} 권 개관을 삭제할까요?`)) return
+    if (
+      !(await confirmDialog({
+        title: '권 개관 삭제',
+        message: `${bookNameKo} 권 개관을 삭제할까요?`,
+        description: '삭제된 내용은 복구할 수 없습니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deleteMutation.mutateAsync(bookNumber)
       showToast('권 개관이 삭제되었습니다', 'success')

@@ -16,6 +16,7 @@ import {
 } from '../../hooks/useSituation'
 import { getAdminSettings, updateAdminSettings } from '../../api/user'
 import type { SituationCategory } from '../../types/situation'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 const ICON_OPTIONS = [
   'shield','cloud_off','favorite_border','sentiment_very_dissatisfied',
@@ -140,7 +141,15 @@ const VersePanel = ({ category, onClose }: { category: SituationCategory; onClos
   }
 
   const handleRemove = async (svId: number) => {
-    if (!confirm('이 구절을 제거할까요?')) return
+    if (
+      !(await confirmDialog({
+        title: '구절 제거',
+        message: '이 구절을 이 카테고리에서 제거할까요?',
+        confirmText: '제거',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await removeVerse.mutateAsync({ situationVerseId: svId, categoryId: category.id })
       showToast('제거되었습니다', 'success')
@@ -458,7 +467,16 @@ const SituationManagement = () => {
   }
 
   const handleDelete = async (cat: SituationCategory) => {
-    if (!confirm(`"${cat.name}" 카테고리를 삭제할까요?\n연결된 구절도 모두 삭제됩니다.`)) return
+    if (
+      !(await confirmDialog({
+        title: '카테고리 삭제',
+        message: `"${cat.name}" 카테고리를 삭제할까요?`,
+        description: '연결된 구절도 모두 삭제됩니다.',
+        confirmText: '삭제',
+        icon: 'delete_forever',
+      }))
+    )
+      return
     try { await deleteCat.mutateAsync(cat.id); showToast('삭제되었습니다', 'success') }
     catch { showToast('삭제 실패', 'error') }
   }

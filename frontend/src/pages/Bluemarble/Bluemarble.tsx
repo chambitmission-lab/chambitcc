@@ -23,6 +23,7 @@ import {
   JOURNEY_ROWS,
 } from './journeyLayout'
 import './Bluemarble.css'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 export default function Bluemarble() {
   const navigate = useNavigate()
@@ -131,8 +132,15 @@ export default function Bluemarble() {
             <button
               type="button"
               className="bm-ghost-btn bm-ghost-danger"
-              onClick={() => {
-                if (window.confirm('정말 여행을 포기할까요?')) abandonMutation.mutate()
+              onClick={async () => {
+                const ok = await confirmDialog({
+                  title: '여행 포기',
+                  message: '정말 여행을 포기할까요?',
+                  description: '지금까지의 발자취가 사라집니다.',
+                  confirmText: '포기',
+                  icon: 'flag',
+                })
+                if (ok) abandonMutation.mutate()
               }}
             >
               포기

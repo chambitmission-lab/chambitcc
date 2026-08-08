@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ApiError } from '../../types/queryCache'
 import './PostComposer.css'
+import { showToast } from '../../utils/toast'
 
 interface PostComposerProps {
   onPostCreated: (content: string, image?: string) => Promise<void>
@@ -17,12 +18,12 @@ export const PostComposer = ({ onPostCreated }: PostComposerProps) => {
     e.preventDefault()
     
     if (!content.trim()) {
-      alert('내용을 입력해주세요.')
+      showToast('내용을 입력해주세요.', 'error')
       return
     }
 
     if (content.length > 500) {
-      alert('게시물은 최대 500자까지 작성할 수 있습니다.')
+      showToast('게시물은 최대 500자까지 작성할 수 있습니다.', 'error')
       return
     }
 
@@ -33,9 +34,9 @@ export const PostComposer = ({ onPostCreated }: PostComposerProps) => {
     } catch (err) {
       console.error('게시물 작성 실패:', err)
       if ((err as ApiError).response?.status === 401) {
-        alert('로그인이 필요합니다.')
+        showToast('로그인이 필요합니다.', 'error')
       } else {
-        alert('게시물 작성에 실패했습니다.')
+        showToast('게시물 작성에 실패했습니다.', 'error')
       }
     } finally {
       setIsPosting(false)

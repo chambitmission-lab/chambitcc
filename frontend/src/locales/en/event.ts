@@ -59,8 +59,10 @@ export const event = {
   rsvpClosedBadge: 'RSVP closed',
   rsvpClosedForResponder: 'You can still change or cancel your response.',
   rsvpClosedForNewcomer: 'New RSVPs are no longer accepted.',
+  rsvpCancelAfterCloseTitle: 'Cancel RSVP',
   rsvpCancelAfterCloseConfirm:
-    'RSVP has closed. If you cancel now you will not be able to sign up again. Cancel anyway?',
+    'RSVP has closed. If you cancel now you will not be able to sign up again.\nCancel anyway?',
+  rsvpCancelAfterCloseAction: 'Cancel RSVP',
 
   // Detail page quick actions
   addToCalendar: 'Add to calendar',
@@ -109,7 +111,10 @@ export const event = {
   
   // Confirmation
   confirmDelete: 'Are you sure you want to delete this event?',
+  confirmDeleteAction: 'Delete',
+  confirmDeleteCommentTitle: 'Delete comment',
   confirmDeleteComment: 'Are you sure you want to delete this comment?',
+  confirmDeleteCommentAction: 'Delete',
   
   // Success/Error messages
   createSuccess: 'Event created successfully',

@@ -6,6 +6,7 @@ import { getBulletins, deleteBulletin } from '../../api/bulletin'
 import type { Bulletin } from '../../types/bulletin'
 import BulletinComposer from './components/BulletinComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 type TimeFilter = 'all' | 'thisMonth' | 'past'
 type SortKey = 'recent' | 'oldest' | 'views'
@@ -63,7 +64,16 @@ const BulletinManagement = () => {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('이 주보를 삭제하시겠습니까?\n등록된 페이지 이미지도 함께 삭제됩니다.')) return
+    if (
+      !(await confirmDialog({
+        title: '주보 삭제',
+        message: '이 주보를 삭제하시겠습니까?',
+        description: '등록된 페이지 이미지도 함께 삭제됩니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deleteBulletin(id)
       showToast('주보가 삭제되었습니다', 'success')

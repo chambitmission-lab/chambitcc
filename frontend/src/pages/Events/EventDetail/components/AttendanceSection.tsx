@@ -3,6 +3,7 @@ import type { AttendanceStatus } from '../../../../types/event'
 import { formatKstDateTime, formatRemaining, parseKstDate } from '../../../../utils/kstTime'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import type { Translation } from '../../../../locales'
+import { confirmDialog } from '../../../../utils/confirmDialog'
 
 interface AttendanceSectionProps {
   userAttendanceStatus?: AttendanceStatus
@@ -81,9 +82,20 @@ export const AttendanceSection = ({
   const showRemaining =
     !isClosed && remaining !== null && deadlineAt !== null && deadlineAt - now < 24 * 60 * 60 * 1000
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     // 마감 후 취소는 허용하되, 다시 등록할 수 없다는 점을 반드시 알린다
-    if (isClosed && !window.confirm(t.rsvpCancelAfterCloseConfirm)) return
+    if (
+      isClosed &&
+      !(await confirmDialog({
+        title: t.rsvpCancelAfterCloseTitle,
+        message: t.rsvpCancelAfterCloseConfirm,
+        confirmText: t.rsvpCancelAfterCloseAction,
+        cancelText: t.close,
+        tone: 'warning',
+        icon: 'event_busy',
+      }))
+    )
+      return
     onCancel()
   }
 

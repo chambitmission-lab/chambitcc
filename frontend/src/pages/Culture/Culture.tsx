@@ -20,6 +20,7 @@ import {
   parseScheduleDays,
   quarterEmoji,
 } from './cultureAccents'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 type SectionKey = 'classes' | 'lookup' | 'notice' | 'contact'
 
@@ -312,7 +313,17 @@ const Culture = () => {
   }
 
   const handleCancel = async (application: CultureApplication) => {
-    if (!confirm(`"${application.class_title ?? '강좌'}" 수강신청을 취소할까요?`)) return
+    if (
+      !(await confirmDialog({
+        title: '수강신청 취소',
+        message: `"${application.class_title ?? '강좌'}" 수강신청을 취소할까요?`,
+        description: '취소 후 다시 신청하려면 잔여석이 있어야 해요.',
+        confirmText: '신청 취소',
+        cancelText: '닫기',
+        icon: 'event_busy',
+      }))
+    )
+      return
     try {
       const updated = await cancelCultureApplication(application.id, {
         phone: lookupForm.phone.trim(),

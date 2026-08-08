@@ -28,6 +28,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
 import { preloadNavRoutes, preloadRoute, isRoutePreloaded } from '../../utils/routePreload'
 import type { SortType, PrayerFilterType, Prayer } from '../../types/prayer'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 const NewHome = () => {
   const location = useLocation()
@@ -169,7 +170,14 @@ const NewHome = () => {
 
   // 응답 등록 취소
   const handleCancelAnswer = useCallback(async (prayerId: number) => {
-    const ok = window.confirm('응답 등록을 취소하시겠습니까? 등록한 간증이 삭제됩니다.')
+    const ok = await confirmDialog({
+      title: '응답 등록 취소',
+      message: '응답 등록을 취소하시겠습니까?',
+      description: '등록한 간증이 함께 삭제됩니다.',
+      confirmText: '취소하기',
+      cancelText: '닫기',
+      icon: 'undo',
+    })
     if (!ok) return
     try {
       await prayerHookRef.current.cancelPrayerAnswer(prayerId)

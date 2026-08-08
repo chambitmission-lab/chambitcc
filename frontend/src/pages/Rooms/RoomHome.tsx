@@ -18,6 +18,7 @@ import type { RoomDetail, RoomMember, RoomPost, RoomPostType } from '../../types
 import { CommentIcon, HeartIcon } from '../../components/icons/ActionIcons'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 const timeAgo = (iso: string): string => {
   const diff = Date.now() - new Date(iso).getTime()
@@ -83,7 +84,16 @@ const RoomHome = () => {
   }
 
   const handleLeave = async () => {
-    if (!confirm('이 묵상방을 나가시겠어요?')) return
+    if (
+      !(await confirmDialog({
+        title: '묵상방 나가기',
+        message: '이 묵상방을 나가시겠어요?',
+        description: '다시 들어오려면 초대 코드가 필요해요.',
+        confirmText: '나가기',
+        icon: 'logout',
+      }))
+    )
+      return
     try {
       await leaveRoom.mutateAsync(id)
       showToast('묵상방을 나왔어요', 'success')
@@ -390,7 +400,16 @@ const PostCard = ({ post, roomAdmin }: { post: RoomPost; roomAdmin: boolean }) =
   const [showReplies, setShowReplies] = useState(false)
 
   const handleDelete = async () => {
-    if (!confirm('이 글을 삭제할까요?')) return
+    if (
+      !(await confirmDialog({
+        title: '글 삭제',
+        message: '이 글을 삭제할까요?',
+        description: '삭제된 내용은 복구할 수 없습니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deletePost.mutateAsync(post.id)
     } catch (e) {

@@ -1,6 +1,7 @@
 import { usePushNotification } from '../../hooks/usePushNotification';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { showToast } from '../../utils/toast';
+import { alertDialog } from '../../utils/confirmDialog'
 
 export const PushNotificationButton = () => {
   const { isSubscribed, permission, isLoading, subscribe, unsubscribe } = usePushNotification();
@@ -17,7 +18,12 @@ export const PushNotificationButton = () => {
       if (success) {
         showToast(t('pushToastEnabled'), 'success');
       } else if (permission === 'denied') {
-        alert(t('pushPermissionDenied'));
+        await alertDialog({
+          title: t('pushToastFailed'),
+          message: t('pushPermissionDenied'),
+          tone: 'warning',
+          icon: 'notifications_off',
+        });
       } else {
         showToast(t('pushToastFailed'), 'error');
       }

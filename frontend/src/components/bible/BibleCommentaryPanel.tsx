@@ -15,6 +15,7 @@ import type {
 import BibleCommentaryEditor from './BibleCommentaryEditor'
 import BibleCommentaryItem from './BibleCommentaryItem'
 import { genreStyle } from './bookGenre'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 interface BibleCommentaryPanelProps {
   bookNumber: number
@@ -95,7 +96,15 @@ const BibleCommentaryPanel = ({
   }
 
   const handleDelete = async (c: BibleCommentary) => {
-    if (!confirm(`이 해석을 삭제할까요?\n${c.title || c.content.slice(0, 30)}`)) {
+    if (
+      !(await confirmDialog({
+        title: '해석 삭제',
+        message: '이 해석을 삭제할까요?',
+        description: c.title || c.content.slice(0, 30),
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    ) {
       return
     }
     try {

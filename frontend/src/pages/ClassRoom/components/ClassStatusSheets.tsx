@@ -19,6 +19,7 @@ import type { CapsuleRecipient } from '../../../types/timeCapsule'
 import { showToast } from '../../../utils/toast'
 import { Avatar, memberLabel, timeAgo } from '../classUi'
 import MemberSearchInput from '../../../components/common/MemberSearchInput'
+import { confirmDialog } from '../../../utils/confirmDialog'
 
 // ── 공용 시트 껍데기 ──
 const SheetShell = ({
@@ -94,9 +95,14 @@ const RemindButton = ({
 
   const handleRemind = async () => {
     if (
-      !confirm(
-        `아직 응답하지 않은 ${pendingCount}명에게만 알림을 보낼까요?\n이미 응답한 분에게는 가지 않아요.`,
-      )
+      !(await confirmDialog({
+        title: '콕 찔러 알리기',
+        message: `아직 응답하지 않은 ${pendingCount}명에게만 알림을 보낼까요?`,
+        description: '이미 응답한 분에게는 가지 않아요.',
+        confirmText: '보내기',
+        tone: 'brand',
+        icon: 'campaign',
+      }))
     )
       return
     try {
@@ -469,10 +475,21 @@ export const MembersSheet = ({
   const [childDraft, setChildDraft] = useState(me?.child_name ?? '')
 
   const handleToggleTeacher = async (userId: number, isTeacher: boolean) => {
-    const msg = isTeacher
-      ? '이 멤버를 공동 교사로 지정할까요? 알림장 글을 쓸 수 있게 돼요.'
-      : '교사 역할을 해제할까요?'
-    if (!confirm(msg)) return
+    if (
+      !(await confirmDialog({
+        title: isTeacher ? '공동 교사 지정' : '교사 역할 해제',
+        message: isTeacher
+          ? '이 멤버를 공동 교사로 지정할까요?'
+          : '교사 역할을 해제할까요?',
+        description: isTeacher
+          ? '알림장 글을 쓸 수 있게 돼요.'
+          : '더 이상 알림장 글을 쓸 수 없어요.',
+        confirmText: isTeacher ? '지정' : '해제',
+        tone: isTeacher ? 'brand' : 'warning',
+        icon: 'manage_accounts',
+      }))
+    )
+      return
     try {
       await setTeacher.mutateAsync({ userId, isTeacher })
       showToast('역할을 변경했어요', 'success')

@@ -11,6 +11,7 @@ import { deleteNewFamilyPost } from '../../../api/newFamily'
 import { isAdmin } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import type { NewFamilyPost } from '../../../types/newFamily'
+import { confirmDialog } from '../../../utils/confirmDialog'
 
 type ViewMode = 'feed' | 'grid'
 
@@ -37,9 +38,13 @@ const NewFamilySection = () => {
 
   const handleDelete = async (post: NewFamilyPost) => {
     if (
-      !window.confirm(
-        `${post.member_name} 소식을 삭제할까요?\n등록된 사진과 환영 댓글도 함께 삭제됩니다.`,
-      )
+      !(await confirmDialog({
+        title: '새가족 소식 삭제',
+        message: `${post.member_name} 소식을 삭제할까요?`,
+        description: '등록된 사진과 환영 댓글도 함께 삭제됩니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
     )
       return
     try {

@@ -13,6 +13,7 @@ import {
   type User,
 } from '../../api/user'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { confirmDialog, alertDialog } from '../../utils/confirmDialog'
 
 type RoleFilter = 'all' | 'admin' | 'user'
 type StatusFilter = 'all' | 'active' | 'inactive' | 'pending'
@@ -67,7 +68,14 @@ const UserManagement = () => {
     const next = !requireApproval
     if (
       next &&
-      !confirm('이제부터 가입하는 회원은 관리자가 승인해야 로그인할 수 있습니다.\n켜시겠습니까?')
+      !(await confirmDialog({
+        title: '가입 승인제 켜기',
+        message: '이제부터 가입하는 회원은 관리자가 승인해야 로그인할 수 있습니다.',
+        description: '켜시겠습니까?',
+        confirmText: '켜기',
+        tone: 'warning',
+        icon: 'verified_user',
+      }))
     ) {
       return
     }
@@ -87,7 +95,17 @@ const UserManagement = () => {
   }
 
   const handleApproval = async (userId: number, approve: boolean) => {
-    if (!approve && !confirm('가입을 거절하시겠습니까?\n계정은 남지만 로그인이 차단됩니다.')) return
+    if (
+      !approve &&
+      !(await confirmDialog({
+        title: '가입 거절',
+        message: '가입을 거절하시겠습니까?',
+        description: '계정은 남지만 로그인이 차단됩니다.',
+        confirmText: '거절',
+        icon: 'person_off',
+      }))
+    )
+      return
     try {
       await updateUserApproval(userId, approve)
       showToast(approve ? '승인되었습니다' : '가입을 거절했습니다', 'success')
@@ -98,7 +116,19 @@ const UserManagement = () => {
   }
 
   const handleToggleAdmin = async (userId: number, currentStatus: boolean) => {
-    if (!confirm(`정말 ${currentStatus ? '일반 사용자로' : '관리자로'} 변경하시겠습니까?`)) return
+    if (
+      !(await confirmDialog({
+        title: '권한 변경',
+        message: `정말 ${currentStatus ? '일반 사용자로' : '관리자로'} 변경하시겠습니까?`,
+        description: currentStatus
+          ? '관리자 메뉴에 더 이상 접근할 수 없게 됩니다.'
+          : '모든 관리자 메뉴에 접근할 수 있게 됩니다.',
+        confirmText: '변경',
+        tone: 'warning',
+        icon: 'admin_panel_settings',
+      }))
+    )
+      return
     try {
       await updateUserRole(userId, !currentStatus)
       showToast('권한이 변경되었습니다', 'success')
@@ -109,7 +139,19 @@ const UserManagement = () => {
   }
 
   const handleToggleStatus = async (userId: number, currentStatus: boolean) => {
-    if (!confirm(`정말 ${currentStatus ? '비활성화' : '활성화'}하시겠습니까?`)) return
+    if (
+      !(await confirmDialog({
+        title: currentStatus ? '계정 비활성화' : '계정 활성화',
+        message: `정말 ${currentStatus ? '비활성화' : '활성화'}하시겠습니까?`,
+        description: currentStatus
+          ? '비활성화된 계정은 로그인할 수 없습니다.'
+          : '다시 로그인할 수 있게 됩니다.',
+        confirmText: currentStatus ? '비활성화' : '활성화',
+        tone: currentStatus ? 'danger' : 'brand',
+        icon: currentStatus ? 'block' : 'how_to_reg',
+      }))
+    )
+      return
     try {
       await updateUserStatus(userId, !currentStatus)
       showToast('상태가 변경되었습니다', 'success')
@@ -120,11 +162,28 @@ const UserManagement = () => {
   }
 
   const handleResetPassword = async (userId: number, name: string) => {
-    if (!confirm(`'${name}' 회원의 비밀번호를 임시 비밀번호로 초기화하시겠습니까?`)) return
+    if (
+      !(await confirmDialog({
+        title: '비밀번호 초기화',
+        message: `'${name}' 회원의 비밀번호를 임시 비밀번호로 초기화하시겠습니까?`,
+        description: '기존 비밀번호는 즉시 사용할 수 없게 됩니다.',
+        confirmText: '초기화',
+        tone: 'warning',
+        icon: 'lock_reset',
+      }))
+    )
+      return
     try {
       const { temp_password } = await resetUserPassword(userId)
-      // 임시 비밀번호를 놓치지 않도록 alert로 확실히 안내 (회원에게 전달 후 직접 변경)
-      alert(`비밀번호가 초기화되었습니다.\n\n임시 비밀번호: ${temp_password}\n\n회원에게 전달해 주세요. 로그인 후 직접 변경할 수 있습니다.`)
+      // 임시 비밀번호를 놓치지 않도록 모달로 확실히 안내 (회원에게 전달 후 직접 변경)
+      await alertDialog({
+        title: '비밀번호가 초기화되었습니다',
+        message: `임시 비밀번호: ${temp_password}`,
+        description: '회원에게 전달해 주세요. 로그인 후 직접 변경할 수 있습니다.',
+        confirmText: '확인',
+        tone: 'brand',
+        icon: 'lock_reset',
+      })
       showToast('비밀번호가 초기화되었습니다', 'success')
     } catch {
       showToast('비밀번호 초기화에 실패했습니다', 'error')

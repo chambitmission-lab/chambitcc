@@ -20,6 +20,7 @@ import {
   StarsSheet,
 } from './components/ClassStatusSheets'
 import { Avatar, DeptBadge, Shell } from './classUi'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 const FILTER_TABS: { value: ClassPostType | undefined; label: string }[] = [
   { value: undefined, label: '전체' },
@@ -78,7 +79,16 @@ const ClassHome = () => {
   }
 
   const handleLeave = async () => {
-    if (!confirm('이 반에서 나가시겠어요?')) return
+    if (
+      !(await confirmDialog({
+        title: '반 나가기',
+        message: '이 반에서 나가시겠어요?',
+        description: '다시 들어오려면 초대 코드가 필요해요.',
+        confirmText: '나가기',
+        icon: 'logout',
+      }))
+    )
+      return
     try {
       await leaveClass.mutateAsync(id)
       showToast('반에서 나왔어요', 'success')

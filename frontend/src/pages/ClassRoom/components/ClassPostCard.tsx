@@ -16,6 +16,7 @@ import { formatKstDateTime, formatRemaining, parseKstDate } from '../../../utils
 import { showToast } from '../../../utils/toast'
 import { Avatar, timeAgo } from '../classUi'
 import VersePracticeSheet from './VersePracticeSheet'
+import { confirmDialog } from '../../../utils/confirmDialog'
 
 const TYPE_META: Record<string, { label: string; cls: string }> = {
   notice: { label: '📢 공지', cls: 'bg-[var(--brand-soft)] text-brand' },
@@ -51,7 +52,16 @@ const ClassPostCard = ({
   const meta = TYPE_META[post.post_type] ?? TYPE_META.notice
 
   const handleDelete = async () => {
-    if (!confirm('이 알림을 삭제할까요?')) return
+    if (
+      !(await confirmDialog({
+        title: '알림 삭제',
+        message: '이 알림을 삭제할까요?',
+        description: '삭제된 내용은 복구할 수 없습니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deletePost.mutateAsync(post.id)
       showToast('알림을 삭제했어요', 'success')
@@ -489,7 +499,19 @@ const EventSection = ({
   const handleRsvp = async (status: RsvpStatus) => {
     try {
       if (event.my_status === status) {
-        if (isClosed && !confirm('마감이 지났어요. 참석 응답을 취소할까요?')) return
+        if (
+          isClosed &&
+          !(await confirmDialog({
+            title: '참석 응답 취소',
+            message: '마감이 지났어요. 참석 응답을 취소할까요?',
+            description: '취소 후에는 다시 응답하기 어려울 수 있어요.',
+            confirmText: '취소하기',
+            cancelText: '닫기',
+            tone: 'warning',
+            icon: 'event_busy',
+          }))
+        )
+          return
         await cancelRsvp.mutateAsync(post.id)
       } else {
         await setRsvp.mutateAsync({ postId: post.id, status })

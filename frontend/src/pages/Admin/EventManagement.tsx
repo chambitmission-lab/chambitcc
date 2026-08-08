@@ -12,6 +12,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { translations } from '../../locales'
 import EventComposer from './components/EventComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 type PublishFilter = 'all' | 'published' | 'draft'
 type SortKey = 'upcoming' | 'recent' | 'attendance'
@@ -54,7 +55,15 @@ const EventManagement = () => {
   }
 
   const handleDelete = async (eventId: number) => {
-    if (!confirm(t.confirmDelete)) return
+    if (
+      !(await confirmDialog({
+        title: t.delete,
+        message: t.confirmDelete,
+        confirmText: t.confirmDeleteAction,
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deleteEvent(eventId)
       showToast(t.deleteSuccess, 'success')

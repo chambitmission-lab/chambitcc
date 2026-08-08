@@ -10,6 +10,7 @@ import {
 import type { NewFamilyPost } from '../../types/newFamily'
 import NewFamilyComposer from './components/NewFamilyComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'welcome'
@@ -65,9 +66,13 @@ const NewFamilyManagement = () => {
 
   const handleDelete = async (post: NewFamilyPost) => {
     if (
-      !confirm(
-        `${post.member_name} 소식을 삭제하시겠습니까?\n등록된 사진과 환영 댓글도 함께 삭제됩니다.`,
-      )
+      !(await confirmDialog({
+        title: '새가족 소식 삭제',
+        message: `${post.member_name} 소식을 삭제하시겠습니까?`,
+        description: '등록된 사진과 환영 댓글도 함께 삭제됩니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
     )
       return
     try {

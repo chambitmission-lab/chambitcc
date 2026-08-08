@@ -23,6 +23,7 @@ import type {
 } from '../../types/bluemarble'
 import type { RabbitMood } from '../../components/rabbit/RabbitAvatar'
 import type { TreasureDef } from '../../types/rabbit'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 export interface Toast {
   id: number
@@ -346,8 +347,16 @@ export const useBluemarbleGame = () => {
     setActiveNarrative(null)
   }
 
-  const handleRestart = () => {
-    if (window.confirm('지금까지의 발자취를 포기하고 처음부터 다시 시작할까요?')) {
+  const handleRestart = async () => {
+    const ok = await confirmDialog({
+      title: '처음부터 다시',
+      message: '지금까지의 발자취를 포기하고 처음부터 다시 시작할까요?',
+      description: '진행 중인 여행 기록은 사라집니다.',
+      confirmText: '다시 시작',
+      tone: 'warning',
+      icon: 'restart_alt',
+    })
+    if (ok) {
       sfx.play('click')
       introShownRef.current = false
       setStreak(0)
@@ -370,8 +379,16 @@ export const useBluemarbleGame = () => {
   }
 
   // 랩 완주 모달 — 여행 마치기 (누적 점수 리더보드 기록)
-  const finishLap = () => {
-    if (window.confirm('정말 여행을 마치시겠어요? 누적 점수가 리더보드에 기록됩니다.')) {
+  const finishLap = async () => {
+    const ok = await confirmDialog({
+      title: '여행 마치기',
+      message: '정말 여행을 마치시겠어요?',
+      description: '누적 점수가 리더보드에 기록됩니다.',
+      confirmText: '마치기',
+      tone: 'brand',
+      icon: 'flag',
+    })
+    if (ok) {
       setPendingLap(null)
       setShowQuiz(false)
       setActiveQuiz(null)

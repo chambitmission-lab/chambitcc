@@ -6,6 +6,7 @@ import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import AudiencePicker from './components/AudiencePicker'
 import { FilterChip } from './components/FilterControls'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 const TITLE_MAX = 50
 const BODY_MAX = 200
@@ -123,7 +124,17 @@ export const PushNotificationManagement = () => {
       showToast('전송할 대상이 없습니다', 'error')
       return
     }
-    if (!confirm(`${audienceLabel}에게 푸시 알림을 전송하시겠습니까?`)) return
+    if (
+      !(await confirmDialog({
+        title: '푸시 알림 전송',
+        message: `${audienceLabel}에게 푸시 알림을 전송하시겠습니까?`,
+        description: '전송한 알림은 취소할 수 없습니다.',
+        confirmText: '전송',
+        tone: 'brand',
+        icon: 'send',
+      }))
+    )
+      return
 
     setIsSending(true)
     setResult(null)

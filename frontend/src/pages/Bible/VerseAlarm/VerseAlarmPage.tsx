@@ -11,6 +11,7 @@ import { isAuthenticated } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import type { VerseAlarm } from '../../../api/verseAlarm'
 import './VerseAlarmPage.css'
+import { confirmDialog } from '../../../utils/confirmDialog'
 
 const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
 
@@ -375,7 +376,16 @@ const VerseAlarmPage = () => {
   }
 
   const handleDelete = async (alarmId: number) => {
-    if (!window.confirm('이 알람을 삭제할까요?')) return
+    if (
+      !(await confirmDialog({
+        title: '알람 삭제',
+        message: '이 알람을 삭제할까요?',
+        description: '삭제된 알람은 복구할 수 없습니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deleteAlarm.mutateAsync(alarmId)
       setEditor(null)

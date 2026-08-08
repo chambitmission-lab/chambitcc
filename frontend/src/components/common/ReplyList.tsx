@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Reply } from '../../types/prayer'
 import { AnimatedEmojiText } from './animatedEmoji'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 interface ReplyListProps {
   replies: Reply[]
@@ -56,8 +57,17 @@ const ReplyList = ({
     cancelEdit()
   }
 
-  const handleDelete = (reply: Reply) => {
-    if (!window.confirm('댓글을 삭제할까요?')) return
+  const handleDelete = async (reply: Reply) => {
+    if (
+      !(await confirmDialog({
+        title: '댓글 삭제',
+        message: '이 댓글을 삭제할까요?',
+        description: '삭제된 내용은 복구할 수 없습니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     if (editingId === reply.id) cancelEdit()
     onReplyDelete?.(reply.id)
   }

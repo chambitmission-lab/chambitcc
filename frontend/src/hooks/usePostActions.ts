@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { toggleLike, toggleRetweet, type Post } from '../api/community'
 import type { ApiError } from '../types/queryCache'
+import { showToast } from '../utils/toast'
 
 interface UsePostActionsProps {
   posts: Post[]
@@ -23,7 +24,7 @@ export const usePostActions = ({ posts, setPosts }: UsePostActionsProps): UsePos
     const currentPost = posts.find(p => p.id === postId)
     
     if (currentPost?.isLiked) {
-      alert('이미 좋아요를 누르셨습니다.')
+      showToast('이미 좋아요를 누르셨습니다.', 'error')
       return
     }
     
@@ -43,21 +44,21 @@ export const usePostActions = ({ posts, setPosts }: UsePostActionsProps): UsePos
       const e = err as ApiError
 
       if (e.response?.status === 401) {
-        alert('로그인이 필요합니다.')
+        showToast('로그인이 필요합니다.', 'error')
       } else if (e.response?.status === 400) {
         const errorMsg = e.response?.data?.detail || e.response?.data?.message
         if (errorMsg?.includes('already liked')) {
-          alert('이미 좋아요를 누르셨습니다.')
+          showToast('이미 좋아요를 누르셨습니다.', 'error')
           setPosts(posts.map(post => 
             post.id === postId ? { ...post, isLiked: true } : post
           ))
         } else if (errorMsg?.includes('not found')) {
-          alert('게시물을 찾을 수 없습니다.')
+          showToast('게시물을 찾을 수 없습니다.', 'error')
         } else {
-          alert('좋아요 처리 중 오류가 발생했습니다.')
+          showToast('좋아요 처리 중 오류가 발생했습니다.', 'error')
         }
       } else {
-        alert('좋아요 처리 중 오류가 발생했습니다.')
+        showToast('좋아요 처리 중 오류가 발생했습니다.', 'error')
       }
     } finally {
       setIsProcessing(false)
@@ -68,7 +69,7 @@ export const usePostActions = ({ posts, setPosts }: UsePostActionsProps): UsePos
     const currentPost = posts.find(p => p.id === postId)
     
     if (currentPost?.isRetweeted) {
-      alert('이미 리트윗하셨습니다.')
+      showToast('이미 리트윗하셨습니다.', 'error')
       return
     }
     
@@ -88,21 +89,21 @@ export const usePostActions = ({ posts, setPosts }: UsePostActionsProps): UsePos
       const e = err as ApiError
 
       if (e.response?.status === 401) {
-        alert('로그인이 필요합니다.')
+        showToast('로그인이 필요합니다.', 'error')
       } else if (e.response?.status === 400) {
         const errorMsg = e.response?.data?.detail || e.response?.data?.message
         if (errorMsg?.includes('already')) {
-          alert('이미 리트윗하셨습니다.')
+          showToast('이미 리트윗하셨습니다.', 'error')
           setPosts(posts.map(post => 
             post.id === postId ? { ...post, isRetweeted: true } : post
           ))
         } else if (errorMsg?.includes('not found')) {
-          alert('게시물을 찾을 수 없습니다.')
+          showToast('게시물을 찾을 수 없습니다.', 'error')
         } else {
-          alert('리트윗 처리 중 오류가 발생했습니다.')
+          showToast('리트윗 처리 중 오류가 발생했습니다.', 'error')
         }
       } else {
-        alert('리트윗 처리 중 오류가 발생했습니다.')
+        showToast('리트윗 처리 중 오류가 발생했습니다.', 'error')
       }
     } finally {
       setIsProcessing(false)

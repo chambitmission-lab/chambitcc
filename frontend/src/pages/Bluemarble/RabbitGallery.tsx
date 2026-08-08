@@ -10,6 +10,8 @@ import {
 } from '../../hooks/useRabbit'
 import RabbitAvatar from '../../components/rabbit/RabbitAvatar'
 import '../../components/rabbit/rabbit.css'
+import { alertDialog } from '../../utils/confirmDialog'
+import { showToast } from '../../utils/toast'
 
 const SLOT_LABEL: Record<string, string> = {
   feet: '발',
@@ -102,9 +104,15 @@ export default function RabbitGallery() {
     } else {
       try {
         await navigator.clipboard.writeText(text)
-        alert('공유 텍스트를 클립보드에 복사했습니다!')
+        showToast('공유 텍스트를 클립보드에 복사했습니다!', 'success')
       } catch {
-        alert(text)
+        await alertDialog({
+          title: '공유 텍스트',
+          message: text,
+          confirmText: '닫기',
+          tone: 'brand',
+          icon: 'share',
+        })
       }
     }
   }

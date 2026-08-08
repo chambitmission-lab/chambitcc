@@ -7,6 +7,7 @@ import AnswerModal from '../../components/prayer/AnswerModal'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Prayer, SortType } from '../../types/prayer'
 import './AnsweredPrayers.css'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 const AnsweredPrayers = () => {
   const { t } = useLanguage()
@@ -41,7 +42,12 @@ const AnsweredPrayers = () => {
   }
 
   const handleCancelAnswer = async (prayerId: number) => {
-    const ok = window.confirm(t('answeredCancelConfirm'))
+    const ok = await confirmDialog({
+      title: t('answeredCancelTitle'),
+      message: t('answeredCancelConfirm'),
+      confirmText: t('answeredCancelAction'),
+      icon: 'undo',
+    })
     if (!ok) return
     try {
       await cancelPrayerAnswer(prayerId)

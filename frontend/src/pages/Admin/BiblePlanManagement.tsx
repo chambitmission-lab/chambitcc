@@ -9,6 +9,7 @@ import type { PlanSummary } from '../../types/biblePlan'
 import { accentGradient } from '../Bible/Plans/planVisuals'
 import BiblePlanComposer from './components/BiblePlanComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 type PublishFilter = 'all' | 'published' | 'draft'
 
@@ -53,7 +54,16 @@ const BiblePlanManagement = () => {
   const draftCount = plans.length - publishedCount
 
   const handleDelete = async (plan: PlanSummary) => {
-    if (!confirm(`"${plan.title}" 플랜을 삭제할까요? 구독자 진행 기록도 함께 삭제됩니다.`)) return
+    if (
+      !(await confirmDialog({
+        title: '플랜 삭제',
+        message: `"${plan.title}" 플랜을 삭제할까요?`,
+        description: '구독자 진행 기록도 함께 삭제됩니다.',
+        confirmText: '삭제',
+        icon: 'delete_forever',
+      }))
+    )
+      return
     try {
       await deletePlan.mutateAsync(plan.id)
       showToast('삭제되었습니다', 'success')

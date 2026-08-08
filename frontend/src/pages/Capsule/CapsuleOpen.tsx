@@ -20,6 +20,7 @@ import {
   SigilGlyph,
 } from './capsuleIcons'
 import './capsule.css'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 type Phase = 'sealed' | 'opening' | 'letter'
 
@@ -568,7 +569,16 @@ const CapsuleOpen = () => {
   }
 
   const handleDelete = async () => {
-    if (!window.confirm('이 캡슐을 삭제할까요? 되돌릴 수 없어요.')) return
+    if (
+      !(await confirmDialog({
+        title: '타임캡슐 삭제',
+        message: '이 캡슐을 삭제할까요?',
+        description: '한 번 삭제하면 되돌릴 수 없어요.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deleteCapsule.mutateAsync(capsuleId)
       showToast('캡슐을 삭제했어요', 'success')

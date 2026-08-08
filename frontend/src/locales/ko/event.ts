@@ -59,8 +59,9 @@ export const event = {
   rsvpClosedBadge: '접수 마감',
   rsvpClosedForResponder: '마감 후에도 응답 변경과 취소는 할 수 있어요.',
   rsvpClosedForNewcomer: '새 참석 등록은 더 이상 받지 않아요.',
-  rsvpCancelAfterCloseConfirm:
-    '마감이 지나서, 지금 취소하면 다시 참석 등록을 할 수 없어요. 취소할까요?',
+  rsvpCancelAfterCloseTitle: '참석 취소',
+  rsvpCancelAfterCloseConfirm: '지금 취소하면 다시 참석 등록을 할 수 없어요.\n그래도 취소할까요?',
+  rsvpCancelAfterCloseAction: '취소하기',
 
   // 상세 페이지 퀵 액션
   addToCalendar: '캘린더 추가',
@@ -109,7 +110,10 @@ export const event = {
   
   // 확인 메시지
   confirmDelete: '이 일정을 삭제하시겠습니까?',
+  confirmDeleteAction: '삭제',
+  confirmDeleteCommentTitle: '댓글 삭제',
   confirmDeleteComment: '이 댓글을 삭제하시겠습니까?',
+  confirmDeleteCommentAction: '삭제',
   
   // 성공/에러 메시지
   createSuccess: '일정이 등록되었습니다',

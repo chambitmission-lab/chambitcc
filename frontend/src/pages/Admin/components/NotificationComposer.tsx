@@ -11,6 +11,7 @@ import type {
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import DatePicker from '../../../components/common/DatePicker'
+import { confirmDialog } from '../../../utils/confirmDialog'
 
 interface NotificationComposerProps {
   editingNotification: Notification | null
@@ -130,8 +131,20 @@ const NotificationComposer = ({
     form.content.trim().length > 0 ||
     !!form.image_url
 
-  const handleClose = () => {
-    if (hasDraft && !window.confirm('작성 중인 내용이 사라집니다. 닫으시겠습니까?')) return
+  const handleClose = async () => {
+    if (
+      hasDraft &&
+      !(await confirmDialog({
+        title: '작성 중인 내용이 있어요',
+        message: '지금 닫으면 작성 중인 내용이 사라집니다.',
+        description: '닫으시겠습니까?',
+        confirmText: '닫기',
+        cancelText: '계속 쓰기',
+        tone: 'warning',
+        icon: 'edit_note',
+      }))
+    )
+      return
     onClose()
   }
 

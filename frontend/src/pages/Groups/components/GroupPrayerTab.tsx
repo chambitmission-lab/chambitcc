@@ -9,6 +9,7 @@ import { usePrayersInfinite } from '../../../hooks/usePrayersQuery'
 import { useAuth } from '../../../hooks/useAuth'
 import { showToast } from '../../../utils/toast'
 import type { SortType, Prayer } from '../../../types/prayer'
+import { confirmDialog } from '../../../utils/confirmDialog'
 
 interface GroupPrayerTabProps {
   groupId: number
@@ -55,7 +56,15 @@ const GroupPrayerTab = ({ groupId }: GroupPrayerTabProps) => {
   }, [])
 
   const handleCancelAnswer = useCallback(async (prayerId: number) => {
-    if (!window.confirm('응답 등록을 취소하시겠습니까? 등록한 간증이 삭제됩니다.')) return
+    const ok = await confirmDialog({
+      title: '응답 등록 취소',
+      message: '응답 등록을 취소하시겠습니까?',
+      description: '등록한 간증이 함께 삭제됩니다.',
+      confirmText: '취소하기',
+      cancelText: '닫기',
+      icon: 'undo',
+    })
+    if (!ok) return
     try {
       await prayerHookRef.current.cancelPrayerAnswer(prayerId)
     } catch {

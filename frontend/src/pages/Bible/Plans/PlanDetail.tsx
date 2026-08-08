@@ -19,6 +19,7 @@ import { accentGradient, gradientTextStyle } from './planVisuals'
 import DayCard from './components/DayCard'
 import ReflectionSheet from './components/ReflectionSheet'
 import ReflectionEditModal from './components/ReflectionEditModal'
+import { confirmDialog } from '../../../utils/confirmDialog'
 
 // 긴 플랜(90/120/365일)은 일정을 30일 단위로 접어 스크롤 부담을 줄인다.
 // 짧은 플랜(7/30일)은 그룹 헤더가 오히려 방해라 플랫 렌더 유지.
@@ -127,7 +128,16 @@ const PlanDetail = () => {
   }
 
   const handleUnsubscribe = async () => {
-    if (!confirm('이 플랜을 그만두시겠어요? 진행 기록이 사라집니다.')) return
+    if (
+      !(await confirmDialog({
+        title: '플랜 그만두기',
+        message: '이 플랜을 그만두시겠어요?',
+        description: '지금까지의 진행 기록이 사라집니다.',
+        confirmText: '그만두기',
+        icon: 'logout',
+      }))
+    )
+      return
     try {
       await unsubscribe.mutateAsync(id)
       showToast('플랜을 그만뒀어요', 'success')
@@ -137,7 +147,17 @@ const PlanDetail = () => {
   }
 
   const handleRestart = async () => {
-    if (!confirm('처음부터 다시 시작할까요? 진행 기록이 초기화됩니다.')) return
+    if (
+      !(await confirmDialog({
+        title: '처음부터 다시 시작',
+        message: '처음부터 다시 시작할까요?',
+        description: '지금까지의 진행 기록이 초기화됩니다.',
+        confirmText: '다시 시작',
+        tone: 'warning',
+        icon: 'restart_alt',
+      }))
+    )
+      return
     try {
       await restart.mutateAsync(id)
       showToast('처음부터 다시 시작해요!', 'success')

@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useProfileDetail } from '../../hooks/useProfile'
 import EmojiPickerPanel from './EmojiPickerPanel'
+import { showToast } from '../../utils/toast'
 
 interface ReplyComposerProps {
   onSubmit: (content: string, displayName: string) => void
@@ -84,7 +85,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting, onExpandedChange }: ReplyCompos
     }
 
     if (!isLoggedIn) {
-      alert('로그인이 필요합니다')
+      showToast('로그인이 필요합니다', 'error')
       return
     }
 

@@ -6,6 +6,7 @@ import { showToast } from '../../utils/toast'
 import type { Notification } from '../../types/notification'
 import NotificationComposer from './components/NotificationComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 type ActiveFilter = 'all' | 'active' | 'inactive'
 type SortKey = 'recent' | 'oldest' | 'title'
@@ -46,7 +47,16 @@ const NotificationManagement = () => {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return
+    if (
+      !(await confirmDialog({
+        title: '공지사항 삭제',
+        message: '이 공지사항을 삭제하시겠습니까?',
+        description: '삭제된 내용은 복구할 수 없습니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deleteNotification(id)
       showToast('공지사항이 삭제되었습니다', 'success')

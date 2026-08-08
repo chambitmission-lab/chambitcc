@@ -7,6 +7,7 @@ import type {
   BibleBookIntro,
   BibleBookIntroUpsertRequest,
 } from '../../types/bibleBookIntro'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 interface BookIntroEditorProps {
   bookNumber: number
@@ -50,7 +51,14 @@ const BookIntroEditor = ({
     if (aiLoading || saving) return
     if (
       (oneLiner.trim() || overview.trim()) &&
-      !window.confirm('현재 작성한 개관을 AI 초안으로 교체할까요?')
+      !(await confirmDialog({
+        title: 'AI 초안으로 교체',
+        message: '현재 작성한 개관을 AI 초안으로 교체할까요?',
+        description: '지금 쓰신 내용은 사라집니다.',
+        confirmText: '교체',
+        tone: 'warning',
+        icon: 'auto_awesome',
+      }))
     ) {
       return
     }

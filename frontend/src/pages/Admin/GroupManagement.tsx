@@ -14,6 +14,7 @@ import { fetchAdminGroups, deleteAdminGroup } from '../../api/admin'
 import type { AdminGroupListResponse } from '../../api/admin'
 import { groupInviteUrl } from '../../utils/inviteLink'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 type AdminGroup = AdminGroupListResponse['data']['items'][number]
 
@@ -118,9 +119,13 @@ const GroupManagement = () => {
       `기도제목 ${group.prayer_count}개`,
     ].join(' · ')
     if (
-      !confirm(
-        `"${group.name}" 그룹을 삭제할까요?\n\n${detail}\n\n그룹에 쌓인 데이터가 모두 사라지며 되돌릴 수 없습니다.`,
-      )
+      !(await confirmDialog({
+        title: '그룹 삭제',
+        message: `"${group.name}" 그룹을 삭제할까요?`,
+        description: `${detail}\n그룹에 쌓인 데이터가 모두 사라지며 되돌릴 수 없습니다.`,
+        confirmText: '삭제',
+        icon: 'delete_forever',
+      }))
     ) {
       return
     }

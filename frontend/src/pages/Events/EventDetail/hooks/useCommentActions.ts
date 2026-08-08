@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createEventComment, deleteEventComment } from '../../../../api/event'
 import type { Translation } from '../../../../locales'
+import { confirmDialog } from '../../../../utils/confirmDialog'
+import { showToast } from '../../../../utils/toast'
 
 export const useCommentActions = (eventId: number, refresh: () => void, t: Translation) => {
   const navigate = useNavigate()
@@ -12,7 +14,7 @@ export const useCommentActions = (eventId: number, refresh: () => void, t: Trans
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!isLoggedIn) {
-      alert(t.loginRequired)
+      showToast(t.loginRequired, 'error')
       navigate('/login')
       return
     }
@@ -23,24 +25,32 @@ export const useCommentActions = (eventId: number, refresh: () => void, t: Trans
       setSubmitting(true)
       await createEventComment(eventId, { content: comment })
       setComment('')
-      alert(t.commentSuccess)
+      showToast(t.commentSuccess, 'success')
       refresh()
     } catch (err) {
-      alert(err instanceof Error ? err.message : t.error)
+      showToast(err instanceof Error ? err.message : t.error, 'error')
     } finally {
       setSubmitting(false)
     }
   }
 
   const handleDeleteComment = async (commentId: number) => {
-    if (!confirm(t.confirmDeleteComment)) return
+    if (
+      !(await confirmDialog({
+        title: t.confirmDeleteCommentTitle,
+        message: t.confirmDeleteComment,
+        confirmText: t.confirmDeleteCommentAction,
+        icon: 'delete_outline',
+      }))
+    )
+      return
 
     try {
       await deleteEventComment(commentId)
-      alert(t.commentDeleteSuccess)
+      showToast(t.commentDeleteSuccess, 'success')
       refresh()
     } catch (err) {
-      alert(err instanceof Error ? err.message : t.error)
+      showToast(err instanceof Error ? err.message : t.error, 'error')
     }
   }
 

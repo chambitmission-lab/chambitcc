@@ -11,6 +11,7 @@ import PWAInstallButton from './components/common/PWAInstallButton'
 import PullToRefresh from './components/common/PullToRefresh'
 import ScrollRestoration from './components/common/ScrollRestoration'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
+import { ConfirmDialogHost } from './components/common/ConfirmDialog'
 import { menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
 import { healPushSubscription } from './utils/pushNotification'
 import { isAuthenticated, getCurrentUser } from './utils/auth'
@@ -289,6 +290,8 @@ function App() {
           <PWAInstallButton />
           {/* 성경 칭호 해금 팝업 호스트 — 읽기 후 새 칭호를 축하 */}
           <TitleUnlockHost />
+          {/* 공통 확인/안내 모달 호스트 — 브라우저 기본 confirm()/alert() 대체 */}
+          <ConfirmDialogHost />
           {/* Vercel Web Analytics — 방문자/페이지뷰 트래픽 집계 (쿠키리스).
               HashRouter라 경로별 세분화는 hash로 잡히지만, 방문자 총계는 정상 집계됨. */}
           <Analytics />

@@ -18,6 +18,7 @@ import { groupInviteUrl } from '../../../utils/inviteLink'
 import { getCurrentUser } from '../../../utils/auth'
 import type { CapsuleRecipient } from '../../../types/timeCapsule'
 import type { PrayerGroup, GroupMember } from '../../../types/prayer'
+import { confirmDialog } from '../../../utils/confirmDialog'
 
 interface GroupMembersTabProps {
   group: PrayerGroup
@@ -116,15 +117,30 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
   }
 
   const handleKick = async (member: GroupMember) => {
-    if (!confirm(`${member.display_name}님을 그룹에서 내보낼까요?`)) return
+    if (
+      !(await confirmDialog({
+        title: '멤버 내보내기',
+        message: `${member.display_name}님을 그룹에서 내보낼까요?`,
+        description: '다시 들어오려면 초대 코드가 필요해요.',
+        confirmText: '내보내기',
+        icon: 'person_remove',
+      }))
+    )
+      return
     kick.mutate({ groupId, userId: member.user_id })
   }
 
   const handleTransfer = async (member: GroupMember) => {
     if (
-      !confirm(
-        `${member.display_name}님에게 관리자 권한을 이양할까요?\n이양하면 나는 일반 멤버가 되고, 초대 코드·멤버 관리는 새 관리자만 할 수 있어요.`,
-      )
+      !(await confirmDialog({
+        title: '관리자 권한 이양',
+        message: `${member.display_name}님에게 관리자 권한을 이양할까요?`,
+        description:
+          '이양하면 나는 일반 멤버가 되고, 초대 코드·멤버 관리는 새 관리자만 할 수 있어요.',
+        confirmText: '이양',
+        tone: 'warning',
+        icon: 'admin_panel_settings',
+      }))
     )
       return
     transfer.mutate({ groupId, newAdminUserId: member.user_id })
@@ -135,7 +151,16 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
       showToast('먼저 다른 멤버에게 관리자 권한을 이양해주세요', 'info')
       return
     }
-    if (!confirm('이 기도방에서 나가시겠어요?')) return
+    if (
+      !(await confirmDialog({
+        title: '기도방 나가기',
+        message: '이 기도방에서 나가시겠어요?',
+        description: '다시 들어오려면 초대 코드가 필요해요.',
+        confirmText: '나가기',
+        icon: 'logout',
+      }))
+    )
+      return
     try {
       await leave.mutateAsync(groupId)
       navigate('/groups')

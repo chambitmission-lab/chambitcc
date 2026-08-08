@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { attendEvent, cancelAttendance } from '../../../../api/event'
 import type { AttendanceStatus } from '../../../../types/event'
 import type { Translation } from '../../../../locales'
+import { showToast } from '../../../../utils/toast'
 
 export const useEventActions = (eventId: number, refresh: () => void, t: Translation) => {
   const navigate = useNavigate()
@@ -9,17 +10,17 @@ export const useEventActions = (eventId: number, refresh: () => void, t: Transla
 
   const handleAttend = async (status: AttendanceStatus) => {
     if (!isLoggedIn) {
-      alert(t.loginRequired)
+      showToast(t.loginRequired, 'error')
       navigate('/login')
       return
     }
 
     try {
       await attendEvent(eventId, { status })
-      alert(t.attendSuccess)
+      showToast(t.attendSuccess, 'success')
       refresh()
     } catch (err) {
-      alert(err instanceof Error ? err.message : t.error)
+      showToast(err instanceof Error ? err.message : t.error, 'error')
     }
   }
 
@@ -28,10 +29,10 @@ export const useEventActions = (eventId: number, refresh: () => void, t: Transla
 
     try {
       await cancelAttendance(eventId)
-      alert(t.cancelSuccess)
+      showToast(t.cancelSuccess, 'success')
       refresh()
     } catch (err) {
-      alert(err instanceof Error ? err.message : t.error)
+      showToast(err instanceof Error ? err.message : t.error, 'error')
     }
   }
 

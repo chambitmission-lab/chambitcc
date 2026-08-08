@@ -6,6 +6,7 @@ import { resizeImageToBlob } from '../../../utils/imageResize'
 import { showToast } from '../../../utils/toast'
 import type { Achievement, GlowLevel } from '../../../types/achievement'
 import './ProfileHeader.css'
+import { confirmDialog } from '../../../utils/confirmDialog'
 
 // 등급(GLOW_LEVELS)별 플레이어 클래스 — 영문 칭호 · 한글 수식어 · 시리얼 코드 · 엠블럼
 const CLASS_BY_LEVEL: Record<
@@ -72,7 +73,16 @@ const ProfileHeader = ({
 
   const handleAvatarDelete = async () => {
     if (avatarBusy) return
-    if (!window.confirm('프로필 사진을 삭제할까요?')) return
+    if (
+      !(await confirmDialog({
+        title: '프로필 사진 삭제',
+        message: '프로필 사진을 삭제할까요?',
+        description: '기본 아바타로 되돌아갑니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deleteAvatar.mutateAsync()
       showToast('프로필 사진을 삭제했어요', 'success')

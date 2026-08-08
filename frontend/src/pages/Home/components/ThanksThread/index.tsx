@@ -7,6 +7,7 @@ import { showToast } from '../../../../utils/toast'
 import ThanksCard from './ThanksCard'
 import ThanksComposer from './ThanksComposer'
 import { useThanks } from './useThanks'
+import { confirmDialog } from '../../../../utils/confirmDialog'
 
 const ThanksThread = () => {
   const { language } = useLanguage()
@@ -31,7 +32,16 @@ const ThanksThread = () => {
   }
 
   const handleDelete = async (id: number) => {
-    const ok = window.confirm(language === 'ko' ? '이 감사를 삭제할까요?' : 'Delete this thanks?')
+    const ok = await confirmDialog({
+      title: language === 'ko' ? '감사 삭제' : 'Delete thanks',
+      message: language === 'ko' ? '이 감사를 삭제할까요?' : 'Delete this thanks?',
+      description:
+        language === 'ko'
+          ? '삭제된 내용은 복구할 수 없습니다.'
+          : 'This cannot be undone.',
+      confirmText: language === 'ko' ? '삭제' : 'Delete',
+      icon: 'delete_outline',
+    })
     if (!ok) return
     try {
       await remove(id)

@@ -27,6 +27,7 @@ import ThanksComposer from '../Home/components/ThanksThread/ThanksComposer'
 import ThanksAvatar from '../Home/components/ThanksThread/ThanksAvatar'
 import gratitudeHero from '../../assets/hero/gratitude.jpg'
 import '../Home/components/ThanksThread/thanks.css'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 /* 히어로에 하루 하나씩 도는 감사 말씀 */
 const THANKS_VERSES = [
@@ -256,7 +257,13 @@ const Thanks = () => {
   }
 
   const handleDelete = async (id: number) => {
-    const ok = window.confirm(ko ? '이 감사를 삭제할까요?' : 'Delete this thanks?')
+    const ok = await confirmDialog({
+      title: ko ? '감사 삭제' : 'Delete thanks',
+      message: ko ? '이 감사를 삭제할까요?' : 'Delete this thanks?',
+      description: ko ? '삭제된 내용은 복구할 수 없습니다.' : 'This cannot be undone.',
+      confirmText: ko ? '삭제' : 'Delete',
+      icon: 'delete_outline',
+    })
     if (!ok) return
     removeMutation.mutate(id)
   }

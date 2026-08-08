@@ -13,6 +13,7 @@ import {
   parseWeeklyPrayerText,
 } from '../../api/weeklyPrayer'
 import type { WeeklyPrayerItem, WeeklyPrayerListItem } from '../../types/weeklyPrayer'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 // 다가오는 주일(일요일) 날짜 — 오늘이 일요일이면 오늘
 const upcomingSunday = (): string => {
@@ -211,7 +212,16 @@ const WeeklyPrayerManagement = () => {
   }
 
   const handleDelete = async (id: number, weekDate: string) => {
-    if (!window.confirm(`${formatWeekLabel(weekDate)} 기도제목을 삭제할까요?`)) return
+    if (
+      !(await confirmDialog({
+        title: '주간 기도제목 삭제',
+        message: `${formatWeekLabel(weekDate)} 기도제목을 삭제할까요?`,
+        description: '삭제된 내용은 복구할 수 없습니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deleteWeeklyPrayer(id)
       showToast('삭제했습니다', 'success')

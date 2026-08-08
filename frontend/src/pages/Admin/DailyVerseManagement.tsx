@@ -7,6 +7,7 @@ import { getAllDailyVerses, deleteDailyVerse } from '../../api/dailyVerse'
 import type { DailyVerse } from '../../types/dailyVerse'
 import DailyVerseComposer from './components/DailyVerseComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 type VerseFilter = 'all' | 'today' | 'upcoming' | 'past'
 type SortKey = 'recent' | 'oldest'
@@ -94,7 +95,16 @@ const DailyVerseManagement = () => {
   }
 
   const handleDelete = async (id: number) => {
-    if (!confirm('이 말씀을 삭제하시겠습니까?')) return
+    if (
+      !(await confirmDialog({
+        title: '오늘의 말씀 삭제',
+        message: '이 말씀을 삭제하시겠습니까?',
+        description: '삭제된 내용은 복구할 수 없습니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deleteDailyVerse(id)
       showToast('오늘의 말씀이 삭제되었습니다', 'success')

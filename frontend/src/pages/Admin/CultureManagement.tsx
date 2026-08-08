@@ -20,6 +20,7 @@ import type {
   CultureApplicationStatus,
   CultureNotice,
 } from '../../types/culture'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 type TabKey = 'classes' | 'applications' | 'notices'
 
@@ -406,9 +407,13 @@ const CultureManagement = () => {
 
   const handleDeleteClass = async (cultureClass: CultureClassAdmin) => {
     if (
-      !confirm(
-        `"${cultureClass.title}" 강좌를 삭제할까요?\n신청 내역 ${cultureClass.application_count}건도 함께 삭제됩니다.`
-      )
+      !(await confirmDialog({
+        title: '강좌 삭제',
+        message: `"${cultureClass.title}" 강좌를 삭제할까요?`,
+        description: `신청 내역 ${cultureClass.application_count}건도 함께 삭제됩니다.`,
+        confirmText: '삭제',
+        icon: 'delete_forever',
+      }))
     )
       return
     try {
@@ -461,7 +466,16 @@ const CultureManagement = () => {
   }
 
   const handleDeleteNotice = async (notice: CultureNotice) => {
-    if (!confirm(`"${notice.title}" 공지를 삭제할까요?`)) return
+    if (
+      !(await confirmDialog({
+        title: '공지 삭제',
+        message: `"${notice.title}" 공지를 삭제할까요?`,
+        description: '삭제된 내용은 복구할 수 없습니다.',
+        confirmText: '삭제',
+        icon: 'delete_outline',
+      }))
+    )
+      return
     try {
       await deleteCultureNotice(notice.id)
       showToast('삭제되었습니다', 'success')

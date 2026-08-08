@@ -8,6 +8,7 @@ import {
   type BibleCommentaryCreateRequest,
   type BibleCommentaryScope,
 } from '../../types/bibleCommentary'
+import { confirmDialog } from '../../utils/confirmDialog'
 
 interface BibleCommentaryEditorProps {
   bookNumber: number
@@ -127,7 +128,14 @@ const BibleCommentaryEditor = ({
     if (aiLoading || saving) return
     if (
       content.trim() &&
-      !window.confirm('현재 작성한 본문을 AI 초안으로 교체할까요?')
+      !(await confirmDialog({
+        title: 'AI 초안으로 교체',
+        message: '현재 작성한 본문을 AI 초안으로 교체할까요?',
+        description: '지금 쓰신 내용은 사라집니다.',
+        confirmText: '교체',
+        tone: 'warning',
+        icon: 'auto_awesome',
+      }))
     ) {
       return
     }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { generateReflection, streamReflection, updateReflection } from '../api/biblePlan'
 import type { PlanReflection } from '../types/biblePlan'
 import { showToast } from '../utils/toast'
+import { confirmDialog } from '../utils/confirmDialog'
 
 export interface ReflectionState {
   loading: boolean
@@ -80,7 +81,17 @@ export const usePlanReflections = (planId: number) => {
   // 관리자 — 캐시 무시하고 AI 묵상 새로 생성
   const regenerateReflection = async (dayNumber: number) => {
     if (regeneratingDay !== null) return
-    if (!confirm('이 일자의 AI 묵상을 새로 생성할까요? 기존 내용은 교체됩니다.')) return
+    if (
+      !(await confirmDialog({
+        title: 'AI 묵상 다시 생성',
+        message: '이 일자의 AI 묵상을 새로 생성할까요?',
+        description: '기존 내용은 교체됩니다.',
+        confirmText: '다시 생성',
+        tone: 'warning',
+        icon: 'auto_awesome',
+      }))
+    )
+      return
     const previous = reflections[dayNumber]
     setRegeneratingDay(dayNumber)
     try {
