@@ -1,0 +1,116 @@
+/* 오늘의 읽기 — 시편 119:105 "주의 말씀은 내 발에 등이요 내 길에 빛이니이다"
+   진행률 도넛(하루 목표의 언어) 대신, 등불이 걸어온 만큼 밝혀진 길.
+   2%여도 "빈 원"이 아니라 "출발해서 걷는 중인 길"로 읽히게 한다. */
+
+.plan-trail {
+  position: relative;
+  margin-top: 10px;
+}
+
+.plan-trail__svg {
+  display: block;
+  width: 100%;
+  height: 44px;
+  overflow: visible;
+}
+
+/* 아직 걷지 않은 길 — 점점이 이어지는 오솔길 */
+.plan-trail__base {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.2 7;
+  opacity: 0.4;
+}
+
+/* 걸어온 길 — 등불빛으로 밝혀진 구간 */
+.plan-trail__lit {
+  fill: none;
+  stroke: var(--amber-icon);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.55));
+}
+
+/* 지금 서 있는 자리의 등불 — 심지의 빛 한 점 + 숨 쉬는 불빛 무리 */
+.plan-trail__lamp {
+  fill: #fff6e3;
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.9));
+}
+
+.plan-trail__lamp-glow {
+  fill: rgba(251, 191, 36, 0.22);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: plan-lamp-breathe 3s ease-in-out infinite;
+}
+
+@keyframes plan-lamp-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.6;
+  }
+}
+
+/* 길 끝의 별 — 완주라는 종착지. 멀리서 희미하게 반짝인다 */
+.plan-trail__star {
+  fill: var(--amber-icon);
+  opacity: 0.5;
+  animation: plan-star-twinkle 4.2s ease-in-out infinite alternate;
+}
+
+/* 완주하면 별이 온전히 빛난다 */
+.plan-trail__star--reached {
+  opacity: 1;
+  filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.8));
+  animation: none;
+}
+
+@keyframes plan-star-twinkle {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 0.7;
+  }
+}
+
+/* 진행률 — 길 오른쪽 아래에 조용한 숫자로만 */
+.plan-trail__pct {
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 이어 읽기 스트릭 — 게임의 불(🔥)이 아니라 꺼지지 않은 등불 */
+.plan-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--amber);
+}
+
+.plan-streak__flame {
+  display: block;
+  filter: drop-shadow(0 0 3px rgba(251, 191, 36, 0.6));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-trail__lamp-glow,
+  .plan-trail__star {
+    animation: none;
+  }
+}
