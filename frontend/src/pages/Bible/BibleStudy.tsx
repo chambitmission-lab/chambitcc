@@ -373,8 +373,11 @@ const BibleStudy = () => {
               <div className="bible-chapter-section">
                 <ChapterNavigation
                   selectedBook={selectedBook}
+                  selectedBookId={selectedBookId}
+                  bookNumber={selectedBookData.book_number}
                   selectedChapter={selectedChapter}
                   totalChapters={selectedBookData.chapter_count}
+                  resumeChapter={resumeMap.get(selectedBookData.book_number)?.chapter}
                   onChapterChange={handleChapterChange}
                   onBackToBooks={handleChangeBook}
                 />
