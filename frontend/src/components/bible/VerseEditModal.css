@@ -13,7 +13,8 @@
 }
 
 .verse-edit-modal {
-  background: var(--ig-background);
+  /* theme.css 의 카드 표면 토큰 — data-theme 에 따라 라이트/다크가 함께 따라온다 */
+  background: var(--surface-container);
   border-radius: 1rem;
   max-width: 600px;
   width: 100%;
@@ -101,8 +102,8 @@
   border-radius: 0.75rem;
   font-size: 1rem;
   line-height: 1.6;
-  color: var(--ig-primary-text);
-  background: var(--ig-background);
+  color: var(--text-strong);
+  background: var(--surface-container);
   resize: vertical;
   min-height: 120px;
   transition: all 0.2s;
@@ -215,12 +216,8 @@
   }
 }
 
-/* 다크모드 대응 */
-@media (prefers-color-scheme: dark) {
-  .verse-edit-modal {
-    background: #1a1a1a;
-  }
-}
+/* 다크모드는 --surface-container 토큰이 data-theme 로 따라오므로 별도 오버라이드 없음.
+   prefers-color-scheme 로 색을 강제하면 '시스템 다크 + 앱 라이트' 조합에서 어긋난다. */
 
 /* 모바일 대응 */
 @media (max-width: 640px) {
