@@ -1,9 +1,10 @@
 /* 전체 메뉴용 라인 아이콘 — 스트로크 1.6의 Lucide 계열 톤.
    아이콘 폰트(material-icons)를 쓰지 않아 메뉴를 열 때 글리프가 늦게 뜨는 일이 없다. */
 
-type IconProps = { className?: string }
+export type IconProps = { className?: string }
 
-const Svg = ({ children, className }: IconProps & { children: React.ReactNode }) => (
+/* 관리자 메뉴 아이콘(AdminIcons.tsx)도 같은 규격을 공유한다 */
+export const Svg = ({ children, className }: IconProps & { children: React.ReactNode }) => (
   <svg
     viewBox="0 0 24 24"
     fill="none"
