@@ -766,16 +766,18 @@
 }
 
 /* ── 성경통독표 격자 ─────────────────────
- * 카드가 아니라 괘선으로 나뉜 한 장의 표. 색은 먹(ink)+인주 둘뿐이고,
+ * 카드가 아니라 괘선으로 나뉜 한 장의 표. 색은 종이(먹)+인장 둘뿐이고,
  * 진행률은 게이지가 아니라 칸에 찍힌 인장의 농도로 쌓인다.
+ * 인장은 원래 붉은 인주였지만 앱 전역이 토스 블루 단색 테마라 표 한 장만 붉게 튀었다 —
+ * 도장 은유는 그대로 두고 색만 브랜드로 옮긴다(먹선도 따라서 차가운 슬레이트로).
  * 괘선은 gap 1px 사이로 배경색(--td-line)이 비치는 방식 — 어느 칸도 선을 겹쳐 갖지 않는다. */
 .books-grid {
-  --td-paper: #fcfaf4;                 /* 한지 톤 종이 */
-  --td-line: rgba(88, 76, 60, 0.16);   /* 먹으로 그은 괘선 */
-  --td-red: #c1352c;                   /* 인주 */
-  --td-red-soft: rgba(193, 53, 44, 0.08);
-  --td-faint: rgba(88, 76, 60, 0.34);  /* 옅은 먹 — 빈 도장 자리 */
-  --td-ink-dim: rgba(60, 52, 42, 0.42);/* 아직 펼치지 않은 책 이름 */
+  --td-paper: #fbfcfe;                  /* 아주 옅은 푸른 기가 도는 종이 */
+  --td-line: rgba(58, 78, 110, 0.14);   /* 괘선 */
+  --td-seal: var(--brand);              /* 인장 */
+  --td-seal-soft: rgba(49, 130, 246, 0.10);
+  --td-faint: rgba(58, 78, 110, 0.32);  /* 옅은 먹 — 빈 도장 자리 */
+  --td-ink-dim: rgba(45, 62, 88, 0.45); /* 아직 펼치지 않은 책 이름 */
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
@@ -786,10 +788,10 @@
 }
 
 [data-theme="dark"] .books-grid {
-  --td-paper: #1b1814;                 /* 온기가 도는 어두운 종이 */
+  --td-paper: #161a21;                 /* 푸른 기가 도는 어두운 종이 */
   --td-line: rgba(255, 255, 255, 0.09);
-  --td-red: #e2564a;
-  --td-red-soft: rgba(226, 86, 74, 0.12);
+  --td-seal: var(--brand);
+  --td-seal-soft: rgba(69, 147, 252, 0.16);
   --td-faint: rgba(255, 255, 255, 0.3);
   --td-ink-dim: rgba(255, 255, 255, 0.38);
 }
@@ -839,12 +841,12 @@
   transition: transform 0.15s ease;
 }
 
-/* 탭 = 도장을 누르는 압력감 — 칸이 살짝 눌리며 인주가 배어난다 */
+/* 탭 = 도장을 누르는 압력감 — 칸이 살짝 눌리며 인장색이 배어난다 */
 .book-cell::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 38%, var(--td-red-soft), transparent 65%);
+  background: radial-gradient(circle at 50% 38%, var(--td-seal-soft), transparent 65%);
   opacity: 0;
   transition: opacity 0.35s ease;
   pointer-events: none;
@@ -864,7 +866,7 @@
 }
 
 /* 도장 — 빈 칸엔 점선 자리("비어 있다"가 아니라 "칸이 준비됐다"),
-   읽기 시작하면 인주가 배고(농도 = 진행률, 인라인 opacity), 완독은 선명한 인장 */
+   읽기 시작하면 인장색이 배고(농도 = 진행률, 인라인 opacity), 완독은 선명한 인장 */
 .book-stamp {
   width: 30px;
   height: 30px;
@@ -884,14 +886,14 @@
 
 .book-stamp.inked {
   border-style: solid;
-  border-color: var(--td-red);
-  color: var(--td-red);
+  border-color: var(--td-seal);
+  color: var(--td-seal);
 }
 
-/* 완독 인장 — 인주가 살짝 번진 소프트 링 */
+/* 완독 인장 — 인장색이 살짝 번진 소프트 링 */
 .book-cell.is-complete .book-stamp {
-  background: var(--td-red-soft);
-  box-shadow: 0 0 0 3px var(--td-red-soft);
+  background: var(--td-seal-soft);
+  box-shadow: 0 0 0 3px var(--td-seal-soft);
 }
 
 .book-cell__name {
@@ -914,7 +916,7 @@
 }
 
 .book-cell.is-complete .book-cell__meta {
-  color: var(--td-red);
+  color: var(--td-seal);
   font-weight: 700;
 }
 
