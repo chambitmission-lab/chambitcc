@@ -9,6 +9,7 @@ import {
   type EngagementVerse,
 } from '../../api/admin'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { AdminPageHeader, EmptyHint, SectionCard, StatSpinner } from './components/StatCards'
 
 type PeriodKey = 'all' | '7' | '30' | '90'
 type TopTab = 'favorites' | 'notes' | 'underlines'
@@ -96,20 +97,7 @@ const BibleEngagementManagement = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10">
-        {/* 헤더 */}
-        <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
-          >
-            <span className="material-icons-outlined">arrow_back</span>
-            <span className="text-sm font-semibold">뒤로</span>
-          </button>
-          <h1 className="text-base font-bold tracking-[-0.015em] text-ink-strong">말씀 반응 통계</h1>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand tracking-[0.08em]">
-            ADMIN
-          </span>
-        </div>
+        <AdminPageHeader title="말씀 반응 통계" />
 
         {/* 익명 집계 안내 */}
         <p className="px-4 pt-3 text-[11.5px] text-gray-500 dark:text-white/45 leading-relaxed">
@@ -128,10 +116,7 @@ const BibleEngagementManagement = () => {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-3">
-            <div className="w-8 h-8 border-[3px] border-[var(--brand-glow)] border-t-brand rounded-full animate-spin" />
-            <p className="text-[13px] text-gray-500 dark:text-white/50">집계 중...</p>
-          </div>
+          <StatSpinner />
         ) : !data ? (
           <p className="px-4 py-16 text-center text-[13px] text-gray-500 dark:text-white/50">
             통계를 불러오지 못했습니다
@@ -275,22 +260,6 @@ const SummaryCard = ({
       </p>
     </div>
   </div>
-)
-
-const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="px-4 pt-4">
-    <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-      <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-      <div className="relative z-10 space-y-3">
-        <h2 className="text-[13.5px] font-bold text-ink-strong tracking-[-0.01em]">{title}</h2>
-        {children}
-      </div>
-    </div>
-  </div>
-)
-
-const EmptyHint = ({ text }: { text: string }) => (
-  <p className="py-6 text-center text-[12.5px] text-gray-400 dark:text-white/40">{text}</p>
 )
 
 export default BibleEngagementManagement

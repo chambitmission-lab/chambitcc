@@ -7,10 +7,11 @@ type AdminItemKey =
   | 'eventManagement' | 'biblePlanManagement' | 'bibleCommentaryManagement'
   | 'situationManagement' | 'cultureManagement' | 'pushNotificationManagement'
   | 'userManagement' | 'groupManagement' | 'bibleEngagementManagement'
-  | 'weeklyPrayerManagement'
+  | 'weeklyPrayerManagement' | 'adminDashboard' | 'careRadar'
 
 type AdminGroupKey =
-  | 'adminGroupContent' | 'adminGroupComm' | 'adminGroupOps' | 'adminGroupMembers'
+  | 'adminGroupInsight' | 'adminGroupContent' | 'adminGroupComm'
+  | 'adminGroupOps' | 'adminGroupMembers'
 
 interface AdminItem {
   path: string
@@ -25,6 +26,14 @@ interface AdminGroup {
 // 업무 성격별로 묶어 스캔·탐색 시간을 줄인다
 const ADMIN_GROUPS: AdminGroup[] = [
   {
+    titleKey: 'adminGroupInsight',
+    items: [
+      { path: '/admin', key: 'adminDashboard' },
+      { path: '/admin/care', key: 'careRadar' },
+      { path: '/admin/bible-engagement', key: 'bibleEngagementManagement' }
+    ]
+  },
+  {
     titleKey: 'adminGroupContent',
     items: [
       { path: '/admin/daily-verse', key: 'dailyVerseManagement' },
@@ -33,8 +42,7 @@ const ADMIN_GROUPS: AdminGroup[] = [
       { path: '/admin/new-family', key: 'newFamilyManagement' },
       { path: '/admin/bible-plans', key: 'biblePlanManagement' },
       { path: '/admin/bible-commentaries', key: 'bibleCommentaryManagement' },
-      { path: '/admin/situations', key: 'situationManagement' },
-      { path: '/admin/bible-engagement', key: 'bibleEngagementManagement' }
+      { path: '/admin/situations', key: 'situationManagement' }
     ]
   },
   {

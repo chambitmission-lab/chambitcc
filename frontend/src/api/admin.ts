@@ -99,6 +99,114 @@ export const fetchBibleEngagement = async (
   return json.data
 }
 
+// ── 관리자 홈 대시보드 · 돌봄 레이더 ──────────────────────
+const adminGet = async <T,>(path: string, errorMessage: string): Promise<T> => {
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    throw new Error('로그인이 필요합니다')
+  }
+
+  const response = await apiFetch(`${API_V1}${path}`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || errorMessage)
+  }
+
+  const json = await response.json()
+  return json.data as T
+}
+
+/** 대시보드 액션 카드 — 0건인 항목은 서버가 아예 내려보내지 않는다 */
+export interface DashboardAction {
+  key: string
+  label: string
+  count: number
+  detail: string
+  link: string
+  tone: 'urgent' | 'warn' | 'info'
+}
+
+export interface DashboardMetric {
+  key: string
+  label: string
+  unit: string
+  /** 최근 7일 */
+  value: number
+  /** 직전 7일 */
+  prev: number
+  delta: number
+}
+
+export interface AdminDashboardData {
+  generated_at: string
+  members: number
+  actions: DashboardAction[]
+  weekly: DashboardMetric[]
+  reach: { subscribed: number; members: number; rate: number }
+  trend: Array<{ date: string; active: number }>
+}
+
+export const fetchAdminDashboard = (): Promise<AdminDashboardData> =>
+  adminGet('/admin/dashboard', '현황을 불러오는데 실패했습니다')
+
+/** 조용해진 성도 — 기록 '내용'은 서버가 내려보내지 않는다 (마지막 활동 시점까지만) */
+export interface QuietMember {
+  user_id: number
+  name: string
+  username: string
+  avatar_url: string | null
+  joined_at: string | null
+  last_seen: string | null
+  /** 마지막 활동 이후 지난 날 수 (최근 1년 내 기록이 없으면 null) */
+  days_since: number | null
+  activity_total: number
+  band: string
+}
+
+export interface NewcomerStep {
+  key: string
+  label: string
+  count: number
+  rate: number
+}
+
+export interface NewcomerMember {
+  user_id: number
+  name: string
+  avatar_url: string | null
+  joined_at: string | null
+  days_since_join: number | null
+  /** 도달한 단계 키 목록 */
+  done: string[]
+}
+
+export interface CareRadarData {
+  generated_at: string
+  quiet_days: number
+  summary: {
+    members: number
+    quiet: number
+    bands: Array<{ label: string; count: number }>
+  }
+  quiet_members: QuietMember[]
+  quiet_truncated: number
+  newcomers: {
+    cohort_days: number
+    total: number
+    steps: NewcomerStep[]
+    members: NewcomerMember[]
+  }
+}
+
+export const fetchCareRadar = (quietDays: number): Promise<CareRadarData> =>
+  adminGet(
+    `/admin/care-radar?quiet_days=${quietDays}`,
+    '돌봄 레이더를 불러오는데 실패했습니다'
+  )
+
 // 관리자용 그룹 삭제
 export const deleteAdminGroup = async (groupId: number): Promise<void> => {
   const token = localStorage.getItem('access_token')
