@@ -9,8 +9,10 @@ interface SortTabsProps {
 const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
   const { t } = useLanguage()
   
+  // z-30: 그룹 필터 드롭다운의 딤막(z-40)보다 아래에 있어야 한다.
+  // 동률이면 DOM 순서상 이 흰 sticky 바가 딤막 위로 올라와 흰 줄처럼 비친다.
   return (
-    <section className="bg-background-light dark:bg-background-dark py-2 px-4 flex items-center sticky top-0 z-40">
+    <section className="bg-background-light dark:bg-background-dark py-2 px-4 flex items-center sticky top-0 z-30">
       {/* 메인 탭(GroupFilter, 굵은 언더라인)과 시각적으로 명확히 구분되도록
           정렬은 작은 pill 칩 스타일로 처리 — 위계상 보조 컨트롤임을 드러냄. */}
       <div className="flex gap-1.5">
