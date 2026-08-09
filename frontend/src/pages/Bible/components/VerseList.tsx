@@ -17,7 +17,10 @@ import { useChapterCommentaries } from '../../../hooks/useBibleCommentary'
 import { useChapterWordNotes, groupWordNotesByVerse } from '../../../hooks/useBibleWordNote'
 import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
-import { buildReference, copyVerses, type VerseCopyTarget } from './verseCopy'
+import type { VerseCopyTarget } from './verseCopy'
+import VerseSelectionBar from './VerseSelectionBar'
+import { useVerseScroll } from '../hooks/useVerseScroll'
+import { useAudioFollow } from '../hooks/useAudioFollow'
 import VerseShareSheet from './VerseShareSheet'
 
 /** 절 번호 길게 누르기 안내를 이미 본 적 있는지 (한 번 보면 다시 안 뜬다) */
@@ -435,92 +438,8 @@ const VerseList = ({
   // 언마운트 시 옵저버 정리
   useEffect(() => () => observerRef.current?.disconnect(), [])
   
-  // 절 스크롤은 브라우저 smooth scrollIntoView를 쓰지 않고 rAF로 직접 애니메이션한다.
-  // smooth scrollIntoView는 모바일 브라우저에서 소리 없이 실패하는 일이 잦아
-  // "어떤 절은 안 움직이다가 다음 절에서 훅 점프"하는 증상을 만들었다.
-  // 매 프레임 남은 거리의 일정 비율만큼 움직이는 방식(지수 감속)이라 항상 부드럽고,
-  // 목표 지점을 프레임마다 다시 재기 때문에 도중 레이아웃 변화에도 안전하다.
-  const scrollAnimRef = useRef<number | null>(null)
-  const cancelVerseScroll = useCallback(() => {
-    if (scrollAnimRef.current != null) {
-      cancelAnimationFrame(scrollAnimRef.current)
-      scrollAnimRef.current = null
-    }
-  }, [])
-  useEffect(() => () => cancelVerseScroll(), [cancelVerseScroll])
-
-  const scrollVerseIntoView = useCallback(
-    (el: HTMLElement, block: 'start' | 'center' | 'follow' = 'center') => {
-      cancelVerseScroll()
-      // 실제 스크롤 컨테이너가 기기/브라우저에 따라 갈린다(이 앱은 html/body
-      // overflow-x:hidden + height:100% 구조라 body가 스크롤러인 환경이 있음).
-      // 1px 나눠보기로 실제 스크롤되는 쪽을 먼저 확정한다.
-      const candidates = Array.from(
-        new Set(
-          [
-            document.scrollingElement as HTMLElement | null,
-            document.body,
-            document.documentElement,
-          ].filter((c): c is HTMLElement => c != null)
-        )
-      )
-      let scroller: HTMLElement | null = null
-      for (const c of candidates) {
-        const before = c.scrollTop
-        c.scrollTop = before + 1
-        if (c.scrollTop !== before) {
-          c.scrollTop = before
-          scroller = c
-          break
-        }
-        c.scrollTop = before - 1
-        if (c.scrollTop !== before) {
-          c.scrollTop = before
-          scroller = c
-          break
-        }
-      }
-      if (!scroller) return // 스크롤 자체가 불가능한 상태
-
-      // 목표 위치:
-      // - 'start'  : 고정 헤더+미니 플레이어 아래(112px)
-      // - 'center' : 뷰포트 중앙(단, 헤더 아래로는 안 올라가게)
-      // - 'follow' : 낭독 따라가기용 하단 앵커. 절의 '아래쪽'을 화면 82%에 맞춘다.
-      //   → 절이 하단에 닿았을 때만, 딱 한 절만큼만 밀어 올려 계속 하단에 머물게 한다
-      //     (맨 위로 확 끌어올리는 점프가 없어 멀미가 안 난다).
-      const viewportTarget =
-        block === 'start'
-          ? 112
-          : block === 'follow'
-            ? Math.max(112, window.innerHeight * 0.82 - el.clientHeight)
-            : Math.max(112, (window.innerHeight - el.clientHeight) / 2)
-      // 시작 시 한 번만 측정해 목표 scrollTop을 확정하고, 이후엔 경과 시간만으로
-      // 절대 위치를 계산한다(easeOutCubic 고정 곡선). 매 프레임 요소 위치를
-      // 재측정하는 피드백 방식은 강제 레이아웃 + dt 널뜀으로 이동량이 프레임마다
-      // 들쭉날쭉해져 모바일에서 드득거리는 스크롤이 됐다. 절대 곡선은 프레임이
-      // 떨어져도 곡선 위 제 위치로 건너뛰므로 항상 고르게 보인다.
-      const startTop = scroller.scrollTop
-      const dist = el.getBoundingClientRect().top - viewportTarget
-      if (Math.abs(dist) < 2) return // 이미 제자리
-      const maxTop = scroller.scrollHeight - scroller.clientHeight
-      const endTop = Math.max(0, Math.min(startTop + dist, maxTop))
-      // 거리에 비례하되 420~900ms로 클램프. easeInOut(천천히 출발-천천히 정지)이라
-      // easeOut처럼 시작 순간 확 움직이는 '뚝' 느낌이 없다 — 낭독 따라가기처럼
-      // 주기적으로 반복되는 스크롤은 가감속이 완만해야 멀미가 안 난다.
-      const duration = Math.max(420, Math.min(260 + Math.abs(endTop - startTop) * 0.5, 900))
-      const t0 = performance.now()
-      const target = scroller
-      const step = (now: number) => {
-        scrollAnimRef.current = null
-        const p = Math.min(1, (now - t0) / duration)
-        const eased = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
-        target.scrollTop = startTop + (endTop - startTop) * eased
-        if (p < 1) scrollAnimRef.current = requestAnimationFrame(step)
-      }
-      scrollAnimRef.current = requestAnimationFrame(step)
-    },
-    [cancelVerseScroll]
-  )
+  // 절 스크롤 엔진(스크롤러 탐지 + rAF 애니메이션)은 useVerseScroll 로 분리했다.
+  const { scrollVerseIntoView, cancelVerseScroll } = useVerseScroll()
 
   // 이어 읽기: 지정된 절로 자동 스크롤 + 일시적 하이라이트.
   // 무한 스크롤 페이지가 새로 로드될 때마다 DOM 존재 여부를 재확인하고,
@@ -543,123 +462,17 @@ const VerseList = ({
   }, [scrollToVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
 
   // ---------- 오디오북 듣기-보기 동기화 ----------
-  // 낭독 절을 텔레프롬프터처럼 하단 고정으로 따라간다. 절이 바뀔 때마다
-  // 화면을 움직이거나, 맨 위로 확 끌어올리면(예전 방식) 반 화면이 점프하며
-  // 멀미가 난다. 대신:
-  //  1) 낭독 절이 아직 화면 위쪽~하단 앵커(82%) 사이에 보이는 동안은 스크롤을
-  //     하지 않고 하이라이트만 아래로 내린다 — 이미 화면에 있는 다음 절들을
-  //     자연스럽게 따라 읽는다("하단 하단 하단").
-  //  2) 낭독 절이 하단 앵커에 닿으면, 딱 한 절만큼만 아래로 밀어 그 절을 다시
-  //     앵커에 맞춘다 — 맨 위로 리셋하지 않고 계속 하단에 머문다("한 단계씩").
-  // 사용자가 직접 스크롤하면 잠시 멈추고 pill을 띄우며, pill 탭 또는
-  // 마지막 조작 6초 후 자동으로 다시 따라간다.
-  const [audioFollow, setAudioFollow] = useState(true)
-  const audioFollowRef = useRef(audioFollow)
-  audioFollowRef.current = audioFollow
-  // 재생이 멈추면 따라가기도 즉시 멈춘다. 하이라이트(audioActiveVerse)는 마지막
-  // 낭독 절에 그대로 남아 있으므로, 재생 여부를 함께 봐야 "멈췄는데 화면만
-  // 계속 그 절로 끌려가는" 현상이 없다.
-  const audioSyncActive = audioActiveVerse != null && audioPlaying
-  const audioPlayingRef = useRef(audioPlaying)
-  audioPlayingRef.current = audioPlaying
-
-  // 낭독 절이 편안 구역(헤더 아래 ~ 화면 하단 앵커 82%) 안에 온전히 보이면 true.
-  // 이 안에 있으면 화면을 움직이지 않고 하이라이트만 아래로 흐르게 둔다.
-  // 아래쪽 82%를 넘어가면 그때 딱 한 절만큼만 밀어 하단에 붙여둔다.
-  const isVerseInComfortZone = (el: HTMLElement) => {
-    const rect = el.getBoundingClientRect()
-    return rect.top >= 112 && rect.bottom <= window.innerHeight * 0.82
-  }
-
-  // 낭독 절이 바뀌면: 따라가기 중이고 하단 앵커를 벗어났을 때만 한 절만큼 밀어 올린다.
-  // 아직 로드 안 된 절(무한 스크롤 뒷페이지)이면 다음 페이지를 미리 받는다.
-  useEffect(() => {
-    if (audioActiveVerse == null) {
-      setAudioFollow(true) // 다음 재생을 위해 초기화
-      return
-    }
-    // 일시정지 중이면 절이 로드되거나 목록이 갱신돼도 화면을 움직이지 않는다
-    if (!audioPlaying) return
-    if (!chapterData) return
-    const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
-    if (el) {
-      if (audioFollowRef.current && !isVerseInComfortZone(el)) {
-        scrollVerseIntoView(el, 'follow')
-      }
-    } else if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage()
-    }
-  }, [audioActiveVerse, audioPlaying, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, scrollVerseIntoView])
-
-  const followResumeTimerRef = useRef<number | null>(null)
-
-  // 일시정지(또는 종료) 순간: 진행 중인 따라가기 스크롤과 6초 자동 복귀 예약을 모두 취소.
-  // 이게 없으면 멈춘 뒤에도 예약된 복귀가 살아 있어 화면이 혼자 낭독 절로 돌아간다.
-  useEffect(() => {
-    if (audioPlaying) return
-    cancelVerseScroll()
-    if (followResumeTimerRef.current) {
-      clearTimeout(followResumeTimerRef.current)
-      followResumeTimerRef.current = null
-    }
-    setAudioFollow(true) // 다시 재생하면 곧바로 따라가도록 초기화
-  }, [audioPlaying, cancelVerseScroll])
-
-  const resumeAudioFollow = () => {
-    if (followResumeTimerRef.current) {
-      clearTimeout(followResumeTimerRef.current)
-      followResumeTimerRef.current = null
-    }
-    setAudioFollow(true)
-    if (audioActiveVerse != null && audioPlayingRef.current) {
-      const el = document.getElementById(`bible-verse-${audioActiveVerse}`)
-      // 이미 편안 구역에 보이면 굳이 화면을 움직이지 않는다
-      if (el && !isVerseInComfortZone(el)) scrollVerseIntoView(el, 'follow')
-    }
-  }
-  // 자동 재개 타이머에서 항상 최신 상태(현재 낭독 절)를 보도록 ref로 보관
-  const resumeAudioFollowRef = useRef(resumeAudioFollow)
-  resumeAudioFollowRef.current = resumeAudioFollow
-
-  // 낭독 중 사용자가 직접 스크롤(휠/터치)하면 따라가기를 잠시 멈춘다.
-  // - 모바일은 화면에 손가락이 스치기만 해도 touchmove가 오므로, 12px 이상
-  //   실제로 드래그했을 때만 '직접 스크롤'로 간주한다 (탭 떨림 방어).
-  // - 멈춘 따라가기는 마지막 조작 후 6초가 지나면 현재 낭독 절로 자동 복귀한다.
-  // scrollIntoView가 만드는 scroll 이벤트는 wheel/touchmove를 발생시키지 않아 안전.
-  useEffect(() => {
-    if (!audioSyncActive) return
-    let touchStartY: number | null = null
-    const pauseFollow = () => {
-      cancelVerseScroll() // 진행 중인 자동 스크롤이 손가락과 싸우지 않게 즉시 중단
-      setAudioFollow(false)
-      if (followResumeTimerRef.current) clearTimeout(followResumeTimerRef.current)
-      followResumeTimerRef.current = window.setTimeout(() => {
-        followResumeTimerRef.current = null
-        resumeAudioFollowRef.current()
-      }, 6000)
-    }
-    const onWheel = () => pauseFollow()
-    const onTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0]?.clientY ?? null
-    }
-    const onTouchMove = (e: TouchEvent) => {
-      const y = e.touches[0]?.clientY
-      if (touchStartY == null || y == null) return
-      if (Math.abs(y - touchStartY) > 12) pauseFollow()
-    }
-    window.addEventListener('wheel', onWheel, { passive: true })
-    window.addEventListener('touchstart', onTouchStart, { passive: true })
-    window.addEventListener('touchmove', onTouchMove, { passive: true })
-    return () => {
-      window.removeEventListener('wheel', onWheel)
-      window.removeEventListener('touchstart', onTouchStart)
-      window.removeEventListener('touchmove', onTouchMove)
-      if (followResumeTimerRef.current) {
-        clearTimeout(followResumeTimerRef.current)
-        followResumeTimerRef.current = null
-      }
-    }
-  }, [audioSyncActive, cancelVerseScroll])
+  // 하단 앵커 따라가기, 직접 스크롤 시 일시 정지, 6초 자동 복귀는 useAudioFollow 로 분리했다.
+  const { audioFollow, audioSyncActive, resumeAudioFollow } = useAudioFollow({
+    audioActiveVerse,
+    audioPlaying,
+    chapterData,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    scrollVerseIntoView,
+    cancelVerseScroll,
+  })
 
   // 디버깅: 챕터 데이터 확인
   useEffect(() => {
@@ -913,126 +726,13 @@ const VerseList = ({
 
       {/* 여러 절 선택 바 — 선택 중에만 하단에 떠서 개수/참조를 보여주고 복사·공유를 받는다 */}
       {selectionMode && (
-        <div
-          role="toolbar"
-          aria-label="선택한 절 복사·공유"
-          style={{
-            position: 'fixed',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            bottom: '5.5rem',
-            width: 'calc(100% - 1.5rem)',
-            maxWidth: '32rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.375rem',
-            padding: '0.5rem 0.5rem 0.5rem 0.875rem',
-            borderRadius: '1rem',
-            background: 'var(--ig-primary-background)',
-            border: '1px solid var(--ig-border)',
-            boxShadow: '0 12px 32px -12px rgba(0, 0, 0, 0.45)',
-            zIndex: 60,
-            animation: 'versePopIn 0.16s ease-out',
-          }}
-        >
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--ig-primary-text)' }}>
-              {selectedVerses.length ? `${selectedVerses.length}개 절 선택` : '담을 절을 탭하세요'}
-            </div>
-            {selectedVerses.length > 0 && (
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--ig-secondary-text)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {buildReference(selectionTarget)}
-              </div>
-            )}
-          </div>
-
-          {/* 16·19처럼 띄엄띄엄 골랐을 때만 — 사이 절을 한 번에 채운다 */}
-          {selectionGapCount > 0 && (
-            <button
-              type="button"
-              onClick={fillSelectionGap}
-              style={{
-                flexShrink: 0,
-                padding: '0.375rem 0.625rem',
-                borderRadius: '999px',
-                border: '1px solid var(--brand-soft-strong)',
-                background: 'var(--brand-soft)',
-                color: 'var(--brand)',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              구간 채우기
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => copyVerses(selectionTarget)}
-            className="verse-action-btn"
-            disabled={!selectedVerses.length}
-            title="선택한 절 복사"
-            aria-label="선택한 절 복사"
-            style={{
-              background: 'var(--brand-soft)',
-              border: '1px solid var(--brand-soft-strong)',
-              opacity: selectedVerses.length ? 1 : 0.4,
-              cursor: selectedVerses.length ? 'pointer' : 'not-allowed',
-            }}
-          >
-            <span className="material-icons-round" style={{ fontSize: '1.0625rem', color: 'var(--brand)' }}>
-              content_copy
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShareTarget(selectionTarget)}
-            className="verse-action-btn"
-            disabled={!selectedVerses.length}
-            title="선택한 절 공유"
-            aria-label="선택한 절 공유"
-            style={{
-              background: 'var(--brand)',
-              border: '1px solid var(--brand)',
-              opacity: selectedVerses.length ? 1 : 0.4,
-              cursor: selectedVerses.length ? 'pointer' : 'not-allowed',
-            }}
-          >
-            <span className="material-icons-round" style={{ fontSize: '1.0625rem', color: '#fff' }}>
-              share
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={exitSelection}
-            className="verse-action-btn"
-            title="선택 취소"
-            aria-label="선택 취소"
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--ig-border)',
-            }}
-          >
-            <span
-              className="material-icons-round"
-              style={{ fontSize: '1.0625rem', color: 'var(--ig-secondary-text)' }}
-            >
-              close
-            </span>
-          </button>
-        </div>
+        <VerseSelectionBar
+          target={selectionTarget}
+          gapCount={selectionGapCount}
+          onFillGap={fillSelectionGap}
+          onShare={setShareTarget}
+          onExit={exitSelection}
+        />
       )}
 
       {/* 낭독 따라가기 재개 — 듣던 중 직접 스크롤해 따라가기가 꺼졌을 때만 */}
