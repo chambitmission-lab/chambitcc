@@ -21,14 +21,15 @@ interface BookSelectorProps {
 }
 
 type Testament = 'OT' | 'NT'
-type BookViewMode = 'journey' | 'grid'
+type BookViewMode = 'journey' | 'grid' | 'list'
 
-/** 보기 방식 선택 저장 키 — 여정(경로)과 격자(그리드)는 취향 문제라 사용자별로 기억한다 */
+/** 보기 방식 선택 저장 키 — 여정(경로)·격자·목록은 취향 문제라 사용자별로 기억한다 */
 const VIEW_MODE_KEY = 'bible-book-view-mode'
 
 const loadViewMode = (): BookViewMode => {
   try {
-    return localStorage.getItem(VIEW_MODE_KEY) === 'grid' ? 'grid' : 'journey'
+    const saved = localStorage.getItem(VIEW_MODE_KEY)
+    return saved === 'grid' || saved === 'list' ? saved : 'journey'
   } catch {
     return 'journey'
   }
@@ -82,6 +83,10 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const [showMap, setShowMap] = useState(false)
   // 책 목록 보기 방식 — 여정 경로(기본)와 예전 격자 중 취향대로. 선택은 기기에 기억된다
   const [viewMode, setViewMode] = useState<BookViewMode>(loadViewMode)
+
+  // 목록 보기 전용 "안 읽은 책만" 필터 — 통독 후반부에 남은 책만 추려 보는 용도.
+  // 세션 한정 상태로 둔다: 기기에 기억하면 다음 방문에 목록이 비어 보이는 이유를 찾기 어렵다
+  const [unreadOnly, setUnreadOnly] = useState(false)
 
   // 통독표 열 수 — 480px 이하는 2열(CSS 미디어쿼리와 동일 기준). 마지막 줄 빈 칸 수 계산에 쓴다
   const [narrowGrid, setNarrowGrid] = useState(
@@ -168,6 +173,11 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       read: '읽음',
       journeyView: '여정으로 보기',
       gridView: '격자로 보기',
+      listView: '목록으로 보기',
+      ctaContinue: '이어읽기',
+      ctaStart: '읽기',
+      unreadOnly: '안 읽은 책만',
+      allDone: '이 분류는 모두 완독했어요 🎉',
     },
     en: {
       selectBook: 'Select Book',
@@ -188,6 +198,11 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       read: 'read',
       journeyView: 'Journey view',
       gridView: 'Grid view',
+      listView: 'List view',
+      ctaContinue: 'Continue',
+      ctaStart: 'Read',
+      unreadOnly: 'Unread only',
+      allDone: 'Everything here is complete 🎉',
     }
   }
 
@@ -324,6 +339,87 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     )
   }
 
+  // 목록 보기 — 장식을 걷어낸 통독 체크리스트. 순번·분수·게이지·행동 버튼이 세로로 정렬되어
+  // 훑어 내리며 "다음에 읽을 책"을 고르는 용도다. 순번은 필터와 무관하게 성경 권 번호(1~66)를
+  // 그대로 쓴다 — 신약 필터에서 40부터 시작하는 것이 정답이지, 매번 1부터 세면 위치 감각이 끊긴다.
+  const renderListRow = (book: BibleBook, index: number) => {
+    const resume = resumeMap?.get(book.book_number)
+    const info = infoMap.get(book.book_number)
+    const rate = info?.rate ?? 0
+    const readChapters = info?.readChapters ?? 0
+    const totalChapters = info?.totalChapters ?? book.chapter_count
+    const isComplete = rate >= 100
+    const hasProgress = rate > 0
+    const isCurrent = book.book_number === currentBookNumber && !isComplete
+    const bookName = language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko
+
+    // 이어 읽기 위치가 읽은 양보다 앞설 때만 연한 구간 — 격자·최근 읽은 책 칩과 같은 규칙
+    const resumePct =
+      resume && !isComplete && totalChapters > 0
+        ? Math.max(0, Math.min(100, (resume.chapter / totalChapters) * 100))
+        : 0
+    const aheadPct = resumePct > rate + 1 ? resumePct : 0
+
+    // 버튼 문구의 3단계: 완독(상태) / 진행 중(이어읽기) / 새 책(읽기)
+    const ctaLabel = isComplete ? t.complete : hasProgress ? t.ctaContinue : t.ctaStart
+
+    return (
+      <button
+        key={book.id}
+        type="button"
+        className={`book-row${isComplete ? ' is-complete' : ''}${isCurrent ? ' is-current' : ''}${
+          hasProgress ? ' has-progress' : ''
+        }`}
+        // 격자와 같은 스태거 — 목록은 행이 많아 딜레이 상한을 더 낮게 묶는다
+        style={{ animationDelay: `${Math.min(index * 12, 280)}ms` }}
+        aria-label={[
+          bookName,
+          isCurrent ? t.reading : null,
+          `${readChapters}/${totalChapters}${t.chapterUnit}`,
+          isComplete ? t.complete : `${pctLabel(rate)}%`,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+        onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
+      >
+        <span className="book-row__num" aria-hidden="true">
+          {book.book_number}
+        </span>
+        <span className="book-row__avatar" aria-hidden="true">
+          {isComplete ? (
+            <span className="material-icons-round">check</span>
+          ) : (
+            bookAbbrev(book.book_number, language)
+          )}
+        </span>
+        <span className="book-row__body">
+          <span className="book-row__name">
+            {bookName}
+            {isCurrent && <span className="book-row__badge">{t.reading}</span>}
+          </span>
+          <span className="book-row__meta" aria-hidden="true">
+            {/* 분수는 "0/50장"까지 그대로 — 열이 흔들리지 않아야 표처럼 훑어진다 */}
+            <span className="book-row__frac">
+              {readChapters}/{totalChapters}
+              {t.chapterUnit}
+            </span>
+            <span className="book-row__track">
+              {aheadPct > 0 && (
+                <span className="book-row__ahead" style={{ width: `${aheadPct}%` }} />
+              )}
+              <span className="book-row__fill" style={{ width: `${gaugeWidth(rate)}%` }} />
+            </span>
+            <span className="book-row__pct">{pctLabel(rate)}%</span>
+          </span>
+        </span>
+        {/* 행 전체가 버튼이라 이건 눌림 대상이 아니라 "누르면 무슨 일이 생기나"의 라벨 */}
+        <span className="book-row__cta" aria-hidden="true">
+          {ctaLabel}
+        </span>
+      </button>
+    )
+  }
+
   if (isLoading) {
     return (
       <div className="bible-books-section">
@@ -367,6 +463,13 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
 
   const filteredBooks =
     books?.filter(b => b.book_number >= activeCategory.min && b.book_number <= activeCategory.max) || []
+
+  // "안 읽은 책만" = 완독(100%)만 제외 — 읽다 만 책도 아직 다 읽은 책이 아니므로 남긴다
+  const remainingBooks = filteredBooks.filter(b => (infoMap.get(b.book_number)?.rate ?? 0) < 100)
+  // 칩은 걸러낼 것이 있을 때만 노출 — 완독한 책이 없으면 눌러도 아무 일도 없는 장식이 된다.
+  // 칩이 숨은 상태에서 unreadOnly가 켜져 있어도 remaining === filtered라 목록은 그대로다
+  const showUnreadChip = remainingBooks.length < filteredBooks.length
+  const listBooks = unreadOnly ? remainingBooks : filteredBooks
 
   return (
     <div className="bible-books-section">
@@ -551,8 +654,12 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
               : (language === 'en' ? activeCategory.labelEn : activeCategory.label)}
             {' '}({filteredBooks.length})
           </h3>
-          {/* 여정/격자 보기 전환 — 취향 문제라 강요하지 않고 선택을 기기에 기억한다 */}
-          <div className="view-toggle" role="group" aria-label={`${t.journeyView} / ${t.gridView}`}>
+          {/* 여정/격자/목록 보기 전환 — 취향 문제라 강요하지 않고 선택을 기기에 기억한다 */}
+          <div
+            className="view-toggle"
+            role="group"
+            aria-label={`${t.journeyView} / ${t.gridView} / ${t.listView}`}
+          >
             <button
               type="button"
               className={`view-toggle__btn${viewMode === 'journey' ? ' active' : ''}`}
@@ -572,6 +679,16 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
               onClick={() => handleViewModeChange('grid')}
             >
               <span className="material-icons-round">grid_view</span>
+            </button>
+            <button
+              type="button"
+              className={`view-toggle__btn${viewMode === 'list' ? ' active' : ''}`}
+              aria-pressed={viewMode === 'list'}
+              aria-label={t.listView}
+              title={t.listView}
+              onClick={() => handleViewModeChange('list')}
+            >
+              <span className="material-icons-round">view_list</span>
             </button>
           </div>
         </div>
@@ -598,6 +715,29 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
             showRates={hasAnyProgress}
             language={language}
           />
+        ) : viewMode === 'list' ? (
+          <>
+            {showUnreadChip && (
+              <div className="list-tools">
+                <button
+                  type="button"
+                  className={`unread-chip${unreadOnly ? ' active' : ''}`}
+                  aria-pressed={unreadOnly}
+                  onClick={() => setUnreadOnly(v => !v)}
+                >
+                  {t.unreadOnly}
+                  <span className="unread-chip__count">{remainingBooks.length}</span>
+                </button>
+              </div>
+            )}
+            <div className="books-list">
+              {listBooks.length > 0 ? (
+                listBooks.map(renderListRow)
+              ) : (
+                <div className="books-list__empty">{t.allDone}</div>
+              )}
+            </div>
+          </>
         ) : (
           <div className="books-grid">
             {filteredBooks.map(renderBook)}
