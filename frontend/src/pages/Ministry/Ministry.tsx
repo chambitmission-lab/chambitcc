@@ -2,9 +2,16 @@ import { useState, useEffect, useRef } from 'react'
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
-import { isAdmin } from '../../utils/auth'
+import { isAdmin, isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
-import { getColumns, createColumn, updateColumn, deleteColumn } from '../../api/column'
+import {
+  getColumns,
+  createColumn,
+  updateColumn,
+  deleteColumn,
+  toggleColumnAmen,
+  markColumnRead,
+} from '../../api/column'
 import type { Column, CreateColumnRequest } from '../../types/column'
 import andongProfile from '../../assets/andong.png'
 
@@ -116,6 +123,14 @@ const persistReadIds = (ids: Set<number>) => {
   } catch { /* 프라이빗 모드 등 저장 실패는 무시 */ }
 }
 
+// 완독으로 볼 스크롤 지점 — 서명 블록까지 닿으면 다 읽은 것으로 본다
+const READ_COMPLETE_RATIO = 0.98
+// 스크롤이 필요 없을 만큼 짧은 편지는 이만큼 머문 뒤 완독 처리 (열자마자 닫는 경우 제외)
+const SHORT_LETTER_DWELL_MS = 3000
+// 완독 인원이 이보다 적으면 숫자를 숨긴다 — 한 자릿수 숫자가 편지를 평가하는 점수처럼 보이지 않게
+// (쓰신 분에게는 적은 수도 의미가 있으므로 관리자에게는 항상 보여준다)
+const READ_COUNT_MIN_TO_SHOW = 5
+
 // 본문 글자 크기 3단계 — 어르신 성도가 많은 교회 특성상 필수
 const FONT_STEPS = [15.5, 16.5, 18.5]
 const FONT_STEP_KEY = 'ministry_font_step'
@@ -151,6 +166,10 @@ const Ministry = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const modalScrollRef = useRef<HTMLDivElement>(null)
+  // 완독 기록을 보낸 편지 (같은 세션에서 중복 호출 방지 — 서버도 멱등하지만 헛된 왕복을 줄인다)
+  const readSentRef = useRef<Set<number>>(new Set())
+  // 아멘 요청 진행 중인 편지 (연타로 토글이 꼬이는 것 방지)
+  const pendingAmenRef = useRef<Set<number>>(new Set())
 
   // 모바일 뒤로가기 → 페이지 이탈 대신 열린 모달만 닫기
   useModalBackButton(() => setSelectedColumn(null), !!selectedColumn)
@@ -208,6 +227,13 @@ const Ministry = () => {
       prev ? updater(prev) : prev
     )
     queryClient.invalidateQueries({ queryKey: ['columns'] })
+  }
+
+  // 아멘·완독은 캐시만 갱신한다 (invalidate 하면 방금 누른 값이 재조회로 되돌아가 깜빡인다)
+  const patchColumnCache = (id: number, patch: Partial<Column>) => {
+    queryClient.setQueriesData<Column[]>({ queryKey: ['columns'] }, (prev) =>
+      prev ? prev.map(c => (c.id === id ? { ...c, ...patch } : c)) : prev
+    )
   }
 
   const toggleSearch = () => {
@@ -319,11 +345,84 @@ const Ministry = () => {
     showToast(language === 'ko' ? '하이라이트가 적용되었습니다' : 'Highlight applied', 'success')
   }
 
+  // 편지를 끝까지 읽었을 때만 서버에 기록 (조회수가 아니라 완독 수)
+  const markComplete = (id?: number | null) => {
+    if (id == null || !isAuthenticated()) return
+    if (readSentRef.current.has(id)) return
+    // 이미 읽은 편지는 카운트가 변하지 않으므로 왕복을 아낀다
+    const cached = queryClient
+      .getQueriesData<Column[]>({ queryKey: ['columns'] })
+      .flatMap(([, data]) => data ?? [])
+      .find(c => c.id === id)
+    if (cached?.is_read) return
+
+    readSentRef.current.add(id)
+    markColumnRead(id)
+      .then(res => patchColumnCache(id, { read_count: res.read_count, is_read: res.is_read }))
+      .catch(() => {
+        // 네트워크 실패 — 다음에 다시 끝까지 읽으면 재시도
+        readSentRef.current.delete(id)
+      })
+  }
+
   // 상세 모달 스크롤 → 상단 읽기 진행 바
   const handleModalScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget
     const max = el.scrollHeight - el.clientHeight
-    setReadProgress(max > 0 ? Math.min(1, el.scrollTop / max) : 1)
+    const progress = max > 0 ? Math.min(1, el.scrollTop / max) : 1
+    setReadProgress(progress)
+    if (progress >= READ_COMPLETE_RATIO) markComplete(selectedColumn?.id)
+  }
+
+  // 화면보다 짧은 편지는 스크롤 이벤트가 없어 위 경로를 못 탄다 → 잠시 머물면 완독 처리
+  useEffect(() => {
+    const id = selectedColumn?.id
+    if (id == null) return
+    const timer = setTimeout(() => {
+      const el = modalScrollRef.current
+      if (el && el.scrollHeight - el.clientHeight <= 8) markComplete(id)
+    }, SHORT_LETTER_DWELL_MS)
+    return () => clearTimeout(timer)
+  }, [selectedColumn])
+
+  // 아멘 토글 — 낙관적 업데이트 후 서버 확정값으로 동기화
+  const handleAmen = async (column: Column) => {
+    const id = column.id
+    if (id == null) return
+    if (!isAuthenticated()) {
+      showToast(
+        language === 'ko' ? '로그인하면 아멘을 남길 수 있어요' : 'Sign in to leave an Amen',
+        'error'
+      )
+      return
+    }
+    if (pendingAmenRef.current.has(id)) return
+    pendingAmenRef.current.add(id)
+
+    const wasAmened = !!column.is_amened
+    patchColumnCache(id, {
+      is_amened: !wasAmened,
+      amen_count: Math.max(0, (column.amen_count ?? 0) + (wasAmened ? -1 : 1)),
+    })
+
+    try {
+      const res = await toggleColumnAmen(id)
+      patchColumnCache(id, {
+        is_amened: res.is_amened,
+        amen_count: res.amen_count,
+        read_count: res.read_count,
+        is_read: res.is_read,
+      })
+    } catch {
+      // 롤백
+      patchColumnCache(id, { is_amened: wasAmened, amen_count: column.amen_count ?? 0 })
+      showToast(
+        language === 'ko' ? '잠시 후 다시 시도해 주세요' : 'Please try again later',
+        'error'
+      )
+    } finally {
+      pendingAmenRef.current.delete(id)
+    }
   }
 
   // 편지 열기 — 여는 순간 읽음으로 기록 (인덱스의 안읽음 점 제거)
@@ -385,6 +484,13 @@ const Ministry = () => {
   const selectedIdx = selectedColumn ? columns.findIndex(c => c.id === selectedColumn.id) : -1
   const newerColumn = selectedIdx > 0 ? columns[selectedIdx - 1] : null
   const olderColumn = selectedIdx >= 0 && selectedIdx < columns.length - 1 ? columns[selectedIdx + 1] : null
+
+  // 아멘·완독 수는 캐시 쪽이 최신이므로, 참여 UI는 목록 캐시의 같은 편지를 본다
+  const liveSelected = selectedColumn
+    ? columns.find(c => c.id === selectedColumn.id) ?? selectedColumn
+    : null
+  const selectedReadCount = liveSelected?.read_count ?? 0
+  const showReadCount = selectedReadCount >= READ_COUNT_MIN_TO_SHOW || (isAdminUser && selectedReadCount > 0)
 
   // 인덱스 행 — 일반 목록과 검색 결과가 공유
   const renderIndexRow = (column: Column) => (
@@ -543,6 +649,13 @@ const Ministry = () => {
                     {language === 'ko'
                       ? `${readingMinutes(featured.content)}분`
                       : `${readingMinutes(featured.content)} min read`}
+                    {/* 아멘은 모인 편지에만 조용히 — 지난 편지 인덱스에는 숫자를 두지 않는다 */}
+                    {(featured.amen_count ?? 0) > 0 && (
+                      <>
+                        <span className="mx-1.5 opacity-60">·</span>
+                        <span className="text-brand">🙏 {featured.amen_count}</span>
+                      </>
+                    )}
                   </div>
                   <h2
                     className="text-[21px] font-semibold text-ink-strong mb-3 line-clamp-2 tracking-[-0.01em] leading-[1.4]"
@@ -739,6 +852,41 @@ const Ministry = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* 아멘 — 편지를 다 읽고 조용히 화답하는 자리 (좋아요가 아니라 응답) */}
+                {liveSelected && (
+                  <div className="mt-9 flex flex-col items-center">
+                    <button
+                      type="button"
+                      onClick={() => void handleAmen(liveSelected)}
+                      aria-pressed={!!liveSelected.is_amened}
+                      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[13.5px] font-semibold border transition-all active:scale-95 ${
+                        liveSelected.is_amened
+                          ? 'bg-brand border-brand text-white shadow-[0_2px_10px_var(--brand-glow)]'
+                          : 'bg-transparent border-gray-300 dark:border-white/[0.15] text-gray-600 dark:text-gray-300 hover:border-brand hover:text-brand'
+                      }`}
+                    >
+                      <span aria-hidden>🙏</span>
+                      <span>
+                        {language === 'ko'
+                          ? (liveSelected.is_amened ? '아멘으로 함께했어요' : '아멘으로 화답하기')
+                          : (liveSelected.is_amened ? 'Amen shared' : 'Say Amen')}
+                      </span>
+                      {(liveSelected.amen_count ?? 0) > 0 && (
+                        <span className={liveSelected.is_amened ? 'text-white/90' : 'text-brand'}>
+                          {liveSelected.amen_count}
+                        </span>
+                      )}
+                    </button>
+                    {showReadCount && (
+                      <p className="mt-3 text-[11.5px] text-gray-400 dark:text-gray-500">
+                        {language === 'ko'
+                          ? `${selectedReadCount}명이 이 편지를 끝까지 읽었어요`
+                          : `${selectedReadCount} ${selectedReadCount === 1 ? 'person' : 'people'} read this letter to the end`}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* 이어 읽기 — 편지를 다 읽은 흐름 그대로 다음 글로 */}
                 {(olderColumn || newerColumn) && (
