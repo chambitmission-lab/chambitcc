@@ -3,7 +3,8 @@ import { useParams, useSearchParams, useNavigate, useLocation, useNavigationType
 import confetti from 'canvas-confetti'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
 import { useResumeReading, useReadingProgress } from '../../hooks/useBibleReading'
-import { useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
+import { useQueryClient } from '@tanstack/react-query'
+import { biblePlanKeys, useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
 import { useAuth } from '../../hooks/useAuth'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
@@ -159,37 +160,67 @@ const BibleStudy = () => {
   const completeDay = useCompleteDay()
 
   const planDay = planData?.days.find((d) => d.day_number === planDayNumber)
-  // 자동 완료의 기준은 "오늘 분량의 마지막 장"을 끝까지 읽는 순간이다.
+  // 즉시 완료의 기준은 "오늘 분량의 마지막 장"을 끝까지 읽는 순간이다.
   // 첫 장(chapter_start)에 걸면 여러 장 분량(예: 창 30-32)에서 30장만 읽어도
   // 완료되거나, 31→32장으로 넘어가 다 읽고도 완료가 안 되는 왜곡이 생긴다.
   const planLastPassage = planDay?.passages[planDay.passages.length - 1]
   const planLastChapter =
     planLastPassage?.chapter_end || planLastPassage?.chapter_start
-  const planAutoComplete =
-    planId > 0 &&
-    planDayNumber > 0 &&
-    !!planDay &&
-    !planDay.completed &&
+  const isPlanLastChapter =
     !!planLastPassage &&
     selectedBookData?.book_number === planLastPassage.book_number &&
     selectedChapter === planLastChapter
+  // 지금 보는 장이 오늘 분량(passages)에 속하는지 — 마지막 장이 아니어도
+  // 그 장을 다 읽으면 서버 동기화를 트리거한다. 특히 분량이 두 권에 걸치는 날
+  // (예: 창 49-50 + 출 1-2)은 장 이동이 책 경계를 못 넘어 마지막 장 훅만으로는
+  // 완료가 누락되던 버그가 있었다.
+  const planChapterInDay =
+    !!planDay &&
+    !!selectedBookData &&
+    planDay.passages.some(
+      (p) =>
+        p.book_number === selectedBookData.book_number &&
+        selectedChapter >= p.chapter_start &&
+        selectedChapter <= (p.chapter_end || p.chapter_start)
+    )
+  const planAutoComplete =
+    planId > 0 && planDayNumber > 0 && !!planDay && !planDay.completed && planChapterInDay
 
+  const qc = useQueryClient()
   const handleChapterFullyRead = useCallback(async () => {
     if (!planAutoComplete) return
-    try {
-      await completeDay.mutateAsync({ planId, dayNumber: planDayNumber })
+    if (isPlanLastChapter) {
+      try {
+        await completeDay.mutateAsync({ planId, dayNumber: planDayNumber })
+      } catch (e) {
+        // 자동 완료 실패는 조용히 무시 — 플랜 화면의 수동 체크로 대체 가능
+        console.error('plan auto-complete failed', e)
+      }
+    } else {
+      // 중간 장 완독 — 서버가 읽음 기록으로 일차 완료를 동기화(get_detail)하도록
+      // 플랜 데이터를 새로고침한다. 모두 읽었으면 아래 감지 effect가 축하를 띄운다.
+      qc.invalidateQueries({ queryKey: biblePlanKeys.detail(planId), refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: biblePlanKeys.today(), refetchType: 'all' })
+    }
+  }, [planAutoComplete, isPlanLastChapter, completeDay, planId, planDayNumber, qc])
+
+  // 일차 완료(미완료 → 완료 전환)를 감지해 축하 연출 — 마지막 장 즉시 완료와
+  // 서버 동기화 완료가 같은 경로로 정확히 한 번씩만 발동한다.
+  const prevPlanDayRef = useRef<{ day: number; completed: boolean } | null>(null)
+  useEffect(() => {
+    if (planId <= 0 || !planDay) return
+    const prev = prevPlanDayRef.current
+    prevPlanDayRef.current = { day: planDay.day_number, completed: planDay.completed }
+    if (prev && prev.day === planDay.day_number && !prev.completed && planDay.completed) {
       confetti({
         particleCount: 90,
         spread: 75,
         origin: { y: 0.7 },
         colors: ['#3182f6', '#4593fc', '#60a5fa', '#93c5fd'],
       })
-      showToast(`오늘 분량 완료! ${planDayNumber}일차를 마쳤어요 🎉`, 'success')
-    } catch (e) {
-      // 자동 완료 실패는 조용히 무시 — 플랜 화면의 수동 체크로 대체 가능
-      console.error('plan auto-complete failed', e)
+      showToast(`오늘 분량 완료! ${planDay.day_number}일차를 마쳤어요 🎉`, 'success')
     }
-  }, [planAutoComplete, completeDay, planId, planDayNumber])
+  }, [planId, planDay])
 
   // 절 메뉴 '여기부터 듣기' — 현재 장 기준 요청을 만들어 플레이어에 전달
   const handleListenFromVerse = useCallback(
