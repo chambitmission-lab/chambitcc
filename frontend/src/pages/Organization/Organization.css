@@ -1,0 +1,173 @@
+/* 의결기구 밴드의 계절 배경 — 홈 히어로(DailyMeditationCard)와 같은 계절 사진을
+   재사용하되, 조직도는 '읽는 도표'라 사진을 흐리고 낮춰 색 기운만 남긴다.
+   사진 URL은 --org-season-image로 주입되므로 실제 다운로드는 현재 계절 1장뿐이다. */
+
+.org-gov-card {
+  position: relative;
+  isolation: isolate;
+}
+
+.org-gov-scene {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 사진은 blur + scale로 디테일을 지우고, 아래로 갈수록 카드 배경에 녹아든다 */
+.org-gov-photo {
+  position: absolute;
+  inset: -8%;
+  background-image: var(--org-season-image);
+  background-size: cover;
+  background-position: center 35%;
+  filter: blur(3px) saturate(1.05);
+  opacity: 0.24;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.55) 55%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.55) 55%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.dark .org-gov-photo {
+  opacity: 0.2;
+  filter: blur(3px) saturate(0.9) brightness(0.85);
+}
+
+/* 계절 색 기운 — 사진 위에 얇게 덮어 계절이 한눈에 읽히게 한다 */
+.org-gov-wash {
+  position: absolute;
+  inset: 0;
+  background: var(--org-season-wash);
+}
+
+.org-gov-card[data-season='spring'] {
+  --org-season-wash: linear-gradient(
+    160deg,
+    rgba(255, 183, 197, 0.16) 0%,
+    rgba(255, 214, 165, 0.1) 45%,
+    transparent 85%
+  );
+  --org-season-glyph-color: rgba(244, 143, 177, 0.65);
+}
+
+.org-gov-card[data-season='summer'] {
+  --org-season-wash: linear-gradient(
+    160deg,
+    rgba(16, 185, 129, 0.2) 0%,
+    rgba(56, 189, 248, 0.12) 45%,
+    transparent 85%
+  );
+  --org-season-glyph-color: rgba(52, 211, 153, 0.6);
+}
+
+.org-gov-card[data-season='autumn'] {
+  --org-season-wash: linear-gradient(
+    160deg,
+    rgba(251, 146, 60, 0.16) 0%,
+    rgba(217, 119, 6, 0.1) 45%,
+    transparent 85%
+  );
+  --org-season-glyph-color: rgba(234, 138, 60, 0.65);
+}
+
+.org-gov-card[data-season='winter'] {
+  --org-season-wash: linear-gradient(
+    160deg,
+    rgba(147, 197, 253, 0.18) 0%,
+    rgba(199, 210, 254, 0.1) 45%,
+    transparent 85%
+  );
+  --org-season-glyph-color: rgba(219, 234, 254, 0.8);
+}
+
+/* 계절 앰비언트 — 꽃잎·낙엽·눈이 아주 느리게 지나간다.
+   여름은 배경 자체가 청량해 연출 없이 둔다(홈 히어로와 같은 규칙). */
+.org-gov-particle {
+  position: absolute;
+  top: -14px;
+  color: var(--org-season-glyph-color);
+  line-height: 1;
+  opacity: 0;
+  animation: org-gov-fall var(--fall-duration, 15s) linear var(--fall-delay, 0s) infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes org-gov-fall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--fall-opacity, 0.5);
+  }
+  85% {
+    opacity: var(--fall-opacity, 0.5);
+  }
+  100% {
+    transform: translate3d(var(--fall-drift, 16px), 200px, 0) rotate(140deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .org-gov-particle {
+    animation: none;
+    opacity: 0.25;
+  }
+}
+
+/* ── 배경 위에 얹히는 조직 박스 ──────────────────────────────────────
+   tailwind의 반투명 tint만으로는 사진 위에서 글자가 흐려진다.
+   background-color(불투명 시트) + background-image(브랜드 tint) 2겹으로
+   깔아 사진을 차단하고, backdrop-filter로 가장자리를 정리한다. */
+.org-gov-box {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.org-gov-box.is-sub {
+  background-color: rgba(255, 255, 255, 0.8);
+  background-image: linear-gradient(var(--brand-soft), var(--brand-soft));
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.06);
+}
+
+.org-gov-box.is-sub.is-center {
+  background-image: linear-gradient(var(--brand-soft-strong), var(--brand-soft-strong));
+}
+
+.dark .org-gov-box.is-sub {
+  background-color: rgba(24, 24, 27, 0.72);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 계절 칩 — 배경이 왜 바뀌는지 한 단어로 알려준다 */
+.org-season-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.dark .org-season-chip {
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+}

@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useOrgTree } from '../../hooks/useOrganization'
 import type { OrgUnit } from '../../types/organization'
+import { getNaturalSeason, type NaturalSeason } from '../../utils/naturalSeason'
+import orgSpring from '../../assets/hero/spring-afternoon.jpg'
+/* 여름은 afternoon(회색 산·호수)보다 morning(초록 능선)이 계절감이 산다 */
+import orgSummer from '../../assets/hero/morning.jpg'
+import orgAutumn from '../../assets/hero/autumn-afternoon.jpg'
+import orgWinter from '../../assets/hero/winter-afternoon.jpg'
+import './Organization.css'
 
 /* 종이 조직도의 가로 5열 격자는 모바일에서 글자가 3px가 된다.
    같은 정보를 '의결기구 밴드 + 위원회 아코디언'으로 옮겨 담는다. */
@@ -39,6 +46,37 @@ const countDepartments = (unit: OrgUnit): number =>
 
 // ── 의결기구 밴드 ─────────────────────────────────────────────────────
 
+/* 계절 배경 — 홈 히어로와 같은 사진을 재사용한다(추가 다운로드 없음).
+   CSS 변수로만 참조되므로 실제로 받는 이미지는 현재 계절 1장뿐. */
+const SEASON_IMAGE: Record<NaturalSeason, string> = {
+  spring: orgSpring,
+  summer: orgSummer,
+  autumn: orgAutumn,
+  winter: orgWinter,
+}
+
+const SEASON_CHIP: Record<NaturalSeason, { glyph: string; label: string }> = {
+  spring: { glyph: '🌸', label: '봄' },
+  summer: { glyph: '🌿', label: '여름' },
+  autumn: { glyph: '🍂', label: '가을' },
+  winter: { glyph: '❄️', label: '겨울' },
+}
+
+/* 떨어지는 글리프 — 여름은 배경 자체가 청량해 두지 않는다(홈 히어로와 같은 규칙) */
+const SEASON_PARTICLE: Partial<Record<NaturalSeason, string>> = {
+  spring: '🌸',
+  autumn: '🍂',
+  winter: '❄️',
+}
+
+/* 렌더마다 흔들리지 않도록 고정 배치 */
+const PARTICLES = [
+  { left: '10%', delay: '0s', duration: '16s', drift: '14px', size: '10px', opacity: 0.45 },
+  { left: '34%', delay: '5.5s', duration: '19s', drift: '-12px', size: '8px', opacity: 0.35 },
+  { left: '58%', delay: '2.5s', duration: '17s', drift: '18px', size: '11px', opacity: 0.4 },
+  { left: '82%', delay: '8.5s', duration: '21s', drift: '-10px', size: '9px', opacity: 0.3 },
+] as const
+
 /* 원본 종이 조직도의 십자(+) 배치를 그대로 옮긴다. 연결선은 원본에도 없다.
    3열 그리드에서 최상위는 가운데 위, 하위는 등록 순서대로
    왼쪽 → 가운데 → 오른쪽 → 그 아래 가운데로 채운다. */
@@ -62,7 +100,7 @@ const GovernanceCross = ({ root }: { root: OrgUnit }) => {
     <div className="w-full grid grid-cols-3 gap-1.5 items-center">
       <span
         style={{ gridColumn: 2, gridRow: 1 }}
-        className={`${BOX_BASE} font-bold bg-brand text-white shadow-[0_2px_12px_var(--brand-glow)]`}
+        className={`${BOX_BASE} org-gov-box font-bold bg-brand text-white shadow-[0_2px_12px_var(--brand-glow)]`}
       >
         {root.name}
       </span>
@@ -75,10 +113,11 @@ const GovernanceCross = ({ root }: { root: OrgUnit }) => {
           <span
             key={child.id}
             style={slot}
-            className={`${BOX_BASE} ${
+            // 배경 사진 위에 얹히므로 면 색은 CSS(.org-gov-box.is-sub)가 2겹으로 깐다
+            className={`${BOX_BASE} org-gov-box is-sub ${
               isCenterColumn
-                ? 'font-semibold bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand'
-                : 'font-medium bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand'
+                ? 'is-center font-semibold border border-[var(--brand-glow)] text-brand'
+                : 'font-medium border border-[var(--brand-soft-strong)] text-brand'
             }`}
           >
             {child.name}
@@ -92,12 +131,53 @@ const GovernanceCross = ({ root }: { root: OrgUnit }) => {
 const GovernanceBand = ({ units }: { units: OrgUnit[] }) => {
   if (units.length === 0) return null
 
+  /* 지금 계절이 밴드 뒤의 사진·색 기운·앰비언트를 함께 정한다 */
+  const season = getNaturalSeason(new Date())
+  const chip = SEASON_CHIP[season]
+  const particle = SEASON_PARTICLE[season]
+
   return (
     <section className="px-4 pt-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted mb-2 px-1">
-        의결기구
-      </p>
-      <div className={`${cardClass} px-4 py-4`}>
+      <div className="flex items-center justify-between mb-2 px-1">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+          의결기구
+        </p>
+        <span className="org-season-chip">
+          <span aria-hidden>{chip.glyph}</span>
+          {chip.label}
+        </span>
+      </div>
+      <div
+        className={`${cardClass} org-gov-card px-4 py-4`}
+        data-season={season}
+        style={
+          { '--org-season-image': `url(${SEASON_IMAGE[season]})` } as React.CSSProperties
+        }
+      >
+        {/* 계절 배경 레이어 — 사진(블러·저채도) + 계절 색 기운 + 앰비언트 */}
+        <span className="org-gov-scene" aria-hidden>
+          <span className="org-gov-photo" />
+          <span className="org-gov-wash" />
+          {particle &&
+            PARTICLES.map((p, i) => (
+              <span
+                key={i}
+                className="org-gov-particle"
+                style={
+                  {
+                    left: p.left,
+                    fontSize: p.size,
+                    '--fall-delay': p.delay,
+                    '--fall-duration': p.duration,
+                    '--fall-drift': p.drift,
+                    '--fall-opacity': p.opacity,
+                  } as React.CSSProperties
+                }
+              >
+                {particle}
+              </span>
+            ))}
+        </span>
         <CardSheen />
         <div className="relative z-10 space-y-4">
           {units.map(root => (
