@@ -39,6 +39,56 @@ const countDepartments = (unit: OrgUnit): number =>
 
 // ── 의결기구 밴드 ─────────────────────────────────────────────────────
 
+/* 원본 종이 조직도의 십자(+) 배치를 그대로 옮긴다. 연결선은 원본에도 없다.
+   3열 그리드에서 최상위는 가운데 위, 하위는 등록 순서대로
+   왼쪽 → 가운데 → 오른쪽 → 그 아래 가운데로 채운다. */
+const governanceSlot = (index: number, total: number) => {
+  if (total === 1) return { gridColumn: 2, gridRow: 2 }
+  // 2개뿐이면 가로로 벌리는 대신 가운데 열에 세로로 쌓는다(십자가 안 되므로)
+  if (total === 2) return { gridColumn: 2, gridRow: 2 + index }
+  if (index === 0) return { gridColumn: 1, gridRow: 2 }
+  if (index === 1) return { gridColumn: 2, gridRow: 2 }
+  if (index === 2) return { gridColumn: 3, gridRow: 2 }
+  return { gridColumn: 2, gridRow: index } // 4번째부터는 가운데 열 아래로 이어 붙는다
+}
+
+const BOX_BASE =
+  'w-full text-center px-2 py-2.5 rounded-xl text-[13px] leading-tight tracking-[-0.01em] break-keep'
+
+const GovernanceCross = ({ root }: { root: OrgUnit }) => {
+  const children = root.children
+
+  return (
+    <div className="w-full grid grid-cols-3 gap-1.5 items-center">
+      <span
+        style={{ gridColumn: 2, gridRow: 1 }}
+        className={`${BOX_BASE} font-bold bg-brand text-white shadow-[0_2px_12px_var(--brand-glow)]`}
+      >
+        {root.name}
+      </span>
+
+      {children.map((child, index) => {
+        const slot = governanceSlot(index, children.length)
+        // 가운데 열은 원본에서도 톤이 진하다 — 옆으로 뻗은 당회·구역회보다 한 단계 강조
+        const isCenterColumn = slot.gridColumn === 2
+        return (
+          <span
+            key={child.id}
+            style={slot}
+            className={`${BOX_BASE} ${
+              isCenterColumn
+                ? 'font-semibold bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand'
+                : 'font-medium bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand'
+            }`}
+          >
+            {child.name}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
 const GovernanceBand = ({ units }: { units: OrgUnit[] }) => {
   if (units.length === 0) return null
 
@@ -49,28 +99,9 @@ const GovernanceBand = ({ units }: { units: OrgUnit[] }) => {
       </p>
       <div className={`${cardClass} px-4 py-4`}>
         <CardSheen />
-        <div className="relative z-10 flex flex-col items-center gap-0">
+        <div className="relative z-10 space-y-4">
           {units.map(root => (
-            <div key={root.id} className="w-full flex flex-col items-center">
-              <span className="px-5 py-2 rounded-xl bg-brand text-white text-[14px] font-bold tracking-[-0.01em] shadow-[0_2px_12px_var(--brand-glow)]">
-                {root.name}
-              </span>
-              {root.children.length > 0 && (
-                <>
-                  <span className="w-px h-4 bg-gray-200 dark:bg-white/15" />
-                  <div className="w-full flex flex-wrap justify-center gap-1.5">
-                    {root.children.map(child => (
-                      <span
-                        key={child.id}
-                        className="px-3.5 py-1.5 rounded-lg bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand text-[12.5px] font-semibold"
-                      >
-                        {child.name}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <GovernanceCross key={root.id} root={root} />
           ))}
         </div>
       </div>

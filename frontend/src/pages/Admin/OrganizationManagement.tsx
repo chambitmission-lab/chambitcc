@@ -620,6 +620,7 @@ const OrganizationManagement = () => {
 
         <p className="px-4 pb-2 text-[11.5px] text-gray-400 dark:text-white/35 leading-relaxed">
           위원회 → 국 → 부서 순서로 묶입니다. 국은 생략하고 위원회 아래 부서를 바로 둘 수도 있습니다.
+          의결기구 하위는 등록 순서대로 왼쪽 · 가운데 · 오른쪽 · 그 아래에 배치됩니다.
         </p>
 
         {isLoading ? (
