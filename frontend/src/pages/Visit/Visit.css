@@ -1,0 +1,784 @@
+/* 오시는 길(/visit)
+ * 원칙 (src/styles/theme.css):
+ *   1. 색은 하드코딩하지 않고 --brand-* / --surface-* / --text-* 토큰만 참조
+ *   2. 라이트/다크 분기는 theme.css 토큰이 담당 — 여기서는 [data-theme] 분기 금지
+ *   3. position:sticky 는 이 앱에서 전역으로 깨져 있어(#root overflow-y) 쓰지 않는다
+ */
+
+/* ── 페이지 셸 ─────────────────────────── */
+.visit-page {
+  min-height: 100vh;
+  background: var(--surface);
+}
+
+.visit-shell {
+  max-width: 28rem;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--surface);
+  border-left: 1px solid var(--card-border);
+  border-right: 1px solid var(--card-border);
+}
+
+.visit-body {
+  padding: 16px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Hero ──────────────────────────────── */
+.visit-hero {
+  position: relative;
+  padding: 20px 22px;
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* 시간대 하늘 — /worship 히어로와 같은 --worship-sky-* 토큰을 재사용한다 */
+.visit-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--visit-sky, none);
+}
+.visit-hero--dawn { --visit-sky: var(--worship-sky-dawn); }
+.visit-hero--day { --visit-sky: var(--worship-sky-day); }
+.visit-hero--dusk { --visit-sky: var(--worship-sky-dusk); }
+.visit-hero--night { --visit-sky: var(--worship-sky-night); }
+
+.visit-hero-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.visit-hero-emblem {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--brand);
+  color: var(--on-brand);
+  box-shadow: 0 8px 18px -6px var(--brand-glow);
+}
+
+.visit-hero-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.visit-hero-label {
+  align-self: flex-start;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+.visit-hero-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--text-strong);
+}
+
+.visit-hero-subtitle {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ── 지금 출발하면 ─────────────────────── */
+.visit-now {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.visit-now-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.visit-now-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.visit-now-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.visit-now-service {
+  margin: 12px 0 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-body);
+}
+
+.visit-now-service-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.visit-now-service-name {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.visit-now-service-remain {
+  margin-left: auto;
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.visit-now-metrics {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.visit-now-metric {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 12px;
+  text-align: center;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+}
+
+.visit-now-metric-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.visit-now-metric-value {
+  display: block;
+  margin-top: 3px;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.visit-now-metric-value em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 1px;
+}
+
+.visit-now-verdict {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  color: var(--text-strong);
+}
+
+/* 서두르셔야 하는 상황 — 앰버는 '표징' 시맨틱이라 여기서만 예외로 쓴다 */
+.visit-now-verdict.is-tight,
+.visit-now-verdict.is-late {
+  background: var(--amber-soft);
+  border-color: var(--amber-soft-strong);
+  color: var(--amber);
+}
+
+.visit-now-note {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.visit-now-cta {
+  margin-top: 14px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.visit-now-cta:hover:not(:disabled) {
+  background: var(--brand-soft-strong);
+}
+
+.visit-now-cta:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── 길찾기 버튼 + 연락처 ───────────────── */
+.visit-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.visit-maps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.visit-map-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 6px;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  color: var(--text-strong);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--card-shadow);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.visit-map-btn:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.visit-contact {
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.visit-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+}
+
+.visit-contact-row + .visit-contact-row {
+  border-top: 1px solid var(--card-border);
+}
+
+.visit-contact-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.visit-contact-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.visit-contact-value {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text-strong);
+  word-break: keep-all;
+}
+
+.visit-contact-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.visit-contact-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.visit-contact-action:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+/* ── 섹션 공통 ─────────────────────────── */
+.visit-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.visit-section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.visit-section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.visit-section-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+
+.visit-section-desc {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ── 경로 다이어그램(노선도) ───────────── */
+.visit-rail {
+  list-style: none;
+  margin: 0;
+  padding: 18px 18px 6px;
+  border-radius: 18px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.visit-rail-stop {
+  display: flex;
+  gap: 14px;
+  min-height: 58px;
+}
+
+.visit-rail-marker {
+  position: relative;
+  width: 14px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.visit-rail-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 3px solid var(--brand);
+  background: var(--surface-container);
+  z-index: 1;
+}
+
+.visit-rail-stop.is-terminal .visit-rail-dot {
+  width: 15px;
+  height: 15px;
+  border-width: 4px;
+  background: var(--brand);
+  box-shadow: 0 0 0 4px var(--brand-soft);
+}
+
+.visit-rail-line {
+  flex: 1;
+  width: 3px;
+  margin-top: -2px;
+  border-radius: 2px;
+  background: var(--brand-soft-strong);
+}
+
+.visit-rail-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 16px;
+}
+
+.visit-rail-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.visit-rail-stop.is-terminal .visit-rail-name {
+  color: var(--brand);
+}
+
+.visit-rail-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── 교통수단 선택 ─────────────────────── */
+.visit-modes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.visit-mode {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 11px 4px;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.visit-mode.is-active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+}
+
+.visit-mode:not(.is-active):hover {
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.visit-mode-panel {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.visit-panel-title {
+  margin: 0 0 8px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.visit-panel-body {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text-body);
+  white-space: pre-line;
+}
+
+.visit-panel-body.is-muted {
+  color: var(--text-muted);
+}
+
+/* 출구 번호 — 지하철 안내의 첫 줄에서 가장 크게 읽혀야 하는 정보 */
+.visit-exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.visit-exit-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: 10px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.visit-parking {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--card-border);
+}
+
+.visit-parking-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.visit-parking-tip {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  white-space: pre-line;
+  background: var(--amber-soft);
+  border: 1px solid var(--amber-soft-strong);
+  color: var(--amber);
+}
+
+.visit-first-cta {
+  margin-top: 14px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: none;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px -8px var(--brand-glow);
+}
+
+/* ── 마지막 100m ───────────────────────── */
+.visit-steps {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  /* 카드가 셸 가장자리까지 흘러가되 본문 정렬은 유지 */
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  scrollbar-width: none;
+}
+
+.visit-steps::-webkit-scrollbar {
+  display: none;
+}
+
+.visit-step {
+  flex: 0 0 66%;
+  max-width: 240px;
+  scroll-snap-align: start;
+}
+
+.visit-step-photo {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+}
+
+.visit-step-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--media-dim);
+}
+
+.visit-step-photo .about-editable-wrapper {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.visit-step-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+
+.visit-step-num {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.visit-step-text {
+  margin: 8px 2px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--text-body);
+  word-break: keep-all;
+}
+
+/* ── 초대 ──────────────────────────────── */
+.visit-invite {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+}
+
+.visit-invite-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.visit-invite-desc {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.visit-invite-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.visit-invite-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  color: var(--text-strong);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.visit-invite-btn.is-primary {
+  flex: 1;
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+.visit-invite-qr {
+  margin: 14px auto 2px;
+  width: 168px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #ffffff; /* QR 은 대비가 생명 — 다크에서도 흰 바탕을 유지한다 */
+  border: 1px solid var(--card-border);
+}
+
+.visit-invite-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── 관리자 힌트 ───────────────────────── */
+.visit-admin-hint {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  text-align: center;
+  background: var(--surface-inset);
+  border: 1px dashed var(--card-border);
+  color: var(--text-muted);
+}

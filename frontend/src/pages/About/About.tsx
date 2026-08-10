@@ -48,14 +48,9 @@ const About = () => {
   const phone = tx('aboutPhone').trim()
   const pastorPhotoUrl = tx('aboutPastorPhoto').trim()
 
-  const openMap = () => {
-    const query = tx('aboutMapQuery').trim() || tx('aboutChurchName')
-    window.open(
-      `https://map.kakao.com/link/search/${encodeURIComponent(query)}`,
-      '_blank',
-      'noopener'
-    )
-  }
+  // 예전엔 카카오맵을 새 탭으로 던졌지만, 지금은 앱 안에 오시는 길 페이지가 있다.
+  // 길찾기 앱으로 넘기는 건 /visit 이 각 지도 앱 버튼으로 담당한다.
+  const openMap = () => navigate('/visit')
 
   // EditableText 가 <button> 을 렌더하므로 행 자체는 button 이 아닌 div 로 만들어
   // 중첩 인터랙티브 요소를 피한다 (편집 버튼은 stopPropagation 으로 행 클릭과 분리됨)
@@ -405,10 +400,9 @@ const About = () => {
 
             {isAdminUser && (
               <div className="quickinfo-admin-map">
-                {ko ? '지도 검색어: ' : 'Map search query: '}
-                <EditableText fieldKey="aboutMapQuery" isAdmin={isAdminUser}>
-                  {tx('aboutMapQuery')}
-                </EditableText>
+                {ko
+                  ? '지도 검색어·주차·사진 안내는 오시는 길 페이지에서 수정합니다.'
+                  : 'Map query, parking and photos are edited on the Directions page.'}
               </div>
             )}
           </section>

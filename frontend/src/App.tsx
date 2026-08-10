@@ -31,6 +31,7 @@ const VerseSharePreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Bible/components/VerseSharePreview'))
   : null
 const About = lazy(menuRouteLoaders['/about'])
+const Visit = lazy(menuRouteLoaders['/visit'])
 const Organization = lazy(menuRouteLoaders['/organization'])
 const History = lazy(menuRouteLoaders['/history'])
 const TV = lazy(() => import('./pages/TV/TV'))
@@ -208,6 +209,7 @@ function App() {
                 <Route path="/" element={<NewHome />} />
                 <Route path="/old-home" element={<Home />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/visit" element={<Visit />} />
                 <Route path="/organization" element={<Organization />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/tv" element={<TV />} />

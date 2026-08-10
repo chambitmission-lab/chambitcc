@@ -6,6 +6,7 @@ export const navigation = {
   bulletin: '주보',
   worship: '예배',
   about: '소개',
+  visit: '오시는길',
   organization: '조직도',
   history: '발자취',
   ministry: '칼럼',
