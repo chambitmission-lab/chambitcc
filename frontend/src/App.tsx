@@ -1,5 +1,4 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { Analytics } from '@vercel/analytics/react'
 import { lazy, Suspense, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -302,9 +301,8 @@ function App() {
           <TitleUnlockHost />
           {/* 공통 확인/안내 모달 호스트 — 브라우저 기본 confirm()/alert() 대체 */}
           <ConfirmDialogHost />
-          {/* Vercel Web Analytics — 방문자/페이지뷰 트래픽 집계 (쿠키리스).
-              HashRouter라 경로별 세분화는 hash로 잡히지만, 방문자 총계는 정상 집계됨. */}
-          <Analytics />
+          {/* 방문자 집계는 Cloudflare Pages 의 Web Analytics(대시보드 토글)가
+              빌드 산출물에 비컨을 자동 주입하는 방식으로 대체 — 코드 불필요. */}
         </div>
       </Router>
     </ThemeProvider>
