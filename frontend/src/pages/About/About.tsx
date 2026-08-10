@@ -13,6 +13,7 @@ import {
   FlagIcon,
   HeartIcon,
   MapPinIcon,
+  OrgChartIcon,
   PhoneIcon,
   SproutIcon,
   XIcon,
@@ -304,6 +305,14 @@ const About = () => {
                 >
                   <FlagIcon size={18} />
                   <span>{ko ? '참빛의 발자취' : 'Our Story'}</span>
+                </button>
+                <button
+                  type="button"
+                  className="cta-action"
+                  onClick={() => navigate('/organization')}
+                >
+                  <OrgChartIcon size={18} />
+                  <span>{ko ? '교회 조직도' : 'Org Chart'}</span>
                 </button>
               </div>
 

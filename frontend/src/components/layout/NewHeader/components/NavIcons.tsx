@@ -167,8 +167,20 @@ export const IconPerson = (p: IconProps) => (
   </Svg>
 )
 
+/* 조직도 — 하나에서 갈라지는 조직 트리 */
+const IconOrgChart = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="9" y="3" width="6" height="4.5" rx="1.2" />
+    <rect x="3" y="16.5" width="6" height="4.5" rx="1.2" />
+    <rect x="15" y="16.5" width="6" height="4.5" rx="1.2" />
+    <path d="M12 7.5v3.5" />
+    <path d="M6 16.5V13h12v3.5" />
+  </Svg>
+)
+
 export const NAV_ICONS = {
   about: IconChurch,
+  organization: IconOrgChart,
   history: IconTrail,
   worship: IconWorship,
   events: IconCalendar,

@@ -31,6 +31,7 @@ const VerseSharePreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Bible/components/VerseSharePreview'))
   : null
 const About = lazy(menuRouteLoaders['/about'])
+const Organization = lazy(menuRouteLoaders['/organization'])
 const History = lazy(menuRouteLoaders['/history'])
 const TV = lazy(() => import('./pages/TV/TV'))
 const Education = lazy(() => import('./pages/Education/Education'))
@@ -104,6 +105,7 @@ const MeditationPage = lazy(() => import('./pages/Bible/Meditation/MeditationPag
 const VerseAlarmPage = lazy(() => import('./pages/Bible/VerseAlarm/VerseAlarmPage'))
 const SituationManagement = lazy(() => import('./pages/Admin/SituationManagement'))
 const CultureManagement = lazy(() => import('./pages/Admin/CultureManagement'))
+const OrganizationManagement = lazy(() => import('./pages/Admin/OrganizationManagement'))
 const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'))
 const CareRadar = lazy(() => import('./pages/Admin/CareRadar'))
 const BibleEngagementManagement = lazy(() => import('./pages/Admin/BibleEngagementManagement'))
@@ -206,6 +208,7 @@ function App() {
                 <Route path="/" element={<NewHome />} />
                 <Route path="/old-home" element={<Home />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/organization" element={<Organization />} />
                 <Route path="/history" element={<History />} />
                 <Route path="/tv" element={<TV />} />
                 <Route path="/education" element={<Education />} />
@@ -235,6 +238,7 @@ function App() {
                 <Route path="/admin/bible-commentaries" element={<BibleCommentaryManagement />} />
                 <Route path="/admin/situations" element={<SituationManagement />} />
                 <Route path="/admin/culture" element={<CultureManagement />} />
+                <Route path="/admin/organization" element={<OrganizationManagement />} />
                 <Route path="/admin/bible-engagement" element={<BibleEngagementManagement />} />
                 <Route path="/events" element={<EventCalendar />} />
                 <Route path="/events/:id" element={<EventDetail />} />

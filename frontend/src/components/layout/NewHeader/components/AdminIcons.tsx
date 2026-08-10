@@ -151,6 +151,17 @@ const IconGroupNodes = (p: IconProps) => (
   </Svg>
 )
 
+/* 조직도 — 하나에서 갈라지는 조직 트리 */
+const IconOrgChart = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="9" y="3" width="6" height="4.5" rx="1.2" />
+    <rect x="3" y="16.5" width="6" height="4.5" rx="1.2" />
+    <rect x="15" y="16.5" width="6" height="4.5" rx="1.2" />
+    <path d="M12 7.5v3.5" />
+    <path d="M6 16.5V13h12v3.5" />
+  </Svg>
+)
+
 /* 섹션 헤더 — 관리 권한 방패 */
 export const IconShield = (p: IconProps) => (
   <Svg {...p}>
@@ -181,6 +192,7 @@ export const ADMIN_ICONS = {
   adminNavPush: IconBell,
   adminNavEvent: IconCalendar,
   adminNavCulture: IconPalette,
+  adminNavOrganization: IconOrgChart,
   adminNavUser: IconMember,
   adminNavGroup: IconGroupNodes,
 } as const

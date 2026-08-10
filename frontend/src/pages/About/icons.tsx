@@ -94,6 +94,17 @@ export const FlagIcon = (props: IconProps) => (
   </Svg>
 )
 
+/** 조직도 — 하나에서 갈라지는 조직 트리 */
+export const OrgChartIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <rect x="9" y="3" width="6" height="4.5" rx="1.2" />
+    <rect x="3" y="16.5" width="6" height="4.5" rx="1.2" />
+    <rect x="15" y="16.5" width="6" height="4.5" rx="1.2" />
+    <path d="M12 7.5v3.5" />
+    <path d="M6 16.5V13h12v3.5" />
+  </Svg>
+)
+
 /** 하트 — 손수건 같은 만남 */
 export const HeartIcon = (props: IconProps) => (
   <Svg {...props}>
