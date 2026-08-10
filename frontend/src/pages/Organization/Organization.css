@@ -1,173 +1,213 @@
-/* 의결기구 밴드의 계절 배경 — 홈 히어로(DailyMeditationCard)와 같은 계절 사진을
-   재사용하되, 조직도는 '읽는 도표'라 사진을 흐리고 낮춰 색 기운만 남긴다.
-   사진 URL은 --org-season-image로 주입되므로 실제 다운로드는 현재 계절 1장뿐이다. */
+/* 의결기구 조직도 — 줄기가 내려오다 둥근 모서리로 갈라지는 노선도식 연결선.
+   처음 펼칠 때 뿌리에서 아래로 드러나듯 그려지고 지체들이 차례로 떠오른다.
+   박스 면 색은 브랜드 토큰(tailwind arbitrary value)이 담당하고,
+   여기서는 선의 기하·등장 모션·위원회 타일 톤만 다룬다. */
 
-.org-gov-card {
+.org-tree {
+  --tree-gap: 10px;
+  --tree-line: rgba(49, 130, 246, 0.4);
+  /* 바깥 열의 중앙 = 한 열 폭의 절반. 엘보의 좌우 끝이 여기 떨어진다 */
+  --tree-edge: calc((100% - 2 * var(--tree-gap)) / 6);
+  display: flex;
+  flex-direction: column;
+}
+
+.dark .org-tree {
+  --tree-line: rgba(147, 197, 253, 0.32);
+}
+
+.org-tree-row.is-single {
+  display: flex;
+  justify-content: center;
+}
+
+/* 홀로 놓인 박스도 3열일 때와 같은 폭 — 위아래 기둥이 어긋나지 않는다 */
+.org-tree-row.is-single > * {
+  width: calc((100% - 2 * var(--tree-gap)) / 3);
+}
+
+.org-tree-row.is-triple {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--tree-gap);
+}
+
+/* 최상위 기구 — 살짝 밝은 윗면의 그라데이션 + 낮은 발광 */
+.org-root-box {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 78%, white), var(--brand));
+  box-shadow: 0 4px 18px var(--brand-glow);
+}
+
+/* 가지: 가운데 줄기 + 좌우로 갈라지는 둥근 엘보 */
+.org-tree-branch {
   position: relative;
-  isolation: isolate;
+  height: 26px;
+  clip-path: inset(-2px -2px 100% -2px);
+  animation: org-unveil 0.4s ease-out 0.25s forwards;
 }
 
-.org-gov-scene {
+.org-branch-stem {
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1.5px;
+  transform: translateX(-50%);
+  background: var(--tree-line);
+  border-radius: 1px;
 }
 
-/* 사진은 blur + scale로 디테일을 지우고, 아래로 갈수록 카드 배경에 녹아든다 */
-.org-gov-photo {
+.org-elbow {
   position: absolute;
-  inset: -8%;
-  background-image: var(--org-season-image);
-  background-size: cover;
-  background-position: center 35%;
-  filter: blur(3px) saturate(1.05);
-  opacity: 0.24;
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.55) 55%,
-    rgba(0, 0, 0, 0) 100%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0.55) 55%,
-    rgba(0, 0, 0, 0) 100%
-  );
+  top: 10px;
+  bottom: 0;
+  border: 0 solid var(--tree-line);
 }
 
-.dark .org-gov-photo {
-  opacity: 0.2;
-  filter: blur(3px) saturate(0.9) brightness(0.85);
+.org-elbow.is-left {
+  left: var(--tree-edge);
+  right: 50%;
+  border-left-width: 1.5px;
+  border-top-width: 1.5px;
+  border-top-left-radius: 12px;
 }
 
-/* 계절 색 기운 — 사진 위에 얇게 덮어 계절이 한눈에 읽히게 한다 */
-.org-gov-wash {
+.org-elbow.is-right {
+  left: 50%;
+  right: var(--tree-edge);
+  border-right-width: 1.5px;
+  border-top-width: 1.5px;
+  border-top-right-radius: 12px;
+}
+
+/* 줄기: 가운데 열로 수직 연결 — 위에서 아래로 자라난다 */
+.org-tree-stem {
+  position: relative;
+  height: 18px;
+}
+
+.org-tree-stem::before {
+  content: '';
   position: absolute;
-  inset: 0;
-  background: var(--org-season-wash);
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1.5px;
+  transform: translateX(-50%) scaleY(0);
+  transform-origin: top;
+  background: var(--tree-line);
+  border-radius: 1px;
+  animation: org-grow 0.4s ease-out 0.7s forwards;
 }
 
-.org-gov-card[data-season='spring'] {
-  --org-season-wash: linear-gradient(
-    160deg,
-    rgba(255, 183, 197, 0.16) 0%,
-    rgba(255, 214, 165, 0.1) 45%,
-    transparent 85%
-  );
-  --org-season-glyph-color: rgba(244, 143, 177, 0.65);
+/* 지체들의 등장 — 뿌리 → 가지 → 아래 기구 순서로 떠오른다 */
+.org-tree-row {
+  animation: org-rise 0.5s ease-out both;
 }
 
-.org-gov-card[data-season='summer'] {
-  --org-season-wash: linear-gradient(
-    160deg,
-    rgba(16, 185, 129, 0.2) 0%,
-    rgba(56, 189, 248, 0.12) 45%,
-    transparent 85%
-  );
-  --org-season-glyph-color: rgba(52, 211, 153, 0.6);
+.org-tree-row.is-root {
+  animation-delay: 0s;
 }
 
-.org-gov-card[data-season='autumn'] {
-  --org-season-wash: linear-gradient(
-    160deg,
-    rgba(251, 146, 60, 0.16) 0%,
-    rgba(217, 119, 6, 0.1) 45%,
-    transparent 85%
-  );
-  --org-season-glyph-color: rgba(234, 138, 60, 0.65);
+.org-tree-row.is-triple {
+  animation-delay: 0.35s;
 }
 
-.org-gov-card[data-season='winter'] {
-  --org-season-wash: linear-gradient(
-    160deg,
-    rgba(147, 197, 253, 0.18) 0%,
-    rgba(199, 210, 254, 0.1) 45%,
-    transparent 85%
-  );
-  --org-season-glyph-color: rgba(219, 234, 254, 0.8);
+.org-tree-row.is-tail {
+  animation-delay: 0.8s;
 }
 
-/* 계절 앰비언트 — 꽃잎·낙엽·눈이 아주 느리게 지나간다.
-   여름은 배경 자체가 청량해 연출 없이 둔다(홈 히어로와 같은 규칙). */
-.org-gov-particle {
-  position: absolute;
-  top: -14px;
-  color: var(--org-season-glyph-color);
-  line-height: 1;
-  opacity: 0;
-  animation: org-gov-fall var(--fall-duration, 15s) linear var(--fall-delay, 0s) infinite;
-  will-change: transform, opacity;
+@keyframes org-unveil {
+  to {
+    clip-path: inset(-2px);
+  }
 }
 
-@keyframes org-gov-fall {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
+@keyframes org-grow {
+  to {
+    transform: translateX(-50%) scaleY(1);
+  }
+}
+
+@keyframes org-rise {
+  from {
     opacity: 0;
+    transform: translateY(8px);
   }
-  12% {
-    opacity: var(--fall-opacity, 0.5);
-  }
-  85% {
-    opacity: var(--fall-opacity, 0.5);
-  }
-  100% {
-    transform: translate3d(var(--fall-drift, 16px), 200px, 0) rotate(140deg);
-    opacity: 0;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .org-gov-particle {
+  .org-tree-branch {
     animation: none;
-    opacity: 0.25;
+    clip-path: none;
+  }
+
+  .org-tree-stem::before {
+    animation: none;
+    transform: translateX(-50%) scaleY(1);
+  }
+
+  .org-tree-row {
+    animation: none;
   }
 }
 
-/* ── 배경 위에 얹히는 조직 박스 ──────────────────────────────────────
-   tailwind의 반투명 tint만으로는 사진 위에서 글자가 흐려진다.
-   background-color(불투명 시트) + background-image(브랜드 tint) 2겹으로
-   깔아 사진을 차단하고, backdrop-filter로 가장자리를 정리한다. */
-.org-gov-box {
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+/* 카드 상단 가운데서 번지는 빛 무리 — 최상위 기구를 은은하게 받친다 */
+.org-halo {
+  position: absolute;
+  top: -48px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  height: 200px;
+  background: radial-gradient(closest-side, var(--brand-glow), transparent 72%);
+  opacity: 0.5;
+  pointer-events: none;
 }
 
-.org-gov-box.is-sub {
-  background-color: rgba(255, 255, 255, 0.8);
-  background-image: linear-gradient(var(--brand-soft), var(--brand-soft));
-  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.06);
+/* ── 위원회 모노그램 타일 ────────────────────────────────────────────
+   전부 같은 파랑이면 목록이 제복처럼 굳는다.
+   id 기반으로 한색 계열 4톤을 돌려 각 위원회에 얼굴을 준다. */
+.org-tile.tone-0 {
+  background: rgba(49, 130, 246, 0.1);
+  color: #1d6ae5;
 }
 
-.org-gov-box.is-sub.is-center {
-  background-image: linear-gradient(var(--brand-soft-strong), var(--brand-soft-strong));
+.org-tile.tone-1 {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0284c7;
 }
 
-.dark .org-gov-box.is-sub {
-  background-color: rgba(24, 24, 27, 0.72);
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+.org-tile.tone-2 {
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
 }
 
-/* 계절 칩 — 배경이 왜 바뀌는지 한 단어로 알려준다 */
-.org-season-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(15, 23, 42, 0.06);
+.org-tile.tone-3 {
+  background: rgba(20, 184, 166, 0.1);
+  color: #0d9488;
 }
 
-.dark .org-season-chip {
-  color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.08);
+.dark .org-tile.tone-0 {
+  background: rgba(69, 147, 252, 0.14);
+  color: #6aa6ff;
+}
+
+.dark .org-tile.tone-1 {
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
+}
+
+.dark .org-tile.tone-2 {
+  background: rgba(129, 140, 248, 0.14);
+  color: #8b93f8;
+}
+
+.dark .org-tile.tone-3 {
+  background: rgba(45, 212, 191, 0.13);
+  color: #2dd4bf;
 }

@@ -1,12 +1,6 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { useOrgTree } from '../../hooks/useOrganization'
 import type { OrgUnit } from '../../types/organization'
-import { getNaturalSeason, type NaturalSeason } from '../../utils/naturalSeason'
-import orgSpring from '../../assets/hero/spring-afternoon.jpg'
-/* 여름은 afternoon(회색 산·호수)보다 morning(초록 능선)이 계절감이 산다 */
-import orgSummer from '../../assets/hero/morning.jpg'
-import orgAutumn from '../../assets/hero/autumn-afternoon.jpg'
-import orgWinter from '../../assets/hero/winter-afternoon.jpg'
 import './Organization.css'
 
 /* 종이 조직도의 가로 5열 격자는 모바일에서 글자가 3px가 된다.
@@ -46,84 +40,63 @@ const countDepartments = (unit: OrgUnit): number =>
 
 // ── 의결기구 밴드 ─────────────────────────────────────────────────────
 
-/* 계절 배경 — 홈 히어로와 같은 사진을 재사용한다(추가 다운로드 없음).
-   CSS 변수로만 참조되므로 실제로 받는 이미지는 현재 계절 1장뿐. */
-const SEASON_IMAGE: Record<NaturalSeason, string> = {
-  spring: orgSpring,
-  summer: orgSummer,
-  autumn: orgAutumn,
-  winter: orgWinter,
-}
-
-const SEASON_CHIP: Record<NaturalSeason, { glyph: string; label: string }> = {
-  spring: { glyph: '🌸', label: '봄' },
-  summer: { glyph: '🌿', label: '여름' },
-  autumn: { glyph: '🍂', label: '가을' },
-  winter: { glyph: '❄️', label: '겨울' },
-}
-
-/* 떨어지는 글리프 — 여름은 배경 자체가 청량해 두지 않는다(홈 히어로와 같은 규칙) */
-const SEASON_PARTICLE: Partial<Record<NaturalSeason, string>> = {
-  spring: '🌸',
-  autumn: '🍂',
-  winter: '❄️',
-}
-
-/* 렌더마다 흔들리지 않도록 고정 배치 */
-const PARTICLES = [
-  { left: '10%', delay: '0s', duration: '16s', drift: '14px', size: '10px', opacity: 0.45 },
-  { left: '34%', delay: '5.5s', duration: '19s', drift: '-12px', size: '8px', opacity: 0.35 },
-  { left: '58%', delay: '2.5s', duration: '17s', drift: '18px', size: '11px', opacity: 0.4 },
-  { left: '82%', delay: '8.5s', duration: '21s', drift: '-10px', size: '9px', opacity: 0.3 },
-] as const
-
-/* 원본 종이 조직도의 십자(+) 배치를 그대로 옮긴다. 연결선은 원본에도 없다.
-   3열 그리드에서 최상위는 가운데 위, 하위는 등록 순서대로
-   왼쪽 → 가운데 → 오른쪽 → 그 아래 가운데로 채운다. */
-const governanceSlot = (index: number, total: number) => {
-  if (total === 1) return { gridColumn: 2, gridRow: 2 }
-  // 2개뿐이면 가로로 벌리는 대신 가운데 열에 세로로 쌓는다(십자가 안 되므로)
-  if (total === 2) return { gridColumn: 2, gridRow: 2 + index }
-  if (index === 0) return { gridColumn: 1, gridRow: 2 }
-  if (index === 1) return { gridColumn: 2, gridRow: 2 }
-  if (index === 2) return { gridColumn: 3, gridRow: 2 }
-  return { gridColumn: 2, gridRow: index } // 4번째부터는 가운데 열 아래로 이어 붙는다
-}
-
 const BOX_BASE =
-  'w-full text-center px-2 py-2.5 rounded-xl text-[13px] leading-tight tracking-[-0.01em] break-keep'
+  'text-center px-3 py-2.5 rounded-full text-[13px] leading-tight tracking-[-0.01em] break-keep'
 
-const GovernanceCross = ({ root }: { root: OrgUnit }) => {
-  const children = root.children
+const SubBox = ({ unit, emphasized }: { unit: OrgUnit; emphasized: boolean }) => (
+  <span
+    className={`${BOX_BASE} border text-brand ${
+      emphasized
+        ? 'font-semibold bg-[var(--brand-soft-strong)] border-[var(--brand-glow)]'
+        : 'font-medium bg-[var(--brand-soft)] border-[var(--brand-soft-strong)]'
+    }`}
+  >
+    {unit.name}
+  </span>
+)
+
+/* 연결선 — 줄기가 내려오다 좌우로 갈라지는 둥근 모서리 엘보.
+   실처럼 처지는 자유곡선 대신 노선도식 라운드 라인이라 부드러우면서 또렷하다. */
+const BranchElbows = () => (
+  <div className="org-tree-branch" aria-hidden>
+    <span className="org-branch-stem" />
+    <span className="org-elbow is-left" />
+    <span className="org-elbow is-right" />
+  </div>
+)
+
+/* 원본 종이 조직도의 십자(+) 배치를 유지하되 곡선 가지로 상하 관계를 그린다.
+   최상위 아래 첫 3개는 가지로 벌리고, 나머지는 가운데 줄기로 이어 내린다.
+   하위가 2개 이하면 가지 없이 전부 줄기로 쌓는다(십자가 안 되므로). */
+const GovernanceTree = ({ root }: { root: OrgUnit }) => {
+  const branch = root.children.length >= 3 ? root.children.slice(0, 3) : []
+  const tail = root.children.length >= 3 ? root.children.slice(3) : root.children
 
   return (
-    <div className="w-full grid grid-cols-3 gap-1.5 items-center">
-      <span
-        style={{ gridColumn: 2, gridRow: 1 }}
-        className={`${BOX_BASE} org-gov-box font-bold bg-brand text-white shadow-[0_2px_12px_var(--brand-glow)]`}
-      >
-        {root.name}
-      </span>
+    <div className="org-tree">
+      <div className="org-tree-row is-single is-root">
+        <span className={`${BOX_BASE} org-root-box font-bold text-white`}>{root.name}</span>
+      </div>
 
-      {children.map((child, index) => {
-        const slot = governanceSlot(index, children.length)
-        // 가운데 열은 원본에서도 톤이 진하다 — 옆으로 뻗은 당회·구역회보다 한 단계 강조
-        const isCenterColumn = slot.gridColumn === 2
-        return (
-          <span
-            key={child.id}
-            style={slot}
-            // 배경 사진 위에 얹히므로 면 색은 CSS(.org-gov-box.is-sub)가 2겹으로 깐다
-            className={`${BOX_BASE} org-gov-box is-sub ${
-              isCenterColumn
-                ? 'is-center font-semibold border border-[var(--brand-glow)] text-brand'
-                : 'font-medium border border-[var(--brand-soft-strong)] text-brand'
-            }`}
-          >
-            {child.name}
-          </span>
-        )
-      })}
+      {branch.length > 0 && (
+        <>
+          <BranchElbows />
+          <div className="org-tree-row is-triple">
+            {branch.map((child, index) => (
+              <SubBox key={child.id} unit={child} emphasized={index === 1} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {tail.map(child => (
+        <Fragment key={child.id}>
+          <div className="org-tree-stem" aria-hidden />
+          <div className="org-tree-row is-single is-tail">
+            <SubBox unit={child} emphasized />
+          </div>
+        </Fragment>
+      ))}
     </div>
   )
 }
@@ -131,57 +104,18 @@ const GovernanceCross = ({ root }: { root: OrgUnit }) => {
 const GovernanceBand = ({ units }: { units: OrgUnit[] }) => {
   if (units.length === 0) return null
 
-  /* 지금 계절이 밴드 뒤의 사진·색 기운·앰비언트를 함께 정한다 */
-  const season = getNaturalSeason(new Date())
-  const chip = SEASON_CHIP[season]
-  const particle = SEASON_PARTICLE[season]
-
   return (
     <section className="px-4 pt-4">
-      <div className="flex items-center justify-between mb-2 px-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-          의결기구
-        </p>
-        <span className="org-season-chip">
-          <span aria-hidden>{chip.glyph}</span>
-          {chip.label}
-        </span>
-      </div>
-      <div
-        className={`${cardClass} org-gov-card px-4 py-4`}
-        data-season={season}
-        style={
-          { '--org-season-image': `url(${SEASON_IMAGE[season]})` } as React.CSSProperties
-        }
-      >
-        {/* 계절 배경 레이어 — 사진(블러·저채도) + 계절 색 기운 + 앰비언트 */}
-        <span className="org-gov-scene" aria-hidden>
-          <span className="org-gov-photo" />
-          <span className="org-gov-wash" />
-          {particle &&
-            PARTICLES.map((p, i) => (
-              <span
-                key={i}
-                className="org-gov-particle"
-                style={
-                  {
-                    left: p.left,
-                    fontSize: p.size,
-                    '--fall-delay': p.delay,
-                    '--fall-duration': p.duration,
-                    '--fall-drift': p.drift,
-                    '--fall-opacity': p.opacity,
-                  } as React.CSSProperties
-                }
-              >
-                {particle}
-              </span>
-            ))}
-        </span>
+      <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+        의결기구
+      </p>
+      <div className={`${cardClass} px-4 py-5`}>
+        {/* 최상위 기구 뒤로 번지는 은은한 빛 — 플랫함이 밋밋해지지 않게 */}
+        <span className="org-halo" aria-hidden />
         <CardSheen />
-        <div className="relative z-10 space-y-4">
+        <div className="relative z-10 space-y-5">
           {units.map(root => (
-            <GovernanceCross key={root.id} root={root} />
+            <GovernanceTree key={root.id} root={root} />
           ))}
         </div>
       </div>
@@ -192,7 +126,7 @@ const GovernanceBand = ({ units }: { units: OrgUnit[] }) => {
 // ── 위원회 카드 ───────────────────────────────────────────────────────
 
 const DepartmentChip = ({ unit }: { unit: OrgUnit }) => (
-  <span className="px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/[0.05] text-[12.5px] text-gray-700 dark:text-white/70">
+  <span className="px-3 py-1.5 rounded-full bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/[0.05] text-[12.5px] text-gray-700 dark:text-white/70">
     {unit.name}
     {unit.note && (
       <span className="ml-1.5 text-[11px] text-gray-400 dark:text-white/35">{unit.note}</span>
@@ -222,16 +156,27 @@ const CommitteeCard = ({
         aria-expanded={expanded}
         className="relative z-10 w-full flex items-center gap-3 px-4 py-3.5 text-left"
       >
-        <span className="w-1.5 h-8 rounded-full bg-brand shrink-0" />
+        {/* 위원회 첫 글자 모노그램 — 밋밋한 막대 대신 얼굴이 되어 준다 */}
+        <span
+          className={`org-tile tone-${committee.id % 4} w-9 h-9 rounded-xl flex items-center justify-center text-[15px] font-bold shrink-0`}
+        >
+          {committee.name.charAt(0)}
+        </span>
         <span className="flex-1 min-w-0">
           <span className="block text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
             {committee.name}
           </span>
-          <span className="block text-[11.5px] text-gray-400 dark:text-white/35 mt-0.5">
-            {bureaus.length > 0 && `${bureaus.map(b => b.name).join(' · ')} · `}
+          {bureaus.length > 0 && (
+            <span className="block text-[11.5px] text-gray-400 dark:text-white/35 mt-0.5 truncate">
+              {bureaus.map(b => b.name).join(' · ')}
+            </span>
+          )}
+        </span>
+        {departmentCount > 0 && (
+          <span className="shrink-0 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] text-[11px] font-semibold text-gray-500 dark:text-white/45">
             부서 {departmentCount}
           </span>
-        </span>
+        )}
         <svg
           width="18"
           height="18"
@@ -253,7 +198,7 @@ const CommitteeCard = ({
         <div className="relative z-10 px-4 pb-4 space-y-3 animate-pop-in">
           {bureaus.map(bureau => (
             <div key={bureau.id}>
-              <span className="inline-block px-2.5 py-1 rounded-lg bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand text-[12px] font-bold mb-2">
+              <span className="inline-block px-2.5 py-1 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand text-[12px] font-bold mb-2">
                 {bureau.name}
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -320,10 +265,14 @@ const Organization = () => {
             한 몸을 이루는 여러 지체입니다. 섬기고 계신 자리를 찾아보세요.
           </p>
           {data && (
-            <p className="mt-2.5 text-[13px] text-gray-500 dark:text-white/50">
-              위원회 <span className="font-bold text-brand">{data.committee_count}</span>개 · 부서{' '}
-              <span className="font-bold text-brand">{data.department_count}</span>개
-            </p>
+            <div className="mt-3 flex items-center gap-1.5">
+              <span className="px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-[12px] text-brand">
+                위원회 <span className="font-bold">{data.committee_count}</span>
+              </span>
+              <span className="px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-[12px] text-brand">
+                부서 <span className="font-bold">{data.department_count}</span>
+              </span>
+            </div>
           )}
         </header>
 
@@ -347,7 +296,7 @@ const Organization = () => {
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="부서 · 위원회 이름으로 찾기"
-              className="w-full pl-10 pr-9 py-2.5 text-[13.5px] rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
+              className="w-full pl-10 pr-9 py-3 text-[13.5px] rounded-full border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand focus:ring-2 focus:ring-[var(--brand-glow)] transition-[border-color,box-shadow]"
             />
             {query && (
               <button
