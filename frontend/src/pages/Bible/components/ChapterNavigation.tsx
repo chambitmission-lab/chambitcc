@@ -1,5 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { useAuth } from '../../../hooks/useAuth'
+import { bibleReadingKeys } from '../../../hooks/useBibleReading'
+import { getBookReadingProgress } from '../../../api/bibleReading'
+import { bookmarkKeys } from '../../../hooks/useBibleBookmark'
+import { listBookmarks } from '../../../api/bibleBookmark'
 import ReaderSettings from './ReaderSettings'
 import ChapterPickerSheet from './ChapterPickerSheet'
 
@@ -28,7 +34,32 @@ const ChapterNavigation = ({
   onBackToBooks
 }: ChapterNavigationProps) => {
   const { language } = useLanguage()
+  const { isLoggedIn } = useAuth()
   const [pickerOpen, setPickerOpen] = useState(false)
+  const queryClient = useQueryClient()
+
+  // 장 피커 시트가 열리는 순간에야 진행도·북마크를 요청하면 ✓ 표시가 한 박자 늦게
+  // 뜬다. 책을 펼쳐 읽는 동안 미리 받아 두면 시트는 캐시로 즉시 그려진다.
+  // (staleTime은 useBookReadingProgress / useMyBookmarks와 동일하게 맞춘다 —
+  //  fresh하면 prefetch가 네트워크 요청 없이 조용히 끝난다)
+  const loggedIn = isLoggedIn()
+  useEffect(() => {
+    if (!loggedIn) return
+    if (selectedBookId > 0) {
+      queryClient.prefetchQuery({
+        queryKey: bibleReadingKeys.bookProgress(selectedBookId),
+        queryFn: () => getBookReadingProgress(selectedBookId),
+        staleTime: 1000 * 60 * 10,
+      })
+    }
+    if (bookNumber > 0) {
+      queryClient.prefetchQuery({
+        queryKey: bookmarkKeys.list({ book_number: bookNumber, page_size: 100 }),
+        queryFn: () => listBookmarks({ book_number: bookNumber, page_size: 100 }),
+        staleTime: 1000 * 60 * 2,
+      })
+    }
+  }, [loggedIn, selectedBookId, bookNumber, queryClient])
 
   const texts = {
     ko: { prevChapter: '이전 장', nextChapter: '다음 장', pick: '장 선택', of: '장' },
