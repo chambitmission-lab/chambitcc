@@ -16,6 +16,8 @@ export const mission = {
   missionSheetDistance: 'Distance',
   missionMapTitle: '🌐 Overseas Mission Map',
   missionRegionEmphasize: 'highlighted',
+  missionMapZoomWorld: 'World view',
+  missionMapZoomRegion: 'Zoom to region',
   missionRegionArea: 'Region',
   regionAsia: 'Asia',
   regionEurope: 'Europe & Central Asia',

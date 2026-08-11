@@ -106,6 +106,8 @@ const Mission = () => {
   const [activeRegion, setActiveRegion] = useState<RegionKey>('asia')
   const [hoverCountry, setHoverCountry] = useState<string | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null) // "country|name"
+  // 기본은 활성 대륙 확대 — 세계 전체는 토글로만. 모바일에서 점이 안 보이는 문제 해결
+  const [mapZoomOut, setMapZoomOut] = useState(false)
   const mapRef = useRef<HTMLDivElement>(null)
 
   // 함께 기도하기 — 개인 기기 기준 하루 한 번. 서버 없이도 참여감을 주는 소박한 액션
@@ -157,14 +159,16 @@ const Mission = () => {
     setSheetTarget(null)
     const region = countryCoordinates[m.country]?.region
     if (region) setActiveRegion(region)
+    setMapZoomOut(false)
     setSelectedKey(`${m.country}|${m.name}`)
     mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
-  // 지역 탭 변경 시 선택 초기화
+  // 지역 탭 변경 시 선택 초기화 + 해당 대륙으로 다시 확대
   const handleRegionChange = (key: RegionKey) => {
     setActiveRegion(key)
     setSelectedKey(null)
+    setMapZoomOut(false)
   }
 
   // 지도 점 탭 → 국가 선택 (같은 국가 재탭 시 해제). 해당 대륙 탭도 함께 전환
@@ -172,12 +176,14 @@ const Mission = () => {
     const coord = countryCoordinates[country]
     if (!coord) return
     setActiveRegion(coord.region)
+    setMapZoomOut(false)
     setSelectedKey(prev => (prev?.split('|')[0] === country ? null : `${country}|@map`))
   }, [])
 
   // 오늘의 선교사 카드 탭 → 해당 국가를 지도에서 강조
   const handleFeaturedClick = () => {
     setActiveRegion(featuredRegion)
+    setMapZoomOut(false)
     setSelectedKey(`${featured.country}|${featured.name}`)
     mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
@@ -276,12 +282,22 @@ const Mission = () => {
               {selectedCountry ?? hoverCountry ?? `${activeRegionLabel} ${t('missionRegionEmphasize')}`}
             </span>
           </div>
-          <WorldMap
-            points={mapPoints}
-            onHover={setHoverCountry}
-            onSelect={handleMapSelect}
-            selectedCountry={selectedCountry}
-          />
+          <div className="map-canvas">
+            <WorldMap
+              points={mapPoints}
+              onHover={setHoverCountry}
+              onSelect={handleMapSelect}
+              selectedCountry={selectedCountry}
+              zoomOut={mapZoomOut}
+            />
+            <button
+              type="button"
+              className="map-zoom-toggle"
+              onClick={() => setMapZoomOut(v => !v)}
+            >
+              {mapZoomOut ? `🔍 ${t('missionMapZoomRegion')}` : `🌍 ${t('missionMapZoomWorld')}`}
+            </button>
+          </div>
 
           {/* 대륙 탭을 지도 카드 안에 붙여 "탭 → 지도 점·명단이 함께 반응"이
               한 덩어리 인터랙션으로 읽히게 한다 */}

@@ -16,6 +16,8 @@ export const mission = {
   missionSheetDistance: '거리',
   missionMapTitle: '🌐 해외 사역 지도',
   missionRegionEmphasize: '강조',
+  missionMapZoomWorld: '전체 지도',
+  missionMapZoomRegion: '지역 확대',
   missionRegionArea: '지역',
   regionAsia: '아시아',
   regionEurope: '유럽·중앙아시아',
