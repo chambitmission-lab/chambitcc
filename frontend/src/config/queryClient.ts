@@ -1,17 +1,6 @@
 // React Query 설정 with 캐시 영구 저장
 import { QueryClient } from '@tanstack/react-query'
 
-// 네트워크 에러 판별 (캐시 사용을 위해 재시도하지 않음)
-const isNetworkError = (error: unknown) => {
-  const message = (error as { message?: unknown } | null)?.message
-  if (typeof message !== 'string') return false
-  return (
-    message.includes('Failed to fetch') ||
-    message.includes('Network request failed') ||
-    message.includes('ERR_CONNECTION_REFUSED')
-  )
-}
-
 // 4xx는 다시 물어봐도 답이 안 바뀐다 (삭제된 캡슐 404, 권한 없음 403 등).
 // 재시도하면 그 시간만큼 화면이 빈 채로 남아 "왜 이렇게 오래 걸리지" 가 된다.
 const isClientError = (error: unknown) => {
@@ -20,9 +9,11 @@ const isClientError = (error: unknown) => {
 }
 
 // 재사용 가능한 retry 함수 (maxRetries로 횟수 조절)
+// 네트워크 오류(모바일 순단·앱 복귀 직후 'Failed to fetch' 등)도 일반 오류와
+// 동일하게 재시도한다 — 순단은 1~2초 뒤 재시도로 살아나는 경우가 대부분이라,
+// 재시도 없이 곧바로 에러를 확정하면 화면이 간헐적으로 에러 상태에 빠진다.
 export const createRetry = (maxRetries: number) =>
   (failureCount: number, error: unknown) => {
-    if (isNetworkError(error)) return false
     if (isClientError(error)) return false
     return failureCount < maxRetries
   }

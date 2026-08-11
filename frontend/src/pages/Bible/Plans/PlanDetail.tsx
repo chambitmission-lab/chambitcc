@@ -31,7 +31,7 @@ const PlanDetail = () => {
   const { planId } = useParams<{ planId: string }>()
   const id = Number(planId)
 
-  const { data: plan, isLoading, error } = useBiblePlan(id)
+  const { data: plan, isLoading, refetch, isFetching } = useBiblePlan(id)
   const subscribe = useSubscribePlan()
   const unsubscribe = useUnsubscribePlan()
   const restart = useRestartPlan()
@@ -185,7 +185,8 @@ const PlanDetail = () => {
     )
   }
 
-  if (error || !plan) {
+  // 에러여도 캐시된 plan 이 있으면 그대로 렌더 — 일시적 실패가 화면을 가리지 않게
+  if (!plan) {
     return (
       <Shell onBack={() => navigate('/bible/plans')} title="읽기 플랜">
         <div className="text-center py-16 px-6">
@@ -193,6 +194,14 @@ const PlanDetail = () => {
           <p className="text-[13px] text-gray-500 dark:text-white/55">
             플랜을 불러오지 못했습니다
           </p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="mt-5 px-5 py-2.5 rounded-full bg-brand text-white text-[13px] font-bold tracking-[-0.01em] shadow-[0_4px_14px_-4px_var(--brand-glow)] transition-all duration-150 active:scale-95 disabled:opacity-60"
+          >
+            {isFetching ? '불러오는 중…' : '다시 시도'}
+          </button>
         </div>
       </Shell>
     )

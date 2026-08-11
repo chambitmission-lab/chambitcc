@@ -14,7 +14,7 @@ import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 
 const PlanList = () => {
   const navigate = useNavigate()
-  const { data, isLoading, error } = useBiblePlans()
+  const { data, isLoading, error, refetch, isFetching } = useBiblePlans()
   // 오늘 분량(일차·본문 reference) — 이어서 읽기 카드의 CTA/미리보기에 사용
   const { data: todayData } = useTodayReadings(isAuthenticated())
   // 완주한 플랜은 기본 접힘 — 화면의 주인공은 "오늘 읽어야 할 플랜"
@@ -121,15 +121,24 @@ const PlanList = () => {
           </svg>
         </button>
 
-        {/* 본문 */}
+        {/* 본문 — 에러여도 캐시된 목록이 있으면 그대로 보여준다
+            (일시적 실패가 멀쩡한 데이터를 가리는 게 이 화면의 간헐적 에러 원인이었음) */}
         {isLoading ? (
           <PlanSkeletons />
-        ) : error ? (
+        ) : error && plans.length === 0 ? (
           <div className="text-center py-16 px-6">
             <span className="text-4xl block mb-3">😢</span>
             <p className="text-[13px] text-gray-500 dark:text-white/55">
               플랜을 불러오지 못했습니다
             </p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="mt-5 px-5 py-2.5 rounded-full bg-brand text-white text-[13px] font-bold tracking-[-0.01em] shadow-[0_4px_14px_-4px_var(--brand-glow)] transition-all duration-150 active:scale-95 disabled:opacity-60"
+            >
+              {isFetching ? '불러오는 중…' : '다시 시도'}
+            </button>
           </div>
         ) : plans.length === 0 ? (
           <div className="text-center py-16 px-6">
