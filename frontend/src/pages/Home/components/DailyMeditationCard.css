@@ -206,9 +206,10 @@
 
 /* 날씨 로딩 자리표시자 — 칩과 같은 유리 모양·크기의 빈 알약.
  * 내용이 없으므로 폭을 직접 잡아준다(⛅ 24° 기준).
- * 본문 스켈레톤과 같은 시머 스윕을 쓴다(히어로 사진 위라 항상 다크 유리). */
+ * 본문 스켈레톤과 같은 시머 스윕을 쓴다(히어로 사진 위라 항상 다크 유리).
+ * position은 덮어쓰지 않는다 — relative로 바꾸면 인라인 흐름을 타고
+ * 히어로 좌측 상단에 잠깐 나타났다 사라진다(시머 ::after는 absolute로도 담긴다). */
 .meditation-weather-chip.is-skeleton {
-  position: relative;
   overflow: hidden;
   width: 62px;
   height: 28px;
