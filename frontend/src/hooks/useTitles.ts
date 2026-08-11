@@ -23,10 +23,10 @@ export const useEquippedTitle = (enabled = true) =>
     queryKey: titleKeys.equipped(),
     queryFn: getEquippedTitle,
     enabled,
-    staleTime: 1000 * 60,
-    // 전역 refetchOnMount:false(queryClient.ts) 때문에, 장착 변경 후 프로필 재진입 시
-    // 무효화만으론 옛 캐시가 그대로 보인다 → 마운트마다 최신 장착 칭호를 다시 불러온다.
-    refetchOnMount: 'always',
+    // 장착 변경은 useEquipTitle 이 setQueryData 로 즉시 캐시에 반영하므로
+    // 마운트마다 강제 재조회('always')할 필요가 없다. staleTime 이 지나면
+    // 전역 refetchOnMount:true 가 캐시를 먼저 그린 뒤 조용히 재조회한다.
+    staleTime: 1000 * 60 * 5,
   })
 
 /** 칭호 장착/해제 */

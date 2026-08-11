@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { TitleEquippedChip } from '../../../components/titles/TitleEquippedChip'
+import { useTitleBackdropSrc } from '../../../components/titles/TitleBackdrop'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useUploadAvatar, useDeleteAvatar } from '../../../hooks/useProfile'
 import { resizeImageToBlob } from '../../../utils/imageResize'
@@ -34,6 +35,7 @@ const ProfileHeader = ({
   const deleteAvatar = useDeleteAvatar()
   const avatarBusy = uploadAvatar.isPending || deleteAvatar.isPending
   const auraColor = glowLevel.glowColor
+  const backdropSrc = useTitleBackdropSrc()
 
   const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -69,9 +71,34 @@ const ProfileHeader = ({
   }
 
   return (
-    <div className="flex flex-col items-center px-5 pt-7 pb-2 text-center">
-      {/* 아바타 — 링은 브랜드 솔리드, 레벨 색은 글로우로만 */}
-      <div className="relative">
+    <div className="flex flex-col items-center pb-2 text-center">
+      {/* 장착 칭호 커버 배너 — 장면(양·해돋이·닭)을 마스크 없이 온전히 보여준다 */}
+      {backdropSrc && (
+        <div className="relative w-full aspect-video overflow-hidden" aria-hidden>
+          <img
+            src={backdropSrc}
+            alt=""
+            draggable={false}
+            className="h-full w-full select-none object-cover"
+          />
+          {/* 하단을 공통 네이비(--title-bg-seam)로 수렴 — 아래 정보 영역 그라데이션과
+              정확히 같은 색에서 만나므로 20장 어떤 그림이든 이음새가 사라진다 */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background-light dark:to-[#0c1322]" />
+        </div>
+      )}
+
+      {/* 정보 영역 — 다크 모드에선 그림 하단 네이비를 이어받아 서서히 페이지 배경으로 녹인다 */}
+      <div
+        className={`flex w-full flex-col items-center ${
+          backdropSrc ? 'dark:bg-gradient-to-b dark:from-[#0c1322] dark:to-transparent' : ''
+        }`}
+      >
+      {/* 아바타 — 배너가 있으면 커버 사진처럼 하단에 걸친다 */}
+      <div className={`relative ${backdropSrc ? '-mt-10' : 'mt-7'}`}>
+          {/* 배너 위에 걸칠 때는 이음색 테두리로 오려낸 듯한 커버 스타일 */}
+          <div
+            className={`rounded-full ${backdropSrc ? 'bg-background-light dark:bg-[#0c1322] p-[3px]' : ''}`}
+          >
           <div
             className="rounded-full p-[2.5px]"
             style={{
@@ -90,6 +117,7 @@ const ProfileHeader = ({
                 {(fullName || username).charAt(0).toUpperCase()}
               </div>
             )}
+          </div>
           </div>
 
           {/* 카메라 배지 — 등록/교체 */}
@@ -131,33 +159,40 @@ const ProfileHeader = ({
           />
       </div>
 
-      {/* 이름 · 아이디 · 단계 이름 */}
-      <h2
-        className="m-0 mt-3 max-w-full truncate text-[20px] font-bold leading-tight tracking-[-0.02em] text-ink-strong"
-        style={{ wordBreak: 'keep-all' }}
-      >
-        {fullName}
-      </h2>
-      <p className="mt-0.5 text-[12.5px] font-medium text-gray-400 dark:text-white/45">
-        @{username}
-      </p>
-      <div className="mt-1.5 flex items-center justify-center gap-1.5">
-        <span
-          className="h-2 w-2 rounded-full"
-          style={{
-            background: 'var(--brand)',
-            boxShadow: `0 0 8px ${auraColor}`,
-          }}
-          aria-hidden="true"
-        />
-        <span className="text-[12.5px] font-semibold text-brand">
-          {t(glowLevel.nameKey)}
-        </span>
+      {/* 이름 + 아이디 — 한 줄로 묶어 세로 스택을 줄인다 */}
+      <div className="mt-3 flex max-w-full items-baseline justify-center gap-1.5 px-5">
+        <h2
+          className="m-0 truncate text-[20px] font-bold leading-tight tracking-[-0.02em] text-ink-strong"
+          style={{ wordBreak: 'keep-all' }}
+        >
+          {fullName}
+        </h2>
+        <p className="m-0 shrink-0 text-[12.5px] font-medium text-gray-400 dark:text-white/45">
+          @{username}
+        </p>
       </div>
 
-      {/* 장착한 칭호 — 클릭 시 /garden 컬렉션으로 */}
-      <div className="mt-3 flex justify-center">
+      {/* 단계 이름 · 장착한 칭호 — 한 줄, 좁은 화면에선 자연스럽게 줄바꿈 */}
+      <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 px-5">
+        <span className="flex items-center gap-1.5">
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{
+              background: 'var(--brand)',
+              boxShadow: `0 0 8px ${auraColor}`,
+            }}
+            aria-hidden="true"
+          />
+          <span className="text-[12.5px] font-semibold text-brand">
+            {t(glowLevel.nameKey)}
+          </span>
+        </span>
+        <span className="text-[12px] text-gray-300 dark:text-white/25" aria-hidden>
+          ·
+        </span>
+        {/* 클릭 시 /garden 컬렉션으로 */}
         <TitleEquippedChip variant="pill" />
+      </div>
       </div>
     </div>
   )
