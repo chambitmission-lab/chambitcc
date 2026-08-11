@@ -25,7 +25,10 @@ export const queryClient = new QueryClient({
       gcTime: 1000 * 60 * 60 * 24 * 7, // 7일 캐시 유지 (오프라인 대응)
       retry: createRetry(1),
       refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 리페치 비활성화
-      refetchOnMount: false, // 캐시 우선 전략 (오프라인 PWA 대응)
+      // 캐시를 먼저 그리되, staleTime(5분)이 지난 데이터는 마운트 시 뒤에서
+      // 조용히 재조회한다. false 였을 때는 persist 복원분(최대 7일)이 새로고침
+      // 후에도 재조회 없이 그대로 남아 "옛 내용이 계속 보이는" 원인이 됐다.
+      refetchOnMount: true,
       refetchOnReconnect: true, // 네트워크 재연결 시 자동 업데이트
     },
     mutations: {

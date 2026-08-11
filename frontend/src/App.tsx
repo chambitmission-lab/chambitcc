@@ -13,6 +13,7 @@ import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
 import { ConfirmDialogHost } from './components/common/ConfirmDialog'
 import { menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
 import { healPushSubscription } from './utils/pushNotification'
+import { checkForAppUpdate } from './utils/appVersion'
 import { isAuthenticated, getCurrentUser } from './utils/auth'
 // 즉시 진입 가능성이 높은 페이지는 eager import 유지
 import NewHome from './pages/Home/NewHome'
@@ -173,21 +174,24 @@ function App() {
     schedulePreloadOnIdle()
   }, [])
 
-  // 푸시 구독 자가 치유: 사용자가 켜둔 알림이 기기 공유·endpoint 만료 등으로
-  // 어긋나 있으면 앱 시작 시(및 며칠 만에 포그라운드 복귀 시) 조용히 재구독한다.
-  // 로그인 시점 1회 복원(restorePushSubscriptionForUser)의 실패를 보완하는 재시도 경로.
+  // 앱 시작·포그라운드 복귀 시 자가 점검 2가지:
+  // - 새 버전 감지: 설치형 PWA는 옛 번들이 며칠씩 살아남으므로 version.json 을
+  //   비교해 다르면 스스로 새로고침 (재설치 없이 항상 최신 코드 보장)
+  // - 푸시 구독 자가 치유: 켜둔 알림이 endpoint 만료 등으로 어긋나면 조용히 재구독
+  //   (로그인 시점 1회 복원 restorePushSubscriptionForUser 실패를 보완하는 재시도 경로)
   useEffect(() => {
-    const heal = () => {
+    const selfCheck = () => {
+      void checkForAppUpdate()
       if (!isAuthenticated()) return
       void healPushSubscription(getCurrentUser().username)
     }
 
-    heal()
+    selfCheck()
 
     // PWA는 새로고침 없이 메모리에서 복귀하는 경우가 많아 visibilitychange로도 검사
-    // (실제 검사 빈도는 healPushSubscription 내부에서 1시간 1회로 제한됨)
+    // (검사 빈도는 각 함수 내부에서 제한됨: 버전 1분·푸시 1시간)
     const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') heal()
+      if (document.visibilityState === 'visible') selfCheck()
     }
     document.addEventListener('visibilitychange', onVisibilityChange)
     return () => document.removeEventListener('visibilitychange', onVisibilityChange)

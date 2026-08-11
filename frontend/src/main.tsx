@@ -34,6 +34,9 @@ createRoot(document.getElementById('root')!).render(
         client={queryClient}
         persistOptions={{
           persister,
+          // 빌드가 바뀌면 persist 캐시를 통째로 폐기 — 새 코드가 옛 스키마의
+          // 캐시 데이터를 복원해서 생기는 코드-데이터 불일치를 막는다
+          buster: __APP_VERSION__,
           dehydrateOptions: {
             shouldDehydrateQuery: (query) => {
               // 기본 조건: 성공한 쿼리만 persist
