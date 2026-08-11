@@ -6,7 +6,7 @@ import { useBluemarbleStats } from '../../hooks/useBluemarble'
 import { logout } from '../../utils/auth'
 import { PushNotificationButton } from '../../components/common/PushNotificationButton'
 import ProfileHeader from './components/ProfileHeader'
-import ActivityStats from './components/ActivityStats'
+import FaithInsightCard from './components/FaithInsightCard'
 import WeeklyStoryHook from './components/WeeklyStoryHook'
 import GrowthHook from './components/GrowthHook'
 import LevelProgress from './components/LevelProgress'
@@ -185,45 +185,38 @@ const Profile = () => {
           </button>
         </div>
 
-        {/* 프로필 정보 */}
+        {/* ① 아이덴티티 — 이름·칭호·단계, 조용하게 */}
         <ProfileHeader
           username={stats.username}
           fullName={stats.full_name}
           avatarUrl={stats.avatar_url ?? null}
           glowLevel={glowLevel}
-          activityPoints={activityPoints}
-          thisWeekCount={stats.activity.this_week_count}
-          totalCount={stats.activity.total_count}
-          streakDays={stats.activity.streak_days}
-          pointsToNext={pointsToNext}
-          achievements={achievements}
         />
 
-        {/* 레벨 진행도 */}
+        {/* ② 신앙의 온도 — 레벨·포인트·활동 스탯을 한 카드로 */}
         <LevelProgress
           currentLevel={glowLevel}
           currentPoints={activityPoints}
           pointsToNext={pointsToNext}
-        />
-
-        {/* 업적 뱃지 */}
-        <AchievementBadges
-          achievements={achievements}
-          onAchievementClick={handleAchievementClick}
-        />
-
-        {/* 활동 통계 */}
-        <ActivityStats
           thisWeekCount={stats.activity.this_week_count}
           totalCount={stats.activity.total_count}
           streakDays={stats.activity.streak_days}
         />
 
-        {/* 신앙 여정(전체) 진입 */}
+        {/* ③ 요즘 나의 걸음 — 룰 기반 인사이트 */}
+        <FaithInsightCard />
+
+        {/* ④ 신앙 여정(전체) 진입 */}
         <GrowthHook />
 
-        {/* 주간 기도 스토리 진입 */}
+        {/* ④ 주간 기도 스토리 진입 */}
         <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
+
+        {/* ⑤ 업적 — 대표 배지 행 + 펼쳐보기 */}
+        <AchievementBadges
+          achievements={achievements}
+          onAchievementClick={handleAchievementClick}
+        />
 
         {/* 푸시 알림 설정 */}
         <div className="px-4 py-3">

@@ -7,9 +7,24 @@ interface LevelProgressProps {
   currentLevel: GlowLevel
   currentPoints: number
   pointsToNext: { needed: number; total: number } | null
+  thisWeekCount: number
+  totalCount: number
+  streakDays: number
 }
 
-const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgressProps) => {
+/**
+ * '신앙의 온도' 통합 카드 — 이 화면에서 숫자를 말하는 유일한 자리.
+ * (예전엔 트레이딩 카드 앞/뒷면 + 활동 통계 카드 + 이 카드까지 같은 숫자가
+ * 네 번 반복됐다. 스탯 3종을 여기로 모으고 나머지는 제거.)
+ */
+const LevelProgress = ({
+  currentLevel,
+  currentPoints,
+  pointsToNext,
+  thisWeekCount,
+  totalCount,
+  streakDays,
+}: LevelProgressProps) => {
   const { t } = useLanguage()
   const [guideOpen, setGuideOpen] = useState(false)
   const progress = pointsToNext
@@ -53,6 +68,17 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
           >
             Lv.{currentLevel.level}
           </div>
+        </div>
+
+        {/* 활동 스탯 — 숫자는 브랜드 강조 */}
+        <div className="relative z-10 mb-4 grid grid-cols-3 divide-x divide-gray-200/70 dark:divide-white/[0.06] rounded-xl border border-gray-200/70 dark:border-white/[0.06] bg-gray-50/70 dark:bg-white/[0.03]">
+          <TemperatureStat value={totalCount} label={t('totalPrayers')} />
+          <TemperatureStat value={thisWeekCount} label={t('profileThisWeek')} />
+          <TemperatureStat
+            value={streakDays}
+            label={t('consecutivePrayers')}
+            suffix={streakDays >= 7 ? '🔥' : undefined}
+          />
         </div>
 
         {/* 진행 바 */}
@@ -150,5 +176,27 @@ const LevelProgress = ({ currentLevel, currentPoints, pointsToNext }: LevelProgr
     </div>
   )
 }
+
+const TemperatureStat = ({
+  value,
+  label,
+  suffix,
+}: {
+  value: number
+  label: string
+  suffix?: string
+}) => (
+  <div className="px-2 py-3 text-center">
+    <div className="brand-text-gradient text-[24px] font-bold leading-none tracking-[-0.02em]">
+      {value.toLocaleString()}
+      {suffix && (
+        <span className="ml-0.5 align-baseline text-[14px] leading-none">{suffix}</span>
+      )}
+    </div>
+    <div className="mt-1.5 text-[10.5px] font-medium text-gray-500 dark:text-white/50 whitespace-nowrap">
+      {label}
+    </div>
+  </div>
+)
 
 export default LevelProgress

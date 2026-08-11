@@ -27,6 +27,12 @@ export const profile = {
   growthHookEmpty: 'See your whole journey at a glance',
   growthHookSub: 'Prayer, the Word, meditation and answers — all in one flow →',
 
+  // My walk these days — insight card
+  insightLabel: 'My Walk These Days',
+  insightAnsweredChip: 'Answered',
+  insightIntercessionChip: 'Prayed together',
+  insightThanksChip: 'Gratitude',
+
   // Weekly story entry card
   storyHookLabel: "This Week's Faith Timeline",
   storyHookEmpty: 'Leave your first footprint this week',

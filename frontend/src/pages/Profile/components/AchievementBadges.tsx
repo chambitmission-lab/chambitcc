@@ -8,24 +8,26 @@ interface AchievementBadgesProps {
   onAchievementClick?: (achievement: Achievement) => void
 }
 
-// 접힌 상태에서 보여줄 배지 수 (4열 × 2줄)
-const INITIAL_COUNT = 8
-
 interface BadgeMedallionProps {
   achievement: Achievement
   shineDelay: number
+  /** sm: 접힌 대표 배지 행용 작은 메달 */
+  size?: 'sm' | 'md'
 }
 
-const BadgeMedallion = ({ achievement, shineDelay }: BadgeMedallionProps) => {
+const BadgeMedallion = ({ achievement, shineDelay, size = 'md' }: BadgeMedallionProps) => {
   const progressPct = Math.min(
     (achievement.progress / achievement.requirement) * 100,
     100,
   )
+  const dim = size === 'sm' ? 'h-11 w-11' : 'h-16 w-16'
+  const iconSize = size === 'sm' ? 'text-[19px]' : 'text-[26px]'
+  const checkDim = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
 
   if (achievement.unlocked) {
     return (
       <div
-        className="ach-ring-unlocked relative h-16 w-16 rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-110 group-active:scale-95"
+        className={`ach-ring-unlocked relative ${dim} rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-110 group-active:scale-95`}
         style={{
           background:
             'conic-gradient(from 210deg, #3182f6, #60a5fa, #f59e0b, #60a5fa, #3182f6)',
@@ -40,7 +42,7 @@ const BadgeMedallion = ({ achievement, shineDelay }: BadgeMedallionProps) => {
               background: `radial-gradient(circle at 50% 35%, ${achievement.glowColor}, transparent 72%)`,
             }}
           />
-          <span className="relative text-[26px] leading-none drop-shadow-md">
+          <span className={`relative ${iconSize} leading-none drop-shadow-md`}>
             {achievement.icon}
           </span>
           <span
@@ -49,7 +51,7 @@ const BadgeMedallion = ({ achievement, shineDelay }: BadgeMedallionProps) => {
             aria-hidden="true"
           />
         </div>
-        <div className="absolute -right-0.5 -bottom-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg ring-2 ring-white dark:ring-card-dark">
+        <div className={`absolute -right-0.5 -bottom-0.5 flex ${checkDim} items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg ring-2 ring-white dark:ring-card-dark`}>
           <span className="text-[10px] font-bold text-white">✓</span>
         </div>
       </div>
@@ -58,7 +60,7 @@ const BadgeMedallion = ({ achievement, shineDelay }: BadgeMedallionProps) => {
 
   return (
     <div
-      className="relative h-16 w-16 rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-105 group-active:scale-95"
+      className={`relative ${dim} rounded-full p-[2.5px] transition-transform duration-300 group-hover:scale-105 group-active:scale-95`}
       style={{
         // 링 자체가 진행률 게이지 — 채워질수록 해금이 가까워 보이게
         background: `conic-gradient(rgba(49, 130, 246, 0.75) ${progressPct}%, rgba(148, 163, 184, 0.28) 0)`,
@@ -66,13 +68,13 @@ const BadgeMedallion = ({ achievement, shineDelay }: BadgeMedallionProps) => {
     >
       <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-100 dark:bg-card-dark">
         <span
-          className="text-[26px] leading-none opacity-40"
+          className={`${iconSize} leading-none opacity-40`}
           style={{ filter: 'grayscale(1)' }}
         >
           {achievement.icon}
         </span>
       </div>
-      <div className="absolute -right-0.5 -bottom-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-300 dark:bg-[#3a3a3a] ring-2 ring-white dark:ring-card-dark">
+      <div className={`absolute -right-0.5 -bottom-0.5 flex ${checkDim} items-center justify-center rounded-full bg-gray-300 dark:bg-[#3a3a3a] ring-2 ring-white dark:ring-card-dark`}>
         <span className="material-icons-round text-[11px] text-gray-500 dark:text-white/45">
           lock
         </span>
@@ -80,6 +82,9 @@ const BadgeMedallion = ({ achievement, shineDelay }: BadgeMedallionProps) => {
     </div>
   )
 }
+
+/** 접힌 대표 배지 행에 보여줄 해금 배지 수 */
+const COMPACT_UNLOCKED_COUNT = 6
 
 const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadgesProps) => {
   const { t } = useLanguage()
@@ -90,7 +95,17 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
   const sorted = [...achievements].sort(
     (a, b) => Number(b.unlocked) - Number(a.unlocked),
   )
-  const displayAchievements = showAll ? sorted : sorted.slice(0, INITIAL_COUNT)
+
+  // 접힌 상태: 해금 배지 몇 개 + "다음으로 가까운 목표" 하나만.
+  // (컬렉션 전시는 펼쳤을 때의 몫 — 프로필 기본 화면은 조용하게)
+  const compactUnlocked = sorted
+    .filter((a) => a.unlocked)
+    .slice(0, COMPACT_UNLOCKED_COUNT)
+  const nextTarget = achievements
+    .filter((a) => !a.unlocked)
+    .sort(
+      (a, b) => b.progress / b.requirement - a.progress / a.requirement,
+    )[0]
 
   return (
     <div className="px-4 py-3">
@@ -112,7 +127,7 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
               {unlockedCount}/{achievements.length}
             </span>
           </h3>
-          {achievements.length > INITIAL_COUNT && (
+          {achievements.length > 0 && (
             <button
               onClick={() => setShowAll(!showAll)}
               className="text-[12px] font-semibold text-brand hover:text-brand-dim transition-colors"
@@ -122,40 +137,85 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
           )}
         </div>
 
-        <div className="relative z-10 grid grid-cols-4 gap-x-2 gap-y-4">
-          {displayAchievements.map((achievement, index) => (
-            <button
-              key={achievement.id}
-              type="button"
-              onClick={() => onAchievementClick?.(achievement)}
-              className="group flex flex-col items-center gap-1.5"
-              aria-label={`${t(achievement.titleKey)}${
-                achievement.unlocked ? '' : ` (${t('achievementProgress')} ${achievement.progress}/${achievement.requirement})`
-              }`}
-            >
-              <BadgeMedallion
-                achievement={achievement}
-                shineDelay={(index % 4) * 0.4}
-              />
-
-              <span
-                className={`w-full text-center text-[10.5px] font-semibold leading-tight line-clamp-1 ${
-                  achievement.unlocked
-                    ? 'text-gray-800 dark:text-white/85'
-                    : 'text-gray-400 dark:text-white/35'
+        {showAll ? (
+          <div className="relative z-10 grid grid-cols-4 gap-x-2 gap-y-4">
+            {sorted.map((achievement, index) => (
+              <button
+                key={achievement.id}
+                type="button"
+                onClick={() => onAchievementClick?.(achievement)}
+                className="group flex flex-col items-center gap-1.5"
+                aria-label={`${t(achievement.titleKey)}${
+                  achievement.unlocked ? '' : ` (${t('achievementProgress')} ${achievement.progress}/${achievement.requirement})`
                 }`}
               >
-                {t(achievement.titleKey)}
-              </span>
+                <BadgeMedallion
+                  achievement={achievement}
+                  shineDelay={(index % 4) * 0.4}
+                />
 
-              {!achievement.unlocked && (
-                <span className="-mt-1 text-[9.5px] tabular-nums text-gray-400 dark:text-white/30">
-                  {achievement.progress}/{achievement.requirement}
+                <span
+                  className={`w-full text-center text-[10.5px] font-semibold leading-tight line-clamp-1 ${
+                    achievement.unlocked
+                      ? 'text-gray-800 dark:text-white/85'
+                      : 'text-gray-400 dark:text-white/35'
+                  }`}
+                >
+                  {t(achievement.titleKey)}
                 </span>
-              )}
-            </button>
-          ))}
-        </div>
+
+                {!achievement.unlocked && (
+                  <span className="-mt-1 text-[9.5px] tabular-nums text-gray-400 dark:text-white/30">
+                    {achievement.progress}/{achievement.requirement}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="relative z-10 flex items-center gap-2 overflow-x-auto pb-0.5">
+            {compactUnlocked.map((achievement, index) => (
+              <button
+                key={achievement.id}
+                type="button"
+                onClick={() => onAchievementClick?.(achievement)}
+                className="group shrink-0"
+                aria-label={t(achievement.titleKey)}
+                title={t(achievement.titleKey)}
+              >
+                <BadgeMedallion
+                  achievement={achievement}
+                  shineDelay={(index % 4) * 0.4}
+                  size="sm"
+                />
+              </button>
+            ))}
+
+            {/* 다음 목표 — 진행률이 가장 높은 미해금 배지 */}
+            {nextTarget && (
+              <button
+                type="button"
+                onClick={() => onAchievementClick?.(nextTarget)}
+                className="group flex shrink-0 items-center gap-2 rounded-full border border-gray-200/70 dark:border-white/[0.08] bg-gray-50/70 dark:bg-white/[0.03] py-1 pl-1 pr-3"
+                aria-label={`${t(nextTarget.titleKey)} (${t('achievementProgress')} ${nextTarget.progress}/${nextTarget.requirement})`}
+              >
+                <BadgeMedallion
+                  achievement={nextTarget}
+                  shineDelay={0}
+                  size="sm"
+                />
+                <span className="text-left">
+                  <span className="block text-[10px] font-semibold text-gray-400 dark:text-white/40">
+                    {t('achievementNextGoal')}
+                  </span>
+                  <span className="block text-[11px] font-bold leading-tight text-gray-700 dark:text-white/75">
+                    {t(nextTarget.titleKey)}
+                  </span>
+                </span>
+              </button>
+            )}
+          </div>
+        )}
 
         {unlockedCount === 0 && (
           <p className="relative z-10 mt-4 mb-0 text-center text-[12px] text-gray-400 dark:text-white/40">

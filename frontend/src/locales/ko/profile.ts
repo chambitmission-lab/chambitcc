@@ -27,6 +27,12 @@ export const profile = {
   growthHookEmpty: '지금까지의 발자취를 한눈에',
   growthHookSub: '기도·말씀·묵상·응답을 한 흐름으로 →',
 
+  // 요즘 나의 걸음 — 인사이트 카드
+  insightLabel: '요즘 나의 걸음',
+  insightAnsweredChip: '응답된 기도',
+  insightIntercessionChip: '함께한 기도',
+  insightThanksChip: '감사 기록',
+
   // 주간 스토리 진입 카드
   storyHookLabel: '이번 주 신앙 타임라인',
   storyHookEmpty: '이번 주 첫 발자국을 남겨보세요',
