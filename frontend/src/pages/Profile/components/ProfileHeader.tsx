@@ -69,10 +69,9 @@ const ProfileHeader = ({
   }
 
   return (
-    <div className="px-5 pt-6 pb-2">
-      <div className="flex items-center gap-4">
-        {/* 아바타 — 링은 브랜드 솔리드, 레벨 색은 글로우로만 */}
-        <div className="relative shrink-0">
+    <div className="flex flex-col items-center px-5 pt-7 pb-2 text-center">
+      {/* 아바타 — 링은 브랜드 솔리드, 레벨 색은 글로우로만 */}
+      <div className="relative">
           <div
             className="rounded-full p-[2.5px]"
             style={{
@@ -130,37 +129,34 @@ const ProfileHeader = ({
             className="hidden"
             onChange={handleAvatarFile}
           />
-        </div>
+      </div>
 
-        {/* 이름 · 아이디 · 단계 이름 */}
-        <div className="min-w-0 flex-1">
-          <h2
-            className="m-0 truncate text-[20px] font-bold leading-tight tracking-[-0.02em] text-ink-strong"
-            style={{ wordBreak: 'keep-all' }}
-          >
-            {fullName}
-          </h2>
-          <p className="mt-0.5 text-[12.5px] font-medium text-gray-400 dark:text-white/45">
-            @{username}
-          </p>
-          <div className="mt-1.5 flex items-center gap-1.5">
-            <span
-              className="h-2 w-2 rounded-full"
-              style={{
-                background: 'var(--brand)',
-                boxShadow: `0 0 8px ${auraColor}`,
-              }}
-              aria-hidden="true"
-            />
-            <span className="text-[12.5px] font-semibold text-brand">
-              {t(glowLevel.nameKey)}
-            </span>
-          </div>
-        </div>
+      {/* 이름 · 아이디 · 단계 이름 */}
+      <h2
+        className="m-0 mt-3 max-w-full truncate text-[20px] font-bold leading-tight tracking-[-0.02em] text-ink-strong"
+        style={{ wordBreak: 'keep-all' }}
+      >
+        {fullName}
+      </h2>
+      <p className="mt-0.5 text-[12.5px] font-medium text-gray-400 dark:text-white/45">
+        @{username}
+      </p>
+      <div className="mt-1.5 flex items-center justify-center gap-1.5">
+        <span
+          className="h-2 w-2 rounded-full"
+          style={{
+            background: 'var(--brand)',
+            boxShadow: `0 0 8px ${auraColor}`,
+          }}
+          aria-hidden="true"
+        />
+        <span className="text-[12.5px] font-semibold text-brand">
+          {t(glowLevel.nameKey)}
+        </span>
       </div>
 
       {/* 장착한 칭호 — 클릭 시 /garden 컬렉션으로 */}
-      <div className="mt-3.5 flex">
+      <div className="mt-3 flex justify-center">
         <TitleEquippedChip variant="pill" />
       </div>
     </div>
