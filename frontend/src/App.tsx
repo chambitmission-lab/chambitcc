@@ -30,6 +30,10 @@ const AchievementModalPreview = import.meta.env.DEV
 const VerseSharePreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Bible/components/VerseSharePreview'))
   : null
+// dev 전용 — 프로필 헤더 미리보기 (아바타 후광/칭호 칩 구도 확인)
+const ProfileHeaderPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Profile/components/ProfileHeaderPreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Visit = lazy(menuRouteLoaders['/visit'])
 const Organization = lazy(menuRouteLoaders['/organization'])
@@ -289,6 +293,9 @@ function App() {
                 )}
                 {VerseSharePreview && (
                   <Route path="/dev/verse-share" element={<VerseSharePreview />} />
+                )}
+                {ProfileHeaderPreview && (
+                  <Route path="/dev/profile-header" element={<ProfileHeaderPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />

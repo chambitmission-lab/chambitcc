@@ -103,7 +103,8 @@ const ProfileHeader = ({
             className="rounded-full p-[2.5px]"
             style={{
               background: 'var(--brand)',
-              boxShadow: `0 0 20px ${auraColor}`,
+              // 후광 4겹 — spread 를 함께 키워 링 옆 강한 빛 + 바깥 넓은 빛무리로 확산
+              boxShadow: `0 0 8px 1px ${auraColor}, 0 0 24px 4px ${auraColor}, 0 0 52px 10px ${auraColor}, 0 0 92px 18px ${auraColor}`,
             }}
           >
             {avatarUrl ? (
@@ -172,23 +173,21 @@ const ProfileHeader = ({
         </p>
       </div>
 
-      {/* 단계 이름 · 장착한 칭호 — 한 줄, 좁은 화면에선 자연스럽게 줄바꿈 */}
-      <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 px-5">
-        <span className="flex items-center gap-1.5">
+      {/* 단계 이름 · 장착한 칭호 — 같은 높이의 pill 두 개로 짝을 맞춰 한 줄 구성
+          (텍스트+점 구분자보다 시각 무게가 균형 잡힌다. 좁은 화면에선 자연 줄바꿈) */}
+      <div className="mt-2.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 px-5">
+        <span className="flex items-center gap-1.5 rounded-full border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-3 py-[7px]">
           <span
             className="h-2 w-2 rounded-full"
             style={{
               background: 'var(--brand)',
-              boxShadow: `0 0 8px ${auraColor}`,
+              boxShadow: `0 0 10px ${auraColor}`,
             }}
             aria-hidden="true"
           />
-          <span className="text-[12.5px] font-semibold text-brand">
+          <span className="text-[12.5px] font-bold leading-none text-brand">
             {t(glowLevel.nameKey)}
           </span>
-        </span>
-        <span className="text-[12px] text-gray-300 dark:text-white/25" aria-hidden>
-          ·
         </span>
         {/* 클릭 시 /garden 컬렉션으로 */}
         <TitleEquippedChip variant="pill" />

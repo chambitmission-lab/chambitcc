@@ -1,3 +1,5 @@
+/* 장착 칭호 칩 — 브랜드 블루 계열(과거 보라→핑크는 이전 브랜드 잔재라 교체). */
+
 /* ===== slot variant — 트레이딩 카드에 '인쇄된 슬롯' ===== */
 .title-slot {
   display: inline-flex;
@@ -13,13 +15,13 @@
 .title-slot-line {
   width: 26px;
   height: 1px;
-  background: linear-gradient(to left, rgba(168, 85, 247, 0.85), transparent);
-  box-shadow: 0 0 6px rgba(168, 85, 247, 0.5);
+  background: linear-gradient(to left, rgba(70, 150, 250, 0.9), transparent);
+  box-shadow: 0 0 6px rgba(70, 150, 250, 0.55);
   transition: width 0.2s ease;
 }
 
 .title-slot-line-r {
-  background: linear-gradient(to right, rgba(168, 85, 247, 0.85), transparent);
+  background: linear-gradient(to right, rgba(70, 150, 250, 0.9), transparent);
 }
 
 .title-slot:hover .title-slot-line {
@@ -30,7 +32,7 @@
   font-size: 13px;
   font-weight: 700;
   line-height: 1;
-  color: rgba(168, 85, 247, 0.55);
+  color: rgba(96, 165, 250, 0.6);
 }
 
 .title-slot-icon {
@@ -42,7 +44,7 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  background: linear-gradient(135deg, #c084fc, #f472b6);
+  background: linear-gradient(135deg, #60a5fa, #22d3ee);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -50,7 +52,7 @@
 }
 
 .title-slot:hover .title-slot-name {
-  filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.6));
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.65));
 }
 
 .title-slot:active {
@@ -61,12 +63,12 @@
 .title-slot-empty {
   gap: 5px;
   padding: 5px 12px;
-  border: 1px dashed rgba(168, 85, 247, 0.4);
+  border: 1px dashed rgba(49, 130, 246, 0.45);
   border-radius: 4px;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: rgba(192, 132, 252, 0.85);
+  color: rgba(124, 179, 255, 0.9);
 }
 
 /* 장착 칭호 칩 + 반짝이 파티클 */
@@ -76,18 +78,18 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border: 1px solid rgba(168, 85, 247, 0.45);
+  border: 1px solid rgba(49, 130, 246, 0.5);
   border-radius: 999px;
   cursor: pointer;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.16), rgba(236, 72, 153, 0.16));
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.22);
+  background: linear-gradient(135deg, rgba(49, 130, 246, 0.16), rgba(34, 211, 238, 0.14));
+  box-shadow: 0 4px 14px rgba(49, 130, 246, 0.28);
   transition: transform 0.12s ease, box-shadow 0.2s ease;
   overflow: visible;
 }
 
 .title-chip:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.32);
+  box-shadow: 0 6px 18px rgba(49, 130, 246, 0.4);
 }
 
 .title-chip:active {
@@ -103,7 +105,7 @@
   font-size: 13px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  background: linear-gradient(135deg, #c084fc, #f472b6);
+  background: linear-gradient(135deg, #4593fc, #22d3ee);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -114,8 +116,8 @@
   width: 116px;
   height: 31px;
   cursor: default;
-  border-color: rgba(168, 85, 247, 0.2);
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(236, 72, 153, 0.1));
+  border-color: rgba(49, 130, 246, 0.2);
+  background: linear-gradient(135deg, rgba(49, 130, 246, 0.1), rgba(34, 211, 238, 0.08));
   box-shadow: none;
   animation: title-chip-skeleton-pulse 1.2s ease-in-out infinite;
 }
@@ -136,10 +138,10 @@
 
 /* 빈 상태(칭호 미장착) */
 .title-chip-empty {
-  color: #a78bfa;
+  color: #7cb3ff;
   font-size: 13px;
   font-weight: 600;
-  background: rgba(168, 85, 247, 0.1);
+  background: rgba(49, 130, 246, 0.12);
   border-style: dashed;
 }
 
@@ -157,9 +159,9 @@
 .title-chip-sparkle {
   position: absolute;
   font-size: 9px;
-  color: #f9a8d4;
+  color: #a8d4ff;
   opacity: 0;
-  text-shadow: 0 0 6px rgba(249, 168, 212, 0.9);
+  text-shadow: 0 0 6px rgba(140, 195, 255, 0.9);
   animation: chip-spark 2.8s ease-in-out infinite;
 }
 
