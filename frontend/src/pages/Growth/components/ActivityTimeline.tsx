@@ -97,32 +97,20 @@ const EventRow = ({ event }: { event: TimelineEvent }) => {
   const color = DOMAIN_META[event.domain]?.color ?? 'var(--atl-prayer)'
 
   return (
-    <div className="flex gap-3">
-      {/* 거터 = 시각 + 도메인 색 점. 예전 이모지 원이 있던 자리 */}
-      <div className="atl-gutter">
-        {/* 읽기·함께 기도는 백엔드가 그날 것을 한 줄로 합쳐 내려주므로 특정 시각이 없다.
-            빈칸으로 두면 축이 흔들려서, 캘린더 관례를 따라 '종일'로 표시한다. */}
-        <span
-          className={`atl-time${event.time ? '' : ' is-allday'}`}
-          title={event.time ? undefined : '하루 동안의 기록을 하나로 모은 항목이에요'}
-        >
-          {event.time ?? '종일'}
-        </span>
-        <span className="atl-dot" style={{ ['--atl-dot' as string]: color }} aria-hidden="true" />
-      </div>
-
-      <button
-        type="button"
-        disabled={!clickable}
-        onClick={() => clickable && navigate(event.link as string)}
-        className={
-          'flex-1 min-w-0 text-left mb-3 rounded-xl px-3.5 py-3 ' +
-          'bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] ' +
-          'shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] ' +
-          (clickable ? 'transition-transform active:scale-[0.99] hover:-translate-y-px' : '')
-        }
-      >
-        <div className="text-[14px] font-bold text-ink-strong leading-snug tracking-[-0.01em]">
+    <button
+      type="button"
+      disabled={!clickable}
+      onClick={() => clickable && navigate(event.link as string)}
+      className={
+        'atl-card block w-full min-w-0 text-left mb-2.5 rounded-xl pl-4 pr-3.5 py-3 ' +
+        'bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] ' +
+        'shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] ' +
+        (clickable ? 'transition-transform active:scale-[0.99] hover:-translate-y-px' : '')
+      }
+      style={{ ['--atl-accent' as string]: color }}
+    >
+      <div className="flex items-start gap-2">
+        <div className="flex-1 min-w-0 text-[14px] font-bold text-ink-strong leading-snug tracking-[-0.01em]">
           {/* 이모지는 기도·묵상·감사에서 그때의 감정에 따라 달라지는 값이라 버리지 않고
               제목 앞 작은 글리프로 옮겼다 (원 배지였을 때보다 훨씬 조용하다) */}
           <span className="mr-1.5 text-[15px]" aria-hidden="true">
@@ -130,13 +118,20 @@ const EventRow = ({ event }: { event: TimelineEvent }) => {
           </span>
           {event.title}
         </div>
-        {event.snippet && (
-          <p className="mt-1 text-[12.5px] text-gray-600 dark:text-white/60 leading-relaxed line-clamp-2">
-            {event.snippet}
-          </p>
+        {/* 읽기·함께 기도 롤업은 특정 시각이 없다 — 축이 사라졌으니 빈자리를
+            채울 필요가 없어 그냥 생략한다 (예전 '종일' 라벨 자리) */}
+        {event.time && (
+          <span className="shrink-0 mt-0.5 text-[11px] font-semibold text-gray-400 dark:text-white/40 tabular-nums">
+            {event.time}
+          </span>
         )}
-      </button>
-    </div>
+      </div>
+      {event.snippet && (
+        <p className="mt-1 text-[12.5px] text-gray-600 dark:text-white/60 leading-relaxed line-clamp-2">
+          {event.snippet}
+        </p>
+      )}
+    </button>
   )
 }
 
@@ -177,8 +172,8 @@ const ActivityTimeline = ({
                 )}
 
                 {/* 하루 헤더 — 날짜 + 그날 무엇을 했는지 한 줄 요약.
-                    색 이름이 곧 범례 역할을 해서 아래 점들의 색이 저절로 읽힌다 */}
-                <div className="pl-[66px] mb-1.5 flex items-baseline gap-2 flex-wrap">
+                    색 이름이 곧 범례 역할을 해서 아래 카드 액센트 바의 색이 저절로 읽힌다 */}
+                <div className="pl-1 mb-1.5 mt-4 first:mt-0 flex items-baseline gap-2 flex-wrap">
                   <span className="text-[12px] font-semibold text-gray-500 dark:text-white/55">
                     {dayLabel(group.date)}
                   </span>
