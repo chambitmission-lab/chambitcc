@@ -35,17 +35,6 @@
   overflow: hidden;
 }
 
-.garden-hero::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 18%;
-  bottom: 18%;
-  width: 3px;
-  background: var(--brand);
-  border-radius: 0 3px 3px 0;
-}
-
 .garden-hero-emblem {
   grid-row: 1 / span 2;
   width: 42px;

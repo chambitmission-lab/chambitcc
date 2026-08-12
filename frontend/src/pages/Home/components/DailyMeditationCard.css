@@ -653,7 +653,7 @@
 .meditation-question-block {
   margin: 2px 2px 16px;
   padding: 1px 4px 1px 14px;
-  border-left: 2.5px solid var(--marker);
+  border-left: 2.5px solid var(--quote-rule);
 }
 
 .meditation-question-label {
