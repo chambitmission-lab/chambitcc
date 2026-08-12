@@ -30,6 +30,11 @@
   --tint-afternoon: rgba(49, 130, 246, 0.07);
   --tint-evening: rgba(27, 80, 170, 0.10);
 
+  /* /garden 성경 칭호 히어로 — 픽셀아트 밤 장면이라 다크 전용.
+     라이트는 이미지 없이 기존 플랫 카드 유지(none + auto). */
+  --garden-hero-image: none;
+  --garden-hero-min-height: auto;
+
   /* /worship 히어로 하늘 — 다음 예배의 '시간의 빛'(새벽/낮/저녁/밤).
      라이트는 파스텔 톤. 카드 배경(surface-container) 위에 얹는 오버레이라 전부 반투명. */
   --worship-sky-dawn:
@@ -116,6 +121,10 @@
   --tint-morning: rgba(255, 214, 165, 0.06);
   --tint-afternoon: rgba(69, 147, 252, 0.08);
   --tint-evening: rgba(49, 90, 180, 0.07);
+
+  /* /garden 성경 칭호 히어로 — 계단을 오르는 픽셀 여정 배너 (다크 전용) */
+  --garden-hero-image: url('/images/garden/bible-title-hero.webp');
+  --garden-hero-min-height: 172px;
 
   /* /worship 히어로 하늘 — 다크는 깊은 밤·여명 톤. 밤 하늘엔 흰 별 + 촛불빛 */
   --worship-sky-dawn:
