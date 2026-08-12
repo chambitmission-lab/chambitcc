@@ -61,6 +61,18 @@ export const moveOrgUnit = async (id: number, direction: 'up' | 'down'): Promise
   if (!res.ok) await readError(res, '순서 변경에 실패했습니다')
 }
 
+export const reorderOrgUnits = async (
+  parentId: number | null,
+  orderedIds: number[],
+): Promise<void> => {
+  const res = await apiFetch(`${BASE}/reorder`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ parent_id: parentId, ordered_ids: orderedIds }),
+  })
+  if (!res.ok) await readError(res, '순서 변경에 실패했습니다')
+}
+
 export const seedOrg = async (force = false): Promise<{ seeded: boolean; message: string }> => {
   const res = await apiFetch(`${BASE}/seed?force=${force}`, {
     method: 'POST',

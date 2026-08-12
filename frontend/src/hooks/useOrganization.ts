@@ -5,6 +5,7 @@ import {
   getAdminOrgTree,
   getOrgTree,
   moveOrgUnit,
+  reorderOrgUnits,
   seedOrg,
   updateOrgUnit,
 } from '../api/organization'
@@ -51,6 +52,11 @@ export const useDeleteOrgUnit = () => useOrgMutation(deleteOrgUnit)
 export const useMoveOrgUnit = () =>
   useOrgMutation(({ id, direction }: { id: number; direction: 'up' | 'down' }) =>
     moveOrgUnit(id, direction),
+  )
+
+export const useReorderOrgUnits = () =>
+  useOrgMutation(({ parentId, orderedIds }: { parentId: number | null; orderedIds: number[] }) =>
+    reorderOrgUnits(parentId, orderedIds),
   )
 
 export const useSeedOrg = () => useOrgMutation((force: boolean) => seedOrg(force))

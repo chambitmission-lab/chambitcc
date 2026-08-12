@@ -1,13 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { useDragSort } from '../../hooks/useDragSort'
 import {
   useAdminOrgTree,
   useCreateOrgUnit,
   useDeleteOrgUnit,
   useMoveOrgUnit,
+  useReorderOrgUnits,
   useSeedOrg,
   useUpdateOrgUnit,
 } from '../../hooks/useOrganization'
@@ -26,6 +34,13 @@ interface FormState {
   parent_id: number | null
   is_active: boolean
   note: string
+}
+
+interface RowActions {
+  onAddChild: (parent: OrgUnit) => void
+  onEdit: (unit: OrgUnit) => void
+  onMove: (unit: OrgUnit, direction: 'up' | 'down') => void
+  onDelete: (unit: OrgUnit) => void
 }
 
 // ── 등록/수정 모달 (Composer 패턴 — slide-up + pill grid) ──────────────
@@ -226,26 +241,41 @@ const IconButton = ({
   )
 }
 
+const DragHandle = (props: ComponentPropsWithoutRef<'span'>) => (
+  <span
+    {...props}
+    title="끌어서 순서 변경"
+    aria-label="끌어서 순서 변경"
+    className="w-5 h-7 -ml-1 flex items-center justify-center shrink-0 text-gray-300 dark:text-white/20 cursor-grab active:cursor-grabbing select-none"
+  >
+    <span className="material-icons-round text-[16px]">drag_indicator</span>
+  </span>
+)
+
 const UnitRow = ({
   unit,
   depth,
-  onAddChild,
-  onEdit,
-  onMove,
-  onDelete,
+  isLast,
+  handle,
+  actions,
 }: {
   unit: OrgUnit
   depth: number
-  onAddChild: (parent: OrgUnit) => void
-  onEdit: (unit: OrgUnit) => void
-  onMove: (unit: OrgUnit, direction: 'up' | 'down') => void
-  onDelete: (unit: OrgUnit) => void
+  /** 카드 안에서 시각적으로 마지막 줄이면 구분선을 지운다 */
+  isLast: boolean
+  handle: ReactNode
+  actions: RowActions
 }) => (
-  <>
+  <div>
     <div
-      className="flex items-center gap-2 py-2 border-b border-gray-100 dark:border-white/[0.04] last:border-b-0"
+      className={`flex items-center gap-1.5 py-2 ${
+        isLast && unit.children.length === 0
+          ? ''
+          : 'border-b border-gray-100 dark:border-white/[0.04]'
+      }`}
       style={{ paddingLeft: `${depth * 14}px` }}
     >
+      {handle}
       <span className="flex-1 min-w-0">
         <span className="flex items-center gap-1.5">
           {depth > 0 && (
@@ -274,29 +304,108 @@ const UnitRow = ({
       </span>
 
       <span className="flex items-center shrink-0">
-        <IconButton icon="arrow_upward" label="위로" onClick={() => onMove(unit, 'up')} />
-        <IconButton icon="arrow_downward" label="아래로" onClick={() => onMove(unit, 'down')} />
+        <IconButton icon="arrow_upward" label="위로" onClick={() => actions.onMove(unit, 'up')} />
+        <IconButton
+          icon="arrow_downward"
+          label="아래로"
+          onClick={() => actions.onMove(unit, 'down')}
+        />
         {unit.unit_type !== 'department' && (
-          <IconButton icon="add" label="하위 추가" tone="brand" onClick={() => onAddChild(unit)} />
+          <IconButton
+            icon="add"
+            label="하위 추가"
+            tone="brand"
+            onClick={() => actions.onAddChild(unit)}
+          />
         )}
-        <IconButton icon="edit" label="수정" onClick={() => onEdit(unit)} />
-        <IconButton icon="delete_outline" label="삭제" tone="danger" onClick={() => onDelete(unit)} />
+        <IconButton icon="edit" label="수정" onClick={() => actions.onEdit(unit)} />
+        <IconButton
+          icon="delete_outline"
+          label="삭제"
+          tone="danger"
+          onClick={() => actions.onDelete(unit)}
+        />
       </span>
     </div>
 
-    {unit.children.map(child => (
-      <UnitRow
-        key={child.id}
-        unit={child}
+    {unit.children.length > 0 && (
+      <SortableRows
+        parentId={unit.id}
+        units={unit.children}
         depth={depth + 1}
-        onAddChild={onAddChild}
-        onEdit={onEdit}
-        onMove={onMove}
-        onDelete={onDelete}
+        isLast={isLast}
+        actions={actions}
       />
-    ))}
-  </>
+    )}
+  </div>
 )
+
+// ── 드래그 정렬 목록 — 같은 부모의 형제들끼리만 자리를 바꾼다 ──────────
+
+const SortableRows = ({
+  parentId,
+  units,
+  depth,
+  isLast,
+  actions,
+}: {
+  parentId: number | null
+  units: OrgUnit[]
+  depth: number
+  isLast: boolean
+  actions: RowActions
+}) => {
+  const reorder = useReorderOrgUnits()
+  const sort = useDragSort(
+    units.map(u => u.id),
+    ordered =>
+      reorder.mutate(
+        { parentId, orderedIds: ordered },
+        {
+          onError: err => {
+            showToast(err instanceof Error ? err.message : '순서 변경 실패', 'error')
+            sort.resetOrder()
+          },
+        },
+      ),
+  )
+  const byId = new Map(units.map(u => [u.id, u]))
+
+  return (
+    <>
+      {sort.orderedIds.map((id, index) => {
+        const unit = byId.get(id)
+        if (!unit) return null
+        return (
+          <div
+            key={id}
+            ref={sort.setItemRef(id)}
+            style={sort.itemStyle(id)}
+            className={
+              sort.draggingId === id
+                ? 'rounded-xl -mx-1.5 px-1.5 bg-white dark:bg-card-dark shadow-lg ring-1 ring-black/[0.06] dark:ring-white/10'
+                : undefined
+            }
+          >
+            <UnitRow
+              unit={unit}
+              depth={depth}
+              isLast={isLast && index === sort.orderedIds.length - 1}
+              handle={
+                units.length > 1 ? (
+                  <DragHandle {...sort.handleProps(id)} />
+                ) : (
+                  <span className="w-5 h-7 -ml-1 shrink-0" />
+                )
+              }
+              actions={actions}
+            />
+          </div>
+        )
+      })}
+    </>
+  )
+}
 
 // ── 위원회 카드 (접기/펼치기) ─────────────────────────────────────────
 
@@ -304,15 +413,14 @@ const CommitteeGroup = ({
   committee,
   expanded,
   onToggle,
-  ...actions
+  handle,
+  actions,
 }: {
   committee: OrgUnit
   expanded: boolean
   onToggle: () => void
-  onAddChild: (parent: OrgUnit) => void
-  onEdit: (unit: OrgUnit) => void
-  onMove: (unit: OrgUnit, direction: 'up' | 'down') => void
-  onDelete: (unit: OrgUnit) => void
+  handle: ReactNode
+  actions: RowActions
 }) => {
   const childCount = countAll(committee) - 1
 
@@ -320,7 +428,8 @@ const CommitteeGroup = ({
     <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_2px_8px_rgba(0,0,0,0.20)]">
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
 
-      <div className="relative z-10 flex items-center gap-2 px-3.5 py-3">
+      <div className="relative z-10 flex items-center gap-1.5 px-3 py-3">
+        {handle}
         <button
           type="button"
           onClick={onToggle}
@@ -361,11 +470,29 @@ const CommitteeGroup = ({
         </button>
 
         <span className="flex items-center shrink-0">
-          <IconButton icon="arrow_upward" label="위로" onClick={() => actions.onMove(committee, 'up')} />
-          <IconButton icon="arrow_downward" label="아래로" onClick={() => actions.onMove(committee, 'down')} />
-          <IconButton icon="add" label="하위 추가" tone="brand" onClick={() => actions.onAddChild(committee)} />
+          <IconButton
+            icon="arrow_upward"
+            label="위로"
+            onClick={() => actions.onMove(committee, 'up')}
+          />
+          <IconButton
+            icon="arrow_downward"
+            label="아래로"
+            onClick={() => actions.onMove(committee, 'down')}
+          />
+          <IconButton
+            icon="add"
+            label="하위 추가"
+            tone="brand"
+            onClick={() => actions.onAddChild(committee)}
+          />
           <IconButton icon="edit" label="수정" onClick={() => actions.onEdit(committee)} />
-          <IconButton icon="delete_outline" label="삭제" tone="danger" onClick={() => actions.onDelete(committee)} />
+          <IconButton
+            icon="delete_outline"
+            label="삭제"
+            tone="danger"
+            onClick={() => actions.onDelete(committee)}
+          />
         </span>
       </div>
 
@@ -376,9 +503,13 @@ const CommitteeGroup = ({
               하위 조직이 없습니다
             </p>
           ) : (
-            committee.children.map(child => (
-              <UnitRow key={child.id} unit={child} depth={0} {...actions} />
-            ))
+            <SortableRows
+              parentId={committee.id}
+              units={committee.children}
+              depth={0}
+              isLast
+              actions={actions}
+            />
           )}
         </div>
       )}
@@ -406,6 +537,7 @@ const OrganizationManagement = () => {
   const updateUnit = useUpdateOrgUnit()
   const deleteUnit = useDeleteOrgUnit()
   const moveUnit = useMoveOrgUnit()
+  const reorderCommittees = useReorderOrgUnits()
   const seed = useSeedOrg()
 
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
@@ -421,6 +553,25 @@ const OrganizationManagement = () => {
       navigate('/')
     }
   }, [navigate])
+
+  // 위원회 카드 자체도 드래그로 순서를 바꿀 수 있다 (형제 = 루트의 위원회들)
+  const committeeSort = useDragSort(
+    (data?.committees ?? []).map(c => c.id),
+    ordered =>
+      reorderCommittees.mutate(
+        { parentId: null, orderedIds: ordered },
+        {
+          onError: err => {
+            showToast(err instanceof Error ? err.message : '순서 변경 실패', 'error')
+            committeeSort.resetOrder()
+          },
+        },
+      ),
+  )
+  const committeesById = useMemo(
+    () => new Map((data?.committees ?? []).map(c => [c.id, c])),
+    [data],
+  )
 
   // 상위 조직 이동 후보 — 부서는 자식을 가질 수 없으므로 제외한다
   const parentOptions = useMemo(() => {
@@ -552,7 +703,7 @@ const OrganizationManagement = () => {
     }
   }
 
-  const rowActions = {
+  const rowActions: RowActions = {
     onAddChild: (parent: OrgUnit) =>
       openCreate(parent, parent.unit_type === 'governance' ? 'governance' : 'department'),
     onEdit: openEdit,
@@ -620,7 +771,7 @@ const OrganizationManagement = () => {
 
         <p className="px-4 pb-2 text-[11.5px] text-gray-400 dark:text-white/35 leading-relaxed">
           위원회 → 국 → 부서 순서로 묶입니다. 국은 생략하고 위원회 아래 부서를 바로 둘 수도 있습니다.
-          의결기구 하위는 등록 순서대로 왼쪽 · 가운데 · 오른쪽 · 그 아래에 배치됩니다.
+          이름 왼쪽의 ⠿ 핸들을 잡고 끌면 같은 묶음 안에서 순서를 바꿀 수 있습니다.
         </p>
 
         {isLoading ? (
@@ -660,9 +811,13 @@ const OrganizationManagement = () => {
               </div>
               <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] px-3.5 py-1">
                 {data && data.governance.length > 0 ? (
-                  data.governance.map(unit => (
-                    <UnitRow key={unit.id} unit={unit} depth={0} {...rowActions} />
-                  ))
+                  <SortableRows
+                    parentId={null}
+                    units={data.governance}
+                    depth={0}
+                    isLast
+                    actions={rowActions}
+                  />
                 ) : (
                   <p className="py-3 text-[12.5px] text-gray-400 dark:text-white/30">
                     등록된 의결기구가 없습니다
@@ -676,15 +831,28 @@ const OrganizationManagement = () => {
               <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted px-1">
                 위원회
               </p>
-              {data?.committees.map(committee => (
-                <CommitteeGroup
-                  key={committee.id}
-                  committee={committee}
-                  expanded={expandedIds.has(committee.id)}
-                  onToggle={() => toggle(committee.id)}
-                  {...rowActions}
-                />
-              ))}
+              {committeeSort.orderedIds.map(id => {
+                const committee = committeesById.get(id)
+                if (!committee) return null
+                return (
+                  <div
+                    key={id}
+                    ref={committeeSort.setItemRef(id)}
+                    style={committeeSort.itemStyle(id)}
+                    className={
+                      committeeSort.draggingId === id ? '[&>div]:shadow-xl' : undefined
+                    }
+                  >
+                    <CommitteeGroup
+                      committee={committee}
+                      expanded={expandedIds.has(committee.id)}
+                      onToggle={() => toggle(committee.id)}
+                      handle={<DragHandle {...committeeSort.handleProps(id)} />}
+                      actions={rowActions}
+                    />
+                  </div>
+                )
+              })}
             </section>
           </>
         )}
