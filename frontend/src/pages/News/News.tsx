@@ -6,19 +6,21 @@ import type { Bulletin } from '../../types/bulletin'
 import InstagramBulletinViewer from './components/InstagramBulletinViewer'
 import DigitalBulletin from './components/DigitalBulletin'
 import NewFamilySection from './components/NewFamilySection'
+import EventAlbumSection from './components/EventAlbumSection'
 
 /** 최상위 그룹 — 소식 허브 */
-type SectionKey = 'bulletin' | 'new-family'
+type SectionKey = 'bulletin' | 'new-family' | 'event-album'
 /** 주보 하위 탭 */
 type BulletinTabKey = 'image' | 'digital'
 
 const SECTIONS: { key: SectionKey; emoji: string; label: string }[] = [
   { key: 'bulletin', emoji: '📖', label: '주보' },
   { key: 'new-family', emoji: '🌱', label: '새가족' },
+  { key: 'event-album', emoji: '📸', label: '행사' },
 ]
 
 const isSectionKey = (value: string | null): value is SectionKey =>
-  value === 'bulletin' || value === 'new-family'
+  value === 'bulletin' || value === 'new-family' || value === 'event-album'
 
 const formatLongDate = (date: string) =>
   new Date(date).toLocaleDateString('ko-KR', {
@@ -132,6 +134,9 @@ const News = () => {
 
         {/* 새가족 앨범 */}
         {section === 'new-family' && <NewFamilySection />}
+
+        {/* 행사 앨범 */}
+        {section === 'event-album' && <EventAlbumSection />}
 
         {/* 주보 하위 탭 pill */}
         {section === 'bulletin' && (

@@ -28,6 +28,7 @@ export const navigation = {
   adminNavBulletin: 'Bulletin',
   adminNavWeeklyPrayer: 'Prayer Topics',
   adminNavNewFamily: 'New Family',
+  adminNavEventAlbum: 'Event Album',
   adminNavPlan: 'Reading Plans',
   adminNavCommentary: 'Commentary',
   adminNavSituation: 'Situations',

@@ -28,6 +28,7 @@ export const navigation = {
   adminNavBulletin: '주보',
   adminNavWeeklyPrayer: '공동 기도제목',
   adminNavNewFamily: '새가족 앨범',
+  adminNavEventAlbum: '행사 앨범',
   adminNavPlan: '읽기 플랜',
   adminNavCommentary: '성경 해석',
   adminNavSituation: '상황별 성구',

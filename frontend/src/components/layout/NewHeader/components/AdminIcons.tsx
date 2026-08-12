@@ -69,6 +69,14 @@ const IconSprout = (p: IconProps) => (
   </Svg>
 )
 
+/* 행사 앨범 — 카메라 */
+const IconCamera = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3.5 8.2A2.2 2.2 0 0 1 5.7 6h1.9l1.3-1.8h6.2L16.4 6h1.9a2.2 2.2 0 0 1 2.2 2.2v9.1a2.2 2.2 0 0 1-2.2 2.2H5.7a2.2 2.2 0 0 1-2.2-2.2V8.2Z" />
+    <circle cx="12" cy="13" r="3.4" />
+  </Svg>
+)
+
 /* 읽기 플랜 — 읽음 체크가 있는 성경 */
 const IconBookCheck = (p: IconProps) => (
   <Svg {...p}>
@@ -185,6 +193,7 @@ export const ADMIN_ICONS = {
   adminNavBulletin: IconNewspaper,
   adminNavWeeklyPrayer: IconPrayerHeart,
   adminNavNewFamily: IconSprout,
+  adminNavEventAlbum: IconCamera,
   adminNavPlan: IconBookCheck,
   adminNavCommentary: IconPenSparkle,
   adminNavSituation: IconCompass,

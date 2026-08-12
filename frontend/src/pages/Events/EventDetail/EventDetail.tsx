@@ -12,6 +12,7 @@ import {
   AttendeesCard,
   AttendanceSection,
   CommentsSection,
+  EventAlbumLinkCard,
 } from './components'
 
 const Shell = ({ children }: { children: React.ReactNode }) => (
@@ -109,6 +110,9 @@ const EventDetail = () => {
           attachmentUrl={event.attachment_url}
           t={t}
         />
+
+        {/* 이 일정에 연결된 행사 앨범이 있으면 사진 보기 진입점 노출 */}
+        <EventAlbumLinkCard eventId={event.id} />
 
         <AttendeesCard attendances={event.attendances} t={t} />
 
