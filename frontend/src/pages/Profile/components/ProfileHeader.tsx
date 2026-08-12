@@ -1,7 +1,6 @@
 import { useRef } from 'react'
 import { TitleEquippedChip } from '../../../components/titles/TitleEquippedChip'
 import { useTitleBackdropSrc } from '../../../components/titles/TitleBackdrop'
-import { useLanguage } from '../../../contexts/LanguageContext'
 import { useUploadAvatar, useDeleteAvatar } from '../../../hooks/useProfile'
 import { resizeImageToBlob } from '../../../utils/imageResize'
 import { showToast } from '../../../utils/toast'
@@ -29,7 +28,6 @@ const ProfileHeader = ({
   avatarUrl = null,
   glowLevel,
 }: ProfileHeaderProps) => {
-  const { t } = useLanguage()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadAvatar = useUploadAvatar()
   const deleteAvatar = useDeleteAvatar()
@@ -100,10 +98,10 @@ const ProfileHeader = ({
             className={`rounded-full ${backdropSrc ? 'bg-background-light dark:bg-[#0c1322] p-[3px]' : ''}`}
           >
           <div
-            className="rounded-full p-[2.5px]"
+            className="rounded-full"
             style={{
-              background: 'var(--brand)',
-              // 후광 4겹 — spread 를 함께 키워 링 옆 강한 빛 + 바깥 넓은 빛무리로 확산
+              // 색 링 없이 후광 4겹만 — 레벨 색 후광이 사진을 직접 감싼다
+              // (파란 링은 주황/금빛 후광 레벨과 색 충돌해 제거. spread 로 빛무리 확산)
               boxShadow: `0 0 8px 1px ${auraColor}, 0 0 24px 4px ${auraColor}, 0 0 52px 10px ${auraColor}, 0 0 92px 18px ${auraColor}`,
             }}
           >
@@ -111,10 +109,10 @@ const ProfileHeader = ({
               <img
                 src={avatarUrl}
                 alt="프로필 사진"
-                className="block h-[76px] w-[76px] rounded-full bg-gray-100 dark:bg-card-dark object-cover"
+                className="block h-[81px] w-[81px] rounded-full border border-black/[0.06] bg-gray-100 object-cover dark:border-white/10 dark:bg-card-dark"
               />
             ) : (
-              <div className="flex h-[76px] w-[76px] items-center justify-center rounded-full bg-gray-100 dark:bg-card-dark text-[30px] font-bold text-gray-500 dark:text-white/80">
+              <div className="flex h-[81px] w-[81px] items-center justify-center rounded-full border border-black/[0.06] bg-gray-100 text-[30px] font-bold text-gray-500 dark:border-white/10 dark:bg-card-dark dark:text-white/80">
                 {(fullName || username).charAt(0).toUpperCase()}
               </div>
             )}
@@ -167,33 +165,15 @@ const ProfileHeader = ({
         <TitleEquippedChip variant="slot" />
       </div>
 
-      {/* 이름 + 아이디 — 한 줄로 묶어 세로 스택을 줄인다 */}
-      <div className="mt-0.5 flex max-w-full items-baseline justify-center gap-1.5 px-5">
-        <h2
-          className="m-0 truncate text-[20px] font-bold leading-tight tracking-[-0.02em] text-ink-strong"
-          style={{ wordBreak: 'keep-all' }}
-        >
-          {fullName}
-        </h2>
-        <p className="m-0 shrink-0 text-[12.5px] font-medium text-gray-400 dark:text-white/45">
-          @{username}
-        </p>
-      </div>
-
-      {/* 단계 이름 — 이름 아래 조용한 상태 줄 (칭호가 주연, 레벨은 은은한 보조) */}
-      <div className="mt-1.5 flex items-center justify-center gap-1.5 px-5">
-        <span
-          className="h-1.5 w-1.5 rounded-full"
-          style={{
-            background: 'var(--brand)',
-            boxShadow: `0 0 8px ${auraColor}`,
-          }}
-          aria-hidden="true"
-        />
-        <span className="text-[12px] font-semibold text-brand">
-          {t(glowLevel.nameKey)}
-        </span>
-      </div>
+      {/* 이름 — 헤더의 마지막 줄. @아이디는 본인 프로필에서 정보가치가 없어 뺐고,
+          레벨명은 바로 아래 '신앙의 온도' 카드가 전담한다(중복 제거).
+          레벨은 아바타 후광 색으로만 은은하게 남는다. */}
+      <h2
+        className="m-0 mt-0.5 max-w-full truncate px-5 text-[20px] font-bold leading-tight tracking-[-0.02em] text-ink-strong"
+        style={{ wordBreak: 'keep-all' }}
+      >
+        {fullName}
+      </h2>
       </div>
     </div>
   )

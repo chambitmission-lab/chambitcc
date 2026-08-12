@@ -1,3 +1,12 @@
+/* 접힌 배지 행 — 스크롤바 대신 오른쪽 가장자리 페이드로 '더 있음'을 암시.
+   (no-scrollbar로 바는 숨기고 스와이프는 유지. 전체 목록은 '전체보기'가 담당)
+   padding-right = 페이드 폭 — 끝까지 스크롤하면 마지막 항목이 페이드 밖에서 온전히 보인다. */
+.ach-compact-row {
+  padding-right: 28px;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+}
+
 /* 해금된 배지 위를 주기적으로 스치는 하이라이트 스윕 */
 @keyframes ach-badge-shine {
   0% {

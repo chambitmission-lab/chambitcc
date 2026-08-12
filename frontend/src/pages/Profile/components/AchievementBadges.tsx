@@ -173,7 +173,7 @@ const AchievementBadges = ({ achievements, onAchievementClick }: AchievementBadg
             ))}
           </div>
         ) : (
-          <div className="relative z-10 flex items-center gap-2 overflow-x-auto pb-0.5">
+          <div className="ach-compact-row no-scrollbar relative z-10 flex items-center gap-2 overflow-x-auto pb-0.5">
             {compactUnlocked.map((achievement, index) => (
               <button
                 key={achievement.id}

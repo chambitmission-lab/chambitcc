@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { TitleStatus } from '../../../api/titles'
 import { titleKeys } from '../../../hooks/useTitles'
-import { GLOW_LEVELS } from '../../../types/achievement'
+import { ACHIEVEMENTS, GLOW_LEVELS } from '../../../types/achievement'
+import AchievementBadges from './AchievementBadges'
 import ProfileHeader from './ProfileHeader'
 
 const SAMPLE_TITLE: TitleStatus = {
@@ -23,6 +24,13 @@ const SAMPLE_TITLE: TitleStatus = {
   progress: null,
 }
 
+// 업적 스트립 확인용 — 절반 해금 + 나머지는 진행중 잠금
+const SAMPLE_ACHIEVEMENTS = ACHIEVEMENTS.map((a, i) => ({
+  ...a,
+  unlocked: i < Math.floor(ACHIEVEMENTS.length / 2),
+  progress: i < Math.floor(ACHIEVEMENTS.length / 2) ? a.requirement : Math.floor(a.requirement * 0.6),
+}))
+
 const ProfileHeaderPreview = () => {
   const qc = useQueryClient()
   const [levelIdx, setLevelIdx] = useState(5) // 기본: 신앙의 빛(블루)
@@ -40,6 +48,11 @@ const ProfileHeaderPreview = () => {
         avatarUrl={null}
         glowLevel={GLOW_LEVELS[levelIdx]}
       />
+
+      {/* 업적 스트립 (접힌 상태 스크롤바/페이드 확인용) */}
+      <div className="mx-auto max-w-md">
+        <AchievementBadges achievements={SAMPLE_ACHIEVEMENTS} />
+      </div>
 
       <div className="mx-auto mt-6 flex max-w-sm flex-wrap justify-center gap-2 px-4 pb-10">
         {GLOW_LEVELS.map((lv, i) => (
