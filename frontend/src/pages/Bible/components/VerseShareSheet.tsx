@@ -68,7 +68,8 @@ const VerseShareSheet = ({ target, onClose }: VerseShareSheetProps) => {
   const [bgId, setBgId] = useState<string>(BACKGROUNDS[0].id)
   const [cardImg, setCardImg] = useState<HTMLImageElement | null>(null)
   const [busy, setBusy] = useState(false)
-  const [fontsReady, setFontsReady] = useState(false)
+  // 폰트 로드 세대 — 구절 글자의 서브셋 조각이 로드될 때마다 올라가 다시 그리게 한다
+  const [fontsReady, setFontsReady] = useState(0)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   // 배경 그라데이션 생성은 1080x1350 픽셀 루프라 한 번 만든 건 재사용한다
@@ -112,9 +113,17 @@ const VerseShareSheet = ({ target, onClose }: VerseShareSheetProps) => {
 
   const cardRefLabel = `${reference} · ${TRANSLATION_LABEL}`
 
+  // 한글 웹폰트는 서브셋 조각으로 나뉘어 있어 canvas가 폴백으로 그리지 않도록
+  // 구절 텍스트를 넘겨 해당 글자의 조각까지 받아온 뒤 다시 그린다
   useEffect(() => {
-    ensureCardFonts().then(() => setFontsReady(true))
-  }, [])
+    let cancelled = false
+    ensureCardFonts(`${cardText} ${cardRefLabel}`).then(() => {
+      if (!cancelled) setFontsReady((n) => n + 1)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [cardText, cardRefLabel])
 
   // 탭을 이미지로 옮기거나 배경을 바꾸면 그때 배경 이미지를 만든다 (텍스트만 쓸 사람에겐 낭비)
   useEffect(() => {
@@ -155,7 +164,7 @@ const VerseShareSheet = ({ target, onClose }: VerseShareSheetProps) => {
 
   const buildCardFile = useCallback(async () => {
     if (!cardImg) return null
-    await ensureCardFonts()
+    await ensureCardFonts(`${cardText} ${cardRefLabel}`)
     const canvas = createCardCanvas(cardImg, EXPORT_MAX_SIDE, cardStyle.frame)
     drawVerseCard(canvas, cardImg, cardText, cardRefLabel, cardStyle)
     const blob = await new Promise<Blob | null>((resolve) =>

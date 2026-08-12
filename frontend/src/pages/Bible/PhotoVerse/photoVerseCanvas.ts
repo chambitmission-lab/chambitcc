@@ -1078,16 +1078,20 @@ export const createBackgroundImage = async (bg: VerseBackground): Promise<HTMLIm
 }
 
 // Canvas 텍스트는 CSS와 달리 폰트가 로드되어 있어야만 웹폰트로 그려진다.
+// 한글 웹폰트는 유니코드 범위별 서브셋 조각으로 나뉘어 배포되는데, canvas는
+// 안 받아진 조각을 기다리지 않고 폴백으로 그려버려 글자가 섞여 보인다.
+// 그릴 텍스트를 load()에 넘기면 그 글자들이 속한 조각까지 전부 받아온다.
 // 실패해도 시스템 폰트로 대체되므로 조용히 넘어간다.
-export const ensureCardFonts = async () => {
+export const ensureCardFonts = async (sampleText?: string) => {
+  const sample = sampleText?.trim() || undefined
   try {
     await Promise.all([
-      document.fonts.load('600 24px Pretendard'),
-      document.fonts.load('600 24px "Noto Serif KR"'),
-      document.fonts.load('700 24px "Noto Serif KR"'),
-      document.fonts.load('400 16px "Noto Serif KR"'),
-      document.fonts.load('400 24px "Nanum Pen Script"'),
-      document.fonts.load('700 16px Orbitron'),
+      document.fonts.load('600 24px Pretendard', sample),
+      document.fonts.load('600 24px "Noto Serif KR"', sample),
+      document.fonts.load('700 24px "Noto Serif KR"', sample),
+      document.fonts.load('400 16px "Noto Serif KR"', sample),
+      document.fonts.load('400 24px "Nanum Pen Script"', sample),
+      document.fonts.load('700 16px Orbitron'), // 날짜 스탬프 — 숫자뿐이라 샘플 불필요
     ])
   } catch {
     // 폰트 로드 실패 — 시스템 폰트 폴백

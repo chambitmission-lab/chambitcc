@@ -168,7 +168,8 @@ const PhotoVerse = () => {
     lang: language === 'en' ? 'en' : 'ko',
   }))
   const [pickerOpen, setPickerOpen] = useState(false)
-  const [fontsReady, setFontsReady] = useState(false)
+  // 폰트 로드 세대 — 구절이 바뀌어 새 서브셋 조각이 로드될 때마다 올라가 다시 그리게 한다
+  const [fontsReady, setFontsReady] = useState(0)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   // 저장 인화 연출 — 다운로드 후 카드가 폴라로이드처럼 서서히 현상된다
@@ -253,10 +254,19 @@ const PhotoVerse = () => {
   }
   const t = texts[language]
 
-  // 웹폰트(명조/손글씨)가 로드되기 전에 그리면 시스템 폰트로 그려지므로 먼저 로드해둔다
+  // 웹폰트(명조/손글씨)가 로드되기 전에 그리면 시스템 폰트로 그려진다.
+  // 한글 폰트는 서브셋 조각으로 나뉘어 있어 구절 텍스트를 넘겨 해당 글자의
+  // 조각까지 받아오고, 로드가 끝나면 세대를 올려 canvas를 다시 그린다.
   useEffect(() => {
-    ensureCardFonts().then(() => setFontsReady(true))
-  }, [])
+    let cancelled = false
+    const sample = verse ? `${verse.text} ${verse.refLabel}` : undefined
+    ensureCardFonts(sample).then(() => {
+      if (!cancelled) setFontsReady((n) => n + 1)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [verse])
 
   // 절기 스탬프 언어를 앱 언어와 맞춘다
   useEffect(() => {
@@ -376,7 +386,7 @@ const PhotoVerse = () => {
   // ── 저장/공유 — 원본 해상도로 다시 그려 JPEG 파일 생성 ──
   const buildCardFile = useCallback(async () => {
     if (!photo || !verse) return null
-    await ensureCardFonts()
+    await ensureCardFonts(`${verse.text} ${verse.refLabel}`)
     const canvas = createCardCanvas(photo.img, EXPORT_MAX_SIDE, style.frame, style.ratio)
     drawVerseCard(canvas, photo.img, verse.text, verse.refLabel, style)
     const blob = await new Promise<Blob | null>((resolve) =>
