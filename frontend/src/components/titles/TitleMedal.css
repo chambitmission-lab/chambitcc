@@ -1,0 +1,157 @@
+/* 칭호 메달 — 티어 재질 링 + 미획득 진행률 링 (theme.css 토큰 기반) */
+
+.title-medal {
+  position: relative;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+/* 사이즈: 링 두께는 padding 으로 표현 */
+.title-medal-sm { width: 40px; height: 40px; padding: 3px; }
+.title-medal-md { width: 74px; height: 74px; padding: 5px; }
+.title-medal-lg { width: 104px; height: 104px; padding: 6px; }
+
+.title-medal-sm .title-medal-icon { font-size: 17px; }
+.title-medal-md .title-medal-icon { font-size: 32px; }
+.title-medal-lg .title-medal-icon { font-size: 46px; }
+
+/* 획득 — 티어 재질 그라데이션 링 */
+.title-medal.is-earned {
+  background: var(--medal-material);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+/* 미획득 — 브랜드 색 진행률 링 (conic), 나머지는 inset */
+.title-medal.is-locked {
+  background: conic-gradient(
+    var(--brand) calc(var(--medal-pct, 0) * 1%),
+    var(--surface-inset) 0
+  );
+}
+
+.title-medal-face {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(100% 100% at 30% 25%, var(--brand-soft), transparent 65%),
+    var(--surface-container);
+}
+
+.title-medal.is-locked .title-medal-face {
+  background: var(--surface-container-high);
+}
+
+.title-medal-icon {
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+
+.title-medal.is-locked .title-medal-icon {
+  filter: grayscale(1) opacity(0.45);
+}
+
+/* 장착 중 — 우하단 브랜드 체크 뱃지 */
+.title-medal-equipped-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+  border: 2px solid var(--surface-container);
+  color: var(--on-brand);
+}
+
+.title-medal-sm .title-medal-equipped-dot {
+  width: 16px;
+  height: 16px;
+  border-width: 1.5px;
+}
+
+.title-medal-equipped-dot .material-icons-round {
+  font-size: 13px;
+}
+
+.title-medal-sm .title-medal-equipped-dot .material-icons-round {
+  font-size: 10px;
+}
+
+/* 전설 — 홀로그램 링이 천천히 회전 (획득 시에만) */
+.title-medal-tier-legendary.is-earned {
+  background: conic-gradient(from 0deg, #fbbf24, #ec4899, #a855f7, #22d3ee, #fbbf24);
+  animation: medal-holo 6s linear infinite;
+  box-shadow: 0 4px 18px rgba(251, 191, 36, 0.35);
+}
+
+@keyframes medal-holo {
+  /* conic 그라데이션 자체는 회전 불가 — hue 순환으로 같은 인상 */
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-medal-tier-legendary.is-earned { animation: none; }
+}
+
+/* ── 그리드 타일 ─────────────────────────── */
+.title-medal-tile {
+  border: none;
+  background: none;
+  padding: 6px 2px 8px;
+  margin: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  border-radius: 16px;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.title-medal-tile:hover {
+  background: var(--surface-container-high);
+}
+
+.title-medal-tile:active {
+  transform: scale(0.95);
+}
+
+.title-medal-tile-name {
+  max-width: 100%;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title-medal-tile-name.is-locked {
+  color: var(--text-muted);
+}
+
+.title-medal-tile-sub {
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.title-medal-tile-sub.is-progress {
+  color: var(--brand);
+}
+
+.title-medal-tile-sub.is-muted {
+  color: var(--text-muted);
+}

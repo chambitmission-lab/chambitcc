@@ -6,7 +6,9 @@ import {
   getReadingProgress,
   getBookReadingProgress,
   getResumeReading,
-  unmarkVerseAsRead
+  unmarkVerseAsRead,
+  markChapterAsRead,
+  unmarkChapterAsRead
 } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 import type { ProfileDetail } from '../types/profile'
@@ -149,6 +151,41 @@ export const useResumeReading = (limit: number = 10, enabled: boolean = true) =>
     queryFn: () => getResumeReading(limit),
     enabled,
     staleTime: 1000 * 30, // 30초
+  })
+}
+
+/**
+ * 장 전체 읽음 처리 Mutation (관리자 전용 — 업적 테스트용)
+ * 절 수가 많아 낙관적 +1 대신 invalidate로만 동기화한다.
+ */
+export const useMarkChapterAsRead = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ bookNumber, chapter }: { bookNumber: number; chapter: number }) =>
+      markChapterAsRead(bookNumber, chapter),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+      // 일괄 처리 후 칭호 평가는 한 번만 — 개별 절처럼 절마다 부르지 않는다
+      scheduleTitleEvaluation()
+    },
+  })
+}
+
+/**
+ * 장 전체 읽음 취소 Mutation (관리자 전용 — 일괄 읽음 되돌리기)
+ */
+export const useUnmarkChapterAsRead = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ bookNumber, chapter }: { bookNumber: number; chapter: number }) =>
+      unmarkChapterAsRead(bookNumber, chapter),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
+      queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+    },
   })
 }
 

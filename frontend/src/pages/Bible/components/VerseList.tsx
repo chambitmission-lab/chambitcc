@@ -5,7 +5,8 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
 import VerseItem from './VerseItem'
 import ChapterLoader from './ChapterLoader'
-import { useChapterReadStatus, useMarkVerseAsRead, useUnmarkVerseAsRead } from '../../../hooks/useBibleReading'
+import { useChapterReadStatus, useMarkVerseAsRead, useUnmarkVerseAsRead, useMarkChapterAsRead, useUnmarkChapterAsRead } from '../../../hooks/useBibleReading'
+import { isAdmin } from '../../../utils/auth'
 import { biblePlanKeys } from '../../../hooks/useBiblePlan'
 import { celebrateFlowerBloom } from '../../../utils/confettiEffects'
 import VerseEditModal from '../../../components/bible/VerseEditModal'
@@ -174,6 +175,51 @@ const VerseList = ({
   const unmarkAsReadMutation = useUnmarkVerseAsRead()
   // 수동 읽음 처리 중인 절 — 중복 클릭 방지
   const [togglingVerseId, setTogglingVerseId] = useState<number | null>(null)
+
+  // ---------- 관리자 전용: 장 일괄 읽음/취소 (업적 테스트용, 본인 계정) ----------
+  const isAdminUser = isAdmin()
+  const markChapterMutation = useMarkChapterAsRead()
+  const unmarkChapterMutation = useUnmarkChapterAsRead()
+  // 실수 방지 2탭 확인 — 한 번 탭하면 확인 문구로 바뀌고 3초 내 재탭 시 실행
+  const [bulkConfirm, setBulkConfirm] = useState<'mark' | 'unmark' | null>(null)
+  const bulkConfirmTimer = useRef<number | null>(null)
+  const bulkPending = markChapterMutation.isPending || unmarkChapterMutation.isPending
+
+  useEffect(() => {
+    setBulkConfirm(null)
+    return () => {
+      if (bulkConfirmTimer.current) window.clearTimeout(bulkConfirmTimer.current)
+    }
+  }, [bookNumber, selectedChapter])
+
+  const handleAdminBulkTap = async (action: 'mark' | 'unmark') => {
+    if (bulkPending) return
+    if (bulkConfirm !== action) {
+      setBulkConfirm(action)
+      if (bulkConfirmTimer.current) window.clearTimeout(bulkConfirmTimer.current)
+      bulkConfirmTimer.current = window.setTimeout(() => setBulkConfirm(null), 3000)
+      return
+    }
+    if (bulkConfirmTimer.current) window.clearTimeout(bulkConfirmTimer.current)
+    setBulkConfirm(null)
+    try {
+      if (action === 'mark') {
+        const res = await markChapterMutation.mutateAsync({ bookNumber, chapter: selectedChapter })
+        celebrateFlowerBloom()
+        showToast(`${res.marked_verses}개 절을 읽음 처리했습니다`, 'success')
+      } else {
+        const res = await unmarkChapterMutation.mutateAsync({ bookNumber, chapter: selectedChapter })
+        showToast(`${res.deleted_records}개 읽음 기록을 취소했습니다`, 'info')
+      }
+      await refetchReadStatus()
+    } catch (error) {
+      console.error('Failed to bulk toggle chapter read:', error)
+      showToast(
+        action === 'mark' ? '장 전체 읽음 처리에 실패했습니다' : '장 전체 읽음 취소에 실패했습니다',
+        'error'
+      )
+    }
+  }
 
   // 읽은 구절 Set 생성 (백엔드 데이터 기반)
   const readVerses = useMemo(() => {
@@ -539,6 +585,78 @@ const VerseList = ({
           </span>
         </div>
       )}
+
+      {/* 관리자 전용: 장 일괄 읽음/취소 — 업적·칭호 테스트용, 본인 계정에만 적용 */}
+      {isAdminUser && isLoggedIn() && readStatusData && (() => {
+        const total = readStatusData.total_verses ?? 0
+        const unread = Math.max(0, total - (readStatusData.read_verses ?? 0))
+        const action: 'mark' | 'unmark' = unread > 0 ? 'mark' : 'unmark'
+        const confirming = bulkConfirm === action
+        const label = bulkPending
+          ? '처리 중...'
+          : confirming
+            ? (action === 'mark' ? `한 번 더 탭하면 ${unread}개 절 읽음 처리` : '한 번 더 탭하면 전체 취소')
+            : (action === 'mark' ? `이 장 전체 읽음 (미읽음 ${unread}절)` : '이 장 전체 읽음 취소')
+        return (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.375rem 0.5rem 0.375rem 0.625rem',
+            marginBottom: '0.875rem',
+            background: 'var(--ig-secondary-background)',
+            border: '1px dashed var(--brand-soft-strong)',
+            borderRadius: '999px',
+            fontSize: '0.8125rem',
+            maxWidth: '42rem',
+            marginInline: 'auto',
+          }}>
+            <span style={{
+              flexShrink: 0,
+              padding: '0.125rem 0.5rem',
+              borderRadius: '999px',
+              background: 'var(--brand-soft)',
+              color: 'var(--brand)',
+              fontWeight: 800,
+              fontSize: '0.6875rem',
+              letterSpacing: '0.04em',
+            }}>
+              ADMIN
+            </span>
+            <button
+              type="button"
+              onClick={() => handleAdminBulkTap(action)}
+              disabled={bulkPending}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.375rem',
+                padding: '0.375rem 0.625rem',
+                borderRadius: '999px',
+                border: 'none',
+                background: confirming ? 'var(--brand)' : 'transparent',
+                color: confirming ? 'white' : (action === 'mark' ? 'var(--brand)' : 'var(--ig-secondary-text)'),
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+                cursor: bulkPending ? 'wait' : 'pointer',
+                opacity: bulkPending ? 0.6 : 1,
+                transition: 'all 0.15s ease',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              <span className="material-icons-round" style={{ fontSize: '1rem', flexShrink: 0 }}>
+                {action === 'mark' ? 'done_all' : 'remove_done'}
+              </span>
+              {label}
+            </button>
+          </div>
+        )
+      })()}
 
       {/* 길게 누르기 안내 — 로그인 사용자에게 처음 한 번만 */}
       {showHoldHint && isLoggedIn() && (

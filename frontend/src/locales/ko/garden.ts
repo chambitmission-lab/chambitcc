@@ -29,6 +29,10 @@ export const garden = {
   titleTierGold: '골드',
   titleTierLegendary: '전설',
 
+  // 곧 획득 / 상세 시트
+  titleSoonHeader: '곧 획득!',
+  titleDetailCondition: '획득 조건',
+
   // 칭호 카드
   titleConcealedName: '??? 칭호',
   titleConcealedDesc: '숨겨진 칭호 — 조건을 달성하면 공개됩니다',

@@ -10,6 +10,7 @@ export interface TierVisual {
   ring: string      // 테두리/글로우 색
   chipBg: string
   chipText: string
+  medal: string     // 메달 링 재질 그라데이션 (도감 그리드/상세 시트 공유)
 }
 
 export const TIER_VISUALS: Record<TitleTier, TierVisual> = {
@@ -18,24 +19,28 @@ export const TIER_VISUALS: Record<TitleTier, TierVisual> = {
     ring: 'rgba(205, 127, 50, 0.65)',
     chipBg: 'rgba(205, 127, 50, 0.16)',
     chipText: '#c87f3a',
+    medal: 'linear-gradient(135deg, #8d5524, #cd7f32 42%, #f0b27a 68%, #a05f2c)',
   },
   silver: {
     labelKey: 'titleTierSilver',
     ring: 'rgba(148, 163, 184, 0.7)',
     chipBg: 'rgba(148, 163, 184, 0.18)',
     chipText: '#94a3b8',
+    medal: 'linear-gradient(135deg, #64748b, #94a3b8 42%, #e2e8f0 68%, #7c8aa0)',
   },
   gold: {
     labelKey: 'titleTierGold',
     ring: 'rgba(245, 158, 11, 0.7)',
     chipBg: 'rgba(245, 158, 11, 0.16)',
     chipText: '#f0a82c',
+    medal: 'linear-gradient(135deg, #b45309, #f59e0b 42%, #fde68a 68%, #d97706)',
   },
   legendary: {
     labelKey: 'titleTierLegendary',
     ring: 'rgba(251, 191, 36, 0.9)',
     chipBg: 'rgba(251, 191, 36, 0.18)',
     chipText: '#fbbf24',
+    medal: 'linear-gradient(135deg, #fbbf24, #ec4899 40%, #a855f7 65%, #fbbf24)',
   },
 }
 

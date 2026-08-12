@@ -45,6 +45,26 @@
   font-size: 26px;
 }
 
+/* 장착 칭호 슬롯 — 버튼이지만 통계 셀처럼 보이게 */
+.title-stat.is-equipped-slot {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 12px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.title-stat.is-equipped-slot:disabled {
+  cursor: default;
+}
+
+.title-stat.is-equipped-slot .title-medal {
+  margin-bottom: 2px;
+}
+
 .title-stat-sub {
   font-size: 12px;
   color: var(--text-muted);
@@ -93,10 +113,105 @@
   background: var(--brand-soft);
 }
 
-.title-grid {
+/* 메달 도감 그리드 — 모바일 3열, 넓어지면 자동 확장 */
+.title-medal-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px 6px;
+  padding: 14px 10px;
+  border-radius: 20px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+/* ── 곧 획득 섹션 ─────────────────────────── */
+.title-soon {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 20px;
+  background:
+    radial-gradient(140% 100% at 0% 0%, var(--brand-soft), transparent 60%),
+    var(--surface-container);
+  border: 1px solid var(--brand-soft-strong);
+  box-shadow: var(--card-shadow);
+}
+
+.title-soon-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.title-soon-head .material-icons-round {
+  font-size: 18px;
+  color: var(--brand);
+}
+
+.title-soon-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.title-soon-row {
+  display: flex;
+  align-items: center;
   gap: 12px;
+  border: none;
+  background: none;
+  padding: 6px 4px;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 12px;
+  transition: background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.title-soon-row:hover {
+  background: var(--surface-container-high);
+}
+
+.title-soon-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title-soon-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title-soon-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+
+.title-soon-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--brand);
+  transition: width 0.4s ease;
+}
+
+.title-soon-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand);
+  white-space: nowrap;
 }
 
 /* 로딩/에러 */
@@ -127,8 +242,8 @@
   .title-collection-spinner { animation: none; }
 }
 
-@media (max-width: 768px) {
-  .title-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 480px) {
+  .title-medal-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }

@@ -174,6 +174,70 @@ export const markVerseAsRead = async (
   return result.data
 }
 
+// 관리자 전용 — 장 일괄 읽음/취소 (본인 계정, 업적 테스트용)
+export interface ChapterBulkReadResult {
+  book_number: number
+  chapter: number
+  total_verses: number
+  marked_verses: number
+}
+
+export interface ChapterBulkUnreadResult {
+  book_number: number
+  chapter: number
+  deleted_records: number
+}
+
+/**
+ * 장 전체 읽음 처리 (관리자 전용)
+ */
+export const markChapterAsRead = async (
+  bookNumber: number,
+  chapter: number
+): Promise<ChapterBulkReadResult> => {
+  requireAuth()
+
+  const response = await apiFetch(
+    `${API_V1}/bible/chapters/${bookNumber}/${chapter}/read-all`,
+    {
+      method: 'POST',
+      headers: getAuthHeaders(true)
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error('장 전체 읽음 처리에 실패했습니다')
+  }
+
+  const result: { success: boolean; data: ChapterBulkReadResult } = await response.json()
+  return result.data
+}
+
+/**
+ * 장 전체 읽음 취소 (관리자 전용)
+ */
+export const unmarkChapterAsRead = async (
+  bookNumber: number,
+  chapter: number
+): Promise<ChapterBulkUnreadResult> => {
+  requireAuth()
+
+  const response = await apiFetch(
+    `${API_V1}/bible/chapters/${bookNumber}/${chapter}/read-all`,
+    {
+      method: 'DELETE',
+      headers: getAuthHeaders(true)
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error('장 전체 읽음 취소에 실패했습니다')
+  }
+
+  const result: { success: boolean; data: ChapterBulkUnreadResult } = await response.json()
+  return result.data
+}
+
 /**
  * 읽은 구절 목록 조회
  */

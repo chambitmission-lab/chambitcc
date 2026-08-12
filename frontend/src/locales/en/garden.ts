@@ -29,6 +29,10 @@ export const garden = {
   titleTierGold: 'Gold',
   titleTierLegendary: 'Legendary',
 
+  // Almost there / detail sheet
+  titleSoonHeader: 'Almost there!',
+  titleDetailCondition: 'How to earn',
+
   // Title card
   titleConcealedName: '??? Title',
   titleConcealedDesc: 'A hidden title — revealed once you meet the condition',
