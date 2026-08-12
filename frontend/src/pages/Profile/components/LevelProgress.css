@@ -1,0 +1,126 @@
+/* 신앙의 온도 카드 — 온도계·레벨 여정·요일 마이크로 도트 */
+
+/* 현재 단계 이름 옆 글로우 점 */
+.lp-glow-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  flex: 0 0 auto;
+}
+
+/* 온도계 수은구 — 트랙 왼쪽에 겹쳐 mercury 가 이어져 보이게 */
+.lp-bulb {
+  position: relative;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: var(--brand);
+  flex: 0 0 auto;
+}
+.lp-bulb::after {
+  /* 유리 하이라이트 */
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+/* ── 레벨 여정 스트립 ───────────────────────────── */
+.lp-journey {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+}
+.lp-journey__line,
+.lp-journey__fill {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 1px;
+  pointer-events: none;
+}
+.lp-journey__line {
+  right: 0;
+  background: rgba(0, 0, 0, 0.08);
+}
+[data-theme='dark'] .lp-journey__line {
+  background: rgba(255, 255, 255, 0.08);
+}
+.lp-journey__fill {
+  background: var(--brand);
+  opacity: 0.55;
+}
+.lp-journey__stop {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.lp-journey__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.14);
+  box-sizing: border-box;
+  transition: transform 0.15s ease;
+}
+[data-theme='dark'] .lp-journey__dot {
+  background: #1c1f26;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+/* 지나온/현재 단계는 레벨 색으로 채움(inline style) — 테두리는 없앤다 */
+.lp-journey__stop[data-state='passed'] .lp-journey__dot,
+.lp-journey__stop[data-state='current'] .lp-journey__dot {
+  border: none;
+}
+.lp-journey__stop[data-state='current'] .lp-journey__dot {
+  width: 14px;
+  height: 14px;
+}
+.lp-journey__stop[data-selected='true'] .lp-journey__dot {
+  transform: scale(1.25);
+}
+.lp-journey__stop[data-state='current'][data-selected='true'] .lp-journey__dot {
+  transform: scale(1.1);
+}
+
+/* ── 이번 주 요일 마이크로 도트 ─────────────────── */
+.lp-weekdot {
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.12);
+}
+[data-theme='dark'] .lp-weekdot {
+  background: rgba(255, 255, 255, 0.14);
+}
+.lp-weekdot[data-on='true'] {
+  background: var(--brand);
+}
+.lp-weekdot[data-future='true'] {
+  background: rgba(0, 0, 0, 0.06);
+}
+[data-theme='dark'] .lp-weekdot[data-future='true'] {
+  background: rgba(255, 255, 255, 0.07);
+}
+.lp-weekdot[data-today='true'] {
+  box-shadow: 0 0 0 1.5px var(--brand-soft-strong);
+}

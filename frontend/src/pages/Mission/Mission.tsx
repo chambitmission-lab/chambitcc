@@ -5,7 +5,6 @@ import {
   regionMeta,
   countryCoordinates,
   countryDetail,
-  countryFlag,
   domesticChurches,
   domesticOrganizations,
   missionStats,
@@ -14,6 +13,7 @@ import {
   type Missionary,
 } from './missionData'
 import WorldMap from './WorldMap'
+import CountryFlag from './CountryFlag'
 import { useLanguage } from '../../contexts/LanguageContext'
 import './Mission.css'
 
@@ -249,7 +249,7 @@ const Mission = () => {
         >
           <div className="featured-eyebrow">{t('missionTodayEyebrow')}</div>
           <div className="featured-body">
-            <span className="featured-flag">{countryFlag[featured.country] ?? '🌐'}</span>
+            <CountryFlag className="featured-flag" country={featured.country} />
             <div className="featured-text">
               <p className="featured-sentence">
                 {language === 'ko' ? (
@@ -459,7 +459,7 @@ const MissionaryGroups = ({
               className="group-head"
               onClick={() => onCountryClick(g.country)}
             >
-              <span className="group-flag">{countryFlag[g.country] ?? '🌐'}</span>
+              <CountryFlag className="group-flag" country={g.country} />
               <span className="group-country" style={{ color }}>{g.country}</span>
               <span className="group-count">{g.members.length}</span>
               <span className="group-pin">📍</span>
@@ -575,7 +575,7 @@ const MissionarySheet = ({
       >
         <div className="sheet-grabber" />
         <div className="sheet-head">
-          <span className="sheet-flag">{countryFlag[missionary.country] ?? '🌐'}</span>
+          <CountryFlag className="sheet-flag" country={missionary.country} />
           <div className="sheet-titles">
             <div className="sheet-name">
               {missionary.name}

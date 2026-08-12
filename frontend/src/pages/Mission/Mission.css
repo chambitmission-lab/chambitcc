@@ -181,7 +181,6 @@
   padding: 1.1rem 1.15rem 1.15rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-left: 3px solid var(--fc, #38bdf8);
   border-radius: 1.1rem;
   backdrop-filter: blur(14px);
   cursor: pointer;
@@ -203,23 +202,11 @@
 .featured-card:active { transform: scale(0.985); }
 
 .featured-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.25em;
-  color: rgba(186, 230, 253, 0.7);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(186, 230, 253, 0.55);
   margin-bottom: 0.7rem;
-}
-
-.featured-eyebrow::before {
-  content: '';
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 999px;
-  background: var(--fc, #38bdf8);
-  box-shadow: 0 0 8px var(--fc, #38bdf8);
 }
 
 .featured-body {
@@ -233,6 +220,16 @@
   font-size: 2.1rem;
   line-height: 1;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+/* 국기 이미지(flagcdn) — 이모지 자리의 font-size를 em으로 그대로 따라 스케일 */
+img.featured-flag,
+img.group-flag,
+img.sheet-flag {
+  width: 1.25em;
+  height: auto;
+  border-radius: 0.12em;
+  flex-shrink: 0;
 }
 
 .featured-text { min-width: 0; }
@@ -921,22 +918,11 @@
 .domestic-group:last-child { margin-bottom: 0; }
 
 .domestic-group-title {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #fed7aa;
+  letter-spacing: 0.04em;
+  color: rgba(254, 215, 170, 0.85);
   margin-bottom: 0.6rem;
-}
-
-.domestic-group-title::before {
-  content: '';
-  width: 0.6rem;
-  height: 0.6rem;
-  background: linear-gradient(135deg, #fb923c, #ec4899);
-  border-radius: 999px;
-  box-shadow: 0 0 10px rgba(251, 146, 60, 0.6);
 }
 
 .domestic-chips {
@@ -1338,7 +1324,6 @@ html:not(.dark) .mission-pray-btn.done {
 html:not(.dark) .featured-card {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.78));
   border-color: rgba(14, 165, 233, 0.22);
-  border-left-color: var(--fc, #0ea5e9);
   box-shadow: 0 6px 22px rgba(14, 165, 233, 0.1);
 }
 

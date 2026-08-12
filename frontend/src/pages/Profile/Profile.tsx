@@ -10,6 +10,7 @@ import FaithInsightCard from './components/FaithInsightCard'
 import WeeklyStoryHook from './components/WeeklyStoryHook'
 import GrowthHook from './components/GrowthHook'
 import LevelProgress from './components/LevelProgress'
+import LevelUpMoment from './components/LevelUpMoment'
 import AchievementBadges from './components/AchievementBadges'
 import AchievementModal from './components/AchievementModal'
 import ContentTabs from './components/ContentTabs'
@@ -20,7 +21,7 @@ import MyBookmarksList from './components/MyBookmarksList'
 import LoadMoreSentinel from './components/LoadMoreSentinel'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import type { ProfileTab } from '../../types/profile'
-import type { Achievement, UserActivityData } from '../../types/achievement'
+import type { Achievement, GlowLevel, UserActivityData } from '../../types/achievement'
 import { 
   calculateActivityPoints, 
   calculateGlowLevel, 
@@ -36,6 +37,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState<ProfileTab>('prayers')
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null)
   const [celebrateUnlock, setCelebrateUnlock] = useState(false)
+  const [levelUp, setLevelUp] = useState<GlowLevel | null>(null)
   
   // 로그인 체크
   useEffect(() => {
@@ -116,6 +118,27 @@ const Profile = () => {
       }
     }
   }, [achievements, isLoading, bmLoading, hasToken])
+
+  // 레벨업 감지 — 마지막으로 본 레벨을 localStorage 에 기억해 두고, 그보다
+  // 오르면 축하 모먼트를 띄운다. 업적 감지와 같은 이유로 데이터가 전부
+  // 도착한 뒤에만 판정한다(부분 데이터로 낮게 계산된 레벨을 기준으로 저장하면
+  // 다음 방문마다 가짜 레벨업이 뜬다). 첫 방문(저장값 없음)은 기록만 한다.
+  useEffect(() => {
+    if (isLoading || (hasToken && bmLoading) || !data) return
+    const KEY = 'glow_level_seen'
+    const stored = localStorage.getItem(KEY)
+    if (stored === null) {
+      localStorage.setItem(KEY, String(glowLevel.level))
+      return
+    }
+    const prev = Number(stored)
+    if (glowLevel.level > prev) {
+      setLevelUp(glowLevel)
+    }
+    if (glowLevel.level !== prev) {
+      localStorage.setItem(KEY, String(glowLevel.level))
+    }
+  }, [isLoading, bmLoading, hasToken, data, glowLevel])
 
   const handleLogout = async () => {
     await logout() // 푸시 구독 해제 + 토큰 제거 + React Query 캐시 정리
@@ -302,6 +325,11 @@ const Profile = () => {
           {activeTab === 'notes' && <MyBookmarksList />}
         </div>
         
+        {/* 레벨업 축하 모먼트 */}
+        {levelUp && (
+          <LevelUpMoment level={levelUp} onClose={() => setLevelUp(null)} />
+        )}
+
         {/* 업적 모달 */}
         <AchievementModal
           achievement={selectedAchievement}
