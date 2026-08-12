@@ -7,6 +7,7 @@ import type { PickedVerse } from './VersePickerSheet'
 import {
   BACKGROUNDS,
   CARD_FILTERS,
+  CARD_LAYOUTS,
   DEFAULT_CARD_STYLE,
   backgroundCss,
   createBackgroundImage,
@@ -14,8 +15,16 @@ import {
   drawFilterThumb,
   drawVerseCard,
   ensureCardFonts,
+  getSeasonStamp,
 } from './photoVerseCanvas'
-import type { VerseBackground, VerseCardStyle } from './photoVerseCanvas'
+import type {
+  CardLayoutId,
+  CardRatioId,
+  CardTextBg,
+  CardTextureId,
+  VerseBackground,
+  VerseCardStyle,
+} from './photoVerseCanvas'
 import './PhotoVerse.css'
 
 // 미리보기는 화면용으로 캡, 저장본은 원본 해상도(최대 2048px)로 다시 그린다
@@ -33,6 +42,66 @@ const COLOR_SWATCHES = [
 ]
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max)
+
+/** 레이아웃 프리셋 도식 썸네일 — 텍스트가 놓이는 구도를 선으로 요약한다 */
+const LayoutGlyph = ({ id }: { id: CardLayoutId }) => {
+  const common = {
+    stroke: 'currentColor',
+    strokeWidth: 2.4,
+    strokeLinecap: 'round' as const,
+    fill: 'none',
+  }
+  return (
+    <svg viewBox="0 0 36 44" aria-hidden="true">
+      {id === 'classic' && (
+        <g {...common}>
+          <line x1="9" y1="17" x2="27" y2="17" />
+          <line x1="7" y1="22" x2="29" y2="22" />
+          <line x1="11" y1="27" x2="25" y2="27" />
+        </g>
+      )}
+      {id === 'gallery' && (
+        <g {...common}>
+          <line x1="7" y1="28" x2="13" y2="28" strokeWidth={3} />
+          <line x1="7" y1="34" x2="29" y2="34" />
+          <line x1="7" y1="39" x2="22" y2="39" />
+        </g>
+      )}
+      {id === 'quote' && (
+        <g {...common}>
+          <text
+            x="18"
+            y="17"
+            textAnchor="middle"
+            fontSize="17"
+            fontFamily="Georgia, serif"
+            fill="currentColor"
+            stroke="none"
+          >
+            “
+          </text>
+          <line x1="9" y1="24" x2="27" y2="24" />
+          <line x1="12" y1="29" x2="24" y2="29" />
+          <line x1="15" y1="35" x2="21" y2="35" strokeWidth={1.6} />
+        </g>
+      )}
+      {id === 'focus' && (
+        <g {...common}>
+          <line x1="11" y1="17" x2="25" y2="17" strokeWidth={4.4} />
+          <line x1="9" y1="26" x2="27" y2="26" strokeWidth={1.8} />
+          <line x1="12" y1="31" x2="24" y2="31" strokeWidth={1.8} />
+        </g>
+      )}
+      {id === 'vertical' && (
+        <g {...common}>
+          <line x1="27" y1="9" x2="27" y2="33" />
+          <line x1="21" y1="9" x2="21" y2="25" />
+          <line x1="8" y1="38" x2="16" y2="38" strokeWidth={1.6} />
+        </g>
+      )}
+    </svg>
+  )
+}
 
 /** 필터 선택 스트립 — 내 사진에 각 필터를 입힌 실제 미리보기 썸네일 */
 const FilterStrip = ({
@@ -94,11 +163,17 @@ const PhotoVerse = () => {
   const [verse, setVerse] = useState<PickedVerse | null>(
     presetVerse && presetVerse.text && presetVerse.refLabel ? presetVerse : null,
   )
-  const [style, setStyle] = useState<VerseCardStyle>(DEFAULT_CARD_STYLE)
+  const [style, setStyle] = useState<VerseCardStyle>(() => ({
+    ...DEFAULT_CARD_STYLE,
+    lang: language === 'en' ? 'en' : 'ko',
+  }))
   const [pickerOpen, setPickerOpen] = useState(false)
   const [fontsReady, setFontsReady] = useState(false)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  // 저장 인화 연출 — 다운로드 후 카드가 폴라로이드처럼 서서히 현상된다
+  const [printed, setPrinted] = useState<string | null>(null)
+  const [printDeveloped, setPrintDeveloped] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -126,10 +201,17 @@ const PhotoVerse = () => {
       size: '글자 크기',
       font: { serif: '명조', sans: '고딕', hand: '손글씨' },
       alignLabel: '정렬',
-      scrim: '배경',
       ref: '출처',
+      layoutTitle: '레이아웃',
+      textBgLabel: '글 배경',
+      textBg: { none: '없음', scrim: '박스', marker: '형광펜' },
       frameLabel: '프레임',
-      frame: { none: '기본', polaroid: '폴라로이드', film: '필름' },
+      frame: { none: '기본', season: '절기', polaroid: '폴라로이드', film: '필름' },
+      ratioLabel: '비율',
+      ratio: { original: '원본', '1:1': '1:1', '4:5': '4:5', '9:16': '9:16' },
+      textureLabel: '질감',
+      texture: { grain: '그레인', leak: '빛샘', vignette: '비네트', stamp: '날짜' },
+      printedHint: '이미지가 저장되었어요 · 탭해서 닫기',
       bgTitle: '감성 배경',
       back: '뒤로',
     },
@@ -154,10 +236,17 @@ const PhotoVerse = () => {
       size: 'Text size',
       font: { serif: 'Serif', sans: 'Sans', hand: 'Hand' },
       alignLabel: 'Align',
-      scrim: 'Backdrop',
       ref: 'Reference',
+      layoutTitle: 'Layout',
+      textBgLabel: 'Text backdrop',
+      textBg: { none: 'None', scrim: 'Box', marker: 'Marker' },
       frameLabel: 'Frame',
-      frame: { none: 'None', polaroid: 'Polaroid', film: 'Film' },
+      frame: { none: 'None', season: 'Season', polaroid: 'Polaroid', film: 'Film' },
+      ratioLabel: 'Ratio',
+      ratio: { original: 'Original', '1:1': '1:1', '4:5': '4:5', '9:16': '9:16' },
+      textureLabel: 'Texture',
+      texture: { grain: 'Grain', leak: 'Light leak', vignette: 'Vignette', stamp: 'Date' },
+      printedHint: 'Image saved · tap to close',
       bgTitle: 'Backgrounds',
       back: 'Back',
     },
@@ -168,6 +257,25 @@ const PhotoVerse = () => {
   useEffect(() => {
     ensureCardFonts().then(() => setFontsReady(true))
   }, [])
+
+  // 절기 스탬프 언어를 앱 언어와 맞춘다
+  useEffect(() => {
+    const lang = language === 'en' ? 'en' : 'ko'
+    setStyle((s) => (s.lang === lang ? s : { ...s, lang }))
+  }, [language])
+
+  // 인화 연출 — 오버레이가 뜨고 잠깐 뒤 현상이 시작된다
+  useEffect(() => {
+    if (!printed) return
+    const id = window.setTimeout(() => setPrintDeveloped(true), 80)
+    return () => window.clearTimeout(id)
+  }, [printed])
+
+  const closePrint = useCallback(() => {
+    if (printed) URL.revokeObjectURL(printed)
+    setPrinted(null)
+    setPrintDeveloped(false)
+  }, [printed])
 
   // 선택 해제된 objectURL 정리 (배경의 dataURL revoke는 무해한 no-op)
   useEffect(() => {
@@ -225,7 +333,7 @@ const PhotoVerse = () => {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas || !photo) return
-    const sized = createCardCanvas(photo.img, PREVIEW_MAX_SIDE, style.frame)
+    const sized = createCardCanvas(photo.img, PREVIEW_MAX_SIDE, style.frame, style.ratio)
     if (canvas.width !== sized.width || canvas.height !== sized.height) {
       canvas.width = sized.width
       canvas.height = sized.height
@@ -235,7 +343,8 @@ const PhotoVerse = () => {
 
   // ── 텍스트 드래그 — 사진 어느 곳을 잡아도 텍스트 블록이 손가락을 따라온다 ──
   const handlePointerDown = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (!verse) return
+    // 텍스트 드래그는 자유 레이아웃에서만 — 프리셋 레이아웃은 구도가 완성되어 있다
+    if (!verse || style.layout !== 'classic') return
     e.currentTarget.setPointerCapture(e.pointerId)
     dragRef.current = {
       pointerId: e.pointerId,
@@ -268,7 +377,7 @@ const PhotoVerse = () => {
   const buildCardFile = useCallback(async () => {
     if (!photo || !verse) return null
     await ensureCardFonts()
-    const canvas = createCardCanvas(photo.img, EXPORT_MAX_SIDE, style.frame)
+    const canvas = createCardCanvas(photo.img, EXPORT_MAX_SIDE, style.frame, style.ratio)
     drawVerseCard(canvas, photo.img, verse.text, verse.refLabel, style)
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, 'image/jpeg', 0.92)
@@ -290,8 +399,9 @@ const PhotoVerse = () => {
       a.href = url
       a.download = file.name
       a.click()
-      URL.revokeObjectURL(url)
-      showToast(t.saved)
+      // 다운로드 직후 인화 연출 — URL은 오버레이를 닫을 때 해제한다
+      setPrintDeveloped(false)
+      setPrinted(url)
     } catch {
       showToast(t.saveFailed)
     } finally {
@@ -329,6 +439,22 @@ const PhotoVerse = () => {
   })
 
   const setPartial = (patch: Partial<VerseCardStyle>) => setStyle((s) => ({ ...s, ...patch }))
+
+  const toggleTexture = (id: CardTextureId) =>
+    setStyle((s) => ({
+      ...s,
+      textures: s.textures.includes(id) ? s.textures.filter((x) => x !== id) : [...s.textures, id],
+    }))
+
+  // 형광펜은 밝은 글자와 겹치면 안 읽혀 어두운 글자로 함께 바꿔준다
+  const pickTextBg = (textBg: CardTextBg) =>
+    setStyle((s) => ({
+      ...s,
+      textBg,
+      color: textBg === 'marker' && s.color !== '#111111' ? '#111111' : s.color,
+    }))
+
+  const seasonStamp = getSeasonStamp(language === 'en' ? 'en' : 'ko')
 
   const bgStrip = (
     <div className="pv-bg-row">
@@ -448,7 +574,7 @@ const PhotoVerse = () => {
                 onPointerCancel={handlePointerUp}
               />
             </div>
-            {verse && <p className="pv-drag-hint">{t.dragHint}</p>}
+            {verse && style.layout === 'classic' && <p className="pv-drag-hint">{t.dragHint}</p>}
 
             {/* 현재 말씀 + 사진/말씀 교체 */}
             <div className="pv-source-row">
@@ -470,6 +596,27 @@ const PhotoVerse = () => {
             {/* 스타일 컨트롤 */}
             {verse && (
               <div className="pv-controls">
+                {/* 레이아웃 — 옵션 조합이 아니라 디자이너가 완성한 구도를 고른다 */}
+                <div className="pv-layouts" role="radiogroup" aria-label={t.layoutTitle}>
+                  {CARD_LAYOUTS.map((lay) => (
+                    <button
+                      key={lay.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={style.layout === lay.id}
+                      className={`pv-layout${style.layout === lay.id ? ' pv-layout--active' : ''}`}
+                      onClick={() => setPartial({ layout: lay.id })}
+                    >
+                      <span className="pv-layout__thumb">
+                        <LayoutGlyph id={lay.id} />
+                      </span>
+                      <span className="pv-layout__name">
+                        {language === 'ko' ? lay.nameKo : lay.nameEn}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
                 <FilterStrip
                   img={photo.img}
                   active={style.filter}
@@ -507,35 +654,29 @@ const PhotoVerse = () => {
                     ))}
                   </div>
 
-                  <div className="pv-seg" role="radiogroup" aria-label={t.alignLabel}>
-                    {(
-                      [
-                        ['left', 'format_align_left'],
-                        ['center', 'format_align_center'],
-                        ['right', 'format_align_right'],
-                      ] as const
-                    ).map(([a, icon]) => (
-                      <button
-                        key={a}
-                        type="button"
-                        role="radio"
-                        aria-checked={style.align === a}
-                        className={`pv-seg__item${style.align === a ? ' pv-seg__item--active' : ''}`}
-                        onClick={() => setPartial({ align: a })}
-                      >
-                        <span className="material-icons-round text-[18px]">{icon}</span>
-                      </button>
-                    ))}
-                  </div>
+                  {style.layout === 'classic' && (
+                    <div className="pv-seg" role="radiogroup" aria-label={t.alignLabel}>
+                      {(
+                        [
+                          ['left', 'format_align_left'],
+                          ['center', 'format_align_center'],
+                          ['right', 'format_align_right'],
+                        ] as const
+                      ).map(([a, icon]) => (
+                        <button
+                          key={a}
+                          type="button"
+                          role="radio"
+                          aria-checked={style.align === a}
+                          className={`pv-seg__item${style.align === a ? ' pv-seg__item--active' : ''}`}
+                          onClick={() => setPartial({ align: a })}
+                        >
+                          <span className="material-icons-round text-[18px]">{icon}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
-                  <button
-                    type="button"
-                    aria-pressed={style.scrim}
-                    className={`pv-toggle${style.scrim ? ' pv-toggle--active' : ''}`}
-                    onClick={() => setPartial({ scrim: !style.scrim })}
-                  >
-                    {t.scrim}
-                  </button>
                   <button
                     type="button"
                     aria-pressed={style.showRef}
@@ -546,10 +687,30 @@ const PhotoVerse = () => {
                   </button>
                 </div>
 
-                {/* 프레임 — 폴라로이드는 손글씨 출처, 필름은 날짜 스탬프가 함께 찍힌다 */}
+                {/* 글 배경 — 반투명 박스 또는 성경 밑줄 긋듯 형광펜 (자유 레이아웃 전용) */}
+                {style.layout === 'classic' && (
+                  <div className="pv-control-row">
+                    <div className="pv-seg" role="radiogroup" aria-label={t.textBgLabel}>
+                      {(['none', 'scrim', 'marker'] as const).map((b) => (
+                        <button
+                          key={b}
+                          type="button"
+                          role="radio"
+                          aria-checked={style.textBg === b}
+                          className={`pv-seg__item${style.textBg === b ? ' pv-seg__item--active' : ''}`}
+                          onClick={() => pickTextBg(b)}
+                        >
+                          {t.textBg[b]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 프레임 — 절기는 교회력 스탬프, 폴라로이드는 손글씨 출처, 필름은 날짜 스탬프 */}
                 <div className="pv-control-row">
                   <div className="pv-seg" role="radiogroup" aria-label={t.frameLabel}>
-                    {(['none', 'polaroid', 'film'] as const).map((f) => (
+                    {(['none', 'season', 'polaroid', 'film'] as const).map((f) => (
                       <button
                         key={f}
                         type="button"
@@ -562,6 +723,46 @@ const PhotoVerse = () => {
                       </button>
                     ))}
                   </div>
+                </div>
+                {/* 지금 이 절기에만 찍히는 스탬프 — 한정판의 이유를 알려준다 */}
+                {style.frame === 'season' && (
+                  <p className="pv-season-note">
+                    <span className="material-icons-round text-[13px]">auto_awesome</span>
+                    {seasonStamp.label} · {seasonStamp.year}
+                  </p>
+                )}
+
+                {/* 비율 — 공유할 곳에 맞춘 센터 크롭 */}
+                <div className="pv-control-row">
+                  <div className="pv-seg" role="radiogroup" aria-label={t.ratioLabel}>
+                    {(['original', '1:1', '4:5', '9:16'] as const).map((r: CardRatioId) => (
+                      <button
+                        key={r}
+                        type="button"
+                        role="radio"
+                        aria-checked={style.ratio === r}
+                        className={`pv-seg__item${style.ratio === r ? ' pv-seg__item--active' : ''}`}
+                        onClick={() => setPartial({ ratio: r })}
+                      >
+                        {t.ratio[r]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 질감 — 필름의 물성. 여러 개를 겹칠 수 있다 */}
+                <div className="pv-control-row" role="group" aria-label={t.textureLabel}>
+                  {(['grain', 'leak', 'vignette', 'stamp'] as const).map((tx) => (
+                    <button
+                      key={tx}
+                      type="button"
+                      aria-pressed={style.textures.includes(tx)}
+                      className={`pv-toggle${style.textures.includes(tx) ? ' pv-toggle--active' : ''}`}
+                      onClick={() => toggleTexture(tx)}
+                    >
+                      {t.texture[tx]}
+                    </button>
+                  ))}
                 </div>
 
                 <div className="pv-slider-row">
@@ -589,6 +790,19 @@ const PhotoVerse = () => {
         )}
 
         {toast && <div className="pv-toast">{toast}</div>}
+
+        {/* 저장 인화 연출 — 방금 만든 카드가 폴라로이드처럼 서서히 현상된다 */}
+        {printed && (
+          <div className="pv-print-overlay" onClick={closePrint}>
+            <div className={`pv-print${printDeveloped ? ' pv-print--developed' : ''}`}>
+              <div className="pv-print__img-wrap">
+                <img src={printed} alt="" className="pv-print__img" />
+              </div>
+              <p className="pv-print__caption">{verse?.refLabel}</p>
+            </div>
+            <p className="pv-print__hint">{t.printedHint}</p>
+          </div>
+        )}
 
         {pickerOpen && (
           <VersePickerSheet

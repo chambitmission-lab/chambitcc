@@ -176,6 +176,79 @@
   gap: 12px;
 }
 
+/* 레이아웃 프리셋 스트립 — 완성된 구도를 도식 썸네일로 고른다 */
+.pv-layouts {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pv-layouts::-webkit-scrollbar {
+  display: none;
+}
+
+.pv-layout {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pv-layout__thumb {
+  width: 46px;
+  height: 56px;
+  border-radius: 12px;
+  border: 2px solid var(--card-border);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.12s ease, transform 0.12s ease, color 0.12s ease;
+}
+
+.pv-layout__thumb svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pv-layout--active .pv-layout__thumb {
+  border-color: var(--brand);
+  color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+  transform: scale(1.05);
+}
+
+.pv-layout__name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pv-layout--active .pv-layout__name {
+  color: var(--brand);
+}
+
+/* 절기 프레임 안내 — 지금 절기에만 찍히는 스탬프 */
+.pv-season-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand);
+  margin-top: -6px;
+}
+
 /* 감성 필터 스트립 — 내 사진에 필터를 입힌 실사 썸네일 */
 .pv-filters {
   display: flex;
@@ -449,6 +522,138 @@
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ── 저장 인화 연출 ────────────────────────────────────────
+   다운로드 직후 방금 만든 카드가 인화지처럼 서서히 현상된다.
+   (타임캡슐 폴라로이드의 현상 연출과 같은 문법) */
+.pv-print-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(10, 12, 18, 0.84);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px;
+  animation: pv-print-fade 0.25s ease;
+  cursor: pointer;
+}
+
+@keyframes pv-print-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 흰 인화지 프레임 — 다크모드에서도 유지, 실물 질감이 목적 */
+.pv-print {
+  width: min(300px, 78vw);
+  background: #fdfdf8;
+  border-radius: 6px;
+  padding: 12px 12px 14px;
+  box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.65);
+  animation: pv-print-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.08);
+}
+
+@keyframes pv-print-in {
+  from {
+    transform: translateY(36px) scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.pv-print__img-wrap {
+  position: relative;
+  overflow: hidden;
+  background: #e8e4da;
+}
+
+.pv-print__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* 현상 전 — 뿌옇게 바랜 상태 */
+  filter: blur(14px) saturate(0.35) sepia(0.4) brightness(1.4);
+  transform: scale(1.07);
+  transition:
+    filter 2.4s cubic-bezier(0.3, 0.1, 0.25, 1),
+    transform 2.4s cubic-bezier(0.3, 0.1, 0.25, 1);
+}
+
+.pv-print--developed .pv-print__img {
+  filter: none;
+  transform: scale(1);
+}
+
+/* 필름 그레인 — 인화가 끝나면 옅게 가라앉는다 */
+.pv-print__img-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  transition: opacity 2.4s ease;
+}
+
+.pv-print--developed .pv-print__img-wrap::after {
+  opacity: 0.12;
+}
+
+.pv-print__caption {
+  margin-top: 9px;
+  text-align: center;
+  font-family: 'Nanum Pen Script', 'Pretendard', cursive;
+  font-size: 20px;
+  color: #4a4335;
+  transform: rotate(-0.7deg);
+  opacity: 0;
+  transition: opacity 0.9s ease 1.6s;
+}
+
+.pv-print--developed .pv-print__caption {
+  opacity: 1;
+}
+
+.pv-print__hint {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-print,
+  .pv-print-overlay {
+    animation: none;
+  }
+
+  .pv-print__img,
+  .pv-print__img-wrap::after,
+  .pv-print__caption {
+    transition: none;
+  }
+
+  .pv-print__img {
+    filter: none;
+    transform: none;
+  }
+
+  .pv-print__caption {
+    opacity: 1;
   }
 }
 
