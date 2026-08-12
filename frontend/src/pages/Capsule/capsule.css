@@ -566,7 +566,18 @@
   height: 6px;
   border-radius: 50%;
   background: currentColor;
-  animation: capsule-mail-blink 1.9s ease-in-out infinite;
+  animation: capsule-dot-blink 1.9s ease-in-out infinite;
+}
+
+/* 개봉 안내 점 전용 — 목록 CTA에서 도트를 걷어내며 이 정의만 남겼다 */
+@keyframes capsule-dot-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
 }
 
 /* 짧게 탭했을 때 — 손을 떼면 안 된다는 걸 몸으로 알려준다 */
@@ -1813,43 +1824,62 @@
   opacity: 0.55;
 }
 
-/* 아직 안 읽은 편지의 행동 유도 */
+/* 아직 안 읽은 편지의 행동 유도.
+   깜빡이는 도트는 '안 읽은 알림 배지'라는 일반 UI 언어여서 우편물 은유와 결이 다르고,
+   새 편지라는 사실은 이미 카드 테두리(--new)와 왼쪽 밀랍 인장이 말하고 있다.
+   부품을 더하는 대신 알약 표면에 빛이 한 번 스치게 해서 '아직 손대지 않은 것'을 표현한다. */
 .capsule-mail__cta {
+  position: relative;
   flex: none;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 7px 12px;
+  padding: 7px 14px;
   border-radius: 999px;
   background: var(--brand);
   color: var(--on-brand);
   font-size: 12px;
   font-weight: 800;
   box-shadow: 0 7px 16px -8px var(--brand-glow);
+  overflow: hidden;
+}
+
+/* 글자는 빛보다 위에 — 스칠 때 문구가 씻겨 보이지 않게 */
+.capsule-mail__cta > * {
+  position: relative;
+  z-index: 1;
 }
 
 .capsule-mail__cta::before {
   content: '';
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: currentColor;
-  animation: capsule-mail-blink 1.8s ease-in-out infinite;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -45%;
+  width: 32%;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-18deg);
+  /* 한 번 스친 뒤 한참 쉰다 — 계속 움직이면 도트만큼 시끄러워진다 */
+  animation: capsule-mail-sheen 4.2s ease-in-out infinite;
 }
 
-@keyframes capsule-mail-blink {
-  0%,
-  100% {
-    opacity: 1;
+@keyframes capsule-mail-sheen {
+  0% {
+    left: -45%;
   }
-  50% {
-    opacity: 0.25;
+  45%,
+  100% {
+    left: 120%;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .capsule-mail__cta::before {
-    animation: none;
+    display: none;
   }
 }
 

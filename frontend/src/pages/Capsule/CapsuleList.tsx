@@ -194,7 +194,10 @@ const ArrivedRow = ({ capsule }: { capsule: CapsuleSummary }) => {
         </span>
 
         {unopened ? (
-          <span className="capsule-mail__cta">열어보기</span>
+          <span className="capsule-mail__cta">
+            {/* 글자를 감싸야 빛 스침(::before) 아래로 깔려 씻겨 보이지 않는다 */}
+            <span>열어보기</span>
+          </span>
         ) : (
           stamp && (
             <span
