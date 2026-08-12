@@ -110,7 +110,7 @@ const News = () => {
             count={SECTIONS.length}
             index={SECTIONS.findIndex(s => s.key === section)}
             className="flex p-1 rounded-2xl bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]"
-            markerClassName="rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 shadow-[0_4px_14px_-4px_rgba(168,85,247,0.65)]"
+            markerClassName="rounded-xl bg-brand shadow-[0_4px_14px_-4px_var(--brand-glow)]"
           >
             {SECTIONS.map(s => (
               <button
