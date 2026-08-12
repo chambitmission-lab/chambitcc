@@ -160,8 +160,15 @@ const ProfileHeader = ({
           />
       </div>
 
+      {/* 장착 칭호 — MMO 네임플레이트처럼 이름 '위'에 얹는다.
+          박스 칩 대신 라인+브래킷의 가벼운 slot 변형이라 이름과 크기 경쟁을 하지 않는다.
+          클릭 시 /garden 컬렉션으로. */}
+      <div className="mt-3">
+        <TitleEquippedChip variant="slot" />
+      </div>
+
       {/* 이름 + 아이디 — 한 줄로 묶어 세로 스택을 줄인다 */}
-      <div className="mt-3 flex max-w-full items-baseline justify-center gap-1.5 px-5">
+      <div className="mt-0.5 flex max-w-full items-baseline justify-center gap-1.5 px-5">
         <h2
           className="m-0 truncate text-[20px] font-bold leading-tight tracking-[-0.02em] text-ink-strong"
           style={{ wordBreak: 'keep-all' }}
@@ -173,24 +180,19 @@ const ProfileHeader = ({
         </p>
       </div>
 
-      {/* 단계 이름 · 장착한 칭호 — 같은 높이의 pill 두 개로 짝을 맞춰 한 줄 구성
-          (텍스트+점 구분자보다 시각 무게가 균형 잡힌다. 좁은 화면에선 자연 줄바꿈) */}
-      <div className="mt-2.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 px-5">
-        <span className="flex items-center gap-1.5 rounded-full border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-3 py-[7px]">
-          <span
-            className="h-2 w-2 rounded-full"
-            style={{
-              background: 'var(--brand)',
-              boxShadow: `0 0 10px ${auraColor}`,
-            }}
-            aria-hidden="true"
-          />
-          <span className="text-[12.5px] font-bold leading-none text-brand">
-            {t(glowLevel.nameKey)}
-          </span>
+      {/* 단계 이름 — 이름 아래 조용한 상태 줄 (칭호가 주연, 레벨은 은은한 보조) */}
+      <div className="mt-1.5 flex items-center justify-center gap-1.5 px-5">
+        <span
+          className="h-1.5 w-1.5 rounded-full"
+          style={{
+            background: 'var(--brand)',
+            boxShadow: `0 0 8px ${auraColor}`,
+          }}
+          aria-hidden="true"
+        />
+        <span className="text-[12px] font-semibold text-brand">
+          {t(glowLevel.nameKey)}
         </span>
-        {/* 클릭 시 /garden 컬렉션으로 */}
-        <TitleEquippedChip variant="pill" />
       </div>
       </div>
     </div>
