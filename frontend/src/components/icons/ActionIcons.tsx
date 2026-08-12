@@ -156,3 +156,43 @@ export const BookOpenIcon = ({ size = 18, strokeWidth = 1.8, className, style }:
     <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
   </svg>
 )
+
+/** 오른쪽 갈매기 — 그룹 리스트 행의 "탭하면 이동" 표시.
+    강조가 아니라 안내라서 브랜드색이 아닌 muted 회색으로 쓰는 것을 전제로 한다. */
+export const ChevronRightIcon = ({ size = 16, strokeWidth = 2.2, className, style }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    aria-hidden="true"
+  >
+    <path d="m9 6 6 6-6 6" />
+  </svg>
+)
+
+/** 연필 — 한 줄 적기 */
+export const PencilIcon = ({ size = 14, strokeWidth = 1.9, className, style }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    aria-hidden="true"
+  >
+    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7.5 18.5 3 20l1.5-4.5z" />
+    <path d="m14.5 5.5 3 3" />
+  </svg>
+)

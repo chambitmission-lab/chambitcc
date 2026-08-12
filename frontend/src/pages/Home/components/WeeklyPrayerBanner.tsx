@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getCurrentWeeklyPrayer } from '../../../api/weeklyPrayer'
+import { ChevronRightIcon } from '../../../components/icons/ActionIcons'
 
 const ROTATE_MS = 4200
 
@@ -38,7 +39,7 @@ const WeeklyPrayerBanner = () => {
     <button
       type="button"
       onClick={() => navigate('/prayer-topics')}
-      className="w-full flex items-center gap-2.5 pl-3 pr-4 py-2.5 text-left hover:bg-[var(--brand-soft)] transition-colors"
+      className="w-full flex items-center gap-2.5 pl-3 pr-2.5 py-2.5 text-left hover:bg-[var(--brand-soft)] transition-colors"
       aria-label="공동 기도제목 — 이번 주 교회가 함께 드리는 기도"
     >
       <span
@@ -72,7 +73,14 @@ const WeeklyPrayerBanner = () => {
           함께 {prayedCount}
         </span>
       )}
-      <span className="text-brand shrink-0 text-base leading-none" aria-hidden>→</span>
+      {/* 이동 표시는 muted 회색 — 브랜드색이면 '함께 N' 배지와 파랑이 겹쳐 소란스럽다.
+          28px 슬롯은 세 행의 우측 요소를 같은 축에 세우기 위한 폭 */}
+      <span
+        className="shrink-0 w-7 h-7 flex items-center justify-center text-[var(--text-muted)]"
+        aria-hidden
+      >
+        <ChevronRightIcon />
+      </span>
 
       <style>{`
         @keyframes wp-rise {
