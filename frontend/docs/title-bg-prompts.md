@@ -11,7 +11,7 @@
 
 ## 일관성 규칙 (모든 이미지 공통)
 
-- **주인공은 항상 같은 양 한 마리** — 통통하고 하얀 아기 양, 평온하고 뿌듯한 미소. 20장 전부 같은 캐릭터가 다른 상황을 연기한다.
+- **주인공은 항상 같은 양 한 마리** — 통통하고 하얀 아기 양, 평온하고 뿌듯한 미소. 21장 전부 같은 캐릭터가 다른 상황을 연기한다.
 - **팔레트 고정** — 깊은 네이비 남색 밤하늘 베이스(#0A1428 계열) + 따뜻한 앰버빛 광원 하나 + 은은한 파란 별빛. 다크 테마 위에 자연스럽게 얹히는 저채도.
 - **하단 중앙은 비워둔다** — 이름·아이디·칭호 칩 텍스트가 올라갈 자리. 피사체와 광원은 상단 또는 좌우로.
 - **글자 금지** — 숫자·문자·로고가 들어가면 UI와 충돌한다.
@@ -39,7 +39,7 @@ Scene:
 
 ---
 
-## 칭호별 장면 (20종)
+## 칭호별 장면 (21종)
 
 ### 시간 카테고리
 
@@ -209,4 +209,17 @@ over a fourth hurdle with a tiny determined flame burning above its head, while
 three knocked-down hurdles lie defeated on the track behind it. Dramatic low-angle
 epic sports-photo composition, warm rim light, navy sky — a huge triumph over a
 very small wall, which is exactly why it's funny.
+```
+
+**everest_climber · 🏔️ 에베레스트 등정 (gold)**
+```
+Epic mountaineering scene at night: a colossal mountain shaped like one gigantic
+ancient open book, its cliff face made of countless thin stacked page-edges like
+rock strata, the highest ridges dusted with snow. The sheep has just reached the
+summit and sits there completely relaxed, wearing a tiny knit hat and climbing
+goggles pushed up on its forehead, a coiled rope over its shoulder, casually
+sipping from a small steaming cup as if this was nothing at all. A tiny ice axe
+is planted in the snow beside it. The summit glows with one warm amber light
+against the vast navy sky, wisps of thin cloud drifting far below the peak —
+enormous mountain, tiny unbothered conqueror.
 ```

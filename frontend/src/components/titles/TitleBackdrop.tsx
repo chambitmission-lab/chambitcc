@@ -1,4 +1,4 @@
-// 장착 칭호 → 프로필 커버 배너 일러스트 매핑 (코지-에픽 시리즈, 20종 전체).
+// 장착 칭호 → 프로필 커버 배너 일러스트 매핑 (코지-에픽 시리즈, 21종 전체).
 // 이미지는 public/images/title-bg/<key>.webp — 새 칭호가 생기면 여기에 한 줄 추가
 // (미등록 칭호는 배너 없이 기존 프로필 레이아웃 그대로)
 import { useEquippedTitle } from '../../hooks/useTitles'
@@ -27,6 +27,7 @@ const TITLE_BG_KEYS = [
   // 히든
   'returned_prodigal',
   'streak_breaker',
+  'everest_climber',
 ] as const
 
 const TITLE_BG: Record<string, string> = Object.fromEntries(
