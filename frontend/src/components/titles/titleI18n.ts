@@ -116,6 +116,11 @@ const EN: Record<string, TitleText> = {
     description: 'Psalm 119, the Everest of the Bible — all 176 verses climbed, no oxygen tank needed! How was the view of the Word from the top?',
     hint: 'Finish Psalm 119, the longest chapter in the Bible',
   },
+  living_legend: {
+    name: 'Living Legend',
+    description: "Dawn and midnight, a hundred days and sixty-six books — every title in the collection has gathered before you. The titles aren't the legend anymore. You are.",
+    hint: 'Earn every other title — complete the collection',
+  },
 }
 
 /** 서버가 준 한국어 본문을 현재 언어로 치환 — 매핑이 없으면 원문 그대로. */
