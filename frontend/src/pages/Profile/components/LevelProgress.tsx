@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { GlowLevel } from '../../../types/achievement'
 import { GLOW_LEVELS } from '../../../types/achievement'
 import { glowTemperature } from '../../../utils/achievementCalculator'
@@ -16,6 +16,68 @@ interface LevelProgressProps {
   totalCount: number
   streakDays: number
 }
+
+/* 온기 메뉴판 — 활동을 온기 그룹으로 묶고, 점수 크기를 배지 농도로 표현.
+   tier: 1(잔잔한 온기) · 2(또렷한 온기) · 3(가장 뜨거운 한 걸음, 1권 완독) */
+const EARN_GROUPS = [
+  {
+    titleKey: 'earnGroupPrayer',
+    icon: 'flame',
+    items: [
+      { key: 'earnPrayer', points: 10 },
+      { key: 'earnPrayingFor', points: 5 },
+      { key: 'earnStreak', points: 5 },
+    ],
+  },
+  {
+    titleKey: 'earnGroupBible',
+    icon: 'book',
+    items: [
+      { key: 'earnVerse', points: 3 },
+      { key: 'earnChapter', points: 20 },
+      { key: 'earnBook', points: 200 },
+      { key: 'earnHighlight', points: 5 },
+      { key: 'earnFavorite', points: 3 },
+    ],
+  },
+  {
+    titleKey: 'earnGroupShare',
+    icon: 'message',
+    items: [
+      { key: 'earnNote', points: 15 },
+      { key: 'earnReply', points: 10 },
+    ],
+  },
+] as const
+
+const earnTier = (points: number) => (points >= 100 ? 3 : points >= 10 ? 2 : 1)
+
+const EARN_ICON_PATHS: Record<string, string[]> = {
+  flame: [
+    'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z',
+  ],
+  book: [
+    'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z',
+    'M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
+  ],
+  message: ['M7.9 20A9 9 0 1 0 4 16.1L2 22Z'],
+}
+
+const EarnIcon = ({ name }: { name: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.8}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    {EARN_ICON_PATHS[name].map((d) => (
+      <path key={d} d={d} />
+    ))}
+  </svg>
+)
 
 /**
  * '신앙의 온도' 통합 카드 — 이 화면에서 숫자를 말하는 유일한 자리.
@@ -242,8 +304,11 @@ const LevelProgress = ({
               hover:bg-[var(--brand-soft-strong)]
             "
           >
-            <span className="text-[12px] font-semibold text-gray-700 dark:text-white/80">
-              💡 {t('levelHowToEarn')}
+            <span className="flex items-center gap-1.5 text-[12px] font-semibold text-gray-700 dark:text-white/80">
+              <span className="lp-earn__header-icon text-brand" aria-hidden="true">
+                <EarnIcon name="flame" />
+              </span>
+              {t('levelHowToEarn')}
             </span>
             <span
               className={`material-icons-round text-[18px] text-[var(--brand-muted)] transition-transform duration-300 ${
@@ -261,17 +326,45 @@ const LevelProgress = ({
             }`}
           >
             <div className="overflow-hidden">
-              <div className="grid grid-cols-2 gap-y-1 gap-x-2 px-3 pb-3 text-[11.5px] text-gray-600 dark:text-white/60 leading-relaxed">
-                <div>• {t('earnPrayer')}: 10P</div>
-                <div>• {t('earnReply')}: 10P</div>
-                <div>• {t('earnVerse')}: 3P</div>
-                <div>• {t('earnPrayingFor')}: 5P</div>
-                <div>• {t('earnChapter')}: 20P</div>
-                <div>• {t('earnBook')}: 200P</div>
-                <div>• {t('earnStreak')}: 5P</div>
-                <div>• {t('earnHighlight')}: 5P</div>
-                <div>• {t('earnNote')}: 15P</div>
-                <div>• {t('earnFavorite')}: 3P</div>
+              <div className="lp-earn px-3 pb-3" data-open={guideOpen}>
+                {EARN_GROUPS.map((group, gi) => {
+                  // 그룹 제목·행에 이어지는 스태거 순번 (펼침 애니메이션용)
+                  const base = EARN_GROUPS.slice(0, gi).reduce(
+                    (n, g) => n + g.items.length + 1,
+                    0,
+                  )
+                  return (
+                    <div key={group.titleKey} className="lp-earn__group">
+                      <div
+                        className="lp-earn__title"
+                        style={{ '--i': base } as CSSProperties}
+                      >
+                        <span className="lp-earn__title-icon" aria-hidden="true">
+                          <EarnIcon name={group.icon} />
+                        </span>
+                        {t(group.titleKey)}
+                      </div>
+                      {group.items.map((item, ii) => (
+                        <div
+                          key={item.key}
+                          className="lp-earn__row"
+                          style={{ '--i': base + 1 + ii } as CSSProperties}
+                        >
+                          <span className="lp-earn__label">{t(item.key)}</span>
+                          <span className="lp-earn__leader" aria-hidden="true" />
+                          <span className="lp-earn__pill" data-tier={earnTier(item.points)}>
+                            {earnTier(item.points) === 3 && (
+                              <span className="lp-earn__pill-flame" aria-hidden="true">
+                                <EarnIcon name="flame" />
+                              </span>
+                            )}
+                            +{item.points}P
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>

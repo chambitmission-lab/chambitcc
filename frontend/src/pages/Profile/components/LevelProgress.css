@@ -102,6 +102,119 @@
   transform: scale(1.1);
 }
 
+/* ── 온기 메뉴판 (포인트 획득 안내) ─────────────── */
+.lp-earn__header-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.lp-earn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lp-earn__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lp-earn__title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 2px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--brand-muted);
+}
+.lp-earn__title-icon svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.lp-earn__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 23px;
+}
+.lp-earn__label {
+  font-size: 11.5px;
+  color: rgba(55, 65, 81, 0.9);
+}
+[data-theme='dark'] .lp-earn__label {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* 메뉴판 점선 리더 — 항목과 값 사이를 잇는다 */
+.lp-earn__leader {
+  flex: 1;
+  border-bottom: 1px dotted rgba(0, 0, 0, 0.18);
+  transform: translateY(2px);
+}
+[data-theme='dark'] .lp-earn__leader {
+  border-bottom-color: rgba(255, 255, 255, 0.16);
+}
+
+/* 포인트 배지 — 점수가 클수록 온기가 진해진다 */
+.lp-earn__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.lp-earn__pill[data-tier='1'] {
+  color: var(--brand-muted);
+  box-shadow: inset 0 0 0 1px var(--brand-soft-strong);
+}
+.lp-earn__pill[data-tier='2'] {
+  color: var(--brand);
+  background: var(--brand-soft-strong);
+}
+.lp-earn__pill[data-tier='3'] {
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), #6ea8ff);
+  box-shadow: 0 2px 8px var(--brand-soft-strong);
+}
+.lp-earn__pill-flame svg {
+  width: 11px;
+  height: 11px;
+  display: block;
+}
+
+/* 펼칠 때 줄이 순서대로 떠오르는 스태거 */
+.lp-earn__title,
+.lp-earn__row {
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+.lp-earn[data-open='true'] .lp-earn__title,
+.lp-earn[data-open='true'] .lp-earn__row {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--i, 0) * 24ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-earn__title,
+  .lp-earn__row {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* ── 이번 주 요일 마이크로 도트 ─────────────────── */
 .lp-weekdot {
   width: 4px;
