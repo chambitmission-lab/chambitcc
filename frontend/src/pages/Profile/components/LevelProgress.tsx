@@ -52,6 +52,36 @@ const EARN_GROUPS = [
 
 const earnTier = (points: number) => (points >= 100 ? 3 : points >= 10 ? 2 : 1)
 
+/* 레벨 여정 굽잇길 — 새싹(왼쪽 아래)에서 구원의 별(오른쪽 위)로 오르는 길.
+   골짜기와 오르막을 오가며 전체적으로는 위로 향한다.
+   y 는 viewBox(0~100) 기준이라 값이 작을수록 높은 자리 */
+const JOURNEY_YS = [80, 60, 72, 44, 58, 32, 46, 22, 10]
+const JOURNEY_PTS = GLOW_LEVELS.map((_, i) => ({
+  x: 5 + (90 * i) / (GLOW_LEVELS.length - 1),
+  y: JOURNEY_YS[i] ?? 50,
+}))
+
+/* 앞 count 개 구간을 Catmull-Rom → cubic Bezier 로 잇는다.
+   컨트롤 포인트는 항상 전체 경로 기준이라 부분 경로(지나온 길)가
+   전체 트랙 위에 정확히 겹친다 */
+const buildJourneyD = (count: number) => {
+  const pts = JOURNEY_PTS
+  let d = `M ${pts[0].x} ${pts[0].y}`
+  for (let i = 0; i < count; i++) {
+    const p0 = pts[i - 1] ?? pts[i]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[i + 2] ?? p2
+    const c1x = p1.x + (p2.x - p0.x) / 6
+    const c1y = p1.y + (p2.y - p0.y) / 6
+    const c2x = p2.x - (p3.x - p1.x) / 6
+    const c2y = p2.y - (p3.y - p1.y) / 6
+    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`
+  }
+  return d
+}
+const JOURNEY_TRACK_D = buildJourneyD(GLOW_LEVELS.length - 1)
+
 const EARN_ICON_PATHS: Record<string, string[]> = {
   flame: [
     'M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z',
@@ -220,15 +250,20 @@ const LevelProgress = ({
           )}
         </div>
 
-        {/* 레벨 여정 — 새싹부터 구원의 별까지, 탭하면 각 단계 확인 */}
+        {/* 레벨 여정 — 새싹부터 구원의 별까지 굽이진 순례길. 탭하면 각 단계 확인 */}
         <div className="relative z-10 mt-4">
           <div className="lp-journey">
-            <div className="lp-journey__line" aria-hidden="true" />
-            <div
-              className="lp-journey__fill"
-              style={{ width: `${(currentIdx / (GLOW_LEVELS.length - 1)) * 100}%` }}
+            <svg
+              className="lp-journey__map"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
               aria-hidden="true"
-            />
+            >
+              <path className="lp-journey__track" d={JOURNEY_TRACK_D} />
+              {currentIdx > 0 && (
+                <path className="lp-journey__trail" d={buildJourneyD(currentIdx)} />
+              )}
+            </svg>
             {GLOW_LEVELS.map((lv, i) => (
               <button
                 key={lv.level}
@@ -238,13 +273,15 @@ const LevelProgress = ({
                 data-selected={i === selIdx}
                 onClick={() => setSelectedIdx(i)}
                 aria-label={`Lv.${lv.level} ${t(lv.nameKey)}`}
-                style={
+                style={{
+                  left: `${JOURNEY_PTS[i].x}%`,
+                  top: `${JOURNEY_PTS[i].y}%`,
                   // 마스크가 box-shadow 를 잘라내므로 글로우는 부모 버튼의
                   // drop-shadow 로 붓자국 실루엣을 따라가게 한다
-                  i === currentIdx
+                  ...(i === currentIdx
                     ? { filter: `drop-shadow(0 0 7px ${lv.glowColor})` }
-                    : undefined
-                }
+                    : undefined),
+                }}
               >
                 <span
                   className="lp-journey__dot"

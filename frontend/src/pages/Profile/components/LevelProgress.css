@@ -54,44 +54,56 @@
   mask-size: 100% 100%;
 }
 
-/* ── 레벨 여정 스트립 ───────────────────────────── */
+/* ── 레벨 여정 굽잇길 ───────────────────────────── */
+/* 일직선 스트립 대신 골짜기·오르막이 있는 순례길 지도.
+   경로 좌표는 LevelProgress.tsx 의 JOURNEY_PTS 가 단일 출처 —
+   SVG(preserveAspectRatio:none)와 버튼(left/top %)이 같은 좌표를 공유한다 */
 .lp-journey {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 28px;
+  height: 84px;
+  margin: 6px 2px 2px;
 }
-.lp-journey__line,
-.lp-journey__fill {
+.lp-journey__map {
   position: absolute;
-  top: 50%;
-  left: 0;
-  height: 2px;
-  transform: translateY(-50%);
-  border-radius: 1px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
   pointer-events: none;
 }
-.lp-journey__line {
-  right: 0;
-  background: rgba(0, 0, 0, 0.08);
+/* 남은 길 — 점점이 찍힌 발자국 트랙 */
+.lp-journey__track {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.18);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-dasharray: 0.5 6.5;
+  vector-effect: non-scaling-stroke;
 }
-[data-theme='dark'] .lp-journey__line {
-  background: rgba(255, 255, 255, 0.08);
+[data-theme='dark'] .lp-journey__track {
+  stroke: rgba(255, 255, 255, 0.18);
 }
-.lp-journey__fill {
-  background: var(--brand);
-  opacity: 0.55;
+/* 지나온 길 — 브랜드 색 실선이 트랙 위에 정확히 겹친다 */
+.lp-journey__trail {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 2.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.6;
+  vector-effect: non-scaling-stroke;
 }
 .lp-journey__stop {
-  position: relative;
+  position: absolute;
   z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 28px;
+  width: 26px;
+  height: 30px;
   padding: 0;
+  margin: 0;
+  transform: translate(-50%, -50%);
   background: none;
   border: none;
   cursor: pointer;
