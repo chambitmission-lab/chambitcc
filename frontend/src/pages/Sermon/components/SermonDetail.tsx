@@ -186,8 +186,10 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
 
         {/* 내용 */}
         <div className="sermon-detail-content">
-          {/* 썸네일 */}
-          {sermon.thumbnail_url && (
+          {/* 썸네일 — 영상이 없는 설교의 유일한 비주얼로만 쓴다.
+            * 썸네일은 대개 유튜브 대표 이미지라, 영상이 있으면 아래 플레이어의
+            * 첫 화면과 같은 그림이 두 번 그려진다(목록 히어로 배경은 계속 사용). */}
+          {sermon.thumbnail_url && !videoId && (
             <div className="sermon-detail-thumbnail">
               <img
                 src={sermon.thumbnail_url}

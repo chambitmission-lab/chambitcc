@@ -17,11 +17,11 @@ const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 const SermonHero = ({ sermon, onOpen }: SermonHeroProps) => {
   const parsed = useMemo(() => parseBibleReference(sermon.bible_verse), [sermon.bible_verse])
 
-  // 본문 첫 절을 인용구로 — 성경 API 재사용, 파싱 실패·조회 실패 시 조용히 생략
+  // 본문 첫 절을 인용구로 — 성경 API 재사용(책 번호 필수), 파싱·해석·조회 실패 시 조용히 생략
   const { data: verse } = useQuery({
-    queryKey: ['sermon-hero-verse', parsed?.book, parsed?.chapter, parsed?.verse ?? 1],
-    queryFn: () => getBibleVerse(parsed!.book, parsed!.chapter, parsed!.verse ?? 1),
-    enabled: !!parsed,
+    queryKey: ['sermon-hero-verse', parsed?.bookNumber, parsed?.chapter, parsed?.verse ?? 1],
+    queryFn: () => getBibleVerse(parsed!.bookNumber!, parsed!.chapter, parsed!.verse ?? 1),
+    enabled: parsed?.bookNumber != null,
     staleTime: Infinity,
     retry: 1,
   })

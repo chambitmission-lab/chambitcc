@@ -35,13 +35,16 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
 
   const parsed = useMemo(() => parseBibleReference(debouncedVerse), [debouncedVerse])
 
+  /* 조회는 책 번호로만 가능하다(백엔드 book_number: int). 이름을 못 알아들으면
+   * (bookNumber null) 요청 없이 곧장 미확인 상태로 안내한다. */
   const { data: previewVerse, isError: verseNotFound } = useQuery({
-    queryKey: ['sermon-hero-verse', parsed?.book, parsed?.chapter, parsed?.verse ?? 1],
-    queryFn: () => getBibleVerse(parsed!.book, parsed!.chapter, parsed!.verse ?? 1),
-    enabled: !!parsed,
+    queryKey: ['sermon-hero-verse', parsed?.bookNumber, parsed?.chapter, parsed?.verse ?? 1],
+    queryFn: () => getBibleVerse(parsed!.bookNumber!, parsed!.chapter, parsed!.verse ?? 1),
+    enabled: parsed?.bookNumber != null,
     staleTime: Infinity,
     retry: 0,
   })
+  const unknownBook = !!parsed && parsed.bookNumber == null
 
   const worshipType = formData.title.trim() ? deriveWorshipType(formData.title) : null
   const videoId = extractYouTubeVideoId(formData.video_url || '')
@@ -134,7 +137,7 @@ export const SermonFormFields = ({ formData, onChange }: SermonFormFieldsProps) 
             </div>
           )}
 
-          {parsed && verseNotFound && (
+          {parsed && (verseNotFound || unknownBook) && (
             <div className="sf-verse-preview miss">
               <div className="sf-verse-preview-ref">
                 <span className="material-icons-outlined">help_outline</span>

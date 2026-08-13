@@ -39,7 +39,9 @@ export const getBibleChapter = async (bookId: number, chapter: number): Promise<
 }
 
 // 특정 구절 조회
-export const getBibleVerse = async (book: string, chapter: number, verse: number): Promise<BibleVerse> => {
+/* book은 책 번호(1~66) — 백엔드 라우트가 book_number: int라 책 이름 문자열을
+ * 넣으면 무조건 422가 난다. 이름밖에 없으면 sermonMeta의 resolveBookNumber로 변환. */
+export const getBibleVerse = async (book: number | string, chapter: number, verse: number): Promise<BibleVerse> => {
   const response = await apiFetch(`${API_V1}/bible/verse/${encodeURIComponent(book)}/${chapter}/${verse}`)
   
   if (!response.ok) {
