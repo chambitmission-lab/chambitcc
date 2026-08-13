@@ -1,14 +1,22 @@
-// 설교 상세 모달 컴포넌트
-import { useEffect, useRef, useState } from 'react'
+// 설교 상세 모달 — 목록(SermonHero)과 같은 편집 문법: 제목 → 세리프 성구 인용 → 미디어 → 본문
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
 import { API_URL } from '../../../config/api'
+import { getBibleVerse } from '../../../api/bible'
 import { isAdmin } from '../../../utils/auth'
 import { useDeleteSermon } from '../../../hooks/useSermons'
 import { useSermonBibleReferences } from '../../../hooks/useSermonBibleReferences'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { BibleReferencesSection } from './BibleReferencesSection'
 import SermonContentFormatter from './SermonContentFormatter'
-import { extractYouTubeVideoId } from '../utils/sermonMeta'
+import {
+  extractYouTubeVideoId,
+  parseBibleReference,
+  formatReference,
+  formatSermonDate,
+  stripTitleDate,
+} from '../utils/sermonMeta'
 import './SermonDetail.css'
 
 interface SermonDetailProps {
@@ -59,16 +67,6 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
     }
   }, [onClose])
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long',
-    })
-  }
-
   const handleDelete = async () => {
     try {
       await deleteSermonMutation.mutateAsync(sermon.id)
@@ -93,6 +91,16 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
   }
 
   const videoId = sermon.video_url ? extractYouTubeVideoId(sermon.video_url) : null
+
+  // 성구 첫 절 인용 — 목록 히어로와 같은 파서·쿼리키라 캐시를 공유한다
+  const parsed = useMemo(() => parseBibleReference(sermon.bible_verse), [sermon.bible_verse])
+  const { data: leadVerse } = useQuery({
+    queryKey: ['sermon-hero-verse', parsed?.bookNumber, parsed?.chapter, parsed?.verse ?? 1],
+    queryFn: () => getBibleVerse(parsed!.bookNumber!, parsed!.chapter, parsed!.verse ?? 1),
+    enabled: parsed?.bookNumber != null,
+    staleTime: Infinity,
+    retry: 1,
+  })
 
   // 목록에서 음성/영상 버튼으로 진입 — 해당 플레이어 위치로 스크롤 (음성은 바로 재생, 영상은 autoplay 파라미터)
   useEffect(() => {
@@ -138,24 +146,9 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
   return (
     <div className="sermon-detail-overlay">
       <div ref={modalRef} className="sermon-detail-modal">
-        {/* 배경 효과 */}
-        <div className="sermon-detail-bg-effects">
-          <div className="sermon-detail-glow sermon-detail-glow-1"></div>
-          <div className="sermon-detail-glow sermon-detail-glow-2"></div>
-          <div className="sermon-detail-glow sermon-detail-glow-3"></div>
-        </div>
-
-        {/* 헤더 */}
+        {/* 헤더 — 날짜 한 줄 + 액션. 설교자·성구는 도입부가 담당하므로 여기선 반복하지 않는다 */}
         <div className="sermon-detail-header">
-          <div className="sermon-detail-header-content">
-            <div className="sermon-detail-avatar">
-              <span className="sermon-detail-avatar-emoji">📖</span>
-            </div>
-            <div className="sermon-detail-header-info">
-              <div className="sermon-detail-pastor-name">{sermon.pastor}</div>
-              <div className="sermon-detail-date">{formatDate(sermon.sermon_date)}</div>
-            </div>
-          </div>
+          <span className="sermon-detail-header-date">{formatSermonDate(sermon.sermon_date)}</span>
           <div className="sermon-detail-actions">
             {adminUser && (
               <>
@@ -186,6 +179,24 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
 
         {/* 내용 */}
         <div className="sermon-detail-content">
+          {/* 도입 — 제목 → 설교자·조회 → 세리프 성구 인용 (히어로와 같은 위계) */}
+          <div className="sermon-detail-lead">
+            <h1 className="sermon-detail-title">{stripTitleDate(sermon.title)}</h1>
+            <div className="sermon-detail-byline">
+              <span>{sermon.pastor}</span>
+              <span aria-hidden>·</span>
+              <span>조회 {sermon.views.toLocaleString()}</span>
+            </div>
+            {leadVerse?.text && (
+              <blockquote className="sermon-detail-quote">
+                <p className="sermon-detail-quote-text">{leadVerse.text}</p>
+              </blockquote>
+            )}
+            <div className="sermon-detail-reference">
+              {parsed ? formatReference(parsed) : sermon.bible_verse}
+            </div>
+          </div>
+
           {/* 썸네일 — 영상이 없는 설교의 유일한 비주얼로만 쓴다.
             * 썸네일은 대개 유튜브 대표 이미지라, 영상이 있으면 아래 플레이어의
             * 첫 화면과 같은 그림이 두 번 그려진다(목록 히어로 배경은 계속 사용). */}
@@ -197,27 +208,6 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
               />
             </div>
           )}
-
-          {/* 제목 */}
-          <h1 className="sermon-detail-title">{sermon.title}</h1>
-
-          {/* 성경 구절 */}
-          <div className="sermon-detail-bible-badge">
-            <span>📖</span>
-            <span>{sermon.bible_verse}</span>
-          </div>
-
-          {/* 메타 정보 */}
-          <div className="sermon-detail-meta">
-            <div className="sermon-detail-meta-item sermon-detail-meta-date">
-              <span className="material-icons-outlined">event</span>
-              <span>{formatDate(sermon.sermon_date)}</span>
-            </div>
-            <div className="sermon-detail-meta-item">
-              <span className="material-icons-outlined">visibility</span>
-              <span>{sermon.views.toLocaleString()} 조회</span>
-            </div>
-          </div>
 
           {/* 음성 플레이어 */}
           {sermon.audio_url && (

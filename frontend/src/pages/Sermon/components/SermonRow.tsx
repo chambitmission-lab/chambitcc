@@ -1,6 +1,6 @@
 // 지난 말씀 콤팩트 행 — 날짜 칩 + 제목·성구 + 미디어 바로가기
 import type { Sermon } from '../../../types/sermon'
-import { stripTitleDate } from '../utils/sermonMeta'
+import { compactReference, stripTitleDate } from '../utils/sermonMeta'
 import './SermonRow.css'
 
 interface SermonRowProps {
@@ -11,8 +11,11 @@ interface SermonRowProps {
 const SermonRow = ({ sermon, onOpen }: SermonRowProps) => {
   const date = new Date(sermon.sermon_date)
   const day = date.getDate()
-  const weekday = date.toLocaleDateString('ko-KR', { weekday: 'short' })
   const isSunday = date.getDay() === 0
+  // 브랜드 블루로 강조되는 주일 칩은 표기도 '주일'로 — 색과 의미를 일치시킨다
+  const weekday = isSunday
+    ? '주일'
+    : date.toLocaleDateString('ko-KR', { weekday: 'short' })
 
   return (
     <div className="sermon-row" onClick={() => onOpen()}>
@@ -24,7 +27,7 @@ const SermonRow = ({ sermon, onOpen }: SermonRowProps) => {
       <div className="sermon-row-info">
         <div className="sermon-row-title">{stripTitleDate(sermon.title)}</div>
         <div className="sermon-row-sub">
-          <span className="sermon-row-verse">{sermon.bible_verse}</span>
+          <span className="sermon-row-verse">{compactReference(sermon.bible_verse)}</span>
           <span className="sermon-row-sep">·</span>
           <span className="sermon-row-pastor">{sermon.pastor}</span>
         </div>

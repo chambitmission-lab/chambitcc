@@ -126,6 +126,27 @@ export const formatReference = (parsed: ParsedReference): string => {
   return `${book} ${chapter}:${verse}–${verseEnd}`
 }
 
+/* 예배 날짜 표기 — 주일 예배 중심 앱이라 일요일은 '주일'로 부른다.
+ * ("8월 9일 일"처럼 '일'이 두 번 이어지는 스터터도 함께 사라진다.)
+ * 올해 날짜는 연도를 생략해 히어로·상세가 담백하게 읽힌다. */
+export const formatSermonDate = (dateString: string): string => {
+  const d = new Date(dateString)
+  const weekday =
+    d.getDay() === 0 ? '주일' : d.toLocaleDateString('ko-KR', { weekday: 'long' })
+  const year =
+    d.getFullYear() === new Date().getFullYear() ? '' : `${d.getFullYear()}년 `
+  return `${year}${d.getMonth() + 1}월 ${d.getDate()}일 ${weekday}`
+}
+
+/* 지난 말씀 행처럼 좁은 자리용 성구 표기 — 파싱되면 "요한복음 12:20–33"으로
+ * 정돈해 어중간한 말줄임("...20~3")을 피한다. 여러 본문이 이어진 입력(콤마 등)은
+ * 첫 구절만 남기면 왜곡이라 원문 그대로 둔다. */
+export const compactReference = (raw: string): string => {
+  if (/[,;/]/.test(raw)) return raw
+  const parsed = parseBibleReference(raw)
+  return parsed ? formatReference(parsed) : raw
+}
+
 // 예배 유형은 별도 필드가 없어 제목 관례에서 유추한다 (기존 데이터에도 소급 적용)
 export const WORSHIP_TYPES = ['주일예배', '수요예배', '새벽기도', '금요기도', '특별예배'] as const
 export type WorshipType = (typeof WORSHIP_TYPES)[number]

@@ -1,4 +1,6 @@
-/* 설교 상세 모달 - 인스타그램 스타일 */
+/* 설교 상세 모달 — 목록(SermonHero)과 같은 토스 블루 플랫 + 세리프 성구 인용.
+ * 색·질감은 theme.css 토큰만 참조한다 — 라이트/다크 분기는 토큰이 담당하므로
+ * 이 파일에는 [data-theme] 분기를 최소한만 둔다. */
 .sermon-detail-overlay {
   position: fixed;
   inset: 0;
@@ -8,120 +10,54 @@
   justify-content: center;
   z-index: 50;
   padding: 1rem;
-  animation: fade-in 0.15s ease-out;
+  animation: sermon-detail-fade-in 0.15s ease-out;
 }
 
-@keyframes fade-in {
+@keyframes sermon-detail-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
 .sermon-detail-modal {
-  background: #ffffff;
-  border-radius: 16px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
   max-width: 42rem;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  animation: slide-up 0.2s ease-out;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  animation: sermon-detail-slide-up 0.2s ease-out;
   overflow: hidden;
 }
 
-.dark .sermon-detail-modal,
-[data-theme="dark"] .sermon-detail-modal {
-  background: #0b0b12;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-@keyframes slide-up {
+@keyframes sermon-detail-slide-up {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.97) translateY(8px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: none;
   }
 }
 
-.sermon-detail-bg-effects {
-  display: none;
-}
-
-/* 헤더 */
+/* 헤더 — 날짜 한 줄 + 액션. 아바타·프로필 같은 SNS 게시물 문법은 쓰지 않는다 */
 .sermon-detail-header {
   flex-shrink: 0;
-  padding: 0.875rem 1rem;
-  border-bottom: 1px solid #dbdbdb;
+  padding: 0.5rem 0.625rem 0.5rem 1.25rem;
+  border-bottom: 1px solid var(--card-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
 }
 
-.dark .sermon-detail-header,
-[data-theme="dark"] .sermon-detail-header {
-  border-bottom-color: rgba(255, 255, 255, 0.08);
-}
-
-.sermon-detail-header-content {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.sermon-detail-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--brand);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  flex-shrink: 0;
-  box-shadow:
-    0 0 16px rgba(49, 130, 246, 0.4),
-    inset 0 0 12px rgba(255, 255, 255, 0.25);
-}
-
-.sermon-detail-avatar::before,
-.sermon-detail-avatar::after {
-  display: none;
-}
-
-.sermon-detail-avatar-emoji {
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
-}
-
-.sermon-detail-header-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-
-.sermon-detail-pastor-name {
+.sermon-detail-header-date {
+  font-size: 0.8125rem;
   font-weight: 600;
-  font-size: 0.875rem;
-  color: #262626;
-}
-
-.dark .sermon-detail-pastor-name,
-[data-theme="dark"] .sermon-detail-pastor-name {
-  color: #ffffff;
-}
-
-.sermon-detail-date {
-  font-size: 0.75rem;
-  color: #8e8e8e;
-}
-
-[data-theme="dark"] .sermon-detail-date {
-  color: #a8a8a8;
+  color: var(--text-muted);
 }
 
 .sermon-detail-actions {
@@ -136,25 +72,15 @@
   padding: 0.5rem;
   cursor: pointer;
   border-radius: 50%;
-  transition: background 0.2s;
+  transition: background 0.15s;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #262626;
-}
-
-.dark .sermon-detail-action-btn,
-[data-theme="dark"] .sermon-detail-action-btn {
-  color: #fafafa;
+  color: var(--text-body);
 }
 
 .sermon-detail-action-btn:hover {
-  background: #efefef;
-}
-
-.dark .sermon-detail-action-btn:hover,
-[data-theme="dark"] .sermon-detail-action-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--surface-inset);
 }
 
 .sermon-detail-edit-btn {
@@ -176,10 +102,69 @@
   flex: 1;
 }
 
-/* 썸네일 */
+/* 도입 — 제목 → 설교자·조회 → 세리프 성구 인용 (SermonHero와 같은 문법) */
+.sermon-detail-lead {
+  padding: 1.25rem 1.25rem 1.125rem;
+}
+
+.sermon-detail-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  color: var(--text-strong);
+  margin: 0 0 0.375rem;
+}
+
+.sermon-detail-byline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.sermon-detail-quote {
+  margin: 0 0 0.5rem;
+}
+
+.sermon-detail-quote-text {
+  font-family: 'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  letter-spacing: 0.005em;
+  color: var(--text-strong);
+  margin: 0;
+}
+
+.sermon-detail-quote-text::before {
+  content: '“';
+  color: var(--brand);
+  margin-right: 0.1em;
+}
+
+.sermon-detail-quote-text::after {
+  content: '”';
+  color: var(--brand);
+  margin-left: 0.1em;
+}
+
+.sermon-detail-reference {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+[data-theme="dark"] .sermon-detail-reference {
+  color: var(--brand-muted);
+}
+
+/* 썸네일 — 영상이 없는 설교의 유일한 비주얼 */
 .sermon-detail-thumbnail {
   margin: 0;
-  border-radius: 0;
   overflow: hidden;
 }
 
@@ -191,93 +176,10 @@
   display: block;
 }
 
-/* 제목 — 메모리 합의: 한글 제목 20px/700, leading 1.3, uppercase 금지 */
-.sermon-detail-title {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  color: #262626;
-  margin: 0;
-  padding: 1rem 1rem 0.5rem 1rem;
-  line-height: 1.3;
-  text-transform: none;
-}
-
-.dark .sermon-detail-title,
-[data-theme="dark"] .sermon-detail-title {
-  color: #ffffff;
-}
-
-/* 성경 구절 배지 — 플랫 브랜드 블루 통일 */
-.sermon-detail-bible-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.4rem 0.85rem;
-  background: var(--brand);
-  color: #ffffff;
-  border-radius: 999px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  margin: 0 1rem 0.75rem 1rem;
-  box-shadow: 0 2px 8px var(--brand-glow);
-}
-
-.dark .sermon-detail-bible-badge,
-[data-theme="dark"] .sermon-detail-bible-badge {
-  box-shadow: 0 2px 12px var(--brand-glow);
-}
-
-/* 메타 정보 */
-.sermon-detail-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  padding: 0 1rem 0.875rem 1rem;
-  border-bottom: 1px solid #efefef;
-}
-
-.dark .sermon-detail-meta,
-[data-theme="dark"] .sermon-detail-meta {
-  border-bottom-color: rgba(255, 255, 255, 0.06);
-}
-
-.sermon-detail-meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  color: #8e8e8e;
-  font-weight: 500;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.sermon-detail-meta-item .material-icons-outlined {
-  font-size: 1rem;
-}
-
-/* 예배 날짜는 메타 영역에서 또렷하게 (인지 우선) */
-.sermon-detail-meta-date {
-  color: var(--brand);
-  font-weight: 600;
-}
-
 /* 음성 플레이어 */
 .sermon-detail-audio {
-  margin: 0;
-  padding: 0.875rem 1rem;
-  background: transparent;
-  border: none;
-  border-top: 1px solid #efefef;
-  border-bottom: 1px solid #efefef;
-}
-
-.dark .sermon-detail-audio,
-[data-theme="dark"] .sermon-detail-audio {
-  border-top-color: rgba(255, 255, 255, 0.06);
-  border-bottom-color: rgba(255, 255, 255, 0.06);
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid var(--card-border);
 }
 
 .sermon-detail-audio-header {
@@ -285,21 +187,17 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
-  color: #262626;
-}
-
-.dark .sermon-detail-audio-header,
-[data-theme="dark"] .sermon-detail-audio-header {
-  color: #ffffff;
+  color: var(--text-strong);
 }
 
 .sermon-detail-audio-header .material-icons-outlined {
   font-size: 1.25rem;
+  color: var(--brand);
 }
 
 .sermon-detail-audio-header h3 {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -321,8 +219,7 @@
 
 .sermon-detail-video-iframe {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   border: none;
@@ -330,98 +227,53 @@
 
 /* 설교 내용 */
 .sermon-detail-body {
-  padding: 0.875rem 1rem;
-  background: transparent;
-  border: none;
-  border-top: 1px solid #efefef;
-}
-
-.dark .sermon-detail-body,
-[data-theme="dark"] .sermon-detail-body {
-  border-top-color: rgba(255, 255, 255, 0.06);
+  padding: 1rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--card-border);
 }
 
 .sermon-detail-body-title {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: -0.015em;
-  color: #262626;
-  margin: 0 0 0.75rem 0;
-}
-
-.dark .sermon-detail-body-title,
-[data-theme="dark"] .sermon-detail-body-title {
-  color: #ffffff;
-}
-
-.sermon-detail-body-text {
-  color: #262626;
-  font-size: 15px;
-  line-height: 1.9;
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin: 0;
-  letter-spacing: 0.01em;
-}
-
-.dark .sermon-detail-body-text,
-[data-theme="dark"] .sermon-detail-body-text {
-  color: #cbd5e1;
+  color: var(--text-strong);
+  margin: 0 0 0.5rem;
 }
 
 /* 삭제 확인 모달 */
 .sermon-delete-confirm-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 20;
   padding: 1rem;
-  border-radius: 12px;
 }
 
 .sermon-delete-confirm-modal {
-  background: #ffffff;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
   border-radius: 16px;
   padding: 1.5rem;
   max-width: 20rem;
   width: 100%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-.dark .sermon-delete-confirm-modal,
-[data-theme="dark"] .sermon-delete-confirm-modal {
-  background: #1c1c26;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 .sermon-delete-confirm-title {
   font-size: 1.125rem;
   font-weight: 700;
   letter-spacing: -0.015em;
-  color: #262626;
-  margin: 0 0 0.5rem 0;
-}
-
-.dark .sermon-delete-confirm-title,
-[data-theme="dark"] .sermon-delete-confirm-title {
-  color: #ffffff;
+  color: var(--text-strong);
+  margin: 0 0 0.5rem;
 }
 
 .sermon-delete-confirm-text {
   font-size: 0.875rem;
-  color: #8e8e8e;
+  color: var(--text-muted);
   line-height: 1.6;
-  margin: 0 0 1.25rem 0;
-}
-
-[data-theme="dark"] .sermon-delete-confirm-text {
-  color: #a8a8a8;
+  margin: 0 0 1.25rem;
 }
 
 .sermon-delete-confirm-actions {
@@ -434,43 +286,29 @@
   flex: 1;
   padding: 0.625rem 1rem;
   border: none;
-  border-radius: 0.375rem;
-  font-weight: 600;
+  border-radius: 12px;
+  font-weight: 700;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: filter 0.15s, background 0.15s;
 }
 
 .sermon-delete-confirm-cancel {
-  background: #efefef;
-  color: #262626;
-}
-
-.dark .sermon-delete-confirm-cancel,
-[data-theme="dark"] .sermon-delete-confirm-cancel {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
+  background: var(--surface-inset);
+  color: var(--text-body);
 }
 
 .sermon-delete-confirm-cancel:hover {
-  background: #dbdbdb;
-}
-
-.dark .sermon-delete-confirm-cancel:hover,
-[data-theme="dark"] .sermon-delete-confirm-cancel:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--surface-container-high);
 }
 
 .sermon-delete-confirm-delete {
   background: #ed4956;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(237, 73, 86, 0.25);
 }
 
 .sermon-delete-confirm-delete:hover {
-  background: #d63447;
-  box-shadow: 0 6px 18px rgba(237, 73, 86, 0.4);
-  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 
 .sermon-delete-confirm-delete:disabled {
@@ -478,7 +316,7 @@
   cursor: not-allowed;
 }
 
-/* 반응형 */
+/* 반응형 — 모바일에선 바텀시트 */
 @media (max-width: 768px) {
   .sermon-detail-overlay {
     padding: 0;
@@ -487,10 +325,13 @@
 
   .sermon-detail-modal {
     max-height: 95vh;
-    border-radius: 12px 12px 0 0;
+    border-radius: 16px 16px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
   }
 
   .sermon-detail-title {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
   }
 }

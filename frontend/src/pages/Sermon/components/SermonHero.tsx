@@ -4,7 +4,12 @@ import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
 import { getBibleVerse } from '../../../api/bible'
 import { useNowMs } from '../../../hooks/useNowMs'
-import { parseBibleReference, formatReference, stripTitleDate } from '../utils/sermonMeta'
+import {
+  parseBibleReference,
+  formatReference,
+  formatSermonDate,
+  stripTitleDate,
+} from '../utils/sermonMeta'
 import './SermonHero.css'
 
 interface SermonHeroProps {
@@ -27,12 +32,7 @@ const SermonHero = ({ sermon, onOpen }: SermonHeroProps) => {
   })
 
   const isThisWeek = useNowMs() - new Date(sermon.sermon_date).getTime() < WEEK_MS
-  const dateLabel = new Date(sermon.sermon_date).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
-  })
+  const dateLabel = formatSermonDate(sermon.sermon_date)
 
   return (
     <section
