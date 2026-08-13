@@ -111,6 +111,11 @@ const EN: Record<string, TitleText> = {
     description: "Day four, past the three-day wall! Sorry, short-lived resolutions — I'm on day four now.",
     hint: "Break the three-day slump by reading 4 days in a row",
   },
+  everest_climber: {
+    name: 'Everest Summit',
+    description: 'Psalm 119, the Everest of the Bible — all 176 verses climbed, no oxygen tank needed! How was the view of the Word from the top?',
+    hint: 'Finish Psalm 119, the longest chapter in the Bible',
+  },
 }
 
 /** 서버가 준 한국어 본문을 현재 언어로 치환 — 매핑이 없으면 원문 그대로. */
