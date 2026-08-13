@@ -1,7 +1,8 @@
-// Cloudtype Keep-Alive — Cloudflare Worker 판.
+// Cloudtype Keep-Alive — Cloudflare Worker 판. keep-alive의 본진이다.
 //
-// GitHub Actions(.github/workflows/cloudtype-keep-alive.yml)와 동일한 로직의 백업.
-// GitHub Actions 장애 시에도 keep-alive가 끊기지 않도록 별개 인프라에서 병행 실행한다.
+// GitHub Actions(.github/workflows/cloudtype-keep-alive.yml)에 같은 로직이 있지만
+// 그쪽은 예약 실행 지연/유실이 심해 보조로만 둔다(자세한 사정은 wrangler.toml 참고).
+// 실제로 제때 감지하고 살리는 건 이 Worker다.
 // 양쪽 모두 "이미 실행/기동 중이면 건드리지 않는" 로직이라 동시에 돌아도 충돌 없다.
 //
 // 클라우드타입 프리티어는 매일 1회 강제 중지되므로(슬립이 아님) HTTP 핑으로는 못 깨운다.
@@ -70,13 +71,16 @@ async function wake(env) {
   }
 
   const started = [];
+  const booting = [];
   for (const svc of SERVICES) {
     const st = statusOf(statJson, svc);
     log(`[${svc}] status=${st}`);
 
     if (st === 'running') continue;
     if (IN_PROGRESS.has(st)) {
+      // 5분 간격이라 직전 회차가 띄운 서비스를 기동 중에 다시 만나는 일이 잦다.
       log(`[${svc}] 기동 중 → 그대로 둔다`);
+      booting.push(svc);
       continue;
     }
 
@@ -102,7 +106,11 @@ async function wake(env) {
   }
 
   if (started.length === 0) {
-    log('모든 서비스가 정상 실행 중. 할 일 없음.');
+    log(
+      booting.length === 0
+        ? '모든 서비스가 정상 실행 중. 할 일 없음.'
+        : `기동 중이라 대기: ${booting.join(' ')} (다음 회차에 재확인)`,
+    );
     return logs;
   }
 

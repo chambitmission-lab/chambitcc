@@ -56,7 +56,9 @@ const TodayPlanCard = () => {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-[11px] font-bold tracking-[0.08em] text-brand">
-                오늘의 읽기
+                {/* 오늘 분량을 마쳤으면 카드의 본문은 "다음 분량"이므로 라벨도 맞춘다
+                    — "오늘의 읽기 + 완료 배지"가 위 본문을 읽은 것처럼 오독되는 것 방지 */}
+                {today.done_today ? '다음 읽기' : '오늘의 읽기'}
               </span>
               <span className="text-[11.5px] text-gray-400 dark:text-white/45 truncate">
                 · {today.plan_title}

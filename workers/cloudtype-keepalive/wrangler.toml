@@ -2,11 +2,17 @@ name = "cloudtype-keepalive"
 main = "src/index.js"
 compatibility_date = "2026-06-01"
 
-# GitHub Actions(cloudtype-keep-alive.yml)와 동일한 스케줄. Cloudflare cron도 UTC 기준.
-# 클라우드타입 강제 중지는 KST 새벽 4~6시 사이 1회 → 그 구간(+30분 버퍼)만 30분 간격 감시.
-# UTC 19:00~21:30 = KST 04:00~06:30
+# Cloudflare cron은 UTC 기준. 클라우드타입 강제 중지는 KST 새벽 4~6시 사이 1회 →
+# 그 구간(+30분 버퍼)만 감시한다. UTC 19:00~21:55 = KST 04:00~06:55
+#
+# 5분 간격인 이유: 이쪽이 keep-alive의 본진이다.
+# GitHub Actions는 예약 실행을 최대 1시간 지연시키거나 통째로 유실시켜서
+# (관측: 하루 6회 예약 중 3회만 실행, 첫 회차 56분 지연) 감지 시각을 믿을 수 없다.
+# 반면 Cloudflare cron은 정각에 정확히 뜬다. 30분 간격일 때 실측 다운타임이
+# 최악 30분 + 기동 3분 30초였고, 5분으로 줄이면 최악 8분 30초가 된다.
+# 하루 36회 호출은 무료 한도(10만/일) 대비 무시할 수준.
 [triggers]
-crons = ["*/30 19-21 * * *"]
+crons = ["*/5 19-21 * * *"]
 
 # 대시보드(Workers & Pages → cloudtype-keepalive → Logs)에서 실행 로그 확인용
 [observability]
