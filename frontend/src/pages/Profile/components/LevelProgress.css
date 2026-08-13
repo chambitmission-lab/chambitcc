@@ -1,20 +1,36 @@
 /* 신앙의 온도 카드 — 온도계·레벨 여정·요일 마이크로 도트 */
 
-/* 현재 단계 이름 옆 글로우 점 */
+/* 현재 단계 이름 옆 글로우 — 점 대신 세로 붓자국 */
 .lp-glow-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
+  display: inline-flex;
   flex: 0 0 auto;
 }
+.lp-glow-dot__ink {
+  width: 8px;
+  height: 16px;
+  -webkit-mask-image: var(--brush-dab);
+  -webkit-mask-size: 100% 100%;
+  mask-image: var(--brush-dab);
+  mask-size: 100% 100%;
+  transform: rotate(6deg);
+}
 
-/* 온도계 수은구 — 트랙 왼쪽에 겹쳐 mercury 가 이어져 보이게 */
+/* 붓자국 마스크 — 세로 획(위→아래로 눌러 찍은 dab)과 가로 획 */
+:root {
+  --brush-dab: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 32' preserveAspectRatio='none'%3E%3Cpath d='M7 2C5 1 13 0 15 2.5 16.5 5 16.8 9 16 14 15.3 19 14.4 24 12.5 28 11.5 30.2 9.6 30.8 8.8 28.5 7.5 24.5 6.6 19 6.2 13.5 5.9 9 6.2 5 7 2Z'/%3E%3C/svg%3E");
+  --brush-stroke: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12' preserveAspectRatio='none'%3E%3Cpath d='M0 1.5 94 .8C104 .4 114 1.6 117.6 4.6 119.6 6.4 116.4 9.8 107 10.7 97 11.6 40 11.4 0 11.2Z'/%3E%3C/svg%3E");
+  --brush-swatch: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 24' preserveAspectRatio='none'%3E%3Cpath d='M4 6C2 3 10 1.5 20 2L48 2.5C56 3 59 6 58.5 12 58 18 52 21 44 21.5L14 22C6 22.3 2.5 19 3 13Z'/%3E%3C/svg%3E");
+}
+
+/* 온도계 수은구 — 트랙 왼쪽에 겹쳐 mercury 가 이어져 보이게.
+   완전한 원 대신 살짝 눌린 물감 방울 실루엣 */
 .lp-bulb {
   position: relative;
   z-index: 1;
   width: 22px;
   height: 22px;
-  border-radius: 9999px;
+  border-radius: 47% 53% 51% 49% / 53% 47% 55% 45%;
+  transform: rotate(-8deg);
   background: var(--brand);
   flex: 0 0 auto;
 }
@@ -30,13 +46,21 @@
   background: rgba(255, 255, 255, 0.45);
 }
 
+/* 수은주 — 각진 바 대신 왼→오로 그은 붓질, 끝단이 거칠게 마른다 */
+.lp-mercury {
+  -webkit-mask-image: var(--brush-stroke);
+  -webkit-mask-size: 100% 100%;
+  mask-image: var(--brush-stroke);
+  mask-size: 100% 100%;
+}
+
 /* ── 레벨 여정 스트립 ───────────────────────────── */
 .lp-journey {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 24px;
+  height: 28px;
 }
 .lp-journey__line,
 .lp-journey__fill {
@@ -66,40 +90,45 @@
   align-items: center;
   justify-content: center;
   width: 22px;
-  height: 24px;
+  height: 28px;
   padding: 0;
   background: none;
   border: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+/* 각 단계는 위에서 아래로 눌러 찍은 세로 붓자국.
+   지나온/현재 단계 색은 inline backgroundColor, 글로우는 버튼 drop-shadow */
 .lp-journey__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
-  background: #fff;
-  border: 2px solid rgba(0, 0, 0, 0.14);
-  box-sizing: border-box;
+  width: 9px;
+  height: 19px;
+  background: rgba(0, 0, 0, 0.16);
+  -webkit-mask-image: var(--brush-dab);
+  -webkit-mask-size: 100% 100%;
+  mask-image: var(--brush-dab);
+  mask-size: 100% 100%;
+  transform: rotate(var(--tilt, 0deg)) scale(var(--s, 1));
   transition: transform 0.15s ease;
 }
 [data-theme='dark'] .lp-journey__dot {
-  background: #1c1f26;
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.2);
 }
-/* 지나온/현재 단계는 레벨 색으로 채움(inline style) — 테두리는 없앤다 */
-.lp-journey__stop[data-state='passed'] .lp-journey__dot,
-.lp-journey__stop[data-state='current'] .lp-journey__dot {
-  border: none;
+/* 손으로 찍은 듯 획마다 기울기를 엇갈리게 */
+.lp-journey__stop:nth-of-type(odd) .lp-journey__dot {
+  --tilt: -6deg;
+}
+.lp-journey__stop:nth-of-type(even) .lp-journey__dot {
+  --tilt: 5deg;
 }
 .lp-journey__stop[data-state='current'] .lp-journey__dot {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 26px;
 }
 .lp-journey__stop[data-selected='true'] .lp-journey__dot {
-  transform: scale(1.25);
+  --s: 1.22;
 }
 .lp-journey__stop[data-state='current'][data-selected='true'] .lp-journey__dot {
-  transform: scale(1.1);
+  --s: 1.08;
 }
 
 /* ── 온기 메뉴판 (포인트 획득 안내) ─────────────── */
@@ -215,15 +244,25 @@
   }
 }
 
-/* ── 이번 주 요일 마이크로 도트 ─────────────────── */
+/* ── 이번 주 요일 미니 붓 획(탤리) ──────────────── */
 .lp-weekdot {
-  width: 4px;
-  height: 4px;
-  border-radius: 9999px;
-  background: rgba(0, 0, 0, 0.12);
+  width: 4.5px;
+  height: 11px;
+  background: rgba(0, 0, 0, 0.13);
+  -webkit-mask-image: var(--brush-dab);
+  -webkit-mask-size: 100% 100%;
+  mask-image: var(--brush-dab);
+  mask-size: 100% 100%;
+  transform: rotate(var(--tilt, 0deg));
+}
+.lp-weekdot:nth-of-type(odd) {
+  --tilt: -7deg;
+}
+.lp-weekdot:nth-of-type(even) {
+  --tilt: 6deg;
 }
 [data-theme='dark'] .lp-weekdot {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.16);
 }
 .lp-weekdot[data-on='true'] {
   background: var(--brand);
@@ -232,8 +271,30 @@
   background: rgba(0, 0, 0, 0.06);
 }
 [data-theme='dark'] .lp-weekdot[data-future='true'] {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.08);
 }
+/* 오늘 획은 링 대신 조금 더 길게 — 마스크가 box-shadow 를 잘라내므로 */
 .lp-weekdot[data-today='true'] {
-  box-shadow: 0 0 0 1.5px var(--brand-soft-strong);
+  height: 13.5px;
+}
+.lp-weekdot[data-today='true'][data-on='false'] {
+  background: var(--brand-soft-strong);
+}
+
+/* ── 스탯 숫자 뒤 붓 스와치 — 성경에 형광펜 긋듯 ── */
+.lp-stat-num {
+  position: relative;
+  display: inline-block;
+  padding: 4px 9px 3px;
+}
+.lp-stat-num::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--brand-soft);
+  -webkit-mask-image: var(--brush-swatch);
+  -webkit-mask-size: 100% 100%;
+  mask-image: var(--brush-swatch);
+  mask-size: 100% 100%;
+  transform: rotate(-2deg);
 }

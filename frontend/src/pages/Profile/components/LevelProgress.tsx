@@ -162,12 +162,15 @@ const LevelProgress = ({
           <div className="flex items-center gap-1.5 pb-1">
             <span
               className="lp-glow-dot"
-              style={{
-                backgroundColor: toOpaqueColor(currentLevel.glowColor),
-                boxShadow: `0 0 8px ${currentLevel.glowColor}`,
-              }}
+              // 글로우는 래퍼 drop-shadow 로 — 마스크가 box-shadow 를 잘라내므로
+              style={{ filter: `drop-shadow(0 0 6px ${currentLevel.glowColor})` }}
               aria-hidden="true"
-            />
+            >
+              <span
+                className="lp-glow-dot__ink"
+                style={{ backgroundColor: toOpaqueColor(currentLevel.glowColor) }}
+              />
+            </span>
             <span className="text-[14px] font-bold text-ink-strong tracking-[-0.01em]">
               {t(currentLevel.nameKey)}
             </span>
@@ -185,12 +188,10 @@ const LevelProgress = ({
             />
             <div className="relative flex-1 -ml-1.5 h-3 rounded-r-full bg-gray-200 dark:bg-white/[0.06] overflow-hidden">
               <div
-                className="h-3 transition-all duration-500 relative"
+                className="lp-mercury h-3 transition-all duration-500 relative"
                 style={{
                   width: `${progress}%`,
-                  borderRadius: progress >= 99 ? '0 9999px 9999px 0' : '0',
                   background: 'var(--brand)',
-                  boxShadow: `0 0 10px ${currentLevel.glowColor}`,
                 }}
               >
                 <div
@@ -237,16 +238,19 @@ const LevelProgress = ({
                 data-selected={i === selIdx}
                 onClick={() => setSelectedIdx(i)}
                 aria-label={`Lv.${lv.level} ${t(lv.nameKey)}`}
+                style={
+                  // 마스크가 box-shadow 를 잘라내므로 글로우는 부모 버튼의
+                  // drop-shadow 로 붓자국 실루엣을 따라가게 한다
+                  i === currentIdx
+                    ? { filter: `drop-shadow(0 0 7px ${lv.glowColor})` }
+                    : undefined
+                }
               >
                 <span
                   className="lp-journey__dot"
                   style={
                     i <= currentIdx
-                      ? {
-                          backgroundColor: toOpaqueColor(lv.glowColor),
-                          boxShadow:
-                            i === currentIdx ? `0 0 10px ${lv.glowColor}` : undefined,
-                        }
+                      ? { backgroundColor: toOpaqueColor(lv.glowColor) }
                       : undefined
                   }
                 />
@@ -270,8 +274,9 @@ const LevelProgress = ({
           </div>
         </div>
 
-        {/* 활동 스탯 — 숫자는 브랜드 강조, '이번 주'는 요일 도트로 리듬 표시 */}
-        <div className="relative z-10 mt-4 grid grid-cols-3 divide-x divide-gray-200/70 dark:divide-white/[0.06] rounded-xl border border-gray-200/70 dark:border-white/[0.06] bg-gray-50/70 dark:bg-white/[0.03]">
+        {/* 활동 스탯 — 딱딱한 괘선 대신 숫자 뒤 붓 스와치로 감성 강조,
+            '이번 주'는 요일 붓 획(탤리)으로 리듬 표시 */}
+        <div className="relative z-10 mt-4 grid grid-cols-3 rounded-xl bg-gray-50/70 dark:bg-white/[0.03]">
           <TemperatureStat value={totalCount} label={t('totalPrayers')} />
           <TemperatureStat
             value={thisWeekCount}
@@ -386,14 +391,16 @@ const TemperatureStat = ({
   cells?: DayCell[] | null
 }) => (
   <div className="px-2 py-3 text-center">
-    <div className="brand-text-gradient text-[24px] font-bold leading-none tracking-[-0.02em]">
-      {value.toLocaleString()}
-      {suffix && (
-        <span className="ml-0.5 align-baseline text-[14px] leading-none">{suffix}</span>
-      )}
-    </div>
+    <span className="lp-stat-num">
+      <span className="relative brand-text-gradient text-[24px] font-bold leading-none tracking-[-0.02em]">
+        {value.toLocaleString()}
+        {suffix && (
+          <span className="ml-0.5 align-baseline text-[14px] leading-none">{suffix}</span>
+        )}
+      </span>
+    </span>
     {cells && (
-      <div className="mt-1.5 flex items-center justify-center gap-[3px]" aria-hidden="true">
+      <div className="mt-1.5 flex items-end justify-center gap-[3px]" aria-hidden="true">
         {cells.map((c) => (
           <span
             key={c.date}
