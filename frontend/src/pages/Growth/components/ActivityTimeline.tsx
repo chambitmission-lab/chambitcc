@@ -94,7 +94,8 @@ const groupByDay = (events: TimelineEvent[]): DayGroup[] => {
 const EventRow = ({ event }: { event: TimelineEvent }) => {
   const navigate = useNavigate()
   const clickable = !!event.link
-  const color = DOMAIN_META[event.domain]?.color ?? 'var(--atl-prayer)'
+  const meta = DOMAIN_META[event.domain] ?? DOMAIN_META.prayer
+  const color = meta.color
 
   return (
     <button
@@ -120,11 +121,16 @@ const EventRow = ({ event }: { event: TimelineEvent }) => {
         </div>
         {/* 읽기·함께 기도 롤업은 특정 시각이 없다 — 축이 사라졌으니 빈자리를
             채울 필요가 없어 그냥 생략한다 (예전 '종일' 라벨 자리) */}
-        {event.time && (
-          <span className="shrink-0 mt-0.5 text-[11px] font-semibold text-gray-400 dark:text-white/40 tabular-nums">
-            {event.time}
-          </span>
-        )}
+        <span className="shrink-0 mt-0.5 flex items-center gap-1.5">
+          {event.time && (
+            <span className="text-[11px] font-semibold text-gray-400 dark:text-white/40 tabular-nums">
+              {event.time}
+            </span>
+          )}
+          {/* 도메인 이름 칩 — 액센트 바 색이 무엇인지 카드 스스로 말하게 한다.
+              날짜 헤더 범례는 스크롤로 사라지면 기억에 의존해야 했던 문제의 해결 */}
+          <span className="atl-domain-chip">{meta.label}</span>
+        </span>
       </div>
       {event.snippet && (
         <p className="mt-1 text-[12.5px] text-gray-600 dark:text-white/60 leading-relaxed line-clamp-2">

@@ -38,6 +38,26 @@
   background: var(--atl-accent, var(--atl-prayer));
 }
 
+/* 도메인 이름 칩 — 카드 오른쪽 위, 액센트 바와 같은 색의 틴트 필.
+   틴트 농도는 라이트에서 진한 색 위 10%, 다크에서 밝은 색 위 14%가
+   글자·배경 모두 은은하게 읽히는 지점 */
+.atl-domain-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6563rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--atl-accent, var(--atl-prayer));
+  background: color-mix(in srgb, var(--atl-accent, var(--atl-prayer)) 10%, transparent);
+}
+
+[data-theme='dark'] .atl-domain-chip {
+  background: color-mix(in srgb, var(--atl-accent, var(--atl-prayer)) 14%, transparent);
+}
+
 /* 하루 헤더 — '오늘' 옆에 그날의 도메인별 개수를 색 글자로 붙여
    색이 무엇을 뜻하는지 범례 없이 스스로 설명하게 한다 */
 .atl-day-domains {
