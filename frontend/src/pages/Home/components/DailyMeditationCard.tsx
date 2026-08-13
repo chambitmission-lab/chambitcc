@@ -100,6 +100,24 @@ const RAIN_DROPS = [
   { left: '96%', delay: '0.1s', duration: '1.15s', length: '17px', opacity: 0.34 },
 ] as const
 
+/* 주일 비 힌트 — 지금 비가 안 와도 주일 예보가 젖어 있으면, 진짜 비보다
+ * 훨씬 성기고 느리고 옅은 가랑비 몇 가닥으로 "예보를 풍경으로" 보여준다. */
+const HINT_RAIN_DROPS = [
+  { left: '12%', delay: '0s', duration: '2.4s', length: '11px', opacity: 0.2 },
+  { left: '32%', delay: '1.1s', duration: '2.8s', length: '9px', opacity: 0.15 },
+  { left: '55%', delay: '0.5s', duration: '2.2s', length: '12px', opacity: 0.22 },
+  { left: '74%', delay: '1.6s', duration: '2.6s', length: '10px', opacity: 0.16 },
+  { left: '91%', delay: '0.8s', duration: '2.4s', length: '11px', opacity: 0.18 },
+] as const
+
+/* 주일 우산 속삭임 — 안내문이 아니라 챙겨주는 한마디로 읽히도록 며칠마다
+ * 다른 문장을 보여준다. 날짜 기반이라 하루 안에서는 바뀌지 않는다. */
+const SUNDAY_RAIN_WHISPER_KEYS = [
+  'homeWeatherSundayRain1',
+  'homeWeatherSundayRain2',
+  'homeWeatherSundayRain3',
+] as const
+
 /* 젖은 하늘일 때만 칩에 한 단어를 붙인다 — 맑음·흐림·안개는 이모지로 충분 */
 const WEATHER_LABEL_KEYS = {
   drizzle: 'homeWeatherDrizzle',
@@ -228,6 +246,8 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const showPop = pop !== null && pop >= POP_VISIBLE_THRESHOLD
   /* 우산 안내도 칩과 같은 판단선을 쓴다 — 낮은 확률까지 알리면 양치기 소년이 된다 */
   const showSundayRain = sundayPop !== null && sundayPop >= POP_VISIBLE_THRESHOLD
+  /* 지금 이미 비·눈 연출이 흐르고 있으면 힌트 가랑비는 겹치지 않는다 */
+  const showRainHint = showSundayRain && !isRaining && !isSnowing
   const todayDoy = dayOfYear(today)
   const ribbonSegments = getSeasonSegments(today.getFullYear()).map((seg) => {
     const startDoy = dayOfYear(seg.start)
@@ -302,6 +322,25 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
           {isRaining && (
             <div className="meditation-hero-ambient" aria-hidden>
               {RAIN_DROPS.map((d, i) => (
+                <span
+                  key={i}
+                  className="meditation-rain-drop"
+                  style={{
+                    left: d.left,
+                    '--fall-delay': d.delay,
+                    '--fall-duration': d.duration,
+                    '--drop-length': d.length,
+                    '--fall-opacity': d.opacity,
+                  } as React.CSSProperties}
+                />
+              ))}
+            </div>
+          )}
+          {/* 주일 비 힌트 — 오늘은 맑아도 주일 예보가 젖어 있으면 아주 옅은
+           * 가랑비 몇 가닥을 미리 흘려보낸다 (속삭임 문구와 한 세트) */}
+          {showRainHint && (
+            <div className="meditation-hero-ambient" aria-hidden>
+              {HINT_RAIN_DROPS.map((d, i) => (
                 <span
                   key={i}
                   className="meditation-rain-drop"
@@ -391,20 +430,19 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               <br />
               {t(HEADLINE_KEYS[timeOfDay][1])}
             </h2>
+            {/* 주일 우산 속삭임 — 주일이 가까우면서(3일 내) 비 확률이 높을 때만.
+              * 알림 박스가 아니라 풍경 속 한 줄로, 헤드라인 아래에 나직이 얹힌다.
+              * 이 카드에서 날씨가 하는 일은 예보가 아니라 예배 가는 길을 챙기는 것. */}
+            {showSundayRain && (
+              <p className="meditation-hero-whisper">
+                <span aria-hidden>☔</span>
+                {t(SUNDAY_RAIN_WHISPER_KEYS[todayDoy % SUNDAY_RAIN_WHISPER_KEYS.length])}
+              </p>
+            )}
           </div>
         </div>
 
         <div className="meditation-body">
-        {/* 주일 우산 안내 — 주일이 가까우면서(3일 내) 비 확률이 높을 때만 뜬다.
-          * 이 카드에서 날씨가 하는 일은 예보를 보여주는 게 아니라 예배 가는 길을
-          * 챙기는 것이라, 평소엔 아무것도 그리지 않는다. */}
-        {showSundayRain && (
-          <p className="meditation-sunday-rain">
-            <span aria-hidden>☔</span>
-            {t('homeWeatherSundayRain')}
-          </p>
-        )}
-
         <header className="meditation-meta-row">
           <span className="meditation-season-tag" data-season={season}>
             {t(SEASON_LABEL_KEYS[season])}
