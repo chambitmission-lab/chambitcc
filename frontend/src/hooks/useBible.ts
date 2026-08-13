@@ -33,12 +33,35 @@ export const useBibleVerse = (book: string, chapter: number, verse: number, enab
   })
 }
 
-// 성경 검색
-export const useBibleSearch = (keyword: string, page: number = 1) => {
+// 검색 한 페이지 크기 — 스크롤로 이어 받으므로 작게 유지한다
+export const BIBLE_SEARCH_PAGE_SIZE = 30
+
+// 성경 검색 (첫 페이지만) — 말씀 고르기 시트처럼 스크롤 페이징이 필요 없는 곳에서 사용
+export const useBibleSearch = (keyword: string, limit: number = BIBLE_SEARCH_PAGE_SIZE) => {
   return useQuery({
-    queryKey: ['bible', 'search', keyword, page],
-    queryFn: () => searchBible(keyword, page),
-    enabled: keyword.length > 0,
+    queryKey: ['bible', 'search', keyword, limit],
+    queryFn: () => searchBible(keyword, { limit }),
+    // 백엔드가 2글자 미만을 400으로 막으므로 헛요청을 보내지 않는다
+    enabled: keyword.trim().length >= 2,
+    staleTime: 1000 * 60 * 60 * 24, // 24시간
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
+    retry: 1,
+  })
+}
+
+// 성경 검색 (무한 스크롤) — 키워드 검색만 페이징되고, 책·장 검색은 has_more=false로 한 번에 온다
+export const useBibleSearchInfinite = (keyword: string, testament?: 'OLD' | 'NEW') => {
+  return useInfiniteQuery({
+    queryKey: ['bible', 'search', 'infinite', keyword, testament ?? 'ALL'],
+    queryFn: ({ pageParam }) =>
+      searchBible(keyword, { offset: pageParam, limit: BIBLE_SEARCH_PAGE_SIZE, testament }),
+    enabled: keyword.trim().length >= 2,
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage.has_more) return undefined
+      // 다음 offset은 지금까지 받은 절 수 (서버 정렬이 책·장·절 순으로 고정)
+      return allPages.reduce((n, p) => n + p.results.length, 0)
+    },
+    initialPageParam: 0,
     staleTime: 1000 * 60 * 60 * 24, // 24시간
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
     retry: 1,

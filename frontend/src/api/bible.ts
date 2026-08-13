@@ -49,18 +49,23 @@ export const getBibleVerse = async (book: string, chapter: number, verse: number
   return response.json()
 }
 
-// 성경 검색
-export const searchBible = async (keyword: string, page: number = 1, limit: number = 20): Promise<BibleSearchResult> => {
+// 성경 검색 — 키워드 검색은 offset 기반 페이징(무한 스크롤), 책·장 검색은 항상 전체 반환
+export const searchBible = async (
+  keyword: string,
+  options: { limit?: number; offset?: number; testament?: 'OLD' | 'NEW' } = {}
+): Promise<BibleSearchResult> => {
   if (USE_MOCK_DATA) {
     return getMockBibleSearch(keyword)
   }
-  
+
+  const { limit = 30, offset = 0, testament } = options
   const params = new URLSearchParams({
     keyword,
-    page: page.toString(),
-    limit: limit.toString()
+    limit: limit.toString(),
+    offset: offset.toString()
   })
-  
+  if (testament) params.set('testament', testament)
+
   const response = await apiFetch(`${API_V1}/bible/search?${params}`)
   
   if (!response.ok) {

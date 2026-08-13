@@ -339,6 +339,15 @@
   font-weight: 600;
 }
 
+/* 무한 스크롤 센티널 — 보이는 순간 다음 페이지를 불러온다 */
+.search-load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  color: var(--ig-secondary-text);
+}
+
 /* Bible Study Search Result - BEM modifier */
 .bible-verse-item--search {
   flex-direction: column;

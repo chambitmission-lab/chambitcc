@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import { useBibleSearch, useBibleBooks } from '../../../hooks/useBible'
+import { useBibleSearchInfinite, useBibleBooks } from '../../../hooks/useBible'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { BibleBook } from '../../../types/bible'
 import SearchBookCard from './SearchBookCard'
@@ -43,9 +43,22 @@ const BibleSearch = () => {
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   // 책 퀵 피커가 열려 있으면 그 트리거가 된 책의 book_number, 닫혀 있으면 null
   const [pickerFor, setPickerFor] = useState<number | null>(null)
+  // 결과 목록 끝에 두는 무한 스크롤 감지용 센티널
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
 
-  const { data: searchResults, isLoading: searchLoading } = useBibleSearch(searchQuery)
+  // 범위 필터는 서버로 넘긴다 — 페이지마다 프론트에서 거르면 페이지별 개수가 들쭉날쭉해진다
+  const {
+    data: searchPages,
+    isLoading: searchLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useBibleSearchInfinite(searchQuery, scope === 'ALL' ? undefined : scope)
   const { data: allBooks } = useBibleBooks()
+
+  // 메타(책·장 검색 여부 등)는 첫 페이지에만 담겨 오고, 절은 모든 페이지를 이어붙인다
+  const searchResults = searchPages?.pages[0]
+  const loadedVerses = searchPages?.pages.flatMap(p => p.results) ?? []
 
   // 책 이름 부분일치를 프론트에서 직접 처리 — "고린" → 고린도전서·후서처럼 모든 매칭 책을 보장.
   // 장/절 검색(숫자 포함)이나 본문 키워드 검색은 건드리지 않는다.
@@ -198,7 +211,8 @@ const BibleSearch = () => {
     if (scope !== 'ALL' && book.testament !== scope) setScope('ALL')
   }
 
-  // 구약/신약 범위 필터 — 백엔드는 범위 파라미터가 없으므로 프론트에서 거른다.
+  // 구약/신약 범위 필터 — 키워드 검색은 서버가 이미 걸러서 보내고,
+  // 장 검색 결과(페이징 대상 아님)만 여기서 거른다.
   // 구절의 book_number(없으면 책 이름)로 신·구약을 판별하고, 판별 불가 시에는 표시를 유지한다.
   const testamentByNumber = new Map((allBooks || []).map(b => [b.book_number, b.testament]))
   const testamentByName = new Map((allBooks || []).map(b => [b.book_name_ko, b.testament]))
@@ -216,16 +230,32 @@ const BibleSearch = () => {
 
   const scopedBooks = scope === 'ALL' ? booksToShow : booksToShow.filter(b => b.testament === scope)
   const scopedVerses = searchResults
-    ? searchResults.results.filter(v =>
+    ? loadedVerses.filter(v =>
         matchesScope(v.book_number ?? searchResults.book_number, v.book_name_ko)
       )
     : []
-  const shownTotal = scope === 'ALL' ? (searchResults?.total ?? 0) : scopedVerses.length
+  // 키워드 검색의 total은 서버가 센 전체 매칭 수(범위 필터 반영). 장 검색만 화면에 남은 절 수.
+  const shownTotal = searchResults?.is_chapter_search
+    ? scopedVerses.length
+    : (searchResults?.total ?? 0)
 
-  const hasAnyResult =
-    booksToShow.length > 0 || (searchResults ? searchResults.results.length > 0 : false)
+  const hasAnyResult = booksToShow.length > 0 || loadedVerses.length > 0
 
   const currentPlaceholder = t.placeholderExamples[placeholderIndex % t.placeholderExamples.length]
+
+  // 무한 스크롤 — 결과 목록 끝의 센티널이 보이면 다음 페이지를 이어 받는다
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el || !hasNextPage || isFetchingNextPage) return
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0]?.isIntersecting) fetchNextPage()
+      },
+      { rootMargin: '240px' } // 바닥에 닿기 전에 미리 채워 끊김을 줄인다
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, loadedVerses.length])
 
   return (
     <div className="bible-search-section">
@@ -385,6 +415,13 @@ const BibleSearch = () => {
               </div>
             ))}
           </div>
+          {hasNextPage && (
+            <div ref={sentinelRef} className="search-load-more" aria-hidden={!isFetchingNextPage}>
+              {isFetchingNextPage && (
+                <span className="material-icons-round spinning">refresh</span>
+              )}
+            </div>
+          )}
         </div>
       ) : searchQuery ? (
         <div className="no-results">

@@ -38,8 +38,13 @@ export interface BibleSearchBook {
 
 // 검색 결과
 export interface BibleSearchResult {
+  /** 키워드 검색은 잘린 개수가 아니라 전체 매칭 수 */
   total: number
   results: BibleVerse[]
+  /** 이번 페이지의 시작 위치 (키워드 검색만 페이징) */
+  offset?: number
+  /** 다음 페이지 존재 여부 — 책·장 검색은 항상 false */
+  has_more?: boolean
   is_chapter_search?: boolean
   book_number?: number | null
   book_name_ko?: string | null
