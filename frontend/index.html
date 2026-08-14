@@ -37,6 +37,22 @@
       })();
     </script>
     <meta name="color-scheme" content="light dark" />
+    <!-- 상태바 색(theme-color): 여기의 media 기반 값은 no-JS 폴백일 뿐이고,
+         아래 테마 선적용 스크립트가 저장된 "앱 테마" 기준으로 즉시 덮어쓴다.
+         React(ThemeContext)만 믿으면 OS 라이트+앱 다크 조합에서 마운트 전까지
+         상태바가 흰색으로 어긋난다. 반드시 스크립트보다 먼저 선언되어야 한다. -->
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <!-- 첫 페인트 크리티컬 배경: index.css는 JS 번들과 함께 늦게 도착하므로
+         그 전 첫 페인트는 UA 기본 캔버스로 그려진다(OS 라이트면 흰색).
+         안드로이드는 시스템 내비게이션 바 색을 문서 배경색에서 가져오기 때문에
+         앱 실행 첫 1초간 하단 시스템 바가 검정↔흰색으로 번쩍였다("하단 떨림"의 진짜 원인).
+         색 값은 index.css(--ig-*-background)·ThemeContext와 반드시 동일하게 유지할 것. -->
+    <style>
+      html { background-color: #fafafa; color-scheme: light; }
+      html[data-theme="dark"] { background-color: #131313; color-scheme: dark; }
+      body { margin: 0; background-color: inherit; }
+    </style>
     <title>부천참빛교회 | 상동 참빛교회 공식 홈페이지</title>
 
     <!-- 테마 선적용: React 마운트 전(첫 페인트 전)에 .dark 클래스를 동기로 붙여
@@ -48,6 +64,13 @@
           var t = localStorage.getItem('theme') || 'dark';
           document.documentElement.setAttribute('data-theme', t);
           if (t === 'dark') document.documentElement.classList.add('dark');
+          // 상태바(theme-color)를 저장된 앱 테마로 즉시 동기화 — 위의 media 기반
+          // 메타는 OS 설정 기준이라 OS 라이트+앱 다크에서 흰색으로 시작한다.
+          // 색 값은 ThemeContext.tsx 와 동일하게 유지할 것.
+          var tc = t === 'dark' ? '#131313' : '#ffffff';
+          document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+            m.setAttribute('content', tc);
+          });
         } catch (e) {}
 
         // 아이콘 폰트가 준비되기 전 ligature 원문("home" 등 글자)이 잠깐 보이는 것을 막는다.
@@ -214,9 +237,7 @@
     }
     </script>
 
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <!-- PWA Meta Tags (theme-color 메타는 위 크리티컬 블록으로 이동) -->
     <link rel="apple-touch-icon" href="/pwa-192x192.png" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
