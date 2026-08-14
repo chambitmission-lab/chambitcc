@@ -294,36 +294,132 @@ self.addEventListener('notificationclose', (event) => {
   console.log('🔕 알림 닫힘:', event.notification.tag);
 });
 
+// ─────────────────────────────────────────────────────────────
+// App Shell 캐싱 — 오프라인 콜드 스타트 지원
+//
+// index.html 은 Network First(온라인이면 항상 서버 최신 → appVersion.ts 의
+// version.json 업데이트 감지 흐름이 그대로 유효), 오프라인일 때만 캐시 폴백.
+// /assets/* 번들은 파일명에 콘텐츠 해시가 있어 내용이 절대 변하지 않으므로
+// Cache First 가 안전하고, 재방문 로딩도 빨라진다.
+// version.json / sw.js 는 업데이트 감지의 근거라서 절대 캐시하지 않는다.
+// ─────────────────────────────────────────────────────────────
+const APP_SHELL_CACHE = 'chambit-app-shell-v1';
+const ASSETS_CACHE = 'chambit-assets-v1';
+const ASSET_MAX_AGE = 1000 * 60 * 60 * 24 * 30; // 30일 — 재배포로 안 쓰게 된 옛 번들 정리 기준
+
+// 설치 시 index.html 과 그것이 참조하는 엔트리 번들을 미리 캐싱한다.
+// (첫 방문의 자산 요청은 아직 SW 통제 밖이라 런타임 캐싱만으로는
+//  두 번째 방문부터 오프라인이 가능해지는데, 프리캐시로 첫 방문부터 채운다)
+const precacheAppShell = async () => {
+  const res = await fetch(BASE_PATH, { cache: 'no-store' });
+  if (!res || !res.ok) return;
+
+  const shellCache = await caches.open(APP_SHELL_CACHE);
+  await shellCache.put(BASE_PATH, res.clone());
+
+  // index.html 이 참조하는 /assets/ 번들(src/href 속성)을 추출해 프리캐시
+  try {
+    const html = await res.text();
+    const matches = html.match(/(?:src|href)="([^"]*\/assets\/[^"]+)"/g) || [];
+    const assetUrls = [...new Set(matches.map((m) => m.replace(/^(?:src|href)="/, '').replace(/"$/, '')))];
+    const assetsCache = await caches.open(ASSETS_CACHE);
+    await Promise.all(
+      assetUrls.map(async (u) => {
+        try {
+          const r = await fetch(u);
+          if (r && r.ok) await assetsCache.put(u, r);
+        } catch (e) {
+          // 개별 자산 실패는 무시 — 런타임 캐싱이 다음 방문에 채운다
+        }
+      })
+    );
+  } catch (e) {
+    // HTML 파싱 실패해도 index 캐시는 이미 확보됨
+  }
+
+  // 설치형 PWA 아이콘·매니페스트도 오프라인 대비
+  try {
+    const staticFiles = ['manifest.webmanifest', 'pwa-192x192.png', 'pwa-512x512.png'].map(
+      (f) => `${BASE_PATH}${f}`
+    );
+    await Promise.all(
+      staticFiles.map(async (u) => {
+        try {
+          const r = await fetch(u);
+          if (r && r.ok) await shellCache.put(u, r);
+        } catch (e) { /* 무시 */ }
+      })
+    );
+  } catch (e) { /* 무시 */ }
+};
+
+// date 헤더 기준으로 오래된 번들 캐시 제거.
+// activate 는 sw.js 자체가 바뀔 때만 돌므로, 온라인 앱 시작 때도 호출한다.
+const pruneOldAssets = async () => {
+  const cache = await caches.open(ASSETS_CACHE);
+  const requests = await cache.keys();
+  const now = Date.now();
+  await Promise.all(
+    requests.map(async (request) => {
+      const response = await cache.match(request);
+      const dateHeader = response && response.headers.get('date');
+      if (dateHeader && now - new Date(dateHeader).getTime() > ASSET_MAX_AGE) {
+        await cache.delete(request);
+      }
+    })
+  );
+};
+
+let lastAssetPruneAt = 0;
+
 // Service Worker 설치
 self.addEventListener('install', (event) => {
   console.log('⚙️ Service Worker 설치됨');
-  self.skipWaiting();
+  event.waitUntil(
+    precacheAppShell()
+      .catch((e) => console.warn('App Shell 프리캐시 실패 (무시):', e))
+      .then(() => self.skipWaiting())
+  );
 });
 
-// Service Worker 활성화 - 오래된 API 캐시 정리
+// Service Worker 활성화 - 오래된 캐시 정리
 self.addEventListener('activate', (event) => {
   console.log('✅ Service Worker 활성화됨');
+  const KNOWN_CACHES = [CACHE_NAME, HERO_CACHE_NAME, SW_CONFIG_CACHE, APP_SHELL_CACHE, ASSETS_CACHE];
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.keys().then(requests => {
-        const now = Date.now();
-        return Promise.all(
-          requests.map(request => {
-            return cache.match(request).then(response => {
-              if (response) {
-                const dateHeader = response.headers.get('date');
-                if (dateHeader) {
-                  const cacheAge = now - new Date(dateHeader).getTime();
-                  if (cacheAge > API_CACHE_DURATION) {
-                    return cache.delete(request);
+    Promise.all([
+      // 오래된 API 캐시 항목 정리
+      caches.open(CACHE_NAME).then(cache => {
+        return cache.keys().then(requests => {
+          const now = Date.now();
+          return Promise.all(
+            requests.map(request => {
+              return cache.match(request).then(response => {
+                if (response) {
+                  const dateHeader = response.headers.get('date');
+                  if (dateHeader) {
+                    const cacheAge = now - new Date(dateHeader).getTime();
+                    if (cacheAge > API_CACHE_DURATION) {
+                      return cache.delete(request);
+                    }
                   }
                 }
-              }
-            });
-          })
-        );
-      });
-    }).then(() => self.clients.claim())
+              });
+            })
+          );
+        });
+      }),
+      // 오래된 번들 캐시 정리
+      pruneOldAssets().catch(() => {}),
+      // 더 이상 안 쓰는 chambit-* 캐시 통째로 정리
+      caches.keys().then((names) =>
+        Promise.all(
+          names
+            .filter((n) => n.startsWith('chambit-') && !KNOWN_CACHES.includes(n))
+            .map((n) => caches.delete(n))
+        )
+      ),
+    ]).then(() => self.clients.claim())
   );
 });
 
@@ -384,6 +480,86 @@ self.addEventListener('fetch', (event) => {
   // TTS 오디오 스트림도 캐싱 제외 — 장(章)마다 수 MB짜리 MP3를 clone()으로
   // 이중 버퍼링하고 Cache Storage 를 무한정 키우게 된다 (음성×장 조합만큼 누적)
   if (url.pathname.includes('/bible/tts/')) {
+    return;
+  }
+
+  // version.json / sw.js 는 항상 네트워크 그대로 통과 —
+  // 앱 업데이트 감지의 근거라서 SW 가 캐시로 응답하면 영원히 옛 버전에 갇힌다
+  if (url.pathname.endsWith('/version.json') || url.pathname.endsWith('/sw.js')) {
+    return;
+  }
+
+  // ── App Shell: 네비게이션(문서) 요청 — Network First ──
+  // 온라인이면 항상 서버 최신 index.html (버전 감지 흐름 유지),
+  // 오프라인일 때만 캐시된 index.html 로 앱을 띄운다.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // 홈(index.html) 응답만 오프라인 폴백으로 보관.
+          // /b/* 공유 링크는 Pages Function 프리뷰 응답이라 index 로 캐싱하면 오염된다.
+          if (response && response.ok && !response.redirected && url.pathname === BASE_PATH) {
+            const copy = response.clone();
+            caches.open(APP_SHELL_CACHE).then((cache) => cache.put(BASE_PATH, copy));
+          }
+          // 온라인 앱 시작을 계기로 오래된 번들 정리 (SW 프로세스당 1시간에 1회)
+          if (Date.now() - lastAssetPruneAt > 1000 * 60 * 60) {
+            lastAssetPruneAt = Date.now();
+            pruneOldAssets().catch(() => {});
+          }
+          return response;
+        })
+        .catch(() =>
+          caches.match(BASE_PATH, { cacheName: APP_SHELL_CACHE }).then((cached) => {
+            if (cached) return cached;
+            return new Response(
+              '<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>오프라인</title><body style="display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:sans-serif;background:#131313;color:#e5e7eb;text-align:center"><div><p style="font-size:40px;margin:0 0 12px">📡</p><p style="font-size:17px;font-weight:700;margin:0 0 6px">오프라인 상태입니다</p><p style="font-size:14px;color:#9ca3af;margin:0">네트워크 연결 후 다시 열어주세요.</p></div></body></html>',
+              { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+            );
+          })
+        )
+    );
+    return;
+  }
+
+  // ── 해시 번들(/assets/*) — Cache First ──
+  // 파일명에 콘텐츠 해시가 있어 같은 URL 의 내용은 절대 변하지 않는다.
+  // 재배포되면 index.html 이 새 해시 URL 을 참조하므로 자연스럽게 캐시 미스 → 갱신.
+  if (url.origin === ORIGIN && url.pathname.includes('/assets/')) {
+    event.respondWith(
+      caches.open(ASSETS_CACHE).then((cache) =>
+        cache.match(event.request).then((cached) => {
+          if (cached) return cached;
+          return fetch(event.request).then((response) => {
+            if (response && response.ok) {
+              cache.put(event.request, response.clone());
+            }
+            return response;
+          });
+        })
+      )
+    );
+    return;
+  }
+
+  // ── 그 외 같은 출처 정적 파일(아이콘·이미지·폰트·매니페스트) — Stale While Revalidate ──
+  // 해시가 없는 public/ 파일들이라 캐시를 먼저 쓰되 백그라운드로 갱신한다.
+  if (url.origin === ORIGIN && /\.(png|jpg|jpeg|webp|svg|ico|woff2?|ttf|webmanifest)$/.test(url.pathname)) {
+    event.respondWith(
+      caches.open(APP_SHELL_CACHE).then((cache) =>
+        cache.match(event.request).then((cached) => {
+          const network = fetch(event.request)
+            .then((response) => {
+              if (response && response.ok) {
+                cache.put(event.request, response.clone());
+              }
+              return response;
+            })
+            .catch(() => cached || Response.error());
+          return cached || network;
+        })
+      )
+    );
     return;
   }
 
