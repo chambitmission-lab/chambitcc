@@ -11,7 +11,7 @@
 
 ## 일관성 규칙 (모든 이미지 공통)
 
-- **주인공은 항상 같은 양 한 마리** — 통통하고 하얀 아기 양, 평온하고 뿌듯한 미소. 22장 전부 같은 캐릭터가 다른 상황을 연기한다.
+- **주인공은 항상 같은 양 한 마리** — 통통하고 하얀 아기 양, 평온하고 뿌듯한 미소. 25장 전부 같은 캐릭터가 다른 상황을 연기한다.
 - **팔레트 고정** — 깊은 네이비 남색 밤하늘 베이스(#0A1428 계열) + 따뜻한 앰버빛 광원 하나 + 은은한 파란 별빛. 다크 테마 위에 자연스럽게 얹히는 저채도.
 - **하단 중앙은 비워둔다** — 이름·아이디·칭호 칩 텍스트가 올라갈 자리. 피사체와 광원은 상단 또는 좌우로.
 - **글자 금지** — 숫자·문자·로고가 들어가면 UI와 충돌한다.
@@ -39,7 +39,7 @@ Scene:
 
 ---
 
-## 칭호별 장면 (22종)
+## 칭호별 장면 (25종)
 
 ### 시간 카테고리
 
@@ -225,6 +225,47 @@ over a fourth hurdle with a tiny determined flame burning above its head, while
 three knocked-down hurdles lie defeated on the track behind it. Dramatic low-angle
 epic sports-photo composition, warm rim light, navy sky — a huge triumph over a
 very small wall, which is exactly why it's funny.
+```
+
+**leviticus_survivor · 🏕️ 레위기 생존자 (silver)**
+```
+The sheep emerges triumphantly from the edge of a vast dark swamp-jungle whose
+gnarled trees are giant rolled scrolls and whose hanging vines are tangled ribbons
+of parchment. It wears a slightly oversized explorer pith helmet and tiny rubber
+boots, wool speckled with mud, proudly holding a small warm amber lantern as it
+pushes through the last curtain of reeds onto dry ground. Along the swamp path
+behind it lie the comically abandoned traces of readers who gave up: a deflated
+little tent, a dropped bookmark, a single boot stuck in the mud. Faint blue
+will-o'-the-wisps drift deep inside the swamp; ahead of the sheep the navy sky
+opens with the first warm hint of dawn. Epic jungle-escape composition, one small
+unstoppable survivor.
+```
+
+**eutychus_escape · 🪟 유두고 탈출 (bronze)**
+```
+Warm dim interior of a small wooden chapel during the sleepy mid-afternoon lull:
+rows of pews where cozy woodland animals (a rabbit, a fox, a hedgehog) have all
+dozed off, slumped in adorable poses with tiny floating dream-bubbles above their
+heads. High up on the sill of a tall arched window sits the sheep — dangerously
+close to the open window, yet completely awake — back perfectly straight, a warmly
+glowing open book on its lap, its eyelids comically propped open with two tiny
+matchsticks, wearing the proud focus of a survivor. Below the window someone has
+thoughtfully placed a huge pile of soft cushions, just in case. One warm amber
+shaft of light falls on the sheep; deep navy shadows fill the rest of the chapel,
+dust motes sparkling in the beam.
+```
+
+**obadiah_finder · 🔍 오바댜를 찾은 자 (bronze)**
+```
+A colossal night library-labyrinth: towering bookshelf canyons of enormous ancient
+tomes fade upward into an open starry navy sky. At the center the sheep stands on
+top of a mountain of huge thick books it has climbed, wearing a detective's
+deerstalker hat slightly askew and holding a magnifying glass in one hoof, while
+the other hoof lifts triumphantly overhead a single tiny, impossibly thin glowing
+booklet — the treasure it finally found. Golden sparkles burst around the little
+book like a silent fanfare, and a crumpled treasure map with a winding drawn path
+lies at the sheep's feet. Epic discovery composition: gigantic library, enormous
+search, adorably tiny prize.
 ```
 
 **everest_climber · 🏔️ 에베레스트 등정 (gold)**

@@ -111,6 +111,21 @@ const EN: Record<string, TitleText> = {
     description: "Day four, past the three-day wall! Sorry, short-lived resolutions — I'm on day four now.",
     hint: "Break the three-day slump by reading 4 days in a row",
   },
+  leviticus_survivor: {
+    name: 'Leviticus Survivor',
+    description: "The stretch where every January read-through comes to die… yet you made it out of the swamp of sacrificial regulations alive. Nothing can stop your read-through now.",
+    hint: 'Finish Leviticus, the graveyard of read-throughs',
+  },
+  eutychus_escape: {
+    name: 'Escaping Eutychus',
+    description: "Eutychus dozed off mid-sermon and fell from the third floor (Acts 20:9)… but you grabbed the Word right in the post-lunch danger hours. Window seats are safe around you!",
+    hint: 'Read the Bible during the drowsy hours (1–4 PM)',
+  },
+  obadiah_finder: {
+    name: 'Found Obadiah',
+    description: "The final boss of Bible drills, hiding somewhere among the minor prophets… you found it, and even read the whole thing. Just one chapter — but not everyone can pull it off.",
+    hint: 'Finish Obadiah, the shortest book of the Old Testament',
+  },
   everest_climber: {
     name: 'Everest Summit',
     description: 'Psalm 119, the Everest of the Bible — all 176 verses climbed, no oxygen tank needed! How was the view of the Word from the top?',
