@@ -81,7 +81,7 @@ export const getPointsToNextLevel = (currentPoints: number): { needed: number; t
 /**
  * '신앙의 온도' 표시값(°C) — 당근마켓 매너온도처럼 36.5°에서 시작해
  * 레벨이 오를수록 따뜻해진다. 레벨 1단계 = +2.0°, 레벨 안에서의 진행도만큼
- * 소수점이 차오른다. (최고 레벨 도달 시 52.5° 고정)
+ * 소수점이 차오른다. (최고 레벨 도달 시 56.5° 고정)
  */
 export const glowTemperature = (points: number): number => {
   const level = calculateGlowLevel(points)

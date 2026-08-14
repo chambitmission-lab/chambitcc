@@ -160,6 +160,26 @@ export const GLOW_LEVELS: GlowLevel[] = [
     glowSize: 110,
     pulseSpeed: 0.8,
   },
+  {
+    level: 9,
+    name: '영광의 면류관',
+    nameKey: 'levelNameCrownOfGlory',
+    minPoints: 160000,
+    glowColor: 'rgba(34, 211, 238, 1)', // radiant cyan
+    glowIntensity: 1,
+    glowSize: 125,
+    pulseSpeed: 0.7,
+  },
+  {
+    level: 10,
+    name: '생명의 면류관',
+    nameKey: 'levelNameCrownOfLife',
+    minPoints: 300000,
+    glowColor: 'rgba(52, 211, 153, 1)', // radiant emerald
+    glowIntensity: 1,
+    glowSize: 140,
+    pulseSpeed: 0.6,
+  },
 ]
 
 export const ACHIEVEMENTS: Omit<Achievement, 'unlocked' | 'progress'>[] = [

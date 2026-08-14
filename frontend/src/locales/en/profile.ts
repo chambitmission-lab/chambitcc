@@ -124,6 +124,8 @@ export const profile = {
   levelNameGlory: 'Heavenly Glory',
   levelNameEternalLamp: 'Eternal Lamp',
   levelNameStarOfSalvation: 'Star of Salvation',
+  levelNameCrownOfGlory: 'Crown of Glory',
+  levelNameCrownOfLife: 'Crown of Life',
 
   // Point earning items
   earnPrayer: 'Prayer ×1',

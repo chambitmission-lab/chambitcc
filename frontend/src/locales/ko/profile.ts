@@ -124,6 +124,8 @@ export const profile = {
   levelNameGlory: '천상의 광채',
   levelNameEternalLamp: '영원한 등불',
   levelNameStarOfSalvation: '구원의 별',
+  levelNameCrownOfGlory: '영광의 면류관',
+  levelNameCrownOfLife: '생명의 면류관',
 
   // 포인트 획득 항목
   earnPrayer: '기도 1회',
