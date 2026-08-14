@@ -175,6 +175,20 @@ body {
   padding-bottom: calc(7rem + max(0px, 100vh - var(--vvh, 100vh)));
 }
 
+/* 하단 고정 독의 실행 직후 출렁임 가리개.
+   설치형 WebAPK는 앱을 여는 첫 1초 사이 뷰포트 높이를 여러 번 재보고하는데,
+   fixed bottom-0 독은 그 "바닥"을 실시간으로 따라가며 위아래로 튄다.
+   index.html이 재보고가 잦아든 뒤 <html>에 data-viewport-settled를 찍으므로,
+   그 전에는 독을 투명하게 두고 확정된 뒤 페이드인해 출렁임을 눈에서 감춘다.
+   (속성은 index.html 인라인 스크립트가 최대 1초 내 반드시 찍는다 — no-JS면
+   React 자체가 안 돌아 독도 없으므로 영구 숨김 걱정은 없다) */
+.bottom-dock-anchor {
+  transition: opacity 0.25s ease;
+}
+html:not([data-viewport-settled]) .bottom-dock-anchor {
+  opacity: 0;
+}
+
 .container {
   max-width: 80rem;
   margin: 0 auto;

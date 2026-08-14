@@ -81,9 +81,33 @@
           de.setAttribute('data-vh-tier', h <= 660 ? 'tiny' : h <= 780 ? 'short' : 'tall');
         };
         setVvh();
-        if (window.visualViewport) window.visualViewport.addEventListener('resize', setVvh);
-        window.addEventListener('resize', setVvh);
-        window.addEventListener('pageshow', setVvh);
+
+        // 실행 직후 안정화(settle) — 설치형 WebAPK는 앱을 여는 첫 1초 사이에
+        // 시스템 바 인셋이 확정되며 뷰포트 높이를 여러 번 다시 보고한다.
+        // 그때마다 --vvh를 즉시 갱신하면 그에 묶인 하단 여백·독이 화면에서
+        // 들쑥날쑥 출렁이므로, 확정 전에는 갱신을 짧게 미뤄 조용해진 뒤(180ms 무변동)
+        // 한 번만 반영하고 data-viewport-settled를 찍는다(CSS가 이 시점에 독을 페이드인).
+        // 안정화 이후에는 기존처럼 즉시 갱신한다 — 키보드 등장 등엔 반응이 빨라야 한다.
+        var settled = false;
+        var settleTimer = null;
+        var finishSettle = function () {
+          if (settled) return;
+          settled = true;
+          clearTimeout(settleTimer);
+          setVvh();
+          de.setAttribute('data-viewport-settled', '');
+        };
+        var onVvhChange = function () {
+          if (settled) { setVvh(); return; }
+          clearTimeout(settleTimer);
+          settleTimer = setTimeout(finishSettle, 180);
+        };
+        settleTimer = setTimeout(finishSettle, 180);
+        // 안전장치 — 재보고가 계속 이어져도 1초 뒤엔 무조건 확정해 독이 영영 숨지 않게 한다
+        setTimeout(finishSettle, 1000);
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', onVvhChange);
+        window.addEventListener('resize', onVvhChange);
+        window.addEventListener('pageshow', onVvhChange);
       })();
     </script>
 
