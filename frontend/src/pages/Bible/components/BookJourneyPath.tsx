@@ -188,22 +188,26 @@ const BookJourneyPath = ({
   }, [books, infoMap, milestones, width])
 
   // 트레일 세그먼트 — 연속한 두 정거장을 세로 접선 베지어로 잇는다.
-  // 양끝 모두 완독이면 '포장된 길'(실선), 한쪽만 완독이면 절반쯤 닦인 길(반투명 파선)
+  // 양끝 모두 완독이면 '지나온 자취'(은은한 그라데이션 실선), 한쪽만 완독이면
+  // 완독 쪽에서 실선이 시작해 점으로 잦아드는 '닦이는 중인 길'
   const segments = useMemo(() => {
     const nodes = items.filter((it): it is Extract<PathItem, { kind: 'book' }> => it.kind === 'book')
     const segs: { d: string; state: 'done' | 'half' | 'todo'; key: string }[] = []
     for (let i = 1; i < nodes.length; i++) {
       const a = nodes[i - 1]
       const b = nodes[i]
-      const dy = (b.cy - a.cy) * 0.55
-      const d = `M ${a.cx} ${a.cy} C ${a.cx} ${a.cy + dy}, ${b.cx} ${b.cy - dy}, ${b.cx} ${b.cy}`
+      // 0.4 — 0.55였을 땐 좌우 전환 구간이 워터슬라이드처럼 크게 출렁였다
+      const dy = (b.cy - a.cy) * 0.4
       const aDone = (infoMap.get(a.book.book_number)?.rate ?? 0) >= 100
       const bDone = (infoMap.get(b.book.book_number)?.rate ?? 0) >= 100
-      segs.push({
-        d,
-        state: aDone && bDone ? 'done' : aDone || bDone ? 'half' : 'todo',
-        key: `${a.book.id}-${b.book.id}`,
-      })
+      const state = aDone && bDone ? 'done' : aDone || bDone ? 'half' : 'todo'
+      // half의 파선 패턴은 실선→점으로 잦아드는 방향성이 있어서
+      // 항상 완독한 정거장 쪽이 경로의 시작점이 되도록 뒤집는다
+      const reversed = state === 'half' && bDone && !aDone
+      const d = reversed
+        ? `M ${b.cx} ${b.cy} C ${b.cx} ${b.cy - dy}, ${a.cx} ${a.cy + dy}, ${a.cx} ${a.cy}`
+        : `M ${a.cx} ${a.cy} C ${a.cx} ${a.cy + dy}, ${b.cx} ${b.cy - dy}, ${b.cx} ${b.cy}`
+      segs.push({ d, state, key: `${a.book.id}-${b.book.id}` })
     }
     return segs
   }, [items, infoMap])
@@ -298,6 +302,21 @@ const BookJourneyPath = ({
           viewBox={`0 0 ${width} ${totalHeight}`}
           aria-hidden="true"
         >
+          <defs>
+            {/* 세로 진행 방향을 따라 밝음→브랜드로 흐르는 자취 — userSpaceOnUse라
+                모든 세그먼트가 하나의 긴 그라데이션을 나눠 쓰며 이어진 길로 읽힌다 */}
+            <linearGradient
+              id="bjp-trail-grad"
+              gradientUnits="userSpaceOnUse"
+              x1="0"
+              y1="0"
+              x2="0"
+              y2={totalHeight}
+            >
+              <stop offset="0%" style={{ stopColor: 'var(--brand)' }} />
+              <stop offset="100%" style={{ stopColor: 'var(--brand-dim)' }} />
+            </linearGradient>
+          </defs>
           {segments.map(seg => (
             <path key={seg.key} className={`bjp-seg bjp-seg--${seg.state}`} d={seg.d} />
           ))}

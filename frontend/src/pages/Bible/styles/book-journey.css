@@ -20,29 +20,33 @@
   stroke-linecap: round;
 }
 
-/* 아직 걷지 않은 길 — 점점이 찍힌 발자국 */
+/* 아직 걷지 않은 길 — 점점이 찍힌 발자국.
+   점 간격을 완독 자취와 같은 리듬(8px)으로 맞춰 하나의 길로 읽히게 한다 */
 .bjp-seg--todo {
   stroke: rgba(120, 120, 130, 0.35);
-  stroke-width: 3;
-  stroke-dasharray: 0.5 10;
+  stroke-width: 2.5;
+  stroke-dasharray: 0.5 8;
 }
 
 [data-theme="dark"] .bjp-seg--todo {
   stroke: rgba(255, 255, 255, 0.16);
 }
 
-/* 절반쯤 닦인 길 — 한쪽 정거장만 완독 */
+/* 닦이는 중인 길 — 완독 쪽 끝(경로 시작점)에서 실선이 출발해
+   점차 짧은 조각으로 흩어지며 미답의 점선 리듬(간격 8~10px)에 합류한다.
+   패턴 합(~82px)이 세그먼트 길이(~95px)와 비슷해 한 구간 안에서 반복이 거의 없다 */
 .bjp-seg--half {
-  stroke: rgba(49, 130, 246, 0.4);
-  stroke-width: 3.5;
-  stroke-dasharray: 7 9;
+  stroke: url(#bjp-trail-grad);
+  stroke-width: 2.5;
+  stroke-dasharray: 16 6 10 6 6 7 3 8 1 9 0.5 10;
+  opacity: 0.45;
 }
 
-/* 포장된 길 — 양끝 모두 완독 */
+/* 지나온 자취 — 정거장보다 한 단계 물러난, 빛이 지나간 듯한 은은한 선 */
 .bjp-seg--done {
-  stroke: var(--brand);
-  stroke-width: 4;
-  opacity: 0.85;
+  stroke: url(#bjp-trail-grad);
+  stroke-width: 2.5;
+  opacity: 0.5;
 }
 
 /* ── 정거장 행(노드 + 라벨) ─────────────────────────────── */
