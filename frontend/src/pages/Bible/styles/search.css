@@ -10,14 +10,14 @@
 }
 
 .search-form {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
   position: sticky;
   /* 헤더(.bible-study-header, top 56 + 높이 ~64) 바로 아래. 탭 바가 하단 네비로
      이동했으므로 176px(구 탭 바 포함 오프셋)을 쓰면 폼이 아래로 밀려 뒤 콘텐츠를 가린다. */
   top: 120px;
   z-index: 8;
   background: var(--ig-secondary-background);
-  padding-bottom: 1rem;
+  padding-bottom: 0.625rem;
 }
 
 .search-input-wrapper {
@@ -85,9 +85,11 @@
   transition: all 0.15s;
 }
 
-.search-clear-button:hover {
-  color: var(--ig-primary-text);
-  background: rgba(128, 128, 128, 0.12);
+@media (hover: hover) {
+  .search-clear-button:hover {
+    color: var(--ig-primary-text);
+    background: rgba(128, 128, 128, 0.12);
+  }
 }
 
 .search-clear-button .material-icons-round {
@@ -150,9 +152,15 @@
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.scope-chip:hover {
-  border-color: var(--brand);
-  color: var(--brand);
+@media (hover: hover) {
+  .scope-chip:hover {
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+
+  .scope-chip--active:hover {
+    color: white;
+  }
 }
 
 .scope-chip--active,
@@ -161,10 +169,6 @@
   border-color: transparent;
   color: white;
   box-shadow: 0 2px 8px rgba(49, 130, 246, 0.3);
-}
-
-.scope-chip--active:hover {
-  color: white;
 }
 
 /* 최근 검색어 · 추천 키워드 */
@@ -200,9 +204,11 @@
   opacity: 0.8;
 }
 
-.search-chip-clear:hover {
-  color: var(--brand);
-  opacity: 1;
+@media (hover: hover) {
+  .search-chip-clear:hover {
+    color: var(--brand);
+    opacity: 1;
+  }
 }
 
 .search-chip-list {
@@ -227,8 +233,10 @@
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.search-chip:hover {
-  border-color: var(--brand);
+@media (hover: hover) {
+  .search-chip:hover {
+    border-color: var(--brand);
+  }
 }
 
 .search-chip-label {
@@ -259,8 +267,10 @@
   font-size: 0.875rem;
 }
 
-.search-chip-remove:hover {
-  color: var(--brand);
+@media (hover: hover) {
+  .search-chip-remove:hover {
+    color: var(--brand);
+  }
 }
 
 /* 추천 키워드 칩 — 시스템 제안(보조 정보)이므로 회색조에 가까운 아주 옅은 브랜드 톤.
@@ -281,61 +291,30 @@
   border-color: rgba(49, 130, 246, 0.14);
 }
 
-.search-chip--suggest:hover {
-  color: var(--brand);
-  border-color: rgba(49, 130, 246, 0.4);
-  background: rgba(49, 130, 246, 0.1);
+@media (hover: hover) {
+  .search-chip--suggest:hover {
+    color: var(--brand);
+    border-color: rgba(49, 130, 246, 0.4);
+    background: rgba(49, 130, 246, 0.1);
+  }
+
+  [data-theme="dark"] .search-chip--suggest:hover {
+    color: var(--brand);
+  }
 }
 
-[data-theme="dark"] .search-chip--suggest:hover {
-  color: var(--brand);
-}
-
-.search-button {
-  flex-shrink: 0;
-  padding: 0.75rem 1.25rem;
-  background: var(--brand);
-  border: none;
-  border-radius: 12px;
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  box-shadow: 0 4px 14px rgba(49, 130, 246, 0.3);
-}
-
-.search-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(49, 130, 246, 0.4);
-}
-
-.search-button:active {
-  transform: translateY(0);
-}
-
-.search-button .material-icons-round {
-  font-size: 1.25rem;
-}
-
+/* 결과 영역 — 카드 안에 카드를 넣는 이중 액자 대신, 페이지 바닥에 절 카드만 얹는 플랫 리스트.
+   (파란 검색 버튼은 제거 — 폼 제출은 키보드 검색 키(enterKeyHint)로, 토스식 미니멀 유지) */
 .search-results {
-  background: var(--ig-primary-background);
-  border-radius: 16px;
-  padding: 1rem;
-  border: 1px solid var(--ig-border);
-}
-
-[data-theme="dark"] .search-results {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: none;
+  border: none;
+  padding: 0;
 }
 
 .results-count {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--ig-secondary-text);
-  margin-bottom: 1rem;
+  margin: 0 0.25rem 0.625rem;
   font-weight: 600;
 }
 
@@ -348,15 +327,16 @@
   color: var(--ig-secondary-text);
 }
 
-/* Bible Study Search Result - BEM modifier */
+/* Bible Study Search Result - BEM modifier
+   플랫 리스트 위에 얹는 단일 레벨 카드 — 페이지 배경(secondary)과 톤이 갈리도록 primary 배경 */
 .bible-verse-item--search {
   flex-direction: column;
-  gap: 0.625rem;
-  padding: 1.125rem 1rem;
-  background: var(--ig-secondary-background);
+  gap: 0.5rem;
+  padding: 0.9375rem 1rem;
+  background: var(--ig-primary-background);
   border-radius: 14px;
   border: 1px solid var(--ig-border);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.625rem;
   transition: all 0.2s;
   position: relative;
 }
@@ -366,32 +346,74 @@
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-/* 호버 하이라이트 — 베이스 .bible-verse-item:hover가 margin/padding을 덮어써
-   카드 폭이 변하며 본문이 재줄바꿈되던 문제 → 특이성을 높여 쉬는 상태와
-   '동일한' 지오메트리로 고정한다. 좌측 브랜드 바는 ::before(둥근 모서리 밖으로
-   삐져나옴) 대신 inset 그림자로 그려 레이아웃·모서리를 건드리지 않는다. */
+/* 베이스 .bible-verse-item:hover가 margin/padding을 덮어써 카드 폭이 변하는 문제 +
+   터치 기기에서 탭 후 :hover가 눌어붙어(sticky hover) 첫 카드만 "선택된 것처럼" 남는 문제.
+   → 미디어 가드 밖에서는 쉬는 상태와 '동일한' 지오메트리·색으로 고정해 두 문제를 함께 막고,
+   실제 포인터가 있는 환경에서만 아래 하이라이트를 얹는다. */
 .bible-verse-item.bible-verse-item--search:hover {
-  margin: 0 0 0.75rem;
-  padding: 1.125rem 1rem;
-  border: 1px solid var(--brand);
+  margin: 0 0 0.625rem;
+  padding: 0.9375rem 1rem;
+  border: 1px solid var(--ig-border);
   border-radius: 14px;
-  background: rgba(49, 130, 246, 0.05);
-  box-shadow: inset 3px 0 0 var(--brand);
+  background: var(--ig-primary-background);
+  box-shadow: none;
 }
 
+[data-theme="dark"] .bible-verse-item.bible-verse-item--search:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* 좌측 브랜드 바는 ::before(둥근 모서리 밖으로 삐져나옴) 대신
+     inset 그림자로 그려 레이아웃·모서리를 건드리지 않는다. */
+  .bible-verse-item.bible-verse-item--search:hover,
+  [data-theme="dark"] .bible-verse-item.bible-verse-item--search:hover {
+    border-color: var(--brand);
+    background: rgba(49, 130, 246, 0.05);
+    box-shadow: inset 3px 0 0 var(--brand);
+  }
+}
+
+/* 탭 순간의 피드백은 hover 대신 :active로 — 터치에서도 눌림이 보이고, 떼면 바로 사라진다 */
+.bible-verse-item.bible-verse-item--search:active {
+  background: rgba(49, 130, 246, 0.07);
+  border-color: rgba(49, 130, 246, 0.35);
+  transform: scale(0.985);
+}
+
+/* 본문 — 읽기 화면의 Aa 설정 변수 대신 결과 훑기에 맞는 고정 밀도.
+   긴 절은 3줄에서 접는다(탭하면 어차피 읽기 화면으로 이동). */
 .bible-verse-item--search .bible-verse-text {
-  line-height: 1.85;
+  font-size: 0.9375rem;
+  line-height: 1.7;
   letter-spacing: -0.01em;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
+/* 절 주소 — 훑어 내릴 때의 앵커이므로 보조색이 아니라 브랜드 톤으로 */
 .bible-verse-reference {
   font-weight: 700;
-  color: var(--ig-secondary-text);
+  color: var(--brand);
   font-size: 0.8125rem;
 }
 
-.bible-verse-item--search:hover .bible-verse-reference {
+/* 매칭 키워드 하이라이트 — 형광펜 대신 브랜드 틴트로 차분하게 */
+.verse-keyword-hl {
+  background: rgba(49, 130, 246, 0.14);
   color: var(--brand);
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 0 2px;
+  margin: 0 -1px;
+}
+
+[data-theme="dark"] .verse-keyword-hl {
+  background: rgba(96, 165, 250, 0.18);
+  color: #93c5fd;
 }
 
 /* ── 책 카드 + 장 선택 그리드 ─────────────────────────────── */
@@ -471,13 +493,15 @@
   transition: all 0.15s;
 }
 
-.search-book-head:hover .search-book-head__chevron {
-  color: var(--brand);
-  opacity: 1;
-}
+@media (hover: hover) {
+  .search-book-head:hover .search-book-head__chevron {
+    color: var(--brand);
+    opacity: 1;
+  }
 
-.search-book-head:hover .search-book-head__title {
-  color: var(--brand);
+  .search-book-head:hover .search-book-head__title {
+    color: var(--brand);
+  }
 }
 
 .chapter-grid-header {
@@ -554,7 +578,16 @@
   overflow: hidden;
 }
 
-.chapter-cell:hover {
+@media (hover: hover) {
+  .chapter-cell:hover {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: white;
+  }
+}
+
+/* 터치 탭 피드백 — hover 잔상 없이 누르는 동안만 */
+.chapter-cell:active {
   background: var(--brand);
   border-color: var(--brand);
   color: white;
@@ -578,7 +611,13 @@
   color: var(--brand);
 }
 
-.chapter-cell:hover .chapter-cell__check {
+@media (hover: hover) {
+  .chapter-cell:hover .chapter-cell__check {
+    color: white;
+  }
+}
+
+.chapter-cell:active .chapter-cell__check {
   color: white;
 }
 

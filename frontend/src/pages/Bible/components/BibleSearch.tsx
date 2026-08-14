@@ -110,7 +110,7 @@ const BibleSearch = () => {
       scopeAll: '전체',
       scopeOld: '구약',
       scopeNew: '신약',
-      searchResults: '검색 결과',
+      resultsCount: (n: number) => `검색 결과 ${n.toLocaleString()}절`,
       noResults: '검색 결과가 없습니다',
       noResultsInScope: '선택한 범위에 검색 결과가 없습니다',
       bookFound: '해당 책을 찾았습니다',
@@ -134,7 +134,7 @@ const BibleSearch = () => {
       scopeAll: 'All',
       scopeOld: 'OT',
       scopeNew: 'NT',
-      searchResults: 'Search Results',
+      resultsCount: (n: number) => `${n.toLocaleString()} verse${n === 1 ? '' : 's'} found`,
       noResults: 'No results found',
       noResultsInScope: 'No results in the selected scope',
       bookFound: 'Book found',
@@ -241,6 +241,33 @@ const BibleSearch = () => {
 
   const hasAnyResult = booksToShow.length > 0 || loadedVerses.length > 0
 
+  // 키워드 검색 결과에서 매칭 단어 강조 — "왜 이 절이 걸렸는지"가 훑기만 해도 보이게.
+  // 여러 단어 AND 검색은 단어별로 각각 칠한다. 장 검색(창 1)은 키워드가 없으므로 제외.
+  const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const highlightTokens =
+    trimmedQuery && !searchResults?.is_chapter_search
+      ? [...new Set(trimmedQuery.split(/\s+/).filter(Boolean))]
+      : []
+  const highlightPattern =
+    highlightTokens.length > 0
+      ? new RegExp(`(${highlightTokens.map(escapeRegExp).join('|')})`, 'gi')
+      : null
+  const renderVerseText = (text: string) => {
+    if (!highlightPattern) return text
+    // 캡처 그룹 split — 홀수 인덱스가 매칭 조각
+    return text
+      .split(highlightPattern)
+      .map((part, i) =>
+        i % 2 === 1 ? (
+          <mark key={i} className="verse-keyword-hl">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )
+  }
+
   const currentPlaceholder = t.placeholderExamples[placeholderIndex % t.placeholderExamples.length]
 
   // 무한 스크롤 — 결과 목록 끝의 센티널이 보이면 다음 페이지를 이어 받는다
@@ -271,6 +298,7 @@ const BibleSearch = () => {
                 if (e.target.value === '') setSearchQuery('')
               }}
               aria-label={t.searchAria}
+              enterKeyHint="search"
               className="search-input"
             />
             {(searchKeyword || searchQuery) && (
@@ -293,9 +321,6 @@ const BibleSearch = () => {
               </span>
             )}
           </div>
-          <button type="submit" className="search-button">
-            <span className="material-icons-round">search</span>
-          </button>
         </div>
 
         <div className="search-scope-filter" role="radiogroup" aria-label={t.scopeLabel}>
@@ -390,7 +415,7 @@ const BibleSearch = () => {
           <p className="results-count">
             {searchResults.is_chapter_search && searchResults.book_name_ko
               ? `${searchResults.book_name_ko} ${searchResults.chapter}장 · ${shownTotal}절`
-              : `${t.searchResults}: ${shownTotal}개`}
+              : t.resultsCount(shownTotal)}
           </p>
           <div className="verses-list">
             {scopedVerses.map(verse => (
@@ -411,7 +436,7 @@ const BibleSearch = () => {
                 <div className="bible-verse-reference">
                   {verse.book_name_ko || nameByNumber.get(verse.book_number ?? -1) || searchResults.book_name_ko || ''} {verse.chapter}:{verse.verse}
                 </div>
-                <div className="bible-verse-text">{verse.text}</div>
+                <div className="bible-verse-text">{renderVerseText(verse.text)}</div>
               </div>
             ))}
           </div>
