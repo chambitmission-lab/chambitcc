@@ -192,7 +192,7 @@ const BookJourneyPath = ({
   // 완독 쪽에서 실선이 시작해 점으로 잦아드는 '닦이는 중인 길'
   const segments = useMemo(() => {
     const nodes = items.filter((it): it is Extract<PathItem, { kind: 'book' }> => it.kind === 'book')
-    const segs: { d: string; state: 'done' | 'half' | 'todo'; key: string }[] = []
+    const segs: { d: string; state: 'done' | 'half' | 'todo'; flow: boolean; key: string }[] = []
     for (let i = 1; i < nodes.length; i++) {
       const a = nodes[i - 1]
       const b = nodes[i]
@@ -207,10 +207,13 @@ const BookJourneyPath = ({
       const d = reversed
         ? `M ${b.cx} ${b.cy} C ${b.cx} ${b.cy - dy}, ${a.cx} ${a.cy + dy}, ${a.cx} ${a.cy}`
         : `M ${a.cx} ${a.cy} C ${a.cx} ${a.cy + dy}, ${b.cx} ${b.cy - dy}, ${b.cx} ${b.cy}`
-      segs.push({ d, state, key: `${a.book.id}-${b.book.id}` })
+      // 현재 읽고 있는 정거장으로 들어오는 구간 하나만 빛이 흘러드는 애니메이션을 준다
+      // — "말씀이 지금 나를 인도하는 중". 경로 방향(완독→현재)과 흐름 방향이 일치할 때만.
+      const flow = state === 'half' && !reversed && b.book.book_number === currentBookNumber
+      segs.push({ d, state, flow, key: `${a.book.id}-${b.book.id}` })
     }
     return segs
-  }, [items, infoMap])
+  }, [items, infoMap, currentBookNumber])
 
   const scrollToCurrent = useCallback(() => {
     const node = currentNodeRef.current
@@ -318,7 +321,14 @@ const BookJourneyPath = ({
             </linearGradient>
           </defs>
           {segments.map(seg => (
-            <path key={seg.key} className={`bjp-seg bjp-seg--${seg.state}`} d={seg.d} />
+            <g key={seg.key}>
+              {/* 등불 사이로 번지는 빛 — 완독 자취 밑에 깔리는 흐릿한 광선 레이어 */}
+              {seg.state === 'done' && <path className="bjp-seg-halo" d={seg.d} />}
+              <path
+                className={`bjp-seg bjp-seg--${seg.state}${seg.flow ? ' bjp-seg--flow' : ''}`}
+                d={seg.d}
+              />
+            </g>
           ))}
         </svg>
       )}

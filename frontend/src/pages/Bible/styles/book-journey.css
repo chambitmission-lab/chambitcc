@@ -49,6 +49,32 @@
   opacity: 0.5;
 }
 
+/* 등불 사이로 번지는 빛 — 완독 자취 밑에 깔리는 흐릿한 광선 레이어(TSX에서 완독 구간에만 렌더) */
+.bjp-seg-halo {
+  fill: none;
+  stroke: url(#bjp-trail-grad);
+  stroke-width: 9;
+  stroke-linecap: round;
+  opacity: 0.13;
+}
+
+/* 현재 정거장으로 흘러드는 빛 — "주의 말씀은 내 발에 등이요 내 길에 빛이니이다"(시 119:105).
+   여정 전체가 아니라 지금 나를 인도하는 마지막 한 구간만 아주 느리게 흐른다. */
+.bjp-seg--flow {
+  opacity: 0.6;
+  animation: bjp-flow 7s linear infinite;
+}
+
+@keyframes bjp-flow {
+  from {
+    /* half의 dasharray 패턴 합(82.5)과 일치해야 이음새 없이 순환한다 */
+    stroke-dashoffset: 82.5;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* ── 정거장 행(노드 + 라벨) ─────────────────────────────── */
 .bjp-row {
   position: absolute;
@@ -172,16 +198,35 @@
   opacity: 0.7;
 }
 
-/* 완독 — 채워진 정거장 */
+/* 완독 — 켜진 등불. 위쪽에서 빛이 도는 구체 질감 + 1px 빛줄 림 + 주변을 밝히는 정적 halo.
+   다크모드 카드 문법(솔리드+미세 그라데이션+1px 빛줄)을 노드에 그대로 적용한 것.
+   halo는 애니메이션 없는 정적 빛 — 무한 글로우 절제 원칙. */
 .bjp-row--done .bjp-node__inner {
-  background: linear-gradient(150deg, #4593fc, var(--brand));
+  background:
+    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.3), transparent 45%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim));
   border-color: transparent;
-  box-shadow: 0 4px 14px -4px rgba(49, 130, 246, 0.55);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 4px rgba(49, 130, 246, 0.09),
+    0 0 18px 2px rgba(49, 130, 246, 0.26),
+    0 4px 14px -4px rgba(49, 130, 246, 0.55);
+}
+
+[data-theme="dark"] .bjp-row--done .bjp-node__inner {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 4px rgba(69, 147, 252, 0.09),
+    0 0 22px 3px rgba(69, 147, 252, 0.3),
+    0 4px 16px -4px rgba(49, 130, 246, 0.6);
 }
 
 .bjp-node__check {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   color: #fff;
+  text-shadow: 0 1px 6px rgba(255, 255, 255, 0.35);
 }
 
 /* ── 지금 여기 ───────────────────────────────────────────── */
@@ -430,6 +475,9 @@
     opacity: 0.7;
   }
   .bjp-here__dot {
+    animation: none;
+  }
+  .bjp-seg--flow {
     animation: none;
   }
 }
