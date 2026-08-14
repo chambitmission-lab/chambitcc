@@ -122,6 +122,7 @@
 }
 
 .bjp-node__inner {
+  position: relative; /* 완독 스탬프 압인 링(::after)의 기준 */
   display: grid;
   place-items: center;
   width: 100%;
@@ -223,10 +224,44 @@
     0 4px 16px -4px rgba(49, 130, 246, 0.6);
 }
 
+/* 순례 스탬프 압인 링 — 여권 도장의 톱니 테두리처럼 채움 안쪽을 도는 점선 링 */
+.bjp-row--done .bjp-node__inner::after {
+  content: '';
+  position: absolute;
+  inset: 4.5px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+/* 도장이 찍히는 등장 — 크게 내려와 꾹 눌렸다가 자리 잡는 압인.
+   행의 pop-in 스태거(inline animation-delay)를 그대로 물려받아 순서대로 찍힌다. */
+.bjp-row--done .bjp-node {
+  animation: bjp-stamp 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: inherit;
+}
+
+@keyframes bjp-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.55) rotate(-12deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.95) rotate(1.5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .bjp-node__check {
   font-size: 1.3rem;
   color: #fff;
   text-shadow: 0 1px 6px rgba(255, 255, 255, 0.35);
+  /* 손으로 찍은 도장의 미세한 기울기 */
+  transform: rotate(-8deg);
 }
 
 /* ── 지금 여기 ───────────────────────────────────────────── */
@@ -478,6 +513,9 @@
     animation: none;
   }
   .bjp-seg--flow {
+    animation: none;
+  }
+  .bjp-row--done .bjp-node {
     animation: none;
   }
 }
