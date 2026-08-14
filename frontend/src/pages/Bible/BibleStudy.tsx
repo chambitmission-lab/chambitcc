@@ -53,8 +53,11 @@ const BibleStudy = () => {
   const { isLoggedIn } = useAuth()
   const { data: bookmarkStats } = useBookmarkStats()
   const favoritesCount = bookmarkStats?.favorites_count ?? 0
-  const { data: resumeData } = useResumeReading(20, isLoggedIn())
-  const { data: progressData } = useReadingProgress(isLoggedIn())
+  // isPending까지 받는 이유: 요약 카드·최근 읽은 책이 데이터 도착 전엔 자리 없이 숨어 있다가
+  // 늦게 나타나면 아래 목록이 밀려 새로고침처럼 보인다 — 로딩 동안 스켈레톤으로 자리를 잡는다.
+  // 비로그인 시 쿼리가 disabled라 isPending이 영원히 true이므로 isLoggedIn()과 함께 판정해야 한다.
+  const { data: resumeData, isPending: resumePending } = useResumeReading(20, isLoggedIn())
+  const { data: progressData, isPending: progressPending } = useReadingProgress(isLoggedIn())
 
   const resumeMap = useMemo(() => {
     const map = new Map<number, ResumePosition>()
@@ -364,7 +367,9 @@ const BibleStudy = () => {
                 onBookSelect={handleBookSelect}
                 resumeMap={resumeMap}
                 progress={progressData}
+                progressPending={isLoggedIn() && progressPending}
                 recentBooks={recentForSlider}
+                recentPending={isLoggedIn() && resumePending}
               />
             )}
             

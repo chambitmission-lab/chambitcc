@@ -16,6 +16,10 @@ interface BookSelectorProps {
   resumeMap?: Map<number, ResumePosition>
   /** 읽기 진행률 원본 — 요약 줄·분류 칩·책 카드·지도의 모든 수치가 여기서 파생된다 */
   progress?: ReadingProgressResponse['data']
+  /** progress 쿼리가 로딩 중(로그인 상태 한정) — 요약 카드 자리에 스켈레톤을 세운다 */
+  progressPending?: boolean
+  /** resume 쿼리가 로딩 중(로그인 상태 한정) — 최근 읽은 책 자리에 스켈레톤을 세운다 */
+  recentPending?: boolean
   /** 최근 읽은 책(전역 최신 제외) — 상단 가로 슬라이더에 사용 */
   recentBooks?: ResumePosition[]
 }
@@ -74,7 +78,7 @@ const pctLabel = (rate: number) => (rate > 0 ? Math.max(1, Math.round(rate)) : 0
 /** 게이지 최소 두께 — 0.4% 같은 값도 눈에 보이게 */
 const gaugeWidth = (rate: number) => (rate > 0 ? Math.max(3, rate) : 0)
 
-const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progress, recentBooks }: BookSelectorProps) => {
+const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progress, progressPending, recentBooks, recentPending }: BookSelectorProps) => {
   const { language } = useLanguage()
   const [testament, setTestament] = useState<Testament>('OT')
   const [filter, setFilter] = useState<string>('all')
@@ -477,6 +481,24 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
 
       {/* 읽기 진행 요약 — 전체/구약/신약을 나란히 두어 "지금 어디가 비었나"를 먼저 알려준다.
           탭 안에 %를 넣지 않는 이유: 탭은 선택 컨트롤이고, 비활성 탭의 수치는 가려지기 때문 */}
+      {summaryStats.length === 0 && progressPending && (
+        <div className="reading-summary" aria-hidden="true">
+          <div className="reading-summary__head">
+            <span className="bib-skel bib-skel--title" />
+            <span className="bib-skel bib-skel--toggle" />
+          </div>
+          <div className="reading-summary__row">
+            {[0, 1, 2].map(i => (
+              <div className="summary-stat" key={i}>
+                <span className="bib-skel bib-skel--label" />
+                <span className="bib-skel bib-skel--value" />
+                <span className="summary-stat__track" />
+                <span className="bib-skel bib-skel--detail" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {summaryStats.length > 0 && (
         <div className="reading-summary">
           <div className="reading-summary__head">
@@ -514,6 +536,26 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         </div>
       )}
 
+      {recentItems.length === 0 && recentPending && (
+        <div className="recent-strip" aria-hidden="true">
+          <div className="recent-strip__title">
+            <span className="bib-skel bib-skel--title" />
+          </div>
+          <div className="recent-scroll-wrap">
+            <div className="recent-scroll">
+              {[0, 1].map(i => (
+                <div className="recent-chip recent-chip--skel" key={i}>
+                  <span className="bib-skel bib-skel--chip-icon" />
+                  <span className="recent-chip__body">
+                    <span className="bib-skel bib-skel--chip-name" />
+                    <span className="bib-skel bib-skel--chip-meta" />
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       {recentItems.length > 0 && (
         <div className="recent-strip">
           <h3 className="recent-strip__title">{t.recentTitle}</h3>

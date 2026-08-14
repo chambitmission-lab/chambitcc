@@ -430,6 +430,104 @@
   color: var(--brand);
 }
 
+/* ── 로딩 스켈레톤 ─────────────────────────────────────────
+   읽기 진행 요약·최근 읽은 책은 개인화 쿼리가 도착해야 그려진다.
+   자리 없이 늦게 나타나면 아래 책 목록 전체가 밀려 새로고침처럼 보이므로,
+   로딩 동안 실제 카드와 같은 크기의 뼈대를 먼저 세워 레이아웃을 고정한다. */
+.bib-skel {
+  display: inline-block;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(120, 120, 130, 0.12) 25%,
+    rgba(120, 120, 130, 0.2) 50%,
+    rgba(120, 120, 130, 0.12) 75%
+  );
+  background-size: 200% 100%;
+  animation: bib-skel-shimmer 1.4s ease-in-out infinite;
+}
+
+[data-theme="dark"] .bib-skel {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(255, 255, 255, 0.11) 50%,
+    rgba(255, 255, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes bib-skel-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* 크기는 실제 요소의 폰트 박스에 맞춘다 — 데이터가 와도 높이가 튀지 않게 */
+.bib-skel--title {
+  width: 4rem;
+  height: 0.8125rem;
+}
+
+.bib-skel--toggle {
+  width: 3.6rem;
+  height: 1.65rem; /* map-toggle 버튼(패딩 0.28rem×2 + 0.72rem 텍스트)과 동일 */
+  border-radius: 999px;
+}
+
+.bib-skel--label {
+  width: 2rem;
+  height: 0.9rem;
+}
+
+.bib-skel--value {
+  width: 2.6rem;
+  height: 1.35rem; /* summary-stat__value 폰트 크기와 동일 */
+}
+
+.bib-skel--detail {
+  width: 4.4rem;
+  height: 0.85rem;
+}
+
+.bib-skel--chip-icon {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+}
+
+.bib-skel--chip-name {
+  width: 3.2rem;
+  height: 0.8rem;
+}
+
+.bib-skel--chip-meta {
+  width: 5.4rem;
+  height: 0.68rem;
+}
+
+/* 고스트 칩 — 실제 recent-chip의 껍데기만. 클릭 대상이 아니므로 상호작용 스타일 제거 */
+.recent-chip--skel {
+  cursor: default;
+  pointer-events: none;
+}
+
+.recent-chip--skel .recent-chip__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bib-skel {
+    animation: none;
+  }
+}
+
 /* 구약/신약 탭 + 분류 칩을 하나의 패널로 묶는 컨테이너
    — "칩은 선택된 탭의 하위 분류"라는 종속 관계를 시각적으로 드러낸다 */
 .book-nav {
