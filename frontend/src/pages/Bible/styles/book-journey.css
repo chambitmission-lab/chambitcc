@@ -206,31 +206,50 @@
   }
 }
 
+/* 라벨 위 인라인 미니 칩 — 노드 위 말풍선이었을 땐 사인 곡선상 연속 두 책이
+   같은 x에 수직으로 붙는 구간(예: 출애굽기→레위기)에서 위 노드와 겹쳤다.
+   라벨 컬럼 안에 두면 항상 자기 행(88px) 안이라 어떤 배치에서도 안전하다. */
 .bjp-here {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  align-self: flex-start;
   white-space: nowrap;
-  padding: 0.22rem 0.55rem;
+  padding: 0.13rem 0.5rem;
+  margin-bottom: 0.1rem;
   border-radius: 999px;
   background: var(--brand);
   color: #fff;
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 700;
+  letter-spacing: 0.01em;
   box-shadow: 0 3px 10px -2px rgba(49, 130, 246, 0.5);
-  z-index: 2;
 }
 
-/* 말풍선 꼬리 */
-.bjp-here::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 4px solid transparent;
-  border-top-color: var(--brand);
+/* 왼쪽 행은 라벨이 오른쪽 정렬이므로 칩도 같은 쪽에 붙인다 */
+.bjp-row--left .bjp-here {
+  align-self: flex-end;
+}
+
+/* 살아 있는 위치 표식 — 노드 펄스 링과 같은 리듬의 점 */
+.bjp-here__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  animation: bjp-here-blink 2.2s ease-out infinite;
+}
+
+@keyframes bjp-here-blink {
+  0%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.7);
+  }
 }
 
 /* ── 다음 순서 ───────────────────────────────────────────────
@@ -405,5 +424,8 @@
   .bjp-row--current .bjp-node::before {
     animation: none;
     opacity: 0.7;
+  }
+  .bjp-here__dot {
+    animation: none;
   }
 }

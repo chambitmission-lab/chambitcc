@@ -394,13 +394,16 @@ const BookJourneyPath = ({
                   <span className="bjp-node__abbrev">{bookAbbrev(book.book_number, language)}</span>
                 )}
               </span>
+            </span>
+            <span className="bjp-label">
+              {/* 노드 위 말풍선이었을 땐 바로 위 정거장과 겹쳤다(사인 곡선상 연속 두 책이
+                  같은 x에 수직으로 붙는 구간) — 라벨 위 인라인 칩은 자기 행 안이라 안전 */}
               {isCurrent && (
                 <span className="bjp-here" aria-hidden="true">
+                  <span className="bjp-here__dot" />
                   {t.here}
                 </span>
               )}
-            </span>
-            <span className="bjp-label">
               <span className="bjp-label__name">{book.book_name_ko}</span>
               <span className={`bjp-label__meta bjp-label__meta--${metaTone}`}>{meta}</span>
             </span>
