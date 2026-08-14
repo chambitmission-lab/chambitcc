@@ -62,13 +62,13 @@ const JOURNEY_PTS = GLOW_LEVELS.map((_, i) => ({
   y: JOURNEY_YS[i] ?? 50,
 }))
 
-/* 앞 count 개 구간을 Catmull-Rom → cubic Bezier 로 잇는다.
-   컨트롤 포인트는 항상 전체 경로 기준이라 부분 경로(지나온 길)가
-   전체 트랙 위에 정확히 겹친다 */
-const buildJourneyD = (count: number) => {
+/* from~to 구간을 Catmull-Rom → cubic Bezier 로 잇는다.
+   컨트롤 포인트는 항상 전체 경로 기준이라 부분 경로(지나온 길·남은 길)가
+   서로 정확히 이어진다 */
+const buildJourneyD = (from: number, to: number) => {
   const pts = JOURNEY_PTS
-  let d = `M ${pts[0].x} ${pts[0].y}`
-  for (let i = 0; i < count; i++) {
+  let d = `M ${pts[from].x.toFixed(1)} ${pts[from].y}`
+  for (let i = from; i < to; i++) {
     const p0 = pts[i - 1] ?? pts[i]
     const p1 = pts[i]
     const p2 = pts[i + 1]
@@ -81,7 +81,6 @@ const buildJourneyD = (count: number) => {
   }
   return d
 }
-const JOURNEY_TRACK_D = buildJourneyD(GLOW_LEVELS.length - 1)
 
 const EARN_ICON_PATHS: Record<string, string[]> = {
   flame: [
@@ -260,9 +259,33 @@ const LevelProgress = ({
               preserveAspectRatio="none"
               aria-hidden="true"
             >
-              <path className="lp-journey__track" d={JOURNEY_TRACK_D} />
+              {/* 지나온 길: 출발점에서 옅게 시작해 현재 위치로 올수록 진해지는 잉크.
+                  gradientUnits=userSpaceOnUse 라 경로 좌표(viewBox)를 그대로 쓴다 */}
+              <defs>
+                <linearGradient
+                  id="lp-trail-grad"
+                  gradientUnits="userSpaceOnUse"
+                  x1={JOURNEY_PTS[0].x}
+                  y1={JOURNEY_PTS[0].y}
+                  x2={JOURNEY_PTS[currentIdx].x}
+                  y2={JOURNEY_PTS[currentIdx].y}
+                >
+                  <stop offset="0" style={{ stopColor: 'var(--brand)', stopOpacity: 0.22 }} />
+                  <stop offset="1" style={{ stopColor: 'var(--brand)', stopOpacity: 0.92 }} />
+                </linearGradient>
+              </defs>
+              {/* 남은 길만 발자국 점선 — 지나온 구간엔 점선을 깔지 않아 겹침이 없다 */}
+              {currentIdx < GLOW_LEVELS.length - 1 && (
+                <path
+                  className="lp-journey__track"
+                  d={buildJourneyD(currentIdx, GLOW_LEVELS.length - 1)}
+                />
+              )}
               {currentIdx > 0 && (
-                <path className="lp-journey__trail" d={buildJourneyD(currentIdx)} />
+                <>
+                  <path className="lp-journey__trail-soft" d={buildJourneyD(0, currentIdx)} />
+                  <path className="lp-journey__trail" d={buildJourneyD(0, currentIdx)} />
+                </>
               )}
             </svg>
             {GLOW_LEVELS.map((lv, i) => (

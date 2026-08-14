@@ -27,6 +27,26 @@ export function toOpaqueColor(rgbaColor: string): string {
   return `rgb(${m[1]}, ${m[2]}, ${m[3]})`
 }
 
+/** RGB(0~255) → HSL. h 는 0~360, s·l 은 0~1 */
+const rgbToHsl = (r: number, g: number, b: number) => {
+  const rn = r / 255
+  const gn = g / 255
+  const bn = b / 255
+  const max = Math.max(rn, gn, bn)
+  const min = Math.min(rn, gn, bn)
+  const l = (max + min) / 2
+  const d = max - min
+  if (d === 0) return { h: 0, s: 0, l }
+  const s = d / (1 - Math.abs(2 * l - 1))
+  let h: number
+  if (max === rn) h = ((gn - bn) / d) % 6
+  else if (max === gn) h = (bn - rn) / d + 2
+  else h = (rn - gn) / d + 4
+  h = Math.round(h * 60)
+  if (h < 0) h += 360
+  return { h, s, l }
+}
+
 export function getReadableTextStyle(rgbaColor: string): ReadableTextStyle {
   const m = rgbaColor.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/)
   if (!m) return FALLBACK
@@ -36,14 +56,15 @@ export function getReadableTextStyle(rgbaColor: string): ReadableTextStyle {
   // ITU-R BT.601 휘도 근사 (0~1)
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
   if (luminance > 0.65) {
-    // 중성 검정 대신 같은 색 계열을 짙게 낮춘 톤온톤 글자색(예: 골드 → 딥 브라운).
-    // 0.26 배율로 충분한 대비를 확보하면서 배경과 자연스럽게 어울리게 한다.
-    const dr = Math.round(r * 0.26)
-    const dg = Math.round(g * 0.26)
-    const db = Math.round(b * 0.26)
+    // RGB 일괄 감산은 색조가 죽어 검정처럼 읽힌다(골드 → 거의 블랙).
+    // 색상(hue)은 지키고 채도를 살린 채 명도만 낮춰 '같은 색의 짙은 잉크'로 —
+    // 골드 배경이면 딥 앰버, 핑크 배경이면 딥 로즈 글자가 된다.
+    // 명도 21%는 가장 밝은 배경(흰색·골드)에서도 WCAG 4.5:1 을 지키는 상한 근처.
+    const { h, s } = rgbToHsl(r, g, b)
+    const sat = s > 0.2 ? Math.min(1, s * 1.15) : s
     return {
-      color: `rgb(${dr}, ${dg}, ${db})`,
-      textShadow: '0 1px 1px rgba(255, 255, 255, 0.45)',
+      color: `hsl(${h}, ${Math.round(sat * 100)}%, 21%)`,
+      textShadow: '0 1px 1px rgba(255, 255, 255, 0.35)',
     }
   }
   return FALLBACK

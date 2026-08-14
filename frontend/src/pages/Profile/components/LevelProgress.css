@@ -71,7 +71,7 @@
   overflow: visible;
   pointer-events: none;
 }
-/* 남은 길 — 점점이 찍힌 발자국 트랙 */
+/* 남은 길 — 점점이 찍힌 발자국 트랙 (현재 위치부터만 그려진다) */
 .lp-journey__track {
   fill: none;
   stroke: rgba(0, 0, 0, 0.18);
@@ -83,15 +83,28 @@
 [data-theme='dark'] .lp-journey__track {
   stroke: rgba(255, 255, 255, 0.18);
 }
-/* 지나온 길 — 브랜드 색 실선이 트랙 위에 정확히 겹친다 */
+/* 지나온 길 — 출발점에서 옅게 시작해 현재에 가까울수록 진해지는 잉크 획.
+   색은 SVG 내 linearGradient(#lp-trail-grad)가 칠한다 */
 .lp-journey__trail {
   fill: none;
-  stroke: var(--brand);
+  stroke: url(#lp-trail-grad);
   stroke-width: 2.5px;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.6;
   vector-effect: non-scaling-stroke;
+}
+/* 실선 아래 넓게 번진 수채 밑칠 — 획이 종이에 스민 듯한 부드러움 */
+.lp-journey__trail-soft {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 7px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.09;
+  vector-effect: non-scaling-stroke;
+}
+[data-theme='dark'] .lp-journey__trail-soft {
+  opacity: 0.16;
 }
 .lp-journey__stop {
   position: absolute;
