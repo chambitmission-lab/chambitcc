@@ -38,7 +38,7 @@ export const getMe = async (): Promise<MeResponse> => {
 }
 
 // 이름(프로필) 변경 실패 종류
-export type UpdateNameError = 'invalid' | 'failed'
+export type UpdateNameError = 'invalid' | 'duplicate' | 'failed'
 
 // 이름(full_name) 변경
 export const updateName = async (fullName: string): Promise<MeResponse> => {
@@ -52,7 +52,11 @@ export const updateName = async (fullName: string): Promise<MeResponse> => {
   })
 
   if (!response.ok) {
-    const kind: UpdateNameError = response.status === 422 ? 'invalid' : 'failed'
+    // 400은 이름 중복 (백엔드 detail은 한국어 고정 → 종류만 구분해 번역)
+    const kind: UpdateNameError =
+      response.status === 422 ? 'invalid'
+        : response.status === 400 ? 'duplicate'
+          : 'failed'
     throw new Error(kind)
   }
 

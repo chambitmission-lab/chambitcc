@@ -177,7 +177,11 @@ const AccountSettings = () => {
       showToast(t('accountNameChanged'), 'success')
     } catch (err) {
       const kind = (err instanceof Error ? err.message : 'failed') as UpdateNameError
-      setNameError(t(kind === 'invalid' ? 'accountNameEmpty' : 'accountChangeNameFailed'))
+      setNameError(t(
+        kind === 'invalid' ? 'accountNameEmpty'
+          : kind === 'duplicate' ? 'accountNameDuplicate'
+            : 'accountChangeNameFailed'
+      ))
     } finally {
       setNameSubmitting(false)
     }

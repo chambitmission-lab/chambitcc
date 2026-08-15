@@ -40,7 +40,7 @@ export const auth = {
   registerGreeting: 'Welcome',
   registerHeadline: 'Just a few details',
   registerFullName: 'Full Name (Optional)',
-  registerFullNameHelp: 'This is how we will greet you at church.',
+  registerFullNameHelp: 'This is how we will greet you at church. Names must be unique — add a number if yours is taken.',
   registerUsername: 'Username',
   // The minimum length is shown as a hint under the field, not in the label
   registerPassword: 'Password',
@@ -84,6 +84,7 @@ export const auth = {
   accountNameChanged: 'Your name has been updated',
   accountNameEmpty: 'Please enter your name',
   accountChangeNameFailed: 'Failed to update name',
+  accountNameDuplicate: 'This name is already taken. Add a number if someone shares your name.',
   // Account UX — inline editing / locked fields / password rules
   accountEdit: 'Edit',
   accountSave: 'Save',

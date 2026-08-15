@@ -40,7 +40,7 @@ export const auth = {
   registerGreeting: '환영해요',
   registerHeadline: '몇 가지만 알려주세요',
   registerFullName: '이름 (선택)',
-  registerFullNameHelp: '교회 안에서 이렇게 불러드릴게요.',
+  registerFullNameHelp: '교회 안에서 이렇게 불러드릴게요. 같은 이름은 쓸 수 없어요 — 동명이인이라면 뒤에 숫자 등을 붙여주세요.',
   registerUsername: '아이디',
   // 최소 길이는 라벨이 아니라 필드 아래 힌트로 안내한다
   registerPassword: '비밀번호',
@@ -84,6 +84,7 @@ export const auth = {
   accountNameChanged: '이름이 변경되었습니다',
   accountNameEmpty: '이름을 입력해주세요',
   accountChangeNameFailed: '이름 변경에 실패했습니다',
+  accountNameDuplicate: '이미 사용 중인 이름입니다. 동명이인이라면 뒤에 숫자 등을 붙여주세요.',
   // 내 정보 UX 개선 — 인라인 수정 / 잠금 항목 / 비밀번호 규칙
   accountEdit: '수정',
   accountSave: '저장',
