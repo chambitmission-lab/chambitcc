@@ -44,11 +44,8 @@ export const scheduleTitleEvaluation = (delay = 3500) => {
   }, delay)
 }
 
-/** 즉시 평가(예: 칭호 페이지 진입). 디바운스를 건너뛴다. */
-export const evaluateTitlesNow = () => {
-  if (debounceTimer) {
-    clearTimeout(debounceTimer)
-    debounceTimer = null
-  }
-  void runEvaluation()
+/** 이미 확보한 해금 목록을 팝업으로 흘려보낸다 — GET /titles 응답의 newly_earned 등.
+ * (칭호 페이지 진입 시 별도 /evaluate 호출 없이 목록 조회 한 번으로 팝업까지 처리) */
+export const emitTitleUnlocks = (titles: TitleStatus[]) => {
+  emit(titles)
 }

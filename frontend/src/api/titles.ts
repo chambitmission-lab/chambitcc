@@ -35,6 +35,9 @@ export interface TitlesSummary {
 export interface TitlesPayload {
   titles: TitleStatus[]
   summary: TitlesSummary
+  // GET /titles 가 이번 조회로 새로 해금된 칭호를 함께 돌려준다(해금 팝업용).
+  // 구버전 백엔드에는 없는 필드라 optional — 없으면 팝업만 생략된다.
+  newly_earned?: TitleStatus[]
 }
 
 export interface EvaluatePayload extends TitlesPayload {

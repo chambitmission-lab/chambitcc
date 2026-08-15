@@ -1,9 +1,10 @@
 // 성경 칭호 컬렉션 — 통계 요약 + "곧 획득" 훅 + 카테고리별 메달 도감 그리드.
 // 카드 리스트 → 메달 그리드로 개편: 설명/장착은 상세 시트(TitleDetailSheet)로 이동.
 import { useEffect, useMemo, useState } from 'react'
-import type { TitleStatus } from '../../api/titles'
-import { useTitles, useEquipTitle } from '../../hooks/useTitles'
-import { evaluateTitlesNow } from '../../utils/titleUnlockBus'
+import { useQueryClient } from '@tanstack/react-query'
+import type { TitleStatus, TitlesPayload } from '../../api/titles'
+import { useTitles, useEquipTitle, titleKeys } from '../../hooks/useTitles'
+import { emitTitleUnlocks } from '../../utils/titleUnlockBus'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { TitleMedal, TitleMedalTile } from './TitleMedal'
 import { TitleDetailSheet } from './TitleDetailSheet'
@@ -20,12 +21,20 @@ export const TitleCollection: React.FC = () => {
   const { data, isLoading, error } = useTitles()
   const equipMut = useEquipTitle()
   const { t, language } = useLanguage()
+  const qc = useQueryClient()
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
 
-  // 칭호 페이지 진입 시 즉시 평가 — 그동안 쌓인 해금이 있으면 팝업으로 축하
+  // 진입 시 해금 축하 — GET /titles 가 동기화·평가까지 하고 newly_earned 를 돌려주므로
+  // 예전처럼 /titles/evaluate 를 따로 부르지 않는다(같은 풀 스캔이 2번 돌던 문제 제거).
+  // 팝업으로 한 번 소비한 해금은 캐시에서 비워 재마운트 시 중복 축하를 막는다.
   useEffect(() => {
-    evaluateTitlesNow()
-  }, [])
+    const newly = data?.newly_earned
+    if (!newly?.length) return
+    emitTitleUnlocks(newly)
+    qc.setQueryData<TitlesPayload>(titleKeys.list(), (prev) =>
+      prev ? { ...prev, newly_earned: [] } : prev,
+    )
+  }, [data, qc])
 
   const grouped = useMemo(() => {
     const map: Record<string, TitleStatus[]> = {}
