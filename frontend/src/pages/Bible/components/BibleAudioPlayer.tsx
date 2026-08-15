@@ -341,10 +341,15 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
     if (prevBook !== bookNumber) setEndChapter(null)
     else if (!auto && endChapter != null && chapter > endChapter) setEndChapter(null)
     if (!auto) {
-      // 사용자가 직접 장을 이동 — 재생을 멈추고 처음 상태로
+      // 사용자가 직접 장을 이동 — 재생을 멈추고 처음 상태로.
+      // 주의: 이 effect가 돌기 전 렌더에서 src가 이미 새 장 URL로 바뀌며
+      // 브라우저 로드 알고리즘이 paused를 "pause 이벤트 없이" true로 만든다.
+      // 그래서 아래 pause()는 no-op이 되고 onPause도 안 오므로,
+      // isPlaying을 여기서 직접 내려야 한다(안 내리면 '재생 중' 표시로 고착).
       wantPlayRef.current = false
       setStarted(false)
       setPreparing(false)
+      setIsPlaying(false)
       audioRef.current?.pause()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -779,6 +784,12 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
           }
         }}
         onPause={() => setIsPlaying(false)}
+        onEmptied={() => {
+          // src 교체(장 이동·음성 변경 등)로 미디어가 비워질 때 — 스펙상 이때
+          // paused는 true가 되지만 pause 이벤트는 오지 않는다. 상태를 직접 동기화.
+          // (자동 다음 장은 이후 play()가 다시 onPlay를 쏘므로 영향 없음)
+          setIsPlaying(false)
+        }}
         onEnded={() => {
           setIsPlaying(false)
           setCurrentTime(0)
