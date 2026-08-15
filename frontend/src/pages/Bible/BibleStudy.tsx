@@ -424,6 +424,8 @@ const BibleStudy = () => {
                   playFromVerse={playFromVerse}
                   hasNextChapter={selectedChapter < selectedBookData.chapter_count}
                   onAutoNextChapter={() => handleChapterChange(selectedChapter + 1)}
+                  totalChapters={selectedBookData.chapter_count}
+                  bookName={selectedBook}
                 />
 
                 {/* 권 개관 — 한 줄 진입 바. 실제 소개는 탭하면 열리는 읽기 시트라

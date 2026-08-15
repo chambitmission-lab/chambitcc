@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { API_V1 } from '../../../config/api'
 import { showToast } from '../../../utils/toast'
 import type { BibleTTSVoice } from '../../../types/bible'
+import AudioSleepSheet from './AudioSleepSheet'
 
 // 절 메뉴 '여기부터 듣기' 요청. seq가 바뀔 때마다 새 요청으로 처리한다.
 // book/chapter는 장 이동 직후 남은 이전 장 요청을 무시하기 위한 대조용.
@@ -25,6 +26,9 @@ interface BibleAudioPlayerProps {
   // 연속 재생(자동 다음 장): 현재 책에 다음 장이 있는지, 있으면 어떻게 넘어가는지
   hasNextChapter?: boolean
   onAutoNextChapter?: () => void
+  // 잠들기 전 듣기(수면 타이머·듣기 범위) 시트용 — 없으면 달 버튼을 숨긴다
+  totalChapters?: number
+  bookName?: string
 }
 
 // 절별 낭독 시작 시각(초) — 백엔드가 mp3 생성 시 WordBoundary로 산출해 캐시
@@ -66,6 +70,10 @@ const formatTime = (sec: number): string => {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+// 수면 타이머 남은 시간 — 1분 미만은 초, 그 외엔 분(올림)으로 짧게
+const formatRemain = (ms: number): string =>
+  ms < 60_000 ? `${Math.max(1, Math.ceil(ms / 1000))}초` : `${Math.ceil(ms / 60_000)}분`
+
 /**
  * 성경 한 장을 오디오북처럼 들려주는 플레이어.
  * - 재생 버튼을 누른 시점에만 백엔드 TTS 엔드포인트를 src로 걸어 지연 로딩
@@ -80,7 +88,7 @@ const formatTime = (sec: number): string => {
  * 호출해야 하는데, 모바일 자동재생 정책상 "한 번 재생했던 그 <audio> 요소"를
  * 재사용해야 허용되기 때문 — key 리마운트로 요소를 새로 만들면 iOS에서 막힌다.
  */
-const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingChange, playFromVerse, hasNextChapter, onAutoNextChapter }: BibleAudioPlayerProps) => {
+const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingChange, playFromVerse, hasNextChapter, onAutoNextChapter, totalChapters, bookName }: BibleAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const wantPlayRef = useRef(false) // src 로드 시 자동 재생할지
@@ -105,6 +113,18 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
   const [timings, setTimings] = useState<VerseTiming[] | null>(null)
   const [activeVerse, setActiveVerse] = useState<number | null>(null)
   const activeVerseRef = useRef<number | null>(null)
+
+  // ── 잠들기 전 듣기 ─────────────────────────────────────────────
+  // 수면 타이머 만료 시각(epoch ms). setTimeout은 화면이 꺼지면 스로틀되므로
+  // 재생 중 계속 발생하는 timeupdate 이벤트 + 1초 인터벌에서 실측 시각으로 판정한다.
+  const [sleepUntil, setSleepUntil] = useState<number | null>(null)
+  const sleepUntilRef = useRef<number | null>(null)
+  // 듣기 범위: 이 장(포함)까지 듣고 연속 재생을 멈춘다. null이면 제한 없음
+  const [endChapter, setEndChapter] = useState<number | null>(null)
+  const [showSleepSheet, setShowSleepSheet] = useState(false)
+  // 남은 시간 표시 갱신용 1초 틱 — 타이머가 켜져 있는 동안만 돈다
+  const [, setSleepTick] = useState(0)
+  const fadeTimerRef = useRef<number | null>(null)
   // 부모 콜백은 ref로 보관 — 렌더마다 바뀌어도 이펙트/핸들러를 재구성하지 않는다
   const onActiveVerseChangeRef = useRef(onActiveVerseChange)
   onActiveVerseChangeRef.current = onActiveVerseChange
@@ -115,6 +135,93 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
   useEffect(() => {
     onPlayingChangeRef.current?.(isPlaying)
   }, [isPlaying])
+
+  const cancelSleepFade = () => {
+    if (fadeTimerRef.current != null) {
+      clearInterval(fadeTimerRef.current)
+      fadeTimerRef.current = null
+      const audio = audioRef.current
+      if (audio) audio.volume = 1
+    }
+  }
+
+  // 수면 타이머 만료 → 볼륨을 몇 초간 서서히 줄인 뒤 일시정지(위치 보존 → 이어듣기 가능).
+  // iOS는 미디어 볼륨 설정이 무시되므로 페이드 없이 잠시 뒤 조용히 일시정지된다.
+  // 페이드 진행률은 스텝 수가 아닌 경과 시각 기준 — 백그라운드에서 인터벌이
+  // 1초로 스로틀돼도 제때 끝난다.
+  const startSleepFade = () => {
+    sleepUntilRef.current = null
+    setSleepUntil(null)
+    wantPlayRef.current = false // 다음 장 자동 재생을 기다리던 중이었다면 취소
+    const audio = audioRef.current
+    if (!audio || audio.paused) {
+      // 이미 조용한 상태(수동 일시정지·장 전환 대기 등) — 타이머만 조용히 해제
+      setPreparing(false)
+      return
+    }
+    if (fadeTimerRef.current != null) return
+    const FADE_MS = 2500
+    const fadeStart = Date.now()
+    fadeTimerRef.current = window.setInterval(() => {
+      const p = (Date.now() - fadeStart) / FADE_MS
+      if (p >= 1) {
+        if (fadeTimerRef.current != null) clearInterval(fadeTimerRef.current)
+        fadeTimerRef.current = null
+        audio.pause()
+        audio.volume = 1
+        showToast('설정한 시간이 되어 재생을 멈췄어요 🌙', 'info')
+      } else {
+        audio.volume = Math.max(0, 1 - p)
+      }
+    }, 100)
+  }
+
+  const checkSleepTimer = () => {
+    if (sleepUntilRef.current != null && Date.now() >= sleepUntilRef.current) startSleepFade()
+  }
+
+  // 타이머가 켜져 있는 동안 1초마다 남은 시간 표시를 갱신하고 만료를 판정한다.
+  // (화면이 꺼진 채 재생 중일 땐 timeupdate 이벤트가 판정을 이어받는다)
+  useEffect(() => {
+    if (sleepUntil == null) return
+    const id = window.setInterval(() => {
+      setSleepTick(t => t + 1)
+      checkSleepTimer()
+    }, 1000)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sleepUntil])
+
+  const handleSetSleepMinutes = (m: number | null) => {
+    cancelSleepFade()
+    if (m == null) {
+      const wasOn = sleepUntilRef.current != null
+      sleepUntilRef.current = null
+      setSleepUntil(null)
+      if (wasOn) showToast('수면 타이머를 껐어요', 'info')
+      return
+    }
+    const until = Date.now() + m * 60_000
+    sleepUntilRef.current = until
+    setSleepUntil(until)
+    showToast(`${m}분 뒤에 소리를 줄이며 멈출게요 🌙`, 'info')
+  }
+
+  const handleSetEndChapter = (ch: number | null) => {
+    setEndChapter(ch)
+    if (ch == null) return
+    // 범위 재생은 연속 재생이 전제 — 꺼져 있으면 함께 켠다
+    if (!autoNext && ch > chapter) {
+      setAutoNext(true)
+      localStorage.setItem(AUTO_NEXT_STORAGE_KEY, 'on')
+    }
+    showToast(
+      ch === chapter
+        ? '이 장까지만 듣고 멈출게요 🌙'
+        : `${bookName ? `${bookName} ` : ''}${ch}장까지 듣고 멈출게요 🌙`,
+      'info'
+    )
+  }
 
   // 절별 타이밍 로드. 캐시된 장은 첫 응답에 최종본이 온다.
   // 첫 재생(스트리밍 생성 중)엔 서버가 "지금까지 합성된 구간"의 부분(partial)
@@ -220,6 +327,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
       prevChapterKeyRef.current = key
       return
     }
+    const prevBook = Number(prevChapterKeyRef.current.split('-')[0])
     prevChapterKeyRef.current = key
     const auto = autoAdvanceRef.current
     autoAdvanceRef.current = false
@@ -229,6 +337,9 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
     setDuration(0)
     setIsError(false)
     syncActiveVerse(null)
+    // 듣기 범위: 다른 책으로 가거나, 수동 이동으로 범위를 지나쳤으면 해제
+    if (prevBook !== bookNumber) setEndChapter(null)
+    else if (!auto && endChapter != null && chapter > endChapter) setEndChapter(null)
     if (!auto) {
       // 사용자가 직접 장을 이동 — 재생을 멈추고 처음 상태로
       wantPlayRef.current = false
@@ -271,11 +382,12 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioUrl])
 
-  // 언마운트 시(장 이동 등) 재생 정지
+  // 언마운트 시(장 이동 등) 재생 정지 + 진행 중이던 수면 페이드 정리
   useEffect(() => {
     const audio = audioRef.current
     return () => {
       audio?.pause()
+      if (fadeTimerRef.current != null) clearInterval(fadeTimerRef.current)
     }
   }, [])
 
@@ -405,6 +517,17 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
   // 미니 플레이어: 재생을 한 번이라도 시작했고, 본 카드가 스크롤로 가려졌을 때만
   const showMini = started && !cardVisible
 
+  // 잠들기 전 듣기 — 버튼에 얹을 현재 설정 요약 (타이머는 1초 틱으로 갱신)
+  const sleepRemainingMs = sleepUntil != null ? Math.max(0, sleepUntil - Date.now()) : null
+  const sleepActive = sleepRemainingMs != null || endChapter != null
+  const sleepLabel = [
+    sleepRemainingMs != null ? formatRemain(sleepRemainingMs) : null,
+    endChapter != null ? `${endChapter}장` : null,
+  ]
+    .filter(Boolean)
+    .join('·')
+  const canSleepSheet = totalChapters != null && totalChapters > 0
+
   return (
     <>
     <div ref={cardRef} className="relative mx-3 my-2 overflow-hidden rounded-2xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-card-dark shadow-[0_8px_24px_-14px_var(--brand-glow)]">
@@ -459,6 +582,25 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
                 </span>
               </span>
               <span className="flex items-center gap-1">
+                {/* 잠들기 전 듣기 — 수면 타이머·듣기 범위 시트 열기 */}
+                {canSleepSheet && (
+                  <button
+                    type="button"
+                    onClick={() => setShowSleepSheet(true)}
+                    aria-pressed={sleepActive}
+                    aria-label="잠들기 전 듣기 (수면 타이머·듣기 범위)"
+                    className={`flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] font-bold transition active:scale-95 ${
+                      sleepActive
+                        ? 'border-transparent bg-[var(--brand-soft)] text-brand'
+                        : 'border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
+                    }`}
+                  >
+                    <span className="material-icons-round text-[13px] leading-none">
+                      bedtime
+                    </span>
+                    {sleepActive && sleepLabel}
+                  </button>
+                )}
                 {/* 연속 재생(자동 다음 장) 토글 */}
                 <button
                   type="button"
@@ -643,6 +785,15 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
           // 끝까지 재생됐으면 절 점프 요청도 소멸 — 다음 재생은 처음부터
           pendingVerseRef.current = null
           syncActiveVerse(null)
+          // 듣기 범위: 설정한 장까지 다 들었으면 다음 장으로 넘어가지 않고 멈춘다
+          if (endChapter != null && chapter >= endChapter) {
+            setEndChapter(null)
+            showToast(
+              `${bookName ? `${bookName} ` : ''}${endChapter}장까지 다 들었어요 🌙`,
+              'info'
+            )
+            return
+          }
           // 연속 재생: 다음 장으로 넘어가 이어서 듣기.
           // 부모가 장을 바꾸면 리셋 effect가 autoAdvanceRef를 소비해 started를
           // 유지하고, 새 audioUrl 로드 시(wantPlayRef) 자동으로 재생된다.
@@ -664,6 +815,8 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
         onTimeUpdate={(e) => {
           setCurrentTime(e.currentTarget.currentTime)
           syncActiveVerse(e.currentTarget.currentTime)
+          // 화면이 꺼진 채 재생 중에도 이 이벤트는 계속 발생 — 수면 타이머 판정
+          checkSleepTimer()
         }}
         onLoadedMetadata={(e) => {
           // 스트리밍(미캐시) 최초 재생 땐 길이를 모를 수 있다(Infinity/NaN) → 0 처리
@@ -723,6 +876,22 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
             </div>
           </div>
 
+          {canSleepSheet && (
+            <button
+              type="button"
+              onClick={() => setShowSleepSheet(true)}
+              aria-pressed={sleepActive}
+              aria-label="잠들기 전 듣기 (수면 타이머·듣기 범위)"
+              className={`flex flex-shrink-0 items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] font-bold transition active:scale-95 ${
+                sleepActive
+                  ? 'border-transparent bg-[var(--brand-soft)] text-brand'
+                  : 'border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
+              }`}
+            >
+              <span className="material-icons-round text-[13px] leading-none">bedtime</span>
+              {sleepActive && sleepLabel}
+            </button>
+          )}
           <button
             type="button"
             onClick={cycleRate}
@@ -733,6 +902,20 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
         </div>
       </div>
     </div>
+
+    {/* 잠들기 전 듣기 설정 시트 — 수면 타이머 + 어느 장까지 들을지 */}
+    {showSleepSheet && canSleepSheet && (
+      <AudioSleepSheet
+        bookName={bookName ?? ''}
+        currentChapter={chapter}
+        totalChapters={totalChapters!}
+        sleepRemainingMs={sleepRemainingMs}
+        onSetSleepMinutes={handleSetSleepMinutes}
+        endChapter={endChapter}
+        onSetEndChapter={handleSetEndChapter}
+        onClose={() => setShowSleepSheet(false)}
+      />
+    )}
     </>
   )
 }
