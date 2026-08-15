@@ -1,0 +1,550 @@
+/* 처음 만나는 성경 — 스토리 모드 (여정 맵 + 에피소드) */
+
+/* ── 여정 맵 ─────────────────────────────────────────────── */
+
+.story-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  padding: 1.25rem 1.25rem 1.125rem;
+  background: linear-gradient(135deg, var(--brand-soft-strong), var(--brand-soft));
+  border: 1px solid var(--brand-glow);
+}
+.story-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--brand);
+}
+.story-hero__title {
+  margin-top: 0.35rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+.story-hero__text {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.story-hero__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.875rem;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.925rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px -10px var(--brand-glow);
+  transition: transform 0.15s ease;
+}
+.story-hero__cta:active {
+  transform: scale(0.98);
+}
+.story-hero__sub {
+  display: block;
+  margin-top: 0.6rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+}
+
+/* 전체 진행 바 */
+.story-progress {
+  margin-top: 0.9rem;
+}
+.story-progress__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+.story-progress__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.story-progress__count {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.story-progress__track {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+[data-theme='dark'] .story-progress__track {
+  background: rgba(255, 255, 255, 0.12);
+}
+.story-progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--brand);
+  transition: width 0.4s ease;
+}
+
+/* 막(Act) 섹션 */
+.story-act {
+  margin-top: 1.5rem;
+}
+.story-act__head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0 0.25rem;
+}
+.story-act__emoji {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex-shrink: 0;
+  border-radius: 0.75rem;
+  background: var(--brand-soft);
+  font-size: 1.15rem;
+}
+.story-act__titles {
+  flex: 1;
+  min-width: 0;
+}
+.story-act__no {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--brand);
+}
+.story-act__title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.story-act__range {
+  display: block;
+  margin-top: 0.05rem;
+  font-size: 0.72rem;
+  color: var(--ig-secondary-text);
+}
+.story-act__count {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  font-variant-numeric: tabular-nums;
+}
+.story-act__count--done {
+  color: var(--brand);
+}
+
+/* 에피소드 세로 경로 */
+.story-path {
+  position: relative;
+  margin-top: 0.65rem;
+  padding-left: 0.25rem;
+}
+/* 노드들을 잇는 세로 점선 — 이모지 원 중심(좌측 0.25rem + 1.25rem)을 지난다 */
+.story-path::before {
+  content: '';
+  position: absolute;
+  top: 1.25rem;
+  bottom: 1.25rem;
+  left: calc(0.25rem + 1.25rem);
+  border-left: 2px dashed rgba(0, 0, 0, 0.12);
+}
+[data-theme='dark'] .story-path::before {
+  border-left-color: rgba(255, 255, 255, 0.14);
+}
+
+.story-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.55rem 0.5rem 0.55rem 0;
+  text-align: left;
+  border-radius: 0.875rem;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.story-node:active {
+  transform: scale(0.99);
+}
+
+.story-node__dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--surface-container);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  font-size: 1.15rem;
+}
+[data-theme='dark'] .story-node__dot {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.story-node--read .story-node__dot {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+.story-node--current .story-node__dot {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px var(--brand-soft-strong);
+}
+/* 읽음 체크 배지 */
+.story-node__check {
+  position: absolute;
+  right: -0.2rem;
+  bottom: -0.2rem;
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+}
+.story-node__check .material-icons-round {
+  font-size: 0.7rem;
+}
+
+.story-node__body {
+  flex: 1;
+  min-width: 0;
+}
+.story-node__title {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+.story-node--read .story-node__title {
+  color: var(--ig-secondary-text);
+}
+.story-node__hook {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.75rem;
+  color: var(--ig-secondary-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.story-node__here {
+  flex-shrink: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.story-node__chevron {
+  flex-shrink: 0;
+  font-size: 1.2rem;
+  color: var(--ig-secondary-text);
+  opacity: 0.6;
+}
+
+/* ── 에피소드 화면 ───────────────────────────────────────── */
+
+.story-ep__hero {
+  padding: 1.5rem 1.25rem 0.25rem;
+  text-align: center;
+}
+.story-ep__emoji {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+.story-ep__hook {
+  margin-top: 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+.story-ep__title {
+  margin-top: 0.3rem;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+
+.story-ep__body {
+  padding: 1rem 1.375rem 0;
+}
+.story-ep__para {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.85;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+
+/* 용어 풋노트 트리거 */
+.story-term {
+  padding: 0;
+  font: inherit;
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* 왜 중요할까 카드 */
+.story-ep__why {
+  margin: 1.5rem 1.25rem 0;
+  padding: 1rem 1.125rem;
+  border-radius: 1rem;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-glow);
+}
+.story-ep__why-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--brand);
+}
+.story-ep__why-text {
+  margin-top: 0.4rem;
+  font-size: 0.875rem;
+  line-height: 1.75;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+
+/* 원문 맛보기 */
+.story-ep__verses {
+  margin: 1.25rem 1.25rem 0;
+  padding: 1.125rem;
+  border-radius: 1rem;
+  background: var(--surface-container);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px -16px rgba(0, 0, 0, 0.25);
+}
+[data-theme='dark'] .story-ep__verses {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+.story-ep__verses-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--brand);
+}
+.story-verse {
+  margin-top: 0.8rem;
+}
+.story-verse__text {
+  position: relative;
+  padding-left: 0.875rem;
+  font-size: 0.925rem;
+  line-height: 1.8;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+.story-verse__text::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.3rem;
+  bottom: 0.3rem;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--brand-glow);
+}
+.story-verse__ref {
+  display: block;
+  margin-top: 0.4rem;
+  padding-left: 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.story-verse--skeleton {
+  height: 3.2rem;
+  border-radius: 0.6rem;
+  background: rgba(0, 0, 0, 0.05);
+  animation: story-pulse 1.6s ease infinite;
+}
+[data-theme='dark'] .story-verse--skeleton {
+  background: rgba(255, 255, 255, 0.07);
+}
+@keyframes story-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+.story-ep__readlink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.65rem;
+  border-radius: 0.75rem;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: transform 0.15s ease;
+}
+.story-ep__readlink:active {
+  transform: scale(0.98);
+}
+
+/* 다음 이야기 예고 */
+.story-ep__teaser {
+  margin: 1.25rem 1.25rem 0;
+  padding: 1rem 1.125rem;
+  border-radius: 1rem;
+  border: 1px dashed rgba(0, 0, 0, 0.14);
+}
+[data-theme='dark'] .story-ep__teaser {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.story-ep__teaser-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--ig-secondary-text);
+}
+.story-ep__teaser-text {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+
+/* 하단 고정 바 */
+.story-ep__bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  padding: 0.65rem 1rem calc(0.65rem + env(safe-area-inset-bottom));
+  background: var(--surface); /* color-mix 미지원 브라우저 폴백 */
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+[data-theme='dark'] .story-ep__bar {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+.story-ep__bar-inner {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+.story-ep__bar-map {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  border-radius: 0.875rem;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ig-secondary-text);
+}
+[data-theme='dark'] .story-ep__bar-map {
+  background: rgba(255, 255, 255, 0.08);
+}
+.story-ep__bar-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  flex: 1;
+  height: 3rem;
+  border-radius: 0.875rem;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px -10px var(--brand-glow);
+  transition: transform 0.15s ease;
+}
+.story-ep__bar-next:active {
+  transform: scale(0.98);
+}
+
+/* 용어 풋노트 팝업 */
+.story-gloss-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(0, 0, 0, 0.25);
+}
+.story-gloss {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 41;
+  width: calc(100% - 2rem);
+  max-width: 26rem;
+  padding: 1rem 1.125rem;
+  border-radius: 1rem;
+  background: var(--surface-container);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.35);
+  animation: story-gloss-in 0.2s ease;
+}
+[data-theme='dark'] .story-gloss {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+@keyframes story-gloss-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(0.5rem);
+  }
+}
+.story-gloss__term {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--brand);
+}
+.story-gloss__def {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+
+/* 완주 히어로 */
+.story-hero--done {
+  text-align: center;
+}
+.story-hero--done .story-hero__emoji {
+  font-size: 2.4rem;
+}

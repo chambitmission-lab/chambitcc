@@ -108,6 +108,8 @@ const RabbitGallery = lazy(() => import('./pages/Bluemarble/RabbitGallery'))
 const WeeklyStory = lazy(() => import('./pages/WeeklyStory/WeeklyStory'))
 const Growth = lazy(() => import('./pages/Growth/Growth'))
 const SituationBible = lazy(() => import('./pages/Bible/SituationBible'))
+const BibleStoryMap = lazy(() => import('./pages/Bible/Story/StoryMap'))
+const BibleStoryEpisode = lazy(() => import('./pages/Bible/Story/StoryEpisode'))
 const PhotoVerse = lazy(() => import('./pages/Bible/PhotoVerse/PhotoVerse'))
 const MeditationPage = lazy(() => import('./pages/Bible/Meditation/MeditationPage'))
 const VerseAlarmPage = lazy(() => import('./pages/Bible/VerseAlarm/VerseAlarmPage'))
@@ -283,6 +285,8 @@ function App() {
                 <Route path="/capsule/:id" element={<CapsuleOpen />} />
                 <Route path="/bible/wordbook" element={<BibleWordbook />} />
                 <Route path="/bible/situation" element={<SituationBible />} />
+                <Route path="/bible/story" element={<BibleStoryMap />} />
+                <Route path="/bible/story/:episodeId" element={<BibleStoryEpisode />} />
                 <Route path="/bible/photo-verse" element={<PhotoVerse />} />
                 <Route path="/bible/meditation" element={<MeditationPage />} />
                 <Route path="/bible/alarm" element={<VerseAlarmPage />} />

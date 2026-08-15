@@ -23,6 +23,8 @@ import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
+// 스토리 모드 진행 상태만 가볍게 읽는다 — 42화 콘텐츠 데이터는 스토리 라우트 청크에만 실린다
+import { loadReadIds } from './Story/storyProgress'
 import './BibleStudy.css'
 
 const BibleStudy = () => {
@@ -76,6 +78,9 @@ const BibleStudy = () => {
   }, [resumeData])
   
   const selectedBookData = books?.find(b => b.id === selectedBookId)
+
+  // 처음 만나는 성경(스토리 모드) 진행 — 라우트 이동으로 돌아올 때마다 새로 읽힌다
+  const storyReadCount = loadReadIds().size
   
   // URL 파라미터로 책과 장이 전달된 경우 자동으로 선택.
   // ?verse=N 이 함께 오면(프로필 묵상노트 카드 등에서 딥링크) 해당 절로 스크롤+하이라이트.
@@ -296,12 +301,33 @@ const BibleStudy = () => {
         {/* 읽기 탭 */}
         {activeTab === 'read' && (
           <div className="bible-read-section">
-            {/* 나의 서재 — 이어 읽기(강조) + 즐겨찾기(보조)를 통일된 카드로. 책 목록 화면에서만 노출 */}
-            {showBookList && (resumeData?.latest || isLoggedIn()) && (
+            {/* 나의 서재 — 이어 읽기(강조) + 스토리 모드 + 보조 카드들. 책 목록 화면에서만 노출.
+                처음 만나는 성경은 비로그인 초심자에게도 보여야 하므로 로그인 여부와 무관하게 렌더 */}
+            {showBookList && (
               <div className="bible-dash">
                 {resumeData?.latest && (
                   <ResumeReadingCard latest={resumeData.latest} onResume={handleResume} />
                 )}
+
+                {/* 처음 만나는 성경 — 초보자용 스토리 모드 */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/bible/story')}
+                  className="dash-card dash-card--fav"
+                >
+                  <span className="dash-card__icon">
+                    <span className="material-icons-round">auto_stories</span>
+                  </span>
+                  <span className="dash-card__body">
+                    <span className="dash-card__title">처음 만나는 성경</span>
+                    <span className="dash-card__text">
+                      {storyReadCount > 0
+                        ? `${storyReadCount}화까지 읽었어요 · 이어서 보기`
+                        : '창조부터 새 창조까지, 3분씩 42편의 이야기'}
+                    </span>
+                  </span>
+                  <span className="material-icons-round dash-card__chevron">chevron_right</span>
+                </button>
 
                 {/* 상황별 성구 */}
                 <button
