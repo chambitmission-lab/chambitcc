@@ -98,14 +98,17 @@ export const usePrayersInfinite = (
   })
 
   // 기도 생성 Mutation
+  // 낙관적 업데이트 키는 반드시 화면 쿼리와 "완전히 같은" 키여야 한다 — username/isAnswered
+  // 를 빼먹으면 'anonymous' 자리로 채워진 다른 키에 임시 기도를 써서 즉시 반영이 조용히 죽는다.
+  const listKey = prayerKeys.list(sort, groupId, filter, currentUser.username, isAnswered)
   const createMutation = useMutation({
     mutationFn: (data: CreatePrayerRequest) => createPrayer(data),
     onMutate: async (data) => {
       // 진행 중인 쿼리 취소
-      await queryClient.cancelQueries({ queryKey: prayerKeys.list(sort, groupId, filter) })
+      await queryClient.cancelQueries({ queryKey: listKey })
 
       // 이전 데이터 백업
-      const previousData = queryClient.getQueryData(prayerKeys.list(sort, groupId, filter))
+      const previousData = queryClient.getQueryData(listKey)
 
       // Optimistic Update - 임시 기도 추가
       const tempPrayer: Prayer = {
@@ -122,7 +125,7 @@ export const usePrayersInfinite = (
         group_id: data.group_id,
       }
 
-      queryClient.setQueryData<PrayerListCache>(prayerKeys.list(sort, groupId, filter), (old) => {
+      queryClient.setQueryData<PrayerListCache>(listKey, (old) => {
         if (!old) return old
 
         const firstPage = old.pages[0]
@@ -146,7 +149,7 @@ export const usePrayersInfinite = (
     onError: (error: Error, _variables, context) => {
       // 에러 시 롤백
       if (context?.previousData) {
-        queryClient.setQueryData(prayerKeys.list(sort, groupId, filter), context.previousData)
+        queryClient.setQueryData(listKey, context.previousData)
       }
       showToast(error.message || '기도 요청 등록에 실패했습니다.', 'error')
     },
