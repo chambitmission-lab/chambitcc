@@ -47,7 +47,27 @@ const EventCalendar = () => {
     return { startDate: formatYMD(start), endDate: formatYMD(end) }
   }, [viewDate])
 
-  const { events, loading } = useEvents(startDate, endDate, selectedCategory)
+  // keepPrevious: 달을 넘기면 조회 기간이 바뀌어 새 캐시 키가 되는데, 이때 스켈레톤이
+  // 번쩍이지 않도록 직전 달 화면을 유지한 채 뒤에서 교체한다. 인접 달은 조회 범위가
+  // 겹쳐서(이번 달 뷰가 다음 달까지 fetch) 잔상 데이터로도 점 표시가 대부분 정확하다.
+  const { events, loading, hasMore, loadingMore, isPlaceholder, loadMore } = useEvents(
+    startDate,
+    endDate,
+    selectedCategory,
+    undefined,
+    true,
+  )
+
+  // 달력은 조회 범위의 "전체" 일정이 있어야 날짜 점 표시와 어젠다가 온전하다.
+  // 목록 API 는 20건 페이지라, 남은 페이지가 있으면 자동으로 이어받는다
+  // (안 그러면 일정이 20건을 넘는 달의 뒷 일정이 조용히 누락된다).
+  // placeholder(이전 키의 잔상)를 보는 동안에는 드레인하지 않는다 — 새 키의
+  // 첫 페이지가 도착한 뒤에 이어받아야 올바른 페이지가 쌓인다.
+  useEffect(() => {
+    if (hasMore && !loading && !loadingMore && !isPlaceholder) loadMore()
+    // loadMore 는 렌더마다 새로 만들어지지만 react-query 가 진행 중 fetch 를 dedupe 한다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, loading, loadingMore, isPlaceholder])
 
   const heroEvent = useMemo(() => getNextEvent(events), [events])
   const groups = useMemo(() => {
@@ -81,7 +101,7 @@ const EventCalendar = () => {
                 {t.title}
               </h1>
               <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
-                {loading ? '불러오는 중...' : `${totalCount}건의 일정이 예정되어 있어요`}
+                {loading || isPlaceholder ? '불러오는 중...' : `${totalCount}건의 일정이 예정되어 있어요`}
               </p>
             </div>
             {admin && (

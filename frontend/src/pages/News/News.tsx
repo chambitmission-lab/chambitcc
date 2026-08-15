@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { getBulletins, getBulletinDetail } from '../../api/bulletin'
+import { useQueryClient } from '@tanstack/react-query'
+import { getBulletinDetail } from '../../api/bulletin'
+import { useBulletins, bulletinKeys } from '../../hooks/useBulletins'
 import { showToast } from '../../utils/toast'
 import type { Bulletin } from '../../types/bulletin'
 import InstagramBulletinViewer from './components/InstagramBulletinViewer'
@@ -40,9 +42,12 @@ const News = () => {
   const tabParam = searchParams.get('tab')
   const section: SectionKey = isSectionKey(tabParam) ? tabParam : 'bulletin'
 
-  const [bulletins, setBulletins] = useState<Bulletin[]>([])
+  // 목록은 React Query 캐시 우선 — 재방문 시 캐시로 즉시 그리고 뒤에서 조용히 갱신
+  const { data: bulletins = [], isLoading: loading, error: listError } = useBulletins()
+  const qc = useQueryClient()
   const [selectedBulletin, setSelectedBulletin] = useState<Bulletin | null>(null)
-  const [loading, setLoading] = useState(true)
+  // 상세를 여는 중인 주보 id — 카드에 busy 표시 + 중복 탭 방지
+  const [openingId, setOpeningId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'view'>('list')
   const [tab, setTab] = useState<BulletinTabKey>('image')
 
@@ -51,29 +56,22 @@ const News = () => {
     setSearchParams(next === 'bulletin' ? {} : { tab: next }, { replace: true })
   }
 
-  useEffect(() => {
-    loadBulletins()
-  }, [])
-
-  const loadBulletins = async () => {
-    try {
-      setLoading(true)
-      const data = await getBulletins(0, 20)
-      setBulletins(data)
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : '주보를 불러오는데 실패했습니다', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleBulletinClick = async (bulletin: Bulletin) => {
+    if (openingId !== null) return
+    setOpeningId(bulletin.id)
     try {
-      const detail = await getBulletinDetail(bulletin.id)
+      // fetchQuery 는 staleTime 내 캐시가 있으면 네트워크 없이 즉시 반환 —
+      // 한 번 본 주보는 재열람이 바로 열린다
+      const detail = await qc.fetchQuery({
+        queryKey: bulletinKeys.detail(bulletin.id),
+        queryFn: () => getBulletinDetail(bulletin.id),
+      })
       setSelectedBulletin(detail)
       setViewMode('view')
     } catch (error) {
       showToast(error instanceof Error ? error.message : '주보를 불러오는데 실패했습니다', 'error')
+    } finally {
+      setOpeningId(null)
     }
   }
 
@@ -165,12 +163,17 @@ const News = () => {
             {loading ? (
               <SkeletonCards />
             ) : bulletins.length === 0 ? (
-              <EmptyState />
+              // 캐시도 없이 실패한 경우와 진짜 빈 목록을 구분한다
+              listError ? <ErrorState /> : <EmptyState />
             ) : (
               <div className="space-y-3">
                 {/* 최신 주보 hero */}
                 {latest && (
-                  <FeaturedCard bulletin={latest} onClick={() => handleBulletinClick(latest)} />
+                  <FeaturedCard
+                    bulletin={latest}
+                    busy={openingId === latest.id}
+                    onClick={() => handleBulletinClick(latest)}
+                  />
                 )}
 
                 {/* 나머지 — 컴팩트 카드 */}
@@ -184,6 +187,7 @@ const News = () => {
                         <CompactCard
                           key={b.id}
                           bulletin={b}
+                          busy={openingId === b.id}
                           onClick={() => handleBulletinClick(b)}
                         />
                       ))}
@@ -261,11 +265,18 @@ const TabPill = ({
 const FeaturedCard = ({
   bulletin,
   onClick,
+  busy,
 }: {
   bulletin: Bulletin
   onClick: () => void
+  busy?: boolean
 }) => (
-  <button type="button" onClick={onClick} className="block w-full text-left group">
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={busy}
+    className={`block w-full text-left group transition-opacity duration-150 ${busy ? 'opacity-60' : ''}`}
+  >
     <article className="relative overflow-hidden rounded-3xl bg-card-dark border border-white/[0.06] shadow-[0_18px_44px_-18px_var(--brand-glow)] transition-transform duration-200 group-active:scale-[0.99]">
       {/* 썸네일 */}
       <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-500/15 to-sky-500/15">
@@ -328,11 +339,18 @@ const FeaturedCard = ({
 const CompactCard = ({
   bulletin,
   onClick,
+  busy,
 }: {
   bulletin: Bulletin
   onClick: () => void
+  busy?: boolean
 }) => (
-  <button type="button" onClick={onClick} className="block w-full text-left group">
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={busy}
+    className={`block w-full text-left group transition-opacity duration-150 ${busy ? 'opacity-60' : ''}`}
+  >
     <article
       className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] transition-all duration-200 group-hover:border-[var(--brand-soft-strong)] group-active:scale-[0.995]"
     >
@@ -395,6 +413,20 @@ const SkeletonCards = () => (
         className="h-[82px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
       />
     ))}
+  </div>
+)
+
+const ErrorState = () => (
+  <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-12 px-6 text-center">
+    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
+      <span className="text-[28px]">📡</span>
+    </div>
+    <p className="text-ink-strong text-[14.5px] font-bold mb-1">
+      주보를 불러오지 못했어요
+    </p>
+    <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6]">
+      네트워크 상태를 확인한 뒤 다시 열어 주세요
+    </p>
   </div>
 )
 
