@@ -147,10 +147,12 @@ const VerseList = ({
     return map
   }, [chapterCommentaries])
 
-  const handleShowCommentary = (verse: BibleVerse) => {
+  // VerseItem은 memo라 여기서 내려보내는 콜백은 전부 useCallback으로 안정화한다.
+  // 절별 인라인 클로저를 만들면 memo가 무력화돼 상태 변화마다 전 절이 재렌더된다.
+  const handleShowCommentary = useCallback((verse: BibleVerse) => {
     setCommentaryFocusVerse(verse.verse)
     setCommentaryPanelOpen(true)
-  }
+  }, [])
 
   const handleShowChapterCommentaries = () => {
     setCommentaryFocusVerse(null)
@@ -245,14 +247,15 @@ const VerseList = ({
   const t = texts[language]
   
   // 읽음 처리 핸들러 - 훅 호출 이후에 정의
-  const handleReadSuccess = async (verseId: number, similarity: number) => {
+  // (mutateAsync/refetch는 React Query가 참조를 보장하므로 deps에 넣어도 안정적)
+  const handleReadSuccess = useCallback(async (verseId: number, similarity: number) => {
     try {
       // 백엔드 API 호출
       await markAsReadMutation.mutateAsync({ verseId, similarity })
-      
+
       // 꽃 피어남 축하 효과
       celebrateFlowerBloom()
-      
+
       // 명시적으로 읽음 상태 다시 조회
       await refetchReadStatus()
     } catch (error) {
@@ -264,12 +267,15 @@ const VerseList = ({
         console.error('Failed to save reading record:', error)
       }
     }
-  }
-  
+  }, [markAsReadMutation.mutateAsync, refetchReadStatus])
+
   // 수동 읽음 처리/취소 — 음성 낭독 없이 상태만 바꾼다. 로그인한 사용자면 누구나.
   // similarity는 수동 처리임을 뜻하는 1.0으로 보낸다(백엔드 최소 임계값 0.75 충족).
-  const handleToggleRead = async (verse: BibleVerse, nextRead: boolean) => {
-    if (togglingVerseId != null) return
+  // 중복 클릭 가드는 ref로 — togglingVerseId(state)를 읽으면 콜백 참조가 흔들린다.
+  const togglingGuardRef = useRef(false)
+  const handleToggleRead = useCallback(async (verse: BibleVerse, nextRead: boolean) => {
+    if (togglingGuardRef.current) return
+    togglingGuardRef.current = true
     setTogglingVerseId(verse.id)
     try {
       if (nextRead) {
@@ -291,14 +297,15 @@ const VerseList = ({
         showToast(nextRead ? '읽음 처리에 실패했습니다' : '읽음 취소에 실패했습니다', 'error')
       }
     } finally {
+      togglingGuardRef.current = false
       setTogglingVerseId(null)
     }
-  }
+  }, [markAsReadMutation.mutateAsync, unmarkAsReadMutation.mutateAsync, refetchReadStatus, dismissHoldHint])
 
   // 구절 수정 핸들러 (관리자용)
-  const handleEditVerse = (verse: BibleVerse) => {
+  const handleEditVerse = useCallback((verse: BibleVerse) => {
     setEditingVerse(verse)
-  }
+  }, [])
   
   // 구절 저장 핸들러 (최종 개선 버전)
   const handleSaveVerse = async (verseId: number, newText: string) => {
@@ -371,17 +378,27 @@ const VerseList = ({
     return span - selectedVerses.length
   }, [selectedVerses])
 
-  const enterSelection = (verse: BibleVerse) => {
+  const enterSelection = useCallback((verse: BibleVerse) => {
     setOpenVerseId(null)
     setSelectedIds([verse.id])
     setSelectionMode(true)
-  }
+  }, [])
 
-  const toggleSelect = (verseId: number) => {
+  const toggleSelect = useCallback((verseId: number) => {
     setSelectedIds((prev) =>
       prev.includes(verseId) ? prev.filter((id) => id !== verseId) : [...prev, verseId]
     )
-  }
+  }, [])
+
+  // 절 메뉴 열림/닫힘 — verseId를 인자로 받아 절별 클로저 없이 하나의 콜백을 공유한다
+  const handleActionsOpenChange = useCallback((verseId: number, open: boolean) => {
+    setOpenVerseId(open ? verseId : null)
+  }, [])
+
+  // '여기부터 듣기' — BibleVerse → 절 번호로 변환해 상위 오디오 플레이어에 전달
+  const handleListenFrom = useCallback((v: BibleVerse) => {
+    onListenFromVerse?.(v.verse)
+  }, [onListenFromVerse])
 
   const exitSelection = () => {
     setSelectionMode(false)
@@ -718,17 +735,17 @@ const VerseList = ({
                   onToggleRead={handleToggleRead}
                   isTogglingRead={togglingVerseId === verse.id}
                   onShowCommentary={handleShowCommentary}
-                  onListenFrom={onListenFromVerse ? (v) => onListenFromVerse(v.verse) : undefined}
+                  onListenFrom={onListenFromVerse ? handleListenFrom : undefined}
                   hasCommentary={verseHasCommentaryMap.has(verse.verse)}
                   isAudioActive={verse.verse === audioActiveVerse}
                   actionsOpen={openVerseId === verse.id}
-                  onActionsOpenChange={(open) => setOpenVerseId(open ? verse.id : null)}
+                  onActionsOpenChange={handleActionsOpenChange}
                   wordNotes={wordNotesByVerse.get(verse.id)}
                   chapterBookmark={bookmarksByVerse ? (bookmarksByVerse.get(verse.id) ?? null) : undefined}
                   selectionMode={selectionMode}
                   isSelected={selectedIdSet.has(verse.id)}
-                  onToggleSelect={() => toggleSelect(verse.id)}
-                  onEnterSelection={() => enterSelection(verse)}
+                  onToggleSelect={toggleSelect}
+                  onEnterSelection={enterSelection}
                   onShare={setShareTarget}
                 />
               ))}

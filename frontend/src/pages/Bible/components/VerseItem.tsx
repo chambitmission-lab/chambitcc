@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, Fragment, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react'
+import { useState, useEffect, useMemo, useRef, memo, Fragment, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react'
 import type { BibleVerse } from '../../../types/bible'
 import type { WordNote } from '../../../api/bibleWordNote'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
@@ -33,8 +33,9 @@ interface VerseItemProps {
   isAudioActive?: boolean
   // 액션바 열림 상태는 부모(VerseList)가 관리한다 — 한 번에 한 절의 메뉴만 열려
   // 다른 절을 탭하면 이전 메뉴가 닫힌다(예전 풀스크린 백드롭의 역할을 대체).
+  // 콜백은 verseId를 함께 받아 부모가 절마다 클로저를 만들지 않아도 되게 한다(memo 유지).
   actionsOpen: boolean
-  onActionsOpenChange: (open: boolean) => void
+  onActionsOpenChange: (verseId: number, open: boolean) => void
   // 이 절에 저장된 단어 노트들 — 부모가 장 단위로 배치 조회해 나눠준다
   wordNotes?: WordNote[]
   // 이 절의 북마크 — 부모(VerseList)가 장 단위로 배치 조회해 나눠준다.
@@ -44,9 +45,9 @@ interface VerseItemProps {
   // 여러 절 선택 모드 — 켜지면 절을 탭할 때 액션바 대신 선택이 토글된다
   selectionMode?: boolean
   isSelected?: boolean
-  onToggleSelect?: () => void
+  onToggleSelect?: (verseId: number) => void
   // 액션바의 '여러 절' 버튼 — 이 절을 첫 선택으로 두고 선택 모드에 진입
-  onEnterSelection?: () => void
+  onEnterSelection?: (verse: BibleVerse) => void
   // 공유 — 부모(VerseList)가 공유 시트를 띄운다. 없으면 네이티브 공유로 폴백.
   onShare?: (target: VerseCopyTarget) => void
 }
@@ -81,7 +82,9 @@ const resolveNoteRange = (note: WordNote, text: string): [number, number] | null
   return idx >= 0 ? [idx, idx + note.word.length] : null
 }
 
-const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSuccess, onEdit, onToggleRead, isTogglingRead, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange, wordNotes, chapterBookmark, selectionMode, isSelected, onToggleSelect, onEnterSelection, onShare }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSuccess, onEdit, onToggleRead, isTogglingRead, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange: setActionsOpenById, wordNotes, chapterBookmark, selectionMode, isSelected, onToggleSelect, onEnterSelection, onShare }: VerseItemProps) => {
+  // 내부에선 이 절 기준의 (open) 시그니처가 편해 verse.id를 미리 물린 래퍼를 쓴다
+  const onActionsOpenChange = (open: boolean) => setActionsOpenById(verse.id, open)
   const [showFeedback, setShowFeedback] = useState(false)
   const [showBookmarkModal, setShowBookmarkModal] = useState(false)
   const [showNoteSheet, setShowNoteSheet] = useState(false)
@@ -408,7 +411,7 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
         onClick={() => {
           // 여러 절 선택 모드에서는 탭이 선택 토글로 동작한다
           if (selectionMode) {
-            onToggleSelect?.()
+            onToggleSelect?.(verse.id)
             return
           }
           // 단어 선택 모드에서 빈 곳을 탭하면 모드만 종료 (액션바 토글 방지)
@@ -424,7 +427,7 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
             if (selectionMode) {
-              onToggleSelect?.()
+              onToggleSelect?.(verse.id)
               return
             }
             if (wordSelectMode) {
@@ -901,7 +904,7 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
             {/* 나눔: 여러 절 선택 — 이 절부터 구간으로 묶어 복사/공유 */}
             {onEnterSelection && (
               <button
-                onClick={() => { onActionsOpenChange(false); onEnterSelection() }}
+                onClick={() => { onActionsOpenChange(false); onEnterSelection(verse) }}
                 className="verse-action-btn"
                 style={{ background: 'var(--brand-soft)', border: '1px solid var(--brand-soft-strong)' }}
                 title="여러 절 선택"
@@ -1128,4 +1131,7 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
   )
 }
 
-export default VerseItem
+// 장의 모든 절이 이 컴포넌트로 렌더된다(시편 119편은 176개). memo가 없으면
+// 오디오 하이라이트 이동·액션바 토글 같은 부모 상태 변화마다 전 절이 재렌더되므로
+// 부모(VerseList)는 콜백을 useCallback으로 안정화해 내려보내야 한다.
+export default memo(VerseItem)
