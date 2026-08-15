@@ -22,6 +22,9 @@ interface BibleAudioPlayerProps {
   onPlayingChange?: (playing: boolean) => void
   // 특정 절부터 재생 요청 (절 메뉴 '여기부터 듣기')
   playFromVerse?: PlayFromVerseRequest | null
+  // 연속 재생(자동 다음 장): 현재 책에 다음 장이 있는지, 있으면 어떻게 넘어가는지
+  hasNextChapter?: boolean
+  onAutoNextChapter?: () => void
 }
 
 // 절별 낭독 시작 시각(초) — 백엔드가 mp3 생성 시 WordBoundary로 산출해 캐시
@@ -32,6 +35,7 @@ interface VerseTiming {
 
 const VOICE_STORAGE_KEY = 'bible-tts-voice'
 const RATE_STORAGE_KEY = 'bible-tts-rate'
+const AUTO_NEXT_STORAGE_KEY = 'bible-tts-autonext'
 const RATE_OPTIONS = [0.75, 1, 1.25, 1.5]
 
 // 첫 생성(몇 초) 동안 번갈아 보여줄 잔잔한 대기 문구
@@ -52,6 +56,9 @@ const loadRate = (): number => {
   return RATE_OPTIONS.includes(r) ? r : 1
 }
 
+// 연속 재생(장이 끝나면 다음 장 자동 재생)은 기본 켬
+const loadAutoNext = (): boolean => localStorage.getItem(AUTO_NEXT_STORAGE_KEY) !== 'off'
+
 const formatTime = (sec: number): string => {
   if (!Number.isFinite(sec) || sec < 0) return '0:00'
   const m = Math.floor(sec / 60)
@@ -66,12 +73,14 @@ const formatTime = (sec: number): string => {
  *   기다리지 않고 첫 절(+머리말)만 준비되면 바로 재생이 시작된다.
  * - 한 번 들으면 백엔드가 Supabase에 캐시 → 다음 재생은 캐시 파일로 리다이렉트되어
  *   즉시 재생 + 탐색바/총 길이까지 정상.
- * - 음성(여성/남성)·배속은 localStorage에 기억
+ * - 음성(여성/남성)·배속·연속 재생 여부는 localStorage에 기억
  *
- * 부모에서 key={`${bookNumber}-${chapter}`} 로 렌더하므로, 장이 바뀌면
- * 컴포넌트가 새로 마운트되어 상태가 초기화되고 이전 재생은 정리된다.
+ * 장이 바뀌어도 컴포넌트(특히 <audio> 요소)는 유지하고 아래 리셋 effect로 상태만
+ * 초기화한다. 연속 재생(장 끝 → 다음 장 자동 재생)은 사용자 터치 없이 play()를
+ * 호출해야 하는데, 모바일 자동재생 정책상 "한 번 재생했던 그 <audio> 요소"를
+ * 재사용해야 허용되기 때문 — key 리마운트로 요소를 새로 만들면 iOS에서 막힌다.
  */
-const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingChange, playFromVerse }: BibleAudioPlayerProps) => {
+const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingChange, playFromVerse, hasNextChapter, onAutoNextChapter }: BibleAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const wantPlayRef = useRef(false) // src 로드 시 자동 재생할지
@@ -79,9 +88,12 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
   // 타이밍/총길이가 준비되는 즉시(타이밍 도착·메타데이터 로드 등) 점프를 재시도한다.
   const pendingVerseRef = useRef<number | null>(null)
   const firstGenNoticeRef = useRef(false) // 첫 생성 중 안내 토스트는 장당 1회만
+  // 직전 장이 끝나 자동으로 다음 장에 온 상태인지 — 리셋 effect가 소비한다
+  const autoAdvanceRef = useRef(false)
 
   const [voice, setVoice] = useState<BibleTTSVoice>(loadVoice)
   const [rate, setRate] = useState<number>(loadRate)
+  const [autoNext, setAutoNext] = useState<boolean>(loadAutoNext)
   const [started, setStarted] = useState(false) // 첫 재생 이후에만 src 설정
   const [isPlaying, setIsPlaying] = useState(false)
   const [preparing, setPreparing] = useState(false) // 첫 소리가 나기 전 대기 상태
@@ -198,6 +210,35 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
     []
   )
 
+  // 장(또는 책)이 바뀌면 마운트를 유지한 채 플레이어 상태를 초기화한다.
+  // 연속 재생으로 넘어온 경우(autoAdvanceRef)는 started를 유지 — audioUrl이
+  // 새 장 주소로 바뀌면서 같은 <audio> 요소가 로드·재생을 이어간다.
+  const prevChapterKeyRef = useRef<string | null>(null)
+  useEffect(() => {
+    const key = `${bookNumber}-${chapter}`
+    if (prevChapterKeyRef.current === null || prevChapterKeyRef.current === key) {
+      prevChapterKeyRef.current = key
+      return
+    }
+    prevChapterKeyRef.current = key
+    const auto = autoAdvanceRef.current
+    autoAdvanceRef.current = false
+    pendingVerseRef.current = null
+    firstGenNoticeRef.current = false
+    setCurrentTime(0)
+    setDuration(0)
+    setIsError(false)
+    syncActiveVerse(null)
+    if (!auto) {
+      // 사용자가 직접 장을 이동 — 재생을 멈추고 처음 상태로
+      wantPlayRef.current = false
+      setStarted(false)
+      setPreparing(false)
+      audioRef.current?.pause()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookNumber, chapter])
+
   // 본문을 읽으러 스크롤을 내려 카드가 화면 밖으로 나가면,
   // 재생을 시작한 경우에 한해 상단에 한 줄짜리 미니 플레이어를 띄운다.
   useEffect(() => {
@@ -308,6 +349,16 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
     }
   }
 
+  const toggleAutoNext = () => {
+    const next = !autoNext
+    setAutoNext(next)
+    localStorage.setItem(AUTO_NEXT_STORAGE_KEY, next ? 'on' : 'off')
+    showToast(
+      next ? '장이 끝나면 다음 장을 이어서 들려드려요' : '연속 재생을 껐어요',
+      'info'
+    )
+  }
+
   const cycleRate = () => {
     const idx = RATE_OPTIONS.indexOf(rate)
     const next = RATE_OPTIONS[(idx + 1) % RATE_OPTIONS.length]
@@ -407,13 +458,32 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
                   · {statusText}
                 </span>
               </span>
-              <button
-                type="button"
-                onClick={cycleRate}
-                className="rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[11px] font-bold text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
-              >
-                {rate}×
-              </button>
+              <span className="flex items-center gap-1">
+                {/* 연속 재생(자동 다음 장) 토글 */}
+                <button
+                  type="button"
+                  onClick={toggleAutoNext}
+                  aria-pressed={autoNext}
+                  aria-label="연속 재생 (장이 끝나면 다음 장 자동 재생)"
+                  className={`flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] font-bold transition active:scale-95 ${
+                    autoNext
+                      ? 'border-transparent bg-[var(--brand-soft)] text-brand'
+                      : 'border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
+                  }`}
+                >
+                  <span className="material-icons-round text-[13px] leading-none">
+                    skip_next
+                  </span>
+                  연속
+                </button>
+                <button
+                  type="button"
+                  onClick={cycleRate}
+                  className="rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[11px] font-bold text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
+                >
+                  {rate}×
+                </button>
+              </span>
             </div>
 
             {/* 커스텀 그라데이션 진행바 (seek 가능) */}
@@ -573,6 +643,17 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
           // 끝까지 재생됐으면 절 점프 요청도 소멸 — 다음 재생은 처음부터
           pendingVerseRef.current = null
           syncActiveVerse(null)
+          // 연속 재생: 다음 장으로 넘어가 이어서 듣기.
+          // 부모가 장을 바꾸면 리셋 effect가 autoAdvanceRef를 소비해 started를
+          // 유지하고, 새 audioUrl 로드 시(wantPlayRef) 자동으로 재생된다.
+          if (autoNext && hasNextChapter && onAutoNextChapter) {
+            autoAdvanceRef.current = true
+            wantPlayRef.current = true
+            setPreparing(true)
+            onAutoNextChapter()
+          } else if (autoNext && !hasNextChapter) {
+            showToast('이 책의 마지막 장까지 다 들었어요 🙌', 'info')
+          }
         }}
         onError={() => {
           setPreparing(false)

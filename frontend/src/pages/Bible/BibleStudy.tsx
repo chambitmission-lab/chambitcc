@@ -387,14 +387,17 @@ const BibleStudy = () => {
                   onBackToBooks={handleChangeBook}
                 />
 
-                {/* 오디오북 — 현재 장을 음성으로 듣기. 장이 바뀌면 key로 새로 마운트 */}
+                {/* 오디오북 — 현재 장을 음성으로 듣기.
+                    key로 리마운트하지 않는다: 연속 재생(장 끝 → 다음 장 자동 재생)이
+                    같은 <audio> 요소를 재사용해야 모바일 자동재생 정책에 안 걸린다. */}
                 <BibleAudioPlayer
-                  key={`${selectedBookData.book_number}-${selectedChapter}`}
                   bookNumber={selectedBookData.book_number}
                   chapter={selectedChapter}
                   onActiveVerseChange={setAudioActiveVerse}
                   onPlayingChange={setAudioPlaying}
                   playFromVerse={playFromVerse}
+                  hasNextChapter={selectedChapter < selectedBookData.chapter_count}
+                  onAutoNextChapter={() => handleChapterChange(selectedChapter + 1)}
                 />
 
                 {/* 권 개관 — 한 줄 진입 바. 실제 소개는 탭하면 열리는 읽기 시트라
