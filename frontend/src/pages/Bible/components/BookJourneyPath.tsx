@@ -404,7 +404,7 @@ const BookJourneyPath = ({
               ...horizontal,
               animationDelay: `${Math.min(bookIdx * 18, 360)}ms`,
             }}
-            aria-label={`${book.book_name_ko} · ${meta}${isCurrent ? ` · ${t.here}` : ''}${isNext ? ` · ${t.next}` : ''}`}
+            aria-label={`${language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko} · ${meta}${isCurrent ? ` · ${t.here}` : ''}${isNext ? ` · ${t.next}` : ''}`}
             onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
           >
             <span
@@ -433,7 +433,9 @@ const BookJourneyPath = ({
                   {t.here}
                 </span>
               )}
-              <span className="bjp-label__name">{book.book_name_ko}</span>
+              <span className="bjp-label__name">
+                {language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko}
+              </span>
               <span className={`bjp-label__meta bjp-label__meta--${metaTone}`}>{meta}</span>
             </span>
           </button>

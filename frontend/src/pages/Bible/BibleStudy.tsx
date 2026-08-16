@@ -6,6 +6,7 @@ import { useResumeReading, useReadingProgress } from '../../hooks/useBibleReadin
 import { useQueryClient } from '@tanstack/react-query'
 import { biblePlanKeys, useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
 import { useAuth } from '../../hooks/useAuth'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
 import type { ResumePosition } from '../../api/bibleReading'
@@ -53,6 +54,36 @@ const BibleStudy = () => {
 
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
   const { isLoggedIn } = useAuth()
+  const { language } = useLanguage()
+
+  // 나의 서재 카드 문구 — BookSelector와 같은 방식의 화면 내 ko/en 사전
+  const dashTexts = {
+    ko: {
+      storyTitle: '처음 만나는 성경',
+      storyProgress: (n: number) => `${n}화까지 읽었어요 · 이어서 보기`,
+      storyIntro: '창조부터 새 창조까지, 3분씩 42편의 이야기',
+      situationTitle: '상황별 성구',
+      situationText: '두려울 때, 슬플 때… 지금 내 마음에 맞는 말씀',
+      photoTitle: '말씀 사진 카드',
+      photoText: '내 사진 위에 말씀을 담아 간직하고 나누기',
+      favTitle: '즐겨찾기 구절 듣기',
+      favCount: (n: number) => `즐겨찾기한 ${n}개 구절을 묵상 플레이리스트로`,
+      favIntro: '마음에 닿는 절을 모아 자기 전에 다시 듣기',
+    },
+    en: {
+      storyTitle: 'Meeting the Bible',
+      storyProgress: (n: number) => `Read up to episode ${n} · Continue`,
+      storyIntro: 'From creation to new creation — 42 stories, 3 min each',
+      situationTitle: 'Verses for Your Moment',
+      situationText: 'When afraid, when sad… words that meet your heart now',
+      photoTitle: 'Verse Photo Cards',
+      photoText: 'Lay a verse over your photo to keep and share',
+      favTitle: 'Listen to Favorites',
+      favCount: (n: number) => `Turn your ${n} favorite verses into a playlist`,
+      favIntro: 'Gather verses that touch you, listen before sleep',
+    },
+  }
+  const dt = dashTexts[language]
   const { data: bookmarkStats } = useBookmarkStats()
   const favoritesCount = bookmarkStats?.favorites_count ?? 0
   // isPending까지 받는 이유: 요약 카드·최근 읽은 책이 데이터 도착 전엔 자리 없이 숨어 있다가
@@ -63,18 +94,25 @@ const BibleStudy = () => {
 
   const resumeMap = useMemo(() => {
     const map = new Map<number, ResumePosition>()
-    resumeData?.recent_books?.forEach(p => map.set(p.book_number, p))
+    // 목록은 최신순 — 같은 책이 중복으로 오면(구버전 백엔드 동점 버그) 첫 행(최신)을 유지
+    resumeData?.recent_books?.forEach(p => {
+      if (!map.has(p.book_number)) map.set(p.book_number, p)
+    })
     return map
   }, [resumeData])
 
-  // 최근 읽은 책 슬라이더용 — 전역 최신(이어 읽기 카드)은 제외한 "다른 책" 목록
+  // 최근 읽은 책 슬라이더용 — 전역 최신(이어 읽기 카드)은 제외한 "다른 책" 목록.
+  // 구버전 백엔드는 장 벌크 읽음(동일 read_at) 시 같은 책을 여러 행으로 반환하므로
+  // book_number 기준 첫 항목(최신)만 남긴다.
   const recentForSlider = useMemo(() => {
     const list = resumeData?.recent_books ?? []
     const latest = resumeData?.latest
-    if (!latest) return list
-    return list.filter(
-      p => !(p.book_number === latest.book_number && p.verse_id === latest.verse_id)
-    )
+    const seen = new Set<number>()
+    return list.filter(p => {
+      if (seen.has(p.book_number)) return false
+      seen.add(p.book_number)
+      return !(latest && p.book_number === latest.book_number && p.verse_id === latest.verse_id)
+    })
   }, [resumeData])
   
   const selectedBookData = books?.find(b => b.id === selectedBookId)
@@ -306,7 +344,11 @@ const BibleStudy = () => {
             {showBookList && (
               <div className="bible-dash">
                 {resumeData?.latest && (
-                  <ResumeReadingCard latest={resumeData.latest} onResume={handleResume} />
+                  <ResumeReadingCard
+                    latest={resumeData.latest}
+                    onResume={handleResume}
+                    bookNameEn={books?.find(b => b.book_number === resumeData.latest!.book_number)?.book_name_en}
+                  />
                 )}
 
                 {/* 처음 만나는 성경 — 초보자용 스토리 모드 */}
@@ -319,11 +361,9 @@ const BibleStudy = () => {
                     <span className="material-icons-round">auto_stories</span>
                   </span>
                   <span className="dash-card__body">
-                    <span className="dash-card__title">처음 만나는 성경</span>
+                    <span className="dash-card__title">{dt.storyTitle}</span>
                     <span className="dash-card__text">
-                      {storyReadCount > 0
-                        ? `${storyReadCount}화까지 읽었어요 · 이어서 보기`
-                        : '창조부터 새 창조까지, 3분씩 42편의 이야기'}
+                      {storyReadCount > 0 ? dt.storyProgress(storyReadCount) : dt.storyIntro}
                     </span>
                   </span>
                   <span className="material-icons-round dash-card__chevron">chevron_right</span>
@@ -339,8 +379,8 @@ const BibleStudy = () => {
                     <span className="material-icons-round">sentiment_satisfied_alt</span>
                   </span>
                   <span className="dash-card__body">
-                    <span className="dash-card__title">상황별 성구</span>
-                    <span className="dash-card__text">두려울 때, 슬플 때… 지금 내 마음에 맞는 말씀</span>
+                    <span className="dash-card__title">{dt.situationTitle}</span>
+                    <span className="dash-card__text">{dt.situationText}</span>
                   </span>
                   <span className="material-icons-round dash-card__chevron">chevron_right</span>
                 </button>
@@ -355,8 +395,8 @@ const BibleStudy = () => {
                     <span className="material-icons-round">photo_filter</span>
                   </span>
                   <span className="dash-card__body">
-                    <span className="dash-card__title">말씀 사진 카드</span>
-                    <span className="dash-card__text">내 사진 위에 말씀을 담아 간직하고 나누기</span>
+                    <span className="dash-card__title">{dt.photoTitle}</span>
+                    <span className="dash-card__text">{dt.photoText}</span>
                   </span>
                   <span className="material-icons-round dash-card__chevron">chevron_right</span>
                 </button>
@@ -371,11 +411,9 @@ const BibleStudy = () => {
                       <span className="material-icons-round">headphones</span>
                     </span>
                     <span className="dash-card__body">
-                      <span className="dash-card__title">즐겨찾기 구절 듣기</span>
+                      <span className="dash-card__title">{dt.favTitle}</span>
                       <span className="dash-card__text">
-                        {favoritesCount > 0
-                          ? `즐겨찾기한 ${favoritesCount}개 구절을 묵상 플레이리스트로`
-                          : '마음에 닿는 절을 모아 자기 전에 다시 듣기'}
+                        {favoritesCount > 0 ? dt.favCount(favoritesCount) : dt.favIntro}
                       </span>
                     </span>
                     <span className="material-icons-round dash-card__chevron">chevron_right</span>

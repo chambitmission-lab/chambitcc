@@ -308,7 +308,11 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         }`}
         // 필터 전환 시 앞에서부터 순차적으로 떠오르는 스태거 — 뒤쪽 칸은 딜레이 상한으로 묶는다
         style={{ animationDelay: `${Math.min(index * 14, 320)}ms` }}
-        aria-label={[book.book_name_ko, isCurrent ? t.reading : null, metaText]
+        aria-label={[
+          language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko,
+          isCurrent ? t.reading : null,
+          metaText,
+        ]
           .filter(Boolean)
           .join(' · ')}
         onClick={() => onBookSelect(book.id, book.book_name_ko, resume)}
@@ -325,7 +329,9 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         >
           {bookAbbrev(book.book_number, language)}
         </span>
-        <span className="book-cell__name">{book.book_name_ko}</span>
+        <span className="book-cell__name">
+          {language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko}
+        </span>
         {/* 빈 칸도 줄 높이를 유지 — 표의 괘선 리듬이 흐트러지지 않게 */}
         <span className="book-cell__meta" aria-hidden="true">
           {metaText ?? ' '}
@@ -603,7 +609,9 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                       )}
                     </span>
                     <span className="recent-chip__body">
-                      <span className="recent-chip__name">{book.book_name_ko}</span>
+                      <span className="recent-chip__name">
+                        {language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko}
+                      </span>
                       <span className="recent-chip__meta">
                         {t.resumeFrom(pos.chapter)} · {formatRelativeShort(pos.read_at, language)}
                       </span>
