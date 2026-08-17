@@ -16,6 +16,11 @@
    **"네발 서기 + 물건 들기" 조합 금지** — 네발이 다 땅에 있는데 들라고 하면 팔이
    새로 돋아난다(17화 사고). 들 게 있으면 "upright on its two hind legs, both front
    hooves holding..."처럼 두발 자세를 명시하고, 네발 자세면 입에 물기·등에 얹기로.
+   **부정형 금지** — "no arms, no hands"는 오히려 팔을 소환한다(28화 사고). 대신
+   "in the shape of a real little lamb, standing in side profile on its four short
+   legs"처럼 긍정형으로 진짜 양의 모습을 묘사할 것. 그래도 군더더기가 남으면 그
+   이미지를 제미나이에 올려 "몸에 붙은 작은 팔 두 개만 지워줘, 나머지는 그대로"로
+   편집시키는 게 재생성보다 빠르다.
 4. 비율 **16:9**, 변환: `cwebp -q 78 -crop 0 0 1280 720 -resize 1200 675 원본.png -o {에피소드 id}.webp`
    (장당 30~60KB쯤 나온다. `-crop`은 1376×768 원본 기준 — **우하단 제미나이 ✦ 워터마크를 잘라내는 단계**라
    생략 금지. 원본 해상도가 다르면 우하단 ~100px이 잘려나가도록 crop 폭·높이를 맞출 것)
@@ -208,18 +213,19 @@ falling crown with big worried eyes.
 Warm morning light on a valley: a small shepherd boy holding only a sling stands calm,
 facing a huge armored giant silhouetted on the far side — the light clearly on the boy's
 side. At the boy's heel a small open pouch of smooth sling stones lies on the ground,
-and the sheep gently nudges it toward the boy with its nose, eyes full of trust. The
-sheep is a simple quadruped animal standing on its four stubby wool legs, carrying
-nothing and holding nothing — no arms, no hands, no extra limbs of any kind.
+and the sheep — in the shape of a real little lamb, a plain round ball of white wool
+standing on its four short legs — gently nudges the pouch toward the boy with its nose,
+eyes full of trust.
 ```
 
 **18. solomon — 지혜의 왕과 성전**
 ```
 A magnificent golden temple gleams on a hilltop with ornate pillars and rising incense,
 the sky above it split — radiant gold on one side, creeping dusk on the other, and a
-hairline crack at the temple's base. The sheep, in a tiny builder's hard hat, polishes
-the bottom of one great pillar with a cloth, pausing to look up uneasily at the darkening
-half of the sky.
+hairline crack at the temple's base. The sheep, in a tiny builder's hard hat, stands
+upright on its two hind legs at the base of one great pillar, one front hoof pressing a
+polishing cloth against the gold, pausing to look up uneasily at the darkening half of
+the sky.
 ```
 
 ## 5막 · 분열과 선지자 (열왕기·선지서)
@@ -228,8 +234,9 @@ half of the sky.
 ```
 A fork in a night road where a single royal banner lies torn into two halves, one half
 blown toward each path, with two separate campfires burning far apart on the northern
-and southern horizons. The sheep stands exactly at the fork holding a folded map, looking
-left and right, ears drooping, heartbroken that one road became two.
+and southern horizons. The sheep stands on all four legs exactly at the fork, an unfolded
+map lying open on the ground in front of it, looking left and right, ears drooping,
+heartbroken that one road became two.
 ```
 
 **20. elijah — 불의 선지자 엘리야**
@@ -237,8 +244,8 @@ left and right, ears drooping, heartbroken that one road became two.
 A mountaintop at night: a column of blinding fire falls from the sky onto a
 water-drenched stone altar, a lone prophet with arms raised in silhouette, a stunned
 crowd tiny at the mountain's edge. The sheep peeks out from behind a big water jar,
-wool blown straight back by the blast, one hoof still holding a little water bucket
-it helped carry.
+wool blown straight back by the blast, a little empty water bucket it helped carry
+sitting on the ground beside it.
 ```
 
 **21. jonah — 도망친 선지자**
@@ -261,9 +268,9 @@ with rolled glowing scrolls, determined to deliver every single warning.
 ```
 A wide Babylonian river at dusk, willow trees along the bank where harps hang silent
 from the branches, weary people resting beneath them, distant ziggurats on the horizon,
-one small candle flame glowing among the exiles. The sheep quietly hangs its own tiny
-harp on the lowest branch and sits down close to the people, leaning gently against
-someone's side. Solemn and tender, no humor.
+one small candle flame glowing among the exiles. The sheep's own tiny harp already
+hangs on the lowest branch, and the sheep sits quietly close to the people, leaning
+gently against someone's side. Solemn and tender, no humor.
 ```
 
 ## 6막 · 귀환과 침묵 (에스라–말라기)
@@ -309,8 +316,11 @@ drooped in pure awe.
 ```
 A calm river at dawn: a robed figure stands waist-deep, seen from behind, as the sky
 opens above him in soft light and a luminous white dove descends along a single golden
-beam. On the riverbank the sheep waits quietly, holding a neatly folded towel over one
-front leg like a tiny attendant, watching the light with wide eyes.
+beam. On the riverbank waits the sheep in the shape of a real little lamb — a plain
+round ball of white wool standing in side profile on its four short legs, exactly like
+a real lamb standing in a meadow — with a neatly folded towel draped across its back
+like a tiny attendant, its head turned toward the river, watching the light with wide
+eyes.
 ```
 
 **29. sermon — 산 위의 가르침**
@@ -346,17 +356,20 @@ witness is the story itself.
 ```
 A great golden city gate in late light: a humble figure rides a small donkey through
 it while crowds line the road, laying palm branches and cloaks on the ground. The
-sheep hurries to lay down its own tiny blanket on the road just in time, then looks
-up at the passing rider with shining eyes.
+sheep stands on all four legs at the roadside, its own tiny blanket already spread on
+the road in front of it, looking up at the passing rider with shining eyes.
 ```
 
 **33. lastsupper — 마지막 식사, 그리고 겟세마네**
 ```
 A lamplit upper room: a long low table with a group of robed figures gathered in warm
 silhouette, and at the table's center one cup and one broken loaf glowing gold —
-through the window, dark olive trees under a navy sky. The sheep lies curled beneath
-the table among the sandaled feet, quiet and still, keeping close on the heaviest
-of nights.
+through the window, dark olive trees under a navy sky. Beneath the table among the
+sandaled feet rests the sheep, sleeping in a soft loaf shape: one smooth round mound of
+white wool sitting directly on the floor, its legs completely tucked away inside the
+wool so nothing shows beneath the body — only the fluffy oval body, the sleepy closed
+eyes and the drooping ears are visible, like a small cloud resting on the stone floor.
+Quiet and still, keeping close on the heaviest of nights.
 ```
 
 **34. cross — 십자가**
@@ -420,8 +433,8 @@ held carefully in its mouth, determined that every church gets its letter tonigh
 The inside of a dim, cozy room at night: a humble wooden door with warm golden light
 blazing through its edges and keyhole from outside, where a radiant robed figure stands
 knocking gently, visible only as light through the gap. Seven small golden lampstands
-glow softly around the dark room. The sheep stands before the door, one trembling hoof
-already reaching for the handle.
+glow softly around the dark room. The sheep stands upright on its two hind legs before
+the door, one trembling front hoof already reaching for the handle.
 ```
 
 **41. newheaven — 모든 눈물이 씻기다**
@@ -437,7 +450,7 @@ into a tiny spark — while the sheep begins to smile.
 ```
 An open wooden door leading out of a dark room into a bright sunrise landscape: an open
 book lies on the threshold and a gentle path runs forward through golden fields toward
-the light. The sheep holds the door open with its back, turned toward the viewer,
-one hoof stretched out in invitation — after forty-one adventures, it is your turn
-to walk through.
+the light. The sheep stands upright on its two hind legs, leaning its back against the
+open door to hold it, turned toward the viewer with one front hoof stretched out in
+invitation — after forty-one adventures, it is your turn to walk through.
 ```
