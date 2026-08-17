@@ -276,6 +276,15 @@
   font-size: 2.6rem;
   line-height: 1;
 }
+/* 에피소드 일러스트 — 16:9 고정 비율이라 로드 전에도 자리가 잡혀 아래 텍스트가 밀리지 않는다 */
+.story-ep__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 16px;
+  background: rgba(148, 163, 184, 0.08);
+}
 .story-ep__hook {
   margin-top: 0.8rem;
   font-size: 0.8rem;

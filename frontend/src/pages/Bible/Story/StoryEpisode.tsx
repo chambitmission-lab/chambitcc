@@ -9,6 +9,16 @@ import { GLOSSARY, parseGlossaryText } from './glossary'
 import { useStoryProgress } from './storyProgress'
 import './Story.css'
 
+// 에피소드 일러스트 — img/{에피소드 id}.webp 파일을 넣기만 하면 자동으로 연결된다.
+// 아직 없는 화는 기존 이모지 히어로를 유지한다. eager여도 청크에는 URL 맵만 실리고
+// 이미지 바이너리는 해당 화를 열 때 로드된다.
+const STORY_IMAGES = import.meta.glob('./img/*.webp', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>
+const storyImage = (id: string) => STORY_IMAGES[`./img/${id}.webp`]
+
 // 원문 맛보기 — 절 본문은 기존 성경 API에서 런타임에 가져온다 (번역본 일치, 데이터 중복 없음)
 interface FetchedRef {
   ref: StoryVerseRef
@@ -119,9 +129,13 @@ const StoryEpisode = () => {
           </div>
         </div>
 
-        {/* 타이틀 */}
+        {/* 타이틀 — 일러스트가 있는 화는 이모지 대신 장면 그림이 히어로가 된다 */}
         <div className="story-ep__hero">
-          <div className="story-ep__emoji">{episode.emoji}</div>
+          {storyImage(episode.id) ? (
+            <img className="story-ep__img" src={storyImage(episode.id)} alt="" loading="lazy" />
+          ) : (
+            <div className="story-ep__emoji">{episode.emoji}</div>
+          )}
           <div className="story-ep__hook">{episode.hook}</div>
           <h2 className="story-ep__title">{episode.title}</h2>
           {isRead && (
