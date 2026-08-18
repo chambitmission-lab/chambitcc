@@ -129,6 +129,11 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
             content: {
               ...old.stats.content,
               my_replies: (old.stats.content.my_replies || 0) + 1,
+              // 누적(포인트용)도 +1 — 삭제 시에는 깎지 않는다
+              my_replies_total:
+                (old.stats.content.my_replies_total
+                  ?? old.stats.content.my_replies
+                  ?? 0) + 1,
             },
           },
         }

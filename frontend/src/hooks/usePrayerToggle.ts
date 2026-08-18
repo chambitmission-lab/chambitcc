@@ -138,7 +138,7 @@ export const usePrayerToggle = ({
     // Optimistic Update - 프로필 캐시 (기도 횟수 + 기도중 개수 즉시 반영)
     const previousProfileData = queryClient.getQueryData(['profile', 'detail'])
     if (!isPrayed) {
-      // 기도 추가 시 total_count +1, praying_for +1
+      // 기도 추가 시 total_count +1, praying_for(+누적) +1
       queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
         if (!old) return old
         return {
@@ -153,26 +153,31 @@ export const usePrayerToggle = ({
             content: {
               ...old.stats.content,
               praying_for: (old.stats.content?.praying_for || 0) + 1,
+              praying_for_total:
+                (old.stats.content?.praying_for_total
+                  ?? old.stats.content?.praying_for
+                  ?? 0) + 1,
             },
           },
         }
       })
     } else {
-      // 기도 취소 시 total_count -1, praying_for -1
+      // 기도 취소 시 praying_for(현재 목록 표시)만 -1.
+      // total_count/this_week_count/praying_for_total 은 누적(이력) 기준이라
+      // 취소해도 깎지 않는다 — 포인트가 함께 깎이는 것을 막는 서버 정책과 일치
       queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
         if (!old) return old
         return {
           ...old,
           stats: {
             ...old.stats,
-            activity: {
-              ...old.stats.activity,
-              total_count: Math.max(0, (old.stats.activity.total_count || 0) - 1),
-              this_week_count: Math.max(0, (old.stats.activity.this_week_count || 0) - 1),
-            },
             content: {
               ...old.stats.content,
               praying_for: Math.max(0, (old.stats.content?.praying_for || 0) - 1),
+              praying_for_total:
+                old.stats.content?.praying_for_total
+                  ?? old.stats.content?.praying_for
+                  ?? 0,
             },
           },
         }

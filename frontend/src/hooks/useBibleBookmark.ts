@@ -105,6 +105,10 @@ export const useUpsertBookmark = (verseId: number) => {
         const prevBookmarks = bible.bookmarks_count || 0
         const prevNotes = bible.notes_count || 0
         const prevFavorites = bible.favorites_count || 0
+        // 누적(포인트용) 필드 — 캐시에 없으면(구버전 응답) 현재 개수로 폴백
+        const prevBookmarksEarned = bible.bookmarks_earned ?? prevBookmarks
+        const prevNotesEarned = bible.notes_earned ?? prevNotes
+        const prevFavoritesEarned = bible.favorites_earned ?? prevFavorites
 
         const hasNote = !!(variables.note && variables.note.trim().length > 0)
         const hadNote = !!(previous?.note && previous.note.trim().length > 0)
@@ -120,6 +124,11 @@ export const useUpsertBookmark = (verseId: number) => {
               bookmarks_count: wasExisting ? prevBookmarks : prevBookmarks + 1,
               notes_count: prevNotes + (hasNote ? 1 : 0) - (hadNote ? 1 : 0),
               favorites_count: prevFavorites + (isFav ? 1 : 0) - (wasFav ? 1 : 0),
+              // 누적은 늘기만 한다. 서버는 같은 구절 재추가를 '평생 1회'로 세므로
+              // 여기서 과대집계될 수 있지만 곧 리페치로 교정된다
+              bookmarks_earned: prevBookmarksEarned + (wasExisting ? 0 : 1),
+              notes_earned: prevNotesEarned + (hasNote && !hadNote ? 1 : 0),
+              favorites_earned: prevFavoritesEarned + (isFav && !wasFav ? 1 : 0),
             },
           },
         }
@@ -196,6 +205,11 @@ export const useDeleteBookmark = (verseId: number) => {
               bookmarks_count: Math.max(0, (bible.bookmarks_count || 0) - (rowGone ? 1 : 0)),
               notes_count: Math.max(0, (bible.notes_count || 0) - (noteCleared ? 1 : 0)),
               favorites_count: Math.max(0, (bible.favorites_count || 0) - (favCleared ? 1 : 0)),
+              // 누적(포인트용)은 삭제해도 그대로 — 캐시에 없으면 삭제 전 개수로
+              // 고정해 두어 포인트가 순간적으로 깎여 보이지 않게 한다
+              bookmarks_earned: bible.bookmarks_earned ?? (bible.bookmarks_count || 0),
+              notes_earned: bible.notes_earned ?? (bible.notes_count || 0),
+              favorites_earned: bible.favorites_earned ?? (bible.favorites_count || 0),
             },
           },
         }

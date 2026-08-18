@@ -71,11 +71,13 @@ const Profile = () => {
       bibleChaptersRead: data.stats.bible_reading?.chapters_read || 0,
       bibleBooksCompleted: data.stats.bible_reading?.books_completed || [],
       bibleBookChapters: data.stats.bible_reading?.books_progress || {},
-      repliesCount: data.stats.content.my_replies,
-      prayingForCount: data.stats.content.praying_for,
-      bookmarksCount: data.stats.bible_reading?.bookmarks_count || 0,
-      notesCount: data.stats.bible_reading?.notes_count || 0,
-      favoritesCount: data.stats.bible_reading?.favorites_count || 0,
+      // 포인트/업적은 누적(*_total/*_earned) 기준 — 삭제·취소해도 깎이지 않는다.
+      // 구버전 백엔드(필드 없음)에서는 현재 개수로 폴백 (?? 라 0도 유효값)
+      repliesCount: data.stats.content.my_replies_total ?? data.stats.content.my_replies,
+      prayingForCount: data.stats.content.praying_for_total ?? data.stats.content.praying_for,
+      bookmarksCount: data.stats.bible_reading?.bookmarks_earned ?? data.stats.bible_reading?.bookmarks_count ?? 0,
+      notesCount: data.stats.bible_reading?.notes_earned ?? data.stats.bible_reading?.notes_count ?? 0,
+      favoritesCount: data.stats.bible_reading?.favorites_earned ?? data.stats.bible_reading?.favorites_count ?? 0,
       bluemarbleBestScore: bmStats?.best_score ?? 0,
       bluemarbleCorrectTotal: bmStats?.total_correct ?? 0,
       bluemarbleLapsTotal: 0, // 누적 바퀴는 stats에 추가하지 않음. 완주 횟수로 대체 가능
