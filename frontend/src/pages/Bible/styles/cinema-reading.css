@@ -1,0 +1,335 @@
+/* 성경 낭독 영화관 — 말씀 + 음성 + 배경만 남기는 전체화면 모드.
+   원칙: 배경 10%, 말씀 90%. 배경은 어둡고 느리게, 텍스트는 크고 또렷하게.
+   가로(landscape)에서 특히 넓게 보이도록 orientation 분기를 둔다. */
+
+.cinema-overlay {
+  position: fixed;
+  inset: 0;
+  /* 집중 읽기와 같은 층 — 토스트(z-9999)보다는 아래 */
+  z-index: 9980;
+  height: var(--vvh, 100dvh);
+  background: #05070d;
+  color: #f6f2e8;
+  overflow: hidden;
+  animation: cinema-fade-in 0.6s ease-out;
+}
+
+@keyframes cinema-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── 배경: 장면 레이어 + 빛무리 + 비네트 ───────────────────────── */
+.cinema-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cinema-bg__layer {
+  position: absolute;
+  inset: -4%;
+  /* 장면 전환은 절이 넘어갈 때마다 아주 천천히 섞인다 */
+  transition: opacity 4.5s ease;
+  /* 미세한 숨결 — 배경이 정지 사진처럼 죽어 있지 않게 */
+  animation: cinema-breathe 46s ease-in-out infinite alternate;
+}
+
+.cinema-bg__glow {
+  position: absolute;
+  inset: 0;
+  transition: background 4.5s ease;
+  animation: cinema-drift 38s ease-in-out infinite alternate;
+}
+
+.cinema-bg__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+@keyframes cinema-breathe {
+  from { transform: scale(1); }
+  to { transform: scale(1.045); }
+}
+
+@keyframes cinema-drift {
+  from { transform: translate(-2.5%, -1.5%); }
+  to { transform: translate(2.5%, 1.5%); }
+}
+
+/* ── 무대: 절 텍스트 ───────────────────────────────────────────── */
+.cinema-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 1.75rem 5.5rem;
+}
+
+.cinema-verse {
+  max-width: 36rem;
+  text-align: center;
+  animation: cinema-verse-in 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes cinema-verse-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.cinema-verse__text {
+  margin: 0;
+  font-family: var(--bible-font-family, 'Noto Serif KR', 'Nanum Myeongjo', serif);
+  font-size: calc(1.5rem * var(--bible-font-scale, 1));
+  line-height: 2;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+
+/* 단어 하이라이트 — 낭독이 지나가면 은은하게 밝아진다 (노래방보다 촛불에 가깝게) */
+.cinema-word {
+  color: rgba(246, 242, 232, 0.32);
+  transition: color 0.5s ease, text-shadow 0.5s ease;
+}
+
+.cinema-word.is-lit {
+  color: #faf6ec;
+  text-shadow: 0 0 22px rgba(255, 240, 200, 0.22);
+}
+
+.cinema-verse__ref {
+  display: inline-block;
+  margin-top: 1.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: rgba(246, 242, 232, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 가로 화면 — 자막처럼 넓고 큼직하게 */
+@media (orientation: landscape) {
+  .cinema-verse {
+    max-width: min(52rem, 82vw);
+  }
+  .cinema-verse__text {
+    font-size: calc(1.75rem * var(--bible-font-scale, 1));
+    line-height: 1.9;
+  }
+}
+
+/* ── 타이틀 카드 (머리말 낭독·준비 중) ─────────────────────────── */
+.cinema-title__label {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  color: rgba(246, 242, 232, 0.45);
+}
+
+.cinema-title__book {
+  margin: 0;
+  font-family: var(--bible-font-family, 'Noto Serif KR', 'Nanum Myeongjo', serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #faf6ec;
+  text-shadow: 0 0 34px rgba(255, 240, 200, 0.16);
+}
+
+.cinema-title__chapter {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: rgba(246, 242, 232, 0.6);
+}
+
+.cinema-title__status {
+  display: block;
+  margin-top: 2rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgba(246, 242, 232, 0.45);
+  animation: cinema-status-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes cinema-status-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+/* ── 세로 화면 힌트 ────────────────────────────────────────────── */
+.cinema-rotate-hint {
+  position: absolute;
+  left: 50%;
+  top: calc(3.75rem + env(safe-area-inset-top, 0px));
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: rgba(15, 20, 35, 0.8);
+  border: 1px solid rgba(246, 242, 232, 0.15);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(246, 242, 232, 0.85);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: cinema-hint-in 0.5s ease-out;
+}
+
+.cinema-rotate-hint .material-icons-round {
+  font-size: 1rem;
+  color: rgba(246, 242, 232, 0.6);
+}
+
+@keyframes cinema-hint-in {
+  from { opacity: 0; transform: translate(-50%, -6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ── 컨트롤 (자동 숨김) ────────────────────────────────────────── */
+.cinema-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.cinema-ui.is-hidden {
+  opacity: 0;
+}
+
+.cinema-ui.is-hidden * {
+  pointer-events: none !important;
+}
+
+.cinema-ui__top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: calc(0.6rem + env(safe-area-inset-top, 0px)) 0.9rem 1.75rem;
+  background: linear-gradient(to bottom, rgba(3, 5, 10, 0.75), transparent);
+}
+
+.cinema-ui__caption {
+  flex: 1;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(246, 242, 232, 0.7);
+}
+
+.cinema-ui__spacer {
+  width: 2.5rem;
+  flex-shrink: 0;
+}
+
+.cinema-ui__bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 2rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, rgba(3, 5, 10, 0.8), transparent);
+}
+
+.cinema-ui__btn {
+  pointer-events: auto;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(246, 242, 232, 0.07);
+  color: rgba(246, 242, 232, 0.85);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.cinema-ui__btn:hover:not(:disabled) {
+  background: rgba(246, 242, 232, 0.16);
+  color: #fff;
+}
+
+.cinema-ui__btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.cinema-ui__btn .material-icons-round {
+  font-size: 1.3rem;
+}
+
+.cinema-ui__btn--play {
+  width: 3.25rem;
+  height: 3.25rem;
+  background: rgba(246, 242, 232, 0.14);
+}
+
+.cinema-ui__btn--play .material-icons-round {
+  font-size: 1.75rem;
+}
+
+.cinema-pulse {
+  animation: cinema-status-pulse 1.6s ease-in-out infinite;
+}
+
+.cinema-ui__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+}
+
+.cinema-progress {
+  height: 2px;
+  margin: 0 0.25rem 1.1rem;
+  border-radius: 999px;
+  background: rgba(246, 242, 232, 0.14);
+  overflow: hidden;
+}
+
+.cinema-progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(246, 242, 232, 0.65);
+  transition: width 0.8s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinema-overlay,
+  .cinema-verse,
+  .cinema-rotate-hint {
+    animation: none;
+  }
+  .cinema-bg__layer,
+  .cinema-bg__glow {
+    animation: none;
+  }
+}

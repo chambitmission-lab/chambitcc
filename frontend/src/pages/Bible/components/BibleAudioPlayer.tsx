@@ -3,6 +3,7 @@ import { API_V1 } from '../../../config/api'
 import { showToast } from '../../../utils/toast'
 import type { BibleTTSVoice } from '../../../types/bible'
 import AudioSleepSheet from './AudioSleepSheet'
+import CinemaReading from './CinemaReading'
 
 // 절 메뉴 '여기부터 듣기' 요청. seq가 바뀔 때마다 새 요청으로 처리한다.
 // book/chapter는 장 이동 직후 남은 이전 장 요청을 무시하기 위한 대조용.
@@ -16,6 +17,8 @@ export interface PlayFromVerseRequest {
 interface BibleAudioPlayerProps {
   bookNumber: number
   chapter: number
+  // BibleBook.id — 낭독 영화관이 절 본문을 조회할 때 쓴다 (없으면 영화관 버튼 숨김)
+  bookId?: number
   // 듣기-보기 동기화: 지금 낭독 중인 절이 바뀔 때마다 호출 (재생 전/머리말 구간은 null)
   onActiveVerseChange?: (verse: number | null) => void
   // 실제로 소리가 나는 중인지. 일시정지하면 본문 자동 따라가기도 멈춰야 하므로
@@ -32,7 +35,7 @@ interface BibleAudioPlayerProps {
 }
 
 // 절별 낭독 시작 시각(초) — 백엔드가 mp3 생성 시 WordBoundary로 산출해 캐시
-interface VerseTiming {
+export interface VerseTiming {
   verse: number
   start: number
 }
@@ -88,7 +91,7 @@ const formatRemain = (ms: number): string =>
  * 호출해야 하는데, 모바일 자동재생 정책상 "한 번 재생했던 그 <audio> 요소"를
  * 재사용해야 허용되기 때문 — key 리마운트로 요소를 새로 만들면 iOS에서 막힌다.
  */
-const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingChange, playFromVerse, hasNextChapter, onAutoNextChapter, totalChapters, bookName }: BibleAudioPlayerProps) => {
+const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, onPlayingChange, playFromVerse, hasNextChapter, onAutoNextChapter, totalChapters, bookName }: BibleAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const wantPlayRef = useRef(false) // src 로드 시 자동 재생할지
@@ -113,6 +116,8 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
   const [timings, setTimings] = useState<VerseTiming[] | null>(null)
   const [activeVerse, setActiveVerse] = useState<number | null>(null)
   const activeVerseRef = useRef<number | null>(null)
+  // 낭독 영화관 — 같은 <audio> 요소 위에 전체화면 뷰만 씌운다
+  const [showCinema, setShowCinema] = useState(false)
 
   // ── 잠들기 전 듣기 ─────────────────────────────────────────────
   // 수면 타이머 만료 시각(epoch ms). setTimeout은 화면이 꺼지면 스로틀되므로
@@ -431,6 +436,13 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
     }
   }
 
+  // 낭독 영화관 — 소리 없는 영화관은 의미가 없으므로 열면서 재생도 시작한다
+  const canCinema = bookId != null && bookId > 0
+  const openCinema = () => {
+    setShowCinema(true)
+    if (!isPlaying) requestPlay()
+  }
+
   // 절 메뉴 '여기부터 듣기' — 요청된 절로 점프해 재생.
   // 캐시된 장(타이밍·총길이 보유)은 즉시 점프하고, 아직 준비 전이면 pending으로
   // 보관해 타이밍/메타데이터가 도착하는 시점에 점프한다.
@@ -587,6 +599,20 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
                 </span>
               </span>
               <span className="flex items-center gap-1">
+                {/* 낭독 영화관 — 말씀+음성+배경만 남기는 전체화면 몰입 모드 */}
+                {canCinema && (
+                  <button
+                    type="button"
+                    onClick={openCinema}
+                    aria-label="낭독 영화관 (전체화면 몰입 낭독)"
+                    title="낭독 영화관"
+                    className="flex items-center gap-0.5 rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[11px] font-bold text-gray-400 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40"
+                  >
+                    <span className="material-icons-round text-[13px] leading-none">
+                      theaters
+                    </span>
+                  </button>
+                )}
                 {/* 잠들기 전 듣기 — 수면 타이머·듣기 범위 시트 열기 */}
                 {canSleepSheet && (
                   <button
@@ -913,6 +939,26 @@ const BibleAudioPlayer = ({ bookNumber, chapter, onActiveVerseChange, onPlayingC
         </div>
       </div>
     </div>
+
+    {/* 낭독 영화관 — 같은 <audio> 요소를 공유하는 전체화면 뷰.
+        닫아도 재생은 계속되고, 연속 재생(다음 장)도 뒤에서 그대로 이어진다. */}
+    {showCinema && canCinema && (
+      <CinemaReading
+        bookId={bookId!}
+        bookNumber={bookNumber}
+        bookName={bookName ?? ''}
+        chapter={chapter}
+        isPlaying={isPlaying}
+        loading={loading}
+        activeVerse={activeVerse}
+        duration={duration}
+        timings={timings}
+        audioRef={audioRef}
+        onTogglePlay={togglePlay}
+        onSeekToVerse={trySeekToVerse}
+        onClose={() => setShowCinema(false)}
+      />
+    )}
 
     {/* 잠들기 전 듣기 설정 시트 — 수면 타이머 + 어느 장까지 들을지 */}
     {showSleepSheet && canSleepSheet && (

@@ -28,6 +28,9 @@
 /* 집중 읽기 - 한 절씩 몰입 모드 */
 @import './styles/focus-reading.css';
 
+/* 낭독 영화관 - 말씀+음성+배경 전체화면 */
+@import './styles/cinema-reading.css';
+
 /* Search - 검색 기능 */
 @import './styles/search.css';
 

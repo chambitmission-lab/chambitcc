@@ -461,6 +461,7 @@ const BibleStudy = () => {
                 <BibleAudioPlayer
                   bookNumber={selectedBookData.book_number}
                   chapter={selectedChapter}
+                  bookId={selectedBookId}
                   onActiveVerseChange={setAudioActiveVerse}
                   onPlayingChange={setAudioPlaying}
                   playFromVerse={playFromVerse}
