@@ -21,6 +21,8 @@ interface ChapterNavigationProps {
   resumeChapter?: number
   onChapterChange: (chapter: number) => void
   onBackToBooks: () => void
+  /** 집중 읽기(한 절씩 몰입 모드) 열기 */
+  onOpenFocus?: () => void
 }
 
 const ChapterNavigation = ({
@@ -31,7 +33,8 @@ const ChapterNavigation = ({
   totalChapters,
   resumeChapter,
   onChapterChange,
-  onBackToBooks
+  onBackToBooks,
+  onOpenFocus
 }: ChapterNavigationProps) => {
   const { language } = useLanguage()
   const { isLoggedIn } = useAuth()
@@ -62,8 +65,8 @@ const ChapterNavigation = ({
   }, [loggedIn, selectedBookId, bookNumber, queryClient])
 
   const texts = {
-    ko: { prevChapter: '이전 장', nextChapter: '다음 장', pick: '장 선택', of: '장' },
-    en: { prevChapter: 'Previous', nextChapter: 'Next', pick: 'Select chapter', of: '' }
+    ko: { prevChapter: '이전 장', nextChapter: '다음 장', pick: '장 선택', of: '장', focus: '집중 읽기 — 한 절씩' },
+    en: { prevChapter: 'Previous', nextChapter: 'Next', pick: 'Select chapter', of: '', focus: 'Focus reading — verse by verse' }
   }
 
   const t = texts[language]
@@ -81,6 +84,18 @@ const ChapterNavigation = ({
             {selectedChapter}장 / {totalChapters}장
           </p>
         </div>
+        {/* 집중 읽기 — 한 절씩 몰입해서 읽는 모드 진입 */}
+        {onOpenFocus && (
+          <button
+            type="button"
+            className="focus-mode-btn"
+            onClick={onOpenFocus}
+            aria-label={t.focus}
+            title={t.focus}
+          >
+            <span className="material-icons-round">filter_center_focus</span>
+          </button>
+        )}
         {/* Aa 읽기 설정 — '보기 설정'이므로 장 이동(콘텐츠 탐색) 줄과 분리해 헤더 우측에 둔다 */}
         <ReaderSettings />
       </div>

@@ -19,6 +19,7 @@ import {
   BibleSearch,
   ResumeReadingCard,
   FavoritesPlaylistModal,
+  FocusReading,
 } from './components'
 import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats } from '../../hooks/useBibleBookmark'
@@ -45,6 +46,8 @@ const BibleStudy = () => {
   const [showBookList, setShowBookList] = useState<boolean>(true)
   const [pendingScrollVerse, setPendingScrollVerse] = useState<number | null>(null)
   const [showPlaylist, setShowPlaylist] = useState<boolean>(false)
+  // 집중 읽기 — 한 절씩 넘기는 몰입 모드 (본문 위 전체화면 오버레이)
+  const [showFocus, setShowFocus] = useState<boolean>(false)
   // 오디오북 듣기-보기 동기화: 지금 낭독 중인 절 (플레이어가 통지, VerseList가 표시)
   const [audioActiveVerse, setAudioActiveVerse] = useState<number | null>(null)
   // 오디오북이 실제 재생 중인지 — 멈추면 본문 자동 따라가기도 멈춘다
@@ -449,6 +452,7 @@ const BibleStudy = () => {
                   resumeChapter={resumeMap.get(selectedBookData.book_number)?.chapter}
                   onChapterChange={handleChapterChange}
                   onBackToBooks={handleChangeBook}
+                  onOpenFocus={() => setShowFocus(true)}
                 />
 
                 {/* 오디오북 — 현재 장을 음성으로 듣기.
@@ -504,6 +508,20 @@ const BibleStudy = () => {
 
       {/* 즐겨찾기 묵상 플레이리스트 모달 */}
       {showPlaylist && <FavoritesPlaylistModal onClose={() => setShowPlaylist(false)} />}
+
+      {/* 집중 읽기 — 한 화면 한 절 몰입 오버레이. 장 이동은 기존 handleChapterChange를
+          그대로 태워 아래 깔린 본문·오디오 플레이어와 장 상태가 어긋나지 않는다 */}
+      {showFocus && !showBookList && selectedBookId > 0 && selectedBookData && (
+        <FocusReading
+          bookId={selectedBookId}
+          bookNumber={selectedBookData.book_number}
+          bookName={selectedBook}
+          chapter={selectedChapter}
+          totalChapters={selectedBookData.chapter_count}
+          onChapterChange={handleChapterChange}
+          onClose={() => setShowFocus(false)}
+        />
+      )}
 
       {/* 성경 섹션 하단 네비게이션 — 읽기/검색은 탭 전환, 플랜/가계도는 라우팅 */}
       <BibleBottomNav active={activeTab} onSelectTab={handleSelectTab} />

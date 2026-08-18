@@ -1,0 +1,560 @@
+/* 집중 읽기 — 한 화면에 한 절, 위로 쓸어올려 다음 절로 넘어가는 몰입 모드.
+   일반 읽기(VerseList)와 달리 항상 어두운 몰입 배경을 쓴다(라이트/다크 공통).
+   레이아웃 높이는 dvh 대신 index.html이 실측 주입하는 --vvh를 쓴다(설치 PWA 오계산 방지). */
+
+/* ── 진입 버튼 (책 정보 헤더, Aa 옆) ─────────────────────────── */
+.focus-mode-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ig-secondary-background);
+  border: 1px solid var(--ig-border);
+  border-radius: 50%;
+  color: var(--ig-primary-text);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+[data-theme="dark"] .focus-mode-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.focus-mode-btn:hover {
+  background: var(--ig-hover);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.focus-mode-btn .material-icons-round {
+  font-size: 1.25rem;
+}
+
+/* ── 오버레이 ────────────────────────────────────────────────── */
+.focus-overlay {
+  position: fixed;
+  inset: 0;
+  /* 하단 네비(z-40)·본문 위에 뜨되, 북마크 모달·토스트(z-9999)에는 덮인다 */
+  z-index: 9980;
+  height: var(--vvh, 100dvh);
+  background: #0a101d;
+  color: #eef2f8;
+  overflow: hidden;
+  animation: focus-fade-in 0.35s ease-out;
+}
+
+/* 시간대 틴트 — 새벽/낮/노을/밤의 빛을 아주 옅게 얹는다 */
+.focus-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(96, 140, 255, 0.14), transparent 60%),
+    radial-gradient(90% 50% at 50% 110%, rgba(20, 32, 60, 0.9), transparent 70%);
+}
+
+.focus-overlay[data-tint="dawn"]::before {
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(255, 178, 122, 0.13), transparent 60%),
+    radial-gradient(90% 50% at 50% 110%, rgba(30, 28, 52, 0.9), transparent 70%);
+}
+
+.focus-overlay[data-tint="dusk"]::before {
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(255, 141, 99, 0.12), transparent 60%),
+    radial-gradient(90% 50% at 50% 110%, rgba(26, 24, 50, 0.9), transparent 70%);
+}
+
+.focus-overlay[data-tint="night"]::before {
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(88, 108, 220, 0.1), transparent 60%),
+    radial-gradient(90% 50% at 50% 110%, rgba(10, 14, 30, 0.95), transparent 70%);
+}
+
+@keyframes focus-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── 절 스크롤러 (한 절 = 한 화면, 세로 스냅) ──────────────────── */
+.focus-scroller {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.focus-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.focus-slide {
+  height: 100%;
+  scroll-snap-align: start;
+  /* 세게 플링해도 여러 절을 건너뛰지 않는다 — "한 절씩"이 이 모드의 정체성 */
+  scroll-snap-stop: always;
+  display: flex;
+  /* 헤더/하단 눈금자가 겹치지 않는 안전 영역 */
+  padding: 4.75rem 1.5rem 8.5rem;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.focus-slide::-webkit-scrollbar {
+  display: none;
+}
+
+/* flex + margin:auto — 짧은 절은 정중앙, 긴 절은 잘리지 않고 안에서 스크롤 */
+.focus-slide__inner {
+  margin: auto;
+  width: 100%;
+  max-width: 32rem;
+  text-align: center;
+  opacity: 0.22;
+  transform: translateY(14px) scale(0.985);
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.focus-slide__inner.is-active {
+  opacity: 1;
+  transform: none;
+}
+
+.focus-slide__num {
+  display: block;
+  font-size: 3rem;
+  line-height: 1.2;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: #8fb6ff;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 1rem;
+}
+
+/* 읽음 표시 — 절 번호 아래 작은 점(집중을 깨지 않는 최소 신호) */
+.focus-slide__read {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: -0.5rem 0 0.9rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(143, 182, 255, 0.75);
+}
+
+.focus-slide__read .material-icons-round {
+  font-size: 0.8125rem;
+}
+
+.focus-slide__text {
+  /* Aa 설정을 따르되(명조 선택 시 그대로), 기본값은 몰입감을 위해 명조 */
+  font-family: var(--bible-font-family, 'Noto Serif KR', 'Nanum Myeongjo', serif);
+  font-size: calc(1.375rem * var(--bible-font-scale, 1));
+  line-height: max(1.9, var(--bible-line-height, 2));
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #f2f5fb;
+  text-wrap: balance;
+  word-break: keep-all;
+  margin: 0;
+}
+
+/* 긴 절은 화면을 넘기지 않도록 단계적으로 줄인다 */
+.focus-slide__text.is-long {
+  font-size: calc(1.1875rem * var(--bible-font-scale, 1));
+}
+
+.focus-slide__text.is-vlong {
+  font-size: calc(1.03125rem * var(--bible-font-scale, 1));
+  line-height: 1.9;
+}
+
+.focus-slide__translation {
+  display: inline-block;
+  margin-top: 1.4rem;
+  padding: 0.28rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(238, 242, 248, 0.55);
+}
+
+/* ── 상단 바 ────────────────────────────────────────────────── */
+.focus-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: calc(0.5rem + env(safe-area-inset-top, 0px)) 0.75rem 1.5rem;
+  background: linear-gradient(to bottom, rgba(8, 12, 24, 0.88) 30%, transparent);
+  pointer-events: none;
+}
+
+.focus-top > * {
+  pointer-events: auto;
+}
+
+.focus-top__btn {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(238, 242, 248, 0.85);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.focus-top__btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.focus-top__btn .material-icons-round {
+  font-size: 1.3rem;
+}
+
+.focus-top__btn.is-on {
+  color: #8fb6ff;
+}
+
+.focus-top__title {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+.focus-top__mode {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: rgba(143, 182, 255, 0.8);
+  margin-bottom: 0.15rem;
+}
+
+.focus-top__book {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: rgba(238, 242, 248, 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── 좌우 절 이동 화살표 ─────────────────────────────────────── */
+.focus-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(238, 242, 248, 0.5);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, opacity 0.2s;
+}
+
+.focus-arrow:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.focus-arrow:disabled {
+  opacity: 0.15;
+  cursor: default;
+}
+
+.focus-arrow--prev { left: 0.5rem; }
+.focus-arrow--next { right: 0.5rem; }
+
+.focus-arrow .material-icons-round {
+  font-size: 1.2rem;
+}
+
+/* ── 하단: 눈금자 + 위치 + 장 이동 ───────────────────────────── */
+.focus-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  padding: 2.25rem 1rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, rgba(8, 12, 24, 0.92) 40%, transparent);
+  /* 하단에서 시작하는 엄지 스와이프가 본문 스크롤로 통과하도록 —
+     눈금자·버튼 등 실제 컨트롤만 이벤트를 받는다 */
+  pointer-events: none;
+}
+
+.focus-bottom .focus-ruler,
+.focus-bottom .focus-chapter-btn {
+  pointer-events: auto;
+}
+
+/* 절 눈금자 — 장 전체를 자처럼 펼쳐 현재 위치를 보여준다. 탭/드래그로 점프 */
+.focus-ruler {
+  display: flex;
+  align-items: flex-end;
+  height: 30px;
+  padding: 0 0.25rem;
+  margin-bottom: 0.55rem;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.focus-ruler__tick {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 10px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.16);
+  transition: height 0.18s ease, background 0.18s ease;
+  pointer-events: none;
+}
+
+.focus-ruler__tick.is-past {
+  background: rgba(143, 182, 255, 0.55);
+}
+
+.focus-ruler__tick.is-read {
+  background: rgba(143, 182, 255, 0.4);
+}
+
+.focus-ruler__tick.is-past.is-read {
+  background: rgba(143, 182, 255, 0.55);
+}
+
+.focus-ruler__tick.is-current {
+  height: 24px;
+  background: #cfe1ff;
+  box-shadow: 0 0 10px rgba(143, 182, 255, 0.6);
+}
+
+.focus-bottom__row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.focus-bottom__ref {
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(238, 242, 248, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 이전/다음 장 — 화면 모서리의 조용한 카드 (스크린샷의 코너 버튼 문법) */
+.focus-chapter-btn {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 3.25rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(238, 242, 248, 0.75);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.focus-chapter-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(143, 182, 255, 0.5);
+}
+
+.focus-chapter-btn:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.focus-chapter-btn__num {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #cfe1ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-chapter-btn__label {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(238, 242, 248, 0.5);
+}
+
+/* ── 스와이프 힌트 (첫 진입 1회) ─────────────────────────────── */
+.focus-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 7.5rem;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: rgba(20, 30, 55, 0.85);
+  border: 1px solid rgba(143, 182, 255, 0.25);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(238, 242, 248, 0.85);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: focus-hint-in 0.5s ease-out;
+}
+
+.focus-hint.is-leaving {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.focus-hint .material-icons-round {
+  font-size: 1rem;
+  color: #8fb6ff;
+  animation: focus-hint-bob 1.6s ease-in-out infinite;
+}
+
+@keyframes focus-hint-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes focus-hint-bob {
+  0%, 100% { transform: translateY(2px); }
+  50% { transform: translateY(-3px); }
+}
+
+/* ── 장 끝 카드 ─────────────────────────────────────────────── */
+.focus-end__icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  background: rgba(143, 182, 255, 0.12);
+  border: 1px solid rgba(143, 182, 255, 0.3);
+}
+
+.focus-end__icon .material-icons-round {
+  font-size: 1.75rem;
+  color: #8fb6ff;
+}
+
+.focus-end__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #f2f5fb;
+}
+
+.focus-end__sub {
+  margin: 0 0 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(238, 242, 248, 0.55);
+}
+
+.focus-end__next {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.85rem 1.75rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--brand, #3182f6);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(49, 130, 246, 0.35);
+  transition: filter 0.15s, transform 0.12s;
+}
+
+.focus-end__next:hover { filter: brightness(1.08); }
+.focus-end__next:active { transform: scale(0.97); }
+
+.focus-end__next .material-icons-round { font-size: 1.1rem; }
+
+.focus-end__close {
+  display: block;
+  margin: 1rem auto 0;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(238, 242, 248, 0.55);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.focus-end__close:hover { color: #fff; }
+
+/* ── 로딩 ───────────────────────────────────────────────────── */
+.focus-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.focus-loading__spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2.5px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #8fb6ff;
+  border-radius: 50%;
+  animation: focus-spin 0.8s linear infinite;
+}
+
+@keyframes focus-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-overlay,
+  .focus-hint,
+  .focus-hint .material-icons-round {
+    animation: none;
+  }
+  .focus-slide__inner {
+    transition: opacity 0.2s ease;
+    transform: none;
+  }
+}

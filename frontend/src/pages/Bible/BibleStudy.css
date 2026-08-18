@@ -25,6 +25,9 @@
 /* Verse Display - 성경 본문 표시 */
 @import './styles/verse-display.css';
 
+/* 집중 읽기 - 한 절씩 몰입 모드 */
+@import './styles/focus-reading.css';
+
 /* Search - 검색 기능 */
 @import './styles/search.css';
 
