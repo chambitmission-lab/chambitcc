@@ -47,7 +47,8 @@ const NewHeader = () => {
         className={`fixed top-0 left-0 right-0 ${isMenuOpen ? 'z-[105]' : 'z-[60]'} bg-background-light/85 dark:bg-background-dark/85 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06]`}
         ref={menuRef}
       >
-        <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+        {/* lg+: 데스크톱 앱바 — 로고는 좌상단(좌측 레일과 정렬), 액션은 우상단 */}
+        <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between lg:max-w-none lg:px-5">
           <Logo />
           <HeaderActions 
             unreadCount={unreadCount}

@@ -19,6 +19,7 @@ import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
 import SortTabs from './components/SortTabs'
 import PrayerFeed from './components/PrayerFeed'
 import BottomNavigation from './components/BottomNavigation'
+import DesktopNavRail from './components/DesktopNavRail'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
 import AnswerModal from '../../components/prayer/AnswerModal'
@@ -231,9 +232,23 @@ const NewHome = () => {
   return (
     <ErrorBoundary>
       <div className="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-200">
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl relative border-x border-border-light dark:border-border-dark">
-          
-          <main ref={mainRef} className="pb-dock-safe">
+        {/* PC 전용 좌측 내비 레일 — 하단 도크의 데스크톱 대응물 (fixed, lg+에서만) */}
+        <DesktopNavRail
+          onProfileClick={handleProfileClick}
+          onComposeClick={handleComposerOpen}
+          onThanksClick={handleThanksOpen}
+          onVerseCardClick={() => void goLazy('/bible/photo-verse')}
+          onScrollToTop={handleScrollToTop}
+          onFocusModeClick={handleFocusModeClick}
+          onBibleClick={handleBibleClick}
+          pendingPath={navPending}
+        />
+
+        {/* 모바일: 폰 프레임(max-w-md) / lg+: 프레임을 풀어 전체 폭 캔버스로 */}
+        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl relative border-x border-border-light dark:border-border-dark lg:max-w-none lg:shadow-none lg:border-x-0">
+
+          {/* lg+: 좌측 레일 폭만큼 밀어낸 뒤 피드+사이드바를 남은 공간 중앙에 배치 */}
+          <main ref={mainRef} className="pb-dock-safe lg:pb-12 lg:pl-[76px] xl:pl-[248px]">
             {/* 오프라인 배너 - 캐시된 데이터를 보여주면서 알림 */}
             {prayerHook.error && prayerHook.prayers.length > 0 && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2">
@@ -246,6 +261,13 @@ const NewHome = () => {
             
             {/* 관리자 팝업 공지 — 진입 시 전면 팝업, 닫으면 이 자리에 배너로 남는다 */}
             <HomeNotice />
+
+            {/* lg+: 인스타그램식 2컬럼 — 기도 피드(좌) + 오늘/공동체 카드 사이드바(우, sticky).
+                모바일에선 이 래퍼가 그냥 세로 스택이라 기존 순서(카드들 → 피드) 그대로다 */}
+            <div className="lg:flex lg:items-start lg:justify-center lg:gap-8 lg:px-6 lg:pt-6">
+
+            {/* 사이드바 — 모바일에서 피드 위에 쌓이던 카드들을 데스크톱에선 우측 위젯 컬럼으로 */}
+            <div className="lg:order-2 lg:w-[368px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide lg:pb-4">
 
             {/* 오늘의 묵상 카드 — 시간대별 히어로가 홈의 첫인사 역할 (위계 최상단) */}
             <DailyMeditationCard onWriteMeditation={handleComposerOpen} />
@@ -279,6 +301,30 @@ const NewHome = () => {
 
             {/* 오늘의 감사 (Small Thanks Thread) — 임시 비활성화 */}
             {/* <ThanksThread /> */}
+
+            </div>{/* /사이드바 */}
+
+            {/* 피드 컬럼 — 데스크톱에선 접속 즉시 기도 피드가 보인다 */}
+            <div className="lg:order-1 lg:w-full lg:max-w-[480px] lg:min-w-0">
+
+            {/* PC 전용 인라인 작성바 — 키보드가 있는 환경에선 작성 진입을 피드 최상단에 */}
+            <div className="hidden lg:block px-4 pt-1">
+              <button
+                type="button"
+                onClick={handleComposerOpen}
+                className="w-full feed-card rounded-2xl pl-3 pr-4 py-3 flex items-center gap-3 text-left hover:border-[var(--brand-glow)] hover:shadow-[0_6px_18px_-6px_var(--brand-glow)] active:scale-[0.99] transition-[border-color,box-shadow,transform] duration-150"
+              >
+                <span className="w-9 h-9 rounded-full bg-[var(--brand-soft-strong)] text-brand flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <path d="M11 6.5 C11.65 10.4 13.8 12.55 17.7 13.2 C13.8 13.85 11.65 16 11 19.9 C10.35 16 8.2 13.85 4.3 13.2 C8.2 12.55 10.35 10.4 11 6.5 Z" />
+                  </svg>
+                </span>
+                <span className="flex-1 text-[14px] text-gray-400 dark:text-white/40">
+                  오늘의 기도제목을 나눠보세요…
+                </span>
+                <span className="text-[13px] font-bold text-brand shrink-0">나누기</span>
+              </button>
+            </div>
 
             {/* 소그룹 필터 — scroll-mt는 고정 헤더에 안 가리게 하는 오프셋 */}
             <div ref={feedRef} className="px-4 py-3 overflow-x-auto scrollbar-hide scroll-mt-16">
@@ -324,6 +370,9 @@ const NewHome = () => {
                 onPrayerClick={handlePrayerClick}
               />
             )}
+
+            </div>{/* /피드 컬럼 */}
+            </div>{/* /lg 2컬럼 래퍼 */}
           </main>
 
           {/* Prayer Composer Modal */}
@@ -390,8 +439,8 @@ const NewHome = () => {
           <GlobalThanksComposer onClose={() => setShowThanksComposer(false)} />
         )}
 
-        {/* Bottom Navigation - Fixed at bottom, centered with max-w-md */}
-        <div className="bottom-dock-anchor fixed bottom-0 left-0 right-0 z-[100] pointer-events-none">
+        {/* Bottom Navigation - Fixed at bottom, centered with max-w-md (lg+에선 좌측 레일이 대신한다) */}
+        <div className="bottom-dock-anchor fixed bottom-0 left-0 right-0 z-[100] pointer-events-none lg:hidden">
           <div className="max-w-md mx-auto pointer-events-auto">
             <BottomNavigation
               onProfileClick={handleProfileClick}
