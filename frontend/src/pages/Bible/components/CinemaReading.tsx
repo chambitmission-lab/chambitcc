@@ -210,13 +210,35 @@ const CinemaReading = ({
     const idx = timings.findIndex(t => t.verse === activeVerse)
     if (idx < 0) return
     const start = timings[idx].start
-    const nextStart =
-      idx + 1 < timings.length
-        ? timings[idx + 1].start
-        : duration > start
-          ? duration
-          : start + words.length * 0.45 // 마지막 절 + 총길이 미상: 대략치
-    const span = Math.max(0.001, nextStart - start)
+
+    // 절 끝 시각 — 다음 절 타이밍이 있으면 그대로, 없으면(장의 마지막 절,
+    // 첫 생성 중 부분 타이밍의 끝) 앞 절들의 "실측 낭독 속도"(초당 글자 수)로
+    // 이 절의 길이를 추정한다. 예전 고정 0.45초/단어 추정은 실제(단어당 약 1초)보다
+    // 두 배쯤 빨라서 마지막 절 하이라이트가 음성을 앞질렀다. 추정엔 +12% 여유를 둬
+    // 밝기가 음성보다 먼저 끝나느니 살짝 늦게 끝나는 쪽을 택한다.
+    let end: number
+    if (idx + 1 < timings.length) {
+      end = timings[idx + 1].start
+    } else {
+      let charsPerSec = 0
+      if (idx > 0) {
+        let chars = 0
+        for (let i = 0; i < idx; i++) {
+          const tv = verses.find(v => v.verse === timings[i].verse)
+          if (tv) chars += tv.text.length
+        }
+        const covered = start - timings[0].start
+        if (covered > 0 && chars > 0) charsPerSec = chars / covered
+      }
+      const textLen = currentVerseObj?.text.length ?? words.length * 4
+      end =
+        charsPerSec > 0
+          ? start + (textLen / charsPerSec) * 1.12
+          : start + words.length * 0.9 // 첫 절부터 재생 등 실측 불가 시 보수적 폴백
+      // 총길이를 알면 그 너머로는 가지 않는다
+      if (duration > start + 1) end = Math.min(end, duration)
+    }
+    const span = Math.max(0.001, end - start)
     // 단어 경계를 누적 글자 수 비율로 배치 — 긴 단어가 더 오래 밝아진다.
     // bounds[i] = i번째 단어 낭독이 "끝나는" 지점(0~1). frac이 bounds[i]를
     // 지나면 i+1번째 단어가 읽히는 중이므로, 밝힐 단어 수 = 지난 경계 수 + 1.
@@ -234,13 +256,16 @@ const CinemaReading = ({
         const frac = Math.min(1, Math.max(0, (t - start) / span))
         let n = 1
         while (n < words.length && frac >= bounds[n - 1]) n++
-        setLitCount(prev => (prev === n ? prev : n))
+        // 같은 절 안에서 하이라이트는 앞으로만 간다 — 부분 타이밍이 최종본으로
+        // 갱신되며 절 길이가 재계산될 때, 이미 밝힌 단어가 도로 어두워지며
+        // 뒤로 점프하던 현상 방지 (절이 바뀌면 위 effect가 0으로 리셋)
+        setLitCount(prev => (n > prev ? n : prev))
       }
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [isPlaying, activeVerse, timings, duration, words, audioRef])
+  }, [isPlaying, activeVerse, timings, duration, words, verses, currentVerseObj, audioRef])
 
   // 타이밍이 없으면(첫 스트리밍 생성 중) 보간 불가 — 절 전체를 밝게
   const effectiveLit = timings ? litCount : words.length
