@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { RefObject } from 'react'
 import { useBibleChapter } from '../../../hooks/useBible'
+import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
+import { useAuth } from '../../../hooks/useAuth'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useWakeLock } from '../../PrayerFocus/useWakeLock'
 import { getCinemaScenes } from './cinemaScenes'
@@ -42,6 +44,8 @@ interface CinemaReadingProps {
 }
 
 const UI_HIDE_MS = 3500
+/** 이 시간 이상 낭독을 듣고 넘어간 절만 읽음으로 기록 — 빠른 절 스킵은 제외 */
+const NARRATE_MIN_MS = 2000
 
 const CinemaReading = ({
   bookId,
@@ -60,6 +64,11 @@ const CinemaReading = ({
 }: CinemaReadingProps) => {
   const { data: chapterData } = useBibleChapter(bookId, chapter)
   const verses = useMemo(() => chapterData?.verses ?? [], [chapterData])
+
+  const { isLoggedIn } = useAuth()
+  const loggedIn = isLoggedIn()
+  const { data: readStatus } = useChapterReadStatus(bookNumber, chapter, loggedIn)
+  const markAsRead = useMarkVerseAsRead()
 
   const rootRef = useRef<HTMLDivElement>(null)
   const [uiVisible, setUiVisible] = useState(true)
@@ -125,6 +134,65 @@ const CinemaReading = ({
   const currentVerseObj = useMemo(
     () => (activeVerse != null ? verses.find(v => v.verse === activeVerse) ?? null : null),
     [verses, activeVerse]
+  )
+
+  // ── 낭독 완료 자동 읽음 — 절 낭독이 끝나 다음 절로 넘어가는 순간 조용히 기록 ──
+  // 시네마는 단어가 밝아지는 걸 눈으로 따라 읽는 화면이므로 집중 읽기와 같은
+  // similarity=1 경로로 기록한다. 화면에는 아무 표시도 하지 않는다(고요함 유지).
+  // NARRATE_MIN_MS 미만에 스킵한 절은 제외. 판정용 값들은 ref로 미러링해
+  // 렌더·refetch에 흔들리지 않게 한다.
+  const loggedInRef = useRef(loggedIn)
+  const markAsReadRef = useRef(markAsRead)
+  const readIdsRef = useRef<Set<number>>(new Set())
+  const markedRef = useRef<Set<number>>(new Set())
+  loggedInRef.current = loggedIn
+  markAsReadRef.current = markAsRead
+  readIdsRef.current = useMemo(() => {
+    const s = new Set<number>()
+    readStatus?.verses.forEach(v => {
+      if (v.is_read) s.add(v.verse_id)
+    })
+    return s
+  }, [readStatus])
+
+  const markVerseRead = useCallback((verseId: number) => {
+    if (!loggedInRef.current) return
+    if (readIdsRef.current.has(verseId) || markedRef.current.has(verseId)) return
+    markedRef.current.add(verseId)
+    markAsReadRef.current.mutate(
+      { verseId, similarity: 1 },
+      {
+        onError: e => {
+          // 이미 읽음(409)은 정상 — 그 외 실패만 재시도 여지를 남긴다
+          if (!(e instanceof Error) || e.message !== 'ALREADY_READ') {
+            markedRef.current.delete(verseId)
+          }
+        },
+      }
+    )
+  }, [])
+
+  // 지금 낭독 중인 절과 시작 시각 — 절이 바뀌면(다음 절·장 끝·장 전환) 직전 절 정산
+  const narratingRef = useRef<{ id: number | null; since: number }>({ id: null, since: 0 })
+  useEffect(() => {
+    const prev = narratingRef.current
+    const nowId = currentVerseObj?.id ?? null
+    if (prev.id === nowId) return
+    if (prev.id != null && performance.now() - prev.since >= NARRATE_MIN_MS) {
+      markVerseRead(prev.id)
+    }
+    narratingRef.current = { id: nowId, since: performance.now() }
+  }, [currentVerseObj, markVerseRead])
+
+  // 닫기(언마운트) 시 마지막으로 듣던 절 정산 — 장 끝까지 안 듣고 닫아도 누락 없음
+  useEffect(
+    () => () => {
+      const prev = narratingRef.current
+      if (prev.id != null && performance.now() - prev.since >= NARRATE_MIN_MS) {
+        markVerseRead(prev.id)
+      }
+    },
+    [markVerseRead]
   )
   const words = useMemo(
     () => (currentVerseObj ? currentVerseObj.text.split(/\s+/).filter(Boolean) : []),
