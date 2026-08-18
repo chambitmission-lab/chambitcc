@@ -143,10 +143,12 @@ twirling once, delighted.
 **09. burning-bush — 불타는 떨기나무**
 ```
 A lone desert bush blazes with brilliant golden flame yet is not consumed. A shepherd
-kneels before it in silhouette, his sandals set aside on the holy ground. The sheep
-stands barefoot at attention beside him, staring at the flame in awe — next to the
-shepherd's sandals it has neatly placed its own footwear: exactly one pair of tiny
-yellow rain boots, two matching boots side by side, nothing more.
+kneels before it in silhouette, his sandals set aside on the holy ground. Beside him the
+sheep sits upright on its haunches like a begging puppy — hind legs folded beneath its
+round woolly body, and its only two front hooves pressed together at its chest in awe as
+it gazes into the flame. It is a real little lamb carried on just four short stubby legs
+in total. Next to the shepherd's sandals it has neatly placed its own footwear: exactly
+one pair of tiny yellow rain boots, two matching boots side by side, nothing more.
 ```
 
 **10. exodus — 바다가 갈라지다**
