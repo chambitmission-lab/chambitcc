@@ -3,6 +3,7 @@ import { useNotifications, useNotificationStream } from '../../../hooks/useNotif
 import { preloadMenuRoutes } from '../../../utils/routePreload'
 import NotificationModal from '../../common/NotificationModal'
 import Logo from './components/Logo'
+import DesktopNav from './components/DesktopNav'
 import HeaderActions from './components/HeaderActions'
 import MobileMenu from './components/MobileMenu'
 import { useMenuState } from './hooks/useMenuState'
@@ -50,7 +51,9 @@ const NewHeader = () => {
         {/* lg+: 데스크톱 앱바 — 로고는 좌상단(좌측 레일과 정렬), 액션은 우상단 */}
         <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between lg:max-w-none lg:px-5">
           <Logo />
-          <HeaderActions 
+          {/* PC 전용 인라인 메뉴 — justify-between 3자식 구조라 로고(좌)·메뉴(중앙)·액션(우)으로 벌어진다 */}
+          <DesktopNav />
+          <HeaderActions
             unreadCount={unreadCount}
             isMenuOpen={isMenuOpen}
             onNotificationClick={() => setIsNotificationOpen(true)}
