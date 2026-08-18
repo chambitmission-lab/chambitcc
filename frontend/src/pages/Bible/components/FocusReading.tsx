@@ -18,8 +18,9 @@ import type { VerseBookmark } from '../../../api/bibleBookmark'
  *
  * - CSS scroll-snap(y mandatory + stop always)으로 "정확히 한 절씩"만 넘어간다
  * - 하단 눈금자 = 장 전체를 자처럼 펼친 위치 지도. 탭/드래그로 원하는 절로 점프
- * - 한 절에 일정 시간 머문 뒤 넘어가면 그 절을 자동으로 읽음 처리한다
- *   (기존 절 길게 누르기 수동 읽음과 같은 similarity=1 경로)
+ * - 한 절에 일정 시간 머문 절은 떠날 때 조용히 읽음 처리한다(마지막 절만 머무는
+ *   순간 즉시 — 떠날 곳이 없어 누락되는 구멍 방지). 절 길게 누르기 수동 읽음과
+ *   같은 similarity=1 경로.
  * - 마지막 절 다음 스냅은 "장 끝" 카드 — 다음 장으로 끊김 없이 이어 읽는다
  */
 
@@ -118,13 +119,13 @@ const FocusReading = ({
     }
   }, [])
 
-  /** 지금 머물던 절의 체류 시간을 정산하고, 충분히 머물렀으면 읽음 처리 */
-  const commitDwell = useCallback(() => {
-    const stayed = performance.now() - dwellStartRef.current
-    dwellStartRef.current = performance.now()
-    if (!loggedInRef.current || stayed < DWELL_MS) return
-    const verse = versesRef.current[indexRef.current]
-    if (!verse) return
+  // ── 체류 자동 읽음 ──────────────────────────────────────────────
+  // 원칙: 읽는 도중에는 화면이 절대 바뀌지 않는다(집중 우선).
+  // - 일반 절: 떠날 때(다음 절로 넘어갈 때) 머문 시간을 정산해 조용히 기록
+  // - 마지막 절: 떠날 곳이 없어 누락되던 구멍 — 이 절만 DWELL_MS 머무는 순간 기록
+  // - 이번 세션에서 기록한 절은 ✓ 읽음 배지를 띄우지 않아(markedRef 제외)
+  //   어느 경우에도 읽는 중에 UI가 움직이지 않는다.
+  const markVerse = useCallback((verse: BibleVerse) => {
     if (readIdsRef.current.has(verse.id) || markedRef.current.has(verse.id)) return
     markedRef.current.add(verse.id)
     markAsReadRef.current.mutate(
@@ -139,6 +140,27 @@ const FocusReading = ({
       }
     )
   }, [])
+
+  /** 지금 머물던 절의 체류 시간을 정산하고, 충분히 머물렀으면 읽음 처리 */
+  const commitDwell = useCallback(() => {
+    const stayed = performance.now() - dwellStartRef.current
+    dwellStartRef.current = performance.now()
+    if (!loggedInRef.current || stayed < DWELL_MS) return
+    const verse = versesRef.current[indexRef.current]
+    if (verse) markVerse(verse)
+  }, [markVerse])
+
+  // 마지막 절 전용 — DWELL_MS 머무는 순간 즉시 기록 (일찍 떠나면 cleanup이 취소).
+  // readSet은 의존성이 아닌 ref로 판정 — refetch로 Set 정체성이 바뀔 때마다
+  // 타이머가 리셋되는 것을 막는다.
+  useEffect(() => {
+    if (!loggedIn || verses.length === 0) return
+    if (activeIndex !== verses.length - 1) return
+    const verse = verses[activeIndex]
+    if (readIdsRef.current.has(verse.id) || markedRef.current.has(verse.id)) return
+    const t = setTimeout(() => markVerse(verse), DWELL_MS)
+    return () => clearTimeout(t)
+  }, [activeIndex, verses, loggedIn, markVerse])
 
   const requestClose = useCallback(() => {
     commitDwell()
@@ -165,13 +187,13 @@ const FocusReading = ({
       const max = versesRef.current.length
       const idx = Math.max(0, Math.min(max, Math.round(el.scrollTop / el.clientHeight)))
       if (idx !== indexRef.current) {
-        commitDwell()
+        commitDwell() // 떠나는 절 정산 — indexRef 갱신 전에 호출해야 그 절이 잡힌다
         indexRef.current = idx
         setActiveIndex(idx)
         if (hint === 'on') setHint('leaving')
       }
     })
-  }, [commitDwell, hint])
+  }, [hint, commitDwell])
 
   useEffect(() => () => cancelAnimationFrame(rafRef.current), [])
 
@@ -259,7 +281,9 @@ const FocusReading = ({
         )}
 
         {verses.map((v, i) => {
-          const isRead = readSet.has(v.id)
+          // ✓ 읽음 배지는 "예전에 읽었던 절"에만 — 이번 세션에서 기록된 절은
+          // 제외해서, 읽는 도중 배지가 나타나며 집중을 깨는 일이 없게 한다
+          const isRead = readSet.has(v.id) && !markedRef.current.has(v.id)
           const lengthClass =
             v.text.length > 150 ? ' is-vlong' : v.text.length > 90 ? ' is-long' : ''
           return (
