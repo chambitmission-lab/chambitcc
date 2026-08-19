@@ -113,6 +113,24 @@ body {
   background-color: var(--ig-primary-background);
 }
 
+/* ── 테마 전환 (ThemeContext.toggleTheme) ─────────────────────────
+   요소마다 제각각인 transition이 테마 색을 서로 다른 속도로 갈아입으면
+   "다다다" 물결치듯 바뀌어 보인다. 전환하는 순간에만 이 클래스를 얹어
+   모든 트랜지션·색 애니메이션을 멈추고 한 프레임에 통째로 바꾼다. */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
+/* 지원 브라우저(View Transitions)에선 이전/새 화면 스냅샷이 짧게
+   크로스페이드된다 — 기본값(0.25s)보다 살짝 빠르게, 스냅에 가깝게 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.18s;
+  animation-timing-function: ease-out;
+}
+
 #root {
   overflow-x: hidden;
   width: 100%;
