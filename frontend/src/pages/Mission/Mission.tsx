@@ -90,6 +90,9 @@ const CountUpNum = ({ value }: { value: number }) => {
   )
 }
 
+/** PC(lg+)에선 지구본이 우측에 고정되어 늘 보이므로 지도로 스크롤할 필요가 없다 */
+const isDesktopTwoCol = () => window.matchMedia('(min-width: 1024px)').matches
+
 /** 두 지점 사이 대권 거리(km) */
 const haversineKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
   const rad = (d: number) => (d * Math.PI) / 180
@@ -152,7 +155,7 @@ const Mission = () => {
     }
     setSelectedKey(`${country}|@list`)
     // 지도를 화면에 부드럽게 가져오기
-    mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (!isDesktopTwoCol()) mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   // 바텀시트의 "지도에서 위치 보기"
@@ -162,7 +165,7 @@ const Mission = () => {
     if (region) setActiveRegion(region)
     setMapZoomOut(false)
     setSelectedKey(`${m.country}|${m.name}`)
-    mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (!isDesktopTwoCol()) mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   // 지역 탭 변경 시 선택만 초기화 — 확대/전체 보기 상태는 사용자가 토글한 그대로 유지
@@ -185,7 +188,7 @@ const Mission = () => {
     setActiveRegion(featuredRegion)
     setMapZoomOut(false)
     setSelectedKey(`${featured.country}|${featured.name}`)
-    mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (!isDesktopTwoCol()) mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   // 지구본에 찍을 점: 전체 선교지 (활성 지역 강조) — 실좌표(countryDetail) 기준
@@ -242,118 +245,126 @@ const Mission = () => {
           </div>
         </div>
 
-        {/* ===== TODAY'S PRAYER MISSIONARY ===== */}
-        {/* 매일 한 분씩 로테이션 — "읽는 화면"이 아니라 매일 들러 기도하는 화면으로 */}
-        <section
-          className="featured-card"
-          style={{
-            ['--fc' as string]: featuredColor,
-            ['--fc-soft' as string]: `${featuredColor}2e`,
-          }}
-          onClick={handleFeaturedClick}
-        >
-          <div className="featured-eyebrow">{t('missionTodayEyebrow')}</div>
-          <div className="featured-body">
-            <CountryFlag className="featured-flag" country={featured.country} />
-            <div className="featured-text">
-              <p className="featured-sentence">
-                {language === 'ko' ? (
-                  <>오늘은 <em>{featured.country}</em>의 <strong>{featured.name}</strong> 선교사님을 위해 기도해요</>
-                ) : (
-                  <>Today, let&apos;s pray for <strong>{featured.name}</strong> serving in <em>{featured.country}</em></>
-                )}
-              </p>
-              <span className="featured-locate">📍 {t('missionTodayLocate')}</span>
+        {/* ===== PC 2단 (모바일에선 display:contents 라 흐름 그대로) =====
+            좌: 선교사 명단 / 우: 오늘의 선교사 + 지구본(sticky) */}
+        <div className="mission-columns">
+          <div className="mission-col-side">
+            {/* ===== TODAY'S PRAYER MISSIONARY ===== */}
+            {/* 매일 한 분씩 로테이션 — "읽는 화면"이 아니라 매일 들러 기도하는 화면으로 */}
+            <section
+              className="featured-card"
+              style={{
+                ['--fc' as string]: featuredColor,
+                ['--fc-soft' as string]: `${featuredColor}2e`,
+              }}
+              onClick={handleFeaturedClick}
+            >
+              <div className="featured-eyebrow">{t('missionTodayEyebrow')}</div>
+              <div className="featured-body">
+                <CountryFlag className="featured-flag" country={featured.country} />
+                <div className="featured-text">
+                  <p className="featured-sentence">
+                    {language === 'ko' ? (
+                      <>오늘은 <em>{featured.country}</em>의 <strong>{featured.name}</strong> 선교사님을 위해 기도해요</>
+                    ) : (
+                      <>Today, let&apos;s pray for <strong>{featured.name}</strong> serving in <em>{featured.country}</em></>
+                    )}
+                  </p>
+                  <span className="featured-locate">📍 {t('missionTodayLocate')}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className={`mission-pray-btn ${prayedToday ? 'done' : ''}`}
+                onClick={e => {
+                  e.stopPropagation()
+                  handlePray()
+                }}
+                disabled={prayedToday}
+              >
+                {prayedToday ? `✓ ${t('missionPrayDone')}` : `🙏 ${t('missionPrayCta')}`}
+              </button>
+            </section>
+
+            {/* ===== WORLD MAP ===== */}
+            <div className="mission-map-wrap" ref={mapRef}>
+              <div className="map-heading">
+                <span className="map-title">{t('missionMapTitle')}</span>
+                <span className="map-hint">
+                  {selectedCountry ?? hoverCountry ?? `${activeRegionLabel} ${t('missionRegionEmphasize')}`}
+                </span>
+              </div>
+              <div className="map-canvas">
+                <WorldGlobe
+                  points={mapPoints}
+                  onHover={setHoverCountry}
+                  onSelect={handleMapSelect}
+                  selectedCountry={selectedCountry}
+                  zoomOut={mapZoomOut}
+                />
+                <button
+                  type="button"
+                  className="map-zoom-toggle"
+                  onClick={() => setMapZoomOut(v => !v)}
+                >
+                  {mapZoomOut ? `🔍 ${t('missionMapZoomRegion')}` : `🌍 ${t('missionMapZoomWorld')}`}
+                </button>
+              </div>
+
+              {/* 대륙 탭을 지도 카드 안에 붙여 "탭 → 지도 점·명단이 함께 반응"이
+                  한 덩어리 인터랙션으로 읽히게 한다 */}
+              <div className="region-tabs in-map">
+                {REGION_ORDER.map(key => {
+                  const meta = regionMeta[key]
+                  const count = missionaryByRegion[key].length
+                  return (
+                    <button
+                      key={key}
+                      className={`region-tab ${activeRegion === key ? 'active' : ''}`}
+                      onClick={() => handleRegionChange(key)}
+                      style={activeRegion === key ? {
+                        borderColor: meta.color,
+                        boxShadow: `0 0 20px ${meta.color}55`,
+                      } : undefined}
+                    >
+                      <span>{meta.emoji}</span>
+                      <span>{t(REGION_LABEL_KEY[key])}</span>
+                      <span className="tab-count">{count}</span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
-          <button
-            type="button"
-            className={`mission-pray-btn ${prayedToday ? 'done' : ''}`}
-            onClick={e => {
-              e.stopPropagation()
-              handlePray()
-            }}
-            disabled={prayedToday}
-          >
-            {prayedToday ? `✓ ${t('missionPrayDone')}` : `🙏 ${t('missionPrayCta')}`}
-          </button>
-        </section>
 
-        {/* ===== WORLD MAP ===== */}
-        <div className="mission-map-wrap" ref={mapRef}>
-          <div className="map-heading">
-            <span className="map-title">{t('missionMapTitle')}</span>
-            <span className="map-hint">
-              {selectedCountry ?? hoverCountry ?? `${activeRegionLabel} ${t('missionRegionEmphasize')}`}
-            </span>
-          </div>
-          <div className="map-canvas">
-            <WorldGlobe
-              points={mapPoints}
-              onHover={setHoverCountry}
-              onSelect={handleMapSelect}
+          <div className="mission-col-main">
+            {/* ===== OVERSEAS LIST ===== */}
+            <div className="mission-section-title">
+              <span className="line" />
+              <span>OVERSEAS MISSION</span>
+              <span className="line" />
+            </div>
+
+            <div className="region-header">
+              <div className="region-eyebrow">{activeMeta.labelEn}</div>
+              <div className="region-label" style={{
+                backgroundImage: `linear-gradient(135deg, #fff, ${activeMeta.color})`,
+              }}>
+                {activeRegionLabel} {t('missionRegionArea')}
+              </div>
+            </div>
+
+            {/* ===== MISSIONARY GROUPS (국가별) ===== */}
+            <MissionaryGroups
+              missionaries={missionaries}
+              color={activeMeta.color}
+              key={activeRegion}
               selectedCountry={selectedCountry}
-              zoomOut={mapZoomOut}
+              onCountryClick={handleCountryClick}
+              onMemberClick={setSheetTarget}
             />
-            <button
-              type="button"
-              className="map-zoom-toggle"
-              onClick={() => setMapZoomOut(v => !v)}
-            >
-              {mapZoomOut ? `🔍 ${t('missionMapZoomRegion')}` : `🌍 ${t('missionMapZoomWorld')}`}
-            </button>
-          </div>
-
-          {/* 대륙 탭을 지도 카드 안에 붙여 "탭 → 지도 점·명단이 함께 반응"이
-              한 덩어리 인터랙션으로 읽히게 한다 */}
-          <div className="region-tabs in-map">
-            {REGION_ORDER.map(key => {
-              const meta = regionMeta[key]
-              const count = missionaryByRegion[key].length
-              return (
-                <button
-                  key={key}
-                  className={`region-tab ${activeRegion === key ? 'active' : ''}`}
-                  onClick={() => handleRegionChange(key)}
-                  style={activeRegion === key ? {
-                    borderColor: meta.color,
-                    boxShadow: `0 0 20px ${meta.color}55`,
-                  } : undefined}
-                >
-                  <span>{meta.emoji}</span>
-                  <span>{t(REGION_LABEL_KEY[key])}</span>
-                  <span className="tab-count">{count}</span>
-                </button>
-              )
-            })}
           </div>
         </div>
-
-        {/* ===== OVERSEAS LIST ===== */}
-        <div className="mission-section-title">
-          <span className="line" />
-          <span>OVERSEAS MISSION</span>
-          <span className="line" />
-        </div>
-
-        <div className="region-header">
-          <div className="region-eyebrow">{activeMeta.labelEn}</div>
-          <div className="region-label" style={{
-            backgroundImage: `linear-gradient(135deg, #fff, ${activeMeta.color})`,
-          }}>
-            {activeRegionLabel} {t('missionRegionArea')}
-          </div>
-        </div>
-
-        {/* ===== MISSIONARY GROUPS (국가별) ===== */}
-        <MissionaryGroups
-          missionaries={missionaries}
-          color={activeMeta.color}
-          key={activeRegion}
-          selectedCountry={selectedCountry}
-          onCountryClick={handleCountryClick}
-          onMemberClick={setSheetTarget}
-        />
 
         {/* ===== DOMESTIC SECTION ===== */}
         {/* 해외 → 국내 전환점: 따뜻한 색의 구분선으로 공간이 바뀌었음을 명확히 */}
@@ -515,12 +526,17 @@ const MissionarySheet = ({
     return () => clearInterval(id)
   }, [])
 
-  // 배경 스크롤 잠금
+  // 배경 스크롤 잠금 — PC(lg+)에선 .mission-page 가 스스로 스크롤하는 상자라
+  // body 만 잠그면 시트 뒤가 그대로 굴러간다. 둘 다 잠근다.
   useEffect(() => {
+    const page = document.querySelector<HTMLElement>('.mission-page')
     const prev = document.body.style.overflow
+    const prevPage = page?.style.overflow
     document.body.style.overflow = 'hidden'
+    if (page) page.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = prev
+      if (page) page.style.overflow = prevPage ?? ''
     }
   }, [])
 
