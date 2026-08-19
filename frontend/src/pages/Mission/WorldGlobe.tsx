@@ -494,10 +494,9 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
         const cam = camRef.current
         const speed = 0.28 * (200 / Math.max(120, cam.r))
         cam.lng = ((cam.lng - dx * speed + 540) % 360) - 180
-        // 세로 회전은 마우스만 — 터치 세로 제스처는 페이지 스크롤에 양보(touch-action: pan-y)
-        if (e.pointerType === 'mouse') {
-          cam.lat = Math.max(-75, Math.min(75, cam.lat + dy * speed))
-        }
+        // 세로로 시작한 터치는 touch-action: pan-y로 브라우저가 스크롤로 가져가
+        // 여기까지 오지 않는다 — 들어온 드래그의 dy는 안심하고 회전에 쓴다
+        cam.lat = Math.max(-75, Math.min(75, cam.lat + dy * speed))
       }
     }
     const onPointerUp = (e: PointerEvent) => {
@@ -509,6 +508,11 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
         if (hit) onSelectRef.current?.(hit.country)
       }
     }
+    // 브라우저가 제스처를 스크롤로 가져갈 때(pointercancel)는 탭 판정 금지 —
+    // 세로 스크롤 시작이 근처 점 선택으로 오인되는 모바일 오탭 방지
+    const onPointerCancel = () => {
+      dragging = false
+    }
     const onPointerLeave = () => {
       onHoverRef.current?.(null)
     }
@@ -516,7 +520,7 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
     canvas.addEventListener('pointerdown', onPointerDown)
     canvas.addEventListener('pointermove', onPointerMove)
     canvas.addEventListener('pointerup', onPointerUp)
-    canvas.addEventListener('pointercancel', onPointerUp)
+    canvas.addEventListener('pointercancel', onPointerCancel)
     canvas.addEventListener('pointerleave', onPointerLeave)
 
     return () => {
@@ -526,7 +530,7 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
       canvas.removeEventListener('pointerdown', onPointerDown)
       canvas.removeEventListener('pointermove', onPointerMove)
       canvas.removeEventListener('pointerup', onPointerUp)
-      canvas.removeEventListener('pointercancel', onPointerUp)
+      canvas.removeEventListener('pointercancel', onPointerCancel)
       canvas.removeEventListener('pointerleave', onPointerLeave)
     }
   }, [])
