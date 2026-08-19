@@ -44,6 +44,16 @@ const Sermon = () => {
     return ['전체', ...WORSHIP_TYPES.filter((t) => present.has(t))]
   }, [sermons])
 
+  // 우측 레일 필터 — 유형별 편수 (로드된 범위 기준)
+  const typeCounts = useMemo(() => {
+    const map = new Map<WorshipType, number>()
+    for (const s of sermons) {
+      const type = deriveWorshipType(s.title)
+      map.set(type, (map.get(type) ?? 0) + 1)
+    }
+    return map
+  }, [sermons])
+
   const filtered = useMemo(
     () => (filter === '전체' ? sermons : sermons.filter((s) => deriveWorshipType(s.title) === filter)),
     [sermons, filter]
@@ -91,7 +101,9 @@ const Sermon = () => {
   return (
     <ErrorBoundary>
       <div className="bg-surface min-h-screen page-stage">
-        <div className="max-w-md mx-auto bg-surface shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+        {/* lg+: 좁은 셸을 풀고 본문 + 우측 위젯 레일 2단 (/news·/ministry·/worship과 같은 문법) */}
+        <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+        <div className="max-w-md mx-auto bg-surface shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
           {/* 헤더 — 플랫 스티키 */}
           <div className="sermon-page-header">
             <h1 className="sermon-page-title">설교 말씀</h1>
@@ -175,7 +187,7 @@ const Sermon = () => {
                 <div className="sermon-archive">
                   {heroSermon && <div className="sermon-archive-heading">지난 말씀</div>}
                   {monthGroups.map((group) => (
-                    <div key={group.key} className="sermon-month-group">
+                    <div key={group.key} id={`sermon-month-${group.key}`} className="sermon-month-group scroll-mt-20">
                       <div className="sermon-month-label">{group.label}</div>
                       <div className="sermon-month-rows">
                         {group.items.map((sermon) => (
@@ -225,6 +237,61 @@ const Sermon = () => {
               }}
             />
           )}
+        </div>
+
+        {/* 우측 위젯 레일 (lg+) — 필터와 월별 아카이브를 본문 밖으로 빼
+            넓어진 본문은 말씀 카드에만 집중하게 한다 */}
+        <aside className="sermon-rail hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+          {!isLoading && !error && sermons.length > 0 && (
+            <section className="feed-card rounded-2xl p-4">
+              <p className="sermon-rail-title">말씀 찾기</p>
+              {filterOptions.length > 0 ? (
+                <div className="sermon-rail-list">
+                  {filterOptions.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      className={`sermon-rail-link${filter === option ? ' active' : ''}`}
+                      onClick={() => setFilter(option)}
+                    >
+                      <span className="sermon-rail-link-name">{option}</span>
+                      <span className="sermon-rail-link-count">
+                        {option === '전체' ? sermons.length : typeCounts.get(option) ?? 0}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="sermon-rail-note">
+                  지금까지 {sermons.length}편의 말씀이 쌓였어요
+                </p>
+              )}
+            </section>
+          )}
+
+          {!isLoading && !error && monthGroups.length > 0 && (
+            <section className="feed-card rounded-2xl p-4">
+              <p className="sermon-rail-title">월별 아카이브</p>
+              <div className="sermon-rail-list">
+                {monthGroups.map((group) => (
+                  <button
+                    key={group.key}
+                    type="button"
+                    className="sermon-rail-link"
+                    onClick={() =>
+                      document
+                        .getElementById(`sermon-month-${group.key}`)
+                        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+                  >
+                    <span className="sermon-rail-link-name">{group.label}</span>
+                    <span className="sermon-rail-link-count">{group.items.length}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+        </aside>
         </div>
       </div>
     </ErrorBoundary>

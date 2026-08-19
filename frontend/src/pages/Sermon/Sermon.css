@@ -191,3 +191,120 @@
     background-position: -200% 0;
   }
 }
+
+/* ── PC 2단 (lg+) ─────────────────────────────────────
+ * /news·/ministry·/worship과 같은 규격(1240px + 312px sticky 레일).
+ * 레이아웃 자체는 Sermon.tsx의 Tailwind가 잡고, 여기서는 넓어진 본문에
+ * 맞춘 재배치와 레일 내부 스타일만 담당한다.
+ */
+.sermon-rail-title {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.sermon-rail-note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.sermon-rail-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sermon-rail-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: calc(100% + 16px);
+  margin: 0 -8px;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sermon-rail-link:hover {
+  background: var(--brand-soft);
+}
+
+.sermon-rail-link.active {
+  background: var(--brand-soft-strong);
+}
+
+.sermon-rail-link-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.sermon-rail-link.active .sermon-rail-link-name {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.sermon-rail-link-count {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 1024px) {
+  /* 예배 유형 칩은 레일의 목록이 대신한다 */
+  .sermon-filter-chips {
+    display: none;
+  }
+
+  /* 히어로 — 지금까지 8% 투명도 배경으로만 쓰던 썸네일을 우측 사진 패널로.
+     넓어진 폭을 채우면서 본문(성구·제목)은 읽기 좋은 폭으로 유지된다.
+     썸네일이 없는 설교(.has-thumb 없음)는 기존 한 단 그대로. */
+  .sermon-hero {
+    padding: 1.5rem 1.5rem 1.375rem;
+  }
+
+  .sermon-hero.has-thumb {
+    padding-right: calc(38% + 1.5rem);
+  }
+
+  .sermon-hero.has-thumb .sermon-hero-thumb {
+    inset: 1.5rem 1.5rem 1.5rem auto;
+    width: calc(38% - 1.5rem);
+    opacity: 1;
+    border-radius: 14px;
+    border: 1px solid var(--card-border);
+    filter: var(--media-dim);
+  }
+
+  [data-theme="dark"] .sermon-hero.has-thumb .sermon-hero-thumb {
+    opacity: 1;
+  }
+
+  /* 지난 말씀 — 넓은 본문을 세로로만 쓰지 않도록 2열 */
+  .sermon-month-rows {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    align-items: start;
+  }
+
+  /* 스켈레톤도 같은 리듬 (히어로는 가로가 넓어 덜 높다) */
+  .sermon-skeleton-hero {
+    height: 200px;
+  }
+}

@@ -920,3 +920,200 @@
   font-weight: 700;
   color: var(--brand);
 }
+
+/* ── PC 2단 (lg+) — 본문 + 우측 위젯 레일 ─────────────────
+ * /news·/ministry와 같은 문법: 1240px 컨테이너 안에 본문(flex-1)과
+ * 312px sticky 레일. 아래 폭에서는 레일 자체가 없어 기존 화면 그대로다.
+ */
+.worship-rail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .worship-layout {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 12px 20px 48px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  /* 셸은 남은 폭을 모두 쓴다 (위쪽 lg 규칙의 max-width/margin을 덮어씀) */
+  .worship-shell {
+    max-width: none;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .worship-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 312px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 4.5rem;
+  }
+
+  .worship-rail-card {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: var(--surface-container);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+    text-align: left;
+    font-family: inherit;
+  }
+
+  /* 다음 예배 — 레일에서 유일하게 브랜드 tint를 입는 카드 */
+  button.worship-rail-card {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .worship-rail-next {
+    background: var(--brand-soft);
+    border-color: var(--brand-soft-strong);
+  }
+  .worship-rail-next:hover {
+    background: var(--brand-soft-strong);
+  }
+
+  .worship-rail-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--brand);
+  }
+
+  .worship-rail-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-strong);
+  }
+
+  .worship-rail-time {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .worship-rail-title {
+    margin: 0 0 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+  .worship-rail-list + .worship-rail-title {
+    margin-top: 14px;
+  }
+
+  .worship-rail-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: calc(100% + 16px);
+    margin: 0 -8px;
+    padding: 7px 8px;
+    border: none;
+    border-radius: 10px;
+    background: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .worship-rail-link:hover {
+    background: var(--brand-soft);
+  }
+
+  .worship-rail-link-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  .worship-rail-link-time {
+    flex-shrink: 0;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 안내 노트는 레일이 맡는다 — 본문의 것은 중복이라 숨긴다 */
+  .worship-note--body {
+    display: none;
+  }
+
+  /* ── 넓어진 본문에 맞춘 재배치 ──────────────────── */
+
+  /* 히어로: 좌(제목·통계) / 우(라이브 배너) — 세로로만 길어지지 않게.
+   * :has()로 라이브 배너가 있을 때만 2단 — 로딩 중이거나 등록된 예배가
+   * 없으면 오른쪽 칸이 빈 채로 남으므로 그때는 기존 스택 그대로 둔다. */
+  .worship-hero:has(.worship-live) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 34%);
+    column-gap: 24px;
+    align-items: start;
+    padding: 24px 26px;
+  }
+  .worship-hero-top {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .worship-hero-stats {
+    grid-column: 1;
+    grid-row: 2;
+    margin-top: 14px;
+  }
+  .worship-live {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin-top: 0;
+    height: 100%;
+    justify-content: center;
+  }
+
+  /* 주간 리듬 스트립과 필터를 한 줄로 */
+  .worship-controls {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+  .worship-week {
+    flex: 0 0 340px;
+  }
+  .worship-filters {
+    flex: 1 1 auto;
+  }
+
+  /* 예배 카드 2열 — 제목·빈 상태는 한 줄 전체 */
+  .worship-block {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: start;
+  }
+  .worship-block-title,
+  .worship-block > .worship-state {
+    grid-column: 1 / -1;
+  }
+}

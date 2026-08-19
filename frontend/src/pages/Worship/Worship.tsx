@@ -464,6 +464,9 @@ const Worship = () => {
 
   return (
     <div className="worship-page page-stage">
+      {/* lg+: 좁은 셸을 풀고 본문 + 우측 위젯 레일 2단으로 (/news·/ministry와 같은 문법).
+          아래 폭에서는 .worship-layout에 아무 스타일이 없어 기존 그대로다 */}
+      <div className="worship-layout">
       <div className="worship-shell">
         <div className="worship-body">
           {/* Hero — 다음(또는 진행 중인) 예배의 시간대에 따라 하늘 무드가 바뀐다 */}
@@ -871,8 +874,8 @@ const Worship = () => {
                 </section>
               )}
 
-              {/* 안내 노트 */}
-              <div className="worship-note">
+              {/* 안내 노트 — lg에선 우측 레일의 같은 카드가 대신한다 */}
+              <div className="worship-note worship-note--body">
                 <p className="worship-note-line">
                   <span className="worship-note-key">📍 {t('worshipLocationNote')}</span> {t('worshipLocationText')}
                 </p>
@@ -883,6 +886,97 @@ const Worship = () => {
             </>
           )}
         </div>
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 스크롤해도 '다음 예배'와 바로가기가 따라온다.
+          새 API 없이 이미 계산된 값(upcoming·activeSunday·activeWeekday)만 재사용 */}
+      <aside className="worship-rail">
+        {!loading && (ongoingNow || upcoming) && (() => {
+          const target = ongoingNow ?? upcoming!
+          return (
+            <button
+              type="button"
+              className="worship-rail-card worship-rail-next"
+              onClick={() => scrollToService(target.service.id)}
+            >
+              <span className="worship-rail-label">
+                <span className="worship-next-dot" aria-hidden />
+                {ongoingNow
+                  ? t('worshipLiveOngoing')
+                  : upcoming!.occ.dayOffset === 0
+                    ? t('worshipLiveNow')
+                    : t('worshipLiveNext')}
+              </span>
+              <span className="worship-rail-name">
+                {pick(language, target.service.name, target.service.name_en)}
+              </span>
+              <span className="worship-rail-time">
+                {ongoingNow
+                  ? formatTimeLabel(ongoingNow.startMin, language)
+                  : `${dayLabel(upcoming!.occ, seoulNow, language, t('worshipToday'), t('worshipTomorrow'))} ${formatTimeLabel(upcoming!.occ.startMin, language)}`}
+              </span>
+            </button>
+          )
+        })()}
+
+        {!loading && (activeSunday.length > 0 || activeWeekday.length > 0) && (
+          <section className="worship-rail-card">
+            {activeSunday.length > 0 && (
+              <>
+                <p className="worship-rail-title">{t('worshipScheduleTitle')}</p>
+                <div className="worship-rail-list">
+                  {activeSunday.map(service => (
+                    <button
+                      key={service.id}
+                      type="button"
+                      className="worship-rail-link"
+                      onClick={() => scrollToService(service.id)}
+                    >
+                      <span className="worship-rail-link-name">
+                        {pick(language, service.name, service.name_en)}
+                      </span>
+                      <span className="worship-rail-link-time">
+                        {pick(language, service.time, service.time_en)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            {activeWeekday.length > 0 && (
+              <>
+                <p className="worship-rail-title">{t('worshipWeekdayTitle')}</p>
+                <div className="worship-rail-list">
+                  {activeWeekday.map(service => (
+                    <button
+                      key={service.id}
+                      type="button"
+                      className="worship-rail-link"
+                      onClick={() => scrollToService(service.id)}
+                    >
+                      <span className="worship-rail-link-name">
+                        {pick(language, service.name, service.name_en)}
+                      </span>
+                      <span className="worship-rail-link-time">
+                        {pick(language, service.time, service.time_en)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+        )}
+
+        <div className="worship-note">
+          <p className="worship-note-line">
+            <span className="worship-note-key">📍 {t('worshipLocationNote')}</span> {t('worshipLocationText')}
+          </p>
+          <p className="worship-note-line">
+            <span className="worship-note-key">ℹ️ {t('worshipInfoNote')}</span> {t('worshipInfoText')}
+          </p>
+        </div>
+      </aside>
       </div>
     </div>
   )
