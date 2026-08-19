@@ -587,18 +587,20 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
           {/* 중앙: 라벨 + 진행바 + 시간 */}
           <div className="min-w-0 flex-1">
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <span className="material-icons-round text-[15px] text-brand">
+              {/* 배속(1.25× 등)으로 오른쪽 버튼이 넓어져도 줄바꿈 없이 말줄임 —
+                  카드 높이가 변해 본문이 아래로 밀리는 것을 막는다 */}
+              <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                <span className="material-icons-round flex-shrink-0 text-[15px] text-brand">
                   headphones
                 </span>
-                <span className="text-[13px] font-extrabold tracking-tight text-brand">
+                <span className="flex-shrink-0 whitespace-nowrap text-[13px] font-extrabold tracking-tight text-brand">
                   오디오북
                 </span>
-                <span className="text-[11px] font-medium text-gray-400 dark:text-white/40">
+                <span className="truncate text-[11px] font-medium text-gray-400 dark:text-white/40">
                   · {statusText}
                 </span>
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex flex-shrink-0 items-center gap-1 whitespace-nowrap">
                 {/* 낭독 영화관 — 말씀+음성+배경만 남기는 전체화면 몰입 모드 */}
                 {canCinema && (
                   <button
@@ -649,10 +651,11 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                   </span>
                   연속
                 </button>
+                {/* 폭 고정: 1×↔1.25× 전환 시 버튼 폭이 변해 레이아웃이 흔들리지 않게 */}
                 <button
                   type="button"
                   onClick={cycleRate}
-                  className="rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[11px] font-bold text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
+                  className="min-w-[46px] rounded-full border border-black/10 bg-black/[0.03] px-1 py-0.5 text-center text-[11px] font-bold tabular-nums text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
                 >
                   {rate}×
                 </button>
@@ -932,7 +935,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
           <button
             type="button"
             onClick={cycleRate}
-            className="flex-shrink-0 rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[11px] font-bold text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
+            className="min-w-[46px] flex-shrink-0 rounded-full border border-black/10 bg-black/[0.03] px-1 py-0.5 text-center text-[11px] font-bold tabular-nums text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
           >
             {rate}×
           </button>
