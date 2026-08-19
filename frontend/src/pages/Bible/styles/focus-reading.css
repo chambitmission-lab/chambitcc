@@ -190,6 +190,36 @@
   color: rgba(238, 242, 248, 0.55);
 }
 
+/* 해석 칩 — 해석이 등록된 절에만 번역 칩 옆에 조용히 붙는 진입점(탭 → 해석 시트).
+   본문을 밀거나 시선을 끌지 않도록 번역 칩과 같은 크기·톤에 액센트만 살짝 얹는다 */
+.focus-slide__commentary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 1.4rem 0 0 0.45rem;
+  padding: 0.28rem 0.8rem;
+  border: 1px solid rgba(143, 182, 255, 0.35);
+  border-radius: 999px;
+  background: rgba(143, 182, 255, 0.1);
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(180, 207, 255, 0.9);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.focus-slide__commentary:hover {
+  background: rgba(143, 182, 255, 0.2);
+  border-color: rgba(143, 182, 255, 0.6);
+  color: #cfe1ff;
+}
+
+.focus-slide__commentary .material-icons-round {
+  font-size: 0.8125rem;
+}
+
 /* ── 상단 바 ────────────────────────────────────────────────── */
 .focus-top {
   position: absolute;

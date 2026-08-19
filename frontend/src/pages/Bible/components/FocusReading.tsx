@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom'
 import { useBibleChapter } from '../../../hooks/useBible'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
+import { useChapterCommentaries } from '../../../hooks/useBibleCommentary'
+import BibleCommentaryPanel from '../../../components/bible/BibleCommentaryPanel'
 import { useAuth } from '../../../hooks/useAuth'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useWakeLock } from '../../PrayerFocus/useWakeLock'
@@ -66,10 +68,13 @@ const FocusReading = ({
 
   const { data: readStatus } = useChapterReadStatus(bookNumber, chapter, loggedIn)
   const { data: chapterBookmarks } = useChapterBookmarks(bookNumber, chapter, loggedIn)
+  const { data: chapterCommentaries } = useChapterCommentaries(bookNumber, chapter)
   const markAsRead = useMarkVerseAsRead()
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [showBookmark, setShowBookmark] = useState(false)
+  // 해석 시트 — 이 절 번호의 해석을 하단 시트로 (null = 닫힘)
+  const [commentaryVerse, setCommentaryVerse] = useState<number | null>(null)
   const [tint] = useState(currentTint)
   const [hint, setHint] = useState<'off' | 'on' | 'leaving'>(() =>
     localStorage.getItem(HINT_KEY) ? 'off' : 'on'
@@ -89,10 +94,12 @@ const FocusReading = ({
   const loggedInRef = useRef(loggedIn)
   const markAsReadRef = useRef(markAsRead)
   const showBookmarkRef = useRef(false)
+  const commentaryOpenRef = useRef(false)
   versesRef.current = verses
   loggedInRef.current = loggedIn
   markAsReadRef.current = markAsRead
   showBookmarkRef.current = showBookmark
+  commentaryOpenRef.current = commentaryVerse != null
 
   const readSet = useMemo(() => {
     const s = new Set<number>()
@@ -108,6 +115,25 @@ const FocusReading = ({
     for (const b of chapterBookmarks ?? []) map.set(b.verse_id, b)
     return map
   }, [chapterBookmarks])
+
+  // 해석이 등록된 절 번호 — 절별(scope='verse') 해석만 센다.
+  // 장 전체를 덮는 요약 해석까지 포함하면 모든 절에 칩이 붙어
+  // "있을 때만 조용히"라는 원칙이 무너진다. (시트를 열면 요약도 함께 보인다)
+  const commentaryVerseSet = useMemo(() => {
+    const s = new Set<number>()
+    for (const c of chapterCommentaries?.items ?? []) {
+      if (c.scope === 'summary') continue
+      for (let v = c.verse_start; v <= c.verse_end; v += 1) s.add(v)
+    }
+    return s
+  }, [chapterCommentaries])
+
+  // 해석 시트가 해석 위에 실제 말씀을 띄울 수 있게 절 번호 → 본문 맵을 넘긴다
+  const verseTextMap = useMemo(() => {
+    const map = new Map<number, string>()
+    for (const v of verses) map.set(v.verse, v.text)
+    return map
+  }, [verses])
 
   // 화면 꺼짐 방지 + 뒤에 깔린 페이지 스크롤 잠금
   useWakeLock(true)
@@ -210,10 +236,10 @@ const FocusReading = ({
     }
   }, [hint])
 
-  // 키보드 — ↑↓/스페이스 절 이동, Esc 닫기 (북마크 모달이 열려 있으면 양보)
+  // 키보드 — ↑↓/스페이스 절 이동, Esc 닫기 (북마크 모달·해석 시트가 열려 있으면 양보)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (showBookmarkRef.current) return
+      if (showBookmarkRef.current || commentaryOpenRef.current) return
       if (['ArrowDown', 'ArrowRight', ' ', 'PageDown'].includes(e.key)) {
         e.preventDefault()
         scrollToIndex(indexRef.current + 1)
@@ -300,6 +326,21 @@ const FocusReading = ({
                 )}
                 <p className={`focus-slide__text${lengthClass}`}>{v.text}</p>
                 <span className="focus-slide__translation">{TRANSLATION_LABEL}</span>
+                {/* 해석 칩 — 등록된 절에만 붙는 조용한 진입점. 본문 자동 노출은 하지
+                    않는다(집중 우선) — 탭했을 때만 하단 시트로 연다 */}
+                {commentaryVerseSet.has(v.verse) && (
+                  <button
+                    type="button"
+                    className="focus-slide__commentary"
+                    onClick={() => setCommentaryVerse(v.verse)}
+                    aria-label={`${v.verse}절 해석 보기`}
+                  >
+                    <span className="material-icons-round" aria-hidden>
+                      menu_book
+                    </span>
+                    해석
+                  </button>
+                )}
               </div>
             </section>
           )
@@ -466,6 +507,21 @@ const FocusReading = ({
           </button>
         </div>
       </footer>
+
+      {/* 말씀 해석 — 일반 읽기와 같은 하단 시트 재사용. 오버레이(z-9980) 안에
+          렌더되므로 시트의 z-[110]은 이 스택 컨텍스트 안에서 최상단이 된다.
+          뒤로가기는 useModalBackButton 중첩 스택이 시트만 먼저 닫아준다 */}
+      {commentaryVerse != null && (
+        <BibleCommentaryPanel
+          bookNumber={bookNumber}
+          chapter={chapter}
+          bookNameKo={bookName}
+          focusVerse={commentaryVerse}
+          totalVerses={totalVerses}
+          verseTexts={verseTextMap}
+          onClose={() => setCommentaryVerse(null)}
+        />
+      )}
 
       {/* 절 북마크(형광펜·노트·즐겨찾기) — 일반 읽기와 같은 모달 재사용 */}
       {showBookmark && currentVerse && (
