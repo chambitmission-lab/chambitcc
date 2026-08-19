@@ -221,7 +221,9 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
       if (out) return minDim * 0.47
       const cam = camRef.current
       const c = toVec(cam.targetLat, cam.targetLng)
-      let maxAng = 0.25
+      // 최소 시야각 0.55rad — 점이 밀집한 대륙(아메리카: 파라과이·페루뿐)에서
+      // 배율이 역산으로 치솟아 구체 윤곽까지 사라지는 초확대를 막는다
+      let maxAng = 0.55
       for (const p of pts) {
         if (!p.active) continue
         const v = toVec(p.lat, p.lng)
@@ -229,7 +231,7 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
         maxAng = Math.max(maxAng, Math.acos(dot))
       }
       const fit = (minDim * 0.42) / Math.sin(Math.min(maxAng * 1.15, Math.PI / 2))
-      return Math.max(minDim * 0.47, Math.min(minDim * 1.5, fit))
+      return Math.max(minDim * 0.47, Math.min(minDim * 0.9, fit))
     }
 
     const project = (lat: number, lng: number, R: number, cx: number, cy: number): Projected => {
