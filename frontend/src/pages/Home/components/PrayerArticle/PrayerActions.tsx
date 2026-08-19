@@ -92,7 +92,7 @@ const PrayerActions = ({
             title={prayLabel}
             className={`relative flex items-center gap-1.5 transition-all duration-300 ${
               !useGroupColor && isPrayed ? 'text-brand' :
-              !useGroupColor ? 'text-gray-500 dark:text-gray-400 hover:text-brand' : ''
+              !useGroupColor ? 'text-gray-600 dark:text-gray-400 hover:text-brand' : ''
             }`}
             style={useGroupColor && isPrayed ? {
               color: colorTheme.accent,
@@ -106,7 +106,7 @@ const PrayerActions = ({
               style={isPopping ? { animation: 'pray-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)' } : undefined}
             />
             {/* 숫자 자리는 항상 확보 — 0→1이 될 때 옆 버튼들이 밀리지 않도록 */}
-            <span className="text-[12px] font-semibold tabular-nums min-w-[10px]">
+            <span className="text-[12.5px] font-bold tabular-nums min-w-[10px]">
               {prayerCount > 0 ? prayerCount : ''}
             </span>
           </button>
@@ -114,11 +114,11 @@ const PrayerActions = ({
           {/* 댓글 */}
           <button
             onClick={onReplyClick}
-            className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
+            className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-brand transition-colors"
           >
             <CommentIcon size={18} />
             {replyCount > 0 && (
-              <span className="text-[12px] font-semibold tabular-nums">{replyCount}</span>
+              <span className="text-[12.5px] font-bold tabular-nums">{replyCount}</span>
             )}
           </button>
 
@@ -127,10 +127,10 @@ const PrayerActions = ({
             <button
               onClick={onVersesClick}
               title={language === 'ko' ? '함께 묵상해볼 수 있는 말씀' : 'Verses to meditate on'}
-              className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
+              className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-brand transition-colors"
             >
               <BookOpenIcon size={18} />
-              <span className="text-[12px] font-semibold tabular-nums">{versesCount}</span>
+              <span className="text-[12.5px] font-bold tabular-nums">{versesCount}</span>
             </button>
           )}
         </div>
@@ -140,7 +140,7 @@ const PrayerActions = ({
         {isOwner && !isAnswered && onAnswerClick && (
           <button
             onClick={onAnswerClick}
-            className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-[var(--amber)] transition-colors text-[12px] font-medium"
+            className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-[var(--amber)] transition-colors text-[12.5px] font-medium"
           >
             <svg width="10" height="10" viewBox="0 0 10 10" className="text-[var(--amber-icon)] shrink-0" aria-hidden>
               <path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" fill="currentColor" />
@@ -152,7 +152,7 @@ const PrayerActions = ({
         {/* 응답 수정 / 취소 (내 기도이고 이미 응답된 경우) —
             보조 액션은 아이콘 없이 조용한 텍스트로, 가운뎃점으로만 구분 */}
         {isOwner && isAnswered && (onEditAnswerClick || onCancelAnswerClick) && (
-          <div className="flex items-center gap-2 text-[12px] text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-2 text-[12.5px] text-gray-600 dark:text-gray-400">
             {onEditAnswerClick && (
               <button
                 onClick={onEditAnswerClick}

@@ -13,7 +13,7 @@ const SortTabs = ({ currentSort, onSortChange }: SortTabsProps) => {
   // 동률이면 DOM 순서상 이 흰 sticky 바가 딤막 위로 올라와 흰 줄처럼 비친다.
   // lg+ top-14: 고정 헤더(56px) 아래에 붙도록 오프셋 — top-0이면 반투명 헤더 뒤로 파고든다.
   return (
-    <section className="bg-background-light dark:bg-background-dark py-2 px-4 flex items-center sticky top-0 lg:top-14 z-30">
+    <section className="bg-[var(--app-canvas)] py-2 px-4 flex items-center sticky top-0 lg:top-14 z-30">
       {/* 메인 탭(GroupFilter, 굵은 언더라인)과 시각적으로 명확히 구분되도록
           정렬은 작은 pill 칩 스타일로 처리 — 위계상 보조 컨트롤임을 드러냄. */}
       <div className="flex gap-1.5">

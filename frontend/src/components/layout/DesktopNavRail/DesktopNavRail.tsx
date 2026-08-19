@@ -22,6 +22,29 @@ const RailSpinner = () => (
   <span className="w-[22px] h-[22px] rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
 )
 
+// 아이콘만 보이는 폭(lg~xl 미만)에서 "이게 무슨 메뉴인지"를 알려주는 호버 툴팁.
+// 색은 반전 토큰(--text-strong 배경 / --surface-container 글자)이라 라이트·다크 모두 대응.
+//   right: 내비 항목 — 라벨이 나오는 xl부터는 숨긴다
+//   top  : 라벨이 아예 없는 유틸 버튼 — 모든 폭에서 보인다
+const RailTip = ({
+  label,
+  placement = 'right',
+}: {
+  label: string
+  placement?: 'right' | 'top'
+}) => (
+  <span
+    role="tooltip"
+    className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-lg bg-[var(--text-strong)] px-2.5 py-1.5 text-[12px] font-semibold text-[var(--surface-container)] shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100 ${
+      placement === 'right'
+        ? 'left-[calc(100%_+_10px)] top-1/2 -translate-y-1/2 xl:hidden'
+        : 'bottom-[calc(100%_+_8px)] left-1/2 -translate-x-1/2'
+    }`}
+  >
+    {label}
+  </span>
+)
+
 const DesktopNavRail = () => {
   const { pathname } = useLocation()
   const navigate = useNavigate()
@@ -95,11 +118,18 @@ const DesktopNavRail = () => {
 
   // 하단 도크와 같은 스트로크 1.8 아이콘 언어 유지. 활성 항목만 굵게 (인스타 문법)
   const itemClass = (active: boolean) =>
-    `flex items-center justify-center xl:justify-start gap-3.5 h-12 rounded-xl px-0 xl:px-3 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
+    `group relative flex items-center justify-center xl:justify-start gap-3.5 h-12 rounded-xl px-0 xl:px-3 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
       active
-        ? 'text-ink-strong'
+        ? 'text-brand bg-[var(--brand-soft)]'
         : 'text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)]'
     }`
+  const ActiveBar = () => (
+    <span
+      className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-brand"
+      aria-hidden
+    />
+  )
+
   const labelClass = (active: boolean) =>
     `hidden xl:inline text-[15px] whitespace-nowrap ${active ? 'font-bold' : 'font-semibold'}`
 
@@ -116,6 +146,7 @@ const DesktopNavRail = () => {
           aria-current={isHomeActive ? 'page' : undefined}
           className={itemClass(isHomeActive)}
         >
+          {isHomeActive && <ActiveBar />}
           <svg
             className="w-[26px] h-[26px] shrink-0"
             fill="none"
@@ -129,6 +160,7 @@ const DesktopNavRail = () => {
             <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10" />
           </svg>
           <span className={labelClass(isHomeActive)}>홈</span>
+          <RailTip label="홈" />
         </button>
 
         {/* 성경 */}
@@ -140,12 +172,14 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/bible'}
           className={itemClass(isBibleActive)}
         >
+          {isBibleActive && <ActiveBar />}
           {pendingPath === '/bible' ? (
             <RailSpinner />
           ) : (
             <span className="material-icons-outlined text-[26px] shrink-0">menu_book</span>
           )}
           <span className={labelClass(isBibleActive)}>성경</span>
+          <RailTip label="성경" />
         </button>
 
         {/* 집중 기도 — 하단 도크와 동일한 스톱워치 아이콘 */}
@@ -174,6 +208,7 @@ const DesktopNavRail = () => {
             </svg>
           )}
           <span className={labelClass(false)}>집중 기도</span>
+          <RailTip label="집중 기도" />
         </button>
 
         {/* 말씀 사진 카드 만들기 */}
@@ -185,6 +220,7 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/bible/photo-verse'}
           className={itemClass(isVerseCardActive)}
         >
+          {isVerseCardActive && <ActiveBar />}
           {pendingPath === '/bible/photo-verse' ? (
             <RailSpinner />
           ) : (
@@ -203,6 +239,7 @@ const DesktopNavRail = () => {
             </svg>
           )}
           <span className={labelClass(isVerseCardActive)}>말씀 카드</span>
+          <RailTip label="말씀 카드" />
         </button>
 
         {/* 프로필 */}
@@ -214,6 +251,7 @@ const DesktopNavRail = () => {
           aria-busy={pendingPath === '/profile'}
           className={itemClass(isProfileActive)}
         >
+          {isProfileActive && <ActiveBar />}
           {pendingPath === '/profile' ? (
             <RailSpinner />
           ) : (
@@ -231,6 +269,7 @@ const DesktopNavRail = () => {
             </svg>
           )}
           <span className={labelClass(isProfileActive)}>프로필</span>
+          <RailTip label="프로필" />
         </button>
       </nav>
 
@@ -239,7 +278,7 @@ const DesktopNavRail = () => {
         <button
           onClick={handleComposeClick}
           aria-label="기도제목 나누기"
-          className="brand-gradient w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
+          className="group relative brand-gradient w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
         >
           {/* 도크 FAB와 같은 스파클 얼굴 */}
           <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -249,12 +288,13 @@ const DesktopNavRail = () => {
           <span className="hidden xl:inline text-[14.5px] font-bold whitespace-nowrap">
             기도제목 나누기
           </span>
+          <RailTip label="기도제목 나누기" />
         </button>
 
         <button
           onClick={handleThanksClick}
           aria-label="감사 한 줄 남기기"
-          className="w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-2.5 rounded-full flex items-center justify-center gap-2 border border-[var(--card-border)] text-gray-600 dark:text-white/75 hover:text-brand hover:border-brand hover:bg-[var(--brand-soft)] active:scale-[0.96] transition-[color,background-color,border-color,transform] duration-150"
+          className="group relative w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-2.5 rounded-full flex items-center justify-center gap-2 border border-[var(--card-border)] text-gray-600 dark:text-white/75 hover:text-brand hover:border-brand hover:bg-[var(--brand-soft)] active:scale-[0.96] transition-[color,background-color,border-color,transform] duration-150"
         >
           <span className="text-[17px] leading-none" aria-hidden>
             🌼
@@ -262,6 +302,7 @@ const DesktopNavRail = () => {
           <span className="hidden xl:inline text-[13.5px] font-bold whitespace-nowrap">
             감사 한 줄
           </span>
+          <RailTip label="감사 한 줄 남기기" />
         </button>
       </div>
 
@@ -271,17 +312,18 @@ const DesktopNavRail = () => {
         <button
           onClick={toggleTheme}
           aria-label="테마 전환"
-          className="w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
+          className="group relative w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
         >
           <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden">
             {theme === 'dark' ? 'light_mode' : 'dark_mode'}
           </span>
+          <RailTip label={theme === 'dark' ? '밝은 테마로' : '어두운 테마로'} placement="top" />
         </button>
 
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('chambit:open-notifications'))}
           aria-label="알림"
-          className="relative w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
+          className="group relative w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
         >
           <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden">
             notifications
@@ -289,16 +331,18 @@ const DesktopNavRail = () => {
           {unreadCount > 0 && (
             <span className="absolute top-[9px] right-[9px] w-2 h-2 bg-brand rounded-full ring-2 ring-background-light dark:ring-background-dark" />
           )}
+          <RailTip label="알림" placement="top" />
         </button>
 
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('chambit:open-menu'))}
           aria-label="전체 메뉴"
-          className="w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
+          className="group relative w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
         >
           <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden">
             more_vert
           </span>
+          <RailTip label="전체 메뉴" placement="top" />
         </button>
       </div>
     </aside>

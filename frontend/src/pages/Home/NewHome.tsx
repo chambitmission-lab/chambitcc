@@ -245,7 +245,9 @@ const NewHome = () => {
         {/* PC 좌측 내비 레일은 전역 레이아웃(App.tsx의 DesktopNavRail)이 담당한다 */}
 
         {/* 모바일: 폰 프레임(max-w-md) / lg+: 프레임을 풀어 전체 폭 캔버스로 */}
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl relative border-x border-border-light dark:border-border-dark lg:max-w-none lg:shadow-none lg:border-x-0">
+        {/* 배경은 --app-canvas — 라이트에서 배경이 흰색이면 흰 카드가 배경에 잠겨
+            카드 경계가 사라진다. 캔버스를 한 톤 낮춰 카드가 떠 보이게 한다 */}
+        <div className="max-w-md mx-auto bg-[var(--app-canvas)] shadow-2xl relative border-x border-border-light dark:border-border-dark lg:max-w-none lg:shadow-none lg:border-x-0">
 
           {/* lg+: 레일 오프셋은 전역 main(App.tsx)이 처리 — 피드+사이드바를 남은 공간 중앙에 배치 */}
           <main ref={mainRef} className="pb-dock-safe lg:pb-12">
