@@ -221,9 +221,10 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
       if (out) return minDim * 0.47
       const cam = camRef.current
       const c = toVec(cam.targetLat, cam.targetLng)
-      // 최소 시야각 0.55rad — 점이 밀집한 대륙(아메리카: 파라과이·페루뿐)에서
-      // 배율이 역산으로 치솟아 구체 윤곽까지 사라지는 초확대를 막는다
-      let maxAng = 0.55
+      // 최소 시야각 0.8rad — 점이 밀집한 대륙(아메리카: 파라과이·페루뿐)에서
+      // 배율이 역산으로 치솟는 것을 막는다. 0.8이면 R≈minDim*0.53으로
+      // 점이 넓게 퍼진 대륙(0.47~0.53)과 같은 수준의 은은한 확대가 된다
+      let maxAng = 0.8
       for (const p of pts) {
         if (!p.active) continue
         const v = toVec(p.lat, p.lng)
