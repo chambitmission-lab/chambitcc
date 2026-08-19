@@ -118,7 +118,10 @@ const GroupDetail = () => {
 
   return (
     <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문(탭 콘텐츠) + 우측 레일(방 정보) 2단.
+          방 정체성과 다음 모임이 어느 탭에서든 옆에 남는다 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         <div className="flex items-center justify-between pr-3">
           <button
             type="button"
@@ -144,7 +147,7 @@ const GroupDetail = () => {
 
         {/* 방 헤더 — 홈 밖(기도·모임·멤버)에서는 접어서 콘텐츠에 첫 화면을 내준다.
             방 정체성(아이콘·이름·테마)만 남기고 크기와 설명을 줄인다 */}
-        <div className={`px-4 flex items-center gap-3 ${compactHeader ? 'pb-2.5' : 'pb-3'}`}>
+        <div className={`px-4 flex items-center gap-3 lg:hidden ${compactHeader ? 'pb-2.5' : 'pb-3'}`}>
           <div
             className={`shrink-0 rounded-2xl bg-brand flex items-center justify-center shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-all duration-300 ${
               compactHeader ? 'w-10 h-10 text-[19px]' : 'w-14 h-14 text-[26px]'
@@ -189,7 +192,7 @@ const GroupDetail = () => {
         </div>
 
         {group.description && !compactHeader && (
-          <p className="px-4 pb-3 text-[13px] text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-[1.6]">
+          <p className="px-4 pb-3 text-[13px] text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-[1.6] lg:hidden">
             {group.description}
           </p>
         )}
@@ -222,9 +225,13 @@ const GroupDetail = () => {
 
         {/* ── 홈 탭 ── */}
         {(!group.is_member || tab === 'home') && (
-          <div className="pt-3">
-            {/* 이번 주 다이제스트 + 오늘의 체크인 */}
-            {group.is_member && <GroupDigestCard groupId={groupId} />}
+          <div className="pt-3 lg:grid lg:grid-cols-2 lg:items-start">
+            {/* 이번 주 다이제스트 + 오늘의 체크인 — 방의 요약이라 전체폭 */}
+            {group.is_member && (
+              <div className="lg:col-span-2">
+                <GroupDigestCard groupId={groupId} />
+              </div>
+            )}
 
             {/* 오늘의 성구 — 테마가 있는 방에만 */}
             {group.theme_verse && group.theme && (
@@ -325,7 +332,7 @@ const GroupDetail = () => {
 
             {/* 함께 기도 시간 */}
             {group.is_member && group.prayer_time && (
-              <div className="mx-4 mb-3 rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] flex items-center gap-3">
+              <div className="mx-4 mb-3 rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] flex items-center gap-3 lg:hidden">
                 <div className="shrink-0 w-11 h-11 rounded-2xl bg-amber-100 dark:bg-amber-400/[0.12] flex items-center justify-center text-[20px]">
                   🕯️
                 </div>
@@ -349,7 +356,11 @@ const GroupDetail = () => {
         )}
 
         {/* ── 기도 탭 ── */}
-        {group.is_member && tab === 'prayers' && <GroupPrayerTab groupId={groupId} />}
+        {group.is_member && tab === 'prayers' && (
+          <div className="lg:max-w-[640px] lg:mx-auto">
+            <GroupPrayerTab groupId={groupId} />
+          </div>
+        )}
 
         {/* ── 모임 탭 ── */}
         {group.is_member && tab === 'meetings' && (
@@ -373,7 +384,7 @@ const GroupDetail = () => {
                 아직 등록된 모임이 없습니다
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2 lg:space-y-0 lg:items-start">
                 {meetings.map((m) => {
                   // 모임 시각은 교회 현지(서울) 기준으로 고정 표시
                   const start = parseKstDate(m.start_datetime)
@@ -418,6 +429,118 @@ const GroupDetail = () => {
 
         {/* ── 멤버 탭 ── */}
         {group.is_member && tab === 'members' && <GroupMembersTab group={group} />}
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 본문 헤더(lg:hidden)를 대신하는 방 카드 + 어느 탭에서든
+          보이면 좋은 것들(다음 모임·함께 기도 시간) */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <section className="rounded-2xl p-5 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 w-14 h-14 rounded-2xl bg-brand flex items-center justify-center text-[26px] shadow-[0_6px_18px_-6px_var(--brand-glow)]">
+              {group.icon || '🙏'}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-[17px] font-bold text-ink-strong tracking-[-0.015em] truncate">
+                  {group.name}
+                </h2>
+                {group.is_admin && (
+                  <span className="shrink-0 text-[9.5px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand tracking-[0.05em]">
+                    ADMIN
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-1 text-[11.5px] text-gray-500 dark:text-white/55">
+                <span>👤 {group.member_count}명</span>
+                {total > 0 && (
+                  <>
+                    <span className="text-gray-300 dark:text-white/20">·</span>
+                    <span>🙏 {total}개</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {group.theme && (
+            <span
+              className="inline-flex items-center gap-0.5 mt-3 px-2 py-0.5 rounded-full text-[10.5px] font-bold text-white"
+              style={{ backgroundColor: group.theme.color }}
+            >
+              <span className="material-icons-round text-[12px]">{group.theme.icon}</span>
+              {group.theme.name}
+            </span>
+          )}
+
+          {group.description && (
+            <p className="mt-3 text-[12.5px] text-gray-600 dark:text-white/60 leading-[1.6] whitespace-pre-wrap line-clamp-4">
+              {group.description}
+            </p>
+          )}
+
+          {total > 0 && (
+            <div className="mt-4">
+              <div className="flex items-baseline justify-between mb-1.5">
+                <span className="text-[11.5px] font-bold text-gray-500 dark:text-white/50">응답률</span>
+                <span className="text-[12px] font-bold text-brand tabular-nums">{answeredRate}%</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.06] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-brand transition-[width] duration-500"
+                  style={{ width: `${answeredRate}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </section>
+
+        {group.is_member && group.prayer_time && (
+          <section className="rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] flex items-center gap-3">
+            <div className="shrink-0 w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-400/[0.12] flex items-center justify-center text-[18px]">
+              🕯️
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[12.5px] font-bold text-ink-strong">
+                매일 {group.prayer_time} 함께 기도
+              </p>
+              <Link to="/prayer-focus" className="text-[11.5px] font-bold text-brand">
+                골방 기도 →
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {group.is_member && meetings.length > 0 && (
+          <section className="rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
+            <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+              다가오는 모임
+            </p>
+            <div className="flex flex-col -mx-1">
+              {meetings.slice(0, 3).map((m) => {
+                const start = parseKstDate(m.start_datetime)
+                return (
+                  <Link
+                    key={m.id}
+                    to={`/events/${m.id}`}
+                    className="flex items-center gap-2.5 px-1 py-2 rounded-lg hover:bg-[var(--brand-soft)] transition-colors"
+                  >
+                    <span className="shrink-0 w-10 text-[11px] font-bold tabular-nums text-gray-400 dark:text-white/40">
+                      {start.toLocaleDateString(undefined, {
+                        timeZone: 'Asia/Seoul',
+                        month: 'numeric',
+                        day: 'numeric',
+                      })}
+                    </span>
+                    <span className="flex-1 min-w-0 truncate text-[12.5px] font-semibold text-ink-strong">
+                      {m.title}
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
+          </section>
+        )}
+      </aside>
       </div>
 
       <CreateGroupMeetingModal

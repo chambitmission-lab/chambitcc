@@ -28,7 +28,7 @@ const MyGroups = () => {
   if (!loggedIn) {
     return (
       <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage">
-        <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-[60vh]">
+        <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-2xl lg:mt-3 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-[60vh]">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[var(--brand-soft-strong)] mb-5">
             <span className="text-[36px]">👥</span>
           </div>
@@ -60,7 +60,9 @@ const MyGroups = () => {
 
   return (
     <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문(모임 목록) + 우측 레일(만들기·참여·요약) 2단 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-2">
           <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
@@ -88,8 +90,8 @@ const MyGroups = () => {
           </div>
         )}
 
-        {/* 액션 카드 두 개 */}
-        <div className="px-4 pt-4 pb-2 grid grid-cols-2 gap-2">
+        {/* 액션 카드 두 개 — lg에선 우측 레일의 같은 카드가 대신한다 */}
+        <div className="px-4 pt-4 pb-2 grid grid-cols-2 gap-2 lg:hidden">
           <ActionCard
             icon={
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
@@ -112,7 +114,7 @@ const MyGroups = () => {
         </div>
 
         {/* 그룹 리스트 */}
-        <div className="px-4 pt-2 pb-4 space-y-2">
+        <div className="px-4 pt-2 pb-4 space-y-2 lg:pt-4 lg:grid lg:grid-cols-2 lg:gap-2 lg:space-y-0 lg:items-start">
           {isLoading ? (
             <SkeletonRows />
           ) : groups.length === 0 ? (
@@ -124,6 +126,44 @@ const MyGroups = () => {
 
         {/* 둘러보기 — 초대 없이도 공동체를 찾을 수 있는 디렉터리 */}
         <DiscoverSection />
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 모임 만들기·참여를 항상 손 닿는 곳에 두고,
+          본문은 모임 카드에만 집중하게 한다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-2.5 lg:sticky lg:top-[4.5rem]">
+        <ActionCard
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          }
+          label={t('createGroup')}
+          sublabel={t('groupsCreateSub')}
+          variant="primary"
+          onClick={() => setShowCreate(true)}
+        />
+        <ActionCard
+          icon={<span className="text-[20px]">🎟️</span>}
+          label={t('joinGroup')}
+          sublabel={t('groupsJoinSub')}
+          variant="secondary"
+          onClick={() => setShowJoin(true)}
+        />
+
+        {groups.length > 0 && (
+          <section className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none p-4">
+            <p className="mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+              한눈에
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <RailStat label={t('groupsStatJoined')} value={groups.length} accent />
+              {adminCount > 0 && <RailStat label={t('groupsStatAdmin')} value={adminCount} />}
+              <RailStat label={t('groupsStatMembers')} value={totalMembers} />
+            </div>
+          </section>
+        )}
+      </aside>
       </div>
 
       <CreateGroupModal isOpen={showCreate} onClose={() => setShowCreate(false)} />
@@ -363,7 +403,7 @@ const DiscoverSection = () => {
       {isLoading ? (
         <div className="h-[76px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2 lg:space-y-0 lg:items-start">
           {groups.map((g) => {
             const requested = g.my_join_request_status === 'pending'
             return (
@@ -420,6 +460,26 @@ const DiscoverSection = () => {
 }
 
 // ── 통계 칩 ────────────────────────────────────────────
+// 레일용 통계 행 — 칩(가로 나열)과 달리 라벨·숫자를 좌우로 벌린 한 줄
+const RailStat = ({
+  label,
+  value,
+  accent,
+}: {
+  label: string
+  value: number
+  accent?: boolean
+}) => (
+  <div className="flex items-baseline justify-between gap-2">
+    <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">{label}</span>
+    <span
+      className={`text-[16px] font-bold tabular-nums ${accent ? 'text-brand' : 'text-ink-strong'}`}
+    >
+      {value}
+    </span>
+  </div>
+)
+
 const StatChip = ({
   label,
   value,
