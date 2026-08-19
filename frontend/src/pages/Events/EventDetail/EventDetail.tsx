@@ -16,8 +16,8 @@ import {
 } from './components'
 
 const Shell = ({ children }: { children: React.ReactNode }) => (
-  <div className="bg-surface text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen">
-    <div className="max-w-md mx-auto bg-surface shadow-2xl relative border-x border-border-light dark:border-border-dark min-h-screen pb-24">
+  <div className="bg-surface text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
+    <div className="max-w-md mx-auto bg-surface shadow-2xl relative border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
       {children}
     </div>
   </div>

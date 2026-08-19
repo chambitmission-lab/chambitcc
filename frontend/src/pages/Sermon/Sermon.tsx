@@ -90,8 +90,8 @@ const Sermon = () => {
 
   return (
     <ErrorBoundary>
-      <div className="bg-surface min-h-screen">
-        <div className="max-w-md mx-auto bg-surface shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
+      <div className="bg-surface min-h-screen page-stage">
+        <div className="max-w-md mx-auto bg-surface shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
           {/* 헤더 — 플랫 스티키 */}
           <div className="sermon-page-header">
             <h1 className="sermon-page-title">설교 말씀</h1>

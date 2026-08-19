@@ -25,6 +25,7 @@ import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
+import BibleSectionTabs from '../../components/bible/BibleSectionTabs'
 // 스토리 모드 진행 상태만 가볍게 읽는다 — 42화 콘텐츠 데이터는 스토리 라우트 청크에만 실린다
 import { loadReadIds } from './Story/storyProgress'
 import './BibleStudy.css'
@@ -54,6 +55,8 @@ const BibleStudy = () => {
   const [audioPlaying, setAudioPlaying] = useState<boolean>(false)
   // 절 메뉴 '여기부터 듣기' 요청 (VerseList → 플레이어). seq로 같은 절 재요청도 구분
   const [playFromVerse, setPlayFromVerse] = useState<PlayFromVerseRequest | null>(null)
+  // PC(lg+) 해석 패널이 우측에 도킹 중인지 — 본문 컬럼을 왼쪽으로 비켜 나란히 보이게 한다
+  const [commentaryOpen, setCommentaryOpen] = useState<boolean>(false)
 
   const { data: books, isLoading: booksLoading, error: booksError } = useBibleBooks()
   const { isLoggedIn } = useAuth()
@@ -333,116 +336,152 @@ const BibleStudy = () => {
     document.body.scrollTop = 0
   }
   
+  // 성경 공부 도구 카드 묶음 — 모바일에선 서재 스택 안에, PC(lg+)에선 우측 사이드바에 렌더
+  const dashToolCards = (
+    <>
+      {/* 처음 만나는 성경 — 초보자용 스토리 모드 */}
+      <button
+        type="button"
+        onClick={() => navigate('/bible/story')}
+        className="dash-card dash-card--fav"
+      >
+        <span className="dash-card__icon">
+          <span className="material-icons-round">auto_stories</span>
+        </span>
+        <span className="dash-card__body">
+          <span className="dash-card__title">{dt.storyTitle}</span>
+          <span className="dash-card__text">
+            {storyReadCount > 0 ? dt.storyProgress(storyReadCount) : dt.storyIntro}
+          </span>
+        </span>
+        <span className="material-icons-round dash-card__chevron">chevron_right</span>
+      </button>
+
+      {/* 상황별 성구 */}
+      <button
+        type="button"
+        onClick={() => navigate('/bible/situation')}
+        className="dash-card dash-card--fav"
+      >
+        <span className="dash-card__icon">
+          <span className="material-icons-round">sentiment_satisfied_alt</span>
+        </span>
+        <span className="dash-card__body">
+          <span className="dash-card__title">{dt.situationTitle}</span>
+          <span className="dash-card__text">{dt.situationText}</span>
+        </span>
+        <span className="material-icons-round dash-card__chevron">chevron_right</span>
+      </button>
+
+      {/* 말씀 사진 카드 — 내 사진 위에 말씀을 올려 저장·공유 */}
+      <button
+        type="button"
+        onClick={() => navigate('/bible/photo-verse')}
+        className="dash-card dash-card--fav"
+      >
+        <span className="dash-card__icon">
+          <span className="material-icons-round">photo_filter</span>
+        </span>
+        <span className="dash-card__body">
+          <span className="dash-card__title">{dt.photoTitle}</span>
+          <span className="dash-card__text">{dt.photoText}</span>
+        </span>
+        <span className="material-icons-round dash-card__chevron">chevron_right</span>
+      </button>
+
+      {isLoggedIn() && (
+        <button
+          type="button"
+          onClick={() => setShowPlaylist(true)}
+          className="dash-card dash-card--fav"
+        >
+          <span className="dash-card__icon">
+            <span className="material-icons-round">headphones</span>
+          </span>
+          <span className="dash-card__body">
+            <span className="dash-card__title">{dt.favTitle}</span>
+            <span className="dash-card__text">
+              {favoritesCount > 0 ? dt.favCount(favoritesCount) : dt.favIntro}
+            </span>
+          </span>
+          <span className="material-icons-round dash-card__chevron">chevron_right</span>
+        </button>
+      )}
+    </>
+  )
+
   return (
-    <div className="bg-gray-50 dark:bg-background-dark screen-fit-minus-header">
-      {/* 하단 고정 네비게이션에 가리지 않도록 컨테이너에 바 높이만큼 하단 여백 */}
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark screen-fit-minus-header pb-bottomnav-safe">
-        <BibleHeader tab={activeTab} />
+    <div className="bg-gray-50 dark:bg-background-dark screen-fit-minus-header page-stage">
+      {/* 하단 고정 네비게이션에 가리지 않도록 컨테이너에 바 높이만큼 하단 여백.
+          lg+: 모바일 프레임(max-w-md)을 풀어 전체 폭 캔버스로 (홈과 동일 문법) */}
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark screen-fit-minus-header pb-bottomnav-safe lg:max-w-none lg:shadow-none lg:border-x-0 lg:bg-transparent dark:lg:bg-transparent lg:pb-16">
+        {/* 모바일 헤더 — PC에선 각 뷰의 컬럼 안에서 렌더한다 */}
+        <div className="lg:hidden">
+          <BibleHeader tab={activeTab} />
+        </div>
+
+        {/* PC 전용 섹션 탭 — 모바일 하단 도크(BibleBottomNav)의 데스크톱 대응물 */}
+        <BibleSectionTabs
+          active={activeTab === 'search' ? 'search' : 'read'}
+          onSelectTab={handleSelectTab}
+        />
 
         {/* 읽기 탭 */}
         {activeTab === 'read' && (
           <div className="bible-read-section">
-            {/* 나의 서재 — 이어 읽기(강조) + 스토리 모드 + 보조 카드들. 책 목록 화면에서만 노출.
-                처음 만나는 성경은 비로그인 초심자에게도 보여야 하므로 로그인 여부와 무관하게 렌더 */}
+            {/* 책 목록(허브) — PC에선 메인 컬럼(이어 읽기+책 선택) 옆에 도구 사이드바 2컬럼.
+                모바일에선 래퍼가 그냥 세로 스택이라 기존 순서 그대로다 */}
             {showBookList && (
-              <div className="bible-dash">
-                {resumeData?.latest && (
-                  <ResumeReadingCard
-                    latest={resumeData.latest}
-                    onResume={handleResume}
-                    bookNameEn={books?.find(b => b.book_number === resumeData.latest!.book_number)?.book_name_en}
+              <div className="lg:flex lg:items-start lg:justify-center lg:gap-8 lg:px-6">
+                <div className="lg:w-full lg:max-w-[620px] lg:min-w-0">
+                  <div className="hidden lg:block">
+                    <BibleHeader tab="read" />
+                  </div>
+
+                  {/* 나의 서재 — 이어 읽기(강조) + 도구 카드(모바일 위치).
+                      처음 만나는 성경은 비로그인 초심자에게도 보여야 하므로 로그인 여부와 무관하게 렌더 */}
+                  <div className="bible-dash">
+                    {resumeData?.latest && (
+                      <ResumeReadingCard
+                        latest={resumeData.latest}
+                        onResume={handleResume}
+                        bookNameEn={books?.find(b => b.book_number === resumeData.latest!.book_number)?.book_name_en}
+                      />
+                    )}
+                    <div className="lg:hidden">{dashToolCards}</div>
+                  </div>
+
+                  {/* 책 선택 */}
+                  <BookSelector
+                    books={books}
+                    isLoading={booksLoading}
+                    error={booksError}
+                    onBookSelect={handleBookSelect}
+                    resumeMap={resumeMap}
+                    progress={progressData}
+                    progressPending={isLoggedIn() && progressPending}
+                    recentBooks={recentForSlider}
+                    recentPending={isLoggedIn() && resumePending}
                   />
-                )}
+                </div>
 
-                {/* 처음 만나는 성경 — 초보자용 스토리 모드 */}
-                <button
-                  type="button"
-                  onClick={() => navigate('/bible/story')}
-                  className="dash-card dash-card--fav"
-                >
-                  <span className="dash-card__icon">
-                    <span className="material-icons-round">auto_stories</span>
-                  </span>
-                  <span className="dash-card__body">
-                    <span className="dash-card__title">{dt.storyTitle}</span>
-                    <span className="dash-card__text">
-                      {storyReadCount > 0 ? dt.storyProgress(storyReadCount) : dt.storyIntro}
-                    </span>
-                  </span>
-                  <span className="material-icons-round dash-card__chevron">chevron_right</span>
-                </button>
-
-                {/* 상황별 성구 */}
-                <button
-                  type="button"
-                  onClick={() => navigate('/bible/situation')}
-                  className="dash-card dash-card--fav"
-                >
-                  <span className="dash-card__icon">
-                    <span className="material-icons-round">sentiment_satisfied_alt</span>
-                  </span>
-                  <span className="dash-card__body">
-                    <span className="dash-card__title">{dt.situationTitle}</span>
-                    <span className="dash-card__text">{dt.situationText}</span>
-                  </span>
-                  <span className="material-icons-round dash-card__chevron">chevron_right</span>
-                </button>
-
-                {/* 말씀 사진 카드 — 내 사진 위에 말씀을 올려 저장·공유 */}
-                <button
-                  type="button"
-                  onClick={() => navigate('/bible/photo-verse')}
-                  className="dash-card dash-card--fav"
-                >
-                  <span className="dash-card__icon">
-                    <span className="material-icons-round">photo_filter</span>
-                  </span>
-                  <span className="dash-card__body">
-                    <span className="dash-card__title">{dt.photoTitle}</span>
-                    <span className="dash-card__text">{dt.photoText}</span>
-                  </span>
-                  <span className="material-icons-round dash-card__chevron">chevron_right</span>
-                </button>
-
-                {isLoggedIn() && (
-                  <button
-                    type="button"
-                    onClick={() => setShowPlaylist(true)}
-                    className="dash-card dash-card--fav"
-                  >
-                    <span className="dash-card__icon">
-                      <span className="material-icons-round">headphones</span>
-                    </span>
-                    <span className="dash-card__body">
-                      <span className="dash-card__title">{dt.favTitle}</span>
-                      <span className="dash-card__text">
-                        {favoritesCount > 0 ? dt.favCount(favoritesCount) : dt.favIntro}
-                      </span>
-                    </span>
-                    <span className="material-icons-round dash-card__chevron">chevron_right</span>
-                  </button>
-                )}
+                {/* PC 사이드바 — 성경 공부 도구 모음 */}
+                <aside className="hidden lg:block lg:w-[340px] lg:shrink-0 lg:pt-7">
+                  <p className="px-1 mb-2 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
+                    성경 공부 도구
+                  </p>
+                  <div className="space-y-2.5">{dashToolCards}</div>
+                </aside>
               </div>
             )}
 
-            {/* 책 선택 */}
-            {showBookList && (
-              <BookSelector
-                books={books}
-                isLoading={booksLoading}
-                error={booksError}
-                onBookSelect={handleBookSelect}
-                resumeMap={resumeMap}
-                progress={progressData}
-                progressPending={isLoggedIn() && progressPending}
-                recentBooks={recentForSlider}
-                recentPending={isLoggedIn() && resumePending}
-              />
-            )}
-            
-            {/* 장 선택 및 내용 */}
+            {/* 장 선택 및 내용 — PC에선 편안한 읽기 폭(66ch대)으로 중앙 배치,
+                해석 패널이 우측에 도킹되면 컬럼이 왼쪽으로 비켜 나란히 보인다 */}
             {!showBookList && selectedBookId > 0 && selectedBookData && (
-              <div className="bible-chapter-section">
+              <div
+                className={`bible-chapter-section${commentaryOpen ? ' commentary-docked' : ''}`}
+              >
+                <div className="lg:max-w-[720px] lg:mx-auto">
                 <ChapterNavigation
                   selectedBook={selectedBook}
                   selectedBookId={selectedBookId}
@@ -497,14 +536,23 @@ const BibleStudy = () => {
                   audioPlaying={audioPlaying}
                   onListenFromVerse={handleListenFromVerse}
                   onChapterFullyRead={planAutoComplete ? handleChapterFullyRead : undefined}
+                  onCommentaryOpenChange={setCommentaryOpen}
                 />
+                </div>
               </div>
             )}
           </div>
         )}
-        
-        {/* 검색 탭 */}
-        {activeTab === 'search' && <BibleSearch />}
+
+        {/* 검색 탭 — PC에선 중앙 단일 컬럼 */}
+        {activeTab === 'search' && (
+          <div className="lg:max-w-[640px] lg:mx-auto">
+            <div className="hidden lg:block">
+              <BibleHeader tab="search" />
+            </div>
+            <BibleSearch />
+          </div>
+        )}
       </div>
 
       {/* 즐겨찾기 묵상 플레이리스트 모달 */}

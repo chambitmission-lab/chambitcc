@@ -67,7 +67,7 @@ const AnsweredPrayers = () => {
   }
 
   return (
-    <div className="answered-page">
+    <div className="answered-page page-stage">
       <div className="answered-shell">
         {/* 헤더 카드 — 성소 톤 (보라 베이스 + amber 액센트) */}
         <section className="answered-hall-section">

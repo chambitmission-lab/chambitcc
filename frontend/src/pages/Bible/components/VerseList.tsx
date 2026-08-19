@@ -47,6 +47,9 @@ interface VerseListProps {
   audioPlaying?: boolean
   // 절 메뉴 '여기부터 듣기' — 오디오북을 해당 절부터 재생
   onListenFromVerse?: (verse: number) => void
+  // 해석 패널 열림/닫힘 통지 — PC(lg+)에서 부모가 본문 컬럼을 옆으로 비켜
+  // 본문과 해석을 나란히 배치하는 데 쓴다
+  onCommentaryOpenChange?: (open: boolean) => void
 }
 
 const VerseList = ({
@@ -65,6 +68,7 @@ const VerseList = ({
   audioActiveVerse,
   audioPlaying = false,
   onListenFromVerse,
+  onCommentaryOpenChange,
 }: VerseListProps) => {
   const observerRef = useRef<IntersectionObserver | null>(null)
   const fullReadFiredRef = useRef(false)
@@ -158,6 +162,15 @@ const VerseList = ({
     setCommentaryFocusVerse(null)
     setCommentaryPanelOpen(true)
   }
+
+  // 부모(BibleStudy)에 패널 상태 통지 — 장을 떠나며 언마운트될 때도 닫힘으로 되돌린다
+  useEffect(() => {
+    onCommentaryOpenChange?.(commentaryPanelOpen)
+  }, [commentaryPanelOpen, onCommentaryOpenChange])
+  useEffect(() => {
+    return () => onCommentaryOpenChange?.(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   
   // 모든 훅은 조건문 이전에 호출되어야 함
   // 백엔드에서 읽음 상태 조회 (로그인 시 항상)

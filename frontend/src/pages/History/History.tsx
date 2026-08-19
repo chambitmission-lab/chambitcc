@@ -280,8 +280,8 @@ const History = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-black min-h-screen">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
+    <div className="bg-gray-50 dark:bg-black min-h-screen page-stage">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         <div className="history-page">
           {/* Hero */}
           <header ref={heroRef} className="history-hero">

@@ -273,8 +273,8 @@ const Thanks = () => {
   const isEmpty = items.length === 0 && !query.isLoading
 
   return (
-    <div className="min-h-screen bg-[var(--surface)]">
-      <div className="max-w-md mx-auto min-h-screen bg-[var(--surface)] border-x border-[var(--card-border)]">
+    <div className="min-h-screen bg-[var(--surface)] page-stage">
+      <div className="max-w-md mx-auto min-h-screen bg-[var(--surface)] border-x border-[var(--card-border)] lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* Sticky 헤더 */}
         <div
           className="sticky top-14 z-10 backdrop-blur-xl border-b border-[var(--card-border)]"
@@ -483,7 +483,7 @@ const Thanks = () => {
         {/* 감사 남기기 — 눈에 띄는 알약 버튼 */}
         <button
           onClick={handleOpenComposer}
-          className="fixed z-30 bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 flex items-center gap-2 pl-4 pr-5 h-12 rounded-full bg-brand text-[var(--on-brand)] text-[14.5px] font-extrabold tracking-[-0.01em] shadow-[0_10px_26px_var(--brand-glow)] hover:bg-brand-dim active:scale-95 transition-all"
+          className="fixed z-30 bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 lg:left-[calc(50%+38px)] xl:left-[calc(50%+124px)] -translate-x-1/2 flex items-center gap-2 pl-4 pr-5 h-12 rounded-full bg-brand text-[var(--on-brand)] text-[14.5px] font-extrabold tracking-[-0.01em] shadow-[0_10px_26px_var(--brand-glow)] hover:bg-brand-dim active:scale-95 transition-all"
         >
           <span className="material-icons-round text-[19px]">edit</span>
           {ko ? '감사 남기기' : 'Share thanks'}

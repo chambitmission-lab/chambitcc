@@ -149,13 +149,15 @@ const BibleCommentaryPanel = ({
 
   return (
     <>
+      {/* PC(lg+)에선 모달이 아니라 우측 도킹 패널 — 배경을 투명·통과 처리해
+          본문을 읽고 절을 탭하면서 해석을 나란히 볼 수 있다 (본문 컬럼은 BibleStudy가 비켜줌) */}
       <div
-        className="fixed inset-0 bg-black/55 backdrop-blur-[2px] z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden"
+        className="fixed inset-0 bg-black/55 backdrop-blur-[2px] z-[110] flex items-end sm:items-center justify-center sm:p-4 overflow-hidden lg:top-14 lg:bg-transparent lg:backdrop-blur-0 lg:pointer-events-none lg:items-stretch lg:justify-end lg:p-0"
         onClick={onClose}
         role="presentation"
       >
         <section
-          className="relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col"
+          className="relative w-full sm:max-w-[560px] bg-surface-container rounded-t-[28px] sm:rounded-[28px] overflow-hidden border-t sm:border border-[var(--card-border)] shadow-[0_-16px_48px_rgba(0,0,0,0.35)] flex flex-col lg:pointer-events-auto lg:w-[400px] xl:w-[430px] lg:max-w-none lg:!max-h-none lg:rounded-none lg:border-0 lg:border-l lg:shadow-[-12px_0_40px_rgba(0,0,0,0.25)]"
           style={{ ...genreStyle(bookNumber), maxHeight: 'calc(var(--vvh, 100dvh) * 0.92)' }}
           onClick={(e) => e.stopPropagation()}
           role="dialog"

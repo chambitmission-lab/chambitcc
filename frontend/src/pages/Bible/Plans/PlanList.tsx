@@ -11,6 +11,7 @@ import { accentGradient, gradientTextStyle, planHashtags } from './planVisuals'
 import { planCover } from './planCovers'
 import heroCover from '../../../assets/plans/bible-365.jpg'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
+import BibleSectionTabs from '../../../components/bible/BibleSectionTabs'
 
 const PlanList = () => {
   const navigate = useNavigate()
@@ -50,13 +51,15 @@ const PlanList = () => {
     : otherPlans
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-bottomnav-safe">
-        {/* 헤더 */}
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+      {/* PC 전용 섹션 탭 — 하단 도크는 lg에서 숨는다 */}
+      <BibleSectionTabs active="plans" />
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-bottomnav-safe lg:max-w-xl lg:min-h-0 lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:pb-8 lg:overflow-hidden">
+        {/* 헤더 — PC에선 위 섹션 탭이 내비를 담당하므로 뒤로가기 버튼은 모바일 전용 */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
             onClick={() => navigate('/bible')}
-            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
+            className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors lg:hidden"
             aria-label="성경 공부로"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">

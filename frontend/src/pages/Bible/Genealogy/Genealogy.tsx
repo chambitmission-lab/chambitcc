@@ -7,6 +7,7 @@ import FigureDetailPanel from './components/FigureDetailPanel'
 import EraTimeline from './components/EraTimeline'
 import type { BibleFigureSummary } from '../../../types/bibleFigure'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
+import BibleSectionTabs from '../../../components/bible/BibleSectionTabs'
 
 type ViewMode = 'tree' | 'timeline'
 type RoleFilter = 'all' | 'messianic' | 'king' | 'prophet' | 'woman' | 'patriarch'
@@ -80,9 +81,11 @@ export const Genealogy = () => {
   )
 
   return (
-    <div className="bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen">
+    <div className="bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
+      {/* PC 전용 섹션 탭 — 하단 도크는 lg에서 숨는다 */}
+      <BibleSectionTabs active="genealogy" />
       {/* 패딩은 루트가 아닌 내부 래퍼에 — 루트는 .main-content > * { padding: 0 } (App.css)에 걸려 pb가 제거된다 */}
-      <div className="max-w-5xl mx-auto px-4 pt-5 pb-bottomnav-safe">
+      <div className="max-w-5xl mx-auto px-4 pt-5 pb-bottomnav-safe lg:pb-12">
         {/* Breadcrumb + 헤더 */}
         <header className="mb-5">
           <div className="flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-gray-400 mb-3">

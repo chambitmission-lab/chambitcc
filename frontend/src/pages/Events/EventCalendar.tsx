@@ -88,8 +88,8 @@ const EventCalendar = () => {
   const handleToday = () => setViewDate(kstNow())
 
   return (
-    <div className="bg-surface text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen">
-      <div className="max-w-md mx-auto bg-surface shadow-2xl relative border-x border-border-light dark:border-border-dark min-h-screen pb-24">
+    <div className="bg-surface text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
+      <div className="max-w-md mx-auto bg-surface shadow-2xl relative border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-2">
           <div className="flex items-start justify-between">

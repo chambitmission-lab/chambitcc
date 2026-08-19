@@ -62,8 +62,8 @@ const About = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-black min-h-screen">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
+    <div className="bg-gray-50 dark:bg-black min-h-screen page-stage">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* Hero — 사진을 온전히 보여주고 텍스트는 하단 스크림 위에 좌측 정렬 */}
         <div className="about-hero">
           {/* crossOrigin: CORS 응답이어야 서비스워커가 상태 코드를 보고 캐싱할 수 있다

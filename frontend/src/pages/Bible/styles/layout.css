@@ -156,6 +156,31 @@
   min-height: calc(100vh - 200px);
 }
 
+/* PC(lg+) — 헤더는 컬럼 안 인라인 타이틀로.
+   전체 폭 캔버스(page-stage) 위에 얹히므로 sticky·배경·보더를 푼다 */
+@media (min-width: 1024px) {
+  .bible-study-header {
+    position: static;
+    background: transparent;
+    border-bottom: none;
+    padding: 1.25rem 1rem 0.25rem;
+  }
+
+  /* 해석 패널이 우측에 도킹되면 본문 컬럼이 왼쪽으로 비켜 나란히 보인다.
+     (Tailwind pr 유틸은 아래 padding: 0 선언에 캐스케이드로 지므로 전용 클래스로 처리) */
+  .bible-chapter-section {
+    transition: padding-right 0.3s ease;
+  }
+  .bible-chapter-section.commentary-docked {
+    padding-right: 400px;
+  }
+}
+@media (min-width: 1280px) {
+  .bible-chapter-section.commentary-docked {
+    padding-right: 430px;
+  }
+}
+
 /* 반응형 */
 @media (max-width: 768px) {
   .bible-study-container {

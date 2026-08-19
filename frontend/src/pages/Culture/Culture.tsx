@@ -349,8 +349,8 @@ const Culture = () => {
   }
 
   return (
-    <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20">
+    <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage">
+      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-3">
           <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">

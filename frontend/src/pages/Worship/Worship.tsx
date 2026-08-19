@@ -463,7 +463,7 @@ const Worship = () => {
   }
 
   return (
-    <div className="worship-page">
+    <div className="worship-page page-stage">
       <div className="worship-shell">
         <div className="worship-body">
           {/* Hero — 다음(또는 진행 중인) 예배의 시간대에 따라 하늘 무드가 바뀐다 */}

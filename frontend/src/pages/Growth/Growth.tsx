@@ -46,7 +46,7 @@ const Growth = () => {
 
   if (summaryLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-background-dark flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-background-dark flex items-center justify-center page-stage">
         <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
@@ -54,7 +54,7 @@ const Growth = () => {
 
   if (error || !summary) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-background-dark flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-background-dark flex items-center justify-center p-4 page-stage">
         <div className="max-w-md mx-auto text-center">
           <p className="text-red-500 mb-4">
             {error instanceof Error ? error.message : '여정을 불러오지 못했어요'}
@@ -71,8 +71,8 @@ const Growth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl min-h-screen border-x border-border-light dark:border-border-dark">
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl min-h-screen border-x border-border-light dark:border-border-dark lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
           <button

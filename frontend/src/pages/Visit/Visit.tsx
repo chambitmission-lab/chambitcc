@@ -120,7 +120,7 @@ const Visit = () => {
   )
 
   return (
-    <div className="visit-page">
+    <div className="visit-page page-stage">
       <div className="visit-shell">
         <div className="visit-body">
           {/* Hero — 시각에 따라 하늘빛이 바뀐다 (/worship 과 같은 토큰) */}

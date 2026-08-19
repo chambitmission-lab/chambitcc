@@ -9,6 +9,14 @@
   background: transparent;
 }
 
+/* PC(lg+) — 티어 B 와이드 셸: 메달 도감 그리드에 숨 쉴 폭을 준다 */
+@media (min-width: 1024px) {
+  .main-content > .garden-page {
+    max-width: 36rem; /* lg:max-w-xl — 다른 티어 B 페이지와 동일 폭 */
+    padding: 12px 0 56px;
+  }
+}
+
 /* ── Hero 카드 ──────────────────────────── */
 .garden-hero {
   position: relative;

@@ -64,8 +64,8 @@ const GroupDetail = () => {
 
   if (!loggedIn) {
     return (
-      <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100">
-        <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6 py-12">
+      <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage">
+        <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-[60vh]">
           <p className="text-gray-600 dark:text-gray-300 mb-4">{t('loginRequired')}</p>
           <button
             type="button"
@@ -81,8 +81,8 @@ const GroupDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-surface">
-        <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen px-4 pt-14 space-y-3">
+      <div className="min-h-screen bg-surface page-stage">
+        <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen px-4 pt-14 space-y-3 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
           <div className="h-24 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
           <div className="h-32 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
           <div className="h-24 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
@@ -93,8 +93,8 @@ const GroupDetail = () => {
 
   if (!group) {
     return (
-      <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100">
-        <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6 py-12">
+      <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage">
+        <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-[60vh]">
           <span className="text-5xl mb-4">😢</span>
           <p className="text-gray-600 dark:text-gray-300 mb-5">기도방을 찾을 수 없어요</p>
           <button
@@ -117,8 +117,8 @@ const GroupDetail = () => {
   const answeredRate = total > 0 ? Math.round((answered / total) * 100) : 0
 
   return (
-    <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20">
+    <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage">
+      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         <div className="flex items-center justify-between pr-3">
           <button
             type="button"

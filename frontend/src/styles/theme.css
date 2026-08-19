@@ -249,3 +249,17 @@
     animation: none;
   }
 }
+
+/* ── PC 스테이지 배경 (티어 C) ────────────────────────────────
+   모바일 폭 컬럼이 넓은 화면 한가운데 "덩그러니" 뜨는 앙상함을 줄이는 은은한 무대 조명.
+   페이지 래퍼(자체 배경색이 이미 있는 요소)에 클래스로 옵트인한다. lg+ 전용.
+   색은 브랜드 토큰(--brand-soft)만 사용 — 라이트/다크 모두 자동 대응. */
+@media (min-width: 1024px) {
+  .page-stage {
+    background-image:
+      radial-gradient(1100px 480px at 50% -120px, var(--brand-soft), transparent 70%),
+      radial-gradient(900px 620px at 90% 110%, var(--brand-soft), transparent 65%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+}
