@@ -147,7 +147,7 @@ const NewFamilySection = () => {
       ) : posts.length === 0 ? (
         <EmptyState />
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-3 gap-1 lg:grid-cols-4 lg:gap-1.5">
           {posts.map((post) => (
             <button
               key={post.id}
@@ -179,7 +179,8 @@ const NewFamilySection = () => {
           ))}
         </div>
       ) : (
-        <div className="space-y-4">
+        // lg+: 넓어진 본문을 한 줄로만 쓰지 않도록 2열 카드 그리드
+        <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 lg:items-start">
           {posts.map((post) => (
             <NewFamilyPostCard
               key={post.id}
@@ -259,7 +260,7 @@ const ViewToggle = ({
 )
 
 const SkeletonFeed = () => (
-  <div className="space-y-4">
+  <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
     {Array.from({ length: 2 }).map((_, i) => (
       <div
         key={i}

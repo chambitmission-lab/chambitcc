@@ -9,6 +9,8 @@ import InstagramBulletinViewer from './components/InstagramBulletinViewer'
 import DigitalBulletin from './components/DigitalBulletin'
 import NewFamilySection from './components/NewFamilySection'
 import EventAlbumSection from './components/EventAlbumSection'
+// 올해의 말씀 — 홈과 같은 쿼리(24h 캐시)라 /news에서 다시 불러오지 않는다
+import AnnualThemeVerse from '../Home/components/AnnualThemeVerse'
 
 /** 최상위 그룹 — 소식 허브 */
 type SectionKey = 'bulletin' | 'new-family' | 'event-album'
@@ -88,7 +90,11 @@ const News = () => {
 
   return (
     <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 폰 프레임을 풀고 본문(넓은 카드) + 우측 위젯 레일 2컬럼으로.
+          좌측 레일 오프셋은 전역 main(App.tsx)이 이미 잡아주므로 여기선
+          레일 바로 옆까지 붙는 여백(px-5)만 두어 본문에 시선이 모이게 한다 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-2">
           <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
@@ -182,7 +188,8 @@ const News = () => {
                     <p className="text-[12px] font-bold text-gray-500 dark:text-white/55 mb-2 px-1">
                       지난 주보
                     </p>
-                    <div className="space-y-2">
+                    {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 그리드 */}
+                    <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
                       {bulletins.slice(1).map(b => (
                         <CompactCard
                           key={b.id}
@@ -205,6 +212,19 @@ const News = () => {
             <DigitalBulletin />
           </div>
         )}
+      </div>
+
+      {/* 우측 위젯 레일 — 홈과 같은 문법(sticky). 본문이 어느 섹션이든
+          "이번 주 주보"로 한 번에 되돌아올 수 있는 길을 열어둔다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <NewsSidebar
+          bulletins={bulletins}
+          section={section}
+          openingId={openingId}
+          onSectionChange={handleSectionChange}
+          onBulletinClick={handleBulletinClick}
+        />
+      </aside>
       </div>
     </div>
   )
@@ -277,9 +297,11 @@ const FeaturedCard = ({
     disabled={busy}
     className={`block w-full text-left group transition-opacity duration-150 ${busy ? 'opacity-60' : ''}`}
   >
-    <article className="relative overflow-hidden rounded-3xl bg-card-dark border border-white/[0.06] shadow-[0_18px_44px_-18px_var(--brand-glow)] transition-transform duration-200 group-active:scale-[0.99]">
+    {/* lg+: 폭이 넓어지면 4:3 히어로가 화면 한 판을 다 먹는다 —
+        좌(썸네일)·우(정보) 가로 분할로 바꿔 높이를 잡고 여백을 채운다 */}
+    <article className="relative overflow-hidden rounded-3xl bg-card-dark border border-white/[0.06] shadow-[0_18px_44px_-18px_var(--brand-glow)] transition-transform duration-200 group-active:scale-[0.99] lg:flex lg:items-stretch">
       {/* 썸네일 */}
-      <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-500/15 to-sky-500/15">
+      <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-500/15 to-sky-500/15 lg:w-[44%] lg:shrink-0">
         {bulletin.thumbnail_url ? (
           <img
             src={bulletin.thumbnail_url}
@@ -289,8 +311,8 @@ const FeaturedCard = ({
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-[48px]">📰</div>
         )}
-        {/* 하단 그라데이션 */}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none" />
+        {/* 하단 그라데이션 — lg에선 글자가 사진 위에 얹히지 않으므로 불필요 */}
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none lg:hidden" />
         {/* 상단 chip들 */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
           {isThisMonth(bulletin.bulletin_date) && (
@@ -303,8 +325,8 @@ const FeaturedCard = ({
             📄 {bulletin.page_count}P
           </span>
         </div>
-        {/* 하단 텍스트 */}
-        <div className="absolute inset-x-0 bottom-0 p-4 z-10">
+        {/* 하단 텍스트 (모바일 — 사진 위 오버레이) */}
+        <div className="absolute inset-x-0 bottom-0 p-4 z-10 lg:hidden">
           <p className="text-white/80 text-[11.5px] font-semibold mb-1">
             {formatLongDate(bulletin.bulletin_date)}
           </p>
@@ -323,9 +345,35 @@ const FeaturedCard = ({
         </div>
       </div>
 
-      {/* 설명 */}
+      {/* 정보 패널 (lg — 썸네일 오른쪽) */}
+      <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:flex-col lg:justify-center lg:gap-2 lg:p-7">
+        <p className="text-white/70 text-[12.5px] font-semibold">
+          {formatLongDate(bulletin.bulletin_date)}
+        </p>
+        <h2 className="text-white text-[22px] font-bold leading-[1.32] tracking-[-0.02em] line-clamp-2">
+          {bulletin.title}
+        </h2>
+        {bulletin.description && (
+          <p className="text-white/70 text-[13px] leading-[1.65] line-clamp-3">
+            {bulletin.description}
+          </p>
+        )}
+        <div className="flex items-center gap-3 text-white/60 text-[12px] pt-1">
+          <span>📄 {bulletin.page_count}P</span>
+          <span className="text-white/25">·</span>
+          <span>👁️ {bulletin.views}</span>
+          <span className="ml-auto inline-flex items-center gap-1 h-9 px-4 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
+            읽어보기
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      {/* 설명 (모바일) */}
       {bulletin.description && (
-        <div className="px-4 py-3 border-t border-white/[0.06]">
+        <div className="px-4 py-3 border-t border-white/[0.06] lg:hidden">
           <p className="text-white/75 text-[12.5px] leading-[1.55] line-clamp-2">
             {bulletin.description}
           </p>
@@ -403,16 +451,151 @@ const CompactCard = ({
   </button>
 )
 
+// ── Desktop Sidebar (lg+) ────────────────────────
+// 넓어진 화면의 우측을 채우는 보조 위젯 열.
+// 새 API 없이 이미 받아둔 목록(useBulletins)과 캐시된 말씀만 재사용한다.
+const NewsSidebar = ({
+  bulletins,
+  section,
+  openingId,
+  onSectionChange,
+  onBulletinClick,
+}: {
+  bulletins: Bulletin[]
+  section: SectionKey
+  openingId: number | null
+  onSectionChange: (next: SectionKey) => void
+  onBulletinClick: (bulletin: Bulletin) => void
+}) => {
+  const latest = bulletins[0]
+  const recent = bulletins.slice(1, 6)
+
+  return (
+    <>
+      {/* 이번 주 주보 — 어느 섹션에 있든 최신 주보로 바로 들어가는 문 */}
+      {latest && (
+        <SidebarCard title="이번 주 주보" emoji="📖">
+          <button
+            type="button"
+            onClick={() => onBulletinClick(latest)}
+            disabled={openingId === latest.id}
+            className={`group w-full text-left ${openingId === latest.id ? 'opacity-60' : ''}`}
+          >
+            <p className="text-[11.5px] font-semibold text-gray-500 dark:text-white/50">
+              {formatLongDate(latest.bulletin_date)}
+            </p>
+            <p className="mt-1 text-[14px] font-bold text-ink-strong leading-[1.4] line-clamp-2">
+              {latest.title}
+            </p>
+            <span className="mt-2.5 inline-flex items-center gap-1 h-9 px-4 rounded-full bg-brand text-white text-[12.5px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
+              읽어보기
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </span>
+          </button>
+        </SidebarCard>
+      )}
+
+      {/* 주보 바로가기 — 날짜만 훑고 바로 여는 얇은 목록 */}
+      {recent.length > 0 && (
+        <SidebarCard title="주보 바로가기" emoji="🗂️">
+          <ul className="-mx-1">
+            {recent.map(b => (
+              <li key={b.id}>
+                <button
+                  type="button"
+                  onClick={() => onBulletinClick(b)}
+                  disabled={openingId === b.id}
+                  className={`w-full flex items-center gap-2 px-1 py-2 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors ${
+                    openingId === b.id ? 'opacity-60' : ''
+                  }`}
+                >
+                  <span className="shrink-0 text-[11px] font-bold tabular-nums text-gray-400 dark:text-white/40">
+                    {new Date(b.bulletin_date).toLocaleDateString('ko-KR', {
+                      month: 'numeric',
+                      day: 'numeric',
+                    })}
+                  </span>
+                  <span className="flex-1 min-w-0 truncate text-[12.5px] font-semibold text-ink-strong">
+                    {b.title}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </SidebarCard>
+      )}
+
+      {/* 다른 소식 — 세그먼트를 위로 올라가 누르지 않아도 되게 */}
+      <SidebarCard title="다른 소식" emoji="✨">
+        <div className="flex flex-col gap-1.5">
+          {SECTIONS.filter(sec => sec.key !== section).map(sec => (
+            <button
+              key={sec.key}
+              type="button"
+              onClick={() => onSectionChange(sec.key)}
+              className="flex items-center gap-2 h-10 px-3 rounded-xl border border-[var(--card-border)] text-[13px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+            >
+              <span>{sec.emoji}</span>
+              {sec.label}
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="ml-auto text-gray-400 dark:text-white/35"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          ))}
+        </div>
+      </SidebarCard>
+
+      {/* 올해의 말씀 — 소식을 다 읽고 내려온 시선이 머무는 자리 */}
+      <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm overflow-hidden">
+        <AnnualThemeVerse />
+      </div>
+    </>
+  )
+}
+
+const SidebarCard = ({
+  title,
+  emoji,
+  children,
+}: {
+  title: string
+  emoji: string
+  children: React.ReactNode
+}) => (
+  <section className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-4">
+    <p className="flex items-center gap-1.5 mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+      <span aria-hidden>{emoji}</span>
+      {title}
+    </p>
+    {children}
+  </section>
+)
+
 // ── Skeleton / Empty ─────────────────────────────
 const SkeletonCards = () => (
   <div className="space-y-3">
-    <div className="aspect-[4/3] rounded-3xl bg-gray-100 dark:bg-white/[0.04] animate-pulse" />
-    {Array.from({ length: 3 }).map((_, i) => (
-      <div
-        key={i}
-        className="h-[82px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
-      />
-    ))}
+    {/* lg에선 히어로가 가로 분할이라 세로로 덜 길다 */}
+    <div className="aspect-[4/3] lg:aspect-[16/6] rounded-3xl bg-gray-100 dark:bg-white/[0.04] animate-pulse" />
+    <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div
+          key={i}
+          className="h-[82px] rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
+        />
+      ))}
+    </div>
   </div>
 )
 
