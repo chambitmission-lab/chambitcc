@@ -24,7 +24,8 @@ const MyPrayersList = ({ prayers, onPrayerClick }: MyPrayersListProps) => {
   }
 
   return (
-    <div className="space-y-3">
+    // lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 카드 그리드
+    <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
       {prayers.map((prayer) => (
         <div
           key={prayer.id}

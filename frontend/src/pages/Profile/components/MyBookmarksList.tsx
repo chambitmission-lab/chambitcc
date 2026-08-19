@@ -81,15 +81,18 @@ const MyBookmarksList = () => {
           </p>
         </div>
       ) : (
-        items.map((item) => (
-          <BookmarkCard
-            key={item.id}
-            item={item}
-            // 탭별 삭제 범위: 묵상 노트 탭 → 노트만, 즐겨찾기 탭 → 즐겨찾기만,
-            // 전체 탭 → 통째 삭제(기존 피드백대로, 2026-07-17)
-            deleteTarget={filter === 'notes' ? 'note' : filter === 'favorites' ? 'favorite' : undefined}
-          />
-        ))
+        // lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 카드 그리드
+        <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
+          {items.map((item) => (
+            <BookmarkCard
+              key={item.id}
+              item={item}
+              // 탭별 삭제 범위: 묵상 노트 탭 → 노트만, 즐겨찾기 탭 → 즐겨찾기만,
+              // 전체 탭 → 통째 삭제(기존 피드백대로, 2026-07-17)
+              deleteTarget={filter === 'notes' ? 'note' : filter === 'favorites' ? 'favorite' : undefined}
+            />
+          ))}
+        </div>
       )}
     </div>
   )

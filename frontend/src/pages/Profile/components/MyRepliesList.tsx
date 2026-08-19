@@ -27,7 +27,8 @@ const MyRepliesList = ({ replies, onReplyClick }: MyRepliesListProps) => {
   }
 
   return (
-    <div className="space-y-3">
+    // lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 카드 그리드
+    <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
       {replies.map((reply) => (
         <div
           key={reply.id}

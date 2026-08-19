@@ -72,7 +72,9 @@ const Growth = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl min-h-screen border-x border-border-light dark:border-border-dark lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문(요약·활동 기록) + 우측 레일(인사이트·통계) 2단 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl min-h-screen border-x border-border-light dark:border-border-dark lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
           <button
@@ -90,10 +92,11 @@ const Growth = () => {
 
         <GrowthHero summary={summary} />
 
-        {/* 말씀 여정 인사이트 — 읽기 동선 기반 영적 자리 진단 (룰 기반) */}
-        <JourneyInsightCard />
-
-        {summary.has_activity && <GrowthStats summary={summary} />}
+        {/* 말씀 여정 인사이트 · 통계 — lg에선 우측 레일이 대신한다 */}
+        <div className="lg:hidden">
+          <JourneyInsightCard />
+          {summary.has_activity && <GrowthStats summary={summary} />}
+        </div>
 
         {/* 발자취 → 활동 기록 트랜지션: 은은한 페이드 + 스크롤 유도 */}
         {summary.has_activity && (
@@ -120,6 +123,14 @@ const Growth = () => {
           isLoadingMore={isFetchingNextPage || timelineLoading}
           onLoadMore={() => fetchNextPage()}
         />
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 요약 지표는 옆에 고정하고, 본문은 발자취(타임라인)에 집중.
+          카드가 길어질 수 있어 자체 스크롤을 준다 */}
+      <aside className="hidden lg:block lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide">
+        <JourneyInsightCard />
+        {summary.has_activity && <GrowthStats summary={summary} />}
+      </aside>
       </div>
     </div>
   )

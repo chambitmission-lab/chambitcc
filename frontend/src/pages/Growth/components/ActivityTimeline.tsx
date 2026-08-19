@@ -150,7 +150,9 @@ const ActivityTimeline = ({
   const dayGroups = useMemo(() => groupByDay(events), [events])
 
   return (
-    <div className="px-4 pt-6 pb-10">
+    // lg+: 한 줄짜리 이벤트 카드라 폭을 다 주면 글이 왼쪽에 몰린다 —
+    // 다른 피드형 화면과 같은 읽기 폭으로 묶어 가운데 배치한다
+    <div className="px-4 pt-6 pb-10 lg:max-w-[680px] lg:mx-auto">
       <h3 className="text-[14px] font-bold text-ink-strong mb-4 flex items-center gap-2 tracking-[-0.01em]">
         <span className="material-icons-outlined text-xl text-brand">
           history

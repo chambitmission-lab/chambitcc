@@ -190,7 +190,9 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl min-h-screen border-x border-border-light dark:border-border-dark lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문(정체성·온도·업적·콘텐츠) + 우측 레일(진입 카드·설정) 2단 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl min-h-screen border-x border-border-light dark:border-border-dark lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between">
           <button
@@ -228,14 +230,12 @@ const Profile = () => {
           streakDays={stats.activity.streak_days}
         />
 
-        {/* ③ 요즘 나의 걸음 — 룰 기반 인사이트 */}
-        <FaithInsightCard />
-
-        {/* ④ 신앙 여정(전체) 진입 */}
-        <GrowthHook />
-
-        {/* ④ 주간 기도 스토리 진입 */}
-        <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
+        {/* ③④ 인사이트·여정·주간 스토리 — lg에선 우측 레일이 대신한다 */}
+        <div className="lg:hidden">
+          <FaithInsightCard />
+          <GrowthHook />
+          <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
+        </div>
 
         {/* ⑤ 업적 — 대표 배지 행 + 펼쳐보기 */}
         <AchievementBadges
@@ -243,8 +243,8 @@ const Profile = () => {
           onAchievementClick={handleAchievementClick}
         />
 
-        {/* 푸시 알림 설정 */}
-        <div className="px-4 py-3">
+        {/* 푸시 알림 설정 — lg에선 우측 레일이 대신한다 */}
+        <div className="px-4 py-3 lg:hidden">
           <div
             className="
               relative overflow-hidden rounded-2xl p-4
@@ -340,6 +340,34 @@ const Profile = () => {
           onSelect={handleAchievementClick}
           onClose={handleCloseAchievementModal}
         />
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 정체성·콘텐츠는 본문에 두고, 진입 카드와 설정을 옆에 고정.
+          레일이 화면보다 길어질 수 있어 홈 사이드바와 같은 자체 스크롤을 준다 */}
+      <aside className="hidden lg:block lg:w-[312px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide">
+        {/* 카드들은 자체 px-4 여백을 갖고 있어 레일 안에서도 같은 거터를 그대로 쓴다
+            (음수 마진으로 상쇄하면 overflow-y-auto 컨테이너에 가로 스크롤이 생긴다) */}
+        <div>
+          <FaithInsightCard />
+          <GrowthHook />
+          <WeeklyStoryHook thisWeekCount={stats.activity.this_week_count} />
+
+          <div className="px-4 py-3">
+            <div className="relative overflow-hidden rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]">
+              <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
+              <div className="relative z-10">
+                <h3 className="text-[14px] font-bold text-ink-strong mb-0.5 tracking-[-0.01em]">
+                  {t('pushCardTitle')}
+                </h3>
+                <p className="text-[12px] text-gray-500 dark:text-white/55 mb-3">
+                  {t('pushCardSubtitle')}
+                </p>
+                <PushNotificationButton />
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
       </div>
     </div>
   )
