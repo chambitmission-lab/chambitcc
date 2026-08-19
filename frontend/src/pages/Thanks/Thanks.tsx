@@ -275,9 +275,10 @@ const Thanks = () => {
   return (
     <div className="min-h-screen bg-[var(--surface)] page-stage">
       <div className="max-w-md mx-auto min-h-screen bg-[var(--surface)] border-x border-[var(--card-border)] lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
-        {/* Sticky 헤더 */}
+        {/* Sticky 헤더 — lg+에선 셸의 overflow-hidden 때문에 sticky 기준이 셸이 되어
+            top-14만큼 아래로 밀려 콘텐츠를 덮으므로(고정도 안 됨) 일반 흐름으로 되돌린다 */}
         <div
-          className="sticky top-14 z-10 backdrop-blur-xl border-b border-[var(--card-border)]"
+          className="sticky top-14 lg:static z-10 backdrop-blur-xl border-b border-[var(--card-border)]"
           style={{ background: 'var(--glass-bg)' }}
         >
           <div className="px-4 py-3 flex items-center justify-between">

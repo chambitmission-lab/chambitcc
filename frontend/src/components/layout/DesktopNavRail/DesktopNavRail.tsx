@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
+import { useTheme } from '../../../contexts/ThemeContext'
+import { useNotifications } from '../../../hooks/useNotifications'
 import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
 
 // PC 전용 좌측 내비 레일 (lg+) — 모바일 하단 도크(BottomNavigation)의 데스크톱 대응물.
@@ -27,6 +29,11 @@ const DesktopNavRail = () => {
   // lazy 청크를 받는 중인 목적지 경로 — 해당 아이콘 자리에 스피너
   const [pendingPath, setPendingPath] = useState<string | null>(null)
   const visible = useDesktopRailVisible()
+  const { theme, toggleTheme } = useTheme()
+
+  // 알림 뱃지 — NewHeader와 같은 쿼리 키라 React Query가 요청을 공유한다
+  const { data: notiData } = useNotifications()
+  const unreadCount = notiData?.pages[0]?.unread_count ?? 0
 
   // 청크가 아직 안 왔으면 다운로드를 기다렸다가 이동한다 (startTransition 중엔
   // Suspense fallback이 뜨지 않아 "안 눌린 것처럼" 보이는 문제 방지).
@@ -254,6 +261,43 @@ const DesktopNavRail = () => {
           </span>
           <span className="hidden xl:inline text-[13.5px] font-bold whitespace-nowrap">
             감사 한 줄
+          </span>
+        </button>
+      </div>
+
+      {/* 하단 유틸리티 — 헤더 우상단 액션(테마·알림·전체 메뉴)의 PC 대응물.
+          모달/메뉴 패널은 NewHeader가 소유하므로 커스텀 이벤트로 열기만 요청한다 */}
+      <div className="mt-auto pt-4 border-t border-black/[0.05] dark:border-white/[0.06] flex flex-col xl:flex-row items-center xl:justify-around gap-1 xl:gap-0">
+        <button
+          onClick={toggleTheme}
+          aria-label="테마 전환"
+          className="w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
+        >
+          <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden">
+            {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+          </span>
+        </button>
+
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('chambit:open-notifications'))}
+          aria-label="알림"
+          className="relative w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
+        >
+          <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden">
+            notifications
+          </span>
+          {unreadCount > 0 && (
+            <span className="absolute top-[9px] right-[9px] w-2 h-2 bg-brand rounded-full ring-2 ring-background-light dark:ring-background-dark" />
+          )}
+        </button>
+
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('chambit:open-menu'))}
+          aria-label="전체 메뉴"
+          className="w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
+        >
+          <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden">
+            more_vert
           </span>
         </button>
       </div>

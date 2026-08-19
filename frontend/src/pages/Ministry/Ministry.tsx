@@ -529,8 +529,10 @@ const Ministry = () => {
   return (
     <div className="bg-gray-50 dark:bg-background-dark min-h-screen page-stage">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
-        {/* Header — 슬림하게: 제목(세리프)과 액션만 */}
-        <div className="sticky top-14 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
+        {/* Header — 슬림하게: 제목(세리프)과 액션만.
+            lg+에선 셸의 overflow-hidden 때문에 sticky 기준이 셸이 되어 top-14만큼
+            아래로 밀려 콘텐츠를 덮으므로(고정도 안 됨) 일반 흐름으로 되돌린다 */}
+        <div className="sticky top-14 lg:static z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
           <div className="px-5 py-3.5">
             <div className="flex items-center justify-between">
               <h1
