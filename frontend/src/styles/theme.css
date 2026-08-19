@@ -89,15 +89,15 @@
   --surface-container-high: #f3f1f7;
   --surface-inset: rgba(0, 0, 0, 0.04);     /* 카드 안의 한 단계 깊은 박스 */
 
-  /* 질감 */
-  --card-border: rgba(0, 0, 0, 0.07);
+  /* 질감 — 테두리는 인스타그램 헤어라인(#dbdbdb≈14%)과 토스 소프트(7%)의 중간 농도 */
+  --card-border: rgba(0, 0, 0, 0.11);
   --glass-bg: rgba(255, 255, 255, 0.72);
   --card-shadow: 0 1px 3px rgba(28, 25, 45, 0.06), 0 6px 18px rgba(28, 25, 45, 0.05);
 
   /* 텍스트 */
   --text-strong: #191722;
-  --text-body: #45414f;
-  --text-muted: #8b8695;
+  --text-body: #3a3744;
+  --text-muted: #7d7887;
 
   /* 사진·아바타 감광 — 라이트에서는 원본 그대로 */
   --media-dim: none;

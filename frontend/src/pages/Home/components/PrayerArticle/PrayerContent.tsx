@@ -32,7 +32,7 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
       )}
 
       <p
-        className="text-[15px] text-gray-700 dark:text-gray-300 leading-[1.7] font-normal tracking-[-0.01em] line-clamp-3 text-left"
+        className="text-[15px] text-gray-800 dark:text-gray-300 leading-[1.7] font-normal tracking-[-0.01em] line-clamp-3 text-left"
         style={transitionStyles}
       >
         {content}
@@ -48,7 +48,7 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
             </svg>
             <span className="text-[11px] font-bold tracking-[0.04em] text-[var(--amber)]">간증</span>
           </div>
-          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-2">
+          <p className="text-sm text-gray-800 dark:text-gray-300 leading-relaxed line-clamp-2">
             {testimony}
           </p>
         </div>

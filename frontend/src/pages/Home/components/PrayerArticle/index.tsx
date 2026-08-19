@@ -138,7 +138,7 @@ const PrayerArticle = ({
 
             {/* 살아있는 기도 — 지금 함께 기도하는 사람 수 (따뜻한 문구) */}
             {prayer.prayer_count > 0 && (
-              <div className="mt-2.5 text-[12px] text-gray-500 dark:text-gray-400">
+              <div className="mt-2.5 text-[12px] text-gray-600 dark:text-gray-400">
                 {liveStatusText}
               </div>
             )}
