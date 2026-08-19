@@ -19,7 +19,6 @@ import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
 import SortTabs from './components/SortTabs'
 import PrayerFeed from './components/PrayerFeed'
 import BottomNavigation from './components/BottomNavigation'
-import DesktopNavRail from './components/DesktopNavRail'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
 import AnswerModal from '../../components/prayer/AnswerModal'
@@ -37,6 +36,8 @@ const NewHome = () => {
   const { requireAuth, requireAuthWithRedirect, isLoggedIn } = useAuth()
   const { t } = useLanguage()
   const [showComposer, setShowComposer] = useState(false)
+  // FAB 스피드 다이얼·전역 레일 → 감사 한 줄 작성 (티커와 같은 캐시라 등록 즉시 반영)
+  const [showThanksComposer, setShowThanksComposer] = useState(false)
   const [selectedPrayerId, setSelectedPrayerId] = useState<number | null>(null)
   const [openReplies, setOpenReplies] = useState(false) // 댓글 자동 열기 상태
   const [sort, setSort] = useState<SortType>('popular')
@@ -91,12 +92,23 @@ const NewHome = () => {
     }
   }, [isLoggedIn, selectedFilter])
 
-  // 프로필/응답의 전당에서 넘어온 기도 ID 처리
+  // 프로필/응답의 전당에서 넘어온 기도 ID, 전역 레일(다른 페이지)에서 넘어온
+  // "기도제목 나누기/감사 한 줄" 열기 요청 처리
   useEffect(() => {
-    const state = location.state as { openPrayerId?: number; openReplies?: boolean } | null
-    if (state?.openPrayerId) {
+    const state = location.state as {
+      openPrayerId?: number
+      openReplies?: boolean
+      openComposer?: boolean
+      openThanks?: boolean
+    } | null
+    if (!state) return
+    if (state.openPrayerId) {
       setSelectedPrayerId(state.openPrayerId)
       setOpenReplies(!!state.openReplies)
+    }
+    if (state.openComposer) setShowComposer(true)
+    if (state.openThanks) setShowThanksComposer(true)
+    if (state.openPrayerId || state.openComposer || state.openThanks) {
       // state 초기화 (뒤로가기 시 다시 열리지 않도록) — 라우터 히스토리 state(idx/key)를
       // 건드리지 않도록 raw replaceState 대신 navigate로 정리한다
       navigate(location.pathname, { replace: true })
@@ -107,8 +119,6 @@ const NewHome = () => {
     requireAuth(() => setShowComposer(true))
   }
 
-  // FAB 스피드 다이얼 — 감사 한 줄 작성 (티커와 같은 캐시라 등록 즉시 반영)
-  const [showThanksComposer, setShowThanksComposer] = useState(false)
   const handleThanksOpen = () => {
     requireAuth(() => setShowThanksComposer(true))
   }
@@ -232,23 +242,13 @@ const NewHome = () => {
   return (
     <ErrorBoundary>
       <div className="bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-200">
-        {/* PC 전용 좌측 내비 레일 — 하단 도크의 데스크톱 대응물 (fixed, lg+에서만) */}
-        <DesktopNavRail
-          onProfileClick={handleProfileClick}
-          onComposeClick={handleComposerOpen}
-          onThanksClick={handleThanksOpen}
-          onVerseCardClick={() => void goLazy('/bible/photo-verse')}
-          onScrollToTop={handleScrollToTop}
-          onFocusModeClick={handleFocusModeClick}
-          onBibleClick={handleBibleClick}
-          pendingPath={navPending}
-        />
+        {/* PC 좌측 내비 레일은 전역 레이아웃(App.tsx의 DesktopNavRail)이 담당한다 */}
 
         {/* 모바일: 폰 프레임(max-w-md) / lg+: 프레임을 풀어 전체 폭 캔버스로 */}
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl relative border-x border-border-light dark:border-border-dark lg:max-w-none lg:shadow-none lg:border-x-0">
 
-          {/* lg+: 좌측 레일 폭만큼 밀어낸 뒤 피드+사이드바를 남은 공간 중앙에 배치 */}
-          <main ref={mainRef} className="pb-dock-safe lg:pb-12 lg:pl-[76px] xl:pl-[248px]">
+          {/* lg+: 레일 오프셋은 전역 main(App.tsx)이 처리 — 피드+사이드바를 남은 공간 중앙에 배치 */}
+          <main ref={mainRef} className="pb-dock-safe lg:pb-12">
             {/* 오프라인 배너 - 캐시된 데이터를 보여주면서 알림 */}
             {prayerHook.error && prayerHook.prayers.length > 0 && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2">

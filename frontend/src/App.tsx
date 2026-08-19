@@ -1,9 +1,12 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { clearPersistedCache } from './config/persister'
 import NewHeader from './components/layout/NewHeader/NewHeader'
+import DesktopNavRail, {
+  useDesktopRailVisible,
+} from './components/layout/DesktopNavRail/DesktopNavRail'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
@@ -132,6 +135,18 @@ const RouteFallback = () => (
   </div>
 )
 
+// PC 전역 좌측 레일이 보이는 라우트에선 본문을 레일 폭만큼 밀어낸다 (lg+)
+const MainContent = ({ children }: { children: ReactNode }) => {
+  const railVisible = useDesktopRailVisible()
+  return (
+    <main
+      className={`main-content ${railVisible ? 'lg:pl-[76px] xl:pl-[248px]' : ''}`}
+    >
+      {children}
+    </main>
+  )
+}
+
 function App() {
   const queryClient = useQueryClient()
 
@@ -212,7 +227,9 @@ function App() {
         <ScrollRestoration />
         <div className="app">
           <NewHeader />
-          <main className="main-content">
+          {/* PC 전용 전역 좌측 내비 레일 (lg+) — 몰입형·인증 화면에선 스스로 숨는다 */}
+          <DesktopNavRail />
+          <MainContent>
             {/* 루트 에러 경계: 페이지 렌더 에러나 재배포 후 lazy 청크 로드 실패 시
                 앱 전체가 흰 화면이 되는 대신 새로고침 안내를 보여준다 */}
             <ErrorBoundary>
@@ -310,7 +327,7 @@ function App() {
               </Routes>
             </Suspense>
             </ErrorBoundary>
-          </main>
+          </MainContent>
           <NewFooter />
           {/* 커스텀 당겨서 새로고침 — 전체 리로드 대신 활성 쿼리만 refetch */}
           <PullToRefresh />

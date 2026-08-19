@@ -1,37 +1,100 @@
-// PC 전용 좌측 내비 레일 (lg+) — 모바일 하단 도크(BottomNavigation)의 데스크톱 대응물.
-// lg에선 아이콘만, xl부터 라벨이 함께 보인다 (인스타그램 데스크톱 문법).
-// 하단 도크의 FAB 스피드 다이얼은 데스크톱에선 펼쳐서 CTA(기도) + 보조 버튼(감사·말씀카드)으로 평탄화한다.
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../../hooks/useAuth'
+import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
 
-interface DesktopNavRailProps {
-  onProfileClick: () => void
-  onComposeClick: () => void
-  onThanksClick: () => void
-  onVerseCardClick: () => void
-  onScrollToTop: () => void
-  onFocusModeClick: () => void
-  onBibleClick: () => void
-  /** lazy 청크를 받는 중인 목적지 경로 — 해당 아이콘 자리에 스피너 */
-  pendingPath?: string | null
+// PC 전용 좌측 내비 레일 (lg+) — 모바일 하단 도크(BottomNavigation)의 데스크톱 대응물.
+// 홈 전용 컴포넌트였다가 전역 레이아웃으로 승격: 모든 페이지에서 App.tsx가 렌더링한다.
+// lg에선 아이콘만, xl부터 라벨이 함께 보인다 (인스타그램 데스크톱 문법).
+// 자주 가는 핵심 목적지만 담고, 예배·설교·일정 등 안내 페이지는 헤더 인라인 메뉴(DesktopNav)가 담당한다.
+
+// 몰입형·인증 화면에선 레일을 숨긴다 (본문 오프셋도 함께 빠져야 하므로 훅을 공유)
+const HIDDEN_PATHS = ['/login', '/register', '/prayer-focus', '/prayer-topics/screen']
+
+export const useDesktopRailVisible = (): boolean => {
+  const { pathname } = useLocation()
+  return !HIDDEN_PATHS.includes(pathname)
 }
 
 const RailSpinner = () => (
   <span className="w-[22px] h-[22px] rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
 )
 
-const DesktopNavRail = ({
-  onProfileClick,
-  onComposeClick,
-  onThanksClick,
-  onVerseCardClick,
-  onScrollToTop,
-  onFocusModeClick,
-  onBibleClick,
-  pendingPath = null,
-}: DesktopNavRailProps) => {
-  // 하단 도크와 같은 스트로크 1.8 아이콘 언어 유지
-  const itemClass =
-    'flex items-center justify-center xl:justify-start gap-3.5 h-12 rounded-xl px-0 xl:px-3 text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.97] transition-[color,background-color,transform] duration-150'
-  const labelClass = 'hidden xl:inline text-[15px] font-semibold whitespace-nowrap'
+const DesktopNavRail = () => {
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const { requireAuth, requireAuthWithRedirect, isLoggedIn } = useAuth()
+  // lazy 청크를 받는 중인 목적지 경로 — 해당 아이콘 자리에 스피너
+  const [pendingPath, setPendingPath] = useState<string | null>(null)
+  const visible = useDesktopRailVisible()
+
+  // 청크가 아직 안 왔으면 다운로드를 기다렸다가 이동한다 (startTransition 중엔
+  // Suspense fallback이 뜨지 않아 "안 눌린 것처럼" 보이는 문제 방지).
+  const goLazy = async (path: string) => {
+    if (pathname === path) return
+    if (isRoutePreloaded(path)) {
+      navigate(path)
+      return
+    }
+    setPendingPath(path)
+    try {
+      await preloadRoute(path)
+    } finally {
+      setPendingPath(null)
+    }
+    navigate(path)
+  }
+
+  if (!visible) return null
+
+  const handleHomeClick = () => {
+    if (pathname !== '/') {
+      navigate('/')
+      return
+    }
+    // 이미 홈이면 최상단으로 (루트 오버플로우 구조상 가능한 스크롤 요소 모두)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    const root = document.getElementById('root')
+    if (root) root.scrollTop = 0
+  }
+
+  const handleProfileClick = () => {
+    // 비로그인이면 기존 경로 그대로 (토스트 후 /login)
+    if (!isLoggedIn()) {
+      requireAuthWithRedirect('/profile')
+      return
+    }
+    void goLazy('/profile')
+  }
+
+  // 나눔 액션은 홈의 컴포저가 담당 — 어느 페이지에서든 홈으로 이동하며 state로 열어달라고 전달
+  const handleComposeClick = () => {
+    requireAuth(() =>
+      navigate('/', { state: { openComposer: true }, replace: pathname === '/' }),
+    )
+  }
+  const handleThanksClick = () => {
+    requireAuth(() =>
+      navigate('/', { state: { openThanks: true }, replace: pathname === '/' }),
+    )
+  }
+
+  const isHomeActive = pathname === '/'
+  const isVerseCardActive = pathname === '/bible/photo-verse'
+  const isBibleActive = pathname.startsWith('/bible') && !isVerseCardActive
+  const isProfileActive = pathname === '/profile'
+
+  // 하단 도크와 같은 스트로크 1.8 아이콘 언어 유지. 활성 항목만 굵게 (인스타 문법)
+  const itemClass = (active: boolean) =>
+    `flex items-center justify-center xl:justify-start gap-3.5 h-12 rounded-xl px-0 xl:px-3 active:scale-[0.97] transition-[color,background-color,transform] duration-150 ${
+      active
+        ? 'text-ink-strong'
+        : 'text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)]'
+    }`
+  const labelClass = (active: boolean) =>
+    `hidden xl:inline text-[15px] whitespace-nowrap ${active ? 'font-bold' : 'font-semibold'}`
 
   return (
     <aside
@@ -39,13 +102,18 @@ const DesktopNavRail = ({
       aria-label="주요 메뉴"
     >
       <nav className="flex flex-col gap-1">
-        {/* 홈 — 현재 화면. 인스타처럼 활성 항목만 굵게 */}
-        <button onClick={onScrollToTop} aria-label="홈" className={`${itemClass} text-ink-strong`}>
+        {/* 홈 — 홈에서 다시 누르면 최상단 스크롤 */}
+        <button
+          onClick={handleHomeClick}
+          aria-label="홈"
+          aria-current={isHomeActive ? 'page' : undefined}
+          className={itemClass(isHomeActive)}
+        >
           <svg
             className="w-[26px] h-[26px] shrink-0"
             fill="none"
             stroke="currentColor"
-            strokeWidth={2.2}
+            strokeWidth={isHomeActive ? 2.2 : 1.8}
             strokeLinecap="round"
             strokeLinejoin="round"
             viewBox="0 0 24 24"
@@ -53,30 +121,33 @@ const DesktopNavRail = ({
             <path d="M3 11.5 12 3l9 8.5" />
             <path d="M5 10v10a1 1 0 0 0 1 1h4v-7h4v7h4a1 1 0 0 0 1-1V10" />
           </svg>
-          <span className={`${labelClass} font-bold`}>홈</span>
+          <span className={labelClass(isHomeActive)}>홈</span>
         </button>
 
         {/* 성경 */}
         <button
-          onClick={onBibleClick}
+          onClick={() => void goLazy('/bible')}
+          onMouseEnter={() => void preloadRoute('/bible')}
           aria-label="성경"
+          aria-current={isBibleActive ? 'page' : undefined}
           aria-busy={pendingPath === '/bible'}
-          className={itemClass}
+          className={itemClass(isBibleActive)}
         >
           {pendingPath === '/bible' ? (
             <RailSpinner />
           ) : (
             <span className="material-icons-outlined text-[26px] shrink-0">menu_book</span>
           )}
-          <span className={labelClass}>성경</span>
+          <span className={labelClass(isBibleActive)}>성경</span>
         </button>
 
         {/* 집중 기도 — 하단 도크와 동일한 스톱워치 아이콘 */}
         <button
-          onClick={onFocusModeClick}
+          onClick={() => void goLazy('/prayer-focus')}
+          onMouseEnter={() => void preloadRoute('/prayer-focus')}
           aria-label="집중 기도"
           aria-busy={pendingPath === '/prayer-focus'}
-          className={itemClass}
+          className={itemClass(false)}
         >
           {pendingPath === '/prayer-focus' ? (
             <RailSpinner />
@@ -95,15 +166,17 @@ const DesktopNavRail = ({
               <path d="M12 14l2.7-2.7" />
             </svg>
           )}
-          <span className={labelClass}>집중 기도</span>
+          <span className={labelClass(false)}>집중 기도</span>
         </button>
 
         {/* 말씀 사진 카드 만들기 */}
         <button
-          onClick={onVerseCardClick}
+          onClick={() => void goLazy('/bible/photo-verse')}
+          onMouseEnter={() => void preloadRoute('/bible/photo-verse')}
           aria-label="말씀 카드 만들기"
+          aria-current={isVerseCardActive ? 'page' : undefined}
           aria-busy={pendingPath === '/bible/photo-verse'}
-          className={itemClass}
+          className={itemClass(isVerseCardActive)}
         >
           {pendingPath === '/bible/photo-verse' ? (
             <RailSpinner />
@@ -122,15 +195,17 @@ const DesktopNavRail = ({
               <path d="M4 17.5l4.8-4.8 3.2 3.2 3.5-3.5 4.5 4.5" />
             </svg>
           )}
-          <span className={labelClass}>말씀 카드</span>
+          <span className={labelClass(isVerseCardActive)}>말씀 카드</span>
         </button>
 
         {/* 프로필 */}
         <button
-          onClick={onProfileClick}
+          onClick={handleProfileClick}
+          onMouseEnter={() => void preloadRoute('/profile')}
           aria-label="프로필"
+          aria-current={isProfileActive ? 'page' : undefined}
           aria-busy={pendingPath === '/profile'}
-          className={itemClass}
+          className={itemClass(isProfileActive)}
         >
           {pendingPath === '/profile' ? (
             <RailSpinner />
@@ -148,14 +223,14 @@ const DesktopNavRail = ({
               <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
             </svg>
           )}
-          <span className={labelClass}>프로필</span>
+          <span className={labelClass(isProfileActive)}>프로필</span>
         </button>
       </nav>
 
       {/* 나눔 액션 — 도크 FAB 다이얼을 펼친 형태. 주 액션(기도)만 브랜드 채움 */}
       <div className="mt-6 flex flex-col gap-2 items-center xl:items-stretch">
         <button
-          onClick={onComposeClick}
+          onClick={handleComposeClick}
           aria-label="기도제목 나누기"
           className="brand-gradient w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
         >
@@ -170,7 +245,7 @@ const DesktopNavRail = ({
         </button>
 
         <button
-          onClick={onThanksClick}
+          onClick={handleThanksClick}
           aria-label="감사 한 줄 남기기"
           className="w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-2.5 rounded-full flex items-center justify-center gap-2 border border-[var(--card-border)] text-gray-600 dark:text-white/75 hover:text-brand hover:border-brand hover:bg-[var(--brand-soft)] active:scale-[0.96] transition-[color,background-color,border-color,transform] duration-150"
         >
