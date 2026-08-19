@@ -47,7 +47,9 @@ const WordbookPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
       {/* PC 전용 섹션 탭 — 하단 도크는 lg에서 숨는다 */}
       <BibleSectionTabs active="wordbook" />
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-bottomnav-safe lg:max-w-xl lg:min-h-0 lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:pb-8 lg:overflow-hidden">
+      {/* lg+: 좁은 셸을 풀고 본문(단어 카드) + 우측 레일(검색·안내) 2단 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:pb-8 lg:overflow-hidden">
         {/* 헤더 — PC에선 위 섹션 탭이 내비를 담당하므로 뒤로가기 버튼은 모바일 전용 */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
@@ -74,8 +76,8 @@ const WordbookPage = () => {
           </div>
         ) : (
           <>
-            {/* 검색 + 개수 */}
-            <div className="px-4 pt-4 pb-1">
+            {/* 검색 + 개수 — lg에선 우측 레일의 같은 검색창이 대신한다 */}
+            <div className="px-4 pt-4 pb-1 lg:hidden">
               <div className="flex items-center gap-2 px-3.5 h-11 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] focus-within:border-brand transition-colors">
                 <span className="material-icons-round text-[20px] text-gray-400 dark:text-white/35">search</span>
                 <input
@@ -125,7 +127,9 @@ const WordbookPage = () => {
                   )}
                 </div>
               ) : (
-                items.map((item) => (
+                // lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 카드 그리드
+                <div className="space-y-2.5 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0 lg:items-start">
+                {items.map((item) => (
                   <div
                     key={item.id}
                     className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] px-4 py-3.5"
@@ -171,7 +175,8 @@ const WordbookPage = () => {
                       {highlightWord(item)}
                     </button>
                   </div>
-                ))
+                ))}
+                </div>
               )}
 
               {/* 더 보기 */}
@@ -201,6 +206,66 @@ const WordbookPage = () => {
             onClose={() => setEditing(null)}
           />
         )}
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 검색을 항상 보이는 자리에 두고, 단어를 모으는 방법을 곁들인다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        {loggedIn && (
+          <>
+            <section className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark p-4 shadow-sm dark:shadow-none">
+              <div className="flex items-center gap-2 px-3 h-11 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] focus-within:border-brand transition-colors">
+                <span className="material-icons-round text-[19px] text-gray-400 dark:text-white/35">
+                  search
+                </span>
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="단어·뜻 검색"
+                  className="flex-1 min-w-0 bg-transparent text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none"
+                />
+                {searchInput && (
+                  <button
+                    onClick={() => setSearchInput('')}
+                    className="text-gray-400 dark:text-white/35 hover:text-brand"
+                    aria-label="검색어 지우기"
+                  >
+                    <span className="material-icons-round text-[18px]">close</span>
+                  </button>
+                )}
+              </div>
+              {total > 0 && (
+                <p className="mt-3 flex items-baseline justify-between gap-2">
+                  <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+                    {query ? '검색 결과' : '모은 단어'}
+                  </span>
+                  <span className="text-[18px] font-bold text-brand tabular-nums">{total}</span>
+                </p>
+              )}
+            </section>
+
+            <section className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark p-4 shadow-sm dark:shadow-none">
+              <p className="mb-2 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+                단어는 이렇게 모아요
+              </p>
+              <p className="text-[12.5px] leading-[1.75] text-gray-500 dark:text-white/50">
+                성경을 읽다가 절을 탭한 뒤{' '}
+                <span className="material-icons-round align-middle text-[14px] text-brand">
+                  spellcheck
+                </span>{' '}
+                버튼을 누르고, 모르는 단어를 탭하면 여기에 모여요.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate('/bible')}
+                className="mt-3 w-full h-9 rounded-xl border border-[var(--card-border)] text-[12.5px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+              >
+                성경 읽으러 가기
+              </button>
+            </section>
+          </>
+        )}
+      </aside>
       </div>
 
       <BibleBottomNav active="wordbook" />

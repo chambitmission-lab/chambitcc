@@ -284,8 +284,63 @@ const BibleSearch = () => {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, loadedVerses.length])
 
+  // 레일용 — 최근 검색어·추천 키워드 칩 그룹 (본문과 같은 마크업을 공유한다)
+  const suggestionGroups = (
+    <>
+      {recentSearches.length > 0 && (
+        <div className="search-chip-group">
+          <div className="search-chip-group-header">
+            <span>{t.recentSearches}</span>
+            <button type="button" className="search-chip-clear" onClick={clearRecentSearches}>
+              {t.clearAll}
+            </button>
+          </div>
+          <div className="search-chip-list">
+            {recentSearches.map(kw => (
+              <span key={kw} className="search-chip">
+                <button type="button" className="search-chip-label" onClick={() => runSearch(kw)}>
+                  {kw}
+                </button>
+                <button
+                  type="button"
+                  className="search-chip-remove"
+                  aria-label={`${t.removeRecent}: ${kw}`}
+                  onClick={() => removeRecentSearch(kw)}
+                >
+                  <span className="material-icons-round">close</span>
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="search-chip-group">
+        <div className="search-chip-group-header">
+          <span>{t.recommendedKeywords}</span>
+        </div>
+        <div className="search-chip-list">
+          {t.suggestedKeywords.map(kw => (
+            <button
+              key={kw}
+              type="button"
+              className="search-chip search-chip--suggest"
+              onClick={() => runSearch(kw)}
+            >
+              {kw}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+
   return (
     <div className="bible-search-section">
+      {/* lg+: 본문(검색·결과) + 우측 레일(범위·최근·추천). 레일 덕분에 결과를 보는
+          중에도 최근 검색어로 바로 갈아탈 수 있다 — 모바일에선 이 래퍼가 그냥 스택 */}
+      <div className="lg:flex lg:items-start lg:gap-6">
+      <div className="lg:flex-1 lg:min-w-0">
       <form onSubmit={handleSearch} className="search-form">
         <div className="search-input-wrapper">
           <div className="search-input-area">
@@ -323,7 +378,7 @@ const BibleSearch = () => {
           </div>
         </div>
 
-        <div className="search-scope-filter" role="radiogroup" aria-label={t.scopeLabel}>
+        <div className="search-scope-filter lg:hidden" role="radiogroup" aria-label={t.scopeLabel}>
           {(['ALL', 'OLD', 'NEW'] as const).map(s => (
             <button
               key={s}
@@ -398,8 +453,9 @@ const BibleSearch = () => {
           <span className="material-icons-round spinning">refresh</span>
         </div>
       ) : scopedBooks.length > 0 ? (
-        // 책 단독 검색 → 매칭된 모든 책 카드 + 장 그리드 (예: "고린" → 전·후서)
-        <div className="search-book-list">
+        // 책 단독 검색 → 매칭된 모든 책 카드 + 장 그리드 (예: "고린" → 전·후서).
+        // 장 그리드가 5열 고정이라 폭을 다 주면 칸이 늘어진다 — 읽기 폭으로 묶는다
+        <div className="search-book-list lg:max-w-[680px]">
           {scopedBooks.map(book => (
             <SearchBookCard
               key={book.book_number}
@@ -417,7 +473,8 @@ const BibleSearch = () => {
               ? `${searchResults.book_name_ko} ${searchResults.chapter}장 · ${shownTotal}절`
               : t.resultsCount(shownTotal)}
           </p>
-          <div className="verses-list">
+          {/* 절 결과는 서로 독립된 스니펫이라 넓은 화면에선 2열로 훑는 편이 빠르다 */}
+          <div className="verses-list lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
             {scopedVerses.map(verse => (
               <div
                 key={verse.id}
@@ -454,6 +511,35 @@ const BibleSearch = () => {
           <p>{scope !== 'ALL' && hasAnyResult ? t.noResultsInScope : t.noResults}</p>
         </div>
       ) : null}
+
+      </div>{/* /본문 컬럼 */}
+
+      {/* 우측 레일 (lg+) — 범위 필터 + 최근·추천 검색어를 항상 보이는 자리에 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-4 lg:sticky lg:top-[4.5rem]">
+        <div className="search-chip-group">
+          <div className="search-chip-group-header">
+            <span>{t.scopeLabel}</span>
+          </div>
+          <div className="search-scope-filter" role="radiogroup" aria-label={t.scopeLabel}>
+            {(['ALL', 'OLD', 'NEW'] as const).map(sc => (
+              <button
+                key={sc}
+                type="button"
+                role="radio"
+                aria-checked={scope === sc}
+                className={`scope-chip${scope === sc ? ' scope-chip--active' : ''}`}
+                onClick={() => setScope(sc)}
+              >
+                {sc === 'ALL' ? t.scopeAll : sc === 'OLD' ? t.scopeOld : t.scopeNew}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 시작 화면에는 본문에 이미 같은 칩이 있으므로, 결과를 보는 중일 때만 레일에 둔다 */}
+        {searchQuery && suggestionGroups}
+      </aside>
+      </div>{/* /lg 2단 래퍼 */}
 
       {/* 책 퀵 전환 바텀시트 — 책 카드 헤더 탭으로 열림 */}
       {pickerFor !== null && allBooks && allBooks.length > 0 && (

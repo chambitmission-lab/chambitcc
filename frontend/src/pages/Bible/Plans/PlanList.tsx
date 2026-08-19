@@ -54,7 +54,9 @@ const PlanList = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
       {/* PC 전용 섹션 탭 — 하단 도크는 lg에서 숨는다 */}
       <BibleSectionTabs active="plans" />
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-bottomnav-safe lg:max-w-xl lg:min-h-0 lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:pb-8 lg:overflow-hidden">
+      {/* lg+: 좁은 셸을 풀고 본문(플랜 목록) + 우측 레일(묵상방·태그 필터) 2단 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:pb-8 lg:overflow-hidden">
         {/* 헤더 — PC에선 위 섹션 탭이 내비를 담당하므로 뒤로가기 버튼은 모바일 전용 */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
@@ -106,7 +108,7 @@ const PlanList = () => {
         <button
           type="button"
           onClick={() => navigate('/rooms')}
-          className="mx-4 mt-3.5 w-[calc(100%-2rem)] flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] text-left"
+          className="lg:hidden mx-4 mt-3.5 w-[calc(100%-2rem)] flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] text-left"
         >
           <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] flex items-center justify-center text-[19px]">
             🕊️
@@ -155,7 +157,7 @@ const PlanList = () => {
             {activePlans.length > 0 && (
               <section className="px-4 pt-9">
                 <SectionTitle>이어서 읽기</SectionTitle>
-                <div className="space-y-3.5">
+                <div className="space-y-3.5 lg:grid lg:grid-cols-2 lg:gap-3.5 lg:space-y-0 lg:items-start">
                   {activePlans.map((plan) => (
                     <FeaturedPlanCard
                       key={plan.id}
@@ -198,7 +200,7 @@ const PlanList = () => {
                   </svg>
                 </button>
                 {showCompleted && (
-                  <div className="space-y-3.5 mt-4">
+                  <div className="space-y-3.5 mt-4 lg:grid lg:grid-cols-2 lg:gap-3.5 lg:space-y-0 lg:items-start">
                     {completedPlans.map((plan) => (
                       /* 끝난 플랜은 채도까지 죽여 회색조에 가깝게 — 진행 중 카드만 화면의 주인공 */
                       <div key={plan.id} className="opacity-70 saturate-[0.35]">
@@ -221,7 +223,7 @@ const PlanList = () => {
                   우측 페이드로 "밀어서 더 볼 수 있음"을 힌트하고, 그리드를 내려
                   보는 동안에도 상단 헤더(48px) 아래 붙어 즉시 필터를 바꿀 수 있다 */}
               {filterTags.length > 0 && (
-                <div className="sticky top-[48px] z-10 -mx-4 mb-4 pt-2 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
+                <div className="lg:hidden sticky top-[48px] z-10 -mx-4 mb-4 pt-2 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm">
                   <div className="flex gap-2 overflow-x-auto pb-1 px-4 pr-10 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {[null, ...filterTags].map((tag) => {
                       const active = tagFilter === tag
@@ -250,7 +252,7 @@ const PlanList = () => {
                   이 태그의 플랜이 아직 없어요
                 </p>
               ) : (
-                <div className="grid grid-cols-2 gap-3.5">
+                <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-3">
                   {visibleOtherPlans.map((plan) => (
                     <FeedPlanCard
                       key={plan.id}
@@ -263,6 +265,98 @@ const PlanList = () => {
             </section>
           </>
         )}
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 태그 필터를 본문 밖으로 빼 목록이 끊기지 않게 하고,
+          공동 묵상방 진입을 항상 보이는 자리에 둔다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <button
+          type="button"
+          onClick={() => navigate('/rooms')}
+          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] text-left"
+        >
+          <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] flex items-center justify-center text-[19px]">
+            🕊️
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-[14px] font-bold text-ink-strong tracking-[-0.015em]">
+              공동 묵상방
+            </span>
+            <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5">
+              함께 같은 본문을 묵상해요
+            </span>
+          </span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-300 dark:text-white/30">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+
+        {myPlans.length > 0 && (
+          <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
+            <p className="mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+              나의 플랜
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+                  읽는 중
+                </span>
+                <span className="text-[16px] font-bold text-brand tabular-nums">
+                  {activePlans.length}
+                </span>
+              </div>
+              {completedPlans.length > 0 && (
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+                    완주
+                  </span>
+                  <span className="text-[16px] font-bold text-emerald-600 dark:text-emerald-300 tabular-nums">
+                    {completedPlans.length}
+                  </span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {filterTags.length > 0 && (
+          <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
+            <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+              플랜 찾기
+            </p>
+            <div className="flex flex-col -mx-1">
+              {[null, ...filterTags].map((tag) => {
+                const active = tagFilter === tag
+                const count =
+                  tag === null
+                    ? otherPlans.length
+                    : otherPlans.filter((p) => p.level === tag || p.category === tag).length
+                return (
+                  <button
+                    key={tag ?? '전체'}
+                    type="button"
+                    onClick={() => setTagFilter(tag)}
+                    className={`flex items-center justify-between gap-2 px-1 py-2 rounded-lg text-left transition-colors ${
+                      active ? 'bg-[var(--brand-soft-strong)]' : 'hover:bg-[var(--brand-soft)]'
+                    }`}
+                  >
+                    <span
+                      className={`min-w-0 truncate text-[12.5px] ${
+                        active ? 'font-bold text-brand' : 'font-semibold text-ink-strong'
+                      }`}
+                    >
+                      {tag ? `#${tag}` : '전체'}
+                    </span>
+                    <span className="shrink-0 text-[11.5px] font-semibold tabular-nums text-gray-400 dark:text-white/40">
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        )}
+      </aside>
       </div>
 
       {/* 성경 섹션 하단 네비게이션 */}

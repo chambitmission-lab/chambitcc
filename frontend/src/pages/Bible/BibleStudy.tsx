@@ -432,7 +432,11 @@ const BibleStudy = () => {
             {/* 책 목록(허브) — PC에선 메인 컬럼(이어 읽기+책 선택) 옆에 도구 사이드바 2컬럼.
                 모바일에선 래퍼가 그냥 세로 스택이라 기존 순서 그대로다 */}
             {showBookList && (
-              <div className="lg:flex lg:items-start lg:justify-center lg:gap-8 lg:px-6">
+              // 컨테이너 폭·레일 규격은 다른 안내 페이지(/news 등)와 통일(1240 / 312 / sticky).
+              // 다만 본문 컬럼은 620px를 유지한다 — 통독표(.books-grid)가 3열 고정이라
+              // 폭을 더 주면 도장 격자가 늘어져 종이 통독표 느낌이 깨진다.
+              // 그래서 쌍(본문+레일)을 컨테이너 안에서 가운데 정렬한다.
+              <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5">
                 <div className="lg:w-full lg:max-w-[620px] lg:min-w-0">
                   <div className="hidden lg:block">
                     <BibleHeader tab="read" />
@@ -466,7 +470,8 @@ const BibleStudy = () => {
                 </div>
 
                 {/* PC 사이드바 — 성경 공부 도구 모음 */}
-                <aside className="hidden lg:block lg:w-[340px] lg:shrink-0 lg:pt-7">
+                {/* 스크롤해도 도구가 따라오도록 sticky — 다른 페이지 레일과 같은 top 값 */}
+                <aside className="hidden lg:block lg:w-[312px] lg:shrink-0 lg:pt-7 lg:sticky lg:top-[4.5rem]">
                   <p className="px-1 mb-2 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
                     성경 공부 도구
                   </p>
@@ -544,9 +549,9 @@ const BibleStudy = () => {
           </div>
         )}
 
-        {/* 검색 탭 — PC에선 중앙 단일 컬럼 */}
+        {/* 검색 탭 — PC에선 본문 + 우측 레일 2단 (레일은 BibleSearch 안에서 렌더한다) */}
         {activeTab === 'search' && (
-          <div className="lg:max-w-[640px] lg:mx-auto">
+          <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5">
             <div className="hidden lg:block">
               <BibleHeader tab="search" />
             </div>
