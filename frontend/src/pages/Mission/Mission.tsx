@@ -165,11 +165,10 @@ const Mission = () => {
     mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
-  // 지역 탭 변경 시 선택 초기화 + 해당 대륙으로 다시 확대
+  // 지역 탭 변경 시 선택만 초기화 — 확대/전체 보기 상태는 사용자가 토글한 그대로 유지
   const handleRegionChange = (key: RegionKey) => {
     setActiveRegion(key)
     setSelectedKey(null)
-    setMapZoomOut(false)
   }
 
   // 지도 점 탭 → 국가 선택 (같은 국가 재탭 시 해제). 해당 대륙 탭도 함께 전환
