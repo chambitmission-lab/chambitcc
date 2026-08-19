@@ -12,7 +12,7 @@ import AgendaSection from './components/AgendaSection'
 import EmptyState from './components/EmptyState'
 import { preloadCategoryBackgrounds } from './utils/categoryConfig'
 import { getNextEvent, groupEventsByDate } from './utils/dateGrouping'
-import { kstNow } from '../../utils/kstTime'
+import { kstNow, toKstCalendarDate } from '../../utils/kstTime'
 import './styles/index.css'
 
 const formatYMD = (d: Date): string =>
@@ -79,6 +79,17 @@ const EventCalendar = () => {
 
   const totalCount = events.length
 
+  // 우측 레일 '다가오는 일정' — 오늘 이후 가까운 순 5건 (이미 받아둔 목록에서).
+  // 날짜 비교는 어젠다와 같은 서울(KST) 벽시계 기준을 쓴다
+  const upcomingList = useMemo(() => {
+    const todayKey = formatYMD(kstNow())
+    return events
+      .map(e => ({ event: e, key: formatYMD(toKstCalendarDate(e.start_datetime)) }))
+      .filter(x => x.key >= todayKey)
+      .sort((a, b) => a.key.localeCompare(b.key))
+      .slice(0, 5)
+  }, [events])
+
   const handlePrevMonth = () => {
     setViewDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1))
   }
@@ -89,7 +100,9 @@ const EventCalendar = () => {
 
   return (
     <div className="bg-surface text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
-      <div className="max-w-md mx-auto bg-surface shadow-2xl relative border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문(일정 목록) + 우측 레일(달력·다가오는 일정) 2단 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-surface shadow-2xl relative border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-2">
           <div className="flex items-start justify-between">
@@ -130,13 +143,14 @@ const EventCalendar = () => {
           <EventHeroCard event={heroEvent} />
         ) : null}
 
-        {/* 미니 월 캘린더 */}
+        {/* 미니 월 캘린더 — lg에선 우측 레일의 같은 달력이 대신한다 */}
         <MiniMonthStrip
           date={viewDate}
           events={events}
           onPrev={handlePrevMonth}
           onNext={handleNextMonth}
           onToday={handleToday}
+          className="mx-4 mb-4 lg:hidden"
         />
 
         {/* 어젠다 */}
@@ -149,8 +163,49 @@ const EventCalendar = () => {
         ) : groups.length === 0 && !heroEvent ? (
           <EmptyState category={selectedCategory} />
         ) : (
-          groups.map(group => <AgendaSection key={group.key} group={group} />)
+          // lg+: 넓어진 본문을 세로로만 쓰지 않도록 날짜 그룹을 2열로
+          <div className="lg:grid lg:grid-cols-2 lg:items-start">
+            {groups.map(group => <AgendaSection key={group.key} group={group} />)}
+          </div>
         )}
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 달력을 옆에 고정해 목록과 함께 본다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <MiniMonthStrip
+          date={viewDate}
+          events={events}
+          onPrev={handlePrevMonth}
+          onNext={handleNextMonth}
+          onToday={handleToday}
+          className=""
+        />
+
+        {upcomingList.length > 0 && (
+          <section className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none p-4">
+            <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+              다가오는 일정
+            </p>
+            <div className="flex flex-col -mx-1">
+              {upcomingList.map(({ event: ev, key }) => (
+                <button
+                  key={ev.id}
+                  type="button"
+                  onClick={() => navigate(`/events/${ev.id}`)}
+                  className="flex items-center gap-2.5 px-1 py-2 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors"
+                >
+                  <span className="shrink-0 w-10 text-[11px] font-bold tabular-nums text-gray-400 dark:text-white/40">
+                    {key.slice(5).replace('-', '.')}
+                  </span>
+                  <span className="flex-1 min-w-0 truncate text-[12.5px] font-semibold text-ink-strong">
+                    {ev.title}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+      </aside>
       </div>
     </div>
   )

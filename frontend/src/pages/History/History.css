@@ -967,3 +967,128 @@
     transition: none;
   }
 }
+
+/* ── PC 2단 (lg+) ─────────────────────────────────────
+ * 다른 안내 페이지와 같은 규격(1240px + 312px sticky 레일).
+ * 32년치 타임라인은 세로로 매우 길어, 연대·이정표 점프를 옆에 고정해 둔다.
+ */
+.history-rail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .history-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 312px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 4.5rem;
+  }
+
+  .history-rail-card {
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: var(--surface-container);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+  }
+
+  .history-rail-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .history-rail-count {
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--brand-soft);
+    color: var(--brand);
+    font-size: 10.5px;
+    font-weight: 700;
+  }
+
+  .history-rail-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 이정표는 수가 많아 레일 안에서만 스크롤 */
+  .history-rail-list--scroll {
+    max-height: 40vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .history-rail-link {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    width: calc(100% + 16px);
+    margin: 0 -8px;
+    padding: 7px 8px;
+    border: none;
+    border-radius: 10px;
+    background: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .history-rail-link:hover {
+    background: var(--brand-soft);
+  }
+
+  .history-rail-link.active {
+    background: var(--brand-soft-strong);
+  }
+
+  .history-rail-icon {
+    flex-shrink: 0;
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .history-rail-link-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+
+  .history-rail-link.active .history-rail-link-name {
+    color: var(--brand);
+    font-weight: 700;
+  }
+
+  .history-rail-link-sub,
+  .history-rail-link-year {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 본문 — 카드는 넓게 쓰되 읽는 글줄과 타임라인은 가운데로 모은다
+     (넓은 1단이면 연도 스파인과 본문이 화면 양끝으로 멀어진다) */
+  .history-hero,
+  .history-body,
+  .history-epilogue {
+    max-width: 44rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

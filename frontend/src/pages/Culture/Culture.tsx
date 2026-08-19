@@ -350,7 +350,9 @@ const Culture = () => {
 
   return (
     <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문 + 우측 위젯 레일 2단 (/news·/sermon 등과 같은 규격) */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-3">
           <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
@@ -437,13 +439,16 @@ const Culture = () => {
                       </p>
                     </div>
                   ) : (
-                    classes.map((c) => (
-                      <ClassCard key={c.id} cultureClass={c} onApply={setApplyTarget} />
-                    ))
+                    // lg+: 넓어진 본문을 세로로만 쓰지 않도록 2열 카드 그리드
+                    <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
+                      {classes.map((c) => (
+                        <ClassCard key={c.id} cultureClass={c} onApply={setApplyTarget} />
+                      ))}
+                    </div>
                   )}
 
-                  {/* 이용 안내 — 접이식으로 강좌 아래에 배치 */}
-                  <div className={`${cardClass} overflow-hidden`}>
+                  {/* 이용 안내 — 접이식으로 강좌 아래에 배치 (lg에선 우측 레일이 대신) */}
+                  <div className={`${cardClass} overflow-hidden lg:hidden`}>
                     <button
                       onClick={() => setGuideOpen((v) => !v)}
                       className="w-full flex items-center justify-between px-4 py-3.5 text-left"
@@ -698,6 +703,70 @@ const Culture = () => {
             </>
           )}
         </div>
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 모집 현황·이용 안내·문의를 본문 밖으로 빼
+          넓어진 본문은 강좌 카드에 집중하게 한다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        {!loading && openClasses.length > 0 && (
+          <section className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
+            <div className="absolute -top-5 -right-3 text-[52px] opacity-20 rotate-12 pointer-events-none select-none">
+              {quarterEmoji(heroQuarter)}
+            </div>
+            <p className="text-[11px] font-bold tracking-[0.1em] text-brand uppercase">Now Open</p>
+            <p className="text-[15px] font-bold text-ink-strong mt-1">
+              {heroQuarter ? `${heroQuarter} 모집 중` : '수강생 모집 중'}
+            </p>
+            <p className="text-[12.5px] text-gray-600 dark:text-white/60 mt-1">
+              {openClasses.length}개 강좌가 성도님을 기다리고 있어요
+            </p>
+          </section>
+        )}
+
+        <section className={`${cardClass} p-4`}>
+          <p className="flex items-center gap-1.5 mb-2 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+            <span className="material-icons-outlined text-[15px] text-brand">info</span>
+            신청은 이렇게
+          </p>
+          <div className="space-y-1.5">
+            {[
+              '① 강좌 카드에서 수강신청 버튼을 눌러 신청서를 작성해 주세요',
+              '② 수강료를 입금하시면 등록이 완료됩니다',
+              '③ 12회 일괄 또는 5회 분할 입금이 가능합니다',
+            ].map((step) => (
+              <p key={step} className="text-[12.5px] text-gray-600 dark:text-white/55 leading-[1.6]">
+                {step}
+              </p>
+            ))}
+          </div>
+        </section>
+
+        <section className={`${cardClass} p-4`}>
+          <p className="mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+            강좌 문의
+          </p>
+          <a href="tel:010-7572-2949" className="flex items-center gap-2.5 group">
+            <span className="w-8 h-8 rounded-full bg-[var(--brand-soft)] flex items-center justify-center shrink-0">
+              <span className="material-icons-outlined text-[16px] text-brand">call</span>
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[12.5px] font-semibold text-gray-800 dark:text-white/80 group-hover:text-brand transition-colors">
+                김정란 집사
+              </span>
+              <span className="block text-[12px] text-gray-500 dark:text-white/50 tabular-nums">
+                010-7572-2949
+              </span>
+            </span>
+          </a>
+          <button
+            type="button"
+            onClick={() => setSection('contact')}
+            className="mt-3 w-full h-9 rounded-xl border border-[var(--card-border)] text-[12.5px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+          >
+            카카오 채널 · 입금 계좌 보기
+          </button>
+        </section>
+      </aside>
       </div>
 
       {/* 수강신청 바텀시트 */}

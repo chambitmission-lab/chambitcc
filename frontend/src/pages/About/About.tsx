@@ -61,9 +61,104 @@ const About = () => {
     }
   }
 
+  // 한눈에 정보 스트립 — 본문(모바일)과 우측 레일(lg+)이 같은 마크업을 공유한다.
+  // 두 곳에 렌더되지만 CSS로 한 번에 하나만 보이므로 편집 UI가 겹치지 않는다.
+  // 초대(CTA)를 받은 다음 "언제, 어디로 가면 되지?"에 답하는 카드
+  const renderQuickInfo = (modifier = '') => (
+          <section className={`about-quickinfo${modifier}`}>
+            <div
+              className="quickinfo-row"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate('/worship')}
+              onKeyDown={rowKeyDown(() => navigate('/worship'))}
+            >
+              <span className="quickinfo-icon">
+                <ClockIcon size={20} />
+              </span>
+              <span className="quickinfo-main">
+                <span className="quickinfo-label">{ko ? '주일예배' : 'Sunday Worship'}</span>
+                <span className="quickinfo-value">
+                  <EditableText fieldKey="aboutInfoWorship" isAdmin={isAdminUser}>
+                    {tx('aboutInfoWorship')}
+                  </EditableText>
+                </span>
+              </span>
+              <span className="quickinfo-chevron">
+                <ChevronRightIcon size={18} />
+              </span>
+            </div>
+
+            <div
+              className="quickinfo-row"
+              role="button"
+              tabIndex={0}
+              onClick={openMap}
+              onKeyDown={rowKeyDown(openMap)}
+            >
+              <span className="quickinfo-icon">
+                <MapPinIcon size={20} />
+              </span>
+              <span className="quickinfo-main">
+                <span className="quickinfo-label">{ko ? '오시는 길' : 'Directions'}</span>
+                <span className="quickinfo-value">
+                  <EditableText fieldKey="aboutAddress" isAdmin={isAdminUser}>
+                    {tx('aboutAddress')}
+                  </EditableText>
+                </span>
+              </span>
+              <span className="quickinfo-chevron">
+                <ChevronRightIcon size={18} />
+              </span>
+            </div>
+
+            {(phone.length > 0 || isAdminUser) && (
+              <div
+                className="quickinfo-row"
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
+                }}
+                onKeyDown={rowKeyDown(() => {
+                  if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
+                })}
+              >
+                <span className="quickinfo-icon">
+                  <PhoneIcon size={20} />
+                </span>
+                <span className="quickinfo-main">
+                  <span className="quickinfo-label">{ko ? '전화' : 'Phone'}</span>
+                  <span className={`quickinfo-value${phone ? '' : ' is-empty'}`}>
+                    <EditableText fieldKey="aboutPhone" isAdmin={isAdminUser}>
+                      {phone || (ko ? '전화번호를 등록해주세요' : 'Add a phone number')}
+                    </EditableText>
+                  </span>
+                </span>
+                {phone.length > 0 && (
+                  <span className="quickinfo-chevron">
+                    <ChevronRightIcon size={18} />
+                  </span>
+                )}
+              </div>
+            )}
+
+            {isAdminUser && (
+              <div className="quickinfo-admin-map">
+                {ko
+                  ? '지도 검색어·주차·사진 안내는 오시는 길 페이지에서 수정합니다.'
+                  : 'Map query, parking and photos are edited on the Directions page.'}
+              </div>
+            )}
+          </section>
+  )
+
   return (
     <div className="bg-gray-50 dark:bg-black min-h-screen page-stage">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문(읽기 폭 유지) + 우측 위젯 레일 2단.
+          읽는 페이지라 본문은 넓히되 글줄은 .about-content가 44rem으로 잡는다 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* Hero — 사진을 온전히 보여주고 텍스트는 하단 스크림 위에 좌측 정렬 */}
         <div className="about-hero">
           {/* crossOrigin: CORS 응답이어야 서비스워커가 상태 코드를 보고 캐싱할 수 있다
@@ -101,7 +196,7 @@ const About = () => {
         {/* Main Content */}
         <div className="about-content">
           {/* Intro Section */}
-          <section className="intro-section">
+          <section id="about-intro" className="intro-section">
             <div className="section-badge">
               <EditableText fieldKey="aboutOurStory" isAdmin={isAdminUser}>
                 {tx('aboutOurStory')}
@@ -135,7 +230,7 @@ const About = () => {
 
           {/* Meeting Types — "비교표"가 아니라 반전이 있는 스토리로:
               스쳐가는 만남 4줄(낮은 대비) 뒤에 브랜드 카드가 크게 받는다 */}
-          <section className="meeting-section">
+          <section id="about-meeting" className="meeting-section">
             <h3 className="meeting-title">
               <EditableText fieldKey="aboutMeetingTitle" isAdmin={isAdminUser}>
                 {tx('aboutMeetingTitle')}
@@ -166,7 +261,7 @@ const About = () => {
           </section>
 
           {/* Pastor Section — 이력서가 아니라 편지: 사진 + 서체 + 서명, 약력은 접기 */}
-          <section className="pastor-section">
+          <section id="about-pastor" className="pastor-section">
             <div className="section-badge">
               <EditableText fieldKey="aboutPastorBadge" isAdmin={isAdminUser}>
                 {tx('aboutPastorBadge')}
@@ -263,7 +358,7 @@ const About = () => {
           </section>
 
           {/* CTA Section — 처음 방문자 여정이 주인공 */}
-          <section className="cta-section">
+          <section id="about-cta" className="cta-section">
             <div className="cta-card">
               <h3 className="cta-title">
                 <EditableText fieldKey="aboutCtaTitle" isAdmin={isAdminUser}>
@@ -319,93 +414,7 @@ const About = () => {
             </div>
           </section>
 
-          {/* 한눈에 — 초대(CTA)를 받은 다음 "언제, 어디로 가면 되지?"에 답하는 카드 */}
-          <section className="about-quickinfo">
-            <div
-              className="quickinfo-row"
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate('/worship')}
-              onKeyDown={rowKeyDown(() => navigate('/worship'))}
-            >
-              <span className="quickinfo-icon">
-                <ClockIcon size={20} />
-              </span>
-              <span className="quickinfo-main">
-                <span className="quickinfo-label">{ko ? '주일예배' : 'Sunday Worship'}</span>
-                <span className="quickinfo-value">
-                  <EditableText fieldKey="aboutInfoWorship" isAdmin={isAdminUser}>
-                    {tx('aboutInfoWorship')}
-                  </EditableText>
-                </span>
-              </span>
-              <span className="quickinfo-chevron">
-                <ChevronRightIcon size={18} />
-              </span>
-            </div>
-
-            <div
-              className="quickinfo-row"
-              role="button"
-              tabIndex={0}
-              onClick={openMap}
-              onKeyDown={rowKeyDown(openMap)}
-            >
-              <span className="quickinfo-icon">
-                <MapPinIcon size={20} />
-              </span>
-              <span className="quickinfo-main">
-                <span className="quickinfo-label">{ko ? '오시는 길' : 'Directions'}</span>
-                <span className="quickinfo-value">
-                  <EditableText fieldKey="aboutAddress" isAdmin={isAdminUser}>
-                    {tx('aboutAddress')}
-                  </EditableText>
-                </span>
-              </span>
-              <span className="quickinfo-chevron">
-                <ChevronRightIcon size={18} />
-              </span>
-            </div>
-
-            {(phone.length > 0 || isAdminUser) && (
-              <div
-                className="quickinfo-row"
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
-                }}
-                onKeyDown={rowKeyDown(() => {
-                  if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
-                })}
-              >
-                <span className="quickinfo-icon">
-                  <PhoneIcon size={20} />
-                </span>
-                <span className="quickinfo-main">
-                  <span className="quickinfo-label">{ko ? '전화' : 'Phone'}</span>
-                  <span className={`quickinfo-value${phone ? '' : ' is-empty'}`}>
-                    <EditableText fieldKey="aboutPhone" isAdmin={isAdminUser}>
-                      {phone || (ko ? '전화번호를 등록해주세요' : 'Add a phone number')}
-                    </EditableText>
-                  </span>
-                </span>
-                {phone.length > 0 && (
-                  <span className="quickinfo-chevron">
-                    <ChevronRightIcon size={18} />
-                  </span>
-                )}
-              </div>
-            )}
-
-            {isAdminUser && (
-              <div className="quickinfo-admin-map">
-                {ko
-                  ? '지도 검색어·주차·사진 안내는 오시는 길 페이지에서 수정합니다.'
-                  : 'Map query, parking and photos are edited on the Directions page.'}
-              </div>
-            )}
-          </section>
+          {renderQuickInfo(' about-quickinfo--body')}
 
           {/* Footer Message */}
           <section className="footer-message">
@@ -424,6 +433,33 @@ const About = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 읽는 페이지이므로 목차 + 실행 정보(한눈에)를 붙인다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <nav className="about-toc">
+          <p className="about-toc-title">{ko ? '이 페이지 훑어보기' : 'On this page'}</p>
+          {[
+            { id: 'about-intro', label: ko ? '우리 이야기' : 'Our Story' },
+            { id: 'about-meeting', label: ko ? '어떤 만남인가요' : 'Our Meetings' },
+            { id: 'about-pastor', label: ko ? '담임목사 인사' : 'From the Pastor' },
+            { id: 'about-cta', label: ko ? '함께 하실래요?' : 'Join Us' },
+          ].map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className="about-toc-link"
+              onClick={() =>
+                document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {renderQuickInfo()}
+      </aside>
       </div>
     </div>
   )

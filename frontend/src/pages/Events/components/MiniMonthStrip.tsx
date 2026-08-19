@@ -11,6 +11,8 @@ interface MiniMonthStripProps {
   onNext: () => void
   onToday: () => void
   onSelectDate?: (d: Date) => void
+  /** 배치 여백 — 본문(mx-4)과 우측 레일(여백 없음)이 같은 컴포넌트를 공유한다 */
+  className?: string
 }
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -18,7 +20,15 @@ const DAYS = ['일', '월', '화', '수', '목', '금', '토']
 const formatKey = (d: Date) =>
   `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
 
-const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }: MiniMonthStripProps) => {
+const MiniMonthStrip = ({
+  date,
+  events,
+  onPrev,
+  onNext,
+  onToday,
+  onSelectDate,
+  className = 'mx-4 mb-4',
+}: MiniMonthStripProps) => {
   const eventMap = useMemo(() => buildEventDateMap(events), [events])
   const today = kstNow()  // 서울 기준 '오늘'
   const todayKey = formatKey(today)
@@ -50,7 +60,7 @@ const MiniMonthStrip = ({ date, events, onPrev, onNext, onToday, onSelectDate }:
   const monthLabel = `${date.getFullYear()}년 ${date.getMonth() + 1}월`
 
   return (
-    <div className="relative mx-4 mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none overflow-hidden">
+    <div className={`relative rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-none overflow-hidden ${className}`}>
       <div
         className="absolute inset-x-0 top-0 h-px"
         style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)' }}

@@ -281,7 +281,9 @@ const History = () => {
 
   return (
     <div className="bg-gray-50 dark:bg-black min-h-screen page-stage">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문(발자취) + 우측 레일(연대·이정표 바로가기) 2단 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         <div className="history-page">
           {/* Hero */}
           <header ref={heroRef} className="history-hero">
@@ -410,6 +412,50 @@ const History = () => {
             </div>
           </footer>
         </div>
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 32년치 긴 타임라인을 헤매지 않게 연대·이정표 점프를 고정 */}
+      <aside className="history-rail">
+        <section className="history-rail-card">
+          <p className="history-rail-title">{ko ? '연대별로 보기' : 'By decade'}</p>
+          <div className="history-rail-list">
+            {DECADES.map((d) => (
+              <button
+                key={d.key}
+                type="button"
+                className={`history-rail-link${activeDecade === d.key ? ' active' : ''}`}
+                onClick={() => handleDecadeChip(d.key)}
+              >
+                <span className="history-rail-link-name">{d.label}</span>
+                <span className="history-rail-link-sub">{d.period}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="history-rail-card">
+          <p className="history-rail-title">
+            {ko ? '주요 이정표' : 'Milestones'}
+            <span className="history-rail-count">{MILESTONES.length}</span>
+          </p>
+          <div className="history-rail-list history-rail-list--scroll">
+            {MILESTONES.map(({ event, index, year }) => (
+              <button
+                key={index}
+                type="button"
+                className="history-rail-link"
+                onClick={() => handlePickMilestone(index)}
+              >
+                <span className="history-rail-icon" aria-hidden="true">
+                  {event.icon}
+                </span>
+                <span className="history-rail-link-name">{event.title}</span>
+                <span className="history-rail-link-year">{year}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      </aside>
       </div>
     </div>
   )
