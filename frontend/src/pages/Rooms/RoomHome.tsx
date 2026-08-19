@@ -134,22 +134,9 @@ const RoomHome = () => {
     )
   }
 
-  return (
-    <Shell
-      onBack={() => navigate('/rooms')}
-      title={room.title}
-      actions={
-        <button
-          type="button"
-          onClick={handleLeave}
-          className="text-[12px] font-semibold text-gray-400 dark:text-white/40 hover:text-red-500"
-        >
-          나가기
-        </button>
-      }
-    >
-      {/* 방 헤더 */}
-      <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35">
+  // 방 카드(정체성·내 여정·참여자·초대) — 본문(모바일)과 우측 레일(lg+)이 같은 마크업을 공유한다
+  const renderRoomCard = (cls: string) => (
+      <section className={`relative overflow-hidden rounded-3xl p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35 ${cls}`}>
         <div className="flex items-start gap-3">
           <span className="shrink-0 w-12 h-12 rounded-2xl bg-white/70 dark:bg-white/[0.08] flex items-center justify-center text-[24px]">
             {room.emoji || '🕊️'}
@@ -226,6 +213,24 @@ const RoomHome = () => {
           </button>
         </div>
       </section>
+  )
+
+  return (
+    <Shell
+      onBack={() => navigate('/rooms')}
+      title={room.title}
+      actions={
+        <button
+          type="button"
+          onClick={handleLeave}
+          className="text-[12px] font-semibold text-gray-400 dark:text-white/40 hover:text-red-500"
+        >
+          나가기
+        </button>
+      }
+      rail={renderRoomCard('')}
+    >
+      {renderRoomCard('mx-4 mt-4 lg:hidden')}
 
       {/* 일차 선택 칩 */}
       <div
@@ -327,7 +332,8 @@ const DayFeed = ({ room, day }: { room: RoomDetail; day: number }) => {
   }
 
   return (
-    <section className="px-4 pt-5 pb-8">
+    // lg+: 묵상 글은 길이가 제각각이라 2열 대신 읽기 폭으로 묶는다
+    <section className="px-4 pt-5 pb-8 lg:max-w-[640px] lg:mx-auto">
       {/* 컴포저 */}
       <div className="p-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm">
         <div className="flex gap-1.5 mb-2.5">
@@ -608,19 +614,33 @@ const MemberAvatar = ({ member }: { member: RoomMember }) => (
   </span>
 )
 
+// rail 을 주면 lg+ 에서 2단(본문 + 우측 위젯 레일)이 되고, 없으면 기존 좁은 셸 그대로다
 const Shell = ({
   onBack,
   title,
   actions,
+  rail,
   children,
 }: {
   onBack: () => void
   title: string
   actions?: React.ReactNode
+  rail?: React.ReactNode
   children: React.ReactNode
 }) => (
-  <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-    <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10">
+  <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+    <div
+      className={
+        rail ? 'lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12' : ''
+      }
+    >
+    <div
+      className={`max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10 ${
+        rail
+          ? 'lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:overflow-hidden'
+          : ''
+      }`}
+    >
       <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
         <button
           onClick={onBack}
@@ -637,6 +657,13 @@ const Shell = ({
         {actions}
       </div>
       {children}
+    </div>
+
+    {rail && (
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        {rail}
+      </aside>
+    )}
     </div>
   </div>
 )

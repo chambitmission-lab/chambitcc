@@ -106,8 +106,11 @@ const StoryEpisode = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen pb-32">
+    <div className="bg-gray-50 dark:bg-background-dark min-h-screen page-stage">
+      {/* lg+: 읽는 화면이라 본문 폭(620px)은 유지하고, 옆에 여정 목차 레일을 둔다.
+          overflow-hidden은 주지 않는다 — 하단 CTA 바가 sticky로 붙어야 하기 때문 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen pb-32 lg:max-w-[620px] lg:flex-1 lg:min-w-0 lg:mx-0 lg:min-h-0 lg:pb-0 lg:rounded-3xl lg:border lg:shadow-none">
         {/* 헤더 */}
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
           <div className="flex items-center gap-3 px-4 h-14">
@@ -245,6 +248,70 @@ const StoryEpisode = () => {
             </div>
           </>
         )}
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 전자책 목차처럼 이 막의 화 목록과 여정 진행을 옆에 둔다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+              전체 여정
+            </span>
+            <span className="text-[12.5px] font-bold text-brand tabular-nums">
+              {readIds.size} / {TOTAL_EPISODES}화
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
+            <div
+              className="h-full rounded-full bg-brand transition-[width] duration-500"
+              style={{ width: `${Math.round((readIds.size / TOTAL_EPISODES) * 100)}%` }}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/bible/story')}
+            className="mt-3 w-full h-9 rounded-xl border border-[var(--card-border)] text-[12.5px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+          >
+            여정 지도 보기
+          </button>
+        </section>
+
+        <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
+          <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+            {act.act}막 · {act.title}
+          </p>
+          <div className="flex flex-col -mx-1">
+            {act.episodes.map((ep) => {
+              const current = ep.id === episode.id
+              const read = readIds.has(ep.id)
+              return (
+                <button
+                  key={ep.id}
+                  type="button"
+                  onClick={() => navigate(`/bible/story/${ep.id}`)}
+                  className={`flex items-center gap-2 px-1 py-2 rounded-lg text-left transition-colors ${
+                    current ? 'bg-[var(--brand-soft-strong)]' : 'hover:bg-[var(--brand-soft)]'
+                  }`}
+                >
+                  <span className="shrink-0 w-5 text-center text-[13px]">{ep.emoji}</span>
+                  <span
+                    className={`flex-1 min-w-0 truncate text-[12.5px] ${
+                      current ? 'font-bold text-brand' : 'font-semibold text-ink-strong'
+                    }`}
+                  >
+                    {ep.title}
+                  </span>
+                  {read && !current && (
+                    <span className="material-icons-round shrink-0 text-[14px] text-emerald-500">
+                      check
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      </aside>
       </div>
     </div>
   )

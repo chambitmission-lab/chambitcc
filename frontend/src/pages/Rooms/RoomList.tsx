@@ -16,6 +16,8 @@ const RoomList = () => {
   const navigate = useNavigate()
   const authed = isAuthenticated()
   const { data: rooms, isLoading } = useMyRooms(authed)
+  // 우측 레일 요약 — 지금 진행 중인 방 수
+  const activeCount = rooms?.filter((r) => r.status === 'active').length ?? 0
   const [showCreate, setShowCreate] = useState(false)
   const [joinCode, setJoinCode] = useState('')
   const joinRoom = useJoinRoom()
@@ -34,7 +36,9 @@ const RoomList = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문(내 묵상방) + 우측 레일(만들기·참여·요약) 2단 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
@@ -82,8 +86,8 @@ const RoomList = () => {
           </div>
         </section>
 
-        {/* 만들기 / 코드 참여 */}
-        <section className="px-4 mt-5 space-y-3">
+        {/* 만들기 / 코드 참여 — lg에선 우측 레일의 같은 액션이 대신한다 */}
+        <section className="px-4 mt-5 space-y-3 lg:hidden">
           <button
             type="button"
             onClick={() => {
@@ -133,13 +137,84 @@ const RoomList = () => {
           ) : !rooms || rooms.length === 0 ? (
             <EmptyNote emoji="🕊️" text="아직 참여 중인 방이 없어요. 첫 묵상방을 만들어보세요!" />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
               {rooms.map((room) => (
                 <RoomCard key={room.id} room={room} onClick={() => navigate(`/rooms/${room.id}`)} />
               ))}
             </div>
           )}
         </section>
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 방 만들기·초대 코드 참여를 항상 손 닿는 곳에,
+          본문은 방 카드에만 집중하게 한다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
+          <button
+            type="button"
+            onClick={() => {
+              if (!authed) {
+                showToast('로그인이 필요합니다', 'error')
+                navigate('/login')
+                return
+              }
+              setShowCreate(true)
+            }}
+            className="w-full py-3 rounded-2xl bg-brand text-white text-[14px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
+          >
+            + 새 묵상방 만들기
+          </button>
+
+          <p className="mt-4 mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+            초대 코드로 참여
+          </p>
+          <div className="flex gap-2">
+            <input
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              placeholder="예: AB12CD34"
+              maxLength={8}
+              className="flex-1 min-w-0 px-3 py-2.5 rounded-xl bg-white dark:bg-[#15151d] border border-gray-200/70 dark:border-white/[0.08] text-[13px] font-semibold tracking-[0.08em] placeholder:font-normal placeholder:tracking-normal placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand"
+            />
+            <button
+              type="button"
+              onClick={handleJoinByCode}
+              disabled={joinRoom.isPending || joinCode.trim().length < 4}
+              className="shrink-0 px-3.5 py-2.5 rounded-xl bg-[var(--brand-soft)] text-brand text-[13px] font-bold disabled:opacity-40"
+            >
+              참여
+            </button>
+          </div>
+        </section>
+
+        {authed && rooms && rooms.length > 0 && (
+          <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
+            <p className="mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+              한눈에
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+                  참여 중인 방
+                </span>
+                <span className="text-[16px] font-bold text-ink-strong tabular-nums">
+                  {rooms.length}
+                </span>
+              </div>
+              {activeCount > 0 && (
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+                    진행 중
+                  </span>
+                  <span className="text-[16px] font-bold text-brand tabular-nums">
+                    {activeCount}
+                  </span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+      </aside>
       </div>
 
       {showCreate && <CreateRoomSheet onClose={() => setShowCreate(false)} />}

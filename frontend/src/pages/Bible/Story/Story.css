@@ -557,3 +557,21 @@
 .story-hero--done .story-hero__emoji {
   font-size: 2.4rem;
 }
+
+/* ── PC 읽기 화면 (lg+) ───────────────────────────────
+ * 하단 CTA 바를 viewport 고정(fixed)으로 두면 2단 레이아웃에서 본문 컬럼이
+ * 아니라 화면 전체 기준으로 가운데 정렬돼 어긋난다. sticky 로 바꿔 본문 컬럼에
+ * 붙이면 폭·위치가 자동으로 맞고, 글 끝에서는 자연스럽게 제자리에 앉는다.
+ */
+@media (min-width: 1024px) {
+  .story-ep__bar {
+    position: sticky;
+    left: auto;
+    right: auto;
+    bottom: 0;
+    border-radius: 0 0 1.5rem 1.5rem;
+  }
+  .story-ep__bar-inner {
+    max-width: none;
+  }
+}

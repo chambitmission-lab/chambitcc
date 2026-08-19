@@ -417,3 +417,30 @@
 .group:hover .situation-verse__more {
   color: var(--sb-accent);
 }
+
+/* ── PC 2단 (lg+) ─────────────────────────────────────
+ * 본문이 넓어지면 상황 목록이 한 줄에 하나씩만 놓여 허전하다.
+ * 행(.situation-row)은 그대로 두고 열만 둘로 나눈다.
+ */
+@media (min-width: 1024px) {
+  .situation-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+
+  /* 2열에서는 마지막 '행'(마지막 두 항목)의 밑줄만 지운다 —
+     :last-child 만 지우면 한쪽 열만 줄이 남아 어긋나 보인다 */
+  .situation-list .situation-row:last-child {
+    border-bottom: 1px solid #f0efeb;
+  }
+  .situation-list .situation-row:nth-last-child(-n + 2) {
+    border-bottom: none;
+  }
+  .dark .situation-list .situation-row:last-child {
+    border-bottom-color: #26262f;
+  }
+  .dark .situation-list .situation-row:nth-last-child(-n + 2) {
+    border-bottom: none;
+  }
+}

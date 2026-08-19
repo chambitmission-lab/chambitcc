@@ -295,8 +295,10 @@ const PlanDetail = () => {
     </div>
   ) : undefined
 
-  return (
-    <Shell onBack={() => navigate('/bible/plans')} title={plan.title} actions={planMenu}>
+  // 플랜 소개(히어로) + 진행/시작 카드 — 본문(모바일)과 우측 레일(lg+)이 같은 마크업을 공유한다.
+  // 365일짜리 일정을 한참 내려도 진행률과 '오늘 분량 읽기'가 옆에 남는 게 이 화면의 핵심이다.
+  const renderPlanIntro = (cls: string) => (
+    <div className={cls}>
       {/* Hero */}
       <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35 shadow-[0_4px_18px_-8px_rgba(49,130,246,0.4)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_0_0_1px_rgba(49,130,246,0.12)]">
         <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-blue-500 to-sky-400" />
@@ -391,6 +393,17 @@ const PlanDetail = () => {
           </p>
         </section>
       )}
+    </div>
+  )
+
+  return (
+    <Shell
+      onBack={() => navigate('/bible/plans')}
+      title={plan.title}
+      actions={planMenu}
+      rail={renderPlanIntro('')}
+    >
+      {renderPlanIntro('lg:hidden')}
 
       {/* 일정 */}
       <section className="px-4 pt-6 pb-4">
@@ -452,13 +465,20 @@ const PlanDetail = () => {
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </button>
-                  {open && <div className="space-y-2.5 mt-2.5">{groupDays.map(renderDay)}</div>}
+                  {open && (
+                    // lg+: 펼친 일차 카드는 한 줄짜리라 2열로 훑는 편이 빠르다
+                    <div className="space-y-2.5 mt-2.5 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0 lg:items-start">
+                      {groupDays.map(renderDay)}
+                    </div>
+                  )}
                 </div>
               )
             })}
           </div>
         ) : (
-          <div className="space-y-2.5">{plan.days.map(renderDay)}</div>
+          <div className="space-y-2.5 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:space-y-0 lg:items-start">
+            {plan.days.map(renderDay)}
+          </div>
         )}
       </section>
 
@@ -501,15 +521,29 @@ const Shell = ({
   onBack,
   title,
   actions,
+  rail,
   children,
 }: {
   onBack: () => void
   title: string
   actions?: React.ReactNode
+  // rail 을 주면 lg+ 에서 2단(본문 + 우측 위젯 레일), 없으면 기존 좁은 셸 그대로
+  rail?: React.ReactNode
   children: React.ReactNode
 }) => (
-  <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-    <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-bottomnav-safe">
+  <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+    <div
+      className={
+        rail ? 'lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12' : ''
+      }
+    >
+    <div
+      className={`max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-bottomnav-safe ${
+        rail
+          ? 'lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:overflow-hidden'
+          : ''
+      }`}
+    >
       <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
         <button
           onClick={onBack}
@@ -526,6 +560,13 @@ const Shell = ({
         {actions}
       </div>
       {children}
+    </div>
+
+    {rail && (
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:sticky lg:top-[4.5rem]">
+        {rail}
+      </aside>
+    )}
     </div>
   </div>
 )

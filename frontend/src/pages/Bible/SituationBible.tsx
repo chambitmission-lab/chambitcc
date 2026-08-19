@@ -118,43 +118,9 @@ const SituationBible = () => {
     navigate(`/bible/${v.book_number}/${v.chapter}`)
   }
 
-  return (
-    <div className="situation-bible bg-gray-50 dark:bg-background-dark min-h-screen">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen">
-
-        {/* Header */}
-        <div className="situation-header sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
-          <div className="flex items-center gap-3 px-4 h-14">
-            {selected && (
-              <button
-                onClick={() => setSelected(null)}
-                className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 rounded-full transition-colors"
-              >
-                <span className="material-icons-round text-[22px]">arrow_back</span>
-              </button>
-            )}
-            <div>
-              <h1 className="text-[17px] font-bold text-ink-strong">
-                {selected ? selected.name : '상황별 성구'}
-              </h1>
-              {!selected && (
-                <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
-                  지금 내 마음에 맞는 말씀을 찾아보세요
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 카테고리 화면 */}
-        {!selected && (
-          <div className="pb-8">
-            {isLoading ? (
-              <div className="flex justify-center py-20">
-                <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-gray-400 dark:border-t-gray-300 rounded-full animate-spin" />
-              </div>
-            ) : (
-              <>
+  // 오늘의 위로 말씀 히어로 — 본문(모바일)과 우측 레일(lg+)이 같은 마크업을 공유한다
+  const renderComfortHero = (cls: string) => (
+    <div className={cls}>
                 {/* 오늘의 위로 말씀 — 화면의 중심. 최상단에 크고 여유 있게 (검색 중에는 숨김) */}
                 {!q && heroCat && (
                   <div className="px-4 pt-5">
@@ -205,6 +171,51 @@ const SituationBible = () => {
                     )}
                   </div>
                 )}
+    </div>
+  )
+
+  return (
+    <div className="situation-bible bg-gray-50 dark:bg-background-dark min-h-screen page-stage">
+      {/* lg+: 좁은 셸을 풀고 본문 + 우측 레일 2단.
+          레일 내용은 화면 상태에 따라 다르다 — 목록에선 오늘의 위로 말씀,
+          구절을 펼친 뒤엔 다른 상황으로 건너뛰는 바로가기 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:shadow-none lg:overflow-hidden">
+
+        {/* Header */}
+        <div className="situation-header sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
+          <div className="flex items-center gap-3 px-4 h-14">
+            {selected && (
+              <button
+                onClick={() => setSelected(null)}
+                className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 rounded-full transition-colors"
+              >
+                <span className="material-icons-round text-[22px]">arrow_back</span>
+              </button>
+            )}
+            <div>
+              <h1 className="text-[17px] font-bold text-ink-strong">
+                {selected ? selected.name : '상황별 성구'}
+              </h1>
+              {!selected && (
+                <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
+                  지금 내 마음에 맞는 말씀을 찾아보세요
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 카테고리 화면 */}
+        {!selected && (
+          <div className="pb-8">
+            {isLoading ? (
+              <div className="flex justify-center py-20">
+                <div className="w-8 h-8 border-2 border-gray-200 dark:border-gray-700 border-t-gray-400 dark:border-t-gray-300 rounded-full animate-spin" />
+              </div>
+            ) : (
+              <>
+                {renderComfortHero('lg:hidden')}
 
                 {/* 검색창 */}
                 <div className="px-4 pt-5">
@@ -322,7 +333,8 @@ const SituationBible = () => {
                 </p>
               </div>
             ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+              // lg+: 구절은 읽는 글이라 폭을 다 주지 않고 가운데로 모은다
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800 lg:max-w-[680px] lg:mx-auto">
                 {detail.verses.map((v, idx) => (
                   <li key={v.id}>
                     <button
@@ -356,6 +368,48 @@ const SituationBible = () => {
             )}
           </div>
         )}
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        {/* 목록 화면 — 오늘의 위로 말씀 (검색 중에는 본문과 같은 규칙으로 숨김) */}
+        {!selected && !q && heroCat && renderComfortHero('')}
+
+        {/* 구절을 펼친 화면 — 다른 상황으로 바로 건너뛰기 */}
+        {selected && categories.length > 0 && (
+          <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
+            <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+              다른 상황 보기
+            </p>
+            <div className="flex flex-col -mx-1 max-h-[60vh] overflow-y-auto scrollbar-hide">
+              {categories.map((cat) => {
+                const active = cat.id === selected.id
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelected(cat)}
+                    className={`flex items-center gap-2 px-1 py-2 rounded-lg text-left transition-colors ${
+                      active ? 'bg-[var(--brand-soft-strong)]' : 'hover:bg-[var(--brand-soft)]'
+                    }`}
+                  >
+                    <span className="material-icons-round shrink-0 text-[16px] text-gray-400 dark:text-white/40">
+                      {cat.icon}
+                    </span>
+                    <span
+                      className={`flex-1 min-w-0 truncate text-[12.5px] ${
+                        active ? 'font-bold text-brand' : 'font-semibold text-ink-strong'
+                      }`}
+                    >
+                      {cat.name}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        )}
+      </aside>
       </div>
     </div>
   )

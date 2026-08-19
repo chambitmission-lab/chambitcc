@@ -35,29 +35,9 @@ const StoryMap = () => {
     })
   }, [completed])
 
-  return (
-    <div className="bg-gray-50 dark:bg-background-dark min-h-screen">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen pb-10">
-        {/* 헤더 */}
-        <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
-          <div className="flex items-center gap-3 px-4 h-14">
-            <button
-              onClick={() => navigate('/bible')}
-              className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 rounded-full"
-              aria-label="성경으로 돌아가기"
-            >
-              <span className="material-icons-round text-[22px]">arrow_back</span>
-            </button>
-            <div>
-              <h1 className="text-[17px] font-bold text-ink-strong">처음 만나는 성경</h1>
-              <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
-                성경 전체를 한 편의 이야기로
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="px-4 pt-5">
+  // 히어로(진행·이어보기 CTA) — 본문(모바일)과 우측 레일(lg+)이 같은 마크업을 공유한다
+  const renderStoryHero = (cls: string) => (
+    <div className={cls}>
           {/* 히어로 — 진행 상태에 따라 3가지 얼굴 */}
           {completed ? (
             <div className="story-hero story-hero--done">
@@ -115,12 +95,42 @@ const StoryMap = () => {
               </div>
             </div>
           )}
+    </div>
+  )
+
+  return (
+    <div className="bg-gray-50 dark:bg-background-dark min-h-screen page-stage">
+      {/* lg+: 본문 + 우측 레일 2단. 본문은 680px 고정 — 화(에피소드)를 잇는 세로 점선
+          경로가 이 화면의 메타포라 2열로 쪼개거나 폭을 늘리면 길이 끊긴다 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen pb-10 lg:w-[680px] lg:max-w-none lg:mx-0 lg:shrink-0 lg:min-h-0 lg:rounded-3xl lg:border lg:shadow-none lg:overflow-hidden">
+        {/* 헤더 */}
+        <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
+          <div className="flex items-center gap-3 px-4 h-14">
+            <button
+              onClick={() => navigate('/bible')}
+              className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 rounded-full"
+              aria-label="성경으로 돌아가기"
+            >
+              <span className="material-icons-round text-[22px]">arrow_back</span>
+            </button>
+            <div>
+              <h1 className="text-[17px] font-bold text-ink-strong">처음 만나는 성경</h1>
+              <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">
+                성경 전체를 한 편의 이야기로
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-4 pt-5">
+          {renderStoryHero('lg:hidden')}
 
           {/* 10막 여정 */}
           {STORY_ACTS.map(act => {
             const done = act.episodes.filter(e => readIds.has(e.id)).length
             return (
-              <section key={act.act} className="story-act">
+              <section key={act.act} id={`story-act-${act.act}`} className="story-act scroll-mt-20">
                 <div className="story-act__head">
                   <span className="story-act__emoji">{act.emoji}</span>
                   <div className="story-act__titles">
@@ -178,6 +188,49 @@ const StoryMap = () => {
             )
           })}
         </div>
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 진행·이어보기와 10막 인덱스를 옆에 고정한다.
+          42화가 세로로 길게 이어지는 화면이라 "지금 어디쯤"이 계속 보여야 한다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        {renderStoryHero('')}
+
+        <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
+          <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+            10막 여정
+          </p>
+          <div className="flex flex-col -mx-1">
+            {STORY_ACTS.map((act) => {
+              const done = act.episodes.filter((e) => readIds.has(e.id)).length
+              const allDone = done === act.episodes.length
+              return (
+                <button
+                  key={act.act}
+                  type="button"
+                  onClick={() =>
+                    document
+                      .getElementById(`story-act-${act.act}`)
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                  className="flex items-center gap-2 px-1 py-2 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors"
+                >
+                  <span className="shrink-0 text-[13px] w-5 text-center">{act.emoji}</span>
+                  <span className="flex-1 min-w-0 truncate text-[12.5px] font-semibold text-ink-strong">
+                    {act.title}
+                  </span>
+                  <span
+                    className={`shrink-0 text-[11px] font-bold tabular-nums ${
+                      allDone ? 'text-emerald-600 dark:text-emerald-300' : 'text-gray-400 dark:text-white/40'
+                    }`}
+                  >
+                    {done}/{act.episodes.length}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      </aside>
       </div>
     </div>
   )
