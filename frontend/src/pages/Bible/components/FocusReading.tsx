@@ -9,7 +9,6 @@ import { useAuth } from '../../../hooks/useAuth'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useWakeLock } from '../../PrayerFocus/useWakeLock'
 import { showToast } from '../../../utils/toast'
-import { TRANSLATION_LABEL } from './verseCopy'
 import VerseBookmarkModal from './VerseBookmarkModal'
 import type { BibleVerse } from '../../../types/bible'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
@@ -325,7 +324,8 @@ const FocusReading = ({
                   </span>
                 )}
                 <p className={`focus-slide__text${lengthClass}`}>{v.text}</p>
-                <span className="focus-slide__translation">{TRANSLATION_LABEL}</span>
+                {/* 역본 라벨은 두지 않는다 — 개역개정 단일 역본이라 무정보 반복.
+                    역본 표기는 본문이 앱 밖으로 나가는 복사·공유 경로에서만 붙는다 */}
                 {/* 해석 칩 — 등록된 절에만 붙는 조용한 진입점. 본문 자동 노출은 하지
                     않는다(집중 우선) — 탭했을 때만 하단 시트로 연다 */}
                 {commentaryVerseSet.has(v.verse) && (
