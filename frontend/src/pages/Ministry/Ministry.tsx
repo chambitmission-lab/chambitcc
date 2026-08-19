@@ -480,6 +480,10 @@ const Ministry = () => {
     }
   }
 
+  // 우측 위젯 '편지함' — 읽음은 기기 로컬(readIds) 기준
+  const readCount = columns.filter(c => c.id != null && readIds.has(c.id)).length
+  const unreadCount = Math.max(0, columns.length - readCount)
+
   // 상세 하단 이어읽기 — 다음(더 최신)·이전(더 과거) 편지
   const selectedIdx = selectedColumn ? columns.findIndex(c => c.id === selectedColumn.id) : -1
   const newerColumn = selectedIdx > 0 ? columns[selectedIdx - 1] : null
@@ -528,7 +532,10 @@ const Ministry = () => {
 
   return (
     <div className="bg-gray-50 dark:bg-background-dark min-h-screen page-stage">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 폰 프레임을 풀고 본문(편지) + 우측 위젯 레일 2컬럼으로 (/news와 같은 문법).
+          좌측 레일 오프셋은 전역 main(App.tsx)이 잡아주므로 여기선 px-5만 둔다 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* Header — 슬림하게: 제목(세리프)과 액션만.
             lg+에선 셸의 overflow-hidden 때문에 sticky 기준이 셸이 되어 top-14만큼
             아래로 밀려 콘텐츠를 덮으므로(고정도 안 됨) 일반 흐름으로 되돌린다 */}
@@ -611,7 +618,7 @@ const Ministry = () => {
           <div className="px-4 pb-8">
             {/* 인트로 — 작성자는 한 분이므로 사진은 여기서 단 한 번만 */}
             {featured && (
-              <div className="px-1 pt-6 pb-5 flex items-center gap-4">
+              <div className="px-1 pt-6 pb-5 flex items-center gap-4 lg:hidden">
                 <img
                   src={andongProfile}
                   alt={featured.author}
@@ -639,7 +646,10 @@ const Ministry = () => {
                 {/* 다크모드 표면 그라데이션 — 홈 피드 카드와 동일 문법 */}
                 <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-transparent pointer-events-none rounded-2xl"></div>
 
-                <div className="relative z-10 p-6">
+                {/* lg+: 폭이 넓어지면 한 줄이 100자를 넘어 읽기 힘들다 —
+                    좌(제목·날짜) / 우(인용구·발췌) 매거진 2단으로 나눈다 */}
+                <div className="relative z-10 p-6 lg:flex lg:gap-8 lg:p-8">
+                  <div className="lg:w-[38%] lg:shrink-0">
                   {isThisWeek(featured.date) && (
                     <span className="inline-flex items-center px-2.5 py-1 mb-3 rounded-full bg-[var(--brand-soft-strong)] text-[var(--brand)] text-[11px] font-semibold tracking-[-0.005em]">
                       {language === 'ko' ? '이번 주 편지' : "This Week's Letter"}
@@ -665,6 +675,9 @@ const Ministry = () => {
                   >
                     {featured.title}
                   </h2>
+                  </div>
+
+                  <div className="lg:flex-1 lg:min-w-0 lg:border-l lg:border-[var(--card-border)] lg:pl-8">
                   {featuredQuote ? (
                     // 목사님이 하이라이트한 문장을 인용구로 — 편지의 핵심 한 줄이 먼저 닿게
                     <>
@@ -688,6 +701,7 @@ const Ministry = () => {
                       {removeHighlightTags(featured.content)}
                     </p>
                   )}
+                  </div>
                 </div>
               </article>
             )}
@@ -703,11 +717,20 @@ const Ministry = () => {
                   <div className="px-1 mt-8 mb-3 text-[13px] font-semibold text-gray-500 dark:text-gray-400 tracking-[-0.005em]">
                     {language === 'ko' ? '지난 편지' : 'Earlier Letters'}
                   </div>
+                  {/* lg+: 넓어진 본문을 세로로만 쓰지 않도록 월 카드를 2열로
+                      (한 달치뿐이면 그대로 한 줄) */}
+                  <div
+                    className={
+                      monthGroups.length > 1
+                        ? 'lg:grid lg:grid-cols-2 lg:gap-x-5 lg:gap-y-6 lg:items-start'
+                        : ''
+                    }
+                  >
                   {monthGroups.map((group, gi) => (
-                    <div key={group.label}>
+                    <div key={group.label} id={`ministry-month-${gi}`} className="scroll-mt-20">
                       {/* 한 달치뿐이면 월 라벨은 소음 — 여러 달 쌓였을 때만 */}
                       {monthGroups.length > 1 && (
-                        <div className={`px-1 mb-2 text-[12px] font-medium text-gray-400 dark:text-gray-500 ${gi > 0 ? 'mt-6' : ''}`}>
+                        <div className={`px-1 mb-2 text-[12px] font-medium text-gray-400 dark:text-gray-500 lg:mt-0 ${gi > 0 ? 'mt-6' : ''}`}>
                           {group.label}
                         </div>
                       )}
@@ -716,6 +739,7 @@ const Ministry = () => {
                       </div>
                     </div>
                   ))}
+                  </div>
                 </>
               )
             )}
@@ -730,7 +754,7 @@ const Ministry = () => {
           >
             <div
               ref={modalScrollRef}
-              className="bg-background-light dark:bg-background-dark w-full h-full rounded-none md:rounded-3xl md:max-w-md md:h-auto md:max-h-[calc(100dvh-2rem)] overflow-y-auto md:border md:border-border-light md:dark:border-border-dark md:shadow-[0_30px_80px_-20px_var(--brand-glow),0_0_0_1px_rgba(255,255,255,0.04)]"
+              className="bg-background-light dark:bg-background-dark w-full h-full rounded-none md:rounded-3xl md:max-w-md lg:max-w-2xl md:h-auto md:max-h-[calc(100dvh-2rem)] overflow-y-auto md:border md:border-border-light md:dark:border-border-dark md:shadow-[0_30px_80px_-20px_var(--brand-glow),0_0_0_1px_rgba(255,255,255,0.04)]"
               onClick={(e) => e.stopPropagation()}
               onScroll={handleModalScroll}
             >
@@ -1104,6 +1128,95 @@ const Ministry = () => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 편지의 '발신인·편지함·아카이브'.
+          새 API 없이 이미 받아둔 목록과 로컬 읽음 기록만 재사용한다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        {/* 발신인 — 본문 인트로(lg:hidden)가 이 자리로 옮겨왔다 */}
+        {featured && (
+          <section className="feed-card rounded-2xl p-5 text-center">
+            <img
+              src={andongProfile}
+              alt={featured.author}
+              className="w-16 h-16 rounded-full object-cover mx-auto ring-1 ring-black/[0.07] dark:ring-white/[0.12]"
+            />
+            <p
+              className="mt-3 text-[15px] font-semibold text-ink-strong tracking-[-0.01em]"
+              style={{ fontFamily: SERIF }}
+            >
+              {featured.author} {featured.role}
+            </p>
+            <p className="mt-1.5 text-[12.5px] text-gray-500 dark:text-gray-400 leading-[1.6]">
+              {language === 'ko'
+                ? '매주 마음을 담아 성도님들께 띄우는 목회 서신입니다'
+                : 'A weekly letter to our congregation, written with care'}
+            </p>
+          </section>
+        )}
+
+        {/* 편지함 — 몇 통을 읽었는지 */}
+        {columns.length > 0 && (
+          <section className="feed-card rounded-2xl p-4">
+            <p className="mb-2 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-gray-400">
+              {language === 'ko' ? '나의 편지함' : 'My Letters'}
+            </p>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-[24px] font-semibold text-ink-strong tabular-nums leading-none">
+                {readCount}
+              </span>
+              <span className="text-[13px] text-gray-500 dark:text-gray-400">
+                {language === 'ko' ? `/ ${columns.length}통 읽음` : `/ ${columns.length} read`}
+              </span>
+            </div>
+            <div className="mt-2.5 h-1.5 rounded-full bg-[var(--surface-inset)] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-brand transition-[width] duration-300"
+                style={{ width: `${columns.length ? (readCount / columns.length) * 100 : 0}%` }}
+              />
+            </div>
+            <p className="mt-2.5 text-[12px] text-gray-500 dark:text-gray-400 leading-[1.6]">
+              {unreadCount > 0
+                ? language === 'ko'
+                  ? `아직 ${unreadCount}통이 기다리고 있어요`
+                  : `${unreadCount} letters still waiting`
+                : language === 'ko'
+                  ? '모든 편지를 읽으셨어요'
+                  : 'You have read every letter'}
+            </p>
+          </section>
+        )}
+
+        {/* 지난 편지 아카이브 — 월 카드로 바로 이동 */}
+        {monthGroups.length > 1 && (
+          <section className="feed-card rounded-2xl p-4">
+            <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-gray-400">
+              {language === 'ko' ? '지난 편지' : 'Earlier Letters'}
+            </p>
+            <div className="flex flex-col -mx-1">
+              {monthGroups.map((group, gi) => (
+                <button
+                  key={group.label}
+                  type="button"
+                  onClick={() =>
+                    document
+                      .getElementById(`ministry-month-${gi}`)
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                  className="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors"
+                >
+                  <span className="text-[12.5px] font-semibold text-ink-strong truncate">
+                    {group.label}
+                  </span>
+                  <span className="text-[11.5px] tabular-nums text-gray-400 dark:text-gray-500 shrink-0">
+                    {group.items.length}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+      </aside>
       </div>
     </div>
   )
