@@ -9,14 +9,6 @@ export interface Missionary {
   note?: string            // 비고 (예: 주파송)
 }
 
-export interface CountryInfo {
-  name: string
-  /** SVG viewBox(0 0 1000 500) 상 대략적 좌표 */
-  x: number
-  y: number
-  region: RegionKey
-}
-
 /** 아시아 지역 선교사 */
 export const asiaMissionaries: Missionary[] = [
   { country: '튀르키예', name: '곽성' },
@@ -129,47 +121,47 @@ export const regionMeta: Record<RegionKey, {
 }
 
 /**
- * 지도 좌표 — 0~1000, 0~500 스케일의 SVG viewBox 기준 대략적 위치.
- * 정확한 지리 좌표는 아니지만 세계지도 배경 위에 점을 찍기 위한 값.
+ * 국가 → 대륙 분류. 지구본 점·대륙 탭 연동의 기준.
+ * 실제 위경도는 countryDetail(lat/lng)에 있다.
  */
-export const countryCoordinates: Record<string, { x: number; y: number; region: RegionKey }> = {
+export const countryCoordinates: Record<string, { region: RegionKey }> = {
   // 아시아
-  '튀르키예': { x: 582, y: 205, region: 'asia' },
-  '베트남': { x: 760, y: 265, region: 'asia' },
-  '태국': { x: 745, y: 265, region: 'asia' },
-  '미얀마': { x: 725, y: 250, region: 'asia' },
-  '인도네시아': { x: 790, y: 310, region: 'asia' },
-  '인도': { x: 700, y: 250, region: 'asia' },
-  '네팔': { x: 715, y: 230, region: 'asia' },
-  '말레이시아': { x: 765, y: 300, region: 'asia' },
-  '필리핀': { x: 810, y: 275, region: 'asia' },
-  '요르단': { x: 600, y: 220, region: 'asia' },
-  '위구르': { x: 720, y: 200, region: 'asia' },
-  '일본': { x: 830, y: 210, region: 'asia' },
-  '중국': { x: 770, y: 215, region: 'asia' },
-  '캄보디아': { x: 755, y: 275, region: 'asia' },
+  '튀르키예': { region: 'asia' },
+  '베트남': { region: 'asia' },
+  '태국': { region: 'asia' },
+  '미얀마': { region: 'asia' },
+  '인도네시아': { region: 'asia' },
+  '인도': { region: 'asia' },
+  '네팔': { region: 'asia' },
+  '말레이시아': { region: 'asia' },
+  '필리핀': { region: 'asia' },
+  '요르단': { region: 'asia' },
+  '위구르': { region: 'asia' },
+  '일본': { region: 'asia' },
+  '중국': { region: 'asia' },
+  '캄보디아': { region: 'asia' },
 
-  // 유럽
-  '포르투갈': { x: 475, y: 210, region: 'europe' },
-  '키르기스스탄': { x: 675, y: 200, region: 'europe' },
-  '아제르바이잔': { x: 625, y: 205, region: 'europe' },
-  '독일': { x: 520, y: 180, region: 'europe' },
-  '코소보': { x: 545, y: 200, region: 'europe' },
-  '러시아': { x: 585, y: 148, region: 'europe' }, // 모스크바 사역 기준
-  '러시아 연해주': { x: 820, y: 160, region: 'europe' },
-  '알바니아': { x: 545, y: 205, region: 'europe' },
-  '우크라이나': { x: 570, y: 180, region: 'europe' },
+  // 유럽·중앙아시아
+  '포르투갈': { region: 'europe' },
+  '키르기스스탄': { region: 'europe' },
+  '아제르바이잔': { region: 'europe' },
+  '독일': { region: 'europe' },
+  '코소보': { region: 'europe' },
+  '러시아': { region: 'europe' }, // 모스크바 사역 기준
+  '러시아 연해주': { region: 'europe' },
+  '알바니아': { region: 'europe' },
+  '우크라이나': { region: 'europe' },
 
   // 아프리카
-  '잠비아': { x: 565, y: 345, region: 'africa' },
-  '우간다': { x: 580, y: 305, region: 'africa' },
-  '남아프리카공화국': { x: 555, y: 395, region: 'africa' },
-  '모로코': { x: 480, y: 220, region: 'africa' },
-  '탄자니아': { x: 585, y: 320, region: 'africa' },
+  '잠비아': { region: 'africa' },
+  '우간다': { region: 'africa' },
+  '남아프리카공화국': { region: 'africa' },
+  '모로코': { region: 'africa' },
+  '탄자니아': { region: 'africa' },
 
   // 아메리카
-  '파라과이': { x: 295, y: 380, region: 'americas' },
-  '페루': { x: 255, y: 335, region: 'americas' },
+  '파라과이': { region: 'americas' },
+  '페루': { region: 'americas' },
 }
 
 /**

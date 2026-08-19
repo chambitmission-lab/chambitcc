@@ -12,7 +12,7 @@ import {
   type RegionKey,
   type Missionary,
 } from './missionData'
-import WorldMap from './WorldMap'
+import WorldGlobe from './WorldGlobe'
 import CountryFlag from './CountryFlag'
 import { useLanguage } from '../../contexts/LanguageContext'
 import './Mission.css'
@@ -188,14 +188,19 @@ const Mission = () => {
     mapRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
-  // 지도에 찍을 점: 전체 선교지 (활성 지역 강조)
+  // 지구본에 찍을 점: 전체 선교지 (활성 지역 강조) — 실좌표(countryDetail) 기준
   const mapPoints = useMemo(() => {
-    return Object.entries(countryCoordinates).map(([country, coord]) => ({
-      country,
-      ...coord,
-      active: coord.region === activeRegion,
-      color: regionMeta[coord.region].color,
-    }))
+    return Object.entries(countryCoordinates).flatMap(([country, coord]) => {
+      const geo = countryDetail[country]
+      if (!geo) return []
+      return [{
+        country,
+        lat: geo.lat,
+        lng: geo.lng,
+        active: coord.region === activeRegion,
+        color: regionMeta[coord.region].color,
+      }]
+    })
   }, [activeRegion])
 
   return (
@@ -283,7 +288,7 @@ const Mission = () => {
             </span>
           </div>
           <div className="map-canvas">
-            <WorldMap
+            <WorldGlobe
               points={mapPoints}
               onHover={setHoverCountry}
               onSelect={handleMapSelect}

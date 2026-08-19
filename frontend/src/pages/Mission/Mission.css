@@ -513,10 +513,29 @@ img.sheet-flag {
   color: rgba(186, 230, 253, 0.55);
 }
 
-.world-map {
+/* 도트 지구본 — canvas가 래퍼 크기를 따라간다. 살짝 세로가 긴 무대라
+   구체가 여유 있게 자리하고, 확대 시 대륙이 카드를 채우며 잘려 보인다 */
+.world-globe {
   width: 100%;
-  height: auto;
+  aspect-ratio: 10 / 8.5;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.9rem;
+}
+
+.world-globe__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   display: block;
+  cursor: grab;
+  /* 가로 드래그 = 지구본 회전, 세로 제스처 = 페이지 스크롤 그대로 */
+  touch-action: pan-y;
+}
+
+.world-globe__canvas:active {
+  cursor: grabbing;
 }
 
 /* 지도 + 확대/전체 토글을 겹치기 위한 래퍼 */
@@ -546,110 +565,6 @@ img.sheet-flag {
 .map-zoom-toggle:hover {
   border-color: rgba(125, 211, 252, 0.5);
   color: #e0f2fe;
-}
-
-.map-dot {
-  cursor: pointer;
-  transition: all 0.25s ease;
-  transform-origin: center;
-}
-
-.map-dot:hover {
-  filter: drop-shadow(0 0 8px currentColor);
-}
-
-.map-dot.active .dot-core {
-  r: 5;
-}
-
-.dot-core {
-  transition: r 0.3s ease;
-}
-
-@keyframes ping {
-  0% { r: 3; opacity: 0.9; }
-  80%, 100% { r: 14; opacity: 0; }
-}
-
-.dot-pulse {
-  transform-origin: center;
-  animation: ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-@keyframes ping-strong {
-  0% { r: 4; opacity: 1; }
-  80%, 100% { r: 26; opacity: 0; }
-}
-
-.dot-pulse-strong {
-  animation: ping-strong 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-@keyframes halo-breathe {
-  0%, 100% { opacity: 0.3; transform-box: fill-box; }
-  50% { opacity: 0.55; }
-}
-
-.dot-halo-inner,
-.dot-halo-outer {
-  animation: halo-breathe 2s ease-in-out infinite;
-  transform-origin: center;
-}
-
-.dot-halo-outer {
-  animation-delay: 0.3s;
-}
-
-.dot-label {
-  animation: fadeInUp 0.35s ease both;
-  pointer-events: none;
-}
-
-/* ---------- Dispatch Arcs (서울 → 선교지) ---------- */
-.arc-base {
-  fill: none;
-  stroke-width: 1;
-  opacity: 0.07;
-  transition: opacity 0.3s ease;
-}
-
-.arc-base.on { opacity: 0.26; }
-
-/* 흐르는 점선 — 서울에서 선교지로 복음이 흘러가는 방향감 */
-.arc-flow {
-  fill: none;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-dasharray: 3 14;
-  opacity: 0.85;
-  animation: arc-flow 1.4s linear infinite;
-}
-
-.arc-flow.strong {
-  stroke-width: 2.4;
-  stroke-dasharray: 4 13; /* 합이 17 — dashoffset 루프와 일치해야 끊김이 없다 */
-  opacity: 1;
-  filter: drop-shadow(0 0 4px currentColor);
-  animation-duration: 1s;
-}
-
-@keyframes arc-flow {
-  to { stroke-dashoffset: -17; }
-}
-
-/* 서울 홈 마커 */
-.map-home-glow {
-  animation: halo-breathe 2.4s ease-in-out infinite;
-  transform-origin: center;
-}
-
-.map-home-label {
-  fill: rgba(224, 242, 254, 0.75);
-}
-
-/* 도트 매트릭스 육지 — 점의 밀도만으로 "세계지도"가 읽히게 */
-.map-land circle {
-  fill: rgba(125, 211, 252, 0.3);
 }
 
 /* ---------- Region Tabs ---------- */
@@ -1093,10 +1008,6 @@ html:not(.dark) .map-hint {
   color: rgba(3, 105, 161, 0.65);
 }
 
-html:not(.dark) .map-land circle {
-  fill: rgba(14, 165, 233, 0.32);
-}
-
 html:not(.dark) .map-zoom-toggle {
   color: rgba(3, 105, 161, 0.9);
   background: rgba(255, 255, 255, 0.75);
@@ -1343,27 +1254,9 @@ html:not(.dark) .featured-locate {
   color: rgba(3, 105, 161, 0.6);
 }
 
-/* Map arcs & home marker */
-html:not(.dark) .arc-base.on { opacity: 0.35; }
-
-html:not(.dark) .map-home-label {
-  fill: rgba(3, 105, 161, 0.85);
-}
-
 /* ---------- Reduced Motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .arc-flow,
-  .dot-pulse,
-  .dot-pulse-strong,
-  .dot-halo-inner,
-  .dot-halo-outer,
-  .map-home-glow,
   .mission-hero::before {
     animation: none;
-  }
-
-  .arc-flow {
-    stroke-dasharray: none;
-    opacity: 0.4;
   }
 }
