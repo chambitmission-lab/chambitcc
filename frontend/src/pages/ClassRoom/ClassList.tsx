@@ -36,6 +36,8 @@ const ClassList = () => {
         : best,
     null,
   )
+  // 우측 레일 요약 — 선생님으로 계신 반 수
+  const teacherCount = classes?.filter((c) => c.is_teacher).length ?? 0
 
   const handleJoinByCode = async () => {
     const code = joinCode.trim().toUpperCase()
@@ -56,7 +58,9 @@ const ClassList = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문(내 반 목록) + 우측 레일(만들기·참여·요약) 2단 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
@@ -148,8 +152,8 @@ const ClassList = () => {
           </div>
         </section>
 
-        {/* 만들기 / 코드 참여 */}
-        <section className="px-4 mt-5 space-y-3">
+        {/* 만들기 / 코드 참여 — lg에선 우측 레일의 같은 액션이 대신한다 */}
+        <section className="px-4 mt-5 space-y-3 lg:hidden">
           <button
             type="button"
             onClick={() => {
@@ -202,13 +206,99 @@ const ClassList = () => {
               text="아직 참여 중인 반이 없어요. 선생님께 받은 초대 코드를 입력하거나, 반을 만들어보세요!"
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
               {classes.map((cls) => (
                 <ClassCard key={cls.id} cls={cls} onClick={() => navigate(`/classes/${cls.id}`)} />
               ))}
             </div>
           )}
         </section>
+      </div>
+
+      {/* 우측 위젯 레일 (lg+) — 반 만들기·코드 참여를 항상 손 닿는 곳에,
+          본문은 반 카드에만 집중하게 한다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+        <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
+          <button
+            type="button"
+            onClick={() => {
+              if (!authed) {
+                showToast('로그인이 필요합니다', 'error')
+                navigate('/login')
+                return
+              }
+              setShowCreate(true)
+            }}
+            className="w-full py-3 rounded-2xl bg-brand text-white text-[14px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
+          >
+            + 우리 반 만들기 (선생님)
+          </button>
+
+          <p className="mt-4 mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+            초대 코드로 참여
+          </p>
+          <div className="flex gap-2">
+            <input
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              placeholder="예: AB12CD34"
+              maxLength={8}
+              className="flex-1 min-w-0 px-3 py-2.5 rounded-xl bg-white dark:bg-[#15151d] border border-gray-200/70 dark:border-white/[0.08] text-[13px] font-semibold tracking-[0.08em] placeholder:font-normal placeholder:tracking-normal placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand"
+            />
+            <button
+              type="button"
+              onClick={handleJoinByCode}
+              disabled={joinClass.isPending || joinCode.trim().length < 4}
+              className="shrink-0 px-3.5 py-2.5 rounded-xl bg-[var(--brand-soft)] text-brand text-[13px] font-bold disabled:opacity-40"
+            >
+              참여
+            </button>
+          </div>
+        </section>
+
+        {hasClasses && (
+          <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
+            <p className="mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+              한눈에
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+                  참여 중인 반
+                </span>
+                <span className="text-[16px] font-bold text-brand tabular-nums">
+                  {classes!.length}
+                </span>
+              </div>
+              {teacherCount > 0 && (
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">
+                    선생님으로 계신 반
+                  </span>
+                  <span className="text-[16px] font-bold text-ink-strong tabular-nums">
+                    {teacherCount}
+                  </span>
+                </div>
+              )}
+            </div>
+            {latestPost?.last_post_at && (
+              <button
+                type="button"
+                onClick={() => navigate(`/classes/${latestPost.id}`)}
+                className="mt-3 w-full flex items-center gap-2 px-3 h-10 rounded-xl border border-[var(--card-border)] text-left hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
+              >
+                <span className="shrink-0 text-[12px]">🔔</span>
+                <span className="flex-1 min-w-0 truncate text-[12.5px] font-bold text-ink-strong">
+                  {latestPost.name}
+                </span>
+                <span className="shrink-0 text-[11px] text-gray-400 dark:text-white/40">
+                  {timeAgo(latestPost.last_post_at)}
+                </span>
+              </button>
+            )}
+          </section>
+        )}
+      </aside>
       </div>
 
       {showCreate && <CreateClassSheet onClose={() => setShowCreate(false)} />}

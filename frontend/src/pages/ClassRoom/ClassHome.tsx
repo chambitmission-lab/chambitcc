@@ -131,9 +131,103 @@ const ClassHome = () => {
           나가기
         </button>
       }
+      rail={
+        /* lg+ 우측 레일 — 본문 헤더·퀵액션·글쓰기 FAB(모두 lg:hidden)를 대신한다.
+           어느 만큼 스크롤해도 반 정체성과 진입점이 옆에 남는다 */
+        <>
+          <section className="relative overflow-hidden rounded-3xl p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35">
+            <div className="flex items-start gap-3">
+              <span className="shrink-0 w-11 h-11 rounded-2xl bg-white/70 dark:bg-white/[0.08] flex items-center justify-center text-[22px]">
+                🏫
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <DeptBadge department={cls.department} />
+                  {cls.is_teacher && (
+                    <span className="shrink-0 px-2 py-0.5 rounded-full bg-amber-400/15 text-amber-600 dark:text-amber-300 text-[11px] font-bold leading-none">
+                      교사
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-[17px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong mt-1 break-keep">
+                  {cls.name}
+                </h2>
+              </div>
+            </div>
+
+            {cls.description && (
+              <p className="text-[12.5px] text-gray-600 dark:text-white/65 mt-2.5 leading-[1.6]">
+                {cls.description}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowMembers(true)}
+              className="mt-4 flex items-center active:scale-95 transition-transform"
+            >
+              <div className="flex -space-x-2">
+                {cls.members.slice(0, 5).map((m) => (
+                  <span key={m.user_id} title={m.name} className="inline-block">
+                    <Avatar name={m.name} avatarUrl={m.avatar_url} size={28} />
+                  </span>
+                ))}
+              </div>
+              <span className="ml-2.5 text-[12px] font-semibold text-gray-500 dark:text-white/55">
+                {cls.member_count}명 →
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleShare}
+              className="mt-3 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full bg-brand text-white text-[12.5px] font-bold shadow-[0_4px_14px_-4px_var(--brand-glow)] active:scale-[0.98] transition-transform"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+              초대하기
+            </button>
+          </section>
+
+          {cls.is_teacher && (
+            <button
+              type="button"
+              onClick={() => setShowComposer(true)}
+              className="w-full inline-flex items-center justify-center gap-1.5 py-3 rounded-2xl bg-brand text-white text-[14px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.4 3.6a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.4 3.6Z" />
+              </svg>
+              알림 쓰기
+            </button>
+          )}
+
+          <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
+            <p className="mb-1.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
+              바로가기
+            </p>
+            <div className="flex flex-col -mx-1">
+              {cls.is_teacher && (
+                <>
+                  <RailAction emoji="📊" label="리포트" onClick={() => navigate(`/classes/${id}/report`)} />
+                  <RailAction emoji="📋" label="출석부" onClick={() => navigate(`/classes/${id}/attendance`)} />
+                </>
+              )}
+              <RailAction emoji="📷" label="앨범" onClick={() => navigate(`/classes/${id}/album`)} />
+              <RailAction emoji="⭐" label="암송 별" onClick={() => setShowStars(true)} />
+              {!cls.is_teacher && (
+                <RailAction emoji="🌱" label="성장 카드" onClick={() => setShowGrowth(true)} />
+              )}
+            </div>
+          </section>
+        </>
+      }
     >
-      {/* 반 헤더 */}
-      <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35">
+      {/* 반 헤더 — lg에선 우측 레일의 같은 카드가 대신한다 */}
+      <section className="lg:hidden relative overflow-hidden rounded-3xl mx-4 mt-4 p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35">
         <div className="flex items-start gap-3">
           <span className="shrink-0 w-12 h-12 rounded-2xl bg-white/70 dark:bg-white/[0.08] flex items-center justify-center text-[24px]">
             🏫
@@ -190,8 +284,8 @@ const ClassHome = () => {
         </div>
       </section>
 
-      {/* 퀵 액션 — 리포트·출석부(교사) / 앨범·별·성장카드 */}
-      <div className="flex gap-2 overflow-x-auto px-4 pt-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* 퀵 액션 — 리포트·출석부(교사) / 앨범·별·성장카드 (lg에선 레일의 '바로가기') */}
+      <div className="lg:hidden flex gap-2 overflow-x-auto px-4 pt-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {cls.is_teacher && (
           <>
             <QuickAction emoji="📊" label="리포트" onClick={() => navigate(`/classes/${id}/report`)} />
@@ -252,7 +346,7 @@ const ClassHome = () => {
         <button
           type="button"
           onClick={() => setShowComposer(true)}
-          className="fixed bottom-20 z-30 inline-flex items-center gap-1.5 px-5 py-3.5 rounded-full bg-brand text-white text-[14px] font-bold shadow-[0_12px_32px_-8px_var(--brand-glow)] active:scale-95 transition-transform"
+          className="lg:hidden fixed bottom-20 z-30 inline-flex items-center gap-1.5 px-5 py-3.5 rounded-full bg-brand text-white text-[14px] font-bold shadow-[0_12px_32px_-8px_var(--brand-glow)] active:scale-95 transition-transform"
           style={{ right: 'max(16px, calc(50% - 13rem))' }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -291,6 +385,29 @@ const ClassHome = () => {
     </Shell>
   )
 }
+
+// ── 레일 바로가기 행 (lg+) — 가로 칩 대신 세로 목록 ──
+const RailAction = ({
+  emoji,
+  label,
+  onClick,
+}: {
+  emoji: string
+  label: string
+  onClick: () => void
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex items-center gap-2.5 px-1 py-2 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors"
+  >
+    <span className="text-[14px] leading-none w-5 text-center">{emoji}</span>
+    <span className="flex-1 min-w-0 truncate text-[12.5px] font-bold text-ink-strong">{label}</span>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-400 dark:text-white/35">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  </button>
+)
 
 // ── 퀵 액션 칩 ──
 const QuickAction = ({
@@ -339,7 +456,7 @@ const Feed = ({
   const posts = data?.pages.flatMap((p) => p.items) ?? []
 
   return (
-    <section className="px-4 pt-4 pb-24 space-y-3">
+    <section className="px-4 pt-4 pb-24 space-y-3 lg:max-w-[640px] lg:mx-auto lg:w-full">
       {isLoading ? (
         Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="h-32 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
