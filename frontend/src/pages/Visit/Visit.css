@@ -2,7 +2,8 @@
  * 원칙 (src/styles/theme.css):
  *   1. 색은 하드코딩하지 않고 --brand-* / --surface-* / --text-* 토큰만 참조
  *   2. 라이트/다크 분기는 theme.css 토큰이 담당 — 여기서는 [data-theme] 분기 금지
- *   3. position:sticky 는 이 앱에서 전역으로 깨져 있어(#root overflow-y) 쓰지 않는다
+ *   3. position:sticky 는 이 앱에서 전역으로 깨져 있다(#root overflow-y).
+ *      lg 이상에서만 .visit-page 를 자체 스크롤 상자로 만들어 우측 레일에 한해 쓴다
  */
 
 /* ── 페이지 셸 ─────────────────────────── */
@@ -20,16 +21,17 @@
   border-right: 1px solid var(--card-border);
 }
 
-/* PC(lg+) — 티어 B 와이드 셸 (lg:max-w-xl 라운드 카드 공통 문법) */
+/* PC(lg+) 와이드 셸 — 2단 무대. 세부 배치는 파일 맨 아래 PC 블록 참고 */
 @media (min-width: 1024px) {
   .visit-shell {
-    max-width: 36rem;
+    max-width: 66rem;
     min-height: 0;
     margin-top: 0.5rem;
     margin-bottom: 3rem;
     border: 1px solid var(--card-border);
     border-radius: 1.5rem;
-    overflow: hidden;
+    /* overflow:hidden 을 주면 이 셸이 sticky 의 스크롤 조상이 되어 우측 레일이 죽는다.
+       라운드 밖으로 삐져나가는 요소는 lg 에서 따로 정리하므로 clip 이 필요 없다. */
   }
 }
 
@@ -794,4 +796,220 @@
   background: var(--surface-inset);
   border: 1px dashed var(--card-border);
   color: var(--text-muted);
+}
+
+
+/* ============================================
+   PC (lg+) — "나란히 놓고 보는" 2단 레이아웃
+   ────────────────────────────────────────────
+   모바일은 위에서 아래로 한 번에 하나씩 훑는다: 지금 출발 판단 → 길찾기 → 노선도 →
+   교통수단 → 마지막 100m. PC 에선 "읽는 것"(노선도·교통수단·사진 안내)을 왼쪽에 두고,
+   "지금 당장 쓰는 것"(출발 판단·지도앱 버튼·주소/전화)을 오른쪽에 고정해 둔다.
+   지하철 안내를 읽다가 주소를 복사하러 스크롤을 되돌릴 일이 없어진다.
+   래퍼 3개는 lg 미만에서 display:contents 라 모바일 화면은 기존과 완전히 동일하다.
+   ============================================ */
+.visit-columns,
+.visit-col-main,
+.visit-col-side {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  /* 이 앱은 #root 에 overflow-y:auto 가 걸려 있어 position:sticky 가 전역으로 죽어 있다.
+     그래서 lg 에서만 이 페이지를 스스로 스크롤하는 상자로 만든다 — 헤더(56px)를 뺀
+     높이를 갖는 순간 우측 레일 sticky 가 이 상자 기준으로 산다.
+     바깥(body) 높이는 그대로라 스크롤바가 둘로 보이지 않는다. */
+  .visit-page {
+    height: calc(100vh - 56px);
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+  }
+
+  .visit-body {
+    padding: 26px 26px 44px;
+    gap: 22px;
+  }
+
+  /* ── Hero — 넓어진 무대에 맞춰 한 단계 키운다 (두 단 위에 걸친다) ── */
+  .visit-hero {
+    padding: 28px 32px;
+  }
+
+  .visit-hero-top {
+    gap: 18px;
+  }
+
+  .visit-hero-emblem {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+  }
+
+  .visit-hero-title {
+    font-size: 26px;
+  }
+
+  .visit-hero-subtitle {
+    font-size: 14px;
+  }
+
+  /* ── 2단 그리드 ── */
+  .visit-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 22px;
+    align-items: start;
+  }
+
+  .visit-col-main {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .visit-col-side {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 0.25rem; /* .visit-page 스크롤 상자 기준 (이미 헤더 아래에서 시작한다) */
+  }
+
+  /* ── 우측 레일: 지금 출발 / 길찾기 / 연락처 ── */
+  .visit-now {
+    padding: 18px 20px;
+  }
+
+  .visit-maps {
+    gap: 7px;
+  }
+
+  .visit-map-btn {
+    padding: 13px 4px;
+  }
+
+  /* ── 왼쪽: 노선도를 가로로 눕힌다 ──
+     세로 노선도는 폭 640px 짜리 칸에서 오른쪽이 텅 빈다.
+     PC 에선 "출발 → 경유 → 도착" 이 한 줄로 읽히는 편이 지도앱 경로와도 겹쳐 보인다. */
+  .visit-rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 20px 22px;
+  }
+
+  .visit-rail-stop {
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+  }
+
+  .visit-rail-marker {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+    height: 15px;
+    padding-top: 0;
+  }
+
+  .visit-rail-line {
+    flex: 1;
+    width: auto;
+    height: 3px;
+    margin: 0 0 0 -1px;
+  }
+
+  .visit-rail-text {
+    padding-bottom: 0;
+    padding-right: 14px;
+  }
+
+  /* ── 교통수단 탭 — 넓은 칸에선 아이콘과 글씨를 한 줄로 ── */
+  .visit-modes {
+    gap: 8px;
+  }
+
+  .visit-mode {
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+
+  .visit-mode-panel {
+    /* 탭을 바꿀 때마다 아래 내용이 위아래로 튀지 않도록 바닥 높이를 잡아둔다 */
+    min-height: 160px;
+    padding: 20px 22px;
+  }
+
+  .visit-first-cta {
+    width: auto;
+    padding: 12px 20px;
+  }
+
+  /* ── 마지막 100m — 가로 스크롤 대신 격자로 한눈에 ── */
+  .visit-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 14px;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .visit-step {
+    flex: initial;
+    max-width: none;
+  }
+
+  .visit-swipe-hint {
+    display: none;
+  }
+
+  /* ── 초대 — 문구 왼쪽, 버튼 오른쪽 ── */
+  .visit-invite {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 20px;
+    padding: 20px 24px;
+  }
+
+  .visit-invite-title,
+  .visit-invite-desc {
+    grid-column: 1;
+  }
+
+  .visit-invite-actions {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    margin-top: 0;
+  }
+
+  .visit-invite-qr {
+    grid-column: 1 / -1;
+    margin: 16px auto 2px;
+  }
+
+  .visit-admin-hint {
+    margin-top: 4px;
+  }
+}
+
+/* 노트북처럼 세로가 짧은 PC — 고정된 우측 레일이 잘리지 않게 스스로 스크롤하게 둔다 */
+@media (min-width: 1024px) and (max-height: 760px) {
+  .visit-col-side {
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
 }

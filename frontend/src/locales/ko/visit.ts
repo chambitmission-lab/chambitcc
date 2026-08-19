@@ -53,7 +53,9 @@ export const visit = {
 
   // ── 마지막 100m ───────────────────────
   visitLastMileTitle: '마지막 100m',
-  visitLastMileDesc: '지도가 알려주지 않는 구간입니다. 사진을 옆으로 넘겨보세요.',
+  visitLastMileDesc: '지도가 알려주지 않는 구간입니다.',
+  /* 가로 스크롤 안내 — PC 는 격자로 한눈에 보여줘서 이 문장을 숨긴다 */
+  visitLastMileSwipe: '사진을 옆으로 넘겨보세요.',
   visitLastMileEmpty: '사진을 등록하면 이곳에 길 안내가 표시됩니다.',
   visitStep1Photo: '',
   visitStep1Text: '상동역에서 나옵니다',

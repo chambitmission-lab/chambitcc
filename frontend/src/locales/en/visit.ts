@@ -46,7 +46,8 @@ export const visit = {
 
   // ── Last 100m ─────────────────────────
   visitLastMileTitle: 'The last 100m',
-  visitLastMileDesc: 'The part no map explains. Swipe through the photos.',
+  visitLastMileDesc: 'The part no map explains.',
+  visitLastMileSwipe: 'Swipe through the photos.',
   visitLastMileEmpty: 'Add photos and the walking guide will appear here.',
   visitStep1Photo: '',
   visitStep1Text: 'Come out of Sangdong Station',

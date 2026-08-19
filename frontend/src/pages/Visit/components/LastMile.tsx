@@ -44,7 +44,11 @@ const LastMile = ({ isAdminUser }: LastMileProps) => {
         </span>
         <div>
           <h2 className="visit-section-title">{t('visitLastMileTitle')}</h2>
-          <p className="visit-section-desc">{t('visitLastMileDesc')}</p>
+          <p className="visit-section-desc">
+            {t('visitLastMileDesc')}{' '}
+            {/* 가로 스크롤 안내는 모바일에서만 — PC 는 격자라 넘길 것이 없다 */}
+            <span className="visit-swipe-hint">{t('visitLastMileSwipe')}</span>
+          </p>
         </div>
       </header>
 
