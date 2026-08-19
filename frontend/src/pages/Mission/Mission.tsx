@@ -106,8 +106,9 @@ const Mission = () => {
   const [activeRegion, setActiveRegion] = useState<RegionKey>('asia')
   const [hoverCountry, setHoverCountry] = useState<string | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null) // "country|name"
-  // 기본은 활성 대륙 확대 — 세계 전체는 토글로만. 모바일에서 점이 안 보이는 문제 해결
-  const [mapZoomOut, setMapZoomOut] = useState(false)
+  // 기본은 지구 전체 보기 — 확대는 토글로만. 배율이 대륙마다 달라지지 않게
+  // 확대도 고정 배율이라 대륙 탭 전환 시 지구본 크기는 항상 그대로다
+  const [mapZoomOut, setMapZoomOut] = useState(true)
   const mapRef = useRef<HTMLDivElement>(null)
 
   // 함께 기도하기 — 개인 기기 기준 하루 한 번. 서버 없이도 참여감을 주는 소박한 액션

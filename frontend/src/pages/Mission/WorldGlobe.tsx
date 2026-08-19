@@ -22,7 +22,7 @@ interface WorldGlobeProps {
   onHover?: (country: string | null) => void
   onSelect?: (country: string) => void
   selectedCountry?: string | null
-  /** true면 지구 전체가 보이게 축소, false면 활성 대륙이 화면을 채우게 확대 */
+  /** true면 지구 전체가 보이는 배율, false면 고정 배율로 한 단계 확대 (둘 다 대륙과 무관한 고정값) */
   zoomOut?: boolean
 }
 
@@ -214,25 +214,15 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
     const ro = new ResizeObserver(resize)
     ro.observe(wrap)
 
-    /** 현재 카메라에서 필요한 반지름 — 활성 점들이 화면 안에 들어오는 확대 배율 */
+    /**
+     * 카메라 반지름 — 모드별 고정 배율. 대륙·국가 선택은 회전만 하고
+     * 배율은 절대 바꾸지 않는다. (활성 점 퍼짐으로 확대를 역산하던 로직은
+     * 점이 적은 아메리카·아프리카에서만 배율이 커져 탭 전환 시 지구본이
+     * 확대돼 보이는 문제로 제거)
+     */
     const desiredRadius = () => {
-      const { points: pts, zoomOut: out } = propsRef.current
       const minDim = Math.min(cssW, cssH)
-      if (out) return minDim * 0.47
-      const cam = camRef.current
-      const c = toVec(cam.targetLat, cam.targetLng)
-      // 최소 시야각 0.8rad — 점이 밀집한 대륙(아메리카: 파라과이·페루뿐)에서
-      // 배율이 역산으로 치솟는 것을 막는다. 0.8이면 R≈minDim*0.53으로
-      // 점이 넓게 퍼진 대륙(0.47~0.53)과 같은 수준의 은은한 확대가 된다
-      let maxAng = 0.8
-      for (const p of pts) {
-        if (!p.active) continue
-        const v = toVec(p.lat, p.lng)
-        const dot = Math.max(-1, Math.min(1, c[0] * v[0] + c[1] * v[1] + c[2] * v[2]))
-        maxAng = Math.max(maxAng, Math.acos(dot))
-      }
-      const fit = (minDim * 0.42) / Math.sin(Math.min(maxAng * 1.15, Math.PI / 2))
-      return Math.max(minDim * 0.47, Math.min(minDim * 0.9, fit))
+      return propsRef.current.zoomOut ? minDim * 0.47 : minDim * 0.62
     }
 
     const project = (lat: number, lng: number, R: number, cx: number, cy: number): Projected => {
