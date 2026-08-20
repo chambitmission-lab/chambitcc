@@ -36,7 +36,8 @@ const useWeeklyPrayerStats = () =>
       const json = await res.json()
       return json.data as WeeklyPrayerStats
     },
-    staleTime: 1000 * 60 * 5,
+    // 서버도 5분 캐시라 더 자주 물어봐야 새 숫자가 없다 — 15분이면 충분
+    staleTime: 1000 * 60 * 15,
     retry: 1,
   })
 
@@ -57,7 +58,7 @@ const usePrayerStatsSummary = (enabled: boolean) =>
       const json = await res.json()
       return json.data as PrayerStatsSummary
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 15,
     enabled,
   })
 
@@ -69,7 +70,7 @@ const useAnsweredTotal = (enabled: boolean) =>
       const res = await fetchPrayers(1, 1, 'latest', null, null, true)
       return res.data.total
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 15,
     enabled,
   })
 

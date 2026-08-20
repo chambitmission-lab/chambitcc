@@ -23,7 +23,9 @@ export const useSituationCategories = () =>
   useQuery({
     queryKey: situationKeys.categories(),
     queryFn: getSituationCategories,
-    staleTime: 1000 * 60 * 10,
+    // 어드민이 가끔만 손대는 큐레이션 데이터 — 홈 우측 레일에서도 쓰므로 길게 잡아
+    // 재방문·탭 전환 시 재호출을 줄인다 (어드민 수정 시엔 situationKeys.all 무효화로 즉시 갱신)
+    staleTime: 1000 * 60 * 30,
   })
 
 export const useSituationVerses = (categoryId: number, enabled = true) =>

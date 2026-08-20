@@ -59,6 +59,19 @@ const NewHome = () => {
   const mainRef = useRef<HTMLDivElement>(null)
   const feedRef = useRef<HTMLDivElement>(null)
 
+  // 우측 위젯 레일은 CSS로 숨기는 대신 조건부 마운트 — display:none이어도 React가
+  // 마운트되면 레일의 쿼리(주간 통계·상황별 성구·오늘 일정)가 모바일에서도 나가므로,
+  // 레일이 실제로 보이는 폭(1440px+, min-[1440px] 클래스와 동일 기준)에서만 렌더한다
+  const [railWide, setRailWide] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1440px)').matches
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1440px)')
+    const onChange = (e: MediaQueryListEvent) => setRailWide(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
   // 기도방 홈에서 ?group= 으로 진입하면 기도 피드로 자동 스크롤,
   // &compose=1 이면 (첫 기도제목) 작성 모달까지 바로 연다
   useEffect(() => {
@@ -307,11 +320,13 @@ const NewHome = () => {
 
             </div>{/* /사이드바 */}
 
-            {/* 우측 위젯 레일 — 3컬럼이 들어갈 만큼 넓은 화면(1440px+)에서만 렌더.
+            {/* 우측 위젯 레일 — 3컬럼이 들어갈 만큼 넓은 화면(1440px+)에서만 마운트.
                 기도 현황·기도 태그·알림 배너·오늘 일정·말씀 카드로 남는 좌우 여백을 채운다 */}
-            <div className="hidden min-[1440px]:block lg:order-3 w-[312px] shrink-0 sticky top-[4.5rem] self-start max-h-[calc(100vh-88px)] overflow-y-auto scrollbar-hide pb-4">
-              <HomeRightRail />
-            </div>{/* /우측 레일 */}
+            {railWide && (
+              <div className="hidden min-[1440px]:block lg:order-3 w-[312px] shrink-0 sticky top-[4.5rem] self-start max-h-[calc(100vh-88px)] overflow-y-auto scrollbar-hide pb-4">
+                <HomeRightRail />
+              </div>
+            )}{/* /우측 레일 */}
 
             {/* 피드 컬럼 — 데스크톱에선 접속 즉시 기도 피드가 보인다 */}
             <div className="lg:order-1 lg:w-full lg:max-w-[480px] lg:min-w-0">
