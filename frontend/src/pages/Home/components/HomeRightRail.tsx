@@ -10,6 +10,8 @@ import { API_V1, apiFetch } from '../../../config/api'
 import { fetchPrayers } from '../../../api/prayer'
 import { useSituationCategories } from '../../../hooks/useSituation'
 import { useEvents } from '../../../hooks/useEvents'
+import { getSundayServices, getWeekdayServices } from '../../../api/worship'
+import { parseServiceTimes, serviceDays } from '../../../utils/worshipSchedule'
 import { CATEGORY_VISUAL } from '../../Events/utils/categoryConfig'
 import type { Event } from '../../../types/event'
 import type { SituationCategory } from '../../../types/situation'
@@ -307,30 +309,87 @@ const AlarmBanner = () => {
 
 // ── 4. 오늘의 일정 ────────────────────────────────────────────────────
 
-const timeLabel = (iso: string) => {
+// 예배 시간표(/worship과 같은 데이터·파서) — 오늘 요일에 열리는 고정 예배를
+// 일정 위젯에 자동 합류시킨다. 관리자가 일정으로 따로 등록할 필요 없음.
+const useWorshipServicesAll = () =>
+  useQuery({
+    queryKey: ['worship-services', 'all'],
+    queryFn: async () => {
+      const [sunday, weekday] = await Promise.all([
+        getSundayServices(),
+        getWeekdayServices(),
+      ])
+      return [...sunday, ...weekday]
+    },
+    // 예배 시간표는 사실상 고정 데이터
+    staleTime: 1000 * 60 * 30,
+  })
+
+const minutesToLabel = (min: number) =>
+  `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`
+
+const isoToMinutes = (iso: string): number | null => {
   const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  const hh = String(d.getHours()).padStart(2, '0')
-  const mm = String(d.getMinutes()).padStart(2, '0')
-  return `${hh}:${mm}`
+  if (Number.isNaN(d.getTime())) return null
+  return d.getHours() * 60 + d.getMinutes()
+}
+
+// 예배와 등록 일정을 한 타임라인으로 합치기 위한 공통 행 모델
+interface ScheduleItem {
+  key: string
+  startMin: number
+  title: string
+  location?: string | null
+  dot: string
+  onClick: () => void
 }
 
 const TodayScheduleWidget = () => {
   const navigate = useNavigate()
   const today = useMemo(todayStr, [])
-  const { events, loading } = useEvents(today, today)
+  const { events, loading: eventsLoading } = useEvents(today, today)
+  const { data: services, isLoading: worshipLoading } = useWorshipServicesAll()
 
-  const sorted = useMemo(
-    () =>
-      [...events].sort(
-        (a, b) =>
-          new Date(a.start_datetime).getTime() -
-          new Date(b.start_datetime).getTime(),
-      ),
-    [events],
-  )
-  const visible = sorted.slice(0, 4)
+  const sorted = useMemo<ScheduleItem[]>(() => {
+    const todayDow = new Date().getDay()
+
+    // 고정 예배 — 오늘 요일에 열리는 회차만 (수요기도회처럼 복수 시간이면 회차별 행)
+    const worshipItems: ScheduleItem[] = (services ?? [])
+      .filter((s) => s.is_active)
+      .flatMap((s) => {
+        const days = serviceDays(s)
+        if (!days || !days.includes(todayDow)) return []
+        return parseServiceTimes(s.time).map((startMin) => ({
+          key: `worship-${s.id}-${startMin}`,
+          startMin,
+          title: s.name,
+          location: s.location,
+          dot: CATEGORY_VISUAL.worship.dot,
+          onClick: () => navigate('/worship'),
+        }))
+      })
+
+    // 관리자가 등록한 오늘 일정
+    const eventItems: ScheduleItem[] = events.flatMap((ev: Event) => {
+      const startMin = isoToMinutes(ev.start_datetime)
+      if (startMin === null) return []
+      const visual = CATEGORY_VISUAL[ev.category] ?? CATEGORY_VISUAL.other
+      return [{
+        key: `event-${ev.id}`,
+        startMin,
+        title: ev.title,
+        location: ev.location,
+        dot: visual.dot,
+        onClick: () => navigate(`/events/${ev.id}`),
+      }]
+    })
+
+    return [...worshipItems, ...eventItems].sort((a, b) => a.startMin - b.startMin)
+  }, [services, events, navigate])
+
+  const visible = sorted.slice(0, 5)
   const restCount = sorted.length - visible.length
+  const loading = (eventsLoading || worshipLoading) && sorted.length === 0
 
   return (
     <section className="px-4 pt-3">
@@ -357,36 +416,33 @@ const TodayScheduleWidget = () => {
           </p>
         ) : (
           <ul className="space-y-3">
-            {visible.map((ev: Event) => {
-              const visual = CATEGORY_VISUAL[ev.category] ?? CATEGORY_VISUAL.other
-              return (
-                <li key={ev.id}>
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/events/${ev.id}`)}
-                    className="w-full flex items-start gap-2.5 text-left group"
-                  >
-                    <span
-                      className={`mt-[5px] w-2 h-2 rounded-full shrink-0 ${visual.dot}`}
-                      aria-hidden
-                    />
-                    <span className="text-[12.5px] font-bold text-ink-muted tabular-nums shrink-0 mt-px">
-                      {timeLabel(ev.start_datetime)}
+            {visible.map((item) => (
+              <li key={item.key}>
+                <button
+                  type="button"
+                  onClick={item.onClick}
+                  className="w-full flex items-start gap-2.5 text-left group"
+                >
+                  <span
+                    className={`mt-[5px] w-2 h-2 rounded-full shrink-0 ${item.dot}`}
+                    aria-hidden
+                  />
+                  <span className="text-[12.5px] font-bold text-ink-muted tabular-nums shrink-0 mt-px">
+                    {minutesToLabel(item.startMin)}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-semibold text-ink-strong truncate group-hover:text-brand transition-colors">
+                      {item.title}
                     </span>
-                    <span className="min-w-0">
-                      <span className="block text-[13px] font-semibold text-ink-strong truncate group-hover:text-brand transition-colors">
-                        {ev.title}
+                    {item.location && (
+                      <span className="block text-[11.5px] text-gray-400 dark:text-white/45 truncate">
+                        {item.location}
                       </span>
-                      {ev.location && (
-                        <span className="block text-[11.5px] text-gray-400 dark:text-white/45 truncate">
-                          {ev.location}
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                </li>
-              )
-            })}
+                    )}
+                  </span>
+                </button>
+              </li>
+            ))}
             {restCount > 0 && (
               <li className="pl-[18px] text-[11.5px] text-gray-400 dark:text-white/40">
                 외 {restCount}개의 일정이 더 있어요
