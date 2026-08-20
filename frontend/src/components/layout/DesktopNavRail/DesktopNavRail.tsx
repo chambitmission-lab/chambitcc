@@ -22,6 +22,14 @@ const RailSpinner = () => (
   <span className="w-[22px] h-[22px] rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
 )
 
+// 나누기 다이얼 인사 — 모바일 홈 FAB(BottomNavigation)과 같은 문구 로테이션
+const DIAL_GREETINGS = [
+  '오늘은 어떤 마음을 나눌까요?',
+  '나누고 싶은 은혜가 있나요?',
+  '작은 것도 좋아요, 함께 나눠요',
+  '오늘 하루, 어떠셨어요?',
+] as const
+
 // 아이콘만 보이는 폭(lg~xl 미만)에서 "이게 무슨 메뉴인지"를 알려주는 호버 툴팁.
 // 색은 반전 토큰(--text-strong 배경 / --surface-container 글자)이라 라이트·다크 모두 대응.
 //   right: 내비 항목 — 라벨이 나오는 xl부터는 숨긴다
@@ -51,6 +59,9 @@ const DesktopNavRail = () => {
   const { requireAuth, requireAuthWithRedirect, isLoggedIn } = useAuth()
   // lazy 청크를 받는 중인 목적지 경로 — 해당 아이콘 자리에 스피너
   const [pendingPath, setPendingPath] = useState<string | null>(null)
+  // 나누기 스피드 다이얼 — 모바일 홈 FAB과 같은 3액션(기도·감사·말씀 카드)을 팝오버로
+  const [dialOpen, setDialOpen] = useState(false)
+  const [dialNonce, setDialNonce] = useState(0)
   const visible = useDesktopRailVisible()
   const { theme, toggleTheme } = useTheme()
 
@@ -114,6 +125,8 @@ const DesktopNavRail = () => {
   const isHomeActive = pathname === '/'
   const isVerseCardActive = pathname === '/bible/photo-verse'
   const isBibleActive = pathname.startsWith('/bible') && !isVerseCardActive
+  const isGroupsActive = pathname.startsWith('/groups')
+  const isGrowthActive = pathname === '/growth'
   const isProfileActive = pathname === '/profile'
 
   // 하단 도크와 같은 스트로크 1.8 아이콘 언어 유지. 활성 항목만 굵게 (인스타 문법)
@@ -242,6 +255,69 @@ const DesktopNavRail = () => {
           <RailTip label="말씀 카드" />
         </button>
 
+        {/* 모임 — 소그룹 체크인·릴레이·기도 나눔 */}
+        <button
+          onClick={() => void goLazy('/groups')}
+          onMouseEnter={() => void preloadRoute('/groups')}
+          aria-label="모임"
+          aria-current={isGroupsActive ? 'page' : undefined}
+          aria-busy={pendingPath === '/groups'}
+          className={itemClass(isGroupsActive)}
+        >
+          {isGroupsActive && <ActiveBar />}
+          {pendingPath === '/groups' ? (
+            <RailSpinner />
+          ) : (
+            <svg
+              className="w-[26px] h-[26px] shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={isGroupsActive ? 2.2 : 1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="9" cy="8.5" r="3.2" />
+              <path d="M3.2 19.5v-.5a5.8 5.8 0 0 1 11.6 0v.5" />
+              <path d="M15.4 5.9a3.2 3.2 0 1 1 .9 6.3" />
+              <path d="M17 13.6a5.8 5.8 0 0 1 3.8 5.4v.5" />
+            </svg>
+          )}
+          <span className={labelClass(isGroupsActive)}>모임</span>
+          <RailTip label="모임" />
+        </button>
+
+        {/* 신앙 여정 — 스트릭·타임라인·통계 (성장 페이지) */}
+        <button
+          onClick={() => void goLazy('/growth')}
+          onMouseEnter={() => void preloadRoute('/growth')}
+          aria-label="신앙 여정"
+          aria-current={isGrowthActive ? 'page' : undefined}
+          aria-busy={pendingPath === '/growth'}
+          className={itemClass(isGrowthActive)}
+        >
+          {isGrowthActive && <ActiveBar />}
+          {pendingPath === '/growth' ? (
+            <RailSpinner />
+          ) : (
+            <svg
+              className="w-[26px] h-[26px] shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={isGrowthActive ? 2.2 : 1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 21.5v-8.5" />
+              <path d="M12 13c0-3.6 2.7-6.1 6.7-6.1-.2 3.9-2.9 6.1-6.7 6.1Z" />
+              <path d="M12 10.3c0-2.9-2.2-4.9-5.4-4.9.2 3.1 2.3 4.9 5.4 4.9" />
+            </svg>
+          )}
+          <span className={labelClass(isGrowthActive)}>신앙 여정</span>
+          <RailTip label="신앙 여정" />
+        </button>
+
         {/* 프로필 */}
         <button
           onClick={handleProfileClick}
@@ -273,36 +349,107 @@ const DesktopNavRail = () => {
         </button>
       </nav>
 
-      {/* 나눔 액션 — 도크 FAB 다이얼을 펼친 형태. 주 액션(기도)만 브랜드 채움 */}
-      <div className="mt-6 flex flex-col gap-2 items-center xl:items-stretch">
+      {/* 나눔 액션 — X/인스타 데스크톱 문법의 단일 주 CTA. 누르면 모바일 홈 FAB과
+          같은 3액션 스피드 다이얼(기도·감사·말씀 카드)이 팝오버로 열린다.
+          두 버튼을 세로로 쌓던 이전 형태보다 위계가 분명하고 확장에도 유리하다 */}
+      <div className="mt-6 relative flex flex-col items-center xl:items-stretch">
+        {dialOpen && (
+          <>
+            {/* 바깥 클릭으로 닫기 */}
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setDialOpen(false)}
+              aria-hidden
+            />
+            <div
+              role="menu"
+              aria-label="나누기 메뉴"
+              className="absolute z-50 bottom-[calc(100%_+_10px)] left-0 w-[236px] xl:right-0 xl:w-auto feed-card rounded-2xl p-2 shadow-xl origin-bottom-left xl:origin-bottom"
+              style={{ animation: 'scale-in 0.16s ease-out both' }}
+            >
+              {/* 모바일 FAB과 같은 다정한 인사 — 열 때마다 로테이션 */}
+              <p className="px-2.5 pt-1.5 pb-1 text-[11.5px] text-ink-muted">
+                {DIAL_GREETINGS[dialNonce % DIAL_GREETINGS.length]}
+              </p>
+              {[
+                {
+                  key: 'prayer',
+                  emoji: '🙏',
+                  label: '기도제목 나누기',
+                  tint: 'bg-[var(--brand-soft-strong)]',
+                  onClick: handleComposeClick,
+                },
+                {
+                  key: 'thanks',
+                  emoji: '🌼',
+                  label: '감사 한 줄 남기기',
+                  tint: 'bg-[rgba(236,95,143,0.12)]',
+                  onClick: handleThanksClick,
+                },
+                {
+                  key: 'verse-card',
+                  emoji: '💌',
+                  label: '말씀 카드 만들기',
+                  tint: 'bg-[rgba(234,179,8,0.14)]',
+                  onClick: () => void goLazy('/bible/photo-verse'),
+                },
+              ].map((action, i) => (
+                <button
+                  key={action.key}
+                  role="menuitem"
+                  onClick={() => {
+                    setDialOpen(false)
+                    action.onClick()
+                  }}
+                  onMouseEnter={
+                    action.key === 'verse-card'
+                      ? () => void preloadRoute('/bible/photo-verse')
+                      : undefined
+                  }
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-[var(--brand-soft)] active:scale-[0.98] transition-[background-color,transform] duration-150"
+                  style={{ animation: 'fade-in 0.22s ease-out both', animationDelay: `${i * 45}ms` }}
+                >
+                  <span
+                    className={`w-9 h-9 rounded-full flex items-center justify-center text-[17px] shrink-0 ${action.tint}`}
+                    aria-hidden
+                  >
+                    {action.emoji}
+                  </span>
+                  <span className="text-[13.5px] font-semibold text-ink-strong whitespace-nowrap">
+                    {action.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
         <button
-          onClick={handleComposeClick}
-          aria-label="기도제목 나누기"
+          onClick={() => {
+            setDialOpen((open) => {
+              if (!open) setDialNonce((n) => n + 1)
+              return !open
+            })
+          }}
+          aria-label="나누기"
+          aria-haspopup="menu"
+          aria-expanded={dialOpen}
           className="group relative brand-gradient w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
         >
-          {/* 도크 FAB와 같은 스파클 얼굴 */}
-          <svg className="w-6 h-6 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          {/* 도크 FAB와 같은 스파클 얼굴 — 열리면 살짝 회전해 "펼쳐짐"을 알린다 */}
+          <svg
+            className={`w-6 h-6 shrink-0 transition-transform duration-200 ${dialOpen ? 'rotate-90' : ''}`}
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden
+          >
             <path d="M11 6.5 C11.65 10.4 13.8 12.55 17.7 13.2 C13.8 13.85 11.65 16 11 19.9 C10.35 16 8.2 13.85 4.3 13.2 C8.2 12.55 10.35 10.4 11 6.5 Z" />
             <path d="M17.8 4.6 C18.08 6.06 18.94 6.92 20.4 7.2 C18.94 7.48 18.08 8.34 17.8 9.8 C17.52 8.34 16.66 7.48 15.2 7.2 C16.66 6.92 17.52 6.06 17.8 4.6 Z" />
           </svg>
           <span className="hidden xl:inline text-[14.5px] font-bold whitespace-nowrap">
-            기도제목 나누기
+            나누기
           </span>
-          <RailTip label="기도제목 나누기" />
-        </button>
-
-        <button
-          onClick={handleThanksClick}
-          aria-label="감사 한 줄 남기기"
-          className="group relative w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-2.5 rounded-full flex items-center justify-center gap-2 border border-[var(--card-border)] text-gray-600 dark:text-white/75 hover:text-brand hover:border-brand hover:bg-[var(--brand-soft)] active:scale-[0.96] transition-[color,background-color,border-color,transform] duration-150"
-        >
-          <span className="text-[17px] leading-none" aria-hidden>
-            🌼
-          </span>
-          <span className="hidden xl:inline text-[13.5px] font-bold whitespace-nowrap">
-            감사 한 줄
-          </span>
-          <RailTip label="감사 한 줄 남기기" />
+          {!dialOpen && <RailTip label="나누기" />}
         </button>
       </div>
 

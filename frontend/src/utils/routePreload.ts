@@ -25,6 +25,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/account': () => import('../pages/Account/AccountSettings'),
   '/profile': () => import('../pages/Profile/Profile'),
   '/prayer-focus': () => import('../pages/PrayerFocus'),
+  // PC 좌측 레일 "신앙 여정"
+  '/growth': () => import('../pages/Growth/Growth'),
   // 홈 FAB 스피드 다이얼의 "말씀 카드 만들기" 목적지
   '/bible/photo-verse': () => import('../pages/Bible/PhotoVerse/PhotoVerse'),
   '/classes': () => import('../pages/ClassRoom/ClassList'),
