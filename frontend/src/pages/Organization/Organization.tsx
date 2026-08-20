@@ -105,7 +105,7 @@ const GovernanceBand = ({ units }: { units: OrgUnit[] }) => {
   if (units.length === 0) return null
 
   return (
-    <section className="px-4 pt-4">
+    <section className="org-governance px-4 pt-4">
       <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
         의결기구
       </p>
@@ -251,21 +251,24 @@ const Organization = () => {
     })
 
   return (
-    <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+    <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage org-page">
+      {/* lg:overflow-hidden 을 주면 이 셸이 sticky 의 스크롤 조상이 되어 우측 레일이 죽는다 */}
+      <div className="org-shell max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-[1120px] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:min-h-0">
         {/* 헤더 */}
-        <header className="px-4 pt-5 pb-3">
-          <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
-            CHURCH ORGANIZATION
-          </p>
-          <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
-            교회 조직도
-          </h1>
-          <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2 leading-relaxed">
-            한 몸을 이루는 여러 지체입니다. 섬기고 계신 자리를 찾아보세요.
-          </p>
+        <header className="org-head px-4 pt-5 pb-3">
+          <div className="org-head-text">
+            <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
+              CHURCH ORGANIZATION
+            </p>
+            <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
+              교회 조직도
+            </h1>
+            <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2 leading-relaxed">
+              한 몸을 이루는 여러 지체입니다. 섬기고 계신 자리를 찾아보세요.
+            </p>
+          </div>
           {data && (
-            <div className="mt-3 flex items-center gap-1.5">
+            <div className="org-head-stats mt-3 flex items-center gap-1.5">
               <span className="px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-[12px] text-brand">
                 위원회 <span className="font-bold">{data.committee_count}</span>
               </span>
@@ -276,85 +279,96 @@ const Organization = () => {
           )}
         </header>
 
-        {/* 검색 */}
-        <div className="px-4 pb-1">
-          <div className="relative">
-            <svg
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/30"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.2-3.2" />
-            </svg>
-            <input
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder="부서 · 위원회 이름으로 찾기"
-              className="w-full pl-10 pr-9 py-3 text-[13.5px] rounded-full border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand focus:ring-2 focus:ring-[var(--brand-glow)] transition-[border-color,box-shadow]"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery('')}
-                aria-label="검색어 지우기"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-              >
-                <span className="material-icons-round text-[16px]">close</span>
-              </button>
+        {/* PC(lg+) 2단 — 좌: 위원회 목록(2열) / 우: 검색 + 의결기구가 sticky 로 따라온다.
+            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
+        <div className="org-columns">
+          <div className="org-col-side">
+            {/* 검색 */}
+            <div className="org-search px-4 pb-1">
+              <div className="relative">
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/30"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.2-3.2" />
+                </svg>
+                <input
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder="부서 · 위원회 이름으로 찾기"
+                  className="w-full pl-10 pr-9 py-3 text-[13.5px] rounded-full border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand focus:ring-2 focus:ring-[var(--brand-glow)] transition-[border-color,box-shadow]"
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery('')}
+                    aria-label="검색어 지우기"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                  >
+                    <span className="material-icons-round text-[16px]">close</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* 의결기구 — PC 에선 검색 아래 레일에 붙어 위원회를 훑는 내내 함께 보인다 */}
+            {!isLoading && !isError && data && !needle && (
+              <GovernanceBand units={data.governance} />
+            )}
+          </div>
+
+          <div className="org-col-main">
+            {isLoading ? (
+              <div className="flex justify-center py-20">
+                <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
+              </div>
+            ) : isError ? (
+              <p className="px-6 py-20 text-center text-[13px] text-gray-500 dark:text-white/50">
+                조직도를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+              </p>
+            ) : !data || (data.governance.length === 0 && data.committees.length === 0) ? (
+              <p className="px-6 py-20 text-center text-[13px] text-gray-400 dark:text-white/30">
+                아직 등록된 조직도가 없습니다
+              </p>
+            ) : (
+              <>
+                <section className="org-committees px-4 pt-4 space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted px-1">
+                    위원회
+                  </p>
+                  {committees.length === 0 ? (
+                    <p className="py-12 text-center text-[13px] text-gray-400 dark:text-white/30">
+                      "{query}"와 일치하는 조직이 없습니다
+                    </p>
+                  ) : (
+                    committees.map(committee => (
+                      <CommitteeCard
+                        key={committee.id}
+                        committee={committee}
+                        // 검색 중에는 걸린 가지를 바로 보여준다
+                        expanded={!!needle || openIds.has(committee.id)}
+                        onToggle={() => toggle(committee.id)}
+                      />
+                    ))
+                  )}
+                </section>
+
+                {data.updated_at && (
+                  <p className="org-updated px-5 pt-5 text-[11.5px] text-gray-400 dark:text-white/30">
+                    마지막 업데이트 {formatStamp(data.updated_at)}
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>
-
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
-          </div>
-        ) : isError ? (
-          <p className="px-6 py-20 text-center text-[13px] text-gray-500 dark:text-white/50">
-            조직도를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
-          </p>
-        ) : !data || (data.governance.length === 0 && data.committees.length === 0) ? (
-          <p className="px-6 py-20 text-center text-[13px] text-gray-400 dark:text-white/30">
-            아직 등록된 조직도가 없습니다
-          </p>
-        ) : (
-          <>
-            {!needle && <GovernanceBand units={data.governance} />}
-
-            <section className="px-4 pt-4 space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted px-1">
-                위원회
-              </p>
-              {committees.length === 0 ? (
-                <p className="py-12 text-center text-[13px] text-gray-400 dark:text-white/30">
-                  "{query}"와 일치하는 조직이 없습니다
-                </p>
-              ) : (
-                committees.map(committee => (
-                  <CommitteeCard
-                    key={committee.id}
-                    committee={committee}
-                    // 검색 중에는 걸린 가지를 바로 보여준다
-                    expanded={!!needle || openIds.has(committee.id)}
-                    onToggle={() => toggle(committee.id)}
-                  />
-                ))
-              )}
-            </section>
-
-            {data.updated_at && (
-              <p className="px-5 pt-5 text-[11.5px] text-gray-400 dark:text-white/30">
-                마지막 업데이트 {formatStamp(data.updated_at)}
-              </p>
-            )}
-          </>
-        )}
       </div>
     </div>
   )

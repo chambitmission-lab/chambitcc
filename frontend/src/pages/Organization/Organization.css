@@ -211,3 +211,121 @@
   background: rgba(45, 212, 191, 0.13);
   color: #2dd4bf;
 }
+
+
+/* ============================================
+   PC (lg+) — "나란히 놓고 보는" 2단 레이아웃
+   ────────────────────────────────────────────
+   모바일은 검색 → 의결기구 → 위원회 14개를 세로로 길게 훑는다.
+   PC 에선 검색과 의결기구를 우측에 고정해 두고 왼쪽에서 위원회를 2열로 본다 —
+   부서를 찾다가 검색창을 쓰러 맨 위로 올라갈 일이 없고, 스크롤 길이도 절반이 된다.
+   래퍼 3개는 lg 미만에서 display:contents 라 모바일 화면은 기존과 완전히 동일하다.
+   ============================================ */
+.org-columns,
+.org-col-main,
+.org-col-side {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  /* 이 앱은 #root 에 overflow-y:auto 가 걸려 있어 position:sticky 가 전역으로 죽어 있다.
+     그래서 lg 에서만 이 페이지를 스스로 스크롤하는 상자로 만든다 — 헤더(56px)를 뺀
+     높이를 갖는 순간 우측 레일 sticky 가 이 상자 기준으로 산다.
+     (같은 이유로 .org-shell 에 lg:overflow-hidden 을 주면 안 된다) */
+  .org-page {
+    height: calc(100vh - 56px);
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+  }
+
+  .org-shell {
+    padding-bottom: 2.5rem;
+  }
+
+  /* ── 헤더 — 제목 왼쪽 / 통계 오른쪽 한 줄 ── */
+  .org-shell .org-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 30px 28px 18px;
+  }
+
+  .org-head h1 {
+    font-size: 32px;
+  }
+
+  .org-head .org-head-stats {
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  /* ── 2단 그리드 ── */
+  .org-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 24px;
+    align-items: start;
+    padding: 0 28px;
+  }
+
+  .org-col-main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .org-col-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 0.25rem; /* .org-page 스크롤 상자 기준 (이미 헤더 아래에서 시작한다) */
+  }
+
+  /* 컬럼이 좌우 여백을 담당하므로 안쪽 섹션의 가로 패딩은 걷어낸다 */
+  .org-columns .org-search,
+  .org-columns .org-governance,
+  .org-columns .org-committees {
+    padding: 0;
+  }
+
+  .org-columns .org-updated {
+    padding: 0;
+  }
+
+  /* ── 위원회 — 2열 격자.
+     펼친 카드만 세로로 자라도록 align-items:start (옆 카드가 같이 늘어나지 않는다) ── */
+  .org-columns .org-committees {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 10px;
+  }
+
+  /* 'ㅇ위원회' 라벨과 검색 결과 없음 문구는 두 열에 걸친다 */
+  .org-columns .org-committees > p {
+    grid-column: 1 / -1;
+  }
+
+  /* space-y-2 의 형제 마진은 격자에선 세로 간격을 어긋나게 한다 */
+  .org-columns .org-committees > * + * {
+    margin-top: 0;
+  }
+}
+
+/* 노트북처럼 세로가 짧은 PC — 고정된 레일이 잘리지 않게 스스로 스크롤하게 둔다 */
+@media (min-width: 1024px) and (max-height: 800px) {
+  .org-col-side {
+    max-height: calc(100vh - 72px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+}
