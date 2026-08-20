@@ -126,10 +126,11 @@ const BibleCommentaryManagement = () => {
     'w-full h-11 rounded-xl px-3 bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] text-[14px] text-ink-strong focus:outline-none focus:border-brand'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-[980px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border">
         {/* 헤더 */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+        {/* lg 에선 라운드 셸 위에 sticky 막대가 뜨지 않게 풀어 둔다 */}
+        <div className="sticky top-0 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
@@ -143,15 +144,17 @@ const BibleCommentaryManagement = () => {
           <span className="w-12" />
         </div>
 
-        <div className="px-4 py-5 space-y-5">
+        {/* PC(lg+) 2단 — 좌: 안내·범위·시작 / 우: 진행률·로그.
+            lg 미만에선 grid 가 꺼져 기존 세로 흐름 그대로다. */}
+        <div className="px-4 py-5 space-y-5 lg:px-5 lg:grid lg:grid-cols-2 lg:gap-x-5 lg:space-y-0 lg:items-start">
           {/* 안내 */}
-          <p className="text-[13px] leading-relaxed text-gray-500 dark:text-white/55">
+          <p className="text-[13px] leading-relaxed text-gray-500 dark:text-white/55 lg:col-start-1 lg:row-start-1">
             해석이 아직 없는 절을 정경 순서대로 골라 AI가 해석을 생성해 바로 저장합니다.
             저장된 해석은 말씀 화면에서 수정·삭제할 수 있습니다.
           </p>
 
           {/* 범위 설정 */}
-          <div className="space-y-3 rounded-2xl border border-gray-200/70 dark:border-white/[0.06] bg-white/70 dark:bg-card-dark p-4">
+          <div className="space-y-3 rounded-2xl border border-gray-200/70 dark:border-white/[0.06] bg-white/70 dark:bg-card-dark p-4 lg:col-start-1 lg:row-start-2 lg:mt-5">
             <div>
               <label className="block text-[12px] font-semibold text-gray-600 dark:text-white/60 mb-1.5">
                 대상 책 (선택)
@@ -227,7 +230,7 @@ const BibleCommentaryManagement = () => {
             <button
               disabled
               onClick={handleStart}
-              className="w-full inline-flex items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gray-200 dark:bg-white/[0.07] text-gray-400 dark:text-white/30 text-[15px] font-bold cursor-not-allowed"
+              className="w-full inline-flex items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gray-200 dark:bg-white/[0.07] text-gray-400 dark:text-white/30 text-[15px] font-bold cursor-not-allowed lg:col-start-1 lg:row-start-3 lg:mt-5"
             >
               <span className="material-icons-round text-[20px]">block</span>
               {count}개 생성 시작 (비활성화됨)
@@ -235,68 +238,83 @@ const BibleCommentaryManagement = () => {
           ) : (
             <button
               onClick={handleStop}
-              className="w-full inline-flex items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-ink-strong text-[15px] font-bold transition-all"
+              className="w-full inline-flex items-center justify-center gap-1.5 py-3.5 rounded-xl bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-ink-strong text-[15px] font-bold transition-all lg:col-start-1 lg:row-start-3 lg:mt-5"
             >
               <span className="material-icons-round text-[20px] animate-spin">refresh</span>
               생성 중... (눌러서 중단)
             </button>
           )}
 
-          {/* 진행률 */}
-          {(running || done > 0) && (
-            <div className="space-y-3 rounded-2xl border border-gray-200/70 dark:border-white/[0.06] bg-white/70 dark:bg-card-dark p-4">
-              <div className="flex items-center justify-between text-[13px] font-semibold">
-                <span className="text-gray-700 dark:text-white/80">
-                  진행 {done} / {count}
-                </span>
-                <span className="text-brand">{progressPct}%</span>
-              </div>
-              <div className="h-2 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
-                <div
-                  className="h-full bg-brand transition-all duration-300"
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-              <div className="flex flex-wrap gap-2 text-[12px]">
-                <span className="px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-semibold">
-                  성공 {ok}
-                </span>
-                {fail > 0 && (
-                  <span className="px-2.5 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 font-semibold">
-                    실패 {fail}
+          {/* 우측 칼럼 — 진행률·로그. lg 미만에선 display:contents 라 기존 흐름 그대로 */}
+          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:row-span-3">
+            {/* 진행률 */}
+            {(running || done > 0) && (
+              <div className="space-y-3 rounded-2xl border border-gray-200/70 dark:border-white/[0.06] bg-white/70 dark:bg-card-dark p-4 mt-5 lg:mt-0">
+                <div className="flex items-center justify-between text-[13px] font-semibold">
+                  <span className="text-gray-700 dark:text-white/80">
+                    진행 {done} / {count}
                   </span>
-                )}
-                {remaining != null && (
-                  <span className="px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-brand font-semibold">
-                    남은 절 {remaining}
-                  </span>
-                )}
-              </div>
-              {finished && (
-                <p className="text-[12.5px] text-green-600 dark:text-green-400 font-semibold">
-                  ✓ 이 범위에 더 채울 절이 없습니다.
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* 로그 */}
-          {logs.length > 0 && (
-            <div className="rounded-2xl border border-gray-200/70 dark:border-white/[0.06] bg-white/70 dark:bg-card-dark p-3 max-h-72 overflow-y-auto space-y-1">
-              {logs.map((log, i) => (
-                <div
-                  key={i}
-                  className={`text-[12.5px] px-2 py-1 rounded-lg ${
-                    log.ok
-                      ? 'text-gray-600 dark:text-white/70'
-                      : 'text-red-600 dark:text-red-400 bg-red-500/[0.06]'
-                  }`}
-                >
-                  {log.text}
+                  <span className="text-brand">{progressPct}%</span>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="h-2 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
+                  <div
+                    className="h-full bg-brand transition-all duration-300"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2 text-[12px]">
+                  <span className="px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-semibold">
+                    성공 {ok}
+                  </span>
+                  {fail > 0 && (
+                    <span className="px-2.5 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 font-semibold">
+                      실패 {fail}
+                    </span>
+                  )}
+                  {remaining != null && (
+                    <span className="px-2.5 py-1 rounded-full bg-[var(--brand-soft)] text-brand font-semibold">
+                      남은 절 {remaining}
+                    </span>
+                  )}
+                </div>
+                {finished && (
+                  <p className="text-[12.5px] text-green-600 dark:text-green-400 font-semibold">
+                    ✓ 이 범위에 더 채울 절이 없습니다.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* 로그 */}
+            {logs.length > 0 && (
+              <div className="rounded-2xl border border-gray-200/70 dark:border-white/[0.06] bg-white/70 dark:bg-card-dark p-3 max-h-72 lg:max-h-[calc(100vh-280px)] overflow-y-auto space-y-1 mt-5">
+                {logs.map((log, i) => (
+                  <div
+                    key={i}
+                    className={`text-[12.5px] px-2 py-1 rounded-lg ${
+                      log.ok
+                        ? 'text-gray-600 dark:text-white/70'
+                        : 'text-red-600 dark:text-red-400 bg-red-500/[0.06]'
+                    }`}
+                  >
+                    {log.text}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 아직 아무것도 돌리지 않았을 때 — PC 우측 칼럼이 비어 보이지 않게 */}
+            {!running && done === 0 && logs.length === 0 && (
+              <div className="hidden lg:flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 dark:border-white/[0.12] p-8 text-center">
+                <span className="material-icons-round text-[28px] text-gray-300 dark:text-white/20 mb-2">terminal</span>
+                <p className="text-[13px] font-semibold text-ink-strong">생성 로그가 여기에 표시됩니다</p>
+                <p className="text-[12px] text-gray-500 dark:text-white/50 mt-1 leading-relaxed">
+                  왼쪽에서 범위와 개수를 정하고 시작하면
+                  <br />진행률과 절별 결과가 실시간으로 쌓입니다.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

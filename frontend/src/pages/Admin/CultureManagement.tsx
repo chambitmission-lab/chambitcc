@@ -492,10 +492,13 @@ const CultureManagement = () => {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24">
+    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
+    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border">
         {/* 스티키 헤더 */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+        {/* lg 에선 도구가 우측 레일에 고정되므로 헤더 sticky 를 풀어 둔다 */}
+        <div className="sticky top-0 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
@@ -522,244 +525,273 @@ const CultureManagement = () => {
           </span>
         </div>
 
-        {/* 탭 */}
-        <div className="px-4 pt-3 flex gap-1.5">
-          {(
-            [
-              { key: 'classes', label: '강좌' },
-              { key: 'applications', label: '신청자' },
-              { key: 'notices', label: '공지' },
-            ] as const
-          ).map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex-1 py-2 text-[13px] font-semibold rounded-xl border transition-colors ${
-                tab === t.key
-                  ? 'border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] text-brand'
-                  : 'border-gray-200/70 dark:border-white/[0.06] text-gray-500 dark:text-white/50 hover:border-[var(--brand-soft-strong)]'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {/* PC(lg+) 2단 — 좌: 탭 콘텐츠(강좌·신청자·공지) / 우: 추가 버튼과 탭이 sticky.
+            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
+          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:space-y-3">
+            {/* PC 전용 추가 버튼 — lg 에선 FAB 대신 레일 상단에서 연다 */}
+            {tab !== 'applications' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (tab === 'classes') {
+                    setClassTarget(null)
+                    setShowClassForm(true)
+                  } else {
+                    setNoticeTarget(null)
+                    setShowNoticeForm(true)
+                  }
+                }}
+                className="hidden lg:flex w-full items-center justify-center gap-2 py-2.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors"
+              >
+                <span className="material-icons-round text-[18px]">add</span>
+                {tab === 'classes' ? '강좌 추가' : '공지 추가'}
+              </button>
+            )}
 
-        {/* ── 강좌 탭 ── */}
-        {tab === 'classes' &&
-          (loading ? (
-            spinner
-          ) : (
-            <div className="px-4 pt-4 space-y-2">
-              {classes.length === 0 && (
-                <p className="py-16 text-center text-sm text-gray-400 dark:text-white/30">
-                  등록된 강좌가 없습니다
-                </p>
-              )}
-              {classes.map((c) => (
-                <div key={c.id} className={`${cardClass} px-4 py-3.5`}>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[14px] font-semibold text-gray-900 dark:text-white/85">
-                      {c.title}
-                    </span>
-                    {c.is_open ? (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand font-bold">
-                        모집중
-                      </span>
-                    ) : (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/35">
-                        마감
-                      </span>
-                    )}
-                    {!c.is_active && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/35">
-                        비노출
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[12px] text-gray-400 dark:text-white/40 mt-1">
-                    {[c.instructor, c.schedule, c.fee].filter(Boolean).join(' · ') || '—'}
-                  </p>
-                  <p className="text-[12px] text-[var(--brand-muted)] font-semibold mt-0.5">
-                    신청 {c.application_count}명{c.capacity ? ` / 정원 ${c.capacity}명` : ''}
-                  </p>
-                  <div className="flex gap-1 mt-2">
-                    <button
-                      onClick={() => {
-                        setTab('applications')
-                        setClassFilter(c.id)
-                      }}
-                      className="px-2.5 py-1 text-[12px] font-medium text-brand hover:bg-[var(--brand-soft)] rounded-lg transition-colors"
-                    >
-                      신청자
-                    </button>
-                    <button
-                      onClick={() => {
-                        setClassTarget(c)
-                        setShowClassForm(true)
-                      }}
-                      className="px-2.5 py-1 text-[12px] font-medium text-gray-500 dark:text-white/50 hover:bg-gray-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors"
-                    >
-                      수정
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClass(c)}
-                      className="px-2.5 py-1 text-[12px] font-medium text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </div>
+            {/* 탭 */}
+            <div className="px-4 pt-3 lg:px-0 lg:pt-0 flex gap-1.5 lg:flex-col">
+              {(
+                [
+                  { key: 'classes', label: '강좌' },
+                  { key: 'applications', label: '신청자' },
+                  { key: 'notices', label: '공지' },
+                ] as const
+              ).map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className={`flex-1 py-2 text-[13px] font-semibold rounded-xl border transition-colors ${
+                    tab === t.key
+                      ? 'border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] text-brand'
+                      : 'border-gray-200/70 dark:border-white/[0.06] text-gray-500 dark:text-white/50 hover:border-[var(--brand-soft-strong)]'
+                  }`}
+                >
+                  {t.label}
+                </button>
               ))}
             </div>
-          ))}
 
-        {/* ── 신청자 탭 ── */}
-        {tab === 'applications' && (
-          <>
-            <div className="px-4 pt-3 flex gap-2">
-              <select
-                value={classFilter}
-                onChange={(e) => setClassFilter(e.target.value ? Number(e.target.value) : '')}
-                className={`${inputClass} flex-1`}
-              >
-                <option value="">전체 강좌</option>
-                {classes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.title}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value as CultureApplicationStatus | '')
-                }
-                className={`${inputClass} w-32`}
-              >
-                <option value="">전체 상태</option>
-                <option value="pending">접수 대기</option>
-                <option value="confirmed">등록 완료</option>
-                <option value="cancelled">취소됨</option>
-              </select>
-            </div>
-            {loading ? (
-              spinner
-            ) : (
-              <div className="px-4 pt-3 space-y-2">
-                {applications.length === 0 && (
-                  <p className="py-16 text-center text-sm text-gray-400 dark:text-white/30">
-                    신청 내역이 없습니다
-                  </p>
-                )}
-                {applications.map((a) => (
-                  <div key={a.id} className={`${cardClass} px-4 py-3.5`}>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[14px] font-semibold text-gray-900 dark:text-white/85 truncate">
-                        {a.name}
-                        {a.gender ? ` (${a.gender})` : ''}
-                      </span>
-                      <span
-                        className={`flex-shrink-0 text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${STATUS_BADGE[a.status]}`}
-                      >
-                        {STATUS_LABEL[a.status]}
-                      </span>
-                    </div>
-                    <p className="text-[12px] text-[var(--brand-muted)] font-medium mt-0.5">
-                      {a.class_title ?? '삭제된 강좌'}
+          </div>
+
+          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
+            {/* ── 강좌 탭 ── */}
+            {tab === 'classes' &&
+              (loading ? (
+                spinner
+              ) : (
+                <div className="px-4 pt-4 lg:px-0 lg:pt-0 lg:pb-8 space-y-2">
+                  {classes.length === 0 && (
+                    <p className="py-16 text-center text-sm text-gray-400 dark:text-white/30">
+                      등록된 강좌가 없습니다
                     </p>
-                    <p className="text-[12px] text-gray-400 dark:text-white/40 mt-0.5">
-                      {a.phone} · {a.birth_date} ·{' '}
-                      {new Date(a.created_at).toLocaleDateString('ko-KR')}
-                    </p>
-                    {a.memo && (
-                      <p className="text-[12px] text-gray-500 dark:text-white/50 mt-1.5 p-2 rounded-lg bg-gray-50 dark:bg-white/[0.04] whitespace-pre-wrap">
-                        {a.memo}
+                  )}
+                  {classes.map((c) => (
+                    <div key={c.id} className={`${cardClass} px-4 py-3.5`}>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[14px] font-semibold text-gray-900 dark:text-white/85">
+                          {c.title}
+                        </span>
+                        {c.is_open ? (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand font-bold">
+                            모집중
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/35">
+                            마감
+                          </span>
+                        )}
+                        {!c.is_active && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/35">
+                            비노출
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[12px] text-gray-400 dark:text-white/40 mt-1">
+                        {[c.instructor, c.schedule, c.fee].filter(Boolean).join(' · ') || '—'}
                       </p>
-                    )}
-                    <div className="flex gap-1 mt-2">
-                      {a.status !== 'confirmed' && (
+                      <p className="text-[12px] text-[var(--brand-muted)] font-semibold mt-0.5">
+                        신청 {c.application_count}명{c.capacity ? ` / 정원 ${c.capacity}명` : ''}
+                      </p>
+                      <div className="flex gap-1 mt-2">
                         <button
-                          onClick={() => handleStatusChange(a, 'confirmed')}
-                          className="px-2.5 py-1 text-[12px] font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                          onClick={() => {
+                            setTab('applications')
+                            setClassFilter(c.id)
+                          }}
+                          className="px-2.5 py-1 text-[12px] font-medium text-brand hover:bg-[var(--brand-soft)] rounded-lg transition-colors"
                         >
-                          등록 완료
+                          신청자
                         </button>
-                      )}
-                      {a.status !== 'pending' && (
                         <button
-                          onClick={() => handleStatusChange(a, 'pending')}
-                          className="px-2.5 py-1 text-[12px] font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-lg transition-colors"
+                          onClick={() => {
+                            setClassTarget(c)
+                            setShowClassForm(true)
+                          }}
+                          className="px-2.5 py-1 text-[12px] font-medium text-gray-500 dark:text-white/50 hover:bg-gray-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors"
                         >
-                          대기로
+                          수정
                         </button>
-                      )}
-                      {a.status !== 'cancelled' && (
                         <button
-                          onClick={() => handleStatusChange(a, 'cancelled')}
+                          onClick={() => handleDeleteClass(c)}
                           className="px-2.5 py-1 text-[12px] font-medium text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
                         >
-                          취소
+                          삭제
                         </button>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ── 공지 탭 ── */}
-        {tab === 'notices' &&
-          (loading ? (
-            spinner
-          ) : (
-            <div className="px-4 pt-4 space-y-2">
-              {notices.length === 0 && (
-                <p className="py-16 text-center text-sm text-gray-400 dark:text-white/30">
-                  등록된 공지가 없습니다
-                </p>
-              )}
-              {notices.map((n) => (
-                <div key={n.id} className={`${cardClass} px-4 py-3.5`}>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[14px] font-semibold text-gray-900 dark:text-white/85 truncate">
-                      {n.title}
-                    </span>
-                    {!n.is_active && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/35 flex-shrink-0">
-                        비공개
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[12px] text-gray-500 dark:text-white/45 mt-1 line-clamp-2 whitespace-pre-wrap">
-                    {n.content}
-                  </p>
-                  <p className="text-[11px] text-gray-400 dark:text-white/30 mt-1">
-                    {new Date(n.created_at).toLocaleDateString('ko-KR')}
-                  </p>
-                  <div className="flex gap-1 mt-2">
-                    <button
-                      onClick={() => {
-                        setNoticeTarget(n)
-                        setShowNoticeForm(true)
-                      }}
-                      className="px-2.5 py-1 text-[12px] font-medium text-gray-500 dark:text-white/50 hover:bg-gray-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors"
-                    >
-                      수정
-                    </button>
-                    <button
-                      onClick={() => handleDeleteNotice(n)}
-                      className="px-2.5 py-1 text-[12px] font-medium text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                    >
-                      삭제
-                    </button>
-                  </div>
+                  ))}
                 </div>
               ))}
-            </div>
-          ))}
+
+            {/* ── 신청자 탭 ── */}
+            {tab === 'applications' && (
+              <>
+                <div className="px-4 pt-3 lg:px-0 lg:pt-0 flex gap-2">
+                  <select
+                    value={classFilter}
+                    onChange={(e) => setClassFilter(e.target.value ? Number(e.target.value) : '')}
+                    className={`${inputClass} flex-1`}
+                  >
+                    <option value="">전체 강좌</option>
+                    {classes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) =>
+                      setStatusFilter(e.target.value as CultureApplicationStatus | '')
+                    }
+                    className={`${inputClass} w-32`}
+                  >
+                    <option value="">전체 상태</option>
+                    <option value="pending">접수 대기</option>
+                    <option value="confirmed">등록 완료</option>
+                    <option value="cancelled">취소됨</option>
+                  </select>
+                </div>
+                {loading ? (
+                  spinner
+                ) : (
+                  <div className="px-4 pt-3 space-y-2">
+                    {applications.length === 0 && (
+                      <p className="py-16 text-center text-sm text-gray-400 dark:text-white/30">
+                        신청 내역이 없습니다
+                      </p>
+                    )}
+                    {applications.map((a) => (
+                      <div key={a.id} className={`${cardClass} px-4 py-3.5`}>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[14px] font-semibold text-gray-900 dark:text-white/85 truncate">
+                            {a.name}
+                            {a.gender ? ` (${a.gender})` : ''}
+                          </span>
+                          <span
+                            className={`flex-shrink-0 text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${STATUS_BADGE[a.status]}`}
+                          >
+                            {STATUS_LABEL[a.status]}
+                          </span>
+                        </div>
+                        <p className="text-[12px] text-[var(--brand-muted)] font-medium mt-0.5">
+                          {a.class_title ?? '삭제된 강좌'}
+                        </p>
+                        <p className="text-[12px] text-gray-400 dark:text-white/40 mt-0.5">
+                          {a.phone} · {a.birth_date} ·{' '}
+                          {new Date(a.created_at).toLocaleDateString('ko-KR')}
+                        </p>
+                        {a.memo && (
+                          <p className="text-[12px] text-gray-500 dark:text-white/50 mt-1.5 p-2 rounded-lg bg-gray-50 dark:bg-white/[0.04] whitespace-pre-wrap">
+                            {a.memo}
+                          </p>
+                        )}
+                        <div className="flex gap-1 mt-2">
+                          {a.status !== 'confirmed' && (
+                            <button
+                              onClick={() => handleStatusChange(a, 'confirmed')}
+                              className="px-2.5 py-1 text-[12px] font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+                            >
+                              등록 완료
+                            </button>
+                          )}
+                          {a.status !== 'pending' && (
+                            <button
+                              onClick={() => handleStatusChange(a, 'pending')}
+                              className="px-2.5 py-1 text-[12px] font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-lg transition-colors"
+                            >
+                              대기로
+                            </button>
+                          )}
+                          {a.status !== 'cancelled' && (
+                            <button
+                              onClick={() => handleStatusChange(a, 'cancelled')}
+                              className="px-2.5 py-1 text-[12px] font-medium text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                            >
+                              취소
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ── 공지 탭 ── */}
+            {tab === 'notices' &&
+              (loading ? (
+                spinner
+              ) : (
+                <div className="px-4 pt-4 lg:px-0 lg:pt-0 lg:pb-8 space-y-2">
+                  {notices.length === 0 && (
+                    <p className="py-16 text-center text-sm text-gray-400 dark:text-white/30">
+                      등록된 공지가 없습니다
+                    </p>
+                  )}
+                  {notices.map((n) => (
+                    <div key={n.id} className={`${cardClass} px-4 py-3.5`}>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[14px] font-semibold text-gray-900 dark:text-white/85 truncate">
+                          {n.title}
+                        </span>
+                        {!n.is_active && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/35 flex-shrink-0">
+                            비공개
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[12px] text-gray-500 dark:text-white/45 mt-1 line-clamp-2 whitespace-pre-wrap">
+                        {n.content}
+                      </p>
+                      <p className="text-[11px] text-gray-400 dark:text-white/30 mt-1">
+                        {new Date(n.created_at).toLocaleDateString('ko-KR')}
+                      </p>
+                      <div className="flex gap-1 mt-2">
+                        <button
+                          onClick={() => {
+                            setNoticeTarget(n)
+                            setShowNoticeForm(true)
+                          }}
+                          className="px-2.5 py-1 text-[12px] font-medium text-gray-500 dark:text-white/50 hover:bg-gray-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={() => handleDeleteNotice(n)}
+                          className="px-2.5 py-1 text-[12px] font-medium text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+          </div>
+        </div>
       </div>
 
       {/* FAB */}
@@ -774,7 +806,7 @@ const CultureManagement = () => {
               setShowNoticeForm(true)
             }
           }}
-          className="fixed bottom-6 right-1/2 translate-x-[calc(50%+min(calc(100vw/2),24rem)-4.5rem)] z-30 flex items-center gap-2 px-5 py-3 bg-brand hover:bg-brand-dim text-white text-sm font-bold rounded-2xl shadow-[0_4px_20px_var(--brand-glow)] transition-colors"
+          className="fixed bottom-6 right-1/2 translate-x-[calc(50%+min(calc(100vw/2),24rem)-4.5rem)] z-30 lg:hidden flex items-center gap-2 px-5 py-3 bg-brand hover:bg-brand-dim text-white text-sm font-bold rounded-2xl shadow-[0_4px_20px_var(--brand-glow)] transition-colors"
         >
           <span className="material-icons-round text-[18px]">add</span>
           {tab === 'classes' ? '강좌 추가' : '공지 추가'}

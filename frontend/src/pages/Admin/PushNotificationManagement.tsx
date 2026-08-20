@@ -180,10 +180,12 @@ export const PushNotificationManagement = () => {
   const canSend = title.trim().length > 0 && body.trim().length > 0 && !isSending && audienceCount > 0
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-28">
-        {/* 헤더 */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
+    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-28 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:rounded-3xl lg:border">
+        {/* 헤더 — lg 에선 템플릿이 우측 레일에 고정되므로 sticky 를 풀어 둔다 */}
+        <div className="sticky top-0 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
@@ -197,213 +199,222 @@ export const PushNotificationManagement = () => {
           </span>
         </div>
 
-        {/* 통계 칩 */}
-        <div className="px-4 pt-4 pb-1 flex gap-2 flex-wrap">
-          <StatChip label="회원" value={picker.users.length} />
-          <StatChip label="활성" value={picker.activeCount} />
-          <StatChip label="관리자" value={picker.adminCount} accent />
-        </div>
-
-        {/* 빠른 템플릿 */}
-        <SectionCard title="빠른 템플릿" subtitle="자주 보내는 알림을 한 번에 채워요">
-          <div className="grid grid-cols-2 gap-2">
-            {PRESETS.map((p) => (
-              <button
-                key={p.key}
-                type="button"
-                onClick={() => applyPreset(p)}
-                className="group text-left rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] hover:border-brand hover:bg-[var(--brand-soft)] transition-all p-3 flex flex-col gap-1"
-              >
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[16px]">{p.emoji}</span>
-                  <span className="text-[12.5px] font-semibold text-ink-strong truncate">{p.title}</span>
-                </div>
-                <span className="text-[10.5px] text-gray-500 dark:text-white/50 truncate">{p.hint}</span>
-              </button>
-            ))}
-          </div>
-        </SectionCard>
-
-        {/* 알림 작성 */}
-        <SectionCard title="알림 작성">
-          <FieldLabel htmlFor="push-title">
-            제목
-            <CharCount current={title.length} max={TITLE_MAX} />
-          </FieldLabel>
-          <input
-            id="push-title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
-            placeholder="알림 제목"
-            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
-          />
-
-          <FieldLabel htmlFor="push-body" className="mt-4">
-            내용
-            <CharCount current={body.length} max={BODY_MAX} />
-          </FieldLabel>
-          <textarea
-            id="push-body"
-            value={body}
-            onChange={(e) => setBody(e.target.value.slice(0, BODY_MAX))}
-            placeholder="알림 내용"
-            rows={4}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors resize-none"
-          />
-
-          <FieldLabel className="mt-4">이동 위치</FieldLabel>
-          <div className="flex gap-1.5 flex-wrap mb-2">
-            {URL_OPTIONS.map((opt) => (
-              <FilterChip key={opt.value} active={url === opt.value} onClick={() => setUrl(opt.value)}>
-                {opt.label}
-              </FilterChip>
-            ))}
-          </div>
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="/news"
-            className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
-          />
-
-          {/* 고급 옵션 */}
-          <button
-            type="button"
-            onClick={() => setAdvancedOpen((v) => !v)}
-            className="mt-4 w-full flex items-center justify-between text-[12px] text-gray-500 dark:text-white/55 hover:text-gray-700 dark:hover:text-white/80 transition-colors"
-          >
-            <span>고급 옵션 (태그 · 아이콘 URL)</span>
-            <span
-              className={`material-icons-outlined text-[18px] transition-transform duration-200 ${advancedOpen ? 'rotate-180' : ''}`}
-            >
-              expand_more
-            </span>
-          </button>
-          {advancedOpen && (
-            <div className="mt-3 space-y-3">
-              <div>
-                <FieldLabel htmlFor="push-tag">태그</FieldLabel>
-                <input
-                  id="push-tag"
-                  type="text"
-                  value={tag}
-                  onChange={(e) => setTag(e.target.value)}
-                  placeholder="notification"
-                  className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
-                />
-                <p className="mt-1 text-[10.5px] text-gray-400 dark:text-white/40">같은 태그의 이전 알림은 새 알림으로 대체됩니다</p>
-              </div>
-              <div>
-                <FieldLabel htmlFor="push-icon">아이콘 URL</FieldLabel>
-                <input
-                  id="push-icon"
-                  type="text"
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value)}
-                  placeholder={DEFAULT_ICON}
-                  className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
-                />
-              </div>
+        {/* PC(lg+) 2단 — 좌: 작성·대상·결과 / 우: 통계·빠른 템플릿이 sticky.
+            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-2">
+          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3">
+            {/* 통계 칩 */}
+            <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
+              <StatChip label="회원" value={picker.users.length} />
+              <StatChip label="활성" value={picker.activeCount} />
+              <StatChip label="관리자" value={picker.adminCount} accent />
             </div>
-          )}
-        </SectionCard>
 
-        {/* 미리보기 */}
-        <SectionCard title="미리보기" subtitle="기기에서 이렇게 표시됩니다">
-          <NotificationPreview
-            title={title || '알림 제목'}
-            body={body || '알림 내용이 여기에 표시됩니다'}
-            icon={icon || DEFAULT_ICON}
-          />
-        </SectionCard>
-
-        {/* 대상 */}
-        <SectionCard title="전송 대상">
-          <AudiencePicker picker={picker} />
-        </SectionCard>
-
-        {/* 전송 결과 */}
-        {result && (
-          <SectionCard title="전송 결과">
-            {result.ok ? (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span
-                    className={`material-icons-outlined text-[20px] ${
-                      result.data.failed === 0 && result.data.sent > 0
-                        ? 'text-green-500'
-                        : result.data.sent === 0
-                        ? 'text-red-500'
-                        : 'text-amber-500'
-                    }`}
+            {/* 빠른 템플릿 */}
+            <SectionCard title="빠른 템플릿" subtitle="자주 보내는 알림을 한 번에 채워요">
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+                {PRESETS.map((p) => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    onClick={() => applyPreset(p)}
+                    className="group text-left rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] hover:border-brand hover:bg-[var(--brand-soft)] transition-all p-3 flex flex-col gap-1"
                   >
-                    {result.data.sent === 0
-                      ? 'error_outline'
-                      : result.data.failed === 0
-                      ? 'check_circle'
-                      : 'info'}
-                  </span>
-                  <span className="text-[13px] font-semibold text-ink-strong">
-                    {result.audienceLabel} 대상 전송 완료
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <ResultStat label="성공" value={result.data.sent} tone="success" />
-                  <ResultStat label="실패" value={result.data.failed} tone={result.data.failed > 0 ? 'danger' : 'muted'} />
-                  <ResultStat label="구독자" value={result.data.users_notified} tone="muted" />
-                </div>
-                {result.data.failed > 0 && (
-                  <p className="mt-3 text-[11.5px] text-gray-500 dark:text-white/55 leading-relaxed">
-                    실패한 사용자는 구독 만료 또는 미구독 상태입니다. 해당 사용자에게 프로필에서 알림 재구독을 안내해주세요.
-                  </p>
-                )}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[16px]">{p.emoji}</span>
+                      <span className="text-[12.5px] font-semibold text-ink-strong truncate">{p.title}</span>
+                    </div>
+                    <span className="text-[10.5px] text-gray-500 dark:text-white/50 truncate">{p.hint}</span>
+                  </button>
+                ))}
               </div>
-            ) : (
-              <div className="flex items-start gap-2">
-                <span className="material-icons-outlined text-[20px] text-red-500 mt-0.5">error</span>
-                <div className="flex-1">
-                  <p className="text-[13px] font-semibold text-red-600 dark:text-red-300">전송 실패</p>
-                  <p className="text-[12px] text-gray-600 dark:text-white/65 mt-1">{result.message}</p>
-                </div>
-              </div>
-            )}
-          </SectionCard>
-        )}
+            </SectionCard>
 
-        {/* 안내 (접기) */}
-        <div className="px-4 py-3">
-          <button
-            type="button"
-            onClick={() => setInfoOpen((v) => !v)}
-            className="w-full flex items-center justify-between text-[12px] text-gray-500 dark:text-white/55 hover:text-gray-700 dark:hover:text-white/80 transition-colors"
-          >
-            <span className="flex items-center gap-1.5">
-              <span className="material-icons-outlined text-[16px]">info</span>
-              사용 안내
-            </span>
-            <span
-              className={`material-icons-outlined text-[18px] transition-transform duration-200 ${infoOpen ? 'rotate-180' : ''}`}
-            >
-              expand_more
-            </span>
-          </button>
-          {infoOpen && (
-            <ul className="mt-3 space-y-1.5 text-[11.5px] text-gray-500 dark:text-white/55 leading-relaxed pl-1.5">
-              <li>· 프로필에서 알림을 활성화한 사용자에게만 전송됩니다.</li>
-              <li>· 같은 태그의 이전 알림은 새 알림으로 대체되어 중복 푸시가 쌓이지 않습니다.</li>
-              <li>· 전송 실패 사용자는 구독 만료/미구독 상태로, 재구독 안내가 필요합니다.</li>
-              <li>· VAPID 키가 갱신되면 모든 사용자가 재구독해야 합니다.</li>
-            </ul>
-          )}
+          </div>
+
+          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
+            {/* 알림 작성 */}
+            <SectionCard title="알림 작성">
+              <FieldLabel htmlFor="push-title">
+                제목
+                <CharCount current={title.length} max={TITLE_MAX} />
+              </FieldLabel>
+              <input
+                id="push-title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
+                placeholder="알림 제목"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
+              />
+
+              <FieldLabel htmlFor="push-body" className="mt-4">
+                내용
+                <CharCount current={body.length} max={BODY_MAX} />
+              </FieldLabel>
+              <textarea
+                id="push-body"
+                value={body}
+                onChange={(e) => setBody(e.target.value.slice(0, BODY_MAX))}
+                placeholder="알림 내용"
+                rows={4}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors resize-none"
+              />
+
+              <FieldLabel className="mt-4">이동 위치</FieldLabel>
+              <div className="flex gap-1.5 flex-wrap mb-2">
+                {URL_OPTIONS.map((opt) => (
+                  <FilterChip key={opt.value} active={url === opt.value} onClick={() => setUrl(opt.value)}>
+                    {opt.label}
+                  </FilterChip>
+                ))}
+              </div>
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="/news"
+                className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
+              />
+
+              {/* 고급 옵션 */}
+              <button
+                type="button"
+                onClick={() => setAdvancedOpen((v) => !v)}
+                className="mt-4 w-full flex items-center justify-between text-[12px] text-gray-500 dark:text-white/55 hover:text-gray-700 dark:hover:text-white/80 transition-colors"
+              >
+                <span>고급 옵션 (태그 · 아이콘 URL)</span>
+                <span
+                  className={`material-icons-outlined text-[18px] transition-transform duration-200 ${advancedOpen ? 'rotate-180' : ''}`}
+                >
+                  expand_more
+                </span>
+              </button>
+              {advancedOpen && (
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <FieldLabel htmlFor="push-tag">태그</FieldLabel>
+                    <input
+                      id="push-tag"
+                      type="text"
+                      value={tag}
+                      onChange={(e) => setTag(e.target.value)}
+                      placeholder="notification"
+                      className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
+                    />
+                    <p className="mt-1 text-[10.5px] text-gray-400 dark:text-white/40">같은 태그의 이전 알림은 새 알림으로 대체됩니다</p>
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="push-icon">아이콘 URL</FieldLabel>
+                    <input
+                      id="push-icon"
+                      type="text"
+                      value={icon}
+                      onChange={(e) => setIcon(e.target.value)}
+                      placeholder={DEFAULT_ICON}
+                      className="w-full px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[12.5px] text-gray-700 dark:text-white/85 placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors font-mono"
+                    />
+                  </div>
+                </div>
+              )}
+            </SectionCard>
+
+            {/* 미리보기 */}
+            <SectionCard title="미리보기" subtitle="기기에서 이렇게 표시됩니다">
+              <NotificationPreview
+                title={title || '알림 제목'}
+                body={body || '알림 내용이 여기에 표시됩니다'}
+                icon={icon || DEFAULT_ICON}
+              />
+            </SectionCard>
+
+            {/* 대상 */}
+            <SectionCard title="전송 대상">
+              <AudiencePicker picker={picker} />
+            </SectionCard>
+
+            {/* 전송 결과 */}
+            {result && (
+              <SectionCard title="전송 결과">
+                {result.ok ? (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span
+                        className={`material-icons-outlined text-[20px] ${
+                          result.data.failed === 0 && result.data.sent > 0
+                            ? 'text-green-500'
+                            : result.data.sent === 0
+                            ? 'text-red-500'
+                            : 'text-amber-500'
+                        }`}
+                      >
+                        {result.data.sent === 0
+                          ? 'error_outline'
+                          : result.data.failed === 0
+                          ? 'check_circle'
+                          : 'info'}
+                      </span>
+                      <span className="text-[13px] font-semibold text-ink-strong">
+                        {result.audienceLabel} 대상 전송 완료
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <ResultStat label="성공" value={result.data.sent} tone="success" />
+                      <ResultStat label="실패" value={result.data.failed} tone={result.data.failed > 0 ? 'danger' : 'muted'} />
+                      <ResultStat label="구독자" value={result.data.users_notified} tone="muted" />
+                    </div>
+                    {result.data.failed > 0 && (
+                      <p className="mt-3 text-[11.5px] text-gray-500 dark:text-white/55 leading-relaxed">
+                        실패한 사용자는 구독 만료 또는 미구독 상태입니다. 해당 사용자에게 프로필에서 알림 재구독을 안내해주세요.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2">
+                    <span className="material-icons-outlined text-[20px] text-red-500 mt-0.5">error</span>
+                    <div className="flex-1">
+                      <p className="text-[13px] font-semibold text-red-600 dark:text-red-300">전송 실패</p>
+                      <p className="text-[12px] text-gray-600 dark:text-white/65 mt-1">{result.message}</p>
+                    </div>
+                  </div>
+                )}
+              </SectionCard>
+            )}
+
+            {/* 안내 (접기) */}
+            <div className="px-4 py-3">
+              <button
+                type="button"
+                onClick={() => setInfoOpen((v) => !v)}
+                className="w-full flex items-center justify-between text-[12px] text-gray-500 dark:text-white/55 hover:text-gray-700 dark:hover:text-white/80 transition-colors"
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className="material-icons-outlined text-[16px]">info</span>
+                  사용 안내
+                </span>
+                <span
+                  className={`material-icons-outlined text-[18px] transition-transform duration-200 ${infoOpen ? 'rotate-180' : ''}`}
+                >
+                  expand_more
+                </span>
+              </button>
+              {infoOpen && (
+                <ul className="mt-3 space-y-1.5 text-[11.5px] text-gray-500 dark:text-white/55 leading-relaxed pl-1.5">
+                  <li>· 프로필에서 알림을 활성화한 사용자에게만 전송됩니다.</li>
+                  <li>· 같은 태그의 이전 알림은 새 알림으로 대체되어 중복 푸시가 쌓이지 않습니다.</li>
+                  <li>· 전송 실패 사용자는 구독 만료/미구독 상태로, 재구독 안내가 필요합니다.</li>
+                  <li>· VAPID 키가 갱신되면 모든 사용자가 재구독해야 합니다.</li>
+                </ul>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* sticky 발송 바 */}
       <div className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none">
-        <div className="max-w-md mx-auto pointer-events-auto">
-          <div className="m-3 rounded-2xl border border-white/[0.08] bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.18)] p-3 flex items-center gap-2">
+        <div className="max-w-md mx-auto pointer-events-auto lg:max-w-[1100px] lg:px-5">
+          <div className="m-3 lg:mx-0 lg:mr-[364px] rounded-2xl border border-white/[0.08] bg-background-light/95 dark:bg-card-dark/95 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.18)] p-3 flex items-center gap-2">
             <button
               type="button"
               onClick={handleReset}

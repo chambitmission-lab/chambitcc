@@ -715,10 +715,13 @@ const OrganizationManagement = () => {
     !isLoading && data && data.governance.length === 0 && data.committees.length === 0
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24">
+    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
+    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border">
         {/* 헤더 */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+        {/* lg 에선 도구가 우측 레일에 고정되므로 헤더 sticky 를 풀어 둔다 */}
+        <div className="sticky top-0 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
@@ -743,125 +746,144 @@ const OrganizationManagement = () => {
           </span>
         </div>
 
-        {/* 통계 + 초기화 */}
-        <div className="px-4 pt-4 pb-2 flex items-center justify-between gap-2">
-          <div className="flex gap-2 flex-wrap">
-            <span className="text-[13px] px-3 py-1 rounded-full bg-[var(--brand-soft-strong)] text-brand font-semibold border border-[var(--brand-glow)]">
-              위원회 {data?.committee_count ?? 0}
-            </span>
-            <span className="text-[13px] px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-500 dark:text-white/50 font-medium border border-gray-200/50 dark:border-white/[0.06]">
-              부서 {data?.department_count ?? 0}
-            </span>
-            {inactiveCount > 0 && (
-              <span className="text-[13px] px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-400 dark:text-white/35 font-medium border border-gray-200/50 dark:border-white/[0.06]">
-                숨김 {inactiveCount}
-              </span>
-            )}
-          </div>
-          {!isEmpty && (
+        {/* PC(lg+) 2단 — 좌: 조직 트리 / 우: 추가 버튼·통계·안내가 sticky.
+            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
+          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:space-y-3">
+            {/* PC 전용 추가 버튼 — lg 에선 FAB 대신 레일 상단에서 연다 */}
             <button
-              onClick={() => handleSeed(true)}
-              disabled={seed.isPending}
-              className="shrink-0 text-[12px] px-3 py-1.5 text-gray-500 dark:text-white/50 border border-gray-200 dark:border-white/[0.08] rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.04] disabled:opacity-40 transition-colors"
+              type="button"
+              onClick={() => openCreate(null, 'committee')}
+              className="hidden lg:flex w-full items-center justify-center gap-2 py-2.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors"
             >
-              초기화
+              <span className="material-icons-round text-[18px]">add</span>
+              위원회 추가
             </button>
-          )}
-        </div>
 
-        <p className="px-4 pb-2 text-[11.5px] text-gray-400 dark:text-white/35 leading-relaxed">
-          위원회 → 국 → 부서 순서로 묶입니다. 국은 생략하고 위원회 아래 부서를 바로 둘 수도 있습니다.
-          이름 왼쪽의 ⠿ 핸들을 잡고 끌면 같은 묶음 안에서 순서를 바꿀 수 있습니다.
-        </p>
-
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
-          </div>
-        ) : isEmpty ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-            <span className="material-icons-outlined text-[48px] text-gray-200 dark:text-white/20 mb-3">
-              account_tree
-            </span>
-            <p className="text-sm text-gray-400 dark:text-white/30 mb-4">
-              아직 등록된 조직도가 없습니다
-            </p>
-            <button
-              onClick={() => handleSeed(false)}
-              disabled={seed.isPending}
-              className="px-4 py-2 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors"
-            >
-              기본 조직도 넣기
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* 의결기구 */}
-            <section className="px-4 pt-2">
-              <div className="flex items-center justify-between px-1 mb-1.5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-                  의결기구
-                </p>
-                <button
-                  onClick={() => openCreate(null, 'governance')}
-                  className="text-[12px] font-semibold text-brand hover:bg-[var(--brand-soft)] px-2 py-1 rounded-lg transition-colors"
-                >
-                  + 추가
-                </button>
-              </div>
-              <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] px-3.5 py-1">
-                {data && data.governance.length > 0 ? (
-                  <SortableRows
-                    parentId={null}
-                    units={data.governance}
-                    depth={0}
-                    isLast
-                    actions={rowActions}
-                  />
-                ) : (
-                  <p className="py-3 text-[12.5px] text-gray-400 dark:text-white/30">
-                    등록된 의결기구가 없습니다
-                  </p>
+            {/* 통계 + 초기화 */}
+            <div className="px-4 pt-4 pb-2 lg:px-0 lg:pt-0 flex items-center justify-between gap-2">
+              <div className="flex gap-2 flex-wrap">
+                <span className="text-[13px] px-3 py-1 rounded-full bg-[var(--brand-soft-strong)] text-brand font-semibold border border-[var(--brand-glow)]">
+                  위원회 {data?.committee_count ?? 0}
+                </span>
+                <span className="text-[13px] px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-500 dark:text-white/50 font-medium border border-gray-200/50 dark:border-white/[0.06]">
+                  부서 {data?.department_count ?? 0}
+                </span>
+                {inactiveCount > 0 && (
+                  <span className="text-[13px] px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-400 dark:text-white/35 font-medium border border-gray-200/50 dark:border-white/[0.06]">
+                    숨김 {inactiveCount}
+                  </span>
                 )}
               </div>
-            </section>
+              {!isEmpty && (
+                <button
+                  onClick={() => handleSeed(true)}
+                  disabled={seed.isPending}
+                  className="shrink-0 text-[12px] px-3 py-1.5 text-gray-500 dark:text-white/50 border border-gray-200 dark:border-white/[0.08] rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.04] disabled:opacity-40 transition-colors"
+                >
+                  초기화
+                </button>
+              )}
+            </div>
 
-            {/* 위원회 */}
-            <section className="px-4 pt-4 space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted px-1">
-                위원회
-              </p>
-              {committeeSort.orderedIds.map(id => {
-                const committee = committeesById.get(id)
-                if (!committee) return null
-                return (
-                  <div
-                    key={id}
-                    ref={committeeSort.setItemRef(id)}
-                    style={committeeSort.itemStyle(id)}
-                    className={
-                      committeeSort.draggingId === id ? '[&>div]:shadow-xl' : undefined
-                    }
-                  >
-                    <CommitteeGroup
-                      committee={committee}
-                      expanded={expandedIds.has(committee.id)}
-                      onToggle={() => toggle(committee.id)}
-                      handle={<DragHandle {...committeeSort.handleProps(id)} />}
-                      actions={rowActions}
-                    />
+            <p className="px-4 pb-2 lg:px-0 text-[11.5px] text-gray-400 dark:text-white/35 leading-relaxed">
+              위원회 → 국 → 부서 순서로 묶입니다. 국은 생략하고 위원회 아래 부서를 바로 둘 수도 있습니다.
+              이름 왼쪽의 ⠿ 핸들을 잡고 끌면 같은 묶음 안에서 순서를 바꿀 수 있습니다.
+            </p>
+
+          </div>
+
+          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
+            {isLoading ? (
+              <div className="flex justify-center py-20">
+                <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
+              </div>
+            ) : isEmpty ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+                <span className="material-icons-outlined text-[48px] text-gray-200 dark:text-white/20 mb-3">
+                  account_tree
+                </span>
+                <p className="text-sm text-gray-400 dark:text-white/30 mb-4">
+                  아직 등록된 조직도가 없습니다
+                </p>
+                <button
+                  onClick={() => handleSeed(false)}
+                  disabled={seed.isPending}
+                  className="px-4 py-2 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors"
+                >
+                  기본 조직도 넣기
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* 의결기구 */}
+                <section className="px-4 pt-2 lg:px-0 lg:pt-0">
+                  <div className="flex items-center justify-between px-1 mb-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+                      의결기구
+                    </p>
+                    <button
+                      onClick={() => openCreate(null, 'governance')}
+                      className="text-[12px] font-semibold text-brand hover:bg-[var(--brand-soft)] px-2 py-1 rounded-lg transition-colors"
+                    >
+                      + 추가
+                    </button>
                   </div>
-                )
-              })}
-            </section>
-          </>
-        )}
+                  <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] px-3.5 py-1">
+                    {data && data.governance.length > 0 ? (
+                      <SortableRows
+                        parentId={null}
+                        units={data.governance}
+                        depth={0}
+                        isLast
+                        actions={rowActions}
+                      />
+                    ) : (
+                      <p className="py-3 text-[12.5px] text-gray-400 dark:text-white/30">
+                        등록된 의결기구가 없습니다
+                      </p>
+                    )}
+                  </div>
+                </section>
+
+                {/* 위원회 */}
+                <section className="px-4 pt-4 lg:px-0 lg:pb-8 space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted px-1">
+                    위원회
+                  </p>
+                  {committeeSort.orderedIds.map(id => {
+                    const committee = committeesById.get(id)
+                    if (!committee) return null
+                    return (
+                      <div
+                        key={id}
+                        ref={committeeSort.setItemRef(id)}
+                        style={committeeSort.itemStyle(id)}
+                        className={
+                          committeeSort.draggingId === id ? '[&>div]:shadow-xl' : undefined
+                        }
+                      >
+                        <CommitteeGroup
+                          committee={committee}
+                          expanded={expandedIds.has(committee.id)}
+                          onToggle={() => toggle(committee.id)}
+                          handle={<DragHandle {...committeeSort.handleProps(id)} />}
+                          actions={rowActions}
+                        />
+                      </div>
+                    )
+                  })}
+                </section>
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* FAB — 위원회 추가 */}
       <button
         onClick={() => openCreate(null, 'committee')}
-        className="fixed bottom-6 right-1/2 translate-x-[calc(50%+min(calc(100vw/2),24rem)-4.5rem)] z-30 flex items-center gap-2 px-5 py-3 bg-brand hover:bg-brand-dim text-white text-sm font-bold rounded-2xl shadow-[0_4px_20px_var(--brand-glow)] transition-colors"
+        className="fixed bottom-6 right-1/2 translate-x-[calc(50%+min(calc(100vw/2),24rem)-4.5rem)] z-30 lg:hidden flex items-center gap-2 px-5 py-3 bg-brand hover:bg-brand-dim text-white text-sm font-bold rounded-2xl shadow-[0_4px_20px_var(--brand-glow)] transition-colors"
       >
         <span className="material-icons-round text-[18px]">add</span>
         위원회 추가

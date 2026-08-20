@@ -71,7 +71,7 @@ const RecommendationModeCard = () => {
   const mode = settings?.verse_recommendation_mode ?? 'ai'
 
   return (
-    <div className="mx-4 mt-4 p-4 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm">
+    <div className="mx-4 mt-4 lg:mx-0 lg:mt-0 p-4 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm">
       <div className="flex items-center gap-2 mb-1">
         <span className="material-icons-round text-[18px] text-brand">auto_awesome</span>
         <h3 className="text-[13.5px] font-bold text-ink-strong">기도 묵상 구절 추천 방식</h3>
@@ -157,8 +157,8 @@ const VersePanel = ({ category, onClose }: { category: SituationCategory; onClos
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
-      <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end lg:items-center justify-center">
+      <div className="w-full max-w-md lg:max-w-xl bg-background-light dark:bg-background-dark rounded-t-2xl lg:rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
         {/* 패널 헤더 */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
           <div>
@@ -280,8 +280,8 @@ const CategoryForm = ({
         : [...f.emotion_keys, key],
     }))
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
-      <div className="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end lg:items-center justify-center">
+      <div className="w-full max-w-md lg:max-w-xl bg-background-light dark:bg-background-dark rounded-t-2xl lg:rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-light dark:border-border-dark flex-shrink-0">
           <h3 className="font-bold text-ink-strong text-[15px]">
             {initial.name ? '카테고리 수정' : '새 카테고리'}
@@ -482,11 +482,13 @@ const SituationManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24">
+    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
+    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border">
 
-        {/* 스티키 헤더 */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+        {/* 스티키 헤더 — lg 에선 도구가 우측 레일에 고정되므로 sticky 를 풀어 둔다 */}
+        <div className="sticky top-0 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -500,103 +502,122 @@ const SituationManagement = () => {
           </span>
         </div>
 
-        {/* 기도 묵상 구절 추천 모드 */}
-        <RecommendationModeCard />
-
-        {/* 통계 + 씨드 버튼 */}
-        <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-          <div className="flex gap-2">
-            <span className="text-[13px] px-3 py-1 rounded-full bg-[var(--brand-soft-strong)] text-brand font-semibold border border-[var(--brand-glow)]">
-              전체 {categories.length}
-            </span>
-            <span className="text-[13px] px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-500 dark:text-white/50 font-medium border border-gray-200/50 dark:border-white/[0.06]">
-              비활성 {categories.filter(c => !c.is_active).length}
-            </span>
-          </div>
-          <button onClick={handleSeed} disabled={seed.isPending}
-            className="text-[12px] px-3 py-1.5 text-gray-500 dark:text-white/50 border border-gray-200 dark:border-white/[0.08] rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.04] disabled:opacity-40 transition-colors">
-            초기 씨드 삽입
-          </button>
-        </div>
-
-        {/* 카테고리 목록 */}
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
-          </div>
-        ) : categories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-            <span className="material-icons-outlined text-[48px] text-gray-200 dark:text-white/20 mb-3">sentiment_satisfied_alt</span>
-            <p className="text-sm text-gray-400 dark:text-white/30 mb-4">아직 카테고리가 없습니다</p>
-            <button onClick={handleSeed} disabled={seed.isPending}
-              className="px-4 py-2 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors">
-              초기 씨드 삽입하기
+        {/* PC(lg+) 2단 — 좌: 카테고리 목록 / 우: 도구(추가·추천 모드·통계)가 sticky.
+            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
+          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:space-y-3">
+            {/* PC 전용 추가 버튼 — lg 에선 FAB 대신 레일 상단에서 연다 */}
+            <button
+              type="button"
+              onClick={() => { setFormTarget(null); setShowForm(true) }}
+              className="hidden lg:flex w-full items-center justify-center gap-2 py-2.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors"
+            >
+              <span className="material-icons-round text-[18px]">add</span>
+              카테고리 추가
             </button>
-          </div>
-        ) : (
-          <div className="px-4 pt-2 space-y-2">
-            {categories.map(cat => (
-              <div key={cat.id}
-                className="relative overflow-hidden flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_2px_8px_rgba(0,0,0,0.20)]">
-                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
 
-                {/* 아이콘 */}
-                <div className="relative z-10 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: cat.color + '20' }}>
-                  <span className="material-icons-round text-[20px]" style={{ color: cat.color }}>{cat.icon}</span>
-                </div>
+            {/* 기도 묵상 구절 추천 모드 */}
+            <RecommendationModeCard />
 
-                {/* 정보 */}
-                <div className="relative z-10 flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[14px] font-semibold text-gray-900 dark:text-white/85 truncate">{cat.name}</span>
-                    {cat.is_default && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-[var(--brand-soft-strong)] text-brand rounded-full border border-[var(--brand-glow)] flex-shrink-0">
-                        기본
-                      </span>
-                    )}
-                    {!cat.is_active && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-white/[0.06] text-gray-400 dark:text-white/30 rounded-full border border-gray-200 dark:border-white/[0.06] flex-shrink-0">
-                        비활성
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[12px] text-gray-400 dark:text-white/35 block truncate">
-                    {cat.verse_count}개 구절 · 순서 {cat.order}
-                    {(cat.emotion_keys?.length ?? 0) > 0 && (
-                      <> · {cat.emotion_keys.map(emotionLabel).join('·')}</>
-                    )}
-                    {(cat.keywords?.length ?? 0) > 0 && (
-                      <> · 키워드 {cat.keywords.length}</>
-                    )}
-                  </span>
-                </div>
-
-                {/* 액션 버튼 */}
-                <div className="relative z-10 flex gap-1">
-                  <button onClick={() => setVerseTarget(cat)}
-                    className="px-2.5 py-1 text-[12px] font-medium text-brand hover:bg-[var(--brand-soft)] rounded-lg transition-colors">
-                    구절
-                  </button>
-                  <button onClick={() => { setFormTarget(cat); setShowForm(true) }}
-                    className="px-2.5 py-1 text-[12px] font-medium text-gray-500 dark:text-white/50 hover:bg-gray-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors">
-                    수정
-                  </button>
-                  <button onClick={() => handleDelete(cat)}
-                    className="px-2.5 py-1 text-[12px] font-medium text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
-                    삭제
-                  </button>
-                </div>
+            {/* 통계 + 씨드 버튼 */}
+            <div className="px-4 pt-4 pb-2 lg:px-0 lg:pt-0 flex items-center justify-between">
+              <div className="flex gap-2">
+                <span className="text-[13px] px-3 py-1 rounded-full bg-[var(--brand-soft-strong)] text-brand font-semibold border border-[var(--brand-glow)]">
+                  전체 {categories.length}
+                </span>
+                <span className="text-[13px] px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.06] text-gray-500 dark:text-white/50 font-medium border border-gray-200/50 dark:border-white/[0.06]">
+                  비활성 {categories.filter(c => !c.is_active).length}
+                </span>
               </div>
-            ))}
+              <button onClick={handleSeed} disabled={seed.isPending}
+                className="text-[12px] px-3 py-1.5 text-gray-500 dark:text-white/50 border border-gray-200 dark:border-white/[0.08] rounded-lg hover:bg-gray-50 dark:hover:bg-white/[0.04] disabled:opacity-40 transition-colors">
+                초기 씨드 삽입
+              </button>
+            </div>
+
           </div>
-        )}
+
+          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
+            {/* 카테고리 목록 */}
+            {isLoading ? (
+              <div className="flex justify-center py-20">
+                <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
+              </div>
+            ) : categories.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+                <span className="material-icons-outlined text-[48px] text-gray-200 dark:text-white/20 mb-3">sentiment_satisfied_alt</span>
+                <p className="text-sm text-gray-400 dark:text-white/30 mb-4">아직 카테고리가 없습니다</p>
+                <button onClick={handleSeed} disabled={seed.isPending}
+                  className="px-4 py-2 text-sm font-semibold bg-brand text-white rounded-xl hover:bg-brand-dim disabled:opacity-50 transition-colors">
+                  초기 씨드 삽입하기
+                </button>
+              </div>
+            ) : (
+              <div className="px-4 pt-2 lg:px-0 lg:pt-0 lg:pb-8 space-y-2">
+                {categories.map(cat => (
+                  <div key={cat.id}
+                    className="relative overflow-hidden flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_2px_8px_rgba(0,0,0,0.20)]">
+                    <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
+
+                    {/* 아이콘 */}
+                    <div className="relative z-10 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: cat.color + '20' }}>
+                      <span className="material-icons-round text-[20px]" style={{ color: cat.color }}>{cat.icon}</span>
+                    </div>
+
+                    {/* 정보 */}
+                    <div className="relative z-10 flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[14px] font-semibold text-gray-900 dark:text-white/85 truncate">{cat.name}</span>
+                        {cat.is_default && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-[var(--brand-soft-strong)] text-brand rounded-full border border-[var(--brand-glow)] flex-shrink-0">
+                            기본
+                          </span>
+                        )}
+                        {!cat.is_active && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-white/[0.06] text-gray-400 dark:text-white/30 rounded-full border border-gray-200 dark:border-white/[0.06] flex-shrink-0">
+                            비활성
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[12px] text-gray-400 dark:text-white/35 block truncate">
+                        {cat.verse_count}개 구절 · 순서 {cat.order}
+                        {(cat.emotion_keys?.length ?? 0) > 0 && (
+                          <> · {cat.emotion_keys.map(emotionLabel).join('·')}</>
+                        )}
+                        {(cat.keywords?.length ?? 0) > 0 && (
+                          <> · 키워드 {cat.keywords.length}</>
+                        )}
+                      </span>
+                    </div>
+
+                    {/* 액션 버튼 */}
+                    <div className="relative z-10 flex gap-1">
+                      <button onClick={() => setVerseTarget(cat)}
+                        className="px-2.5 py-1 text-[12px] font-medium text-brand hover:bg-[var(--brand-soft)] rounded-lg transition-colors">
+                        구절
+                      </button>
+                      <button onClick={() => { setFormTarget(cat); setShowForm(true) }}
+                        className="px-2.5 py-1 text-[12px] font-medium text-gray-500 dark:text-white/50 hover:bg-gray-50 dark:hover:bg-white/[0.06] rounded-lg transition-colors">
+                        수정
+                      </button>
+                      <button onClick={() => handleDelete(cat)}
+                        className="px-2.5 py-1 text-[12px] font-medium text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+                        삭제
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* FAB — 카테고리 추가 */}
       <button
         onClick={() => { setFormTarget(null); setShowForm(true) }}
-        className="fixed bottom-6 right-1/2 translate-x-[calc(50%+min(calc(100vw/2),24rem)-4.5rem)] z-30 flex items-center gap-2 px-5 py-3 bg-brand hover:bg-brand-dim text-white text-sm font-bold rounded-2xl shadow-[0_4px_20px_var(--brand-glow)] transition-colors"
+        className="fixed bottom-6 right-1/2 translate-x-[calc(50%+min(calc(100vw/2),24rem)-4.5rem)] z-30 lg:hidden flex items-center gap-2 px-5 py-3 bg-brand hover:bg-brand-dim text-white text-sm font-bold rounded-2xl shadow-[0_4px_20px_var(--brand-glow)] transition-colors"
       >
         <span className="material-icons-round text-[18px]">add</span>
         카테고리 추가

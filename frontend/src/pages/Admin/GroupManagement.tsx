@@ -182,10 +182,13 @@ const GroupManagement = () => {
   const quietCount = groups.filter(isQuiet).length
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24">
+    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
+    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border">
         {/* 헤더 */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+        {/* lg 에선 검색/필터가 우측 레일에 고정되므로 헤더 sticky 를 풀어 둔다 */}
+        <div className="sticky top-0 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
@@ -201,122 +204,132 @@ const GroupManagement = () => {
           </span>
         </div>
 
-        {/* 한눈에 보는 규모 — 그룹 수만으로는 실제 활동을 알 수 없다 */}
-        <div className="px-4 pt-4 pb-1 flex gap-2 flex-wrap">
-          <StatChip label="그룹" value={groups.length} />
-          <StatChip label="멤버" value={totalMembers} accent />
-          <StatChip label="기도" value={totalPrayers} />
-          {quietCount > 0 && <StatChip label="조용한 그룹" value={quietCount} muted />}
-        </div>
+        {/* PC(lg+) 2단 — 좌: 그룹 목록 / 우: 도구(통계·검색/필터)가 sticky.
+            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
+          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:space-y-3">
 
-        {/* 검색 + 필터 카드 */}
-        <div className="px-4 py-3">
-          <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-            <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
+            {/* 한눈에 보는 규모 — 그룹 수만으로는 실제 활동을 알 수 없다 */}
+            <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
+              <StatChip label="그룹" value={groups.length} />
+              <StatChip label="멤버" value={totalMembers} accent />
+              <StatChip label="기도" value={totalPrayers} />
+              {quietCount > 0 && <StatChip label="조용한 그룹" value={quietCount} muted />}
+            </div>
 
-            <div className="relative z-10 space-y-3">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                </span>
-                <input
-                  type="text"
-                  placeholder="그룹명 · 설명 · 생성자 · 초대 코드"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
-                />
-                {searchTerm && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
-                    aria-label="검색어 지우기"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                )}
+            {/* 검색 + 필터 카드 */}
+            <div className="px-4 py-3 lg:px-0 lg:py-0">
+              <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
+                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
+
+                <div className="relative z-10 space-y-3">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="그룹명 · 설명 · 생성자 · 초대 코드"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
+                    />
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchTerm('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
+                        aria-label="검색어 지우기"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+
+                  <FilterRow label="정렬">
+                    {(
+                      [
+                        ['recent', '최근 생성'],
+                        ['members', '멤버 많은 순'],
+                        ['prayers', '기도 많은 순'],
+                        ['name', '이름 순'],
+                      ] as const
+                    ).map(([v, l]) => (
+                      <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>
+                        {l}
+                      </FilterChip>
+                    ))}
+                  </FilterRow>
+
+                  <FilterRow label="활동">
+                    {(
+                      [
+                        ['all', '전체'],
+                        ['active', '활동 중'],
+                        ['quiet', '조용함'],
+                      ] as const
+                    ).map(([v, l]) => (
+                      <FilterChip key={v} active={activity === v} onClick={() => setActivity(v)}>
+                        {l}
+                      </FilterChip>
+                    ))}
+                  </FilterRow>
+                </div>
               </div>
+            </div>
 
-              <FilterRow label="정렬">
-                {(
-                  [
-                    ['recent', '최근 생성'],
-                    ['members', '멤버 많은 순'],
-                    ['prayers', '기도 많은 순'],
-                    ['name', '이름 순'],
-                  ] as const
-                ).map(([v, l]) => (
-                  <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>
-                    {l}
-                  </FilterChip>
-                ))}
-              </FilterRow>
+            {/* 결과 카운트 */}
+            <div className="px-5 pb-2 lg:px-1 lg:pb-0 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
+              <span>
+                검색 결과 <span className="font-bold text-ink-strong">{filtered.length}</span>개
+              </span>
+              {searchTerm && <span className="text-brand truncate">"{searchTerm}"</span>}
+            </div>
 
-              <FilterRow label="활동">
-                {(
-                  [
-                    ['all', '전체'],
-                    ['active', '활동 중'],
-                    ['quiet', '조용함'],
-                  ] as const
-                ).map(([v, l]) => (
-                  <FilterChip key={v} active={activity === v} onClick={() => setActivity(v)}>
-                    {l}
-                  </FilterChip>
-                ))}
-              </FilterRow>
+          </div>
+
+          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
+            {/* 목록 */}
+            <div className="px-4 pb-16 lg:px-0 lg:pb-8 space-y-2">
+              {loading ? (
+                <SkeletonRows />
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-12">
+                  <span className="text-4xl block mb-3">👥</span>
+                  <p className="text-[13px] text-gray-500 dark:text-white/55">
+                    {searchTerm || activity !== 'all'
+                      ? '조건에 맞는 그룹이 없습니다'
+                      : '아직 만들어진 그룹이 없어요'}
+                  </p>
+                  <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">
+                    {searchTerm || activity !== 'all'
+                      ? '필터를 바꾸거나 검색어를 지워보세요'
+                      : '성도들이 홈에서 소그룹을 만들면 여기에 나타납니다'}
+                  </p>
+                </div>
+              ) : (
+                filtered.map(group => (
+                  <GroupRow
+                    key={group.id}
+                    group={group}
+                    expanded={expandedId === group.id}
+                    onToggleExpand={() =>
+                      setExpandedId(prev => (prev === group.id ? null : group.id))
+                    }
+                    onCopyCode={() => handleCopyCode(group)}
+                    onCopyLink={() => handleCopyLink(group)}
+                    onDelete={() => handleDelete(group)}
+                  />
+                ))
+              )}
             </div>
           </div>
-        </div>
-
-        {/* 결과 카운트 */}
-        <div className="px-5 pb-2 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
-          <span>
-            검색 결과 <span className="font-bold text-ink-strong">{filtered.length}</span>개
-          </span>
-          {searchTerm && <span className="text-brand truncate">"{searchTerm}"</span>}
-        </div>
-
-        {/* 목록 */}
-        <div className="px-4 pb-16 space-y-2">
-          {loading ? (
-            <SkeletonRows />
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-12">
-              <span className="text-4xl block mb-3">👥</span>
-              <p className="text-[13px] text-gray-500 dark:text-white/55">
-                {searchTerm || activity !== 'all'
-                  ? '조건에 맞는 그룹이 없습니다'
-                  : '아직 만들어진 그룹이 없어요'}
-              </p>
-              <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">
-                {searchTerm || activity !== 'all'
-                  ? '필터를 바꾸거나 검색어를 지워보세요'
-                  : '성도들이 홈에서 소그룹을 만들면 여기에 나타납니다'}
-              </p>
-            </div>
-          ) : (
-            filtered.map(group => (
-              <GroupRow
-                key={group.id}
-                group={group}
-                expanded={expandedId === group.id}
-                onToggleExpand={() =>
-                  setExpandedId(prev => (prev === group.id ? null : group.id))
-                }
-                onCopyCode={() => handleCopyCode(group)}
-                onCopyLink={() => handleCopyLink(group)}
-                onDelete={() => handleDelete(group)}
-              />
-            ))
-          )}
         </div>
       </div>
     </div>
