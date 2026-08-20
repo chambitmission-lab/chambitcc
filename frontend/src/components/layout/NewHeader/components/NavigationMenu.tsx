@@ -53,7 +53,7 @@ const ACTIVITY_ITEMS: NavItem[] = [
 ]
 
 const SectionTitle = ({ children }: { children: string }) => (
-  <h3 className="px-1.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted">
+  <h3 className="px-1.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted lg:px-2 lg:pb-2">
     {children}
   </h3>
 )
@@ -79,12 +79,14 @@ const LauncherItem = ({
         rounded-2xl px-1 py-2.5
         transition-colors duration-150
         hover:bg-[var(--brand-soft)] active:bg-[var(--brand-soft-strong)]
+        lg:flex-row lg:items-center lg:gap-3 lg:px-2 lg:py-2 lg:rounded-xl
       "
     >
       <span
         className={`
-          flex items-center justify-center w-11 h-11 rounded-2xl
+          flex items-center justify-center w-11 h-11 rounded-2xl shrink-0
           transition-colors duration-150
+          lg:w-9 lg:h-9 lg:rounded-xl
           ${accent
             ? 'bg-[var(--brand-soft)] text-brand group-hover:bg-[var(--brand-soft-strong)]'
             : 'bg-surface-high text-ink group-hover:text-brand'}
@@ -92,7 +94,7 @@ const LauncherItem = ({
       >
         <Icon />
       </span>
-      <span className="text-[11.5px] font-medium leading-tight text-center text-ink">
+      <span className="text-[11.5px] font-medium leading-tight text-center text-ink lg:text-[13.5px] lg:text-left lg:whitespace-nowrap lg:group-hover:text-brand lg:transition-colors">
         {label}
       </span>
     </Link>
@@ -103,11 +105,14 @@ const NavigationMenu = () => {
   const { t } = useLanguage()
 
   return (
-    <nav className="p-3 space-y-5">
+    // 모바일: 섹션 세로 스택 + 4열 아이콘 그리드 (런처)
+    // lg+: 섹션을 4개 컬럼으로 나란히 놓는 메가 메뉴 — 각 컬럼 안에서는
+    //      아이콘+라벨 가로 행으로 바꿔 데스크톱 스캔 속도를 높인다
+    <nav className="p-3 space-y-5 lg:p-6 lg:pb-4 lg:space-y-0 lg:grid lg:grid-cols-4 lg:gap-x-6 lg:items-start">
       {MENU_SECTIONS.map(section => (
         <div key={section.titleKey}>
           <SectionTitle>{t(section.titleKey)}</SectionTitle>
-          <div className="grid grid-cols-4 gap-0.5">
+          <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-1 lg:gap-0.5">
             {section.items.map(item => (
               <LauncherItem key={item.path} item={item} label={t(item.key)} />
             ))}
@@ -119,7 +124,7 @@ const NavigationMenu = () => {
           OS마다 다르게 그려지는 이모지 대신 직접 그린 아이콘을 쓴다. */}
       <div>
         <SectionTitle>{t('navGroupActivity')}</SectionTitle>
-        <div className="grid grid-cols-4 gap-0.5">
+        <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-1 lg:gap-0.5">
           {ACTIVITY_ITEMS.map(item => (
             <LauncherItem key={item.path} item={item} label={t(item.key)} accent />
           ))}

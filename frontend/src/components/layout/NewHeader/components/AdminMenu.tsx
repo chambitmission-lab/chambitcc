@@ -162,7 +162,7 @@ const AdminMenu = () => {
     : []
 
   return (
-    <div className="px-3 pt-3 pb-2">
+    <div className="px-3 pt-3 pb-2 lg:px-5">
       {/* 섹션 토글 — 관리 권한임을 방패 아이콘으로 알린다 */}
       <button
         type="button"
@@ -198,7 +198,7 @@ const AdminMenu = () => {
           {recentItems.length > 0 && (
             <div>
               <SectionTitle>{t('adminGroupRecent')}</SectionTitle>
-              <div className="grid grid-cols-4 gap-0.5">
+              <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-8">
                 {recentItems.map(item => (
                   <AdminLauncherItem key={`recent-${item.path}`} item={item} label={t(item.key)} accent />
                 ))}
@@ -209,7 +209,7 @@ const AdminMenu = () => {
           {ADMIN_GROUPS.map(group => (
             <div key={group.titleKey}>
               <SectionTitle>{t(group.titleKey)}</SectionTitle>
-              <div className="grid grid-cols-4 gap-0.5">
+              <div className="grid grid-cols-4 gap-0.5 lg:grid-cols-8">
                 {group.items.map(item => (
                   <AdminLauncherItem key={item.path} item={item} label={t(item.key)} />
                 ))}
