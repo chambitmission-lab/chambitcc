@@ -247,10 +247,13 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen">
-        {/* 헤더 */}
-        <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+    // lg 에서 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
+    // sticky 가 전역으로 죽어 있어, 이 상자를 만들어야 우측 도구 레일 sticky 가 산다.
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:rounded-3xl lg:border">
+        {/* 헤더 — lg 에선 검색/필터가 우측 레일에 고정되므로 sticky 를 풀어 둔다
+            (sticky 인 채로 라운드 모서리를 주면 스크롤 중 둥근 막대가 떠 보인다) */}
+        <div className="sticky top-0 lg:static lg:rounded-t-3xl z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
@@ -264,153 +267,161 @@ const UserManagement = () => {
           </span>
         </div>
 
-        {/* 통계 칩 */}
-        <div className="px-4 pt-4 pb-1 flex gap-2 flex-wrap">
-          <StatChip label="전체" value={users.length} />
-          <StatChip label="관리자" value={adminCount} accent />
-          <StatChip label="활성" value={activeCount} />
-          {pendingCount > 0 && <StatChip label="승인 대기" value={pendingCount} warn />}
-        </div>
-
-        {/* 가입 승인제 토글 */}
-        <div className="px-4 pt-3">
-          <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-            <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
-
-            <div className="relative z-10 flex items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-bold text-ink-strong tracking-[-0.01em]">
-                  가입 승인제
-                </p>
-                <p className="text-[12px] text-gray-500 dark:text-white/55 mt-1 leading-relaxed">
-                  {requireApproval
-                    ? '새로 가입한 회원은 관리자 승인 후에만 로그인할 수 있습니다.'
-                    : '누구나 회원가입 후 바로 이용할 수 있습니다.'}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleToggleRequireApproval}
-                disabled={savingApproval}
-                role="switch"
-                aria-checked={requireApproval}
-                aria-label="가입 승인제"
-                className={`relative shrink-0 w-[52px] h-[30px] rounded-full transition-all duration-200 disabled:opacity-50 ${
-                  requireApproval
-                    ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]'
-                    : 'bg-gray-300 dark:bg-white/[0.12]'
-                }`}
-              >
-                <span
-                  className={`absolute top-1/2 -translate-y-1/2 w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-all duration-200 ${
-                    requireApproval ? 'left-[25px]' : 'left-[3px]'
-                  }`}
-                />
-              </button>
+        {/* PC(lg+) 2단 — 좌: 회원 목록 / 우: 도구(통계·가입 승인제·검색/필터)가 sticky.
+            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
+          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3">
+            {/* 통계 칩 */}
+            <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
+              <StatChip label="전체" value={users.length} />
+              <StatChip label="관리자" value={adminCount} accent />
+              <StatChip label="활성" value={activeCount} />
+              {pendingCount > 0 && <StatChip label="승인 대기" value={pendingCount} warn />}
             </div>
 
-            {requireApproval && pendingCount > 0 && (
-              <button
-                type="button"
-                onClick={() => setFilterStatus('pending')}
-                className="relative z-10 mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-400/30 hover:bg-amber-100 dark:hover:bg-amber-500/15 transition-colors"
-              >
-                <span className="material-icons-outlined text-[16px]">how_to_reg</span>
-                <span>승인 대기 {pendingCount}명 보기</span>
-              </button>
-            )}
-          </div>
-        </div>
+            {/* 가입 승인제 토글 */}
+            <div className="px-4 pt-3 lg:px-0">
+              <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
+                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
 
-        {/* 검색 + 필터 카드 */}
-        <div className="px-4 py-3">
-          <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-            <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
+                <div className="relative z-10 flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-bold text-ink-strong tracking-[-0.01em]">
+                      가입 승인제
+                    </p>
+                    <p className="text-[12px] text-gray-500 dark:text-white/55 mt-1 leading-relaxed">
+                      {requireApproval
+                        ? '새로 가입한 회원은 관리자 승인 후에만 로그인할 수 있습니다.'
+                        : '누구나 회원가입 후 바로 이용할 수 있습니다.'}
+                    </p>
+                  </div>
 
-            <div className="relative z-10 space-y-3">
-              {/* 검색 */}
-              <div className="relative">
-                <span className="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 text-[20px] pointer-events-none">search</span>
-                <input
-                  type="text"
-                  placeholder="아이디 · 이름 검색"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
-                />
-                {searchTerm && (
                   <button
                     type="button"
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
-                    aria-label="검색어 지우기"
+                    onClick={handleToggleRequireApproval}
+                    disabled={savingApproval}
+                    role="switch"
+                    aria-checked={requireApproval}
+                    aria-label="가입 승인제"
+                    className={`relative shrink-0 w-[52px] h-[30px] rounded-full transition-all duration-200 disabled:opacity-50 ${
+                      requireApproval
+                        ? 'bg-brand shadow-[0_0_16px_var(--brand-glow)]'
+                        : 'bg-gray-300 dark:bg-white/[0.12]'
+                    }`}
                   >
-                    <span className="material-icons-outlined text-[18px]">close</span>
+                    <span
+                      className={`absolute top-1/2 -translate-y-1/2 w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-all duration-200 ${
+                        requireApproval ? 'left-[25px]' : 'left-[3px]'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {requireApproval && pendingCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFilterStatus('pending')}
+                    className="relative z-10 mt-3 w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-400/30 hover:bg-amber-100 dark:hover:bg-amber-500/15 transition-colors"
+                  >
+                    <span className="material-icons-outlined text-[16px]">how_to_reg</span>
+                    <span>승인 대기 {pendingCount}명 보기</span>
                   </button>
                 )}
               </div>
+            </div>
 
-              {/* 권한 */}
-              <FilterRow align="center" label="권한">
-                {([['all', '전체'], ['admin', '관리자'], ['user', '일반']] as const).map(([v, l]) => (
-                  <FilterChip key={v} active={filterRole === v} onClick={() => setFilterRole(v)}>{l}</FilterChip>
-                ))}
-              </FilterRow>
+            {/* 검색 + 필터 카드 */}
+            <div className="px-4 py-3 lg:px-0">
+              <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
+                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
 
-              {/* 상태 */}
-              <FilterRow align="center" label="상태">
-                {([['all', '전체'], ['active', '활성'], ['inactive', '비활성'], ['pending', '승인 대기']] as const).map(([v, l]) => (
-                  <FilterChip key={v} active={filterStatus === v} onClick={() => setFilterStatus(v)}>{l}</FilterChip>
-                ))}
-              </FilterRow>
+                <div className="relative z-10 space-y-3">
+                  {/* 검색 */}
+                  <div className="relative">
+                    <span className="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 text-[20px] pointer-events-none">search</span>
+                    <input
+                      type="text"
+                      placeholder="아이디 · 이름 검색"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
+                    />
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchTerm('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
+                        aria-label="검색어 지우기"
+                      >
+                        <span className="material-icons-outlined text-[18px]">close</span>
+                      </button>
+                    )}
+                  </div>
 
-              {/* 정렬 */}
-              <FilterRow align="center" label="정렬">
-                {([['recentLogin', '최근 로그인'], ['createdAt', '가입일'], ['name', '이름']] as const).map(([v, l]) => (
-                  <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>{l}</FilterChip>
-                ))}
-              </FilterRow>
+                  {/* 권한 */}
+                  <FilterRow align="center" label="권한">
+                    {([['all', '전체'], ['admin', '관리자'], ['user', '일반']] as const).map(([v, l]) => (
+                      <FilterChip key={v} active={filterRole === v} onClick={() => setFilterRole(v)}>{l}</FilterChip>
+                    ))}
+                  </FilterRow>
+
+                  {/* 상태 */}
+                  <FilterRow align="center" label="상태">
+                    {([['all', '전체'], ['active', '활성'], ['inactive', '비활성'], ['pending', '승인 대기']] as const).map(([v, l]) => (
+                      <FilterChip key={v} active={filterStatus === v} onClick={() => setFilterStatus(v)}>{l}</FilterChip>
+                    ))}
+                  </FilterRow>
+
+                  {/* 정렬 */}
+                  <FilterRow align="center" label="정렬">
+                    {([['recentLogin', '최근 로그인'], ['createdAt', '가입일'], ['name', '이름']] as const).map(([v, l]) => (
+                      <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>{l}</FilterChip>
+                    ))}
+                  </FilterRow>
+                </div>
+              </div>
+            </div>
+
+            {/* 결과 카운트 */}
+            <div className="px-5 pb-2 lg:px-1 lg:pb-0 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
+              <span>
+                검색 결과 <span className="font-bold text-ink-strong">{filteredAndSorted.length}</span>명
+              </span>
+              {searchTerm && (
+                <span className="text-brand truncate">"{searchTerm}"</span>
+              )}
             </div>
           </div>
-        </div>
 
-        {/* 결과 카운트 */}
-        <div className="px-5 pb-2 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
-          <span>
-            검색 결과 <span className="font-bold text-ink-strong">{filteredAndSorted.length}</span>명
-          </span>
-          {searchTerm && (
-            <span className="text-brand truncate">"{searchTerm}"</span>
-          )}
-        </div>
-
-        {/* 회원 목록 */}
-        <div className="px-4 pb-10 space-y-2">
-          {loading ? (
-            <SkeletonRows />
-          ) : filteredAndSorted.length === 0 ? (
-            <div className="text-center py-12">
-              <span className="text-4xl block mb-3">🔍</span>
-              <p className="text-[13px] text-gray-500 dark:text-white/55">검색 결과가 없습니다</p>
-              <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">필터/검색어를 바꿔보세요</p>
+          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
+            {/* 회원 목록 */}
+            <div className="px-4 pb-10 lg:px-0 lg:pb-8 space-y-2">
+              {loading ? (
+                <SkeletonRows />
+              ) : filteredAndSorted.length === 0 ? (
+                <div className="text-center py-12">
+                  <span className="text-4xl block mb-3">🔍</span>
+                  <p className="text-[13px] text-gray-500 dark:text-white/55">검색 결과가 없습니다</p>
+                  <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">필터/검색어를 바꿔보세요</p>
+                </div>
+              ) : (
+                filteredAndSorted.map(user => (
+                  <UserRow
+                    key={user.id}
+                    user={user}
+                    expanded={expandedId === user.id}
+                    onToggleExpand={() => setExpandedId(prev => (prev === user.id ? null : user.id))}
+                    onToggleAdmin={() => handleToggleAdmin(user.id, user.is_admin)}
+                    onToggleStatus={() => handleToggleStatus(user.id, user.is_active)}
+                    onApproval={(approve) => handleApproval(user.id, approve)}
+                    onResetPassword={() => handleResetPassword(user.id, user.full_name || user.username)}
+                    formatDate={formatDate}
+                    formatRelative={formatRelative}
+                  />
+                ))
+              )}
             </div>
-          ) : (
-            filteredAndSorted.map(user => (
-              <UserRow
-                key={user.id}
-                user={user}
-                expanded={expandedId === user.id}
-                onToggleExpand={() => setExpandedId(prev => (prev === user.id ? null : user.id))}
-                onToggleAdmin={() => handleToggleAdmin(user.id, user.is_admin)}
-                onToggleStatus={() => handleToggleStatus(user.id, user.is_active)}
-                onApproval={(approve) => handleApproval(user.id, approve)}
-                onResetPassword={() => handleResetPassword(user.id, user.full_name || user.username)}
-                formatDate={formatDate}
-                formatRelative={formatRelative}
-              />
-            ))
-          )}
+          </div>
         </div>
       </div>
     </div>
@@ -517,8 +528,9 @@ const UserRow = ({
         />
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
+      {/* PC 에선 행이 넓어 두 줄이 휑하다 — 이름과 메타를 한 줄에 좌우로 편다 */}
+      <div className="flex-1 min-w-0 lg:flex lg:items-center lg:justify-between lg:gap-4">
+        <div className="flex items-center gap-1.5 min-w-0">
           <span className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em] truncate">
             {user.full_name || user.username}
           </span>
@@ -538,7 +550,7 @@ const UserRow = ({
             </span>
           )}
         </div>
-        <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate">
+        <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate lg:shrink-0 lg:text-right">
           {/* 승인 대기 회원은 로그인 기록이 없으므로 가입 시점을 보여준다 */}
           @{user.username} ·{' '}
           {user.approval_status === 'pending'
@@ -559,13 +571,16 @@ const UserRow = ({
     {/* 확장 영역 */}
     {expanded && (
       <div className="relative z-10 px-3.5 pb-3.5 border-t border-gray-200/60 dark:border-white/[0.05] pt-3 space-y-1.5 text-[12.5px]">
-        <InfoRow label="아이디" value={user.username} />
-        {user.full_name && <InfoRow label="이름" value={user.full_name} />}
-        <InfoRow label="가입일" value={formatDate(user.created_at)} />
-        <InfoRow
-          label="최근 로그인"
-          value={user.last_login ? formatDate(user.last_login) : '로그인 기록 없음'}
-        />
+        {/* PC 에선 행이 넓어지므로 정보를 2열로 접어 세로 길이를 줄인다 */}
+        <div className="space-y-1.5 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:gap-y-1.5 lg:space-y-0">
+          <InfoRow label="아이디" value={user.username} />
+          {user.full_name && <InfoRow label="이름" value={user.full_name} />}
+          <InfoRow label="가입일" value={formatDate(user.created_at)} />
+          <InfoRow
+            label="최근 로그인"
+            value={user.last_login ? formatDate(user.last_login) : '로그인 기록 없음'}
+          />
+        </div>
 
         {/* 승인 처리 — 대기/거절 상태일 때만 노출 */}
         {user.approval_status !== 'approved' && (
@@ -631,8 +646,9 @@ interface RowActionProps {
 }
 
 const RowAction = ({ onClick, accent, destructive, icon, label }: RowActionProps) => {
+  // PC 에선 행이 넓어져 버튼이 과하게 늘어나므로 내용 폭으로 둔다
   let cls =
-    'flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold transition-all '
+    'flex-1 lg:flex-none lg:px-5 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold transition-all '
   if (accent) {
     cls += 'bg-brand hover:bg-brand-dim text-white'
   } else if (destructive) {
