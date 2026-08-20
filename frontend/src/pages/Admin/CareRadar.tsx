@@ -25,6 +25,9 @@ const TABS: Array<{ key: Tab; label: string }> = [
   { key: 'newcomers', label: '새가족 정착' },
 ]
 
+// 명단은 넓은 좌측 칼럼에서 2열로 — 이름만 보고 훑는 화면이라 밀도가 높을수록 낫다
+const MEMBER_LIST_CLS = 'space-y-1.5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-1.5'
+
 const CareRadar = () => {
   const navigate = useNavigate()
   const admin = isAdmin()
@@ -52,109 +55,123 @@ const CareRadar = () => {
   }, [isError])
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10">
+    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
+    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 레일 sticky 가 산다.
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border">
         <AdminPageHeader title="돌봄 레이더" />
 
-        <p className="px-4 pt-3 text-[11.5px] text-gray-500 dark:text-white/45 leading-relaxed">
-          안부를 물을 분을 찾기 위한 화면입니다. 마지막으로 <b>활동한 시점</b>까지만 보여주며,
-          기도 제목이나 묵상 노트 같은 <b>기록 내용은 표시되지 않습니다</b>.
-        </p>
+        {/* PC(lg+) 2단 — 좌: 성도 명단 / 우: 안내·탭·요약이 sticky.
+            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 동일하다. */}
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:pb-6">
+            <p className="px-4 pt-3 text-[11.5px] text-gray-500 dark:text-white/45 leading-relaxed">
+              안부를 물을 분을 찾기 위한 화면입니다. 마지막으로 <b>활동한 시점</b>까지만 보여주며,
+              기도 제목이나 묵상 노트 같은 <b>기록 내용은 표시되지 않습니다</b>.
+            </p>
 
-        <div className="px-4 pt-3">
-          <FilterRow label="탭" align="center">
-            {TABS.map(t => (
-              <FilterChip key={t.key} active={tab === t.key} onClick={() => setTab(t.key)}>
-                {t.label}
-              </FilterChip>
-            ))}
-          </FilterRow>
-        </div>
+            <div className="px-4 pt-3">
+              <FilterRow label="탭" align="center">
+                {TABS.map(t => (
+                  <FilterChip key={t.key} active={tab === t.key} onClick={() => setTab(t.key)}>
+                    {t.label}
+                  </FilterChip>
+                ))}
+              </FilterRow>
+            </div>
 
-        {tab === 'quiet' && (
-          <div className="px-4 pt-2">
-            <FilterRow label="기준" align="center">
-              {QUIET_PERIODS.map(p => (
-                <FilterChip
-                  key={p.days}
-                  active={quietDays === p.days}
-                  onClick={() => setQuietDays(p.days)}
-                >
-                  {p.label}
-                </FilterChip>
-              ))}
-            </FilterRow>
+            {tab === 'quiet' && (
+              <div className="px-4 pt-2">
+                <FilterRow label="기준" align="center">
+                  {QUIET_PERIODS.map(p => (
+                    <FilterChip
+                      key={p.days}
+                      active={quietDays === p.days}
+                      onClick={() => setQuietDays(p.days)}
+                    >
+                      {p.label}
+                    </FilterChip>
+                  ))}
+                </FilterRow>
+              </div>
+            )}
+
+            {data && (tab === 'quiet' ? <QuietSummary data={data} /> : <NewcomerSummary data={data} />)}
           </div>
-        )}
 
-        {loading ? (
-          <StatSpinner label="성도들의 발자취를 살피는 중..." />
-        ) : !data ? (
-          <p className="px-4 py-16 text-center text-[13px] text-gray-500 dark:text-white/50">
-            불러오지 못했습니다
-          </p>
-        ) : tab === 'quiet' ? (
-          <QuietTab data={data} />
-        ) : (
-          <NewcomerTab data={data} />
-        )}
+          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
+            {loading ? (
+              <StatSpinner label="성도들의 발자취를 살피는 중..." />
+            ) : !data ? (
+              <p className="px-4 py-16 text-center text-[13px] text-gray-500 dark:text-white/50">
+                불러오지 못했습니다
+              </p>
+            ) : tab === 'quiet' ? (
+              <QuietList data={data} />
+            ) : (
+              <NewcomerList data={data} />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
 // ── 조용해진 성도 ─────────────────────────────────────────
-const QuietTab = ({ data }: { data: CareRadarData }) => {
-  const { summary, quiet_members: members, quiet_truncated: truncated } = data
+const QuietSummary = ({ data }: { data: CareRadarData }) => {
+  const { summary } = data
   const ratio = summary.members ? Math.round((summary.quiet / summary.members) * 100) : 0
 
   return (
-    <>
-      <SectionCard title="한눈에">
-        <p className="text-[13px] text-gray-700 dark:text-white/70 leading-relaxed">
-          성도 <b className="text-ink-strong">{summary.members.toLocaleString()}명</b> 중{' '}
-          <b className="text-brand">{summary.quiet.toLocaleString()}명</b>이{' '}
-          {data.quiet_days}일 넘게 앱에 흔적을 남기지 않았습니다{summary.members ? ` (${ratio}%)` : ''}.
-        </p>
-        {summary.bands.length > 0 && (
-          <div className="flex gap-1.5 flex-wrap">
-            {summary.bands.map(band => (
-              <span
-                key={band.label}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-gray-700 dark:text-white/70"
-              >
-                {band.label}
-                <span className="text-[11px] font-bold text-brand">{band.count}</span>
-              </span>
-            ))}
-          </div>
-        )}
-      </SectionCard>
+    <SectionCard title="한눈에">
+      <p className="text-[13px] text-gray-700 dark:text-white/70 leading-relaxed">
+        성도 <b className="text-ink-strong">{summary.members.toLocaleString()}명</b> 중{' '}
+        <b className="text-brand">{summary.quiet.toLocaleString()}명</b>이{' '}
+        {data.quiet_days}일 넘게 앱에 흔적을 남기지 않았습니다{summary.members ? ` (${ratio}%)` : ''}.
+      </p>
+      {summary.bands.length > 0 && (
+        <div className="flex gap-1.5 flex-wrap">
+          {summary.bands.map(band => (
+            <span
+              key={band.label}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-gray-700 dark:text-white/70"
+            >
+              {band.label}
+              <span className="text-[11px] font-bold text-brand">{band.count}</span>
+            </span>
+          ))}
+        </div>
+      )}
+    </SectionCard>
+  )
+}
 
-      <SectionCard
-        title="안부를 물을 분"
-        action={
-          <span className="text-[11px] text-gray-400 dark:text-white/35">활발했던 순</span>
-        }
-      >
-        {members.length === 0 ? (
-          <EmptyHint text="이 기준으로는 조용한 성도가 없습니다" />
-        ) : (
-          <>
-            <ul className="space-y-1.5">
-              {members.map(member => (
-                <QuietRow key={member.user_id} member={member} />
-              ))}
-            </ul>
-            {truncated > 0 && (
-              <p className="text-[11px] text-gray-400 dark:text-white/35 text-center">
-                외 {truncated.toLocaleString()}명 (기준 기간을 늘려 좁혀보세요)
-              </p>
-            )}
-          </>
-        )}
-      </SectionCard>
-    </>
+const QuietList = ({ data }: { data: CareRadarData }) => {
+  const { quiet_members: members, quiet_truncated: truncated } = data
+
+  return (
+    <SectionCard
+      title="안부를 물을 분"
+      action={<span className="text-[11px] text-gray-400 dark:text-white/35">활발했던 순</span>}
+    >
+      {members.length === 0 ? (
+        <EmptyHint text="이 기준으로는 조용한 성도가 없습니다" />
+      ) : (
+        <>
+          <ul className={MEMBER_LIST_CLS}>
+            {members.map(member => (
+              <QuietRow key={member.user_id} member={member} />
+            ))}
+          </ul>
+          {truncated > 0 && (
+            <p className="text-[11px] text-gray-400 dark:text-white/35 text-center">
+              외 {truncated.toLocaleString()}명 (기준 기간을 늘려 좁혀보세요)
+            </p>
+          )}
+        </>
+      )}
+    </SectionCard>
   )
 }
 
@@ -178,7 +195,7 @@ const QuietRow = ({ member }: { member: QuietMember }) => (
 )
 
 // ── 새가족 정착 ───────────────────────────────────────────
-const NewcomerTab = ({ data }: { data: CareRadarData }) => {
+const NewcomerSummary = ({ data }: { data: CareRadarData }) => {
   const { newcomers } = data
 
   if (newcomers.total === 0) {
@@ -189,48 +206,58 @@ const NewcomerTab = ({ data }: { data: CareRadarData }) => {
     )
   }
 
+  return (
+    <SectionCard
+      title={`최근 ${newcomers.cohort_days}일 새가족 ${newcomers.total}명`}
+      action={<span className="text-[11px] text-gray-400 dark:text-white/35">단계별 도달</span>}
+    >
+      <div className="space-y-2.5">
+        {newcomers.steps.map(step => (
+          <div key={step.key} className="flex items-center gap-2.5">
+            <span className="w-[76px] shrink-0 text-[12px] font-semibold text-gray-700 dark:text-white/70 truncate">
+              {step.label}
+            </span>
+            <div className="flex-1 h-[10px] rounded-full bg-gray-100 dark:bg-white/[0.05] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-brand transition-all duration-500"
+                style={{ width: `${Math.max(2, step.rate)}%` }}
+              />
+            </div>
+            <span className="w-[52px] shrink-0 text-right text-[11.5px] font-bold text-gray-500 dark:text-white/50">
+              {step.count}명 {step.rate}%
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="text-[11px] text-gray-400 dark:text-white/35 leading-relaxed">
+        가입 후 한 번이라도 해본 적 있으면 도달로 봅니다. 낮은 단계가 새가족이 막힌 지점입니다.
+      </p>
+    </SectionCard>
+  )
+}
+
+const NewcomerList = ({ data }: { data: CareRadarData }) => {
+  const { newcomers } = data
+  if (newcomers.total === 0) return null
+
   const stepLabels = new Map(newcomers.steps.map(s => [s.key, s.label]))
 
   return (
-    <>
-      <SectionCard
-        title={`최근 ${newcomers.cohort_days}일 새가족 ${newcomers.total}명`}
-        action={<span className="text-[11px] text-gray-400 dark:text-white/35">단계별 도달</span>}
-      >
-        <div className="space-y-2.5">
-          {newcomers.steps.map(step => (
-            <div key={step.key} className="flex items-center gap-2.5">
-              <span className="w-[76px] shrink-0 text-[12px] font-semibold text-gray-700 dark:text-white/70 truncate">
-                {step.label}
-              </span>
-              <div className="flex-1 h-[10px] rounded-full bg-gray-100 dark:bg-white/[0.05] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-brand transition-all duration-500"
-                  style={{ width: `${Math.max(2, step.rate)}%` }}
-                />
-              </div>
-              <span className="w-[52px] shrink-0 text-right text-[11.5px] font-bold text-gray-500 dark:text-white/50">
-                {step.count}명 {step.rate}%
-              </span>
-            </div>
-          ))}
-        </div>
-        <p className="text-[11px] text-gray-400 dark:text-white/35 leading-relaxed">
-          가입 후 한 번이라도 해본 적 있으면 도달로 봅니다. 낮은 단계가 새가족이 막힌 지점입니다.
-        </p>
-      </SectionCard>
-
-      <SectionCard
-        title="아직 자리 잡지 못한 새가족"
-        action={<span className="text-[11px] text-gray-400 dark:text-white/35">덜 밟은 순</span>}
-      >
-        <ul className="space-y-1.5">
-          {newcomers.members.map(member => (
-            <NewcomerRow key={member.user_id} member={member} stepLabels={stepLabels} steps={newcomers.steps.map(s => s.key)} />
-          ))}
-        </ul>
-      </SectionCard>
-    </>
+    <SectionCard
+      title="아직 자리 잡지 못한 새가족"
+      action={<span className="text-[11px] text-gray-400 dark:text-white/35">덜 밟은 순</span>}
+    >
+      <ul className={MEMBER_LIST_CLS}>
+        {newcomers.members.map(member => (
+          <NewcomerRow
+            key={member.user_id}
+            member={member}
+            stepLabels={stepLabels}
+            steps={newcomers.steps.map(s => s.key)}
+          />
+        ))}
+      </ul>
+    </SectionCard>
   )
 }
 

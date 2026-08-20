@@ -96,7 +96,7 @@ const BibleEngagementManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-10 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border">
         <AdminPageHeader title="말씀 반응 통계" />
 
         {/* 익명 집계 안내 */}
@@ -124,110 +124,118 @@ const BibleEngagementManagement = () => {
         ) : (
           <>
             {/* 요약 카드 */}
-            <div className="px-4 pt-4 grid grid-cols-2 gap-2">
+            <div className="px-4 pt-4 grid grid-cols-2 lg:grid-cols-4 gap-2">
               <SummaryCard icon="⭐" label="즐겨찾기" data={data.summary.favorites} />
               <SummaryCard icon="📝" label="묵상 노트" data={data.summary.notes} />
               <SummaryCard icon="🖍️" label="하이라이트" data={data.summary.highlights} />
               <SummaryCard icon="🖊️" label="단어 밑줄" data={data.summary.word_notes} />
             </div>
 
-            {/* TOP 구절 */}
-            <SectionCard title="가장 많이 반응한 구절 TOP 10">
-              <div className="flex gap-1.5 flex-wrap pb-1">
-                {TOP_TABS.map(tab => (
-                  <FilterChip key={tab.key} active={topTab === tab.key} onClick={() => setTopTab(tab.key)}>
-                    {tab.label}
-                  </FilterChip>
-                ))}
+            {/* PC(lg+) 2단 — 좌: TOP 구절(긴 목록) / 우: 단어·책별 분포.
+                래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 동일하다. */}
+            <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
+              <div className="contents lg:block lg:min-w-0">
+                {/* TOP 구절 */}
+                <SectionCard title="가장 많이 반응한 구절 TOP 10">
+                  <div className="flex gap-1.5 flex-wrap pb-1">
+                    {TOP_TABS.map(tab => (
+                      <FilterChip key={tab.key} active={topTab === tab.key} onClick={() => setTopTab(tab.key)}>
+                        {tab.label}
+                      </FilterChip>
+                    ))}
+                  </div>
+
+                  {topList.length === 0 ? (
+                    <EmptyHint text="아직 이 기간의 기록이 없습니다" />
+                  ) : (
+                    <>
+                    <p className="text-[11px] text-gray-400 dark:text-white/35 leading-relaxed">
+                      구절을 누르면 해당 장으로 이동합니다. 본문 속 밑줄·하이라이트는 각자 본인 기록만 보이므로, 다른 교인의 기록은 본문에 표시되지 않습니다.
+                    </p>
+                    <ol className="space-y-1.5">
+                      {topList.map((item, index) => (
+                        <li key={item.verse_id}>
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/bible/${item.book_number}/${item.chapter}`)}
+                            className="w-full text-left flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] hover:border-brand transition-colors"
+                          >
+                            <span
+                              className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold mt-0.5 ${
+                                index < 3
+                                  ? 'bg-[var(--brand-soft-strong)] text-brand'
+                                  : 'bg-gray-200/70 dark:bg-white/[0.06] text-gray-500 dark:text-white/45'
+                              }`}
+                            >
+                              {index + 1}
+                            </span>
+                            <span className="flex-1 min-w-0">
+                              <span className="block text-[13px] font-bold text-ink-strong tracking-[-0.01em]">
+                                {item.book_name} {item.chapter}:{item.verse}
+                              </span>
+                              <span className="block text-[12px] text-gray-500 dark:text-white/55 leading-relaxed line-clamp-2 mt-0.5">
+                                {renderTextWithWords(item.text, item.words)}
+                              </span>
+                            </span>
+                            <span className="shrink-0 text-[11.5px] font-semibold text-brand mt-0.5">
+                              {item.count !== item.users ? `${item.count}건 · ${item.users}명` : `${item.users}명`}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ol>
+                    </>
+                  )}
+                </SectionCard>
               </div>
 
-              {topList.length === 0 ? (
-                <EmptyHint text="아직 이 기간의 기록이 없습니다" />
-              ) : (
-                <>
-                <p className="text-[11px] text-gray-400 dark:text-white/35 leading-relaxed">
-                  구절을 누르면 해당 장으로 이동합니다. 본문 속 밑줄·하이라이트는 각자 본인 기록만 보이므로, 다른 교인의 기록은 본문에 표시되지 않습니다.
-                </p>
-                <ol className="space-y-1.5">
-                  {topList.map((item, index) => (
-                    <li key={item.verse_id}>
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/bible/${item.book_number}/${item.chapter}`)}
-                        className="w-full text-left flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.05] hover:border-brand transition-colors"
-                      >
+              <div className="contents lg:block">
+                {/* 많이 찾은 단어 */}
+                <SectionCard title="가장 많이 찾은 단어">
+                  {data.top_words.length === 0 ? (
+                    <EmptyHint text="아직 단어장 기록이 없습니다" />
+                  ) : (
+                    <div className="flex gap-1.5 flex-wrap">
+                      {data.top_words.map(w => (
                         <span
-                          className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold mt-0.5 ${
-                            index < 3
-                              ? 'bg-[var(--brand-soft-strong)] text-brand'
-                              : 'bg-gray-200/70 dark:bg-white/[0.06] text-gray-500 dark:text-white/45'
-                          }`}
+                          key={w.word}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] font-semibold bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-gray-800 dark:text-white/80"
                         >
-                          {index + 1}
+                          {w.word}
+                          <span className="text-[11px] font-bold text-brand">{w.count}</span>
                         </span>
-                        <span className="flex-1 min-w-0">
-                          <span className="block text-[13px] font-bold text-ink-strong tracking-[-0.01em]">
-                            {item.book_name} {item.chapter}:{item.verse}
-                          </span>
-                          <span className="block text-[12px] text-gray-500 dark:text-white/55 leading-relaxed line-clamp-2 mt-0.5">
-                            {renderTextWithWords(item.text, item.words)}
-                          </span>
-                        </span>
-                        <span className="shrink-0 text-[11.5px] font-semibold text-brand mt-0.5">
-                          {item.count !== item.users ? `${item.count}건 · ${item.users}명` : `${item.users}명`}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ol>
-                </>
-              )}
-            </SectionCard>
-
-            {/* 많이 찾은 단어 */}
-            <SectionCard title="가장 많이 찾은 단어">
-              {data.top_words.length === 0 ? (
-                <EmptyHint text="아직 단어장 기록이 없습니다" />
-              ) : (
-                <div className="flex gap-1.5 flex-wrap">
-                  {data.top_words.map(w => (
-                    <span
-                      key={w.word}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] font-semibold bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-gray-800 dark:text-white/80"
-                    >
-                      {w.word}
-                      <span className="text-[11px] font-bold text-brand">{w.count}</span>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </SectionCard>
-
-            {/* 책별 분포 */}
-            <SectionCard title="책별 반응 분포">
-              {data.book_distribution.length === 0 ? (
-                <EmptyHint text="아직 기록이 없습니다" />
-              ) : (
-                <div className="space-y-2">
-                  {data.book_distribution.map(book => (
-                    <div key={book.book_number} className="flex items-center gap-2.5">
-                      <span className="w-16 shrink-0 text-[12px] font-semibold text-gray-700 dark:text-white/70 truncate">
-                        {book.book_name}
-                      </span>
-                      <div className="flex-1 h-[10px] rounded-full bg-gray-100 dark:bg-white/[0.05] overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-brand transition-all duration-500"
-                          style={{ width: `${Math.max(6, (book.count / maxBookCount) * 100)}%` }}
-                        />
-                      </div>
-                      <span className="w-9 shrink-0 text-right text-[11.5px] font-bold text-gray-500 dark:text-white/50">
-                        {book.count}
-                      </span>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )}
-            </SectionCard>
+                  )}
+                </SectionCard>
+
+                {/* 책별 분포 */}
+                <SectionCard title="책별 반응 분포">
+                  {data.book_distribution.length === 0 ? (
+                    <EmptyHint text="아직 기록이 없습니다" />
+                  ) : (
+                    <div className="space-y-2">
+                      {data.book_distribution.map(book => (
+                        <div key={book.book_number} className="flex items-center gap-2.5">
+                          <span className="w-16 shrink-0 text-[12px] font-semibold text-gray-700 dark:text-white/70 truncate">
+                            {book.book_name}
+                          </span>
+                          <div className="flex-1 h-[10px] rounded-full bg-gray-100 dark:bg-white/[0.05] overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-brand transition-all duration-500"
+                              style={{ width: `${Math.max(6, (book.count / maxBookCount) * 100)}%` }}
+                            />
+                          </div>
+                          <span className="w-9 shrink-0 text-right text-[11.5px] font-bold text-gray-500 dark:text-white/50">
+                            {book.count}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </SectionCard>
+              </div>
+            </div>
           </>
         )}
       </div>

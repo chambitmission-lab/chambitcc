@@ -120,10 +120,13 @@ const NewFamilyManagement = () => {
   const hiddenCount = posts.filter(p => !p.is_published).length
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24">
-        {/* 헤더 */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+    // lg 에선 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
+    // sticky 가 전역으로 죽어 있어, 이 상자가 있어야 우측 도구 레일 sticky 가 산다.
+    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-[1100px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border">
+        {/* 헤더 — lg 에선 검색/필터가 우측 레일에 고정되므로 sticky 를 풀어 둔다
+            (sticky 인 채로 라운드 모서리를 주면 스크롤 중 둥근 막대가 떠 보인다) */}
+        <div className="sticky top-0 lg:static lg:rounded-t-3xl z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
@@ -141,130 +144,152 @@ const NewFamilyManagement = () => {
           </span>
         </div>
 
-        {/* 통계 */}
-        <div className="px-4 pt-4 pb-1 flex gap-2 flex-wrap">
-          <StatChip label="전체" value={posts.length} />
-          <StatChip label="이번 달" value={thisMonthCount} accent />
-          <StatChip label="비공개" value={hiddenCount} />
-        </div>
+        {/* PC(lg+) 2단 — 좌: 새가족 목록 / 우: 도구(등록·통계·검색/필터)가 sticky.
+            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
+          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 lg:space-y-3">
+            {/* PC 전용 등록 버튼 — lg 에선 FAB 대신 레일 상단에서 연다 */}
+            <button
+              type="button"
+              onClick={() => setComposer('new')}
+              className="hidden lg:flex w-full items-center justify-center gap-2 py-2.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span>새가족 등록</span>
+            </button>
 
-        {/* 검색 + 필터 */}
-        <div className="px-4 py-3">
-          <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
-            <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
+            {/* 통계 */}
+            <div className="px-4 pt-4 pb-1 lg:px-0 lg:pt-0 flex gap-2 flex-wrap">
+              <StatChip label="전체" value={posts.length} />
+              <StatChip label="이번 달" value={thisMonthCount} accent />
+              <StatChip label="비공개" value={hiddenCount} />
+            </div>
 
-            <div className="relative z-10 space-y-3">
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                </span>
-                <input
-                  type="text"
-                  placeholder="이름 · 부서 · 인사말 검색"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
-                />
-                {searchTerm && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
-                    aria-label="검색어 지우기"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                )}
+            {/* 검색 + 필터 */}
+            <div className="px-4 py-3 lg:px-0 lg:py-0">
+              <div className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
+                <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
+
+                <div className="relative z-10 space-y-3">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 pointer-events-none">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="이름 · 부서 · 인사말 검색"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/35 focus:outline-none focus:border-brand transition-colors"
+                    />
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchTerm('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/80 p-1 rounded-full"
+                        aria-label="검색어 지우기"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+
+                  <FilterRow label="공개">
+                    {(
+                      [
+                        ['all', '전체'],
+                        ['published', '공개'],
+                        ['hidden', '비공개'],
+                      ] as const
+                    ).map(([v, l]) => (
+                      <FilterChip key={v} active={visibility === v} onClick={() => setVisibility(v)}>
+                        {l}
+                      </FilterChip>
+                    ))}
+                  </FilterRow>
+
+                  <FilterRow label="정렬">
+                    {(
+                      [
+                        ['recent', '최신순'],
+                        ['oldest', '오래된순'],
+                        ['welcome', '환영 많은순'],
+                      ] as const
+                    ).map(([v, l]) => (
+                      <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>
+                        {l}
+                      </FilterChip>
+                    ))}
+                  </FilterRow>
+                </div>
               </div>
+            </div>
 
-              <FilterRow label="공개">
-                {(
-                  [
-                    ['all', '전체'],
-                    ['published', '공개'],
-                    ['hidden', '비공개'],
-                  ] as const
-                ).map(([v, l]) => (
-                  <FilterChip key={v} active={visibility === v} onClick={() => setVisibility(v)}>
-                    {l}
-                  </FilterChip>
-                ))}
-              </FilterRow>
+            {/* 결과 카운트 */}
+            <div className="px-5 pb-2 lg:px-1 lg:pb-0 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
+              <span>
+                검색 결과 <span className="font-bold text-ink-strong">{filtered.length}</span>건
+              </span>
+              {searchTerm && (
+                <span className="text-brand truncate">"{searchTerm}"</span>
+              )}
+            </div>
 
-              <FilterRow label="정렬">
-                {(
-                  [
-                    ['recent', '최신순'],
-                    ['oldest', '오래된순'],
-                    ['welcome', '환영 많은순'],
-                  ] as const
-                ).map(([v, l]) => (
-                  <FilterChip key={v} active={sortKey === v} onClick={() => setSortKey(v)}>
-                    {l}
-                  </FilterChip>
-                ))}
-              </FilterRow>
+          </div>
+
+          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
+            {/* 목록 */}
+            <div className="px-4 pb-32 lg:px-0 lg:pb-8 space-y-2">
+              {loading ? (
+                <SkeletonRows />
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-12">
+                  <span className="text-4xl block mb-3">🌱</span>
+                  <p className="text-[13px] text-gray-500 dark:text-white/55">
+                    {searchTerm || visibility !== 'all'
+                      ? '조건에 맞는 새가족이 없습니다'
+                      : '아직 등록된 새가족이 없어요'}
+                  </p>
+                  <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">
+                    {searchTerm || visibility !== 'all'
+                      ? '필터를 바꾸거나 검색어를 지워보세요'
+                      : '＋ 새가족 버튼으로 등록해 보세요'}
+                  </p>
+                </div>
+              ) : (
+                filtered.map(post => (
+                  <PostRow
+                    key={post.id}
+                    post={post}
+                    expanded={expandedId === post.id}
+                    onToggleExpand={() =>
+                      setExpandedId(prev => (prev === post.id ? null : post.id))
+                    }
+                    onDelete={() => handleDelete(post)}
+                    onEdit={() => setComposer(post)}
+                    onToggleVisibility={() => handleToggleVisibility(post)}
+                    onView={() => navigate('/news?tab=new-family')}
+                  />
+                ))
+              )}
             </div>
           </div>
-        </div>
-
-        {/* 결과 카운트 */}
-        <div className="px-5 pb-2 text-[12px] text-gray-500 dark:text-white/55 flex items-center gap-2">
-          <span>
-            검색 결과 <span className="font-bold text-ink-strong">{filtered.length}</span>건
-          </span>
-          {searchTerm && (
-            <span className="text-brand truncate">"{searchTerm}"</span>
-          )}
-        </div>
-
-        {/* 목록 */}
-        <div className="px-4 pb-32 space-y-2">
-          {loading ? (
-            <SkeletonRows />
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-12">
-              <span className="text-4xl block mb-3">🌱</span>
-              <p className="text-[13px] text-gray-500 dark:text-white/55">
-                {searchTerm || visibility !== 'all'
-                  ? '조건에 맞는 새가족이 없습니다'
-                  : '아직 등록된 새가족이 없어요'}
-              </p>
-              <p className="text-[12px] text-gray-400 dark:text-white/35 mt-1">
-                {searchTerm || visibility !== 'all'
-                  ? '필터를 바꾸거나 검색어를 지워보세요'
-                  : '오른쪽 아래 + 버튼으로 새가족을 등록하세요'}
-              </p>
-            </div>
-          ) : (
-            filtered.map(post => (
-              <PostRow
-                key={post.id}
-                post={post}
-                expanded={expandedId === post.id}
-                onToggleExpand={() =>
-                  setExpandedId(prev => (prev === post.id ? null : post.id))
-                }
-                onDelete={() => handleDelete(post)}
-                onEdit={() => setComposer(post)}
-                onToggleVisibility={() => handleToggleVisibility(post)}
-                onView={() => navigate('/news?tab=new-family')}
-              />
-            ))
-          )}
         </div>
 
         {/* FAB */}
         <button
           type="button"
           onClick={() => setComposer('new')}
-          className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
+          className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 lg:hidden inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />

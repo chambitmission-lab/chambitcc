@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 export const AdminPageHeader = ({ title }: { title: string }) => {
   const navigate = useNavigate()
   return (
-    <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
+    <div className="sticky top-0 lg:static lg:rounded-t-3xl z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center justify-between gap-2">
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
