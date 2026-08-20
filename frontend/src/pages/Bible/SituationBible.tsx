@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useSituationCategories, useSituationVerses } from '../../hooks/useSituation'
 import type { SituationCategory, SituationVerse } from '../../types/situation'
 import './SituationBible.css'
@@ -73,6 +73,20 @@ const SituationBible = () => {
   const [heroNonce, setHeroNonce] = useState(0)
 
   const { data: categories = [], isLoading } = useSituationCategories()
+
+  // 홈 우측 레일 태그 칩 딥링크 — ?c=<카테고리ID> 로 진입하면 해당 상황을 바로 연다.
+  // 카테고리 로드 후 최초 1회만 적용 (뒤로가기·직접 탐색을 덮어쓰지 않도록)
+  const location = useLocation()
+  const deepLinkApplied = useRef(false)
+  useEffect(() => {
+    if (deepLinkApplied.current || categories.length === 0) return
+    deepLinkApplied.current = true
+    const raw = new URLSearchParams(location.search).get('c')
+    const id = raw ? Number(raw) : NaN
+    if (!Number.isFinite(id)) return
+    const cat = categories.find((c) => c.id === id)
+    if (cat) setSelected(cat)
+  }, [categories, location.search])
   const { data: detail, isLoading: versesLoading } = useSituationVerses(
     selected?.id ?? 0,
     !!selected,

@@ -18,6 +18,7 @@ import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
 // import ThanksThread from './components/ThanksThread'
 import SortTabs from './components/SortTabs'
 import PrayerFeed from './components/PrayerFeed'
+import HomeRightRail from './components/HomeRightRail'
 import BottomNavigation from './components/BottomNavigation'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
@@ -305,6 +306,12 @@ const NewHome = () => {
             {/* <ThanksThread /> */}
 
             </div>{/* /사이드바 */}
+
+            {/* 우측 위젯 레일 — 3컬럼이 들어갈 만큼 넓은 화면(1440px+)에서만 렌더.
+                기도 현황·기도 태그·알림 배너·오늘 일정·말씀 카드로 남는 좌우 여백을 채운다 */}
+            <div className="hidden min-[1440px]:block lg:order-3 w-[312px] shrink-0 sticky top-[4.5rem] self-start max-h-[calc(100vh-88px)] overflow-y-auto scrollbar-hide pb-4">
+              <HomeRightRail />
+            </div>{/* /우측 레일 */}
 
             {/* 피드 컬럼 — 데스크톱에선 접속 즉시 기도 피드가 보인다 */}
             <div className="lg:order-1 lg:w-full lg:max-w-[480px] lg:min-w-0">
