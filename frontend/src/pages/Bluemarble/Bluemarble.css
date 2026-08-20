@@ -1722,3 +1722,474 @@
   border-radius: 999px;
   letter-spacing: 0.1em;
 }
+
+/* =====================================================================
+   LIGHT THEME — 밝은 테마 대응
+   ---------------------------------------------------------------------
+   이 파일의 기본값은 "밤의 여정" 다크 팔레트다(하드코딩 유지).
+   밝은 테마에서는 여기서만 값을 덮어써 종이 위 보드게임처럼 보이게 한다.
+   /mission 과 같은 방식: 다크가 기본, html:not(.dark) 로 라이트 분기.
+   색은 되도록 theme.css 토큰(--surface-* / --text-* / --brand-*)을 쓰고,
+   정답·오답·보스·메달처럼 '게임 시맨틱'인 색만 밝은 톤으로 직접 조정한다.
+   ===================================================================== */
+
+/* ── 페이지 바탕 ── */
+html:not(.dark) .bm-page {
+  background:
+    radial-gradient(ellipse at 18% 8%, rgba(49, 130, 246, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 88% 92%, rgba(49, 130, 246, 0.08) 0%, transparent 55%),
+    linear-gradient(180deg, #f7faff 0%, #eef4ff 55%, #f8fafc 100%);
+  color: var(--text-body);
+}
+
+html:not(.dark) .bm-loading,
+html:not(.dark) .bm-need-login { color: var(--text-muted); }
+html:not(.dark) .bm-need-login h2 { color: var(--text-strong); }
+html:not(.dark) .bm-need-login p { color: var(--text-muted); }
+
+/* ── 헤더 ── */
+html:not(.dark) .bm-page-header {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.72) 100%);
+  border-color: var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+html:not(.dark) .bm-title { color: var(--text-strong); }
+html:not(.dark) .bm-title-emoji { filter: none; }
+
+html:not(.dark) .bm-ghost-btn {
+  background: var(--surface-container);
+  color: var(--text-body);
+  border-color: var(--card-border);
+}
+
+html:not(.dark) .bm-ghost-btn:hover:not(:disabled) {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+html:not(.dark) .bm-ghost-danger {
+  color: #b91c1c;
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+html:not(.dark) .bm-ghost-danger:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.08);
+}
+
+/* ── 게임 상태 카드 ── */
+html:not(.dark) .bm-status {
+  background: var(--surface-container);
+  border-color: var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+html:not(.dark) .bm-status::before {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(49, 130, 246, 0.07) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(49, 130, 246, 0.05) 0%, transparent 50%);
+}
+
+html:not(.dark) .bm-status-header { color: var(--text-muted); }
+html:not(.dark) .bm-status-username { color: var(--text-strong); }
+html:not(.dark) .bm-status-laps,
+html:not(.dark) .bm-status-phase { color: var(--brand); }
+html:not(.dark) .bm-score-label { color: var(--text-muted); }
+
+html:not(.dark) .bm-stat-cell {
+  background: var(--surface-inset);
+  border-color: var(--card-border);
+}
+
+html:not(.dark) .bm-stat-label { color: var(--text-muted); }
+/* 정답/오답은 게임 시맨틱 — 밝은 배경에서 읽히도록 한 단계 진하게 */
+html:not(.dark) .bm-stat-correct { color: #059669; }
+html:not(.dark) .bm-stat-wrong { color: #dc2626; }
+html:not(.dark) .bm-stat-streak { color: var(--brand); }
+
+/* ── 보드 ── */
+html:not(.dark) .bm-board,
+html:not(.dark) .journey-board {
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(49, 130, 246, 0.08), transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(49, 130, 246, 0.06), transparent 50%),
+    var(--surface-container);
+  border-color: var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+html:not(.dark) .bm-board-center {
+  background: var(--surface-inset);
+  border-color: var(--card-border);
+}
+
+html:not(.dark) .bm-last-msg {
+  color: var(--text-body);
+  background: var(--surface-inset);
+}
+
+html:not(.dark) .bm-current-tile-info { color: var(--brand); }
+
+/* 칸 — 면 색(--tile-color)은 파스텔 phase 색이라 그대로 두고 테두리만 정리한다 */
+html:not(.dark) .bm-tile,
+html:not(.dark) .jt { border-color: rgba(0, 0, 0, 0.08); }
+
+/* 안개(미도달 칸) — 다크의 #191919 대신 종이 회색 */
+html:not(.dark) .jt-fog-hidden {
+  background: #eef1f6 !important;
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+html:not(.dark) .jt-fog-hidden .jt-bg {
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(49, 130, 246, 0.07) 0,
+    rgba(49, 130, 246, 0.07) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+html:not(.dark) .jt-fog-hidden .jt-pos { color: rgba(15, 23, 42, 0.3); }
+html:not(.dark) .jt-fog-hidden .jt-icon { color: rgba(49, 130, 246, 0.3); }
+
+html:not(.dark) .jp-piece,
+html:not(.dark) .bm-piece { filter: drop-shadow(0 3px 5px rgba(24, 26, 40, 0.28)); }
+
+/* ── 진행 HUD / 진행률 / 전진 버튼 ── */
+html:not(.dark) .journey-hud {
+  background: var(--surface-container);
+  border-color: var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+html:not(.dark) .journey-hud-title { color: var(--text-strong); }
+html:not(.dark) .journey-hud-phase { color: var(--text-muted); }
+html:not(.dark) .bm-progress-track { background: var(--surface-inset); }
+html:not(.dark) .bm-progress-label { color: var(--text-muted); }
+html:not(.dark) .step-btn-hint { color: var(--text-muted); }
+
+/* 비활성 버튼 — 다크용 슬레이트는 밝은 배경에서 너무 무겁다 */
+html:not(.dark) .step-btn:disabled,
+html:not(.dark) .bm-dice-button:disabled,
+html:not(.dark) .bm-submit-btn:disabled {
+  background: #d7dbe3;
+  color: #6b7280;
+}
+
+/* ── 모달 공통 ── */
+html:not(.dark) .bm-modal-backdrop,
+html:not(.dark) .nc-backdrop { background: rgba(15, 23, 42, 0.42); }
+
+html:not(.dark) .bm-quiz-modal,
+html:not(.dark) .bm-leaderboard-modal,
+html:not(.dark) .bm-clear-modal,
+html:not(.dark) .nc-card {
+  background: var(--surface-container);
+  border-color: var(--card-border);
+  box-shadow: 0 24px 60px rgba(24, 26, 40, 0.18);
+  color: var(--text-body);
+}
+
+html:not(.dark) .bm-quiz-modal-correct { border-color: rgba(16, 185, 129, 0.5); }
+html:not(.dark) .bm-quiz-modal-wrong { border-color: rgba(239, 68, 68, 0.4); }
+
+/* ── 퀴즈 ── */
+html:not(.dark) .bm-quiz-cat,
+html:not(.dark) .bm-quiz-diff {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+html:not(.dark) .bm-quiz-question { color: var(--text-strong); }
+
+html:not(.dark) .bm-quiz-read-hint {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+html:not(.dark) .bm-quiz-hint-btn {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+html:not(.dark) .bm-quiz-hint-btn:hover { background: var(--brand-soft-strong); }
+html:not(.dark) .bm-quiz-hint-text { color: var(--text-body); }
+
+html:not(.dark) .bm-quiz-choice {
+  background: var(--surface-container);
+  border-color: var(--card-border);
+  color: var(--text-body);
+}
+
+html:not(.dark) .bm-quiz-choice:hover:not(:disabled) {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+}
+
+html:not(.dark) .bm-quiz-choice-selected {
+  border-color: var(--brand);
+  background: var(--brand-soft-strong);
+}
+
+html:not(.dark) .bm-quiz-choice-correct {
+  border-color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+}
+
+html:not(.dark) .bm-quiz-choice-wrong {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.10) !important;
+}
+
+html:not(.dark) .bm-choice-letter {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+/* ── 결과 ── */
+html:not(.dark) .bm-result {
+  background: var(--surface-inset);
+  border-color: var(--card-border);
+}
+
+html:not(.dark) .bm-result-correct {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+html:not(.dark) .bm-result-wrong {
+  background: rgba(239, 68, 68, 0.07);
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+html:not(.dark) .bm-result-explanation { color: var(--text-body); }
+
+html:not(.dark) .bm-result-verse {
+  border-left-color: var(--brand);
+  color: var(--brand);
+}
+
+html:not(.dark) .bm-close-btn {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+html:not(.dark) .bm-close-btn:hover:not(:disabled) { background: var(--brand-soft-strong); }
+
+/* sticky 액션 위 페이드 — 다크는 카드색(#201f1f), 라이트는 흰 카드로 맞춘다 */
+html:not(.dark) .bm-result .bm-next-boss-btn,
+html:not(.dark) .bm-result .bm-close-btn {
+  box-shadow: 0 -16px 18px -8px rgba(255, 255, 255, 0.95);
+}
+
+/* ── 리더보드 (1/2/3위 메달색은 보편적 의미라 그대로 둔다) ── */
+html:not(.dark) .bm-leaderboard-header h3 { color: var(--text-strong); }
+
+html:not(.dark) .bm-x-btn {
+  background: var(--surface-inset);
+  border-color: var(--card-border);
+  color: var(--text-muted);
+}
+
+html:not(.dark) .bm-x-btn:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+html:not(.dark) .bm-leaderboard-loading,
+html:not(.dark) .bm-leaderboard-empty { color: var(--text-muted); }
+
+html:not(.dark) .bm-leaderboard-item {
+  background: var(--surface-container);
+  border-color: var(--card-border);
+}
+
+html:not(.dark) .bm-rank {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+html:not(.dark) .bm-lb-name { color: var(--text-strong); }
+html:not(.dark) .bm-lb-meta { color: var(--text-muted); }
+
+html:not(.dark) .bm-leaderboard-myrank {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--text-strong);
+}
+
+html:not(.dark) .bm-clear-modal h2 { color: var(--text-strong); }
+html:not(.dark) .bm-clear-stats { color: var(--text-muted); }
+
+/* ── 토스트 ── */
+html:not(.dark) .bm-toast {
+  background: var(--surface-container);
+  border-color: var(--brand-soft-strong);
+  box-shadow: 0 10px 30px rgba(24, 26, 40, 0.18);
+}
+
+html:not(.dark) .bm-toast-icon { filter: none; }
+html:not(.dark) .bm-toast-msg { color: var(--text-strong); }
+html:not(.dark) .bm-toast-points.negative { color: #dc2626; }
+html:not(.dark) .bm-toast-rest { border-color: rgba(100, 116, 139, 0.35); }
+
+/* ── 내러티브 카드 ── */
+html:not(.dark) .nc-phase {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+html:not(.dark) .nc-icon { filter: none; }
+html:not(.dark) .nc-title { color: var(--text-strong); }
+html:not(.dark) .nc-ref { color: var(--text-muted); }
+html:not(.dark) .nc-narrative { color: var(--text-body); }
+
+html:not(.dark) .nc-verse {
+  border-left-color: var(--brand);
+  color: var(--brand);
+}
+
+html:not(.dark) .nc-milestone {
+  border-color: var(--brand-soft-strong);
+  box-shadow:
+    0 0 40px rgba(49, 130, 246, 0.15),
+    0 24px 60px rgba(24, 26, 40, 0.18);
+}
+
+html:not(.dark) .nc-finish {
+  border-color: var(--amber-soft-strong);
+  box-shadow:
+    0 0 40px rgba(245, 158, 11, 0.18),
+    0 24px 60px rgba(24, 26, 40, 0.18);
+}
+
+html:not(.dark) .nc-rest { border-color: var(--card-border); }
+
+/* ── 보스 (붉은 위험색은 유지하되 밝은 배경용으로 진하게) ── */
+html:not(.dark) .bm-quiz-modal-boss {
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow:
+    0 24px 60px rgba(239, 68, 68, 0.14),
+    0 0 0 1px rgba(239, 68, 68, 0.2);
+}
+
+html:not(.dark) .bm-quiz-boss-header {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+html:not(.dark) .bm-quiz-boss-icon { filter: none; }
+html:not(.dark) .bm-quiz-boss-label { color: #b91c1c; }
+
+html:not(.dark) .bm-quiz-boss-progress {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #b91c1c;
+}
+
+html:not(.dark) .bm-quiz-boss-heart {
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+html:not(.dark) .bm-quiz-boss-heart.is-hit {
+  background: rgba(16, 185, 129, 0.18);
+  color: #059669;
+}
+
+html:not(.dark) .bm-quiz-boss-heart.is-miss {
+  background: rgba(239, 68, 68, 0.16);
+  color: #dc2626;
+}
+
+html:not(.dark) .bm-quiz-timer-track { background: var(--surface-inset); }
+html:not(.dark) .bm-quiz-timer-sec { color: var(--text-body); }
+
+html:not(.dark) .bm-quiz-timer-bonus {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+html:not(.dark) .bm-bonus-combo {
+  background: var(--amber-soft);
+  border-color: var(--amber-soft-strong);
+  color: var(--amber);
+}
+
+html:not(.dark) .bm-bonus-time {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+html:not(.dark) .bm-bonus-streak {
+  background: rgba(8, 145, 178, 0.12);
+  border-color: rgba(8, 145, 178, 0.3);
+  color: #0e7490;
+}
+
+html:not(.dark) .bm-boss-clear-modal {
+  background: var(--surface-container);
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow:
+    0 24px 60px rgba(24, 26, 40, 0.2),
+    0 0 40px rgba(239, 68, 68, 0.14);
+  color: var(--text-body);
+}
+
+html:not(.dark) .bm-boss-clear-icon { filter: drop-shadow(0 4px 10px rgba(239, 68, 68, 0.3)); }
+html:not(.dark) .bm-boss-clear-title { color: var(--text-strong); }
+html:not(.dark) .bm-boss-clear-frac span { color: var(--text-muted); }
+html:not(.dark) .bm-boss-clear-label { color: var(--text-muted); }
+
+html:not(.dark) .bm-boss-clear-bonus {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--text-strong);
+}
+
+/* ── 위 라이트 규칙들이 '변형(modifier) 클래스'를 덮지 않도록 되살리는 블록 ──
+   `html:not(.dark) .bm-rank` 같은 규칙은 특정도가 (0,2,0) 이라
+   `.bm-rank-1` 같은 한 클래스 변형(0,1,0)을 이겨버린다.
+   변형이 살아 있어야 하는 것들만 같은 특정도로 다시 선언한다. */
+
+/* 메달 1/2/3위 — 보편적 의미라 라이트에서도 그대로 */
+html:not(.dark) .bm-rank-1 {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #422006;
+  border-color: transparent;
+}
+
+html:not(.dark) .bm-rank-2 {
+  background: linear-gradient(135deg, #e5e7eb, #94a3b8);
+  color: #1e293b;
+  border-color: transparent;
+}
+
+html:not(.dark) .bm-rank-3 {
+  background: linear-gradient(135deg, #fb923c, #c2410c);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+/* 토스트 종류별 테두리 — 보너스/워프/한 바퀴/완주 구분 */
+html:not(.dark) .bm-toast-bonus { border-color: rgba(49, 130, 246, 0.4); }
+html:not(.dark) .bm-toast-warp { border-color: rgba(8, 145, 178, 0.4); }
+html:not(.dark) .bm-toast-lap { border-color: rgba(245, 158, 11, 0.55); }
+html:not(.dark) .bm-toast-finish { border-color: rgba(245, 158, 11, 0.65); }
+
+/* 현재 칸 / 다음 칸 표시 */
+html:not(.dark) .jt-current { border-color: var(--brand); }
+html:not(.dark) .jt-next { border-color: rgba(49, 130, 246, 0.6); }
+html:not(.dark) .jt-ring { border-color: rgba(49, 130, 246, 0.85); }
+html:not(.dark) .bm-tile-corner { border-color: rgba(49, 130, 246, 0.5); }
