@@ -28,16 +28,17 @@
   min-height: 100vh;
 }
 
-/* PC(lg+) — 티어 B 와이드 셸 (다른 페이지들의 lg:max-w-xl 라운드 카드와 동일 문법) */
+/* PC(lg+) 와이드 셸 — 2단 무대. 세부 배치는 파일 맨 아래 PC 블록 참고 */
 @media (min-width: 1024px) {
   .answered-shell {
-    max-width: 36rem;
+    max-width: 68rem;
     min-height: 0;
     margin-top: 0.5rem;
     margin-bottom: 3rem;
     border: 1px solid var(--card-border);
     border-radius: 1.5rem;
-    overflow: hidden;
+    /* overflow:hidden 을 주면 이 셸이 sticky 의 스크롤 조상이 되어 우측 레일이 죽는다.
+       라운드 밖으로 삐져나가는 자식이 없어(카드마다 여백) clip 이 필요 없다. */
   }
 }
 
@@ -343,5 +344,95 @@
   .answered-hall-emblem {
     width: 36px;
     height: 36px;
+  }
+}
+
+/* ============================================
+   PC (lg+) — "나란히 놓고 보는" 2단 전당
+   ────────────────────────────────────────────
+   모바일은 전당 헤더 → 정렬 탭 → 응답 카드를 세로로 훑는다.
+   PC 에선 전당 헤더(말씀·응답 수)를 우측에 고정해 두고 왼쪽에 간증을 2열로 편다 —
+   "이 말씀 아래 쌓인 응답들"이라는 이 화면의 문장이 스크롤 내내 유지된다.
+   래퍼 3개는 lg 미만에서 display:contents 라 모바일 화면은 기존과 완전히 동일하다.
+   ============================================ */
+.answered-columns,
+.answered-col-main,
+.answered-col-side {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  /* 이 앱은 #root 에 overflow-y:auto 가 걸려 있어 position:sticky 가 전역으로 죽어 있다.
+     그래서 lg 에서만 이 페이지를 스스로 스크롤하는 상자로 만든다 — 헤더(56px)를 뺀
+     높이를 갖는 순간 우측 레일 sticky 가 이 상자 기준으로 산다. */
+  .answered-page {
+    height: calc(100vh - 56px);
+    min-height: 0;
+    padding-bottom: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+  }
+
+  /* ── 2단 그리드 ── */
+  .answered-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 22px;
+    align-items: start;
+    padding: 18px 20px 28px;
+  }
+
+  .answered-col-main {
+    display: block;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .answered-col-side {
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 0; /* .answered-page 스크롤 상자 기준 — 컬럼 패딩이 이미 여백을 만든다 */
+  }
+
+  /* 컬럼이 좌우 여백을 담당하므로 안쪽 요소의 가로 여백은 걷어낸다 */
+  .answered-col-side > .answered-hall-section {
+    margin: 0;
+  }
+
+  .answered-col-main > .answered-sort-tabs {
+    padding: 0 0 12px;
+  }
+
+  .answered-col-main > .answered-list {
+    /* 응답의 전당 = 간증의 벽. 넓어진 폭을 2열로 채워 스크롤을 절반으로 줄인다.
+       align-items:start 라 긴 간증이 옆 카드를 함께 늘이지 않는다. */
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 14px;
+    padding: 16px 0 0;
+  }
+
+  .answered-col-main > .answered-state-card {
+    margin: 16px 0 0;
+  }
+
+  .answered-col-main > .answered-load-more {
+    padding: 20px 0 4px;
+  }
+
+  /* ── 전당 헤더 — 340px 레일에선 엠블럼을 본문 위로 올려 글줄을 넓게 쓴다 ── */
+  .answered-col-side .answered-hall-card {
+    grid-template-columns: 1fr;
+    row-gap: 12px;
+    padding: 20px;
+  }
+
+  .answered-col-side .answered-hall-title {
+    font-size: 20px;
   }
 }

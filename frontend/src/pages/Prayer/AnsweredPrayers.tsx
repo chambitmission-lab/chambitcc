@@ -69,130 +69,138 @@ const AnsweredPrayers = () => {
   return (
     <div className="answered-page page-stage">
       <div className="answered-shell">
-        {/* 헤더 카드 — 성소 톤 (보라 베이스 + amber 액센트) */}
-        <section className="answered-hall-section">
-          <article className="answered-hall-card">
-            <div className="answered-hall-emblem" aria-hidden>
-              <span className="material-icons-round">auto_awesome</span>
-            </div>
-
-            <div className="answered-hall-body">
-              <header className="answered-hall-header">
-                <span className="answered-hall-label">{t('answeredHallLabel')}</span>
-                <span className="answered-hall-reference">
-                  {t('answeredHallVerseRef')}
-                </span>
-              </header>
-
-              <h1 className="answered-hall-title">{t('answeredPageTitle')}</h1>
-              <p className="answered-hall-subtitle">{t('answeredPageSubtitle')}</p>
-
-              <blockquote className="answered-hall-verse">
-                <span className="answered-hall-verse-mark" aria-hidden>"</span>
-                {t('answeredHallVerse')}
-              </blockquote>
-
-              {answeredPrayers.length > 0 && (
-                <div className="answered-hall-count">
-                  <span className="material-icons-round" style={{ fontSize: 13 }}>
-                    auto_awesome
-                  </span>
-                  {total > 0 ? total : answeredPrayers.length}
-                  {t('answeredCountStacked')}
+        {/* PC(lg+) 2단 — 좌: 응답된 기도 목록 / 우: 전당 헤더(말씀·응답 수)가 sticky.
+            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
+        <div className="answered-columns">
+          <div className="answered-col-side">
+            {/* 헤더 카드 — 성소 톤 (보라 베이스 + amber 액센트) */}
+            <section className="answered-hall-section">
+              <article className="answered-hall-card">
+                <div className="answered-hall-emblem" aria-hidden>
+                  <span className="material-icons-round">auto_awesome</span>
                 </div>
-              )}
-            </div>
-          </article>
-        </section>
 
-        {/* 정렬 탭 — SortTabs 패턴 (하단 보더 강조) */}
-        <div className="answered-sort-tabs">
-          <div className="answered-sort-tab-group">
-            <button
-              type="button"
-              className={`answered-sort-tab ${sort === 'popular' ? 'is-active' : ''}`}
-              onClick={() => setSort('popular')}
-            >
-              {t('sortPopular')}
-            </button>
-            <button
-              type="button"
-              className={`answered-sort-tab ${sort === 'latest' ? 'is-active' : ''}`}
-              onClick={() => setSort('latest')}
-            >
-              {t('sortLatest')}
-            </button>
+                <div className="answered-hall-body">
+                  <header className="answered-hall-header">
+                    <span className="answered-hall-label">{t('answeredHallLabel')}</span>
+                    <span className="answered-hall-reference">
+                      {t('answeredHallVerseRef')}
+                    </span>
+                  </header>
+
+                  <h1 className="answered-hall-title">{t('answeredPageTitle')}</h1>
+                  <p className="answered-hall-subtitle">{t('answeredPageSubtitle')}</p>
+
+                  <blockquote className="answered-hall-verse">
+                    <span className="answered-hall-verse-mark" aria-hidden>"</span>
+                    {t('answeredHallVerse')}
+                  </blockquote>
+
+                  {answeredPrayers.length > 0 && (
+                    <div className="answered-hall-count">
+                      <span className="material-icons-round" style={{ fontSize: 13 }}>
+                        auto_awesome
+                      </span>
+                      {total > 0 ? total : answeredPrayers.length}
+                      {t('answeredCountStacked')}
+                    </div>
+                  )}
+                </div>
+              </article>
+            </section>
           </div>
 
-          {answeredPrayers.length > 0 && (
-            <span className="answered-sort-count">
-              ✨ {total > 0 ? total : answeredPrayers.length}
-              {t('answeredCountSuffix')}
-            </span>
-          )}
-        </div>
-
-        {/* 본문 */}
-        {loading && answeredPrayers.length === 0 ? (
-          <div className="answered-state-card">
-            <div className="answered-state-spinner" />
-            <p className="answered-state-desc">{t('answeredLoading')}</p>
-          </div>
-        ) : error ? (
-          <div className="answered-state-card">
-            <div className="answered-state-emblem" aria-hidden>
-              <span className="material-icons-round">error_outline</span>
-            </div>
-            <p className="answered-state-error">{error}</p>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="answered-state-retry"
-            >
-              {t('retry')}
-            </button>
-          </div>
-        ) : answeredPrayers.length === 0 ? (
-          <div className="answered-state-card">
-            <div className="answered-state-emblem" aria-hidden>
-              <span className="material-icons-round">auto_awesome</span>
-            </div>
-            <h3 className="answered-state-title">{t('answeredEmptyTitle')}</h3>
-            <p className="answered-state-desc">{t('answeredEmptyDesc')}</p>
-          </div>
-        ) : (
-          <>
-            <div className="answered-list">
-              {answeredPrayers.map(prayer => (
-                <PrayerCard
-                  key={prayer.id}
-                  prayer={prayer}
-                  onPrayerToggle={handlePrayerToggle}
-                  onReplyClick={handleReplyClick}
-                  onEditAnswer={handleEditAnswer}
-                  onCancelAnswer={handleCancelAnswer}
-                  isToggling={isToggling}
-                  /* 응답의 전당은 모두 응답된 기도이므로 응답 등록 버튼은 안 뜨고
-                     수정/취소 버튼만 작성자 본인에게 노출됨 */
-                  showAnswerButton={true}
-                />
-              ))}
-            </div>
-
-            {hasMore && (
-              <div className="answered-load-more">
+          <div className="answered-col-main">
+            {/* 정렬 탭 — SortTabs 패턴 (하단 보더 강조) */}
+            <div className="answered-sort-tabs">
+              <div className="answered-sort-tab-group">
                 <button
                   type="button"
-                  onClick={() => loadMore()}
-                  disabled={isFetchingMore}
-                  className="answered-load-more-btn"
+                  className={`answered-sort-tab ${sort === 'popular' ? 'is-active' : ''}`}
+                  onClick={() => setSort('popular')}
                 >
-                  {isFetchingMore ? t('loading') : t('loadMore')}
+                  {t('sortPopular')}
+                </button>
+                <button
+                  type="button"
+                  className={`answered-sort-tab ${sort === 'latest' ? 'is-active' : ''}`}
+                  onClick={() => setSort('latest')}
+                >
+                  {t('sortLatest')}
                 </button>
               </div>
+
+              {answeredPrayers.length > 0 && (
+                <span className="answered-sort-count">
+                  ✨ {total > 0 ? total : answeredPrayers.length}
+                  {t('answeredCountSuffix')}
+                </span>
+              )}
+            </div>
+
+            {/* 본문 */}
+            {loading && answeredPrayers.length === 0 ? (
+              <div className="answered-state-card">
+                <div className="answered-state-spinner" />
+                <p className="answered-state-desc">{t('answeredLoading')}</p>
+              </div>
+            ) : error ? (
+              <div className="answered-state-card">
+                <div className="answered-state-emblem" aria-hidden>
+                  <span className="material-icons-round">error_outline</span>
+                </div>
+                <p className="answered-state-error">{error}</p>
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="answered-state-retry"
+                >
+                  {t('retry')}
+                </button>
+              </div>
+            ) : answeredPrayers.length === 0 ? (
+              <div className="answered-state-card">
+                <div className="answered-state-emblem" aria-hidden>
+                  <span className="material-icons-round">auto_awesome</span>
+                </div>
+                <h3 className="answered-state-title">{t('answeredEmptyTitle')}</h3>
+                <p className="answered-state-desc">{t('answeredEmptyDesc')}</p>
+              </div>
+            ) : (
+              <>
+                <div className="answered-list">
+                  {answeredPrayers.map(prayer => (
+                    <PrayerCard
+                      key={prayer.id}
+                      prayer={prayer}
+                      onPrayerToggle={handlePrayerToggle}
+                      onReplyClick={handleReplyClick}
+                      onEditAnswer={handleEditAnswer}
+                      onCancelAnswer={handleCancelAnswer}
+                      isToggling={isToggling}
+                      /* 응답의 전당은 모두 응답된 기도이므로 응답 등록 버튼은 안 뜨고
+                         수정/취소 버튼만 작성자 본인에게 노출됨 */
+                      showAnswerButton={true}
+                    />
+                  ))}
+                </div>
+
+                {hasMore && (
+                  <div className="answered-load-more">
+                    <button
+                      type="button"
+                      onClick={() => loadMore()}
+                      disabled={isFetchingMore}
+                      className="answered-load-more-btn"
+                    >
+                      {isFetchingMore ? t('loading') : t('loadMore')}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </div>
 
       {/* 간증 수정 모달 */}
