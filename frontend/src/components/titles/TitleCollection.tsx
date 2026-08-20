@@ -89,84 +89,92 @@ export const TitleCollection: React.FC = () => {
 
   return (
     <div className="title-collection">
-      {/* 통계 요약 */}
-      <div className="title-collection-stats">
-        <div className="title-stat">
-          <span className="title-stat-value gradient-num">{summary.earned}</span>
-          <span className="title-stat-sub">/ {summary.total} {t('titleStatEarnedSuffix')}</span>
-          <span className="title-stat-label">{t('titleStatCollected')}</span>
-        </div>
-        <div className="title-stat">
-          <span className="title-stat-value gradient-num">{pct}<span className="title-stat-unit">%</span></span>
-          <span className="title-stat-label">{t('titleStatRate')}</span>
-        </div>
-        <button
-          type="button"
-          className="title-stat is-equipped-slot"
-          onClick={equippedTitle ? () => setSelectedKey(equippedTitle.key) : undefined}
-          disabled={!equippedTitle}
-        >
-          {equippedTitle ? (
-            <TitleMedal title={equippedTitle} size="sm" />
-          ) : (
-            <span className="title-stat-value title-stat-emoji">—</span>
-          )}
-          <span className="title-stat-label">
-            {equippedTitle ? localizeTitle(equippedTitle, language).name : t('titleStatNoneEquipped')}
-          </span>
-        </button>
-      </div>
-
-      {/* 곧 획득 — 거의 다 온 칭호로 동기부여 */}
-      {almostThere.length > 0 && (
-        <section className="title-soon">
-          <div className="title-soon-head">
-            <span className="material-icons-round">bolt</span>
-            <h2 className="title-soon-title">{t('titleSoonHeader')}</h2>
-          </div>
-          {almostThere.map((item) => (
+      {/* PC(lg+) 2단 — 좌: 카테고리별 도감 / 우: 내 현황(수집률·장착·곧 획득)이 sticky.
+          래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
+      <div className="title-columns">
+        <div className="title-col-side">
+          {/* 통계 요약 */}
+          <div className="title-collection-stats">
+            <div className="title-stat">
+              <span className="title-stat-value gradient-num">{summary.earned}</span>
+              <span className="title-stat-sub">/ {summary.total} {t('titleStatEarnedSuffix')}</span>
+              <span className="title-stat-label">{t('titleStatCollected')}</span>
+            </div>
+            <div className="title-stat">
+              <span className="title-stat-value gradient-num">{pct}<span className="title-stat-unit">%</span></span>
+              <span className="title-stat-label">{t('titleStatRate')}</span>
+            </div>
             <button
               type="button"
-              key={item.key}
-              className="title-soon-row"
-              onClick={() => setSelectedKey(item.key)}
+              className="title-stat is-equipped-slot"
+              onClick={equippedTitle ? () => setSelectedKey(equippedTitle.key) : undefined}
+              disabled={!equippedTitle}
             >
-              <TitleMedal title={item} size="sm" />
-              <div className="title-soon-body">
-                <span className="title-soon-name">{localizeTitle(item, language).name}</span>
-                <div className="title-soon-bar">
-                  <div className="title-soon-fill" style={{ width: `${progressPct(item)}%` }} />
-                </div>
-              </div>
-              <span className="title-soon-count">
-                {item.progress!.current}/{item.progress!.target}
+              {equippedTitle ? (
+                <TitleMedal title={equippedTitle} size="sm" />
+              ) : (
+                <span className="title-stat-value title-stat-emoji">—</span>
+              )}
+              <span className="title-stat-label">
+                {equippedTitle ? localizeTitle(equippedTitle, language).name : t('titleStatNoneEquipped')}
               </span>
             </button>
-          ))}
-        </section>
-      )}
+          </div>
 
-      {/* 카테고리별 메달 그리드 */}
-      {CATEGORY_ORDER.map((cat) => {
-        const items = grouped[cat] ?? []
-        if (items.length === 0) return null
-        const meta = CATEGORY_META[cat]
-        const earnedCount = items.filter((item) => item.earned).length
-        return (
-          <section key={cat} className="title-section">
-            <div className="title-section-head">
-              <span className="title-section-icon">{meta.icon}</span>
-              <h2 className="title-section-title">{t(meta.labelKey)}</h2>
-              <span className="title-section-count">{earnedCount}/{items.length}</span>
-            </div>
-            <div className="title-medal-grid">
-              {items.map((item) => (
-                <TitleMedalTile key={item.key} title={item} onSelect={() => setSelectedKey(item.key)} />
+          {/* 곧 획득 — 거의 다 온 칭호로 동기부여 */}
+          {almostThere.length > 0 && (
+            <section className="title-soon">
+              <div className="title-soon-head">
+                <span className="material-icons-round">bolt</span>
+                <h2 className="title-soon-title">{t('titleSoonHeader')}</h2>
+              </div>
+              {almostThere.map((item) => (
+                <button
+                  type="button"
+                  key={item.key}
+                  className="title-soon-row"
+                  onClick={() => setSelectedKey(item.key)}
+                >
+                  <TitleMedal title={item} size="sm" />
+                  <div className="title-soon-body">
+                    <span className="title-soon-name">{localizeTitle(item, language).name}</span>
+                    <div className="title-soon-bar">
+                      <div className="title-soon-fill" style={{ width: `${progressPct(item)}%` }} />
+                    </div>
+                  </div>
+                  <span className="title-soon-count">
+                    {item.progress!.current}/{item.progress!.target}
+                  </span>
+                </button>
               ))}
-            </div>
-          </section>
-        )
-      })}
+            </section>
+          )}
+        </div>
+
+        <div className="title-col-main">
+          {/* 카테고리별 메달 그리드 */}
+          {CATEGORY_ORDER.map((cat) => {
+            const items = grouped[cat] ?? []
+            if (items.length === 0) return null
+            const meta = CATEGORY_META[cat]
+            const earnedCount = items.filter((item) => item.earned).length
+            return (
+              <section key={cat} className="title-section">
+                <div className="title-section-head">
+                  <span className="title-section-icon">{meta.icon}</span>
+                  <h2 className="title-section-title">{t(meta.labelKey)}</h2>
+                  <span className="title-section-count">{earnedCount}/{items.length}</span>
+                </div>
+                <div className="title-medal-grid">
+                  {items.map((item) => (
+                    <TitleMedalTile key={item.key} title={item} onSelect={() => setSelectedKey(item.key)} />
+                  ))}
+                </div>
+              </section>
+            )
+          })}
+        </div>
+      </div>
 
       {/* 상세 시트 */}
       {selected && (

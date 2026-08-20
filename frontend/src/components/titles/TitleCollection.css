@@ -247,3 +247,58 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+
+/* ============================================
+   PC (lg+) — "나란히 놓고 보는" 2단 도감
+   ────────────────────────────────────────────
+   모바일은 통계 → 곧 획득 → 카테고리 도감을 세로로 훑는다.
+   PC 에선 "내 현황"(수집률·장착 칭호·곧 획득)을 우측에 고정해 두고
+   왼쪽에서 도감을 넓게 편다 — 메달을 구경하는 내내 내 진행 상황이 함께 보인다.
+   래퍼 3개는 lg 미만에서 display:contents 라 모바일 화면은 기존과 완전히 동일하다.
+   ============================================ */
+.title-columns,
+.title-col-main,
+.title-col-side {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  .title-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 22px;
+    align-items: start;
+  }
+
+  .title-col-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .title-col-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 0.25rem; /* .garden-page 스크롤 상자 기준 (이미 헤더 아래에서 시작한다) */
+  }
+
+  /* ── 도감 그리드 — 넓어진 만큼 타일도 키운다.
+     104px 는 모바일 3열용 최소치라 PC 에선 이름이 자주 잘린다. ── */
+  .title-medal-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px 8px;
+    padding: 18px 14px;
+  }
+
+  .title-section-title {
+    font-size: 17px;
+  }
+}

@@ -9,14 +9,6 @@
   background: transparent;
 }
 
-/* PC(lg+) — 티어 B 와이드 셸: 메달 도감 그리드에 숨 쉴 폭을 준다 */
-@media (min-width: 1024px) {
-  .main-content > .garden-page {
-    max-width: 36rem; /* lg:max-w-xl — 다른 티어 B 페이지와 동일 폭 */
-    padding: 12px 0 56px;
-  }
-}
-
 /* ── Hero 카드 ──────────────────────────── */
 .garden-hero {
   position: relative;
@@ -181,5 +173,54 @@
 
   .garden-section {
     margin: 12px 12px 6px;
+  }
+}
+
+/* PC(lg+) — 2단 무대(도감 + 고정 현황 레일).
+   이 앱은 #root 에 overflow-y:auto 가 걸려 있어 position:sticky 가 전역으로 죽어 있다.
+   그래서 lg 에서만 이 페이지를 스스로 스크롤하는 상자로 만든다 — 헤더(56px)를 뺀
+   높이를 갖는 순간 우측 레일(.title-col-side) sticky 가 이 상자 기준으로 산다.
+   폭 제한은 페이지가 아니라 자식(hero/section)이 맡는다. 페이지가 좁으면
+   스크롤바가 화면 가장자리가 아니라 컬럼 옆에 붙어 어색해지기 때문. */
+@media (min-width: 1024px) {
+  .main-content > .garden-page {
+    max-width: none;
+    height: calc(100vh - 56px);
+    padding: 12px 24px 48px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+  }
+
+  .garden-hero,
+  .garden-section {
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ── Hero — 넓어진 무대에 맞춰 한 단계 키운다 ── */
+  .garden-hero {
+    padding: 24px 28px;
+    column-gap: 18px;
+  }
+
+  .garden-hero-emblem {
+    width: 52px;
+    height: 52px;
+  }
+
+  .garden-hero-emblem .material-icons-round {
+    font-size: 27px;
+  }
+
+  .garden-hero-title {
+    font-size: 26px;
+  }
+
+  .garden-hero-subtitle {
+    font-size: 13.5px;
+    /* 1100px 폭에서 한 줄로 늘어지면 읽는 눈이 튄다 */
+    max-width: 52ch;
   }
 }
