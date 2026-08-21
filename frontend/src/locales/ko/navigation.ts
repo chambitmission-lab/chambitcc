@@ -34,6 +34,7 @@ export const navigation = {
   adminNavSituation: '상황별 성구',
   adminNavNotice: '공지사항',
   adminNavPush: '푸시 알림',
+  adminNavChatbot: '챗봇',
   adminNavEvent: '일정',
   adminNavCulture: '문화교실',
   adminNavOrganization: '조직도',

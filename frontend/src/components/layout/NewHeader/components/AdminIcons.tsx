@@ -170,6 +170,15 @@ const IconOrgChart = (p: IconProps) => (
   </Svg>
 )
 
+/* 챗봇 — 말풍선과 반짝임 */
+const IconChatBot = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H9l-4.2 3.3c-.5.4-.8.2-.8-.4V6.5Z" />
+    <path d="M8.5 9.5h7" />
+    <path d="M8.5 13h4.5" />
+  </Svg>
+)
+
 /* 섹션 헤더 — 관리 권한 방패 */
 export const IconShield = (p: IconProps) => (
   <Svg {...p}>
@@ -199,6 +208,7 @@ export const ADMIN_ICONS = {
   adminNavSituation: IconCompass,
   adminNavNotice: IconMegaphone,
   adminNavPush: IconBell,
+  adminNavChatbot: IconChatBot,
   adminNavEvent: IconCalendar,
   adminNavCulture: IconPalette,
   adminNavOrganization: IconOrgChart,

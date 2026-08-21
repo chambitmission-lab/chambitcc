@@ -44,7 +44,8 @@ const ADMIN_GROUPS: AdminGroup[] = [
     titleKey: 'adminGroupComm',
     items: [
       { path: '/admin/notifications', key: 'adminNavNotice' },
-      { path: '/admin/push', key: 'adminNavPush' }
+      { path: '/admin/push', key: 'adminNavPush' },
+      { path: '/admin/chatbot', key: 'adminNavChatbot' }
     ]
   },
   {

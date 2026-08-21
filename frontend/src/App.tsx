@@ -124,6 +124,7 @@ const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'))
 const CareRadar = lazy(() => import('./pages/Admin/CareRadar'))
 const BibleEngagementManagement = lazy(() => import('./pages/Admin/BibleEngagementManagement'))
 const WeeklyPrayerManagement = lazy(() => import('./pages/Admin/WeeklyPrayerManagement'))
+const ChatbotManagement = lazy(() => import('./pages/Admin/ChatbotManagement'))
 const WeeklyPrayerTopics = lazy(() => import('./pages/Prayer/WeeklyPrayerTopics'))
 const WeeklyPrayerScreen = lazy(() => import('./pages/Prayer/WeeklyPrayerScreen'))
 
@@ -270,6 +271,7 @@ function App() {
                 <Route path="/admin/bible-plans" element={<BiblePlanManagement />} />
                 <Route path="/admin/bible-commentaries" element={<BibleCommentaryManagement />} />
                 <Route path="/admin/situations" element={<SituationManagement />} />
+                <Route path="/admin/chatbot" element={<ChatbotManagement />} />
                 <Route path="/admin/culture" element={<CultureManagement />} />
                 <Route path="/admin/organization" element={<OrganizationManagement />} />
                 <Route path="/admin/bible-engagement" element={<BibleEngagementManagement />} />

@@ -32,3 +32,35 @@ export interface ChatReply {
 export interface ChatbotAnswer {
   replies: ChatReply[]
 }
+
+// ── 관리자 ────────────────────────────────────────────────────────────
+
+export interface ChatbotUnanswered {
+  id: number
+  text: string
+  ask_count: number
+  status: 'open' | 'resolved'
+  answer?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ChatbotIntent {
+  id: number
+  name: string
+  keywords: string[]
+  answer: string
+  actions: ChatAction[]
+  is_active: boolean
+  order: number
+  created_at: string
+}
+
+export interface ChatbotIntentCreate {
+  name: string
+  keywords: string[]
+  answer: string
+  actions: ChatAction[]
+  is_active: boolean
+  order: number
+}

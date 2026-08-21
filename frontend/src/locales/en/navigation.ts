@@ -34,6 +34,7 @@ export const navigation = {
   adminNavSituation: 'Situations',
   adminNavNotice: 'Notices',
   adminNavPush: 'Push',
+  adminNavChatbot: 'Chatbot',
   adminNavEvent: 'Events',
   adminNavCulture: 'Culture',
   adminNavOrganization: 'Org Chart',
