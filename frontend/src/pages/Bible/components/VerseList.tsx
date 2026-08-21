@@ -179,7 +179,9 @@ const VerseList = ({
   useEffect(() => {
     if (!commentaryFabVisible) return
     document.documentElement.style.setProperty('--chat-fab-lift', '3rem')
-    return () => document.documentElement.style.removeProperty('--chat-fab-lift')
+    return () => {
+      document.documentElement.style.removeProperty('--chat-fab-lift')
+    }
   }, [commentaryFabVisible])
 
   // 모든 훅은 조건문 이전에 호출되어야 함

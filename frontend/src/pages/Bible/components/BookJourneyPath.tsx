@@ -301,7 +301,9 @@ const BookJourneyPath = ({
   useEffect(() => {
     if (!jumpVisible) return
     document.documentElement.style.setProperty('--chat-fab-lift', '2.25rem')
-    return () => document.documentElement.style.removeProperty('--chat-fab-lift')
+    return () => {
+      document.documentElement.style.removeProperty('--chat-fab-lift')
+    }
   }, [jumpVisible])
 
   return (
