@@ -24,6 +24,7 @@ import GroupFilter from '../../components/prayer/GroupFilter'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
 import AnswerModal from '../../components/prayer/AnswerModal'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
+import { useBottomStickyRail } from '../../hooks/useBottomStickyRail'
 import { useAuth } from '../../hooks/useAuth'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { showToast } from '../../utils/toast'
@@ -58,6 +59,9 @@ const NewHome = () => {
   const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter)  // ✅ selectedFilter 전달
   const mainRef = useRef<HTMLDivElement>(null)
   const feedRef = useRef<HTMLDivElement>(null)
+  // 사이드 컬럼 bottom-sticky — 헤더(56px)+상단 여백에 맞춘 기존 top-[4.5rem]=72px 기준
+  const sidebarStickyRef = useBottomStickyRail(72)
+  const rightRailStickyRef = useBottomStickyRail(72)
 
   // 우측 위젯 레일은 CSS로 숨기는 대신 조건부 마운트 — display:none이어도 React가
   // 마운트되면 레일의 쿼리(주간 통계·상황별 성구·오늘 일정)가 모바일에서도 나가므로,
@@ -282,8 +286,13 @@ const NewHome = () => {
                 모바일에선 이 래퍼가 그냥 세로 스택이라 기존 순서(카드들 → 피드) 그대로다 */}
             <div className="lg:flex lg:items-start lg:justify-center lg:gap-8 lg:px-6 lg:pt-6">
 
-            {/* 사이드바 — 모바일에서 피드 위에 쌓이던 카드들을 데스크톱에선 우측 위젯 컬럼으로 */}
-            <div className="lg:order-2 lg:w-[368px] lg:shrink-0 lg:sticky lg:top-[4.5rem] lg:self-start lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto scrollbar-hide lg:pb-4">
+            {/* 사이드바 — 모바일에서 피드 위에 쌓이던 카드들을 데스크톱에선 우측 위젯 컬럼으로.
+                max-h+내부 스크롤로 자르면 하단 카드가 잘려 보여서, 자연 높이 그대로 흐르다
+                바닥이 화면에 닿으면 고정되는 bottom-sticky(top은 훅이 인라인 계산)로 바꿨다 */}
+            <div
+              ref={sidebarStickyRef}
+              className="lg:order-2 lg:w-[368px] lg:shrink-0 lg:sticky lg:self-start lg:pb-4"
+            >
 
             {/* 오늘의 묵상 카드 — 시간대별 히어로가 홈의 첫인사 역할 (위계 최상단) */}
             <DailyMeditationCard onWriteMeditation={handleComposerOpen} />
@@ -323,7 +332,10 @@ const NewHome = () => {
             {/* 우측 위젯 레일 — 3컬럼이 들어갈 만큼 넓은 화면(1440px+)에서만 마운트.
                 기도 현황·기도 태그·알림 배너·오늘 일정·말씀 카드로 남는 좌우 여백을 채운다 */}
             {railWide && (
-              <div className="hidden min-[1440px]:block lg:order-3 w-[312px] shrink-0 sticky top-[4.5rem] self-start max-h-[calc(100vh-88px)] overflow-y-auto scrollbar-hide pb-4">
+              <div
+                ref={rightRailStickyRef}
+                className="hidden min-[1440px]:block lg:order-3 w-[312px] shrink-0 sticky self-start pb-4"
+              >
                 <HomeRightRail />
               </div>
             )}{/* /우측 레일 */}
