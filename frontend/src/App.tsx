@@ -14,6 +14,7 @@ import PullToRefresh from './components/common/PullToRefresh'
 import ScrollRestoration from './components/common/ScrollRestoration'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
 import { ConfirmDialogHost } from './components/common/ConfirmDialog'
+import ChatbotWidget from './components/chatbot/ChatbotWidget'
 import { menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
 import { healPushSubscription } from './utils/pushNotification'
 import { checkForAppUpdate } from './utils/appVersion'
@@ -337,6 +338,8 @@ function App() {
           <TitleUnlockHost />
           {/* 공통 확인/안내 모달 호스트 — 브라우저 기본 confirm()/alert() 대체 */}
           <ConfirmDialogHost />
+          {/* 규칙 기반 교회 챗봇 "참빛 말씀비서" — 전역 플로팅 위젯 */}
+          <ChatbotWidget />
           {/* 방문자 집계는 Cloudflare Pages 의 Web Analytics(대시보드 토글)가
               빌드 산출물에 비컨을 자동 주입하는 방식으로 대체 — 코드 불필요. */}
         </div>
