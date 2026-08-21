@@ -479,6 +479,19 @@ html:not([data-viewport-settled]) .bottom-dock-anchor {
   animation: bible-star-travel 5s linear infinite;
 }
 
+/* 오디오 플레이어 기능 칩 — 참빛 로고와 같은 은은한 브랜드 글로우(움직임 없음).
+   테두리를 브랜드빛으로 물들이고 주변에 빛무리만 살짝 얹어 시선을 끈다. */
+.audio-chip-glow {
+  border-color: rgba(49, 130, 246, 0.38);
+  box-shadow:
+    0 0 6px var(--brand-glow),
+    0 0 14px var(--brand-glow);
+}
+
+[data-theme="dark"] .audio-chip-glow {
+  border-color: rgba(49, 130, 246, 0.5);
+}
+
 /* Liquid Pill Button Effects */
 .liquid-pill {
   position: relative;

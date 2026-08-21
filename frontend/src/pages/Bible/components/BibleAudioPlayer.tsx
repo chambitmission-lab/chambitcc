@@ -608,7 +608,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                     onClick={openCinema}
                     aria-label="낭독 영화관 (전체화면 몰입 낭독)"
                     title="낭독 영화관"
-                    className="flex items-center gap-0.5 rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[11px] font-bold text-gray-400 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40"
+                    className="audio-chip-glow flex items-center gap-0.5 rounded-full border border-black/10 bg-black/[0.03] px-2 py-0.5 text-[11px] font-bold text-gray-400 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40"
                   >
                     <span className="material-icons-round text-[13px] leading-none">
                       theaters
@@ -625,7 +625,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                     className={`flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] font-bold transition active:scale-95 ${
                       sleepActive
                         ? 'border-transparent bg-[var(--brand-soft)] text-brand'
-                        : 'border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
+                        : 'audio-chip-glow border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
                     }`}
                   >
                     <span className="material-icons-round text-[13px] leading-none">
@@ -643,7 +643,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                   className={`flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] font-bold transition active:scale-95 ${
                     autoNext
                       ? 'border-transparent bg-[var(--brand-soft)] text-brand'
-                      : 'border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
+                      : 'audio-chip-glow border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
                   }`}
                 >
                   <span className="material-icons-round text-[13px] leading-none">
@@ -655,7 +655,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                 <button
                   type="button"
                   onClick={cycleRate}
-                  className="min-w-[46px] rounded-full border border-black/10 bg-black/[0.03] px-1 py-0.5 text-center text-[11px] font-bold tabular-nums text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
+                  className="audio-chip-glow min-w-[46px] rounded-full border border-black/10 bg-black/[0.03] px-1 py-0.5 text-center text-[11px] font-bold tabular-nums text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
                 >
                   {rate}×
                 </button>

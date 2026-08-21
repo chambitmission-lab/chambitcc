@@ -11,7 +11,9 @@
   align-items: center;
   justify-content: center;
   background: var(--ig-secondary-background);
-  border: 1px solid var(--ig-border);
+  /* 참빛 로고와 같은 정적 브랜드 글로우 — 몰입 기능 입구라 살짝 빛나게 시선 유도 */
+  border: 1px solid rgba(49, 130, 246, 0.38);
+  box-shadow: 0 0 6px var(--brand-glow), 0 0 14px var(--brand-glow);
   border-radius: 50%;
   color: var(--ig-primary-text);
   cursor: pointer;
@@ -20,7 +22,7 @@
 
 [data-theme="dark"] .focus-mode-btn {
   background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(49, 130, 246, 0.5);
 }
 
 .focus-mode-btn:hover {
