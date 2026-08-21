@@ -295,6 +295,15 @@ const BookJourneyPath = ({
     }
   }, [currentBookNumber, items])
 
+  // 점프 칩이 떠 있는 동안 전역 챗봇 버튼을 위로 밀어 우하단 겹침을 막는다
+  // (읽기 화면의 해석 FAB와 같은 --chat-fab-lift 문법 — 칩 높이만큼만 살짝).
+  const jumpVisible = currentBookNumber !== undefined && showJump
+  useEffect(() => {
+    if (!jumpVisible) return
+    document.documentElement.style.setProperty('--chat-fab-lift', '2.25rem')
+    return () => document.documentElement.style.removeProperty('--chat-fab-lift')
+  }, [jumpVisible])
+
   return (
     <div className="bjp-wrap" ref={wrapRef} style={{ height: totalHeight }}>
       {width > 0 && (
@@ -335,7 +344,7 @@ const BookJourneyPath = ({
 
       {/* 화면 고정 플로팅 — 컨테이너 안 absolute였을 땐 페이지와 함께 스크롤돼
           정작 필요한 순간(멀리 내려갔을 때)엔 버튼이 화면 밖에 있었다 */}
-      {currentBookNumber !== undefined && showJump && (
+      {jumpVisible && (
         <button type="button" className="bjp-jump" onClick={scrollToCurrent}>
           <span className="material-icons-round">my_location</span>
           {t.jump}

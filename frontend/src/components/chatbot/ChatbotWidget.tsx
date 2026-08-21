@@ -208,7 +208,7 @@ const ChatbotWidget = () => {
           type="button"
           aria-label="말씀비서 챗봇 열기"
           onClick={() => setOpen(true)}
-          className="fixed right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] lg:bottom-6 lg:right-6 z-[95] h-14 w-14 overflow-hidden rounded-full shadow-lg ring-2 ring-white/25 transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand motion-reduce:transition-none"
+          className="fixed right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom)+var(--chat-fab-lift,0rem))] lg:bottom-6 lg:right-6 z-[95] h-14 w-14 overflow-hidden rounded-full shadow-lg ring-2 ring-white/25 transition-[bottom,transform] duration-300 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand motion-reduce:transition-none"
         >
           <img src={avatarDefault} alt="" className="h-full w-full object-cover" draggable={false} />
         </button>

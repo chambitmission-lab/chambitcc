@@ -171,7 +171,17 @@ const VerseList = ({
     return () => onCommentaryOpenChange?.(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  
+
+  // 해석 FAB가 떠 있는 동안 전역 챗봇 버튼을 위로 밀어 우하단 겹침을 막는다.
+  // 챗봇 쪽은 --chat-fab-lift 변수만 읽으므로 두 컴포넌트가 서로를 몰라도 된다.
+  const commentaryFabVisible =
+    (chapterCommentaries?.items?.length ?? 0) > 0 && !commentaryPanelOpen && !selectionMode
+  useEffect(() => {
+    if (!commentaryFabVisible) return
+    document.documentElement.style.setProperty('--chat-fab-lift', '3rem')
+    return () => document.documentElement.style.removeProperty('--chat-fab-lift')
+  }, [commentaryFabVisible])
+
   // 모든 훅은 조건문 이전에 호출되어야 함
   // 백엔드에서 읽음 상태 조회 (로그인 시 항상)
   const {
@@ -915,14 +925,14 @@ const VerseList = ({
         </button>
       )}
 
-      {/* 장 전체 해석 보기 플로팅 버튼 */}
-      {(chapterCommentaries?.items?.length ?? 0) > 0 && !commentaryPanelOpen && !selectionMode && (
+      {/* 장 전체 해석 보기 플로팅 버튼 — 위로 비켜선 챗봇 버튼(56px)과 세로 스택, 중심축 정렬 */}
+      {commentaryFabVisible && (
         <button
           onClick={handleShowChapterCommentaries}
           title="이 장의 해석 모두 보기"
           style={{
             position: 'fixed',
-            right: '1rem',
+            right: 'calc(1rem + 2px)',
             bottom: '5.5rem',
             width: '52px',
             height: '52px',
