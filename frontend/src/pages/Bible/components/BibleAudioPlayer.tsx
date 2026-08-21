@@ -678,11 +678,14 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                     <span className="absolute right-1/2 top-1/2 h-[2px] w-8 -translate-y-1/2 rounded-full bg-gradient-to-l from-[var(--brand)] via-[var(--brand-glow)] to-transparent blur-[0.5px]" />
                     {/* 은은한 빛무리(후광) */}
                     <span className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-[var(--brand-glow)] blur-[3px] [animation-duration:1.6s]" />
-                    {/* 별 — 정상 재생 때와 같은 네 갈래 별 */}
+                    {/* 별 — 정상 재생 때와 같은 네 갈래 별. 밝은 테마에선 흰 카드 위라 브랜드색.
+                        카드 배경색 아웃라인(paint-order:stroke)이 같은 색 진행 트랙에서 형태를 분리한다 */}
                     <svg
                       viewBox="0 0 24 24"
-                      className="relative block h-[14px] w-[14px] text-white drop-shadow-[0_0_6px_var(--brand-glow)]"
+                      className="relative block h-[14px] w-[14px] text-brand dark:text-white stroke-[#fafafa] dark:stroke-[#201f1f] [paint-order:stroke] drop-shadow-[0_0_6px_var(--brand-glow)]"
                       fill="currentColor"
+                      strokeWidth={4}
+                      strokeLinejoin="round"
                     >
                       <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
                     </svg>
@@ -718,8 +721,10 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                     )}
                     <svg
                       viewBox="0 0 24 24"
-                      className="relative block h-[14px] w-[14px] text-white drop-shadow-[0_0_6px_var(--brand-glow)] transition-transform group-active:scale-110"
+                      className="relative block h-[14px] w-[14px] text-brand dark:text-white stroke-[#fafafa] dark:stroke-[#201f1f] [paint-order:stroke] drop-shadow-[0_0_6px_var(--brand-glow)] transition-transform group-active:scale-110"
                       fill="currentColor"
+                      strokeWidth={4}
+                      strokeLinejoin="round"
                     >
                       <path d="M12 1.5 L14 9.5 L22 12 L14 14.5 L12 22.5 L10 14.5 L2 12 L10 9.5 Z" />
                     </svg>
