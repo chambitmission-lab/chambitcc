@@ -64,6 +64,7 @@ const ChatbotManagement = () => {
   const [editor, setEditor] = useState<EditorState | null>(null)
   const [saving, setSaving] = useState(false)
   const [showResolved, setShowResolved] = useState(false)
+  const [showKeywordGuide, setShowKeywordGuide] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -310,9 +311,46 @@ const ChatbotManagement = () => {
                       placeholder="예) 주차, 주차장, 차 세울"
                       className={inputCls}
                     />
-                    <p className="m-0 mt-1 text-[11px] text-gray-400 dark:text-white/40">
-                      쉼표(,)로 여러 개 등록 · 띄어쓰기가 달라도 알아들어요
-                    </p>
+                    <div className="mt-1 flex items-start justify-between gap-2">
+                      <p className="m-0 text-[11px] text-gray-400 dark:text-white/40 leading-relaxed">
+                        쉼표(,)로 여러 개 등록 · 띄어쓰기가 달라도 알아들어요
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowKeywordGuide((v) => !v)}
+                        className="shrink-0 text-[11px] font-semibold text-brand hover:underline"
+                      >
+                        💡 잘 등록하는 법 {showKeywordGuide ? '접기' : '보기'}
+                      </button>
+                    </div>
+                    {showKeywordGuide && (
+                      <div className="mt-1.5 rounded-xl border border-[var(--brand-glow)] bg-[var(--brand-soft)] p-3 space-y-2 text-[11.5px] leading-relaxed">
+                        <p className="m-0 text-gray-700 dark:text-white/80">
+                          질문 속에 키워드 중 <b>하나라도 그대로 들어 있으면</b> 이 답변이 나갑니다.
+                          그래서 키워드는 <b>그 단어만 봐도 주제를 알 수 있는 말</b>이어야 해요.
+                        </p>
+                        <div>
+                          <p className="m-0 font-bold text-green-700 dark:text-green-300">⭕ 좋은 예</p>
+                          <p className="m-0 text-gray-600 dark:text-white/65">
+                            · 주차 안내 → <b>주차, 주차장, 차 세울</b>
+                            <br />· 담임목사님 소개 → <b>담임목사, 목사님 성함, 목사님 이름</b>
+                            <br />· 헌금 계좌 → <b>헌금 계좌, 계좌번호, 온라인 헌금</b>
+                          </p>
+                        </div>
+                        <div>
+                          <p className="m-0 font-bold text-red-600 dark:text-red-300">❌ 피해야 할 키워드</p>
+                          <p className="m-0 text-gray-600 dark:text-white/65">
+                            · <b>뭐야, 알려줘, 언제, ?</b> — 아무 질문에나 들어가는 말이라 엉뚱한 답이 나가요
+                            <br />· <b>성함, 이름, 시간</b> 단독 — 누구/무엇의 것인지 특정이 안 돼요
+                            → <b>목사님 성함</b>처럼 대상과 붙여 주세요
+                          </p>
+                        </div>
+                        <p className="m-0 text-gray-500 dark:text-white/50">
+                          확신이 안 서면 좁게 등록하세요 — 못 알아들은 질문은 미답변함에 쌓이니
+                          거기서 키워드를 보태면 됩니다.
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-gray-500 dark:text-white/50 mb-1">
