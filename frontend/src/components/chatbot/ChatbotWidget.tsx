@@ -206,7 +206,7 @@ const ChatbotWidget = () => {
       {!open && (
         <button
           type="button"
-          aria-label="말씀비서 챗봇 열기"
+          aria-label="참비 챗봇 열기"
           onClick={() => setOpen(true)}
           className="fixed right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom)+var(--chat-fab-lift,0rem))] lg:bottom-6 lg:right-6 z-[95] h-14 w-14 overflow-hidden rounded-full shadow-lg ring-2 ring-white/25 transition-[bottom,transform] duration-300 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand motion-reduce:transition-none"
         >
@@ -218,7 +218,7 @@ const ChatbotWidget = () => {
       {open && (
         <div
           role="dialog"
-          aria-label="참빛 말씀비서"
+          aria-label="참비"
           className="fixed z-[99] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-7.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none"
         >
           {/* 헤더 */}
@@ -234,7 +234,7 @@ const ChatbotWidget = () => {
                 draggable={false}
               />
               <div>
-                <p className="m-0 text-[14.5px] font-bold text-white">참빛 말씀비서</p>
+                <p className="m-0 text-[14.5px] font-bold text-white">참비</p>
                 <p className="m-0 text-[11.5px] text-white/85">말씀·예배·위로, 무엇이든 물어보세요</p>
               </div>
             </div>
