@@ -38,7 +38,7 @@ const BotBubble = ({ reply, onAction }: { reply: ChatReply; onAction: (a: ChatAc
     <img
       src={avatarFor(reply.expression)}
       alt=""
-      className="h-8 w-8 shrink-0 rounded-full mt-0.5"
+      className="h-9 w-9 shrink-0 rounded-full mt-0.5"
       draggable={false}
     />
     <div className="flex flex-col items-start gap-1.5 min-w-0">
@@ -87,7 +87,7 @@ const BotBubble = ({ reply, onAction }: { reply: ChatReply; onAction: (a: ChatAc
 
 const TypingDots = () => (
   <div className="flex items-start gap-2">
-    <img src={avatarThinking} alt="" className="h-8 w-8 shrink-0 rounded-full mt-0.5" draggable={false} />
+    <img src={avatarThinking} alt="" className="h-9 w-9 shrink-0 rounded-full mt-0.5" draggable={false} />
     <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-surface-container px-3.5 py-3 w-fit">
       {[0, 1, 2].map((i) => (
         <span
@@ -230,7 +230,7 @@ const ChatbotWidget = () => {
               <img
                 src={avatarDefault}
                 alt=""
-                className="h-9 w-9 rounded-full ring-2 ring-white/30"
+                className="h-10 w-10 rounded-full ring-2 ring-white/30"
                 draggable={false}
               />
               <div>
