@@ -2,6 +2,25 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { getChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
+import avatarDefault from './img/default.webp'
+import avatarTalking from './img/talking.webp'
+import avatarThinking from './img/thinking.webp'
+import avatarJoy from './img/joy.webp'
+import avatarComfort from './img/comfort.webp'
+import avatarSorry from './img/sorry.webp'
+import avatarPraying from './img/praying.webp'
+
+// 응답의 expression 값 → 양 캐릭터 표정 이미지 (없으면 기본 표정)
+const AVATARS: Record<string, string> = {
+  default: avatarDefault,
+  talking: avatarTalking,
+  thinking: avatarThinking,
+  joy: avatarJoy,
+  comfort: avatarComfort,
+  sorry: avatarSorry,
+  praying: avatarPraying,
+}
+const avatarFor = (expression?: string | null) => AVATARS[expression ?? ''] ?? avatarDefault
 
 // 규칙 기반 교회 챗봇 "참빛 말씀비서" — 전역 플로팅 위젯.
 // 대화 상태는 이 컴포넌트(항상 마운트)에 남아 패널을 닫아도 유지된다.
@@ -15,7 +34,14 @@ const stripMd = (s: string) =>
   s.replace(/^#{1,6}\s*/gm, '').replace(/\*\*(.+?)\*\*/g, '$1').trim()
 
 const BotBubble = ({ reply, onAction }: { reply: ChatReply; onAction: (a: ChatAction) => void }) => (
-  <div className="flex flex-col items-start gap-1.5 max-w-[88%]">
+  <div className="flex items-start gap-2 max-w-[92%]">
+    <img
+      src={avatarFor(reply.expression)}
+      alt=""
+      className="h-8 w-8 shrink-0 rounded-full mt-0.5"
+      draggable={false}
+    />
+    <div className="flex flex-col items-start gap-1.5 min-w-0">
     <div className="rounded-2xl rounded-bl-md bg-surface-container px-3.5 py-2.5 text-[14px] leading-relaxed text-ink">
       {reply.text && <p className="whitespace-pre-line m-0">{reply.text}</p>}
       {reply.verses.map((v) => (
@@ -55,18 +81,22 @@ const BotBubble = ({ reply, onAction }: { reply: ChatReply; onAction: (a: ChatAc
         ))}
       </div>
     )}
+    </div>
   </div>
 )
 
 const TypingDots = () => (
-  <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-surface-container px-3.5 py-3 w-fit">
-    {[0, 1, 2].map((i) => (
-      <span
-        key={i}
-        className="h-1.5 w-1.5 rounded-full bg-ink-muted animate-bounce"
-        style={{ animationDelay: `${i * 0.15}s` }}
-      />
-    ))}
+  <div className="flex items-start gap-2">
+    <img src={avatarThinking} alt="" className="h-8 w-8 shrink-0 rounded-full mt-0.5" draggable={false} />
+    <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-surface-container px-3.5 py-3 w-fit">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="h-1.5 w-1.5 rounded-full bg-ink-muted animate-bounce"
+          style={{ animationDelay: `${i * 0.15}s` }}
+        />
+      ))}
+    </div>
   </div>
 )
 
@@ -105,6 +135,7 @@ const ChatbotWidget = () => {
             text: '지금은 연결이 원활하지 않아요 🙏 잠시 후 다시 열어주세요.',
             verses: [],
             actions: [],
+            expression: 'sorry',
           },
         ]),
       )
@@ -144,6 +175,7 @@ const ChatbotWidget = () => {
             text: '메시지를 전달하지 못했어요 🙏 네트워크를 확인하고 다시 시도해 주세요.',
             verses: [],
             actions: [],
+            expression: 'sorry',
           },
         ])
       } finally {
@@ -176,12 +208,9 @@ const ChatbotWidget = () => {
           type="button"
           aria-label="말씀비서 챗봇 열기"
           onClick={() => setOpen(true)}
-          className="fixed right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] lg:bottom-6 lg:right-6 z-[95] flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand motion-reduce:transition-none"
-          style={{ background: 'var(--brand-gradient, var(--brand))' }}
+          className="fixed right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] lg:bottom-6 lg:right-6 z-[95] h-14 w-14 overflow-hidden rounded-full shadow-lg ring-2 ring-white/25 transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand motion-reduce:transition-none"
         >
-          <span className="text-[26px] leading-none" aria-hidden>
-            💬
-          </span>
+          <img src={avatarDefault} alt="" className="h-full w-full object-cover" draggable={false} />
         </button>
       )}
 
@@ -198,9 +227,12 @@ const ChatbotWidget = () => {
             style={{ background: 'var(--brand-gradient, var(--brand))' }}
           >
             <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-[18px]" aria-hidden>
-                💬
-              </span>
+              <img
+                src={avatarDefault}
+                alt=""
+                className="h-9 w-9 rounded-full ring-2 ring-white/30"
+                draggable={false}
+              />
               <div>
                 <p className="m-0 text-[14.5px] font-bold text-white">참빛 말씀비서</p>
                 <p className="m-0 text-[11.5px] text-white/85">말씀·예배·위로, 무엇이든 물어보세요</p>

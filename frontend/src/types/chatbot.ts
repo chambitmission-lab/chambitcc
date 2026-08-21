@@ -27,6 +27,8 @@ export interface ChatReply {
   verses: ChatVerseCard[]
   commentary?: ChatCommentary | null
   actions: ChatAction[]
+  // 아바타 표정: default|talking|thinking|joy|comfort|sorry|praying
+  expression?: string | null
 }
 
 export interface ChatbotAnswer {
