@@ -7,24 +7,29 @@ import { showToast } from '../../utils/toast'
 import type { Bulletin } from '../../types/bulletin'
 import InstagramBulletinViewer from './components/InstagramBulletinViewer'
 import DigitalBulletin from './components/DigitalBulletin'
+import NewsSection from './components/NewsSection'
 import NewFamilySection from './components/NewFamilySection'
 import EventAlbumSection from './components/EventAlbumSection'
 // 올해의 말씀 — 홈과 같은 쿼리(24h 캐시)라 /news에서 다시 불러오지 않는다
 import AnnualThemeVerse from '../Home/components/AnnualThemeVerse'
 
 /** 최상위 그룹 — 소식 허브 */
-type SectionKey = 'bulletin' | 'new-family' | 'event-album'
+type SectionKey = 'news' | 'bulletin' | 'new-family' | 'event-album'
 /** 주보 하위 탭 */
 type BulletinTabKey = 'image' | 'digital'
 
 const SECTIONS: { key: SectionKey; emoji: string; label: string }[] = [
+  { key: 'news', emoji: '📢', label: '소식' },
   { key: 'bulletin', emoji: '📖', label: '주보' },
   { key: 'new-family', emoji: '🌱', label: '새가족' },
   { key: 'event-album', emoji: '📸', label: '행사' },
 ]
 
 const isSectionKey = (value: string | null): value is SectionKey =>
-  value === 'bulletin' || value === 'new-family' || value === 'event-album'
+  value === 'news' ||
+  value === 'bulletin' ||
+  value === 'new-family' ||
+  value === 'event-album'
 
 const formatLongDate = (date: string) =>
   new Date(date).toLocaleDateString('ko-KR', {
@@ -42,7 +47,7 @@ const isThisMonth = (date: string): boolean => {
 const News = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const tabParam = searchParams.get('tab')
-  const section: SectionKey = isSectionKey(tabParam) ? tabParam : 'bulletin'
+  const section: SectionKey = isSectionKey(tabParam) ? tabParam : 'news'
 
   // 목록은 React Query 캐시 우선 — 재방문 시 캐시로 즉시 그리고 뒤에서 조용히 갱신
   const { data: bulletins = [], isLoading: loading, error: listError } = useBulletins()
@@ -55,7 +60,7 @@ const News = () => {
 
   const handleSectionChange = (next: SectionKey) => {
     // replace — 탭 전환마다 히스토리가 쌓여 뒤로가기가 먹통이 되는 걸 막는다
-    setSearchParams(next === 'bulletin' ? {} : { tab: next }, { replace: true })
+    setSearchParams(next === 'news' ? {} : { tab: next }, { replace: true })
   }
 
   const handleBulletinClick = async (bulletin: Bulletin) => {
@@ -135,6 +140,9 @@ const News = () => {
             ))}
           </SegmentTrack>
         </div>
+
+        {/* 교회소식 게시판 */}
+        {section === 'news' && <NewsSection />}
 
         {/* 새가족 앨범 */}
         {section === 'new-family' && <NewFamilySection />}

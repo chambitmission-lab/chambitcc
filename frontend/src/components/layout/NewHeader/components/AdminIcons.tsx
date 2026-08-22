@@ -41,6 +41,15 @@ const IconBookOpen = (p: IconProps) => (
   </Svg>
 )
 
+/* 교회소식 — 핀으로 꽂아 둔 게시판 */
+const IconNoticeBoard = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+    <path d="M7 9.5h6M7 13h10" />
+    <circle cx="12" cy="3.4" r="1.2" />
+  </Svg>
+)
+
 /* 주보 — 신문 */
 const IconNewspaper = (p: IconProps) => (
   <Svg {...p}>
@@ -199,6 +208,7 @@ export const ADMIN_ICONS = {
   adminNavCare: IconRadar,
   adminNavEngagement: IconChart,
   adminNavVerse: IconBookOpen,
+  adminNavNews: IconNoticeBoard,
   adminNavBulletin: IconNewspaper,
   adminNavWeeklyPrayer: IconPrayerHeart,
   adminNavNewFamily: IconSprout,

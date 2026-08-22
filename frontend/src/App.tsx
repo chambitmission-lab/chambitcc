@@ -76,6 +76,7 @@ const PushNotificationManagement = lazy(() =>
     default: m.PushNotificationManagement,
   })),
 )
+const NewsManagement = lazy(() => import('./pages/Admin/NewsManagement'))
 const EventManagement = lazy(() => import('./pages/Admin/EventManagement'))
 const UserManagement = lazy(() => import('./pages/Admin/UserManagement'))
 const GroupManagement = lazy(() => import('./pages/Admin/GroupManagement'))
@@ -272,6 +273,7 @@ function App() {
                 <Route path="/admin/notifications" element={<NotificationManagement />} />
                 <Route path="/admin/daily-verse" element={<DailyVerseManagement />} />
                 <Route path="/admin/bulletins" element={<BulletinManagement />} />
+                <Route path="/admin/news" element={<NewsManagement />} />
                 <Route path="/admin/new-family" element={<NewFamilyManagement />} />
                 <Route path="/admin/event-albums" element={<EventAlbumManagement />} />
                 <Route path="/admin/push" element={<PushNotificationManagement />} />
