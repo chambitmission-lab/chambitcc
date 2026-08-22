@@ -68,7 +68,7 @@ const ThisWeekSection = ({ ko, events }: { ko: boolean; events: Event[] }) => {
       <Reveal>
         <SectionHeader kicker={ko ? '이번 주 참빛' : 'This week'} title={ko ? '다음 만남까지' : 'Until we meet next'} />
       </Reveal>
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_1fr]">
         <Reveal className="h-full">
           <button
             type="button"

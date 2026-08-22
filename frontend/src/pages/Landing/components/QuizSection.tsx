@@ -136,7 +136,7 @@ const QuizSection = ({ ko }: { ko: boolean }) => {
                 <span className="ml-auto text-[12px] font-bold text-ink-muted">{step + 1} / {questions.length}</span>
               </div>
               <p className="text-[18px] lg:text-[20px] font-extrabold tracking-tight text-ink-strong leading-snug">{questions[step].q}</p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {questions[step].options.map((o) => (
                   <button
                     key={o.label}

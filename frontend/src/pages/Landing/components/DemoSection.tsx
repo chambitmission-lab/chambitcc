@@ -80,7 +80,7 @@ const ChambiTry = ({ ko }: { ko: boolean }) => {
   }
 
   return (
-    <article className="feed-card rounded-3xl p-5 flex flex-col">
+    <article className="feed-card rounded-3xl p-5 flex flex-col min-w-0">
       <div className="flex items-center gap-3">
         <img src={avatarDefault} alt="" className="w-11 h-11 rounded-full" draggable={false} />
         <div className="min-w-0">
@@ -93,7 +93,7 @@ const ChambiTry = ({ ko }: { ko: boolean }) => {
         </div>
       </div>
 
-      <div ref={listRef} className="mt-4 h-[240px] overflow-y-auto rounded-2xl bg-surface-container p-3 flex flex-col gap-2.5">
+      <div ref={listRef} className="mt-4 h-[240px] overflow-y-auto rounded-2xl bg-surface-container p-3 flex flex-col gap-2.5 [overflow-wrap:anywhere]">
         {msgs.length === 0 && !loading && (
           <p className="m-auto text-center text-[13px] text-ink-muted px-4 leading-relaxed">
             {ko ? '아래 질문 하나를 눌러보세요.\n진짜 성경 구절로 대답합니다.' : 'Tap a question below.\nIt answers with real scripture.'}
@@ -346,7 +346,7 @@ const DemoSection = ({ ko }: { ko: boolean }) => (
         title={ko ? '말로 하면 안 믿으실까 봐,\n지금 바로 만져보세요' : "Don't take our word for it —\ntry three things right now"}
       />
     </Reveal>
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <Reveal className="h-full"><ChambiTry ko={ko} /></Reveal>
       <Reveal className="h-full" delay={80}><StampDemo ko={ko} /></Reveal>
       <Reveal className="h-full" delay={160}><VerseCardDemo ko={ko} /></Reveal>

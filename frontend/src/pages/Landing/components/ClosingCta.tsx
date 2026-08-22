@@ -9,7 +9,7 @@ const ClosingCta = ({ ko }: { ko: boolean }) => {
   const { tx } = useAboutContent()
   return (
     <section className="mt-16">
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Reveal className="h-full">
           <div className="feed-card rounded-3xl p-6 lg:p-8 h-full flex flex-col">
             <span className="w-11 h-11 rounded-2xl bg-[var(--brand-soft)] text-brand flex items-center justify-center"><MapPinIcon size={20} /></span>

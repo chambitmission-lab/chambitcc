@@ -35,7 +35,7 @@ export const Reveal = ({
   return (
     <Comp
       ref={ref as never}
-      className={`ld-reveal ${inView ? 'is-in' : ''} ${className}`}
+      className={`ld-reveal min-w-0 ${inView ? 'is-in' : ''} ${className}`}
       style={delay ? { transitionDelay: `${delay}ms` } : undefined}
     >
       {children}

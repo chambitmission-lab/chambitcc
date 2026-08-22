@@ -78,7 +78,7 @@ const PillarsSection = ({ ko, sermons }: { ko: boolean; sermons: Sermon[] }) => 
           title={ko ? '설교 · 성경공부 · 스마트,\n세 가지는 자신 있습니다' : 'Sermons · Bible study · Smart.\nThree things we do well.'}
         />
       </Reveal>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {PILLARS(ko).map((p, i) => (
           <Reveal key={p.key} delay={i * 80} className="h-full">
             <article className="feed-card rounded-3xl p-5 h-full flex flex-col">
