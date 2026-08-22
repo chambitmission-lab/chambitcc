@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { getChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 import avatarDefault from './img/default.webp'
 import avatarTalking from './img/talking.webp'
 import avatarThinking from './img/thinking.webp'
@@ -147,6 +148,9 @@ const ChatbotWidget = () => {
     const el = listRef.current
     if (el) el.scrollTop = el.scrollHeight
   }, [msgs, loading, open])
+
+  // 뒤로가기(안드로이드/브라우저)는 앱 종료·페이지 이동 대신 패널만 닫는다
+  useModalBackButton(() => setOpen(false), open)
 
   // Escape로 닫기
   useEffect(() => {
