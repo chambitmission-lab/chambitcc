@@ -92,8 +92,12 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
       {/* 사진이 카피를 방해하지 않게 좌측·하단을 더 눌러준다 */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/30" />
       <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
+      {/* 디졸브 — 사진 하단이 페이지 배경색(라이트 gray-50 / 다크 black)으로 녹아들어
+          라이트 테마에서도 어두운 히어로와 밝은 본문 사이에 딱 잘린 경계가 생기지 않는다.
+          콘텐츠는 pb 로 이 띠 위에서 끝난다(흰 글씨가 밝은 페이드 위에 얹히지 않게). */}
+      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-gray-50 dark:to-black pointer-events-none" />
 
-      <div className="relative max-w-[1040px] mx-auto px-5 pt-16 pb-12 lg:pt-28 lg:pb-16">
+      <div className="relative max-w-[1040px] mx-auto px-5 pt-16 pb-24 lg:pt-28 lg:pb-28">
         <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 ring-1 ring-inset ring-white/20 backdrop-blur-sm px-3 py-1 text-[12px] font-bold tracking-wide text-white/85">
           <span className="w-1.5 h-1.5 rounded-full bg-brand" />
           <EditableText fieldKey="landingHeroKicker" isAdmin={isAdmin}>
