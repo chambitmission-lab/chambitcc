@@ -1,0 +1,23 @@
+/* ⌘K 팔레트 — 등장·행 포커스 등 Tailwind 로 어려운 것만 */
+@keyframes cmdk-in {
+  0% { opacity: 0; transform: translateY(-6px) scale(0.985); }
+  100% { opacity: 1; transform: none; }
+}
+.cmdk-panel { animation: cmdk-in 0.16s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) { .cmdk-panel { animation: none; } }
+
+.cmdk-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-muted);
+  background: var(--surface-container);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+}

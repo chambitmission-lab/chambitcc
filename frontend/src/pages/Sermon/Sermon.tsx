@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { getSermon } from '../../api/sermon'
 import { useInfiniteSermons } from '../../hooks/useSermons'
 import { isAdmin } from '../../utils/auth'
 import SermonHero from './components/SermonHero'
@@ -86,6 +88,25 @@ const Sermon = () => {
   const openDetail = (sermon: SermonType, media: 'audio' | 'video' | null = null) => {
     setSelected({ sermon, media })
   }
+
+  // ?id= 딥링크(⌘K 검색 등) — 목록에 있으면 바로, 없으면 단건 조회 후 상세를 연다
+  const [searchParams, setSearchParams] = useSearchParams()
+  const deepId = Number(searchParams.get('id')) || 0
+  useEffect(() => {
+    if (!deepId) return
+    let cancelled = false
+    const found = sermons.find((s) => s.id === deepId)
+    const open = (s: SermonType) => {
+      if (cancelled) return
+      setSelected({ sermon: s, media: null })
+      setSearchParams({}, { replace: true })
+    }
+    if (found) open(found)
+    else getSermon(deepId).then(open).catch(() => setSearchParams({}, { replace: true }))
+    return () => { cancelled = true }
+    // sermons 가 늦게 와도 단건 조회로 열리므로 sermons 변화엔 재실행하지 않는다
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepId])
 
   const handleEdit = (sermon: SermonType) => {
     setEditingSermon(sermon)

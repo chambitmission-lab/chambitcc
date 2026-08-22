@@ -41,6 +41,15 @@ const IconBookOpen = (p: IconProps) => (
   </Svg>
 )
 
+/* 비로그인 홈(랜딩) 편집 — 열린 문 + 환영 */
+const IconLanding = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M5 21V5.5a2 2 0 0 1 2-2h7l5 3V21" />
+    <path d="M14 3.5V21M5 21h14" />
+    <circle cx="11" cy="12.5" r="0.9" />
+  </Svg>
+)
+
 /* 교회소식 — 핀으로 꽂아 둔 게시판 */
 const IconNoticeBoard = (p: IconProps) => (
   <Svg {...p}>
@@ -208,6 +217,7 @@ export const ADMIN_ICONS = {
   adminNavCare: IconRadar,
   adminNavEngagement: IconChart,
   adminNavVerse: IconBookOpen,
+  adminNavLanding: IconLanding,
   adminNavNews: IconNoticeBoard,
   adminNavBulletin: IconNewspaper,
   adminNavWeeklyPrayer: IconPrayerHeart,

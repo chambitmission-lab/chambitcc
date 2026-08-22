@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { getChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
+import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
 import avatarDefault from './img/default.webp'
 import avatarTalking from './img/talking.webp'
 import avatarThinking from './img/thinking.webp'
@@ -143,6 +144,18 @@ const ChatbotWidget = () => {
       .finally(() => setLoading(false))
   }, [open, appendReplies])
 
+  // 외부(⌘K 팔레트 등)에서 "참비에게 물어보기" — 패널을 열고, 인사가 끝나면 질문을 보낸다
+  const pendingRef = useRef<string | null>(null)
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const message = (e as CustomEvent<{ message?: string }>).detail?.message?.trim()
+      if (message) pendingRef.current = message
+      setOpen(true)
+    }
+    window.addEventListener(OPEN_CHATBOT_EVENT, onOpen)
+    return () => window.removeEventListener(OPEN_CHATBOT_EVENT, onOpen)
+  }, [])
+
   // 새 메시지·로딩 변화 시 맨 아래로
   useEffect(() => {
     const el = listRef.current
@@ -189,6 +202,14 @@ const ChatbotWidget = () => {
     },
     [loading, appendReplies],
   )
+
+  // 보류된 외부 질문은 인사(greeting) 로딩이 끝난 뒤 보낸다
+  useEffect(() => {
+    if (!open || loading || !pendingRef.current) return
+    const msg = pendingRef.current
+    pendingRef.current = null
+    void send(msg)
+  }, [open, loading, send])
 
   const onAction = useCallback(
     (a: ChatAction) => {

@@ -6,6 +6,7 @@ import { preloadMenuRoutes } from '../../../utils/routePreload'
 import NotificationModal from '../../common/NotificationModal'
 import Logo from './components/Logo'
 import DesktopNav from './components/DesktopNav'
+import { SearchCapsule } from '../../command/SearchTrigger'
 import HeaderActions from './components/HeaderActions'
 import MobileMenu from './components/MobileMenu'
 import { useDesktopRailVisible } from '../DesktopNavRail/DesktopNavRail'
@@ -82,6 +83,8 @@ const NewHeader = () => {
             }`}
           >
             <DesktopNav />
+            {/* ⌘K 검색 캡슐 — 메뉴·설교·성구·참비를 한 입력창에서 */}
+            <SearchCapsule />
             {/* 전체 메뉴 버튼은 뺐다 — 4축 드롭다운이 교회 안내 페이지를 전부 담고,
                 개인 메뉴·관리자·설정은 좌측 레일 하단 ⋮ 가 같은 패널을 연다 */}
           </div>

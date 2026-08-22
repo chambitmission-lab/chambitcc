@@ -15,6 +15,7 @@ import ScrollRestoration from './components/common/ScrollRestoration'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
 import { ConfirmDialogHost } from './components/common/ConfirmDialog'
 import ChatbotWidget from './components/chatbot/ChatbotWidget'
+import CommandPalette from './components/command/CommandPalette'
 import { menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
 import { healPushSubscription } from './utils/pushNotification'
 import { checkForAppUpdate } from './utils/appVersion'
@@ -360,6 +361,8 @@ function App() {
           <ConfirmDialogHost />
           {/* 규칙 기반 교회 챗봇 "참빛 말씀비서" — 전역 플로팅 위젯 */}
           <ChatbotWidget />
+          {/* ⌘K 무엇이든 찾기 — 메뉴·설교·성구·참비 */}
+          <CommandPalette />
           {/* 방문자 집계는 Cloudflare Pages 의 Web Analytics(대시보드 토글)가
               빌드 산출물에 비컨을 자동 주입하는 방식으로 대체 — 코드 불필요. */}
         </div>

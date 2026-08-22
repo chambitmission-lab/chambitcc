@@ -40,6 +40,23 @@ export const navigation = {
   navDescNews: 'News and announcements',
   navCtaNewHere: 'New here?',
   navCtaLogin: 'Log in',
+  // ⌘K command palette
+  cmdkTrigger: 'Search anything',
+  cmdkPlaceholder: 'Pages · sermons · verses · questions',
+  cmdkQuickTitle: 'Quick links',
+  cmdkHintTitle: 'Try',
+  cmdkGroupPages: 'Pages',
+  cmdkGroupBible: 'Bible',
+  cmdkGroupSermon: 'Sermons',
+  cmdkGroupAsk: 'Chambi',
+  cmdkOpenChapter: 'Open',
+  cmdkAskChambi: 'Ask Chambi',
+  cmdkAskChambiDesc: 'Service times, parking, verses, a word of comfort… anything',
+  cmdkNoResult: 'Nothing in pages, sermons or verses — ask Chambi',
+  cmdkSearching: 'Searching…',
+  cmdkNav: 'navigate',
+  cmdkSelect: 'open',
+  cmdkClose: 'close',
   // Admin menu labels — icons live in AdminIcons.tsx and the group title
   // carries the context, so the "Management" suffix is dropped
   adminNavDashboard: 'Admin Home',

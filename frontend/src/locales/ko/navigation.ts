@@ -40,6 +40,23 @@ export const navigation = {
   navDescNews: '교회 소식과 공지',
   navCtaNewHere: '처음 오셨나요?',
   navCtaLogin: '로그인',
+  // ⌘K 검색 팔레트 (CommandPalette)
+  cmdkTrigger: '무엇이든 찾기',
+  cmdkPlaceholder: '메뉴 · 설교 · 성구 · 궁금한 것',
+  cmdkQuickTitle: '빠른 이동',
+  cmdkHintTitle: '이렇게도 찾아요',
+  cmdkGroupPages: '메뉴',
+  cmdkGroupBible: '성경',
+  cmdkGroupSermon: '설교',
+  cmdkGroupAsk: '참비',
+  cmdkOpenChapter: '펼치기',
+  cmdkAskChambi: '참비에게 물어보기',
+  cmdkAskChambiDesc: '예배 시간·주차·성구·위로의 말씀… 무엇이든',
+  cmdkNoResult: '메뉴·설교·성구에서 찾지 못했어요 — 참비에게 물어보세요',
+  cmdkSearching: '찾는 중…',
+  cmdkNav: '이동',
+  cmdkSelect: '열기',
+  cmdkClose: '닫기',
   // 관리자 메뉴 라벨 — 아이콘은 AdminIcons.tsx, 그룹 제목이 맥락을 주므로
   // 모든 항목에 붙던 '관리' 접미사는 뺀다
   adminNavDashboard: '관리자 홈',

@@ -209,3 +209,11 @@ export const getSermonBibleReferences = async (sermonId: number) => {
   
   return response.json()
 }
+
+/** 설교 검색 — 제목·설교자·본문 부분 일치 (⌘K 팔레트용, 인증 불필요) */
+export const searchSermons = async (q: string, limit = 6): Promise<Sermon[]> => {
+  const params = new URLSearchParams({ q, limit: String(limit), skip: '0' })
+  const response = await apiFetch(`${API_V1}/sermons?${params}`)
+  if (!response.ok) throw new Error('설교 검색에 실패했습니다')
+  return response.json()
+}

@@ -1,5 +1,6 @@
 import { useTheme } from '../../../../contexts/ThemeContext'
 import { useLanguage } from '../../../../contexts/LanguageContext'
+import { SearchIconButton } from '../../../command/SearchTrigger'
 
 interface HeaderActionsProps {
   unreadCount: number
@@ -24,6 +25,8 @@ const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onMenuTog
 
   return (
     <div className="flex items-center gap-4">
+      {/* 검색(⌘K 팔레트) — 모바일·레일 없는 PC 화면의 진입점 */}
+      <SearchIconButton className={iconBaseClass} />
       <button
         onClick={toggleTheme}
         className={iconBaseClass}
