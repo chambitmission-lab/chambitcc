@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
 import { preloadMenuRoutes } from '../../../utils/routePreload'
@@ -15,6 +16,7 @@ import './NewHeader.css'
 
 const NewHeader = () => {
   const { t } = useLanguage()
+  const navigate = useNavigate()
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   
   // Custom hooks
@@ -80,39 +82,28 @@ const NewHeader = () => {
             }`}
           >
             <DesktopNav />
-            {/* 사이트맵 트리거 — 레일 하단 ⋮ 만으론 전체 메뉴 입구가 안 보여서,
-                캡슐 옆에 상시 노출한다. 레일이 없는 화면(인증 등)은 우상단
-                햄버거(HeaderActions)가 같은 패널을 열므로 중복 노출하지 않는다 */}
-            {railVisible && (
+            {/* 전체 메뉴 버튼은 뺐다 — 4축 드롭다운이 교회 안내 페이지를 전부 담고,
+                개인 메뉴·관리자·설정은 좌측 레일 하단 ⋮ 가 같은 패널을 연다 */}
+          </div>
+          {/* 비로그인 PC — 레일엔 로그인 진입이 없으니 우상단에 랜딩과 같은 두 갈래 CTA를 둔다 */}
+          {railVisible && !isLoggedIn && (
+            <div className="hidden lg:flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                onMouseEnter={() => void preloadMenuRoutes()}
-                aria-haspopup="menu"
-                aria-expanded={isMenuOpen}
-                className={`flex items-center gap-1.5 h-10 px-3.5 rounded-full text-[13.5px] whitespace-nowrap ring-1 ring-inset transition-colors duration-150 ${
-                  isMenuOpen
-                    ? 'bg-[var(--brand-soft-strong)] text-brand font-bold ring-transparent'
-                    : 'text-gray-600 dark:text-white/70 font-medium ring-black/[0.06] dark:ring-white/[0.08] hover:text-brand hover:bg-[var(--brand-soft)] hover:ring-transparent'
-                }`}
+                onClick={() => navigate('/login')}
+                className="h-9 px-3.5 rounded-full text-[13.5px] font-semibold text-gray-600 dark:text-white/70 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
               >
-                <svg
-                  className="w-[15px] h-[15px] shrink-0"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  aria-hidden
-                >
-                  <rect x="3.5" y="3.5" width="7.5" height="7.5" rx="2.2" />
-                  <rect x="13" y="3.5" width="7.5" height="7.5" rx="2.2" />
-                  <rect x="3.5" y="13" width="7.5" height="7.5" rx="2.2" />
-                  <rect x="13" y="13" width="7.5" height="7.5" rx="2.2" />
-                </svg>
-                {t('allMenu')}
+                {t('navCtaLogin')}
               </button>
-            )}
-          </div>
+              <button
+                type="button"
+                onClick={() => navigate('/register')}
+                className="brand-gradient h-9 px-4 rounded-full text-[13.5px] font-bold text-white shadow-[0_4px_12px_-4px_var(--brand-glow)] active:scale-[0.97] transition-transform"
+              >
+                {t('navCtaNewHere')}
+              </button>
+            </div>
+          )}
           {/* 우상단 액션 — 레일이 보이는 PC에선 레일 하단 유틸리티가 대신한다 */}
           <div className={railVisible ? 'lg:hidden' : ''}>
             <HeaderActions
