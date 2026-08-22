@@ -25,11 +25,11 @@ const StatItem = ({
   const n = useCountUp(value, active)
   return (
     <div className="flex flex-col min-w-0">
-      <span className="ld-ticker-num text-[22px] lg:text-[26px] font-extrabold text-white leading-none">
+      <span className="ld-ticker-num text-[22px] lg:text-[26px] font-extrabold text-ink-strong dark:text-white leading-none">
         {fmtNum(n, ko)}
-        <span className="text-[13px] font-bold text-white/80 ml-0.5">{unit}</span>
+        <span className="text-[13px] font-bold text-ink-muted dark:text-white/80 ml-0.5">{unit}</span>
       </span>
-      <span className="mt-1 text-[11.5px] lg:text-[12px] font-semibold text-white/65 truncate">{label}</span>
+      <span className="mt-1 text-[11.5px] lg:text-[12px] font-semibold text-ink-muted dark:text-white/65 truncate">{label}</span>
     </div>
   )
 }
@@ -87,25 +87,28 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-b from-[#12294f] via-[#0f1e3a] to-[#0b1526]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#dbe7fb] via-[#eef3fb] to-gray-50 dark:from-[#12294f] dark:via-[#0f1e3a] dark:to-[#0b1526]" />
       )}
-      {/* 사진이 카피를 방해하지 않게 좌측·하단을 더 눌러준다 */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/30" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
+      {/* 다크: 사진이 카피를 방해하지 않게 좌측·하단을 검정으로 눌러준다.
+          라이트: 스크림 없이 사진 원색 그대로 — 안개를 깔면 사진이 바래 어색하다는 피드백.
+          사진 위에 바로 얹히는 글(제목·부제·하단 줄)은 양쪽 모두 흰 글씨, 라이트는 .ld-hero-halo 로
+          진한 그림자를 더해 밝은 사진 위에서도 읽힌다. 카드·버튼·알약은 자체 흰 배경으로 잉크 글씨. */}
+      <div className="hidden dark:block absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/30" />
+      <div className="hidden dark:block absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
       {/* 디졸브 — 사진 하단이 페이지 배경색(라이트 gray-50 / 다크 black)으로 녹아들어
           라이트 테마에서도 어두운 히어로와 밝은 본문 사이에 딱 잘린 경계가 생기지 않는다.
           콘텐츠는 pb 로 이 띠 위에서 끝난다(흰 글씨가 밝은 페이드 위에 얹히지 않게). */}
       <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-gray-50 dark:to-black pointer-events-none" />
 
       <div className="relative max-w-[1040px] mx-auto px-5 pt-16 pb-24 lg:pt-28 lg:pb-28">
-        <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/10 ring-1 ring-inset ring-white/20 backdrop-blur-sm px-3 py-1 text-[12px] font-bold tracking-wide text-white/85">
+        <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/70 ring-1 ring-inset ring-black/10 dark:bg-white/10 dark:ring-white/20 backdrop-blur-sm px-3 py-1 text-[12px] font-bold tracking-wide text-ink dark:text-white/85">
           <span className="w-1.5 h-1.5 rounded-full bg-brand" />
           <EditableText fieldKey="landingHeroKicker" isAdmin={isAdmin}>
             {tx('aboutChurchName')} · {tx('landingHeroKicker')}
           </EditableText>
         </p>
 
-        <h1 className="ld-hero-title text-[32px] sm:text-[40px] lg:text-[52px] leading-[1.15] font-extrabold tracking-tight text-white max-w-[760px]">
+        <h1 className="ld-hero-title ld-hero-halo text-[32px] sm:text-[40px] lg:text-[52px] leading-[1.15] font-extrabold tracking-tight text-white max-w-[760px]">
           <EditableText fieldKey="landingHeroTitle" isAdmin={isAdmin} multiline>
             <span>
               {titleLines.map((line, i) => (
@@ -118,7 +121,7 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
           </EditableText>
         </h1>
 
-        <p className="mt-4 text-[15px] lg:text-[17px] leading-relaxed text-white/85 max-w-[620px] whitespace-pre-line">
+        <p className="ld-hero-halo mt-4 text-[15px] lg:text-[17px] leading-relaxed font-medium text-white/95 dark:font-normal dark:text-white/85 max-w-[620px] whitespace-pre-line">
           <EditableText fieldKey="landingHeroSub" isAdmin={isAdmin} multiline>
             <span>{tx('landingHeroSub')}</span>
           </EditableText>
@@ -136,7 +139,7 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
           <button
             type="button"
             onClick={onTour}
-            className="flex items-center gap-1.5 px-5 py-3 rounded-full text-[14.5px] font-bold text-white bg-white/[0.14] ring-1 ring-inset ring-white/25 backdrop-blur-sm hover:bg-white/[0.22] active:scale-[0.97] transition-[background-color,transform] duration-150"
+            className="flex items-center gap-1.5 px-5 py-3 rounded-full text-[14.5px] font-bold text-ink-strong bg-white/80 ring-1 ring-inset ring-black/10 hover:bg-white dark:text-white dark:bg-white/[0.14] dark:ring-white/25 dark:hover:bg-white/[0.22] backdrop-blur-sm active:scale-[0.97] transition-[background-color,transform] duration-150"
           >
             {tx('landingCtaTour')}
             <ChevronRightIcon size={16} />
@@ -147,7 +150,7 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
         {statItems.length > 0 && (
           <div
             ref={tickerRef}
-            className="mt-9 grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-4 max-w-[760px] rounded-2xl bg-black/30 ring-1 ring-inset ring-white/15 backdrop-blur-md px-5 py-4"
+            className="mt-9 grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-4 max-w-[760px] rounded-2xl bg-white/70 ring-1 ring-inset ring-black/5 dark:bg-black/30 dark:ring-white/15 backdrop-blur-md px-5 py-4"
           >
             {statItems.map((s) => (
               <StatItem key={s.label} {...s} active={armed} ko={ko} />
@@ -156,7 +159,7 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
         )}
 
         {/* 예배·오시는 길 — 방문자의 두 가지 질문은 히어로 안에서 바로 답한다 */}
-        <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-white/75">
+        <div className="ld-hero-halo mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-white/90 dark:text-white/75">
           <button type="button" onClick={() => navigate('/worship')} className="inline-flex items-center gap-1.5 hover:text-white">
             <ClockIcon size={14} />
             <span className="font-semibold">{tx('aboutInfoWorship')}</span>
