@@ -18,24 +18,26 @@ const pad = (n: number) => n.toString().padStart(2, '0')
 const toDateInput = (d: Date) =>
   `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 
-const getLastSunday = (): string => {
+// 주보는 "다가오는 주일"에 발행한다. 이번 주 일요일 = 오늘 이후 가장 가까운 일요일
+// (오늘이 일요일이면 오늘), 다음 주 일요일 = 그로부터 7일 뒤.
+// (예전엔 '오늘 - 요일'로 이미 지난 일요일을 "이번 주"라 불러, 토요일에 열면
+//  이번 주=지난 주일·다음 주=내일 로 한 주씩 밀려 보였다)
+const getThisSunday = (): string => {
   const d = new Date()
-  const day = d.getDay()
-  d.setDate(d.getDate() - day)
+  d.setDate(d.getDate() + ((7 - d.getDay()) % 7))
   return toDateInput(d)
 }
 
 const getNextSunday = (): string => {
   const d = new Date()
-  const day = d.getDay()
-  d.setDate(d.getDate() + (7 - day))
+  d.setDate(d.getDate() + ((7 - d.getDay()) % 7) + 7)
   return toDateInput(d)
 }
 
 const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [bulletinDate, setBulletinDate] = useState(getNextSunday())
+  const [bulletinDate, setBulletinDate] = useState(getThisSunday())
   const [files, setFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -118,10 +120,10 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
   }
 
   const handleQuickDate = (which: 'thisWeek' | 'nextWeek') => {
-    setBulletinDate(which === 'thisWeek' ? getLastSunday() : getNextSunday())
+    setBulletinDate(which === 'thisWeek' ? getThisSunday() : getNextSunday())
   }
 
-  const isThisWeek = bulletinDate === getLastSunday()
+  const isThisWeek = bulletinDate === getThisSunday()
   const isNextWeek = bulletinDate === getNextSunday()
 
   return (
