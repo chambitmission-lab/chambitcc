@@ -25,6 +25,7 @@ export const navigation = {
   adminNavDashboard: 'Admin Home',
   adminNavCare: 'Care Radar',
   adminNavEngagement: 'Engagement',
+  adminNavLanding: 'Guest Landing Editor',
   adminNavNews: 'Church News',
   adminNavVerse: 'Daily Verse',
   adminNavBulletin: 'Bulletin',

@@ -25,6 +25,7 @@ export const navigation = {
   adminNavDashboard: '관리자 홈',
   adminNavCare: '돌봄 레이더',
   adminNavEngagement: '말씀 반응',
+  adminNavLanding: '비로그인 홈(랜딩) 편집',
   adminNavNews: '교회소식',
   adminNavVerse: '오늘의 말씀',
   adminNavBulletin: '주보',

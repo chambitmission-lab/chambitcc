@@ -21,12 +21,16 @@ import { checkForAppUpdate } from './utils/appVersion'
 import { isAuthenticated, getCurrentUser } from './utils/auth'
 // 즉시 진입 가능성이 높은 페이지는 eager import 유지
 import NewHome from './pages/Home/NewHome'
-import Landing from './pages/Landing/Landing'
 import Login from './pages/Auth/Login'
 
 // 보조/관리/대형 페이지는 lazy로 분리 → 메인 번들 축소
 // 햄버거 메뉴 페이지는 routePreload의 로더를 공유해 프리로드 청크를 재사용
 const Home = lazy(() => import('./pages/Home/Home'))
+// 비로그인 첫 화면 — 로그인 교인의 메인 번들에서 떼어내되, 비로그인이면 모듈 로드 즉시
+// 청크를 받아둬서 라우트 진입 시 폭포수(메인 → 랜딩) 없이 바로 그린다.
+const loadLanding = () => import('./pages/Landing/Landing')
+const Landing = lazy(loadLanding)
+if (!localStorage.getItem('access_token')) void loadLanding()
 // dev 전용 — 업적 모달 미리보기 (프로덕션 번들에는 라우트 자체가 빠짐)
 const AchievementModalPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/AchievementModalPreview'))
@@ -249,6 +253,8 @@ function App() {
                 <Route path="/" element={<HomeGate />} />
                 {/* 비로그인 둘러보기용 피드 직행 경로 (랜딩 CTA에서 진입) */}
                 <Route path="/feed" element={<NewHome />} />
+                {/* 로그인(관리자) 상태에서도 비로그인 랜딩을 열어 카피를 편집·미리보기 */}
+                <Route path="/welcome" element={<Landing />} />
                 <Route path="/old-home" element={<Home />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/visit" element={<Visit />} />

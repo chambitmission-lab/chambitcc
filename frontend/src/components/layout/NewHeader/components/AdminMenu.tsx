@@ -30,6 +30,7 @@ const ADMIN_GROUPS: AdminGroup[] = [
   {
     titleKey: 'adminGroupContent',
     items: [
+      { path: '/welcome', key: 'adminNavLanding' },
       { path: '/admin/news', key: 'adminNavNews' },
       { path: '/admin/daily-verse', key: 'adminNavVerse' },
       { path: '/admin/bulletins', key: 'adminNavBulletin' },
