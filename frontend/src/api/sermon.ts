@@ -4,9 +4,15 @@ import type { Sermon, SermonCreateRequest, AudioUploadResponse, TranscriptAnalys
 
 /**
  * 설교 목록 조회 (인증 불필요)
+ *
+ * includeContent=false 면 설교 전문(content)을 null 로 받는다 — 랜딩·홈 카드처럼
+ * 제목·설교자·날짜만 그리는 곳용. 설교 페이지는 목록 항목을 그대로 상세에
+ * 넘겨 전문을 보여주므로 기본값(true)을 유지한다.
  */
-export const getSermons = async (skip = 0, limit = 10): Promise<Sermon[]> => {
-  const response = await apiFetch(`${API_V1}/sermons/?skip=${skip}&limit=${limit}`)
+export const getSermons = async (skip = 0, limit = 10, includeContent = true): Promise<Sermon[]> => {
+  const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
+  if (!includeContent) params.set('include_content', 'false')
+  const response = await apiFetch(`${API_V1}/sermons/?${params}`)
   
   if (!response.ok) {
     throw new Error('설교 목록을 불러오는데 실패했습니다')
@@ -212,7 +218,8 @@ export const getSermonBibleReferences = async (sermonId: number) => {
 
 /** 설교 검색 — 제목·설교자·본문 부분 일치 (⌘K 팔레트용, 인증 불필요) */
 export const searchSermons = async (q: string, limit = 6): Promise<Sermon[]> => {
-  const params = new URLSearchParams({ q, limit: String(limit), skip: '0' })
+  // 팔레트는 제목·설교자만 보여주므로 전문은 받지 않는다
+  const params = new URLSearchParams({ q, limit: String(limit), skip: '0', include_content: 'false' })
   const response = await apiFetch(`${API_V1}/sermons?${params}`)
   if (!response.ok) throw new Error('설교 검색에 실패했습니다')
   return response.json()

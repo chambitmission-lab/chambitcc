@@ -35,6 +35,11 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다
 export const NAV_ROUTES = ['/bible', '/prayer-focus', '/profile']
 
+// 비로그인 방문자가 랜딩에서 실제로 갈 수 있는 공개 페이지. 로그인 전용 페이지
+// (소그룹·계정·프로필·기도·성장·정원·캡슐 등)는 첫 방문자 대다수가 쓰지 않고
+// 이탈하므로 미리 받지 않는다 — Vercel 대역폭과 모바일 데이터 낭비를 막는다.
+const PUBLIC_MENU_ROUTES = ['/about', '/visit', '/worship', '/sermon', '/events', '/news', '/bible']
+
 // 알림 '바로가기'·푸시로 들어오는 딥링크 경로. :id가 붙어 메뉴 테이블에 못 넣는데,
 // 라우터(v7)가 화면 전환을 startTransition으로 돌리기 때문에 청크가 도착할 때까지
 // 이전 화면(홈)을 그대로 붙잡고 있는다 → 모바일에선 "홈에 갔다가 상세로" 두 번
@@ -97,6 +102,13 @@ export const preloadNavRoutes = (): Promise<void> =>
 
 // 메뉴가 열리는 순간 호출 — 네트워크를 몰아치지 않게 순차로 받는다
 export const preloadMenuRoutes = async (): Promise<void> => {
+  // 비로그인: 공개 페이지만 순차로 (로그인하면 HomeGate 가 다시 마운트되며 전체 프리로드)
+  if (!localStorage.getItem('access_token')) {
+    for (const path of PUBLIC_MENU_ROUTES) {
+      await preloadRoute(path)
+    }
+    return
+  }
   // 네비 목적지를 먼저 확보한 뒤 나머지 메뉴 페이지를 채운다
   await preloadNavRoutes()
   for (const path of Object.keys(menuRouteLoaders)) {

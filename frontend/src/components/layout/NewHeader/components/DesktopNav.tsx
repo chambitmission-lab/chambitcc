@@ -116,6 +116,16 @@ const DesktopNav = () => {
     cancelClose()
     setOpen(id)
   }
+  const closeNow = () => {
+    cancelClose()
+    setOpen(null)
+  }
+
+  // 라우트가 바뀌면(소식 같은 단독 링크·뒤로가기 포함) 열려 있던 패널을 닫는다
+  useEffect(() => {
+    closeNow()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, search])
 
   // 바깥 클릭·ESC·라우트 이동 시 닫기
   useEffect(() => {
@@ -261,7 +271,11 @@ const DesktopNav = () => {
         to={NEWS.to}
         end
         className={({ isActive }) => topClass(isActive, false)}
-        onMouseEnter={cancelClose}
+        // 드롭다운이 없는 항목이므로 호버·포커스·클릭 모두 열린 패널을 즉시 닫는다
+        // (cancelClose 만 하면 "함께"에서 넘어올 때 예약된 닫기가 취소돼 패널이 남는다)
+        onMouseEnter={closeNow}
+        onFocus={closeNow}
+        onClick={closeNow}
       >
         {({ isActive }) => (
           <>

@@ -4,10 +4,12 @@ import { getSermons, createSermon, updateSermon, uploadAudio, deleteSermon, dele
 import type { SermonCreateRequest } from '../types/sermon'
 import { showToast } from '../utils/toast'
 
-export const useSermons = (skip = 0, limit = 10) => {
+// includeContent=false 는 전문 없는 경량 목록 (랜딩·홈 카드). 키를 분리해
+// 설교 페이지의 전문 포함 캐시와 섞이지 않게 한다.
+export const useSermons = (skip = 0, limit = 10, includeContent = true) => {
   return useQuery({
-    queryKey: ['sermons', skip, limit],
-    queryFn: () => getSermons(skip, limit),
+    queryKey: includeContent ? ['sermons', skip, limit] : ['sermons', skip, limit, 'light'],
+    queryFn: () => getSermons(skip, limit, includeContent),
     staleTime: 1000 * 60 * 5, // 5분
   })
 }

@@ -32,7 +32,7 @@ const Landing = () => {
   const ko = language === 'ko'
   const isAdminUser = isAdmin()
 
-  const { data: sermons } = useSermons(0, 2)
+  const { data: sermons } = useSermons(0, 2, false) // 제목·설교자·날짜만 쓴다 — 전문 제외
   const today = new Date()
   const rangeEnd = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000)
   const { events } = useEvents(toDateString(today), toDateString(rangeEnd))

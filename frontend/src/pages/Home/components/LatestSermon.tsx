@@ -1,7 +1,7 @@
 import { useSermons } from '../../../hooks/useSermons'
 
 const LatestSermon = () => {
-  const { data: sermons, isLoading } = useSermons(0, 1)
+  const { data: sermons, isLoading } = useSermons(0, 1, false) // 카드는 전문을 쓰지 않는다
   const latestSermon = sermons?.[0]
 
   // YouTube Video ID 추출
