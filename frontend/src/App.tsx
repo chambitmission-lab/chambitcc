@@ -21,6 +21,7 @@ import { checkForAppUpdate } from './utils/appVersion'
 import { isAuthenticated, getCurrentUser } from './utils/auth'
 // 즉시 진입 가능성이 높은 페이지는 eager import 유지
 import NewHome from './pages/Home/NewHome'
+import Landing from './pages/Landing/Landing'
 import Login from './pages/Auth/Login'
 
 // 보조/관리/대형 페이지는 lazy로 분리 → 메인 번들 축소
@@ -138,6 +139,13 @@ const RouteFallback = () => (
 )
 
 // PC 전역 좌측 레일이 보이는 라우트에선 본문을 레일 폭만큼 밀어낸다 (lg+)
+// 메인 분기 — 로그인 교인은 매일 쓰는 기도 피드 홈, 비로그인 방문자는 교회 소개 랜딩.
+// (X·인스타그램 문법: 로그인 = 피드, 비로그인 = 소개 페이지)
+// 비로그인이 피드를 구경하고 싶으면 랜딩의 "둘러보기" → /feed 로 간다.
+const HomeGate = () => {
+  return localStorage.getItem('access_token') ? <NewHome /> : <Landing />
+}
+
 const MainContent = ({ children }: { children: ReactNode }) => {
   const railVisible = useDesktopRailVisible()
   return (
@@ -237,7 +245,9 @@ function App() {
             <ErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
               <Routes>
-                <Route path="/" element={<NewHome />} />
+                <Route path="/" element={<HomeGate />} />
+                {/* 비로그인 둘러보기용 피드 직행 경로 (랜딩 CTA에서 진입) */}
+                <Route path="/feed" element={<NewHome />} />
                 <Route path="/old-home" element={<Home />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/visit" element={<Visit />} />
