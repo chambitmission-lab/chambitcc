@@ -8,13 +8,20 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { API_V1, apiFetch } from '../../../config/api'
 import { fetchPrayers } from '../../../api/prayer'
+import { useLanguage } from '../../../contexts/LanguageContext'
 import { useSituationCategories } from '../../../hooks/useSituation'
 import { useEvents } from '../../../hooks/useEvents'
 import { getSundayServices, getWeekdayServices } from '../../../api/worship'
 import { parseServiceTimes, serviceDays } from '../../../utils/worshipSchedule'
 import { CATEGORY_VISUAL } from '../../Events/utils/categoryConfig'
+import type { Language } from '../../../locales'
 import type { Event } from '../../../types/event'
 import type { SituationCategory } from '../../../types/situation'
+
+// 표시 전용 — 영어 모드에서 _en 값이 있으면 사용, 없으면 한글로 폴백 (Worship.tsx와 같은 규칙).
+// 요일·시간 파싱은 항상 한글 원본 필드를 쓴다.
+const pick = (language: Language, ko: string | undefined | null, en: string | undefined | null): string =>
+  language === 'en' && en ? en : (ko ?? '')
 
 // ── 데이터 훅 ─────────────────────────────────────────────────────────
 
@@ -134,23 +141,26 @@ const weekRangeLabel = (start: string, end: string) => {
 }
 
 const PrayerStatsWidget = () => {
+  const { t } = useLanguage()
   const weekly = useWeeklyPrayerStats()
   // 주간 API가 없는 구버전 백엔드에서만 누적 통계로 대체
   const { data: summary } = usePrayerStatsSummary(weekly.isError)
   const { data: answeredTotal } = useAnsweredTotal(weekly.isError)
 
+  const count = t('homeRailUnitCount')
+  const times = t('homeRailUnitTimes')
   const tiles: StatTile[] = weekly.data
     ? [
-        { label: '오늘의 기도', value: weekly.data.prayers_today, unit: '건' },
-        { label: '이번주 기도', value: weekly.data.prayers_week, unit: '건' },
-        { label: '이번주 아멘', value: weekly.data.amens_week, unit: '번' },
-        { label: '이번주 응답', value: weekly.data.answered_week, unit: '건' },
+        { label: t('homeRailStatToday'), value: weekly.data.prayers_today, unit: count },
+        { label: t('homeRailStatWeek'), value: weekly.data.prayers_week, unit: count },
+        { label: t('homeRailStatAmen'), value: weekly.data.amens_week, unit: times },
+        { label: t('homeRailStatAnswered'), value: weekly.data.answered_week, unit: count },
       ]
     : [
-        { label: '오늘의 기도', value: summary?.prayers_today, unit: '건' },
-        { label: '나눈 기도제목', value: summary?.active_prayers, unit: '건' },
-        { label: '함께한 아멘', value: summary?.total_reactions, unit: '번' },
-        { label: '기도 응답', value: answeredTotal, unit: '건' },
+        { label: t('homeRailStatToday'), value: summary?.prayers_today, unit: count },
+        { label: t('homeRailStatShared'), value: summary?.active_prayers, unit: count },
+        { label: t('homeRailStatAmenTotal'), value: summary?.total_reactions, unit: times },
+        { label: t('homeRailStatAnsweredTotal'), value: answeredTotal, unit: count },
       ]
 
   return (
@@ -158,7 +168,7 @@ const PrayerStatsWidget = () => {
       <div className="feed-card rounded-2xl p-4">
         <p className="mb-3 flex items-center gap-1.5 text-[12.5px] font-bold text-ink-strong">
           <span className="text-[13px]" aria-hidden>🙏</span>
-          {weekly.data ? '이번주 기도 현황' : '기도 현황'}
+          {weekly.data ? t('homeRailPrayerWeekTitle') : t('homeRailPrayerTitle')}
           {weekly.data && (
             <span className="ml-auto text-[10.5px] font-semibold text-gray-400 dark:text-white/40 tabular-nums">
               {weekRangeLabel(weekly.data.week_start, weekly.data.week_end)}
@@ -174,19 +184,20 @@ const PrayerStatsWidget = () => {
 // ── 2. 기도 태그 ──────────────────────────────────────────────────────
 
 // 기도 작성 시트의 감정 옵션과 같은 키·이모지·라벨 (PrayerComposer와 동기화)
-const EMOTION_META: Record<string, { emoji: string; label: string }> = {
-  anxious: { emoji: '😟', label: '불안' },
-  tired: { emoji: '😮‍💨', label: '지침' },
-  sad: { emoji: '😢', label: '슬픔' },
-  lonely: { emoji: '🥺', label: '외로움' },
-  angry: { emoji: '😠', label: '분노' },
-  confused: { emoji: '😵‍💫', label: '혼란' },
-  hopeful: { emoji: '🌱', label: '소망' },
-  grateful: { emoji: '🙏', label: '감사' },
+const EMOTION_META: Record<string, { emoji: string; label: string; labelEn: string }> = {
+  anxious: { emoji: '😟', label: '불안', labelEn: 'Anxious' },
+  tired: { emoji: '😮‍💨', label: '지침', labelEn: 'Weary' },
+  sad: { emoji: '😢', label: '슬픔', labelEn: 'Sad' },
+  lonely: { emoji: '🥺', label: '외로움', labelEn: 'Lonely' },
+  angry: { emoji: '😠', label: '분노', labelEn: 'Angry' },
+  confused: { emoji: '😵‍💫', label: '혼란', labelEn: 'Lost' },
+  hopeful: { emoji: '🌱', label: '소망', labelEn: 'Hopeful' },
+  grateful: { emoji: '🙏', label: '감사', labelEn: 'Grateful' },
 }
 
 const SituationTagsWidget = () => {
   const navigate = useNavigate()
+  const { t, language } = useLanguage()
   const weekly = useWeeklyPrayerStats()
   const { data: categories = [] } = useSituationCategories()
 
@@ -216,12 +227,12 @@ const SituationTagsWidget = () => {
     <section className="px-4 pt-3">
       <RailLabel>
         <span aria-hidden>🏷️</span>
-        {showReal ? '이번주 기도 태그' : '상황별 말씀 태그'}
+        {showReal ? t('homeRailTagsWeekTitle') : t('homeRailTagsCuratedTitle')}
       </RailLabel>
       <div className="feed-card rounded-2xl p-3.5">
         {showReal && (
           <p className="px-0.5 mb-2 text-[11.5px] text-gray-400 dark:text-white/45">
-            이번주 기도에 담긴 마음이에요 · 누르면 맞는 말씀으로
+            {t('homeRailTagsHint')}
           </p>
         )}
         <div className="flex flex-wrap gap-1.5">
@@ -240,7 +251,7 @@ const SituationTagsWidget = () => {
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[var(--brand-soft)] text-brand text-[12px] font-semibold hover:bg-[var(--brand-soft-strong)] active:scale-[0.97] transition-[background-color,transform] duration-150"
                   >
                     <span aria-hidden>{meta.emoji}</span>
-                    {meta.label}
+                    {pick(language, meta.label, meta.labelEn)}
                     {/* --brand는 CSS 변수라 /70 투명도 수식자가 조용히 미생성 → opacity로 */}
                     <span className="text-[11px] font-bold opacity-70 tabular-nums">
                       {count}
@@ -267,7 +278,7 @@ const SituationTagsWidget = () => {
             onClick={() => navigate('/bible/situation')}
             className="px-2.5 py-1.5 rounded-full border border-[var(--card-border)] text-[12px] font-semibold text-ink-muted hover:text-brand hover:border-[var(--brand-glow)] active:scale-[0.97] transition-colors duration-150"
           >
-            더보기 →
+            {t('homeRailMore')}
           </button>
         </div>
       </div>
@@ -279,6 +290,7 @@ const SituationTagsWidget = () => {
 
 const AlarmBanner = () => {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   return (
     <section className="px-4 pt-3">
       <div className="rounded-2xl p-4 border border-[var(--card-border)] bg-gradient-to-br from-[#eef4ff] to-[#e3edff] dark:from-[#141d30] dark:to-[#101828] relative overflow-hidden">
@@ -286,21 +298,21 @@ const AlarmBanner = () => {
           🔔
         </span>
         <p className="text-[14.5px] font-bold text-ink-strong leading-snug">
-          말씀과 함께
+          {t('homeRailAlarmTitle1')}
           <br />
-          하루를 시작해요
+          {t('homeRailAlarmTitle2')}
         </p>
         <p className="mt-1 text-[12px] text-ink-muted leading-relaxed">
-          원하는 시간에 말씀 알림을 받고
+          {t('homeRailAlarmBody1')}
           <br />
-          하루를 말씀으로 열어보세요.
+          {t('homeRailAlarmBody2')}
         </p>
         <button
           type="button"
           onClick={() => navigate('/bible/alarm')}
           className="mt-3 px-3.5 py-1.5 rounded-full brand-gradient text-[12.5px] font-bold active:scale-[0.97] transition-transform duration-150"
         >
-          알림 설정하기
+          {t('homeRailAlarmCta')}
         </button>
       </div>
     </section>
@@ -346,6 +358,7 @@ interface ScheduleItem {
 
 const TodayScheduleWidget = () => {
   const navigate = useNavigate()
+  const { t, language } = useLanguage()
   const today = useMemo(todayStr, [])
   const { events, loading: eventsLoading } = useEvents(today, today)
   const { data: services, isLoading: worshipLoading } = useWorshipServicesAll()
@@ -362,8 +375,8 @@ const TodayScheduleWidget = () => {
         return parseServiceTimes(s.time).map((startMin) => ({
           key: `worship-${s.id}-${startMin}`,
           startMin,
-          title: s.name,
-          location: s.location,
+          title: pick(language, s.name, s.name_en),
+          location: pick(language, s.location, s.location_en) || null,
           dot: CATEGORY_VISUAL.worship.dot,
           onClick: () => navigate('/worship'),
         }))
@@ -385,7 +398,7 @@ const TodayScheduleWidget = () => {
     })
 
     return [...worshipItems, ...eventItems].sort((a, b) => a.startMin - b.startMin)
-  }, [services, events, navigate])
+  }, [services, events, navigate, language])
 
   const visible = sorted.slice(0, 5)
   const restCount = sorted.length - visible.length
@@ -395,24 +408,24 @@ const TodayScheduleWidget = () => {
     <section className="px-4 pt-3">
       <div className="px-1 mb-1.5 flex items-center justify-between">
         <p className="flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
-          <span aria-hidden>🗓️</span> 오늘의 일정
+          <span aria-hidden>🗓️</span> {t('homeRailTodayTitle')}
         </p>
         <button
           type="button"
           onClick={() => navigate('/events')}
           className="text-[11.5px] font-semibold text-ink-muted hover:text-brand transition-colors"
         >
-          전체 보기 →
+          {t('homeRailViewAll')}
         </button>
       </div>
       <div className="feed-card rounded-2xl p-4">
         {loading ? (
           <p className="text-[12.5px] text-gray-400 dark:text-white/40 text-center py-2">
-            일정을 불러오는 중…
+            {t('homeRailScheduleLoading')}
           </p>
         ) : visible.length === 0 ? (
           <p className="text-[12.5px] text-gray-400 dark:text-white/40 text-center py-2">
-            오늘 예정된 일정이 없어요
+            {t('homeRailScheduleEmpty')}
           </p>
         ) : (
           <ul className="space-y-3">
@@ -445,7 +458,7 @@ const TodayScheduleWidget = () => {
             ))}
             {restCount > 0 && (
               <li className="pl-[18px] text-[11.5px] text-gray-400 dark:text-white/40">
-                외 {restCount}개의 일정이 더 있어요
+                {t('homeRailScheduleMore').replace('{n}', String(restCount))}
               </li>
             )}
           </ul>
@@ -459,6 +472,7 @@ const TodayScheduleWidget = () => {
 
 const VerseCardBanner = () => {
   const navigate = useNavigate()
+  const { t } = useLanguage()
   return (
     <section className="px-4 pt-3 pb-1">
       <div className="rounded-2xl p-4 border border-[var(--card-border)] bg-gradient-to-br from-[#f3efff] to-[#eae6fb] dark:from-[#1c1730] dark:to-[#151226] relative overflow-hidden">
@@ -466,19 +480,19 @@ const VerseCardBanner = () => {
           🖼️
         </span>
         <p className="text-[14.5px] font-bold text-ink-strong leading-snug">
-          말씀 카드를 공유해 보세요
+          {t('homeRailVerseCardTitle')}
         </p>
         <p className="mt-1 text-[12px] text-ink-muted leading-relaxed">
-          마음을 울린 오늘의 말씀,
+          {t('homeRailVerseCardBody1')}
           <br />
-          이미지로 만들어 나눠보세요.
+          {t('homeRailVerseCardBody2')}
         </p>
         <button
           type="button"
           onClick={() => navigate('/bible/photo-verse')}
           className="mt-3 px-3.5 py-1.5 rounded-full bg-[#7c66d9] text-white text-[12.5px] font-bold active:scale-[0.97] transition-transform duration-150"
         >
-          말씀 카드 만들기
+          {t('railShareVerseCard')}
         </button>
       </div>
     </section>
