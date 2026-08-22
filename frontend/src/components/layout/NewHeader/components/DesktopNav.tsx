@@ -7,10 +7,12 @@ import { preloadMenuRoutes } from '../../../../utils/routePreload'
 // 전체 메뉴(교회 안내·액티비티·관리자·설정)는 기존 햄버거 드롭다운에 남긴다.
 // 링크들이 맨 배경에 떠 보이지 않도록 캡슐 트랙(Apple.com·Linear 문법)으로 감싸고,
 // 활성 pill은 framer-motion layoutId로 항목 사이를 미끄러진다 (토스 세그먼트 문법).
+// 좌측 레일(개인 활동: 성경·기도·모임…)과 축을 나눠, 여기엔 교회 안내·콘텐츠만 담는다.
+// 성경은 레일과 중복이라 빼고, 방문자가 가장 먼저 찾는 소개를 맨 앞에 둔다.
 const NAV_ITEMS = [
+  { path: '/about', key: 'about' },
   { path: '/worship', key: 'worship' },
   { path: '/sermon', key: 'sermon' },
-  { path: '/bible', key: 'bible' },
   { path: '/events', key: 'events' },
   { path: '/culture', key: 'culture' },
   { path: '/ministry', key: 'ministry' },
