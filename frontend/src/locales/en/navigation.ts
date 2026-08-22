@@ -19,6 +19,7 @@ export const navigation = {
   tv: 'TV',
   bible: 'Bible',
   events: 'Events',
+  allMenu: 'All Menu',
   // Admin menu labels — icons live in AdminIcons.tsx and the group title
   // carries the context, so the "Management" suffix is dropped
   adminNavDashboard: 'Admin Home',

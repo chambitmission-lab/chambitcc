@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLanguage } from '../../../contexts/LanguageContext'
 import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
 import { preloadMenuRoutes } from '../../../utils/routePreload'
 import NotificationModal from '../../common/NotificationModal'
@@ -13,6 +14,7 @@ import { useLogout } from './hooks/useLogout'
 import './NewHeader.css'
 
 const NewHeader = () => {
+  const { t } = useLanguage()
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   
   // Custom hooks
@@ -73,11 +75,43 @@ const NewHeader = () => {
           {/* PC 전용 인라인 메뉴 — 본문 중심축(50% + 레일폭/2: lg 38px, xl 124px)에 절대 배치해
               페이지 콘텐츠와 세로 중심선이 일치하게 한다. 레일이 숨는 화면에선 화면 정중앙. */}
           <div
-            className={`hidden lg:flex absolute inset-y-0 items-center -translate-x-1/2 ${
+            className={`hidden lg:flex absolute inset-y-0 items-center gap-2 -translate-x-1/2 ${
               railVisible ? 'left-[calc(50%+38px)] xl:left-[calc(50%+124px)]' : 'left-1/2'
             }`}
           >
             <DesktopNav />
+            {/* 사이트맵 트리거 — 레일 하단 ⋮ 만으론 전체 메뉴 입구가 안 보여서,
+                캡슐 옆에 상시 노출한다. 레일이 없는 화면(인증 등)은 우상단
+                햄버거(HeaderActions)가 같은 패널을 열므로 중복 노출하지 않는다 */}
+            {railVisible && (
+              <button
+                type="button"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                onMouseEnter={() => void preloadMenuRoutes()}
+                aria-haspopup="menu"
+                aria-expanded={isMenuOpen}
+                className={`flex items-center gap-1.5 h-10 px-3.5 rounded-full text-[13.5px] whitespace-nowrap ring-1 ring-inset transition-colors duration-150 ${
+                  isMenuOpen
+                    ? 'bg-[var(--brand-soft-strong)] text-brand font-bold ring-transparent'
+                    : 'text-gray-600 dark:text-white/70 font-medium ring-black/[0.06] dark:ring-white/[0.08] hover:text-brand hover:bg-[var(--brand-soft)] hover:ring-transparent'
+                }`}
+              >
+                <svg
+                  className="w-[15px] h-[15px] shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden
+                >
+                  <rect x="3.5" y="3.5" width="7.5" height="7.5" rx="2.2" />
+                  <rect x="13" y="3.5" width="7.5" height="7.5" rx="2.2" />
+                  <rect x="3.5" y="13" width="7.5" height="7.5" rx="2.2" />
+                  <rect x="13" y="13" width="7.5" height="7.5" rx="2.2" />
+                </svg>
+                {t('allMenu')}
+              </button>
+            )}
           </div>
           {/* 우상단 액션 — 레일이 보이는 PC에선 레일 하단 유틸리티가 대신한다 */}
           <div className={railVisible ? 'lg:hidden' : ''}>

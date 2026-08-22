@@ -19,6 +19,7 @@ export const navigation = {
   tv: 'TV',
   bible: '성경',
   events: '일정',
+  allMenu: '전체 메뉴',
   // 관리자 메뉴 라벨 — 아이콘은 AdminIcons.tsx, 그룹 제목이 맥락을 주므로
   // 모든 항목에 붙던 '관리' 접미사는 뺀다
   adminNavDashboard: '관리자 홈',
