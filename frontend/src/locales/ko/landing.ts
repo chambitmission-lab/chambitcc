@@ -4,7 +4,7 @@ export const landing = {
   landingHeroTitle: '교회 앱이\n*이렇게까지* 해도 되나 싶을 겁니다.',
   landingHeroSub: '주일엔 예배, 나머지 6일은 이 앱이 챙깁니다.\n성경 읽고, 기도 나누고, 설교 다시 듣고 — 전부 한 곳에서.',
   landingCtaVisit: '이번 주일에 가볼게요',
-  landingCtaTour: '앱부터 구경할게요',
+  landingCtaTour: '교회 둘러보기',
 
   landingFaqKicker: '처음 오시는 분께',
   landingFaqTitle: '솔직히, 교회 처음 가면\n이런 게 걱정되죠',

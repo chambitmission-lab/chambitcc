@@ -4,7 +4,7 @@ export const landing = {
   landingHeroTitle: "A church app that\nmight be doing a *little too much*.",
   landingHeroSub: 'Sunday is for worship. This app covers the other six days.\nRead the Bible, share prayers, replay sermons — all in one place.',
   landingCtaVisit: "I'll come this Sunday",
-  landingCtaTour: 'Show me the app first',
+  landingCtaTour: 'Take a look around',
 
   landingFaqKicker: 'For first-timers',
   landingFaqTitle: "Honestly, here's what\nworries people about a first visit",

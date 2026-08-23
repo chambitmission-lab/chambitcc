@@ -9,6 +9,12 @@ import { fmtNum, useCountUp } from './landingUtils'
 // 히어로: 큰 약속 한 줄 + 살아있는 숫자 + 두 갈래 CTA.
 // 카피는 about_content.fields 에 저장돼 관리자가 화면에서 바로 고친다.
 
+// 히어로 하단 메타(예배 시간·오시는 길) — 라이트는 흰 알약 + 잉크 글씨, 다크는 알약을 벗고 흰 글씨
+const META_CHIP =
+  'inline-flex items-center gap-1.5 rounded-full px-3 py-1 bg-white/70 ring-1 ring-inset ring-black/10 backdrop-blur-sm text-ink hover:bg-white ' +
+  'dark:px-0 dark:py-0 dark:bg-transparent dark:ring-0 dark:backdrop-blur-none dark:text-white/75 dark:hover:bg-transparent dark:hover:text-white ' +
+  'transition-colors'
+
 const StatItem = ({
   value,
   unit,
@@ -158,13 +164,23 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
           </div>
         )}
 
-        {/* 예배·오시는 길 — 방문자의 두 가지 질문은 히어로 안에서 바로 답한다 */}
-        <div className="ld-hero-halo mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-white/90 dark:text-white/75">
-          <button type="button" onClick={() => navigate('/worship')} className="inline-flex items-center gap-1.5 hover:text-white">
+        {/* 예배·오시는 길 — 방문자의 두 가지 질문은 히어로 안에서 바로 답한다.
+            라이트: 밝은 사진 위에서 흰 글씨는 halo 로도 안 읽혀 상단 kicker 와 같은 흰 알약으로 감싼다.
+            다크: 스크림이 이미 깔려 있어 알약 없이 흰 글씨 그대로(기존 모양 유지). */}
+        <div className="mt-5 flex flex-wrap gap-x-2 gap-y-1.5 dark:gap-x-5 text-[13px]">
+          <button
+            type="button"
+            onClick={() => navigate('/worship')}
+            className={META_CHIP}
+          >
             <ClockIcon size={14} />
             <span className="font-semibold">{tx('aboutInfoWorship')}</span>
           </button>
-          <button type="button" onClick={() => navigate('/visit')} className="inline-flex items-center gap-1.5 hover:text-white">
+          <button
+            type="button"
+            onClick={() => navigate('/visit')}
+            className={META_CHIP}
+          >
             <MapPinIcon size={14} />
             <span className="font-semibold">{tx('aboutAddress')}</span>
           </button>
