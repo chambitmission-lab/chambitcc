@@ -1,5 +1,7 @@
-/* 홈 타임캡슐 히어로 카드 — 해질녘 밤하늘에 봉인된 편지.
-   깊은 인디고 밤하늘은 라이트/다크 모두에서 그대로 쓴다 (카드 자체가 밤의 정체성).
+/* 홈 타임캡슐 히어로 카드 — 시간을 건너는 편지.
+   카드의 정체성은 '밤'이 아니라 '시간(하늘)'이다:
+     다크 = 밤하늘에 봉인된 편지 (아래 기본값)
+     라이트 = 아침 하늘에 도착하는 편지 (파일 끝 html:not(.dark) 블록, /mission 방식)
    사진 대신 플랫 그라데이션 — 홈의 토스식 플랫 문법과 결을 맞추고,
    아래쪽 앰버 글로우(--worship-sky-night의 촛불빛 문법)로 금색 봉투와 잇는다. */
 
@@ -351,4 +353,139 @@
   .tc-card__meteor {
     animation: none;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   라이트 테마 — 아침 하늘에 도착하는 편지.
+   라이트는 대부분 낮에 보므로 인디고 밤하늘 대신 연한 하늘빛→크림 그라데이션,
+   우하단 앰버 글로우는 '촛불'이 아니라 '햇살'로 같은 자리에서 재해석한다.
+   별은 아침 햇살이 렌즈에 맺힌 보케·광선으로, 은하수는 비스듬한 햇살 한 줄기로,
+   별똥별은 고요한 아침에 맞지 않아 띄우지 않는다. 다크 값은 한 픽셀도 건드리지 않는다.
+   ═══════════════════════════════════════════════════════════════ */
+
+html:not(.dark) .tc-card {
+  background:
+    /* 햇살 글로우 — 다크의 앰버 촛불빛과 같은 자리 */
+    radial-gradient(95% 75% at 78% 115%, rgba(255, 196, 92, 0.34), rgba(255, 210, 120, 0.1) 45%, transparent 68%),
+    /* 위쪽 하늘의 푸른 기운 */
+    radial-gradient(120% 140% at 85% -20%, rgba(147, 197, 253, 0.34), transparent 55%),
+    linear-gradient(168deg, #e6f1ff 0%, #f3f8ff 52%, #fff5e4 100%);
+  border: 1px solid rgba(49, 130, 246, 0.14);
+  box-shadow: 0 14px 30px -18px rgba(49, 110, 220, 0.28);
+}
+
+/* 은하수 → 햇살 한 줄기: 각도·호흡은 그대로, 빛만 따뜻하게 */
+html:not(.dark) .tc-card__milkyway {
+  background-image:
+    radial-gradient(26% 16% at 63% 46%, rgba(255, 226, 170, 0.28), transparent),
+    radial-gradient(22% 13% at 38% 53%, rgba(255, 245, 220, 0.3), transparent),
+    radial-gradient(18% 11% at 80% 50%, rgba(255, 234, 190, 0.22), transparent),
+    linear-gradient(
+      180deg,
+      transparent 33%,
+      rgba(255, 244, 220, 0.18) 42%,
+      rgba(255, 252, 240, 0.42) 50%,
+      rgba(255, 244, 220, 0.18) 58%,
+      transparent 67%
+    );
+}
+
+/* 잔별 베이스 → 옅은 금빛·하늘빛 보케 */
+html:not(.dark) .tc-card__stars {
+  background-image:
+    radial-gradient(3px 3px at 44% 78%, rgba(255, 214, 140, 0.32), transparent),
+    radial-gradient(2.5px 2.5px at 93% 14%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(3px 3px at 12% 76%, rgba(255, 220, 150, 0.3), transparent),
+    radial-gradient(2.5px 2.5px at 35% 22%, rgba(147, 197, 253, 0.4), transparent),
+    radial-gradient(2px 2px at 64% 55%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(2.5px 2.5px at 8% 30%, rgba(147, 197, 253, 0.35), transparent);
+}
+
+/* 흰 별의 십자 광선 → 따뜻한 햇살 광선(렌즈 플레어) */
+html:not(.dark) .tc-card__stars::before {
+  background-image:
+    radial-gradient(1px 14px at 71% 24%, rgba(255, 196, 110, 0.55), transparent),
+    radial-gradient(14px 1px at 71% 24%, rgba(255, 196, 110, 0.5), transparent),
+    radial-gradient(7px 7px at 71% 24%, rgba(255, 224, 160, 0.45), transparent),
+    radial-gradient(2px 2px at 71% 24%, rgba(255, 255, 255, 1), transparent),
+    radial-gradient(0.9px 7px at 22% 40%, rgba(255, 210, 140, 0.5), transparent),
+    radial-gradient(7px 0.9px at 22% 40%, rgba(255, 210, 140, 0.45), transparent),
+    radial-gradient(2px 2px at 22% 40%, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(2.5px 2.5px at 48% 12%, rgba(255, 255, 255, 0.9), transparent);
+}
+
+/* 금빛 별 겹 → 하늘빛 보케 (푸른 아침 공기) */
+html:not(.dark) .tc-card__stars::after {
+  background-image:
+    radial-gradient(1px 9px at 56% 16%, rgba(255, 200, 120, 0.45), transparent),
+    radial-gradient(9px 1px at 56% 16%, rgba(255, 200, 120, 0.4), transparent),
+    radial-gradient(6px 6px at 56% 16%, rgba(255, 228, 170, 0.4), transparent),
+    radial-gradient(1.8px 1.8px at 56% 16%, rgba(255, 255, 255, 1), transparent),
+    radial-gradient(3px 3px at 82% 62%, rgba(147, 197, 253, 0.4), transparent),
+    radial-gradient(2.5px 2.5px at 30% 60%, rgba(255, 224, 160, 0.4), transparent),
+    radial-gradient(2.5px 2.5px at 88% 40%, rgba(255, 255, 255, 0.85), transparent);
+}
+
+/* 별똥별은 밤의 사건 — 아침엔 띄우지 않는다 */
+html:not(.dark) .tc-card__meteor {
+  display: none;
+}
+
+/* 타이포 — 흰 글씨 계열이 하나도 남지 않게 */
+html:not(.dark) .tc-card__label {
+  color: #b07a1c;
+}
+
+html:not(.dark) .tc-card__title {
+  color: #1a2a4a;
+}
+
+html:not(.dark) .tc-card__status {
+  color: #5b6b85;
+}
+
+html:not(.dark) .tc-card__status--sealed {
+  color: #2f6fd6;
+}
+
+html:not(.dark) .tc-card__status--sealed strong {
+  color: #3182f6;
+}
+
+html:not(.dark) .tc-card__status--arrived {
+  color: #b45309;
+}
+
+html:not(.dark) .tc-card__pulse {
+  background: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+}
+
+/* 봉투 — 발광체가 아니라 아침 빛을 받는 실물 종이 봉투 */
+html:not(.dark) .tc-card__visual::before {
+  background: radial-gradient(50% 50% at 50% 48%, rgba(255, 214, 140, 0.4), transparent 72%);
+}
+
+html:not(.dark) .tc-env {
+  filter: drop-shadow(0 4px 8px rgba(180, 130, 40, 0.28));
+}
+
+html:not(.dark) .tc-env__stroke {
+  stroke: #c9962e;
+}
+
+html:not(.dark) .tc-env__panel {
+  fill: #fff8e8;
+}
+
+html:not(.dark) .tc-env__leak {
+  stroke: rgba(255, 200, 100, 0.85);
+}
+
+html:not(.dark) .tc-env__seal {
+  fill: #e4a83a;
+}
+
+html:not(.dark) .tc-env__seal-star {
+  fill: rgba(92, 62, 18, 0.7);
 }
