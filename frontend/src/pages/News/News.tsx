@@ -307,7 +307,7 @@ const FeaturedCard = ({
   >
     {/* lg+: 폭이 넓어지면 4:3 히어로가 화면 한 판을 다 먹는다 —
         좌(썸네일)·우(정보) 가로 분할로 바꿔 높이를 잡고 여백을 채운다 */}
-    <article className="relative overflow-hidden rounded-3xl bg-card-dark border border-white/[0.06] shadow-[0_18px_44px_-18px_var(--brand-glow)] transition-transform duration-200 group-active:scale-[0.99] lg:flex lg:items-stretch">
+    <article className="relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-gray-200/80 dark:border-white/[0.06] shadow-[0_18px_44px_-18px_var(--brand-glow)] transition-transform duration-200 group-active:scale-[0.99] lg:flex lg:items-stretch">
       {/* 썸네일 */}
       <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-500/15 to-sky-500/15 lg:w-[44%] lg:shrink-0">
         {bulletin.thumbnail_url ? (
@@ -355,20 +355,20 @@ const FeaturedCard = ({
 
       {/* 정보 패널 (lg — 썸네일 오른쪽) */}
       <div className="hidden lg:flex lg:flex-1 lg:min-w-0 lg:flex-col lg:justify-center lg:gap-2 lg:p-7">
-        <p className="text-white/70 text-[12.5px] font-semibold">
+        <p className="text-gray-500 dark:text-white/70 text-[12.5px] font-semibold">
           {formatLongDate(bulletin.bulletin_date)}
         </p>
-        <h2 className="text-white text-[22px] font-bold leading-[1.32] tracking-[-0.02em] line-clamp-2">
+        <h2 className="text-gray-900 dark:text-white text-[22px] font-bold leading-[1.32] tracking-[-0.02em] line-clamp-2">
           {bulletin.title}
         </h2>
         {bulletin.description && (
-          <p className="text-white/70 text-[13px] leading-[1.65] line-clamp-3">
+          <p className="text-gray-600 dark:text-white/70 text-[13px] leading-[1.65] line-clamp-3">
             {bulletin.description}
           </p>
         )}
-        <div className="flex items-center gap-3 text-white/60 text-[12px] pt-1">
+        <div className="flex items-center gap-3 text-gray-500 dark:text-white/60 text-[12px] pt-1">
           <span>📄 {bulletin.page_count}P</span>
-          <span className="text-white/25">·</span>
+          <span className="text-gray-300 dark:text-white/25">·</span>
           <span>👁️ {bulletin.views}</span>
           <span className="ml-auto inline-flex items-center gap-1 h-9 px-4 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
             읽어보기
