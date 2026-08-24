@@ -249,6 +249,8 @@ const ProgramForm = ({
   const [location, setLocation] = useState<Bilingual>(field('location'))
   const [description, setDescription] = useState<Bilingual>(field('description'))
   const [notice, setNotice] = useState<Bilingual>(field('notice'))
+  const [linkUrl, setLinkUrl] = useState(program?.link_url ?? '')
+  const [linkLabel, setLinkLabel] = useState<Bilingual>(field('link_label'))
   const [isActive, setIsActive] = useState(program?.is_active ?? true)
   const [error, setError] = useState<string | null>(null)
 
@@ -304,6 +306,9 @@ const ProgramForm = ({
         notice_ko: notice.ko,
         notice_en: notice.en,
         image_url: finalImage,
+        link_url: linkUrl.trim(),
+        link_label_ko: linkLabel.ko,
+        link_label_en: linkLabel.en,
         is_active: isActive,
       }
       if (program) {
@@ -361,6 +366,22 @@ const ProgramForm = ({
 
         <BilingualField label="소개" value={description} onChange={setDescription} multiline rows={4} placeholder="이 부서/과정 소개" />
         <BilingualField label="강조 안내" value={notice} onChange={setNotice} placeholder="청년부는 4부예배(오후 1시 30분)를 드린 후 모입니다." hint="카드 아래 강조 박스로 표시됩니다" />
+
+        <FieldGroup label="외부 링크">
+          <input
+            type="url"
+            value={linkUrl}
+            onChange={(e) => setLinkUrl(e.target.value)}
+            placeholder="https://www.qtland.com/quiet/quiet.php?cate=A"
+            className={inputCls}
+          />
+          <p className="text-[11px] text-gray-400 dark:text-white/40 mt-1 leading-[1.5]">
+            우리가 만들 수 없는 콘텐츠(출판물·외부 신청 페이지)는 링크로 엽니다. 카드에 버튼으로 표시됩니다.
+          </p>
+        </FieldGroup>
+        {linkUrl.trim() && (
+          <BilingualField label="링크 버튼 문구" value={linkLabel} onChange={setLinkLabel} placeholder="복있는 사람 바로가기 (비우면 '바로가기')" />
+        )}
 
         <FieldGroup label="대표 사진">
           <div className="flex items-center gap-3">

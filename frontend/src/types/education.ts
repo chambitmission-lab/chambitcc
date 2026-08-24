@@ -23,6 +23,10 @@ export interface EducationProgram {
   notice_ko?: string | null
   notice_en?: string | null
   image_url?: string | null
+  /** 외부 링크 — 재현할 수 없는 콘텐츠(예: 복있는 사람 qtland.com)는 링크로 연다 */
+  link_url?: string | null
+  link_label_ko?: string | null
+  link_label_en?: string | null
   sort_order: number
   is_active: boolean
   created_at?: string | null
@@ -69,6 +73,7 @@ export type ProgramTextField =
   | 'location'
   | 'description'
   | 'notice'
+  | 'link_label'
 
 export type CategoryPayload = Partial<
   Omit<EducationCategory, 'id' | 'sort_order' | 'programs' | 'created_at' | 'updated_at'>

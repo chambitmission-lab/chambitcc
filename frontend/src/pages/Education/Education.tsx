@@ -6,7 +6,7 @@
 // about_content.fields 공유 → EditableText ✏️ 인라인 편집.
 // 빈 값('')은 '미확인' — 그 줄을 숨기고 관리자에게만 힌트를 보인다. 지어내지 않는다.
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
 import { useAboutContent } from '../../hooks/useAboutContent'
@@ -18,6 +18,39 @@ import './education.css'
 
 const sectionId = (key: string) => `edu-${key}`
 
+// body 가 스크롤 컨테이너라 smooth scrollIntoView 가 도중에 끊긴다 — instant 로 이동
+const scrollToSection = (key: string) =>
+  document.getElementById(sectionId(key))?.scrollIntoView({ behavior: 'auto', block: 'start' })
+
+/**
+ * 딥링크용: 뒤로가기/새로고침(POP) 직후엔 전역 ScrollRestoration 이 최대 1초 동안
+ * 매 프레임 저장 위치로 되돌리므로, 섹션이 상단에 올 때까지 잠시 재시도한다.
+ * rAF 는 백그라운드 탭에서 멈추므로 setTimeout 으로 돈다. 사용자가 직접 스크롤하면 즉시 멈춘다.
+ */
+const scrollToSectionUntilSettled = (key: string, timeoutMs = 1300): void => {
+  const deadline = performance.now() + timeoutMs
+  let timer = 0
+  let cancelled = false
+  const cancel = () => {
+    cancelled = true
+    window.clearTimeout(timer)
+    window.removeEventListener('wheel', cancel)
+    window.removeEventListener('touchstart', cancel)
+  }
+  window.addEventListener('wheel', cancel, { passive: true })
+  window.addEventListener('touchstart', cancel, { passive: true })
+  const attempt = () => {
+    if (cancelled) return
+    const el = document.getElementById(sectionId(key))
+    if (!el) return cancel()
+    const top = el.getBoundingClientRect().top
+    if (Math.abs(top - 16) > 4) el.scrollIntoView({ behavior: 'auto', block: 'start' })
+    if (performance.now() > deadline) return cancel()
+    timer = window.setTimeout(attempt, 60)
+  }
+  attempt()
+}
+
 const Education = () => {
   const navigate = useNavigate()
   const { language } = useLanguage()
@@ -25,33 +58,40 @@ const Education = () => {
   const { tx } = useAboutContent()
   const { categories, isLoading } = useEducationTree()
   const isAdminUser = isAdmin()
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams()
 
   const visible = useMemo(
     () => categories.filter((c) => c.programs.length > 0 || isAdminUser),
     [categories, isAdminUser],
   )
 
-  // ?cat=youth 딥링크 — 데이터가 온 뒤 해당 섹션으로 스크롤
+  // ?cat=youth 딥링크 — 데이터가 온 뒤 해당 섹션으로 스크롤.
+  // 칩 클릭은 URL 을 바꾸지 않는다: setSearchParams 는 새 history 엔트리를 만들고
+  // 전역 ScrollRestoration 이 그 엔트리를 "새 페이지"로 보고 맨 위로 되돌려 스크롤이 취소된다.
   const requested = params.get('cat')
-  // 활성 칩의 초기값은 URL 이 정한다 — effect 안에서 setState 하지 않는다
-  const [activeKey, setActiveKey] = useState<string | null>(requested)
-  const scrolledRef = useRef(false)
+  // 활성 칩: 클릭한 칩(userKey)이 있으면 그것, 아니면 URL 의 cat. URL 이 바뀌면 클릭 기억을 비운다
+  // (렌더 중 파생 — effect 안에서 setState 하지 않는다)
+  const [userPick, setUserPick] = useState<{ forCat: string | null; key: string } | null>(null)
+  const activeKey = userPick && userPick.forCat === requested ? userPick.key : requested
+  // 같은 링크를 다시 눌러도(같은 cat, 새 history 엔트리) 다시 내려가도록 location.key 로 구분한다
+  const location = useLocation()
+  const handledRef = useRef<string | null>(null)
   useEffect(() => {
-    if (scrolledRef.current || visible.length === 0) return
-    if (requested && visible.some((c) => c.key === requested)) {
-      scrolledRef.current = true
-      // 렌더 직후엔 레이아웃이 안 잡혀 있어 한 프레임 미룬다
-      requestAnimationFrame(() => {
-        document.getElementById(sectionId(requested))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
-    }
-  }, [requested, visible])
+    if (!requested || visible.length === 0) return
+    const stamp = `${location.key}:${requested}`
+    if (handledRef.current === stamp) return
+    if (!visible.some((c) => c.key === requested)) return
+    handledRef.current = stamp
+    // ScrollRestoration(layout effect)이 위치를 잡은 다음 프레임에 내려간다.
+    // smooth 는 이 레이아웃(body 스크롤)에서 중간에 끊기므로 instant 로 확실히 이동한다.
+    // cleanup 으로 취소하지 않는다 — 데이터 도착 직후 deps(visible)가 한 번 더 바뀌며
+    // 이전 effect 의 cleanup 이 루프를 첫 프레임도 못 돌고 죽인다. 루프는 스스로 끝난다.
+    scrollToSectionUntilSettled(requested)
+  }, [requested, location.key, visible])
 
   const jumpTo = (key: string) => {
-    setActiveKey(key)
-    setParams({ cat: key }, { replace: true })
-    document.getElementById(sectionId(key))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setUserPick({ forCat: requested, key })
+    scrollToSection(key)
   }
 
   return (
@@ -206,13 +246,7 @@ const CategorySection = ({
       ) : (
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {category.programs.map((program) => (
-            <ProgramCard
-              key={program.id}
-              program={program}
-              language={language}
-              isAdmin={isAdmin}
-              labels={labels}
-            />
+            <ProgramCard key={program.id} program={program} language={language} labels={labels} />
           ))}
         </div>
       )}
@@ -233,12 +267,10 @@ const CategorySection = ({
 const ProgramCard = ({
   program,
   language,
-  isAdmin,
   labels,
 }: {
   program: EducationProgram
   language: 'ko' | 'en'
-  isAdmin: boolean
   labels: Labels
 }) => {
   const name = programText(program, 'name', language)
@@ -248,12 +280,14 @@ const ProgramCard = ({
   const location = programText(program, 'location', language)
   const description = programText(program, 'description', language)
   const notice = programText(program, 'notice', language)
+  const linkUrl = program.link_url?.trim() ?? ''
+  const linkLabel = programText(program, 'link_label', language) || (language === 'ko' ? '바로가기' : 'Open')
   const rows = [
     [labels.time, time],
     [labels.leader, leader],
     [labels.location, location],
   ].filter(([, v]) => v.trim().length > 0)
-  const hasDetails = rows.length > 0 || description.length > 0 || notice.length > 0
+  const hasDetails = rows.length > 0 || description.length > 0 || notice.length > 0 || linkUrl.length > 0
 
   return (
     <article
@@ -300,11 +334,22 @@ const ProgramCard = ({
           </p>
         )}
 
+        {linkUrl && (
+          <a
+            href={linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full bg-brand hover:bg-brand-dim text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-colors"
+          >
+            {linkLabel}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </a>
+        )}
+
         {!hasDetails && (
-          <p className="text-[12px] text-gray-400 dark:text-white/40">
-            {labels.pending}
-            {isAdmin && <span className="ml-1 text-brand">· /admin/education</span>}
-          </p>
+          <p className="text-[12px] text-gray-400 dark:text-white/40">{labels.pending}</p>
         )}
       </div>
     </article>
