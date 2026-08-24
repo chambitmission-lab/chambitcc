@@ -23,6 +23,7 @@ const MENU_SECTIONS: NavSection[] = [
       { path: '/organization', key: 'organization' },
       { path: '/history', key: 'history' },
       { path: '/worship', key: 'worship' },
+      { path: '/education', key: 'education' },
       { path: '/events', key: 'events' },
       { path: '/culture', key: 'culture' }
     ]

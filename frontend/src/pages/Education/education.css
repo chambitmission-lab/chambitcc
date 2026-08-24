@@ -1,0 +1,142 @@
+/* 교육과 훈련 (/education) — 접두사 edu- 필수 (다른 페이지 .hero-* 와 충돌 방지) */
+
+.edu-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 2.5rem 1.5rem 1.75rem;
+  background: linear-gradient(180deg, var(--brand-soft) 0%, transparent 100%);
+  text-align: center;
+}
+
+.edu-hero::before {
+  content: '';
+  position: absolute;
+  top: -6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  background: var(--brand-soft-strong);
+  filter: blur(64px);
+  pointer-events: none;
+}
+
+.edu-hero > * {
+  position: relative;
+}
+
+.edu-hero-badge {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: 0.06em;
+  margin-bottom: 0.85rem;
+}
+
+.edu-hero-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  line-height: 1.42;
+  letter-spacing: -0.02em;
+  white-space: pre-line;
+}
+
+.edu-hero-subtitle {
+  margin-top: 0.7rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* 카테고리 칩 스트립 — sticky 는 전역으로 죽어 있어 쓰지 않는다 */
+.edu-chips {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.75rem 1rem 0.5rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.edu-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.edu-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 2.1rem;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.edu-chip:hover {
+  color: var(--text-strong);
+  background: var(--brand-soft);
+}
+.edu-chip.is-active {
+  color: var(--brand);
+  background: var(--brand-soft-strong);
+  border-color: var(--brand-glow);
+}
+
+/* 레거시 이미지의 "시간 / 담당 / 장소" 라벨 필 */
+.edu-row-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  height: 1.45rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--brand);
+  background: var(--brand-soft-strong);
+  flex-shrink: 0;
+}
+
+/* 섹션 말미 말씀 — 레거시 이미지 하단 성구를 데이터로 승격 */
+.edu-verse {
+  position: relative;
+  padding: 1rem 1.1rem 1rem 2.1rem;
+  border-radius: 1rem;
+  background: var(--brand-soft);
+  font-family: 'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+}
+.edu-verse::before {
+  content: '“';
+  position: absolute;
+  left: 0.8rem;
+  top: 0.35rem;
+  font-size: 1.9rem;
+  line-height: 1;
+  color: var(--brand);
+  opacity: 0.55;
+}
+
+@media (min-width: 1024px) {
+  .edu-hero {
+    padding: 3rem 2rem 2rem;
+  }
+  .edu-hero-title {
+    font-size: 1.9rem;
+  }
+  .edu-chips {
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow: visible;
+    padding: 0.75rem 1.5rem 0.5rem;
+  }
+}

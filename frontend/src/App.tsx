@@ -50,7 +50,7 @@ const Visit = lazy(menuRouteLoaders['/visit'])
 const Organization = lazy(menuRouteLoaders['/organization'])
 const History = lazy(menuRouteLoaders['/history'])
 const TV = lazy(() => import('./pages/TV/TV'))
-const Education = lazy(() => import('./pages/Education/Education'))
+const Education = lazy(menuRouteLoaders['/education'])
 const Mission = lazy(menuRouteLoaders['/mission'])
 const Ministry = lazy(menuRouteLoaders['/ministry'])
 const News = lazy(menuRouteLoaders['/news'])
@@ -84,6 +84,7 @@ const PushNotificationManagement = lazy(() =>
 )
 const NewsManagement = lazy(() => import('./pages/Admin/NewsManagement'))
 const PastorManagement = lazy(() => import('./pages/Admin/PastorManagement'))
+const EducationManagement = lazy(() => import('./pages/Admin/EducationManagement'))
 const EventManagement = lazy(() => import('./pages/Admin/EventManagement'))
 const UserManagement = lazy(() => import('./pages/Admin/UserManagement'))
 const GroupManagement = lazy(() => import('./pages/Admin/GroupManagement'))
@@ -297,6 +298,7 @@ function App() {
                 <Route path="/admin/culture" element={<CultureManagement />} />
                 <Route path="/admin/organization" element={<OrganizationManagement />} />
                 <Route path="/admin/pastors" element={<PastorManagement />} />
+                <Route path="/admin/education" element={<EducationManagement />} />
                 <Route path="/admin/bible-engagement" element={<BibleEngagementManagement />} />
                 <Route path="/events" element={<EventCalendar />} />
                 <Route path="/events/:id" element={<EventDetail />} />

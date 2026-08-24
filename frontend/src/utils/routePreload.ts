@@ -11,6 +11,7 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/organization': () => import('../pages/Organization/Organization'),
   '/history': () => import('../pages/History/History'),
   '/worship': () => import('../pages/Worship/Worship'),
+  '/education': () => import('../pages/Education/Education'),
   '/events': () => import('../pages/Events/EventCalendar'),
   '/culture': () => import('../pages/Culture/Culture'),
   '/sermon': () => import('../pages/Sermon/Sermon'),
@@ -39,7 +40,7 @@ export const NAV_ROUTES = ['/bible', '/prayer-focus', '/profile']
 // 비로그인 방문자가 랜딩에서 실제로 갈 수 있는 공개 페이지. 로그인 전용 페이지
 // (소그룹·계정·프로필·기도·성장·정원·캡슐 등)는 첫 방문자 대다수가 쓰지 않고
 // 이탈하므로 미리 받지 않는다 — Vercel 대역폭과 모바일 데이터 낭비를 막는다.
-const PUBLIC_MENU_ROUTES = ['/about', '/greeting', '/visit', '/worship', '/sermon', '/events', '/news', '/bible']
+const PUBLIC_MENU_ROUTES = ['/about', '/greeting', '/visit', '/worship', '/education', '/sermon', '/events', '/news', '/bible']
 
 // 알림 '바로가기'·푸시로 들어오는 딥링크 경로. :id가 붙어 메뉴 테이블에 못 넣는데,
 // 라우터(v7)가 화면 전환을 startTransition으로 돌리기 때문에 청크가 도착할 때까지

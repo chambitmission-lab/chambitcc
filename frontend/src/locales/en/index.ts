@@ -9,6 +9,7 @@ import { bible } from './bible'
 import { about } from './about'
 import { visit } from './visit'
 import { greeting } from './greeting'
+import { education } from './education'
 import { worship } from './worship'
 import { event } from './event'
 import { garden } from './garden'
@@ -28,6 +29,7 @@ export const en = {
   ...about,
   ...visit,
   ...greeting,
+  ...education,
   ...worship,
   ...event,
   ...garden,

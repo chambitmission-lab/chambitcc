@@ -45,6 +45,7 @@ const GROUPS: Group[] = [
     labelKey: 'navTopWord',
     items: [
       { to: '/worship', labelKey: 'worship', descKey: 'navDescWorship', icon: 'worship' },
+      { to: '/education', labelKey: 'education', descKey: 'navDescEducation', icon: 'education' },
       { to: '/sermon', labelKey: 'sermon', descKey: 'navDescSermon', icon: 'sermon' },
       { to: '/ministry', labelKey: 'ministry', descKey: 'navDescMinistry', icon: 'ministry' },
       { to: '/news?tab=bulletin', labelKey: 'bulletin', descKey: 'navDescBulletin', iconFallback: 'bulletin' },

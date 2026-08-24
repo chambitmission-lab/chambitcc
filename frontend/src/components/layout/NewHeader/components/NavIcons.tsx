@@ -194,6 +194,15 @@ const IconPin = (p: IconProps) => (
   </Svg>
 )
 
+/* 교육과 훈련 — 펼친 책 위 새싹 */
+const IconSeedBook = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 6.5c2.5-1.2 5-1.2 8 .5v12c-3-1.7-5.5-1.7-8-.5z" />
+    <path d="M21 6.5c-2.5-1.2-5-1.2-8 .5v12c3-1.7 5.5-1.7 8-.5z" />
+    <path d="M12 7V3.5M12 3.5c-1.8 0-2.6-1-2.6-1s.8 2 2.6 2M12 3.5c1.8 0 2.6-1 2.6-1s-.8 2-2.6 2" />
+  </Svg>
+)
+
 export const NAV_ICONS = {
   about: IconChurch,
   greeting: IconLetter,
@@ -203,6 +212,7 @@ export const NAV_ICONS = {
   worship: IconWorship,
   events: IconCalendar,
   culture: IconCap,
+  education: IconSeedBook,
   sermon: IconMic,
   bible: IconBible,
   ministry: IconPen,
