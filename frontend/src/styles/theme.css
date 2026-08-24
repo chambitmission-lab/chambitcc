@@ -48,10 +48,10 @@
 
   /* /greeting 인사말 히어로 — 계절 사진은 페이지가 --gr-hero-image-day/night 변수로
      내려주고(홈 히어로와 같은 계절 자산), 낮/밤 선택은 아래 .gr-hero-card 규칙이 한다.
-     라이트=낮 사진 + 브랜드 네이비 스크림(흰 글씨는 양 테마 공통), base는 로드 전 바탕색. */
+     라이트=낮 사진 + 브랜드 네이비 스크림(흰 글씨는 양 테마 공통), base는 로드 전 바탕색.
+     스크림은 대각선 한 겹만 — 하단 그라데이션을 겹치면 검은 층이 두 겹으로 보인다. */
   --gr-hero-scrim:
-    linear-gradient(0deg, rgba(21, 58, 125, 0.5) 0%, transparent 55%),
-    linear-gradient(103deg, rgba(21, 58, 125, 0.82) 0%, rgba(26, 68, 145, 0.62) 50%, rgba(21, 58, 125, 0.42) 100%);
+    linear-gradient(103deg, rgba(21, 58, 125, 0.78) 0%, rgba(26, 68, 145, 0.55) 50%, rgba(21, 58, 125, 0.36) 100%);
   --gr-hero-base: #35569b;
 
   /* /worship 히어로 하늘 — 다음 예배의 '시간의 빛'(새벽/낮/저녁/밤).
@@ -162,8 +162,7 @@
 
   /* /greeting 인사말 히어로 — 다크는 계절 무관 겨울 밤 은하수 고정(가장 어두운 무드) + 딥 네이비 스크림 */
   --gr-hero-scrim:
-    linear-gradient(0deg, rgba(11, 18, 38, 0.58) 0%, transparent 55%),
-    linear-gradient(103deg, rgba(11, 18, 38, 0.9) 0%, rgba(13, 22, 46, 0.72) 50%, rgba(11, 18, 38, 0.5) 100%);
+    linear-gradient(103deg, rgba(11, 18, 38, 0.82) 0%, rgba(13, 22, 46, 0.6) 50%, rgba(11, 18, 38, 0.4) 100%);
   --gr-hero-base: #131d3a;
 
   /* /worship 히어로 하늘 — 다크는 깊은 밤·여명 톤. 밤 하늘엔 흰 별 + 촛불빛 */
