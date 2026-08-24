@@ -36,8 +36,8 @@ const WordbookPage = () => {
   )
   const total = data?.pages[0]?.total ?? 0
 
-  // 수정/삭제 시트
-  const [editing, setEditing] = useState<WordNoteWithVerse | null>(null)
+  // 보기/수정/삭제 시트 — edit: 연필 버튼으로 열면 읽기 모드 없이 바로 편집 폼
+  const [editing, setEditing] = useState<{ item: WordNoteWithVerse; edit: boolean } | null>(null)
 
   const goToVerse = (item: WordNoteWithVerse) => {
     navigate(`/bible/${item.book_number}/${item.chapter}?verse=${item.verse}`)
@@ -137,9 +137,9 @@ const WordbookPage = () => {
                     {/* 단어 + 출처 */}
                     <div className="flex items-start gap-2">
                       <button
-                        onClick={() => setEditing(item)}
+                        onClick={() => setEditing({ item, edit: false })}
                         className="min-w-0 flex-1 text-left"
-                        title="뜻 보기 · 수정"
+                        title="뜻 보기"
                       >
                         <p className="text-[16.5px] font-bold text-ink-strong tracking-[-0.01em]">
                           {item.word}
@@ -156,7 +156,7 @@ const WordbookPage = () => {
                       {/* 수정/삭제 진입점 — 단어 영역 탭과 같은 시트지만,
                           눈에 보이는 버튼이 없으면 편집 가능하다는 걸 모른다 */}
                       <button
-                        onClick={() => setEditing(item)}
+                        onClick={() => setEditing({ item, edit: true })}
                         className="shrink-0 w-7 h-7 rounded-full inline-flex items-center justify-center text-gray-400 dark:text-white/40 hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
                         title="수정 · 삭제"
                         aria-label={`${item.word} 수정 또는 삭제`}
@@ -193,16 +193,17 @@ const WordbookPage = () => {
           </>
         )}
 
-        {/* 수정/삭제 시트 (본문 미리보기·단어 강조 포함) */}
+        {/* 보기/수정/삭제 시트 (본문 미리보기·단어 강조 포함) */}
         {editing && (
           <WordNoteSheet
-            verseId={editing.verse_id}
-            verseReference={`${editing.book_name_ko} ${editing.chapter}:${editing.verse}`}
-            verseText={editing.text}
-            initialWord={editing.word}
-            charStart={editing.char_start}
-            charEnd={editing.char_end}
-            existing={editing}
+            verseId={editing.item.verse_id}
+            verseReference={`${editing.item.book_name_ko} ${editing.item.chapter}:${editing.item.verse}`}
+            verseText={editing.item.text}
+            initialWord={editing.item.word}
+            charStart={editing.item.char_start}
+            charEnd={editing.item.char_end}
+            existing={editing.item}
+            startInEdit={editing.edit}
             onClose={() => setEditing(null)}
           />
         )}

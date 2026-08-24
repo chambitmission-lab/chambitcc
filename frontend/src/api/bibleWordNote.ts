@@ -120,12 +120,15 @@ export const listChapterWordNotes = async (
 /** 내 단어장 목록 (구절 정보 포함, 최신순) */
 export const listWordNotes = async (params?: {
   q?: string
+  /** 특정 권만 — 장 선택 그리드의 밑줄·메모 점 표시용 (구버전 백엔드는 무시) */
+  book_number?: number
   page?: number
   page_size?: number
 }): Promise<WordNoteListResponse> => {
   requireAuth()
   const query = new URLSearchParams()
   if (params?.q) query.append('q', params.q)
+  if (params?.book_number) query.append('book_number', String(params.book_number))
   if (params?.page) query.append('page', String(params.page))
   if (params?.page_size) query.append('page_size', String(params.page_size))
 

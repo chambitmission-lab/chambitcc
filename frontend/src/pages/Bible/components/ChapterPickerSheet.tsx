@@ -4,6 +4,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
 import { useBookReadingProgress } from '../../../hooks/useBibleReading'
 import { useMyBookmarks } from '../../../hooks/useBibleBookmark'
+import { useBookWordNotes } from '../../../hooks/useBibleWordNote'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 
 interface ChapterPickerSheetProps {
@@ -52,6 +53,7 @@ const ChapterPickerSheet = ({
 
   const { data: bookProgress } = useBookReadingProgress(bookId, loggedIn && bookId > 0)
   const { data: bookmarks } = useMyBookmarks({ book_number: bookNumber, page_size: 100 }, loggedIn)
+  const { data: wordNotes } = useBookWordNotes(bookNumber, loggedIn)
 
   const t =
     language === 'ko'
@@ -99,13 +101,18 @@ const ChapterPickerSheet = ({
     return map
   }, [bookProgress])
 
+  // 밑줄·메모 점 — 절 북마크(밑줄/묵상)와 단어장 노트를 합친다.
+  // book_number 재확인은 필터 미배포 백엔드(전체 최신 100개 반환) 대비 방어
   const markedChapters = useMemo(() => {
     const set = new Set<number>()
     bookmarks?.items?.forEach(b => {
       if (b.book_number === bookNumber) set.add(b.chapter)
     })
+    wordNotes?.items?.forEach(n => {
+      if (n.book_number === bookNumber) set.add(n.chapter)
+    })
     return set
-  }, [bookmarks, bookNumber])
+  }, [bookmarks, wordNotes, bookNumber])
 
   const readCount = useMemo(
     () => Array.from(chapterInfo.values()).filter(c => c.completed).length,

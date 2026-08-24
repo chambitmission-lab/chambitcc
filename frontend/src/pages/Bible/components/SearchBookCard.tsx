@@ -3,6 +3,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
 import { useBookReadingProgress } from '../../../hooks/useBibleReading'
 import { useMyBookmarks } from '../../../hooks/useBibleBookmark'
+import { useBookWordNotes } from '../../../hooks/useBibleWordNote'
 
 // 책 카드 렌더에 필요한 최소 형태 — 백엔드 검색 결과(BibleSearchBook)와 전체 책 목록(BibleBook) 공통 필드
 export interface BookCard {
@@ -39,6 +40,7 @@ const SearchBookCard = ({ book, bookId, onSelectChapter, onOpenPicker }: SearchB
     { book_number: book.book_number, page_size: 100 },
     loggedIn
   )
+  const { data: wordNotes } = useBookWordNotes(book.book_number, loggedIn)
 
   const texts = {
     ko: {
@@ -79,14 +81,18 @@ const SearchBookCard = ({ book, bookId, onSelectChapter, onOpenPicker }: SearchB
     return map
   }, [bookProgress])
 
-  // 밑줄/메모/즐겨찾기를 남긴 장 집합
+  // 밑줄/메모/즐겨찾기를 남긴 장 집합 — 절 북마크 + 단어장 노트.
+  // book_number 재확인은 필터 미배포 백엔드(전체 최신 100개 반환) 대비 방어
   const markedChapters = useMemo(() => {
     const set = new Set<number>()
     bookmarks?.items?.forEach(b => {
       if (b.book_number === book.book_number) set.add(b.chapter)
     })
+    wordNotes?.items?.forEach(n => {
+      if (n.book_number === book.book_number) set.add(n.chapter)
+    })
     return set
-  }, [bookmarks, book.book_number])
+  }, [bookmarks, wordNotes, book.book_number])
 
   const readCount = useMemo(
     () => Array.from(chapterInfo.values()).filter(c => c.completed).length,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { WordNote } from '../../../api/bibleWordNote'
 import {
@@ -20,12 +20,17 @@ interface WordNoteSheetProps {
   charEnd: number | null
   /** 있으면 수정 모드 */
   existing: WordNote | null
+  /** true 면 읽기 모드를 건너뛰고 바로 편집 폼으로 (단어장 카드의 연필 버튼) */
+  startInEdit?: boolean
   onClose: () => void
 }
 
 /**
- * 단어 뜻/메모 입력 하단 시트 (생성·수정·삭제 겸용).
+ * 단어 뜻/메모 하단 시트 (읽기·생성·수정·삭제 겸용).
  * 한국어는 조사가 붙어 선택되므로("긍휼히"→"긍휼") 단어 입력칸을 수정 가능하게 둔다.
+ * 메모가 있는 기존 단어는 편집 폼 대신 읽기 모드부터 — 작은 textarea 로 긴 메모를
+ * 읽는 건 고역이라(특히 모바일), 묵상 노트(VerseNoteSheet)와 같은 문법으로
+ * 또렷하게 보여주고 수정은 버튼으로 전환한다.
  */
 const WordNoteSheet = ({
   verseId,
@@ -35,10 +40,25 @@ const WordNoteSheet = ({
   charStart,
   charEnd,
   existing,
+  startInEdit = false,
   onClose,
 }: WordNoteSheetProps) => {
   const [word, setWord] = useState(existing?.word ?? initialWord)
   const [note, setNote] = useState(existing?.note ?? '')
+  const hasSavedNote = !!existing?.note?.trim()
+  const [mode, setMode] = useState<'view' | 'edit'>(
+    hasSavedNote && !startInEdit ? 'view' : 'edit'
+  )
+
+  // 편집 폼 textarea 는 내용만큼 늘어난다(시트 본문이 스크롤러) —
+  // 2000자 메모를 4줄 구멍으로 들여다보지 않게
+  const noteRef = useRef<HTMLTextAreaElement | null>(null)
+  useLayoutEffect(() => {
+    const el = noteRef.current
+    if (mode !== 'edit' || !el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight + 2}px`
+  }, [mode, note])
 
   // 선택 시점의 기준 범위 (토큰 전체 또는 기존 노트의 저장 위치)
   const baseStart = existing?.char_start ?? charStart
@@ -190,36 +210,52 @@ const WordNoteSheet = ({
             )}
           </div>
 
-          {/* 단어 */}
-          <div>
-            <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em] mb-2">
-              단어 <span className="font-medium text-gray-400 dark:text-white/40">(조사를 지우면 밑줄도 그만큼만 남아요)</span>
-            </p>
-            <input
-              type="text"
-              value={word}
-              onChange={(e) => setWord(e.target.value.slice(0, 100))}
-              placeholder="예: 긍휼"
-              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[16px] font-bold text-ink-strong placeholder:font-normal placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
-            />
-          </div>
-
-          {/* 뜻/메모 */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
-                뜻 · 메모 <span className="font-medium text-gray-400 dark:text-white/40">(선택)</span>
+          {mode === 'view' ? (
+            /* 읽기 모드 — 단어 + 메모를 편안한 본문 타이포로 */
+            <div className="rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] px-4 py-4">
+              <div className="flex items-center gap-1.5 mb-2 text-brand">
+                <span className="material-icons-round text-[16px]">spellcheck</span>
+                <span className="text-[15px] font-bold tracking-[-0.01em]">{word}</span>
+              </div>
+              <p className="whitespace-pre-wrap break-words text-[15px] leading-[1.8] text-gray-800 dark:text-white/90">
+                {existing?.note}
               </p>
-              <span className="text-[11px] text-gray-400 dark:text-white/35">{note.length} / 2000</span>
             </div>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value.slice(0, 2000))}
-              rows={4}
-              placeholder="찾아본 뜻이나 기억하고 싶은 내용을 적어보세요..."
-              className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 resize-y min-h-[100px] focus:outline-none focus:border-brand transition-colors"
-            />
-          </div>
+          ) : (
+            <>
+              {/* 단어 */}
+              <div>
+                <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em] mb-2">
+                  단어 <span className="font-medium text-gray-400 dark:text-white/40">(조사를 지우면 밑줄도 그만큼만 남아요)</span>
+                </p>
+                <input
+                  type="text"
+                  value={word}
+                  onChange={(e) => setWord(e.target.value.slice(0, 100))}
+                  placeholder="예: 긍휼"
+                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[16px] font-bold text-ink-strong placeholder:font-normal placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors"
+                />
+              </div>
+
+              {/* 뜻/메모 */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
+                    뜻 · 메모 <span className="font-medium text-gray-400 dark:text-white/40">(선택)</span>
+                  </p>
+                  <span className="text-[11px] text-gray-400 dark:text-white/35">{note.length} / 2000</span>
+                </div>
+                <textarea
+                  ref={noteRef}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value.slice(0, 2000))}
+                  rows={4}
+                  placeholder="찾아본 뜻이나 기억하고 싶은 내용을 적어보세요..."
+                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14.5px] leading-[1.65] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 resize-none min-h-[100px] overflow-hidden focus:outline-none focus:border-brand transition-colors"
+                />
+              </div>
+            </>
+          )}
         </div>
 
         {/* 푸터 */}
@@ -236,21 +272,52 @@ const WordNoteSheet = ({
           ) : (
             <div />
           )}
-          <button
-            onClick={onClose}
-            disabled={isBusy}
-            className="ml-auto px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors disabled:opacity-50"
-          >
-            취소
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isBusy || !word.trim()}
-            className="inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-          >
-            <span className="material-icons-round text-[18px]">{isBusy ? 'hourglass_empty' : 'check'}</span>
-            {isBusy ? '저장 중...' : '저장'}
-          </button>
+          {mode === 'view' ? (
+            <>
+              <button
+                onClick={onClose}
+                disabled={isBusy}
+                className="ml-auto px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors disabled:opacity-50"
+              >
+                닫기
+              </button>
+              <button
+                onClick={() => setMode('edit')}
+                disabled={isBusy}
+                className="inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all disabled:opacity-50"
+              >
+                <span className="material-icons-round text-[18px]">edit</span>
+                수정
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  // 읽기 모드에서 들어온 편집이면 취소는 닫지 않고 읽기로 복귀
+                  if (hasSavedNote && !startInEdit) {
+                    setWord(existing?.word ?? initialWord)
+                    setNote(existing?.note ?? '')
+                    setMode('view')
+                  } else {
+                    onClose()
+                  }
+                }}
+                disabled={isBusy}
+                className="ml-auto px-4 h-11 rounded-full text-gray-700 dark:text-white/75 text-[13.5px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isBusy || !word.trim()}
+                className="inline-flex items-center gap-1.5 px-5 h-11 rounded-full bg-brand text-white text-[13.5px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+              >
+                <span className="material-icons-round text-[18px]">{isBusy ? 'hourglass_empty' : 'check'}</span>
+                {isBusy ? '저장 중...' : '저장'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>,

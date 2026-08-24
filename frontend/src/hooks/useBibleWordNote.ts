@@ -23,6 +23,9 @@ export const wordNoteKeys = {
   chapters: () => [...wordNoteKeys.all, 'chapter'] as const,
   lists: () => [...wordNoteKeys.all, 'list'] as const,
   list: (q?: string) => [...wordNoteKeys.lists(), q ?? ''] as const,
+  // 한 권의 내 단어 노트 — 장 선택 그리드의 밑줄·메모 점 표시용
+  // (lists() 하위 키라 저장/수정/삭제 무효화가 함께 갱신한다)
+  book: (bookNumber: number) => [...wordNoteKeys.lists(), 'book', bookNumber] as const,
 }
 
 /**
@@ -97,6 +100,21 @@ export const useMyWordNotes = (q?: string, enabled: boolean = true) => {
     enabled: enabled && !!token,
     staleTime: 1000 * 60 * 2,
     // persist 복원 쿼리는 무효화로 재요청되지 않으므로 마운트 시 갱신 (북마크 목록과 동일)
+    refetchOnMount: true,
+  })
+}
+
+/** 한 권의 내 단어 노트 (최신 100개) — 장 선택 그리드에서 장별 밑줄·메모 점 표시용.
+ * book_number 필터 미배포 백엔드는 전체 최신 100개를 주므로 소비 측에서
+ * book_number 로 한 번 더 걸러 쓴다. */
+export const useBookWordNotes = (bookNumber: number, enabled: boolean = true) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  return useQuery({
+    queryKey: wordNoteKeys.book(bookNumber),
+    queryFn: () => listWordNotes({ book_number: bookNumber, page_size: 100 }),
+    enabled: enabled && !!token && bookNumber > 0,
+    staleTime: 1000 * 60 * 5,
+    // persist 복원 스냅샷 갱신 (useChapterWordNotes와 동일 이유)
     refetchOnMount: true,
   })
 }
