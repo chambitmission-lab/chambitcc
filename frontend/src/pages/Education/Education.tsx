@@ -7,7 +7,7 @@
 // 부서 데이터는 education_* 테이블(/admin/education 에서 편집), 페이지 문구는
 // about_content.fields 공유 → EditableText ✏️ 인라인 편집.
 // 빈 값('')은 '미확인' — 그 줄을 숨기고 관리자에게만 힌트를 보인다. 지어내지 않는다.
-import { useEffect, useMemo, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
@@ -42,13 +42,16 @@ const Education = () => {
 
   const chipsRef = useRef<HTMLElement | null>(null)
   // 탭 전환 후 세로 스크롤 처리. setSearchParams(REPLACE)를 전역 ScrollRestoration 이
-  // 새 이동으로 보고 페이지 맨 위로 올려 두므로(layout effect), 커밋 후 effect 에서 되돌린다.
+  // 새 이동으로 보고 페이지 맨 위로 올려 두므로, 같은 커밋의 layout effect 에서 되돌린다.
+  // ScrollRestoration 이 트리상 앞 형제라 layout effect 가 먼저 실행되고, 여기는 그 뒤·
+  // paint 전에 복원되어 "맨 위" 프레임이 화면에 그려지지 않는다(일반 effect 면 위로 튄
+  // 프레임이 먼저 보여 화면이 흔들린다).
   //   칩 클릭 → 누르기 전 위치 그대로(화면이 튀지 않게)
   //   하단 이전/다음 → 칩 스트립을 상단에(사용자가 페이지 아래에 있으므로)
   //   딥링크 첫 진입 → 보정 없음(히어로부터)
   const pendingScrollRef = useRef<'chips' | { y: number } | null>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const nav = chipsRef.current
     // 가로 칩 스트립(모바일)에서 활성 칩이 밖에 있으면 가운데로 — 이전/다음·딥링크 진입 대비
     const chip = nav?.querySelector<HTMLElement>('.edu-chip.is-active')
@@ -60,7 +63,9 @@ const Education = () => {
     if (!pending) return
     pendingScrollRef.current = null
     if (pending === 'chips') {
-      nav?.scrollIntoView({ behavior: 'auto', block: 'start' })
+      // 'auto' 는 html 의 scroll-behavior:smooth 를 따라가 "0 → 칩" 구간이 애니메이션되며
+      // 화면이 흔들린다(ScrollRestoration 이 먼저 0 으로 올려 두기 때문). 즉시 이동으로 고정.
+      nav?.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'start' })
     } else {
       // body 가 실제 스크롤러 (ScrollRestoration 참고) — 둘 다에 써서 확실히 복원
       window.scrollTo({ top: pending.y, left: 0, behavior: 'instant' as ScrollBehavior })
