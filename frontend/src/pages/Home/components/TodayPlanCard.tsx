@@ -137,7 +137,9 @@ const TodayPlanCard = () => {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                오늘 읽기 완료!
+                {today.last_completed_day
+                  ? `오늘 ${today.last_completed_day}일차까지 완료 · 다음은 ${today.day_number}일차`
+                  : '오늘 읽기 완료!'}
               </span>
             ) : (
               <span

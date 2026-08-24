@@ -33,6 +33,7 @@ export interface PlanProgress {
   best_streak: number
   last_completed_date?: string | null
   completed_today: boolean
+  last_completed_day?: number | null
 }
 
 export interface PlanSummary {
@@ -74,6 +75,7 @@ export interface TodayReading {
   day_title?: string | null
   passages: PlanPassage[]
   done_today: boolean
+  last_completed_day?: number | null
   total_days: number
   completed_days: number
   percent: number

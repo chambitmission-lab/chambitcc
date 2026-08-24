@@ -522,6 +522,7 @@ const FeaturedPlanCard = ({
   const completed = progress?.status === 'completed'
   const streak = progress?.streak_count ?? 0
   const doneToday = today?.done_today ?? progress?.completed_today ?? false
+  const lastDoneDay = today?.last_completed_day ?? progress?.last_completed_day ?? null
   const todayRefs = (today?.passages ?? [])
     .map((p) => p.reference)
     .filter(Boolean)
@@ -617,7 +618,7 @@ const FeaturedPlanCard = ({
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                오늘 완료
+                {lastDoneDay ? `${lastDoneDay}일차 완료` : '오늘 완료'}
               </span>
             ) : (
               <span className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-brand text-white text-[11.5px] font-bold tracking-[-0.02em] leading-none shadow-[0_4px_14px_-4px_var(--brand-glow)] transition-transform group-hover:scale-[1.04]">
