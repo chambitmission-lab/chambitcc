@@ -2,7 +2,7 @@
    계절을 따라가는 실사 하늘 카드 한 장 — 계절 사진(낮/밤 짝)은 Greeting.tsx 가
    --gr-hero-image-day/night 변수로 내려주고, 라이트=낮/다크=밤 선택과 스크림·바탕색은
    theme.css 의 --gr-hero-* 토큰에서만 분기한다.
-   왼쪽은 스크림으로 눌러 문장의 자리를 만들고 오른쪽은 사진을 그대로 살린다 —
+   왼쪽은 스크림으로 눌러 문장의 자리를 만들고 오른쪽은 고른 베일로 사진 질감을 가라앉힌다 —
    덧그린 장식(십자가 등)은 두지 않는다. 흰 글씨는 양 테마 공통. 애니메이션 없음. */
 
 .gr-hero {
@@ -19,7 +19,7 @@
   background-size: cover;
   background-position: center 24%;
   background-repeat: no-repeat;
-  border: 1px solid rgba(148, 178, 255, 0.14);
+  /* 테두리 없음 — 사진 가장자리 위에 밝은 선이 얹히면 잘라 붙인 듯 지저분해 보인다 */
 }
 
 .gr-hero-card > * {
