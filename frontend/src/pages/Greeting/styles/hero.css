@@ -1,8 +1,9 @@
 /* 인사말 - Hero
-   실사 밤하늘 사진(겨울 저녁 은하수 — 홈 히어로와 같은 자산 재사용) 위에
-   네이비 스크림을 얹은 카드 한 장. 왼쪽은 어둡게 눌러 문장의 자리를 만들고
-   오른쪽은 사진의 별빛을 그대로 살린다 — 덧그린 장식(십자가 등)은 두지 않는다.
-   카드가 스스로 어두우므로 라이트/다크 공용. 무한 글로우·애니메이션 없음. */
+   계절을 따라가는 실사 하늘 카드 한 장 — 계절 사진(낮/밤 짝)은 Greeting.tsx 가
+   --gr-hero-image-day/night 변수로 내려주고, 라이트=낮/다크=밤 선택과 스크림·바탕색은
+   theme.css 의 --gr-hero-* 토큰에서만 분기한다.
+   왼쪽은 스크림으로 눌러 문장의 자리를 만들고 오른쪽은 사진을 그대로 살린다 —
+   덧그린 장식(십자가 등)은 두지 않는다. 흰 글씨는 양 테마 공통. 애니메이션 없음. */
 
 .gr-hero {
   padding: 0.85rem 1rem 0;
@@ -13,11 +14,11 @@
   overflow: hidden;
   border-radius: 24px;
   padding: 2.4rem 1.6rem 2.5rem;
-  background:
-    linear-gradient(0deg, rgba(11, 18, 38, 0.5) 0%, transparent 42%),
-    linear-gradient(103deg, rgba(11, 18, 38, 0.88) 0%, rgba(13, 22, 46, 0.62) 52%, rgba(11, 18, 38, 0.22) 100%),
-    url('../../../assets/hero/winter-evening.jpg') center 24% / cover no-repeat,
-    #131d3a;
+  background-color: var(--gr-hero-base);
+  background-image: var(--gr-hero-scrim), var(--gr-hero-image);
+  background-size: cover;
+  background-position: center 24%;
+  background-repeat: no-repeat;
   border: 1px solid rgba(148, 178, 255, 0.14);
 }
 

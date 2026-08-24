@@ -5,6 +5,7 @@
 // 페이지가 하는 말(히어로 문구·섹션 제목)만 about_content.fields 를 공유해
 // 기존 ✏️ 인라인 편집(EditableText)으로 고칠 수 있다.
 import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
@@ -16,6 +17,7 @@ import type { Pastor } from '../../types/pastor'
 import EditablePastorText from './components/EditablePastorText'
 import EditablePastorPhoto from './components/EditablePastorPhoto'
 import PastorSheet from './components/PastorSheet'
+import CredentialTimeline, { CREDENTIAL_ICONS } from './components/CredentialTimeline'
 import {
   CameraIcon,
   ChevronRightIcon,
@@ -24,14 +26,22 @@ import {
   SproutIcon,
   UsersIcon,
 } from './icons'
+import { getNaturalSeason, type NaturalSeason } from '../../utils/naturalSeason'
+import heroSpringDay from '../../assets/hero/spring-afternoon.jpg'
+import heroSummerDay from '../../assets/hero/afternoon.jpg'
+import heroAutumnDay from '../../assets/hero/autumn-afternoon.jpg'
+import heroWinterDay from '../../assets/hero/winter-afternoon.jpg'
 import './styles/index.css'
 
-/** 멀티라인 약력을 스캔하기 쉬운 줄 단위 리스트로 분해 */
-const toLines = (value: string): string[] =>
-  value
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
+/* 히어로 배경 — 라이트 테마용 계절 낮 사진(홈 히어로와 같은 자산).
+ * 다크 테마는 계절 무관 겨울 밤 은하수 고정이라 theme.css 가 직접 url 을 갖는다.
+ * CSS 변수로만 참조되므로 라이트에서 실제 다운로드는 현재 계절 1장뿐이다. */
+const HERO_DAY_BY_SEASON: Record<NaturalSeason, string> = {
+  spring: heroSpringDay,
+  summer: heroSummerDay,
+  autumn: heroAutumnDay,
+  winter: heroWinterDay,
+}
 
 const Greeting = () => {
   const navigate = useNavigate()
@@ -75,6 +85,7 @@ const Greeting = () => {
   const profileHeadline = pastorText(current, 'profile_headline', language)
   const profileIntro = pastorText(current, 'profile_intro', language)
   const photoUrl = current?.photo_url?.trim() ?? ''
+  const heroDayImage = HERO_DAY_BY_SEASON[getNaturalSeason(new Date())]
 
   const credentials = current
     ? ([
@@ -105,10 +116,13 @@ const Greeting = () => {
       {/* lg+: 본문(읽기 폭 유지) + 우측 위젯 레일 2단 — /about 과 같은 규격 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
-          {/* Hero — 실사 밤하늘 카드 한 장. 장식은 사진의 별빛뿐,
-              주인공은 문장이다 (인물 사진은 아래 편지의 몫). */}
+          {/* Hero — 실사 하늘 카드 한 장 (라이트=계절의 낮, 다크=겨울 밤 은하수 고정).
+              장식은 사진뿐, 주인공은 문장이다 (인물 사진은 아래 편지의 몫). */}
           <header className="gr-hero">
-            <div className="gr-hero-card">
+            <div
+              className="gr-hero-card"
+              style={{ '--gr-hero-image-day': `url(${heroDayImage})` } as CSSProperties}
+            >
               <span className="gr-hero-badge">
                 <EditableText fieldKey="greetingBadge" isAdmin={isAdminUser}>
                   {tx('greetingBadge')}
@@ -280,6 +294,9 @@ const Greeting = () => {
                           return (
                             <div className="gr-credential" key={field}>
                               <div className="gr-credential-label">
+                                <span className="gr-cred-icon" aria-hidden="true">
+                                  {CREDENTIAL_ICONS[field]}
+                                </span>
                                 <EditableText fieldKey={labelKey} isAdmin={isAdminUser}>
                                   {tx(labelKey)}
                                 </EditableText>
@@ -292,13 +309,7 @@ const Greeting = () => {
                                 isAdmin={isAdminUser}
                               >
                                 {value ? (
-                                  <ul className="gr-credential-list">
-                                    {toLines(value).map((line, i) => (
-                                      <li key={i} className="gr-credential-line">
-                                        {line}
-                                      </li>
-                                    ))}
-                                  </ul>
+                                  <CredentialTimeline value={value} ko={ko} />
                                 ) : (
                                   <p className="gr-credential-empty">
                                     {ko ? '아직 등록되지 않았습니다' : 'Not added yet'}

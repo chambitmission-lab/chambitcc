@@ -5,19 +5,15 @@
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { pastorTermLabel, pastorText } from '../../../types/pastor'
-import type { Pastor, PastorTextField } from '../../../types/pastor'
+import type { Pastor } from '../../../types/pastor'
 import { UsersIcon, XIcon } from '../icons'
+import CredentialTimeline, { CREDENTIAL_ICONS } from './CredentialTimeline'
+import type { CredentialField } from './CredentialTimeline'
 
 interface PastorSheetProps {
   pastor: Pastor
   onClose: () => void
 }
-
-const toLines = (value: string): string[] =>
-  value
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
 
 const PastorSheet = ({ pastor, onClose }: PastorSheetProps) => {
   const { language } = useLanguage()
@@ -33,7 +29,7 @@ const PastorSheet = ({ pastor, onClose }: PastorSheetProps) => {
   const signature = pastorText(pastor, 'signature', language)
   const profileIntro = pastorText(pastor, 'profile_intro', language)
 
-  const credentials: [string, PastorTextField][] = [
+  const credentials: [string, CredentialField][] = [
     [ko ? '학력' : 'Education', 'education'],
     [ko ? '주요 경력' : 'Ministry', 'career'],
     [ko ? '수상 내역' : 'Awards', 'awards'],
@@ -107,14 +103,13 @@ const PastorSheet = ({ pastor, onClose }: PastorSheetProps) => {
 
               {filledCredentials.map(([label, field]) => (
                 <div className="gr-credential" key={field}>
-                  <div className="gr-credential-label">{label}</div>
-                  <ul className="gr-credential-list">
-                    {toLines(pastorText(pastor, field, language)).map((line, i) => (
-                      <li key={i} className="gr-credential-line">
-                        {line}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="gr-credential-label">
+                    <span className="gr-cred-icon" aria-hidden="true">
+                      {CREDENTIAL_ICONS[field]}
+                    </span>
+                    {label}
+                  </div>
+                  <CredentialTimeline value={pastorText(pastor, field, language)} ko={ko} />
                 </div>
               ))}
             </>

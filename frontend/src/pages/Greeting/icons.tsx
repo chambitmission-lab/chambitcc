@@ -103,3 +103,29 @@ export const SproutIcon = (props: IconProps) => (
     <path d="M12 15c0-2.6-2-4.4-5-4.4 0 2.6 2 4.4 5 4.4z" />
   </Svg>
 )
+
+/* ── 약력 섹션 아이콘 (학력·경력·수상) ── */
+
+/** 학사모 — 학력 */
+export const GraduationCapIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M22 10 12 5 2 10l10 5 10-5z" />
+    <path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5" />
+  </Svg>
+)
+
+/** 서류가방 — 주요 경력 */
+export const BriefcaseIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <rect x="2" y="7" width="20" height="14" rx="2" />
+    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+  </Svg>
+)
+
+/** 메달 — 수상 내역 */
+export const AwardIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <circle cx="12" cy="8" r="6" />
+    <path d="M15.5 13 17 22l-5-3-5 3 1.5-9" />
+  </Svg>
+)
