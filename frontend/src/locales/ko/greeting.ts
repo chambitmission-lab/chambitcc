@@ -14,5 +14,6 @@ export const greeting = {
   greetingAwardLabel: '수상 내역',
   greetingHistoryTitle: '역대 담임목사',
   greetingHistoryHint: '참빛교회를 섬겨오신 분들입니다',
-  greetingClosing: '이 멋진 여정에 함께 해 주시지 않겠습니까?',
+  greetingClosing: '참빛교회는 누구나 환영합니다',
+  greetingClosingSub: '처음 오신 분들도 주님의 사랑으로 환영하고 축복합니다',
 } as const

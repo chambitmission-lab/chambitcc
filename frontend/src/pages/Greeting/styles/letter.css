@@ -20,7 +20,7 @@
   width: 116px;
   height: 148px;
   flex-shrink: 0;
-  border-radius: 18px;
+  border-radius: 22px;
   object-fit: cover;
   object-position: center top;
   background: var(--surface-container-high);
@@ -41,8 +41,23 @@
 .gr-letter-head-text {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 0.3rem;
   min-width: 0;
+}
+
+/* 직분 칩 — 스크린샷의 "담임목사" 배지. tint 배경의 낮은 채도 칩 */
+.gr-role-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.26rem 0.72rem;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.15rem;
 }
 
 .gr-letter-title {
@@ -63,10 +78,24 @@
   color: var(--text-muted);
 }
 
+/* 별칭 — 손글씨. 목사님이 직접 적어주신 한마디처럼 보이게 (타임캡슐과 같은 펜 서체) */
 .gr-letter-nickname {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-family: 'Nanum Pen Script', 'Noto Serif KR', cursive;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: 0;
   color: var(--brand);
+  margin-top: 0.2rem;
+}
+
+/* 편지 카드 — 스크린샷의 인용 카드. 본문·서명·공유를 한 장에 담는다 */
+.gr-letter-card {
+  padding: 1.5rem 1.4rem 0.5rem;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  box-shadow: var(--card-shadow);
 }
 
 /* 큰따옴표 장식 — 편지가 시작된다는 신호 */
@@ -74,7 +103,7 @@
   display: block;
   color: var(--brand);
   opacity: 0.28;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.6rem;
 }
 
 .gr-letter-body {
@@ -89,14 +118,39 @@
 }
 
 .gr-signature {
-  margin-top: 1.75rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--card-border);
+  margin-top: 1.6rem;
   text-align: right;
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--text-strong);
   letter-spacing: -0.01em;
+}
+
+/* 카드 하단 액션 줄 — 헤어라인 하나로 본문과 분리한다 */
+.gr-letter-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.35rem;
+  border-top: 1px solid var(--card-border);
+}
+
+.gr-letter-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.gr-letter-action:hover {
+  color: var(--brand);
 }
 
 /* 인라인 편집 래퍼 보정 (관리자에게만 존재한다)

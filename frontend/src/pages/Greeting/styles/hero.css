@@ -1,59 +1,84 @@
 /* 인사말 - Hero
-   사진 없이 문장만 세운다. 인사는 얼굴보다 말이 먼저이고,
-   목사님 사진은 바로 아래 편지의 주인공이라 여기서 겹치면 힘이 반으로 갈린다.
-   배경은 브랜드 tint 하나 + 아주 옅은 빛무리로만 — 무한 글로우는 쓰지 않는다. */
+   실사 밤하늘 사진(겨울 저녁 은하수 — 홈 히어로와 같은 자산 재사용) 위에
+   네이비 스크림을 얹은 카드 한 장. 왼쪽은 어둡게 눌러 문장의 자리를 만들고
+   오른쪽은 사진의 별빛을 살려 십자가 실루엣이 배경에서 떠오르게 한다.
+   카드가 스스로 어두우므로 라이트/다크 공용. 무한 글로우·애니메이션 없음. */
 
 .gr-hero {
+  padding: 0.85rem 1rem 0;
+}
+
+.gr-hero-card {
   position: relative;
   overflow: hidden;
-  padding: 2.75rem 1.5rem 2.25rem;
-  background: linear-gradient(180deg, var(--brand-soft) 0%, transparent 100%);
-  text-align: center;
+  border-radius: 24px;
+  padding: 2.4rem 1.6rem 2.5rem;
+  background:
+    linear-gradient(0deg, rgba(11, 18, 38, 0.5) 0%, transparent 42%),
+    linear-gradient(103deg, rgba(11, 18, 38, 0.88) 0%, rgba(13, 22, 46, 0.62) 52%, rgba(11, 18, 38, 0.22) 100%),
+    url('../../../assets/hero/winter-evening.jpg') center 24% / cover no-repeat,
+    #131d3a;
+  border: 1px solid rgba(148, 178, 255, 0.14);
 }
 
-/* 상단 중앙의 옅은 빛무리 — 정적. 애니메이션 없음 */
-.gr-hero::before {
-  content: '';
-  position: absolute;
-  top: -6rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20rem;
-  height: 20rem;
-  border-radius: 50%;
-  background: var(--brand-soft-strong);
-  filter: blur(64px);
-  pointer-events: none;
-}
-
-.gr-hero > * {
+.gr-hero-card > * {
   position: relative;
+}
+
+/* 십자가 실루엣 — 우측 별빛 속에. 사진 위라 은은한 백라이트 글로우를 준다 */
+.gr-hero-cross {
+  position: absolute;
+  top: 50%;
+  right: 0.9rem;
+  transform: translateY(-50%);
+  width: 88px;
+  height: auto;
+  fill: none;
+  stroke: rgba(222, 233, 255, 0.34);
+  stroke-width: 6;
+  stroke-linecap: round;
+  pointer-events: none;
+  filter: drop-shadow(0 0 16px rgba(140, 180, 255, 0.4));
 }
 
 .gr-hero-badge {
-  display: inline-block;
-  font-size: 0.8125rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(214, 228, 255, 0.13);
+  color: #cfe0ff;
+  font-size: 0.75rem;
   font-weight: 700;
-  color: var(--brand);
-  letter-spacing: 0.06em;
-  margin-bottom: 0.85rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.1rem;
 }
 
 .gr-hero-title {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: var(--text-strong);
-  line-height: 1.42;
-  letter-spacing: -0.02em;
+  color: #f5f8ff;
+  line-height: 1.45;
+  letter-spacing: -0.03em;
   margin: 0;
 }
 
 .gr-hero-subtitle {
-  margin-top: 0.6rem;
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--brand-muted);
+  margin-top: 0.7rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(206, 221, 250, 0.8);
   letter-spacing: -0.01em;
+}
+
+/* 짧은 브랜드 획 — 문장의 마침표 역할 */
+.gr-hero-rule {
+  display: block;
+  width: 26px;
+  height: 3px;
+  margin-top: 1.15rem;
+  border-radius: 2px;
+  background: #6ea8ff;
 }
 
 /* 본문 컨테이너 — /about 의 .about-content 와 같은 여백 규격 */

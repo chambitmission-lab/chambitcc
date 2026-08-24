@@ -157,13 +157,14 @@ const DesktopNav = () => {
     GROUPS.find((g) => g.items.some((it) => matches(it, pathname, search)))?.id ??
     (matches(NEWS, pathname, search) ? 'news' : null)
 
+  // 내비 라벨은 전부 semibold 이상 — medium 회색은 "그냥 놓인 글자"로 읽힌다 (토스 문법)
   const topClass = (active: boolean, isOpen: boolean) =>
-    `relative flex items-center gap-1 h-9 px-3 rounded-full text-[13.5px] whitespace-nowrap transition-colors duration-150 ${
+    `relative flex items-center gap-1 h-9 px-3 rounded-full text-[14px] whitespace-nowrap transition-colors duration-150 ${
       active
         ? 'text-brand font-bold'
         : isOpen
           ? 'text-ink-strong font-semibold bg-black/[0.04] dark:bg-white/[0.06]'
-          : 'text-gray-600 dark:text-white/70 font-medium hover:text-ink-strong hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+          : 'text-gray-600 dark:text-white/70 font-semibold hover:text-ink-strong hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
     }`
 
   const ActivePill = () => (

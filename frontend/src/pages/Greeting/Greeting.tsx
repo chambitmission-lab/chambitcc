@@ -16,7 +16,14 @@ import type { Pastor } from '../../types/pastor'
 import EditablePastorText from './components/EditablePastorText'
 import EditablePastorPhoto from './components/EditablePastorPhoto'
 import PastorSheet from './components/PastorSheet'
-import { CameraIcon, ChevronRightIcon, MapPinIcon, QuoteIcon, UsersIcon } from './icons'
+import {
+  CameraIcon,
+  ChevronRightIcon,
+  QuoteIcon,
+  ShareIcon,
+  SproutIcon,
+  UsersIcon,
+} from './icons'
 import './styles/index.css'
 
 /** 멀티라인 약력을 스캔하기 쉬운 줄 단위 리스트로 분해 */
@@ -36,6 +43,28 @@ const Greeting = () => {
 
   // 역대 목사 카드를 누르면 그분의 인사말·약력을 하단 시트로 연다
   const [sheetPastor, setSheetPastor] = useState<Pastor | null>(null)
+  // 공유하기 — Web Share 미지원 브라우저에서 링크 복사 피드백
+  const [copied, setCopied] = useState(false)
+
+  const handleShare = async () => {
+    const url = window.location.href
+    const title = ko ? '참빛교회 담임목사 인사말' : "Chambit Church — Pastor's Greeting"
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url })
+      } catch {
+        /* 사용자가 공유 시트를 닫음 */
+      }
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* 클립보드 미지원 */
+    }
+  }
 
   const name = pastorText(current, 'name', language)
   const role = pastorText(current, 'role', language)
@@ -76,23 +105,31 @@ const Greeting = () => {
       {/* lg+: 본문(읽기 폭 유지) + 우측 위젯 레일 2단 — /about 과 같은 규격 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
-          {/* Hero — 사진 없이 문장만. 인사는 얼굴보다 말이 먼저다 */}
+          {/* Hero — 깊은 밤하늘 카드 한 장. 십자가 실루엣과 별빛은 장식일 뿐,
+              주인공은 문장이다 (사진은 아래 편지의 몫). */}
           <header className="gr-hero">
-            <span className="gr-hero-badge">
-              <EditableText fieldKey="greetingBadge" isAdmin={isAdminUser}>
-                {tx('greetingBadge')}
-              </EditableText>
-            </span>
-            <h1 className="gr-hero-title" style={{ whiteSpace: 'pre-line' }}>
-              <EditableText fieldKey="greetingHeroTitle" multiline isAdmin={isAdminUser}>
-                {tx('greetingHeroTitle')}
-              </EditableText>
-            </h1>
-            <p className="gr-hero-subtitle">
-              <EditableText fieldKey="greetingHeroSubtitle" isAdmin={isAdminUser}>
-                {tx('greetingHeroSubtitle')}
-              </EditableText>
-            </p>
+            <div className="gr-hero-card">
+              <svg className="gr-hero-cross" viewBox="0 0 120 168" aria-hidden="true">
+                <path d="M60 14v140" />
+                <path d="M24 56h72" />
+              </svg>
+              <span className="gr-hero-badge">
+                <EditableText fieldKey="greetingBadge" isAdmin={isAdminUser}>
+                  {tx('greetingBadge')}
+                </EditableText>
+              </span>
+              <h1 className="gr-hero-title" style={{ whiteSpace: 'pre-line' }}>
+                <EditableText fieldKey="greetingHeroTitle" multiline isAdmin={isAdminUser}>
+                  {tx('greetingHeroTitle')}
+                </EditableText>
+              </h1>
+              <p className="gr-hero-subtitle">
+                <EditableText fieldKey="greetingHeroSubtitle" isAdmin={isAdminUser}>
+                  {tx('greetingHeroSubtitle')}
+                </EditableText>
+              </p>
+              <span className="gr-hero-rule" aria-hidden="true" />
+            </div>
           </header>
 
           <div className="gr-content">
@@ -116,6 +153,7 @@ const Greeting = () => {
                     </EditablePastorPhoto>
 
                     <div className="gr-letter-head-text">
+                      {role && <span className="gr-role-chip">{role}</span>}
                       {greetingTitle && (
                         <h2 className="gr-letter-title">
                           <EditablePastorText
@@ -150,9 +188,10 @@ const Greeting = () => {
                     </div>
                   </div>
 
-                  <QuoteIcon size={28} className="gr-quote-mark" />
+                  <div className="gr-letter-card">
+                    <QuoteIcon size={28} className="gr-quote-mark" />
 
-                  <div className="gr-letter-body">
+                    <div className="gr-letter-body">
                     <EditablePastorText
                       pastor={current}
                       field="greeting_body"
@@ -169,19 +208,35 @@ const Greeting = () => {
                             : '')}
                       </p>
                     </EditablePastorText>
-                  </div>
-
-                  {(signature || isAdminUser) && (
-                    <div className="gr-signature">
-                      <EditablePastorText
-                        pastor={current}
-                        field="signature"
-                        isAdmin={isAdminUser}
-                      >
-                        {signature || (ko ? '맺음말을 등록해주세요' : 'Add a closing line')}
-                      </EditablePastorText>
                     </div>
-                  )}
+
+                    {(signature || isAdminUser) && (
+                      <div className="gr-signature">
+                        <EditablePastorText
+                          pastor={current}
+                          field="signature"
+                          isAdmin={isAdminUser}
+                        >
+                          {signature || (ko ? '맺음말을 등록해주세요' : 'Add a closing line')}
+                        </EditablePastorText>
+                      </div>
+                    )}
+
+                    <div className="gr-letter-actions">
+                      <button type="button" className="gr-letter-action" onClick={handleShare}>
+                        <ShareIcon size={16} />
+                        <span>
+                          {copied
+                            ? ko
+                              ? '링크가 복사되었습니다'
+                              : 'Link copied'
+                            : ko
+                              ? '공유하기'
+                              : 'Share'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
                 </section>
 
                 {/* 담임목사 소개 — 인사말을 다 읽은 사람이 "이분은 누구지?"에 답한다 */}
@@ -321,21 +376,41 @@ const Greeting = () => {
                   </section>
                 )}
 
-                {/* 맺음 — 인사말을 읽은 다음 갈 곳 */}
+                {/* 맺음 — 환영 배너. 인사말을 다 읽은 처음 오신 분을 오시는 길로 안내한다 */}
                 <section className="gr-closing">
-                  <p className="gr-closing-text">
-                    <EditableText fieldKey="greetingClosing" isAdmin={isAdminUser}>
-                      {tx('greetingClosing')}
-                    </EditableText>
-                  </p>
+                  <div
+                    className="gr-welcome-banner"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate('/visit')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        navigate('/visit')
+                      }
+                    }}
+                  >
+                    <span className="gr-welcome-icon" aria-hidden="true">
+                      <SproutIcon size={20} />
+                    </span>
+                    <span className="gr-welcome-text">
+                      <span className="gr-welcome-title">
+                        <EditableText fieldKey="greetingClosing" isAdmin={isAdminUser}>
+                          {tx('greetingClosing')}
+                        </EditableText>
+                      </span>
+                      <span className="gr-welcome-sub">
+                        <EditableText fieldKey="greetingClosingSub" isAdmin={isAdminUser}>
+                          {tx('greetingClosingSub')}
+                        </EditableText>
+                      </span>
+                    </span>
+                    <ChevronRightIcon size={18} className="gr-welcome-chevron" />
+                  </div>
                   <div className="gr-closing-actions">
-                    <button type="button" className="gr-cta" onClick={() => navigate('/visit')}>
-                      <MapPinIcon size={17} />
-                      <span>{ko ? '오시는 길' : 'Directions'}</span>
-                    </button>
                     <button type="button" className="gr-cta" onClick={() => navigate('/about')}>
                       <UsersIcon size={17} />
-                      <span>{ko ? '교회 소개' : 'About Us'}</span>
+                      <span>{ko ? '교회 소개 보기' : 'About Us'}</span>
                     </button>
                   </div>
                 </section>

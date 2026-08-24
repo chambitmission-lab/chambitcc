@@ -19,11 +19,21 @@ html.fonts-pending .material-icons-round {
   box-sizing: border-box;
 }
 
+/* 큰 글자일수록 한글 기본 자간의 성김이 두드러진다 — 제목은 본문(-0.02em)보다 한 단계 더 */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.03em;
+}
+
 :root {
   /* Pretendard - MZ세대 선호 폰트 */
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   line-height: 1.6;
   font-weight: 400;
+  /* 한글 기본 자간은 UI에서 성기게 보인다 — Pretendard 권장대로 타이트하게 (토스 문법).
+     제목 계열은 아래 h1~h3 규칙에서 한 단계 더 조인다. */
+  letter-spacing: -0.02em;
   
   /* Instagram 컬러 팔레트 */
   --ig-primary-background: #ffffff;
@@ -467,6 +477,8 @@ html:not([data-viewport-settled]) .bottom-dock-anchor {
 /* 집중 기도 화면의 명조 타이포 — 성경 읽기와 같은 Noto Serif KR (index.html에서 로드) */
 .font-serif-kr {
   font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', Georgia, serif;
+  /* 명조 장문은 고딕 UI만큼 조이면 답답하다 — 전역(-0.02em)보다 살짝 풀어준다 */
+  letter-spacing: -0.01em;
 }
 
 /* 오디오북 실시간 생성 — 동방박사가 별을 따라가듯, 별이 천천히 길을 가로지른다.

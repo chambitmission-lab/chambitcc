@@ -13,5 +13,6 @@ export const greeting = {
   greetingAwardLabel: 'Awards',
   greetingHistoryTitle: 'Pastors Who Served',
   greetingHistoryHint: 'Those who have shepherded Chambit Church',
-  greetingClosing: 'Would you walk this journey with us?',
+  greetingClosing: 'Everyone is welcome at Chambit Church',
+  greetingClosingSub: 'First-time visitors are embraced and blessed with the love of the Lord',
 } as const

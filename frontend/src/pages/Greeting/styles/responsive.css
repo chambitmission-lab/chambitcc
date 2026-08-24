@@ -11,7 +11,12 @@
   }
 
   .gr-hero-title {
-    font-size: 1.45rem;
+    font-size: 1.35rem;
+  }
+
+  .gr-hero-cross {
+    width: 72px;
+    right: 0.5rem;
   }
 
   .gr-closing-actions {
@@ -25,7 +30,16 @@
 
 @media (min-width: 1024px) {
   .gr-hero {
-    padding: 3.25rem 2rem 2.5rem;
+    padding: 1.25rem 1.25rem 0;
+  }
+
+  .gr-hero-card {
+    padding: 3rem 2.5rem 3.1rem;
+  }
+
+  .gr-hero-cross {
+    width: 116px;
+    right: 2.25rem;
   }
 
   .gr-hero-title {
