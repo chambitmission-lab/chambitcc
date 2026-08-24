@@ -23,6 +23,7 @@ export const PAGE_INDEX: PageEntry[] = [
   { to: '/bible', label: { ko: '성경', en: 'Bible' }, desc: { ko: '읽기 · 통독표 · 오디오북', en: 'Read · stamp chart · audiobook' }, icon: 'bible', keywords: ['성경', '읽기', '통독', '오디오', '낭독', 'bible', 'read', 'audio'], quick: true },
   { to: '/events', label: { ko: '일정', en: 'Events' }, desc: { ko: '교회 캘린더 · 참석 신청', en: 'Church calendar · RSVP' }, icon: 'events', keywords: ['일정', '행사', '캘린더', '달력', '참석', 'events', 'calendar', 'rsvp'], quick: true },
   { to: '/about', label: { ko: '교회 소개', en: 'About' }, desc: { ko: '참빛교회 이야기와 담임목사', en: 'Our story and senior pastor' }, icon: 'about', keywords: ['소개', '교회', '담임목사', '목사', '비전', 'about', 'pastor', 'church'] },
+  { to: '/greeting', label: { ko: '인사말', en: 'Greeting' }, desc: { ko: '담임목사가 전하는 환영 인사', en: 'A welcome from our senior pastor' }, icon: 'greeting', keywords: ['인사말', '인사', '담임목사', '목사', '환영', '역대', 'greeting', 'welcome', 'pastor'] },
   { to: '/history', label: { ko: '발자취', en: 'History' }, desc: { ko: '걸어온 길, 주요 순간들', en: 'Milestones along the way' }, icon: 'history', keywords: ['발자취', '역사', '연혁', 'history', 'timeline'] },
   { to: '/organization', label: { ko: '조직도', en: 'Organization' }, desc: { ko: '섬기는 분들과 부서', en: 'Who serves, and where' }, icon: 'organization', keywords: ['조직도', '부서', '장로', '교역자', '섬김', 'organization', 'staff'] },
   { to: '/ministry', label: { ko: '목양칼럼', en: 'Pastoral Column' }, desc: { ko: '담임목사의 주간 편지', en: "The pastor's weekly letter" }, icon: 'ministry', keywords: ['칼럼', '목양', '편지', '목사님', 'column', 'letter'] },

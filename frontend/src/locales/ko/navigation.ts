@@ -26,6 +26,7 @@ export const navigation = {
   navTopWord: '예배·말씀',
   navTopTogether: '함께',
   navDescAbout: '참빛교회 이야기와 담임목사',
+  navDescGreeting: '담임목사가 전하는 환영 인사',
   navDescVisit: '7호선 상동역 · 주차 안내',
   navDescHistory: '걸어온 길, 주요 순간들',
   navDescOrganization: '섬기는 분들과 부서',

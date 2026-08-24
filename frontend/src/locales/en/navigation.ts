@@ -26,6 +26,7 @@ export const navigation = {
   navTopWord: 'Worship & Word',
   navTopTogether: 'Together',
   navDescAbout: 'Our story and senior pastor',
+  navDescGreeting: 'A welcome from our senior pastor',
   navDescVisit: 'Sangdong Stn. (Line 7) · parking',
   navDescHistory: 'Milestones along the way',
   navDescOrganization: 'Who serves, and where',
