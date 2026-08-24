@@ -16,7 +16,12 @@ const HIDDEN_PATHS = ['/login', '/register', '/prayer-focus', '/prayer-topics/sc
 
 export const useDesktopRailVisible = (): boolean => {
   const { pathname } = useLocation()
-  return !HIDDEN_PATHS.includes(pathname)
+  if (HIDDEN_PATHS.includes(pathname)) return false
+  // 랜딩(비로그인 홈·/welcome 미리보기)은 제품 소개 화면 — 앱 크롬 없이 전체 폭을 쓴다.
+  // 로그인 판정은 App.tsx의 홈 분기와 같은 기준(localStorage 토큰)을 쓴다.
+  if (pathname === '/welcome') return false
+  if (pathname === '/' && !localStorage.getItem('access_token')) return false
+  return true
 }
 
 const RailSpinner = () => (
