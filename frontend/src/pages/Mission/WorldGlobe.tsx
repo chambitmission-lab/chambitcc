@@ -36,7 +36,7 @@ const SEOUL = { lat: 37.57, lng: 126.98 }
  * 실루엣이 읽히는 수준의 손그림 외곽선. 실제 위경도 좌표계라 선교지
  * 실좌표(countryDetail)와 어긋나지 않는다.
  */
-const LAND_POLYS: [number, number][][] = [
+export const LAND_POLYS: [number, number][][] = [
   // 북아메리카 (알래스카~멕시코)
   [[-168, 66], [-155, 71], [-140, 70], [-125, 72], [-110, 73], [-95, 74], [-80, 73], [-70, 68], [-60, 60], [-65, 50], [-70, 45], [-75, 40], [-78, 34], [-81, 30], [-83, 27], [-90, 29], [-95, 27], [-97, 23], [-100, 18], [-95, 15], [-92, 14], [-105, 20], [-110, 24], [-117, 32], [-124, 40], [-125, 48], [-132, 55], [-140, 60], [-152, 60], [-160, 58], [-166, 62]],
   // 그린란드
@@ -77,7 +77,7 @@ const LAND_POLYS: [number, number][][] = [
   [[173, -35], [176, -38], [174, -41], [170, -44], [167, -46], [170, -43], [173, -39]],
 ]
 
-const pointInPoly = (x: number, y: number, poly: [number, number][]) => {
+export const pointInPoly = (x: number, y: number, poly: [number, number][]) => {
   let inside = false
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
     const [xi, yi] = poly[i]

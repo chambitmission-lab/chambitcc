@@ -23,11 +23,13 @@
 }
 
 /* ---------- Hero ---------- */
+/* overflow를 자르지 않는다 — 글로우·십자가가 상단 경계에서 잘리면
+   히어로 박스 모양대로 밝기 단차(가로 이음선)가 생긴다.
+   가로로 삐져나가는 장식은 .mission-page 의 overflow-x:hidden 이 처리한다. */
 .mission-hero {
   position: relative;
   padding: 3rem 1.25rem 2rem;
   text-align: center;
-  overflow: hidden;
 }
 
 .mission-hero::before {
@@ -46,6 +48,48 @@
 @keyframes pulse-glow {
   0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
   50% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+}
+
+/* 우상단 지구 호 + 빛나는 십자가 장식 — 텍스트(z:2) 뒤에 깔린다 */
+.hero-scene {
+  position: absolute;
+  top: -0.5rem;
+  right: -2.75rem;
+  width: 15rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hs-globe {
+  stroke: rgba(125, 211, 252, 0.32);
+  stroke-width: 1.2;
+  fill: rgba(14, 165, 233, 0.07);
+}
+
+.hs-lat {
+  stroke: rgba(125, 211, 252, 0.2);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+}
+
+.hs-arc {
+  stroke: rgba(56, 189, 248, 0.5);
+  stroke-width: 1.2;
+  stroke-dasharray: 2 4;
+}
+
+.hs-dot { fill: #7dd3fc; }
+
+.hs-cross rect { fill: #fff; }
+
+.hs-cross {
+  filter: drop-shadow(0 0 8px rgba(224, 242, 254, 0.9)) drop-shadow(0 0 20px rgba(56, 189, 248, 0.55));
+  animation: cross-breathe 5s ease-in-out infinite;
+}
+
+@keyframes cross-breathe {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
 }
 
 .hero-eyebrow {
@@ -86,9 +130,11 @@
 }
 
 .hero-title-en {
-  font-size: 0.85rem;
+  /* 모바일 폭(28rem)에서 한 줄에 들어가게 — 자간을 넓히면 STATISTICS가 잘린다 */
+  font-size: 0.7rem;
   color: rgba(186, 230, 253, 0.7);
-  letter-spacing: 0.5em;
+  letter-spacing: 0.3em;
+  margin-right: -0.3em; /* 마지막 글자 뒤 자간만큼 중심 보정 */
   font-weight: 600;
   position: relative;
   z-index: 2;
@@ -98,21 +144,35 @@
 .hero-verse {
   position: relative;
   z-index: 2;
-  max-width: 20rem;
+  max-width: 22rem;
   margin: 1.5rem auto 0;
-  padding: 1rem 1.25rem;
+  padding: 1.1rem 1.25rem 1.05rem 3.1rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
   backdrop-filter: blur(12px);
   font-size: 0.8rem;
-  line-height: 1.6;
+  line-height: 1.65;
   color: #e0f2fe;
+  text-align: left;
+  word-break: keep-all;
+}
+
+/* 큰 따옴표 글리프 — 인용 카드임이 한눈에 읽히게 */
+.hero-verse::before {
+  content: '\201C';
+  position: absolute;
+  left: 0.95rem;
+  top: 0.45rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2.3rem;
+  line-height: 1;
+  color: rgba(56, 189, 248, 0.85);
 }
 
 .hero-verse-ref {
   display: block;
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
   font-size: 0.7rem;
   color: rgba(186, 230, 253, 0.6);
   letter-spacing: 0.1em;
@@ -131,12 +191,17 @@
 
 .stat-card {
   position: relative;
-  padding: 1.1rem 0.75rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 0.75rem;
+  row-gap: 0.55rem;
+  align-items: start;
+  padding: 1.05rem 0.95rem 1rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 1rem;
   backdrop-filter: blur(14px);
-  text-align: center;
+  text-align: left;
   overflow: hidden;
   transition: transform 0.25s ease;
 }
@@ -145,19 +210,40 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, transparent 40%, rgba(56, 189, 248, 0.15) 100%);
+  background: linear-gradient(135deg, transparent 40%, var(--sc-soft, rgba(56, 189, 248, 0.12)) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 .stat-card:hover { transform: translateY(-3px); }
 .stat-card:hover::before { opacity: 1; }
 
+.stat-icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.8rem;
+  background: var(--sc-soft, rgba(56, 189, 248, 0.12));
+  border: 1px solid color-mix(in srgb, var(--sc, #38bdf8) 35%, transparent);
+  color: var(--sc, #38bdf8);
+  filter: drop-shadow(0 0 10px var(--sc-soft, rgba(56, 189, 248, 0.12)));
+}
+
+.stat-icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.stat-main { min-width: 0; }
+
 .stat-num {
   display: block;
   font-size: 1.9rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #fff 0%, #38bdf8 100%);
+  background: linear-gradient(135deg, #fff 30%, var(--sc, #38bdf8) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -167,10 +253,115 @@
 
 .stat-label {
   display: block;
-  margin-top: 0.4rem;
+  margin-top: 0.35rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+  letter-spacing: 0.02em;
+}
+
+.stat-desc {
+  grid-column: 2;
+  margin: 0;
+  font-size: 0.66rem;
+  line-height: 1.5;
+  color: rgba(186, 230, 253, 0.55);
+  word-break: keep-all;
+}
+
+/* ---------- Pray CTA Banner ---------- */
+.mission-cta {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1rem 1.25rem 0;
+  padding: 0.95rem 1.05rem;
+  background: linear-gradient(120deg, rgba(56, 189, 248, 0.14), rgba(99, 102, 241, 0.1));
+  border: 1px solid rgba(125, 211, 252, 0.25);
+  border-radius: 1.1rem;
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+.mission-cta::before {
+  content: '';
+  position: absolute;
+  top: -80%;
+  left: -20%;
+  width: 60%;
+  height: 260%;
+  background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.18), transparent 65%);
+  pointer-events: none;
+}
+
+.cta-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 8px rgba(56, 189, 248, 0.4));
+}
+
+.cta-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.cta-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+
+.cta-sub {
+  margin-top: 0.15rem;
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.6);
-  letter-spacing: 0.1em;
+  color: rgba(186, 230, 253, 0.65);
+  word-break: keep-all;
+}
+
+.cta-btn {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid rgba(125, 211, 252, 0.45);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(59, 130, 246, 0.2));
+  color: #e0f2fe;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+  transition: all 0.25s ease;
+}
+
+.cta-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.5);
+}
+
+.cta-btn:active:not(:disabled) { transform: scale(0.96); }
+
+.cta-btn.done {
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.12);
+  color: #6ee7b7;
+  box-shadow: none;
+  cursor: default;
+  font-size: 0.72rem;
+  animation: pray-done-pop 0.45s ease;
+}
+
+.cta-arrow {
+  font-size: 1rem;
+  line-height: 1;
+  margin-top: -1px;
 }
 
 /* ---------- Today's Prayer Missionary ---------- */
@@ -662,6 +853,7 @@ img.sheet-flag {
 
 .country-group {
   position: relative;
+  cursor: pointer;
   padding: 0.8rem 0.9rem 0.9rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -710,9 +902,10 @@ img.sheet-flag {
 }
 
 .group-country {
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 800;
   letter-spacing: -0.01em;
+  color: #fff;
 }
 
 .group-count {
@@ -726,46 +919,116 @@ img.sheet-flag {
   text-align: center;
 }
 
-.group-pin {
-  margin-left: auto;
-  font-size: 0.85rem;
-  opacity: 0.4;
-  transition: opacity 0.25s ease;
+/* 카드 우측 배경의 미니 지역 지도 — 고정 크기 박스를 세로 중앙에 두고
+   원형 페이드로 배경에 스며들게 한다 (카드 높이와 무관하게 핀 크기 일정) */
+.group-map {
+  position: absolute;
+  top: 50%;
+  right: -0.75rem;
+  width: 9rem;
+  height: 9rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 68%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 68%);
 }
 
-.country-group.selected .group-pin { opacity: 1; }
+.group-map-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
+.mini-land circle {
+  fill: rgba(125, 211, 252, 0.2);
+  transition: fill 0.25s ease;
+}
+
+.mini-pin path {
+  fill: #60a5fa;
+  filter: drop-shadow(0 1px 2px rgba(2, 6, 23, 0.4));
+  transition: fill 0.25s ease, filter 0.25s ease;
+}
+
+.mini-pin-hole { fill: #0b1530; }
+
+.country-group.selected .mini-land circle {
+  fill: rgba(125, 211, 252, 0.34);
+}
+
+.country-group.selected .mini-pin path {
+  fill: #7dd3fc;
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.7));
+}
+
+/* 국가별 기도 문장 */
+.group-desc {
+  position: relative;
+  margin: 0.5rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  color: rgba(186, 230, 253, 0.62);
+  word-break: keep-all;
+  padding-right: 4.75rem; /* 우측 핀·지도와 겹치지 않게 */
+}
+
+/* ---------- Member Avatars ---------- */
 .group-members {
   position: relative;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.65rem;
+  gap: 0.8rem 0.65rem;
+  margin-top: 0.9rem;
 }
 
-.member-chip {
-  display: inline-flex;
+.member-avatar-item {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.42rem 0.78rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
+  gap: 0.4rem;
+  width: 3.6rem;
+  padding: 0;
+  background: none;
+  border: none;
   font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #fff;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
-.member-chip:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
+.member-avatar-item:hover { transform: translateY(-2px); }
+.member-avatar-item:active { transform: scale(0.94); }
+
+/* 링 사이 틈 색 — 카드 배경과 이어지도록 페이지 배경 톤 */
+.member-avatar-item { --av-gap: #0b1530; }
+
+.member-avatar {
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(2, 6, 23, 0.35);
+  transition: filter 0.2s ease;
 }
 
-.member-chip:active { transform: scale(0.96); }
+.member-avatar-item:hover .member-avatar { filter: brightness(1.12); }
+
+.member-name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.88);
+  text-align: center;
+  word-break: keep-all;
+  line-height: 1.25;
+}
 
 .member-note {
   padding: 0.1rem 0.4rem;
@@ -942,6 +1205,27 @@ html:not(.dark) .mission-hero::before {
   background: radial-gradient(circle at center, rgba(56, 189, 248, 0.28), transparent 55%);
 }
 
+html:not(.dark) .hero-scene { opacity: 0.85; }
+
+html:not(.dark) .hs-globe {
+  stroke: rgba(2, 132, 199, 0.3);
+  fill: rgba(14, 165, 233, 0.06);
+}
+
+html:not(.dark) .hs-lat { stroke: rgba(2, 132, 199, 0.22); }
+html:not(.dark) .hs-arc { stroke: rgba(2, 132, 199, 0.45); }
+html:not(.dark) .hs-dot { fill: #0284c7; }
+
+html:not(.dark) .hs-cross rect { fill: #0ea5e9; }
+
+html:not(.dark) .hs-cross {
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.55)) drop-shadow(0 0 18px rgba(14, 165, 233, 0.3));
+}
+
+html:not(.dark) .hero-verse::before {
+  color: rgba(2, 132, 199, 0.8);
+}
+
 html:not(.dark) .hero-eyebrow {
   border-color: rgba(14, 165, 233, 0.3);
   background: rgba(255, 255, 255, 0.7);
@@ -980,17 +1264,25 @@ html:not(.dark) .stat-card {
 }
 
 html:not(.dark) .stat-card::before {
-  background: linear-gradient(135deg, transparent 40%, rgba(56, 189, 248, 0.2) 100%);
+  background: linear-gradient(135deg, transparent 40%, var(--sc-soft, rgba(56, 189, 248, 0.12)) 100%);
 }
 
 html:not(.dark) .stat-num {
-  background: linear-gradient(135deg, #0f172a 0%, #0284c7 100%);
+  background: linear-gradient(135deg, #0f172a 25%, var(--sc, #0284c7) 100%);
   -webkit-background-clip: text;
   background-clip: text;
 }
 
 html:not(.dark) .stat-label {
-  color: rgba(15, 23, 42, 0.6);
+  color: rgba(15, 23, 42, 0.75);
+}
+
+html:not(.dark) .stat-desc {
+  color: rgba(15, 23, 42, 0.5);
+}
+
+html:not(.dark) .stat-icon {
+  filter: none;
 }
 
 /* World Map */
@@ -1066,16 +1358,38 @@ html:not(.dark) .group-count {
   color: #0369a1;
 }
 
-html:not(.dark) .member-chip {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(14, 165, 233, 0.25);
+html:not(.dark) .group-country {
   color: #0f172a;
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.06);
 }
 
-html:not(.dark) .member-chip:hover {
-  background: rgba(224, 242, 254, 0.9);
-  border-color: rgba(14, 165, 233, 0.5);
+html:not(.dark) .group-desc {
+  color: rgba(3, 105, 161, 0.72);
+}
+
+html:not(.dark) .mini-land circle {
+  fill: rgba(2, 132, 199, 0.16);
+}
+
+html:not(.dark) .mini-pin path {
+  fill: #3b82f6;
+  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.2));
+}
+
+html:not(.dark) .mini-pin-hole { fill: #ffffff; }
+
+html:not(.dark) .country-group.selected .mini-land circle {
+  fill: rgba(2, 132, 199, 0.28);
+}
+
+html:not(.dark) .country-group.selected .mini-pin path {
+  fill: #0ea5e9;
+  filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.45));
+}
+
+html:not(.dark) .member-avatar-item { --av-gap: #ffffff; }
+
+html:not(.dark) .member-name {
+  color: rgba(15, 23, 42, 0.85);
 }
 
 html:not(.dark) .member-note,
@@ -1231,6 +1545,35 @@ html:not(.dark) .mission-pray-btn.done {
   box-shadow: none;
 }
 
+/* Pray CTA Banner */
+html:not(.dark) .mission-cta {
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.92), rgba(224, 242, 254, 0.78));
+  border-color: rgba(14, 165, 233, 0.25);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.1);
+}
+
+html:not(.dark) .mission-cta::before {
+  background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.14), transparent 65%);
+}
+
+html:not(.dark) .cta-title { color: #0f172a; }
+
+html:not(.dark) .cta-sub { color: rgba(3, 105, 161, 0.7); }
+
+html:not(.dark) .cta-btn {
+  border-color: rgba(14, 165, 233, 0.4);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.14), rgba(59, 130, 246, 0.1));
+  color: #0369a1;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.2);
+}
+
+html:not(.dark) .cta-btn.done {
+  border-color: rgba(5, 150, 105, 0.45);
+  background: rgba(5, 150, 105, 0.1);
+  color: #047857;
+  box-shadow: none;
+}
+
 /* Featured Card */
 html:not(.dark) .featured-card {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.78));
@@ -1256,7 +1599,8 @@ html:not(.dark) .featured-locate {
 
 /* ---------- Reduced Motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .mission-hero::before {
+  .mission-hero::before,
+  .hs-cross {
     animation: none;
   }
 }
@@ -1300,6 +1644,19 @@ html:not(.dark) .featured-locate {
 
   .hero-title {
     font-size: 3.2rem;
+  }
+
+  .hero-title-en {
+    font-size: 0.85rem;
+    letter-spacing: 0.5em;
+    margin-right: -0.5em;
+  }
+
+  /* 넓어진 히어로에선 장식도 한 단계 키우고 안쪽으로 들인다 */
+  .hero-scene {
+    width: 19rem;
+    right: 3rem;
+    top: -1rem;
   }
 
   .hero-verse {

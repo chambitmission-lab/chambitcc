@@ -9,11 +9,14 @@ import {
   domesticOrganizations,
   missionStats,
   SEOUL_GEO,
+  countryPrayerLine,
+  avatarColor,
   type RegionKey,
   type Missionary,
 } from './missionData'
 import WorldGlobe from './WorldGlobe'
 import CountryFlag from './CountryFlag'
+import CountryMiniMap from './CountryMiniMap'
 import { useLanguage } from '../../contexts/LanguageContext'
 import './Mission.css'
 
@@ -89,6 +92,37 @@ const CountUpNum = ({ value }: { value: number }) => {
     </span>
   )
 }
+
+/** 통계 카드 아이콘 — 인라인 SVG(스트로크 1.8), 카드별 컬러는 --sc 로 받는다 */
+const STAT_ICONS = {
+  missionary: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="7" r="4" />
+      <path d="M5.5 21v-2a5 5 0 0 1 5-5h3a5 5 0 0 1 5 5v2" />
+    </svg>
+  ),
+  countries: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3a13.5 13.5 0 0 1 0 18 13.5 13.5 0 0 1 0-18" />
+    </svg>
+  ),
+  continents: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <path d="M12.5 6.5v6" />
+      <path d="M10 9h5" />
+    </svg>
+  ),
+  partners: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" />
+      <path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 3.08 3.08L15 8.5" />
+    </svg>
+  ),
+} as const
 
 /** PC(lg+)에선 지구본이 우측에 고정되어 늘 보이므로 지도로 스크롤할 필요가 없다 */
 const isDesktopTwoCol = () => window.matchMedia('(min-width: 1024px)').matches
@@ -211,13 +245,32 @@ const Mission = () => {
       <div className="mission-shell">
         {/* ===== HERO ===== */}
         <section className="mission-hero">
+          {/* 지구 호(弧)와 빛나는 십자가 — 우상단 장식 (텍스트 뒤 레이어) */}
+          <div className="hero-scene" aria-hidden>
+            <svg viewBox="0 0 220 200" fill="none">
+              <circle cx="150" cy="210" r="96" className="hs-globe" />
+              <path d="M58 184 Q150 142 242 184" className="hs-lat" />
+              <path d="M68 160 Q150 124 232 160" className="hs-lat" />
+              <path d="M70 152 Q115 96 175 126" className="hs-arc" />
+              <path d="M96 136 Q150 82 206 116" className="hs-arc" />
+              <circle cx="70" cy="152" r="2.4" className="hs-dot" />
+              <circle cx="175" cy="126" r="2.4" className="hs-dot" />
+              <circle cx="96" cy="136" r="2" className="hs-dot" />
+              <circle cx="206" cy="116" r="2" className="hs-dot" />
+              <g className="hs-cross">
+                <rect x="147" y="26" width="6" height="48" rx="3" />
+                <rect x="133" y="40" width="34" height="6" rx="3" />
+              </g>
+            </svg>
+          </div>
+
           <div className="hero-eyebrow">CHAMBIT CHURCH · MISSION</div>
           <h1 className="hero-title">
             {t('missionHeroTitleLine1')}
             <br />
             {t('missionHeroTitleLine2')}
           </h1>
-          <div className="hero-title-en">WORLDWIDE&nbsp;·&nbsp;MISSION&nbsp;·&nbsp;STATUS</div>
+          <div className="hero-title-en">WORLDWIDE&nbsp;·&nbsp;MISSION&nbsp;·&nbsp;STATISTICS</div>
 
           <div className="hero-verse">
             {t('missionHeroVerse')}
@@ -227,23 +280,46 @@ const Mission = () => {
 
         {/* ===== STATS ===== */}
         <div className="mission-stats">
-          <div className="stat-card">
-            <CountUpNum value={missionStats.total} />
-            <span className="stat-label">{t('missionStatDispatched')}</span>
-          </div>
-          <div className="stat-card">
-            <CountUpNum value={missionStats.countries} />
-            <span className="stat-label">{t('missionStatCountries')}</span>
-          </div>
-          <div className="stat-card">
-            <CountUpNum value={missionStats.regions} />
-            <span className="stat-label">{t('missionStatContinents')}</span>
-          </div>
-          <div className="stat-card">
-            <CountUpNum value={missionStats.domesticPartners} />
-            <span className="stat-label">{t('missionStatDomesticPartners')}</span>
-          </div>
+          {([
+            { key: 'missionary', value: missionStats.total, color: '#38bdf8', label: 'missionStatDispatched', desc: 'missionStatDispatchedDesc' },
+            { key: 'countries', value: missionStats.countries, color: '#60a5fa', label: 'missionStatCountries', desc: 'missionStatCountriesDesc' },
+            { key: 'continents', value: missionStats.regions, color: '#818cf8', label: 'missionStatContinents', desc: 'missionStatContinentsDesc' },
+            { key: 'partners', value: missionStats.domesticPartners, color: '#a78bfa', label: 'missionStatDomesticPartners', desc: 'missionStatDomesticPartnersDesc' },
+          ] as const).map(s => (
+            <div
+              key={s.key}
+              className="stat-card"
+              style={{
+                ['--sc' as string]: s.color,
+                ['--sc-soft' as string]: `${s.color}1f`,
+              }}
+            >
+              <div className="stat-icon">{STAT_ICONS[s.key]}</div>
+              <div className="stat-main">
+                <CountUpNum value={s.value} />
+                <span className="stat-label">{t(s.label)}</span>
+              </div>
+              <p className="stat-desc">{t(s.desc)}</p>
+            </div>
+          ))}
         </div>
+
+        {/* ===== PRAY CTA BANNER ===== */}
+        <section className="mission-cta">
+          <div className="cta-icon" aria-hidden>🙏</div>
+          <div className="cta-text">
+            <div className="cta-title">{t('missionCtaTitle')}</div>
+            <div className="cta-sub">{t('missionCtaSub')}</div>
+          </div>
+          <button
+            type="button"
+            className={`cta-btn ${prayedToday ? 'done' : ''}`}
+            onClick={handlePray}
+            disabled={prayedToday}
+          >
+            {prayedToday ? `✓ ${t('missionPrayDone')}` : <>{t('missionCtaBtn')}<span className="cta-arrow">›</span></>}
+          </button>
+        </section>
 
         {/* ===== PC 2단 (모바일에선 display:contents 라 흐름 그대로) =====
             좌: 선교사 명단 / 우: 오늘의 선교사 + 지구본(sticky) */}
@@ -440,6 +516,7 @@ const MissionaryGroups = ({
   onCountryClick: (country: string) => void
   onMemberClick: (m: Missionary) => void
 }) => {
+  const { language } = useLanguage()
   // 국가별 묶음 — 파송 인원이 많은 국가부터, 동수면 데이터 순서 유지
   const groups = useMemo(() => {
     const byCountry = new Map<string, Missionary[]>()
@@ -461,6 +538,8 @@ const MissionaryGroups = ({
           <div
             key={g.country}
             className={`country-group ${isSelected ? 'selected' : ''}`}
+            /* 카드 어디를 눌러도 국가 선택 — 헤더 버튼 클릭도 여기로 버블링된다 */
+            onClick={() => onCountryClick(g.country)}
             style={{
               ['--card-glow' as string]: `${color}40`,
               animationDelay: `${Math.min(idx * 0.04, 0.4)}s`,
@@ -470,28 +549,51 @@ const MissionaryGroups = ({
               } : {}),
             }}
           >
-            <button
-              type="button"
-              className="group-head"
-              onClick={() => onCountryClick(g.country)}
-            >
+            {/* 우측 배경의 미니 지역 지도 + 위치 핀 — 선택되면 밝아진다 */}
+            <div className="group-map" aria-hidden>
+              <CountryMiniMap country={g.country} />
+            </div>
+
+            <button type="button" className="group-head">
               <CountryFlag className="group-flag" country={g.country} />
-              <span className="group-country" style={{ color }}>{g.country}</span>
-              <span className="group-count">{g.members.length}</span>
-              <span className="group-pin">📍</span>
+              <span className="group-country">{g.country}</span>
+              <span className="group-count">
+                {g.members.length}
+                {language === 'ko' ? '명' : ''}
+              </span>
             </button>
+
+            <p className="group-desc">{countryPrayerLine(g.country, language === 'ko' ? 'ko' : 'en')}</p>
+
             <div className="group-members">
-              {g.members.map((m, i) => (
-                <button
-                  type="button"
-                  key={`${m.name}-${i}`}
-                  className="member-chip"
-                  onClick={() => onMemberClick(m)}
-                >
-                  {m.name}
-                  {m.note && <span className="member-note">{m.note}</span>}
-                </button>
-              ))}
+              {g.members.map((m, i) => {
+                const av = avatarColor(m.name)
+                return (
+                  <button
+                    type="button"
+                    key={`${m.name}-${i}`}
+                    className="member-avatar-item"
+                    onClick={e => {
+                      e.stopPropagation() // 카드의 국가 선택으로 번지지 않게
+                      onMemberClick(m)
+                    }}
+                  >
+                    <span
+                      className="member-avatar"
+                      style={{
+                        background: `linear-gradient(135deg, ${av}, ${av}99)`,
+                        boxShadow: `0 0 0 2px var(--av-gap, rgba(6, 11, 26, 0.9)), 0 0 0 3.5px ${av}77`,
+                      }}
+                    >
+                      {m.name.charAt(0)}
+                    </span>
+                    <span className="member-name">
+                      {m.name}
+                      {m.note && <span className="member-note">{m.note}</span>}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
         )

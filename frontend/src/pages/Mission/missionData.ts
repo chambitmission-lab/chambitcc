@@ -209,6 +209,41 @@ export const countryFallbackEmoji: Record<string, string> = {
 /** 서울 실좌표 — 거리 계산용 */
 export const SEOUL_GEO = { lat: 37.57, lng: 126.98 }
 
+/** 마지막 글자에 받침이 있는지 — 을/를 조사 선택용 */
+const hasBatchim = (word: string) => {
+  const code = word.charCodeAt(word.length - 1)
+  if (code < 0xac00 || code > 0xd7a3) return false
+  return (code - 0xac00) % 28 !== 0
+}
+
+const strHash = (s: string) => [...s].reduce((acc, ch) => acc + ch.charCodeAt(0), 0)
+
+const KO_PRAYER_TEMPLATES = [
+  (c: string, o: string) => `복음의 씨앗이 자라나는 ${c}${o} 위해 기도해주세요.`,
+  (c: string, o: string) => `복음의 빛이 더 밝게 비추도록 ${c}${o} 위해 기도해주세요.`,
+  (c: string, o: string) => `하나님의 사랑이 흐르는 ${c}${o} 위해 기도해주세요.`,
+  (c: string, o: string) => `복음의 문이 활짝 열리도록 ${c}${o} 위해 기도해주세요.`,
+]
+
+const EN_PRAYER_TEMPLATES = [
+  (c: string) => `Pray for ${c}, where seeds of the gospel are growing.`,
+  (c: string) => `Pray that the light of the gospel shines brighter in ${c}.`,
+  (c: string) => `Pray for God's love to keep flowing through ${c}.`,
+  (c: string) => `Pray for doors of the gospel to open wide in ${c}.`,
+]
+
+/** 국가별 기도 문장 — 국가명 해시로 문구를 고정 로테이션 (을/를 자동 처리) */
+export const countryPrayerLine = (country: string, lang: 'ko' | 'en') => {
+  const idx = strHash(country) % KO_PRAYER_TEMPLATES.length
+  if (lang === 'ko') return KO_PRAYER_TEMPLATES[idx](country, hasBatchim(country) ? '을' : '를')
+  return EN_PRAYER_TEMPLATES[idx](country)
+}
+
+/** 아바타 링·배경 컬러 — 이름 해시로 고정 배정 */
+const AVATAR_COLORS = ['#38bdf8', '#a78bfa', '#f472b6', '#fbbf24', '#34d399', '#60a5fa']
+export const avatarColor = (name: string) =>
+  AVATAR_COLORS[strHash(name) % AVATAR_COLORS.length]
+
 /**
  * 국가 → 상세 정보(타임존·대표 도시·실좌표).
  * 바텀시트의 "지금 그곳은" 현지 시간·시차·거리 계산에 쓰인다.
