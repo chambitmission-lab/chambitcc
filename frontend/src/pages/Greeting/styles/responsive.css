@@ -14,11 +14,6 @@
     font-size: 1.35rem;
   }
 
-  .gr-hero-cross {
-    width: 72px;
-    right: 0.5rem;
-  }
-
   .gr-closing-actions {
     flex-direction: column;
   }
@@ -35,11 +30,6 @@
 
   .gr-hero-card {
     padding: 3rem 2.5rem 3.1rem;
-  }
-
-  .gr-hero-cross {
-    width: 116px;
-    right: 2.25rem;
   }
 
   .gr-hero-title {

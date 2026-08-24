@@ -105,14 +105,10 @@ const Greeting = () => {
       {/* lg+: 본문(읽기 폭 유지) + 우측 위젯 레일 2단 — /about 과 같은 규격 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
-          {/* Hero — 깊은 밤하늘 카드 한 장. 십자가 실루엣과 별빛은 장식일 뿐,
-              주인공은 문장이다 (사진은 아래 편지의 몫). */}
+          {/* Hero — 실사 밤하늘 카드 한 장. 장식은 사진의 별빛뿐,
+              주인공은 문장이다 (인물 사진은 아래 편지의 몫). */}
           <header className="gr-hero">
             <div className="gr-hero-card">
-              <svg className="gr-hero-cross" viewBox="0 0 120 168" aria-hidden="true">
-                <path d="M60 14v140" />
-                <path d="M24 56h72" />
-              </svg>
               <span className="gr-hero-badge">
                 <EditableText fieldKey="greetingBadge" isAdmin={isAdminUser}>
                   {tx('greetingBadge')}
