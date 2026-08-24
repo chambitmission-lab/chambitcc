@@ -1,12 +1,14 @@
 // 교육과 훈련 (/education)
 //
 // 레거시 홈페이지의 "교육과 훈련 > 주일학교 > 영유아부 …" 3단 메뉴 + 이미지 한 장을
-// 카테고리 섹션 + 프로그램 카드(시간·담당·장소 데이터)로 다시 만든 화면.
+// 카테고리 탭 + 프로그램 카드(시간·담당·장소 데이터)로 다시 만든 화면.
+// 칩은 스크롤 앵커가 아니라 탭 — 선택한 카테고리 하나만 렌더링한다. ?cat= 이 곧
+// 탭 상태(단일 소스)라 새로고침·딥링크·공유가 그대로 탭 선택이 된다.
 // 부서 데이터는 education_* 테이블(/admin/education 에서 편집), 페이지 문구는
 // about_content.fields 공유 → EditableText ✏️ 인라인 편집.
 // 빈 값('')은 '미확인' — 그 줄을 숨기고 관리자에게만 힌트를 보인다. 지어내지 않는다.
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo, useRef } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
 import { useAboutContent } from '../../hooks/useAboutContent'
@@ -16,41 +18,6 @@ import { categoryText, programText } from '../../types/education'
 import type { EducationCategory, EducationProgram } from '../../types/education'
 import './education.css'
 
-const sectionId = (key: string) => `edu-${key}`
-
-// body 가 스크롤 컨테이너라 smooth scrollIntoView 가 도중에 끊긴다 — instant 로 이동
-const scrollToSection = (key: string) =>
-  document.getElementById(sectionId(key))?.scrollIntoView({ behavior: 'auto', block: 'start' })
-
-/**
- * 딥링크용: 뒤로가기/새로고침(POP) 직후엔 전역 ScrollRestoration 이 최대 1초 동안
- * 매 프레임 저장 위치로 되돌리므로, 섹션이 상단에 올 때까지 잠시 재시도한다.
- * rAF 는 백그라운드 탭에서 멈추므로 setTimeout 으로 돈다. 사용자가 직접 스크롤하면 즉시 멈춘다.
- */
-const scrollToSectionUntilSettled = (key: string, timeoutMs = 1300): void => {
-  const deadline = performance.now() + timeoutMs
-  let timer = 0
-  let cancelled = false
-  const cancel = () => {
-    cancelled = true
-    window.clearTimeout(timer)
-    window.removeEventListener('wheel', cancel)
-    window.removeEventListener('touchstart', cancel)
-  }
-  window.addEventListener('wheel', cancel, { passive: true })
-  window.addEventListener('touchstart', cancel, { passive: true })
-  const attempt = () => {
-    if (cancelled) return
-    const el = document.getElementById(sectionId(key))
-    if (!el) return cancel()
-    const top = el.getBoundingClientRect().top
-    if (Math.abs(top - 16) > 4) el.scrollIntoView({ behavior: 'auto', block: 'start' })
-    if (performance.now() > deadline) return cancel()
-    timer = window.setTimeout(attempt, 60)
-  }
-  attempt()
-}
-
 const Education = () => {
   const navigate = useNavigate()
   const { language } = useLanguage()
@@ -58,40 +25,56 @@ const Education = () => {
   const { tx } = useAboutContent()
   const { categories, isLoading } = useEducationTree()
   const isAdminUser = isAdmin()
-  const [params] = useSearchParams()
+  const [params, setSearchParams] = useSearchParams()
 
   const visible = useMemo(
     () => categories.filter((c) => c.programs.length > 0 || isAdminUser),
     [categories, isAdminUser],
   )
 
-  // ?cat=youth 딥링크 — 데이터가 온 뒤 해당 섹션으로 스크롤.
-  // 칩 클릭은 URL 을 바꾸지 않는다: setSearchParams 는 새 history 엔트리를 만들고
-  // 전역 ScrollRestoration 이 그 엔트리를 "새 페이지"로 보고 맨 위로 되돌려 스크롤이 취소된다.
+  // ?cat= 가 없거나 모르는 키면 첫 카테고리. replace 로 바꿔 탭 전환이 history 를
+  // 쌓지 않는다(뒤로가기는 이전 페이지로 나간다).
   const requested = params.get('cat')
-  // 활성 칩: 클릭한 칩(userKey)이 있으면 그것, 아니면 URL 의 cat. URL 이 바뀌면 클릭 기억을 비운다
-  // (렌더 중 파생 — effect 안에서 setState 하지 않는다)
-  const [userPick, setUserPick] = useState<{ forCat: string | null; key: string } | null>(null)
-  const activeKey = userPick && userPick.forCat === requested ? userPick.key : requested
-  // 같은 링크를 다시 눌러도(같은 cat, 새 history 엔트리) 다시 내려가도록 location.key 로 구분한다
-  const location = useLocation()
-  const handledRef = useRef<string | null>(null)
-  useEffect(() => {
-    if (!requested || visible.length === 0) return
-    const stamp = `${location.key}:${requested}`
-    if (handledRef.current === stamp) return
-    if (!visible.some((c) => c.key === requested)) return
-    handledRef.current = stamp
-    // ScrollRestoration(layout effect)이 위치를 잡은 다음 프레임에 내려간다.
-    // smooth 는 이 레이아웃(body 스크롤)에서 중간에 끊기므로 instant 로 확실히 이동한다.
-    // cleanup 으로 취소하지 않는다 — 데이터 도착 직후 deps(visible)가 한 번 더 바뀌며
-    // 이전 effect 의 cleanup 이 루프를 첫 프레임도 못 돌고 죽인다. 루프는 스스로 끝난다.
-    scrollToSectionUntilSettled(requested)
-  }, [requested, location.key, visible])
+  const activeIndex = Math.max(0, visible.findIndex((c) => c.key === requested))
+  const active = visible[activeIndex] ?? null
+  const prevCat = activeIndex > 0 ? visible[activeIndex - 1] : null
+  const nextCat = active && activeIndex < visible.length - 1 ? visible[activeIndex + 1] : null
 
-  const jumpTo = (key: string) => {
-    setUserPick({ forCat: requested, key })
-    scrollToSection(key)
+  const chipsRef = useRef<HTMLElement | null>(null)
+  // 탭 전환 후 세로 스크롤 처리. setSearchParams(REPLACE)를 전역 ScrollRestoration 이
+  // 새 이동으로 보고 페이지 맨 위로 올려 두므로(layout effect), 커밋 후 effect 에서 되돌린다.
+  //   칩 클릭 → 누르기 전 위치 그대로(화면이 튀지 않게)
+  //   하단 이전/다음 → 칩 스트립을 상단에(사용자가 페이지 아래에 있으므로)
+  //   딥링크 첫 진입 → 보정 없음(히어로부터)
+  const pendingScrollRef = useRef<'chips' | { y: number } | null>(null)
+
+  useEffect(() => {
+    const nav = chipsRef.current
+    // 가로 칩 스트립(모바일)에서 활성 칩이 밖에 있으면 가운데로 — 이전/다음·딥링크 진입 대비
+    const chip = nav?.querySelector<HTMLElement>('.edu-chip.is-active')
+    if (nav && chip) {
+      const delta = chip.getBoundingClientRect().left - nav.getBoundingClientRect().left
+      nav.scrollTo({ left: nav.scrollLeft + delta - (nav.clientWidth - chip.offsetWidth) / 2 })
+    }
+    const pending = pendingScrollRef.current
+    if (!pending) return
+    pendingScrollRef.current = null
+    if (pending === 'chips') {
+      nav?.scrollIntoView({ behavior: 'auto', block: 'start' })
+    } else {
+      // body 가 실제 스크롤러 (ScrollRestoration 참고) — 둘 다에 써서 확실히 복원
+      window.scrollTo({ top: pending.y, left: 0, behavior: 'instant' as ScrollBehavior })
+      document.body.scrollTop = pending.y
+    }
+  }, [active?.key])
+
+  const selectTab = (key: string, from: 'chip' | 'pager' = 'chip') => {
+    if (key === active?.key) return
+    pendingScrollRef.current =
+      from === 'pager'
+        ? 'chips'
+        : { y: window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0 }
+    setSearchParams({ cat: key }, { replace: true })
   }
 
   return (
@@ -132,15 +115,16 @@ const Education = () => {
             </div>
           </header>
 
-          {/* 카테고리 칩 */}
+          {/* 카테고리 탭 */}
           {visible.length > 1 && (
-            <nav className="edu-chips" aria-label={ko ? '교육 부서' : 'Departments'}>
+            <nav ref={chipsRef} className="edu-chips" aria-label={ko ? '교육 부서' : 'Departments'}>
               {visible.map((c) => (
                 <button
                   key={c.id}
                   type="button"
-                  onClick={() => jumpTo(c.key)}
-                  className={`edu-chip ${activeKey === c.key ? 'is-active' : ''}`}
+                  onClick={() => selectTab(c.key)}
+                  aria-current={active?.key === c.key ? 'true' : undefined}
+                  className={`edu-chip ${active?.key === c.key ? 'is-active' : ''}`}
                 >
                   {c.emoji && <span aria-hidden="true">{c.emoji}</span>}
                   {categoryText(c, 'name', language)}
@@ -149,10 +133,10 @@ const Education = () => {
             </nav>
           )}
 
-          <div className="px-4 pb-16 pt-2 space-y-8 lg:px-8 lg:pb-12 lg:pt-4">
+          <div className="px-4 pb-16 pt-2 lg:px-8 lg:pb-12 lg:pt-4">
             {isLoading && categories.length === 0 ? (
               <Skeleton />
-            ) : visible.length === 0 ? (
+            ) : !active ? (
               <EmptyState
                 title={tx('educationEmptyTitle')}
                 hint={tx('educationEmptyHint')}
@@ -161,10 +145,9 @@ const Education = () => {
                 onGoAdmin={() => navigate('/admin/education')}
               />
             ) : (
-              visible.map((category) => (
+              <div key={active.id} className="edu-tabpane">
                 <CategorySection
-                  key={category.id}
-                  category={category}
+                  category={active}
                   language={language}
                   isAdmin={isAdminUser}
                   labels={{
@@ -175,7 +158,26 @@ const Education = () => {
                     pending: tx('educationPendingHint'),
                   }}
                 />
-              ))
+
+                {/* 하단 이전/다음 — 위로 올라가지 않고도 부서를 순서대로 훑는다 */}
+                {(prevCat || nextCat) && (
+                  <nav
+                    className="mt-8 grid grid-cols-2 gap-3"
+                    aria-label={ko ? '이전·다음 부서' : 'Previous / next department'}
+                  >
+                    {prevCat ? (
+                      <PagerButton dir="prev" category={prevCat} language={language} ko={ko} onClick={() => selectTab(prevCat.key, 'pager')} />
+                    ) : (
+                      <span aria-hidden="true" />
+                    )}
+                    {nextCat ? (
+                      <PagerButton dir="next" category={nextCat} language={language} ko={ko} onClick={() => selectTab(nextCat.key, 'pager')} />
+                    ) : (
+                      <span aria-hidden="true" />
+                    )}
+                  </nav>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -211,7 +213,7 @@ const CategorySection = ({
   const verseRef = categoryText(category, 'verse_ref', language)
 
   return (
-    <section id={sectionId(category.key)} className="scroll-mt-4">
+    <section>
       {/* 헤더 — 엠블럼 + 이름 + 태그라인 */}
       <div className="flex items-start gap-3 mb-4">
         <div className="shrink-0 w-12 h-12 rounded-2xl bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] flex items-center justify-center text-[22px]">
@@ -355,6 +357,52 @@ const ProgramCard = ({
     </article>
   )
 }
+
+// ── 하단 이전/다음 부서 버튼 ─────────────────────────
+const PagerButton = ({
+  dir,
+  category,
+  language,
+  ko,
+  onClick,
+}: {
+  dir: 'prev' | 'next'
+  category: EducationCategory
+  language: 'ko' | 'en'
+  ko: boolean
+  onClick: () => void
+}) => {
+  const isNext = dir === 'next'
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        'group rounded-2xl px-4 py-3 min-w-0 bg-white dark:bg-card-dark border border-gray-200/80 dark:border-white/[0.08]',
+        'shadow-sm hover:border-[var(--brand-glow)] hover:bg-[var(--brand-soft)] transition-colors',
+        isNext ? 'text-right' : 'text-left',
+      ].join(' ')}
+    >
+      <span
+        className={`flex items-center gap-0.5 text-[11px] font-semibold text-gray-400 dark:text-white/40 ${isNext ? 'justify-end' : ''}`}
+      >
+        {!isNext && <Chevron dir="left" />}
+        {isNext ? (ko ? '다음' : 'Next') : ko ? '이전' : 'Previous'}
+        {isNext && <Chevron dir="right" />}
+      </span>
+      <span className="mt-1 block text-[13.5px] font-bold text-ink-strong truncate group-hover:text-brand transition-colors">
+        {category.emoji && <span aria-hidden="true">{category.emoji} </span>}
+        {categoryText(category, 'name', language)}
+      </span>
+    </button>
+  )
+}
+
+const Chevron = ({ dir }: { dir: 'left' | 'right' }) => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    {dir === 'left' ? <path d="m14 6-6 6 6 6" /> : <path d="m10 6 6 6-6 6" />}
+  </svg>
+)
 
 // ── 작은 조각들 ───────────────────────────────────────
 const QuickLink = ({ to, icon, label }: { to: string; icon: 'clock' | 'note'; label: string }) => (
