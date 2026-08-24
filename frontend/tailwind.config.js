@@ -10,7 +10,11 @@ export default {
       colors: {
         primary: "#0095f6",
         "ig-red": "#ed4956",
-        "background-light": "#ffffff",
+        // 라이트 앱 바탕 — 순백이면 흰 카드·헤더가 바탕에 잠겨 층이 사라지므로
+        // theme.css --app-canvas(#f1f3f6)와 같은 쿨 그레이 캔버스를 깐다 (토스 문법).
+        // 값 변경 시 index.css --ig-secondary-background(light)·index.html 크리티컬
+        // 인라인 배경/theme-color·ThemeContext theme-color 와 반드시 함께 맞출 것.
+        "background-light": "#f1f3f6",
         "background-dark": "#131313",
         "surface-light": "#fafafa",
         "surface-dark": "#1a1a1a",

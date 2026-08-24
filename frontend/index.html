@@ -42,14 +42,14 @@
          React(ThemeContext)만 믿으면 OS 라이트+앱 다크 조합에서 마운트 전까지
          상태바가 흰색으로 어긋난다. 반드시 스크립트보다 먼저 선언되어야 한다. -->
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#f1f3f6" media="(prefers-color-scheme: light)" />
     <!-- 첫 페인트 크리티컬 배경: index.css는 JS 번들과 함께 늦게 도착하므로
          그 전 첫 페인트는 UA 기본 캔버스로 그려진다(OS 라이트면 흰색).
          안드로이드는 시스템 내비게이션 바 색을 문서 배경색에서 가져오기 때문에
          앱 실행 첫 1초간 하단 시스템 바가 검정↔흰색으로 번쩍였다("하단 떨림"의 진짜 원인).
          색 값은 index.css(--ig-*-background)·ThemeContext와 반드시 동일하게 유지할 것. -->
     <style>
-      html { background-color: #fafafa; color-scheme: light; }
+      html { background-color: #f1f3f6; color-scheme: light; }
       html[data-theme="dark"] { background-color: #131313; color-scheme: dark; }
       body { margin: 0; background-color: inherit; }
     </style>
@@ -67,7 +67,7 @@
           // 상태바(theme-color)를 저장된 앱 테마로 즉시 동기화 — 위의 media 기반
           // 메타는 OS 설정 기준이라 OS 라이트+앱 다크에서 흰색으로 시작한다.
           // 색 값은 ThemeContext.tsx 와 동일하게 유지할 것.
-          var tc = t === 'dark' ? '#131313' : '#ffffff';
+          var tc = t === 'dark' ? '#131313' : '#f1f3f6';
           document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
             m.setAttribute('content', tc);
           });

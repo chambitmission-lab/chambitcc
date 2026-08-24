@@ -27,7 +27,9 @@ html.fonts-pending .material-icons-round {
   
   /* Instagram 컬러 팔레트 */
   --ig-primary-background: #ffffff;
-  --ig-secondary-background: #fafafa;
+  /* 앱 바탕 — theme.css --app-canvas·tailwind background-light 와 동일한 쿨 그레이
+     (순백 바탕은 흰 카드가 잠겨 층이 사라진다). index.html 크리티컬 배경과 동기 유지 */
+  --ig-secondary-background: #f1f3f6;
   --ig-primary-text: #262626;
   --ig-secondary-text: #8e8e8e;
   --ig-tertiary-text: #c7c7c7;
