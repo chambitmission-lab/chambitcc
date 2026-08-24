@@ -50,6 +50,14 @@ const IconLanding = (p: IconProps) => (
   </Svg>
 )
 
+/* 담임목사 인사말 — 편지 봉투 위의 펜촉 */
+const IconPastorLetter = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2.5" />
+    <path d="m3.5 7 7.4 5.3a2 2 0 0 0 2.2 0L20.5 7" />
+  </Svg>
+)
+
 /* 교회소식 — 핀으로 꽂아 둔 게시판 */
 const IconNoticeBoard = (p: IconProps) => (
   <Svg {...p}>
@@ -218,6 +226,7 @@ export const ADMIN_ICONS = {
   adminNavEngagement: IconChart,
   adminNavVerse: IconBookOpen,
   adminNavLanding: IconLanding,
+  adminNavPastor: IconPastorLetter,
   adminNavNews: IconNoticeBoard,
   adminNavBulletin: IconNewspaper,
   adminNavWeeklyPrayer: IconPrayerHeart,

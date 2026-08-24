@@ -18,6 +18,7 @@ const MENU_SECTIONS: NavSection[] = [
     titleKey: 'navGroupChurch',
     items: [
       { path: '/about', key: 'about' },
+      { path: '/greeting', key: 'greeting' },
       { path: '/visit', key: 'visit' },
       { path: '/organization', key: 'organization' },
       { path: '/history', key: 'history' },

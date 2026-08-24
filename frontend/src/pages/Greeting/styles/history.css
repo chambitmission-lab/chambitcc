@@ -1,0 +1,140 @@
+/* 인사말 - 역대 담임목사 스트립
+   목사가 바뀌어도 기록이 남는다는 것이 church_pastors 를 다건으로 둔 이유다.
+   그 사실이 화면에 보이는 자리 — 가로 스크롤 카드로 가볍게 훑고,
+   탭하면 그분이 남긴 인사말을 하단 시트로 읽는다. */
+
+.gr-history {
+  margin-bottom: 2.5rem;
+}
+
+.gr-history-hint {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: -0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.gr-history-strip {
+  list-style: none;
+  margin: 0 -1.5rem;
+  padding: 0.25rem 1.5rem 0.75rem;
+  display: flex;
+  gap: 0.625rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.gr-history-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.gr-history-card {
+  position: relative;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 116px;
+  padding: 1rem 0.6rem 0.9rem;
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.gr-history-card:hover {
+  border-color: var(--brand);
+  transform: translateY(-2px);
+}
+
+.gr-history-photo {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 0.4rem;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-soft);
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+.gr-history-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  filter: var(--media-dim);
+}
+
+.gr-history-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+}
+
+.gr-history-role {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.gr-history-term {
+  margin-top: 0.15rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--brand-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 원로목사 예우 배지 */
+.gr-history-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--brand-soft-strong);
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.gr-history-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.gr-history-more:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+}

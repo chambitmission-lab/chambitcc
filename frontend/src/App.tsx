@@ -45,6 +45,7 @@ const ProfileHeaderPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/ProfileHeaderPreview'))
   : null
 const About = lazy(menuRouteLoaders['/about'])
+const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
 const Organization = lazy(menuRouteLoaders['/organization'])
 const History = lazy(menuRouteLoaders['/history'])
@@ -82,6 +83,7 @@ const PushNotificationManagement = lazy(() =>
   })),
 )
 const NewsManagement = lazy(() => import('./pages/Admin/NewsManagement'))
+const PastorManagement = lazy(() => import('./pages/Admin/PastorManagement'))
 const EventManagement = lazy(() => import('./pages/Admin/EventManagement'))
 const UserManagement = lazy(() => import('./pages/Admin/UserManagement'))
 const GroupManagement = lazy(() => import('./pages/Admin/GroupManagement'))
@@ -258,6 +260,7 @@ function App() {
                 <Route path="/welcome" element={<Landing />} />
                 <Route path="/old-home" element={<Home />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/greeting" element={<Greeting />} />
                 <Route path="/visit" element={<Visit />} />
                 <Route path="/organization" element={<Organization />} />
                 <Route path="/history" element={<History />} />
@@ -293,6 +296,7 @@ function App() {
                 <Route path="/admin/chatbot" element={<ChatbotManagement />} />
                 <Route path="/admin/culture" element={<CultureManagement />} />
                 <Route path="/admin/organization" element={<OrganizationManagement />} />
+                <Route path="/admin/pastors" element={<PastorManagement />} />
                 <Route path="/admin/bible-engagement" element={<BibleEngagementManagement />} />
                 <Route path="/events" element={<EventCalendar />} />
                 <Route path="/events/:id" element={<EventDetail />} />

@@ -1,0 +1,217 @@
+/* 인사말 - Hero
+   사진 없이 문장만 세운다. 인사는 얼굴보다 말이 먼저이고,
+   목사님 사진은 바로 아래 편지의 주인공이라 여기서 겹치면 힘이 반으로 갈린다.
+   배경은 브랜드 tint 하나 + 아주 옅은 빛무리로만 — 무한 글로우는 쓰지 않는다. */
+
+.gr-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 2.75rem 1.5rem 2.25rem;
+  background: linear-gradient(180deg, var(--brand-soft) 0%, transparent 100%);
+  text-align: center;
+}
+
+/* 상단 중앙의 옅은 빛무리 — 정적. 애니메이션 없음 */
+.gr-hero::before {
+  content: '';
+  position: absolute;
+  top: -6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  background: var(--brand-soft-strong);
+  filter: blur(64px);
+  pointer-events: none;
+}
+
+.gr-hero > * {
+  position: relative;
+}
+
+.gr-hero-badge {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: 0.06em;
+  margin-bottom: 0.85rem;
+}
+
+.gr-hero-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  line-height: 1.42;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.gr-hero-subtitle {
+  margin-top: 0.6rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--brand-muted);
+  letter-spacing: -0.01em;
+}
+
+/* 본문 컨테이너 — /about 의 .about-content 와 같은 여백 규격 */
+.gr-content {
+  padding: 1.75rem 1.5rem 2rem;
+}
+
+/* 섹션 제목 + 그 아래 짧은 브랜드 룰 (원본 홈페이지의 구분선 감성) */
+.gr-section-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin: 0;
+}
+
+.gr-rule {
+  display: block;
+  width: 28px;
+  height: 2px;
+  margin: 0.75rem auto 1.25rem;
+  border-radius: 2px;
+  background: var(--brand);
+}
+
+/* 인라인 값 사이의 가운뎃점 */
+.gr-dot {
+  margin: 0 0.4rem;
+  color: var(--text-muted);
+}
+
+/* ── 로딩 스켈레톤 ───────────────────────────────── */
+.gr-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem 0 2rem;
+}
+
+.gr-skeleton-photo {
+  width: 116px;
+  height: 148px;
+  border-radius: 18px;
+  background: var(--surface-container-high);
+  animation: gr-pulse 1.4s ease-in-out infinite;
+}
+
+.gr-skeleton-line {
+  height: 14px;
+  border-radius: 7px;
+  background: var(--surface-container-high);
+  animation: gr-pulse 1.4s ease-in-out infinite;
+}
+
+.gr-skeleton-line--title {
+  height: 22px;
+  width: 60%;
+  margin-top: 0.5rem;
+}
+
+.gr-skeleton-line--short {
+  width: 40%;
+}
+
+@keyframes gr-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gr-skeleton-photo,
+  .gr-skeleton-line {
+    animation: none;
+  }
+}
+
+/* ── 등록 전 빈 상태 ─────────────────────────────── */
+.gr-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.gr-empty-icon {
+  font-size: 2.25rem;
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.gr-empty-title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  margin-bottom: 0.4rem;
+}
+
+.gr-empty-text {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.gr-empty-cta {
+  margin-top: 1.25rem;
+  padding: 0.7rem 1.25rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.gr-empty-cta:hover {
+  background: var(--brand-dim);
+}
+
+/* ── 관리자 안내 ─────────────────────────────────── */
+.gr-admin-hint {
+  margin: 1.5rem 0 1rem;
+  padding: 0.9rem 1rem;
+  background: var(--brand-soft);
+  border: 1px dashed var(--brand-soft-strong);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.gr-admin-hint p {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--brand);
+}
+
+.gr-admin-hint button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.6rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--brand-soft-strong);
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--brand);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.gr-admin-hint button:hover {
+  background: var(--brand-soft-strong);
+}

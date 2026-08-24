@@ -1,0 +1,113 @@
+/* 인사말 - 편지 본문
+   원본 홈페이지는 보라 박스 안에 텍스트를 가두고 사진을 옆에 세웠다.
+   여기서는 상자를 없애고 '읽는 글'로 만든다 — 세리프 본문 + 넉넉한 행간 +
+   오른쪽 아래 서명. 세리프는 목양칼럼(/about 의 pastor-letter)과 같은 계열을
+   써서 앱 안에서 "목사님이 쓰신 글"의 서체 문법을 하나로 맞춘다. */
+
+.gr-letter {
+  margin-bottom: 2.75rem;
+}
+
+.gr-letter-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* 인물 사진 — 세로 비율(3:4)을 지킨다. 업로드도 비율 보존으로 저장된다 */
+.gr-photo {
+  width: 116px;
+  height: 148px;
+  flex-shrink: 0;
+  border-radius: 18px;
+  object-fit: cover;
+  object-position: center top;
+  background: var(--surface-container-high);
+  border: 1px solid var(--card-border);
+  filter: var(--media-dim);
+}
+
+/* 사진 미등록 시 관리자에게만 보이는 등록 자리 */
+.gr-photo--empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed var(--brand-soft-strong);
+  color: var(--text-muted);
+  filter: none;
+}
+
+.gr-letter-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.gr-letter-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.gr-letter-byline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.gr-letter-nickname {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+/* 큰따옴표 장식 — 편지가 시작된다는 신호 */
+.gr-quote-mark {
+  display: block;
+  color: var(--brand);
+  opacity: 0.28;
+  margin-bottom: 0.35rem;
+}
+
+.gr-letter-body {
+  font-family: 'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+}
+
+.gr-letter-text {
+  font-size: 0.9375rem;
+  line-height: 2;
+  color: var(--text-body);
+  margin: 0;
+}
+
+.gr-signature {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--card-border);
+  text-align: right;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+}
+
+/* 인라인 편집 래퍼 보정 (관리자에게만 존재한다)
+   AboutEditor 의 .about-editable-wrapper 는 inline-block 이라 긴 문단을 감싸면
+   폭이 내용에 맞춰 줄어든다. 편지 본문은 글줄이 흔들리면 안 되므로 블록으로 편다. */
+.gr-letter-body > .about-editable-wrapper {
+  display: block;
+}
+
+/* 직분·이름이 나란한 줄에서는 ✏️ 버튼(래퍼 우상단 -8px)이 서로 겹친다.
+   래퍼 사이에 버튼 지름만큼 여백을 줘 두 버튼을 떼어 놓는다. */
+.gr-letter-byline .about-editable-wrapper {
+  margin-right: 12px;
+}

@@ -29,6 +29,14 @@ const IconChurch = (p: IconProps) => (
   </Svg>
 )
 
+/* 인사말 — 담임목사가 건네는 편지 */
+const IconLetter = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2.5" />
+    <path d="m3.5 7 7.4 5.3a2 2 0 0 0 2.2 0L20.5 7" />
+  </Svg>
+)
+
 /* 발자취 — 이어지는 길 */
 const IconTrail = (p: IconProps) => (
   <Svg {...p}>
@@ -188,6 +196,7 @@ const IconPin = (p: IconProps) => (
 
 export const NAV_ICONS = {
   about: IconChurch,
+  greeting: IconLetter,
   visit: IconPin,
   organization: IconOrgChart,
   history: IconTrail,

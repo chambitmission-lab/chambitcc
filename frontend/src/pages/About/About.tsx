@@ -355,6 +355,17 @@ const About = () => {
                 ))}
               </div>
             </details>
+
+            {/* 인사말 전문은 /greeting 이 담당한다 — 여기 요약을 읽은 사람에게
+                "더 읽고 싶다"는 다음 걸음을 준다 (역대 담임목사도 그 페이지에 있다) */}
+            <button
+              type="button"
+              className="pastor-greeting-link"
+              onClick={() => navigate('/greeting')}
+            >
+              <span>{ko ? '담임목사 인사말 전문 보기' : 'Read the full greeting'}</span>
+              <ChevronRightIcon size={16} />
+            </button>
           </section>
 
           {/* CTA Section — 처음 방문자 여정이 주인공 */}

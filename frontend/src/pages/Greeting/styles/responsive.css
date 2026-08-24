@@ -1,0 +1,70 @@
+/* 인사말 - 반응형
+   모바일에서는 사진과 제목이 한 줄에 버티지 못하므로 세로로 쌓는다.
+   PC(lg+)에서는 /about 과 같이 글줄 길이를 44rem으로 묶는다 —
+   넓은 1단이면 한 줄이 100자를 넘어 눈이 줄을 놓친다. */
+
+@media (max-width: 400px) {
+  .gr-letter-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.875rem;
+  }
+
+  .gr-hero-title {
+    font-size: 1.45rem;
+  }
+
+  .gr-closing-actions {
+    flex-direction: column;
+  }
+
+  .gr-cta {
+    justify-content: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .gr-hero {
+    padding: 3.25rem 2rem 2.5rem;
+  }
+
+  .gr-hero-title {
+    font-size: 1.85rem;
+  }
+
+  .gr-content {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 2rem;
+  }
+
+  /* 목차로 점프할 때 고정 헤더에 제목이 가리지 않게 */
+  #greeting-letter,
+  #greeting-profile,
+  #greeting-history {
+    scroll-margin-top: 5rem;
+  }
+
+  /* 넓은 화면에서는 사진을 키워 인물이 또렷하게 */
+  .gr-photo {
+    width: 140px;
+    height: 180px;
+  }
+
+  .gr-letter-title {
+    font-size: 1.45rem;
+  }
+
+  /* 가로 스크롤 대신 그리드로 — 역대 목사가 한눈에 들어온다 */
+  .gr-history-strip {
+    margin: 0;
+    padding: 0.25rem 0 0.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+    overflow-x: visible;
+  }
+
+  .gr-history-card {
+    width: 100%;
+  }
+}

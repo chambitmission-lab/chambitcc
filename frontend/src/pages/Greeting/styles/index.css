@@ -1,0 +1,12 @@
+/* 인사말 페이지 (/greeting) — 스타일 진입점
+ *
+ * 모든 클래스는 gr- 접두사를 쓴다. /about 의 .pastor-*, .credential-* 과
+ * 이름이 겹치면 두 페이지가 서로의 스타일을 끌어쓰게 되므로 반드시 유지할 것.
+ * 색은 theme.css 토큰이 단일 출처 — 라이트/다크 분기는 토큰이 담당한다. */
+
+@import './hero.css';
+@import './letter.css';
+@import './profile.css';
+@import './history.css';
+@import './sheet.css';
+@import './responsive.css';

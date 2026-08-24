@@ -8,6 +8,7 @@ import { profile } from './profile'
 import { bible } from './bible'
 import { about } from './about'
 import { visit } from './visit'
+import { greeting } from './greeting'
 import { worship } from './worship'
 import { event } from './event'
 import { garden } from './garden'
@@ -26,6 +27,7 @@ export const ko = {
   ...bible,
   ...about,
   ...visit,
+  ...greeting,
   ...worship,
   ...event,
   ...garden,

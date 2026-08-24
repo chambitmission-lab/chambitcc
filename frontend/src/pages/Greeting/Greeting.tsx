@@ -1,0 +1,448 @@
+// 교회소개 > 인사말 (/greeting)
+//
+// 담임목사 개인 정보는 church_pastors 테이블(다건)에서 온다 — 목사가 바뀌면
+// 이 화면을 고치는 게 아니라 /admin/pastors 에서 새 레코드를 현직으로 지정한다.
+// 페이지가 하는 말(히어로 문구·섹션 제목)만 about_content.fields 를 공유해
+// 기존 ✏️ 인라인 편집(EditableText)으로 고칠 수 있다.
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useLanguage } from '../../contexts/LanguageContext'
+import { isAdmin } from '../../utils/auth'
+import { useAboutContent } from '../../hooks/useAboutContent'
+import { usePastors } from '../../hooks/usePastors'
+import { EditableText } from '../../components/AboutEditor'
+import { pastorText, pastorTermLabel } from '../../types/pastor'
+import type { Pastor } from '../../types/pastor'
+import EditablePastorText from './components/EditablePastorText'
+import EditablePastorPhoto from './components/EditablePastorPhoto'
+import PastorSheet from './components/PastorSheet'
+import { CameraIcon, ChevronRightIcon, MapPinIcon, QuoteIcon, UsersIcon } from './icons'
+import './styles/index.css'
+
+/** 멀티라인 약력을 스캔하기 쉬운 줄 단위 리스트로 분해 */
+const toLines = (value: string): string[] =>
+  value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+
+const Greeting = () => {
+  const navigate = useNavigate()
+  const { language } = useLanguage()
+  const ko = language === 'ko'
+  const { tx } = useAboutContent()
+  const { current, past, isLoading } = usePastors()
+  const isAdminUser = isAdmin()
+
+  // 역대 목사 카드를 누르면 그분의 인사말·약력을 하단 시트로 연다
+  const [sheetPastor, setSheetPastor] = useState<Pastor | null>(null)
+
+  const name = pastorText(current, 'name', language)
+  const role = pastorText(current, 'role', language)
+  const nickname = pastorText(current, 'nickname', language)
+  const greetingTitle = pastorText(current, 'greeting_title', language)
+  const greetingBody = pastorText(current, 'greeting_body', language)
+  const signature = pastorText(current, 'signature', language)
+  const profileHeadline = pastorText(current, 'profile_headline', language)
+  const profileIntro = pastorText(current, 'profile_intro', language)
+  const photoUrl = current?.photo_url?.trim() ?? ''
+
+  const credentials = current
+    ? ([
+        ['greetingEducationLabel', 'education'],
+        ['greetingCareerLabel', 'career'],
+        ['greetingAwardLabel', 'awards'],
+      ] as const
+    ).filter(([, field]) => pastorText(current, field, language).trim().length > 0 || isAdminUser)
+    : []
+
+  const hasProfile =
+    profileHeadline.trim().length > 0 ||
+    profileIntro.trim().length > 0 ||
+    credentials.length > 0
+
+  const tocItems = [
+    { id: 'greeting-letter', label: ko ? '인사말' : 'The Letter' },
+    ...(hasProfile
+      ? [{ id: 'greeting-profile', label: ko ? '담임목사 소개' : 'About the Pastor' }]
+      : []),
+    ...(past.length > 0
+      ? [{ id: 'greeting-history', label: ko ? '역대 담임목사' : 'Pastors Who Served' }]
+      : []),
+  ]
+
+  return (
+    <div className="bg-gray-50 dark:bg-black min-h-screen page-stage">
+      {/* lg+: 본문(읽기 폭 유지) + 우측 위젯 레일 2단 — /about 과 같은 규격 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+          {/* Hero — 사진 없이 문장만. 인사는 얼굴보다 말이 먼저다 */}
+          <header className="gr-hero">
+            <span className="gr-hero-badge">
+              <EditableText fieldKey="greetingBadge" isAdmin={isAdminUser}>
+                {tx('greetingBadge')}
+              </EditableText>
+            </span>
+            <h1 className="gr-hero-title" style={{ whiteSpace: 'pre-line' }}>
+              <EditableText fieldKey="greetingHeroTitle" multiline isAdmin={isAdminUser}>
+                {tx('greetingHeroTitle')}
+              </EditableText>
+            </h1>
+            <p className="gr-hero-subtitle">
+              <EditableText fieldKey="greetingHeroSubtitle" isAdmin={isAdminUser}>
+                {tx('greetingHeroSubtitle')}
+              </EditableText>
+            </p>
+          </header>
+
+          <div className="gr-content">
+            {isLoading && !current ? (
+              <GreetingSkeleton />
+            ) : !current ? (
+              <EmptyState isAdmin={isAdminUser} ko={ko} onGoAdmin={() => navigate('/admin/pastors')} />
+            ) : (
+              <>
+                {/* 인사말 — 이력서가 아니라 편지 */}
+                <section id="greeting-letter" className="gr-letter">
+                  <div className="gr-letter-head">
+                    <EditablePastorPhoto pastor={current} isAdmin={isAdminUser}>
+                      {photoUrl ? (
+                        <img className="gr-photo" src={photoUrl} alt={name} />
+                      ) : isAdminUser ? (
+                        <span className="gr-photo gr-photo--empty" aria-hidden="true">
+                          <CameraIcon size={24} />
+                        </span>
+                      ) : null}
+                    </EditablePastorPhoto>
+
+                    <div className="gr-letter-head-text">
+                      {greetingTitle && (
+                        <h2 className="gr-letter-title">
+                          <EditablePastorText
+                            pastor={current}
+                            field="greeting_title"
+                            isAdmin={isAdminUser}
+                          >
+                            {greetingTitle}
+                          </EditablePastorText>
+                        </h2>
+                      )}
+                      <p className="gr-letter-byline">
+                        <EditablePastorText pastor={current} field="role" isAdmin={isAdminUser}>
+                          {role}
+                        </EditablePastorText>
+                        <span className="gr-dot">·</span>
+                        <EditablePastorText pastor={current} field="name" isAdmin={isAdminUser}>
+                          {name}
+                        </EditablePastorText>
+                      </p>
+                      {(nickname || isAdminUser) && (
+                        <p className="gr-letter-nickname">
+                          <EditablePastorText
+                            pastor={current}
+                            field="nickname"
+                            isAdmin={isAdminUser}
+                          >
+                            {nickname ? `"${nickname}"` : ko ? '별칭을 등록해주세요' : 'Add a nickname'}
+                          </EditablePastorText>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <QuoteIcon size={28} className="gr-quote-mark" />
+
+                  <div className="gr-letter-body">
+                    <EditablePastorText
+                      pastor={current}
+                      field="greeting_body"
+                      multiline
+                      rows={14}
+                      isAdmin={isAdminUser}
+                    >
+                      <p className="gr-letter-text" style={{ whiteSpace: 'pre-line' }}>
+                        {greetingBody ||
+                          (isAdminUser
+                            ? ko
+                              ? '인사말 본문을 등록해주세요.'
+                              : 'Add the greeting letter.'
+                            : '')}
+                      </p>
+                    </EditablePastorText>
+                  </div>
+
+                  {(signature || isAdminUser) && (
+                    <div className="gr-signature">
+                      <EditablePastorText
+                        pastor={current}
+                        field="signature"
+                        isAdmin={isAdminUser}
+                      >
+                        {signature || (ko ? '맺음말을 등록해주세요' : 'Add a closing line')}
+                      </EditablePastorText>
+                    </div>
+                  )}
+                </section>
+
+                {/* 담임목사 소개 — 인사말을 다 읽은 사람이 "이분은 누구지?"에 답한다 */}
+                {hasProfile && (
+                  <section id="greeting-profile" className="gr-profile">
+                    <h2 className="gr-section-title">
+                      <EditableText fieldKey="greetingProfileTitle" isAdmin={isAdminUser}>
+                        {tx('greetingProfileTitle')}
+                      </EditableText>
+                    </h2>
+                    <span className="gr-rule" aria-hidden="true" />
+
+                    {(profileHeadline || isAdminUser) && (
+                      <p className="gr-profile-headline">
+                        <EditablePastorText
+                          pastor={current}
+                          field="profile_headline"
+                          isAdmin={isAdminUser}
+                        >
+                          {profileHeadline ||
+                            (ko ? '한 줄 소개를 등록해주세요' : 'Add a one-line headline')}
+                        </EditablePastorText>
+                      </p>
+                    )}
+
+                    {(profileIntro || isAdminUser) && (
+                      <EditablePastorText
+                        pastor={current}
+                        field="profile_intro"
+                        multiline
+                        rows={8}
+                        isAdmin={isAdminUser}
+                      >
+                        <p className="gr-profile-intro" style={{ whiteSpace: 'pre-line' }}>
+                          {profileIntro ||
+                            (ko ? '소개 글을 등록해주세요.' : 'Add an introduction.')}
+                        </p>
+                      </EditablePastorText>
+                    )}
+
+                    {credentials.length > 0 && (
+                      <div className="gr-credentials">
+                        {credentials.map(([labelKey, field]) => {
+                          const value = pastorText(current, field, language)
+                          return (
+                            <div className="gr-credential" key={field}>
+                              <div className="gr-credential-label">
+                                <EditableText fieldKey={labelKey} isAdmin={isAdminUser}>
+                                  {tx(labelKey)}
+                                </EditableText>
+                              </div>
+                              <EditablePastorText
+                                pastor={current}
+                                field={field}
+                                multiline
+                                rows={7}
+                                isAdmin={isAdminUser}
+                              >
+                                {value ? (
+                                  <ul className="gr-credential-list">
+                                    {toLines(value).map((line, i) => (
+                                      <li key={i} className="gr-credential-line">
+                                        {line}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <p className="gr-credential-empty">
+                                    {ko ? '아직 등록되지 않았습니다' : 'Not added yet'}
+                                  </p>
+                                )}
+                              </EditablePastorText>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </section>
+                )}
+
+                {/* 역대 담임목사 — 교체해도 기록이 남는다는 것이 이 페이지의 뼈대다 */}
+                {past.length > 0 && (
+                  <section id="greeting-history" className="gr-history">
+                    <h2 className="gr-section-title">
+                      <EditableText fieldKey="greetingHistoryTitle" isAdmin={isAdminUser}>
+                        {tx('greetingHistoryTitle')}
+                      </EditableText>
+                    </h2>
+                    <p className="gr-history-hint">
+                      <EditableText fieldKey="greetingHistoryHint" isAdmin={isAdminUser}>
+                        {tx('greetingHistoryHint')}
+                      </EditableText>
+                    </p>
+
+                    <ul className="gr-history-strip">
+                      {past.map((pastor) => (
+                        <li key={pastor.id}>
+                          <button
+                            type="button"
+                            className="gr-history-card"
+                            onClick={() => setSheetPastor(pastor)}
+                          >
+                            <span className="gr-history-photo">
+                              {pastor.photo_url ? (
+                                <img src={pastor.photo_url} alt={pastorText(pastor, 'name', language)} />
+                              ) : (
+                                <UsersIcon size={20} />
+                              )}
+                            </span>
+                            <span className="gr-history-name">
+                              {pastorText(pastor, 'name', language)}
+                            </span>
+                            <span className="gr-history-role">
+                              {pastorText(pastor, 'role', language)}
+                            </span>
+                            {pastorTermLabel(pastor, language) && (
+                              <span className="gr-history-term">
+                                {pastorTermLabel(pastor, language)}
+                              </span>
+                            )}
+                            {pastor.status === 'emeritus' && (
+                              <span className="gr-history-badge">{ko ? '원로' : 'Emeritus'}</span>
+                            )}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button
+                      type="button"
+                      className="gr-history-more"
+                      onClick={() => navigate('/history')}
+                    >
+                      <span>{ko ? '참빛의 발자취 전체 보기' : 'See our full story'}</span>
+                      <ChevronRightIcon size={16} />
+                    </button>
+                  </section>
+                )}
+
+                {/* 맺음 — 인사말을 읽은 다음 갈 곳 */}
+                <section className="gr-closing">
+                  <p className="gr-closing-text">
+                    <EditableText fieldKey="greetingClosing" isAdmin={isAdminUser}>
+                      {tx('greetingClosing')}
+                    </EditableText>
+                  </p>
+                  <div className="gr-closing-actions">
+                    <button type="button" className="gr-cta" onClick={() => navigate('/visit')}>
+                      <MapPinIcon size={17} />
+                      <span>{ko ? '오시는 길' : 'Directions'}</span>
+                    </button>
+                    <button type="button" className="gr-cta" onClick={() => navigate('/about')}>
+                      <UsersIcon size={17} />
+                      <span>{ko ? '교회 소개' : 'About Us'}</span>
+                    </button>
+                  </div>
+                </section>
+              </>
+            )}
+
+            {isAdminUser && (
+              <div className="gr-admin-hint">
+                <p>
+                  {ko
+                    ? '✏️ 아이콘으로 인사말·사진을 바로 고칠 수 있습니다. 담임목사가 바뀌면 아래에서 새로 등록하세요.'
+                    : 'Use the ✏️ icons to edit inline. When the pastor changes, register the new one below.'}
+                </p>
+                <button type="button" onClick={() => navigate('/admin/pastors')}>
+                  <span>{ko ? '담임목사 관리' : 'Manage Pastors'}</span>
+                  <ChevronRightIcon size={15} />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 우측 위젯 레일 (lg+) — 읽는 페이지라 목차가 주인공 */}
+        <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+          {tocItems.length > 0 && (
+            <nav className="gr-toc">
+              <p className="gr-toc-title">{ko ? '이 페이지 훑어보기' : 'On this page'}</p>
+              {tocItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="gr-toc-link"
+                  onClick={() =>
+                    document
+                      .getElementById(item.id)
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                >
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          )}
+
+          {current && (
+            <div className="gr-rail-card">
+              <p className="gr-rail-label">{ko ? '현 담임목사' : 'Senior Pastor'}</p>
+              <p className="gr-rail-name">{name}</p>
+              {pastorTermLabel(current, language) && (
+                <p className="gr-rail-term">{pastorTermLabel(current, language)}</p>
+              )}
+              {nickname && <p className="gr-rail-nickname">"{nickname}"</p>}
+            </div>
+          )}
+        </aside>
+      </div>
+
+      {sheetPastor && (
+        <PastorSheet pastor={sheetPastor} onClose={() => setSheetPastor(null)} />
+      )}
+    </div>
+  )
+}
+
+// ── 보조 컴포넌트 ────────────────────────────────────────
+
+const GreetingSkeleton = () => (
+  <div className="gr-skeleton" aria-hidden="true">
+    <div className="gr-skeleton-photo" />
+    <div className="gr-skeleton-line gr-skeleton-line--title" />
+    <div className="gr-skeleton-line" />
+    <div className="gr-skeleton-line" />
+    <div className="gr-skeleton-line gr-skeleton-line--short" />
+  </div>
+)
+
+const EmptyState = ({
+  isAdmin,
+  ko,
+  onGoAdmin,
+}: {
+  isAdmin: boolean
+  ko: boolean
+  onGoAdmin: () => void
+}) => (
+  <div className="gr-empty">
+    <span className="gr-empty-icon" aria-hidden="true">
+      ✉️
+    </span>
+    <p className="gr-empty-title">
+      {ko ? '인사말이 아직 준비 중입니다' : 'The greeting is being prepared'}
+    </p>
+    <p className="gr-empty-text">
+      {isAdmin
+        ? ko
+          ? '담임목사 관리에서 현 담임목사를 등록하면 이 자리에 인사말이 표시됩니다.'
+          : 'Register the current senior pastor in the admin page to fill this section.'
+        : ko
+          ? '곧 담임목사님의 인사말로 찾아뵙겠습니다.'
+          : 'We will share our pastor’s greeting here soon.'}
+    </p>
+    {isAdmin && (
+      <button type="button" className="gr-empty-cta" onClick={onGoAdmin}>
+        {ko ? '담임목사 등록하기' : 'Register a pastor'}
+      </button>
+    )}
+  </div>
+)
+
+export default Greeting
