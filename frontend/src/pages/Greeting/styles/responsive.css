@@ -1,15 +1,9 @@
 /* 인사말 - 반응형
-   모바일에서는 사진과 제목이 한 줄에 버티지 못하므로 세로로 쌓는다.
+   사진(116px)+간격을 빼도 텍스트 폭이 충분해 모바일에서도 사진 옆에 붙인다.
    PC(lg+)에서는 /about 과 같이 글줄 길이를 44rem으로 묶는다 —
    넓은 1단이면 한 줄이 100자를 넘어 눈이 줄을 놓친다. */
 
 @media (max-width: 400px) {
-  .gr-letter-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.875rem;
-  }
-
   .gr-hero-title {
     font-size: 1.35rem;
   }
