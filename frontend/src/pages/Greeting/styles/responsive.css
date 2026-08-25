@@ -82,10 +82,7 @@
   /* 안쪽 카드 상자는 벗긴다 — 바깥 .gr-letter 가 카드다 */
   .gr-letter-card {
     padding: 0;
-    background: none;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+    border-top: 0;
   }
 
   .gr-quote-mark {

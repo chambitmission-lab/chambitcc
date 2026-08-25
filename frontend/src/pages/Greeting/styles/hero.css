@@ -5,15 +5,17 @@
    왼쪽은 스크림으로 눌러 문장의 자리를 만들고 오른쪽은 고른 베일로 사진 질감을 가라앉힌다 —
    덧그린 장식(십자가 등)은 두지 않는다. 흰 글씨는 양 테마 공통. 애니메이션 없음. */
 
+/* 모바일도 PC와 같은 문법 — 히어로는 액자가 아니라 화면 폭 가득한 "커버",
+   아래 편지 카드가 커버 하단을 타고 올라온다(하단 여백 5rem 이 그 자리) */
 .gr-hero {
-  padding: 0.85rem 1rem 0;
+  padding: 0;
 }
 
 .gr-hero-card {
   position: relative;
   overflow: hidden;
-  border-radius: 24px;
-  padding: 2.4rem 1.6rem 2.5rem;
+  border-radius: 0;
+  padding: 2.6rem 1.5rem 5rem;
   background-color: var(--gr-hero-base);
   background-image: var(--gr-hero-scrim), var(--gr-hero-image);
   background-size: cover;
@@ -68,7 +70,7 @@
 
 /* 본문 컨테이너 — /about 의 .about-content 와 같은 여백 규격 */
 .gr-content {
-  padding: 1.75rem 1.5rem 2rem;
+  padding: 0 1rem 2rem;
 }
 
 /* 섹션 제목 + 그 아래 짧은 브랜드 룰 (원본 홈페이지의 구분선 감성) */
@@ -101,7 +103,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 0.5rem 0 2rem;
+  padding: 1.75rem 0 2rem; /* 커버 아래 숨 쉴 여백 */
 }
 
 .gr-skeleton-photo {
@@ -149,7 +151,7 @@
 /* ── 등록 전 빈 상태 ─────────────────────────────── */
 .gr-empty {
   text-align: center;
-  padding: 3rem 1rem;
+  padding: 3.25rem 1rem 3rem;
 }
 
 .gr-empty-icon {

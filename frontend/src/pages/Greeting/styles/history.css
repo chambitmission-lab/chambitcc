@@ -17,8 +17,8 @@
 
 .gr-history-strip {
   list-style: none;
-  margin: 0 -1.5rem;
-  padding: 0.25rem 1.5rem 0.75rem;
+  margin: 0 -1rem;
+  padding: 0.25rem 1rem 0.75rem;
   display: flex;
   gap: 0.625rem;
   overflow-x: auto;

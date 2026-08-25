@@ -4,15 +4,23 @@
    오른쪽 아래 서명. 세리프는 목양칼럼(/about 의 pastor-letter)과 같은 계열을
    써서 앱 안에서 "목사님이 쓰신 글"의 서체 문법을 하나로 맞춘다. */
 
+/* 편지 = 카드 한 장(인물 헤드 + 본문). 커버 위로 올라탄다 */
 .gr-letter {
-  margin-bottom: 2.75rem;
+  position: relative;
+  margin-top: -3.25rem;
+  margin-bottom: 2.5rem;
+  padding: 1.35rem 1.15rem 0.5rem;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  box-shadow: 0 1px 2px rgba(24, 26, 40, 0.08), 0 -6px 18px -10px rgba(10, 24, 60, 0.25), 0 14px 32px -14px rgba(24, 26, 40, 0.28);
 }
 
 .gr-letter-head {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 /* 인물 사진 — 세로 비율(3:4)을 지킨다. 업로드도 비율 보존으로 저장된다 */
@@ -101,12 +109,10 @@
 }
 
 /* 편지 카드 — 스크린샷의 인용 카드. 본문·서명·공유를 한 장에 담는다 */
+/* 안쪽 상자는 없다 — 바깥 .gr-letter 가 카드다. 본문 시작을 헤어라인으로 나눈다 */
 .gr-letter-card {
-  padding: 1.5rem 1.4rem 0.5rem;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  border-radius: 22px;
-  box-shadow: var(--card-shadow);
+  padding: 1.1rem 0 0;
+  border-top: 1px solid var(--card-border);
 }
 
 /* 큰따옴표 장식 — 편지가 시작된다는 신호 */
