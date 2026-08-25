@@ -14,7 +14,7 @@ type Block =
   | { kind: 'text'; text: string }
   | { kind: 'list'; items: { ordinal: string; body: string }[] }
 
-export function parseLetter(text: string): Block[] {
+function parseLetter(text: string): Block[] {
   const lines = text.split('\n')
   const blocks: Block[] = []
   let buf: string[] = []

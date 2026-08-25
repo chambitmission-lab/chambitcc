@@ -18,6 +18,8 @@ import EditablePastorText from './components/EditablePastorText'
 import EditablePastorPhoto from './components/EditablePastorPhoto'
 import PastorSheet from './components/PastorSheet'
 import LetterBody from './components/LetterBody'
+import GreetingRail from './components/GreetingRail'
+import { SIGNATURE_INK } from './components/signatureInk'
 import CredentialTimeline, { CREDENTIAL_ICONS } from './components/CredentialTimeline'
 import {
   CameraIcon,
@@ -32,13 +34,10 @@ import heroSpringDay from '../../assets/hero/spring-afternoon.jpg'
 import heroSummerDay from '../../assets/hero/afternoon.jpg'
 import heroAutumnDay from '../../assets/hero/autumn-afternoon.jpg'
 import heroWinterDay from '../../assets/hero/winter-afternoon.jpg'
-import signatureAndongcheol from '../../assets/signature-andongcheol.png'
 import './styles/index.css'
 
-/* 손글씨 사인 — 이름별 잉크 이미지(투명 PNG). 서명 문장 안의 이름만 이 이미지로 바꿔
-   "참빛교회 담임목사 [사인] 올림" 으로 읽히게 한다. 등록된 이름이 아니면 텍스트 그대로. */
-const SIGNATURE_INK: Record<string, string> = { 안동철: signatureAndongcheol }
-
+/* 서명 문장 안의 이름만 손글씨 잉크로 바꿔 "참빛교회 담임목사 [사인] 올림" 으로 읽히게 한다.
+   등록된 이름이 아니면 텍스트 그대로. */
 function SignatureLine({ text, name }: { text: string; name: string }) {
   const ink = name ? SIGNATURE_INK[name] : undefined
   const at = ink && name ? text.indexOf(name) : -1
@@ -471,36 +470,7 @@ const Greeting = () => {
 
         {/* 우측 위젯 레일 (lg+) — 읽는 페이지라 목차가 주인공 */}
         <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
-          {tocItems.length > 0 && (
-            <nav className="gr-toc">
-              <p className="gr-toc-title">{ko ? '이 페이지 훑어보기' : 'On this page'}</p>
-              {tocItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className="gr-toc-link"
-                  onClick={() =>
-                    document
-                      .getElementById(item.id)
-                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }
-                >
-                  {item.label}
-                </button>
-              ))}
-            </nav>
-          )}
-
-          {current && (
-            <div className="gr-rail-card">
-              <p className="gr-rail-label">{ko ? '현 담임목사' : 'Senior Pastor'}</p>
-              <p className="gr-rail-name">{name}</p>
-              {pastorTermLabel(current, language) && (
-                <p className="gr-rail-term">{pastorTermLabel(current, language)}</p>
-              )}
-              {nickname && <p className="gr-rail-nickname">"{nickname}"</p>}
-            </div>
-          )}
+          <GreetingRail ko={ko} toc={tocItems} />
         </aside>
       </div>
 
