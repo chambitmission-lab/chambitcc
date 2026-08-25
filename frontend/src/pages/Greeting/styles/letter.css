@@ -23,9 +23,17 @@
   border-radius: 22px;
   object-fit: cover;
   object-position: center top;
-  background: var(--surface-container-high);
-  border: 1px solid var(--card-border);
   filter: var(--media-dim);
+  /* 테두리 없음 — 사진의 흰 배경을 카드에 녹여 인물만 남긴다(컷아웃).
+     multiply 는 흰색을 바탕색으로 흡수하므로 옅은 회색 그라데이션 배경도 사라진다.
+     다크에서는 곱하기가 인물까지 어둡게 만들어 쓰지 않는다 */
+  mix-blend-mode: multiply;
+}
+
+:root[data-theme="dark"] .gr-photo,
+.dark .gr-photo {
+  mix-blend-mode: normal;
+  background: var(--surface-container-high);
 }
 
 /* 사진 미등록 시 관리자에게만 보이는 등록 자리 */
