@@ -33,7 +33,7 @@ export const useGrowthSummary = (enabled = true) => {
     queryFn: getGrowthSummary,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
     enabled,
     retry: 1,
   })
@@ -52,7 +52,7 @@ export const useGrowthRecentDays = (days = 14, enabled = true) => {
     queryFn: () => getGrowthTimeline(undefined, days),
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
     enabled,
     retry: 1,
   })
@@ -69,7 +69,7 @@ export const useFaithJourneyInsight = (enabled = true) => {
     queryFn: getFaithJourneyInsight,
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 30,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
     enabled,
     retry: 1,
   })
@@ -90,7 +90,7 @@ export const useGrowthTimeline = (enabled = true) => {
       lastPage.data.has_more ? lastPage.data.next_before : undefined,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
     enabled,
     retry: 1,
   })

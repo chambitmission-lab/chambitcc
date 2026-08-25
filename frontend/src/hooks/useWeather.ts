@@ -132,7 +132,7 @@ export const useCurrentWeather = (): CurrentWeatherState => {
     staleTime: WEATHER_REFRESH_MS,
     gcTime: 1000 * 60 * 60,
     retry: false,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchInterval: WEATHER_REFRESH_MS,
     /* 백그라운드에서는 멈춘다 — 앱 복귀 시 포커스 리페치가 대신 최신화한다 */
@@ -185,7 +185,7 @@ export const useSundayRain = (): number | null => {
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 3,
     retry: false,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
   })
   return isNear ? data ?? null : null

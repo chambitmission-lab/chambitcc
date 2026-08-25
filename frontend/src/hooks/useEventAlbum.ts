@@ -85,10 +85,8 @@ export const useEventAlbumPosts = (
     initialPageParam: 1,
     enabled,
     staleTime: 1000 * 60 * 2, // 2분
-    // 전역 refetchOnMount:false(queryClient.ts) + 영속캐시의 예외.
-    // 관리자 등록은 react-query 밖(raw fetch)이라 이 캐시를 안 건드린다 →
-    // /news 진입/새로고침마다 항상 최신 목록을 다시 받아 새 앨범이 바로 뜨게 한다.
-    refetchOnMount: 'always',
+    // 관리자 등록/수정/삭제는 invalidateEventAlbum으로 즉시 무효화된다
+    refetchOnMount: true,
   })
 
   const posts: EventAlbumPost[] = query.data?.pages.flatMap((p) => p.data.items) ?? []
@@ -103,8 +101,7 @@ export const useEventAlbumStats = (enabled = true) =>
     queryFn: fetchEventAlbumStats,
     enabled,
     staleTime: 1000 * 60 * 2,
-    // 목록과 같은 이유 — Hero 통계·연도 칩도 진입 시 최신화
-    refetchOnMount: 'always',
+    refetchOnMount: true,
   })
 
 /** "N년 전 오늘" 회상 카드 — 결과 없으면 빈 배열 */
@@ -114,7 +111,7 @@ export const useEventAlbumOnThisDay = (enabled = true) =>
     queryFn: fetchEventAlbumOnThisDay,
     enabled,
     staleTime: 1000 * 60 * 10,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
   })
 
 /** 일정 상세(/events/:id)에서 연결된 앨범 포스트 조회 */
@@ -124,7 +121,7 @@ export const useEventAlbumsByEvent = (eventId: number, enabled = true) =>
     queryFn: () => fetchEventAlbumsByEvent(eventId),
     enabled: enabled && Number.isFinite(eventId) && eventId > 0,
     staleTime: 1000 * 60 * 5,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
   })
 
 /** 목록·통계 전체 무효화 — 관리자 화면 mutation 뒤 사용 (refetchType:'all'로 비활성 쿼리까지) */

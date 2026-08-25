@@ -25,11 +25,8 @@ export const useNewsList = (
       return items.length === pageLimit ? page + 1 : undefined
     },
     initialPageParam: 1,
-    staleTime: 1000 * 60 * 2, // 2분
-    // 전역 refetchOnMount:false + 영속 캐시의 예외 —
-    // 관리자 등록은 react-query 밖(raw fetch)이라 이 캐시를 안 건드린다.
-    // 진입할 때마다 최신 목록을 받아 새 소식이 바로 뜨게 한다.
-    refetchOnMount: 'always',
+    staleTime: 1000 * 60 * 2, // 2분 — 관리자 등록/수정/삭제는 useInvalidateNews로 즉시 무효화된다
+    refetchOnMount: true,
   })
 
   const items: NewsItem[] = query.data?.pages.flatMap((p) => p.data.items) ?? []
@@ -54,8 +51,9 @@ export const useNewsDetail = (newsId: number | null) =>
     staleTime: 1000 * 60,
   })
 
-/** 등록·수정·삭제 후 목록/분류를 한 번에 새로고침 */
+/** 등록·수정·삭제 후 목록/분류를 한 번에 새로고침 (관리 화면에서 호출되므로 비활성 캐시까지 refetch) */
 export const useInvalidateNews = () => {
   const queryClient = useQueryClient()
-  return () => queryClient.invalidateQueries({ queryKey: newsKeys.all })
+  return () =>
+    queryClient.invalidateQueries({ queryKey: newsKeys.all, refetchType: 'all' })
 }

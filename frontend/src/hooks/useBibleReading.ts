@@ -122,7 +122,7 @@ export const useReadingProgress = (enabled: boolean = true) => {
     queryFn: () => getReadingProgress(),
     enabled,
     staleTime: 1000 * 30, // 30초
-    refetchOnMount: 'always', // 글로벌 false 오버라이드 — Garden 진입 시 항상 최신값
+    refetchOnMount: true, // staleTime(30초) 지나면 Garden 진입 시 재조회
   })
 }
 

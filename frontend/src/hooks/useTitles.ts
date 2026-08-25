@@ -14,7 +14,7 @@ export const useTitles = (enabled = true) =>
     queryFn: getTitles,
     enabled,
     staleTime: 1000 * 30,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
   })
 
 /** 현재 장착한 칭호(프로필용) */

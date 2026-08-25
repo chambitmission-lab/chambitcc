@@ -26,6 +26,7 @@ import type { InfiniteData } from '@tanstack/react-query'
 type PostsCache = InfiniteData<NewFamilyListResponse>
 type CommentsCache = InfiniteData<NewFamilyCommentListResponse>
 
+const ROOT_KEY = ['new-family']
 const POSTS_KEY = ['new-family', 'posts']
 const STATS_KEY = ['new-family', 'stats']
 const commentsKey = (postId: number) => ['new-family', postId, 'comments']
@@ -51,6 +52,11 @@ const patchPostInCache = (
   })
 }
 
+/** 목록·통계 전체 무효화 — 관리자 화면 mutation 뒤 사용 (refetchType:'all'로 비활성 쿼리까지) */
+export const invalidateNewFamily = (
+  queryClient: ReturnType<typeof useQueryClient>,
+) => queryClient.invalidateQueries({ queryKey: ROOT_KEY, refetchType: 'all' })
+
 // ── 목록 ─────────────────────────────────────────────
 export const useNewFamilyPosts = (limit = 10, enabled = true) => {
   const query = useInfiniteQuery({
@@ -62,11 +68,8 @@ export const useNewFamilyPosts = (limit = 10, enabled = true) => {
     },
     initialPageParam: 1,
     enabled,
-    staleTime: 1000 * 60 * 2, // 2분
-    // 전역 refetchOnMount:false(queryClient.ts) + 영속캐시의 예외.
-    // 관리자 등록은 react-query 밖(raw fetch)이라 이 캐시를 안 건드린다 →
-    // /news 진입/새로고침마다 항상 최신 목록을 다시 받아 새 새가족이 바로 뜨게 한다.
-    refetchOnMount: 'always',
+    staleTime: 1000 * 60 * 2, // 2분 — 관리자 등록/수정/삭제는 invalidateNewFamily로 즉시 무효화된다
+    refetchOnMount: true,
   })
 
   const posts: NewFamilyPost[] = query.data?.pages.flatMap((p) => p.data.items) ?? []
@@ -81,8 +84,7 @@ export const useNewFamilyStats = (enabled = true) =>
     queryFn: fetchNewFamilyStats,
     enabled,
     staleTime: 1000 * 60 * 2,
-    // 목록과 같은 이유 — Hero 통계(이번 달/올해/전체)도 진입 시 최신화
-    refetchOnMount: 'always',
+    refetchOnMount: true,
   })
 
 // ── 환영 리액션 ───────────────────────────────────────

@@ -7,6 +7,7 @@ import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { deleteNews, fetchNewsList, patchNews } from '../../api/news'
 import type { NewsItem } from '../../types/news'
+import { useInvalidateNews } from '../../hooks/useNews'
 import NewsComposer from './components/NewsComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 
@@ -27,6 +28,7 @@ const timeOf = (news: NewsItem) => new Date(news.published_at ?? news.created_at
 
 const NewsManagement = () => {
   const navigate = useNavigate()
+  const invalidateNews = useInvalidateNews()
 
   const [items, setItems] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -61,6 +63,12 @@ const NewsManagement = () => {
     }
   }
 
+  /** 관리 화면 mutation 뒤 — /news 목록(비활성 캐시)까지 최신화 */
+  const refreshEverywhere = () => {
+    invalidateNews()
+    loadNews()
+  }
+
   const handleDelete = async (news: NewsItem) => {
     if (
       !(await confirmDialog({
@@ -75,7 +83,7 @@ const NewsManagement = () => {
     try {
       await deleteNews(news.id)
       showToast('삭제되었습니다', 'success')
-      loadNews()
+      refreshEverywhere()
     } catch (err) {
       showToast(err instanceof Error ? err.message : '삭제에 실패했습니다', 'error')
     }
@@ -89,6 +97,7 @@ const NewsManagement = () => {
     try {
       const updated = await patchNews(news.id, patch)
       setItems((prev) => prev.map((n) => (n.id === news.id ? { ...n, ...updated } : n)))
+      invalidateNews()
       showToast(message, 'success')
     } catch (err) {
       showToast(err instanceof Error ? err.message : '변경에 실패했습니다', 'error')
@@ -329,7 +338,7 @@ const NewsManagement = () => {
             onClose={() => setComposer(null)}
             onSuccess={() => {
               setComposer(null)
-              loadNews()
+              refreshEverywhere()
             }}
           />
         )}

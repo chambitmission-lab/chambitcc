@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import {
@@ -8,6 +9,7 @@ import {
   updateNewFamilyPost,
 } from '../../api/newFamily'
 import type { NewFamilyPost } from '../../types/newFamily'
+import { invalidateNewFamily } from '../../hooks/useNewFamily'
 import NewFamilyComposer from './components/NewFamilyComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
@@ -31,6 +33,7 @@ const isThisMonth = (value: string): boolean => {
 
 const NewFamilyManagement = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const [posts, setPosts] = useState<NewFamilyPost[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,6 +67,12 @@ const NewFamilyManagement = () => {
     }
   }
 
+  /** 관리 화면 mutation 뒤 — /news 목록(비활성 캐시)까지 최신화 */
+  const refreshEverywhere = () => {
+    invalidateNewFamily(queryClient)
+    loadPosts()
+  }
+
   const handleDelete = async (post: NewFamilyPost) => {
     if (
       !(await confirmDialog({
@@ -78,7 +87,7 @@ const NewFamilyManagement = () => {
     try {
       await deleteNewFamilyPost(post.id)
       showToast('삭제되었습니다', 'success')
-      loadPosts()
+      refreshEverywhere()
     } catch (err) {
       showToast(err instanceof Error ? err.message : '삭제에 실패했습니다', 'error')
     }
@@ -88,6 +97,7 @@ const NewFamilyManagement = () => {
     try {
       const updated = await updateNewFamilyPost(post.id, { is_published: !post.is_published })
       setPosts(prev => prev.map(p => (p.id === post.id ? { ...p, ...updated } : p)))
+      invalidateNewFamily(queryClient)
       showToast(updated.is_published ? '공개로 전환했어요' : '비공개로 전환했어요', 'success')
     } catch (err) {
       showToast(err instanceof Error ? err.message : '변경에 실패했습니다', 'error')
@@ -306,7 +316,7 @@ const NewFamilyManagement = () => {
             onClose={() => setComposer(null)}
             onSuccess={() => {
               setComposer(null)
-              loadPosts()
+              refreshEverywhere()
             }}
           />
         )}
