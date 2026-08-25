@@ -252,3 +252,30 @@
     font-size: 1.0625rem;
   }
 }
+
+/* 손글씨 사인 — 서명 문장 속 이름 자리에 잉크 이미지를 앉힌다.
+   PNG 를 마스크로 써서 잉크 색이 텍스트 토큰(다크 모드 포함)을 따른다.
+   원본 170×76 → 글줄 높이에 맞춰 2.4em, 베이스라인보다 살짝 내려 앉혀 손으로 쓴 느낌 */
+.gr-signature-ink {
+  display: inline-block;
+  width: 5.1em;
+  height: 2.1em;
+  margin: 0 0.3em;
+  vertical-align: -0.85em;
+  background-color: var(--text-strong);
+  -webkit-mask: var(--gr-ink) center / contain no-repeat;
+  mask: var(--gr-ink) center / contain no-repeat;
+}
+
+.gr-signature {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0;
+  font-weight: 600;
+}
+
+.gr-signature .gr-signature-ink {
+  vertical-align: middle;
+}

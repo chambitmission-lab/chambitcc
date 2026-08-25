@@ -32,7 +32,30 @@ import heroSpringDay from '../../assets/hero/spring-afternoon.jpg'
 import heroSummerDay from '../../assets/hero/afternoon.jpg'
 import heroAutumnDay from '../../assets/hero/autumn-afternoon.jpg'
 import heroWinterDay from '../../assets/hero/winter-afternoon.jpg'
+import signatureAndongcheol from '../../assets/signature-andongcheol.png'
 import './styles/index.css'
+
+/* 손글씨 사인 — 이름별 잉크 이미지(투명 PNG). 서명 문장 안의 이름만 이 이미지로 바꿔
+   "참빛교회 담임목사 [사인] 올림" 으로 읽히게 한다. 등록된 이름이 아니면 텍스트 그대로. */
+const SIGNATURE_INK: Record<string, string> = { 안동철: signatureAndongcheol }
+
+function SignatureLine({ text, name }: { text: string; name: string }) {
+  const ink = name ? SIGNATURE_INK[name] : undefined
+  const at = ink && name ? text.indexOf(name) : -1
+  if (!ink || at < 0) return <>{text}</>
+  return (
+    <>
+      {text.slice(0, at)}
+      <span
+        className="gr-signature-ink"
+        role="img"
+        aria-label={name}
+        style={{ '--gr-ink': `url(${ink})` } as CSSProperties}
+      />
+      {text.slice(at + name.length)}
+    </>
+  )
+}
 
 /* 히어로 배경 — 라이트 테마용 계절 낮 사진(홈 히어로와 같은 자산).
  * 다크 테마는 계절 무관 겨울 밤 은하수 고정이라 theme.css 가 직접 url 을 갖는다.
@@ -227,7 +250,13 @@ const Greeting = () => {
                           field="signature"
                           isAdmin={isAdminUser}
                         >
-                          {signature || (ko ? '맺음말을 등록해주세요' : 'Add a closing line')}
+                          {signature ? (
+                            <SignatureLine text={signature} name={name} />
+                          ) : ko ? (
+                            '맺음말을 등록해주세요'
+                          ) : (
+                            'Add a closing line'
+                          )}
                         </EditablePastorText>
                       </div>
                     )}
