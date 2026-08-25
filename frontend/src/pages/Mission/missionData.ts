@@ -94,28 +94,28 @@ export const regionMeta: Record<RegionKey, {
     label: '아시아',
     labelEn: 'ASIA',
     emoji: '🌏',
-    color: '#f59e0b',
+    color: '#3182f6',
     gradient: 'from-amber-500 via-orange-500 to-red-500',
   },
   europe: {
     label: '유럽·중앙아시아',
     labelEn: 'EUROPE · CENTRAL ASIA',
     emoji: '🌍',
-    color: '#3b82f6',
+    color: '#4a7c59',
     gradient: 'from-sky-500 via-blue-500 to-indigo-600',
   },
   africa: {
     label: '아프리카',
     labelEn: 'AFRICA',
     emoji: '🦁',
-    color: '#84cc16',
+    color: '#a1621f',
     gradient: 'from-lime-500 via-green-500 to-emerald-600',
   },
   americas: {
     label: '아메리카',
     labelEn: 'AMERICAS',
     emoji: '🌎',
-    color: '#ec4899',
+    color: '#7c4fbf',
     gradient: 'from-pink-500 via-rose-500 to-fuchsia-600',
   },
 }
@@ -240,7 +240,7 @@ export const countryPrayerLine = (country: string, lang: 'ko' | 'en') => {
 }
 
 /** 아바타 링·배경 컬러 — 이름 해시로 고정 배정 */
-const AVATAR_COLORS = ['#38bdf8', '#a78bfa', '#f472b6', '#fbbf24', '#34d399', '#60a5fa']
+const AVATAR_COLORS = ['#3182f6', '#7c4fbf', '#a1503c', '#b45309', '#0f766e', '#4a7c59']
 export const avatarColor = (name: string) =>
   AVATAR_COLORS[strHash(name) % AVATAR_COLORS.length]
 

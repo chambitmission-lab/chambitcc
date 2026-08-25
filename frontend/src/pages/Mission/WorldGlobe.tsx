@@ -8,6 +8,7 @@
  */
 import { memo, useEffect, useRef } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
+import { LAND_POLYS, pointInPoly } from './landGeometry'
 
 export interface GlobePoint {
   country: string
@@ -30,64 +31,6 @@ const RAD = Math.PI / 180
 
 /** 파송의 출발점 — 서울 실좌표 */
 const SEOUL = { lat: 37.57, lng: 126.98 }
-
-/**
- * 대륙 근사 다각형 [lng, lat][] — 정확한 국경이 아니라 도트로 채웠을 때
- * 실루엣이 읽히는 수준의 손그림 외곽선. 실제 위경도 좌표계라 선교지
- * 실좌표(countryDetail)와 어긋나지 않는다.
- */
-export const LAND_POLYS: [number, number][][] = [
-  // 북아메리카 (알래스카~멕시코)
-  [[-168, 66], [-155, 71], [-140, 70], [-125, 72], [-110, 73], [-95, 74], [-80, 73], [-70, 68], [-60, 60], [-65, 50], [-70, 45], [-75, 40], [-78, 34], [-81, 30], [-83, 27], [-90, 29], [-95, 27], [-97, 23], [-100, 18], [-95, 15], [-92, 14], [-105, 20], [-110, 24], [-117, 32], [-124, 40], [-125, 48], [-132, 55], [-140, 60], [-152, 60], [-160, 58], [-166, 62]],
-  // 그린란드
-  [[-52, 61], [-45, 60], [-30, 68], [-20, 76], [-30, 82], [-55, 82], [-60, 75]],
-  // 남아메리카
-  [[-77, 8], [-70, 11], [-62, 10], [-55, 5], [-50, 0], [-44, -3], [-38, -7], [-35, -9], [-39, -15], [-41, -22], [-48, -27], [-53, -34], [-58, -39], [-62, -41], [-65, -47], [-68, -52], [-72, -54], [-73, -46], [-73, -37], [-71, -30], [-70, -18], [-75, -14], [-80, -6], [-80, 0], [-77, 4]],
-  // 유럽 본토
-  [[-9, 43], [-8, 37], [-6, 36], [0, 38], [3, 42], [8, 44], [12, 38], [16, 38], [15, 41], [19, 42], [23, 36], [26, 38], [28, 41], [30, 45], [35, 45], [40, 47], [45, 48], [48, 52], [45, 58], [38, 60], [30, 60], [25, 58], [20, 55], [12, 54], [5, 52], [0, 50], [-5, 48]],
-  // 스칸디나비아
-  [[5, 58], [10, 63], [15, 68], [25, 70], [30, 70], [28, 65], [22, 60], [18, 57], [12, 56], [8, 58]],
-  // 영국·아일랜드
-  [[-10, 52], [-6, 55], [-5, 58], [-2, 58], [0, 53], [1, 51], [-5, 50]],
-  // 아프리카
-  [[-17, 15], [-16, 20], [-10, 28], [-6, 34], [0, 36], [10, 37], [12, 33], [20, 32], [30, 31], [33, 28], [35, 22], [38, 18], [43, 11], [48, 11], [51, 10], [45, 2], [41, -3], [40, -10], [36, -18], [33, -26], [28, -33], [20, -35], [17, -30], [14, -22], [12, -15], [9, -6], [8, 3], [4, 6], [-5, 5], [-10, 6], [-14, 10]],
-  // 마다가스카르
-  [[44, -16], [48, -13], [50, -16], [48, -22], [45, -25], [43, -21]],
-  // 아라비아 반도
-  [[35, 30], [40, 32], [45, 30], [50, 26], [55, 25], [58, 23], [55, 17], [50, 15], [45, 13], [43, 17], [40, 20], [36, 25]],
-  // 유라시아 본토 (러시아·중앙아·중국·인도·동남아·한반도)
-  [[45, 48], [50, 55], [55, 62], [65, 68], [75, 72], [90, 75], [105, 77], [120, 73], [135, 71], [150, 70], [165, 67], [179, 66], [179, 62], [170, 60], [160, 58], [155, 52], [145, 50], [135, 45], [130, 42], [128, 39], [126, 35], [122, 30], [121, 25], [115, 22], [108, 18], [105, 12], [103, 7], [100, 10], [98, 15], [94, 18], [90, 22], [88, 21], [85, 18], [80, 12], [77, 8], [73, 15], [70, 20], [66, 24], [62, 25], [58, 26], [56, 30], [52, 32], [48, 35], [46, 40], [44, 44]],
-  // 일본 열도
-  [[130, 32], [132, 34], [135, 35], [138, 36], [140, 38], [141, 41], [143, 44], [145, 44], [142, 40], [140, 35], [136, 33], [132, 31]],
-  // 수마트라
-  [[95, 5], [99, 2], [103, -2], [106, -6], [103, -5], [99, -1], [95, 3]],
-  // 자바
-  [[105, -6], [110, -7], [114, -8], [110, -8.5], [106, -7.5]],
-  // 보르네오
-  [[109, 1], [113, 4], [117, 6], [118, 1], [115, -2], [111, -2]],
-  // 술라웨시
-  [[119, 0], [122, 1], [124, -1], [121, -3], [119, -2]],
-  // 뉴기니
-  [[131, -1], [136, -2], [141, -3], [146, -6], [143, -8], [138, -7], [133, -4]],
-  // 필리핀
-  [[120, 18], [122, 16], [124, 12], [125, 8], [122, 8], [120, 13], [119, 16]],
-  // 오스트레일리아
-  [[114, -22], [113, -25], [115, -32], [118, -35], [124, -33], [130, -32], [136, -35], [140, -38], [147, -38], [150, -34], [153, -28], [151, -24], [146, -19], [142, -13], [137, -12], [132, -11], [126, -14], [122, -18], [118, -20]],
-  // 뉴질랜드
-  [[173, -35], [176, -38], [174, -41], [170, -44], [167, -46], [170, -43], [173, -39]],
-]
-
-export const pointInPoly = (x: number, y: number, poly: [number, number][]) => {
-  let inside = false
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i]
-    const [xj, yj] = poly[j]
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
-      inside = !inside
-    }
-  }
-  return inside
-}
 
 /**
  * 도트 육지 — 위도별로 경도 간격을 1/cosφ 보정해 구체 위에서 도트 간격이
@@ -158,11 +101,14 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
 
   // 렌더 루프가 매 프레임 읽는 값 전부 ref — React 재렌더 없이 애니메이션
   const propsRef = useRef({ points, selectedCountry, zoomOut, theme })
-  propsRef.current = { points, selectedCountry, zoomOut, theme }
   const onHoverRef = useRef(onHover)
-  onHoverRef.current = onHover
   const onSelectRef = useRef(onSelect)
-  onSelectRef.current = onSelect
+  // 렌더 중 ref 를 쓰면 안 된다 — 커밋 직후 최신 값으로 동기화 (rAF 루프는 그 뒤에 읽는다)
+  useEffect(() => {
+    propsRef.current = { points, selectedCountry, zoomOut, theme }
+    onHoverRef.current = onHover
+    onSelectRef.current = onSelect
+  })
 
   // 카메라 상태(현재/목표) — 목표를 향해 매 프레임 감쇠 보간
   const camRef = useRef({ lat: 25, lng: 100, r: 0, targetLat: 25, targetLng: 100, targetR: 0 })
@@ -271,8 +217,8 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
 
       // ── 대기 글로우 + 구체 ──
       const glow = ctx.createRadialGradient(cx, cy, R * 0.92, cx, cy, R * 1.18)
-      glow.addColorStop(0, dark ? 'rgba(56,189,248,0.22)' : 'rgba(59,130,246,0.16)')
-      glow.addColorStop(1, 'rgba(56,189,248,0)')
+      glow.addColorStop(0, dark ? 'rgba(69,147,252,0.18)' : 'rgba(49,130,246,0.12)')
+      glow.addColorStop(1, 'rgba(49,130,246,0)')
       ctx.fillStyle = glow
       ctx.beginPath()
       ctx.arc(cx, cy, R * 1.18, 0, Math.PI * 2)
@@ -295,12 +241,12 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
       ctx.beginPath()
       ctx.arc(cx, cy, R, 0, Math.PI * 2)
       ctx.fill()
-      ctx.strokeStyle = dark ? 'rgba(125,211,252,0.22)' : 'rgba(148,163,184,0.45)'
+      ctx.strokeStyle = dark ? 'rgba(160,190,240,0.22)' : 'rgba(120,135,160,0.4)'
       ctx.lineWidth = 1
       ctx.stroke()
 
       // ── 도트 육지 (앞면만) ──
-      ctx.fillStyle = dark ? 'rgba(125,211,252,0.32)' : 'rgba(37,99,235,0.34)'
+      ctx.fillStyle = dark ? 'rgba(160,190,240,0.34)' : 'rgba(49,130,246,0.32)'
       const dotR = Math.max(1.1, R * 0.012)
       for (const d of LAND_DOTS) {
         const p = project(d.lat, d.lng, R, cx, cy)
@@ -349,12 +295,12 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
       // ── 서울 마커 ──
       const sp = project(SEOUL.lat, SEOUL.lng, R, cx, cy)
       if (sp.z > 0) {
-        ctx.fillStyle = 'rgba(56,189,248,0.25)'
+        ctx.fillStyle = 'rgba(49,130,246,0.22)'
         ctx.beginPath()
         ctx.arc(sp.x, sp.y, 9, 0, Math.PI * 2)
         ctx.fill()
         ctx.fillStyle = '#ffffff'
-        ctx.strokeStyle = '#38bdf8'
+        ctx.strokeStyle = '#3182f6'
         ctx.lineWidth = 2
         ctx.beginPath()
         ctx.arc(sp.x, sp.y, 3.5, 0, Math.PI * 2)
@@ -362,7 +308,7 @@ const WorldGlobe = ({ points, onHover, onSelect, selectedCountry, zoomOut }: Wor
         ctx.stroke()
         ctx.font = '700 9px Pretendard, sans-serif'
         ctx.textAlign = 'center'
-        ctx.fillStyle = dark ? 'rgba(224,242,254,0.9)' : 'rgba(3,105,161,0.9)'
+        ctx.fillStyle = dark ? 'rgba(235,240,250,0.92)' : 'rgba(25,23,34,0.9)'
         ctx.fillText('SEOUL', sp.x, sp.y - 11)
       }
 

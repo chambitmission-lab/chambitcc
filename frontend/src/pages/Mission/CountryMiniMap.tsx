@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { LAND_POLYS, pointInPoly } from './WorldGlobe'
+import { LAND_POLYS, pointInPoly } from './landGeometry'
 import { countryDetail } from './missionData'
 
 /**

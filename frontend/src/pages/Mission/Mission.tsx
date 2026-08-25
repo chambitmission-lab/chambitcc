@@ -51,17 +51,17 @@ const tzOffsetMs = (tz: string, at: Date): number | null => {
 }
 
 /** 숫자 카운트업 — 화면에 들어오면 0→값으로 차오른다 (reduced-motion 시 즉시 표시) */
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 const CountUpNum = ({ value }: { value: number }) => {
   const ref = useRef<HTMLSpanElement>(null)
-  const [display, setDisplay] = useState(0)
+  // reduced-motion 이면 처음부터 최종값 — 이펙트에서 setState 로 되돌리지 않는다
+  const [display, setDisplay] = useState(() => (prefersReducedMotion() ? value : 0))
 
   useEffect(() => {
     const el = ref.current
-    if (!el) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setDisplay(value)
-      return
-    }
+    if (!el || prefersReducedMotion()) return
     let raf = 0
     const io = new IntersectionObserver(
       entries => {
@@ -245,32 +245,12 @@ const Mission = () => {
       <div className="mission-shell">
         {/* ===== HERO ===== */}
         <section className="mission-hero">
-          {/* 지구 호(弧)와 빛나는 십자가 — 우상단 장식 (텍스트 뒤 레이어) */}
-          <div className="hero-scene" aria-hidden>
-            <svg viewBox="0 0 220 200" fill="none">
-              <circle cx="150" cy="210" r="96" className="hs-globe" />
-              <path d="M58 184 Q150 142 242 184" className="hs-lat" />
-              <path d="M68 160 Q150 124 232 160" className="hs-lat" />
-              <path d="M70 152 Q115 96 175 126" className="hs-arc" />
-              <path d="M96 136 Q150 82 206 116" className="hs-arc" />
-              <circle cx="70" cy="152" r="2.4" className="hs-dot" />
-              <circle cx="175" cy="126" r="2.4" className="hs-dot" />
-              <circle cx="96" cy="136" r="2" className="hs-dot" />
-              <circle cx="206" cy="116" r="2" className="hs-dot" />
-              <g className="hs-cross">
-                <rect x="147" y="26" width="6" height="48" rx="3" />
-                <rect x="133" y="40" width="34" height="6" rx="3" />
-              </g>
-            </svg>
-          </div>
-
           <div className="hero-eyebrow">CHAMBIT CHURCH · MISSION</div>
           <h1 className="hero-title">
             {t('missionHeroTitleLine1')}
             <br />
             {t('missionHeroTitleLine2')}
           </h1>
-          <div className="hero-title-en">WORLDWIDE&nbsp;·&nbsp;MISSION&nbsp;·&nbsp;STATISTICS</div>
 
           <div className="hero-verse">
             {t('missionHeroVerse')}
@@ -281,19 +261,12 @@ const Mission = () => {
         {/* ===== STATS ===== */}
         <div className="mission-stats">
           {([
-            { key: 'missionary', value: missionStats.total, color: '#38bdf8', label: 'missionStatDispatched', desc: 'missionStatDispatchedDesc' },
-            { key: 'countries', value: missionStats.countries, color: '#60a5fa', label: 'missionStatCountries', desc: 'missionStatCountriesDesc' },
-            { key: 'continents', value: missionStats.regions, color: '#818cf8', label: 'missionStatContinents', desc: 'missionStatContinentsDesc' },
-            { key: 'partners', value: missionStats.domesticPartners, color: '#a78bfa', label: 'missionStatDomesticPartners', desc: 'missionStatDomesticPartnersDesc' },
+            { key: 'missionary', value: missionStats.total, label: 'missionStatDispatched', desc: 'missionStatDispatchedDesc' },
+            { key: 'countries', value: missionStats.countries, label: 'missionStatCountries', desc: 'missionStatCountriesDesc' },
+            { key: 'continents', value: missionStats.regions, label: 'missionStatContinents', desc: 'missionStatContinentsDesc' },
+            { key: 'partners', value: missionStats.domesticPartners, label: 'missionStatDomesticPartners', desc: 'missionStatDomesticPartnersDesc' },
           ] as const).map(s => (
-            <div
-              key={s.key}
-              className="stat-card"
-              style={{
-                ['--sc' as string]: s.color,
-                ['--sc-soft' as string]: `${s.color}1f`,
-              }}
-            >
+            <div key={s.key} className="stat-card">
               <div className="stat-icon">{STAT_ICONS[s.key]}</div>
               <div className="stat-main">
                 <CountUpNum value={s.value} />
@@ -331,7 +304,6 @@ const Mission = () => {
               className="featured-card"
               style={{
                 ['--fc' as string]: featuredColor,
-                ['--fc-soft' as string]: `${featuredColor}2e`,
               }}
               onClick={handleFeaturedClick}
             >
@@ -398,10 +370,7 @@ const Mission = () => {
                       key={key}
                       className={`region-tab ${activeRegion === key ? 'active' : ''}`}
                       onClick={() => handleRegionChange(key)}
-                      style={activeRegion === key ? {
-                        borderColor: meta.color,
-                        boxShadow: `0 0 20px ${meta.color}55`,
-                      } : undefined}
+                      style={{ ['--rc' as string]: meta.color }}
                     >
                       <span>{meta.emoji}</span>
                       <span>{t(REGION_LABEL_KEY[key])}</span>
@@ -421,11 +390,9 @@ const Mission = () => {
               <span className="line" />
             </div>
 
-            <div className="region-header">
+            <div className="region-header" style={{ ['--rc' as string]: activeMeta.color }}>
               <div className="region-eyebrow">{activeMeta.labelEn}</div>
-              <div className="region-label" style={{
-                backgroundImage: `linear-gradient(135deg, #fff, ${activeMeta.color})`,
-              }}>
+              <div className="region-label">
                 {activeRegionLabel} {t('missionRegionArea')}
               </div>
             </div>
@@ -541,12 +508,8 @@ const MissionaryGroups = ({
             /* 카드 어디를 눌러도 국가 선택 — 헤더 버튼 클릭도 여기로 버블링된다 */
             onClick={() => onCountryClick(g.country)}
             style={{
-              ['--card-glow' as string]: `${color}40`,
+              ['--rc' as string]: color,
               animationDelay: `${Math.min(idx * 0.04, 0.4)}s`,
-              ...(isSelected ? {
-                borderColor: color,
-                boxShadow: `0 0 24px ${color}55, 0 0 8px ${color}30`,
-              } : {}),
             }}
           >
             {/* 우측 배경의 미니 지역 지도 + 위치 핀 — 선택되면 밝아진다 */}
@@ -581,8 +544,8 @@ const MissionaryGroups = ({
                     <span
                       className="member-avatar"
                       style={{
-                        background: `linear-gradient(135deg, ${av}, ${av}99)`,
-                        boxShadow: `0 0 0 2px var(--av-gap, rgba(6, 11, 26, 0.9)), 0 0 0 3.5px ${av}77`,
+                        background: av,
+                        boxShadow: `0 0 0 2px var(--av-gap, #fff), 0 0 0 3.5px ${av}55`,
                       }}
                     >
                       {m.name.charAt(0)}
@@ -693,7 +656,6 @@ const MissionarySheet = ({
         onClick={e => e.stopPropagation()}
         style={{
           ['--fc' as string]: color,
-          ['--fc-soft' as string]: `${color}2e`,
         }}
       >
         <div className="sheet-grabber" />
