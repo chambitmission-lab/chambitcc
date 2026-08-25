@@ -438,7 +438,6 @@ const BibleStudy = () => {
         <span className="dash-tile__text">
           {storyReadCount > 0 ? dt.tileStoryProgress(storyReadCount) : dt.tileStory}
         </span>
-        <span className="material-icons-round dash-tile__chevron">expand_more</span>
       </button>
       <button type="button" onClick={() => navigate('/bible/situation')} className="dash-tile">
         <span className="dash-tile__icon dash-tile__icon--green">
@@ -446,7 +445,6 @@ const BibleStudy = () => {
         </span>
         <span className="dash-tile__title">{dt.situationTitle}</span>
         <span className="dash-tile__text">{dt.tileSituation}</span>
-        <span className="material-icons-round dash-tile__chevron">expand_more</span>
       </button>
       <button type="button" onClick={() => navigate('/bible/photo-verse')} className="dash-tile">
         <span className="dash-tile__icon dash-tile__icon--purple">
@@ -454,7 +452,6 @@ const BibleStudy = () => {
         </span>
         <span className="dash-tile__title">{dt.photoTitle}</span>
         <span className="dash-tile__text">{dt.tilePhoto}</span>
-        <span className="material-icons-round dash-tile__chevron">expand_more</span>
       </button>
       {isLoggedIn() && (
         <button type="button" onClick={() => setShowPlaylist(true)} className="dash-tile">
@@ -465,8 +462,7 @@ const BibleStudy = () => {
           <span className="dash-tile__text">
             {favoritesCount > 0 ? dt.tileFavCount(favoritesCount) : dt.tileFav}
           </span>
-          <span className="material-icons-round dash-tile__chevron">expand_more</span>
-        </button>
+          </button>
       )}
     </div>
   )
