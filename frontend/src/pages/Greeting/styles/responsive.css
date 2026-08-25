@@ -30,10 +30,70 @@
     font-size: 1.85rem;
   }
 
+  /* PC: 본문 기둥을 히어로와 같은 폭으로 — 좌우 1.25rem 은 .gr-hero 와 동일해
+     히어로 카드와 편지 카드의 좌우 모서리가 한 줄로 떨어진다 */
   .gr-content {
-    max-width: 44rem;
-    margin: 0 auto;
-    padding: 2.5rem 2rem 2rem;
+    max-width: none;
+    margin: 0;
+    padding: 2.25rem 1.25rem 2.5rem;
+  }
+
+  /* 편지 = 카드 한 장. 인물 블록(사진·직분·제목·별칭)을 카드 안 왼쪽에 띄우고(float)
+     본문이 그 옆에서 시작해 사진 아래부터는 카드 전체 폭으로 흐른다.
+     별도 컬럼을 두지 않으니 왼쪽이 비지 않고 전체 높이도 낮아진다 */
+  .gr-letter {
+    display: flow-root;
+    margin-bottom: 3rem;
+    padding: 2.25rem 2.5rem 0.75rem;
+    background: var(--surface-container);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    box-shadow: var(--card-shadow);
+  }
+
+  .gr-letter-head {
+    float: left;
+    width: 224px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.1rem;
+    margin: 0 2.5rem 1.25rem 0;
+  }
+
+  .gr-letter-head-text {
+    flex: none;
+    gap: 0.45rem;
+  }
+
+  /* 안쪽 카드 상자는 벗긴다 — 바깥 .gr-letter 가 카드다 */
+  .gr-letter-card {
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .gr-quote-mark {
+    margin-top: 0.25rem;
+  }
+
+  .gr-letter-actions {
+    clear: both;
+  }
+
+  .gr-letter-text {
+    font-size: 1.0625rem;
+  }
+
+  .gr-signature {
+    font-size: 1rem;
+  }
+
+  /* 소개·역대 카드도 같은 폭 — 넓어진 만큼 안쪽 여백을 키운다 */
+  .gr-profile {
+    padding: 2.25rem 2.5rem 2rem;
+    border-radius: 24px;
   }
 
   /* 목차로 점프할 때 고정 헤더에 제목이 가리지 않게 */
@@ -45,8 +105,10 @@
 
   /* 넓은 화면에서는 사진을 키워 인물이 또렷하게 */
   .gr-photo {
-    width: 140px;
-    height: 180px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    border-radius: 26px;
   }
 
   .gr-letter-title {
