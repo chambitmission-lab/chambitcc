@@ -446,29 +446,8 @@ const About = () => {
         </div>
       </div>
 
-      {/* 우측 위젯 레일 (lg+) — 읽는 페이지이므로 목차 + 실행 정보(한눈에)를 붙인다 */}
+      {/* 우측 위젯 레일 (lg+) — 실행 정보(한눈에)만. 목차는 보여주기식이라 두지 않는다 */}
       <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
-        <nav className="about-toc">
-          <p className="about-toc-title">{ko ? '이 페이지 훑어보기' : 'On this page'}</p>
-          {[
-            { id: 'about-intro', label: ko ? '우리 이야기' : 'Our Story' },
-            { id: 'about-meeting', label: ko ? '어떤 만남인가요' : 'Our Meetings' },
-            { id: 'about-pastor', label: ko ? '담임목사 인사' : 'From the Pastor' },
-            { id: 'about-cta', label: ko ? '함께 하실래요?' : 'Join Us' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="about-toc-link"
-              onClick={() =>
-                document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              }
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
         {renderQuickInfo()}
       </aside>
       </div>

@@ -52,23 +52,178 @@
 }
 
 /* ── PC 2단 (lg+) ─────────────────────────────────────
- * 다른 안내 페이지(/news·/sermon 등)와 같은 규격의 2단. 다만 이 페이지는
- * "읽는 글"이라 본문 카드는 넓히되 글줄 길이는 44rem으로 묶는다
- * (넓은 1단이면 한 줄이 100자를 넘어 눈이 줄을 놓친다).
+ * /greeting 과 같은 문법: 히어로는 커버, 본문은 커버와 같은 폭의 카드들이
+ * 커버 하단을 타고 올라온다. 각 섹션은 PC 에서 좌우 2단 편집 그리드로 펼쳐
+ * 세로로 길게 늘어지지 않게 한다. 글줄 폭은 오른쪽 칸(≈540px)이 지킨다.
+ * 목차 카드는 섹션이 네 개뿐이라 보여주기식 — 두지 않는다(★재제안 금지).
  */
 @media (min-width: 1024px) {
   .about-content {
-    max-width: 44rem;
-    margin: 0 auto;
-    padding: 2.5rem 2rem 2rem;
+    max-width: none;
+    margin: 0;
+    padding: 0 1.25rem 2.5rem;
   }
 
-  /* 목차로 점프할 때 고정 헤더에 제목이 가리지 않게 */
-  #about-intro,
-  #about-meeting,
-  #about-pastor,
-  #about-cta {
-    scroll-margin-top: 5rem;
+  /* 공통 카드 껍데기 */
+  .intro-section,
+  .meeting-section,
+  .pastor-section {
+    background: var(--surface-container);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    box-shadow: var(--card-shadow);
+    padding: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* 우리 이야기 — 커버 위로 올라탄 첫 카드. 왼쪽에 오버라인+제목, 오른쪽에 글+약속의 말씀 */
+  .intro-section {
+    position: relative;
+    margin-top: -3.25rem;
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(0, 1.7fr);
+    grid-template-areas:
+      'badge text'
+      'title text'
+      'title quote'
+      '. quote';
+    column-gap: 3rem;
+    align-content: start;
+    box-shadow: 0 1px 2px rgba(24, 26, 40, 0.08), 0 -8px 24px -12px rgba(10, 24, 60, 0.25), 0 20px 44px -18px rgba(24, 26, 40, 0.3);
+  }
+
+  .intro-section .section-badge {
+    grid-area: badge;
+  }
+
+  .intro-section .section-title {
+    grid-area: title;
+    font-size: 1.9rem;
+    line-height: 1.28;
+    margin-bottom: 0;
+  }
+
+  .intro-section .intro-text {
+    grid-area: text;
+    font-size: 1.0625rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .intro-section .quote-card {
+    grid-area: quote;
+    margin: 0;
+  }
+
+  /* 어떤 만남인가요 — 스쳐가는 만남(왼쪽) 뒤에 손수건 같은 만남(오른쪽)이 크게 받는다 */
+  .meeting-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'title title'
+      'pass good';
+    column-gap: 2.5rem;
+    align-items: center;
+  }
+
+  .meeting-section .meeting-title {
+    grid-area: title;
+    text-align: left;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  .meeting-section .meeting-pass {
+    grid-area: pass;
+    margin: 0;
+    padding: 0;
+  }
+
+  .meeting-section .meeting-pass-row p {
+    font-size: 1rem;
+  }
+
+  .meeting-section .meeting-good-card {
+    grid-area: good;
+    padding: 2.25rem 2rem;
+    border-radius: 20px;
+  }
+
+  .meeting-section .meeting-good-card .good-text {
+    font-size: 1.2rem;
+    line-height: 1.6;
+  }
+
+  /* 담임목사 편지 — /greeting 과 같은 float 인물 블록 */
+  .pastor-section {
+    display: flow-root;
+  }
+
+  .pastor-section .section-badge {
+    margin-bottom: 1.25rem;
+  }
+
+  .pastor-head {
+    float: left;
+    width: 200px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    margin: 0 2.5rem 1rem 0;
+  }
+
+  .pastor-photo {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    border-radius: 24px;
+  }
+
+  .pastor-name {
+    font-size: 1.5rem;
+  }
+
+  .pastor-text {
+    font-size: 1.0625rem;
+  }
+
+  .pastor-credentials,
+  .pastor-greeting-link {
+    clear: both;
+  }
+
+  /* 함께 하실래요 — 넓은 화면에선 행동 버튼 4개를 한 줄로 */
+  .cta-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .cta-card {
+    padding: 3rem 2.5rem 2.5rem;
+    border-radius: 24px;
+  }
+
+  .cta-title {
+    font-size: 2rem;
+  }
+
+  .cta-text {
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cta-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    max-width: 52rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .footer-message {
+    padding: 1.5rem 1rem 0.5rem;
+    margin-top: 1rem;
   }
 
   /* 한눈에 정보는 우측 레일이 맡는다 — 본문의 것은 중복이라 숨긴다 */
@@ -78,45 +233,5 @@
 
   .about-quickinfo {
     margin: 0;
-  }
-
-  /* 목차 — 지금 페이지의 뼈대를 한눈에 */
-  .about-toc {
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    background: var(--surface-container);
-    border: 1px solid var(--card-border);
-    border-radius: 20px;
-    box-shadow: var(--card-shadow);
-  }
-
-  .about-toc-title {
-    margin: 0 0 0.375rem;
-    font-size: 11.5px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    color: var(--text-muted);
-  }
-
-  .about-toc-link {
-    width: calc(100% + 1rem);
-    margin: 0 -0.5rem;
-    padding: 0.45rem 0.5rem;
-    border: none;
-    border-radius: 10px;
-    background: none;
-    font-family: inherit;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--text-strong);
-    text-align: left;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-
-  .about-toc-link:hover {
-    background: var(--brand-soft);
-    color: var(--brand);
   }
 }
