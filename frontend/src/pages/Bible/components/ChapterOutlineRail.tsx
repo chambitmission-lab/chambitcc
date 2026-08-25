@@ -57,8 +57,14 @@ const ChapterOutlineRail = ({
   // 암묵 root를 믿기 어렵다. 캡처 단계 scroll 리스너 + rAF 스로틀로 직접 잰다.
   useEffect(() => {
     let raf = 0
+    // 장이 바뀌면 본문은 맨 위에서 다시 시작한다. 그런데 이 시점엔 이전 장의 절 DOM과
+    // 스크롤 위치가 아직 남아 있어 즉시 재면 엉뚱한 단락이 켜진다(예: 7장 진입 직후 "홍수 심판").
+    // 그래서 첫 단락으로 리셋하고, 맨 위로 되돌아가는 동안(잠깐)은 측정을 건너뛴다.
+    setActiveVerse(1)
+    const settledAt = performance.now() + 800
     const measure = () => {
       raf = 0
+      if (performance.now() < settledAt) return
       const nodes = document.querySelectorAll<HTMLElement>('[data-verse]')
       if (!nodes.length) return
       // 화면 위쪽 40% 지점을 "읽는 줄"로 본다
