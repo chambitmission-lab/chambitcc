@@ -7,8 +7,13 @@
   right: 0;
   z-index: 1000;
   background: var(--ig-primary-background);
-  border-bottom: 1px solid var(--ig-border);
+  /* 흰 크롬(헤더·레일)과 회색 캔버스는 색 차이만으로 경계가 서므로 헤어라인은 4.5%로 —
+     레일 우측선(DesktopNavRail border-black/[0.045])과 같은 농도. 다크는 기존 토큰 유지 */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.045);
   transition: all 0.2s ease;
+}
+[data-theme="dark"] .new-header {
+  border-bottom-color: var(--ig-border);
 }
 
 .new-header.scrolled {

@@ -155,7 +155,7 @@ const DesktopNavRail = () => {
 
   return (
     <aside
-      className="hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-background-light dark:bg-background-dark border-r border-black/[0.05] dark:border-white/[0.06] px-3 xl:px-4 pt-6 pb-5"
+      className="hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-white dark:bg-background-dark border-r border-black/[0.045] dark:border-white/[0.06] px-3 xl:px-4 pt-6 pb-5"
       aria-label={t('railAria')}
     >
       <nav className="flex flex-col gap-1">
