@@ -14,6 +14,7 @@ import {
   BibleHeader,
   BookSelector,
   ChapterNavigation,
+  ChapterOutlineRail,
   BibleAudioPlayer,
   VerseList,
   BibleSearch,
@@ -546,7 +547,19 @@ const BibleStudy = () => {
               <div
                 className={`bible-chapter-section${commentaryOpen ? ' commentary-docked' : ''}`}
               >
-                <div className="lg:max-w-[720px] lg:mx-auto">
+                <div className="bible-chapter-inner">
+                {/* PC 좌측 장 개요 레일 — 단락 소제목 + 절 격자. 모바일에선 CSS로 숨김 */}
+                <ChapterOutlineRail
+                  bookNumber={selectedBookData.book_number}
+                  bookNameKo={selectedBook}
+                  bookNameEn={selectedBookData.book_name_en}
+                  chapter={selectedChapter}
+                  totalChapters={selectedBookData.chapter_count}
+                  totalVerses={chapterData?.pages[0]?.total_verses}
+                  onJumpToVerse={setPendingScrollVerse}
+                  onChapterChange={handleChapterChange}
+                />
+                <div className="bible-chapter-column">
                 <ChapterNavigation
                   selectedBook={selectedBook}
                   selectedBookId={selectedBookId}
@@ -603,6 +616,7 @@ const BibleStudy = () => {
                   onChapterFullyRead={planAutoComplete ? handleChapterFullyRead : undefined}
                   onCommentaryOpenChange={setCommentaryOpen}
                 />
+                </div>
                 </div>
               </div>
             )}
