@@ -75,6 +75,14 @@ const BibleStudy = () => {
       favTitle: '즐겨찾기 구절 듣기',
       favCount: (n: number) => `즐겨찾기한 ${n}개 구절을 묵상 플레이리스트로`,
       favIntro: '마음에 닿는 절을 모아 자기 전에 다시 듣기',
+      // 모바일 4열 타일용 짧은 문구
+      tileStory: '3분씩 42편의 이야기',
+      tileStoryProgress: (n: number) => `${n}화까지 읽음`,
+      tileSituation: '두려울 때, 슬플 때…',
+      tilePhoto: '말씀을 담아 나누기',
+      tileFavTitle: '즐겨찾기 구절',
+      tileFav: '마음에 담는 말씀',
+      tileFavCount: (n: number) => `${n}개 구절 듣기`,
     },
     en: {
       storyTitle: 'Meeting the Bible',
@@ -87,6 +95,13 @@ const BibleStudy = () => {
       favTitle: 'Listen to Favorites',
       favCount: (n: number) => `Turn your ${n} favorite verses into a playlist`,
       favIntro: 'Gather verses that touch you, listen before sleep',
+      tileStory: '42 stories, 3 min each',
+      tileStoryProgress: (n: number) => `Read to ep. ${n}`,
+      tileSituation: 'When afraid, sad…',
+      tilePhoto: 'Verse over your photo',
+      tileFavTitle: 'Favorites',
+      tileFav: 'Verses to keep',
+      tileFavCount: (n: number) => `Listen to ${n} verses`,
     },
   }
   const dt = dashTexts[language]
@@ -410,6 +425,51 @@ const BibleStudy = () => {
     </>
   )
 
+  // 모바일(lg 미만) — 4열 아이콘 타일 그리드. 세로 4줄 리스트보다 화면을 절반만 쓰고 "책 선택"이 위로 올라온다.
+  // 아이콘 색은 기능 식별용 시맨틱(스토리=브랜드, 상황=그린, 사진=퍼플, 듣기=오렌지)
+  const dashToolTiles = (
+    <div className={`dash-tiles${isLoggedIn() ? '' : ' dash-tiles--3'}`}>
+      <button type="button" onClick={() => navigate('/bible/story')} className="dash-tile">
+        <span className="dash-tile__icon dash-tile__icon--brand">
+          <span className="material-icons-round">auto_stories</span>
+        </span>
+        <span className="dash-tile__title">{dt.storyTitle}</span>
+        <span className="dash-tile__text">
+          {storyReadCount > 0 ? dt.tileStoryProgress(storyReadCount) : dt.tileStory}
+        </span>
+        <span className="material-icons-round dash-tile__chevron">expand_more</span>
+      </button>
+      <button type="button" onClick={() => navigate('/bible/situation')} className="dash-tile">
+        <span className="dash-tile__icon dash-tile__icon--green">
+          <span className="material-icons-round">sentiment_satisfied_alt</span>
+        </span>
+        <span className="dash-tile__title">{dt.situationTitle}</span>
+        <span className="dash-tile__text">{dt.tileSituation}</span>
+        <span className="material-icons-round dash-tile__chevron">expand_more</span>
+      </button>
+      <button type="button" onClick={() => navigate('/bible/photo-verse')} className="dash-tile">
+        <span className="dash-tile__icon dash-tile__icon--purple">
+          <span className="material-icons-round">photo_filter</span>
+        </span>
+        <span className="dash-tile__title">{dt.photoTitle}</span>
+        <span className="dash-tile__text">{dt.tilePhoto}</span>
+        <span className="material-icons-round dash-tile__chevron">expand_more</span>
+      </button>
+      {isLoggedIn() && (
+        <button type="button" onClick={() => setShowPlaylist(true)} className="dash-tile">
+          <span className="dash-tile__icon dash-tile__icon--orange">
+            <span className="material-icons-round">headphones</span>
+          </span>
+          <span className="dash-tile__title">{dt.tileFavTitle}</span>
+          <span className="dash-tile__text">
+            {favoritesCount > 0 ? dt.tileFavCount(favoritesCount) : dt.tileFav}
+          </span>
+          <span className="material-icons-round dash-tile__chevron">expand_more</span>
+        </button>
+      )}
+    </div>
+  )
+
   return (
     <div className="bg-gray-50 dark:bg-background-dark screen-fit-minus-header page-stage">
       {/* 하단 고정 네비게이션에 가리지 않도록 컨테이너에 바 높이만큼 하단 여백.
@@ -452,7 +512,7 @@ const BibleStudy = () => {
                         bookNameEn={books?.find(b => b.book_number === resumeData.latest!.book_number)?.book_name_en}
                       />
                     )}
-                    <div className="lg:hidden">{dashToolCards}</div>
+                    <div className="lg:hidden">{dashToolTiles}</div>
                   </div>
 
                   {/* 책 선택 */}
