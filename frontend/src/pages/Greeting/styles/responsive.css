@@ -18,24 +18,36 @@
 }
 
 @media (min-width: 1024px) {
+  /* PC: 히어로는 독립 액자가 아니라 페이지 카드의 "커버" — 윗면을 꽉 채우고,
+     편지 카드가 커버 하단을 타고 올라온다(노션 페이지 커버·프로필 커버의 관용구).
+     사진은 끝까지 선명하게 두고 카드 그림자만으로 층을 만든다 */
   .gr-hero {
-    padding: 1.25rem 1.25rem 0;
+    padding: 0;
   }
 
   .gr-hero-card {
-    padding: 3rem 2.5rem 3.1rem;
+    border-radius: 24px 24px 0 0;
+    padding: 3.25rem 2.5rem 6.5rem;
+    background-position: center 30%;
+    /* 페이드 없음 — 사진은 끝까지 선명하게, 카드는 그림자만으로 떠 있는다 */
   }
 
+  /* 스크림을 걷어낸 만큼 글자는 그림자로 자기 자리를 지킨다 */
   .gr-hero-title {
-    font-size: 1.85rem;
+    font-size: 2rem;
+    text-shadow: 0 1px 2px rgba(10, 24, 60, 0.35), 0 2px 18px rgba(10, 24, 60, 0.45);
   }
 
-  /* PC: 본문 기둥을 히어로와 같은 폭으로 — 좌우 1.25rem 은 .gr-hero 와 동일해
-     히어로 카드와 편지 카드의 좌우 모서리가 한 줄로 떨어진다 */
+  .gr-hero-subtitle {
+    color: rgba(226, 236, 255, 0.92);
+    text-shadow: 0 1px 2px rgba(10, 24, 60, 0.35), 0 2px 14px rgba(10, 24, 60, 0.45);
+  }
+
+  /* 본문 기둥은 커버와 같은 폭, 위 여백은 0 — 편지 카드가 커버 안으로 들어간다 */
   .gr-content {
     max-width: none;
     margin: 0;
-    padding: 2.25rem 1.25rem 2.5rem;
+    padding: 0 1.25rem 2.5rem;
   }
 
   /* 편지 = 카드 한 장. 인물 블록(사진·직분·제목·별칭)을 카드 안 왼쪽에 띄우고(float)
@@ -43,12 +55,14 @@
      별도 컬럼을 두지 않으니 왼쪽이 비지 않고 전체 높이도 낮아진다 */
   .gr-letter {
     display: flow-root;
+    position: relative;
+    margin-top: -4.5rem; /* 커버 위로 올라탐 */
     margin-bottom: 3rem;
     padding: 2.25rem 2.5rem 0.75rem;
     background: var(--surface-container);
     border: 1px solid var(--card-border);
     border-radius: 24px;
-    box-shadow: var(--card-shadow);
+    box-shadow: 0 1px 2px rgba(24, 26, 40, 0.08), 0 -8px 24px -12px rgba(10, 24, 60, 0.25), 0 20px 44px -18px rgba(24, 26, 40, 0.3);
   }
 
   .gr-letter-head {
@@ -126,5 +140,13 @@
 
   .gr-history-card {
     width: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* 편지 카드가 없는 상태(로딩·미등록)에는 커버 아래 숨 쉴 여백을 돌려준다 */
+  .gr-skeleton,
+  .gr-empty {
+    padding-top: 2.25rem;
   }
 }
