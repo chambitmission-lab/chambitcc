@@ -426,7 +426,8 @@ const BibleStudy = () => {
     </>
   )
 
-  // 모바일(lg 미만) — 4열 아이콘 타일 그리드. 세로 4줄 리스트보다 화면을 절반만 쓰고 "책 선택"이 위로 올라온다.
+  // 모바일(lg 미만) — 2×2 가로형 타일 그리드(아이콘 좌·제목/설명 우, 각 한 줄).
+  // 4열 세로형은 한글 제목이 두 줄로 깨져 폐기. 높이는 4열 때와 비슷하면서 줄바꿈이 없다.
   // 아이콘 색은 기능 식별용 시맨틱(스토리=브랜드, 상황=그린, 사진=퍼플, 듣기=오렌지)
   const dashToolTiles = (
     <div className={`dash-tiles${isLoggedIn() ? '' : ' dash-tiles--3'}`}>
@@ -434,33 +435,41 @@ const BibleStudy = () => {
         <span className="dash-tile__icon dash-tile__icon--brand">
           <span className="material-icons-round">auto_stories</span>
         </span>
-        <span className="dash-tile__title">{dt.storyTitle}</span>
-        <span className="dash-tile__text">
-          {storyReadCount > 0 ? dt.tileStoryProgress(storyReadCount) : dt.tileStory}
+        <span className="dash-tile__body">
+          <span className="dash-tile__title">{dt.storyTitle}</span>
+          <span className="dash-tile__text">
+            {storyReadCount > 0 ? dt.tileStoryProgress(storyReadCount) : dt.tileStory}
+          </span>
         </span>
       </button>
       <button type="button" onClick={() => navigate('/bible/situation')} className="dash-tile">
         <span className="dash-tile__icon dash-tile__icon--green">
           <span className="material-icons-round">sentiment_satisfied_alt</span>
         </span>
-        <span className="dash-tile__title">{dt.situationTitle}</span>
-        <span className="dash-tile__text">{dt.tileSituation}</span>
+        <span className="dash-tile__body">
+          <span className="dash-tile__title">{dt.situationTitle}</span>
+          <span className="dash-tile__text">{dt.tileSituation}</span>
+        </span>
       </button>
       <button type="button" onClick={() => navigate('/bible/photo-verse')} className="dash-tile">
         <span className="dash-tile__icon dash-tile__icon--purple">
           <span className="material-icons-round">photo_filter</span>
         </span>
-        <span className="dash-tile__title">{dt.photoTitle}</span>
-        <span className="dash-tile__text">{dt.tilePhoto}</span>
+        <span className="dash-tile__body">
+          <span className="dash-tile__title">{dt.photoTitle}</span>
+          <span className="dash-tile__text">{dt.tilePhoto}</span>
+        </span>
       </button>
       {isLoggedIn() && (
         <button type="button" onClick={() => setShowPlaylist(true)} className="dash-tile">
           <span className="dash-tile__icon dash-tile__icon--orange">
             <span className="material-icons-round">headphones</span>
           </span>
-          <span className="dash-tile__title">{dt.tileFavTitle}</span>
-          <span className="dash-tile__text">
+          <span className="dash-tile__body">
+            <span className="dash-tile__title">{dt.tileFavTitle}</span>
+            <span className="dash-tile__text">
             {favoritesCount > 0 ? dt.tileFavCount(favoritesCount) : dt.tileFav}
+          </span>
           </span>
           </button>
       )}
