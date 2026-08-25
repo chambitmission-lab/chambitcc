@@ -307,9 +307,10 @@
    색은 브랜드 토큰(--brand-soft)만 사용 — 라이트/다크 모두 자동 대응. */
 @media (min-width: 1024px) {
   .page-stage {
+    /* 캔버스가 쿨 그레이(--app-canvas)로 승격된 뒤엔 진한 브랜드 워시가 "얼룩"처럼
+       보이므로 상단 한 줄기만, 절반 농도로. 우하단 블롭은 카드·레일과 겹쳐 지저분해 제거. */
     background-image:
-      radial-gradient(1100px 480px at 50% -120px, var(--brand-soft), transparent 70%),
-      radial-gradient(900px 620px at 90% 110%, var(--brand-soft), transparent 65%);
+      radial-gradient(1100px 420px at 50% -140px, color-mix(in srgb, var(--brand-soft) 45%, transparent), transparent 70%);
     background-repeat: no-repeat;
     background-attachment: fixed;
   }
