@@ -17,6 +17,7 @@ import type { Pastor } from '../../types/pastor'
 import EditablePastorText from './components/EditablePastorText'
 import EditablePastorPhoto from './components/EditablePastorPhoto'
 import PastorSheet from './components/PastorSheet'
+import LetterBody from './components/LetterBody'
 import CredentialTimeline, { CREDENTIAL_ICONS } from './components/CredentialTimeline'
 import {
   CameraIcon,
@@ -209,14 +210,13 @@ const Greeting = () => {
                       rows={14}
                       isAdmin={isAdminUser}
                     >
-                      <p className="gr-letter-text" style={{ whiteSpace: 'pre-line' }}>
-                        {greetingBody ||
-                          (isAdminUser
-                            ? ko
-                              ? '인사말 본문을 등록해주세요.'
-                              : 'Add the greeting letter.'
-                            : '')}
-                      </p>
+                      {greetingBody ? (
+                        <LetterBody text={greetingBody} />
+                      ) : (
+                        <p className="gr-letter-text">
+                          {isAdminUser ? (ko ? '인사말 본문을 등록해주세요.' : 'Add the greeting letter.') : ''}
+                        </p>
+                      )}
                     </EditablePastorText>
                     </div>
 

@@ -166,3 +166,89 @@
 .gr-letter-byline .about-editable-wrapper {
   margin-right: 12px;
 }
+
+/* 열거 블록 — "첫째, … 둘째, …" 구간 (LetterBody 가 렌더 시점에 감지)
+   틴트 패널 위에 큰 세리프 번호를 세우고, 문장 끝 비유("생선과 같은 만남")를
+   형광펜처럼 밑칠해 목사님의 재치가 눈에 걸리게 한다. 마지막 항목은 보통
+   반전(좋은 만남)이라 번호를 브랜드색으로 채워 방점을 찍는다. */
+.gr-enum {
+  list-style: none;
+  margin: 1.4rem 0;
+  padding: 0.35rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border-top: 1px solid var(--brand-soft-strong);
+  border-bottom: 1px solid var(--brand-soft-strong);
+}
+
+.gr-enum-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  padding: 0.7rem 0.25rem;
+}
+
+.gr-enum-item + .gr-enum-item {
+  border-top: 1px dashed var(--card-border);
+}
+
+.gr-enum-num {
+  flex-shrink: 0;
+  min-width: 1.9rem;
+  font-family: 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--brand);
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.gr-enum-item:last-child .gr-enum-num {
+  opacity: 1;
+}
+
+.gr-enum-text {
+  font-size: 0.9375rem;
+  line-height: 1.85;
+  color: var(--text-body);
+  min-width: 0;
+}
+
+.gr-enum-ordinal {
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.gr-enum-simile {
+  background: linear-gradient(transparent 58%, var(--brand-soft) 58%);
+  color: var(--text-strong);
+  font-weight: 700;
+  padding: 0 0.1em;
+  border-radius: 2px;
+}
+
+.gr-enum-item:last-child .gr-enum-simile {
+  background: linear-gradient(transparent 58%, var(--brand-soft-strong) 58%);
+  color: var(--brand);
+}
+
+@media (min-width: 1024px) {
+  .gr-enum {
+    margin: 1.75rem 0;
+    padding: 0.5rem 0.5rem;
+  }
+  .gr-enum-item {
+    gap: 1.15rem;
+    padding: 0.8rem 0.5rem;
+  }
+  .gr-enum-num {
+    font-size: 1.6rem;
+    min-width: 2.2rem;
+  }
+  .gr-enum-text {
+    font-size: 1.0625rem;
+  }
+}
