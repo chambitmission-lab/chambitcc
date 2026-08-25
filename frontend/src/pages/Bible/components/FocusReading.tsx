@@ -71,6 +71,10 @@ const FocusReading = ({
   const markAsRead = useMarkVerseAsRead()
 
   const [activeIndex, setActiveIndex] = useState(0)
+  // 본문을 탭하면 열리는 보조 도구(해석). 기본은 접힘 — 본문 외 요소가 시선을 끌지 않게.
+  // 다른 절로 넘어가면 자동으로 접힌다.
+  const [toolsOpen, setToolsOpen] = useState(false)
+  useEffect(() => { setToolsOpen(false) }, [activeIndex])
   const [showBookmark, setShowBookmark] = useState(false)
   // 해석 시트 — 이 절 번호의 해석을 하단 시트로 (null = 닫힘)
   const [commentaryVerse, setCommentaryVerse] = useState<number | null>(null)
@@ -311,35 +315,50 @@ const FocusReading = ({
           const isRead = readSet.has(v.id) && !markedRef.current.has(v.id)
           const lengthClass =
             v.text.length > 150 ? ' is-vlong' : v.text.length > 90 ? ' is-long' : ''
+          const hasCommentary = commentaryVerseSet.has(v.verse)
           return (
             <section key={v.id} className="focus-slide">
               <div className={`focus-slide__inner${i === activeIndex ? ' is-active' : ''}`}>
-                <span className="focus-slide__num">{v.verse}</span>
-                {isRead && (
-                  <span className="focus-slide__read">
-                    <span className="material-icons-round" aria-hidden>
-                      check
+                {/* 절 번호는 작고 연하게 — 본문보다 먼저 시선을 끌지 않도록 라벨 수준으로.
+                    읽음 표시는 번호 옆에 점 하나로만 */}
+                <span className="focus-slide__meta">
+                  <span className="focus-slide__num">{v.verse}절</span>
+                  {isRead && (
+                    <span className="focus-slide__read" title="읽은 절">
+                      <span className="material-icons-round" aria-hidden>
+                        check
+                      </span>
+                      읽음
                     </span>
-                    읽음
-                  </span>
-                )}
-                <p className={`focus-slide__text${lengthClass}`}>{v.text}</p>
+                  )}
+                </span>
+                {/* 본문을 탭하면 보조 도구(해석)가 접혔다 펼쳐진다 — 평소엔 본문만 */}
+                <p
+                  className={`focus-slide__text${lengthClass}${hasCommentary ? ' has-tools' : ''}`}
+                  onClick={hasCommentary && i === activeIndex ? () => setToolsOpen(o => !o) : undefined}
+                >
+                  {v.text}
+                </p>
                 {/* 역본 라벨은 두지 않는다 — 개역개정 단일 역본이라 무정보 반복.
                     역본 표기는 본문이 앱 밖으로 나가는 복사·공유 경로에서만 붙는다 */}
-                {/* 해석 칩 — 등록된 절에만 붙는 조용한 진입점. 본문 자동 노출은 하지
-                    않는다(집중 우선) — 탭했을 때만 하단 시트로 연다 */}
-                {commentaryVerseSet.has(v.verse) && (
-                  <button
-                    type="button"
-                    className="focus-slide__commentary"
-                    onClick={() => setCommentaryVerse(v.verse)}
-                    aria-label={`${v.verse}절 해석 보기`}
-                  >
-                    <span className="material-icons-round" aria-hidden>
-                      menu_book
-                    </span>
-                    해석
-                  </button>
+                {/* 해석 진입점 — 등록된 절에만. 접혀 있을 땐 본문 아래 아주 작은 점으로만
+                    "더 있음"을 알리고, 본문을 탭하면 칩이 펼쳐진다(집중 우선) */}
+                {hasCommentary && (
+                  <div className={`focus-slide__tools${toolsOpen && i === activeIndex ? ' is-open' : ''}`}>
+                    <span className="focus-slide__more" aria-hidden />
+                    <button
+                      type="button"
+                      className="focus-slide__commentary"
+                      onClick={() => setCommentaryVerse(v.verse)}
+                      aria-label={`${v.verse}절 해석 보기`}
+                      tabIndex={toolsOpen && i === activeIndex ? 0 : -1}
+                    >
+                      <span className="material-icons-round" aria-hidden>
+                        menu_book
+                      </span>
+                      해석 보기
+                    </button>
+                  </div>
                 )}
               </div>
             </section>
