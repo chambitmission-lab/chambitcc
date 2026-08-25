@@ -82,9 +82,16 @@
   transition: color 0.15s, background-color 0.15s, border-color 0.15s;
   white-space: nowrap;
 }
-.edu-chip:hover {
-  color: var(--text-strong);
-  background: var(--brand-soft);
+/* hover 는 마우스 기기에서만 — 터치에선 탭 후 :hover 가 이전 칩에 눌러붙어
+   두 개가 선택된 듯 "다다닥" 보인다 */
+@media (hover: hover) and (pointer: fine) {
+  .edu-chip:hover {
+    color: var(--text-strong);
+    background: var(--brand-soft);
+  }
+}
+.edu-chip {
+  -webkit-tap-highlight-color: transparent;
 }
 .edu-chip.is-active {
   color: var(--brand);

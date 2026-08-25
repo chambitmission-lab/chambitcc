@@ -54,12 +54,15 @@ const Education = () => {
   useLayoutEffect(() => {
     const nav = chipsRef.current
     // 가로 칩 스트립(모바일)에서 활성 칩이 밖에 있으면 가운데로 — 이전/다음·딥링크 진입 대비
+    // 칩을 직접 탭한 경우는 이미 보이는 칩이므로 스트립을 움직이지 않는다 — 탭마다 가운데로
+    // 당기면 손가락 아래에서 칩들이 미끄러져 여러 개가 연달아 눌리는 듯 보인다.
     const chip = nav?.querySelector<HTMLElement>('.edu-chip.is-active')
-    if (nav && chip) {
+    const pending = pendingScrollRef.current
+    const fromChipTap = pending !== null && pending !== 'chips'
+    if (nav && chip && !fromChipTap) {
       const delta = chip.getBoundingClientRect().left - nav.getBoundingClientRect().left
       nav.scrollTo({ left: nav.scrollLeft + delta - (nav.clientWidth - chip.offsetWidth) / 2 })
     }
-    const pending = pendingScrollRef.current
     if (!pending) return
     pendingScrollRef.current = null
     if (pending === 'chips') {
