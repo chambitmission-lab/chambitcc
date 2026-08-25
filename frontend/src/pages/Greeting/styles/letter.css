@@ -23,7 +23,8 @@
   border-radius: 22px;
   object-fit: cover;
   object-position: center top;
-  filter: var(--media-dim);
+  /* brightness 를 살짝 올려 사진 배경의 옅은 회색을 흰색으로 밀어낸다(multiply 로 완전 흡수) */
+  filter: brightness(1.04);
   /* 테두리 없음 — 사진의 흰 배경을 카드에 녹여 인물만 남긴다(컷아웃).
      multiply 는 흰색을 바탕색으로 흡수하므로 옅은 회색 그라데이션 배경도 사라진다.
      다크에서는 곱하기가 인물까지 어둡게 만들어 쓰지 않는다 */
@@ -33,6 +34,7 @@
 :root[data-theme="dark"] .gr-photo,
 .dark .gr-photo {
   mix-blend-mode: normal;
+  filter: var(--media-dim);
   background: var(--surface-container-high);
 }
 
