@@ -437,7 +437,3 @@
   background: var(--brand);
   opacity: 0.6;
 }
-.corl-cell.active {
-  background: var(--brand);
-  color: #fff;
-}

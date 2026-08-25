@@ -170,7 +170,7 @@ const ChapterOutlineRail = ({
         </ol>
       )}
 
-      {/* 절 번호 격자 */}
+      {/* 절 번호 격자 — 스크롤 따라 움직이는 표시는 시선을 흔들어 일부러 두지 않는다(단락 하이라이트만) */}
       {verseNumbers.length > 0 && (
         <>
           <p className="corl-label">절 바로가기</p>
@@ -179,7 +179,7 @@ const ChapterOutlineRail = ({
               <button
                 key={v}
                 type="button"
-                className={`corl-cell${v === activeVerse ? ' active' : ''}${readVerses?.has(v) ? ' read' : ''}`}
+                className={`corl-cell${readVerses?.has(v) ? ' read' : ''}`}
                 onClick={() => onJumpToVerse(v)}
                 aria-label={`${v}절로 이동`}
               >

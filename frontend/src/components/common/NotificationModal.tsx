@@ -183,6 +183,16 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
     })
   }
 
+  // 항목 전체가 클릭 대상(Clickable Card).
+  // 링크가 있으면 곧장 이동, 없으면 종전처럼 본문 펼치기/읽음 처리.
+  const handleItemClick = (notification: Notification) => {
+    if (notification.link_url) {
+      goToLink(notification)
+      return
+    }
+    void toggleExpand(notification)
+  }
+
   const handleMarkAllAsRead = async () => {
     if (!isLoggedIn) return
     try {
@@ -322,16 +332,19 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                         const expandable =
                           needsExpand(notification.content) || !!notification.image_url
                         const navigating = isNavigating && pendingLinkId === notification.id
+                        const hasLink = !!notification.link_url
 
                         return (
                           <li key={notification.id}>
                             <button
                               type="button"
-                              onClick={() => toggleExpand(notification)}
-                              className={`group w-full text-left px-4 py-3.5 rounded-xl border transition-colors ${
+                              onClick={() => handleItemClick(notification)}
+                              aria-busy={navigating}
+                              aria-expanded={!hasLink && expandable ? expanded : undefined}
+                              className={`group w-full text-left px-4 py-3 rounded-xl border transition-colors ${
                                 unread
-                                  ? 'border-purple-200/70 dark:border-purple-500/20 bg-purple-50/50 dark:bg-purple-500/[0.06] hover:bg-purple-50/80 dark:hover:bg-purple-500/[0.1]'
-                                  : 'border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/30 hover:bg-gray-100/70 dark:hover:bg-gray-800/50'
+                                  ? 'border-purple-200/70 dark:border-purple-500/20 bg-purple-50/50 dark:bg-purple-500/[0.06] hover:bg-purple-50/80 dark:hover:bg-purple-500/[0.1] active:bg-purple-100/70 dark:active:bg-purple-500/[0.14]'
+                                  : 'border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/30 hover:bg-gray-100/70 dark:hover:bg-gray-800/50 active:bg-gray-200/60 dark:active:bg-gray-800/70'
                               }`}
                             >
                               <div className="flex items-start gap-3">
@@ -376,50 +389,26 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                     />
                                   )}
 
-                                  {notification.link_url && (
+                                  {/* 링크가 있는 항목은 카드 전체가 '바로가기'라 펼침만 따로 남긴다.
+                                      링크가 없으면 카드 탭 자체가 펼침이므로 이 줄이 필요 없다. */}
+                                  {hasLink && expandable && (
                                     <span
-                                      role="link"
+                                      role="button"
                                       tabIndex={0}
                                       onClick={(e) => {
                                         e.stopPropagation()
-                                        goToLink(notification)
+                                        void toggleExpand(notification)
                                       }}
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
                                           e.preventDefault()
                                           e.stopPropagation()
-                                          goToLink(notification)
+                                          void toggleExpand(notification)
                                         }
                                       }}
-                                      aria-busy={navigating}
-                                      className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-purple-600 dark:text-purple-400 hover:underline"
+                                      aria-expanded={expanded}
+                                      className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400"
                                     >
-                                      <span>{navigating ? '여는 중' : '바로가기'}</span>
-                                      {navigating ? (
-                                        <span
-                                          className="w-3 h-3 border-[1.5px] border-current border-t-transparent rounded-full animate-spin"
-                                          aria-hidden
-                                        />
-                                      ) : (
-                                        <svg
-                                          width="12"
-                                          height="12"
-                                          viewBox="0 0 24 24"
-                                          fill="none"
-                                          stroke="currentColor"
-                                          strokeWidth="2.5"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          aria-hidden
-                                        >
-                                          <path d="M9 18l6-6-6-6" />
-                                        </svg>
-                                      )}
-                                    </span>
-                                  )}
-
-                                  {expandable && (
-                                    <div className="mt-2 flex items-center gap-1 text-[12px] font-medium text-purple-500 dark:text-purple-400">
                                       <span>{expanded ? '접기' : '더 보기'}</span>
                                       <svg
                                         width="12"
@@ -435,9 +424,40 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                       >
                                         <path d="M6 9l6 6 6-6" />
                                       </svg>
-                                    </div>
+                                    </span>
                                   )}
                                 </div>
+
+                                {/* 우측 끝 꺾쇠 하나 — 항목 전체가 클릭 대상이라 별도 줄의 '바로가기'는 없앴다.
+                                    링크가 있으면 이동(>), 없으면 펼침(v) 신호. */}
+                                {(hasLink || expandable) && (
+                                  <span
+                                    className="flex-shrink-0 mt-[3px] text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors"
+                                    aria-hidden
+                                  >
+                                    {navigating ? (
+                                      <span className="block w-3.5 h-3.5 border-[1.5px] border-current border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                      <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        className={
+                                          hasLink
+                                            ? ''
+                                            : `transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`
+                                        }
+                                      >
+                                        <path d={hasLink ? 'M9 18l6-6-6-6' : 'M6 9l6 6 6-6'} />
+                                      </svg>
+                                    )}
+                                  </span>
+                                )}
                               </div>
                             </button>
                           </li>
