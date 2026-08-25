@@ -124,16 +124,6 @@ const Greeting = () => {
     profileIntro.trim().length > 0 ||
     credentials.length > 0
 
-  const tocItems = [
-    { id: 'greeting-letter', label: ko ? '인사말' : 'The Letter' },
-    ...(hasProfile
-      ? [{ id: 'greeting-profile', label: ko ? '담임목사 소개' : 'About the Pastor' }]
-      : []),
-    ...(past.length > 0
-      ? [{ id: 'greeting-history', label: ko ? '역대 담임목사' : 'Pastors Who Served' }]
-      : []),
-  ]
-
   return (
     <div className="bg-gray-50 dark:bg-black min-h-screen page-stage">
       {/* lg+: 본문(읽기 폭 유지) + 우측 위젯 레일 2단 — /about 과 같은 규격 */}
@@ -470,7 +460,7 @@ const Greeting = () => {
 
         {/* 우측 위젯 레일 (lg+) — 읽는 페이지라 목차가 주인공 */}
         <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
-          <GreetingRail ko={ko} toc={tocItems} />
+          <GreetingRail ko={ko} />
         </aside>
       </div>
 
