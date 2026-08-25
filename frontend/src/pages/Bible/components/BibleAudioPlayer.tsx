@@ -3,6 +3,7 @@ import { API_V1 } from '../../../config/api'
 import { showToast } from '../../../utils/toast'
 import type { BibleTTSVoice } from '../../../types/bible'
 import AudioSleepSheet from './AudioSleepSheet'
+import AudioSettingsMenu from './AudioSettingsMenu'
 import CinemaReading from './CinemaReading'
 
 // 절 메뉴 '여기부터 듣기' 요청. seq가 바뀔 때마다 새 요청으로 처리한다.
@@ -127,6 +128,10 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   // 듣기 범위: 이 장(포함)까지 듣고 연속 재생을 멈춘다. null이면 제한 없음
   const [endChapter, setEndChapter] = useState<number | null>(null)
   const [showSleepSheet, setShowSleepSheet] = useState(false)
+  // 오디오 설정 메뉴(배속·연속·잠들기) — 톱니 버튼 아래/바텀시트
+  const [showSettings, setShowSettings] = useState(false)
+  const settingsBtnRef = useRef<HTMLButtonElement>(null)
+  const miniSettingsBtnRef = useRef<HTMLButtonElement>(null)
   // 남은 시간 표시 갱신용 1초 틱 — 타이머가 켜져 있는 동안만 돈다
   const [, setSleepTick] = useState(0)
   const fadeTimerRef = useRef<number | null>(null)
@@ -488,9 +493,8 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
     )
   }
 
-  const cycleRate = () => {
-    const idx = RATE_OPTIONS.indexOf(rate)
-    const next = RATE_OPTIONS[(idx + 1) % RATE_OPTIONS.length]
+  const selectRate = (next: number) => {
+    if (!RATE_OPTIONS.includes(next)) return
     setRate(next)
     localStorage.setItem(RATE_STORAGE_KEY, String(next))
     if (audioRef.current) audioRef.current.playbackRate = next
@@ -544,6 +548,14 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
     .filter(Boolean)
     .join('·')
   const canSleepSheet = totalChapters != null && totalChapters > 0
+  // 헤더 상태 요약: 기본값(1×·연속 켬·타이머 없음)이 아닐 때만 톱니 옆에 표시
+  const settingsSummary = [
+    rate !== 1 ? `${rate}×` : null,
+    sleepActive ? sleepLabel : null,
+    !autoNext ? '이 장만' : null,
+  ]
+    .filter(Boolean)
+    .join(' · ') || null
 
   return (
     <>
@@ -601,7 +613,30 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                 </span>
               </span>
               <span className="flex flex-shrink-0 items-center gap-1 whitespace-nowrap">
-                {/* 낭독 영화관 — 말씀+음성+배경만 남기는 전체화면 몰입 모드 */}
+                {/* 오디오 설정 — 배속·연속 재생·잠들기 전 듣기를 톱니 하나에.
+                    기본값이 아닌 설정(배속≠1×·타이머·연속 끔)은 톱니 옆에 요약해 보여줘
+                    "왜 빨리 읽지?", "왜 멈췄지?"의 원인을 바로 찾을 수 있게 한다. */}
+                <button
+                  type="button"
+                  ref={settingsBtnRef}
+                  onClick={() => setShowSettings(v => !v)}
+                  aria-haspopup="dialog"
+                  aria-expanded={showSettings}
+                  aria-label={settingsSummary ? `오디오 설정 (${settingsSummary})` : '오디오 설정 (배속·연속 재생·잠들기 전 듣기)'}
+                  title="오디오 설정"
+                  className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold tabular-nums transition active:scale-95 ${
+                    settingsSummary || showSettings
+                      ? 'border-transparent bg-[var(--brand-soft)] text-brand'
+                      : 'audio-chip-glow border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
+                  }`}
+                >
+                  {sleepRemainingMs != null && (
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+                  )}
+                  {settingsSummary}
+                  <span className="material-icons-round text-[13px] leading-none">tune</span>
+                </button>
+                {/* 낭독 영화관 — 설정이 아니라 "모드 진입"이라 메뉴에 넣지 않고 밖에 남긴다 */}
                 {canCinema && (
                   <button
                     type="button"
@@ -615,50 +650,6 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                     </span>
                   </button>
                 )}
-                {/* 잠들기 전 듣기 — 수면 타이머·듣기 범위 시트 열기 */}
-                {canSleepSheet && (
-                  <button
-                    type="button"
-                    onClick={() => setShowSleepSheet(true)}
-                    aria-pressed={sleepActive}
-                    aria-label="잠들기 전 듣기 (수면 타이머·듣기 범위)"
-                    className={`flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] font-bold transition active:scale-95 ${
-                      sleepActive
-                        ? 'border-transparent bg-[var(--brand-soft)] text-brand'
-                        : 'audio-chip-glow border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
-                    }`}
-                  >
-                    <span className="material-icons-round text-[13px] leading-none">
-                      bedtime
-                    </span>
-                    {sleepActive && sleepLabel}
-                  </button>
-                )}
-                {/* 연속 재생(자동 다음 장) 토글 */}
-                <button
-                  type="button"
-                  onClick={toggleAutoNext}
-                  aria-pressed={autoNext}
-                  aria-label="연속 재생 (장이 끝나면 다음 장 자동 재생)"
-                  className={`flex items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] font-bold transition active:scale-95 ${
-                    autoNext
-                      ? 'border-transparent bg-[var(--brand-soft)] text-brand'
-                      : 'audio-chip-glow border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
-                  }`}
-                >
-                  <span className="material-icons-round text-[13px] leading-none">
-                    skip_next
-                  </span>
-                  연속
-                </button>
-                {/* 폭 고정: 1×↔1.25× 전환 시 버튼 폭이 변해 레이아웃이 흔들리지 않게 */}
-                <button
-                  type="button"
-                  onClick={cycleRate}
-                  className="audio-chip-glow min-w-[46px] rounded-full border border-black/10 bg-black/[0.03] px-1 py-0.5 text-center text-[11px] font-bold tabular-nums text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
-                >
-                  {rate}×
-                </button>
               </span>
             </div>
 
@@ -921,28 +912,26 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
             </div>
           </div>
 
-          {canSleepSheet && (
-            <button
-              type="button"
-              onClick={() => setShowSleepSheet(true)}
-              aria-pressed={sleepActive}
-              aria-label="잠들기 전 듣기 (수면 타이머·듣기 범위)"
-              className={`flex flex-shrink-0 items-center gap-0.5 rounded-full border px-2 py-0.5 text-[11px] font-bold transition active:scale-95 ${
-                sleepActive
-                  ? 'border-transparent bg-[var(--brand-soft)] text-brand'
-                  : 'border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
-              }`}
-            >
-              <span className="material-icons-round text-[13px] leading-none">bedtime</span>
-              {sleepActive && sleepLabel}
-            </button>
-          )}
+          {/* 미니 플레이어도 설정은 톱니 하나로 — 본 카드와 같은 메뉴를 연다 */}
           <button
             type="button"
-            onClick={cycleRate}
-            className="min-w-[46px] flex-shrink-0 rounded-full border border-black/10 bg-black/[0.03] px-1 py-0.5 text-center text-[11px] font-bold tabular-nums text-gray-600 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/70"
+            ref={miniSettingsBtnRef}
+            onClick={() => setShowSettings(v => !v)}
+            aria-haspopup="dialog"
+            aria-expanded={showSettings}
+            aria-label={settingsSummary ? `오디오 설정 (${settingsSummary})` : '오디오 설정'}
+            title="오디오 설정"
+            className={`flex flex-shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold tabular-nums transition active:scale-95 ${
+              settingsSummary || showSettings
+                ? 'border-transparent bg-[var(--brand-soft)] text-brand'
+                : 'border-black/10 bg-black/[0.03] text-gray-400 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40'
+            }`}
           >
-            {rate}×
+            {sleepRemainingMs != null && (
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
+            )}
+            {settingsSummary}
+            <span className="material-icons-round text-[13px] leading-none">tune</span>
           </button>
         </div>
       </div>
@@ -965,6 +954,21 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
         onTogglePlay={togglePlay}
         onSeekToVerse={trySeekToVerse}
         onClose={() => setShowCinema(false)}
+      />
+    )}
+
+    {/* 오디오 설정 메뉴 — 배속·연속·잠들기 */}
+    {showSettings && (
+      <AudioSettingsMenu
+        anchorRef={showMini ? miniSettingsBtnRef : settingsBtnRef}
+        rate={rate}
+        rateOptions={RATE_OPTIONS}
+        onSetRate={selectRate}
+        autoNext={autoNext}
+        onToggleAutoNext={toggleAutoNext}
+        sleepSummary={sleepActive ? sleepLabel : null}
+        onOpenSleep={canSleepSheet ? () => setShowSleepSheet(true) : undefined}
+        onClose={() => setShowSettings(false)}
       />
     )}
 

@@ -586,3 +586,156 @@
     font-size: 1rem;
   }
 }
+
+
+/* ── 오디오 설정 메뉴 ─────────────────────────────────────────────
+   헤더에 나열되던 배속·연속·잠들기 칩을 톱니 하나로 모은다.
+   PC는 톱니 아래 팝오버, 모바일은 .chapter-sheet 바텀시트를 그대로 빌린다. */
+.audio-settings__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+}
+
+.audio-settings__popover {
+  position: fixed;
+  z-index: 9999;
+  width: 17rem;
+  padding: 0.375rem;
+  border-radius: 16px;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  box-shadow:
+    0 18px 40px -12px rgba(0, 0, 0, 0.28),
+    0 2px 10px rgba(49, 130, 246, 0.12);
+  animation: chapter-sheet-up 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: top right;
+}
+
+[data-theme="dark"] .audio-settings__popover {
+  background: #1c1c26;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 18px 40px -12px rgba(0, 0, 0, 0.6),
+    0 2px 10px rgba(49, 130, 246, 0.2);
+}
+
+.audio-settings__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.audio-settings__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.625rem 0.625rem;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ig-primary-text);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease;
+}
+.audio-settings__row:hover { background: var(--brand-soft); }
+.audio-settings__row--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  cursor: default;
+}
+.audio-settings__row--stack:hover { background: transparent; }
+
+.audio-settings__label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.audio-settings__label .material-icons-round {
+  font-size: 1.125rem;
+  color: var(--brand);
+}
+.audio-settings__value {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.audio-settings__hint {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+}
+.audio-settings__hint.is-active { color: var(--brand); font-weight: 700; }
+.audio-settings__chev {
+  font-size: 1.125rem;
+  color: var(--ig-secondary-text);
+  opacity: 0.7;
+}
+
+.audio-settings__chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.375rem;
+}
+.audio-settings__chip {
+  padding: 0.4rem 0;
+  border-radius: 10px;
+  border: 1px solid var(--ig-border);
+  background: transparent;
+  color: var(--ig-secondary-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.audio-settings__chip:hover { border-color: var(--brand-soft-strong); color: var(--ig-primary-text); }
+.audio-settings__chip.is-on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  box-shadow: 0 4px 12px -4px var(--brand-glow);
+}
+
+/* iOS 스타일 토글 — 브랜드 그라데이션 */
+.audio-settings__switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: rgba(120, 120, 128, 0.32);
+  transition: background 0.2s ease;
+}
+.audio-settings__switch.is-on {
+  background: linear-gradient(135deg, var(--brand), var(--brand-light, #4593fc));
+}
+.audio-settings__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.25rem - 4px);
+  height: calc(1.25rem - 4px);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.audio-settings__switch.is-on .audio-settings__knob { transform: translateX(1rem); }
+
+/* 모바일 시트에서는 행 간격을 조금 더 넉넉히 */
+.audio-settings__sheet .audio-settings__row { padding: 0.75rem 0.5rem; }

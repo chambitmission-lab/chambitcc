@@ -54,6 +54,47 @@ interface VerseItemProps {
 
 // 액션바의 '읽음 표시' 체크 버튼 — 절 번호 길게 누르기(HOLD_TO_READ_MS)로 같은 일을
 // 할 수 있어 중복이라 숨겨둔다. 되살리려면 true로만 바꾸면 된다.
+/** 절 액션 메뉴의 한 항목: 원형 아이콘 + 아래 짧은 라벨.
+ *  tone: default(브랜드 연함) / active(강조·기록 있음) / success(읽음) / muted(관리자 보조) */
+type VerseActionTone = 'default' | 'active' | 'success' | 'muted'
+const VerseAction = ({
+  icon,
+  label,
+  title,
+  onClick,
+  tone = 'default',
+  busy = false,
+  pressed,
+  tabbable = true,
+}: {
+  icon: string
+  label: string
+  title?: string
+  onClick: () => void
+  tone?: VerseActionTone
+  busy?: boolean
+  pressed?: boolean
+  tabbable?: boolean
+}) => (
+  <button
+    type="button"
+    role="menuitem"
+    className={`verse-action-item verse-action-item--${tone}`}
+    onClick={onClick}
+    disabled={busy}
+    title={title ?? label}
+    aria-label={title ?? label}
+    aria-pressed={pressed}
+    tabIndex={tabbable ? 0 : -1}
+    style={busy ? { opacity: 0.5, cursor: 'wait' } : undefined}
+  >
+    <span className="verse-action-btn">
+      <span className="material-icons-round">{icon}</span>
+    </span>
+    <span className="verse-action-label">{label}</span>
+  </button>
+)
+
 const SHOW_MANUAL_READ_BUTTON = false
 
 /** 토큰 앞뒤의 문장부호를 떼고 단어만 남긴다 ("긍휼히," → "긍휼히") */
@@ -637,27 +678,17 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
       {/* 액션 메뉴 - 절을 탭하면 본문 흐름 안에서 바로 아래에 펼쳐진다.
           예전 absolute 오버레이는 다음 절을 가렸고, 닫기용 풀스크린 fixed 백드롭이
           모바일 스크롤을 막았다. 인라인(in-flow) 배치로 두 문제를 함께 해결한다.
-          (다른 절을 탭하면 부모가 이 메뉴를 닫아 항상 한 절만 열린다) */}
+          (다른 절을 탭하면 부모가 이 메뉴를 닫아 항상 한 절만 열린다)
+          아이콘만으로는 기능을 짐작하기 어려워, 각 아이콘 아래에 짧은 라벨을 붙인다. */}
       {showActions && (
           <div
             role="menu"
             className="verse-action-popover"
-            style={{
-              alignSelf: 'flex-start',
-              marginLeft: '3.25rem',
-              marginTop: '0.5rem',
-              display: 'flex',
-              gap: '0.5rem',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              padding: '0.4rem 0.5rem',
-              borderRadius: '1.5rem',
-              animation: 'versePopIn 0.16s ease-out',
-            }}
+            style={{ animation: 'versePopIn 0.16s ease-out' }}
           >
             {/* 음성 낭독 — 왼손 엄지로 누르기 쉽게 맨 왼쪽에 배치 */}
             {isSupported && (
-              <span style={{ display: 'inline-flex', opacity: 0.9 }}>
+              <div className="verse-action-item verse-action-item--static">
                 <VerseReadingButton
                   isReading={isReading}
                   isStarting={isStarting}
@@ -667,290 +698,126 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
                   disabled={isRead}
                   size="sm"
                 />
-              </span>
+                <span className="verse-action-label">{isReading ? '중지' : '낭독'}</span>
+              </div>
             )}
 
-            {/* 구분선: 음성 ↔ 묵상 그룹 분리 */}
-            {isSupported && (
-              <span
-                aria-hidden
-                style={{
-                  width: '1px',
-                  height: '1.25rem',
-                  background: 'var(--ig-border, rgba(255,255,255,0.12))',
-                  margin: '0 0.125rem',
-                  flexShrink: 0,
-                }}
-              />
-            )}
+            {isSupported && <span aria-hidden className="verse-action-sep" />}
 
             {/* 읽음 표시 — 음성 낭독이 어려운 상황(조용한 곳·마이크 미지원)에서도
                 직접 읽은 절을 체크할 수 있게 한다. 로그인한 사용자면 누구나 사용. */}
             {SHOW_MANUAL_READ_BUTTON && loggedIn && onToggleRead && (
-              <button
-                onClick={() => { if (!isTogglingRead) onToggleRead(verse, !isRead) }}
-                className="verse-action-btn"
-                disabled={isTogglingRead}
-                style={
-                  isRead
-                    ? {
-                        background: 'color-mix(in srgb, var(--ig-success) 18%, transparent)',
-                        border: '1px solid color-mix(in srgb, var(--ig-success) 45%, transparent)',
-                        opacity: isTogglingRead ? 0.5 : 1,
-                        cursor: isTogglingRead ? 'wait' : 'pointer',
-                      }
-                    : {
-                        background: 'var(--brand-soft)',
-                        border: '1px solid var(--brand-soft-strong)',
-                        opacity: isTogglingRead ? 0.5 : 1,
-                        cursor: isTogglingRead ? 'wait' : 'pointer',
-                      }
-                }
+              <VerseAction
+                icon={isRead ? 'remove_done' : 'task_alt'}
+                label={isRead ? '읽음 취소' : '읽음'}
                 title={isRead ? '읽음 취소' : '읽음 표시'}
-                aria-label={isRead ? '읽음 취소' : '읽음 표시'}
-                aria-pressed={isRead}
-                tabIndex={showActions ? 0 : -1}
-              >
-                <span
-                  className="material-icons-round"
-                  style={{
-                    fontSize: '1.125rem',
-                    color: isRead ? 'var(--ig-success)' : 'var(--brand)',
-                    opacity: isRead ? 1 : 0.85,
-                  }}
-                >
-                  {isRead ? 'remove_done' : 'task_alt'}
-                </span>
-              </button>
+                tone={isRead ? 'success' : 'default'}
+                busy={isTogglingRead}
+                pressed={isRead}
+                tabbable={showActions}
+                onClick={() => { if (!isTogglingRead) onToggleRead(verse, !isRead) }}
+              />
             )}
 
             {/* 주요 액션: 북마크·해석 (가장 자주 쓰는 묵상 동작을 앞에 배치) */}
-            <button
-              onClick={() => { onActionsOpenChange(false); setShowBookmarkModal(true) }}
-              className="verse-action-btn"
-              style={
-                bookmark?.is_favorite
-                  ? {
-                      background: 'var(--brand-soft-strong)',
-                      border: '1px solid var(--brand)',
-                      boxShadow: '0 2px 10px var(--brand-glow)',
-                    }
-                  : bookmark
-                    ? {
-                        background: 'var(--brand-soft-strong)',
-                        border: '1px solid var(--brand)',
-                        boxShadow: '0 2px 10px var(--brand-glow)',
-                      }
-                    : {
-                        background: 'var(--brand-soft)',
-                        border: '1px solid var(--brand-soft-strong)',
-                      }
-              }
-              title={bookmark ? '묵상 노트 수정' : '묵상/북마크 추가'}
-              tabIndex={showActions ? 0 : -1}
-            >
-              <span
-                className="material-icons-round"
-                style={{
-                  fontSize: '1.125rem',
-                  color: 'var(--brand)',
-                  opacity: bookmark ? 1 : 0.85,
-                }}
-              >
-                {bookmark
+            <VerseAction
+              icon={
+                bookmark
                   ? bookmark.is_favorite
                     ? 'favorite'
                     : bookmark.note
                       ? 'bookmark'
                       : 'brush'
-                  : 'bookmark_border'}
-              </span>
-            </button>
+                  : 'bookmark_border'
+              }
+              label={bookmark ? (bookmark.note ? '노트' : '북마크') : '북마크'}
+              title={bookmark ? '묵상 노트 수정' : '묵상/북마크 추가'}
+              tone={bookmark ? 'active' : 'default'}
+              tabbable={showActions}
+              onClick={() => { onActionsOpenChange(false); setShowBookmarkModal(true) }}
+            />
 
             {/* 모르는 단어 체크 — 단어 선택 모드 진입 */}
-            <button
-              onClick={() => { onActionsOpenChange(false); setWordSelectMode(true) }}
-              className="verse-action-btn"
-              style={
-                (wordNotes?.length ?? 0) > 0
-                  ? {
-                      background: 'var(--brand-soft-strong)',
-                      border: '1px solid var(--brand)',
-                      boxShadow: '0 2px 10px var(--brand-glow)',
-                    }
-                  : {
-                      background: 'var(--brand-soft)',
-                      border: '1px solid var(--brand-soft-strong)',
-                    }
-              }
+            <VerseAction
+              icon="spellcheck"
+              label="단어"
               title="모르는 단어 체크"
-              tabIndex={showActions ? 0 : -1}
-            >
-              <span
-                className="material-icons-round"
-                style={{
-                  fontSize: '1.125rem',
-                  color: 'var(--brand)',
-                  opacity: (wordNotes?.length ?? 0) > 0 ? 1 : 0.85,
-                }}
-              >
-                spellcheck
-              </span>
-            </button>
+              tone={(wordNotes?.length ?? 0) > 0 ? 'active' : 'default'}
+              tabbable={showActions}
+              onClick={() => { onActionsOpenChange(false); setWordSelectMode(true) }}
+            />
 
             {onShowCommentary && (
-              <button
-                onClick={() => { onActionsOpenChange(false); onShowCommentary(verse) }}
-                className="verse-action-btn"
-                style={
-                  hasCommentary
-                    ? {
-                        background: 'var(--brand-soft-strong)',
-                        border: '1px solid var(--brand)',
-                        boxShadow: '0 2px 10px var(--brand-glow)',
-                      }
-                    : {
-                        background: 'var(--brand-soft)',
-                        border: '1px solid var(--brand-soft-strong)',
-                      }
-                }
+              <VerseAction
+                icon="menu_book"
+                label="해석"
                 title={hasCommentary ? '해석 보기' : '해석 (등록된 해석 없음)'}
-                tabIndex={showActions ? 0 : -1}
-              >
-                <span
-                  className="material-icons-round"
-                  style={{
-                    fontSize: '1.125rem',
-                    color: 'var(--brand)',
-                    opacity: hasCommentary ? 1 : 0.8,
-                  }}
-                >
-                  menu_book
-                </span>
-              </button>
+                tone={hasCommentary ? 'active' : 'default'}
+                tabbable={showActions}
+                onClick={() => { onActionsOpenChange(false); onShowCommentary(verse) }}
+              />
             )}
 
             {/* 여기부터 듣기 — 오디오북을 이 절부터 재생 */}
             {onListenFrom && (
-              <button
-                onClick={() => { onActionsOpenChange(false); onListenFrom(verse) }}
-                className="verse-action-btn"
-                style={{
-                  background: 'var(--brand-soft)',
-                  border: '1px solid var(--brand-soft-strong)',
-                }}
+              <VerseAction
+                icon="play_circle"
+                label="듣기"
                 title="여기부터 듣기"
-                tabIndex={showActions ? 0 : -1}
-              >
-                <span
-                  className="material-icons-round"
-                  style={{ fontSize: '1.125rem', color: 'var(--brand)', opacity: 0.85 }}
-                >
-                  play_circle
-                </span>
-              </button>
+                tabbable={showActions}
+                onClick={() => { onActionsOpenChange(false); onListenFrom(verse) }}
+              />
             )}
 
             {/* 구분선: 묵상 ↔ 나눔 그룹 분리 */}
-            <span
-              aria-hidden
-              style={{
-                width: '1px',
-                height: '1.25rem',
-                background: 'var(--ig-border, rgba(255,255,255,0.12))',
-                margin: '0 0.125rem',
-                flexShrink: 0,
-              }}
-            />
+            <span aria-hidden className="verse-action-sep" />
 
             {/* 나눔: 복사 — 좋은 구절을 바로 클립보드로 */}
-            <button
-              onClick={() => { onActionsOpenChange(false); copyVerses(copyTarget) }}
-              className="verse-action-btn"
-              style={{ background: 'var(--brand-soft)', border: '1px solid var(--brand-soft-strong)' }}
+            <VerseAction
+              icon="content_copy"
+              label="복사"
               title="구절 복사"
-              aria-label="구절 복사"
-              tabIndex={showActions ? 0 : -1}
-            >
-              <span
-                className="material-icons-round"
-                style={{ fontSize: '1.0625rem', color: 'var(--brand)', opacity: 0.85 }}
-              >
-                content_copy
-              </span>
-            </button>
+              tabbable={showActions}
+              onClick={() => { onActionsOpenChange(false); copyVerses(copyTarget) }}
+            />
 
             {/* 나눔: 공유 — 미리보기 시트를 띄운다 (부모가 없으면 네이티브 공유로 폴백) */}
-            <button
+            <VerseAction
+              icon="share"
+              label="공유"
+              title="구절 공유"
+              tabbable={showActions}
               onClick={() => {
                 onActionsOpenChange(false)
                 if (onShare) onShare(copyTarget)
                 else shareVerses(copyTarget)
               }}
-              className="verse-action-btn"
-              style={{ background: 'var(--brand-soft)', border: '1px solid var(--brand-soft-strong)' }}
-              title="구절 공유"
-              aria-label="구절 공유"
-              tabIndex={showActions ? 0 : -1}
-            >
-              <span
-                className="material-icons-round"
-                style={{ fontSize: '1.0625rem', color: 'var(--brand)', opacity: 0.85 }}
-              >
-                share
-              </span>
-            </button>
+            />
 
             {/* 나눔: 여러 절 선택 — 이 절부터 구간으로 묶어 복사/공유 */}
             {onEnterSelection && (
-              <button
-                onClick={() => { onActionsOpenChange(false); onEnterSelection(verse) }}
-                className="verse-action-btn"
-                style={{ background: 'var(--brand-soft)', border: '1px solid var(--brand-soft-strong)' }}
+              <VerseAction
+                icon="checklist"
+                label="여러 절"
                 title="여러 절 선택"
-                aria-label="여러 절 선택"
-                tabIndex={showActions ? 0 : -1}
-              >
-                <span
-                  className="material-icons-round"
-                  style={{ fontSize: '1.0625rem', color: 'var(--brand)', opacity: 0.85 }}
-                >
-                  checklist
-                </span>
-              </button>
-            )}
-
-            {/* 구분선: 나눔 ↔ 관리자 그룹 분리 */}
-            {isAdminUser && onEdit && (
-              <span
-                aria-hidden
-                style={{
-                  width: '1px',
-                  height: '1.25rem',
-                  background: 'var(--ig-border, rgba(255,255,255,0.12))',
-                  margin: '0 0.125rem',
-                  flexShrink: 0,
-                }}
+                tabbable={showActions}
+                onClick={() => { onActionsOpenChange(false); onEnterSelection(verse) }}
               />
             )}
 
             {/* 보조 액션: 구절 수정 (관리자) */}
             {isAdminUser && onEdit && (
-              <button
-                onClick={() => { onActionsOpenChange(false); onEdit(verse) }}
-                className="verse-action-btn"
-                style={{
-                  background: 'rgba(148, 163, 184, 0.1)',
-                  border: '1px solid rgba(148, 163, 184, 0.24)',
-                  opacity: 0.85,
-                }}
-                title="구절 수정 (관리자)"
-                tabIndex={showActions ? 0 : -1}
-              >
-                <span className="material-icons-round" style={{ fontSize: '1.0625rem', color: '#94a3b8' }}>
-                  edit
-                </span>
-              </button>
+              <>
+                <span aria-hidden className="verse-action-sep" />
+                <VerseAction
+                  icon="edit"
+                  label="수정"
+                  title="구절 수정 (관리자)"
+                  tone="muted"
+                  tabbable={showActions}
+                  onClick={() => { onActionsOpenChange(false); onEdit(verse) }}
+                />
+              </>
             )}
           </div>
       )}
