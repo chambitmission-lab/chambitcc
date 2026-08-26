@@ -155,7 +155,10 @@ const DesktopNavRail = () => {
 
   return (
     <aside
-      className="hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-white dark:bg-background-dark border-r border-black/[0.045] dark:border-white/[0.06] px-3 xl:px-4 pt-6 pb-5"
+      // 라이트: 흰 레일 vs 회색 캔버스(--app-canvas)의 톤 차이가 이미 구획을 세우므로
+      // 세로 헤어라인을 뺀다 — 헤더(흰 크롬)와 이어져 좌상단이 하나의 ㄱ자 흰 면으로 읽힌다.
+      // 다크는 레일·캔버스가 같은 색이라 헤어라인이 유일한 구분선이므로 유지.
+      className="hidden lg:flex fixed left-0 top-14 bottom-0 z-40 w-[76px] xl:w-[248px] flex-col bg-white dark:bg-background-dark border-r-0 dark:border-r dark:border-white/[0.06] px-3 xl:px-4 pt-6 pb-5"
       aria-label={t('railAria')}
     >
       <nav className="flex flex-col gap-1">

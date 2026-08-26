@@ -11,6 +11,7 @@ import HeaderActions from './components/HeaderActions'
 import MobileMenu from './components/MobileMenu'
 import { useDesktopRailVisible } from '../DesktopNavRail/DesktopNavRail'
 import { useMenuState } from './hooks/useMenuState'
+import { useHeaderScrolled } from './hooks/useHeaderScrolled'
 import { useAuthState } from './hooks/useAuthState'
 import { useLogout } from './hooks/useLogout'
 import './NewHeader.css'
@@ -35,6 +36,10 @@ const NewHeader = () => {
   // 본문(main-content)은 좌측 레일만큼 밀린 영역의 가운데에 정렬되므로,
   // 헤더 인라인 메뉴도 같은 축(50% + 레일폭/2)에 맞춰야 위아래 중심이 일치한다
   const railVisible = useDesktopRailVisible()
+
+  // 하단 경계선: 맨 위에선 지우고(헤더·레일이 한 덩어리 흰 크롬으로 읽힌다),
+  // 스크롤이 시작되면 헤어라인 + 미세 그림자로 층을 세운다
+  const scrolled = useHeaderScrolled()
 
   // PC(lg+)에선 우상단 액션을 좌측 레일 하단으로 옮겼다 (DesktopNavRail 유틸리티).
   // 알림 모달·전체 메뉴 패널의 소유권은 헤더에 남기고, 레일은 열기만 요청한다.
@@ -69,7 +74,13 @@ const NewHeader = () => {
       {/* 메뉴가 열리면 헤더(와 그 안의 드롭다운 메뉴)를 하단 dock(z-100) 위,
           모달류(z-110+) 아래로 올린다 — 평소 z-60을 유지해야 모달이 헤더를 덮을 수 있음 */}
       <header
-        className={`fixed top-0 left-0 right-0 ${isMenuOpen ? 'z-[105]' : 'z-[60]'} bg-background-light/85 dark:bg-background-dark/85 backdrop-blur-xl border-b border-black/[0.05] dark:border-white/[0.06]`}
+        className={`fixed top-0 left-0 right-0 ${
+          isMenuOpen ? 'z-[105]' : 'z-[60]'
+        } bg-white/85 dark:bg-background-dark/85 backdrop-blur-xl border-b transition-[border-color,box-shadow] duration-200 ${
+          scrolled || isMenuOpen
+            ? 'border-black/[0.045] dark:border-white/[0.06] shadow-[0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-none'
+            : 'border-transparent shadow-none'
+        }`}
         ref={menuRef}
       >
         {/* lg+: 데스크톱 앱바 — 로고는 좌상단(좌측 레일과 정렬), 액션은 우상단 */}
