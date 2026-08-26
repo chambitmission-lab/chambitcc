@@ -32,6 +32,20 @@
 }
 :where(.dark) .ld-hero-halo { text-shadow: none; }
 
+/* 히어로 블러 필 — PC 에서 3:2 사진을 전폭에 무리하게 늘리지 않기 위한 두 겹.
+   뒤판: 같은 사진을 살짝 키워(블러 가장자리 투명화 방지) 강하게 흐린다. 채도를 조금 올려 앞판과 톤이 이어지게.
+   앞판: 확대 상한 안의 선명한 사진. 좌우 12%를 마스크로 페이드해 뒤판과의 이음새가 보이지 않게. */
+.ld-hero-blurfill {
+  transform: scale(1.12);
+  filter: blur(28px) saturate(1.15) brightness(0.92);
+}
+@media (min-width: 1024px) {
+  .ld-hero-photo {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  }
+}
+
 /* 히어로 숫자 티커 */
 .ld-ticker-num {
   font-variant-numeric: tabular-nums;

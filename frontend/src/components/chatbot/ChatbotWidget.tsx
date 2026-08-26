@@ -336,7 +336,9 @@ const ChatbotWidget = () => {
               onChange={(e) => setInput(e.target.value)}
               placeholder="예) 요 3:16 해석, 예배 시간 알려줘"
               maxLength={300}
-              className="flex-1 rounded-full bg-surface-container px-4 py-2 text-[14px] text-ink placeholder:text-ink-muted outline-none border border-transparent transition-[border-color,box-shadow] duration-200 focus:border-[rgba(49,130,246,0.4)] focus:shadow-[0_0_0_3px_var(--brand-soft-strong),0_0_14px_var(--brand-glow)]"
+              // min-w-0 필수: input 은 size 속성(기본 20자) 기준 고유 폭이 있어 min-width:auto 로는
+              // 좁은 화면에서 줄어들지 않는다 → 행이 넘쳐 전송 버튼이 패널(overflow-hidden) 밖으로 잘렸다
+              className="min-w-0 flex-1 rounded-full bg-surface-container px-4 py-2 text-[14px] text-ink placeholder:text-ink-muted outline-none border border-transparent transition-[border-color,box-shadow] duration-200 focus:border-[rgba(49,130,246,0.4)] focus:shadow-[0_0_0_3px_var(--brand-soft-strong),0_0_14px_var(--brand-glow)]"
             />
             <button
               type="submit"

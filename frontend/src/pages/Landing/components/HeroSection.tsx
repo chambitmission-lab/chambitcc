@@ -34,12 +34,12 @@ const StatItem = ({
     <div className="flex flex-col min-w-0">
       <div className="flex items-center gap-2">
         <span className={TILE}>{icon}</span>
-        <span className="ld-ticker-num text-[21px] lg:text-[25px] font-extrabold text-ink-strong dark:text-white leading-none truncate">
+        <span className="ld-ticker-num text-[19px] sm:text-[21px] lg:text-[25px] font-extrabold text-ink-strong dark:text-white leading-none truncate">
           {fmtNum(n, ko)}
           <span className="text-[13px] font-bold text-ink-muted dark:text-white/80 ml-0.5">{unit}</span>
         </span>
       </div>
-      <span className="mt-1.5 text-[11.5px] lg:text-[12px] font-semibold text-ink-muted dark:text-white/65 truncate">{label}</span>
+      <span className="mt-1 sm:mt-1.5 text-[11.5px] lg:text-[12px] font-semibold text-ink-muted dark:text-white/65 truncate">{label}</span>
     </div>
   )
 }
@@ -61,7 +61,7 @@ const MetaItem = ({
   <button
     type="button"
     onClick={onClick}
-    className={`group flex items-center gap-2.5 px-5 py-3.5 text-left min-w-0 hover:bg-black/[0.035] dark:hover:bg-white/[0.06] transition-colors ${className}`}
+    className={`group flex items-center gap-2.5 px-4 sm:px-5 py-2.5 sm:py-3.5 text-left min-w-0 hover:bg-black/[0.035] dark:hover:bg-white/[0.06] transition-colors ${className}`}
   >
     <span className={TILE}>{icon}</span>
     <span className="min-w-0">
@@ -118,15 +118,29 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
   return (
     <section className="relative overflow-hidden">
       {heroBackgroundUrl ? (
-        <img
-          src={heroBackgroundUrl}
-          alt=""
-          aria-hidden="true"
-          decoding="async"
-          fetchPriority="high"
-          crossOrigin="anonymous"
-          className="absolute inset-0 w-full h-full object-cover object-[center_62%]"
-        />
+        <>
+          {/* 사진은 3:2 원본 하나뿐이라 PC 전폭(2.3:1)에 cover 로 깔면 2배 넘게 확대되어 뭉개진다.
+              → 블러 필: 뒤에는 같은 사진을 크게 흐려 전폭을 채우고(색감·톤은 그대로),
+                앞에는 원본을 확대 상한(1360px) 안에서 가운데 두고 좌우 가장자리만 마스크로 흐린 뒤판에 녹인다.
+              모바일은 화면이 사진보다 좁아 그냥 cover 가 가장 선명하다 — lg 미만은 뒤판을 끄고 앞판을 전폭으로. */}
+          <img
+            src={heroBackgroundUrl}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            crossOrigin="anonymous"
+            className="ld-hero-blurfill hidden lg:block absolute inset-0 w-full h-full object-cover object-[center_62%]"
+          />
+          <img
+            src={heroBackgroundUrl}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            fetchPriority="high"
+            crossOrigin="anonymous"
+            className="ld-hero-photo absolute inset-y-0 left-1/2 -translate-x-1/2 w-full lg:w-[min(100%,1360px)] h-full object-cover object-[center_62%]"
+          />
+        </>
       ) : (
         <div className="absolute inset-0 bg-gradient-to-b from-[#dbe7fb] via-[#eef3fb] to-gray-50 dark:from-[#12294f] dark:via-[#0f1e3a] dark:to-[#0b1526]" />
       )}
@@ -148,62 +162,66 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
       {/* 디졸브 — 사진 하단이 페이지 배경색(라이트 gray-50 / 다크 black)으로 녹아들어
           라이트 테마에서도 어두운 히어로와 밝은 본문 사이에 딱 잘린 경계가 생기지 않는다.
           콘텐츠는 pb 로 이 띠 위에서 끝난다(흰 글씨가 밝은 페이드 위에 얹히지 않게). */}
-      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-gray-50 dark:to-black pointer-events-none" />
+      <div className="absolute inset-x-0 bottom-0 h-12 sm:h-20 bg-gradient-to-b from-transparent to-gray-50 dark:to-black pointer-events-none" />
 
-      <div className="relative max-w-[1040px] mx-auto px-5 pt-16 pb-24 lg:pt-28 lg:pb-28">
-        <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/70 ring-1 ring-inset ring-black/10 dark:bg-white/10 dark:ring-white/20 backdrop-blur-sm px-3 py-1 text-[12px] font-bold tracking-wide text-ink dark:text-white/85">
-          <span className="w-1.5 h-1.5 rounded-full bg-brand" />
-          <EditableText fieldKey="landingHeroKicker" isAdmin={isAdmin}>
-            {tx('aboutChurchName')} · {tx('landingHeroKicker')}
-          </EditableText>
-        </p>
+      <div className="relative max-w-[1040px] mx-auto px-5 pt-10 pb-14 sm:pt-16 sm:pb-20 lg:pt-16 lg:pb-16">
+        {/* 히어로 콘텐츠는 좌측 한 덩어리 — 폭을 620px로 묶어 사진의 오른쪽이 그대로 살아 있게 한다.
+            2단 그리드로 벌리거나 1040px 전폭을 다 쓰면 "퍼져 보인다"는 피드백. */}
+        <div className="lg:max-w-[620px]">
+          <p className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/70 ring-1 ring-inset ring-black/10 dark:bg-white/10 dark:ring-white/20 backdrop-blur-sm px-3 py-1 text-[12px] font-bold tracking-wide text-ink dark:text-white/85">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand" />
+            <EditableText fieldKey="landingHeroKicker" isAdmin={isAdmin}>
+              {tx('aboutChurchName')} · {tx('landingHeroKicker')}
+            </EditableText>
+          </p>
 
-        <h1 className="ld-hero-title ld-hero-halo text-[32px] sm:text-[40px] lg:text-[52px] leading-[1.15] font-extrabold tracking-tight text-white max-w-[760px]">
-          <EditableText fieldKey="landingHeroTitle" isAdmin={isAdmin} multiline>
-            <span>
-              {titleLines.map((line, i) => (
-                <span key={i}>
-                  {renderLine(line)}
-                  {i < titleLines.length - 1 && <br />}
-                </span>
-              ))}
-            </span>
-          </EditableText>
-        </h1>
+          <h1 className="ld-hero-title ld-hero-halo text-[32px] sm:text-[40px] lg:text-[52px] leading-[1.15] font-extrabold tracking-tight text-white max-w-[760px]">
+            <EditableText fieldKey="landingHeroTitle" isAdmin={isAdmin} multiline>
+              <span>
+                {titleLines.map((line, i) => (
+                  <span key={i}>
+                    {renderLine(line)}
+                    {i < titleLines.length - 1 && <br />}
+                  </span>
+                ))}
+              </span>
+            </EditableText>
+          </h1>
 
-        <p className="ld-hero-halo mt-4 text-[15px] lg:text-[17px] leading-relaxed font-medium text-white/95 dark:font-normal dark:text-white/85 max-w-[620px] whitespace-pre-line">
-          <EditableText fieldKey="landingHeroSub" isAdmin={isAdmin} multiline>
-            <span>{tx('landingHeroSub')}</span>
-          </EditableText>
-        </p>
+          <p className="ld-hero-halo mt-3 sm:mt-4 text-[15px] lg:text-[17px] leading-snug sm:leading-relaxed font-medium text-white/95 dark:font-normal dark:text-white/85 max-w-[620px] whitespace-pre-line">
+            <EditableText fieldKey="landingHeroSub" isAdmin={isAdmin} multiline>
+              <span>{tx('landingHeroSub')}</span>
+            </EditableText>
+          </p>
 
-        <div className="mt-7 flex flex-wrap items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => navigate('/visit')}
-            className="brand-gradient flex items-center gap-1.5 px-5 py-3 rounded-full text-[14.5px] font-bold text-white shadow-[0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.97] transition-[box-shadow,transform] duration-150"
-          >
-            <MapPinIcon size={16} />
-            {tx('landingCtaVisit')}
-          </button>
-          <button
-            type="button"
-            onClick={onTour}
-            className="flex items-center gap-1.5 px-5 py-3 rounded-full text-[14.5px] font-bold text-ink-strong bg-white/80 ring-1 ring-inset ring-black/10 hover:bg-white dark:text-white dark:bg-white/[0.14] dark:ring-white/25 dark:hover:bg-white/[0.22] backdrop-blur-sm active:scale-[0.97] transition-[background-color,transform] duration-150"
-          >
-            {tx('landingCtaTour')}
-            <ChevronRightIcon size={16} />
-          </button>
+          <div className="mt-5 sm:mt-7 flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => navigate('/visit')}
+              className="brand-gradient flex items-center gap-1.5 px-5 py-3 rounded-full text-[14.5px] font-bold text-white shadow-[0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.97] transition-[box-shadow,transform] duration-150"
+            >
+              <MapPinIcon size={16} />
+              {tx('landingCtaVisit')}
+            </button>
+            <button
+              type="button"
+              onClick={onTour}
+              className="flex items-center gap-1.5 px-5 py-3 rounded-full text-[14.5px] font-bold text-ink-strong bg-white/80 ring-1 ring-inset ring-black/10 hover:bg-white dark:text-white dark:bg-white/[0.14] dark:ring-white/25 dark:hover:bg-white/[0.22] backdrop-blur-sm active:scale-[0.97] transition-[background-color,transform] duration-150"
+            >
+              {tx('landingCtaTour')}
+              <ChevronRightIcon size={16} />
+            </button>
+        </div>
         </div>
 
         {/* 한 장의 카드 — 위칸은 살아있는 숫자(백엔드 미배포·0건이면 칸 자체가 사라진다),
             아래칸은 방문자의 두 질문(예배 시간·오시는 길). 사진 위에 두 덩어리가 따로 떠 있으면
             시선이 흩어져 하나의 유리 카드로 묶었다. */}
-        <div className="mt-8 max-w-[760px] rounded-2xl bg-white/75 ring-1 ring-inset ring-black/5 dark:bg-black/35 dark:ring-white/15 backdrop-blur-md shadow-[0_12px_32px_-16px_rgba(0,0,0,0.45)] overflow-hidden">
+        <div className="mt-6 sm:mt-8 max-w-[760px] lg:max-w-[620px] rounded-2xl bg-white/75 ring-1 ring-inset ring-black/5 dark:bg-black/35 dark:ring-white/15 backdrop-blur-md shadow-[0_12px_32px_-16px_rgba(0,0,0,0.45)] overflow-hidden">
           {statItems.length > 0 && (
             <div
               ref={tickerRef}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-4 px-5 py-4"
+              className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-x-4 sm:gap-x-5 gap-y-3 sm:gap-y-4 px-4 sm:px-5 py-3.5 sm:py-4"
             >
               {statItems.map((s) => (
                 <StatItem key={s.label} {...s} active={armed} ko={ko} />
@@ -212,7 +230,7 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
           )}
 
           <div
-            className={`grid grid-cols-1 sm:grid-cols-2 ${statItems.length > 0 ? 'border-t border-black/[0.07] dark:border-white/10' : ''}`}
+            className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 ${statItems.length > 0 ? 'border-t border-black/[0.07] dark:border-white/10' : ''}`}
           >
             <MetaItem
               icon={<ClockIcon size={15} />}
@@ -225,7 +243,7 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
               label={ko ? '오시는 길' : 'Getting here'}
               value={tx('aboutAddress')}
               onClick={() => navigate('/visit')}
-              className="border-t sm:border-t-0 sm:border-l border-black/[0.07] dark:border-white/10"
+              className="border-t sm:border-t-0 sm:border-l lg:border-l-0 lg:border-t border-black/[0.07] dark:border-white/10"
             />
           </div>
         </div>
