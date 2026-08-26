@@ -86,6 +86,14 @@ export const BookOpenIcon = (props: IconProps) => (
   </Svg>
 )
 
+/** 재생 — 다시 듣는 설교 */
+export const PlayCircleIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M10 8.5 16 12l-6 3.5z" />
+  </Svg>
+)
+
 /** 깃발 — 발자취 */
 export const FlagIcon = (props: IconProps) => (
   <Svg {...props}>
