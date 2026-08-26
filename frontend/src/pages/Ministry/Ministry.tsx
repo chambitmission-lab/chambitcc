@@ -10,7 +10,6 @@ import {
   updateColumn,
   deleteColumn,
   toggleColumnAmen,
-  markColumnRead,
 } from '../../api/column'
 import type { Column, CreateColumnRequest } from '../../types/column'
 import andongProfile from '../../assets/andong.png'
@@ -107,30 +106,6 @@ const firstHighlight = (content: string): string | null => {
   return text || null
 }
 
-// 읽은 편지 추적 (기기 로컬 — 계정 동기화까지는 불필요한 가벼운 상태)
-const READ_IDS_KEY = 'ministry_read_ids'
-const loadReadIds = (): Set<number> => {
-  try {
-    const arr = JSON.parse(localStorage.getItem(READ_IDS_KEY) || '[]')
-    return new Set(Array.isArray(arr) ? arr : [])
-  } catch {
-    return new Set()
-  }
-}
-const persistReadIds = (ids: Set<number>) => {
-  try {
-    localStorage.setItem(READ_IDS_KEY, JSON.stringify([...ids].slice(-300)))
-  } catch { /* 프라이빗 모드 등 저장 실패는 무시 */ }
-}
-
-// 완독으로 볼 스크롤 지점 — 서명 블록까지 닿으면 다 읽은 것으로 본다
-const READ_COMPLETE_RATIO = 0.98
-// 스크롤이 필요 없을 만큼 짧은 편지는 이만큼 머문 뒤 완독 처리 (열자마자 닫는 경우 제외)
-const SHORT_LETTER_DWELL_MS = 3000
-// 완독 인원이 이보다 적으면 숫자를 숨긴다 — 한 자릿수 숫자가 편지를 평가하는 점수처럼 보이지 않게
-// (쓰신 분에게는 적은 수도 의미가 있으므로 관리자에게는 항상 보여준다)
-const READ_COUNT_MIN_TO_SHOW = 5
-
 // 본문 글자 크기 3단계 — 어르신 성도가 많은 교회 특성상 필수
 const FONT_STEPS = [15.5, 16.5, 18.5]
 const FONT_STEP_KEY = 'ministry_font_step'
@@ -161,13 +136,12 @@ const Ministry = () => {
   const [appliedQuery, setAppliedQuery] = useState('')
   const [showAdminMenu, setShowAdminMenu] = useState(false)
   const [readProgress, setReadProgress] = useState(0)
-  const [readIds, setReadIds] = useState<Set<number>>(loadReadIds)
   const [fontStep, setFontStep] = useState<number>(loadFontStep)
+  // 검색 결과에 흔들리지 않는 전체 편지 목록 (우측 레일 위젯 전용 스냅샷)
+  const [allColumns, setAllColumns] = useState<Column[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const modalScrollRef = useRef<HTMLDivElement>(null)
-  // 완독 기록을 보낸 편지 (같은 세션에서 중복 호출 방지 — 서버도 멱등하지만 헛된 왕복을 줄인다)
-  const readSentRef = useRef<Set<number>>(new Set())
   // 아멘 요청 진행 중인 편지 (연타로 토글이 꼬이는 것 방지)
   const pendingAmenRef = useRef<Set<number>>(new Set())
 
@@ -214,6 +188,12 @@ const Ministry = () => {
     refetchOnMount: true, // 전역 기본(false)을 덮어써야 stale 시 백그라운드 갱신이 됨
     placeholderData: keepPreviousData, // 검색어 타이핑 중 스피너 깜빡임 방지
   })
+
+  // 검색 중이 아닐 때의 목록이 곧 전체 편지 — 이때만 스냅샷을 갱신한다 (목록은 최신순)
+  useEffect(() => {
+    if (appliedQuery) return
+    setAllColumns(columns)
+  }, [appliedQuery, columns])
 
   useEffect(() => {
     if (isError) {
@@ -345,45 +325,13 @@ const Ministry = () => {
     showToast(language === 'ko' ? '하이라이트가 적용되었습니다' : 'Highlight applied', 'success')
   }
 
-  // 편지를 끝까지 읽었을 때만 서버에 기록 (조회수가 아니라 완독 수)
-  const markComplete = (id?: number | null) => {
-    if (id == null || !isAuthenticated()) return
-    if (readSentRef.current.has(id)) return
-    // 이미 읽은 편지는 카운트가 변하지 않으므로 왕복을 아낀다
-    const cached = queryClient
-      .getQueriesData<Column[]>({ queryKey: ['columns'] })
-      .flatMap(([, data]) => data ?? [])
-      .find(c => c.id === id)
-    if (cached?.is_read) return
-
-    readSentRef.current.add(id)
-    markColumnRead(id)
-      .then(res => patchColumnCache(id, { read_count: res.read_count, is_read: res.is_read }))
-      .catch(() => {
-        // 네트워크 실패 — 다음에 다시 끝까지 읽으면 재시도
-        readSentRef.current.delete(id)
-      })
-  }
-
   // 상세 모달 스크롤 → 상단 읽기 진행 바
   const handleModalScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget
     const max = el.scrollHeight - el.clientHeight
     const progress = max > 0 ? Math.min(1, el.scrollTop / max) : 1
     setReadProgress(progress)
-    if (progress >= READ_COMPLETE_RATIO) markComplete(selectedColumn?.id)
   }
-
-  // 화면보다 짧은 편지는 스크롤 이벤트가 없어 위 경로를 못 탄다 → 잠시 머물면 완독 처리
-  useEffect(() => {
-    const id = selectedColumn?.id
-    if (id == null) return
-    const timer = setTimeout(() => {
-      const el = modalScrollRef.current
-      if (el && el.scrollHeight - el.clientHeight <= 8) markComplete(id)
-    }, SHORT_LETTER_DWELL_MS)
-    return () => clearTimeout(timer)
-  }, [selectedColumn])
 
   // 아멘 토글 — 낙관적 업데이트 후 서버 확정값으로 동기화
   const handleAmen = async (column: Column) => {
@@ -410,8 +358,6 @@ const Ministry = () => {
       patchColumnCache(id, {
         is_amened: res.is_amened,
         amen_count: res.amen_count,
-        read_count: res.read_count,
-        is_read: res.is_read,
       })
     } catch {
       // 롤백
@@ -425,15 +371,8 @@ const Ministry = () => {
     }
   }
 
-  // 편지 열기 — 여는 순간 읽음으로 기록 (인덱스의 안읽음 점 제거)
   const openColumn = (column: Column) => {
     setSelectedColumn(column)
-    if (column.id != null && !readIds.has(column.id)) {
-      const next = new Set(readIds)
-      next.add(column.id)
-      setReadIds(next)
-      persistReadIds(next)
-    }
   }
 
   const cycleFontSize = () => {
@@ -480,21 +419,25 @@ const Ministry = () => {
     }
   }
 
-  // 우측 위젯 '편지함' — 읽음은 기기 로컬(readIds) 기준
-  const readCount = columns.filter(c => c.id != null && readIds.has(c.id)).length
-  const unreadCount = Math.max(0, columns.length - readCount)
+  // 우측 위젯 '편지함' — 지금까지 쌓인 전체 통수와, 지난 편지에서 밑줄 그은 문장.
+  // 검색 중에는 columns가 결과만 담으므로 검색 전 스냅샷(allColumns)을 쓴다.
+  // 최신 편지는 피처드 카드에서 이미 인용구로 보여주므로 여기선 제외한다
+  const totalLetters = allColumns.length
+  const railHighlights = allColumns
+    .slice(1)
+    .map(c => ({ column: c, quote: firstHighlight(c.content) }))
+    .filter((h): h is { column: Column; quote: string } => !!h.quote)
+    .slice(0, 3)
 
   // 상세 하단 이어읽기 — 다음(더 최신)·이전(더 과거) 편지
   const selectedIdx = selectedColumn ? columns.findIndex(c => c.id === selectedColumn.id) : -1
   const newerColumn = selectedIdx > 0 ? columns[selectedIdx - 1] : null
   const olderColumn = selectedIdx >= 0 && selectedIdx < columns.length - 1 ? columns[selectedIdx + 1] : null
 
-  // 아멘·완독 수는 캐시 쪽이 최신이므로, 참여 UI는 목록 캐시의 같은 편지를 본다
+  // 아멘 수는 캐시 쪽이 최신이므로, 참여 UI는 목록 캐시의 같은 편지를 본다
   const liveSelected = selectedColumn
     ? columns.find(c => c.id === selectedColumn.id) ?? selectedColumn
     : null
-  const selectedReadCount = liveSelected?.read_count ?? 0
-  const showReadCount = selectedReadCount >= READ_COUNT_MIN_TO_SHOW || (isAdminUser && selectedReadCount > 0)
 
   // 인덱스 행 — 일반 목록과 검색 결과가 공유
   const renderIndexRow = (column: Column) => (
@@ -503,13 +446,7 @@ const Ministry = () => {
       className="w-full text-left py-4 group"
       onClick={() => openColumn(column)}
     >
-      <h3 className="flex items-center gap-2 min-w-0">
-        {column.id != null && !readIds.has(column.id) && (
-          <span
-            className="w-1.5 h-1.5 rounded-full bg-[var(--brand)] flex-shrink-0"
-            aria-label={language === 'ko' ? '읽지 않음' : 'Unread'}
-          ></span>
-        )}
+      <h3 className="min-w-0">
         <span
           className="text-[16px] font-semibold text-ink-strong line-clamp-1 tracking-[-0.01em] leading-[1.4] group-hover:text-[var(--brand)] transition-colors"
           style={{ fontFamily: SERIF }}
@@ -904,13 +841,6 @@ const Ministry = () => {
                         </span>
                       )}
                     </button>
-                    {showReadCount && (
-                      <p className="mt-3 text-[11.5px] text-gray-400 dark:text-gray-500">
-                        {language === 'ko'
-                          ? `${selectedReadCount}명이 이 편지를 끝까지 읽었어요`
-                          : `${selectedReadCount} ${selectedReadCount === 1 ? 'person' : 'people'} read this letter to the end`}
-                      </p>
-                    )}
                   </div>
                 )}
 
@@ -1131,7 +1061,7 @@ const Ministry = () => {
       </div>
 
       {/* 우측 위젯 레일 (lg+) — 편지의 '발신인·편지함·아카이브'.
-          새 API 없이 이미 받아둔 목록과 로컬 읽음 기록만 재사용한다 */}
+          새 API 없이 이미 받아둔 목록만 재사용한다 */}
       <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
         {/* 발신인 — 본문 인트로(lg:hidden)가 이 자리로 옮겨왔다 */}
         {featured && (
@@ -1155,35 +1085,49 @@ const Ministry = () => {
           </section>
         )}
 
-        {/* 편지함 — 몇 통을 읽었는지 */}
-        {columns.length > 0 && (
+        {/* 편지함 — 지금까지 쌓인 편지 통수 */}
+        {totalLetters > 0 && (
           <section className="feed-card rounded-2xl p-4">
             <p className="mb-2 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-gray-400">
-              {language === 'ko' ? '나의 편지함' : 'My Letters'}
+              {language === 'ko' ? '편지함' : 'Letters'}
             </p>
             <div className="flex items-baseline gap-1.5">
               <span className="text-[24px] font-semibold text-ink-strong tabular-nums leading-none">
-                {readCount}
+                {totalLetters}
               </span>
               <span className="text-[13px] text-gray-500 dark:text-gray-400">
-                {language === 'ko' ? `/ ${columns.length}통 읽음` : `/ ${columns.length} read`}
+                {language === 'ko'
+                  ? '통의 편지'
+                  : totalLetters === 1 ? 'letter' : 'letters'}
               </span>
             </div>
-            <div className="mt-2.5 h-1.5 rounded-full bg-[var(--surface-inset)] overflow-hidden">
-              <div
-                className="h-full rounded-full bg-brand transition-[width] duration-300"
-                style={{ width: `${columns.length ? (readCount / columns.length) * 100 : 0}%` }}
-              />
-            </div>
-            <p className="mt-2.5 text-[12px] text-gray-500 dark:text-gray-400 leading-[1.6]">
-              {unreadCount > 0
-                ? language === 'ko'
-                  ? `아직 ${unreadCount}통이 기다리고 있어요`
-                  : `${unreadCount} letters still waiting`
-                : language === 'ko'
-                  ? '모든 편지를 읽으셨어요'
-                  : 'You have read every letter'}
-            </p>
+            {railHighlights.length > 0 && (
+              <div className="mt-3.5 pt-3.5 border-t border-border-light dark:border-white/[0.08]">
+                <p className="mb-2 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-gray-400">
+                  {language === 'ko' ? '밑줄 그은 문장' : 'Underlined'}
+                </p>
+                <div className="flex flex-col gap-1.5 -mx-1">
+                  {railHighlights.map(({ column, quote }) => (
+                    <button
+                      key={column.id}
+                      type="button"
+                      onClick={() => openColumn(column)}
+                      className="px-1 py-1 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors group"
+                    >
+                      <p
+                        className="text-[12.5px] text-ink-strong leading-[1.65] line-clamp-2"
+                        style={{ fontFamily: SERIF }}
+                      >
+                        “{quote}”
+                      </p>
+                      <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500 line-clamp-1 group-hover:text-[var(--brand)] transition-colors">
+                        {column.title}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
         )}
 
