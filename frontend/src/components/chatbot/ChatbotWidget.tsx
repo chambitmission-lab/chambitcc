@@ -4,6 +4,7 @@ import { getChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
+import WelcomeScene from './WelcomeScene'
 import avatarDefault from './img/default.webp'
 import avatarTalking from './img/talking.webp'
 import avatarThinking from './img/thinking.webp'
@@ -156,11 +157,17 @@ const ChatbotWidget = () => {
     return () => window.removeEventListener(OPEN_CHATBOT_EVENT, onOpen)
   }, [])
 
-  // 새 메시지·로딩 변화 시 맨 아래로
+  // 인사 한 통만 있고 아직 대화가 없으면 = 환영 화면
+  const welcomeReply =
+    msgs.length === 1 && msgs[0].role === 'bot' && msgs[0].reply.actions.length >= 2
+      ? msgs[0].reply
+      : null
+
+  // 새 메시지·로딩 변화 시 맨 아래로 (환영 화면은 씬이 보이도록 맨 위)
   useEffect(() => {
     const el = listRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [msgs, loading, open])
+    if (el) el.scrollTop = welcomeReply ? 0 : el.scrollHeight
+  }, [msgs, loading, open, welcomeReply])
 
   // 뒤로가기(안드로이드/브라우저)는 앱 종료·페이지 이동 대신 패널만 닫는다
   useModalBackButton(() => setOpen(false), open)
@@ -285,21 +292,28 @@ const ChatbotWidget = () => {
           </div>
 
           {/* 메시지 목록 */}
-          <div ref={listRef} className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3">
-            {msgs.map((m) =>
-              m.role === 'user' ? (
-                <div
-                  key={m.id}
-                  className="self-end max-w-[85%] rounded-2xl rounded-br-md px-3.5 py-2.5 text-[14px] leading-relaxed text-brand-on"
-                  style={{ background: 'var(--brand)' }}
-                >
-                  {m.text}
-                </div>
-              ) : (
-                <BotBubble key={m.id} reply={m.reply} onAction={onAction} />
-              ),
+          <div
+            ref={listRef}
+            className={`flex-1 overflow-y-auto flex flex-col ${welcomeReply ? '' : 'gap-3 px-3 py-3'}`}
+          >
+            {welcomeReply ? (
+              <WelcomeScene reply={welcomeReply} onAction={onAction} onAsk={(q) => void send(q)} />
+            ) : (
+              msgs.map((m) =>
+                m.role === 'user' ? (
+                  <div
+                    key={m.id}
+                    className="self-end max-w-[85%] rounded-2xl rounded-br-md px-3.5 py-2.5 text-[14px] leading-relaxed text-brand-on"
+                    style={{ background: 'var(--brand)' }}
+                  >
+                    {m.text}
+                  </div>
+                ) : (
+                  <BotBubble key={m.id} reply={m.reply} onAction={onAction} />
+                ),
+              )
             )}
-            {loading && <TypingDots />}
+            {loading && <div className={welcomeReply ? 'px-3 py-3' : ''}><TypingDots /></div>}
           </div>
 
           {/* 입력창 */}
@@ -310,11 +324,17 @@ const ChatbotWidget = () => {
               void send(input)
             }}
           >
+            <img
+              src={avatarDefault}
+              alt=""
+              className="h-8 w-8 shrink-0 rounded-full ring-1 ring-black/5 dark:ring-white/10"
+              draggable={false}
+            />
             <input
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="예) 요 3:16 해석, 예배 시간"
+              placeholder="예) 요 3:16 해석, 예배 시간 알려줘"
               maxLength={300}
               className="flex-1 rounded-full bg-surface-container px-4 py-2 text-[14px] text-ink placeholder:text-ink-muted outline-none border border-transparent transition-[border-color,box-shadow] duration-200 focus:border-[rgba(49,130,246,0.4)] focus:shadow-[0_0_0_3px_var(--brand-soft-strong),0_0_14px_var(--brand-glow)]"
             />
@@ -322,11 +342,15 @@ const ChatbotWidget = () => {
               type="submit"
               aria-label="보내기"
               disabled={!input.trim() || loading}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-brand-on transition-opacity disabled:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-brand-on shadow-[0_3px_10px_var(--brand-soft-strong)] transition-opacity disabled:opacity-40 disabled:shadow-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
               style={{ background: 'var(--brand)' }}
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                <path d="M2 8h11M9 3.5L13.5 8 9 12.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <svg width="17" height="17" viewBox="0 0 20 20" fill="none" aria-hidden>
+                <path
+                  d="M17.5 10 3.2 3.6a.4.4 0 0 0-.55.5L4.6 10l-1.95 5.9a.4.4 0 0 0 .55.5Z"
+                  fill="currentColor"
+                />
+                <path d="M4.6 10h6.6" stroke="var(--brand)" strokeWidth="1.4" strokeLinecap="round" />
               </svg>
             </button>
           </form>

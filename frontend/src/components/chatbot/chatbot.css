@@ -1,0 +1,185 @@
+/* 챗봇 웰컴 화면 — 하늘·언덕 씬 + 메뉴 카드 그리드.
+   클래스는 전역 충돌을 피하려 cb- 접두사로 통일한다. */
+
+/* ── 히어로 씬 ─────────────────────────────────────────── */
+.cb-scene {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 14px 0;
+  min-height: 168px;
+  background: linear-gradient(180deg, #cfe6ff 0%, #e2f0ff 46%, #eef7ff 100%);
+}
+html.dark .cb-scene {
+  background: linear-gradient(180deg, #1a2540 0%, #172038 52%, #151b2c 100%);
+}
+
+/* 구름 — 흰 blob 두 개를 겹쳐 부드럽게 */
+.cb-cloud {
+  position: absolute;
+  border-radius: 999px;
+  background: #fff;
+  opacity: 0.75;
+  pointer-events: none;
+}
+html.dark .cb-cloud { background: #9fb4dd; opacity: 0.16; }
+
+/* 언덕 — 씬 바닥에 깔리는 SVG */
+.cb-hills {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 78px;
+  display: block;
+  pointer-events: none;
+}
+
+/* 인사 말풍선 */
+.cb-bubble {
+  position: relative;
+  max-width: 62%;
+  border-radius: 18px;
+  background: #fff;
+  padding: 11px 13px;
+  box-shadow: 0 6px 18px rgba(30, 60, 110, 0.14);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #2b3445;
+  white-space: pre-line;
+}
+.cb-bubble::after {
+  content: '';
+  position: absolute;
+  left: 20px; bottom: -7px;
+  width: 14px; height: 14px;
+  background: inherit;
+  border-radius: 0 0 4px 0;
+  transform: rotate(45deg) skew(-6deg, -6deg);
+}
+html.dark .cb-bubble {
+  background: #262e42;
+  color: #e6eaf2;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+/* 손글씨 메모 — index.html에서 이미 로드된 Nanum Pen Script */
+.cb-note {
+  font-family: 'Nanum Pen Script', cursive;
+  font-size: 20px;
+  line-height: 1.15;
+  color: var(--brand);
+  transform: rotate(-7deg);
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+
+/* 참비 메달리온 — 전신 컷아웃 원본이 없어 원형 배지로 앉힌다 */
+.cb-chambi {
+  width: 84px; height: 84px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 20px rgba(30, 60, 110, 0.22);
+}
+html.dark .cb-chambi {
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* ── 메뉴 카드 패널 ────────────────────────────────────── */
+.cb-panel {
+  position: relative;
+  flex: 1;
+  margin-top: -16px;
+  border-radius: 20px 20px 0 0;
+  background: var(--surface);
+  padding: 14px 12px 12px;
+}
+
+.cb-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.cb-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  border-radius: 16px;
+  border: 1px solid var(--cb-bd);
+  background: var(--cb-bg);
+  padding: 11px 11px 12px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.cb-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(30, 60, 110, 0.1); }
+.cb-card:active { transform: translateY(0); }
+.cb-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+html.dark .cb-card {
+  background: var(--cb-bg-d);
+  border-color: rgba(255, 255, 255, 0.07);
+}
+
+.cb-card-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--cb-fg);
+  letter-spacing: -0.2px;
+}
+html.dark .cb-card-title { color: var(--cb-fg-d); }
+
+.cb-card-desc {
+  margin-top: 3px;
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--ink-muted, #6b7280);
+}
+
+.cb-chev {
+  position: absolute;
+  right: 8px; bottom: 8px;
+  width: 19px; height: 19px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+  background: var(--cb-fg);
+  color: #fff;
+  opacity: 0.85;
+}
+html.dark .cb-chev { background: var(--cb-fg-d); color: #16181d; }
+
+/* ── 추천 질문 칩 줄 ───────────────────────────────────── */
+.cb-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 7px 8px;
+  border-radius: 14px;
+  background: var(--surface-container);
+  border: 1px solid var(--border-light, rgba(0, 0, 0, 0.06));
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cb-chips::-webkit-scrollbar { display: none; }
+html.dark .cb-chips { border-color: rgba(255, 255, 255, 0.07); }
+
+.cb-chips-label {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand);
+  padding-right: 2px;
+}
+
+.cb-chip {
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid var(--border-light, rgba(0, 0, 0, 0.08));
+  background: var(--surface);
+  padding: 5px 11px;
+  font-size: 11.5px;
+  color: var(--ink, #2b3445);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.cb-chip:hover { border-color: var(--brand); color: var(--brand); }
+html.dark .cb-chip { border-color: rgba(255, 255, 255, 0.1); }
