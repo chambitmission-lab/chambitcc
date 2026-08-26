@@ -261,17 +261,16 @@ const ChatbotWidget = () => {
             className="flex items-center justify-between px-4 py-3"
             style={{ background: 'var(--brand-gradient, var(--brand))' }}
           >
-            <div className="flex items-center gap-2.5">
-              <img
-                src={avatarDefault}
-                alt=""
-                className="h-10 w-10 rounded-full ring-2 ring-white/30"
-                draggable={false}
-              />
-              <div>
-                <p className="m-0 text-[14.5px] font-bold text-white">참비</p>
-                <p className="m-0 text-[11.5px] text-white/85">말씀·예배·위로, 무엇이든 물어보세요</p>
+            {/* 얼굴은 말풍선 아바타가 표정까지 맡는다 — 헤더는 이름·상태만 */}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="m-0 text-[16px] font-extrabold tracking-tight text-white">참비</p>
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-1.5 py-[1px] text-[10.5px] font-semibold text-white/90">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" aria-hidden />
+                  온라인
+                </span>
               </div>
+              <p className="m-0 mt-0.5 truncate text-[11.5px] text-white/85">말씀·예배·위로, 무엇이든 물어보세요</p>
             </div>
             <button
               type="button"
