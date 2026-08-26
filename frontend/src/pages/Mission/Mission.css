@@ -20,14 +20,14 @@
   max-width: 28rem;
   margin: 0 auto;
   position: relative;
-  padding-top: 3.5rem; /* header offset */
+  /* 헤더 오프셋은 .main-content(App.css, 56px)가 이미 담당 — 여기서 또 주면 이중 여백 */
   padding-bottom: 4rem;
 }
 
 /* ---------- Hero ---------- */
 .mission-hero {
   position: relative;
-  padding: 1.5rem 1.25rem 0.5rem; /* 모바일: 헤더 아래 여백을 줄여 히어로를 위로 */
+  padding: 2rem 1.25rem 0.5rem;
   text-align: center;
 }
 
