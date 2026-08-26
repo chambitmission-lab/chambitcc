@@ -135,3 +135,31 @@ export const CameraIcon = (props: IconProps) => (
     <circle cx="12" cy="13" r="3" />
   </Svg>
 )
+
+/** 학사모 — 학력 */
+export const GraduationCapIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M22 10 12 5 2 10l10 5 10-5Z" />
+    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+    <path d="M22 10v6" />
+  </Svg>
+)
+
+/** 서류가방 — 주요 경력 */
+export const BriefcaseIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <rect x="2" y="7" width="20" height="14" rx="2" />
+    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+    <path d="M2 13h20" />
+  </Svg>
+)
+
+/** 메달 — 수상 */
+export const MedalIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <circle cx="12" cy="15" r="5" />
+    <path d="m9 10.5-3-7.5h4l2 5" />
+    <path d="m15 10.5 3-7.5h-4l-2 5" />
+    <path d="m12 13 .8 1.6 1.7.2-1.3 1.2.4 1.7-1.6-.9-1.6.9.4-1.7-1.3-1.2 1.7-.2Z" />
+  </Svg>
+)

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { getBibleVerse } from '../../../api/bible'
+import { getBibleChapter } from '../../../api/bible'
 import type { BibleVerse } from '../../../types/bible'
 import type { StoryVerseRef } from './storyTypes'
 import { ALL_EPISODES, TOTAL_EPISODES, findEpisode } from './data'
@@ -25,16 +25,30 @@ interface FetchedRef {
   verses: BibleVerse[]
 }
 
+// 절마다 /bible/verse 를 따로 부르지 않고 참조당 장 1회만 받아 필요한 절을 골라낸다.
+// 한 화에 같은 장을 두 번 참조하면 그 장은 한 번만 요청한다.
+const fetchEpisodeVerses = async (refs: StoryVerseRef[]): Promise<FetchedRef[]> => {
+  const chapterKey = (book: number, chapter: number) => `${book}:${chapter}`
+  const chapterFetches = new Map<string, ReturnType<typeof getBibleChapter>>()
+  for (const ref of refs) {
+    const key = chapterKey(ref.book, ref.chapter)
+    if (!chapterFetches.has(key)) chapterFetches.set(key, getBibleChapter(ref.book, ref.chapter))
+  }
+
+  return Promise.all(
+    refs.map(async ref => {
+      const chapter = await chapterFetches.get(chapterKey(ref.book, ref.chapter))!
+      const byVerse = new Map(chapter.verses.map(v => [v.verse, v]))
+      const verses = ref.verses.map(n => byVerse.get(n)).filter((v): v is BibleVerse => v !== undefined)
+      return { ref, verses }
+    })
+  )
+}
+
 const useEpisodeVerses = (episodeId: string, refs: StoryVerseRef[]) =>
   useQuery<FetchedRef[]>({
     queryKey: ['bible', 'story-verses', episodeId],
-    queryFn: () =>
-      Promise.all(
-        refs.map(async ref => ({
-          ref,
-          verses: await Promise.all(ref.verses.map(v => getBibleVerse(ref.book, ref.chapter, v))),
-        }))
-      ),
+    queryFn: () => fetchEpisodeVerses(refs),
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24 * 7,
     retry: 1,

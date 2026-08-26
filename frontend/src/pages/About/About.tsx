@@ -17,6 +17,9 @@ import {
   PhoneIcon,
   SproutIcon,
   XIcon,
+  GraduationCapIcon,
+  BriefcaseIcon,
+  MedalIcon,
 } from './icons'
 import './styles/index.css'
 
@@ -411,16 +414,18 @@ const About = () => {
                 <span>{ko ? '약력 보기' : 'View Credentials'}</span>
                 <ChevronDownIcon size={18} className="pastor-credentials-chevron" />
               </summary>
+              {/* 학력·경력·수상을 3열로 나란히 — 세로 한 줄로 늘어뜨리면 오른쪽이 비어 어색하다 */}
               <div className="credentials">
                 {(
                   [
-                    ['aboutEducationLabel', 'aboutEducationValue'],
-                    ['aboutCareerLabel', 'aboutCareerValue'],
-                    ['aboutAwardLabel', 'aboutAwardValue'],
+                    ['aboutEducationLabel', 'aboutEducationValue', GraduationCapIcon],
+                    ['aboutCareerLabel', 'aboutCareerValue', BriefcaseIcon],
+                    ['aboutAwardLabel', 'aboutAwardValue', MedalIcon],
                   ] as const
-                ).map(([labelKey, valueKey]) => (
+                ).map(([labelKey, valueKey, Icon]) => (
                   <div className="credential-item" key={labelKey}>
                     <div className="credential-label">
+                      <Icon size={18} className="credential-label-icon" />
                       <EditableText fieldKey={labelKey} isAdmin={isAdminUser}>
                         {tx(labelKey)}
                       </EditableText>
