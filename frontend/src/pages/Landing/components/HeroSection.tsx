@@ -101,6 +101,15 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
           진한 그림자를 더해 밝은 사진 위에서도 읽힌다. 카드·버튼·알약은 자체 흰 배경으로 잉크 글씨. */}
       <div className="hidden dark:block absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/30" />
       <div className="hidden dark:block absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
+      {/* 라이트: 사진 전체를 바래게 하는 안개 대신, 카피가 놓이는 좌상단만 국소적으로 눌러준다.
+          우측·하단은 투명으로 빠져 사진 원색이 살아 있고, 흰 글씨와 겹치는 밝은 얼굴·셔츠만 가라앉는다. */}
+      <div
+        className="dark:hidden absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(120% 90% at 0% 0%, rgba(0,0,0,0.58) 0%, rgba(0,0,0,0.38) 35%, rgba(0,0,0,0.12) 60%, rgba(0,0,0,0) 80%)',
+        }}
+      />
       {/* 디졸브 — 사진 하단이 페이지 배경색(라이트 gray-50 / 다크 black)으로 녹아들어
           라이트 테마에서도 어두운 히어로와 밝은 본문 사이에 딱 잘린 경계가 생기지 않는다.
           콘텐츠는 pb 로 이 띠 위에서 끝난다(흰 글씨가 밝은 페이드 위에 얹히지 않게). */}

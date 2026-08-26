@@ -40,18 +40,14 @@ const Landing = () => {
   const scrollToTour = useCallback(() => {
     const el = document.getElementById('tour')
     if (!el) return
-    // 모바일(터치)에선 탭 직후 이어지는 터치 이벤트가 smooth scrollIntoView를 중간에 끊어
-    // 제자리에 머무는 경우가 있다 — 실측 좌표로 window.scrollTo를 쓰고, 터치 기기는 즉시 이동.
-    // 조상 스크롤 컨테이너(#root/body)가 있을 수 있어 scrollIntoView도 함께 시도한다.
+    // 이 앱은 window가 아니라 #root가 스크롤 컨테이너라 window.scrollTo는 아무 일도 하지 않는다.
+    // 컨테이너를 가리지 않는 scrollIntoView만 쓴다 (헤더 오프셋은 섹션의 scroll-mt-20이 처리).
+    // 모바일(터치)에선 탭 직후 이어지는 터치 이벤트가 smooth 스크롤을 중간에 끊어
+    // 제자리에 머무는 경우가 있어 즉시 이동한다.
     const coarse = window.matchMedia?.('(pointer: coarse)').matches
     const behavior: ScrollBehavior = coarse ? 'auto' : 'smooth'
-    const headerOffset = 80 // scroll-mt-20
     requestAnimationFrame(() => {
-      const top = el.getBoundingClientRect().top + window.scrollY - headerOffset
-      window.scrollTo({ top, behavior })
-      if (Math.abs(el.getBoundingClientRect().top - headerOffset) > 4 && coarse) {
-        el.scrollIntoView({ behavior: 'auto', block: 'start' })
-      }
+      el.scrollIntoView({ behavior, block: 'start' })
     })
   }, [])
 
