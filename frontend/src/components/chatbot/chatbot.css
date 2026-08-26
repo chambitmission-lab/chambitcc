@@ -117,7 +117,7 @@ html.dark .cb-chambi {
 .cb-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 html.dark .cb-card {
   background: var(--cb-bg-d);
-  border-color: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .cb-card-title {
@@ -126,14 +126,19 @@ html.dark .cb-card {
   color: var(--cb-fg);
   letter-spacing: -0.2px;
 }
-html.dark .cb-card-title { color: var(--cb-fg-d); }
+html.dark .cb-card-title {
+  color: var(--cb-fg-d);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
 
 .cb-card-desc {
   margin-top: 3px;
-  font-size: 10.5px;
-  line-height: 1.45;
-  color: var(--ink-muted, #6b7280);
+  font-size: 11px;
+  line-height: 1.5;
+  color: #5b6472;
 }
+/* 다크에서는 틴트 카드 위라 muted(#938f9a)로는 묻힌다 — body 톤까지 올린다 */
+html.dark .cb-card-desc { color: rgba(219, 224, 234, 0.82); }
 
 .cb-chev {
   position: absolute;
@@ -156,7 +161,7 @@ html.dark .cb-chev { background: var(--cb-fg-d); color: #16181d; }
   padding: 7px 8px;
   border-radius: 14px;
   background: var(--surface-container);
-  border: 1px solid var(--border-light, rgba(0, 0, 0, 0.06));
+  border: 1px solid var(--card-border);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -174,12 +179,17 @@ html.dark .cb-chips { border-color: rgba(255, 255, 255, 0.07); }
 .cb-chip {
   flex-shrink: 0;
   border-radius: 999px;
-  border: 1px solid var(--border-light, rgba(0, 0, 0, 0.08));
+  border: 1px solid var(--card-border);
   background: var(--surface);
   padding: 5px 11px;
   font-size: 11.5px;
-  color: var(--ink, #2b3445);
+  color: var(--text-body);
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 .cb-chip:hover { border-color: var(--brand); color: var(--brand); }
-html.dark .cb-chip { border-color: rgba(255, 255, 255, 0.1); }
+/* 다크에선 --surface(#131313)가 칩 배경 컨테이너보다 어두워 깊이가 뒤집힌다 */
+html.dark .cb-chip {
+  background: var(--surface-container-high);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-strong);
+}
