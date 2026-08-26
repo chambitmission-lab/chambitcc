@@ -52,6 +52,19 @@ const About = () => {
   // 길찾기 앱으로 넘기는 건 /visit 이 각 지도 앱 버튼으로 담당한다.
   const openMap = () => navigate('/visit')
 
+  // 히어로 "교회 소개" — 페이지 내 첫 섹션으로 부드럽게 (window.scrollTo 는 #root overflow 탓에 무력)
+  const scrollToIntro = () => {
+    document.getElementById('about-intro')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  // CTA 타일의 한 줄 설명 — 라벨만 있던 버튼을 "무엇을 얻는지"가 보이는 타일로
+  const ctaTiles = [
+    { to: '/register', Icon: SproutIcon, title: ko ? '처음 오셨나요?' : 'New Here?', desc: ko ? '환영합니다!' : 'Welcome!', primary: true },
+    { to: '/sermon', Icon: BookOpenIcon, title: ko ? '최근 설교 보기' : 'Recent Sermons', desc: ko ? '말씀 다시 듣기' : 'Listen again' },
+    { to: '/history', Icon: FlagIcon, title: ko ? '참빛의 발자취' : 'Our Story', desc: ko ? '우리의 이야기' : 'Where we came from' },
+    { to: '/organization', Icon: OrgChartIcon, title: ko ? '교회 조직도' : 'Org Chart', desc: ko ? '함께 섬겨요' : 'Serving together' },
+  ] as const
+
   // EditableText 가 <button> 을 렌더하므로 행 자체는 button 이 아닌 div 로 만들어
   // 중첩 인터랙티브 요소를 피한다 (편집 버튼은 stopPropagation 으로 행 클릭과 분리됨)
   const rowKeyDown = (action: () => void) => (e: React.KeyboardEvent) => {
@@ -155,10 +168,10 @@ const About = () => {
 
   return (
     <div className="bg-gray-50 dark:bg-black min-h-screen page-stage">
-      {/* lg+: 좁은 셸을 풀고 본문(읽기 폭 유지) + 우측 위젯 레일 2단.
-          읽는 페이지라 본문은 넓히되 글줄은 .about-content가 44rem으로 잡는다 */}
-      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 랜딩형 1단 — 히어로 카드(우측에 한눈에 정보) 아래로
+          섹션 카드들이 같은 폭으로 쌓인다. 우측 레일은 히어로 안으로 들어갔다 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:min-w-0 lg:bg-transparent lg:dark:bg-transparent lg:shadow-none lg:border-0 lg:min-h-0">
         {/* Hero — 사진을 온전히 보여주고 텍스트는 하단 스크림 위에 좌측 정렬 */}
         <div className="about-hero">
           {/* crossOrigin: CORS 응답이어야 서비스워커가 상태 코드를 보고 캐싱할 수 있다
@@ -189,7 +202,24 @@ const About = () => {
                 {tx('aboutTagline')}
               </EditableText>
             </p>
+            {/* 첫 화면에서 바로 갈 수 있는 두 갈래 — 예배 안내(실행) / 교회 소개(읽기) */}
+            <div className="hero-actions">
+              <button
+                type="button"
+                className="hero-action hero-action--primary"
+                onClick={() => navigate('/worship')}
+              >
+                <span>{ko ? '예배 안내 보기' : 'Worship Times'}</span>
+                <ChevronRightIcon size={16} />
+              </button>
+              <button type="button" className="hero-action" onClick={scrollToIntro}>
+                <span>{ko ? '교회 소개' : 'About Us'}</span>
+                <ChevronRightIcon size={16} />
+              </button>
+            </div>
           </div>
+          {/* lg+: 한눈에 정보 카드가 히어로 우측에 떠 있다 (모바일은 CTA 아래 본문 버전) */}
+          {renderQuickInfo(' about-quickinfo--hero')}
           <HeroEditButton isAdmin={isAdminUser} />
         </div>
 
@@ -249,9 +279,16 @@ const About = () => {
                   </div>
                 )
               )}
+              {/* lg+ 에서만: 리스트 안에서 "손수건 같은 만남"이 선택된 행처럼 빛난다 (CSS 로 표시 제어) */}
+              <div className="meeting-pass-row meeting-pass-row--good" aria-hidden="true">
+                <HeartIcon size={15} className="meeting-pass-x" />
+                <p style={{ whiteSpace: 'pre-line' }}>{tx('aboutMeetingGood')}</p>
+              </div>
             </div>
             <div className="meeting-good-card">
-              <HeartIcon size={24} />
+              <span className="meeting-good-emblem">
+                <HeartIcon size={30} />
+              </span>
               <p className="good-text" style={{ whiteSpace: 'pre-line' }}>
                 <EditableText fieldKey="aboutMeetingGood" multiline isAdmin={isAdminUser}>
                   {tx('aboutMeetingGood')}
@@ -269,6 +306,7 @@ const About = () => {
             </div>
 
             <div className="pastor-head">
+              <div className="pastor-photo-slot">
               <EditableImage
                 fieldKey="aboutPastorPhoto"
                 currentUrl={pastorPhotoUrl}
@@ -283,6 +321,7 @@ const About = () => {
                   </span>
                 ) : null}
               </EditableImage>
+              </div>
               <div className="pastor-head-text">
                 <h2 className="pastor-name">
                   <EditableText fieldKey="aboutPastorName" isAdmin={isAdminUser}>
@@ -383,58 +422,44 @@ const About = () => {
               </p>
 
               <div className="cta-actions">
-                <button
-                  type="button"
-                  className="cta-action cta-action--primary"
-                  onClick={() => navigate('/register')}
-                >
-                  <SproutIcon size={18} />
-                  <span>{ko ? '처음 오셨나요?' : 'New Here?'}</span>
-                </button>
-                <button
-                  type="button"
-                  className="cta-action"
-                  onClick={() => navigate('/sermon')}
-                >
-                  <BookOpenIcon size={18} />
-                  <span>{ko ? '최근 설교 보기' : 'Recent Sermons'}</span>
-                </button>
-                <button
-                  type="button"
-                  className="cta-action"
-                  onClick={() => navigate('/history')}
-                >
-                  <FlagIcon size={18} />
-                  <span>{ko ? '참빛의 발자취' : 'Our Story'}</span>
-                </button>
-                <button
-                  type="button"
-                  className="cta-action"
-                  onClick={() => navigate('/organization')}
-                >
-                  <OrgChartIcon size={18} />
-                  <span>{ko ? '교회 조직도' : 'Org Chart'}</span>
-                </button>
+                {ctaTiles.map(({ to, Icon, title, desc, ...rest }) => (
+                  <button
+                    key={to}
+                    type="button"
+                    className={`cta-action${'primary' in rest && rest.primary ? ' cta-action--primary' : ''}`}
+                    onClick={() => navigate(to)}
+                  >
+                    <span className="cta-action-icon">
+                      <Icon size={20} />
+                    </span>
+                    <span className="cta-action-text">
+                      <span className="cta-action-title">{title}</span>
+                      <span className="cta-action-desc">{desc}</span>
+                    </span>
+                    <span className="cta-action-arrow" aria-hidden="true">
+                      →
+                    </span>
+                  </button>
+                ))}
               </div>
 
-              <div className="cta-badge">
-                <EditableText fieldKey="aboutCtaBadge" isAdmin={isAdminUser}>
-                  {tx('aboutCtaBadge')}
-                </EditableText>
+              <div className="cta-foot">
+                <div className="cta-badge">
+                  <EditableText fieldKey="aboutCtaBadge" isAdmin={isAdminUser}>
+                    {tx('aboutCtaBadge')}
+                  </EditableText>
+                </div>
+                {/* 감사 인사 — 초대 카드의 맺음말로 안에 들인다 */}
+                <p className="footer-text" style={{ whiteSpace: 'pre-line' }}>
+                  <EditableText fieldKey="aboutFooterMessage" multiline isAdmin={isAdminUser}>
+                    {tx('aboutFooterMessage')}
+                  </EditableText>
+                </p>
               </div>
             </div>
           </section>
 
           {renderQuickInfo(' about-quickinfo--body')}
-
-          {/* Footer Message */}
-          <section className="footer-message">
-            <p className="footer-text" style={{ whiteSpace: 'pre-line' }}>
-              <EditableText fieldKey="aboutFooterMessage" multiline isAdmin={isAdminUser}>
-                {tx('aboutFooterMessage')}
-              </EditableText>
-            </p>
-          </section>
 
           {isAdminUser && (
             <div className="about-admin-hint">
@@ -446,10 +471,6 @@ const About = () => {
         </div>
       </div>
 
-      {/* 우측 위젯 레일 (lg+) — 실행 정보(한눈에)만. 목차는 보여주기식이라 두지 않는다 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
-        {renderQuickInfo()}
-      </aside>
       </div>
     </div>
   )

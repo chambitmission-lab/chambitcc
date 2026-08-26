@@ -14,6 +14,10 @@
   margin-bottom: 1.5rem;
 }
 
+.pastor-photo-slot {
+  flex-shrink: 0;
+}
+
 .pastor-photo {
   width: 84px;
   height: 84px;
@@ -67,13 +71,27 @@
   margin-bottom: 1.25rem;
 }
 
+/* 하이라이트 문단 — 연한 블루 인용 박스 (따옴표 아이콘 + 라운드) */
 .pastor-text.highlight {
-  padding: 1.25rem;
+  position: relative;
+  padding: 1.25rem 1.25rem 1.25rem 3rem;
   background: var(--brand-soft);
-  border-left: 3px solid var(--brand);
-  border-radius: 0.5rem;
+  border: 1px solid var(--brand-soft-strong);
+  border-radius: 16px;
   font-weight: 600;
   color: var(--brand-muted);
+}
+
+.pastor-text.highlight::before {
+  content: 'C';
+  position: absolute;
+  left: 1.1rem;
+  top: 0.55rem;
+  font-family: Georgia, serif;
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--brand);
+  opacity: 0.7;
 }
 
 .pastor-signature {

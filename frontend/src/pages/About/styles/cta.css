@@ -1,4 +1,6 @@
-/* About Page - CTA Section */
+/* About Page - CTA Section
+   딥블루 밤하늘 카드: 좌측에 초대 문구, 우측 상단에서 새벽빛이 번지고,
+   행동 타일 4개(첫 타일만 브랜드)가 한 줄로, 아래에 배지 + 감사 인사. */
 
 .cta-section {
   margin-bottom: 3rem;
@@ -6,35 +8,78 @@
 
 /* 히어로와 같은 딥 블루 계열 — 라이트/다크 공통 다크 서피스 */
 .cta-card {
-  background: linear-gradient(135deg, #0c1a33 0%, #14305f 100%);
-  border-radius: 1.5rem;
-  padding: 2.25rem 1.75rem;
-  text-align: center;
   position: relative;
+  background: linear-gradient(135deg, #0b1733 0%, #132c5c 60%, #1a3a78 100%);
+  border-radius: 1.5rem;
+  padding: 2rem 1.5rem 1.75rem;
+  text-align: left;
   overflow: hidden;
   border: 1px solid rgba(49, 130, 246, 0.25);
 }
 
+/* 새벽빛 — 우측 상단에서 번지는 따뜻한 광원 (정적) */
+.cta-card::before {
+  content: '';
+  position: absolute;
+  top: -140px;
+  right: -80px;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 196, 120, 0.42) 0%,
+    rgba(255, 160, 90, 0.18) 30%,
+    rgba(49, 130, 246, 0.12) 55%,
+    rgba(49, 130, 246, 0) 72%
+  );
+  pointer-events: none;
+}
+
+/* 십자가 실루엣 — 빛 앞에 서 있는 얇은 십자가 */
+.cta-card::after {
+  content: '';
+  position: absolute;
+  top: 1.5rem;
+  right: 3.5rem;
+  width: 56px;
+  height: 84px;
+  background:
+    linear-gradient(rgba(255, 224, 180, 0.9), rgba(255, 224, 180, 0.9)) center top / 6px 100% no-repeat,
+    linear-gradient(rgba(255, 224, 180, 0.9), rgba(255, 224, 180, 0.9)) center 22px / 100% 6px no-repeat;
+  filter: drop-shadow(0 0 14px rgba(255, 200, 130, 0.6));
+  opacity: 0.85;
+  pointer-events: none;
+}
+
 .cta-title {
+  position: relative;
   font-size: 1.625rem;
   font-weight: 800;
   color: white;
   letter-spacing: -0.02em;
-  margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.cta-title::after {
+  content: ' 💗';
+  font-size: 0.8em;
 }
 
 .cta-text {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.8;
+  position: relative;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.7;
   margin-bottom: 1.5rem;
+  max-width: 26rem;
 }
 
-/* 실제 행동 유도 버튼 */
+/* 행동 타일 */
 .cta-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.7rem;
   margin-bottom: 1.5rem;
   position: relative;
   z-index: 1;
@@ -42,51 +87,119 @@
 
 .cta-action {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.9rem 1.25rem;
-  border-radius: 14px;
-  font-size: 0.95rem;
-  font-weight: 700;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  min-height: 118px;
+  padding: 1rem 1rem 0.9rem;
+  border-radius: 16px;
+  text-align: left;
   color: #fff;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
-  transition: transform 0.15s ease, background 0.15s ease;
+  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .cta-action:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .cta-action:active {
   transform: translateY(0);
 }
 
+.cta-action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+}
+
+.cta-action-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.cta-action-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.cta-action-desc {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.cta-action-arrow {
+  margin-top: auto;
+  align-self: flex-end;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.85;
+  transition: transform 0.15s ease;
+}
+
+.cta-action:hover .cta-action-arrow {
+  transform: translateX(3px);
+}
+
 .cta-action--primary {
   background: #3182f6;
-  border-color: transparent;
-  box-shadow: 0 6px 18px rgba(49, 130, 246, 0.45);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 22px rgba(49, 130, 246, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .cta-action--primary:hover {
   background: #1b6ef3;
 }
 
-.cta-action svg {
-  flex-shrink: 0;
+.cta-action--primary .cta-action-icon {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.cta-action--primary .cta-action-desc {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 맺음: 배지 + 감사 인사 */
+.cta-foot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  text-align: center;
 }
 
 .cta-badge {
   display: inline-block;
-  padding: 0.7rem 1.4rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: rgba(255, 255, 255, 0.92);
+  padding: 0.55rem 1.2rem;
+  background: rgba(49, 130, 246, 0.2);
+  border: 1px solid rgba(120, 175, 255, 0.35);
+  color: rgba(255, 255, 255, 0.95);
   border-radius: 50px;
   font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.cta-foot .footer-text {
   font-size: 0.875rem;
+  line-height: 1.7;
+  color: rgba(170, 200, 255, 0.8);
+  font-weight: 500;
 }

@@ -2,9 +2,10 @@
 
 @import './hero.css';
 @import './quickinfo.css';
-@import './layout.css';
 @import './intro.css';
 @import './meeting.css';
 @import './cta.css';
 @import './pastor.css';
 @import './responsive.css';
+/* lg+ 그리드 규칙이 각 섹션 기본값을 이기도록 맨 마지막에 */
+@import './layout.css';

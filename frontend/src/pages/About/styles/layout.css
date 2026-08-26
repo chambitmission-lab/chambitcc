@@ -51,17 +51,16 @@
   text-align: center;
 }
 
-/* ── PC 2단 (lg+) ─────────────────────────────────────
- * /greeting 과 같은 문법: 히어로는 커버, 본문은 커버와 같은 폭의 카드들이
- * 커버 하단을 타고 올라온다. 각 섹션은 PC 에서 좌우 2단 편집 그리드로 펼쳐
- * 세로로 길게 늘어지지 않게 한다. 글줄 폭은 오른쪽 칸(≈540px)이 지킨다.
+/* ── PC (lg+) — 랜딩형 1단 ─────────────────────────────
+ * 히어로 카드(우측에 한눈에 정보) 아래로 섹션 카드들이 같은 폭으로 쌓인다.
+ * 각 섹션은 좌우 2단 편집 그리드로 펼쳐 세로로 길게 늘어지지 않게 한다.
  * 목차 카드는 섹션이 네 개뿐이라 보여주기식 — 두지 않는다(★재제안 금지).
  */
 @media (min-width: 1024px) {
   .about-content {
     max-width: none;
     margin: 0;
-    padding: 0 1.25rem 2.5rem;
+    padding: 0 0 1rem;
   }
 
   /* 공통 카드 껍데기 */
@@ -72,14 +71,12 @@
     border: 1px solid var(--card-border);
     border-radius: 24px;
     box-shadow: var(--card-shadow);
-    padding: 2.5rem;
+    padding: 2.5rem 3rem;
     margin-bottom: 1.5rem;
   }
 
-  /* 우리 이야기 — 커버 위로 올라탄 첫 카드. 왼쪽에 오버라인+제목, 오른쪽에 글+약속의 말씀 */
+  /* 우리 이야기 — 왼쪽에 오버라인+제목, 오른쪽에 글+약속의 말씀 */
   .intro-section {
-    position: relative;
-    margin-top: -3.25rem;
     display: grid;
     grid-template-columns: minmax(220px, 1fr) minmax(0, 1.7fr);
     grid-template-areas:
@@ -89,7 +86,6 @@
       '. quote';
     column-gap: 3rem;
     align-content: start;
-    box-shadow: 0 1px 2px rgba(24, 26, 40, 0.08), 0 -8px 24px -12px rgba(10, 24, 60, 0.25), 0 20px 44px -18px rgba(24, 26, 40, 0.3);
   }
 
   .intro-section .section-badge {
@@ -114,92 +110,152 @@
     margin: 0;
   }
 
-  /* 어떤 만남인가요 — 스쳐가는 만남(왼쪽) 뒤에 손수건 같은 만남(오른쪽)이 크게 받는다 */
+  /* 어떤 만남인가요 — 왼쪽 제목+행 리스트, 오른쪽 손수건 카드가 세로로 꽉 찬다 */
   .meeting-section {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
     grid-template-areas:
-      'title title'
+      'title good'
       'pass good';
     column-gap: 2.5rem;
-    align-items: center;
+    align-items: stretch;
+    padding: 2.5rem 3rem;
   }
 
   .meeting-section .meeting-title {
     grid-area: title;
     text-align: left;
     font-size: 1.5rem;
-    letter-spacing: -0.02em;
-    margin-bottom: 1.5rem;
+    line-height: 1.3;
+    margin-bottom: 1.25rem;
+    white-space: pre-line;
   }
 
   .meeting-section .meeting-pass {
     grid-area: pass;
     margin: 0;
     padding: 0;
+    align-self: start;
+  }
+
+  .meeting-section .meeting-pass-row {
+    padding: 0.9rem 1.1rem;
+  }
+
+  .meeting-section .meeting-pass-row--good {
+    display: flex;
   }
 
   .meeting-section .meeting-pass-row p {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
   .meeting-section .meeting-good-card {
     grid-area: good;
-    padding: 2.25rem 2rem;
-    border-radius: 20px;
+    justify-content: center;
+    padding: 3rem 2.5rem;
+    border-radius: 22px;
+    min-height: 100%;
+  }
+
+  .meeting-section .meeting-good-emblem {
+    width: 84px;
+    height: 84px;
+    margin-bottom: 0.25rem;
   }
 
   .meeting-section .meeting-good-card .good-text {
-    font-size: 1.2rem;
-    line-height: 1.6;
+    font-size: 1.5rem;
+    line-height: 1.45;
   }
 
-  /* 담임목사 편지 — /greeting 과 같은 float 인물 블록 */
+  /* 담임목사 — 왼쪽 글, 오른쪽 큰 사진 */
   .pastor-section {
-    display: flow-root;
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
+    grid-template-areas:
+      'badge photo'
+      'head photo'
+      'letter photo'
+      'cred cred'
+      'link link';
+    column-gap: 3rem;
+    align-items: start;
   }
 
   .pastor-section .section-badge {
-    margin-bottom: 1.25rem;
+    grid-area: badge;
+    margin-bottom: 0.75rem;
   }
 
+  /* head 는 그리드에 녹여 사진 슬롯/이름 블록을 따로 배치한다 */
   .pastor-head {
-    float: left;
-    width: 200px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-    margin: 0 2.5rem 1rem 0;
+    display: contents;
   }
 
-  .pastor-photo {
+  .pastor-photo-slot {
+    grid-area: photo;
+    justify-self: end;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .pastor-photo-slot .pastor-photo {
     width: 100%;
     height: auto;
     aspect-ratio: 4 / 5;
     border-radius: 24px;
+    object-fit: cover;
+  }
+
+  .pastor-head-text {
+    grid-area: head;
+    margin-bottom: 1.25rem;
   }
 
   .pastor-name {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+  }
+
+  .pastor-nickname {
+    font-size: 1rem;
+  }
+
+  .pastor-letter {
+    grid-area: letter;
   }
 
   .pastor-text {
     font-size: 1.0625rem;
   }
 
-  .pastor-credentials,
-  .pastor-greeting-link {
-    clear: both;
+  .pastor-credentials {
+    grid-area: cred;
+    margin-top: 0.5rem;
   }
 
-  /* 함께 하실래요 — 넓은 화면에선 행동 버튼 4개를 한 줄로 */
+  .pastor-greeting-link {
+    grid-area: link;
+  }
+
+  /* 함께 하실래요 — 타일 4개 한 줄 */
   .cta-section {
     margin-bottom: 1.5rem;
   }
 
   .cta-card {
-    padding: 3rem 2.5rem 2.5rem;
+    padding: 2.75rem 3rem 2.25rem;
     border-radius: 24px;
+  }
+
+  .cta-card::after {
+    top: 2rem;
+    right: 5rem;
+    width: 72px;
+    height: 110px;
+    background:
+      linear-gradient(rgba(255, 224, 180, 0.9), rgba(255, 224, 180, 0.9)) center top / 7px 100% no-repeat,
+      linear-gradient(rgba(255, 224, 180, 0.9), rgba(255, 224, 180, 0.9)) center 28px / 100% 7px no-repeat;
   }
 
   .cta-title {
@@ -207,31 +263,32 @@
   }
 
   .cta-text {
-    max-width: 40rem;
-    margin-left: auto;
-    margin-right: auto;
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
   }
 
   .cta-actions {
-    display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
-    max-width: 52rem;
-    margin-left: auto;
-    margin-right: auto;
+    gap: 1rem;
+    margin-bottom: 2rem;
   }
 
-  .footer-message {
-    padding: 1.5rem 1rem 0.5rem;
-    margin-top: 1rem;
+  .cta-action {
+    min-height: 132px;
+    padding: 1.25rem 1.25rem 1.1rem;
+    border-radius: 18px;
   }
 
-  /* 한눈에 정보는 우측 레일이 맡는다 — 본문의 것은 중복이라 숨긴다 */
+  .cta-action-title {
+    font-size: 1.05rem;
+  }
+
+  .cta-action-desc {
+    font-size: 0.85rem;
+  }
+
+  /* 한눈에 정보는 히어로 카드가 맡는다 — 본문의 것은 중복이라 숨긴다 */
   .about-quickinfo--body {
     display: none;
-  }
-
-  .about-quickinfo {
-    margin: 0;
   }
 }
