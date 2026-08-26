@@ -85,7 +85,8 @@ const isThisWeek = (dateStr: string): boolean => {
 // 본문의 첫 하이라이트 문장 — 피처드 카드에서 인용구로 노출
 const firstHighlight = (content: string): string | null => {
   const m = content.match(/\[\[(.*?)\]\]/)
-  const text = m?.[1]?.trim()
+  // [[문구|yellow|wavy]] 처럼 옵션이 붙어 있으면 문구만
+  const text = m?.[1]?.split('|')[0]?.trim()
   return text || null
 }
 
@@ -481,15 +482,16 @@ const Ministry = () => {
       {/* lg+: 좁은 폰 프레임을 풀고 본문(편지) + 우측 위젯 레일 2컬럼으로 (/news와 같은 문법).
           좌측 레일 오프셋은 전역 main(App.tsx)이 잡아주므로 여기선 px-5만 둔다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 셸(배경·테두리·라운드)을 걷어낸다 — 안쪽이 전부 feed-card라 셸까지 두면
+          스테이지 → 셸 → 헤더 띠 → 카드로 톤이 다른 층이 겹쳐 "상자 속 상자"가 된다 */}
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:bg-transparent lg:dark:bg-transparent lg:shadow-none lg:border-0 lg:min-h-0">
         {/* Header — 슬림하게: 제목(세리프)과 액션만.
-            lg+에선 셸의 overflow-hidden 때문에 sticky 기준이 셸이 되어 top-14만큼
-            아래로 밀려 콘텐츠를 덮으므로(고정도 안 됨) 일반 흐름으로 되돌린다 */}
-        <div className="sticky top-14 lg:static z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
-          <div className="px-5 py-3.5">
+            모바일은 sticky 바, lg+에선 배경·구분선 없는 페이지 타이틀 행으로 */}
+        <div className="sticky top-14 lg:static z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark lg:bg-transparent lg:dark:bg-transparent lg:backdrop-blur-none lg:border-0">
+          <div className="px-5 py-3.5 lg:px-1 lg:pt-4 lg:pb-5">
             <div className="flex items-center justify-between">
               <h1
-                className="text-[21px] font-semibold text-ink-strong tracking-[-0.01em] leading-[1.2]"
+                className="text-[21px] lg:text-[26px] font-semibold text-ink-strong tracking-[-0.01em] leading-[1.2]"
                 style={{ fontFamily: SERIF }}
               >
                 {language === 'ko' ? '목양칼럼' : 'Pastoral Column'}
@@ -561,7 +563,7 @@ const Ministry = () => {
               : (language === 'ko' ? '등록된 목양컬럼이 없습니다' : 'No columns available')}
           </div>
         ) : (
-          <div className="px-4 pb-8">
+          <div className="px-4 pb-8 lg:px-0">
             {/* 인트로 — 작성자는 한 분이므로 사진은 여기서 단 한 번만 */}
             {featured && (
               <div className="px-1 pt-6 pb-5 flex items-center gap-4 lg:hidden">
@@ -592,10 +594,10 @@ const Ministry = () => {
                 {/* 다크모드 표면 그라데이션 — 홈 피드 카드와 동일 문법 */}
                 <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.04] via-transparent to-transparent pointer-events-none rounded-2xl"></div>
 
-                {/* lg+: 폭이 넓어지면 한 줄이 100자를 넘어 읽기 힘들다 —
-                    좌(제목·날짜) / 우(인용구·발췌) 매거진 2단으로 나눈다 */}
-                <div className="relative z-10 p-6 lg:flex lg:gap-8 lg:p-8">
-                  <div className="lg:w-[38%] lg:shrink-0">
+                {/* lg+: 2단 분할 대신 한 흐름(배지→날짜→제목→인용→발췌)으로 두고
+                    줄 길이만 max-w로 제한 — 폭이 넓어도 "편지 한 통"으로 읽히게 */}
+                <div className="relative z-10 p-6 lg:p-9 lg:max-w-[72ch]">
+                  <div>
                   {isThisWeek(featured.date) && (
                     <span className="inline-flex items-center px-2.5 py-1 mb-3 rounded-full bg-[var(--brand-soft-strong)] text-[var(--brand)] text-[11px] font-semibold tracking-[-0.005em]">
                       {language === 'ko' ? '이번 주 편지' : "This Week's Letter"}
@@ -616,14 +618,14 @@ const Ministry = () => {
                     )}
                   </div>
                   <h2
-                    className="text-[21px] font-semibold text-ink-strong mb-3 line-clamp-2 tracking-[-0.01em] leading-[1.4]"
+                    className="text-[21px] lg:text-[26px] font-semibold text-ink-strong mb-3 lg:mb-5 line-clamp-2 tracking-[-0.01em] leading-[1.4]"
                     style={{ fontFamily: SERIF }}
                   >
                     {featured.title}
                   </h2>
                   </div>
 
-                  <div className="lg:flex-1 lg:min-w-0 lg:border-l lg:border-[var(--card-border)] lg:pl-8">
+                  <div>
                   {featuredQuote ? (
                     // 목사님이 하이라이트한 문장을 인용구로 — 편지의 핵심 한 줄이 먼저 닿게
                     <>
@@ -632,7 +634,7 @@ const Ministry = () => {
                         style={{ borderColor: 'var(--brand-muted)' }}
                       >
                         <p
-                          className="text-[15.5px] text-ink-strong line-clamp-3 leading-[1.75] tracking-[-0.01em]"
+                          className="text-[15.5px] lg:text-[17px] text-ink-strong line-clamp-3 leading-[1.75] tracking-[-0.01em]"
                           style={{ fontFamily: SERIF }}
                         >
                           “{featuredQuote}”
