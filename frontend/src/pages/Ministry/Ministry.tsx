@@ -12,39 +12,22 @@ import {
   toggleColumnAmen,
 } from '../../api/column'
 import type { Column, CreateColumnRequest } from '../../types/column'
+import HighlightPopover from './HighlightPopover'
+import {
+  DEFAULT_HIGHLIGHT,
+  buildHighlightMarkup,
+  expandSelectionOverMarkup,
+  parseHighlightToken,
+  removeHighlightTags,
+  renderHighlightedText,
+  type HighlightOptions,
+} from './highlightMarkup'
 import andongProfile from '../../assets/andong.png'
 
 // 편지·에세이 톤의 서체 — 성경 읽기 설정과 동일한 스택(이미 index.html에서 로드됨)
 // Noto Serif KR은 400/600만 로드되어 있으므로 굵기는 font-semibold(600)까지만 사용
 const SERIF = "'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif"
 const PEN = "'Nanum Pen Script', 'Pretendard', cursive"
-
-// 중요한 문구를 하이라이트하는 함수 (상세 화면용) — 파란 링크처럼 보이지 않게
-// 형광펜으로 밑줄을 그은 듯한 은은한 마커 스타일
-const renderHighlightedText = (text: string) => {
-  const parts = text.split(/(\[\[.*?\]\])/g)
-
-  return parts.map((part, index) => {
-    if (part.startsWith('[[') && part.endsWith(']]')) {
-      const highlightedText = part.slice(2, -2)
-      return (
-        <span
-          key={index}
-          className="font-semibold text-ink-strong"
-          style={{ background: 'linear-gradient(transparent 55%, var(--marker) 55%)' }}
-        >
-          {highlightedText}
-        </span>
-      )
-    }
-    return part
-  })
-}
-
-// 하이라이트 태그를 제거하는 함수 (목록 화면용)
-const removeHighlightTags = (text: string): string => {
-  return text.replace(/\[\[(.*?)\]\]/g, '$1')
-}
 
 // 정규식 메타문자 이스케이프
 const escapeRegex = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -140,6 +123,9 @@ const Ministry = () => {
   // 검색 결과에 흔들리지 않는 전체 편지 목록 (우측 레일 위젯 전용 스냅샷)
   const [allColumns, setAllColumns] = useState<Column[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [highlightOpen, setHighlightOpen] = useState(false)
+  const [highlightOpt, setHighlightOpt] = useState<HighlightOptions>(DEFAULT_HIGHLIGHT)
+  const [highlightSel, setHighlightSel] = useState<{ start: number; end: number; text: string; existing: boolean } | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const modalScrollRef = useRef<HTMLDivElement>(null)
   // 아멘 요청 진행 중인 편지 (연타로 토글이 꼬이는 것 방지)
@@ -289,47 +275,63 @@ const Ministry = () => {
     setEditingColumn({})
   }
 
-  const handleHighlight = () => {
+  // 하이라이트 버튼: 선택 영역 확인 → 옵션 팝오버 열기
+  const openHighlight = () => {
     const textarea = textareaRef.current
     if (!textarea) return
-
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = textarea.value.substring(start, end)
-
-    if (!selectedText) {
+    const value = textarea.value
+    const rawStart = textarea.selectionStart
+    const rawEnd = textarea.selectionEnd
+    if (rawStart === rawEnd) {
       showToast(language === 'ko' ? '하이라이트할 텍스트를 선택하세요' : 'Please select text to highlight', 'error')
       return
     }
-
-    // 이미 [[]]로 감싸져 있는지 확인
-    if (selectedText.startsWith('[[') && selectedText.endsWith(']]')) {
-      showToast(language === 'ko' ? '이미 하이라이트된 텍스트입니다' : 'Text is already highlighted', 'error')
-      return
+    // 기존 마커와 겹치면 마커 전체로 확장 → 스타일 교체/해제 가능
+    const { start, end, text } = expandSelectionOverMarkup(value, rawStart, rawEnd)
+    const slice = value.slice(start, end)
+    const existing = /^\[\[[^[\]]*\]\]$/.test(slice)
+    if (existing) {
+      // 기존 옵션을 팝오버 초기값으로
+      setHighlightOpt(parseHighlightToken(slice.slice(2, -2)).options)
     }
+    setHighlightSel({ start, end, text, existing })
+    setHighlightOpen(true)
+  }
 
-    const before = textarea.value.substring(0, start)
-    const after = textarea.value.substring(end)
-    const newContent = before + '[[' + selectedText + ']]' + after
-
+  const replaceRange = (start: number, end: number, insert: string, caretOffset: number) => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    const value = textarea.value
+    const newContent = value.slice(0, start) + insert + value.slice(end)
     // controlled value가 통째로 바뀌면 브라우저가 textarea 스크롤을 0으로 되돌린다 → 미리 기억
     const scrollTop = textarea.scrollTop
-
-    setEditingColumn({ ...editingColumn, content: newContent })
-
-    // 커서 위치 조정 (하이라이트된 텍스트 뒤로) + 보고 있던 위치 복원
+    setEditingColumn((prev) => ({ ...prev, content: newContent }))
     setTimeout(() => {
       const el = textareaRef.current
       if (!el) return
       // preventScroll: 모바일에서 focus가 모달까지 스크롤해 올리는 것 방지
       el.focus({ preventScroll: true })
-      const caret = start + selectedText.length + 4
+      const caret = start + caretOffset
       el.setSelectionRange(caret, caret)
-      // setSelectionRange는 커서로 스크롤해주지 않으므로 직접 되돌린다
       el.scrollTop = scrollTop
     }, 0)
+  }
 
+  const applyHighlight = () => {
+    if (!highlightSel) return
+    const markup = buildHighlightMarkup(highlightSel.text, highlightOpt)
+    replaceRange(highlightSel.start, highlightSel.end, markup, markup.length)
+    setHighlightOpen(false)
+    setHighlightSel(null)
     showToast(language === 'ko' ? '하이라이트가 적용되었습니다' : 'Highlight applied', 'success')
+  }
+
+  const removeHighlight = () => {
+    if (!highlightSel) return
+    replaceRange(highlightSel.start, highlightSel.end, highlightSel.text, highlightSel.text.length)
+    setHighlightOpen(false)
+    setHighlightSel(null)
+    showToast(language === 'ko' ? '하이라이트를 해제했습니다' : 'Highlight removed', 'success')
   }
 
   // 상세 모달 스크롤 → 상단 읽기 진행 바
@@ -984,15 +986,28 @@ const Ministry = () => {
                     <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 tracking-[-0.005em]">
                       {language === 'ko' ? '내용' : 'Content'} *
                     </label>
-                    <button
-                      type="button"
-                      onClick={handleHighlight}
-                      className="px-3 py-1 bg-[var(--brand-soft-strong)] text-[var(--brand)] rounded-full text-xs font-semibold hover:bg-[var(--brand-soft)] transition-colors flex items-center gap-1"
-                      title={language === 'ko' ? '선택한 텍스트를 하이라이트' : 'Highlight selected text'}
-                    >
-                      <span className="material-icons-outlined text-sm">highlight</span>
-                      <span>{language === 'ko' ? '하이라이트' : 'Highlight'}</span>
-                    </button>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={openHighlight}
+                        className="px-3 py-1 bg-[var(--brand-soft-strong)] text-[var(--brand)] rounded-full text-xs font-semibold hover:bg-[var(--brand-soft)] transition-colors flex items-center gap-1"
+                        title={language === 'ko' ? '선택한 텍스트를 하이라이트' : 'Highlight selected text'}
+                      >
+                        <span className="material-icons-outlined text-sm">highlight</span>
+                        <span>{language === 'ko' ? '하이라이트' : 'Highlight'}</span>
+                      </button>
+                      {highlightOpen && highlightSel && (
+                        <HighlightPopover
+                          language={language}
+                          options={highlightOpt}
+                          onChange={setHighlightOpt}
+                          onApply={applyHighlight}
+                          onRemove={highlightSel.existing ? removeHighlight : undefined}
+                          onClose={() => setHighlightOpen(false)}
+                          sampleText={highlightSel.text}
+                        />
+                      )}
+                    </div>
                   </div>
                   <textarea
                     ref={textareaRef}
@@ -1000,10 +1015,10 @@ const Ministry = () => {
                     onChange={(e) => setEditingColumn({ ...editingColumn, content: e.target.value })}
                     rows={12}
                     className="w-full px-4 py-3 border border-border-light dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-ink-strong text-sm leading-[1.7] resize-none focus:outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand-glow)] transition-colors"
-                    placeholder={language === 'ko' ? '컬럼 내용을 입력하세요...\n\n중요한 문구를 선택하고 "하이라이트" 버튼을 누르면 강조 효과가 적용됩니다.' : 'Enter column content...\n\nSelect important text and click "Highlight" button to apply emphasis effect.'}
+                    placeholder={language === 'ko' ? '컬럼 내용을 입력하세요...\n\n중요한 문구를 선택하고 "하이라이트" 버튼을 누르면 색상·밑줄 스타일을 골라 강조할 수 있습니다.' : 'Enter column content...\n\nSelect important text and click "Highlight" to pick a color and underline style.'}
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                    💡 {language === 'ko' ? '중요한 문구를 드래그로 선택한 후 "하이라이트" 버튼을 클릭하세요' : 'Select important text and click the "Highlight" button'}
+                    💡 {language === 'ko' ? '문구를 드래그한 뒤 "하이라이트"에서 색상·스타일을 고르세요. 이미 강조된 문구를 다시 선택하면 바꾸거나 해제할 수 있어요' : 'Drag text, then pick a color/style in "Highlight". Re-select a highlighted phrase to change or remove it'}
                   </p>
                 </div>
               </div>
