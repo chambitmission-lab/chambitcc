@@ -126,7 +126,7 @@ const BibleCommentaryManagement = () => {
     'w-full h-11 rounded-xl px-3 bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] text-[14px] text-ink-strong focus:outline-none focus:border-brand'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-[980px] lg:mt-2 lg:mb-10 lg:min-h-0 lg:pb-8 lg:rounded-3xl lg:border">
         {/* 헤더 */}
         {/* lg 에선 라운드 셸 위에 sticky 막대가 뜨지 않게 풀어 둔다 */}

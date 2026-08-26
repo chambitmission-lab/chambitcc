@@ -81,7 +81,7 @@ export const Genealogy = () => {
   )
 
   return (
-    <div className="bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
+    <div className="bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
       {/* PC 전용 섹션 탭 — 하단 도크는 lg에서 숨는다 */}
       <BibleSectionTabs active="genealogy" />
       {/* 패딩은 루트가 아닌 내부 래퍼에 — 루트는 .main-content > * { padding: 0 } (App.css)에 걸려 pb가 제거된다 */}

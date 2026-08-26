@@ -269,7 +269,7 @@ const AccountSettings = () => {
     'w-full h-12 px-3.5 rounded-xl bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.09] text-[15px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand focus:bg-white dark:focus:bg-white/[0.06] transition-colors disabled:opacity-60'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen border-x border-border-light dark:border-border-dark pb-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 — 뒤로 + 제목 (로그아웃은 오탭 방지를 위해 맨 아래로) */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">

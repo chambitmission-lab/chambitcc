@@ -251,9 +251,9 @@ const Organization = () => {
     })
 
   return (
-    <div className="min-h-screen bg-surface text-gray-900 dark:text-gray-100 page-stage org-page">
+    <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 page-stage org-page">
       {/* lg:overflow-hidden 을 주면 이 셸이 sticky 의 스크롤 조상이 되어 우측 레일이 죽는다 */}
-      <div className="org-shell max-w-md mx-auto bg-surface border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-[1120px] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:min-h-0">
+      <div className="org-shell max-w-md mx-auto bg-[var(--app-canvas)] border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-[1120px] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:min-h-0">
         {/* 헤더 */}
         <header className="org-head px-4 pt-5 pb-3">
           <div className="org-head-text">

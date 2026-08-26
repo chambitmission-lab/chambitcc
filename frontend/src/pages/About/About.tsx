@@ -194,7 +194,7 @@ const About = () => {
   )
 
   return (
-    <div className="bg-gray-50 dark:bg-black min-h-screen page-stage">
+    <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
       {/* lg+: 좁은 셸을 풀고 랜딩형 1단 — 히어로 카드(우측에 한눈에 정보) 아래로
           섹션 카드들이 같은 폭으로 쌓인다. 우측 레일은 히어로 안으로 들어갔다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">

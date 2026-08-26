@@ -276,8 +276,8 @@ const Thanks = () => {
   // sticky 가 전역으로 죽어 있어, 이 상자를 만들어야 우측 레일 sticky 가 산다.
   // 같은 이유로 셸에 lg:overflow-hidden 을 주면 안 된다(셸이 sticky 의 스크롤 조상이 된다).
   return (
-    <div className="min-h-screen bg-[var(--surface)] page-stage lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
-      <div className="max-w-md mx-auto min-h-screen bg-[var(--surface)] border-x border-[var(--card-border)] lg:max-w-[1100px] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:min-h-0">
+    <div className="min-h-screen bg-[var(--app-canvas)] page-stage lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
+      <div className="max-w-md mx-auto min-h-screen bg-[var(--app-canvas)] border-x border-[var(--card-border)] lg:max-w-[1100px] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:min-h-0">
         {/* Sticky 헤더 — lg+에선 셸의 overflow-hidden 때문에 sticky 기준이 셸이 되어
             top-14만큼 아래로 밀려 콘텐츠를 덮으므로(고정도 안 됨) 일반 흐름으로 되돌린다 */}
         <div

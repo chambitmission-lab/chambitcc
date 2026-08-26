@@ -521,7 +521,7 @@ const Ministry = () => {
   )
 
   return (
-    <div className="bg-gray-50 dark:bg-background-dark min-h-screen page-stage">
+    <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
       {/* lg+: 좁은 폰 프레임을 풀고 본문(편지) + 우측 위젯 레일 2컬럼으로 (/news와 같은 문법).
           좌측 레일 오프셋은 전역 main(App.tsx)이 잡아주므로 여기선 px-5만 둔다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">

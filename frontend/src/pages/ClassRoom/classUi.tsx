@@ -86,7 +86,7 @@ export const Shell = ({
   rail?: React.ReactNode
   children: React.ReactNode
 }) => (
-  <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+  <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
     <div
       className={
         rail ? 'lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12' : ''

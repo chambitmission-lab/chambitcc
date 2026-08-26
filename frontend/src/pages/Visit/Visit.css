@@ -9,14 +9,14 @@
 /* ── 페이지 셸 ─────────────────────────── */
 .visit-page {
   min-height: 100vh;
-  background: var(--surface);
+  background: var(--app-canvas);
 }
 
 .visit-shell {
   max-width: 28rem;
   margin: 0 auto;
   min-height: 100vh;
-  background: var(--surface);
+  background: var(--app-canvas);
   border-left: 1px solid var(--card-border);
   border-right: 1px solid var(--card-border);
 }

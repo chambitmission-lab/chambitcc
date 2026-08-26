@@ -23,7 +23,7 @@ const AchievementModalPreview = () => {
   const [selected, setSelected] = useState<{ achievement: Achievement; celebrate: boolean } | null>(null)
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark p-6">
+    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark p-6">
       <h1 className="text-lg font-bold text-ink-strong mb-4">업적 모달 미리보기 (dev)</h1>
       <div className="flex flex-col gap-2 max-w-xs">
         {SAMPLES.map((s) => (

@@ -99,7 +99,7 @@ const StoryMap = () => {
   )
 
   return (
-    <div className="bg-gray-50 dark:bg-background-dark min-h-screen page-stage">
+    <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
       {/* lg+: 본문 + 우측 레일 2단. 본문은 680px 고정 — 화(에피소드)를 잇는 세로 점선
           경로가 이 화면의 메타포라 2열로 쪼개거나 폭을 늘리면 길이 끊긴다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">

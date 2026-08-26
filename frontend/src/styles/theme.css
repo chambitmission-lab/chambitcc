@@ -108,6 +108,12 @@
      배경에 잠겨 경계가 사라지므로, 카드보다 한 톤 낮은 회색을 깐다
      (토스·인스타 피드 문법). 다크는 기존 배경색 그대로. */
   --app-canvas: #f1f3f6;
+  /* PC 앱 크롬(헤더 + 좌측 레일) = 캔버스와 같은 색.
+     레일을 흰색으로 두면 회색 캔버스와 사이에 전체 높이 세로 이음새가 생겨 어색하다.
+     크롬을 바닥과 같은 톤으로 깔면 경계선도 색 단차도 없이 흰 카드만 떠 보인다.
+     값은 --app-canvas 와 항상 같게 유지할 것(blur 판은 헤더용 85% 알파). */
+  --desktop-chrome: #f1f3f6;
+  --desktop-chrome-blur: rgba(241, 243, 246, 0.85);
   --surface-container-high: #f3f1f7;
   --surface-inset: rgba(0, 0, 0, 0.04);     /* 카드 안의 한 단계 깊은 박스 */
 
@@ -213,6 +219,9 @@
   --surface: #131313;
   --surface-container: #201f1f;
   --app-canvas: #131313;
+  /* 다크도 같은 규칙 — 크롬 = 캔버스(#131313). 구획은 카드(#201f1f)의 부양감이 맡는다. */
+  --desktop-chrome: #131313;
+  --desktop-chrome-blur: rgba(19, 19, 19, 0.85);
   --surface-container-high: #2a2a2a;
   --surface-inset: rgba(10, 8, 20, 0.4);
 

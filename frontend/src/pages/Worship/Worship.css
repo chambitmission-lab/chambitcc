@@ -10,14 +10,14 @@
 /* ── 페이지 셸 ─────────────────────────── */
 .worship-page {
   min-height: 100vh;
-  background: var(--surface);
+  background: var(--app-canvas);
 }
 
 .worship-shell {
   max-width: 28rem;
   margin: 0 auto;
   min-height: 100vh;
-  background: var(--surface);
+  background: var(--app-canvas);
   border-left: 1px solid var(--card-border);
   border-right: 1px solid var(--card-border);
 }

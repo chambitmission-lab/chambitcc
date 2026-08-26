@@ -76,7 +76,7 @@ const NewHeader = () => {
       <header
         className={`fixed top-0 left-0 right-0 ${
           isMenuOpen ? 'z-[105]' : 'z-[60]'
-        } bg-white/85 dark:bg-background-dark/85 backdrop-blur-xl border-b transition-[border-color,box-shadow] duration-200 ${
+        } max-lg:bg-white/85 max-lg:dark:bg-background-dark/85 lg:bg-[var(--desktop-chrome-blur)] backdrop-blur-xl border-b transition-[border-color,box-shadow] duration-200 ${
           scrolled || isMenuOpen
             ? 'border-black/[0.045] dark:border-white/[0.06] shadow-[0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-none'
             : 'border-transparent shadow-none'

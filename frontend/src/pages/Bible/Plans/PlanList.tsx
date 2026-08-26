@@ -51,7 +51,7 @@ const PlanList = () => {
     : otherPlans
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
       {/* PC 전용 섹션 탭 — 하단 도크는 lg에서 숨는다 */}
       <BibleSectionTabs active="plans" />
       {/* lg+: 좁은 셸을 풀고 본문(플랜 목록) + 우측 레일(묵상방·태그 필터) 2단 */}

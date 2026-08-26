@@ -86,7 +86,7 @@ const Education = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-black min-h-screen page-stage">
+    <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
       <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
           {/* Hero */}

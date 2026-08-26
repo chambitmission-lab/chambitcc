@@ -41,7 +41,7 @@ const ProfileHeaderPreview = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background-dark">
+    <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark">
       <ProfileHeader
         username="admin"
         fullName="탕자복귀완료"

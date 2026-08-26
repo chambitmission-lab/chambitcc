@@ -484,7 +484,7 @@ const PhotoVerse = () => {
   )
 
   return (
-    <div className="photo-verse bg-gray-50 dark:bg-background-dark min-h-screen">
+    <div className="photo-verse bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen">
       {/* lg+: 좁은 폰 프레임을 풀어 편집기 폭을 확보한다.
           캔버스(좌) / 컨트롤(우) 2단 분할은 .pv-editor 미디어쿼리가 담당 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">

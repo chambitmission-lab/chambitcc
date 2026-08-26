@@ -120,7 +120,7 @@ const StoryEpisode = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-background-dark min-h-screen page-stage">
+    <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
       {/* lg+: 읽는 화면이라 본문 폭(620px)은 유지하고, 옆에 여정 목차 레일을 둔다.
           overflow-hidden은 주지 않는다 — 하단 CTA 바가 sticky로 붙어야 하기 때문 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">

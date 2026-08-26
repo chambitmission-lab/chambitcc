@@ -189,7 +189,7 @@ const SituationBible = () => {
   )
 
   return (
-    <div className="situation-bible bg-gray-50 dark:bg-background-dark min-h-screen page-stage">
+    <div className="situation-bible bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
       {/* lg+: 좁은 셸을 풀고 본문 + 우측 레일 2단.
           레일 내용은 화면 상태에 따라 다르다 — 목록에선 오늘의 위로 말씀,
           구절을 펼친 뒤엔 다른 상황으로 건너뛰는 바로가기 */}
