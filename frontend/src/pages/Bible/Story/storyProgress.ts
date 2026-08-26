@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getStoryProgress, markStoryEpisodeRead } from '../../../api/bibleStory'
 import { isAuthenticated } from '../../../utils/auth'
+import { scheduleTitleEvaluation } from '../../../utils/titleUnlockBus'
 
 // 스토리 모드 진행 상태 — 읽은 에피소드 id 목록.
 //
@@ -92,6 +93,9 @@ export const useStoryProgress = () => {
     retryDelay: attempt => Math.min(1000 * 2 ** attempt, 8000),
     onSuccess: ids => {
       queryClient.setQueryData(STORY_PROGRESS_KEY, ids)
+      // 마지막 42화 완주가 '초보 딱지 뗀 자' 해금으로 이어지므로, 읽기·플랜과 동일하게
+      // 칭호 평가를 예약한다 (전역 TitleUnlockHost 가 팝업 처리)
+      scheduleTitleEvaluation()
     },
     onError: () => {
       // 낙관적 반영을 서버 실제 상태로 되돌린다

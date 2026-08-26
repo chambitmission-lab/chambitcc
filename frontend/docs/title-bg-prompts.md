@@ -6,12 +6,23 @@
 ## 사용법
 
 1. 아래 **공통 스타일 블록**을 먼저 붙여넣고, 이어서 원하는 칭호의 **장면 문단**을 붙여 한 번에 요청한다.
+   **캐릭터 일치 꿀팁**: 기존 이미지(`public/images/title-bg/` 중 아무거나 한 장)를 함께 첨부하고
+   "이 양 캐릭터와 완전히 같은 캐릭터로"라고 덧붙이면 시리즈가 정확히 이어진다.
 2. 결과물은 `frontend/public/images/title-bg/<key>.webp` 로 저장 (예: `dawn_riser.webp`).
+   기존 25장은 전부 **1376×768** — 같은 규격으로 맞춘다. (`cwebp -q 78 원본.png -o <key>.webp`, 20~50KB)
 3. 비율은 16:9 (모바일 프로필 헤더 뒤에 깔고 하단은 그라데이션으로 녹일 예정).
+4. **새로 추가하는 칭호라면** 이미지를 넣은 뒤 `src/components/titles/TitleBackdrop.tsx` 의
+   `TITLE_BG_KEYS` 에 key 를 추가해야 프로필에 실제로 깔린다 (미등록 키는 배너 없이 기본 레이아웃).
+   칭호 자체(획득 조건)는 백엔드 `app/services/title_service.py` 의 `TITLE_REGISTRY` 에 등록한다.
 
 ## 일관성 규칙 (모든 이미지 공통)
 
-- **주인공은 항상 같은 양 한 마리** — 통통하고 하얀 아기 양, 평온하고 뿌듯한 미소. 25장 전부 같은 캐릭터가 다른 상황을 연기한다.
+- **주인공은 항상 같은 양 한 마리** — 통통하고 하얀 아기 양, 평온하고 뿌듯한 미소. 26장 전부 같은 캐릭터가 다른 상황을 연기한다.
+- **양의 몸은 진짜 양** — 짧은 네 다리는 하얀 털에 덮이고 끝은 작고 둥근 검은 발굽. 사람 손·손가락·팔·맨살 금지.
+  물건을 들어야 하면 **"upright on its two hind legs, both front hooves holding..."** 처럼 두발 자세를 명시할 것
+  (네발 서기인데 뭔가 들라고 하면 팔이 새로 돋는다 — 에피소드 일러스트에서 겪은 사고).
+- **부정형 금지** — "no arms, no hands"는 오히려 팔을 소환한다. 긍정형으로 진짜 양의 모습을 묘사할 것.
+- **소품 개수는 믿지 말 것** — 생성 AI는 개수 세기에 약하다. 개수가 중요하지 않으면 아예 숫자를 쓰지 않는다.
 - **팔레트 고정** — 깊은 네이비 남색 밤하늘 베이스(#0A1428 계열) + 따뜻한 앰버빛 광원 하나 + 은은한 파란 별빛. 다크 테마 위에 자연스럽게 얹히는 저채도.
 - **하단 중앙은 비워둔다** — 이름·아이디·칭호 칩 텍스트가 올라갈 자리. 피사체와 광원은 상단 또는 좌우로.
 - **글자 금지** — 숫자·문자·로고가 들어가면 UI와 충돌한다.
@@ -39,7 +50,7 @@ Scene:
 
 ---
 
-## 칭호별 장면 (25종)
+## 칭호별 장면 (26종)
 
 ### 시간 카테고리
 
@@ -117,6 +128,25 @@ fireflies down the mountain. Aurora hints in the navy sky. Grand scale, tiny pro
 ```
 
 ### 패턴 카테고리
+
+**story_graduate · 🎓 초보 딱지 뗀 자 (silver)** — `/bible/story` 42화 완주
+> 이 시리즈에서 유일하게 "졸업"을 다루는 장면. 웅장한 정복(에베레스트·66권 산)이 아니라
+> **초보용 보조 장비를 벗는 순간**이 유머의 핵심이다. 양의 표정은 우쭐하되 밉지 않게.
+```
+Night sea-cliff scene, the sheep placed on the right side of the frame: it stands
+upright on its two hind legs at the very end of a small warm-lit wooden pier, wearing
+a tiny graduation cap tipped at a jaunty angle with its tassel swinging, both front
+hooves planted on its hips in a triumphant little pose, chest puffed out with the pure
+smugness of a very small creature that has just been promoted. It has finally wriggled
+out of its beginner swimming gear, cheerfully cast off in a heap behind it on the pier
+— a deflated inflatable swim ring, little water wings and a foam kickboard. Stretching
+away in front of it lies a vast calm navy sea of the Word reaching to the horizon, and
+a long gently curving line of tiny amber lantern-buoys marks the shallow practice
+channel it has already swum, the lights fading softly into the distance. On the far
+horizon a warm amber dawn is just breaking over the open water — the real journey,
+only now beginning. Deep navy sky with tiny blue-white stars above; the lower-left and
+bottom-center of the frame stay quiet dark water with nothing in them.
+```
 
 **moses_companion · 📜 모세의 동반자 (gold)**
 ```

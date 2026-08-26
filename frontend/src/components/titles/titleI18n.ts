@@ -56,6 +56,11 @@ const EN: Record<string, TitleText> = {
     description: 'Quitting after three days? Ancient history. A hundred days straight without missing one — iron will, certified.',
     hint: 'Read the Bible 100 days in a row',
   },
+  story_graduate: {
+    name: 'Training Wheels Off',
+    description: 'Farewell to the days of stalling at Genesis 3! All 42 episodes done — the floaties are off and the real ocean of the Word is waiting.',
+    hint: 'Read all 42 episodes of "Meeting the Bible"',
+  },
   moses_companion: {
     name: 'Companion of Moses',
     description: 'Genesis through Deuteronomy, the whole wilderness course — staff in hand, you followed all the way!',
