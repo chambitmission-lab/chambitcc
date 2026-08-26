@@ -8,7 +8,7 @@ import './Story.css'
 /**
  * 처음 만나는 성경 — 여정 맵.
  * 성경 전체를 10막 42화의 연속극처럼 훑는 스토리 모드의 목차 화면.
- * 진행 상태는 localStorage(백엔드 무변경), 순서는 권장일 뿐 잠금은 없다.
+ * 진행 상태는 계정에 저장(비로그인은 기기 로컬), 순서는 권장일 뿐 잠금은 없다.
  */
 const StoryMap = () => {
   const navigate = useNavigate()

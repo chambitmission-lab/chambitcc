@@ -1,5 +1,5 @@
 // "처음 만나는 성경" 스토리 모드 — 데이터 타입.
-// 콘텐츠는 data/act01~10.ts 정적 파일, 진행 상태는 localStorage(storyProgress.ts).
+// 콘텐츠는 data/act01~10.ts 정적 파일, 진행 상태는 서버 저장(storyProgress.ts).
 // 절 본문은 하드코딩하지 않고 기존 /bible/verse API로 런타임에 가져온다(번역본 일치).
 
 export interface StoryVerseRef {

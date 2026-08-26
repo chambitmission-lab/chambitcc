@@ -28,7 +28,7 @@ import BookIntroCard from '../../components/bible/BookIntroCard'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import BibleSectionTabs from '../../components/bible/BibleSectionTabs'
 // 스토리 모드 진행 상태만 가볍게 읽는다 — 42화 콘텐츠 데이터는 스토리 라우트 청크에만 실린다
-import { loadReadIds } from './Story/storyProgress'
+import { useStoryProgress } from './Story/storyProgress'
 import './BibleStudy.css'
 
 const BibleStudy = () => {
@@ -139,8 +139,9 @@ const BibleStudy = () => {
   
   const selectedBookData = books?.find(b => b.id === selectedBookId)
 
-  // 처음 만나는 성경(스토리 모드) 진행 — 라우트 이동으로 돌아올 때마다 새로 읽힌다
-  const storyReadCount = loadReadIds().size
+  // 처음 만나는 성경(스토리 모드) 진행 — 로그인 시 서버 저장분을 공유 캐시로 읽는다
+  const { readIds: storyReadIds } = useStoryProgress()
+  const storyReadCount = storyReadIds.size
   
   // URL 파라미터로 책과 장이 전달된 경우 자동으로 선택.
   // ?verse=N 이 함께 오면(프로필 묵상노트 카드 등에서 딥링크) 해당 절로 스크롤+하이라이트.
