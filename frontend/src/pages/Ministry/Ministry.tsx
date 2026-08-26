@@ -128,6 +128,12 @@ const Ministry = () => {
   const [highlightOpt, setHighlightOpt] = useState<HighlightOptions>(DEFAULT_HIGHLIGHT)
   const [highlightSel, setHighlightSel] = useState<{ start: number; end: number; text: string; existing: boolean } | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  // 모바일 sticky 헤더: 맨 위에선 구분선 없이, 스크롤로 본문이 밑을 지나갈 때만 헤어라인
+  const headerRef = useRef<HTMLDivElement>(null)
+  const headerSentinelRef = useRef<HTMLDivElement>(null)
+  const [headerStuck, setHeaderStuck] = useState(false)
+  // PC: 우측 레일을 타이틀 행 아래(피처드 카드 윗선)에 맞추기 위한 헤더 실측 높이
+  const [headerHeight, setHeaderHeight] = useState(0)
   const modalScrollRef = useRef<HTMLDivElement>(null)
   // 아멘 요청 진행 중인 편지 (연타로 토글이 꼬이는 것 방지)
   const pendingAmenRef = useRef<Set<number>>(new Set())
@@ -136,6 +142,43 @@ const Ministry = () => {
   useModalBackButton(() => setSelectedColumn(null), !!selectedColumn)
   useModalBackButton(() => { setIsEditing(false); setEditingColumn({}) }, isEditing)
   useModalBackButton(() => setShowDeleteConfirm(false), showDeleteConfirm)
+
+  // 스크롤러가 window/#root 어느 쪽일지 환경마다 달라 IntersectionObserver 암묵 root를
+  // 믿기 어렵다 — 캡처 단계 scroll 리스너 + rAF로 sentinel 위치를 직접 잰다
+  useEffect(() => {
+    let raf = 0
+    const measure = () => {
+      raf = 0
+      const sentinel = headerSentinelRef.current
+      const header = headerRef.current
+      if (!sentinel || !header) return
+      const stuck = sentinel.getBoundingClientRect().bottom < header.getBoundingClientRect().top
+      setHeaderStuck((prev) => (prev === stuck ? prev : stuck))
+    }
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(measure)
+    }
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true })
+    window.addEventListener('resize', onScroll)
+    onScroll()
+    return () => {
+      document.removeEventListener('scroll', onScroll, { capture: true })
+      window.removeEventListener('resize', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
+  // 헤더 높이 실측 — 검색창이 펼쳐지면 피처드 카드도 내려가므로 레일도 같이 따라간다
+  useEffect(() => {
+    const el = headerRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(([entry]) => {
+      setHeaderHeight(Math.round(entry.contentRect.height))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   // 검색어 변경 시 디바운스 — appliedQuery가 바뀌면 아래 쿼리가 자동 실행됨
   useEffect(() => {
@@ -487,7 +530,15 @@ const Ministry = () => {
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:bg-transparent lg:dark:bg-transparent lg:shadow-none lg:border-0 lg:min-h-0">
         {/* Header — 슬림하게: 제목(세리프)과 액션만.
             모바일은 sticky 바, lg+에선 배경·구분선 없는 페이지 타이틀 행으로 */}
-        <div className="sticky top-14 lg:static z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark lg:bg-transparent lg:dark:bg-transparent lg:backdrop-blur-none lg:border-0">
+        <div ref={headerSentinelRef} className="h-px -mb-px lg:hidden" aria-hidden="true" />
+        <div
+          ref={headerRef}
+          className={`sticky top-14 lg:static z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b transition-[border-color,box-shadow] duration-200 lg:bg-transparent lg:dark:bg-transparent lg:backdrop-blur-none lg:border-0 lg:shadow-none ${
+            headerStuck
+              ? 'border-border-light dark:border-border-dark shadow-[0_6px_16px_-12px_rgba(0,0,0,0.25)]'
+              : 'border-transparent shadow-none'
+          }`}
+        >
           <div className="px-5 py-3.5 lg:px-1 lg:pt-4 lg:pb-5">
             <div className="flex items-center justify-between">
               <h1
@@ -1086,7 +1137,10 @@ const Ministry = () => {
 
       {/* 우측 위젯 레일 (lg+) — 편지의 '발신인·편지함·아카이브'.
           새 API 없이 이미 받아둔 목록만 재사용한다 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+      <aside
+        className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]"
+        style={{ marginTop: headerHeight }}
+      >
         {/* 발신인 — 본문 인트로(lg:hidden)가 이 자리로 옮겨왔다 */}
         {featured && (
           <section className="feed-card rounded-2xl p-5 text-center">
