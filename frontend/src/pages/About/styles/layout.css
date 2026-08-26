@@ -142,10 +142,6 @@
     padding: 0.9rem 1.1rem;
   }
 
-  .meeting-section .meeting-pass-row--good {
-    display: flex;
-  }
-
   .meeting-section .meeting-pass-row p {
     font-size: 0.95rem;
   }
@@ -156,6 +152,11 @@
     padding: 3rem 2.5rem;
     border-radius: 22px;
     min-height: 100%;
+  }
+
+  .meeting-section .meeting-good-card:has(.meeting-scene) {
+    justify-content: flex-end;
+    padding: 2rem 2rem 1.75rem;
   }
 
   .meeting-section .meeting-good-emblem {

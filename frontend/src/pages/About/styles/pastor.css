@@ -83,7 +83,7 @@
 }
 
 .pastor-text.highlight::before {
-  content: 'C';
+  content: '“';
   position: absolute;
   left: 1.1rem;
   top: 0.55rem;

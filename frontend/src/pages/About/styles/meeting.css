@@ -35,7 +35,7 @@
   margin-bottom: 1.25rem;
 }
 
-/* 낮은 대비의 라운드 행 */
+/* 낮은 대비의 라운드 행 — 누르면 오른쪽 카드가 바뀌는 탭 */
 .meeting-pass-row {
   display: flex;
   align-items: center;
@@ -44,6 +44,48 @@
   border: 1px solid var(--card-border);
   border-radius: 14px;
   background: var(--surface-container);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.meeting-pass-row:hover,
+.meeting-pass-row:focus-visible {
+  background: var(--surface-inset);
+  border-color: var(--brand-soft-strong);
+  outline: none;
+}
+
+.meeting-pass-chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: flex;
+  color: var(--text-muted);
+  opacity: 0.6;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.meeting-pass-row.is-selected .meeting-pass-chevron {
+  opacity: 1;
+  color: var(--brand);
+  transform: translateX(2px);
+}
+
+/* 선택된 행 — 브랜드 링 */
+.meeting-pass-row.is-selected {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 3px var(--brand-soft);
+}
+
+.meeting-pass-row.is-selected .meeting-pass-x {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+.meeting-pass-row.is-selected p {
+  color: var(--brand);
+  font-weight: 700;
 }
 
 .meeting-pass-x {
@@ -67,22 +109,10 @@
   line-height: 1.4;
 }
 
-/* 리스트 속 "선택된" 손수건 행 — PC 에서만 (모바일은 바로 아래 카드와 중복) */
-.meeting-pass-row--good {
-  display: none;
-  border-color: var(--brand);
-  background: var(--brand-soft);
-  box-shadow: 0 0 0 3px var(--brand-soft);
-}
-
+/* 손수건 행 — 선택 전에도 하트만은 브랜드 색으로 살짝 예고 */
 .meeting-pass-row--good .meeting-pass-x {
-  background: var(--brand);
-  color: var(--on-brand);
-}
-
-.meeting-pass-row--good p {
   color: var(--brand);
-  font-weight: 700;
+  background: var(--brand-soft);
 }
 
 /* 손수건 같은 만남 — 브랜드 그라데이션 카드 + 은은한 빛 */
@@ -93,6 +123,8 @@
   align-items: center;
   gap: 0.9rem;
   padding: 2rem 1.5rem;
+  min-height: 240px;
+  justify-content: center;
   background: linear-gradient(150deg, #5aa3ff 0%, #3182f6 45%, #1f5fd0 100%);
   border-radius: 1.25rem;
   text-align: center;
@@ -124,6 +156,78 @@
   bottom: -80px;
   left: -50px;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+/* 스쳐가는 만남이 선택됐을 때 — 가라앉은 남색, 빛은 식는다 */
+.meeting-good-card--pass {
+  background: linear-gradient(150deg, #3a4560 0%, #262f45 50%, #1a2236 100%);
+  box-shadow: 0 12px 32px -8px rgba(20, 28, 48, 0.4);
+}
+
+.meeting-good-card--pass::before,
+.meeting-good-card--pass::after {
+  opacity: 0.35;
+}
+
+.meeting-good-card--pass .good-text {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* 장면 이미지 — 카드를 꽉 채우고, 글자 자리는 하단 스크림으로 받친다 */
+.meeting-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: meeting-scene-in 0.35s ease-out;
+}
+
+.meeting-good-card:has(.meeting-scene)::before {
+  /* 기존 빛점 자리를 하단 스크림으로 재사용 */
+  inset: auto 0 0 0;
+  width: auto;
+  height: 60%;
+  top: auto;
+  right: auto;
+  border-radius: 0;
+  background: linear-gradient(180deg, rgba(10, 20, 40, 0) 0%, rgba(10, 20, 40, 0.55) 45%, rgba(10, 20, 40, 0.9) 100%);
+  opacity: 1;
+}
+
+.meeting-good-card:has(.meeting-scene)::after {
+  display: none;
+}
+
+.meeting-good-card:has(.meeting-scene) {
+  justify-content: flex-end;
+  padding-bottom: 1.4rem;
+}
+
+.meeting-good-card:has(.meeting-scene) .good-text {
+  text-shadow: 0 1px 10px rgba(10, 20, 40, 0.7);
+}
+
+.meeting-good-card:has(.meeting-scene) .meeting-good-emblem {
+  display: none;
+}
+
+@keyframes meeting-scene-in {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meeting-scene {
+    animation: none;
+  }
 }
 
 .meeting-good-emblem {

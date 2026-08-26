@@ -20,6 +20,25 @@ import {
 } from './icons'
 import './styles/index.css'
 
+// 다섯 가지 만남 — 행 순서 = 화면 순서. key 는 이미지 파일명(./img/{key}.webp)이자 프롬프트 문서의 슬러그
+const MEETINGS = [
+  { key: 'fishy', field: 'aboutMeetingBad1', good: false },
+  { key: 'wilted', field: 'aboutMeetingBad2', good: false },
+  { key: 'worn_out', field: 'aboutMeetingBad3', good: false },
+  { key: 'deleted', field: 'aboutMeetingBad4', good: false },
+  { key: 'handkerchief', field: 'aboutMeetingGood', good: true },
+] as const
+type MeetingKey = (typeof MEETINGS)[number]['key']
+
+// 만남 장면 이미지 — 파일만 넣으면 자동 연결, 없는 장면은 그라데이션 카드 유지
+// (생성 프롬프트: frontend/docs/meeting-image-prompts.md)
+const MEETING_IMAGES = import.meta.glob('./img/*.webp', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>
+const meetingImage = (key: MeetingKey): string | undefined => MEETING_IMAGES[`./img/${key}.webp`]
+
 // 멀티라인 크리덴셜 값을 스캔하기 쉬운 줄 단위 리스트로 분해
 const toLines = (value: string): string[] =>
   value
@@ -44,6 +63,11 @@ const About = () => {
   const heroImageRef = useCallback((node: HTMLImageElement | null) => {
     if (node?.complete) setHeroLoaded(true)
   }, [])
+
+  // 선택된 만남 — 기본은 손수건(반전이 먼저 보이게)
+  const [meetingKey, setMeetingKey] = useState<MeetingKey>('handkerchief')
+  const activeMeeting = MEETINGS.find((m) => m.key === meetingKey) ?? MEETINGS[MEETINGS.length - 1]
+  const activeImage = meetingImage(activeMeeting.key)
 
   const phone = tx('aboutPhone').trim()
   const pastorPhotoUrl = tx('aboutPastorPhoto').trim()
@@ -266,33 +290,55 @@ const About = () => {
                 {tx('aboutMeetingTitle')}
               </EditableText>
             </h3>
-            <div className="meeting-pass">
-              {(['aboutMeetingBad1', 'aboutMeetingBad2', 'aboutMeetingBad3', 'aboutMeetingBad4'] as const).map(
-                (key) => (
-                  <div className="meeting-pass-row" key={key}>
-                    <XIcon size={15} className="meeting-pass-x" />
-                    <p>
-                      <EditableText fieldKey={key} isAdmin={isAdminUser}>
-                        {tx(key)}
+            {/* 행을 누르면 오른쪽 카드가 그 만남의 장면(이미지+문구)으로 바뀐다.
+                기본 선택은 손수건 — 아무것도 안 눌러도 반전이 먼저 보인다 */}
+            <div className="meeting-pass" role="tablist" aria-label={tx('aboutMeetingTitle')}>
+              {MEETINGS.map(({ key, field, good }) => {
+                const selected = key === meetingKey
+                return (
+                  <div
+                    className={`meeting-pass-row${good ? ' meeting-pass-row--good' : ''}${selected ? ' is-selected' : ''}`}
+                    key={key}
+                    role="tab"
+                    aria-selected={selected}
+                    tabIndex={0}
+                    onClick={() => setMeetingKey(key)}
+                    onKeyDown={rowKeyDown(() => setMeetingKey(key))}
+                  >
+                    {good ? (
+                      <HeartIcon size={15} className="meeting-pass-x" />
+                    ) : (
+                      <XIcon size={15} className="meeting-pass-x" />
+                    )}
+                    <p style={{ whiteSpace: 'pre-line' }}>
+                      <EditableText fieldKey={field} multiline={good} isAdmin={isAdminUser}>
+                        {tx(field)}
                       </EditableText>
                     </p>
+                    <span className="meeting-pass-chevron">
+                      <ChevronRightIcon size={16} />
+                    </span>
                   </div>
                 )
-              )}
-              {/* lg+ 에서만: 리스트 안에서 "손수건 같은 만남"이 선택된 행처럼 빛난다 (CSS 로 표시 제어) */}
-              <div className="meeting-pass-row meeting-pass-row--good" aria-hidden="true">
-                <HeartIcon size={15} className="meeting-pass-x" />
-                <p style={{ whiteSpace: 'pre-line' }}>{tx('aboutMeetingGood')}</p>
-              </div>
+              })}
             </div>
-            <div className="meeting-good-card">
+            <div
+              className={`meeting-good-card${activeMeeting.good ? '' : ' meeting-good-card--pass'}`}
+              key={activeMeeting.key}
+            >
+              {/* 장면 이미지 — docs/meeting-image-prompts.md 로 생성해 ./img/{key}.webp 에 넣으면 자동 연결 */}
+              {activeImage && <img className="meeting-scene" src={activeImage} alt="" aria-hidden="true" />}
               <span className="meeting-good-emblem">
-                <HeartIcon size={30} />
+                {activeMeeting.good ? <HeartIcon size={30} /> : <XIcon size={26} />}
               </span>
               <p className="good-text" style={{ whiteSpace: 'pre-line' }}>
-                <EditableText fieldKey="aboutMeetingGood" multiline isAdmin={isAdminUser}>
-                  {tx('aboutMeetingGood')}
-                </EditableText>
+                {activeMeeting.good ? (
+                  <EditableText fieldKey="aboutMeetingGood" multiline isAdmin={isAdminUser}>
+                    {tx('aboutMeetingGood')}
+                  </EditableText>
+                ) : (
+                  tx(activeMeeting.field)
+                )}
               </p>
             </div>
           </section>
