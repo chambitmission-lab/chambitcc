@@ -312,14 +312,21 @@ const Ministry = () => {
     const after = textarea.value.substring(end)
     const newContent = before + '[[' + selectedText + ']]' + after
 
+    // controlled value가 통째로 바뀌면 브라우저가 textarea 스크롤을 0으로 되돌린다 → 미리 기억
+    const scrollTop = textarea.scrollTop
+
     setEditingColumn({ ...editingColumn, content: newContent })
 
-    // 커서 위치 조정 (하이라이트된 텍스트 뒤로)
+    // 커서 위치 조정 (하이라이트된 텍스트 뒤로) + 보고 있던 위치 복원
     setTimeout(() => {
-      if (textarea) {
-        textarea.focus()
-        textarea.setSelectionRange(start + selectedText.length + 4, start + selectedText.length + 4)
-      }
+      const el = textareaRef.current
+      if (!el) return
+      // preventScroll: 모바일에서 focus가 모달까지 스크롤해 올리는 것 방지
+      el.focus({ preventScroll: true })
+      const caret = start + selectedText.length + 4
+      el.setSelectionRange(caret, caret)
+      // setSelectionRange는 커서로 스크롤해주지 않으므로 직접 되돌린다
+      el.scrollTop = scrollTop
     }, 0)
 
     showToast(language === 'ko' ? '하이라이트가 적용되었습니다' : 'Highlight applied', 'success')
