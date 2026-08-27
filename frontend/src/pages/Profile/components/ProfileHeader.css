@@ -16,7 +16,7 @@
 .ph-cloud {
   position: absolute;
   inset: auto 0 0 0;
-  height: 56%;
+  height: 60%;
   pointer-events: none;
 }
 
@@ -36,30 +36,25 @@
   background-repeat: no-repeat;
 }
 
-/* 뒤층 — 크고 흐린 뭉치, 구름의 부피감 */
+/* 능선 — 작은 뭉치 대신 아주 넓은 타원 몇 개로 완만한 물결 하나를 만든다.
+   왼쪽이 높고 → 가운데가 내려앉고 → 오른쪽에서 살짝 다시 오른다.
+   뒤층은 크게 흐려 부피감, 앞층은 같은 실루엣을 조금 더 또렷하게 */
 .ph-cloud__puffs--back {
-  filter: blur(14px);
-  opacity: 0.85;
+  filter: blur(22px);
+  opacity: 0.9;
   background-image:
-    radial-gradient(34% 70% at 4% 112%, var(--ph-cloud) 62%, transparent 100%),
-    radial-gradient(28% 88% at 26% 116%, var(--ph-cloud) 60%, transparent 100%),
-    radial-gradient(38% 78% at 50% 118%, var(--ph-cloud) 62%, transparent 100%),
-    radial-gradient(28% 92% at 74% 114%, var(--ph-cloud) 60%, transparent 100%),
-    radial-gradient(34% 74% at 98% 116%, var(--ph-cloud) 62%, transparent 100%);
+    radial-gradient(58% 110% at 8% 112%, var(--ph-cloud) 52%, transparent 100%),
+    radial-gradient(46% 56% at 56% 150%, var(--ph-cloud) 52%, transparent 100%),
+    radial-gradient(50% 84% at 102% 122%, var(--ph-cloud) 52%, transparent 100%);
 }
 
-/* 앞층 — 또렷한 봉우리들. 아래 34%는 완전 단색으로 닫아 두툼하게 */
 .ph-cloud__puffs--front {
-  filter: blur(3px);
+  filter: blur(7px);
   background-image:
-    radial-gradient(24% 62% at 0% 104%, var(--ph-cloud) 72%, transparent 100%),
-    radial-gradient(18% 80% at 15% 108%, var(--ph-cloud) 70%, transparent 100%),
-    radial-gradient(22% 58% at 30% 106%, var(--ph-cloud) 72%, transparent 100%),
-    radial-gradient(26% 88% at 50% 108%, var(--ph-cloud) 70%, transparent 100%),
-    radial-gradient(19% 64% at 68% 106%, var(--ph-cloud) 72%, transparent 100%),
-    radial-gradient(23% 82% at 84% 108%, var(--ph-cloud) 70%, transparent 100%),
-    radial-gradient(22% 60% at 100% 104%, var(--ph-cloud) 72%, transparent 100%),
-    linear-gradient(to top, var(--ph-cloud) 0 34%, transparent 34%);
+    radial-gradient(52% 104% at 6% 110%, var(--ph-cloud) 58%, transparent 100%),
+    radial-gradient(42% 50% at 55% 146%, var(--ph-cloud) 58%, transparent 100%),
+    radial-gradient(46% 78% at 100% 120%, var(--ph-cloud) 58%, transparent 100%),
+    linear-gradient(to top, var(--ph-cloud) 0 24%, transparent 24%);
 }
 
 /* 밑단 — 흰 구름이 페이지색으로 녹는 띠 (라이트선 거의 안 보이고, 다크선 남색으로 잠긴다) */
@@ -72,13 +67,16 @@
 
 /* ===== 아이덴티티 블록 ===== */
 .ph-title-pill {
+  position: relative;
+  z-index: 2; /* 아바타 후광(box-shadow 92px)보다 위 — 빛무리가 필을 덮어 뿌옇게 보이는 것 방지 */
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 4px 11px;
   border: 1px solid var(--brand-soft-strong);
   border-radius: 999px;
-  background: var(--brand-soft);
+  /* 반투명 틴트 대신 불투명 색 — 뒤의 후광이 비치지 않는다 */
+  background: #e8f1fe;
   color: var(--brand);
   font-size: 11.5px;
   font-weight: 700;
@@ -88,7 +86,9 @@
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.15s ease, background-color 0.15s ease;
 }
-.ph-title-pill:hover { background: var(--brand-soft-strong); }
+.ph-title-pill:hover { background: #d9e8fd; }
+[data-theme="dark"] .ph-title-pill, html.dark .ph-title-pill { background: #1a2a44; }
+[data-theme="dark"] .ph-title-pill:hover, html.dark .ph-title-pill:hover { background: #22365a; }
 .ph-title-pill:active { transform: scale(0.96); }
 
 .ph-edit {
