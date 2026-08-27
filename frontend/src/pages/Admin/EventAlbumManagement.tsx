@@ -11,11 +11,12 @@ import {
   updateEventAlbumPost,
 } from '../../api/eventAlbum'
 import { invalidateEventAlbum } from '../../hooks/useEventAlbum'
-import { EVENT_ALBUM_TAGS, eventAlbumTagEmoji } from '../../types/eventAlbum'
+import { EVENT_ALBUM_TAGS } from '../../types/eventAlbum'
 import type { EventAlbumPost } from '../../types/eventAlbum'
 import EventAlbumComposer from './components/EventAlbumComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { EventTagIcon } from '../News/components/NewsIcons'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'reaction'
@@ -411,7 +412,13 @@ const PostRow = ({
           <div className="text-[11.5px] text-gray-500 dark:text-white/50 truncate mt-0.5">
             {formatDateLabel(post.event_date)}
             <span className="mx-1.5 text-gray-300 dark:text-white/20">·</span>
-            {eventAlbumTagEmoji(post.tag)} {post.tag}
+            <EventTagIcon
+              tag={post.tag}
+              width={12}
+              height={12}
+              className="inline-block align-[-1px] mr-1"
+            />
+            {post.tag}
           </div>
           <div className="text-[11px] text-gray-400 dark:text-white/40 truncate mt-0.5">
             🖼️ {post.photo_count}장

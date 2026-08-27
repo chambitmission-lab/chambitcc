@@ -12,17 +12,31 @@ import NewFamilySection from './components/NewFamilySection'
 import EventAlbumSection from './components/EventAlbumSection'
 // 올해의 말씀 — 홈과 같은 쿼리(24h 캐시)라 /news에서 다시 불러오지 않는다
 import AnnualThemeVerse from '../Home/components/AnnualThemeVerse'
+import {
+  MegaphoneIcon,
+  BulletinIcon,
+  SproutIcon,
+  AlbumIcon,
+  ImagePageIcon,
+  ScreenPageIcon,
+  ArchiveIcon,
+  SparkleIcon,
+} from './components/NewsIcons'
 
 /** 최상위 그룹 — 소식 허브 */
 type SectionKey = 'news' | 'bulletin' | 'new-family' | 'event-album'
 /** 주보 하위 탭 */
 type BulletinTabKey = 'image' | 'digital'
 
-const SECTIONS: { key: SectionKey; emoji: string; label: string }[] = [
-  { key: 'news', emoji: '📢', label: '소식' },
-  { key: 'bulletin', emoji: '📖', label: '주보' },
-  { key: 'new-family', emoji: '🌱', label: '새가족' },
-  { key: 'event-album', emoji: '📸', label: '행사' },
+const SECTIONS: {
+  key: SectionKey
+  Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement
+  label: string
+}[] = [
+  { key: 'news', Icon: MegaphoneIcon, label: '소식' },
+  { key: 'bulletin', Icon: BulletinIcon, label: '주보' },
+  { key: 'new-family', Icon: SproutIcon, label: '새가족' },
+  { key: 'event-album', Icon: AlbumIcon, label: '행사' },
 ]
 
 const isSectionKey = (value: string | null): value is SectionKey =>
@@ -129,12 +143,13 @@ const News = () => {
                 aria-pressed={section === s.key}
                 className={[
                   'relative z-10 flex-1 h-10 rounded-xl text-[13px] font-bold transition-colors duration-200',
+                  'inline-flex items-center justify-center gap-1.5',
                   section === s.key
                     ? 'text-white'
                     : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white',
                 ].join(' ')}
               >
-                <span className="mr-1">{s.emoji}</span>
+                <s.Icon width={16} height={16} className="shrink-0" />
                 {s.label}
               </button>
             ))}
@@ -160,11 +175,11 @@ const News = () => {
               markerClassName="seal-marker rounded-full"
             >
               <TabPill active={tab === 'image'} onClick={() => setTab('image')}>
-                <span className="mr-1">🖼️</span>
+                <ImagePageIcon width={15} height={15} className="shrink-0" />
                 이미지 주보
               </TabPill>
               <TabPill active={tab === 'digital'} onClick={() => setTab('digital')}>
-                <span className="mr-1">📄</span>
+                <ScreenPageIcon width={15} height={15} className="shrink-0" />
                 디지털 주보
               </TabPill>
             </SegmentTrack>
@@ -282,6 +297,7 @@ const TabPill = ({
     onClick={onClick}
     className={[
       'relative z-10 flex-1 px-4 h-9 rounded-full text-[12.5px] font-bold whitespace-nowrap transition-colors duration-200',
+      'inline-flex items-center justify-center gap-1.5',
       active ? 'text-white' : 'text-gray-600 dark:text-white/65 hover:text-gray-900 dark:hover:text-white',
     ].join(' ')}
   >
@@ -482,7 +498,7 @@ const NewsSidebar = ({
     <>
       {/* 이번 주 주보 — 어느 섹션에 있든 최신 주보로 바로 들어가는 문 */}
       {latest && (
-        <SidebarCard title="이번 주 주보" emoji="📖">
+        <SidebarCard title="이번 주 주보" Icon={BulletinIcon}>
           <button
             type="button"
             onClick={() => onBulletinClick(latest)}
@@ -507,7 +523,7 @@ const NewsSidebar = ({
 
       {/* 주보 바로가기 — 날짜만 훑고 바로 여는 얇은 목록 */}
       {recent.length > 0 && (
-        <SidebarCard title="주보 바로가기" emoji="🗂️">
+        <SidebarCard title="주보 바로가기" Icon={ArchiveIcon}>
           <ul className="-mx-1">
             {recent.map(b => (
               <li key={b.id}>
@@ -536,7 +552,7 @@ const NewsSidebar = ({
       )}
 
       {/* 다른 소식 — 세그먼트를 위로 올라가 누르지 않아도 되게 */}
-      <SidebarCard title="다른 소식" emoji="✨">
+      <SidebarCard title="다른 소식" Icon={SparkleIcon}>
         <div className="flex flex-col gap-1.5">
           {SECTIONS.filter(sec => sec.key !== section).map(sec => (
             <button
@@ -545,7 +561,7 @@ const NewsSidebar = ({
               onClick={() => onSectionChange(sec.key)}
               className="flex items-center gap-2 h-10 px-3 rounded-xl border border-[var(--card-border)] text-[13px] font-bold text-ink-strong hover:text-brand hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
             >
-              <span>{sec.emoji}</span>
+              <sec.Icon width={16} height={16} className="shrink-0 text-brand" />
               {sec.label}
               <svg
                 width="15"
@@ -575,16 +591,16 @@ const NewsSidebar = ({
 
 const SidebarCard = ({
   title,
-  emoji,
+  Icon,
   children,
 }: {
   title: string
-  emoji: string
+  Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement
   children: React.ReactNode
 }) => (
   <section className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm p-4">
     <p className="flex items-center gap-1.5 mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
-      <span aria-hidden>{emoji}</span>
+      <Icon width={14} height={14} className="shrink-0 text-brand" />
       {title}
     </p>
     {children}

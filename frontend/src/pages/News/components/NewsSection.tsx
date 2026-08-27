@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import NewsDetailView from './NewsDetailView'
+import { MegaphoneIcon } from './NewsIcons'
 import { useNewsCategories, useNewsList } from '../../../hooks/useNews'
 import { isAdmin } from '../../../utils/auth'
 import type { NewsItem } from '../../../types/news'
@@ -80,8 +81,8 @@ const NewsSection = () => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-11 h-11 rounded-2xl bg-brand flex items-center justify-center text-[20px] shadow-[0_6px_18px_-6px_var(--brand-glow)]">
-              📢
+            <div className="w-11 h-11 rounded-2xl bg-brand text-white flex items-center justify-center shadow-[0_6px_18px_-6px_var(--brand-glow)]">
+              <MegaphoneIcon width={23} height={23} />
             </div>
             <div>
               <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
@@ -214,7 +215,7 @@ const NewsCard = ({ news, onClick }: { news: NewsItem; onClick: () => void }) =>
             className="w-full h-full object-cover"
           />
         ) : (
-          <span className="text-[24px]">📢</span>
+          <MegaphoneIcon width={26} height={26} className="text-brand opacity-60" />
         )}
       </div>
 

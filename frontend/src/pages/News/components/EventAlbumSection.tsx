@@ -18,8 +18,10 @@ import { deleteEventAlbumPost, fetchEventAlbumPost } from '../../../api/eventAlb
 import { isAdmin } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import { confirmDialog } from '../../../utils/confirmDialog'
-import { EVENT_ALBUM_TAGS, eventAlbumTagEmoji } from '../../../types/eventAlbum'
+import { EVENT_ALBUM_TAGS } from '../../../types/eventAlbum'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
+import { AlbumIcon } from './NewsIcons'
+import { EventTagIcon } from './NewsIcons'
 
 type ViewMode = 'feed' | 'grid'
 
@@ -144,8 +146,8 @@ const EventAlbumSection = () => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-11 h-11 rounded-2xl bg-brand flex items-center justify-center text-[20px] shadow-[0_6px_18px_-6px_var(--brand-glow)]">
-              📸
+            <div className="w-11 h-11 rounded-2xl bg-brand text-white flex items-center justify-center shadow-[0_6px_18px_-6px_var(--brand-glow)]">
+              <AlbumIcon width={23} height={23} />
             </div>
             <div>
               <p className="text-brand text-[10.5px] font-bold tracking-[0.12em] uppercase">
@@ -200,9 +202,7 @@ const EventAlbumSection = () => {
               active={selectedTag === tag}
               onClick={() => setSelectedTag((prev) => (prev === tag ? null : tag))}
             >
-              <span aria-hidden="true" className="mr-1">
-                {eventAlbumTagEmoji(tag)}
-              </span>
+              <EventTagIcon tag={tag} width={14} height={14} className="mr-1 shrink-0" />
               {tag}
               {count > 0 && (
                 <span className="ml-1 text-[10.5px] font-bold tabular-nums opacity-70">
@@ -264,8 +264,8 @@ const EventAlbumSection = () => {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : (
-                <span className="absolute inset-0 flex items-center justify-center text-[22px]">
-                  📸
+                <span className="absolute inset-0 flex items-center justify-center text-brand opacity-55">
+                  <AlbumIcon width={24} height={24} />
                 </span>
               )}
               {post.photo_count > 1 && (
@@ -371,8 +371,8 @@ const OnThisDayCard = ({
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
-              <span className="absolute inset-0 flex items-center justify-center text-[20px]">
-                📸
+              <span className="absolute inset-0 flex items-center justify-center text-brand opacity-55">
+                <AlbumIcon width={22} height={22} />
               </span>
             )}
             <span className="absolute top-1 left-1 inline-flex items-center px-1.5 h-5 rounded-full bg-black/55 backdrop-blur-sm text-white text-[9px] font-bold">
@@ -467,7 +467,7 @@ const SkeletonFeed = () => (
 const EmptyState = ({ filtered }: { filtered: boolean }) => (
   <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-12 px-6 text-center">
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
-      <span className="text-[28px]">📸</span>
+      <AlbumIcon width={30} height={30} className="text-brand" />
     </div>
     <p className="text-ink-strong text-[14.5px] font-bold mb-1">
       {filtered ? '조건에 맞는 앨범이 없어요' : '아직 등록된 행사 앨범이 없어요'}

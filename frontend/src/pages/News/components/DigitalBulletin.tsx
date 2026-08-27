@@ -13,27 +13,39 @@ import type {
   WeeklyScheduleItem,
   WorshipServiceItem,
 } from '../../../types/digitalBulletin'
+import {
+  ChurchIcon,
+  MegaphoneIcon,
+  PeopleIcon,
+  CalendarIcon,
+  ClockIcon,
+  PinIcon,
+  SparkleIcon,
+} from './NewsIcons'
 
 type SectionKey = 'worship' | 'announcements' | 'groups' | 'schedule'
 
-const SECTION_META: Record<SectionKey, { emoji: string; title: string; bar: string }> = {
+const SECTION_META: Record<
+  SectionKey,
+  { Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement; title: string; bar: string }
+> = {
   worship: {
-    emoji: '🙏',
+    Icon: ChurchIcon,
     title: '주일오전예배',
     bar: 'from-blue-500 to-blue-600',
   },
   announcements: {
-    emoji: '📢',
+    Icon: MegaphoneIcon,
     title: '교회 소식',
     bar: 'from-sky-400 to-blue-500',
   },
   groups: {
-    emoji: '👥',
+    Icon: PeopleIcon,
     title: '구역 보고',
     bar: 'from-cyan-400 to-sky-500',
   },
   schedule: {
-    emoji: '📅',
+    Icon: CalendarIcon,
     title: '이번 주 일정',
     bar: 'from-indigo-400 to-blue-600',
   },
@@ -285,8 +297,9 @@ const DigitalBulletin = () => {
 
           {/* 설교 카드 */}
           <div className="mt-2 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] p-3">
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-brand mb-1.5">
-              ✨ 설교
+            <p className="inline-flex items-center gap-1 text-[10.5px] font-bold uppercase tracking-[0.1em] text-brand mb-1.5">
+              <SparkleIcon width={13} height={13} className="shrink-0" />
+              설교
             </p>
             <p className="text-[14px] font-bold text-ink-strong leading-[1.4] tracking-[-0.01em] mb-0.5 whitespace-pre-line">
               <EditableField
@@ -464,7 +477,7 @@ const DigitalBulletin = () => {
                   </p>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-gray-500 dark:text-white/55">
                     <span className="inline-flex items-center gap-1">
-                      🕘{' '}
+                      <ClockIcon width={12.5} height={12.5} className="shrink-0" />{' '}
                       <EditableField
                         value={item.time}
                         isAdmin={isAdminUser}
@@ -476,7 +489,7 @@ const DigitalBulletin = () => {
                     </span>
                     <span className="text-gray-300 dark:text-white/20">·</span>
                     <span className="inline-flex items-center gap-1">
-                      📍{' '}
+                      <PinIcon width={12.5} height={12.5} className="shrink-0" />{' '}
                       <EditableField
                         value={item.location}
                         isAdmin={isAdminUser}
@@ -538,8 +551,8 @@ const SectionCard = ({ sectionKey, expanded, onToggle, badge, children }: Sectio
           className="relative z-10 w-full flex items-center gap-3 pl-3.5 pr-3 py-3 text-left"
           aria-expanded={expanded}
         >
-          <div className={`shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${meta.bar} flex items-center justify-center text-[19px] shadow-[0_4px_12px_-4px_var(--brand-glow)]`}>
-            {meta.emoji}
+          <div className={`shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${meta.bar} text-white flex items-center justify-center shadow-[0_4px_12px_-4px_var(--brand-glow)]`}>
+            <meta.Icon width={21} height={21} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[15px] font-bold text-ink-strong tracking-[-0.01em]">

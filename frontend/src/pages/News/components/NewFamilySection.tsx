@@ -12,6 +12,7 @@ import { isAdmin } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import type { NewFamilyPost } from '../../../types/newFamily'
 import { confirmDialog } from '../../../utils/confirmDialog'
+import { SproutIcon } from './NewsIcons'
 
 type ViewMode = 'feed' | 'grid'
 
@@ -96,8 +97,8 @@ const NewFamilySection = () => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[20px] shadow-[0_6px_18px_-6px_rgba(168,85,247,0.7)]">
-              🌱
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-[0_6px_18px_-6px_rgba(168,85,247,0.7)]">
+              <SproutIcon width={23} height={23} />
             </div>
             <div>
               <p className="text-purple-600/80 dark:text-purple-300/80 text-[10.5px] font-bold tracking-[0.12em] uppercase">
@@ -163,8 +164,8 @@ const NewFamilySection = () => {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : (
-                <span className="absolute inset-0 flex items-center justify-center text-[22px]">
-                  🌱
+                <span className="absolute inset-0 flex items-center justify-center text-purple-400 dark:text-purple-300/70">
+                  <SproutIcon width={24} height={24} />
                 </span>
               )}
               {post.photo_count > 1 && (
@@ -277,7 +278,7 @@ const SkeletonFeed = () => (
 const EmptyState = () => (
   <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-12 px-6 text-center">
     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
-      <span className="text-[28px]">🌱</span>
+      <SproutIcon width={30} height={30} className="text-purple-500 dark:text-purple-300" />
     </div>
     <p className="text-ink-strong text-[14.5px] font-bold mb-1">
       아직 등록된 새가족이 없어요

@@ -11,9 +11,10 @@ import { showToast } from '../../../utils/toast'
 import { resizeImageToBlob } from '../../../utils/imageResize'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import DatePicker from '../../../components/common/DatePicker'
-import { EVENT_ALBUM_TAGS, eventAlbumTagEmoji } from '../../../types/eventAlbum'
+import { EVENT_ALBUM_TAGS } from '../../../types/eventAlbum'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import type { Event } from '../../../types/event'
+import { EventTagIcon } from '../../News/components/NewsIcons'
 
 interface EventAlbumComposerProps {
   /** 넘기면 수정 모드, 없으면 등록 모드 */
@@ -293,7 +294,7 @@ const EventAlbumComposer = ({ post, onClose, onSuccess }: EventAlbumComposerProp
               <div className="flex gap-1.5 flex-wrap">
                 {EVENT_ALBUM_TAGS.map(t => (
                   <QuickChip key={t} active={tag === t} onClick={() => setTag(t)}>
-                    <span aria-hidden="true" className="mr-1">{eventAlbumTagEmoji(t)}</span>
+                    <EventTagIcon tag={t} width={13} height={13} className="mr-1 shrink-0" />
                     {t}
                   </QuickChip>
                 ))}

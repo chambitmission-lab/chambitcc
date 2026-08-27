@@ -4,6 +4,7 @@ import NewFamilyPhotoCarousel from './NewFamilyPhotoCarousel'
 import { WELCOME_EMOJI_META, WelcomeEmojiImg } from './welcomeEmoji'
 import { AnimatedEmojiText } from '../../../components/common/animatedEmoji'
 import type { NewFamilyPost } from '../../../types/newFamily'
+import { SproutIcon } from './NewsIcons'
 
 interface NewFamilyPostCardProps {
   post: NewFamilyPost
@@ -45,8 +46,8 @@ const NewFamilyPostCard = ({
 
       {/* 헤더 */}
       <div className="relative z-10 flex items-center gap-3 px-4 py-3">
-        <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-[17px] shadow-[0_4px_12px_-3px_rgba(168,85,247,0.6)]">
-          🌱
+        <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-[0_4px_12px_-3px_rgba(168,85,247,0.6)]">
+          <SproutIcon width={20} height={20} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
