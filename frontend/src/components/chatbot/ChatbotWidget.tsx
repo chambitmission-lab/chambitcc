@@ -157,6 +157,32 @@ const ChatbotWidget = () => {
     return () => window.removeEventListener(OPEN_CHATBOT_EVENT, onOpen)
   }, [])
 
+  // 모바일에서 아래로 스크롤하는 동안 FAB을 오른쪽으로 접어둔다 — 읽는 화면을 가리지 않게.
+  // 위로 올리거나 최상단이면 다시 나온다. PC(lg+)는 코너 위젯이라 항상 노출.
+  const [tucked, setTucked] = useState(false)
+  useEffect(() => {
+    setTucked(false)
+    if (open) return
+    let last = window.scrollY
+    let raf = 0
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const y = window.scrollY
+        const delta = y - last
+        if (Math.abs(delta) < 6) return
+        last = y
+        setTucked(y > 140 && delta > 0)
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [open, location.pathname])
+
   // 인사 한 통만 있고 아직 대화가 없으면 = 환영 화면
   const welcomeReply =
     msgs.length === 1 && msgs[0].role === 'bot' && msgs[0].reply.actions.length >= 2
@@ -240,7 +266,9 @@ const ChatbotWidget = () => {
           type="button"
           aria-label="참비 챗봇 열기"
           onClick={() => setOpen(true)}
-          className="fixed right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom)+var(--chat-fab-lift,0rem))] lg:bottom-6 lg:right-6 z-[95] h-14 w-14 overflow-hidden rounded-full shadow-lg ring-2 ring-white/25 transition-[bottom,transform] duration-300 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand motion-reduce:transition-none"
+          className={`fixed right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom)+var(--chat-fab-lift,0rem))] lg:bottom-6 lg:right-6 z-[95] h-14 w-14 overflow-hidden rounded-full shadow-lg ring-2 ring-white/25 transition-[bottom,transform,opacity] duration-300 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand motion-reduce:transition-none ${
+            tucked ? 'translate-x-[130%] opacity-0 pointer-events-none' : ''
+          } lg:translate-x-0 lg:opacity-100 lg:pointer-events-auto`}
         >
           <img src={avatarDefault} alt="" className="h-full w-full object-cover" draggable={false} />
         </button>
