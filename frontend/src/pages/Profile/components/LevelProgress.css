@@ -372,7 +372,25 @@
   height: auto;
   overflow: visible;
   --graph-future: rgba(148, 163, 184, 0.55);
+  /* 천상의 광채(흰빛) 구간 — 프리즘 스펙트럼 + halo 밑획 */
+  --graph-prism-a: #7dd3fc;
+  --graph-prism-b: #c4b5fd;
+  --graph-prism-c: #fcd34d;
+  --graph-halo: rgba(15, 23, 42, 0.16);
 }
+[data-theme="dark"] .lp-graph {
+  --graph-prism-a: #e0f2fe;
+  --graph-prism-b: #ffffff;
+  --graph-prism-c: #fef3c7;
+  --graph-halo: rgba(255, 255, 255, 0.28);
+}
+.lp-graph__halo {
+  fill: none;
+  stroke: var(--graph-halo);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+.lp-graph__halo-dot { fill: var(--graph-halo); }
 .lp-graph__line {
   fill: none;
   stroke-width: 3;

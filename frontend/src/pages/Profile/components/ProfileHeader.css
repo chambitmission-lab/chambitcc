@@ -118,19 +118,3 @@ html.dark .ph-cloud__haze {
 }
 .ph-edit:hover { color: var(--brand); transform: scale(1.08); }
 
-.ph-verse {
-  margin: 0.7rem auto 0;
-  max-width: 19rem;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-muted);
-  word-break: keep-all;
-}
-.ph-verse__ref {
-  display: block;
-  margin-top: 3px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--brand-muted);
-}
-[data-theme="dark"] .ph-verse__ref, html.dark .ph-verse__ref { color: var(--brand); opacity: 0.8; }

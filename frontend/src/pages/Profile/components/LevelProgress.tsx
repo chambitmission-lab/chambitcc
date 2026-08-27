@@ -372,15 +372,17 @@ const GRAPH_W = 320
 const GRAPH_H = 104
 const GRAPH_YS = [78, 62, 70, 50, 56, 32]
 
-/* 그래프용 레벨 색 — 흰색(Lv.6 천상의 광채)·옅은 회색은 흰 카드 위에서 사라지므로
-   밝기가 높은 색은 브랜드 블루로 대체한다 */
-const graphColor = (glow: string) => {
+/* 그래프용 레벨 색 — 흰색(Lv.6 천상의 광채)처럼 밝기가 높은 색은 흰 카드 위에서 사라진다.
+   단색 대체 대신 "흰 빛 = 프리즘을 지난 스펙트럼" 은유로, 파스텔 프리즘 그라데이션 +
+   반투명 halo 밑획을 깔아 라이트/다크 어디서든 선이 떠 보이게 한다 */
+const PRISM_ID = 'lp-graph-prism'
+const isRadiant = (glow: string) => {
   const m = glow.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
-  if (!m) return toOpaqueColor(glow)
+  if (!m) return false
   const [r, g, b] = [Number(m[1]), Number(m[2]), Number(m[3])]
-  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return lum > 0.85 ? 'var(--brand)' : toOpaqueColor(glow)
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.85
 }
+const graphColor = (glow: string) => (isRadiant(glow) ? `url(#${PRISM_ID})` : toOpaqueColor(glow))
 
 const LevelGraph = ({
   levels,
@@ -409,15 +411,26 @@ const LevelGraph = ({
   return (
     <div className="relative z-10 mt-2">
       <svg viewBox={`0 0 ${GRAPH_W} ${GRAPH_H + 22}`} className="lp-graph" aria-hidden="true">
+        <defs>
+          <linearGradient id={PRISM_ID} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="var(--graph-prism-a)" />
+            <stop offset="50%" stopColor="var(--graph-prism-b)" />
+            <stop offset="100%" stopColor="var(--graph-prism-c)" />
+          </linearGradient>
+        </defs>
         {/* 지나온 구간 — 도착 단계 색 */}
         {pts.slice(1).map((_, i) =>
           i + 1 <= currentIdx ? (
-            <path
-              key={`p${i}`}
-              d={seg(i, i + 1)}
-              className="lp-graph__line"
-              style={{ stroke: graphColor(levels[i + 1].glowColor) }}
-            />
+            <g key={`p${i}`}>
+              {isRadiant(levels[i + 1].glowColor) && (
+                <path d={seg(i, i + 1)} className="lp-graph__halo" />
+              )}
+              <path
+                d={seg(i, i + 1)}
+                className="lp-graph__line"
+                style={{ stroke: graphColor(levels[i + 1].glowColor) }}
+              />
+            </g>
           ) : (
             <path key={`f${i}`} d={seg(i, i + 1)} className="lp-graph__future" />
           ),
@@ -434,9 +447,11 @@ const LevelGraph = ({
         {/* 단계 눈금(짧은 세로 획) + 점 */}
         {pts.map((p, i) => {
           const passed = i <= currentIdx
+          const radiant = passed && isRadiant(levels[i].glowColor)
           const color = passed ? graphColor(levels[i].glowColor) : 'var(--graph-future)'
           return (
             <g key={levels[i].level} onClick={() => onSelect(i)} style={{ cursor: 'pointer' }}>
+              {radiant && <circle cx={p.x} cy={p.y} r={6.5} className="lp-graph__halo-dot" />}
               <rect x={p.x - 1.5} y={p.y - 9} width={3} height={18} rx={1.5} fill={color} opacity={0.85} />
               <circle cx={p.x} cy={p.y} r={4.2} fill={color} />
               {i === currentIdx && (

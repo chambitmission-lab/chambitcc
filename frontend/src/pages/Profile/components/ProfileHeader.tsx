@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useTitleBackdropSrc } from '../../../components/titles/TitleBackdrop'
 import { useEquippedTitle } from '../../../hooks/useTitles'
 import { localizeTitle } from '../../../components/titles/titleI18n'
-import { useDailyVerse } from '../../../hooks/useDailyVerse'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useUploadAvatar, useDeleteAvatar } from '../../../hooks/useProfile'
 import { resizeImageToBlob } from '../../../utils/imageResize'
@@ -44,7 +43,6 @@ const ProfileHeader = ({
   const { data: equipped } = useEquippedTitle()
   const titleName = equipped ? localizeTitle(equipped, language).name : null
   // 이름 아래 한 줄 성구 — 오늘의 말씀을 그대로 빌려 쓴다(별도 요청 없음, 캐시 공유)
-  const { data: verse } = useDailyVerse()
 
   const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -212,12 +210,6 @@ const ProfileHeader = ({
           </button>
         </div>
 
-        {verse?.verse_text && (
-          <p className="ph-verse">
-            {verse.verse_text}
-            <span className="ph-verse__ref">{verse.verse_reference}</span>
-          </p>
-        )}
       </div>
       </div>
     </div>
