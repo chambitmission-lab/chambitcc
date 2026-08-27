@@ -31,6 +31,7 @@
   background-repeat: no-repeat;
   background-position: left center, right center;
   background-size: auto, cover;
+  background-clip: padding-box; /* cover 배너가 반투명 테두리 밑으로 비치지 않게 */
   box-shadow: var(--card-shadow);
   overflow: hidden;
 }

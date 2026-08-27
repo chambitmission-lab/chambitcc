@@ -70,6 +70,9 @@ const Thanks = () => {
 
   const sentinelRef = useRef<HTMLDivElement>(null)
   const [showComposer, setShowComposer] = useState(false)
+  // TOP 목록에서 펼쳐 둔 항목 / 피드에서 강조 중인 카드
+  const [expandedTopId, setExpandedTopId] = useState<number | null>(null)
+  const [highlightId, setHighlightId] = useState<number | null>(null)
 
   // ticker(useThanks)와 동일한 키 → 캐시 공유
   const queryKey = thanksKeys.infinite(THANKS_PAGE_SIZE)
@@ -270,6 +273,27 @@ const Thanks = () => {
     refreshWeekly()
   }
 
+  // TOP 항목 → 타임라인의 해당 카드로 스크롤 + 잠깐 강조.
+  // 아직 안 불러온 페이지에 있으면 몇 페이지 더 당겨 보고, 그래도 없으면 안내.
+  const revealInFeed = async (id: number) => {
+    const findEl = () => document.getElementById(`thanks-${id}`)
+    let el = findEl()
+    let tries = 0
+    while (!el && query.hasNextPage && tries < 5) {
+      await query.fetchNextPage()
+      await new Promise((r) => setTimeout(r, 60))
+      el = findEl()
+      tries += 1
+    }
+    if (!el) {
+      showToast(ko ? '목록에서 찾지 못했어요' : 'Not found in the feed', 'error')
+      return
+    }
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setHighlightId(id)
+    window.setTimeout(() => setHighlightId((cur) => (cur === id ? null : cur)), 1800)
+  }
+
   const handleAmen = (id: number) => {
     requireAuth(() => amenMutation.mutate(id))
   }
@@ -348,16 +372,64 @@ const Thanks = () => {
                 : 'Be the first to give thanks this week'}
           </li>
         ) : (
-          weeklyTop.map((t, i) => (
-            <li key={t.id}>
-              <span className="thanks-side-rank">{i + 1}</span>
-              <span className="thanks-side-top-text">{t.content}</span>
-              <span className="thanks-side-top-amen">
-                <HandHeartIcon size={13} filled />
-                {t.amen_count}
-              </span>
-            </li>
-          ))
+          weeklyTop.map((t, i) => {
+            const open = expandedTopId === t.id
+            return (
+              <li key={t.id} className={open ? 'is-open' : ''}>
+                <button
+                  type="button"
+                  className="thanks-side-top-row"
+                  onClick={() => setExpandedTopId(open ? null : t.id)}
+                  aria-expanded={open}
+                >
+                  <span className="thanks-side-rank">{i + 1}</span>
+                  <span className="thanks-side-top-text">{t.content}</span>
+                  <span className="thanks-side-top-amen">
+                    <HandHeartIcon size={13} filled />
+                    {t.amen_count}
+                  </span>
+                </button>
+                {open && (
+                  <div className="thanks-side-top-detail">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <ThanksAvatar name={t.display_name} avatarUrl={t.avatar_url} size={20} />
+                      <span className="truncate text-[12px] font-semibold text-ink">{t.display_name}</span>
+                      <span className="text-[12px] text-ink-muted opacity-60">·</span>
+                      <span className="whitespace-nowrap text-[12px] text-ink-muted">{t.time_ago}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleAmen(t.id)}
+                        className="thanks-side-top-amen-btn"
+                        style={
+                          t.is_amened
+                            ? {
+                                background: 'var(--brand-soft-strong)',
+                                color: 'var(--brand)',
+                                borderColor: 'color-mix(in srgb, var(--brand) 45%, transparent)',
+                              }
+                            : undefined
+                        }
+                        aria-label={ko ? '함께 감사해요' : 'Give thanks together'}
+                      >
+                        <HandHeartIcon size={14} filled={t.is_amened} />
+                        {ko ? '함께 감사' : 'Amen'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => revealInFeed(t.id)}
+                        className="thanks-side-top-goto"
+                      >
+                        {ko ? '피드에서 보기' : 'View in feed'}
+                        <span className="material-icons-round text-[15px]">arrow_downward</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </li>
+            )
+          })
         )}
       </ol>
     </section>
@@ -448,6 +520,7 @@ const Thanks = () => {
                             onDelete={handleDelete}
                             variant="timeline"
                             enterDelay={Math.min(i * 40, 240)}
+                            highlighted={highlightId === t.id}
                           />
                         ))}
                       </div>

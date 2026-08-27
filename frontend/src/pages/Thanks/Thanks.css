@@ -18,6 +18,8 @@
   background-repeat: no-repeat;
   background-position: left center, right 40%;
   background-size: auto, cover;
+  /* cover 사진이 반투명 테두리 밑까지 번져 위쪽에 1px 사진 띠가 비치는 것 방지 */
+  background-clip: padding-box;
 }
 /* 다크에선 사진을 한 톤 눌러 카드와 섞이게 */
 html.dark .thanks-hero {
@@ -95,13 +97,26 @@ html.dark .thanks-hero {
   color: var(--text-body);
 }
 .thanks-side-top li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 8px;
   border-bottom: 1px solid var(--card-border);
 }
 .thanks-side-top li:last-child { border-bottom: 0; }
+.thanks-side-top-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 8px;
+  text-align: left;
+  border-radius: 10px;
+  color: inherit;
+  transition: background 0.15s;
+}
+.thanks-side-top-row:hover,
+.thanks-side-top li.is-open .thanks-side-top-row { background: var(--brand-soft); }
+.thanks-side-top li.is-open .thanks-side-top-text {
+  display: block;
+  -webkit-line-clamp: unset;
+}
 .thanks-side-rank {
   width: 18px;
   flex-shrink: 0;
@@ -115,10 +130,42 @@ html.dark .thanks-hero {
   min-width: 0;
   font-size: 13px;
   font-weight: 500;
-  white-space: nowrap;
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
+.thanks-side-rank { padding-top: 3px; }
+.thanks-side-top-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 2px 8px 10px 36px;
+  animation: thanks-card-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.thanks-side-top-amen-btn,
+.thanks-side-top-goto {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid var(--card-border);
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+.thanks-side-top-goto { color: var(--brand); }
+.thanks-side-top-goto:hover { background: var(--brand-soft-strong); }
+.thanks-side-top-amen-btn:active { transform: scale(0.95); }
 .thanks-side-top-amen {
   flex-shrink: 0;
   display: inline-flex;
@@ -190,4 +237,19 @@ html.dark .thanks-hero {
   border-radius: 999px;
   background: var(--brand);
   box-shadow: 0 0 0 4px var(--brand-soft-strong);
+}
+
+/* ── "피드에서 보기"로 찾아온 카드 강조 ── */
+@keyframes thanks-tl-flash {
+  0%   { box-shadow: 0 0 0 0 var(--brand-glow), var(--card-shadow); }
+  25%  { box-shadow: 0 0 0 4px var(--brand-glow), var(--card-shadow); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0), var(--card-shadow); }
+}
+.thanks-tl-highlight {
+  animation: thanks-tl-flash 1.8s ease-out both;
+  border-color: var(--brand);
+}
+@media (prefers-reduced-motion: reduce) {
+  .thanks-side-top-detail,
+  .thanks-tl-highlight { animation: none !important; }
 }

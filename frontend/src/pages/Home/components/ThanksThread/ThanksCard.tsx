@@ -13,6 +13,8 @@ interface ThanksCardProps {
   variant?: 'card' | 'list' | 'timeline'
   /** 목록 등장 애니메이션 지연 (ms) */
   enterDelay?: number
+  /** TOP 목록에서 "피드에서 보기"로 찾아왔을 때 잠깐 강조 */
+  highlighted?: boolean
 }
 
 const ThanksCard = ({
@@ -22,6 +24,7 @@ const ThanksCard = ({
   onDelete,
   variant = 'card',
   enterDelay = 0,
+  highlighted = false,
 }: ThanksCardProps) => {
   const { language } = useLanguage()
   const ko = language === 'ko'
@@ -78,7 +81,10 @@ const ThanksCard = ({
     const hue = emotion?.hue ?? 'var(--brand)'
     return (
       <article
-        className="thanks-card-in thanks-tl-card feed-card relative rounded-2xl"
+        id={`thanks-${thanks.id}`}
+        className={`thanks-card-in thanks-tl-card feed-card relative rounded-2xl ${
+          highlighted ? 'thanks-tl-highlight' : ''
+        }`}
         style={{ animationDelay: `${enterDelay}ms` }}
       >
         {/* 감정 이모지 타일 */}
