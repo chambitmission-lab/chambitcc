@@ -25,6 +25,7 @@ import {
 import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
+import { StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon } from './components/BibleToolIcons'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import BibleSectionTabs from '../../components/bible/BibleSectionTabs'
 // 스토리 모드 진행 상태만 가볍게 읽는다 — 42화 콘텐츠 데이터는 스토리 라우트 청크에만 실린다
@@ -362,8 +363,8 @@ const BibleStudy = () => {
         onClick={() => navigate('/bible/story')}
         className="dash-card dash-card--fav dash-card--tone-story"
       >
-        <span className="dash-card__icon">
-          <span className="material-icons-round">auto_stories</span>
+        <span className="dash-card__icon dash-card__icon--seal">
+          <StoryIcon className="dash-card__glyph" />
         </span>
         <span className="dash-card__body">
           <span className="dash-card__title">{dt.storyTitle}</span>
@@ -380,8 +381,8 @@ const BibleStudy = () => {
         onClick={() => navigate('/bible/situation')}
         className="dash-card dash-card--fav dash-card--tone-situation"
       >
-        <span className="dash-card__icon">
-          <span className="material-icons-round">sentiment_satisfied_alt</span>
+        <span className="dash-card__icon dash-card__icon--seal">
+          <SituationIcon className="dash-card__glyph" />
         </span>
         <span className="dash-card__body">
           <span className="dash-card__title">{dt.situationTitle}</span>
@@ -396,8 +397,8 @@ const BibleStudy = () => {
         onClick={() => navigate('/bible/photo-verse')}
         className="dash-card dash-card--fav dash-card--tone-photo"
       >
-        <span className="dash-card__icon">
-          <span className="material-icons-round">photo_filter</span>
+        <span className="dash-card__icon dash-card__icon--seal">
+          <PhotoVerseIcon className="dash-card__glyph" />
         </span>
         <span className="dash-card__body">
           <span className="dash-card__title">{dt.photoTitle}</span>
@@ -412,8 +413,8 @@ const BibleStudy = () => {
           onClick={() => setShowPlaylist(true)}
           className="dash-card dash-card--fav dash-card--tone-listen"
         >
-          <span className="dash-card__icon">
-            <span className="material-icons-round">headphones</span>
+          <span className="dash-card__icon dash-card__icon--seal">
+            <ListenIcon className="dash-card__glyph" />
           </span>
           <span className="dash-card__body">
             <span className="dash-card__title">{dt.favTitle}</span>
@@ -429,12 +430,12 @@ const BibleStudy = () => {
 
   // 모바일(lg 미만) — 2×2 가로형 타일 그리드(아이콘 좌·제목/설명 우, 각 한 줄).
   // 4열 세로형은 한글 제목이 두 줄로 깨져 폐기. 높이는 4열 때와 비슷하면서 줄바꿈이 없다.
-  // 아이콘 색은 기능 식별용 시맨틱(스토리=브랜드, 상황=그린, 사진=퍼플, 듣기=오렌지)
+  // 아이콘은 참빛 인장(모노 스탬프) — BibleToolIcons + .dash-card__icon--seal
   const dashToolTiles = (
     <div className={`dash-tiles${isLoggedIn() ? '' : ' dash-tiles--3'}`}>
       <button type="button" onClick={() => navigate('/bible/story')} className="dash-tile">
-        <span className="dash-tile__icon dash-tile__icon--brand">
-          <span className="material-icons-round">auto_stories</span>
+        <span className="dash-tile__icon dash-card__icon--seal">
+          <StoryIcon className="dash-card__glyph" />
         </span>
         <span className="dash-tile__body">
           <span className="dash-tile__title">{dt.storyTitle}</span>
@@ -444,8 +445,8 @@ const BibleStudy = () => {
         </span>
       </button>
       <button type="button" onClick={() => navigate('/bible/situation')} className="dash-tile">
-        <span className="dash-tile__icon dash-tile__icon--green">
-          <span className="material-icons-round">sentiment_satisfied_alt</span>
+        <span className="dash-tile__icon dash-card__icon--seal">
+          <SituationIcon className="dash-card__glyph" />
         </span>
         <span className="dash-tile__body">
           <span className="dash-tile__title">{dt.situationTitle}</span>
@@ -453,8 +454,8 @@ const BibleStudy = () => {
         </span>
       </button>
       <button type="button" onClick={() => navigate('/bible/photo-verse')} className="dash-tile">
-        <span className="dash-tile__icon dash-tile__icon--purple">
-          <span className="material-icons-round">photo_filter</span>
+        <span className="dash-tile__icon dash-card__icon--seal">
+          <PhotoVerseIcon className="dash-card__glyph" />
         </span>
         <span className="dash-tile__body">
           <span className="dash-tile__title">{dt.photoTitle}</span>
@@ -463,8 +464,8 @@ const BibleStudy = () => {
       </button>
       {isLoggedIn() && (
         <button type="button" onClick={() => setShowPlaylist(true)} className="dash-tile">
-          <span className="dash-tile__icon dash-tile__icon--orange">
-            <span className="material-icons-round">headphones</span>
+          <span className="dash-tile__icon dash-card__icon--seal">
+            <ListenIcon className="dash-card__glyph" />
           </span>
           <span className="dash-tile__body">
             <span className="dash-tile__title">{dt.tileFavTitle}</span>
