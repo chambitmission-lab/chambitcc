@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { HeavenLetterGlyph } from '../../../components/icons/HeavenLetterIcon'
 
 interface BottomNavigationProps {
   onProfileClick: () => void
@@ -377,13 +378,9 @@ const BottomNavigation = ({
 
         {/* 얼굴 — 스파클(닫힘) ↔ ×(열림) 크로스페이드, 두 얼굴을 겹쳐두고 회전·스케일로 교대 */}
         <svg className="relative w-7 h-7" viewBox="0 0 24 24" aria-hidden>
-          {/* 스파클 얼굴 — 큰 별 + 윙크하는 작은 별 */}
+          {/* 하늘 편지 얼굴 — 종이비행기 → 윙크하는 별(하늘), 점선 궤적 */}
           <g className={`fab-face${dialOpen ? ' fab-face-hidden' : ''}`} fill="currentColor">
-            <path d="M11 6.5 C11.65 10.4 13.8 12.55 17.7 13.2 C13.8 13.85 11.65 16 11 19.9 C10.35 16 8.2 13.85 4.3 13.2 C8.2 12.55 10.35 10.4 11 6.5 Z" />
-            <path
-              className="fab-wink"
-              d="M17.8 4.6 C18.08 6.06 18.94 6.92 20.4 7.2 C18.94 7.48 18.08 8.34 17.8 9.8 C17.52 8.34 16.66 7.48 15.2 7.2 C16.66 6.92 17.52 6.06 17.8 4.6 Z"
-            />
+            <HeavenLetterGlyph starClassName="fab-wink" />
           </g>
           {/* × 얼굴 */}
           <g

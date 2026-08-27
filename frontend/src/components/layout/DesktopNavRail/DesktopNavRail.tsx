@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { HeavenLetterIcon } from '../../icons/HeavenLetterIcon'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { useTheme } from '../../../contexts/ThemeContext'
@@ -448,16 +449,10 @@ const DesktopNavRail = () => {
         >
           {/* 인장 문법(도크 FAB·완독 도장과 동일): 안쪽 점선 압인 링 */}
           <span aria-hidden className="absolute inset-[3px] rounded-full border border-dashed border-white/30 pointer-events-none" />
-          {/* 도크 FAB와 같은 스파클 얼굴 — 열리면 살짝 회전해 "펼쳐짐"을 알린다 */}
-          <svg
-            className={`w-6 h-6 shrink-0 transition-transform duration-200 ${dialOpen ? 'rotate-90' : ''}`}
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            aria-hidden
-          >
-            <path d="M11 6.5 C11.65 10.4 13.8 12.55 17.7 13.2 C13.8 13.85 11.65 16 11 19.9 C10.35 16 8.2 13.85 4.3 13.2 C8.2 12.55 10.35 10.4 11 6.5 Z" />
-            <path d="M17.8 4.6 C18.08 6.06 18.94 6.92 20.4 7.2 C18.94 7.48 18.08 8.34 17.8 9.8 C17.52 8.34 16.66 7.48 15.2 7.2 C16.66 6.92 17.52 6.06 17.8 4.6 Z" />
-          </svg>
+          {/* 도크 FAB와 같은 하늘 편지 — 평소엔 땅을 향해 있다가(rotate-90) 열리면 하늘로 날아오른다 */}
+          <HeavenLetterIcon
+            className={`w-6 h-6 shrink-0 transition-transform duration-300 ease-out ${dialOpen ? '' : 'rotate-90'}`}
+          />
           <span className="hidden xl:inline text-[14.5px] font-bold whitespace-nowrap">
             {t('railShare')}
           </span>
