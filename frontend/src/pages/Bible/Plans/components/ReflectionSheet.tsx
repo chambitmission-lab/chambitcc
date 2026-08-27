@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import type { ReflectionState } from '../../../../hooks/usePlanReflections'
 import { normalizeReflection } from '../reflectionText'
@@ -43,8 +44,12 @@ const ReflectionSheet = ({
   onClose,
 }: ReflectionSheetProps) => {
   const [scrolled, setScrolled] = useState(false)
+  const navigate = useNavigate()
 
   useModalBackButton(onClose)
+
+  // 서버가 인증을 요구한 경우(구버전 서버 등) — 영문 에러 문자열 대신 로그인 안내
+  const authError = /not authenticated|401|credentials/i.test(state?.error ?? '')
 
   // 시트가 열린 동안 뒤 화면(플랜 일정)이 같이 스크롤되지 않게 잠근다
   useEffect(() => {
@@ -135,7 +140,24 @@ const ReflectionSheet = ({
               </div>
             )
           ) : state?.error ? (
-            <p className="mt-6 text-[13.5px] text-red-500 dark:text-red-300">{state.error}</p>
+            authError ? (
+              <div className="mt-6 rounded-2xl bg-[var(--surface-inset)] px-4 py-4">
+                <p className="text-[14px] font-semibold text-ink">로그인하면 AI 묵상을 읽을 수 있어요</p>
+                <p className="mt-1 text-[12.5px] text-ink-muted">
+                  로그인 후 다시 열어 주세요.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="mt-3 inline-flex items-center gap-1 rounded-full bg-[var(--brand)] px-4 py-2 text-[13px] font-bold text-white"
+                >
+                  <span className="material-icons-round text-[16px]" aria-hidden>login</span>
+                  로그인하기
+                </button>
+              </div>
+            ) : (
+              <p className="mt-6 text-[13.5px] text-red-500 dark:text-red-300">{state.error}</p>
+            )
           ) : parsed ? (
             <>
               {/* 리드 — 본문보다 반 단계 큰 활자로 오늘 본문을 소개 */}
