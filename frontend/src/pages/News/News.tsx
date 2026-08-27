@@ -119,7 +119,7 @@ const News = () => {
             count={SECTIONS.length}
             index={SECTIONS.findIndex(s => s.key === section)}
             className="flex p-1 rounded-2xl bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]"
-            markerClassName="rounded-xl bg-brand shadow-[0_4px_14px_-4px_var(--brand-glow)]"
+            markerClassName="seal-marker rounded-xl [--seal-radius:0.75rem]"
           >
             {SECTIONS.map(s => (
               <button
@@ -157,7 +157,7 @@ const News = () => {
               count={2}
               index={tab === 'image' ? 0 : 1}
               className="inline-flex p-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]"
-              markerClassName="rounded-full bg-brand shadow-[0_4px_14px_-4px_var(--brand-glow)]"
+              markerClassName="seal-marker rounded-full"
             >
               <TabPill active={tab === 'image'} onClick={() => setTab('image')}>
                 <span className="mr-1">🖼️</span>

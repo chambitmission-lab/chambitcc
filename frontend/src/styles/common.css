@@ -89,3 +89,34 @@
 .p-2 { padding: 1rem; }
 .p-3 { padding: 1.5rem; }
 .p-4 { padding: 2rem; }
+
+/* 인장(도장) 문법 — 블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링.
+   /bible 구약·신약 마커와 같은 감각을 다른 화면의 세그먼트 마커에서도 쓴다.
+   모서리가 둥근 트랙에서는 --seal-radius 로 바깥 반경을 알려주면 점선 링이 곡률을 따라간다. */
+.seal-marker {
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.09),
+    0 2px 12px -1px rgba(49, 130, 246, 0.4);
+}
+
+.seal-marker::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: calc(var(--seal-radius, 9999px) - 3px);
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .seal-marker {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 3px rgba(69, 147, 252, 0.09),
+    0 2px 14px 0 rgba(69, 147, 252, 0.3);
+}
