@@ -46,6 +46,7 @@
   --garden-hero-image: none;
   --garden-hero-min-height: auto;
   --garden-hero-min-height-lg: auto;
+  --garden-hero-aspect-lg: auto;
 
   /* /greeting 인사말 히어로 — 계절 사진은 페이지가 --gr-hero-image-day/night 변수로
      내려주고(홈 히어로와 같은 계절 자산), 낮/밤 선택은 아래 .gr-hero-card 규칙이 한다.
@@ -167,6 +168,7 @@
   --garden-hero-image: url('/images/garden/bible-title-hero.webp');
   --garden-hero-min-height: 172px;
   --garden-hero-min-height-lg: 300px;
+  --garden-hero-aspect-lg: 1376 / 560;
 
   /* /greeting 인사말 히어로 — 다크는 계절 무관 겨울 밤 은하수 고정(가장 어두운 무드) + 딥 네이비 스크림 */
   --gr-hero-scrim:
