@@ -86,6 +86,7 @@
 }
 
 .cta-action {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -159,13 +160,34 @@
 }
 
 .cta-action--primary {
-  background: #3182f6;
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 22px rgba(49, 130, 246, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  /* 인장(도장) 문법 — /news 마커·/events 칩과 같은 감각:
+     블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링 */
+  background:
+    radial-gradient(circle at 24% 14%, rgba(255, 255, 255, 0.24), transparent 46%),
+    linear-gradient(155deg, #4593fc, #2b78ee);
+  border-color: transparent;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 0 0 3px rgba(69, 147, 252, 0.14),
+    0 8px 22px rgba(49, 130, 246, 0.45);
+}
+
+/* 타일이라 여백이 넉넉하다 — 점선도 조금 더 안쪽(5px)에서 한 바퀴 돈다 */
+.cta-action--primary::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 11px;
+  border: 1px dashed rgba(255, 255, 255, 0.34);
+  pointer-events: none;
 }
 
 .cta-action--primary:hover {
-  background: #1b6ef3;
+  background:
+    radial-gradient(circle at 24% 14%, rgba(255, 255, 255, 0.2), transparent 46%),
+    linear-gradient(155deg, #3585f7, #1b6ef3);
+  border-color: transparent;
 }
 
 .cta-action--primary .cta-action-icon {
