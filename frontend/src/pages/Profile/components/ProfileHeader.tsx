@@ -1,11 +1,16 @@
 import { useRef } from 'react'
-import { TitleEquippedChip } from '../../../components/titles/TitleEquippedChip'
+import { useNavigate } from 'react-router-dom'
 import { useTitleBackdropSrc } from '../../../components/titles/TitleBackdrop'
+import { useEquippedTitle } from '../../../hooks/useTitles'
+import { localizeTitle } from '../../../components/titles/titleI18n'
+import { useDailyVerse } from '../../../hooks/useDailyVerse'
+import { useLanguage } from '../../../contexts/LanguageContext'
 import { useUploadAvatar, useDeleteAvatar } from '../../../hooks/useProfile'
 import { resizeImageToBlob } from '../../../utils/imageResize'
 import { showToast } from '../../../utils/toast'
 import type { GlowLevel } from '../../../types/achievement'
 import { confirmDialog } from '../../../utils/confirmDialog'
+import './ProfileHeader.css'
 
 interface ProfileHeaderProps {
   username: string
@@ -34,6 +39,12 @@ const ProfileHeader = ({
   const avatarBusy = uploadAvatar.isPending || deleteAvatar.isPending
   const auraColor = glowLevel.glowColor
   const backdropSrc = useTitleBackdropSrc()
+  const navigate = useNavigate()
+  const { t, language } = useLanguage()
+  const { data: equipped } = useEquippedTitle()
+  const titleName = equipped ? localizeTitle(equipped, language).name : null
+  // 이름 아래 한 줄 성구 — 오늘의 말씀을 그대로 빌려 쓴다(별도 요청 없음, 캐시 공유)
+  const { data: verse } = useDailyVerse()
 
   const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -69,7 +80,7 @@ const ProfileHeader = ({
   }
 
   return (
-    <div className="flex flex-col items-center pb-2 text-center">
+    <div className="ph flex flex-col items-center pb-2 text-center">
       {/* 장착 칭호 커버 배너 — 장면(양·해돋이·닭)을 마스크 없이 온전히 보여준다 */}
       {backdropSrc && (
         <div className="relative w-full aspect-video overflow-hidden" aria-hidden>
@@ -79,20 +90,24 @@ const ProfileHeader = ({
             draggable={false}
             className="h-full w-full select-none object-cover"
           />
-          {/* 하단을 공통 네이비(--title-bg-seam)로 수렴 — 아래 정보 영역 그라데이션과
-              정확히 같은 색에서 만나므로 20장 어떤 그림이든 이음새가 사라진다 */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background-light dark:to-[#0c1322]" />
+          {/* 하단 구름 — 직선 그라데이션 대신 페이지색 구름 뭉치가 그림을 삼키며
+              아바타를 받친다. 색은 아래 정보 영역 시작색과 동일(라이트 페이지색 / 다크 네이비 이음색) */}
+          <div className="ph-cloud" aria-hidden>
+            <span className="ph-cloud__haze" />
+            <span className="ph-cloud__puffs ph-cloud__puffs--back" />
+            <span className="ph-cloud__puffs ph-cloud__puffs--front" />
+          </div>
         </div>
       )}
 
       {/* 정보 영역 — 다크 모드에선 그림 하단 네이비를 이어받아 서서히 페이지 배경으로 녹인다 */}
       <div
         className={`flex w-full flex-col items-center ${
-          backdropSrc ? 'dark:bg-gradient-to-b dark:from-[#0c1322] dark:to-transparent' : ''
+          backdropSrc ? 'bg-background-light dark:bg-transparent dark:bg-gradient-to-b dark:from-[#0c1322] dark:to-transparent' : ''
         }`}
       >
       {/* 아바타 — 배너가 있으면 커버 사진처럼 하단에 걸친다 */}
-      <div className={`relative ${backdropSrc ? '-mt-10' : 'mt-7'}`}>
+      <div className={`relative z-[1] ${backdropSrc ? '-mt-14' : 'mt-7'}`}>
           {/* 배너 위에 걸칠 때는 이음색 테두리로 오려낸 듯한 커버 스타일 */}
           <div
             className={`rounded-full ${backdropSrc ? 'bg-background-light dark:bg-[#0c1322] p-[3px]' : ''}`}
@@ -158,22 +173,49 @@ const ProfileHeader = ({
           />
       </div>
 
-      {/* 장착 칭호 — MMO 네임플레이트처럼 이름 '위'에 얹는다.
-          박스 칩 대신 라인+브래킷의 가벼운 slot 변형이라 이름과 크기 경쟁을 하지 않는다.
-          클릭 시 /garden 컬렉션으로. */}
-      <div className="mt-3">
-        <TitleEquippedChip variant="slot" />
-      </div>
+      {/* 아이덴티티 블록 — '내 칭호' 필 → 칭호 헤드라인 → 이름 → 오늘의 성구.
+          오른쪽 연필은 /account(프로필 편집). */}
+      <div className="relative w-full px-5">
+        <button
+          type="button"
+          onClick={() => navigate('/account')}
+          aria-label={t('profileEdit')}
+          className="ph-edit"
+        >
+          <span className="material-icons-round text-[16px]" aria-hidden>edit</span>
+        </button>
 
-      {/* 이름 — 헤더의 마지막 줄. @아이디는 본인 프로필에서 정보가치가 없어 뺐고,
-          레벨명은 바로 아래 '신앙의 온도' 카드가 전담한다(중복 제거).
-          레벨은 아바타 후광 색으로만 은은하게 남는다. */}
-      <h2
-        className="m-0 mt-0.5 max-w-full truncate px-5 text-[20px] font-bold leading-tight tracking-[-0.02em] text-ink-strong"
-        style={{ wordBreak: 'keep-all' }}
-      >
-        {fullName}
-      </h2>
+        <button
+          type="button"
+          onClick={() => navigate('/garden')}
+          className="ph-title-pill"
+          aria-label={
+            titleName
+              ? language === 'en' ? `Equipped title ${titleName} — change` : `장착한 칭호 ${titleName} — 변경하기`
+              : t('titleChipEmpty')
+          }
+        >
+          <span aria-hidden>{equipped?.icon ?? '✝'}</span>
+          {titleName ? t('profileMyTitle') : t('titleChipEmpty')}
+        </button>
+
+        <h2
+          className="m-0 mt-2 max-w-full truncate text-[24px] font-bold leading-tight tracking-[-0.02em] text-ink-strong"
+          style={{ wordBreak: 'keep-all' }}
+        >
+          {titleName ?? fullName}
+        </h2>
+        {titleName && (
+          <p className="m-0 mt-1 text-[13px] font-semibold text-gray-500 dark:text-white/55">{fullName}</p>
+        )}
+
+        {verse?.verse_text && (
+          <p className="ph-verse">
+            {verse.verse_text}
+            <span className="ph-verse__ref">{verse.verse_reference}</span>
+          </p>
+        )}
+      </div>
       </div>
     </div>
   )

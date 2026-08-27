@@ -323,3 +323,92 @@
   mask-size: 100% 100%;
   transform: rotate(-2deg);
 }
+
+/* ===== 2026-08 리디자인: 온도 카드 + 성장 그래프 카드 ===== */
+.lp-hint-btn {
+  width: 16px; height: 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--card-border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 10px; font-weight: 700; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.lp-level-pill {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  color: var(--brand);
+  font-size: 13px; font-weight: 800; letter-spacing: -0.01em;
+}
+.lp-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--brand-soft-strong);
+}
+.lp-fill {
+  position: relative;
+  height: 100%;
+  min-width: 10px;
+  border-radius: 999px;
+  background: var(--brand);
+  transition: width 0.5s ease;
+}
+.lp-fill > .animate-shimmer { border-radius: 999px; }
+.lp-knob {
+  position: absolute;
+  right: -2px; top: 50%;
+  width: 16px; height: 16px;
+  border-radius: 999px;
+  background: var(--brand);
+  transform: translateY(-50%);
+}
+.lp-graph {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  --graph-future: rgba(148, 163, 184, 0.55);
+}
+.lp-graph__line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.lp-graph__progress { stroke: var(--brand); }
+.lp-graph__future {
+  fill: none;
+  stroke: var(--graph-future);
+  stroke-width: 2;
+  stroke-dasharray: 4 5;
+  stroke-linecap: round;
+}
+.lp-graph__label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text-muted);
+}
+.lp-graph__label[data-current="true"] {
+  font-weight: 800;
+  fill: var(--text-strong);
+}
+.lp-tile {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 14px 6px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  text-align: center;
+}
+[data-theme="dark"] .lp-tile { background: rgba(255, 255, 255, 0.03); }
+.lp-earn__badge {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.lp-earn__badge svg { width: 20px; height: 20px; }

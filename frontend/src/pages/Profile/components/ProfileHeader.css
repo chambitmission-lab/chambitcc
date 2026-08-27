@@ -1,0 +1,116 @@
+/* ===== ProfileHeader — 배너 하단 구름 ======================================
+   페이지색 구름 뭉치(라디얼 그라데이션 겹침)가 그림 아래를 삼키며 아바타를 받친다.
+   --ph-cloud 는 아래 정보 영역의 시작색과 반드시 같아야 이음새가 사라진다. */
+.ph {
+  --ph-cloud: #f1f3f6; /* tailwind background-light */
+}
+[data-theme="dark"] .ph, html.dark .ph {
+  --ph-cloud: #0c1322; /* 칭호 배너 공통 네이비 이음색 */
+}
+
+.ph-cloud {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 58%;
+  pointer-events: none;
+}
+
+/* 넓게 깔리는 안개 — 그림 하단만 살짝 뿌옇게 */
+.ph-cloud__haze {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 0%, var(--ph-cloud) 100%);
+  opacity: 0.55;
+  mask-image: linear-gradient(to bottom, transparent 30%, #000 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 30%, #000 100%);
+}
+
+/* 구름 뭉치 — 크기·높이가 제각각인 원을 겹쳐 뭉게구름 실루엣.
+   뒤층은 흐리고 반투명, 앞층은 또렷하고 불투명. 아래 30%는 완전 단색으로 닫는다 */
+.ph-cloud__puffs {
+  position: absolute;
+  inset: 0 -12px -12px; /* blur 가장자리가 배너 밖으로 나가도록 확장(overflow-hidden 이 자른다) */
+  background-repeat: no-repeat;
+}
+
+.ph-cloud__puffs--back {
+  filter: blur(10px);
+  opacity: 0.75;
+  background-image:
+    radial-gradient(30% 78% at 6% 118%, var(--ph-cloud) 60%, transparent 100%),
+    radial-gradient(24% 92% at 27% 120%, var(--ph-cloud) 58%, transparent 100%),
+    radial-gradient(34% 84% at 50% 122%, var(--ph-cloud) 60%, transparent 100%),
+    radial-gradient(26% 96% at 72% 118%, var(--ph-cloud) 58%, transparent 100%),
+    radial-gradient(30% 80% at 96% 120%, var(--ph-cloud) 60%, transparent 100%);
+}
+
+.ph-cloud__puffs--front {
+  filter: blur(2px);
+  background-image:
+    radial-gradient(22% 58% at 0% 108%, var(--ph-cloud) 70%, transparent 100%),
+    radial-gradient(17% 74% at 16% 112%, var(--ph-cloud) 68%, transparent 100%),
+    radial-gradient(21% 52% at 31% 110%, var(--ph-cloud) 70%, transparent 100%),
+    radial-gradient(24% 82% at 50% 112%, var(--ph-cloud) 68%, transparent 100%),
+    radial-gradient(18% 60% at 67% 110%, var(--ph-cloud) 70%, transparent 100%),
+    radial-gradient(22% 76% at 83% 112%, var(--ph-cloud) 68%, transparent 100%),
+    radial-gradient(20% 56% at 100% 108%, var(--ph-cloud) 70%, transparent 100%),
+    linear-gradient(to top, var(--ph-cloud) 0 26%, transparent 26%);
+}
+
+/* ===== 아이덴티티 블록 ===== */
+.ph-title-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border: 1px solid var(--brand-soft-strong);
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.ph-title-pill:hover { background: var(--brand-soft-strong); }
+.ph-title-pill:active { transform: scale(0.96); }
+
+.ph-edit {
+  position: absolute;
+  right: 1.25rem;
+  top: 34px; /* 필(22px)+간격 아래, 헤드라인 줄 높이에 맞춘다 */
+  display: flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  color: var(--text-muted);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+.ph-edit:hover { color: var(--brand); transform: scale(1.06); }
+
+.ph-verse {
+  margin: 0.7rem auto 0;
+  max-width: 19rem;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+.ph-verse__ref {
+  display: block;
+  margin-top: 3px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--brand-muted);
+}
+[data-theme="dark"] .ph-verse__ref, html.dark .ph-verse__ref { color: var(--brand); opacity: 0.8; }

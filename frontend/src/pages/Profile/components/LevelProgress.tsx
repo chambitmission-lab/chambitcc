@@ -2,7 +2,7 @@ import { useState, type CSSProperties } from 'react'
 import type { GlowLevel } from '../../../types/achievement'
 import { GLOW_LEVELS } from '../../../types/achievement'
 import { glowTemperature } from '../../../utils/achievementCalculator'
-import { getReadableTextStyle, toOpaqueColor } from '../../../utils/contrastText'
+import { toOpaqueColor } from '../../../utils/contrastText'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useGrowthRecentDays } from '../../../hooks/useGrowth'
 import { buildWeekCells, type DayCell } from './growthFootprints'
@@ -51,36 +51,6 @@ const EARN_GROUPS = [
 ] as const
 
 const earnTier = (points: number) => (points >= 100 ? 3 : points >= 10 ? 2 : 1)
-
-/* 레벨 여정 굽잇길 — 새싹(왼쪽 아래)에서 생명의 면류관(오른쪽 위)로 오르는 길.
-   골짜기와 오르막을 오가며 전체적으로는 위로 향한다.
-   y 는 viewBox(0~100) 기준이라 값이 작을수록 높은 자리.
-   GLOW_LEVELS 개수만큼 필요 — 모자라면 새 레벨이 중간 높이(50)에 떠 버린다 */
-const JOURNEY_YS = [80, 64, 72, 50, 60, 38, 48, 28, 36, 18, 7]
-const JOURNEY_PTS = GLOW_LEVELS.map((_, i) => ({
-  x: 5 + (90 * i) / (GLOW_LEVELS.length - 1),
-  y: JOURNEY_YS[i] ?? 50,
-}))
-
-/* from~to 구간을 Catmull-Rom → cubic Bezier 로 잇는다.
-   컨트롤 포인트는 항상 전체 경로 기준이라 부분 경로(지나온 길·남은 길)가
-   서로 정확히 이어진다 */
-const buildJourneyD = (from: number, to: number) => {
-  const pts = JOURNEY_PTS
-  let d = `M ${pts[from].x.toFixed(1)} ${pts[from].y}`
-  for (let i = from; i < to; i++) {
-    const p0 = pts[i - 1] ?? pts[i]
-    const p1 = pts[i]
-    const p2 = pts[i + 1]
-    const p3 = pts[i + 2] ?? p2
-    const c1x = p1.x + (p2.x - p0.x) / 6
-    const c1y = p1.y + (p2.y - p0.y) / 6
-    const c2x = p2.x - (p3.x - p1.x) / 6
-    const c2y = p2.y - (p3.y - p1.y) / 6
-    d += ` C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`
-  }
-  return d
-}
 
 const EARN_ICON_PATHS: Record<string, string[]> = {
   flame: [
@@ -133,7 +103,6 @@ const LevelProgress = ({
   const progress = pointsToNext
     ? ((pointsToNext.total - pointsToNext.needed) / pointsToNext.total) * 100
     : 100
-  const badgeText = getReadableTextStyle(currentLevel.glowColor)
   const temperature = glowTemperature(currentPoints)
   const nextLevel = GLOW_LEVELS[currentIdx + 1] ?? null
   const selIdx = selectedIdx ?? currentIdx
@@ -145,7 +114,14 @@ const LevelProgress = ({
   const { data: recent } = useGrowthRecentDays(14, hasToken)
   const weekCells = recent?.data ? buildWeekCells(recent.data.events) : null
 
+  // 성장 그래프 창 — 현재 레벨 앞 4단계 + 뒤 1단계(6칸). 끝단에선 창을 밀어 6칸 유지
+  const WIN = 6
+  const winStart = Math.max(0, Math.min(currentIdx - 4, GLOW_LEVELS.length - WIN))
+  const winLevels = GLOW_LEVELS.slice(winStart, winStart + WIN)
+  const [hintOpen, setHintOpen] = useState(false)
+
   return (
+    <>
     <div className="px-4 py-3">
       <div
         className="
@@ -156,91 +132,82 @@ const LevelProgress = ({
           dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
         "
       >
-        {/* 다크 카드 표면 미세 그라데이션 */}
         <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
 
-        {/* 헤더 */}
-        <div className="relative z-10 flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-[14px] font-bold text-ink-strong tracking-[-0.01em]">
+        {/* 헤더 — 제목 + (?) 힌트, 오른쪽 Lv 필 */}
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-[15px] font-bold text-ink-strong tracking-[-0.01em]">
               {t('levelTitle')}
             </h3>
-            <p className="text-[12px] text-gray-500 dark:text-white/55 mt-0.5">
+            <button
+              type="button"
+              className="lp-hint-btn"
+              aria-label={t('levelHint')}
+              aria-expanded={hintOpen}
+              onClick={() => setHintOpen((v) => !v)}
+            >
+              ?
+            </button>
+          </div>
+          <div className="lp-level-pill">Lv.{currentLevel.level}</div>
+        </div>
+        {hintOpen && (
+          <p className="relative z-10 mt-2 rounded-lg bg-[var(--brand-soft)] px-3 py-2 text-[12px] leading-snug text-gray-600 dark:text-white/70">
+            {t('levelHint')}
+          </p>
+        )}
+
+        {/* 온도 히어로 — 왼쪽 큰 온도, 오른쪽 단계 이름·포인트 */}
+        <div className="relative z-10 mt-3 flex items-end justify-between gap-3">
+          <div className="text-brand font-bold leading-none tracking-[-0.04em]">
+            <span className="text-[46px]">{temperature.toFixed(1)}</span>
+            <span className="ml-0.5 align-top text-[20px] font-bold">°C</span>
+          </div>
+          <div className="text-right pb-1">
+            <div className="flex items-center justify-end gap-1.5">
+              <span
+                className="lp-glow-dot"
+                style={{ filter: `drop-shadow(0 0 6px ${currentLevel.glowColor})` }}
+                aria-hidden="true"
+              >
+                <span
+                  className="lp-glow-dot__ink"
+                  style={{ backgroundColor: toOpaqueColor(currentLevel.glowColor) }}
+                />
+              </span>
+              <span className="text-[16px] font-bold text-ink-strong tracking-[-0.01em]">
+                {t(currentLevel.nameKey)}
+              </span>
+            </div>
+            <p className="mt-0.5 text-[12.5px] text-gray-500 dark:text-white/55">
               {currentPoints.toLocaleString()} {t('levelPoints')}
             </p>
           </div>
-          <div
-            className="px-4 py-1.5 rounded-full text-[13px] font-bold shadow-lg"
-            style={{
-              backgroundColor: toOpaqueColor(currentLevel.glowColor),
-              border: '1px solid rgba(0, 0, 0, 0.08)',
-              boxShadow: `0 0 18px ${currentLevel.glowColor}`,
-              color: badgeText.color,
-              textShadow: badgeText.textShadow,
-            }}
-          >
-            Lv.{currentLevel.level}
-          </div>
         </div>
 
-        {/* 온도 히어로 — 온도 리딩 + 현재 단계 이름 */}
-        <div className="relative z-10 mb-3 flex items-end justify-between">
-          <div className="brand-text-gradient font-bold leading-none tracking-[-0.03em]">
-            <span className="text-[38px]">{temperature.toFixed(1)}</span>
-            <span className="ml-0.5 align-top text-[19px]">°C</span>
-          </div>
-          <div className="flex items-center gap-1.5 pb-1">
-            <span
-              className="lp-glow-dot"
-              // 글로우는 래퍼 drop-shadow 로 — 마스크가 box-shadow 를 잘라내므로
-              style={{ filter: `drop-shadow(0 0 6px ${currentLevel.glowColor})` }}
-              aria-hidden="true"
-            >
+        {/* 진행 바 — 브랜드 솔리드 fill + 끝단 손잡이. 레벨 색은 손잡이 glow 로만 */}
+        <div className="relative z-10 mt-4">
+          <div className="lp-track">
+            <div className="lp-fill" style={{ width: `${progress}%` }}>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
               <span
-                className="lp-glow-dot__ink"
-                style={{ backgroundColor: toOpaqueColor(currentLevel.glowColor) }}
+                className="lp-knob"
+                style={{ boxShadow: `0 0 0 3px rgba(255,255,255,0.9), 0 0 12px ${currentLevel.glowColor}` }}
+                aria-hidden="true"
               />
-            </span>
-            <span className="text-[14px] font-bold text-ink-strong tracking-[-0.01em]">
-              {t(currentLevel.nameKey)}
-            </span>
-          </div>
-        </div>
-
-        {/* 온도계 게이지 — 수은구 + 트랙. fill 은 브랜드 블루 솔리드(라이트
-            트랙 위에서도 항상 가독), 레벨 색은 glow 로만 표현. */}
-        <div className="relative z-10">
-          <div className="flex items-center">
-            <div
-              className="lp-bulb"
-              style={{ boxShadow: `0 0 12px ${currentLevel.glowColor}` }}
-              aria-hidden="true"
-            />
-            <div className="relative flex-1 -ml-1.5 h-3 rounded-r-full bg-gray-200 dark:bg-white/[0.06] overflow-hidden">
-              <div
-                className="lp-mercury h-3 transition-all duration-500 relative"
-                style={{
-                  width: `${progress}%`,
-                  background: 'var(--brand)',
-                }}
-              >
-                <div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer"
-                  style={{ animation: 'shimmer 2s infinite' }}
-                />
-              </div>
             </div>
           </div>
 
           {pointsToNext && nextLevel ? (
-            <div className="flex items-center justify-between mt-2 text-[12px]">
-              <span className="text-gray-600 dark:text-white/65">
-                {t('levelNext')} · {t(nextLevel.nameKey)}
-              </span>
-              <span className="font-semibold text-brand">
-                {t('levelToNext')} {pointsToNext.needed.toLocaleString()}P
-              </span>
-            </div>
+            <>
+              <div className="mt-2 text-right text-[12px] font-semibold text-brand">
+                {t('levelToNextStage')} {pointsToNext.needed.toLocaleString()}P
+              </div>
+              <div className="mt-1 text-[12px] text-gray-500 dark:text-white/55">
+                {t('levelNextLabel')}: {t(nextLevel.nameKey)} ({nextLevel.minPoints.toLocaleString()}P)
+              </div>
+            </>
           ) : (
             <div className="text-center mt-2">
               <span className="text-[12px] font-bold text-brand">
@@ -249,140 +216,99 @@ const LevelProgress = ({
             </div>
           )}
         </div>
+      </div>
+    </div>
 
-        {/* 레벨 여정 — 새싹부터 생명의 면류관까지 굽이진 순례길. 탭하면 각 단계 확인 */}
-        <div className="relative z-10 mt-4">
-          <div className="lp-journey">
-            <svg
-              className="lp-journey__map"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              {/* 지나온 길: 출발점에서 옅게 시작해 현재 위치로 올수록 진해지는 잉크.
-                  gradientUnits=userSpaceOnUse 라 경로 좌표(viewBox)를 그대로 쓴다 */}
-              <defs>
-                <linearGradient
-                  id="lp-trail-grad"
-                  gradientUnits="userSpaceOnUse"
-                  x1={JOURNEY_PTS[0].x}
-                  y1={JOURNEY_PTS[0].y}
-                  x2={JOURNEY_PTS[currentIdx].x}
-                  y2={JOURNEY_PTS[currentIdx].y}
-                >
-                  <stop offset="0" style={{ stopColor: 'var(--brand)', stopOpacity: 0.22 }} />
-                  <stop offset="1" style={{ stopColor: 'var(--brand)', stopOpacity: 0.92 }} />
-                </linearGradient>
-              </defs>
-              {/* 남은 길만 발자국 점선 — 지나온 구간엔 점선을 깔지 않아 겹침이 없다 */}
-              {currentIdx < GLOW_LEVELS.length - 1 && (
-                <path
-                  className="lp-journey__track"
-                  d={buildJourneyD(currentIdx, GLOW_LEVELS.length - 1)}
-                />
-              )}
-              {currentIdx > 0 && (
-                <>
-                  <path className="lp-journey__trail-soft" d={buildJourneyD(0, currentIdx)} />
-                  <path className="lp-journey__trail" d={buildJourneyD(0, currentIdx)} />
-                </>
-              )}
-            </svg>
-            {GLOW_LEVELS.map((lv, i) => (
-              <button
-                key={lv.level}
-                type="button"
-                className="lp-journey__stop"
-                data-state={i < currentIdx ? 'passed' : i === currentIdx ? 'current' : 'future'}
-                data-selected={i === selIdx}
-                onClick={() => setSelectedIdx(i)}
-                aria-label={`Lv.${lv.level} ${t(lv.nameKey)}`}
-                style={{
-                  left: `${JOURNEY_PTS[i].x}%`,
-                  top: `${JOURNEY_PTS[i].y}%`,
-                  // 마스크가 box-shadow 를 잘라내므로 글로우는 부모 버튼의
-                  // drop-shadow 로 붓자국 실루엣을 따라가게 한다
-                  ...(i === currentIdx
-                    ? { filter: `drop-shadow(0 0 7px ${lv.glowColor})` }
-                    : undefined),
-                }}
-              >
-                <span
-                  className="lp-journey__dot"
-                  style={
-                    i <= currentIdx
-                      ? { backgroundColor: toOpaqueColor(lv.glowColor) }
-                      : undefined
-                  }
-                />
-              </button>
-            ))}
-          </div>
-          <div className="mt-1.5 flex items-center gap-1.5 text-[11.5px]">
-            <span className="font-semibold text-gray-600 dark:text-white/65">
-              Lv.{selLevel.level} {t(selLevel.nameKey)}
-            </span>
-            {selIdx === currentIdx && (
-              <span className="rounded-full bg-[var(--brand-soft)] px-2 py-[1.5px] text-[10px] font-bold text-brand">
-                {t('levelJourneyHere')}
-              </span>
-            )}
-            <span className="text-gray-400 dark:text-white/40">
-              · {language === 'en'
-                ? `from ${selLevel.minPoints.toLocaleString()}P`
-                : `${selLevel.minPoints.toLocaleString()}P부터`}
-            </span>
-          </div>
+    {/* ── 성장 그래프 카드 — 레벨 꺾은선 + 스탯 타일 + 획득 안내 ── */}
+    <div className="px-4 py-1">
+      <div
+        className="
+          relative overflow-hidden rounded-2xl p-5
+          bg-white/80 dark:bg-card-dark
+          border border-gray-200/70 dark:border-white/[0.08]
+          shadow-sm
+          dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
+        "
+      >
+        <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
+
+        <div className="relative z-10 flex items-center justify-between">
+          <h3 className="text-[15px] font-bold text-ink-strong tracking-[-0.01em]">
+            {t('growthGraphTitle')}
+          </h3>
+          <a href="#/growth" className="flex items-center gap-0.5 text-[12.5px] font-semibold text-gray-500 dark:text-white/55 hover:text-brand">
+            {t('growthGraphMore')}
+            <span className="material-icons-round text-[16px]" aria-hidden>chevron_right</span>
+          </a>
         </div>
 
-        {/* 활동 스탯 — 딱딱한 괘선 대신 숫자 뒤 붓 스와치로 감성 강조,
-            '이번 주'는 요일 붓 획(탤리)으로 리듬 표시 */}
-        <div className="relative z-10 mt-4 grid grid-cols-3 rounded-xl bg-gray-50/70 dark:bg-white/[0.03]">
-          <TemperatureStat value={totalCount} label={t('totalPrayers')} />
+        <LevelGraph
+          levels={winLevels}
+          currentIdx={currentIdx - winStart}
+          progress={progress}
+          selectedIdx={selectedIdx === null ? null : selectedIdx - winStart}
+          onSelect={(i) => setSelectedIdx(i + winStart)}
+        />
+        <div className="relative z-10 mt-1 flex items-center gap-1.5 text-[11.5px]">
+          <span className="font-semibold text-gray-600 dark:text-white/65">
+            Lv.{selLevel.level} {t(selLevel.nameKey)}
+          </span>
+          {selIdx === currentIdx && (
+            <span className="rounded-full bg-[var(--brand-soft)] px-2 py-[1.5px] text-[10px] font-bold text-brand">
+              {t('levelJourneyHere')}
+            </span>
+          )}
+          <span className="text-gray-400 dark:text-white/40">
+            · {language === 'en'
+              ? `from ${selLevel.minPoints.toLocaleString()}P`
+              : `${selLevel.minPoints.toLocaleString()}P부터`}
+          </span>
+        </div>
+
+        {/* 스탯 타일 3개 */}
+        <div className="relative z-10 mt-4 grid grid-cols-3 gap-2">
+          <TemperatureStat value={totalCount} label={t('totalPrayers')} icon="volunteer_activism" />
           <TemperatureStat
             value={thisWeekCount}
             label={t('profileThisWeek')}
+            icon="date_range"
             cells={weekCells}
           />
           <TemperatureStat
             value={streakDays}
             label={t('consecutivePrayers')}
-            suffix={streakDays >= 7 ? '🔥' : undefined}
+            icon="local_fire_department"
+            hot={streakDays >= 7}
           />
         </div>
 
-        {/* 포인트 획득 방법 안내 — 기본 접힘, 탭하면 펼침 */}
-        <div
-          className="
-            relative z-10 mt-4 overflow-hidden rounded-xl
-            bg-[var(--brand-soft)]
-            border border-[var(--brand-soft-strong)]
-          "
-        >
+        {/* 포인트 획득 방법 안내 — 행 카드, 탭하면 펼침 */}
+        <div className="relative z-10 mt-3 overflow-hidden rounded-xl border border-gray-200/70 dark:border-white/[0.08] bg-gray-50/70 dark:bg-white/[0.03]">
           <button
             type="button"
             onClick={() => setGuideOpen((v) => !v)}
             aria-expanded={guideOpen}
             aria-controls="level-earn-guide"
-            className="
-              flex w-full items-center justify-between px-3 py-2.5
-              text-left transition-colors
-              hover:bg-[var(--brand-soft-strong)]
-            "
+            className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors hover:bg-[var(--brand-soft)]"
           >
-            <span className="flex items-center gap-1.5 text-[12px] font-semibold text-gray-700 dark:text-white/80">
-              <span className="lp-earn__header-icon text-brand" aria-hidden="true">
-                <EarnIcon name="flame" />
+            <span className="lp-earn__badge" aria-hidden="true">
+              <EarnIcon name="flame" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[13.5px] font-bold text-ink-strong tracking-[-0.01em]">
+                {t('levelHowToEarn')}
               </span>
-              {t('levelHowToEarn')}
+              <span className="block text-[11.5px] text-gray-500 dark:text-white/55">
+                {t('levelHowToEarnSub')}
+              </span>
             </span>
             <span
-              className={`material-icons-round text-[18px] text-[var(--brand-muted)] transition-transform duration-300 ${
-                guideOpen ? 'rotate-180' : ''
+              className={`material-icons-round text-[20px] text-gray-400 dark:text-white/40 transition-transform duration-300 ${
+                guideOpen ? 'rotate-90' : ''
               }`}
               aria-hidden="true"
             >
-              expand_more
+              chevron_right
             </span>
           </button>
           <div
@@ -394,7 +320,6 @@ const LevelProgress = ({
             <div className="overflow-hidden">
               <div className="lp-earn px-3 pb-3" data-open={guideOpen}>
                 {EARN_GROUPS.map((group, gi) => {
-                  // 그룹 제목·행에 이어지는 스태거 순번 (펼침 애니메이션용)
                   const base = EARN_GROUPS.slice(0, gi).reduce(
                     (n, g) => n + g.items.length + 1,
                     0,
@@ -437,28 +362,122 @@ const LevelProgress = ({
         </div>
       </div>
     </div>
+    </>
+  )
+}
+
+/* 레벨 성장 꺾은선 — 창에 담긴 레벨들을 완만히 오르는 지그재그로 잇고,
+   지나온 구간은 각 단계 색, 남은 구간은 회색 점선. 현재 위치엔 Lv 태그. */
+const GRAPH_W = 320
+const GRAPH_H = 104
+const GRAPH_YS = [78, 62, 70, 50, 56, 32]
+
+const LevelGraph = ({
+  levels,
+  currentIdx,
+  progress,
+  selectedIdx,
+  onSelect,
+}: {
+  levels: GlowLevel[]
+  currentIdx: number
+  progress: number
+  selectedIdx: number | null
+  onSelect: (i: number) => void
+}) => {
+  const n = levels.length
+  const pts = levels.map((_, i) => ({
+    x: 26 + ((GRAPH_W - 52) * i) / (n - 1),
+    y: GRAPH_YS[i] ?? 50,
+  }))
+  const seg = (a: number, b: number) => {
+    const p = pts[a], q = pts[b]
+    const cx = (p.x + q.x) / 2
+    return `M ${p.x} ${p.y} C ${cx} ${p.y}, ${cx} ${q.y}, ${q.x} ${q.y}`
+  }
+  const cur = pts[currentIdx]
+  return (
+    <div className="relative z-10 mt-2">
+      <svg viewBox={`0 0 ${GRAPH_W} ${GRAPH_H + 22}`} className="lp-graph" aria-hidden="true">
+        {/* 지나온 구간 — 도착 단계 색 */}
+        {pts.slice(1).map((_, i) =>
+          i + 1 <= currentIdx ? (
+            <path
+              key={`p${i}`}
+              d={seg(i, i + 1)}
+              className="lp-graph__line"
+              style={{ stroke: toOpaqueColor(levels[i + 1].glowColor) }}
+            />
+          ) : (
+            <path key={`f${i}`} d={seg(i, i + 1)} className="lp-graph__future" />
+          ),
+        )}
+        {/* 현재 단계 안 진행분 — 다음 점을 향해 브랜드색으로 조금 더 뻗는다 */}
+        {currentIdx < n - 1 && progress > 0 && (
+          <path
+            d={seg(currentIdx, currentIdx + 1)}
+            className="lp-graph__line lp-graph__progress"
+            pathLength={100}
+            strokeDasharray={`${Math.min(progress, 100)} 100`}
+          />
+        )}
+        {/* 단계 눈금(짧은 세로 획) + 점 */}
+        {pts.map((p, i) => {
+          const passed = i <= currentIdx
+          const color = passed ? toOpaqueColor(levels[i].glowColor) : 'var(--graph-future)'
+          return (
+            <g key={levels[i].level} onClick={() => onSelect(i)} style={{ cursor: 'pointer' }}>
+              <rect x={p.x - 1.5} y={p.y - 9} width={3} height={18} rx={1.5} fill={color} opacity={0.85} />
+              <circle cx={p.x} cy={p.y} r={4.2} fill={color} />
+              {i === currentIdx && (
+                <circle cx={p.x} cy={p.y} r={7} fill="none" stroke="var(--brand)" strokeWidth={2} opacity={0.5} />
+              )}
+              {selectedIdx === i && i !== currentIdx && (
+                <circle cx={p.x} cy={p.y} r={7} fill="none" stroke={color} strokeWidth={1.5} strokeDasharray="2 2" />
+              )}
+              <text
+                x={p.x}
+                y={GRAPH_H + 16}
+                textAnchor="middle"
+                className="lp-graph__label"
+                data-current={i === currentIdx}
+              >
+                Lv.{levels[i].level}
+              </text>
+            </g>
+          )
+        })}
+        {/* 현재 위치 태그 */}
+        <g transform={`translate(${cur.x} ${cur.y - 22})`}>
+          <rect x={-19} y={-9} width={38} height={18} rx={9} fill="var(--brand)" />
+          <text y={4} textAnchor="middle" fontSize={10.5} fontWeight={700} fill="#fff">
+            Lv.{levels[currentIdx].level}
+          </text>
+        </g>
+      </svg>
+    </div>
   )
 }
 
 const TemperatureStat = ({
   value,
   label,
-  suffix,
+  icon,
+  hot,
   cells,
 }: {
   value: number
   label: string
-  suffix?: string
+  icon: string
+  hot?: boolean
   cells?: DayCell[] | null
 }) => (
-  <div className="px-2 py-3 text-center">
-    <span className="lp-stat-num">
-      <span className="relative brand-text-gradient text-[24px] font-bold leading-none tracking-[-0.02em]">
-        {value.toLocaleString()}
-        {suffix && (
-          <span className="ml-0.5 align-baseline text-[14px] leading-none">{suffix}</span>
-        )}
-      </span>
+  <div className="lp-tile">
+    <span className="text-brand text-[24px] font-bold leading-none tracking-[-0.02em]">
+      {value.toLocaleString()}
+    </span>
+    <span className={`material-icons-round mt-2 text-[20px] ${hot ? 'text-orange-500' : 'text-brand'}`} aria-hidden="true">
+      {icon}
     </span>
     {cells && (
       <div className="mt-1.5 flex items-end justify-center gap-[3px]" aria-hidden="true">
@@ -473,7 +492,7 @@ const TemperatureStat = ({
         ))}
       </div>
     )}
-    <div className="mt-1.5 text-[10.5px] font-medium text-gray-500 dark:text-white/50 whitespace-nowrap">
+    <div className="mt-1.5 text-[11px] font-medium text-gray-500 dark:text-white/50 whitespace-nowrap">
       {label}
     </div>
   </div>

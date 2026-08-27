@@ -7,6 +7,7 @@ import { titleKeys } from '../../../hooks/useTitles'
 import { ACHIEVEMENTS, GLOW_LEVELS } from '../../../types/achievement'
 import AchievementBadges from './AchievementBadges'
 import ProfileHeader from './ProfileHeader'
+import LevelProgress from './LevelProgress'
 
 const SAMPLE_TITLE: TitleStatus = {
   key: 'night_owl',
@@ -48,6 +49,24 @@ const ProfileHeaderPreview = () => {
         avatarUrl={null}
         glowLevel={GLOW_LEVELS[levelIdx]}
       />
+
+      <div className="mx-auto max-w-md">
+        <LevelProgress
+          currentLevel={GLOW_LEVELS[levelIdx]}
+          currentPoints={GLOW_LEVELS[levelIdx].minPoints + 1200}
+          pointsToNext={
+            GLOW_LEVELS[levelIdx + 1]
+              ? {
+                  needed: GLOW_LEVELS[levelIdx + 1].minPoints - GLOW_LEVELS[levelIdx].minPoints - 1200,
+                  total: GLOW_LEVELS[levelIdx + 1].minPoints - GLOW_LEVELS[levelIdx].minPoints,
+                }
+              : null
+          }
+          thisWeekCount={3}
+          totalCount={150}
+          streakDays={9}
+        />
+      </div>
 
       {/* 업적 스트립 (접힌 상태 스크롤바/페이드 확인용) */}
       <div className="mx-auto max-w-md">
