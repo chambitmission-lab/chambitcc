@@ -261,7 +261,7 @@ const ChatbotWidget = () => {
         <div
           role="dialog"
           aria-label="참비"
-          className="fixed z-[99] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-7.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none"
+          className="fixed z-[99] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-8.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none"
         >
           {/* 헤더 */}
           <div
