@@ -41,12 +41,12 @@
     rgba(18, 24, 38, 0.03) 100%
   );
 
-  /* /garden 성경 칭호 히어로 — 픽셀아트 밤 장면이라 다크 전용.
-     라이트는 이미지 없이 기존 플랫 카드 유지(none + auto). */
-  --garden-hero-image: none;
-  --garden-hero-min-height: auto;
-  --garden-hero-min-height-lg: auto;
-  --garden-hero-aspect-lg: auto;
+  /* /garden 성경 칭호 히어로 — 라이트는 흰→연블루 캔버스 위 칭호 진열장(픽셀아트).
+     다크와 같은 1376×560 캔버스라 높이/비율 토큰을 공유한다. */
+  --garden-hero-image: url('/images/garden/bible-title-hero-light.webp');
+  --garden-hero-min-height: 172px;
+  --garden-hero-min-height-lg: 300px;
+  --garden-hero-aspect-lg: 1376 / 560;
 
   /* /greeting 인사말 히어로 — 계절 사진은 페이지가 --gr-hero-image-day/night 변수로
      내려주고(홈 히어로와 같은 계절 자산), 낮/밤 선택은 아래 .gr-hero-card 규칙이 한다.

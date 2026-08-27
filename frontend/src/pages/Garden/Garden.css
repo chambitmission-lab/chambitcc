@@ -21,8 +21,8 @@
   padding: 18px 20px;
   border-radius: 16px;
   border: 1px solid var(--card-border);
-  /* 다크에서만 픽셀 여정 배너가 깔린다(--garden-hero-image, theme.css).
-     좌→우 그라데이션이 텍스트 자리를 지켜주고, 라이트에선 none이라 기존 플랫 카드 그대로. */
+  /* 테마별 픽셀 배너(--garden-hero-image, theme.css): 다크=계단 여정, 라이트=칭호 진열장.
+     좌→우 그라데이션이 텍스트 자리를 지켜준다. */
   min-height: var(--garden-hero-min-height, auto);
   background-color: var(--surface-container);
   background-image:
@@ -205,7 +205,7 @@
     column-gap: 18px;
     /* 배너 원본이 1376×560(≈2.46:1). 고정 높이(300px)로는 계단 꼭대기의 목표 메달이
        잘려 나가서, PC에선 카드를 이미지 비율로 잡아 배너 전체(별하늘~바닥)가 보이게 한다.
-       라이트는 이미지가 없으니 비율을 강제하지 않는다(--garden-hero-aspect-lg: auto). */
+       라이트 배너도 같은 1376×560 캔버스라 동일 비율을 쓴다. */
     min-height: var(--garden-hero-min-height-lg, auto);
     aspect-ratio: var(--garden-hero-aspect-lg, auto);
     background-position: left center, right center;
