@@ -32,6 +32,10 @@ type Msg = { id: number; role: 'user'; text: string } | { id: number; role: 'bot
 
 let nextId = 1
 
+// 페이지 스크롤 위치 — html/body에 overflow-x:hidden이 걸려 실제 스크롤러가 body다
+const scrollTop = () =>
+  window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
+
 // 해석 본문은 마크다운으로 저장돼 있다 — 채팅 말풍선에서는 제목 기호만 걷어낸다
 const stripMd = (s: string) =>
   s.replace(/^#{1,6}\s*/gm, '').replace(/\*\*(.+?)\*\*/g, '$1').trim()
@@ -159,26 +163,28 @@ const ChatbotWidget = () => {
 
   // 모바일에서 아래로 스크롤하는 동안 FAB을 오른쪽으로 접어둔다 — 읽는 화면을 가리지 않게.
   // 위로 올리거나 최상단이면 다시 나온다. PC(lg+)는 코너 위젯이라 항상 노출.
+  // 이 앱의 실제 스크롤러는 window가 아니라 body(ScrollRestoration 주석 참고)라
+  // scroll은 document에서 capture로 받고 위치도 body/html 기준으로 읽는다.
   const [tucked, setTucked] = useState(false)
   useEffect(() => {
     setTucked(false)
     if (open) return
-    let last = window.scrollY
+    let last = scrollTop()
     let raf = 0
     const onScroll = () => {
       if (raf) return
       raf = requestAnimationFrame(() => {
         raf = 0
-        const y = window.scrollY
+        const y = scrollTop()
         const delta = y - last
         if (Math.abs(delta) < 6) return
         last = y
         setTucked(y > 140 && delta > 0)
       })
     }
-    window.addEventListener('scroll', onScroll, { passive: true })
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true })
     return () => {
-      window.removeEventListener('scroll', onScroll)
+      document.removeEventListener('scroll', onScroll, { capture: true })
       if (raf) cancelAnimationFrame(raf)
     }
   }, [open, location.pathname])
