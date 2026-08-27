@@ -372,6 +372,16 @@ const GRAPH_W = 320
 const GRAPH_H = 104
 const GRAPH_YS = [78, 62, 70, 50, 56, 32]
 
+/* 그래프용 레벨 색 — 흰색(Lv.6 천상의 광채)·옅은 회색은 흰 카드 위에서 사라지므로
+   밝기가 높은 색은 브랜드 블루로 대체한다 */
+const graphColor = (glow: string) => {
+  const m = glow.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+  if (!m) return toOpaqueColor(glow)
+  const [r, g, b] = [Number(m[1]), Number(m[2]), Number(m[3])]
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return lum > 0.85 ? 'var(--brand)' : toOpaqueColor(glow)
+}
+
 const LevelGraph = ({
   levels,
   currentIdx,
@@ -406,7 +416,7 @@ const LevelGraph = ({
               key={`p${i}`}
               d={seg(i, i + 1)}
               className="lp-graph__line"
-              style={{ stroke: toOpaqueColor(levels[i + 1].glowColor) }}
+              style={{ stroke: graphColor(levels[i + 1].glowColor) }}
             />
           ) : (
             <path key={`f${i}`} d={seg(i, i + 1)} className="lp-graph__future" />
@@ -424,7 +434,7 @@ const LevelGraph = ({
         {/* 단계 눈금(짧은 세로 획) + 점 */}
         {pts.map((p, i) => {
           const passed = i <= currentIdx
-          const color = passed ? toOpaqueColor(levels[i].glowColor) : 'var(--graph-future)'
+          const color = passed ? graphColor(levels[i].glowColor) : 'var(--graph-future)'
           return (
             <g key={levels[i].level} onClick={() => onSelect(i)} style={{ cursor: 'pointer' }}>
               <rect x={p.x - 1.5} y={p.y - 9} width={3} height={18} rx={1.5} fill={color} opacity={0.85} />

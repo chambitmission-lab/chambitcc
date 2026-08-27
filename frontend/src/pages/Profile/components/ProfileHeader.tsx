@@ -96,6 +96,7 @@ const ProfileHeader = ({
             <span className="ph-cloud__haze" />
             <span className="ph-cloud__puffs ph-cloud__puffs--back" />
             <span className="ph-cloud__puffs ph-cloud__puffs--front" />
+            <span className="ph-cloud__seam" />
           </div>
         </div>
       )}
@@ -178,15 +179,6 @@ const ProfileHeader = ({
       <div className="relative w-full px-5">
         <button
           type="button"
-          onClick={() => navigate('/account')}
-          aria-label={t('profileEdit')}
-          className="ph-edit"
-        >
-          <span className="material-icons-round text-[16px]" aria-hidden>edit</span>
-        </button>
-
-        <button
-          type="button"
           onClick={() => navigate('/garden')}
           className="ph-title-pill"
           aria-label={
@@ -205,9 +197,20 @@ const ProfileHeader = ({
         >
           {titleName ?? fullName}
         </h2>
-        {titleName && (
-          <p className="m-0 mt-1 text-[13px] font-semibold text-gray-500 dark:text-white/55">{fullName}</p>
-        )}
+        {/* 닉네임 + 연필(닉네임 변경 → /account) — 칭호가 아니라 이름을 고치는 버튼임이 드러나도록 이름 바로 옆에 */}
+        <div className={`flex items-center justify-center gap-1 ${titleName ? 'mt-1' : 'mt-1.5'}`}>
+          {titleName && (
+            <p className="m-0 text-[13px] font-semibold text-gray-500 dark:text-white/55">{fullName}</p>
+          )}
+          <button
+            type="button"
+            onClick={() => navigate('/account')}
+            aria-label={t('profileEdit')}
+            className="ph-edit"
+          >
+            <span className="material-icons-round text-[13px]" aria-hidden>edit</span>
+          </button>
+        </div>
 
         {verse?.verse_text && (
           <p className="ph-verse">
