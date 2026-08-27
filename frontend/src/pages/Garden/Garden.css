@@ -203,6 +203,10 @@
   .garden-hero {
     padding: 24px 28px;
     column-gap: 18px;
+    /* 배너 원본이 1376×560(≈2.5:1)이라 1100px 폭에 172px 높이면 세로 60%가 잘린다.
+       PC에선 높이를 키우고 기준점을 아래로 두어 캐릭터·바닥이 남게 한다. */
+    min-height: var(--garden-hero-min-height-lg, auto);
+    background-position: left center, right bottom;
   }
 
   .garden-hero-emblem {

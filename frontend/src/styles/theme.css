@@ -45,6 +45,7 @@
      라이트는 이미지 없이 기존 플랫 카드 유지(none + auto). */
   --garden-hero-image: none;
   --garden-hero-min-height: auto;
+  --garden-hero-min-height-lg: auto;
 
   /* /greeting 인사말 히어로 — 계절 사진은 페이지가 --gr-hero-image-day/night 변수로
      내려주고(홈 히어로와 같은 계절 자산), 낮/밤 선택은 아래 .gr-hero-card 규칙이 한다.
@@ -165,6 +166,7 @@
   /* /garden 성경 칭호 히어로 — 계단을 오르는 픽셀 여정 배너 (다크 전용) */
   --garden-hero-image: url('/images/garden/bible-title-hero.webp');
   --garden-hero-min-height: 172px;
+  --garden-hero-min-height-lg: 300px;
 
   /* /greeting 인사말 히어로 — 다크는 계절 무관 겨울 밤 은하수 고정(가장 어두운 무드) + 딥 네이비 스크림 */
   --gr-hero-scrim:
