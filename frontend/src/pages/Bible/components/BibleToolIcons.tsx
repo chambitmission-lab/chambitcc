@@ -6,6 +6,7 @@
  * - SituationIcon  : 빛살을 받은 마음 (상황별 성구)
  * - PhotoVerseIcon : 사진 위에 얹힌 말씀 한 줄 (말씀 사진 카드)
  * - ListenIcon     : 책갈피 리본에서 퍼지는 소리 (즐겨찾기 구절 듣기)
+ * - BibleBookIcon  : 닫힌 성경 + 십자가 + 가름끈 (이어 읽기 카드)
  */
 import type { SVGProps } from 'react'
 
@@ -53,6 +54,18 @@ export function ListenIcon(props: SVGProps<SVGSVGElement>) {
     <svg {...base} {...props}>
       <path d="M6.5 4h8v15l-4-3-4 3z" />
       <path d="M17.5 9c1.1 1.2 1.1 3 0 4.2M19.8 6.8c2.2 2.4 2.2 6.2 0 8.6" />
+    </svg>
+  )
+}
+
+/** 닫힌 성경 + 십자가 + 아래로 늘어진 가름끈 (이어 읽기 = 읽던 자리) */
+export function BibleBookIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} strokeWidth={1.8} {...props}>
+      <path d="M6 4.5A1.5 1.5 0 0 1 7.5 3H18v16H7.5A1.5 1.5 0 0 1 6 17.5z" />
+      <path d="M6 17.5A1.5 1.5 0 0 1 7.5 16H18" />
+      <path d="M12 6.5v4M10.2 8h3.6" />
+      <path d="M14.2 16h2v5l-1-.9-1 .9z" fill="currentColor" stroke="none" />
     </svg>
   )
 }

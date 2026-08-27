@@ -69,8 +69,9 @@
   background: var(--brand);
   box-shadow: 0 8px 20px -8px var(--brand-glow);
 }
-.dash-card--resume .dash-card__icon .material-icons-round {
-  font-size: 1.7rem;
+.dash-card--resume .dash-card__icon .dash-card__glyph {
+  width: 1.85rem;
+  height: 1.85rem;
 }
 .dash-card--fav .dash-card__icon {
   width: 2.5rem;
