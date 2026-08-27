@@ -444,8 +444,10 @@ const DesktopNavRail = () => {
           aria-label={t('railShare')}
           aria-haspopup="menu"
           aria-expanded={dialOpen}
-          className="group relative brand-gradient w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
+          className="group relative w-12 h-12 xl:w-auto xl:h-auto xl:px-4 xl:py-3 rounded-full flex items-center justify-center gap-2 text-white bg-[radial-gradient(circle_at_28%_20%,rgba(255,255,255,0.28),transparent_48%),linear-gradient(155deg,#4593fc,var(--brand-dim))] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.09),0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.12),0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.96] transition-[box-shadow,transform] duration-150"
         >
+          {/* 인장 문법(도크 FAB·완독 도장과 동일): 안쪽 점선 압인 링 */}
+          <span aria-hidden className="absolute inset-[3px] rounded-full border border-dashed border-white/30 pointer-events-none" />
           {/* 도크 FAB와 같은 스파클 얼굴 — 열리면 살짝 회전해 "펼쳐짐"을 알린다 */}
           <svg
             className={`w-6 h-6 shrink-0 transition-transform duration-200 ${dialOpen ? 'rotate-90' : ''}`}

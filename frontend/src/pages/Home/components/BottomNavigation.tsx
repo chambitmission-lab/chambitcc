@@ -337,15 +337,16 @@ const BottomNavigation = ({
         onClick={toggleDial}
         aria-label={dialOpen ? '나눔 메뉴 닫기' : '나눔 메뉴 열기'}
         aria-expanded={dialOpen}
-        className={`absolute left-1/2 -translate-x-1/2 top-0 z-30 flex items-center justify-center w-14 h-14 rounded-full text-white bg-gradient-to-br from-[#69a8ff] via-[var(--brand)] to-[#3f5efb] shadow-[0_6px_16px_-2px_var(--brand-glow)] ring-1 ring-white/20 dark:ring-white/15 active:scale-[0.82] transition-transform duration-150${dialOpen ? ' fab-pop' : ''}`}
+        className={`absolute left-1/2 -translate-x-1/2 top-0 z-30 flex items-center justify-center w-14 h-14 rounded-full text-white bg-gradient-to-br from-[#4593fc] to-[var(--brand-dim)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.22),inset_0_1px_0_rgba(255,255,255,0.25),0_0_0_3px_rgba(49,130,246,0.09),0_6px_16px_-2px_var(--brand-glow)] active:scale-[0.82] transition-transform duration-150${dialOpen ? ' fab-pop' : ''}`}
       >
         {/* 숨쉬는 후광 — 도크 뒤에서 은은하게 (버튼 첫 자식이라 광택·아이콘 뒤에 깔린다) */}
         <span
           aria-hidden
           className="fab-halo absolute -inset-1 rounded-full bg-[var(--brand-glow)] blur-md pointer-events-none"
         />
-        {/* 위쪽 절반 유리 광택 — 평면 채움이 아니라 살짝 부푼 버튼처럼 보이게 */}
-        <span className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 via-white/5 to-transparent pointer-events-none" />
+        {/* 인장 문법(완독 도장·도구 인장과 동일): 좌상단 하이라이트 + 안쪽 점선 압인 링 */}
+        <span className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_28%_20%,rgba(255,255,255,0.28),transparent_48%)] pointer-events-none" />
+        <span aria-hidden className="absolute inset-[3px] rounded-full border border-dashed border-white/30 pointer-events-none" />
 
         {/* 열림 — 퍼지는 링 + 반짝 파편 (열 때마다 새로 마운트되어 재생) */}
         {dialOpen && (
