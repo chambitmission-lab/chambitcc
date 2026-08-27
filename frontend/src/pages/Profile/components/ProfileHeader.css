@@ -1,5 +1,6 @@
 /* ===== ProfileHeader — 배너 하단 뭉게구름 ================================
-   테마와 무관하게 '하얀 구름'이 그림 하단을 두툼하게 덮고, 그 위에 아바타가 앉는다.
+   구름이 그림 하단을 두툼하게 덮고 그 위에 아바타가 앉는다. 색은 테마를 따른다 —
+   라이트는 흰 구름, 다크는 페이지 네이비에 가까운 밤안개(흰 구름은 밤 그림 위에서 표백된 띠처럼 보였다).
    구름 밑단만 페이지색(--ph-page)으로 녹아 아래 정보 영역과 이어진다.
    --ph-page 는 아래 정보 영역의 시작색과 반드시 같아야 이음새가 사라진다. */
 .ph {
@@ -8,7 +9,9 @@
   --ph-page-mid: rgba(241, 243, 246, 0.55);
 }
 [data-theme="dark"] .ph, html.dark .ph {
-  --ph-cloud: #f4f6fa;
+  /* 다크에선 흰 구름이 밤 그림 위에 표백된 띠처럼 떠 어색했다 →
+     구름을 "달빛 머금은 밤안개"로 낮춰, 페이지 네이비보다 한 톤만 밝게 둔다. */
+  --ph-cloud: #131f36;
   --ph-page: #0c1322; /* 칭호 배너 공통 네이비 이음색 */
   --ph-page-mid: rgba(12, 19, 34, 0.55);
 }
@@ -28,6 +31,14 @@
   opacity: 0.35;
   mask-image: linear-gradient(to bottom, transparent 20%, #000 100%);
   -webkit-mask-image: linear-gradient(to bottom, transparent 20%, #000 100%);
+}
+
+/* 다크 — 어두운 안개는 그림을 삼키는 힘이 약하니 번짐을 조금 더 길게 */
+[data-theme="dark"] .ph-cloud__haze,
+html.dark .ph-cloud__haze {
+  opacity: 0.62;
+  mask-image: linear-gradient(to bottom, transparent 6%, #000 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 6%, #000 100%);
 }
 
 .ph-cloud__puffs {
