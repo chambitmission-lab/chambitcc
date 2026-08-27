@@ -2,6 +2,7 @@ import type { Event } from '../../../../types/event'
 import type { Translation } from '../../../../locales'
 import { CATEGORY_VISUAL } from '../../utils/categoryConfig'
 import { formatDDay, formatEventTime, formatEventDateLabel } from '../../utils/dateGrouping'
+import { CategoryIcon } from '../../components/CategoryIcons'
 
 interface EventHeroProps {
   event: Event
@@ -58,7 +59,12 @@ export const EventHero = ({ event, t }: EventHeroProps) => {
             {dday}
           </span>
           <span className="inline-flex items-center px-2.5 h-7 rounded-full bg-black/20 text-white text-[12px] font-semibold">
-            <span className="mr-1">{v.emoji}</span>
+            <CategoryIcon
+              category={event.category}
+              width={13}
+              height={13}
+              className="mr-1 shrink-0"
+            />
             {t.categories[event.category]}
           </span>
           {event.group && (

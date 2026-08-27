@@ -21,7 +21,7 @@ export const mission = {
   missionSheetLocalTime: '현지 시간',
   missionSheetTimeDiff: '시차',
   missionSheetDistance: '거리',
-  missionMapTitle: '🌐 해외 사역 지도',
+  missionMapTitle: '해외 사역 지도',
   missionRegionEmphasize: '강조',
   missionMapZoomWorld: '전체 지도',
   missionMapZoomRegion: '지역 확대',

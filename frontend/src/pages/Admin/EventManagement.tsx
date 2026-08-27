@@ -13,6 +13,7 @@ import { translations } from '../../locales'
 import EventComposer from './components/EventComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { CategoryIcon } from '../Events/components/CategoryIcons'
 
 type PublishFilter = 'all' | 'published' | 'draft'
 type SortKey = 'upcoming' | 'recent' | 'attendance'
@@ -222,7 +223,12 @@ const EventManagement = () => {
                         active={filterCategory === cat}
                         onClick={() => setFilterCategory(cat)}
                       >
-                        <span className="mr-1">{CATEGORY_VISUAL[cat].emoji}</span>
+                        <CategoryIcon
+                          category={cat}
+                          width={13}
+                          height={13}
+                          className="inline-block align-[-1px] mr-1"
+                        />
                         {t.categories[cat]}
                       </FilterChip>
                     ))}
@@ -388,9 +394,9 @@ const EventRow = ({
         aria-expanded={expanded}
       >
         <div
-          className={`shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${v.gradient} flex items-center justify-center text-[18px] shadow-[0_4px_12px_-4px_var(--brand-glow)]`}
+          className={`shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${v.gradient} text-white flex items-center justify-center shadow-[0_4px_12px_-4px_var(--brand-glow)]`}
         >
-          {v.emoji}
+          <CategoryIcon category={event.category} width={20} height={20} />
         </div>
 
         <div className="flex-1 min-w-0">

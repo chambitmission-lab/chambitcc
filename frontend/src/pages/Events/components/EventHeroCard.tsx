@@ -5,6 +5,7 @@ import { CATEGORY_VISUAL } from '../utils/categoryConfig'
 import { formatDDay, formatEventTime, formatEventDateLabel } from '../utils/dateGrouping'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
+import { CategoryIcon } from './CategoryIcons'
 
 interface EventHeroCardProps {
   event: Event
@@ -94,7 +95,12 @@ const EventHeroCard = ({ event }: EventHeroCardProps) => {
               {dday}
             </span>
             <span className="inline-flex items-center px-2.5 h-7 rounded-full bg-black/20 text-white text-[12px] font-semibold">
-              <span className="mr-1">{v.emoji}</span>
+              <CategoryIcon
+                category={event.category}
+                width={13}
+                height={13}
+                className="mr-1 shrink-0"
+              />
               {t.categories[event.category]}
             </span>
           </div>

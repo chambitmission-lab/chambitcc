@@ -19,6 +19,16 @@ import CountryFlag from './CountryFlag'
 import CountryMiniMap from './CountryMiniMap'
 import { useLanguage } from '../../contexts/LanguageContext'
 import './Mission.css'
+import { HandHeartIcon } from '../../components/icons/ActionIcons'
+import {
+  PinIcon,
+  GlobeIcon,
+  ZoomIcon,
+  ClockIcon,
+  HourglassIcon,
+  PlaneIcon,
+  CheckIcon,
+} from './MissionIcons'
 
 const REGION_ORDER: RegionKey[] = ['asia', 'europe', 'africa', 'americas']
 
@@ -279,7 +289,9 @@ const Mission = () => {
 
         {/* ===== PRAY CTA BANNER ===== */}
         <section className="mission-cta">
-          <div className="cta-icon" aria-hidden>🙏</div>
+          <div className="cta-icon" aria-hidden>
+            <HandHeartIcon size={26} strokeWidth={1.7} />
+          </div>
           <div className="cta-text">
             <div className="cta-title">{t('missionCtaTitle')}</div>
             <div className="cta-sub">{t('missionCtaSub')}</div>
@@ -290,7 +302,17 @@ const Mission = () => {
             onClick={handlePray}
             disabled={prayedToday}
           >
-            {prayedToday ? `✓ ${t('missionPrayDone')}` : <>{t('missionCtaBtn')}<span className="cta-arrow">›</span></>}
+            {prayedToday ? (
+              <>
+                <CheckIcon className="mi-inline" width={14} height={14} />
+                {t('missionPrayDone')}
+              </>
+            ) : (
+              <>
+                {t('missionCtaBtn')}
+                <span className="cta-arrow">›</span>
+              </>
+            )}
           </button>
         </section>
 
@@ -318,7 +340,10 @@ const Mission = () => {
                       <>Today, let&apos;s pray for <strong>{featured.name}</strong> serving in <em>{featured.country}</em></>
                     )}
                   </p>
-                  <span className="featured-locate">📍 {t('missionTodayLocate')}</span>
+                  <span className="featured-locate">
+                    <PinIcon className="mi-inline" width={13} height={13} />
+                    {t('missionTodayLocate')}
+                  </span>
                 </div>
               </div>
               <button
@@ -330,14 +355,27 @@ const Mission = () => {
                 }}
                 disabled={prayedToday}
               >
-                {prayedToday ? `✓ ${t('missionPrayDone')}` : `🙏 ${t('missionPrayCta')}`}
+                {prayedToday ? (
+                  <>
+                    <CheckIcon className="mi-inline" width={15} height={15} />
+                    {t('missionPrayDone')}
+                  </>
+                ) : (
+                  <>
+                    <HandHeartIcon size={16} strokeWidth={1.9} className="mi-inline" />
+                    {t('missionPrayCta')}
+                  </>
+                )}
               </button>
             </section>
 
             {/* ===== WORLD MAP ===== */}
             <div className="mission-map-wrap" ref={mapRef}>
               <div className="map-heading">
-                <span className="map-title">{t('missionMapTitle')}</span>
+                <span className="map-title">
+                  <GlobeIcon className="mi-inline" width={15} height={15} />
+                  {t('missionMapTitle')}
+                </span>
                 <span className="map-hint">
                   {selectedCountry ?? hoverCountry ?? `${activeRegionLabel} ${t('missionRegionEmphasize')}`}
                 </span>
@@ -355,7 +393,17 @@ const Mission = () => {
                   className="map-zoom-toggle"
                   onClick={() => setMapZoomOut(v => !v)}
                 >
-                  {mapZoomOut ? `🔍 ${t('missionMapZoomRegion')}` : `🌍 ${t('missionMapZoomWorld')}`}
+                  {mapZoomOut ? (
+                    <>
+                      <ZoomIcon className="mi-inline" width={13} height={13} />
+                      {t('missionMapZoomRegion')}
+                    </>
+                  ) : (
+                    <>
+                      <GlobeIcon className="mi-inline" width={13} height={13} />
+                      {t('missionMapZoomWorld')}
+                    </>
+                  )}
                 </button>
               </div>
 
@@ -444,7 +492,9 @@ const Mission = () => {
 
         {/* ===== FOOTER ===== */}
         <section className="mission-footer">
-          <div className="footer-icon">🙏</div>
+          <div className="footer-icon" aria-hidden>
+            <HandHeartIcon size={28} strokeWidth={1.7} />
+          </div>
           <p className="footer-text">
             {t('missionFooterLine1')}
             <br />
@@ -681,19 +731,28 @@ const MissionarySheet = ({
           <div className="sheet-rows">
             {localTime && (
               <div className="sheet-row">
-                <span className="sheet-row-label">🕰 {t('missionSheetLocalTime')}</span>
+                <span className="sheet-row-label">
+                  <ClockIcon className="mi-inline" width={13} height={13} />
+                  {t('missionSheetLocalTime')}
+                </span>
                 <span className="sheet-row-value strong">{localTime}</span>
               </div>
             )}
             {diffText && (
               <div className="sheet-row">
-                <span className="sheet-row-label">⏳ {t('missionSheetTimeDiff')}</span>
+                <span className="sheet-row-label">
+                  <HourglassIcon className="mi-inline" width={13} height={13} />
+                  {t('missionSheetTimeDiff')}
+                </span>
                 <span className="sheet-row-value">{diffText}</span>
               </div>
             )}
             {distText && (
               <div className="sheet-row">
-                <span className="sheet-row-label">✈️ {t('missionSheetDistance')}</span>
+                <span className="sheet-row-label">
+                  <PlaneIcon className="mi-inline" width={13} height={13} />
+                  {t('missionSheetDistance')}
+                </span>
                 <span className="sheet-row-value">{distText}</span>
               </div>
             )}
@@ -702,7 +761,8 @@ const MissionarySheet = ({
 
         <div className="sheet-actions">
           <button type="button" className="sheet-locate-btn" onClick={onLocate}>
-            📍 {t('missionTodayLocate')}
+            <PinIcon className="mi-inline" width={14} height={14} />
+            {t('missionTodayLocate')}
           </button>
           <button
             type="button"
@@ -710,7 +770,17 @@ const MissionarySheet = ({
             onClick={onPray}
             disabled={prayedToday}
           >
-            {prayedToday ? `✓ ${t('missionPrayDone')}` : `🙏 ${t('missionPrayCta')}`}
+            {prayedToday ? (
+              <>
+                <CheckIcon className="mi-inline" width={15} height={15} />
+                {t('missionPrayDone')}
+              </>
+            ) : (
+              <>
+                <HandHeartIcon size={16} strokeWidth={1.9} className="mi-inline" />
+                {t('missionPrayCta')}
+              </>
+            )}
           </button>
         </div>
       </div>

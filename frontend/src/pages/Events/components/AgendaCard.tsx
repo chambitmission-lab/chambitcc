@@ -6,6 +6,7 @@ import { parseKstDate } from '../../../utils/kstTime'
 import { useNowMs } from '../../../hooks/useNowMs'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
+import { CategoryIcon } from './CategoryIcons'
 
 interface AgendaCardProps {
   event: Event
@@ -65,7 +66,12 @@ const AgendaCard = ({ event, showDDay = true }: AgendaCardProps) => {
 
           {/* 제목 */}
           <h3 className="text-ink-strong text-[15.5px] font-bold leading-[1.35] tracking-[-0.012em] mb-2 line-clamp-2">
-            <span className="mr-1.5">{v.emoji}</span>
+            <CategoryIcon
+              category={event.category}
+              width={14}
+              height={14}
+              className="inline-block align-[-1px] mr-1.5 text-brand"
+            />
             {event.title}
           </h3>
 

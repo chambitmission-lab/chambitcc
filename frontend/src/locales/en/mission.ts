@@ -21,7 +21,7 @@ export const mission = {
   missionSheetLocalTime: 'Local time',
   missionSheetTimeDiff: 'Time difference',
   missionSheetDistance: 'Distance',
-  missionMapTitle: '🌐 Overseas Mission Map',
+  missionMapTitle: 'Overseas Mission Map',
   missionRegionEmphasize: 'highlighted',
   missionMapZoomWorld: 'World view',
   missionMapZoomRegion: 'Zoom to region',

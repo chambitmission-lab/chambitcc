@@ -31,6 +31,7 @@ import {
   splitDT,
   toLocalDatetimeInput,
 } from '../../../utils/datetimeParts'
+import { CategoryIcon } from '../../Events/components/CategoryIcons'
 
 interface EventComposerProps {
   editingEvent: Event | null
@@ -353,7 +354,7 @@ const EventComposer = ({ editingEvent, onClose, onSuccess }: EventComposerProps)
                           : 'bg-gray-50 dark:bg-white/[0.03] text-gray-700 dark:text-white/70 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06]',
                       ].join(' ')}
                     >
-                      <span className="text-[16px]">{v.emoji}</span>
+                      <CategoryIcon category={cat} width={16} height={16} className="shrink-0" />
                       <span>{t.categories[cat]}</span>
                     </button>
                   )

@@ -171,15 +171,43 @@
   gap: 0.8rem;
   margin: 1rem 1.25rem 0;
   padding: 0.95rem 1.05rem;
-  background: var(--brand);
+  /* 인장(도장) 문법 — /news 세그먼트 마커·/events 카테고리 칩과 같은 감각:
+     블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링 */
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.22), transparent 46%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
   border-radius: 1.1rem;
   color: var(--on-brand);
-  box-shadow: 0 8px 20px -8px var(--brand-glow);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.09),
+    0 8px 20px -8px var(--brand-glow);
+}
+
+/* 배너 안쪽을 한 바퀴 도는 점선 — 도장 눌린 자리 */
+.mission-cta::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: calc(1.1rem - 6px);
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .mission-cta {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 3px rgba(69, 147, 252, 0.09),
+    0 8px 22px -8px rgba(69, 147, 252, 0.5);
 }
 
 .cta-icon {
-  font-size: 1.5rem;
+  display: inline-flex;
+  flex-shrink: 0;
   line-height: 1;
+  color: var(--on-brand);
 }
 
 .cta-text {
@@ -308,7 +336,8 @@ img.sheet-flag {
 }
 
 .featured-locate {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   margin-top: 0.35rem;
   font-size: 0.68rem;
   color: var(--text-muted);
@@ -479,6 +508,8 @@ img.sheet-flag {
 .sheet-row:last-child { border-bottom: none; }
 
 .sheet-row-label {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.75rem;
   color: var(--text-muted);
   white-space: nowrap;
@@ -505,6 +536,9 @@ img.sheet-flag {
 }
 
 .sheet-locate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   padding: 0.65rem 1rem;
   border: 1px solid var(--card-border);
@@ -546,6 +580,8 @@ img.sheet-flag {
 }
 
 .map-title {
+  display: inline-flex;
+  align-items: center;
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-strong);
@@ -944,8 +980,10 @@ img.sheet-flag {
 }
 
 .footer-icon {
-  font-size: 1.6rem;
+  display: flex;
+  justify-content: center;
   margin-bottom: 0.5rem;
+  color: var(--brand);
 }
 
 .footer-text {
@@ -1096,4 +1134,11 @@ img.sheet-flag {
 /* 노트북처럼 세로가 짧은 PC — 고정된 지구본 카드가 대륙 탭까지 한 화면에 들어오게 */
 @media (min-width: 1024px) and (max-height: 820px) {
   .mission-col-side .world-globe { aspect-ratio: 10 / 7; }
+}
+
+/* 텍스트 옆에 서는 선화 아이콘 공통 — 글자 크기와 무관하게 광학 중앙에 맞춘다 */
+.mi-inline {
+  flex-shrink: 0;
+  margin-right: 0.32em;
+  vertical-align: -0.16em;
 }
