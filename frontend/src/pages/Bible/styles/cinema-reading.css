@@ -59,16 +59,27 @@
 }
 
 /* ── 무대: 절 텍스트 ───────────────────────────────────────────── */
+/* align-items:center 대신 margin:auto로 중앙정렬 — 절이 화면보다 길어져도
+   위쪽이 잘리지 않고(flex 중앙정렬 오버플로 함정) 스크롤로 끝까지 볼 수 있다. */
 .cinema-stage {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   padding: 3.5rem 1.75rem 5.5rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  /* JS가 절 길이에 맞춰 조절하는 축소 비율(1 = 원래 크기) */
+  --cinema-fit: 1;
+}
+
+.cinema-stage::-webkit-scrollbar {
+  display: none;
 }
 
 .cinema-verse {
+  margin: auto;
   max-width: 36rem;
   text-align: center;
   animation: cinema-verse-in 0.9s cubic-bezier(0.22, 1, 0.36, 1);
@@ -90,7 +101,7 @@
 .cinema-verse__text {
   margin: 0;
   font-family: var(--bible-font-family, 'Noto Serif KR', 'Nanum Myeongjo', serif);
-  font-size: calc(1.5rem * var(--bible-font-scale, 1));
+  font-size: calc(1.5rem * var(--bible-font-scale, 1) * var(--cinema-fit, 1));
   line-height: 2;
   font-weight: 500;
   letter-spacing: 0.005em;
@@ -119,14 +130,24 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* 가로 화면 — 자막처럼 넓고 큼직하게 */
+/* 가로 화면 — 자막처럼 넓고 큼직하게.
+   높이가 짧으므로 상하 여백을 줄이고, 글자 크기는 실측 높이(--vvh)에도 묶어
+   작은 폰에서 처음부터 넘치지 않게 한다. 그래도 긴 절은 JS(--cinema-fit)가 마저 줄인다. */
 @media (orientation: landscape) {
+  .cinema-stage {
+    padding: 2.75rem 2rem 4.75rem;
+  }
   .cinema-verse {
-    max-width: min(52rem, 82vw);
+    max-width: min(56rem, 88vw);
   }
   .cinema-verse__text {
-    font-size: calc(1.75rem * var(--bible-font-scale, 1));
-    line-height: 1.9;
+    font-size: calc(
+      min(1.75rem, var(--vvh, 100dvh) * 0.055) * var(--bible-font-scale, 1) * var(--cinema-fit, 1)
+    );
+    line-height: 1.8;
+  }
+  .cinema-verse__ref {
+    margin-top: 1rem;
   }
 }
 

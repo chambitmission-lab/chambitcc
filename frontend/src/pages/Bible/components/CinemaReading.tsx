@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { RefObject } from 'react'
 import { useBibleChapter } from '../../../hooks/useBible'
@@ -71,6 +71,7 @@ const CinemaReading = ({
   const markAsRead = useMarkVerseAsRead()
 
   const rootRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
   const [uiVisible, setUiVisible] = useState(true)
   const uiTimerRef = useRef<number | null>(null)
   const isPlayingRef = useRef(isPlaying)
@@ -83,6 +84,7 @@ const CinemaReading = ({
 
   useWakeLock(true)
   useModalBackButton(onClose)
+
 
   // 뒤 페이지 스크롤 잠금 + 전체화면 진입(가능한 기기에서만, 실패는 조용히 무시)
   useEffect(() => {
@@ -135,6 +137,32 @@ const CinemaReading = ({
     () => (activeVerse != null ? verses.find(v => v.verse === activeVerse) ?? null : null),
     [verses, activeVerse]
   )
+
+  // 화면 맞춤 — 절이 무대보다 길면(특히 가로 모드) 글자를 단계적으로 줄여 한 화면에 담는다.
+  // 0.6까지 줄여도 안 들어가면 그대로 두고 스크롤(CSS overflow)에 맡긴다.
+  const [fitTick, setFitTick] = useState(0)
+  useEffect(() => {
+    const bump = () => setFitTick((t) => t + 1)
+    window.addEventListener('resize', bump)
+    window.addEventListener('orientationchange', bump)
+    return () => {
+      window.removeEventListener('resize', bump)
+      window.removeEventListener('orientationchange', bump)
+    }
+  }, [])
+  const fitKey = currentVerseObj ? `${chapter}-${currentVerseObj.verse}` : `title-${chapter}`
+  useLayoutEffect(() => {
+    const stage = stageRef.current
+    if (!stage) return
+    let fit = 1
+    stage.style.setProperty('--cinema-fit', '1')
+    stage.scrollTop = 0
+    // scrollHeight > clientHeight 이면 넘친 것. 5%씩 줄이며 재측정
+    while (stage.scrollHeight > stage.clientHeight + 1 && fit > 0.6) {
+      fit = Math.round((fit - 0.05) * 100) / 100
+      stage.style.setProperty('--cinema-fit', String(fit))
+    }
+  }, [fitKey, fitTick])
 
   // ── 낭독 완료 자동 읽음 — 절 낭독이 끝나 다음 절로 넘어가는 순간 조용히 기록 ──
   // 시네마는 단어가 밝아지는 걸 눈으로 따라 읽는 화면이므로 집중 읽기와 같은
@@ -330,7 +358,7 @@ const CinemaReading = ({
       </div>
 
       {/* 탭 영역 — 컨트롤 표시/숨김 토글 */}
-      <div className="cinema-stage" onClick={handleBackdropTap}>
+      <div ref={stageRef} className="cinema-stage" onClick={handleBackdropTap}>
         {currentVerseObj ? (
           /* key로 절이 바뀔 때마다 새로 페이드 인 */
           <div key={`${chapter}-${currentVerseObj.verse}`} className="cinema-verse">
