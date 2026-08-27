@@ -360,7 +360,7 @@ const BibleStudy = () => {
       <button
         type="button"
         onClick={() => navigate('/bible/story')}
-        className="dash-card dash-card--fav"
+        className="dash-card dash-card--fav dash-card--tone-story"
       >
         <span className="dash-card__icon">
           <span className="material-icons-round">auto_stories</span>
@@ -378,7 +378,7 @@ const BibleStudy = () => {
       <button
         type="button"
         onClick={() => navigate('/bible/situation')}
-        className="dash-card dash-card--fav"
+        className="dash-card dash-card--fav dash-card--tone-situation"
       >
         <span className="dash-card__icon">
           <span className="material-icons-round">sentiment_satisfied_alt</span>
@@ -394,7 +394,7 @@ const BibleStudy = () => {
       <button
         type="button"
         onClick={() => navigate('/bible/photo-verse')}
-        className="dash-card dash-card--fav"
+        className="dash-card dash-card--fav dash-card--tone-photo"
       >
         <span className="dash-card__icon">
           <span className="material-icons-round">photo_filter</span>
@@ -410,7 +410,7 @@ const BibleStudy = () => {
         <button
           type="button"
           onClick={() => setShowPlaylist(true)}
-          className="dash-card dash-card--fav"
+          className="dash-card dash-card--fav dash-card--tone-listen"
         >
           <span className="dash-card__icon">
             <span className="material-icons-round">headphones</span>
