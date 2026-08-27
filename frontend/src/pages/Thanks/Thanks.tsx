@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import {
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
 import {
   createThanks,
   deleteThanks,
   getThanksList,
+  getThanksWeeklyTop,
   toggleThanksAmen,
 } from '../../api/thanks'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -25,8 +27,10 @@ import { showToast } from '../../utils/toast'
 import ThanksCard from '../Home/components/ThanksThread/ThanksCard'
 import ThanksComposer from '../Home/components/ThanksThread/ThanksComposer'
 import ThanksAvatar from '../Home/components/ThanksThread/ThanksAvatar'
+import { HandHeartIcon } from '../../components/icons/ActionIcons'
 import gratitudeHero from '../../assets/hero/gratitude.jpg'
 import '../Home/components/ThanksThread/thanks.css'
+import './Thanks.css'
 import { confirmDialog } from '../../utils/confirmDialog'
 
 /* 히어로에 하루 하나씩 도는 감사 말씀 */
@@ -89,6 +93,17 @@ const Thanks = () => {
     staleTime: 1000 * 60 * 2,
     gcTime: 1000 * 60 * 30,
   })
+
+  // 이번 주 TOP 감사 + 이번 주 감사 수 (감사 카드)
+  const weeklyKey = [...thanksKeys.all, 'weekly-top'] as const
+  const weeklyQuery = useQuery({
+    queryKey: [...weeklyKey, 3],
+    queryFn: () => getThanksWeeklyTop(3),
+    staleTime: 1000 * 60 * 2,
+  })
+  const weeklyTop = weeklyQuery.data?.items ?? []
+  const weekCount = weeklyQuery.data?.week_count ?? 0
+  const refreshWeekly = () => queryClient.invalidateQueries({ queryKey: weeklyKey })
 
   const items = useMemo(
     () => query.data?.pages.flatMap((p) => p.items) ?? [],
@@ -216,6 +231,7 @@ const Thanks = () => {
             : t,
         ),
       }))
+      refreshWeekly()
     },
     onError: (_e, _id, context) => {
       if (context?.previous) {
@@ -239,6 +255,7 @@ const Thanks = () => {
     },
     onSuccess: () => {
       showToast(ko ? '삭제되었습니다' : 'Deleted', 'success')
+      refreshWeekly()
     },
     onError: (_e, _id, context) => {
       if (context?.previous) {
@@ -250,6 +267,7 @@ const Thanks = () => {
 
   const handleAdd = async (payload: CreateThanksRequest) => {
     await addMutation.mutateAsync(payload)
+    refreshWeekly()
   }
 
   const handleAmen = (id: number) => {
@@ -272,167 +290,130 @@ const Thanks = () => {
   const showSpinner = query.isLoading || query.isFetchingNextPage
   const isEmpty = items.length === 0 && !query.isLoading
 
+  const authorTotal = recentAuthors.length + hiddenAuthorCount
+
+  const avatarStack = recentAuthors.length > 0 && (
+    <div
+      className="flex -space-x-2 shrink-0 items-center"
+      role="img"
+      aria-label={ko ? `${authorTotal}명이 감사를 나눴어요` : `${authorTotal} people shared thanks`}
+    >
+      {recentAuthors.map((author) => (
+        <ThanksAvatar
+          key={author.user_id}
+          name={author.display_name}
+          avatarUrl={author.avatar_url}
+          size={28}
+          tone="onBrand"
+        />
+      ))}
+      {hiddenAuthorCount > 0 && (
+        <span className="thanks-side-more" aria-hidden>
+          +{hiddenAuthorCount}
+        </span>
+      )}
+    </div>
+  )
+
+  // 감사 카드: 이번 주 숫자 + 참여자 + TOP 3 (PC 우측 레일 / 모바일 히어로 아래)
+  const sideCard = (
+    <section className="thanks-side-card" aria-label={ko ? '감사 카드' : 'Thanks card'}>
+      <div className="thanks-side-label">
+        <span className="material-icons-round text-[16px]">auto_awesome</span>
+        {ko ? '감사 카드' : 'Thanks card'}
+      </div>
+      <div className="flex items-end justify-between gap-3 mt-2">
+        <div className="flex items-baseline gap-1.5">
+          <span className="thanks-side-count">{weekCount}</span>
+          <span className="text-[13px] font-semibold opacity-90">
+            {ko ? '개의 감사' : 'thanks'}
+          </span>
+        </div>
+        {avatarStack}
+      </div>
+      <p className="text-[12px] opacity-80 mt-1">
+        {ko ? `이번 주 우리 교회가 나눈 감사 · 전체 ${total}개` : `Shared this week · ${total} in total`}
+      </p>
+
+      <h3 className="text-[13.5px] font-bold mt-4 mb-2">
+        {ko ? '이번 주 TOP 감사' : 'This week’s top thanks'}
+      </h3>
+      <ol className="thanks-side-top">
+        {weeklyTop.length === 0 ? (
+          <li className="thanks-side-top-empty">
+            {weeklyQuery.isLoading
+              ? '…'
+              : ko
+                ? '이번 주 첫 감사를 남겨보세요'
+                : 'Be the first to give thanks this week'}
+          </li>
+        ) : (
+          weeklyTop.map((t, i) => (
+            <li key={t.id}>
+              <span className="thanks-side-rank">{i + 1}</span>
+              <span className="thanks-side-top-text">{t.content}</span>
+              <span className="thanks-side-top-amen">
+                <HandHeartIcon size={13} filled />
+                {t.amen_count}
+              </span>
+            </li>
+          ))
+        )}
+      </ol>
+    </section>
+  )
+
   // lg 에서 이 페이지만 스스로 스크롤하는 상자로 만든다 — #root 의 overflow-y 탓에
   // sticky 가 전역으로 죽어 있어, 이 상자를 만들어야 우측 레일 sticky 가 산다.
-  // 같은 이유로 셸에 lg:overflow-hidden 을 주면 안 된다(셸이 sticky 의 스크롤 조상이 된다).
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] page-stage lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
       <div className="max-w-md mx-auto min-h-screen bg-[var(--app-canvas)] border-x border-[var(--card-border)] lg:max-w-[1100px] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:min-h-0">
-        {/* Sticky 헤더 — lg+에선 셸의 overflow-hidden 때문에 sticky 기준이 셸이 되어
-            top-14만큼 아래로 밀려 콘텐츠를 덮으므로(고정도 안 됨) 일반 흐름으로 되돌린다 */}
+        {/* 헤더 — 제목 + 한 줄 부제 */}
         <div
           className="sticky top-14 lg:static lg:rounded-t-3xl z-10 backdrop-blur-xl border-b border-[var(--card-border)]"
           style={{ background: 'var(--glass-bg)' }}
         >
-          <div className="px-4 py-3 flex items-center justify-between">
+          <div className="px-4 py-3 flex items-center gap-2 lg:px-6 lg:py-4">
             <button
               onClick={() => navigate(-1)}
-              className="w-9 h-9 -ml-1 flex items-center justify-center rounded-full text-ink hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
+              className="w-9 h-9 -ml-1 shrink-0 flex items-center justify-center rounded-full text-ink hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
               aria-label={ko ? '뒤로' : 'Back'}
             >
               <span className="material-icons-outlined text-[22px]">arrow_back</span>
             </button>
-            <h1 className="text-[15px] font-bold tracking-[-0.01em] text-ink-strong">
-              {ko ? '오늘의 감사' : 'Today’s Thanks'}
-            </h1>
-            <span className="w-9 h-9" aria-hidden />
+            <div className="min-w-0">
+              <h1 className="text-[17px] lg:text-[20px] font-bold tracking-[-0.01em] text-ink-strong leading-tight">
+                {ko ? '오늘의 감사' : 'Today’s Thanks'} <span aria-hidden>✨</span>
+              </h1>
+              <p className="text-[12px] text-ink-muted mt-0.5">
+                {ko ? '작은 감사가 삶을 변화시킵니다' : 'Small thanks change a life'}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* PC(lg+) 2단 — 좌: 감사 피드 / 우: 히어로(오늘의 말씀·집계·참여자) + 쓰기 버튼이 sticky.
-            래퍼 3개는 lg 미만에서 display:contents 라 모바일 흐름은 기존과 완전히 동일하다. */}
-        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-5 lg:pt-4">
-          <div className="contents lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3">
-            {/* Hero — 추수의 들녘 사진 + 오늘의 감사 말씀 */}
+        {/* PC(lg+) 2단 — 좌: 히어로 말씀 + 타임라인 / 우: 감사 카드 + 남기기 (sticky) */}
+        <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start lg:px-6 lg:pt-5">
+          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
+            {/* Hero — 오늘의 말씀 (garden 히어로와 같은 그라데이션+사진 기법) */}
             <section className="px-4 pt-4 lg:p-0">
               <article
-                className="relative overflow-hidden rounded-[22px] px-5 py-5 min-h-[232px] flex flex-col justify-end text-white"
-                style={{
-                  background: 'var(--brand)',
-                  boxShadow: '0 12px 30px var(--brand-glow)',
-                }}
+                className="thanks-hero"
+                style={{ ['--thanks-hero-image' as string]: `url(${gratitudeHero})` }}
               >
-                {/* 사진 — 해 뜨는 밀밭(추수의 감사) */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    backgroundImage: `url(${gratitudeHero})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center 62%',
-                  }}
-                  aria-hidden
-                />
-                {/* 브랜드 블루 워시 — 왼쪽(글씨 자리)은 진하게, 오른쪽 해는 살려둔다 */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background:
-                      'linear-gradient(100deg, rgba(21,68,158,0.92) 0%, rgba(30,96,206,0.62) 44%, rgba(49,130,246,0.10) 100%)',
-                  }}
-                  aria-hidden
-                />
-                {/* 하단 가독성 스크림 */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background:
-                      'linear-gradient(180deg, rgba(6,22,55,0) 38%, rgba(6,22,55,0.42) 74%, rgba(6,22,55,0.78) 100%)',
-                  }}
-                  aria-hidden
-                />
-
-                <div
-                  className="relative"
-                  style={{ textShadow: '0 1px 14px rgba(4,16,44,0.45)' }}
-                >
-                  <div className="flex items-center gap-1.5 mb-3 text-[11px] font-bold tracking-[0.1em] opacity-90">
-                    <span className="material-icons-round text-[15px]">volunteer_activism</span>
-                    GRATITUDE
-                  </div>
-
-                  <p
-                    className="text-[19px] font-extrabold leading-[1.4] tracking-[-0.02em]"
-                    style={{
-                      // 한글은 어절 단위로만 줄바꿈(‘내려오나 / 니’ 방지) + 두 줄일 때 길이 균형
-                      wordBreak: 'keep-all',
-                      overflowWrap: 'break-word',
-                      textWrap: 'balance',
-                    }}
-                  >
-                    “{ko ? verse.ko : verse.en}”
-                  </p>
-                  <p className="mt-1 text-[12px] font-semibold opacity-85">
-                    {ko ? verse.ref : verse.refEn}
-                  </p>
-
-                  <div className="mt-4 pt-3.5 border-t border-white/25 flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-bold">
-                        {ko ? `지금까지 ${total}개의 감사` : `${total} thanks so far`}
-                      </p>
-                      <p className="text-[11.5px] opacity-80 mt-0.5">
-                        {ko
-                          ? '한 줄이 모여 우리 교회의 하루가 돼요'
-                          : 'One line at a time, our church’s day'}
-                      </p>
-                    </div>
-
-                    {recentAuthors.length > 0 && (
-                      <div
-                        className="flex -space-x-2 shrink-0"
-                        role="img"
-                        aria-label={
-                          ko
-                            ? `${recentAuthors.length + hiddenAuthorCount}명이 감사를 나눴어요`
-                            : `${recentAuthors.length + hiddenAuthorCount} people shared thanks`
-                        }
-                      >
-                        {recentAuthors.map((author) => (
-                          <ThanksAvatar
-                            key={author.user_id}
-                            name={author.display_name}
-                            avatarUrl={author.avatar_url}
-                            size={28}
-                            tone="onBrand"
-                          />
-                        ))}
-                        {hiddenAuthorCount > 0 && (
-                          <span
-                            className="shrink-0 rounded-full flex items-center justify-center font-bold text-white"
-                            style={{
-                              width: 28,
-                              height: 28,
-                              fontSize: 11,
-                              letterSpacing: '-0.02em',
-                              background: 'rgba(255,255,255,0.22)',
-                              backdropFilter: 'blur(2px)',
-                              boxShadow: '0 0 0 1px rgba(255,255,255,0.35)',
-                            }}
-                            aria-hidden
-                          >
-                            +{hiddenAuthorCount}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                <div className="thanks-hero-body">
+                  <span className="thanks-hero-label">TODAY’S BIBLE</span>
+                  <p className="thanks-hero-verse">“{ko ? verse.ko : verse.en}”</p>
+                  <p className="thanks-hero-ref">{ko ? verse.ref : verse.refEn}</p>
                 </div>
               </article>
             </section>
 
-            {/* PC 전용 쓰기 버튼 — lg 에선 FAB 를 감추고 레일에서 늘 보이게 한다 */}
-            <button
-              onClick={handleOpenComposer}
-              className="hidden lg:flex mt-3 w-full items-center justify-center gap-2 h-12 rounded-2xl bg-brand text-[var(--on-brand)] text-[14.5px] font-extrabold tracking-[-0.01em] shadow-[0_10px_26px_var(--brand-glow)] hover:bg-brand-dim active:scale-[0.98] transition-all"
-            >
-              <span className="material-icons-round text-[19px]">edit</span>
-              {ko ? '감사 남기기' : 'Share thanks'}
-            </button>
-          </div>
+            {/* 모바일: 감사 카드는 히어로 바로 아래 */}
+            <div className="px-4 pt-3 lg:hidden">{sideCard}</div>
 
-          <div className="contents lg:block lg:col-start-1 lg:row-start-1 lg:min-w-0">
-            {/* List */}
-            <div className="px-4 pt-5 pb-28 lg:px-0 lg:pt-0 lg:pb-8">
+            {/* 타임라인 */}
+            <div className="px-4 pt-5 pb-28 lg:px-0 lg:pt-5 lg:pb-8">
               {isEmpty ? (
                 <button
                   onClick={handleOpenComposer}
@@ -450,31 +431,29 @@ const Thanks = () => {
                   </span>
                 </button>
               ) : (
-                groups.map((group) => (
-                  <section key={group.key} className="mb-5 last:mb-0">
-                    {/* 날짜 라벨 */}
-                    <div className="flex items-center gap-2.5 mb-2.5">
-                      <span className="text-[12px] font-bold tracking-[-0.01em] text-ink-muted">
-                        {group.label}
-                      </span>
-                      <span className="flex-1 h-px bg-[var(--card-border)]" />
-                    </div>
-
-                    <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
-                      {group.items.map((t, i) => (
-                        <ThanksCard
-                          key={t.id}
-                          thanks={t}
-                          canDelete={t.is_mine || admin}
-                          onAmen={handleAmen}
-                          onDelete={handleDelete}
-                          variant="list"
-                          enterDelay={Math.min(i * 40, 240)}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                ))
+                <div className="thanks-timeline">
+                  {groups.map((group) => (
+                    <section key={group.key} className="thanks-tl-group">
+                      <div className="thanks-tl-date">
+                        <span className="thanks-tl-dot" aria-hidden />
+                        <span>{group.label}</span>
+                      </div>
+                      <div className="space-y-3">
+                        {group.items.map((t, i) => (
+                          <ThanksCard
+                            key={t.id}
+                            thanks={t}
+                            canDelete={t.is_mine || admin}
+                            onAmen={handleAmen}
+                            onDelete={handleDelete}
+                            variant="timeline"
+                            enterDelay={Math.min(i * 40, 240)}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
               )}
 
               {showSpinner && (
@@ -495,13 +474,41 @@ const Thanks = () => {
                 </p>
               )}
 
-              {/* infinite scroll sentinel */}
               <div ref={sentinelRef} className="h-1" />
             </div>
           </div>
+
+          {/* 우측 레일 (PC) */}
+          <aside className="hidden lg:block lg:col-start-2 lg:row-start-1 lg:sticky lg:top-3 space-y-4">
+            {sideCard}
+
+            <section className="thanks-write-card">
+              <div className="flex items-center gap-2.5">
+                <span className="thanks-write-icon material-icons-round" aria-hidden>edit</span>
+                <div>
+                  <h3 className="text-[14.5px] font-bold text-ink-strong leading-tight">
+                    {ko ? '감사 남기기' : 'Share thanks'}
+                  </h3>
+                  <p className="text-[12px] text-ink-muted mt-0.5">
+                    {ko ? '작은 감사가 큰 은혜가 됩니다' : 'Small thanks become great grace'}
+                  </p>
+                </div>
+              </div>
+              <button onClick={handleOpenComposer} className="thanks-write-input">
+                {ko ? '오늘 무엇에 감사하셨나요?' : 'What are you thankful for today?'}
+              </button>
+              <button
+                onClick={handleOpenComposer}
+                className="mt-2.5 w-full h-11 rounded-xl brand-gradient text-[var(--on-brand)] text-[14px] font-extrabold tracking-[-0.01em] shadow-[0_8px_22px_var(--brand-glow)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+              >
+                {ko ? '감사 남기기' : 'Share thanks'}
+                <span className="material-icons-round text-[17px]">send</span>
+              </button>
+            </section>
+          </aside>
         </div>
 
-        {/* 감사 남기기 — 눈에 띄는 알약 버튼 */}
+        {/* 모바일 FAB */}
         <button
           onClick={handleOpenComposer}
           className="fixed z-30 lg:hidden bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 flex items-center gap-2 pl-4 pr-5 h-12 rounded-full bg-brand text-[var(--on-brand)] text-[14.5px] font-extrabold tracking-[-0.01em] shadow-[0_10px_26px_var(--brand-glow)] hover:bg-brand-dim active:scale-95 transition-all"

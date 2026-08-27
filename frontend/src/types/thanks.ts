@@ -98,3 +98,13 @@ export interface ThanksAmenResponse {
   is_amened: boolean
   amen_count: number
 }
+
+export interface ThanksWeeklyTopResponse {
+  success: boolean
+  data: {
+    /** 이번 주 아멘 상위 감사 */
+    items: Thanks[]
+    /** 이번 주(KST 월요일부터) 올라온 감사 수 */
+    week_count: number
+  }
+}

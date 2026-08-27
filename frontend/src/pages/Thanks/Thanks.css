@@ -1,0 +1,193 @@
+/* /thanks — 히어로·감사 카드·타임라인 (색은 theme.css 토큰만) */
+
+/* ── Hero: 오늘의 말씀 — garden 히어로와 같은 "좌 surface 그라데이션 + 우 사진" 기법 ── */
+.thanks-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  min-height: 168px;
+  display: flex;
+  align-items: center;
+  padding: 22px 24px;
+  background-color: var(--surface-container);
+  background-image:
+    linear-gradient(90deg, var(--surface-container) 38%, rgba(0, 0, 0, 0) 78%),
+    var(--thanks-hero-image);
+  background-repeat: no-repeat;
+  background-position: left center, right 40%;
+  background-size: auto, cover;
+}
+/* 다크에선 사진을 한 톤 눌러 카드와 섞이게 */
+html.dark .thanks-hero {
+  background-image:
+    linear-gradient(90deg, var(--surface-container) 38%, rgba(19, 19, 19, 0.35) 78%, rgba(19, 19, 19, 0.15) 100%),
+    var(--thanks-hero-image);
+}
+.thanks-hero-body { position: relative; max-width: 62%; }
+.thanks-hero-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.thanks-hero-verse {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+.thanks-hero-ref {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ── 감사 카드 (브랜드 그라데이션) ── */
+.thanks-side-card {
+  border-radius: 20px;
+  padding: 18px 18px 16px;
+  color: var(--on-brand);
+  background-image: linear-gradient(135deg, var(--brand) 0%, var(--brand-dim) 100%);
+  box-shadow: 0 12px 30px var(--brand-glow);
+}
+.thanks-side-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  opacity: 0.95;
+}
+.thanks-side-count {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.thanks-side-more {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.thanks-side-top {
+  list-style: none;
+  margin: 0;
+  padding: 4px 6px;
+  border-radius: 14px;
+  background: var(--surface-container);
+  color: var(--text-body);
+}
+.thanks-side-top li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--card-border);
+}
+.thanks-side-top li:last-child { border-bottom: 0; }
+.thanks-side-rank {
+  width: 18px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--brand);
+  text-align: center;
+}
+.thanks-side-top-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.thanks-side-top-amen {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+  background: var(--brand-soft-strong);
+}
+.thanks-side-top-empty {
+  justify-content: center;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* ── 감사 남기기 카드 ── */
+.thanks-write-card {
+  border-radius: 20px;
+  padding: 16px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+}
+.thanks-write-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: var(--brand);
+  background: var(--brand-soft-strong);
+}
+.thanks-write-input {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-inset);
+  transition: border-color 0.15s;
+}
+.thanks-write-input:hover { border-color: var(--brand); }
+
+/* ── 타임라인 ── */
+.thanks-tl-group { margin-bottom: 22px; }
+.thanks-tl-group:last-child { margin-bottom: 0; }
+.thanks-tl-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.thanks-tl-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--brand);
+  box-shadow: 0 0 0 4px var(--brand-soft-strong);
+}

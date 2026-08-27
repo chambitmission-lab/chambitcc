@@ -5,6 +5,7 @@ import type {
   Thanks,
   ThanksAmenResponse,
   ThanksListResponse,
+  ThanksWeeklyTopResponse,
 } from '../types/thanks'
 
 const authHeaders = (): HeadersInit => {
@@ -22,6 +23,18 @@ export const getThanksList = async (page = 1, limit = 10): Promise<ThanksListRes
     throw new Error('Failed to fetch thanks')
   }
   const json: ThanksListResponse = await response.json()
+  return json.data
+}
+
+// 이번 주 TOP 감사 (인증 옵션)
+export const getThanksWeeklyTop = async (limit = 3): Promise<ThanksWeeklyTopResponse['data']> => {
+  const response = await apiFetch(`${API_V1}/thanks/weekly-top?limit=${limit}`, {
+    headers: { ...authHeaders() },
+  })
+  if (!response.ok) {
+    throw new Error('Failed to fetch weekly top thanks')
+  }
+  const json: ThanksWeeklyTopResponse = await response.json()
   return json.data
 }
 
