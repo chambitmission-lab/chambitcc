@@ -3,6 +3,7 @@ import { DECADES } from '../historyData'
 import { INDEXED_EVENTS } from '../historyThemes'
 import type { IndexedEvent } from '../historyThemes'
 import HistoryRecord from './HistoryRecord'
+import { HistoryGlyph } from '../HistoryIcons'
 
 interface Props {
   openYears: Set<number>
@@ -91,7 +92,9 @@ const EraTimeline = ({
                       </span>
                       {bucket.milestones.length > 0 && (
                         <span className="hyear-icons" aria-hidden="true">
-                          {bucket.milestones.map((m) => m.event.icon).join(' ')}
+                          {bucket.milestones.map((m) => (
+                            <HistoryGlyph key={m.index} emoji={m.event.icon} size={13} />
+                          ))}
                         </span>
                       )}
                     </div>

@@ -139,13 +139,14 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
         <div className="relative z-10 flex items-center gap-3 px-5 py-4 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="w-10 h-1 rounded-full bg-black/10 dark:bg-white/15 absolute left-1/2 -translate-x-1/2 top-2 sm:hidden" />
           <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center text-[22px] shrink-0"
+            className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
             style={{
               background: withAlpha(accent.color, 0.14),
               border: `1px solid ${withAlpha(accent.color, 0.22)}`,
+              color: accent.color,
             }}
           >
-            {accent.emoji}
+            <accent.Icon width={22} height={22} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[10.5px] font-bold tracking-[0.1em]" style={{ color: accent.color }}>
@@ -181,7 +182,13 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
                 수강신청이 접수되었습니다
               </h2>
               <p className="text-[13.5px] text-gray-500 dark:text-white/55 mt-1.5 leading-relaxed">
-                {submitted.name}님, {cultureClass.title}에서 만나요 {accent.emoji}
+                {submitted.name}님, {cultureClass.title}에서 만나요
+                <accent.Icon
+                  width={15}
+                  height={15}
+                  className="inline-block align-[-2px] ml-1"
+                  style={{ color: accent.color }}
+                />
               </p>
 
               <div className="mt-5 text-left space-y-2.5">
@@ -195,7 +202,7 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
 
               <button
                 onClick={onClose}
-                className="mt-5 w-full py-3 text-sm font-bold bg-brand hover:bg-brand-dim text-white rounded-xl transition-colors"
+                className="relative mt-5 w-full py-3 text-sm font-bold bg-brand hover:bg-brand-dim text-white rounded-xl transition-colors seal-chip [--seal-radius:0.75rem]"
               >
                 확인
               </button>
@@ -283,7 +290,7 @@ const ApplySheet = ({ cultureClass, onClose, onSubmitted }: ApplySheetProps) => 
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="w-full py-3 text-sm font-bold bg-brand hover:bg-brand-dim text-white rounded-xl disabled:opacity-50 transition-colors"
+              className="relative w-full py-3 text-sm font-bold bg-brand hover:bg-brand-dim text-white rounded-xl disabled:opacity-50 transition-colors seal-chip [--seal-radius:0.75rem]"
             >
               {submitting ? '신청 중...' : `${cultureClass.title} 신청하기`}
             </button>

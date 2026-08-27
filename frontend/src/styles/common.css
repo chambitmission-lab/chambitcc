@@ -130,7 +130,7 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.25),
     0 0 0 3px rgba(49, 130, 246, 0.09),
-    0 4px 14px -4px var(--brand-glow);
+    var(--seal-drop, 0 4px 14px -4px var(--brand-glow));
 }
 
 .seal-chip::after {
@@ -147,5 +147,23 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
     0 0 0 3px rgba(69, 147, 252, 0.09),
-    0 4px 16px -4px rgba(69, 147, 252, 0.45);
+    var(--seal-drop, 0 4px 16px -4px rgba(69, 147, 252, 0.45));
+}
+
+/* 인장 문법의 반전 — 흰(또는 옅은 브랜드) 바탕 위에 브랜드색 점선을 찍는다.
+   파란 면 위에 놓인 흰 버튼처럼 흰 점선이 읽히지 않는 자리에 쓴다.
+   호출부에 position:relative 가 필요하다. */
+.seal-chip-inverse {
+  box-shadow:
+    inset 0 0 0 1px rgba(49, 130, 246, 0.16),
+    var(--seal-drop, 0 8px 20px -6px rgba(15, 23, 42, 0.28));
+}
+
+.seal-chip-inverse::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: calc(var(--seal-radius, 9999px) - 3px);
+  border: 1px dashed rgba(49, 130, 246, 0.32);
+  pointer-events: none;
 }

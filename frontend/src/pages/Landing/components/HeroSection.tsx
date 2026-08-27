@@ -214,7 +214,7 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
                 <button
                   type="button"
                   onClick={() => navigate('/visit')}
-                  className="brand-gradient flex items-center gap-1.5 px-5 py-3 lg:px-6 lg:py-3.5 rounded-full text-[14.5px] lg:text-[15px] font-bold text-white shadow-[0_6px_16px_-4px_var(--brand-glow)] hover:shadow-[0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.97] transition-[box-shadow,transform] duration-150"
+                  className="brand-gradient relative flex items-center gap-1.5 px-5 py-3 lg:px-6 lg:py-3.5 rounded-full text-[14.5px] lg:text-[15px] font-bold text-white seal-chip [--seal-drop:0_6px_16px_-4px_var(--brand-glow)] hover:[--seal-drop:0_8px_20px_-4px_var(--brand-glow)] active:scale-[0.97] transition-[box-shadow,transform] duration-150"
                 >
                   <MapPinIcon size={16} />
                   {tx('landingCtaVisit')}

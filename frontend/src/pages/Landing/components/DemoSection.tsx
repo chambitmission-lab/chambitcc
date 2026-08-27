@@ -322,7 +322,7 @@ const VerseCardDemo = ({ ko }: { ko: boolean }) => {
         <button
           type="button"
           onClick={share}
-          className="px-4 py-2 rounded-full bg-[var(--brand-soft)] text-brand text-[13px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors"
+          className="relative px-4 py-2 rounded-full bg-[var(--brand-soft)] text-brand text-[13px] font-bold hover:bg-[var(--brand-soft-strong)] transition-colors seal-chip-inverse [--seal-drop:none]"
         >
           {ko ? '이 말씀 나누기' : 'Share this verse'}
         </button>

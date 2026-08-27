@@ -4,16 +4,21 @@ import { useAboutContent } from '../../../hooks/useAboutContent'
 import type { AboutFieldKey } from '../../../types/aboutContent'
 import { ChevronDownIcon } from '../../About/icons'
 import { Reveal, SectionHeader } from './shared'
+import { MicIcon, SneakerIcon, OpenBookIcon, MoneyIcon, SleepIcon } from './LandingIcons'
 
 // 유머 FAQ — 처음 오는 사람의 불안을 먼저 꺼내 웃기고, 바로 뒤에 진짜 답을 준다.
 // 웃기는 대상은 항상 "우리"(교회 다니는 사람의 경험)이지 신앙이 아니다.
 
-const ITEMS: { q: AboutFieldKey; a: AboutFieldKey; emoji: string }[] = [
-  { q: 'landingFaq1Q', a: 'landingFaq1A', emoji: '🎤' },
-  { q: 'landingFaq2Q', a: 'landingFaq2A', emoji: '👟' },
-  { q: 'landingFaq3Q', a: 'landingFaq3A', emoji: '📖' },
-  { q: 'landingFaq4Q', a: 'landingFaq4A', emoji: '💸' },
-  { q: 'landingFaq5Q', a: 'landingFaq5A', emoji: '😴' },
+const ITEMS: {
+  q: AboutFieldKey
+  a: AboutFieldKey
+  Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement
+}[] = [
+  { q: 'landingFaq1Q', a: 'landingFaq1A', Icon: MicIcon },
+  { q: 'landingFaq2Q', a: 'landingFaq2A', Icon: SneakerIcon },
+  { q: 'landingFaq3Q', a: 'landingFaq3A', Icon: OpenBookIcon },
+  { q: 'landingFaq4Q', a: 'landingFaq4A', Icon: MoneyIcon },
+  { q: 'landingFaq5Q', a: 'landingFaq5A', Icon: SleepIcon },
 ]
 
 const FaqSection = ({ isAdmin, ko }: { isAdmin: boolean; ko: boolean }) => {
@@ -56,8 +61,8 @@ const FaqSection = ({ isAdmin, ko }: { isAdmin: boolean; ko: boolean }) => {
                   aria-expanded={isOpen}
                   className="w-full flex items-center gap-3 px-4 py-3.5 text-left cursor-pointer select-none"
                 >
-                  <span className="w-9 h-9 rounded-xl bg-[var(--brand-soft)] flex items-center justify-center text-[18px] shrink-0">
-                    {item.emoji}
+                  <span className="w-9 h-9 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center shrink-0">
+                    <item.Icon width={18} height={18} />
                   </span>
                   <span className="flex-1 min-w-0 text-[15px] font-bold text-ink-strong leading-snug">
                     <span className="text-brand mr-1.5">Q.</span>

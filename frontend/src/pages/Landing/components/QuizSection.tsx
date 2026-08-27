@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { showToast } from '../../../utils/toast'
 import { ChevronRightIcon } from '../../About/icons'
 import { Reveal, SectionHeader } from './shared'
+import { TentIcon, SleepIcon, CompassIcon, CandleIcon, BulbIcon } from './LandingIcons'
 
 // "당신은 어떤 성도?" 3문항 — 결과는 앱의 칭호 세계관(레위기 생존자·유두고 등)과 맞닿아 있어
 // 웃고 공유하다 보면 자연스럽게 "이 칭호, 앱에서 진짜로 받을 수 있어요"로 이어진다.
@@ -41,9 +42,21 @@ const QUESTIONS = (ko: boolean): Q[] => [
   },
 ]
 
-const RESULTS = (ko: boolean): Record<Kind, { emoji: string; title: string; desc: string; hook: string; to: string; cta: string }> => ({
+const RESULTS = (
+  ko: boolean,
+): Record<
+  Kind,
+  {
+    Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement
+    title: string
+    desc: string
+    hook: string
+    to: string
+    cta: string
+  }
+> => ({
   levi: {
-    emoji: '🏕️',
+    Icon: TentIcon,
     title: ko ? '레위기 생존자형' : 'The Leviticus Survivor',
     desc: ko
       ? '끈기가 은사입니다. 남들이 포기하는 곳에서 당신은 도장 하나를 더 찍습니다.'
@@ -53,7 +66,7 @@ const RESULTS = (ko: boolean): Record<Kind, { emoji: string; title: string; desc
     cta: ko ? '365 일독 플랜 보기' : 'See the 365-day plan',
   },
   eutychus: {
-    emoji: '😴',
+    Icon: SleepIcon,
     title: ko ? '유두고형' : 'The Eutychus',
     desc: ko
       ? '졸다 깨도 은혜는 남습니다(행 20:9 참고). 당신에게 필요한 건 의지가 아니라 오디오북입니다.'
@@ -63,7 +76,7 @@ const RESULTS = (ko: boolean): Record<Kind, { emoji: string; title: string; desc
     cta: ko ? '오디오북 들으러 가기' : 'Try the audiobook',
   },
   obadiah: {
-    emoji: '🧭',
+    Icon: CompassIcon,
     title: ko ? '오바댜 탐험가형' : 'The Obadiah Explorer',
     desc: ko
       ? '호기심이 당신의 나침반. 21절짜리 책도 기어이 찾아내는 사람입니다.'
@@ -73,7 +86,7 @@ const RESULTS = (ko: boolean): Record<Kind, { emoji: string; title: string; desc
     cta: ko ? '스토리 모드 시작' : 'Start story mode',
   },
   hannah: {
-    emoji: '🕯️',
+    Icon: CandleIcon,
     title: ko ? '골방 기도자형' : 'The Closet Pray-er',
     desc: ko
       ? '말보다 기도가 먼저 나오는 사람. 조용하지만 가장 멀리 갑니다.'
@@ -151,12 +164,17 @@ const QuizSection = ({ ko }: { ko: boolean }) => {
             </div>
           ) : result && (
             <div className="ld-pop flex flex-col lg:flex-row lg:items-center gap-5">
-              <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-3xl bg-[var(--brand-soft)] flex items-center justify-center text-[40px] lg:text-[48px] shrink-0">{result.emoji}</div>
+              <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-3xl bg-[var(--brand-soft)] text-brand flex items-center justify-center shrink-0">
+                <result.Icon className="w-10 h-10 lg:w-12 lg:h-12" strokeWidth={1.5} />
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[12px] font-bold tracking-[0.14em] uppercase text-brand">{ko ? '당신은' : 'You are'}</p>
                 <h3 className="text-[24px] lg:text-[28px] font-extrabold tracking-tight text-ink-strong leading-tight">{result.title}</h3>
                 <p className="mt-2 text-[14.5px] leading-relaxed text-ink">{result.desc}</p>
-                <p className="mt-2 text-[13px] leading-relaxed text-ink-muted">💡 {result.hook}</p>
+                <p className="mt-2 flex items-start gap-1.5 text-[13px] leading-relaxed text-ink-muted">
+                  <BulbIcon width={15} height={15} className="mt-[3px] shrink-0 text-brand" />
+                  <span>{result.hook}</span>
+                </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button type="button" onClick={() => navigate(result.to)} className="brand-gradient inline-flex items-center gap-1 px-4 py-2.5 rounded-full text-[13.5px] font-bold text-white">
                     {result.cta}<ChevronRightIcon size={15} />

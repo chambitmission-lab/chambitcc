@@ -1,9 +1,30 @@
-// 문화교실 강좌 액센트 — 강좌 제목 키워드로 이모지·파스텔 컬러를 자동 매핑
+// 문화교실 강좌 액센트 — 강좌 제목 키워드로 아이콘·파스텔 컬러를 자동 매핑
 // DB에 이미지가 없으므로 제목만으로 강좌마다 "얼굴"을 만들어 준다.
+// 아이콘은 이모지 대신 직접 그린 선화(CultureIcons) — 카드 액센트 컬러를 그대로 따른다.
 // 컬러는 Tailwind JIT가 동적 클래스를 생성하지 못하므로 인라인 스타일용 hex로 관리.
+import type { ReactElement, SVGProps } from 'react'
+import {
+  PaletteIcon,
+  BrushIcon,
+  BreadIcon,
+  CoffeeIcon,
+  MusicIcon,
+  YogaIcon,
+  YarnIcon,
+  FlowerIcon,
+  BooksIcon,
+  CameraIcon,
+  TulipIcon,
+  SnowIcon,
+  BlossomIcon,
+  SunflowerIcon,
+  LeafIcon,
+} from './CultureIcons'
+
+export type IconComponent = (props: SVGProps<SVGSVGElement>) => ReactElement
 
 export interface CultureAccent {
-  emoji: string
+  Icon: IconComponent
   /** 라이트·다크 양쪽에서 읽히는 중간 채도 컬러 */
   color: string
 }
@@ -11,47 +32,47 @@ export interface CultureAccent {
 const ACCENTS: { keywords: string[]; accent: CultureAccent }[] = [
   {
     keywords: ['수채화', '그림', '미술', '드로잉', '스케치', '유화', '아크릴', '민화'],
-    accent: { emoji: '🎨', color: '#8b7cf6' },
+    accent: { Icon: PaletteIcon, color: '#8b7cf6' },
   },
   {
     keywords: ['캘리', '서예', '붓글씨', '손글씨', 'POP'],
-    accent: { emoji: '✍️', color: '#e8875f' },
+    accent: { Icon: BrushIcon, color: '#e8875f' },
   },
   {
     keywords: ['요리', '베이킹', '제과', '제빵', '쿠킹', '반찬', '떡'],
-    accent: { emoji: '🍞', color: '#d99c2b' },
+    accent: { Icon: BreadIcon, color: '#d99c2b' },
   },
   {
     keywords: ['커피', '바리스타', '차', '티', '다도'],
-    accent: { emoji: '☕', color: '#b08050' },
+    accent: { Icon: CoffeeIcon, color: '#b08050' },
   },
   {
     keywords: ['피아노', '악기', '기타', '우쿨렐레', '통기타', '오카리나', '드럼', '바이올린', '플루트', '하모니카', '찬양', '성가', '노래', '합창', '음악'],
-    accent: { emoji: '🎹', color: '#38a8f8' },
+    accent: { Icon: MusicIcon, color: '#38a8f8' },
   },
   {
     keywords: ['요가', '필라테스', '운동', '체조', '댄스', '라인댄스', '스트레칭', '탁구', '배드민턴', '걷기', '에어로빅', '헬스'],
-    accent: { emoji: '🧘', color: '#10b981' },
+    accent: { Icon: YogaIcon, color: '#10b981' },
   },
   {
     keywords: ['공예', '뜨개', '자수', '리본', '비즈', '만들기', '목공', '가죽', '도자기', '종이접기', '퀼트'],
-    accent: { emoji: '🧶', color: '#ec6aa8' },
+    accent: { Icon: YarnIcon, color: '#ec6aa8' },
   },
   {
     keywords: ['꽃꽂이', '플라워', '원예', '가드닝', '화분', '식물'],
-    accent: { emoji: '💐', color: '#fb7185' },
+    accent: { Icon: FlowerIcon, color: '#fb7185' },
   },
   {
     keywords: ['영어', '중국어', '일본어', '한글', '어학', '회화', '한자', '독서', '글쓰기', '인문학', '성경'],
-    accent: { emoji: '📚', color: '#818cf8' },
+    accent: { Icon: BooksIcon, color: '#818cf8' },
   },
   {
     keywords: ['사진', '스마트폰', '컴퓨터', '미디어', '영상', '유튜브', 'SNS', '키오스크'],
-    accent: { emoji: '📷', color: '#2eb8a6' },
+    accent: { Icon: CameraIcon, color: '#2eb8a6' },
   },
 ]
 
-const DEFAULT_ACCENT: CultureAccent = { emoji: '🌷', color: '#6d8df0' }
+const DEFAULT_ACCENT: CultureAccent = { Icon: TulipIcon, color: '#6d8df0' }
 
 export const getCultureAccent = (title: string): CultureAccent => {
   const found = ACCENTS.find(({ keywords }) =>
@@ -92,9 +113,11 @@ export const parseScheduleDays = (schedule?: string | null): string[] => {
   return days.sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b))
 }
 
-/** "2026년 4분기" → 계절 이모지 (모집 배너용) */
-export const quarterEmoji = (quarter?: string | null): string => {
+/** "2026년 4분기" → 계절 아이콘 (모집 배너용) */
+export const quarterIcon = (quarter?: string | null): IconComponent => {
   const m = quarter?.match(/([1-4])\s*분기/)
-  if (!m) return '🌷'
-  return { '1': '❄️', '2': '🌸', '3': '🌻', '4': '🍂' }[m[1]] ?? '🌷'
+  if (!m) return TulipIcon
+  return (
+    { '1': SnowIcon, '2': BlossomIcon, '3': SunflowerIcon, '4': LeafIcon }[m[1]] ?? TulipIcon
+  )
 }

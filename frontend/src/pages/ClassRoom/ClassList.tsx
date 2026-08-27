@@ -164,7 +164,7 @@ const ClassList = () => {
               }
               setShowCreate(true)
             }}
-            className="w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
+            className="relative w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold hover:-translate-y-0.5 transition-all seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)]"
           >
             + 우리 반 만들기 (선생님)
           </button>
@@ -229,7 +229,7 @@ const ClassList = () => {
               }
               setShowCreate(true)
             }}
-            className="w-full py-3 rounded-2xl bg-brand text-white text-[14px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
+            className="relative w-full py-3 rounded-2xl bg-brand text-white text-[14px] font-bold hover:-translate-y-0.5 transition-all seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)]"
           >
             + 우리 반 만들기 (선생님)
           </button>

@@ -413,6 +413,7 @@
 }
 
 .worship-filter {
+  position: relative;
   flex: 1;
   padding: 8px 0;
   font-size: 13px;
@@ -433,8 +434,34 @@
   font-weight: 700;
   color: var(--on-brand);
   border-color: transparent;
-  background: var(--brand);
-  box-shadow: 0 6px 14px -6px var(--brand-glow);
+  /* 인장(도장) 문법 — /news 세그먼트 마커·/events 카테고리 칩과 같은 감각:
+     블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링 */
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.09),
+    0 6px 14px -6px var(--brand-glow);
+}
+
+.worship-filter--active::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .worship-filter--active,
+[data-theme="dark"] .worship-filter--active:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 3px rgba(69, 147, 252, 0.09),
+    0 6px 16px -6px rgba(69, 147, 252, 0.45);
 }
 
 /* ── 예배 상태 배지 (입장 가능/예배 중/대기/종료) ── */

@@ -1,4 +1,5 @@
 import type { HistoryEvent } from '../historyData'
+import { HistoryGlyph } from '../HistoryIcons'
 
 // '1995-07-31' (+ 종료일) → '7월 31일' / '7월 31일 – 8월 2일'
 const fmtDay = (iso: string) => `${Number(iso.slice(5, 7))}월 ${Number(iso.slice(8, 10))}일`
@@ -35,7 +36,13 @@ const HistoryRecord = ({ event, index, open, onToggle, flashed, showYear, ko }: 
   return (
     <div id={`hrec-${index}`} className={`hrec ${isMilestone ? 'is-milestone' : ''} ${flashed ? 'is-flashed' : ''}`}>
       <span className="hrec-marker" aria-hidden="true">
-        {isMilestone ? <span className="hrec-icon">{event.icon}</span> : <span className="hrec-dot" />}
+        {isMilestone ? (
+          <span className="hrec-icon">
+            <HistoryGlyph emoji={event.icon} size={15} />
+          </span>
+        ) : (
+          <span className="hrec-dot" />
+        )}
       </span>
       <button
         type="button"

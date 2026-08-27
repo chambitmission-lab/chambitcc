@@ -3,6 +3,7 @@ import { DECADES } from '../historyData'
 import { INDEXED_EVENTS, THEME_STATS } from '../historyThemes'
 import type { ThemeKey } from '../historyThemes'
 import HistoryRecord from './HistoryRecord'
+import { HistoryGlyph } from '../HistoryIcons'
 
 interface Props {
   active: ThemeKey | null
@@ -39,7 +40,7 @@ const ThemeLens = ({ active, onSelect, openItems, onToggleItem, ko }: Props) => 
 
         <header className="hthm-detail-head">
           <span className="hthm-detail-icon" aria-hidden="true">
-            {stat.icon}
+            <HistoryGlyph emoji={stat.icon} size={23} />
           </span>
           <h2 className="hthm-detail-title">{stat.label}</h2>
           <p className="hthm-detail-copy">{stat.copy}</p>
@@ -92,7 +93,7 @@ const ThemeLens = ({ active, onSelect, openItems, onToggleItem, ko }: Props) => 
               onClick={() => onSelect(stat.key)}
             >
               <span className="hthm-card-icon" aria-hidden="true">
-                {stat.icon}
+                <HistoryGlyph emoji={stat.icon} size={19} />
               </span>
               <span className="hthm-card-label">{stat.label}</span>
               <span className="hthm-card-count">

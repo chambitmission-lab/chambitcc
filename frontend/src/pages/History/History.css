@@ -286,6 +286,7 @@
   justify-content: center;
   border-radius: 50%;
   background: var(--brand-soft);
+  color: var(--brand);
   font-size: 16px;
 }
 
@@ -382,6 +383,7 @@
 }
 
 .history-decade-chips button {
+  position: relative;
   padding: 7px 0;
   border: 1px solid var(--card-border);
   border-radius: 999px;
@@ -395,9 +397,35 @@
 }
 
 .history-decade-chips button.active {
-  background: var(--brand);
-  border-color: var(--brand);
+  /* 인장(도장) 문법 — /news 마커·/events 칩과 같은 감각:
+     블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링 */
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+  border-color: transparent;
   color: var(--on-brand);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.09),
+    0 4px 12px -6px var(--brand-glow);
+}
+
+.history-decade-chips button.active::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .history-decade-chips button.active {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 3px rgba(69, 147, 252, 0.09),
+    0 4px 14px -6px rgba(69, 147, 252, 0.45);
 }
 
 /* ── 연대순 렌즈 ──────────────────────────────────────── */
@@ -503,9 +531,12 @@
 }
 
 .hyear-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   margin-left: auto;
+  color: var(--brand);
   font-size: 13px;
-  letter-spacing: 1px;
 }
 
 .hyear-preview {
@@ -590,6 +621,7 @@
   background: var(--surface-container);
   border: 1.5px solid var(--brand-soft-strong);
   box-shadow: 0 0 0 4px var(--brand-soft);
+  color: var(--brand);
   font-size: 14px;
   transform: translateY(-6px);
 }
@@ -721,6 +753,7 @@
   justify-content: center;
   border-radius: 12px;
   background: var(--brand-soft);
+  color: var(--brand);
   font-size: 18px;
 }
 
@@ -835,6 +868,7 @@
   height: 44px;
   border-radius: 14px;
   background: var(--brand-soft);
+  color: var(--brand);
   font-size: 22px;
   margin-bottom: 10px;
 }
@@ -1052,7 +1086,9 @@
   }
 
   .history-rail-icon {
+    display: inline-flex;
     flex-shrink: 0;
+    color: var(--brand);
     font-size: 13px;
     line-height: 1;
   }

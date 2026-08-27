@@ -18,17 +18,27 @@ import {
   getCultureAccent,
   withAlpha,
   parseScheduleDays,
-  quarterEmoji,
+  quarterIcon,
+  type IconComponent,
 } from './cultureAccents'
+import {
+  PaletteIcon,
+  ClipboardCheckIcon,
+  MegaphoneIcon,
+  SupportIcon,
+  SproutIcon,
+  SearchIcon,
+  EmptyMailIcon,
+} from './CultureIcons'
 import { confirmDialog } from '../../utils/confirmDialog'
 
 type SectionKey = 'classes' | 'lookup' | 'notice' | 'contact'
 
-const SECTIONS: { key: SectionKey; label: string; icon: string }[] = [
-  { key: 'classes', label: '강좌', icon: 'palette' },
-  { key: 'lookup', label: '신청 내역', icon: 'fact_check' },
-  { key: 'notice', label: '공지사항', icon: 'campaign' },
-  { key: 'contact', label: '문의', icon: 'support_agent' },
+const SECTIONS: { key: SectionKey; label: string; Icon: IconComponent }[] = [
+  { key: 'classes', label: '강좌', Icon: PaletteIcon },
+  { key: 'lookup', label: '신청 내역', Icon: ClipboardCheckIcon },
+  { key: 'notice', label: '공지사항', Icon: MegaphoneIcon },
+  { key: 'contact', label: '문의', Icon: SupportIcon },
 ]
 
 const STATUS_LABEL: Record<CultureApplicationStatus, string> = {
@@ -99,13 +109,14 @@ const ClassCard = ({
         }}
       >
         <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center text-[24px] shrink-0"
+          className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
           style={{
             background: withAlpha(accent.color, 0.14),
             border: `1px solid ${withAlpha(accent.color, 0.22)}`,
+            color: accent.color,
           }}
         >
-          {accent.emoji}
+          <accent.Icon width={24} height={24} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -226,7 +237,11 @@ const ClassCard = ({
           <button
             onClick={() => onApply(cultureClass)}
             disabled={isFull}
-            className="mt-3.5 w-full py-2.5 text-sm font-semibold bg-brand hover:bg-brand-dim text-white rounded-xl transition-colors disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-white/[0.06] dark:disabled:text-white/35"
+            className={`relative mt-3.5 w-full py-2.5 text-sm font-semibold rounded-xl transition-colors [--seal-radius:0.75rem] ${
+              isFull
+                ? 'bg-gray-200 text-gray-400 dark:bg-white/[0.06] dark:text-white/35'
+                : 'seal-chip bg-brand hover:bg-brand-dim text-white'
+            }`}
           >
             {isFull ? '정원 마감' : '이 강좌 수강신청'}
           </button>
@@ -280,6 +295,8 @@ const Culture = () => {
 
   const openClasses = classes.filter((c) => c.is_open)
   const heroQuarter = openClasses.find((c) => c.quarter)?.quarter ?? null
+  // 분기 → 계절 아이콘 (배너 워터마크·제목 앞 표식에 함께 쓴다)
+  const HeroSeasonIcon = quarterIcon(heroQuarter)
   const newNoticeCount = notices.filter((n) => isRecentNotice(n.created_at)).length
 
   const handleSubmitted = (application: CultureApplication) => {
@@ -377,11 +394,11 @@ const Culture = () => {
                   onClick={() => setSection(s.key)}
                   className={`relative flex items-center gap-1.5 flex-shrink-0 px-3.5 py-2 rounded-full border text-[13px] font-semibold transition-all ${
                     active
-                      ? 'border-brand bg-brand text-white shadow-[0_2px_10px_var(--brand-glow)]'
+                      ? 'seal-chip border-transparent bg-brand text-white'
                       : 'border-gray-200/80 dark:border-white/[0.08] bg-white/80 dark:bg-card-dark text-gray-600 dark:text-white/65 hover:border-[var(--brand-soft-strong)]'
                   }`}
                 >
-                  <span className="material-icons-outlined text-[16px]">{s.icon}</span>
+                  <s.Icon width={15} height={15} className="shrink-0" />
                   {s.label}
                   {s.key === 'notice' && newNoticeCount > 0 && (
                     <span
@@ -412,14 +429,18 @@ const Culture = () => {
                   {/* 시즌 모집 히어로 배너 */}
                   {openClasses.length > 0 && (
                     <div className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
-                      <div className="absolute -top-6 -right-4 text-[64px] opacity-20 rotate-12 pointer-events-none select-none">
-                        {quarterEmoji(heroQuarter)}
+                      <div className="absolute -top-6 -right-4 opacity-20 rotate-12 pointer-events-none select-none text-brand">
+                        <HeroSeasonIcon width={78} height={78} strokeWidth={1.4} />
                       </div>
                       <p className="text-[11px] font-bold tracking-[0.1em] text-brand uppercase">
                         Now Open
                       </p>
                       <h2 className="text-[17px] font-bold text-ink-strong mt-1">
-                        {quarterEmoji(heroQuarter)}{' '}
+                        <HeroSeasonIcon
+                          width={17}
+                          height={17}
+                          className="inline-block align-[-2px] mr-1.5 text-brand"
+                        />
                         {heroQuarter ? `${heroQuarter} 수강생 모집 중` : '수강생 모집 중'}
                       </h2>
                       <p className="text-[12.5px] text-gray-600 dark:text-white/60 mt-1">
@@ -430,7 +451,7 @@ const Culture = () => {
 
                   {classes.length === 0 ? (
                     <div className={`${cardClass} py-14 text-center`}>
-                      <p className="text-[32px] mb-2">🌱</p>
+                      <SproutIcon width={34} height={34} className="mx-auto mb-2 text-brand opacity-70" />
                       <p className="text-sm font-semibold text-gray-500 dark:text-white/50">
                         현재 개설된 강좌가 없습니다
                       </p>
@@ -538,10 +559,13 @@ const Culture = () => {
                         <div key={application.id} className={`${cardClass} p-4`}>
                           <div className="flex items-center gap-2.5">
                             <div
-                              className="w-9 h-9 rounded-xl flex items-center justify-center text-[18px] shrink-0"
-                              style={{ background: withAlpha(accent.color, 0.14) }}
+                              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                              style={{
+                                background: withAlpha(accent.color, 0.14),
+                                color: accent.color,
+                              }}
                             >
-                              {accent.emoji}
+                              <accent.Icon width={19} height={19} />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-2">
@@ -572,7 +596,7 @@ const Culture = () => {
                     })}
                   {lookupResults !== null && lookupResults.length === 0 && (
                     <div className={`${cardClass} py-10 text-center`}>
-                      <p className="text-[28px] mb-2">🔍</p>
+                      <SearchIcon width={30} height={30} className="mx-auto mb-2 text-gray-300 dark:text-white/25" />
                       <p className="text-sm text-gray-400 dark:text-white/35">
                         신청 내역이 없습니다
                       </p>
@@ -585,7 +609,7 @@ const Culture = () => {
               {section === 'notice' &&
                 (notices.length === 0 ? (
                   <div className={`${cardClass} py-14 text-center`}>
-                    <p className="text-[32px] mb-2">📭</p>
+                    <EmptyMailIcon width={34} height={34} className="mx-auto mb-2 text-gray-300 dark:text-white/25" />
                     <p className="text-sm text-gray-400 dark:text-white/35">
                       등록된 공지사항이 없습니다
                     </p>
@@ -710,8 +734,8 @@ const Culture = () => {
       <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
         {!loading && openClasses.length > 0 && (
           <section className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-4">
-            <div className="absolute -top-5 -right-3 text-[52px] opacity-20 rotate-12 pointer-events-none select-none">
-              {quarterEmoji(heroQuarter)}
+            <div className="absolute -top-5 -right-3 opacity-20 rotate-12 pointer-events-none select-none text-brand">
+              <HeroSeasonIcon width={64} height={64} strokeWidth={1.4} />
             </div>
             <p className="text-[11px] font-bold tracking-[0.1em] text-brand uppercase">Now Open</p>
             <p className="text-[15px] font-bold text-ink-strong mt-1">

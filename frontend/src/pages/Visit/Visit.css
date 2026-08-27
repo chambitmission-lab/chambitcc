@@ -75,6 +75,7 @@
 }
 
 .visit-hero-emblem {
+  position: relative;
   width: 44px;
   height: 44px;
   flex-shrink: 0;
@@ -82,9 +83,35 @@
   align-items: center;
   justify-content: center;
   border-radius: 14px;
-  background: var(--brand);
+  /* 인장(도장) 문법 — /news 마커·/events 칩과 같은 감각 */
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
   color: var(--on-brand);
-  box-shadow: 0 8px 18px -6px var(--brand-glow);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.09),
+    0 8px 18px -6px var(--brand-glow);
+}
+
+.visit-hero-emblem::after,
+.visit-mode.is-active::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 11px;
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+[data-theme="dark"] .visit-hero-emblem,
+[data-theme="dark"] .visit-mode.is-active {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 3px rgba(69, 147, 252, 0.09),
+    0 8px 20px -8px rgba(69, 147, 252, 0.45);
 }
 
 .visit-hero-body {
@@ -511,6 +538,7 @@
 }
 
 .visit-mode {
+  position: relative;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -527,9 +555,16 @@
 }
 
 .visit-mode.is-active {
-  background: var(--brand);
-  border-color: var(--brand);
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+  border-color: transparent;
   color: var(--on-brand);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.09),
+    0 6px 16px -8px var(--brand-glow);
 }
 
 .visit-mode:not(.is-active):hover {

@@ -2,13 +2,14 @@ import { useNavigate } from 'react-router-dom'
 import type { Sermon } from '../../../types/sermon'
 import { BookOpenIcon, ChevronRightIcon } from '../../About/icons'
 import { Reveal, SectionHeader } from './shared'
+import { MicIcon, OpenBookIcon, SparkleIcon } from './LandingIcons'
 
 // "왜 참빛교회인가" 3기둥 — 설교 · 성경공부 · 스마트.
 // 문장으로 주장하지 않고 실제 기능 이름(칩)과 실물(최신 설교)을 보여준다.
 
 type Pillar = {
   key: string
-  emoji: string
+  Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement
   title: string
   tagline: string
   desc: string
@@ -20,7 +21,7 @@ type Pillar = {
 const PILLARS = (ko: boolean): Pillar[] => [
   {
     key: 'sermon',
-    emoji: '🎙️',
+    Icon: MicIcon,
     title: ko ? '설교' : 'Sermons',
     tagline: ko ? '놓쳐도 괜찮아요. 설교는 도망 안 갑니다.' : "Missed it? Sermons don't run away.",
     desc: ko
@@ -34,7 +35,7 @@ const PILLARS = (ko: boolean): Pillar[] => [
   },
   {
     key: 'bible',
-    emoji: '📖',
+    Icon: OpenBookIcon,
     title: ko ? '성경공부' : 'Bible Study',
     tagline: ko ? '읽기만 하는 게 아니라, 도장 찍고 칭호 받습니다. 네, 게임처럼요.' : "You don't just read — you stamp, collect, and earn titles. Yes, like a game.",
     desc: ko
@@ -48,7 +49,7 @@ const PILLARS = (ko: boolean): Pillar[] => [
   },
   {
     key: 'smart',
-    emoji: '✨',
+    Icon: SparkleIcon,
     title: ko ? '스마트' : 'Smart',
     tagline: ko ? '교회 앱 맞습니다. 저희도 가끔 헷갈려요.' : "Yes, it's a church app. We forget sometimes too.",
     desc: ko
@@ -83,7 +84,9 @@ const PillarsSection = ({ ko, sermons }: { ko: boolean; sermons: Sermon[] }) => 
           <Reveal key={p.key} delay={i * 80} className="h-full">
             <article className="feed-card rounded-3xl p-5 h-full flex flex-col">
               <div className="flex items-center gap-3">
-                <span className="w-11 h-11 rounded-2xl bg-[var(--brand-soft)] flex items-center justify-center text-[22px]">{p.emoji}</span>
+                <span className="w-11 h-11 rounded-2xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+                  <p.Icon width={22} height={22} />
+                </span>
                 <div>
                   <p className="text-[11.5px] font-bold tracking-[0.12em] uppercase text-brand">0{i + 1}</p>
                   <h3 className="text-[19px] font-extrabold tracking-tight text-ink-strong leading-tight">{p.title}</h3>

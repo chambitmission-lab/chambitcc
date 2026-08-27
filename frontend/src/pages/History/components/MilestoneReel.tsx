@@ -1,4 +1,5 @@
 import { MILESTONES } from '../historyThemes'
+import { HistoryGlyph } from '../HistoryIcons'
 
 interface Props {
   onPick: (index: number) => void
@@ -21,7 +22,7 @@ const MilestoneReel = ({ onPick, ko }: Props) => (
         <li key={index}>
           <button type="button" className="hreel-card" onClick={() => onPick(index)}>
             <span className="hreel-icon" aria-hidden="true">
-              {event.icon}
+              <HistoryGlyph emoji={event.icon} size={17} />
             </span>
             <span className="hreel-year">{year}</span>
             <span className="hreel-label">{event.title}</span>

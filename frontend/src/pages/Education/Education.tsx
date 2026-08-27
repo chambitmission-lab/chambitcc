@@ -17,6 +17,7 @@ import { EditableText } from '../../components/AboutEditor'
 import { categoryText, programText } from '../../types/education'
 import type { EducationCategory, EducationProgram } from '../../types/education'
 import './education.css'
+import { EduGlyph, PencilIcon, SproutIcon } from './EduIcons'
 
 const Education = () => {
   const navigate = useNavigate()
@@ -117,7 +118,8 @@ const Education = () => {
                   onClick={() => navigate('/admin/education')}
                   className="inline-flex items-center gap-1 h-9 px-3.5 rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] hover:bg-[var(--brand-soft)] transition-colors"
                 >
-                  ✏️ {ko ? '부서 관리' : 'Manage'}
+                  <PencilIcon width={13} height={13} className="shrink-0" />
+                  {ko ? '부서 관리' : 'Manage'}
                 </button>
               )}
             </div>
@@ -134,7 +136,7 @@ const Education = () => {
                   aria-current={active?.key === c.key ? 'true' : undefined}
                   className={`edu-chip ${active?.key === c.key ? 'is-active' : ''}`}
                 >
-                  {c.emoji && <span aria-hidden="true">{c.emoji}</span>}
+                  <EduGlyph emoji={c.emoji} size={15} className="shrink-0" />
                   {categoryText(c, 'name', language)}
                 </button>
               ))}
@@ -224,8 +226,8 @@ const CategorySection = ({
     <section>
       {/* 헤더 — 엠블럼 + 이름 + 태그라인 */}
       <div className="flex items-start gap-3 mb-4">
-        <div className="shrink-0 w-12 h-12 rounded-2xl bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] flex items-center justify-center text-[22px]">
-          {category.emoji || <BookGlyph />}
+        <div className="shrink-0 w-12 h-12 rounded-2xl bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] flex items-center justify-center text-brand">
+          {category.emoji ? <EduGlyph emoji={category.emoji} size={24} /> : <BookGlyph />}
         </div>
         <div className="min-w-0 pt-0.5">
           <h2 className="text-[20px] font-bold leading-[1.3] tracking-[-0.02em] text-ink-strong">
@@ -399,7 +401,7 @@ const PagerButton = ({
         {isNext && <Chevron dir="right" />}
       </span>
       <span className="mt-1 block text-[13.5px] font-bold text-ink-strong truncate group-hover:text-brand transition-colors">
-        {category.emoji && <span aria-hidden="true">{category.emoji} </span>}
+        <EduGlyph emoji={category.emoji} size={14} className="inline-block align-[-2px] mr-1" />
         {categoryText(category, 'name', language)}
       </span>
     </button>
@@ -468,7 +470,7 @@ const EmptyState = ({
   onGoAdmin: () => void
 }) => (
   <div className="text-center py-16">
-    <span className="text-4xl block mb-3">🌱</span>
+    <SproutIcon width={38} height={38} className="mx-auto mb-3 text-brand opacity-70" />
     <p className="text-[15px] font-bold text-ink-strong">{title}</p>
     <p className="text-[12.5px] text-gray-500 dark:text-white/50 mt-1">{hint}</p>
     {isAdmin && (

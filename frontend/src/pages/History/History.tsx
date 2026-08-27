@@ -9,6 +9,7 @@ import MilestoneReel from './components/MilestoneReel'
 import EraTimeline from './components/EraTimeline'
 import ThemeLens from './components/ThemeLens'
 import './History.css'
+import { HistoryGlyph } from './HistoryIcons'
 
 type Lens = 'era' | 'theme'
 
@@ -447,7 +448,7 @@ const History = () => {
                 onClick={() => handlePickMilestone(index)}
               >
                 <span className="history-rail-icon" aria-hidden="true">
-                  {event.icon}
+                  <HistoryGlyph emoji={event.icon} size={15} />
                 </span>
                 <span className="history-rail-link-name">{event.title}</span>
                 <span className="history-rail-link-year">{year}</span>

@@ -23,6 +23,7 @@ import {
   type HighlightOptions,
 } from './highlightMarkup'
 import andongProfile from '../../assets/andong.png'
+import { HandHeartIcon } from '../../components/icons/ActionIcons'
 
 // 편지·에세이 톤의 서체 — 성경 읽기 설정과 동일한 스택(이미 index.html에서 로드됨)
 // Noto Serif KR은 400/600만 로드되어 있으므로 굵기는 font-semibold(600)까지만 사용
@@ -565,7 +566,7 @@ const Ministry = () => {
                 {isAdminUser && (
                   <button
                     onClick={handleAddNew}
-                    className="px-4 py-2 brand-gradient rounded-full font-semibold text-sm shadow-[0_2px_10px_var(--brand-glow)] hover:shadow-[0_4px_16px_var(--brand-glow)] transition-all flex items-center gap-1.5"
+                    className="relative px-4 py-2 brand-gradient rounded-full font-semibold text-sm transition-all flex items-center gap-1.5 seal-chip [--seal-drop:0_2px_10px_var(--brand-glow)] hover:[--seal-drop:0_4px_16px_var(--brand-glow)]"
                   >
                     <span className="material-icons-outlined text-lg">add</span>
                     <span>{language === 'ko' ? '추가' : 'Add'}</span>
@@ -664,7 +665,10 @@ const Ministry = () => {
                     {(featured.amen_count ?? 0) > 0 && (
                       <>
                         <span className="mx-1.5 opacity-60">·</span>
-                        <span className="text-brand">🙏 {featured.amen_count}</span>
+                        <span className="inline-flex items-center gap-1 text-brand">
+                          <HandHeartIcon size={13} strokeWidth={1.9} />
+                          {featured.amen_count}
+                        </span>
                       </>
                     )}
                   </div>
@@ -885,13 +889,13 @@ const Ministry = () => {
                       type="button"
                       onClick={() => void handleAmen(liveSelected)}
                       aria-pressed={!!liveSelected.is_amened}
-                      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[13.5px] font-semibold border transition-all active:scale-95 ${
+                      className={`relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[13.5px] font-semibold border transition-all active:scale-95 ${
                         liveSelected.is_amened
-                          ? 'bg-brand border-brand text-white shadow-[0_2px_10px_var(--brand-glow)]'
+                          ? 'seal-chip bg-brand border-transparent text-white [--seal-drop:0_2px_10px_var(--brand-glow)]'
                           : 'bg-transparent border-gray-300 dark:border-white/[0.15] text-gray-600 dark:text-gray-300 hover:border-brand hover:text-brand'
                       }`}
                     >
-                      <span aria-hidden>🙏</span>
+                      <HandHeartIcon size={16} strokeWidth={1.9} filled={!!liveSelected.is_amened} />
                       <span>
                         {language === 'ko'
                           ? (liveSelected.is_amened ? '아멘으로 함께했어요' : '아멘으로 화답하기')

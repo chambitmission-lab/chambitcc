@@ -26,7 +26,7 @@ const ClosingCta = ({ ko }: { ko: boolean }) => {
               <div className="flex gap-2"><dt className="w-16 shrink-0 font-bold text-ink-muted">{ko ? '위치' : 'Where'}</dt><dd className="font-semibold text-ink-strong">{tx('aboutAddress')}</dd></div>
             </dl>
             <div className="mt-auto pt-5 flex flex-wrap gap-2">
-              <button type="button" onClick={() => navigate('/visit')} className="brand-gradient inline-flex items-center gap-1 px-5 py-3 rounded-full text-[14px] font-bold text-white shadow-[0_6px_16px_-4px_var(--brand-glow)]">
+              <button type="button" onClick={() => navigate('/visit')} className="brand-gradient relative inline-flex items-center gap-1 px-5 py-3 rounded-full text-[14px] font-bold text-white seal-chip [--seal-drop:0_6px_16px_-4px_var(--brand-glow)]">
                 {ko ? '오시는 길' : 'Directions'}<ChevronRightIcon size={15} />
               </button>
               <button type="button" onClick={() => navigate('/about')} className="px-5 py-3 rounded-full text-[14px] font-bold text-ink-strong ring-1 ring-inset ring-black/[0.08] dark:ring-white/[0.12] hover:bg-[var(--brand-soft)] hover:text-brand">
@@ -47,7 +47,7 @@ const ClosingCta = ({ ko }: { ko: boolean }) => {
                 : 'Sign up and the stamp chart, prayer community, sermon amens and titles are all yours.\nTakes a minute. (The Bible takes a year.)'}
             </p>
             <div className="mt-auto pt-5 flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => navigate('/register')} className="inline-flex items-center gap-1 px-5 py-3 rounded-full text-[14px] font-bold bg-white text-brand shadow-lg active:scale-[0.97] transition-transform">
+              <button type="button" onClick={() => navigate('/register')} className="relative inline-flex items-center gap-1 px-5 py-3 rounded-full text-[14px] font-bold bg-white text-brand seal-chip-inverse active:scale-[0.97] transition-transform">
                 {ko ? '함께 시작하기' : 'Get started'}<ChevronRightIcon size={15} />
               </button>
               <button type="button" onClick={() => navigate('/login')} className="px-4 py-3 rounded-full text-[14px] font-bold text-white ring-1 ring-inset ring-white/40 hover:bg-white/10">
