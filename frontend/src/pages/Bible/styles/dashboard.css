@@ -64,10 +64,33 @@
   color: #fff;
 }
 .dash-card--resume .dash-card__icon {
+  position: relative;
   width: 3rem;
   height: 3rem;
-  background: var(--brand);
-  box-shadow: 0 8px 20px -8px var(--brand-glow);
+  /* 완독 도장·도구 인장과 같은 문법(둥근 사각 인장): 그라데이션 + 실선 링 + 후광 + 안쪽 점선 링 */
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.28), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.09),
+    0 8px 20px -8px var(--brand-glow);
+}
+.dash-card--resume .dash-card__icon::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: calc(0.875rem - 3px);
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+[data-theme="dark"] .dash-card--resume .dash-card__icon {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 3px rgba(69, 147, 252, 0.09),
+    0 8px 20px -8px var(--brand-glow);
 }
 .dash-card--resume .dash-card__icon .dash-card__glyph {
   width: 1.85rem;
