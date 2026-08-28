@@ -196,3 +196,45 @@ export const PencilIcon = ({ size = 14, strokeWidth = 1.9, className, style }: I
     <path d="m14.5 5.5 3 3" />
   </svg>
 )
+
+/** 사람 둘 — 함께 참여한 사람 수 */
+export const UsersIcon = ({ size = 14, strokeWidth = 1.9, className, style }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    aria-hidden="true"
+  >
+    <circle cx="9.6" cy="8.2" r="3.1" />
+    <path d="M3.8 19.4c0-3.1 2.6-5.2 5.8-5.2s5.8 2.1 5.8 5.2" />
+    <path d="M16.4 5.4a3.1 3.1 0 0 1 0 5.6" />
+    <path d="M17.6 14.6c1.7.7 2.8 2.2 2.8 4.1" />
+  </svg>
+)
+
+/** 결승 깃발 — 완주 */
+export const FlagIcon = ({ size = 14, strokeWidth = 1.9, className, style }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    aria-hidden="true"
+  >
+    <path d="M5.4 21V3.6" />
+    <path d="M5.4 4.4c3.6-1.6 6.6 1.6 10.2 0v8.4c-3.6 1.6-6.6-1.6-10.2 0z" />
+  </svg>
+)

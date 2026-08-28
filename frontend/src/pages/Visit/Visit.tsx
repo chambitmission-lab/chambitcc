@@ -13,7 +13,7 @@ import TransportInfo from './components/TransportInfo'
 import FirstVisitCard from './components/FirstVisitCard'
 import InviteCard from './components/InviteCard'
 import { parseCoords } from './geo'
-import { CarIcon, ClockIcon, CompassIcon, CopyIcon, PhoneIcon, PinIcon } from './icons'
+import { ChurchIcon, ClockIcon, CopyIcon, KakaoMapIcon, NaverMapIcon, PhoneIcon, PinIcon, StoreIcon, SubwayIcon, TmapIcon } from './icons'
 import './Visit.css'
 
 /** 히어로 하늘 — /worship 과 같은 --worship-sky-* 토큰을 시각으로 고른다 */
@@ -32,7 +32,7 @@ const moodOfHour = (h: number): 'dawn' | 'day' | 'dusk' | 'night' => {
  */
 const Visit = () => {
   const { t } = useLanguage()
-  const { tx } = useAboutContent()
+  const { tx, heroBackgroundUrl } = useAboutContent()
   const isAdminUser = isAdmin()
 
   const [services, setServices] = useState<WorshipService[]>([])
@@ -110,20 +110,47 @@ const Visit = () => {
       ? `${Math.floor(next.occ.minutes / 60)}${t('visitHourUnit')} ${next.occ.minutes % 60}${t('visitMinuteUnit')}`
       : `${next.occ.minutes}${t('visitMinuteUnit')}`
 
+  const routeSteps = (
+    [
+      { key: 1, icon: <SubwayIcon size={17} strokeWidth={2} /> },
+      { key: 2, icon: <StoreIcon size={17} strokeWidth={2} /> },
+      { key: 3, icon: <ChurchIcon size={17} strokeWidth={2} /> },
+    ] as const
+  )
+    .map(({ key, icon }) => {
+      const titleKey = `visitRouteStep${key}Title` as const
+      const descKey = `visitRouteStep${key}Desc` as const
+      return { key, icon, titleKey, descKey, title: tx(titleKey).trim(), desc: tx(descKey).trim(), last: false }
+    })
+    .filter((s) => s.title || isAdminUser)
+    .map((s, i, arr) => ({ ...s, last: i === arr.length - 1 }))
+
   const mood = moodOfHour(next ? Math.floor(next.occ.startMin / 60) : now.getHours())
 
   return (
     <div className="visit-page page-stage">
       <div className="visit-shell">
         <div className="visit-body">
-          {/* Hero — 시각에 따라 하늘빛이 바뀐다 (/worship 과 같은 토큰) */}
-          <header className={`visit-hero visit-hero--${mood}`}>
-            <div className="visit-hero-top">
-              <span className="visit-hero-emblem">
-                <PinIcon size={22} />
-              </span>
+          {/* Hero — 교회 사진(/about 와 같은 자산) 위에 제목, 아래로 경로 요약 레일 */}
+          <header className={`visit-hero visit-hero--${mood}${heroBackgroundUrl ? ' has-photo' : ''}`}>
+            <div className="visit-hero-photo">
+              {heroBackgroundUrl && (
+                <img
+                  className="visit-hero-img"
+                  src={heroBackgroundUrl}
+                  alt=""
+                  aria-hidden="true"
+                  decoding="async"
+                  fetchPriority="high"
+                  crossOrigin="anonymous"
+                />
+              )}
+              <div className="visit-hero-scrim" />
               <div className="visit-hero-body">
-                <span className="visit-hero-label">{t('visitLabel')}</span>
+                <span className="visit-hero-label">
+                  <PinIcon size={12} strokeWidth={2.2} />
+                  {t('visitLabel')}
+                </span>
                 <h1 className="visit-hero-title">
                   <EditableText fieldKey="visitTitle" isAdmin={isAdminUser}>
                     {tx('visitTitle')}
@@ -136,6 +163,30 @@ const Visit = () => {
                 </p>
               </div>
             </div>
+
+            {/* 경로 요약 — 역 → 골목 → 교회. 제목이 비어 있는 칸은 숨긴다 */}
+            {routeSteps.length > 0 && (
+              <ol className="visit-route" aria-label={t('visitSubtitle')}>
+                {routeSteps.map((step) => (
+                  <li key={step.key} className={`visit-route-step${step.last ? ' is-last' : ''}`}>
+                    <span className="visit-route-dot">{step.icon}</span>
+                    <strong className="visit-route-title">
+                      <EditableText fieldKey={step.titleKey} isAdmin={isAdminUser}>
+                        {step.title}
+                      </EditableText>
+                    </strong>
+                    {(step.desc || isAdminUser) && (
+                      <span className="visit-route-desc">
+                        <EditableText fieldKey={step.descKey} isAdmin={isAdminUser}>
+                          {step.desc}
+                        </EditableText>
+                      </span>
+                    )}
+                    <span className="visit-route-badge">{step.last ? t('visitRouteArrive') : t('visitRouteDone')}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
           </header>
 
           {/* 지도 — 레거시가 주던 "여기 어디쯤이구나". 누르면 카카오맵으로 넘어간다 */}
@@ -205,15 +256,15 @@ const Visit = () => {
                 {/* 길찾기 — 실제 내비게이션은 각자 쓰는 앱에 위임한다 */}
                 <div className="visit-maps">
                   <button type="button" className="visit-map-btn" onClick={() => openWeb(kakaoRouteUrl)}>
-                    <CompassIcon size={17} />
+                    <KakaoMapIcon size={22} />
                     <span>{t('visitOpenKakao')}</span>
                   </button>
                   <button type="button" className="visit-map-btn" onClick={() => openWeb(naverUrl)}>
-                    <CompassIcon size={17} />
+                    <NaverMapIcon size={22} />
                     <span>{t('visitOpenNaver')}</span>
                   </button>
                   <button type="button" className="visit-map-btn" onClick={openTmap}>
-                    <CarIcon size={17} />
+                    <TmapIcon size={22} />
                     <span>{t('visitOpenTmap')}</span>
                   </button>
                 </div>

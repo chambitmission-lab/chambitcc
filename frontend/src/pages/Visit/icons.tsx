@@ -189,3 +189,55 @@ export const ExpandIcon = (props: IconProps) => (
     <path d="M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5" />
   </Svg>
 )
+
+/** 편의점 골목 — 경로 레일 2단계 */
+export const StoreIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M4 9 5.5 4h13L20 9" />
+    <path d="M4 9h16v3a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2V9Z" />
+    <path d="M6 14v6h12v-6" />
+    <path d="M10 20v-4h4v4" />
+  </Svg>
+)
+
+/** 교회 — 경로 레일 도착지 */
+export const ChurchIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M12 2v5" />
+    <path d="M10 4h4" />
+    <path d="M6 21V12l6-4 6 4v9" />
+    <path d="M3 21h18" />
+    <path d="M10 21v-4a2 2 0 0 1 4 0v4" />
+  </Svg>
+)
+
+/* ── 지도 앱 브랜드 아이콘 (라인 아이콘이 아닌 서비스 식별용 컬러 마크) ── */
+
+/** 카카오맵 — 노란 핀 */
+export const KakaoMapIcon = ({ size = 22, className, style }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={style} aria-hidden="true">
+    <path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Z" fill="#FAE100" />
+    <circle cx="12" cy="9" r="2.6" fill="#1A1A1A" />
+  </svg>
+)
+
+/** 네이버지도 — 초록 원 안의 N */
+export const NaverMapIcon = ({ size = 22, className, style }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={style} aria-hidden="true">
+    <circle cx="12" cy="12" r="10.5" fill="#03C75A" />
+    <path d="M8 7.5h2.6l2.8 4.3V7.5H16v9h-2.6l-2.8-4.3v4.3H8v-9Z" fill="#fff" />
+  </svg>
+)
+
+/** T맵 — 보라→핑크 그라데이션 T */
+export const TmapIcon = ({ size = 22, className, style }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={style} aria-hidden="true">
+    <defs>
+      <linearGradient id="visit-tmap-grad" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#5B34F5" />
+        <stop offset="1" stopColor="#F03A9B" />
+      </linearGradient>
+    </defs>
+    <path d="M4 4h16v4.2h-5.6V20h-4.8V8.2H4V4Z" fill="url(#visit-tmap-grad)" />
+  </svg>
+)

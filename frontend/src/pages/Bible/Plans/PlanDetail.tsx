@@ -18,6 +18,12 @@ import { isAdmin, isAuthenticated } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import { accentGradient } from './planVisuals'
 import { planCover } from './planCovers'
+import {
+  BookOpenIcon,
+  ChevronRightIcon,
+  FlagIcon,
+  UsersIcon,
+} from '../../../components/icons/ActionIcons'
 import DayCard from './components/DayCard'
 import ReflectionSheet from './components/ReflectionSheet'
 import ReflectionEditModal from './components/ReflectionEditModal'
@@ -30,6 +36,9 @@ const GROUP_THRESHOLD = 60
 
 // 통계 숫자 — 자릿수가 바뀌어도 흔들리지 않게 고정폭 숫자
 const numStyle: CSSProperties = { fontVariantNumeric: 'tabular-nums' }
+
+// 히어로 커버 — 오른쪽은 그대로, 왼쪽(글이 놓이는 쪽)으로 갈수록 투명해지는 마스크
+const HERO_MASK = 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.35) 26%, #000 62%)'
 
 // 'YYYY-MM-DD' → 'YYYY.MM.DD' (서버가 KST 달력일을 주므로 Date 변환 없이 문자열만 다듬는다)
 const formatPlanDate = (value?: string | null): string | null => {
@@ -346,71 +355,80 @@ const PlanDetail = () => {
   // 365일짜리 일정을 한참 내려도 진행률과 '오늘 분량 읽기'가 옆에 남는 게 이 화면의 핵심이다.
   const renderPlanIntro = (cls: string) => (
     <div className={cls}>
-      {/* Hero — 플랜 커버 사진을 옅은 워시로 깔고 그 위에 타이틀/소개를 얹는다 */}
-      <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 border border-gray-200/70 dark:border-white/[0.08] shadow-[0_8px_26px_-14px_rgba(16,32,64,0.4)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+      {/* Hero — 왼쪽은 글, 오른쪽은 커버 사진.
+          사진 전체를 흐리게 덮으면 얼룩처럼 보여서, 오른쪽 절반에만 두고
+          왼쪽으로 갈수록 카드 바탕색에 녹아 사라지게(마스크+베일) 만든다. */}
+      <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 min-h-[152px] bg-white dark:bg-card-dark shadow-[inset_0_0_0_1px_rgba(255,255,255,0.6),0_10px_30px_-18px_rgba(16,32,64,0.5)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07),0_10px_30px_-18px_rgba(0,0,0,0.6)]">
         {cover ? (
-          <>
-            <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            {/* 사진은 분위기만 — 본문 가독성을 위해 두꺼운 화이트/다크 워시를 덮는다 */}
-            <div className="absolute inset-0 bg-white/[0.88] dark:bg-[#131313]/[0.86] backdrop-blur-[3px]" />
-            <div className="absolute inset-0 bg-[linear-gradient(160deg,rgba(49,130,246,0.12),transparent_58%)]" />
-          </>
+          <div className="absolute inset-y-0 right-0 w-[42%] lg:w-[36%] pointer-events-none" aria-hidden>
+            <img
+              src={cover}
+              alt=""
+              className="h-full w-full object-cover object-[72%_50%] dark:opacity-85"
+              style={{
+                maskImage: HERO_MASK,
+                WebkitMaskImage: HERO_MASK,
+              }}
+            />
+            {/* 글이 시작되는 왼쪽 끝은 카드 바탕색으로 완전히 덮어 가독성을 지킨다 */}
+            <div className="absolute inset-0 dark:hidden bg-[linear-gradient(to_right,#fff_0%,rgba(255,255,255,0.55)_30%,transparent_72%)]" />
+            <div className="absolute inset-0 hidden dark:block bg-[linear-gradient(to_right,#201f1f_0%,rgba(32,31,31,0.55)_30%,transparent_72%)]" />
+          </div>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35" />
         )}
 
-        <div className="relative z-10 p-5">
-          <div className="flex items-start gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-[var(--brand-soft-strong)] text-[10.5px] font-bold text-brand">
-                  <span className="text-[11px] leading-none">{plan.emoji || '📖'}</span>
-                  {plan.total_days}일 플랜
-                </span>
-                {plan.level && (
-                  <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
-                    · {plan.level}
-                  </span>
-                )}
-                {(plan.participant_count ?? 0) > 0 && (
-                  <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
-                    · 👥 {(plan.participant_count ?? 0).toLocaleString()}명
-                  </span>
-                )}
-                {(plan.completed_count ?? 0) > 0 && (
-                  <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
-                    · 🏁 {(plan.completed_count ?? 0).toLocaleString()}명 완주
-                  </span>
-                )}
-              </div>
-              <h2 className="text-[22px] font-bold tracking-[-0.02em] leading-[1.28] text-ink-strong mt-1.5">
-                {plan.title}
-              </h2>
-              {plan.subtitle && (
-                <p className="text-[13px] font-medium text-gray-600 dark:text-white/65 mt-1">
-                  {plan.subtitle}
-                </p>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleShare}
-              aria-label="플랜 공유"
-              className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-white/70 dark:bg-white/[0.08] border border-gray-200/80 dark:border-white/[0.1] text-gray-500 dark:text-white/60 backdrop-blur-sm transition-all active:scale-95 hover:text-brand"
-            >
-              {shareCopied ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 3v13" />
-                  <polyline points="8 7 12 3 16 7" />
-                  <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
-                </svg>
-              )}
-            </button>
+        <button
+          type="button"
+          onClick={handleShare}
+          aria-label="플랜 공유"
+          className="absolute right-3.5 top-3.5 z-20 w-9 h-9 rounded-full flex items-center justify-center bg-white/75 dark:bg-white/[0.1] shadow-[0_2px_10px_-4px_rgba(16,32,64,0.4)] ring-1 ring-black/[0.04] dark:ring-white/[0.12] text-gray-500 dark:text-white/70 backdrop-blur-md transition-all active:scale-95 hover:text-brand"
+        >
+          {shareCopied ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3v13" />
+              <polyline points="8 7 12 3 16 7" />
+              <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+            </svg>
+          )}
+        </button>
+
+        <div className={`relative z-10 p-5 ${cover ? 'pr-[36%] lg:pr-[28%]' : ''}`}>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-[var(--brand-soft-strong)] text-[10.5px] font-bold text-brand">
+              <BookOpenIcon size={12} strokeWidth={2} />
+              {plan.total_days}일 플랜
+            </span>
+            {plan.level && (
+              <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                · {plan.level}
+              </span>
+            )}
+            {(plan.participant_count ?? 0) > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                ·<UsersIcon size={12} strokeWidth={2} />
+                {(plan.participant_count ?? 0).toLocaleString()}명
+              </span>
+            )}
+            {(plan.completed_count ?? 0) > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                ·<FlagIcon size={12} strokeWidth={2} />
+                {(plan.completed_count ?? 0).toLocaleString()}명 완주
+              </span>
+            )}
           </div>
+          <h2 className="text-[22px] font-bold tracking-[-0.02em] leading-[1.28] text-ink-strong mt-1.5">
+            {plan.title}
+          </h2>
+          {plan.subtitle && (
+            <p className="text-[13px] font-medium text-gray-600 dark:text-white/65 mt-1">
+              {plan.subtitle}
+            </p>
+          )}
 
           {plan.description && (
             <>
@@ -486,18 +504,13 @@ const PlanDetail = () => {
           ) : (
             <button
               onClick={startTodaysReading}
-              className="mt-4 w-full flex items-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(49,130,246,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(49,130,246,0.7)] transition-all active:scale-[0.99]"
+              className="relative mt-4 w-full flex items-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[14px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_8px_24px_-8px_var(--brand-glow)] hover:[--seal-drop:0_10px_28px_-6px_var(--brand-glow)] active:scale-[0.99] transition-[box-shadow,transform] duration-150"
             >
-              <svg className="shrink-0 opacity-90" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z" />
-                <path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z" />
-              </svg>
+              <BookOpenIcon size={17} strokeWidth={1.9} className="shrink-0 opacity-90" />
               <span className="flex-1 text-center">
                 오늘 분량 읽기 · {progress.current_day}일차
               </span>
-              <svg className="shrink-0 opacity-80" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
+              <ChevronRightIcon size={15} strokeWidth={2.4} className="shrink-0 opacity-80" />
             </button>
           )}
         </section>
@@ -506,7 +519,7 @@ const PlanDetail = () => {
           <button
             onClick={handleSubscribe}
             disabled={subscribe.isPending}
-            className={`w-full py-3.5 rounded-2xl bg-gradient-to-r ${grad} text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_rgba(49,130,246,0.65)] hover:-translate-y-0.5 transition-all disabled:opacity-50`}
+            className={`relative w-full py-3.5 rounded-2xl bg-gradient-to-r ${grad} text-white text-[15px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)] hover:-translate-y-0.5 transition-all disabled:opacity-50`}
           >
             {subscribe.isPending ? '시작하는 중...' : '이 플랜 시작하기'}
           </button>

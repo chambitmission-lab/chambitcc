@@ -5,6 +5,16 @@ export const visit = {
   visitTitle: 'How to Find Us',
   visitSubtitle: '5 min walk from Sangdong Stn. (Line 7)',
 
+  // ── Hero route summary (station → alley → church). Empty title hides the step ──
+  visitRouteStep1Title: 'Sangdong Stn.',
+  visitRouteStep1Desc: 'Line 7',
+  visitRouteStep2Title: 'Songnae-daero 265beon-gil',
+  visitRouteStep2Desc: 'Convenience-store alley',
+  visitRouteStep3Title: 'Chambit Church',
+  visitRouteStep3Desc: 'About 5 min on foot',
+  visitRouteDone: 'Done',
+  visitRouteArrive: 'Arrive',
+
   // ── Basics ────────────────────────────
   visitAddress: '29, Songnae-daero 265beon-gil, Bucheon-si, Gyeonggi-do',
   visitPostcode: '14542',

@@ -8,6 +8,16 @@ export const visit = {
   visitTitle: '참빛교회 오시는 길',
   visitSubtitle: '지하철 7호선 상동역에서 도보 5분',
 
+  // ── 히어로 경로 요약(역 → 골목 → 교회) — 제목을 비우면 해당 칸이 숨겨진다 ──
+  visitRouteStep1Title: '상동역',
+  visitRouteStep1Desc: '7호선',
+  visitRouteStep2Title: '송내대로265번길',
+  visitRouteStep2Desc: '편의점 골목',
+  visitRouteStep3Title: '참빛교회',
+  visitRouteStep3Desc: '도보 약 5분',
+  visitRouteDone: '완료',
+  visitRouteArrive: '도착',
+
   // ── 기본 정보 ─────────────────────────
   visitAddress: '경기도 부천시 송내대로265번길 29 (상동, 참빛교회)',
   visitPostcode: '14542',
