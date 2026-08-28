@@ -12,12 +12,29 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
 import { useAboutContent } from '../../hooks/useAboutContent'
+import type React from 'react'
 import { useEducationTree } from '../../hooks/useEducation'
 import { EditableText } from '../../components/AboutEditor'
 import { categoryText, programText } from '../../types/education'
 import type { EducationCategory, EducationProgram } from '../../types/education'
 import './education.css'
 import { EduGlyph, PencilIcon, SproutIcon } from './EduIcons'
+
+// /events 카테고리 칩처럼 선택마다 색이 살짝 달라지도록 — 부서는 DB 기반이라
+// 고정 키 매핑 대신 순서로 블루 패밀리(토스 블루 톤 안에서만) 팔레트를 순환한다.
+const CHIP_TONES: Array<[string, string, string]> = [
+  ['#4593fc', '#3182f6', '49, 130, 246'], // brand blue
+  ['#38bdf8', '#0ea5e9', '56, 189, 248'], // sky
+  ['#22d3ee', '#0891b2', '34, 211, 238'], // cyan
+  ['#818cf8', '#4f46e5', '129, 140, 248'], // indigo
+  ['#60a5fa', '#2563eb', '96, 165, 250'], // light blue
+  ['#2dd4bf', '#0d9488', '45, 212, 191'], // teal
+  ['#a78bfa', '#6d28d9', '167, 139, 250'], // violet
+]
+const chipTone = (i: number) => {
+  const [a, b, rgb] = CHIP_TONES[i % CHIP_TONES.length]
+  return { '--chip-a': a, '--chip-b': b, '--chip-rgb': rgb } as React.CSSProperties
+}
 
 const Education = () => {
   const navigate = useNavigate()
@@ -128,13 +145,14 @@ const Education = () => {
           {/* 카테고리 탭 */}
           {visible.length > 1 && (
             <nav ref={chipsRef} className="edu-chips" aria-label={ko ? '교육 부서' : 'Departments'}>
-              {visible.map((c) => (
+              {visible.map((c, i) => (
                 <button
                   key={c.id}
                   type="button"
                   onClick={() => selectTab(c.key)}
                   aria-current={active?.key === c.key ? 'true' : undefined}
                   className={`edu-chip ${active?.key === c.key ? 'is-active' : ''}`}
+                  style={chipTone(i)}
                 >
                   <EduGlyph emoji={c.emoji} size={15} className="shrink-0" />
                   {categoryText(c, 'name', language)}

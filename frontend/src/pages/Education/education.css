@@ -102,12 +102,12 @@
   border-color: transparent;
   background:
     radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
-    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+    linear-gradient(155deg, var(--chip-a, #4593fc), var(--chip-b, var(--brand-dim, var(--brand))));
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 0 0 3px rgba(49, 130, 246, 0.09),
-    0 4px 14px -6px var(--brand-glow);
+    0 0 0 3px rgba(var(--chip-rgb, 49, 130, 246), 0.09),
+    0 4px 14px -6px rgba(var(--chip-rgb, 49, 130, 246), 0.55);
 }
 
 /* 터치 기기에서 :hover 가 눌러붙어도 선택 칩 색이 흐려지지 않게 */
@@ -116,7 +116,7 @@
     color: var(--on-brand);
     background:
       radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
-      linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+      linear-gradient(155deg, var(--chip-a, #4593fc), var(--chip-b, var(--brand-dim, var(--brand))));
   }
 }
 
@@ -133,8 +133,8 @@
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 0 0 3px rgba(69, 147, 252, 0.09),
-    0 4px 16px -6px rgba(69, 147, 252, 0.45);
+    0 0 0 3px rgba(var(--chip-rgb, 69, 147, 252), 0.09),
+    0 4px 16px -6px rgba(var(--chip-rgb, 69, 147, 252), 0.45);
 }
 
 /* 탭 전환 — 선택한 카테고리 하나만 렌더하므로 교체를 살짝 페이드로 잇는다 */
