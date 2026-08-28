@@ -28,16 +28,35 @@
     position: relative;
     display: inline-block;
   }
+  /* 박음질(running stitch) 밑줄 — /worship '오늘' 칩의 인장 문법(안쪽 점선 압인 링)을
+     밑줄로 옮긴 것. 옅은 시접 물결 위에 점선 실땀이 얹힌다.
+     색은 마스크 + currentColor 라 라이트/다크의 --brand 를 그대로 따라간다. */
   .ld-hero-title em::after {
     content: '';
     position: absolute;
     left: 0.02em;
     right: 0.02em;
-    bottom: -0.1em;
-    height: 0.22em;
+    bottom: -0.16em;
+    height: 0.3em;
     pointer-events: none;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 14' preserveAspectRatio='none'%3E%3Cpath d='M3 9 C 40 2, 80 14, 120 7 S 180 2, 197 8' fill='none' stroke='%233182f6' stroke-width='2.6' stroke-linecap='round' opacity='0.85'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+    background-color: currentColor;
+    -webkit-mask: var(--ld-stitch) no-repeat left center / 100% 100%;
+    mask: var(--ld-stitch) no-repeat left center / 100% 100%;
+    /* 왼쪽에서 오른쪽으로 한 땀씩 꿰매지듯 들어온다(1회) */
+    animation: ld-stitch-in 0.85s 0.3s cubic-bezier(0.22, 0.85, 0.25, 1) both;
   }
+}
+
+/* 실땀(점선, 진하게) + 그 아래 시접(굵고 옅게) 두 겹 */
+.ld-hero-title em {
+  --ld-stitch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20' preserveAspectRatio='none'%3E%3Cpath d='M3 11.5 C 40 5, 80 16.5, 120 10 S 180 5, 197 11' fill='none' stroke='%23fff' stroke-width='4.6' stroke-linecap='round' opacity='0.16'/%3E%3Cpath d='M3 8 C 40 1.5, 80 13, 120 6.5 S 180 1.5, 197 7.5' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-dasharray='9 6.5'/%3E%3C/svg%3E");
+}
+@keyframes ld-stitch-in {
+  from { -webkit-mask-size: 0% 100%; mask-size: 0% 100%; }
+  to { -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ld-hero-title em::after { animation: none; }
 }
 
 /* 히어로 라이트 가독성 — 스크림 없는 원색 사진 위의 흰 글씨를 받치는 그림자.

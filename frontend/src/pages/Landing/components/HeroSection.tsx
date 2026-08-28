@@ -195,11 +195,15 @@ const HeroSection = ({ isAdmin, ko, onTour }: { isAdmin: boolean; ko: boolean; o
                     ))}
                   </span>
                 </EditableText>
-                {/* 손그림 하트 — PC 에서만, 제목 끝에 살짝 */}
-                <span aria-hidden="true" className="ld-hero-doodle hidden lg:inline-block align-top ml-2 -mt-1 text-brand/70">
-                  <svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M15 25s-9-5.6-9-12.2A4.8 4.8 0 0 1 15 10a4.8 4.8 0 0 1 9 2.8C24 19.4 15 25 15 25z" />
-                    <path d="M25 5c.8-1.2 2-2 3-2" />
+                {/* 손그림 하트 — PC 에서만, 제목 끝에 살짝. 색은 제목(currentColor)을 그대로 물려받는다
+                    (brand 토큰은 CSS 변수라 text-brand/80 같은 투명도 수식이 먹지 않는다) */}
+                <span aria-hidden="true" className="ld-hero-doodle hidden lg:inline-block align-top ml-2 -mt-0.5 rotate-[-6deg]">
+                  <svg width="34" height="34" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    {/* 한 붓에 그린 듯한 하트 — 끝이 가운데 홈을 살짝 지나치며 겹친다 */}
+                    <path d="M16 11.6c.9-2.3 3-4.1 5.4-4.3 3-.3 5.7 2 5.7 5.5 0 6.2-8 11.3-11.1 13.6C12.9 24.1 4.9 19 4.9 12.8c0-3.5 2.7-5.8 5.7-5.5 2.4.2 4.5 2 5.4 4.3z" />
+                    <path d="M16 11.6c.5 1 .8 1.8.9 2.4" strokeWidth="1.8" />
+                    {/* 튀어오르는 획 하나 — 두 개면 꼭지처럼 보여서 하나만 남긴다 */}
+                    <path d="M25.9 4.6c.9-1.4 2.1-2.2 3.4-2.3" strokeWidth="1.8" />
                   </svg>
                 </span>
               </h1>
