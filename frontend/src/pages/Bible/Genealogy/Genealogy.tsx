@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useMessianicGenealogy } from '../../../hooks/useBibleFigure'
+import { useMessianicGenealogy, usePrefetchBibleFigure } from '../../../hooks/useBibleFigure'
 import GenealogyTree from './components/GenealogyTree'
 import FigureDetailPanel from './components/FigureDetailPanel'
 import EraTimeline from './components/EraTimeline'
@@ -59,6 +59,7 @@ export const Genealogy = () => {
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const [helpOpen, setHelpOpen] = useState(false)
   const [heroReady, setHeroReady] = useState(false)
+  const prefetchFigure = usePrefetchBibleFigure()
 
   useEffect(() => {
     let cancelled = false
@@ -124,6 +125,11 @@ export const Genealogy = () => {
       (rf) => rf.id === 'all' || data.nodes.some((n) => matchRole(n, rf.id)),
     )
   }, [data])
+
+  const selectedSummary = useMemo(
+    () => (data && selectedSlug ? data.nodes.find((n) => n.slug === selectedSlug) ?? null : null),
+    [data, selectedSlug],
+  )
 
   const matchedSlugs = useMemo(
     () => new Set(filteredNodes.map((n) => n.slug)),
@@ -347,6 +353,7 @@ export const Genealogy = () => {
                     readingProgress={data.reading_progress}
                     selectedSlug={selectedSlug}
                     onSelect={setSelectedSlug}
+                    onHover={prefetchFigure}
                     isLoggedIn={isLoggedIn}
                     highlightSlugs={query || roleFilter !== 'all' ? matchedSlugs : null}
                   />
@@ -370,6 +377,7 @@ export const Genealogy = () => {
               <div className="sticky top-4">
                 <FigureDetailPanel
                   slug={selectedSlug}
+                  summary={selectedSummary}
                   onSelect={setSelectedSlug}
                   onClose={() => setSelectedSlug(null)}
                 />
@@ -406,6 +414,7 @@ export const Genealogy = () => {
               <div className="overflow-y-auto">
                 <FigureDetailPanel
                   slug={selectedSlug}
+                  summary={selectedSummary}
                   onSelect={setSelectedSlug}
                   onClose={() => setSelectedSlug(null)}
                   variant="sheet"

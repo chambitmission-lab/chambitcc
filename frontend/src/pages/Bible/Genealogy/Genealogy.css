@@ -84,14 +84,14 @@
 
 /* ── 가계도 = 밤하늘 별자리 ────────────────────────────────────────── */
 .gen-sky-wrap {
-  /* 라이트: 블루아워 남색, 다크: 깊은 밤 */
-  --sky-top: #14204a;
-  --sky-mid: #0f1838;
-  --sky-bottom: #0a1028;
-  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-bottom) 100%);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: inset 0 0 80px rgba(0,0,0,0.35);
-  color: #fff;
+  /* 라이트: 새벽 하늘(옅은 파랑→아이보리), 다크: 깊은 밤 */
+  --sky-top: #dfeaff;
+  --sky-mid: #eef4ff;
+  --sky-bottom: #fbf7ee;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 50%, var(--sky-bottom) 100%);
+  border: 1px solid var(--card-border);
+  box-shadow: inset 0 0 60px rgba(49,130,246,0.06);
+  color: #0f1f4d;
   font-family: inherit;
   /* 필터 시 scrollIntoView — 고정 헤더·섹션 탭 아래로 숨지 않게 */
   scroll-margin-top: 96px;
@@ -101,6 +101,8 @@
   --sky-mid: #070b22;
   --sky-bottom: #04061a;
   border-color: rgba(255,255,255,0.06);
+  box-shadow: inset 0 0 80px rgba(0,0,0,0.35);
+  color: #fff;
 }
 .gen-sky-wrap svg text { font-family: inherit; }
 
@@ -122,6 +124,10 @@
 }
 .gen-sky__nebula--a { left: -20%; top: 5%; background: radial-gradient(circle, rgba(49,130,246,.45), transparent 65%); }
 .gen-sky__nebula--b { right: -25%; top: 45%; background: radial-gradient(circle, rgba(139,92,246,.35), transparent 65%); }
+/* 라이트: screen 블렌드는 흰 바탕에서 안 보임 → multiply 로 옅은 구름 느낌 */
+:root:not(.dark) .gen-sky__nebula { mix-blend-mode: multiply; opacity: .35; }
+:root:not(.dark) .gen-sky__nebula--a { background: radial-gradient(circle, rgba(147,197,253,.6), transparent 65%); }
+:root:not(.dark) .gen-sky__nebula--b { background: radial-gradient(circle, rgba(253,224,171,.55), transparent 65%); }
 .gen-sky-wrap > .gen-sky + div { z-index: 1; }
 
 .gen-sky__caption {
@@ -129,10 +135,12 @@
   padding: 10px 0 12px;
   text-align: center;
   font-size: 11px; letter-spacing: .12em;
-  color: rgba(255,255,255,.35);
+  color: rgba(15,31,77,.4);
   background: linear-gradient(180deg, transparent, var(--sky-bottom) 70%);
   pointer-events: none; z-index: 2;
 }
+
+.dark .gen-sky__caption { color: rgba(255,255,255,.35); }
 
 /* 별 반짝임 */
 @keyframes gen-twinkle {
@@ -173,3 +181,8 @@
 @media (prefers-reduced-motion: reduce) {
   .gen-twinkle, .gen-star-glow, .gen-flow, .gen-halo, .gen-rays, .gen-select-ring, .gen-match-ring { animation: none; }
 }
+
+/* 인물 상세 — 본문이 채워질 때 살짝 떠오르며 등장 */
+@keyframes fig-body-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.fig-body-in { animation: fig-body-in .28s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .fig-body-in { animation: none; } }

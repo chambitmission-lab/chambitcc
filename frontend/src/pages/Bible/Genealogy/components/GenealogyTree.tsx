@@ -13,6 +13,8 @@ interface GenealogyTreeProps {
   readingProgress: Record<string, number>
   selectedSlug: string | null
   onSelect: (slug: string) => void
+  /** 별에 포인터가 닿으면 상세를 미리 받아둔다 (클릭 시 즉시 표시) */
+  onHover?: (slug: string) => void
   isLoggedIn: boolean
   /** 비어있지 않으면 이 slug 집합에 속하지 않는 노드는 흐리게 표시 */
   highlightSlugs: Set<string> | null
@@ -46,6 +48,53 @@ const mulberry32 = (seed: number) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296
 }
 
+/* 테마별 하늘 팔레트 — 다크: 밤하늘, 라이트: 새벽 하늘(잉크 남색 별) */
+interface SkyPalette {
+  name: string; nameSide: string; nameJesus: string
+  gen: string; genMother: string
+  role: string; roleJesus: string
+  star: string; starSide: string; starJesus: string
+  starShadow: string; jesusShadow: string
+  glow: [string, string, string]
+  jesusGlow: [string, string, string]
+  spine: [string, string, string]
+  link: string; linkMother: string
+  flow: string; rays: string
+  spouseGlow: [string, string]; spouseStar: string; spouseText: string; spouseTextMatch: string; spouseLine: string; spouseRing: string
+  matchRing: string; matchFill: string; selectRing: string
+  bgStar: string
+}
+const NIGHT: SkyPalette = {
+  name: '#f4f8ff', nameSide: 'rgba(255,255,255,0.72)', nameJesus: '#fff3c4',
+  gen: 'rgba(255,255,255,0.38)', genMother: 'rgba(244,114,182,0.85)',
+  role: 'rgba(255,255,255,0.45)', roleJesus: 'rgba(255,236,180,0.8)',
+  star: '#f4f8ff', starSide: '#e6eeff', starJesus: '#fff3c4',
+  starShadow: 'drop-shadow(0 0 4px rgba(156,196,255,0.9))', jesusShadow: 'drop-shadow(0 0 10px rgba(255,214,102,0.9))',
+  glow: ['#dbe9ff', '#7fb2ff', '#3182f6'],
+  jesusGlow: ['#fff7d6', '#ffe08a', '#ffd166'],
+  spine: ['rgba(156,196,255,0.35)', 'rgba(143,184,255,0.75)', 'rgba(255,224,138,0.95)'],
+  link: 'rgba(255,255,255,0.18)', linkMother: 'rgba(244,114,182,0.45)',
+  flow: 'rgba(255,255,255,0.9)', rays: 'rgba(255,224,138,0.5)',
+  spouseGlow: ['#ffd6ea', '#f472b6'], spouseStar: '#ffd6ea', spouseText: 'rgba(255,214,234,0.85)', spouseTextMatch: '#ffe3f0', spouseLine: 'rgba(244,114,182,0.55)', spouseRing: 'rgba(244,114,182,0.75)',
+  matchRing: 'rgba(156,196,255,0.7)', matchFill: 'rgba(156,196,255,0.10)', selectRing: '#9cc4ff',
+  bgStar: '#ffffff',
+}
+const DAWN: SkyPalette = {
+  name: '#0f1f4d', nameSide: 'rgba(15,31,77,0.62)', nameJesus: '#7a4b00',
+  gen: 'rgba(15,31,77,0.38)', genMother: '#be185d',
+  role: 'rgba(15,31,77,0.5)', roleJesus: 'rgba(122,75,0,0.8)',
+  star: '#1d4ed8', starSide: '#3b5bb5', starJesus: '#f59e0b',
+  starShadow: 'drop-shadow(0 0 4px rgba(49,130,246,0.7))', jesusShadow: 'drop-shadow(0 0 10px rgba(245,158,11,0.7))',
+  glow: ['#bfdbfe', '#60a5fa', '#3182f6'],
+  jesusGlow: ['#fde68a', '#fbbf24', '#f59e0b'],
+  spine: ['rgba(49,130,246,0.25)', 'rgba(49,130,246,0.7)', 'rgba(245,158,11,0.95)'],
+  link: 'rgba(15,31,77,0.18)', linkMother: 'rgba(219,39,119,0.45)',
+  flow: 'rgba(49,130,246,0.95)', rays: 'rgba(245,158,11,0.45)',
+  spouseGlow: ['#fbcfe8', '#ec4899'], spouseStar: '#db2777', spouseText: 'rgba(157,23,77,0.85)', spouseTextMatch: '#9d174d', spouseLine: 'rgba(219,39,119,0.5)', spouseRing: 'rgba(219,39,119,0.7)',
+  matchRing: 'rgba(49,130,246,0.7)', matchFill: 'rgba(49,130,246,0.10)', selectRing: '#3182f6',
+  bgStar: '#1e3a8a',
+}
+
 const roleText = (fig: BibleFigureSummary) => {
   if (fig.slug === 'jesus_christ') return '메시아 · 약속의 성취'
   return fig.role || fig.era || ''
@@ -62,6 +111,7 @@ export const GenealogyTree = ({
   readingProgress,
   selectedSlug,
   onSelect,
+  onHover,
   isLoggedIn,
   highlightSlugs,
 }: GenealogyTreeProps) => {
@@ -146,6 +196,8 @@ export const GenealogyTree = ({
   }, [nodes, links])
 
   /* ── 배경 별무리 (패럴랙스 두 겹) ── */
+  const sky = theme === 'dark' ? NIGHT : DAWN
+
   useEffect(() => {
     const far = farRef.current
     const near = nearRef.current
@@ -160,7 +212,7 @@ export const GenealogyTree = ({
           .attr('cx', rnd() * 1000)
           .attr('cy', rnd() * 2000)
           .attr('r', rMin + rnd() * (rMax - rMin))
-          .attr('fill', '#fff')
+          .attr('fill', sky.bgStar)
           .attr('opacity', 0.25 + rnd() * 0.6)
         if (i % twinkleEvery === 0) {
           c.attr('class', 'gen-twinkle').style('animation-delay', `${(rnd() * 4).toFixed(2)}s`)
@@ -169,7 +221,7 @@ export const GenealogyTree = ({
     }
     make(far, 160, 0.4, 1.1, 5)
     make(near, 70, 0.9, 1.9, 3)
-  }, [])
+  }, [sky])
 
   // 스크롤 패럴랙스 + 하늘 높이 동기화
   useEffect(() => {
@@ -204,18 +256,18 @@ export const GenealogyTree = ({
 
     const defs = svg.append('defs')
     const starGlow = defs.append('radialGradient').attr('id', 'genStarGlow')
-    starGlow.append('stop').attr('offset', '0%').attr('stop-color', '#dbe9ff').attr('stop-opacity', 0.9)
-    starGlow.append('stop').attr('offset', '45%').attr('stop-color', '#7fb2ff').attr('stop-opacity', 0.28)
-    starGlow.append('stop').attr('offset', '100%').attr('stop-color', '#3182f6').attr('stop-opacity', 0)
+    starGlow.append('stop').attr('offset', '0%').attr('stop-color', sky.glow[0]).attr('stop-opacity', 0.9)
+    starGlow.append('stop').attr('offset', '45%').attr('stop-color', sky.glow[1]).attr('stop-opacity', 0.28)
+    starGlow.append('stop').attr('offset', '100%').attr('stop-color', sky.glow[2]).attr('stop-opacity', 0)
 
     const jesusGlow = defs.append('radialGradient').attr('id', 'genJesusGlow')
-    jesusGlow.append('stop').attr('offset', '0%').attr('stop-color', '#fff7d6').attr('stop-opacity', 1)
-    jesusGlow.append('stop').attr('offset', '35%').attr('stop-color', '#ffe08a').attr('stop-opacity', 0.35)
-    jesusGlow.append('stop').attr('offset', '100%').attr('stop-color', '#ffd166').attr('stop-opacity', 0)
+    jesusGlow.append('stop').attr('offset', '0%').attr('stop-color', sky.jesusGlow[0]).attr('stop-opacity', 1)
+    jesusGlow.append('stop').attr('offset', '35%').attr('stop-color', sky.jesusGlow[1]).attr('stop-opacity', 0.35)
+    jesusGlow.append('stop').attr('offset', '100%').attr('stop-color', sky.jesusGlow[2]).attr('stop-opacity', 0)
 
     const spouseGlow = defs.append('radialGradient').attr('id', 'genSpouseGlow')
-    spouseGlow.append('stop').attr('offset', '0%').attr('stop-color', '#ffd6ea').attr('stop-opacity', 0.9)
-    spouseGlow.append('stop').attr('offset', '100%').attr('stop-color', '#f472b6').attr('stop-opacity', 0)
+    spouseGlow.append('stop').attr('offset', '0%').attr('stop-color', sky.spouseGlow[0]).attr('stop-opacity', 0.9)
+    spouseGlow.append('stop').attr('offset', '100%').attr('stop-color', sky.spouseGlow[1]).attr('stop-opacity', 0)
 
     const hierarchy = d3.hierarchy<TreeDatum>(root)
     const laidOut = d3.tree<TreeDatum>().nodeSize([COL_W, ROW_H])(hierarchy)
@@ -228,9 +280,9 @@ export const GenealogyTree = ({
       .attr('gradientUnits', 'userSpaceOnUse')
       .attr('x1', 0).attr('y1', 0)
       .attr('x2', 0).attr('y2', (hierarchy.height + 1) * ROW_H)
-    spineGrad.append('stop').attr('offset', '0%').attr('stop-color', '#9cc4ff').attr('stop-opacity', 0.35)
-    spineGrad.append('stop').attr('offset', '80%').attr('stop-color', '#8fb8ff').attr('stop-opacity', 0.75)
-    spineGrad.append('stop').attr('offset', '100%').attr('stop-color', '#ffe08a').attr('stop-opacity', 0.95)
+    spineGrad.append('stop').attr('offset', '0%').attr('stop-color', sky.spine[0])
+    spineGrad.append('stop').attr('offset', '80%').attr('stop-color', sky.spine[1])
+    spineGrad.append('stop').attr('offset', '100%').attr('stop-color', sky.spine[2])
 
     // viewBox — spine(x=0)이 가로 정중앙
     const xs = allNodes.map((n) => n.x)
@@ -277,8 +329,8 @@ export const GenealogyTree = ({
       .attr('d', linkPath)
       .attr('stroke', (d) => {
         if (isSpine(d)) return 'url(#genSpineGrad)'
-        if (parentLinkType.get(d.target.data.slug) === 'mother') return 'rgba(244,114,182,0.45)'
-        return 'rgba(255,255,255,0.18)'
+        if (parentLinkType.get(d.target.data.slug) === 'mother') return sky.linkMother
+        return sky.link
       })
       .attr('stroke-width', (d) => (isSpine(d) ? 1.6 : 1))
       .attr('stroke-linecap', 'round')
@@ -294,7 +346,7 @@ export const GenealogyTree = ({
       .join('path')
       .attr('class', 'gen-flow')
       .attr('d', linkPath)
-      .attr('stroke', 'rgba(255,255,255,0.9)')
+      .attr('stroke', sky.flow)
       .attr('stroke-width', 1.6)
       .attr('stroke-linecap', 'round')
       .attr('stroke-dasharray', '2 30')
@@ -310,6 +362,8 @@ export const GenealogyTree = ({
       .style('cursor', 'pointer')
       .attr('opacity', (d) => (dimmed(d.data.slug) ? 0.12 : 1))
       .on('click', (_e, d) => onSelect(d.data.slug))
+      .on('pointerenter', (_e, d) => onHover?.(d.data.slug))
+      .on('touchstart', (_e, d) => onHover?.(d.data.slug), { passive: true })
 
     // 큰 히트 영역 (별이 작아서)
     nodeG.append('circle').attr('r', 22).attr('fill', 'transparent')
@@ -320,8 +374,8 @@ export const GenealogyTree = ({
       .append('circle')
       .attr('class', 'gen-match-ring')
       .attr('r', 15)
-      .attr('fill', 'rgba(156,196,255,0.10)')
-      .attr('stroke', 'rgba(156,196,255,0.7)')
+      .attr('fill', sky.matchFill)
+      .attr('stroke', sky.matchRing)
       .attr('stroke-width', 1)
       .attr('stroke-dasharray', '2 3')
 
@@ -332,7 +386,7 @@ export const GenealogyTree = ({
       .attr('class', 'gen-select-ring')
       .attr('r', 18)
       .attr('fill', 'none')
-      .attr('stroke', '#9cc4ff')
+      .attr('stroke', sky.selectRing)
       .attr('stroke-width', 1.2)
       .attr('opacity', 0.9)
 
@@ -347,7 +401,7 @@ export const GenealogyTree = ({
       .join('line')
       .attr('x1', 0).attr('y1', -30).attr('x2', 0).attr('y2', 30)
       .attr('transform', (a) => `rotate(${a})`)
-      .attr('stroke', 'rgba(255,224,138,0.5)')
+      .attr('stroke', sky.rays)
       .attr('stroke-width', (a) => (a % 90 === 0 ? 1.2 : 0.6))
       .attr('stroke-linecap', 'round')
 
@@ -372,19 +426,19 @@ export const GenealogyTree = ({
         if (isJesus(d.data.figure)) return sparklePath(13)
         return sparklePath(3.5 + (STAR_R_MAX - 3.5) * progressOf(d.data.slug))
       })
-      .attr('fill', (d) => (isJesus(d.data.figure) ? '#fff3c4' : '#f4f8ff'))
+      .attr('fill', (d) => (isJesus(d.data.figure) ? sky.starJesus : sky.star))
       .attr('opacity', (d) => 0.65 + 0.35 * progressOf(d.data.slug))
       .style('filter', (d) =>
         isJesus(d.data.figure)
-          ? 'drop-shadow(0 0 10px rgba(255,214,102,0.9))'
-          : 'drop-shadow(0 0 4px rgba(156,196,255,0.9))',
+          ? sky.jesusShadow
+          : sky.starShadow,
       )
     nodeG
       .filter((d) => !d.data.figure.is_messianic_line)
       .append('circle')
       .attr('class', 'gen-star')
       .attr('r', (d) => 2 + 1.5 * progressOf(d.data.slug))
-      .attr('fill', '#e6eeff')
+      .attr('fill', sky.starSide)
       .attr('opacity', (d) => 0.55 + 0.45 * progressOf(d.data.slug))
 
     /* 라벨 — 별 우측. 이름 + 세대, 아래에 역할 */
@@ -397,7 +451,7 @@ export const GenealogyTree = ({
       .attr('font-weight', (d) => (d.data.figure.is_messianic_line ? 700 : 500))
       .attr('letter-spacing', '-0.02em')
       .attr('fill', (d) =>
-        isJesus(d.data.figure) ? '#fff3c4' : d.data.figure.is_messianic_line ? '#f4f8ff' : 'rgba(255,255,255,0.72)',
+        isJesus(d.data.figure) ? sky.nameJesus : d.data.figure.is_messianic_line ? sky.name : sky.nameSide,
       )
       .attr('opacity', (d) => (d.data.figure.is_messianic_line ? 0.75 + 0.25 * progressOf(d.data.slug) : 0.85))
       .text((d) => d.data.figure.name_ko)
@@ -415,7 +469,7 @@ export const GenealogyTree = ({
         .attr('font-size', 10)
         .attr('font-weight', 500)
         .attr('letter-spacing', '0.04em')
-        .attr('fill', ltype === 'mother' ? 'rgba(244,114,182,0.85)' : 'rgba(255,255,255,0.38)')
+        .attr('fill', ltype === 'mother' ? sky.genMother : sky.gen)
         .text(`${ltype === 'mother' ? '母 ' : ''}${d.depth + 1}대`)
     })
 
@@ -426,7 +480,7 @@ export const GenealogyTree = ({
       .attr('font-size', (d) => (isJesus(d.data.figure) ? 12 : 11))
       .attr('font-weight', 400)
       .attr('letter-spacing', '-0.01em')
-      .attr('fill', (d) => (isJesus(d.data.figure) ? 'rgba(255,236,180,0.8)' : 'rgba(255,255,255,0.45)'))
+      .attr('fill', (d) => (isJesus(d.data.figure) ? sky.roleJesus : sky.role))
       .text((d) => {
         const t = roleText(d.data.figure)
         return t.length > 16 ? `${t.slice(0, 15)}…` : t
@@ -445,7 +499,7 @@ export const GenealogyTree = ({
         spouseLayer
           .append('line')
           .attr('x1', x + 6).attr('y1', y).attr('x2', d.x - 8).attr('y2', d.y)
-          .attr('stroke', 'rgba(244,114,182,0.55)')
+          .attr('stroke', sky.spouseLine)
           .attr('stroke-width', 1)
           .attr('stroke-dasharray', '1 4')
           .attr('stroke-linecap', 'round')
@@ -459,13 +513,15 @@ export const GenealogyTree = ({
             event.stopPropagation()
             onSelect(sp.slug)
           })
+          .on('pointerenter', () => onHover?.(sp.slug))
+          .on('touchstart', () => onHover?.(sp.slug), { passive: true })
         if (spMatched) {
           grp
             .append('circle')
             .attr('class', 'gen-match-ring')
             .attr('r', 11)
-            .attr('fill', 'rgba(244,114,182,0.10)')
-            .attr('stroke', 'rgba(244,114,182,0.75)')
+            .attr('fill', sky.matchFill)
+            .attr('stroke', sky.spouseRing)
             .attr('stroke-width', 1)
             .attr('stroke-dasharray', '2 3')
         }
@@ -474,8 +530,8 @@ export const GenealogyTree = ({
         grp
           .append('circle')
           .attr('r', (spMatched ? 3.4 : 2.2) + 1.2 * progressOf(sp.slug))
-          .attr('fill', '#ffd6ea')
-          .attr('stroke', sp.slug === selectedSlug ? '#9cc4ff' : 'none')
+          .attr('fill', sky.spouseStar)
+          .attr('stroke', sp.slug === selectedSlug ? sky.selectRing : 'none')
           .attr('stroke-width', 1.5)
         grp
           .append('text')
@@ -486,7 +542,7 @@ export const GenealogyTree = ({
           .attr('font-size', spMatched ? 13.5 : 12)
           .attr('font-weight', spMatched ? 700 : 500)
           .attr('letter-spacing', '-0.01em')
-          .attr('fill', spMatched ? '#ffe3f0' : 'rgba(255,214,234,0.85)')
+          .attr('fill', spMatched ? sky.spouseTextMatch : sky.spouseText)
           .attr('pointer-events', 'none')
           .text(sp.name_ko)
       })
@@ -533,7 +589,7 @@ export const GenealogyTree = ({
         }
       }
     }
-  }, [root, selectedSlug, readingProgress, isLoggedIn, onSelect, parentLinkType, theme, highlightSlugs])
+  }, [root, selectedSlug, readingProgress, isLoggedIn, onSelect, onHover, parentLinkType, sky, highlightSlugs])
 
   if (!root) {
     return (

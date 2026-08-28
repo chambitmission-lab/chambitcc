@@ -1,5 +1,6 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { useBibleFigureDetail } from '../../../../hooks/useBibleFigure'
+import { useBibleFigureDetail, usePrefetchBibleFigure } from '../../../../hooks/useBibleFigure'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import type { BibleFigureSummary } from '../../../../types/bibleFigure'
 
@@ -9,6 +10,8 @@ interface FigureDetailPanelProps {
   onClose: () => void
   /** 'card' (기본): 우측 사이드 카드 / 'sheet': 모바일 슬라이드업 시트 */
   variant?: 'card' | 'sheet'
+  /** 가계도에서 이미 알고 있는 요약 — 상세 로딩 전 헤더·한 줄 소개를 즉시 그린다 */
+  summary?: BibleFigureSummary | null
 }
 
 export const FigureDetailPanel = ({
@@ -16,8 +19,16 @@ export const FigureDetailPanel = ({
   onSelect,
   onClose,
   variant = 'card',
+  summary,
 }: FigureDetailPanelProps) => {
-  const { data, isLoading, error } = useBibleFigureDetail(slug)
+  const { data, isLoading, error, isPlaceholderData } = useBibleFigureDetail(slug, summary)
+  const prefetch = usePrefetchBibleFigure()
+
+  // 상세가 오면 부모·배우자·자녀(다음 클릭 후보)를 미리 받아둔다
+  useEffect(() => {
+    if (!data || isPlaceholderData) return
+    ;[...data.parents, ...data.spouses, ...data.children].forEach((f) => prefetch(f.slug))
+  }, [data, isPlaceholderData, prefetch])
 
   // 모바일 시트로 열린 경우만 뒤로가기 → 시트 닫기 (데스크탑 사이드 카드는 제외)
   useModalBackButton(onClose, variant === 'sheet' && !!slug)
@@ -175,10 +186,33 @@ export const FigureDetailPanel = ({
           </div>
         )}
 
-        {data.description_long && (
-          <p className="text-[14px] leading-[1.75] text-gray-700 dark:text-white/80 mb-6 whitespace-pre-line">
-            {data.description_long}
-          </p>
+        {isPlaceholderData ? (
+          <div className="fig-body-in">
+            {data.description_short && (
+              <p className="text-[14px] leading-[1.75] text-gray-700 dark:text-white/80 mb-4">
+                {data.description_short}
+              </p>
+            )}
+            <div className="space-y-2.5 animate-pulse" aria-hidden>
+              <div className="h-3.5 w-full bg-gray-100 dark:bg-white/[0.06] rounded" />
+              <div className="h-3.5 w-11/12 bg-gray-100 dark:bg-white/[0.06] rounded" />
+              <div className="h-3.5 w-4/5 bg-gray-100 dark:bg-white/[0.06] rounded" />
+              <div className="h-3.5 w-2/3 bg-gray-100 dark:bg-white/[0.06] rounded" />
+            </div>
+            <div className="mt-6 flex gap-1.5 animate-pulse" aria-hidden>
+              <div className="h-7 w-16 bg-gray-100 dark:bg-white/[0.06] rounded-full" />
+              <div className="h-7 w-14 bg-gray-100 dark:bg-white/[0.06] rounded-full" />
+            </div>
+            <p className="mt-6 text-[11.5px] text-gray-400 dark:text-white/35">
+              이야기와 대표 구절을 불러오는 중…
+            </p>
+          </div>
+        ) : (
+          data.description_long && (
+            <p className="fig-body-in text-[14px] leading-[1.75] text-gray-700 dark:text-white/80 mb-6 whitespace-pre-line">
+              {data.description_long}
+            </p>
+          )
         )}
 
         {renderRelations('부모', data.parents)}
@@ -186,7 +220,7 @@ export const FigureDetailPanel = ({
         {renderRelations('자녀', data.children)}
 
         {data.key_verses && data.key_verses.length > 0 && (
-          <div className="mt-5">
+          <div className="mt-5 fig-body-in">
             <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-gray-400 dark:text-white/40 mb-2.5">
               대표 구절
             </div>
