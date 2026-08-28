@@ -1,4 +1,5 @@
 // React Query를 사용한 Prayer 데이터 관리
+import { useEffect, useRef } from 'react'
 import { useMutation, useQueryClient, useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import {
   fetchPrayers,
@@ -14,6 +15,7 @@ import { showToast } from '../utils/toast'
 import type { PrayerListCache } from '../types/queryCache'
 import { getCurrentUser } from '../utils/auth'
 import { createRetry } from '../config/queryClient'
+import { refetchIfFewPages, trimInfiniteQuery } from '../utils/infiniteQueryTrim'
 import type { SortType, Prayer, CreatePrayerRequest, PrayerFilterType } from '../types/prayer'
 
 // Query Keys - 사용자별로 다른 캐시 사용
@@ -55,9 +57,11 @@ export const usePrayersInfinite = (
   const requiresAuth = filter === 'my_prayers' || filter === 'prayed_by_me'
   const isAuthenticated = !!currentUser.username
 
+  const infiniteListKey = prayerKeys.list(sort, groupId, filter, currentUser.username, isAnswered)
+
   // 무한 스크롤 쿼리
   const query = useInfiniteQuery({
-    queryKey: prayerKeys.list(sort, groupId, filter, currentUser.username, isAnswered),
+    queryKey: infiniteListKey,
     queryFn: async ({ pageParam = 1 }) => {
       const response = await fetchPrayers(pageParam, 20, sort, groupId, filter, isAnswered)
       
@@ -87,10 +91,27 @@ export const usePrayersInfinite = (
     // 캐시를 즉시 그리되 stale이면 백그라운드 재조회 — persist로 복원된
     // 지난 세션 목록의 is_prayed 가 액션 전까지 안 갱신되던 문제 방지.
     // (PWA 백그라운드 복귀는 remount 가 아니라 focus 로만 감지된다)
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    // 단, 무한 쿼리 refetch 는 받은 페이지 전부를 순차 재요청한다 — 10페이지 내려간 뒤
+    // 탭 복귀 = 10번 왕복. 페이지가 적을 때만 자동 갱신하고, 깊이 내려간 목록은 그대로 둔다
+    // (반응 카운트는 SSE 가 실시간으로 맞추고, is_prayed 는 다음 마운트 때 새로 받는다).
+    refetchOnMount: refetchIfFewPages(2),
+    refetchOnWindowFocus: refetchIfFewPages(2),
     retry: createRetry(2), // 전역(1회)보다 여유 있게 재시도
   })
+
+  // 지난 세션에서 깊이 내려간 목록이 persist 로 복원되면 첫 마운트(맨 위)에서
+  // 앞 페이지만 남기고 잘라 한 번만 새로 받는다 — 위 판정이 막은 "전부 재요청"의 대안
+  const trimmedRef = useRef(false)
+  useEffect(() => {
+    if (trimmedRef.current) return
+    trimmedRef.current = true
+    const pages = (queryClient.getQueryData(infiniteListKey) as { pages?: unknown[] } | undefined)?.pages
+    if (pages && pages.length > 2) {
+      trimInfiniteQuery(queryClient, infiniteListKey, 1)
+      void queryClient.invalidateQueries({ queryKey: infiniteListKey, exact: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 첫 마운트 1회
+  }, [])
 
   // 기도 토글 훅 사용 (Dependency Inversion)
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({

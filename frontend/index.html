@@ -166,22 +166,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- Pretendard Font (MZ세대 선호 폰트) -->
-    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <!-- Pretendard Font — dynamic-subset: unicode-range 로 쪼갠 조각만 받는다
+         (static 빌드는 웨이트당 전체 한글 글리프 ~1MB 를 첫 화면에서 통째로 내려받았다) -->
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
 
     <!-- Material Icons — display=block: 폰트 도착 전 리가처 원문("more_vert" 등)이
          텍스트로 그려져 레이아웃을 밀어내는 것을 막는다(로드 중엔 투명 처리) -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined&display=block" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round&display=block" rel="stylesheet">
 
+    <!-- 아래 세 폰트는 일부 화면(프로필 스탯·명조 읽기·타임캡슐 캡션)만 쓰는 니치 서체라
+         첫 렌더를 막지 않게 media="print" 로 비차단 요청 → 도착하면 all 로 전환한다.
+         (display=swap 이라 늦게 와도 폴백 → 교체만 일어난다) -->
     <!-- Orbitron — 프로필 카드 스탯/시리얼 넘버용 스코어보드 폰트 -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
     <!-- Noto Serif KR — 성경 읽기 Aa 설정의 '명조' 서체 (적용 전에는 다운로드되지 않음) -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
     <!-- Nanum Pen Script — 타임캡슐 폴라로이드 손글씨 캡션 (펜으로 쓴 손편지 느낌) -->
-    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
     <!-- SEO: 검색 노출용 메타. 지역명(부천·상동)을 제목/설명에 포함해
          "부천참빛교회" 검색에 매칭되도록 한다. canonical은 HashRouter 특성상 루트로 고정. -->

@@ -23,14 +23,18 @@ type Phase = 'idle' | 'pulling' | 'refreshing' | 'done'
     조상 중 스크롤이 내려가 있거나(fixed 오버레이 포함) 문서가 최상단이 아니면 금지.
     fixed 조상 검사로 헤더·모달·바텀시트 안에서의 오발동을 막는다. */
 function canStartPull(target: EventTarget | null): boolean {
+  // 문서가 최상단이 아니면 조상 순회 자체가 필요 없다 — 가장 흔한 경우를 먼저 자른다
+  if ((document.documentElement.scrollTop || 0) !== 0) return false
   if (!(target instanceof Element)) return false
   let el: Element | null = target
   while (el && el !== document.documentElement) {
     if (el.scrollTop > 0) return false
+    // getComputedStyle 은 요소마다 강제 스타일 계산을 일으킨다 — 스크롤이 내려간 조상이
+    // 없을 때만(위에서 걸러짐) 여기 도달하므로 비용이 제스처당 한 번으로 제한된다
     if (window.getComputedStyle(el).position === 'fixed') return false
     el = el.parentElement
   }
-  return (document.documentElement.scrollTop || 0) === 0
+  return true
 }
 
 export default function PullToRefresh() {
@@ -129,10 +133,30 @@ export default function PullToRefresh() {
       startY = e.touches[0].clientY
     }
 
+    // touchmove 는 기본적으로 passive 로 듣는다 — non-passive 전역 리스너는 모든 화면의
+    // 모든 스크롤을 JS 핸들러가 끝날 때까지 붙잡아 "스크롤이 늦게 시작되는" 원인이 된다.
+    // preventDefault 가 필요한 건 최상단에서 실제로 당기는 동안뿐이므로, 그때만
+    // non-passive 리스너를 잠깐 달았다가 제스처가 끝나면 뗀다.
+    let activeMoveAttached = false
+    const onActiveMove = (e: TouchEvent) => {
+      if (pulling && e.cancelable) e.preventDefault()
+    }
+    const attachActiveMove = () => {
+      if (activeMoveAttached) return
+      activeMoveAttached = true
+      window.addEventListener('touchmove', onActiveMove, { capture: true, passive: false })
+    }
+    const detachActiveMove = () => {
+      if (!activeMoveAttached) return
+      activeMoveAttached = false
+      window.removeEventListener('touchmove', onActiveMove, { capture: true })
+    }
+
     const onTouchMove = (e: TouchEvent) => {
       if (!tracking) return
       if (e.touches.length !== 1) {
         tracking = false
+        detachActiveMove()
         if (pulling) collapse()
         return
       }
@@ -146,20 +170,23 @@ export default function PullToRefresh() {
         }
         if (dy < 8) return
         pulling = true
+        attachActiveMove()
         setPhase('pulling')
       }
       if (dy <= 0) {
         tracking = false
         pulling = false
+        detachActiveMove()
         collapse()
         return
       }
       // 최상단에서 아래로 당기는 중일 때만 기본 스크롤(iOS 바운스 등)을 막는다
-      if (e.cancelable) e.preventDefault()
+      // (이 리스너는 passive 라 여기선 못 막고, onActiveMove 가 대신 막는다)
       paint(dy)
     }
 
     const onTouchEnd = () => {
+      detachActiveMove()
       if (!tracking) return
       tracking = false
       if (!pulling) return
@@ -170,12 +197,13 @@ export default function PullToRefresh() {
 
     // capture: 페이지 컴포넌트가 stopPropagation해도 제스처 추적이 끊기지 않게
     window.addEventListener('touchstart', onTouchStart, { capture: true, passive: true })
-    window.addEventListener('touchmove', onTouchMove, { capture: true, passive: false })
+    window.addEventListener('touchmove', onTouchMove, { capture: true, passive: true })
     window.addEventListener('touchend', onTouchEnd, { capture: true })
     window.addEventListener('touchcancel', onTouchEnd, { capture: true })
     return () => {
       window.removeEventListener('touchstart', onTouchStart, { capture: true })
       window.removeEventListener('touchmove', onTouchMove, { capture: true })
+      detachActiveMove()
       window.removeEventListener('touchend', onTouchEnd, { capture: true })
       window.removeEventListener('touchcancel', onTouchEnd, { capture: true })
     }

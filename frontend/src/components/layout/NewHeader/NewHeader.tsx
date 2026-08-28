@@ -1,11 +1,27 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
 import { preloadMenuRoutes } from '../../../utils/routePreload'
 import NotificationModal from '../../common/NotificationModal'
 import Logo from './components/Logo'
-import DesktopNav from './components/DesktopNav'
+// PC(lg+) 전용 메뉴 — framer-motion(layoutId 투영 엔진 ~120KB)을 끌고 오므로
+// 엔트리 청크에서 떼어 lg 이상 화면에서만 내려받는다. 모바일 사용자는 영영 받지 않는다.
+// (vite.config.ts manualChunks 의 "lazy 전용 패키지" 규칙을 지키는 유일한 방법)
+const DesktopNav = lazy(() => import('./components/DesktopNav'))
+
+const useIsDesktop = (): boolean => {
+  const [isDesktop, setIsDesktop] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const onChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return isDesktop
+}
 import { SearchCapsule } from '../../command/SearchTrigger'
 import HeaderActions from './components/HeaderActions'
 import MobileMenu from './components/MobileMenu'
@@ -18,6 +34,7 @@ import './NewHeader.css'
 
 const NewHeader = () => {
   const { t } = useLanguage()
+  const isDesktop = useIsDesktop()
   const navigate = useNavigate()
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   
@@ -93,7 +110,11 @@ const NewHeader = () => {
               railVisible ? 'left-[calc(50%+38px)] xl:left-[calc(50%+124px)]' : 'left-1/2'
             }`}
           >
-            <DesktopNav />
+            {isDesktop && (
+              <Suspense fallback={null}>
+                <DesktopNav />
+              </Suspense>
+            )}
             {/* ⌘K 검색 캡슐 — 메뉴·설교·성구·참비를 한 입력창에서 */}
             <SearchCapsule />
             {/* 전체 메뉴 버튼은 뺐다 — 4축 드롭다운이 교회 안내 페이지를 전부 담고,

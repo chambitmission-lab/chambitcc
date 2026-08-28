@@ -7,6 +7,7 @@ import {
   markAllAsRead,
 } from '../api/notification'
 import { notificationStream } from '../utils/notificationStream'
+import { refetchIfFewPages } from '../utils/infiniteQueryTrim'
 
 const PAGE_SIZE = 20
 
@@ -34,7 +35,9 @@ export const useNotifications = () => {
       lastPage.has_next ? lastPage.page + 1 : undefined,
     enabled: !!token,
     staleTime: 0,
-    refetchOnMount: true,
+    // 헤더·레일·모달 세 곳이 마운트하는 쿼리 — 모달을 열 때마다 내려간 페이지 전부를
+    // 순차 재요청하지 않게, 페이지가 적을 때만 마운트 갱신 (실시간은 SSE 가 담당)
+    refetchOnMount: refetchIfFewPages(2),
     refetchInterval: () => (notificationStream.connected ? false : 1000 * 60 * 5),
     refetchOnWindowFocus: false,
   })

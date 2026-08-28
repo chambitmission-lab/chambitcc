@@ -9,6 +9,7 @@ import { API_V1 } from '../config/api'
 import { streamSSE } from '../api/sse'
 import type { Prayer } from '../types/prayer'
 import type { PrayerListCache } from '../types/queryCache'
+import { trimInfiniteQuery } from './infiniteQueryTrim'
 
 const INITIAL_RETRY_MS = 5_000
 const MAX_RETRY_MS = 60_000
@@ -41,8 +42,11 @@ class NotificationStreamManager {
   }
 
   private invalidate(): void {
-    // notificationKeys.all과 동일한 키 — hooks 모듈과의 순환 import를 피해 리터럴 사용
-    this.queryClient?.invalidateQueries({ queryKey: ['notifications'] })
+    if (!this.queryClient) return
+    // notificationKeys.all과 동일한 키 — hooks 모듈과의 순환 import를 피해 리터럴 사용.
+    // 무한 목록은 invalidate 시 받은 페이지 전부를 순차 재요청하므로 앞 2페이지만 남기고 자른다
+    trimInfiniteQuery(this.queryClient, ['notifications', 'infinite'], 2)
+    this.queryClient.invalidateQueries({ queryKey: ['notifications'] })
   }
 
   /** 다른 사용자의 기도 반응/댓글 — 캐시된 카운트만 서버 값으로 동기화한다.

@@ -118,10 +118,29 @@ export const preloadMenuRoutes = async (): Promise<void> => {
   }
 }
 
+// 로그인 직후 유휴 시간에 미리 받아둘 "다음에 갈 확률이 높은" 곳만 — 하단 네비 3개 +
+// 홈에서 한 탭 거리인 화면. 25개 메뉴 청크(~1MB)를 통째로 받으면 홈 API 요청과
+// 대역폭을 다투고 모바일 데이터를 태운다. 나머지는 메뉴를 여는 순간(preloadMenuRoutes)
+// 이나 링크 호버/터치 때 받는다.
+const IDLE_PRELOAD_ROUTES = [...NAV_ROUTES, '/events', '/news', '/groups', '/growth']
+
+const preloadLikelyRoutes = async (): Promise<void> => {
+  if (!localStorage.getItem('access_token')) {
+    for (const path of PUBLIC_MENU_ROUTES) {
+      await preloadRoute(path)
+    }
+    return
+  }
+  await preloadNavRoutes()
+  for (const path of IDLE_PRELOAD_ROUTES) {
+    await preloadRoute(path)
+  }
+}
+
 // 첫 화면 렌더가 끝난 뒤 브라우저 유휴 시간에 미리 받아두기
 export const schedulePreloadOnIdle = (): void => {
   const run = () => {
-    void preloadMenuRoutes()
+    void preloadLikelyRoutes()
   }
   if (typeof window.requestIdleCallback === 'function') {
     window.requestIdleCallback(run, { timeout: 5000 })
