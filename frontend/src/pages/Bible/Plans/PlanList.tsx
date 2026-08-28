@@ -8,7 +8,7 @@ import { useBiblePlans, useTodayReadings } from '../../../hooks/useBiblePlan'
 import type { PlanSummary, TodayReading } from '../../../types/biblePlan'
 import { isAuthenticated } from '../../../utils/auth'
 import { accentGradient, gradientTextStyle, planHashtags } from './planVisuals'
-import { planCover } from './planCovers'
+import { planCover, planCoverFocus } from './planCovers'
 import {
   CloudOffIcon,
   DoveIcon,
@@ -582,6 +582,9 @@ const PlanVisual = ({
   // 실제 커버 그림이 있으면 배경으로 — 수채 일러스트라 틴트는 아주 옅게만 얹는다
   if (cover) {
     const thumb = size === 'thumb'
+    // 3:2 원본을 5:4로 자르면 폭의 17%만 잘려 왼쪽 빈 안개가 그대로 남는다.
+    // 초점을 기준으로 살짝 당겨(zoom) 주인공이 카드를 채우게 한다.
+    const focus = planCoverFocus(plan.slug)
     return (
       <div className="relative h-full w-full overflow-hidden bg-gray-100 dark:bg-white/5">
         <img
@@ -589,6 +592,11 @@ const PlanVisual = ({
           alt=""
           loading="lazy"
           className="absolute inset-0 h-full w-full object-cover"
+          style={{
+            objectPosition: focus,
+            transform: `scale(${thumb ? 1.15 : 1.3})`,
+            transformOrigin: focus,
+          }}
         />
         {/* 브랜드 틴트(블루, 저채도) — 그림마다 다른 색감을 하나의 톤으로 묶는다 */}
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(49,130,246,0.14),rgba(96,165,250,0.06))] mix-blend-multiply" />

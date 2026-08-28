@@ -8,10 +8,15 @@
 }
 
 @keyframes sparkle-pulse {
-  0%, 100% { opacity: 0.85; transform: scale(1); }
+  0%, 100% { opacity: 0.8; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.08); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .answered-sparkle { animation: none; }
+}
+
+/* 은혜 3행 클레이 아이콘 — 아래로 살짝 떨어지는 그림자로 칩 위에 "올려진" 느낌 */
+.grace-clay {
+  filter: drop-shadow(0 1.5px 1px rgba(0, 0, 0, 0.14));
 }

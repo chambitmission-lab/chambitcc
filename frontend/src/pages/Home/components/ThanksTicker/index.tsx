@@ -4,6 +4,7 @@ import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useAuth } from '../../../../hooks/useAuth'
 import { THANKS_EMOTIONS } from '../../../../types/thanks'
 import { ThanksIcon } from '../../../../components/icons/ThanksIcons'
+import { GraceIcon } from '../../../../components/icons/GraceIcons'
 import { useThanks } from '../ThanksThread/useThanks'
 import ThanksComposer from '../ThanksThread/ThanksComposer'
 import { PencilIcon } from '../../../../components/icons/ActionIcons'
@@ -50,9 +51,7 @@ const ThanksTicker = () => {
               className="w-8 h-8 rounded-[10px] bg-[rgba(236,95,143,0.12)] flex items-center justify-center shrink-0"
               aria-hidden
             >
-              <span className="material-icons-round text-[17px] text-[#ec5f8f]">
-                volunteer_activism
-              </span>
+              <GraceIcon name="thanksJar" className="text-[#ec5f8f] grace-clay" />
             </span>
             <span className="text-xs font-bold text-[var(--text-strong)] whitespace-nowrap shrink-0">
               {language === 'ko' ? '오늘의 감사 한 줄' : "Today's Gratitude"}

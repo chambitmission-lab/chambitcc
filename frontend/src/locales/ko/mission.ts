@@ -4,7 +4,7 @@ export const mission = {
   missionHeroTitleLine2: '복음의 빛을',
   missionHeroVerse:
     '"오직 성령이 너희에게 임하시면 너희가 권능을 받고 예루살렘과 온 유대와 사마리아와 땅 끝까지 이르러 내 증인이 되리라"',
-  missionHeroVerseRef: '— 사도행전 1:8',
+  missionHeroVerseRef: '– 사도행전 1:8',
   missionStatDispatched: '파송 선교사',
   missionStatDispatchedDesc: '세계 곳곳에서 복음을 전하고 계십니다.',
   missionStatCountries: '사역 국가',

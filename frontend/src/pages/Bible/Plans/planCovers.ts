@@ -15,5 +15,19 @@ export const PLAN_COVERS: Record<string, string> = {
   'bible-365': bibleCover, // 성경책 펼친 손 — 통독
 }
 
+// 크롭 기준점(object-position) — 5장 모두 왼쪽 40%가 빈 안개(카피 공간)이고
+// 주인공(새싹·십자가·강줄기·비둘기·성경책)이 오른쪽에 있는 그림이라,
+// 가운데를 자르면 카드 절반이 빈 안개로 채워진다. 그림마다 주인공 위치로 맞춘다.
+export const PLAN_COVER_FOCUS: Record<string, string> = {
+  'intro-7': '74% 62%', // 새싹 (우하)
+  'john-30': '80% 46%', // 언덕 위 십자가 (우중)
+  'overview-90': '72% 56%', // 굽이치는 강·해돋이 (우중하)
+  'nt-120': '76% 38%', // 나는 비둘기 (우상)
+  'bible-365': '72% 66%', // 펼친 성경 (우하)
+}
+
 export const planCover = (slug?: string | null): string | undefined =>
   slug ? PLAN_COVERS[slug] : undefined
+
+export const planCoverFocus = (slug?: string | null): string =>
+  (slug && PLAN_COVER_FOCUS[slug]) || '70% 50%'

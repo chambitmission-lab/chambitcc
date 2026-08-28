@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { fetchPrayers } from '../../../api/prayer'
 import { ChevronRightIcon } from '../../../components/icons/ActionIcons'
+import { GraceIcon } from '../../../components/icons/GraceIcons'
 import './AnsweredPrayersBanner.css'
 
 const AnsweredPrayersBanner = () => {
@@ -32,7 +33,7 @@ const AnsweredPrayersBanner = () => {
         className="w-8 h-8 rounded-[10px] bg-[rgba(234,179,8,0.14)] flex items-center justify-center shrink-0"
         aria-hidden
       >
-        <span className="answered-sparkle text-[15px]">✨</span>
+        <GraceIcon name="openDoor" className="answered-sparkle text-[#d9a514] grace-clay" />
       </span>
       <span className="text-xs font-bold text-[var(--text-strong)] whitespace-nowrap shrink-0">
         응답의 전당

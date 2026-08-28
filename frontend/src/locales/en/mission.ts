@@ -4,7 +4,7 @@ export const mission = {
   missionHeroTitleLine2: 'With the Light of the Gospel',
   missionHeroVerse:
     '"But you will receive power when the Holy Spirit comes on you; and you will be my witnesses in Jerusalem, and in all Judea and Samaria, and to the ends of the earth."',
-  missionHeroVerseRef: '— Acts 1:8',
+  missionHeroVerseRef: '– Acts 1:8',
   missionStatDispatched: 'Missionaries Sent',
   missionStatDispatchedDesc: 'Sharing the gospel all around the world.',
   missionStatCountries: 'Countries',

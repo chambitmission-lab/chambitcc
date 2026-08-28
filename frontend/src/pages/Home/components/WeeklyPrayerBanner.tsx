@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getCurrentWeeklyPrayer } from '../../../api/weeklyPrayer'
 import { ChevronRightIcon } from '../../../components/icons/ActionIcons'
+import { GraceIcon } from '../../../components/icons/GraceIcons'
 
 const ROTATE_MS = 4200
 
@@ -43,10 +44,10 @@ const WeeklyPrayerBanner = () => {
       aria-label="공동 기도제목 — 이번 주 교회가 함께 드리는 기도"
     >
       <span
-        className="w-8 h-8 rounded-[10px] bg-[var(--brand-soft-strong)] flex items-center justify-center text-[15px] shrink-0"
+        className="w-8 h-8 rounded-[10px] bg-[var(--brand-soft-strong)] text-brand flex items-center justify-center shrink-0"
         aria-hidden
       >
-        🙏
+        <GraceIcon name="candles" className="grace-clay" />
       </span>
       <span className="text-xs font-bold text-[var(--text-strong)] whitespace-nowrap shrink-0">
         공동 기도제목
