@@ -14,7 +14,7 @@
 
 .meditation-card {
   position: relative;
-  border-radius: 16px;
+  border-radius: 24px;
   padding: 0; /* 히어로가 카드 상단에 풀블리드로 붙는다 — 본문 여백은 .meditation-body */
   overflow: hidden;
   border: 1px solid var(--card-border);
@@ -35,7 +35,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  min-height: 192px;
+  min-height: 236px;
   /* 텍스트가 늘어나는 날(우산 속삭임 등)의 안전 상한 — 우상단 날씨 칩
    * (top 17 + 높이 30) 아래 최소 이만큼은 하늘로 남기고, 넘치면 fixed
    * 높이 대신 히어로가 내용만큼만 자란다. 넓은 화면(속삭임 한 줄)에서
@@ -271,13 +271,13 @@
   /* 페이드가 시작되기 전, 사진이 아직 선명한 구간에 앉힌다.
    * 좌우 여백은 본문(.meditation-body 18px)보다 2px 넉넉하게 — 사진 위 글자는
    * 배경과 붙으면 실제 여백보다 더 좁아 보인다. */
-  margin: 0 20px 56px;
+  margin: 0 20px 18px;
 }
 
 .meditation-hero-greeting {
   /* 인사말과 헤드라인이 붙어 한 덩어리로 뭉치지 않게 한 줄 사이를 벌린다 */
-  margin: 0 0 6px;
-  font-size: 12.5px;
+  margin: 0 0 8px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: rgba(255, 255, 255, 0.88);
@@ -302,29 +302,31 @@
 
 .meditation-hero-headline {
   margin: 0;
-  font-size: 19px;
-  line-height: 1.35;
+  font-size: 24px;
+  line-height: 1.32;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   word-break: keep-all;
   color: #ffffff;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
-/* ── 본문 영역 (기존 카드 콘텐츠) ── */
+/* ── 본문 영역 — 사진 위로 올라앉는 둥근 화이트 패널 ──
+ * 사진 페이드는 유지하되, 본문은 자체 표면(카드 배경)을 가진 라운드 시트로
+ * 사진 하단을 덮고 올라온다 (시안: 사진 → 둥근 카드 겹침). */
 .meditation-body {
-  padding: 14px 18px 18px;
+  position: relative;
+  z-index: 1;
+  margin-top: -22px;
+  padding: 18px 18px 18px;
+  border-radius: 24px 24px 0 0;
+  background: #fff;
+  box-shadow: 0 -8px 24px -12px rgba(15, 23, 42, 0.18);
 }
-
-/* 마스크 페이드를 지원하면 본문 첫 행을 소멸 구간 위로 끌어올려 겹친다 */
-@supports (mask-image: linear-gradient(black, transparent)) or
-  (-webkit-mask-image: linear-gradient(black, transparent)) {
-  .meditation-body {
-    position: relative;
-    z-index: 1;
-    margin-top: -44px;
-    padding-top: 0;
-  }
+.dark .meditation-body {
+  /* 홈의 --card-bg는 5% 알파라 패널로 못 쓴다 — 솔리드 다크 표면 */
+  background: #232222;
+  box-shadow: 0 -8px 24px -12px rgba(0, 0, 0, 0.5);
 }
 
 /* ── 시간대별 tint — 값은 테마 토큰(--tint-*)이 결정 ── */
@@ -346,13 +348,15 @@
     var(--glass-bg);
 }
 
-/* ── 메타 행 (절기·진도 태그 + 공유 버튼) ──── */
+/* ── 메타 행 (절기 태그 + 알람) — 히어로 사진 하단에 얹히는 유리 칩 행 ── */
 .meditation-meta-row {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  /* 본문 패널(-22px)이 덮고 올라오는 만큼 여유를 둔다 */
+  margin: 0 18px 36px 20px;
 }
 
 /* 주일 우산 안내 — 본문 맨 위 한 줄. 주간 예보를 펼치는 대신
@@ -553,77 +557,52 @@
 }
 
 .meditation-season-tag {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  padding: 3.5px 10px;
+  padding: 6px 14px;
   border-radius: 999px;
   white-space: nowrap;
-  background: var(--brand-soft-strong);
-  border: 1px solid var(--card-border);
-  color: var(--brand);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
-/* 교회력 절기별 액센트 컬러 — 아래 절기 리본과 같은 팔레트로 통일 */
-.meditation-season-tag[data-season="advent"] {
-  background: rgba(129, 140, 248, 0.14);
-  border-color: rgba(129, 140, 248, 0.35);
-  color: #a5b4fc;
-}
-.meditation-season-tag[data-season="christmas"] {
-  background: rgba(252, 211, 77, 0.14);
-  border-color: rgba(252, 211, 77, 0.38);
-  color: #fde68a;
-}
-.meditation-season-tag[data-season="epiphany"] {
-  background: rgba(125, 211, 252, 0.12);
-  border-color: rgba(125, 211, 252, 0.32);
-  color: #7dd3fc;
-}
-.meditation-season-tag[data-season="lent"] {
-  background: rgba(192, 132, 252, 0.13);
-  border-color: rgba(192, 132, 252, 0.32);
-  color: #d8b4fe;
-}
-.meditation-season-tag[data-season="easter"] {
-  background: rgba(251, 191, 36, 0.14);
-  border-color: rgba(251, 191, 36, 0.38);
-  color: #fcd34d;
-}
-.meditation-season-tag[data-season="ordinary"] {
-  background: rgba(52, 211, 153, 0.13);
-  border-color: rgba(110, 231, 183, 0.35);
-  color: #6ee7b7;
-}
-
-[data-theme="light"] .meditation-season-tag[data-season="advent"] { color: #4338ca; background: rgba(99, 102, 241, 0.1); }
-[data-theme="light"] .meditation-season-tag[data-season="christmas"],
-[data-theme="light"] .meditation-season-tag[data-season="easter"] { color: #854d0e; background: rgba(234, 179, 8, 0.14); }
-[data-theme="light"] .meditation-season-tag[data-season="epiphany"] { color: #075985; background: rgba(14, 165, 233, 0.1); }
-[data-theme="light"] .meditation-season-tag[data-season="lent"] { color: #7e22ce; background: rgba(168, 85, 247, 0.1); }
-[data-theme="light"] .meditation-season-tag[data-season="ordinary"] { color: #065f46; background: rgba(16, 185, 129, 0.1); }
+/* 교회력 절기별 액센트 — 사진 위에 앉으므로 테마와 무관하게
+ * 파스텔 채움 + 진한 글자(시안의 '활동' 칩). 팔레트는 아래 절기 리본과 동일 계열 */
+.meditation-season-tag[data-season="advent"] { background: rgba(224, 231, 255, 0.92); border-color: rgba(165, 180, 252, 0.6); color: #3730a3; }
+.meditation-season-tag[data-season="christmas"] { background: rgba(254, 243, 199, 0.92); border-color: rgba(252, 211, 77, 0.6); color: #854d0e; }
+.meditation-season-tag[data-season="epiphany"] { background: rgba(224, 242, 254, 0.92); border-color: rgba(125, 211, 252, 0.6); color: #075985; }
+.meditation-season-tag[data-season="lent"] { background: rgba(243, 232, 255, 0.92); border-color: rgba(192, 132, 252, 0.6); color: #6b21a8; }
+.meditation-season-tag[data-season="easter"] { background: rgba(254, 243, 199, 0.92); border-color: rgba(251, 191, 36, 0.6); color: #92400e; }
+.meditation-season-tag[data-season="ordinary"] { background: rgba(209, 250, 229, 0.92); border-color: rgba(110, 231, 183, 0.6); color: #065f46; }
+.meditation-season-tag[data-season] { text-shadow: none; }
 
 /* ── 본문 표기 / 주제 ──────────────────── */
 .meditation-passage {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin: 18px 0 12px;
   flex-wrap: wrap;
 }
 
 /* 본문 표기는 액션(브랜드 블루)이 아닌 제목 — 원색 대신 채도를 낮춘
  * 스틸 블루로 은은하게만 물들인다 (원색 블루는 [오늘 본문 읽기] 버튼 몫) */
 .meditation-passage-label {
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--brand-muted);
+  letter-spacing: -0.03em;
+  color: var(--brand);
 }
 
 .meditation-passage-theme {
-  font-size: 10.5px;
-  padding: 2.5px 8px;
+  margin-left: auto;
+  font-size: 11.5px;
+  padding: 5px 11px;
   border-radius: 999px;
   background: var(--surface-inset);
   border: 1px solid var(--card-border);
@@ -653,18 +632,34 @@
 
 /* ── 핵심 절 — 독립된 내부 인셋 박스 ─────── */
 .meditation-verse-quote {
+  position: relative;
   margin: 0 0 12px;
-  padding: 15px 16px 13px;
-  border-radius: 12px;
-  background: var(--surface-inset);
-  border: 1px solid var(--card-border);
+  padding: 18px 20px 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--brand-soft) 0%, var(--tint-morning) 100%);
+  border: 1px solid var(--brand-soft-strong);
+}
+.dark .meditation-verse-quote {
+  background: linear-gradient(135deg, rgba(49, 130, 246, 0.16) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
+/* 큰 따옴표 글리프 — 본문 따옴표 대신 시각 기호로 */
+.meditation-verse-glyph {
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin-bottom: 8px;
+  color: var(--brand);
+  opacity: 0.85;
+}
+.meditation-verse-glyph svg { width: 100%; height: 100%; }
+
 .meditation-verse-text {
-  font-size: 15px;
-  line-height: 1.75;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-size: 17px;
+  line-height: 1.6;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   word-break: keep-all;
   color: var(--text-strong);
   margin: 0;
@@ -672,11 +667,11 @@
 
 .meditation-verse-reference {
   display: block;
-  margin-top: 10px;
-  font-size: 11.5px;
+  margin-top: 12px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-muted);
-  text-align: right;
+  color: var(--brand-muted);
+  text-align: left;
   font-style: normal;
 }
 
@@ -685,22 +680,30 @@
    점선 테두리는 '빈 자리(드롭존)'의 언어라 콘텐츠가 담기면 어색하다.
    왼쪽 세로 획 하나로 "말씀이 나에게 건네는 질문"임을 조용히 표시한다 */
 .meditation-question-block {
-  margin: 2px 2px 16px;
-  padding: 1px 4px 1px 14px;
-  border-left: 2.5px solid var(--quote-rule);
+  margin: 0 0 16px;
+  padding: 16px 18px 14px;
+  border-radius: 18px;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
 }
 
 .meditation-question-label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 10.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
+  letter-spacing: 0.01em;
+  color: var(--brand-muted);
+}
+.meditation-question-label .material-icons-round {
+  font-size: 15px;
+  color: var(--brand);
 }
 
 .meditation-question-text {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.65;
   color: var(--text-strong);
   word-break: keep-all;
@@ -719,20 +722,20 @@
   flex: 1 1 0;
   min-width: 0;
   box-sizing: border-box;
-  height: 48px;
+  height: 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 0 12px;
-  border-radius: 14px;
+  border-radius: 16px;
   /* 보조 CTA는 채움 없는 고스트 — 파란 채움은 물론 흰 채움도 주 CTA와
      같은 '덩어리'로 읽힌다. 테두리·타이포만 남기고 폭·굵기로 한 계단 내린다.
      파랑은 호버에서만. */
   border: 1px solid var(--card-border);
-  background: transparent;
+  background: var(--card-bg, transparent);
   color: var(--text-body);
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1;
   letter-spacing: -0.01em;
@@ -756,12 +759,12 @@
 .meditation-cta.is-primary {
   /* 위계는 색만이 아니라 '면적 + 굵기'로도 벌린다 — 주 CTA가 보조보다
      확실히 넓고 굵어야 시선이 한 번에 꽂힌다 */
-  flex-grow: 1.85;
+  flex-grow: 1.6;
   border-color: transparent;
   background: var(--brand-gradient);
   color: var(--on-brand);
   font-size: 14.5px;
-  font-weight: 800;
+  font-weight: 700;
   box-shadow: 0 4px 14px -2px var(--brand-glow);
 }
 
@@ -837,10 +840,10 @@
 
 /* 높이는 실제 블록 기준: 구절 행(라벨 22px + 마진), 핵심 절(2줄 인용),
  * 질문 박스(라벨+2줄+링크), CTA 행(48px 버튼) */
-.meditation-skeleton.passage { height: 24px; width: 62%; border-radius: 7px; margin-bottom: 10px; }
-.meditation-skeleton.quote { height: 108px; border-radius: 12px; margin-bottom: 12px; }
-.meditation-skeleton.question { height: 96px; border-radius: 12px; margin-bottom: 16px; }
-.meditation-skeleton.actions { height: 48px; border-radius: 14px; }
+.meditation-skeleton.passage { height: 30px; width: 62%; border-radius: 8px; margin: 18px 0 12px; }
+.meditation-skeleton.quote { height: 150px; border-radius: 18px; margin-bottom: 12px; }
+.meditation-skeleton.question { height: 118px; border-radius: 18px; margin-bottom: 16px; }
+.meditation-skeleton.actions { height: 52px; border-radius: 16px; }
 
 @keyframes meditation-shimmer {
   to { transform: translateX(100%); }
@@ -869,23 +872,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: none;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 50%;
-  background: rgba(139, 122, 88, 0.1);
-  color: #6f6146;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
   cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition: background 0.15s ease;
 }
 
 .meditation-alarm-btn:hover {
-  background: rgba(139, 122, 88, 0.2);
-}
-
-.dark .meditation-alarm-btn {
-  background: rgba(201, 185, 143, 0.14);
-  color: #d8cba8;
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .meditation-alarm-btn .material-icons-round {

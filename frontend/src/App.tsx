@@ -41,6 +41,10 @@ const VerseSharePreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Bible/components/VerseSharePreview'))
   : null
 // dev 전용 — 프로필 헤더 미리보기 (아바타 후광/칭호 칩 구도 확인)
+// dev 전용 — 홈 묵상 카드 미리보기 (백엔드 없이 목 데이터로 레이아웃 확인)
+const MeditationCardPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Home/components/DailyMeditationCardPreview'))
+  : null
 const ProfileHeaderPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/ProfileHeaderPreview'))
   : null
@@ -349,6 +353,9 @@ function App() {
                 )}
                 {ProfileHeaderPreview && (
                   <Route path="/dev/profile-header" element={<ProfileHeaderPreview />} />
+                )}
+                {MeditationCardPreview && (
+                  <Route path="/dev/meditation-card" element={<MeditationCardPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />

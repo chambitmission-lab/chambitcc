@@ -440,25 +440,25 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               </p>
             )}
           </div>
+          {/* 절기 태그 + 알람 — 사진 위 하단에 유리 칩으로 앉는다 (시안: 활동·연속 묵상 행) */}
+          <header className="meditation-meta-row">
+            <span className="meditation-season-tag" data-season={season}>
+              {t(SEASON_LABEL_KEYS[season])}
+            </span>
+            {/* 구절 알람 설정 진입점 — 원하는 시간에 오늘의 말씀 푸시 */}
+            <button
+              type="button"
+              className="meditation-alarm-btn"
+              onClick={() => navigate('/bible/alarm')}
+              aria-label={t('homeVerseAlarmAria')}
+              title={t('homeVerseAlarmAria')}
+            >
+              <span className="material-icons-round" aria-hidden>notifications</span>
+            </button>
+          </header>
         </div>
 
         <div className="meditation-body">
-        <header className="meditation-meta-row">
-          <span className="meditation-season-tag" data-season={season}>
-            {t(SEASON_LABEL_KEYS[season])}
-          </span>
-          {/* 구절 알람 설정 진입점 — 원하는 시간에 오늘의 말씀 푸시 */}
-          <button
-            type="button"
-            className="meditation-alarm-btn"
-            onClick={() => navigate('/bible/alarm')}
-            aria-label={t('homeVerseAlarmAria')}
-            title={t('homeVerseAlarmAria')}
-          >
-            <span className="material-icons-round" aria-hidden>notifications</span>
-          </button>
-        </header>
-
         {/* 연간 여정 — 교회력 절기 리본. 한 해를 절기 색 구간으로 펼치고
          * 지나온 길은 채워지며, 오늘 위치에 빛 마커가 놓인다. */}
         <div
@@ -536,12 +536,20 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         </div>
 
         <blockquote className="meditation-verse-quote">
-          <p className="meditation-verse-text">"{data.verse.text}"</p>
+          <span className="meditation-verse-glyph" aria-hidden>
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7.2 6.5c-2.6.9-4.2 3.1-4.2 6.1V17.5h5.5V12H5.6c.1-1.7 1-2.9 2.7-3.5zm9.3 0c-2.6.9-4.2 3.1-4.2 6.1V17.5h5.5V12h-2.9c.1-1.7 1-2.9 2.7-3.5z" />
+            </svg>
+          </span>
+          <p className="meditation-verse-text">{data.verse.text}</p>
           <cite className="meditation-verse-reference">— {data.verse.reference}</cite>
         </blockquote>
 
         <div className="meditation-question-block">
-          <span className="meditation-question-label">{t('homeTodaysQuestion')}</span>
+          <span className="meditation-question-label">
+            <span className="material-icons-round" aria-hidden>auto_awesome</span>
+            {t('homeTodaysQuestion')}
+          </span>
           <p className="meditation-question-text">{data.meditation_question}</p>
           <button
             type="button"
