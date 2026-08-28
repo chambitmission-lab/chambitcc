@@ -66,7 +66,16 @@ const Visit = () => {
   const pinLabel = tx('visitMapPinLabel').trim()
   const coords = parseCoords(tx('visitCoords').trim())
 
-  const kakaoUrl = `https://map.kakao.com/link/search/${encodeURIComponent(mapQuery)}`
+  // 지도 앱에는 이름이 아니라 좌표를 넘긴다. 이름 검색(link/search)은 검색 결과
+  // 화면으로 떨어져 교회가 중심에 오지 않는다. 좌표가 없을 때만 검색으로 물러선다.
+  const place = encodeURIComponent(pinLabel || mapQuery)
+  const kakaoSearchUrl = `https://map.kakao.com/link/search/${encodeURIComponent(mapQuery)}`
+  const kakaoMapUrl = coords
+    ? `https://map.kakao.com/link/map/${place},${coords.lat},${coords.lng}`
+    : kakaoSearchUrl
+  const kakaoRouteUrl = coords
+    ? `https://map.kakao.com/link/to/${place},${coords.lat},${coords.lng}`
+    : kakaoSearchUrl
   const naverUrl = `https://map.naver.com/p/search/${encodeURIComponent(mapQuery)}`
 
   const openWeb = (url: string) => window.open(url, '_blank', 'noopener')
@@ -81,9 +90,11 @@ const Visit = () => {
     window.addEventListener('pagehide', cancel, { once: true })
     document.addEventListener('visibilitychange', cancel, { once: true })
     setTimeout(() => {
-      if (!handled && document.visibilityState === 'visible') openWeb(kakaoUrl)
+      if (!handled && document.visibilityState === 'visible') openWeb(kakaoRouteUrl)
     }, 1200)
-    window.location.href = `tmap://search?name=${encodeURIComponent(mapQuery)}`
+    window.location.href = coords
+      ? `tmap://route?goalname=${place}&goalx=${coords.lng}&goaly=${coords.lat}`
+      : `tmap://search?name=${encodeURIComponent(mapQuery)}`
   }
 
   const copyAddress = () => {
@@ -128,7 +139,7 @@ const Visit = () => {
           </header>
 
           {/* 지도 — 레거시가 주던 "여기 어디쯤이구나". 누르면 카카오맵으로 넘어간다 */}
-          <ChurchMap coords={coords} pinLabel={pinLabel} onOpen={() => openWeb(kakaoUrl)} />
+          <ChurchMap coords={coords} pinLabel={pinLabel} onOpen={() => openWeb(kakaoMapUrl)} />
 
           {/* PC(lg+) 2단 — 좌: 읽는 안내 / 우: 지금 당장 쓰는 것(주소·전화·길찾기).
               래퍼 3개는 lg 미만에서 display:contents 라 모바일은 DOM 순서 그대로 흐른다. */}
@@ -193,7 +204,7 @@ const Visit = () => {
 
                 {/* 길찾기 — 실제 내비게이션은 각자 쓰는 앱에 위임한다 */}
                 <div className="visit-maps">
-                  <button type="button" className="visit-map-btn" onClick={() => openWeb(kakaoUrl)}>
+                  <button type="button" className="visit-map-btn" onClick={() => openWeb(kakaoRouteUrl)}>
                     <CompassIcon size={17} />
                     <span>{t('visitOpenKakao')}</span>
                   </button>
