@@ -98,7 +98,7 @@ const PlanList = () => {
               <br />
               함께 읽어요
             </h2>
-            <p className="text-[13px] font-light leading-[1.7] text-white/80 mt-3 max-w-[15rem]">
+            <p className="text-[13px] font-light leading-[1.7] text-white/80 mt-3 max-w-[15rem] break-keep">
               계획을 골라 시작하면 매일 분량과 진행률·연속 기록을 챙겨드려요.
             </p>
           </div>
