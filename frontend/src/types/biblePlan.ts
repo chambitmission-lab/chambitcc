@@ -54,10 +54,30 @@ export interface PlanSummary {
   is_published: boolean
   sort_order: number
   progress?: PlanProgress | null
+  // ── 개인 플랜(성도가 직접 만든 "나만의 플랜") 메타 — 구버전 응답엔 없을 수 있어 optional ──
+  is_personal?: boolean
+  is_owner?: boolean
+  owner_name?: string | null
+  invite_code?: string | null
+}
+
+// 개인 플랜을 함께 읽는 사람 한 명의 진행 상태
+export interface PlanParticipant {
+  user_id: number
+  name: string
+  avatar_url?: string | null
+  is_owner: boolean
+  is_me: boolean
+  status: string
+  completed_days: number
+  percent: number
+  streak_count: number
+  last_completed_date?: string | null
 }
 
 export interface PlanDetail extends PlanSummary {
   days: PlanDay[]
+  participants?: PlanParticipant[]
 }
 
 export interface PlanListResponse {
@@ -133,4 +153,33 @@ export type PlanUpdateRequest = Partial<PlanCreateRequest>
 export interface GenerateScheduleResponse {
   total_days: number
   days: PlanDayInput[]
+}
+
+// ── 개인 플랜(나만의 플랜) / 초대 ──
+export interface PersonalPlanCreateRequest {
+  title?: string | null
+  book_numbers: number[]
+  total_days: number
+  emoji?: string | null
+  accent?: string | null
+  start_date?: string | null
+}
+
+export interface PersonalPlanUpdateRequest {
+  title?: string
+  emoji?: string
+  accent?: string
+}
+
+export interface PlanInvitePreview {
+  id: number
+  title: string
+  emoji?: string | null
+  accent?: string | null
+  total_days: number
+  owner_name: string
+  participant_count: number
+  participant_names: string[]
+  first_reference?: string | null
+  is_member: boolean
 }

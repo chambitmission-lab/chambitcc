@@ -40,7 +40,7 @@
 }
 .thanks-swap { animation: thanks-swap-in 0.26s ease-out; }
 
-/* ── 등록 성공 — 이모지 폭죽 ───────────────────── */
+/* ── 등록 성공 — 감사 아이콘 폭죽 ───────────────── */
 @keyframes thanks-burst {
   0%   { opacity: 0; transform: translate(0, 0) scale(0.4) rotate(0deg); }
   14%  { opacity: 1; }
@@ -99,7 +99,7 @@
   .thanks-burst { display: none; }
 }
 
-/* ── /thanks 타임라인 카드 (이모지 타일 + 본문 + 아멘) ── */
+/* ── /thanks 타임라인 카드 (감정 아이콘 타일 + 본문 + 아멘) ── */
 .thanks-tl-card {
   display: flex;
   align-items: flex-start;
@@ -113,7 +113,5 @@
   border-radius: 14px;
   display: grid;
   place-items: center;
-  font-size: 26px;
-  line-height: 1;
   border: 1px solid var(--card-border);
 }

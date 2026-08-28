@@ -3,19 +3,21 @@
 export type ThanksEmotion = 'joy' | 'peace' | 'awe' | 'love' | 'laugh'
 
 interface ThanksEmotionMeta {
-  emoji: string
   label: string
   labelEn: string
-  /** 감정 액센트 색 — 브랜드 블루를 덮지 않고 카드 tint/이모지 후광에만 얹는 기능색 */
+  /** 감정 액센트 색 — 브랜드 블루를 덮지 않고 카드 tint/아이콘 후광에만 얹는 기능색 */
   hue: string
   /** 고르면 뜨는 한 줄 — "무슨 얘길 적으면 되지?"를 풀어주는 힌트 */
   hint: string
   hintEn: string
 }
 
+/**
+ * 감정 메타 — 그림은 이모지가 아니라 components/icons/ThanksIcons.tsx의
+ * <ThanksIcon name={emotionKey} />가 그린다(키 이름이 곧 아이콘 이름).
+ */
 export const THANKS_EMOTIONS: Record<ThanksEmotion, ThanksEmotionMeta> = {
   joy: {
-    emoji: '😊',
     label: '기쁨',
     labelEn: 'Joy',
     hue: '#f2a13c',
@@ -23,7 +25,6 @@ export const THANKS_EMOTIONS: Record<ThanksEmotion, ThanksEmotionMeta> = {
     hintEn: 'The moment your smile snuck out',
   },
   peace: {
-    emoji: '🕊️',
     label: '평안',
     labelEn: 'Peace',
     hue: '#2fa8a0',
@@ -31,7 +32,6 @@ export const THANKS_EMOTIONS: Record<ThanksEmotion, ThanksEmotionMeta> = {
     hintEn: 'When your shoulders finally dropped',
   },
   awe: {
-    emoji: '✨',
     label: '감격',
     labelEn: 'Awe',
     hue: '#4593fc',
@@ -39,7 +39,6 @@ export const THANKS_EMOTIONS: Record<ThanksEmotion, ThanksEmotionMeta> = {
     hintEn: 'When something quietly moved you',
   },
   love: {
-    emoji: '💗',
     label: '사랑',
     labelEn: 'Love',
     hue: '#ef6f96',
@@ -47,7 +46,6 @@ export const THANKS_EMOTIONS: Record<ThanksEmotion, ThanksEmotionMeta> = {
     hintEn: 'When someone came to mind',
   },
   laugh: {
-    emoji: '😄',
     label: '웃음',
     labelEn: 'Laugh',
     hue: '#ff8a3d',

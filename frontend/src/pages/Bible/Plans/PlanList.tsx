@@ -12,6 +12,8 @@ import { planCover } from './planCovers'
 import heroCover from '../../../assets/plans/bible-365.jpg'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSectionTabs from '../../../components/bible/BibleSectionTabs'
+import PersonalPlanSheet from './components/PersonalPlanSheet'
+import { showToast } from '../../../utils/toast'
 
 const PlanList = () => {
   const navigate = useNavigate()
@@ -22,6 +24,10 @@ const PlanList = () => {
   const [showCompleted, setShowCompleted] = useState(false)
   // 둘러보기 해시태그 필터 (null = 전체)
   const [tagFilter, setTagFilter] = useState<string | null>(null)
+  // 나만의 플랜 만들기 시트 / 초대 코드 입력
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [codeOpen, setCodeOpen] = useState(false)
+  const [codeValue, setCodeValue] = useState('')
 
   // 로딩 중엔 매 렌더 새 빈 배열이 되어 아래 useMemo 들이 무력화된다 — 참조를 고정
   const plans = useMemo(() => data?.items ?? [], [data])
@@ -34,6 +40,43 @@ const PlanList = () => {
   const todayByPlan = useMemo(
     () => new Map((todayData?.items ?? []).map((t) => [t.plan_id, t])),
     [todayData],
+  )
+
+  // 내가 만든 개인 플랜(1인 1플랜) — 있으면 "만들기" 대신 그 플랜으로 안내
+  const ownedPlan = useMemo(() => plans.find((p) => p.is_owner) ?? null, [plans])
+
+  const openCreate = () => {
+    if (!isAuthenticated()) {
+      showToast('로그인이 필요합니다', 'error')
+      navigate('/login')
+      return
+    }
+    if (ownedPlan) {
+      navigate(`/bible/plans/${ownedPlan.id}`)
+      return
+    }
+    setSheetOpen(true)
+  }
+
+  const submitCode = () => {
+    const code = codeValue.trim().toUpperCase()
+    if (code.length < 4) {
+      showToast('초대 코드를 입력해 주세요', 'error')
+      return
+    }
+    navigate(`/bible/plans/join/${code}`)
+  }
+
+  const personalEntry = (
+    <PersonalPlanEntry
+      ownedPlan={ownedPlan}
+      codeOpen={codeOpen}
+      codeValue={codeValue}
+      onCreate={openCreate}
+      onToggleCode={() => setCodeOpen((v) => !v)}
+      onCodeChange={setCodeValue}
+      onSubmitCode={submitCode}
+    />
   )
 
   // 둘러보기 필터 칩 — 플랜 메타(level·category)에서 실제 존재하는 값만 수집
@@ -125,6 +168,9 @@ const PlanList = () => {
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
+
+        {/* 나만의 플랜 — 관리자 큐레이션이 아니라 성도가 직접 범위·기간을 정하는 플랜 (모바일) */}
+        <div className="lg:hidden mx-4 mt-3">{personalEntry}</div>
 
         {/* 본문 — 에러여도 캐시된 목록이 있으면 그대로 보여준다
             (일시적 실패가 멀쩡한 데이터를 가리는 게 이 화면의 간헐적 에러 원인이었음) */}
@@ -291,6 +337,8 @@ const PlanList = () => {
           </svg>
         </button>
 
+        {personalEntry}
+
         {myPlans.length > 0 && (
           <section className="rounded-2xl p-4 bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-none">
             <p className="mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
@@ -359,11 +407,120 @@ const PlanList = () => {
       </aside>
       </div>
 
+      {sheetOpen && (
+        <PersonalPlanSheet
+          onClose={() => setSheetOpen(false)}
+          onCreated={(plan) => {
+            setSheetOpen(false)
+            navigate(`/bible/plans/${plan.id}`)
+          }}
+        />
+      )}
+
       {/* 성경 섹션 하단 네비게이션 */}
       <BibleBottomNav active="plans" />
     </div>
   )
 }
+
+// 나만의 플랜 진입 카드 — 만들기(또는 내 플랜으로 가기) + 초대 코드로 함께하기
+const PersonalPlanEntry = ({
+  ownedPlan,
+  codeOpen,
+  codeValue,
+  onCreate,
+  onToggleCode,
+  onCodeChange,
+  onSubmitCode,
+}: {
+  ownedPlan: PlanSummary | null
+  codeOpen: boolean
+  codeValue: string
+  onCreate: () => void
+  onToggleCode: () => void
+  onCodeChange: (v: string) => void
+  onSubmitCode: () => void
+}) => (
+  <div className="rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm overflow-hidden">
+    <button
+      type="button"
+      onClick={onCreate}
+      className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--brand-soft)]"
+    >
+      <span className="shrink-0 w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center shadow-[0_6px_16px_-6px_var(--brand-glow)]">
+        {ownedPlan ? (
+          <span className="text-[19px]">{ownedPlan.emoji || '📖'}</span>
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        )}
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className="block text-[14px] font-bold text-ink-strong tracking-[-0.015em] truncate">
+          {ownedPlan ? ownedPlan.title : '나만의 플랜 만들기'}
+        </span>
+        <span className="block text-[11.5px] text-gray-400 dark:text-white/45 mt-0.5 truncate">
+          {ownedPlan
+            ? `내가 만든 플랜 · ${(ownedPlan.participant_count ?? 1)}명이 함께 읽어요`
+            : '읽을 범위와 기간을 정하고, 소그룹과 함께 읽어요'}
+        </span>
+      </span>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-300 dark:text-white/30">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </button>
+    <div className="border-t border-gray-100 dark:border-white/[0.06] px-4 py-2">
+      {codeOpen ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            onSubmitCode()
+          }}
+          className="flex items-center gap-2"
+        >
+          <input
+            type="text"
+            value={codeValue}
+            onChange={(e) => onCodeChange(e.target.value.toUpperCase())}
+            placeholder="초대 코드 8자리"
+            maxLength={8}
+            autoFocus
+            autoCapitalize="characters"
+            className="flex-1 min-w-0 h-9 px-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[13px] font-bold tracking-[0.12em] text-ink-strong placeholder:font-medium placeholder:tracking-normal placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand"
+          />
+          <button
+            type="submit"
+            className="shrink-0 h-9 px-3.5 rounded-full bg-brand text-white text-[12px] font-bold"
+          >
+            함께하기
+          </button>
+          <button
+            type="button"
+            onClick={onToggleCode}
+            aria-label="닫기"
+            className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={onToggleCode}
+          className="w-full flex items-center justify-between text-[12px] font-semibold text-gray-500 dark:text-white/55 hover:text-brand py-1"
+        >
+          <span>🔑 초대 코드로 함께하기</span>
+          <span className="text-brand">입력</span>
+        </button>
+      )}
+    </div>
+  </div>
+)
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <h3 className="text-[15px] font-extrabold text-ink-strong tracking-[-0.02em] mb-5 px-0.5">
@@ -579,7 +736,14 @@ const FeaturedPlanCard = ({
           )}
         </div>
 
-        <div className="mt-2">
+        <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+          {/* 개인 플랜 표시 — 내가 만든 것/초대받은 것 구분 + 함께 읽는 인원 */}
+          {plan.is_personal && (
+            <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-[var(--brand-soft-strong)] text-brand text-[10.5px] font-bold leading-none">
+              {plan.is_owner ? '내 플랜' : `${plan.owner_name ?? '친구'}님의 플랜`}
+              {(plan.participant_count ?? 0) > 1 && ` · ${plan.participant_count}명`}
+            </span>
+          )}
           <Hashtags plan={plan} />
         </div>
 

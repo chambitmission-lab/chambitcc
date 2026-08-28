@@ -3,8 +3,11 @@ import { getAuthHeaders } from './utils/apiHelpers'
 import { streamSSE } from './sse'
 import type {
   GenerateScheduleResponse,
+  PersonalPlanCreateRequest,
+  PersonalPlanUpdateRequest,
   PlanCreateRequest,
   PlanDetail,
+  PlanInvitePreview,
   PlanListResponse,
   PlanProgress,
   PlanReflection,
@@ -172,6 +175,76 @@ export const updateReflection = async (
     throw new Error(error.detail || '묵상 수정에 실패했습니다')
   }
   return response.json()
+}
+
+// ── 개인 플랜(나만의 플랜) / 초대 ──
+export const createPersonalPlan = async (
+  payload: PersonalPlanCreateRequest,
+): Promise<PlanDetail> => {
+  const response = await apiFetch(`${BASE}/mine`, {
+    method: 'POST',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || '플랜 만들기에 실패했습니다')
+  }
+  const data = await response.json()
+  return data.plan as PlanDetail
+}
+
+export const updatePersonalPlan = async (
+  planId: number,
+  payload: PersonalPlanUpdateRequest,
+): Promise<PlanDetail> => {
+  const response = await apiFetch(`${BASE}/${planId}/personal`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || '플랜 수정에 실패했습니다')
+  }
+  const data = await response.json()
+  return data.plan as PlanDetail
+}
+
+export const deletePersonalPlan = async (planId: number): Promise<void> => {
+  const response = await apiFetch(`${BASE}/${planId}/personal`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok && response.status !== 204) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || '플랜 삭제에 실패했습니다')
+  }
+}
+
+export const previewPlanInvite = async (inviteCode: string): Promise<PlanInvitePreview> => {
+  const response = await apiFetch(`${BASE}/invite/${encodeURIComponent(inviteCode)}`, {
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || '초대장을 찾을 수 없어요')
+  }
+  return response.json()
+}
+
+export const joinPlanByCode = async (inviteCode: string): Promise<PlanDetail> => {
+  const response = await apiFetch(`${BASE}/join`, {
+    method: 'POST',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ invite_code: inviteCode }),
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || '참여에 실패했습니다')
+  }
+  const data = await response.json()
+  return data.plan as PlanDetail
 }
 
 // ── 관리자 ──

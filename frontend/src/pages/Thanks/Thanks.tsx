@@ -28,6 +28,7 @@ import ThanksCard from '../Home/components/ThanksThread/ThanksCard'
 import ThanksComposer from '../Home/components/ThanksThread/ThanksComposer'
 import ThanksAvatar from '../Home/components/ThanksThread/ThanksAvatar'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
+import { ThanksIcon } from '../../components/icons/ThanksIcons'
 import gratitudeHero from '../../assets/hero/gratitude.jpg'
 import '../Home/components/ThanksThread/thanks.css'
 import './Thanks.css'
@@ -455,7 +456,7 @@ const Thanks = () => {
             </button>
             <div className="min-w-0">
               <h1 className="text-[17px] lg:text-[20px] font-bold tracking-[-0.01em] text-ink-strong leading-tight">
-                {ko ? '오늘의 감사' : 'Today’s Thanks'} <span aria-hidden>✨</span>
+                {ko ? '오늘의 감사' : 'Today’s Thanks'}
               </h1>
               <p className="text-[12px] text-ink-muted mt-0.5">
                 {ko ? '작은 감사가 삶을 변화시킵니다' : 'Small thanks change a life'}
@@ -492,7 +493,9 @@ const Thanks = () => {
                   className="w-full p-7 rounded-2xl border border-dashed border-[var(--card-border)] hover:border-brand transition-colors flex flex-col items-center gap-2 text-center"
                   style={{ background: 'var(--brand-soft)' }}
                 >
-                  <span className="text-[34px] thanks-nudge leading-none">🫙</span>
+                  <span className="thanks-empty-emblem thanks-nudge" aria-hidden>
+                    <ThanksIcon name="jar" size={30} />
+                  </span>
                   <span className="text-[15px] font-bold text-ink-strong">
                     {ko ? '감사 항아리가 비어 있어요' : 'The gratitude jar is empty'}
                   </span>
@@ -543,7 +546,7 @@ const Thanks = () => {
 
               {!query.hasNextPage && items.length > 0 && !showSpinner && (
                 <p className="pt-4 text-center text-[12px] text-ink-muted">
-                  {ko ? '여기까지가 우리의 감사예요 🙏' : 'That’s all our thanks 🙏'}
+                  {ko ? '여기까지가 우리의 감사예요' : 'That’s all our thanks'}
                 </p>
               )}
 

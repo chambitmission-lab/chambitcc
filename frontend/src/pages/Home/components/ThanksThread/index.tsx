@@ -5,6 +5,7 @@ import { useAuth } from '../../../../hooks/useAuth'
 import { isAdmin } from '../../../../utils/auth'
 import { showToast } from '../../../../utils/toast'
 import ThanksCard from './ThanksCard'
+import { ThanksIcon } from '../../../../components/icons/ThanksIcons'
 import ThanksComposer from './ThanksComposer'
 import { useThanks } from './useThanks'
 import { confirmDialog } from '../../../../utils/confirmDialog'
@@ -57,7 +58,7 @@ const ThanksThread = () => {
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <h2 className="text-base font-bold text-ink-strong flex items-center gap-1.5">
-            <span>🙏</span>
+            <ThanksIcon name="thanks" size={17} strokeWidth={2} className="text-brand" />
             <span>{language === 'ko' ? '오늘의 감사' : 'Today’s Thanks'}</span>
           </h2>
           {total > 0 && (

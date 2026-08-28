@@ -5,6 +5,7 @@ import { getCurrentUser } from '../../../../utils/auth'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { useProfileDetail } from '../../../../hooks/useProfile'
 import { THANKS_EMOTIONS, type ThanksEmotion } from '../../../../types/thanks'
+import { ThanksIcon, type ThanksIconName } from '../../../../components/icons/ThanksIcons'
 import ThanksAvatar from './ThanksAvatar'
 import './thanks.css'
 
@@ -77,7 +78,10 @@ const SEEDS = {
   ],
 }
 
-const BURST_EMOJIS = ['🙏', '💛', '✨', '😊', '🕊️', '💗', '🎉', '😄']
+
+
+/** 등록 폭죽에 흩뿌릴 모양 — 감정 아이콘과 같은 문법이라 따로 이모지를 섞지 않는다 */
+const BURST_ICONS: ThanksIconName[] = ['love', 'awe', 'peace', 'joy', 'thanks']
 
 const pickRandom = <T,>(list: T[]): T => list[Math.floor(Math.random() * list.length)]
 
@@ -87,16 +91,17 @@ const pickSeeds = (pool: string[], count = 3): string[] => {
 }
 
 interface BurstPiece {
-  emoji: string
+  icon: ThanksIconName
   style: CSSProperties
 }
 
-const makeBurst = (accent: string): BurstPiece[] =>
+/** accent = 고른 마음의 아이콘. 3개 중 1개는 그 마음, 나머지는 세트에서 무작위 */
+const makeBurst = (accent: ThanksIconName): BurstPiece[] =>
   Array.from({ length: 14 }, (_, i) => {
     const angle = (Math.PI * 2 * i) / 14 + Math.random() * 0.4
     const distance = 90 + Math.random() * 110
     return {
-      emoji: i % 3 === 0 ? accent : pickRandom(BURST_EMOJIS),
+      icon: i % 3 === 0 ? accent : pickRandom(BURST_ICONS),
       style: {
         '--bx': `${Math.cos(angle) * distance}px`,
         '--by': `${Math.sin(angle) * distance - 40}px`,
@@ -177,8 +182,8 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
       setSubmitting(true)
       await onSubmit({ content: trimmed, emotion })
       // 폭죽 한 번 터뜨리고 닫는다
-      setBurst(makeBurst(meta?.emoji ?? '🙏'))
-      showToast(ko ? '감사가 도착했어요 🙏' : 'Your thanks is in 🙏', 'success')
+      setBurst(makeBurst(emotion ?? 'thanks'))
+      showToast(ko ? '감사가 도착했어요' : 'Your thanks is in', 'success')
       window.setTimeout(onClose, 780)
     } catch (e) {
       setSubmitting(false)
@@ -267,11 +272,13 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
                 }}
               >
                 {meta ? (
-                  <span key={emotion} className="thanks-swap leading-none">
-                    {meta.emoji}
+                  <span key={emotion} className="thanks-swap leading-none" style={{ color: accent }}>
+                    <ThanksIcon name={emotion!} size={24} />
                   </span>
                 ) : (
-                  <span className="thanks-nudge leading-none opacity-45">🫥</span>
+                  <span className="thanks-nudge leading-none text-ink-muted opacity-45">
+                    <ThanksIcon name="thanks" size={24} />
+                  </span>
                 )}
               </div>
 
@@ -334,13 +341,10 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
                   }
                 >
                   <span
-                    className={`text-[23px] leading-none transition-all ${
-                      active
-                        ? 'thanks-pop'
-                        : 'grayscale opacity-55 group-hover:grayscale-0 group-hover:opacity-100'
-                    }`}
+                    className={`leading-none transition-all ${active ? 'thanks-pop' : 'opacity-55 group-hover:opacity-100'}`}
+                    style={{ color: active ? item.hue : 'var(--text-muted)' }}
                   >
-                    {item.emoji}
+                    <ThanksIcon name={key} size={23} />
                   </span>
                   <span
                     className="text-[10.5px] font-bold"
@@ -471,7 +475,7 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
             disabled={!canSubmit}
             className="flex-1 py-3 rounded-2xl bg-brand text-[var(--on-brand)] text-[15px] font-extrabold tracking-[-0.01em] shadow-[0_8px_20px_var(--brand-glow)] hover:bg-brand-dim active:scale-[0.98] transition-all disabled:opacity-40 disabled:shadow-none disabled:active:scale-100 flex items-center justify-center gap-1.5"
           >
-            <span className="text-[16px] leading-none">{meta?.emoji ?? '🙏'}</span>
+            <ThanksIcon name={emotion ?? 'thanks'} size={17} strokeWidth={2} />
             {submitting || burst
               ? ko
                 ? '남기는 중…'
@@ -483,16 +487,16 @@ const ThanksComposer = ({ onClose, onSubmit }: ThanksComposerProps) => {
         </div>
       </div>
 
-      {/* 등록 성공 — 이모지 폭죽 */}
+      {/* 등록 성공 — 감사 아이콘 폭죽 */}
       {burst && (
         <div className="thanks-burst pointer-events-none fixed inset-0 z-[210] flex items-center justify-center">
           {burst.map((piece, i) => (
             <span
               key={i}
-              className="thanks-burst-piece absolute text-[26px]"
+              className="thanks-burst-piece absolute text-brand"
               style={piece.style}
             >
-              {piece.emoji}
+              <ThanksIcon name={piece.icon} size={26} strokeWidth={2} />
             </span>
           ))}
         </div>

@@ -12,6 +12,7 @@ const DayCard = ({
   onToggle,
   onRead,
   onReflect,
+  showReflect = true,
 }: {
   domId?: string
   day: PlanDay
@@ -22,12 +23,14 @@ const DayCard = ({
   onToggle: () => void
   onRead: () => void
   onReflect: () => void
+  // 개인 플랜(나만의 플랜)은 AI 묵상이 없어 false — 묵상 영역 자체를 숨긴다
+  showReflect?: boolean
 }) => {
   const isPast = day.completed && !isToday
   const isFuture = subscribed && !day.completed && !isToday
   // AI 묵상·묵상 프롬프트는 "읽은(읽는) 날"에만 — 미래 일차에 미리 노출하면 플로우가 어색하고 카드만 길어진다.
   // 미구독 상태에서는 둘러보기용 미리보기로 그대로 열어둔다.
-  const showReflectionArea = !subscribed || day.completed || isToday
+  const showReflectionArea = showReflect && (!subscribed || day.completed || isToday)
 
   return (
     <div

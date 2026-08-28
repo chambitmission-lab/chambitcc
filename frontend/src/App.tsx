@@ -102,6 +102,7 @@ const BibleStudy = lazy(menuRouteLoaders['/bible'])
 const Genealogy = lazy(() => import('./pages/Bible/Genealogy/Genealogy'))
 const PlanList = lazy(() => import('./pages/Bible/Plans/PlanList'))
 const PlanDetail = lazy(() => import('./pages/Bible/Plans/PlanDetail'))
+const JoinPlan = lazy(() => import('./pages/Bible/Plans/JoinPlan'))
 const ClassList = lazy(menuRouteLoaders['/classes'])
 const ClassHome = lazy(() => import('./pages/ClassRoom/ClassHome'))
 const JoinClass = lazy(() => import('./pages/ClassRoom/JoinClass'))
@@ -318,6 +319,8 @@ function App() {
                 <Route path="/bible" element={<BibleStudy />} />
                 <Route path="/bible/genealogy" element={<Genealogy />} />
                 <Route path="/bible/plans" element={<PlanList />} />
+                {/* 정적 경로를 :planId 보다 먼저 — 나만의 플랜 초대 링크 랜딩 */}
+                <Route path="/bible/plans/join/:code" element={<JoinPlan />} />
                 <Route path="/bible/plans/:planId" element={<PlanDetail />} />
                 <Route path="/classes" element={<ClassList />} />
                 <Route path="/classes/join/:code" element={<JoinClass />} />

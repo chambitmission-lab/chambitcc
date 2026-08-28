@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useAuth } from '../../../../hooks/useAuth'
 import { THANKS_EMOTIONS } from '../../../../types/thanks'
+import { ThanksIcon } from '../../../../components/icons/ThanksIcons'
 import { useThanks } from '../ThanksThread/useThanks'
 import ThanksComposer from '../ThanksThread/ThanksComposer'
 import { PencilIcon } from '../../../../components/icons/ActionIcons'
@@ -77,7 +78,12 @@ const ThanksTicker = () => {
                       className="inline-flex items-center gap-1.5 pr-8 text-[12px] text-[var(--text-strong)]"
                     >
                       {t.emotion && (
-                        <span aria-hidden>{THANKS_EMOTIONS[t.emotion].emoji}</span>
+                        <ThanksIcon
+                          name={t.emotion}
+                          size={13}
+                          strokeWidth={2}
+                          style={{ color: THANKS_EMOTIONS[t.emotion].hue }}
+                        />
                       )}
                       <span>{t.content}</span>
                     </span>

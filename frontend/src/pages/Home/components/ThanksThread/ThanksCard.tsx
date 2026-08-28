@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { HandHeartIcon } from '../../../../components/icons/ActionIcons'
+import { ThanksIcon } from '../../../../components/icons/ThanksIcons'
 import ThanksAvatar from './ThanksAvatar'
 import { THANKS_EMOTIONS, type Thanks } from '../../../../types/thanks'
 import './thanks.css'
@@ -87,13 +88,16 @@ const ThanksCard = ({
         }`}
         style={{ animationDelay: `${enterDelay}ms` }}
       >
-        {/* 감정 이모지 타일 */}
+        {/* 감정 타일 — 이모지 대신 hue를 그대로 받는 라인 아이콘 */}
         <div
           className="thanks-tl-tile"
-          style={{ background: `color-mix(in srgb, ${hue} 12%, var(--surface-container))` }}
+          style={{
+            background: `color-mix(in srgb, ${hue} 12%, var(--surface-container))`,
+            color: hue,
+          }}
           aria-hidden
         >
-          {emotion?.emoji ?? '🙏'}
+          <ThanksIcon name={thanks.emotion ?? 'thanks'} size={26} />
         </div>
 
         <div className="min-w-0 flex-1">
@@ -157,7 +161,7 @@ const ThanksCard = ({
               color: emotion.hue,
             }}
           >
-            <span className="text-[14px] leading-none">{emotion.emoji}</span>
+            <ThanksIcon name={thanks.emotion!} size={14} strokeWidth={2} />
             {ko ? emotion.label : emotion.labelEn}
           </span>
         ) : (

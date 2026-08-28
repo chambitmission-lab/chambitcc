@@ -7,10 +7,12 @@ import confetti from 'canvas-confetti'
 import {
   useBiblePlan,
   useCompleteDay,
+  useDeletePersonalPlan,
   useRestartPlan,
   useSubscribePlan,
   useUncompleteDay,
   useUnsubscribePlan,
+  useUpdatePersonalPlan,
 } from '../../../hooks/useBiblePlan'
 import { usePlanReflections } from '../../../hooks/usePlanReflections'
 import type { PlanDay } from '../../../types/biblePlan'
@@ -27,7 +29,13 @@ import {
 import DayCard from './components/DayCard'
 import ReflectionSheet from './components/ReflectionSheet'
 import ReflectionEditModal from './components/ReflectionEditModal'
+import PlanParticipants from './components/PlanParticipants'
 import { confirmDialog } from '../../../utils/confirmDialog'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
+
+// 나만의 플랜 초대 링크 — HashRouter 라 #/ 경로, JoinPlan(/bible/plans/join/:code)으로 떨어진다
+const inviteUrl = (code: string) =>
+  `${window.location.origin}${window.location.pathname}#/bible/plans/join/${code}`
 
 // 긴 플랜(90/120/365일)은 일정을 30일 단위로 접어 스크롤 부담을 줄인다.
 // 짧은 플랜(7/30일)은 그룹 헤더가 오히려 방해라 플랫 렌더 유지.
@@ -66,6 +74,9 @@ const PlanDetail = () => {
   const restart = useRestartPlan()
   const completeDay = useCompleteDay()
   const uncompleteDay = useUncompleteDay()
+  const updatePersonal = useUpdatePersonalPlan()
+  const deletePersonal = useDeletePersonalPlan()
+  const [renameOpen, setRenameOpen] = useState(false)
 
   const {
     reflections,
@@ -88,6 +99,9 @@ const PlanDetail = () => {
   const cover = planCover(plan?.slug)
   const progress = plan?.progress
   const subscribed = !!progress?.subscribed
+  // 개인 플랜(나만의 플랜) — AI 묵상 없음, 참여자 섹션·초대 링크·소유자 메뉴가 달라진다
+  const personal = !!plan?.is_personal
+  const owner = !!plan?.is_owner
   // 여정의 시작과 끝 — "언제 시작했고 언제 끝나는지"가 장기 플랜에서 가장 큰 동기가 된다
   const startLabel = formatPlanDate(progress?.start_date)
   const endLabel = planEndDate(progress?.start_date, progress?.total_days ?? plan?.total_days)
@@ -200,10 +214,35 @@ const PlanDetail = () => {
     }
   }
 
+  const handleDeletePersonal = async () => {
+    if (
+      !(await confirmDialog({
+        title: '플랜 삭제',
+        message: '이 플랜을 삭제할까요?',
+        description: '함께 읽던 사람들의 진행 기록도 모두 사라져요. 삭제 후 새 플랜을 만들 수 있어요.',
+        confirmText: '삭제',
+        tone: 'warning',
+        icon: 'delete',
+      }))
+    )
+      return
+    try {
+      await deletePersonal.mutateAsync(id)
+      showToast('플랜을 삭제했어요', 'success')
+      navigate('/bible/plans', { replace: true })
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '오류가 발생했습니다', 'error')
+    }
+  }
+
   const handleShare = async () => {
     if (!plan) return
-    const url = window.location.href
-    const text = `${plan.title} — ${plan.subtitle || `${plan.total_days}일 성경 읽기 플랜`}`
+    // 개인 플랜은 상세 URL 이 남에게 열리지 않으므로 초대 링크(코드)를 공유한다
+    const url = personal && plan.invite_code ? inviteUrl(plan.invite_code) : window.location.href
+    const text =
+      personal && plan.invite_code
+        ? `📖 '${plan.title}' 성경 읽기에 초대해요!\n${plan.total_days}일 동안 각자 속도로 읽고 서로 진행률을 나눠요.\n\n${url}\n\n앱에서는 [읽기 플랜 → 초대 코드로 함께하기]에 코드 ${plan.invite_code} 를 입력해도 돼요.`
+        : `${plan.title} — ${plan.subtitle || `${plan.total_days}일 성경 읽기 플랜`}`
     if (navigator.share) {
       try {
         await navigator.share({ title: plan.title, text, url })
@@ -213,12 +252,15 @@ const PlanDetail = () => {
       return
     }
     try {
-      await navigator.clipboard.writeText(url)
+      await navigator.clipboard.writeText(personal && plan.invite_code ? text : url)
       setShareCopied(true)
       window.setTimeout(() => setShareCopied(false), 1600)
-      showToast('링크를 복사했어요', 'success')
+      showToast(personal ? '초대 링크를 복사했어요. 단톡방에 붙여넣어 주세요' : '링크를 복사했어요', 'success')
     } catch {
-      // 클립보드 접근 불가 환경 — 조용히 무시
+      showToast(
+        personal && plan.invite_code ? `복사에 실패했어요. 초대 코드: ${plan.invite_code}` : '복사에 실패했어요',
+        'error',
+      )
     }
   }
 
@@ -289,6 +331,7 @@ const PlanDetail = () => {
       onToggle={() => handleToggleDay(day)}
       onRead={() => handleRead(day)}
       onReflect={() => toggleReflection(day.day_number)}
+      showReflect={!personal}
     />
   )
 
@@ -331,20 +374,55 @@ const PlanDetail = () => {
               </svg>
               처음부터 다시 시작
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false)
-                handleUnsubscribe()
-              }}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-semibold text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
-                <line x1="12" y1="2" x2="12" y2="12" />
-              </svg>
-              플랜 그만두기
-            </button>
+            {owner && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  setRenameOpen(true)
+                }}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-semibold text-gray-700 dark:text-white/80 hover:bg-gray-50 dark:hover:bg-white/[0.05]"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+                이름 바꾸기
+              </button>
+            )}
+            {owner ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  handleDeletePersonal()
+                }}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-semibold text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+                플랜 삭제
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  handleUnsubscribe()
+                }}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-[13px] font-semibold text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                  <line x1="12" y1="2" x2="12" y2="12" />
+                </svg>
+                플랜 그만두기
+              </button>
+            )}
           </div>
         </>
       )}
@@ -403,10 +481,16 @@ const PlanDetail = () => {
               <BookOpenIcon size={12} strokeWidth={2} />
               {plan.total_days}일 플랜
             </span>
-            {plan.level && (
+            {personal ? (
               <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
-                · {plan.level}
+                · {owner ? '내가 만든 플랜' : `${plan.owner_name ?? '친구'}님의 플랜`}
               </span>
+            ) : (
+              plan.level && (
+                <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                  · {plan.level}
+                </span>
+              )
             )}
             {(plan.participant_count ?? 0) > 0 && (
               <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
@@ -530,6 +614,16 @@ const PlanDetail = () => {
           </p>
         </section>
       )}
+
+      {/* 나만의 플랜 — 함께 읽는 사람들 + 초대 */}
+      {personal && (
+        <PlanParticipants
+          participants={plan.participants ?? []}
+          grad={grad}
+          inviteCode={plan.invite_code}
+          onInvite={handleShare}
+        />
+      )}
     </div>
   )
 
@@ -619,6 +713,24 @@ const PlanDetail = () => {
         )}
       </section>
 
+      {/* 나만의 플랜 — 이름 바꾸기 */}
+      {renameOpen && (
+        <RenameSheet
+          initial={plan.title}
+          saving={updatePersonal.isPending}
+          onClose={() => setRenameOpen(false)}
+          onSave={async (title) => {
+            try {
+              await updatePersonal.mutateAsync({ planId: id, payload: { title } })
+              showToast('플랜 이름을 바꿨어요', 'success')
+              setRenameOpen(false)
+            } catch (e) {
+              showToast(e instanceof Error ? e.message : '오류가 발생했습니다', 'error')
+            }
+          }}
+        />
+      )}
+
       {/* AI 묵상 읽기 시트 */}
       {reflectionDay && (
         <ReflectionSheet
@@ -654,6 +766,65 @@ const PlanDetail = () => {
 }
 
 // ── Shell (헤더 + 컨테이너) ──
+// 나만의 플랜 이름 바꾸기 — 브라우저 prompt 대신 작은 슬라이드업 시트
+const RenameSheet = ({
+  initial,
+  saving,
+  onClose,
+  onSave,
+}: {
+  initial: string
+  saving: boolean
+  onClose: () => void
+  onSave: (title: string) => void
+}) => {
+  const [value, setValue] = useState(initial)
+  useModalBackButton(onClose)
+  const canSave = value.trim().length > 0 && value.trim() !== initial && !saving
+  return (
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4"
+      onClick={onClose}
+    >
+      <form
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (canSave) onSave(value.trim())
+        }}
+        className="w-full sm:max-w-sm bg-background-light dark:bg-[#1c1c26] rounded-t-3xl sm:rounded-3xl border border-black/[0.04] dark:border-white/[0.08] p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.5)]"
+      >
+        <p className="text-brand text-[10.5px] font-bold tracking-[0.12em]">MY PLAN</p>
+        <h3 className="text-[17px] font-bold text-ink-strong tracking-[-0.015em] mt-0.5">플랜 이름 바꾸기</h3>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          maxLength={120}
+          autoFocus
+          className="mt-4 w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong focus:outline-none focus:border-brand"
+        />
+        <div className="mt-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 h-10 rounded-full text-gray-700 dark:text-white/75 text-[13px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+          >
+            취소
+          </button>
+          <button
+            type="submit"
+            disabled={!canSave}
+            className="ml-auto px-5 h-10 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] disabled:opacity-40 disabled:shadow-none"
+          >
+            {saving ? '저장 중…' : '저장'}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
 const Shell = ({
   onBack,
   title,

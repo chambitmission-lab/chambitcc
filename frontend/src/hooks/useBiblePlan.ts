@@ -1,19 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   completeDay,
+  createPersonalPlan,
   createPlan,
+  deletePersonalPlan,
   deletePlan,
   getPlan,
   getTodayReadings,
+  joinPlanByCode,
   listAllPlans,
   listPlans,
+  previewPlanInvite,
   restartPlan,
   subscribePlan,
   uncompleteDay,
   unsubscribePlan,
+  updatePersonalPlan,
   updatePlan,
 } from '../api/biblePlan'
-import type { PlanCreateRequest, PlanUpdateRequest } from '../types/biblePlan'
+import type {
+  PersonalPlanCreateRequest,
+  PersonalPlanUpdateRequest,
+  PlanCreateRequest,
+  PlanUpdateRequest,
+} from '../types/biblePlan'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 
 export const biblePlanKeys = {
@@ -22,6 +32,7 @@ export const biblePlanKeys = {
   adminList: () => [...biblePlanKeys.all, 'adminList'] as const,
   detail: (id: number) => [...biblePlanKeys.all, 'detail', id] as const,
   today: () => [...biblePlanKeys.all, 'today'] as const,
+  invite: (code: string) => [...biblePlanKeys.all, 'invite', code] as const,
 }
 
 export const useBiblePlans = () =>
@@ -99,6 +110,48 @@ export const useUncompleteDay = () => {
   return useMutation({
     mutationFn: ({ planId, dayNumber }: { planId: number; dayNumber: number }) =>
       uncompleteDay(planId, dayNumber),
+    onSuccess: () => invalidatePlanData(qc),
+  })
+}
+
+// ── 개인 플랜(나만의 플랜) / 초대 ──
+export const useCreatePersonalPlan = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: PersonalPlanCreateRequest) => createPersonalPlan(payload),
+    onSuccess: () => invalidatePlanData(qc),
+  })
+}
+
+export const useUpdatePersonalPlan = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ planId, payload }: { planId: number; payload: PersonalPlanUpdateRequest }) =>
+      updatePersonalPlan(planId, payload),
+    onSuccess: () => invalidatePlanData(qc),
+  })
+}
+
+export const useDeletePersonalPlan = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (planId: number) => deletePersonalPlan(planId),
+    onSuccess: () => invalidatePlanData(qc),
+  })
+}
+
+export const usePlanInvitePreview = (inviteCode: string) =>
+  useQuery({
+    queryKey: biblePlanKeys.invite(inviteCode),
+    queryFn: () => previewPlanInvite(inviteCode),
+    enabled: inviteCode.length >= 4,
+    retry: false,
+  })
+
+export const useJoinPlanByCode = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (inviteCode: string) => joinPlanByCode(inviteCode),
     onSuccess: () => invalidatePlanData(qc),
   })
 }
