@@ -163,12 +163,23 @@
 .visit-map-canvas {
   position: absolute;
   inset: 0;
+  /* 카카오 SDK 가 내부 div 에 z-index 를 직접 박아서, 여기서 쌓임 맥락을 만들어
+     가둬 두지 않으면 아래 .visit-map-tap 버튼이 지도 타일에 덮여 눌리지 않는다 */
+  z-index: 0;
+}
+
+/* 카카오 지도 타일은 라이트 전용이라 다크에서 흰 판으로 튄다. 색을 바꾸면 지명이
+   읽히지 않으므로, 라벨 가독성을 지키는 선에서 밝기만 낮춰 페이지에 앉힌다.
+   (토큰으로 풀 수 없는 서드파티 래스터라 이 파일의 "[data-theme] 분기 금지" 예외) */
+[data-theme="dark"] .visit-map-canvas {
+  filter: brightness(0.82) saturate(0.88);
 }
 
 /* 지도가 아직 없거나 못 불러온 자리 — 깨진 화면이 아니라 조용한 빈 카드로 보이게 */
 .visit-map-placeholder {
   position: absolute;
   inset: 0;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -186,6 +197,7 @@
 .visit-map-tap {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;

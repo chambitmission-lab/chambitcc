@@ -94,7 +94,8 @@ const ChurchMap = ({ coords, pinLabel, onOpen }: ChurchMapProps) => {
         if (!alive || !box) return
 
         const center = new kakao.maps.LatLng(coords.lat, coords.lng)
-        const map = new kakao.maps.Map(box, { center, level: 4 })
+        // level 3 ≈ 100m 축척 — 레거시 홈페이지가 보여주던 '골목까지 보이는' 거리감
+        const map = new kakao.maps.Map(box, { center, level: 3 })
         // 확인용 지도 — 손가락으로 움직이지 않게 잠근다
         map.setDraggable(false)
         map.setZoomable(false)

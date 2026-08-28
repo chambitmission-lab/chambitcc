@@ -10,8 +10,9 @@ export const visit = {
   visitPostcode: '14542',
   visitPhone: '032-323-1004',
   visitMapQuery: '부천 참빛교회',
-  /** "lat,lng" — map centre and marker. Empty falls back to a plain info card. */
-  visitCoords: '37.4886,126.7565',
+  /** "lat,lng" — map centre and marker, verified with the Kakao geocoder.
+   *  Empty falls back to a plain info card. */
+  visitCoords: '37.50705,126.75687',
   /** Short name shown next to the map marker */
   visitMapPinLabel: 'Chambit Church',
 
