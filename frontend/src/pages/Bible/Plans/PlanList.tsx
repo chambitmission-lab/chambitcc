@@ -428,11 +428,10 @@ const PlanVisual = ({
           {/* 브랜드 틴트(블루, 저채도) — 그림마다 다른 색감을 하나의 톤으로 묶는다 */}
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(49,130,246,0.14),rgba(96,165,250,0.06))] mix-blend-multiply" />
         </div>
-        {/* 이모지 배지 뒤만 살짝 눌러 대비 확보 (예전 전면 검정 그라데이션은 그림을 탁하게 만든다) */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_12%,rgba(15,23,42,0.26),transparent_48%)]" />
-        {/* 이모지 유리 배지 — 그림 위에 플랜 정체성을 한 점 남긴다 */}
+        {/* 이모지 유리 배지 — 그림 위에 플랜 정체성을 한 점 남긴다.
+            배경이 옅은 수채라 어둡게 누르는 대신 밝은 유리로 띄운다 (좌상단을 흐리면 얼룩처럼 보인다) */}
         <span
-          className={`absolute left-2 top-2 inline-flex items-center justify-center ${badgeSize} leading-none rounded-full w-7 h-7 bg-white/25 backdrop-blur-md ring-1 ring-white/40 shadow-sm select-none`}
+          className={`absolute left-2 top-2 inline-flex items-center justify-center ${badgeSize} leading-none rounded-full w-7 h-7 bg-white/70 backdrop-blur-md ring-1 ring-white/70 shadow-[0_2px_8px_-2px_rgba(16,32,64,0.28)] select-none`}
         >
           {emoji}
         </span>
