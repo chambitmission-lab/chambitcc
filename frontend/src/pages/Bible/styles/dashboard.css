@@ -202,9 +202,11 @@
   gap: 0.625rem;
   min-width: 0;
   padding: 0.625rem 0.75rem;
-  background: var(--ig-secondary-background);
-  border: 1px solid var(--ig-border);
+  /* 회색 캔버스 위의 흰 카드 — 즐겨찾기 카드(.dash-card--fav)와 같은 문법 */
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
   border-radius: 1rem;
+  box-shadow: var(--card-shadow);
   text-align: left;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.2s ease;
@@ -213,8 +215,9 @@
   transform: scale(0.97);
 }
 [data-theme="dark"] .dash-tile {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .dash-tile__icon {
   display: grid;
