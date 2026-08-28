@@ -10,7 +10,9 @@
   padding: 20px 18px;
 }
 .dark .gen-hero {
-  background: linear-gradient(135deg, rgba(49, 130, 246, 0.14) 0%, var(--card-bg, #201f1f) 60%);
+  /* 우측 바닥은 이미지의 바닥색(#111)에 맞춰 두어 그림 경계가 카드에 스며들게 */
+  background:
+    linear-gradient(135deg, rgba(49, 130, 246, 0.14) 0%, var(--card-bg, #201f1f) 55%, #131316 100%);
 }
 .gen-hero__art {
   position: absolute;
@@ -21,20 +23,33 @@
   background-size: auto 100%;
   background-position: right bottom;
   background-repeat: no-repeat;
-  opacity: 0.5;
-  /* 왼쪽 텍스트 영역으로 갈수록 투명하게 */
-  -webkit-mask-image: linear-gradient(90deg, transparent 15%, #000 55%);
-  mask-image: linear-gradient(90deg, transparent 15%, #000 55%);
+  opacity: 0;
+  transition: opacity .45s ease;
+  /* 이미지 배경이 불투명(다크는 #111)이라 사방을 페더링해 카드에 녹인다:
+     가로(왼쪽으로 사라짐 + 오른쪽 끝 살짝) × 세로(위쪽 살짝) 두 마스크를 교차 */
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent 15%, #000 55%, #000 94%, rgba(0,0,0,.6) 100%),
+    linear-gradient(180deg, rgba(0,0,0,.55) 0%, #000 28%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent 15%, #000 55%, #000 94%, rgba(0,0,0,.6) 100%),
+    linear-gradient(180deg, rgba(0,0,0,.55) 0%, #000 28%);
+  mask-composite: intersect;
 }
+.gen-hero__art.is-loaded { opacity: 0.5; }
 @media (min-width: 768px) {
   .gen-hero { padding: 26px 28px; }
   .gen-hero__art {
-    opacity: 0.95;
     background-size: auto 100%;
-    background-position: right 16px bottom;
-    -webkit-mask-image: linear-gradient(90deg, transparent 35%, #000 60%);
-    mask-image: linear-gradient(90deg, transparent 35%, #000 60%);
+    background-position: right bottom;
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent 35%, #000 62%, #000 93%, rgba(0,0,0,.55) 100%),
+      linear-gradient(180deg, rgba(0,0,0,.5) 0%, #000 30%);
+    mask-image:
+      linear-gradient(90deg, transparent 35%, #000 62%, #000 93%, rgba(0,0,0,.55) 100%),
+      linear-gradient(180deg, rgba(0,0,0,.5) 0%, #000 30%);
   }
+  .gen-hero__art.is-loaded { opacity: 0.95; }
 }
 .gen-hero__content { position: relative; z-index: 1; }
 

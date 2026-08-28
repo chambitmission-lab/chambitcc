@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMessianicGenealogy } from '../../../hooks/useBibleFigure'
@@ -9,6 +9,13 @@ import type { BibleFigureSummary } from '../../../types/bibleFigure'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSectionTabs from '../../../components/bible/BibleSectionTabs'
 import './Genealogy.css'
+
+// 히어로 이미지는 CSS 배경(테마 토큰)이라 다크 전환 순간에야 받기 시작한다.
+// 두 테마 파일을 마운트 시 미리 디코드해 두면 토글 시 즉시 뜨고, 첫 표시는 페이드인.
+const HERO_IMAGES = [
+  '/images/genealogy/tree-hero-light.webp',
+  '/images/genealogy/tree-hero-dark.webp',
+]
 
 const encouragement = (p: number) => {
   if (p >= 1) return '완독했어요!'
@@ -51,6 +58,23 @@ export const Genealogy = () => {
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const [helpOpen, setHelpOpen] = useState(false)
+  const [heroReady, setHeroReady] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.allSettled(
+      HERO_IMAGES.map((src) => {
+        const img = new Image()
+        img.src = src
+        return img.decode ? img.decode() : Promise.resolve()
+      }),
+    ).then(() => {
+      if (!cancelled) setHeroReady(true)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const isLoggedIn = !!localStorage.getItem('access_token')
 
@@ -115,7 +139,7 @@ export const Genealogy = () => {
 
         {/* 히어로 — 우측에 생명나무 이미지, 좌측 타이틀 + 통계 타일 */}
         <header className="gen-hero mb-4">
-          <div className="gen-hero__art" aria-hidden />
+          <div className={`gen-hero__art${heroReady ? ' is-loaded' : ''}`} aria-hidden />
           <div className="gen-hero__content">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
