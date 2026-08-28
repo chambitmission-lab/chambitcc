@@ -139,7 +139,7 @@ const CinemaReading = ({
   )
 
   // 화면 맞춤 — 절이 무대보다 길면(특히 가로 모드) 글자를 단계적으로 줄여 한 화면에 담는다.
-  // 0.6까지 줄여도 안 들어가면 그대로 두고 스크롤(CSS overflow)에 맡긴다.
+  // 0.5까지 줄여도 안 들어가면 그대로 두고 스크롤(CSS overflow)에 맡긴다.
   const [fitTick, setFitTick] = useState(0)
   useEffect(() => {
     const bump = () => setFitTick((t) => t + 1)
@@ -158,7 +158,7 @@ const CinemaReading = ({
     stage.style.setProperty('--cinema-fit', '1')
     stage.scrollTop = 0
     // scrollHeight > clientHeight 이면 넘친 것. 5%씩 줄이며 재측정
-    while (stage.scrollHeight > stage.clientHeight + 1 && fit > 0.6) {
+    while (stage.scrollHeight > stage.clientHeight + 1 && fit > 0.5) {
       fit = Math.round((fit - 0.05) * 100) / 100
       stage.style.setProperty('--cinema-fit', String(fit))
     }
