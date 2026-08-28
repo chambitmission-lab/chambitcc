@@ -1,8 +1,9 @@
 // 공동 묵상방 홈 (/rooms/:roomId)
-// 멤버 아바타 · 초대 링크 공유 · 일차별 본문 · 묵상/기도제목 피드(좋아요·댓글)
+// 멤버 아바타 · 초대(앱 사용자 바로 초대 + 링크 공유) · 일차별 본문 · 묵상/기도제목 피드(좋아요·댓글)
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
+  useAddRoomMembers,
   useCreateRoomPost,
   useCreateRoomReply,
   useDeleteRoomPost,
@@ -16,6 +17,8 @@ import {
 } from '../../hooks/useMeditationRoom'
 import type { RoomDetail, RoomMember, RoomPost, RoomPostType } from '../../types/meditationRoom'
 import { CommentIcon, HeartIcon } from '../../components/icons/ActionIcons'
+import MemberSearchInput from '../../components/common/MemberSearchInput'
+import type { CapsuleRecipient } from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
@@ -41,6 +44,8 @@ const RoomHome = () => {
   const { data: room, isLoading, error } = useRoom(id, isAuthenticated())
   const leaveRoom = useLeaveRoom()
   const markDayRead = useMarkRoomDayRead(id)
+  const addMembers = useAddRoomMembers(id)
+  const [inviteOpen, setInviteOpen] = useState(false)
 
   // 선택 일차 — 기본은 오늘 일차 (시작 전이면 1일차)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
@@ -80,6 +85,20 @@ const RoomHome = () => {
       showToast('초대 링크를 복사했어요. 카톡에 붙여넣어 보내주세요!', 'success')
     } catch {
       showToast('복사에 실패했어요. 초대 코드를 직접 알려주세요: ' + room.invite_code, 'error')
+    }
+  }
+
+  // 앱 사용자 바로 초대 — 검색해서 고르면 즉시 멤버로 추가 + 상대에게 알림·푸시
+  const handleInviteUser = async (user: CapsuleRecipient) => {
+    try {
+      const res = await addMembers.mutateAsync([user.id])
+      if (res.added_count > 0) {
+        showToast(`${user.display_name}님을 묵상방에 초대했어요 📖`, 'success')
+      } else {
+        showToast(`${user.display_name}님은 이미 함께하고 있어요`, 'info')
+      }
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : '초대에 실패했습니다', 'error')
     }
   }
 
@@ -202,12 +221,12 @@ const RoomHome = () => {
           </div>
           <button
             type="button"
-            onClick={handleShare}
+            onClick={() => setInviteOpen(true)}
             className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-brand text-white text-[12px] font-bold shadow-[0_4px_14px_-4px_var(--brand-glow)] active:scale-95 transition-transform"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+              <line x1="19" y1="8" x2="19" y2="14" /><line x1="22" y1="11" x2="16" y2="11" />
             </svg>
             초대하기
           </button>
@@ -231,6 +250,43 @@ const RoomHome = () => {
       rail={renderRoomCard('')}
     >
       {renderRoomCard('mx-4 mt-4 lg:hidden')}
+
+      {/* 초대 시트 — 앱 사용자는 검색해서 바로, 외부인은 링크로 */}
+      {inviteOpen && (
+        <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
+          <div className="absolute inset-0 bg-black/45" onClick={() => setInviteOpen(false)} />
+          <div className="relative w-full max-w-md max-h-[88vh] overflow-y-auto rounded-t-[24px] lg:rounded-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
+            <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4 lg:hidden" />
+            <h3 className="text-[17px] font-bold text-ink-strong">함께 묵상할 사람 초대</h3>
+            <p className="text-[12.5px] text-gray-500 dark:text-white/55 mt-1 mb-4 leading-[1.6]">
+              이름을 검색해 고르면 바로 멤버가 되고, 그분에게 알림이 가요.
+            </p>
+            <MemberSearchInput
+              excludeIds={room.members.map((m) => m.user_id)}
+              onPick={handleInviteUser}
+              placeholder="이름을 검색해 바로 초대해요"
+              emptyHint="앱에서 찾을 수 없어요. 아직 가입 전이라면 아래 초대 링크를 공유해주세요."
+            />
+
+            <div className="mt-5 pt-4 border-t border-gray-100 dark:border-white/[0.06]">
+              <div className="text-[12px] font-bold text-gray-500 dark:text-white/55 mb-2">
+                앱 밖 사람에게는 링크로
+              </div>
+              <button
+                type="button"
+                onClick={handleShare}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-50 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.08] text-[13.5px] font-bold text-ink-strong active:scale-[0.98] transition-transform"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
+                초대 링크 공유 · 코드 {room.invite_code}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 일차 선택 칩 */}
       <div

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  addRoomMembers,
   createRoom,
   createRoomPost,
   createRoomReply,
@@ -88,6 +89,17 @@ export const useJoinRoom = () => {
   return useMutation({
     mutationFn: (inviteCode: string) => joinRoom(inviteCode),
     onSuccess: () => qc.invalidateQueries({ queryKey: roomKeys.all, refetchType: 'all' }),
+  })
+}
+
+export const useAddRoomMembers = (roomId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (userIds: number[]) => addRoomMembers(roomId, userIds),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId), refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: roomKeys.list(), refetchType: 'all' })
+    },
   })
 }
 

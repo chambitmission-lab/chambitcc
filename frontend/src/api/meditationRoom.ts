@@ -59,6 +59,19 @@ export const getRoom = async (roomId: number): Promise<RoomDetail> => {
   return response.json()
 }
 
+export const addRoomMembers = async (
+  roomId: number,
+  userIds: number[],
+): Promise<{ added_count: number }> => {
+  const response = await apiFetch(`${BASE}/${roomId}/members`, {
+    method: 'POST',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ user_ids: userIds }),
+  })
+  if (!response.ok) return parseError(response, '멤버 초대에 실패했습니다')
+  return response.json()
+}
+
 export const leaveRoom = async (roomId: number): Promise<void> => {
   const response = await apiFetch(`${BASE}/${roomId}/leave`, {
     method: 'DELETE',
