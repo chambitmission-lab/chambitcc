@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { deriveTimeOfDay, useDailyMeditation } from '../../../hooks/useDailyMeditation'
 import {
   useCreateMeditationRecord,
@@ -52,8 +52,13 @@ const SILENCE_SECONDS = 60
 
 const MeditationPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const loggedIn = isAuthenticated()
+
+  /* 홈·말씀알림 등 여러 곳에서 들어오므로 온 곳으로 돌려보낸다.
+     딥링크로 이 화면이 첫 진입(key === 'default')이면 앱 밖으로 나가지 않게 /bible 로. */
+  const goBack = () => (location.key === 'default' ? navigate('/bible') : navigate(-1))
 
   const todParam = searchParams.get('tod')
   const timeOfDay: TimeOfDay | undefined =
@@ -127,7 +132,7 @@ const MeditationPage = () => {
   return (
     <div className="meditation-page" data-tod={tod}>
       <header className="mp-header">
-        <button type="button" className="mp-back" onClick={() => navigate('/bible')} aria-label="성경으로">
+        <button type="button" className="mp-back" onClick={goBack} aria-label="뒤로가기">
           <span className="material-icons-round">arrow_back</span>
         </button>
         <h1>{pageTitle}</h1>
