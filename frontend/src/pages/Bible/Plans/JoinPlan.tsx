@@ -7,6 +7,7 @@ import { isAuthenticated } from '../../../utils/auth'
 import { escapeKakaoInApp, isInAppBrowser, isKakaoInApp } from '../../../utils/inappBrowser'
 import { showToast } from '../../../utils/toast'
 import { accentGradient } from './planVisuals'
+import { CloudOffIcon, PlanGlyph } from './PlanIcons'
 
 const JoinPlan = () => {
   const navigate = useNavigate()
@@ -77,7 +78,9 @@ const JoinPlan = () => {
             <div className="w-full h-64 rounded-3xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
           ) : error || !plan ? (
             <div className="text-center">
-              <span className="text-5xl block mb-4">😢</span>
+              <span className="mx-auto mb-4 block w-fit text-gray-300 dark:text-white/25">
+                <CloudOffIcon size={46} />
+              </span>
               <p className="text-[15px] font-bold text-ink-strong">초대장을 찾을 수 없어요</p>
               <p className="text-[13px] text-gray-500 dark:text-white/55 mt-1.5">
                 링크가 만료됐거나(플랜 삭제) 잘못된 초대 코드예요
@@ -94,11 +97,13 @@ const JoinPlan = () => {
             <div className="w-full">
               {/* 초대 카드 */}
               <div className={`relative overflow-hidden rounded-[26px] p-6 bg-gradient-to-br ${grad} text-white shadow-[0_16px_44px_-14px_var(--brand-glow)] text-center`}>
-                <span className="absolute -right-3 -bottom-7 text-[110px] leading-none opacity-[0.14] rotate-12 select-none pointer-events-none">
-                  {plan.emoji || '📖'}
+                <span className="absolute -right-3 -bottom-7 opacity-[0.18] rotate-12 pointer-events-none">
+                  <PlanGlyph emoji={plan.emoji} size={110} />
                 </span>
                 <div className="relative z-10">
-                  <span className="text-[38px] block">{plan.emoji || '📖'}</span>
+                  <span className="flex justify-center">
+                    <PlanGlyph emoji={plan.emoji} size={38} />
+                  </span>
                   <p className="text-[11px] font-semibold tracking-[0.3em] text-white/70 mt-2">INVITATION</p>
                   <h2 className="text-[22px] font-extrabold tracking-[-0.02em] leading-[1.3] mt-2 break-keep">
                     {plan.title}

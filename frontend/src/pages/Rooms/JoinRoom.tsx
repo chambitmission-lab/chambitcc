@@ -6,6 +6,7 @@ import { useJoinRoom, useRoomPreview } from '../../hooks/useMeditationRoom'
 import { isAuthenticated } from '../../utils/auth'
 import { escapeKakaoInApp, isInAppBrowser, isKakaoInApp } from '../../utils/inappBrowser'
 import { showToast } from '../../utils/toast'
+import { CloudOffIcon, RoomGlyph } from './RoomIcons'
 
 const JoinRoom = () => {
   const navigate = useNavigate()
@@ -78,7 +79,9 @@ const JoinRoom = () => {
             <div className="w-full h-64 rounded-3xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
           ) : error || !room ? (
             <div className="text-center">
-              <span className="text-5xl block mb-4">😢</span>
+              <span className="mx-auto mb-4 block w-fit text-gray-300 dark:text-white/25">
+                <CloudOffIcon size={46} />
+              </span>
               <p className="text-[15px] font-bold text-ink-strong">
                 초대장을 찾을 수 없어요
               </p>
@@ -97,11 +100,13 @@ const JoinRoom = () => {
             <div className="w-full">
               {/* 초대 카드 */}
               <div className="relative overflow-hidden rounded-[26px] p-6 bg-brand text-white shadow-[0_16px_44px_-14px_var(--brand-glow)] text-center">
-                <span className="absolute -right-3 -bottom-7 text-[110px] leading-none opacity-[0.14] rotate-12 select-none pointer-events-none">
-                  {room.emoji || '🕊️'}
+                <span className="absolute -right-3 -bottom-7 opacity-[0.18] rotate-12 pointer-events-none">
+                  <RoomGlyph emoji={room.emoji} size={110} />
                 </span>
                 <div className="relative z-10">
-                  <span className="text-[38px] block">{room.emoji || '🕊️'}</span>
+                  <span className="flex justify-center">
+                    <RoomGlyph emoji={room.emoji} size={38} />
+                  </span>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/70 mt-2">
                     Invitation
                   </p>

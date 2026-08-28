@@ -8,6 +8,8 @@ import type { RoomSummary } from '../../types/meditationRoom'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import heroCover from '../../assets/plans/nt-120.jpg'
+import { CheckIcon, PartyIcon, RoomGlyph } from './RoomIcons'
+import { UsersIcon } from '../../components/icons/ActionIcons'
 
 const DURATION_PRESETS = [3, 7, 14, 21, 30]
 const EMOJI_PRESETS = ['🕊️', '🌱', '🔥', '🌙', '🌊', '⭐']
@@ -224,7 +226,9 @@ const RoomList = () => {
 
 const EmptyNote = ({ emoji, text }: { emoji: string; text: string }) => (
   <div className="text-center py-12 px-6">
-    <span className="text-4xl block mb-3">{emoji}</span>
+    <span className="mx-auto mb-3 block w-fit text-gray-300 dark:text-white/25">
+      <RoomGlyph emoji={emoji} size={38} />
+    </span>
     <p className="text-[13px] text-gray-500 dark:text-white/55">{text}</p>
   </div>
 )
@@ -244,8 +248,8 @@ const RoomCard = ({ room, onClick }: { room: RoomSummary; onClick: () => void })
       className="w-full text-left p-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985]"
     >
       <div className="flex items-start gap-3">
-        <span className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--brand-soft)] flex items-center justify-center text-[20px]">
-          {room.emoji || '🕊️'}
+        <span className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+          <RoomGlyph emoji={room.emoji} size={22} />
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -257,18 +261,21 @@ const RoomCard = ({ room, onClick }: { room: RoomSummary; onClick: () => void })
             </span>
           </div>
           <p className="text-[12px] text-gray-400 dark:text-white/45 mt-1">
-            👥 {room.member_count}명 ·{' '}
+            <UsersIcon size={12} className="inline-block -mt-px mr-1 align-middle" />
+            {room.member_count}명 ·{' '}
             {room.status === 'upcoming'
               ? `${room.start_date}부터 ${room.total_days}일`
               : `${room.current_day}/${room.total_days}일차`}
             {room.my_read_count >= room.total_days ? (
               <span className="ml-1.5 font-bold text-emerald-600 dark:text-emerald-300">
-                🎉 내 몫 완주
+                <PartyIcon size={11} className="inline-block -mt-px mr-0.5 align-middle" />
+                내 몫 완주
               </span>
             ) : (
               room.my_read_count > 0 && (
                 <span className="ml-1.5 font-semibold text-brand">
-                  ✓ 내 여정 {room.my_read_count}/{room.total_days}
+                  <CheckIcon size={10} className="inline-block -mt-px mr-0.5 align-middle" />
+                  내 여정 {room.my_read_count}/{room.total_days}
                 </span>
               )
             )}
@@ -277,7 +284,8 @@ const RoomCard = ({ room, onClick }: { room: RoomSummary; onClick: () => void })
             <p className="text-[12px] font-semibold mt-1 truncate">
               {room.today_read_by_me ? (
                 <span className="text-emerald-600 dark:text-emerald-300">
-                  ✓ 오늘 읽음 · {room.today_reference}
+                  <CheckIcon size={11} className="inline-block -mt-px mr-0.5 align-middle" />
+                  오늘 읽음 · {room.today_reference}
                 </span>
               ) : (
                 <span className="text-brand">오늘 · {room.today_reference}</span>
@@ -360,13 +368,13 @@ const CreateRoomSheet = ({ onClose }: { onClose: () => void }) => {
               key={e}
               type="button"
               onClick={() => setEmoji(e)}
-              className={`w-9 h-9 rounded-xl text-[17px] flex items-center justify-center transition-all ${
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
                 emoji === e
-                  ? 'bg-[var(--brand-soft)] ring-2 ring-brand/60 scale-105'
-                  : 'bg-gray-50 dark:bg-white/[0.05]'
+                  ? 'bg-[var(--brand-soft)] ring-2 ring-[var(--brand-soft-strong)] text-brand scale-105'
+                  : 'bg-gray-50 dark:bg-white/[0.05] text-gray-500 dark:text-white/60'
               }`}
             >
-              {e}
+              <RoomGlyph emoji={e} size={18} />
             </button>
           ))}
         </div>

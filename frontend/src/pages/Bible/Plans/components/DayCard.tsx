@@ -1,6 +1,7 @@
 // ── 하루치 카드 ──
 // 상태별 시각 위계: 완료(과거) = 딤드 / 오늘 = 블루 하이라이트 / 예정(미래) = 아웃라인 원 + 차분한 텍스트
 import type { PlanDay } from '../../../../types/biblePlan'
+import { CommentIcon, SparklesIcon } from '../../../../components/icons/ActionIcons'
 
 const DayCard = ({
   domId,
@@ -126,7 +127,8 @@ const DayCard = ({
       <div className="relative z-10 px-3.5 pb-3 -mt-1">
         {day.reflection_prompt && (
           <p className="text-[12.5px] leading-[1.6] text-gray-600 dark:text-white/65 bg-gray-50 dark:bg-white/[0.03] rounded-xl px-3 py-2 mb-2">
-            💬 {day.reflection_prompt}
+            <CommentIcon size={13} className="inline-block -mt-px mr-1 align-middle opacity-70" />
+            {day.reflection_prompt}
           </p>
         )}
         {/* 묵상은 카드 안에 펼치지 않고 전용 읽기 시트(ReflectionSheet)로 연다 */}
@@ -135,7 +137,7 @@ const DayCard = ({
           onClick={onReflect}
           className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-blue-600 dark:text-blue-300 hover:underline"
         >
-          <span>✨</span>
+          <SparklesIcon size={14} />
           AI 묵상 읽기
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" className="opacity-70">
             <polyline points="9 18 15 12 9 6" />

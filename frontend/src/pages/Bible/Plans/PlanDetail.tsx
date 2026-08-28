@@ -32,6 +32,7 @@ import ReflectionEditModal from './components/ReflectionEditModal'
 import PlanParticipants from './components/PlanParticipants'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { CloudOffIcon, FlameIcon, PartyIcon } from './PlanIcons'
 
 // 나만의 플랜 초대 링크 — HashRouter 라 #/ 경로, JoinPlan(/bible/plans/join/:code)으로 떨어진다
 const inviteUrl = (code: string) =>
@@ -288,7 +289,9 @@ const PlanDetail = () => {
     return (
       <Shell onBack={() => navigate('/bible/plans')} title="읽기 플랜">
         <div className="text-center py-16 px-6">
-          <span className="text-4xl block mb-3">😢</span>
+          <span className="mx-auto mb-3 block w-fit text-gray-300 dark:text-white/25">
+            <CloudOffIcon size={38} />
+          </span>
           <p className="text-[13px] text-gray-500 dark:text-white/55">
             플랜을 불러오지 못했습니다
           </p>
@@ -552,8 +555,9 @@ const PlanDetail = () => {
               </div>
               <Divider />
               <div>
-                <p className="text-[19px] font-bold text-ink-strong" style={numStyle}>
-                  🔥 {progress.streak_count}
+                <p className="text-[19px] font-bold text-ink-strong inline-flex items-center gap-1" style={numStyle}>
+                  <FlameIcon size={16} className="text-brand" />
+                  {progress.streak_count}
                 </p>
                 <p className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45 mt-0.5">
                   연속일
@@ -577,7 +581,10 @@ const PlanDetail = () => {
 
           {progress.status === 'completed' ? (
             <div className="mt-4 text-center">
-              <p className="text-[14px] font-bold text-ink-strong">🎉 완주를 축하해요!</p>
+              <p className="text-[14px] font-bold text-ink-strong inline-flex items-center gap-1.5">
+                <PartyIcon size={16} className="text-brand" />
+                완주를 축하해요!
+              </p>
               <button
                 onClick={handleRestart}
                 className="mt-2 text-[13px] font-semibold text-blue-600 dark:text-blue-300 hover:underline"

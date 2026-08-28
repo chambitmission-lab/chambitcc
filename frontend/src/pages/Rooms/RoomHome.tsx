@@ -22,6 +22,8 @@ import type { CapsuleRecipient } from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { CheckIcon, DoveIcon, EyeIcon, LockIcon, PartyIcon, RoomGlyph, SproutIcon } from './RoomIcons'
+import { BookOpenIcon, HandHeartIcon } from '../../components/icons/ActionIcons'
 
 const timeAgo = (iso: string): string => {
   const diff = Date.now() - new Date(iso).getTime()
@@ -138,7 +140,9 @@ const RoomHome = () => {
       <Shell onBack={() => navigate('/rooms')} title="공동 묵상방">
         {error ? (
           <div className="text-center py-16 px-6">
-            <span className="text-4xl block mb-3">🔒</span>
+            <span className="mx-auto mb-3 block w-fit text-gray-300 dark:text-white/25">
+              <LockIcon size={38} />
+            </span>
             <p className="text-[13px] text-gray-500 dark:text-white/55">
               {error instanceof Error ? error.message : '묵상방을 불러오지 못했습니다'}
             </p>
@@ -157,15 +161,20 @@ const RoomHome = () => {
   const renderRoomCard = (cls: string) => (
       <section className={`relative overflow-hidden rounded-3xl p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35 ${cls}`}>
         <div className="flex items-start gap-3">
-          <span className="shrink-0 w-12 h-12 rounded-2xl bg-white/70 dark:bg-white/[0.08] flex items-center justify-center text-[24px]">
-            {room.emoji || '🕊️'}
+          <span className="shrink-0 w-12 h-12 rounded-2xl bg-white/70 dark:bg-white/[0.08] text-brand flex items-center justify-center">
+            <RoomGlyph emoji={room.emoji} size={25} />
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap text-[10.5px] font-bold tracking-[0.08em] text-blue-600 dark:text-blue-300">
               {room.status === 'upcoming'
                 ? `${room.start_date} 시작`
                 : room.status === 'finished'
-                  ? '여정 마침 🎉'
+                  ? (
+                      <span className="inline-flex items-center gap-1">
+                        여정 마침
+                        <PartyIcon size={12} />
+                      </span>
+                    )
                   : `${room.current_day} / ${room.total_days}일차 진행 중`}
             </div>
             <h2 className="text-[19px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong mt-0.5 break-keep">
@@ -182,7 +191,7 @@ const RoomHome = () => {
         <div className="mt-4">
           {room.my_read_count >= room.total_days ? (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/[0.12]">
-              <span className="text-[15px]">🎉</span>
+              <PartyIcon size={15} className="shrink-0 text-emerald-600 dark:text-emerald-300" />
               <span className="text-[12.5px] font-bold text-emerald-600 dark:text-emerald-300">
                 내 몫 완주! {room.total_days}일치 본문을 모두 읽었어요
               </span>
@@ -192,7 +201,8 @@ const RoomHome = () => {
               <div className="flex items-center justify-between text-[11.5px] font-semibold mb-1.5">
                 <span className="text-gray-500 dark:text-white/55">내 여정</span>
                 <span className="text-brand">
-                  ✓ {room.my_read_count} / {room.total_days}일 읽음
+                  <CheckIcon size={10} className="inline-block -mt-px mr-0.5 align-middle" />
+                  {room.my_read_count} / {room.total_days}일 읽음
                 </span>
               </div>
               <div className="h-1.5 rounded-full bg-white/70 dark:bg-white/[0.08] overflow-hidden">
@@ -308,7 +318,9 @@ const RoomHome = () => {
                   : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
               }`}
             >
-              {d.read_by_me && <span className="mr-0.5">✓</span>}
+              {d.read_by_me && (
+                <CheckIcon size={10} className="inline-block -mt-px mr-1 align-middle" />
+              )}
               {d.day_number}일차
               {d.post_count > 0 && (
                 <span className={`ml-1 text-[10px] ${active ? 'text-white/80' : 'text-brand'}`}>
@@ -331,7 +343,8 @@ const RoomHome = () => {
               {day}일차 본문{dayInfo?.date ? ` · ${dayInfo.date}` : ''}
             </p>
             <p className="text-[15px] font-bold text-ink-strong mt-0.5 truncate">
-              📖 {dayInfo?.title ?? '본문 없음'}
+              <BookOpenIcon size={15} className="inline-block -mt-0.5 mr-1.5 align-middle text-brand" />
+              {dayInfo?.title ?? '본문 없음'}
             </p>
           </div>
           {dayInfo?.read_by_me ? (
@@ -357,7 +370,8 @@ const RoomHome = () => {
         </div>
         {(dayInfo?.read_count ?? 0) > 0 && (
           <p className="text-[11.5px] text-gray-400 dark:text-white/45 mt-2">
-            👀 {dayInfo!.read_count}명이 이 본문을 읽었어요
+            <EyeIcon size={13} className="inline-block -mt-px mr-1 align-middle" />
+            {dayInfo!.read_count}명이 이 본문을 읽었어요
           </p>
         )}
       </section>
@@ -395,20 +409,21 @@ const DayFeed = ({ room, day }: { room: RoomDetail; day: number }) => {
         <div className="flex gap-1.5 mb-2.5">
           {(
             [
-              ['meditation', '🕊️ 묵상'],
-              ['prayer', '🙏 기도제목'],
-            ] as [RoomPostType, string][]
-          ).map(([t, label]) => (
+              ['meditation', '묵상', DoveIcon],
+              ['prayer', '기도제목', HandHeartIcon],
+            ] as [RoomPostType, string, typeof DoveIcon][]
+          ).map(([t, label, Icon]) => (
             <button
               key={t}
               type="button"
               onClick={() => setPostType(t)}
-              className={`px-3 py-1.5 rounded-full text-[12px] font-bold transition-all ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all ${
                 postType === t
                   ? 'bg-brand text-white'
                   : 'bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-white/55'
               }`}
             >
+              <Icon size={13} />
               {label}
             </button>
           ))}
@@ -445,7 +460,8 @@ const DayFeed = ({ room, day }: { room: RoomDetail; day: number }) => {
           ))
         ) : !feed || feed.items.length === 0 ? (
           <p className="text-center text-[13px] text-gray-400 dark:text-white/45 py-10">
-            아직 나눈 묵상이 없어요. 첫 마음을 나눠보세요 🌱
+            <SproutIcon size={26} className="mx-auto mb-2 block text-gray-300 dark:text-white/25" />
+            아직 나눈 묵상이 없어요. 첫 마음을 나눠보세요
           </p>
         ) : (
           feed.items.map((post) => <PostCard key={post.id} post={post} roomAdmin={room.is_admin} />)
@@ -490,7 +506,8 @@ const PostCard = ({ post, roomAdmin }: { post: RoomPost; roomAdmin: boolean }) =
             </span>
             {post.post_type === 'prayer' && (
               <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-amber-400/15 text-amber-600 dark:text-amber-300 text-[10.5px] font-bold leading-none">
-                🙏 기도제목
+                <HandHeartIcon size={11} className="inline-block -mt-px mr-0.5 align-middle" />
+                기도제목
               </span>
             )}
           </div>

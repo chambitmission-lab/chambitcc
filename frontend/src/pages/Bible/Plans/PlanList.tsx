@@ -9,6 +9,16 @@ import type { PlanSummary, TodayReading } from '../../../types/biblePlan'
 import { isAuthenticated } from '../../../utils/auth'
 import { accentGradient, gradientTextStyle, planHashtags } from './planVisuals'
 import { planCover } from './planCovers'
+import {
+  CloudOffIcon,
+  DoveIcon,
+  EmptyTrayIcon,
+  FlameIcon,
+  KeyIcon,
+  PartyIcon,
+  PlanGlyph,
+} from './PlanIcons'
+import { UsersIcon } from '../../../components/icons/ActionIcons'
 import heroCover from '../../../assets/plans/bible-365.jpg'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSectionTabs from '../../../components/bible/BibleSectionTabs'
@@ -153,8 +163,8 @@ const PlanList = () => {
           onClick={() => navigate('/rooms')}
           className="lg:hidden mx-4 mt-3.5 w-[calc(100%-2rem)] flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] text-left"
         >
-          <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] flex items-center justify-center text-[19px]">
-            🕊️
+          <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+            <DoveIcon size={21} />
           </span>
           <span className="flex-1 min-w-0">
             <span className="block text-[14px] font-bold text-ink-strong tracking-[-0.015em]">
@@ -178,7 +188,9 @@ const PlanList = () => {
           <PlanSkeletons />
         ) : error && plans.length === 0 ? (
           <div className="text-center py-16 px-6">
-            <span className="text-4xl block mb-3">😢</span>
+            <span className="mx-auto mb-3 block w-fit text-gray-300 dark:text-white/25">
+              <CloudOffIcon size={38} />
+            </span>
             <p className="text-[13px] text-gray-500 dark:text-white/55">
               플랜을 불러오지 못했습니다
             </p>
@@ -193,7 +205,9 @@ const PlanList = () => {
           </div>
         ) : plans.length === 0 ? (
           <div className="text-center py-16 px-6">
-            <span className="text-4xl block mb-3">📭</span>
+            <span className="mx-auto mb-3 block w-fit text-gray-300 dark:text-white/25">
+              <EmptyTrayIcon size={38} />
+            </span>
             <p className="text-[13px] text-gray-500 dark:text-white/55">
               아직 공개된 읽기 플랜이 없어요
             </p>
@@ -321,8 +335,8 @@ const PlanList = () => {
           onClick={() => navigate('/rooms')}
           className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] text-left"
         >
-          <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] flex items-center justify-center text-[19px]">
-            🕊️
+          <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+            <DoveIcon size={21} />
           </span>
           <span className="flex-1 min-w-0">
             <span className="block text-[14px] font-bold text-ink-strong tracking-[-0.015em]">
@@ -449,7 +463,7 @@ const PersonalPlanEntry = ({
     >
       <span className="shrink-0 w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center shadow-[0_6px_16px_-6px_var(--brand-glow)]">
         {ownedPlan ? (
-          <span className="text-[19px]">{ownedPlan.emoji || '📖'}</span>
+          <PlanGlyph emoji={ownedPlan.emoji} size={19} />
         ) : (
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -514,7 +528,10 @@ const PersonalPlanEntry = ({
           onClick={onToggleCode}
           className="w-full flex items-center justify-between text-[12px] font-semibold text-gray-500 dark:text-white/55 hover:text-brand py-1"
         >
-          <span>🔑 초대 코드로 함께하기</span>
+          <span className="inline-flex items-center gap-1.5">
+            <KeyIcon size={15} />
+            초대 코드로 함께하기
+          </span>
           <span className="text-brand">입력</span>
         </button>
       )}
@@ -547,78 +564,67 @@ const Hashtags = ({ plan }: { plan: PlanSummary }) => {
 }
 
 // 카드 비주얼(감성 그래픽): accent 그라데이션 + 글로우 + 이모지.
-// 추후 커버 이미지가 생기면 이 컴포넌트만 <img>로 교체하면 됨.
-// 세로 띠 커버의 오른쪽 끝 — 카드 바탕색으로 서서히 녹여 이미지/텍스트 경계선을 지운다
-const STRIP_MASK =
-  'linear-gradient(to right, #000 0%, #000 78%, rgba(0,0,0,0.5) 92%, transparent 100%)'
-
+// size: feed = 격자 카드의 5:4 커버 / thumb = 가로형 카드의 정사각 썸네일.
+// (가로형에 쓰던 104px 세로 띠는 3:2 사진의 빈 여백만 잘려 '반쪽'으로 보여 폐기했다.
+//  사진은 온전한 비율로 보일 때만 사진으로 읽힌다.)
 const PlanVisual = ({
   plan,
   size,
 }: {
   plan: PlanSummary
-  size: 'feed' | 'feature'
+  size: 'feed' | 'thumb'
 }) => {
   const grad = accentGradient(plan.accent)
-  const emoji = plan.emoji || '📖'
   const cover = planCover(plan.slug)
-  // 이모지 배지 — 사진 위에선 좌상단 작은 유리 배지, 그라데이션 폴백에선 중앙 크게
-  const badgeSize = size === 'feed' ? 'text-[15px]' : 'text-[17px]'
+  // 플랜 표식(선화) — 사진 위에선 좌상단 작은 유리 배지, 그라데이션 폴백에선 중앙 크게
+  const badgeGlyph = size === 'feed' ? 16 : 15
 
   // 실제 커버 그림이 있으면 배경으로 — 수채 일러스트라 틴트는 아주 옅게만 얹는다
   if (cover) {
-    // 가로형 카드의 세로 띠(104px)는 3:2 그림의 한가운데(빈 안개)만 잘려 '반쪽'처럼 보인다.
-    // 주인공이 있는 오른쪽을 기준으로 자르고, 오른쪽 끝은 카드 바탕으로 녹여 한 장처럼 잇는다.
-    const strip = size === 'feature'
+    const thumb = size === 'thumb'
     return (
-      <div className={`relative h-full w-full overflow-hidden ${strip ? '' : 'bg-gray-100 dark:bg-white/5'}`}>
-        <div
-          className="absolute inset-0"
-          style={strip ? { maskImage: STRIP_MASK, WebkitMaskImage: STRIP_MASK } : undefined}
-        >
-          <img
-            src={cover}
-            alt=""
-            loading="lazy"
-            className={`absolute inset-0 h-full w-full object-cover ${strip ? 'object-[85%_50%]' : ''}`}
-          />
-          {/* 브랜드 틴트(블루, 저채도) — 그림마다 다른 색감을 하나의 톤으로 묶는다 */}
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(49,130,246,0.14),rgba(96,165,250,0.06))] mix-blend-multiply" />
-        </div>
+      <div className="relative h-full w-full overflow-hidden bg-gray-100 dark:bg-white/5">
+        <img
+          src={cover}
+          alt=""
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        {/* 브랜드 틴트(블루, 저채도) — 그림마다 다른 색감을 하나의 톤으로 묶는다 */}
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(49,130,246,0.14),rgba(96,165,250,0.06))] mix-blend-multiply" />
         {/* 이모지 유리 배지 — 그림 위에 플랜 정체성을 한 점 남긴다.
-            배경이 옅은 수채라 어둡게 누르는 대신 밝은 유리로 띄운다 (좌상단을 흐리면 얼룩처럼 보인다) */}
-        <span
-          className={`absolute left-2 top-2 inline-flex items-center justify-center ${badgeSize} leading-none rounded-full w-7 h-7 bg-white/70 backdrop-blur-md ring-1 ring-white/70 shadow-[0_2px_8px_-2px_rgba(16,32,64,0.28)] select-none`}
-        >
-          {emoji}
-        </span>
+            배경이 옅은 수채라 어둡게 누르는 대신 밝은 유리로 띄운다.
+            썸네일(52px)에는 배지를 얹을 자리가 없어 사진만 보여준다 */}
+        {!thumb && (
+          <span className="absolute left-2 top-2 inline-flex items-center justify-center rounded-full w-7 h-7 bg-white/75 backdrop-blur-md ring-1 ring-white/70 shadow-[0_2px_8px_-2px_rgba(16,32,64,0.28)] text-brand">
+            <PlanGlyph emoji={plan.emoji} size={badgeGlyph} />
+          </span>
+        )}
       </div>
     )
   }
 
   // ── 폴백: 커버 사진이 없는 플랜은 기존 accent 그라데이션 + 이모지 ──
   // 격자(feed)에서는 오브젝트를 작게 두고 그라데이션 여백을 넉넉히 남긴다
-  const mainSize = size === 'feed' ? 'text-[28px]' : 'text-[34px]'
-  const markSize = size === 'feed' ? 'text-[72px]' : 'text-[64px]'
-  const markOpacity = size === 'feed' ? 'opacity-[0.09]' : 'opacity-[0.14]'
+  const mainGlyph = size === 'feed' ? 34 : 24
+  const markGlyph = size === 'feed' ? 78 : 46
+  const markOpacity = size === 'feed' ? 'opacity-[0.16]' : 'opacity-[0.2]'
 
   return (
-    <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${grad}`}>
+    <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${grad} text-white`}>
       {/* 밝은 하이라이트 글로우 — 카드가 '눌러도 되는 활성 상태'로 읽히도록 충분히 밝게 */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgba(255,255,255,0.48),transparent_60%)]" />
-      {/* 하단 살짝 어둡게 (이모지 입체감) — 과하면 비활성처럼 보여 최소한만 */}
+      {/* 하단 살짝 어둡게 (표식 입체감) — 과하면 비활성처럼 보여 최소한만 */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
-      {/* 워터마크 이모지 */}
+      {/* 워터마크 표식 — 같은 선화를 크게 눕혀 배경 결로 쓴다 */}
       <span
-        className={`absolute -right-3 -bottom-5 ${markSize} leading-none ${markOpacity} blur-[2px] rotate-12 select-none pointer-events-none`}
+        className={`absolute -right-3 -bottom-5 ${markOpacity} rotate-12 pointer-events-none`}
       >
-        {emoji}
+        <PlanGlyph emoji={plan.emoji} size={markGlyph} />
       </span>
-      {/* 중앙 이모지 */}
-      <span
-        className={`absolute inset-0 flex items-center justify-center ${mainSize} drop-shadow-[0_5px_16px_rgba(0,0,0,0.35)] select-none`}
-      >
-        {emoji}
+      {/* 중앙 표식 */}
+      <span className="absolute inset-0 flex items-center justify-center drop-shadow-[0_5px_14px_rgba(0,0,0,0.3)]">
+        <PlanGlyph emoji={plan.emoji} size={mainGlyph} />
       </span>
     </div>
   )
@@ -650,7 +656,8 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
         {/* 사회적 증거 — 몇 명이 함께 읽는지 보여 시작 문턱을 낮춘다 */}
         {(plan.participant_count ?? 0) > 0 && (
           <p className="mt-1 text-[11px] font-medium tracking-[-0.01em] text-gray-400 dark:text-white/45">
-            👥 {(plan.participant_count ?? 0).toLocaleString()}명 참여 중
+            <UsersIcon size={12} className="inline-block -mt-px mr-1 align-middle" />
+            {(plan.participant_count ?? 0).toLocaleString()}명 참여 중
           </p>
         )}
       </div>
@@ -701,42 +708,45 @@ const FeaturedPlanCard = ({
     <button
       type="button"
       onClick={onClick}
-      className="group relative flex w-full text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985]"
+      className="group relative block w-full text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985]"
     >
-      <div className="relative w-[104px] shrink-0 self-stretch">
-        <PlanVisual plan={plan} size="feature" />
-      </div>
-
-      <div className="flex-1 min-w-0 p-4">
-        <div className="flex items-start gap-2">
-          <h4 className="flex-1 text-[16px] font-bold text-ink-strong tracking-[-0.015em] leading-snug truncate">
-            {plan.title}
-          </h4>
-          {subscribed && progress && (
-            <span className="shrink-0 flex flex-col items-end gap-1.5">
-              {completed ? (
-                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300 text-[12px] font-extrabold leading-none">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  완주
-                </span>
-              ) : (
-                <span className="text-[17px] font-extrabold leading-none" style={gradientTextStyle}>
-                  {progress.percent}%
-                </span>
-              )}
-              {/* 연속 기록 — 게임화의 핵심이라 우측 상단 독립 배지로 승격 */}
-              {!completed && streak > 0 && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-400/15 dark:bg-amber-400/20 text-[11px] font-bold leading-none text-amber-600 dark:text-amber-300">
-                  🔥 {streak}일
-                </span>
-              )}
-            </span>
-          )}
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          {/* 커버는 정사각 썸네일로 — 사진이 온전한 구도로 읽히고 카드 여백도 균일해진다 */}
+          <span className="relative block w-[52px] h-[52px] shrink-0 overflow-hidden rounded-xl ring-1 ring-black/[0.06] dark:ring-white/10">
+            <PlanVisual plan={plan} size="thumb" />
+          </span>
+          <div className="flex-1 min-w-0 flex items-start gap-2">
+            <h4 className="flex-1 text-[16px] font-bold text-ink-strong tracking-[-0.015em] leading-snug truncate">
+              {plan.title}
+            </h4>
+            {subscribed && progress && (
+              <span className="shrink-0 flex flex-col items-end gap-1.5">
+                {completed ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300 text-[12px] font-extrabold leading-none">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    완주
+                  </span>
+                ) : (
+                  <span className="text-[17px] font-extrabold leading-none" style={gradientTextStyle}>
+                    {progress.percent}%
+                  </span>
+                )}
+                {/* 연속 기록 — 게임화의 핵심이라 우측 상단 독립 배지로 승격 */}
+                {!completed && streak > 0 && (
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-400/15 dark:bg-amber-400/20 text-[11px] font-bold leading-none text-amber-600 dark:text-amber-300">
+                    <FlameIcon size={12} />
+                    {streak}일
+                  </span>
+                )}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+        <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
           {/* 개인 플랜 표시 — 내가 만든 것/초대받은 것 구분 + 함께 읽는 인원 */}
           {plan.is_personal && (
             <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-[var(--brand-soft-strong)] text-brand text-[10.5px] font-bold leading-none">
@@ -766,9 +776,14 @@ const FeaturedPlanCard = ({
               />
             </div>
             <p className="text-[11px] font-light text-gray-400 dark:text-white/45 mt-1.5">
-              {completed
-                ? '완주했어요 🎉'
-                : `${progress.completed_days} / ${progress.total_days}일 · ${progress.current_day}일차 진행 중`}
+              {completed ? (
+                <span className="inline-flex items-center gap-1">
+                  <PartyIcon size={12} />
+                  완주했어요
+                </span>
+              ) : (
+                `${progress.completed_days} / ${progress.total_days}일 · ${progress.current_day}일차 진행 중`
+              )}
             </p>
           </div>
         )}

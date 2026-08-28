@@ -10,6 +10,7 @@ import { UsersIcon } from '../../../../components/icons/ActionIcons'
 import MemberSearchInput from '../../../../components/common/MemberSearchInput'
 import { useAddPlanMembers } from '../../../../hooks/useBiblePlan'
 import { showToast } from '../../../../utils/toast'
+import { FlameIcon, PartyIcon } from '../PlanIcons'
 
 const numStyle: CSSProperties = { fontVariantNumeric: 'tabular-nums' }
 
@@ -96,7 +97,10 @@ const PlanParticipants = ({
                   {p.is_me && <Tag>나</Tag>}
                   {p.is_owner && <Tag>만든 이</Tag>}
                   {p.status === 'completed' && (
-                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-300">완주 🎉</span>
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-300">
+                      완주
+                      <PartyIcon size={11} />
+                    </span>
                   )}
                   <span className="ml-auto shrink-0 text-[12px] font-extrabold text-ink-strong" style={numStyle}>
                     {p.percent}%
@@ -110,7 +114,14 @@ const PlanParticipants = ({
                     />
                   </div>
                   <span className="shrink-0 text-[10.5px] font-semibold text-gray-400 dark:text-white/40" style={numStyle}>
-                    {p.completed_days}일{p.streak_count > 0 ? ` · 🔥${p.streak_count}` : ''}
+                    {p.completed_days}일
+                    {p.streak_count > 0 && (
+                      <>
+                        {' · '}
+                        <FlameIcon size={10} className="inline-block -mt-px align-middle" />
+                        {p.streak_count}
+                      </>
+                    )}
                   </span>
                 </div>
               </div>

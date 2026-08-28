@@ -9,6 +9,8 @@ import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import type { PlanDetail } from '../../../../types/biblePlan'
 import { showToast } from '../../../../utils/toast'
 import { accentGradient } from '../planVisuals'
+import { HandshakeIcon, PlanGlyph } from '../PlanIcons'
+import { PenLineIcon, SparklesIcon } from '../../../../components/icons/ActionIcons'
 
 interface Props {
   onClose: () => void
@@ -193,7 +195,7 @@ const PersonalPlanSheet = ({ onClose, onCreated }: Props) => {
                         : 'bg-white dark:bg-white/[0.03] text-gray-700 dark:text-white/75 border-gray-200 dark:border-white/[0.08] hover:border-[var(--brand-soft-strong)]',
                     ].join(' ')}
                   >
-                    <span className="text-[20px] leading-none">{p.emoji}</span>
+                    <PlanGlyph emoji={p.emoji} size={20} />
                     {p.label}
                   </button>
                 ))}
@@ -298,8 +300,8 @@ const PersonalPlanSheet = ({ onClose, onCreated }: Props) => {
 
               {/* 미리보기 — 얼마나 걸리고 하루에 얼마나 읽는지 즉시 보여줘야 기간을 고를 수 있다 */}
               <div className={`mt-3 relative overflow-hidden rounded-2xl p-4 text-white bg-gradient-to-br ${grad}`}>
-                <span className="absolute -right-2 -bottom-5 text-[84px] leading-none opacity-[0.16] rotate-12 select-none pointer-events-none">
-                  {emoji}
+                <span className="absolute -right-2 -bottom-5 opacity-[0.2] rotate-12 pointer-events-none">
+                  <PlanGlyph emoji={emoji} size={84} />
                 </span>
                 <div className="relative z-10 grid grid-cols-3 gap-2 text-center">
                   <Stat value={`${totalChapters}장`} label="전체 분량" />
@@ -337,13 +339,13 @@ const PersonalPlanSheet = ({ onClose, onCreated }: Props) => {
                     type="button"
                     onClick={() => setEmoji(e)}
                     aria-label={e}
-                    className={`w-9 h-9 rounded-full text-[18px] flex items-center justify-center transition-all ${
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                       emoji === e
-                        ? 'bg-[var(--brand-soft-strong)] ring-2 ring-brand'
-                        : 'bg-gray-50 dark:bg-white/[0.04] hover:bg-gray-100 dark:hover:bg-white/[0.07]'
+                        ? 'bg-[var(--brand-soft-strong)] ring-2 ring-brand text-brand'
+                        : 'bg-gray-50 dark:bg-white/[0.04] hover:bg-gray-100 dark:hover:bg-white/[0.07] text-gray-500 dark:text-white/60'
                     }`}
                   >
-                    {e}
+                    <PlanGlyph emoji={e} size={18} />
                   </button>
                 ))}
                 <span className="mx-1 h-6 w-px bg-gray-200 dark:bg-white/[0.1]" />
@@ -363,9 +365,18 @@ const PersonalPlanSheet = ({ onClose, onCreated }: Props) => {
 
             {/* 안내 — 관리자 플랜과 다른 점을 시작 전에 알려준다 */}
             <ul className="rounded-2xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200/70 dark:border-white/[0.07] px-4 py-3 space-y-1.5 text-[11.5px] leading-[1.6] text-gray-500 dark:text-white/55">
-              <li>🤝 만든 뒤 초대 링크로 소그룹·가족과 같은 플랜을 함께 읽을 수 있어요</li>
-              <li>📝 나만의 플랜은 한 번에 하나만 — 새로 만들려면 기존 플랜을 삭제해요</li>
-              <li>✨ AI 묵상은 제공되지 않고, 칭호(업적) 집계에는 포함되지 않아요</li>
+              <li className="flex items-start gap-1.5">
+                <HandshakeIcon size={14} className="mt-[2px] shrink-0 opacity-70" />
+                만든 뒤 초대 링크로 소그룹·가족과 같은 플랜을 함께 읽을 수 있어요
+              </li>
+              <li className="flex items-start gap-1.5">
+                <PenLineIcon size={14} className="mt-[2px] shrink-0 opacity-70" />
+                나만의 플랜은 한 번에 하나만 — 새로 만들려면 기존 플랜을 삭제해요
+              </li>
+              <li className="flex items-start gap-1.5">
+                <SparklesIcon size={14} className="mt-[2px] shrink-0 opacity-70" />
+                AI 묵상은 제공되지 않고, 칭호(업적) 집계에는 포함되지 않아요
+              </li>
             </ul>
           </div>
 
