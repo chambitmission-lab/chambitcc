@@ -1,6 +1,7 @@
 // 읽기 플랜 상세 (/bible/plans/:planId)
 // 구독 · 일자별 완료 토글(+confetti) · 스트릭 · AI 묵상 · 본문 바로 읽기
 import { useEffect, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import {
@@ -15,7 +16,8 @@ import { usePlanReflections } from '../../../hooks/usePlanReflections'
 import type { PlanDay } from '../../../types/biblePlan'
 import { isAdmin, isAuthenticated } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
-import { accentGradient, gradientTextStyle } from './planVisuals'
+import { accentGradient } from './planVisuals'
+import { planCover } from './planCovers'
 import DayCard from './components/DayCard'
 import ReflectionSheet from './components/ReflectionSheet'
 import ReflectionEditModal from './components/ReflectionEditModal'
@@ -25,6 +27,24 @@ import { confirmDialog } from '../../../utils/confirmDialog'
 // 짧은 플랜(7/30일)은 그룹 헤더가 오히려 방해라 플랫 렌더 유지.
 const GROUP_SIZE = 30
 const GROUP_THRESHOLD = 60
+
+// 통계 숫자 — 자릿수가 바뀌어도 흔들리지 않게 고정폭 숫자
+const numStyle: CSSProperties = { fontVariantNumeric: 'tabular-nums' }
+
+// 'YYYY-MM-DD' → 'YYYY.MM.DD' (서버가 KST 달력일을 주므로 Date 변환 없이 문자열만 다듬는다)
+const formatPlanDate = (value?: string | null): string | null => {
+  const [y, m, d] = (value ?? '').slice(0, 10).split('-')
+  return y && m && d ? `${y}.${m}.${d}` : null
+}
+
+// 시작일 + (총 일수 - 1) = 완료 예정일
+const planEndDate = (start?: string | null, totalDays?: number | null): string | null => {
+  const [y, m, d] = (start ?? '').slice(0, 10).split('-').map(Number)
+  if (!y || !m || !d || !totalDays) return null
+  const dt = new Date(y, m - 1, d + totalDays - 1)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${dt.getFullYear()}.${pad(dt.getMonth() + 1)}.${pad(dt.getDate())}`
+}
 
 const PlanDetail = () => {
   const navigate = useNavigate()
@@ -49,14 +69,19 @@ const PlanDetail = () => {
     saveReflection,
   } = usePlanReflections(id)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
   // 그룹 접힘 상태 — 명시적으로 토글한 그룹만 기록하고,
   // 기록이 없으면 "현재 일차가 속한 그룹만 펼침"을 기본값으로 쓴다 (플랜 로딩 타이밍 무관)
   const [openGroups, setOpenGroups] = useState<Record<number, boolean>>({})
   const admin = isAdmin()
 
   const grad = accentGradient(plan?.accent)
+  const cover = planCover(plan?.slug)
   const progress = plan?.progress
   const subscribed = !!progress?.subscribed
+  // 여정의 시작과 끝 — "언제 시작했고 언제 끝나는지"가 장기 플랜에서 가장 큰 동기가 된다
+  const startLabel = formatPlanDate(progress?.start_date)
+  const endLabel = planEndDate(progress?.start_date, progress?.total_days ?? plan?.total_days)
 
   // 긴 플랜(50일차쯤)에서 매번 스크롤해 내려가지 않도록, 진입 시 오늘 일차 카드로 자동 스크롤.
   // 초반(1~3일차)은 카드가 이미 화면 근처라 스크롤하면 오히려 대시보드가 가려져 스킵한다.
@@ -163,6 +188,28 @@ const PlanDetail = () => {
       showToast('처음부터 다시 시작해요!', 'success')
     } catch (e) {
       showToast(e instanceof Error ? e.message : '오류가 발생했습니다', 'error')
+    }
+  }
+
+  const handleShare = async () => {
+    if (!plan) return
+    const url = window.location.href
+    const text = `${plan.title} — ${plan.subtitle || `${plan.total_days}일 성경 읽기 플랜`}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: plan.title, text, url })
+      } catch {
+        // 사용자가 공유 시트를 닫은 경우 — 무시
+      }
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(url)
+      setShareCopied(true)
+      window.setTimeout(() => setShareCopied(false), 1600)
+      showToast('링크를 복사했어요', 'success')
+    } catch {
+      // 클립보드 접근 불가 환경 — 조용히 무시
     }
   }
 
@@ -299,65 +346,133 @@ const PlanDetail = () => {
   // 365일짜리 일정을 한참 내려도 진행률과 '오늘 분량 읽기'가 옆에 남는 게 이 화면의 핵심이다.
   const renderPlanIntro = (cls: string) => (
     <div className={cls}>
-      {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35 shadow-[0_4px_18px_-8px_rgba(49,130,246,0.4)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_0_0_1px_rgba(49,130,246,0.12)]">
-        <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-gradient-to-b from-blue-500 to-sky-400" />
-        <div className="relative z-10 flex items-start gap-3.5">
-          <div className={`shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} flex items-center justify-center text-[22px] shadow-[0_6px_18px_-6px_rgba(49,130,246,0.6)]`}>
-            {plan.emoji || '📖'}
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10.5px] font-bold tracking-[0.1em] text-blue-600 dark:text-blue-300">
-                {plan.total_days}일 플랜
-              </span>
-              {plan.level && (
-                <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
-                  · {plan.level}
+      {/* Hero — 플랜 커버 사진을 옅은 워시로 깔고 그 위에 타이틀/소개를 얹는다 */}
+      <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 border border-gray-200/70 dark:border-white/[0.08] shadow-[0_8px_26px_-14px_rgba(16,32,64,0.4)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        {cover ? (
+          <>
+            <img src={cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            {/* 사진은 분위기만 — 본문 가독성을 위해 두꺼운 화이트/다크 워시를 덮는다 */}
+            <div className="absolute inset-0 bg-white/[0.88] dark:bg-[#131313]/[0.86] backdrop-blur-[3px]" />
+            <div className="absolute inset-0 bg-[linear-gradient(160deg,rgba(49,130,246,0.12),transparent_58%)]" />
+          </>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35" />
+        )}
+
+        <div className="relative z-10 p-5">
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-[var(--brand-soft-strong)] text-[10.5px] font-bold text-brand">
+                  <span className="text-[11px] leading-none">{plan.emoji || '📖'}</span>
+                  {plan.total_days}일 플랜
                 </span>
-              )}
-              {(plan.participant_count ?? 0) > 0 && (
-                <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
-                  · 👥 {(plan.participant_count ?? 0).toLocaleString()}명 참여
-                </span>
-              )}
-              {(plan.completed_count ?? 0) > 0 && (
-                <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
-                  · 🏁 {(plan.completed_count ?? 0).toLocaleString()}명 완주
-                </span>
+                {plan.level && (
+                  <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                    · {plan.level}
+                  </span>
+                )}
+                {(plan.participant_count ?? 0) > 0 && (
+                  <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                    · 👥 {(plan.participant_count ?? 0).toLocaleString()}명
+                  </span>
+                )}
+                {(plan.completed_count ?? 0) > 0 && (
+                  <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                    · 🏁 {(plan.completed_count ?? 0).toLocaleString()}명 완주
+                  </span>
+                )}
+              </div>
+              <h2 className="text-[22px] font-bold tracking-[-0.02em] leading-[1.28] text-ink-strong mt-1.5">
+                {plan.title}
+              </h2>
+              {plan.subtitle && (
+                <p className="text-[13px] font-medium text-gray-600 dark:text-white/65 mt-1">
+                  {plan.subtitle}
+                </p>
               )}
             </div>
-            <h2 className="text-[20px] font-bold tracking-[-0.015em] leading-[1.3] text-ink-strong mt-0.5">
-              {plan.title}
-            </h2>
-            {plan.subtitle && (
-              <p className="text-[13px] text-gray-600 dark:text-white/65 mt-1">{plan.subtitle}</p>
-            )}
+            <button
+              type="button"
+              onClick={handleShare}
+              aria-label="플랜 공유"
+              className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-white/70 dark:bg-white/[0.08] border border-gray-200/80 dark:border-white/[0.1] text-gray-500 dark:text-white/60 backdrop-blur-sm transition-all active:scale-95 hover:text-brand"
+            >
+              {shareCopied ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3v13" />
+                  <polyline points="8 7 12 3 16 7" />
+                  <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+                </svg>
+              )}
+            </button>
           </div>
+
+          {plan.description && (
+            <>
+              <span className="block h-px my-3.5 bg-gradient-to-r from-gray-200/90 dark:from-white/[0.1] to-transparent" />
+              <p className="text-[13px] leading-[1.75] text-gray-600 dark:text-white/70">
+                {plan.description}
+              </p>
+            </>
+          )}
         </div>
-        {plan.description && (
-          <p className="relative z-10 text-[13px] leading-[1.7] text-gray-600 dark:text-white/70 mt-3.5">
-            {plan.description}
-          </p>
-        )}
       </section>
 
       {/* 진행 / 시작 */}
       {subscribed && progress ? (
-        <section className="mx-4 mt-4 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4">
-          <div className="flex items-center justify-around text-center">
-            <Stat value={`${progress.percent}%`} label="진행률" />
+        <section className="mx-4 mt-3 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4">
+          <div className="flex items-center gap-2">
+            {/* 진행률 — 숫자만 있던 자리를 링으로 바꿔 "얼마나 걸어왔는지"가 한눈에 보이게 */}
+            <div className="shrink-0 flex flex-col items-center gap-1.5">
+              <ProgressRing percent={progress.percent} />
+              <span className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
+                진행률
+              </span>
+            </div>
             <Divider />
-            <Stat value={`${progress.completed_days}/${progress.total_days}`} label="완료" />
-            <Divider />
-            <Stat value={`🔥 ${progress.streak_count}`} label="연속" plain />
+            <div className="flex-1 min-w-0 flex items-center justify-around text-center">
+              <div>
+                <p className="text-[19px] font-bold text-brand" style={numStyle}>
+                  {progress.completed_days}
+                  <span className="text-[13px] font-semibold text-gray-400 dark:text-white/40">
+                    {' / '}
+                    {progress.total_days}
+                  </span>
+                </p>
+                <p className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45 mt-0.5">
+                  일자
+                </p>
+              </div>
+              <Divider />
+              <div>
+                <p className="text-[19px] font-bold text-ink-strong" style={numStyle}>
+                  🔥 {progress.streak_count}
+                </p>
+                <p className="text-[10.5px] font-semibold text-gray-400 dark:text-white/45 mt-0.5">
+                  연속일
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="mt-3 h-2 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
+
+          <div className="mt-3.5 h-2 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
             <div
-              className={`h-full rounded-full bg-gradient-to-r ${grad}`}
+              className={`h-full rounded-full bg-gradient-to-r ${grad} transition-[width] duration-500`}
               style={{ width: `${Math.min(100, progress.percent)}%` }}
             />
           </div>
+          {(startLabel || endLabel) && (
+            <div className="mt-2 flex items-center justify-between gap-2 text-[10.5px] font-semibold text-gray-400 dark:text-white/40">
+              <span>{startLabel ? `시작일 ${startLabel}` : ''}</span>
+              <span>{endLabel ? `완료 예정일 ${endLabel}` : ''}</span>
+            </div>
+          )}
+
           {progress.status === 'completed' ? (
             <div className="mt-4 text-center">
               <p className="text-[14px] font-bold text-ink-strong">🎉 완주를 축하해요!</p>
@@ -371,14 +486,23 @@ const PlanDetail = () => {
           ) : (
             <button
               onClick={startTodaysReading}
-              className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(49,130,246,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(49,130,246,0.7)] transition-all"
+              className="mt-4 w-full flex items-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[14px] font-bold shadow-[0_8px_24px_-8px_rgba(49,130,246,0.6)] hover:shadow-[0_10px_28px_-6px_rgba(49,130,246,0.7)] transition-all active:scale-[0.99]"
             >
-              오늘 분량 읽기 · {progress.current_day}일차
+              <svg className="shrink-0 opacity-90" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z" />
+                <path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z" />
+              </svg>
+              <span className="flex-1 text-center">
+                오늘 분량 읽기 · {progress.current_day}일차
+              </span>
+              <svg className="shrink-0 opacity-80" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
             </button>
           )}
         </section>
       ) : (
-        <section className="mx-4 mt-4">
+        <section className="mx-4 mt-3">
           <button
             onClick={handleSubscribe}
             disabled={subscribe.isPending}
@@ -571,14 +695,44 @@ const Shell = ({
   </div>
 )
 
-const Stat = ({ value, label, plain }: { value: string; label: string; plain?: boolean }) => (
-  <div>
-    <p className="text-[18px] font-bold" style={plain ? undefined : gradientTextStyle}>
-      {value}
-    </p>
-    <p className="text-[11px] text-gray-400 dark:text-white/45 mt-0.5">{label}</p>
-  </div>
-)
+// 진행률 링 — 퍼센트 숫자만으로는 안 보이던 "걸어온 만큼"을 원호로 보여준다
+const ProgressRing = ({ percent, size = 58 }: { percent: number; size?: number }) => {
+  const stroke = 5
+  const r = (size - stroke) / 2
+  const c = 2 * Math.PI * r
+  const pct = Math.max(0, Math.min(100, percent))
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          className="stroke-gray-200/90 dark:stroke-white/[0.1]"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          stroke="var(--brand)"
+          strokeDasharray={`${(c * pct) / 100} ${c}`}
+          style={{ transition: 'stroke-dasharray 0.6s ease' }}
+        />
+      </svg>
+      <span
+        className="absolute inset-0 flex items-center justify-center text-[14px] font-bold text-brand"
+        style={numStyle}
+      >
+        {pct}%
+      </span>
+    </div>
+  )
+}
 
 const Divider = () => <span className="w-px h-8 bg-gray-200 dark:bg-white/[0.08]" />
 
