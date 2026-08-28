@@ -14,6 +14,7 @@ import { useEvents } from '../../../hooks/useEvents'
 import { getSundayServices, getWeekdayServices } from '../../../api/worship'
 import { parseServiceTimes, serviceDays } from '../../../utils/worshipSchedule'
 import { CATEGORY_VISUAL } from '../../Events/utils/categoryConfig'
+import { CalendarIcon, EmotionGlyph, PrayIcon, TagIcon } from './EmotionIcons'
 import type { Language } from '../../../locales'
 import type { Event } from '../../../types/event'
 import type { SituationCategory } from '../../../types/situation'
@@ -167,7 +168,7 @@ const PrayerStatsWidget = () => {
     <section className="px-4 pt-3">
       <div className="feed-card rounded-2xl p-4">
         <p className="mb-3 flex items-center gap-1.5 text-[12.5px] font-bold text-ink-strong">
-          <span className="text-[13px]" aria-hidden>🙏</span>
+          <PrayIcon size={14} className="shrink-0" />
           {weekly.data ? t('homeRailPrayerWeekTitle') : t('homeRailPrayerTitle')}
           {weekly.data && (
             <span className="ml-auto text-[10.5px] font-semibold text-gray-400 dark:text-white/40 tabular-nums">
@@ -226,7 +227,7 @@ const SituationTagsWidget = () => {
   return (
     <section className="px-4 pt-3">
       <RailLabel>
-        <span aria-hidden>🏷️</span>
+        <TagIcon size={14} className="shrink-0" />
         {showReal ? t('homeRailTagsWeekTitle') : t('homeRailTagsCuratedTitle')}
       </RailLabel>
       <div className="feed-card rounded-2xl p-3.5">
@@ -250,7 +251,7 @@ const SituationTagsWidget = () => {
                     }
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[var(--brand-soft)] text-brand text-[12px] font-semibold hover:bg-[var(--brand-soft-strong)] active:scale-[0.97] transition-[background-color,transform] duration-150"
                   >
-                    <span aria-hidden>{meta.emoji}</span>
+                    <EmotionGlyph emotion={emotion} fallback={meta.emoji} size={14} className="shrink-0" />
                     {pick(language, meta.label, meta.labelEn)}
                     {/* --brand는 CSS 변수라 /70 투명도 수식자가 조용히 미생성 → opacity로 */}
                     <span className="text-[11px] font-bold opacity-70 tabular-nums">
@@ -408,7 +409,7 @@ const TodayScheduleWidget = () => {
     <section className="px-4 pt-3">
       <div className="px-1 mb-1.5 flex items-center justify-between">
         <p className="flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
-          <span aria-hidden>🗓️</span> {t('homeRailTodayTitle')}
+          <CalendarIcon size={14} className="shrink-0" /> {t('homeRailTodayTitle')}
         </p>
         <button
           type="button"
