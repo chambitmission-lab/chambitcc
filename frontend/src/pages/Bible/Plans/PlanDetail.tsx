@@ -618,6 +618,7 @@ const PlanDetail = () => {
       {/* 나만의 플랜 — 함께 읽는 사람들 + 초대 */}
       {personal && (
         <PlanParticipants
+          planId={plan.id}
           participants={plan.participants ?? []}
           grad={grad}
           inviteCode={plan.invite_code}

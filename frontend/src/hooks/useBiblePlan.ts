@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  addPlanMembers,
   completeDay,
   createPersonalPlan,
   createPlan,
@@ -147,6 +148,14 @@ export const usePlanInvitePreview = (inviteCode: string) =>
     enabled: inviteCode.length >= 4,
     retry: false,
   })
+
+export const useAddPlanMembers = (planId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (userIds: number[]) => addPlanMembers(planId, userIds),
+    onSuccess: () => invalidatePlanData(qc),
+  })
+}
 
 export const useJoinPlanByCode = () => {
   const qc = useQueryClient()

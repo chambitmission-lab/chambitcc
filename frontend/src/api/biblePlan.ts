@@ -233,6 +233,22 @@ export const previewPlanInvite = async (inviteCode: string): Promise<PlanInviteP
   return response.json()
 }
 
+export const addPlanMembers = async (
+  planId: number,
+  userIds: number[],
+): Promise<{ added_count: number }> => {
+  const response = await apiFetch(`${BASE}/${planId}/members`, {
+    method: 'POST',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ user_ids: userIds }),
+  })
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || '초대에 실패했습니다')
+  }
+  return response.json()
+}
+
 export const joinPlanByCode = async (inviteCode: string): Promise<PlanDetail> => {
   const response = await apiFetch(`${BASE}/join`, {
     method: 'POST',
