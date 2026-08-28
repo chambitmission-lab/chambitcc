@@ -480,7 +480,9 @@ const VerseAlarmPage = () => {
           <h1>구절 알람</h1>
         </header>
         <div className="va-empty">
-          <span className="va-empty-emoji" aria-hidden>🔔</span>
+          <span className="va-empty-emblem" aria-hidden>
+            <BellIcon />
+          </span>
           <p>로그인하면 원하는 시간에<br />오늘의 말씀 알림을 받을 수 있어요</p>
           <button type="button" className="va-primary-btn" onClick={() => navigate('/login')}>
             로그인하기
@@ -688,5 +690,23 @@ const VerseAlarmPage = () => {
     </div>
   )
 }
+
+/** 종 — 이모지 대신 직접 그린 선화. /mission·/news 아이콘과 같은 24 그리드·currentColor 문법. */
+const BellIcon = () => (
+  <svg
+    width="30"
+    height="30"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.8}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M12 3.2a5.6 5.6 0 0 0-5.6 5.6c0 3.3-.7 5.2-1.6 6.4-.4.5 0 1.2.6 1.2h13.2c.6 0 1-.7.6-1.2-.9-1.2-1.6-3.1-1.6-6.4A5.6 5.6 0 0 0 12 3.2z" />
+    <path d="M10.2 19.2a1.9 1.9 0 0 0 3.6 0" />
+  </svg>
+)
 
 export default VerseAlarmPage

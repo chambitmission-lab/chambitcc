@@ -406,8 +406,17 @@
   word-break: keep-all; /* 한글이 단어 중간에서 끊기지 않게 */
 }
 
-.va-empty-emoji {
-  font-size: 2.2rem;
+/* 빈 상태 앰블럼 — 이모지 대신 브랜드 tint 원 + 선화 아이콘 */
+.va-empty-emblem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 18%, transparent);
 }
 
 .va-skeleton {
