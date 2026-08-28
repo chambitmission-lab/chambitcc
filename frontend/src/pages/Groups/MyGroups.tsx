@@ -13,6 +13,7 @@ import { isAuthenticated } from '../../utils/auth'
 import groupPixelArt from '../../assets/hero/group-pixel.png'
 import groupJoinPixelArt from '../../assets/hero/group-join-pixel.png'
 import type { PrayerGroup } from '../../types/prayer'
+import { GroupGlyph, PersonIcon, PrayIcon, TicketIcon } from './GroupIcons'
 
 const MyGroups = () => {
   const { t } = useLanguage()
@@ -30,7 +31,7 @@ const MyGroups = () => {
       <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 page-stage">
         <div className="max-w-md mx-auto bg-[var(--app-canvas)] border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-2xl lg:mt-3 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-[60vh]">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[var(--brand-soft-strong)] mb-5">
-            <span className="text-[36px]">👥</span>
+            <GroupGlyph emoji="👥" size={36} className="text-brand" />
           </div>
           <h2 className="text-ink-strong text-[18px] font-bold tracking-[-0.015em] mb-1.5">
             {t('groupsLoginTitle')}
@@ -105,7 +106,7 @@ const MyGroups = () => {
             onClick={() => setShowCreate(true)}
           />
           <ActionCard
-            icon={<span className="text-[20px]">🎟️</span>}
+            icon={<TicketIcon size={22} />}
             label={t('joinGroup')}
             sublabel={t('groupsJoinSub')}
             variant="secondary"
@@ -144,7 +145,7 @@ const MyGroups = () => {
           onClick={() => setShowCreate(true)}
         />
         <ActionCard
-          icon={<span className="text-[20px]">🎟️</span>}
+          icon={<TicketIcon size={22} />}
           label={t('joinGroup')}
           sublabel={t('groupsJoinSub')}
           variant="secondary"
@@ -203,9 +204,9 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
       {/* 그룹 이모지 워터마크 — 카드 오른쪽에 크게, 아주 옅게 */}
       <span
         aria-hidden
-        className="absolute right-10 top-1/2 -translate-y-1/2 text-[48px] leading-none rotate-[-10deg] pointer-events-none select-none opacity-[0.10] [filter:grayscale(1)_brightness(0)] dark:opacity-[0.18] dark:[filter:grayscale(1)_brightness(0)_invert(1)]"
+        className="absolute right-10 top-1/2 -translate-y-1/2 text-ink-strong rotate-[-10deg] pointer-events-none select-none opacity-[0.08] dark:opacity-[0.14]"
       >
-        {group.icon || '👥'}
+        <GroupGlyph emoji={group.icon || '👥'} size={56} />
       </span>
       {/* 타일 색을 카드 오른쪽에 은은한 틴트로 이어준다 */}
       <span
@@ -217,10 +218,10 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
       <div className="relative z-10 flex items-center gap-3 pl-3.5 pr-3 py-3.5">
         {/* 이모지 아바타 */}
         <div
-          className="shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-[22px]"
+          className="shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-white"
           style={{ background: tileColor, boxShadow: `0 6px 18px -6px ${tileColor}88` }}
         >
-          {group.icon || '👥'}
+          <GroupGlyph emoji={group.icon || '👥'} size={26} />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -253,7 +254,7 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
               <>
                 <span className="text-gray-300 dark:text-white/20">·</span>
                 <span className="inline-flex items-center gap-1">
-                  🙏 {group.prayer_count}
+                  <PrayIcon size={12} /> {group.prayer_count}
                 </span>
               </>
             )}
@@ -411,8 +412,8 @@ const DiscoverSection = () => {
                 key={g.id}
                 className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] px-3.5 py-3 flex items-center gap-3"
               >
-                <div className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--brand-soft-strong)] flex items-center justify-center text-[20px]">
-                  {g.icon || '👥'}
+                <div className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--brand-soft-strong)] flex items-center justify-center text-brand">
+                  <GroupGlyph emoji={g.icon || '👥'} size={24} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -426,9 +427,9 @@ const DiscoverSection = () => {
                       {g.description}
                     </p>
                   )}
-                  <p className="text-[10.5px] text-gray-400 dark:text-white/40 mt-0.5">
-                    👤 {g.member_count}명
-                    {g.prayer_count > 0 && ` · 🙏 ${g.prayer_count}`}
+                  <p className="text-[10.5px] text-gray-400 dark:text-white/40 mt-0.5 inline-flex items-center gap-1">
+                    <PersonIcon size={11} /> {g.member_count}명
+                    {g.prayer_count > 0 && (<><span>·</span><PrayIcon size={11} /> {g.prayer_count}</>)}
                   </p>
                 </div>
                 <button

@@ -15,6 +15,7 @@ import GroupMembersTab from './components/GroupMembersTab'
 import GroupSettingsSheet from './components/GroupSettingsSheet'
 import IntercessionRelayCard from './components/IntercessionRelayCard'
 import { formatKstDateTime, kstDateKey, parseKstDate } from '../../utils/kstTime'
+import { GroupGlyph, PersonIcon, PrayIcon } from './GroupIcons'
 
 type TabKey = 'home' | 'prayers' | 'meetings' | 'members'
 
@@ -153,7 +154,7 @@ const GroupDetail = () => {
               compactHeader ? 'w-10 h-10 text-[19px]' : 'w-14 h-14 text-[26px]'
             }`}
           >
-            {group.icon || '🙏'}
+            <GroupGlyph emoji={group.icon || '🙏'} size={compactHeader ? 22 : 30} className="text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -171,11 +172,11 @@ const GroupDetail = () => {
               )}
             </div>
             <div className="flex items-center gap-2 mt-0.5 text-[11.5px] text-gray-500 dark:text-white/55">
-              <span>👤 {group.member_count}명</span>
+              <span className="inline-flex items-center gap-1"><PersonIcon size={12} /> {group.member_count}명</span>
               {total > 0 && (
                 <>
                   <span className="text-gray-300 dark:text-white/20">·</span>
-                  <span>🙏 기도 {total}개</span>
+                  <span className="inline-flex items-center gap-1"><PrayIcon size={12} /> 기도 {total}개</span>
                 </>
               )}
               {group.theme && (
@@ -410,8 +411,8 @@ const GroupDetail = () => {
                         {dateStr} · {timeStr}
                         {m.location ? ` · ${m.location}` : ''}
                       </div>
-                      <div className="text-[11px] text-gray-400 mt-0.5">
-                        👤 {m.attendance_count}
+                      <div className="text-[11px] text-gray-400 mt-0.5 inline-flex items-center gap-1">
+                        <PersonIcon size={11} /> {m.attendance_count}
                         {m.rsvp_deadline && (
                           <span className="ml-2">
                             ⏰ {formatKstDateTime(m.rsvp_deadline, language)}
@@ -436,8 +437,8 @@ const GroupDetail = () => {
       <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
         <section className="rounded-2xl p-5 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none">
           <div className="flex items-start gap-3">
-            <div className="shrink-0 w-14 h-14 rounded-2xl bg-brand flex items-center justify-center text-[26px] shadow-[0_6px_18px_-6px_var(--brand-glow)]">
-              {group.icon || '🙏'}
+            <div className="shrink-0 w-14 h-14 rounded-2xl bg-brand flex items-center justify-center text-white shadow-[0_6px_18px_-6px_var(--brand-glow)]">
+              <GroupGlyph emoji={group.icon || '🙏'} size={30} />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
@@ -451,11 +452,11 @@ const GroupDetail = () => {
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1 text-[11.5px] text-gray-500 dark:text-white/55">
-                <span>👤 {group.member_count}명</span>
+                <span className="inline-flex items-center gap-1"><PersonIcon size={12} /> {group.member_count}명</span>
                 {total > 0 && (
                   <>
                     <span className="text-gray-300 dark:text-white/20">·</span>
-                    <span>🙏 {total}개</span>
+                    <span className="inline-flex items-center gap-1"><PrayIcon size={12} /> {total}개</span>
                   </>
                 )}
               </div>

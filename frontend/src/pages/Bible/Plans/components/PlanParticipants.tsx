@@ -6,11 +6,10 @@ import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { PlanParticipant } from '../../../../types/biblePlan'
 import type { CapsuleRecipient } from '../../../../types/timeCapsule'
-import { UsersIcon } from '../../../../components/icons/ActionIcons'
 import MemberSearchInput from '../../../../components/common/MemberSearchInput'
 import { useAddPlanMembers } from '../../../../hooks/useBiblePlan'
 import { showToast } from '../../../../utils/toast'
-import { FlameIcon, PartyIcon } from '../PlanIcons'
+import { FlameIcon, PartyIcon, PeopleIcon as UsersIcon } from '../PlanIcons'
 
 const numStyle: CSSProperties = { fontVariantNumeric: 'tabular-nums' }
 
@@ -49,7 +48,7 @@ const PlanParticipants = ({
     <section className="mx-4 mt-3 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-4">
       <div className="flex items-center gap-2">
         <span className="w-8 h-8 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
-          <UsersIcon size={15} strokeWidth={2} />
+          <UsersIcon size={15} />
         </span>
         <div className="flex-1 min-w-0">
           <p className="text-[14px] font-bold text-ink-strong tracking-[-0.01em]">

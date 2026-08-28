@@ -9,8 +9,7 @@ import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import type { PlanDetail } from '../../../../types/biblePlan'
 import { showToast } from '../../../../utils/toast'
 import { accentGradient } from '../planVisuals'
-import { HandshakeIcon, PlanGlyph } from '../PlanIcons'
-import { PenLineIcon, SparklesIcon } from '../../../../components/icons/ActionIcons'
+import { HandshakeIcon, PenIcon as PenLineIcon, PlanGlyph, SparkleIcon as SparklesIcon } from '../PlanIcons'
 
 interface Props {
   onClose: () => void

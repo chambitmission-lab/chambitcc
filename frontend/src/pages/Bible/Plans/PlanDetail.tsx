@@ -20,19 +20,21 @@ import { isAdmin, isAuthenticated } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import { accentGradient } from './planVisuals'
 import { planCover } from './planCovers'
-import {
-  BookOpenIcon,
-  ChevronRightIcon,
-  FlagIcon,
-  UsersIcon,
-} from '../../../components/icons/ActionIcons'
 import DayCard from './components/DayCard'
 import ReflectionSheet from './components/ReflectionSheet'
 import ReflectionEditModal from './components/ReflectionEditModal'
 import PlanParticipants from './components/PlanParticipants'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import { CloudOffIcon, FlameIcon, PartyIcon } from './PlanIcons'
+import {
+  BookIcon as BookOpenIcon,
+  ChevronRightIcon,
+  CloudOffIcon,
+  FlagIcon,
+  FlameIcon,
+  PartyIcon,
+  PeopleIcon as UsersIcon,
+} from './PlanIcons'
 
 // 나만의 플랜 초대 링크 — HashRouter 라 #/ 경로, JoinPlan(/bible/plans/join/:code)으로 떨어진다
 const inviteUrl = (code: string) =>
@@ -481,7 +483,7 @@ const PlanDetail = () => {
         <div className={`relative z-10 p-5 ${cover ? 'pr-[36%] lg:pr-[28%]' : ''}`}>
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-[var(--brand-soft-strong)] text-[10.5px] font-bold text-brand">
-              <BookOpenIcon size={12} strokeWidth={2} />
+              <BookOpenIcon size={12} />
               {plan.total_days}일 플랜
             </span>
             {personal ? (
@@ -497,13 +499,13 @@ const PlanDetail = () => {
             )}
             {(plan.participant_count ?? 0) > 0 && (
               <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
-                ·<UsersIcon size={12} strokeWidth={2} />
+                ·<UsersIcon size={12} />
                 {(plan.participant_count ?? 0).toLocaleString()}명
               </span>
             )}
             {(plan.completed_count ?? 0) > 0 && (
               <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-gray-400 dark:text-white/45">
-                ·<FlagIcon size={12} strokeWidth={2} />
+                ·<FlagIcon size={12} />
                 {(plan.completed_count ?? 0).toLocaleString()}명 완주
               </span>
             )}
@@ -597,11 +599,11 @@ const PlanDetail = () => {
               onClick={startTodaysReading}
               className="relative mt-4 w-full flex items-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[14px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_8px_24px_-8px_var(--brand-glow)] hover:[--seal-drop:0_10px_28px_-6px_var(--brand-glow)] active:scale-[0.99] transition-[box-shadow,transform] duration-150"
             >
-              <BookOpenIcon size={17} strokeWidth={1.9} className="shrink-0 opacity-90" />
+              <BookOpenIcon size={17} className="shrink-0 opacity-90" />
               <span className="flex-1 text-center">
                 오늘 분량 읽기 · {progress.current_day}일차
               </span>
-              <ChevronRightIcon size={15} strokeWidth={2.4} className="shrink-0 opacity-80" />
+              <ChevronRightIcon size={15} className="shrink-0 opacity-80" />
             </button>
           )}
         </section>

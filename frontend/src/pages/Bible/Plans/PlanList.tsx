@@ -17,8 +17,8 @@ import {
   KeyIcon,
   PartyIcon,
   PlanGlyph,
+  PeopleIcon as UsersIcon,
 } from './PlanIcons'
-import { UsersIcon } from '../../../components/icons/ActionIcons'
 import heroCover from '../../../assets/plans/bible-365.jpg'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSectionTabs from '../../../components/bible/BibleSectionTabs'

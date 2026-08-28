@@ -19,7 +19,6 @@ import CountryFlag from './CountryFlag'
 import CountryMiniMap from './CountryMiniMap'
 import { useLanguage } from '../../contexts/LanguageContext'
 import './Mission.css'
-import { HandHeartIcon } from '../../components/icons/ActionIcons'
 import {
   PinIcon,
   GlobeIcon,
@@ -28,6 +27,10 @@ import {
   HourglassIcon,
   PlaneIcon,
   CheckIcon,
+  HandHeartIcon,
+  PersonIcon,
+  MapIcon,
+  HandshakeIcon,
 } from './MissionIcons'
 
 const REGION_ORDER: RegionKey[] = ['asia', 'europe', 'africa', 'americas']
@@ -105,33 +108,10 @@ const CountUpNum = ({ value }: { value: number }) => {
 
 /** 통계 카드 아이콘 — 인라인 SVG(스트로크 1.8), 카드별 컬러는 --sc 로 받는다 */
 const STAT_ICONS = {
-  missionary: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="7" r="4" />
-      <path d="M5.5 21v-2a5 5 0 0 1 5-5h3a5 5 0 0 1 5 5v2" />
-    </svg>
-  ),
-  countries: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M3 12h18" />
-      <path d="M12 3a13.5 13.5 0 0 1 0 18 13.5 13.5 0 0 1 0-18" />
-    </svg>
-  ),
-  continents: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      <path d="M12.5 6.5v6" />
-      <path d="M10 9h5" />
-    </svg>
-  ),
-  partners: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z" />
-      <path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 3.08 3.08L15 8.5" />
-    </svg>
-  ),
+  missionary: <PersonIcon />,
+  countries: <GlobeIcon />,
+  continents: <MapIcon />,
+  partners: <HandshakeIcon />,
 } as const
 
 /** PC(lg+)에선 지구본이 우측에 고정되어 늘 보이므로 지도로 스크롤할 필요가 없다 */
@@ -290,7 +270,7 @@ const Mission = () => {
         {/* ===== PRAY CTA BANNER ===== */}
         <section className="mission-cta">
           <div className="cta-icon" aria-hidden>
-            <HandHeartIcon size={26} strokeWidth={1.7} />
+            <HandHeartIcon size={26} />
           </div>
           <div className="cta-text">
             <div className="cta-title">{t('missionCtaTitle')}</div>
@@ -362,7 +342,7 @@ const Mission = () => {
                   </>
                 ) : (
                   <>
-                    <HandHeartIcon size={16} strokeWidth={1.9} className="mi-inline" />
+                    <HandHeartIcon size={16} className="mi-inline" />
                     {t('missionPrayCta')}
                   </>
                 )}
@@ -493,7 +473,7 @@ const Mission = () => {
         {/* ===== FOOTER ===== */}
         <section className="mission-footer">
           <div className="footer-icon" aria-hidden>
-            <HandHeartIcon size={28} strokeWidth={1.7} />
+            <HandHeartIcon size={28} />
           </div>
           <p className="footer-text">
             {t('missionFooterLine1')}
@@ -777,7 +757,7 @@ const MissionarySheet = ({
               </>
             ) : (
               <>
-                <HandHeartIcon size={16} strokeWidth={1.9} className="mi-inline" />
+                <HandHeartIcon size={16} className="mi-inline" />
                 {t('missionPrayCta')}
               </>
             )}

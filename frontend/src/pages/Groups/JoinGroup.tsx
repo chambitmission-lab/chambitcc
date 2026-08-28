@@ -6,6 +6,7 @@ import { useGroupPreview, useJoinGroup } from '../../hooks/useGroups'
 import { isAuthenticated } from '../../utils/auth'
 import { escapeKakaoInApp, isInAppBrowser, isKakaoInApp } from '../../utils/inappBrowser'
 import { showToast } from '../../utils/toast'
+import { GroupGlyph } from './GroupIcons'
 
 const JoinGroup = () => {
   const navigate = useNavigate()
@@ -98,10 +99,10 @@ const JoinGroup = () => {
               {/* 초대 카드 */}
               <div className="relative overflow-hidden rounded-[26px] p-6 bg-brand text-white shadow-[0_16px_44px_-14px_var(--brand-glow)] text-center">
                 <span className="absolute -right-3 -bottom-7 text-[110px] leading-none opacity-[0.14] rotate-12 select-none pointer-events-none">
-                  {group.icon || '🙏'}
+                  <GroupGlyph emoji={group.icon || '🙏'} size={150} />
                 </span>
                 <div className="relative z-10">
-                  <span className="text-[38px] block">{group.icon || '🙏'}</span>
+                  <span className="flex justify-center"><GroupGlyph emoji={group.icon || '🙏'} size={44} /></span>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/70 mt-2">
                     Invitation
                   </p>

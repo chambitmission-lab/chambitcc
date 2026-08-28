@@ -19,6 +19,7 @@ import { getCurrentUser } from '../../../utils/auth'
 import type { CapsuleRecipient } from '../../../types/timeCapsule'
 import type { PrayerGroup, GroupMember } from '../../../types/prayer'
 import { confirmDialog } from '../../../utils/confirmDialog'
+import { TulipIcon } from '../GroupIcons'
 
 interface GroupMembersTabProps {
   group: PrayerGroup
@@ -236,8 +237,8 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
       {/* 리더 케어 신호 (관리자만 — 외부 비노출 목양 힌트) */}
       {group.is_admin && careMembers.length > 0 && (
         <div className="rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
-          <p className="text-[12px] font-bold text-gray-500 dark:text-white/55 mb-1">
-            🌷 조용한 멤버 <span className="font-normal">(리더에게만 보여요)</span>
+          <p className="text-[12px] font-bold text-gray-500 dark:text-white/55 mb-1 inline-flex items-center gap-1">
+            <TulipIcon size={14} className="text-brand" /> 조용한 멤버 <span className="font-normal">(리더에게만 보여요)</span>
           </p>
           <p className="text-[11.5px] text-gray-400 dark:text-white/40 mb-2.5 leading-[1.5]">
             한동안 소식이 없는 멤버예요. 안부 연락 한 번 어떠세요?

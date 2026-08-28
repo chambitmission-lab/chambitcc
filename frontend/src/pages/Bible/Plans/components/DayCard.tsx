@@ -1,7 +1,7 @@
 // ── 하루치 카드 ──
 // 상태별 시각 위계: 완료(과거) = 딤드 / 오늘 = 블루 하이라이트 / 예정(미래) = 아웃라인 원 + 차분한 텍스트
 import type { PlanDay } from '../../../../types/biblePlan'
-import { CommentIcon, SparklesIcon } from '../../../../components/icons/ActionIcons'
+import { ChatIcon as CommentIcon, SparkleIcon as SparklesIcon } from '../PlanIcons'
 
 const DayCard = ({
   domId,

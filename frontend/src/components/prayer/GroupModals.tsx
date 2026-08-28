@@ -9,6 +9,7 @@ import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
 import type { PrayerGroup, GroupVisibility } from '../../types/prayer'
 import { groupInviteUrl } from '../../utils/inviteLink'
+import { GroupGlyph, PersonIcon, TicketIcon } from '../../pages/Groups/GroupIcons'
 
 const ICON_OPTIONS = ['🙏', '⛪', '✝️', '🎵', '📖', '💒', '👥', '🕊️', '🌟', '❤️']
 
@@ -252,15 +253,15 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
 
           {/* 그룹 미리보기 */}
           <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/80 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] mb-3">
-            <div className="shrink-0 w-12 h-12 rounded-2xl bg-brand flex items-center justify-center text-[22px] shadow-[0_6px_18px_-6px_var(--brand-glow)]">
-              {createdGroup.icon || '👥'}
+            <div className="shrink-0 w-12 h-12 rounded-2xl bg-brand flex items-center justify-center text-white shadow-[0_6px_18px_-6px_var(--brand-glow)]">
+              <GroupGlyph emoji={createdGroup.icon || '👥'} size={26} />
             </div>
             <div className="min-w-0">
               <p className="text-[14.5px] font-bold text-ink-strong truncate">
                 {createdGroup.name}
               </p>
-              <p className="text-[11.5px] text-gray-500 dark:text-white/55">
-                👤 1명 · 방금 만들어짐
+              <p className="text-[11.5px] text-gray-500 dark:text-white/55 inline-flex items-center gap-1">
+                <PersonIcon size={12} /> 1명 · 방금 만들어짐
               </p>
             </div>
           </div>
@@ -370,8 +371,8 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
 
             {/* 미리보기 */}
             <div className="flex items-center gap-3 p-3 rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
-              <div className="shrink-0 w-11 h-11 rounded-xl bg-brand flex items-center justify-center text-[20px] shadow-[0_4px_14px_-4px_var(--brand-glow)]">
-                {icon}
+              <div className="shrink-0 w-11 h-11 rounded-xl bg-brand flex items-center justify-center text-white shadow-[0_4px_14px_-4px_var(--brand-glow)]">
+                <GroupGlyph emoji={icon} size={24} />
               </div>
               <div className="min-w-0">
                 <p className="text-[13.5px] font-bold text-ink-strong truncate">
@@ -400,7 +401,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                           : 'bg-gray-50 dark:bg-white/[0.03] border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/65 hover:bg-gray-100 dark:hover:bg-white/[0.06]',
                       ].join(' ')}
                     >
-                      <span>{tpl.emoji}</span>
+                      <span className="inline-flex"><GroupGlyph emoji={tpl.emoji} size={16} /></span>
                       {tpl.label}
                     </button>
                   )
@@ -519,7 +520,7 @@ export const CreateGroupModal = ({ isOpen, onClose }: CreateGroupModalProps) => 
                           : 'bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06]',
                       ].join(' ')}
                     >
-                      {opt}
+                      <GroupGlyph emoji={opt} size={24} className={active ? 'text-white' : 'text-ink-strong/70'} />
                     </button>
                   )
                 })}
@@ -601,7 +602,7 @@ export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
           {/* 안내 일러스트 */}
           <div className="text-center pt-2">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--brand-soft-strong)] mb-3">
-              <span className="text-[28px]">🎟️</span>
+              <TicketIcon size={32} className="text-brand" />
             </div>
             <p className="text-[13.5px] text-gray-600 dark:text-white/70 leading-[1.6]">
               그룹 관리자에게 받은 초대 코드로

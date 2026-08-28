@@ -5,6 +5,7 @@ import { useUpdateGroup, useDeleteGroup } from '../../../hooks/useGroups'
 import { useSituationCategories } from '../../../hooks/useSituation'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { PrayerGroup, GroupVisibility } from '../../../types/prayer'
+import { GroupGlyph } from '../GroupIcons'
 
 const ICON_OPTIONS = ['🙏', '⛪', '✝️', '🎵', '📖', '💒', '👥', '🕊️', '🌟', '❤️']
 
@@ -130,7 +131,7 @@ const GroupSettingsSheet = ({ group, onClose }: GroupSettingsSheetProps) => {
                         : 'bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.08]',
                     ].join(' ')}
                   >
-                    {opt}
+                    <GroupGlyph emoji={opt} size={24} className={icon === opt ? 'text-white' : 'text-ink-strong/70'} />
                   </button>
                 ))}
               </div>

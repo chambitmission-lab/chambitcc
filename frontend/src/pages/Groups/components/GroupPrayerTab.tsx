@@ -11,6 +11,7 @@ import { useAuth } from '../../../hooks/useAuth'
 import { showToast } from '../../../utils/toast'
 import type { SortType, Prayer } from '../../../types/prayer'
 import { confirmDialog } from '../../../utils/confirmDialog'
+import { GroupGlyph } from '../GroupIcons'
 
 interface GroupPrayerTabProps {
   groupId: number
@@ -205,7 +206,7 @@ const GroupPrayerTab = ({ groupId }: GroupPrayerTabProps) => {
       ) : (
         <div className="px-4 pt-6 pb-12">
           <div className="rounded-2xl border border-dashed border-gray-200 dark:border-white/[0.09] px-5 py-9 text-center">
-            <span className="text-4xl mb-3 block">{graceMode ? '🌱' : '🙏'}</span>
+            <span className="mb-3 flex justify-center text-brand"><GroupGlyph emoji={graceMode ? '🌱' : '🙏'} size={40} /></span>
             <p className="text-[13.5px] font-bold text-ink-strong/85 mb-1">
               {graceMode ? '아직 응답 기록이 없어요' : '아직 올라온 기도제목이 없어요'}
             </p>
