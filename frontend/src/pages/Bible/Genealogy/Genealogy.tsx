@@ -51,7 +51,6 @@ export const Genealogy = () => {
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const [helpOpen, setHelpOpen] = useState(false)
-  }
 
   const isLoggedIn = !!localStorage.getItem('access_token')
 
