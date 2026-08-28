@@ -117,6 +117,14 @@ export const Genealogy = () => {
     })
   }, [data, query, roleFilter])
 
+  // 데이터에 실제로 존재하는 역할만 칩으로 노출 (선지자 등 0명인 칩 숨김)
+  const visibleFilters = useMemo(() => {
+    if (!data) return ROLE_FILTERS
+    return ROLE_FILTERS.filter(
+      (rf) => rf.id === 'all' || data.nodes.some((n) => matchRole(n, rf.id)),
+    )
+  }, [data])
+
   const matchedSlugs = useMemo(
     () => new Set(filteredNodes.map((n) => n.slug)),
     [filteredNodes],
@@ -168,14 +176,14 @@ export const Genealogy = () => {
             <p className="mt-2 max-w-[520px] text-[14px] text-gray-600 dark:text-white/65 leading-[1.65]">
               아담부터 예수 그리스도까지, 하나님이 친히 보존하신 메시아 약속의 계보입니다.
               {isLoggedIn ? (
-                <> 통독한 구절이 늘어날수록 인물 카드가 또렷해져요.</>
+                <> 통독한 구절이 늘어날수록 그 인물의 별이 밝아져요.</>
               ) : (
                 <>
                   {' '}
                   <Link to="/login" className="text-brand hover:underline font-medium">
                     로그인
                   </Link>
-                  하면 통독 진도에 따라 안개가 걷히는 연출을 볼 수 있어요.
+                  하면 통독 진도에 따라 별이 하나씩 밝아지는 연출을 볼 수 있어요.
                 </>
               )}
             </p>
@@ -191,8 +199,8 @@ export const Genealogy = () => {
                 >
                   <ul className="mt-3 max-w-[520px] rounded-xl bg-white/70 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.08] px-3.5 py-3 text-[12.5px] text-gray-600 dark:text-white/65 leading-[1.6] space-y-1">
                     <li>· 인물을 누르면 생애·관련 구절·가족 관계를 볼 수 있어요.</li>
-                    <li>· 인물과 연결된 장을 통독할수록 카드의 안개가 걷혀요.</li>
-                    <li>· <b className="text-brand">✦ 메시아 라인</b>은 아담→예수까지 이어지는 직계예요.</li>
+                    <li>· 인물과 연결된 장을 통독할수록 그 인물의 별이 크고 밝아져요.</li>
+                    <li>· <b className="text-brand">✦ 메시아 라인</b>은 아담→예수까지 이어지는 별자리 선이에요.</li>
                   </ul>
                 </motion.div>
               )}
@@ -283,7 +291,7 @@ export const Genealogy = () => {
 
             {/* 역할 필터 pill */}
             <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1 scrollbar-hide">
-              {ROLE_FILTERS.map((rf) => {
+              {visibleFilters.map((rf) => {
                 const active = roleFilter === rf.id
                 return (
                   <button

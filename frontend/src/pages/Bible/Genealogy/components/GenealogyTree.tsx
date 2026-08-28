@@ -25,94 +25,36 @@ interface TreeDatum {
   spouses: BibleFigureSummary[]
 }
 
-interface Palette {
-  bg: string
-  textPrimary: string
-  textSecondary: string
-  link: string
-  selectedStroke: string
-  defaultStroke: string
-  messianicStroke: string
-  messianicGlow: string
-  jesusFill: string
-  jesusText: string
-  messianicFill: string
-  defaultFill: string
-  spouseFill: string
-  spouseStroke: string
-  spouseText: string
-  spouseLine: string
-  roleBadgeFill: string
-  roleBadgeText: string
+/* ── 별자리 레이아웃 상수 ─────────────────────────────────────────── */
+const COL_W = 210 // 형제 노드 간격 (이름 라벨이 별 우측으로 뻗으므로 넉넉히)
+const ROW_H = 104 // 세대 간격
+const LABEL_DX = 16 // 별 → 이름 라벨 간격
+const SPOUSE_DX = 26 // 별 → 배우자 별 간격(좌측)
+const STAR_R_MAX = 7 // 메시아 라인 별 최대 반지름
+
+// 4각 반짝임(스파클) 패스
+const sparklePath = (r: number) => {
+  const c = r * 0.28
+  return `M0,${-r} C0,${-c} ${c},0 ${r},0 C${c},0 0,${c} 0,${r} C0,${c} ${-c},0 ${-r},0 C${-c},0 0,${-c} 0,${-r}Z`
 }
 
-const LIGHT: Palette = {
-  bg: '#ffffff',
-  textPrimary: '#111827',
-  textSecondary: '#6b7280',
-  link: '#cbd5e1',
-  selectedStroke: '#3182f6',
-  defaultStroke: '#e5e7eb',
-  messianicStroke: '#93c5fd',
-  messianicGlow: 'rgba(49,130,246,0.35)',
-  jesusFill: 'url(#jesusGradLight)',
-  jesusText: '#ffffff',
-  messianicFill: '#eff6ff',
-  defaultFill: '#f9fafb',
-  spouseFill: '#fdf2f8',
-  spouseStroke: '#f9a8d4',
-  spouseText: '#9d174d',
-  spouseLine: '#ec4899',
-  roleBadgeFill: '#f3f4f6',
-  roleBadgeText: '#6b7280',
+// 결정적 난수 — 리렌더마다 별무리가 흔들리지 않게
+const mulberry32 = (seed: number) => () => {
+  let t = (seed += 0x6d2b79f5)
+  t = Math.imul(t ^ (t >>> 15), t | 1)
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296
 }
 
-const DARK: Palette = {
-  bg: '#201f1f',
-  textPrimary: '#f3f4f6',
-  textSecondary: 'rgba(255,255,255,0.55)',
-  link: 'rgba(255,255,255,0.18)',
-  selectedStroke: '#4593fc',
-  defaultStroke: 'rgba(255,255,255,0.10)',
-  messianicStroke: 'rgba(69,147,252,0.55)',
-  messianicGlow: 'rgba(49,130,246,0.5)',
-  jesusFill: 'url(#jesusGradDark)',
-  jesusText: '#ffffff',
-  messianicFill: 'rgba(69,147,252,0.10)',
-  defaultFill: '#2a2a2a',
-  spouseFill: 'rgba(236,72,153,0.10)',
-  spouseStroke: 'rgba(236,72,153,0.55)',
-  spouseText: '#f9a8d4',
-  spouseLine: '#ec4899',
-  roleBadgeFill: 'rgba(255,255,255,0.06)',
-  roleBadgeText: 'rgba(255,255,255,0.6)',
-}
-
-const NODE_WIDTH = 148
-const NODE_HEIGHT = 68
-const V_GAP = 116
-const SPOUSE_GAP = 10 // 노드 우측과 배우자 pill 사이 간격
-
-// 배우자 pill 너비 (이름 길이 기반). viewBox 계산과 렌더링이 동일 값을 쓰도록 공유
-const spouseLabelWidth = (name: string) => Math.max(name.length * 13 + 18, 46)
-
-const roleLabel = (figure: BibleFigureSummary): string | null => {
-  if (figure.slug === 'jesus_christ') return null
-  const r = figure.role || ''
-  if (r.includes('왕')) return '왕'
-  if (r.includes('선지자')) return '선지자'
-  if (r.includes('제사장')) return '제사장'
-  if (r.includes('족장')) return '족장'
-  if (figure.gender === 'female') return '여인'
-  return null
+const roleText = (fig: BibleFigureSummary) => {
+  if (fig.slug === 'jesus_christ') return '메시아 · 약속의 성취'
+  return fig.role || fig.era || ''
 }
 
 /**
- * 메시아 직계 라인 수직 트리.
- * - 다크/라이트 자동 전환
- * - 메시아 직계는 브랜드 블루 ring + 글로우, 예수는 솔리드 블루
- * - 배우자(여인)는 핑크 pill (기능색 — 브랜드로 덮지 않음)
- * - highlightSlugs 가 있으면 비매칭 노드 흐리게
+ * 메시아 직계 라인 — 별자리(Constellation) 렌더.
+ * 인물은 밤하늘의 별, 메시아 라인은 별자리 선으로 이어진다.
+ * 별의 크기·밝기 = 통독 진도, 배경 별무리는 스크롤 패럴랙스.
  */
 export const GenealogyTree = ({
   nodes,
@@ -124,16 +66,17 @@ export const GenealogyTree = ({
   highlightSlugs,
 }: GenealogyTreeProps) => {
   const { theme } = useTheme()
-  const palette = theme === 'dark' ? DARK : LIGHT
   const svgRef = useRef<SVGSVGElement | null>(null)
   const gRef = useRef<SVGGElement | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
+  const skyRef = useRef<HTMLDivElement | null>(null)
+  const farRef = useRef<SVGGElement | null>(null)
+  const nearRef = useRef<SVGGElement | null>(null)
   const spineOffsetRef = useRef<number>(0)
+  const prevHighlightRef = useRef<Set<string> | null>(null)
 
-  const { root, spouseMap, parentLinkType } = useMemo(() => {
-    const nodeBySlug = new Map<string, BibleFigureSummary>(
-      nodes.map((n) => [n.slug, n]),
-    )
+  const { root, parentLinkType } = useMemo(() => {
+    const nodeBySlug = new Map<string, BibleFigureSummary>(nodes.map((n) => [n.slug, n]))
 
     const parentOf = new Map<string, string>()
     const parentLinkType = new Map<string, RelationshipType>()
@@ -152,9 +95,8 @@ export const GenealogyTree = ({
 
     const sm = new Map<string, BibleFigureSummary[]>()
     const addSpouse = (a: string, b: string) => {
-      const aFig = nodeBySlug.get(a)
       const bFig = nodeBySlug.get(b)
-      if (!aFig || !bFig) return
+      if (!nodeBySlug.has(a) || !bFig) return
       const list = sm.get(a) || []
       if (!list.find((f) => f.slug === b)) list.push(bFig)
       sm.set(a, list)
@@ -190,9 +132,7 @@ export const GenealogyTree = ({
         slug,
         figure: fig,
         children: children.length > 0 ? children : undefined,
-        spouses: (sm.get(slug) || []).filter(
-          (s) => !parentOf.has(s.slug) || parentOf.get(s.slug) === undefined,
-        ),
+        spouses: (sm.get(slug) || []).filter((s) => !parentOf.has(s.slug)),
       }
     }
 
@@ -201,431 +141,399 @@ export const GenealogyTree = ({
       nodes.find((n) => !parentOf.has(n.slug))?.slug ||
       nodes[0]?.slug
 
-    const visited = new Set<string>()
-    const tree = rootSlug ? buildNode(rootSlug, visited) : null
-
-    return { root: tree, spouseMap: sm, parentLinkType }
+    const tree = rootSlug ? buildNode(rootSlug, new Set<string>()) : null
+    return { root: tree, parentLinkType }
   }, [nodes, links])
 
+  /* ── 배경 별무리 (패럴랙스 두 겹) ── */
+  useEffect(() => {
+    const far = farRef.current
+    const near = nearRef.current
+    if (!far || !near) return
+    const rnd = mulberry32(20260828)
+    const make = (g: SVGGElement, count: number, rMin: number, rMax: number, twinkleEvery: number) => {
+      const sel = d3.select(g)
+      sel.selectAll('*').remove()
+      for (let i = 0; i < count; i++) {
+        const c = sel
+          .append('circle')
+          .attr('cx', rnd() * 1000)
+          .attr('cy', rnd() * 2000)
+          .attr('r', rMin + rnd() * (rMax - rMin))
+          .attr('fill', '#fff')
+          .attr('opacity', 0.25 + rnd() * 0.6)
+        if (i % twinkleEvery === 0) {
+          c.attr('class', 'gen-twinkle').style('animation-delay', `${(rnd() * 4).toFixed(2)}s`)
+        }
+      }
+    }
+    make(far, 160, 0.4, 1.1, 5)
+    make(near, 70, 0.9, 1.9, 3)
+  }, [])
+
+  // 스크롤 패럴랙스 + 하늘 높이 동기화
+  useEffect(() => {
+    const container = scrollRef.current
+    const sky = skyRef.current
+    if (!container || !sky) return
+    const sync = () => {
+      sky.style.setProperty('--sky-h', `${container.clientHeight}px`)
+    }
+    const onScroll = () => {
+      const y = container.scrollTop
+      if (farRef.current) farRef.current.style.transform = `translateY(${(-y * 0.08).toFixed(1)}px)`
+      if (nearRef.current) nearRef.current.style.transform = `translateY(${(-y * 0.18).toFixed(1)}px)`
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(container)
+    container.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      ro.disconnect()
+      container.removeEventListener('scroll', onScroll)
+    }
+  }, [root])
+
+  /* ── 별자리 본체 ── */
   useEffect(() => {
     if (!root || !svgRef.current || !gRef.current) return
     const svg = d3.select(svgRef.current)
     const g = d3.select(gRef.current)
-
     g.selectAll('*').remove()
     svg.selectAll('defs').remove()
 
-    // defs: 그라데이션 + 글로우 필터
     const defs = svg.append('defs')
+    const starGlow = defs.append('radialGradient').attr('id', 'genStarGlow')
+    starGlow.append('stop').attr('offset', '0%').attr('stop-color', '#dbe9ff').attr('stop-opacity', 0.9)
+    starGlow.append('stop').attr('offset', '45%').attr('stop-color', '#7fb2ff').attr('stop-opacity', 0.28)
+    starGlow.append('stop').attr('offset', '100%').attr('stop-color', '#3182f6').attr('stop-opacity', 0)
 
-    const jesusGrad = defs
-      .append('linearGradient')
-      .attr('id', theme === 'dark' ? 'jesusGradDark' : 'jesusGradLight')
-      .attr('x1', '0%')
-      .attr('y1', '0%')
-      .attr('x2', '100%')
-      .attr('y2', '100%')
-    // 토스 블루 플랫 솔리드 — 그라데이션 구조는 유지하되 단색으로
-    jesusGrad.append('stop').attr('offset', '0%').attr('stop-color', '#3182f6')
-    jesusGrad.append('stop').attr('offset', '100%').attr('stop-color', '#3182f6')
+    const jesusGlow = defs.append('radialGradient').attr('id', 'genJesusGlow')
+    jesusGlow.append('stop').attr('offset', '0%').attr('stop-color', '#fff7d6').attr('stop-opacity', 1)
+    jesusGlow.append('stop').attr('offset', '35%').attr('stop-color', '#ffe08a').attr('stop-opacity', 0.35)
+    jesusGlow.append('stop').attr('offset', '100%').attr('stop-color', '#ffd166').attr('stop-opacity', 0)
 
-    const glow = defs
-      .append('filter')
-      .attr('id', 'messianicGlow')
-      .attr('x', '-30%')
-      .attr('y', '-30%')
-      .attr('width', '160%')
-      .attr('height', '160%')
-    glow
-      .append('feGaussianBlur')
-      .attr('in', 'SourceAlpha')
-      .attr('stdDeviation', '4')
-    glow.append('feFlood').attr('flood-color', '#3182f6').attr('flood-opacity', '0.6')
-    glow.append('feComposite').attr('in2', 'SourceAlpha').attr('operator', 'in')
-    const merge = glow.append('feMerge')
-    merge.append('feMergeNode')
-    merge.append('feMergeNode').attr('in', 'SourceGraphic')
+    const spouseGlow = defs.append('radialGradient').attr('id', 'genSpouseGlow')
+    spouseGlow.append('stop').attr('offset', '0%').attr('stop-color', '#ffd6ea').attr('stop-opacity', 0.9)
+    spouseGlow.append('stop').attr('offset', '100%').attr('stop-color', '#f472b6').attr('stop-opacity', 0)
 
     const hierarchy = d3.hierarchy<TreeDatum>(root)
-    const treeLayout = d3.tree<TreeDatum>().nodeSize([NODE_WIDTH + 36, V_GAP])
-    const laidOut = treeLayout(hierarchy)
+    const laidOut = d3.tree<TreeDatum>().nodeSize([COL_W, ROW_H])(hierarchy)
+    const allNodes = laidOut.descendants() as d3.HierarchyPointNode<TreeDatum>[]
+    const hierarchyLinks = laidOut.links() as d3.HierarchyPointLink<TreeDatum>[]
 
-    const allNodes = laidOut.descendants()
+    const spineGrad = defs
+      .append('linearGradient')
+      .attr('id', 'genSpineGrad')
+      .attr('gradientUnits', 'userSpaceOnUse')
+      .attr('x1', 0).attr('y1', 0)
+      .attr('x2', 0).attr('y2', (hierarchy.height + 1) * ROW_H)
+    spineGrad.append('stop').attr('offset', '0%').attr('stop-color', '#9cc4ff').attr('stop-opacity', 0.35)
+    spineGrad.append('stop').attr('offset', '80%').attr('stop-color', '#8fb8ff').attr('stop-opacity', 0.75)
+    spineGrad.append('stop').attr('offset', '100%').attr('stop-color', '#ffe08a').attr('stop-opacity', 0.95)
+
+    // viewBox — spine(x=0)이 가로 정중앙
     const xs = allNodes.map((n) => n.x)
     const minX = Math.min(...xs)
     const maxX = Math.max(...xs)
-    const treeHeight = (hierarchy.height + 1) * V_GAP + 40
-
-    // 배우자 pill 은 노드 우측으로 뻗어나가므로 그 최대 지점을 viewBox 에 반영(안 하면 잘림)
-    let maxSpouseRightEdge = 0
-    allNodes.forEach((n) => {
-      const spouses = n.data.spouses
-      if (spouses && spouses.length > 0) {
-        const widest = Math.max(...spouses.map((sp) => spouseLabelWidth(sp.name_ko)))
-        maxSpouseRightEdge = Math.max(
-          maxSpouseRightEdge,
-          n.x + NODE_WIDTH / 2 + SPOUSE_GAP + widest,
-        )
-      }
-    })
-
-    // spine(x=0)이 SVG 가로 정중앙에 오도록 viewBox 를 좌우 대칭으로 잡는다.
-    // 그래야 좌측 가지가 없는 초반부 체인에서도 메시아 spine 이 화면 중앙에 보인다.
-    const PAD = 60
-    const rightExtent = Math.max(maxX + NODE_WIDTH / 2, maxSpouseRightEdge)
-    const leftExtent = Math.abs(minX) + NODE_WIDTH / 2
-    const halfWidth = Math.max(leftExtent, rightExtent) + PAD
+    const LABEL_W = 150
+    const SPOUSE_W = 90
+    const PAD = 50
+    const halfWidth = Math.max(Math.abs(minX) + SPOUSE_W, maxX + LABEL_W) + PAD
     const viewBoxWidth = halfWidth * 2
     const viewBoxStartX = -halfWidth
-    const viewBoxHeight = treeHeight + 80
+    const treeHeight = (hierarchy.height + 1) * ROW_H
+    const viewBoxHeight = treeHeight + 140
 
     svg
-      .attr('viewBox', `${viewBoxStartX} -40 ${viewBoxWidth} ${viewBoxHeight}`)
+      .attr('viewBox', `${viewBoxStartX} -70 ${viewBoxWidth} ${viewBoxHeight}`)
       .attr('width', viewBoxWidth)
       .attr('height', viewBoxHeight)
       .style('width', `${viewBoxWidth}px`)
       .style('height', `${viewBoxHeight}px`)
       .style('max-width', 'none')
-
-    // SVG 의 가로 정중앙(= spine x=0) 픽셀 위치 → 컨테이너 가로 스크롤 정렬에 사용
     spineOffsetRef.current = viewBoxWidth / 2
 
-    // 부모/자식 링크 — 카드 중심이 아니라 가장자리(부모 카드 하단 → 자식 카드 상단)에서
-    // 시작/종료하도록 직접 그린다. 카드 배경이 반투명이라 라인이 카드 중앙을 관통하면
-    // 이름 텍스트 위로 비쳐 보이기 때문.
-    const hierarchyLinks = laidOut.links() as d3.HierarchyPointLink<TreeDatum>[]
+    const progressOf = (slug: string) => (isLoggedIn ? Math.min(1, readingProgress[slug] ?? 0) : 1)
+    const dimmed = (slug: string) => !!highlightSlugs && !highlightSlugs.has(slug)
+    const matched = (slug: string) => !!highlightSlugs && highlightSlugs.has(slug)
+    const isJesus = (f: BibleFigureSummary) => f.slug === 'jesus_christ'
+    const isSpine = (d: d3.HierarchyPointLink<TreeDatum>) =>
+      d.source.data.figure.is_messianic_line && d.target.data.figure.is_messianic_line
 
-    g.append('g')
-      .attr('class', 'links')
-      .attr('fill', 'none')
-      .selectAll('path')
+    /* 별자리 선 — 별 가장자리에서 시작/끝, 살짝만 휘어지게 */
+    const linkPath = (d: d3.HierarchyPointLink<TreeDatum>) => {
+      const sx = d.source.x, sy = d.source.y + 10
+      const tx = d.target.x, ty = d.target.y - 10
+      const my = (sy + ty) / 2
+      return `M${sx},${sy}C${sx},${my},${tx},${my},${tx},${ty}`
+    }
+    const linkG = g.append('g').attr('fill', 'none')
+    linkG
+      .selectAll('path.base')
       .data(hierarchyLinks)
       .join('path')
-      .attr('d', (d) => {
-        const sx = d.source.x
-        const sy = d.source.y + NODE_HEIGHT / 2
-        const tx = d.target.x
-        const ty = d.target.y - NODE_HEIGHT / 2
-        const my = (sy + ty) / 2
-        return `M${sx},${sy}C${sx},${my},${tx},${my},${tx},${ty}`
-      })
+      .attr('class', 'base')
+      .attr('d', linkPath)
       .attr('stroke', (d) => {
-        const ltype = parentLinkType.get(d.target.data.slug)
-        const targetM = d.target.data.figure.is_messianic_line
-        const sourceM = d.source.data.figure.is_messianic_line
-        if (targetM && sourceM) {
-          return theme === 'dark' ? 'rgba(69,147,252,0.45)' : 'rgba(49,130,246,0.55)'
-        }
-        if (ltype === 'mother') {
-          return theme === 'dark' ? 'rgba(244,114,182,0.55)' : 'rgba(219,39,119,0.45)'
-        }
-        return palette.link
+        if (isSpine(d)) return 'url(#genSpineGrad)'
+        if (parentLinkType.get(d.target.data.slug) === 'mother') return 'rgba(244,114,182,0.45)'
+        return 'rgba(255,255,255,0.18)'
       })
-      .attr('stroke-width', (d) => {
-        const targetM = d.target.data.figure.is_messianic_line
-        const sourceM = d.source.data.figure.is_messianic_line
-        return targetM && sourceM ? 2.2 : 1.5
-      })
-      .attr('stroke-dasharray', (d) => {
-        const ltype = parentLinkType.get(d.target.data.slug)
-        return ltype === 'mother' ? '6 3' : null
-      })
+      .attr('stroke-width', (d) => (isSpine(d) ? 1.6 : 1))
+      .attr('stroke-linecap', 'round')
+      .attr('stroke-dasharray', (d) =>
+        parentLinkType.get(d.target.data.slug) === 'mother' ? '1 5' : isSpine(d) ? null : '1 4',
+      )
+      .attr('opacity', (d) => (dimmed(d.target.data.slug) ? 0.25 : 1))
 
-    // 링크 중간 세대 배지 — "N대" 로 현재 세대를 한눈에 파악
-    const linkLabelGroup = g.append('g').attr('class', 'link-labels')
-    hierarchyLinks.forEach((d) => {
-      const ltype = parentLinkType.get(d.target.data.slug) ?? 'father'
-      const gen = d.target.depth + 1
-      const isMother = ltype === 'mother'
-      const labelText = isMother ? `모·${gen}대` : `${gen}대`
+    // spine 위를 타고 내려오는 빛
+    linkG
+      .selectAll('path.flow')
+      .data(hierarchyLinks.filter(isSpine))
+      .join('path')
+      .attr('class', 'gen-flow')
+      .attr('d', linkPath)
+      .attr('stroke', 'rgba(255,255,255,0.9)')
+      .attr('stroke-width', 1.6)
+      .attr('stroke-linecap', 'round')
+      .attr('stroke-dasharray', '2 30')
 
-      const mx = (d.source.x + d.target.x) / 2
-      const my = (d.source.y + d.target.y) / 2
-
-      const charW = 7.5
-      const padH = 6
-      const padV = 3
-      const labelW = labelText.length * charW + padH * 2
-      const labelH = 9 + padV * 2
-
-      const grp = linkLabelGroup
-        .append('g')
-        .attr('transform', `translate(${mx},${my})`)
-        .attr('pointer-events', 'none')
-
-      grp
-        .append('rect')
-        .attr('x', -labelW / 2)
-        .attr('y', -labelH / 2)
-        .attr('width', labelW)
-        .attr('height', labelH)
-        .attr('rx', labelH / 2)
-        .attr('fill', palette.bg)
-        .attr('stroke', isMother
-          ? (theme === 'dark' ? 'rgba(244,114,182,0.35)' : 'rgba(219,39,119,0.3)')
-          : palette.link)
-        .attr('stroke-width', 0.8)
-
-      grp
-        .append('text')
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'central')
-        .attr('font-size', 8.5)
-        .attr('font-weight', 600)
-        .attr('fill', isMother
-          ? (theme === 'dark' ? '#f472b6' : '#be185d')
-          : palette.textSecondary)
-        .text(labelText)
-    })
-
-    // 노드
+    /* 노드 = 별 */
     const nodeG = g
       .append('g')
-      .attr('class', 'nodes')
       .selectAll('g.node')
-      .data(allNodes as d3.HierarchyPointNode<TreeDatum>[])
+      .data(allNodes)
       .join('g')
       .attr('class', 'node')
       .attr('transform', (d) => `translate(${d.x},${d.y})`)
       .style('cursor', 'pointer')
-      .on('click', (_event, d) => onSelect(d.data.slug))
+      .attr('opacity', (d) => (dimmed(d.data.slug) ? 0.12 : 1))
+      .on('click', (_e, d) => onSelect(d.data.slug))
 
-    const dim = (slug: string) => {
-      if (!highlightSlugs) return false
-      return !highlightSlugs.has(slug)
-    }
+    // 큰 히트 영역 (별이 작아서)
+    nodeG.append('circle').attr('r', 22).attr('fill', 'transparent')
 
-    nodeG.attr('opacity', (d) => (dim(d.data.slug) ? 0.25 : 1))
-
-    // 카드 — 메시아 라인은 글로우 ring
+    // 필터 매칭 강조 — 은은한 링 + 글로우 부스트
     nodeG
-      .filter((d) => d.data.figure.is_messianic_line && d.data.figure.slug !== 'jesus_christ')
-      .append('rect')
-      .attr('x', -NODE_WIDTH / 2 - 1)
-      .attr('y', -NODE_HEIGHT / 2 - 1)
-      .attr('width', NODE_WIDTH + 2)
-      .attr('height', NODE_HEIGHT + 2)
-      .attr('rx', 14)
-      .attr('ry', 14)
+      .filter((d) => matched(d.data.slug))
+      .append('circle')
+      .attr('class', 'gen-match-ring')
+      .attr('r', 15)
+      .attr('fill', 'rgba(156,196,255,0.10)')
+      .attr('stroke', 'rgba(156,196,255,0.7)')
+      .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '2 3')
+
+    // 선택 링
+    nodeG
+      .filter((d) => d.data.slug === selectedSlug)
+      .append('circle')
+      .attr('class', 'gen-select-ring')
+      .attr('r', 18)
       .attr('fill', 'none')
-      .attr('stroke', palette.messianicStroke)
-      .attr('stroke-width', 1.5)
-      .style(
-        'filter',
-        theme === 'dark' ? 'drop-shadow(0 0 8px rgba(49,130,246,0.35))' : 'none',
-      )
+      .attr('stroke', '#9cc4ff')
+      .attr('stroke-width', 1.2)
+      .attr('opacity', 0.9)
 
-    // 카드 배경
+    // 예수: 넓은 금빛 후광 + 빛살
+    const jesusG = nodeG.filter((d) => isJesus(d.data.figure))
+    jesusG.append('circle').attr('class', 'gen-halo').attr('r', 54).attr('fill', 'url(#genJesusGlow)')
+    jesusG
+      .append('g')
+      .attr('class', 'gen-rays')
+      .selectAll('line')
+      .data([0, 45, 90, 135])
+      .join('line')
+      .attr('x1', 0).attr('y1', -30).attr('x2', 0).attr('y2', 30)
+      .attr('transform', (a) => `rotate(${a})`)
+      .attr('stroke', 'rgba(255,224,138,0.5)')
+      .attr('stroke-width', (a) => (a % 90 === 0 ? 1.2 : 0.6))
+      .attr('stroke-linecap', 'round')
+
+    // 별 글로우 (진도에 따라 커진다)
     nodeG
-      .append('rect')
-      .attr('x', -NODE_WIDTH / 2)
-      .attr('y', -NODE_HEIGHT / 2)
-      .attr('width', NODE_WIDTH)
-      .attr('height', NODE_HEIGHT)
-      .attr('rx', 13)
-      .attr('ry', 13)
-      .attr('fill', (d) => {
-        const fig = d.data.figure
-        if (fig.slug === 'jesus_christ') return palette.jesusFill
-        if (fig.is_messianic_line) return palette.messianicFill
-        return palette.defaultFill
+      .filter((d) => !isJesus(d.data.figure))
+      .append('circle')
+      .attr('class', 'gen-star-glow')
+      .attr('r', (d) => {
+        const p = progressOf(d.data.slug)
+        return d.data.figure.is_messianic_line ? 12 + 16 * p : 6 + 8 * p
       })
-      .attr('stroke', (d) => {
-        if (d.data.slug === selectedSlug) return palette.selectedStroke
-        if (d.data.figure.is_messianic_line) return 'transparent'
-        return palette.defaultStroke
+      .attr('fill', 'url(#genStarGlow)')
+      .attr('opacity', (d) => (matched(d.data.slug) ? 1 : 0.4 + 0.6 * progressOf(d.data.slug)))
+
+    // 별 본체 — 메시아 라인은 스파클, 곁가지는 작은 점
+    nodeG
+      .filter((d) => d.data.figure.is_messianic_line)
+      .append('path')
+      .attr('class', 'gen-star')
+      .attr('d', (d) => {
+        if (isJesus(d.data.figure)) return sparklePath(13)
+        return sparklePath(3.5 + (STAR_R_MAX - 3.5) * progressOf(d.data.slug))
       })
-      .attr('stroke-width', (d) => (d.data.slug === selectedSlug ? 2.5 : 1))
+      .attr('fill', (d) => (isJesus(d.data.figure) ? '#fff3c4' : '#f4f8ff'))
+      .attr('opacity', (d) => 0.65 + 0.35 * progressOf(d.data.slug))
       .style('filter', (d) =>
-        d.data.figure.slug === 'jesus_christ'
-          ? 'drop-shadow(0 8px 18px rgba(49,130,246,0.45))'
-          : 'none',
+        isJesus(d.data.figure)
+          ? 'drop-shadow(0 0 10px rgba(255,214,102,0.9))'
+          : 'drop-shadow(0 0 4px rgba(156,196,255,0.9))',
       )
-      .attr('opacity', (d) => {
-        if (!isLoggedIn) return 1
-        const p = readingProgress[d.data.slug] ?? 0
-        return 0.45 + 0.55 * p
-      })
-
-    // 안개 효과 (로그인 + 미통독)
-    if (isLoggedIn) {
-      nodeG
-        .filter((d) => (readingProgress[d.data.slug] ?? 0) === 0)
-        .select('rect:last-of-type')
-        .style('filter', (d) =>
-          d.data.figure.slug === 'jesus_christ'
-            ? 'drop-shadow(0 8px 18px rgba(49,130,246,0.45))'
-            : 'blur(0.8px)',
-        )
-    }
-
-    // 이름
     nodeG
+      .filter((d) => !d.data.figure.is_messianic_line)
+      .append('circle')
+      .attr('class', 'gen-star')
+      .attr('r', (d) => 2 + 1.5 * progressOf(d.data.slug))
+      .attr('fill', '#e6eeff')
+      .attr('opacity', (d) => 0.55 + 0.45 * progressOf(d.data.slug))
+
+    /* 라벨 — 별 우측. 이름 + 세대, 아래에 역할 */
+    const label = nodeG.append('g').attr('pointer-events', 'none')
+    label
       .append('text')
-      .attr('text-anchor', 'middle')
-      .attr('y', -4)
-      .attr('font-size', 15)
-      .attr('font-weight', 700)
-      .attr('letter-spacing', '-0.01em')
+      .attr('x', (d) => (isJesus(d.data.figure) ? LABEL_DX + 14 : LABEL_DX))
+      .attr('y', -2)
+      .attr('font-size', (d) => (isJesus(d.data.figure) ? 20 : d.data.figure.is_messianic_line ? 15 : 13.5))
+      .attr('font-weight', (d) => (d.data.figure.is_messianic_line ? 700 : 500))
+      .attr('letter-spacing', '-0.02em')
       .attr('fill', (d) =>
-        d.data.figure.slug === 'jesus_christ'
-          ? palette.jesusText
-          : palette.textPrimary,
+        isJesus(d.data.figure) ? '#fff3c4' : d.data.figure.is_messianic_line ? '#f4f8ff' : 'rgba(255,255,255,0.72)',
       )
-      .attr('pointer-events', 'none')
+      .attr('opacity', (d) => (d.data.figure.is_messianic_line ? 0.75 + 0.25 * progressOf(d.data.slug) : 0.85))
       .text((d) => d.data.figure.name_ko)
 
-    // 역할 라벨 (예수는 "메시아", 기타는 role 또는 era)
-    nodeG.each(function (d) {
+    // 세대 — 이름 뒤 얇은 숫자
+    label.each(function (d) {
       const fig = d.data.figure
-      const label = fig.slug === 'jesus_christ' ? '메시아' : fig.role || fig.era || ''
-      if (!label) return
-      const isJesus = fig.slug === 'jesus_christ'
+      if (isJesus(fig)) return
+      const nameW = fig.name_ko.length * (fig.is_messianic_line ? 15 : 13.5) * 0.98
+      const ltype = parentLinkType.get(fig.slug)
       d3.select(this)
         .append('text')
-        .attr('text-anchor', 'middle')
-        .attr('y', 14)
-        .attr('font-size', 11)
-        .attr('font-weight', isJesus ? 600 : 500)
-        .attr('fill', isJesus ? 'rgba(255,255,255,0.92)' : palette.textSecondary)
-        .attr('pointer-events', 'none')
-        .text(label)
+        .attr('x', LABEL_DX + nameW + 6)
+        .attr('y', -2)
+        .attr('font-size', 10)
+        .attr('font-weight', 500)
+        .attr('letter-spacing', '0.04em')
+        .attr('fill', ltype === 'mother' ? 'rgba(244,114,182,0.85)' : 'rgba(255,255,255,0.38)')
+        .text(`${ltype === 'mother' ? '母 ' : ''}${d.depth + 1}대`)
     })
 
-    // 역할 배지 (왕/선지자/여인/족장)
-    nodeG.each(function (d) {
-      const fig = d.data.figure
-      const rl = roleLabel(fig)
-      if (!rl || fig.is_messianic_line) return
-      const charW = 12
-      const padding = 8
-      const w = rl.length * charW + padding
-      const h = 14
-      const grp = d3
-        .select(this)
-        .append('g')
-        .attr('transform', `translate(${-w / 2}, ${-NODE_HEIGHT / 2 - 8})`)
-      grp
-        .append('rect')
-        .attr('width', w)
-        .attr('height', h)
-        .attr('rx', 7)
-        .attr('ry', 7)
-        .attr('fill', palette.roleBadgeFill)
-      grp
-        .append('text')
-        .attr('x', w / 2)
-        .attr('y', h / 2 + 3.5)
-        .attr('text-anchor', 'middle')
-        .attr('font-size', 9.5)
-        .attr('font-weight', 600)
-        .attr('fill', palette.roleBadgeText)
-        .text(rl)
-    })
+    label
+      .append('text')
+      .attr('x', (d) => (isJesus(d.data.figure) ? LABEL_DX + 14 : LABEL_DX))
+      .attr('y', 14)
+      .attr('font-size', (d) => (isJesus(d.data.figure) ? 12 : 11))
+      .attr('font-weight', 400)
+      .attr('letter-spacing', '-0.01em')
+      .attr('fill', (d) => (isJesus(d.data.figure) ? 'rgba(255,236,180,0.8)' : 'rgba(255,255,255,0.45)'))
+      .text((d) => {
+        const t = roleText(d.data.figure)
+        return t.length > 16 ? `${t.slice(0, 15)}…` : t
+      })
 
-    // 배우자 핑크 pill
-    nodeG.each(function (d) {
+    /* 배우자 — 별 좌측의 작은 분홍 별. 노드 그룹 바깥의 별도 레이어(부모 노드가 흐려져도 독립) */
+    const spouseLayer = g.append('g')
+    allNodes.forEach((d) => {
       const spouses = d.data.spouses
       if (!spouses || spouses.length === 0) return
-      const sg = d3
-        .select(this)
-        .append('g')
-        .attr('transform', `translate(${NODE_WIDTH / 2 + SPOUSE_GAP}, 0)`)
       spouses.forEach((sp, i) => {
-        const yOffset = i * 26 - ((spouses.length - 1) * 26) / 2
-        const label = sp.name_ko
-        const labelWidth = spouseLabelWidth(label)
-
-        sg.append('line')
-          .attr('x1', -4)
-          .attr('y1', yOffset)
-          .attr('x2', 4)
-          .attr('y2', yOffset)
-          .attr('stroke', palette.spouseLine)
-          .attr('stroke-width', 1.5)
-          .attr('stroke-dasharray', '3 2')
-          .attr('opacity', highlightSlugs && !highlightSlugs.has(sp.slug) ? 0.25 : 0.85)
-
-        const grp = sg
+        const y = d.y + i * 24 - ((spouses.length - 1) * 24) / 2
+        const x = d.x - SPOUSE_DX
+        const dim = dimmed(sp.slug)
+        const spMatched = matched(sp.slug)
+        spouseLayer
+          .append('line')
+          .attr('x1', x + 6).attr('y1', y).attr('x2', d.x - 8).attr('y2', d.y)
+          .attr('stroke', 'rgba(244,114,182,0.55)')
+          .attr('stroke-width', 1)
+          .attr('stroke-dasharray', '1 4')
+          .attr('stroke-linecap', 'round')
+          .attr('opacity', dim ? 0.12 : 1)
+        const grp = spouseLayer
           .append('g')
-          .attr('transform', `translate(${4}, ${yOffset})`)
+          .attr('transform', `translate(${x},${y})`)
           .style('cursor', 'pointer')
-          .attr('opacity', highlightSlugs && !highlightSlugs.has(sp.slug) ? 0.25 : 1)
+          .attr('opacity', dim ? 0.12 : 1)
           .on('click', (event) => {
             event.stopPropagation()
             onSelect(sp.slug)
           })
-
+        if (spMatched) {
+          grp
+            .append('circle')
+            .attr('class', 'gen-match-ring')
+            .attr('r', 11)
+            .attr('fill', 'rgba(244,114,182,0.10)')
+            .attr('stroke', 'rgba(244,114,182,0.75)')
+            .attr('stroke-width', 1)
+            .attr('stroke-dasharray', '2 3')
+        }
+        grp.append('circle').attr('r', 14).attr('fill', 'transparent')
+        grp.append('circle').attr('r', (spMatched ? 14 : 7) + 5 * progressOf(sp.slug)).attr('fill', 'url(#genSpouseGlow)')
         grp
-          .append('rect')
-          .attr('x', 0)
-          .attr('y', -11)
-          .attr('width', labelWidth)
-          .attr('height', 22)
-          .attr('rx', 11)
-          .attr('ry', 11)
-          .attr('fill', palette.spouseFill)
-          .attr('stroke', sp.slug === selectedSlug ? palette.selectedStroke : palette.spouseStroke)
-          .attr('stroke-width', sp.slug === selectedSlug ? 2 : 1)
-          .attr('opacity', (() => {
-            if (!isLoggedIn) return 1
-            const p = readingProgress[sp.slug] ?? 0
-            return 0.45 + 0.55 * p
-          })())
-
+          .append('circle')
+          .attr('r', (spMatched ? 3.4 : 2.2) + 1.2 * progressOf(sp.slug))
+          .attr('fill', '#ffd6ea')
+          .attr('stroke', sp.slug === selectedSlug ? '#9cc4ff' : 'none')
+          .attr('stroke-width', 1.5)
         grp
           .append('text')
-          .attr('x', labelWidth / 2)
-          .attr('y', 4)
-          .attr('text-anchor', 'middle')
-          .attr('font-size', 11)
-          .attr('font-weight', 600)
-          .attr('fill', palette.spouseText)
+          .attr('x', -10)
+          .attr('y', 0)
+          .attr('text-anchor', 'end')
+          .attr('dominant-baseline', 'central')
+          .attr('font-size', spMatched ? 13.5 : 12)
+          .attr('font-weight', spMatched ? 700 : 500)
+          .attr('letter-spacing', '-0.01em')
+          .attr('fill', spMatched ? '#ffe3f0' : 'rgba(255,214,234,0.85)')
           .attr('pointer-events', 'none')
-          .text(label)
+          .text(sp.name_ko)
       })
     })
 
-    // zoom/pan — 메인 컨테이너 스크롤이 기본
+    /* zoom/pan — Ctrl+휠·핀치만 */
     const zoomBehavior = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.5, 2.5])
       .filter((event) => {
         if (event.type === 'wheel') return event.ctrlKey || event.metaKey
-        if (event.type === 'touchstart') {
-          return !!event.touches && event.touches.length >= 2
-        }
+        if (event.type === 'touchstart') return !!event.touches && event.touches.length >= 2
         return !event.button
       })
       .on('zoom', (event) => {
         g.attr('transform', event.transform.toString())
       })
-
-    // d3 의 call 오버로드가 zoom behavior 시그니처를 좁게 잡아 그대로는 안 맞는다 —
-    // 런타임 계약은 동일하므로 selection 타입만 맞춰 넘긴다
     svg.call(zoomBehavior)
     svg.call(zoomBehavior.transform, d3.zoomIdentity)
 
-    // 트리가 컨테이너보다 넓으면 spine(x=0)을 가로 중앙으로 스크롤
-    // 내부 flex wrapper 의 px-4 (16px) padding 보정
     if (scrollRef.current) {
       const container = scrollRef.current
-      const INNER_PAD = 16
-      const target = spineOffsetRef.current + INNER_PAD - container.clientWidth / 2
+      const target = spineOffsetRef.current + 16 - container.clientWidth / 2
       container.scrollLeft = Math.max(0, target)
+
+      // 필터가 바뀌었으면 첫 매칭 인물(배우자 포함)의 세로 위치로 스크롤
+      if (highlightSlugs !== prevHighlightRef.current) {
+        prevHighlightRef.current = highlightSlugs
+        if (highlightSlugs && highlightSlugs.size > 0) {
+          // 트리 상자가 폴드 아래에 있으면 내부만 스크롤돼도 보이지 않는다 — 페이지도 끌어온다
+          container.scrollIntoView({ block: 'start', behavior: 'smooth' })
+          let firstY: number | null = null
+          for (const n of allNodes) {
+            const hit = highlightSlugs.has(n.data.slug) || n.data.spouses.some((sp) => highlightSlugs.has(sp.slug))
+            if (hit) { firstY = n.y; break }
+          }
+          if (firstY !== null) {
+            // svg 는 viewBox y=-70 부터, 래퍼 py-2(8px) 보정
+            const top = firstY + 70 + 8 - container.clientHeight * 0.35
+            container.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+          }
+        } else {
+          container.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+      }
     }
-  }, [
-    root,
-    selectedSlug,
-    readingProgress,
-    isLoggedIn,
-    onSelect,
-    spouseMap,
-    parentLinkType,
-    theme,
-    palette,
-    highlightSlugs,
-  ])
+  }, [root, selectedSlug, readingProgress, isLoggedIn, onSelect, parentLinkType, theme, highlightSlugs])
 
   if (!root) {
     return (
@@ -636,20 +544,22 @@ export const GenealogyTree = ({
   }
 
   return (
-    <div
-      ref={scrollRef}
-      className="w-full max-h-[78vh] overflow-auto rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-card-dark relative"
-    >
-      <div className="absolute inset-0 opacity-0 dark:opacity-100 pointer-events-none bg-gradient-to-br from-white/[0.04] via-transparent to-white/[0.02]" />
-      <div className="flex justify-center min-w-min relative py-4 px-4">
-        <svg
-          ref={svgRef}
-          preserveAspectRatio="xMidYMin meet"
-          style={{ display: 'block', flexShrink: 0 }}
-        >
+    <div ref={scrollRef} className="gen-sky-wrap w-full max-h-[78vh] overflow-auto rounded-[22px] relative">
+      {/* 배경 하늘 — sticky 로 화면에 고정, 별무리는 스크롤에 따라 패럴랙스 */}
+      <div ref={skyRef} className="gen-sky" aria-hidden>
+        <svg className="gen-sky__stars" viewBox="0 0 1000 2000" preserveAspectRatio="xMidYMin slice">
+          <g ref={farRef} />
+          <g ref={nearRef} />
+        </svg>
+        <div className="gen-sky__nebula gen-sky__nebula--a" />
+        <div className="gen-sky__nebula gen-sky__nebula--b" />
+      </div>
+      <div className="flex justify-center min-w-min relative py-2 px-4">
+        <svg ref={svgRef} preserveAspectRatio="xMidYMin meet" style={{ display: 'block', flexShrink: 0 }}>
           <g ref={gRef} />
         </svg>
       </div>
+      <div className="gen-sky__caption">아담에서 예수까지 · 하늘의 별과 같이</div>
     </div>
   )
 }

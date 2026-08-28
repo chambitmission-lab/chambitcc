@@ -81,3 +81,95 @@
 }
 .gen-stat__label { font-size: 11.5px; font-weight: 600; color: var(--brand); line-height: 1.2; }
 .gen-stat__value { font-size: 18px; font-weight: 800; color: var(--text-body); letter-spacing: -0.02em; line-height: 1.2; }
+
+/* ── 가계도 = 밤하늘 별자리 ────────────────────────────────────────── */
+.gen-sky-wrap {
+  /* 라이트: 블루아워 남색, 다크: 깊은 밤 */
+  --sky-top: #14204a;
+  --sky-mid: #0f1838;
+  --sky-bottom: #0a1028;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-bottom) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 0 80px rgba(0,0,0,0.35);
+  color: #fff;
+  font-family: inherit;
+  /* 필터 시 scrollIntoView — 고정 헤더·섹션 탭 아래로 숨지 않게 */
+  scroll-margin-top: 96px;
+}
+.dark .gen-sky-wrap {
+  --sky-top: #0b1030;
+  --sky-mid: #070b22;
+  --sky-bottom: #04061a;
+  border-color: rgba(255,255,255,0.06);
+}
+.gen-sky-wrap svg text { font-family: inherit; }
+
+/* sticky 하늘 레이어 — 높이는 JS 가 컨테이너 가시 높이로 동기화 */
+.gen-sky {
+  position: sticky; top: 0; left: 0;
+  width: 100%; height: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+.gen-sky > * { position: absolute; top: 0; left: 0; }
+.gen-sky__stars { width: 100%; height: var(--sky-h, 60vh); }
+.gen-sky__stars g { will-change: transform; }
+.gen-sky__nebula {
+  width: 420px; height: 420px; border-radius: 9999px;
+  filter: blur(60px); opacity: .55; mix-blend-mode: screen;
+}
+.gen-sky__nebula--a { left: -20%; top: 5%; background: radial-gradient(circle, rgba(49,130,246,.45), transparent 65%); }
+.gen-sky__nebula--b { right: -25%; top: 45%; background: radial-gradient(circle, rgba(139,92,246,.35), transparent 65%); }
+.gen-sky-wrap > .gen-sky + div { z-index: 1; }
+
+.gen-sky__caption {
+  position: sticky; bottom: 0; left: 0;
+  padding: 10px 0 12px;
+  text-align: center;
+  font-size: 11px; letter-spacing: .12em;
+  color: rgba(255,255,255,.35);
+  background: linear-gradient(180deg, transparent, var(--sky-bottom) 70%);
+  pointer-events: none; z-index: 2;
+}
+
+/* 별 반짝임 */
+@keyframes gen-twinkle {
+  0%, 100% { opacity: .15; }
+  50%      { opacity: .9; }
+}
+.gen-twinkle { animation: gen-twinkle 3.6s ease-in-out infinite; }
+
+/* 메시아 라인 별 — 미세한 호흡 */
+@keyframes gen-star-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.18); }
+}
+.gen-star-glow { transform-box: fill-box; transform-origin: center; animation: gen-star-breathe 4.8s ease-in-out infinite; }
+
+/* spine 위를 흐르는 빛 */
+@keyframes gen-flow { to { stroke-dashoffset: -64; } }
+.gen-flow { animation: gen-flow 3.2s linear infinite; }
+
+/* 예수 후광 · 빛살 */
+@keyframes gen-halo { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.12); opacity: 1; } }
+.gen-halo { transform-box: fill-box; transform-origin: center; animation: gen-halo 5s ease-in-out infinite; }
+@keyframes gen-rays { to { transform: rotate(360deg); } }
+.gen-rays { transform-box: fill-box; transform-origin: center; animation: gen-rays 60s linear infinite; }
+
+/* 필터 매칭 링 — 천천히 도는 점선 */
+@keyframes gen-match { to { stroke-dashoffset: -20; } }
+.gen-match-ring { animation: gen-match 2.4s linear infinite; }
+
+/* 선택 링 */
+@keyframes gen-select { 0% { r: 12; opacity: .9; } 100% { r: 24; opacity: 0; } }
+.gen-select-ring { animation: gen-select 1.6s ease-out infinite; }
+
+/* 별 호버 */
+.gen-sky-wrap .node .gen-star { transform-box: fill-box; transform-origin: center; transition: transform .2s ease; }
+.gen-sky-wrap .node:hover .gen-star { transform: scale(1.35); }
+
+@media (prefers-reduced-motion: reduce) {
+  .gen-twinkle, .gen-star-glow, .gen-flow, .gen-halo, .gen-rays, .gen-select-ring, .gen-match-ring { animation: none; }
+}
