@@ -30,9 +30,15 @@ const moodOfHour = (h: number): 'dawn' | 'day' | 'dusk' | 'night' => {
  * 방문자가 정말 원하는 건 셋뿐이다: 여기가 어디인지, 주소·전화, 그리고 길찾기.
  * 그래서 지도 카드가 맨 위에 오고 교통·주차 안내는 접어 두었다.
  */
+/** 히어로 배경 — public/images/visit/. 비우면 /about 사진을 쓴다 */
+const VISIT_HERO_IMAGE = '/images/visit/church-hero.webp'
+
 const Visit = () => {
   const { t } = useLanguage()
   const { tx, heroBackgroundUrl } = useAboutContent()
+  // 히어로 사진 — /visit 전용 자산(왼쪽 하늘 여백 + 오른쪽 교회 구도)을 우선하고,
+  // 없으면 /about 의 교회 사진으로 대체한다
+  const heroImage = VISIT_HERO_IMAGE || heroBackgroundUrl
   const isAdminUser = isAdmin()
 
   const [services, setServices] = useState<WorshipService[]>([])
@@ -132,17 +138,16 @@ const Visit = () => {
       <div className="visit-shell">
         <div className="visit-body">
           {/* Hero — 교회 사진(/about 와 같은 자산) 위에 제목, 아래로 경로 요약 레일 */}
-          <header className={`visit-hero visit-hero--${mood}${heroBackgroundUrl ? ' has-photo' : ''}`}>
+          <header className={`visit-hero visit-hero--${mood}${heroImage ? ' has-photo' : ''}`}>
             <div className="visit-hero-photo">
-              {heroBackgroundUrl && (
+              {heroImage && (
                 <img
                   className="visit-hero-img"
-                  src={heroBackgroundUrl}
+                  src={heroImage}
                   alt=""
                   aria-hidden="true"
                   decoding="async"
                   fetchPriority="high"
-                  crossOrigin="anonymous"
                 />
               )}
               <div className="visit-hero-scrim" />
