@@ -1221,7 +1221,13 @@
   .history-rail-list--scroll {
     max-height: 40vh;
     overflow-y: auto;
+    /* 링크가 hover 필 때문에 좌우로 8px씩 삐져나오는데(음수 margin),
+       스크롤 상자 안에서는 그게 가로 스크롤바로 나타난다 — 가로는 잘라낸다 */
+    overflow-x: hidden;
     scrollbar-width: thin;
+    scrollbar-gutter: stable;
+    padding: 0 8px;
+    margin: 0 -8px;
   }
 
   .history-rail-link {

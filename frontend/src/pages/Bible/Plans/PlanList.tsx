@@ -391,6 +391,10 @@ const Hashtags = ({ plan }: { plan: PlanSummary }) => {
 
 // 카드 비주얼(감성 그래픽): accent 그라데이션 + 글로우 + 이모지.
 // 추후 커버 이미지가 생기면 이 컴포넌트만 <img>로 교체하면 됨.
+// 세로 띠 커버의 오른쪽 끝 — 카드 바탕색으로 서서히 녹여 이미지/텍스트 경계선을 지운다
+const STRIP_MASK =
+  'linear-gradient(to right, #000 0%, #000 78%, rgba(0,0,0,0.5) 92%, transparent 100%)'
+
 const PlanVisual = ({
   plan,
   size,
@@ -404,23 +408,31 @@ const PlanVisual = ({
   // 이모지 배지 — 사진 위에선 좌상단 작은 유리 배지, 그라데이션 폴백에선 중앙 크게
   const badgeSize = size === 'feed' ? 'text-[15px]' : 'text-[17px]'
 
-  // 실제 커버 사진이 있으면 사진을 배경으로 — 브랜드 톤/가독성을 위해 위에 살짝 틴트를 얹는다
+  // 실제 커버 그림이 있으면 배경으로 — 수채 일러스트라 틴트는 아주 옅게만 얹는다
   if (cover) {
+    // 가로형 카드의 세로 띠(104px)는 3:2 그림의 한가운데(빈 안개)만 잘려 '반쪽'처럼 보인다.
+    // 주인공이 있는 오른쪽을 기준으로 자르고, 오른쪽 끝은 카드 바탕으로 녹여 한 장처럼 잇는다.
+    const strip = size === 'feature'
     return (
-      <div className="relative h-full w-full overflow-hidden bg-gray-200 dark:bg-white/5">
-        <img
-          src={cover}
-          alt=""
-          loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        {/* 브랜드 틴트(블루, 저채도) — 사진마다 다른 색감을 하나의 톤으로 묶는다 */}
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(49,130,246,0.30),rgba(96,165,250,0.18))] mix-blend-multiply" />
-        {/* 하단 그라데이션 — 이모지 배지 대비 확보 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
-        {/* 이모지 유리 배지 — 사진 위에 플랜 정체성을 한 점 남긴다 */}
+      <div className={`relative h-full w-full overflow-hidden ${strip ? '' : 'bg-gray-100 dark:bg-white/5'}`}>
+        <div
+          className="absolute inset-0"
+          style={strip ? { maskImage: STRIP_MASK, WebkitMaskImage: STRIP_MASK } : undefined}
+        >
+          <img
+            src={cover}
+            alt=""
+            loading="lazy"
+            className={`absolute inset-0 h-full w-full object-cover ${strip ? 'object-[85%_50%]' : ''}`}
+          />
+          {/* 브랜드 틴트(블루, 저채도) — 그림마다 다른 색감을 하나의 톤으로 묶는다 */}
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(49,130,246,0.14),rgba(96,165,250,0.06))] mix-blend-multiply" />
+        </div>
+        {/* 이모지 배지 뒤만 살짝 눌러 대비 확보 (예전 전면 검정 그라데이션은 그림을 탁하게 만든다) */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_12%,rgba(15,23,42,0.26),transparent_48%)]" />
+        {/* 이모지 유리 배지 — 그림 위에 플랜 정체성을 한 점 남긴다 */}
         <span
-          className={`absolute left-2 top-2 inline-flex items-center justify-center ${badgeSize} leading-none rounded-full w-7 h-7 bg-white/20 backdrop-blur-md ring-1 ring-white/30 shadow-sm select-none`}
+          className={`absolute left-2 top-2 inline-flex items-center justify-center ${badgeSize} leading-none rounded-full w-7 h-7 bg-white/25 backdrop-blur-md ring-1 ring-white/40 shadow-sm select-none`}
         >
           {emoji}
         </span>
