@@ -47,6 +47,19 @@ export const profile = {
   pushToastDisabled: '알림이 비활성화되었습니다',
   pushToastFailed: '알림 구독에 실패했습니다',
   pushPermissionDenied: '알림 권한이 차단되었습니다. 브라우저 설정에서 알림을 허용해주세요.',
+  pushDeniedAndroid:
+    '이 사이트의 알림이 차단되어 있어요.\n\n① 주소창 왼쪽 자물쇠(또는 ⓘ) 아이콘 → 권한 → 알림을 "허용"으로 바꿔주세요.\n② 그래도 안 되면 휴대폰 설정 → 앱 → Chrome → 알림이 켜져 있는지 확인해주세요.\n\n설정 후 페이지를 새로고침하고 다시 켜주세요.',
+  pushDeniedAndroidPwa:
+    '앱 알림이 차단되어 있어요.\n\n휴대폰 설정 → 앱 → 참빛교회(또는 Chrome) → 알림을 켜주세요. Chrome의 사이트 설정 → 알림에서 이 사이트가 차단 목록에 있다면 허용으로 바꿔주세요.\n\n설정 후 앱을 다시 열고 켜주세요.',
+  pushDeniedIosPwa:
+    '알림이 거부된 상태예요. iPhone은 한 번 거부하면 앱 안에서 다시 물어보지 않아요.\n\niPhone 설정 → 알림 → 참빛교회에서 알림을 허용해주세요. 목록에 없다면 홈 화면에서 앱을 지운 뒤 다시 추가하고 "허용"을 눌러주세요.',
+  pushDeniedDesktop:
+    '이 사이트의 알림이 차단되어 있어요.\n\n주소창 왼쪽 자물쇠 아이콘 → 사이트 설정 → 알림을 "허용"으로 바꾼 뒤 새로고침해주세요.',
+  pushPromptDismissed: '알림 권한 요청을 닫으셨어요. 다시 켜면 한 번 더 물어볼게요.',
+  pushInsecure: '보안 연결(https)에서만 알림을 켤 수 있어요.',
+  pushUnsupported: '이 브라우저는 푸시 알림을 지원하지 않아요.',
+  pushErrorGeneric:
+    '권한은 허용됐지만 구독 등록 중 문제가 생겼어요. 잠시 후 다시 시도하거나, 계속되면 앱을 완전히 닫았다가 다시 열어주세요.',
 
   // 업적 시스템
   achievementTitle: '업적',

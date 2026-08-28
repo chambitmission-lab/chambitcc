@@ -47,6 +47,19 @@ export const profile = {
   pushToastDisabled: 'Notifications disabled',
   pushToastFailed: 'Failed to subscribe to notifications',
   pushPermissionDenied: 'Notification permission is blocked. Please allow notifications in your browser settings.',
+  pushDeniedAndroid:
+    'Notifications for this site are blocked.\n\n① Tap the lock (or ⓘ) icon left of the address bar → Permissions → set Notifications to "Allow".\n② If that doesn\'t help, check Phone Settings → Apps → Chrome → Notifications is on.\n\nThen reload the page and turn this on again.',
+  pushDeniedAndroidPwa:
+    'App notifications are blocked.\n\nGo to Phone Settings → Apps → Chambit Church (or Chrome) → turn Notifications on. If this site is in Chrome\'s Site settings → Notifications block list, switch it to Allow.\n\nThen reopen the app and turn this on again.',
+  pushDeniedIosPwa:
+    'Notifications were declined. iPhone won\'t ask again inside the app.\n\nOpen iPhone Settings → Notifications → Chambit Church and allow notifications. If it isn\'t listed, remove the app from the Home Screen, add it again, and tap "Allow".',
+  pushDeniedDesktop:
+    'Notifications for this site are blocked.\n\nClick the lock icon left of the address bar → Site settings → set Notifications to "Allow", then reload.',
+  pushPromptDismissed: 'You closed the permission prompt. Turn it on again and we\'ll ask once more.',
+  pushInsecure: 'Notifications only work over a secure (https) connection.',
+  pushUnsupported: 'This browser does not support push notifications.',
+  pushErrorGeneric:
+    'Permission is granted, but registering the subscription failed. Please try again shortly, or fully close and reopen the app if it persists.',
 
   // Achievement System
   achievementTitle: 'Achievements',

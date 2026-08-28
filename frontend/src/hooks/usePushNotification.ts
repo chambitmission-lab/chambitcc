@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import {
-  subscribeToPushNotifications,
+  subscribeToPushNotificationsDetailed,
   unsubscribeFromPushNotifications,
   checkNotificationPermission,
   showTestNotification,
-  setPushPreference
+  setPushPreference,
+  type PushSubscribeResult
 } from '../utils/pushNotification';
 import { getMySubscriptions } from '../api/push';
 import { isAuthenticated, getCurrentUser } from '../utils/auth';
@@ -60,22 +61,25 @@ export const usePushNotification = () => {
     checkStatus();
   }, []);
 
-  // 구독
-  const subscribe = async (): Promise<boolean> => {
+  // 구독 — 결과 사유를 함께 돌려주고, 시도 후 실제 브라우저 권한을 다시 읽는다.
+  // (마운트 때 잡아둔 permission은 프롬프트 응답 뒤에 낡은 값이 된다)
+  const subscribeDetailed = async (): Promise<PushSubscribeResult> => {
     setIsLoading(true);
     try {
-      const success = await subscribeToPushNotifications();
-      if (success) {
+      const result = await subscribeToPushNotificationsDetailed();
+      setPermission(checkNotificationPermission());
+      if (result.ok) {
         setIsSubscribed(true);
-        setPermission('granted');
         // 같은 사용자가 다음에 다시 로그인했을 때 자동으로 켜지도록 선호도 저장
         setPushPreference(getCurrentUser().username, true);
       }
-      return success;
+      return result;
     } finally {
       setIsLoading(false);
     }
   };
+
+  const subscribe = async (): Promise<boolean> => (await subscribeDetailed()).ok;
 
   // 구독 해제
   const unsubscribe = async (): Promise<boolean> => {
@@ -104,6 +108,7 @@ export const usePushNotification = () => {
     isLoading,
     isChecking,
     subscribe,
+    subscribeDetailed,
     unsubscribe,
     sendTestNotification
   };

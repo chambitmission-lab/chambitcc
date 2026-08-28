@@ -86,32 +86,67 @@ export const checkNotificationPermission = (): NotificationPermission => {
 };
 
 /**
- * 푸시 알림 구독
+ * 푸시 구독 결과. ok=false일 때 reason으로 실패 원인을 구분한다.
+ * - denied:      브라우저/OS가 알림 권한을 차단 (사용자가 설정에서 풀어야 함)
+ * - dismissed:   권한 프롬프트를 닫기만 함 (다시 시도하면 프롬프트가 또 뜸)
+ * - unsupported: Notification/Service Worker/PushManager 미지원
+ * - insecure:    https가 아니라서 푸시 API 사용 불가
+ * - error:       권한은 granted인데 SW·VAPID·네트워크 등 구독 과정에서 실패
  */
-export const subscribeToPushNotifications = async (): Promise<boolean> => {
+export type PushSubscribeReason =
+  | 'granted'
+  | 'denied'
+  | 'dismissed'
+  | 'unsupported'
+  | 'insecure'
+  | 'error';
+
+export interface PushSubscribeResult {
+  ok: boolean;
+  reason: PushSubscribeReason;
+  /** reason === 'error' 일 때 개발자 확인용 원문 */
+  detail?: string;
+}
+
+/**
+ * 푸시 알림 구독 (원인 포함)
+ */
+export const subscribeToPushNotificationsDetailed = async (): Promise<PushSubscribeResult> => {
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    return { ok: false, reason: 'unsupported' };
+  }
+  if (!window.isSecureContext) {
+    return { ok: false, reason: 'insecure' };
+  }
+
+  // 권한 요청 — 이미 denied면 브라우저가 프롬프트 없이 즉시 denied를 돌려준다
+  let permission: NotificationPermission;
   try {
-    // Service Worker 확인
-    if (!('serviceWorker' in navigator)) {
-      throw new Error('Service Worker를 지원하지 않는 브라우저입니다.');
-    }
+    permission = await Notification.requestPermission();
+  } catch (error) {
+    return { ok: false, reason: 'error', detail: `requestPermission: ${String(error)}` };
+  }
+  if (permission === 'denied') {
+    return { ok: false, reason: 'denied' };
+  }
+  if (permission !== 'granted') {
+    return { ok: false, reason: 'dismissed' };
+  }
 
-    // 권한 요청
-    const permission = await requestNotificationPermission();
-    if (permission !== 'granted') {
-      console.log('알림 권한이 거부되었습니다.');
-      return false;
-    }
-
+  try {
     // Service Worker 등록 대기
     const registration = await navigator.serviceWorker.ready;
+    if (!('pushManager' in registration)) {
+      return { ok: false, reason: 'unsupported' };
+    }
 
     // VAPID 공개 키 가져오기
     const publicKeyPEM = await getVapidPublicKey();
     console.log('받은 VAPID 공개 키:', publicKeyPEM);
-    
+
     const applicationServerKey = urlBase64ToUint8Array(publicKeyPEM);
     console.log('변환된 키 길이:', applicationServerKey.length, '바이트');
-    
+
     if (applicationServerKey.length !== 65) {
       throw new Error(`잘못된 키 길이: ${applicationServerKey.length} (예상: 65)`);
     }
@@ -139,11 +174,25 @@ export const subscribeToPushNotifications = async (): Promise<boolean> => {
     });
 
     console.log('✅ 푸시 알림 구독 완료');
-    return true;
+    return { ok: true, reason: 'granted' };
   } catch (error) {
     console.error('❌ 푸시 알림 구독 실패:', error);
-    return false;
+    // 구독 도중 OS/브라우저 단에서 권한이 막힌 경우(NotAllowedError)는 denied로 승격
+    const name = (error as { name?: string } | null)?.name;
+    if (name === 'NotAllowedError' || Notification.permission === 'denied') {
+      return { ok: false, reason: 'denied', detail: String(error) };
+    }
+    return { ok: false, reason: 'error', detail: String(error) };
   }
+};
+
+/**
+ * 푸시 알림 구독 (불리언만 필요한 호출처용)
+ */
+export const subscribeToPushNotifications = async (): Promise<boolean> => {
+  const result = await subscribeToPushNotificationsDetailed();
+  if (!result.ok) console.log('푸시 구독 실패 사유:', result.reason, result.detail ?? '');
+  return result.ok;
 };
 
 /**
