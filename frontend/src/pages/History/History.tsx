@@ -5,6 +5,7 @@ import { DECADES, HISTORY_EVENTS, decadeOf } from './historyData'
 import { INDEXED_EVENTS, MILESTONES } from './historyThemes'
 import type { ThemeKey } from './historyThemes'
 import HistoryMinimap from './components/HistoryMinimap'
+import HeroVerseSlides from './components/HeroVerseSlides'
 import MilestoneReel from './components/MilestoneReel'
 import EraTimeline from './components/EraTimeline'
 import ThemeLens from './components/ThemeLens'
@@ -288,34 +289,37 @@ const History = () => {
         <div className="history-page">
           {/* Hero */}
           <header ref={heroRef} className="history-hero">
-            <div className="history-hero-badge">SINCE 1994</div>
-            <h1 className="history-hero-title">
-              참으로, 빛으로
-              <br />
-              걸어온 길
-            </h1>
-            <p className="history-hero-copy">
-              1994년 여름, 부천 은하마을 한 가정집 거실에서
-              <br />
-              네 명의 장로가 드린 기도로 시작된 이야기.
-              <br />그 발자취를 여기에 담았습니다.
-            </p>
-            <div className="history-hero-stats">
-              <div className="history-stat">
-                <span className="history-stat-value">{journeyYears}년</span>
-                <span className="history-stat-label">{ko ? '함께한 걸음' : 'Years'}</span>
-              </div>
-              <div className="history-stat-divider" />
-              <div className="history-stat">
-                <span className="history-stat-value">{HISTORY_EVENTS.length}</span>
-                <span className="history-stat-label">{ko ? '기록된 순간' : 'Records'}</span>
-              </div>
-              <div className="history-stat-divider" />
-              <div className="history-stat">
-                <span className="history-stat-value">{MILESTONES.length}</span>
-                <span className="history-stat-label">{ko ? '주요 이정표' : 'Milestones'}</span>
+            <div className="history-hero-text">
+              <div className="history-hero-badge">SINCE 1994</div>
+              <h1 className="history-hero-title">
+                참으로, 빛으로
+                <br />
+                걸어온 길
+              </h1>
+              <p className="history-hero-copy">
+                1994년 여름, 부천 은하마을 한 가정집 거실에서
+                <br />
+                네 명의 장로가 드린 기도로 시작된 이야기.
+                <br />그 발자취를 여기에 담았습니다.
+              </p>
+              <div className="history-hero-stats">
+                <div className="history-stat">
+                  <span className="history-stat-value">{journeyYears}년</span>
+                  <span className="history-stat-label">{ko ? '함께한 걸음' : 'Years'}</span>
+                </div>
+                <div className="history-stat-divider" />
+                <div className="history-stat">
+                  <span className="history-stat-value">{HISTORY_EVENTS.length}</span>
+                  <span className="history-stat-label">{ko ? '기록된 순간' : 'Records'}</span>
+                </div>
+                <div className="history-stat-divider" />
+                <div className="history-stat">
+                  <span className="history-stat-value">{MILESTONES.length}</span>
+                  <span className="history-stat-label">{ko ? '주요 이정표' : 'Milestones'}</span>
+                </div>
               </div>
             </div>
+            <HeroVerseSlides ko={ko} />
           </header>
 
           {/* 32년 미니맵 — 한눈에 리듬 보기 */}

@@ -126,14 +126,6 @@ export const ClockIcon = (props: IconProps) => (
   </Svg>
 )
 
-/** 조준점 — 내 위치 */
-export const CrosshairIcon = (props: IconProps) => (
-  <Svg {...props}>
-    <circle cx="12" cy="12" r="8.5" />
-    <circle cx="12" cy="12" r="2.5" />
-    <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" />
-  </Svg>
-)
 
 /** 공유 */
 export const ShareIcon = (props: IconProps) => (
@@ -176,9 +168,24 @@ export const XIcon = (props: IconProps) => (
   </Svg>
 )
 
-export const CameraIcon = (props: IconProps) => (
+/** 아래 화살표 — 접이식 안내의 열림/닫힘 */
+export const ChevronDownIcon = (props: IconProps) => (
   <Svg {...props}>
-    <path d="M4 8.5h2.8l1.3-2.2h7.8l1.3 2.2H20a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z" />
-    <circle cx="12" cy="14" r="3.2" />
+    <polyline points="5 9 12 16 19 9" />
+  </Svg>
+)
+
+/** 지도 — 지도를 못 불러왔을 때의 자리 표시 */
+export const MapIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M9 4 3 6.5v13L9 17l6 3 6-2.5v-13L15 7 9 4Z" />
+    <path d="M9 4v13M15 7v13" />
+  </Svg>
+)
+
+/** 네 귀퉁이 화살표 — "지도 크게 보기" */
+export const ExpandIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <path d="M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5" />
   </Svg>
 )

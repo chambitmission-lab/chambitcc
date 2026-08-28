@@ -39,7 +39,7 @@
   padding: 16px 16px 48px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 /* ── Hero ──────────────────────────────── */
@@ -95,8 +95,7 @@
     0 8px 18px -6px var(--brand-glow);
 }
 
-.visit-hero-emblem::after,
-.visit-mode.is-active::after {
+.visit-hero-emblem::after {
   content: '';
   position: absolute;
   inset: 3px;
@@ -105,8 +104,7 @@
   pointer-events: none;
 }
 
-[data-theme="dark"] .visit-hero-emblem,
-[data-theme="dark"] .visit-mode.is-active {
+[data-theme="dark"] .visit-hero-emblem {
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
@@ -149,198 +147,91 @@
   color: var(--text-muted);
 }
 
-/* ── 지금 출발하면 ─────────────────────── */
-.visit-now {
-  padding: 16px 18px;
+/* ── 지도 ──────────────────────────────────
+   레거시 홈페이지처럼 "여기 어디쯤"을 한 장으로 보여주는 자리.
+   드래그·확대는 컴포넌트에서 잠갔고, 표면 전체가 카카오맵으로 가는 버튼이다. */
+.visit-map {
+  position: relative;
+  height: 220px;
   border-radius: 18px;
-  background: var(--surface-container);
+  overflow: hidden;
   border: 1px solid var(--card-border);
+  background: var(--surface-inset);
   box-shadow: var(--card-shadow);
 }
 
-.visit-now-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.visit-map-canvas {
+  position: absolute;
+  inset: 0;
 }
 
-.visit-now-icon {
-  display: inline-flex;
+/* 지도가 아직 없거나 못 불러온 자리 — 깨진 화면이 아니라 조용한 빈 카드로 보이게 */
+.visit-map-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 9px;
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-
-.visit-now-title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-strong);
-}
-
-.visit-now-service {
-  margin: 12px 0 0;
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--text-body);
-}
-
-.visit-now-service-label {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: var(--surface-inset);
-  color: var(--text-muted);
-}
-
-.visit-now-service-name {
-  font-weight: 600;
-  color: var(--text-strong);
-}
-
-.visit-now-service-remain {
-  margin-left: auto;
-  font-size: 17px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: var(--brand);
-}
-
-.visit-now-metrics {
-  display: flex;
   gap: 8px;
-  margin-top: 14px;
-}
-
-.visit-now-metric {
-  flex: 1;
-  padding: 10px 8px;
-  border-radius: 12px;
+  padding: 0 24px;
   text-align: center;
-  background: var(--surface-inset);
-  border: 1px solid var(--card-border);
-}
-
-.visit-now-metric-label {
-  display: block;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.visit-now-metric-value {
-  display: block;
-  margin-top: 3px;
-  font-size: 19px;
-  font-weight: 800;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-  color: var(--brand);
-}
-
-.visit-now-metric-value em {
-  font-style: normal;
-  font-size: 12px;
-  font-weight: 700;
-  margin-left: 1px;
-}
-
-.visit-now-verdict {
-  margin: 12px 0 0;
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.5;
-  background: var(--brand-soft);
-  border: 1px solid var(--brand-soft-strong);
-  color: var(--text-strong);
-}
-
-/* 서두르셔야 하는 상황 — 앰버는 '표징' 시맨틱이라 여기서만 예외로 쓴다 */
-.visit-now-verdict.is-tight,
-.visit-now-verdict.is-late {
-  background: var(--amber-soft);
-  border-color: var(--amber-soft-strong);
-  color: var(--amber);
-}
-
-.visit-now-note {
-  margin: 10px 0 0;
-  font-size: 11.5px;
+  font-size: 12.5px;
   line-height: 1.6;
   color: var(--text-muted);
+  background: var(--surface-inset);
 }
 
-.visit-now-cta {
-  margin-top: 14px;
-  width: 100%;
+/* 지도 표면 전체가 "카카오맵에서 보기" 버튼 */
+.visit-map-tap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.visit-map-chip {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 11px 14px;
-  border-radius: 12px;
+  gap: 5px;
+  padding: 7px 11px;
+  border-radius: 999px;
   border: 1px solid var(--card-border);
-  background: var(--brand-soft);
-  color: var(--brand);
-  font-size: 13.5px;
+  background: var(--surface-container);
+  color: var(--text-strong);
+  font-size: 11.5px;
   font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.25);
 }
 
-.visit-now-cta:hover:not(:disabled) {
-  background: var(--brand-soft-strong);
+.visit-map-tap:hover .visit-map-chip {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
 }
 
-.visit-now-cta:disabled {
-  opacity: 0.6;
-  cursor: default;
+/* 카카오맵 CustomOverlay 안에서 그려지는 라벨 (JS 로 생성된 DOM) */
+.visit-map-pin {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--on-brand);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.45);
 }
 
-/* ── 길찾기 버튼 + 연락처 ───────────────── */
+/* ── 주소 · 전화 · 길찾기 ──────────────── */
 .visit-actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.visit-maps {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.visit-map-btn {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  padding: 12px 6px;
-  border-radius: 14px;
-  border: 1px solid var(--card-border);
-  background: var(--surface-container);
-  color: var(--text-strong);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: var(--card-shadow);
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.visit-map-btn:hover {
-  background: var(--brand-soft);
-  color: var(--brand);
 }
 
 .visit-contact {
@@ -415,188 +306,179 @@
   color: var(--brand);
 }
 
-/* ── 섹션 공통 ─────────────────────────── */
-.visit-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.visit-section-head {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.visit-section-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-
-.visit-section-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text-strong);
-}
-
-.visit-section-desc {
-  margin: 3px 0 0;
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--text-muted);
-}
-
-/* ── 경로 다이어그램(노선도) ───────────── */
-.visit-rail {
-  list-style: none;
-  margin: 0;
-  padding: 18px 18px 6px;
-  border-radius: 18px;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
-  box-shadow: var(--card-shadow);
-}
-
-.visit-rail-stop {
-  display: flex;
-  gap: 14px;
-  min-height: 58px;
-}
-
-.visit-rail-marker {
-  position: relative;
-  width: 14px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 4px;
-}
-
-.visit-rail-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 3px solid var(--brand);
-  background: var(--surface-container);
-  z-index: 1;
-}
-
-.visit-rail-stop.is-terminal .visit-rail-dot {
-  width: 15px;
-  height: 15px;
-  border-width: 4px;
-  background: var(--brand);
-  box-shadow: 0 0 0 4px var(--brand-soft);
-}
-
-.visit-rail-line {
-  flex: 1;
-  width: 3px;
-  margin-top: -2px;
-  border-radius: 2px;
-  background: var(--brand-soft-strong);
-}
-
-.visit-rail-text {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-bottom: 16px;
-}
-
-.visit-rail-name {
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--text-strong);
-}
-
-.visit-rail-stop.is-terminal .visit-rail-name {
-  color: var(--brand);
-}
-
-.visit-rail-sub {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-/* ── 교통수단 선택 ─────────────────────── */
-.visit-modes {
+.visit-maps {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
-.visit-mode {
-  position: relative;
+.visit-map-btn {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   gap: 5px;
-  padding: 11px 4px;
+  padding: 12px 6px;
   border-radius: 14px;
   border: 1px solid var(--card-border);
   background: var(--surface-container);
-  color: var(--text-muted);
-  font-size: 11.5px;
+  color: var(--text-strong);
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-.visit-mode.is-active {
-  background:
-    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
-    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
-  border-color: transparent;
-  color: var(--on-brand);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 0 0 3px rgba(49, 130, 246, 0.09),
-    0 6px 16px -8px var(--brand-glow);
-}
-
-.visit-mode:not(.is-active):hover {
-  color: var(--brand);
-  background: var(--brand-soft);
-}
-
-.visit-mode-panel {
-  padding: 16px 18px;
-  border-radius: 16px;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.visit-panel-title {
-  margin: 0 0 8px;
-  font-size: 14.5px;
+.visit-map-btn:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+/* ── 다음 예배까지 (한 줄) ─────────────── */
+.visit-next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.visit-next-icon {
+  display: inline-flex;
+  color: var(--brand);
+}
+
+.visit-next-label {
+  font-weight: 600;
+}
+
+.visit-next-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 700;
   color: var(--text-strong);
 }
 
-.visit-panel-body {
-  margin: 0;
+.visit-next-remain {
+  flex-shrink: 0;
   font-size: 13.5px;
-  line-height: 1.7;
-  color: var(--text-body);
-  white-space: pre-line;
+  font-weight: 800;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
 }
 
-.visit-panel-body.is-muted {
+/* ── 오시는 방법 (접이식) ──────────────── */
+.visit-folds {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.visit-fold {
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.visit-fold-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.visit-fold-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: var(--surface-inset);
   color: var(--text-muted);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.visit-fold-head.is-open .visit-fold-icon {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.visit-fold-text {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.visit-fold-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.visit-fold-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.visit-fold-caret {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.18s ease;
+}
+
+.visit-fold-head.is-open .visit-fold-caret {
+  transform: rotate(180deg);
+  color: var(--brand);
+}
+
+.visit-fold-body {
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--card-border);
+}
+
+.visit-fold-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.visit-body-text + .visit-fold-sub {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--card-border);
+}
+
+.visit-body-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-line;
+  color: var(--text-body);
+  word-break: keep-all;
 }
 
 /* 출구 번호 — 지하철 안내의 첫 줄에서 가장 크게 읽혀야 하는 정보 */
@@ -653,6 +535,41 @@
   color: var(--amber);
 }
 
+/* ── 처음 오시는 분께 ──────────────────── */
+.visit-first {
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
+}
+
+.visit-first-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.visit-first-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.visit-first-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
 .visit-first-cta {
   margin-top: 14px;
   width: 100%;
@@ -669,90 +586,6 @@
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 8px 18px -8px var(--brand-glow);
-}
-
-/* ── 마지막 100m ───────────────────────── */
-.visit-steps {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 4px;
-  /* 카드가 셸 가장자리까지 흘러가되 본문 정렬은 유지 */
-  margin: 0 -16px;
-  padding-left: 16px;
-  padding-right: 16px;
-  scrollbar-width: none;
-}
-
-.visit-steps::-webkit-scrollbar {
-  display: none;
-}
-
-.visit-step {
-  flex: 0 0 66%;
-  max-width: 240px;
-  scroll-snap-align: start;
-}
-
-.visit-step-photo {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--surface-inset);
-  border: 1px solid var(--card-border);
-}
-
-.visit-step-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: var(--media-dim);
-}
-
-.visit-step-photo .about-editable-wrapper {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.visit-step-empty {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  opacity: 0.55;
-}
-
-.visit-step-num {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 7px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: var(--brand);
-  color: var(--on-brand);
-  font-size: 12px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.visit-step-text {
-  margin: 8px 2px 0;
-  font-size: 13px;
-  line-height: 1.5;
-  font-weight: 500;
-  color: var(--text-body);
-  word-break: keep-all;
 }
 
 /* ── 초대 ──────────────────────────────── */
@@ -835,13 +668,14 @@
 
 
 /* ============================================
-   PC (lg+) — "나란히 놓고 보는" 2단 레이아웃
+   PC (lg+) — 지도를 크게 깔고 그 아래 2단
    ────────────────────────────────────────────
-   모바일은 위에서 아래로 한 번에 하나씩 훑는다: 지금 출발 판단 → 길찾기 → 노선도 →
-   교통수단 → 마지막 100m. PC 에선 "읽는 것"(노선도·교통수단·사진 안내)을 왼쪽에 두고,
-   "지금 당장 쓰는 것"(출발 판단·지도앱 버튼·주소/전화)을 오른쪽에 고정해 둔다.
-   지하철 안내를 읽다가 주소를 복사하러 스크롤을 되돌릴 일이 없어진다.
-   래퍼 3개는 lg 미만에서 display:contents 라 모바일 화면은 기존과 완전히 동일하다.
+   모바일은 위에서 아래로 한 번에 하나씩 훑는다: 지도 → 주소·전화·길찾기 →
+   다음 예배 → 교통 안내 → 처음 오시는 분 → 초대.
+   PC 에선 "읽는 것"(교통·처음·초대)을 왼쪽에, "지금 당장 쓰는 것"(주소·전화·
+   길찾기·다음 예배)을 오른쪽에 고정한다. 안내를 읽다 주소를 복사하러 스크롤을
+   되돌릴 일이 없어진다.
+   래퍼 3개는 lg 미만에서 display:contents 라 모바일 화면은 DOM 순서 그대로다.
    ============================================ */
 .visit-columns,
 .visit-col-main,
@@ -867,7 +701,7 @@
     gap: 22px;
   }
 
-  /* ── Hero — 넓어진 무대에 맞춰 한 단계 키운다 (두 단 위에 걸친다) ── */
+  /* ── Hero — 넓어진 무대에 맞춰 한 단계 키운다 ── */
   .visit-hero {
     padding: 28px 32px;
   }
@@ -890,6 +724,16 @@
     font-size: 14px;
   }
 
+  /* ── 지도 — 레거시처럼 큼직하게 한 장 ── */
+  .visit-map {
+    height: 340px;
+    border-radius: 20px;
+  }
+
+  .visit-map-tap {
+    padding: 14px;
+  }
+
   /* ── 2단 그리드 ── */
   .visit-columns {
     display: grid;
@@ -901,7 +745,7 @@
   .visit-col-main {
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 20px;
     grid-column: 1;
     grid-row: 1;
     min-width: 0;
@@ -917,11 +761,6 @@
     top: 0.25rem; /* .visit-page 스크롤 상자 기준 (이미 헤더 아래에서 시작한다) */
   }
 
-  /* ── 우측 레일: 지금 출발 / 길찾기 / 연락처 ── */
-  .visit-now {
-    padding: 18px 20px;
-  }
-
   .visit-maps {
     gap: 7px;
   }
@@ -930,84 +769,18 @@
     padding: 13px 4px;
   }
 
-  /* ── 왼쪽: 노선도를 가로로 눕힌다 ──
-     세로 노선도는 폭 640px 짜리 칸에서 오른쪽이 텅 빈다.
-     PC 에선 "출발 → 경유 → 도착" 이 한 줄로 읽히는 편이 지도앱 경로와도 겹쳐 보인다. */
-  .visit-rail {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    padding: 20px 22px;
+  /* ── 왼쪽: 접이식 안내는 넓은 칸에서 조금 여유 있게 ── */
+  .visit-fold-head {
+    padding: 16px;
   }
 
-  .visit-rail-stop {
-    flex-direction: column;
-    gap: 10px;
-    min-height: 0;
-  }
-
-  .visit-rail-marker {
-    flex-direction: row;
-    align-items: center;
-    width: auto;
-    height: 15px;
-    padding-top: 0;
-  }
-
-  .visit-rail-line {
-    flex: 1;
-    width: auto;
-    height: 3px;
-    margin: 0 0 0 -1px;
-  }
-
-  .visit-rail-text {
-    padding-bottom: 0;
-    padding-right: 14px;
-  }
-
-  /* ── 교통수단 탭 — 넓은 칸에선 아이콘과 글씨를 한 줄로 ── */
-  .visit-modes {
-    gap: 8px;
-  }
-
-  .visit-mode {
-    flex-direction: row;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 10px;
-    font-size: 13px;
-  }
-
-  .visit-mode-panel {
-    /* 탭을 바꿀 때마다 아래 내용이 위아래로 튀지 않도록 바닥 높이를 잡아둔다 */
-    min-height: 160px;
-    padding: 20px 22px;
+  .visit-fold-body {
+    padding: 16px 18px 18px;
   }
 
   .visit-first-cta {
     width: auto;
     padding: 12px 20px;
-  }
-
-  /* ── 마지막 100m — 가로 스크롤 대신 격자로 한눈에 ── */
-  .visit-steps {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px 14px;
-    margin: 0;
-    padding: 0;
-    overflow: visible;
-    scroll-snap-type: none;
-  }
-
-  .visit-step {
-    flex: initial;
-    max-width: none;
-  }
-
-  .visit-swipe-hint {
-    display: none;
   }
 
   /* ── 초대 — 문구 왼쪽, 버튼 오른쪽 ── */

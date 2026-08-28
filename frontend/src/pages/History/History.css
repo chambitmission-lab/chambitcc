@@ -11,8 +11,17 @@
 
 /* ── Hero ─────────────────────────────────────────────── */
 .history-hero {
-  padding: 44px 24px 28px;
-  text-align: center;
+  padding: 28px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+}
+
+.history-hero-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .history-hero-badge {
@@ -44,7 +53,7 @@
 .history-hero-stats {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 20px;
   margin-top: 24px;
 }
@@ -73,6 +82,160 @@
   width: 1px;
   height: 28px;
   background: var(--card-border);
+}
+
+/* ── Hero 말씀 슬라이드 (hvs-) ────────────────────────── */
+.hvs {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0f2a5a;
+  box-shadow: 0 12px 32px rgba(15, 42, 90, 0.18);
+}
+
+.hvs-slide {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 1.1s ease, transform 7s linear;
+}
+
+.hvs-slide.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 씬 1 — 숲 사이 빛 */
+.hvs-scene-forest {
+  background:
+    radial-gradient(60% 55% at 78% 8%, rgba(255, 236, 190, 0.9), transparent 70%),
+    linear-gradient(180deg, #d9e6c8 0%, #6f8f5a 30%, #2f4a2e 62%, #1a2c1c 100%);
+}
+
+/* 씬 2 — 새벽 하늘 */
+.hvs-scene-dawn {
+  background:
+    radial-gradient(55% 45% at 50% 62%, rgba(255, 205, 150, 0.85), transparent 70%),
+    linear-gradient(180deg, #1c2f5e 0%, #4f6aa8 35%, #e6a273 70%, #3a3352 100%);
+}
+
+/* 씬 3 — 들판의 길 */
+.hvs-scene-path {
+  background:
+    radial-gradient(50% 40% at 30% 12%, rgba(255, 244, 214, 0.95), transparent 70%),
+    linear-gradient(180deg, #bfd7f2 0%, #8fb6e0 32%, #6b9a4c 58%, #3f5f2c 100%);
+}
+
+.hvs-ray {
+  position: absolute;
+  top: -20%;
+  right: 4%;
+  width: 34%;
+  height: 130%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 70%);
+  transform: rotate(18deg);
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.hvs-ray-2 {
+  right: 26%;
+  width: 18%;
+  opacity: 0.6;
+  transform: rotate(24deg);
+}
+
+.hvs-scene-dawn .hvs-ray {
+  right: auto;
+  left: 38%;
+  transform: rotate(0deg);
+  opacity: 0.35;
+}
+
+.hvs-scene-path .hvs-ray {
+  right: auto;
+  left: 8%;
+  transform: rotate(-16deg);
+}
+
+.hvs-scene-path .hvs-ray-2 {
+  left: 28%;
+  transform: rotate(-10deg);
+}
+
+.hvs-ground {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: -18%;
+  height: 40%;
+  border-radius: 50% 50% 0 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.42));
+  pointer-events: none;
+}
+
+.hvs-verse {
+  position: absolute;
+  left: 22px;
+  bottom: 40px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #fff;
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+  max-width: 78%;
+}
+
+.hvs-verse cite {
+  margin-top: 8px;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.hvs-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 2;
+}
+
+.hvs-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.hvs-dot.is-active {
+  width: 18px;
+  background: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hvs-slide {
+    transition: opacity 0.4s ease;
+    transform: none;
+  }
 }
 
 /* ── 32년 미니맵 ──────────────────────────────────────── */
@@ -1126,5 +1289,34 @@
     max-width: 44rem;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  /* 히어로만 2단: 좌 텍스트+통계 / 우 말씀 슬라이드 */
+  .history-hero {
+    max-width: 60rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 32px;
+    padding: 36px 32px 28px;
+  }
+
+  .history-hero-text {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .history-hero-title {
+    font-size: 32px;
+  }
+
+  .hvs {
+    flex: 0 0 52%;
+    aspect-ratio: 16 / 10.5;
+  }
+
+  .hvs-verse {
+    font-size: 18px;
+    left: 28px;
+    bottom: 48px;
   }
 }
