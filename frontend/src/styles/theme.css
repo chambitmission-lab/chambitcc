@@ -44,6 +44,8 @@
   /* /garden 성경 칭호 히어로 — 라이트는 흰→연블루 캔버스 위 칭호 진열장(픽셀아트).
      다크와 같은 1376×560 캔버스라 높이/비율 토큰을 공유한다. */
   --garden-hero-image: url('/images/garden/bible-title-hero-light.webp');
+  /* /bible/genealogy 히어로 우측 — 십자가 빛을 품은 생명나무 수채화 (라이트) */
+  --genealogy-hero-image: url('/images/genealogy/tree-hero-light.webp');
   --garden-hero-min-height: 172px;
   --garden-hero-min-height-lg: 300px;
   --garden-hero-aspect-lg: 1376 / 560;
@@ -166,6 +168,8 @@
 
   /* /garden 성경 칭호 히어로 — 계단을 오르는 픽셀 여정 배너 (다크 전용) */
   --garden-hero-image: url('/images/garden/bible-title-hero.webp');
+  /* /bible/genealogy 히어로 — 밤하늘 위 빛나는 생명나무 (다크) */
+  --genealogy-hero-image: url('/images/genealogy/tree-hero-dark.webp');
   --garden-hero-min-height: 172px;
   --garden-hero-min-height-lg: 300px;
   --garden-hero-aspect-lg: 1376 / 560;

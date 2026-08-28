@@ -1,0 +1,67 @@
+/* /bible/genealogy 히어로 — 우측에 생명나무 이미지를 페이드로 얹은 카드.
+   이미지는 public/images/genealogy/tree-hero-{light,dark}.webp (theme.css 토큰). */
+.gen-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid var(--card-border);
+  background:
+    linear-gradient(135deg, var(--brand-soft) 0%, var(--card-bg, #fff) 55%);
+  padding: 20px 18px;
+}
+.dark .gen-hero {
+  background: linear-gradient(135deg, rgba(49, 130, 246, 0.14) 0%, var(--card-bg, #201f1f) 60%);
+}
+.gen-hero__art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--genealogy-hero-image, none);
+  background-size: auto 115%;
+  background-position: right 0 center;
+  background-repeat: no-repeat;
+  opacity: 0.55;
+  /* 왼쪽 텍스트 영역으로 갈수록 투명하게 */
+  -webkit-mask-image: linear-gradient(90deg, transparent 20%, #000 60%);
+  mask-image: linear-gradient(90deg, transparent 20%, #000 60%);
+}
+@media (min-width: 768px) {
+  .gen-hero { padding: 26px 28px; }
+  .gen-hero__art {
+    opacity: 0.95;
+    background-size: auto 120%;
+    background-position: right 24px center;
+    -webkit-mask-image: linear-gradient(90deg, transparent 40%, #000 70%);
+    mask-image: linear-gradient(90deg, transparent 40%, #000 70%);
+  }
+}
+.gen-hero__content { position: relative; z-index: 1; }
+
+/* 히어로 우측 상단 원형 액션 버튼 */
+.gen-hero__btn {
+  width: 36px; height: 36px; border-radius: 9999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: color .15s, transform .15s;
+}
+.gen-hero__btn:hover { color: var(--brand); transform: translateY(-1px); }
+
+/* 통계 타일 */
+.gen-stat {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 14px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  min-width: 0;
+}
+.gen-stat__icon {
+  flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--card-bg, #fff); color: var(--brand);
+  border: 1px solid var(--brand-soft-strong);
+}
+.gen-stat__label { font-size: 11.5px; font-weight: 600; color: var(--brand); line-height: 1.2; }
+.gen-stat__value { font-size: 18px; font-weight: 800; color: var(--text-body); letter-spacing: -0.02em; line-height: 1.2; }

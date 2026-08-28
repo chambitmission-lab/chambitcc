@@ -8,6 +8,15 @@ import EraTimeline from './components/EraTimeline'
 import type { BibleFigureSummary } from '../../../types/bibleFigure'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSectionTabs from '../../../components/bible/BibleSectionTabs'
+import './Genealogy.css'
+
+const encouragement = (p: number) => {
+  if (p >= 1) return '완독했어요!'
+  if (p >= 0.7) return '잘하고 있어요!'
+  if (p >= 0.3) return '순조롭게 가고 있어요'
+  if (p > 0) return '좋은 출발이에요'
+  return '첫 장을 펼쳐보세요'
+}
 
 type ViewMode = 'tree' | 'timeline'
 type RoleFilter = 'all' | 'messianic' | 'king' | 'prophet' | 'woman' | 'patriarch'
@@ -41,6 +50,23 @@ export const Genealogy = () => {
   )
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [shared, setShared] = useState(false)
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/#/bible/genealogy`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: '믿음의 가계도', text: '아담부터 예수 그리스도까지, 메시아 약속의 계보', url })
+        return
+      }
+      await navigator.clipboard.writeText(url)
+      setShared(true)
+      window.setTimeout(() => setShared(false), 1800)
+    } catch {
+      /* 사용자가 공유를 취소한 경우 등 — 무시 */
+    }
+  }
 
   const isLoggedIn = !!localStorage.getItem('access_token')
 
@@ -51,6 +77,14 @@ export const Genealogy = () => {
     const sum = values.reduce((a, b) => a + b, 0)
     return sum / values.length
   }, [data, isLoggedIn])
+
+  // 메시아 라인 인물 중 통독을 마친(진도 100%) 인물 수
+  const readCounts = useMemo(() => {
+    if (!data) return { done: 0, total: 0 }
+    const line = data.nodes.filter((n) => n.is_messianic_line)
+    const done = line.filter((n) => (data.reading_progress?.[n.slug] ?? 0) >= 0.999).length
+    return { done, total: line.length }
+  }, [data])
 
   const counts = useMemo(() => {
     if (!data) return { total: 0, messianic: 0 }
@@ -86,77 +120,133 @@ export const Genealogy = () => {
       <BibleSectionTabs active="genealogy" />
       {/* 패딩은 루트가 아닌 내부 래퍼에 — 루트는 .main-content > * { padding: 0 } (App.css)에 걸려 pb가 제거된다 */}
       <div className="max-w-5xl mx-auto px-4 pt-5 pb-bottomnav-safe lg:pb-12">
-        {/* Breadcrumb + 헤더 */}
-        <header className="mb-5">
-          <div className="flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-gray-400 mb-3">
-            <Link
-              to="/bible"
-              className="hover:text-brand transition-colors"
-            >
-              성경
-            </Link>
-            <span className="opacity-50">›</span>
-            <span className="text-gray-700 dark:text-gray-300">믿음의 가계도</span>
-          </div>
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-gray-400 mb-3">
+          <Link to="/bible" className="hover:text-brand transition-colors">
+            성경
+          </Link>
+          <span className="opacity-50">›</span>
+          <span className="text-gray-700 dark:text-gray-300">믿음의 가계도</span>
+        </div>
 
-          <p className="text-brand text-[11.5px] font-bold tracking-[0.14em] uppercase mb-1.5">
-            Genealogy · 구속사 라인
-          </p>
-          <h1 className="text-ink-strong text-[26px] md:text-[30px] font-bold leading-[1.2] tracking-[-0.02em]">
-            믿음의 가계도
-          </h1>
-          <p className="mt-2 text-[14px] text-gray-600 dark:text-white/65 leading-[1.65]">
-            아담부터 예수 그리스도까지, 하나님이 친히 보존하신 메시아 약속의 계보입니다.
-            {isLoggedIn ? (
-              <> 통독한 구절이 늘어날수록 인물 카드가 또렷해져요.</>
-            ) : (
-              <>
-                {' '}
-                <Link
-                  to="/login"
-                  className="text-brand hover:underline font-medium"
+        {/* 히어로 — 우측에 생명나무 이미지, 좌측 타이틀 + 통계 타일 */}
+        <header className="gen-hero mb-4">
+          <div className="gen-hero__art" aria-hidden />
+          <div className="gen-hero__content">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-brand text-[11.5px] font-bold tracking-[0.14em] uppercase mb-1.5">
+                  Genealogy · 구속사 라인
+                </p>
+                <h1 className="text-ink-strong text-[26px] md:text-[30px] font-bold leading-[1.2] tracking-[-0.02em]">
+                  믿음의 가계도
+                </h1>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  aria-label="공유하기"
+                  className="gen-hero__btn"
                 >
-                  로그인
-                </Link>
-                하면 통독 진도에 따라 안개가 걷히는 연출을 볼 수 있어요.
-              </>
-            )}
-          </p>
+                  <span className="material-icons-round" style={{ fontSize: 18 }}>
+                    {shared ? 'check' : 'ios_share'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHelpOpen((v) => !v)}
+                  aria-label="도움말"
+                  aria-expanded={helpOpen}
+                  className="gen-hero__btn"
+                >
+                  <span className="material-icons-round" style={{ fontSize: 18 }}>
+                    help_outline
+                  </span>
+                </button>
+              </div>
+            </div>
 
-          {/* 통계 칩 */}
-          <div className="mt-4 flex flex-wrap gap-2">
-            <StatChip label="전체 인물" value={counts.total} />
-            <StatChip label="메시아 직계" value={counts.messianic} accent />
-            {overallProgress !== null && (
-              <StatChip
-                label="통독 진도"
-                value={`${Math.round(overallProgress * 100)}%`}
-                progress
-              />
-            )}
+            <p className="mt-2 max-w-[520px] text-[14px] text-gray-600 dark:text-white/65 leading-[1.65]">
+              아담부터 예수 그리스도까지, 하나님이 친히 보존하신 메시아 약속의 계보입니다.
+              {isLoggedIn ? (
+                <> 통독한 구절이 늘어날수록 인물 카드가 또렷해져요.</>
+              ) : (
+                <>
+                  {' '}
+                  <Link to="/login" className="text-brand hover:underline font-medium">
+                    로그인
+                  </Link>
+                  하면 통독 진도에 따라 안개가 걷히는 연출을 볼 수 있어요.
+                </>
+              )}
+            </p>
+
+            <AnimatePresence>
+              {helpOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <ul className="mt-3 max-w-[520px] rounded-xl bg-white/70 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.08] px-3.5 py-3 text-[12.5px] text-gray-600 dark:text-white/65 leading-[1.6] space-y-1">
+                    <li>· 인물을 누르면 생애·관련 구절·가족 관계를 볼 수 있어요.</li>
+                    <li>· 인물과 연결된 장을 통독할수록 카드의 안개가 걷혀요.</li>
+                    <li>· <b className="text-brand">✦ 메시아 라인</b>은 아담→예수까지 이어지는 직계예요.</li>
+                  </ul>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* 통계 타일 */}
+            <div className="mt-4 grid grid-cols-3 gap-2 max-w-[560px]">
+              <StatTile icon="groups" label="전체 인물" value={counts.total} />
+              <StatTile icon="account_tree" label="메시아 라인" value={counts.messianic} />
+              {overallProgress !== null && (
+                <StatTile
+                  icon="donut_large"
+                  label="통독 진도"
+                  value={`${Math.round(overallProgress * 100)}%`}
+                />
+              )}
+            </div>
           </div>
         </header>
 
-        {/* 로그인 사용자 진도 바 */}
+        {/* 로그인 사용자 진도 카드 */}
         {overallProgress !== null && (
-          <div className="mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] p-4 relative overflow-hidden">
-            <div
-              className="absolute inset-0 opacity-50 dark:opacity-100 pointer-events-none bg-gradient-to-br from-[var(--brand-soft)] via-transparent to-transparent dark:from-white/[0.05] dark:via-transparent dark:to-white/[0.02]"
-            />
+          <div className="mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200 dark:border-white/[0.08] px-4 py-4 md:px-5 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-50 dark:opacity-100 pointer-events-none bg-gradient-to-br from-[var(--brand-soft)] via-transparent to-transparent dark:from-white/[0.05] dark:via-transparent dark:to-white/[0.02]" />
             <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[13px] font-semibold text-gray-700 dark:text-white/90">
-                  메시아 라인 통독 진도
-                </span>
-                <span className="text-[13px] font-bold text-brand">
+              <span className="text-[13px] font-semibold text-gray-700 dark:text-white/90">
+                메시아 라인 통독 진도
+              </span>
+              <div className="mt-2 flex items-center gap-3 md:gap-4">
+                <span className="brand-text-gradient text-[30px] md:text-[34px] font-extrabold leading-none tracking-[-0.03em] flex-shrink-0">
                   {Math.round(overallProgress * 100)}%
                 </span>
+                <div className="flex-1 h-2 rounded-full bg-gray-100 dark:bg-white/[0.06] overflow-hidden">
+                  <div
+                    className="h-full brand-gradient-bg transition-all duration-700 rounded-full"
+                    style={{ width: `${Math.max(2, overallProgress * 100)}%` }}
+                  />
+                </div>
+                <span className="hidden sm:inline-flex flex-shrink-0 px-2.5 h-7 items-center rounded-full text-[12px] font-semibold bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-white/70 border border-gray-200 dark:border-white/[0.06]">
+                  {readCounts.done} / {readCounts.total} 인물
+                </span>
+                <span className="hidden md:inline-flex flex-shrink-0 items-center gap-1 text-[12.5px] font-semibold text-brand">
+                  <span className="material-icons-round" style={{ fontSize: 16 }}>auto_awesome</span>
+                  {encouragement(overallProgress)}
+                </span>
               </div>
-              <div className="h-2 rounded-full bg-gray-100 dark:bg-white/[0.06] overflow-hidden">
-                <div
-                  className="h-full bg-brand transition-all duration-700 rounded-full"
-                  style={{ width: `${Math.max(2, overallProgress * 100)}%` }}
-                />
+              <div className="mt-2 flex sm:hidden items-center justify-between text-[12px] text-gray-500 dark:text-white/60">
+                <span>{readCounts.done} / {readCounts.total} 인물</span>
+                <span className="inline-flex items-center gap-1 font-semibold text-brand">
+                  <span className="material-icons-round" style={{ fontSize: 14 }}>auto_awesome</span>
+                  {encouragement(overallProgress)}
+                </span>
               </div>
             </div>
           </div>
@@ -326,31 +416,25 @@ export const Genealogy = () => {
   )
 }
 
-const StatChip = ({
+const StatTile = ({
+  icon,
   label,
   value,
-  accent,
-  progress,
 }: {
+  icon: string
   label: string
   value: number | string
-  accent?: boolean
-  progress?: boolean
-}) => {
-  let cls = 'bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/75 border border-gray-200 dark:border-white/[0.06]'
-  if (accent || progress) {
-    cls =
-      'bg-[var(--brand-soft)] text-brand border border-[var(--brand-soft-strong)]'
-  }
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-3 h-7 rounded-full text-[12px] font-semibold ${cls}`}
-    >
-      <span className="opacity-70">{label}</span>
-      <span className="font-bold">{value}</span>
+}) => (
+  <div className="gen-stat">
+    <span className="gen-stat__icon">
+      <span className="material-icons-round" style={{ fontSize: 18 }}>{icon}</span>
     </span>
-  )
-}
+    <div className="min-w-0">
+      <div className="gen-stat__label truncate">{label}</div>
+      <div className="gen-stat__value">{value}</div>
+    </div>
+  </div>
+)
 
 const ViewToggle = ({
   value,
