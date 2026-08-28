@@ -109,73 +109,39 @@
   transform: scale(1);
 }
 
-/* 씬 1 — 숲 사이 빛 */
+/* 씬 1 — 숲 사이 빛 (시 119:105) */
 .hvs-scene-forest {
-  background:
-    radial-gradient(60% 55% at 78% 8%, rgba(255, 236, 190, 0.9), transparent 70%),
-    linear-gradient(180deg, #d9e6c8 0%, #6f8f5a 30%, #2f4a2e 62%, #1a2c1c 100%);
+  background-color: #1a2c1c;
+  background-image: url('/images/history/verse-lamp.webp');
 }
 
-/* 씬 2 — 새벽 하늘 */
+/* 씬 2 — 새벽 하늘 (요 1:9) */
 .hvs-scene-dawn {
-  background:
-    radial-gradient(55% 45% at 50% 62%, rgba(255, 205, 150, 0.85), transparent 70%),
-    linear-gradient(180deg, #1c2f5e 0%, #4f6aa8 35%, #e6a273 70%, #3a3352 100%);
+  background-color: #16213f;
+  background-image: url('/images/history/verse-dawn.webp');
 }
 
-/* 씬 3 — 들판의 길 */
+/* 씬 3 — 들판의 길 (요 8:12) */
 .hvs-scene-path {
+  background-color: #3f5f2c;
+  background-image: url('/images/history/verse-path.webp');
+}
+
+.hvs-scene-forest,
+.hvs-scene-dawn,
+.hvs-scene-path {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* 말씀이 얹히는 좌측 하단만 어둡게 — 사진 밝기와 무관하게 흰 글씨를 지킨다 */
+.hvs-scrim {
+  position: absolute;
+  inset: 0;
   background:
-    radial-gradient(50% 40% at 30% 12%, rgba(255, 244, 214, 0.95), transparent 70%),
-    linear-gradient(180deg, #bfd7f2 0%, #8fb6e0 32%, #6b9a4c 58%, #3f5f2c 100%);
-}
-
-.hvs-ray {
-  position: absolute;
-  top: -20%;
-  right: 4%;
-  width: 34%;
-  height: 130%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 70%);
-  transform: rotate(18deg);
-  filter: blur(6px);
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-.hvs-ray-2 {
-  right: 26%;
-  width: 18%;
-  opacity: 0.6;
-  transform: rotate(24deg);
-}
-
-.hvs-scene-dawn .hvs-ray {
-  right: auto;
-  left: 38%;
-  transform: rotate(0deg);
-  opacity: 0.35;
-}
-
-.hvs-scene-path .hvs-ray {
-  right: auto;
-  left: 8%;
-  transform: rotate(-16deg);
-}
-
-.hvs-scene-path .hvs-ray-2 {
-  left: 28%;
-  transform: rotate(-10deg);
-}
-
-.hvs-ground {
-  position: absolute;
-  left: -10%;
-  right: -10%;
-  bottom: -18%;
-  height: 40%;
-  border-radius: 50% 50% 0 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.42));
+    linear-gradient(180deg, rgba(6, 12, 24, 0) 42%, rgba(6, 12, 24, 0.52) 78%, rgba(6, 12, 24, 0.72) 100%),
+    linear-gradient(90deg, rgba(6, 12, 24, 0.5) 0%, rgba(6, 12, 24, 0) 62%);
   pointer-events: none;
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-/* 히어로 우측 말씀 슬라이드 — 사진 자산이 없어 CSS로 그린 빛·길 씬 위에
+/* 히어로 우측 말씀 슬라이드 — 빛·길 사진(public/images/history/) 위에
    '빛'을 주제로 한 말씀을 얹는다. 6초 자동 전환, 도트로 수동 이동. */
 const SLIDES = [
   {
@@ -44,9 +44,7 @@ export default function HeroVerseSlides({ ko }: { ko: boolean }) {
           className={`hvs-slide ${s.scene}${i === idx ? ' is-active' : ''}`}
           aria-hidden={i !== idx}
         >
-          <div className="hvs-ray" />
-          <div className="hvs-ray hvs-ray-2" />
-          <div className="hvs-ground" />
+          <div className="hvs-scrim" />
           <blockquote className="hvs-verse">
             {(ko ? s.ko : s.en).map((line) => (
               <span key={line}>{line}</span>
