@@ -51,21 +51,6 @@ export const Genealogy = () => {
   const [query, setQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const [helpOpen, setHelpOpen] = useState(false)
-  const [shared, setShared] = useState(false)
-
-  const handleShare = async () => {
-    const url = `${window.location.origin}/#/bible/genealogy`
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: '믿음의 가계도', text: '아담부터 예수 그리스도까지, 메시아 약속의 계보', url })
-        return
-      }
-      await navigator.clipboard.writeText(url)
-      setShared(true)
-      window.setTimeout(() => setShared(false), 1800)
-    } catch {
-      /* 사용자가 공유를 취소한 경우 등 — 무시 */
-    }
   }
 
   const isLoggedIn = !!localStorage.getItem('access_token')
@@ -143,16 +128,6 @@ export const Genealogy = () => {
                 </h1>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  aria-label="공유하기"
-                  className="gen-hero__btn"
-                >
-                  <span className="material-icons-round" style={{ fontSize: 18 }}>
-                    {shared ? 'check' : 'ios_share'}
-                  </span>
-                </button>
                 <button
                   type="button"
                   onClick={() => setHelpOpen((v) => !v)}

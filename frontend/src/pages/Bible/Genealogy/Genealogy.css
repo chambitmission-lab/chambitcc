@@ -17,22 +17,23 @@
   inset: 0;
   pointer-events: none;
   background-image: var(--genealogy-hero-image, none);
-  background-size: auto 115%;
-  background-position: right 0 center;
+  /* 이미지는 나무 영역만 크롭된 816x768 — 높이 100%로 맞춰 위·아래가 잘리지 않게 */
+  background-size: auto 100%;
+  background-position: right bottom;
   background-repeat: no-repeat;
-  opacity: 0.55;
+  opacity: 0.5;
   /* 왼쪽 텍스트 영역으로 갈수록 투명하게 */
-  -webkit-mask-image: linear-gradient(90deg, transparent 20%, #000 60%);
-  mask-image: linear-gradient(90deg, transparent 20%, #000 60%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 15%, #000 55%);
+  mask-image: linear-gradient(90deg, transparent 15%, #000 55%);
 }
 @media (min-width: 768px) {
   .gen-hero { padding: 26px 28px; }
   .gen-hero__art {
     opacity: 0.95;
-    background-size: auto 120%;
-    background-position: right 24px center;
-    -webkit-mask-image: linear-gradient(90deg, transparent 40%, #000 70%);
-    mask-image: linear-gradient(90deg, transparent 40%, #000 70%);
+    background-size: auto 100%;
+    background-position: right 16px bottom;
+    -webkit-mask-image: linear-gradient(90deg, transparent 35%, #000 60%);
+    mask-image: linear-gradient(90deg, transparent 35%, #000 60%);
   }
 }
 .gen-hero__content { position: relative; z-index: 1; }
