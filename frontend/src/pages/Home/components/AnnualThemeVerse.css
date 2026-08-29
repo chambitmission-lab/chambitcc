@@ -1,105 +1,276 @@
-/* AnnualThemeVerse — 교회 연간 표어 말씀
- * 기능 카드(글래스 박스)가 아니라 "새겨진 문장(epigraph)"으로 처리한다.
- *   - 배경/테두리 없이 중앙 정렬 타이포그래피만으로 구성
- *   - 상단에 참빛(빛) 아이덴티티의 미세한 장식 디바이더(라인 + flare)
- *   - 하단 캡션 한 줄: 올해의 말씀 · 출처
- * 색은 테마 토큰(src/styles/theme.css) + 앰버(빛) 포인트를 참조한다.
+/* AnnualThemeVerse — 교회 연간 표어 말씀, 인스타그램 스토리 카드 문법
+ *   - 상단 세그먼트 진행 바(스토리 타이머처럼 한 번 차오른다)
+ *   - 헤더 라인: 작은 아바타 · 참빛교회 · 올해의 말씀
+ *   - 가운데 굵은 산세리프 큰 타이포, 마지막 어절은 형광펜(텍스트 배경 스티커)
+ *   - 하단 행: 출처 · "말씀 카드로 공유"
+ *   - 배경: 인스타 선셋 프리셋을 브랜드 블루 쪽으로 당긴 플랫 그래디언트(코발트→마젠타→코럴)
+ * 이미지 자산 없음. 팔레트는 --story-* 토큰만 바꾸면 된다.
  */
 
 .annual-theme-section {
-  margin: 20px 24px 10px;
+  margin: 16px 16px 10px;
 }
 
-.annual-theme-epigraph {
+.story-card {
+  --story-a: #1f4bd8;   /* 코발트 (브랜드 블루 계열) */
+  --story-b: #6a3fd6;   /* 바이올렛 */
+  --story-c: #d23f8f;   /* 마젠타 */
+  --story-d: #ff7a59;   /* 코럴 */
+  --story-mark-bg: #ffffff;
+  --story-mark-ink: #1c1f3a;
+
+  position: relative;
   margin: 0;
+  padding: 12px 16px 14px;
+  border-radius: 22px;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  background: linear-gradient(160deg, var(--story-a) 0%, var(--story-b) 38%, var(--story-c) 72%, var(--story-d) 100%);
+  box-shadow:
+    0 18px 40px -18px rgba(31, 75, 216, 0.55),
+    0 2px 6px rgba(20, 24, 60, 0.12);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+}
+
+/* 깊이감 — 흐릿한 색 덩어리 두 개 (플랫 스토리 배경에 살짝 입체감만) */
+.story-card__blob {
+  position: absolute;
+  z-index: 0;
+  border-radius: 999px;
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+.story-card__blob--a {
+  width: 180px;
+  height: 180px;
+  right: -50px;
+  top: -60px;
+  background: rgba(255, 190, 120, 0.55);
+}
+
+.story-card__blob--b {
+  width: 160px;
+  height: 160px;
+  left: -60px;
+  bottom: -70px;
+  background: rgba(70, 120, 255, 0.55);
+}
+
+/* 샤인 — 호버 시 표면을 사선으로 한 번 스친다 */
+.story-card__sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(105deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 60%);
+  transform: translateX(-120%);
+}
+
+@media (hover: hover) {
+  .story-card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 26px 52px -20px rgba(31, 75, 216, 0.65),
+      0 0 0 1px rgba(255, 255, 255, 0.16),
+      0 4px 10px rgba(20, 24, 60, 0.14);
+  }
+  .story-card:hover .story-card__sheen {
+    animation: story-sheen 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+}
+
+@keyframes story-sheen {
+  to { transform: translateX(120%); }
+}
+
+/* ── 상단 세그먼트 바 ── */
+.story-card__progress {
+  position: relative;
+  z-index: 2;
   display: flex;
-  flex-direction: column;
+  gap: 4px;
+  height: 3px;
+}
+
+.story-card__segment {
+  flex: 1;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.32);
+  overflow: hidden;
+}
+
+.story-card__segment::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: #fff;
+  animation: story-fill 5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s forwards;
+}
+
+@keyframes story-fill {
+  to { width: 100%; }
+}
+
+/* ── 헤더 라인 ── */
+.story-card__header {
+  position: relative;
+  z-index: 2;
+  display: flex;
   align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.story-card__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  color: #fff;
+}
+
+.story-card__who {
+  color: #fff;
+}
+
+.story-card__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.story-card__label {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+}
+
+/* ── 본문 — 굵은 산세리프 + 형광펜 ── */
+.story-card__quote {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 22px 6px 20px;
   text-align: center;
 }
 
-/* ── 상단 장식 디바이더 — 가는 라인 + 빛 ─── */
-.annual-theme-ornament {
+.story-card__text {
+  margin: 0 auto;
+  max-width: 22ch;
+  font-size: 23px;
+  line-height: 1.5;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  word-break: keep-all;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(20, 24, 60, 0.25);
+}
+
+/* 형광펜 — 스토리 텍스트의 "배경 스티커" 스타일. 줄바꿈돼도 각 줄이 따로 상자를 갖는다 */
+.story-card__mark {
+  display: inline;
+  margin-left: 0.12em;
+  padding: 0.04em 0.34em 0.08em;
+  border-radius: 0.36em;
+  background: var(--story-mark-bg);
+  color: var(--story-mark-ink);
+  text-shadow: none;
+  box-shadow: 0 6px 16px -8px rgba(20, 24, 60, 0.5);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* ── 하단 행 — 출처 · 공유 ── */
+.story-card__footer {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  max-width: 220px;
-  margin-bottom: 11px;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.annual-theme-ornament-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.4));
-}
-
-.annual-theme-ornament-line:last-child {
-  background: linear-gradient(90deg, rgba(251, 191, 36, 0.4), transparent);
-}
-
-.annual-theme-ornament-icon {
-  font-size: 14px;
-  color: rgba(251, 191, 36, 0.85);
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.35);
-}
-
-/* ── 말씀 본문 ─────────────────────────── */
-.annual-theme-quote {
-  margin: 0;
-}
-
-.annual-theme-text {
-  margin: 0;
-  font-size: 16.5px;
-  line-height: 1.55;
+.story-card__ref {
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  word-break: keep-all;
-  color: var(--text-strong);
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.85);
+  font-variant-numeric: tabular-nums;
 }
 
-.annual-theme-text::before {
-  content: '\201C';
-  margin-right: 2px;
-  font-family: Georgia, 'Times New Roman', serif;
-  color: rgba(251, 191, 36, 0.85);
-}
-
-.annual-theme-text::after {
-  content: '\201D';
-  margin-left: 2px;
-  font-family: Georgia, 'Times New Roman', serif;
-  color: rgba(251, 191, 36, 0.85);
-}
-
-/* ── 캡션 (라벨 + 출처) ──────────────────── */
-.annual-theme-meta {
-  display: flex;
+.story-card__share {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 7px;
+  padding: 7px 12px 7px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
   font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
+  font-weight: 800;
+  letter-spacing: -0.01em;
   white-space: nowrap;
+  transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
-.annual-theme-meta-dot {
-  opacity: 0.6;
+.story-card__share:hover {
+  background: rgba(255, 255, 255, 0.28);
 }
 
-/* ── 로딩 ──────────────────────────── */
-.annual-theme-skeleton {
-  width: 60%;
-  height: 22px;
+.story-card__share:active {
+  transform: scale(0.95);
+}
+
+/* ── 로딩 ── */
+.story-card__skeleton {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 26px 0 24px;
+}
+
+.story-card__skeleton span {
+  display: block;
+  height: 18px;
   border-radius: 6px;
-  background: var(--surface-inset);
-  animation: annual-theme-pulse 1.6s ease-in-out infinite;
+  background: rgba(255, 255, 255, 0.22);
+  animation: story-pulse 1.6s ease-in-out infinite;
 }
 
-@keyframes annual-theme-pulse {
+.story-card__skeleton span:first-child { width: 70%; }
+.story-card__skeleton span:last-child { width: 45%; }
+
+@keyframes story-pulse {
   0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.85; }
+  50% { opacity: 0.9; }
+}
+
+/* PC 2단 */
+@media (min-width: 1024px) {
+  .story-card { padding: 14px 20px 16px; }
+  .story-card__quote { padding: 28px 8px 26px; }
+  .story-card__text { font-size: 27px; max-width: 24ch; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-card__segment::after { animation: none; width: 100%; }
+  .story-card__sheen { animation: none !important; }
+  .story-card, .story-card:hover { transform: none; }
 }
