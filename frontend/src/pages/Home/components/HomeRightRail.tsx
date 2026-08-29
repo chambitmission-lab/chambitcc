@@ -35,6 +35,9 @@ interface WeeklyPrayerStats {
   amens_week: number
   answered_week: number
   emotions: { emotion: string; count: number }[]
+  // 아래 둘은 신버전 백엔드에서만 내려온다 — 없으면 차트·진행률을 숨긴다
+  daily?: { date: string; prayers: number; amens: number }[]
+  amen_goal?: number
 }
 
 // 이번주(월~일 KST) 실측 집계 — 구버전 백엔드에는 없으므로 실패 시 폴백 경로를 탄다
@@ -176,6 +179,119 @@ const StatTiles = ({ tiles }: { tiles: StatTile[] }) => (
   </div>
 )
 
+// ── 요일별 미니 바 차트 · 아멘 목표 진행률 ─────────────────────────────
+
+const DOW_KO = ['월', '화', '수', '목', '금', '토', '일']
+const DOW_EN = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+
+// 이번주 월~일 참여도(기도 등록 + 아멘)를 7개 막대로. 기도 등록만으로는 하루 0~2건이라
+// 막대가 비어 보여서 아멘을 합산한다. 오늘은 브랜드 그래디언트, 지난 날은 틴트,
+// 아직 오지 않은 날은 빈 슬롯(점선)으로 남겨 "채워 가는 한 주"가 읽히게 한다.
+const WeekdayBars = ({
+  daily,
+  todayIndex,
+  language,
+  title,
+}: {
+  daily: NonNullable<WeeklyPrayerStats['daily']>
+  todayIndex: number
+  language: Language
+  title: string
+}) => {
+  const value = (d: { prayers: number; amens: number }) => d.prayers + d.amens
+  const max = Math.max(1, ...daily.map(value))
+  const labels = language === 'en' ? DOW_EN : DOW_KO
+  return (
+    <div className="mt-3 rounded-xl border border-[var(--card-border)] bg-[var(--surface-inset)] px-3 pt-2.5 pb-2">
+      <p className="mb-2 text-[11px] font-semibold text-gray-400 dark:text-white/45">{title}</p>
+      <div className="grid grid-cols-7 items-end gap-1.5" style={{ height: 44 }}>
+        {daily.slice(0, 7).map((d, i) => {
+          const isToday = i === todayIndex
+          const isFuture = i > todayIndex
+          const v = value(d)
+          const pct = Math.round((v / max) * 100)
+          return (
+            <div
+              key={d.date}
+              className="relative flex h-full items-end"
+              title={`${labels[i]} · ${d.prayers} / ${d.amens}`}
+            >
+              {isFuture ? (
+                <span className="w-full h-[6px] rounded-full border border-dashed border-[var(--card-border)]" />
+              ) : (
+                <span
+                  className={`w-full rounded-full transition-[height] duration-500 ease-out ${
+                    isToday ? 'text-white' : 'bg-[var(--brand-soft-strong)]'
+                  }`}
+                  style={{
+                    height: `${Math.max(v > 0 ? 14 : 6, pct)}%`,
+                    ...(isToday
+                      ? {
+                          background: 'linear-gradient(180deg, #6cb0ff, var(--brand))',
+                          boxShadow: '0 4px 10px -4px var(--brand-glow)',
+                        }
+                      : {}),
+                  }}
+                />
+              )}
+              {isToday && v > 0 && (
+                <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 -translate-y-full text-[10px] font-bold text-brand tabular-nums">
+                  {v}
+                </span>
+              )}
+            </div>
+          )
+        })}
+      </div>
+      <div className="mt-1.5 grid grid-cols-7 gap-1.5">
+        {labels.map((l, i) => (
+          <span
+            key={`${l}-${i}`}
+            className={`text-center text-[10px] font-semibold ${
+              i === todayIndex ? 'text-brand' : 'text-gray-400 dark:text-white/40'
+            }`}
+          >
+            {l}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// "이번주 공동 목표 300회 아멘 중 86%" — 진행률 바. 달성 시 바가 꽉 차고 문구가 바뀐다.
+const AmenGoalBar = ({ amens, goal }: { amens: number; goal: number }) => {
+  const { t } = useLanguage()
+  const ratio = Math.min(1, amens / goal)
+  const pct = Math.round(ratio * 100)
+  const done = amens >= goal
+  return (
+    <div className="mt-2.5 px-0.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-[11px] font-semibold text-gray-400 dark:text-white/45">
+          {t('homeRailAmenGoalLabel')}{' '}
+          <span className="text-ink-muted tabular-nums">
+            {t('homeRailAmenGoalOf').replace('{n}', goal.toLocaleString())}
+          </span>
+        </p>
+        <p className={`text-[12px] font-extrabold tabular-nums ${done ? 'text-brand' : 'text-ink-strong'}`}>
+          {done ? t('homeRailAmenGoalDone') : `${pct}%`}
+        </p>
+      </div>
+      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-[var(--surface-inset)] border border-[var(--card-border)]">
+        <div
+          className="h-full rounded-full transition-[width] duration-700 ease-out"
+          style={{
+            width: `${Math.max(pct, amens > 0 ? 3 : 0)}%`,
+            background: 'linear-gradient(90deg, var(--brand-dim), var(--brand) 60%, #6cb0ff)',
+            boxShadow: '0 0 10px var(--brand-glow)',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
 // ── 1. 기도 현황 ──────────────────────────────────────────────────────
 
 // "8.17 ~ 8.23" — 이번주 범위를 카드 안에서 조용히 밝힌다
@@ -188,7 +304,7 @@ const weekRangeLabel = (start: string, end: string) => {
 }
 
 const PrayerStatsWidget = () => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const weekly = useWeeklyPrayerStats()
   // 주간 API가 없는 구버전 백엔드에서만 누적 통계로 대체
   const { data: summary } = usePrayerStatsSummary(weekly.isError)
@@ -223,6 +339,17 @@ const PrayerStatsWidget = () => {
           )}
         </p>
         <StatTiles tiles={tiles} />
+        {weekly.data?.daily && weekly.data.daily.length === 7 && (
+          <WeekdayBars
+            daily={weekly.data.daily}
+            todayIndex={(new Date().getDay() + 6) % 7}
+            language={language}
+            title={t('homeRailWeekdayChartTitle')}
+          />
+        )}
+        {weekly.data && (
+          <AmenGoalBar amens={weekly.data.amens_week} goal={weekly.data.amen_goal ?? 300} />
+        )}
       </div>
     </section>
   )
