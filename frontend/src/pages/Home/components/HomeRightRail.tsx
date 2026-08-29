@@ -8,14 +8,17 @@ import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { API_V1, apiFetch } from '../../../config/api'
 import { fetchPrayers } from '../../../api/prayer'
+import { fetchNewsList } from '../../../api/news'
+import { OPEN_CHATBOT_EVENT } from '../../../components/command/commandEvents'
+import chambiAvatar from '../../../components/chatbot/img/default.webp'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import { useSituationCategories } from '../../../hooks/useSituation'
+import { useSituationCategories, useSituationVerses } from '../../../hooks/useSituation'
 import { useEvents } from '../../../hooks/useEvents'
 import { getSundayServices, getWeekdayServices } from '../../../api/worship'
 import { parseServiceTimes, serviceDays } from '../../../utils/worshipSchedule'
 import { CATEGORY_VISUAL } from '../../Events/utils/categoryConfig'
 import { AlarmIcon, CalendarIcon, EmotionGlyph, ImageIcon, PrayIcon, TagIcon } from './EmotionIcons'
-import { ArrowUpRight } from '@phosphor-icons/react'
+import { ArrowUpRight, Megaphone, Sparkle } from '@phosphor-icons/react'
 import type { Language } from '../../../locales'
 import type { Event } from '../../../types/event'
 import type { SituationCategory } from '../../../types/situation'
@@ -475,6 +478,153 @@ const SituationTagsWidget = () => {
   )
 }
 
+// ── 2.5 참비의 오늘 추천 (맞춤 말씀·기도) ───────────────────────────────
+//
+// 개인화 근거 우선순위: ① 내 최근 기도의 감정 태그 → ② 이번주 성도들 1위 감정 → ③ 기본 카테고리.
+// 감정은 상황별 성구 카테고리(emotion_keys)로 이어지고, 그 카테고리 구절 중 하나를
+// 날짜 기준으로 고정 선택해 하루 동안 같은 말씀이 유지되게 한다. 백엔드 무변경.
+
+// 내 최근 기도 1건 — 로그인 사용자만. 감정 태그만 쓴다.
+const useMyLatestPrayer = (enabled: boolean) =>
+  useQuery({
+    queryKey: ['prayers', 'mine', 'latest-one'],
+    queryFn: async () => {
+      const res = await fetchPrayers(1, 1, 'latest', null, 'my_prayers')
+      return res.data.items[0] ?? null
+    },
+    enabled,
+    staleTime: 1000 * 60 * 10,
+  })
+
+const dayOfYear = () => {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), 0, 0)
+  return Math.floor((now.getTime() - start.getTime()) / 86_400_000)
+}
+
+const PersonalPickWidget = () => {
+  const navigate = useNavigate()
+  const { t, language } = useLanguage()
+  const loggedIn = !!localStorage.getItem('access_token')
+  const { data: myPrayer } = useMyLatestPrayer(loggedIn)
+  const weekly = useWeeklyPrayerStats()
+  const { data: categories = [] } = useSituationCategories()
+
+  // 근거 결정 — 어떤 감정으로 추천했는지 카드에 그대로 밝힌다(블랙박스 금지)
+  const basis = useMemo<{ emotion: string | null; source: 'mine' | 'week' | 'default' }>(() => {
+    if (myPrayer?.emotion) return { emotion: myPrayer.emotion, source: 'mine' }
+    const top = weekly.data?.emotions?.[0]?.emotion
+    if (top) return { emotion: top, source: 'week' }
+    return { emotion: null, source: 'default' }
+  }, [myPrayer, weekly.data])
+
+  const category = useMemo<SituationCategory | undefined>(() => {
+    const withVerses = categories.filter((c) => c.verse_count > 0)
+    if (basis.emotion) {
+      const hit = withVerses.find((c) => c.emotion_keys?.includes(basis.emotion!))
+      if (hit) return hit
+    }
+    return withVerses.find((c) => c.is_default) ?? withVerses[0]
+  }, [categories, basis])
+
+  const { data: withVerses, isLoading } = useSituationVerses(category?.id ?? 0, !!category)
+  const verse = useMemo(() => {
+    const list = withVerses?.verses ?? []
+    if (list.length === 0) return null
+    return list[dayOfYear() % list.length]
+  }, [withVerses])
+
+  if (!category) return null
+
+  const meta = basis.emotion ? EMOTION_META[basis.emotion] : undefined
+  const emotionLabel = meta ? pick(language, meta.label, meta.labelEn) : ''
+  const reason =
+    basis.source === 'mine'
+      ? t('homeRailPickReasonMine').replace('{e}', emotionLabel)
+      : basis.source === 'week'
+        ? t('homeRailPickReasonWeek').replace('{e}', emotionLabel)
+        : t('homeRailPickReasonDefault')
+  const ref = verse ? `${verse.book_name_ko} ${verse.chapter}:${verse.verse}` : ''
+
+  const askChambi = () => {
+    window.dispatchEvent(
+      new CustomEvent(OPEN_CHATBOT_EVENT, {
+        detail: { message: t('homeRailPickAskMessage').replace('{ref}', ref) },
+      }),
+    )
+  }
+
+  return (
+    <section className="px-4 pt-3">
+      <div
+        className="relative overflow-hidden rounded-2xl border border-[var(--brand-soft-strong)] p-4"
+        style={{
+          background:
+            'linear-gradient(160deg, var(--brand-soft) 0%, var(--surface-container) 45%, var(--surface-container) 100%)',
+        }}
+      >
+        {/* 우상단 오로라 — AI 영역이라는 신호를 은은하게 */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full"
+          style={{ background: 'radial-gradient(circle, var(--brand-glow), rgba(0,0,0,0) 70%)', opacity: 0.6 }}
+        />
+        <div className="relative flex items-center gap-2">
+          <img src={chambiAvatar} alt="" className="h-7 w-7 rounded-full ring-2 ring-white/70 dark:ring-white/10" draggable={false} />
+          <p className="text-[12.5px] font-bold text-ink-strong">{t('homeRailPickTitle')}</p>
+          <span className="ml-auto inline-flex items-center gap-0.5 rounded-full bg-[var(--brand)] px-1.5 py-px text-[10px] font-bold text-white">
+            <Sparkle size={10} weight="fill" aria-hidden /> AI
+          </span>
+        </div>
+
+        <p className="relative mt-2 inline-flex items-center gap-1 rounded-full bg-[var(--brand-soft)] px-2 py-0.5 text-[11px] font-semibold text-brand">
+          {meta && <EmotionGlyph emotion={basis.emotion!} fallback={meta.emoji} size={12} className="shrink-0" />}
+          {reason}
+        </p>
+
+        {isLoading || !verse ? (
+          <div className="relative mt-3 space-y-2" aria-hidden>
+            <div className="h-3 w-11/12 animate-pulse rounded-full bg-[var(--surface-inset)]" />
+            <div className="h-3 w-9/12 animate-pulse rounded-full bg-[var(--surface-inset)]" />
+            <div className="h-3 w-4/12 animate-pulse rounded-full bg-[var(--surface-inset)]" />
+          </div>
+        ) : (
+          <>
+            <p className="relative mt-3 text-[13.5px] font-medium leading-[1.6] text-ink-strong line-clamp-3 tracking-[-0.01em]">
+              “{verse.text}”
+            </p>
+            <p className="relative mt-1 text-[11.5px] font-bold text-brand tabular-nums">{ref}</p>
+            {verse.message && (
+              <p className="relative mt-1.5 text-[11.5px] leading-relaxed text-ink-muted line-clamp-2">
+                {verse.message}
+              </p>
+            )}
+          </>
+        )}
+
+        <div className="relative mt-3 flex gap-1.5">
+          <button
+            type="button"
+            onClick={() => verse && navigate(`/bible/${verse.book_number}/${verse.chapter}`)}
+            disabled={!verse}
+            className="flex-1 rounded-full bg-[var(--brand)] px-3 py-1.5 text-[12px] font-bold text-white shadow-[0_6px_14px_-6px_var(--brand-glow)] active:scale-[0.97] transition-transform duration-150 disabled:opacity-50"
+          >
+            {t('homeRailPickRead')}
+          </button>
+          <button
+            type="button"
+            onClick={askChambi}
+            disabled={!verse}
+            className="flex-1 rounded-full border border-[var(--brand-soft-strong)] bg-[var(--surface-container)] px-3 py-1.5 text-[12px] font-bold text-brand hover:bg-[var(--brand-soft)] active:scale-[0.97] transition-[background-color,transform] duration-150 disabled:opacity-50"
+          >
+            {t('homeRailPickAsk')}
+          </button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ── 3. 액션 벤토 (말씀 알림 · 말씀 카드) ───────────────────────────────
 
 // 두 배너를 나란한 2칸 타일로 압축 — 타일 전체가 버튼, 이모지 대신 Phosphor 선화.
@@ -622,6 +772,75 @@ interface ScheduleItem {
   onClick: () => void
 }
 
+// 일정이 없는 날의 플레이스홀더 — "없어요" 한 줄 대신 최신 교회소식 카드로 채운다.
+// 소식도 없으면 그때만 빈 문구로 돌아간다. (이번 주 설교 카드는 사용자 요청으로 제외)
+const useLatestNewsOne = (enabled: boolean) =>
+  useQuery({
+    queryKey: ['news', 'rail-latest-one'],
+    queryFn: async () => (await fetchNewsList(1, 1)).data.items[0] ?? null,
+    enabled,
+    staleTime: 1000 * 60 * 15,
+    retry: 0,
+  })
+
+const shortDate = (iso: string | null | undefined) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '' : `${d.getMonth() + 1}.${d.getDate()}`
+}
+
+const PlaceholderSkeleton = () => (
+  <div className="rounded-xl border border-[var(--card-border)] bg-[var(--surface-inset)] p-3" aria-hidden>
+    <div className="h-2.5 w-14 animate-pulse rounded-full bg-[var(--card-border)]" />
+    <div className="mt-2 h-3 w-10/12 animate-pulse rounded-full bg-[var(--card-border)]" />
+    <div className="mt-1.5 h-3 w-7/12 animate-pulse rounded-full bg-[var(--card-border)]" />
+  </div>
+)
+
+const EmptySchedulePlaceholders = () => {
+  const navigate = useNavigate()
+  const { t } = useLanguage()
+  const news = useLatestNewsOne(true)
+  const item = news.data ?? null
+
+  if (!news.isLoading && !item) {
+    return (
+      <p className="py-2 text-center text-[12.5px] text-gray-400 dark:text-white/40">
+        {t('homeRailScheduleEmpty')}
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="px-0.5 text-[11px] text-gray-400 dark:text-white/45">{t('homeRailScheduleEmptyLead')}</p>
+      {news.isLoading ? (
+        <PlaceholderSkeleton />
+      ) : item ? (
+        <button
+          type="button"
+          onClick={() => navigate('/news?tab=news')}
+          className="group flex w-full items-start gap-2.5 rounded-xl border border-[var(--card-border)] bg-[var(--surface-inset)] p-3 text-left transition-colors hover:bg-[var(--brand-soft)]"
+        >
+          <span className="mt-px inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-soft)] text-brand">
+            <Megaphone size={15} weight="duotone" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-1.5 text-[10.5px] font-bold text-brand">
+              {t('homeRailPlaceholderNews')}
+              <span className="font-semibold text-gray-400 dark:text-white/40 tabular-nums">{shortDate(item.published_at)}</span>
+            </span>
+            <span className="mt-0.5 block truncate text-[13px] font-semibold text-ink-strong group-hover:text-brand">{item.title}</span>
+            {item.summary && (
+              <span className="mt-0.5 block text-[11.5px] leading-snug text-ink-muted line-clamp-2">{item.summary}</span>
+            )}
+          </span>
+        </button>
+      ) : null}
+    </div>
+  )
+}
+
 const TodayScheduleWidget = () => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
@@ -693,9 +912,7 @@ const TodayScheduleWidget = () => {
             {t('homeRailScheduleLoading')}
           </p>
         ) : visible.length === 0 ? (
-          <p className="text-[12.5px] text-gray-400 dark:text-white/40 text-center py-2">
-            {t('homeRailScheduleEmpty')}
-          </p>
+          <EmptySchedulePlaceholders />
         ) : (
           <ul className="space-y-1">
             {visible.map((item) => {
@@ -762,6 +979,7 @@ const HomeRightRail = () => (
   <>
     <PrayerStatsWidget />
     <SituationTagsWidget />
+    <PersonalPickWidget />
     <ActionBentoWidget />
     <TodayScheduleWidget />
   </>
