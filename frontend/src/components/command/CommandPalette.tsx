@@ -409,7 +409,11 @@ const CommandPalette = () => {
                   {row.kind === 'page' ? (
                     <>
                       <span className={iconBox}>
-                        {row.entry.icon ? (() => { const I = NAV_ICONS[row.entry.icon]; return <I className="w-[20px] h-[20px]" /> })() : <span className="text-[17px]">{row.entry.emoji}</span>}
+                        {row.entry.icon
+                          ? (() => { const I = NAV_ICONS[row.entry.icon]; return <I className="w-[20px] h-[20px]" /> })()
+                          : row.entry.glyph
+                            ? (() => { const G = row.entry.glyph; return <G size={20} weight="duotone" color="currentColor" aria-hidden="true" /> })()
+                            : null}
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className={`block text-[14px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>{ko ? row.entry.label.ko : row.entry.label.en}</span>

@@ -1,5 +1,5 @@
 import { useLanguage } from '../../contexts/LanguageContext'
-import { isMacLike, openCommandPalette } from './commandEvents'
+import { isMacLike, openCommandPalette, preloadCommandPalette } from './commandEvents'
 
 // 헤더 캡슐(PC) — 누르면 ⌘K 팔레트. 단축키 힌트를 함께 보여줘 "스마트한 교회"를 헤더에서부터 드러낸다.
 export const SearchCapsule = () => {
@@ -8,6 +8,8 @@ export const SearchCapsule = () => {
     <button
       type="button"
       onClick={openCommandPalette}
+      onMouseEnter={preloadCommandPalette}
+      onFocus={preloadCommandPalette}
       className="search-capsule group flex items-center gap-2 h-9 min-w-[236px] xl:min-w-[276px] pl-3.5 pr-2 rounded-full text-[13.5px] whitespace-nowrap text-[var(--brand-muted)] hover:text-brand"
       aria-label={t('cmdkTrigger')}
       aria-keyshortcuts="Meta+K Control+K"
@@ -29,7 +31,7 @@ export const SearchCapsule = () => {
 export const SearchIconButton = ({ className }: { className?: string }) => {
   const { t } = useLanguage()
   return (
-    <button type="button" onClick={openCommandPalette} className={className} aria-label={t('cmdkTrigger')}>
+    <button type="button" onClick={openCommandPalette} onTouchStart={preloadCommandPalette} onFocus={preloadCommandPalette} className={className} aria-label={t('cmdkTrigger')}>
       <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden">search</span>
     </button>
   )

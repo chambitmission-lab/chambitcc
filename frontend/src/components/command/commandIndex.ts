@@ -1,4 +1,22 @@
 import type { NavIconKey } from '../layout/NewHeader/components/NavIcons'
+import {
+  Books,
+  CalendarDots,
+  ChatCircleText,
+  Files,
+  Flower,
+  GlobeHemisphereEast,
+  HandsPraying,
+  Hourglass,
+  ImageSquare,
+  Key,
+  PencilLine,
+  Plant,
+  Sparkle,
+  Thermometer,
+  UserCircle,
+  type Icon,
+} from '@phosphor-icons/react'
 
 // ⌘K 팔레트의 정적 페이지 색인 — 라벨·설명은 두 언어를 직접 들고, 검색은 라벨+설명+키워드 전부를 본다.
 // 라우트가 생기면 여기에 한 줄 추가. (관리자 페이지는 넣지 않는다 — 관리자 메뉴가 따로 있다)
@@ -8,7 +26,8 @@ export interface PageEntry {
   label: { ko: string; en: string }
   desc: { ko: string; en: string }
   icon?: NavIconKey
-  emoji?: string // NAV_ICONS 에 없는 항목의 대체 표식
+  /** NAV_ICONS 에 없는 항목 — Phosphor duotone 으로 그린다(이모지 금지) */
+  glyph?: Icon
   keywords: string[]
   /** 빠른 이동(빈 검색창)에 노출 */
   quick?: boolean
@@ -27,28 +46,28 @@ export const PAGE_INDEX: PageEntry[] = [
   { to: '/history', label: { ko: '발자취', en: 'History' }, desc: { ko: '걸어온 길, 주요 순간들', en: 'Milestones along the way' }, icon: 'history', keywords: ['발자취', '역사', '연혁', 'history', 'timeline'] },
   { to: '/organization', label: { ko: '조직도', en: 'Organization' }, desc: { ko: '섬기는 분들과 부서', en: 'Who serves, and where' }, icon: 'organization', keywords: ['조직도', '부서', '장로', '교역자', '섬김', 'organization', 'staff'] },
   { to: '/ministry', label: { ko: '목양칼럼', en: 'Pastoral Column' }, desc: { ko: '담임목사의 주간 편지', en: "The pastor's weekly letter" }, icon: 'ministry', keywords: ['칼럼', '목양', '편지', '목사님', 'column', 'letter'] },
-  { to: '/news?tab=bulletin', label: { ko: '주보', en: 'Bulletin' }, desc: { ko: '이번 주 주보 보기', en: "This week's bulletin" }, emoji: '📄', keywords: ['주보', '순서지', 'bulletin'] },
+  { to: '/news?tab=bulletin', label: { ko: '주보', en: 'Bulletin' }, desc: { ko: '이번 주 주보 보기', en: "This week's bulletin" }, glyph: Files, keywords: ['주보', '순서지', 'bulletin'] },
   { to: '/news', label: { ko: '교회 소식', en: 'News' }, desc: { ko: '소식과 공지', en: 'News and announcements' }, icon: 'news', keywords: ['소식', '공지', '뉴스', 'news', 'notice'] },
-  { to: '/news?tab=new-family', label: { ko: '새가족 앨범', en: 'Newcomers' }, desc: { ko: '새로 오신 분들을 환영해요', en: 'Welcoming those who just arrived' }, emoji: '🌱', keywords: ['새가족', '새신자', '등록', '환영', 'newcomer', 'new family'] },
-  { to: '/mission', label: { ko: '선교', en: 'Mission' }, desc: { ko: '파송 선교사와 기도', en: 'Missionaries we send and pray for' }, emoji: '🌍', keywords: ['선교', '선교사', '파송', 'mission', 'missionary'] },
+  { to: '/news?tab=new-family', label: { ko: '새가족 앨범', en: 'Newcomers' }, desc: { ko: '새로 오신 분들을 환영해요', en: 'Welcoming those who just arrived' }, glyph: Plant, keywords: ['새가족', '새신자', '등록', '환영', 'newcomer', 'new family'] },
+  { to: '/mission', label: { ko: '선교', en: 'Mission' }, desc: { ko: '파송 선교사와 기도', en: 'Missionaries we send and pray for' }, glyph: GlobeHemisphereEast, keywords: ['선교', '선교사', '파송', 'mission', 'missionary'] },
   { to: '/culture', label: { ko: '문화교실', en: 'Culture Classes' }, desc: { ko: '강좌 안내 · 신청', en: 'Classes · sign up' }, icon: 'culture', keywords: ['문화교실', '강좌', '수업', '신청', 'culture', 'class'] },
-  { to: '/bible/plans', label: { ko: '성경 읽기 플랜', en: 'Reading Plans' }, desc: { ko: '365 일독 · 주제별 플랜', en: '365-day & topical plans' }, emoji: '🗓️', keywords: ['플랜', '일독', '365', '통독', 'plan', 'reading'] },
-  { to: '/bible/story', label: { ko: '처음 만나는 성경', en: 'Meeting the Bible' }, desc: { ko: '초보자용 42화 스토리 모드', en: '42-episode story mode for beginners' }, emoji: '📚', keywords: ['스토리', '처음', '초보', '입문', 'story', 'beginner'] },
-  { to: '/bible/situation', label: { ko: '상황별 성구', en: 'Verses by Situation' }, desc: { ko: '지금 마음에 맞는 말씀', en: 'A verse for how you feel' }, emoji: '💬', keywords: ['상황', '위로', '불안', '감사', '성구', 'situation', 'comfort', 'anxiety'] },
-  { to: '/bible/photo-verse', label: { ko: '말씀 카드 만들기', en: 'Verse Card' }, desc: { ko: '사진 · 필터 · 프레임', en: 'Photo · filter · frame' }, emoji: '🖼️', keywords: ['말씀카드', '카드', '사진', '이미지', 'card', 'photo'] },
-  { to: '/bible/wordbook', label: { ko: '단어장', en: 'Wordbook' }, desc: { ko: '밑줄 친 단어 모음', en: 'Words you underlined' }, emoji: '✏️', keywords: ['단어장', '단어', 'wordbook'], memberOnly: true },
-  { to: '/feed', label: { ko: '기도 커뮤니티', en: 'Prayer Feed' }, desc: { ko: '기도제목 나누고 아멘하기', en: 'Share prayers, say amen' }, emoji: '🙏', keywords: ['기도', '커뮤니티', '피드', '아멘', 'prayer', 'feed', 'amen'], quick: true },
-  { to: '/thanks', label: { ko: '오늘의 감사', en: 'Daily Thanks' }, desc: { ko: '감사 한 줄 남기기', en: 'One line of thanks' }, emoji: '🌼', keywords: ['감사', 'thanks', 'gratitude'], memberOnly: true },
+  { to: '/bible/plans', label: { ko: '성경 읽기 플랜', en: 'Reading Plans' }, desc: { ko: '365 일독 · 주제별 플랜', en: '365-day & topical plans' }, glyph: CalendarDots, keywords: ['플랜', '일독', '365', '통독', 'plan', 'reading'] },
+  { to: '/bible/story', label: { ko: '처음 만나는 성경', en: 'Meeting the Bible' }, desc: { ko: '초보자용 42화 스토리 모드', en: '42-episode story mode for beginners' }, glyph: Books, keywords: ['스토리', '처음', '초보', '입문', 'story', 'beginner'] },
+  { to: '/bible/situation', label: { ko: '상황별 성구', en: 'Verses by Situation' }, desc: { ko: '지금 마음에 맞는 말씀', en: 'A verse for how you feel' }, glyph: ChatCircleText, keywords: ['상황', '위로', '불안', '감사', '성구', 'situation', 'comfort', 'anxiety'] },
+  { to: '/bible/photo-verse', label: { ko: '말씀 카드 만들기', en: 'Verse Card' }, desc: { ko: '사진 · 필터 · 프레임', en: 'Photo · filter · frame' }, glyph: ImageSquare, keywords: ['말씀카드', '카드', '사진', '이미지', 'card', 'photo'] },
+  { to: '/bible/wordbook', label: { ko: '단어장', en: 'Wordbook' }, desc: { ko: '밑줄 친 단어 모음', en: 'Words you underlined' }, glyph: PencilLine, keywords: ['단어장', '단어', 'wordbook'], memberOnly: true },
+  { to: '/feed', label: { ko: '기도 커뮤니티', en: 'Prayer Feed' }, desc: { ko: '기도제목 나누고 아멘하기', en: 'Share prayers, say amen' }, glyph: HandsPraying, keywords: ['기도', '커뮤니티', '피드', '아멘', 'prayer', 'feed', 'amen'], quick: true },
+  { to: '/thanks', label: { ko: '오늘의 감사', en: 'Daily Thanks' }, desc: { ko: '감사 한 줄 남기기', en: 'One line of thanks' }, glyph: Flower, keywords: ['감사', 'thanks', 'gratitude'], memberOnly: true },
   { to: '/groups', label: { ko: '모임', en: 'Groups' }, desc: { ko: '소그룹 · 기도방', en: 'Small groups · prayer rooms' }, icon: 'myGroups', keywords: ['모임', '소그룹', '기도방', '구역', 'group', 'room'], memberOnly: true },
   { to: '/classes', label: { ko: '우리반 알림장', en: 'Class Notices' }, desc: { ko: '부서 공지 · 출석 · 앨범', en: 'Dept. notices · attendance · album' }, icon: 'classNote', keywords: ['알림장', '우리반', '교회학교', '주일학교', 'class', 'notice'], memberOnly: true },
-  { to: '/growth', label: { ko: '신앙 여정', en: 'Faith Journey' }, desc: { ko: '타임라인 · 스트릭 · 통계', en: 'Timeline · streaks · stats' }, emoji: '🌡️', keywords: ['여정', '성장', '온도', '스트릭', 'journey', 'growth'], memberOnly: true },
+  { to: '/growth', label: { ko: '신앙 여정', en: 'Faith Journey' }, desc: { ko: '타임라인 · 스트릭 · 통계', en: 'Timeline · streaks · stats' }, glyph: Thermometer, keywords: ['여정', '성장', '온도', '스트릭', 'journey', 'growth'], memberOnly: true },
   { to: '/garden', label: { ko: '성경 칭호', en: 'Bible Titles' }, desc: { ko: '모은 칭호와 커버', en: 'Titles you earned' }, icon: 'garden', keywords: ['칭호', '뱃지', '업적', 'title', 'badge'], memberOnly: true },
   { to: '/bluemarble', label: { ko: '바이블 퀘스트', en: 'Bible Quest' }, desc: { ko: '성경 보드게임 · 퀴즈', en: 'Bible board game · quiz' }, icon: 'bluemarble', keywords: ['퀘스트', '게임', '퀴즈', '보드', 'quest', 'quiz', 'game'], memberOnly: true },
   { to: '/answered-prayers', label: { ko: '응답의 전당', en: 'Answered Prayers' }, desc: { ko: '응답받은 기도의 기록', en: 'Testimonies of answered prayer' }, icon: 'answeredPrayers', keywords: ['응답', '간증', 'answered', 'testimony'] },
-  { to: '/capsule', label: { ko: '타임캡슐', en: 'Time Capsule' }, desc: { ko: '미래의 나에게 봉인 편지', en: 'A sealed letter to future you' }, emoji: '⏳', keywords: ['타임캡슐', '캡슐', '편지', 'capsule', 'letter'], memberOnly: true },
-  { to: '/profile', label: { ko: '내 프로필', en: 'My Profile' }, desc: { ko: '프로필 · 칭호 · 설정', en: 'Profile · titles · settings' }, emoji: '👤', keywords: ['프로필', '내정보', '설정', 'profile', 'settings'], memberOnly: true },
-  { to: '/login', label: { ko: '로그인', en: 'Log in' }, desc: { ko: '교인 로그인', en: 'Member login' }, emoji: '🔑', keywords: ['로그인', 'login', 'sign in'] },
-  { to: '/register', label: { ko: '처음 오셨나요? 회원가입', en: 'New here? Sign up' }, desc: { ko: '1분이면 끝나요', en: 'Takes a minute' }, emoji: '✨', keywords: ['회원가입', '가입', '처음', 'register', 'sign up', 'join'] },
+  { to: '/capsule', label: { ko: '타임캡슐', en: 'Time Capsule' }, desc: { ko: '미래의 나에게 봉인 편지', en: 'A sealed letter to future you' }, glyph: Hourglass, keywords: ['타임캡슐', '캡슐', '편지', 'capsule', 'letter'], memberOnly: true },
+  { to: '/profile', label: { ko: '내 프로필', en: 'My Profile' }, desc: { ko: '프로필 · 칭호 · 설정', en: 'Profile · titles · settings' }, glyph: UserCircle, keywords: ['프로필', '내정보', '설정', 'profile', 'settings'], memberOnly: true },
+  { to: '/login', label: { ko: '로그인', en: 'Log in' }, desc: { ko: '교인 로그인', en: 'Member login' }, glyph: Key, keywords: ['로그인', 'login', 'sign in'] },
+  { to: '/register', label: { ko: '처음 오셨나요? 회원가입', en: 'New here? Sign up' }, desc: { ko: '1분이면 끝나요', en: 'Takes a minute' }, glyph: Sparkle, keywords: ['회원가입', '가입', '처음', 'register', 'sign up', 'join'] },
 ]
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, '')
