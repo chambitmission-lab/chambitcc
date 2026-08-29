@@ -146,8 +146,10 @@
     linear-gradient(155deg, #3585f7, #1b6ef3);
 }
 
-/* 히어로 안의 한눈에 정보 카드 — lg+ 에서만 (아래 미디어쿼리). 모바일은 숨긴다 */
-.about-quickinfo--hero {
+/* 히어로 안의 한눈에 정보 카드 — lg+ 에서만 (아래 미디어쿼리). 모바일은 숨긴다.
+   ★ quickinfo.css 의 .about-quickinfo { display:grid } 가 이 파일보다 나중에 로드되므로
+   같은 특이도면 져서 모바일에 두 벌이 그려진다 → 셀렉터를 겹쳐 특이도를 올린다 */
+.about-quickinfo.about-quickinfo--hero {
   display: none;
 }
 
@@ -187,7 +189,7 @@
   }
 
   /* 벤토 3타일(예배 2칸 / 길·전화 1칸)이 사진 위에 떠 있다 — 타일 사이로 사진이 비친다 */
-  .about-quickinfo--hero {
+  .about-quickinfo.about-quickinfo--hero {
     display: grid;
     position: absolute;
     top: 2rem;

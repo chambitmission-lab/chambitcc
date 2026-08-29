@@ -405,7 +405,7 @@
   }
 
   /* 한눈에 정보는 히어로 카드가 맡는다 — 본문의 것은 중복이라 숨긴다 */
-  .about-quickinfo--body {
+  .about-quickinfo.about-quickinfo--body {
     display: none;
   }
 }
