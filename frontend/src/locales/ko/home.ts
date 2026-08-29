@@ -68,6 +68,7 @@ export const home = {
   homeRailViewAll: '전체 보기 →',
   homeRailScheduleLoading: '일정을 불러오는 중…',
   homeRailScheduleEmpty: '오늘 예정된 일정이 없어요',
+  homeRailScheduleNext: '곧',
   homeRailScheduleMore: '외 {n}개의 일정이 더 있어요',
   homeRailVerseCardTitle: '말씀 카드를 공유해 보세요',
   homeRailVerseCardBody1: '마음을 울린 오늘의 말씀,',

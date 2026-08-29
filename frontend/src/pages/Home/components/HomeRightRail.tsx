@@ -14,7 +14,8 @@ import { useEvents } from '../../../hooks/useEvents'
 import { getSundayServices, getWeekdayServices } from '../../../api/worship'
 import { parseServiceTimes, serviceDays } from '../../../utils/worshipSchedule'
 import { CATEGORY_VISUAL } from '../../Events/utils/categoryConfig'
-import { CalendarIcon, EmotionGlyph, PrayIcon, TagIcon } from './EmotionIcons'
+import { AlarmIcon, CalendarIcon, EmotionGlyph, ImageIcon, PrayIcon, TagIcon } from './EmotionIcons'
+import { ArrowUpRight } from '@phosphor-icons/react'
 import type { Language } from '../../../locales'
 import type { Event } from '../../../types/event'
 import type { SituationCategory } from '../../../types/situation'
@@ -104,29 +105,74 @@ interface StatTile {
   label: string
   value: number | undefined
   unit: string
+  // hero: 브랜드 네온 그래디언트 타일(가장 활발한 수치) · tint: 은은한 브랜드 틴트 배지
+  accent?: 'hero' | 'tint'
 }
 
+// 벤토 2×2 미니 카드 — 숫자 하나가 카드 하나. 히어로 타일은 브랜드 그래디언트 + 은은한 글로우,
+// 나머지는 카드 안의 한 단계 깊은 박스(--surface-inset)로 입체감만 준다.
 const StatTiles = ({ tiles }: { tiles: StatTile[] }) => (
-  <div className="grid grid-cols-2 gap-x-3 gap-y-3.5">
-    {tiles.map((tile) => (
-      <div key={tile.label} className="min-w-0">
-        <p className="text-[11.5px] text-gray-400 dark:text-white/45">
-          {tile.label}
-        </p>
-        <p className="mt-0.5 text-[17px] font-bold text-ink-strong tabular-nums tracking-[-0.01em]">
-          {tile.value === undefined ? (
-            <span className="text-gray-300 dark:text-white/25">—</span>
-          ) : (
-            <>
-              {tile.value.toLocaleString()}
-              <span className="ml-0.5 text-[12px] font-semibold text-ink-muted">
-                {tile.unit}
-              </span>
-            </>
+  <div className="grid grid-cols-2 gap-2">
+    {tiles.map((tile) => {
+      const hero = tile.accent === 'hero'
+      const tint = tile.accent === 'tint'
+      return (
+        <div
+          key={tile.label}
+          className={`relative min-w-0 overflow-hidden rounded-xl px-3 py-2.5 transition-transform duration-200 hover:-translate-y-0.5 ${
+            hero
+              ? 'text-white'
+              : tint
+                ? 'bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]'
+                : 'bg-[var(--surface-inset)] border border-[var(--card-border)]'
+          }`}
+          style={
+            hero
+              ? {
+                  background: 'linear-gradient(135deg, var(--brand-dim) 0%, var(--brand) 55%, #6cb0ff 100%)',
+                  boxShadow: '0 8px 20px -8px var(--brand-glow), inset 0 1px 0 rgba(255,255,255,0.28)',
+                }
+              : undefined
+          }
+        >
+          {hero && (
+            // 오른쪽 위에 번지는 네온 하이라이트 — 살아 있는 수치라는 신호
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -right-4 -top-5 h-16 w-16 rounded-full"
+              style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.45), rgba(255,255,255,0) 70%)' }}
+            />
           )}
-        </p>
-      </div>
-    ))}
+          <p
+            className={`text-[11px] font-semibold tracking-[-0.01em] ${
+              hero ? 'text-white/80' : tint ? 'text-[var(--brand)]' : 'text-gray-400 dark:text-white/45'
+            }`}
+          >
+            {tile.label}
+          </p>
+          <p
+            className={`mt-1 text-[19px] font-extrabold tabular-nums leading-none tracking-[-0.02em] ${
+              hero ? 'text-white' : 'text-ink-strong'
+            }`}
+          >
+            {tile.value === undefined ? (
+              <span className={hero ? 'text-white/50' : 'text-gray-300 dark:text-white/25'}>—</span>
+            ) : (
+              <>
+                {tile.value.toLocaleString()}
+                <span
+                  className={`ml-0.5 text-[11.5px] font-semibold ${
+                    hero ? 'text-white/75' : 'text-ink-muted'
+                  }`}
+                >
+                  {tile.unit}
+                </span>
+              </>
+            )}
+          </p>
+        </div>
+      )
+    })}
   </div>
 )
 
@@ -154,14 +200,14 @@ const PrayerStatsWidget = () => {
     ? [
         { label: t('homeRailStatToday'), value: weekly.data.prayers_today, unit: count },
         { label: t('homeRailStatWeek'), value: weekly.data.prayers_week, unit: count },
-        { label: t('homeRailStatAmen'), value: weekly.data.amens_week, unit: times },
-        { label: t('homeRailStatAnswered'), value: weekly.data.answered_week, unit: count },
+        { label: t('homeRailStatAmen'), value: weekly.data.amens_week, unit: times, accent: 'hero' },
+        { label: t('homeRailStatAnswered'), value: weekly.data.answered_week, unit: count, accent: 'tint' },
       ]
     : [
         { label: t('homeRailStatToday'), value: summary?.prayers_today, unit: count },
         { label: t('homeRailStatShared'), value: summary?.active_prayers, unit: count },
-        { label: t('homeRailStatAmenTotal'), value: summary?.total_reactions, unit: times },
-        { label: t('homeRailStatAnsweredTotal'), value: answeredTotal, unit: count },
+        { label: t('homeRailStatAmenTotal'), value: summary?.total_reactions, unit: times, accent: 'hero' },
+        { label: t('homeRailStatAnsweredTotal'), value: answeredTotal, unit: count, accent: 'tint' },
       ]
 
   return (
@@ -238,10 +284,12 @@ const SituationTagsWidget = () => {
         )}
         <div className="flex flex-wrap gap-1.5">
           {showReal
-            ? weeklyEmotions.map(({ emotion, count }) => {
+            ? weeklyEmotions.map(({ emotion, count }, idx) => {
                 const meta = EMOTION_META[emotion]
                 if (!meta) return null
                 const cat = categoryForEmotion(emotion)
+                // 이번주 1위 감정은 브랜드로 채운 히어로 칩 — 통계 카드의 히어로 타일과 같은 문법
+                const top = idx === 0
                 return (
                   <button
                     key={emotion}
@@ -249,12 +297,25 @@ const SituationTagsWidget = () => {
                     onClick={() =>
                       navigate(cat ? `/bible/situation?c=${cat.id}` : '/bible/situation')
                     }
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[var(--brand-soft)] text-brand text-[12px] font-semibold hover:bg-[var(--brand-soft-strong)] active:scale-[0.97] transition-[background-color,transform] duration-150"
+                    className={`inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1.5 rounded-full text-[12px] font-semibold active:scale-[0.97] transition-[background-color,transform,box-shadow] duration-150 ${
+                      top
+                        ? 'text-white shadow-[0_6px_14px_-6px_var(--brand-glow)]'
+                        : 'bg-[var(--brand-soft)] text-brand hover:bg-[var(--brand-soft-strong)]'
+                    }`}
+                    style={
+                      top
+                        ? { background: 'linear-gradient(135deg, var(--brand-dim), var(--brand) 60%, #6cb0ff)' }
+                        : undefined
+                    }
                   >
                     <EmotionGlyph emotion={emotion} fallback={meta.emoji} size={14} className="shrink-0" />
                     {pick(language, meta.label, meta.labelEn)}
-                    {/* --brand는 CSS 변수라 /70 투명도 수식자가 조용히 미생성 → opacity로 */}
-                    <span className="text-[11px] font-bold opacity-70 tabular-nums">
+                    {/* --brand는 CSS 변수라 /70 투명도 수식자가 조용히 미생성 → 인라인 알파 배지로 */}
+                    <span
+                      className={`ml-0.5 min-w-[18px] px-1.5 py-px rounded-full text-[10.5px] font-bold tabular-nums text-center ${
+                        top ? 'bg-white/20 text-white' : 'bg-[var(--brand-soft-strong)]'
+                      }`}
+                    >
                       {count}
                     </span>
                   </button>
@@ -287,35 +348,112 @@ const SituationTagsWidget = () => {
   )
 }
 
-// ── 3. 말씀 알림 배너 ─────────────────────────────────────────────────
+// ── 3. 액션 벤토 (말씀 알림 · 말씀 카드) ───────────────────────────────
 
-const AlarmBanner = () => {
+// 두 배너를 나란한 2칸 타일로 압축 — 타일 전체가 버튼, 이모지 대신 Phosphor 선화.
+// 알림 타일은 브랜드 그래디언트(주 행동), 말씀 카드 타일은 라벤더 틴트(보조 행동).
+interface ActionTile {
+  key: string
+  title: string
+  body: string
+  cta: string
+  icon: ReactNode
+  tone: 'brand' | 'lavender'
+  onClick: () => void
+}
+
+const ActionBento = ({ tiles }: { tiles: ActionTile[] }) => (
+  <div className="grid grid-cols-2 gap-2">
+    {tiles.map((tile) => {
+      const brand = tile.tone === 'brand'
+      return (
+        <button
+          key={tile.key}
+          type="button"
+          onClick={tile.onClick}
+          className={`group relative flex min-h-[132px] flex-col overflow-hidden rounded-2xl p-3.5 text-left transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 active:scale-[0.98] ${
+            brand
+              ? 'text-white hover:shadow-[0_14px_28px_-12px_var(--brand-glow)]'
+              : 'border border-[var(--card-border)] bg-[#f3efff] text-ink-strong dark:bg-[#1c1730]'
+          }`}
+          style={
+            brand
+              ? {
+                  background: 'linear-gradient(150deg, var(--brand-dim) 0%, var(--brand) 55%, #6cb0ff 100%)',
+                  boxShadow: '0 8px 20px -10px var(--brand-glow), inset 0 1px 0 rgba(255,255,255,0.28)',
+                }
+              : undefined
+          }
+        >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full"
+            style={{
+              background: brand
+                ? 'radial-gradient(circle, rgba(255,255,255,0.4), rgba(255,255,255,0) 70%)'
+                : 'radial-gradient(circle, rgba(124,102,217,0.28), rgba(124,102,217,0) 70%)',
+            }}
+          />
+          <span
+            className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${
+              brand ? 'bg-white/20 text-white' : 'bg-[#7c66d9]/15 text-[#7c66d9] dark:text-[#b7a8f2]'
+            }`}
+          >
+            {tile.icon}
+          </span>
+          <span className="mt-auto pt-3">
+            <span className="block text-[13px] font-bold leading-snug tracking-[-0.02em]">
+              {tile.title}
+            </span>
+            <span className={`mt-0.5 block text-[11px] leading-snug ${brand ? 'text-white/75' : 'text-ink-muted'}`}>
+              {tile.body}
+            </span>
+          </span>
+          <span
+            className={`mt-2 inline-flex items-center gap-0.5 text-[11.5px] font-bold ${
+              brand ? 'text-white' : 'text-[#7c66d9] dark:text-[#b7a8f2]'
+            }`}
+          >
+            {tile.cta}
+            <ArrowUpRight
+              size={13}
+              weight="bold"
+              className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              aria-hidden
+            />
+          </span>
+        </button>
+      )
+    })}
+  </div>
+)
+
+const ActionBentoWidget = () => {
   const navigate = useNavigate()
   const { t } = useLanguage()
+  const tiles: ActionTile[] = [
+    {
+      key: 'alarm',
+      title: `${t('homeRailAlarmTitle1')} ${t('homeRailAlarmTitle2')}`,
+      body: t('homeRailAlarmBody1'),
+      cta: t('homeRailAlarmCta'),
+      icon: <AlarmIcon size={18} />,
+      tone: 'brand',
+      onClick: () => navigate('/bible/alarm'),
+    },
+    {
+      key: 'verse-card',
+      title: t('homeRailVerseCardTitle'),
+      body: t('homeRailVerseCardBody1'),
+      cta: t('railShareVerseCard'),
+      icon: <ImageIcon size={18} />,
+      tone: 'lavender',
+      onClick: () => navigate('/bible/photo-verse'),
+    },
+  ]
   return (
     <section className="px-4 pt-3">
-      <div className="rounded-2xl p-4 border border-[var(--card-border)] bg-gradient-to-br from-[#eef4ff] to-[#e3edff] dark:from-[#141d30] dark:to-[#101828] relative overflow-hidden">
-        <span className="absolute -right-3 -bottom-4 text-[64px] opacity-20 select-none" aria-hidden>
-          🔔
-        </span>
-        <p className="text-[14.5px] font-bold text-ink-strong leading-snug">
-          {t('homeRailAlarmTitle1')}
-          <br />
-          {t('homeRailAlarmTitle2')}
-        </p>
-        <p className="mt-1 text-[12px] text-ink-muted leading-relaxed">
-          {t('homeRailAlarmBody1')}
-          <br />
-          {t('homeRailAlarmBody2')}
-        </p>
-        <button
-          type="button"
-          onClick={() => navigate('/bible/alarm')}
-          className="mt-3 px-3.5 py-1.5 rounded-full brand-gradient text-[12.5px] font-bold active:scale-[0.97] transition-transform duration-150"
-        >
-          {t('homeRailAlarmCta')}
-        </button>
-      </div>
+      <ActionBento tiles={tiles} />
     </section>
   )
 }
@@ -360,7 +498,7 @@ interface ScheduleItem {
 const TodayScheduleWidget = () => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
-  const today = useMemo(todayStr, [])
+  const today = useMemo(() => todayStr(), [])
   const { events, loading: eventsLoading } = useEvents(today, today)
   const { data: services, isLoading: worshipLoading } = useWorshipServicesAll()
 
@@ -401,6 +539,9 @@ const TodayScheduleWidget = () => {
     return [...worshipItems, ...eventItems].sort((a, b) => a.startMin - b.startMin)
   }, [services, events, navigate, language])
 
+  // 현재 시각 기준 — 지난 일정은 흐리게, 다음 일정 하나는 브랜드 틴트 행으로 띄운다
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes()
+  const nextKey = sorted.find((i) => i.startMin >= nowMin)?.key ?? null
   const visible = sorted.slice(0, 5)
   const restCount = sorted.length - visible.length
   const loading = (eventsLoading || worshipLoading) && sorted.length === 0
@@ -429,72 +570,60 @@ const TodayScheduleWidget = () => {
             {t('homeRailScheduleEmpty')}
           </p>
         ) : (
-          <ul className="space-y-3">
-            {visible.map((item) => (
-              <li key={item.key}>
-                <button
-                  type="button"
-                  onClick={item.onClick}
-                  className="w-full flex items-start gap-2.5 text-left group"
-                >
-                  <span
-                    className={`mt-[5px] w-2 h-2 rounded-full shrink-0 ${item.dot}`}
-                    aria-hidden
-                  />
-                  <span className="text-[12.5px] font-bold text-ink-muted tabular-nums shrink-0 mt-px">
-                    {minutesToLabel(item.startMin)}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[13px] font-semibold text-ink-strong truncate group-hover:text-brand transition-colors">
-                      {item.title}
+          <ul className="space-y-1">
+            {visible.map((item) => {
+              const isNext = item.key === nextKey
+              const isPast = nextKey !== null ? item.startMin < nowMin && !isNext : item.startMin < nowMin
+              return (
+                <li key={item.key}>
+                  <button
+                    type="button"
+                    onClick={item.onClick}
+                    className={`group flex w-full items-start gap-2.5 rounded-xl px-2 py-2 text-left transition-colors duration-150 ${
+                      isNext
+                        ? 'bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]'
+                        : 'border border-transparent hover:bg-[var(--surface-inset)]'
+                    } ${isPast ? 'opacity-50' : ''}`}
+                  >
+                    <span className="relative mt-[5px] h-2 w-2 shrink-0" aria-hidden>
+                      <span className={`absolute inset-0 rounded-full ${item.dot}`} />
+                      {isNext && (
+                        <span className={`absolute inset-0 animate-ping rounded-full ${item.dot} opacity-60`} />
+                      )}
                     </span>
-                    {item.location && (
-                      <span className="block text-[11.5px] text-gray-400 dark:text-white/45 truncate">
-                        {item.location}
+                    <span
+                      className={`mt-px shrink-0 text-[12.5px] font-bold tabular-nums ${
+                        isNext ? 'text-brand' : 'text-ink-muted'
+                      }`}
+                    >
+                      {minutesToLabel(item.startMin)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-semibold text-ink-strong transition-colors group-hover:text-brand">
+                        {item.title}
+                      </span>
+                      {item.location && (
+                        <span className="block truncate text-[11.5px] text-gray-400 dark:text-white/45">
+                          {item.location}
+                        </span>
+                      )}
+                    </span>
+                    {isNext && (
+                      <span className="mt-0.5 shrink-0 rounded-full bg-[var(--brand)] px-1.5 py-px text-[10px] font-bold text-white">
+                        {t('homeRailScheduleNext')}
                       </span>
                     )}
-                  </span>
-                </button>
-              </li>
-            ))}
+                  </button>
+                </li>
+              )
+            })}
             {restCount > 0 && (
-              <li className="pl-[18px] text-[11.5px] text-gray-400 dark:text-white/40">
+              <li className="pl-[26px] pt-1 text-[11.5px] text-gray-400 dark:text-white/40">
                 {t('homeRailScheduleMore').replace('{n}', String(restCount))}
               </li>
             )}
           </ul>
         )}
-      </div>
-    </section>
-  )
-}
-
-// ── 5. 말씀 카드 배너 ─────────────────────────────────────────────────
-
-const VerseCardBanner = () => {
-  const navigate = useNavigate()
-  const { t } = useLanguage()
-  return (
-    <section className="px-4 pt-3 pb-1">
-      <div className="rounded-2xl p-4 border border-[var(--card-border)] bg-gradient-to-br from-[#f3efff] to-[#eae6fb] dark:from-[#1c1730] dark:to-[#151226] relative overflow-hidden">
-        <span className="absolute -right-2 -bottom-3 text-[58px] opacity-20 select-none rotate-[8deg]" aria-hidden>
-          🖼️
-        </span>
-        <p className="text-[14.5px] font-bold text-ink-strong leading-snug">
-          {t('homeRailVerseCardTitle')}
-        </p>
-        <p className="mt-1 text-[12px] text-ink-muted leading-relaxed">
-          {t('homeRailVerseCardBody1')}
-          <br />
-          {t('homeRailVerseCardBody2')}
-        </p>
-        <button
-          type="button"
-          onClick={() => navigate('/bible/photo-verse')}
-          className="mt-3 px-3.5 py-1.5 rounded-full bg-[#7c66d9] text-white text-[12.5px] font-bold active:scale-[0.97] transition-transform duration-150"
-        >
-          {t('railShareVerseCard')}
-        </button>
       </div>
     </section>
   )
@@ -506,9 +635,8 @@ const HomeRightRail = () => (
   <>
     <PrayerStatsWidget />
     <SituationTagsWidget />
-    <AlarmBanner />
+    <ActionBentoWidget />
     <TodayScheduleWidget />
-    <VerseCardBanner />
   </>
 )
 

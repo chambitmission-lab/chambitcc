@@ -9,7 +9,9 @@
  */
 import type { CSSProperties, ReactElement } from 'react'
 import {
+  Alarm,
   CalendarDots,
+  Image,
   CloudLightning,
   CloudRain,
   Compass,
@@ -45,6 +47,9 @@ const duotone =
 export const TagIcon = duotone(Tag)
 export const CalendarIcon = duotone(CalendarDots)
 export const PrayIcon = duotone(HandsPraying)
+/** 우측 레일 액션 벤토 타일용 */
+export const AlarmIcon = duotone(Alarm)
+export const ImageIcon = duotone(Image)
 
 /** 감정 키 → 아이콘 (PrayerComposer의 MOOD 키와 동기화) */
 const GLYPHS: Record<string, (p: EmotionIconProps) => ReactElement> = {

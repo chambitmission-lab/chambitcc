@@ -68,6 +68,7 @@ export const home = {
   homeRailViewAll: 'View all →',
   homeRailScheduleLoading: 'Loading schedule…',
   homeRailScheduleEmpty: 'Nothing scheduled today',
+  homeRailScheduleNext: 'Next',
   homeRailScheduleMore: '{n} more today',
   homeRailVerseCardTitle: 'Share a verse card',
   homeRailVerseCardBody1: "Today's verse that moved you —",
