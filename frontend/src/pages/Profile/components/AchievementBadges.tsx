@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { Achievement } from '../../../types/achievement'
 import { useLanguage } from '../../../contexts/LanguageContext'
+import { AchievementGlyph } from './AchievementGlyph'
+import { achievementInk } from './achievementInk'
 import './AchievementBadges.css'
 
 interface AchievementBadgesProps {
@@ -42,8 +44,11 @@ const BadgeMedallion = ({ achievement, shineDelay, size = 'md' }: BadgeMedallion
               background: `radial-gradient(circle at 50% 35%, ${achievement.glowColor}, transparent 72%)`,
             }}
           />
-          <span className={`relative ${iconSize} leading-none drop-shadow-md`}>
-            {achievement.icon}
+          <span
+            className={`relative ${iconSize} leading-none drop-shadow-sm`}
+            style={{ color: achievementInk(achievement.glowColor) }}
+          >
+            <AchievementGlyph achievementId={achievement.id} fallback={achievement.icon} />
           </span>
           <span
             className="ach-badge-shine"
@@ -67,11 +72,8 @@ const BadgeMedallion = ({ achievement, shineDelay, size = 'md' }: BadgeMedallion
       }}
     >
       <div className="flex h-full w-full items-center justify-center rounded-full bg-gray-100 dark:bg-card-dark">
-        <span
-          className={`${iconSize} leading-none opacity-40`}
-          style={{ filter: 'grayscale(1)' }}
-        >
-          {achievement.icon}
+        <span className={`${iconSize} leading-none text-gray-500 opacity-55 dark:text-white/70`}>
+          <AchievementGlyph achievementId={achievement.id} fallback={achievement.icon} />
         </span>
       </div>
       <div className={`absolute -right-0.5 -bottom-0.5 flex ${checkDim} items-center justify-center rounded-full bg-gray-300 dark:bg-[#3a3a3a] ring-2 ring-white dark:ring-card-dark`}>

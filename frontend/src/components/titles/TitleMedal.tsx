@@ -4,6 +4,7 @@ import type { TitleStatus } from '../../api/titles'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { localizeTitle } from './titleI18n'
 import { TIER_VISUALS } from './titleVisuals'
+import { TitleGlyph } from './TitleGlyph'
 import './TitleMedal.css'
 
 export type MedalSize = 'sm' | 'md' | 'lg'
@@ -35,12 +36,12 @@ export const TitleMedal: React.FC<TitleMedalProps> = ({ title, size = 'md' }) =>
       style={
         locked
           ? ({ ['--medal-pct' as string]: pct })
-          : ({ ['--medal-material' as string]: tier.medal })
+          : ({ ['--medal-material' as string]: tier.medal, ['--medal-ink' as string]: tier.chipText })
       }
     >
       <div className="title-medal-face">
         <span className="title-medal-icon" aria-hidden>
-          {concealed ? '🔒' : title.icon}
+          <TitleGlyph titleKey={concealed ? 'lock' : title.key} fallback={title.icon} />
         </span>
       </div>
       {title.equipped && (

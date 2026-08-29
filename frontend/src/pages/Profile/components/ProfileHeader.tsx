@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { TitleGlyph } from '../../../components/titles/TitleGlyph'
 import { useNavigate } from 'react-router-dom'
 import { useTitleBackdropSrc } from '../../../components/titles/TitleBackdrop'
 import { useEquippedTitle } from '../../../hooks/useTitles'
@@ -185,7 +186,7 @@ const ProfileHeader = ({
               : t('titleChipEmpty')
           }
         >
-          <span aria-hidden>{equipped?.icon ?? '✝'}</span>
+          <span aria-hidden>{equipped ? <TitleGlyph titleKey={equipped.key} fallback={equipped.icon} /> : '✝'}</span>
           {titleName ? t('profileMyTitle') : t('titleChipEmpty')}
         </button>
 

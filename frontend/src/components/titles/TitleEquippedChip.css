@@ -36,8 +36,9 @@
 }
 
 .title-slot-icon {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1;
+  display: inline-flex;
 }
 
 .title-slot-name {
@@ -97,8 +98,9 @@
 }
 
 .title-chip-icon {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1;
+  display: inline-flex;
 }
 
 .title-chip-name {

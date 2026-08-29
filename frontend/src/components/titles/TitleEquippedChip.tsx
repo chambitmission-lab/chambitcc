@@ -1,6 +1,7 @@
 // 프로필에 표시되는 "장착한 칭호" 칩 — 텍스트 주변으로 반짝이는 파티클이 가볍게 튄다.
 // 클릭하면 성경 칭호 페이지(/garden)로 이동해 칭호를 바꿀 수 있다.
 import { useNavigate } from 'react-router-dom'
+import { TitleGlyph } from './TitleGlyph'
 import { useEquippedTitle } from '../../hooks/useTitles'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { localizeTitle } from './titleI18n'
@@ -58,7 +59,7 @@ export const TitleEquippedChip: React.FC<TitleEquippedChipProps> = ({
       >
         <span className="title-slot-line" aria-hidden />
         <span className="title-slot-bracket" aria-hidden>[</span>
-        <span className="title-slot-icon">{equipped.icon}</span>
+        <span className="title-slot-icon"><TitleGlyph titleKey={equipped.key} fallback={equipped.icon} /></span>
         <span className="title-slot-name">{name}</span>
         <span className="title-slot-bracket" aria-hidden>]</span>
         <span className="title-slot-line title-slot-line-r" aria-hidden />
@@ -73,7 +74,7 @@ export const TitleEquippedChip: React.FC<TitleEquippedChipProps> = ({
       onClick={() => navigate('/garden')}
       aria-label={changeAria}
     >
-      <span className="title-chip-icon">{equipped.icon}</span>
+      <span className="title-chip-icon"><TitleGlyph titleKey={equipped.key} fallback={equipped.icon} /></span>
       <span className="title-chip-name">[{name}]</span>
       <span className="title-chip-sparkles" aria-hidden>
         {SPARKLES.map((i) => (

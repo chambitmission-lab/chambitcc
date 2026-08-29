@@ -6,6 +6,7 @@ import type { TitleStatus } from '../../api/titles'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { localizeTitle } from './titleI18n'
 import { TIER_VISUALS } from './titleVisuals'
+import { TitleGlyph } from './TitleGlyph'
 import './TitleUnlockModal.css'
 
 interface TitleUnlockModalProps {
@@ -81,7 +82,9 @@ export const TitleUnlockModal: React.FC<TitleUnlockModalProps> = ({
           animate={{ scale: 1, rotate: 0, opacity: 1 }}
           transition={{ delay: 0.08, type: 'spring', stiffness: 260, damping: 16 }}
         >
-          <span className="title-unlock-icon">{title.icon}</span>
+          <span className="title-unlock-icon" style={{ color: tier.chipText }}>
+            <TitleGlyph titleKey={title.key} fallback={title.icon} />
+          </span>
         </motion.div>
 
         <motion.h2

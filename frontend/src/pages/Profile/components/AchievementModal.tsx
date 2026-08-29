@@ -2,6 +2,8 @@
 // 해금 전: 큰 % 카운트업 + 남은 양 + 격려 문구 + 바로 실행 CTA + 보상 미리보기(욕구 자극)
 // 해금 후: 회전 빛살/오라/스파클 + 도장 스탬프 + 골드 진행바 + (새 해금 시) 컨페티 + 다음 목표 티저
 import { useEffect, useMemo, useState } from 'react'
+import { AchievementGlyph } from './AchievementGlyph'
+import { achievementInk } from './achievementInk'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import type { Achievement, AchievementType, TranslationKey } from '../../../types/achievement'
@@ -184,10 +186,10 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
                     />
                   )}
                   <span
-                    className={`relative text-[44px] leading-none ${unlocked ? 'drop-shadow-lg' : 'opacity-40'}`}
-                    style={unlocked ? undefined : { filter: 'grayscale(1)' }}
+                    className={`relative text-[46px] leading-none ${unlocked ? 'drop-shadow-md' : 'text-gray-500 opacity-55 dark:text-white/70'}`}
+                    style={unlocked ? { color: achievementInk(glowColor) } : undefined}
                   >
-                    {icon}
+                    <AchievementGlyph achievementId={achievement.id} fallback={icon} />
                   </span>
                 </div>
                 {!unlocked && (
@@ -319,11 +321,8 @@ const AchievementCard = ({ achievement, achievements, celebrate, onSelect, onClo
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.32 }}
           >
-            <span
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200/70 dark:bg-white/[0.07] text-[20px]"
-              style={{ filter: 'grayscale(1)' }}
-            >
-              {nextGoal.icon}
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200/70 dark:bg-white/[0.07] text-[20px] text-gray-500 dark:text-white/60">
+              <AchievementGlyph achievementId={nextGoal.id} fallback={nextGoal.icon} />
             </span>
             <span className="flex-1 min-w-0">
               <span className="block text-[11px] font-bold text-brand mb-0.5">{t('achievementNextGoal')}</span>
