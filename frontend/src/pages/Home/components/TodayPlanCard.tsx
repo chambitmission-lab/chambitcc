@@ -40,6 +40,13 @@ const TodayPlanCard = () => {
   // 성경 일독처럼 day_title이 본문 범위와 같으면 제목·부제가 중복되므로
   // 부제를 "여정 문구"로 바꿔 카드에 온기를 더한다
   const titleDupsRefs = !today.day_title || today.day_title.trim() === refs.trim()
+  const daysLeft = Math.max(0, today.total_days - today.completed_days)
+  // 주요 CTA는 플랜 상세를 거치지 않고 첫 본문 장으로 바로 — 읽음 기록은 플랜과 서버 동기화됨
+  const first = today.passages[0]
+  const readTarget = first ? `/bible/${first.book_number}/${first.chapter_start}` : `/bible/plans/${today.plan_id}`
+  const readLabel = first?.book_name_ko
+    ? `${first.book_name_ko} ${first.chapter_start}장 바로 읽기`
+    : '바로 읽기'
   const journeyLine =
     today.completed_days > 0
       ? `총 ${today.total_days}일 여정 · ${today.completed_days}일 함께 걸었어요`
@@ -47,10 +54,17 @@ const TodayPlanCard = () => {
 
   return (
     <section className="px-4 pt-3">
-      <button
-        type="button"
+      <div
+        role="link"
+        tabIndex={0}
         onClick={() => navigate(`/bible/plans/${today.plan_id}`)}
-        className="plan-card w-full text-left p-4"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            navigate(`/bible/plans/${today.plan_id}`)
+          }
+        }}
+        className="plan-card w-full text-left p-4 cursor-pointer"
       >
         <div>
           <div className="flex items-center justify-between gap-2">
@@ -64,6 +78,13 @@ const TodayPlanCard = () => {
                 · {today.plan_title}
               </span>
             </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {/* 완주까지 남은 날 — 여정의 끝이 보이게 */}
+              {daysLeft > 0 && (
+                <span className="plan-dday" title={`완주까지 ${daysLeft}일 남았어요`}>
+                  완주 D-{daysLeft}
+                </span>
+              )}
             {today.streak_count > 0 && (
               <span
                 className="plan-streak"
@@ -85,9 +106,10 @@ const TodayPlanCard = () => {
                     fill="#e6f0ff"
                   />
                 </svg>
-                {today.streak_count}일
+                연속 {today.streak_count}일
               </span>
             )}
+            </div>
           </div>
 
           {/* 위계: 일차는 작은 칩, 본문 범위(사무엘하 17-19장)가 카드의 주인공 */}
@@ -130,6 +152,7 @@ const TodayPlanCard = () => {
             {percent > 0 && <span className="plan-trail__pct">{percent}%</span>}
           </div>
 
+          {(today.done_today || items.length > 1) && (
           <div className="mt-2">
             {today.done_today ? (
               <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-brand">
@@ -140,24 +163,34 @@ const TodayPlanCard = () => {
                   ? `오늘 ${today.last_completed_day}일차까지 완료 · 다음은 ${today.day_number}일차`
                   : '오늘 읽기 완료!'}
               </span>
-            ) : (
-              <span
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full brand-gradient text-[12.5px] font-bold"
-              >
-                지금 읽기
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </span>
-            )}
+            ) : null}
             {items.length > 1 && (
-              <span className="ml-2 text-[11.5px] text-gray-400 dark:text-white/45">
+              <span className={`text-[11.5px] text-gray-400 dark:text-white/45 ${today.done_today ? 'ml-2' : ''}`}>
                 외 {items.length - 1}개 플랜
               </span>
             )}
           </div>
+          )}
+
+          {/* 주요 액션 — 카드 전폭 프라이머리 버튼. 오늘 분량을 마쳤으면 다음 일차 미리 읽기(보조 톤) */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              navigate(readTarget)
+            }}
+            className={today.done_today ? 'plan-cta plan-cta--secondary' : 'plan-cta'}
+          >
+            <span className="plan-cta__kicker">{today.day_number}일차</span>
+            <span className="plan-cta__label">
+              {today.done_today ? `${readLabel.replace(' 바로 읽기', '')} 미리 읽기` : readLabel}
+            </span>
+            <svg className="plan-cta__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
         </div>
-      </button>
+      </div>
     </section>
   )
 }
