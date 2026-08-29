@@ -1,3 +1,4 @@
+import { Lock } from '@phosphor-icons/react'
 // 우리반 리포트 (/classes/:classId/report) — 교사 전용
 // 최근 N주 확인·암송·응답 통계, 주간 추이, 멤버별 현황 + 관심 필요 표시
 import { useState } from 'react'
@@ -69,7 +70,7 @@ const ClassReport = () => {
         <div className="px-4 pt-4 space-y-3">
           {error ? (
             <div className="text-center py-16 px-6">
-              <span className="text-4xl block mb-3">🔒</span>
+              <span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3"><Lock size={26} weight="duotone" color="currentColor" aria-hidden="true" /></span>
               <p className="text-[13px] text-gray-500 dark:text-white/55">
                 {error instanceof Error ? error.message : '리포트를 불러오지 못했습니다'}
               </p>

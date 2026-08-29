@@ -45,12 +45,10 @@ function SignatureLine({ text, name }: { text: string; name: string }) {
   return (
     <>
       {text.slice(0, at)}
-      <span
-        className="gr-signature-ink"
-        role="img"
-        aria-label={name}
-        style={{ '--gr-ink': `url(${ink})` } as CSSProperties}
-      />
+      {/* CSS mask 가 아니라 <img> — WebKit 은 마스크 이미지 적용 전 요소를 마스크 없이
+          통째로 칠하고 다시 그리지 않을 때가 있어 사인 자리가 네모 박스로 남았다.
+          투명 PNG(검정 잉크)를 그대로 그리고 다크 테마는 CSS filter 로 반전한다. */}
+      <img className="gr-signature-ink" src={ink} alt={name} decoding="async" draggable={false} />
       {text.slice(at + name.length)}
     </>
   )

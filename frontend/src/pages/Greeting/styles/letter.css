@@ -286,15 +286,22 @@
 /* 손글씨 사인 — 서명 문장 속 이름 자리에 잉크 이미지를 앉힌다.
    PNG 를 마스크로 써서 잉크 색이 텍스트 토큰(다크 모드 포함)을 따른다.
    원본 170×76 → 글줄 높이에 맞춰 2.4em, 베이스라인보다 살짝 내려 앉혀 손으로 쓴 느낌 */
+/* 손글씨 사인 — 투명 PNG(검정 잉크) <img>. 라이트는 그대로, 다크는 반전해 --text-strong 에 가깝게.
+   (CSS mask 는 WebKit 에서 적용 전 네모 박스가 남는 버그가 있어 쓰지 않는다) */
 .gr-signature-ink {
   display: inline-block;
   width: 5.1em;
   height: 2.1em;
   margin: 0 0.3em;
   vertical-align: -0.85em;
-  background-color: var(--text-strong);
-  -webkit-mask: var(--gr-ink) center / contain no-repeat;
-  mask: var(--gr-ink) center / contain no-repeat;
+  object-fit: contain;
+  object-position: center;
+  opacity: 0.92;
+  user-select: none;
+}
+
+.gr-signature-ink {
+  filter: var(--ink-glyph-filter, none);
 }
 
 .gr-signature {

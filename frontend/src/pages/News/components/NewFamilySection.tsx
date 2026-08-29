@@ -1,3 +1,4 @@
+import { Lock } from '@phosphor-icons/react'
 // 새가족 등록 앨범 섹션 (/news 의 '새가족' 탭 본문)
 // Single Responsibility: 새가족 피드/그리드 구성과 모달 상태 관리
 import { useState } from 'react'
@@ -64,8 +65,8 @@ const NewFamilySection = () => {
         <div className="relative overflow-hidden rounded-3xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] px-6 py-12 text-center">
           <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
           <div className="relative z-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 mb-3">
-              <span className="text-[28px]">🔒</span>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
+              <Lock size={30} weight="duotone" color="currentColor" aria-hidden="true" />
             </div>
             <p className="text-ink-strong text-[15px] font-bold mb-1.5">
               성도님만 볼 수 있어요

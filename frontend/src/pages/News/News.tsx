@@ -28,15 +28,18 @@ type SectionKey = 'news' | 'bulletin' | 'new-family' | 'event-album'
 /** 주보 하위 탭 */
 type BulletinTabKey = 'image' | 'digital'
 
+// 선택 마커 색 — 소식은 기본 브랜드, 나머지는 같은 블루 계열 안에서 한 톤씩만 옮긴다
+// (주보: 남색 쪽 · 새가족: 맑은 하늘 쪽 · 행사: 보랏빛 쪽). 정보색 재도입이 아니라 미세 변주.
 const SECTIONS: {
   key: SectionKey
   Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement
   label: string
+  seal?: { from: string; to: string }
 }[] = [
   { key: 'news', Icon: MegaphoneIcon, label: '소식' },
-  { key: 'bulletin', Icon: BulletinIcon, label: '주보' },
-  { key: 'new-family', Icon: SproutIcon, label: '새가족' },
-  { key: 'event-album', Icon: AlbumIcon, label: '행사' },
+  { key: 'bulletin', Icon: BulletinIcon, label: '주보', seal: { from: '#5b8cf0', to: '#3562d9' } },
+  { key: 'new-family', Icon: SproutIcon, label: '새가족', seal: { from: '#45a8f7', to: '#1f86e8' } },
+  { key: 'event-album', Icon: AlbumIcon, label: '행사', seal: { from: '#6f86f4', to: '#4d5ee0' } },
 ]
 
 const isSectionKey = (value: string | null): value is SectionKey =>
@@ -62,6 +65,7 @@ const News = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const tabParam = searchParams.get('tab')
   const section: SectionKey = isSectionKey(tabParam) ? tabParam : 'news'
+  const activeSection = SECTIONS.find(s => s.key === section)
 
   // 목록은 React Query 캐시 우선 — 재방문 시 캐시로 즉시 그리고 뒤에서 조용히 갱신
   const { data: bulletins = [], isLoading: loading, error: listError } = useBulletins()
@@ -132,8 +136,13 @@ const News = () => {
           <SegmentTrack
             count={SECTIONS.length}
             index={SECTIONS.findIndex(s => s.key === section)}
-            className="flex p-1 rounded-2xl bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]"
-            markerClassName="seal-marker rounded-xl [--seal-radius:0.75rem]"
+            className="flex p-1 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm"
+            markerClassName="seal-marker rounded-xl [--seal-radius:0.75rem] transition-[transform,background] duration-300"
+            markerStyle={
+              activeSection?.seal
+                ? ({ '--seal-from': activeSection.seal.from, '--seal-to': activeSection.seal.to } as React.CSSProperties)
+                : undefined
+            }
           >
             {SECTIONS.map(s => (
               <button
@@ -146,7 +155,7 @@ const News = () => {
                   'inline-flex items-center justify-center gap-1.5',
                   section === s.key
                     ? 'text-white'
-                    : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white',
+                    : 'text-gray-600 dark:text-white/60 hover:text-brand hover:bg-[var(--brand-soft)] dark:hover:text-white dark:hover:bg-white/[0.06] active:scale-[0.97]',
                 ].join(' ')}
               >
                 <s.Icon width={16} height={16} className="shrink-0" />
@@ -171,7 +180,7 @@ const News = () => {
             <SegmentTrack
               count={2}
               index={tab === 'image' ? 0 : 1}
-              className="inline-flex p-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.06]"
+              className="inline-flex p-1 rounded-full bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm"
               markerClassName="seal-marker rounded-full"
             >
               <TabPill active={tab === 'image'} onClick={() => setTab('image')}>
@@ -261,12 +270,15 @@ const SegmentTrack = ({
   index,
   className,
   markerClassName,
+  markerStyle,
   children,
 }: {
   count: number
   index: number
   className: string
   markerClassName: string
+  /** 마커 색 변주용 CSS 변수(--seal-from/--seal-to) 등 */
+  markerStyle?: React.CSSProperties
   children: React.ReactNode
 }) => (
   <div className={`relative isolate ${className}`}>
@@ -274,6 +286,7 @@ const SegmentTrack = ({
       aria-hidden="true"
       className={`absolute z-0 top-1 bottom-1 left-1 transition-transform duration-300 ease-[cubic-bezier(0.34,1.3,0.5,1)] will-change-transform motion-reduce:transition-none ${markerClassName}`}
       style={{
+        ...markerStyle,
         width: `calc((100% - 0.5rem) / ${count})`,
         transform: `translateX(${Math.max(index, 0) * 100}%)`,
       }}

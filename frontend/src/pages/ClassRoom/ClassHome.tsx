@@ -1,3 +1,4 @@
+import { Lock } from '@phosphor-icons/react'
 // 우리반 알림장 홈 (/classes/:classId)
 // 반 정보 · 초대 공유 · 유형 필터 · 알림 피드 (확인체크/암송/RSVP/댓글)
 import { useEffect, useState } from 'react'
@@ -103,7 +104,7 @@ const ClassHome = () => {
       <Shell onBack={() => navigate('/classes')} title="우리반 알림장">
         {error ? (
           <div className="text-center py-16 px-6">
-            <span className="text-4xl block mb-3">🔒</span>
+            <span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3"><Lock size={26} weight="duotone" color="currentColor" aria-hidden="true" /></span>
             <p className="text-[13px] text-gray-500 dark:text-white/55">
               {error instanceof Error ? error.message : '반을 불러오지 못했습니다'}
             </p>

@@ -94,9 +94,10 @@
    /bible 구약·신약 마커와 같은 감각을 다른 화면의 세그먼트 마커에서도 쓴다.
    모서리가 둥근 트랙에서는 --seal-radius 로 바깥 반경을 알려주면 점선 링이 곡률을 따라간다. */
 .seal-marker {
+  /* --seal-from / --seal-to 로 호출부가 블루 계열 안에서 톤을 살짝 바꿀 수 있다 (/news 탭별 색) */
   background:
     radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
-    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+    linear-gradient(155deg, var(--seal-from, #4593fc), var(--seal-to, var(--brand-dim, var(--brand))));
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.25),

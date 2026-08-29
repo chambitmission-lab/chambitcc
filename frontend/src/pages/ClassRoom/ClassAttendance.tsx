@@ -1,3 +1,4 @@
+import { Lock } from '@phosphor-icons/react'
 // 주일 출석부 (/classes/:classId/attendance) — 교사 전용
 // 날짜(주일) 선택 → 멤버 탭탭 출석 체크, 월간 현황 히트맵
 import { useMemo, useState } from 'react'
@@ -136,7 +137,7 @@ const ClassAttendance = () => {
 
       {error ? (
         <div className="text-center py-16 px-6">
-          <span className="text-4xl block mb-3">🔒</span>
+          <span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3"><Lock size={26} weight="duotone" color="currentColor" aria-hidden="true" /></span>
           <p className="text-[13px] text-gray-500 dark:text-white/55">
             {error instanceof Error ? error.message : '출석부를 불러오지 못했습니다'}
           </p>
