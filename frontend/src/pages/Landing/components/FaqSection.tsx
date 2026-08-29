@@ -22,7 +22,7 @@ const ITEMS: {
   { q: 'landingFaq5Q', a: 'landingFaq5A', Icon: SleepIcon },
 ]
 
-const FaqSection = ({ isAdmin, ko }: { isAdmin: boolean; ko: boolean }) => {
+const FaqSection = ({ isAdmin, ko, onAsk }: { isAdmin: boolean; ko: boolean; onAsk: () => void }) => {
   const { tx } = useAboutContent()
   const [open, setOpen] = useState<number>(0)
 
@@ -88,12 +88,14 @@ const FaqSection = ({ isAdmin, ko }: { isAdmin: boolean; ko: boolean }) => {
           )
         })}
 
-        {/* 6번째 칸 — 더 궁금한 건 참비에게 (데모 섹션으로 스크롤) */}
+        {/* 6번째 칸 — 더 궁금한 건 참비에게 (데모 섹션으로 스크롤).
+            히어로 둘러보기와 같은 핸들러 — 모바일(터치)은 smooth 스크롤이 탭 직후 터치에 끊겨
+            제자리에 머무는 문제가 있어 Landing.scrollToTour 가 pointer:coarse 면 즉시 이동한다 */}
         <Reveal as="li" delay={ITEMS.length * 50}>
           <button
             type="button"
             className="ld-faq-cta w-full h-full min-h-[76px] rounded-2xl px-4 py-3.5 flex items-center gap-3 text-left"
-            onClick={() => document.getElementById('tour')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            onClick={onAsk}
           >
             <span className="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0">
               <SparkleIcon width={18} height={18} />

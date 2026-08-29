@@ -55,7 +55,7 @@ const Landing = () => {
     <div className="bg-gray-50 dark:bg-black min-h-screen page-stage">
       <HeroSection isAdmin={isAdminUser} ko={ko} onTour={scrollToTour} />
       <div className="max-w-[1040px] mx-auto px-5 pb-20">
-        <FaqSection isAdmin={isAdminUser} ko={ko} />
+        <FaqSection isAdmin={isAdminUser} ko={ko} onAsk={scrollToTour} />
         <PillarsSection ko={ko} sermons={sermons ?? []} />
         <DemoSection ko={ko} />
         <QuizSection ko={ko} />
