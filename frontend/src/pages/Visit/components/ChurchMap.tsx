@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
-import { ExpandIcon, MapIcon } from '../icons'
+import { ExpandIcon, MapIcon, PinIcon } from '../icons'
 
 /**
  * 카카오맵 — 레거시 홈페이지가 주던 "여기 어디쯤이구나"의 안심을 되돌려 놓는다.
@@ -100,19 +100,8 @@ const ChurchMap = ({ coords, pinLabel, onOpen }: ChurchMapProps) => {
         map.setDraggable(false)
         map.setZoomable(false)
 
+        // 이름표는 마커 옆이 아니라 상단 글래스 바가 맡는다 (지도 위 라벨 중복·여백 문제)
         new kakao.maps.Marker({ map, position: center })
-
-        if (pinLabel) {
-          const label = document.createElement('div')
-          label.className = 'visit-map-pin'
-          label.textContent = pinLabel
-          new kakao.maps.CustomOverlay({
-            map,
-            position: center,
-            content: label,
-            yAnchor: 2.4,
-          })
-        }
 
         setStatus('ready')
       })
@@ -123,7 +112,7 @@ const ChurchMap = ({ coords, pinLabel, onOpen }: ChurchMapProps) => {
     return () => {
       alive = false
     }
-  }, [coords, pinLabel])
+  }, [coords])
 
   return (
     <div className={`visit-map${view === 'ready' ? ' is-ready' : ''}`}>
@@ -136,15 +125,29 @@ const ChurchMap = ({ coords, pinLabel, onOpen }: ChurchMapProps) => {
         </div>
       )}
 
+      {/* 상단 글래스 바 — 여기가 어디인지(핀 라벨) */}
+      {view === 'ready' && pinLabel && (
+        <div className="visit-map-bar visit-map-bar--top" aria-hidden="true">
+          <span className="visit-map-glass visit-map-glass--label">
+            <PinIcon size={13} strokeWidth={2.2} />
+            <span>{pinLabel}</span>
+          </span>
+        </div>
+      )}
+
+      {/* 표면 전체가 카카오맵으로 가는 버튼 — 하단 글래스 바에 '크게 보기' 필 */}
       <button
         type="button"
         className="visit-map-tap"
         onClick={onOpen}
         aria-label={t('visitOpenBigMap')}
       >
-        <span className="visit-map-chip">
-          <ExpandIcon size={14} />
-          <span>{t('visitOpenBigMap')}</span>
+        <span className="visit-map-bar visit-map-bar--bottom">
+          <span className="visit-map-glass visit-map-glass--muted">Kakao Map</span>
+          <span className="visit-map-glass visit-map-chip">
+            <ExpandIcon size={14} />
+            <span>{t('visitOpenBigMap')}</span>
+          </span>
         </span>
       </button>
     </div>

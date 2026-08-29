@@ -10,7 +10,6 @@ import { soonestService } from '../../utils/worshipSchedule'
 import { writeToClipboard } from '../Bible/components/verseCopy'
 import ChurchMap from './components/ChurchMap'
 import TransportInfo from './components/TransportInfo'
-import FirstVisitCard from './components/FirstVisitCard'
 import InviteCard from './components/InviteCard'
 import { parseCoords } from './geo'
 import { ChurchIcon, ClockIcon, CopyIcon, KakaoMapIcon, NaverMapIcon, PhoneIcon, PinIcon, StoreIcon, SubwayIcon, TmapIcon } from './icons'
@@ -174,6 +173,8 @@ const Visit = () => {
               <ol className="visit-route" aria-label={t('visitSubtitle')}>
                 {routeSteps.map((step) => (
                   <li key={step.key} className={`visit-route-step${step.last ? ' is-last' : ''}`}>
+                    {/* 스텝 번호 — 완료/도착 배지 대신 순서가 곧 진행도다 */}
+                    <span className="visit-route-num">{step.last ? t('visitRouteArrive') : `STEP ${step.key}`}</span>
                     <span className="visit-route-dot">{step.icon}</span>
                     <strong className="visit-route-title">
                       <EditableText fieldKey={step.titleKey} isAdmin={isAdminUser}>
@@ -187,7 +188,6 @@ const Visit = () => {
                         </EditableText>
                       </span>
                     )}
-                    <span className="visit-route-badge">{step.last ? t('visitRouteArrive') : t('visitRouteDone')}</span>
                   </li>
                 ))}
               </ol>
@@ -289,9 +289,8 @@ const Visit = () => {
             </div>
 
             <div className="visit-col-main">
+              {/* 교통·주차·처음 오시는 분 — 탭으로 나눠 필요한 안내만 집중해서 본다 */}
               <TransportInfo isAdminUser={isAdminUser} />
-
-              <FirstVisitCard isAdminUser={isAdminUser} />
 
               <InviteCard />
 

@@ -256,13 +256,22 @@
 /* ── PC 우측 레일 ────────────────────────────────── */
 
 /* 목사님의 다음 이야기 — 최근 목양 편지 · 최근 설교 */
+/* 레일 카드 — 유리 질감(.glass-card 토큰)으로 본문 카드와 층을 나눈다.
+   블러는 레일 고정 카드 2장뿐이라 성능 예산 안(theme.css 원칙 3).
+   1px 보더를 한 단계 진하게, 위쪽 하이라이트 한 줄로 유리의 두께감을 준다 */
 .gr-next,
 .gr-visit {
-  padding: 1rem;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
+  position: relative;
+  padding: 1.1rem 1.1rem 1rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid color-mix(in srgb, var(--card-border) 100%, var(--text-strong) 6%);
   border-radius: 20px;
-  box-shadow: var(--card-shadow);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)),
+    var(--card-shadow),
+    0 14px 32px -16px rgba(10, 24, 60, 0.28);
 }
 
 .gr-next-title,
@@ -336,7 +345,7 @@
 
 /* 처음 오셨나요 — 편지의 "만남"을 실제 걸음으로 잇는 카드 */
 .gr-visit {
-  background: linear-gradient(180deg, var(--brand-soft), transparent 70%) var(--surface-container);
+  background: linear-gradient(180deg, var(--brand-soft), transparent 60%), var(--glass-bg);
 }
 
 .gr-visit-title {
@@ -398,25 +407,75 @@
   margin-top: 0.6rem;
 }
 
+/* 링크 2개 — 방문자가 가장 많이 누르는 "예배 안내"만 브랜드 프라이머리(인장 문법),
+   "오시는 길"은 옅은 브랜드 틴트의 보조 버튼. 둘 다 회색 외곽선이던 때보다 위계가 선다 */
 .gr-visit-link {
+  position: relative;
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 2.5rem;
   padding: 0.5rem 0.6rem;
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  background: none;
+  border: 1px solid var(--brand-soft-strong);
+  border-radius: 12px;
+  background: var(--brand-soft);
   font-family: inherit;
   font-size: 12.5px;
   font-weight: 700;
-  color: var(--text-body);
+  color: var(--brand);
   cursor: pointer;
   transition:
+    transform 0.15s ease,
+    background 0.15s ease,
     border-color 0.15s ease,
-    color 0.15s ease;
+    box-shadow 0.15s ease;
 }
 
 .gr-visit-link:hover {
+  background: var(--brand-soft-strong);
   border-color: var(--brand);
-  color: var(--brand);
+  transform: translateY(-1px);
+}
+
+.gr-visit-link:active {
+  transform: translateY(0);
+}
+
+/* 프라이머리 — 히어로 "예배 안내 보기"·/news 마커와 같은 인장(도장) 문법 */
+.gr-visit-link--primary {
+  color: #fff;
+  border-color: transparent;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand-dim, var(--brand)));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.1),
+    0 6px 16px -4px var(--brand-glow);
+}
+
+.gr-visit-link--primary::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 9px;
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+
+.gr-visit-link--primary:hover {
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.22), transparent 48%),
+    linear-gradient(155deg, #3585f7, #1b6ef3);
+  border-color: transparent;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 3px rgba(49, 130, 246, 0.14),
+    0 10px 22px -6px var(--brand-glow);
 }
 
 /* 인라인 편집 래퍼 보정 — letter.css 와 같은 이유(관리자에게만 존재) */

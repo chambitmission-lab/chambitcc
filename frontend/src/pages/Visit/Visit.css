@@ -43,21 +43,26 @@
 }
 
 /* ── Hero ──────────────────────────────── */
+/* 벤토 카드 질감 — 넓은 라운드(22px, lg 24px) + 부드러운 그림자.
+   사진이 있으면 안쪽 1px 흰 링으로 유리 액자의 두께감을 준다 */
 .visit-hero {
   position: relative;
-  border-radius: 20px;
+  border-radius: 22px;
   border: 1px solid var(--card-border);
   background: var(--surface-container);
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--card-shadow), 0 18px 40px -20px rgba(10, 24, 60, 0.35);
   overflow: hidden;
   isolation: isolate;
+}
+.visit-hero.has-photo {
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 /* 사진 무대 — /about 의 교회 사진을 그대로 쓴다. 사진이 없으면 시간대 하늘 토큰으로 대신한다 */
 .visit-hero-photo {
   position: relative;
-  min-height: 150px;
-  padding: 18px 20px 20px;
+  min-height: 188px;
+  padding: 20px 20px 22px;
   display: flex;
   align-items: flex-end;
   background-image: var(--visit-sky, none);
@@ -77,17 +82,33 @@
   z-index: -2;
 }
 
-/* 스크림 — 왼쪽 글자 자리만 어둡게, 오른쪽 건물은 살린다 */
+/* 스크림 — 아래에서 위로 딥블루가 부드럽게 차오르고(흰 글자의 바닥),
+   왼쪽 글자 자리는 한 겹 더, 오른쪽 위 건물은 살린다. 맨 위는 살짝만 눌러 액자 안에 앉힌다 */
+/* 아래 모서리는 둥글면 안 된다 — 사진 영역 밑으로 경로 레일이 이어져 카드 모서리가 아니다.
+   (radius 를 주면 그 뒤 하늘 그라데이션이 귀퉁이로 삐져나온다) */
 .visit-hero-scrim {
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
 }
+/* 사진이 있으면 시간대 하늘 그라데이션은 끈다 — 사진 위에 색이 얹히지 않게 */
+.visit-hero.has-photo .visit-hero-photo {
+  background-image: none;
+}
 .visit-hero.has-photo .visit-hero-scrim {
   background:
-    linear-gradient(100deg, rgba(14, 26, 52, 0.66) 0%, rgba(14, 26, 52, 0.42) 42%, rgba(14, 26, 52, 0.08) 75%, transparent 100%),
-    linear-gradient(to top, rgba(14, 26, 52, 0.34), transparent 55%);
+    linear-gradient(to top, rgba(10, 22, 48, 0.78) 0%, rgba(10, 22, 48, 0.5) 34%, rgba(10, 22, 48, 0.12) 68%, rgba(10, 22, 48, 0.06) 100%),
+    linear-gradient(100deg, rgba(10, 22, 48, 0.48) 0%, rgba(10, 22, 48, 0.22) 45%, transparent 80%);
+}
+/* 안쪽 흰 링 — 유리 액자 */
+.visit-hero.has-photo .visit-hero-scrim::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* 위쪽 두 모서리만 카드 곡률(카드 overflow 가 어차피 잘라내므로 값은 넉넉히) */
+  border-radius: 22px 22px 0 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
 .visit-hero-body {
@@ -111,9 +132,14 @@
   border: 1px solid var(--brand-soft-strong);
   color: var(--brand);
 }
+/* 사진 위 라벨 — 유리 칩 */
 .visit-hero.has-photo .visit-hero-label {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .visit-hero-title {
@@ -133,62 +159,96 @@
 }
 
 .visit-hero.has-photo .visit-hero-title { color: #fff; }
-.visit-hero.has-photo .visit-hero-subtitle { color: rgba(255, 255, 255, 0.82); }
+.visit-hero.has-photo .visit-hero-subtitle { color: rgba(255, 255, 255, 0.86); }
 .visit-hero.has-photo .visit-hero-title,
 .visit-hero.has-photo .visit-hero-subtitle {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 14px rgba(10, 22, 48, 0.45);
 }
 
 /* ── 경로 요약 레일 — 역 → 골목 → 교회 ─────
-   점 사이를 잇는 선은 각 칸의 ::before 로 그리고, 마지막 칸은 선을 끊는다 */
+   모던 타임라인: 점 뒤로 한 줄의 진행선이 끊김 없이 이어지고(레일의 ::before),
+   중간 단계는 틴트 링, 마지막(도착)만 브랜드로 채워 종점이 한눈에 보인다.
+   초록/파랑 두 색과 완료·도착 배지는 시선을 흩뜨려 뺐다 — 순서(STEP n)가 곧 진행도다.
+   각 단계는 타일이라 PC 호버에서 살짝 떠오른다 */
 .visit-route {
+  --route-dot: 30px;
+  --route-pad-x: 18px;
+  --route-tile-pad: 10px;
+  --route-num-h: 14px; /* 번호 줄 높이 — 진행선 y 계산용 */
+  position: relative;
   list-style: none;
   margin: 0;
-  padding: 16px 18px 16px;
+  padding: 14px var(--route-pad-x) 14px;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  gap: 8px;
+  gap: 6px;
   border-top: 1px solid var(--card-border);
+}
+
+/* 진행선 — 첫 점 중심에서 마지막 점 중심까지 한 줄 */
+.visit-route::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: calc(14px + var(--route-tile-pad) + var(--route-num-h) + 4px + var(--route-dot) / 2 - 1px);
+  left: calc(var(--route-pad-x) + var(--route-tile-pad) + var(--route-dot) / 2);
+  right: calc(var(--route-pad-x) + var(--route-tile-pad) + var(--route-dot) / 2);
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--brand-soft-strong), var(--brand));
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .visit-route-step {
   position: relative;
+  z-index: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 3px;
+  padding: var(--route-tile-pad);
+  border-radius: 14px;
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.3, 0.5, 1),
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.visit-route-step::before {
-  content: '';
-  position: absolute;
-  top: 15px;
-  left: 30px;
-  right: -8px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--brand-soft-strong), var(--brand));
-  opacity: 0.55;
+.visit-route-num {
+  height: var(--route-num-h);
+  line-height: var(--route-num-h);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
-.visit-route-step.is-last::before { display: none; }
+.visit-route-step.is-last .visit-route-num {
+  color: var(--brand);
+}
 
 .visit-route-dot {
   position: relative;
-  width: 30px;
-  height: 30px;
-  margin-bottom: 4px;
+  width: var(--route-dot);
+  height: var(--route-dot);
+  margin: 4px 0 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: #22c55e;
-  color: #fff;
-  box-shadow: 0 0 0 3px var(--surface-container), 0 4px 10px -4px rgba(34, 197, 94, 0.55);
+  background: var(--brand-soft);
+  color: var(--brand);
+  /* 바깥 3px 링(카드색)으로 진행선을 점 뒤에서 끊어 보이게 */
+  box-shadow: 0 0 0 3px var(--surface-container), inset 0 0 0 1.5px var(--brand-soft-strong);
+  transition: transform 0.22s cubic-bezier(0.34, 1.3, 0.5, 1), box-shadow 0.2s ease;
 }
 .visit-route-step.is-last .visit-route-dot {
   background: var(--brand);
-  box-shadow: 0 0 0 3px var(--surface-container), 0 4px 10px -4px rgba(49, 130, 246, 0.6);
+  color: #fff;
+  box-shadow: 0 0 0 3px var(--surface-container), 0 0 0 5px var(--brand-soft-strong), 0 6px 14px -4px rgba(49, 130, 246, 0.6);
 }
 
 .visit-route-title {
@@ -203,44 +263,68 @@
 .visit-route-desc {
   max-width: 100%;
   font-size: 11.5px;
+  line-height: 1.45;
   color: var(--text-muted);
   overflow-wrap: anywhere;
 }
 
-.visit-route-badge {
-  margin-top: 3px;
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(34, 197, 94, 0.14);
-  color: #15803d;
+/* 호버 — 포인터가 있는 기기에서만 살짝 확대·떠오름 */
+@media (hover: hover) {
+  .visit-route-step:hover {
+    background: var(--surface-inset);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 10px 22px -12px rgba(10, 24, 60, 0.3);
+  }
+  .visit-route-step:hover .visit-route-dot {
+    transform: scale(1.1);
+  }
+  .visit-route-step:hover .visit-route-dot {
+    box-shadow: 0 0 0 3px var(--surface-inset), inset 0 0 0 1.5px var(--brand);
+  }
+  .visit-route-step.is-last:hover .visit-route-dot {
+    box-shadow: 0 0 0 3px var(--surface-inset), 0 0 0 5px var(--brand-soft-strong), 0 8px 18px -4px rgba(49, 130, 246, 0.65);
+  }
 }
-.visit-route-step.is-last .visit-route-badge {
-  background: var(--brand-soft);
-  color: var(--brand);
+
+@media (prefers-reduced-motion: reduce) {
+  .visit-route-step,
+  .visit-route-dot {
+    transition: none;
+  }
 }
-[data-theme="dark"] .visit-route-badge { color: #4ade80; }
 
 /* ── 지도 ──────────────────────────────────
    레거시 홈페이지처럼 "여기 어디쯤"을 한 장으로 보여주는 자리.
    드래그·확대는 컴포넌트에서 잠갔고, 표면 전체가 카카오맵으로 가는 버튼이다. */
 .visit-map {
   position: relative;
-  height: 220px;
-  border-radius: 18px;
+  height: 236px;
+  border-radius: 22px;
   overflow: hidden;
   border: 1px solid var(--card-border);
   background: var(--surface-inset);
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--card-shadow), 0 18px 40px -20px rgba(10, 24, 60, 0.3);
 }
 
 .visit-map-canvas {
   position: absolute;
-  inset: 0;
+  /* 카카오 기본 컨트롤(로고·축척)이 왼쪽 아래에 여백 없이 붙는다 — 캔버스를 아래로
+     조금 늘려 그 띠를 카드 밖으로 밀어내고, 우리 글래스 바가 그 자리를 맡는다 */
+  inset: 0 0 -34px 0;
   /* 카카오 SDK 가 내부 div 에 z-index 를 직접 박아서, 여기서 쌓임 맥락을 만들어
      가둬 두지 않으면 아래 .visit-map-tap 버튼이 지도 타일에 덮여 눌리지 않는다 */
   z-index: 0;
+}
+
+/* 안쪽 1px 흰 링 — 히어로와 같은 유리 액자 */
+.visit-map::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  pointer-events: none;
 }
 
 /* 카카오 지도 타일은 라이트 전용이라 다크에서 흰 판으로 튄다. 색을 바꾸면 지명이
@@ -273,45 +357,67 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  padding: 10px;
+  display: block;
+  padding: 0;
   border: none;
   background: transparent;
   cursor: pointer;
+  font-family: inherit;
 }
 
-.visit-map-chip {
+/* 글래스 컨트롤 바 — 카드 안쪽 여백(12px)을 두고 위·아래에 떠 있는 반투명 유리 줄 */
+.visit-map-bar {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+.visit-map-bar--top { top: 12px; }
+.visit-map-bar--bottom { bottom: 12px; }
+
+.visit-map-glass {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 7px 11px;
+  padding: 7px 12px;
   border-radius: 999px;
-  border: 1px solid var(--card-border);
-  background: var(--surface-container);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(1.3);
+  -webkit-backdrop-filter: blur(12px) saturate(1.3);
+  box-shadow: inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)), 0 6px 16px -8px rgba(10, 24, 60, 0.35);
   color: var(--text-strong);
   font-size: 11.5px;
   font-weight: 700;
-  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.25);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.visit-map-glass--label {
+  color: var(--brand);
+}
+
+.visit-map-glass--muted {
+  color: var(--text-muted);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+}
+
+.visit-map-chip {
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
 .visit-map-tap:hover .visit-map-chip {
   background: var(--brand);
   border-color: var(--brand);
   color: var(--on-brand);
-}
-
-/* 카카오맵 CustomOverlay 안에서 그려지는 라벨 (JS 로 생성된 DOM) */
-.visit-map-pin {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--brand);
-  color: var(--on-brand);
-  font-size: 11.5px;
-  font-weight: 700;
-  white-space: nowrap;
-  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.45);
+  transform: translateY(-1px);
 }
 
 /* ── 주소 · 전화 · 길찾기 ──────────────── */
@@ -333,7 +439,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 13px 14px;
+  padding: 15px 16px;
 }
 
 .visit-contact-row + .visit-contact-row {
@@ -361,8 +467,9 @@
 }
 
 .visit-contact-value {
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   line-height: 1.45;
   color: var(--text-strong);
   word-break: keep-all;
@@ -377,48 +484,80 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
-  border-radius: 10px;
-  border: 1px solid var(--card-border);
-  background: var(--surface-inset);
-  color: var(--text-muted);
+  border-radius: 999px;
+  border: 1px solid var(--brand-soft-strong);
+  background: var(--brand-soft);
+  color: var(--brand);
   cursor: pointer;
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition: color 0.15s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
 .visit-contact-action:hover {
-  background: var(--brand-soft);
-  color: var(--brand);
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+  transform: translateY(-1px);
 }
 
+/* 길찾기 — 브랜드 마크가 들어간 큼직한 필(pill) 버튼 3개.
+   모바일에서 엄지로 바로 누를 크기(높이 48px), 텍스트는 굵게 */
 .visit-maps {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
 .visit-map-btn {
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 12px 6px;
-  border-radius: 14px;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border-radius: 999px;
   border: 1px solid var(--card-border);
   background: var(--surface-container);
   color: var(--text-strong);
-  font-size: 12px;
-  font-weight: 600;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
   cursor: pointer;
   box-shadow: var(--card-shadow);
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.visit-map-btn svg {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
 }
 
 .visit-map-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-soft-strong);
   background: var(--brand-soft);
-  color: var(--brand);
+  box-shadow: 0 12px 24px -12px rgba(10, 24, 60, 0.35);
+}
+
+.visit-map-btn:active {
+  transform: translateY(0);
+}
+
+/* 좁은 폰에서는 라벨이 잘리지 않게 세로 쌓기 */
+@media (max-width: 380px) {
+  .visit-maps {
+    grid-template-columns: 1fr;
+  }
+  .visit-map-btn {
+    justify-content: flex-start;
+    padding-left: 16px;
+  }
 }
 
 /* ── 다음 예배까지 (한 줄) ─────────────── */
@@ -462,101 +601,177 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── 오시는 방법 (접이식) ──────────────── */
-.visit-folds {
+/* ── 오시는 방법 — 탭 + 벤토 ──────────────
+   상단 전환 탭(대중교통 / 자가용·주차 / 처음 오시는 분) 아래에 정보 단위 타일이 깔린다.
+   탭 마커는 /news 세그먼트와 같은 인장(seal-marker) 문법 */
+.visit-guide {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-.visit-fold {
-  border-radius: 16px;
-  border: 1px solid var(--card-border);
-  background: var(--surface-container);
-  box-shadow: var(--card-shadow);
-  overflow: hidden;
-}
-
-.visit-fold-head {
-  width: 100%;
+.visit-tabs {
+  position: relative;
+  isolation: isolate;
   display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 14px;
-  border: none;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
 }
 
-.visit-fold-icon {
+.visit-tabs-marker {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  border-radius: 12px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.3, 0.5, 1);
+  will-change: transform;
+}
+
+.visit-tab {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  border-radius: 11px;
-  background: var(--surface-inset);
+  gap: 6px;
+  height: 40px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
   color: var(--text-muted);
-  transition: background-color 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.15s ease, transform 0.15s ease;
 }
 
-.visit-fold-head.is-open .visit-fold-icon {
-  background: var(--brand-soft);
+.visit-tab:hover {
   color: var(--brand);
+  background: var(--brand-soft);
 }
 
-.visit-fold-text {
+.visit-tab.is-active,
+.visit-tab.is-active:hover {
+  color: var(--on-brand);
+  background: transparent;
+}
+
+.visit-tab:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visit-tabs-marker {
+    transition: none;
+  }
+}
+
+/* 벤토 — 2열, 넓은 타일은 두 칸 */
+.visit-bento {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.visit-tile {
   min-width: 0;
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  box-shadow: var(--card-shadow);
 }
 
-.visit-fold-title {
+.visit-tile--wide {
+  grid-column: 1 / -1;
+}
+
+.visit-tile-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
   font-size: 14px;
   font-weight: 700;
   color: var(--text-strong);
 }
 
-.visit-fold-desc {
-  font-size: 11.5px;
-  color: var(--text-muted);
-}
-
-.visit-fold-caret {
+.visit-tile-icon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
-  color: var(--text-muted);
-  transition: transform 0.18s ease;
-}
-
-.visit-fold-head.is-open .visit-fold-caret {
-  transform: rotate(180deg);
+  border-radius: 10px;
+  background: var(--brand-soft);
   color: var(--brand);
 }
 
-.visit-fold-body {
-  padding: 14px 16px 16px;
-  border-top: 1px solid var(--card-border);
-}
-
-.visit-fold-sub {
-  display: flex;
+.visit-tile-label {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin: 0 0 8px;
-  font-size: 13px;
+  gap: 5px;
+  font-size: 11.5px;
   font-weight: 700;
-  color: var(--text-strong);
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
 }
 
-.visit-body-text + .visit-fold-sub {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--card-border);
+/* 숫자 타일 — 주차 가능 대수 */
+.visit-tile--stat {
+  justify-content: space-between;
+  background: linear-gradient(160deg, var(--brand-soft), transparent 70%), var(--surface-container);
+}
+
+.visit-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.visit-stat.is-empty {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.visit-stat-unit {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+
+/* 꿀팁 타일 — 앰버 포인트 */
+.visit-tile--tip {
+  background: var(--amber-soft);
+  border-color: var(--amber-soft-strong);
+}
+
+.visit-tile--tip .visit-tile-label,
+.visit-tile--tip .visit-body-text {
+  color: var(--amber);
 }
 
 .visit-body-text {
@@ -594,36 +809,9 @@
   font-variant-numeric: tabular-nums;
 }
 
-.visit-parking {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--card-border);
-}
-
-.visit-parking-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-strong);
-}
-
-.visit-parking-tip {
-  margin: 10px 0 0;
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-size: 12.5px;
-  line-height: 1.6;
-  white-space: pre-line;
-  background: var(--amber-soft);
-  border: 1px solid var(--amber-soft-strong);
-  color: var(--amber);
-}
-
 /* ── 처음 오시는 분께 ──────────────────── */
 .visit-first {
+  grid-column: 1 / -1;
   padding: 16px 18px;
   border-radius: 18px;
   border: 1px solid var(--card-border);
@@ -789,9 +977,13 @@
   }
 
   /* ── Hero — 넓어진 무대에 맞춰 한 단계 키운다 ── */
+  .visit-hero {
+    border-radius: 24px;
+  }
+
   .visit-hero-photo {
-    min-height: 260px;
-    padding: 26px 32px 30px;
+    min-height: 300px;
+    padding: 28px 34px 32px;
   }
 
   .visit-hero-title {
@@ -799,12 +991,15 @@
   }
 
   .visit-route {
-    padding: 20px 32px 22px;
+    --route-dot: 34px;
+    --route-pad-x: 24px;
+    --route-tile-pad: 12px;
+    padding: 18px var(--route-pad-x) 18px;
+    gap: 10px;
   }
 
-  .visit-route-dot {
-    width: 34px;
-    height: 34px;
+  .visit-route::before {
+    top: calc(18px + var(--route-tile-pad) + var(--route-num-h) + 4px + var(--route-dot) / 2 - 1px);
   }
 
   .visit-route-title {
@@ -818,12 +1013,15 @@
   /* ── 지도 — 레거시처럼 큼직하게 한 장 ── */
   .visit-map {
     height: 340px;
-    border-radius: 20px;
+    border-radius: 24px;
   }
 
-  .visit-map-tap {
-    padding: 14px;
+  .visit-map-bar {
+    left: 16px;
+    right: 16px;
   }
+  .visit-map-bar--top { top: 16px; }
+  .visit-map-bar--bottom { bottom: 16px; }
 
   /* ── 2단 그리드 ── */
   .visit-columns {
@@ -856,17 +1054,18 @@
     gap: 7px;
   }
 
-  .visit-map-btn {
-    padding: 13px 4px;
+  /* ── 왼쪽: 벤토 타일은 넓은 칸에서 조금 여유 있게 ── */
+  .visit-bento {
+    gap: 12px;
   }
 
-  /* ── 왼쪽: 접이식 안내는 넓은 칸에서 조금 여유 있게 ── */
-  .visit-fold-head {
-    padding: 16px;
+  .visit-tile {
+    padding: 18px 20px;
   }
 
-  .visit-fold-body {
-    padding: 16px 18px 18px;
+  .visit-tab {
+    height: 42px;
+    font-size: 13.5px;
   }
 
   .visit-first-cta {

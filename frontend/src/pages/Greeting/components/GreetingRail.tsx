@@ -114,8 +114,10 @@ export default function GreetingRail({ ko }: Props) {
           </button>
         )}
         <div className="gr-visit-links">
-          <button type="button" className="gr-visit-link" onClick={() => navigate('/worship')}>
+          {/* 가장 많이 누르는 길 하나만 프라이머리 — 나머지는 보조 */}
+          <button type="button" className="gr-visit-link gr-visit-link--primary" onClick={() => navigate('/worship')}>
             {ko ? '예배 안내' : 'Worship'}
+            <ChevronRightIcon size={14} />
           </button>
           <button type="button" className="gr-visit-link" onClick={() => navigate('/visit')}>
             {ko ? '오시는 길' : 'Directions'}

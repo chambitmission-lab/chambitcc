@@ -49,6 +49,14 @@ export const visit = {
   visitParkingTitle: 'Parking',
   visitParkingBody: '',
   visitParkingTip: '',
+  visitParkingCapacityLabel: 'Parking spaces',
+  visitParkingCapacity: '',
+  visitParkingCapacityUnit: 'cars',
+  visitParkingTipLabel: 'Free parking tip',
+  visitParkingNearbyLabel: 'Nearby public parking',
+  visitParkingNearby: '',
+  visitNavLabel: 'Navigation',
+  visitFirstTabLabel: 'First visit',
 
   // ── First visit ───────────────────────
   visitFirstTitle: 'If this is your first visit',

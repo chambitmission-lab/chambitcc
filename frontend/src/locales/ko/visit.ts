@@ -56,6 +56,15 @@ export const visit = {
   visitParkingBody: '',
   /** 주일 혼잡 시간대 등 현실적인 팁 — 확인되면 채운다 */
   visitParkingTip: '',
+  // 주차 카드 3종 — 비워 두면 방문자에게는 숨겨진다
+  visitParkingCapacityLabel: '주차 가능',
+  visitParkingCapacity: '',
+  visitParkingCapacityUnit: '대',
+  visitParkingTipLabel: '무료 주차 꿀팁',
+  visitParkingNearbyLabel: '주변 공영주차장',
+  visitParkingNearby: '',
+  visitNavLabel: '내비게이션',
+  visitFirstTabLabel: '처음 오시는 분',
 
   // ── 처음 오시는 분 ────────────────────
   visitFirstTitle: '처음 오시는 분께',
