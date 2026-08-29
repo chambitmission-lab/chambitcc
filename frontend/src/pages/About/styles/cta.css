@@ -61,9 +61,12 @@
   margin-bottom: 0.6rem;
 }
 
-.cta-title::after {
-  content: ' 💗';
-  font-size: 0.8em;
+/* 제목 옆 하트 — 이모지 대신 선화 아이콘 (이모지 금지 규칙) */
+.cta-title-heart {
+  display: inline-block;
+  vertical-align: -0.12em;
+  margin-left: 0.35rem;
+  color: #ff8fab;
 }
 
 .cta-text {

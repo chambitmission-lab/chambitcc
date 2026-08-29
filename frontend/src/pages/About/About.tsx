@@ -21,6 +21,7 @@ import {
   BriefcaseIcon,
   MedalIcon,
 } from './icons'
+import { EmojiText } from '../../components/common/EmojiText'
 import './styles/index.css'
 
 // 다섯 가지 만남 — 행 순서 = 화면 순서. key 는 이미지 파일명(./img/{key}.webp)이자 프롬프트 문서의 슬러그
@@ -491,6 +492,7 @@ const About = () => {
                 <EditableText fieldKey="aboutCtaTitle" isAdmin={isAdminUser}>
                   {tx('aboutCtaTitle')}
                 </EditableText>
+                <HeartIcon size={22} className="cta-title-heart" />
               </h3>
               <p className="cta-text" style={{ whiteSpace: 'pre-line' }}>
                 <EditableText fieldKey="aboutCtaText" multiline isAdmin={isAdminUser}>
@@ -523,13 +525,13 @@ const About = () => {
               <div className="cta-foot">
                 <div className="cta-badge">
                   <EditableText fieldKey="aboutCtaBadge" isAdmin={isAdminUser}>
-                    {tx('aboutCtaBadge')}
+                    <EmojiText text={tx('aboutCtaBadge')} />
                   </EditableText>
                 </div>
                 {/* 감사 인사 — 초대 카드의 맺음말로 안에 들인다 */}
                 <p className="footer-text" style={{ whiteSpace: 'pre-line' }}>
                   <EditableText fieldKey="aboutFooterMessage" multiline isAdmin={isAdminUser}>
-                    {tx('aboutFooterMessage')}
+                    <EmojiText text={tx('aboutFooterMessage')} />
                   </EditableText>
                 </p>
               </div>
@@ -541,8 +543,8 @@ const About = () => {
           {isAdminUser && (
             <div className="about-admin-hint">
               {ko
-                ? '✏️ 아이콘을 눌러 텍스트와 사진을 바로 수정할 수 있습니다.'
-                : 'Click the ✏️ icon to edit text and photos inline.'}
+                ? '연필 아이콘을 눌러 텍스트와 사진을 바로 수정할 수 있습니다.'
+                : 'Click the pencil icon to edit text and photos inline.'}
             </div>
           )}
         </div>

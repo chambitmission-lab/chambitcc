@@ -301,8 +301,12 @@
   }
 
   /* 인사말 링크 — 브랜드 반전 타일, 글은 위·화살표는 아래로 */
-  .pastor-greeting-link {
+  /* 인사말 링크 — 브랜드 반전 타일. 히어로 "예배 안내 보기"와 같은 인장(도장) 문법:
+     블루 그라데이션 + 흰 실선 안쪽 링 + 옅은 후광 + 안쪽 점선 압인 링.
+     공통 타일 껍데기(.pastor-section .pastor-greeting-link)를 이기도록 같은 스펙으로 */
+  .pastor-section .pastor-greeting-link {
     grid-area: link;
+    position: relative;
     flex-direction: column;
     align-items: flex-start;
     justify-content: space-between;
@@ -311,24 +315,42 @@
     color: #fff;
     border-color: transparent;
     background:
-      radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.22), transparent 42%),
-      linear-gradient(150deg, #4593fc, #2b78ee 70%, #1b6ef3);
+      radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.26), transparent 48%),
+      linear-gradient(155deg, #4593fc, #2b78ee);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      0 0 0 3px rgba(49, 130, 246, 0.12),
+      0 6px 18px rgba(49, 130, 246, 0.45);
     font-size: 1rem;
     text-align: left;
     line-height: 1.4;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .pastor-greeting-link:hover {
-    background:
-      radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.18), transparent 42%),
-      linear-gradient(150deg, #3585f7, #1b6ef3);
-    border-color: transparent;
-    transform: translateY(-2px);
-    box-shadow: 0 16px 32px -12px rgba(49, 130, 246, 0.6);
+  .pastor-section .pastor-greeting-link::after {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border-radius: 17px;
+    border: 1px dashed rgba(255, 255, 255, 0.32);
+    pointer-events: none;
   }
 
-  .pastor-greeting-link svg {
+  .pastor-section .pastor-greeting-link:hover {
+    background:
+      radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.22), transparent 48%),
+      linear-gradient(155deg, #3585f7, #1b6ef3);
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      0 0 0 3px rgba(49, 130, 246, 0.16),
+      0 12px 26px rgba(49, 130, 246, 0.5);
+  }
+
+  .pastor-section .pastor-greeting-link svg {
     width: 22px;
     height: 22px;
   }
