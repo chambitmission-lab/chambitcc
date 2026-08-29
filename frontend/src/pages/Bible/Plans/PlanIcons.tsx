@@ -12,7 +12,7 @@
  */
 import type { CSSProperties, ReactElement } from 'react'
 import {
-  Bird,
+  Feather,
   CaretRight,
   Flag,
   BookOpen,
@@ -27,7 +27,7 @@ import {
   HandsPraying,
   Heart,
   Key,
-  MapTrifold,
+  RoadHorizon,
   Mountains,
   MusicNote,
   PencilLine,
@@ -63,10 +63,10 @@ const duotone =
 export const SproutIcon = duotone(Plant)
 /** 십자가 — 복음서·신약 플랜 */
 export const CrossIcon = duotone(Cross)
-/** 접힌 지도 — 성경 전체의 큰 그림(개관) */
-export const MapIcon = duotone(MapTrifold)
-/** 비둘기 — 평화·성령 */
-export const DoveIcon = duotone(Bird)
+/** 지평선까지 뻗은 길 — 창조에서 새 하늘까지, 성경 전체의 큰 그림(개관) */
+export const MapIcon = duotone(RoadHorizon)
+/** 깃털 — 비둘기(평화·성령). Phosphor에 비둘기가 없어 옆모습 새(Bird) 대신 깃털로 */
+export const DoveIcon = duotone(Feather)
 /** 불꽃 — 연속 기록(스트릭) */
 export const FlameIcon = duotone(Flame)
 /** 지평선 위로 오르는 해 — 새벽·아침 묵상 */

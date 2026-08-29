@@ -6,7 +6,7 @@
  */
 import type { CSSProperties, ReactElement } from 'react'
 import {
-  Bird,
+  Feather,
   FlowerTulip,
   BookOpen,
   Church,
@@ -37,7 +37,7 @@ export const NoteIcon = duotone(MusicNote)
 export const BookIcon = duotone(BookOpen)
 export const PeopleIcon = duotone(Users)
 export const PersonIcon = duotone(User)
-export const DoveIcon = duotone(Bird)
+export const DoveIcon = duotone(Feather)
 export const StarIcon = duotone(Star)
 export const HeartIcon = duotone(Heart)
 export const SproutIcon = duotone(Plant)
