@@ -50,7 +50,7 @@ const TodayPlanCard = () => {
       <button
         type="button"
         onClick={() => navigate(`/bible/plans/${today.plan_id}`)}
-        className="glass-card w-full text-left rounded-2xl p-4"
+        className="plan-card w-full text-left p-4"
       >
         <div>
           <div className="flex items-center justify-between gap-2">
@@ -78,11 +78,11 @@ const TodayPlanCard = () => {
                 >
                   <path
                     d="M6 0.8 C 6.6 3.4, 10.4 5.6, 10.4 9.4 A4.4 4.4 0 0 1 1.6 9.4 C 1.6 6.6, 4.4 4.6, 6 0.8 Z"
-                    fill="var(--amber-icon)"
+                    fill="var(--brand)"
                   />
                   <path
                     d="M6 6.4 C 6.4 8, 8 8.8, 8 10.6 A2 2 0 0 1 4 10.6 C 4 9.2, 5.2 8.2, 6 6.4 Z"
-                    fill="#fff3d6"
+                    fill="#e6f0ff"
                   />
                 </svg>
                 {today.streak_count}일
@@ -90,19 +90,18 @@ const TodayPlanCard = () => {
             )}
           </div>
 
+          {/* 위계: 일차는 작은 칩, 본문 범위(사무엘하 17-19장)가 카드의 주인공 */}
           <div className="mt-3 min-w-0">
-            <p className="text-[15.5px] font-bold text-ink-strong tracking-[-0.01em]">
-              {today.day_number}일차
-              {titleDupsRefs
-                ? refs ? ` · ${refs}` : ''
-                : ` · ${today.day_title}`}
+            <span className="plan-day-chip">{today.day_number}일차</span>
+            <p className="mt-1.5 text-[19px] font-extrabold text-ink-strong tracking-[-0.03em] leading-tight">
+              {titleDupsRefs ? refs || today.plan_title : today.day_title}
             </p>
             {titleDupsRefs ? (
-              <p className="text-[12px] text-gray-400 dark:text-white/45 mt-0.5">
+              <p className="text-[12px] text-gray-400 dark:text-white/45 mt-1">
                 {journeyLine}
               </p>
             ) : (
-              refs && <p className="text-[12.5px] text-brand mt-0.5">{refs}</p>
+              refs && <p className="text-[12.5px] font-semibold text-brand mt-1">{refs}</p>
             )}
           </div>
 
@@ -133,7 +132,7 @@ const TodayPlanCard = () => {
 
           <div className="mt-2">
             {today.done_today ? (
-              <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-emerald-600 dark:text-emerald-300">
+              <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-brand">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>

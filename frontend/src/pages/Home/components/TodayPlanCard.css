@@ -1,6 +1,48 @@
 /* 오늘의 읽기 — 시편 119:105 "주의 말씀은 내 발에 등이요 내 길에 빛이니이다"
    진행률 도넛(하루 목표의 언어) 대신, 등불이 걸어온 만큼 밝혀진 길.
-   2%여도 "빈 원"이 아니라 "출발해서 걷는 중인 길"로 읽히게 한다. */
+   2%여도 "빈 원"이 아니라 "출발해서 걷는 중인 길"로 읽히게 한다.
+   (★막대형 프로그레스 바로 바꿨다가 사용자가 오솔길로 원복 — 재제안 금지)
+
+   색은 위 묵상 카드와 같은 브랜드 블루 단일 톤 — 앰버 길/오렌지 불꽃은
+   카드 하나만 다른 세계처럼 보이게 해서(파편화) 걷어냈다. */
+
+.plan-card {
+  border-radius: 24px;
+  border: 1px solid var(--card-border);
+  background:
+    linear-gradient(160deg, var(--brand-soft) 0%, rgba(49, 130, 246, 0) 48%),
+    linear-gradient(180deg, var(--surface-container) 0%, var(--surface-container-high) 100%);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    var(--card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.plan-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 14px 30px -14px var(--brand-glow),
+    var(--card-shadow);
+}
+
+.plan-card:active {
+  transform: translateY(0) scale(0.995);
+}
+
+/* 일차 칩 — 본문 범위에 시선을 양보하는 작은 배지 */
+.plan-day-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
 
 .plan-trail {
   position: relative;
@@ -27,20 +69,22 @@
 /* 걸어온 길 — 등불빛으로 밝혀진 구간 */
 .plan-trail__lit {
   fill: none;
-  stroke: var(--amber-icon);
+  stroke: var(--brand);
   stroke-width: 2.5;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.55));
+  filter: drop-shadow(0 0 3px var(--brand-glow));
 }
 
 /* 지금 서 있는 자리의 등불 — 심지의 빛 한 점 + 숨 쉬는 불빛 무리 */
 .plan-trail__lamp {
-  fill: #fff6e3;
-  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.9));
+  fill: #ffffff;
+  stroke: var(--brand);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 4px var(--brand-glow));
 }
 
 .plan-trail__lamp-glow {
-  fill: rgba(251, 191, 36, 0.22);
+  fill: var(--brand-soft-strong);
   transform-box: fill-box;
   transform-origin: center;
   animation: plan-lamp-breathe 3s ease-in-out infinite;
@@ -60,7 +104,7 @@
 
 /* 길 끝의 별 — 완주라는 종착지. 멀리서 희미하게 반짝인다 */
 .plan-trail__star {
-  fill: var(--amber-icon);
+  fill: var(--brand);
   opacity: 0.5;
   animation: plan-star-twinkle 4.2s ease-in-out infinite alternate;
 }
@@ -68,7 +112,7 @@
 /* 완주하면 별이 온전히 빛난다 */
 .plan-trail__star--reached {
   opacity: 1;
-  filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.8));
+  filter: drop-shadow(0 0 5px var(--brand-glow));
   animation: none;
 }
 
@@ -86,9 +130,9 @@
   position: absolute;
   right: 2px;
   bottom: 0;
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--brand);
   font-variant-numeric: tabular-nums;
 }
 
@@ -100,12 +144,12 @@
   flex-shrink: 0;
   font-size: 11px;
   font-weight: 700;
-  color: var(--amber);
+  color: var(--brand);
 }
 
 .plan-streak__flame {
   display: block;
-  filter: drop-shadow(0 0 3px rgba(251, 191, 36, 0.6));
+  filter: drop-shadow(0 0 3px var(--brand-glow));
 }
 
 @media (prefers-reduced-motion: reduce) {
