@@ -33,6 +33,13 @@ const MEETINGS = [
 ] as const
 type MeetingKey = (typeof MEETINGS)[number]['key']
 
+// 약력 3열 — 모바일 아코디언과 lg+ 벤토 타일이 같은 데이터를 쓴다
+const CREDENTIALS = [
+  ['aboutEducationLabel', 'aboutEducationValue', GraduationCapIcon],
+  ['aboutCareerLabel', 'aboutCareerValue', BriefcaseIcon],
+  ['aboutAwardLabel', 'aboutAwardValue', MedalIcon],
+] as const
+
 // 만남 장면 이미지 — 파일만 넣으면 자동 연결, 없는 장면은 그라데이션 카드 유지
 // (생성 프롬프트: frontend/docs/meeting-image-prompts.md)
 const MEETING_IMAGES = import.meta.glob('./img/*.webp', {
@@ -104,93 +111,96 @@ const About = () => {
   // 한눈에 정보 스트립 — 본문(모바일)과 우측 레일(lg+)이 같은 마크업을 공유한다.
   // 두 곳에 렌더되지만 CSS로 한 번에 하나만 보이므로 편집 UI가 겹치지 않는다.
   // 초대(CTA)를 받은 다음 "언제, 어디로 가면 되지?"에 답하는 카드
+  const callPhone = () => {
+    if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
+  }
+
+  // 한눈에 정보 — 벤토 그리드. 본문(모바일)과 히어로 우측(lg+)이 같은 마크업을 공유한다.
+  // 두 곳에 렌더되지만 CSS로 한 번에 하나만 보이므로 편집 UI가 겹치지 않는다.
+  // 타일 크기 = 우선순위: 주일예배(2칸, 브랜드 반전) > 오시는 길 · 전화(1칸씩)
   const renderQuickInfo = (modifier = '') => (
-          <section className={`about-quickinfo${modifier}`}>
-            <div
-              className="quickinfo-row"
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate('/worship')}
-              onKeyDown={rowKeyDown(() => navigate('/worship'))}
-            >
-              <span className="quickinfo-icon">
-                <ClockIcon size={20} />
-              </span>
-              <span className="quickinfo-main">
-                <span className="quickinfo-label">{ko ? '주일예배' : 'Sunday Worship'}</span>
-                <span className="quickinfo-value">
-                  <EditableText fieldKey="aboutInfoWorship" isAdmin={isAdminUser}>
-                    {tx('aboutInfoWorship')}
-                  </EditableText>
-                </span>
-              </span>
-              <span className="quickinfo-chevron">
-                <ChevronRightIcon size={18} />
-              </span>
-            </div>
+    <section className={`about-quickinfo${modifier}`} aria-label={ko ? '한눈에 정보' : 'Quick info'}>
+      <div
+        className="quickinfo-tile quickinfo-tile--worship"
+        role="button"
+        tabIndex={0}
+        onClick={() => navigate('/worship')}
+        onKeyDown={rowKeyDown(() => navigate('/worship'))}
+      >
+        <span className="quickinfo-icon">
+          <ClockIcon size={20} />
+        </span>
+        <span className="quickinfo-chevron">
+          <ChevronRightIcon size={18} />
+        </span>
+        <span className="quickinfo-main">
+          <span className="quickinfo-label">{ko ? '주일예배' : 'Sunday Worship'}</span>
+          <span className="quickinfo-value">
+            <EditableText fieldKey="aboutInfoWorship" isAdmin={isAdminUser}>
+              {tx('aboutInfoWorship')}
+            </EditableText>
+          </span>
+        </span>
+      </div>
 
-            <div
-              className="quickinfo-row"
-              role="button"
-              tabIndex={0}
-              onClick={openMap}
-              onKeyDown={rowKeyDown(openMap)}
-            >
-              <span className="quickinfo-icon">
-                <MapPinIcon size={20} />
-              </span>
-              <span className="quickinfo-main">
-                <span className="quickinfo-label">{ko ? '오시는 길' : 'Directions'}</span>
-                <span className="quickinfo-value">
-                  <EditableText fieldKey="aboutAddress" isAdmin={isAdminUser}>
-                    {tx('aboutAddress')}
-                  </EditableText>
-                </span>
-              </span>
-              <span className="quickinfo-chevron">
-                <ChevronRightIcon size={18} />
-              </span>
-            </div>
+      <div
+        className="quickinfo-tile quickinfo-tile--map"
+        role="button"
+        tabIndex={0}
+        onClick={openMap}
+        onKeyDown={rowKeyDown(openMap)}
+      >
+        <span className="quickinfo-icon">
+          <MapPinIcon size={20} />
+        </span>
+        <span className="quickinfo-chevron">
+          <ChevronRightIcon size={18} />
+        </span>
+        <span className="quickinfo-main">
+          <span className="quickinfo-label">{ko ? '오시는 길' : 'Directions'}</span>
+          <span className="quickinfo-value">
+            <EditableText fieldKey="aboutAddress" isAdmin={isAdminUser}>
+              {tx('aboutAddress')}
+            </EditableText>
+          </span>
+        </span>
+      </div>
 
-            {(phone.length > 0 || isAdminUser) && (
-              <div
-                className="quickinfo-row"
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
-                }}
-                onKeyDown={rowKeyDown(() => {
-                  if (phone) window.location.assign(`tel:${phone.replace(/[^0-9+]/g, '')}`)
-                })}
-              >
-                <span className="quickinfo-icon">
-                  <PhoneIcon size={20} />
-                </span>
-                <span className="quickinfo-main">
-                  <span className="quickinfo-label">{ko ? '전화' : 'Phone'}</span>
-                  <span className={`quickinfo-value${phone ? '' : ' is-empty'}`}>
-                    <EditableText fieldKey="aboutPhone" isAdmin={isAdminUser}>
-                      {phone || (ko ? '전화번호를 등록해주세요' : 'Add a phone number')}
-                    </EditableText>
-                  </span>
-                </span>
-                {phone.length > 0 && (
-                  <span className="quickinfo-chevron">
-                    <ChevronRightIcon size={18} />
-                  </span>
-                )}
-              </div>
-            )}
+      {(phone.length > 0 || isAdminUser) && (
+        <div
+          className="quickinfo-tile quickinfo-tile--phone"
+          role="button"
+          tabIndex={0}
+          onClick={callPhone}
+          onKeyDown={rowKeyDown(callPhone)}
+        >
+          <span className="quickinfo-icon">
+            <PhoneIcon size={20} />
+          </span>
+          {phone.length > 0 && (
+            <span className="quickinfo-chevron">
+              <ChevronRightIcon size={18} />
+            </span>
+          )}
+          <span className="quickinfo-main">
+            <span className="quickinfo-label">{ko ? '전화' : 'Phone'}</span>
+            <span className={`quickinfo-value${phone ? '' : ' is-empty'}`}>
+              <EditableText fieldKey="aboutPhone" isAdmin={isAdminUser}>
+                {phone || (ko ? '전화번호를 등록해주세요' : 'Add a phone number')}
+              </EditableText>
+            </span>
+          </span>
+        </div>
+      )}
 
-            {isAdminUser && (
-              <div className="quickinfo-admin-map">
-                {ko
-                  ? '지도 검색어·주차·사진 안내는 오시는 길 페이지에서 수정합니다.'
-                  : 'Map query, parking and photos are edited on the Directions page.'}
-              </div>
-            )}
-          </section>
+      {isAdminUser && (
+        <div className="quickinfo-admin-map">
+          {ko
+            ? '지도 검색어·주차·사진 안내는 오시는 길 페이지에서 수정합니다.'
+            : 'Map query, parking and photos are edited on the Directions page.'}
+        </div>
+      )}
+    </section>
   )
 
   return (
@@ -408,7 +418,7 @@ const About = () => {
               </div>
             </div>
 
-            {/* Credentials — 접힌 약력 */}
+            {/* Credentials — 모바일은 접힌 약력, lg+ 는 벤토 타일 3개(아래)로 펼친다 */}
             <details className="pastor-credentials">
               <summary>
                 <span>{ko ? '약력 보기' : 'View Credentials'}</span>
@@ -416,13 +426,7 @@ const About = () => {
               </summary>
               {/* 학력·경력·수상을 3열로 나란히 — 세로 한 줄로 늘어뜨리면 오른쪽이 비어 어색하다 */}
               <div className="credentials">
-                {(
-                  [
-                    ['aboutEducationLabel', 'aboutEducationValue', GraduationCapIcon],
-                    ['aboutCareerLabel', 'aboutCareerValue', BriefcaseIcon],
-                    ['aboutAwardLabel', 'aboutAwardValue', MedalIcon],
-                  ] as const
-                ).map(([labelKey, valueKey, Icon]) => (
+                {CREDENTIALS.map(([labelKey, valueKey, Icon]) => (
                   <div className="credential-item" key={labelKey}>
                     <div className="credential-label">
                       <Icon size={18} className="credential-label-icon" />
@@ -445,6 +449,28 @@ const About = () => {
                 ))}
               </div>
             </details>
+
+            {/* lg+ 벤토: 학력·경력·수상을 접지 않고 작은 타일 3개로 — 그리드 안에서
+                사진·편지 타일과 크기 위계를 이룬다 (모바일은 위 details 가 보이고 이건 숨김) */}
+            {CREDENTIALS.map(([labelKey, valueKey, Icon]) => (
+              <div className={`pastor-tile pastor-tile--cred pastor-tile--${labelKey}`} key={`tile-${labelKey}`}>
+                <div className="credential-label">
+                  <Icon size={18} className="credential-label-icon" />
+                  <EditableText fieldKey={labelKey} isAdmin={isAdminUser}>
+                    {tx(labelKey)}
+                  </EditableText>
+                </div>
+                <EditableText fieldKey={valueKey} multiline isAdmin={isAdminUser}>
+                  <ul className="credential-list">
+                    {toLines(tx(valueKey)).map((line, i) => (
+                      <li key={i} className="credential-line">
+                        {line}
+                      </li>
+                    ))}
+                  </ul>
+                </EditableText>
+              </div>
+            ))}
 
             {/* 인사말 전문은 /greeting 이 담당한다 — 여기 요약을 읽은 사람에게
                 "더 읽고 싶다"는 다음 걸음을 준다 (역대 담임목사도 그 페이지에 있다) */}

@@ -170,73 +170,167 @@
     line-height: 1.45;
   }
 
-  /* 담임목사 — 왼쪽 글, 오른쪽 큰 사진 */
+  /* 담임목사 — 벤토 그리드. 섹션 카드 껍데기를 벗고 회색 캔버스 위에 흰 타일을 깐다.
+     크기 = 위계: 사진(세로 큰 타일) · 편지(가장 넓은 타일) · 이름 · 학력/경력/수상 · 인사말 링크
+     ┌ photo ─┬ letter ──────────────────┐
+     ├ head  ─┤ letter                   │
+     ├ edu ───┼ career ─┬ award ─┬ link ─┤ */
   .pastor-section {
     display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
+    grid-template-columns: 280px repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
     grid-template-areas:
-      'badge photo'
-      'head photo'
-      'letter photo'
-      'cred cred'
-      'link link';
-    column-gap: 3rem;
-    align-items: start;
+      'badge badge badge badge'
+      'photo letter letter letter'
+      'head letter letter letter'
+      'edu career award link';
+    gap: 1rem;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    align-items: stretch;
   }
 
   .pastor-section .section-badge {
     grid-area: badge;
-    margin-bottom: 0.75rem;
+    margin: 0.25rem 0 0 0.25rem;
   }
 
-  /* head 는 그리드에 녹여 사진 슬롯/이름 블록을 따로 배치한다 */
+  /* 타일 공통 껍데기 */
+  .pastor-section .pastor-photo-slot,
+  .pastor-section .pastor-head-text,
+  .pastor-section .pastor-letter,
+  .pastor-section .pastor-tile--cred,
+  .pastor-section .pastor-greeting-link {
+    background: var(--surface-container);
+    border: 1px solid var(--card-border);
+    border-radius: 22px;
+    box-shadow: var(--card-shadow);
+    margin: 0;
+  }
+
+  /* head 는 그리드에 녹여 사진 슬롯/이름 블록을 따로 타일로 */
   .pastor-head {
     display: contents;
   }
 
+  /* 사진 타일 — 사진이 타일을 꽉 채운다 */
   .pastor-photo-slot {
     grid-area: photo;
-    justify-self: end;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    display: block;
+  }
+
+  /* 사진 미등록(비관리자)이면 빈 흰 타일 대신 옅은 브랜드 그라데이션 */
+  .pastor-photo-slot:empty {
+    background: linear-gradient(160deg, var(--brand-soft), var(--surface-container) 80%);
+  }
+
+  .pastor-photo-slot > * {
+    display: block;
     width: 100%;
-    max-width: 300px;
+    height: 100%;
   }
 
   .pastor-photo-slot .pastor-photo {
     width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 5;
-    border-radius: 24px;
+    height: 100%;
+    border-radius: 0;
     object-fit: cover;
   }
 
+  .pastor-photo-slot .pastor-photo--empty {
+    display: flex;
+    border-radius: 0;
+    border: 0;
+  }
+
+  /* 이름 타일 */
   .pastor-head-text {
     grid-area: head;
-    margin-bottom: 1.25rem;
+    justify-content: center;
+    padding: 1.25rem 1.5rem;
   }
 
   .pastor-name {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .pastor-nickname {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
+  /* 편지 타일 — 가장 넓다 */
   .pastor-letter {
     grid-area: letter;
+    padding: 2.25rem 2.5rem 2rem;
   }
 
   .pastor-text {
     font-size: 1.0625rem;
   }
 
+  /* 아코디언은 모바일 전용 — lg+ 는 아래 타일 3개가 대신한다 */
   .pastor-credentials {
-    grid-area: cred;
-    margin-top: 0.5rem;
+    display: none;
   }
 
+  .pastor-tile--cred {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem 1.35rem 1.35rem;
+    min-height: 168px;
+  }
+
+  .pastor-tile--aboutEducationLabel {
+    grid-area: edu;
+  }
+
+  .pastor-tile--aboutCareerLabel {
+    grid-area: career;
+  }
+
+  .pastor-tile--aboutAwardLabel {
+    grid-area: award;
+  }
+
+  .pastor-tile--cred .credential-label {
+    border-bottom-color: var(--card-border);
+  }
+
+  /* 인사말 링크 — 브랜드 반전 타일, 글은 위·화살표는 아래로 */
   .pastor-greeting-link {
     grid-area: link;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.35rem;
+    color: #fff;
+    border-color: transparent;
+    background:
+      radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.22), transparent 42%),
+      linear-gradient(150deg, #4593fc, #2b78ee 70%, #1b6ef3);
+    font-size: 1rem;
+    text-align: left;
+    line-height: 1.4;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .pastor-greeting-link:hover {
+    background:
+      radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.18), transparent 42%),
+      linear-gradient(150deg, #3585f7, #1b6ef3);
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px -12px rgba(49, 130, 246, 0.6);
+  }
+
+  .pastor-greeting-link svg {
+    width: 22px;
+    height: 22px;
   }
 
   /* 함께 하실래요 — 타일 4개 한 줄 */

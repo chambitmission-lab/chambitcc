@@ -235,6 +235,11 @@
   }
 }
 
+/* lg+ 벤토 전용 약력 타일 — 모바일에선 details 아코디언이 대신하므로 숨김 */
+.pastor-tile--cred {
+  display: none;
+}
+
 /* 인사말 전문(/greeting)으로 넘기는 링크 — 요약을 읽은 사람의 다음 걸음.
    약력 아코디언 아래에 두어 "더 읽기"의 위계를 분명히 한다. */
 .pastor-greeting-link {
