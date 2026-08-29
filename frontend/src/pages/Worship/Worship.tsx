@@ -1,3 +1,4 @@
+import { Info, MapPin } from '@phosphor-icons/react'
 import { memo, useState, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Language } from '../../locales'
@@ -13,6 +14,10 @@ import {
   serviceDays,
   type Occurrence,
 } from '../../utils/worshipSchedule'
+import WorshipRail from './components/WorshipRail'
+import { useNavigate } from 'react-router-dom'
+import { useAboutContent } from '../../hooks/useAboutContent'
+import { BookOpenIcon, ChevronRightIcon, ClockIcon, MapPinIcon, PlayCircleIcon } from '../About/icons'
 import './Worship.css'
 
 // 평일 예배 종류별 emblem 아이콘 (새벽/수요/금요·기타)
@@ -256,6 +261,10 @@ const FILTER_KEY = {
 const Worship = () => {
   const { t, language } = useLanguage()
   const isAdminUser = isAdmin()
+  const navigate = useNavigate()
+  const { tx } = useAboutContent()
+  const liveUrl = tx('worshipLiveUrl').trim()
+  const hasLive = /^https?:\/\//i.test(liveUrl)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingData, setEditingData] = useState<WorshipService | null>(null)
   const [sundayServices, setSundayServices] = useState<WorshipService[]>([])
@@ -488,16 +497,29 @@ const Worship = () => {
                 <p className="worship-hero-subtitle">{t('worshipSubtitle')}</p>
               </div>
             </div>
+            {/* 카운터 = 필터 탭. 누르면 아래 목록이 그 유형으로 걸러지고, 다시 누르면 전체로 */}
             {!loading && (
-              <div className="worship-hero-stats">
-                <div className="worship-stat">
-                  <span className="worship-stat-num">{activeSunday.length}</span>
-                  <span className="worship-stat-label">{t('worshipSundayStat')}</span>
-                </div>
-                <div className="worship-stat">
-                  <span className="worship-stat-num">{activeWeekday.length}</span>
-                  <span className="worship-stat-label">{t('worshipWeekdayStat')}</span>
-                </div>
+              <div className="worship-hero-stats" role="group" aria-label={t('worshipFilterAria')}>
+                {(
+                  [
+                    ['sunday', activeSunday.length, t('worshipSundayStat')],
+                    ['weekday', activeWeekday.length, t('worshipWeekdayStat')],
+                  ] as const
+                ).map(([key, count, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`worship-stat${filter === key ? ' worship-stat--active' : ''}`}
+                    aria-pressed={filter === key}
+                    onClick={() => setFilter(filter === key ? 'all' : key)}
+                  >
+                    <span className="worship-stat-num">{count}</span>
+                    <span className="worship-stat-label">{label}</span>
+                    <span className="worship-stat-chev" aria-hidden="true">
+                      <ChevronRightIcon size={13} />
+                    </span>
+                  </button>
+                ))}
               </div>
             )}
             {/* 지금 예배 중이면 라이브 배너, 아니면 다음 예배 카운트다운 배너 */}
@@ -586,19 +608,78 @@ const Worship = () => {
                 </div>
               </div>
 
+              {/* 오늘 예배가 없을 때 — 문구 하나 대신 벤토 타일로 채운다:
+                  가장 가까운 예배(큰 카드) / 온라인으로 함께 / 오시는 길 */}
               {emptyToday && (
-                <div className="worship-state">
-                  <p>{t('worshipEmptyToday')}</p>
-                  {upcoming && (
-                    <p className="worship-state-hint">
-                      {t('worshipNearestService')} · {pick(language, upcoming.service.name, upcoming.service.name_en)}{' '}
-                      ({dayLabel(upcoming.occ, seoulNow, language, t('worshipToday'), t('worshipTomorrow'))}{' '}
-                      {formatTimeLabel(upcoming.occ.startMin, language)})
-                    </p>
-                  )}
+                <div className="worship-empty" key="empty">
+                  <p className="worship-empty-lead">{t('worshipEmptyLead')}</p>
+                  <div className="worship-empty-bento">
+                    {upcoming && (
+                      <button
+                        type="button"
+                        className="worship-empty-tile worship-empty-tile--next"
+                        style={{ '--i': 0 } as React.CSSProperties}
+                        onClick={() => scrollToService(upcoming.service.id)}
+                      >
+                        <span className="worship-empty-label">
+                          <span className="worship-next-dot" aria-hidden />
+                          {t('worshipNearestService')}
+                        </span>
+                        <span className="worship-empty-name">
+                          {pick(language, upcoming.service.name, upcoming.service.name_en)}
+                        </span>
+                        <span className="worship-empty-time">
+                          <ClockIcon size={14} />
+                          {dayLabel(upcoming.occ, seoulNow, language, t('worshipToday'), t('worshipTomorrow'))}{' '}
+                          {formatTimeLabel(upcoming.occ.startMin, language)}
+                          {upcoming.service.location
+                            ? ` · ${pick(language, upcoming.service.location, upcoming.service.location_en)}`
+                            : ''}
+                        </span>
+                        <span className="worship-empty-tag">{t(taglineKey(upcoming.service))}</span>
+                        <span className="worship-empty-cta">
+                          {t('worshipEmptyNextCta')}
+                          <ChevronRightIcon size={14} />
+                        </span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      className="worship-empty-tile"
+                      style={{ '--i': 1 } as React.CSSProperties}
+                      onClick={() => {
+                        if (hasLive) window.open(liveUrl, '_blank', 'noopener,noreferrer')
+                        else navigate('/sermon')
+                      }}
+                    >
+                      <span className="worship-empty-icon">
+                        {hasLive ? <PlayCircleIcon size={20} /> : <BookOpenIcon size={20} />}
+                      </span>
+                      <span className="worship-empty-tile-title">
+                        {hasLive ? t('worshipRailChannelCta') : t('worshipEmptyOnlineTitle')}
+                      </span>
+                      <span className="worship-empty-tile-desc">
+                        {hasLive ? t('worshipRailLiveDesc') : t('worshipEmptyOnlineDesc')}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="worship-empty-tile"
+                      style={{ '--i': 2 } as React.CSSProperties}
+                      onClick={() => navigate('/visit')}
+                    >
+                      <span className="worship-empty-icon">
+                        <MapPinIcon size={20} />
+                      </span>
+                      <span className="worship-empty-tile-title">{t('worshipEmptyVisitTitle')}</span>
+                      <span className="worship-empty-tile-desc">{t('worshipEmptyVisitDesc')}</span>
+                    </button>
+                  </div>
                   <button
                     type="button"
-                    className="worship-btn worship-btn--outline"
+                    className="worship-btn worship-btn--outline worship-empty-all"
                     onClick={() => setFilter('all')}
                   >
                     {t('worshipViewAll')}
@@ -606,20 +687,21 @@ const Worship = () => {
                 </div>
               )}
 
-              {/* 주일 예배 */}
+              {/* 주일 예배 — 필터가 바뀌면 key 로 다시 마운트해 타임라인 전환 애니메이션을 재생한다 */}
               {showSunday && (
-                <section className="worship-block">
+                <section className="worship-block worship-block--timeline" key={`sunday-${filter}`}>
                   <h2 className="worship-block-title">{t('worshipScheduleTitle')}</h2>
                   {activeSunday.length === 0 ? (
                     <div className="worship-state">{t('worshipNoSundayServices')}</div>
                   ) : (
-                    activeSunday.map((service) => {
+                    activeSunday.map((service, i) => {
                       const status = serviceStatusToday(service, seoulNow)
                       return (
                         <div
                           key={service.id}
                           id={`worship-svc-${service.id}`}
                           className={`worship-item${highlightId === service.id ? ' worship-item--next' : ''}${status === 'ended' ? ' worship-item--ended' : ''}`}
+                          style={{ '--i': i } as React.CSSProperties}
                         >
                           {editingId === service.id && editingData ? (
                             // 편집 모드
@@ -748,18 +830,19 @@ const Worship = () => {
 
               {/* 평일 예배 */}
               {showWeekday && (
-                <section className="worship-block">
+                <section className="worship-block worship-block--timeline" key={`weekday-${filter}`}>
                   <h2 className="worship-block-title">{t('worshipWeekdayTitle')}</h2>
                   {visibleWeekday.length === 0 ? (
                     <div className="worship-state">{t('worshipNoWeekdayServices')}</div>
                   ) : (
-                    visibleWeekday.map((service) => {
+                    visibleWeekday.map((service, i) => {
                       const status = serviceStatusToday(service, seoulNow)
                       return (
                         <div
                           key={service.id}
                           id={`worship-svc-${service.id}`}
                           className={`worship-item${highlightId === service.id ? ' worship-item--next' : ''}${status === 'ended' ? ' worship-item--ended' : ''}`}
+                          style={{ '--i': i } as React.CSSProperties}
                         >
                           {editingId === service.id && editingData ? (
                             // 편집 모드
@@ -877,10 +960,10 @@ const Worship = () => {
               {/* 안내 노트 — lg에선 우측 레일의 같은 카드가 대신한다 */}
               <div className="worship-note worship-note--body">
                 <p className="worship-note-line">
-                  <span className="worship-note-key">📍 {t('worshipLocationNote')}</span> {t('worshipLocationText')}
+                  <span className="worship-note-key"><MapPin size={14} weight="duotone" aria-hidden="true" /> {t('worshipLocationNote')}</span> {t('worshipLocationText')}
                 </p>
                 <p className="worship-note-line">
-                  <span className="worship-note-key">ℹ️ {t('worshipInfoNote')}</span> {t('worshipInfoText')}
+                  <span className="worship-note-key"><Info size={14} weight="duotone" aria-hidden="true" /> {t('worshipInfoNote')}</span> {t('worshipInfoText')}
                 </p>
               </div>
             </>
@@ -888,94 +971,10 @@ const Worship = () => {
         </div>
       </div>
 
-      {/* 우측 위젯 레일 (lg+) — 스크롤해도 '다음 예배'와 바로가기가 따라온다.
-          새 API 없이 이미 계산된 값(upcoming·activeSunday·activeWeekday)만 재사용 */}
+      {/* 우측 위젯 레일 (lg+) — 본문과 겹치는 '다음 예배'·시간표는 두지 않는다(★중복 제거).
+          라이브·이번 주 설교·오시는 길 CTA 만 놓는다 (components/WorshipRail) */}
       <aside className="worship-rail">
-        {!loading && (ongoingNow || upcoming) && (() => {
-          const target = ongoingNow ?? upcoming!
-          return (
-            <button
-              type="button"
-              className="worship-rail-card worship-rail-next"
-              onClick={() => scrollToService(target.service.id)}
-            >
-              <span className="worship-rail-label">
-                <span className="worship-next-dot" aria-hidden />
-                {ongoingNow
-                  ? t('worshipLiveOngoing')
-                  : upcoming!.occ.dayOffset === 0
-                    ? t('worshipLiveNow')
-                    : t('worshipLiveNext')}
-              </span>
-              <span className="worship-rail-name">
-                {pick(language, target.service.name, target.service.name_en)}
-              </span>
-              <span className="worship-rail-time">
-                {ongoingNow
-                  ? formatTimeLabel(ongoingNow.startMin, language)
-                  : `${dayLabel(upcoming!.occ, seoulNow, language, t('worshipToday'), t('worshipTomorrow'))} ${formatTimeLabel(upcoming!.occ.startMin, language)}`}
-              </span>
-            </button>
-          )
-        })()}
-
-        {!loading && (activeSunday.length > 0 || activeWeekday.length > 0) && (
-          <section className="worship-rail-card">
-            {activeSunday.length > 0 && (
-              <>
-                <p className="worship-rail-title">{t('worshipScheduleTitle')}</p>
-                <div className="worship-rail-list">
-                  {activeSunday.map(service => (
-                    <button
-                      key={service.id}
-                      type="button"
-                      className="worship-rail-link"
-                      onClick={() => scrollToService(service.id)}
-                    >
-                      <span className="worship-rail-link-name">
-                        {pick(language, service.name, service.name_en)}
-                      </span>
-                      <span className="worship-rail-link-time">
-                        {pick(language, service.time, service.time_en)}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-            {activeWeekday.length > 0 && (
-              <>
-                <p className="worship-rail-title">{t('worshipWeekdayTitle')}</p>
-                <div className="worship-rail-list">
-                  {activeWeekday.map(service => (
-                    <button
-                      key={service.id}
-                      type="button"
-                      className="worship-rail-link"
-                      onClick={() => scrollToService(service.id)}
-                    >
-                      <span className="worship-rail-link-name">
-                        {pick(language, service.name, service.name_en)}
-                      </span>
-                      <span className="worship-rail-link-time">
-                        {pick(language, service.time, service.time_en)}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </section>
-        )}
-
-        <div className="worship-note">
-          <p className="worship-note-line">
-            <span className="worship-note-key">📍 {t('worshipLocationNote')}</span> {t('worshipLocationText')}
-          </p>
-          <p className="worship-note-line">
-            <span className="worship-note-key">ℹ️ {t('worshipInfoNote')}</span> {t('worshipInfoText')}
-          </p>
-        </div>
+        {!loading && <WorshipRail isAdminUser={isAdminUser} ongoing={Boolean(ongoingNow)} />}
       </aside>
       </div>
     </div>

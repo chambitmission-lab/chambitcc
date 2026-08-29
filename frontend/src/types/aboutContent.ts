@@ -5,6 +5,7 @@ import type { visit as visitKo } from '../locales/ko/visit'
 import type { landing as landingKo } from '../locales/ko/landing'
 import type { greeting as greetingKo } from '../locales/ko/greeting'
 import type { education as educationKo } from '../locales/ko/education'
+import type { worship as worshipKo } from '../locales/ko/worship'
 
 // 백엔드 about_content.fields 는 화이트리스트 없는 Dict[str, LocalizedValue] 라
 // 네임스페이스를 늘려도 서버 변경이 필요 없다 — /visit, /greeting 도 같은 저장소를 함께 쓴다.
@@ -16,6 +17,7 @@ export type AboutFieldKey =
   | keyof typeof landingKo
   | keyof typeof greetingKo
   | keyof typeof educationKo
+  | keyof typeof worshipKo
 
 export interface LocalizedValue {
   ko: string
