@@ -5,8 +5,12 @@ import { useQuery } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { searchBible } from '../../api/bible'
 import { useBibleBooks } from '../../hooks/useBible'
-import { searchSermons } from '../../api/sermon'
-import { formatReference, parseBibleReference } from '../../pages/Sermon/utils/sermonMeta'
+import { getSermons, searchSermons } from '../../api/sermon'
+import { getTodayVerse } from '../../api/dailyVerse'
+import { getSundayServices, getWeekdayServices } from '../../api/worship'
+import { DAY_CHARS, soonestService } from '../../utils/worshipSchedule'
+import { pushRecent, readRecent, clearRecent, type RecentItem } from './commandRecent'
+import { formatReference, parseBibleReference, resolveBookNumber } from '../../pages/Sermon/utils/sermonMeta'
 import { preloadMenuRoutes } from '../../utils/routePreload'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { NAV_ICONS } from '../layout/NewHeader/components/NavIcons'
@@ -21,6 +25,8 @@ import './CommandPalette.css'
 import { OPEN_CHATBOT_EVENT, OPEN_SEARCH_EVENT, isMacLike } from './commandEvents'
 
 type Row =
+  | { kind: 'action'; id: string; label: string; desc: string; icon: keyof typeof NAV_ICONS | 'chambi'; to?: string; ask?: boolean; accent?: boolean }
+  | { kind: 'recent'; id: string; item: RecentItem }
   | { kind: 'page'; id: string; entry: PageEntry }
   | { kind: 'ref'; id: string; label: string; desc: string; to: string }
   | { kind: 'verse'; id: string; label: string; desc: string; to: string }
@@ -51,6 +57,11 @@ const CommandPalette = () => {
   const listRef = useRef<HTMLDivElement>(null)
   const debounced = useDebounced(query.trim(), DEBOUNCE_MS)
   const loggedIn = !!localStorage.getItem('access_token')
+  // 최근 항목 — 열릴 때 읽고, 실행할 때 갱신
+  const [recentVersion, setRecentVersion] = useState(0)
+  // recentVersion 은 "지우기" 뒤 다시 읽게 하는 버전 카운터 — 의존성으로만 쓴다
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const recent = useMemo<RecentItem[]>(() => (open ? readRecent() : []), [open, recentVersion])
 
   // 열기 — 단축키·이벤트
   useEffect(() => {
@@ -124,6 +135,81 @@ const CommandPalette = () => {
     retry: false,
   })
 
+  // ── 커맨드 센터 첫 화면(빈 검색창) 데이터 — 다른 화면과 같은 캐시 키라 대부분 즉시 ──
+  const home = open && !debounced
+  const { data: recentSermons } = useQuery({
+    queryKey: ['sermons', 0, 8, 'light'],
+    queryFn: () => getSermons(0, 8, false),
+    enabled: home,
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  })
+  const lastSunday =
+    recentSermons?.find((x) => /3\s*부/.test(x.title)) ??
+    recentSermons?.find((x) => /주일|성수/.test(x.title)) ??
+    recentSermons?.[0]
+  const { data: services } = useQuery({
+    queryKey: ['worship-services', 'all'],
+    queryFn: async () => {
+      const [sun, week] = await Promise.all([getSundayServices(), getWeekdayServices()])
+      return [...sun, ...week]
+    },
+    enabled: home,
+    staleTime: 1000 * 60 * 30,
+    retry: false,
+  })
+  const nextService = useMemo(() => {
+    if (!services) return null
+    const seoulNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
+    const next = soonestService(services, seoulNow)
+    if (!next) return null
+    const h = Math.floor(next.occ.startMin / 60)
+    const m = next.occ.startMin % 60
+    const clock = ko
+      ? `${h < 12 ? '오전' : '오후'} ${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, '0')}`
+      : `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`
+    const day =
+      next.occ.dayOffset === 0 ? (ko ? '오늘' : 'Today')
+      : next.occ.dayOffset === 1 ? (ko ? '내일' : 'Tomorrow')
+      : ko ? `${DAY_CHARS[(seoulNow.getDay() + next.occ.dayOffset) % 7]}요일`
+      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][(seoulNow.getDay() + next.occ.dayOffset) % 7]
+    return { name: ko ? next.service.name : next.service.name_en || next.service.name, when: `${day} ${clock}` }
+  }, [services, ko])
+  const { data: todayVerse } = useQuery({
+    queryKey: ['daily-verse', 'current'],
+    queryFn: getTodayVerse,
+    enabled: home,
+    staleTime: 1000 * 60 * 30,
+    retry: false,
+  })
+  const todayVerseTo = useMemo(() => {
+    const p = todayVerse?.verse_reference ? parseBibleReference(todayVerse.verse_reference) : null
+    const bn = p?.bookNumber ?? (p ? resolveBookNumber(p.book) : null)
+    return p && bn ? `/bible/${bn}/${p.chapter}${p.verse ? `?verse=${p.verse}` : ''}` : '/bible'
+  }, [todayVerse])
+
+  const actions: Row[] = useMemo(() => {
+    if (!home) return []
+    const out: Row[] = []
+    if (lastSunday) {
+      const d = new Date(lastSunday.sermon_date)
+      const date = Number.isNaN(d.getTime()) ? '' : ko ? `${d.getMonth() + 1}월 ${d.getDate()}일` : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      out.push({ kind: 'action', id: 'act:sermon', label: t('cmdkActSermon'), desc: [date, lastSunday.bible_verse].filter(Boolean).join(' · ') || t('cmdkActSermonDesc'), icon: 'sermon', to: `/sermon?id=${lastSunday.id}`, accent: true })
+    } else {
+      out.push({ kind: 'action', id: 'act:sermon', label: t('cmdkActSermon'), desc: t('cmdkActSermonDesc'), icon: 'sermon', to: '/sermon', accent: true })
+    }
+    out.push({ kind: 'action', id: 'act:worship', label: nextService ? nextService.name : t('cmdkActWorship'), desc: nextService ? nextService.when : t('cmdkActWorshipDesc'), icon: 'worship', to: '/worship' })
+    out.push({ kind: 'action', id: 'act:visit', label: t('cmdkActVisit'), desc: t('cmdkActVisitDesc'), icon: 'visit', to: '/visit' })
+    out.push({ kind: 'action', id: 'act:verse', label: t('cmdkActVerse'), desc: todayVerse?.verse_reference || t('cmdkActVerseDesc'), icon: 'bible', to: todayVerseTo })
+    out.push({ kind: 'action', id: 'act:chambi', label: t('cmdkActChambi'), desc: t('cmdkActChambiDesc'), icon: 'chambi', ask: true })
+    out.push(
+      loggedIn
+        ? { kind: 'action', id: 'act:feed', label: t('cmdkActFeed'), desc: t('cmdkActFeedDesc'), icon: 'answeredPrayers', to: '/feed' }
+        : { kind: 'action', id: 'act:register', label: t('cmdkActRegister'), desc: t('cmdkActRegisterDesc'), icon: 'garden', to: '/register' },
+    )
+    return out
+  }, [home, lastSunday, nextService, todayVerse, todayVerseTo, loggedIn, ko, t])
+
   const pages = useMemo(() => {
     const visible = PAGE_INDEX.filter((p) => (loggedIn ? p.to !== '/login' && p.to !== '/register' : !p.memberOnly))
     if (!debounced) return visible.filter((p) => p.quick)
@@ -137,6 +223,10 @@ const CommandPalette = () => {
 
   const rows: Row[] = useMemo(() => {
     const out: Row[] = []
+    if (!debounced) {
+      out.push(...actions)
+      recent.forEach((item) => out.push({ kind: 'recent', id: `recent:${item.id}`, item }))
+    }
     if (ref) {
       const to = `/bible/${ref.bookNumber}/${ref.chapter}${ref.verse ? `?verse=${ref.verse}` : ''}`
       out.push({ kind: 'ref', id: `ref:${to}`, label: formatReference(ref), desc: t('cmdkOpenChapter'), to })
@@ -173,7 +263,7 @@ const CommandPalette = () => {
     }
     if (debounced) out.push({ kind: 'ask', id: 'ask', message: debounced })
     return out
-  }, [ref, pages, verses, sermons, debounced, ko, t, bookName])
+  }, [ref, pages, verses, sermons, debounced, ko, t, bookName, actions, recent])
 
   const rowsKey = rows.map((r) => r.id).join('|')
   const cursor = cursorState.key === rowsKey ? cursorState.idx : 0
@@ -185,15 +275,23 @@ const CommandPalette = () => {
   }, [rowsKey])
 
   const run = useCallback((row: Row) => {
-    if (row.kind === 'ask') {
+    if (row.kind === 'ask' || (row.kind === 'action' && row.ask)) {
       close()
-      window.dispatchEvent(new CustomEvent(OPEN_CHATBOT_EVENT, { detail: { message: row.message } }))
+      window.dispatchEvent(new CustomEvent(OPEN_CHATBOT_EVENT, { detail: row.kind === 'ask' ? { message: row.message } : {} }))
       return
     }
-    const to = row.kind === 'page' ? row.entry.to : row.to
+    // 연 것을 최근 항목으로 (퀵 액션은 항상 있으니 기록하지 않는다)
+    if (row.kind === 'page') pushRecent({ id: row.id, kind: 'page', label: ko ? row.entry.label.ko : row.entry.label.en, desc: ko ? row.entry.desc.ko : row.entry.desc.en, to: row.entry.to })
+    else if (row.kind === 'ref' || row.kind === 'verse' || row.kind === 'sermon') pushRecent({ id: row.id, kind: row.kind, label: row.label, desc: row.desc, to: row.to })
+    else if (row.kind === 'recent') pushRecent({ id: row.item.id, kind: row.item.kind, label: row.item.label, desc: row.item.desc, to: row.item.to })
+    const to =
+      row.kind === 'page' ? row.entry.to
+      : row.kind === 'recent' ? row.item.to
+      : row.kind === 'action' ? (row.to ?? '/')
+      : row.to
     close()
     navigate(to)
-  }, [close, navigate])
+  }, [close, navigate, ko])
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); setCursor((c) => Math.min(rows.length - 1, c + 1)) }
@@ -212,7 +310,12 @@ const CommandPalette = () => {
 
   const loading = versesLoading || sermonsLoading
   const groupLabel = (kind: Row['kind']) =>
-    kind === 'page' ? t('cmdkGroupPages') : kind === 'ref' || kind === 'verse' ? t('cmdkGroupBible') : kind === 'sermon' ? t('cmdkGroupSermon') : t('cmdkGroupAsk')
+    kind === 'page' ? t('cmdkGroupPages')
+    : kind === 'ref' || kind === 'verse' ? t('cmdkGroupBible')
+    : kind === 'sermon' ? t('cmdkGroupSermon')
+    : kind === 'recent' ? t('cmdkRecentTitle')
+    : kind === 'action' ? t('cmdkActionsTitle')
+    : t('cmdkGroupAsk')
   const hints = ko ? ['요 3:16', '예배 시간', '주차', '사랑', '위로'] : ['John 3:16', 'service time', 'parking', 'love']
 
   // 그룹 헤더는 같은 kind 가 처음 나올 때만
@@ -242,19 +345,57 @@ const CommandPalette = () => {
         </div>
 
         {/* 결과 */}
-        <div ref={listRef} className="max-h-[min(60vh,520px)] overflow-y-auto py-2">
-          {!debounced && (
-            <p className="px-4 pt-1 pb-1.5 text-[11.5px] font-bold tracking-[0.08em] uppercase text-ink-muted">{t('cmdkQuickTitle')}</p>
+        <div ref={listRef} className="max-h-[min(64vh,560px)] overflow-y-auto py-2">
+          {/* ── 커맨드 센터 첫 화면: 퀵 액션 타일(벤토) → 최근 → 빠른 이동 ── */}
+          {!debounced && actions.length > 0 && (
+            <div className="px-3 pt-1 pb-2">
+              <p className="px-1 pb-1.5 text-[11.5px] font-bold tracking-[0.08em] uppercase text-ink-muted">{t('cmdkActionsTitle')}</p>
+              <div className="cmdk-actions">
+                {rows.map((row, idx) => {
+                  if (row.kind !== 'action') return null
+                  const active = idx === cursor
+                  const I = row.icon === 'chambi' ? null : NAV_ICONS[row.icon]
+                  return (
+                    <button
+                      key={row.id}
+                      type="button"
+                      data-idx={idx}
+                      onMouseEnter={() => setCursor(idx)}
+                      onClick={() => run(row)}
+                      className={`cmdk-action${row.accent ? ' cmdk-action--accent' : ''}${active ? ' is-active' : ''}`}
+                    >
+                      <span className="cmdk-action-icon">
+                        {I ? <I className="w-[18px] h-[18px]" /> : <img src={chambiAvatar} alt="" className="w-7 h-7 rounded-full" draggable={false} />}
+                      </span>
+                      <span className="cmdk-action-label">{row.label}</span>
+                      <span className="cmdk-action-desc">{row.desc}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          {!debounced && recent.length > 0 && (
+            <div className="px-4 pt-1 pb-1 flex items-center justify-between">
+              <p className="text-[11.5px] font-bold tracking-[0.08em] uppercase text-ink-muted">{t('cmdkRecentTitle')}</p>
+              <button type="button" onClick={() => { clearRecent(); setRecentVersion((v) => v + 1) }} className="text-[11.5px] font-semibold text-ink-muted hover:text-brand">{t('cmdkRecentClear')}</button>
+            </div>
           )}
           {rows.map((row, idx) => {
+            if (row.kind === 'action') return null
             const g = groupLabel(row.kind)
             const showGroup = !!debounced && g !== lastGroup
             lastGroup = g
+            // 첫 화면: 최근 다음에 오는 첫 메뉴 행 위에 "빠른 이동" 제목
+            const showQuick = !debounced && row.kind === 'page' && (idx === 0 || rows[idx - 1].kind !== 'page')
             const active = idx === cursor
             const rowClass = `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${active ? 'bg-[var(--brand-soft)]' : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.05]'}`
             const iconBox = `w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${active ? 'bg-[var(--brand-soft-strong)] text-brand' : 'bg-black/[0.04] dark:bg-white/[0.07] text-ink'}`
             return (
               <div key={row.id} className="px-2">
+                {showQuick && (
+                  <p className="px-2 pt-2 pb-1 text-[11.5px] font-bold tracking-[0.08em] uppercase text-ink-muted">{t('cmdkQuickTitle')}</p>
+                )}
                 {showGroup && (
                   <p className="px-2 pt-2 pb-1 text-[11.5px] font-bold tracking-[0.08em] uppercase text-ink-muted">{g}</p>
                 )}
@@ -273,6 +414,16 @@ const CommandPalette = () => {
                       <span className="min-w-0 flex-1">
                         <span className={`block text-[14px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>{ko ? row.entry.label.ko : row.entry.label.en}</span>
                         <span className="block mt-0.5 text-[12px] text-ink-muted truncate">{ko ? row.entry.desc.ko : row.entry.desc.en}</span>
+                      </span>
+                    </>
+                  ) : row.kind === 'recent' ? (
+                    <>
+                      <span className={iconBox}>
+                        {(() => { const I = row.item.kind === 'sermon' ? NAV_ICONS.sermon : row.item.kind === 'page' ? NAV_ICONS.news : NAV_ICONS.bible; return <I className="w-[20px] h-[20px]" /> })()}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className={`block text-[14px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>{row.item.label}</span>
+                        <span className="block mt-0.5 text-[12px] text-ink-muted line-clamp-1">{row.item.desc}</span>
                       </span>
                     </>
                   ) : row.kind === 'ask' ? (

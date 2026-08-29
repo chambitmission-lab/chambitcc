@@ -25,8 +25,9 @@ const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onMenuTog
 
   return (
     <div className="flex items-center gap-4">
-      {/* 검색(⌘K 팔레트) — 모바일·레일 없는 PC 화면의 진입점 */}
-      <SearchIconButton className={iconBaseClass} />
+      {/* 검색(⌘K 팔레트) — 모바일 전용 축소 진입점. lg+ 는 중앙 검색 캡슐이 같은 팔레트를 열므로
+          돋보기를 숨겨 헤더 노이즈를 줄인다 */}
+      <SearchIconButton className={`${iconBaseClass} lg:hidden`} />
       <button
         onClick={toggleTheme}
         className={iconBaseClass}
