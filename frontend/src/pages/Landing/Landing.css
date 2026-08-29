@@ -504,3 +504,101 @@
 @media (prefers-reduced-motion: reduce) {
   .ld-play-card { transition: none; }
 }
+
+/* ── 마무리 CTA — 오로라 무대 ───────────────────────────────
+   캔버스 위 라운드 무대에 블러된 블루 계열 빛 세 덩이가 천천히 흐른다(토스 블루 패밀리 안에서만).
+   카드는 유리, 가입 버튼만 고대비 브랜드로 크게 */
+.ld-aurora {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 36px 16px 20px;
+  border-radius: 32px;
+  border: 1px solid var(--card-border);
+  background: linear-gradient(180deg, var(--brand-soft), transparent 55%), var(--surface-container);
+}
+@media (min-width: 1024px) {
+  .ld-aurora {
+    padding: 48px 28px 28px;
+  }
+}
+
+.ld-aurora-blob {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.55;
+  pointer-events: none;
+  animation: ld-aurora-drift 18s ease-in-out infinite alternate;
+}
+.ld-aurora-blob--a {
+  width: 420px;
+  height: 420px;
+  top: -160px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(69, 147, 252, 0.55), transparent 70%);
+}
+.ld-aurora-blob--b {
+  width: 520px;
+  height: 520px;
+  right: -180px;
+  bottom: -220px;
+  background: radial-gradient(circle, rgba(27, 110, 243, 0.45), transparent 70%);
+  animation-duration: 22s;
+  animation-delay: -6s;
+}
+.ld-aurora-blob--c {
+  width: 340px;
+  height: 340px;
+  left: 40%;
+  top: -80px;
+  background: radial-gradient(circle, rgba(125, 211, 252, 0.5), transparent 70%);
+  animation-duration: 26s;
+  animation-delay: -12s;
+}
+@keyframes ld-aurora-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(40px, 24px, 0) scale(1.08); }
+  100% { transform: translate3d(-30px, 36px, 0) scale(0.96); }
+}
+
+/* 유리 카드 — 오로라가 비쳐 보인다 */
+.ld-cta-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)),
+    0 18px 40px -22px rgba(10, 24, 60, 0.4);
+}
+/* 주연 카드 — 브랜드 링으로 한 번 더 */
+.ld-cta-card--main {
+  border-color: var(--brand-soft-strong);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)),
+    0 0 0 4px var(--brand-soft),
+    0 24px 48px -22px var(--brand-glow);
+}
+
+/* 메인 버튼 — 은은한 호흡(후광이 커졌다 작아짐), 호버에 살짝 떠오름 */
+.ld-cta-primary {
+  animation: ld-cta-breathe 2.8s ease-in-out infinite;
+  transition: transform 0.15s ease;
+}
+.ld-cta-primary:hover {
+  transform: translateY(-2px);
+  animation-play-state: paused;
+}
+@keyframes ld-cta-breathe {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 0 3px rgba(49, 130, 246, 0.1), 0 14px 30px -8px var(--brand-glow); }
+  50% { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 0 7px rgba(49, 130, 246, 0.14), 0 18px 36px -8px var(--brand-glow); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ld-aurora-blob,
+  .ld-cta-primary {
+    animation: none;
+  }
+}
