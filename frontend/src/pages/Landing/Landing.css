@@ -467,6 +467,16 @@
   }
 }
 
+/* 참비 카드 — lg 에선 셀을 absolute 로 채워 행 높이 계산에서 빠진다(대화가 길어져도 옆 카드가 안 늘어남).
+   (.ld-play-card 의 position:relative 가 Tailwind lg:absolute 를 덮어써서 여기서 직접 잡는다) */
+@media (min-width: 1024px) {
+  .ld-play-card--fill {
+    position: absolute !important;
+    inset: 0;
+    height: auto;
+  }
+}
+
 /* 카드 우상단 번호 배지 — "01 · 02 · 03" 순서로 만져보게 */
 .ld-play-card {
   position: relative;

@@ -80,7 +80,7 @@ const ChambiTry = ({ ko }: { ko: boolean }) => {
   }
 
   return (
-    <article className="ld-play-card feed-card rounded-3xl p-5 h-full flex flex-col min-w-0 lg:absolute lg:inset-0" data-play="01">
+    <article className="ld-play-card ld-play-card--fill feed-card rounded-3xl p-5 h-full flex flex-col min-w-0" data-play="01">
       <div className="flex items-center gap-3">
         <img src={avatarDefault} alt="" className="w-11 h-11 rounded-full" draggable={false} />
         <div className="min-w-0">
