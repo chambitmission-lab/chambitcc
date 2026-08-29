@@ -80,7 +80,7 @@ const ChambiTry = ({ ko }: { ko: boolean }) => {
   }
 
   return (
-    <article className="feed-card rounded-3xl p-5 flex flex-col min-w-0">
+    <article className="ld-play-card feed-card rounded-3xl p-5 h-full flex flex-col min-w-0 lg:absolute lg:inset-0" data-play="01">
       <div className="flex items-center gap-3">
         <img src={avatarDefault} alt="" className="w-11 h-11 rounded-full" draggable={false} />
         <div className="min-w-0">
@@ -93,7 +93,7 @@ const ChambiTry = ({ ko }: { ko: boolean }) => {
         </div>
       </div>
 
-      <div ref={listRef} className="mt-4 h-[240px] overflow-y-auto rounded-2xl bg-surface-container p-3 flex flex-col gap-2.5 [overflow-wrap:anywhere]">
+      <div ref={listRef} className="mt-4 h-[240px] lg:h-auto lg:flex-1 lg:min-h-0 overflow-y-auto rounded-2xl bg-surface-container p-3 flex flex-col gap-2.5 [overflow-wrap:anywhere]">
         {msgs.length === 0 && !loading && (
           <p className="m-auto text-center text-[13px] text-ink-muted px-4 leading-relaxed">
             {ko ? '아래 질문 하나를 눌러보세요.\n진짜 성경 구절로 대답합니다.' : 'Tap a question below.\nIt answers with real scripture.'}
@@ -217,8 +217,8 @@ const StampDemo = ({ ko }: { ko: boolean }) => {
         : ko ? '칸을 눌러 도장을 찍어보세요.' : 'Tap a box to stamp it.'
 
   return (
-    <article className="feed-card rounded-3xl p-5 flex flex-col">
-      <div className="flex items-center justify-between gap-3">
+    <article className="ld-play-card feed-card rounded-3xl p-5 h-full flex flex-col" data-play="02">
+      <div className="flex items-center justify-between gap-3 pr-8">
         <div className="min-w-0">
           <h3 className="text-[17px] font-extrabold tracking-tight text-ink-strong leading-tight">
             {ko ? '통독표 도장 찍어보기' : 'Try the stamp chart'}
@@ -306,7 +306,7 @@ const VerseCardDemo = ({ ko }: { ko: boolean }) => {
   }
 
   return (
-    <article className="feed-card rounded-3xl p-5 flex flex-col">
+    <article className="ld-play-card feed-card rounded-3xl p-5 h-full flex flex-col" data-play="03">
       <h3 className="text-[17px] font-extrabold tracking-tight text-ink-strong leading-tight">
         {ko ? '오늘의 말씀, 카드로' : "Today's verse, as a card"}
       </h3>
@@ -346,10 +346,14 @@ const DemoSection = ({ ko }: { ko: boolean }) => (
         title={ko ? '말로 하면 안 믿으실까 봐,\n지금 바로 만져보세요' : "Don't take our word for it —\ntry three things right now"}
       />
     </Reveal>
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <Reveal className="h-full"><ChambiTry ko={ko} /></Reveal>
-      <Reveal className="h-full" delay={80}><StampDemo ko={ko} /></Reveal>
-      <Reveal className="h-full" delay={160}><VerseCardDemo ko={ko} /></Reveal>
+    {/* 벤토 놀이터 — lg+: 참비(2칸 폭 × 2행, 큰 카드) + 오른쪽 열에 통독표·말씀 카드가 정사각형에 가깝게 쌓인다.
+        점 격자 매트 위에 카드가 놓여 "만져보는 공간"으로 읽힌다 */}
+    <div className="ld-playground grid grid-cols-1 gap-4 lg:grid-cols-3 lg:grid-rows-[auto_auto]">
+      {/* 참비 셀: 행 높이 계산에서 빼려고(대화가 길어져도 옆 카드가 늘지 않게) lg 에선 카드를 absolute 로 셀에 채운다.
+          행 높이는 오른쪽 열(통독표·말씀 카드)이 정하고, 채팅창만 그 안에서 스크롤된다 */}
+      <Reveal className="h-full lg:col-span-2 lg:row-span-2 lg:relative lg:min-h-0"><ChambiTry ko={ko} /></Reveal>
+      <Reveal className="h-full lg:col-start-3 lg:row-start-1" delay={80}><StampDemo ko={ko} /></Reveal>
+      <Reveal className="h-full lg:col-start-3 lg:row-start-2" delay={160}><VerseCardDemo ko={ko} /></Reveal>
     </div>
   </section>
 )
