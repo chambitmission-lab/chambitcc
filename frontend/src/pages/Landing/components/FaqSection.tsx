@@ -4,7 +4,8 @@ import { useAboutContent } from '../../../hooks/useAboutContent'
 import type { AboutFieldKey } from '../../../types/aboutContent'
 import { ChevronDownIcon } from '../../About/icons'
 import { Reveal, SectionHeader } from './shared'
-import { MicIcon, SneakerIcon, OpenBookIcon, MoneyIcon, SleepIcon } from './LandingIcons'
+import { MicIcon, SneakerIcon, OpenBookIcon, MoneyIcon, SleepIcon, SparkleIcon } from './LandingIcons'
+import { ChevronRightIcon } from '../../About/icons'
 
 // 유머 FAQ — 처음 오는 사람의 불안을 먼저 꺼내 웃기고, 바로 뒤에 진짜 답을 준다.
 // 웃기는 대상은 항상 "우리"(교회 다니는 사람의 경험)이지 신앙이 아니다.
@@ -37,16 +38,13 @@ const FaqSection = ({ isAdmin, ko }: { isAdmin: boolean; ko: boolean }) => {
           }
         />
       </Reveal>
-      <ul className="grid gap-2.5">
+      {/* md+: 2열 벤토(2×3) — 질문 5개 + 마지막 칸은 참비 CTA 타일. 열린 카드만 유리 질감 + 포인트 테두리 */}
+      <ul className="grid gap-2.5 md:grid-cols-2 md:gap-3 md:items-start">
         {ITEMS.map((item, i) => {
           const isOpen = open === i
           return (
             <Reveal key={item.q} as="li" delay={i * 50}>
-              <div
-                className={`feed-card rounded-2xl overflow-hidden transition-[border-color,box-shadow] duration-200 ${
-                  isOpen ? 'border-[var(--brand-glow)] shadow-[0_8px_22px_-10px_var(--brand-glow)]' : ''
-                }`}
-              >
+              <div className={`ld-faq-card feed-card rounded-2xl overflow-hidden${isOpen ? ' is-open' : ''}`}>
                 {/* EditableText 가 <button> 을 렌더하므로 행 자체는 button 이 아닌 div 로 */}
                 <div
                   role="button"
@@ -89,10 +87,29 @@ const FaqSection = ({ isAdmin, ko }: { isAdmin: boolean; ko: boolean }) => {
             </Reveal>
           )
         })}
+
+        {/* 6번째 칸 — 더 궁금한 건 참비에게 (데모 섹션으로 스크롤) */}
+        <Reveal as="li" delay={ITEMS.length * 50}>
+          <button
+            type="button"
+            className="ld-faq-cta w-full h-full min-h-[76px] rounded-2xl px-4 py-3.5 flex items-center gap-3 text-left"
+            onClick={() => document.getElementById('tour')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            <span className="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0">
+              <SparkleIcon width={18} height={18} />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-[15px] font-bold leading-snug">
+                {ko ? '더 궁금한 건 참비에게' : 'Anything else? Ask Chambi'}
+              </span>
+              <span className="block text-[12.5px] opacity-85 mt-0.5">
+                {ko ? '아래에서 직접 물어보세요. 진짜로 대답합니다.' : 'Ask below — it actually answers.'}
+              </span>
+            </span>
+            <ChevronRightIcon size={16} className="shrink-0 opacity-90" />
+          </button>
+        </Reveal>
       </ul>
-      <p className="mt-3 text-[12.5px] text-ink-muted">
-        {ko ? '더 궁금한 건 아래에서 참비에게 직접 물어보세요. 진짜로 대답합니다.' : 'Anything else? Ask Chambi below — it actually answers.'}
-      </p>
     </section>
   )
 }

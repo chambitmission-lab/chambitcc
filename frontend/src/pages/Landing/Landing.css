@@ -87,6 +87,56 @@
 .ld-faq-body.is-open { grid-template-rows: 1fr; }
 .ld-faq-body > div { overflow: hidden; }
 
+/* FAQ 카드 — 닫힘은 평범한 피드 카드, 열림은 유리 질감 + 1px 포인트 테두리 + 브랜드 후광 */
+.ld-faq-card {
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, background 0.25s ease, transform 0.2s ease;
+}
+.ld-faq-card:hover {
+  border-color: var(--brand-soft-strong);
+}
+.ld-faq-card.is-open {
+  border-color: var(--brand);
+  background: linear-gradient(180deg, var(--brand-soft), transparent 55%), var(--glass-bg);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)),
+    0 0 0 3px var(--brand-soft-strong),
+    0 14px 30px -14px var(--brand-glow);
+}
+
+/* 6번째 칸 — 참비 CTA 타일 (브랜드 반전, 히어로 버튼과 같은 인장 문법) */
+.ld-faq-cta {
+  position: relative;
+  color: #fff;
+  border: 1px solid transparent;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.22), transparent 42%),
+    linear-gradient(150deg, #4593fc, #2b78ee 70%, #1b6ef3);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 10px 24px -10px var(--brand-glow);
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ld-faq-cta::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+}
+.ld-faq-cta:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 16px 30px -10px var(--brand-glow);
+}
+
 /* 통독표 도장 체험 — BookSelector 의 인장 문법(기울기·압인 궤적)을 축소 재현 */
 .ld-stamp-cell {
   position: relative;
@@ -178,3 +228,211 @@
 
 /* 예배 카운트다운 숫자 */
 .ld-count { font-variant-numeric: tabular-nums; }
+
+/* ── 3기둥 카드 미니 UI 프레임 — 보더 밖으로 살짝 걸친 앱 축소판 ─────────
+   카드(.ld-pillar)는 overflow 를 열어 두고, 프레임은 우상단에 -10px 로 띄운다.
+   기울기와 그림자로 "얹힌 실물" 느낌, 호버 시 살짝 일어선다 */
+.ld-pillar {
+  position: relative;
+  overflow: visible;
+}
+
+.ld-pillar-art {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  width: 132px;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)),
+    0 14px 30px -14px rgba(10, 24, 60, 0.45),
+    0 2px 6px rgba(10, 24, 60, 0.08);
+  transform: rotate(4deg);
+  transform-origin: 80% 20%;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+  pointer-events: none;
+}
+.ld-pillar:hover .ld-pillar-art {
+  transform: rotate(1deg) translateY(-4px);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight, rgba(255, 255, 255, 0.5)),
+    0 22px 40px -16px var(--brand-glow),
+    0 2px 6px rgba(10, 24, 60, 0.08);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ld-pillar-art,
+  .ld-art-wave i {
+    transition: none;
+    animation: none !important;
+  }
+}
+
+/* 설교 — 미니 플레이어 */
+.ld-art-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ld-art-play {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 4px 10px -3px var(--brand-glow);
+}
+.ld-art-play::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  border-left: 8px solid #fff;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+.ld-art-wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+  flex: 1;
+}
+.ld-art-wave i {
+  display: block;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--brand);
+  opacity: 0.75;
+  transform-origin: center;
+  animation: ld-wave 1.4s ease-in-out infinite;
+}
+.ld-art-wave i:nth-child(n + 8) {
+  opacity: 0.3;
+}
+@keyframes ld-wave {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.55); }
+}
+.ld-art-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 8px;
+}
+.ld-art-line {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--card-border);
+}
+.ld-art-amen {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 9.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* 성경공부 — 도장 통독표 (BookSelector 의 인주 문법을 축소) */
+.ld-art-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+.ld-art-cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  font-size: 8.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.ld-art-cell.is-stamped {
+  color: #c0392b;
+  border-color: rgba(192, 57, 43, 0.35);
+  background: rgba(192, 57, 43, 0.08);
+}
+.ld-art-cell.is-stamped::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(192, 57, 43, 0.55);
+  transform: rotate(-12deg);
+}
+.ld-art-progress {
+  margin-top: 8px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--card-border);
+  overflow: hidden;
+}
+.ld-art-progress i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #4593fc, var(--brand));
+}
+
+/* 스마트 — 참비 말풍선 */
+.ld-pillar-art--smart {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.ld-art-bubble {
+  max-width: 100%;
+  padding: 5px 8px;
+  border-radius: 10px;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+.ld-art-bubble--me {
+  align-self: flex-end;
+  background: var(--brand);
+  color: #fff;
+  border-bottom-right-radius: 3px;
+}
+.ld-art-bubble--bot {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  color: var(--text-strong);
+  border-bottom-left-radius: 3px;
+}
+.ld-art-bot-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 2px var(--brand-soft-strong);
+}
+
+/* 모바일 — 카드가 폭을 다 쓰므로 프레임을 안쪽으로 조금 들이고 작게 */
+@media (max-width: 1023px) {
+  .ld-pillar-art {
+    top: -8px;
+    right: 6px;
+    width: 116px;
+    padding: 8px;
+  }
+}

@@ -63,6 +63,56 @@ const PILLARS = (ko: boolean): Pillar[] => [
   },
 ]
 
+// 카드 우상단에 보더 밖으로 살짝 걸치는 "미니 UI 프레임" — 이미지 없이 토큰 색으로 그린 앱 축소판.
+// 설교: 미니 플레이어(파형·재생·아멘) / 성경공부: 도장 통독표 / 스마트: 참비 말풍선
+const PillarArt = ({ kind, ko }: { kind: Pillar['key']; ko: boolean }) => {
+  if (kind === 'sermon') {
+    const bars = [6, 12, 18, 10, 22, 14, 8, 20, 12, 16, 9, 14]
+    return (
+      <div className="ld-pillar-art ld-pillar-art--sermon" aria-hidden="true">
+        <div className="ld-art-row">
+          <span className="ld-art-play" />
+          <span className="ld-art-wave">
+            {bars.map((h, i) => (
+              <i key={i} style={{ height: h, animationDelay: `${i * 90}ms` }} />
+            ))}
+          </span>
+        </div>
+        <div className="ld-art-meta">
+          <span className="ld-art-line" style={{ width: '62%' }} />
+          <span className="ld-art-amen">{ko ? '아멘 128' : 'Amen 128'}</span>
+        </div>
+      </div>
+    )
+  }
+  if (kind === 'bible') {
+    const stamped = new Set([0, 1, 2, 3, 4, 5, 6, 8])
+    return (
+      <div className="ld-pillar-art ld-pillar-art--bible" aria-hidden="true">
+        <div className="ld-art-grid">
+          {Array.from({ length: 12 }, (_, i) => (
+            <span key={i} className={`ld-art-cell${stamped.has(i) ? ' is-stamped' : ''}`}>
+              {i + 1}
+            </span>
+          ))}
+        </div>
+        <div className="ld-art-progress">
+          <i style={{ width: '67%' }} />
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div className="ld-pillar-art ld-pillar-art--smart" aria-hidden="true">
+      <div className="ld-art-bubble ld-art-bubble--me">{ko ? '주일 3부 몇 시예요?' : 'When is the 3rd service?'}</div>
+      <div className="ld-art-bubble ld-art-bubble--bot">
+        <span className="ld-art-bot-dot" />
+        {ko ? '오전 11시 20분, 본당이에요' : '11:20 AM, main hall'}
+      </div>
+    </div>
+  )
+}
+
 const PillarsSection = ({ ko, sermons }: { ko: boolean; sermons: Sermon[] }) => {
   const navigate = useNavigate()
   const fmtDate = (iso: string) => {
@@ -82,8 +132,9 @@ const PillarsSection = ({ ko, sermons }: { ko: boolean; sermons: Sermon[] }) => 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {PILLARS(ko).map((p, i) => (
           <Reveal key={p.key} delay={i * 80} className="h-full">
-            <article className="feed-card rounded-3xl p-5 h-full flex flex-col">
-              <div className="flex items-center gap-3">
+            <article className="ld-pillar feed-card rounded-3xl p-5 h-full flex flex-col">
+              <PillarArt kind={p.key} ko={ko} />
+              <div className="flex items-center gap-3 pr-[128px]">
                 <span className="w-11 h-11 rounded-2xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
                   <p.Icon width={22} height={22} />
                 </span>
@@ -92,7 +143,7 @@ const PillarsSection = ({ ko, sermons }: { ko: boolean; sermons: Sermon[] }) => 
                   <h3 className="text-[19px] font-extrabold tracking-tight text-ink-strong leading-tight">{p.title}</h3>
                 </div>
               </div>
-              <p className="mt-4 text-[15px] font-bold leading-snug text-ink-strong">“{p.tagline}”</p>
+              <p className="mt-4 text-[15px] font-bold leading-snug text-ink-strong lg:pr-[96px]">“{p.tagline}”</p>
               <p className="mt-2 text-[13.5px] leading-relaxed text-ink-muted">{p.desc}</p>
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {p.chips.map((c) => (
