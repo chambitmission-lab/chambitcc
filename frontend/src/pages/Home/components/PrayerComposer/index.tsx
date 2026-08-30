@@ -7,6 +7,7 @@ import { useSpeechRecognition } from '../../../../hooks/useSpeechRecognition'
 import { showToast } from '../../../../utils/toast'
 import type { PrayerEmotion } from '../../../../types/prayer'
 import type { PrayerComposerProps } from './types'
+import { EmotionGlyph, PrayIcon } from '../EmotionIcons'
 import '../ThanksThread/thanks.css'
 
 const MAX_LEN = 1000
@@ -77,6 +78,9 @@ const SEEDS = {
 }
 
 /* 마음 타일 — 주간 기도 스토리용 감정 태그에 색과 한 줄 힌트를 입힌다 */
+/* 감정 마크는 EmotionGlyph(Phosphor duotone) 로 그린다 — 회색조 얼굴 이모지가
+   기도 화면 톤과 겉돌아 아이콘으로 교체(감사 화면과 같은 문법).
+   emoji 는 아이콘 매핑이 없을 때의 fallback + 올리기 순간의 축포 입자에만 쓴다. */
 const EMOTIONS: Array<{
   key: PrayerEmotion
   emoji: string
@@ -337,11 +341,17 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                     }}
                   >
                     {meta ? (
-                      <span key={emotion} className="thanks-swap leading-none">
-                        {meta.emoji}
+                      <span
+                        key={emotion}
+                        className="thanks-swap inline-flex leading-none"
+                        style={{ color: accent }}
+                      >
+                        <EmotionGlyph emotion={meta.key} fallback={meta.emoji} size={22} />
                       </span>
                     ) : (
-                      <span className="thanks-nudge leading-none opacity-45">🫥</span>
+                      <span className="thanks-nudge inline-flex leading-none text-ink-muted opacity-45">
+                        <PrayIcon size={22} />
+                      </span>
                     )}
                   </div>
 
@@ -489,13 +499,12 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                       }
                     >
                       <span
-                        className={`text-[22px] leading-none transition-all ${
-                          active
-                            ? 'thanks-pop'
-                            : 'grayscale opacity-55 group-hover:grayscale-0 group-hover:opacity-100'
+                        className={`inline-flex leading-none transition-all ${
+                          active ? 'thanks-pop' : 'opacity-55 group-hover:opacity-100'
                         }`}
+                        style={{ color: active ? item.hue : 'var(--text-muted)' }}
                       >
-                        {item.emoji}
+                        <EmotionGlyph emotion={item.key} fallback={item.emoji} size={24} />
                       </span>
                       <span
                         className="text-[10.5px] font-bold"
@@ -711,7 +720,13 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                 disabled={!canSubmit}
                 className="flex-1 py-3 rounded-2xl bg-brand text-[var(--on-brand)] text-[15px] font-extrabold tracking-[-0.01em] shadow-[0_8px_20px_var(--brand-glow)] hover:bg-brand-dim active:scale-[0.98] transition-all disabled:opacity-40 disabled:shadow-none disabled:active:scale-100 flex items-center justify-center gap-1.5"
               >
-                <span className="text-[16px] leading-none">{meta?.emoji ?? '🙏'}</span>
+                <span className="inline-flex leading-none">
+                  {meta ? (
+                    <EmotionGlyph emotion={meta.key} fallback={meta.emoji} size={17} />
+                  ) : (
+                    <PrayIcon size={17} />
+                  )}
+                </span>
                 {isCreating || celebrating
                   ? ko
                     ? '올리는 중…'
