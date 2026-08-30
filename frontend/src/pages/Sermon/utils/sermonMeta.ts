@@ -94,6 +94,28 @@ const CANONICAL_BOOK_NAME: ReadonlyMap<number, string> = new Map(
 export const resolveBookNumber = (name: string): number | null =>
   BOOK_NUMBER_BY_NAME.get(name.replace(/\s+/g, '')) ?? null
 
+/* 책 이름만(또는 "창세기 1"처럼 장 표기 없이) 입력한 경우 — ⌘K 팔레트용.
+ * 정식 명칭·약칭의 앞부분 일치로 후보 책을 찾고, 뒤에 숫자가 붙으면 장으로 본다. */
+export interface BookMatch { bookNumber: number; book: string; chapter: number | null }
+export const matchBibleBooks = (raw: string, limit = 4): BookMatch[] => {
+  const m = raw.trim().match(/^([^\d\s][^\d]*?)\s*(\d+)?\s*$/)
+  if (!m) return []
+  const q = m[1].replace(/\s+/g, '')
+  if (!q) return []
+  const chapter = m[2] ? parseInt(m[2], 10) || null : null
+  const seen = new Set<number>()
+  const out: BookMatch[] = []
+  for (const [num, ...names] of BIBLE_BOOKS) {
+    if (seen.has(num)) continue
+    if (names.some((n) => n.startsWith(q) || (q.length >= 2 && n.includes(q)))) {
+      seen.add(num)
+      out.push({ bookNumber: num, book: names[0], chapter })
+      if (out.length >= limit) break
+    }
+  }
+  return out
+}
+
 // "요한복음 12장 20~33절" / "요한복음 3:16" / "요한1서 2장" 등을 허용.
 // 장 번호 뒤에 반드시 '장' 또는 ':'가 와야 "요한1서" 같은 책 이름의 숫자를 장으로 오인하지 않는다.
 const REFERENCE_RE = /^(.+?)\s*(\d+)\s*(?:장|:)\s*(\d+)?(?:\s*[~\-–—〜]\s*(\d+))?\s*절?/

@@ -52,6 +52,7 @@ export const navigation = {
   cmdkGroupBible: '성경',
   cmdkGroupSermon: '설교',
   cmdkGroupAsk: '참비',
+  cmdkOpenBook: '1장부터 펼치기',
   cmdkOpenChapter: '펼치기',
   cmdkAskChambi: '참비에게 물어보기',
   cmdkAskChambiDesc: '예배 시간·주차·성구·위로의 말씀… 무엇이든',

@@ -10,7 +10,7 @@ import { getTodayVerse } from '../../api/dailyVerse'
 import { getSundayServices, getWeekdayServices } from '../../api/worship'
 import { DAY_CHARS, soonestService } from '../../utils/worshipSchedule'
 import { pushRecent, readRecent, clearRecent, type RecentItem } from './commandRecent'
-import { formatReference, parseBibleReference, resolveBookNumber } from '../../pages/Sermon/utils/sermonMeta'
+import { formatReference, matchBibleBooks, parseBibleReference, resolveBookNumber } from '../../pages/Sermon/utils/sermonMeta'
 import { preloadMenuRoutes } from '../../utils/routePreload'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { NAV_ICONS } from '../layout/NewHeader/components/NavIcons'
@@ -112,6 +112,8 @@ const CommandPalette = () => {
     return p && p.bookNumber ? p : null
   }, [debounced])
 
+  // "창세기" / "창세기 1"처럼 장·절 표기가 없어도 책을 바로 펼칠 수 있게 한다
+  const bookHits = useMemo(() => (ref ? [] : matchBibleBooks(debounced)), [debounced, ref])
   const textSearchable = debounced.length >= 2 && !ref
   // 키워드 검색 응답의 절 객체엔 책 이름이 없다(book_number만) → 책 목록(24h 캐시, 성경 페이지와 공유)으로 복원
   const { data: books } = useBibleBooks()
@@ -231,6 +233,10 @@ const CommandPalette = () => {
       const to = `/bible/${ref.bookNumber}/${ref.chapter}${ref.verse ? `?verse=${ref.verse}` : ''}`
       out.push({ kind: 'ref', id: `ref:${to}`, label: formatReference(ref), desc: t('cmdkOpenChapter'), to })
     }
+    bookHits.forEach((b) => {
+      const to = `/bible/${b.bookNumber}/${b.chapter ?? 1}`
+      out.push({ kind: 'ref', id: `ref:${to}`, label: b.chapter ? `${b.book} ${b.chapter}장` : b.book, desc: b.chapter ? t('cmdkOpenChapter') : t('cmdkOpenBook'), to })
+    })
     pages.forEach((entry) => out.push({ kind: 'page', id: `page:${entry.to}`, entry }))
     if (debounced && !ref && verses?.results?.length) {
       verses.results.slice(0, 4).forEach((v) => {
@@ -263,7 +269,7 @@ const CommandPalette = () => {
     }
     if (debounced) out.push({ kind: 'ask', id: 'ask', message: debounced })
     return out
-  }, [ref, pages, verses, sermons, debounced, ko, t, bookName, actions, recent])
+  }, [ref, bookHits, pages, verses, sermons, debounced, ko, t, bookName, actions, recent])
 
   const rowsKey = rows.map((r) => r.id).join('|')
   const cursor = cursorState.key === rowsKey ? cursorState.idx : 0

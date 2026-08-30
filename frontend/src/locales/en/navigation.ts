@@ -52,6 +52,7 @@ export const navigation = {
   cmdkGroupBible: 'Bible',
   cmdkGroupSermon: 'Sermons',
   cmdkGroupAsk: 'Chambi',
+  cmdkOpenBook: 'Open from chapter 1',
   cmdkOpenChapter: 'Open',
   cmdkAskChambi: 'Ask Chambi',
   cmdkAskChambiDesc: 'Service times, parking, verses, a word of comfort… anything',
