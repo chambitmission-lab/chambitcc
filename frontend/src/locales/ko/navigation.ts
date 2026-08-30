@@ -139,4 +139,7 @@ export const navigation = {
   railShareVerseCard: '말씀 카드 만들기',
   railThemeToLight: '밝은 테마로',
   railThemeToDark: '어두운 테마로',
+  // 넓은 레일에서 아이콘 옆에 노출되는 라벨 — '테마' 대신 어르신도 아는 말로
+  railThemeNight: '야간 모드',
+  railThemeDay: '주간 모드',
 } as const

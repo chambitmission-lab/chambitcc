@@ -138,4 +138,6 @@ export const navigation = {
   railShareVerseCard: 'Make a verse card',
   railThemeToLight: 'Switch to light',
   railThemeToDark: 'Switch to dark',
+  railThemeNight: 'Night mode',
+  railThemeDay: 'Day mode',
 } as const

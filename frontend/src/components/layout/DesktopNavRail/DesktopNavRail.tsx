@@ -44,16 +44,19 @@ const DIAL_GREETING_KEYS = [
 const RailTip = ({
   label,
   placement = 'right',
+  hideAtXl = false,
 }: {
   label: string
   placement?: 'right' | 'top'
+  /** xl에서 버튼에 라벨이 직접 붙는 경우(테마 토글) 툴팁은 중복이라 감춘다 */
+  hideAtXl?: boolean
 }) => (
   <span
     role="tooltip"
     className={`pointer-events-none absolute z-50 whitespace-nowrap rounded-lg bg-[var(--text-strong)] px-2.5 py-1.5 text-[12px] font-semibold text-[var(--surface-container)] shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100 ${
       placement === 'right'
         ? 'left-[calc(100%_+_10px)] top-1/2 -translate-y-1/2 xl:hidden'
-        : 'bottom-[calc(100%_+_8px)] left-1/2 -translate-x-1/2'
+        : `bottom-[calc(100%_+_8px)] left-1/2 -translate-x-1/2${hideAtXl ? ' xl:hidden' : ''}`
     }`}
   >
     {label}
@@ -462,18 +465,24 @@ const DesktopNavRail = () => {
 
       {/* 하단 유틸리티 — 헤더 우상단 액션(테마·알림·전체 메뉴)의 PC 대응물.
           모달/메뉴 패널은 NewHeader가 소유하므로 커스텀 이벤트로 열기만 요청한다 */}
-      <div className="mt-auto pt-4 border-t border-black/[0.05] dark:border-white/[0.06] flex flex-col xl:flex-row items-center xl:justify-around gap-1 xl:gap-0">
+      <div className="mt-auto pt-4 border-t border-black/[0.05] dark:border-white/[0.06] flex flex-col xl:flex-row items-center xl:justify-between gap-1 xl:gap-1">
+        {/* 테마 토글 — 달 아이콘만으로는 "야간 모드"인지 모르시는 분이 많아
+            라벨이 들어갈 자리가 있는 xl 폭에서는 글자를 함께 보여준다 */}
         <button
           onClick={toggleTheme}
           aria-label={t('themeToggleAria')}
-          className="group relative w-11 h-11 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
+          className="group relative w-11 h-11 xl:w-auto xl:px-3 xl:gap-2 rounded-xl flex items-center justify-center text-gray-600 dark:text-white/75 hover:text-brand hover:bg-[var(--brand-soft)] active:scale-[0.94] transition-[color,background-color,transform] duration-150"
         >
-          <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden">
+          <span className="material-icons-outlined text-2xl leading-none inline-flex items-center justify-center w-6 h-6 overflow-hidden shrink-0">
             {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+          </span>
+          <span className="hidden xl:inline text-[13px] font-semibold whitespace-nowrap">
+            {theme === 'dark' ? t('railThemeDay') : t('railThemeNight')}
           </span>
           <RailTip
             label={theme === 'dark' ? t('railThemeToLight') : t('railThemeToDark')}
             placement="top"
+            hideAtXl
           />
         </button>
 
