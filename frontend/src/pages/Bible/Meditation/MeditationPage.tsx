@@ -9,15 +9,25 @@ import {
 import { isAuthenticated } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import type { EmotionTag, TimeOfDay } from '../../../types/meditation'
+import {
+  JournalIcon,
+  LeafIcon,
+  MeditationEmotionGlyph,
+  PauseIcon,
+  PrayIcon,
+  QuestionIcon,
+  SproutIcon,
+  StreakIcon,
+} from './MeditationIcons'
 import './MeditationPage.css'
 
-const EMOTIONS: { tag: EmotionTag; label: string; emoji: string }[] = [
-  { tag: 'weary', label: '지쳤어요', emoji: '😮‍💨' },
-  { tag: 'anxious', label: '불안해요', emoji: '😰' },
-  { tag: 'lonely', label: '외로워요', emoji: '🥺' },
-  { tag: 'grateful', label: '감사해요', emoji: '🙏' },
-  { tag: 'joyful', label: '기뻐요', emoji: '😊' },
-  { tag: 'peaceful', label: '평안해요', emoji: '😌' },
+const EMOTIONS: { tag: EmotionTag; label: string }[] = [
+  { tag: 'weary', label: '지쳤어요' },
+  { tag: 'anxious', label: '불안해요' },
+  { tag: 'lonely', label: '외로워요' },
+  { tag: 'grateful', label: '감사해요' },
+  { tag: 'joyful', label: '기뻐요' },
+  { tag: 'peaceful', label: '평안해요' },
 ]
 
 const TOD_TITLES: Record<TimeOfDay, string> = {
@@ -140,7 +150,7 @@ const MeditationPage = () => {
         <h1>{pageTitle}</h1>
         {loggedIn && streak && streak.current_streak > 0 && (
           <span className="mp-streak" title="연속 묵상 일수">
-            🔥 {streak.current_streak}일
+            <StreakIcon size={14} /> {streak.current_streak}일
           </span>
         )}
         <button
@@ -167,7 +177,8 @@ const MeditationPage = () => {
               aria-pressed={emotion === e.tag}
               onClick={() => setEmotion(emotion === e.tag ? undefined : e.tag)}
             >
-              <span aria-hidden>{e.emoji}</span> {e.label}
+              <MeditationEmotionGlyph emotion={e.tag} size={16} />
+              {e.label}
             </button>
           ))}
         </div>
@@ -208,7 +219,7 @@ const MeditationPage = () => {
 
           {/* 2. 묵상 질문 */}
           <section className="mp-block">
-            <span className="mp-step-label">💭 오늘의 질문</span>
+            <span className="mp-step-label"><QuestionIcon /> 오늘의 질문</span>
             <p className="mp-question">{data.meditation_question}</p>
             {data.redemptive_note && (
               <p className="mp-note">{data.redemptive_note}</p>
@@ -217,7 +228,7 @@ const MeditationPage = () => {
 
           {/* 3. 1분 침묵 */}
           <section className="mp-block mp-silence">
-            <span className="mp-step-label">🕯️ 잠시 멈춤</span>
+            <span className="mp-step-label"><PauseIcon /> 잠시 멈춤</span>
             {silenceLeft === null ? (
               <>
                 <p className="mp-silence-desc">
@@ -233,7 +244,7 @@ const MeditationPage = () => {
               </>
             ) : silenceDone ? (
               <p className="mp-silence-done">
-                🌿 잘하셨어요. 말씀이 마음에 머물길 기도합니다.
+                <LeafIcon size={16} /> 잘하셨어요. 말씀이 마음에 머물길 기도합니다.
               </p>
             ) : (
               <div className="mp-silence-timer" aria-live="polite">
@@ -258,7 +269,7 @@ const MeditationPage = () => {
 
           {/* 4. 오늘의 기도 */}
           <section className="mp-block">
-            <span className="mp-step-label">🙏 오늘의 기도</span>
+            <span className="mp-step-label"><PrayIcon /> 오늘의 기도</span>
             <p className="mp-prayer">{prayerText}</p>
             <button
               type="button"
@@ -272,7 +283,7 @@ const MeditationPage = () => {
 
           {/* 5. 묵상 기록 */}
           <section className="mp-block">
-            <span className="mp-step-label">✏️ 묵상 기록 남기기</span>
+            <span className="mp-step-label"><JournalIcon /> 묵상 기록 남기기</span>
             <textarea
               className="mp-journal"
               rows={4}
@@ -299,7 +310,7 @@ const MeditationPage = () => {
           {/* 최근 기록 */}
           {loggedIn && records.length > 0 && (
             <section className="mp-block">
-              <span className="mp-step-label">🌱 나의 최근 묵상</span>
+              <span className="mp-step-label"><SproutIcon /> 나의 최근 묵상</span>
               <ul className="mp-records">
                 {records.map((r) => (
                   <li key={r.id}>

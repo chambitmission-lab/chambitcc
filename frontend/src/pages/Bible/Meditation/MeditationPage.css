@@ -68,6 +68,9 @@
 }
 
 .mp-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--amber);
@@ -104,6 +107,9 @@
 }
 
 .mp-emotion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: 1px solid var(--card-border);
   background: var(--surface-container);
   color: var(--text-body);
@@ -191,7 +197,9 @@
 }
 
 .mp-step-label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--mp-tod-text);
@@ -256,6 +264,9 @@
 }
 
 .mp-silence-done {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.95rem;
   color: var(--mp-tod-text);
   font-weight: 600;
