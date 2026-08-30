@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Sparkle } from '@phosphor-icons/react'
+import { Sparkle, ThumbsUp, BookmarkSimple, ShareNetwork, Check } from '@phosphor-icons/react'
+import { EmojiText } from '../common/EmojiText'
 import { getChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
@@ -29,7 +30,9 @@ const avatarFor = (expression?: string | null) => AVATARS[expression ?? ''] ?? a
 // 규칙 기반 교회 챗봇 "참빛 말씀비서" — 전역 플로팅 위젯.
 // 대화 상태는 이 컴포넌트(항상 마운트)에 남아 패널을 닫아도 유지된다.
 
-type Msg = { id: number; role: 'user'; text: string } | { id: number; role: 'bot'; reply: ChatReply }
+type Msg =
+  | { id: number; role: 'user'; text: string; at: Date }
+  | { id: number; role: 'bot'; reply: ChatReply }
 
 let nextId = 1
 
@@ -41,62 +44,183 @@ const scrollTop = () =>
 const stripMd = (s: string) =>
   s.replace(/^#{1,6}\s*/gm, '').replace(/\*\*(.+?)\*\*/g, '$1').trim()
 
-const BotBubble = ({ reply, onAction }: { reply: ChatReply; onAction: (a: ChatAction) => void }) => (
-  <div className="flex items-start gap-2 max-w-[92%]">
-    <img
-      src={avatarFor(reply.expression)}
-      alt=""
-      className="h-9 w-9 shrink-0 rounded-full mt-0.5"
-      draggable={false}
-    />
-    <div className="flex flex-col items-start gap-1.5 min-w-0">
-    <div className="rounded-2xl rounded-bl-md bg-surface-container px-3.5 py-2.5 text-[14px] leading-relaxed text-ink">
-      {reply.text && <p className="whitespace-pre-line m-0">{reply.text}</p>}
-      {reply.verses.map((v) => (
-        <blockquote
-          key={v.reference + v.text.slice(0, 8)}
-          className="my-2 border-l-[3px] pl-2.5 py-0.5"
-          style={{ borderColor: 'var(--brand)' }}
-        >
-          <p className="m-0 text-[13.5px] leading-relaxed text-ink">{v.text}</p>
-          <p className="m-0 mt-1 text-[12px] font-semibold text-ink-muted">{v.reference}</p>
-        </blockquote>
-      ))}
-      {reply.commentary && (
-        <div className="mt-2 rounded-lg bg-surface-high px-3 py-2.5">
-          <p className="m-0 mb-1 text-[12px] font-bold text-brand">
-            📖 {reply.commentary.scope === 'summary' ? '요약 해석' : '절별 해석'}
-            {reply.commentary.title ? ` — ${reply.commentary.title}` : ''}
-          </p>
-          <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-ink">
-            {stripMd(reply.commentary.content)}
-          </p>
+/** 사용자 메시지 옆에 붙는 시각 — "오후 8:30" */
+const timeLabel = (d: Date) => {
+  const h = d.getHours()
+  const m = d.getMinutes().toString().padStart(2, '0')
+  return `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${m}`
+}
+
+// 이모지로 시작하는 짧은 첫 줄(예: "⛪ 예배 안내")은 제목으로 승격한다
+const EMOJI_HEAD = /^[\p{Extended_Pictographic}☀-➿]️?\s*\S/u
+const isTitleLine = (line: string, index: number) => index === 0 && line.length <= 24 && EMOJI_HEAD.test(line)
+// "[주일 예배]" — 섹션 라벨
+const SECTION = /^\[(.+)\]$/
+// "· 주일낮예배 1부 — 오전 7:30 (오렌엘 홀)" — 예배 시간표 행
+const ROW = /^[·•]\s*(.+?)\s+[—–-]\s+(.+?)(?:\s*\((.+)\))?$/
+
+type Block =
+  | { t: 'title'; text: string }
+  | { t: 'section'; text: string }
+  | { t: 'rows'; rows: { name: string; time: string; loc?: string }[] }
+  | { t: 'para'; text: string }
+
+/** 백엔드 플레인 텍스트를 제목·섹션·시간표·문단 블록으로 해체 (형식이 안 맞으면 전부 문단) */
+const parseBotText = (text: string): Block[] => {
+  const blocks: Block[] = []
+  const lines = text.split('\n')
+  let para: string[] = []
+  const flush = () => {
+    if (para.length) blocks.push({ t: 'para', text: para.join('\n') })
+    para = []
+  }
+  lines.forEach((raw, i) => {
+    const line = raw.trim()
+    if (!line) { flush(); return }
+    if (isTitleLine(line, i)) { flush(); blocks.push({ t: 'title', text: line }); return }
+    const sec = line.match(SECTION)
+    if (sec) { flush(); blocks.push({ t: 'section', text: sec[1] }); return }
+    const row = line.match(ROW)
+    if (row) {
+      flush()
+      const last = blocks[blocks.length - 1]
+      const r = { name: row[1], time: row[2], loc: row[3] }
+      if (last?.t === 'rows') last.rows.push(r)
+      else blocks.push({ t: 'rows', rows: [r] })
+      return
+    }
+    para.push(line)
+  })
+  flush()
+  return blocks
+}
+
+const BotText = ({ text }: { text: string }) => (
+  <>
+    {parseBotText(text).map((b, i) => {
+      if (b.t === 'title') return <p key={i} className="cb-msg-title m-0"><EmojiText text={b.text} size={18} /></p>
+      if (b.t === 'section') return <p key={i} className="cb-msg-section m-0">{b.text}</p>
+      if (b.t === 'rows')
+        return (
+          <div key={i} className="cb-msg-table">
+            {b.rows.map((r, j) => (
+              <div key={j} className="cb-msg-row">
+                <span className="cb-msg-dot" aria-hidden />
+                <span className="cb-msg-name">{r.name}</span>
+                <span className="cb-msg-time">{r.time}</span>
+                {r.loc && <span className="cb-msg-loc">({r.loc})</span>}
+              </div>
+            ))}
+          </div>
+        )
+      return <p key={i} className="cb-msg-para m-0"><EmojiText text={b.text} /></p>
+    })}
+  </>
+)
+
+const BotAvatar = ({ src }: { src: string }) => (
+  <span className="cb-avatar shrink-0">
+    <img src={src} alt="" draggable={false} />
+  </span>
+)
+
+const BotBubble = ({
+  reply,
+  onAction,
+  onLike,
+  liked,
+}: {
+  reply: ChatReply
+  onAction: (a: ChatAction) => void
+  onLike: () => void
+  liked: boolean
+}) => (
+  <div className="flex items-start gap-2.5 max-w-[94%]">
+    <BotAvatar src={avatarFor(reply.expression)} />
+    <div className="flex flex-col items-start gap-2 min-w-0">
+      <div className="cb-msg">
+        {reply.text && <BotText text={reply.text} />}
+        {reply.verses.map((v) => (
+          <blockquote key={v.reference + v.text.slice(0, 8)} className="cb-verse-quote">
+            <p className="m-0 text-[13.5px] leading-relaxed text-ink">{v.text}</p>
+            <p className="m-0 mt-1.5 text-[12px] font-bold text-brand">{v.reference}</p>
+          </blockquote>
+        ))}
+        {reply.commentary && (
+          <div className="cb-commentary">
+            <p className="m-0 mb-1 text-[12px] font-bold text-brand">
+              <EmojiText text="📖" size={14} />{' '}
+              {reply.commentary.scope === 'summary' ? '요약 해석' : '절별 해석'}
+              {reply.commentary.title ? ` — ${reply.commentary.title}` : ''}
+            </p>
+            <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-ink">
+              {stripMd(reply.commentary.content)}
+            </p>
+          </div>
+        )}
+        {reply.kind !== 'greeting' && reply.kind !== 'help' && reply.kind !== 'fallback' && (
+          <div className="cb-msg-foot">
+            <span className="cb-msg-foot-text">
+              <EmojiText text="💜" size={14} /> 도움이 되었길 바라요
+            </span>
+            <span className="cb-msg-tools">
+              <button
+                type="button"
+                aria-label="도움이 됐어요"
+                aria-pressed={liked}
+                onClick={onLike}
+                className={`cb-tool ${liked ? 'is-on' : ''}`}
+              >
+                <ThumbsUp size={16} weight={liked ? 'fill' : 'regular'} />
+              </button>
+              <button
+                type="button"
+                aria-label="저장"
+                onClick={() => {
+                  const body = [reply.text, ...reply.verses.map((v) => `${v.text} (${v.reference})`)]
+                    .filter(Boolean)
+                    .join('\n')
+                  void navigator.clipboard?.writeText(body)
+                }}
+                className="cb-tool"
+              >
+                <BookmarkSimple size={16} />
+              </button>
+              <button
+                type="button"
+                aria-label="공유"
+                onClick={() => {
+                  const body = [reply.text, ...reply.verses.map((v) => `${v.text} (${v.reference})`)]
+                    .filter(Boolean)
+                    .join('\n')
+                  if (navigator.share) void navigator.share({ text: body }).catch(() => {})
+                  else void navigator.clipboard?.writeText(body)
+                }}
+                className="cb-tool"
+              >
+                <ShareNetwork size={16} />
+              </button>
+            </span>
+          </div>
+        )}
+      </div>
+      {reply.actions.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {reply.actions.map((a) => (
+            <button key={a.label} type="button" onClick={() => onAction(a)} className="cb-action">
+              <EmojiText text={a.label} size={16} />
+            </button>
+          ))}
         </div>
       )}
-    </div>
-    {reply.actions.length > 0 && (
-      <div className="flex flex-wrap gap-1.5">
-        {reply.actions.map((a) => (
-          <button
-            key={a.label}
-            type="button"
-            onClick={() => onAction(a)}
-            className="rounded-full border px-3 py-1 text-[12.5px] font-medium text-brand transition-opacity hover:opacity-75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
-            style={{ borderColor: 'var(--brand)', background: 'var(--brand-soft)' }}
-          >
-            {a.label}
-          </button>
-        ))}
-      </div>
-    )}
     </div>
   </div>
 )
 
 const TypingDots = () => (
-  <div className="flex items-start gap-2">
-    <img src={avatarThinking} alt="" className="h-9 w-9 shrink-0 rounded-full mt-0.5" draggable={false} />
-    <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-surface-container px-3.5 py-3 w-fit">
+  <div className="flex items-start gap-2.5">
+    <BotAvatar src={avatarThinking} />
+    <div className="cb-msg flex items-center gap-1 !py-3.5 w-fit">
       {[0, 1, 2].map((i) => (
         <span
           key={i}
@@ -113,6 +237,7 @@ const ChatbotWidget = () => {
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [liked, setLiked] = useState<Set<number>>(new Set())
   const greetedRef = useRef(false)
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -219,7 +344,7 @@ const ChatbotWidget = () => {
     async (text: string) => {
       const trimmed = text.trim()
       if (!trimmed || loading) return
-      setMsgs((prev) => [...prev, { id: nextId++, role: 'user', text: trimmed }])
+      setMsgs((prev) => [...prev, { id: nextId++, role: 'user', text: trimmed, at: new Date() }])
       setInput('')
       setLoading(true)
       try {
@@ -301,7 +426,7 @@ const ChatbotWidget = () => {
           {/* 헤더 — 웰컴 화면에선 배경과 한 덩어리(투명), 대화 중엔 흰 크롬 */}
           <div
             className={`flex items-center justify-between px-3.5 py-3 ${
-              welcomeReply ? 'cb-header-welcome' : 'border-b border-border-light dark:border-border-dark bg-surface'
+              welcomeReply ? 'cb-header-welcome' : 'cb-header-welcome cb-header-chat'
             }`}
           >
             <div className="flex min-w-0 items-center gap-2.5">
@@ -326,22 +451,34 @@ const ChatbotWidget = () => {
           {/* 메시지 목록 */}
           <div
             ref={listRef}
-            className={`flex-1 overflow-y-auto flex flex-col ${welcomeReply ? '' : 'gap-3 px-3 py-3'}`}
+            className={`flex-1 overflow-y-auto flex flex-col ${welcomeReply ? '' : 'cb-chat gap-3.5 px-3.5 py-4'}`}
           >
             {welcomeReply ? (
               <WelcomeScene reply={welcomeReply} onAction={onAction} onAsk={(q) => void send(q)} />
             ) : (
               msgs.map((m) =>
                 m.role === 'user' ? (
-                  <div
-                    key={m.id}
-                    className="self-end max-w-[85%] rounded-2xl rounded-br-md px-3.5 py-2.5 text-[14px] leading-relaxed text-brand-on"
-                    style={{ background: 'var(--brand)' }}
-                  >
-                    {m.text}
+                  <div key={m.id} className="self-end flex items-end gap-2 max-w-[88%]">
+                    <span className="cb-user-meta">
+                      {timeLabel(m.at)} <Check size={12} weight="bold" />
+                    </span>
+                    <div className="cb-user-msg">{m.text}</div>
                   </div>
                 ) : (
-                  <BotBubble key={m.id} reply={m.reply} onAction={onAction} />
+                  <BotBubble
+                    key={m.id}
+                    reply={m.reply}
+                    onAction={onAction}
+                    liked={liked.has(m.id)}
+                    onLike={() =>
+                      setLiked((prev) => {
+                        const next = new Set(prev)
+                        if (next.has(m.id)) next.delete(m.id)
+                        else next.add(m.id)
+                        return next
+                      })
+                    }
+                  />
                 ),
               )
             )}
@@ -350,18 +487,15 @@ const ChatbotWidget = () => {
 
           {/* 입력창 */}
           <form
-            className="flex items-center gap-2 border-t border-border-light dark:border-border-dark bg-surface px-3 py-2.5"
+            className="cb-inputbar flex items-center gap-2 px-3 py-2.5"
             onSubmit={(e) => {
               e.preventDefault()
               void send(input)
             }}
           >
-            <img
-              src={avatarDefault}
-              alt=""
-              className="h-9 w-9 shrink-0 rounded-full ring-1 ring-black/5 dark:ring-white/10"
-              draggable={false}
-            />
+            <span className="cb-spark cb-spark-input" aria-hidden>
+              <Sparkle size={18} weight="duotone" />
+            </span>
             <input
               ref={inputRef}
               value={input}
