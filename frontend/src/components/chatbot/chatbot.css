@@ -1,154 +1,251 @@
-/* 챗봇 웰컴 화면 — 하늘·언덕 씬 + 메뉴 카드 그리드.
+/* 챗봇 웰컴 화면 — 연보라·하늘 안개 배경 위 헤드라인 인사 + 참비 + 3열 메뉴 카드.
    클래스는 전역 충돌을 피하려 cb- 접두사로 통일한다. */
 
-/* ── 히어로 씬 ─────────────────────────────────────────── */
-.cb-scene {
-  position: relative;
-  overflow: hidden;
-  padding: 14px 14px 0;
-  min-height: 168px;
-  background: linear-gradient(180deg, #cfe6ff 0%, #e2f0ff 46%, #eef7ff 100%);
+/* ── 전체 배경(패널 안쪽) ─────────────────────────────── */
+.cb-welcome {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 6px 14px 12px;
+  background:
+    radial-gradient(60% 40% at 88% 12%, rgba(196, 190, 255, 0.55), transparent 70%),
+    radial-gradient(50% 35% at 10% 30%, rgba(190, 220, 255, 0.5), transparent 70%),
+    linear-gradient(180deg, #eef0fb 0%, #f4f5fc 60%, #f7f8fd 100%);
 }
-html.dark .cb-scene {
-  background: linear-gradient(180deg, #1a2540 0%, #172038 52%, #151b2c 100%);
+html.dark .cb-welcome {
+  background:
+    radial-gradient(60% 40% at 88% 12%, rgba(120, 110, 220, 0.22), transparent 70%),
+    radial-gradient(50% 35% at 10% 30%, rgba(80, 130, 230, 0.16), transparent 70%),
+    linear-gradient(180deg, #171a2b 0%, #141726 60%, #12141f 100%);
 }
 
-/* 구름 — 흰 blob 두 개를 겹쳐 부드럽게 */
-.cb-cloud {
-  position: absolute;
-  border-radius: 999px;
+/* 웰컴 모드 헤더 — 배경과 한 덩어리로 보이게 투명 */
+.cb-header-welcome {
+  background: linear-gradient(180deg, #eef0fb, #eef0fb);
+}
+html.dark .cb-header-welcome { background: #171a2b; }
+
+/* 반짝 아이콘 배지 (헤더) */
+.cb-spark {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
+  border-radius: 12px;
   background: #fff;
-  opacity: 0.75;
-  pointer-events: none;
-}
-html.dark .cb-cloud { background: #9fb4dd; opacity: 0.16; }
-
-/* 언덕 — 씬 바닥에 깔리는 SVG */
-.cb-hills {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  width: 100%;
-  height: 78px;
-  display: block;
-  pointer-events: none;
-}
-
-/* 인사 말풍선 */
-.cb-bubble {
-  position: relative;
-  max-width: 62%;
-  border-radius: 18px;
-  background: #fff;
-  padding: 11px 13px;
-  box-shadow: 0 6px 18px rgba(30, 60, 110, 0.14);
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: #2b3445;
-  white-space: pre-line;
-}
-.cb-bubble::after {
-  content: '';
-  position: absolute;
-  left: 20px; bottom: -7px;
-  width: 14px; height: 14px;
-  background: inherit;
-  border-radius: 0 0 4px 0;
-  transform: rotate(45deg) skew(-6deg, -6deg);
-}
-html.dark .cb-bubble {
-  background: #262e42;
-  color: #e6eaf2;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-}
-
-/* 손글씨 메모 — index.html에서 이미 로드된 Nanum Pen Script */
-.cb-note {
-  font-family: 'Nanum Pen Script', cursive;
-  font-size: 20px;
-  line-height: 1.15;
   color: var(--brand);
-  transform: rotate(-7deg);
+  box-shadow: 0 4px 12px rgba(60, 70, 140, 0.12);
+}
+html.dark .cb-spark { background: rgba(255, 255, 255, 0.08); box-shadow: none; }
+
+/* 온라인 필 */
+.cb-online {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 11px; font-weight: 600;
+  color: #4b5568;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(60, 70, 140, 0.08);
+}
+html.dark .cb-online { background: rgba(255, 255, 255, 0.07); color: #cfd5e3; border-color: rgba(255,255,255,0.08); }
+.cb-online::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 999px;
+  background: #3fc27a;
+  box-shadow: 0 0 0 3px rgba(63, 194, 122, 0.18);
+}
+
+/* 닫기 — 둥근 네모 흰 버튼 */
+.cb-close {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 12px;
+  background: #fff;
+  color: #3a4252;
+  box-shadow: 0 4px 12px rgba(60, 70, 140, 0.12);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.cb-close:hover { background: #f2f3f8; }
+.cb-close:active { transform: scale(0.94); }
+html.dark .cb-close { background: rgba(255, 255, 255, 0.08); color: #e6eaf2; box-shadow: none; }
+
+/* ── 히어로 ─────────────────────────────────────────────── */
+.cb-hero {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 8px;
+  min-height: 150px;
+}
+.cb-hero-copy { flex: 1; min-width: 0; padding-top: 6px; }
+
+.cb-headline {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.32;
+  letter-spacing: -0.03em;
+  color: #1c2233;
+  word-break: keep-all;
+}
+.cb-headline em { font-style: normal; color: var(--brand); }
+html.dark .cb-headline { color: #f0f2f8; }
+
+.cb-sub {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #5b6472;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+html.dark .cb-sub { color: rgba(219, 224, 234, 0.78); }
+
+/* 우측 참비 + 손글씨 */
+.cb-hero-art {
+  position: relative;
+  flex-shrink: 0;
+  width: 132px;
+  height: 150px;
+}
+.cb-note {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%) rotate(-6deg);
+  font-family: 'Nanum Pen Script', cursive;
+  font-size: 19px;
+  line-height: 1.1;
+  color: var(--brand);
   text-align: center;
   letter-spacing: 0.2px;
+  white-space: nowrap;
 }
-
-/* 참비 메달리온 — 전신 컷아웃 원본이 없어 원형 배지로 앉힌다 */
+.cb-squiggle {
+  position: absolute;
+  top: 42px; left: 86px;
+  color: var(--brand);
+  opacity: 0.85;
+}
+/* 뒤에 깔리는 연보라 구 — 목업의 원형 후광 */
+.cb-orb {
+  position: absolute;
+  right: -6px; bottom: 6px;
+  width: 116px; height: 116px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.9), rgba(200, 196, 255, 0.55) 60%, rgba(200,196,255,0) 100%);
+  pointer-events: none;
+}
+html.dark .cb-orb {
+  background: radial-gradient(circle at 40% 35%, rgba(255,255,255,0.12), rgba(140, 130, 240, 0.22) 60%, rgba(140,130,240,0) 100%);
+}
 .cb-chambi {
-  width: 84px; height: 84px;
+  position: absolute;
+  right: 6px; bottom: 10px;
+  width: 96px; height: 96px;
   border-radius: 999px;
   object-fit: cover;
-  border: 3px solid rgba(255, 255, 255, 0.92);
-  box-shadow: 0 8px 20px rgba(30, 60, 110, 0.22);
+  border: 3px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 10px 24px rgba(60, 70, 140, 0.22);
 }
 html.dark .cb-chambi {
-  border-color: rgba(255, 255, 255, 0.24);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
 }
 
-/* ── 메뉴 카드 패널 ────────────────────────────────────── */
-.cb-panel {
-  position: relative;
-  flex: 1;
-  margin-top: -16px;
-  border-radius: 20px 20px 0 0;
-  background: var(--surface);
-  padding: 14px 12px 12px;
+/* ── 오늘의 말씀 필 ─────────────────────────────────────── */
+.cb-verse-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 6px 0 14px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(228, 234, 255, 0.85);
+  color: var(--brand);
+  text-align: left;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.cb-verse-pill:hover { background: rgba(214, 224, 255, 0.95); }
+.cb-verse-pill:active { transform: scale(0.99); }
+html.dark .cb-verse-pill { background: rgba(90, 120, 240, 0.16); color: #a9c4ff; }
+.cb-verse-pill-icon { display: flex; flex-shrink: 0; }
+.cb-verse-pill-label { font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.cb-verse-pill-sep { width: 1px; height: 14px; background: currentColor; opacity: 0.3; flex-shrink: 0; }
+.cb-verse-pill-ref {
+  font-size: 13px; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  min-width: 0;
 }
 
+/* ── 메뉴 카드 그리드 (3열) ─────────────────────────────── */
 .cb-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 9px;
 }
 
 .cb-card {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  text-align: left;
-  border-radius: 16px;
-  border: 1px solid var(--cb-bd);
-  background: var(--cb-bg);
-  padding: 11px 11px 12px;
+  min-height: 154px;
+  padding: 16px 8px 30px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: linear-gradient(180deg, #fff 0%, var(--cb-bg) 100%);
+  box-shadow: 0 6px 16px rgba(60, 70, 140, 0.08);
+  text-align: center;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.cb-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(30, 60, 110, 0.1); }
+.cb-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(60, 70, 140, 0.14); }
 .cb-card:active { transform: translateY(0); }
 .cb-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 html.dark .cb-card {
-  background: var(--cb-bg-d);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, var(--cb-bg-d) 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
+
+/* 아이콘 원판 */
+.cb-card-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 52px; height: 52px;
+  border-radius: 999px;
+  background: var(--cb-bg);
+  box-shadow: inset 0 0 0 1px var(--cb-bd);
+  margin-bottom: 12px;
+}
+html.dark .cb-card-icon { background: rgba(255,255,255,0.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }
 
 .cb-card-title {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 800;
   color: var(--cb-fg);
-  letter-spacing: -0.2px;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
 }
-html.dark .cb-card-title {
-  color: var(--cb-fg-d);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-}
+html.dark .cb-card-title { color: var(--cb-fg-d); }
 
 .cb-card-desc {
-  margin-top: 3px;
+  margin-top: 5px;
   font-size: 11px;
-  line-height: 1.5;
+  line-height: 1.45;
   color: #5b6472;
+  word-break: keep-all;
 }
-/* 다크에서는 틴트 카드 위라 muted(#938f9a)로는 묻힌다 — body 톤까지 올린다 */
-html.dark .cb-card-desc { color: rgba(219, 224, 234, 0.82); }
+html.dark .cb-card-desc { color: rgba(219, 224, 234, 0.8); }
 
 .cb-chev {
   position: absolute;
-  right: 8px; bottom: 8px;
-  width: 19px; height: 19px;
+  left: 50%; bottom: 10px;
+  transform: translateX(-50%);
+  width: 20px; height: 20px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 999px;
   background: var(--cb-fg);
   color: #fff;
-  opacity: 0.85;
 }
 html.dark .cb-chev { background: var(--cb-fg-d); color: #16181d; }
 
@@ -157,16 +254,11 @@ html.dark .cb-chev { background: var(--cb-fg-d); color: #16181d; }
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 10px;
-  padding: 7px 8px;
-  border-radius: 14px;
-  background: var(--surface-container);
-  border: 1px solid var(--card-border);
+  margin-top: 12px;
   overflow-x: auto;
   scrollbar-width: none;
 }
 .cb-chips::-webkit-scrollbar { display: none; }
-html.dark .cb-chips { border-color: rgba(255, 255, 255, 0.07); }
 
 .cb-chips-label {
   flex-shrink: 0;
@@ -179,17 +271,21 @@ html.dark .cb-chips { border-color: rgba(255, 255, 255, 0.07); }
 .cb-chip {
   flex-shrink: 0;
   border-radius: 999px;
-  border: 1px solid var(--card-border);
-  background: var(--surface);
+  border: 1px solid rgba(60, 70, 140, 0.1);
+  background: rgba(255, 255, 255, 0.8);
   padding: 5px 11px;
   font-size: 11.5px;
   color: var(--text-body);
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 .cb-chip:hover { border-color: var(--brand); color: var(--brand); }
-/* 다크에선 --surface(#131313)가 칩 배경 컨테이너보다 어두워 깊이가 뒤집힌다 */
 html.dark .cb-chip {
-  background: var(--surface-container-high);
+  background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.1);
   color: var(--text-strong);
+}
+
+/* 좁은 화면(약 350px 이하 패널)에선 2열로 */
+@media (max-width: 360px) {
+  .cb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

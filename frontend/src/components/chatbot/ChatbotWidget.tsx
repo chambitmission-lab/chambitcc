@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { Sparkle } from '@phosphor-icons/react'
 import { getChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
@@ -297,30 +298,27 @@ const ChatbotWidget = () => {
           aria-label="참비"
           className="fixed z-[99] left-2 right-2 sm:left-auto sm:right-4 lg:right-6 bottom-[calc(6.75rem+env(safe-area-inset-bottom))] lg:bottom-6 sm:w-[380px] h-[min(600px,calc(100dvh-8.5rem))] flex flex-col overflow-hidden rounded-2xl border border-border-light dark:border-border-dark bg-surface shadow-2xl animate-pop-in motion-reduce:animate-none"
         >
-          {/* 헤더 */}
+          {/* 헤더 — 웰컴 화면에선 배경과 한 덩어리(투명), 대화 중엔 흰 크롬 */}
           <div
-            className="flex items-center justify-between px-4 py-3"
-            style={{ background: 'var(--brand-gradient, var(--brand))' }}
+            className={`flex items-center justify-between px-3.5 py-3 ${
+              welcomeReply ? 'cb-header-welcome' : 'border-b border-border-light dark:border-border-dark bg-surface'
+            }`}
           >
-            {/* 얼굴은 말풍선 아바타가 표정까지 맡는다 — 헤더는 이름·상태만 */}
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="m-0 text-[16px] font-extrabold tracking-tight text-white">참비</p>
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-1.5 py-[1px] text-[10.5px] font-semibold text-white/90">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" aria-hidden />
-                  온라인
-                </span>
-              </div>
-              <p className="m-0 mt-0.5 truncate text-[11.5px] text-white/85">말씀·예배·위로, 무엇이든 물어보세요</p>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="cb-spark" aria-hidden>
+                <Sparkle size={20} weight="duotone" />
+              </span>
+              <p className="m-0 text-[18px] font-extrabold tracking-tight text-ink">참비</p>
+              <span className="cb-online">온라인</span>
             </div>
             <button
               type="button"
               aria-label="챗봇 닫기"
               onClick={() => setOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-white/90 transition-colors hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+              className="cb-close focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <path d="M2.5 2.5l11 11M13.5 2.5l-11 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </button>
           </div>
@@ -352,7 +350,7 @@ const ChatbotWidget = () => {
 
           {/* 입력창 */}
           <form
-            className="flex items-center gap-2 border-t border-border-light dark:border-border-dark px-3 py-2.5"
+            className="flex items-center gap-2 border-t border-border-light dark:border-border-dark bg-surface px-3 py-2.5"
             onSubmit={(e) => {
               e.preventDefault()
               void send(input)
@@ -361,18 +359,18 @@ const ChatbotWidget = () => {
             <img
               src={avatarDefault}
               alt=""
-              className="h-8 w-8 shrink-0 rounded-full ring-1 ring-black/5 dark:ring-white/10"
+              className="h-9 w-9 shrink-0 rounded-full ring-1 ring-black/5 dark:ring-white/10"
               draggable={false}
             />
             <input
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="예) 요 3:16 해석, 예배 시간 알려줘"
+              placeholder="궁금한 것을 물어보세요..."
               maxLength={300}
               // min-w-0 필수: input 은 size 속성(기본 20자) 기준 고유 폭이 있어 min-width:auto 로는
               // 좁은 화면에서 줄어들지 않는다 → 행이 넘쳐 전송 버튼이 패널(overflow-hidden) 밖으로 잘렸다
-              className="min-w-0 flex-1 rounded-full bg-surface-container px-4 py-2 text-[14px] text-ink placeholder:text-ink-muted outline-none border border-transparent transition-[border-color,box-shadow] duration-200 focus:border-[rgba(49,130,246,0.4)] focus:shadow-[0_0_0_3px_var(--brand-soft-strong),0_0_14px_var(--brand-glow)]"
+              className="min-w-0 flex-1 rounded-full bg-surface-container px-4 py-2.5 text-[14px] text-ink placeholder:text-ink-muted outline-none border border-transparent transition-[border-color,box-shadow] duration-200 focus:border-[rgba(49,130,246,0.4)] focus:shadow-[0_0_0_3px_var(--brand-soft-strong),0_0_14px_var(--brand-glow)]"
             />
             <button
               type="submit"
