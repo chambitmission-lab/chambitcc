@@ -18,7 +18,7 @@ import { getSundayServices, getWeekdayServices } from '../../../api/worship'
 import { parseServiceTimes, serviceDays } from '../../../utils/worshipSchedule'
 import { CATEGORY_VISUAL } from '../../Events/utils/categoryConfig'
 import { AlarmIcon, CalendarIcon, EmotionGlyph, ImageIcon, PrayIcon, TagIcon } from './EmotionIcons'
-import { ArrowUpRight, Megaphone, Sparkle } from '@phosphor-icons/react'
+import { ArrowUpRight, Megaphone } from '@phosphor-icons/react'
 import type { Language } from '../../../locales'
 import type { Event } from '../../../types/event'
 import type { SituationCategory } from '../../../types/situation'
@@ -563,7 +563,7 @@ const PersonalPickWidget = () => {
             'linear-gradient(160deg, var(--brand-soft) 0%, var(--surface-container) 45%, var(--surface-container) 100%)',
         }}
       >
-        {/* 우상단 오로라 — AI 영역이라는 신호를 은은하게 */}
+        {/* 우상단 오로라 — 추천 카드를 은은하게 띄워주는 장식 */}
         <span
           aria-hidden
           className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full"
@@ -572,9 +572,6 @@ const PersonalPickWidget = () => {
         <div className="relative flex items-center gap-2">
           <img src={chambiAvatar} alt="" className="h-7 w-7 rounded-full ring-2 ring-white/70 dark:ring-white/10" draggable={false} />
           <p className="text-[12.5px] font-bold text-ink-strong">{t('homeRailPickTitle')}</p>
-          <span className="ml-auto inline-flex items-center gap-0.5 rounded-full bg-[var(--brand)] px-1.5 py-px text-[10px] font-bold text-white">
-            <Sparkle size={10} weight="fill" aria-hidden /> AI
-          </span>
         </div>
 
         <p className="relative mt-2 inline-flex items-center gap-1 rounded-full bg-[var(--brand-soft)] px-2 py-0.5 text-[11px] font-semibold text-brand">
