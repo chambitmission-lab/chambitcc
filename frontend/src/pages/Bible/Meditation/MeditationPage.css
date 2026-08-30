@@ -411,3 +411,12 @@
   font-size: 0.9rem;
   line-height: 1.7;
 }
+
+/* 감정 칩 전환 중: 이전 카드를 유지한 채 살짝만 가라앉혀 "바뀌는 중"을 알린다 */
+.mp-body {
+  transition: opacity 0.18s ease;
+}
+.mp-body.is-switching {
+  opacity: 0.55;
+  pointer-events: none;
+}

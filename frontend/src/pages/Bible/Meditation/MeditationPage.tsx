@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { deriveTimeOfDay, useDailyMeditation } from '../../../hooks/useDailyMeditation'
+import { deriveTimeOfDay, useDailyMeditation, usePrefetchEmotionMeditations } from '../../../hooks/useDailyMeditation'
 import {
   useCreateMeditationRecord,
   useMeditationRecords,
@@ -67,7 +67,9 @@ const MeditationPage = () => {
       : undefined
 
   const [emotion, setEmotion] = useState<EmotionTag | undefined>(undefined)
-  const { data, isLoading, error } = useDailyMeditation({ emotion, timeOfDay })
+  const { data, isLoading, isFetching, error } = useDailyMeditation({ emotion, timeOfDay })
+  // 기본 카드가 도착한 뒤 감정 6종을 미리 깔아 두면 첫 클릭도 즉시 바뀐다
+  usePrefetchEmotionMeditations(timeOfDay, !!data)
   const { data: streak } = useMeditationStreak()
   const { data: records = [] } = useMeditationRecords(5)
   const createRecord = useCreateMeditationRecord()
@@ -180,7 +182,7 @@ const MeditationPage = () => {
           잠시 후 다시 시도해주세요.
         </div>
       ) : (
-        <>
+        <div className={`mp-body${isFetching ? ' is-switching' : ''}`}>
           {/* 1. 말씀 */}
           <section className="mp-verse-card">
             <span className="mp-step-label">오늘의 말씀</span>
@@ -313,7 +315,7 @@ const MeditationPage = () => {
               </ul>
             </section>
           )}
-        </>
+        </div>
       )}
     </div>
   )
