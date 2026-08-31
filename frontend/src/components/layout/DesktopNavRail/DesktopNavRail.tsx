@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { HeavenLetterIcon } from '../../icons/HeavenLetterIcon'
+// 나누기 다이얼 아이콘 — 기도 작성 모달과 같은 Phosphor duotone 세트를 재사용한다
+// (컬러 이모지는 OS 폰트마다 생김새가 달라 메뉴 톤이 기기별로 흔들렸음)
+import { ImageIcon, PrayIcon, ThanksHandIcon } from '../../../pages/Home/components/EmotionIcons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../hooks/useAuth'
 import { useTheme } from '../../../contexts/ThemeContext'
@@ -383,23 +386,28 @@ const DesktopNavRail = () => {
               {[
                 {
                   key: 'prayer',
-                  emoji: '🙏',
+                  icon: <PrayIcon size={19} />,
                   label: t('railSharePrayer'),
                   tint: 'bg-[var(--brand-soft-strong)]',
+                  // 각 액션의 색은 그 화면의 액센트를 그대로 가져온다(기도=브랜드,
+                  // 감사=감사 스레드 핑크, 말씀 카드=우측 레일 타일의 라벤더)
+                  colorClass: 'text-brand',
                   onClick: handleComposeClick,
                 },
                 {
                   key: 'thanks',
-                  emoji: '🌼',
+                  icon: <ThanksHandIcon size={19} />,
                   label: t('railShareThanks'),
                   tint: 'bg-[rgba(236,95,143,0.12)]',
+                  colorClass: 'text-[#ec5f8f] dark:text-[#f38cb2]',
                   onClick: handleThanksClick,
                 },
                 {
                   key: 'verse-card',
-                  emoji: '💌',
+                  icon: <ImageIcon size={19} />,
                   label: t('railShareVerseCard'),
-                  tint: 'bg-[rgba(234,179,8,0.14)]',
+                  tint: 'bg-[rgba(124,102,217,0.14)]',
+                  colorClass: 'text-[#7c66d9] dark:text-[#b7a8f2]',
                   onClick: () => void goLazy('/bible/photo-verse'),
                 },
               ].map((action, i) => (
@@ -419,10 +427,10 @@ const DesktopNavRail = () => {
                   style={{ animation: 'fade-in 0.22s ease-out both', animationDelay: `${i * 45}ms` }}
                 >
                   <span
-                    className={`w-9 h-9 rounded-full flex items-center justify-center text-[17px] shrink-0 ${action.tint}`}
+                    className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${action.tint} ${action.colorClass}`}
                     aria-hidden
                   >
-                    {action.emoji}
+                    {action.icon}
                   </span>
                   <span className="text-[13.5px] font-semibold text-ink-strong whitespace-nowrap">
                     {action.label}

@@ -16,6 +16,7 @@ import {
   CloudRain,
   Compass,
   Flame,
+  HandHeart,
   HandsPraying,
   MoonStars,
   Plant,
@@ -50,6 +51,8 @@ export const PrayIcon = duotone(HandsPraying)
 /** 우측 레일 액션 벤토 타일용 */
 export const AlarmIcon = duotone(Alarm)
 export const ImageIcon = duotone(Image)
+/** 감사 한 줄 — 손 위의 마음(감사 화면의 하트 문법을 아이콘으로) */
+export const ThanksHandIcon = duotone(HandHeart)
 
 /** 감정 키 → 아이콘 (PrayerComposer의 MOOD 키와 동기화) */
 const GLYPHS: Record<string, (p: EmotionIconProps) => ReactElement> = {
