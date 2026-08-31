@@ -102,6 +102,10 @@ export const auth = {
   accountShowPassword: 'Show password',
   accountHidePassword: 'Hide password',
   accountLogoutConfirm: 'Log out?',
+  accountPhotoChange: 'Change profile photo',
+  accountPhotoAdd: 'Add profile photo',
+  accountPhotoUploaded: 'Profile photo updated',
+  accountPhotoFailed: 'Photo upload failed',
 
   // Anonymous/Real Name
   anonymous: 'Anonymous',

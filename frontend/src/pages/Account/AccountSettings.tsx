@@ -1,9 +1,10 @@
 // 내 정보 (/account)
-// 토스 블루 테마 + "정보 변경이 쉬운" 설정 화면.
-//  - 상단 아이덴티티 카드(아바타 이니셜·이름·아이디·함께한 날수)
-//  - 계정 정보 카드: 이름은 행에서 바로 인라인 수정, 변경 불가 항목은 잠금 표시
+// 브랜드(토스 블루) 톤 + "정보 변경이 쉬운" 설정 화면.
+//  - 아이덴티티 히어로: 얼굴·이름·함께한 날수 + 오늘의 말씀을 한 카드에 (사진 교체도 여기서)
+//  - 계정 정보 카드: 행마다 아이콘 타일, 이름은 행에서 바로 인라인 수정, 변경 불가 항목은 잠금 표시
 //  - 보안 카드: 비밀번호 변경은 접힌 상태로 두고 펼칠 때만 입력 노출(규칙 실시간 체크)
 //  - 성공 메시지는 토스트로 — 카드 안에서 초록 박스가 튀어나와 레이아웃이 밀리지 않게
+// 아이콘은 손으로 그리던 인라인 SVG를 걷고 최근 화면들과 같은 Phosphor 세트(AccountIcons)로 통일.
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -11,76 +12,37 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { getMe, changePassword, updateName, type ChangePasswordError, type UpdateNameError } from '../../api/account'
 import { getProfileStats } from '../../api/profile'
 import type { ProfileDetail } from '../../types/profile'
+import { useDailyVerse } from '../../hooks/useDailyVerse'
+import { useUploadAvatar } from '../../hooks/useProfile'
+import { resizeImageToBlob } from '../../utils/imageResize'
 import { logout } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
+import {
+  BackIcon,
+  CalendarIcon,
+  CameraIcon,
+  CheckIcon,
+  ChevronIcon,
+  EyeIcon,
+  EyeOffIcon,
+  LeafIcon,
+  LockIcon,
+  LogoutIcon,
+  MailIcon,
+  PencilIcon,
+  PersonIcon,
+  PrayIcon,
+  RefreshIcon,
+  ShieldIcon,
+  type AccountIconProps,
+} from './AccountIcons'
 
-/* ── 인라인 아이콘 (스트로크 1.9, 24 그리드) ───────────────── */
-type IconProps = { size?: number; className?: string }
-
-const Svg = ({ size = 20, className = '', children }: IconProps & { children: React.ReactNode }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.9"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-    aria-hidden="true"
-  >
-    {children}
-  </svg>
-)
-
-const IconBack = (p: IconProps) => <Svg {...p}><polyline points="15 18 9 12 15 6" /></Svg>
-const IconPencil = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M12 20h9" />
-    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-  </Svg>
-)
-const IconLock = (p: IconProps) => (
-  <Svg {...p}>
-    <rect x="4" y="11" width="16" height="10" rx="2" />
-    <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-  </Svg>
-)
-const IconChevronDown = (p: IconProps) => <Svg {...p}><polyline points="6 9 12 15 18 9" /></Svg>
-const IconCheck = (p: IconProps) => <Svg {...p}><polyline points="20 6 9 17 4 12" /></Svg>
-const IconEye = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" />
-    <circle cx="12" cy="12" r="2.6" />
-  </Svg>
-)
-const IconEyeOff = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M10.6 6.1A9.9 9.9 0 0 1 12 6c6.4 0 10 6 10 6a17 17 0 0 1-2.4 3" />
-    <path d="M6.3 7.7A16.6 16.6 0 0 0 2 12s3.6 6 10 6a9.7 9.7 0 0 0 4-.8" />
-    <path d="M3 3l18 18" />
-  </Svg>
-)
-const IconLogout = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </Svg>
-)
-const IconShield = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M12 3l7 3v5.5c0 4.4-2.9 8.2-7 9.5-4.1-1.3-7-5.1-7-9.5V6l7-3Z" />
-    <polyline points="9.2 12 11.2 14 15 10.2" />
-  </Svg>
-)
-const IconRefresh = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M21 12a9 9 0 1 1-3.2-6.9" />
-    <polyline points="21 4 21 9 16 9" />
-  </Svg>
+/* 행 앞 아이콘 타일 — 소프트 브랜드 배경 위 duotone 아이콘 (계정 정보·보안 공용) */
+const RowTile = ({ Icon, size = 20 }: { Icon: (p: AccountIconProps) => React.ReactElement; size?: number }) => (
+  <div className="shrink-0 w-10 h-10 rounded-2xl bg-[var(--brand-soft-strong)] text-brand flex items-center justify-center">
+    <Icon size={size} />
+  </div>
 )
 
 const AccountSettings = () => {
@@ -123,6 +85,29 @@ const AccountSettings = () => {
   useEffect(() => {
     setAvatarBroken(false)
   }, [avatarUrl])
+
+  /* 사진 교체 — 프로필 화면까지 가지 않아도 "내 정보"에서 바로 바꾼다.
+     업로드 훅의 ['profile'] · ['me'] 무효화가 이 화면과 헤더 아바타를 함께 갱신한다.
+     (삭제는 프로필 화면에 남겨 둔다 — 여기선 교체만 필요하다) */
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadAvatar = useUploadAvatar()
+  const avatarBusy = uploadAvatar.isPending
+
+  const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // 같은 파일 재선택 허용
+    if (!file || avatarBusy) return
+    try {
+      await uploadAvatar.mutateAsync(await resizeImageToBlob(file, 512))
+      showToast(t('accountPhotoUploaded'), 'success')
+    } catch {
+      showToast(t('accountPhotoFailed'), 'error')
+    }
+  }
+
+  /* 히어로의 오늘의 말씀 — 홈과 같은 쿼리 키(24h 캐시)를 빌려 쓰므로 추가 요청이 없다.
+     말씀이 아직 등록되지 않은 날(404)이면 조용히 자리를 비운다 */
+  const { data: verse } = useDailyVerse()
 
   /* ── 이름 인라인 수정 ─────────────────────────────────── */
   const [editingName, setEditingName] = useState(false)
@@ -277,7 +262,7 @@ const AccountSettings = () => {
             className="flex items-center gap-1.5 -ml-1 px-1 py-1 text-gray-600 dark:text-white/70 hover:text-brand transition-colors"
             onClick={() => navigate(-1)}
           >
-            <IconBack size={18} />
+            <BackIcon size={18} />
             <span className="text-sm font-semibold">{t('accountBack')}</span>
           </button>
           <h1 className="text-base font-bold text-ink-strong tracking-[-0.015em] mx-auto pr-12">
@@ -294,7 +279,7 @@ const AccountSettings = () => {
         {!isLoading && (error || !me) && (
           <div className="px-6 py-20 text-center">
             <div className="w-14 h-14 mx-auto rounded-full bg-[var(--brand-soft)] flex items-center justify-center text-brand">
-              <IconRefresh size={26} />
+              <RefreshIcon size={26} />
             </div>
             <p className="mt-4 text-[14.5px] font-semibold text-ink">{t('accountCannotLoad')}</p>
             <button
@@ -308,41 +293,85 @@ const AccountSettings = () => {
 
         {me && (
           <div className="px-4 pt-4 space-y-5">
-            {/* 아이덴티티 카드 */}
-            <div className="rounded-2xl bg-[var(--brand-soft)] border border-[var(--card-border)] p-4 flex items-center gap-3.5">
-              {avatarUrl && !avatarBroken ? (
-                <img
-                  src={avatarUrl}
-                  alt={t('accountAvatarAlt')}
-                  onError={() => setAvatarBroken(true)}
-                  className="shrink-0 w-14 h-14 rounded-full object-cover bg-[var(--surface-inset)] shadow-[0_4px_14px_var(--brand-glow)]"
-                  style={{ filter: 'var(--media-dim)' }}
-                />
-              ) : (
-                <div
-                  className="shrink-0 w-14 h-14 rounded-full bg-brand text-white flex items-center justify-center text-[22px] font-bold tracking-[-0.02em] shadow-[0_4px_14px_var(--brand-glow)]"
-                  aria-hidden="true"
-                >
-                  {initial}
+            {/* 아이덴티티 히어로 — 얼굴·이름·함께한 날수, 그리고 오늘의 말씀.
+                "내 정보"의 첫 화면이 서류가 아니라 사람이 되도록 카드 하나로 묶었다 */}
+            <div className="relative overflow-hidden rounded-3xl border border-[var(--card-border)] bg-white dark:bg-card-dark shadow-[0_10px_28px_-20px_var(--brand-glow)]">
+              {/* 브랜드 그라데이션 + 우상단 빛무리 + 잎사귀 워터마크 (다크는 토큰이 알아서 톤을 낮춘다) */}
+              <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,var(--brand-soft-strong),transparent_62%)]" />
+              <div aria-hidden className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-[radial-gradient(circle,var(--brand-glow),transparent_68%)] opacity-70" />
+              <LeafIcon size={132} className="pointer-events-none absolute -bottom-7 right-1 rotate-[18deg] text-brand opacity-[0.09]" />
+
+              <div className="relative flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:gap-5 lg:p-5">
+                <div className="flex min-w-0 flex-1 items-center gap-3.5">
+                  {/* 얼굴 — 카메라 배지로 여기서 바로 교체 */}
+                  <div className="relative shrink-0">
+                    {avatarUrl && !avatarBroken ? (
+                      <img
+                        src={avatarUrl}
+                        alt={t('accountAvatarAlt')}
+                        onError={() => setAvatarBroken(true)}
+                        className="h-[68px] w-[68px] rounded-full object-cover bg-[var(--surface-inset)] ring-4 ring-white dark:ring-white/10 shadow-[0_6px_18px_var(--brand-glow)]"
+                        style={{ filter: 'var(--media-dim)' }}
+                      />
+                    ) : (
+                      <div
+                        className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-brand text-[26px] font-bold tracking-[-0.02em] text-white ring-4 ring-white dark:ring-white/10 shadow-[0_6px_18px_var(--brand-glow)]"
+                        aria-hidden="true"
+                      >
+                        {initial}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={avatarBusy}
+                      aria-label={t(avatarUrl ? 'accountPhotoChange' : 'accountPhotoAdd')}
+                      className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-brand text-white ring-2 ring-white dark:ring-card-dark shadow-[0_2px_8px_var(--brand-glow)] transition-transform hover:scale-110 active:scale-95 disabled:opacity-60"
+                    >
+                      {avatarBusy ? <RefreshIcon size={14} className="animate-spin" /> : <CameraIcon size={14} />}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleAvatarFile}
+                    />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-[20px] font-bold tracking-[-0.02em] text-ink-strong break-all">
+                        {displayName}
+                      </span>
+                      {me.is_admin && (
+                        <span className="rounded-md bg-brand px-1.5 py-0.5 text-[10.5px] font-bold text-white">
+                          {t('accountAdminBadge')}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-[13px] text-ink-muted break-all">@{me.username}</p>
+                    {togetherDays > 0 && (
+                      /* 함께한 날수 — 숫자가 아니라 "동행"으로 읽히도록 기도손 칩 */
+                      <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-[var(--card-border)] bg-white/70 dark:bg-white/[0.06] px-2.5 py-1 text-[12px] font-bold text-brand">
+                        <PrayIcon size={14} />
+                        {togetherDays}
+                        {t('accountTogetherDays')}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[18px] font-bold text-ink-strong tracking-[-0.02em] break-all">
-                    {displayName}
-                  </span>
-                  {me.is_admin && (
-                    <span className="px-1.5 py-0.5 rounded-md bg-brand text-white text-[10.5px] font-bold">
-                      {t('accountAdminBadge')}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-0.5 text-[13px] text-ink-muted break-all">@{me.username}</p>
-                {togetherDays > 0 && (
-                  <p className="mt-1.5 text-[12px] font-semibold text-brand">
-                    {togetherDays}
-                    {t('accountTogetherDays')}
-                  </p>
+
+                {/* 오늘의 말씀 — 설정 화면에도 붙들 말씀 한 줄을 둔다 */}
+                {verse && (
+                  <div className="min-w-0 border-t border-[var(--card-border)] pt-3.5 lg:max-w-[46%] lg:border-t-0 lg:border-l lg:pl-5 lg:pt-0">
+                    <p className="whitespace-pre-line text-[13.5px] leading-[1.6] text-ink">
+                      {verse.verse_text}
+                    </p>
+                    <p className="mt-1.5 text-[11.5px] font-semibold text-ink-muted">
+                      {verse.verse_reference}
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -411,6 +440,7 @@ const AccountSettings = () => {
                     onClick={startEditName}
                     className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-[var(--brand-soft)] active:bg-[var(--brand-soft-strong)] transition-colors"
                   >
+                    <RowTile Icon={PersonIcon} />
                     <div className="min-w-0 flex-1">
                       <p className="text-[12.5px] text-ink-muted">{t('accountFullName')}</p>
                       <p
@@ -421,20 +451,22 @@ const AccountSettings = () => {
                         {me.full_name || t('accountNotSet')}
                       </p>
                     </div>
-                    <span className="shrink-0 flex items-center gap-1 text-brand text-[13px] font-bold">
-                      <IconPencil size={15} />
+                    <span className="shrink-0 flex h-9 items-center gap-1 rounded-full bg-[var(--brand-soft-strong)] px-3 text-[13px] font-bold text-brand">
+                      <PencilIcon size={14} />
                       {t('accountEdit')}
                     </span>
                   </button>
                 )}
 
                 <LockedRow
+                  icon={MailIcon}
                   label={t('accountEmail')}
                   value={me.email || t('accountNotSet')}
                   muted={!me.email}
                   hint={t('accountLockedHint')}
                 />
                 <div className="flex items-center gap-3 px-4 py-3.5">
+                  <RowTile Icon={CalendarIcon} />
                   <div className="min-w-0 flex-1">
                     <p className="text-[12.5px] text-ink-muted">{t('accountJoinedAt')}</p>
                     <p className="mt-0.5 text-[15px] font-semibold text-ink-strong">{joinedText}</p>
@@ -455,9 +487,7 @@ const AccountSettings = () => {
                   aria-expanded={pwOpen}
                   className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-[var(--brand-soft)] active:bg-[var(--brand-soft-strong)] transition-colors"
                 >
-                  <div className="shrink-0 w-9 h-9 rounded-full bg-[var(--brand-soft-strong)] text-brand flex items-center justify-center">
-                    <IconShield size={19} />
-                  </div>
+                  <RowTile Icon={ShieldIcon} size={21} />
                   <div className="min-w-0 flex-1">
                     <p className="text-[14.5px] font-bold text-ink-strong tracking-[-0.01em]">
                       {t('accountChangePasswordSection')}
@@ -466,7 +496,7 @@ const AccountSettings = () => {
                       {t('accountPasswordRowDesc')}
                     </p>
                   </div>
-                  <IconChevronDown
+                  <ChevronIcon
                     size={20}
                     className={`shrink-0 text-ink-muted transition-transform duration-200 ${
                       pwOpen ? 'rotate-180' : ''
@@ -513,7 +543,7 @@ const AccountSettings = () => {
                           aria-label={t(showPw ? 'accountHidePassword' : 'accountShowPassword')}
                           className="absolute right-1 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-gray-400 dark:text-white/35 hover:text-brand transition-colors"
                         >
-                          {showPw ? <IconEyeOff size={19} /> : <IconEye size={19} />}
+                          {showPw ? <EyeOffIcon size={19} /> : <EyeIcon size={19} />}
                         </button>
                       </div>
                       <input
@@ -579,11 +609,14 @@ const AccountSettings = () => {
                   </div>
                 </div>
               ) : (
+                /* 풀폭 솔리드 — 브랜드 파랑(주요 행동)도 빨강(위험)도 아닌 잉크 톤.
+                   확인 한 단계를 거치므로 크게 둬도 오탭이 곧장 로그아웃이 되진 않는다.
+                   다크에선 검은 버튼이 배경에 묻히므로 살짝 떠 있는 표면 + 테두리로 바꾼다 */
                 <button
                   onClick={() => setLogoutConfirm(true)}
-                  className="w-full h-12 rounded-xl flex items-center justify-center gap-2 border border-gray-200 dark:border-white/[0.1] text-[14.5px] font-bold text-ink-muted hover:text-red-500 hover:border-red-200 dark:hover:border-red-500/30 active:scale-[0.99] transition-all"
+                  className="w-full h-[52px] rounded-2xl flex items-center justify-center gap-2 text-[15px] font-bold text-white bg-[linear-gradient(135deg,#3b4252,#1c2029)] shadow-[0_8px_20px_-12px_rgba(0,0,0,0.55)] active:scale-[0.99] transition-transform dark:bg-none dark:border dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-white/90 dark:shadow-none"
                 >
-                  <IconLogout size={17} />
+                  <LogoutIcon size={18} />
                   {t('logout')}
                 </button>
               )}
@@ -597,17 +630,20 @@ const AccountSettings = () => {
 
 /* 변경할 수 없는 항목 — 값 + 잠금 아이콘으로 "왜 안 눌리는지"를 바로 알린다 */
 const LockedRow = ({
+  icon,
   label,
   value,
   hint,
   muted = false,
 }: {
+  icon: (p: AccountIconProps) => React.ReactElement
   label: string
   value: string
   hint: string
   muted?: boolean
 }) => (
   <div className="flex items-center gap-3 px-4 py-3.5">
+    <RowTile Icon={icon} />
     <div className="min-w-0 flex-1">
       <p className="text-[12.5px] text-ink-muted">{label}</p>
       <p
@@ -619,7 +655,7 @@ const LockedRow = ({
       </p>
     </div>
     <span className="shrink-0 flex items-center gap-1 text-ink-muted text-[11.5px] font-semibold">
-      <IconLock size={13} />
+      <LockIcon size={13} />
       {hint}
     </span>
   </div>
@@ -633,7 +669,7 @@ const Rule = ({ ok, text }: { ok: boolean; text: string }) => (
         ok ? 'bg-brand text-white' : 'bg-gray-200 dark:bg-white/[0.12] text-transparent'
       }`}
     >
-      <IconCheck size={11} />
+      <CheckIcon size={11} />
     </span>
     <span
       className={`text-[12.5px] transition-colors ${

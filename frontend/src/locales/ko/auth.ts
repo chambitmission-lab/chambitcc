@@ -102,6 +102,10 @@ export const auth = {
   accountShowPassword: '비밀번호 보기',
   accountHidePassword: '비밀번호 숨기기',
   accountLogoutConfirm: '로그아웃 할까요?',
+  accountPhotoChange: '프로필 사진 변경',
+  accountPhotoAdd: '프로필 사진 등록',
+  accountPhotoUploaded: '프로필 사진을 바꿨어요',
+  accountPhotoFailed: '사진 업로드에 실패했어요',
 
   // 익명/실명
   anonymous: '익명',
