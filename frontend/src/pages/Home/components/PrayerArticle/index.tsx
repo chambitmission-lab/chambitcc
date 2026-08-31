@@ -117,8 +117,10 @@ const PrayerArticle = ({
             transitionStyles={{}}
           />
 
-          {/* 통합 액션바 — 흩어졌던 통계·말씀을 아이콘+숫자로 흡수 (스레드형) */}
-          <div className="px-5 pt-3 pb-4">
+          {/* 통합 액션바 — 흩어졌던 통계·말씀을 아이콘+숫자로 흡수 (스레드형).
+              줄 전체를 클릭 차단 지대로: 버튼 사이 빈틈이나 상태 문구를 눌러도
+              카드 클릭(상세보기)으로 새지 않는다 (X·Threads 액션바 문법) */}
+          <div className="px-5 pt-3 pb-4 cursor-default" onClick={(e) => e.stopPropagation()}>
             <PrayerActions
               isPrayed={prayer.is_prayed}
               isPraying={isPraying}
