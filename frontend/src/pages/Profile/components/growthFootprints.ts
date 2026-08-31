@@ -17,8 +17,6 @@ export interface DayCell {
   isFuture: boolean
   count: number
   domains: TimelineDomain[]
-  /** 대표 이벤트 이모지 (백엔드가 주는 icon) */
-  icon: string | null
 }
 
 /** 하루에 여러 도메인이 겹칠 때 대표로 세울 순서 */
@@ -39,7 +37,6 @@ export const ymdLocal = (d: Date) =>
 interface DayBucket {
   count: number
   domains: Set<TimelineDomain>
-  iconByDomain: Map<TimelineDomain, string>
 }
 
 const bucketByDate = (events: TimelineEvent[] | undefined) => {
@@ -47,14 +44,11 @@ const bucketByDate = (events: TimelineEvent[] | undefined) => {
   events?.forEach((e) => {
     let bucket = map.get(e.date)
     if (!bucket) {
-      bucket = { count: 0, domains: new Set(), iconByDomain: new Map() }
+      bucket = { count: 0, domains: new Set() }
       map.set(e.date, bucket)
     }
     bucket.count += 1
     bucket.domains.add(e.domain)
-    if (e.icon && !bucket.iconByDomain.has(e.domain)) {
-      bucket.iconByDomain.set(e.domain, e.icon)
-    }
   })
   return map
 }
@@ -69,7 +63,6 @@ const toCell = (date: Date, bucket: DayBucket | undefined, today: string): DayCe
     isFuture: ymd > today,
     count: bucket?.count ?? 0,
     domains,
-    icon: domains.length ? (bucket?.iconByDomain.get(domains[0]) ?? null) : null,
   }
 }
 

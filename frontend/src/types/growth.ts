@@ -23,7 +23,8 @@ export interface GrowthTotals {
 export interface MonthDelta {
   key: string
   label: string
-  icon: string
+  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type/stage_key 로 고른다 */
+  icon?: string
   this_month: number
   last_month: number
 }
@@ -37,7 +38,8 @@ export interface StreakInfo {
 
 export interface GrowthMilestone {
   key: string
-  icon: string
+  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type/stage_key 로 고른다 */
+  icon?: string
   label: string
   value?: string | null
 }
@@ -74,6 +76,7 @@ export type TimelineType =
   | 'session'
   | 'read'
   | 'note'
+  | 'meditation'
   | 'thanks'
   | 'plan'
   | 'game'
@@ -89,7 +92,8 @@ export interface TimelineEvent {
   time: string | null // HH:MM (KST), 하루 묶음은 null
   title: string
   snippet?: string | null
-  icon: string
+  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type/stage_key 로 고른다 */
+  icon?: string
   accent: string
   meta: Record<string, unknown>
   link?: string | null
@@ -139,7 +143,8 @@ export interface FaithJourneyData {
   has_data: boolean
   stage_key: JourneyStageKey
   stage_title: string
-  stage_icon: string
+  /** @deprecated 서버가 더는 채우지 않는다(2026-09-01). 아이콘은 GrowthIcons 가 key/type/stage_key 로 고른다 */
+  stage_icon?: string
   headline: string
   metaphor: string
   narrative: string

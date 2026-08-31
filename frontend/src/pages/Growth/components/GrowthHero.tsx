@@ -1,4 +1,5 @@
 import type { GrowthSummaryData } from '../../../types/growth'
+import { SproutIcon } from '../../../components/icons/GrowthIcons'
 // 홈 묵상 카드의 아침 히어로와 같은 사진 — 여명빛이 "빛을 향해 자라나는 여정" 서사와 맞닿는다
 import heroMorning from '../../../assets/hero/morning.jpg'
 
@@ -36,8 +37,8 @@ const GrowthHero = ({ summary }: GrowthHeroProps) => {
 
         <div className="relative">
           <div className="flex items-center gap-2 mb-3">
-            <span className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center text-lg">
-              🌱
+            <span className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center text-white">
+              <SproutIcon size={20} />
             </span>
             <span className="text-[12px] font-semibold text-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">
               나의 신앙 여정

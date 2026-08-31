@@ -1,4 +1,11 @@
+import type { ReactNode } from 'react'
 import type { GrowthSummaryData, MonthDelta } from '../../../types/growth'
+import {
+  DELTA_GLYPH,
+  GrowthGlyph,
+  MILESTONE_GLYPH,
+  type GrowthGlyphName,
+} from '../../../components/icons/GrowthIcons'
 
 interface GrowthStatsProps {
   summary: GrowthSummaryData
@@ -38,14 +45,22 @@ const StatCell = ({
   label,
   tone = 'normal',
 }: {
-  icon: string
+  icon: ReactNode
   value: string
   label: string
   tone?: StatTone
 }) => (
   <div className={`${cardCls} text-center`}>
     <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
-    <div className={`relative z-10 text-base mb-0.5 ${tone === 'zero' ? 'grayscale opacity-50' : ''}`}>
+    {/* 아이콘은 currentColor — 0인 항목은 색까지 톤다운해 숫자와 함께 물러난다 */}
+    <div
+      className={
+        'relative z-10 mb-0.5 flex justify-center ' +
+        (tone === 'zero'
+          ? 'text-gray-300 dark:text-white/25'
+          : 'text-[var(--brand-muted)]')
+      }
+    >
       {icon}
     </div>
     <div className={`relative z-10 font-bold tracking-[-0.015em] ${toneNum[tone]}`}>
@@ -70,7 +85,9 @@ const DeltaRow = ({ d }: { d: MonthDelta }) => {
   const down = diff < 0
   return (
     <div className="flex items-center gap-3 py-2">
-      <span className="text-base w-6 text-center">{d.icon}</span>
+      <span className="w-6 flex justify-center text-[var(--brand-muted)]">
+        <GrowthGlyph name={DELTA_GLYPH[d.key] ?? 'sprout'} size={17} />
+      </span>
       <span className="flex-1 text-[13px] font-semibold text-gray-800 dark:text-white/85">
         {d.label}
       </span>
@@ -101,13 +118,19 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
   const keptToday = streak.active_today ?? streak.current > 0
 
   // 발자취 6칸 — 가장 활발한 항목(상위 2개)은 네온 강조, 0인 항목은 톤다운
-  const footprints = [
-    { key: 'prayers', icon: '🙏', value: totals.prayers, label: '기도' },
-    { key: 'intercessions', icon: '🤝', value: totals.intercessions, label: '함께 기도' },
-    { key: 'answered', icon: '✨', value: totals.answered, label: '응답', zeroLabel: '응답 대기 중 ✨' },
-    { key: 'verses_read', icon: '📖', value: totals.verses_read, label: '읽은 절' },
-    { key: 'devotional_notes', icon: '📝', value: totals.devotional_notes, label: '묵상 노트' },
-    { key: 'thanks', icon: '🌸', value: totals.thanks, label: '감사', zeroLabel: '첫 감사 기다리는 중' },
+  const footprints: {
+    key: string
+    glyph: GrowthGlyphName
+    value: number
+    label: string
+    zeroLabel?: string
+  }[] = [
+    { key: 'prayers', glyph: 'prayer', value: totals.prayers, label: '기도' },
+    { key: 'intercessions', glyph: 'intercession', value: totals.intercessions, label: '함께 기도' },
+    { key: 'answered', glyph: 'answered', value: totals.answered, label: '응답', zeroLabel: '응답 대기 중' },
+    { key: 'verses_read', glyph: 'verses', value: totals.verses_read, label: '읽은 절' },
+    { key: 'devotional_notes', glyph: 'note', value: totals.devotional_notes, label: '묵상 노트' },
+    { key: 'thanks', glyph: 'thanks', value: totals.thanks, label: '감사', zeroLabel: '첫 감사 기다리는 중' },
   ]
   const topKeys = footprints
     .filter((c) => c.value > 0)
@@ -138,15 +161,14 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
               <div className="flex items-end gap-1">
                 <span
                   className={
-                    'text-[34px] leading-none ' +
+                    'leading-none ' +
                     (streak.current === 0
-                      ? 'grayscale opacity-40'
-                      : keptToday
-                        ? 'animate-streak-flame motion-reduce:animate-none'
-                        : '')
+                      ? 'text-gray-300 dark:text-white/25'
+                      : 'text-orange-500 dark:text-orange-400 ' +
+                        (keptToday ? 'animate-streak-flame motion-reduce:animate-none' : ''))
                   }
                 >
-                  🔥
+                  <GrowthGlyph name="flame" size={34} />
                 </span>
                 <span className="text-[30px] leading-none font-extrabold tracking-[-0.02em] text-brand">
                   {streak.current}
@@ -161,7 +183,9 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
             </div>
             <div className="flex flex-col items-center justify-center rounded-xl py-3 bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]">
               <div className="flex items-end gap-1">
-                <span className="text-[22px] leading-none">🏆</span>
+                <span className="leading-none text-amber-500 dark:text-amber-400">
+                  <GrowthGlyph name="trophy" size={24} />
+                </span>
                 <span className="text-[24px] leading-none font-extrabold tracking-[-0.02em] text-brand">
                   {streak.best}
                 </span>
@@ -176,7 +200,7 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
           </div>
           <p className="relative mt-2.5 text-center text-[11px] font-semibold text-[var(--brand-muted)]">
             {keptToday && streak.current > 0
-              ? '오늘도 불꽃을 지켰어요! 내일도 이어가 볼까요? 🔥'
+              ? '오늘도 불꽃을 지켰어요! 내일도 이어가 볼까요?'
               : streak.current > 0
                 ? '오늘 활동하면 불꽃이 계속 타올라요!'
                 : '오늘 말씀 한 절이면 불꽃이 다시 타올라요'}
@@ -193,7 +217,7 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
             return (
               <StatCell
                 key={c.key}
-                icon={c.icon}
+                icon={<GrowthGlyph name={c.glyph} size={20} />}
                 value={fmt(c.value)}
                 label={isZero && c.zeroLabel ? c.zeroLabel : c.label}
                 tone={isZero ? 'zero' : topKeys.includes(c.key) ? 'top' : 'normal'}
@@ -252,7 +276,9 @@ const GrowthStats = ({ summary }: GrowthStatsProps) => {
                   border border-[var(--brand-soft-strong)]
                 "
               >
-                <span className="text-base">{m.icon}</span>
+                <span className="flex text-[var(--brand-muted)]">
+                  <GrowthGlyph name={MILESTONE_GLYPH[m.key] ?? 'sprout'} size={18} />
+                </span>
                 <div className="leading-tight">
                   <div className={`text-[13px] font-bold ${gradientNum}`}>
                     {m.value}

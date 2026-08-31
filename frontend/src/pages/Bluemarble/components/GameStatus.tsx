@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import BmIcon from './BluemarbleIcons'
 import type { GameSession } from '../../../types/bluemarble'
 import { JOURNEY_LENGTH } from '../journeyLayout'
 
@@ -21,7 +22,12 @@ export default function GameStatus({ session, username, phase, streak }: Props) 
     <div className="bm-status">
       <div className="bm-status-header">
         <div className="bm-status-username">{username ?? '플레이어'}</div>
-        {phase && <div className="bm-status-phase">📜 {phase}</div>}
+        {phase && (
+          <div className="bm-status-phase">
+            <BmIcon name="scroll" size={13} />
+            {phase}
+          </div>
+        )}
       </div>
 
       <div className="bm-status-score">

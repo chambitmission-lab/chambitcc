@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useFaithJourneyInsight } from '../../../hooks/useGrowth'
 import type { JourneyFlowStop, JourneyVerse } from '../../../types/growth'
+import { GrowthGlyph, JourneyStageGlyph } from '../../../components/icons/GrowthIcons'
 
 /**
  * 말씀 여정 인사이트 카드 — 읽기 동선(어떤 책을 어떤 순서로)을 룰 엔진이 해석해
@@ -24,8 +25,8 @@ const JourneyInsightCard = () => {
   const insight = data.data
   const {
     has_data,
+    stage_key,
     stage_title,
-    stage_icon,
     headline,
     metaphor,
     narrative,
@@ -70,11 +71,11 @@ const JourneyInsightCard = () => {
           <div className="flex items-center gap-3">
             <span
               className="
-                shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-[26px]
+                shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-brand
                 bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)]
               "
             >
-              {stage_icon}
+              <JourneyStageGlyph stage={stage_key} size={26} />
             </span>
             <div className="min-w-0">
               <div className="text-[13px] font-bold text-brand tracking-[-0.01em]">
@@ -106,8 +107,9 @@ const JourneyInsightCard = () => {
                       border border-gray-200/70 dark:border-white/[0.07]
                     "
                   >
-                    <div className="text-[12px] font-bold text-gray-800 dark:text-white/85">
-                      📖 {stop.book}
+                    <div className="flex items-center gap-1 text-[12px] font-bold text-gray-800 dark:text-white/85">
+                      <GrowthGlyph name="book" size={13} className="text-brand" />
+                      {stop.book}
                     </div>
                     <div className="text-[10px] text-gray-500 dark:text-white/50">
                       {stop.theme}
@@ -125,8 +127,9 @@ const JourneyInsightCard = () => {
 
           {/* 마음 신호 */}
           {emotion_note && (
-            <p className="mt-2 text-[12px] leading-relaxed text-gray-500 dark:text-white/55">
-              💭 {emotion_note}
+            <p className="mt-2 flex items-start gap-1.5 text-[12px] leading-relaxed text-gray-500 dark:text-white/55">
+              <GrowthGlyph name="quote" size={14} className="shrink-0 mt-0.5" />
+              <span>{emotion_note}</span>
             </p>
           )}
 

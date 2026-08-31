@@ -598,3 +598,25 @@
   .rg-title { font-size: 17px; }
   .rg-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 }
+
+/* ── 라인 아이콘 전환 (이모지 → SVG) ──────────────────────────────
+   /bluemarble 화면과 같은 이유로 토끼 갤러리도 <BmIcon> 라인 아이콘을 쓴다.
+   (BluemarbleIcons.tsx 참고) 아이콘은 currentColor 를 따르므로 골드 액센트가
+   필요한 보물 아이콘에만 색을 지정한다. */
+.rg-title,
+.rg-section-title,
+.rg-nickname-edit-icon,
+.rg-treasure-locked-text,
+.rg-event > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rg-nickname-edit-icon,
+.rg-treasure-locked-text { gap: 4px; }
+.rg-treasure-icon {
+  display: flex;
+  justify-content: center;
+  color: #f5b642;
+}
+html:not(.dark) .rg-treasure-icon { color: #d97706; }

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { HeavenLetterGlyph } from '../../../components/icons/HeavenLetterIcon'
+import { HandHeartIcon, VerseCardIcon } from '../../../components/icons/ActionIcons'
+import { ThanksIcon } from '../../../components/icons/ThanksIcons'
 
 interface BottomNavigationProps {
   onProfileClick: () => void
@@ -22,26 +24,28 @@ const NavSpinner = () => (
 )
 
 // 스피드 다이얼 액션 — 위에서부터 렌더되고, 엄지에 가까운 아래쪽이 주 액션(기도)
+// 아이콘은 컬러 이모지 대신 라인 아이콘(ActionIcons/ThanksIcons 세트)을 쓴다.
+// 이모지는 기기 폰트마다 생김새가 달라 도크 톤이 흔들리고, 알약 tint 색과 따로 논다.
 const DIAL_ACTIONS = [
   {
-    key: 'verse-card',
-    emoji: '💌',
+    key: 'verse-card' as const,
+    icon: <VerseCardIcon size={19} strokeWidth={1.7} />,
     label: '말씀 카드 만들기',
-    tint: 'bg-[rgba(234,179,8,0.14)]',
+    tint: 'bg-[rgba(234,179,8,0.14)] text-[#b45309] dark:text-[#fcd34d]',
   },
   {
-    key: 'thanks',
-    emoji: '🌼',
+    key: 'thanks' as const,
+    icon: <ThanksIcon name="thanks" size={19} strokeWidth={1.7} />,
     label: '감사 한 줄 남기기',
-    tint: 'bg-[rgba(236,95,143,0.12)]',
+    tint: 'bg-[rgba(236,95,143,0.12)] text-[#d1477a] dark:text-[#f7a3c3]',
   },
   {
-    key: 'prayer',
-    emoji: '🙏',
+    key: 'prayer' as const,
+    icon: <HandHeartIcon size={19} strokeWidth={1.7} />,
     label: '기도제목 나누기',
-    tint: 'bg-[var(--brand-soft-strong)]',
+    tint: 'bg-[var(--brand-soft-strong)] text-brand',
   },
-] as const
+]
 
 // 다이얼을 열 때마다 하나씩 — 화려함 대신 "써볼까" 하게 만드는 다정한 질문
 const GREETINGS = [
@@ -130,12 +134,12 @@ const BottomNavigation = ({
               style={{ animationDelay: `${(DIAL_ACTIONS.length - 1 - i) * 45}ms` }}
             >
               <span
-                className={`dial-emoji w-9 h-9 rounded-full ${action.tint} flex items-center justify-center text-[17px]`}
-                // 알약이 자리잡은 직후 이모지가 통통 튀며 착지
+                className={`dial-icon w-9 h-9 rounded-full ${action.tint} flex items-center justify-center`}
+                // 알약이 자리잡은 직후 아이콘이 통통 튀며 착지
                 style={{ animationDelay: `${(DIAL_ACTIONS.length - 1 - i) * 45 + 90}ms` }}
                 aria-hidden
               >
-                {action.emoji}
+                {action.icon}
               </span>
               <span className="text-[13.5px] font-bold text-ink-strong whitespace-nowrap">
                 {action.label}
@@ -212,16 +216,16 @@ const BottomNavigation = ({
         }
         .fab-spark { animation: fab-spark 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
 
-        /* 알약 이모지 착지 — 자리를 잡은 뒤 통통 */
-        @keyframes dial-emoji-pop {
+        /* 알약 아이콘 착지 — 자리를 잡은 뒤 통통 */
+        @keyframes dial-icon-pop {
           0% { transform: scale(0.3) rotate(-14deg); }
           60% { transform: scale(1.18) rotate(6deg); }
           100% { transform: scale(1) rotate(0deg); }
         }
-        .dial-emoji { animation: dial-emoji-pop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        .dial-icon { animation: dial-icon-pop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
         @media (prefers-reduced-motion: reduce) {
-          .dial-item, .dial-fade, .fab-pop, .fab-wink, .fab-halo, .fab-ring, .fab-spark, .dial-emoji {
+          .dial-item, .dial-fade, .fab-pop, .fab-wink, .fab-halo, .fab-ring, .fab-spark, .dial-icon {
             animation: none;
           }
           .fab-spark { display: none; }

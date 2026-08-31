@@ -3,6 +3,7 @@ import type { QuizPublic, AnswerResult, BossState } from '../../../types/bluemar
 import { useSfx } from '../../../hooks/useSfx'
 import { useMyRabbit } from '../../../hooks/useRabbit'
 import RabbitAvatar, { type RabbitMood } from '../../../components/rabbit/RabbitAvatar'
+import BmIcon, { type BmIconName } from './BluemarbleIcons'
 import '../../../components/rabbit/rabbit.css'
 
 interface Props {
@@ -22,7 +23,7 @@ const DIFFICULTY_LABEL = ['', '쉬움', '보통', '어려움']
 const DIFFICULTY_COLOR = ['', 'text-green-400', 'text-sky-300', 'text-rose-400']
 
 const CONFETTI_PIECES = Array.from({ length: 18 }, (_, i) => i)
-const CONFETTI_EMOJI = ['✨', '🎉', '⭐', '💫', '🌟', '🕊️']
+const CONFETTI_ICONS: BmIconName[] = ['sparkle', 'star', 'party']
 
 const TIMER_DURATION_MS = 15000  // 15초 제한 (보기 노출 시점부터)
 const READ_PHASE_MS = 1500  // 보기 노출 전, 문제만 먼저 보여주는 시간
@@ -211,12 +212,20 @@ export default function QuizModal({
   // 시간 보너스 라벨 — 보기 노출 후 elapsed 기준
   // 0~3초: 0% (찍기 패널티), 3~10초: +20%, 10~15초: +10%
   const elapsedFromReveal = TIMER_DURATION_MS - remainingMs
-  const timeBonusLabel =
-    elapsedFromReveal < 3000
-      ? '🚫 너무 빨라요 — 문제를 읽으세요'
-      : elapsedFromReveal <= 10000
-      ? '+20% 시간보너스'
-      : '+10% 시간보너스'
+  const tooEarly = elapsedFromReveal < 3000
+  const timeBonusLabel = tooEarly
+    ? '너무 빨라요 — 문제를 읽으세요'
+    : elapsedFromReveal <= 10000
+    ? '+20% 시간보너스'
+    : '+10% 시간보너스'
+
+  // 해설 게이트가 닫혀 있는 동안의 버튼 라벨 (아이콘이 있어 문자열이 아닌 노드)
+  const readingLabel = (
+    <>
+      <BmIcon name="book" size={14} strokeWidth={1.9} />
+      해설 읽는 중…
+    </>
+  )
 
   return (
     <div className="bm-modal-backdrop">
@@ -241,7 +250,11 @@ export default function QuizModal({
                   animationDuration: `${1.4 + (i % 5) * 0.18}s`,
                 }}
               >
-                {CONFETTI_EMOJI[i % CONFETTI_EMOJI.length]}
+                <BmIcon
+                  name={CONFETTI_ICONS[i % CONFETTI_ICONS.length]}
+                  size={16}
+                  strokeWidth={1.9}
+                />
               </span>
             ))}
           </div>
@@ -250,7 +263,9 @@ export default function QuizModal({
         {/* 보스 헤더 (보스 칸일 때만 표시) */}
         {displayBoss && (
           <div className="bm-quiz-boss-header">
-            <span className="bm-quiz-boss-icon">⚔️</span>
+            <span className="bm-quiz-boss-icon">
+              <BmIcon name="swords" size={20} strokeWidth={1.9} />
+            </span>
             <span className="bm-quiz-boss-label">
               {bossTitle ? `보스 도전: ${bossTitle}` : '보스 도전'}
             </span>
@@ -294,9 +309,15 @@ export default function QuizModal({
               />
             </div>
             <div className="bm-quiz-timer-meta">
-              <span className="bm-quiz-timer-sec">⏱ {remSec}초</span>
+              <span className="bm-quiz-timer-sec">
+                <BmIcon name="timer" size={12} strokeWidth={2} />
+                {remSec}초
+              </span>
               {timeBonusLabel && (
-                <span className="bm-quiz-timer-bonus">{timeBonusLabel}</span>
+                <span className="bm-quiz-timer-bonus">
+                  {tooEarly && <BmIcon name="ban" size={12} strokeWidth={2.1} />}
+                  {timeBonusLabel}
+                </span>
               )}
             </div>
           </div>
@@ -320,7 +341,8 @@ export default function QuizModal({
               onClick={handleHintToggle}
               disabled={!!result}
             >
-              💡 힌트 {showHint ? '숨기기' : '보기'}
+              <BmIcon name="bulb" size={13} strokeWidth={2} />
+              힌트 {showHint ? '숨기기' : '보기'}
             </button>
             {showHint && <span className="bm-quiz-hint-text">{quiz.hint}</span>}
           </div>
@@ -328,7 +350,8 @@ export default function QuizModal({
 
         {!choicesRevealed && !result && (
           <div className="bm-quiz-read-hint" aria-live="polite">
-            📖 문제를 먼저 읽어보세요…
+            <BmIcon name="book" size={14} strokeWidth={1.9} />
+            문제를 먼저 읽어보세요…
           </div>
         )}
 
@@ -378,7 +401,14 @@ export default function QuizModal({
         ) : (
           <div className={`bm-result ${result.is_correct ? 'bm-result-correct' : 'bm-result-wrong'}`}>
             <div className="bm-result-headline">
-              {result.is_correct ? '🎉 정답!' : '아쉬워요'}
+              {result.is_correct ? (
+                <>
+                  <BmIcon name="party" size={18} strokeWidth={1.9} />
+                  정답!
+                </>
+              ) : (
+                '아쉬워요'
+              )}
               {result.score_delta > 0 && (
                 <span className="bm-result-points"> +{result.score_delta}pt</span>
               )}
@@ -389,17 +419,20 @@ export default function QuizModal({
               <div className="bm-result-bonuses">
                 {result.streak_multiplier > 1 && (
                   <span className="bm-bonus-chip bm-bonus-combo">
-                    🔥 콤보 ×{result.streak_multiplier}
+                    <BmIcon name="flame" size={13} strokeWidth={1.9} />
+                    콤보 ×{result.streak_multiplier}
                   </span>
                 )}
                 {result.time_bonus_ratio > 0 && (
                   <span className="bm-bonus-chip bm-bonus-time">
-                    ⚡ 시간보너스 +{Math.round(result.time_bonus_ratio * 100)}%
+                    <BmIcon name="bolt" size={13} strokeWidth={1.9} />
+                    시간보너스 +{Math.round(result.time_bonus_ratio * 100)}%
                   </span>
                 )}
                 {result.streak >= 3 && (
                   <span className="bm-bonus-chip bm-bonus-streak">
-                    ✨ {result.streak}연속!
+                    <BmIcon name="sparkle" size={13} strokeWidth={1.9} />
+                    {result.streak}연속!
                   </span>
                 )}
               </div>
@@ -422,7 +455,7 @@ export default function QuizModal({
                 disabled={!explainGateOpen}
                 title={!explainGateOpen ? '해설을 잠시 읽어보세요' : undefined}
               >
-                {explainGateOpen ? '다음 문제로 →' : '📖 해설 읽는 중…'}
+                {explainGateOpen ? '다음 문제로 →' : readingLabel}
               </button>
             ) : bossComplete ? (
               <button
@@ -433,7 +466,7 @@ export default function QuizModal({
               >
                 {explainGateOpen
                   ? `결과 보기 (${activeBoss?.boss_correct}/${activeBoss?.boss_total} 정답)`
-                  : '📖 해설 읽는 중…'}
+                  : readingLabel}
               </button>
             ) : (
               <button
@@ -442,7 +475,7 @@ export default function QuizModal({
                 onClick={handleClose}
                 disabled={!explainGateOpen}
               >
-                {explainGateOpen ? '계속하기' : '📖 해설 읽는 중…'}
+                {explainGateOpen ? '계속하기' : readingLabel}
               </button>
             )}
           </div>

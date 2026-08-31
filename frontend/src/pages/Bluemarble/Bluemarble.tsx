@@ -12,6 +12,7 @@ import NarrativeCard from './components/NarrativeCard'
 import QuizModal from './components/QuizModal'
 import EventToast from './components/EventToast'
 import GameStatus from './components/GameStatus'
+import BmIcon from './components/BluemarbleIcons'
 import Leaderboard from './components/Leaderboard'
 import TreasureRevealModal from '../../components/rabbit/TreasureRevealModal'
 import EvolutionModal from '../../components/rabbit/EvolutionModal'
@@ -61,7 +62,10 @@ export default function Bluemarble() {
     return (
       <div className="bm-page">
         <div className="bm-need-login">
-          <h2>👣 예수님의 발자취</h2>
+          <h2>
+            <BmIcon name="footprints" size={24} className="bm-inline-icon" />
+            예수님의 발자취
+          </h2>
           <p>로그인 후 80걸음의 여행을 시작할 수 있어요.</p>
           <button type="button" className="bm-primary-btn" onClick={() => navigate('/login')}>
             로그인하러 가기
@@ -83,7 +87,10 @@ export default function Bluemarble() {
     return (
       <div className="bm-page">
         <div className="bm-need-login">
-          <h2>👣 예수님의 발자취</h2>
+          <h2>
+            <BmIcon name="footprints" size={24} className="bm-inline-icon" />
+            예수님의 발자취
+          </h2>
           <button
             type="button"
             className="bm-primary-btn"
@@ -103,22 +110,26 @@ export default function Bluemarble() {
       {/* 헤더 */}
       <header className="bm-page-header">
         <h1 className="bm-title">
-          <span className="bm-title-emoji">👣</span>
+          <span className="bm-title-emoji">
+            <BmIcon name="footprints" size={26} strokeWidth={1.7} />
+          </span>
           예수님의 발자취
         </h1>
         <div className="bm-header-actions">
           <button type="button" className="bm-ghost-btn" onClick={toggleMute} aria-label="음소거 토글">
-            {muted ? '🔇' : '🔊'}
+            <BmIcon name={muted ? 'sound-off' : 'sound-on'} size={16} />
           </button>
           <button type="button" className="bm-ghost-btn" onClick={() => setShowLb(true)}>
-            🏆 리더보드
+            <BmIcon name="trophy" size={15} className="bm-btn-icon" />
+            리더보드
           </button>
           <button
             type="button"
             className="bm-ghost-btn"
             onClick={() => navigate('/bluemarble/rabbit')}
           >
-            🐰 내 토끼
+            <BmIcon name="rabbit" size={15} className="bm-btn-icon" />
+            내 토끼
           </button>
           <button
             type="button"
@@ -126,7 +137,8 @@ export default function Bluemarble() {
             onClick={game.handleRestart}
             disabled={startMutation.isPending}
           >
-            ↻ 처음부터
+            <BmIcon name="restart" size={15} className="bm-btn-icon" />
+            처음부터
           </button>
           {!isGameDone && (
             <button
@@ -174,7 +186,7 @@ export default function Bluemarble() {
               }
               hint={
                 isGameDone
-                  ? '👑 부활하신 주님과 동행하셨습니다'
+                  ? '부활하신 주님과 동행하셨습니다'
                   : pendingQuiz
                   ? '맞히면 다음 칸으로 전진합니다'
                   : '안개 너머의 발자취가 기다립니다'
@@ -251,7 +263,9 @@ export default function Bluemarble() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 220, damping: 20 }}
           >
-            <div className="bm-clear-trophy">👑</div>
+            <div className="bm-clear-trophy">
+              <BmIcon name="crown" size={64} strokeWidth={1.5} />
+            </div>
             <h2>발자취 완주!</h2>
             <div className="bm-clear-score">{session.total_score.toLocaleString()}pt</div>
             <div className="bm-clear-stats">
@@ -296,7 +310,11 @@ export default function Bluemarble() {
             transition={{ type: 'spring', stiffness: 220, damping: 18 }}
           >
             <div className="bm-boss-clear-icon">
-              {game.bossClear.is_perfect ? '👑' : '⚔️'}
+              <BmIcon
+                name={game.bossClear.is_perfect ? 'crown' : 'swords'}
+                size={56}
+                strokeWidth={1.5}
+              />
             </div>
             <h2 className="bm-boss-clear-title">
               {game.bossClear.is_perfect ? '완벽한 승리!' : '보스 클리어!'}

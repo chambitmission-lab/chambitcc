@@ -1,4 +1,5 @@
 import { useLeaderboard } from '../../../hooks/useBluemarble'
+import BmIcon from './BluemarbleIcons'
 
 interface Props {
   open: boolean
@@ -13,7 +14,10 @@ export default function Leaderboard({ open, onClose }: Props) {
     <div className="bm-modal-backdrop" onClick={onClose}>
       <div className="bm-leaderboard-modal" onClick={(e) => e.stopPropagation()}>
         <div className="bm-leaderboard-header">
-          <h3>🏆 리더보드 TOP 10</h3>
+          <h3>
+            <BmIcon name="trophy" size={17} />
+            리더보드 TOP 10
+          </h3>
           <button type="button" onClick={onClose} className="bm-x-btn" aria-label="닫기">
             ×
           </button>
@@ -33,7 +37,9 @@ export default function Leaderboard({ open, onClose }: Props) {
                 <span className="bm-lb-name">{entry.full_name || entry.username}</span>
                 <span className="bm-lb-score">{entry.total_score.toLocaleString()}pt</span>
                 <span className="bm-lb-meta">
-                  ✓{entry.correct_count} · 🏁{entry.laps}
+                  ✓{entry.correct_count} ·{' '}
+                  <BmIcon name="flag" size={11} strokeWidth={2} />
+                  {entry.laps}
                 </span>
               </li>
             ))}

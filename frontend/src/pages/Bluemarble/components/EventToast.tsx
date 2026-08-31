@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import BmIcon, { type BmIconName } from './BluemarbleIcons'
 
 interface Props {
   message: string
@@ -20,18 +21,20 @@ export default function EventToast({
     return () => clearTimeout(t)
   }, [duration, onClose])
 
-  const ICONS: Record<string, string> = {
-    bonus: '🎁',
-    rest: '🛌',
-    warp: '🌪️',
-    lap: '🏁',
-    finish: '🏆',
-    info: '✨',
+  const ICONS: Record<string, BmIconName> = {
+    bonus: 'gift',
+    rest: 'rest',
+    warp: 'warp',
+    lap: 'flag',
+    finish: 'trophy',
+    info: 'sparkle',
   }
 
   return (
     <div className={`bm-toast bm-toast-${variant}`}>
-      <span className="bm-toast-icon">{ICONS[variant]}</span>
+      <span className="bm-toast-icon">
+        <BmIcon name={ICONS[variant] ?? 'sparkle'} size={22} strokeWidth={1.7} />
+      </span>
       <div className="bm-toast-body">
         <div className="bm-toast-msg">{message}</div>
         {scoreDelta != null && scoreDelta !== 0 && (

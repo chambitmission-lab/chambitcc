@@ -238,3 +238,29 @@ export const FlagIcon = ({ size = 14, strokeWidth = 1.9, className, style }: Ico
     <path d="M5.4 4.4c3.6-1.6 6.6 1.6 10.2 0v8.4c-3.6 1.6-6.6-1.6-10.2 0z" />
   </svg>
 )
+
+/** 반짝이는 사진 카드 — 말씀 사진 카드 만들기 */
+export const VerseCardIcon = ({ size = 18, strokeWidth = 1.8, className, style }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+    aria-hidden="true"
+  >
+    {/* 카드 프레임 */}
+    <rect x="3" y="5.2" width="15.4" height="13.8" rx="2.6" />
+    {/* 카드 속 빛 한 점 */}
+    <circle cx="8" cy="10.2" r="1.35" />
+    {/* 카드 속 능선 — '사진'임을 알리는 최소 단서 */}
+    <path d="M3.4 16.9 7.5 13a1.7 1.7 0 0 1 2.35 0l4.3 4.05" />
+    {/* 카드 밖 반짝임 — '만들기'의 설렘 */}
+    <path d="M20.8 3.2v3.1M19.25 4.75h3.1" />
+  </svg>
+)

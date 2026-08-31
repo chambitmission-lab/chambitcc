@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import BmIcon from './BluemarbleIcons'
 
 interface Props {
   onClick: () => void
@@ -24,7 +25,7 @@ export default function StepButton({ onClick, disabled, loading, label, hint }: 
           animate={loading ? { x: [0, 4, 0] } : { x: 0 }}
           transition={{ duration: 0.6, repeat: loading ? Infinity : 0 }}
         >
-          👣
+          <BmIcon name="footprints" size={22} strokeWidth={1.7} />
         </motion.span>
         <span>{loading ? '발자국이 닿는 중…' : label ?? '다음 발자취로'}</span>
       </motion.button>

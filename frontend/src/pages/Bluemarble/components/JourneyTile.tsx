@@ -19,7 +19,7 @@ const TYPE_LABEL: Record<string, string> = {
   warp: '워프',
   finish: '도착',
   milestone: '이정표',
-  boss: '⚔️ 보스',
+  boss: '보스',
 }
 
 export default function JourneyTile({ tile, fog, isCurrent, isNext, onClick }: Props) {

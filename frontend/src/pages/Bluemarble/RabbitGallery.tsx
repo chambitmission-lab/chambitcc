@@ -9,6 +9,7 @@ import {
   useSetRabbitNickname,
 } from '../../hooks/useRabbit'
 import RabbitAvatar from '../../components/rabbit/RabbitAvatar'
+import BmIcon, { type BmIconName } from './components/BluemarbleIcons'
 import '../../components/rabbit/rabbit.css'
 import { alertDialog } from '../../utils/confirmDialog'
 import { showToast } from '../../utils/toast'
@@ -23,14 +24,14 @@ const SLOT_LABEL: Record<string, string> = {
   accessory: '장식',
 }
 
-const TREASURE_EMOJI: Record<string, string> = {
-  shoes_of_peace: '👟',
-  belt_of_truth: '🪢',
-  breastplate_of_righteousness: '🛡️',
-  shield_of_faith: '🛡️',
-  helmet_of_salvation: '⛑️',
-  sword_of_spirit: '⚔️',
-  crown_of_life: '👑',
+const TREASURE_ICON: Record<string, BmIconName> = {
+  shoes_of_peace: 'shoe',
+  belt_of_truth: 'belt',
+  breastplate_of_righteousness: 'armor',
+  shield_of_faith: 'shield',
+  helmet_of_salvation: 'helmet',
+  sword_of_spirit: 'sword',
+  crown_of_life: 'crown',
 }
 
 const STAGE_NAMES: Record<number, string> = {
@@ -60,7 +61,10 @@ export default function RabbitGallery() {
   if (!isAuthenticated) {
     return (
       <div className="rg-page">
-        <h2 className="rg-title">🐰 내 토끼</h2>
+        <h2 className="rg-title">
+          <BmIcon name="rabbit" size={20} />
+          내 토끼
+        </h2>
         <p>로그인이 필요합니다.</p>
         <button className="rg-back" onClick={() => navigate('/login')}>로그인</button>
       </div>
@@ -123,7 +127,10 @@ export default function RabbitGallery() {
         <button className="rg-back" onClick={() => navigate('/bluemarble')}>
           ← 발자취로
         </button>
-        <h1 className="rg-title">🐰 내 전신갑주 토끼</h1>
+        <h1 className="rg-title">
+          <BmIcon name="rabbit" size={20} />
+          내 전신갑주 토끼
+        </h1>
         <div className="rg-actions">
           <button className="rg-share-btn" onClick={handleShare}>공유</button>
         </div>
@@ -161,7 +168,9 @@ export default function RabbitGallery() {
               title="클릭해서 별명 수정"
             >
               {rabbit.nickname || '내 토끼'}
-              <span className="rg-nickname-edit-icon">✏️</span>
+              <span className="rg-nickname-edit-icon">
+                <BmIcon name="pencil" size={13} strokeWidth={2} />
+              </span>
             </h2>
           )}
           <div className="rg-hero-stage">
@@ -206,7 +215,10 @@ export default function RabbitGallery() {
       </div>
 
       <section className="rg-section">
-        <h3 className="rg-section-title">⚔️ 전신갑주 컬렉션</h3>
+        <h3 className="rg-section-title">
+          <BmIcon name="armor" size={16} />
+          전신갑주 컬렉션
+        </h3>
         <div className="rg-grid">
           {treasures.map((t) => {
             const owned = ownedCodes.has(t.code)
@@ -217,7 +229,9 @@ export default function RabbitGallery() {
                 className={`rg-treasure ${owned ? '' : 'locked'} ${equipped ? 'equipped' : ''}`}
               >
                 {equipped && <span className="rg-treasure-equipped-badge">장착중</span>}
-                <div className="rg-treasure-icon">{TREASURE_EMOJI[t.code] || '✨'}</div>
+                <div className="rg-treasure-icon">
+                  <BmIcon name={TREASURE_ICON[t.code] ?? 'sparkle'} size={30} strokeWidth={1.6} />
+                </div>
                 <div className="rg-treasure-name">{t.name}</div>
                 <div className="rg-treasure-scripture">{t.scripture}</div>
                 <div className="rg-treasure-slot">
@@ -243,7 +257,10 @@ export default function RabbitGallery() {
                   </button>
                 )}
                 {!owned && (
-                  <div className="rg-treasure-locked-text">잠김 🔒</div>
+                  <div className="rg-treasure-locked-text">
+                    <BmIcon name="lock" size={11} strokeWidth={2.1} />
+                    잠김
+                  </div>
                 )}
               </div>
             )
@@ -252,7 +269,10 @@ export default function RabbitGallery() {
       </section>
 
       <section className="rg-section">
-        <h3 className="rg-section-title">📜 토끼 일지</h3>
+        <h3 className="rg-section-title">
+          <BmIcon name="scroll" size={16} />
+          토끼 일지
+        </h3>
         <div className="rg-events">
           {(eventsQuery.data || []).length === 0 && (
             <div className="rg-events-empty">아직 이벤트가 없어요.</div>
@@ -260,10 +280,10 @@ export default function RabbitGallery() {
           {(eventsQuery.data || []).map((ev) => (
             <div key={ev.id} className="rg-event">
               <span>
-                {ev.event_type === 'treasure' && '⚔️ '}
-                {ev.event_type === 'evolve' && '✨ '}
-                {ev.event_type === 'equip' && '🎽 '}
-                {ev.event_type === 'unequip' && '🧺 '}
+                {ev.event_type === 'treasure' && <BmIcon name="sword" size={13} />}
+                {ev.event_type === 'evolve' && <BmIcon name="sparkle" size={13} />}
+                {ev.event_type === 'equip' && <BmIcon name="equip" size={13} />}
+                {ev.event_type === 'unequip' && <BmIcon name="unequip" size={13} />}
                 {ev.note || ev.event_type}
               </span>
               <span className="rg-event-date">

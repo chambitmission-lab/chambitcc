@@ -1,6 +1,7 @@
 import { Fragment, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { TimelineDomain, TimelineEvent } from '../../../types/growth'
+import { TimelineEventGlyph } from '../../../components/icons/GrowthIcons'
 import './ActivityTimeline.css'
 
 interface ActivityTimelineProps {
@@ -112,10 +113,15 @@ const EventRow = ({ event }: { event: TimelineEvent }) => {
     >
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0 text-[14px] font-bold text-ink-strong leading-snug tracking-[-0.01em]">
-          {/* 이모지는 기도·묵상·감사에서 그때의 감정에 따라 달라지는 값이라 버리지 않고
-              제목 앞 작은 글리프로 옮겼다 (원 배지였을 때보다 훨씬 조용하다) */}
-          <span className="mr-1.5 text-[15px]" aria-hidden="true">
-            {event.icon}
+          {/* 감정에 따라 달라지는 값이라 버리지 않고 제목 앞 작은 글리프로 옮겼다
+              (원 배지였을 때보다 훨씬 조용하다). 백엔드 icon 이모지 대신 라인 아이콘을
+              쓰고, 색은 이 카드의 도메인 액센트를 그대로 따라간다 */}
+          <span
+            className="inline-flex align-[-2px] mr-1.5"
+            style={{ color }}
+            aria-hidden="true"
+          >
+            <TimelineEventGlyph event={event} size={15} />
           </span>
           {event.title}
         </div>

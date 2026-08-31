@@ -2193,3 +2193,74 @@ html:not(.dark) .jt-current { border-color: var(--brand); }
 html:not(.dark) .jt-next { border-color: rgba(49, 130, 246, 0.6); }
 html:not(.dark) .jt-ring { border-color: rgba(49, 130, 246, 0.85); }
 html:not(.dark) .bm-tile-corner { border-color: rgba(49, 130, 246, 0.5); }
+
+/* ── 라인 아이콘 전환 (이모지 → SVG) ──────────────────────────────
+   이모지는 기기 폰트마다 생김새가 달라 게임 화면 톤이 흔들리고, 다크 월드의
+   액센트 색(브랜드 블루 / 보스 레드 / 완주 골드)과 따로 논다.
+   BluemarbleIcons.tsx 의 <BmIcon> 이 currentColor 를 쓰므로, 강조가 필요한
+   자리에서만 여기서 color 를 지정한다. (font-size 로 크기를 잡던 자리는
+   이제 svg 의 width/height 가 크기를 잡는다) */
+
+/* 아이콘 + 텍스트가 나란히 서는 자리 — 세로 중앙 정렬과 간격 */
+.bm-need-login h2,
+.bm-ghost-btn,
+.bm-primary-btn,
+.bm-submit-btn,
+.bm-close-btn,
+.bm-status-phase,
+.bm-quiz-hint-btn,
+.bm-quiz-timer-sec,
+.bm-quiz-timer-bonus,
+.bm-result-headline,
+.bm-leaderboard-header h3,
+.bm-lb-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.bm-need-login h2,
+.bm-leaderboard-header h3,
+.bm-result-headline { gap: 7px; }
+.bm-lb-meta { gap: 3px; }
+.bm-primary-btn,
+.bm-submit-btn,
+.bm-close-btn { justify-content: center; }
+
+/* 아이콘만 담는 자리 — 글리프처럼 흐름에 얹히게 */
+.bm-title-emoji,
+.bm-toast-icon,
+.bm-quiz-boss-icon,
+.step-btn-icon,
+.bm-confetti-piece {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bm-clear-trophy,
+.bm-boss-clear-icon {
+  display: flex;
+  justify-content: center;
+}
+
+/* 강조 색 — 이모지가 갖고 있던 색을 스트로크로 옮긴다 */
+.bm-title-emoji { color: #4593fc; }
+.bm-toast-icon { color: #8ec1ff; }
+.bm-toast-lap .bm-toast-icon,
+.bm-toast-finish .bm-toast-icon { color: #f5b642; }
+.bm-toast-rest .bm-toast-icon { color: #94a3b8; }
+.bm-toast-warp .bm-toast-icon { color: #22d3ee; }
+.bm-clear-trophy { color: #f5b642; }
+.bm-boss-clear-icon,
+.bm-quiz-boss-icon { color: #f87171; }
+.bm-confetti-piece { color: #8ec1ff; }
+
+html:not(.dark) .bm-title-emoji { color: var(--brand); }
+html:not(.dark) .bm-toast-icon { color: var(--brand); }
+html:not(.dark) .bm-toast-lap .bm-toast-icon,
+html:not(.dark) .bm-toast-finish .bm-toast-icon { color: #d97706; }
+html:not(.dark) .bm-toast-rest .bm-toast-icon { color: #64748b; }
+html:not(.dark) .bm-toast-warp .bm-toast-icon { color: #0891b2; }
+html:not(.dark) .bm-clear-trophy { color: #d97706; }
+html:not(.dark) .bm-boss-clear-icon,
+html:not(.dark) .bm-quiz-boss-icon { color: #dc2626; }
+html:not(.dark) .bm-confetti-piece { color: var(--brand); }
