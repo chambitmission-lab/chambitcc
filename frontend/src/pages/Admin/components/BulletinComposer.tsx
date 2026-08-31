@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { createBulletin } from '../../../api/bulletin'
+import {
+  addBulletinPage,
+  createBulletin,
+  deleteBulletinPage,
+  getBulletinDetail,
+  reorderBulletinPages,
+  updateBulletin,
+} from '../../../api/bulletin'
+import type { Bulletin } from '../../../types/bulletin'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import DatePicker from '../../../components/common/DatePicker'
@@ -7,7 +15,18 @@ import DatePicker from '../../../components/common/DatePicker'
 interface BulletinComposerProps {
   onClose: () => void
   onSuccess: () => void
+  /** 주면 수정 모드 — 제목·날짜·설명과 페이지(추가·삭제·순서)를 함께 고친다 */
+  bulletin?: Bulletin | null
 }
+
+/**
+ * 페이지 한 장 — 이미 올라가 있는 페이지(existing)와 이번에 고른 파일(new)을
+ * 한 배열에 섞어 다룬다. 그래야 순서 이동·삭제 UI가 둘을 구분하지 않아도 된다.
+ * 저장할 때 existing 은 id 로, new 는 업로드 후 받은 id 로 최종 순서를 만든다.
+ */
+type PageItem =
+  | { kind: 'existing'; id: number; src: string }
+  | { kind: 'new'; file: File; src: string }
 
 /* DatePicker 트리거 — 이 폼의 다른 입력과 같은 테두리·높이·글자 크기로 맞춘다.
    brand는 CSS 변수 색이라 border-brand/60 같은 투명도 수식자를 쓸 수 없다 */
@@ -34,15 +53,25 @@ const getNextSunday = (): string => {
   return toDateInput(d)
 }
 
-const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [bulletinDate, setBulletinDate] = useState(getThisSunday())
-  const [files, setFiles] = useState<File[]>([])
-  const [previews, setPreviews] = useState<string[]>([])
+const BulletinComposer = ({ onClose, onSuccess, bulletin = null }: BulletinComposerProps) => {
+  const isEdit = !!bulletin
+  const [title, setTitle] = useState(bulletin?.title ?? '')
+  const [description, setDescription] = useState(bulletin?.description ?? '')
+  // 저장된 주보 날짜는 'YYYY-MM-DDTHH:mm:ss' — 앞 10자가 곧 DatePicker 값이다
+  const [bulletinDate, setBulletinDate] = useState(
+    bulletin ? bulletin.bulletin_date.slice(0, 10) : getThisSunday(),
+  )
+  const [items, setItems] = useState<PageItem[]>([])
+  /** 수정 모드에서 지운 기존 페이지 — 저장할 때 한꺼번에 삭제한다 */
+  const [removedPageIds, setRemovedPageIds] = useState<number[]>([])
+  const [loadingPages, setLoadingPages] = useState(isEdit)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // 언마운트 시 해제할 objectURL — items 를 클로저로 잡으면 옛 배열이 남아 못 지운다
+  const objectUrlsRef = useRef<string[]>([])
+  /** 불러온 시점의 페이지 순서 — 순서를 안 건드렸으면 재정렬 요청을 아낀다 */
+  const loadedOrderRef = useRef<number[]>([])
 
   // 뒤로가기 → 모달만 닫기
   useModalBackButton(onClose)
@@ -50,29 +79,50 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
   // 미리보기 URL은 unmount 시 해제 (메모리 누수 방지)
   useEffect(() => {
     return () => {
-      previews.forEach(url => URL.revokeObjectURL(url))
+      objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // 수정 모드 — 기존 페이지를 불러와 목록에 채운다 (조회수는 올리지 않는다)
+  useEffect(() => {
+    if (!bulletin) return
+    let alive = true
+    void (async () => {
+      try {
+        const detail = await getBulletinDetail(bulletin.id, false)
+        if (!alive) return
+        const pages = [...(detail.pages ?? [])].sort((a, b) => a.page_number - b.page_number)
+        loadedOrderRef.current = pages.map(page => page.id)
+        setItems(pages.map(page => ({ kind: 'existing', id: page.id, src: page.image_url })))
+      } catch (err) {
+        if (!alive) return
+        setError(err instanceof Error ? err.message : '주보 페이지를 불러오지 못했습니다')
+      } finally {
+        if (alive) setLoadingPages(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [bulletin])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files
     if (!selected || selected.length === 0) return
 
-    const accepted: File[] = []
-    const newPreviews: string[] = []
+    const accepted: PageItem[] = []
     for (let i = 0; i < selected.length; i++) {
       const file = selected[i]
       if (!file.type.startsWith('image/')) {
         showToast(`${file.name}은(는) 이미지 파일이 아닙니다`, 'error')
         continue
       }
-      accepted.push(file)
-      newPreviews.push(URL.createObjectURL(file))
+      const src = URL.createObjectURL(file)
+      objectUrlsRef.current.push(src)
+      accepted.push({ kind: 'new', file, src })
     }
 
-    setFiles(prev => [...prev, ...accepted])
-    setPreviews(prev => [...prev, ...newPreviews])
+    setItems(prev => [...prev, ...accepted])
     if (accepted.length > 0) {
       showToast(`${accepted.length}개의 페이지가 추가되었습니다`, 'success')
     }
@@ -81,26 +131,75 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
   }
 
   const handleRemove = (idx: number) => {
-    URL.revokeObjectURL(previews[idx])
-    setFiles(prev => prev.filter((_, i) => i !== idx))
-    setPreviews(prev => prev.filter((_, i) => i !== idx))
+    const target = items[idx]
+    if (!target) return
+    if (target.kind === 'existing') {
+      // 서버에서 지우는 건 저장할 때 — 취소하고 닫으면 그대로 남아 있어야 한다
+      setRemovedPageIds(prev => [...prev, target.id])
+    } else {
+      URL.revokeObjectURL(target.src)
+      objectUrlsRef.current = objectUrlsRef.current.filter(url => url !== target.src)
+    }
+    setItems(prev => prev.filter((_, i) => i !== idx))
   }
 
   const handleMove = (idx: number, dir: -1 | 1) => {
     const target = idx + dir
-    if (target < 0 || target >= files.length) return
-    const swap = <T,>(arr: T[]) => {
-      const next = [...arr]
-      ;[next[idx], next[target]] = [next[target], next[idx]]
+    if (target < 0 || target >= items.length) return
+    setItems(prev => {
+      const next = [...prev]
+      const tmp = next[idx]
+      next[idx] = next[target]
+      next[target] = tmp
       return next
-    }
-    setFiles(swap)
-    setPreviews(swap)
+    })
   }
 
   // 날짜는 DatePicker로 옮기며 네이티브 required가 없어졌으니 여기서 직접 확인한다
   const canSubmit =
-    title.trim().length > 0 && bulletinDate.length > 0 && files.length > 0 && !submitting
+    title.trim().length > 0 &&
+    bulletinDate.length > 0 &&
+    items.length > 0 &&
+    !submitting &&
+    !loadingPages
+
+  /** 수정 저장 — 정보 → 페이지 삭제 → 새 페이지 업로드 → 최종 순서 반영 */
+  const saveEdit = async (isoDate: string) => {
+    if (!bulletin) return
+    await updateBulletin(bulletin.id, {
+      title: title.trim(),
+      description: description.trim(),
+      bulletin_date: isoDate,
+    })
+
+    for (const pageId of removedPageIds) {
+      await deleteBulletinPage(pageId)
+    }
+
+    // 새 페이지는 일단 뒤에 붙이고(page_number 생략), 순서는 아래에서 한 번에 맞춘다
+    const orderedIds: number[] = []
+    const newIds: number[] = []
+    for (const item of items) {
+      if (item.kind === 'existing') {
+        orderedIds.push(item.id)
+      } else {
+        const pageId = await addBulletinPage(bulletin.id, item.file)
+        orderedIds.push(pageId)
+        newIds.push(pageId)
+      }
+    }
+
+    // 서버는 [남아 있는 기존 페이지(원래 순서), 새로 올린 페이지] 순으로 갖고 있다.
+    // 원하는 순서가 그것과 같으면 재정렬은 불필요하다.
+    const keptIds = loadedOrderRef.current.filter(id => orderedIds.includes(id))
+    const serverOrder = [...keptIds, ...newIds]
+    const sameOrder =
+      serverOrder.length === orderedIds.length &&
+      serverOrder.every((id, i) => id === orderedIds[i])
+    if (!sameOrder) {
+      await reorderBulletinPages(bulletin.id, orderedIds)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -109,11 +208,23 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
     setSubmitting(true)
     try {
       const isoDate = new Date(bulletinDate).toISOString()
-      await createBulletin(title.trim(), isoDate, description.trim(), files)
-      showToast('주보가 등록되었습니다', 'success')
+      if (isEdit) {
+        await saveEdit(isoDate)
+        showToast('주보가 수정되었습니다', 'success')
+      } else {
+        const files = items.flatMap(item => (item.kind === 'new' ? [item.file] : []))
+        await createBulletin(title.trim(), isoDate, description.trim(), files)
+        showToast('주보가 등록되었습니다', 'success')
+      }
       onSuccess()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '주보 등록에 실패했습니다')
+      setError(
+        err instanceof Error
+          ? err.message
+          : isEdit
+            ? '주보 수정에 실패했습니다'
+            : '주보 등록에 실패했습니다',
+      )
     } finally {
       setSubmitting(false)
     }
@@ -148,7 +259,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
               ADMIN
             </p>
             <h2 className="text-ink-strong text-[17px] font-bold tracking-[-0.015em]">
-              새 주보 등록
+              {isEdit ? '주보 수정' : '새 주보 등록'}
             </h2>
           </div>
           <button
@@ -218,7 +329,9 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
             {/* 페이지 업로드 */}
             <FieldGroup label="주보 페이지" required>
               <p className="text-[11px] text-gray-400 dark:text-white/40 mb-2">
-                선택한 순서대로 페이지가 구성됩니다. 화살표로 순서 변경, ✕ 로 제거할 수 있어요.
+                {isEdit
+                  ? '이미 올라간 페이지도 순서 변경·제거할 수 있어요. 변경은 저장할 때 한 번에 반영됩니다.'
+                  : '선택한 순서대로 페이지가 구성됩니다. 화살표로 순서 변경, ✕ 로 제거할 수 있어요.'}
               </p>
 
               {/* 드롭존 */}
@@ -232,7 +345,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                   multiple
                   onChange={handleFileChange}
                   className="hidden"
-                  disabled={submitting}
+                  disabled={submitting || loadingPages}
                 />
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[var(--brand-soft-strong)] mb-2">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
@@ -249,25 +362,36 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                 </p>
               </label>
 
-              {/* 페이지 미리보기 grid */}
-              {previews.length > 0 && (
+              {/* 페이지 미리보기 grid — 기존 페이지와 새로 고른 파일을 한 줄에 섞어 보여준다 */}
+              {loadingPages ? (
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="aspect-[3/4] rounded-xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse"
+                    />
+                  ))}
+                </div>
+              ) : items.length > 0 ? (
                 <div className="mt-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[12px] font-bold text-gray-700 dark:text-white/80">
                       등록된 페이지
                     </span>
                     <span className="inline-flex items-center gap-1 px-2 h-5 rounded-full bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] text-brand text-[10.5px] font-bold">
-                      {files.length}장
+                      {items.length}장
                     </span>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    {previews.map((src, idx) => (
+                    {items.map((item, idx) => (
                       <PagePreviewItem
-                        key={src}
-                        src={src}
+                        key={item.kind === 'existing' ? `page-${item.id}` : item.src}
+                        src={item.src}
                         index={idx}
+                        isNew={item.kind === 'new'}
+                        showNewBadge={isEdit}
                         canMoveLeft={idx > 0}
-                        canMoveRight={idx < previews.length - 1}
+                        canMoveRight={idx < items.length - 1}
                         onRemove={() => handleRemove(idx)}
                         onMoveLeft={() => handleMove(idx, -1)}
                         onMoveRight={() => handleMove(idx, 1)}
@@ -275,7 +399,7 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                     ))}
                   </div>
                 </div>
-              )}
+              ) : null}
             </FieldGroup>
 
             {error && (
@@ -305,14 +429,14 @@ const BulletinComposer = ({ onClose, onSuccess }: BulletinComposerProps) => {
                   <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                   </svg>
-                  업로드 중...
+                  {isEdit ? '저장 중...' : '업로드 중...'}
                 </>
               ) : (
                 <>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
-                  주보 등록
+                  {isEdit ? '수정 저장' : '주보 등록'}
                 </>
               )}
             </button>
@@ -370,6 +494,10 @@ const QuickChip = ({
 interface PagePreviewItemProps {
   src: string
   index: number
+  /** 이번에 고른 파일(아직 업로드 전) */
+  isNew?: boolean
+  /** 수정 모드에서만 '새로 추가' 배지를 띄운다 — 등록 화면에선 전부 새 파일이라 소음 */
+  showNewBadge?: boolean
   canMoveLeft: boolean
   canMoveRight: boolean
   onRemove: () => void
@@ -380,6 +508,8 @@ interface PagePreviewItemProps {
 const PagePreviewItem = ({
   src,
   index,
+  isNew,
+  showNewBadge,
   canMoveLeft,
   canMoveRight,
   onRemove,
@@ -396,6 +526,12 @@ const PagePreviewItem = ({
     <span className="absolute bottom-1.5 left-1.5 inline-flex items-center px-2 h-5 rounded-full bg-brand text-white text-[10.5px] font-bold tracking-wide">
       P.{index + 1}
     </span>
+
+    {isNew && showNewBadge && (
+      <span className="absolute top-1.5 left-1.5 inline-flex items-center px-1.5 h-5 rounded-full bg-white/90 dark:bg-black/70 text-brand text-[9.5px] font-bold tracking-wide">
+        NEW
+      </span>
+    )}
 
     {/* 제거 버튼 */}
     <button

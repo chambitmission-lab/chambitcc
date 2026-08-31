@@ -51,9 +51,10 @@
   background: rgba(255, 255, 255, 0.18);
   font-size: 0.875rem;
   line-height: 1;
+  color: #ffffff;
 }
 
-/* 활동한 날은 안쪽을 어둡게 깔아 흰 링과 이모지가 또렷하게 분리된다 */
+/* 활동한 날은 안쪽을 어둡게 깔아 흰 링과 아이콘이 또렷하게 분리된다 */
 .wsh-day[data-active='true'] .wsh-ring__inner {
   background: rgba(20, 70, 150, 0.34);
 }

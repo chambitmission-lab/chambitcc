@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useGrowthRecentDays } from '../../../hooks/useGrowth'
 import { buildWeekCells, weekNarrative, WEEKDAY_KO, WEEKDAY_EN } from './growthFootprints'
+import { DomainGlyph } from '../../../components/icons/GrowthIcons'
 import './WeeklyStoryHook.css'
 
 interface WeeklyStoryHookProps {
@@ -83,7 +84,10 @@ const WeeklyStoryHook = ({ thisWeekCount }: WeeklyStoryHookProps) => {
           </div>
 
           {/* 요일 트레이 — 활동한 날은 그라데이션 링 + 그날의 대표 아이콘,
-              비어 있는 날은 점선 링. 오늘 칸은 한 단계 크고 밝다. */}
+              비어 있는 날은 점선 링. 오늘 칸은 한 단계 크고 밝다.
+              대표 마크는 백엔드가 주는 이모지 대신 그날의 대표 도메인(기도·말씀·
+              묵상 …)을 duotone 아이콘으로 그린다 — 파란 카드 위에서 컬러 이모지는
+              채도가 부딪히고 기기마다 모양이 달랐다. */}
           <div className="mt-3.5 flex items-start justify-between gap-1">
             {cells.map((cell, i) => (
               <span
@@ -96,7 +100,12 @@ const WeeklyStoryHook = ({ thisWeekCount }: WeeklyStoryHookProps) => {
               >
                 <span className="wsh-ring" aria-hidden="true">
                   <span className="wsh-ring__inner">
-                    {cell.count > 0 ? (cell.icon ?? '·') : ''}
+                    {cell.count > 0 &&
+                      (cell.domains.length ? (
+                        <DomainGlyph domain={cell.domains[0]} size={18} />
+                      ) : (
+                        '·'
+                      ))}
                   </span>
                 </span>
                 <span className="wsh-day__label">

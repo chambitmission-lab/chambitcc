@@ -40,6 +40,8 @@ const BulletinManagement = () => {
   const [sortKey, setSortKey] = useState<SortKey>('recent')
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [composerOpen, setComposerOpen] = useState(false)
+  /** 수정 모드로 열 주보 — null 이면 새 주보 등록 */
+  const [editing, setEditing] = useState<Bulletin | null>(null)
 
   useEffect(() => {
     if (!isAdmin()) {
@@ -53,7 +55,8 @@ const BulletinManagement = () => {
   const loadBulletins = async () => {
     try {
       setLoading(true)
-      const data = await getBulletins(0, 100)
+      // 관리자 목록은 캐시를 건너뛴다 — 수정 직후 옛 내용이 보이면 안 된다
+      const data = await getBulletins(0, 100, true)
       setBulletins(Array.isArray(data) ? data : [])
     } catch (err) {
       showToast(err instanceof Error ? err.message : '주보를 불러오는데 실패했습니다', 'error')
@@ -83,9 +86,23 @@ const BulletinManagement = () => {
     }
   }
 
-  const handleComposerClose = () => setComposerOpen(false)
-  const handleComposerSuccess = () => {
+  const openCreate = () => {
+    setEditing(null)
+    setComposerOpen(true)
+  }
+
+  const openEdit = (bulletin: Bulletin) => {
+    setEditing(bulletin)
+    setComposerOpen(true)
+  }
+
+  const handleComposerClose = () => {
     setComposerOpen(false)
+    setEditing(null)
+  }
+
+  const handleComposerSuccess = () => {
+    handleComposerClose()
     loadBulletins()
   }
 
@@ -145,7 +162,7 @@ const BulletinManagement = () => {
             {/* PC 전용 등록 버튼 — lg 에선 FAB 대신 레일 상단에서 연다 */}
             <button
               type="button"
-              onClick={() => setComposerOpen(true)}
+              onClick={openCreate}
               className="hidden lg:flex w-full items-center justify-center gap-2 py-2.5 rounded-xl bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_6px_16px_-6px_var(--brand-glow)] transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
@@ -269,6 +286,7 @@ const BulletinManagement = () => {
                     onToggleExpand={() =>
                       setExpandedId(prev => (prev === bulletin.id ? null : bulletin.id))
                     }
+                    onEdit={() => openEdit(bulletin)}
                     onDelete={() => handleDelete(bulletin.id)}
                     onView={() => navigate('/news')}
                   />
@@ -281,7 +299,7 @@ const BulletinManagement = () => {
         {/* FAB */}
         <button
           type="button"
-          onClick={() => setComposerOpen(true)}
+          onClick={openCreate}
           className="fixed bottom-6 right-1/2 translate-x-[calc(min(50vw,14rem)-3.5rem)] z-30 lg:hidden inline-flex items-center gap-2 pl-4 pr-5 h-13 py-3 rounded-full bg-brand hover:bg-brand-dim text-white text-[13.5px] font-bold shadow-[0_10px_30px_-6px_var(--brand-glow)] hover:-translate-y-0.5 transition-all"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
@@ -292,7 +310,12 @@ const BulletinManagement = () => {
         </button>
 
         {composerOpen && (
-          <BulletinComposer onClose={handleComposerClose} onSuccess={handleComposerSuccess} />
+          <BulletinComposer
+            key={editing?.id ?? 'new'}
+            bulletin={editing}
+            onClose={handleComposerClose}
+            onSuccess={handleComposerSuccess}
+          />
         )}
       </div>
     </div>
@@ -304,6 +327,7 @@ interface BulletinRowProps {
   bulletin: Bulletin
   expanded: boolean
   onToggleExpand: () => void
+  onEdit: () => void
   onDelete: () => void
   onView: () => void
 }
@@ -312,6 +336,7 @@ const BulletinRow = ({
   bulletin,
   expanded,
   onToggleExpand,
+  onEdit,
   onDelete,
   onView,
 }: BulletinRowProps) => {
@@ -418,11 +443,12 @@ const BulletinRow = ({
 
           <div className="flex gap-2 pt-1">
             <RowAction onClick={onView} icon="eye" label="보기" />
+            <RowAction onClick={onEdit} accent icon="pencil" label="수정" />
             <RowAction onClick={onDelete} destructive icon="trash" label="삭제" />
           </div>
 
           <p className="text-[11px] text-gray-400 dark:text-white/40 leading-[1.5] pt-1">
-            * 주보는 등록 후 수정할 수 없어요. 내용을 바꾸려면 삭제 후 새로 등록해주세요.
+            * 수정에서 제목·날짜·설명은 물론 페이지 추가·삭제·순서까지 바꿀 수 있어요.
           </p>
         </div>
       )}
@@ -479,6 +505,12 @@ const ACTION_ICONS: Record<string, ReactNode> = {
       <circle cx="12" cy="12" r="3" />
     </svg>
   ),
+  pencil: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  ),
   trash: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="3 6 5 6 21 6" />
@@ -491,6 +523,7 @@ const ACTION_ICONS: Record<string, ReactNode> = {
 
 const RowAction = ({
   onClick,
+  accent,
   destructive,
   icon,
   label,
@@ -506,6 +539,9 @@ const RowAction = ({
   if (destructive) {
     cls +=
       'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-400/30 hover:bg-red-100 dark:hover:bg-red-500/15'
+  } else if (accent) {
+    cls +=
+      'bg-[var(--brand-soft)] text-brand border border-[var(--brand-glow)] hover:bg-[var(--brand-soft-strong)]'
   } else {
     cls +=
       'bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-white/80 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-200 dark:hover:bg-white/[0.08]'

@@ -22,6 +22,14 @@ export interface Bulletin {
   pages?: BulletinPage[]  // 상세 조회시에만 포함
 }
 
+/** 주보 정보 수정 payload — 보낸 필드만 갱신된다 */
+export interface BulletinUpdatePayload {
+  title?: string
+  description?: string
+  bulletin_date?: string
+  is_published?: number
+}
+
 export interface BulletinsResponse {
   bulletins: Bulletin[]
   total: number

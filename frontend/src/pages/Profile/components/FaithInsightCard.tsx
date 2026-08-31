@@ -1,6 +1,11 @@
 import { useGrowthSummary, useGrowthRecentDays } from '../../../hooks/useGrowth'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { buildRecentCells } from './growthFootprints'
+import {
+  AnsweredIcon,
+  IntercessionIcon,
+  ThanksRecordIcon,
+} from '../../../components/icons/GrowthIcons'
 
 /** GrowthHook 발자국 스트립과 같은 기간을 공유해 요청이 하나로 합쳐진다 */
 const WINDOW_DAYS = 14
@@ -11,6 +16,7 @@ const WINDOW_DAYS = 14
  * AI 없이 룰 기반(말씀 여정 인사이트와 같은 철학):
  * - 헤드라인: 최근 7일 vs 그 전 7일 활동일 비교
  * - 칩: 응답된 기도(앰버 시맨틱) · 함께한 기도 · 감사 기록 — 0이면 숨김
+ * 칩 앞의 마크는 duotone 아이콘(GrowthIcons)이라 칩의 글자색을 그대로 따라간다.
  * 활동이 아예 없으면 카드 자체를 렌더하지 않는다 (첫 방문자에게 빈 훈수 금지).
  */
 const FaithInsightCard = () => {
@@ -30,14 +36,14 @@ const FaithInsightCard = () => {
   const headline =
     language === 'en'
       ? diff > 0
-        ? `${diff} more day${diff > 1 ? 's' : ''} with God than last week 🌱`
+        ? `${diff} more day${diff > 1 ? 's' : ''} with God than last week`
         : diff === 0 && thisWeek > 0
           ? 'Keeping the same steady pace as last week'
           : thisWeek > 0
             ? 'A slower week — and that is okay'
             : 'Waiting for your first footprint this week'
       : diff > 0
-        ? `지난주보다 ${diff}일 더 하나님과 함께한 요즘이에요 🌱`
+        ? `지난주보다 ${diff}일 더 하나님과 함께한 요즘이에요`
         : diff === 0 && thisWeek > 0
           ? '지난주와 같은 걸음을 꾸준히 지키고 있어요'
           : thisWeek > 0
@@ -47,7 +53,7 @@ const FaithInsightCard = () => {
   const chips = [
     {
       key: 'answered',
-      icon: '✨',
+      icon: <AnsweredIcon size={14} />,
       label: t('insightAnsweredChip'),
       value: summary.totals.answered,
       // 앰버는 '응답됨' 시맨틱 전용
@@ -56,14 +62,14 @@ const FaithInsightCard = () => {
     },
     {
       key: 'intercessions',
-      icon: '🙏',
+      icon: <IntercessionIcon size={14} />,
       label: t('insightIntercessionChip'),
       value: summary.totals.intercessions,
       className: 'bg-[var(--brand-soft)] border-[var(--brand-soft-strong)] text-brand',
     },
     {
       key: 'thanks',
-      icon: '💛',
+      icon: <ThanksRecordIcon size={14} />,
       label: t('insightThanksChip'),
       value: summary.totals.thanks,
       className: 'bg-[var(--brand-soft)] border-[var(--brand-soft-strong)] text-brand',
@@ -98,7 +104,9 @@ const FaithInsightCard = () => {
                   key={chip.key}
                   className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11.5px] font-semibold ${chip.className}`}
                 >
-                  <span aria-hidden="true">{chip.icon}</span>
+                  <span className="inline-flex shrink-0" aria-hidden="true">
+                    {chip.icon}
+                  </span>
                   {chip.label}
                   <span className="tabular-nums font-bold">
                     {chip.value.toLocaleString()}

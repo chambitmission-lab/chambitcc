@@ -13,17 +13,19 @@
   transition: stroke-dashoffset 0.6s ease;
 }
 
-/* 오늘 활동을 마쳤을 때만 불꽃이 살아 있게 — 아직이면 차분히 둔다 */
+/* 오늘 활동을 마쳤을 때만 불꽃이 살아 있게 — 아직이면 차분히 둔다.
+   이모지였을 땐 grayscale 필터로 꺼진 상태를 표현했지만, 지금은 duotone
+   아이콘이라 색(currentColor)만 바꿔도 같은 뜻이 전달된다. */
 .gh-flame {
-  display: inline-block;
-  font-size: 12px;
-  opacity: 0.55;
-  filter: grayscale(0.5);
+  display: inline-flex;
+  line-height: 0;
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 
 .gh-flame.is-lit {
+  color: #f97316;
   opacity: 1;
-  filter: none;
   animation: gh-flicker 2.4s ease-in-out infinite;
 }
 

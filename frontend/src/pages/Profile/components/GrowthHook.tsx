@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useGrowthSummary, useGrowthRecentDays } from '../../../hooks/useGrowth'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { buildRecentCells, cellLevel } from './growthFootprints'
+import { SproutIcon, StreakFlameIcon } from '../../../components/icons/GrowthIcons'
 import './GrowthHook.css'
 
 /** 발자국 스트립 일수 — 2주면 "요즘의 리듬"이 보이고 카드 한 줄에 들어간다 */
@@ -84,7 +85,7 @@ const GrowthHook = () => {
                     className={`gh-flame${streak?.active_today ? ' is-lit' : ''}`}
                     aria-hidden="true"
                   >
-                    🔥
+                    <StreakFlameIcon size={14} />
                   </span>
                 )}
                 <span>{streakLine}</span>
@@ -123,10 +124,10 @@ const GrowthHook = () => {
               )}
             </svg>
             <span
-              className="absolute inset-0 flex items-center justify-center text-[22px]"
+              className="absolute inset-0 flex items-center justify-center text-brand"
               aria-hidden="true"
             >
-              🌱
+              <SproutIcon size={26} />
             </span>
           </div>
         </div>
