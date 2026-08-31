@@ -803,6 +803,13 @@
   word-break: keep-all;
   color: var(--text-body);
 }
+/* 무드 아이콘 + 문장 — 아이콘이 글자 첫 줄 가운데에 오게 */
+.worship-ended-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-muted);
+}
 .worship-ended-next {
   color: var(--brand);
   font-weight: 700;

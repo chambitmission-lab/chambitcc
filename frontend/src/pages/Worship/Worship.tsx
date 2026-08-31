@@ -1,5 +1,5 @@
 import { Info, MapPin } from '@phosphor-icons/react'
-import { memo, useState, useEffect } from 'react'
+import { memo, useState, useEffect, type ReactElement } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Language } from '../../locales'
 import { isAdmin } from '../../utils/auth'
@@ -17,7 +17,17 @@ import {
 import WorshipRail from './components/WorshipRail'
 import { useNavigate } from 'react-router-dom'
 import { useAboutContent } from '../../hooks/useAboutContent'
-import { BookOpenIcon, ChevronRightIcon, ClockIcon, MapPinIcon, PlayCircleIcon } from '../About/icons'
+import {
+  BookOpenIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  DawnIcon,
+  DayIcon,
+  DuskIcon,
+  MapPinIcon,
+  NightIcon,
+  PlayCircleIcon,
+} from '../About/icons'
 import './Worship.css'
 
 // 평일 예배 종류별 emblem 아이콘 (새벽/수요/금요·기타)
@@ -140,7 +150,14 @@ const moodOfTime = (startMin: number): Mood => {
   return 'night'
 }
 
-const MOOD_EMOJI: Record<Mood, string> = { dawn: '🌅', day: '☀️', dusk: '🌇', night: '🌙' }
+// 무드 마크 — 종료된 예배의 마무리 한 줄에 붙는다.
+// 이모지였을 땐 12px 문장 안에서 작은 색 사각형처럼 뭉개져 아이콘으로 바꿨다.
+const MOOD_ICON: Record<Mood, (p: { size?: number }) => ReactElement> = {
+  dawn: DawnIcon,
+  day: DayIcon,
+  dusk: DuskIcon,
+  night: NightIcon,
+}
 
 const NARRATIVE_KEY = {
   dawn: 'worshipNarrativeDawn',
@@ -454,11 +471,12 @@ const Worship = () => {
   const renderEndedNote = (service: WorshipService) => {
     const next = nextOccurrence(service, seoulNow)
     const firstTime = parseServiceTimes(service.time)[0]
-    const emoji = MOOD_EMOJI[moodOfTime(firstTime ?? 720)]
+    const MoodIcon = MOOD_ICON[moodOfTime(firstTime ?? 720)]
     return (
       <p className="worship-ended-note">
-        <span>
-          {emoji} {t(service.name.includes('기도') ? 'worshipEndedPrayed' : 'worshipEndedWorshiped')}
+        <span className="worship-ended-line">
+          <MoodIcon size={15} />
+          {t(service.name.includes('기도') ? 'worshipEndedPrayed' : 'worshipEndedWorshiped')}
         </span>
         {next && (
           <span className="worship-ended-next">

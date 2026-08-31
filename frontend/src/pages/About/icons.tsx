@@ -15,9 +15,13 @@ import {
   Heart,
   MapPin,
   Medal,
+  MoonStars,
   Phone,
   Plant,
   PlayCircle,
+  Sun,
+  SunDim,
+  SunHorizon,
   TreeStructure,
   X,
   type Icon,
@@ -77,3 +81,14 @@ export const GraduationCapIcon = make(GraduationCap)
 export const BriefcaseIcon = make(Briefcase)
 /** 메달 — 수상 */
 export const MedalIcon = make(Medal)
+
+/* ── 시간대 무드 (/worship) ── 예배 시각의 '빛'을 나타낸다.
+   컬러 이모지(🌅 ☀️ 🌇 🌙)는 12px 문장 안에서 작은 색 사각형처럼 뭉개져 교체했다 */
+/** 여명 — 새벽 예배 */
+export const DawnIcon = make(SunHorizon)
+/** 한낮 — 주일 낮 예배 */
+export const DayIcon = make(Sun)
+/** 노을 — 저녁 예배 */
+export const DuskIcon = make(SunDim)
+/** 밤 — 심야 기도회 */
+export const NightIcon = make(MoonStars)
