@@ -31,6 +31,7 @@ export const logout = async () => {
   localStorage.removeItem('user_username')
   localStorage.removeItem('user_full_name')
   localStorage.removeItem('user_fingerprint')
+  localStorage.removeItem('user_avatar_url')
   localStorage.removeItem('last_cached_username')
 
   // React Query 캐시 제거 (모든 사용자의 캐시 - 프로필 포함)

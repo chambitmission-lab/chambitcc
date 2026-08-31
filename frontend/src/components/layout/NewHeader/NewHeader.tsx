@@ -24,6 +24,7 @@ const useIsDesktop = (): boolean => {
 }
 import { SearchCapsule } from '../../command/SearchTrigger'
 import HeaderActions from './components/HeaderActions'
+import HeaderAccountButton from './components/HeaderAccountButton'
 import MobileMenu from './components/MobileMenu'
 import { useDesktopRailVisible } from '../DesktopNavRail/DesktopNavRail'
 import { useMenuState } from './hooks/useMenuState'
@@ -139,6 +140,9 @@ const NewHeader = () => {
               </button>
             </div>
           )}
+          {/* 로그인 PC — 비로그인 CTA가 있던 그 자리를 계정 아바타가 이어받는다.
+              (레일 하단 유틸리티엔 "내가 누구인지" 보여주는 자리가 없다) */}
+          {railVisible && isLoggedIn && <HeaderAccountButton />}
           {/* 우상단 액션 — 레일이 보이는 PC에선 레일 하단 유틸리티가 대신한다 */}
           <div className={railVisible ? 'lg:hidden' : ''}>
             <HeaderActions
