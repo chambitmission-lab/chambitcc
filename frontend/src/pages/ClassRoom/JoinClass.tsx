@@ -2,6 +2,7 @@
 // 카톡으로 받은 초대 링크의 도착지 — 반 미리보기 + 자녀 이름 입력 + 참여.
 // 비로그인이면 로그인 후 이 페이지로 복귀한다 (redirect_after_login).
 import { useState } from 'react'
+import { EnvelopeIcon, SadFaceIcon, SchoolIcon } from './ClassIcons'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useClassPreview, useJoinClass } from '../../hooks/useClassRoom'
 import { isAuthenticated } from '../../utils/auth'
@@ -81,7 +82,7 @@ const JoinClass = () => {
             <div className="w-full h-64 rounded-3xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
           ) : error || !cls ? (
             <div className="text-center">
-              <span className="text-5xl block mb-4">😢</span>
+              <SadFaceIcon width={44} height={44} className="mx-auto mb-4 text-gray-400 dark:text-white/40" />
               <p className="text-[15px] font-bold text-ink-strong">초대장을 찾을 수 없어요</p>
               <p className="text-[13px] text-gray-500 dark:text-white/55 mt-1.5">
                 링크가 만료됐거나 잘못된 초대 코드예요
@@ -98,11 +99,9 @@ const JoinClass = () => {
             <div className="w-full">
               {/* 초대 카드 */}
               <div className="relative overflow-hidden rounded-[26px] p-6 bg-brand text-white shadow-[0_16px_44px_-14px_var(--brand-glow)] text-center">
-                <span className="absolute -right-3 -bottom-7 text-[110px] leading-none opacity-[0.14] rotate-12 select-none pointer-events-none">
-                  🏫
-                </span>
+                <SchoolIcon width={120} height={120} className="absolute -right-3 -bottom-7 opacity-[0.14] rotate-12 select-none pointer-events-none" />
                 <div className="relative z-10">
-                  <span className="text-[38px] block">💌</span>
+                  <EnvelopeIcon width={38} height={38} className="mx-auto block" />
                   <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/70 mt-2">
                     Invitation
                   </p>

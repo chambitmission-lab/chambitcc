@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useClassPosts } from '../../hooks/useClassRoom'
 import { Shell } from './classUi'
+import { CameraIcon } from './ClassIcons'
 
 const ClassAlbum = () => {
   const navigate = useNavigate()
@@ -28,7 +29,7 @@ const ClassAlbum = () => {
   const [viewer, setViewer] = useState<number | null>(null)
 
   return (
-    <Shell onBack={() => navigate(`/classes/${id}`)} title="📷 우리반 앨범">
+    <Shell onBack={() => navigate(`/classes/${id}`)} title={<><CameraIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />우리반 앨범</>}>
       {isLoading ? (
         <div className="grid grid-cols-3 gap-1 p-1 pt-4">
           {Array.from({ length: 9 }).map((_, i) => (
@@ -37,7 +38,7 @@ const ClassAlbum = () => {
         </div>
       ) : photos.length === 0 ? (
         <div className="text-center py-20 px-6">
-          <span className="text-4xl block mb-3">📷</span>
+          <CameraIcon width={36} height={36} className="mx-auto mb-3 text-gray-400 dark:text-white/40" />
           <p className="text-[13px] text-gray-500 dark:text-white/55 leading-[1.7]">
             아직 사진이 없어요.
             <br />

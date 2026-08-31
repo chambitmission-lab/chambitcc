@@ -19,6 +19,7 @@ import {
 } from '../../hooks/useEducation'
 import type { EducationCategory, EducationProgram } from '../../types/education'
 import EducationComposer, { type ComposerTarget } from './components/EducationComposer'
+import { EduGlyph, SproutIcon } from '../Education/EduIcons'
 import { FilterChip, FilterRow } from './components/FilterControls'
 
 type VisibilityFilter = 'all' | 'active' | 'hidden'
@@ -216,7 +217,7 @@ const EducationManagement = () => {
                 <SkeletonRows />
               ) : filtered.length === 0 ? (
                 <div className="text-center py-12">
-                  <span className="text-4xl block mb-3">🌱</span>
+                  <SproutIcon width={36} height={36} className="mx-auto mb-3 text-gray-400 dark:text-white/40" />
                   <p className="text-[13px] text-gray-500 dark:text-white/55">
                     {searchTerm ? '조건에 맞는 항목이 없습니다' : '아직 카테고리가 없어요'}
                   </p>
@@ -333,7 +334,7 @@ const CategoryRow = ({
     <div className="relative z-10 flex items-center gap-2 pl-3.5 pr-2 py-2.5">
       <button type="button" onClick={onToggle} className="flex-1 min-w-0 flex items-center gap-3 text-left" aria-expanded={expanded}>
         <div className="shrink-0 w-11 h-11 rounded-xl bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] flex items-center justify-center text-[20px]">
-          {category.emoji || '📘'}
+          <EduGlyph emoji={category.emoji || '📘'} size={22} className="text-brand" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">

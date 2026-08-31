@@ -193,9 +193,94 @@
   opacity: 0.55;
 }
 
+/* ── 2026 리프레시: 히어로 '한눈에 보기' 카드 + 프로그램 카드 파스텔 타일 ── */
+
+/* 히어로 요약 스탯 — 모바일은 중앙 2열, 데스크톱은 히어로 오른쪽 열 */
+.edu-hero-stats {
+  margin: 1.5rem auto 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  max-width: 22rem;
+}
+.edu-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 1.1rem;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 6px 18px -12px rgba(49, 130, 246, 0.45);
+}
+[data-theme="dark"] .edu-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+.edu-stat-icon {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--brand);
+  background: var(--brand-soft-strong);
+}
+.edu-stat-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.edu-stat-num {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+.edu-stat-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* 프로그램 카드 아이콘 타일 — 톤은 인라인 --tile-* 변수로 순환 (#rrggbb1f ≈ 12%) */
+.edu-card-tile {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--tile-fg, var(--brand));
+  background: var(--tile-bg, var(--brand-soft-strong));
+}
+
 @media (min-width: 1024px) {
+  /* 히어로 좌우 분할 — 왼쪽 글, 오른쪽 요약 카드 */
   .edu-hero {
-    padding: 3rem 2rem 2rem;
+    padding: 3rem 2.5rem 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2.5rem;
+    text-align: left;
+  }
+  .edu-hero-main {
+    flex: 1;
+    min-width: 0;
+  }
+  .edu-hero-stats {
+    margin: 0;
+    max-width: none;
+    width: 21rem;
+    flex-shrink: 0;
   }
   .edu-hero-title {
     font-size: 1.9rem;

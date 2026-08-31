@@ -15,15 +15,30 @@ import type { ClassPost, RsvpStatus } from '../../../types/classRoom'
 import { formatKstDateTime, formatRemaining, parseKstDate } from '../../../utils/kstTime'
 import { showToast } from '../../../utils/toast'
 import { Avatar, timeAgo } from '../classUi'
+import {
+  BallotIcon,
+  CalendarIcon,
+  CameraIcon,
+  ClockIcon,
+  EyeIcon,
+  ImageIcon,
+  MapPinIcon,
+  MegaphoneIcon,
+  OpenBookIcon,
+  PinIcon,
+  StarIcon,
+  TargetIcon,
+  type IconFn,
+} from '../ClassIcons'
 import VersePracticeSheet from './VersePracticeSheet'
 import { confirmDialog } from '../../../utils/confirmDialog'
 
-const TYPE_META: Record<string, { label: string; cls: string }> = {
-  notice: { label: '📢 공지', cls: 'bg-[var(--brand-soft)] text-brand' },
-  verse: { label: '📖 암송요절', cls: 'bg-amber-400/15 text-amber-600 dark:text-amber-300' },
-  event: { label: '📅 일정', cls: 'bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300' },
-  photo: { label: '📷 사진', cls: 'bg-violet-500/[0.12] text-violet-600 dark:text-violet-300' },
-  poll: { label: '🗳 투표', cls: 'bg-sky-500/[0.12] text-sky-600 dark:text-sky-300' },
+const TYPE_META: Record<string, { icon: IconFn; label: string; cls: string }> = {
+  notice: { icon: MegaphoneIcon, label: '공지', cls: 'bg-[var(--brand-soft)] text-brand' },
+  verse: { icon: OpenBookIcon, label: '암송요절', cls: 'bg-amber-400/15 text-amber-600 dark:text-amber-300' },
+  event: { icon: CalendarIcon, label: '일정', cls: 'bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300' },
+  photo: { icon: CameraIcon, label: '사진', cls: 'bg-violet-500/[0.12] text-violet-600 dark:text-violet-300' },
+  poll: { icon: BallotIcon, label: '투표', cls: 'bg-sky-500/[0.12] text-sky-600 dark:text-sky-300' },
 }
 
 interface ClassPostCardProps {
@@ -91,12 +106,14 @@ const ClassPostCard = ({
     >
       {post.is_pinned && (
         <p className="flex items-center gap-1 text-[11px] font-bold text-brand mb-2">
-          📌 고정된 알림
+          <PinIcon width={12} height={12} />
+          고정된 알림
         </p>
       )}
       {post.is_scheduled && post.publish_at && (
         <p className="flex items-center gap-1 text-[11px] font-bold text-violet-600 dark:text-violet-300 mb-2">
-          ⏰ 예약됨 · {formatKstDateTime(post.publish_at)}에 발행돼요 (선생님에게만 보여요)
+          <ClockIcon width={12} height={12} className="shrink-0" />
+          예약됨 · {formatKstDateTime(post.publish_at)}에 발행돼요 (선생님에게만 보여요)
         </p>
       )}
 
@@ -109,7 +126,8 @@ const ClassPostCard = ({
               {post.author_name}
               {post.author_is_teacher && ' 선생님'}
             </span>
-            <span className={`shrink-0 px-1.5 py-0.5 rounded-full text-[10.5px] font-bold leading-none ${meta.cls}`}>
+            <span className={`shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10.5px] font-bold leading-none ${meta.cls}`}>
+              <meta.icon width={10} height={10} />
               {meta.label}
             </span>
           </div>
@@ -129,7 +147,7 @@ const ClassPostCard = ({
                   post.is_pinned ? 'text-brand' : 'text-gray-300 dark:text-white/30 hover:text-brand'
                 }`}
               >
-                📌
+                <PinIcon width={15} height={15} />
               </button>
             )}
             {(post.is_mine || isTeacher) && (
@@ -200,8 +218,9 @@ const ClassPostCard = ({
           {post.comment_count > 0 ? `댓글 ${post.comment_count}` : '댓글 남기기'}
         </button>
         {post.post_type === 'photo' && post.check_count > 0 && (
-          <span className="text-[11.5px] text-gray-400 dark:text-white/40">
-            👀 {post.check_count}명이 봤어요
+          <span className="inline-flex items-center gap-1 text-[11.5px] text-gray-400 dark:text-white/40">
+            <EyeIcon width={13} height={13} />
+            {post.check_count}명이 봤어요
           </span>
         )}
       </div>
@@ -332,7 +351,8 @@ const VerseSection = ({
               onClick={() => setShowPractice(true)}
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500 text-white text-[12px] font-bold transition-all active:scale-95 shadow-[0_4px_12px_-4px_rgba(245,158,11,0.5)]"
             >
-              🎯 외우기 연습
+              <TargetIcon width={13} height={13} />
+              외우기 연습
             </button>
             <button
               type="button"
@@ -344,7 +364,8 @@ const VerseSection = ({
                   : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
               }`}
             >
-              {post.recited_by_me ? '🌟 암송 완료!' : '⭐ 암송했어요'}
+              <StarIcon width={13} height={13} className="shrink-0" />
+              {post.recited_by_me ? '암송 완료!' : '암송했어요'}
             </button>
           </div>
           <button
@@ -354,9 +375,10 @@ const VerseSection = ({
                 state: { presetVerse: { text: verse.text, refLabel: verse.reference } },
               })
             }
-            className="text-[11.5px] font-bold text-brand hover:underline"
+            className="inline-flex items-center gap-1 text-[11.5px] font-bold text-brand hover:underline"
           >
-            🖼 말씀카드
+            <ImageIcon width={13} height={13} />
+            말씀카드
           </button>
         </div>
       </div>
@@ -531,17 +553,22 @@ const EventSection = ({
     <div className="mt-3.5 rounded-2xl border border-emerald-200/60 dark:border-emerald-300/20 overflow-hidden">
       <div className="px-4 py-3.5 bg-emerald-50/70 dark:bg-emerald-400/[0.06] space-y-1">
         <p className="text-[13.5px] font-bold text-ink-strong">
-          🗓 {formatKstDateTime(event.start_at)}
+          <CalendarIcon width={13} height={13} className="inline-block align-[-2px] mr-1" />
+          {formatKstDateTime(event.start_at)}
           {event.end_at && ` ~ ${formatKstDateTime(event.end_at)}`}
         </p>
         {event.location && (
-          <p className="text-[12.5px] text-gray-600 dark:text-white/60">📍 {event.location}</p>
+          <p className="text-[12.5px] text-gray-600 dark:text-white/60">
+            <MapPinIcon width={12} height={12} className="inline-block align-[-1.5px] mr-1" />
+            {event.location}
+          </p>
         )}
         {event.rsvp_deadline && (
           <p className={`text-[12px] font-semibold ${isClosed ? 'text-gray-400 dark:text-white/40' : 'text-emerald-700 dark:text-emerald-300'}`}>
+            <ClockIcon width={12} height={12} className="inline-block align-[-1.5px] mr-1" />
             {isClosed
-              ? '⏰ 참석 응답이 마감됐어요'
-              : `⏰ ${formatKstDateTime(event.rsvp_deadline)} 마감${remaining ? ` (${remaining} 남음)` : ''}`}
+              ? '참석 응답이 마감됐어요'
+              : `${formatKstDateTime(event.rsvp_deadline)} 마감${remaining ? ` (${remaining} 남음)` : ''}`}
           </p>
         )}
       </div>

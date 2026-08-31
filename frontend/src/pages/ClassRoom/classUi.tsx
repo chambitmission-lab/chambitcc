@@ -81,7 +81,7 @@ export const Shell = ({
   children,
 }: {
   onBack: () => void
-  title: string
+  title: React.ReactNode
   actions?: React.ReactNode
   rail?: React.ReactNode
   children: React.ReactNode

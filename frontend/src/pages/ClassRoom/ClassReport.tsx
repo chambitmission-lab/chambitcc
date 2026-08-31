@@ -7,6 +7,7 @@ import { useClassDetail, useClassReport } from '../../hooks/useClassRoom'
 import type { ReportMemberRow, ReportWeekRow } from '../../types/classRoom'
 import { isAuthenticated } from '../../utils/auth'
 import { Avatar, memberLabel, Shell, timeAgo } from './classUi'
+import { BallotIcon, ChartIcon, HeartIcon, OpenBookIcon, StarIcon } from './ClassIcons'
 
 const WEEK_OPTIONS = [4, 8, 12]
 
@@ -47,7 +48,7 @@ const ClassReport = () => {
   const attention = report?.members.filter((m) => m.attention_flags.length > 0) ?? []
 
   return (
-    <Shell onBack={() => navigate(`/classes/${id}`)} title="📊 우리반 리포트">
+    <Shell onBack={() => navigate(`/classes/${id}`)} title={<><ChartIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />우리반 리포트</>}>
       {/* 기간 선택 */}
       <div className="flex gap-2 px-4 pt-4">
         {WEEK_OPTIONS.map((w) => (
@@ -128,7 +129,8 @@ const ClassReport = () => {
           {attention.length > 0 && (
             <section className="mx-4 mt-4 p-4 rounded-2xl bg-rose-50/60 dark:bg-rose-400/[0.06] border border-rose-200/60 dark:border-rose-300/20">
               <h3 className="text-[14px] font-bold text-rose-600 dark:text-rose-300 mb-1">
-                💛 조금 더 살펴봐 주세요
+                <HeartIcon width={14} height={14} className="inline-block align-[-2px] mr-1" />
+                조금 더 살펴봐 주세요
               </h3>
               <p className="text-[11.5px] text-gray-500 dark:text-white/50 mb-3 leading-[1.6]">
                 최근 반응이 뜸한 멤버예요. 전화나 심방으로 안부를 물어보면 좋아요.
@@ -158,7 +160,7 @@ const ClassReport = () => {
           <section className="mx-4 mt-4 p-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]">
             <h3 className="text-[14px] font-bold text-ink-strong mb-1">멤버별 현황</h3>
             <p className="text-[11.5px] text-gray-400 dark:text-white/40 mb-2">
-              확인 · 암송 · 참석/투표 응답 · ⭐ 누적 암송
+              확인 · 암송 · 참석/투표 응답 · <StarIcon width={11} height={11} className="inline-block align-[-1px]" /> 누적 암송
             </p>
             {report.members.map((m) => (
               <MemberRow key={m.user_id} member={m} />
@@ -238,16 +240,21 @@ const MemberRow = ({ member: m }: { member: ReportMemberRow }) => (
           ✓ {m.check_count}/{m.check_total}
         </span>
         {m.recite_total > 0 && (
-          <span className="text-amber-600 dark:text-amber-300">
-            📖 {m.recite_count}/{m.recite_total}
+          <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-300">
+            <OpenBookIcon width={12} height={12} />
+            {m.recite_count}/{m.recite_total}
           </span>
         )}
         {m.rsvp_total > 0 && (
-          <span className="text-emerald-600 dark:text-emerald-300">
-            🗳 {m.rsvp_responded}/{m.rsvp_total}
+          <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300">
+            <BallotIcon width={12} height={12} />
+            {m.rsvp_responded}/{m.rsvp_total}
           </span>
         )}
-        <span className="text-gray-500 dark:text-white/55">⭐{m.star_count}</span>
+        <span className="inline-flex items-center gap-0.5 text-gray-500 dark:text-white/55">
+          <StarIcon width={12} height={12} />
+          {m.star_count}
+        </span>
       </div>
     </div>
   </div>

@@ -3,6 +3,17 @@
 // 일정·예약 시각은 네이티브 datetime-local 대신 EventComposer(관리자 일정 등록)와
 // 같은 빠른 칩 + 커스텀 DatePicker/TimePicker 조합으로 받는다.
 import { useMemo, useRef, useState } from 'react'
+import {
+  BallotIcon,
+  CalendarIcon,
+  CameraIcon,
+  ClipboardIcon,
+  ClockIcon,
+  MegaphoneIcon,
+  OpenBookIcon,
+  PinIcon,
+  type IconFn,
+} from '../ClassIcons'
 import DatePicker from '../../../components/common/DatePicker'
 import TimePicker from '../../../components/common/TimePicker'
 import { useBibleBooks, useBibleChapter } from '../../../hooks/useBible'
@@ -48,12 +59,12 @@ const saveTemplates = (templates: PostTemplate[]) => {
   }
 }
 
-const TYPE_TABS: { value: ClassPostType; label: string }[] = [
-  { value: 'notice', label: '📢 공지' },
-  { value: 'verse', label: '📖 암송요절' },
-  { value: 'event', label: '📅 일정' },
-  { value: 'photo', label: '📷 사진' },
-  { value: 'poll', label: '🗳 투표' },
+const TYPE_TABS: { value: ClassPostType; label: string; icon: IconFn }[] = [
+  { value: 'notice', label: '공지', icon: MegaphoneIcon },
+  { value: 'verse', label: '암송요절', icon: OpenBookIcon },
+  { value: 'event', label: '일정', icon: CalendarIcon },
+  { value: 'photo', label: '사진', icon: CameraIcon },
+  { value: 'poll', label: '투표', icon: BallotIcon },
 ]
 
 /* ── 일정·예약 시각 도우미 (EventComposer와 동일 방식) ── */
@@ -417,12 +428,13 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
               key={tab.value}
               type="button"
               onClick={() => setPostType(tab.value)}
-              className={`px-3 py-2 rounded-full text-[12.5px] font-bold transition-all ${
+              className={`inline-flex items-center gap-1 px-3 py-2 rounded-full text-[12.5px] font-bold transition-all ${
                 postType === tab.value
                   ? 'bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
                   : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
               }`}
             >
+              <tab.icon width={13} height={13} className="shrink-0" />
               {tab.label}
             </button>
           ))}
@@ -488,8 +500,9 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
                 onChange={(e) => setIsPinned(e.target.checked)}
                 className="w-4 h-4 accent-[var(--brand)]"
               />
-              <span className="text-[13px] font-semibold text-gray-700 dark:text-white/75">
-                📌 알림장 맨 위에 고정하기
+              <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-gray-700 dark:text-white/75">
+                <PinIcon width={13} height={13} />
+                알림장 맨 위에 고정하기
               </span>
             </label>
           </div>
@@ -929,7 +942,10 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
 
         {/* ── 예약 발행 (공통) ── */}
         <div className="mt-5 p-3.5 rounded-2xl bg-gray-50 dark:bg-white/[0.04] border border-gray-200/60 dark:border-white/[0.06]">
-          <label className={labelCls}>⏰ 언제 보낼까요</label>
+          <label className={labelCls}>
+            <ClockIcon width={12} height={12} className="inline-block align-[-1.5px] mr-1" />
+            언제 보낼까요
+          </label>
           <div className="flex gap-1.5 flex-wrap">
             {PUBLISH_PRESETS.map((o) => (
               <button
@@ -988,7 +1004,12 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
           {createPost.isPending
             ? '보내는 중...'
             : publishAt
-              ? '⏰ 이 시각에 예약하기'
+              ? (
+                  <>
+                    <ClockIcon width={14} height={14} className="inline-block align-[-2px] mr-1" />
+                    이 시각에 예약하기
+                  </>
+                )
               : '알림 보내기'}
         </button>
         <div className="flex items-center justify-between mt-2">
@@ -998,9 +1019,10 @@ const ClassComposerSheet = ({ classId, onClose }: ClassComposerSheetProps) => {
           <button
             type="button"
             onClick={handleSaveTemplate}
-            className="text-[11.5px] font-bold text-brand"
+            className="inline-flex items-center gap-1 text-[11.5px] font-bold text-brand"
           >
-            📋 템플릿으로 저장
+            <ClipboardIcon width={12} height={12} />
+            템플릿으로 저장
           </button>
         </div>
       </div>

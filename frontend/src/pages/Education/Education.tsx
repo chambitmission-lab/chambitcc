@@ -18,7 +18,7 @@ import { EditableText } from '../../components/AboutEditor'
 import { categoryText, programText } from '../../types/education'
 import type { EducationCategory, EducationProgram } from '../../types/education'
 import './education.css'
-import { EduGlyph, PencilIcon, SproutIcon } from './EduIcons'
+import { EduGlyph, OpenBookIcon, PencilIcon, PeopleIcon, SproutIcon } from './EduIcons'
 
 // /events 카테고리 칩처럼 선택마다 색이 살짝 달라지도록 — 부서는 DB 기반이라
 // 고정 키 매핑 대신 순서로 블루 패밀리(토스 블루 톤 안에서만) 팔레트를 순환한다.
@@ -36,6 +36,13 @@ const chipTone = (i: number) => {
   return { '--chip-a': a, '--chip-b': b, '--chip-rgb': rgb } as React.CSSProperties
 }
 
+// 프로그램 카드의 파스텔 아이콘 타일 — 목업처럼 카드마다 톤을 순환한다 (#rrggbb + 알파)
+const TILE_TONES = ['#3182f6', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ec4899', '#14b8a6']
+const tileTone = (i: number) => {
+  const c = TILE_TONES[i % TILE_TONES.length]
+  return { '--tile-fg': c, '--tile-bg': `${c}1f` } as React.CSSProperties
+}
+
 const Education = () => {
   const navigate = useNavigate()
   const { language } = useLanguage()
@@ -49,6 +56,9 @@ const Education = () => {
     () => categories.filter((c) => c.programs.length > 0 || isAdminUser),
     [categories, isAdminUser],
   )
+
+  // 히어로 '한눈에 보기' 수치 — 데이터에 실제로 있는 것만 센다
+  const programCount = useMemo(() => visible.reduce((n, c) => n + c.programs.length, 0), [visible])
 
   // ?cat= 가 없거나 모르는 키면 첫 카테고리. replace 로 바꿔 탭 전환이 history 를
   // 쌓지 않는다(뒤로가기는 이전 페이지로 나간다).
@@ -107,39 +117,65 @@ const Education = () => {
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
       <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
-          {/* Hero */}
+          {/* Hero — 모바일은 가운데, 데스크톱은 왼쪽 글 + 오른쪽 요약 카드 */}
           <header className="edu-hero">
-            <span className="edu-hero-badge">
-              <EditableText fieldKey="educationBadge" isAdmin={isAdminUser}>
-                {tx('educationBadge')}
-              </EditableText>
-            </span>
-            <h1 className="edu-hero-title">
-              <EditableText fieldKey="educationHeroTitle" multiline isAdmin={isAdminUser}>
-                {tx('educationHeroTitle')}
-              </EditableText>
-            </h1>
-            <p className="edu-hero-subtitle">
-              <EditableText fieldKey="educationHeroSubtitle" isAdmin={isAdminUser}>
-                {tx('educationHeroSubtitle')}
-              </EditableText>
-            </p>
+            <div className="edu-hero-main">
+              <span className="edu-hero-badge">
+                <EditableText fieldKey="educationBadge" isAdmin={isAdminUser}>
+                  {tx('educationBadge')}
+                </EditableText>
+              </span>
+              <h1 className="edu-hero-title">
+                <EditableText fieldKey="educationHeroTitle" multiline isAdmin={isAdminUser}>
+                  {tx('educationHeroTitle')}
+                </EditableText>
+              </h1>
+              <p className="edu-hero-subtitle">
+                <EditableText fieldKey="educationHeroSubtitle" isAdmin={isAdminUser}>
+                  {tx('educationHeroSubtitle')}
+                </EditableText>
+              </p>
 
-            {/* 연결 동선 — 예배 시간, 우리반 알림장 */}
-            <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
-              <QuickLink to="/worship" icon="clock" label={tx('educationWorshipLink')} />
-              <QuickLink to="/classes" icon="note" label={tx('educationClassLink')} />
-              {isAdminUser && (
-                <button
-                  type="button"
-                  onClick={() => navigate('/admin/education')}
-                  className="inline-flex items-center gap-1 h-9 px-3.5 rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] hover:bg-[var(--brand-soft)] transition-colors"
-                >
-                  <PencilIcon width={13} height={13} className="shrink-0" />
-                  {ko ? '부서 관리' : 'Manage'}
-                </button>
-              )}
+              {/* 연결 동선 — 예배 시간, 우리반 알림장 */}
+              <div className="mt-5 flex items-center justify-center lg:justify-start gap-2 flex-wrap">
+                <QuickLink to="/worship" icon="clock" label={tx('educationWorshipLink')} />
+                <QuickLink to="/classes" icon="note" label={tx('educationClassLink')} />
+                {isAdminUser && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/admin/education')}
+                    className="inline-flex items-center gap-1 h-9 px-3.5 rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] hover:bg-[var(--brand-soft)] transition-colors"
+                  >
+                    <PencilIcon width={13} height={13} className="shrink-0" />
+                    {ko ? '부서 관리' : 'Manage'}
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* 한눈에 보기 — 실제 데이터에서 세는 수치만 (지어내지 않는다) */}
+            {visible.length > 0 && (
+              <aside className="edu-hero-stats" aria-label={ko ? '한눈에 보기' : 'At a glance'}>
+                <div className="edu-stat">
+                  <span className="edu-stat-icon">
+                    <PeopleIcon width={17} height={17} />
+                  </span>
+                  <span className="edu-stat-body">
+                    <strong className="edu-stat-num">{visible.length}</strong>
+                    <span className="edu-stat-label">{ko ? '만나는 부서' : 'Departments'}</span>
+                  </span>
+                </div>
+                <div className="edu-stat">
+                  <span className="edu-stat-icon">
+                    <OpenBookIcon width={17} height={17} />
+                  </span>
+                  <span className="edu-stat-body">
+                    <strong className="edu-stat-num">{programCount}</strong>
+                    <span className="edu-stat-label">{ko ? '훈련 프로그램' : 'Programs'}</span>
+                  </span>
+                </div>
+              </aside>
+            )}
           </header>
 
           {/* 카테고리 탭 */}
@@ -275,8 +311,8 @@ const CategorySection = ({
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-          {category.programs.map((program) => (
-            <ProgramCard key={program.id} program={program} language={language} labels={labels} />
+          {category.programs.map((program, i) => (
+            <ProgramCard key={program.id} program={program} index={i} emoji={category.emoji} language={language} labels={labels} />
           ))}
         </div>
       )}
@@ -296,10 +332,14 @@ const CategorySection = ({
 // ── Program card — 레거시 이미지의 "시간 / 담당 / 장소" 3행을 카드로 ─────
 const ProgramCard = ({
   program,
+  index,
+  emoji,
   language,
   labels,
 }: {
   program: EducationProgram
+  index: number
+  emoji?: string | null
   language: 'ko' | 'en'
   labels: Labels
 }) => {
@@ -324,6 +364,7 @@ const ProgramCard = ({
       className={[
         'relative overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/80 dark:border-white/[0.06]',
         'shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)]',
+        'transition-[transform,box-shadow,border-color] duration-200 lg:hover:-translate-y-0.5 lg:hover:shadow-md lg:hover:border-[var(--brand-glow)]',
         !program.is_active ? 'opacity-60' : '',
       ].join(' ')}
     >
@@ -334,8 +375,11 @@ const ProgramCard = ({
         </div>
       )}
       <div className="relative p-4 space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-[16px] font-bold leading-[1.35] tracking-[-0.01em] text-ink-strong">{name}</h3>
+        <div className="flex items-center gap-3">
+          <span className="edu-card-tile" style={tileTone(index)} aria-hidden="true">
+            {emoji ? <EduGlyph emoji={emoji} size={20} /> : <BookGlyph />}
+          </span>
+          <h3 className="flex-1 min-w-0 text-[16px] font-bold leading-[1.35] tracking-[-0.01em] text-ink-strong truncate">{name}</h3>
           {target && (
             <span className="shrink-0 inline-flex items-center h-6 px-2 rounded-full text-[11px] font-semibold text-gray-600 dark:text-white/65 bg-gray-100 dark:bg-white/[0.06]">
               {target}

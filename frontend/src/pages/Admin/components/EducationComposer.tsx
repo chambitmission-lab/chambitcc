@@ -3,6 +3,7 @@
 // 레거시가 이미지 한 장에 박아 두던 시간·담당·장소를 필드로 받는다.
 // 한/영은 필드마다 접히는 영문 입력 — 영문은 선택이고 비우면 한국어로 폴백된다.
 import { useRef, useState, type ReactNode } from 'react'
+import { EduGlyph } from '../../Education/EduIcons'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import {
@@ -338,13 +339,13 @@ const ProgramForm = ({
                 type="button"
                 onClick={() => setCategory(c.id)}
                 className={[
-                  'h-9 px-3 rounded-full text-[12.5px] font-semibold border transition-colors',
+                  'h-9 px-3 rounded-full text-[12.5px] font-semibold border transition-colors inline-flex items-center gap-1.5',
                   category === c.id
                     ? 'bg-[var(--brand-soft-strong)] border-[var(--brand-glow)] text-brand'
                     : 'border-gray-200 dark:border-white/[0.08] text-gray-600 dark:text-white/60 hover:bg-[var(--brand-soft)]',
                 ].join(' ')}
               >
-                {c.emoji ? `${c.emoji} ` : ''}
+                {c.emoji && <EduGlyph emoji={c.emoji} size={13} className="shrink-0" />}
                 {c.name_ko}
               </button>
             ))}

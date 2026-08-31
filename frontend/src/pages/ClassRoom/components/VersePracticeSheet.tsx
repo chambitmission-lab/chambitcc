@@ -2,6 +2,7 @@
 // 단계가 올라갈수록 단어가 더 많이 가려진다. 가린 단어는 탭하면 살짝 보여준다.
 // 마지막 단계까지 가면 '암송 완료' 체크로 자연스럽게 이어진다.
 import { useMemo, useState } from 'react'
+import { StarIcon, TargetIcon } from '../ClassIcons'
 import { useToggleClassPostRecite } from '../../../hooks/useClassRoom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import type { ClassPost } from '../../../types/classRoom'
@@ -91,7 +92,10 @@ const VersePracticeSheet = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
-        <h3 className="text-[17px] font-bold text-ink-strong">🎯 가리고 외우기</h3>
+        <h3 className="text-[17px] font-bold text-ink-strong">
+          <TargetIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />
+          가리고 외우기
+        </h3>
         <p className="text-[12px] text-gray-400 dark:text-white/45 mt-0.5">
           {verse.reference} · 가려진 단어는 눌러서 살짝 볼 수 있어요
         </p>
@@ -162,12 +166,19 @@ const VersePracticeSheet = ({
             disabled={toggleRecite.isPending}
             className="w-full mt-5 py-3.5 rounded-2xl bg-brand text-white text-[14.5px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] active:scale-[0.98] transition-transform disabled:opacity-50"
           >
-            {post.recited_by_me ? '이미 암송 완료! 닫기' : '🌟 다 외웠어요! 암송 완료'}
+            {post.recited_by_me ? (
+              '이미 암송 완료! 닫기'
+            ) : (
+              <>
+                <StarIcon width={14} height={14} className="inline-block align-[-2px] mr-1" />
+                다 외웠어요! 암송 완료
+              </>
+            )}
           </button>
         )}
         {allMasked && !post.recited_by_me && (
           <p className="text-center text-[11.5px] text-gray-400 dark:text-white/40 mt-2">
-            완료하면 별 ⭐ 을 받고 선생님께도 보여요
+            완료하면 별 <StarIcon width={12} height={12} className="inline-block align-[-1.5px] text-amber-500" /> 을 받고 선생님께도 보여요
           </p>
         )}
       </div>

@@ -21,15 +21,30 @@ import {
   StarsSheet,
 } from './components/ClassStatusSheets'
 import { Avatar, DeptBadge, Shell } from './classUi'
+import {
+  BallotIcon,
+  CalendarIcon,
+  CameraIcon,
+  ChartIcon,
+  ClipboardIcon,
+  EnvelopeIcon,
+  MailboxIcon,
+  MegaphoneIcon,
+  OpenBookIcon,
+  SchoolIcon,
+  SproutIcon,
+  StarIcon,
+  type IconFn,
+} from './ClassIcons'
 import { confirmDialog } from '../../utils/confirmDialog'
 
-const FILTER_TABS: { value: ClassPostType | undefined; label: string }[] = [
+const FILTER_TABS: { value: ClassPostType | undefined; label: string; icon?: IconFn }[] = [
   { value: undefined, label: '전체' },
-  { value: 'notice', label: '📢 공지' },
-  { value: 'verse', label: '📖 암송' },
-  { value: 'event', label: '📅 일정' },
-  { value: 'photo', label: '📷 사진' },
-  { value: 'poll', label: '🗳 투표' },
+  { value: 'notice', label: '공지', icon: MegaphoneIcon },
+  { value: 'verse', label: '암송', icon: OpenBookIcon },
+  { value: 'event', label: '일정', icon: CalendarIcon },
+  { value: 'photo', label: '사진', icon: CameraIcon },
+  { value: 'poll', label: '투표', icon: BallotIcon },
 ]
 
 const ClassHome = () => {
@@ -138,8 +153,8 @@ const ClassHome = () => {
         <>
           <section className="relative overflow-hidden rounded-3xl p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35">
             <div className="flex items-start gap-3">
-              <span className="shrink-0 w-11 h-11 rounded-2xl bg-white/70 dark:bg-white/[0.08] flex items-center justify-center text-[22px]">
-                🏫
+              <span className="shrink-0 w-11 h-11 rounded-2xl bg-white/70 dark:bg-white/[0.08] flex items-center justify-center text-brand">
+                <SchoolIcon width={22} height={22} />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -213,14 +228,14 @@ const ClassHome = () => {
             <div className="flex flex-col -mx-1">
               {cls.is_teacher && (
                 <>
-                  <RailAction emoji="📊" label="리포트" onClick={() => navigate(`/classes/${id}/report`)} />
-                  <RailAction emoji="📋" label="출석부" onClick={() => navigate(`/classes/${id}/attendance`)} />
+                  <RailAction icon={ChartIcon} label="리포트" onClick={() => navigate(`/classes/${id}/report`)} />
+                  <RailAction icon={ClipboardIcon} label="출석부" onClick={() => navigate(`/classes/${id}/attendance`)} />
                 </>
               )}
-              <RailAction emoji="📷" label="앨범" onClick={() => navigate(`/classes/${id}/album`)} />
-              <RailAction emoji="⭐" label="암송 별" onClick={() => setShowStars(true)} />
+              <RailAction icon={CameraIcon} label="앨범" onClick={() => navigate(`/classes/${id}/album`)} />
+              <RailAction icon={StarIcon} label="암송 별" onClick={() => setShowStars(true)} />
               {!cls.is_teacher && (
-                <RailAction emoji="🌱" label="성장 카드" onClick={() => setShowGrowth(true)} />
+                <RailAction icon={SproutIcon} label="성장 카드" onClick={() => setShowGrowth(true)} />
               )}
             </div>
           </section>
@@ -230,8 +245,8 @@ const ClassHome = () => {
       {/* 반 헤더 — lg에선 우측 레일의 같은 카드가 대신한다 */}
       <section className="lg:hidden relative overflow-hidden rounded-3xl mx-4 mt-4 p-5 border border-blue-200/60 dark:border-white/[0.08] bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35">
         <div className="flex items-start gap-3">
-          <span className="shrink-0 w-12 h-12 rounded-2xl bg-white/70 dark:bg-white/[0.08] flex items-center justify-center text-[24px]">
-            🏫
+          <span className="shrink-0 w-12 h-12 rounded-2xl bg-white/70 dark:bg-white/[0.08] flex items-center justify-center text-brand">
+            <SchoolIcon width={24} height={24} />
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -289,21 +304,22 @@ const ClassHome = () => {
       <div className="lg:hidden flex gap-2 overflow-x-auto px-4 pt-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {cls.is_teacher && (
           <>
-            <QuickAction emoji="📊" label="리포트" onClick={() => navigate(`/classes/${id}/report`)} />
-            <QuickAction emoji="📋" label="출석부" onClick={() => navigate(`/classes/${id}/attendance`)} />
+            <QuickAction icon={ChartIcon} label="리포트" onClick={() => navigate(`/classes/${id}/report`)} />
+            <QuickAction icon={ClipboardIcon} label="출석부" onClick={() => navigate(`/classes/${id}/attendance`)} />
           </>
         )}
-        <QuickAction emoji="📷" label="앨범" onClick={() => navigate(`/classes/${id}/album`)} />
-        <QuickAction emoji="⭐" label="암송 별" onClick={() => setShowStars(true)} />
+        <QuickAction icon={CameraIcon} label="앨범" onClick={() => navigate(`/classes/${id}/album`)} />
+        <QuickAction icon={StarIcon} label="암송 별" onClick={() => setShowStars(true)} />
         {!cls.is_teacher && (
-          <QuickAction emoji="🌱" label="성장 카드" onClick={() => setShowGrowth(true)} />
+          <QuickAction icon={SproutIcon} label="성장 카드" onClick={() => setShowGrowth(true)} />
         )}
       </div>
 
       {/* 혼자면 초대 넛지 */}
       {cls.member_count <= 1 && (
         <div className="mx-4 mt-3 p-3.5 rounded-2xl bg-[var(--brand-soft)] text-[12.5px] text-gray-600 dark:text-white/70 leading-[1.6]">
-          💌 아직 혼자예요. <b className="text-brand">초대하기</b>를 눌러 카톡 반 단톡방에
+          <EnvelopeIcon width={13} height={13} className="inline-block align-[-2px] mr-1 text-brand" />
+          아직 혼자예요. <b className="text-brand">초대하기</b>를 눌러 카톡 반 단톡방에
           링크를 공유하면 학부모님들이 바로 들어올 수 있어요.
         </div>
       )}
@@ -317,12 +333,13 @@ const ClassHome = () => {
               key={tab.label}
               type="button"
               onClick={() => setPostType(tab.value)}
-              className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all ${
+              className={`shrink-0 inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all ${
                 active
                   ? 'bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
                   : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
               }`}
             >
+              {tab.icon && <tab.icon width={13} height={13} className="shrink-0" />}
               {tab.label}
             </button>
           )
@@ -389,11 +406,11 @@ const ClassHome = () => {
 
 // ── 레일 바로가기 행 (lg+) — 가로 칩 대신 세로 목록 ──
 const RailAction = ({
-  emoji,
+  icon: Icon,
   label,
   onClick,
 }: {
-  emoji: string
+  icon: IconFn
   label: string
   onClick: () => void
 }) => (
@@ -402,7 +419,9 @@ const RailAction = ({
     onClick={onClick}
     className="flex items-center gap-2.5 px-1 py-2 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors"
   >
-    <span className="text-[14px] leading-none w-5 text-center">{emoji}</span>
+    <span className="w-5 flex justify-center text-brand">
+      <Icon width={15} height={15} />
+    </span>
     <span className="flex-1 min-w-0 truncate text-[12.5px] font-bold text-ink-strong">{label}</span>
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-gray-400 dark:text-white/35">
       <polyline points="9 18 15 12 9 6" />
@@ -412,11 +431,11 @@ const RailAction = ({
 
 // ── 퀵 액션 칩 ──
 const QuickAction = ({
-  emoji,
+  icon: Icon,
   label,
   onClick,
 }: {
-  emoji: string
+  icon: IconFn
   label: string
   onClick: () => void
 }) => (
@@ -425,7 +444,7 @@ const QuickAction = ({
     onClick={onClick}
     className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[12.5px] font-bold text-gray-700 dark:text-white/75 shadow-sm active:scale-95 transition-transform"
   >
-    <span className="text-[14px] leading-none">{emoji}</span>
+    <Icon width={14} height={14} className="shrink-0 text-brand" />
     {label}
   </button>
 )
@@ -464,7 +483,7 @@ const Feed = ({
         ))
       ) : posts.length === 0 ? (
         <div className="text-center py-14 px-6">
-          <span className="text-4xl block mb-3">📮</span>
+          <MailboxIcon width={36} height={36} className="mx-auto mb-3 text-gray-400 dark:text-white/40" />
           <p className="text-[13px] text-gray-500 dark:text-white/55 leading-[1.7]">
             {isTeacher
               ? '아직 알림이 없어요. 첫 공지나 이번 주 암송요절을 올려보세요!'

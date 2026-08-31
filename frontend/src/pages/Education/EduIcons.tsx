@@ -191,6 +191,16 @@ export function GlobeIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+/** 종 — 알림 */
+export function BellIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 3.4a5.6 5.6 0 0 1 5.6 5.6c0 2.6.6 4.2 1.6 5.4H4.8c1-1.2 1.6-2.8 1.6-5.4A5.6 5.6 0 0 1 12 3.4z" />
+      <path d="M10 17.8a2 2 0 0 0 4 0" />
+    </svg>
+  )
+}
+
 /** 연필 — 관리·편집 */
 export function PencilIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -241,6 +251,7 @@ const EMOJI_ICONS: Record<string, IconFn> = {
   '💕': HeartIcon,
   '💗': HeartIcon,
   '📝': NoteIcon,
+  '🔔': BellIcon,
   '✏': NoteIcon,
   '🕊': DoveIcon,
   '🌏': GlobeIcon,

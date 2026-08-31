@@ -1,4 +1,5 @@
 import { Lock } from '@phosphor-icons/react'
+import { ClipboardIcon } from './ClassIcons'
 // 주일 출석부 (/classes/:classId/attendance) — 교사 전용
 // 날짜(주일) 선택 → 멤버 탭탭 출석 체크, 월간 현황 히트맵
 import { useMemo, useState } from 'react'
@@ -84,7 +85,7 @@ const ClassAttendance = () => {
   }
 
   return (
-    <Shell onBack={() => navigate(`/classes/${id}`)} title="📋 출석부">
+    <Shell onBack={() => navigate(`/classes/${id}`)} title={<><ClipboardIcon width={16} height={16} className="inline-block align-[-2px] mr-1.5 text-brand" />출석부</>}>
       {/* 월 이동 */}
       <div className="flex items-center justify-center gap-4 pt-4">
         <button
@@ -304,7 +305,8 @@ const ClassAttendance = () => {
             </div>
             {students.length > 0 && (
               <p className="text-[11px] text-gray-400 dark:text-white/40 mt-2">
-                🔵 출석 · 한 달 개근이면 리포트에서 확인할 수 있어요
+                <span className="inline-block w-2 h-2 rounded-full bg-brand mr-1" />
+                출석 · 한 달 개근이면 리포트에서 확인할 수 있어요
               </p>
             )}
           </section>

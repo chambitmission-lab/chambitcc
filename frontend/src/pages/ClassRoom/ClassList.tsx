@@ -15,6 +15,7 @@ import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { Avatar, DEPARTMENTS, DeptBadge, timeAgo } from './classUi'
+import { BellIcon, KeyIcon, PeopleIcon, SchoolIcon, type IconFn } from './ClassIcons'
 import classNoteHero from '../../assets/hero/class-note.jpg'
 
 const ClassList = () => {
@@ -193,7 +194,7 @@ const ClassList = () => {
             내 반
           </h3>
           {!authed ? (
-            <EmptyNote emoji="🔑" text="로그인하면 참여 중인 반이 보여요" />
+            <EmptyNote icon={KeyIcon} text="로그인하면 참여 중인 반이 보여요" />
           ) : isLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -202,7 +203,7 @@ const ClassList = () => {
             </div>
           ) : !classes || classes.length === 0 ? (
             <EmptyNote
-              emoji="🏫"
+              icon={SchoolIcon}
               text="아직 참여 중인 반이 없어요. 선생님께 받은 초대 코드를 입력하거나, 반을 만들어보세요!"
             />
           ) : (
@@ -287,7 +288,7 @@ const ClassList = () => {
                 onClick={() => navigate(`/classes/${latestPost.id}`)}
                 className="mt-3 w-full flex items-center gap-2 px-3 h-10 rounded-xl border border-[var(--card-border)] text-left hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
               >
-                <span className="shrink-0 text-[12px]">🔔</span>
+                <BellIcon width={13} height={13} className="shrink-0 text-brand" />
                 <span className="flex-1 min-w-0 truncate text-[12.5px] font-bold text-ink-strong">
                   {latestPost.name}
                 </span>
@@ -306,9 +307,9 @@ const ClassList = () => {
   )
 }
 
-const EmptyNote = ({ emoji, text }: { emoji: string; text: string }) => (
+const EmptyNote = ({ icon: Icon, text }: { icon: IconFn; text: string }) => (
   <div className="text-center py-12 px-6">
-    <span className="text-4xl block mb-3">{emoji}</span>
+    <Icon width={36} height={36} className="mx-auto mb-3 text-gray-400 dark:text-white/40" />
     <p className="text-[13px] text-gray-500 dark:text-white/55 leading-[1.7]">{text}</p>
   </div>
 )
@@ -336,7 +337,8 @@ const ClassCard = ({ cls, onClick }: { cls: ClassSummary; onClick: () => void })
           )}
         </div>
         <p className="text-[12px] text-gray-400 dark:text-white/45 mt-1">
-          👥 {cls.member_count}명
+          <PeopleIcon width={12} height={12} className="inline-block align-[-1.5px] mr-0.5" />
+          {cls.member_count}명
           {cls.teacher_names.length > 0 && ` · ${cls.teacher_names.join('·')} 선생님`}
           {cls.last_post_at && (
             <span className="ml-1.5 font-semibold text-brand">

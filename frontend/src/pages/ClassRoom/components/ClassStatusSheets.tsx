@@ -18,6 +18,7 @@ import type { ClassDetail, ClassPost, RemindTarget } from '../../../types/classR
 import type { CapsuleRecipient } from '../../../types/timeCapsule'
 import { showToast } from '../../../utils/toast'
 import { Avatar, memberLabel, timeAgo } from '../classUi'
+import { BallotIcon, CheckCircleIcon, ClipboardIcon, OpenBookIcon, SproutIcon, StarIcon, UserIcon } from '../ClassIcons'
 import MemberSearchInput from '../../../components/common/MemberSearchInput'
 import { confirmDialog } from '../../../utils/confirmDialog'
 
@@ -28,7 +29,7 @@ const SheetShell = ({
   onClose,
   children,
 }: {
-  title: string
+  title: React.ReactNode
   subtitle?: string
   onClose: () => void
   children: React.ReactNode
@@ -298,7 +299,7 @@ export const PollDetailSheet = ({
   const { data, isLoading } = useClassPollDetail(post.class_id, post.id, true)
   return (
     <SheetShell
-      title="🗳 투표 현황"
+      title={<><BallotIcon width={15} height={15} className="inline-block align-[-2px] mr-1.5 text-brand" />투표 현황</>}
       subtitle={post.title || post.content.slice(0, 30)}
       onClose={onClose}
     >
@@ -356,7 +357,7 @@ export const StarsSheet = ({
   const rest = data?.filter((r) => r.star_count === 0) ?? []
   return (
     <SheetShell
-      title="⭐ 우리 반 암송 별"
+      title={<><StarIcon width={15} height={15} className="inline-block align-[-2px] mr-1.5 text-amber-500" />우리 반 암송 별</>}
       subtitle="암송을 완료할 때마다 별이 하나씩 쌓여요"
       onClose={onClose}
     >
@@ -403,7 +404,7 @@ export const GrowthSheet = ({
   const { data, isLoading } = useMyClassGrowth(classId, true)
   return (
     <SheetShell
-      title="🌱 성장 카드"
+      title={<><SproutIcon width={15} height={15} className="inline-block align-[-2px] mr-1.5 text-brand" />성장 카드</>}
       subtitle={data ? `${data.class_name} · ${data.child_name || '나'}의 걸음` : undefined}
       onClose={onClose}
     >
@@ -413,15 +414,15 @@ export const GrowthSheet = ({
         <>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: '암송 별', value: data.star_count, emoji: '⭐' },
-              { label: '출석', value: data.attend_count, emoji: '📋' },
-              { label: '공지 확인', value: data.check_count, emoji: '✅' },
+              { label: '암송 별', value: data.star_count, icon: StarIcon },
+              { label: '출석', value: data.attend_count, icon: ClipboardIcon },
+              { label: '공지 확인', value: data.check_count, icon: CheckCircleIcon },
             ].map((s) => (
               <div
                 key={s.label}
                 className="rounded-2xl p-3.5 bg-[var(--brand-soft)] text-center"
               >
-                <span className="block text-[20px]">{s.emoji}</span>
+                <s.icon width={22} height={22} className="mx-auto text-brand" />
                 <span className="block text-[20px] font-extrabold text-ink-strong mt-0.5 tabular-nums">
                   {s.value}
                 </span>
@@ -441,7 +442,8 @@ export const GrowthSheet = ({
                   key={ref}
                   className="text-[13px] text-gray-700 dark:text-white/75 py-1 border-b border-gray-100 dark:border-white/[0.05] last:border-0"
                 >
-                  📖 {ref}
+                  <OpenBookIcon width={12} height={12} className="inline-block align-[-1.5px] mr-1" />
+                  {ref}
                 </p>
               ))}
             </div>
@@ -564,8 +566,9 @@ export const MembersSheet = ({
               onClick={() => setEditingChild(true)}
               className="w-full flex items-center justify-between text-[13px]"
             >
-              <span className="font-semibold text-gray-700 dark:text-white/75">
-                👧 내 자녀: {me.child_name || '미입력'}
+              <span className="inline-flex items-center gap-1 font-semibold text-gray-700 dark:text-white/75">
+                <UserIcon width={13} height={13} />
+                내 자녀: {me.child_name || '미입력'}
               </span>
               <span className="font-bold text-brand">수정</span>
             </button>
