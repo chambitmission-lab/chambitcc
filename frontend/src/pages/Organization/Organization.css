@@ -369,16 +369,17 @@
   }
 
   .org-shell {
-    padding-bottom: 2.5rem;
+    padding-bottom: 3rem; /* 표준 pb-12 */
   }
 
-  /* ── 헤더 — 제목 왼쪽 / 통계 오른쪽 한 줄 ── */
+  /* ── 헤더 — 제목 왼쪽 / 통계 오른쪽 한 줄.
+     좌우 20px = 표준 래퍼 px-5 와 동일 (콘텐츠 가장자리를 다른 페이지와 맞춘다) ── */
   .org-shell .org-head {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
     gap: 24px;
-    padding: 30px 28px 18px;
+    padding: 12px 20px 18px;
   }
 
   .org-head h1 {
@@ -400,7 +401,7 @@
     grid-template-columns: minmax(0, 1fr) 380px;
     gap: 24px;
     align-items: start;
-    padding: 0 28px;
+    padding: 0 20px;
   }
 
   .org-col-main {

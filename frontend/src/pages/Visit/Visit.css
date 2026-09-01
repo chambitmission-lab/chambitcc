@@ -21,17 +21,16 @@
   border-right: 1px solid var(--card-border);
 }
 
-/* PC(lg+) 와이드 셸 — 2단 무대. 세부 배치는 파일 맨 아래 PC 블록 참고 */
+/* PC(lg+) 와이드 셸 — 2단 무대. 세부 배치는 파일 맨 아래 PC 블록 참고.
+   규격은 다른 안내 페이지와 동일(1240px + 좌우 20px + 상단 12px) — 페이지를 오가도
+   콘텐츠 가장자리가 같은 자리에 있어야 한다. 카드 테두리도 lg 에선 벗는다(표준 문법). */
 @media (min-width: 1024px) {
   .visit-shell {
-    max-width: 66rem;
+    max-width: 1240px;
     min-height: 0;
-    margin-top: 0.5rem;
-    margin-bottom: 3rem;
-    border: 1px solid var(--card-border);
-    border-radius: 1.5rem;
-    /* overflow:hidden 을 주면 이 셸이 sticky 의 스크롤 조상이 되어 우측 레일이 죽는다.
-       라운드 밖으로 삐져나가는 요소는 lg 에서 따로 정리하므로 clip 이 필요 없다. */
+    margin-top: 0;
+    margin-bottom: 0;
+    border: 0;
   }
 }
 
@@ -192,7 +191,13 @@
   --route-dot: 30px;
   --route-pad-x: 18px;
   --route-tile-pad: 10px;
+  --route-gap: 6px;
   --route-num-h: 14px; /* 번호 줄 높이 — 진행선 y 계산용 */
+  /* 한 칼럼의 절반 폭 — 첫/마지막 점의 중심 x 계산용 (칼럼은 1fr 등분) */
+  --route-half-col: calc(
+    (100% - 2 * var(--route-pad-x) - (var(--route-count, 3) - 1) * var(--route-gap)) /
+      var(--route-count, 3) / 2
+  );
   position: relative;
   list-style: none;
   margin: 0;
@@ -200,18 +205,20 @@
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  gap: 6px;
+  gap: var(--route-gap);
   border-top: 1px solid var(--card-border);
 }
 
-/* 진행선 — 첫 점 중심에서 마지막 점 중심까지 한 줄 */
+/* 진행선 — 첫 점 중심에서 마지막 점 중심까지 한 줄.
+   스텝이 칼럼 중앙 정렬이므로 양 끝 = 패딩 + 칼럼 절반(--route-half-col).
+   (점 뒤를 지나쳐 카드 끝까지 뻗으면 도착점이 종점으로 안 읽힌다) */
 .visit-route::before {
   content: '';
   position: absolute;
   z-index: 0;
   top: calc(14px + var(--route-tile-pad) + var(--route-num-h) + 4px + var(--route-dot) / 2 - 1px);
-  left: calc(var(--route-pad-x) + var(--route-tile-pad) + var(--route-dot) / 2);
-  right: calc(var(--route-pad-x) + var(--route-tile-pad) + var(--route-dot) / 2);
+  left: calc(var(--route-pad-x) + var(--route-half-col));
+  right: calc(var(--route-pad-x) + var(--route-half-col));
   height: 2px;
   border-radius: 2px;
   background: linear-gradient(90deg, var(--brand-soft-strong), var(--brand));
@@ -219,13 +226,15 @@
   pointer-events: none;
 }
 
+/* 스텝은 칼럼 중앙 정렬 — 넓은 카드에서 아이콘이 왼쪽에 몰려 있으면 레일이 성글어 보인다 */
 .visit-route-step {
   position: relative;
   z-index: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
   gap: 3px;
   padding: var(--route-tile-pad);
   border-radius: 14px;
@@ -990,7 +999,8 @@
   }
 
   .visit-body {
-    padding: 26px 26px 44px;
+    /* 표준 래퍼(px-5·pt-3·pb-12)와 같은 수치 — 콘텐츠 폭 1200px */
+    padding: 12px 20px 48px;
     gap: 22px;
   }
 
@@ -1012,8 +1022,8 @@
     --route-dot: 34px;
     --route-pad-x: 24px;
     --route-tile-pad: 12px;
+    --route-gap: 10px;
     padding: 18px var(--route-pad-x) 18px;
-    gap: 10px;
   }
 
   .visit-route::before {

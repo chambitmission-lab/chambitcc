@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { EditableText } from '../../components/AboutEditor'
@@ -168,9 +168,14 @@ const Visit = () => {
               </div>
             </div>
 
-            {/* 경로 요약 — 역 → 골목 → 교회. 제목이 비어 있는 칸은 숨긴다 */}
+            {/* 경로 요약 — 역 → 골목 → 교회. 제목이 비어 있는 칸은 숨긴다.
+                --route-count: 진행선이 첫 점~마지막 점 중심에서 정확히 끝나도록 칼럼 수를 CSS에 알린다 */}
             {routeSteps.length > 0 && (
-              <ol className="visit-route" aria-label={t('visitSubtitle')}>
+              <ol
+                className="visit-route"
+                style={{ '--route-count': routeSteps.length } as CSSProperties}
+                aria-label={t('visitSubtitle')}
+              >
                 {routeSteps.map((step) => (
                   <li key={step.key} className={`visit-route-step${step.last ? ' is-last' : ''}`}>
                     {/* 스텝 번호 — 완료/도착 배지 대신 순서가 곧 진행도다 */}
