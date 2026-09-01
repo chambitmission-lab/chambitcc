@@ -73,6 +73,17 @@ const ClassHome = () => {
     }
   }, [id, navigate])
 
+  // '알림 쓰기' FAB가 떠 있는 동안 전역 챗봇 버튼을 위로 밀어 우하단 겹침을 막는다.
+  // (VerseList·BookJourneyPath와 같은 --chat-fab-lift 문법 — 챗봇 쪽은 변수만 읽는다)
+  const writeFabVisible = !!cls?.is_teacher
+  useEffect(() => {
+    if (!writeFabVisible) return
+    document.documentElement.style.setProperty('--chat-fab-lift', '3rem')
+    return () => {
+      document.documentElement.style.removeProperty('--chat-fab-lift')
+    }
+  }, [writeFabVisible])
+
   const handleShare = async () => {
     if (!cls?.invite_code) return
     const url = classInviteUrl(cls.invite_code)
