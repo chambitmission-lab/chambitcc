@@ -21,6 +21,9 @@ import {
   ScreenPageIcon,
   ArchiveIcon,
   SparkleIcon,
+  PagesIcon,
+  EyeIcon,
+  SignalIcon,
 } from './components/NewsIcons'
 
 /** 최상위 그룹 — 소식 허브 */
@@ -346,7 +349,9 @@ const FeaturedCard = ({
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-[48px]">📰</div>
+          <div className="absolute inset-0 flex items-center justify-center text-brand opacity-40">
+            <BulletinIcon width={46} height={46} />
+          </div>
         )}
         {/* 하단 그라데이션 — lg에선 글자가 사진 위에 얹히지 않으므로 불필요 */}
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/85 via-black/40 to-transparent pointer-events-none lg:hidden" />
@@ -358,8 +363,9 @@ const FeaturedCard = ({
               최신
             </span>
           )}
-          <span className="inline-flex items-center px-2 h-6 rounded-full bg-black/45 backdrop-blur-sm text-white text-[10.5px] font-semibold">
-            📄 {bulletin.page_count}P
+          <span className="inline-flex items-center gap-1 px-2 h-6 rounded-full bg-black/45 backdrop-blur-sm text-white text-[10.5px] font-semibold">
+            <PagesIcon width={11.5} height={11.5} />
+            {bulletin.page_count}P
           </span>
         </div>
         {/* 하단 텍스트 (모바일 — 사진 위 오버레이) */}
@@ -371,7 +377,10 @@ const FeaturedCard = ({
             {bulletin.title}
           </h2>
           <div className="flex items-center gap-3 text-white/75 text-[11.5px]">
-            <span>👁️ {bulletin.views}</span>
+            <span className="inline-flex items-center gap-1">
+              <EyeIcon width={13} height={13} />
+              {bulletin.views}
+            </span>
             <span className="ml-auto inline-flex items-center gap-0.5 text-white font-bold">
               읽어보기
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
@@ -396,9 +405,15 @@ const FeaturedCard = ({
           </p>
         )}
         <div className="flex items-center gap-3 text-gray-500 dark:text-white/60 text-[12px] pt-1">
-          <span>📄 {bulletin.page_count}P</span>
+          <span className="inline-flex items-center gap-1">
+            <PagesIcon width={13.5} height={13.5} />
+            {bulletin.page_count}P
+          </span>
           <span className="text-gray-300 dark:text-white/25">·</span>
-          <span>👁️ {bulletin.views}</span>
+          <span className="inline-flex items-center gap-1">
+            <EyeIcon width={13.5} height={13.5} />
+            {bulletin.views}
+          </span>
           <span className="ml-auto inline-flex items-center gap-1 h-9 px-4 rounded-full bg-brand text-white text-[13px] font-bold shadow-[0_6px_18px_-6px_var(--brand-glow)] transition-transform duration-200 group-hover:translate-x-0.5">
             읽어보기
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
@@ -452,7 +467,7 @@ const CompactCard = ({
               className="w-full h-full object-cover"
             />
           ) : (
-            <span className="text-[24px]">📰</span>
+            <BulletinIcon width={24} height={24} className="text-brand opacity-45" />
           )}
         </div>
 
@@ -464,9 +479,15 @@ const CompactCard = ({
             {formatLongDate(bulletin.bulletin_date)}
           </p>
           <div className="flex items-center gap-2.5 text-[11px] text-gray-400 dark:text-white/45 mt-0.5">
-            <span>📄 {bulletin.page_count}P</span>
+            <span className="inline-flex items-center gap-1">
+              <PagesIcon width={12.5} height={12.5} />
+              {bulletin.page_count}P
+            </span>
             <span className="text-gray-300 dark:text-white/20">·</span>
-            <span>👁️ {bulletin.views}</span>
+            <span className="inline-flex items-center gap-1">
+              <EyeIcon width={12.5} height={12.5} />
+              {bulletin.views}
+            </span>
           </div>
         </div>
 
@@ -638,8 +659,8 @@ const SkeletonCards = () => (
 
 const ErrorState = () => (
   <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-12 px-6 text-center">
-    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
-      <span className="text-[28px]">📡</span>
+    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
+      <SignalIcon width={28} height={28} />
     </div>
     <p className="text-ink-strong text-[14.5px] font-bold mb-1">
       주보를 불러오지 못했어요
@@ -652,8 +673,8 @@ const ErrorState = () => (
 
 const EmptyState = () => (
   <div className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-12 px-6 text-center">
-    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] mb-3">
-      <span className="text-[28px]">📰</span>
+    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3">
+      <BulletinIcon width={28} height={28} />
     </div>
     <p className="text-ink-strong text-[14.5px] font-bold mb-1">
       아직 등록된 주보가 없어요

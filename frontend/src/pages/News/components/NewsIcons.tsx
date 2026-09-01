@@ -9,6 +9,10 @@
  * - AlbumIcon     : 셔터를 든 카메라 (행사 앨범)
  * - ImagePageIcon : 사진 한 장 (이미지 주보)
  * - ScreenPageIcon: 글이 흐르는 화면 (디지털 주보)
+ * - PagesIcon     : 겹친 종이 두 장 (면수)
+ * - EyeIcon       : 눈 (조회수)
+ * - SignalIcon    : 전파가 끊긴 안테나 (불러오기 실패)
+ * - InboxIcon     : 비어 있는 수신함 (빈 목록)
  */
 import type { ReactElement, SVGProps } from 'react'
 
@@ -83,6 +87,50 @@ export function ScreenPageIcon(props: SVGProps<SVGSVGElement>) {
     <svg {...base} {...props}>
       <rect x="7.2" y="3.4" width="9.6" height="17.2" rx="2.4" />
       <path d="M10 8h4M10 11.4h4M10 14.8h2.4" />
+    </svg>
+  )
+}
+
+/** 겹친 종이 두 장 — 주보 면수(N P) */
+export function PagesIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M8.2 3.6h5.4l4 4v9.2a1.8 1.8 0 0 1-1.8 1.8H8.2a1.8 1.8 0 0 1-1.8-1.8V5.4a1.8 1.8 0 0 1 1.8-1.8z" />
+      <path d="M13.4 3.8v3.9h3.9" />
+      <path d="M17.6 8.6v9.6a2.2 2.2 0 0 1-2.2 2.2H6.8" />
+    </svg>
+  )
+}
+
+/** 눈 — 조회수. 동공은 채워 작은 점으로만 남긴다 */
+export function EyeIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M2.6 12S6 6.4 12 6.4 21.4 12 21.4 12 18 17.6 12 17.6 2.6 12 2.6 12z" />
+      <circle cx="12" cy="12" r="2.6" />
+    </svg>
+  )
+}
+
+/** 안테나 — 전파가 끊긴 신호(불러오기 실패) */
+export function SignalIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="1.6" />
+      <path d="M8.8 8.8a4.5 4.5 0 0 0 0 6.4M15.2 8.8a4.5 4.5 0 0 1 0 6.4" />
+      <path d="M6 6a8.5 8.5 0 0 0 0 12" />
+      <path d="M18 6a8.5 8.5 0 0 1 1.4 2.2" />
+      <path d="M4.2 19.8L19.8 4.2" />
+    </svg>
+  )
+}
+
+/** 빈 수신함 — 아직 아무것도 도착하지 않은 목록 */
+export function InboxIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.6 13.4h4l1.3 2.4h6.2l1.3-2.4h4" />
+      <path d="M6.2 5.2h11.6l3 8.2v3.6a1.8 1.8 0 0 1-1.8 1.8H5a1.8 1.8 0 0 1-1.8-1.8v-3.6z" />
     </svg>
   )
 }

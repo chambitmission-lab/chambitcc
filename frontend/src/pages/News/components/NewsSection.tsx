@@ -1,9 +1,10 @@
 // 교회소식 게시판 섹션 (/news 의 '소식' 탭 본문)
 // Single Responsibility: 소식 목록(분류·검색·더보기)과 상세 열람 전환
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import NewsDetailView from './NewsDetailView'
-import { MegaphoneIcon } from './NewsIcons'
+import { MegaphoneIcon, SignalIcon, InboxIcon } from './NewsIcons'
 import { useNewsCategories, useNewsList } from '../../../hooks/useNews'
 import { isAdmin } from '../../../utils/auth'
 import type { NewsItem } from '../../../types/news'
@@ -153,13 +154,13 @@ const NewsSection = () => {
         <SkeletonRows />
       ) : error ? (
         <EmptyBox
-          emoji="📡"
+          icon={<SignalIcon width={28} height={28} />}
           title="소식을 불러오지 못했어요"
           desc="네트워크 상태를 확인하고 다시 시도해 주세요"
         />
       ) : items.length === 0 ? (
         <EmptyBox
-          emoji="📭"
+          icon={<InboxIcon width={28} height={28} />}
           title={search || category ? '조건에 맞는 소식이 없어요' : '아직 등록된 소식이 없어요'}
           desc={
             search || category
@@ -308,9 +309,11 @@ const SkeletonRows = () => (
   </div>
 )
 
-const EmptyBox = ({ emoji, title, desc }: { emoji: string; title: string; desc: string }) => (
+const EmptyBox = ({ icon, title, desc }: { icon: ReactNode; title: string; desc: string }) => (
   <div className="rounded-2xl border border-[var(--card-border)] bg-white/80 dark:bg-card-dark px-6 py-12 text-center">
-    <span className="text-3xl block mb-2">{emoji}</span>
+    <span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-2.5">
+      {icon}
+    </span>
     <p className="text-[13.5px] font-bold text-ink-strong mb-1">{title}</p>
     <p className="text-[12px] text-gray-500 dark:text-white/55">{desc}</p>
   </div>

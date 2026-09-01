@@ -96,7 +96,10 @@
 .visit-hero.has-photo .visit-hero-photo {
   background-image: none;
 }
-.visit-hero.has-photo .visit-hero-scrim {
+/* 라이트: /about 히어로와 같은 문법 — 스크림 없이 사진 원색 그대로,
+   가독성은 글씨의 진한 그림자(halo)가 담당한다. 다크만 딥블루 스크림 유지.
+   (테마 분기 금지 원칙의 예외 — 사진 위 오버레이는 토큰으로 못 가르는 확정 패턴) */
+.dark .visit-hero.has-photo .visit-hero-scrim {
   background:
     linear-gradient(to top, rgba(10, 22, 48, 0.78) 0%, rgba(10, 22, 48, 0.5) 34%, rgba(10, 22, 48, 0.12) 68%, rgba(10, 22, 48, 0.06) 100%),
     linear-gradient(100deg, rgba(10, 22, 48, 0.48) 0%, rgba(10, 22, 48, 0.22) 45%, transparent 80%);
@@ -132,13 +135,18 @@
   border: 1px solid var(--brand-soft-strong);
   color: var(--brand);
 }
-/* 사진 위 라벨 — 유리 칩 */
+/* 사진 위 라벨 — 유리 칩. 라이트는 스크림이 없어 밝은 사진 위 흰 유리가 안 읽힌다 → 어두운 유리 */
 .visit-hero.has-photo .visit-hero-label {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(12, 24, 50, 0.42);
+  border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.dark .visit-hero.has-photo .visit-hero-label {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.32);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
@@ -159,9 +167,19 @@
 }
 
 .visit-hero.has-photo .visit-hero-title { color: #fff; }
-.visit-hero.has-photo .visit-hero-subtitle { color: rgba(255, 255, 255, 0.86); }
+.visit-hero.has-photo .visit-hero-subtitle { color: #fff; }
+/* 라이트: 스크림이 없으므로 그림자가 가독성을 전부 담당 (랜딩 .ld-hero-halo 레시피) */
 .visit-hero.has-photo .visit-hero-title,
 .visit-hero.has-photo .visit-hero-subtitle {
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 2px 10px rgba(0, 0, 0, 0.65),
+    0 8px 28px rgba(0, 0, 0, 0.55);
+}
+/* 다크: 스크림이 이미 어두워 halo 는 과함 — 옅은 딥블루 그림자로 */
+.dark .visit-hero.has-photo .visit-hero-subtitle { color: rgba(255, 255, 255, 0.86); }
+.dark .visit-hero.has-photo .visit-hero-title,
+.dark .visit-hero.has-photo .visit-hero-subtitle {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 14px rgba(10, 22, 48, 0.45);
 }
 
