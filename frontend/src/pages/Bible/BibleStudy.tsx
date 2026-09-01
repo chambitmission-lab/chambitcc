@@ -25,6 +25,7 @@ import {
 import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
+import ChapterBriefCard from './components/ChapterBriefCard'
 import { StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon } from './components/BibleToolIcons'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import BibleSectionTabs from '../../components/bible/BibleSectionTabs'
@@ -604,7 +605,14 @@ const BibleStudy = () => {
                   currentChapter={selectedChapter}
                   onJumpToChapter={handleChapterChange}
                 />
-                
+
+                {/* 오늘의 길잡이 — 읽기 직전 3줄 지도 (지금까지·이 장에서·눈여겨보기).
+                    데이터 없는 책은 조용히 빠지고, 오랜만에 오면 지난 이야기를 덧붙인다 */}
+                <ChapterBriefCard
+                  bookNumber={selectedBookData.book_number}
+                  chapter={selectedChapter}
+                />
+
                 <VerseList
                   chapterData={chapterData}
                   isLoading={chapterLoading}

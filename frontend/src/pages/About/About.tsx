@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
+import { smoothScrollToElement } from '../../utils/scrollTo'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { EditableText, EditableImage, HeroEditButton } from '../../components/AboutEditor'
 import {
@@ -87,9 +88,12 @@ const About = () => {
   // 길찾기 앱으로 넘기는 건 /visit 이 각 지도 앱 버튼으로 담당한다.
   const openMap = () => navigate('/visit')
 
-  // 히어로 "교회 소개" — 페이지 내 첫 섹션으로 부드럽게 (window.scrollTo 는 #root overflow 탓에 무력)
+  // 히어로 "교회 소개" — 페이지 내 첫 섹션으로 부드럽게.
+  // window.scrollTo 는 #root overflow 탓에 무력이고, scrollIntoView(smooth) 는
+  // 이 앱의 스크롤러가 body 인 모바일에서 조용히 실패했다 → 공용 유틸로 직접 민다.
+  // 56px 은 고정 헤더 높이(.main-content padding-top).
   const scrollToIntro = () => {
-    document.getElementById('about-intro')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    smoothScrollToElement(document.getElementById('about-intro'), { offset: 56 })
   }
 
   // CTA 타일의 한 줄 설명 — 라벨만 있던 버튼을 "무엇을 얻는지"가 보이는 타일로
