@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadCopyPrefs, saveCopyPrefs, type CopyPrefs, type CopyStyle } from './verseCopy'
+import { isGlossaryEnabled, setGlossaryEnabled } from '../data/bibleGlossary'
 
 /**
  * Aa 읽기 설정 — 성경 본문의 서체/글자 크기/줄 간격 + 구절 복사 형식을 개인화한다.
@@ -67,6 +68,8 @@ const ReaderSettings = () => {
   const [prefs, setPrefs] = useState<ReaderPrefs>(loadPrefs)
   // 복사 형식은 읽기 설정과 저장소를 따로 쓴다 (복사 유틸이 매번 직접 읽어간다)
   const [copyPrefs, setCopyPrefs] = useState<CopyPrefs>(loadCopyPrefs)
+  // 인물·지명 사전 칩 — 저장·전파는 bibleGlossary 모듈이 담당 (열린 본문에 즉시 반영)
+  const [glossaryOn, setGlossaryOn] = useState(isGlossaryEnabled)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   // 마운트 시(및 변경 시) 저장된 설정을 CSS 변수로 반영
@@ -200,6 +203,36 @@ const ReaderSettings = () => {
           </div>
           <p className="reader-settings__hint">
             다크 테마에서 본문을 촛불처럼 따뜻한 색감으로 바꿔 밤에 눈이 덜 부셔요.
+          </p>
+
+          {/* 인물·지명 사전 칩 — 본문 표제어의 옅은 점선 밑줄 */}
+          <div className="reader-settings__row">
+            <span className="reader-settings__label">인물·지명 사전</span>
+            <div className="reader-settings__seg">
+              <button
+                type="button"
+                className={glossaryOn ? 'active' : ''}
+                onClick={() => {
+                  setGlossaryEnabled(true)
+                  setGlossaryOn(true)
+                }}
+              >
+                켜기
+              </button>
+              <button
+                type="button"
+                className={!glossaryOn ? 'active' : ''}
+                onClick={() => {
+                  setGlossaryEnabled(false)
+                  setGlossaryOn(false)
+                }}
+              >
+                끄기
+              </button>
+            </div>
+          </div>
+          <p className="reader-settings__hint">
+            바로·라합 같은 인물·지명에 옅은 점선이 표시되고, 누르면 한 줄 설명이 열려요.
           </p>
 
           <p className="reader-settings__preview" style={{

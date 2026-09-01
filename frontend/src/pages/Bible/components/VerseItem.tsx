@@ -10,6 +10,9 @@ import { useVerseBookmark } from '../../../hooks/useBibleBookmark'
 import VerseBookmarkModal, { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 import VerseNoteSheet from './VerseNoteSheet'
 import WordNoteSheet from './WordNoteSheet'
+import GlossarySheet from './GlossarySheet'
+import { useGlossaryChips } from '../hooks/useGlossaryChips'
+import type { GlossaryEntry } from '../data/bibleGlossary'
 import { HeartIcon } from '../../../components/icons/ActionIcons'
 import { copyVerses, shareVerses, type VerseCopyTarget } from './verseCopy'
 
@@ -138,6 +141,8 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
     charEnd: number | null
     existing: WordNote | null
   } | null>(null)
+  // 인물·지명 사전 칩을 탭하면 열리는 한 줄 설명 시트
+  const [glossaryEntry, setGlossaryEntry] = useState<GlossaryEntry | null>(null)
   // 선택 모드에선 액션바가 뜨지 않는다 (탭은 선택 토글에 쓰인다)
   const showActions = actionsOpen && !selectionMode
   const isAdminUser = isAdmin()
@@ -203,6 +208,22 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
     }
     return out
   }, [wordNotes, verse.text])
+
+  // 인물·지명 사전 칩 — 장에서 처음 나온 표제어에만, 절당 최대 3개.
+  // 단어장 밑줄과 겹치는 구간은 사용자 기록(단어장)이 우선이라 칩을 버린다.
+  const glossaryMatches = useGlossaryChips(
+    bookNumber ?? verse.book_number,
+    chapter ?? verse.chapter,
+    verse.verse,
+    verse.text
+  )
+  const glossarySegments = useMemo(
+    () =>
+      glossaryMatches.filter(
+        (g) => !noteSegments.some((n) => n.start < g.end && n.end > g.start)
+      ),
+    [glossaryMatches, noteSegments]
+  )
 
   // 단어 선택 모드용 토큰 (원본 텍스트 내 위치 보존 — 공백/줄바꿈 그대로 복원)
   const wordTokens = useMemo(() => {
@@ -273,18 +294,65 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
     return parts
   }
 
-  // 일반 모드: 저장된 단어에 점선 밑줄 — 탭하면 뜻 시트가 열린다
+  // 일반 모드: 저장된 단어(형광펜+실선)와 사전 칩(옅은 점선)을 위치순으로 합성한다.
+  // 두 장식은 위에서 겹침을 제거했으므로 여기선 정렬만 하면 된다.
   const renderDecoratedText = () => {
-    if (!noteSegments.length) return verse.text
+    if (!noteSegments.length && !glossarySegments.length) return verse.text
+    const decorations = [
+      ...noteSegments.map((seg) => ({ kind: 'note' as const, seg })),
+      ...glossarySegments.map((g) => ({
+        kind: 'chip' as const,
+        seg: { start: g.start, end: g.end, entry: g.entry },
+      })),
+    ].sort((a, b) => a.seg.start - b.seg.start)
+
     const parts: ReactNode[] = []
     let cursor = 0
-    noteSegments.forEach((seg, i) => {
+    decorations.forEach((deco, i) => {
+      const { seg } = deco
       if (seg.start > cursor) {
         parts.push(<Fragment key={`plain-${i}`}>{verse.text.slice(cursor, seg.start)}</Fragment>)
       }
-      parts.push(
-        <span
-          key={`note-${seg.note.id}`}
+      if (deco.kind === 'chip') {
+        parts.push(
+          <span
+            key={`chip-${i}`}
+            role="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              setGlossaryEntry(deco.seg.entry)
+            }}
+            style={{
+              // 단어장(실선+형광펜)과 구별되는, 은은한 점선 — 읽기를 방해하지 않는 힌트
+              textDecoration: 'underline dotted',
+              textDecorationColor: 'color-mix(in srgb, var(--brand) 55%, transparent)',
+              textDecorationThickness: '1.5px',
+              textUnderlineOffset: '0.24em',
+              cursor: 'pointer',
+            }}
+          >
+            {verse.text.slice(seg.start, seg.end)}
+          </span>
+        )
+        cursor = seg.end
+        return
+      }
+      renderNoteSegment(parts, deco.seg)
+      cursor = seg.end
+    })
+    if (cursor < verse.text.length) {
+      parts.push(<Fragment key="tail">{verse.text.slice(cursor)}</Fragment>)
+    }
+    return parts
+  }
+
+  const renderNoteSegment = (
+    parts: ReactNode[],
+    seg: { note: WordNote; start: number; end: number }
+  ) => {
+    parts.push(
+      <span
+        key={`note-${seg.note.id}`}
           role="button"
           title={seg.note.note || seg.note.word}
           onClick={(e) => {
@@ -308,16 +376,10 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
             textUnderlineOffset: '0.22em',
             cursor: 'pointer',
           }}
-        >
-          {verse.text.slice(seg.start, seg.end)}
-        </span>
-      )
-      cursor = seg.end
-    })
-    if (cursor < verse.text.length) {
-      parts.push(<Fragment key="tail">{verse.text.slice(cursor)}</Fragment>)
-    }
-    return parts
+      >
+        {verse.text.slice(seg.start, seg.end)}
+      </span>
+    )
   }
 
   // 음성 인식 중에는 액션바가 닫혀서 마이크 버튼이 가려지지 않도록 보장
@@ -982,6 +1044,11 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
           existing={wordSheet.existing}
           onClose={() => setWordSheet(null)}
         />
+      )}
+
+      {/* 인물·지명 사전 시트 — 점선 칩을 탭했을 때 */}
+      {glossaryEntry && (
+        <GlossarySheet entry={glossaryEntry} onClose={() => setGlossaryEntry(null)} />
       )}
 
       {/* 묵상 노트 읽기 시트 - 수정 누르면 편집 모달로 전환 */}
