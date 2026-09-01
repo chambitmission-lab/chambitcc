@@ -267,8 +267,9 @@ const Organization = () => {
   return (
     <div className="min-h-screen text-gray-900 dark:text-gray-100 page-stage org-page">
       {/* lg:overflow-hidden 을 주면 이 셸이 sticky 의 스크롤 조상이 되어 우측 레일이 죽는다 */}
-      {/* lg: 다른 안내 페이지와 같은 1240px 표준 규격 — 카드 테두리·라운드는 벗는다 */}
-      <div className="org-shell max-w-md mx-auto border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-[1240px] lg:mt-0 lg:border-0 lg:min-h-0">
+      {/* lg: /history 와 같은 "둥근 패널" 문법 — 표준 콘텐츠 폭(1200px = 1240 - px-5×2)에
+          rounded-3xl 테두리 + 그림자. lg:overflow-hidden 금지(셸 안 레일 sticky 가 죽는다) */}
+      <div className="org-shell max-w-md mx-auto border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-[1200px] lg:mt-3 lg:mb-12 lg:rounded-3xl lg:border lg:shadow-2xl lg:min-h-0">
         {/* 헤더 */}
         <header className="org-head px-4 pt-5 pb-3">
           <div className="org-head-text">
