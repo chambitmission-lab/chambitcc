@@ -42,6 +42,14 @@ const loaders: Record<number, () => Promise<BriefModule>> = {
   56: () => import('./book56'),
   57: () => import('./book57'),
   58: () => import('./book58'),
+  59: () => import('./book59'),
+  60: () => import('./book60'),
+  61: () => import('./book61'),
+  62: () => import('./book62'),
+  63: () => import('./book63'),
+  64: () => import('./book64'),
+  65: () => import('./book65'),
+  66: () => import('./book66'),
 }
 
 export const DEFAULT_BRIEF_LABELS = ['지금까지', '이 장에서', '눈여겨보기'] as const
