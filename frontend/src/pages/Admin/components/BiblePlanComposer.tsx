@@ -6,6 +6,8 @@ import { generateSchedule } from '../../../api/biblePlan'
 import type { PlanDayInput, PlanSummary } from '../../../types/biblePlan'
 import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import { PlanGlyph } from '../../Bible/Plans/PlanIcons'
+import { PLAN_GLYPH_OPTIONS, normalizeGlyph } from '../../Bible/Plans/planGlyphs'
 
 interface Props {
   editingPlan: PlanSummary | null
@@ -105,6 +107,9 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
     setGeneratedDays(null)
     setError(null)
   }, [editingPlan])
+
+  // 고른 아이콘의 뜻을 그리드 아래 한 줄로 보여준다 (아이콘만 보면 구분이 어려워서)
+  const selectedGlyph = PLAN_GLYPH_OPTIONS.find((o) => o.emoji === normalizeGlyph(form.emoji))
 
   const submitting = createPlan.isPending || updatePlan.isPending
   const canSubmit = form.title.trim().length > 0 && !submitting
@@ -282,34 +287,53 @@ const BiblePlanComposer = ({ editingPlan, onClose, onSuccess }: Props) => {
               </div>
             </FieldGroup>
 
-            {/* 이모지 + accent */}
-            <div className="grid grid-cols-2 gap-3">
-              <FieldGroup label="이모지">
-                <input
-                  type="text"
-                  value={form.emoji}
-                  onChange={(e) => setForm({ ...form, emoji: e.target.value })}
-                  maxLength={4}
-                  className={`${inputCls} text-center text-[18px]`}
-                />
-              </FieldGroup>
-              <FieldGroup label="색상">
-                <div className="flex gap-2 items-center h-[42px]">
-                  {ACCENTS.map((a) => (
+            {/* 아이콘 — 플랜 카드·목록에 그대로 쓰이는 세트(PlanIcons)에서만 고른다.
+                자유 입력이었을 때는 매핑에 없는 이모지를 넣으면 조용히 raw 글자로 떨어졌다 */}
+            <FieldGroup label="아이콘">
+              <div className="grid grid-cols-7 gap-1.5">
+                {PLAN_GLYPH_OPTIONS.map((opt) => {
+                  const active = normalizeGlyph(form.emoji) === opt.emoji
+                  return (
                     <button
-                      key={a.key}
+                      key={opt.emoji}
                       type="button"
-                      onClick={() => setForm({ ...form, accent: a.key })}
-                      aria-label={a.key}
-                      className={`w-8 h-8 rounded-full transition-all ${
-                        form.accent === a.key ? 'ring-2 ring-offset-2 ring-brand dark:ring-offset-[#1c1c26]' : ''
-                      }`}
-                      style={{ backgroundImage: `linear-gradient(135deg, ${a.from}, ${a.to})` }}
-                    />
-                  ))}
-                </div>
-              </FieldGroup>
-            </div>
+                      onClick={() => setForm({ ...form, emoji: opt.emoji })}
+                      title={opt.label}
+                      aria-label={opt.label}
+                      aria-pressed={active}
+                      className={[
+                        'aspect-square rounded-xl flex items-center justify-center transition-all',
+                        active
+                          ? 'bg-brand text-white shadow-[0_4px_14px_-4px_var(--brand-glow)]'
+                          : 'bg-gray-50 dark:bg-white/[0.03] text-gray-500 dark:text-white/60 border border-gray-200 dark:border-white/[0.08] hover:bg-gray-100 dark:hover:bg-white/[0.06]',
+                      ].join(' ')}
+                    >
+                      <PlanGlyph emoji={opt.emoji} size={20} />
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="mt-2 text-[11.5px] text-gray-500 dark:text-white/50">
+                {selectedGlyph ? selectedGlyph.label : '플랜에 어울리는 아이콘을 고르세요'}
+              </p>
+            </FieldGroup>
+
+            <FieldGroup label="색상">
+              <div className="flex gap-2 items-center h-[42px]">
+                {ACCENTS.map((a) => (
+                  <button
+                    key={a.key}
+                    type="button"
+                    onClick={() => setForm({ ...form, accent: a.key })}
+                    aria-label={a.key}
+                    className={`w-8 h-8 rounded-full transition-all ${
+                      form.accent === a.key ? 'ring-2 ring-offset-2 ring-brand dark:ring-offset-[#1c1c26]' : ''
+                    }`}
+                    style={{ backgroundImage: `linear-gradient(135deg, ${a.from}, ${a.to})` }}
+                  />
+                ))}
+              </div>
+            </FieldGroup>
 
             {/* 일정 자동 생성 */}
             <div className="rounded-2xl border border-[var(--brand-glow)] bg-[var(--brand-soft)] p-4">

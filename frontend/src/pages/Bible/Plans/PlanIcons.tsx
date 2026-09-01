@@ -11,6 +11,7 @@
  * 색은 currentColor 를 따르므로 기존 text-* 클래스가 그대로 먹는다.
  */
 import type { CSSProperties, ReactElement } from 'react'
+import { normalizeGlyph } from './planGlyphs'
 import {
   Feather,
   CaretRight,
@@ -127,7 +128,6 @@ const GLYPHS: Record<string, (p: PlanIconProps) => ReactElement> = {
   '📝': PenIcon,
 }
 
-const normalize = (e: string) => e.replace(/️/g, '').trim()
 
 /** 매핑된 아이콘이 있으면 SVG로, 없으면 원래 이모지를 그대로 보여준다 */
 export const PlanGlyph = ({
@@ -136,7 +136,7 @@ export const PlanGlyph = ({
   className,
   style,
 }: PlanIconProps & { emoji?: string | null }) => {
-  const key = normalize(emoji || '📖')
+  const key = normalizeGlyph(emoji || '📖')
   const Glyph = GLYPHS[key]
   if (!Glyph) {
     return (

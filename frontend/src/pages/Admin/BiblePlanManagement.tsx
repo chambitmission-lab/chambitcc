@@ -7,6 +7,7 @@ import { showToast } from '../../utils/toast'
 import { useAllBiblePlans, useDeletePlan } from '../../hooks/useBiblePlan'
 import type { PlanSummary } from '../../types/biblePlan'
 import { accentGradient } from '../Bible/Plans/planVisuals'
+import { PlanGlyph } from '../Bible/Plans/PlanIcons'
 import BiblePlanComposer from './components/BiblePlanComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
@@ -254,8 +255,8 @@ const PlanRow = ({
     >
       <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none rounded-2xl" />
       <button type="button" onClick={onToggle} className="relative z-10 w-full flex items-center gap-3 pl-3.5 pr-3 py-3 text-left" aria-expanded={expanded}>
-        <div className={`shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center text-[18px] shadow-[0_4px_12px_-4px_var(--brand-glow)]`}>
-          {plan.emoji || '📖'}
+        <div className={`shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center text-white text-[18px] shadow-[0_4px_12px_-4px_var(--brand-glow)]`}>
+          <PlanGlyph emoji={plan.emoji} size={20} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
