@@ -17,7 +17,7 @@ import {
 
 const Shell = ({ children }: { children: React.ReactNode }) => (
   <div className="bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
-    <div className="max-w-md mx-auto bg-[var(--app-canvas)] shadow-2xl relative border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+    <div className="max-w-md mx-auto bg-[var(--app-canvas)] relative min-h-screen pb-24 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
       {children}
     </div>
   </div>

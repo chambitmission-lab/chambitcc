@@ -102,7 +102,7 @@ const EventCalendar = () => {
     <div className="bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
       {/* lg+: 좁은 셸을 풀고 본문(일정 목록) + 우측 레일(달력·다가오는 일정) 2단 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-[var(--app-canvas)] shadow-2xl relative border-x border-border-light dark:border-border-dark min-h-screen pb-24 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      <div className="max-w-md mx-auto bg-[var(--app-canvas)] relative min-h-screen pb-24 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <header className="px-4 pt-5 pb-2">
           <div className="flex items-start justify-between">
