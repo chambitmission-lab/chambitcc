@@ -65,16 +65,12 @@ const HERO_IMAGES: Record<NaturalSeason, Record<TimeOfDay, string>> = {
   },
 }
 
-/* 계절 앰비언트 — 히어로 안에서만 아주 은은하게 떨어지는 글리프.
- * 여름은 배경 자체가 청량해 연출 없이 둔다. */
-const AMBIENT_GLYPHS: Partial<Record<NaturalSeason, string>> = {
-  spring: '🌸',
-  autumn: '🍂',
-  winter: '❄️',
-}
+/* 눈 앰비언트 — 실황이 눈일 때만 히어로 안에서 은은하게 내리는 글리프.
+ * (계절 장식(봄 꽃잎·가을 낙엽)은 2026-09-02 제거 — 하늘 연출은 실제 날씨(비·눈)만 따른다) */
+const SNOW_GLYPH = '❄️'
 
-/* 파티클 배치 상수 — 렌더마다 흔들리지 않도록 고정값 사용 */
-const AMBIENT_PARTICLES = [
+/* 눈 파티클 배치 상수 — 렌더마다 흔들리지 않도록 고정값 사용 */
+const SNOW_PARTICLES = [
   { left: '8%', delay: '0s', duration: '13s', drift: '18px', size: '11px', opacity: 0.5 },
   { left: '24%', delay: '4.5s', duration: '16s', drift: '-14px', size: '9px', opacity: 0.4 },
   { left: '43%', delay: '9s', duration: '12s', drift: '22px', size: '12px', opacity: 0.55 },
@@ -226,17 +222,12 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
   const naturalSeason = getNaturalSeason(today)
 
   /* ── 날씨 연출 ──
-   * 비·눈이 오는 날은 계절 앰비언트(꽃잎·낙엽)를 덮어쓴다 — 오늘 실제 하늘이
-   * 계절 무드보다 먼저 읽혀야 "지금 비 온다"가 전달된다. */
+   * 앰비언트는 실제 하늘(비·눈)일 때만 흐른다 — 계절 배경 사진은 그대로 두되
+   * 맑은 날에 장식이 떨어지지는 않는다. */
   const condition = weather?.condition
   const isRaining =
     condition === 'rain' || condition === 'drizzle' || condition === 'thunder'
   const isSnowing = condition === 'snow'
-  const ambientGlyph = isRaining
-    ? undefined
-    : isSnowing
-      ? AMBIENT_GLYPHS.winter
-      : AMBIENT_GLYPHS[naturalSeason]
 
   const weatherLabel =
     condition && condition in WEATHER_LABEL_KEYS
@@ -355,11 +346,10 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               ))}
             </div>
           )}
-          {/* 계절 앰비언트 — 봄 꽃잎·가을 낙엽·겨울 눈이 은은히 내린다 (여름은 없음).
-           * 눈 오는 날은 계절과 무관하게 ❄️로 대체된다 */}
-          {ambientGlyph && (
+          {/* 눈 앰비언트 — 실황이 눈일 때만 ❄️가 은은히 내린다 */}
+          {isSnowing && (
             <div className="meditation-hero-ambient" aria-hidden>
-              {AMBIENT_PARTICLES.map((p, i) => (
+              {SNOW_PARTICLES.map((p, i) => (
                 <span
                   key={i}
                   className="meditation-ambient-particle"
@@ -372,7 +362,7 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
                     '--fall-opacity': p.opacity,
                   } as React.CSSProperties}
                 >
-                  {ambientGlyph}
+                  {SNOW_GLYPH}
                 </span>
               ))}
             </div>
