@@ -588,3 +588,279 @@
     box-shadow: 0 0 0 0 rgba(49, 130, 246, 0.0);
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   이어읽기(문단) 보기 — Aa 읽기 설정 '본문 보기 > 이어읽기'
+   절이 인라인 span으로 단락 안에 흐르고 번호는 작은 위첨자.
+   장 개요(단락 소제목) 범위대로 문단을 나눠 종이 성경처럼 읽힌다.
+   아래 규칙은 위쪽의 hover/selected/reading 지오메트리를 전부 되돌리므로
+   반드시 파일 끝(미디어 쿼리 뒤)에 있어야 한다.
+   ══════════════════════════════════════════════════════════════════ */
+
+.verses-list--flow {
+  display: block;
+}
+
+.verse-paragraph {
+  margin: 0 0 1.5rem;
+}
+
+.verse-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* 단락 소제목 — 본문보다 작고 브랜드 색, 왼쪽에 짧은 세로 획 */
+.verse-paragraph__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--brand);
+}
+
+.verse-paragraph__title::before {
+  content: '';
+  width: 3px;
+  height: 0.9em;
+  border-radius: 2px;
+  background: var(--brand);
+  opacity: 0.7;
+}
+
+/* 문단 본문 — 절 사이 공백도 같은 서체·크기로 흐르도록 여기서 타이포를 잡는다 */
+.verse-paragraph__body {
+  color: var(--ig-primary-text);
+  font-size: calc(1.0625rem * var(--bible-font-scale, 1));
+  line-height: var(--bible-line-height, 2.0);
+  font-family: var(--bible-font-family, inherit);
+  letter-spacing: -0.01em;
+  text-align: left;
+}
+
+[data-theme="dark"] .verse-paragraph__body {
+  color: #e7e7ec;
+}
+
+[data-theme="dark"][data-bible-warm="true"] .verse-paragraph__body {
+  color: #e8e0d2;
+}
+
+[data-theme="dark"][data-bible-warm="true"] .verse-paragraph__title {
+  color: rgba(219, 190, 133, 0.85);
+}
+
+[data-theme="dark"][data-bible-warm="true"] .verse-paragraph__title::before {
+  background: rgba(219, 190, 133, 0.85);
+}
+
+@media (max-width: 768px) {
+  .verse-paragraph__body {
+    font-size: calc(1.03125rem * var(--bible-font-scale, 1));
+  }
+}
+
+@media (max-width: 480px) {
+  .verse-paragraph__body {
+    line-height: var(--bible-line-height, 2.05);
+  }
+}
+
+/* 절 컨테이너를 인라인으로 — 목록 보기의 카드 지오메트리(hover 마진·패딩·그림자)는 모두 해제 */
+.bible-verse-item--flow,
+.bible-verse-item--flow:hover,
+.bible-verse-item--flow.verse-selected,
+.bible-verse-item--flow.verse-reading,
+.bible-verse-item--flow.verse-audio-active,
+.bible-verse-item--flow.verse-read {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  animation: none;
+  transition: none;
+}
+
+/* 읽음 완료 — 흐림만 (초록 틴트는 문단에서 얼룩처럼 보인다) */
+.bible-verse-item--flow.verse-read {
+  opacity: 0.58;
+}
+
+/* 이어 읽기 도착 플래시는 유지 */
+.bible-verse-item--flow.verse-resume-highlight {
+  animation: verse-resume-flash 2.4s ease-out;
+  border-radius: 4px;
+}
+
+/* 탭 단위(번호+본문) — 강조는 마커 배경으로, 줄이 바뀌어도 이어진다 */
+.bible-verse-flow-body {
+  display: inline;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0.06em 0.12em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bible-verse-item--flow.verse-selected .bible-verse-flow-body {
+  background: rgba(49, 130, 246, 0.1);
+  box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.1);
+}
+
+.bible-verse-item--flow.verse-reading .bible-verse-flow-body {
+  background: rgba(49, 130, 246, 0.1);
+}
+
+.bible-verse-item--flow.verse-audio-active .bible-verse-flow-body {
+  background: var(--brand-soft, rgba(49, 130, 246, 0.08));
+  box-shadow: inset 0 -2px 0 rgba(49, 130, 246, 0.4);
+}
+
+@media (hover: hover) {
+  .bible-verse-item--flow:hover .bible-verse-flow-body {
+    background: rgba(49, 130, 246, 0.06);
+  }
+}
+
+/* 절 번호 — 작은 위첨자. 거터·고정폭·라인박스 정렬은 모두 해제 */
+.bible-verse-item--flow .bible-verse-number {
+  display: inline-block;
+  width: auto;
+  text-align: left;
+  line-height: 1;
+  font-size: 0.72em;
+  font-weight: 700;
+  vertical-align: 0.42em;
+  top: auto;
+  margin: 0 0.28em 0 0.12em;
+  color: rgba(49, 130, 246, 0.78);
+}
+
+.bible-verse-item--flow:first-child .bible-verse-number {
+  margin-left: 0;
+}
+
+[data-theme="dark"] .bible-verse-item--flow .bible-verse-number {
+  color: rgba(147, 197, 253, 0.8);
+}
+
+[data-theme="dark"][data-bible-warm="true"] .bible-verse-item--flow .bible-verse-number {
+  color: rgba(219, 190, 133, 0.75);
+}
+
+/* 길게 누르기 탭 타깃 — 위첨자 글리프는 더 작으니 조금 더 넓게 */
+.bible-verse-item--flow .bible-verse-number::before {
+  inset: -8px -8px -10px -8px;
+}
+
+/* 본문 — 문단의 타이포를 그대로 상속 */
+.bible-verse-item--flow .bible-verse-text {
+  display: inline;
+  flex: none;
+  font-size: inherit;
+  line-height: inherit;
+  font-family: inherit;
+  letter-spacing: inherit;
+}
+
+/* 여러 절 선택 — 번호 앞 작은 원형 체크 슬롯 */
+.bible-verse-flow-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-right: 0.3em;
+  border-radius: 50%;
+  border: 1.5px solid var(--ig-border);
+  background: transparent;
+  vertical-align: 0.1em;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.bible-verse-flow-check.is-on {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.bible-verse-flow-check .material-icons-round {
+  font-size: 11px;
+  color: #fff;
+}
+
+/* 즐겨찾기 하트 — 본문 끝에 작게 */
+.bible-verse-flow-fav {
+  display: inline-flex;
+  color: var(--brand);
+  vertical-align: 0.05em;
+  margin-left: 0.2em;
+}
+
+/* 묵상 노트 칩 — 아이콘만, 누르면 읽기 시트 */
+.bible-verse-flow-note {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35em;
+  height: 1.35em;
+  margin: 0 0.15em;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--brand-soft-strong);
+  background: var(--brand-soft);
+  color: var(--brand);
+  cursor: pointer;
+  vertical-align: -0.2em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bible-verse-flow-note .material-icons-round {
+  font-size: 0.85em;
+}
+
+/* 단어 선택 모드 안내 — 문단 안 인라인 칩 */
+.bible-verse-flow-wordhint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  margin: 0 0.25em;
+  padding: 0.15em 0.6em;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  font-size: 0.75em;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--brand);
+  vertical-align: 0.1em;
+  white-space: nowrap;
+}
+
+.bible-verse-flow-wordhint .material-icons-round {
+  font-size: 1.1em;
+}
+
+.bible-verse-flow-wordhint button {
+  margin-left: 0.15em;
+  border: none;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* 액션 메뉴 — 탭한 절 바로 뒤에서 줄을 끊고 펼쳐진 뒤 다음 절이 이어진다 */
+.bible-verse-item--flow .verse-action-popover {
+  display: flex;
+  margin: 0.5rem 0 0.75rem;
+  max-width: 100%;
+}

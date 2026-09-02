@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadCopyPrefs, saveCopyPrefs, type CopyPrefs, type CopyStyle } from './verseCopy'
 import { isGlossaryEnabled, setGlossaryEnabled } from '../data/bibleGlossary'
+import { getReaderLayout, setReaderLayout, type ReaderLayout } from '../data/readerLayout'
 
 /**
  * Aa 읽기 설정 — 성경 본문의 서체/글자 크기/줄 간격 + 구절 복사 형식을 개인화한다.
@@ -70,6 +71,8 @@ const ReaderSettings = () => {
   const [copyPrefs, setCopyPrefs] = useState<CopyPrefs>(loadCopyPrefs)
   // 인물·지명 사전 칩 — 저장·전파는 bibleGlossary 모듈이 담당 (열린 본문에 즉시 반영)
   const [glossaryOn, setGlossaryOn] = useState(isGlossaryEnabled)
+  // 본문 보기(절별/이어읽기) — readerLayout 모듈이 저장·전파 (VerseList가 구독)
+  const [layout, setLayout] = useState<ReaderLayout>(getReaderLayout)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   // 마운트 시(및 변경 시) 저장된 설정을 CSS 변수로 반영
@@ -114,6 +117,40 @@ const ReaderSettings = () => {
 
       {open && (
         <div className="reader-settings__panel" role="dialog" aria-label="읽기 설정">
+          {/* 본문 보기 — 절별 줄 / 문단으로 이어읽기 */}
+          <div className="reader-settings__row">
+            <span className="reader-settings__label">본문 보기</span>
+            <div className="reader-settings__seg">
+              <button
+                type="button"
+                className={layout === 'list' ? 'active' : ''}
+                onClick={() => {
+                  setReaderLayout('list')
+                  setLayout('list')
+                }}
+              >
+                절별
+              </button>
+              <button
+                type="button"
+                className={layout === 'flow' ? 'active' : ''}
+                onClick={() => {
+                  setReaderLayout('flow')
+                  setLayout('flow')
+                }}
+              >
+                이어읽기
+              </button>
+            </div>
+          </div>
+          <p className="reader-settings__hint">
+            {layout === 'flow'
+              ? '절을 문단으로 이어 붙이고 번호는 작게 달아요. 단락마다 소제목이 붙어 종이 성경처럼 읽혀요.'
+              : '절마다 한 줄씩 나눠 보여줘요. 절 단위로 표시·묵상 노트를 남기기 편해요.'}
+          </p>
+
+          <div className="reader-settings__divider" aria-hidden />
+
           {/* 서체 */}
           <div className="reader-settings__row">
             <span className="reader-settings__label">서체</span>

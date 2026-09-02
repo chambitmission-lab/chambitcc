@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback, useSyncExternalStore } from 'react'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/bible'
 import { useLanguage } from '../../../contexts/LanguageContext'
@@ -23,9 +23,55 @@ import VerseSelectionBar from './VerseSelectionBar'
 import { useVerseScroll } from '../hooks/useVerseScroll'
 import { useAudioFollow } from '../hooks/useAudioFollow'
 import VerseShareSheet from './VerseShareSheet'
+import { getReaderLayout, subscribeReaderLayout } from '../data/readerLayout'
+import { loadBookOutline, peekBookOutline, type BookOutline, type OutlineSection } from '../data/chapterOutlines'
 
 /** 절 번호 길게 누르기 안내를 이미 본 적 있는지 (한 번 보면 다시 안 뜬다) */
 const HOLD_HINT_KEY = 'bible_hold_read_hint_v1'
+
+/** 이어읽기(문단) 보기의 단락 하나 — 장 개요(단락 소제목) 범위대로 절을 묶는다 */
+interface FlowParagraph {
+  key: string
+  title: string | null
+  verses: BibleVerse[]
+}
+
+/** 개요가 없는 장에서 한 문단에 넣을 최대 절 수 — 176절짜리 벽이 되지 않게 */
+const FLOW_FALLBACK_CHUNK = 10
+
+/**
+ * 절 목록을 문단으로 묶는다.
+ * - 개요 단락이 있으면 그 범위대로(소제목 포함). 어느 단락에도 안 들어가는 절은 제목 없이 이어 묶는다.
+ * - 개요가 없으면 FLOW_FALLBACK_CHUNK 절씩 제목 없이 끊는다.
+ * 페이지네이션으로 절이 뒤늦게 붙어도 번호 기준이라 같은 단락으로 자연히 들어간다.
+ */
+const buildFlowParagraphs = (verses: BibleVerse[], sections: OutlineSection[]): FlowParagraph[] => {
+  const out: FlowParagraph[] = []
+  if (!verses.length) return out
+  if (!sections.length) {
+    for (let i = 0; i < verses.length; i += FLOW_FALLBACK_CHUNK) {
+      const chunk = verses.slice(i, i + FLOW_FALLBACK_CHUNK)
+      out.push({ key: `c-${chunk[0].verse}`, title: null, verses: chunk })
+    }
+    return out
+  }
+  let current: FlowParagraph | null = null
+  let currentSection: OutlineSection | null | undefined
+  for (const v of verses) {
+    const sec = sections.find((s) => v.verse >= s.v[0] && v.verse <= s.v[1]) ?? null
+    if (!current || sec !== currentSection) {
+      current = {
+        key: sec ? `s-${sec.v[0]}` : `g-${v.verse}`,
+        title: sec?.title ?? null,
+        verses: [],
+      }
+      currentSection = sec
+      out.push(current)
+    }
+    current.verses.push(v)
+  }
+  return out
+}
 
 interface VerseListProps {
   chapterData: InfiniteData<BibleChapterPaginatedResponse> | undefined
@@ -105,6 +151,33 @@ const VerseList = ({
   }, [])
   const queryClient = useQueryClient()
   const updateVerseMutation = useOptimisticUpdateVerse()
+
+  // 본문 보기(절별/이어읽기) — Aa 읽기 설정에서 바꾸면 열린 본문에 즉시 반영
+  const layout = useSyncExternalStore(subscribeReaderLayout, getReaderLayout)
+  const isFlow = layout === 'flow'
+  // 이어읽기 단락 나누기용 장 개요(책별 lazy). 캐시된 책은 동기로 꺼내 깜빡임을 피한다.
+  const [bookOutline, setBookOutline] = useState<BookOutline | null>(() => peekBookOutline(bookNumber))
+  useEffect(() => {
+    if (!isFlow) return
+    const cached = peekBookOutline(bookNumber)
+    if (cached) {
+      setBookOutline(cached)
+      return
+    }
+    let alive = true
+    loadBookOutline(bookNumber).then((o) => {
+      if (alive) setBookOutline(o)
+    })
+    return () => {
+      alive = false
+    }
+  }, [isFlow, bookNumber])
+  const flowParagraphs = useMemo<FlowParagraph[]>(() => {
+    if (!isFlow || !chapterData) return []
+    const verses = chapterData.pages.flatMap((page) => page.verses)
+    const outline = bookOutline ?? peekBookOutline(bookNumber)
+    return buildFlowParagraphs(verses, outline?.[selectedChapter] ?? [])
+  }, [isFlow, chapterData, bookOutline, bookNumber, selectedChapter])
 
   // 해당 장의 해석 목록 (절별로 indicator 표시용)
   const { data: chapterCommentaries } = useChapterCommentaries(
@@ -571,6 +644,36 @@ const VerseList = ({
     }
   }, [chapterData])
   
+  // 절 하나 렌더 — 절별/이어읽기 두 보기가 같은 props를 쓴다
+  const renderVerse = (verse: BibleVerse, bookName: string, chapterNo: number, verseLayout: 'list' | 'flow') => (
+    <VerseItem
+      key={verse.id}
+      verse={verse}
+      bookNameKo={bookName}
+      bookNumber={bookNumber}
+      chapter={chapterNo}
+      isRead={readVerses.has(verse.id)}
+      onReadSuccess={handleReadSuccess}
+      onEdit={handleEditVerse}
+      onToggleRead={handleToggleRead}
+      isTogglingRead={togglingVerseId === verse.id}
+      onShowCommentary={handleShowCommentary}
+      onListenFrom={onListenFromVerse ? handleListenFrom : undefined}
+      hasCommentary={verseHasCommentaryMap.has(verse.verse)}
+      isAudioActive={verse.verse === audioActiveVerse}
+      actionsOpen={openVerseId === verse.id}
+      onActionsOpenChange={handleActionsOpenChange}
+      wordNotes={wordNotesByVerse.get(verse.id)}
+      chapterBookmark={bookmarksByVerse ? (bookmarksByVerse.get(verse.id) ?? null) : undefined}
+      selectionMode={selectionMode}
+      isSelected={selectedIdSet.has(verse.id)}
+      onToggleSelect={toggleSelect}
+      onEnterSelection={enterSelection}
+      onShare={setShareTarget}
+      layout={verseLayout}
+    />
+  )
+
   // 로딩 상태는 모든 훅 호출 이후에 체크.
   // 본문(캐시로 즉시)과 읽음 상태(staleTime 5분이라 늦게 도착)가 따로 도착하면
   // '안 읽음' 초기 상태가 잠깐 보였다가 읽음으로 확 바뀌는 깜빡임이 생긴다.
@@ -744,38 +847,22 @@ const VerseList = ({
       )}
 
       <div className="verses-container">
-        <div className="verses-list">
-          {chapterData.pages.map((page, pageIndex) => (
-            <div key={pageIndex}>
-              {page.verses.map((verse) => (
-                <VerseItem
-                  key={verse.id}
-                  verse={verse}
-                  bookNameKo={page.book_name_ko}
-                  bookNumber={bookNumber}
-                  chapter={page.chapter}
-                  isRead={readVerses.has(verse.id)}
-                  onReadSuccess={handleReadSuccess}
-                  onEdit={handleEditVerse}
-                  onToggleRead={handleToggleRead}
-                  isTogglingRead={togglingVerseId === verse.id}
-                  onShowCommentary={handleShowCommentary}
-                  onListenFrom={onListenFromVerse ? handleListenFrom : undefined}
-                  hasCommentary={verseHasCommentaryMap.has(verse.verse)}
-                  isAudioActive={verse.verse === audioActiveVerse}
-                  actionsOpen={openVerseId === verse.id}
-                  onActionsOpenChange={handleActionsOpenChange}
-                  wordNotes={wordNotesByVerse.get(verse.id)}
-                  chapterBookmark={bookmarksByVerse ? (bookmarksByVerse.get(verse.id) ?? null) : undefined}
-                  selectionMode={selectionMode}
-                  isSelected={selectedIdSet.has(verse.id)}
-                  onToggleSelect={toggleSelect}
-                  onEnterSelection={enterSelection}
-                  onShare={setShareTarget}
-                />
+        <div className={`verses-list${isFlow ? ' verses-list--flow' : ''}`}>
+          {isFlow
+            ? // 이어읽기: 단락(소제목) 안에 절이 인라인으로 흐른다
+              flowParagraphs.map((para) => (
+                <section key={para.key} className="verse-paragraph">
+                  {para.title && <h3 className="verse-paragraph__title">{para.title}</h3>}
+                  <div className="verse-paragraph__body">
+                    {para.verses.map((verse) => renderVerse(verse, bookNameKo, selectedChapter, 'flow'))}
+                  </div>
+                </section>
+              ))
+            : chapterData.pages.map((page, pageIndex) => (
+                <div key={pageIndex}>
+                  {page.verses.map((verse) => renderVerse(verse, page.book_name_ko, page.chapter, 'list'))}
+                </div>
               ))}
-            </div>
-          ))}
         </div>
         
         {/* 무한 스크롤 트리거 */}

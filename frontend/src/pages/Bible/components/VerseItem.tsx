@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, memo, Fragment, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react'
+import { useState, useEffect, useMemo, useRef, memo, Fragment, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react'
 import type { BibleVerse } from '../../../types/bible'
 import type { WordNote } from '../../../api/bibleWordNote'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
@@ -53,6 +53,9 @@ interface VerseItemProps {
   onEnterSelection?: (verse: BibleVerse) => void
   // 공유 — 부모(VerseList)가 공유 시트를 띄운다. 없으면 네이티브 공유로 폴백.
   onShare?: (target: VerseCopyTarget) => void
+  // 본문 보기 — list(절마다 한 줄, 기본) / flow(문단으로 이어 붙이고 번호는 위첨자).
+  // flow일 땐 부모가 단락(div.verse-paragraph__body) 안에 인라인으로 나열한다.
+  layout?: 'list' | 'flow'
 }
 
 // 액션바의 '읽음 표시' 체크 버튼 — 절 번호 길게 누르기(HOLD_TO_READ_MS)로 같은 일을
@@ -126,7 +129,8 @@ const resolveNoteRange = (note: WordNote, text: string): [number, number] | null
   return idx >= 0 ? [idx, idx + note.word.length] : null
 }
 
-const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSuccess, onEdit, onToggleRead, isTogglingRead, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange: setActionsOpenById, wordNotes, chapterBookmark, selectionMode, isSelected, onToggleSelect, onEnterSelection, onShare }: VerseItemProps) => {
+const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSuccess, onEdit, onToggleRead, isTogglingRead, onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen, onActionsOpenChange: setActionsOpenById, wordNotes, chapterBookmark, selectionMode, isSelected, onToggleSelect, onEnterSelection, onShare, layout = 'list' }: VerseItemProps) => {
+  const isFlow = layout === 'flow'
   // 내부에선 이 절 기준의 (open) 시그니처가 편해 verse.id를 미리 물린 래퍼를 쓴다
   const onActionsOpenChange = (open: boolean) => setActionsOpenById(verse.id, open)
   const [showFeedback, setShowFeedback] = useState(false)
@@ -491,11 +495,486 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
     startReading()
   }
 
+  // ── 클릭/키보드: 절 본문 탭 = 액션바 토글 (선택 모드에선 선택 토글, 단어 모드에선 종료) ──
+  const handleBodyActivate = () => {
+    if (selectionMode) {
+      onToggleSelect?.(verse.id)
+      return
+    }
+    if (wordSelectMode) {
+      setWordSelectMode(false)
+      return
+    }
+    onActionsOpenChange(!showActions)
+  }
+  const bodyA11y = {
+    role: 'button' as const,
+    tabIndex: 0,
+    onKeyDown: (e: ReactKeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        handleBodyActivate()
+      }
+    },
+    'aria-expanded': selectionMode ? undefined : showActions,
+    'aria-pressed': selectionMode ? !!isSelected : undefined,
+    'aria-label': selectionMode
+      ? `${verse.verse}절 ${isSelected ? '선택 해제' : '선택'}`
+      : `${verse.verse}절 메뉴 ${showActions ? '닫기' : '열기'}`,
+  }
+
+  const itemClassName = `bible-verse-item ${isFlow ? 'bible-verse-item--flow' : ''} ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''} ${showActions && !isReading ? 'verse-selected' : ''} ${isAudioActive ? 'verse-audio-active' : ''}`
+
+  // 절 번호 — 두 보기 공통. 길게 누르기(읽음 표시)·읽음 색·차오름 표시를 그대로 품는다.
+  const numberEl = (
+    <span
+      className="bible-verse-number"
+      title={
+        canHoldToRead
+          ? isRead
+            ? '읽음 완료 — 길게 누르면 읽음 취소'
+            : '길게 누르면 읽음 표시'
+          : isRead
+            ? '읽음 완료'
+            : undefined
+      }
+      // 길게 눌러 읽음 처리 — 손가락을 떼거나 스크롤하면 취소된다
+      onPointerDown={handleHoldStart}
+      onPointerMove={handleHoldMove}
+      onPointerUp={clearHold}
+      onPointerCancel={clearHold}
+      onPointerLeave={clearHold}
+      // 길게 누르기가 성사된 뒤의 click은 액션바를 열지 않도록 여기서 끊는다
+      onClick={(e) => {
+        if (holdFiredRef.current) {
+          holdFiredRef.current = false
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }}
+      // 길게 누를 때 모바일의 텍스트 선택/콜아웃 메뉴가 뜨지 않도록
+      onContextMenu={(e) => { if (canHoldToRead) e.preventDefault() }}
+      style={{
+        ...(isRead
+          ? { color: 'var(--ig-success)', animation: 'verseNumberPop 0.4s ease-out' }
+          : null),
+        ...(canHoldToRead
+          ? {
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              WebkitTouchCallout: 'none',
+              WebkitTapHighlightColor: 'transparent',
+            }
+          : null),
+      }}
+    >
+      {/* 누르고 있는 동안 번호 자리가 브랜드 색으로 차오른다 — 언제 완료되는지 보이게 */}
+      {isHoldingNumber && (
+        <span
+          aria-hidden
+          className="verse-hold-fill"
+          style={{ animationDuration: `${HOLD_TO_READ_MS}ms` }}
+        />
+      )}
+      <span style={{ position: 'relative' }}>{verse.verse}</span>
+    </span>
+  )
+
+  // 본문 — 노래방(낭독) / 단어 선택 / 장식(단어장·사전 칩) 렌더링은 공통
+  const textEl = (
+    <span
+      className={`bible-verse-text ${highlightBg && !isReading ? 'is-highlighted' : ''}`}
+      style={isFlow ? undefined : { flex: 1, minWidth: 0 }}
+    >
+      {isReading && verse.text ? (
+        <>
+          <span style={{
+            color: 'var(--brand)',
+            // 읽은 부분도 본문과 동일한 굵기(400) 유지 — bold면 경계가 전진할 때마다
+            // 폭이 바뀌어 줄바꿈이 재계산된다(출렁임).
+            textShadow: '0 0 8px var(--brand-glow)',
+          }}>
+            {verse.text.slice(0, karaokeSplitIndex)}
+          </span>
+          <span style={{ color: 'var(--ig-primary-text)' }}>
+            {verse.text.slice(karaokeSplitIndex)}
+          </span>
+        </>
+      ) : wordSelectMode && verse.text ? (
+        renderSelectableText()
+      ) : verse.text ? (
+        renderDecoratedText()
+      ) : (
+        '(구절 내용 없음)'
+      )}
+    </span>
+  )
+
+  // 액션 메뉴 — 절 아래(list) 또는 문단 흐름 안(flow)에서 펼쳐진다
+  const popoverEl = (
+    <>
+    {showActions && (
+        <div
+          role="menu"
+          className="verse-action-popover"
+          style={{ animation: 'versePopIn 0.16s ease-out' }}
+        >
+          {/* 음성 낭독 — 왼손 엄지로 누르기 쉽게 맨 왼쪽에 배치 */}
+          {isSupported && (
+            <div className="verse-action-item verse-action-item--static">
+              <VerseReadingButton
+                isReading={isReading}
+                isStarting={isStarting}
+                isSupported={isSupported}
+                onClick={isReading ? stopReading : handleStartReading}
+                onPrime={primeMicrophone}
+                disabled={isRead}
+                size="sm"
+              />
+              <span className="verse-action-label">{isReading ? '중지' : '낭독'}</span>
+            </div>
+          )}
+
+          {isSupported && <span aria-hidden className="verse-action-sep" />}
+
+          {/* 읽음 표시 — 음성 낭독이 어려운 상황(조용한 곳·마이크 미지원)에서도
+              직접 읽은 절을 체크할 수 있게 한다. 로그인한 사용자면 누구나 사용. */}
+          {SHOW_MANUAL_READ_BUTTON && loggedIn && onToggleRead && (
+            <VerseAction
+              icon={isRead ? 'remove_done' : 'task_alt'}
+              label={isRead ? '읽음 취소' : '읽음'}
+              title={isRead ? '읽음 취소' : '읽음 표시'}
+              tone={isRead ? 'success' : 'default'}
+              busy={isTogglingRead}
+              pressed={isRead}
+              tabbable={showActions}
+              onClick={() => { if (!isTogglingRead) onToggleRead(verse, !isRead) }}
+            />
+          )}
+
+          {/* 주요 액션: 북마크·해석 (가장 자주 쓰는 묵상 동작을 앞에 배치) */}
+          <VerseAction
+            icon={
+              bookmark
+                ? bookmark.is_favorite
+                  ? 'favorite'
+                  : bookmark.note
+                    ? 'bookmark'
+                    : 'brush'
+                : 'bookmark_border'
+            }
+            label={bookmark ? (bookmark.note ? '노트' : '북마크') : '북마크'}
+            title={bookmark ? '묵상 노트 수정' : '묵상/북마크 추가'}
+            tone={bookmark ? 'active' : 'default'}
+            tabbable={showActions}
+            onClick={() => { onActionsOpenChange(false); setShowBookmarkModal(true) }}
+          />
+
+          {/* 모르는 단어 체크 — 단어 선택 모드 진입 */}
+          <VerseAction
+            icon="spellcheck"
+            label="단어"
+            title="모르는 단어 체크"
+            tone={(wordNotes?.length ?? 0) > 0 ? 'active' : 'default'}
+            tabbable={showActions}
+            onClick={() => { onActionsOpenChange(false); setWordSelectMode(true) }}
+          />
+
+          {onShowCommentary && (
+            <VerseAction
+              icon="menu_book"
+              label="해석"
+              title={hasCommentary ? '해석 보기' : '해석 (등록된 해석 없음)'}
+              tone={hasCommentary ? 'active' : 'default'}
+              tabbable={showActions}
+              onClick={() => { onActionsOpenChange(false); onShowCommentary(verse) }}
+            />
+          )}
+
+          {/* 여기부터 듣기 — 오디오북을 이 절부터 재생 */}
+          {onListenFrom && (
+            <VerseAction
+              icon="play_circle"
+              label="듣기"
+              title="여기부터 듣기"
+              tabbable={showActions}
+              onClick={() => { onActionsOpenChange(false); onListenFrom(verse) }}
+            />
+          )}
+
+          {/* 구분선: 묵상 ↔ 나눔 그룹 분리 */}
+          <span aria-hidden className="verse-action-sep" />
+
+          {/* 나눔: 복사 — 좋은 구절을 바로 클립보드로 */}
+          <VerseAction
+            icon="content_copy"
+            label="복사"
+            title="구절 복사"
+            tabbable={showActions}
+            onClick={() => { onActionsOpenChange(false); copyVerses(copyTarget) }}
+          />
+
+          {/* 나눔: 공유 — 미리보기 시트를 띄운다 (부모가 없으면 네이티브 공유로 폴백) */}
+          <VerseAction
+            icon="share"
+            label="공유"
+            title="구절 공유"
+            tabbable={showActions}
+            onClick={() => {
+              onActionsOpenChange(false)
+              if (onShare) onShare(copyTarget)
+              else shareVerses(copyTarget)
+            }}
+          />
+
+          {/* 나눔: 여러 절 선택 — 이 절부터 구간으로 묶어 복사/공유 */}
+          {onEnterSelection && (
+            <VerseAction
+              icon="checklist"
+              label="여러 절"
+              title="여러 절 선택"
+              tabbable={showActions}
+              onClick={() => { onActionsOpenChange(false); onEnterSelection(verse) }}
+            />
+          )}
+
+          {/* 보조 액션: 구절 수정 (관리자) */}
+          {isAdminUser && onEdit && (
+            <>
+              <span aria-hidden className="verse-action-sep" />
+              <VerseAction
+                icon="edit"
+                label="수정"
+                title="구절 수정 (관리자)"
+                tone="muted"
+                tabbable={showActions}
+                onClick={() => { onActionsOpenChange(false); onEdit(verse) }}
+              />
+            </>
+          )}
+        </div>
+    )}
+    </>
+  )
+
+  const feedbackEl = (
+    <>
+    {/* 피드백 메시지 - 임팩트 있게 */}
+    {showFeedback && feedback && (
+      <div style={{
+        padding: '1.25rem',
+        background: feedback.type === 'success' 
+          ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(252, 211, 77, 0.15))' 
+          : 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(248, 113, 113, 0.1))',
+        borderRadius: '0.75rem',
+        fontSize: '1.125rem',
+        color: 'var(--ig-primary-text)',
+        fontWeight: 700,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '0.75rem',
+        marginLeft: '3.25rem',
+        border: feedback.type === 'success'
+          ? '2px solid rgba(251, 191, 36, 0.4)'
+          : '2px solid rgba(239, 68, 68, 0.3)',
+        boxShadow: feedback.type === 'success'
+          ? '0 4px 16px rgba(251, 191, 36, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.6)'
+          : '0 4px 12px rgba(239, 68, 68, 0.15)',
+        animation: 'fadeInScale 0.4s ease-out',
+        textAlign: 'center'
+      }}>
+        <span 
+          className="material-icons-round" 
+          style={{ 
+            fontSize: '2.5rem',
+            color: feedback.type === 'success' ? '#d97706' : '#dc2626',
+            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))'
+          }}
+        >
+          {feedback.type === 'success' ? 'auto_awesome' : 'refresh'}
+        </span>
+        <div style={{ lineHeight: 1.5 }}>
+          {feedback.message}
+        </div>
+        
+        {/* 에러일 때 다시 시도 버튼 */}
+        {feedback.type === 'error' && (
+          <button
+            onClick={() => {
+              setShowFeedback(false)
+              handleStartReading()
+            }}
+            style={{
+              marginTop: '0.5rem',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+              color: 'white',
+              fontSize: '0.9375rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              boxShadow: '0 2px 8px rgba(220, 38, 38, 0.3)',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.4)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(220, 38, 38, 0.3)'
+            }}
+          >
+            <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>
+              replay
+            </span>
+            다시 시도
+          </button>
+        )}
+        
+        <style>{`
+          @keyframes fadeInScale {
+            0% {
+              opacity: 0;
+              transform: scale(0.9) translateY(-10px);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+            }
+          }
+        `}</style>
+      </div>
+    )}
+    </>
+  )
+
+  const modalsEl = (
+    <>
+    {/* 북마크/묵상 모달 */}
+    {showBookmarkModal && (
+      <VerseBookmarkModal
+        verseId={verse.id}
+        verseReference={`${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verse.verse}`.trim()}
+        verseText={verse.text}
+        existing={bookmark ?? null}
+        onClose={() => setShowBookmarkModal(false)}
+      />
+    )}
+
+    {/* 단어 뜻/메모 시트 - 단어 선택 또는 밑줄 단어 탭으로 열림 */}
+    {wordSheet && (
+      <WordNoteSheet
+        verseId={verse.id}
+        verseReference={`${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verse.verse}`.trim()}
+        verseText={verse.text}
+        initialWord={wordSheet.initialWord}
+        charStart={wordSheet.charStart}
+        charEnd={wordSheet.charEnd}
+        existing={wordSheet.existing}
+        onClose={() => setWordSheet(null)}
+      />
+    )}
+
+    {/* 인물·지명 사전 시트 — 점선 칩을 탭했을 때 */}
+    {glossaryEntry && (
+      <GlossarySheet entry={glossaryEntry} onClose={() => setGlossaryEntry(null)} />
+    )}
+
+    {/* 묵상 노트 읽기 시트 - 수정 누르면 편집 모달로 전환 */}
+    {showNoteSheet && bookmark?.note && (
+      <VerseNoteSheet
+        verseReference={`${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verse.verse}`.trim()}
+        verseText={verse.text}
+        bookmark={bookmark}
+        onEdit={() => { setShowNoteSheet(false); setShowBookmarkModal(true) }}
+        onClose={() => setShowNoteSheet(false)}
+      />
+    )}
+    </>
+  )
+
+  // ── 이어읽기(문단) 보기 ──────────────────────────────────────────
+  // 절 하나가 인라인 span으로 문단에 섞여 흐른다. 강조(선택/형광펜/노트)는 좌측 바 대신
+  // 글자 뒤 마커 배경(box-decoration-break: clone)으로 줄이 바뀌어도 이어진다.
+  if (isFlow) {
+    const flowAccent: CSSProperties = isSelected
+      ? { background: 'var(--brand-soft-strong)', boxShadow: '0 0 0 2px var(--brand-soft-strong)' }
+      : highlightBg && !isReading
+        ? { background: `color-mix(in srgb, ${highlightBg} 34%, transparent)` }
+        : hasNote && !isReading
+          ? { background: 'var(--brand-soft)' }
+          : {}
+    return (
+      <span
+        id={`bible-verse-${verse.verse}`}
+        data-verse={verse.verse}
+        className={itemClassName}
+        style={{ scrollMarginTop: '7rem' }}
+      >
+        <span
+          className="bible-verse-flow-body"
+          onClick={handleBodyActivate}
+          {...bodyA11y}
+          style={{ userSelect: selectionMode ? 'none' : 'text', ...flowAccent }}
+        >
+          {/* 선택 모드: 번호 앞 고정 슬롯 — 토글마다 생겼다 사라지면 문단이 재줄바꿈된다 */}
+          {selectionMode && (
+            <span aria-hidden className={`bible-verse-flow-check ${isSelected ? 'is-on' : ''}`}>
+              {isSelected && <span className="material-icons-round">check</span>}
+            </span>
+          )}
+          {numberEl}
+          {textEl}
+          {!selectionMode && bookmark?.is_favorite && (
+            <span title="즐겨찾기" className="bible-verse-flow-fav">
+              <HeartIcon size={11} filled />
+            </span>
+          )}
+        </span>
+        {/* 묵상 노트 — 문단을 어지럽히지 않게 아이콘 칩만, 누르면 읽기 시트 */}
+        {hasNote && (
+          <button
+            type="button"
+            className="bible-verse-flow-note"
+            onClick={(e) => { e.stopPropagation(); setShowNoteSheet(true) }}
+            title="묵상 노트 보기"
+            aria-label={`${verse.verse}절 묵상 노트 보기`}
+          >
+            <span className="material-icons-round">sticky_note_2</span>
+          </button>
+        )}
+        {wordSelectMode && (
+          <span className="bible-verse-flow-wordhint" style={{ animation: 'versePopIn 0.16s ease-out' }}>
+            <span className="material-icons-round">touch_app</span>
+            뜻을 남길 단어를 탭하세요
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setWordSelectMode(false) }}
+            >
+              취소
+            </button>
+          </span>
+        )}
+        {' '}
+        {popoverEl}
+        {feedbackEl}
+        {modalsEl}
+      </span>
+    )
+  }
+
+  // ── 절별(목록) 보기 ─────────────────────────────────────────────
   return (
     <div
       id={`bible-verse-${verse.verse}`}
       data-verse={verse.verse}
-      className={`bible-verse-item ${isRead ? 'verse-read' : ''} ${isReading ? 'verse-reading' : ''} ${showActions && !isReading ? 'verse-selected' : ''} ${isAudioActive ? 'verse-audio-active' : ''}`}
+      className={itemClassName}
       style={{
         position: 'relative',
         // 'all'을 쓰면 :hover의 margin/padding 같은 레이아웃 속성까지 애니메이션돼 버벅인다.
@@ -511,42 +990,8 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
     >
       {/* 구절 번호와 텍스트 (탭하면 액션바 토글) */}
       <div
-        onClick={() => {
-          // 여러 절 선택 모드에서는 탭이 선택 토글로 동작한다
-          if (selectionMode) {
-            onToggleSelect?.(verse.id)
-            return
-          }
-          // 단어 선택 모드에서 빈 곳을 탭하면 모드만 종료 (액션바 토글 방지)
-          if (wordSelectMode) {
-            setWordSelectMode(false)
-            return
-          }
-          onActionsOpenChange(!showActions)
-        }}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            if (selectionMode) {
-              onToggleSelect?.(verse.id)
-              return
-            }
-            if (wordSelectMode) {
-              setWordSelectMode(false)
-              return
-            }
-            onActionsOpenChange(!showActions)
-          }
-        }}
-        aria-expanded={selectionMode ? undefined : showActions}
-        aria-pressed={selectionMode ? !!isSelected : undefined}
-        aria-label={
-          selectionMode
-            ? `${verse.verse}절 ${isSelected ? '선택 해제' : '선택'}`
-            : `${verse.verse}절 메뉴 ${showActions ? '닫기' : '열기'}`
-        }
+        onClick={handleBodyActivate}
+        {...bodyA11y}
         style={{
           position: 'relative',
           display: 'flex',
@@ -564,83 +1009,8 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
             체크 아이콘을 본문 행에 끼우면 재줄바꿈으로 높이가 출렁이고,
             absolute 오버레이는 어디에 둬도 붕 떠 보여서 요소 추가 없이 해결.
             (읽은 절은 행 전체 흐림 + 초록 틴트가 함께 깔려 상태가 충분히 읽힌다) */}
-        <span
-          className="bible-verse-number"
-          title={
-            canHoldToRead
-              ? isRead
-                ? '읽음 완료 — 길게 누르면 읽음 취소'
-                : '길게 누르면 읽음 표시'
-              : isRead
-                ? '읽음 완료'
-                : undefined
-          }
-          // 길게 눌러 읽음 처리 — 손가락을 떼거나 스크롤하면 취소된다
-          onPointerDown={handleHoldStart}
-          onPointerMove={handleHoldMove}
-          onPointerUp={clearHold}
-          onPointerCancel={clearHold}
-          onPointerLeave={clearHold}
-          // 길게 누르기가 성사된 뒤의 click은 액션바를 열지 않도록 여기서 끊는다
-          onClick={(e) => {
-            if (holdFiredRef.current) {
-              holdFiredRef.current = false
-              e.preventDefault()
-              e.stopPropagation()
-            }
-          }}
-          // 길게 누를 때 모바일의 텍스트 선택/콜아웃 메뉴가 뜨지 않도록
-          onContextMenu={(e) => { if (canHoldToRead) e.preventDefault() }}
-          style={{
-            ...(isRead
-              ? { color: 'var(--ig-success)', animation: 'verseNumberPop 0.4s ease-out' }
-              : null),
-            ...(canHoldToRead
-              ? {
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  WebkitTouchCallout: 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                }
-              : null),
-          }}
-        >
-          {/* 누르고 있는 동안 번호 자리가 브랜드 색으로 차오른다 — 언제 완료되는지 보이게 */}
-          {isHoldingNumber && (
-            <span
-              aria-hidden
-              className="verse-hold-fill"
-              style={{ animationDuration: `${HOLD_TO_READ_MS}ms` }}
-            />
-          )}
-          <span style={{ position: 'relative' }}>{verse.verse}</span>
-        </span>
-        <span
-          className={`bible-verse-text ${highlightBg && !isReading ? 'is-highlighted' : ''}`}
-          style={{ flex: 1, minWidth: 0 }}
-        >
-          {isReading && verse.text ? (
-            <>
-              <span style={{
-                color: 'var(--brand)',
-                // 읽은 부분도 본문과 동일한 굵기(400) 유지 — bold면 경계가 전진할 때마다
-                // 폭이 바뀌어 줄바꿈이 재계산된다(출렁임).
-                textShadow: '0 0 8px var(--brand-glow)',
-              }}>
-                {verse.text.slice(0, karaokeSplitIndex)}
-              </span>
-              <span style={{ color: 'var(--ig-primary-text)' }}>
-                {verse.text.slice(karaokeSplitIndex)}
-              </span>
-            </>
-          ) : wordSelectMode && verse.text ? (
-            renderSelectableText()
-          ) : verse.text ? (
-            renderDecoratedText()
-          ) : (
-            '(구절 내용 없음)'
-          )}
-        </span>
+        {numberEl}
+        {textEl}
 
         {/* 가벼운 상태 인디케이터 - 본문 폭을 거의 잡아먹지 않음.
             하이라이트는 좌측 바+배경, 노트는 아래 칩으로 이미 보이므로 여기선 생략(중복 방지).
@@ -737,246 +1107,10 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
         </div>
       )}
 
-      {/* 액션 메뉴 - 절을 탭하면 본문 흐름 안에서 바로 아래에 펼쳐진다.
-          예전 absolute 오버레이는 다음 절을 가렸고, 닫기용 풀스크린 fixed 백드롭이
-          모바일 스크롤을 막았다. 인라인(in-flow) 배치로 두 문제를 함께 해결한다.
-          (다른 절을 탭하면 부모가 이 메뉴를 닫아 항상 한 절만 열린다)
-          아이콘만으로는 기능을 짐작하기 어려워, 각 아이콘 아래에 짧은 라벨을 붙인다. */}
-      {showActions && (
-          <div
-            role="menu"
-            className="verse-action-popover"
-            style={{ animation: 'versePopIn 0.16s ease-out' }}
-          >
-            {/* 음성 낭독 — 왼손 엄지로 누르기 쉽게 맨 왼쪽에 배치 */}
-            {isSupported && (
-              <div className="verse-action-item verse-action-item--static">
-                <VerseReadingButton
-                  isReading={isReading}
-                  isStarting={isStarting}
-                  isSupported={isSupported}
-                  onClick={isReading ? stopReading : handleStartReading}
-                  onPrime={primeMicrophone}
-                  disabled={isRead}
-                  size="sm"
-                />
-                <span className="verse-action-label">{isReading ? '중지' : '낭독'}</span>
-              </div>
-            )}
+      {/* 액션 메뉴 — 절 아래 인라인(in-flow)으로 펼쳐진다 (다른 절을 탭하면 부모가 닫는다) */}
+      {popoverEl}
 
-            {isSupported && <span aria-hidden className="verse-action-sep" />}
-
-            {/* 읽음 표시 — 음성 낭독이 어려운 상황(조용한 곳·마이크 미지원)에서도
-                직접 읽은 절을 체크할 수 있게 한다. 로그인한 사용자면 누구나 사용. */}
-            {SHOW_MANUAL_READ_BUTTON && loggedIn && onToggleRead && (
-              <VerseAction
-                icon={isRead ? 'remove_done' : 'task_alt'}
-                label={isRead ? '읽음 취소' : '읽음'}
-                title={isRead ? '읽음 취소' : '읽음 표시'}
-                tone={isRead ? 'success' : 'default'}
-                busy={isTogglingRead}
-                pressed={isRead}
-                tabbable={showActions}
-                onClick={() => { if (!isTogglingRead) onToggleRead(verse, !isRead) }}
-              />
-            )}
-
-            {/* 주요 액션: 북마크·해석 (가장 자주 쓰는 묵상 동작을 앞에 배치) */}
-            <VerseAction
-              icon={
-                bookmark
-                  ? bookmark.is_favorite
-                    ? 'favorite'
-                    : bookmark.note
-                      ? 'bookmark'
-                      : 'brush'
-                  : 'bookmark_border'
-              }
-              label={bookmark ? (bookmark.note ? '노트' : '북마크') : '북마크'}
-              title={bookmark ? '묵상 노트 수정' : '묵상/북마크 추가'}
-              tone={bookmark ? 'active' : 'default'}
-              tabbable={showActions}
-              onClick={() => { onActionsOpenChange(false); setShowBookmarkModal(true) }}
-            />
-
-            {/* 모르는 단어 체크 — 단어 선택 모드 진입 */}
-            <VerseAction
-              icon="spellcheck"
-              label="단어"
-              title="모르는 단어 체크"
-              tone={(wordNotes?.length ?? 0) > 0 ? 'active' : 'default'}
-              tabbable={showActions}
-              onClick={() => { onActionsOpenChange(false); setWordSelectMode(true) }}
-            />
-
-            {onShowCommentary && (
-              <VerseAction
-                icon="menu_book"
-                label="해석"
-                title={hasCommentary ? '해석 보기' : '해석 (등록된 해석 없음)'}
-                tone={hasCommentary ? 'active' : 'default'}
-                tabbable={showActions}
-                onClick={() => { onActionsOpenChange(false); onShowCommentary(verse) }}
-              />
-            )}
-
-            {/* 여기부터 듣기 — 오디오북을 이 절부터 재생 */}
-            {onListenFrom && (
-              <VerseAction
-                icon="play_circle"
-                label="듣기"
-                title="여기부터 듣기"
-                tabbable={showActions}
-                onClick={() => { onActionsOpenChange(false); onListenFrom(verse) }}
-              />
-            )}
-
-            {/* 구분선: 묵상 ↔ 나눔 그룹 분리 */}
-            <span aria-hidden className="verse-action-sep" />
-
-            {/* 나눔: 복사 — 좋은 구절을 바로 클립보드로 */}
-            <VerseAction
-              icon="content_copy"
-              label="복사"
-              title="구절 복사"
-              tabbable={showActions}
-              onClick={() => { onActionsOpenChange(false); copyVerses(copyTarget) }}
-            />
-
-            {/* 나눔: 공유 — 미리보기 시트를 띄운다 (부모가 없으면 네이티브 공유로 폴백) */}
-            <VerseAction
-              icon="share"
-              label="공유"
-              title="구절 공유"
-              tabbable={showActions}
-              onClick={() => {
-                onActionsOpenChange(false)
-                if (onShare) onShare(copyTarget)
-                else shareVerses(copyTarget)
-              }}
-            />
-
-            {/* 나눔: 여러 절 선택 — 이 절부터 구간으로 묶어 복사/공유 */}
-            {onEnterSelection && (
-              <VerseAction
-                icon="checklist"
-                label="여러 절"
-                title="여러 절 선택"
-                tabbable={showActions}
-                onClick={() => { onActionsOpenChange(false); onEnterSelection(verse) }}
-              />
-            )}
-
-            {/* 보조 액션: 구절 수정 (관리자) */}
-            {isAdminUser && onEdit && (
-              <>
-                <span aria-hidden className="verse-action-sep" />
-                <VerseAction
-                  icon="edit"
-                  label="수정"
-                  title="구절 수정 (관리자)"
-                  tone="muted"
-                  tabbable={showActions}
-                  onClick={() => { onActionsOpenChange(false); onEdit(verse) }}
-                />
-              </>
-            )}
-          </div>
-      )}
-
-
-      {/* 피드백 메시지 - 임팩트 있게 */}
-      {showFeedback && feedback && (
-        <div style={{
-          padding: '1.25rem',
-          background: feedback.type === 'success' 
-            ? 'linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(252, 211, 77, 0.15))' 
-            : 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(248, 113, 113, 0.1))',
-          borderRadius: '0.75rem',
-          fontSize: '1.125rem',
-          color: 'var(--ig-primary-text)',
-          fontWeight: 700,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '0.75rem',
-          marginLeft: '3.25rem',
-          border: feedback.type === 'success'
-            ? '2px solid rgba(251, 191, 36, 0.4)'
-            : '2px solid rgba(239, 68, 68, 0.3)',
-          boxShadow: feedback.type === 'success'
-            ? '0 4px 16px rgba(251, 191, 36, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.6)'
-            : '0 4px 12px rgba(239, 68, 68, 0.15)',
-          animation: 'fadeInScale 0.4s ease-out',
-          textAlign: 'center'
-        }}>
-          <span 
-            className="material-icons-round" 
-            style={{ 
-              fontSize: '2.5rem',
-              color: feedback.type === 'success' ? '#d97706' : '#dc2626',
-              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15))'
-            }}
-          >
-            {feedback.type === 'success' ? 'auto_awesome' : 'refresh'}
-          </span>
-          <div style={{ lineHeight: 1.5 }}>
-            {feedback.message}
-          </div>
-          
-          {/* 에러일 때 다시 시도 버튼 */}
-          {feedback.type === 'error' && (
-            <button
-              onClick={() => {
-                setShowFeedback(false)
-                handleStartReading()
-              }}
-              style={{
-                marginTop: '0.5rem',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-                color: 'white',
-                fontSize: '0.9375rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 2px 8px rgba(220, 38, 38, 0.3)',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.4)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(220, 38, 38, 0.3)'
-              }}
-            >
-              <span className="material-icons-round" style={{ fontSize: '1.25rem' }}>
-                replay
-              </span>
-              다시 시도
-            </button>
-          )}
-          
-          <style>{`
-            @keyframes fadeInScale {
-              0% {
-                opacity: 0;
-                transform: scale(0.9) translateY(-10px);
-              }
-              100% {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-              }
-            }
-          `}</style>
-        </div>
-      )}
+      {feedbackEl}
 
       {/* 묵상 노트 칩 - 메모 본문을 흐름에 그대로 풀어놓아 성경 본문과 섞이던 문제를
           해결. 작은 칩만 두고, 누르면 하단 시트가 올라와 메모를 또렷하게 보여준다. */}
@@ -1021,46 +1155,7 @@ const VerseItem = ({ verse, bookNameKo, bookNumber, chapter, isRead, onReadSucce
         </button>
       )}
 
-      {/* 북마크/묵상 모달 */}
-      {showBookmarkModal && (
-        <VerseBookmarkModal
-          verseId={verse.id}
-          verseReference={`${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verse.verse}`.trim()}
-          verseText={verse.text}
-          existing={bookmark ?? null}
-          onClose={() => setShowBookmarkModal(false)}
-        />
-      )}
-
-      {/* 단어 뜻/메모 시트 - 단어 선택 또는 밑줄 단어 탭으로 열림 */}
-      {wordSheet && (
-        <WordNoteSheet
-          verseId={verse.id}
-          verseReference={`${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verse.verse}`.trim()}
-          verseText={verse.text}
-          initialWord={wordSheet.initialWord}
-          charStart={wordSheet.charStart}
-          charEnd={wordSheet.charEnd}
-          existing={wordSheet.existing}
-          onClose={() => setWordSheet(null)}
-        />
-      )}
-
-      {/* 인물·지명 사전 시트 — 점선 칩을 탭했을 때 */}
-      {glossaryEntry && (
-        <GlossarySheet entry={glossaryEntry} onClose={() => setGlossaryEntry(null)} />
-      )}
-
-      {/* 묵상 노트 읽기 시트 - 수정 누르면 편집 모달로 전환 */}
-      {showNoteSheet && bookmark?.note && (
-        <VerseNoteSheet
-          verseReference={`${bookNameKo ?? verse.book_name_ko ?? ''} ${chapter ?? verse.chapter}:${verse.verse}`.trim()}
-          verseText={verse.text}
-          bookmark={bookmark}
-          onEdit={() => { setShowNoteSheet(false); setShowBookmarkModal(true) }}
-          onClose={() => setShowNoteSheet(false)}
-        />
-      )}
+      {modalsEl}
     </div>
   )
 }

@@ -76,6 +76,10 @@ const cache = new Map<number, BookOutline>()
 
 export const hasChapterOutline = (bookNumber: number) => bookNumber in loaders
 
+/** 이미 내려받은 책이면 동기로 돌려준다 — 장 이동 시 단락 제목이 한 프레임 비는 깜빡임 방지 */
+export const peekBookOutline = (bookNumber: number): BookOutline | null =>
+  cache.get(bookNumber) ?? null
+
 export const loadBookOutline = async (bookNumber: number): Promise<BookOutline | null> => {
   const cached = cache.get(bookNumber)
   if (cached) return cached

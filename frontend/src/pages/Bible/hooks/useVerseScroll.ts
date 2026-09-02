@@ -67,8 +67,8 @@ export const useVerseScroll = () => {
         block === 'start'
           ? 112
           : block === 'follow'
-            ? Math.max(112, window.innerHeight * 0.82 - el.clientHeight)
-            : Math.max(112, (window.innerHeight - el.clientHeight) / 2)
+            ? Math.max(112, window.innerHeight * 0.82 - el.getBoundingClientRect().height)
+            : Math.max(112, (window.innerHeight - el.getBoundingClientRect().height) / 2)
       // 시작 시 한 번만 측정해 목표 scrollTop을 확정하고, 이후엔 경과 시간만으로
       // 절대 위치를 계산한다(easeOutCubic 고정 곡선). 매 프레임 요소 위치를
       // 재측정하는 피드백 방식은 강제 레이아웃 + dt 널뜀으로 이동량이 프레임마다
