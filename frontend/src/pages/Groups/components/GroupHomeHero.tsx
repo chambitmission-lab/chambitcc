@@ -40,7 +40,7 @@ const GroupHomeHero = ({ groupId, hasPrayers, onStartIntercession, onCompose }: 
           잉크·CTA 색은 라이트(네이비)/다크(흰색)로 갈리므로 --gd-hero-* 변수만 쓴다 ── */}
       <div className="gd-hero px-5 pt-7 pb-7 sm:px-6 sm:pt-9 sm:pb-9">
         <h2 className="gd-hero-title relative z-10 text-[19px] sm:text-[21px] font-bold tracking-[-0.02em] leading-tight">
-          {digest.my_checked_in ? '오늘도 함께 기도했어요 🙏' : '오늘도 함께 기도해요 🙏'}
+          {digest.my_checked_in ? '오늘도 함께 기도했어요' : '오늘도 함께 기도해요'}
         </h2>
         <p className="relative z-10 mt-1 text-[12.5px] sm:text-[13px] text-[color:var(--gd-hero-ink-soft)]">
           {digest.checkins_today > 0
