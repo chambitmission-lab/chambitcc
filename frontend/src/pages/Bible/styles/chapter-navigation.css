@@ -11,8 +11,17 @@
   background: var(--ig-primary-background);
   border-bottom: 1px solid var(--ig-border);
   position: sticky;
-  top: 176px;
+  /* 모바일: 앱바(56) + sticky 헤더(.bible-study-header, 62) 바로 아래.
+     176px(삭제된 구 탭 바 포함 오프셋)을 쓰면 sticky가 요소를 아래로 밀어
+     바로 밑의 오디오북 카드 상단을 덮어 버린다(스크롤 0에서도). */
+  top: 118px;
   z-index: 8;
+}
+/* PC: 장 화면엔 .bible-study-header가 없고(허브 컬럼 안에서만 렌더) 앱바만 위에 있다 */
+@media (min-width: 1024px) {
+  .chapter-navigation {
+    top: 56px;
+  }
 }
 
 /* 이전/다음 장 — 배경 원 없이 아이콘만 남긴 고스트 버튼(시각적 무게 최소화) */

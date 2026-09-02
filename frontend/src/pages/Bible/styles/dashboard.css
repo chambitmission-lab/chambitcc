@@ -29,12 +29,14 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  min-height: 6.75rem;
+  /* 그림(3.1:1)이 카드 폭에 맞춰 cover 되므로 높이가 얕으면 양 머리·달이 잘린다.
+     모바일은 그림 세로가 거의 다 들어오는 높이, PC(더 넓은 카드)는 한 단계 더 높인다. */
+  min-height: 8.25rem;
   padding: 1rem;
   margin-bottom: 0.625rem;
   background:
     linear-gradient(90deg, #f3f8ff 0%, rgba(243, 248, 255, 0.94) 36%, rgba(243, 248, 255, 0) 70%),
-    url('/images/bible/resume-light.webp') right 42% / cover no-repeat,
+    url('/images/bible/resume-light.webp') right 40% / cover no-repeat,
     #f3f8ff;
   border-color: var(--brand-glow);
   box-shadow: 0 12px 32px -12px var(--brand-glow);
@@ -42,10 +44,16 @@
 [data-theme="dark"] .dash-card--resume {
   background:
     linear-gradient(90deg, #091128 0%, rgba(9, 17, 40, 0.92) 36%, rgba(9, 17, 40, 0) 70%),
-    url('/images/bible/resume-dark.webp') right 42% / cover no-repeat,
+    url('/images/bible/resume-dark.webp') right 40% / cover no-repeat,
     #091128;
   border-color: rgba(69, 147, 252, 0.28);
   box-shadow: 0 12px 32px -12px rgba(69, 147, 252, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+@media (min-width: 1024px) {
+  .dash-card--resume {
+    min-height: 10rem;
+    padding: 1.25rem 1.25rem;
+  }
 }
 /* 본문은 그림의 주인공(오른쪽 약 30%)을 침범하지 않도록 오른쪽 여백을 둔다.
    우측 화살표는 그림 위 건물과 겹쳐 지저분해서 숨긴다 — 카드 전체가 버튼이라 손실 없음 */
