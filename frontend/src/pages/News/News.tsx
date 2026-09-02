@@ -251,7 +251,10 @@ const News = () => {
 
       {/* 우측 위젯 레일 — 홈과 같은 문법(sticky). 본문이 어느 섹션이든
           "이번 주 주보"로 한 번에 되돌아올 수 있는 길을 열어둔다 */}
-      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.5rem]">
+      {/* sticky top 은 본문 열의 실제 top(고정 헤더 56px + 컨테이너 lg:pt-3 12px = 68px)과
+          같아야 한다. 72px(4.5rem)로 두면 sticky 가 정적 위치보다 아래로 밀어내서
+          우측 열만 4px 내려앉는다 */}
+      <aside className="hidden lg:flex lg:w-[312px] lg:shrink-0 lg:flex-col lg:gap-3 lg:sticky lg:top-[4.25rem]">
         <NewsSidebar
           bulletins={bulletins}
           section={section}
