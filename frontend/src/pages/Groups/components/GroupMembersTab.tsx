@@ -1,17 +1,18 @@
-// 그룹 멤버 탭 — 멤버 목록·초대(QR 포함)·가입 신청 처리·리더 케어 신호·권한 이양·내보내기·나가기
+// 그룹 "우리" 탭 — 멤버 목록·초대(QR 포함)·가입 신청 처리·리더 케어 신호
+// 관리자 액션(이양·내보내기)은 행마다 상시 노출하지 않고, 멤버를 탭하면 뜨는 시트로.
+// 나가기는 설정 시트로 이전됐다.
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { renderSVG } from 'uqr'
 import {
   useGroupMembers,
   useKickMember,
   useTransferAdmin,
-  useLeaveGroup,
   useAddGroupMembers,
   useJoinRequests,
   useDecideJoinRequest,
   useGroupCare,
 } from '../../../hooks/useGroups'
+import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import MemberSearchInput from '../../../components/common/MemberSearchInput'
 import { showToast } from '../../../utils/toast'
 import { groupInviteUrl } from '../../../utils/inviteLink'
@@ -40,14 +41,12 @@ const MemberAvatar = ({ member }: { member: GroupMember }) =>
   )
 
 const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
-  const navigate = useNavigate()
   const groupId = group.id
   const { data: membersData, isLoading, isError } = useGroupMembers(groupId, group.is_member)
   const members = membersData?.data.items ?? []
 
   const kick = useKickMember()
   const transfer = useTransferAdmin()
-  const leave = useLeaveGroup()
   const addMembers = useAddGroupMembers()
   const decideRequest = useDecideJoinRequest()
 
@@ -65,6 +64,8 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
   const [invitedIds, setInvitedIds] = useState<number[]>([])
   const [copied, setCopied] = useState(false)
   const [showQR, setShowQR] = useState(false)
+  // 관리자가 탭한 멤버 — 액션 시트(이양·내보내기) 대상
+  const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null)
 
   const myUsername = getCurrentUser().username
 
@@ -112,6 +113,7 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
       }))
     )
       return
+    setSelectedMember(null)
     kick.mutate({ groupId, userId: member.user_id })
   }
 
@@ -128,30 +130,8 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
       }))
     )
       return
+    setSelectedMember(null)
     transfer.mutate({ groupId, newAdminUserId: member.user_id })
-  }
-
-  const handleLeave = async () => {
-    if (group.is_admin) {
-      showToast('먼저 다른 멤버에게 관리자 권한을 이양해주세요', 'info')
-      return
-    }
-    if (
-      !(await confirmDialog({
-        title: '기도방 나가기',
-        message: '이 기도방에서 나가시겠어요?',
-        description: '다시 들어오려면 초대 코드가 필요해요.',
-        confirmText: '나가기',
-        icon: 'logout',
-      }))
-    )
-      return
-    try {
-      await leave.mutateAsync(groupId)
-      navigate('/groups')
-    } catch {
-      /* 토스트는 훅에서 처리 */
-    }
   }
 
   if (!group.is_member) {
@@ -262,10 +242,12 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
           <ul className="divide-y divide-gray-100 dark:divide-white/[0.05]">
             {members.map((m) => {
               const isMe = !!myUsername && m.username === myUsername
-              return (
-                <li key={m.id} className="flex items-center gap-3 px-4 py-2.5">
+              // 관리자만, 나·다른 관리자가 아닌 멤버 행을 탭하면 액션 시트가 뜬다
+              const actionable = group.is_admin && !isMe && !m.is_admin
+              const row = (
+                <>
                   <MemberAvatar member={m} />
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 text-left">
                     <p className="text-[13.5px] font-bold text-ink-strong truncate">
                       {m.display_name}
                       {isMe && (
@@ -281,25 +263,27 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
                       ADMIN
                     </span>
                   )}
-                  {group.is_admin && !isMe && !m.is_admin && (
-                    <div className="shrink-0 flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleTransfer(m)}
-                        disabled={transfer.isPending}
-                        className="px-2.5 h-7 rounded-full bg-gray-100 dark:bg-white/[0.06] text-[10.5px] font-bold text-gray-600 dark:text-white/65 hover:bg-[var(--brand-soft)] hover:text-brand transition-colors disabled:opacity-50"
-                      >
-                        관리자 이양
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleKick(m)}
-                        disabled={kick.isPending}
-                        className="px-2.5 h-7 rounded-full bg-gray-100 dark:bg-white/[0.06] text-[10.5px] font-bold text-gray-500 dark:text-white/50 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50"
-                      >
-                        내보내기
-                      </button>
-                    </div>
+                  {actionable && (
+                    <span className="shrink-0 text-gray-300 dark:text-white/25">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </span>
+                  )}
+                </>
+              )
+              return (
+                <li key={m.id}>
+                  {actionable ? (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMember(m)}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-white/[0.03] active:bg-gray-100 dark:active:bg-white/[0.05] transition-colors"
+                    >
+                      {row}
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-3 px-4 py-2.5">{row}</div>
                   )}
                 </li>
               )
@@ -373,22 +357,81 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
         </div>
       )}
 
-      {/* 나가기 */}
-      <div className="text-center pt-1">
-        {group.is_admin ? (
-          <p className="text-[11.5px] text-gray-400 dark:text-white/40 leading-[1.6]">
-            방을 나가려면 먼저 위에서 다른 멤버에게 관리자 권한을 이양해주세요
-          </p>
-        ) : (
+      {/* 나가기는 상단 설정(⚙)으로 이동 — 조용한 안내 한 줄만 남긴다 */}
+      <p className="text-center pt-1 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
+        기도방 나가기는 상단 설정(⚙)에서 할 수 있어요
+      </p>
+
+      {/* 멤버 액션 시트 (관리자 전용) — 이양·내보내기 */}
+      {selectedMember && (
+        <MemberActionSheet
+          member={selectedMember}
+          busy={transfer.isPending || kick.isPending}
+          onTransfer={() => void handleTransfer(selectedMember)}
+          onKick={() => void handleKick(selectedMember)}
+          onClose={() => setSelectedMember(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── 멤버 액션 시트 — 행에 상시 노출되던 버튼 대신, 탭한 멤버에게만 조용히 뜬다 ──
+const MemberActionSheet = ({
+  member,
+  busy,
+  onTransfer,
+  onKick,
+  onClose,
+}: {
+  member: GroupMember
+  busy: boolean
+  onTransfer: () => void
+  onKick: () => void
+  onClose: () => void
+}) => {
+  useModalBackButton(onClose)
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full sm:max-w-sm bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl border border-black/[0.04] dark:border-white/[0.08] p-5 pb-8 sm:pb-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <MemberAvatar member={member} />
+          <div className="min-w-0">
+            <p className="text-[14.5px] font-bold text-ink-strong truncate">{member.display_name}</p>
+            <p className="text-[11.5px] text-gray-400 dark:text-white/40">멤버</p>
+          </div>
+        </div>
+        <div className="space-y-2">
           <button
             type="button"
-            onClick={handleLeave}
-            disabled={leave.isPending}
-            className="text-[12px] text-gray-400 dark:text-white/40 underline underline-offset-2 hover:text-gray-600 dark:hover:text-white/60 transition-colors disabled:opacity-50"
+            disabled={busy}
+            onClick={onTransfer}
+            className="w-full flex items-center gap-3 px-4 h-12 rounded-2xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand text-[13px] font-bold text-left transition-colors hover:bg-[var(--brand-soft-strong)] disabled:opacity-50"
           >
-            기도방 나가기
+            관리자 권한 이양하기
           </button>
-        )}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onKick}
+            className="w-full flex items-center gap-3 px-4 h-12 rounded-2xl bg-red-50/70 dark:bg-red-500/[0.08] border border-red-100 dark:border-red-400/25 text-red-500 dark:text-red-300 text-[13px] font-bold text-left transition-colors hover:bg-red-50 dark:hover:bg-red-500/[0.12] disabled:opacity-50"
+          >
+            그룹에서 내보내기
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full h-11 rounded-2xl text-gray-500 dark:text-white/55 text-[13px] font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors"
+          >
+            닫기
+          </button>
+        </div>
       </div>
     </div>
   )

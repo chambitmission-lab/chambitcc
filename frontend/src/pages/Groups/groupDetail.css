@@ -2,37 +2,30 @@
    히어로 하늘·언덕 위 십자가 실루엣과 그 위에 겹쳐 앉는 글라스 통계 타일.
    색은 브랜드 블루 계열로 시작해 새벽 하늘처럼 라벤더→살구빛으로 풀린다. */
 
+/* 배경은 일러스트(언덕 위 십자가 아래 함께 기도하는 양들, 3:1) —
+   라이트는 밝은 하늘이라 잉크가 네이비, 다크는 밤하늘이라 잉크가 흰색.
+   글자·CTA 색은 --gd-hero-* 변수로만 갈아끼운다 (투명도 수식자 금지: CSS 변수 색) */
 .gd-hero {
   position: relative;
   overflow: hidden;
   border-radius: 1.25rem;
-  color: #fff;
+  color: var(--gd-hero-ink);
+  --gd-hero-ink: #1c3a7a;
+  --gd-hero-ink-soft: rgba(28, 58, 122, 0.78);
+  --gd-hero-ink-faint: rgba(28, 58, 122, 0.55);
+  --gd-hero-cta-bg: var(--brand);
+  --gd-hero-cta-ink: #fff;
   background:
-    radial-gradient(90% 70% at 100% 100%, rgba(255, 196, 150, 0.55), transparent 60%),
-    radial-gradient(70% 60% at 70% 30%, rgba(196, 181, 253, 0.45), transparent 65%),
-    linear-gradient(105deg, #3c5fc6 0%, #5b7bdc 38%, #8e9ce8 68%, #c9b9e6 100%);
+    url('/images/groups/hero-light.webp') right center / cover no-repeat,
+    linear-gradient(105deg, #7fb6e8 0%, #a9cef2 55%, #d7e8fa 100%);
   isolation: isolate;
 }
-.gd-hero::after {
-  /* 하단 비네트 — 통계 타일이 겹쳐 앉는 자리의 글자 대비 확보 */
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 45%, rgba(23, 37, 84, 0.28) 100%);
-  pointer-events: none;
-}
 .gd-hero-title {
-  text-shadow: 0 2px 14px rgba(20, 30, 70, 0.35);
+  /* 밝은 하늘 위 네이비 글자 — 옅은 흰 halo로 또렷하게 */
+  text-shadow: 0 1px 12px rgba(255, 255, 255, 0.5);
 }
-.gd-hero-hill {
-  position: absolute;
-  right: -2%;
-  bottom: -2px;
-  width: 46%;
-  max-width: 340px;
-  height: auto;
-  pointer-events: none;
-}
+
+/* (구 .gd-hero-hill SVG 언덕은 배경 일러스트가 대체하며 제거됨) */
 
 /* 글라스 통계 타일 — 히어로 하단에 반쯤 걸쳐 앉는다 */
 .gd-stat {
@@ -67,14 +60,60 @@
   line-height: 0.8;
 }
 
-html.dark .gd-hero {
+/* ── 오늘의 중보 모드 — 전체화면 몰입 오버레이 ──
+   라이트/다크 공통의 밤하늘 단일 무드 (낭독 영화관과 같은 문법) */
+.gd-im {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
   background:
-    radial-gradient(90% 70% at 100% 100%, rgba(251, 146, 60, 0.28), transparent 60%),
-    radial-gradient(70% 60% at 70% 30%, rgba(129, 140, 248, 0.32), transparent 65%),
-    linear-gradient(105deg, #1c2e6b 0%, #2a4499 38%, #4b5fb8 68%, #6a6fb7 100%);
+    radial-gradient(80% 60% at 85% 0%, rgba(129, 140, 248, 0.22), transparent 60%),
+    radial-gradient(70% 50% at 10% 100%, rgba(251, 146, 60, 0.1), transparent 55%),
+    linear-gradient(170deg, #141c3f 0%, #1d2a5e 45%, #27356f 100%);
 }
-html.dark .gd-hero::after {
-  background: linear-gradient(180deg, transparent 45%, rgba(8, 12, 32, 0.4) 100%);
+.gd-im-card {
+  animation: gd-im-in 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes gd-im-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* 스토리형 진행 세그먼트 */
+.gd-im-seg {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+.gd-im-seg > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #fff;
+  transition: width 0.3s ease;
+}
+
+html.dark .gd-hero {
+  --gd-hero-ink: #fff;
+  --gd-hero-ink-soft: rgba(255, 255, 255, 0.85);
+  --gd-hero-ink-faint: rgba(255, 255, 255, 0.6);
+  --gd-hero-cta-bg: #fff;
+  --gd-hero-cta-ink: #2a4499;
+  background:
+    url('/images/groups/hero-dark.webp') right center / cover no-repeat,
+    linear-gradient(105deg, #131c40 0%, #1d2a5e 55%, #27356f 100%);
+}
+html.dark .gd-hero-title {
+  text-shadow: 0 2px 14px rgba(8, 12, 32, 0.5);
 }
 html.dark .gd-stat {
   background: rgba(32, 31, 31, 0.78);

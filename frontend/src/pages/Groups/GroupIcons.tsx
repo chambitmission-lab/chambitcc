@@ -12,6 +12,7 @@ import {
   DotsThree,
   Feather,
   FlowerTulip,
+  GearSix,
   BookOpen,
   Church,
   Cross,
@@ -56,6 +57,7 @@ export const HomeIcon = duotone(House)
 export const CalendarIcon = duotone(CalendarBlank)
 export const ShareIcon = duotone(ShareNetwork)
 export const MoreIcon = duotone(DotsThree)
+export const GearIcon = duotone(GearSix)
 export const CheckIcon = duotone(Check)
 export const SparkleIcon = duotone(Sparkle)
 export const RelayIcon = duotone(ArrowsClockwise)

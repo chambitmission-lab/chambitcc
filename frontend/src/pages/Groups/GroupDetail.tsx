@@ -1,12 +1,13 @@
 // 기도방 홈 — /groups/:id
-// 탭 구조(홈/기도 제목/모임/멤버): 홈에서 튕기지 않고 방 안에서 모든 활동이 이뤄진다
-// 홈: 하늘 히어로(주간 통계·7일 스트립·체크인) · 오늘의 성구 · 응답률 · 중보 릴레이 · 함께 기도 시간
-// 기도: 그룹 피드 임베드 + 은혜의 기록 / 모임: 일정+RSVP / 멤버: 관리·초대(QR)·케어
+// 탭 구조(오늘/기도/우리): 기도 피드가 기본 랜딩 — 방에 오는 이유(멤버들의 기도제목)가 첫 화면.
+// 오늘: 히어로(중보 CTA·체크인)·7일 스트립·성구·응답률·릴레이·다가오는 모임(구 모임 탭 흡수)
+// 기도: 그룹 피드 임베드 + 은혜의 기록 / 우리: 멤버·초대(QR)·가입 신청·케어
+// "오늘의 중보" 가이드 모드: 기도제목을 한 장씩 넘기며 기도 → 마지막 장에서 체크인 자동 기록
 // PC: 상단바에 탭을 인라인으로 올리고, 우측 레일에 방 카드·최근 기도·최근 활동·멤버 미리보기
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { useGroup, useGroupMembers } from '../../hooks/useGroups'
+import { useGroup, useGroupMembers, useGroupDigest } from '../../hooks/useGroups'
 import { useEvents } from '../../hooks/useEvents'
 import { isAuthenticated, getCurrentUser } from '../../utils/auth'
 import CreateGroupMeetingModal from '../../components/group/CreateGroupMeetingModal'
@@ -15,29 +16,32 @@ import GroupPrayerTab from './components/GroupPrayerTab'
 import GroupMembersTab from './components/GroupMembersTab'
 import GroupSettingsSheet from './components/GroupSettingsSheet'
 import IntercessionRelayCard from './components/IntercessionRelayCard'
+import IntercessionMode from './components/IntercessionMode'
 import { MemberPreviewCard, RecentActivityCard, RecentPrayersCard } from './components/GroupRailWidgets'
 import { shareGroupInvite } from './utils/shareInvite'
 import { formatKstDateTime, kstDateKey, parseKstDate } from '../../utils/kstTime'
 import {
   CalendarIcon,
+  GearIcon,
   GroupGlyph,
-  HomeIcon,
-  MoreIcon,
   PeopleIcon,
   PersonIcon,
   PrayIcon,
   ShareIcon,
+  SparkleIcon,
 } from './GroupIcons'
 import './groupDetail.css'
 
-type TabKey = 'home' | 'prayers' | 'meetings' | 'members'
+type TabKey = 'today' | 'prayers' | 'members'
 
 const TABS: { key: TabKey; label: string; icon: (p: { size?: number }) => ReactNode }[] = [
-  { key: 'home', label: '홈', icon: HomeIcon },
-  { key: 'prayers', label: '기도 제목', icon: PrayIcon },
-  { key: 'meetings', label: '모임', icon: CalendarIcon },
-  { key: 'members', label: '멤버', icon: PeopleIcon },
+  { key: 'today', label: '오늘', icon: SparkleIcon },
+  { key: 'prayers', label: '기도', icon: PrayIcon },
+  { key: 'members', label: '우리', icon: PeopleIcon },
 ]
+
+// 구 URL(?tab=home|meetings)과의 호환 — 북마크·푸시 링크가 깨지지 않게
+const LEGACY_TABS: Record<string, TabKey> = { home: 'today', meetings: 'today' }
 
 const CARD = 'rounded-2xl p-4 bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08]'
 
@@ -52,22 +56,28 @@ const GroupDetail = () => {
   const { data, isLoading } = useGroup(groupId)
   const group = data?.data
 
-  // 탭 상태는 URL(?tab=)에 실어 뒤로가기·새로고침에도 유지
-  const tabParam = searchParams.get('tab') as TabKey | null
-  const tab: TabKey = TABS.some((t) => t.key === tabParam) ? (tabParam as TabKey) : 'home'
+  // 탭 상태는 URL(?tab=)에 실어 뒤로가기·새로고침에도 유지 — 기본은 기도 피드
+  const rawTab = searchParams.get('tab')
+  const tabParam = (rawTab && LEGACY_TABS[rawTab]) || rawTab
+  const tab: TabKey = TABS.some((t) => t.key === tabParam) ? (tabParam as TabKey) : 'prayers'
   const setTab = (next: TabKey, extra?: Record<string, string>) => {
-    setSearchParams(next === 'home' ? {} : { tab: next, ...extra }, { replace: true })
+    setSearchParams(next === 'prayers' && !extra ? {} : { tab: next, ...extra }, { replace: true })
   }
   // 레일의 "기도 제목 작성하기" — 기도 탭으로 가면서 컴포저를 바로 연다
   const openComposeInPrayers = () => setTab('prayers', { compose: '1' })
 
   const [showCreate, setShowCreate] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [showIntercession, setShowIntercession] = useState(false)
 
-  // 홈 탭의 중보 릴레이·멤버 미리보기용 멤버 목록 (멤버 탭과 캐시 공유)
+  // 오늘 탭의 중보 릴레이·멤버 미리보기용 멤버 목록 (멤버 탭과 캐시 공유)
   const { data: membersData } = useGroupMembers(groupId, !!group?.is_member)
   const members = membersData?.data.items ?? []
   const myUsername = getCurrentUser().username
+
+  // 오늘의 체크인 상태 — 히어로와 캐시 공유 (기도 탭 상단 중보 배너·레일 CTA 판정용)
+  const { data: digestData } = useGroupDigest(groupId, !!group?.is_member)
+  const digest = digestData?.data
 
   // 오늘 자정(KST) 부터의 일정만 (이미 끝난 모임 숨김)
   const todayIso = useMemo(() => kstDateKey(new Date()), [])
@@ -101,7 +111,7 @@ const GroupDetail = () => {
     return (
       <div className="min-h-screen bg-[var(--app-canvas)] page-stage">
         <div className="max-w-md mx-auto bg-[var(--app-canvas)] border-x border-border-light dark:border-border-dark min-h-screen px-4 pt-14 space-y-3 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
-          <div className="h-52 rounded-[1.25rem] bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+        <div className="h-52 rounded-[1.25rem] bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
           <div className="h-32 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
           <div className="h-24 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
         </div>
@@ -127,13 +137,15 @@ const GroupDetail = () => {
     )
   }
 
-  // 홈이 아닌 탭에서는 방 헤더를 접는다 (기도 피드가 첫 화면에 들어오도록)
-  const compactHeader = !!group.is_member && tab !== 'home'
+  // 오늘 탭이 아닌 곳에서는 방 헤더를 접는다 (피드가 첫 화면에 들어오도록)
+  const compactHeader = !!group.is_member && tab !== 'today'
   const answered = group.answered_count ?? 0
   const total = group.prayer_count ?? 0
   const prayed = group.prayed_count ?? 0
   const answeredRate = total > 0 ? Math.round((answered / total) * 100) : 0
   const canShare = !!group.invite_code
+  // 중보 모드를 권할 조건 — 기도제목이 있고 아직 오늘 기도를 안 했을 때
+  const suggestIntercession = !!group.is_member && total > 0 && !!digest && !digest.my_checked_in
 
   const actionBtn =
     'w-10 h-10 rounded-full flex items-center justify-center text-gray-500 dark:text-white/55 border border-gray-200/70 dark:border-white/[0.08] bg-white/70 dark:bg-white/[0.03] hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-brand transition-colors'
@@ -203,21 +215,21 @@ const GroupDetail = () => {
                 <ShareIcon size={18} />
               </button>
             )}
-            {group.is_admin && (
+            {group.is_member && (
               <button
                 type="button"
                 onClick={() => setShowSettings(true)}
                 className={actionBtn}
-                aria-label="그룹 설정"
-                title="그룹 설정"
+                aria-label="기도방 설정"
+                title="기도방 설정"
               >
-                <MoreIcon size={20} />
+                <GearIcon size={18} />
               </button>
             )}
           </div>
         </div>
 
-        {/* 방 헤더(모바일) — 홈 밖(기도·모임·멤버)에서는 접어서 콘텐츠에 첫 화면을 내준다.
+        {/* 방 헤더(모바일) — 오늘 밖(기도·우리)에서는 접어서 콘텐츠에 첫 화면을 내준다.
             PC에서는 우측 레일의 방 카드가 이 역할을 맡는다 */}
         <div className={`px-4 flex items-center gap-3 lg:hidden ${compactHeader ? 'pb-2.5' : 'pb-3'}`}>
           <div
@@ -276,11 +288,18 @@ const GroupDetail = () => {
           </div>
         )}
 
-        {/* ── 홈 탭 ── */}
-        {(!group.is_member || tab === 'home') && (
+        {/* ── 오늘 탭 ── */}
+        {(!group.is_member || tab === 'today') && (
           <div className="pt-3 lg:pt-5">
-            {/* 하늘 히어로 + 주간 통계 + 7일 스트립 + 체크인 — 방의 오늘을 한 장면으로 */}
-            {group.is_member && <GroupHomeHero groupId={groupId} />}
+            {/* 얇은 하늘 히어로 — 오늘의 중보 CTA + 체크인 + 주간 요약 + 7일 스트립 */}
+            {group.is_member && (
+              <GroupHomeHero
+                groupId={groupId}
+                hasPrayers={total > 0}
+                onStartIntercession={() => setShowIntercession(true)}
+                onCompose={openComposeInPrayers}
+              />
+            )}
 
             <div className="lg:grid lg:grid-cols-2 lg:gap-x-3 lg:items-start lg:px-4">
               {/* 오늘의 성구 — 테마가 있는 방에만 */}
@@ -403,6 +422,74 @@ const GroupDetail = () => {
                   </Link>
                 </div>
               )}
+
+              {/* 다가오는 모임 — 구 '모임' 탭을 흡수한 자리. 대부분의 방에서 비어 있던
+                  탭 하나를 없애고, 있을 때만 오늘의 흐름 속에 자연스럽게 보인다 */}
+              {group.is_member && (
+                <div className={`mx-4 mb-3 lg:mx-0 lg:col-span-2 ${CARD}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-sm font-bold text-ink-strong inline-flex items-center gap-1.5">
+                      <CalendarIcon size={16} /> 다가오는 모임
+                    </h2>
+                    {group.is_admin && (
+                      <button
+                        type="button"
+                        onClick={() => setShowCreate(true)}
+                        className="text-xs px-2.5 py-1 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand font-bold"
+                      >
+                        ＋ 모임 만들기
+                      </button>
+                    )}
+                  </div>
+                  {meetingsLoading ? (
+                    <div className="text-xs text-gray-500 py-3">{t('loading')}</div>
+                  ) : meetings.length === 0 ? (
+                    <p className="text-xs text-gray-500 dark:text-white/45 py-2">
+                      아직 등록된 모임이 없어요
+                    </p>
+                  ) : (
+                    <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2 lg:space-y-0 lg:items-start">
+                      {meetings.map((m) => {
+                        // 모임 시각은 교회 현지(서울) 기준으로 고정 표시
+                        const start = parseKstDate(m.start_datetime)
+                        const dateStr = start.toLocaleDateString(undefined, {
+                          timeZone: 'Asia/Seoul',
+                          month: 'short',
+                          day: 'numeric',
+                          weekday: 'short',
+                        })
+                        const timeStr = start.toLocaleTimeString(undefined, {
+                          timeZone: 'Asia/Seoul',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                        return (
+                          <Link
+                            key={m.id}
+                            to={`/events/${m.id}`}
+                            className="block p-3 bg-white/60 dark:bg-white/[0.03] rounded-xl border border-gray-200/70 dark:border-white/[0.08] hover:border-[var(--brand-soft-strong)] transition-colors"
+                          >
+                            <div className="font-semibold text-sm text-ink-strong truncate">{m.title}</div>
+                            <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                              {dateStr} · {timeStr}
+                              {m.location ? ` · ${m.location}` : ''}
+                            </div>
+                            <div className="text-[11px] text-gray-400 mt-0.5 inline-flex items-center gap-1">
+                              <PersonIcon size={11} /> {m.attendance_count}
+                              {m.rsvp_deadline && (
+                                <span className="ml-2">
+                                  ⏰ {formatKstDateTime(m.rsvp_deadline, language)}
+                                  {parseKstDate(m.rsvp_deadline).getTime() <= nowMs && ' · 접수 마감'}
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -410,78 +497,29 @@ const GroupDetail = () => {
         {/* ── 기도 탭 ── */}
         {group.is_member && tab === 'prayers' && (
           <div className="lg:max-w-[640px] lg:mx-auto">
+            {/* 오늘 아직 기도하지 않았다면 — 피드 위에 중보 모드 입구 한 줄 */}
+            {suggestIntercession && (
+              <div className="px-4 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowIntercession(true)}
+                  className="w-full h-11 rounded-full flex items-center gap-2.5 pl-4 pr-1.5 bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-left active:scale-[0.99] transition-transform"
+                >
+                  <PrayIcon size={15} className="shrink-0 text-brand" />
+                  <span className="flex-1 min-w-0 truncate text-[12.5px] font-semibold text-brand">
+                    오늘의 중보 — 기도제목을 한 장씩 넘기며 기도해요
+                  </span>
+                  <span className="shrink-0 h-8 px-3.5 rounded-full bg-brand text-white text-[12px] font-bold inline-flex items-center">
+                    시작
+                  </span>
+                </button>
+              </div>
+            )}
             <GroupPrayerTab groupId={groupId} />
           </div>
         )}
 
-        {/* ── 모임 탭 ── */}
-        {group.is_member && tab === 'meetings' && (
-          <div className="px-4 pt-3 pb-4 lg:pt-5">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-sm font-bold text-ink-strong inline-flex items-center gap-1.5">
-                <CalendarIcon size={16} /> 다가오는 모임
-              </h2>
-              {group.is_admin && (
-                <button
-                  type="button"
-                  onClick={() => setShowCreate(true)}
-                  className="text-xs px-2.5 py-1 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand font-bold"
-                >
-                  ＋ 모임 만들기
-                </button>
-              )}
-            </div>
-            {meetingsLoading ? (
-              <div className="text-xs text-gray-500 py-3">{t('loading')}</div>
-            ) : meetings.length === 0 ? (
-              <div className="text-xs text-gray-500 py-6 text-center bg-white/60 dark:bg-white/[0.03] rounded-xl border border-dashed border-border-light dark:border-border-dark">
-                아직 등록된 모임이 없습니다
-              </div>
-            ) : (
-              <div className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2 lg:space-y-0 lg:items-start">
-                {meetings.map((m) => {
-                  // 모임 시각은 교회 현지(서울) 기준으로 고정 표시
-                  const start = parseKstDate(m.start_datetime)
-                  const dateStr = start.toLocaleDateString(undefined, {
-                    timeZone: 'Asia/Seoul',
-                    month: 'short',
-                    day: 'numeric',
-                    weekday: 'short',
-                  })
-                  const timeStr = start.toLocaleTimeString(undefined, {
-                    timeZone: 'Asia/Seoul',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                  return (
-                    <Link
-                      key={m.id}
-                      to={`/events/${m.id}`}
-                      className="block p-3 bg-white/80 dark:bg-card-dark rounded-xl border border-gray-200/70 dark:border-white/[0.08] hover:border-[var(--brand-soft-strong)] transition-colors"
-                    >
-                      <div className="font-semibold text-sm text-ink-strong truncate">{m.title}</div>
-                      <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                        {dateStr} · {timeStr}
-                        {m.location ? ` · ${m.location}` : ''}
-                      </div>
-                      <div className="text-[11px] text-gray-400 mt-0.5 inline-flex items-center gap-1">
-                        <PersonIcon size={11} /> {m.attendance_count}
-                        {m.rsvp_deadline && (
-                          <span className="ml-2">
-                            ⏰ {formatKstDateTime(m.rsvp_deadline, language)}
-                            {parseKstDate(m.rsvp_deadline).getTime() <= nowMs && ' · 접수 마감'}
-                          </span>
-                        )}
-                      </div>
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── 멤버 탭 ── */}
+        {/* ── 우리 탭 (멤버·초대·케어) ── */}
         {group.is_member && tab === 'members' && <GroupMembersTab group={group} />}
       </div>
 
@@ -539,6 +577,18 @@ const GroupDetail = () => {
               />
             </div>
           </div>
+
+          {/* 기본 랜딩이 기도 탭이라 PC에선 히어로가 안 보인다 — 레일에서 중보 모드로 */}
+          {suggestIntercession && (
+            <button
+              type="button"
+              onClick={() => setShowIntercession(true)}
+              className="w-full mt-4 h-11 rounded-xl bg-brand text-white text-[13px] font-bold shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] transition-all inline-flex items-center justify-center gap-1.5"
+            >
+              <PrayIcon size={16} />
+              오늘의 중보 시작하기
+            </button>
+          )}
         </section>
 
         {group.is_member && tab !== 'prayers' && (
@@ -616,6 +666,14 @@ const GroupDetail = () => {
       />
 
       {showSettings && <GroupSettingsSheet group={group} onClose={() => setShowSettings(false)} />}
+
+      {showIntercession && (
+        <IntercessionMode
+          groupId={groupId}
+          groupName={group.name}
+          onClose={() => setShowIntercession(false)}
+        />
+      )}
     </div>
   )
 }

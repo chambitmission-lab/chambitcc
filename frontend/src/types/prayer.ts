@@ -168,6 +168,11 @@ export interface PrayerGroup {
   visibility?: GroupVisibility
   prayer_time?: string | null  // "HH:MM"(KST) — 함께 기도 시간
   my_join_request_status?: 'pending' | 'approved' | 'rejected' | null  // 둘러보기용
+  // 내 그룹 리스트의 활동 신호 (my-groups에서만, 구버전 백엔드엔 없음 — 폴백 필수)
+  new_prayers_week?: number | null      // 최근 7일 새 기도 수
+  checkins_today?: number | null        // 오늘 체크인한 멤버 수
+  my_checked_in_today?: boolean | null  // 내가 오늘 체크인했는지
+  last_activity_at?: string | null      // 마지막 활동(기도 등록·체크인) 시각
 }
 
 // 초대 링크 랜딩용 미리보기

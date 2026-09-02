@@ -1,4 +1,8 @@
 // 내 그룹 리스트 페이지 — /groups
+// "상태가 보이는 리스트": 카드마다 활동 신호(새 기도·오늘 기도 인원·마지막 활동)를 실어
+// 매번 똑같아 보이던 목록에 다시 들어올 이유를 준다. 정렬은 최근 활동순(백엔드).
+// 만들기·참여 큰 카드 2장은 헤더의 + 버튼 하나로 접고, 그 자리를 그룹 카드에 양보.
+// 그룹이 없는 새가족에게는 둘러보기를 맨 위로 올린다.
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -9,11 +13,27 @@ import {
   useRequestJoinGroup,
 } from '../../hooks/useGroups'
 import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
+import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { isAuthenticated } from '../../utils/auth'
 import groupPixelArt from '../../assets/hero/group-pixel.png'
 import groupJoinPixelArt from '../../assets/hero/group-join-pixel.png'
 import type { PrayerGroup } from '../../types/prayer'
-import { GroupGlyph, PersonIcon, PrayIcon, TicketIcon } from './GroupIcons'
+import { CheckIcon, GroupGlyph, PersonIcon, PrayIcon, TicketIcon } from './GroupIcons'
+
+// 마지막 활동 상대 시각 — "방금 전 / N분 전 / N시간 전 / N일 전"
+const timeAgo = (iso?: string | null): string | null => {
+  if (!iso) return null
+  const diff = Date.now() - new Date(iso).getTime()
+  if (Number.isNaN(diff) || diff < 0) return null
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return '방금 전'
+  if (min < 60) return `${min}분 전`
+  const hour = Math.floor(min / 60)
+  if (hour < 24) return `${hour}시간 전`
+  const day = Math.floor(hour / 24)
+  if (day < 30) return `${day}일 전`
+  return null // 한 달 넘은 활동은 굳이 강조하지 않는다
+}
 
 const MyGroups = () => {
   const { t } = useLanguage()
@@ -24,6 +44,7 @@ const MyGroups = () => {
 
   const [showCreate, setShowCreate] = useState(false)
   const [showJoin, setShowJoin] = useState(false)
+  const [showAdd, setShowAdd] = useState(false)
 
   // 로그인 안 됨 — 합의 톤으로
   if (!loggedIn) {
@@ -56,77 +77,60 @@ const MyGroups = () => {
     )
   }
 
-  const adminCount = groups.filter(g => g.is_admin).length
-  const totalMembers = groups.reduce((sum, g) => sum + (g.member_count ?? 0), 0)
+  const noGroups = !isLoading && groups.length === 0
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 page-stage">
-      {/* lg+: 좁은 셸을 풀고 본문(모임 목록) + 우측 레일(만들기·참여·요약) 2단 */}
+      {/* lg+: 좁은 셸을 풀고 본문(모임 목록) + 우측 레일(만들기·참여) 2단 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       <div className="max-w-md mx-auto bg-[var(--app-canvas)] border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
-        {/* 헤더 */}
-        <header className="px-4 pt-5 pb-2">
-          <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
-            GROUPS
-          </p>
-          <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
-            {t('myGroups')}
-          </h1>
-          <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
-            {isLoading
-              ? t('groupsLoading')
-              : groups.length === 0
-                ? t('groupsNoneYet')
-                : t(groups.length === 1 ? 'groupsCountSummaryOne' : 'groupsCountSummary')
-                    .replace('{count}', String(groups.length))}
-          </p>
+        {/* 헤더 — 우측 + 버튼 하나로 만들기·참여를 모두 연다 */}
+        <header className="px-4 pt-5 pb-2 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
+              GROUPS
+            </p>
+            <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
+              {t('myGroups')}
+            </h1>
+            <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
+              {isLoading
+                ? t('groupsLoading')
+                : groups.length === 0
+                  ? t('groupsNoneYet')
+                  : t(groups.length === 1 ? 'groupsCountSummaryOne' : 'groupsCountSummary')
+                      .replace('{count}', String(groups.length))}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAdd(true)}
+            className="shrink-0 mt-1 w-11 h-11 rounded-full bg-brand text-white flex items-center justify-center shadow-[0_8px_24px_-8px_var(--brand-glow)] hover:shadow-[0_10px_28px_-6px_var(--brand-glow)] active:scale-95 transition-all lg:hidden"
+            aria-label="기도방 만들기 또는 참여하기"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          </button>
         </header>
 
-        {/* 통계 */}
-        {groups.length > 0 && (
-          <div className="px-4 pt-3 pb-1 flex gap-2 flex-wrap">
-            <StatChip label={t('groupsStatJoined')} value={groups.length} accent />
-            {adminCount > 0 && <StatChip label={t('groupsStatAdmin')} value={adminCount} />}
-            <StatChip label={t('groupsStatMembers')} value={totalMembers} />
-          </div>
-        )}
-
-        {/* 액션 카드 두 개 — lg에선 우측 레일의 같은 카드가 대신한다 */}
-        <div className="px-4 pt-4 pb-2 grid grid-cols-2 gap-2 lg:hidden">
-          <ActionCard
-            icon={
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            }
-            label={t('createGroup')}
-            sublabel={t('groupsCreateSub')}
-            variant="primary"
-            onClick={() => setShowCreate(true)}
-          />
-          <ActionCard
-            icon={<TicketIcon size={22} />}
-            label={t('joinGroup')}
-            sublabel={t('groupsJoinSub')}
-            variant="secondary"
-            onClick={() => setShowJoin(true)}
-          />
-        </div>
+        {/* 그룹이 없는 새가족 — 둘러보기가 첫 화면 (초대 없이도 공동체를 찾는다) */}
+        {noGroups && <DiscoverSection promoted />}
 
         {/* 그룹 리스트 */}
         <div className="px-4 pt-2 pb-4 space-y-2 lg:pt-4 lg:grid lg:grid-cols-2 lg:gap-2 lg:space-y-0 lg:items-start">
           {isLoading ? (
             <SkeletonRows />
           ) : groups.length === 0 ? (
-            <EmptyState />
+            <EmptyState onAdd={() => setShowAdd(true)} />
           ) : (
             groups.map(g => <GroupCard key={g.id} group={g} />)
           )}
         </div>
 
-        {/* 둘러보기 — 초대 없이도 공동체를 찾을 수 있는 디렉터리 */}
-        <DiscoverSection />
+        {/* 둘러보기 — 이미 방이 있는 사람에겐 목록 아래 디렉터리로 */}
+        {!noGroups && <DiscoverSection />}
       </div>
 
       {/* 우측 위젯 레일 (lg+) — 모임 만들기·참여를 항상 손 닿는 곳에 두고,
@@ -151,24 +155,83 @@ const MyGroups = () => {
           variant="secondary"
           onClick={() => setShowJoin(true)}
         />
-
-        {groups.length > 0 && (
-          <section className="rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm dark:shadow-none p-4">
-            <p className="mb-2.5 text-[11.5px] font-bold tracking-[0.05em] text-gray-500 dark:text-white/50">
-              한눈에
-            </p>
-            <div className="flex flex-col gap-1.5">
-              <RailStat label={t('groupsStatJoined')} value={groups.length} accent />
-              {adminCount > 0 && <RailStat label={t('groupsStatAdmin')} value={adminCount} />}
-              <RailStat label={t('groupsStatMembers')} value={totalMembers} />
-            </div>
-          </section>
-        )}
       </aside>
       </div>
 
+      {/* + 버튼 선택 시트 — 만들기 / 초대코드 참여 */}
+      {showAdd && (
+        <AddChooserSheet
+          onClose={() => setShowAdd(false)}
+          onCreate={() => {
+            setShowAdd(false)
+            setShowCreate(true)
+          }}
+          onJoin={() => {
+            setShowAdd(false)
+            setShowJoin(true)
+          }}
+        />
+      )}
+
       <CreateGroupModal isOpen={showCreate} onClose={() => setShowCreate(false)} />
       <JoinGroupModal isOpen={showJoin} onClose={() => setShowJoin(false)} />
+    </div>
+  )
+}
+
+// ── + 선택 시트 ────────────────────────────────────────
+const AddChooserSheet = ({
+  onClose,
+  onCreate,
+  onJoin,
+}: {
+  onClose: () => void
+  onCreate: () => void
+  onJoin: () => void
+}) => {
+  useModalBackButton(onClose)
+  return (
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full sm:max-w-sm bg-background-light dark:bg-card-dark rounded-t-3xl sm:rounded-3xl border border-black/[0.04] dark:border-white/[0.08] p-5 pb-8 sm:pb-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-[15px] font-bold text-ink-strong mb-4">기도방을 시작해볼까요?</p>
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={onCreate}
+            className="w-full flex items-center gap-3.5 p-4 rounded-2xl bg-brand text-left shadow-[0_10px_28px_-10px_var(--brand-glow)] active:scale-[0.99] transition-transform"
+          >
+            <span className="shrink-0 w-10 h-10 rounded-full bg-white/25 flex items-center justify-center text-white">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </span>
+            <span>
+              <span className="block text-white text-[14px] font-bold">새 기도방 만들기</span>
+              <span className="block text-white/80 text-[11.5px] mt-0.5">우리 모임의 기도방을 새로 열어요</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={onJoin}
+            className="w-full flex items-center gap-3.5 p-4 rounded-2xl bg-white/80 dark:bg-white/[0.04] border border-gray-200/70 dark:border-white/[0.08] text-left active:scale-[0.99] transition-transform"
+          >
+            <span className="shrink-0 w-10 h-10 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] flex items-center justify-center text-brand">
+              <TicketIcon size={20} />
+            </span>
+            <span>
+              <span className="block text-ink-strong text-[14px] font-bold">초대 코드로 참여하기</span>
+              <span className="block text-gray-500 dark:text-white/55 text-[11.5px] mt-0.5">받은 코드를 입력하고 바로 들어가요</span>
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -191,6 +254,13 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
   const memberCount = group.member_count ?? 0
   const memberLabel = t(memberCount === 1 ? 'groupMemberCountOne' : 'groupMemberCount')
     .replace('{count}', String(memberCount))
+
+  // 활동 신호 — 구버전 백엔드(필드 없음)에서는 기존 정보만 보인다
+  const hasSignals = group.new_prayers_week != null
+  const newPrayers = group.new_prayers_week ?? 0
+  const checkins = group.checkins_today ?? 0
+  const checkedIn = !!group.my_checked_in_today
+  const activity = timeAgo(group.last_activity_at)
 
   return (
   <Link
@@ -216,12 +286,22 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
       />
 
       <div className="relative z-10 flex items-center gap-3 pl-3.5 pr-3 py-3.5">
-        {/* 이모지 아바타 */}
-        <div
-          className="shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-white"
-          style={{ background: tileColor, boxShadow: `0 6px 18px -6px ${tileColor}88` }}
-        >
-          <GroupGlyph emoji={group.icon || '👥'} size={26} />
+        {/* 이모지 아바타 — 오늘 기도한 방은 우하단에 체크 뱃지 */}
+        <div className="relative shrink-0">
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center text-white"
+            style={{ background: tileColor, boxShadow: `0 6px 18px -6px ${tileColor}88` }}
+          >
+            <GroupGlyph emoji={group.icon || '👥'} size={26} />
+          </div>
+          {checkedIn && (
+            <span
+              className="absolute -right-1 -bottom-1 w-5 h-5 rounded-full bg-white dark:bg-card-dark border border-[var(--brand-soft-strong)] flex items-center justify-center text-brand"
+              title="오늘 기도했어요"
+            >
+              <CheckIcon size={11} />
+            </span>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -235,19 +315,31 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
               </span>
             )}
           </div>
-          {group.description && (
+
+          {/* 활동 신호 줄 — "지금 무슨 일이 있는지"가 카드에서 바로 보인다 */}
+          {hasSignals && (newPrayers > 0 || checkins > 0) ? (
+            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+              {newPrayers > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--brand-soft)] text-brand text-[10.5px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand" aria-hidden />
+                  새 기도 {newPrayers}
+                </span>
+              )}
+              {checkins > 0 && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-500 dark:text-white/55">
+                  <PrayIcon size={11} /> 오늘 {checkins}명 기도
+                </span>
+              )}
+            </div>
+          ) : group.description ? (
             <p className="text-[12px] text-gray-500 dark:text-white/55 truncate leading-[1.4] mb-1">
               {group.description}
             </p>
-          )}
+          ) : null}
+
           <div className="flex items-center gap-2.5 text-[11px] text-gray-400 dark:text-white/45">
             <span className="inline-flex items-center gap-1">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
+              <PersonIcon size={11} />
               {memberLabel}
             </span>
             {group.prayer_count > 0 && (
@@ -256,6 +348,12 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
                 <span className="inline-flex items-center gap-1">
                   <PrayIcon size={12} /> {group.prayer_count}
                 </span>
+              </>
+            )}
+            {activity && (
+              <>
+                <span className="text-gray-300 dark:text-white/20">·</span>
+                <span>{activity} 활동</span>
               </>
             )}
           </div>
@@ -282,7 +380,7 @@ const GroupCard = ({ group }: { group: PrayerGroup }) => {
   )
 }
 
-// ── Action Card ────────────────────────────────────────
+// ── Action Card (PC 레일 전용) ─────────────────────────
 interface ActionCardProps {
   icon: ReactNode
   label: string
@@ -365,8 +463,9 @@ const ActionCard = ({ icon, label, sublabel, variant, onClick }: ActionCardProps
 }
 
 // ── 둘러보기(디렉터리) ─────────────────────────────────
-// 공개·승인제 그룹 중 내가 아직 안 들어간 방 — 새가족도 초대 없이 공동체를 찾는다
-const DiscoverSection = () => {
+// 공개·승인제 그룹 중 내가 아직 안 들어간 방 — 새가족도 초대 없이 공동체를 찾는다.
+// promoted: 그룹이 없는 사람에게 목록보다 먼저 보여줄 때
+const DiscoverSection = ({ promoted }: { promoted?: boolean }) => {
   const navigate = useNavigate()
   const { data, isLoading } = useDiscoverGroups()
   const joinOpen = useJoinOpenGroup()
@@ -393,12 +492,12 @@ const DiscoverSection = () => {
   }
 
   return (
-    <div className="px-4 pt-2 pb-8">
+    <div className={promoted ? 'px-4 pt-3 pb-2' : 'px-4 pt-2 pb-8'}>
       <div className="flex items-center gap-1.5 mb-2 px-1">
         <span className="text-[13px]">🧭</span>
         <h2 className="text-[13px] font-bold text-ink-strong">둘러보기</h2>
         <span className="text-[11px] text-gray-400 dark:text-white/40">
-          함께할 수 있는 모임이에요
+          {promoted ? '초대 없이도 함께할 수 있어요' : '함께할 수 있는 모임이에요'}
         </span>
       </div>
       {isLoading ? (
@@ -460,48 +559,6 @@ const DiscoverSection = () => {
   )
 }
 
-// ── 통계 칩 ────────────────────────────────────────────
-// 레일용 통계 행 — 칩(가로 나열)과 달리 라벨·숫자를 좌우로 벌린 한 줄
-const RailStat = ({
-  label,
-  value,
-  accent,
-}: {
-  label: string
-  value: number
-  accent?: boolean
-}) => (
-  <div className="flex items-baseline justify-between gap-2">
-    <span className="text-[12.5px] font-semibold text-gray-500 dark:text-white/55">{label}</span>
-    <span
-      className={`text-[16px] font-bold tabular-nums ${accent ? 'text-brand' : 'text-ink-strong'}`}
-    >
-      {value}
-    </span>
-  </div>
-)
-
-const StatChip = ({
-  label,
-  value,
-  accent,
-}: {
-  label: string
-  value: number
-  accent?: boolean
-}) => (
-  <span
-    className={
-      accent
-        ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-[12px] font-semibold text-brand'
-        : 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.06] text-[12px] font-semibold text-gray-700 dark:text-white/75'
-    }
-  >
-    {label}
-    <span className="font-bold">{value}</span>
-  </span>
-)
-
 // ── Skeleton ───────────────────────────────────────────
 const SkeletonRows = () => (
   <div className="space-y-2">
@@ -515,7 +572,7 @@ const SkeletonRows = () => (
 )
 
 // ── Empty ──────────────────────────────────────────────
-const EmptyState = () => {
+const EmptyState = ({ onAdd }: { onAdd: () => void }) => {
   const { t } = useLanguage()
   return (
     <div className="mx-0 my-2 rounded-2xl bg-white/80 dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] py-10 px-6 text-center">
@@ -530,6 +587,13 @@ const EmptyState = () => {
         <br />
         {t('groupsEmptyLine2')}
       </p>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="mt-4 h-10 px-5 rounded-full bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-brand text-[12.5px] font-bold lg:hidden"
+      >
+        만들거나 참여하기
+      </button>
     </div>
   )
 }
