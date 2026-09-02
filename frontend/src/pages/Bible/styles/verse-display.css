@@ -747,6 +747,13 @@
   margin-left: 0;
 }
 
+/* hover/선택 시 번호 굵기 고정 — 목록 보기의 700→800 규칙이 인라인 번호 폭을 1px 바꾸면
+   뒤따르는 문단 전체가 재줄바꿈되어 절이 흔들린다. 색만 바뀌고 지오메트리는 그대로. */
+.bible-verse-item--flow:hover .bible-verse-number,
+.bible-verse-item--flow.verse-selected .bible-verse-number {
+  font-weight: 700;
+}
+
 [data-theme="dark"] .bible-verse-item--flow .bible-verse-number {
   color: rgba(147, 197, 253, 0.8);
 }
