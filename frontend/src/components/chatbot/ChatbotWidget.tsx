@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Sparkle, ThumbsUp, BookmarkSimple, ShareNetwork, Check } from '@phosphor-icons/react'
+import { Sparkle, Check } from '@phosphor-icons/react'
 import { EmojiText } from '../common/EmojiText'
 import { getChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
@@ -128,13 +128,9 @@ const BotAvatar = ({ src }: { src: string }) => (
 const BotBubble = ({
   reply,
   onAction,
-  onLike,
-  liked,
 }: {
   reply: ChatReply
   onAction: (a: ChatAction) => void
-  onLike: () => void
-  liked: boolean
 }) => (
   <div className="flex items-start gap-2.5 max-w-[94%]">
     <BotAvatar src={avatarFor(reply.expression)} />
@@ -163,44 +159,6 @@ const BotBubble = ({
           <div className="cb-msg-foot">
             <span className="cb-msg-foot-text">
               <EmojiText text="💜" size={14} /> 도움이 되었길 바라요
-            </span>
-            <span className="cb-msg-tools">
-              <button
-                type="button"
-                aria-label="도움이 됐어요"
-                aria-pressed={liked}
-                onClick={onLike}
-                className={`cb-tool ${liked ? 'is-on' : ''}`}
-              >
-                <ThumbsUp size={16} weight={liked ? 'fill' : 'regular'} />
-              </button>
-              <button
-                type="button"
-                aria-label="저장"
-                onClick={() => {
-                  const body = [reply.text, ...reply.verses.map((v) => `${v.text} (${v.reference})`)]
-                    .filter(Boolean)
-                    .join('\n')
-                  void navigator.clipboard?.writeText(body)
-                }}
-                className="cb-tool"
-              >
-                <BookmarkSimple size={16} />
-              </button>
-              <button
-                type="button"
-                aria-label="공유"
-                onClick={() => {
-                  const body = [reply.text, ...reply.verses.map((v) => `${v.text} (${v.reference})`)]
-                    .filter(Boolean)
-                    .join('\n')
-                  if (navigator.share) void navigator.share({ text: body }).catch(() => {})
-                  else void navigator.clipboard?.writeText(body)
-                }}
-                className="cb-tool"
-              >
-                <ShareNetwork size={16} />
-              </button>
             </span>
           </div>
         )}
@@ -238,7 +196,6 @@ const ChatbotWidget = () => {
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [liked, setLiked] = useState<Set<number>>(new Set())
   const greetedRef = useRef(false)
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -336,7 +293,6 @@ const ChatbotWidget = () => {
   const restart = useCallback(() => {
     if (loading) return
     setMsgs([])
-    setLiked(new Set())
     loadGreeting()
   }, [loading, loadGreeting])
 
@@ -498,15 +454,6 @@ const ChatbotWidget = () => {
                     key={m.id}
                     reply={m.reply}
                     onAction={onAction}
-                    liked={liked.has(m.id)}
-                    onLike={() =>
-                      setLiked((prev) => {
-                        const next = new Set(prev)
-                        if (next.has(m.id)) next.delete(m.id)
-                        else next.add(m.id)
-                        return next
-                      })
-                    }
                   />
                 ),
               )

@@ -483,7 +483,7 @@ html.dark .cb-verse-quote { background: rgba(255,255,255,0.05); }
 }
 html.dark .cb-commentary { background: rgba(255,255,255,0.05); }
 
-/* 카드 하단 — 한 줄 문구 + 도구 버튼 */
+/* 카드 하단 — 한 줄 문구 (좋아요·저장·공유 버튼은 불필요해 제거, 2026-09) */
 .cb-msg-foot {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   margin-top: 12px;
@@ -492,20 +492,6 @@ html.dark .cb-commentary { background: rgba(255,255,255,0.05); }
 }
 .cb-msg-foot-text { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #6b7386; }
 .cb-msg-foot-text svg { color: var(--brand); }
-.cb-msg-tools { display: flex; gap: 6px; flex-shrink: 0; }
-.cb-tool {
-  display: flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px;
-  border-radius: 10px;
-  background: #f1f4fa;
-  color: #5b6472;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
-}
-.cb-tool:hover { background: var(--brand-soft-strong); color: var(--brand); }
-.cb-tool:active { transform: scale(0.92); }
-.cb-tool.is-on { background: var(--brand-soft-strong); color: var(--brand); }
-html.dark .cb-tool { background: rgba(255,255,255,0.07); color: #cfd5e3; }
-html.dark .cb-tool.is-on { background: rgba(69,147,252,0.2); color: #8ec0f7; }
 
 /* 액션 칩 — 흰 카드 + 브랜드 텍스트 (아이콘은 EmojiText 글리프) */
 .cb-action {
