@@ -63,77 +63,161 @@
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-.reading-summary__row {
+/* 도넛 링 3개 — 전체(브랜드)·구약(딥 틸)·신약(로얄 퍼플). 링 색은 셋을 구분하는 정보색이라
+   장르 액센트 토큰을 재사용하고, 다크에서는 토큰 쪽에서 밝기가 함께 올라간다 */
+.reading-summary__rings {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.625rem;
+  gap: 0.5rem;
+  padding: 0.25rem 0 0.5rem;
 }
 
-.summary-stat {
+.summary-ring {
+  --ring-color: var(--brand);
+  position: relative;
+  width: 100%;
+  max-width: 6.25rem;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.summary-ring[data-stat="ot"] {
+  --ring-color: var(--genre-prophets);
+}
+
+.summary-ring[data-stat="nt"] {
+  --ring-color: var(--genre-revelation);
+}
+
+.summary-ring__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.summary-ring__track,
+.summary-ring__fill {
+  fill: none;
+  stroke-width: 7;
+}
+
+.summary-ring__track {
+  stroke: color-mix(in srgb, var(--ring-color) 14%, transparent);
+}
+
+[data-theme="dark"] .summary-ring__track {
+  stroke: color-mix(in srgb, var(--ring-color) 22%, transparent);
+}
+
+.summary-ring__fill {
+  stroke: var(--ring-color);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summary-ring__fill {
+    transition: none;
+  }
+}
+
+.summary-ring__center {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.28rem;
-  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.75rem;
+  text-align: center;
 }
 
-.summary-stat__label {
-  font-size: 0.7rem;
+.summary-ring__value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ring-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-ring__value small {
+  margin-left: 1px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.summary-ring__label {
+  font-size: 0.66rem;
   font-weight: 600;
   color: var(--ig-secondary-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-.summary-stat__value {
-  font-size: 1.35rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--ig-primary-text);
-  font-variant-numeric: tabular-nums;
+/* 전체 진행 막대 — 링은 비율만 말하므로 장 단위 절대량은 여기 한 줄로 */
+.reading-summary__bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-top: 0.25rem;
 }
 
-.summary-stat__value small {
-  margin-left: 1px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--ig-secondary-text);
-}
-
-.summary-stat__track {
+.reading-summary__track {
   position: relative;
   display: block;
-  height: 4px;
+  height: 8px;
   border-radius: 999px;
-  background: rgba(49, 130, 246, 0.14);
+  background: var(--brand-soft-strong);
   overflow: hidden;
 }
 
-[data-theme="dark"] .summary-stat__track {
+[data-theme="dark"] .reading-summary__track {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.summary-stat__fill {
+.reading-summary__fill {
   display: block;
   height: 100%;
   border-radius: 999px;
   background: var(--brand);
-  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.summary-stat__detail {
-  font-size: 0.66rem;
+.reading-summary__bar-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.reading-summary__bar-read {
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--brand);
+}
+
+.reading-summary__bar-left {
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--ig-secondary-text);
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 /* ── 성경 지도 (66권 히트맵) ─────────────────────────────────────
    한 권 = 한 칸, 진행률은 색 농도로만. 숫자를 넣으면 패턴이 사라지므로
-   정확한 값은 title/aria-label에만 싣는다. */
+   정확한 값은 title/aria-label에만 싣는다. 구약·신약은 접히는 카드 둘로 나뉜다. */
 .bible-map {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
   margin-top: 0.875rem;
   padding-top: 0.875rem;
   border-top: 1px solid var(--ig-border);
@@ -161,36 +245,149 @@
   }
 }
 
-.bible-map__group + .bible-map__group {
-  margin-top: 0.75rem;
+.bible-map__group {
+  --map-accent: var(--genre-prophets);
+  border: 1px solid var(--ig-border);
+  border-radius: 14px;
+  background: var(--ig-primary-background);
+  overflow: hidden;
+}
+
+.bible-map__group[data-testament="nt"] {
+  --map-accent: var(--genre-revelation);
+}
+
+[data-theme="dark"] .bible-map__group {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.bible-map__group-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.7rem 0.75rem;
+  border: 0;
+  background: transparent;
+  color: var(--ig-primary-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bible-map__group-icon {
+  display: grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 8px;
+  color: var(--map-accent);
+  background: color-mix(in srgb, var(--map-accent) 12%, transparent);
+  flex: none;
+}
+
+.bible-map__group-icon svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .bible-map__group-label {
-  display: block;
-  margin-bottom: 0.4rem;
-  font-size: 0.7rem;
-  font-weight: 700;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bible-map__group-frac {
+  margin-left: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--ig-secondary-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.bible-map__group-pct {
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--map-accent);
+  background: color-mix(in srgb, var(--map-accent) 12%, transparent);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.bible-map__group-chevron {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--ig-secondary-text);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  flex: none;
+}
+
+.bible-map__group-chevron svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.bible-map__group[data-open="true"] .bible-map__group-chevron {
+  transform: rotate(180deg);
 }
 
 .bible-map__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(2.05rem, 1fr));
-  gap: 3px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.3rem;
+  padding: 0 0.75rem 0.75rem;
+}
+
+/* PC에선 칸이 너무 커지지 않게 열을 늘린다 */
+@media (min-width: 640px) {
+  .bible-map__grid {
+    grid-template-columns: repeat(auto-fill, minmax(2.6rem, 1fr));
+  }
 }
 
 .bible-map__cell {
+  position: relative;
   aspect-ratio: 1;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: 6px;
-  font-size: 0.6rem;
+  border-radius: 10px;
+  font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: -0.04em;
   cursor: pointer;
   transition: transform 0.12s, border-color 0.12s;
+  animation: bible-map-cell-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes bible-map-cell-in {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bible-map__cell {
+    animation: none;
+  }
 }
 
 .bible-map__cell:active {
@@ -199,6 +396,24 @@
 
 .bible-map__cell:hover {
   border-color: var(--brand);
+}
+
+.bible-map__cell-abbr {
+  line-height: 1;
+}
+
+/* 완독 체크 — 칸 하단에 작게. 농도만으로는 "다 읽음"과 "거의 다 읽음"이 헷갈린다 */
+.bible-map__cell-check {
+  display: grid;
+  place-items: center;
+  width: 0.7rem;
+  height: 0.7rem;
+  opacity: 0.85;
+}
+
+.bible-map__cell-check svg {
+  width: 100%;
+  height: 100%;
 }
 
 /* 진행률 5단계 — 0(안 읽음)에서 4(완독)까지 브랜드 색 농도로 */
@@ -237,11 +452,14 @@
   color: #fff;
 }
 
+.bible-map__foot {
+  padding: 0 0.125rem;
+}
+
 .bible-map__legend {
   display: flex;
   align-items: center;
   gap: 3px;
-  margin-top: 0.75rem;
 }
 
 .bible-map__legend-swatch {
@@ -317,14 +535,11 @@
   border-radius: 999px;
 }
 
-.bib-skel--label {
-  width: 2rem;
-  height: 0.9rem;
-}
-
-.bib-skel--value {
-  width: 2.6rem;
-  height: 1.35rem; /* summary-stat__value 폰트 크기와 동일 */
+.bib-skel--ring {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
 }
 
 .bib-skel--detail {

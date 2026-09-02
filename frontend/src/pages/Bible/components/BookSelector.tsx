@@ -120,6 +120,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       errorBooks: '성경 책 목록을 불러오는데 실패했습니다. 백엔드 API를 확인해주세요.',
       noBooks: '성경 책 데이터가 없습니다.',
       summaryTitle: '읽기 진행',
+      remaining: '남은',
+      allComplete: '성경 전체를 완독했어요 🎉',
       whole: '전체',
       mapToggle: '지도',
       chapterUnit: '장',
@@ -143,6 +145,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       errorBooks: 'Failed to load bible books. Please check backend API.',
       noBooks: 'No bible book data available.',
       summaryTitle: 'Reading progress',
+      remaining: 'Remaining',
+      allComplete: 'Whole Bible complete 🎉',
       whole: 'Whole Bible',
       mapToggle: 'Map',
       chapterUnit: 'ch',
@@ -184,28 +188,38 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
 
   const hasAnyProgress = (progress?.overall?.read_verses ?? 0) > 0
 
-  // 전체/구약/신약 요약 — 장 기준을 주 지표로 쓰고, 장 집계가 없는 구버전 응답에서는 절 기준으로 폴백
+  // 전체/구약/신약 요약 — 장 기준을 주 지표로 쓰고, 장 집계가 없는 구버전 응답에서는 절 기준으로 폴백.
+  // 링 색은 셋을 구분하는 용도라 전체=브랜드, 구약=딥 틸(선지서 토큰), 신약=로얄 퍼플(계시록 토큰)로 고정
   const summaryStats = useMemo(() => {
     if (!progress) return []
-    const build = (label: string, src: ReadingProgressResponse['data']['overall']) => {
+    const build = (
+      id: 'all' | 'ot' | 'nt',
+      label: string,
+      src: ReadingProgressResponse['data']['overall']
+    ) => {
       const hasChapters = (src.total_chapters ?? 0) > 0
-      const rate = hasChapters
-        ? ((src.read_chapters ?? 0) / (src.total_chapters ?? 1)) * 100
-        : src.progress_rate
+      const read = hasChapters ? (src.read_chapters ?? 0) : src.read_verses
+      const total = hasChapters ? (src.total_chapters ?? 0) : src.total_verses
+      const rate = hasChapters ? (read / (total || 1)) * 100 : src.progress_rate
+      const unit = hasChapters ? t.chapterUnit : t.verseUnit
       return {
+        id,
         label,
         rate: Math.max(0, Math.min(100, rate)),
-        detail: hasChapters
-          ? `${(src.read_chapters ?? 0).toLocaleString()} / ${(src.total_chapters ?? 0).toLocaleString()}${t.chapterUnit}`
-          : `${src.read_verses.toLocaleString()} / ${src.total_verses.toLocaleString()}${t.verseUnit}`,
+        read,
+        total,
+        unit,
+        detail: `${read.toLocaleString()} / ${total.toLocaleString()}${unit}`,
       }
     }
     return [
-      build(t.whole, progress.overall),
-      build(t.oldTestament, progress.old_testament),
-      build(t.newTestament, progress.new_testament),
+      build('all', t.whole, progress.overall),
+      build('ot', t.oldTestament, progress.old_testament),
+      build('nt', t.newTestament, progress.new_testament),
     ]
   }, [progress, t.whole, t.oldTestament, t.newTestament, t.chapterUnit, t.verseUnit])
+
+  const overallStat = summaryStats[0]
 
   const handleMapSelect = useCallback(
     (book: BibleBook) => {
@@ -443,15 +457,19 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
             <span className="bib-skel bib-skel--title" />
             <span className="bib-skel bib-skel--toggle" />
           </div>
-          <div className="reading-summary__row">
+          <div className="reading-summary__rings">
             {[0, 1, 2].map(i => (
-              <div className="summary-stat" key={i}>
-                <span className="bib-skel bib-skel--label" />
-                <span className="bib-skel bib-skel--value" />
-                <span className="summary-stat__track" />
-                <span className="bib-skel bib-skel--detail" />
+              <div className="summary-ring" key={i}>
+                <span className="bib-skel bib-skel--ring" />
               </div>
             ))}
+          </div>
+          <div className="reading-summary__bar">
+            <span className="reading-summary__track" />
+            <span className="reading-summary__bar-meta">
+              <span className="bib-skel bib-skel--detail" />
+              <span className="bib-skel bib-skel--detail" />
+            </span>
           </div>
         </div>
       )}
@@ -470,21 +488,63 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
             </button>
           </div>
 
-          <div className="reading-summary__row">
-            {summaryStats.map(stat => (
-              <div className="summary-stat" key={stat.label}>
-                <span className="summary-stat__label">{stat.label}</span>
-                <span className="summary-stat__value">
-                  {pctLabel(stat.rate)}
-                  <small>%</small>
-                </span>
-                <span className="summary-stat__track">
-                  <span className="summary-stat__fill" style={{ width: `${gaugeWidth(stat.rate)}%` }} />
-                </span>
-                <span className="summary-stat__detail">{stat.detail}</span>
-              </div>
-            ))}
+          {/* 도넛 링 3개 — 게이지 세 줄보다 "얼마나 찼나"가 도형으로 먼저 읽힌다.
+              둘레 = 2π·r(38) ≈ 238.8, dashoffset으로 비율만큼 열어둔다 */}
+          <div className="reading-summary__rings">
+            {summaryStats.map(stat => {
+              const circumference = 2 * Math.PI * 38
+              const shown = stat.rate > 0 ? Math.max(stat.rate, 1.5) : 0
+              const offset = circumference * (1 - shown / 100)
+              return (
+                <div
+                  className="summary-ring"
+                  key={stat.id}
+                  data-stat={stat.id}
+                  role="img"
+                  aria-label={`${stat.label} ${pctLabel(stat.rate)}% · ${stat.detail}`}
+                >
+                  <svg className="summary-ring__svg" viewBox="0 0 88 88" aria-hidden="true">
+                    <circle className="summary-ring__track" cx="44" cy="44" r="38" />
+                    <circle
+                      className="summary-ring__fill"
+                      cx="44"
+                      cy="44"
+                      r="38"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={offset}
+                    />
+                  </svg>
+                  <span className="summary-ring__center" aria-hidden="true">
+                    <span className="summary-ring__value">
+                      {pctLabel(stat.rate)}
+                      <small>%</small>
+                    </span>
+                    <span className="summary-ring__label">{stat.label}</span>
+                  </span>
+                </div>
+              )
+            })}
           </div>
+
+          {/* 전체 진행 막대 — 링은 비율만 말하므로, 장 단위 절대량은 여기 한 줄로 */}
+          {overallStat && (
+            <div className="reading-summary__bar">
+              <span className="reading-summary__track" aria-hidden="true">
+                <span
+                  className="reading-summary__fill"
+                  style={{ width: `${gaugeWidth(overallStat.rate)}%` }}
+                />
+              </span>
+              <span className="reading-summary__bar-meta">
+                <span className="reading-summary__bar-read">{overallStat.detail}</span>
+                <span className="reading-summary__bar-left">
+                  {overallStat.total - overallStat.read > 0
+                    ? `${t.remaining} ${(overallStat.total - overallStat.read).toLocaleString()}${overallStat.unit}`
+                    : t.allComplete}
+                </span>
+              </span>
+            </div>
+          )}
 
           {showMap && (
             <BibleProgressMap books={books} infoMap={infoMap} onBookSelect={handleMapSelect} />
