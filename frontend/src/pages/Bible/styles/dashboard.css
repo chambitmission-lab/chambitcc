@@ -21,13 +21,48 @@
   transform: scale(0.99);
 }
 
-/* 이어 읽기 — 가장 자주 누르는 본연 기능: 화면의 핵심 CTA로 브랜드 강조를 집중시킨다 */
+/* 이어 읽기 — 가장 자주 누르는 본연 기능: 화면의 핵심 CTA로 브랜드 강조를 집중시킨다.
+   배경은 칭호 배경 시리즈의 양 캐릭터가 옥상에서 성경을 읽는 일러스트(docs/resume-card-bg-prompts.md).
+   그림의 주인공은 오른쪽 1/3에 있고 왼쪽은 하늘뿐이라, 왼쪽에서 그림 자체의 하늘색으로 페이드를 깔아
+   라벨·제목·본문이 그 위에 올라간다. 다크는 같은 장면의 밤 버전(창문·등불만 앰버로 켜진 남색). */
 .dash-card--resume {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 6.75rem;
   padding: 1rem;
   margin-bottom: 0.625rem;
-  background: var(--brand-soft-strong);
+  background:
+    linear-gradient(90deg, #f3f8ff 0%, rgba(243, 248, 255, 0.94) 36%, rgba(243, 248, 255, 0) 70%),
+    url('/images/bible/resume-light.webp') right 42% / cover no-repeat,
+    #f3f8ff;
   border-color: var(--brand-glow);
   box-shadow: 0 12px 32px -12px var(--brand-glow);
+}
+[data-theme="dark"] .dash-card--resume {
+  background:
+    linear-gradient(90deg, #091128 0%, rgba(9, 17, 40, 0.92) 36%, rgba(9, 17, 40, 0) 70%),
+    url('/images/bible/resume-dark.webp') right 42% / cover no-repeat,
+    #091128;
+  border-color: rgba(69, 147, 252, 0.28);
+  box-shadow: 0 12px 32px -12px rgba(69, 147, 252, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+/* 본문은 그림의 주인공(오른쪽 약 30%)을 침범하지 않도록 오른쪽 여백을 둔다.
+   우측 화살표는 그림 위 건물과 겹쳐 지저분해서 숨긴다 — 카드 전체가 버튼이라 손실 없음 */
+.dash-card--resume .dash-card__body {
+  padding-right: 16%;
+}
+.dash-card--resume .dash-card__chevron {
+  display: none;
+}
+[data-theme="dark"] .dash-card--resume .dash-card__title {
+  color: #fff;
+}
+[data-theme="dark"] .dash-card--resume .dash-card__text {
+  color: rgba(255, 255, 255, 0.72);
+}
+[data-theme="dark"] .dash-card--resume .dash-card__label {
+  color: #7db4ff;
 }
 
 /* 즐겨찾기 — 보조(secondary): 더 작고 차분하게 */
