@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
 import type { ReadingProgressResponse, ResumePosition } from '../../../api/bibleReading'
@@ -18,10 +18,6 @@ interface BookSelectorProps {
   progress?: ReadingProgressResponse['data']
   /** progress 쿼리가 로딩 중(로그인 상태 한정) — 요약 카드 자리에 스켈레톤을 세운다 */
   progressPending?: boolean
-  /** resume 쿼리가 로딩 중(로그인 상태 한정) — 최근 읽은 책 자리에 스켈레톤을 세운다 */
-  recentPending?: boolean
-  /** 최근 읽은 책(전역 최신 제외) — 상단 가로 슬라이더에 사용 */
-  recentBooks?: ResumePosition[]
 }
 
 type Testament = 'OT' | 'NT'
@@ -55,30 +51,13 @@ const NT_CATEGORIES: { id: string; label: string; labelEn: string; min: number; 
   { id: 'revelation', label: '요한계시록', labelEn: 'Revelation', min: 66, max: 66 },
 ]
 
-const formatRelativeShort = (iso: string, language: 'ko' | 'en'): string => {
-  const date = parseApiDate(iso)
-  const diffDay = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
-  if (language === 'en') {
-    if (diffDay <= 0) return 'Today'
-    if (diffDay === 1) return 'Yesterday'
-    if (diffDay < 7) return `${diffDay} days ago`
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  }
-  if (diffDay <= 0) return '오늘'
-  if (diffDay === 1) return '어제'
-  // "5일"만 쓰면 5일 전인지 5일째인지 읽히지 않는다
-  if (diffDay < 7) return `${diffDay}일 전`
-  // toLocaleDateString('ko-KR')은 "7. 20." 처럼 점이 붙어 날짜보다 오타로 보인다
-  return `${date.getMonth() + 1}월 ${date.getDate()}일`
-}
-
 /** 0보다 크면 최소 1%로 올려 표기 — 읽기 시작했는데 "0%"로 보이는 일을 막는다 */
 const pctLabel = (rate: number) => (rate > 0 ? Math.max(1, Math.round(rate)) : 0)
 
 /** 게이지 최소 두께 — 0.4% 같은 값도 눈에 보이게 */
 const gaugeWidth = (rate: number) => (rate > 0 ? Math.max(3, rate) : 0)
 
-const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progress, progressPending, recentBooks, recentPending }: BookSelectorProps) => {
+const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progress, progressPending }: BookSelectorProps) => {
   const { language } = useLanguage()
   const [testament, setTestament] = useState<Testament>('OT')
   const [filter, setFilter] = useState<string>('all')
@@ -112,30 +91,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     }
   }
 
-  // 최근 읽은 책 슬라이더 — 스크롤 여지가 있는 방향에만 엣지 페이드를 켠다
-  const recentScrollRef = useRef<HTMLDivElement>(null)
-  const [recentFade, setRecentFade] = useState({ left: false, right: false })
-
-  const updateRecentFade = useCallback(() => {
-    const el = recentScrollRef.current
-    if (!el) return
-    const left = el.scrollLeft > 4
-    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 4
-    setRecentFade(prev => (prev.left === left && prev.right === right ? prev : { left, right }))
-  }, [])
-
-  // 최근 읽은 책 — book_number로 실제 책을 찾아 onBookSelect에 resume까지 넘긴다
-  const recentItems = (recentBooks || [])
-    .map(pos => ({ pos, book: books?.find(b => b.book_number === pos.book_number) }))
-    .filter((x): x is { pos: ResumePosition; book: BibleBook } => !!x.book)
-    .slice(0, 8)
-
-  useEffect(() => {
-    updateRecentFade()
-    window.addEventListener('resize', updateRecentFade)
-    return () => window.removeEventListener('resize', updateRecentFade)
-  }, [recentItems.length, updateRecentFade])
-
   const infoMap = useMemo(() => buildBookInfoMap(books, progress), [books, progress])
 
   // 지금 읽는 책 — 가장 최근에 펼친 책. 여정 보기(BookJourneyPath)의 '지금 여기'와 같은 규칙이라
@@ -159,9 +114,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const texts = {
     ko: {
       selectBook: '책 선택',
-      recentTitle: '최근 읽은 책',
-      // 이어 읽기 '위치'임을 문구로 못 박는다 — 읽은 분량은 카드 하단 게이지가 담당
-      resumeFrom: (ch: number) => `${ch}장부터`,
       oldTestament: '구약',
       newTestament: '신약',
       loadingBooks: '성경 책 목록을 불러오는 중...',
@@ -185,8 +137,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     },
     en: {
       selectBook: 'Select Book',
-      recentTitle: 'Recently read',
-      resumeFrom: (ch: number) => `From ch ${ch}`,
       oldTestament: 'Old Testament',
       newTestament: 'New Testament',
       loadingBooks: 'Loading bible books...',
@@ -542,98 +492,8 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         </div>
       )}
 
-      {recentItems.length === 0 && recentPending && (
-        <div className="recent-strip" aria-hidden="true">
-          <div className="recent-strip__title">
-            <span className="bib-skel bib-skel--title" />
-          </div>
-          <div className="recent-scroll-wrap">
-            <div className="recent-scroll">
-              {[0, 1].map(i => (
-                <div className="recent-chip recent-chip--skel" key={i}>
-                  <span className="bib-skel bib-skel--chip-icon" />
-                  <span className="recent-chip__body">
-                    <span className="bib-skel bib-skel--chip-name" />
-                    <span className="bib-skel bib-skel--chip-meta" />
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-      {recentItems.length > 0 && (
-        <div className="recent-strip">
-          <h3 className="recent-strip__title">{t.recentTitle}</h3>
-          {/* 카드는 내용 폭으로 줄고, "더 있음"은 스크롤 여지가 있는 쪽의 엣지 페이드가 알린다
-              (예전엔 고정폭으로도 같은 힌트를 줬는데 역할이 겹쳐 카드 오른쪽만 비었다) */}
-          <div
-            className="recent-scroll-wrap"
-            data-fade-left={recentFade.left}
-            data-fade-right={recentFade.right}
-          >
-            <div className="recent-scroll" ref={recentScrollRef} onScroll={updateRecentFade}>
-              {recentItems.map(({ pos, book }) => {
-                // 게이지는 아래 책 그리드(renderBook)와 같은 규칙 — 채움은 실제 읽은 양,
-                // 이어 읽기 위치는 그보다 앞설 때만 연한 구간으로 이어 붙인다
-                const info = infoMap.get(book.book_number)
-                const rate = info?.rate ?? 0
-                const totalChapters = info?.totalChapters ?? book.chapter_count
-                const resumePct =
-                  rate < 100 && totalChapters > 0
-                    ? Math.max(0, Math.min(100, (pos.chapter / totalChapters) * 100))
-                    : 0
-                const aheadPct = resumePct > rate + 1 ? resumePct : 0
-                const isComplete = rate >= 100
-
-                return (
-                  <button
-                    key={book.id}
-                    type="button"
-                    className="recent-chip"
-                    onClick={() => onBookSelect(book.id, book.book_name_ko, pos)}
-                  >
-                    <span className="recent-chip__icon" data-complete={isComplete}>
-                      {/* 이 자리엔 원래 모든 카드가 똑같은 책 아이콘이었다(정보량 0).
-                          권 약칭은 바로 옆 책 이름과 같은 말이라 진행률로 채운다 —
-                          하단 게이지가 눈대중이면 이쪽은 정확한 수치. */}
-                      {isComplete ? (
-                        <span className="material-icons-round" aria-label={t.complete}>
-                          check
-                        </span>
-                      ) : (
-                        <span className="recent-chip__pct">
-                          {pctLabel(rate)}
-                          <small>%</small>
-                        </span>
-                      )}
-                    </span>
-                    <span className="recent-chip__body">
-                      <span className="recent-chip__name">
-                        {language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko}
-                      </span>
-                      <span className="recent-chip__meta">
-                        {t.resumeFrom(pos.chapter)} · {formatRelativeShort(pos.read_at, language)}
-                      </span>
-                    </span>
-                    {rate > 0 && (
-                      <span className="book-progress-track" aria-hidden="true">
-                        {aheadPct > 0 && (
-                          <span className="book-progress-ahead" style={{ width: `${aheadPct}%` }} />
-                        )}
-                        <span
-                          className="book-progress-fill"
-                          style={{ width: `${gaugeWidth(rate)}%` }}
-                        />
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* (구 "최근 읽은 책" 슬라이더 자리 — 이어 읽기 카드·통독표 마커와 역할이 겹쳐 제거.
+          책별 이어 읽기 진입은 통독표에서 책을 탭하면 동일하게 동작한다) */}
 
       {/* 구약/신약 탭 + 서브 카테고리 칩 — 한 패널로 묶어 "칩은 탭에 종속"임을 시각적으로 표현.
           탭 전환 시 key가 바뀌며 칩들이 순차적으로 슬라이드 인 된다. */}

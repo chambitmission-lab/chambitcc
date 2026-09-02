@@ -110,10 +110,10 @@ const BibleStudy = () => {
   const dt = dashTexts[language]
   const { data: bookmarkStats } = useBookmarkStats()
   const favoritesCount = bookmarkStats?.favorites_count ?? 0
-  // isPending까지 받는 이유: 요약 카드·최근 읽은 책이 데이터 도착 전엔 자리 없이 숨어 있다가
+  // isPending까지 받는 이유: 요약 카드가 데이터 도착 전엔 자리 없이 숨어 있다가
   // 늦게 나타나면 아래 목록이 밀려 새로고침처럼 보인다 — 로딩 동안 스켈레톤으로 자리를 잡는다.
   // 비로그인 시 쿼리가 disabled라 isPending이 영원히 true이므로 isLoggedIn()과 함께 판정해야 한다.
-  const { data: resumeData, isPending: resumePending } = useResumeReading(20, isLoggedIn())
+  const { data: resumeData } = useResumeReading(20, isLoggedIn())
   const { data: progressData, isPending: progressPending } = useReadingProgress(isLoggedIn())
 
   const resumeMap = useMemo(() => {
@@ -125,20 +125,6 @@ const BibleStudy = () => {
     return map
   }, [resumeData])
 
-  // 최근 읽은 책 슬라이더용 — 전역 최신(이어 읽기 카드)은 제외한 "다른 책" 목록.
-  // 구버전 백엔드는 장 벌크 읽음(동일 read_at) 시 같은 책을 여러 행으로 반환하므로
-  // book_number 기준 첫 항목(최신)만 남긴다.
-  const recentForSlider = useMemo(() => {
-    const list = resumeData?.recent_books ?? []
-    const latest = resumeData?.latest
-    const seen = new Set<number>()
-    return list.filter(p => {
-      if (seen.has(p.book_number)) return false
-      seen.add(p.book_number)
-      return !(latest && p.book_number === latest.book_number && p.verse_id === latest.verse_id)
-    })
-  }, [resumeData])
-  
   const selectedBookData = books?.find(b => b.id === selectedBookId)
 
   // 처음 만나는 성경(스토리 모드) 진행 — 로그인 시 서버 저장분을 공유 캐시로 읽는다
@@ -530,8 +516,6 @@ const BibleStudy = () => {
                     resumeMap={resumeMap}
                     progress={progressData}
                     progressPending={isLoggedIn() && progressPending}
-                    recentBooks={recentForSlider}
-                    recentPending={isLoggedIn() && resumePending}
                   />
                 </div>
 
