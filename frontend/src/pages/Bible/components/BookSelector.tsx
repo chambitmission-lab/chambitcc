@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
 import type { ReadingProgressResponse, ResumePosition } from '../../../api/bibleReading'
@@ -70,17 +70,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   // 목록 보기 전용 "안 읽은 책만" 필터 — 통독 후반부에 남은 책만 추려 보는 용도.
   // 세션 한정 상태로 둔다: 기기에 기억하면 다음 방문에 목록이 비어 보이는 이유를 찾기 어렵다
   const [unreadOnly, setUnreadOnly] = useState(false)
-
-  // 통독표 열 수 — 480px 이하는 2열(CSS 미디어쿼리와 동일 기준). 마지막 줄 빈 칸 수 계산에 쓴다
-  const [narrowGrid, setNarrowGrid] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 480px)').matches
-  )
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 480px)')
-    const onChange = (e: MediaQueryListEvent) => setNarrowGrid(e.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
 
   const handleViewModeChange = (mode: BookViewMode) => {
     setViewMode(mode)
@@ -283,32 +272,44 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       >
         {/* 지금 읽는 책은 표 전체에서 딱 한 칸 — 배지 하나로 시선을 먼저 잡는다 */}
         {isCurrent && !isComplete && <span className="book-cell__badge">{t.reading}</span>}
-        <span
-          className={`book-stamp${hasProgress ? ' inked' : ''}`}
-          style={{
-            ['--stamp-tilt' as string]: `${stampTilt}deg`,
-            ...(stampOpacity !== undefined && !isComplete ? { opacity: stampOpacity } : {}),
-          }}
-          aria-hidden="true"
-        >
-          {bookAbbrev(book.book_number, language)}
-        </span>
-        <span className="book-cell__name">
-          {language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko}
-        </span>
-        {/* 빈 칸도 줄 높이를 유지 — 표의 괘선 리듬이 흐트러지지 않게 */}
-        <span className="book-cell__meta" aria-hidden="true">
-          {metaText ?? ' '}
-        </span>
-        {/* 인장 농도는 눈대중이라 "얼마나 남았나"까지는 못 준다 — 칸 아래 게이지가 그 몫 */}
-        {hasProgress && (
-          <span className="book-progress-track" aria-hidden="true">
-            {aheadPct > 0 && (
-              <span className="book-progress-ahead" style={{ width: `${aheadPct}%` }} />
-            )}
-            <span className="book-progress-fill" style={{ width: `${gaugeWidth(rate)}%` }} />
+        <span className="book-cell__top">
+          {/* 인장은 옅은 원반(할로) 위에 — 카드 왼편의 시각적 닻 */}
+          <span className="book-stamp-halo" aria-hidden="true">
+            <span
+              className={`book-stamp${hasProgress ? ' inked' : ''}`}
+              style={{
+                ['--stamp-tilt' as string]: `${stampTilt}deg`,
+                ...(stampOpacity !== undefined && !isComplete ? { opacity: stampOpacity } : {}),
+              }}
+            >
+              {bookAbbrev(book.book_number, language)}
+            </span>
           </span>
-        )}
+          <span className="book-cell__text">
+            <span className="book-cell__name">
+              {language === 'en' && book.book_name_en ? book.book_name_en : book.book_name_ko}
+            </span>
+            {/* 빈 카드도 줄 높이를 유지 — 카드 높이가 들쭉날쭉해지지 않게 */}
+            <span className="book-cell__meta" aria-hidden="true">
+              {metaText ?? ' '}
+            </span>
+          </span>
+        </span>
+        {/* 인장 농도는 눈대중이라 "얼마나 남았나"까지는 못 준다 — 카드 하단 게이지+%가 그 몫.
+            안 읽은 책은 게이지를 그리지 않되 줄 높이는 남겨 카드 크기를 맞춘다 */}
+        <span className="book-cell__gauge" aria-hidden="true">
+          {hasProgress && (
+            <>
+              <span className="book-progress-track">
+                {aheadPct > 0 && (
+                  <span className="book-progress-ahead" style={{ width: `${aheadPct}%` }} />
+                )}
+                <span className="book-progress-fill" style={{ width: `${gaugeWidth(rate)}%` }} />
+              </span>
+              <span className="book-cell__pct">{pctLabel(rate)}%</span>
+            </>
+          )}
+        </span>
       </button>
     )
   }
@@ -711,20 +712,6 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
         ) : (
           <div className="books-grid">
             {filteredBooks.map(renderBook)}
-            {/* 마지막 줄이 다 안 찼을 때 — 장부처럼 빈 칸에 사선을 그어 "쓰지 않는 칸"으로 메운다.
-                구멍(괘선 배경색이 그대로 보이는 영역)으로 남기지 않기 위한 필러 */}
-            {(() => {
-              const cols = narrowGrid ? 2 : 3
-              const fillerCount = (cols - (filteredBooks.length % cols)) % cols
-              return Array.from({ length: fillerCount }).map((_, i) => (
-                <div
-                  key={`filler-${i}`}
-                  className="book-cell book-cell--filler"
-                  style={{ animationDelay: `${Math.min((filteredBooks.length + i) * 14, 320)}ms` }}
-                  aria-hidden="true"
-                />
-              ))
-            })()}
           </div>
         )}
       </div>

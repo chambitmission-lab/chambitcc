@@ -914,38 +914,32 @@
   }
 }
 
-/* ── 성경통독표 격자 ─────────────────────
- * 카드가 아니라 괘선으로 나뉜 한 장의 표. 색은 종이(먹)+인장 둘뿐이고,
- * 진행률은 게이지가 아니라 칸에 찍힌 인장의 농도로 쌓인다.
- * 인장은 원래 붉은 인주였지만 앱 전역이 토스 블루 단색 테마라 표 한 장만 붉게 튀었다 —
- * 도장 은유는 그대로 두고 색만 브랜드로 옮긴다(먹선도 따라서 차가운 슬레이트로).
- * 괘선은 gap 1px 사이로 배경색(--td-line)이 비치는 방식 — 어느 칸도 선을 겹쳐 갖지 않는다. */
+/* ── 책 카드 격자 ─────────────────────
+ * 책마다 독립된 카드 — 왼편에 인장(도장), 오른편에 이름·상태, 하단에 게이지+%.
+ * 색은 종이(먹)+인장 둘뿐이고 진행률은 인장의 농도와 게이지가 함께 말한다.
+ * 인장은 원래 붉은 인주였지만 앱 전역이 토스 블루 단색 테마라 붉게 튀었다 —
+ * 도장 은유는 그대로 두고 색만 브랜드로 옮긴다(먹선도 따라서 차가운 슬레이트로). */
 .books-grid {
-  --td-paper: #fbfcfe;                  /* 아주 옅은 푸른 기가 도는 종이 */
-  --td-line: rgba(58, 78, 110, 0.14);   /* 괘선 */
+  --td-paper: var(--ig-primary-background);
+  --td-line: var(--ig-border);
   --td-seal: var(--brand);              /* 인장 */
   --td-seal-soft: rgba(49, 130, 246, 0.10);
+  --td-halo: rgba(49, 130, 246, 0.09);  /* 인장 아래 원반 */
   --td-faint: rgba(58, 78, 110, 0.32);  /* 옅은 먹 — 빈 도장 자리 */
   --td-ink-dim: rgba(45, 62, 88, 0.45); /* 아직 펼치지 않은 책 이름 */
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--td-line);
-  border: 1px solid var(--td-line);
-  border-radius: 14px;
-  overflow: hidden;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.625rem;
 }
 
 [data-theme="dark"] .books-grid {
-  --td-paper: #161a21;                 /* 푸른 기가 도는 어두운 종이 */
-  --td-line: rgba(255, 255, 255, 0.09);
-  --td-seal: var(--brand);
   --td-seal-soft: rgba(69, 147, 252, 0.16);
+  --td-halo: rgba(69, 147, 252, 0.14);
   --td-faint: rgba(255, 255, 255, 0.3);
   --td-ink-dim: rgba(255, 255, 255, 0.38);
 }
 
-/* 필터 칩 선택 시(그리드 리마운트) 칸이 앞에서부터 순차적으로 떠오른다 — delay는 인라인 스타일.
+/* 필터 칩 선택 시(그리드 리마운트) 카드가 앞에서부터 순차적으로 떠오른다 — delay는 인라인 스타일.
    fill-mode는 backwards: 종료 후 keyframe이 :active 트랜지션(transform)을 덮어쓰지 않도록 */
 .books-grid .book-cell {
   animation: book-pop-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards;
@@ -977,34 +971,45 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.42rem;
-  /* 게이지가 들어갈 아래 여백까지 포함 — 칸이 숨 쉬어야 이름·수치가 한 덩어리로 안 뭉친다 */
-  min-height: 7.1rem;
-  padding: 0.85rem 0.45rem 1.05rem;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 0.8rem 0.8rem 0.75rem;
   background: var(--td-paper);
-  border: none;
-  border-radius: 0;
+  border: 1px solid var(--td-line);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   color: var(--ig-primary-text);
   font-family: inherit;
-  text-align: center;
+  text-align: left;
   cursor: pointer;
-  transition: transform 0.15s ease;
+  overflow: hidden;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* 탭 = 도장을 누르는 압력감 — 칸이 살짝 눌리며 인장색이 배어난다 */
+[data-theme="dark"] .book-cell {
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .book-cell:hover {
+    border-color: color-mix(in srgb, var(--brand) 45%, var(--td-line));
+    box-shadow: 0 4px 14px rgba(49, 130, 246, 0.1);
+  }
+}
+
+/* 탭 = 도장을 누르는 압력감 — 카드가 살짝 눌리며 인장색이 배어난다 */
 .book-cell::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 38%, var(--td-seal-soft), transparent 65%);
+  background: radial-gradient(circle at 22% 35%, var(--td-seal-soft), transparent 60%);
   opacity: 0;
   transition: opacity 0.35s ease;
   pointer-events: none;
 }
 
 .book-cell:active {
-  transform: scale(0.965);
+  transform: scale(0.97);
 }
 
 .book-cell:active::after {
@@ -1014,6 +1019,36 @@
 
 .book-cell:active .book-stamp {
   transform: rotate(var(--stamp-tilt, 0deg)) scale(1.1);
+}
+
+.book-cell__top {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+/* 인장 아래 원반 — 카드 왼편의 시각적 닻. 인장보다 한 겹 넓게 옅은 인주색 */
+.book-stamp-halo {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--td-halo);
+  flex: none;
+}
+
+.book-cell.is-complete .book-stamp-halo {
+  background: radial-gradient(circle, rgba(49, 130, 246, 0.2), var(--td-halo) 70%);
+}
+
+.book-cell__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  min-width: 0;
+  flex: 1;
 }
 
 /* 도장 — 빈 칸엔 점선 자리("비어 있다"가 아니라 "칸이 준비됐다"),
@@ -1042,7 +1077,7 @@
 }
 
 /* 완독 인장 — 켜진 등불로 승격(여정/목록 보기의 완독과 같은 문법을 30px로).
-   기존 통독표의 인장 기울기(--stamp-tilt)는 그대로 살려 "손으로 찍은 도장" 결을 유지한다 */
+   인장 기울기(--stamp-tilt)는 그대로 살려 "손으로 찍은 도장" 결을 유지한다 */
 .book-cell.is-complete .book-stamp {
   position: relative;
   border-style: solid;
@@ -1056,7 +1091,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.25),
     0 0 0 3px rgba(49, 130, 246, 0.09),
     0 0 12px 1px rgba(49, 130, 246, 0.26);
-  /* 칸 스태거(inline animation-delay)를 물려받아 순서대로 찍힌다.
+  /* 카드 스태거(inline animation-delay)를 물려받아 순서대로 찍힌다.
      전용 keyframes를 쓰는 이유: bjp-stamp는 transform:none으로 끝나 인장 기울기가 튄다 */
   animation: book-stamp-press 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   animation-delay: inherit;
@@ -1097,22 +1132,27 @@
 }
 
 .book-cell__name {
-  font-size: 0.86rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.25;
   word-break: keep-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* 숫자는 칸 아래 한 줄 — 빈 칸도 높이를 유지해 괘선 리듬이 흐트러지지 않게 */
+/* 상태 한 줄 — 빈 카드도 높이를 유지해 카드 크기가 들쭉날쭉하지 않게 */
 .book-cell__meta {
   min-height: 1em;
-  font-size: 0.64rem;
+  font-size: 0.68rem;
   font-weight: 600;
   line-height: 1.3;
   font-variant-numeric: tabular-nums;
   color: var(--ig-secondary-text);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .book-cell.is-complete .book-cell__meta {
@@ -1121,58 +1161,66 @@
 }
 
 /* 아직 펼치지 않은 책 — 지운 게 아니라 한 걸음 물러선 톤.
-   읽은 칸(진한 먹 + 인주 + 게이지)이 저절로 앞으로 나온다 */
+   읽은 카드(진한 먹 + 인주 + 게이지)가 저절로 앞으로 나온다 */
 .book-cell.is-untouched .book-cell__name {
   color: var(--td-ink-dim);
-  font-weight: 600;
+  font-weight: 700;
 }
 
-/* 지금 읽는 책 — 표 한 장에 딱 한 칸. 배지 하나로 충분하고,
-   테두리까지 두르면 괘선 위에 선이 하나 더 얹혀 표의 결이 끊긴다.
-   칸 바탕만 아주 옅게 들어 올려 배지를 받쳐 준다 */
+/* 지금 읽는 책 — 카드 무리에 딱 하나. 배지 + 브랜드 테두리로 받쳐 준다 */
 .book-cell.is-current {
+  border-color: color-mix(in srgb, var(--brand) 55%, var(--td-line));
   background:
-    radial-gradient(circle at 50% 30%, var(--brand-soft), transparent 70%),
+    radial-gradient(circle at 20% 30%, var(--brand-soft), transparent 65%),
     var(--td-paper);
 }
 
-/* "읽는 중" 배지 — 칸 위쪽 모서리에 얹는 작은 딱지 */
+/* "읽는 중" 배지 — 카드 위쪽 모서리에 얹는 작은 딱지 */
 .book-cell__badge {
   position: absolute;
-  top: 0.3rem;
-  right: 0.32rem;
-  padding: 0.08rem 0.32rem;
+  top: 0.45rem;
+  right: 0.5rem;
+  padding: 0.08rem 0.36rem;
   border-radius: 999px;
   background: var(--brand);
   color: #fff;
-  font-size: 0.56rem;
+  font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.5;
   white-space: nowrap;
 }
 
-/* 통독표 칸의 게이지 — 브랜드 색, 위치만 칸에 맞춘다 */
-.books-grid .book-cell .book-progress-track {
-  left: 0.55rem;
-  right: 0.55rem;
-  bottom: 0.45rem;
-  height: 3px;
+/* 카드 하단 게이지 줄 — 게이지 + % 한 줄. 안 읽은 카드는 비워 두되 높이는 유지 */
+.book-cell__gauge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1rem;
 }
 
-/* 마지막 줄 빈 칸 필러 — 장부의 빈 칸처럼 옅은 사선 하나로 "쓰지 않는 칸"임을 표시.
-   구멍이 아니라 표의 일부로 읽히게 종이색을 유지한다 */
-.book-cell--filler {
-  pointer-events: none;
-  background:
-    linear-gradient(
-      to top right,
-      transparent calc(50% - 0.5px),
-      var(--td-line) calc(50% - 0.5px),
-      var(--td-line) calc(50% + 0.5px),
-      transparent calc(50% + 0.5px)
-    ),
-    var(--td-paper);
+/* 전역 .book-progress-track은 absolute(검색 카드용) — 카드 안에서는 흐름 안의 막대로 되돌린다 */
+.books-grid .book-cell .book-progress-track {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  flex: 1;
+  height: 5px;
+  background: var(--brand-soft-strong);
+}
+
+[data-theme="dark"] .books-grid .book-cell .book-progress-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.book-cell__pct {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--td-seal);
+  font-variant-numeric: tabular-nums;
+  flex: none;
 }
 
 /* 목록 보기 전용 도구 줄 — "안 읽은 책만" 칩. 위 카테고리 칩 무리와 섞여 보이지 않게
@@ -1591,6 +1639,7 @@
 /* 반응형 */
 @media (max-width: 480px) {
   .books-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
   }
 }
