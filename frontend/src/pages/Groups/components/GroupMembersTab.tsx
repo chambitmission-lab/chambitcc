@@ -20,6 +20,7 @@ import type { CapsuleRecipient } from '../../../types/timeCapsule'
 import type { PrayerGroup, GroupMember } from '../../../types/prayer'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { TulipIcon } from '../GroupIcons'
+import { shareGroupInvite } from '../utils/shareInvite'
 
 interface GroupMembersTabProps {
   group: PrayerGroup
@@ -84,24 +85,7 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
     }
   }
 
-  const handleShare = async () => {
-    if (!group.invite_code || !inviteUrl) return
-    const text = `🙏 '${group.name}' 기도방에 초대해요!\n함께 기도제목을 나누고, 응답이 쌓이는 걸 지켜봐요.\n\n${inviteUrl}\n\n앱을 설치했다면 [내 그룹 → 초대 코드로 참여]에 코드 ${group.invite_code} 를 입력해도 돼요.`
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: group.name, text, url: inviteUrl })
-      } catch {
-        /* 사용자가 취소 */
-      }
-      return
-    }
-    try {
-      await navigator.clipboard.writeText(text)
-      showToast('초대 링크를 복사했어요. 카톡에 붙여넣어 보내주세요!', 'success')
-    } catch {
-      showToast('복사에 실패했어요. 초대 코드를 직접 알려주세요: ' + group.invite_code, 'error')
-    }
-  }
+  const handleShare = () => shareGroupInvite(group)
 
   const handleInviteUser = async (user: CapsuleRecipient) => {
     try {

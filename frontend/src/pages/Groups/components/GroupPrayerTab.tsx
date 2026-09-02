@@ -1,6 +1,7 @@
 // 그룹 기도 탭 — 홈으로 튕기지 않고 방 안에서 바로 기도 피드를 보고 쓴다
 // '은혜의 기록' 토글로 응답된 기도만 모아 그룹의 응답 역사를 돌아볼 수 있다
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import PrayerFeed from '../../Home/components/PrayerFeed'
 import PrayerDetail from '../../Home/components/PrayerDetail'
 import PrayerComposer from '../../Home/components/PrayerComposer'
@@ -90,6 +91,19 @@ const GroupPrayerTab = ({ groupId }: GroupPrayerTabProps) => {
   }
 
   const openComposer = () => requireAuth(() => setShowComposer(true))
+
+  // 방 홈 레일의 "기도 제목 작성하기"(?tab=prayers&compose=1)로 들어오면 컴포저를 바로 열고
+  // 파라미터는 지워서 새로고침·뒤로가기에 다시 열리지 않게 한다
+  const [searchParams, setSearchParams] = useSearchParams()
+  const composeParam = searchParams.get('compose')
+  useEffect(() => {
+    if (composeParam !== '1') return
+    const next = new URLSearchParams(searchParams)
+    next.delete('compose')
+    setSearchParams(next, { replace: true })
+    requireAuth(() => setShowComposer(true))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [composeParam])
 
   // 피드가 아직 얕을 때(1~2개)만 꼬리 초대 — 카드가 쌓이면 사라진다
   const showTailInvite =
