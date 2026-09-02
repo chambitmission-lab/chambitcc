@@ -7,14 +7,20 @@
 // 2. 조사 — 이름 뒤에 붙는 조사는 화이트리스트로만 인정한다. 목록에 없는
 //    꼬리는 다른 단어("바로잡다", "함께")로 보고 버린다. 누락은 칩이 안 달릴
 //    뿐이지만 오탐은 신뢰를 깎으므로, 화이트리스트 철학을 유지할 것.
+// 3. 활용형 — "긍휼히", "강퍅하게", "경외하는"처럼 어미가 붙는 말은 조사
+//    화이트리스트로 잡을 수 없다. 이런 표제어는 stems 에 어간을 적으면
+//    어간 뒤 한글 꼬리를 통째로 인정하고, 밑줄도 낱말 전체("긍휼히")에 긋는다.
+//    어간은 다른 낱말의 머리가 될 수 없는 것만 넣을 것("거하"는 되지만 "거"는 안 됨).
 
-export type GlossaryType = 'person' | 'place' | 'title' | 'term'
+export type GlossaryType = 'person' | 'place' | 'title' | 'term' | 'archaic' | 'loanword'
 
 export interface GlossaryEntry {
   /** 표제어 — 개역개정 본문 표기 */
   name: string
   /** 같은 대상의 다른 표기(아브람, 사래 등) — 매칭에 함께 쓴다 */
   alt?: string[]
+  /** 활용 어간 — 이 뒤에는 어떤 한글 꼬리든 인정 (name/alt 와 달리 조사 검사 없음) */
+  stems?: string[]
   type: GlossaryType
   /** 한 줄 설명 (존댓말, ~50자) */
   desc: string
@@ -87,7 +93,7 @@ const PARTICLES = new Set([
   '부터', '까지', '보다', '처럼', '같이', '조차', '마다',
   '이나', '나', '이며', '며', '이요', '요', '이라', '라', '이란',
   '아', '야', '이여', '여', '이든지', '든지', '이라도', '라도',
-  '에는', '에도', '에서는', '에서도', '에게는', '와는', '과는',
+  '에는', '에도', '에나', '에서는', '에서도', '에게는', '와는', '과는',
   '로는', '로도', '으로는', '으로도', '까지도', '만이', '밖에',
 ])
 
@@ -103,9 +109,15 @@ const isParticleTail = (tail: string, requireParticle: boolean): boolean => {
 }
 
 // ── 책별 매처 (정규식은 책마다 한 번만 조립해 캐시) ────────────────
+interface FormTarget {
+  entry: GlossaryEntry
+  /** true 면 어간 매칭 — 뒤따르는 한글 꼬리를 검사 없이 통째로 인정 */
+  stem: boolean
+}
+
 interface BookMatcher {
   regex: RegExp
-  byForm: Map<string, GlossaryEntry>
+  byForm: Map<string, FormTarget>
 }
 
 const matcherCache = new Map<number, BookMatcher | null>()
@@ -115,11 +127,15 @@ const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const getBookMatcher = (bookNumber: number): BookMatcher | null => {
   if (matcherCache.has(bookNumber)) return matcherCache.get(bookNumber)!
   if (!entries) return null
-  const byForm = new Map<string, GlossaryEntry>()
+  const byForm = new Map<string, FormTarget>()
   for (const entry of entries) {
     if (entry.books && !entry.books.includes(bookNumber)) continue
+    // 어간을 먼저 등록 — name 과 같은 철자("긍휼")면 어간 매칭이 이겨야 "긍휼히"가 잡힌다
+    for (const form of entry.stems ?? []) {
+      if (!byForm.has(form)) byForm.set(form, { entry, stem: true })
+    }
     for (const form of [entry.name, ...(entry.alt ?? [])]) {
-      if (!byForm.has(form)) byForm.set(form, entry)
+      if (!byForm.has(form)) byForm.set(form, { entry, stem: false })
     }
   }
   if (byForm.size === 0) {
@@ -150,13 +166,19 @@ export const matchGlossary = (bookNumber: number, text: string): GlossaryMatch[]
     const end = start + m[0].length
     // 단어 시작 경계 — 앞 글자가 한글이면 다른 단어의 일부("실롯" 속 "롯")
     if (start > 0 && HANGUL.test(text[start - 1])) continue
-    const entry = matcher.byForm.get(m[0])
-    if (!entry) continue
-    // 뒤따르는 한글 꼬리(조사 후보) 수집
+    const target = matcher.byForm.get(m[0])
+    if (!target) continue
+    const { entry, stem } = target
+    // 뒤따르는 한글 꼬리(조사·어미 후보) 수집
     let tailEnd = end
     while (tailEnd < text.length && HANGUL.test(text[tailEnd])) tailEnd++
-    if (!isParticleTail(text.slice(end, tailEnd), !!entry.requireParticle)) continue
-    out.push({ start, end, entry })
+    if (stem) {
+      // 어간 매칭 — "긍휼히", "거하시는" 낱말 전체에 밑줄
+      out.push({ start, end: tailEnd, entry })
+    } else {
+      if (!isParticleTail(text.slice(end, tailEnd), !!entry.requireParticle)) continue
+      out.push({ start, end, entry })
+    }
     matcher.regex.lastIndex = tailEnd
   }
   return out
@@ -192,4 +214,6 @@ export const GLOSSARY_TYPE_LABEL: Record<GlossaryType, string> = {
   place: '지명',
   title: '칭호·직분',
   term: '용어',
+  archaic: '어려운 말',
+  loanword: '원어 그대로',
 }

@@ -242,9 +242,9 @@ const ReaderSettings = () => {
             다크 테마에서 본문을 촛불처럼 따뜻한 색감으로 바꿔 밤에 눈이 덜 부셔요.
           </p>
 
-          {/* 인물·지명 사전 칩 — 본문 표제어의 옅은 점선 밑줄 */}
+          {/* 성경 사전 칩(인물·지명·어려운 말·원어) — 본문 표제어의 옅은 점선 밑줄 */}
           <div className="reader-settings__row">
-            <span className="reader-settings__label">인물·지명 사전</span>
+            <span className="reader-settings__label">성경 사전</span>
             <div className="reader-settings__seg">
               <button
                 type="button"
@@ -269,7 +269,8 @@ const ReaderSettings = () => {
             </div>
           </div>
           <p className="reader-settings__hint">
-            바로·라합 같은 인물·지명에 옅은 점선이 표시되고, 누르면 한 줄 설명이 열려요.
+            바로·라합 같은 인물·지명, 긍휼·기업 같은 어려운 말, 셀라·달리다굼 같은 원어에 옅은
+            점선이 표시되고, 누르면 한 줄 설명이 열려요.
           </p>
 
           <p className="reader-settings__preview" style={{

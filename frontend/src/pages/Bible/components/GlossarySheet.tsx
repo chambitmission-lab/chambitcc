@@ -10,6 +10,8 @@ const TYPE_ICON: Record<GlossaryEntry['type'], string> = {
   place: 'place',
   title: 'workspace_premium',
   term: 'menu_book',
+  archaic: 'spellcheck',
+  loanword: 'translate',
 }
 
 /**
