@@ -50,7 +50,7 @@ const MyGroups = () => {
   if (!loggedIn) {
     return (
       <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 page-stage">
-        <div className="max-w-md mx-auto bg-[var(--app-canvas)] border-x border-border-light dark:border-border-dark min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-2xl lg:mt-3 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-[60vh]">
+        <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-2xl lg:mt-3 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-[60vh]">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[var(--brand-soft-strong)] mb-5">
             <GroupGlyph emoji="👥" size={36} className="text-brand" />
           </div>
@@ -83,7 +83,7 @@ const MyGroups = () => {
     <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 page-stage">
       {/* lg+: 좁은 셸을 풀고 본문(모임 목록) + 우측 레일(만들기·참여) 2단 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-[var(--app-canvas)] border-x border-border-light dark:border-border-dark min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
         {/* 헤더 — 우측 + 버튼 하나로 만들기·참여를 모두 연다 */}
         <header className="px-4 pt-5 pb-2 flex items-start justify-between gap-3">
           <div>

@@ -213,7 +213,7 @@ const About = () => {
       {/* lg+: 좁은 셸을 풀고 랜딩형 1단 — 히어로 카드(우측에 한눈에 정보) 아래로
           섹션 카드들이 같은 폭으로 쌓인다. 우측 레일은 히어로 안으로 들어갔다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:min-w-0 lg:bg-transparent lg:dark:bg-transparent lg:shadow-none lg:border-0 lg:min-h-0">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:min-w-0 lg:bg-transparent lg:dark:bg-transparent lg:border-0 lg:min-h-0">
         {/* Hero — 사진을 온전히 보여주고 텍스트는 하단 스크림 위에 좌측 정렬 */}
         <div className="about-hero">
           {/* crossOrigin: CORS 응답이어야 서비스워커가 상태 코드를 보고 캐싱할 수 있다

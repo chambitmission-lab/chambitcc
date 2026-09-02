@@ -528,7 +528,7 @@ const Ministry = () => {
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       {/* lg+: 셸(배경·테두리·라운드)을 걷어낸다 — 안쪽이 전부 feed-card라 셸까지 두면
           스테이지 → 셸 → 헤더 띠 → 카드로 톤이 다른 층이 겹쳐 "상자 속 상자"가 된다 */}
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:bg-transparent lg:dark:bg-transparent lg:shadow-none lg:border-0 lg:min-h-0">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:bg-transparent lg:dark:bg-transparent lg:border-0 lg:min-h-0">
         {/* Header — 슬림하게: 제목(세리프)과 액션만.
             모바일은 sticky 바, lg+에선 배경·구분선 없는 페이지 타이틀 행으로 */}
         <div ref={headerSentinelRef} className="h-px -mb-px lg:hidden" aria-hidden="true" />

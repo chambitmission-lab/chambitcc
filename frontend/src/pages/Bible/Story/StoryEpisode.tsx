@@ -124,7 +124,7 @@ const StoryEpisode = () => {
       {/* lg+: 읽는 화면이라 본문 폭(620px)은 유지하고, 옆에 여정 목차 레일을 둔다.
           overflow-hidden은 주지 않는다 — 하단 CTA 바가 sticky로 붙어야 하기 때문 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen pb-32 lg:max-w-[620px] lg:flex-1 lg:min-w-0 lg:mx-0 lg:min-h-0 lg:pb-0 lg:rounded-3xl lg:border lg:shadow-none">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-32 lg:max-w-[620px] lg:flex-1 lg:min-w-0 lg:mx-0 lg:min-h-0 lg:pb-0 lg:rounded-3xl lg:border">
         {/* 헤더 */}
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
           <div className="flex items-center gap-3 px-4 h-14">

@@ -440,7 +440,7 @@ const Thanks = () => {
   // sticky 가 전역으로 죽어 있어, 이 상자를 만들어야 우측 레일 sticky 가 산다.
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] page-stage lg:h-[calc(100vh-56px)] lg:min-h-0 lg:overflow-y-auto">
-      <div className="max-w-md mx-auto min-h-screen bg-[var(--app-canvas)] border-x border-[var(--card-border)] lg:max-w-[1100px] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:min-h-0">
+      <div className="max-w-md mx-auto min-h-screen bg-[var(--app-canvas)] lg:max-w-[1100px] lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:min-h-0">
         {/* 헤더 — 제목 + 한 줄 부제 */}
         <div
           className="sticky top-14 lg:static lg:rounded-t-3xl z-10 backdrop-blur-xl border-b border-[var(--card-border)]"

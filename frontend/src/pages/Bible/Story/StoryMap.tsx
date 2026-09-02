@@ -103,7 +103,7 @@ const StoryMap = () => {
       {/* lg+: 본문 + 우측 레일 2단. 본문은 680px 고정 — 화(에피소드)를 잇는 세로 점선
           경로가 이 화면의 메타포라 2열로 쪼개거나 폭을 늘리면 길이 끊긴다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark min-h-screen pb-10 lg:w-[680px] lg:max-w-none lg:mx-0 lg:shrink-0 lg:min-h-0 lg:rounded-3xl lg:border lg:shadow-none lg:overflow-hidden">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:w-[680px] lg:max-w-none lg:mx-0 lg:shrink-0 lg:min-h-0 lg:rounded-3xl lg:border lg:overflow-hidden">
         {/* 헤더 */}
         <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
           <div className="flex items-center gap-3 px-4 h-14">

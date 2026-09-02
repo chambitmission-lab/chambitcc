@@ -469,7 +469,7 @@ const BibleStudy = () => {
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark screen-fit-minus-header page-stage">
       {/* 하단 고정 네비게이션에 가리지 않도록 컨테이너에 바 높이만큼 하단 여백.
           lg+: 모바일 프레임(max-w-md)을 풀어 전체 폭 캔버스로 (홈과 동일 문법) */}
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl border-x border-border-light dark:border-border-dark screen-fit-minus-header pb-bottomnav-safe lg:max-w-none lg:shadow-none lg:border-x-0 lg:bg-transparent dark:lg:bg-transparent lg:pb-16">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark screen-fit-minus-header pb-bottomnav-safe lg:max-w-none lg:bg-transparent dark:lg:bg-transparent lg:pb-16">
         {/* 모바일 헤더 — PC에선 각 뷰의 컬럼 안에서 렌더한다 */}
         <div className="lg:hidden">
           <BibleHeader tab={activeTab} />
