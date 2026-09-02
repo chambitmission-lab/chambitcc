@@ -126,7 +126,7 @@ const Greeting = () => {
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen page-stage">
       {/* lg+: 본문(읽기 폭 유지) + 우측 위젯 레일 2단 — /about 과 같은 규격 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-clip lg:min-h-0">
+        <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-clip lg:min-h-0">
           {/* Hero — 실사 하늘 카드 한 장 (라이트=계절의 낮, 다크=겨울 밤 은하수 고정).
               장식은 사진뿐, 주인공은 문장이다 (인물 사진은 아래 편지의 몫). */}
           <header className="gr-hero">

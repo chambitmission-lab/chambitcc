@@ -8,7 +8,6 @@ import { useBiblePlans, useTodayReadings } from '../../../hooks/useBiblePlan'
 import type { PlanSummary, TodayReading } from '../../../types/biblePlan'
 import { isAuthenticated } from '../../../utils/auth'
 import { accentGradient, gradientTextStyle, planHashtags } from './planVisuals'
-import { planCover, planCoverFocus } from './planCovers'
 import {
   CloudOffIcon,
   DoveIcon,
@@ -19,7 +18,6 @@ import {
   PlanGlyph,
   PeopleIcon as UsersIcon,
 } from './PlanIcons'
-import heroCover from '../../../assets/plans/bible-365.jpg'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import PersonalPlanSheet from './components/PersonalPlanSheet'
@@ -109,7 +107,7 @@ const PlanList = () => {
           하단 도크는 lg에서 숨고 좌측 레일이 섹션 내비를 맡는다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
       <BibleSideRail active="plans" />
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:pb-8 lg:overflow-hidden">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:pb-8 lg:overflow-hidden">
         {/* 헤더 — PC에선 좌측 레일이 내비를 담당하므로 뒤로가기 버튼은 모바일 전용 */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
@@ -127,20 +125,12 @@ const PlanList = () => {
           </h1>
         </div>
 
-        {/* Hero — 말씀 읽는 손 실사 + 좌→우 스크림 (홈 묵상 히어로와 같은 문법).
-            사진이 원래 푸른 톤이라 브랜드 블루와 자연스럽게 이어진다 */}
-        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[#0b1224] ring-1 ring-white/[0.08] shadow-[0_10px_34px_-12px_rgba(0,0,0,0.55)]">
-          <img
-            src={heroCover}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 h-full w-full object-cover object-[68%_32%]"
-          />
-          {/* 좌측을 짙게 — 텍스트 가독성 확보, 우측엔 펼친 성경이 비친다 */}
-          <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(9,16,34,0.92)_0%,rgba(9,16,34,0.66)_46%,rgba(9,16,34,0.22)_100%)]" />
-          {/* 하단 정돈 + 은은한 브랜드 틴트로 앱 톤과 묶는다 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(9,16,34,0.55)] via-transparent to-transparent" />
-          <div className="absolute inset-0 bg-[rgba(49,130,246,0.14)] mix-blend-multiply" />
+        {/* Hero — 브랜드 블루 그라데이션(사진 없음). 플랜마다 다른 수채 사진을 깔았더니
+            들어올 때마다 배경이 바뀌는 인상을 줘, 한 톤의 브랜드 캔버스로 고정했다 */}
+        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[linear-gradient(120deg,#0b1224_0%,#14306a_58%,#2563eb_125%)] ring-1 ring-white/[0.08] shadow-[0_10px_34px_-12px_rgba(0,0,0,0.55)]">
+          {/* 우상단 브랜드 글로우 + 좌하단 잔광 — 사진이 있던 자리를 빛으로 채운다 */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(96,165,250,0.42),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_105%,rgba(49,130,246,0.28),transparent_52%)]" />
 
           <div className="relative z-10">
             <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/65">
@@ -563,7 +553,7 @@ const Hashtags = ({ plan }: { plan: PlanSummary }) => {
   )
 }
 
-// 카드 비주얼(감성 그래픽): accent 그라데이션 + 글로우 + 이모지.
+// 카드 비주얼(감성 그래픽): accent 그라데이션 + 글로우 + 선화 표식.
 // size: feed = 격자 카드의 5:4 커버 / thumb = 가로형 카드의 정사각 썸네일.
 // (가로형에 쓰던 104px 세로 띠는 3:2 사진의 빈 여백만 잘려 '반쪽'으로 보여 폐기했다.
 //  사진은 온전한 비율로 보일 때만 사진으로 읽힌다.)
@@ -575,44 +565,9 @@ const PlanVisual = ({
   size: 'feed' | 'thumb'
 }) => {
   const grad = accentGradient(plan.accent)
-  const cover = planCover(plan.slug)
-  // 플랜 표식(선화) — 사진 위에선 좌상단 작은 유리 배지, 그라데이션 폴백에선 중앙 크게
-  const badgeGlyph = size === 'feed' ? 16 : 15
 
-  // 실제 커버 그림이 있으면 배경으로 — 수채 일러스트라 틴트는 아주 옅게만 얹는다
-  if (cover) {
-    const thumb = size === 'thumb'
-    // 3:2 원본을 5:4로 자르면 폭의 17%만 잘려 왼쪽 빈 안개가 그대로 남는다.
-    // 초점을 기준으로 살짝 당겨(zoom) 주인공이 카드를 채우게 한다.
-    const focus = planCoverFocus(plan.slug)
-    return (
-      <div className="relative h-full w-full overflow-hidden bg-gray-100 dark:bg-white/5">
-        <img
-          src={cover}
-          alt=""
-          loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{
-            objectPosition: focus,
-            transform: `scale(${thumb ? 1.15 : 1.3})`,
-            transformOrigin: focus,
-          }}
-        />
-        {/* 브랜드 틴트(블루, 저채도) — 그림마다 다른 색감을 하나의 톤으로 묶는다 */}
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(49,130,246,0.14),rgba(96,165,250,0.06))] mix-blend-multiply" />
-        {/* 이모지 유리 배지 — 그림 위에 플랜 정체성을 한 점 남긴다.
-            배경이 옅은 수채라 어둡게 누르는 대신 밝은 유리로 띄운다.
-            썸네일(52px)에는 배지를 얹을 자리가 없어 사진만 보여준다 */}
-        {!thumb && (
-          <span className="absolute left-2 top-2 inline-flex items-center justify-center rounded-full w-7 h-7 bg-white/75 backdrop-blur-md ring-1 ring-white/70 shadow-[0_2px_8px_-2px_rgba(16,32,64,0.28)] text-brand">
-            <PlanGlyph emoji={plan.emoji} size={badgeGlyph} />
-          </span>
-        )}
-      </div>
-    )
-  }
-
-  // ── 폴백: 커버 사진이 없는 플랜은 기존 accent 그라데이션 + 이모지 ──
+  // accent 그라데이션 + 선화 표식. (플랜별 수채 커버 사진은 화면마다 배경이 바뀌는
+  // 인상을 줘 폐기했다 — 사진 대신 블루 패밀리 안에서만 톤을 변주한다)
   // 격자(feed)에서는 오브젝트를 작게 두고 그라데이션 여백을 넉넉히 남긴다
   const mainGlyph = size === 'feed' ? 34 : 24
   const markGlyph = size === 'feed' ? 78 : 46

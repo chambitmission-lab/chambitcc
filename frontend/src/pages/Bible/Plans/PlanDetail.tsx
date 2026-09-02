@@ -19,7 +19,6 @@ import type { PlanDay } from '../../../types/biblePlan'
 import { isAdmin, isAuthenticated } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import { accentGradient } from './planVisuals'
-import { planCover } from './planCovers'
 import DayCard from './components/DayCard'
 import ReflectionSheet from './components/ReflectionSheet'
 import ReflectionEditModal from './components/ReflectionEditModal'
@@ -47,9 +46,6 @@ const GROUP_THRESHOLD = 60
 
 // 통계 숫자 — 자릿수가 바뀌어도 흔들리지 않게 고정폭 숫자
 const numStyle: CSSProperties = { fontVariantNumeric: 'tabular-nums' }
-
-// 히어로 커버 — 오른쪽은 그대로, 왼쪽(글이 놓이는 쪽)으로 갈수록 투명해지는 마스크
-const HERO_MASK = 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.35) 26%, #000 62%)'
 
 // 'YYYY-MM-DD' → 'YYYY.MM.DD' (서버가 KST 달력일을 주므로 Date 변환 없이 문자열만 다듬는다)
 const formatPlanDate = (value?: string | null): string | null => {
@@ -99,7 +95,6 @@ const PlanDetail = () => {
   const admin = isAdmin()
 
   const grad = accentGradient(plan?.accent)
-  const cover = planCover(plan?.slug)
   const progress = plan?.progress
   const subscribed = !!progress?.subscribed
   // 개인 플랜(나만의 플랜) — AI 묵상 없음, 참여자 섹션·초대 링크·소유자 메뉴가 달라진다
@@ -438,28 +433,10 @@ const PlanDetail = () => {
   // 365일짜리 일정을 한참 내려도 진행률과 '오늘 분량 읽기'가 옆에 남는 게 이 화면의 핵심이다.
   const renderPlanIntro = (cls: string) => (
     <div className={cls}>
-      {/* Hero — 왼쪽은 글, 오른쪽은 커버 사진.
-          사진 전체를 흐리게 덮으면 얼룩처럼 보여서, 오른쪽 절반에만 두고
-          왼쪽으로 갈수록 카드 바탕색에 녹아 사라지게(마스크+베일) 만든다. */}
+      {/* Hero — 옅은 브랜드 그라데이션 바탕. (오른쪽에 커버 사진을 두던 구성은
+          플랜마다 배경이 바뀌어 산만하다는 피드백으로 폐기) */}
       <section className="relative overflow-hidden rounded-3xl mx-4 mt-4 min-h-[152px] bg-white dark:bg-card-dark shadow-[inset_0_0_0_1px_rgba(255,255,255,0.6),0_10px_30px_-18px_rgba(16,32,64,0.5)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.07),0_10px_30px_-18px_rgba(0,0,0,0.6)]">
-        {cover ? (
-          <div className="absolute inset-y-0 right-0 w-[42%] lg:w-[36%] pointer-events-none" aria-hidden>
-            <img
-              src={cover}
-              alt=""
-              className="h-full w-full object-cover object-[72%_50%] dark:opacity-85"
-              style={{
-                maskImage: HERO_MASK,
-                WebkitMaskImage: HERO_MASK,
-              }}
-            />
-            {/* 글이 시작되는 왼쪽 끝은 카드 바탕색으로 완전히 덮어 가독성을 지킨다 */}
-            <div className="absolute inset-0 dark:hidden bg-[linear-gradient(to_right,#fff_0%,rgba(255,255,255,0.55)_30%,transparent_72%)]" />
-            <div className="absolute inset-0 hidden dark:block bg-[linear-gradient(to_right,#201f1f_0%,rgba(32,31,31,0.55)_30%,transparent_72%)]" />
-          </div>
-        ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-sky-50 dark:from-[#172554]/60 dark:to-[#1e3a8a]/35" />
-        )}
 
         <button
           type="button"
@@ -480,7 +457,7 @@ const PlanDetail = () => {
           )}
         </button>
 
-        <div className={`relative z-10 p-5 ${cover ? 'pr-[36%] lg:pr-[28%]' : ''}`}>
+        <div className="relative z-10 p-5">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-[var(--brand-soft-strong)] text-[10.5px] font-bold text-brand">
               <BookOpenIcon size={12} />

@@ -7,7 +7,6 @@ import { useCreateRoom, useJoinRoom, useMyRooms } from '../../hooks/useMeditatio
 import type { RoomSummary } from '../../types/meditationRoom'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
-import heroCover from '../../assets/plans/nt-120.jpg'
 import { CheckIcon, PartyIcon, RoomGlyph } from './RoomIcons'
 import { UsersIcon } from '../../components/icons/ActionIcons'
 
@@ -40,7 +39,7 @@ const RoomList = () => {
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
       {/* lg+: 좁은 셸을 풀고 본문(내 묵상방) + 우측 레일(만들기·참여·요약) 2단 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
@@ -58,19 +57,11 @@ const RoomList = () => {
           </h1>
         </div>
 
-        {/* Hero — 운해 위 새벽 봉우리 실사 + 좌→우 스크림 (플랜 히어로와 같은 문법) */}
-        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[#0b1224] ring-1 ring-white/[0.08] shadow-[0_10px_34px_-12px_rgba(0,0,0,0.55)]">
-          <img
-            src={heroCover}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 h-full w-full object-cover object-[75%_40%]"
-          />
-          {/* 좌측을 짙게 — 텍스트 가독성 확보, 우측엔 새벽 하늘이 비친다 */}
-          <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(9,16,34,0.9)_0%,rgba(9,16,34,0.62)_46%,rgba(9,16,34,0.2)_100%)]" />
-          {/* 하단 정돈 + 은은한 브랜드 틴트로 앱 톤과 묶는다 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(9,16,34,0.5)] via-transparent to-transparent" />
-          <div className="absolute inset-0 bg-[rgba(49,130,246,0.12)] mix-blend-multiply" />
+        {/* Hero — 브랜드 블루 그라데이션 (플랜 히어로와 같은 문법, 사진 없음) */}
+        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[linear-gradient(120deg,#0b1224_0%,#14306a_58%,#2563eb_125%)] ring-1 ring-white/[0.08] shadow-[0_10px_34px_-12px_rgba(0,0,0,0.55)]">
+          {/* 우상단 브랜드 글로우 + 좌하단 잔광 — 사진이 있던 자리를 빛으로 채운다 */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(96,165,250,0.42),transparent_55%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_105%,rgba(49,130,246,0.28),transparent_52%)]" />
 
           <div className="relative z-10">
             <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/70">

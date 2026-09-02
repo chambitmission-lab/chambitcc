@@ -93,7 +93,7 @@ const GroupDetail = () => {
   if (!loggedIn) {
     return (
       <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 page-stage">
-        <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-[60vh]">
+        <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-[60vh]">
           <p className="text-gray-600 dark:text-gray-300 mb-4">{t('loginRequired')}</p>
           <button
             type="button"
@@ -110,7 +110,7 @@ const GroupDetail = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--app-canvas)] page-stage">
-        <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen px-4 pt-14 space-y-3 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0">
+        <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen px-4 pt-14 space-y-3 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
         <div className="h-52 rounded-[1.25rem] bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
           <div className="h-32 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
           <div className="h-24 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
@@ -122,7 +122,7 @@ const GroupDetail = () => {
   if (!group) {
     return (
       <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100 page-stage">
-        <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-[60vh]">
+        <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen flex flex-col items-center justify-center px-6 py-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-[60vh]">
           <span className="text-5xl mb-4">😢</span>
           <p className="text-gray-600 dark:text-gray-300 mb-5">기도방을 찾을 수 없어요</p>
           <button
@@ -186,7 +186,7 @@ const GroupDetail = () => {
       {/* lg+: 좁은 셸을 풀고 본문(탭 콘텐츠) + 우측 레일(방 정보) 2단.
           방 정체성과 근황이 어느 탭에서든 옆에 남는다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
-      <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:overflow-hidden lg:min-h-0 lg:bg-surface">
+      <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0 lg:bg-surface">
         {/* ── 상단 바 ── 모바일: 뒤로 + 액션 / PC: 뒤로 + 탭(인라인) + 액션 */}
         <div className="flex items-center justify-between gap-2 pl-1 pr-3 lg:pl-3 lg:pr-4 lg:h-16 lg:border-b lg:border-border-light dark:lg:border-border-dark">
           <button
