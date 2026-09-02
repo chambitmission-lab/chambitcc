@@ -7,6 +7,7 @@ import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
 import WelcomeScene from './WelcomeScene'
+import { RECOMMENDED } from './recommended'
 import avatarDefault from './img/default.webp'
 import avatarTalking from './img/talking.webp'
 import avatarThinking from './img/thinking.webp'
@@ -254,9 +255,8 @@ const ChatbotWidget = () => {
     ])
   }, [])
 
-  // 처음 열 때 한 번만 인사 + 메뉴를 받아온다
-  useEffect(() => {
-    if (!open || greetedRef.current) return
+  // 인사 + 메뉴 — 처음 열 때, 그리고 "새로 시작"에서 다시 받아온다
+  const loadGreeting = useCallback(() => {
     greetedRef.current = true
     setLoading(true)
     getChatbotGreeting()
@@ -273,7 +273,12 @@ const ChatbotWidget = () => {
         ]),
       )
       .finally(() => setLoading(false))
-  }, [open, appendReplies])
+  }, [appendReplies])
+
+  useEffect(() => {
+    if (!open || greetedRef.current) return
+    loadGreeting()
+  }, [open, loadGreeting])
 
   // 외부(⌘K 팔레트 등)에서 "참비에게 물어보기" — 패널을 열고, 인사가 끝나면 질문을 보낸다
   const pendingRef = useRef<string | null>(null)
@@ -326,6 +331,14 @@ const ChatbotWidget = () => {
     const el = listRef.current
     if (el) el.scrollTop = welcomeReply ? 0 : el.scrollHeight
   }, [msgs, loading, open, welcomeReply])
+
+  // 새로 시작 — 대화를 비우고 인사(웰컴 화면)부터 다시 받는다
+  const restart = useCallback(() => {
+    if (loading) return
+    setMsgs([])
+    setLiked(new Set())
+    loadGreeting()
+  }, [loading, loadGreeting])
 
   // 뒤로가기(안드로이드/브라우저)는 앱 종료·페이지 이동 대신 패널만 닫는다
   useModalBackButton(() => setOpen(false), open)
@@ -433,19 +446,35 @@ const ChatbotWidget = () => {
               <span className="cb-spark" aria-hidden>
                 <Sparkle size={20} weight="duotone" />
               </span>
-              <p className="m-0 text-[18px] font-extrabold tracking-tight text-ink">참비</p>
+              <p className="cb-title m-0">참비</p>
               <span className="cb-online">온라인</span>
             </div>
-            <button
-              type="button"
-              aria-label="챗봇 닫기"
-              onClick={() => setOpen(false)}
-              className="cb-close focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
-            >
-              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
-                <path d="M2.5 2.5l11 11M13.5 2.5l-11 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-1.5">
+              {!welcomeReply && (
+                <button
+                  type="button"
+                  aria-label="대화 새로 시작"
+                  title="새로 시작"
+                  onClick={restart}
+                  className="cb-hbtn focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                    <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                    <path d="M13.6 2.6v3.2h-3.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+              <button
+                type="button"
+                aria-label="챗봇 닫기"
+                onClick={() => setOpen(false)}
+                className="cb-hbtn focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+              >
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path d="M2.5 2.5l11 11M13.5 2.5l-11 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* 메시지 목록 */}
@@ -487,7 +516,7 @@ const ChatbotWidget = () => {
 
           {/* 입력창 */}
           <form
-            className="cb-inputbar flex items-center gap-2 px-3 py-2.5"
+            className={`cb-inputbar flex items-center gap-2 px-3 py-2.5 ${welcomeReply ? 'is-welcome' : ''}`}
             onSubmit={(e) => {
               e.preventDefault()
               void send(input)
@@ -522,6 +551,15 @@ const ChatbotWidget = () => {
               </svg>
             </button>
           </form>
+          {welcomeReply && (
+            <div className="cb-chips">
+              {RECOMMENDED.map((q) => (
+                <button key={q} type="button" className="cb-chip" onClick={() => void send(q)}>
+                  {q}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </>

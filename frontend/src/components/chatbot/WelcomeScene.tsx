@@ -1,11 +1,15 @@
 import type { CSSProperties, ReactElement } from 'react'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import avatarJoy from './img/joy.webp'
+import { useQuery } from '@tanstack/react-query'
 import { useDailyVerse } from '../../hooks/useDailyVerse'
+import { getCurrentWeeklyPrayer } from '../../api/weeklyPrayer'
 import './chatbot.css'
 
 /**
- * 챗봇을 처음 열었을 때의 환영 화면 — 연보라 안개 배경 위 헤드라인 인사 + 참비 + 오늘의 말씀 필 + 3열 메뉴 카드.
+ * 챗봇을 처음 열었을 때의 환영 화면 — 브랜드 블루 안개 배경 위
+ * 흰 히어로 카드(인사 + 오늘의 말씀 필 + 참비) → "참비가 도와드릴게요" 3열 카드 → 함께하는 우리 스트립.
+ * 추천 질문 칩(RECOMMENDED)은 위젯 입력창 아래에서 그린다.
  * 백엔드 인사(reply.actions)를 그대로 받아 메뉴 카드 그리드로 그린다 —
  * 라벨 키워드로 시각 프리셋을 고르므로 관리자가 메뉴를 늘려도 기본 카드로 안전하게 떨어진다.
  *
@@ -81,6 +85,31 @@ const IconSprout = (
   </svg>
 )
 
+const IconPin = (
+  <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden>
+    <ellipse cx="20" cy="33" rx="7" ry="2.2" fill="#f3c9b0" />
+    <path d="M20 5c-6 0-10.5 4.6-10.5 10.4C9.5 23 20 32 20 32s10.5-9 10.5-16.6C30.5 9.6 26 5 20 5Z" fill="#f4a27d" />
+    <circle cx="20" cy="15.5" r="4.3" fill="#fff1e8" />
+  </svg>
+)
+
+const IconGrad = (
+  <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden>
+    <path d="M20 8 35 15.5 20 23 5 15.5Z" fill="#8fb5f2" />
+    <path d="M11.5 18.8v7.2c0 2.6 3.8 4.7 8.5 4.7s8.5-2.1 8.5-4.7v-7.2L20 23Z" fill="#c9dcfa" />
+    <path d="M32.5 16.5v9" stroke="#5f93e6" strokeWidth="1.8" strokeLinecap="round" />
+    <circle cx="32.5" cy="27" r="1.7" fill="#5f93e6" />
+  </svg>
+)
+
+const IconPerson = (
+  <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden>
+    <circle cx="20" cy="14" r="6.5" fill="#f0c9a2" />
+    <path d="M8.5 33c1-6.6 5.8-10.2 11.5-10.2S30.5 26.4 31.5 33Z" fill="#d9c3ee" />
+    <path d="M17.5 23.4 20 30l2.5-6.6" fill="#fff" />
+  </svg>
+)
+
 const IconChat = (
   <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden>
     <path d="M7 12a4 4 0 0 1 4-4h18a4 4 0 0 1 4 4v11a4 4 0 0 1-4 4H18l-7 5v-5a4 4 0 0 1-4-4Z" fill="#cfe1fb" />
@@ -110,6 +139,27 @@ const PRESETS: Preset[] = [
     bgDark: 'rgba(240, 180, 90, 0.10)', fgDark: '#f0c07a',
   },
   {
+    match: /오시는|주차|위치|주소/,
+    icon: IconPin,
+    desc: '주소·교통·주차를 안내해드려요',
+    bg: '#fff3ec', bd: '#f8d9c6', fg: '#d2652f',
+    bgDark: 'rgba(244, 162, 125, 0.12)', fgDark: '#f3b48f',
+  },
+  {
+    match: /교육|부서|훈련/,
+    icon: IconGrad,
+    desc: '교육 프로그램과 부서를 알려드려요',
+    bg: '#eef4ff', bd: '#d5e2fb', fg: '#3b6fd0',
+    bgDark: 'rgba(120, 165, 240, 0.12)', fgDark: '#a3c2f5',
+  },
+  {
+    match: /목사|담임|목회/,
+    icon: IconPerson,
+    desc: '담임목사님 소개와 인사말을 전해드려요',
+    bg: '#f7f2fc', bd: '#e6d9f5', fg: '#7d4fb8',
+    bgDark: 'rgba(170, 130, 220, 0.12)', fgDark: '#c9aef0',
+  },
+  {
     match: /말씀|묵상/,
     icon: IconBook,
     desc: '하루를 비추는 말씀과 묵상을 전해드려요',
@@ -119,7 +169,7 @@ const PRESETS: Preset[] = [
   {
     match: /기도|위로/,
     icon: IconPray,
-    desc: '기도 제목을 남기면 함께 기도해요',
+    desc: '지친 마음에 위로가 되는 말씀을 전해드려요',
     bg: '#eefaf3', bd: '#cfeddc', fg: '#2c9463',
     bgDark: 'rgba(80, 200, 150, 0.11)', fgDark: '#7fd8ac',
   },
@@ -159,8 +209,6 @@ const presetFor = (label: string) => PRESETS.find((p) => p.match.test(label)) ??
 /** 라벨 앞의 이모지·기호를 떼어 카드 제목으로 쓴다 */
 const cleanLabel = (label: string) => label.replace(/^[^\p{L}\p{N}]+/u, '').trim() || label
 
-/** 참비가 먼저 건네는 질문 예시 — 백엔드 메뉴와 별개로 대화를 열어주는 미끼 */
-const RECOMMENDED = ['오늘의 말씀 알려줘', '용서에 대한 성경 구절', '예배는 언제인가요?']
 
 /**
  * 백엔드 인사 첫 줄("편안한 저녁이에요 🌙 저는 참비예요.")을 헤드라인 두 줄로 쪼갠다.
@@ -191,15 +239,46 @@ type Props = {
   onAsk: (text: string) => void
 }
 
+/** 웰컴 그리드에 올릴 카드 수 — 3열 × 2줄. 나머지는 대화 중 도움말 칩으로 계속 노출된다 */
+const GRID_MAX = 6
+
+const IconSparkSmall = (
+  <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden>
+    <path d="M10 2.5 11.8 8.2 17.5 10l-5.7 1.8L10 17.5l-1.8-5.7L2.5 10l5.7-1.8Z" fill="currentColor" />
+    <path d="M16 2.2l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7Z" fill="currentColor" opacity="0.7" />
+  </svg>
+)
+
+const IconPeople = (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden>
+    <circle cx="9" cy="8.5" r="3.4" stroke="currentColor" strokeWidth="1.7" />
+    <path d="M2.8 19c.6-3.6 3.2-5.6 6.2-5.6s5.6 2 6.2 5.6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    <path d="M15.5 5.6a3 3 0 0 1 0 5.8M17.4 13.6c2.1.5 3.5 2.2 3.8 5.4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+  </svg>
+)
+
 const WelcomeScene = ({ reply, onAction, onAsk }: Props) => {
   const g = splitGreeting(reply.text ?? '')
   const { data: verse } = useDailyVerse()
   const verseAction = reply.actions.find((a) => /말씀|묵상/.test(a.label))
+  // 오늘의 말씀은 히어로 필이 맡으니 카드 그리드에선 뺀다
+  const cards = reply.actions.filter((a) => a !== verseAction).slice(0, GRID_MAX)
+
+  // 함께하는 우리 — 이번 주 공동 기도에 함께한 실제 인원 (홈 배너와 같은 캐시)
+  const { data: weekly } = useQuery({
+    queryKey: ['weeklyPrayer', 'current', 'homeBanner'],
+    queryFn: getCurrentWeeklyPrayer,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: false,
+    refetchOnWindowFocus: false,
+  })
+  const prayedCount = weekly?.prayed_user_count ?? 0
 
   return (
     <div className="cb-welcome">
-      {/* 히어로 — 인사 헤드라인 + 참비 */}
-      <div className="cb-hero">
+      {/* 히어로 카드 — 인사 + 오늘의 말씀 필 + 참비 */}
+      <section className="cb-hero">
         <div className="cb-hero-copy">
           <h2 className="cb-headline m-0">
             {g.hello}
@@ -216,40 +295,39 @@ const WelcomeScene = ({ reply, onAction, onAsk }: Props) => {
         </div>
 
         <div className="cb-hero-art">
-          <p className="cb-note m-0">
+          <span className="cb-bubble">
             필요한 걸
             <br />
-            골라보세요!
-          </p>
-          <svg className="cb-squiggle" viewBox="0 0 24 34" width="18" height="26" fill="none" aria-hidden>
-            <path d="M18 2c-9 6 6 10-3 16-8 5-8 11-3 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            <circle cx="11" cy="31.5" r="1.7" fill="currentColor" />
-          </svg>
+            물어보세요!
+          </span>
           <span className="cb-orb" aria-hidden />
           <img src={avatarJoy} alt="" className="cb-chambi" draggable={false} />
         </div>
-      </div>
 
-      {/* 오늘의 말씀 필 */}
-      {verse && (
-        <button
-          type="button"
-          className="cb-verse-pill"
-          onClick={() => (verseAction ? onAction(verseAction) : onAsk('오늘의 말씀 알려줘'))}
-        >
-          <span className="cb-verse-pill-icon">{IconGift}</span>
-          <span className="cb-verse-pill-label">오늘의 말씀</span>
-          <span className="cb-verse-pill-sep" aria-hidden />
-          <span className="cb-verse-pill-ref">{verse.verse_reference}</span>
-          <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden className="ml-auto shrink-0">
-            <path d="m2 1.5 4 4.5-4 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      )}
+        {/* 오늘의 말씀 필 — 카드 아래 줄, 참비 원판 앞에서 끝난다 */}
+        {verse && (
+          <button
+            type="button"
+            className="cb-verse-pill"
+            onClick={() => (verseAction ? onAction(verseAction) : onAsk('오늘의 말씀 알려줘'))}
+          >
+            <span className="cb-verse-pill-icon">{IconGift}</span>
+            <span className="cb-verse-pill-label">오늘의 말씀</span>
+            <span className="cb-verse-pill-ref">{verse.verse_reference}</span>
+            <svg width="8" height="12" viewBox="0 0 8 12" fill="none" aria-hidden className="ml-auto shrink-0">
+              <path d="m2 1.5 4 4.5-4 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
+      </section>
 
       {/* 메뉴 카드 */}
+      <h3 className="cb-section-title m-0">
+        <span className="cb-section-spark">{IconSparkSmall}</span>
+        참비가 도와드릴게요
+      </h3>
       <div className="cb-grid">
-        {reply.actions.map((a) => {
+        {cards.map((a) => {
           const p = presetFor(a.label)
           return (
             <button
@@ -271,11 +349,11 @@ const WelcomeScene = ({ reply, onAction, onAsk }: Props) => {
               <span className="cb-card-title">{cleanLabel(a.label)}</span>
               <p className="cb-card-desc m-0">{p.desc}</p>
               <span className="cb-chev" aria-hidden>
-                <svg width="9" height="9" viewBox="0 0 8 8" fill="none">
+                <svg width="10" height="10" viewBox="0 0 8 8" fill="none">
                   <path
                     d="M3 1.5 5.5 4 3 6.5"
                     stroke="currentColor"
-                    strokeWidth="1.6"
+                    strokeWidth="1.7"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
@@ -286,15 +364,22 @@ const WelcomeScene = ({ reply, onAction, onAsk }: Props) => {
         })}
       </div>
 
-      {/* 추천 질문 */}
-      <div className="cb-chips">
-        <span className="cb-chips-label">추천 질문</span>
-        {RECOMMENDED.map((q) => (
-          <button key={q} type="button" className="cb-chip" onClick={() => onAsk(q)}>
-            {q}
-          </button>
-        ))}
-      </div>
+      {/* 함께하는 우리 — 이번 주 함께 기도한 인원 (0명이면 숨긴다) */}
+      {prayedCount > 0 && (
+        <button type="button" className="cb-together" onClick={() => onAsk('이번 주 기도제목')}>
+          <span className="cb-together-icon">{IconPeople}</span>
+          <span className="cb-together-copy">
+            <span className="cb-together-title">함께하는 우리</span>
+            <span className="cb-together-sub">이번 주 {prayedCount}명이 참비와 함께 기도하고 있어요</span>
+          </span>
+          <span className="cb-together-stack" aria-hidden>
+            <span className="cb-together-dot" />
+            <span className="cb-together-dot" />
+            <span className="cb-together-dot" />
+            <span className="cb-together-count">+{prayedCount}</span>
+          </span>
+        </button>
+      )}
     </div>
   )
 }
