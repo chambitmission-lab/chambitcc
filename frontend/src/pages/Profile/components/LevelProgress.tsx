@@ -190,7 +190,11 @@ const LevelProgress = ({
         <div className="relative z-10 mt-4">
           <div className="lp-track">
             <div className="lp-fill" style={{ width: `${progress}%` }}>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
+              {/* 셔머는 클립 레이어 안에서만 움직인다 — 손잡이(fill 밖으로 삐져나옴)는
+                  클립 밖에 두어야 하므로 fill 자체에 overflow:hidden 을 걸지 않는다 */}
+              <div className="lp-fill__clip" aria-hidden="true">
+                <div className="lp-shimmer" />
+              </div>
               <span
                 className="lp-knob"
                 style={{ boxShadow: `0 0 0 3px rgba(255,255,255,0.9), 0 0 12px ${currentLevel.glowColor}` }}

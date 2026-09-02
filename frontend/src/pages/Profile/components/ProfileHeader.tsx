@@ -79,10 +79,22 @@ const ProfileHeader = ({
   }
 
   return (
-    <div className="ph flex flex-col items-center pb-2 text-center">
-      {/* 장착 칭호 커버 배너 — 장면(양·해돋이·닭)을 마스크 없이 온전히 보여준다 */}
+    // 라운드 카드 — 아래 '신앙의 온도' 카드와 같은 반경·테두리·그림자.
+    // (풀블리드 배너는 바로 아래 라운드 카드와 문법이 달라 어색하다는 피드백으로 카드 안에 넣었다)
+    <div className="ph px-4 pt-3">
+    <div
+      className="
+        relative flex flex-col items-center overflow-hidden rounded-2xl pb-5 text-center
+        bg-white dark:bg-card-dark
+        border border-gray-200/70 dark:border-white/[0.08]
+        shadow-sm
+        dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_var(--brand-soft)]
+      "
+    >
+      {/* 장착 칭호 커버 배너 — 장면(양·해돋이·닭)을 마스크 없이 온전히 보여준다.
+          lg+ 는 카드가 넓어져 16:9 면 너무 높아지므로 조금 납작하게 */}
       {backdropSrc && (
-        <div className="relative w-full aspect-video overflow-hidden" aria-hidden>
+        <div className="relative w-full aspect-video lg:aspect-[21/9] overflow-hidden" aria-hidden>
           <img
             src={backdropSrc}
             alt=""
@@ -100,17 +112,17 @@ const ProfileHeader = ({
         </div>
       )}
 
-      {/* 정보 영역 — 다크 모드에선 그림 하단 네이비를 이어받아 서서히 페이지 배경으로 녹인다 */}
+      {/* 정보 영역 — 다크 모드에선 그림 하단 네이비를 이어받아 서서히 카드 배경으로 녹인다 */}
       <div
         className={`flex w-full flex-col items-center ${
-          backdropSrc ? 'bg-background-light dark:bg-transparent dark:bg-gradient-to-b dark:from-[#0c1322] dark:to-transparent' : ''
+          backdropSrc ? 'bg-white dark:bg-transparent dark:bg-gradient-to-b dark:from-[#0c1322] dark:to-transparent' : ''
         }`}
       >
       {/* 아바타 — 배너가 있으면 커버 사진처럼 하단에 걸친다 */}
       <div className={`relative z-[1] ${backdropSrc ? '-mt-14' : 'mt-7'}`}>
           {/* 배너 위에 걸칠 때는 이음색 테두리로 오려낸 듯한 커버 스타일 */}
           <div
-            className={`rounded-full ${backdropSrc ? 'bg-background-light dark:bg-[#0c1322] p-[3px]' : ''}`}
+            className={`rounded-full ${backdropSrc ? 'bg-white dark:bg-[#0c1322] p-[3px]' : ''}`}
           >
           <div
             className="rounded-full"
@@ -213,6 +225,7 @@ const ProfileHeader = ({
 
       </div>
       </div>
+    </div>
     </div>
   )
 }

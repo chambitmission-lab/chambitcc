@@ -29,7 +29,6 @@ import {
   calculateAchievements,
   getNewlyUnlockedAchievements 
 } from '../../utils/achievementCalculator'
-import './styles/Profile.css'
 
 const Profile = () => {
   const navigate = useNavigate()
