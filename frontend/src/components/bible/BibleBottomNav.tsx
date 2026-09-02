@@ -89,7 +89,7 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
   }
 
   return (
-    // lg+에선 좌측 레일 + 콘텐츠 상단 BibleSectionTabs가 대신한다 — 도크는 모바일 전용
+    // lg+에선 좌측 성경 레일(BibleSideRail)의 세로 내비가 대신한다 — 도크는 모바일 전용
     <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden" aria-label="성경 메뉴">
       <div className="mx-auto max-w-md px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
         {/* Glass dock — 홈 BottomNavigation과 동일한 표면(블러 + 상단 빛줄 + soft shadow) */}

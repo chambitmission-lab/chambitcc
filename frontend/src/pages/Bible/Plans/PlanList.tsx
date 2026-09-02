@@ -21,7 +21,7 @@ import {
 } from './PlanIcons'
 import heroCover from '../../../assets/plans/bible-365.jpg'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
-import BibleSectionTabs from '../../../components/bible/BibleSectionTabs'
+import BibleSideRail from '../../../components/bible/BibleSideRail'
 import PersonalPlanSheet from './components/PersonalPlanSheet'
 import { showToast } from '../../../utils/toast'
 
@@ -105,12 +105,12 @@ const PlanList = () => {
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
-      {/* PC 전용 섹션 탭 — 하단 도크는 lg에서 숨는다 */}
-      <BibleSectionTabs active="plans" />
-      {/* lg+: 좁은 셸을 풀고 본문(플랜 목록) + 우측 레일(묵상방·태그 필터) 2단 */}
+      {/* lg+: 좁은 셸을 풀고 좌측 섹션 레일 + 본문(플랜 목록) + 우측 레일(묵상방·태그 필터) 3단.
+          하단 도크는 lg에서 숨고 좌측 레일이 섹션 내비를 맡는다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-2 lg:pb-12">
+      <BibleSideRail active="plans" />
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark border-x border-border-light dark:border-border-dark min-h-screen pb-bottomnav-safe lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:pb-8 lg:overflow-hidden">
-        {/* 헤더 — PC에선 위 섹션 탭이 내비를 담당하므로 뒤로가기 버튼은 모바일 전용 */}
+        {/* 헤더 — PC에선 좌측 레일이 내비를 담당하므로 뒤로가기 버튼은 모바일 전용 */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
             onClick={() => navigate('/bible')}

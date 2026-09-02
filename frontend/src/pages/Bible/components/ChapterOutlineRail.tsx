@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { loadBookOutline, type OutlineSection } from '../data/chapterOutlines'
 
 interface ChapterOutlineRailProps {
@@ -16,7 +16,7 @@ interface ChapterOutlineRailProps {
 }
 
 /**
- * PC 좌측 장 개요 레일.
+ * PC 좌측 레일의 장 개요 부분 — BibleSideRail 의 children 으로 들어간다(위치·접기는 그쪽 담당).
  * 절 본문을 한 줄씩 다시 나열하지 않고(옆 본문과 중복), "지금 어디쯤 읽고 있는지"를
  * 단락 소제목(절 범위)으로 보여준다. 아래엔 절 번호 격자만 두어 특정 절로 바로 이동.
  * 스크롤에 따라 현재 단락이 하이라이트된다.
@@ -66,10 +66,6 @@ const ChapterOutlineRail = ({
 }: ChapterOutlineRailProps) => {
   const [sections, setSections] = useState<OutlineSection[] | null>(null)
   const [activeVerse, setActiveVerse] = useState(1)
-  // 이 앱은 #root/body overflow 구조 탓에 position: sticky가 먹지 않는다.
-  // 폭만 차지하는 슬롯을 flex에 두고, 실제 레일은 fixed로 띄워 슬롯의 left를 따라간다.
-  const slotRef = useRef<HTMLDivElement>(null)
-  const [slotLeft, setSlotLeft] = useState<number | null>(null)
 
   // 책별 lazy import — 읽는 책의 개요만 내려받는다
   useEffect(() => {
@@ -141,11 +137,7 @@ const ChapterOutlineRail = ({
     }
     const onScroll = () => {
       if (raf) return
-      raf = requestAnimationFrame(() => {
-        measure()
-        const rect = slotRef.current?.getBoundingClientRect()
-        if (rect) setSlotLeft((prev) => (prev === rect.left ? prev : rect.left))
-      })
+      raf = requestAnimationFrame(measure)
     }
     document.addEventListener('scroll', onScroll, { capture: true, passive: true })
     window.addEventListener('resize', onScroll)
@@ -168,12 +160,7 @@ const ChapterOutlineRail = ({
   )
 
   return (
-    <div className="corl-slot" ref={slotRef}>
-    <nav
-      className="corl"
-      aria-label="장 개요"
-      style={slotLeft != null ? { left: slotLeft } : undefined}
-    >
+    <section className="corl-outline" aria-label="장 개요">
       {/* 책·장 헤더 — 좌우 화살표로 장 이동 */}
       <div className="corl-head">
         <div className="corl-book">
@@ -240,8 +227,7 @@ const ChapterOutlineRail = ({
       {verseNumbers.length > 0 && (
         <VerseGrid verseNumbers={verseNumbers} readVerses={readVerses} onJumpToVerse={onJumpToVerse} />
       )}
-    </nav>
-    </div>
+    </section>
   )
 }
 

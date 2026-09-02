@@ -28,7 +28,7 @@ import BookIntroCard from '../../components/bible/BookIntroCard'
 import ChapterBriefCard from './components/ChapterBriefCard'
 import { StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon } from './components/BibleToolIcons'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
-import BibleSectionTabs from '../../components/bible/BibleSectionTabs'
+import BibleSideRail from '../../components/bible/BibleSideRail'
 // 스토리 모드 진행 상태만 가볍게 읽는다 — 42화 콘텐츠 데이터는 스토리 라우트 청크에만 실린다
 import { useStoryProgress } from './Story/storyProgress'
 import './BibleStudy.css'
@@ -489,23 +489,20 @@ const BibleStudy = () => {
           <BibleHeader tab={activeTab} />
         </div>
 
-        {/* PC 전용 섹션 탭 — 모바일 하단 도크(BibleBottomNav)의 데스크톱 대응물 */}
-        <BibleSectionTabs
-          active={activeTab === 'search' ? 'search' : 'read'}
-          onSelectTab={handleSelectTab}
-        />
+        {/* PC 섹션 내비는 각 뷰의 좌측 레일(BibleSideRail)이 담당 — 모바일은 하단 도크 */}
 
         {/* 읽기 탭 */}
         {activeTab === 'read' && (
           <div className="bible-read-section">
-            {/* 책 목록(허브) — PC에선 메인 컬럼(이어 읽기+책 선택) 옆에 도구 사이드바 2컬럼.
+            {/* 책 목록(허브) — PC에선 좌측 섹션 레일 + 메인 컬럼(이어 읽기+책 선택) + 도구 사이드바 3컬럼.
                 모바일에선 래퍼가 그냥 세로 스택이라 기존 순서 그대로다 */}
             {showBookList && (
               // 컨테이너 폭·레일 규격은 다른 안내 페이지(/news 등)와 통일(1240 / 312 / sticky).
               // 다만 본문 컬럼은 620px를 유지한다 — 통독표(.books-grid)가 3열 고정이라
               // 폭을 더 주면 도장 격자가 늘어져 종이 통독표 느낌이 깨진다.
-              // 그래서 쌍(본문+레일)을 컨테이너 안에서 가운데 정렬한다.
+              // 그래서 묶음(레일+본문+도구)을 컨테이너 안에서 가운데 정렬한다.
               <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5">
+                <BibleSideRail active="read" onSelectTab={handleSelectTab} />
                 <div className="lg:w-full lg:max-w-[620px] lg:min-w-0">
                   <div className="hidden lg:block">
                     <BibleHeader tab="read" />
@@ -556,17 +553,19 @@ const BibleStudy = () => {
                 className={`bible-chapter-section${commentaryOpen ? ' commentary-docked' : ''}`}
               >
                 <div className="bible-chapter-inner">
-                {/* PC 좌측 장 개요 레일 — 단락 소제목 + 절 격자. 모바일에선 CSS로 숨김 */}
-                <ChapterOutlineRail
-                  bookNumber={selectedBookData.book_number}
-                  bookNameKo={selectedBook}
-                  bookNameEn={selectedBookData.book_name_en}
-                  chapter={selectedChapter}
-                  totalChapters={selectedBookData.chapter_count}
-                  totalVerses={chapterData?.pages[0]?.total_verses}
-                  onJumpToVerse={setPendingScrollVerse}
-                  onChapterChange={handleChapterChange}
-                />
+                {/* PC 좌측 레일 — 섹션 내비 + 장 개요(단락 소제목 + 절 격자). 모바일에선 CSS로 숨김 */}
+                <BibleSideRail active="read" onSelectTab={handleSelectTab}>
+                  <ChapterOutlineRail
+                    bookNumber={selectedBookData.book_number}
+                    bookNameKo={selectedBook}
+                    bookNameEn={selectedBookData.book_name_en}
+                    chapter={selectedChapter}
+                    totalChapters={selectedBookData.chapter_count}
+                    totalVerses={chapterData?.pages[0]?.total_verses}
+                    onJumpToVerse={setPendingScrollVerse}
+                    onChapterChange={handleChapterChange}
+                  />
+                </BibleSideRail>
                 <div className="bible-chapter-column">
                 <ChapterNavigation
                   selectedBook={selectedBook}
@@ -638,13 +637,16 @@ const BibleStudy = () => {
           </div>
         )}
 
-        {/* 검색 탭 — PC에선 본문 + 우측 레일 2단 (레일은 BibleSearch 안에서 렌더한다) */}
+        {/* 검색 탭 — PC에선 좌측 섹션 레일 + 본문 + 우측 레일 (우측 레일은 BibleSearch 안에서 렌더한다) */}
         {activeTab === 'search' && (
-          <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5">
-            <div className="hidden lg:block">
-              <BibleHeader tab="search" />
+          <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5 lg:flex lg:items-start lg:gap-6">
+            <BibleSideRail active="search" onSelectTab={handleSelectTab} />
+            <div className="lg:flex-1 lg:min-w-0">
+              <div className="hidden lg:block">
+                <BibleHeader tab="search" />
+              </div>
+              <BibleSearch />
             </div>
-            <BibleSearch />
           </div>
         )}
       </div>

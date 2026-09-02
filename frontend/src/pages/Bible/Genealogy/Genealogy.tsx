@@ -7,7 +7,7 @@ import FigureDetailPanel from './components/FigureDetailPanel'
 import EraTimeline from './components/EraTimeline'
 import type { BibleFigureSummary } from '../../../types/bibleFigure'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
-import BibleSectionTabs from '../../../components/bible/BibleSectionTabs'
+import BibleSideRail from '../../../components/bible/BibleSideRail'
 import './Genealogy.css'
 
 // 히어로 이미지는 CSS 배경(테마 토큰)이라 다크 전환 순간에야 받기 시작한다.
@@ -138,10 +138,11 @@ export const Genealogy = () => {
 
   return (
     <div className="bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 transition-colors duration-200 min-h-screen page-stage">
-      {/* PC 전용 섹션 탭 — 하단 도크는 lg에서 숨는다 */}
-      <BibleSectionTabs active="genealogy" />
-      {/* 패딩은 루트가 아닌 내부 래퍼에 — 루트는 .main-content > * { padding: 0 } (App.css)에 걸려 pb가 제거된다 */}
-      <div className="max-w-5xl mx-auto px-4 pt-5 pb-bottomnav-safe lg:pb-12">
+      {/* lg+: 좌측 섹션 레일 + 본문 — 하단 도크는 lg에서 숨고 레일이 섹션 내비를 맡는다.
+          패딩은 루트가 아닌 내부 래퍼에 — 루트는 .main-content > * { padding: 0 } (App.css)에 걸려 pb가 제거된다 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5">
+      <BibleSideRail active="genealogy" />
+      <div className="max-w-5xl mx-auto px-4 pt-5 pb-bottomnav-safe lg:pb-12 lg:mx-0 lg:px-0 lg:flex-1 lg:min-w-0">
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-[12px] text-gray-500 dark:text-gray-400 mb-3">
           <Link to="/bible" className="hover:text-brand transition-colors">
@@ -385,6 +386,7 @@ export const Genealogy = () => {
             </aside>
           </div>
         )}
+      </div>
       </div>
 
       {/* 모바일/태블릿: 슬라이드업 시트 */}
