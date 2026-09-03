@@ -32,8 +32,9 @@ const moodOfHour = (h: number): 'dawn' | 'day' | 'dusk' | 'night' => {
  * 그래서 지도 카드가 맨 위에 오고 교통·주차 안내는 접어 두었다.
  */
 /** 히어로 배경 — public/images/visit/. 실제 예배당 사진을 라이트=낮, 다크=밤으로 나눠 쓴다.
- *  (두 장 모두 왼쪽 하늘 여백 + 오른쪽 교회 구도로 가공된 1664x640 와이드 자산.
- *   이전 일러스트 배경은 _backup/church-hero.webp 에 보관) 비우면 /about 사진을 쓴다 */
+ *  (두 장 모두 1600x800 와이드 자산: 오른쪽에 십자가 탑~입구·가로등까지 교회 전경, 왼쪽은
+ *   그 사진의 하늘을 이어 그린 여백. 원본 1024x1048 사진에서 스크립트로 합성 —
+ *   상단만 잘라 교회가 작게 보이던 v1 과 일러스트 배경은 _backup/ 에 보관) 비우면 /about 사진을 쓴다 */
 const VISIT_HERO_IMAGES = {
   light: '/images/visit/church-day.webp',
   dark: '/images/visit/church-night.webp',

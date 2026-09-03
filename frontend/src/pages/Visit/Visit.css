@@ -43,7 +43,8 @@
 
 /* ── Hero ──────────────────────────────── */
 /* 벤토 카드 질감 — 넓은 라운드(22px, lg 24px) + 부드러운 그림자.
-   사진이 있으면 안쪽 1px 흰 링으로 유리 액자의 두께감을 준다 */
+   사진이 있어도 바깥 테두리는 다른 카드와 같은 토큰 — 다크에서 흰 테두리를 세게 주면
+   밤 사진 위에 액자선만 도드라진다(검증됨). 액자 느낌은 안쪽 링이 옅게만 맡는다 */
 .visit-hero {
   position: relative;
   border-radius: 22px;
@@ -54,12 +55,17 @@
   isolation: isolate;
 }
 .visit-hero.has-photo {
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: var(--card-border);
+}
+.dark .visit-hero.has-photo {
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* 사진 무대 — 실제 예배당 사진(라이트 낮 / 다크 밤, Visit.tsx 가 고른다).
-   자산은 1664x640(2.6:1) 와이드, 오른쪽 위 기준으로 잘라 교회는 늘 오른쪽에 온전히 남고
-   왼쪽 하늘 여백이 글자 자리가 된다. 사진이 없으면 시간대 하늘 토큰으로 대신한다 */
+   자산은 1600x800(2:1) 와이드: 오른쪽 47%가 십자가 탑부터 입구·가로등까지 교회 전경,
+   왼쪽은 그 사진의 하늘을 이어 그린 여백(글자 자리). 카드는 자산보다 좁은 비율(16:10)이라
+   세로는 온전히 남고 왼쪽 하늘만 잘린다 — 오른쪽 기준 정렬이 교회를 지킨다.
+   사진이 없으면 시간대 하늘 토큰으로 대신한다 */
 .visit-hero-photo {
   position: relative;
   min-height: 200px;
@@ -79,7 +85,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: right top;
+  object-position: right center;
   z-index: -2;
 }
 
@@ -93,28 +99,39 @@
   z-index: -1;
   pointer-events: none;
 }
-/* 사진이 있으면 시간대 하늘 그라데이션은 끈다 — 사진 위에 색이 얹히지 않게 */
+/* 사진이 있으면 시간대 하늘 그라데이션은 끄고, 카드 비율을 사진 비율에 맞춘다
+   (16:10 — 교회 전경이 세로로 잘리지 않는 가장 넓은 비율) */
 .visit-hero.has-photo .visit-hero-photo {
   background-image: none;
+  min-height: 0;
+  aspect-ratio: 16 / 10;
 }
-/* 라이트: /about 히어로와 같은 문법 — 스크림 없이 사진 원색 그대로,
-   가독성은 글씨의 진한 그림자(halo)가 담당한다. 다크만 딥블루 스크림 유지.
+/* 스크림 — 글자가 앉는 왼쪽 아래만 옅게 누른다. 교회 전경(오른쪽)은 원색 그대로.
    (테마 분기 금지 원칙의 예외 — 사진 위 오버레이는 토큰으로 못 가르는 확정 패턴)
-   밤 사진은 하늘이 이미 남색이라 글자 자리(왼쪽)는 옅게만 누르고,
-   불 켜진 예배당 창(오른쪽 아래)이 죽지 않도록 아래쪽 농도는 절반 수준으로 */
+   라이트: 낮 사진의 밝은 하늘·입구 위에 흰 글자가 뜨므로 바닥만 살짝. 가독성의 나머지는 halo 그림자.
+   다크: 밤 사진은 하늘이 이미 남색이라 더 옅게 — 불 켜진 창과 가로등 불빛이 죽지 않게 */
+.visit-hero.has-photo .visit-hero-scrim {
+  background:
+    linear-gradient(to top, rgba(10, 22, 48, 0.4) 0%, rgba(10, 22, 48, 0.16) 40%, transparent 70%),
+    linear-gradient(100deg, rgba(10, 22, 48, 0.14) 0%, rgba(10, 22, 48, 0.05) 40%, transparent 60%);
+}
 .dark .visit-hero.has-photo .visit-hero-scrim {
   background:
-    linear-gradient(to top, rgba(10, 22, 48, 0.5) 0%, rgba(10, 22, 48, 0.26) 34%, rgba(10, 22, 48, 0.08) 68%, rgba(10, 22, 48, 0.04) 100%),
-    linear-gradient(100deg, rgba(10, 22, 48, 0.42) 0%, rgba(10, 22, 48, 0.18) 45%, transparent 75%);
+    linear-gradient(to top, rgba(6, 14, 36, 0.42) 0%, rgba(6, 14, 36, 0.18) 38%, transparent 68%),
+    linear-gradient(100deg, rgba(6, 14, 36, 0.3) 0%, rgba(6, 14, 36, 0.1) 42%, transparent 64%);
 }
-/* 안쪽 흰 링 — 유리 액자 */
+/* 안쪽 흰 링 — 유리 액자. 아주 옅게만: 라이트는 흰 페이지 위라 거의 안 보이고,
+   다크는 밤하늘 위에서 선이 도드라지지 않을 만큼만 */
 .visit-hero.has-photo .visit-hero-scrim::after {
   content: '';
   position: absolute;
   inset: 0;
   /* 위쪽 두 모서리만 카드 곡률(카드 overflow 가 어차피 잘라내므로 값은 넉넉히) */
   border-radius: 22px 22px 0 0;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+.dark .visit-hero.has-photo .visit-hero-scrim::after {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .visit-hero-body {
@@ -1137,11 +1154,14 @@
   }
 
   .visit-hero-photo {
-    /* 자산(1664x640, 2.6:1) 비율 그대로 — 건물이 십자가 탑부터 입구까지 잘리지 않고 온전히 보인다.
-       콘텐츠 폭 1200px 에서 약 460px. 좁은 lg 에서도 비율이 유지돼 오른쪽 교회는 늘 온전하다 */
+    /* 자산(1600x800, 2:1) 비율 그대로 — 십자가 탑부터 가로등까지 교회 전경이 온전히,
+       왼쪽 하늘 여백도 전부 보인다. 본문 칼럼(약 830px)에서 약 415px */
     min-height: 0;
-    aspect-ratio: 1664 / 640;
+    aspect-ratio: 2 / 1;
     padding: 32px 40px 36px;
+  }
+  .visit-hero.has-photo .visit-hero-photo {
+    aspect-ratio: 2 / 1;
   }
 
   /* 넓어진 하늘 여백에 맞춰 타이포도 한 단계 — 여백이 '빈 곳'이 아니라 제목의 호흡으로 읽히게 */
