@@ -82,8 +82,8 @@
   position: relative;
   /* 모바일 높이 — 글자를 위로 밀어 올리고 건물을 아래에 쌓으면 카드가 높아진다(20:23→20:19 모두 "높다").
      PC 처럼 글자는 왼쪽 세로 중앙, 건물은 오른쪽 아래 — 왼쪽 동의 옅은 끝만 글자와 살짝 겹친다(레퍼런스 구도) */
-  aspect-ratio: 4 / 3;
-  min-height: 250px;
+  aspect-ratio: 7 / 5;   /* 4:3 에서 살짝 더 낮춤(2026-09-03) */
+  min-height: 240px;
   padding: 22px 22px 24px;
   display: flex;
   flex-direction: column;

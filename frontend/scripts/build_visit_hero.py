@@ -270,7 +270,17 @@ for key, path in SRC.items():
         ch = ch * NIGHT_DIM
     x0 = W - cw
     yy, xx = np.mgrid[0:H, 0:cw]
-    alpha = smoothstep(xx / EDGE_SOFT) * (1 - sky)   # 하늘은 투명 — 배경은 CSS 가 그린다
+    # 하늘은 투명 — 배경은 CSS 가 그린다. 단 낮 사진의 구름은 살린다(2026-09-03 요청): 파란 하늘 픽셀(b-r 큼)은
+    # 투명, 흰 구름 픽셀(b-r 작음)만 반투명으로 남겨 CSS 하늘 위에 떠 있게. 자산 위 가장자리는 페더로 녹여
+    # 모바일에서 사진 레이어 상단선에 구름이 잘려 보이지 않게 한다
+    if key == 'day':
+        # 맑은 하늘 b-r ≈ 100~130, 구름 심지 ≈ 0~25. 100 부터 서서히 — 옅은 뭉게 가장자리까지 살린다
+        cloud = np.clip((100 - (ch[..., 2] - ch[..., 0])) / 75, 0, 1) * 0.96
+        cloud = cloud * smoothstep(yy / 60)
+        cloud = np.asarray(Image.fromarray((cloud * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.5))).astype(np.float32) / 255
+    else:
+        cloud = 0.0
+    alpha = smoothstep(xx / EDGE_SOFT) * (1 - sky * (1 - cloud))
     # 지붕 위 이웃 건물 지우기(투명으로)
     nx = (NEIGH[0] - WING_X) * scale
     neigh = (1 - smoothstep((xx - nx) / 40)) * (1 - smoothstep((yy - (roof_c - 1)) / 1.0))
