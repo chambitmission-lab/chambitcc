@@ -1,4 +1,4 @@
-"""/visit 히어로 자산 빌드.
+"""/visit 히어로 자산 빌드 (v3: RGBA 교회 레이어 + CSS 배경).
 
 원본 예배당 사진(1024x1048, 낮/밤)을 오른쪽에 두고 — 십자가 탑부터 입구·가로등까지 전경 그대로 —
 왼쪽은 그 사진의 '진짜 하늘'(구름 포함)을 좌우로 이어 붙인 1600x800(2:1) 와이드 자산을 만든다.
@@ -35,6 +35,13 @@ SRC = {
     'night': Path(sys.argv[2]) if len(sys.argv) > 2 else VISIT / '_backup' / 'church-night-src.webp',
 }
 W, H = 1600, 800
+# 2026-09-03 v3 — 레퍼런스(좌: 매트한 배경+글자, 우: 교회가 배경에서 스며 나오듯) 구도.
+# 자산은 RGBA: 교회만 불투명, 왼쪽 동 벽에서 FADE 폭만큼 알파가 0→1 로 오르고 그 왼쪽은 완전 투명.
+# 배경(남색/하늘 그라데이션·글로우·링)은 전부 CSS(Visit.css .visit-hero-stage)가 그린다 →
+# 사진 하늘을 합성해 붙이던 v2 의 '색 안 맞는 이음새' 문제가 구조적으로 사라진다.
+FADE = (-30, 250)              # 알파 램프 시작/끝(교회 왼쪽 모서리 기준 px). 끝은 십자가 탑 왼쪽(~x0+300) 전
+NIGHT_DIM = 0.82               # 밤 사진은 살짝 눌러 남색 배경에 앉힌다(불 켜진 창의 대비는 유지)
+BRANCH_BOX = (0, 0, 880, 480)  # 나뭇가지 실루엣 별도 레이어(branch-night.webp) 크롭 — 카드 왼쪽 위에 CSS 로 얹는다
 WING_X = 8                     # 왼쪽 동 벽의 실제 모서리(원본 x). 그 왼쪽은 이웃 건물
 NEIGH = (84, 227)              # 이웃 건물이 동 지붕 위로 보이는 영역: x<84, y<227 (원본) → 하늘로
 SKY_BOX = (84, 0, 400, 226)    # 왼쪽 동 바로 옆 하늘(구름 없음, 십자가 탑 왼쪽) — 이음새와 같은 색.
@@ -155,49 +162,38 @@ def foliage_mask(w, h, seed=0):
     return np.clip(sharp + 0.15 * soft, 0, 1)
 
 
+def build_branch_layer():
+    """밤 카드 왼쪽 위 나뭇가지 실루엣 — 투명 배경 위 진남색 실루엣(RGBA)."""
+    yy, xx = np.mgrid[0:H, 0:W]
+    fx, fy = xx / W, yy / H
+    fl = FOLIAGE['night']
+    sil = foliage_mask(W, H, seed=11)
+    r = np.sqrt((fx / fl['rx']) ** 2 + (fy / fl['ry']) ** 2)
+    sil = sil * (1 - smoothstep((r - 0.5) / 0.5))
+    rgba = np.zeros((H, W, 4), np.uint8)
+    rgba[..., 0], rgba[..., 1], rgba[..., 2] = 3, 8, 20
+    rgba[..., 3] = np.clip(sil * 255, 0, 255).astype(np.uint8)
+    out = Image.fromarray(rgba, 'RGBA').crop(BRANCH_BOX)
+    dest = VISIT / 'branch-night.webp'
+    out.save(dest, 'WEBP', quality=80, method=6)
+    print(f'{dest.name}: {out.size}')
+
+
 for key, path in SRC.items():
     im = remove_objects(Image.open(path).convert('RGB'), REMOVE_POLYS)
     scale = H / im.height
-
-    # ── 하늘 캔버스: 사진의 진짜 하늘을 좌우 반전해 캔버스 전체 폭으로(구름이 가로로 길어지는 건 층운처럼 자연스럽다)
-    sky = im.crop(SKY_BOX).transpose(Image.FLIP_LEFT_RIGHT)
-    sky_h = SKY_BOX[3] - SKY_BOX[1]
     roof_c = int(NEIGH[1] * scale)                       # 캔버스에서 동 지붕 높이
-    s = np.asarray(sky.resize((W, sky_h), Image.LANCZOS)).astype(np.float32)
-    # 세로: 하늘 샘플 높이까지 1:1(이음새 색 연속), 그 아래는 마지막 행 색을 잇되 지평선 쪽 밝아지는 추세만 옅게 외삽
-    top_c = int(sky_h * scale)
-    ys = np.minimum(np.arange(H) / scale, sky_h - 1)
-    canvas = np.stack(
-        [np.stack([np.interp(ys, np.arange(sky_h), s[:, x, c]) for c in range(3)], axis=1) for x in range(W)],
-        axis=1,
-    )
-    slope = (s[-20:].mean(axis=0) - s[-60:-40].mean(axis=0)) / (40 / scale)   # 캔버스 행당 변화
-    rest = H - top_c
-    t = np.arange(rest) / max(rest - 1, 1)
-    canvas[top_c:] += (slope[None, :, :] * (rest * (1 - (1 - t) ** 2) * EXT_DAMP[key])[:, None, None])
-    canvas = np.asarray(
-        Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(TEX_BLUR))
-    ).astype(np.float32)
-
-    # ── 초점 밖 잎·가지 실루엣(절차적, 밤만): 왼쪽 위 모서리에서 늘어진 가지.
-    #    사진의 나무를 잘라 쓰면 창문 격자가 딸려와 어색하다(검증됨)
-    fl = FOLIAGE[key]
-    if fl['alpha'] > 0:
-        yy, xx = np.mgrid[0:H, 0:W]
-        fx, fy = xx / W, yy / H
-        sil = foliage_mask(W, H, seed=11)
-        r = np.sqrt((fx / fl['rx']) ** 2 + (fy / fl['ry']) ** 2)
-        sil = sil * (1 - smoothstep((r - 0.5) / 0.5)) * fl['alpha']
-        canvas = canvas * (1 - sil[..., None]) + (canvas * fl['darken']) * sil[..., None]
 
     # ── 교회 레이어: 실제 모서리에서 자르고 오른쪽 정렬
     church = im.crop((WING_X, 0, im.width, im.height))
     cw = round(church.width * scale)
     ch = np.asarray(church.resize((cw, H), Image.LANCZOS)).astype(np.float32)
+    if key == 'night':
+        ch = ch * NIGHT_DIM
     x0 = W - cw
     yy, xx = np.mgrid[0:H, 0:cw]
     alpha = smoothstep(xx / EDGE_SOFT)
-    # 지붕 위 이웃 건물 지우기
+    # 지붕 위 이웃 건물 지우기(투명으로)
     nx = (NEIGH[0] - WING_X) * scale
     neigh = (1 - smoothstep((xx - nx) / 40)) * (1 - smoothstep((yy - (roof_c - 1)) / 1.0))
     alpha = alpha * (1 - neigh)
@@ -205,11 +201,16 @@ for key, path in SRC.items():
     gy = GROUND_Y * scale
     gw = GROUND_FEATHER * smoothstep((yy - gy) / (H - gy))
     alpha = alpha * np.where(gw > 0, smoothstep(xx / np.maximum(gw, 1e-3)), 1)
-    a = alpha[..., None]
-    canvas[:, x0:, :] = ch * a + canvas[:, x0:, :] * (1 - a)
+    # 왼쪽 동이 배경에서 스며 나오는 램프 — 레퍼런스의 '건물이 안개/밤에서 떠오르는' 느낌
+    alpha = alpha * smoothstep((xx - FADE[0]) / (FADE[1] - FADE[0]))
 
-    canvas += np.random.default_rng(7).normal(0, 1.0, canvas.shape)  # 밴딩 방지 노이즈
-    out = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8))
+    canvas = np.zeros((H, W, 4), np.float32)
+    canvas[:, x0:, :3] = ch
+    canvas[:, x0:, 3] = alpha * 255
+    canvas[..., :3] += np.random.default_rng(7).normal(0, 0.8, (H, W, 3))  # 밴딩 방지 노이즈
+    out = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8), 'RGBA')
     dest = VISIT / f'church-{key}.webp'
-    out.save(dest, 'WEBP', quality=84, method=6)
-    print(f'{dest.name}: {out.size}, church {cw}px ({cw / W:.0%})')
+    out.save(dest, 'WEBP', quality=86, method=6)
+    print(f'{dest.name}: {out.size}, church {cw}px ({cw / W:.0%}), fade x {x0 + FADE[0]}~{x0 + FADE[1]}')
+
+build_branch_layer()

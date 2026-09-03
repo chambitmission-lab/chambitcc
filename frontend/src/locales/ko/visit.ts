@@ -7,6 +7,7 @@ export const visit = {
   visitLabel: 'VISIT',
   visitTitle: '참빛교회 오시는 길',
   visitSubtitle: '지하철 7호선 상동역에서 도보 5분',
+  visitHeroCta: '길찾기',
 
   // ── 히어로 경로 요약(역 → 골목 → 교회) — 제목을 비우면 해당 칸이 숨겨진다 ──
   visitRouteStep1Title: '상동역',

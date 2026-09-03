@@ -31,10 +31,9 @@ const moodOfHour = (h: number): 'dawn' | 'day' | 'dusk' | 'night' => {
  * 방문자가 정말 원하는 건 셋뿐이다: 여기가 어디인지, 주소·전화, 그리고 길찾기.
  * 그래서 지도 카드가 맨 위에 오고 교통·주차 안내는 접어 두었다.
  */
-/** 히어로 배경 — public/images/visit/. 실제 예배당 사진을 라이트=낮, 다크=밤으로 나눠 쓴다.
- *  (두 장 모두 1600x800 와이드 자산: 오른쪽에 십자가 탑~입구·가로등까지 교회 전경, 왼쪽은
- *   그 사진의 하늘을 이어 그린 여백. 원본 1024x1048 사진에서 스크립트로 합성 —
- *   상단만 잘라 교회가 작게 보이던 v1 과 일러스트 배경은 _backup/ 에 보관) 비우면 /about 사진을 쓴다 */
+/** 히어로 교회 사진 — public/images/visit/church-{day,night}.webp (RGBA 1600x800, scripts/build_visit_hero.py).
+ *  교회만 담긴 투명 배경 레이어: 왼쪽 동 벽에서 알파가 0→1 로 올라 배경(CSS)에서 스며 나온다.
+ *  라이트=낮, 다크=밤. 비우면 /about 사진을 쓴다 */
 const VISIT_HERO_IMAGES = {
   light: '/images/visit/church-day.webp',
   dark: '/images/visit/church-night.webp',
@@ -151,23 +150,21 @@ const Visit = () => {
     <div className="visit-page page-stage">
       <div className="visit-shell">
         <div className="visit-body">
-          {/* Hero — 교회 사진(/about 와 같은 자산) 위에 제목, 아래로 경로 요약 레일 */}
+          {/* Hero — 레퍼런스 구도(2026-09-03): 매트한 배경(낮=하늘·햇살 / 밤=남색·금빛) 위에
+              왼쪽 글자 + 길찾기 CTA, 오른쪽에서 교회가 배경에서 스며 나온다. 사진(RGBA)은 교회만 담고
+              배경·글로우·나뭇가지·동심원은 전부 CSS. 모바일은 글자 위 / 교회 아래-오른쪽으로 세로 구도 */}
           <header className={`visit-hero visit-hero--${mood}${heroImage ? ' has-photo' : ''}`}>
-            <div className="visit-hero-photo">
+            <div className="visit-hero-stage">
+              <div className="visit-hero-deco" aria-hidden="true" />
+              <div className="visit-hero-branch" aria-hidden="true" />
               {heroImage && (
-                <img
-                  className="visit-hero-img"
-                  src={heroImage}
-                  alt=""
-                  aria-hidden="true"
-                  decoding="async"
-                  fetchPriority="high"
-                />
+                <div className="visit-hero-photo" aria-hidden="true">
+                  <img className="visit-hero-img" src={heroImage} alt="" decoding="async" fetchPriority="high" />
+                </div>
               )}
-              <div className="visit-hero-scrim" />
               <div className="visit-hero-body">
                 <span className="visit-hero-label">
-                  <PinIcon size={12} strokeWidth={2.2} />
+                  <PinIcon size={13} strokeWidth={2.2} />
                   {t('visitLabel')}
                 </span>
                 <h1 className="visit-hero-title">
@@ -180,6 +177,14 @@ const Visit = () => {
                     {tx('visitSubtitle')}
                   </EditableText>
                 </p>
+                {/* 길찾기 — 히어로에서 바로 카카오맵 경로로. 아래 3버튼(카카오/네이버/T맵)은 그대로 */}
+                <button type="button" className="visit-hero-cta" onClick={() => openWeb(kakaoRouteUrl)}>
+                  <span>{t('visitHeroCta')}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M5 12h14" />
+                    <path d="M13 6l6 6-6 6" />
+                  </svg>
+                </button>
               </div>
             </div>
 

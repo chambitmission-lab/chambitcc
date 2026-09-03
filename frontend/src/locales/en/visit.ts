@@ -4,6 +4,7 @@ export const visit = {
   visitLabel: 'VISIT',
   visitTitle: 'How to Find Us',
   visitSubtitle: '5 min walk from Sangdong Stn. (Line 7)',
+  visitHeroCta: 'Directions',
 
   // ── Hero route summary (station → alley → church). Empty title hides the step ──
   visitRouteStep1Title: 'Sangdong Stn.',
