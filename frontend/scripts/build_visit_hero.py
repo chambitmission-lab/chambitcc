@@ -275,8 +275,12 @@ for key, path in SRC.items():
     # 모바일에서 사진 레이어 상단선에 구름이 잘려 보이지 않게 한다
     if key == 'day':
         # 맑은 하늘 b-r ≈ 100~130, 구름 심지 ≈ 0~25. 100 부터 서서히 — 옅은 뭉게 가장자리까지 살린다
-        cloud = np.clip((100 - (ch[..., 2] - ch[..., 0])) / 75, 0, 1) * 0.96
+        d = ch[..., 2] - ch[..., 0]
+        cloud = np.clip((112 - d) / 80, 0, 1) ** 0.85
         cloud = cloud * smoothstep(yy / 60)
+        # 구름은 흰색 쪽으로 살짝 밝힌다 — 반투명으로 얹히면 원색 그대로는 회청색으로 죽어 '구름 느낌이 없다'(2026-09-03)
+        wcl = np.clip(cloud[..., None] * 0.55, 0, 1)
+        ch = ch * (1 - wcl) + 255 * wcl
         cloud = np.asarray(Image.fromarray((cloud * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.5))).astype(np.float32) / 255
     else:
         cloud = 0.0

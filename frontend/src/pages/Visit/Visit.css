@@ -59,8 +59,8 @@
 /* 다크: 카드 전체(경로 레일 포함)를 무대와 같은 남색 계열로 — 남색 무대 아래 회색 띠가 붙으면 두 장처럼 보인다.
    레일의 점 바깥 링·호버 타일이 쓰는 표면 토큰도 이 안에서만 남색으로 바꾼다 */
 .dark .visit-hero {
-  --surface-container: #0c1628;
-  --surface-inset: #13213a;
+  --surface-container: #0e1522;
+  --surface-inset: #16202f;
   --card-border: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.08);
   background: var(--surface-container);
@@ -72,7 +72,7 @@
 .visit-hero-stage {
   --hero-bg-a: #f2f8ff;
   --hero-bg-b: #d3e8fb;
-  --hero-bg-c: #9ccbf6;
+  --hero-bg-c: #84bff5;   /* 오른쪽 위는 조금 더 진한 하늘 — 구름 대비 */
   --hero-ink: #14213d;
   --hero-sub: #4b5d78;
   --hero-accent: var(--brand);
@@ -92,12 +92,13 @@
   background: linear-gradient(118deg, var(--hero-bg-a) 0%, var(--hero-bg-b) 46%, var(--hero-bg-c) 100%);
   overflow: hidden;
 }
-/* 밤 팔레트: 깊은 남색(사진 하늘 #041431 과 같은 계열) + 금빛 글자 */
+/* 밤 팔레트: 레퍼런스의 차콜 네이비(파랑이 세면 "남색 느낌이 강하다" 피드백 2026-09-03) —
+   제목은 흰색, 라벨·CTA 만 금빛 */
 .dark .visit-hero-stage {
-  --hero-bg-a: #10203c;
-  --hero-bg-b: #0b1831;
-  --hero-bg-c: #061128;
-  --hero-ink: #e6c98f;
+  --hero-bg-a: #141d2e;
+  --hero-bg-b: #0e1626;
+  --hero-bg-c: #0a111d;
+  --hero-ink: #f5f2ea;
   --hero-sub: rgba(232, 236, 245, 0.72);
   --hero-accent: #d9b877;
   --hero-cta-bg: rgba(217, 184, 119, 0.06);
@@ -132,7 +133,7 @@
 }
 /* 밤: 글로우는 푸른 안개 한 겹만, 왼쪽 아래에 금빛 동심원(레퍼런스의 레이더 링) */
 .dark .visit-hero-deco::before {
-  background: radial-gradient(70% 70% at 18% 40%, rgba(46, 78, 140, 0.32), rgba(46, 78, 140, 0) 70%);
+  background: radial-gradient(70% 70% at 18% 40%, rgba(70, 92, 130, 0.2), rgba(70, 92, 130, 0) 70%);
 }
 .dark .visit-hero-deco::after {
   content: '';
@@ -214,7 +215,7 @@
   color: var(--hero-ink);
 }
 .dark .visit-hero-title {
-  text-shadow: 0 2px 18px rgba(217, 184, 119, 0.18);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
 }
 
 .visit-hero-subtitle {
