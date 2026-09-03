@@ -23,79 +23,99 @@ SRC = {
 }
 W, H = 1600, 800
 CROP_L = 44          # 원본 왼쪽 끝의 이웃 건물 잘라냄
-FEATHER = 260        # 교회 왼쪽 가장자리를 하늘로 녹이는 폭(캔버스 px)
+FEATHER = 72         # 교회 왼쪽 가장자리를 하늘로 녹이는 폭(캔버스 px). 260이면 왼쪽 동(약 140px)이 통째로 사라지고,
+                     # 120도 왼쪽 동 창이 반쯤 가려 '사진을 덜 가리게' 피드백 → 좁게
 SKY_X = (540, 600)   # 순수 하늘 샘플 열(원본 좌표, 십자가 탑 오른쪽)
 SKY_Y = 330          # 이 행까지가 순수 하늘
 # 지평선 쪽 외삽 감쇠 — 낮은 옅게 밝아져도 자연스럽지만 밤은 남색을 지켜야 회보라로 바래지 않는다
-DAMP = {'day': 0.35, 'night': 0.10}
+DAMP = {'day': 0.05, 'night': 0.10}   # 낮 0.35는 왼쪽 아래가 희게 바래 오른쪽 사진 하늘과 색이 안 맞았다(2026-09-03)
+FLATTEN = {'day': 0.35, 'night': 0.0}   # 밤 0.45는 위쪽이 사진 하늘보다 밝아져 좌우 색이 어긋났다(2026-09-03)
 # 먼 도시 보케: zoom=캔버스 높이 대비 확대, blur=흐림 반경, hi_from 이상 밝기만 점광(glow·warm 색),
-# lo_to 이하 어둠은 shade 만큼 눌러 건물 실루엣
+# lo_to 이하 어둠은 shade 만큼 눌러 건물 실루엣. 2026-09-03 현재 glow·shade=0 으로 꺼둠 —
+# 흐린 띠가 '얼룩'으로 읽힌다는 피드백. 레퍼런스처럼 깨끗한 하늘 + 잎 실루엣만 쓴다
 BOKEH = {
-    'day': dict(zoom=1.4, blur=30, hi_from=0.80, glow=0.0, warm=(255, 250, 235), lo_to=0.45, shade=0.04),
-    'night': dict(zoom=1.4, blur=16, hi_from=0.40, glow=0.5, warm=(214, 178, 118), lo_to=0.16, shade=0.26),
+    'day': dict(zoom=1.4, blur=30, hi_from=0.80, glow=0.0, warm=(255, 250, 235), lo_to=0.45, shade=0.0),
+    'night': dict(zoom=1.4, blur=26, hi_from=0.45, glow=0.0, warm=(214, 178, 118), lo_to=0.16, shade=0.0),
 }
 # 잎 실루엣: rx·ry=왼쪽 위 기준 타원 마스크 반경(화면 비율), alpha=최대 농도, darken=실루엣 색(하늘색×배율)
 FOLIAGE = {
-    'day': dict(rx=0.58, ry=0.70, alpha=0.55, darken=0.80, vignette=0.06),
-    'night': dict(rx=0.58, ry=0.70, alpha=0.92, darken=0.50, vignette=0.22),
+    'day': dict(rx=0.62, ry=0.80, alpha=0.0, darken=0.80, vignette=0.06),   # 라이트는 나무 없이 파란 하늘만(사용자 결정)
+    'night': dict(rx=0.62, ry=0.80, alpha=0.82, darken=0.52, vignette=0.07),
 }
 
 def foliage_mask(w, h, seed=0):
-    """왼쪽 위 모서리에서 늘어지는 가지+잎 실루엣(0~1 마스크). 두 겹(앞:많이 흐림, 중간:조금 흐림)."""
+    """왼쪽 위에서 늘어진 나뭇가지 실루엣(0~1 마스크).
+    가지는 재귀로 뻗고(중력 방향으로 살짝 처짐), 끝가지마다 잎을 어긋나게 단다.
+    2배 해상도로 그려 축소해 잎 가장자리를 매끈하게, 흐림은 아주 약하게 — 잎이 '잎'으로 읽혀야 한다
+    (덩어리를 세게 흐리면 얼룩처럼 보인다는 피드백 2026-09-03)."""
     rng = np.random.default_rng(seed)
+    S = 2
+    img = Image.new('L', (w * S, h * S), 0)
+    d = ImageDraw.Draw(img)
 
-    def bezier(p0, p1, p2, n=40):
-        t = np.linspace(0, 1, n)[:, None]
-        return (1 - t) ** 2 * p0 + 2 * (1 - t) * t * p1 + t ** 2 * p2
+    def leaf(cx, cy, ang, ln):
+        # 잎: 끝이 뾰족한 렌즈꼴 + 살짝 비대칭. ln=잎 길이(px, 2배 해상도 기준)
+        tt = np.linspace(0, 2 * np.pi, 18)
+        ex = ln / 2 * np.cos(tt)
+        ey = ln * 0.24 * np.sin(tt) * (1 - 0.35 * np.abs(np.cos(tt))) * (1 + 0.15 * np.sin(tt))
+        ca, sa = np.cos(ang), np.sin(ang)
+        d.polygon([(cx + ln / 2 * ca + ex[j] * ca - ey[j] * sa, cy + ln / 2 * sa + ex[j] * sa + ey[j] * ca) for j in range(len(tt))], fill=255)
 
-    def draw_layer(n_branches, leaf_r, blur, width):
-        img = Image.new('L', (w, h), 0)
-        d = ImageDraw.Draw(img)
-        for _ in range(n_branches):
-            # 시작점: 위쪽 가장자리(왼쪽 55%) 또는 왼쪽 가장자리(위 60%)
-            if rng.random() < 0.6:
-                p0 = np.array([rng.uniform(-0.05, 0.55) * w, rng.uniform(-0.08, 0.02) * h])
-                ang = rng.uniform(np.pi * 0.25, np.pi * 0.75)     # 아래쪽으로
-            else:
-                p0 = np.array([rng.uniform(-0.06, 0.0) * w, rng.uniform(0.0, 0.6) * h])
-                ang = rng.uniform(-np.pi * 0.25, np.pi * 0.35)    # 오른쪽으로
-            length = rng.uniform(0.28, 0.5) * h
-            p2 = p0 + length * np.array([np.cos(ang), np.sin(ang)])
-            p1 = (p0 + p2) / 2 + rng.normal(0, 0.12 * length, 2)
-            pts = bezier(p0, p1, p2)
-            for i in range(len(pts) - 1):
-                wd = max(1, width * (1 - i / len(pts)))
-                d.line([tuple(pts[i]), tuple(pts[i + 1])], fill=255, width=int(wd))
-            # 잔가지
-            for _ in range(rng.integers(2, 4)):
-                k = rng.integers(len(pts) // 4, len(pts) - 2)
-                q0 = pts[k]
-                a2 = ang + rng.uniform(-0.9, 0.9)
-                l2 = length * rng.uniform(0.25, 0.5)
-                q2 = q0 + l2 * np.array([np.cos(a2), np.sin(a2)])
-                q1 = (q0 + q2) / 2 + rng.normal(0, 0.12 * l2, 2)
-                sub = bezier(q0, q1, q2, 20)
-                for i in range(len(sub) - 1):
-                    d.line([tuple(sub[i]), tuple(sub[i + 1])], fill=255, width=max(1, int(width * 0.45 * (1 - i / 20))))
-                pts = np.concatenate([pts, sub])
-            # 잎: 가지를 따라 무리로
-            for c in pts[::3]:
-                if rng.random() < 0.55:
+    def grow(p, ang, length, depth, width):
+        pts = [p]
+        n = 7
+        a = ang
+        for i in range(n):
+            a += rng.normal(0, 0.10) + 0.035 * np.cos(a)   # 중력: 아래로 살짝 처짐
+            q = pts[-1] + (length / n) * np.array([np.cos(a), np.sin(a)])
+            d.line([tuple(pts[-1] * S), tuple(q * S)], fill=255, width=max(1, int(width * S * (1 - 0.5 * i / n))))
+            pts.append(q)
+        pts = np.array(pts)
+        if depth >= 2:
+            # 잎: 가지를 따라 어긋나게, 잎은 가지 방향에서 벌어지고 아래로 살짝 처진다
+            step = 7
+            total = length
+            k = 0
+            for t in np.arange(0, total, step):
+                idx = min(int(t / total * n), n - 1)
+                seg = pts[idx + 1] - pts[idx]
+                sa_ = np.arctan2(seg[1], seg[0])
+                base = pts[idx] + seg * ((t / total * n) - idx)
+                side = 1 if k % 2 == 0 else -1
+                k += 1
+                if rng.random() < 0.45:
                     continue
-                for _ in range(rng.integers(2, 6)):
-                    cx, cy = c + rng.normal(0, leaf_r * 1.6, 2)
-                    rr = leaf_r * rng.uniform(0.6, 1.3)
-                    th = rng.uniform(0, np.pi)
-                    # 잎 모양: 양끝이 뾰족한 렌즈꼴 폴리곤
-                    tt = np.linspace(0, 2 * np.pi, 14)
-                    ex, ey = rr * np.cos(tt), rr * 0.45 * np.sin(tt) * (1 - 0.25 * np.abs(np.cos(tt)))
-                    poly = [(cx + ex[j] * np.cos(th) - ey[j] * np.sin(th), cy + ex[j] * np.sin(th) + ey[j] * np.cos(th)) for j in range(len(tt))]
-                    d.polygon(poly, fill=255)
-        return np.asarray(img.filter(ImageFilter.GaussianBlur(blur))).astype(np.float32) / 255
+                la = sa_ + side * rng.uniform(0.55, 1.15) + 0.25 * rng.normal()
+                ln = rng.uniform(16, 26) * S
+                leaf(base[0] * S, base[1] * S, la, ln)
+                # 잎 무리: 같은 자리에 한두 장 더
+                if rng.random() < 0.3:
+                    leaf(base[0] * S + rng.normal(0, 3) * S, base[1] * S + rng.normal(0, 3) * S,
+                         la + rng.normal(0, 0.5), ln * rng.uniform(0.7, 1.0))
+        if depth < 4:
+            for _ in range(2):
+                t = rng.uniform(0.35, 1.0)
+                idx = min(int(t * n), n - 1)
+                q = pts[idx]
+                seg = pts[idx + 1] - pts[idx] if idx + 1 < len(pts) else pts[idx] - pts[idx - 1]
+                sa_ = np.arctan2(seg[1], seg[0])
+                child_ang = sa_ + rng.choice([-1, 1]) * rng.uniform(0.35, 0.85)
+                grow(q, child_ang, length * rng.uniform(0.55, 0.75), depth + 1, width * 0.6)
 
-    front = draw_layer(3, leaf_r=22, blur=9, width=13)    # 카메라 바로 앞 — 크고 많이 흐림
-    mid = draw_layer(10, leaf_r=12, blur=2.5, width=6)        # 조금 뒤 — 형태가 보임
-    return np.clip(front * 0.7 + mid, 0, 1)
+    # 굵은 가지: 위쪽 가장자리(왼쪽 절반)에서 아래·오른쪽으로, 왼쪽 가장자리에서 오른쪽으로
+    # 가지 수는 성기게 — 우거진 숲이 아니라 모서리에 걸린 가지 몇 개(과하다는 피드백 2026-09-03)
+    for _ in range(3):
+        p0 = np.array([rng.uniform(-0.04, 0.40) * w, rng.uniform(-0.06, -0.01) * h])
+        grow(p0, rng.uniform(np.pi * 0.30, np.pi * 0.62), rng.uniform(0.34, 0.5) * h, 0, 7)
+    for _ in range(2):
+        p0 = np.array([rng.uniform(-0.05, -0.01) * w, rng.uniform(0.02, 0.4) * h])
+        grow(p0, rng.uniform(-0.15, 0.45), rng.uniform(0.34, 0.5) * h, 0, 7)
+
+    m = img.resize((w, h), Image.LANCZOS).filter(ImageFilter.GaussianBlur(1.4))
+    sharp = np.asarray(m).astype(np.float32) / 255
+    # 초점 밖 느낌은 아주 옅은 번짐 한 겹으로만
+    soft = np.asarray(img.resize((w, h), Image.LANCZOS).filter(ImageFilter.GaussianBlur(7))).astype(np.float32) / 255
+    return np.clip(sharp + 0.15 * soft, 0, 1)
 
 
 def smoothstep(t):
@@ -119,6 +139,8 @@ for key, path in SRC.items():
     t = np.arange(rest) / max(rest, 1)
     ext = bot[None, :] + slope[None, :] * (rest * (1 - (1 - t) ** 2) * DAMP[key])[:, None]
     grad = np.clip(np.concatenate([grad, ext], axis=0), 0, 255)
+    # 밤: 지평선 밝은 띠를 눌러 하늘을 고르게(중간이 뿌옇게 밝으면 안개처럼 보인다)
+    grad = grad * (1 - FLATTEN[key]) + grad.mean(axis=0, keepdims=True) * FLATTEN[key]
     canvas = np.repeat(grad[:, None, :], W, axis=1)
 
     # ── 왼쪽 여백을 '심도 흐림 장면'으로: 단색 하늘은 밋밋하다는 피드백(2026-09-03) ──
@@ -146,10 +168,11 @@ for key, path in SRC.items():
     # (2) 초점 밖 잎·가지 실루엣(절차적): 왼쪽 위 모서리에서 늘어진 가지에 잎을 흩뿌리고 흐린다.
     #     사진의 나무를 잘라 쓰면 창문 격자가 딸려와 어색하다(검증됨)
     fl = FOLIAGE[key]
-    sil = foliage_mask(W, H, seed=11)
-    r = np.sqrt((fx / fl['rx']) ** 2 + (fy / fl['ry']) ** 2)
-    sil = sil * (1 - smoothstep((r - 0.5) / 0.5)) * fl['alpha']
-    canvas = canvas * (1 - sil[..., None]) + (canvas * fl['darken']) * sil[..., None]
+    if fl['alpha'] > 0:
+        sil = foliage_mask(W, H, seed=11)
+        r = np.sqrt((fx / fl['rx']) ** 2 + (fy / fl['ry']) ** 2)
+        sil = sil * (1 - smoothstep((r - 0.5) / 0.5)) * fl['alpha']
+        canvas = canvas * (1 - sil[..., None]) + (canvas * fl['darken']) * sil[..., None]
 
     # (3) 글자 자리 바닥·왼쪽 모서리를 살짝 눌러 텍스트가 뜨게
     vig = (1 - fl['vignette'] * smoothstep((fy - 0.45) / 0.55) * (1 - smoothstep((fx - 0.15) / 0.45)))[..., None]

@@ -117,8 +117,8 @@
 }
 .dark .visit-hero.has-photo .visit-hero-scrim {
   background:
-    linear-gradient(to top, rgba(6, 14, 36, 0.42) 0%, rgba(6, 14, 36, 0.18) 38%, transparent 68%),
-    linear-gradient(100deg, rgba(6, 14, 36, 0.3) 0%, rgba(6, 14, 36, 0.1) 42%, transparent 64%);
+    linear-gradient(to top, rgba(6, 14, 36, 0.4) 0%, rgba(6, 14, 36, 0.16) 38%, transparent 66%),
+    linear-gradient(100deg, rgba(6, 14, 36, 0.12) 0%, transparent 45%);
 }
 /* 안쪽 흰 링 — 유리 액자. 아주 옅게만: 라이트는 흰 페이지 위라 거의 안 보이고,
    다크는 밤하늘 위에서 선이 도드라지지 않을 만큼만 */
