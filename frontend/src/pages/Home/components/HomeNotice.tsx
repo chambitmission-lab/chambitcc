@@ -136,6 +136,29 @@ const HomeNotice = () => {
         .notice-backdrop { animation: notice-backdrop-in 0.16s ease-out; }
         .notice-card { animation: notice-card-in 0.24s cubic-bezier(0.16, 1, 0.3, 1); }
         .notice-banner { animation: notice-banner-in 0.32s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* 배너 오른쪽 끝 마스코트 — "알림판에 공지 붙이는 양".
+           배너는 높이만 ≈81px로 고정이고 가로는 모바일 4.4:1 ~ PC 15:1까지 변한다 →
+           cover 금지. 카드색 가로 워시 위에 높이맞춤(auto N%) 삽화를 오른쪽에 얹는다.
+           삽화는 사방이 알파로 페이드된 webp라 카드색과 색 맞춤이 따로 필요 없다.
+           right 26px 은 셰브런(오른쪽 12~29px) 자리를 비켜 세우기 위한 오프셋. */
+        .notice-banner {
+          background-image:
+            linear-gradient(90deg, var(--surface-container) 0%, var(--surface-container) 34%, rgba(255, 255, 255, 0) 100%),
+            url('/images/notice/banner-light.webp');
+          background-repeat: no-repeat, no-repeat;
+          background-position: left center, right 26px center;
+          /* 모바일은 배너 폭이 좁아 제목이 삽화 위를 지나간다 → 한 단계 작게 */
+          background-size: 100% 100%, auto 86%;
+        }
+        @media (min-width: 1024px) {
+          .notice-banner { background-size: 100% 100%, auto 100%; }
+        }
+        [data-theme='dark'] .notice-banner {
+          background-image:
+            linear-gradient(90deg, var(--surface-container) 0%, var(--surface-container) 34%, rgba(32, 31, 31, 0) 100%),
+            url('/images/notice/banner-dark.webp');
+        }
         @media (prefers-reduced-motion: reduce) {
           .notice-backdrop, .notice-card, .notice-banner { animation: none; }
         }
@@ -150,7 +173,7 @@ const HomeNotice = () => {
           type="button"
           onClick={reopen}
           aria-label={`공지사항 ${latest.title} 자세히 보기`}
-          className="notice-banner feed-card relative w-full overflow-hidden rounded-2xl text-left transition-transform active:scale-[0.985]"
+          className="notice-banner feed-card group relative w-full overflow-hidden rounded-2xl text-left transition-[transform,border-color,box-shadow] duration-150 hover:border-[var(--brand-glow)] hover:shadow-[0_6px_18px_-6px_var(--brand-glow)] active:scale-[0.985]"
         >
           {/* 카드 모서리의 은은한 브랜드 광 */}
           <span
@@ -230,7 +253,7 @@ const HomeNotice = () => {
               strokeWidth="2.2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="shrink-0"
+              className="shrink-0 transition-transform duration-150 group-hover:translate-x-0.5"
               style={{ color: 'var(--text-muted)' }}
               aria-hidden
             >
