@@ -496,6 +496,8 @@ html.dark .cb-commentary { background: rgba(255,255,255,0.05); }
 /* 액션 칩 — 흰 카드 + 브랜드 텍스트 (아이콘은 EmojiText 글리프) */
 .cb-action {
   display: inline-flex; align-items: center; gap: 7px;
+  /* 계보 칩("압살롬의 아버지는?")처럼 긴 라벨이 말풍선을 넘지 않게 */
+  max-width: 100%; text-align: left;
   padding: 10px 14px;
   border-radius: 14px;
   background: var(--cb-card);
