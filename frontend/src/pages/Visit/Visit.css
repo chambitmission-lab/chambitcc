@@ -403,6 +403,80 @@
   }
 }
 
+/* 모바일·태블릿(<1024px) — 셸이 28rem이라 가로 3칸에선 "송내대로265번길" 같은
+   긴 이름이 '길' 한 글자만 다음 줄로 떨어진다. 세로 타임라인으로 방향만 90도 돌려
+   제목이 온전히 한 줄에 들어오게 한다. 점·진행선·STEP 표기 문법은 그대로.
+   (칸 폭을 줄이거나 글자를 작게 하는 대응은 관리자가 긴 이름을 넣으면 바로 다시 깨진다) */
+@media (max-width: 1023px) {
+  .visit-route {
+    --route-dot: 34px;
+    --route-pad-x: 16px;
+    --route-gap: 2px;
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    padding: 12px var(--route-pad-x) 14px;
+  }
+
+  /* 가로 진행선은 끄고, 각 스텝이 자기 점에서 다음 점까지 한 마디씩 잇는다
+     (스텝 높이가 제각각이라 레일 하나로 양 끝을 맞출 수 없다) */
+  .visit-route::before {
+    content: none;
+  }
+
+  .visit-route-step::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--route-tile-pad) + var(--route-dot) / 2 - 1px);
+    top: calc(var(--route-tile-pad) + var(--route-dot) / 2);
+    bottom: calc(-1 * (var(--route-gap) + var(--route-tile-pad) + var(--route-dot) / 2));
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--brand-soft-strong), var(--brand));
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .visit-route-step.is-last::before {
+    content: none;
+  }
+
+  .visit-route-step {
+    display: grid;
+    grid-template-columns: var(--route-dot) minmax(0, 1fr);
+    align-items: start;
+    column-gap: 12px;
+    row-gap: 2px;
+    text-align: left;
+  }
+
+  .visit-route-dot {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    margin: 0;
+  }
+
+  .visit-route-num {
+    grid-column: 2;
+    align-self: end;
+  }
+
+  .visit-route-title {
+    grid-column: 2;
+    font-size: 15px;
+  }
+
+  .visit-route-desc {
+    grid-column: 2;
+    font-size: 12.5px;
+  }
+
+  /* 창을 좁힌 PC — 행이 떠오르면 연결선까지 같이 움직여 마디가 어긋난다 */
+  @media (hover: hover) {
+    .visit-route-step:hover {
+      transform: none;
+    }
+  }
+}
+
 /* ── 지도 ──────────────────────────────────
    레거시 홈페이지처럼 "여기 어디쯤"을 한 장으로 보여주는 자리.
    드래그·확대는 컴포넌트에서 잠갔고, 표면 전체가 카카오맵으로 가는 버튼이다. */
