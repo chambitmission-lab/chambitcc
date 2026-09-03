@@ -1,19 +1,32 @@
 """/visit 히어로 자산 빌드.
 
 원본 예배당 사진(1024x1048, 낮/밤)을 오른쪽에 두고 — 십자가 탑부터 입구·가로등까지 전경 그대로 —
-왼쪽은 그 사진의 하늘에서 샘플한 그라데이션으로 이어 붙인 1600x800(2:1) 와이드 자산을 만든다.
-교회 왼쪽 가장자리(이웃 건물 제외)는 하늘로 부드럽게 녹인다.
+왼쪽은 그 사진의 '진짜 하늘'(구름 포함)을 좌우로 이어 붙인 1600x800(2:1) 와이드 자산을 만든다.
+
+이음새 원칙(2026-09-03, 이전 방식은 왼쪽 동을 세로로 잘라 72px 페더로 녹였는데
+'건물이 반쯤 지워진' 어색한 세로 경계 + 합성 하늘의 색이 사진과 안 맞는다는 피드백):
+  * 교회는 왼쪽 동 벽의 실제 모서리(원본 x=8)에서 자른다 — 경계가 건축선이라 페더가 필요 없다.
+  * 동 지붕 위로 보이던 이웃 건물(x<84, y<227)만 하늘로 지운다.
+  * 왼쪽 하늘은 합성 그라데이션이 아니라 사진의 하늘 영역(SKY_BOX)을 좌우 반전해 쓴다.
+    세로는 지붕 높이까지 사진과 같은 축척(이음새 색이 정의상 연속), 그 아래는 하늘 아랫부분을
+    길게 늘여 지평선 안개처럼 — 구름·안개 질감이 그대로라 '붙인 티'가 안 난다.
+  * 지면(맨 아래 몇 십 px)만 왼쪽으로 부드럽게 녹인다.
 
     python scripts/build_visit_hero.py
       → public/images/visit/_backup/church-{day,night}-src.webp 를 읽어
         public/images/visit/church-{day,night}.webp 를 덮어쓴다
-    python scripts/build_visit_hero.py 낮원본.png 밤원본.png   # 다른 원본으로
+    python scripts/build_visit_hero.py 낮원본.png 밤원본.png   # 다른 원본으로 (같은 구도여야 한다)
 """
 import sys
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
+
+try:
+    import cv2
+except ImportError:  # pragma: no cover
+    cv2 = None
 
 ROOT = Path(__file__).resolve().parents[1]
 VISIT = ROOT / 'public' / 'images' / 'visit'
@@ -22,26 +35,50 @@ SRC = {
     'night': Path(sys.argv[2]) if len(sys.argv) > 2 else VISIT / '_backup' / 'church-night-src.webp',
 }
 W, H = 1600, 800
-CROP_L = 44          # 원본 왼쪽 끝의 이웃 건물 잘라냄
-FEATHER = 72         # 교회 왼쪽 가장자리를 하늘로 녹이는 폭(캔버스 px). 260이면 왼쪽 동(약 140px)이 통째로 사라지고,
-                     # 120도 왼쪽 동 창이 반쯤 가려 '사진을 덜 가리게' 피드백 → 좁게
-SKY_X = (540, 600)   # 순수 하늘 샘플 열(원본 좌표, 십자가 탑 오른쪽)
-SKY_Y = 330          # 이 행까지가 순수 하늘
-# 지평선 쪽 외삽 감쇠 — 낮은 옅게 밝아져도 자연스럽지만 밤은 남색을 지켜야 회보라로 바래지 않는다
-DAMP = {'day': 0.05, 'night': 0.10}   # 낮 0.35는 왼쪽 아래가 희게 바래 오른쪽 사진 하늘과 색이 안 맞았다(2026-09-03)
-FLATTEN = {'day': 0.35, 'night': 0.0}   # 밤 0.45는 위쪽이 사진 하늘보다 밝아져 좌우 색이 어긋났다(2026-09-03)
-# 먼 도시 보케: zoom=캔버스 높이 대비 확대, blur=흐림 반경, hi_from 이상 밝기만 점광(glow·warm 색),
-# lo_to 이하 어둠은 shade 만큼 눌러 건물 실루엣. 2026-09-03 현재 glow·shade=0 으로 꺼둠 —
-# 흐린 띠가 '얼룩'으로 읽힌다는 피드백. 레퍼런스처럼 깨끗한 하늘 + 잎 실루엣만 쓴다
-BOKEH = {
-    'day': dict(zoom=1.4, blur=30, hi_from=0.80, glow=0.0, warm=(255, 250, 235), lo_to=0.45, shade=0.0),
-    'night': dict(zoom=1.4, blur=26, hi_from=0.45, glow=0.0, warm=(214, 178, 118), lo_to=0.16, shade=0.0),
-}
+WING_X = 8                     # 왼쪽 동 벽의 실제 모서리(원본 x). 그 왼쪽은 이웃 건물
+NEIGH = (84, 227)              # 이웃 건물이 동 지붕 위로 보이는 영역: x<84, y<227 (원본) → 하늘로
+SKY_BOX = (84, 0, 400, 226)    # 왼쪽 동 바로 옆 하늘(구름 없음, 십자가 탑 왼쪽) — 이음새와 같은 색.
+                               # 오른쪽 구름 하늘(500~865)을 늘려 쓰면 구름이 얼룩처럼 번지고 색도 벽 옆보다 진해
+                               # 어긋난다는 피드백(2026-09-03)
+EXT_DAMP = {'day': 0.18, 'night': 0.08}   # 지붕 아래로 하늘 아랫부분의 밝아지는 추세를 옅게만 이어 간다 — 밤은 남색을 지켜야 회보라로 안 바랜다
+EDGE_SOFT = 2.5                # 벽 모서리 안티에일리어싱 폭(px)
+GROUND_Y = 1000                # 이 행(원본) 아래 지면만 왼쪽으로 녹인다
+GROUND_FEATHER = 90
+TEX_BLUR = 5                   # 늘린 하늘의 보간 자국을 지우는 정도
+# 원본 오른쪽 아래 용달차(+옆 사람)를 지운다(2026-09-03 요청). OpenCV FSR 인페인팅 — Telea·패치 복제는
+# 얼룩·타일 무늬가 났고, 광장 바닥은 FSR 이 가장 매끈했다. 다각형은 원본 좌표
+REMOVE_POLYS = [
+    [(914, 972), (975, 962), (1024, 972), (1024, 1048), (930, 1048), (914, 1030)],   # 용달차
+    [(1000, 978), (1018, 978), (1018, 1012), (1000, 1012)],                           # 사람
+]
 # 잎 실루엣: rx·ry=왼쪽 위 기준 타원 마스크 반경(화면 비율), alpha=최대 농도, darken=실루엣 색(하늘색×배율)
 FOLIAGE = {
-    'day': dict(rx=0.62, ry=0.80, alpha=0.0, darken=0.80, vignette=0.06),   # 라이트는 나무 없이 파란 하늘만(사용자 결정)
-    'night': dict(rx=0.62, ry=0.80, alpha=0.82, darken=0.52, vignette=0.07),
+    'day': dict(rx=0.62, ry=0.80, alpha=0.0, darken=0.80),    # 라이트는 나무 없이 파란 하늘만(사용자 결정)
+    'night': dict(rx=0.62, ry=0.80, alpha=0.82, darken=0.52),  # 밤은 모서리에 걸린 가지 몇 개(2026-09-03 유지)
 }
+
+
+
+def smoothstep(t):
+    t = np.clip(t, 0, 1)
+    return t * t * (3 - 2 * t)
+
+
+def remove_objects(im, polys):
+    """다각형 영역을 주변 질감으로 메운다(FSR). OpenCV contrib 이 없으면 원본 그대로 두고 경고."""
+    if cv2 is None or not hasattr(cv2, 'xphoto'):
+        print('  ! opencv-contrib 없음 — 용달차 제거 생략')
+        return im
+    mask = Image.new('L', im.size, 0)
+    d = ImageDraw.Draw(mask)
+    for poly in polys:
+        d.polygon(poly, fill=255)
+    keep = (255 - np.asarray(mask)).astype(np.uint8)
+    bgr = cv2.cvtColor(np.asarray(im), cv2.COLOR_RGB2BGR)
+    dst = np.zeros_like(bgr)
+    cv2.xphoto.inpaint(bgr, keep, dst, cv2.xphoto.INPAINT_FSR_BEST)
+    return Image.fromarray(cv2.cvtColor(dst, cv2.COLOR_BGR2RGB))
+
 
 def foliage_mask(w, h, seed=0):
     """왼쪽 위에서 늘어진 나뭇가지 실루엣(0~1 마스크).
@@ -118,76 +155,60 @@ def foliage_mask(w, h, seed=0):
     return np.clip(sharp + 0.15 * soft, 0, 1)
 
 
-def smoothstep(t):
-    t = np.clip(t, 0, 1)
-    return t * t * (3 - 2 * t)
-
-
 for key, path in SRC.items():
-    im = Image.open(path).convert('RGB')
-    src = np.asarray(im).astype(np.float32)
+    im = remove_objects(Image.open(path).convert('RGB'), REMOVE_POLYS)
     scale = H / im.height
 
-    # 하늘 그라데이션: 샘플 열의 행별 평균 → 캔버스 스케일로 보간 → 아래로 완만히 외삽
-    col = src[:SKY_Y, SKY_X[0]:SKY_X[1]].mean(axis=1)
-    sky_rows = int(SKY_Y * scale)
-    ys = np.linspace(0, SKY_Y - 1, sky_rows)
-    grad = np.stack([np.interp(ys, np.arange(SKY_Y), col[:, c]) for c in range(3)], axis=1)
-    top, bot = grad[:40].mean(axis=0), grad[-40:].mean(axis=0)
-    slope = (bot - top) / max(sky_rows, 1)
-    rest = H - sky_rows
-    t = np.arange(rest) / max(rest, 1)
-    ext = bot[None, :] + slope[None, :] * (rest * (1 - (1 - t) ** 2) * DAMP[key])[:, None]
-    grad = np.clip(np.concatenate([grad, ext], axis=0), 0, 255)
-    # 밤: 지평선 밝은 띠를 눌러 하늘을 고르게(중간이 뿌옇게 밝으면 안개처럼 보인다)
-    grad = grad * (1 - FLATTEN[key]) + grad.mean(axis=0, keepdims=True) * FLATTEN[key]
-    canvas = np.repeat(grad[:, None, :], W, axis=1)
+    # ── 하늘 캔버스: 사진의 진짜 하늘을 좌우 반전해 캔버스 전체 폭으로(구름이 가로로 길어지는 건 층운처럼 자연스럽다)
+    sky = im.crop(SKY_BOX).transpose(Image.FLIP_LEFT_RIGHT)
+    sky_h = SKY_BOX[3] - SKY_BOX[1]
+    roof_c = int(NEIGH[1] * scale)                       # 캔버스에서 동 지붕 높이
+    s = np.asarray(sky.resize((W, sky_h), Image.LANCZOS)).astype(np.float32)
+    # 세로: 하늘 샘플 높이까지 1:1(이음새 색 연속), 그 아래는 마지막 행 색을 잇되 지평선 쪽 밝아지는 추세만 옅게 외삽
+    top_c = int(sky_h * scale)
+    ys = np.minimum(np.arange(H) / scale, sky_h - 1)
+    canvas = np.stack(
+        [np.stack([np.interp(ys, np.arange(sky_h), s[:, x, c]) for c in range(3)], axis=1) for x in range(W)],
+        axis=1,
+    )
+    slope = (s[-20:].mean(axis=0) - s[-60:-40].mean(axis=0)) / (40 / scale)   # 캔버스 행당 변화
+    rest = H - top_c
+    t = np.arange(rest) / max(rest - 1, 1)
+    canvas[top_c:] += (slope[None, :, :] * (rest * (1 - (1 - t) ** 2) * EXT_DAMP[key])[:, None, None])
+    canvas = np.asarray(
+        Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(TEX_BLUR))
+    ).astype(np.float32)
 
-    # ── 왼쪽 여백을 '심도 흐림 장면'으로: 단색 하늘은 밋밋하다는 피드백(2026-09-03) ──
-    yy, xx = np.mgrid[0:H, 0:W]
-    fx, fy = xx / W, yy / H
-    left_mask = 1 - smoothstep((fx - 0.28) / 0.30)          # 왼쪽에서 교회 쪽으로 사라지는 가중치
-
-    # (1) 먼 도시 보케: 사진을 좌우 반전·확대·강하게 흐린 뒤, 밝은 부분(불 켜진 창)만 따뜻한
-    #     점광으로 얹고 어두운 덩어리는 살짝만 눌러 '멀리 흐릿한 건물 실루엣'을 만든다.
-    #     흐린 사진을 통째로 깔면 회색 안개가 되므로(검증됨) 하이라이트·섀도만 쓴다
-    bk = BOKEH[key]
-    big = im.transpose(Image.FLIP_LEFT_RIGHT)
-    bh = int(H * bk['zoom'])
-    big = big.resize((round(big.width * bh / big.height), bh), Image.LANCZOS)
-    big = big.filter(ImageFilter.GaussianBlur(bk['blur']))
-    lum = np.asarray(big.convert('L')).astype(np.float32) / 255
-    lum = lum[bh - H:, :W] if lum.shape[1] >= W else np.pad(lum[bh - H:], ((0, 0), (0, W - lum.shape[1])), mode='edge')
-    band = smoothstep((fy - 0.30) / 0.25) * (1 - smoothstep((fy - 0.80) / 0.15))   # 화면 중간~아래 띠
-    hi = np.clip((lum - bk['hi_from']) / (1 - bk['hi_from']), 0, 1) * band * left_mask
-    lo = np.clip((bk['lo_to'] - lum) / bk['lo_to'], 0, 1) * band * left_mask
-    warm = np.array(bk['warm'], np.float32)[None, None, :]
-    canvas = canvas * (1 - bk['shade'] * lo[..., None])
-    canvas = canvas + (warm - canvas) * (bk['glow'] * hi)[..., None]
-
-    # (2) 초점 밖 잎·가지 실루엣(절차적): 왼쪽 위 모서리에서 늘어진 가지에 잎을 흩뿌리고 흐린다.
-    #     사진의 나무를 잘라 쓰면 창문 격자가 딸려와 어색하다(검증됨)
+    # ── 초점 밖 잎·가지 실루엣(절차적, 밤만): 왼쪽 위 모서리에서 늘어진 가지.
+    #    사진의 나무를 잘라 쓰면 창문 격자가 딸려와 어색하다(검증됨)
     fl = FOLIAGE[key]
     if fl['alpha'] > 0:
+        yy, xx = np.mgrid[0:H, 0:W]
+        fx, fy = xx / W, yy / H
         sil = foliage_mask(W, H, seed=11)
         r = np.sqrt((fx / fl['rx']) ** 2 + (fy / fl['ry']) ** 2)
         sil = sil * (1 - smoothstep((r - 0.5) / 0.5)) * fl['alpha']
         canvas = canvas * (1 - sil[..., None]) + (canvas * fl['darken']) * sil[..., None]
 
-    # (3) 글자 자리 바닥·왼쪽 모서리를 살짝 눌러 텍스트가 뜨게
-    vig = (1 - fl['vignette'] * smoothstep((fy - 0.45) / 0.55) * (1 - smoothstep((fx - 0.15) / 0.45)))[..., None]
-    canvas = canvas * vig
-
-    canvas += np.random.default_rng(7).normal(0, 1.2, canvas.shape)  # 밴딩 방지 노이즈
-
-    # 교회 레이어: 높이 H 에 맞춰 축소, 오른쪽 정렬, 왼쪽 가장자리 페더
-    church = im.crop((CROP_L, 0, im.width, im.height))
+    # ── 교회 레이어: 실제 모서리에서 자르고 오른쪽 정렬
+    church = im.crop((WING_X, 0, im.width, im.height))
     cw = round(church.width * scale)
     ch = np.asarray(church.resize((cw, H), Image.LANCZOS)).astype(np.float32)
     x0 = W - cw
-    alpha = smoothstep(np.arange(cw) / FEATHER)[None, :, None]
-    canvas[:, x0:, :] = ch * alpha + canvas[:, x0:, :] * (1 - alpha)
+    yy, xx = np.mgrid[0:H, 0:cw]
+    alpha = smoothstep(xx / EDGE_SOFT)
+    # 지붕 위 이웃 건물 지우기
+    nx = (NEIGH[0] - WING_X) * scale
+    neigh = (1 - smoothstep((xx - nx) / 40)) * (1 - smoothstep((yy - (roof_c - 1)) / 1.0))
+    alpha = alpha * (1 - neigh)
+    # 지면: 아래로 갈수록 넓게 녹인다
+    gy = GROUND_Y * scale
+    gw = GROUND_FEATHER * smoothstep((yy - gy) / (H - gy))
+    alpha = alpha * np.where(gw > 0, smoothstep(xx / np.maximum(gw, 1e-3)), 1)
+    a = alpha[..., None]
+    canvas[:, x0:, :] = ch * a + canvas[:, x0:, :] * (1 - a)
 
+    canvas += np.random.default_rng(7).normal(0, 1.0, canvas.shape)  # 밴딩 방지 노이즈
     out = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8))
     dest = VISIT / f'church-{key}.webp'
     out.save(dest, 'WEBP', quality=84, method=6)
