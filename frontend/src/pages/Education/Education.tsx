@@ -278,31 +278,35 @@ const CategorySection = ({
 
   return (
     <section>
-      {/* 헤더 — 엠블럼 + 이름 + 태그라인 */}
-      <div className="flex items-start gap-3 mb-4">
-        <div className="shrink-0 w-12 h-12 rounded-2xl bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] flex items-center justify-center text-brand">
-          {category.emoji ? <EduGlyph emoji={category.emoji} size={24} /> : <BookGlyph />}
-        </div>
-        <div className="min-w-0 pt-0.5">
-          <h2 className="text-[20px] font-bold leading-[1.3] tracking-[-0.02em] text-ink-strong">
-            {name}
-            {!category.is_active && isAdmin && (
-              <span className="ml-2 align-middle text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
-                숨김
-              </span>
+      {/* 부서 소개 카드 — 엠블럼 + 이름 + 태그라인 + 설명.
+          회색 캔버스 위에 맨살로 얹혀 있던 두 덩어리를 프로그램 카드와 같은 흰 카드로 묶는다
+          (히어로 카드화와 같은 패스 — 화면이 카드 리듬으로 정렬된다). */}
+      <div className="mb-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/80 dark:border-white/[0.06] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_4px_12px_rgba(0,0,0,0.25)] p-4">
+        <div className="flex items-start gap-3">
+          <div className="shrink-0 w-12 h-12 rounded-2xl bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] flex items-center justify-center text-brand">
+            {category.emoji ? <EduGlyph emoji={category.emoji} size={24} /> : <BookGlyph />}
+          </div>
+          <div className="min-w-0 pt-0.5">
+            <h2 className="text-[20px] font-bold leading-[1.3] tracking-[-0.02em] text-ink-strong">
+              {name}
+              {!category.is_active && isAdmin && (
+                <span className="ml-2 align-middle text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-500/15 border border-gray-400/30 text-gray-600 dark:text-white/60">
+                  숨김
+                </span>
+              )}
+            </h2>
+            {tagline && (
+              <p className="text-[13px] leading-[1.55] text-gray-500 dark:text-white/55 mt-0.5">{tagline}</p>
             )}
-          </h2>
-          {tagline && (
-            <p className="text-[13px] leading-[1.55] text-gray-500 dark:text-white/55 mt-0.5">{tagline}</p>
-          )}
+          </div>
         </div>
-      </div>
 
-      {description && (
-        <p className="text-[14px] leading-[1.75] text-gray-700 dark:text-white/75 whitespace-pre-line mb-4">
-          {description}
-        </p>
-      )}
+        {description && (
+          <p className="mt-3 text-[14px] leading-[1.75] text-gray-700 dark:text-white/75 whitespace-pre-line">
+            {description}
+          </p>
+        )}
+      </div>
 
       {/* 프로그램 카드 */}
       {category.programs.length === 0 ? (

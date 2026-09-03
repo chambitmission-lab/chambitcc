@@ -105,6 +105,25 @@
   --hero-cta-bg-hover: rgba(217, 184, 119, 0.16);
   --hero-cta-border: rgba(217, 184, 119, 0.55);
 }
+/* 무대 → 레일 착지(다크, 2026-09-03) — 무대 끝선에 하드 엣지 3개가 겹쳐 가로 이음새로 읽혔다:
+   ① 사진 컷아웃은 아래쪽에 알파가 없어(object-position: * bottom) 건물 1층 입구가 가장 밝은 채로 잘리고
+   ② 무대는 118deg 대각 그라디언트라 경계 바로 위가 왼쪽은 레일보다 밝고 오른쪽은 어두워 단차 부호가 뒤집히고
+   ③ 그 위에 레일의 흰 헤어라인(아래 .dark .visit-route 에서 해제)이 포개졌다.
+   한 겹으로 ①②를 같이 없앤다 — 바닥을 레일 표면색으로 착지시키면 사진은 녹아들고 좌우 단차도 사라진다.
+   mask-image 는 WebKit 에서 적용 전 한 프레임 통칠이 보여 쓰지 않는다(/greeting 사인 사례) */
+.dark .visit-hero-stage::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22%;
+  /* 투명 끝은 같은 색의 알파 0 으로 — `transparent` 키워드는 회색으로 도는 브라우저가 있다 */
+  background: linear-gradient(to top, var(--surface-container) 0%, rgba(14, 21, 34, 0) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* 사진이 없을 때만 시간대 하늘 토큰으로 대신한다(/worship 과 같은 --worship-sky-*) */
 .visit-hero:not(.has-photo) .visit-hero-stage {
   background-image: var(--visit-sky, none);
@@ -291,6 +310,10 @@
   gap: var(--route-gap);
   border-top: 1px solid var(--card-border);
 }
+/* 다크: 무대 바닥이 이미 레일 표면색으로 착지하므로 헤어라인은 지운 이음새를 도로 그린다 */
+.dark .visit-route {
+  border-top-color: transparent;
+}
 
 /* 진행선 — 첫 점 중심에서 마지막 점 중심까지 한 줄.
    스텝이 칼럼 중앙 정렬이므로 양 끝 = 패딩 + 칼럼 절반(--route-half-col).
@@ -403,77 +426,43 @@
   }
 }
 
-/* 모바일·태블릿(<1024px) — 셸이 28rem이라 가로 3칸에선 "송내대로265번길" 같은
-   긴 이름이 '길' 한 글자만 다음 줄로 떨어진다. 세로 타임라인으로 방향만 90도 돌려
-   제목이 온전히 한 줄에 들어오게 한다. 점·진행선·STEP 표기 문법은 그대로.
-   (칸 폭을 줄이거나 글자를 작게 하는 대응은 관리자가 긴 이름을 넣으면 바로 다시 깨진다) */
+/* 모바일·태블릿(<1024px) — 가로 3칸 유지(사용자 확정 2026-09-03: 세로 타임라인은 되돌림).
+   셸이 28rem 이라 칸이 좁으니 칸 여백·간격·글자를 한 단계씩 줄여 "송내대로265번길"이 한 줄에 들어오게 한다.
+   그래도 넘치는 긴 이름은 레이아웃을 깨는 대신 두 줄로 흐른다(overflow-wrap: anywhere — 기본 규칙 그대로) */
 @media (max-width: 1023px) {
   .visit-route {
-    --route-dot: 34px;
-    --route-pad-x: 16px;
-    --route-gap: 2px;
-    grid-auto-flow: row;
-    grid-auto-columns: auto;
+    --route-dot: 28px;
+    /* 칸 폭이 곧 제목 한 줄이라 여백을 최대한 양보한다.
+       타일 배경은 PC 호버에만 있어 gap 0 이어도 칸이 붙어 보이지 않고,
+       점 바깥 3px 링이 진행선을 끊어 주므로 칸 사이 간격은 없어도 된다 */
+    --route-pad-x: 6px;
+    --route-gap: 0px;
+    --route-tile-pad: 3px;
     padding: 12px var(--route-pad-x) 14px;
   }
 
-  /* 가로 진행선은 끄고, 각 스텝이 자기 점에서 다음 점까지 한 마디씩 잇는다
-     (스텝 높이가 제각각이라 레일 하나로 양 끝을 맞출 수 없다) */
+  /* 진행선 y — 위 padding 이 14px→12px, 점 위 여백이 4px→3px 로 줄어든 만큼 같이 올린다 */
   .visit-route::before {
-    content: none;
-  }
-
-  .visit-route-step::before {
-    content: '';
-    position: absolute;
-    left: calc(var(--route-tile-pad) + var(--route-dot) / 2 - 1px);
-    top: calc(var(--route-tile-pad) + var(--route-dot) / 2);
-    bottom: calc(-1 * (var(--route-gap) + var(--route-tile-pad) + var(--route-dot) / 2));
-    width: 2px;
-    border-radius: 2px;
-    background: linear-gradient(180deg, var(--brand-soft-strong), var(--brand));
-    opacity: 0.7;
-    pointer-events: none;
-  }
-  .visit-route-step.is-last::before {
-    content: none;
-  }
-
-  .visit-route-step {
-    display: grid;
-    grid-template-columns: var(--route-dot) minmax(0, 1fr);
-    align-items: start;
-    column-gap: 12px;
-    row-gap: 2px;
-    text-align: left;
+    top: calc(12px + var(--route-tile-pad) + var(--route-num-h) + 3px + var(--route-dot) / 2 - 1px);
   }
 
   .visit-route-dot {
-    grid-column: 1;
-    grid-row: 1 / span 3;
-    margin: 0;
+    margin: 3px 0 5px;
   }
 
   .visit-route-num {
-    grid-column: 2;
-    align-self: end;
+    font-size: 9px;
+    letter-spacing: 0.08em;
   }
 
+  /* 한 칸의 글자 폭 = 뷰포트/3 - 18px, "송내대로265번길" 은 약 8.45em(한글 1em + 숫자 0.55em).
+     그래서 필요한 크기가 뷰포트에 정비례한다 — vw 로 따라가게 두면 좁은 기기에서도 한 줄을 지킨다 */
   .visit-route-title {
-    grid-column: 2;
-    font-size: 15px;
+    font-size: clamp(10px, 3.2vw, 12px);
   }
 
   .visit-route-desc {
-    grid-column: 2;
-    font-size: 12.5px;
-  }
-
-  /* 창을 좁힌 PC — 행이 떠오르면 연결선까지 같이 움직여 마디가 어긋난다 */
-  @media (hover: hover) {
-    .visit-route-step:hover {
-      transform: none;
-    }
+    font-size: 10.5px;
   }
 }
 
@@ -1299,6 +1288,11 @@
   /* 사진은 무대 전체(자산도 2:1) — 알파 램프만으로 배경에서 스며 나온다 */
   .visit-hero-photo {
     height: 100%;
+  }
+
+  /* 무대가 2:1 로 커지면 같은 비율의 페이드는 과하다 */
+  .dark .visit-hero-stage::after {
+    height: 15%;
   }
   .visit-hero-img {
     object-position: right center;
