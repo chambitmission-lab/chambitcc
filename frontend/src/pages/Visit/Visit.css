@@ -58,7 +58,7 @@
 }
 
 /* 사진 무대 — 실제 예배당 사진(라이트 낮 / 다크 밤, Visit.tsx 가 고른다).
-   자산은 2000x640 와이드, 오른쪽 위 기준으로 잘라 교회는 늘 오른쪽에 온전히 남고
+   자산은 1664x640(2.6:1) 와이드, 오른쪽 위 기준으로 잘라 교회는 늘 오른쪽에 온전히 남고
    왼쪽 하늘 여백이 글자 자리가 된다. 사진이 없으면 시간대 하늘 토큰으로 대신한다 */
 .visit-hero-photo {
   position: relative;
@@ -1137,13 +1137,22 @@
   }
 
   .visit-hero-photo {
-    /* 3.5:1 — 2000x640 자산이 위 기준으로 잘려도 십자가 탑부터 간판까지 남는 높이 */
-    min-height: 340px;
-    padding: 28px 34px 32px;
+    /* 자산(1664x640, 2.6:1) 비율 그대로 — 건물이 십자가 탑부터 입구까지 잘리지 않고 온전히 보인다.
+       콘텐츠 폭 1200px 에서 약 460px. 좁은 lg 에서도 비율이 유지돼 오른쪽 교회는 늘 온전하다 */
+    min-height: 0;
+    aspect-ratio: 1664 / 640;
+    padding: 32px 40px 36px;
+  }
+
+  /* 넓어진 하늘 여백에 맞춰 타이포도 한 단계 — 여백이 '빈 곳'이 아니라 제목의 호흡으로 읽히게 */
+  .visit-hero-body {
+    gap: 10px;
+    max-width: 34rem;
   }
 
   .visit-hero-title {
-    font-size: 28px;
+    font-size: 34px;
+    line-height: 1.2;
   }
 
   .visit-route {
@@ -1163,7 +1172,7 @@
   }
 
   .visit-hero-subtitle {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   /* ── 지도 — 레거시처럼 큼직하게 한 장 ── */
