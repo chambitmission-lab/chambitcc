@@ -25,10 +25,12 @@
     padding: 0;
   }
 
-  .gr-hero-card {
+  .gr-hero-card,
+  .dark .gr-hero-card {
     border-radius: 24px 24px 0 0;
     padding: 3.25rem 2.5rem 6.5rem;
     background-position: center 30%;
+    box-shadow: none; /* 페이지 카드 안의 커버 — 모바일 카드 링·그림자는 걷는다 */
     /* 페이드 없음 — 사진은 끝까지 선명하게, 카드는 그림자만으로 떠 있는다 */
   }
 

@@ -5,23 +5,34 @@
    왼쪽은 스크림으로 눌러 문장의 자리를 만들고 오른쪽은 고른 베일로 사진 질감을 가라앉힌다 —
    덧그린 장식(십자가 등)은 두지 않는다. 흰 글씨는 양 테마 공통. 애니메이션 없음. */
 
-/* 모바일도 PC와 같은 문법 — 히어로는 액자가 아니라 화면 폭 가득한 "커버",
-   아래 편지 카드가 커버 하단을 타고 올라온다(하단 여백 5rem 이 그 자리) */
+/* 모바일·태블릿(<lg): 화면 끝까지 깔지 않고 좌우 여백을 둔 라운드 카드 —
+   랜딩 히어로·/about 히어로와 같은 문법(풀블리드 사진이 회색 캔버스 위 카드들과 어긋나 보인다는 피드백).
+   아래 편지 카드가 커버 하단을 타고 올라오는 관용구는 그대로(하단 여백 5rem 이 그 자리).
+   lg+ 는 responsive.css 에서 페이지 카드의 "커버"(윗면 라운드만)로 되돌린다 */
 .gr-hero {
-  padding: 0;
+  padding: 1rem 1rem 0; /* 좌우 1rem = .gr-content 와 같은 기둥 — 올라타는 편지 카드와 모서리가 맞는다 */
 }
 
 .gr-hero-card {
   position: relative;
   overflow: hidden;
-  border-radius: 0;
+  border-radius: 24px;
   padding: 2.6rem 1.5rem 5rem;
   background-color: var(--gr-hero-base);
   background-image: var(--gr-hero-scrim), var(--gr-hero-image);
   background-size: cover;
   background-position: center 24%;
   background-repeat: no-repeat;
-  /* 테두리 없음 — 사진 가장자리 위에 밝은 선이 얹히면 잘라 붙인 듯 지저분해 보인다 */
+  /* 테두리 선 대신 헤어라인 링 + 옅은 그림자 — 사진 가장자리에 밝은 선이 얹히지 않게 알파를 낮춘다 */
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 16px 40px -24px rgba(0, 0, 0, 0.45);
+}
+
+.dark .gr-hero-card {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 16px 40px -24px rgba(0, 0, 0, 0.8);
 }
 
 .gr-hero-card > * {

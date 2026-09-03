@@ -73,7 +73,18 @@ export const visit = {
   visitCall: 'Call',
   visitExitLabel: 'Exit',
 
-  // ── Next service ──────────────────────
+  // ── Leave now ─────────────────────────
+  visitNowTitle: 'If you leave now',
+  visitLocateCta: 'How far is it from me?',
+  visitLocating: 'Checking your location…',
+  visitLocateDenied: 'Location permission is off, so we cannot measure the distance. Please use the directions buttons below.',
+  visitDistanceLabel: 'Straight-line',
+  visitEtaCar: 'By car, about',
+  visitEtaWalk: 'On foot, about',
+  visitEtaNote: 'A rough estimate from straight-line distance. Check a map app for the real travel time.',
+  visitLeaveOk: 'Leave now and you will arrive with time to spare',
+  visitLeaveTight: 'You should head out right away',
+  visitLeaveLate: 'The service has already begun. You are welcome to slip in quietly',
   visitNextService: 'Next service',
   visitNextServiceIn: 'in',
   visitMinuteUnit: 'min',

@@ -587,45 +587,168 @@
   }
 }
 
-/* ── 다음 예배까지 (한 줄) ─────────────── */
-.visit-next {
+/* ── 지금 출발하면 ───────────────────────
+   다음 예배 카운트다운 + 내 위치 기준 어림 거리·시간. 카드 문법은 연락처 카드와 같다 */
+.visit-now {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.visit-now-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0;
-  padding: 11px 14px;
-  border-radius: 14px;
-  background: var(--brand-soft);
-  border: 1px solid var(--brand-soft-strong);
-  font-size: 12.5px;
-  color: var(--text-muted);
 }
 
-.visit-next-icon {
+.visit-now-icon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  background: var(--brand-soft);
   color: var(--brand);
 }
 
-.visit-next-label {
-  font-weight: 600;
-}
-
-.visit-next-name {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.visit-now-title {
+  margin: 0;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-strong);
 }
 
-.visit-next-remain {
-  flex-shrink: 0;
-  font-size: 13.5px;
+.visit-now-service {
+  margin: 12px 0 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-body);
+}
+
+.visit-now-service-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  color: var(--text-muted);
+}
+
+.visit-now-service-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.visit-now-service-remain {
+  margin-left: auto;
+  font-size: 17px;
   font-weight: 800;
-  color: var(--brand);
   font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.visit-now-metrics {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.visit-now-metric {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 12px;
+  text-align: center;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+}
+
+.visit-now-metric-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.visit-now-metric-value {
+  display: block;
+  margin-top: 3px;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.visit-now-metric-value em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 1px;
+}
+
+.visit-now-verdict {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  color: var(--text-strong);
+}
+
+/* 서두르셔야 하는 상황 — 앰버는 '표징' 시맨틱이라 여기서만 예외로 쓴다 */
+.visit-now-verdict.is-tight,
+.visit-now-verdict.is-late {
+  background: var(--amber-soft);
+  border-color: var(--amber-soft-strong);
+  color: var(--amber);
+}
+
+.visit-now-note {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.visit-now-cta {
+  margin-top: 14px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--brand-soft-strong);
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.visit-now-cta:hover:not(:disabled) {
+  background: var(--brand-soft-strong);
+}
+
+.visit-now-cta:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* ── 오시는 방법 — 탭 + 벤토 ──────────────

@@ -81,7 +81,18 @@ export const visit = {
   visitCall: '전화하기',
   visitExitLabel: '출구',
 
-  // ── 다음 예배 ─────────────────────────
+  // ── 지금 출발하면 ─────────────────────
+  visitNowTitle: '지금 출발하면',
+  visitLocateCta: '내 위치에서 얼마나 걸릴까요?',
+  visitLocating: '위치를 확인하는 중…',
+  visitLocateDenied: '위치 권한이 없어 거리를 계산할 수 없어요. 아래 길찾기를 이용해 주세요.',
+  visitDistanceLabel: '직선거리',
+  visitEtaCar: '차로 약',
+  visitEtaWalk: '걸어서 약',
+  visitEtaNote: '직선거리로 어림한 값이에요. 정확한 시간은 길찾기에서 확인해 주세요.',
+  visitLeaveOk: '지금 출발하시면 여유 있게 도착하십니다',
+  visitLeaveTight: '지금 바로 출발하셔야 합니다',
+  visitLeaveLate: '예배가 이미 시작되었어요. 조용히 들어오셔도 괜찮습니다',
   visitNextService: '다음 예배',
   visitNextServiceIn: '까지',
   visitMinuteUnit: '분',

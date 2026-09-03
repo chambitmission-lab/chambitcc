@@ -11,8 +11,9 @@ import { writeToClipboard } from '../Bible/components/verseCopy'
 import ChurchMap from './components/ChurchMap'
 import TransportInfo from './components/TransportInfo'
 import InviteCard from './components/InviteCard'
+import LeaveNowCard from './components/LeaveNowCard'
 import { parseCoords } from './geo'
-import { ChurchIcon, ClockIcon, CopyIcon, KakaoMapIcon, NaverMapIcon, PhoneIcon, PinIcon, StoreIcon, SubwayIcon, TmapIcon } from './icons'
+import { ChurchIcon, CopyIcon, KakaoMapIcon, NaverMapIcon, PhoneIcon, PinIcon, StoreIcon, SubwayIcon, TmapIcon } from './icons'
 import './Visit.css'
 
 /** 히어로 하늘 — /worship 과 같은 --worship-sky-* 토큰을 시각으로 고른다 */
@@ -108,12 +109,6 @@ const Visit = () => {
       showToast(ok ? t('visitCopied') : t('visitCopyFailed'), ok ? 'success' : 'error')
     })
   }
-
-  const remainText = !next
-    ? null
-    : next.occ.minutes >= 60
-      ? `${Math.floor(next.occ.minutes / 60)}${t('visitHourUnit')} ${next.occ.minutes % 60}${t('visitMinuteUnit')}`
-      : `${next.occ.minutes}${t('visitMinuteUnit')}`
 
   const routeSteps = (
     [
@@ -280,17 +275,9 @@ const Visit = () => {
                 </div>
               </section>
 
-              {/* 다음 예배까지 — 예배 시간을 아는 페이지라야 "언제 나설까"에 답한다 */}
-              {next && remainText && (
-                <p className="visit-next">
-                  <span className="visit-next-icon">
-                    <ClockIcon size={15} />
-                  </span>
-                  <span className="visit-next-label">{t('visitNextService')}</span>
-                  <span className="visit-next-name">{next.service.name}</span>
-                  <strong className="visit-next-remain">{remainText}</strong>
-                </p>
-              )}
+              {/* 지금 출발하면 — 다음 예배 카운트다운 + (원하면) 내 위치 기준 어림 소요시간.
+                  예배 시간을 아는 페이지라야 "언제 나설까"에 답한다 */}
+              <LeaveNowCard church={coords} nextServiceName={next?.service.name} nextServiceInMin={next?.occ.minutes} />
             </div>
 
             <div className="visit-col-main">

@@ -131,6 +131,15 @@ export const ClockIcon = (props: IconProps) => (
   </Svg>
 )
 
+/** 내 위치 */
+export const CrosshairIcon = (props: IconProps) => (
+  <Svg {...props}>
+    <circle cx="12" cy="12" r="8.5" />
+    <circle cx="12" cy="12" r="2.5" />
+    <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3" />
+  </Svg>
+)
+
 
 /** 공유 */
 export const ShareIcon = (props: IconProps) => (
