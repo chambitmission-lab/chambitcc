@@ -80,8 +80,9 @@
   --hero-cta-bg-hover: rgba(255, 255, 255, 0.9);
   --hero-cta-border: rgba(49, 130, 246, 0.55);
   position: relative;
-  aspect-ratio: 20 / 23;
-  min-height: 330px;
+  /* 모바일 높이 — 20:23 은 너무 높다는 피드백(2026-09-03) → 20:19. 글자 블록(~170px) + 건물이 십자가부터 온전히 */
+  aspect-ratio: 20 / 19;
+  min-height: 320px;
   padding: 26px 22px 22px;
   display: flex;
   flex-direction: column;
@@ -161,14 +162,15 @@
   display: block;
 }
 
-/* 교회 사진 — 모바일은 무대 아래 2/3 에 오른쪽·아래 기준으로 앉히고, 위쪽은 짧게 녹여 배경과 잇는다
-   (사진 하늘이 불투명한 오른쪽 위에서 배경과 만나는 가로선을 지운다) */
+/* 교회 사진 — 자산은 하늘까지 떼어낸 건물 컷아웃(RGBA)이라 배경과 만나는 가로선이 없다.
+   모바일: 무대 아래 61% 높이에 앉혀 십자가 꼭대기가 글자 블록 바로 아래서 시작. 왼쪽 빈 하늘만 살짝 잘라내
+   (object-position 82%) 왼쪽 동이 카드 안쪽으로 더 들어온다 */
 .visit-hero-photo {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  top: 33%;
+  height: 61%;
   pointer-events: none;
 }
 .visit-hero-img {
@@ -176,10 +178,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: right bottom;
-  /* 세로 마스크는 짧게 — 길면 십자가 탑 꼭대기가 지워진다 */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 13%);
-  mask-image: linear-gradient(to bottom, transparent 0, #000 13%);
+  object-position: 82% bottom;
 }
 
 /* 글자 — 무대 왼쪽, 위에서부터(모바일) / 세로 중앙(lg) */
@@ -1219,14 +1218,12 @@
     justify-content: center;
   }
 
-  /* 사진은 무대 전체(자산도 2:1) — 세로 마스크 없이 알파 램프만으로 배경에서 스며 나온다 */
+  /* 사진은 무대 전체(자산도 2:1) — 알파 램프만으로 배경에서 스며 나온다 */
   .visit-hero-photo {
-    top: 0;
+    height: 100%;
   }
   .visit-hero-img {
     object-position: right center;
-    -webkit-mask-image: none;
-    mask-image: none;
   }
 
   .visit-hero-branch {

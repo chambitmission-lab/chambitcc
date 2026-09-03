@@ -39,9 +39,10 @@ W, H = 1600, 800
 # 자산은 RGBA: 교회만 불투명, 왼쪽 동 벽에서 FADE 폭만큼 알파가 0→1 로 오르고 그 왼쪽은 완전 투명.
 # 배경(남색/하늘 그라데이션·글로우·링)은 전부 CSS(Visit.css .visit-hero-stage)가 그린다 →
 # 사진 하늘을 합성해 붙이던 v2 의 '색 안 맞는 이음새' 문제가 구조적으로 사라진다.
-FADE = (-20, 400)              # 알파 램프 시작/끝(교회 왼쪽 모서리 기준 px). 십자가 탑(x0+305~375)까지 걸쳐 길게 —
-                               # 짧으면(v3 초판 250px) '반반으로 잘린' 경계로 읽힌다는 피드백(2026-09-03)
-FADE_GAMMA = 1.8               # 램프 곡선: 왼쪽 끝은 거의 투명하게 오래 머물다 오른쪽으로 갈수록 점점 또렷하게
+FADE = (-100, 240)             # 알파 램프 시작/끝(교회 왼쪽 모서리 기준 px). 왼쪽 동(가는 창 있는 흰 벽면)이
+                               # 왼쪽 끝 ~0.2 에서 시작해 동 절반쯤(120px)에 0.7, 탑 전에 1 — 벽면·창이 또렷히 읽혀야 한다
+                               # (2026-09-03: 하늘을 컷아웃한 뒤로는 램프가 짧아도 '반반 띠'가 안 생긴다. 예전 띠는 하늘 페이드 탓)
+FADE_GAMMA = 1.0               # 램프 곡선(1=smoothstep 그대로)
 NIGHT_DIM = 0.82               # 밤 사진은 살짝 눌러 남색 배경에 앉힌다(불 켜진 창의 대비는 유지)
 BRANCH_BOX = (0, 0, 880, 480)  # 나뭇가지 실루엣 별도 레이어(branch-night.webp) 크롭 — 카드 왼쪽 위에 CSS 로 얹는다
 WING_X = 8                     # 왼쪽 동 벽의 실제 모서리(원본 x). 그 왼쪽은 이웃 건물
@@ -87,6 +88,32 @@ def remove_objects(im, polys):
     dst = np.zeros_like(bgr)
     cv2.xphoto.inpaint(bgr, keep, dst, cv2.xphoto.INPAINT_FSR_BEST)
     return Image.fromarray(cv2.cvtColor(dst, cv2.COLOR_BGR2RGB))
+
+
+def sky_mask(im, key):
+    """사진에서 '하늘'(위쪽 테두리에 이어진 파란/흰 구름 또는 밤 남색 영역) 마스크(0~1).
+    색 규칙으로 후보를 뽑고, 위쪽 테두리에 연결된 성분만 남긴다(창문 유리·캐노피처럼 건물 안에 갇힌 파랑은 제외).
+    2026-09-03: 사진 하늘을 남기면 CSS 배경과 만나는 가로선이 생겨 부자연스럽다는 피드백 → 건물만 남긴다."""
+    a = np.asarray(im).astype(np.int32)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    lum = (r * 299 + g * 587 + b * 114) // 1000
+    if key == 'day':
+        blue = (b - r > 12) & (b > g + 6)
+        cloud = (lum > 222) & (b >= r - 4) & (b >= g - 4)
+        cand = blue | cloud
+    else:
+        # 밤: 아주 어둡고 확실히 파란 것만 — 그늘진 오른쪽 부속 건물(회색, lum 60~90)이 하늘로 새면 구멍이 난다
+        cand = (lum < 58) & (b - r > 8) & (b >= g)
+    m = cand.astype(np.uint8)
+    if cv2 is not None:
+        m = cv2.morphologyEx(m, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+        n, lab = cv2.connectedComponents(m, connectivity=4)
+        top_labels = set(np.unique(lab[0:3, :])) - {0}
+        keep = np.isin(lab, list(top_labels))
+        m = keep.astype(np.uint8)
+        m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
+    sky = np.asarray(Image.fromarray(m * 255).filter(ImageFilter.GaussianBlur(0.8))).astype(np.float32) / 255
+    return sky
 
 
 def foliage_mask(w, h, seed=0):
@@ -237,11 +264,13 @@ for key, path in SRC.items():
     church = im.crop((WING_X, 0, im.width, im.height))
     cw = round(church.width * scale)
     ch = np.asarray(church.resize((cw, H), Image.LANCZOS)).astype(np.float32)
+    sky = np.asarray(Image.fromarray((sky_mask(im, key) * 255).astype(np.uint8)).crop((WING_X, 0, im.width, im.height))
+                     .resize((cw, H), Image.LANCZOS)).astype(np.float32) / 255
     if key == 'night':
         ch = ch * NIGHT_DIM
     x0 = W - cw
     yy, xx = np.mgrid[0:H, 0:cw]
-    alpha = smoothstep(xx / EDGE_SOFT)
+    alpha = smoothstep(xx / EDGE_SOFT) * (1 - sky)   # 하늘은 투명 — 배경은 CSS 가 그린다
     # 지붕 위 이웃 건물 지우기(투명으로)
     nx = (NEIGH[0] - WING_X) * scale
     neigh = (1 - smoothstep((xx - nx) / 40)) * (1 - smoothstep((yy - (roof_c - 1)) / 1.0))
