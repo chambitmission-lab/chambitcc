@@ -159,8 +159,39 @@ const HomeNotice = () => {
             linear-gradient(90deg, var(--surface-container) 0%, var(--surface-container) 34%, rgba(32, 31, 31, 0) 100%),
             url('/images/notice/banner-dark.webp');
         }
+
+        /* PC 가운데 빈 구간 연출 — 공지 한 장이 날아가 게시판에 붙는다.
+           바깥 span 은 배너 폭과 같아서 translateX 의 %가 곧 배너 폭 비율이 된다
+           (요소 자기 크기 기준이라, 폭이 848~1192px로 변해도 착지점이 안 흔들린다).
+           118px / 96px 은 오른쪽 삽화 안 '게시판 종이'의 실제 위치. */
+        .notice-fly  { animation: notice-fly 11s cubic-bezier(0.2, 0.5, 0.25, 1) infinite; }
+        .notice-leaf { animation: notice-flutter 1.35s ease-in-out infinite; }
+        .notice-pin  { animation: notice-pin 11s linear infinite; }
+        @keyframes notice-fly {
+          0%        { opacity: 0; transform: translateX(36%); }
+          4%        { opacity: 1; }
+          25%       { opacity: 1; }
+          28%       { transform: translateX(calc(100% - 118px)); }
+          31%, 100% { opacity: 0; transform: translateX(calc(100% - 118px)); }
+        }
+        @keyframes notice-flutter {
+          0%   { transform: translateY(calc(-50% - 6px)) rotate(-9deg); }
+          30%  { transform: translateY(calc(-50% - 13px)) rotate(7deg); }
+          65%  { transform: translateY(calc(-50% - 1px)) rotate(-5deg); }
+          100% { transform: translateY(calc(-50% - 6px)) rotate(-9deg); }
+        }
+        @keyframes notice-pin {
+          0%, 27%   { opacity: 0; transform: scale(0.3); }
+          29%       { opacity: 0.9; transform: scale(0.6); }
+          38%, 100% { opacity: 0; transform: scale(1.6); }
+        }
+        /* 날아가는 종이 — 삽화 속 공지 종이와 같은 톤 */
+        .notice-banner { --notice-paper: #ffffff; --notice-paper-line: rgba(122, 108, 88, 0.55); }
+        [data-theme='dark'] .notice-banner { --notice-paper: #efe6d4; --notice-paper-line: rgba(60, 48, 32, 0.5); }
+
         @media (prefers-reduced-motion: reduce) {
           .notice-backdrop, .notice-card, .notice-banner { animation: none; }
+          .notice-fly, .notice-pin { display: none; }
         }
       `}</style>
 
@@ -180,6 +211,44 @@ const HomeNotice = () => {
             aria-hidden
             className="pointer-events-none absolute -left-8 -top-10 h-24 w-24 rounded-full blur-2xl"
             style={{ background: 'var(--brand-soft-strong)' }}
+          />
+
+          {/* 공지 배달 연출 (PC 전용). 본문보다 먼저 그려 글씨 뒤로 지나가게 한다 */}
+          <span
+            aria-hidden
+            className="notice-fly pointer-events-none absolute inset-y-0 left-0 hidden w-full lg:block"
+          >
+            <svg
+              className="notice-leaf absolute left-0 top-1/2"
+              width="19"
+              height="15"
+              viewBox="0 0 19 15"
+              fill="none"
+            >
+              <rect
+                x="1"
+                y="1"
+                width="17"
+                height="13"
+                rx="1.8"
+                fill="var(--notice-paper)"
+                stroke="var(--notice-paper-line)"
+                strokeWidth="0.9"
+              />
+              <path
+                d="M4.2 5.2c1.1-.8 2.1.8 3.2 0s2.1.8 3.2 0M4.2 9c1.1-.8 2.1.8 3.2 0s2.1.8 3.2 0"
+                stroke="var(--notice-paper-line)"
+                strokeWidth="0.85"
+                strokeLinecap="round"
+                opacity="0.7"
+              />
+            </svg>
+          </span>
+          {/* 착지 순간 '탁' — 게시판 종이 자리에서 퍼지는 링 */}
+          <span
+            aria-hidden
+            className="notice-pin pointer-events-none absolute right-[96px] top-[25px] hidden h-3 w-3 rounded-full lg:block"
+            style={{ border: '1.5px solid var(--brand)' }}
           />
 
           <div className="relative flex items-center gap-3 py-3 pl-3.5 pr-3">
