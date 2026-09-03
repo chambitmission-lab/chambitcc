@@ -1,25 +1,18 @@
 /* 교육과 훈련 (/education) — 접두사 edu- 필수 (다른 페이지 .hero-* 와 충돌 방지) */
 
 .edu-hero {
+  /* 교실 일러스트(양들의 주일학교) — 라이트/다크 각 1장. 화면 폭에 따라 쓰임이 달라진다:
+     모바일은 카드 바닥에 깔리는 '교실 바닥', PC는 띠 전체에 깔리는 배경.
+     자세한 크롭 계산은 docs/education-hero-bg-prompts.md 참고 */
+  --edu-hero-art: url('/images/education/hero-light.webp');
   position: relative;
   overflow: hidden;
   padding: 2.5rem 1.5rem 1.75rem;
-  background: linear-gradient(180deg, var(--brand-soft) 0%, transparent 100%);
   text-align: center;
 }
 
-.edu-hero::before {
-  content: '';
-  position: absolute;
-  top: -6rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20rem;
-  height: 20rem;
-  border-radius: 50%;
-  background: var(--brand-soft-strong);
-  filter: blur(64px);
-  pointer-events: none;
+[data-theme="dark"] .edu-hero {
+  --edu-hero-art: url('/images/education/hero-dark.webp');
 }
 
 .edu-hero > * {
@@ -263,14 +256,37 @@
 }
 
 @media (min-width: 1024px) {
-  /* 히어로 좌우 분할 — 왼쪽 글, 오른쪽 요약 카드 */
+  /* 히어로 좌우 분할 — 왼쪽 글, 오른쪽 요약 카드.
+     PC 띠는 약 1200×270(4.4:1)이라 2:1 일러스트를 cover 로 깔면 정확히 '교실 띠'(원본 아래 45%)가
+     가로 전체에 들어온다. 왼쪽 글이 앉는 자리만 캔버스색 워시로 눌러 읽히게 하고,
+     가운데 칠판·양들은 워시가 끝난 뒤라 선명하게 남는다. */
   .edu-hero {
-    padding: 3rem 2.5rem 2.25rem;
+    --edu-band: 241 243 246; /* = --app-canvas, 워시·아래 페이드 색 */
+    padding: 3rem 2.5rem 3rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 2.5rem;
     text-align: left;
+    background-color: transparent;
+    background-image:
+      linear-gradient(
+        90deg,
+        rgb(var(--edu-band)) 0%,
+        rgb(var(--edu-band) / 0.86) 30%,
+        rgb(var(--edu-band) / 0.3) 45%,
+        rgb(var(--edu-band) / 0) 56%
+      ),
+      linear-gradient(180deg, transparent 76%, rgb(var(--edu-band)) 100%),
+      linear-gradient(180deg, var(--brand-soft) 0%, transparent 55%),
+      var(--edu-hero-art);
+    background-size: auto, auto, auto, cover;
+    background-position: center, center, center, center bottom;
+    background-repeat: no-repeat;
+  }
+
+  [data-theme="dark"] .edu-hero {
+    --edu-band: 19 19 19;
   }
   .edu-hero-main {
     flex: 1;
@@ -293,40 +309,70 @@
   }
 }
 
-/* ── 모바일·태블릿(<lg): 히어로를 좌우 여백 둔 라운드 카드로 ──
-   랜딩 히어로(`Landing/components/HeroSection.tsx`)·/about·/greeting 과 같은 문법 —
-   회색 캔버스(--app-canvas) 위에서 풀블리드 띠만 혼자 화면 끝까지 깔려 아래 카드들과
-   어긋나 보이는 문제. 좌우 1rem 은 본문 px-4 와 같은 기둥이라 프로그램 카드와 모서리가 맞는다.
-   lg+ 는 컨테이너 자체가 라운드 카드고 히어로는 그 윗면 띠이므로 건드리지 않는다. */
+/* ── 모바일·태블릿(<lg): 히어로 카드 + 그 바닥에 깔리는 교실 ──
+   랜딩·/about·/greeting 과 같은 카드화 문법인데, 여기선 카드가 일러스트의 무대다.
+   · 카드 자체는 .edu-hero 가 아니라 .edu-hero-main — '한눈에 보기' 스탯을 카드 밖으로
+     내보내야 교실 위에 상자가 겹치지 않는다(스탯은 아래 캔버스에서 흰 카드 2장이 된다).
+   · 일러스트는 카드 폭의 150% 로 바닥 정렬 → 원본 아래 45%(교실)가 카드 하단 8rem 에 앉고,
+     위쪽 하늘은 카드색 페이드로 덮여 글자 자리가 된다. 이음매가 보이지 않게 그라데이션으로. */
 @media (max-width: 1023px) {
   .edu-hero {
-    margin: 1rem 1rem 0;
-    padding: 2rem 1.25rem 1.5rem;
+    --edu-card: 255 255 255; /* = --surface-container, 하늘을 덮는 페이드 색 */
+    padding: 1rem 1rem 0;
+    overflow: visible; /* 카드 그림자가 잘리지 않게 */
+  }
+
+  [data-theme="dark"] .edu-hero {
+    --edu-card: 32 31 31;
+  }
+
+  .edu-hero-main {
+    position: relative;
+    overflow: hidden;
     border-radius: 24px;
-    /* 캔버스 위에 뜨는 카드라 바탕색이 필요하다 — brand-soft 는 반투명 tint */
+    padding: 2rem 1.25rem 8rem; /* 아래 8rem 이 교실이 앉는 자리 */
     background-color: var(--surface-container);
-    background-image: linear-gradient(180deg, var(--brand-soft) 0%, transparent 68%);
+    background-image:
+      linear-gradient(180deg, var(--brand-soft) 0%, transparent 52%),
+      linear-gradient(
+        180deg,
+        rgb(var(--edu-card)) 0%,
+        rgb(var(--edu-card)) 34%,
+        rgb(var(--edu-card) / 0) 62%
+      ),
+      var(--edu-hero-art);
+    /* 일러스트는 카드 '폭' 기준(150%) — 제목이 몇 줄이 되든 교실 띠 높이가 일정하다
+       (높이 기준으로 잡으면 카드가 길어질수록 교실도 같이 커져 글자와 겹친다) */
+    background-size: auto, auto, 150% auto;
+    background-position: center, center, center bottom;
+    background-repeat: no-repeat;
     /* 테두리 선 대신 헤어라인 링 + 옅은 그림자 (카드형태 패스 공통값) */
     box-shadow:
       0 0 0 1px rgba(0, 0, 0, 0.06),
       0 16px 40px -24px rgba(0, 0, 0, 0.45);
   }
 
-  [data-theme="dark"] .edu-hero {
+  [data-theme="dark"] .edu-hero-main {
     box-shadow:
       0 0 0 1px rgba(255, 255, 255, 0.1),
       0 16px 40px -24px rgba(0, 0, 0, 0.8);
   }
 
-  /* 흰 카드 안으로 들어오면 흰 반투명 스탯은 바탕에 묻힌다 — 브랜드 틴트 박스로 */
+  /* 스탯은 카드 밖 — 회색 캔버스 위 흰 카드 2장(프로그램 카드와 같은 셸) */
+  .edu-hero-stats {
+    margin: 0.75rem 0 0;
+    max-width: none;
+  }
+
   .edu-stat {
-    background: var(--brand-soft);
-    border-color: var(--brand-glow);
-    box-shadow: none;
+    background: var(--surface-container);
+    border-color: rgba(0, 0, 0, 0.07);
+    box-shadow: 0 1px 2px rgba(24, 26, 40, 0.06);
   }
 
   [data-theme="dark"] .edu-stat {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: var(--surface-container);
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: none;
   }
 }
