@@ -39,7 +39,9 @@ W, H = 1600, 800
 # 자산은 RGBA: 교회만 불투명, 왼쪽 동 벽에서 FADE 폭만큼 알파가 0→1 로 오르고 그 왼쪽은 완전 투명.
 # 배경(남색/하늘 그라데이션·글로우·링)은 전부 CSS(Visit.css .visit-hero-stage)가 그린다 →
 # 사진 하늘을 합성해 붙이던 v2 의 '색 안 맞는 이음새' 문제가 구조적으로 사라진다.
-FADE = (-30, 250)              # 알파 램프 시작/끝(교회 왼쪽 모서리 기준 px). 끝은 십자가 탑 왼쪽(~x0+300) 전
+FADE = (-20, 400)              # 알파 램프 시작/끝(교회 왼쪽 모서리 기준 px). 십자가 탑(x0+305~375)까지 걸쳐 길게 —
+                               # 짧으면(v3 초판 250px) '반반으로 잘린' 경계로 읽힌다는 피드백(2026-09-03)
+FADE_GAMMA = 1.8               # 램프 곡선: 왼쪽 끝은 거의 투명하게 오래 머물다 오른쪽으로 갈수록 점점 또렷하게
 NIGHT_DIM = 0.82               # 밤 사진은 살짝 눌러 남색 배경에 앉힌다(불 켜진 창의 대비는 유지)
 BRANCH_BOX = (0, 0, 880, 480)  # 나뭇가지 실루엣 별도 레이어(branch-night.webp) 크롭 — 카드 왼쪽 위에 CSS 로 얹는다
 WING_X = 8                     # 왼쪽 동 벽의 실제 모서리(원본 x). 그 왼쪽은 이웃 건물
@@ -179,6 +181,53 @@ def build_branch_layer():
     print(f'{dest.name}: {out.size}')
 
 
+SKY_SIZE = (1600, 800)
+
+
+def _smooth_noise(w, h, cells, rng):
+    """저해상 난수를 바이큐빅으로 키운 부드러운 노이즈(0~1)."""
+    small = rng.random((max(2, h // cells), max(2, w // cells))).astype(np.float32)
+    return np.asarray(Image.fromarray((small * 255).astype(np.uint8)).resize((w, h), Image.BICUBIC)).astype(np.float32) / 255
+
+
+def build_sky_day(seed=3):
+    """라이트 히어로 배경 — 레퍼런스(2026-09-03): 왼쪽은 흰 안개와 부드러운 구름 덩어리, 위·오른쪽으로 갈수록
+    맑은 파랑. 사진 하늘(오른쪽 위 ≈ #79bafc)과 색이 이어지도록 오른쪽 위를 그 계열로 맞춘다."""
+    W_, H_ = SKY_SIZE
+    rng = np.random.default_rng(seed)
+    yy, xx = np.mgrid[0:H_, 0:W_]
+    fx, fy = xx / W_, yy / H_
+
+    # 기본 하늘: 위쪽 진한 파랑 → 아래 옅게, 오른쪽이 왼쪽보다 조금 더 짙게
+    top = np.array([0x6e, 0xb4, 0xf4], np.float32)
+    low = np.array([0xc9, 0xe3, 0xfa], np.float32)
+    t = smoothstep(fy * 1.15) * (1 - 0.18 * (1 - fx))
+    base = top[None, None] * (1 - t[..., None]) + low[None, None] * t[..., None]
+
+    # 구름: 여러 스케일의 부드러운 노이즈를 합쳐 덩어리로, 아래·왼쪽에 많고 오른쪽 위는 맑게
+    n = (0.50 * _smooth_noise(W_, H_, 260, rng) + 0.30 * _smooth_noise(W_, H_, 120, rng)
+         + 0.14 * _smooth_noise(W_, H_, 55, rng) + 0.06 * _smooth_noise(W_, H_, 24, rng))
+    density = 0.35 + 0.65 * smoothstep((fy - 0.15) / 0.7) * (1 - 0.55 * smoothstep((fx - 0.45) / 0.5))
+    cloud = smoothstep((n - (0.62 - 0.30 * density)) / 0.28)
+    cloud = np.asarray(Image.fromarray((cloud * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(9))).astype(np.float32) / 255
+    # 구름 아랫면은 아주 옅게 회청색으로 — 평면 흰 얼룩이 아니라 입체로 읽히게
+    shade = np.asarray(Image.fromarray((cloud * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(28))).astype(np.float32) / 255
+    white = np.array([255, 255, 255], np.float32)
+    grey = np.array([0xd8, 0xe6, 0xf4], np.float32)
+    img = base * (1 - cloud[..., None]) + white[None, None] * cloud[..., None]
+    img = img * (1 - 0.18 * np.clip(shade - cloud, 0, 1)[..., None]) + grey[None, None] * 0.18 * np.clip(shade - cloud, 0, 1)[..., None]
+
+    # 왼쪽 햇살 안개: 글자가 앉는 왼쪽 가운데는 거의 흰색으로 — 레퍼런스의 '흰색에서 점점 푸르게'
+    haze = np.exp(-(((fx - 0.08) / 0.55) ** 2 + ((fy - 0.55) / 0.62) ** 2)) * 0.92
+    img = img * (1 - haze[..., None]) + white[None, None] * haze[..., None]
+
+    img += rng.normal(0, 0.7, img.shape)
+    out = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
+    dest = VISIT / 'sky-day.webp'
+    out.save(dest, 'WEBP', quality=82, method=6)
+    print(f'{dest.name}: {out.size}')
+
+
 for key, path in SRC.items():
     im = remove_objects(Image.open(path).convert('RGB'), REMOVE_POLYS)
     scale = H / im.height
@@ -202,7 +251,7 @@ for key, path in SRC.items():
     gw = GROUND_FEATHER * smoothstep((yy - gy) / (H - gy))
     alpha = alpha * np.where(gw > 0, smoothstep(xx / np.maximum(gw, 1e-3)), 1)
     # 왼쪽 동이 배경에서 스며 나오는 램프 — 레퍼런스의 '건물이 안개/밤에서 떠오르는' 느낌
-    alpha = alpha * smoothstep((xx - FADE[0]) / (FADE[1] - FADE[0]))
+    alpha = alpha * smoothstep((xx - FADE[0]) / (FADE[1] - FADE[0])) ** FADE_GAMMA
 
     canvas = np.zeros((H, W, 4), np.float32)
     canvas[:, x0:, :3] = ch
@@ -214,3 +263,4 @@ for key, path in SRC.items():
     print(f'{dest.name}: {out.size}, church {cw}px ({cw / W:.0%}), fade x {x0 + FADE[0]}~{x0 + FADE[1]}')
 
 build_branch_layer()
+build_sky_day()
