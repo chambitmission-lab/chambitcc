@@ -160,19 +160,34 @@ const HomeNotice = () => {
             url('/images/notice/banner-dark.webp');
         }
 
-        /* PC 가운데 빈 구간 연출 — 공지 한 장이 날아가 게시판에 붙는다.
+        /* 가운데 빈 구간 연출 — 공지 한 장이 날아가 게시판에 붙는다.
            바깥 span 은 배너 폭과 같아서 translateX 의 %가 곧 배너 폭 비율이 된다
-           (요소 자기 크기 기준이라, 폭이 848~1192px로 변해도 착지점이 안 흔들린다).
-           118px / 96px 은 오른쪽 삽화 안 '게시판 종이'의 실제 위치. */
-        .notice-fly  { animation: notice-fly 11s cubic-bezier(0.2, 0.5, 0.25, 1) infinite; }
+           (요소 자기 크기 기준이라, 폭이 358~1192px로 변해도 착지점이 안 흔들린다).
+           출발/착지는 변수로 빼서 모바일·PC 각각 삽화 속 '게시판 종이' 위치에 맞춘다 —
+           삽화 크기가 모바일 auto 86% / PC auto 100% 로 달라 좌표가 같을 수 없다. */
+        .notice-fly {
+          /* 모바일: 미리보기 글줄이 끝나는 뒤쪽에서 출발해 짧게 붙는다 */
+          --fly-from: 52%;
+          --fly-to: calc(100% - 94px);
+          animation: notice-fly 11s cubic-bezier(0.2, 0.5, 0.25, 1) infinite;
+        }
         .notice-leaf { animation: notice-flutter 1.35s ease-in-out infinite; }
-        .notice-pin  { animation: notice-pin 11s linear infinite; }
+        .notice-pin {
+          position: absolute;
+          right: 79px;
+          top: 25px;
+          animation: notice-pin 11s linear infinite;
+        }
+        @media (min-width: 1024px) {
+          .notice-fly { --fly-from: 36%; --fly-to: calc(100% - 106px); }
+          .notice-pin { right: 90px; }
+        }
         @keyframes notice-fly {
-          0%        { opacity: 0; transform: translateX(36%); }
+          0%        { opacity: 0; transform: translateX(var(--fly-from)); }
           4%        { opacity: 1; }
           25%       { opacity: 1; }
-          28%       { transform: translateX(calc(100% - 118px)); }
-          31%, 100% { opacity: 0; transform: translateX(calc(100% - 118px)); }
+          28%       { transform: translateX(var(--fly-to)); }
+          31%, 100% { opacity: 0; transform: translateX(var(--fly-to)); }
         }
         @keyframes notice-flutter {
           0%   { transform: translateY(calc(-50% - 6px)) rotate(-9deg); }
@@ -213,10 +228,10 @@ const HomeNotice = () => {
             style={{ background: 'var(--brand-soft-strong)' }}
           />
 
-          {/* 공지 배달 연출 (PC 전용). 본문보다 먼저 그려 글씨 뒤로 지나가게 한다 */}
+          {/* 공지 배달 연출. 본문보다 먼저 그려 글씨 뒤로 지나가게 한다 */}
           <span
             aria-hidden
-            className="notice-fly pointer-events-none absolute inset-y-0 left-0 hidden w-full lg:block"
+            className="notice-fly pointer-events-none absolute inset-y-0 left-0 w-full"
           >
             <svg
               className="notice-leaf absolute left-0 top-1/2"
@@ -247,7 +262,7 @@ const HomeNotice = () => {
           {/* 착지 순간 '탁' — 게시판 종이 자리에서 퍼지는 링 */}
           <span
             aria-hidden
-            className="notice-pin pointer-events-none absolute right-[96px] top-[25px] hidden h-3 w-3 rounded-full lg:block"
+            className="notice-pin pointer-events-none h-3 w-3 rounded-full"
             style={{ border: '1.5px solid var(--brand)' }}
           />
 
