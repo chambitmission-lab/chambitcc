@@ -57,10 +57,12 @@
   border-color: rgba(255, 255, 255, 0.35);
 }
 
-/* 사진 무대 — /about 의 교회 사진을 그대로 쓴다. 사진이 없으면 시간대 하늘 토큰으로 대신한다 */
+/* 사진 무대 — 실제 예배당 사진(라이트 낮 / 다크 밤, Visit.tsx 가 고른다).
+   자산은 2000x640 와이드, 오른쪽 위 기준으로 잘라 교회는 늘 오른쪽에 온전히 남고
+   왼쪽 하늘 여백이 글자 자리가 된다. 사진이 없으면 시간대 하늘 토큰으로 대신한다 */
 .visit-hero-photo {
   position: relative;
-  min-height: 188px;
+  min-height: 200px;
   padding: 20px 20px 22px;
   display: flex;
   align-items: flex-end;
@@ -97,11 +99,13 @@
 }
 /* 라이트: /about 히어로와 같은 문법 — 스크림 없이 사진 원색 그대로,
    가독성은 글씨의 진한 그림자(halo)가 담당한다. 다크만 딥블루 스크림 유지.
-   (테마 분기 금지 원칙의 예외 — 사진 위 오버레이는 토큰으로 못 가르는 확정 패턴) */
+   (테마 분기 금지 원칙의 예외 — 사진 위 오버레이는 토큰으로 못 가르는 확정 패턴)
+   밤 사진은 하늘이 이미 남색이라 글자 자리(왼쪽)는 옅게만 누르고,
+   불 켜진 예배당 창(오른쪽 아래)이 죽지 않도록 아래쪽 농도는 절반 수준으로 */
 .dark .visit-hero.has-photo .visit-hero-scrim {
   background:
-    linear-gradient(to top, rgba(10, 22, 48, 0.78) 0%, rgba(10, 22, 48, 0.5) 34%, rgba(10, 22, 48, 0.12) 68%, rgba(10, 22, 48, 0.06) 100%),
-    linear-gradient(100deg, rgba(10, 22, 48, 0.48) 0%, rgba(10, 22, 48, 0.22) 45%, transparent 80%);
+    linear-gradient(to top, rgba(10, 22, 48, 0.5) 0%, rgba(10, 22, 48, 0.26) 34%, rgba(10, 22, 48, 0.08) 68%, rgba(10, 22, 48, 0.04) 100%),
+    linear-gradient(100deg, rgba(10, 22, 48, 0.42) 0%, rgba(10, 22, 48, 0.18) 45%, transparent 75%);
 }
 /* 안쪽 흰 링 — 유리 액자 */
 .visit-hero.has-photo .visit-hero-scrim::after {
@@ -1133,7 +1137,8 @@
   }
 
   .visit-hero-photo {
-    min-height: 300px;
+    /* 3.5:1 — 2000x640 자산이 위 기준으로 잘려도 십자가 탑부터 간판까지 남는 높이 */
+    min-height: 340px;
     padding: 28px 34px 32px;
   }
 

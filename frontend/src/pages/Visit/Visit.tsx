@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAboutContent } from '../../hooks/useAboutContent'
+import { useTheme } from '../../contexts/ThemeContext'
 import { EditableText } from '../../components/AboutEditor'
 import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
@@ -30,15 +31,33 @@ const moodOfHour = (h: number): 'dawn' | 'day' | 'dusk' | 'night' => {
  * 방문자가 정말 원하는 건 셋뿐이다: 여기가 어디인지, 주소·전화, 그리고 길찾기.
  * 그래서 지도 카드가 맨 위에 오고 교통·주차 안내는 접어 두었다.
  */
-/** 히어로 배경 — public/images/visit/. 비우면 /about 사진을 쓴다 */
-const VISIT_HERO_IMAGE = '/images/visit/church-hero.webp'
+/** 히어로 배경 — public/images/visit/. 실제 예배당 사진을 라이트=낮, 다크=밤으로 나눠 쓴다.
+ *  (두 장 모두 왼쪽 하늘 여백 + 오른쪽 교회 구도로 가공된 2000x640 와이드 자산.
+ *   이전 일러스트 배경은 _backup/church-hero.webp 에 보관) 비우면 /about 사진을 쓴다 */
+const VISIT_HERO_IMAGES = {
+  light: '/images/visit/church-day.webp',
+  dark: '/images/visit/church-night.webp',
+} as const
 
 const Visit = () => {
   const { t } = useLanguage()
   const { tx, heroBackgroundUrl } = useAboutContent()
-  // 히어로 사진 — /visit 전용 자산(왼쪽 하늘 여백 + 오른쪽 교회 구도)을 우선하고,
+  const { theme } = useTheme()
+  // 히어로 사진 — /visit 전용 자산(왼쪽 하늘 여백 + 오른쪽 교회 구도)을 테마에 맞춰 고르고,
   // 없으면 /about 의 교회 사진으로 대체한다
-  const heroImage = VISIT_HERO_IMAGE || heroBackgroundUrl
+  const heroImage = VISIT_HERO_IMAGES[theme] || heroBackgroundUrl
+
+  // 반대 테마 사진을 한가할 때 미리 받아 둔다 — 토글 크로스페이드 순간에 빈 화면이 끼지 않도록
+  useEffect(() => {
+    const other = VISIT_HERO_IMAGES[theme === 'dark' ? 'light' : 'dark']
+    const warm = () => {
+      const img = new Image()
+      img.src = other
+    }
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number }
+    if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(warm)
+    else setTimeout(warm, 1500)
+  }, [theme])
   const isAdminUser = isAdmin()
 
   const [services, setServices] = useState<WorshipService[]>([])
