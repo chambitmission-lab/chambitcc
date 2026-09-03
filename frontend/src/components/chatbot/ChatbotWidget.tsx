@@ -57,13 +57,16 @@ const EMOJI_HEAD = /^[\p{Extended_Pictographic}☀-➿]️?\s*\S/u
 const isTitleLine = (line: string, index: number) => index === 0 && line.length <= 24 && EMOJI_HEAD.test(line)
 // "[주일 예배]" — 섹션 라벨
 const SECTION = /^\[(.+)\]$/
-// "· 주일낮예배 1부 — 오전 7:30 (오렌엘 홀)" — 예배 시간표 행
-const ROW = /^[·•]\s*(.+?)\s+[—–-]\s+(.+?)(?:\s*\((.+)\))?$/
+// 가운뎃점 "·" = 라벨-값 표 ("· 주일낮예배 1부 — 오전 7:30 (오렌엘 홀)")
+const ROW = /^·\s*(.+?)\s+[—–-]\s+(.+?)(?:\s*\((.+)\))?$/
+// 불릿 "•" = 인물 목록 ("• 암논 — 다윗의 맏아들") — 이름이 주인공이라 표와 강조가 반대다
+const PERSON = /^•\s*(.+?)(?:\s+[—–-]\s+(.+))?$/
 
 type Block =
   | { t: 'title'; text: string }
   | { t: 'section'; text: string }
   | { t: 'rows'; rows: { name: string; time: string; loc?: string }[] }
+  | { t: 'people'; people: { name: string; desc?: string }[] }
   | { t: 'para'; text: string }
 
 /** 백엔드 플레인 텍스트를 제목·섹션·시간표·문단 블록으로 해체 (형식이 안 맞으면 전부 문단) */
@@ -90,6 +93,15 @@ const parseBotText = (text: string): Block[] => {
       else blocks.push({ t: 'rows', rows: [r] })
       return
     }
+    const person = line.match(PERSON)
+    if (person) {
+      flush()
+      const last = blocks[blocks.length - 1]
+      const p = { name: person[1], desc: person[2] }
+      if (last?.t === 'people') last.people.push(p)
+      else blocks.push({ t: 'people', people: [p] })
+      return
+    }
     para.push(line)
   })
   flush()
@@ -110,6 +122,18 @@ const BotText = ({ text }: { text: string }) => (
                 <span className="cb-msg-name">{r.name}</span>
                 <span className="cb-msg-time">{r.time}</span>
                 {r.loc && <span className="cb-msg-loc">({r.loc})</span>}
+              </div>
+            ))}
+          </div>
+        )
+      if (b.t === 'people')
+        return (
+          <div key={i} className="cb-msg-people">
+            {b.people.map((p, j) => (
+              <div key={j} className="cb-msg-person">
+                <span className="cb-msg-dot" aria-hidden />
+                <span className="cb-person-name">{p.name}</span>
+                {p.desc && <span className="cb-person-desc">{p.desc}</span>}
               </div>
             ))}
           </div>
