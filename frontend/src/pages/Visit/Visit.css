@@ -80,12 +80,14 @@
   --hero-cta-bg-hover: rgba(255, 255, 255, 0.9);
   --hero-cta-border: rgba(49, 130, 246, 0.55);
   position: relative;
-  /* 모바일 높이 — 20:23 은 너무 높다는 피드백(2026-09-03) → 20:19. 글자 블록(~170px) + 건물이 십자가부터 온전히 */
-  aspect-ratio: 20 / 19;
-  min-height: 320px;
-  padding: 26px 22px 22px;
+  /* 모바일 높이 — 글자를 위로 밀어 올리고 건물을 아래에 쌓으면 카드가 높아진다(20:23→20:19 모두 "높다").
+     PC 처럼 글자는 왼쪽 세로 중앙, 건물은 오른쪽 아래 — 왼쪽 동의 옅은 끝만 글자와 살짝 겹친다(레퍼런스 구도) */
+  aspect-ratio: 4 / 3;
+  min-height: 250px;
+  padding: 22px 22px 24px;
   display: flex;
   flex-direction: column;
+  /* 제목·부제는 건물 꼭대기(무대 35% 지점)보다 위에, CTA 만 건물 옆 빈자리로 — 글자가 창문 위에 얹히지 않게 */
   justify-content: flex-start;
   background: linear-gradient(118deg, var(--hero-bg-a) 0%, var(--hero-bg-b) 46%, var(--hero-bg-c) 100%);
   overflow: hidden;
@@ -163,14 +165,14 @@
 }
 
 /* 교회 사진 — 자산은 하늘까지 떼어낸 건물 컷아웃(RGBA)이라 배경과 만나는 가로선이 없다.
-   모바일: 무대 아래 61% 높이에 앉혀 십자가 꼭대기가 글자 블록 바로 아래서 시작. 왼쪽 빈 하늘만 살짝 잘라내
-   (object-position 82%) 왼쪽 동이 카드 안쪽으로 더 들어온다 */
+   모바일: 무대 아래 65% 높이에 오른쪽·아래 기준으로 — 자산(2:1)이 거의 통째로 들어와 왼쪽 동까지 온전히,
+   제목·부제는 건물 위 여백에, CTA 는 건물 왼쪽 빈자리에 앉는다 */
 .visit-hero-photo {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 61%;
+  height: 65%;
   pointer-events: none;
 }
 .visit-hero-img {
@@ -178,7 +180,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 82% bottom;
+  object-position: right bottom;
 }
 
 /* 글자 — 무대 왼쪽, 위에서부터(모바일) / 세로 중앙(lg) */
@@ -190,6 +192,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
+  max-width: 62%;
 }
 
 .visit-hero-label {
@@ -204,7 +207,7 @@
 
 .visit-hero-title {
   margin: 0;
-  font-size: 25px;
+  font-size: 23px;
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.25;
