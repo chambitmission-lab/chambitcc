@@ -24,7 +24,7 @@ type DateGroup = 'today' | 'week' | 'older'
 const GROUP_LABELS: Record<DateGroup, string> = {
   today: '오늘',
   week: '이번 주',
-  older: '지난 공지',
+  older: '이전',
 }
 
 const formatDate = (iso: string) => {
@@ -57,6 +57,10 @@ const getDateGroup = (iso: string): DateGroup => {
   if (date >= weekAgo) return 'week'
   return 'older'
 }
+
+// 알림함은 교회 전체 공지와 개인 알림(댓글·기도 응답 등)이 한 목록에 섞인다.
+// target_user_id 가 없으면 전체 공지 — 배지로 갈라 줘야 어느 쪽인지 한눈에 읽힌다.
+const isNotice = (n: Notification) => n.target_user_id == null
 
 // 서식이 쓰였으면 접힌 줄에서는 카드·정보 박스가 눕혀지므로 항상 펼칠 수 있어야 한다
 const needsExpand = (content: string) => {
@@ -251,10 +255,10 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-baseline gap-2">
             <h2 className="text-base font-bold text-ink-strong tracking-tight">
-              공지사항
+              알림
             </h2>
             {unreadCount > 0 && (
-              <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+              <span className="text-xs font-semibold text-brand">
                 {unreadCount}
               </span>
             )}
@@ -270,7 +274,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={markAllAsReadMutation.isPending}
-                className="px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-2.5 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-brand rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 모두 읽음
               </button>
@@ -301,7 +305,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
         <div className="flex-1 overflow-y-auto no-scrollbar">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-6 h-6 border-2 border-gray-200 dark:border-gray-700 border-t-purple-500 rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-gray-200 dark:border-gray-700 border-t-brand rounded-full animate-spin" />
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
@@ -309,7 +313,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                 notifications_none
               </span>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                새로운 공지사항이 없습니다
+                새로운 알림이 없습니다
               </p>
             </div>
           ) : (
@@ -338,6 +342,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                           needsExpand(notification.content) || !!notification.image_url
                         const navigating = isNavigating && pendingLinkId === notification.id
                         const hasLink = !!notification.link_url
+                        const notice = isNotice(notification)
 
                         return (
                           <li key={notification.id}>
@@ -348,28 +353,39 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                               aria-expanded={!hasLink && expandable ? expanded : undefined}
                               className={`group w-full text-left px-4 py-3 rounded-xl border transition-colors ${
                                 unread
-                                  ? 'border-purple-200/70 dark:border-purple-500/20 bg-purple-50/50 dark:bg-purple-500/[0.06] hover:bg-purple-50/80 dark:hover:bg-purple-500/[0.1] active:bg-purple-100/70 dark:active:bg-purple-500/[0.14]'
+                                  ? 'border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] active:bg-[var(--brand-glow)]'
                                   : 'border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/30 hover:bg-gray-100/70 dark:hover:bg-gray-800/50 active:bg-gray-200/60 dark:active:bg-gray-800/70'
                               }`}
                             >
                               <div className="flex items-start gap-3">
                                 <span className="flex-shrink-0 w-2 h-2 mt-[7px]" aria-hidden>
                                   {unread && (
-                                    <span className="block w-2 h-2 rounded-full bg-purple-500" />
+                                    <span className="block w-2 h-2 rounded-full bg-brand" />
                                   )}
                                 </span>
 
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-baseline justify-between gap-3 mb-1">
-                                    <h3
-                                      className={`text-[15px] leading-snug truncate ${
-                                        unread
-                                          ? 'font-semibold text-ink-strong'
-                                          : 'font-medium text-gray-700 dark:text-gray-300'
-                                      }`}
-                                    >
-                                      {notification.title}
-                                    </h3>
+                                  <div className="flex items-center justify-between gap-3 mb-1">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <span
+                                        className={`flex-shrink-0 px-1.5 py-[1px] rounded-md text-[10px] font-bold tracking-tight ${
+                                          notice
+                                            ? 'bg-[var(--brand-soft-strong)] text-brand'
+                                            : 'bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-gray-400'
+                                        }`}
+                                      >
+                                        {notice ? '공지' : '내 알림'}
+                                      </span>
+                                      <h3
+                                        className={`text-[15px] leading-snug truncate ${
+                                          unread
+                                            ? 'font-semibold text-ink-strong'
+                                            : 'font-medium text-gray-700 dark:text-gray-300'
+                                        }`}
+                                      >
+                                        {notification.title}
+                                      </h3>
+                                    </div>
                                     <span className="flex-shrink-0 text-[11px] text-gray-500 dark:text-gray-400 tabular-nums">
                                       {formatDate(notification.created_at)}
                                     </span>
@@ -415,7 +431,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                         }
                                       }}
                                       aria-expanded={expanded}
-                                      className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400"
+                                      className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium text-gray-500 dark:text-gray-400 hover:text-brand"
                                     >
                                       <span>{expanded ? '접기' : '더 보기'}</span>
                                       <svg
@@ -440,7 +456,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                     링크가 있으면 이동(>), 없으면 펼침(v) 신호. */}
                                 {(hasLink || expandable) && (
                                   <span
-                                    className="flex-shrink-0 mt-[3px] text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors"
+                                    className="flex-shrink-0 mt-[3px] text-gray-400 dark:text-gray-500 group-hover:text-brand transition-colors"
                                     aria-hidden
                                   >
                                     {navigating ? (
@@ -480,14 +496,14 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
               <div ref={sentinelRef} className="py-1">
                 {isFetchingNextPage && (
                   <div className="flex justify-center py-3">
-                    <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-purple-500 rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-gray-200 dark:border-gray-700 border-t-brand rounded-full animate-spin" />
                   </div>
                 )}
                 {!hasNextPage && notifications.length > 0 && (
                   <div className="flex items-center gap-3 px-8 py-4">
                     <span className="flex-1 h-px bg-gray-200/70 dark:bg-gray-800" aria-hidden />
                     <span className="text-[11px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                      모든 공지사항을 확인했습니다
+                      모든 알림을 확인했습니다
                     </span>
                     <span className="flex-1 h-px bg-gray-200/70 dark:bg-gray-800" aria-hidden />
                   </div>
