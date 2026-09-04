@@ -555,3 +555,109 @@ html.dark .cb-action:hover { background: #262626; }
   padding-bottom: 4px;
 }
 .cb-user-meta svg { color: var(--brand); }
+
+/* ── 플로팅 버튼 · 숨기기 배지 · 스낵바 ────────────────────
+   FAB 은 패널 밖(항상 마운트)이라 cb- 변수 스코프에 들어가지 않는다 — 색은 직접 지정한다.
+   숨김 정책은 chatbotVisibility.ts 참고: 기본은 세션 한정, "계속 숨기기"만 기기 영구. */
+.cb-fab-wrap { line-height: 0; }
+
+/* 롱프레스 중 이미지 저장 팝업·텍스트 선택이 뜨지 않게 */
+.cb-fab {
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.cb-fab-x {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 2px solid var(--surface);
+  background: #2b3243;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(20, 28, 45, 0.28);
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease, background 0.18s ease;
+}
+html.dark .cb-fab-x { background: #3a3a3a; }
+.cb-fab-x:hover { background: #171d2a; }
+html.dark .cb-fab-x:hover { background: #4a4a4a; }
+
+/* 롱프레스(is-peek) · 마우스 hover · 키보드 포커스에서만 배지를 꺼낸다 */
+.cb-fab-wrap.is-peek .cb-fab-x,
+.cb-fab-x:focus-visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+@media (hover: hover) {
+  .cb-fab-wrap:hover .cb-fab-x {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+}
+
+/* 숨긴 직후 스낵바 — 하단 독 위(모바일) / 우하단(PC) */
+.cb-snack {
+  position: fixed;
+  z-index: 96;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(6.25rem + env(safe-area-inset-bottom) + var(--chat-fab-lift, 0rem));
+  width: min(420px, calc(100vw - 2rem));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 10px 11px 16px;
+  border-radius: 16px;
+  background: #1f2532;
+  color: #fff;
+  box-shadow: 0 12px 30px rgba(15, 22, 38, 0.32);
+  animation: cb-snack-in 0.24s ease-out;
+}
+html.dark .cb-snack { background: #2a2a2a; }
+@media (min-width: 1024px) {
+  .cb-snack { left: auto; right: 1.5rem; bottom: 1.5rem; transform: none; }
+}
+@keyframes cb-snack-in {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (min-width: 1024px) {
+  @keyframes cb-snack-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb-snack { animation: none; }
+}
+
+.cb-snack-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cb-snack-text strong { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+.cb-snack-text span { font-size: 12px; color: rgba(255, 255, 255, 0.6); }
+
+.cb-snack-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.cb-snack-btn {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.62);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.cb-snack-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.cb-snack-btn.is-primary { color: #7fb2ff; }
+.cb-snack-btn.is-primary:hover { background: rgba(127, 178, 255, 0.14); color: #9cc4ff; }
+.cb-snack-btn:focus-visible { outline: 2px solid #7fb2ff; outline-offset: 2px; }

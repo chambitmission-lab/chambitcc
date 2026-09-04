@@ -11,6 +11,12 @@ import { showToast } from '../../utils/toast'
 import { preloadRoute } from '../../utils/routePreload'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import NoticeContent, { NoticeInline } from './NoticeContent'
+import {
+  BellIcon,
+  MegaphoneIcon,
+  resolveNotificationVisual,
+  stripLeadingEmoji,
+} from '../icons/NotificationIcons'
 import { noticePreviewText } from '../../utils/noticeMarkup'
 import type { Notification } from '../../types/notification'
 
@@ -56,6 +62,14 @@ const getDateGroup = (iso: string): DateGroup => {
   if (date >= todayStart) return 'today'
   if (date >= weekAgo) return 'week'
   return 'older'
+}
+
+// 아이콘 타일 색 — 전체 공지만 솔리드로 튀게, 나머지는 브랜드 tint.
+// amber는 앱 전체에서 '응답됨' 시맨틱이라 기도 응답·축하 알림에만 쓴다.
+const TILE_TONE: Record<'brand' | 'soft' | 'accent', string> = {
+  brand: 'bg-brand text-brand-on',
+  soft: 'bg-[var(--brand-soft-strong)] text-brand',
+  accent: 'bg-[var(--amber-soft)] text-[var(--amber)]',
 }
 
 // 알림함은 교회 전체 공지와 개인 알림(댓글·기도 응답 등)이 한 목록에 섞인다.
@@ -140,11 +154,27 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
     })
   }, [isOpen, notifications, isLoggedIn, queryClient])
 
+  // 홈 전면 팝업으로 띄우는 '중요 공지'는 목록에 섞이면 묻힌다.
+  // 노출 기간이 남아 있는 것만 맨 위 히어로 카드로 올리고, 아래 목록에서는 뺀다.
+  const hero = useMemo(() => {
+    const now = Date.now()
+    return (
+      notifications.find(
+        (n) =>
+          isNotice(n) &&
+          n.is_popup &&
+          (!n.popup_until || new Date(n.popup_until).getTime() > now),
+      ) ?? null
+    )
+  }, [notifications])
+
   const grouped = useMemo(() => {
     const groups: Record<DateGroup, Notification[]> = { today: [], week: [], older: [] }
-    notifications.forEach((n) => groups[getDateGroup(n.created_at)].push(n))
+    notifications
+      .filter((n) => n.id !== hero?.id)
+      .forEach((n) => groups[getDateGroup(n.created_at)].push(n))
     return groups
-  }, [notifications])
+  }, [notifications, hero])
 
   const groupOrder: DateGroup[] = ['today', 'week', 'older']
 
@@ -253,10 +283,16 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
       <div className="notification-modal fixed top-[60px] right-5 w-[400px] max-w-[calc(100vw-40px)] max-h-[calc(100vh-100px)] z-[1000] flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
             <h2 className="text-base font-bold text-ink-strong tracking-tight">
               알림
             </h2>
+            <span
+              className="w-6 h-6 rounded-full flex items-center justify-center bg-[var(--brand-soft-strong)] text-brand"
+              aria-hidden
+            >
+              <BellIcon size={14} strokeWidth={2} />
+            </span>
             {unreadCount > 0 && (
               <span className="text-xs font-semibold text-brand">
                 {unreadCount}
@@ -309,8 +345,8 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-              <span className="material-icons-outlined text-[40px] text-gray-300 dark:text-gray-600 mb-3">
-                notifications_none
+              <span className="mb-3 w-14 h-14 rounded-2xl flex items-center justify-center bg-gray-50 dark:bg-white/[0.04] text-gray-300 dark:text-gray-600">
+                <BellIcon size={26} strokeWidth={1.6} />
               </span>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 새로운 알림이 없습니다
@@ -318,6 +354,62 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
             </div>
           ) : (
             <div>
+              {hero && (
+                <div className="px-3 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => handleItemClick(hero)}
+                    className="group w-full text-left p-3.5 rounded-2xl border border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] active:bg-[var(--brand-glow)] transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-[2px] rounded-md bg-brand text-brand-on text-[10px] font-bold tracking-tight">
+                        <MegaphoneIcon size={11} strokeWidth={2.2} />
+                        중요 공지
+                      </span>
+                      <span className="flex-shrink-0 text-[11px] text-gray-500 dark:text-gray-400 tabular-nums">
+                        {formatDate(hero.created_at)}
+                      </span>
+                    </div>
+
+                    <div className="mt-2.5 flex items-center gap-3">
+                      {hero.image_url && (
+                        <img
+                          src={hero.image_url}
+                          alt=""
+                          loading="lazy"
+                          className="flex-shrink-0 w-14 h-14 rounded-xl object-cover bg-white/60 dark:bg-white/[0.06]"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[15.5px] font-bold text-ink-strong tracking-tight truncate">
+                          {stripLeadingEmoji(hero.title)}
+                        </h3>
+                        <p className="content-clamp mt-1 text-[13px] text-gray-600 dark:text-gray-400 leading-relaxed break-words">
+                          <NoticeInline source={hero.content} />
+                        </p>
+                      </div>
+                      <span
+                        className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-white dark:bg-white/[0.1] text-brand shadow-sm"
+                        aria-hidden
+                      >
+                        <svg
+                          width="15"
+                          height="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M9 18l6-6-6-6" />
+                        </svg>
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              )}
+
               {groupOrder.map((group) => {
                 const items = grouped[group]
                 if (items.length === 0) return null
@@ -343,6 +435,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                         const navigating = isNavigating && pendingLinkId === notification.id
                         const hasLink = !!notification.link_url
                         const notice = isNotice(notification)
+                        const visual = resolveNotificationVisual(notification)
 
                         return (
                           <li key={notification.id}>
@@ -357,52 +450,62 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                   : 'border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/30 hover:bg-gray-100/70 dark:hover:bg-gray-800/50 active:bg-gray-200/60 dark:active:bg-gray-800/70'
                               }`}
                             >
-                              <div className="flex items-start gap-3">
-                                <span className="flex-shrink-0 w-2 h-2 mt-[7px]" aria-hidden>
+                              <div className="flex items-start gap-2.5">
+                                <span className="flex-shrink-0 w-1.5 mt-[15px]" aria-hidden>
                                   {unread && (
-                                    <span className="block w-2 h-2 rounded-full bg-brand" />
+                                    <span className="block w-1.5 h-1.5 rounded-full bg-brand" />
                                   )}
                                 </span>
 
+                                {/* 제목 앞 이모지 대신 같은 뜻의 라인 아이콘 타일 */}
+                                <span
+                                  className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center ${TILE_TONE[visual.tone]}`}
+                                  aria-hidden
+                                >
+                                  {visual.icon}
+                                </span>
+
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between gap-3 mb-1">
-                                    <div className="flex items-center gap-1.5 min-w-0">
-                                      <span
-                                        className={`flex-shrink-0 px-1.5 py-[1px] rounded-md text-[10px] font-bold tracking-tight ${
-                                          notice
-                                            ? 'bg-[var(--brand-soft-strong)] text-brand'
-                                            : 'bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-gray-400'
-                                        }`}
-                                      >
-                                        {notice ? '공지' : '내 알림'}
-                                      </span>
-                                      <h3
-                                        className={`text-[15px] leading-snug truncate ${
-                                          unread
-                                            ? 'font-semibold text-ink-strong'
-                                            : 'font-medium text-gray-700 dark:text-gray-300'
-                                        }`}
-                                      >
-                                        {notification.title}
-                                      </h3>
-                                    </div>
+                                  <div className="flex items-baseline justify-between gap-2.5">
+                                    <h3
+                                      className={`text-[14.5px] leading-snug truncate ${
+                                        unread
+                                          ? 'font-bold text-ink-strong'
+                                          : 'font-semibold text-gray-700 dark:text-gray-300'
+                                      }`}
+                                    >
+                                      {stripLeadingEmoji(notification.title)}
+                                    </h3>
                                     <span className="flex-shrink-0 text-[11px] text-gray-500 dark:text-gray-400 tabular-nums">
                                       {formatDate(notification.created_at)}
                                     </span>
                                   </div>
 
-                                  {/* 접힌 상태는 line-clamp가 걸린 인라인이어야 해서
-                                      블록(카드·정보 박스)은 눕히고 강조만 살린다 */}
-                                  {expandable && !expanded ? (
-                                    <p className="content-clamp text-[13.5px] text-gray-600 dark:text-gray-400 leading-relaxed break-words">
-                                      <NoticeInline source={notification.content} />
-                                    </p>
-                                  ) : (
-                                    <NoticeContent
-                                      source={notification.content}
-                                      compact
-                                    />
-                                  )}
+                                  {/* 종류 칩 + 본문 — 접힌 상태는 line-clamp가 걸린 인라인이어야
+                                      해서 블록(카드·정보 박스)은 눕히고 강조만 살린다 */}
+                                  <div className="mt-1 flex items-start gap-1.5">
+                                    <span
+                                      className={`flex-shrink-0 mt-[1px] px-1.5 py-[1px] rounded-md text-[10px] font-bold tracking-tight ${
+                                        notice
+                                          ? 'bg-[var(--brand-soft-strong)] text-brand'
+                                          : 'bg-gray-100 dark:bg-white/[0.07] text-gray-500 dark:text-gray-400'
+                                      }`}
+                                    >
+                                      {notice ? '공지' : '내 알림'}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                      {expandable && !expanded ? (
+                                        <p className="content-clamp text-[13px] text-gray-600 dark:text-gray-400 leading-relaxed break-words">
+                                          <NoticeInline source={notification.content} />
+                                        </p>
+                                      ) : (
+                                        <NoticeContent
+                                          source={notification.content}
+                                          compact
+                                        />
+                                      )}
+                                    </div>
+                                  </div>
 
                                   {notification.image_url && expanded && (
                                     <img
@@ -456,7 +559,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                     링크가 있으면 이동(>), 없으면 펼침(v) 신호. */}
                                 {(hasLink || expandable) && (
                                   <span
-                                    className="flex-shrink-0 mt-[3px] text-gray-400 dark:text-gray-500 group-hover:text-brand transition-colors"
+                                    className="flex-shrink-0 self-center text-gray-400 dark:text-gray-500 group-hover:text-brand transition-colors"
                                     aria-hidden
                                   >
                                     {navigating ? (

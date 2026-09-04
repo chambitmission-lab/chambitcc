@@ -8,6 +8,8 @@ import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
 import WelcomeScene from './WelcomeScene'
 import { RECOMMENDED } from './recommended'
+import { useChatbotHidden, hideChatbot, hideChatbotForever, showChatbot } from './chatbotVisibility'
+import './chatbot.css'
 import avatarDefault from './img/default.webp'
 import avatarTalking from './img/talking.webp'
 import avatarThinking from './img/thinking.webp'
@@ -301,6 +303,48 @@ const ChatbotWidget = () => {
     }
   }, [open, location.pathname])
 
+  // FAB 숨기기 — 롱프레스(모바일)/hover(PC)로 × 배지를 꺼내 누른다.
+  // 기본은 이번 방문만 숨김이라 새로고침하면 참비가 다시 나온다(chatbotVisibility 참고).
+  const fabHidden = useChatbotHidden()
+  const [peek, setPeek] = useState(false)      // × 배지 노출
+  const [snack, setSnack] = useState(false)    // 숨긴 직후 되돌리기 스낵바
+  const pressRef = useRef<number | null>(null)
+  const longPressedRef = useRef(false)
+
+  // 롱프레스 0.45초 → × 배지. 손을 떼면 타이머만 정리하고 배지는 남긴다.
+  const startPress = useCallback(() => {
+    longPressedRef.current = false
+    pressRef.current = window.setTimeout(() => {
+      longPressedRef.current = true
+      setPeek(true)
+    }, 450)
+  }, [])
+  const endPress = useCallback(() => {
+    if (pressRef.current) window.clearTimeout(pressRef.current)
+    pressRef.current = null
+  }, [])
+  useEffect(() => () => endPress(), [endPress])
+
+  // 배지를 꺼낸 채 방치하면 4초 뒤 다시 접는다 (모바일에는 hover-out 이 없다)
+  useEffect(() => {
+    if (!peek) return
+    const t = window.setTimeout(() => setPeek(false), 4000)
+    return () => window.clearTimeout(t)
+  }, [peek])
+
+  // 스낵바는 7초 뒤 스스로 사라진다 — 그대로 두면 "이번 방문만 숨김"이 유지된다
+  useEffect(() => {
+    if (!snack) return
+    const t = window.setTimeout(() => setSnack(false), 7000)
+    return () => window.clearTimeout(t)
+  }, [snack])
+
+  const dismissFab = useCallback(() => {
+    setPeek(false)
+    hideChatbot()
+    setSnack(true)
+  }, [])
+
   // 인사 한 통만 있고 아직 대화가 없으면 = 환영 화면
   const welcomeReply =
     msgs.length === 1 && msgs[0].role === 'bot' && msgs[0].reply.actions.length >= 2
@@ -385,18 +429,79 @@ const ChatbotWidget = () => {
 
   return (
     <>
-      {/* 플로팅 버튼 — 모바일에선 하단 독 위, 데스크톱에선 우하단 */}
-      {!open && (
-        <button
-          type="button"
-          aria-label="참비 챗봇 열기"
-          onClick={() => setOpen(true)}
-          className={`fixed right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom)+var(--chat-fab-lift,0rem))] lg:bottom-6 lg:right-6 z-[95] h-14 w-14 overflow-hidden rounded-full shadow-lg ring-2 ring-white/25 transition-[bottom,transform,opacity] duration-300 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand motion-reduce:transition-none ${
+      {/* 플로팅 버튼 — 모바일에선 하단 독 위, 데스크톱에선 우하단.
+          롱프레스(모바일)/hover(PC)로 × 배지가 나오고, 누르면 이번 방문 동안 숨긴다 */}
+      {!open && !fabHidden && (
+        <div
+          className={`cb-fab-wrap fixed right-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom)+var(--chat-fab-lift,0rem))] lg:bottom-6 lg:right-6 z-[95] transition-[bottom,transform,opacity] duration-300 motion-reduce:transition-none ${
             tucked ? 'translate-x-[130%] opacity-0 pointer-events-none' : ''
-          } lg:translate-x-0 lg:opacity-100 lg:pointer-events-auto`}
+          } lg:translate-x-0 lg:opacity-100 lg:pointer-events-auto ${peek ? 'is-peek' : ''}`}
         >
-          <img src={avatarDefault} alt="" className="h-full w-full object-cover" draggable={false} />
-        </button>
+          <button
+            type="button"
+            aria-label="참비 챗봇 열기"
+            onClick={() => {
+              // 롱프레스로 배지를 꺼낸 직후의 클릭은 패널을 열지 않는다
+              if (longPressedRef.current) {
+                longPressedRef.current = false
+                return
+              }
+              setOpen(true)
+            }}
+            onPointerDown={startPress}
+            onPointerUp={endPress}
+            onPointerLeave={endPress}
+            onPointerCancel={endPress}
+            onContextMenu={(e) => e.preventDefault()}
+            className="cb-fab block h-14 w-14 overflow-hidden rounded-full shadow-lg ring-2 ring-white/25 transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand motion-reduce:transition-none"
+          >
+            <img src={avatarDefault} alt="" className="h-full w-full object-cover" draggable={false} />
+          </button>
+
+          <button
+            type="button"
+            aria-label="참비 숨기기"
+            title="숨기기"
+            onClick={dismissFab}
+            className="cb-fab-x focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+          >
+            <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* 숨긴 직후 스낵바 — 되돌리기 / 계속 숨기기(기기 영구) */}
+      {snack && (
+        <div className="cb-snack" role="status">
+          <div className="cb-snack-text">
+            <strong>참비를 숨겼어요</strong>
+            <span>새로고침하면 다시 나와요</span>
+          </div>
+          <div className="cb-snack-actions">
+            <button
+              type="button"
+              className="cb-snack-btn"
+              onClick={() => {
+                hideChatbotForever()
+                setSnack(false)
+              }}
+            >
+              계속 숨기기
+            </button>
+            <button
+              type="button"
+              className="cb-snack-btn is-primary"
+              onClick={() => {
+                showChatbot()
+                setSnack(false)
+              }}
+            >
+              되돌리기
+            </button>
+          </div>
+        </div>
       )}
 
       {/* 뒤 배경 딤+블러 — 해석 패널과 같은 문법. 탭하면 닫힌다.
