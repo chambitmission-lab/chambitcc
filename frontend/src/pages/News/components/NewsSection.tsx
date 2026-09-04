@@ -8,6 +8,7 @@ import { MegaphoneIcon, SignalIcon, InboxIcon } from './NewsIcons'
 import { useNewsCategories, useNewsList } from '../../../hooks/useNews'
 import { isAdmin } from '../../../utils/auth'
 import type { NewsItem } from '../../../types/news'
+import '../news-hero.css'
 
 const formatDate = (value: string | null) => {
   if (!value) return ''
@@ -75,11 +76,9 @@ const NewsSection = () => {
 
   return (
     <div className="px-4 pt-3 pb-8">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl bg-white/80 dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4">
-        <span className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
-        <div className="absolute -top-8 -right-8 w-32 h-32 bg-[var(--brand-soft-strong)] rounded-full blur-3xl pointer-events-none" />
-
+      {/* Hero — 배경 삽화는 news-hero.css(.nh-hero--news).
+          그림은 오른쪽 끝에 높이맞춤으로 서고, 왼쪽·아래(검색창 자리)는 알파로 카드에 녹는다 */}
+      <div className="nh-hero nh-hero--news relative overflow-hidden rounded-3xl bg-white dark:bg-card-dark border border-[var(--card-border)] shadow-sm dark:shadow-[0_8px_24px_rgba(0,0,0,0.3)] p-5 mb-4">
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 mb-3">
             <div className="w-11 h-11 rounded-2xl bg-brand text-white flex items-center justify-center shadow-[0_6px_18px_-6px_var(--brand-glow)]">
@@ -108,7 +107,8 @@ const NewsSection = () => {
             )}
           </div>
 
-          <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6] mb-4">
+          {/* 글줄이 삽화 위로 넘어가지 않게 폭을 잡는다 — 삽화 위치가 바뀌면 이 값도 다시 볼 것 */}
+          <p className="text-gray-500 dark:text-white/55 text-[12.5px] leading-[1.6] mb-4 max-w-[60%] lg:max-w-[52%]">
             교회의 안내와 공지, 행사 소식을 한곳에서 확인하세요.
           </p>
 

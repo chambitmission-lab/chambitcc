@@ -1,0 +1,28 @@
+/* 소식 허브 히어로 배경 (/news 의 소식·새가족·행사 탭)
+ *
+ * 헌금 히어로(offering.css)와 같은 문법이다. 카드 가로가 크게 변하므로
+ * (모바일 약 358, PC 약 832) `cover` 를 쓰면 PC 에서 그림이 세로로 잘린다.
+ * → **높이맞춤(auto 100%) + 오른쪽 정렬**. 이미지 오른쪽 끝 = 카드 오른쪽 끝이 되고
+ *   그림은 카드 오른쪽에 서는 작은 무대가 된다.
+ *
+ * 에셋에 두 가지를 구워 두었다(docs/news-hero-bg-prompts.md 참고):
+ *   1) **왼쪽 알파 페이드** — 제목·안내문이 지나가는 왼쪽이 카드색에 녹는다.
+ *      카드색 그라데이션 워시를 따로 깔지 않아도 라이트/다크 모두 경계선이 없다.
+ *   2) **아래쪽 알파 페이드** — 원본보다 캔버스를 세로로 늘려 두었다. 그래서 그림은
+ *      카드 위쪽 2/3 안에 들어가고, 통계 숫자·뷰 전환 토글·검색창이 앉는 아래쪽은
+ *      순수 카드색이 된다. **삽화를 다시 뽑으면 이 여백도 다시 구워야 한다.**
+ */
+.nh-hero {
+  background-size: auto 100%;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+
+.nh-hero--news { background-image: url('/images/news/church-news-light.webp'); }
+.dark .nh-hero--news { background-image: url('/images/news/church-news-dark.webp'); }
+
+.nh-hero--family { background-image: url('/images/news/new-family-light.webp'); }
+.dark .nh-hero--family { background-image: url('/images/news/new-family-dark.webp'); }
+
+.nh-hero--album { background-image: url('/images/news/event-album-light.webp'); }
+.dark .nh-hero--album { background-image: url('/images/news/event-album-dark.webp'); }
