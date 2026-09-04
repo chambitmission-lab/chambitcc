@@ -44,6 +44,7 @@ export interface VerseTiming {
 const VOICE_STORAGE_KEY = 'bible-tts-voice'
 const RATE_STORAGE_KEY = 'bible-tts-rate'
 const AUTO_NEXT_STORAGE_KEY = 'bible-tts-autonext'
+const COLLAPSED_STORAGE_KEY = 'bible-tts-collapsed'
 const RATE_OPTIONS = [0.75, 1, 1.25, 1.5]
 
 // 첫 생성(몇 초) 동안 번갈아 보여줄 잔잔한 대기 문구
@@ -66,6 +67,10 @@ const loadRate = (): number => {
 
 // 연속 재생(장이 끝나면 다음 장 자동 재생)은 기본 켬
 const loadAutoNext = (): boolean => localStorage.getItem(AUTO_NEXT_STORAGE_KEY) !== 'off'
+
+// 카드 접기 — 듣지 않는 사람에게는 본문이 그만큼 위로 올라온다.
+// 기본은 펼침(기능 발견성). 한 번 접으면 장을 옮겨도, 다시 와도 접힌 채로 기억한다.
+const loadCollapsed = (): boolean => localStorage.getItem(COLLAPSED_STORAGE_KEY) === 'on'
 
 const formatTime = (sec: number): string => {
   if (!Number.isFinite(sec) || sec < 0) return '0:00'
@@ -106,6 +111,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   const [voice, setVoice] = useState<BibleTTSVoice>(loadVoice)
   const [rate, setRate] = useState<number>(loadRate)
   const [autoNext, setAutoNext] = useState<boolean>(loadAutoNext)
+  const [collapsed, setCollapsed] = useState<boolean>(loadCollapsed)
   const [started, setStarted] = useState(false) // 첫 재생 이후에만 src 설정
   const [isPlaying, setIsPlaying] = useState(false)
   const [preparing, setPreparing] = useState(false) // 첫 소리가 나기 전 대기 상태
@@ -483,6 +489,15 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
     }
   }
 
+  // 접기/펼치기 — 설정을 기억하되, 접어도 재생은 그대로 이어진다.
+  const toggleCollapsed = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem(COLLAPSED_STORAGE_KEY, next ? 'on' : 'off')
+    // 설정 메뉴가 열린 채 접히면 허공에 뜬 팝오버만 남는다
+    if (next) setShowSettings(false)
+  }
+
   const toggleAutoNext = () => {
     const next = !autoNext
     setAutoNext(next)
@@ -559,12 +574,77 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
 
   return (
     <>
-    <div ref={cardRef} className="relative mx-3 my-2 overflow-hidden rounded-2xl border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-card-dark shadow-[0_8px_24px_-14px_var(--brand-glow)]">
-      {/* 장식용 그라데이션 오브 */}
-      <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-[var(--brand-soft-strong)] blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-[var(--brand-soft)] blur-3xl" />
+    <div
+      ref={cardRef}
+      className={`relative mx-3 overflow-hidden border border-black/[0.05] dark:border-white/[0.08] bg-surface-light dark:bg-card-dark ${
+        collapsed
+          ? 'my-1.5 rounded-xl'
+          : 'my-2 rounded-2xl shadow-[0_8px_24px_-14px_var(--brand-glow)]'
+      }`}
+    >
+      {/* 장식용 그라데이션 오브 — 접힌 한 줄에는 번짐이 과해 펼쳤을 때만 */}
+      {!collapsed && (
+        <>
+          <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-[var(--brand-soft-strong)] blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-[var(--brand-soft)] blur-3xl" />
+        </>
+      )}
 
-      <div className="relative px-3 py-2.5">
+      {/* 접힌 상태 — 한 줄 띠. 안 듣는 사람에겐 본문이 그만큼 위로 올라오고,
+          들으려는 사람은 펼치지 않고도 여기서 바로 재생할 수 있다. */}
+      {collapsed && (
+        <div className="relative flex items-center gap-2 px-2.5 py-1.5">
+          <button
+            type="button"
+            onClick={togglePlay}
+            disabled={loading}
+            aria-label={isPlaying ? '일시정지' : '재생'}
+            className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-brand text-white shadow-[0_4px_10px_-4px_var(--brand-glow)] transition active:scale-95 disabled:cursor-default"
+          >
+            <span className={`material-icons-round text-[16px] leading-none ${loading ? 'animate-pulse' : ''}`}>
+              {loading ? 'auto_awesome' : isPlaying ? 'pause' : 'play_arrow'}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-expanded={false}
+            aria-label="오디오북 펼치기"
+            className="flex min-w-0 flex-1 items-center gap-1.5 py-0.5 text-left"
+          >
+            <span className="material-icons-round flex-shrink-0 text-[14px] text-brand">headphones</span>
+            <span className="flex-shrink-0 whitespace-nowrap text-[12.5px] font-extrabold tracking-tight text-brand">
+              오디오북
+            </span>
+            <span className="truncate text-[11px] font-medium text-gray-400 dark:text-white/40">
+              · {statusText}
+            </span>
+            <span className="ml-auto flex flex-shrink-0 items-center gap-1 pl-1">
+              {started && !loading && !liveStream && duration > 0 && (
+                <span className="text-[10.5px] font-medium tabular-nums text-gray-400 dark:text-white/45">
+                  {formatTime(currentTime)}
+                </span>
+              )}
+              <span className="material-icons-round text-[18px] leading-none text-gray-400 dark:text-white/40">
+                expand_more
+              </span>
+            </span>
+          </button>
+
+          {/* 접혀 있어도 어디까지 왔는지는 보이게 — 카드 아래 실선 한 줄 */}
+          {started && (
+            <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-black/[0.06] dark:bg-white/[0.08]">
+              <span
+                className={`block h-full rounded-r-full bg-brand ${liveStream ? 'w-full animate-pulse' : 'transition-[width] duration-200'}`}
+                style={liveStream ? undefined : { width: `${pct}%` }}
+              />
+            </span>
+          )}
+        </div>
+      )}
+
+      <div className={`relative px-3 py-2.5 ${collapsed ? 'hidden' : ''}`}>
         <div className="flex items-center gap-3">
           {/* 재생 / 일시정지 — 그라데이션 + 글로우 + 재생 중 펄스 링 */}
           <button
@@ -650,6 +730,19 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
                     </span>
                   </button>
                 )}
+                {/* 접기 — 듣지 않을 땐 한 줄로 접어 본문에 자리를 내준다 */}
+                <button
+                  type="button"
+                  onClick={toggleCollapsed}
+                  aria-expanded={true}
+                  aria-label="오디오북 접기"
+                  title="접기"
+                  className="flex items-center rounded-full border border-black/10 bg-black/[0.03] px-1.5 py-0.5 text-gray-400 transition active:scale-95 dark:border-white/15 dark:bg-white/[0.06] dark:text-white/40"
+                >
+                  <span className="material-icons-round text-[14px] leading-none">
+                    expand_less
+                  </span>
+                </button>
               </span>
             </div>
 
