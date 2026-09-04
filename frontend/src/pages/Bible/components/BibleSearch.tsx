@@ -310,7 +310,8 @@ const BibleSearch = () => {
   const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const highlightTokens =
     trimmedQuery && !searchResults?.is_chapter_search
-      ? [...new Set(trimmedQuery.split(/\s+/).filter(Boolean))]
+      ? // 백엔드가 공백·쉼표 모두로 토큰을 나누므로("주,그리스도") 같은 규칙으로 잘라야 강조가 빠지지 않는다
+        [...new Set(trimmedQuery.split(/[,\s]+/).filter(Boolean))]
       : []
   const highlightPattern =
     highlightTokens.length > 0
@@ -348,7 +349,7 @@ const BibleSearch = () => {
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, loadedVerses.length])
 
-  // 레일용 — 최근 검색어·추천 키워드 칩 그룹 (본문과 같은 마크업을 공유한다)
+  // 최근 검색어·추천 키워드 칩 그룹 — 시작 화면 본문과 PC 우측 레일이 같은 마크업을 쓴다
   const suggestionGroups = (
     <>
       {recentSearches.length > 0 && (
@@ -461,59 +462,8 @@ const BibleSearch = () => {
         </div>
       </form>
 
-      {!searchQuery && (
-        <div className="search-suggestions">
-          {recentSearches.length > 0 && (
-            <div className="search-chip-group">
-              <div className="search-chip-group-header">
-                <span>{t.recentSearches}</span>
-                <button type="button" className="search-chip-clear" onClick={clearRecentSearches}>
-                  {t.clearAll}
-                </button>
-              </div>
-              <div className="search-chip-list">
-                {recentSearches.map(kw => (
-                  <span key={kw} className="search-chip">
-                    <button
-                      type="button"
-                      className="search-chip-label"
-                      onClick={() => runSearch(kw)}
-                    >
-                      {kw}
-                    </button>
-                    <button
-                      type="button"
-                      className="search-chip-remove"
-                      aria-label={`${t.removeRecent}: ${kw}`}
-                      onClick={() => removeRecentSearch(kw)}
-                    >
-                      <span className="material-icons-round">close</span>
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="search-chip-group">
-            <div className="search-chip-group-header">
-              <span>{t.recommendedKeywords}</span>
-            </div>
-            <div className="search-chip-list">
-              {t.suggestedKeywords.map(kw => (
-                <button
-                  key={kw}
-                  type="button"
-                  className="search-chip search-chip--suggest"
-                  onClick={() => runSearch(kw)}
-                >
-                  {kw}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 시작 화면 — 최근·추천 칩. 결과를 보는 중엔 같은 블록이 PC 레일로 옮겨 간다 */}
+      {!searchQuery && <div className="search-suggestions">{suggestionGroups}</div>}
 
       {searchError && !hasAnyResult ? (
         <div className="no-results" role="alert">
