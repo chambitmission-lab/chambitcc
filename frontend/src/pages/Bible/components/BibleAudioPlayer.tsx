@@ -587,6 +587,11 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
         <>
           <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-[var(--brand-soft-strong)] blur-3xl" />
           <div className="pointer-events-none absolute -bottom-12 -left-10 h-32 w-32 rounded-full bg-[var(--brand-soft)] blur-3xl" />
+          {/* 흘러가는 능선 — "말씀 한 장을 넘는 고갯길"의 무대. 재생 중에만 흐른다.
+              스타일은 styles/audio-player.css, 그림 프롬프트는 docs/audio-player-bg-prompts.md */}
+          <div className="audio-ridge" aria-hidden="true">
+            <div className={`audio-ridge__strip ${isPlaying ? 'is-drifting' : ''}`} />
+          </div>
         </>
       )}
 

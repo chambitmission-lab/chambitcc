@@ -36,3 +36,6 @@
 
 /* Common - 공통 컴포넌트 */
 @import './styles/common.css';
+
+/* 오디오북 카드 배경 능선 */
+@import './styles/audio-player.css';

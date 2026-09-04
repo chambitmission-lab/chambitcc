@@ -1,0 +1,53 @@
+/* 오디오북 카드 배경 — 흘러가는 능선 띠
+ *
+ * `/bible` 본문 위 오디오북 카드(components/BibleAudioPlayer.tsx) 뒤에 깔리는 풍경.
+ * 컨셉·프롬프트는 docs/audio-player-bg-prompts.md 참고 — "말씀 한 장을 넘는 고갯길"의
+ * 무대만 맡는 6:1 가로 띠다(길·양 같은 진행률 요소는 넣지 않는다).
+ *
+ * 그림 위로 "오디오북 · 재생 중 · 13절"·"1.25×"·시간 표시가 지나가므로
+ * 히어로 배경보다 한 단계 더 옅게 깔고, 위쪽/좌우를 마스크로 흘려보낸다.
+ * 재생 중일 때만 가로로 천천히 흐른다(띠는 seamless tileable).
+ */
+.audio-ridge {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 46px;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /* 왼쪽 14%는 재생 버튼(44px 원)이 덮고, 오른쪽 끝엔 칩이 올라온다 */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 20%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 20%, #000 86%, transparent 100%);
+}
+
+.audio-ridge__strip {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/bible/audio-ridge-light.webp');
+  background-repeat: repeat-x;
+  background-position: 0 100%;
+  background-size: auto 46px; /* 6:1 → 타일 폭 276px */
+  opacity: 0.55;
+  /* 하늘 쪽은 흘려보내고 능선만 남긴다 */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 62%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 62%);
+}
+
+[data-theme='dark'] .audio-ridge__strip {
+  background-image: url('/images/bible/audio-ridge-dark.webp');
+  opacity: 0.7;
+}
+
+.audio-ridge__strip.is-drifting {
+  animation: audio-ridge-drift 48s linear infinite;
+}
+
+@keyframes audio-ridge-drift {
+  from { background-position-x: 0; }
+  to { background-position-x: -276px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audio-ridge__strip.is-drifting { animation: none; }
+}

@@ -46,6 +46,10 @@ const VerseSharePreview = import.meta.env.DEV
 const MeditationCardPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Home/components/DailyMeditationCardPreview'))
   : null
+// dev 전용 — 오디오북 재생 배경/애니메이션 시안 비교
+const AudioBgPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Bible/components/AudioBgPreview'))
+  : null
 const ProfileHeaderPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/ProfileHeaderPreview'))
   : null
@@ -362,6 +366,9 @@ function App() {
                 )}
                 {MeditationCardPreview && (
                   <Route path="/dev/meditation-card" element={<MeditationCardPreview />} />
+                )}
+                {AudioBgPreview && (
+                  <Route path="/dev/audio-bg" element={<AudioBgPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
