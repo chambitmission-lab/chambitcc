@@ -10,6 +10,7 @@ import DigitalBulletin from './components/DigitalBulletin'
 import NewsSection from './components/NewsSection'
 import NewFamilySection from './components/NewFamilySection'
 import EventAlbumSection from './components/EventAlbumSection'
+import OfferingSection from './components/OfferingSection'
 // 올해의 말씀 — 홈과 같은 쿼리(24h 캐시)라 /news에서 다시 불러오지 않는다
 import AnnualThemeVerse from '../Home/components/AnnualThemeVerse'
 import {
@@ -17,6 +18,7 @@ import {
   BulletinIcon,
   SproutIcon,
   AlbumIcon,
+  OfferingBoxIcon,
   ImagePageIcon,
   ScreenPageIcon,
   ArchiveIcon,
@@ -27,7 +29,7 @@ import {
 } from './components/NewsIcons'
 
 /** 최상위 그룹 — 소식 허브 */
-type SectionKey = 'news' | 'bulletin' | 'new-family' | 'event-album'
+type SectionKey = 'news' | 'bulletin' | 'new-family' | 'event-album' | 'offering'
 /** 주보 하위 탭 */
 type BulletinTabKey = 'image' | 'digital'
 
@@ -43,13 +45,15 @@ const SECTIONS: {
   { key: 'bulletin', Icon: BulletinIcon, label: '주보', seal: { from: '#5b8cf0', to: '#3562d9' } },
   { key: 'new-family', Icon: SproutIcon, label: '새가족', seal: { from: '#45a8f7', to: '#1f86e8' } },
   { key: 'event-album', Icon: AlbumIcon, label: '행사', seal: { from: '#6f86f4', to: '#4d5ee0' } },
+  { key: 'offering', Icon: OfferingBoxIcon, label: '헌금', seal: { from: '#3ea7f0', to: '#1a6fd4' } },
 ]
 
 const isSectionKey = (value: string | null): value is SectionKey =>
   value === 'news' ||
   value === 'bulletin' ||
   value === 'new-family' ||
-  value === 'event-album'
+  value === 'event-album' ||
+  value === 'offering'
 
 const formatLongDate = (date: string) =>
   new Date(date).toLocaleDateString('ko-KR', {
@@ -154,14 +158,15 @@ const News = () => {
                 onClick={() => handleSectionChange(s.key)}
                 aria-pressed={section === s.key}
                 className={[
-                  'relative z-10 flex-1 h-10 rounded-xl text-[13px] font-bold transition-colors duration-200',
-                  'inline-flex items-center justify-center gap-1.5',
+                  // 탭이 5개라 320px 폭에서도 아이콘+2~3글자가 들어가야 한다 — gap/글자를 한 단계 줄인다
+                  'relative z-10 flex-1 h-10 rounded-xl text-[12px] font-bold transition-colors duration-200',
+                  'inline-flex items-center justify-center gap-1 whitespace-nowrap',
                   section === s.key
                     ? 'text-white'
                     : 'text-gray-600 dark:text-white/60 hover:text-brand hover:bg-[var(--brand-soft)] dark:hover:text-white dark:hover:bg-white/[0.06] active:scale-[0.97]',
                 ].join(' ')}
               >
-                <s.Icon width={16} height={16} className="shrink-0" />
+                <s.Icon width={15} height={15} className="shrink-0" />
                 {s.label}
               </button>
             ))}
@@ -176,6 +181,9 @@ const News = () => {
 
         {/* 행사 앨범 */}
         {section === 'event-album' && <EventAlbumSection />}
+
+        {/* 온라인 헌금 안내 */}
+        {section === 'offering' && <OfferingSection />}
 
         {/* 주보 하위 탭 pill */}
         {section === 'bulletin' && (

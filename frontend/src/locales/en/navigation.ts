@@ -89,6 +89,7 @@ export const navigation = {
   adminNavNews: 'Church News',
   adminNavVerse: 'Daily Verse',
   adminNavBulletin: 'Bulletin',
+  adminNavOffering: 'Online Offering',
   adminNavWeeklyPrayer: 'Prayer Topics',
   adminNavNewFamily: 'New Family',
   adminNavEventAlbum: 'Event Album',

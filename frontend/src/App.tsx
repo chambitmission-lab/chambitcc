@@ -90,6 +90,7 @@ const PushNotificationManagement = lazy(() =>
 const NewsManagement = lazy(() => import('./pages/Admin/NewsManagement'))
 const PastorManagement = lazy(() => import('./pages/Admin/PastorManagement'))
 const EducationManagement = lazy(() => import('./pages/Admin/EducationManagement'))
+const OfferingManagement = lazy(() => import('./pages/Admin/OfferingManagement'))
 const EventManagement = lazy(() => import('./pages/Admin/EventManagement'))
 const UserManagement = lazy(() => import('./pages/Admin/UserManagement'))
 const GroupManagement = lazy(() => import('./pages/Admin/GroupManagement'))
@@ -305,6 +306,7 @@ function App() {
                 <Route path="/admin/organization" element={<OrganizationManagement />} />
                 <Route path="/admin/pastors" element={<PastorManagement />} />
                 <Route path="/admin/education" element={<EducationManagement />} />
+                <Route path="/admin/offering" element={<OfferingManagement />} />
                 <Route path="/admin/bible-engagement" element={<BibleEngagementManagement />} />
                 <Route path="/events" element={<EventCalendar />} />
                 <Route path="/events/:id" element={<EventDetail />} />

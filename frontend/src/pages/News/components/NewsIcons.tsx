@@ -13,6 +13,9 @@
  * - EyeIcon       : 눈 (조회수)
  * - SignalIcon    : 전파가 끊긴 안테나 (불러오기 실패)
  * - InboxIcon     : 비어 있는 수신함 (빈 목록)
+ * - OfferingBoxIcon : 십자가를 새긴 헌금함 (온라인 헌금)
+ * - BankIcon      : 기둥 넷을 인 은행 건물 (계좌)
+ * - CopyIcon      : 겹친 카드 두 장 (계좌번호 복사)
  */
 import type { ReactElement, SVGProps } from 'react'
 
@@ -304,4 +307,49 @@ const TAG_ICONS: Record<string, (props: SVGProps<SVGSVGElement>) => ReactElement
 export function EventTagIcon({ tag, ...props }: SVGProps<SVGSVGElement> & { tag: string }) {
   const Icon = TAG_ICONS[tag] ?? AlbumIcon
   return <Icon {...props} />
+}
+
+/* ── 온라인 헌금 안내 ─────────────────────────────
+   레거시 페이지의 '십자가 새긴 헌금함' 일러스트를 선화로 옮긴다. */
+
+/** 헌금함 — 뚜껑 틈으로 헌금이 들어가는 상자, 앞면에 십자가 */
+export function OfferingBoxIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4.4 8.6h15.2v10a1.8 1.8 0 0 1-1.8 1.8H6.2a1.8 1.8 0 0 1-1.8-1.8z" />
+      <path d="M3.4 6.2h17.2v2.4H3.4z" />
+      <path d="M12 11.6v5.2M9.9 13.6h4.2" />
+      <path d="M9.6 6.2 12 3.2l2.4 3" />
+    </svg>
+  )
+}
+
+/** 은행 — 기둥 넷을 인 건물, 계좌 카드의 머리 아이콘 */
+export function BankIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.6 9.4 12 4.4l8.4 5" />
+      <path d="M5.8 9.4v8M10 9.4v8M14 9.4v8M18.2 9.4v8" />
+      <path d="M3.6 20.2h16.8" />
+    </svg>
+  )
+}
+
+/** 겹친 카드 두 장 — 계좌번호 복사 */
+export function CopyIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="9" y="9" width="11" height="11" rx="2.2" />
+      <path d="M15 5.6A1.8 1.8 0 0 0 13.2 4H6a2 2 0 0 0-2 2v7.2A1.8 1.8 0 0 0 5.8 15" />
+    </svg>
+  )
+}
+
+/** 체크 — 복사 완료 */
+export function CheckIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4.8 12.6 9.6 17.4 19.2 6.6" />
+    </svg>
+  )
 }

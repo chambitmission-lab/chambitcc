@@ -90,6 +90,7 @@ export const navigation = {
   adminNavNews: '교회소식',
   adminNavVerse: '오늘의 말씀',
   adminNavBulletin: '주보',
+  adminNavOffering: '온라인 헌금 안내',
   adminNavWeeklyPrayer: '공동 기도제목',
   adminNavNewFamily: '새가족 앨범',
   adminNavEventAlbum: '행사 앨범',

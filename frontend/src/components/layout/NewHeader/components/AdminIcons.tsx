@@ -228,6 +228,16 @@ const IconSeedBook = (p: IconProps) => (
   </Svg>
 )
 
+/* 온라인 헌금 — 십자가를 새긴 헌금함 */
+const IconOfferingBox = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4.4 8.6h15.2v10a1.8 1.8 0 0 1-1.8 1.8H6.2a1.8 1.8 0 0 1-1.8-1.8z" />
+    <path d="M3.4 6.2h17.2v2.4H3.4z" />
+    <path d="M12 11.6v5.2M9.9 13.6h4.2" />
+    <path d="M9.6 6.2 12 3.2l2.4 3" />
+  </Svg>
+)
+
 export const ADMIN_ICONS = {
   adminNavDashboard: IconDashboard,
   adminNavCare: IconRadar,
@@ -238,6 +248,7 @@ export const ADMIN_ICONS = {
   adminNavEducation: IconSeedBook,
   adminNavNews: IconNoticeBoard,
   adminNavBulletin: IconNewspaper,
+  adminNavOffering: IconOfferingBox,
   adminNavWeeklyPrayer: IconPrayerHeart,
   adminNavNewFamily: IconSprout,
   adminNavEventAlbum: IconCamera,
