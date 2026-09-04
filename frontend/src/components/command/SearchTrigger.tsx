@@ -10,11 +10,11 @@ export const SearchCapsule = () => {
       onClick={openCommandPalette}
       onMouseEnter={preloadCommandPalette}
       onFocus={preloadCommandPalette}
-      className="search-capsule group flex items-center gap-2 h-9 min-w-[236px] xl:min-w-[276px] pl-3.5 pr-2 rounded-full text-[13.5px] whitespace-nowrap text-[var(--brand-muted)] hover:text-brand"
+      className="search-capsule group flex items-center gap-2 h-9 min-w-[236px] xl:min-w-[276px] pl-3.5 pr-2 rounded-full text-[13.5px] whitespace-nowrap"
       aria-label={t('cmdkTrigger')}
       aria-keyshortcuts="Meta+K Control+K"
     >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="w-[15px] h-[15px] shrink-0 text-brand" aria-hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="search-capsule-icon w-[15px] h-[15px] shrink-0" aria-hidden>
         <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
       </svg>
       <span className="font-medium flex-1 text-left">{t('cmdkTrigger')}</span>

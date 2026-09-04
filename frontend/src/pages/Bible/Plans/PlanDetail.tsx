@@ -835,7 +835,7 @@ const Shell = ({
     <div
       className={`max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-bottomnav-safe ${
         rail
-          ? 'lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:overflow-hidden'
+          ? 'lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden'
           : ''
       }`}
     >
