@@ -177,6 +177,8 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   }, [notifications, hero])
 
   const groupOrder: DateGroup[] = ['today', 'week', 'older']
+  // 공지는 전용 상세 페이지가 없다 — 링크가 없으면 히어로 카드 안에서 펼쳐 읽는다
+  const heroExpanded = !!hero && expandedIds.has(hero.id)
 
   const toggleExpand = async (notification: Notification) => {
     setExpandedIds((prev) => {
@@ -359,6 +361,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                   <button
                     type="button"
                     onClick={() => handleItemClick(hero)}
+                    aria-expanded={hero.link_url ? undefined : heroExpanded}
                     className="group w-full text-left p-3.5 rounded-2xl border border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] active:bg-[var(--brand-glow)] transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -372,7 +375,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                     </div>
 
                     <div className="mt-2.5 flex items-center gap-3">
-                      {hero.image_url && (
+                      {hero.image_url && !heroExpanded && (
                         <img
                           src={hero.image_url}
                           alt=""
@@ -384,28 +387,56 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                         <h3 className="text-[15.5px] font-bold text-ink-strong tracking-tight truncate">
                           {stripLeadingEmoji(hero.title)}
                         </h3>
-                        <p className="content-clamp mt-1 text-[13px] text-gray-600 dark:text-gray-400 leading-relaxed break-words">
-                          <NoticeInline source={hero.content} />
-                        </p>
+                        {!heroExpanded && (
+                          <p className="content-clamp mt-1 text-[13px] text-gray-600 dark:text-gray-400 leading-relaxed break-words">
+                            <NoticeInline source={hero.content} />
+                          </p>
+                        )}
                       </div>
                       <span
                         className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-white dark:bg-white/[0.1] text-brand shadow-sm"
                         aria-hidden
                       >
-                        <svg
-                          width="15"
-                          height="15"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.4"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M9 18l6-6-6-6" />
-                        </svg>
+                        {isNavigating && pendingLinkId === hero.id ? (
+                          <span className="block w-3.5 h-3.5 border-[1.5px] border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.4"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={
+                              hero.link_url
+                                ? ''
+                                : `transition-transform duration-200 ${heroExpanded ? 'rotate-180' : ''}`
+                            }
+                          >
+                            <path d={hero.link_url ? 'M9 18l6-6-6-6' : 'M6 9l6 6 6-6'} />
+                          </svg>
+                        )}
                       </span>
                     </div>
+
+                    {heroExpanded && (
+                      <div className="mt-2.5">
+                        <NoticeContent source={hero.content} compact />
+                        {hero.image_url && (
+                          <img
+                            src={hero.image_url}
+                            alt=""
+                            loading="lazy"
+                            className="mt-2.5 w-full max-h-72 object-contain rounded-xl bg-white/60 dark:bg-white/[0.06]"
+                          />
+                        )}
+                        <span className="mt-2 inline-block text-[12px] font-semibold text-brand">
+                          접기
+                        </span>
+                      </div>
+                    )}
                   </button>
                 </div>
               )}
