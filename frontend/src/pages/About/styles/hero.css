@@ -15,13 +15,21 @@
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.06),
     0 16px 40px -24px rgba(0, 0, 0, 0.45);
-  /* 사진 도착 전/부재 시 폴백 — 라이트는 브랜드 블루(딥네이비는 다크 전용) */
-  background: linear-gradient(160deg, #4593fc 0%, #2b78ee 55%, #1b6ef3 130%);
+  /* 사진 도착 전/부재 시 폴백 — 라이트는 브랜드 블루(딥네이비는 다크 전용).
+     지난 방문에 저장해 둔 LQIP(사진 32px 축소본)가 있으면 About.tsx 가 인라인
+     background-image 로 이 자리를 대신 채운다 → 파란 화면이 스치지 않는다.
+     그래서 shorthand 가 아니라 background-image 로 쓰고, size/position/repeat 는
+     여기서 확정해 둔다 (안 그러면 32px 축소본이 타일처럼 반복된다). */
+  background-image: linear-gradient(160deg, #4593fc 0%, #2b78ee 55%, #1b6ef3 130%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   overflow: hidden;
 }
 
 .dark .about-hero {
-  background: linear-gradient(160deg, #0c1a33 0%, #14305f 55%, #1b6ef3 160%);
+  /* shorthand 를 쓰면 위에서 잡은 size/position/repeat 가 초기화된다 */
+  background-image: linear-gradient(160deg, #0c1a33 0%, #14305f 55%, #1b6ef3 160%);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.1),
     0 16px 40px -24px rgba(0, 0, 0, 0.8);
@@ -38,7 +46,9 @@
   object-fit: cover;
   object-position: center;
   opacity: 0;
-  transition: opacity 400ms ease-out;
+  /* LQIP(또는 폴백) → 사진 전환. 예전 400ms 는 캐시에서 즉시 그려도 그만큼
+     바뀌는 게 눈에 보였다 — 이질감만 지울 정도로 짧게 */
+  transition: opacity 260ms ease-out;
 }
 
 .about-hero .hero-image.is-loaded {

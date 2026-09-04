@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { isAdmin } from '../../utils/auth'
 import { smoothScrollToElement } from '../../utils/scrollTo'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { EditableText, EditableImage, HeroEditButton } from '../../components/AboutEditor'
+import { captureAboutHeroLqip, readAboutHeroLqip } from '../../utils/aboutHeroLqip'
 import {
   BookOpenIcon,
   CameraIcon,
@@ -70,11 +71,26 @@ const About = () => {
   // <img> 는 onLoad 로 페이드인할 수 있고 fetchPriority 힌트도 줄 수 있다.
   const [heroLoaded, setHeroLoaded] = useState(false)
 
+  // 사진이 도착하기 전 첫 프레임에 깔 축소본. 없으면(첫 방문) 예전처럼 파란 그라데이션이
+  // 폴백이 된다. 사진이 뜬 뒤 아래 handleHeroLoaded 가 다음 진입용으로 떠 둔다.
+  const heroLqip = useMemo(() => readAboutHeroLqip(heroBackgroundUrl), [heroBackgroundUrl])
+
+  const handleHeroLoaded = useCallback(
+    (node: HTMLImageElement) => {
+      setHeroLoaded(true)
+      if (heroBackgroundUrl) captureAboutHeroLqip(node, heroBackgroundUrl)
+    },
+    [heroBackgroundUrl],
+  )
+
   // 브라우저 캐시에 이미 있으면 React 가 리스너를 붙이기 전에 로드가 끝나 onLoad 가
   // 영영 안 올 수 있다. ref 콜백 시점에 complete 를 직접 확인해 그 경우를 메운다.
-  const heroImageRef = useCallback((node: HTMLImageElement | null) => {
-    if (node?.complete) setHeroLoaded(true)
-  }, [])
+  const heroImageRef = useCallback(
+    (node: HTMLImageElement | null) => {
+      if (node?.complete) handleHeroLoaded(node)
+    },
+    [handleHeroLoaded],
+  )
 
   // 선택된 만남 — 기본은 손수건(반전이 먼저 보이게)
   const [meetingKey, setMeetingKey] = useState<MeetingKey>('handkerchief')
@@ -214,8 +230,13 @@ const About = () => {
           섹션 카드들이 같은 폭으로 쌓인다. 우측 레일은 히어로 안으로 들어갔다 */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen lg:max-w-none lg:mx-0 lg:min-w-0 lg:bg-transparent lg:dark:bg-transparent lg:border-0 lg:min-h-0">
-        {/* Hero — 사진을 온전히 보여주고 텍스트는 하단 스크림 위에 좌측 정렬 */}
-        <div className="about-hero">
+        {/* Hero — 사진을 온전히 보여주고 텍스트는 하단 스크림 위에 좌측 정렬.
+            LQIP 가 있으면 파란 폴백 그라데이션 대신 사진 축소본을 깔아, 사진이
+            도착하는 순간의 색 점프를 없앤다 (없으면 hero.css 의 그라데이션 그대로) */}
+        <div
+          className="about-hero"
+          style={heroLqip ? { backgroundImage: `url("${heroLqip}")` } : undefined}
+        >
           {/* crossOrigin: CORS 응답이어야 서비스워커가 상태 코드를 보고 캐싱할 수 있다
               (no-cors 는 opaque 라 404 도 그대로 캐싱된다).
               index.html 의 preload 링크도 같은 crossorigin 이어야 재사용된다. */}
@@ -229,7 +250,7 @@ const About = () => {
               decoding="async"
               fetchPriority="high"
               crossOrigin="anonymous"
-              onLoad={() => setHeroLoaded(true)}
+              onLoad={(e) => handleHeroLoaded(e.currentTarget)}
             />
           )}
           <div className="hero-scrim"></div>
