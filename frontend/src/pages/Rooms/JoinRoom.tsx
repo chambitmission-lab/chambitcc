@@ -156,7 +156,8 @@ const JoinRoom = () => {
                 </button>
               )}
               <p className="text-center text-[11.5px] text-gray-400 dark:text-white/40 mt-2.5">
-                매일 같은 본문을 읽고, 서로의 묵상에 마음을 나눠요
+                매일 같은 본문을 방 안에서 읽고, 한 줄씩 마음을 나눠요
+                {room.status === 'active' ? ' · 지금 들어와도 오늘 것부터 함께할 수 있어요' : ''}
               </p>
 
               {/* 설치된 앱으로 참여하고 싶은 경우 (특히 아이폰 PWA) */}

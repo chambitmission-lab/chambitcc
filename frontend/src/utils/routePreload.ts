@@ -34,6 +34,13 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   '/classes': () => import('../pages/ClassRoom/ClassList'),
 }
 
+// 청크와 함께 데워 둘 페이지 데이터. 청크만 먼저 받으면 진입 시 껍데기(히어로)는 즉시
+// 뜨는데 본문은 API 왕복만큼 늦게 따라와 "두 박자"로 그려진다 — 같은 타이밍에 응답과
+// 첫 화면 이미지를 미리 받아 둔다. 청크가 처음 로드될 때 한 번만 호출된다.
+const routeDataPrefetchers: Record<string, () => Promise<void>> = {
+  '/greeting': () => import('../pages/Greeting/prefetch').then((m) => m.prefetch()),
+}
+
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다
 export const NAV_ROUTES = ['/bible', '/prayer-focus', '/profile']
 
@@ -90,6 +97,8 @@ export const preloadRoute = (path: string): Promise<void> => {
     .load()
     .then(() => {
       loaded.add(resolved.key)
+      // 데이터 선요청 실패는 청크 프리로드 성공과 무관하다 — 진입 시 훅이 다시 받는다
+      void routeDataPrefetchers[resolved.key]?.().catch(() => undefined)
     })
     .catch(() => {
       inflight.delete(resolved.key)

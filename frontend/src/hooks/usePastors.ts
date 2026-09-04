@@ -1,4 +1,5 @@
 // 담임목사 인사말 훅 - React Query
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createPastor,
@@ -15,6 +16,7 @@ import type {
   PastorListResponse,
   PastorUpdatePayload,
 } from '../types/pastor'
+import { readPastorsCache, writePastorsCache } from '../utils/pastorsCache'
 
 export const pastorKeys = {
   all: ['pastors'] as const,
@@ -29,7 +31,16 @@ export const usePastors = () => {
     queryKey: pastorKeys.all,
     queryFn: fetchPastors,
     staleTime: 1000 * 60 * 5,
+    // 지난 방문 응답을 즉시 그려 편지·사진이 히어로와 같은 프레임에 뜨게 한다.
+    // initialData 가 아니라 placeholderData 라 서버 재검증은 그대로 수행된다.
+    placeholderData: readPastorsCache,
   })
+
+  // 실제 서버 응답만 캐시한다(placeholder 를 되쓰면 오래된 값이 계속 연장된다).
+  const fetched = query.isPlaceholderData ? undefined : query.data
+  useEffect(() => {
+    if (fetched) writePastorsCache(fetched)
+  }, [fetched])
 
   const data = query.data ?? EMPTY
   return {

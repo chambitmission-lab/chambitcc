@@ -16,6 +16,8 @@ export interface RoomDay {
   post_count: number
   read_count: number
   read_by_me: boolean
+  /** 그 날 읽은 멤버 user_id — members 와 조인해 얼굴 스택을 그린다 (구버전 백엔드는 없음) */
+  reader_ids?: number[]
 }
 
 export type RoomStatus = 'upcoming' | 'active' | 'finished'
@@ -36,6 +38,14 @@ export interface RoomSummary {
   today_reference?: string | null
   today_read_by_me: boolean
   my_read_count: number
+  /** 오늘 일차를 읽은 멤버 수 */
+  today_read_count?: number
+  /** 전원 읽음 연속 일수 */
+  group_streak?: number
+  /** 전원이 읽은 일차 수(누적) */
+  all_read_days?: number
+  /** 아침 알림 "HH:MM" */
+  reminder_time?: string | null
 }
 
 export interface RoomDetail extends RoomSummary {
@@ -99,4 +109,47 @@ export interface RoomCreateRequest {
   chapter_end: number
   total_days: number
   start_date?: string | null
+}
+
+export interface RoomUpdateRequest {
+  title?: string
+  description?: string
+  emoji?: string
+  /** "HH:MM" — 빈 문자열이면 해제 */
+  reminder_time?: string
+}
+
+export interface SplitPreview {
+  total_verses: number
+  total_days: number
+  avg_verses_per_day: number
+  est_minutes_per_day: number
+  sample_titles: string[]
+}
+
+export type RoomReactionKey = 'grace' | 'comfort' | 'challenge' | 'question' | 'thanks'
+
+export interface DayReaction {
+  reaction: RoomReactionKey
+  count: number
+  mine: boolean
+  names: string[]
+}
+
+export interface VerseMark {
+  book_number: number
+  chapter: number
+  verse: number
+  count: number
+  mine: boolean
+  names: string[]
+}
+
+export interface RoomDayDetail {
+  day_number: number
+  reader_ids: number[]
+  reactions: DayReaction[]
+  verse_marks: VerseMark[]
+  nudge_sent: boolean
+  unread_count: number
 }

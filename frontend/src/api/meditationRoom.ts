@@ -3,13 +3,17 @@ import { API_V1, apiFetch } from '../config/api'
 import { getAuthHeaders } from './utils/apiHelpers'
 import type {
   RoomCreateRequest,
+  RoomDayDetail,
   RoomDetail,
   RoomPost,
   RoomPostListResponse,
   RoomPostType,
   RoomPreview,
+  RoomReactionKey,
   RoomReply,
   RoomSummary,
+  RoomUpdateRequest,
+  SplitPreview,
 } from '../types/meditationRoom'
 
 const BASE = `${API_V1}/meditation-rooms`
@@ -180,4 +184,81 @@ export const deleteRoomReply = async (
   if (!response.ok && response.status !== 204) {
     return parseError(response, '댓글 삭제에 실패했습니다')
   }
+}
+
+// ── 업그레이드: 분량 미리보기 · 설정 · 일차 상세 · 반응 · 머문 절 · 콕 찌르기 ──
+
+export const getSplitPreview = async (params: {
+  book_number: number
+  chapter_start: number
+  chapter_end: number
+  total_days: number
+}): Promise<SplitPreview> => {
+  const qs = new URLSearchParams(
+    Object.entries(params).map(([k, v]) => [k, String(v)]),
+  ).toString()
+  const response = await apiFetch(`${BASE}/split-preview?${qs}`, { headers: getAuthHeaders() })
+  if (!response.ok) return parseError(response, '분량 미리보기를 불러오지 못했습니다')
+  return response.json()
+}
+
+export const updateRoom = async (
+  roomId: number,
+  payload: RoomUpdateRequest,
+): Promise<RoomDetail> => {
+  const response = await apiFetch(`${BASE}/${roomId}`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(payload),
+  })
+  if (!response.ok) return parseError(response, '방 설정을 저장하지 못했습니다')
+  return response.json()
+}
+
+export const getRoomDay = async (roomId: number, dayNumber: number): Promise<RoomDayDetail> => {
+  const response = await apiFetch(`${BASE}/${roomId}/days/${dayNumber}`, {
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) return parseError(response, '일차 정보를 불러오지 못했습니다')
+  return response.json()
+}
+
+export const setRoomDayReaction = async (
+  roomId: number,
+  dayNumber: number,
+  reaction: RoomReactionKey | null,
+): Promise<RoomDayDetail> => {
+  const response = await apiFetch(`${BASE}/${roomId}/days/${dayNumber}/reaction`, {
+    method: 'PUT',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify({ reaction }),
+  })
+  if (!response.ok) return parseError(response, '반응을 남기지 못했습니다')
+  return response.json()
+}
+
+export const toggleRoomVerseMark = async (
+  roomId: number,
+  dayNumber: number,
+  verse: { book_number: number; chapter: number; verse: number },
+): Promise<{ marked: boolean; count: number }> => {
+  const response = await apiFetch(`${BASE}/${roomId}/days/${dayNumber}/verse-marks`, {
+    method: 'POST',
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(verse),
+  })
+  if (!response.ok) return parseError(response, '표시하지 못했습니다')
+  return response.json()
+}
+
+export const nudgeRoomDay = async (
+  roomId: number,
+  dayNumber: number,
+): Promise<{ sent_count: number }> => {
+  const response = await apiFetch(`${BASE}/${roomId}/days/${dayNumber}/nudge`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  })
+  if (!response.ok) return parseError(response, '콕 찌르기에 실패했습니다')
+  return response.json()
 }

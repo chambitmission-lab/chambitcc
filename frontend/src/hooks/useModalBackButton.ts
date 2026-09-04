@@ -24,6 +24,11 @@ let counter = 0
 // 곧바로 이어지는 pushState(StrictMode 재마운트, 모달 연속 전환)와 순서가 엉키면
 // 모달 엔트리가 forward 쪽 고아로 남아 뒤로가기 한 번에 페이지까지 빠져나간다.
 // 그래서 back을 한 틱 미루고, 그 사이 새 모달이 열리면 취소 후 엔트리를 재사용한다.
+//
+// 엔트리를 쌓을 때 기존 history.state를 반드시 펼쳐 넣는다. 라우터(react-router)는
+// state의 key/idx로 히스토리 엔트리를 식별하는데, 이를 빠뜨리면 모달 엔트리로
+// 되돌아온 순간 location.key가 'default'로 바뀌어 스크롤 복원이 위치를 잃고
+// 맨 위로 튀며(첫 닫기에서만 재현), push 인덱스도 NaN이 된다.
 let pendingCleanup: number | null = null
 
 const handlePop = () => {
@@ -51,9 +56,9 @@ export function useModalBackButton(onClose: () => void, enabled = true) {
       // 직전 모달의 엔트리가 아직 정리(back) 전 — back을 취소하고 엔트리를 물려받는다
       window.clearTimeout(pendingCleanup)
       pendingCleanup = null
-      window.history.replaceState({ modalBack: id }, '')
+      window.history.replaceState({ ...window.history.state, modalBack: id }, '')
     } else {
-      window.history.pushState({ modalBack: id }, '')
+      window.history.pushState({ ...window.history.state, modalBack: id }, '')
     }
 
     if (!listenerAttached) {

@@ -165,7 +165,13 @@ const Greeting = () => {
                   <div className="gr-letter-head">
                     <EditablePastorPhoto pastor={current} isAdmin={isAdminUser}>
                       {photoUrl ? (
-                        <img className="gr-photo" src={photoUrl} alt={name} />
+                        <img
+                          className="gr-photo"
+                          src={photoUrl}
+                          alt={name}
+                          fetchPriority="high"
+                          decoding="async"
+                        />
                       ) : isAdminUser ? (
                         <span className="gr-photo gr-photo--empty" aria-hidden="true">
                           <CameraIcon size={24} />

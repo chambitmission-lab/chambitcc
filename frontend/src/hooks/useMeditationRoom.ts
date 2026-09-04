@@ -7,16 +7,27 @@ import {
   deleteRoomPost,
   deleteRoomReply,
   getRoom,
+  getRoomDay,
+  getSplitPreview,
   joinRoom,
   leaveRoom,
   listMyRooms,
   listRoomPosts,
   listRoomReplies,
   markRoomDayRead,
+  nudgeRoomDay,
   previewRoom,
+  setRoomDayReaction,
   toggleRoomPostLike,
+  toggleRoomVerseMark,
+  updateRoom,
 } from '../api/meditationRoom'
-import type { RoomCreateRequest, RoomPostType } from '../types/meditationRoom'
+import type {
+  RoomCreateRequest,
+  RoomPostType,
+  RoomReactionKey,
+  RoomUpdateRequest,
+} from '../types/meditationRoom'
 
 export const roomKeys = {
   all: ['meditationRoom'] as const,
@@ -26,6 +37,9 @@ export const roomKeys = {
   posts: (id: number, day?: number) => [...roomKeys.all, 'posts', id, day ?? 'all'] as const,
   replies: (roomId: number, postId: number) =>
     [...roomKeys.all, 'replies', roomId, postId] as const,
+  day: (roomId: number, day: number) => [...roomKeys.all, 'day', roomId, day] as const,
+  split: (p: { book_number: number; chapter_start: number; chapter_end: number; total_days: number }) =>
+    [...roomKeys.all, 'split', p.book_number, p.chapter_start, p.chapter_end, p.total_days] as const,
 }
 
 export const useMyRooms = (enabled = true) =>
@@ -121,6 +135,7 @@ export const useMarkRoomDayRead = (roomId: number) => {
       // /rooms 재진입 시에도 옛 캐시(읽기 전 상태)가 그대로 보인다
       qc.invalidateQueries({ queryKey: roomKeys.detail(roomId), refetchType: 'all' })
       qc.invalidateQueries({ queryKey: roomKeys.list(), refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: [...roomKeys.all, 'day', roomId] })
     },
   })
 }
@@ -182,5 +197,68 @@ export const useDeleteRoomReply = (roomId: number, postId: number) => {
       qc.invalidateQueries({ queryKey: roomKeys.replies(roomId, postId) })
       qc.invalidateQueries({ queryKey: [...roomKeys.all, 'posts', roomId] })
     },
+  })
+}
+
+// ── 업그레이드 훅 ──
+
+/** 만들기 위저드의 "하루 약 N절 · M분" 미리보기 — 구버전 백엔드(404)면 조용히 비워 둔다 */
+export const useSplitPreview = (
+  params: { book_number: number; chapter_start: number; chapter_end: number; total_days: number },
+  enabled = true,
+) =>
+  useQuery({
+    queryKey: roomKeys.split(params),
+    queryFn: () => getSplitPreview(params),
+    enabled: enabled && params.book_number > 0 && params.chapter_end >= params.chapter_start,
+    staleTime: 1000 * 60 * 10,
+    retry: false,
+  })
+
+export const useUpdateRoom = (roomId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: RoomUpdateRequest) => updateRoom(roomId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId), refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: roomKeys.list(), refetchType: 'all' })
+    },
+  })
+}
+
+/** 일차 상세(읽은 사람·반응·머문 절) — 방 상세와 별도로 가볍게 */
+export const useRoomDay = (roomId: number, day: number, enabled = true) =>
+  useQuery({
+    queryKey: roomKeys.day(roomId, day),
+    queryFn: () => getRoomDay(roomId, day),
+    enabled: enabled && roomId > 0 && day > 0,
+    staleTime: 1000 * 15,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    retry: false,
+  })
+
+export const useSetDayReaction = (roomId: number, day: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (reaction: RoomReactionKey | null) => setRoomDayReaction(roomId, day, reaction),
+    onSuccess: (data) => qc.setQueryData(roomKeys.day(roomId, day), data),
+  })
+}
+
+export const useToggleVerseMark = (roomId: number, day: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (v: { book_number: number; chapter: number; verse: number }) =>
+      toggleRoomVerseMark(roomId, day, v),
+    onSuccess: () => qc.invalidateQueries({ queryKey: roomKeys.day(roomId, day) }),
+  })
+}
+
+export const useNudgeDay = (roomId: number, day: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => nudgeRoomDay(roomId, day),
+    onSettled: () => qc.invalidateQueries({ queryKey: roomKeys.day(roomId, day) }),
   })
 }

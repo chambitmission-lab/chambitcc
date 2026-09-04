@@ -1,17 +1,17 @@
 // 공동 묵상방 목록 (/rooms)
 // 내가 참여 중인 방 + 새 방 만들기 (본문 범위를 기간에 절 단위 자동 분배)
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useBibleBooks } from '../../hooks/useBible'
-import { useCreateRoom, useJoinRoom, useMyRooms } from '../../hooks/useMeditationRoom'
+import { useJoinRoom, useMyRooms } from '../../hooks/useMeditationRoom'
 import type { RoomSummary } from '../../types/meditationRoom'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
-import { CheckIcon, PartyIcon, RoomGlyph } from './RoomIcons'
+import { CheckIcon, FlameIcon, PartyIcon, RoomGlyph } from './RoomIcons'
 import { UsersIcon } from '../../components/icons/ActionIcons'
+import { ROOM_COURSES, courseRangeLabel } from './roomCourses'
 
-const DURATION_PRESETS = [3, 7, 14, 21, 30]
-const EMOJI_PRESETS = ['🕊️', '🌱', '🔥', '🌙', '🌊', '⭐']
+// 위저드는 만들 때만 필요 — 목록 진입 번들에서 뺀다
+const CreateRoomWizard = lazy(() => import('./CreateRoomWizard'))
 
 const RoomList = () => {
   const navigate = useNavigate()
@@ -73,8 +73,8 @@ const RoomList = () => {
               함께 묵상해요
             </h2>
             <p className="text-[13px] font-light leading-[1.7] text-white/80 mt-3 max-w-[16rem]">
-              방을 만들어 초대 링크를 보내면, 매일 같은 본문을 읽고 서로의 묵상에
-              마음을 나눌 수 있어요.
+              코스를 고르고 초대장을 보내면 끝. 매일 같은 본문을 읽고 한 줄씩
+              마음을 나눠요.
             </p>
           </div>
         </section>
@@ -128,7 +128,25 @@ const RoomList = () => {
               ))}
             </div>
           ) : !rooms || rooms.length === 0 ? (
-            <EmptyNote emoji="🕊️" text="아직 참여 중인 방이 없어요. 첫 묵상방을 만들어보세요!" />
+            <div>
+              <EmptyNote emoji="🕊️" text="아직 참여 중인 방이 없어요. 코스 하나 골라 시작해볼까요?" />
+              <div className="grid grid-cols-2 gap-2.5 -mt-4">
+                {ROOM_COURSES.slice(0, 4).map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setShowCreate(true)}
+                    className="text-left p-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] shadow-sm hover:-translate-y-0.5 transition-all"
+                  >
+                    <span className="inline-flex w-8 h-8 rounded-xl bg-[var(--brand-soft)] text-brand items-center justify-center">
+                      <RoomGlyph emoji={c.emoji} size={17} />
+                    </span>
+                    <p className="text-[13.5px] font-bold text-ink-strong mt-2 leading-[1.3] break-keep">{c.title}</p>
+                    <p className="text-[11px] font-semibold text-brand mt-1">{courseRangeLabel(c)}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : (
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
               {rooms.map((room) => (
@@ -210,7 +228,11 @@ const RoomList = () => {
       </aside>
       </div>
 
-      {showCreate && <CreateRoomSheet onClose={() => setShowCreate(false)} />}
+      {showCreate && (
+        <Suspense fallback={null}>
+          <CreateRoomWizard onClose={() => setShowCreate(false)} />
+        </Suspense>
+      )}
     </div>
   )
 }
@@ -283,167 +305,21 @@ const RoomCard = ({ room, onClick }: { room: RoomSummary; onClick: () => void })
               )}
             </p>
           )}
+          {room.status === 'active' && ((room.today_read_count ?? 0) > 0 || (room.group_streak ?? 0) > 0) && (
+            <p className="text-[11.5px] text-gray-400 dark:text-white/45 mt-1 flex items-center gap-2">
+              {(room.today_read_count ?? 0) > 0 && (
+                <span>오늘 {room.today_read_count}/{room.member_count}명 읽음</span>
+              )}
+              {(room.group_streak ?? 0) > 0 && (
+                <span className="inline-flex items-center gap-0.5 text-orange-500 font-bold">
+                  <FlameIcon size={11} /> 전원 {room.group_streak}일째
+                </span>
+              )}
+            </p>
+          )}
         </div>
       </div>
     </button>
-  )
-}
-
-// ── 방 만들기 바텀시트 ──
-const CreateRoomSheet = ({ onClose }: { onClose: () => void }) => {
-  const navigate = useNavigate()
-  const createRoom = useCreateRoom()
-  // 성경 책 목록은 공용 키(['bible','books'])를 재사용 — 별도 키로 같은 데이터를 이중 캐싱하지 않는다
-  const { data: books } = useBibleBooks()
-
-  const [title, setTitle] = useState('')
-  const [emoji, setEmoji] = useState('🕊️')
-  const [bookNumber, setBookNumber] = useState(1)
-  const [chapterStart, setChapterStart] = useState(1)
-  const [chapterEnd, setChapterEnd] = useState(1)
-  const [totalDays, setTotalDays] = useState(7)
-
-  const book = useMemo(
-    () => books?.find((b) => b.book_number === bookNumber),
-    [books, bookNumber],
-  )
-  const chapterCount = book?.chapter_count ?? 150
-
-  const handleBookChange = (bn: number) => {
-    setBookNumber(bn)
-    setChapterStart(1)
-    setChapterEnd(1)
-  }
-
-  const handleCreate = async () => {
-    if (!title.trim()) {
-      showToast('방 이름을 입력해주세요', 'error')
-      return
-    }
-    try {
-      const room = await createRoom.mutateAsync({
-        title: title.trim(),
-        emoji,
-        book_number: bookNumber,
-        chapter_start: chapterStart,
-        chapter_end: Math.max(chapterStart, chapterEnd),
-        total_days: totalDays,
-      })
-      showToast('묵상방이 만들어졌어요! 이제 초대해볼까요?', 'success')
-      onClose()
-      navigate(`/rooms/${room.id}`)
-    } catch (e) {
-      showToast(e instanceof Error ? e.message : '방 만들기에 실패했습니다', 'error')
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <div className="absolute inset-0 bg-black/45" onClick={onClose} />
-      <div className="relative w-full max-w-md max-h-[88vh] overflow-y-auto rounded-t-[24px] bg-white dark:bg-[#15151d] p-5 pb-8 shadow-2xl">
-        <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-white/15 mx-auto mb-4" />
-        <h3 className="text-[17px] font-bold text-ink-strong mb-4">새 묵상방 만들기</h3>
-
-        {/* 이름 + 이모지 */}
-        <label className="block text-[12px] font-bold text-gray-500 dark:text-white/55 mb-1.5">방 이름</label>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          maxLength={100}
-          placeholder="예: 창세기 1장 공동 묵상"
-          className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.08] text-[14px] focus:outline-none focus:border-brand"
-        />
-        <div className="flex gap-2 mt-2.5">
-          {EMOJI_PRESETS.map((e) => (
-            <button
-              key={e}
-              type="button"
-              onClick={() => setEmoji(e)}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
-                emoji === e
-                  ? 'bg-[var(--brand-soft)] ring-2 ring-[var(--brand-soft-strong)] text-brand scale-105'
-                  : 'bg-gray-50 dark:bg-white/[0.05] text-gray-500 dark:text-white/60'
-              }`}
-            >
-              <RoomGlyph emoji={e} size={18} />
-            </button>
-          ))}
-        </div>
-
-        {/* 본문 범위 */}
-        <label className="block text-[12px] font-bold text-gray-500 dark:text-white/55 mt-5 mb-1.5">
-          함께 읽을 본문
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          <select
-            value={bookNumber}
-            onChange={(e) => handleBookChange(Number(e.target.value))}
-            className="col-span-1 px-3 py-3 rounded-xl bg-gray-50 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.08] text-[13px] font-semibold focus:outline-none focus:border-brand"
-          >
-            {(books ?? []).map((b) => (
-              <option key={b.book_number} value={b.book_number}>
-                {b.book_name_ko}
-              </option>
-            ))}
-          </select>
-          <select
-            value={chapterStart}
-            onChange={(e) => {
-              const v = Number(e.target.value)
-              setChapterStart(v)
-              if (chapterEnd < v) setChapterEnd(v)
-            }}
-            className="px-3 py-3 rounded-xl bg-gray-50 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.08] text-[13px] font-semibold focus:outline-none focus:border-brand"
-          >
-            {Array.from({ length: chapterCount }, (_, i) => i + 1).map((c) => (
-              <option key={c} value={c}>{c}장부터</option>
-            ))}
-          </select>
-          <select
-            value={Math.max(chapterStart, chapterEnd)}
-            onChange={(e) => setChapterEnd(Number(e.target.value))}
-            className="px-3 py-3 rounded-xl bg-gray-50 dark:bg-white/[0.05] border border-gray-200/70 dark:border-white/[0.08] text-[13px] font-semibold focus:outline-none focus:border-brand"
-          >
-            {Array.from({ length: chapterCount - chapterStart + 1 }, (_, i) => chapterStart + i).map((c) => (
-              <option key={c} value={c}>{c}장까지</option>
-            ))}
-          </select>
-        </div>
-
-        {/* 기간 */}
-        <label className="block text-[12px] font-bold text-gray-500 dark:text-white/55 mt-5 mb-1.5">
-          기간 — 본문을 절 단위로 고르게 나눠드려요
-        </label>
-        <div className="flex gap-2 flex-wrap">
-          {DURATION_PRESETS.map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => setTotalDays(d)}
-              className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all ${
-                totalDays === d
-                  ? 'bg-brand text-white shadow-[0_4px_12px_-4px_var(--brand-glow)]'
-                  : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
-              }`}
-            >
-              {d}일
-            </button>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={handleCreate}
-          disabled={createRoom.isPending}
-          className="w-full mt-6 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] disabled:opacity-50"
-        >
-          {createRoom.isPending ? '만드는 중...' : '묵상방 만들기'}
-        </button>
-        <p className="text-center text-[11.5px] text-gray-400 dark:text-white/40 mt-2">
-          오늘부터 시작돼요 · 만든 뒤 초대 링크를 보낼 수 있어요
-        </p>
-      </div>
-    </div>
   )
 }
 
