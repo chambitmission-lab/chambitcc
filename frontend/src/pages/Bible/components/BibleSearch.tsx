@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleSearchInfinite, useBibleBooks } from '../../../hooks/useBible'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -8,6 +8,7 @@ import type { BibleBook } from '../../../types/bible'
 import SearchBookCard from './SearchBookCard'
 import type { BookCard } from './SearchBookCard'
 import BookQuickPicker from './BookQuickPicker'
+import { BOOK_ABBREV_KO, BOOK_ABBREV_EN } from './bibleBookAbbrev'
 
 type SearchScope = 'ALL' | 'OLD' | 'NEW'
 
@@ -33,13 +34,43 @@ const persistRecentSearches = (keywords: string[]) => {
   }
 }
 
+const isScope = (v: string | null): v is SearchScope => v === 'ALL' || v === 'OLD' || v === 'NEW'
+
 const BibleSearch = () => {
   const { language } = useLanguage()
   const navigate = useNavigate()
-  const [searchKeyword, setSearchKeyword] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
+  // 검색어·범위는 URL(?q=&scope=)을 원본으로 삼는다. 결과를 눌러 장으로 갔다가
+  // 뒤로 오면 이 컴포넌트가 다시 마운트되는데, 로컬 state만 쓰면 입력창이 비어
+  // 방금 보던 결과를 잃는다. URL에 남겨 두면 복원되고 링크 공유도 된다.
+  // (결과 데이터는 React Query에 24시간 캐시되어 있어 복원 즉시 그려진다)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialQuery = searchParams.get('q')?.trim() ?? ''
+  const initialScopeParam = searchParams.get('scope')
+  const [searchKeyword, setSearchKeyword] = useState(initialQuery)
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [recentSearches, setRecentSearches] = useState<string[]>(loadRecentSearches)
-  const [scope, setScope] = useState<SearchScope>('ALL')
+  const [scope, setScopeState] = useState<SearchScope>(
+    isScope(initialScopeParam) ? initialScopeParam : 'ALL'
+  )
+
+  // URL 동기화 — 입력마다 히스토리가 쌓이지 않도록 replace. tab= 등 다른 파라미터는 보존
+  const syncUrl = (q: string, sc: SearchScope) => {
+    setSearchParams(
+      prev => {
+        const next = new URLSearchParams(prev)
+        if (q) next.set('q', q)
+        else next.delete('q')
+        if (sc !== 'ALL') next.set('scope', sc)
+        else next.delete('scope')
+        return next
+      },
+      { replace: true }
+    )
+  }
+  const setScope = (sc: SearchScope) => {
+    setScopeState(sc)
+    syncUrl(searchQuery, sc)
+  }
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   // 책 퀵 피커가 열려 있으면 그 트리거가 된 책의 book_number, 닫혀 있으면 null
   const [pickerFor, setPickerFor] = useState<number | null>(null)
@@ -65,12 +96,18 @@ const BibleSearch = () => {
   const normalize = (s: string) => s.replace(/\s/g, '').toLowerCase()
   const trimmedQuery = searchQuery.trim()
   const isChapterLike = /\d/.test(trimmedQuery)
+  // 표준 약칭("고전"·"요일"·"1Co")은 이름 부분일치로는 안 잡히므로 따로 본다
+  const normalizedQuery = normalize(trimmedQuery)
+  const matchesAbbrev = (b: BibleBook) =>
+    BOOK_ABBREV_KO[b.book_number] === trimmedQuery ||
+    BOOK_ABBREV_EN[b.book_number]?.toLowerCase() === normalizedQuery
   const localBookMatches: BookCard[] =
     trimmedQuery && !isChapterLike
       ? (allBooks || []).filter(
           b =>
-            normalize(b.book_name_ko).includes(normalize(trimmedQuery)) ||
-            normalize(b.book_name_en).includes(normalize(trimmedQuery))
+            matchesAbbrev(b) ||
+            normalize(b.book_name_ko).includes(normalizedQuery) ||
+            normalize(b.book_name_en).includes(normalizedQuery)
         )
       : []
 
@@ -94,7 +131,7 @@ const BibleSearch = () => {
       searchAria: '성경 검색 — 책 이름, 책+장, 또는 본문 키워드',
       placeholderExamples: [
         '"창세기 1장"을 검색해보세요',
-        '"창 1"처럼 줄여서 검색해도 돼요',
+        '"고전 13"처럼 약칭으로 검색해도 돼요',
         '"하나님 사랑"을 검색해보세요',
         '"주 그리스도 아들"처럼 여러 단어로 좁혀보세요',
         '"고린도전서"를 검색해보세요',
@@ -180,6 +217,7 @@ const BibleSearch = () => {
     setSearchKeyword(q)
     setSearchQuery(q)
     saveRecentSearch(q)
+    syncUrl(q, scope)
   }
 
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
@@ -190,15 +228,20 @@ const BibleSearch = () => {
   const clearSearch = () => {
     setSearchKeyword('')
     setSearchQuery('')
+    syncUrl('', scope)
   }
 
   // 검색 결과 화면에서 브라우저/안드로이드 뒤로가기 → 페이지 이탈 대신 검색 시작 화면으로 복귀
   useModalBackButton(clearSearch, !!searchQuery)
 
-  const goToChapter = (bookNumber: number, chapter: number) => {
+  const goToChapter = (bookNumber: number, chapter: number, verse?: number) => {
     // 현재 URL이 이미 같은 책·장이어도(예: 나훔 2장을 읽다가 검색에서 다시 나훔 2장 클릭)
-    // 읽기 화면으로 전환되도록 재진입 신호를 state로 함께 넘긴다
-    navigate(`/bible/${bookNumber}/${chapter}`, { state: { chapterNav: new Date().getTime() } })
+    // 읽기 화면으로 전환되도록 재진입 신호를 state로 함께 넘긴다.
+    // 절 결과에서 왔으면 ?verse=N — 읽기 화면이 그 절로 스크롤·하이라이트한다(장 첫머리에 떨구지 않는다)
+    const search = verse && verse > 0 ? `?verse=${verse}` : ''
+    navigate(`/bible/${bookNumber}/${chapter}${search}`, {
+      state: { chapterNav: new Date().getTime() },
+    })
   }
 
   // 퀵 피커에서 책 선택 — 타이핑 없이 그 책의 장 그리드로 바로 전환.
@@ -208,7 +251,10 @@ const BibleSearch = () => {
     setSearchKeyword(book.book_name_ko)
     setSearchQuery(book.book_name_ko)
     // 현재 범위 필터에 걸러져 방금 고른 책이 안 보이는 일이 없게
-    if (scope !== 'ALL' && book.testament !== scope) setScope('ALL')
+    const nextScope: SearchScope =
+      scope !== 'ALL' && book.testament !== scope ? 'ALL' : scope
+    if (nextScope !== scope) setScopeState(nextScope)
+    syncUrl(book.book_name_ko, nextScope)
   }
 
   // 구약/신약 범위 필터 — 키워드 검색은 서버가 이미 걸러서 보내고,
@@ -350,7 +396,10 @@ const BibleSearch = () => {
               onChange={(e) => {
                 setSearchKeyword(e.target.value)
                 // 입력을 모두 지우면 결과도 접고 검색 시작 화면(최근/추천 키워드)으로
-                if (e.target.value === '') setSearchQuery('')
+                if (e.target.value === '') {
+                  setSearchQuery('')
+                  syncUrl('', scope)
+                }
               }}
               aria-label={t.searchAria}
               enterKeyHint="search"
@@ -479,14 +528,14 @@ const BibleSearch = () => {
               <div
                 key={verse.id}
                 className="bible-verse-item bible-verse-item--search"
-                onClick={() => goToChapter(verse.book_number ?? searchResults.book_number ?? 0, verse.chapter)}
+                onClick={() => goToChapter(verse.book_number ?? searchResults.book_number ?? 0, verse.chapter, verse.verse)}
                 style={{ cursor: 'pointer' }}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
-                    goToChapter(verse.book_number ?? searchResults.book_number ?? 0, verse.chapter)
+                    goToChapter(verse.book_number ?? searchResults.book_number ?? 0, verse.chapter, verse.verse)
                   }
                 }}
               >
