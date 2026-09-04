@@ -1,0 +1,25 @@
+/* 온라인 헌금 히어로 배경 (/news?tab=offering)
+ *
+ * 히어로 카드는 가로가 크게 변한다 — 모바일 약 358×180(2:1), PC 약 832×158(5.3:1).
+ * `cover` 를 쓰면 PC 에서 세로 38% 만 보여 양의 머리가 잘린다. 그래서 공지 배너와
+ * 같은 문법으로 간다: **높이맞춤(auto 100%) + 오른쪽 정렬**.
+ *   - 모바일: 높이 180 → 폭 360 ≈ 카드 폭. 삽화가 카드를 거의 그대로 채운다.
+ *   - PC    : 높이 158 → 폭 316. 오른쪽 끝에 서는 작은 무대가 되고 왼쪽은 카드색.
+ *
+ * 카드색 맞춤(gradient wash)이 필요 없도록 **왼쪽 46% 알파 페이드를 에셋에 구웠다**.
+ * (docs/offering-hero-bg-prompts.md 참고) 그래서 라이트/다크 어느 쪽이든,
+ * 카드 폭이 얼마든 경계선이 생기지 않는다. 배경색을 맞추는 방식은 라이트 하늘이
+ * 연파랑이고 다크 바닥이 카드색과 미세하게 어긋나서 어차피 맞지 않는다.
+ */
+.off-hero {
+  background-image: url('/images/offering/hero-light.webp');
+  background-size: auto 100%;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+
+.dark .off-hero {
+  background-image: url('/images/offering/hero-dark.webp');
+}
+
+/* 모션을 줄인 사용자에게도 정지 이미지라 문제 없음 — 별도 분기 불필요 */
