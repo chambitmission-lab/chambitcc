@@ -2,53 +2,51 @@
 
 .nmt {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
+  align-content: flex-start;
+  gap: 4px;
+  padding: 8px;
   border: 1px solid var(--card-border);
   border-bottom: 0;
   border-radius: 12px 12px 0 0;
   background: var(--surface-inset);
 }
 
-.nmt::-webkit-scrollbar {
-  display: none;
-}
-
+/* 그룹은 의미(강조·구조·카드)만 남기고 껍데기는 없앤다 — 버튼이 직접 줄바꿈된다.
+   모바일도 한 줄 가로 스크롤 대신 칩을 펼친다: 화면 밖 버튼은 있는 줄도 모른다 */
 .nmt-group {
-  display: flex;
-  align-items: center;
-  gap: 3px;
+  display: contents;
 }
 
 .nmt-sep {
-  flex: none;
-  width: 1px;
-  height: 18px;
-  background: var(--card-border);
+  display: none;
 }
 
 .nmt-btn {
   flex: none;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   height: 30px;
   padding: 0 8px;
   border-radius: 9px;
-  border: 0;
-  background: transparent;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
   color: var(--text-muted);
   cursor: pointer;
-  transition: background-color 0.14s ease, color 0.14s ease;
+  transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.nmt-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .nmt-btn:hover:not(:disabled) {
   background: var(--brand-soft);
   color: var(--brand);
+  border-color: var(--brand);
 }
 
 .nmt-btn:active:not(:disabled) {
@@ -61,7 +59,7 @@
 }
 
 .nmt-btn-label {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -70,60 +68,20 @@
 .nmt-btn--warn:hover:not(:disabled) {
   background: var(--notice-warn-soft);
   color: var(--notice-warn);
+  border-color: var(--notice-warn);
 }
 
 .nmt-btn--celebrate:hover:not(:disabled) {
   background: var(--amber-soft);
   color: var(--amber);
+  border-color: var(--amber);
 }
 
-/* PC — 가로 스크롤은 마우스로 옮기기 번거롭다. 태그처럼 두 줄로 다 펼친다 */
+/* PC — 조금 더 촘촘하게 */
 @media (min-width: 640px) {
-  .nmt {
-    flex-wrap: wrap;
-    align-content: flex-start;
-    gap: 4px;
-    padding: 8px;
-    overflow: visible;
-  }
-
-  /* 그룹 껍데기를 없애 버튼이 직접 줄바꿈되게 한다 */
-  .nmt-group {
-    display: contents;
-  }
-
-  .nmt-sep {
-    display: none;
-  }
-
   .nmt-btn {
     height: 28px;
     padding: 0 7px;
-    gap: 3px;
-    border: 1px solid var(--card-border);
-    background: var(--surface-container);
-    transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
-  }
-
-  .nmt-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .nmt-btn-label {
-    font-size: 11px;
-  }
-
-  .nmt-btn:hover:not(:disabled) {
-    border-color: var(--brand);
-  }
-
-  .nmt-btn--warn:hover:not(:disabled) {
-    border-color: var(--notice-warn);
-  }
-
-  .nmt-btn--celebrate:hover:not(:disabled) {
-    border-color: var(--amber);
   }
 }
 
