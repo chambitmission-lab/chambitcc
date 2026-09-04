@@ -1,4 +1,6 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
+import type { InfiniteData } from '@tanstack/react-query'
+import type { BibleSearchResult } from '../types/bible'
 import { getBibleBooks, getBibleChapter, getBibleVerse, searchBible, getBibleChapterPaginated } from '../api/bible'
 
 // 성경 책 목록
@@ -53,6 +55,13 @@ export const useBibleSearch = (keyword: string, limit: number = BIBLE_SEARCH_PAG
 export const useBibleSearchInfinite = (keyword: string, testament?: 'OLD' | 'NEW') => {
   return useInfiniteQuery({
     queryKey: ['bible', 'search', 'infinite', keyword, testament ?? 'ALL'],
+    // 구약/신약 범위만 바꿀 때는 키가 바뀌어도 이전 결과를 placeholder로 유지 —
+    // 안 그러면 결과 전체가 스피너로 갈렸다가 다시 그려져 깜빡인다.
+    // 검색어 자체가 바뀌면 옛 결과를 보여 줄 이유가 없으니(하이라이트도 어긋남) 유지하지 않는다.
+    placeholderData: (
+      prev: InfiniteData<BibleSearchResult, number> | undefined,
+      prevQuery: { queryKey: readonly unknown[] } | undefined
+    ) => (prevQuery && prevQuery.queryKey[3] === keyword ? prev : undefined),
     queryFn: ({ pageParam }) =>
       searchBible(keyword, { offset: pageParam, limit: BIBLE_SEARCH_PAGE_SIZE, testament }),
     enabled: keyword.trim().length >= 2,

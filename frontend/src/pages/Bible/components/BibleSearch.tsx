@@ -81,6 +81,10 @@ const BibleSearch = () => {
   const {
     data: searchPages,
     isLoading: searchLoading,
+    isError: searchError,
+    refetch: refetchSearch,
+    // 범위 전환 중 — 이전 결과를 흐리게 붙들고 새 결과를 기다리는 상태
+    isPlaceholderData: searchStale,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -150,6 +154,11 @@ const BibleSearch = () => {
       resultsCount: (n: number) => `검색 결과 ${n.toLocaleString()}절`,
       noResults: '검색 결과가 없습니다',
       noResultsInScope: '선택한 범위에 검색 결과가 없습니다',
+      tooShort: '두 글자 이상 입력해 주세요',
+      tooShortHint: '한 글자 단어는 "빛이", "복을"처럼 뒤에 오는 말과 붙여서 찾아보세요',
+      searchFailed: '검색하지 못했어요',
+      searchFailedHint: '연결 상태를 확인하고 다시 시도해 주세요',
+      retry: '다시 시도',
       bookFound: '해당 책을 찾았습니다',
     },
     en: {
@@ -174,6 +183,11 @@ const BibleSearch = () => {
       resultsCount: (n: number) => `${n.toLocaleString()} verse${n === 1 ? '' : 's'} found`,
       noResults: 'No results found',
       noResultsInScope: 'No results in the selected scope',
+      tooShort: 'Enter at least two characters',
+      tooShortHint: 'Try a longer word or add the word that follows it',
+      searchFailed: 'Search failed',
+      searchFailedHint: 'Check your connection and try again',
+      retry: 'Try again',
       bookFound: 'Book found',
     }
   }
@@ -216,7 +230,8 @@ const BibleSearch = () => {
     if (!q) return
     setSearchKeyword(q)
     setSearchQuery(q)
-    saveRecentSearch(q)
+    // 백엔드가 2글자 미만을 거부하므로 한 글자는 최근 검색어에 쌓지 않는다
+    if (q.length >= 2) saveRecentSearch(q)
     syncUrl(q, scope)
   }
 
@@ -286,6 +301,9 @@ const BibleSearch = () => {
     : (searchResults?.total ?? 0)
 
   const hasAnyResult = booksToShow.length > 0 || loadedVerses.length > 0
+  // 백엔드가 2글자 미만을 422로 막아 요청 자체를 안 보낸다 — "결과 없음"이 아니라 안내로 분기.
+  // 단 "창"처럼 한 글자로도 책이 잡히면 책 카드 분기가 먼저라 여기 오지 않는다.
+  const queryTooShort = trimmedQuery.length > 0 && trimmedQuery.length < 2
 
   // 키워드 검색 결과에서 매칭 단어 강조 — "왜 이 절이 걸렸는지"가 훑기만 해도 보이게.
   // 여러 단어 AND 검색은 단어별로 각각 칠한다. 장 검색(창 1)은 키워드가 없으므로 제외.
@@ -497,7 +515,17 @@ const BibleSearch = () => {
         </div>
       )}
 
-      {searchLoading ? (
+      {searchError && !hasAnyResult ? (
+        <div className="no-results" role="alert">
+          <span className="material-icons-round">cloud_off</span>
+          <p>{t.searchFailed}</p>
+          <p className="no-results-hint">{t.searchFailedHint}</p>
+          <button type="button" className="search-retry-button" onClick={() => refetchSearch()}>
+            <span className="material-icons-round" aria-hidden="true">refresh</span>
+            {t.retry}
+          </button>
+        </div>
+      ) : searchLoading ? (
         <div className="loading-spinner">
           <span className="material-icons-round spinning">refresh</span>
         </div>
@@ -516,7 +544,7 @@ const BibleSearch = () => {
           ))}
         </div>
       ) : searchResults && scopedVerses.length > 0 ? (
-        <div className="search-results">
+        <div className={`search-results${searchStale ? ' search-results--stale' : ''}`} aria-busy={searchStale}>
           <p className="results-count">
             {searchResults.is_chapter_search && searchResults.book_name_ko
               ? `${searchResults.book_name_ko} ${searchResults.chapter}장 · ${shownTotal}절`
@@ -553,6 +581,12 @@ const BibleSearch = () => {
               )}
             </div>
           )}
+        </div>
+      ) : queryTooShort ? (
+        <div className="no-results">
+          <span className="material-icons-round">short_text</span>
+          <p>{t.tooShort}</p>
+          <p className="no-results-hint">{t.tooShortHint}</p>
         </div>
       ) : searchQuery ? (
         <div className="no-results">
