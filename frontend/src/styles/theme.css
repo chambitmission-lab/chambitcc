@@ -80,6 +80,20 @@
     radial-gradient(100% 60% at 50% 112%, rgba(251, 191, 36, 0.18), transparent 60%),
     linear-gradient(180deg, rgba(99, 102, 241, 0.16), transparent 62%);
 
+  /* /worship 히어로 삽화 — 종 줄에 딸려 올라간 양. 좌우·위는 알파를 구워 카드로 녹였다.
+     시간대 무드(--worship-sky-*)가 이 그림 위에 얹히므로 그림 자체는 해·달이 없는 무시간 장면 */
+  --worship-hero-art: url('/images/worship/hero-light.webp');
+  /* 삽화의 배경 기둥을 그대로 옮긴 값 — 카드 전체 폭으로 늘려 깔면 그림이 '섬'처럼 뜨지 않는다.
+     정지점은 삽화 높이(=배경 띠 높이) 기준 비율이다 */
+  --worship-hero-ground: linear-gradient(180deg,
+    rgba(206, 234, 245, 0) 0%,
+    rgba(210, 236, 246, 0.30) 10%,
+    rgba(220, 240, 245, 0.81) 20%,
+    rgb(233, 243, 240) 28%,
+    rgb(248, 246, 233) 40%,
+    rgb(251, 244, 230) 55%,
+    rgb(251, 244, 230) 100%);
+
   /* 기능적 앰버 — 응답됨(✨)/영광/빛의 표징. 브랜드 블루로 덮지 않는 유일한 액센트 */
   --amber: #b45309;                          /* 텍스트/라벨 */
   --amber-icon: #f59e0b;                     /* 아이콘/장식 */
@@ -202,6 +216,16 @@
     radial-gradient(1.5px 1.5px at 30% 34%, rgba(255, 255, 255, 0.30) 50%, transparent 51%),
     radial-gradient(100% 60% at 50% 112%, rgba(255, 180, 80, 0.14), transparent 60%),
     linear-gradient(180deg, rgba(35, 50, 100, 0.40), transparent 62%);
+
+  --worship-hero-art: url('/images/worship/hero-dark.webp');
+  --worship-hero-ground: linear-gradient(180deg,
+    rgba(50, 57, 65, 0) 0%,
+    rgba(49, 56, 64, 0.30) 10%,
+    rgba(49, 54, 60, 0.81) 20%,
+    rgb(44, 46, 53) 28%,
+    rgb(41, 41, 45) 40%,
+    rgb(32, 32, 28) 55%,
+    rgb(36, 32, 30) 100%);
 
   /* 기능적 앰버 — 응답됨(✨)/영광/빛의 표징 */
   --amber: #fbbf24;
