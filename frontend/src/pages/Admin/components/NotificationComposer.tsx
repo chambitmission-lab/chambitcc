@@ -12,6 +12,9 @@ import { showToast } from '../../../utils/toast'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import DatePicker from '../../../components/common/DatePicker'
 import { confirmDialog } from '../../../utils/confirmDialog'
+import NoticeContent from '../../../components/common/NoticeContent'
+import NoticeMarkupToolbar from './NoticeMarkupToolbar'
+import { NOTICE_TEMPLATES, type NoticeTemplate } from '../../../utils/noticeMarkup'
 
 interface NotificationComposerProps {
   editingNotification: Notification | null
@@ -62,7 +65,10 @@ const NotificationComposer = ({
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // 서식이 실제로 어떻게 보이는지 저장 전에 확인시킨다 — WYSIWYG이 아닌 대신의 안전장치
+  const [contentMode, setContentMode] = useState<'edit' | 'preview'>('edit')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const contentRef = useRef<HTMLTextAreaElement>(null)
 
   // 뒤로가기 → 모달만 닫기
   useModalBackButton(onClose)
@@ -83,7 +89,20 @@ const NotificationComposer = ({
       setPopupUntilDate('')
     }
     setError(null)
+    setContentMode('edit')
   }, [editingNotification])
+
+  const applyTemplate = (template: NoticeTemplate) => {
+    setForm((prev) => ({ ...prev, content: template.body }))
+    requestAnimationFrame(() => {
+      const el = contentRef.current
+      el?.focus()
+      // 첫 채울 자리(<...>) 바로 앞에 커서를 둔다
+      const spot = template.body.indexOf('<')
+      const caret = spot === -1 ? template.body.length : spot
+      el?.setSelectionRange(caret, caret)
+    })
+  }
 
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -231,15 +250,86 @@ const NotificationComposer = ({
               </p>
             </FieldGroup>
 
-            <FieldGroup label="내용" required>
-              <textarea
-                value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
-                placeholder="공지사항 내용을 입력해주세요. 일시·장소·준비물 등 성도들이 알아야 할 정보를 명확하게 적어주세요."
-                rows={8}
-                required
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.7]"
-              />
+            <FieldGroup
+              label="내용"
+              required
+              action={
+                <div className="nme-tabs" role="tablist" aria-label="본문 보기 전환">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={contentMode === 'edit'}
+                    className="nme-tab"
+                    onClick={() => setContentMode('edit')}
+                  >
+                    편집
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={contentMode === 'preview'}
+                    className="nme-tab"
+                    onClick={() => setContentMode('preview')}
+                  >
+                    미리보기
+                  </button>
+                </div>
+              }
+            >
+              {contentMode === 'edit' ? (
+                <>
+                  <NoticeMarkupToolbar
+                    textareaRef={contentRef}
+                    value={form.content}
+                    onChange={(content) => setForm((prev) => ({ ...prev, content }))}
+                  />
+                  <textarea
+                    ref={contentRef}
+                    value={form.content}
+                    onChange={(e) => setForm({ ...form, content: e.target.value })}
+                    placeholder="공지사항 내용을 입력해주세요. 일시·장소·준비물 등 성도들이 알아야 할 정보를 명확하게 적어주세요."
+                    rows={8}
+                    required
+                    className="nmt-field w-full px-3.5 py-2.5 border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] text-[14px] text-ink-strong placeholder:text-gray-400 dark:placeholder:text-white/30 focus:outline-none focus:border-brand transition-colors resize-none leading-[1.7]"
+                  />
+
+                  {/* 빈 본문일 때만 — 다 쓴 뒤에는 방해만 된다 */}
+                  {!form.content.trim() && (
+                    <div className="nme-templates">
+                      {NOTICE_TEMPLATES.map((template) => (
+                        <button
+                          key={template.id}
+                          type="button"
+                          className="nme-tpl"
+                          onClick={() => applyTemplate(template)}
+                        >
+                          <span className="nme-tpl-label">{template.label}</span>
+                          <span className="nme-tpl-hint">{template.hint}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="nme-help">
+                    <code>일시:</code> <code>장소:</code> <code>준비물:</code>{' '}
+                    <code>문의:</code> 로 시작하는 줄은 자동으로 정보 카드가 됩니다.
+                  </p>
+                </>
+              ) : (
+                <div className="nme-preview">
+                  {form.image_url && (
+                    <img className="nme-preview-img" src={form.image_url} alt="" />
+                  )}
+                  <p className="nme-preview-title">
+                    {form.title.trim() || '제목을 입력해주세요'}
+                  </p>
+                  {form.content.trim() ? (
+                    <NoticeContent source={form.content} />
+                  ) : (
+                    <div className="nme-preview-empty">미리보기할 내용이 없습니다</div>
+                  )}
+                </div>
+              )}
             </FieldGroup>
 
             {/* 이미지 첨부 — 포스터·안내문을 그대로 보여줄 때 */}
@@ -442,16 +532,19 @@ const NotificationComposer = ({
 interface FieldGroupProps {
   label: string
   required?: boolean
+  /** 라벨 오른쪽에 붙는 보조 조작(편집/미리보기 전환 등) */
+  action?: ReactNode
   children: ReactNode
 }
 
-const FieldGroup = ({ label, required, children }: FieldGroupProps) => (
+const FieldGroup = ({ label, required, action, children }: FieldGroupProps) => (
   <div>
     <div className="flex items-center gap-1 mb-2">
       <p className="text-[12px] font-bold text-gray-700 dark:text-white/80 tracking-[-0.01em]">
         {label}
       </p>
       {required && <span className="text-brand text-[12px] font-bold">*</span>}
+      {action && <div className="ml-auto">{action}</div>}
     </div>
     {children}
   </div>

@@ -1,0 +1,311 @@
+/* 공지 본문 마크업 렌더 — `nm-` 접두사.
+   색은 전부 theme.css 토큰에 묶는다. 관리자가 색코드를 직접 고르지 않게 해서
+   라이트/다크 어느 쪽에서도 글자가 죽지 않도록 한 것이 이 설계의 핵심이다. */
+
+:root {
+  /* 공지 '주의' 톤 — 앰버는 '응답됨' 시맨틱이라 경고에 쓰지 않는다 */
+  --notice-warn: #d1342f;
+  --notice-warn-soft: rgba(209, 52, 47, 0.07);
+  --notice-warn-border: rgba(209, 52, 47, 0.22);
+}
+
+[data-theme='dark'] {
+  --notice-warn: #ff8a80;
+  --notice-warn-soft: rgba(255, 138, 128, 0.09);
+  --notice-warn-border: rgba(255, 138, 128, 0.24);
+}
+
+.nm {
+  color: var(--text-body);
+  font-size: 14.5px;
+  line-height: 1.75;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* 블록 리셋 + 간격 — 아래 개별 규칙들과 특정도가 같으므로 순서가 곧 우선순위다.
+   개별 블록에서 다시 margin을 건드리면 이 간격이 조용히 사라진다. */
+.nm > * {
+  margin: 0;
+}
+
+.nm > * + * {
+  margin-top: 11px;
+}
+
+/* ── 인라인 ────────────────────────────────────────────────── */
+
+.nm-strong {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.nm-u {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--brand);
+  font-weight: 600;
+}
+
+.nm-mark {
+  background: var(--brand-soft-strong);
+  color: var(--text-strong);
+  font-weight: 600;
+  border-radius: 5px;
+  padding: 1px 4px;
+  margin: 0 -1px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.nm-warn {
+  color: var(--notice-warn);
+  font-weight: 700;
+}
+
+/* ── 블록 ──────────────────────────────────────────────────── */
+
+.nm-h2,
+.nm-h3 {
+  color: var(--text-strong);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.45;
+}
+
+.nm-h2 {
+  font-size: 16.5px;
+}
+
+.nm-h3 {
+  font-size: 15px;
+}
+
+/* 소제목 앞은 한 박자 쉬어 준다 — 문단이 붙어 있으면 위계가 안 보인다 */
+.nm > .nm-h2 + *,
+.nm > .nm-h3 + * {
+  margin-top: 7px;
+}
+
+.nm > * + .nm-h2,
+.nm > * + .nm-h3 {
+  margin-top: 18px;
+}
+
+.nm-list {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 5px;
+}
+
+.nm-li {
+  position: relative;
+  padding-left: 17px;
+}
+
+.nm-li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0.72em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brand);
+  opacity: 0.75;
+}
+
+.nm-li--num {
+  padding-left: 23px;
+}
+
+.nm-li--num::before {
+  content: attr(data-num);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 17px;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  color: var(--brand);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: inherit;
+  opacity: 1;
+  text-align: right;
+}
+
+.nm-quote {
+  padding: 2px 0 2px 13px;
+  border-left: 3px solid var(--brand-soft-strong);
+  color: var(--text-muted);
+}
+
+.nm-hr {
+  height: 1px;
+  border: 0;
+  background: var(--card-border);
+  margin: 16px 0;
+}
+
+/* ── 콜아웃 ────────────────────────────────────────────────── */
+
+.nm-callout {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+}
+
+.nm-callout-icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+}
+
+.nm-callout-body {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  font-weight: 600;
+}
+
+.nm-callout-label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+  opacity: 0.85;
+}
+
+.nm-callout--info {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+.nm-callout--warn {
+  background: var(--notice-warn-soft);
+  border-color: var(--notice-warn-border);
+  color: var(--notice-warn);
+}
+
+.nm-callout--celebrate {
+  background: var(--amber-soft);
+  border-color: var(--amber-soft-strong);
+  color: var(--amber);
+}
+
+/* 콜아웃 안에서는 강조가 톤 색을 따라가야 카드가 한 덩어리로 읽힌다 */
+.nm-callout .nm-strong,
+.nm-callout .nm-warn {
+  color: inherit;
+}
+
+.nm-callout .nm-u {
+  text-decoration-color: currentColor;
+}
+
+.nm-callout .nm-mark {
+  background: currentColor;
+  color: var(--surface-container);
+  opacity: 0.92;
+}
+
+/* ── 핵심 정보 박스 ────────────────────────────────────────── */
+
+.nm-info {
+  display: grid;
+  gap: 10px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+}
+
+.nm-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.nm-info-icon {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+}
+
+.nm-info-text {
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.nm-info-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.nm-info-value {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-strong);
+  line-height: 1.5;
+  margin-top: 1px;
+}
+
+/* ── compact — 알림함 리스트처럼 좁은 자리 ─────────────────── */
+
+.nm--compact {
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+.nm--compact > * + * {
+  margin-top: 8px;
+}
+
+.nm--compact .nm-h2 {
+  font-size: 14.5px;
+}
+
+.nm--compact .nm-h3 {
+  font-size: 13.5px;
+}
+
+.nm--compact .nm-callout,
+.nm--compact .nm-info {
+  padding: 10px 11px;
+  border-radius: 12px;
+  gap: 8px;
+}
+
+.nm--compact .nm-callout-body,
+.nm--compact .nm-info-value {
+  font-size: 13px;
+}
+
+.nm--compact .nm-info-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+}
+
+.nm--compact .nm-hr {
+  margin: 11px 0;
+}

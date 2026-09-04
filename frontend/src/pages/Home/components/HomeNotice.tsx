@@ -13,6 +13,8 @@ import { useNavigate } from 'react-router-dom'
 import { useMarkAsRead, usePopupNotices } from '../../../hooks/useNotifications'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import ImageLightbox from '../../../components/common/ImageLightbox'
+import NoticeContent from '../../../components/common/NoticeContent'
+import { noticePreviewText } from '../../../utils/noticeMarkup'
 import {
   dismissNoticeForToday,
   dismissNoticeForever,
@@ -47,8 +49,8 @@ const formatRelative = (iso: string) => {
   return formatDate(iso)
 }
 
-/** 배너 미리보기 — 줄바꿈을 한 줄로 눕혀 truncate가 자연스럽게 걸리도록 */
-const previewOf = (content: string) => content.replace(/\s+/g, ' ').trim()
+/** 배너 미리보기 — 서식을 벗기고 한 줄로 눕혀 truncate가 자연스럽게 걸리도록 */
+const previewOf = (content: string) => noticePreviewText(content)
 
 const HomeNotice = () => {
   const navigate = useNavigate()
@@ -463,12 +465,7 @@ const HomeNotice = () => {
                   </span>
                 </button>
               )}
-              <p
-                className="text-[14.5px] leading-[1.75] whitespace-pre-wrap break-words"
-                style={{ color: 'var(--text-body)' }}
-              >
-                {current.content}
-              </p>
+              <NoticeContent source={current.content} />
 
               {current.link_url && (
                 <button

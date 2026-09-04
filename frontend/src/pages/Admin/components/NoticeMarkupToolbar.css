@@ -1,0 +1,207 @@
+/* 공지 본문 서식 툴바 + 편집/미리보기 전환 — `nmt-`/`nme-` 접두사 */
+
+.nmt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  border: 1px solid var(--card-border);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: var(--surface-inset);
+}
+
+.nmt::-webkit-scrollbar {
+  display: none;
+}
+
+.nmt-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.nmt-sep {
+  flex: none;
+  width: 1px;
+  height: 18px;
+  background: var(--card-border);
+}
+
+.nmt-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 9px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.nmt-btn:hover:not(:disabled) {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.nmt-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.nmt-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.nmt-btn-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.nmt-btn--warn:hover:not(:disabled) {
+  background: var(--notice-warn-soft);
+  color: var(--notice-warn);
+}
+
+.nmt-btn--celebrate:hover:not(:disabled) {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+/* 툴바가 붙는 textarea는 위 모서리를 펴서 한 덩어리로 보이게 한다 */
+.nmt-field {
+  border-radius: 0 0 12px 12px !important;
+}
+
+/* ── 편집 / 미리보기 전환 ──────────────────────────────────── */
+
+.nme-tabs {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  border: 1px solid var(--card-border);
+}
+
+.nme-tab {
+  padding: 0 11px;
+  height: 25px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease;
+}
+
+.nme-tab[aria-selected='true'] {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+/* ── 미리보기 무대 — 실제 홈 팝업과 같은 폭·여백 ───────────── */
+
+.nme-preview {
+  min-height: 232px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+}
+
+.nme-preview-title {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  margin-bottom: 10px;
+  line-height: 1.35;
+}
+
+.nme-preview-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--surface-inset);
+  margin-bottom: 12px;
+}
+
+.nme-preview-empty {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* ── 템플릿 칩 ─────────────────────────────────────────────── */
+
+.nme-templates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.nme-tpl {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 7px 11px;
+  border-radius: 12px;
+  border: 1px dashed var(--card-border);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.14s ease, background-color 0.14s ease;
+}
+
+.nme-tpl:hover {
+  border-color: var(--brand);
+  border-style: solid;
+  background: var(--brand-soft);
+}
+
+.nme-tpl-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
+.nme-tpl-hint {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ── 문법 도움말 ───────────────────────────────────────────── */
+
+.nme-help {
+  margin-top: 7px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.nme-help code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--surface-inset);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-body);
+}

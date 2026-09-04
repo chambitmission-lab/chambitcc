@@ -10,6 +10,8 @@ import { prefetchCapsule } from '../../hooks/useTimeCapsule'
 import { showToast } from '../../utils/toast'
 import { preloadRoute } from '../../utils/routePreload'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
+import NoticeContent, { NoticeInline } from './NoticeContent'
+import { noticePreviewText } from '../../utils/noticeMarkup'
 import type { Notification } from '../../types/notification'
 
 interface NotificationModalProps {
@@ -56,8 +58,11 @@ const getDateGroup = (iso: string): DateGroup => {
   return 'older'
 }
 
-const needsExpand = (content: string) =>
-  content.length > 80 || content.includes('\n')
+// 서식이 쓰였으면 접힌 줄에서는 카드·정보 박스가 눕혀지므로 항상 펼칠 수 있어야 한다
+const needsExpand = (content: string) => {
+  const plain = noticePreviewText(content)
+  return plain.length > 80 || content.includes('\n') || plain !== content.trim()
+}
 
 /**
  * 알림 링크 → 실제 이동 대상.
@@ -370,15 +375,18 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                                     </span>
                                   </div>
 
-                                  <p
-                                    className={`text-[13.5px] text-gray-600 dark:text-gray-400 leading-relaxed break-words ${
-                                      expandable && !expanded
-                                        ? 'content-clamp'
-                                        : 'whitespace-pre-wrap'
-                                    }`}
-                                  >
-                                    {notification.content}
-                                  </p>
+                                  {/* 접힌 상태는 line-clamp가 걸린 인라인이어야 해서
+                                      블록(카드·정보 박스)은 눕히고 강조만 살린다 */}
+                                  {expandable && !expanded ? (
+                                    <p className="content-clamp text-[13.5px] text-gray-600 dark:text-gray-400 leading-relaxed break-words">
+                                      <NoticeInline source={notification.content} />
+                                    </p>
+                                  ) : (
+                                    <NoticeContent
+                                      source={notification.content}
+                                      compact
+                                    />
+                                  )}
 
                                   {notification.image_url && expanded && (
                                     <img

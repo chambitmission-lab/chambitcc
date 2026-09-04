@@ -54,6 +54,10 @@ const AudioBgPreview = import.meta.env.DEV
 const NoticePosterPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Home/components/NoticePosterPreview'))
   : null
+// 공지 본문 서식(경량 마크업) 렌더 확인용
+const NoticeMarkupPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Admin/components/NoticeMarkupPreview'))
+  : null
 const ProfileHeaderPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/ProfileHeaderPreview'))
   : null
@@ -376,6 +380,9 @@ function App() {
                 )}
                 {NoticePosterPreview && (
                   <Route path="/dev/notice-poster" element={<NoticePosterPreview />} />
+                )}
+                {NoticeMarkupPreview && (
+                  <Route path="/dev/notice-markup" element={<NoticeMarkupPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
