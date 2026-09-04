@@ -8,7 +8,7 @@ import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useWakeLock } from '../../PrayerFocus/useWakeLock'
 import { getCinemaScenes } from './cinemaScenes'
 import { TRANSLATION_LABEL } from './verseCopy'
-import type { VerseTiming } from './BibleAudioPlayer'
+import type { VerseTiming } from '../../../api/bibleTts'
 
 /**
  * 성경 낭독 영화관 — 화면을 전부 비우고 말씀 + 음성 + 배경만 남기는 몰입 모드.

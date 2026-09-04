@@ -117,5 +117,4 @@ export const updateBibleVerse = async (verseId: number, data: UpdateBibleVerseRe
   return result.data
 }
 
-// 오디오북(TTS)은 BibleAudioPlayer가 `${API_V1}/bible/tts/{book}/{chapter}?voice=` 를
-// `<audio src>` 로 직접 가리켜 스트리밍 재생하므로 fetch 래퍼가 필요 없다.
+// 오디오북(TTS) 스트리밍 URL·절별 타이밍 조회는 ./bibleTts.ts 에 있다.

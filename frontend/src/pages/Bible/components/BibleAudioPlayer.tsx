@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { API_V1 } from '../../../config/api'
 import { showToast } from '../../../utils/toast'
 import type { BibleTTSVoice } from '../../../types/bible'
+import { getTtsStreamUrl } from '../../../api/bibleTts'
+import { useTtsTimings } from '../hooks/useTtsTimings'
+import {
+  RATE_OPTIONS,
+  setAudioAutoNext,
+  setAudioCollapsed,
+  setAudioRate,
+  setAudioVoice,
+  useAudioSettings,
+} from '../data/audioSettings'
 import AudioSleepSheet from './AudioSleepSheet'
 import AudioSettingsMenu from './AudioSettingsMenu'
 import CinemaReading from './CinemaReading'
@@ -35,18 +44,6 @@ interface BibleAudioPlayerProps {
   bookName?: string
 }
 
-// 절별 낭독 시작 시각(초) — 백엔드가 mp3 생성 시 WordBoundary로 산출해 캐시
-export interface VerseTiming {
-  verse: number
-  start: number
-}
-
-const VOICE_STORAGE_KEY = 'bible-tts-voice'
-const RATE_STORAGE_KEY = 'bible-tts-rate'
-const AUTO_NEXT_STORAGE_KEY = 'bible-tts-autonext'
-const COLLAPSED_STORAGE_KEY = 'bible-tts-collapsed'
-const RATE_OPTIONS = [0.75, 1, 1.25, 1.5]
-
 // 첫 생성(몇 초) 동안 번갈아 보여줄 잔잔한 대기 문구
 const LOADING_MESSAGES = [
   '말씀을 준비하고 있어요…',
@@ -54,23 +51,6 @@ const LOADING_MESSAGES = [
   '은혜의 음성을 빚는 중…',
   '곧 들려드릴게요…',
 ]
-
-// 현재는 음성 선택 UI를 숨기고 남성으로 고정한다(여성/남성 토글은 코드만 보존).
-// 나중에 다시 노출하려면 아래 한 줄을 예전 로직으로 되돌리면 된다.
-//   const v = localStorage.getItem(VOICE_STORAGE_KEY); return v === 'male' ? 'male' : 'female'
-const loadVoice = (): BibleTTSVoice => 'male'
-
-const loadRate = (): number => {
-  const r = Number(localStorage.getItem(RATE_STORAGE_KEY))
-  return RATE_OPTIONS.includes(r) ? r : 1
-}
-
-// 연속 재생(장이 끝나면 다음 장 자동 재생)은 기본 켬
-const loadAutoNext = (): boolean => localStorage.getItem(AUTO_NEXT_STORAGE_KEY) !== 'off'
-
-// 카드 접기 — 듣지 않는 사람에게는 본문이 그만큼 위로 올라온다.
-// 기본은 펼침(기능 발견성). 한 번 접으면 장을 옮겨도, 다시 와도 접힌 채로 기억한다.
-const loadCollapsed = (): boolean => localStorage.getItem(COLLAPSED_STORAGE_KEY) === 'on'
 
 const formatTime = (sec: number): string => {
   if (!Number.isFinite(sec) || sec < 0) return '0:00'
@@ -90,7 +70,7 @@ const formatRemain = (ms: number): string =>
  *   기다리지 않고 첫 절(+머리말)만 준비되면 바로 재생이 시작된다.
  * - 한 번 들으면 백엔드가 Supabase에 캐시 → 다음 재생은 캐시 파일로 리다이렉트되어
  *   즉시 재생 + 탐색바/총 길이까지 정상.
- * - 음성(여성/남성)·배속·연속 재생 여부는 localStorage에 기억
+ * - 음성(여성/남성)·배속·연속 재생·접힘 설정은 data/audioSettings 스토어가 기억
  *
  * 장이 바뀌어도 컴포넌트(특히 <audio> 요소)는 유지하고 아래 리셋 effect로 상태만
  * 초기화한다. 연속 재생(장 끝 → 다음 장 자동 재생)은 사용자 터치 없이 play()를
@@ -108,10 +88,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   // 직전 장이 끝나 자동으로 다음 장에 온 상태인지 — 리셋 effect가 소비한다
   const autoAdvanceRef = useRef(false)
 
-  const [voice, setVoice] = useState<BibleTTSVoice>(loadVoice)
-  const [rate, setRate] = useState<number>(loadRate)
-  const [autoNext, setAutoNext] = useState<boolean>(loadAutoNext)
-  const [collapsed, setCollapsed] = useState<boolean>(loadCollapsed)
+  const { voice, rate, autoNext, collapsed } = useAudioSettings()
   const [started, setStarted] = useState(false) // 첫 재생 이후에만 src 설정
   const [isPlaying, setIsPlaying] = useState(false)
   const [preparing, setPreparing] = useState(false) // 첫 소리가 나기 전 대기 상태
@@ -120,7 +97,6 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   const [duration, setDuration] = useState(0)
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0)
   const [cardVisible, setCardVisible] = useState(true) // 본 카드가 뷰포트에 보이는지
-  const [timings, setTimings] = useState<VerseTiming[] | null>(null)
   const [activeVerse, setActiveVerse] = useState<number | null>(null)
   const activeVerseRef = useRef<number | null>(null)
   // 낭독 영화관 — 같은 <audio> 요소 위에 전체화면 뷰만 씌운다
@@ -227,10 +203,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
     setEndChapter(ch)
     if (ch == null) return
     // 범위 재생은 연속 재생이 전제 — 꺼져 있으면 함께 켠다
-    if (!autoNext && ch > chapter) {
-      setAutoNext(true)
-      localStorage.setItem(AUTO_NEXT_STORAGE_KEY, 'on')
-    }
+    if (!autoNext && ch > chapter) setAudioAutoNext(true)
     showToast(
       ch === chapter
         ? '이 장까지만 듣고 멈출게요 🌙'
@@ -239,41 +212,8 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
     )
   }
 
-  // 절별 타이밍 로드. 캐시된 장은 첫 응답에 최종본이 온다.
-  // 첫 재생(스트리밍 생성 중)엔 서버가 "지금까지 합성된 구간"의 부분(partial)
-  // 타이밍을 돌려주므로, 최종본이 올 때까지 짧은 간격으로 다시 조회한다 —
-  // 앞 절들 하이라이트가 생성 완료를 기다리지 않고 거의 바로 붙는다.
-  // 음성이 바뀌면 오디오가 달라지므로 타이밍도 다시 받는다.
-  useEffect(() => {
-    if (!started) return
-    let cancelled = false
-    let timer: number | undefined
-    let attempts = 0
-    setTimings(null)
-    const load = async () => {
-      try {
-        const res = await fetch(
-          `${API_V1}/bible/tts/${bookNumber}/${chapter}/timings?voice=${voice}`
-        )
-        if (res.ok) {
-          const data = await res.json()
-          if (cancelled) return
-          if (Array.isArray(data?.verses) && data.verses.length > 0) {
-            setTimings(data.verses)
-          }
-          if (!data?.partial) return // 최종본 도착 → 조회 종료
-        }
-      } catch {
-        // 네트워크 오류 → 아래에서 재시도
-      }
-      if (!cancelled && ++attempts < 120) timer = window.setTimeout(load, 2500)
-    }
-    load()
-    return () => {
-      cancelled = true
-      if (timer) clearTimeout(timer)
-    }
-  }, [started, voice, bookNumber, chapter])
+  // 절별 타이밍 — 재생을 시작한 뒤에만 조회하고, 스트리밍 생성 중엔 최종본까지 폴링한다
+  const timings = useTtsTimings({ enabled: started, bookNumber, chapter, voice })
 
   // 재생 시각 → 지금 낭독 중인 절 (마지막으로 start를 지난 절)
   const syncActiveVerse = (time: number | null) => {
@@ -387,9 +327,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
 
   // 재생을 누른 시점에만 백엔드 스트리밍 엔드포인트를 src로 건다.
   // 음성이 바뀌면 URL이 바뀌어 audio 요소가 새 음성으로 다시 로드된다.
-  const audioUrl = started
-    ? `${API_V1}/bible/tts/${bookNumber}/${chapter}?voice=${voice}`
-    : undefined
+  const audioUrl = started ? getTtsStreamUrl(bookNumber, chapter, voice) : undefined
 
   // src가 준비되면 배속을 적용하고, 대기 중이던 재생 요청을 실행
   useEffect(() => {
@@ -479,8 +417,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
     if (v === voice) return
     const wasPlaying = isPlaying
     audioRef.current?.pause()
-    setVoice(v)
-    localStorage.setItem(VOICE_STORAGE_KEY, v)
+    setAudioVoice(v)
     setIsError(false)
     // 이미 듣고 있었다면 새 음성으로 이어서 재생
     if (started) {
@@ -492,16 +429,14 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   // 접기/펼치기 — 설정을 기억하되, 접어도 재생은 그대로 이어진다.
   const toggleCollapsed = () => {
     const next = !collapsed
-    setCollapsed(next)
-    localStorage.setItem(COLLAPSED_STORAGE_KEY, next ? 'on' : 'off')
+    setAudioCollapsed(next)
     // 설정 메뉴가 열린 채 접히면 허공에 뜬 팝오버만 남는다
     if (next) setShowSettings(false)
   }
 
   const toggleAutoNext = () => {
     const next = !autoNext
-    setAutoNext(next)
-    localStorage.setItem(AUTO_NEXT_STORAGE_KEY, next ? 'on' : 'off')
+    setAudioAutoNext(next)
     showToast(
       next ? '장이 끝나면 다음 장을 이어서 들려드려요' : '연속 재생을 껐어요',
       'info'
@@ -509,9 +444,7 @@ const BibleAudioPlayer = ({ bookNumber, chapter, bookId, onActiveVerseChange, on
   }
 
   const selectRate = (next: number) => {
-    if (!RATE_OPTIONS.includes(next)) return
-    setRate(next)
-    localStorage.setItem(RATE_STORAGE_KEY, String(next))
+    if (!setAudioRate(next)) return
     if (audioRef.current) audioRef.current.playbackRate = next
   }
 
