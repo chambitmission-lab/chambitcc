@@ -645,11 +645,31 @@ const FeedPlanCard = ({ plan, onClick }: { plan: PlanSummary; onClick: () => voi
   </button>
 )
 
-// 피처형 카드 (이어서 읽기 · 가로형) — 진행률 강조
-// 상태 색 규칙: 진행 중 = 브랜드 블루로 통일, 완주 = 차분한 에메랄드.
-// 플랜별 accent 그라데이션은 커버 비주얼에만 쓰고 게이지에서는 빼서 "색 = 상태"가 되게 한다.
-// today(오늘 분량)가 있으면 "N일차 · 본문" 미리보기 + [오늘 분량 읽기] CTA를 노출해
-// 텍스트 정보만으로는 약했던 "지금 뭘 읽어야 하는지"를 카드에서 바로 답해준다.
+// 피처형 카드 (이어서 읽기 · 가로형)
+// 정보 위계: ① 무슨 플랜인지(제목·기간) ② 얼마나 왔는지(진행률 한 줄) ③ 오늘 뭘 읽을지(패널+CTA)
+// 예전 카드는 33%·불꽃·해시태그·"119/365일 · 118일차 진행 중"·"118일차 · 역대하"·"117일차 완료"가
+// 각자 떠 있어 숫자 세 개(119·118·117)가 서로 다른 뜻으로 읽혔다. 이제 진행 숫자는 게이지 아래
+// 한 줄로만 모으고, 일차 번호는 "오늘 읽을 말씀" 패널 안에서만 말한다. 해시태그는 둘러보기(발견)용이라
+// 내 진행 카드에서는 뺀다. 상태 색 규칙은 유지: 진행 중 = 브랜드 블루, 완료 = 에메랄드.
+const formatStartLabel = (value?: string | null): string | null => {
+  if (!value) return null
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return null
+  return `${d.getMonth() + 1}월 ${d.getDate()}일부터`
+}
+
+const CheckMark = ({ size = 12 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+)
+
+const Chevron = ({ size = 12 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+)
+
 const FeaturedPlanCard = ({
   plan,
   today,
@@ -669,7 +689,17 @@ const FeaturedPlanCard = ({
     .map((p) => p.reference)
     .filter(Boolean)
     .join(' · ')
+  // day_number = 아직 안 읽은 첫 일차(다음에 읽을 분량). 오늘 이미 읽었어도 이 값은 그 다음 일차다.
   const todayDay = today?.day_number ?? progress?.current_day
+  const totalDays = progress?.total_days || plan.total_days
+  const doneDays = progress?.completed_days ?? 0
+  const remainDays = Math.max(0, totalDays - doneDays)
+  const percent = Math.min(100, progress?.percent ?? 0)
+  const startLabel = formatStartLabel(progress?.start_date)
+  // 일차 제목이 본문 참조와 같으면(대부분의 통독 플랜) 한 번만 보여준다
+  const dayTitle = today?.day_title?.trim() || ''
+  const headline = dayTitle || todayRefs || (todayDay != null ? `${todayDay}일차` : '')
+  const subline = dayTitle && todayRefs && dayTitle !== todayRefs ? todayRefs : null
 
   return (
     <button
@@ -678,114 +708,136 @@ const FeaturedPlanCard = ({
       className="group relative block w-full text-left overflow-hidden rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985]"
     >
       <div className="p-4">
-        <div className="flex items-start gap-3">
-          {/* 커버는 정사각 썸네일로 — 사진이 온전한 구도로 읽히고 카드 여백도 균일해진다 */}
-          <span className="relative block w-[52px] h-[52px] shrink-0 overflow-hidden rounded-xl ring-1 ring-black/[0.06] dark:ring-white/10">
+        {/* ① 헤더 — 썸네일 · 제목/기간 · 진행률 숫자 하나 */}
+        <div className="flex items-center gap-3">
+          <span className="relative block w-12 h-12 shrink-0 overflow-hidden rounded-xl ring-1 ring-black/[0.06] dark:ring-white/10">
             <PlanVisual plan={plan} size="thumb" />
           </span>
-          <div className="flex-1 min-w-0 flex items-start gap-2">
-            <h4 className="flex-1 text-[16px] font-bold text-ink-strong tracking-[-0.015em] leading-snug truncate">
+          <div className="flex-1 min-w-0">
+            <h4 className="text-[16px] font-bold text-ink-strong tracking-[-0.02em] leading-snug truncate">
               {plan.title}
             </h4>
-            {subscribed && progress && (
-              <span className="shrink-0 flex flex-col items-end gap-1.5">
-                {completed ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300 text-[12px] font-extrabold leading-none">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    완주
-                  </span>
-                ) : (
-                  <span className="text-[17px] font-extrabold leading-none" style={gradientTextStyle}>
-                    {progress.percent}%
-                  </span>
-                )}
-                {/* 연속 기록 — 게임화의 핵심이라 우측 상단 독립 배지로 승격 */}
-                {!completed && streak > 0 && (
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-400/15 dark:bg-amber-400/20 text-[11px] font-bold leading-none text-amber-600 dark:text-amber-300">
-                    <FlameIcon size={12} />
-                    {streak}일
-                  </span>
-                )}
-              </span>
-            )}
+            <p className="mt-0.5 flex items-center gap-1.5 flex-wrap text-[12px] tracking-[-0.01em] text-gray-500 dark:text-white/50">
+              {plan.is_personal && (
+                <span className="inline-flex items-center px-1.5 py-[2px] rounded-md bg-[var(--brand-soft-strong)] text-brand text-[10.5px] font-bold leading-none">
+                  {plan.is_owner ? '내 플랜' : `${plan.owner_name ?? '친구'}님의 플랜`}
+                  {(plan.participant_count ?? 0) > 1 && ` · ${plan.participant_count}명`}
+                </span>
+              )}
+              <span>{totalDays}일 플랜</span>
+              {startLabel && (
+                <>
+                  <span aria-hidden className="text-gray-300 dark:text-white/20">·</span>
+                  <span>{startLabel}</span>
+                </>
+              )}
+            </p>
           </div>
-        </div>
-
-        <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
-          {/* 개인 플랜 표시 — 내가 만든 것/초대받은 것 구분 + 함께 읽는 인원 */}
-          {plan.is_personal && (
-            <span className="inline-flex items-center gap-1 px-2 py-[3px] rounded-full bg-[var(--brand-soft-strong)] text-brand text-[10.5px] font-bold leading-none">
-              {plan.is_owner ? '내 플랜' : `${plan.owner_name ?? '친구'}님의 플랜`}
-              {(plan.participant_count ?? 0) > 1 && ` · ${plan.participant_count}명`}
-            </span>
+          {subscribed && progress && (
+            completed ? (
+              <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300 text-[12px] font-extrabold leading-none">
+                <CheckMark size={11} />
+                완주
+              </span>
+            ) : (
+              <span
+                className="shrink-0 text-[24px] font-extrabold leading-none tracking-[-0.03em]"
+                style={gradientTextStyle}
+              >
+                {percent}
+                <span className="text-[13px] font-bold ml-px">%</span>
+              </span>
+            )
           )}
-          <Hashtags plan={plan} />
         </div>
 
+        {/* ② 진행 — 게이지 + 숫자는 이 한 줄에만 */}
         {subscribed && progress && (
-          <div className="mt-3">
-            {/* 진행 게이지 — 트랙에 브랜드 틴트를 깔아 카드 배경과
-                확실히 분리하고, "앞으로 채워질 길"이 눈에 보이게 한다 */}
+          <div className="mt-3.5">
             <div
-              className={`h-2.5 rounded-full overflow-hidden ${
+              className={`h-2 rounded-full overflow-hidden ${
                 completed ? 'bg-emerald-500/[0.12]' : 'bg-[var(--brand-soft-strong)]'
               }`}
             >
               <div
                 className={`h-full rounded-full transition-[width] duration-500 ${
-                  completed
-                    ? 'bg-emerald-400/80 dark:bg-emerald-400/70'
-                    : 'bg-brand shadow-[0_0_8px_var(--brand-glow)]'
+                  completed ? 'bg-emerald-400/80 dark:bg-emerald-400/70' : 'bg-brand'
                 }`}
-                style={{ width: `${Math.min(100, progress.percent)}%` }}
+                style={{ width: `${percent}%` }}
               />
             </div>
-            <p className="text-[11px] font-light text-gray-400 dark:text-white/45 mt-1.5">
+            <div className="mt-1.5 flex items-center justify-between gap-2 text-[11.5px] tracking-[-0.01em] tabular-nums text-gray-500 dark:text-white/50">
               {completed ? (
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-300 font-semibold">
                   <PartyIcon size={12} />
-                  완주했어요
+                  {totalDays}일을 모두 읽었어요
                 </span>
               ) : (
-                `${progress.completed_days} / ${progress.total_days}일 · ${progress.current_day}일차 진행 중`
+                <span>
+                  <b className="font-bold text-gray-700 dark:text-white/75">{doneDays}일</b> 읽음
+                  <span aria-hidden className="mx-1 text-gray-300 dark:text-white/20">·</span>
+                  {remainDays}일 남음
+                </span>
               )}
-            </p>
+              {!completed && streak > 0 && (
+                <span className="inline-flex items-center gap-0.5 font-bold text-amber-600 dark:text-amber-300">
+                  <FlameIcon size={12} />
+                  {streak}일 연속
+                </span>
+              )}
+            </div>
           </div>
         )}
 
-        {/* 오늘 분량 미리보기 + CTA — 카드 진입 즉시 "오늘 뭘 읽을지"가 보이게 */}
+        {/* ③ 오늘 패널 — "지금 뭘 읽으면 되는지"만 크게. 읽었으면 완료 확인 + 다음 분량 예고 */}
         {subscribed && !completed && todayDay != null && (
-          <div className="mt-3 flex items-end justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              {/* 제목은 말줄임 대신 2줄까지 허용 + 자간을 살짝 좁혀 최대한 다 보이게 */}
-              <p className="text-[12px] font-bold tracking-[-0.03em] leading-[1.4] text-gray-800 dark:text-white/85 line-clamp-2">
-                {todayDay}일차
-                {today?.day_title ? ` · ${today.day_title}` : ''}
+          doneToday ? (
+            <div className="mt-3.5 rounded-xl bg-emerald-500/[0.07] dark:bg-emerald-400/[0.08] px-3.5 py-3">
+              <p className="inline-flex items-center gap-1.5 text-[12.5px] font-bold tracking-[-0.02em] text-emerald-600 dark:text-emerald-300">
+                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500 text-white">
+                  <CheckMark size={9} />
+                </span>
+                오늘 분량을 읽었어요
+                {lastDoneDay != null && (
+                  <span className="font-medium opacity-80">· {lastDoneDay}일차</span>
+                )}
               </p>
-              {todayRefs && (
-                <p className="text-[11.5px] tracking-[-0.02em] text-brand truncate mt-0.5">
-                  {todayRefs}
+              <div className="mt-1.5 flex items-center justify-between gap-3">
+                <p className="min-w-0 text-[12.5px] tracking-[-0.02em] text-gray-500 dark:text-white/50 truncate">
+                  다음 {todayDay}일차
+                  {headline && (
+                    <span className="text-gray-700 dark:text-white/75"> · {headline}</span>
+                  )}
                 </p>
-              )}
+                <span className="shrink-0 inline-flex items-center gap-0.5 text-[12px] font-bold tracking-[-0.02em] text-brand transition-transform group-hover:translate-x-0.5">
+                  더 읽기
+                  <Chevron size={11} />
+                </span>
+              </div>
             </div>
-            {doneToday ? (
-              <span className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-500/[0.12] text-emerald-600 dark:text-emerald-300 text-[12px] font-bold leading-none">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                {lastDoneDay ? `${lastDoneDay}일차 완료` : '오늘 완료'}
-              </span>
-            ) : (
-              <span className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-brand text-white text-[11.5px] font-bold tracking-[-0.02em] leading-none shadow-[0_4px_14px_-4px_var(--brand-glow)] transition-transform group-hover:scale-[1.04]">
-                오늘 분량 읽기
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </span>
-            )}
-          </div>
+          ) : (
+            <div className="mt-3.5 rounded-xl bg-[var(--brand-soft)] px-3.5 py-3">
+              <p className="text-[11px] font-bold tracking-[-0.01em] text-brand">
+                오늘 읽을 말씀 · {todayDay}일차
+              </p>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[17px] font-extrabold tracking-[-0.03em] leading-tight text-ink-strong line-clamp-2">
+                    {headline}
+                  </p>
+                  {subline && (
+                    <p className="mt-0.5 text-[12px] tracking-[-0.02em] text-gray-500 dark:text-white/50 truncate">
+                      {subline}
+                    </p>
+                  )}
+                </div>
+                <span className="relative seal-chip shrink-0 inline-flex items-center gap-1 pl-3.5 pr-2.5 py-2 rounded-full bg-brand text-white text-[12.5px] font-bold tracking-[-0.02em] leading-none transition-transform group-hover:scale-[1.04]">
+                  읽기
+                  <Chevron size={12} />
+                </span>
+              </div>
+            </div>
+          )
         )}
       </div>
     </button>

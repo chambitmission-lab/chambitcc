@@ -8,8 +8,8 @@ export const prayer = {
   anonymousDisplayName: '골방 기도자',
   prayerTitle: '기도 제목',
   prayerContent: '기도 내용',
-  prayerPlaceholder: '기도 제목을 나눠주세요...',
-  writePrayerRequest: '기도 요청 작성',
+  prayerPlaceholder: '함께 기도할 제목을 나눠주세요...',
+  writePrayerRequest: '기도제목 나누기',
   noPrayersYet: '아직 기도 요청이 없습니다',
   firstPrayerRequest: '첫 번째로 나눠주세요',
   loadingPrayers: '기도 요청을 불러오는 중...',
@@ -25,9 +25,9 @@ export const prayer = {
   latest: '최신순',
   
   // 기도 작성
-  prayerComposerTitle: '새 기도 요청',
-  prayerComposerSubmit: '작성',
-  prayerComposerSubmitting: '작성중...',
+  prayerComposerTitle: '기도제목 나누기',
+  prayerComposerSubmit: '나누기',
+  prayerComposerSubmitting: '나누는 중...',
   prayerComposerAnonymous: '골방 기도자로 작성',
   prayerComposerCategory: '기도 요청',
   prayerComposerTitlePlaceholder: '제목을 입력하세요',

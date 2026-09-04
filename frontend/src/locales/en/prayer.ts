@@ -25,9 +25,9 @@ export const prayer = {
   latest: 'Latest',
   
   // Prayer composer
-  prayerComposerTitle: 'New Prayer Request',
-  prayerComposerSubmit: 'Submit',
-  prayerComposerSubmitting: 'Submitting...',
+  prayerComposerTitle: 'Share a prayer request',
+  prayerComposerSubmit: 'Share',
+  prayerComposerSubmitting: 'Sharing...',
   prayerComposerAnonymous: 'Pray in secret',
   prayerComposerCategory: 'Prayer Request',
   prayerComposerTitlePlaceholder: 'Enter a title',

@@ -364,7 +364,7 @@ const NewHome = () => {
                   </svg>
                 </span>
                 <span className="flex-1 text-[14px] text-gray-400 dark:text-white/40">
-                  오늘의 기도제목을 나눠보세요…
+                  함께 기도할 제목을 나눠주세요
                 </span>
                 <span className="text-[13px] font-bold text-brand shrink-0">나누기</span>
               </button>

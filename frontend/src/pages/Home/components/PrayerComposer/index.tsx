@@ -230,7 +230,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
     if (contentVoice.isListening) contentVoice.stopListening()
     if (titleVoice.isListening) titleVoice.stopListening()
     setBurst(makeBurst(meta?.emoji ?? '🙏'))
-    showToast(ko ? '기도가 올라갔어요 🙏' : 'Your prayer is up 🙏', 'success')
+    showToast(ko ? '기도제목을 나눴어요 🙏' : 'Your prayer is shared 🙏', 'success')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [celebrating])
 
@@ -296,7 +296,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
           <div className="px-5 pt-2.5 pb-3 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 className="text-[19px] font-extrabold tracking-[-0.02em] text-ink-strong">
-                {ko ? '오늘, 기도 한 조각' : 'One piece of prayer'}
+                {ko ? '기도제목 나누기' : 'Share a prayer request'}
               </h2>
               <p className="mt-0.5 text-[12.5px] leading-snug text-ink-muted">{subtitle}</p>
             </div>
@@ -729,10 +729,10 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                 </span>
                 {isCreating || celebrating
                   ? ko
-                    ? '올리는 중…'
+                    ? '나누는 중…'
                     : 'Sharing…'
                   : ko
-                    ? '기도 올리기'
+                    ? '기도 나누기'
                     : 'Share prayer'}
               </button>
             </div>

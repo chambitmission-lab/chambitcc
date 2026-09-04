@@ -475,18 +475,21 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                               onClick={() => handleItemClick(notification)}
                               aria-busy={navigating}
                               aria-expanded={!hasLink && expandable ? expanded : undefined}
-                              className={`group w-full text-left px-4 py-3 rounded-xl border transition-colors ${
+                              className={`group relative w-full text-left px-4 py-3 rounded-xl border transition-colors ${
                                 unread
                                   ? 'border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] active:bg-[var(--brand-glow)]'
                                   : 'border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/30 hover:bg-gray-100/70 dark:hover:bg-gray-800/50 active:bg-gray-200/60 dark:active:bg-gray-800/70'
                               }`}
                             >
                               <div className="flex items-start gap-2.5">
-                                <span className="flex-shrink-0 w-1.5 mt-[15px]" aria-hidden>
-                                  {unread && (
-                                    <span className="block w-1.5 h-1.5 rounded-full bg-brand" />
-                                  )}
-                                </span>
+                                {/* 안 읽음 점은 자리를 차지하지 않게 띄워서, 아이콘 타일이
+                                    카드 왼쪽 여백에 그대로 붙게 한다 */}
+                                {unread && (
+                                  <span
+                                    className="absolute left-[7px] top-[27px] w-1.5 h-1.5 rounded-full bg-brand"
+                                    aria-hidden
+                                  />
+                                )}
 
                                 {/* 제목 앞 이모지 대신 같은 뜻의 라인 아이콘 타일 */}
                                 <span
