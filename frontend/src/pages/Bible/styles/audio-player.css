@@ -6,7 +6,8 @@
  *
  * 그림 위로 "오디오북 · 재생 중 · 13절"·"1.25×"·시간 표시가 지나가므로
  * 히어로 배경보다 한 단계 더 옅게 깔고, 위쪽/좌우를 마스크로 흘려보낸다.
- * 재생 중일 때만 가로로 천천히 흐른다(띠는 seamless tileable).
+ * 지금은 움직이지 않고 고정으로 깔린다. 아래 is-drifting/keyframes는 남겨두었으니
+ * 나중에 다시 흐르게 하려면 BibleAudioPlayer에서 is-drifting을 붙이면 된다.
  */
 .audio-ridge {
   position: absolute;
@@ -39,6 +40,7 @@
   opacity: 0.7;
 }
 
+/* 현재 미사용 — 배경은 정지 상태로 둔다(추후 업데이트용으로 보존) */
 .audio-ridge__strip.is-drifting {
   animation: audio-ridge-drift 48s linear infinite;
 }

@@ -50,6 +50,10 @@ const MeditationCardPreview = import.meta.env.DEV
 const AudioBgPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Bible/components/AudioBgPreview'))
   : null
+// 공지 포스터 확대 보기 확인용
+const NoticePosterPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Home/components/NoticePosterPreview'))
+  : null
 const ProfileHeaderPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/ProfileHeaderPreview'))
   : null
@@ -369,6 +373,9 @@ function App() {
                 )}
                 {AudioBgPreview && (
                   <Route path="/dev/audio-bg" element={<AudioBgPreview />} />
+                )}
+                {NoticePosterPreview && (
+                  <Route path="/dev/notice-poster" element={<NoticePosterPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />

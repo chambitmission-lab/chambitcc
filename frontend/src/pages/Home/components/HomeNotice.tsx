@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMarkAsRead, usePopupNotices } from '../../../hooks/useNotifications'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
+import ImageLightbox from '../../../components/common/ImageLightbox'
 import {
   dismissNoticeForToday,
   dismissNoticeForever,
@@ -65,6 +66,8 @@ const HomeNotice = () => {
   // 않으므로, 누른 즉시 배너에서 빼려면 상태로도 들고 있어야 한다
   const [justDismissed, setJustDismissed] = useState<readonly number[]>([])
   const readMarkedRef = useRef<Set<number>>(new Set())
+  // 확대해서 보는 중인 포스터 — 공지 포스터는 글씨가 작아 팝업 안에서는 다 안 읽힌다
+  const [zoomSrc, setZoomSrc] = useState<string | null>(null)
 
   // '다시 안 보기'로 숨긴 공지 id — 첫 렌더에도 바로 판정해야 배너가 깜빡이지 않는다.
   // 공지가 수정되면 숨김이 무효화되므로 updated_at 이 바뀔 때(notices 갱신)도 다시 본다.
@@ -168,6 +171,13 @@ const HomeNotice = () => {
         .notice-backdrop { animation: notice-backdrop-in 0.16s ease-out; }
         .notice-card { animation: notice-card-in 0.24s cubic-bezier(0.16, 1, 0.3, 1); }
         .notice-banner { animation: notice-banner-in 0.32s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* 팝업 속 포스터 — 세로로 긴 포스터가 본문을 다 밀어내지 않을 만큼만.
+           PC는 화면이 세로로 여유가 있어 한 단계 크게 보여준다 */
+        .notice-poster-img { max-height: 46vh; }
+        @media (min-width: 1024px) {
+          .notice-poster-img { max-height: 58vh; }
+        }
 
         /* 배너 오른쪽 끝 마스코트 — "알림판에 공지 붙이는 양".
            배너는 높이만 ≈81px로 고정이고 가로는 모바일 4.4:1 ~ PC 15:1까지 변한다 →
@@ -386,7 +396,7 @@ const HomeNotice = () => {
           onClick={closeCurrent}
         >
           <div
-            className="notice-card relative w-full max-w-md max-h-[88vh] rounded-3xl overflow-hidden flex flex-col"
+            className="notice-card relative w-full max-w-md lg:max-w-lg max-h-[88vh] rounded-3xl overflow-hidden flex flex-col"
             style={{
               background: 'var(--surface-container)',
               border: '1px solid var(--card-border)',
@@ -430,16 +440,28 @@ const HomeNotice = () => {
             {/* 본문 */}
             <div className="flex-1 overflow-y-auto px-5 pb-4">
               {current.image_url && (
-                <img
-                  src={current.image_url}
-                  alt=""
-                  className="w-full rounded-2xl mb-3.5 object-contain"
-                  style={{
-                    maxHeight: '46vh',
-                    background: 'var(--surface-inset)',
-                    filter: 'var(--media-dim)',
-                  }}
-                />
+                <button
+                  type="button"
+                  onClick={() => setZoomSrc(current.image_url as string)}
+                  aria-label={`${current.title} 포스터 크게 보기`}
+                  className="poster-btn group/poster relative mb-3.5 block w-full overflow-hidden rounded-2xl"
+                  style={{ background: 'var(--surface-inset)' }}
+                >
+                  <img
+                    src={current.image_url}
+                    alt=""
+                    className="notice-poster-img w-full object-contain transition-transform duration-200 group-hover/poster:scale-[1.02]"
+                    style={{ filter: 'var(--media-dim)' }}
+                  />
+                  {/* 눌러야 읽힌다는 걸 알려주는 손잡이 — 없으면 그냥 작은 그림으로 끝난다 */}
+                  <span className="pointer-events-none absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-[2px]">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <circle cx="11" cy="11" r="7" />
+                      <path d="M20 20l-3.2-3.2M11 8.5v5M8.5 11h5" />
+                    </svg>
+                    크게 보기
+                  </span>
+                </button>
               )}
               <p
                 className="text-[14.5px] leading-[1.75] whitespace-pre-wrap break-words"
@@ -497,6 +519,15 @@ const HomeNotice = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 포스터 확대 보기 — 핀치·휠·두 번 탭으로 원하는 곳만 키워서 읽는다 */}
+      {zoomSrc && (
+        <ImageLightbox
+          src={zoomSrc}
+          caption={current?.title}
+          onClose={() => setZoomSrc(null)}
+        />
       )}
     </>
   )
