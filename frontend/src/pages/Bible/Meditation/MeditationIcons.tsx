@@ -21,7 +21,7 @@ import {
   UserMinus,
   Waves,
   type Icon,
-} from '@phosphor-icons/react'
+} from '../../../components/icons/phosphor'
 import type { EmotionTag } from '../../../types/meditation'
 
 const GLYPHS: Record<EmotionTag, Icon> = {

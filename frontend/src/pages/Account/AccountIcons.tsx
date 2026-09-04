@@ -27,7 +27,7 @@ import {
   SignOut,
   User,
   type Icon,
-} from '@phosphor-icons/react'
+} from '../../components/icons/phosphor'
 
 export type AccountIconProps = { size?: number; className?: string; style?: CSSProperties }
 

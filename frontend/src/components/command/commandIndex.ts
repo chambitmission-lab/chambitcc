@@ -16,7 +16,7 @@ import {
   Thermometer,
   UserCircle,
   type Icon,
-} from '@phosphor-icons/react'
+} from '../icons/phosphor'
 
 // ⌘K 팔레트의 정적 페이지 색인 — 라벨·설명은 두 언어를 직접 들고, 검색은 라벨+설명+키워드 전부를 본다.
 // 라우트가 생기면 여기에 한 줄 추가. (관리자 페이지는 넣지 않는다 — 관리자 메뉴가 따로 있다)

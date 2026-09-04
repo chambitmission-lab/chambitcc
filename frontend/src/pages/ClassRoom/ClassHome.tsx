@@ -1,4 +1,4 @@
-import { Lock } from '@phosphor-icons/react'
+import { Lock } from '../../components/icons/phosphor'
 // 우리반 알림장 홈 (/classes/:classId)
 // 반 정보 · 초대 공유 · 유형 필터 · 알림 피드 (확인체크/암송/RSVP/댓글)
 import { useEffect, useState } from 'react'

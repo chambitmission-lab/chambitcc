@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Sparkle } from '@phosphor-icons/react'
+import { Sparkle } from '../../../icons/phosphor'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import LangFlag from '../../../common/LangFlag'
 import { IconPerson } from './NavIcons'

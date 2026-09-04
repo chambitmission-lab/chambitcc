@@ -4,8 +4,8 @@
  * 실제 공지 팝업은 관리자가 올린 포스터가 있어야 재현되므로,
  * 잔글씨가 많은 가짜 포스터로 팝업 안 '크게 보기' → 라이트박스 동선을 확인한다.
  */
-import { useState } from 'react'
-import ImageLightbox from '../../../components/common/ImageLightbox'
+import { lazy, Suspense, useState } from 'react'
+const ImageLightbox = lazy(() => import('../../../components/common/ImageLightbox'))
 
 /** 확대해야 읽히는 잔글씨가 들어간 가짜 포스터 (A4 비율) */
 const POSTER = `data:image/svg+xml;utf8,${encodeURIComponent(`
@@ -78,11 +78,13 @@ const NoticePosterPreview = () => {
       </div>
 
       {zoom && (
-        <ImageLightbox
-          src={POSTER}
-          caption="가을 오르엘 콘서트"
-          onClose={() => setZoom(false)}
-        />
+        <Suspense fallback={null}>
+          <ImageLightbox
+            src={POSTER}
+            caption="가을 오르엘 콘서트"
+            onClose={() => setZoom(false)}
+          />
+        </Suspense>
       )}
     </div>
   )

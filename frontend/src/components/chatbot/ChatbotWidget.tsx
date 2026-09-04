@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Sparkle, Check } from '@phosphor-icons/react'
+import { Sparkle, Check } from '../icons/phosphor'
 import { EmojiText } from '../common/EmojiText'
 import { getChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
-import WelcomeScene from './WelcomeScene'
+// 환영 장면은 패널을 열어야 보인다 — lazy 로 분리해 위젯 버튼만 첫 로드에 남긴다
+const WelcomeScene = lazy(() => import('./WelcomeScene'))
 import { RECOMMENDED } from './recommended'
 import { useChatbotHidden, hideChatbot, hideChatbotForever, showChatbot } from './chatbotVisibility'
 import './chatbot.css'
@@ -568,7 +569,9 @@ const ChatbotWidget = () => {
             className={`flex-1 overflow-y-auto flex flex-col ${welcomeReply ? '' : 'cb-chat gap-3.5 px-3.5 py-4'}`}
           >
             {welcomeReply ? (
-              <WelcomeScene reply={welcomeReply} onAction={onAction} onAsk={(q) => void send(q)} />
+              <Suspense fallback={null}>
+                <WelcomeScene reply={welcomeReply} onAction={onAction} onAsk={(q) => void send(q)} />
+              </Suspense>
             ) : (
               msgs.map((m) =>
                 m.role === 'user' ? (

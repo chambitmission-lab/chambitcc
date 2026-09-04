@@ -1,9 +1,10 @@
-import { memo, useState } from 'react'
+import { memo, useState, lazy, Suspense } from 'react'
 import type { Prayer } from '../../../../types/prayer'
 import PrayerHeader from './PrayerHeader'
 import PrayerContent from './PrayerContent'
 import PrayerActions from './PrayerActions'
-import BibleVersesModal from '../BibleVersesModal'
+// 함께 묵상 모달은 버튼을 눌러야 열린다 — lazy 로 피드 번들에서 제외
+const BibleVersesModal = lazy(() => import('../BibleVersesModal'))
 import { getGroupColorTheme, getGroupColorCSSVars } from '../../../../utils/groupColors'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 
@@ -149,12 +150,14 @@ const PrayerArticle = ({
       </div>
 
       {showVersesModal && prayer.recommended_verses && (
-        <BibleVersesModal
-          verses={prayer.recommended_verses}
-          authorName={prayer.display_name}
-          prayerId={prayer.is_owner ? prayer.id : undefined}
-          onClose={() => setShowVersesModal(false)}
-        />
+        <Suspense fallback={null}>
+          <BibleVersesModal
+            verses={prayer.recommended_verses}
+            authorName={prayer.display_name}
+            prayerId={prayer.is_owner ? prayer.id : undefined}
+            onClose={() => setShowVersesModal(false)}
+          />
+        </Suspense>
       )}
     </article>
   )

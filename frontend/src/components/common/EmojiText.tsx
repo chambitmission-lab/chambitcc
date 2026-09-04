@@ -43,7 +43,7 @@ import {
   User,
   Leaf,
   type Icon,
-} from '@phosphor-icons/react'
+} from '../icons/phosphor'
 
 const GLYPHS: Record<string, Icon> = {
   '✝': Cross,

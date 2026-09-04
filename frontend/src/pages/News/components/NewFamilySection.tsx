@@ -1,4 +1,4 @@
-import { Lock } from '@phosphor-icons/react'
+import { Lock } from '../../../components/icons/phosphor'
 // 새가족 등록 앨범 섹션 (/news 의 '새가족' 탭 본문)
 // Single Responsibility: 새가족 피드/그리드 구성과 모달 상태 관리
 import { useState } from 'react'

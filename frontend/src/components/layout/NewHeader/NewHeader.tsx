@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
 import { preloadMenuRoutes } from '../../../utils/routePreload'
-import NotificationModal from '../../common/NotificationModal'
+// 알림 모달은 종을 눌러야 열린다 — lazy 로 분리해 첫 로드에서 제외
+const NotificationModal = lazy(() => import('../../common/NotificationModal'))
 import Logo from './components/Logo'
 // PC(lg+) 전용 메뉴 — framer-motion(layoutId 투영 엔진 ~120KB)을 끌고 오므로
 // 엔트리 청크에서 떼어 lg 이상 화면에서만 내려받는다. 모바일 사용자는 영영 받지 않는다.
@@ -26,7 +27,7 @@ import { SearchCapsule } from '../../command/SearchTrigger'
 import HeaderActions from './components/HeaderActions'
 import HeaderAccountCluster from './components/HeaderAccountCluster'
 import MobileMenu from './components/MobileMenu'
-import { useDesktopRailVisible } from '../DesktopNavRail/DesktopNavRail'
+import { useDesktopRailVisible } from '../DesktopNavRail/useDesktopRailVisible'
 import { useMenuState } from './hooks/useMenuState'
 import { useHeaderScrolled } from './hooks/useHeaderScrolled'
 import { useAuthState } from './hooks/useAuthState'
@@ -169,11 +170,15 @@ const NewHeader = () => {
         )}
       </header>
 
-      {/* Notification Modal */}
-      <NotificationModal
-        isOpen={isNotificationOpen}
-        onClose={() => setIsNotificationOpen(false)}
-      />
+      {/* Notification Modal — 열릴 때만 마운트(모달 자체도 !isOpen 이면 null 을 반환한다) */}
+      {isNotificationOpen && (
+        <Suspense fallback={null}>
+          <NotificationModal
+            isOpen={isNotificationOpen}
+            onClose={() => setIsNotificationOpen(false)}
+          />
+        </Suspense>
+      )}
     </>
   )
 }

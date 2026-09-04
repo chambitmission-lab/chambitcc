@@ -1,5 +1,5 @@
 import { Fragment, useMemo, useState } from 'react'
-import { Buildings, Gavel, UsersThree, Church, MagnifyingGlass, X } from '@phosphor-icons/react'
+import { Buildings, Gavel, UsersThree, Church, MagnifyingGlass, X } from '../../components/icons/phosphor'
 import { useOrgTree } from '../../hooks/useOrganization'
 import type { OrgUnit } from '../../types/organization'
 import './Organization.css'

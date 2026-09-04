@@ -1,4 +1,4 @@
-import { Info, MapPin } from '@phosphor-icons/react'
+import { Info, MapPin } from '../../components/icons/phosphor'
 import { memo, useState, useEffect, type ReactElement } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Language } from '../../locales'

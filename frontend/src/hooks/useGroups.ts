@@ -92,8 +92,9 @@ export const useCreateGroup = () => {
     mutationFn: (data: CreateGroupRequest) => createGroup(data),
     onSuccess: () => {
       // 토스트는 모달에서 처리하므로 제거 — 상세 포함 전체 무효화
-      // refetchType:'all' — 비활성 쿼리도 즉시 재요청 (전역 refetchOnMount:false 대응)
-      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+      // 비활성 쿼리는 stale 마크만 — 전역 refetchOnMount:true 라 화면에 돌아오면 그때 재조회한다.
+      // (예전 refetchType:'all' 은 persist 로 복원된 지난 방문 방들까지 전부 즉시 재요청했다)
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     },
     onError: () => {
       // 에러는 모달에서 처리하므로 토스트 제거
@@ -109,7 +110,7 @@ export const useJoinGroup = () => {
     mutationFn: (data: JoinGroupRequest) => joinGroup(data),
     onSuccess: () => {
       showToast('그룹에 가입했습니다', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     },
     onError: (error: Error) => {
       showToast(error.message || '그룹 가입에 실패했습니다', 'error')
@@ -126,7 +127,7 @@ export const useAddGroupMembers = () => {
       addGroupMembers(groupId, userIds),
     onSuccess: () => {
       // 성공 토스트는 호출부에서 처리 (추가/건너뜀을 구분해 안내)
-      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     },
     onError: (error: Error) => {
       showToast(error.message || '멤버 추가에 실패했습니다', 'error')
@@ -142,7 +143,7 @@ export const useLeaveGroup = () => {
     mutationFn: (groupId: number) => leaveGroup(groupId),
     onSuccess: () => {
       showToast('그룹에서 탈퇴했습니다', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     },
     onError: (error: Error) => {
       showToast(error.message || '그룹 탈퇴에 실패했습니다', 'error')
@@ -169,7 +170,7 @@ export const useUpdateGroup = () => {
       updateGroup(groupId, data),
     onSuccess: () => {
       showToast('그룹 정보를 수정했어요', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     },
     onError: (error: Error) => {
       showToast(error.message || '그룹 수정에 실패했습니다', 'error')
@@ -184,7 +185,7 @@ export const useDeleteGroup = () => {
     mutationFn: (groupId: number) => deleteGroup(groupId),
     onSuccess: () => {
       showToast('그룹을 삭제했어요', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     },
     onError: (error: Error) => {
       showToast(error.message || '그룹 삭제에 실패했습니다', 'error')
@@ -200,7 +201,7 @@ export const useKickMember = () => {
       kickGroupMember(groupId, userId),
     onSuccess: () => {
       showToast('멤버를 내보냈어요', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     },
     onError: (error: Error) => {
       showToast(error.message || '멤버 내보내기에 실패했습니다', 'error')
@@ -216,7 +217,7 @@ export const useTransferAdmin = () => {
       transferGroupAdmin(groupId, newAdminUserId),
     onSuccess: () => {
       showToast('관리자 권한을 이양했어요', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     },
     onError: (error: Error) => {
       showToast(error.message || '권한 이양에 실패했습니다', 'error')
@@ -267,7 +268,7 @@ export const useJoinOpenGroup = () => {
     mutationFn: (groupId: number) => joinOpenGroup(groupId),
     onSuccess: () => {
       showToast('그룹에 가입했어요 🙌', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     },
     onError: (error: Error) => {
       showToast(error.message || '그룹 가입에 실패했습니다', 'error')
@@ -283,7 +284,7 @@ export const useRequestJoinGroup = () => {
       requestJoinGroup(groupId, message),
     onSuccess: () => {
       showToast('가입을 신청했어요. 승인되면 알려드릴게요', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.discover(), refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: groupKeys.discover() })
     },
     onError: (error: Error) => {
       showToast(error.message || '가입 신청에 실패했습니다', 'error')
@@ -317,7 +318,7 @@ export const useDecideJoinRequest = () => {
     }) => decideJoinRequest(groupId, requestId, approve),
     onSuccess: (_res, { approve }) => {
       showToast(approve ? '가입을 승인했어요 🎉' : '가입 신청을 거절했어요', 'success')
-      queryClient.invalidateQueries({ queryKey: groupKeys.all, refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: groupKeys.all })
     },
     onError: (error: Error) => {
       showToast(error.message || '신청 처리에 실패했습니다', 'error')

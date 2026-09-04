@@ -61,7 +61,7 @@ export const useCreateCapsule = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: CapsuleCreateRequest) => createCapsule(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: capsuleKeys.all, refetchType: 'all' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: capsuleKeys.all }),
   })
 }
 
@@ -71,7 +71,7 @@ export const useOpenCapsule = (capsuleId: number) => {
     mutationFn: () => openCapsule(capsuleId),
     onSuccess: (detail: CapsuleDetail) => {
       qc.setQueryData(capsuleKeys.detail(capsuleId), detail)
-      qc.invalidateQueries({ queryKey: capsuleKeys.list(), refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: capsuleKeys.list() })
     },
   })
 }
@@ -80,7 +80,7 @@ export const useClaimCapsule = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (inviteCode: string) => claimCapsule(inviteCode),
-    onSuccess: () => qc.invalidateQueries({ queryKey: capsuleKeys.all, refetchType: 'all' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: capsuleKeys.all }),
   })
 }
 
@@ -88,6 +88,6 @@ export const useDeleteCapsule = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (capsuleId: number) => deleteCapsule(capsuleId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: capsuleKeys.all, refetchType: 'all' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: capsuleKeys.all }),
   })
 }

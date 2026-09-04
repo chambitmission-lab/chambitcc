@@ -68,7 +68,7 @@ export const useAllPastors = (enabled = true) =>
 const useInvalidatePastors = () => {
   const queryClient = useQueryClient()
   return () => {
-    void queryClient.invalidateQueries({ queryKey: pastorKeys.all, refetchType: 'all' })
+    void queryClient.invalidateQueries({ queryKey: pastorKeys.all })
   }
 }
 

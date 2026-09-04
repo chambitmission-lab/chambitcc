@@ -55,7 +55,7 @@ export const useAdminEducationTree = (enabled = true) =>
 const useInvalidateEducation = () => {
   const queryClient = useQueryClient()
   return () => {
-    void queryClient.invalidateQueries({ queryKey: educationKeys.all, refetchType: 'all' })
+    void queryClient.invalidateQueries({ queryKey: educationKeys.all })
   }
 }
 

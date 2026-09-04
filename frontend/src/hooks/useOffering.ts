@@ -56,7 +56,7 @@ export const useAdminOffering = (enabled = true) =>
 const useInvalidateOffering = () => {
   const queryClient = useQueryClient()
   return () => {
-    void queryClient.invalidateQueries({ queryKey: offeringKeys.all, refetchType: 'all' })
+    void queryClient.invalidateQueries({ queryKey: offeringKeys.all })
   }
 }
 

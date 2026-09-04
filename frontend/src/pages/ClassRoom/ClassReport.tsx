@@ -1,4 +1,4 @@
-import { Lock } from '@phosphor-icons/react'
+import { Lock } from '../../components/icons/phosphor'
 // 우리반 리포트 (/classes/:classId/report) — 교사 전용
 // 최근 N주 확인·암송·응답 통계, 주간 추이, 멤버별 현황 + 관심 필요 표시
 import { useState } from 'react'

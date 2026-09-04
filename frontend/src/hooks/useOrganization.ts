@@ -31,14 +31,14 @@ export const useAdminOrgTree = () =>
     staleTime: 0,
   })
 
-// 전역 기본값이 캐시 우선(refetchOnMount:false)이라, refetchType:'all' 을 주지 않으면
-// 관리자 화면에서 고친 내용이 이미 떠 있던 공개 조직도 캐시에 반영되지 않는다.
+// 관리자 화면에서 고친 내용은 공개 조직도 캐시를 stale 로 만들고,
+// 전역 refetchOnMount:true 가 조직도 재진입 때 재조회한다.
 const useOrgMutation = <TArgs, TResult>(fn: (args: TArgs) => Promise<TResult>) => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: fn,
     onSuccess: () =>
-      qc.invalidateQueries({ queryKey: organizationKeys.all, refetchType: 'all' }),
+      qc.invalidateQueries({ queryKey: organizationKeys.all }),
   })
 }
 

@@ -39,7 +39,7 @@ import {
   Tray,
   Users,
   type Icon,
-} from '@phosphor-icons/react'
+} from '../../../components/icons/phosphor'
 
 export type PlanIconProps = {
   size?: number

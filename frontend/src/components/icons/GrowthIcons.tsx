@@ -35,7 +35,7 @@ import {
   Trophy,
   UsersThree,
   type Icon,
-} from '@phosphor-icons/react'
+} from './phosphor'
 import type { JourneyStageKey, TimelineDomain, TimelineEvent } from '../../types/growth'
 import { EmotionGlyph } from '../../pages/Home/components/EmotionIcons'
 import { MeditationEmotionGlyph } from '../../pages/Bible/Meditation/MeditationIcons'

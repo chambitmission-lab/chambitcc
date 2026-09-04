@@ -23,7 +23,7 @@ import {
   Tag,
   UserMinus,
   type Icon,
-} from '@phosphor-icons/react'
+} from '../../../components/icons/phosphor'
 
 export type EmotionIconProps = {
   size?: number

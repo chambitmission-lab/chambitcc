@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useAuth } from '../../../../hooks/useAuth'
@@ -6,7 +6,8 @@ import { THANKS_EMOTIONS } from '../../../../types/thanks'
 import { ThanksIcon } from '../../../../components/icons/ThanksIcons'
 import { GraceIcon } from '../../../../components/icons/GraceIcons'
 import { useThanks } from '../ThanksThread/useThanks'
-import ThanksComposer from '../ThanksThread/ThanksComposer'
+// 감사 작성 시트는 탭해야 열린다 — lazy 로 홈 첫 로드에서 제외
+const ThanksComposer = lazy(() => import('../ThanksThread/ThanksComposer'))
 import { PencilIcon } from '../../../../components/icons/ActionIcons'
 
 const ThanksTicker = () => {
@@ -129,7 +130,9 @@ const ThanksTicker = () => {
       `}</style>
 
       {showComposer && (
-        <ThanksComposer onClose={() => setShowComposer(false)} onSubmit={add} />
+        <Suspense fallback={null}>
+          <ThanksComposer onClose={() => setShowComposer(false)} onSubmit={add} />
+        </Suspense>
       )}
     </div>
   )

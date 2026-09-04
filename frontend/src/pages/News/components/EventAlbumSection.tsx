@@ -1,4 +1,4 @@
-import { Lock } from '@phosphor-icons/react'
+import { Lock } from '../../../components/icons/phosphor'
 // 행사 앨범 섹션 (/news 의 '행사' 탭 본문)
 // Single Responsibility: 행사 피드/그리드 구성과 필터·모달 상태 관리
 // 새가족 섹션(NewFamilySection)을 미러링하되, 태그·연도 필터와 "N년 전 오늘" 회상 카드가 추가된다.

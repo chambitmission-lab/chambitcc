@@ -18,7 +18,7 @@ import {
   Headphones,
   ImageSquare,
   type Icon,
-} from '@phosphor-icons/react'
+} from '../../../components/icons/phosphor'
 
 export type BibleToolIconProps = {
   className?: string

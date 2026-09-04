@@ -696,7 +696,7 @@ const PlaylistRow = ({ item, active, playing, onPlay, onRemove, onDragEnd }: Pla
       {
         // 실패하면 서버 목록을 다시 받아 되살린다
         onError: () =>
-          queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' }),
+          queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists() }),
       }
     )
   }

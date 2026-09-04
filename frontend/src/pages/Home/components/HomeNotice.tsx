@@ -8,11 +8,12 @@
  * '오늘 하루 안 보기 / 다시 안 보기'는 기기 로컬 설정(utils/noticeDismiss)이라
  * 서버에 남지 않는다 — 비로그인 방문자도 동일하게 동작한다.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMarkAsRead, usePopupNotices } from '../../../hooks/useNotifications'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import ImageLightbox from '../../../components/common/ImageLightbox'
+// 포스터 확대 보기는 탭해야 열린다 — lazy 로 분리
+const ImageLightbox = lazy(() => import('../../../components/common/ImageLightbox'))
 import NoticeContent from '../../../components/common/NoticeContent'
 import { noticePreviewText } from '../../../utils/noticeMarkup'
 import {
@@ -520,11 +521,13 @@ const HomeNotice = () => {
 
       {/* 포스터 확대 보기 — 핀치·휠·두 번 탭으로 원하는 곳만 키워서 읽는다 */}
       {zoomSrc && (
-        <ImageLightbox
-          src={zoomSrc}
-          caption={current?.title}
-          onClose={() => setZoomSrc(null)}
-        />
+        <Suspense fallback={null}>
+          <ImageLightbox
+            src={zoomSrc}
+            caption={current?.title}
+            onClose={() => setZoomSrc(null)}
+          />
+        </Suspense>
       )}
     </>
   )

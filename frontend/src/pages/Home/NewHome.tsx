@@ -1,8 +1,20 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
-import PrayerComposer from './components/PrayerComposer'
-import PrayerDetail from './components/PrayerDetail'
+// 열어야만 보이는 모달·PC 전용 레일은 lazy — 홈 첫 로드 번들에서 제외한다.
+// 작성 모달은 홈의 1순위 액션이라 첫 화면이 그려진 뒤 한가할 때 미리 받아 둔다(preloadComposer).
+const loadPrayerComposer = () => import('./components/PrayerComposer')
+const PrayerComposer = lazy(loadPrayerComposer)
+const PrayerDetail = lazy(() => import('./components/PrayerDetail'))
+const HomeRightRail = lazy(() => import('./components/HomeRightRail'))
+const GlobalThanksComposer = lazy(() => import('./components/GlobalThanksComposer'))
+const CreateGroupModal = lazy(() =>
+  import('../../components/prayer/GroupModals').then((m) => ({ default: m.CreateGroupModal })),
+)
+const JoinGroupModal = lazy(() =>
+  import('../../components/prayer/GroupModals').then((m) => ({ default: m.JoinGroupModal })),
+)
+const AnswerModal = lazy(() => import('../../components/prayer/AnswerModal'))
 // TodaysVerse — AnnualThemeVerse 전용 카드로 대체. 다시 살리려면 아래 import와 <TodaysVerse /> 주석을 해제하세요.
 // import TodaysVerse from './components/TodaysVerse'
 import AnnualThemeVerse from './components/AnnualThemeVerse'
@@ -12,17 +24,13 @@ import TimeCapsuleCard from './components/TimeCapsuleCard'
 import TodayPlanCard from './components/TodayPlanCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import ThanksTicker from './components/ThanksTicker'
-import GlobalThanksComposer from './components/GlobalThanksComposer'
 import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
 // 오늘의 감사 — 임시 비활성화. 다시 활성화하려면 아래 import와 <ThanksThread /> 주석을 해제하세요.
 // import ThanksThread from './components/ThanksThread'
 import SortTabs from './components/SortTabs'
 import PrayerFeed from './components/PrayerFeed'
-import HomeRightRail from './components/HomeRightRail'
 import BottomNavigation from './components/BottomNavigation'
 import GroupFilter from '../../components/prayer/GroupFilter'
-import { CreateGroupModal, JoinGroupModal } from '../../components/prayer/GroupModals'
-import AnswerModal from '../../components/prayer/AnswerModal'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
 import { useBottomStickyRail } from '../../hooks/useBottomStickyRail'
 import { useAuth } from '../../hooks/useAuth'
@@ -74,6 +82,17 @@ const NewHome = () => {
     const onChange = (e: MediaQueryListEvent) => setRailWide(e.matches)
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  // 기도 작성 모달 청크 선로드 — 첫 화면이 그려진 뒤 한가할 때 받아 두어 첫 탭이 즉시 열리게 한다
+  useEffect(() => {
+    const run = () => { void loadPrayerComposer() }
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(run, { timeout: 4000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const t = window.setTimeout(run, 1500)
+    return () => window.clearTimeout(t)
   }, [])
 
   // 기도방 홈에서 ?group= 으로 진입하면 기도 피드로 자동 스크롤,
@@ -344,7 +363,9 @@ const NewHome = () => {
                 ref={rightRailStickyRef}
                 className="hidden min-[1440px]:block lg:order-3 w-[312px] shrink-0 sticky self-start pb-4"
               >
-                <HomeRightRail />
+                <Suspense fallback={null}>
+                  <HomeRightRail />
+                </Suspense>
               </div>
             )}{/* /우측 레일 */}
 
@@ -419,6 +440,8 @@ const NewHome = () => {
             </div>{/* /lg 2컬럼 래퍼 */}
           </main>
 
+          {/* 모달들 — 전부 lazy 청크. 열리기 전엔 마운트되지 않으므로 fallback 은 비워 둔다 */}
+          <Suspense fallback={null}>
           {/* Prayer Composer Modal */}
           {showComposer && (
             <PrayerComposer
@@ -450,17 +473,22 @@ const NewHome = () => {
             />
           )}
 
-          {/* 그룹 모달 */}
-          <CreateGroupModal
-            isOpen={showCreateModal}
-            onClose={() => setShowCreateModal(false)}
-          />
-          <JoinGroupModal
-            isOpen={showJoinModal}
-            onClose={() => setShowJoinModal(false)}
-          />
-          
+          {/* 그룹 모달 — 컴포넌트 자체가 !isOpen 이면 null 이라 조건부 마운트와 동작이 같다 */}
+          {showCreateModal && (
+            <CreateGroupModal
+              isOpen={showCreateModal}
+              onClose={() => setShowCreateModal(false)}
+            />
+          )}
+          {showJoinModal && (
+            <JoinGroupModal
+              isOpen={showJoinModal}
+              onClose={() => setShowJoinModal(false)}
+            />
+          )}
+
           {/* 응답 모달 */}
+          {showAnswerModal && (
           <AnswerModal
             isOpen={showAnswerModal}
             onClose={() => {
@@ -476,11 +504,15 @@ const NewHome = () => {
             }
             isSubmitting={prayerHook.isAnswering}
           />
+          )}
+          </Suspense>
         </div>
 
         {/* FAB 스피드 다이얼 → 감사 한 줄 작성 */}
         {showThanksComposer && (
-          <GlobalThanksComposer onClose={() => setShowThanksComposer(false)} />
+          <Suspense fallback={null}>
+            <GlobalThanksComposer onClose={() => setShowThanksComposer(false)} />
+          </Suspense>
         )}
 
         {/* Bottom Navigation - Fixed at bottom, centered with max-w-md (lg+에선 좌측 레일이 대신한다) */}

@@ -4,9 +4,10 @@ import { useQueryClient } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { clearPersistedCache } from './config/persister'
 import NewHeader from './components/layout/NewHeader/NewHeader'
-import DesktopNavRail, {
-  useDesktopRailVisible,
-} from './components/layout/DesktopNavRail/DesktopNavRail'
+import { useDesktopRailVisible } from './components/layout/DesktopNavRail/useDesktopRailVisible'
+import { useMediaQuery } from './hooks/useMediaQuery'
+// PC 전용 좌측 레일(lg+) — 모바일은 받을 이유가 없으므로 lazy + matchMedia 게이트
+const DesktopNavRail = lazy(() => import('./components/layout/DesktopNavRail/DesktopNavRail'))
 import ErrorBoundary from './components/common/ErrorBoundary'
 import NewFooter from './components/layout/NewFooter/NewFooter'
 import PWAInstallButton from './components/common/PWAInstallButton'
@@ -187,6 +188,7 @@ const MainContent = ({ children }: { children: ReactNode }) => {
 
 function App() {
   const queryClient = useQueryClient()
+  const isLg = useMediaQuery('(min-width: 1024px)')
 
   // 앱 시작 시 캐시 일관성 확인 (장시간 후 재접속 대응)
   useEffect(() => {
@@ -265,8 +267,13 @@ function App() {
         <ScrollRestoration />
         <div className="app">
           <NewHeader />
-          {/* PC 전용 전역 좌측 내비 레일 (lg+) — 몰입형·인증 화면에선 스스로 숨는다 */}
-          <DesktopNavRail />
+          {/* PC 전용 전역 좌측 내비 레일 (lg+) — 몰입형·인증 화면에선 스스로 숨는다.
+              lg 미만에선 마운트조차 하지 않아 레일 청크를 내려받지 않는다 */}
+          {isLg && (
+            <Suspense fallback={null}>
+              <DesktopNavRail />
+            </Suspense>
+          )}
           <MainContent>
             {/* 루트 에러 경계: 페이지 렌더 에러나 재배포 후 lazy 청크 로드 실패 시
                 앱 전체가 흰 화면이 되는 대신 새로고침 안내를 보여준다 */}

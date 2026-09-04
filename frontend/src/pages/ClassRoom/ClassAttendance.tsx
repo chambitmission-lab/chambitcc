@@ -1,4 +1,4 @@
-import { Lock } from '@phosphor-icons/react'
+import { Lock } from '../../components/icons/phosphor'
 import { ClipboardIcon } from './ClassIcons'
 // 주일 출석부 (/classes/:classId/attendance) — 교사 전용
 // 날짜(주일) 선택 → 멤버 탭탭 출석 체크, 월간 현황 히트맵

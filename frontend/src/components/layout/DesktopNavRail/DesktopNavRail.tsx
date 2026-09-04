@@ -14,18 +14,8 @@ import { preloadRoute, isRoutePreloaded } from '../../../utils/routePreload'
 // lg에선 아이콘만, xl부터 라벨이 함께 보인다 (인스타그램 데스크톱 문법).
 // 자주 가는 핵심 목적지만 담고, 예배·설교·일정 등 안내 페이지는 헤더 인라인 메뉴(DesktopNav)가 담당한다.
 
-// 몰입형·인증 화면에선 레일을 숨긴다 (본문 오프셋도 함께 빠져야 하므로 훅을 공유)
-const HIDDEN_PATHS = ['/login', '/register', '/prayer-focus', '/prayer-topics/screen']
-
-export const useDesktopRailVisible = (): boolean => {
-  const { pathname } = useLocation()
-  if (HIDDEN_PATHS.includes(pathname)) return false
-  // 랜딩(비로그인 홈·/welcome 미리보기)은 제품 소개 화면 — 앱 크롬 없이 전체 폭을 쓴다.
-  // 로그인 판정은 App.tsx의 홈 분기와 같은 기준(localStorage 토큰)을 쓴다.
-  if (pathname === '/welcome') return false
-  if (pathname === '/' && !localStorage.getItem('access_token')) return false
-  return true
-}
+// 레일 표시 여부 훅은 ./useDesktopRailVisible 로 분리 — 이 파일은 PC 에서만 lazy 로 받는다.
+import { useDesktopRailVisible } from './useDesktopRailVisible'
 
 const RailSpinner = () => (
   <span className="w-[22px] h-[22px] rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />

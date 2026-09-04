@@ -55,7 +55,7 @@ const patchPostInCache = (
 /** 목록·통계 전체 무효화 — 관리자 화면 mutation 뒤 사용 (refetchType:'all'로 비활성 쿼리까지) */
 export const invalidateNewFamily = (
   queryClient: ReturnType<typeof useQueryClient>,
-) => queryClient.invalidateQueries({ queryKey: ROOT_KEY, refetchType: 'all' })
+) => queryClient.invalidateQueries({ queryKey: ROOT_KEY })
 
 // ── 목록 ─────────────────────────────────────────────
 export const useNewFamilyPosts = (limit = 10, enabled = true) => {

@@ -256,8 +256,8 @@ const BibleStudy = () => {
     } else {
       // 중간 장 완독 — 서버가 읽음 기록으로 일차 완료를 동기화(get_detail)하도록
       // 플랜 데이터를 새로고침한다. 모두 읽었으면 아래 감지 effect가 축하를 띄운다.
-      qc.invalidateQueries({ queryKey: biblePlanKeys.detail(planId), refetchType: 'all' })
-      qc.invalidateQueries({ queryKey: biblePlanKeys.today(), refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: biblePlanKeys.detail(planId) })
+      qc.invalidateQueries({ queryKey: biblePlanKeys.today() })
     }
   }, [planAutoComplete, isPlanLastChapter, completeDay, planId, planDayNumber, qc])
 

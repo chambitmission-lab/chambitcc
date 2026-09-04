@@ -28,7 +28,7 @@ import {
   User,
   Users,
   type Icon,
-} from '@phosphor-icons/react'
+} from '../../components/icons/phosphor'
 
 export type GroupIconProps = { size?: number; className?: string; style?: CSSProperties }
 

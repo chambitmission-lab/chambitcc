@@ -55,5 +55,5 @@ export const useNewsDetail = (newsId: number | null) =>
 export const useInvalidateNews = () => {
   const queryClient = useQueryClient()
   return () =>
-    queryClient.invalidateQueries({ queryKey: newsKeys.all, refetchType: 'all' })
+    queryClient.invalidateQueries({ queryKey: newsKeys.all })
 }

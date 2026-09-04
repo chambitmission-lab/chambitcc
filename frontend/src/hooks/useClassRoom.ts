@@ -148,7 +148,7 @@ export const useCreateClass = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: ClassCreateRequest) => createClass(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all, refetchType: 'all' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all }),
   })
 }
 
@@ -157,7 +157,7 @@ export const useAddClassMembers = () => {
   return useMutation({
     mutationFn: ({ classId, userIds }: { classId: number; userIds: number[] }) =>
       addClassMembers(classId, userIds),
-    onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all, refetchType: 'all' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all }),
   })
 }
 
@@ -166,7 +166,7 @@ export const useJoinClass = () => {
   return useMutation({
     mutationFn: ({ inviteCode, childName }: { inviteCode: string; childName?: string }) =>
       joinClass(inviteCode, childName),
-    onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all, refetchType: 'all' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all }),
   })
 }
 
@@ -174,7 +174,7 @@ export const useLeaveClass = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (classId: number) => leaveClass(classId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all, refetchType: 'all' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: classKeys.all }),
   })
 }
 
@@ -220,7 +220,7 @@ export const useCreateClassPost = (classId: number) => {
       files?: File[]
     }) => createClassPost(classId, payload, files),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: classKeys.postsRoot(classId), refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: classKeys.postsRoot(classId) })
       qc.invalidateQueries({ queryKey: classKeys.list() })
     },
   })
@@ -237,7 +237,7 @@ export const useUpdateClassPost = (classId: number) => {
       payload: { title?: string | null; content?: string; is_pinned?: boolean }
     }) => updateClassPost(classId, postId, payload),
     onSuccess: () =>
-      qc.invalidateQueries({ queryKey: classKeys.postsRoot(classId), refetchType: 'all' }),
+      qc.invalidateQueries({ queryKey: classKeys.postsRoot(classId) }),
   })
 }
 
@@ -246,7 +246,7 @@ export const useDeleteClassPost = (classId: number) => {
   return useMutation({
     mutationFn: (postId: number) => deleteClassPost(classId, postId),
     onSuccess: () =>
-      qc.invalidateQueries({ queryKey: classKeys.postsRoot(classId), refetchType: 'all' }),
+      qc.invalidateQueries({ queryKey: classKeys.postsRoot(classId) }),
   })
 }
 

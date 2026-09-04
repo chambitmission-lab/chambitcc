@@ -1,4 +1,4 @@
-import { Info, MapPin } from '@phosphor-icons/react'
+import { Info, MapPin } from '../../../components/icons/phosphor'
 /* /worship PC 우측 레일 — 본문과 겹치지 않는 것만 놓는다.
    '다음 예배'와 시간표는 본문 히어로·카드가 이미 맡고 있어 여기서 반복하지 않는다(★중복 제거).
    1) 온라인 예배 — 예배 중이면 LIVE 상태, 유튜브 생중계/채널 버튼(어드민 편집 URL)

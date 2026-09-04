@@ -545,8 +545,8 @@ const VerseList = ({
 
   // 플랜 화면을 거치지 않은 자유 읽기로 이 장을 "방금" 다 읽었을 때 —
   // 이 장이 속한 플랜 일차를 서버가 완료 동기화(get_today/get_detail)할 수 있도록
-  // 플랜 캐시를 무효화한다. 전역이 캐시 우선(refetchOnMount:false)이라 이렇게
-  // 밀어주지 않으면 홈 카드가 재로그인 전까지 옛 상태로 남는다.
+  // 플랜 캐시를 무효화한다 — 홈 카드 등 비활성 쿼리는 stale 마크만 되고
+  // 화면에 돌아올 때 refetchOnMount(true)가 재조회한다.
   // 이미 다 읽힌 장을 단순히 다시 열람한 경우(전환 없음)에는 발동하지 않는다.
   const wasFullyReadRef = useRef<boolean | null>(null)
   useEffect(() => {
@@ -559,7 +559,7 @@ const VerseList = ({
     const prev = wasFullyReadRef.current
     wasFullyReadRef.current = full
     if (prev === false && full) {
-      queryClient.invalidateQueries({ queryKey: biblePlanKeys.all, refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: biblePlanKeys.all })
     }
   }, [readStatusData, queryClient])
 

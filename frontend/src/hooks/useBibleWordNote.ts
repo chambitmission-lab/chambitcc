@@ -54,9 +54,9 @@ const useInvalidateWordNotes = () => {
   const queryClient = useQueryClient()
   return () => {
     queryClient.invalidateQueries({ queryKey: wordNoteKeys.chapters() })
-    // 단어장 페이지 목록은 성경 화면에서 저장하는 시점엔 비활성 쿼리라
-    // refetchType:'all'이어야 재진입 시 새 데이터가 보인다 (북마크와 동일 패턴)
-    queryClient.invalidateQueries({ queryKey: wordNoteKeys.lists(), refetchType: 'all' })
+    // 단어장 페이지 목록은 성경 화면에서 저장하는 시점엔 비활성 쿼리 —
+    // stale 마크만 해 두면 재진입 때 refetchOnMount(true)가 재조회한다 (북마크와 동일 패턴)
+    queryClient.invalidateQueries({ queryKey: wordNoteKeys.lists() })
   }
 }
 

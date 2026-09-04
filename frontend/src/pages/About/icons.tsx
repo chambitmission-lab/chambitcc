@@ -26,7 +26,7 @@ import {
   X,
   type Icon,
   type IconWeight,
-} from '@phosphor-icons/react'
+} from '../../components/icons/phosphor'
 
 interface IconProps {
   size?: number

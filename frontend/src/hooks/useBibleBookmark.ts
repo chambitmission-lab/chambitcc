@@ -134,10 +134,9 @@ export const useUpsertBookmark = (verseId: number) => {
         }
       })
 
-      // refetchType:'all' — 프로필의 북마크 목록은 성경 화면에서 저장/삭제하는 시점엔
-      // 비활성 쿼리라, 기본값 'active'로는 stale 마크만 되고 전역 refetchOnMount:false
-      // (queryClient.ts)와 결합되면 프로필 재진입 시에도 옛 캐시가 그대로 보인다
-      queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' })
+      // 프로필의 북마크 목록은 성경 화면에서 저장/삭제하는 시점엔 비활성 —
+      // stale 마크만 해 두면 프로필 재진입 때 refetchOnMount(true)가 재조회한다
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists() })
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.stats() })
       queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
       // 현재 보고 있는 장의 배치 캐시 갱신 (활성 쿼리만 — 즉시 표시는 detail 캐시가 담당)
@@ -215,7 +214,7 @@ export const useDeleteBookmark = (verseId: number) => {
         }
       })
 
-      queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists() })
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.stats() })
       queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
       // 현재 보고 있는 장의 배치 캐시 갱신 (활성 쿼리만 — 즉시 표시는 detail 캐시가 담당)
@@ -235,7 +234,7 @@ export const useReorderBookmarks = () => {
   return useMutation({
     mutationFn: (bookmarkIds: number[]) => reorderBookmarks(bookmarkIds),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists(), refetchType: 'all' })
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists() })
     },
   })
 }

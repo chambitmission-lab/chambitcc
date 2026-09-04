@@ -94,7 +94,7 @@ export const useCreateRoom = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: RoomCreateRequest) => createRoom(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: roomKeys.all, refetchType: 'all' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: roomKeys.all }),
   })
 }
 
@@ -102,7 +102,7 @@ export const useJoinRoom = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (inviteCode: string) => joinRoom(inviteCode),
-    onSuccess: () => qc.invalidateQueries({ queryKey: roomKeys.all, refetchType: 'all' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: roomKeys.all }),
   })
 }
 
@@ -111,8 +111,8 @@ export const useAddRoomMembers = (roomId: number) => {
   return useMutation({
     mutationFn: (userIds: number[]) => addRoomMembers(roomId, userIds),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId), refetchType: 'all' })
-      qc.invalidateQueries({ queryKey: roomKeys.list(), refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId) })
+      qc.invalidateQueries({ queryKey: roomKeys.list() })
     },
   })
 }
@@ -121,7 +121,7 @@ export const useLeaveRoom = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (roomId: number) => leaveRoom(roomId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: roomKeys.all, refetchType: 'all' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: roomKeys.all }),
   })
 }
 
@@ -131,10 +131,9 @@ export const useMarkRoomDayRead = (roomId: number) => {
     mutationFn: (dayNumber: number) => markRoomDayRead(roomId, dayNumber),
     onSuccess: () => {
       // '본문 읽기'는 누르자마자 성경 화면으로 이동해 응답 시점엔 detail/list가 비활성 —
-      // 기본 'active'로는 stale 마크만 되고 전역 refetchOnMount:false와 겹치면
-      // /rooms 재진입 시에도 옛 캐시(읽기 전 상태)가 그대로 보인다
-      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId), refetchType: 'all' })
-      qc.invalidateQueries({ queryKey: roomKeys.list(), refetchType: 'all' })
+      // stale 마크만 해 두면 /rooms 재진입 때 refetchOnMount(true)가 재조회한다
+      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId) })
+      qc.invalidateQueries({ queryKey: roomKeys.list() })
       qc.invalidateQueries({ queryKey: [...roomKeys.all, 'day', roomId] })
     },
   })
@@ -220,8 +219,8 @@ export const useUpdateRoom = (roomId: number) => {
   return useMutation({
     mutationFn: (payload: RoomUpdateRequest) => updateRoom(roomId, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId), refetchType: 'all' })
-      qc.invalidateQueries({ queryKey: roomKeys.list(), refetchType: 'all' })
+      qc.invalidateQueries({ queryKey: roomKeys.detail(roomId) })
+      qc.invalidateQueries({ queryKey: roomKeys.list() })
     },
   })
 }

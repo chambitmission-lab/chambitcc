@@ -37,6 +37,10 @@ createRoot(document.getElementById('root')!).render(
           // 빌드가 바뀌면 persist 캐시를 통째로 폐기 — 새 코드가 옛 스키마의
           // 캐시 데이터를 복원해서 생기는 코드-데이터 불일치를 막는다
           buster: __APP_VERSION__,
+          // persist-client 기본 maxAge 는 24시간 — 그보다 오래 안 열면 캐시를 통째로 버려
+          // 하루 만에 켠 앱이 매번 콜드 스타트였다. gcTime(7일)과 맞춘다.
+          // 오래된 데이터는 refetchOnMount(staleTime 5분)가 뒤에서 조용히 갱신한다.
+          maxAge: 1000 * 60 * 60 * 24 * 7,
           dehydrateOptions: {
             shouldDehydrateQuery: (query) => {
               // 기본 조건: 성공한 쿼리만 persist
@@ -51,6 +55,10 @@ createRoot(document.getElementById('root')!).render(
               if (Array.isArray(key) && key[0] === 'bluemarble' && key[1] !== 'stats') return false
               // 실황 날씨는 persist 제외 — 저장하면 다음 실행 때 며칠 전 기온이 먼저 뜬다
               if (Array.isArray(key) && key[0] === 'weather') return false
+              // 성경 본문(장·검색)은 persist 제외 — 장 하나가 6~29KB 라 며칠 읽으면 캐시가
+              // 수 MB 로 불어 매 persist·부팅 복원을 무겁게 만든다. 오프라인 읽기는
+              // 서비스워커의 API 캐시(network-first)가 이미 담당한다.
+              if (Array.isArray(key) && key[0] === 'bible' && (key[1] === 'chapter' || key[1] === 'search')) return false
               // pageParams가 있는 infinite query도 제외 (커뮤니티, 기도, 댓글 등)
               if (query.state.data && typeof query.state.data === 'object' && 'pageParams' in query.state.data) {
                 const pageParams = (query.state.data as { pageParams?: unknown }).pageParams
