@@ -3,6 +3,8 @@
  *
  * 관리자가 "팝업으로 띄우기"를 켠 공지를 홈 진입 시 전면 팝업으로 한 건씩 보여주고,
  * 닫은 뒤에도 홈 상단에 얇은 배너를 남겨 언제든 다시 열 수 있게 한다.
+ * 단 '다시 안 보기'를 누른 공지는 배너에서도 빼야 한다 — 안 보겠다고 한 공지가
+ * 홈 최상단에 계속 남아 있으면 그 선택이 무시된 것처럼 보인다.
  * '오늘 하루 안 보기 / 다시 안 보기'는 기기 로컬 설정(utils/noticeDismiss)이라
  * 서버에 남지 않는다 — 비로그인 방문자도 동일하게 동작한다.
  */
@@ -14,6 +16,7 @@ import {
   dismissNoticeForToday,
   dismissNoticeForever,
   isNoticeDismissed,
+  isNoticeDismissedForever,
   markNoticeSeenThisSession,
 } from '../../../utils/noticeDismiss'
 
@@ -55,9 +58,26 @@ const HomeNotice = () => {
   const notices = useMemo(() => data ?? [], [data])
   // 이번 방문에서 이미 닫은 공지 — '안 보기'와 달리 저장하지 않는다(다음 진입 때 다시 뜸)
   const [closedIds, setClosedIds] = useState<ReadonlySet<number>>(() => new Set())
-  // 배너로 다시 열었을 때는 '안 보기'로 숨긴 공지까지 전부 보여준다
+  // 배너로 다시 열었을 때는 '오늘 하루 안 보기'로 숨긴 공지까지 다시 보여준다
+  // ('다시 안 보기'는 예외 — 아래 foreverIds 로 배너·재열기 모두에서 제외)
   const [showDismissed, setShowDismissed] = useState(false)
+  // 이번 렌더에서 방금 '다시 안 보기'를 누른 공지 — 저장소 쓰기는 리렌더를 일으키지
+  // 않으므로, 누른 즉시 배너에서 빼려면 상태로도 들고 있어야 한다
+  const [justDismissed, setJustDismissed] = useState<readonly number[]>([])
   const readMarkedRef = useRef<Set<number>>(new Set())
+
+  // '다시 안 보기'로 숨긴 공지 id — 첫 렌더에도 바로 판정해야 배너가 깜빡이지 않는다.
+  // 공지가 수정되면 숨김이 무효화되므로 updated_at 이 바뀔 때(notices 갱신)도 다시 본다.
+  const foreverIds = useMemo(
+    () =>
+      new Set([
+        ...justDismissed,
+        ...notices
+          .filter((n) => isNoticeDismissedForever(n.id, n.updated_at))
+          .map((n) => n.id),
+      ]),
+    [notices, justDismissed],
+  )
 
   // 아직 띄워야 할 공지들 (최신순). 앞에서부터 한 건씩 보여준다.
   const queue = useMemo(
@@ -65,9 +85,16 @@ const HomeNotice = () => {
       notices.filter(
         (n) =>
           !closedIds.has(n.id) &&
+          !foreverIds.has(n.id) &&
           (showDismissed || !isNoticeDismissed(n.id, n.updated_at)),
       ),
-    [notices, closedIds, showDismissed],
+    [notices, closedIds, foreverIds, showDismissed],
+  )
+
+  // 배너에 남길 공지 — '확인'·'오늘 하루'로 닫은 것은 유지, '다시 안 보기'만 제외
+  const bannerNotices = useMemo(
+    () => notices.filter((n) => !foreverIds.has(n.id)),
+    [notices, foreverIds],
   )
 
   const current = queue[0]
@@ -98,7 +125,11 @@ const HomeNotice = () => {
   }
 
   const handleForever = () => {
-    if (current) dismissNoticeForever(current.id, current.updated_at)
+    if (current) {
+      dismissNoticeForever(current.id, current.updated_at)
+      const id = current.id
+      setJustDismissed((prev) => [...prev, id])
+    }
     closeCurrent()
   }
 
@@ -109,7 +140,8 @@ const HomeNotice = () => {
     navigate(target.path, { state: target.state })
   }
 
-  // 배너 → 팝업 다시 열기 (안 보기로 숨긴 공지도 여기서는 다시 볼 수 있다)
+  // 배너 → 팝업 다시 열기 ('오늘 하루 안 보기'로 숨긴 공지도 여기서는 다시 볼 수 있다.
+  // '다시 안 보기'는 queue 에서 foreverIds 로 제외돼 여기서도 안 뜬다)
   const reopen = () => {
     setShowDismissed(true)
     setClosedIds(new Set())
@@ -117,9 +149,9 @@ const HomeNotice = () => {
 
   useModalBackButton(closeCurrent, !!current)
 
-  if (notices.length === 0) return null
+  if (bannerNotices.length === 0) return null
 
-  const latest = notices[0]
+  const latest = bannerNotices[0]
 
   return (
     <>
@@ -304,12 +336,12 @@ const HomeNotice = () => {
                 <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                   {formatRelative(latest.created_at)}
                 </span>
-                {notices.length > 1 && (
+                {bannerNotices.length > 1 && (
                   <span
                     className="ml-0.5 rounded-full px-1.5 py-[1.5px] text-[10px] font-bold leading-none"
                     style={{ background: 'var(--brand-soft)', color: 'var(--brand)' }}
                   >
-                    +{notices.length - 1}
+                    +{bannerNotices.length - 1}
                   </span>
                 )}
               </span>

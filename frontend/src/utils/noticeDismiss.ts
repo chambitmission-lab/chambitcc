@@ -109,3 +109,17 @@ export const dismissNoticeForever = (id: number, updatedAt?: string | null) => {
   map[String(id)] = { until: 'forever', ver: updatedAt ?? undefined }
   writeMap(map)
 }
+
+/**
+ * '다시 안 보기'로 영구 숨긴 공지인가.
+ *
+ * 홈 상단 배너는 '확인'·'오늘 하루'로 닫은 공지는 계속 보여주되(다시 열 경로가 필요),
+ * 영구히 안 보겠다고 한 공지는 배너에서도 빼야 한다.
+ * 수정된 공지는 숨김을 무효화하는 규칙을 isNoticeDismissed 와 똑같이 적용한다.
+ */
+export const isNoticeDismissedForever = (id: number, updatedAt?: string | null): boolean => {
+  const entry = readMap()[String(id)]
+  if (!entry || entry.until !== 'forever') return false
+  if (entry.ver && updatedAt && entry.ver !== updatedAt) return false
+  return true
+}
