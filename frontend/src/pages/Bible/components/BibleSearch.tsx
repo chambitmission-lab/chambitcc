@@ -4,10 +4,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useBibleSearchInfinite, useBibleBooks } from '../../../hooks/useBible'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
-import type { BibleBook } from '../../../types/bible'
+import type { BibleBook, BookMatchCount } from '../../../types/bible'
 import SearchBookCard from './SearchBookCard'
 import type { BookCard } from './SearchBookCard'
 import BookQuickPicker from './BookQuickPicker'
+import SearchVerseCard from './SearchVerseCard'
 import { BOOK_ABBREV_KO, BOOK_ABBREV_EN } from './bibleBookAbbrev'
 
 type SearchScope = 'ALL' | 'OLD' | 'NEW'
@@ -52,9 +53,14 @@ const BibleSearch = () => {
   const [scope, setScopeState] = useState<SearchScope>(
     isScope(initialScopeParam) ? initialScopeParam : 'ALL'
   )
+  // 책별 분포 칩으로 고른 책 — 키워드 검색을 그 책으로 좁힌다(서버 필터). null = 전체
+  const [bookFilter, setBookFilterState] = useState<number | null>(() => {
+    const n = Number(searchParams.get('book'))
+    return n >= 1 && n <= 66 ? n : null
+  })
 
   // URL 동기화 — 입력마다 히스토리가 쌓이지 않도록 replace. tab= 등 다른 파라미터는 보존
-  const syncUrl = (q: string, sc: SearchScope) => {
+  const syncUrl = (q: string, sc: SearchScope, book: number | null) => {
     setSearchParams(
       prev => {
         const next = new URLSearchParams(prev)
@@ -62,14 +68,22 @@ const BibleSearch = () => {
         else next.delete('q')
         if (sc !== 'ALL') next.set('scope', sc)
         else next.delete('scope')
+        if (book) next.set('book', String(book))
+        else next.delete('book')
         return next
       },
       { replace: true }
     )
   }
+  // 범위를 바꾸면 책 선택은 푼다 — 고른 책이 새 범위 밖일 수 있고, 분포 자체가 달라진다
   const setScope = (sc: SearchScope) => {
     setScopeState(sc)
-    syncUrl(searchQuery, sc)
+    setBookFilterState(null)
+    syncUrl(searchQuery, sc, null)
+  }
+  const setBookFilter = (book: number | null) => {
+    setBookFilterState(book)
+    syncUrl(searchQuery, scope, book)
   }
   const [placeholderIndex, setPlaceholderIndex] = useState(0)
   // 책 퀵 피커가 열려 있으면 그 트리거가 된 책의 book_number, 닫혀 있으면 null
@@ -88,7 +102,11 @@ const BibleSearch = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useBibleSearchInfinite(searchQuery, scope === 'ALL' ? undefined : scope)
+  } = useBibleSearchInfinite(
+    searchQuery,
+    scope === 'ALL' ? undefined : scope,
+    bookFilter ?? undefined
+  )
   const { data: allBooks } = useBibleBooks()
 
   // 메타(책·장 검색 여부 등)는 첫 페이지에만 담겨 오고, 절은 모든 페이지를 이어붙인다
@@ -136,6 +154,7 @@ const BibleSearch = () => {
       placeholderExamples: [
         '"창세기 1장"을 검색해보세요',
         '"고전 13"처럼 약칭으로 검색해도 돼요',
+        '"요 3:16"처럼 절까지 바로 찾을 수 있어요',
         '"하나님 사랑"을 검색해보세요',
         '"주 그리스도 아들"처럼 여러 단어로 좁혀보세요',
         '"고린도전서"를 검색해보세요',
@@ -152,6 +171,20 @@ const BibleSearch = () => {
       scopeOld: '구약',
       scopeNew: '신약',
       resultsCount: (n: number) => `검색 결과 ${n.toLocaleString()}절`,
+      verseCount: (n: number) => `${n.toLocaleString()}절`,
+      chapterUnit: '장',
+      chapterRangeLabel: (book: string, c1: number, c2: number) => `${book} ${c1}-${c2}장`,
+      byBook: '책별로 보기',
+      allBooksChip: '전체',
+      bookChipAria: (book: string, n: number) => `${book} ${n}절`,
+      jumpTo: '바로 가기',
+      chapterSuggestion: (book: string, ch: number) => `${book} ${ch}장`,
+      noticeChapterOutOfRange: (book: string, ch: number, max: number) =>
+        `${book}은(는) ${max}장까지 있어요. ${ch}장은 없어서 장을 골라 볼 수 있게 펼쳤어요.`,
+      noticeVerseOutOfRange: (book: string, ch: number, max: number) =>
+        `${book} ${ch}장은 ${max}절까지예요. 장 전체를 보여 드릴게요.`,
+      noticeRangeClamped: (book: string, c1: number, c2: number) =>
+        `한 번에 10장까지만 볼 수 있어 ${book} ${c1}-${c2}장만 보여 드려요.`,
       noResults: '검색 결과가 없습니다',
       noResultsInScope: '선택한 범위에 검색 결과가 없습니다',
       tooShort: '두 글자 이상 입력해 주세요',
@@ -165,6 +198,7 @@ const BibleSearch = () => {
       searchAria: 'Bible search — book name, book+chapter, or keyword',
       placeholderExamples: [
         'Try "Genesis 1"',
+        'Try "John 3:16" to jump to a verse',
         'Try "God\'s love"',
         'Narrow down with multiple words, e.g. "Lord Christ Son"',
         'Try "1 Corinthians"',
@@ -181,6 +215,20 @@ const BibleSearch = () => {
       scopeOld: 'OT',
       scopeNew: 'NT',
       resultsCount: (n: number) => `${n.toLocaleString()} verse${n === 1 ? '' : 's'} found`,
+      verseCount: (n: number) => `${n.toLocaleString()} verse${n === 1 ? '' : 's'}`,
+      chapterUnit: '',
+      chapterRangeLabel: (book: string, c1: number, c2: number) => `${book} ${c1}-${c2}`,
+      byBook: 'By book',
+      allBooksChip: 'All',
+      bookChipAria: (book: string, n: number) => `${book}, ${n} verse${n === 1 ? '' : 's'}`,
+      jumpTo: 'Jump to',
+      chapterSuggestion: (book: string, ch: number) => `${book} ${ch}`,
+      noticeChapterOutOfRange: (book: string, ch: number, max: number) =>
+        `${book} has ${max} chapters, so chapter ${ch} doesn't exist. Pick a chapter below.`,
+      noticeVerseOutOfRange: (book: string, ch: number, max: number) =>
+        `${book} ${ch} has ${max} verses. Showing the whole chapter instead.`,
+      noticeRangeClamped: (book: string, c1: number, c2: number) =>
+        `Up to 10 chapters at a time — showing ${book} ${c1}-${c2}.`,
       noResults: 'No results found',
       noResultsInScope: 'No results in the selected scope',
       tooShort: 'Enter at least two characters',
@@ -232,7 +280,9 @@ const BibleSearch = () => {
     setSearchQuery(q)
     // 백엔드가 2글자 미만을 거부하므로 한 글자는 최근 검색어에 쌓지 않는다
     if (q.length >= 2) saveRecentSearch(q)
-    syncUrl(q, scope)
+    // 새 검색어의 분포는 다르므로 책 선택은 푼다(같은 검색어 재실행도 전체로 되돌린다)
+    setBookFilterState(null)
+    syncUrl(q, scope, null)
   }
 
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
@@ -243,7 +293,8 @@ const BibleSearch = () => {
   const clearSearch = () => {
     setSearchKeyword('')
     setSearchQuery('')
-    syncUrl('', scope)
+    setBookFilterState(null)
+    syncUrl('', scope, null)
   }
 
   // 검색 결과 화면에서 브라우저/안드로이드 뒤로가기 → 페이지 이탈 대신 검색 시작 화면으로 복귀
@@ -269,7 +320,8 @@ const BibleSearch = () => {
     const nextScope: SearchScope =
       scope !== 'ALL' && book.testament !== scope ? 'ALL' : scope
     if (nextScope !== scope) setScopeState(nextScope)
-    syncUrl(book.book_name_ko, nextScope)
+    setBookFilterState(null)
+    syncUrl(book.book_name_ko, nextScope, null)
   }
 
   // 구약/신약 범위 필터 — 키워드 검색은 서버가 이미 걸러서 보내고,
@@ -304,6 +356,86 @@ const BibleSearch = () => {
   // 백엔드가 2글자 미만을 422로 막아 요청 자체를 안 보낸다 — "결과 없음"이 아니라 안내로 분기.
   // 단 "창"처럼 한 글자로도 책이 잡히면 책 카드 분기가 먼저라 여기 오지 않는다.
   const queryTooShort = trimmedQuery.length > 0 && trimmedQuery.length < 2
+
+  // 결과 헤딩 — 장/절/범위 검색은 참조 표기, 키워드 검색은 건수
+  const resultsHeading = (() => {
+    if (!searchResults) return ''
+    if (searchResults.is_chapter_search && searchResults.book_name_ko && searchResults.chapter) {
+      const book = searchResults.book_name_ko
+      const ch = searchResults.chapter
+      if (searchResults.verse_start) {
+        const ref = `${book} ${ch}:${searchResults.verse_start}${
+          searchResults.verse_end ? `-${searchResults.verse_end}` : ''
+        }`
+        return searchResults.verse_end ? `${ref} · ${t.verseCount(shownTotal)}` : ref
+      }
+      if (searchResults.chapter_end) {
+        return `${t.chapterRangeLabel(book, ch, searchResults.chapter_end)} · ${t.verseCount(shownTotal)}`
+      }
+      return `${book} ${ch}${t.chapterUnit} · ${t.verseCount(shownTotal)}`
+    }
+    return t.resultsCount(shownTotal)
+  })()
+
+  // 서버 안내 코드 → 문구. 책 카드 위(장 초과) 또는 결과 위(절 초과·범위 축소)에 띄운다
+  const noticeText = (() => {
+    const r = searchResults
+    if (!r?.notice || !r.book_name_ko) return null
+    if (r.notice === 'chapter_out_of_range' && r.chapter && r.chapter_count)
+      return t.noticeChapterOutOfRange(r.book_name_ko, r.chapter, r.chapter_count)
+    if (r.notice === 'verse_out_of_range' && r.chapter && r.verse_count)
+      return t.noticeVerseOutOfRange(r.book_name_ko, r.chapter, r.verse_count)
+    if (r.notice === 'chapter_range_clamped' && r.chapter && r.chapter_end)
+      return t.noticeRangeClamped(r.book_name_ko, r.chapter, r.chapter_end)
+    return null
+  })()
+
+  // 책별 분포 칩 — 키워드 검색에서 매칭이 두 권 이상일 때. 많은 순으로 늘어놓아
+  // "어디에 몰려 있는지"가 먼저 읽히게 한다. 책 하나를 골라도 서버가 전체 분포를 계속 주므로
+  // 칩 개수는 흔들리지 않는다.
+  const bookCounts: BookMatchCount[] = searchResults?.is_chapter_search
+    ? []
+    : [...(searchResults?.book_counts ?? [])].sort((a, b) => b.count - a.count)
+  const bookCountsTotal = bookCounts.reduce((n, b) => n + b.count, 0)
+  const showBookChips = bookCounts.length > 1 || (bookFilter !== null && bookCounts.length > 0)
+
+  // 타이핑 중 책 제안 — Enter 전에 "고린" → 고린도전서·후서, "고전 13" → 고린도전서 13장.
+  // 로컬 책 목록만 보므로 요청이 없고, 실행한 검색어와 같으면(이미 결과가 떠 있으면) 숨긴다
+  const resolveBookLocal = (name: string): BibleBook | undefined => {
+    const books = allBooks || []
+    const n = normalize(name)
+    if (!n) return undefined
+    return (
+      books.find(b => normalize(b.book_name_ko) === n || normalize(b.book_name_en) === n) ??
+      books.find(b => BOOK_ABBREV_KO[b.book_number] === name.trim() || BOOK_ABBREV_EN[b.book_number]?.toLowerCase() === n) ??
+      books.find(b => normalize(b.book_name_ko).startsWith(n) || normalize(b.book_name_en).startsWith(n))
+    )
+  }
+  const typedRaw = searchKeyword.trim()
+  const typeahead: { label: string; query: string }[] = (() => {
+    if (!typedRaw || typedRaw === searchQuery || !allBooks?.length) return []
+    const chapterMatch = typedRaw.match(/^(.+?)\s*(\d+)\s*(?:장|편)?\s*(?:[:.]\s*\d*)?$/)
+    if (chapterMatch) {
+      const book = resolveBookLocal(chapterMatch[1])
+      const ch = Number(chapterMatch[2])
+      if (!book || ch < 1 || ch > book.chapter_count) return []
+      // 절까지 입력 중이면 그대로 두고, 장만 입력했을 때만 "○○ N장" 하나를 제안
+      if (/[:.]/.test(typedRaw)) return []
+      return [{ label: t.chapterSuggestion(book.book_name_ko, ch), query: `${book.book_name_ko} ${ch}` }]
+    }
+    if (/\d/.test(typedRaw)) return []
+    const n = normalize(typedRaw)
+    return allBooks
+      .filter(
+        b =>
+          BOOK_ABBREV_KO[b.book_number] === typedRaw ||
+          BOOK_ABBREV_EN[b.book_number]?.toLowerCase() === n ||
+          normalize(b.book_name_ko).includes(n) ||
+          normalize(b.book_name_en).includes(n)
+      )
+      .slice(0, 6)
+      .map(b => ({ label: b.book_name_ko, query: b.book_name_ko }))
+  })()
 
   // 키워드 검색 결과에서 매칭 단어 강조 — "왜 이 절이 걸렸는지"가 훑기만 해도 보이게.
   // 여러 단어 AND 검색은 단어별로 각각 칠한다. 장 검색(창 1)은 키워드가 없으므로 제외.
@@ -417,7 +549,8 @@ const BibleSearch = () => {
                 // 입력을 모두 지우면 결과도 접고 검색 시작 화면(최근/추천 키워드)으로
                 if (e.target.value === '') {
                   setSearchQuery('')
-                  syncUrl('', scope)
+                  setBookFilterState(null)
+                  syncUrl('', scope, null)
                 }
               }}
               aria-label={t.searchAria}
@@ -445,6 +578,22 @@ const BibleSearch = () => {
             )}
           </div>
         </div>
+
+        {typeahead.length > 0 && (
+          <div className="search-typeahead" role="group" aria-label={t.jumpTo}>
+            <span className="search-typeahead-label">{t.jumpTo}</span>
+            {typeahead.map(item => (
+              <button
+                key={item.query}
+                type="button"
+                className="search-chip search-chip--suggest"
+                onClick={() => runSearch(item.query)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="search-scope-filter lg:hidden" role="radiogroup" aria-label={t.scopeLabel}>
           {(['ALL', 'OLD', 'NEW'] as const).map(s => (
@@ -483,6 +632,12 @@ const BibleSearch = () => {
         // 책 단독 검색 → 매칭된 모든 책 카드 + 장 그리드 (예: "고린" → 전·후서).
         // 장 그리드가 5열 고정이라 폭을 다 주면 칸이 늘어진다 — 읽기 폭으로 묶는다
         <div className="search-book-list lg:max-w-[680px]">
+          {noticeText && (
+            <p className="search-notice" role="status">
+              <span className="material-icons-round" aria-hidden="true">info</span>
+              {noticeText}
+            </p>
+          )}
           {scopedBooks.map(book => (
             <SearchBookCard
               key={book.book_number}
@@ -495,34 +650,56 @@ const BibleSearch = () => {
         </div>
       ) : searchResults && scopedVerses.length > 0 ? (
         <div className={`search-results${searchStale ? ' search-results--stale' : ''}`} aria-busy={searchStale}>
-          <p className="results-count">
-            {searchResults.is_chapter_search && searchResults.book_name_ko
-              ? `${searchResults.book_name_ko} ${searchResults.chapter}장 · ${shownTotal}절`
-              : t.resultsCount(shownTotal)}
-          </p>
+          {noticeText && (
+            <p className="search-notice" role="status">
+              <span className="material-icons-round" aria-hidden="true">info</span>
+              {noticeText}
+            </p>
+          )}
+          {/* 스크린리더가 결과 도착·건수 변화를 읽도록 polite로 알린다 */}
+          <p className="results-count" aria-live="polite">{resultsHeading}</p>
+          {showBookChips && (
+            <div className="search-book-chips" role="group" aria-label={t.byBook}>
+              <button
+                type="button"
+                className={`scope-chip scope-chip--sm${bookFilter === null ? ' scope-chip--active' : ''}`}
+                aria-pressed={bookFilter === null}
+                onClick={() => setBookFilter(null)}
+              >
+                {t.allBooksChip} <span className="search-book-chip-count">{bookCountsTotal.toLocaleString()}</span>
+              </button>
+              {bookCounts.map(b => (
+                <button
+                  key={b.book_number}
+                  type="button"
+                  className={`scope-chip scope-chip--sm${bookFilter === b.book_number ? ' scope-chip--active' : ''}`}
+                  aria-pressed={bookFilter === b.book_number}
+                  aria-label={t.bookChipAria(b.book_name_ko, b.count)}
+                  onClick={() => setBookFilter(bookFilter === b.book_number ? null : b.book_number)}
+                >
+                  {b.book_name_ko} <span className="search-book-chip-count">{b.count.toLocaleString()}</span>
+                </button>
+              ))}
+            </div>
+          )}
           {/* 절 결과는 서로 독립된 스니펫이라 넓은 화면에선 2열로 훑는 편이 빠르다 */}
           <div className="verses-list lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
-            {scopedVerses.map(verse => (
-              <div
-                key={verse.id}
-                className="bible-verse-item bible-verse-item--search"
-                onClick={() => goToChapter(verse.book_number ?? searchResults.book_number ?? 0, verse.chapter, verse.verse)}
-                style={{ cursor: 'pointer' }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    goToChapter(verse.book_number ?? searchResults.book_number ?? 0, verse.chapter, verse.verse)
+            {scopedVerses.map(verse => {
+              const bookNumber = verse.book_number ?? searchResults.book_number ?? 0
+              return (
+                <SearchVerseCard
+                  key={verse.id}
+                  verse={verse}
+                  bookNumber={bookNumber}
+                  bookNameKo={
+                    verse.book_name_ko || nameByNumber.get(bookNumber) || searchResults.book_name_ko || ''
                   }
-                }}
-              >
-                <div className="bible-verse-reference">
-                  {verse.book_name_ko || nameByNumber.get(verse.book_number ?? -1) || searchResults.book_name_ko || ''} {verse.chapter}:{verse.verse}
-                </div>
-                <div className="bible-verse-text">{renderVerseText(verse.text)}</div>
-              </div>
-            ))}
+                  onOpen={() => goToChapter(bookNumber, verse.chapter, verse.verse)}
+                >
+                  {renderVerseText(verse.text)}
+                </SearchVerseCard>
+              )
+            })}
           </div>
           {hasNextPage && (
             <div ref={sentinelRef} className="search-load-more" aria-hidden={!isFetchingNextPage}>

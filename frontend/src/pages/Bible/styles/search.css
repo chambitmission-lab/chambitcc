@@ -703,3 +703,123 @@
 .search-retry-button:active {
   transform: scale(0.97);
 }
+
+/* ── 타이핑 중 책 제안 — Enter 전에 책·장으로 바로 건너뛰는 칩 ── */
+.search-typeahead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.625rem;
+}
+
+.search-typeahead-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+  margin-right: 0.125rem;
+}
+
+/* ── 서버 안내 (장·절 범위 초과, 범위 축소) ── */
+.search-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  margin: 0 0 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 12px;
+  background: var(--brand-soft, rgba(49, 130, 246, 0.08));
+  color: var(--ig-primary-text);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.search-notice .material-icons-round {
+  font-size: 1rem;
+  color: var(--brand);
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+
+/* ── 책별 분포 칩 — 가로 스크롤 한 줄, 많은 순 ── */
+.search-book-chips {
+  display: flex;
+  gap: 0.375rem;
+  overflow-x: auto;
+  padding: 0 0.25rem 0.625rem;
+  margin: -0.125rem 0 0.375rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.search-book-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.scope-chip--sm {
+  height: 1.875rem;
+  padding: 0 0.75rem;
+  font-size: 0.8125rem;
+  flex-shrink: 0;
+  gap: 0.25rem;
+}
+
+.search-book-chip-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.scope-chip--active .search-book-chip-count {
+  opacity: 0.85;
+}
+
+/* ── 절 카드 상단: 참조 + 우측 액션(복사·즐겨찾기·말씀 카드) ── */
+.search-verse-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.search-verse-actions {
+  display: flex;
+  gap: 0.125rem;
+  /* 카드 패딩 안쪽으로 살짝 당겨 텍스트 우측선과 아이콘 우측선을 맞춘다 */
+  margin: -0.25rem -0.375rem -0.25rem 0;
+}
+
+.search-verse-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ig-secondary-text);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.search-verse-action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.search-verse-action--on {
+  color: var(--brand);
+}
+
+.search-verse-action:active {
+  background: rgba(49, 130, 246, 0.1);
+  color: var(--brand);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search-verse-action:hover {
+    background: rgba(49, 130, 246, 0.1);
+    color: var(--brand);
+  }
+}

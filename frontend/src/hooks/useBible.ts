@@ -52,10 +52,14 @@ export const useBibleSearch = (keyword: string, limit: number = BIBLE_SEARCH_PAG
 }
 
 // 성경 검색 (무한 스크롤) — 키워드 검색만 페이징되고, 책·장 검색은 has_more=false로 한 번에 온다
-export const useBibleSearchInfinite = (keyword: string, testament?: 'OLD' | 'NEW') => {
+export const useBibleSearchInfinite = (
+  keyword: string,
+  testament?: 'OLD' | 'NEW',
+  bookNumber?: number
+) => {
   return useInfiniteQuery({
-    queryKey: ['bible', 'search', 'infinite', keyword, testament ?? 'ALL'],
-    // 구약/신약 범위만 바꿀 때는 키가 바뀌어도 이전 결과를 placeholder로 유지 —
+    queryKey: ['bible', 'search', 'infinite', keyword, testament ?? 'ALL', bookNumber ?? 0],
+    // 구약/신약 범위나 책 칩만 바꿀 때는 키가 바뀌어도 이전 결과를 placeholder로 유지 —
     // 안 그러면 결과 전체가 스피너로 갈렸다가 다시 그려져 깜빡인다.
     // 검색어 자체가 바뀌면 옛 결과를 보여 줄 이유가 없으니(하이라이트도 어긋남) 유지하지 않는다.
     placeholderData: (
@@ -63,7 +67,7 @@ export const useBibleSearchInfinite = (keyword: string, testament?: 'OLD' | 'NEW
       prevQuery: { queryKey: readonly unknown[] } | undefined
     ) => (prevQuery && prevQuery.queryKey[3] === keyword ? prev : undefined),
     queryFn: ({ pageParam }) =>
-      searchBible(keyword, { offset: pageParam, limit: BIBLE_SEARCH_PAGE_SIZE, testament }),
+      searchBible(keyword, { offset: pageParam, limit: BIBLE_SEARCH_PAGE_SIZE, testament, bookNumber }),
     enabled: keyword.trim().length >= 2,
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.has_more) return undefined

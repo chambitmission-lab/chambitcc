@@ -52,6 +52,24 @@ export interface BibleSearchResult {
   is_book_search?: boolean
   book?: BibleSearchBook | null
   books?: BibleSearchBook[] | null
+  /** 절 검색("요 3:16") 시작 절 — 없으면 장 전체 */
+  verse_start?: number | null
+  /** 절 범위 끝("요 3:16-18") — 단일 절이면 null */
+  verse_end?: number | null
+  /** 장 범위 끝("창 1-3") — 단일 장이면 null */
+  chapter_end?: number | null
+  /** 안내 코드 — 프론트가 로케일 문구로 바꾼다 */
+  notice?: 'chapter_out_of_range' | 'verse_out_of_range' | 'chapter_range_clamped' | null
+  chapter_count?: number | null
+  verse_count?: number | null
+  /** 키워드 검색의 책별 매칭 수 (범위 필터 반영, 책 필터 무시) */
+  book_counts?: BookMatchCount[] | null
+}
+
+export interface BookMatchCount {
+  book_number: number
+  book_name_ko: string
+  count: number
 }
 
 // 페이지네이션 장 조회 응답
