@@ -1,0 +1,17 @@
+/* /bible/plans 히어로 배경 삽화 — "통독표에 도장 찍는 양"
+   에셋 생성/후처리는 docs/plan-hero-bg-prompts.md · docs/plan-hero-process.py 참고.
+
+   - 카드 높이는 216px 로 고정이고 폭만 358(모바일)→632→752(PC)로 변한다.
+     cover 는 높이로 스케일이 정해지므로, 모바일에서 그림이 안내 문구를 덮지 않게
+     에셋을 2.2:1 로 만들어 두었다(위쪽은 빈 하늘). 이 비율을 바꾸면 모바일이 깨진다.
+   - 왼쪽 알파 페이드(폭 50%→86%)가 에셋에 구워져 있어 카드 그라데이션이 그대로 비친다.
+     그래서 위에 별도의 워시를 깔지 않는다(카드 그라데이션이 120deg 대각선이라 어긋난다). */
+.plan-hero-art {
+  background-image: url('/images/plans/hero-light.webp');
+  background-size: cover;
+  background-position: right bottom;
+  background-repeat: no-repeat;
+}
+.dark .plan-hero-art {
+  background-image: url('/images/plans/hero-dark.webp');
+}

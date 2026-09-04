@@ -21,6 +21,7 @@ import {
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import PersonalPlanSheet from './components/PersonalPlanSheet'
+import './plan-hero.css'
 import { showToast } from '../../../utils/toast'
 
 const PlanList = () => {
@@ -125,12 +126,15 @@ const PlanList = () => {
           </h1>
         </div>
 
-        {/* Hero — 브랜드 블루 그라데이션(사진 없음). 플랜마다 다른 수채 사진을 깔았더니
-            들어올 때마다 배경이 바뀌는 인상을 줘, 한 톤의 브랜드 캔버스로 고정했다 */}
+        {/* Hero — 브랜드 블루 그라데이션 + 배경 삽화("통독표에 도장 찍는 양").
+            플랜마다 다른 수채 사진을 깔았더니 들어올 때마다 배경이 바뀌는 인상을 줘,
+            한 톤의 브랜드 캔버스로 고정하고 그 위에 라이트/다크 한 장씩만 얹었다 */}
         <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[linear-gradient(120deg,#0b1224_0%,#14306a_58%,#2563eb_125%)] ring-1 ring-white/[0.08] shadow-[0_10px_34px_-12px_rgba(0,0,0,0.55)]">
           {/* 우상단 브랜드 글로우 + 좌하단 잔광 — 사진이 있던 자리를 빛으로 채운다 */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(96,165,250,0.42),transparent_55%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_105%,rgba(49,130,246,0.28),transparent_52%)]" />
+          {/* 삽화는 오른쪽 아래에 붙고 왼쪽은 알파 페이드로 카드 그라데이션에 녹는다 */}
+          <div className="plan-hero-art absolute inset-0" aria-hidden />
 
           <div className="relative z-10">
             <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/65">
