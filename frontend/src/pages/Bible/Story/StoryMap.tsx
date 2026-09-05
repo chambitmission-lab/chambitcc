@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import confetti from 'canvas-confetti'
 import { STORY_ACTS, TOTAL_EPISODES, nextUnread } from './data'
 import { useStoryProgress, hasCelebrated, markCelebrated } from './storyProgress'
+import { StoryGlyph } from './StoryIcons'
 import './Story.css'
 
 /**
@@ -41,7 +42,7 @@ const StoryMap = () => {
           {/* 히어로 — 진행 상태에 따라 3가지 얼굴 */}
           {completed ? (
             <div className="story-hero story-hero--done">
-              <div className="story-hero__emoji">🎉</div>
+              <div className="story-hero__emoji"><StoryGlyph emoji="🎉" size={44} /></div>
               <div className="story-hero__title">완주를 축하합니다!</div>
               <p className="story-hero__text">
                 창조에서 새 창조까지, 성경 전체의 이야기를 끝까지 걸으셨어요. 이제 지도를
@@ -77,9 +78,13 @@ const StoryMap = () => {
                   <span className="material-icons-round text-[18px]">
                     {started ? 'play_arrow' : 'flag'}
                   </span>
-                  {started
-                    ? `이어서 읽기 · ${next.emoji} ${next.title}`
-                    : '1화부터 시작하기'}
+                  {started ? (
+                    <>
+                      이어서 읽기 · <StoryGlyph emoji={next.emoji} size={16} /> {next.title}
+                    </>
+                  ) : (
+                    '1화부터 시작하기'
+                  )}
                 </button>
               )}
               <div className="story-progress">
@@ -132,7 +137,7 @@ const StoryMap = () => {
             return (
               <section key={act.act} id={`story-act-${act.act}`} className="story-act scroll-mt-20">
                 <div className="story-act__head">
-                  <span className="story-act__emoji">{act.emoji}</span>
+                  <span className="story-act__emoji"><StoryGlyph emoji={act.emoji} size={20} /></span>
                   <div className="story-act__titles">
                     <span className="story-act__no">{act.act}막</span>
                     <span className="story-act__title">{act.title}</span>
@@ -162,7 +167,7 @@ const StoryMap = () => {
                         onClick={() => navigate(`/bible/story/${ep.id}`)}
                       >
                         <span className="story-node__dot">
-                          {ep.emoji}
+                          <StoryGlyph emoji={ep.emoji} size={20} />
                           {read && (
                             <span className="story-node__check">
                               <span className="material-icons-round">check</span>
@@ -214,7 +219,7 @@ const StoryMap = () => {
                   }
                   className="flex items-center gap-2 px-1 py-2 rounded-lg text-left hover:bg-[var(--brand-soft)] transition-colors"
                 >
-                  <span className="shrink-0 text-[13px] w-5 text-center">{act.emoji}</span>
+                  <span className="shrink-0 w-5 grid place-items-center text-brand"><StoryGlyph emoji={act.emoji} size={15} /></span>
                   <span className="flex-1 min-w-0 truncate text-[12.5px] font-semibold text-ink-strong">
                     {act.title}
                   </span>

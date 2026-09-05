@@ -7,6 +7,7 @@ import type { StoryVerseRef } from './storyTypes'
 import { ALL_EPISODES, TOTAL_EPISODES, findEpisode } from './data'
 import { GLOSSARY, parseGlossaryText } from './glossary'
 import { useStoryProgress } from './storyProgress'
+import { StoryGlyph } from './StoryIcons'
 import './Story.css'
 import { bibleKeys } from '../../../hooks/queryKeys'
 
@@ -152,7 +153,7 @@ const StoryEpisode = () => {
           {storyImage(episode.id) ? (
             <img className="story-ep__img" src={storyImage(episode.id)} alt="" loading="lazy" />
           ) : (
-            <div className="story-ep__emoji">{episode.emoji}</div>
+            <div className="story-ep__emoji"><StoryGlyph emoji={episode.emoji} size={40} /></div>
           )}
           <div className="story-ep__hook">{episode.hook}</div>
           <h2 className="story-ep__title">{episode.title}</h2>
@@ -222,7 +223,9 @@ const StoryEpisode = () => {
         {/* 다음 화 예고 */}
         {episode.teaser && nextEp && (
           <div className="story-ep__teaser">
-            <span className="story-ep__teaser-label">다음 이야기 · {nextEp.emoji} {nextEp.title}</span>
+            <span className="story-ep__teaser-label">
+              다음 이야기 · <StoryGlyph emoji={nextEp.emoji} size={14} /> {nextEp.title}
+            </span>
             <p className="story-ep__teaser-text">{episode.teaser}</p>
           </div>
         )}
@@ -308,7 +311,7 @@ const StoryEpisode = () => {
                     current ? 'bg-[var(--brand-soft-strong)]' : 'hover:bg-[var(--brand-soft)]'
                   }`}
                 >
-                  <span className="shrink-0 w-5 text-center text-[13px]">{ep.emoji}</span>
+                  <span className="shrink-0 w-5 grid place-items-center text-brand"><StoryGlyph emoji={ep.emoji} size={15} /></span>
                   <span
                     className={`flex-1 min-w-0 truncate text-[12.5px] ${
                       current ? 'font-bold text-brand' : 'font-semibold text-ink-strong'
