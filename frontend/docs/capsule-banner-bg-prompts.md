@@ -86,6 +86,8 @@
   Gemini 워터마크 ✦ 가 떨어지는 자리다. 양을 오른쪽 끝에 딱 붙이면 워터마크가 얼굴에 얹힌다.
 - **위 8% · 아래 8%는 빈 여백.** 카드가 `overflow: hidden` 이라 끝이 잘린다.
 - 캐릭터 머리는 바닥에서 **68%** 를 넘지 않는다(카드가 134px 로 낮다 — 크게 그리면 답답하다).
+- **얼굴은 정면에 가까운 3/4 각도, 두 눈이 다 보이게.** 옆모습으로 그리면 먼 쪽 눈이 주둥이에
+  가려져 어색하다(한 번 겪었다). 다크 새끼양의 나이트캡도 **눈을 덮지 않게 뒤로 젖혀 쓴다.**
 - **말풍선 금지.** 참고 시안의 "과거의 내 센스 믿고 있다구!" 같은 대사는 **CSS/JSX 로 얹는다.**
   Gemini는 한글을 못 쓴다(거의 항상 깨진 글자를 그린다). 그림엔 아예 넣지 않는다.
 - 글자·숫자·로고 금지. **봉투에도 주소·우표 숫자 금지** — 민무늬 봉투 + 별 밀랍 인장만.
@@ -142,9 +144,11 @@ Composition is critical:
 
 Scene: a sheep POSTMAN of time, caught mid-run. The chubby white sheep dashes toward
 the RIGHT on its hind legs, a honey-brown leather satchel bouncing on its side,
-hugging a great armload of plain cream ENVELOPES against its chest, eyes squeezed
-shut with utterly solemn determination, tiny motion lines and two soft dust puffs at
-its hooves.
+hugging a great armload of plain cream ENVELOPES against its chest, tiny motion lines
+and two soft dust puffs at its hooves. Its head is turned toward the viewer in a gentle
+three-quarter-FRONT angle — never a flat side profile — so that BOTH eyes are visible,
+drawn as two matching closed curved lines squeezed shut with utterly solemn
+determination.
 
 The joke: the satchel's flap is wide open and the envelopes are quietly LEAKING OUT
 BEHIND IT in a trailing arc — five or six letters tumbling away, and the sheep has no
@@ -153,8 +157,13 @@ translucent, and the last two dissolve into small soft sparkles of light, as if
 carried off into the sky.
 
 Behind the sheep a tiny lamb chases after it, scooping up one fallen envelope with
-both front hooves, cheeks puffed, thoroughly overwhelmed. A small hourglass with pale
-sand swings from the satchel strap.
+both front hooves, cheeks puffed, thoroughly overwhelmed. The lamb's head is ALSO
+turned toward the viewer at a three-quarter-front angle so that BOTH of its eyes are
+clearly visible — two simple round black dots, the same size, evenly spaced side by
+side on the near side of the muzzle. Never a flat side profile, and never one eye
+hidden behind the snout, the ear or the wool. Its muzzle is a small closed contented
+smile with two soft cheek blushes. A small hourglass with pale sand swings from the
+satchel strap.
 
 ONE envelope is special: the largest one in the sheep's arms is closed with a round
 GOLDEN WAX SEAL stamped with a simple four-pointed star. All the other envelopes are
@@ -203,9 +212,11 @@ Composition is critical:
 
 Scene: a sheep POSTMAN of time, caught mid-run at night. The chubby sheep dashes
 toward the RIGHT on its hind legs, a dark leather satchel bouncing on its side,
-hugging a great armload of ENVELOPES that glow faint cream in the dark, eyes squeezed
-shut with utterly solemn determination, tiny motion lines and two soft dust puffs at
-its hooves.
+hugging a great armload of ENVELOPES that glow faint cream in the dark, tiny motion
+lines and two soft dust puffs at its hooves. Its head is turned toward the viewer in a
+gentle three-quarter-FRONT angle — never a flat side profile — so that BOTH eyes are
+visible, drawn as two matching closed curved lines squeezed shut with utterly solemn
+determination.
 
 The joke: the satchel's flap is wide open and the envelopes are quietly LEAKING OUT
 BEHIND IT in a trailing arc — five or six letters tumbling away, and the sheep has no
@@ -215,9 +226,14 @@ carried off into the night sky.
 
 Behind the sheep a tiny lamb chases after it, scooping up one fallen envelope with
 both front hooves, cheeks puffed, thoroughly overwhelmed, wearing a tiny knitted
-nightcap flopped over one eye. Its muzzle is a simple closed contented smile — nothing
-in its mouth, no tongue, no object touching the face. A small hourglass swings from the
-satchel strap, its sand catching one amber highlight.
+nightcap pushed back high on its head so that it does NOT cover the face. The lamb's
+head is ALSO turned toward the viewer at a three-quarter-front angle so that BOTH of
+its eyes are clearly visible — two simple round black dots, the same size, evenly
+spaced side by side on the near side of the muzzle. Never a flat side profile, and
+never one eye hidden behind the snout, the ear, the wool or the cap. Its muzzle is a
+simple closed contented smile with two soft cheek blushes — nothing in its mouth, no
+tongue, no object touching the face. A small hourglass swings from the satchel strap,
+its sand catching one amber highlight.
 
 ONE envelope is special: the largest one in the sheep's arms is closed with a round
 AMBER WAX SEAL stamped with a simple four-pointed star, and a thin seam of warm light
@@ -310,6 +326,22 @@ Keep the same characters, the same style and the same palette, but redraw the la
 push the entire scene into the RIGHT HALF of the frame and draw the characters as ONE
 tight cluster. The left half must be nothing but the empty gradient. Keep the
 characters small — their heads must not reach higher than 68% up from the bottom edge.
+```
+
+**새끼양 얼굴에 눈이 한쪽만 보일 때** (3/4 측면으로 그리면 먼 쪽 눈이 주둥이에 가려진다)
+
+```
+Keep this image exactly as it is — same composition, same pose, same lighting, same
+colors, same wool texture, same envelope. Change ONE thing only:
+
+Redraw the little lamb's FACE so that BOTH EYES are clearly visible. Turn its head
+slightly more toward the viewer (a gentle three-quarter-front angle, not a side
+profile) and give it two simple round black dot eyes, evenly spaced side by side on
+the near side of the muzzle, both fully visible and the same size — exactly like the
+sheep character in the reference image. Do not hide either eye behind the snout, the
+wool or the ear. Keep the muzzle as a small closed contented smile with two soft cheek
+blushes. The head must stay the SAME size and in the SAME place; the body, legs, hooves
+and everything else in the picture must stay pixel-identical.
 ```
 
 **배경에 별을 잔뜩 뿌렸을 때** (카드 CSS 별과 두 겹이 되어 지저분해진다)
