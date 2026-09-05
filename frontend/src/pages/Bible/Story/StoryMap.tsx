@@ -152,7 +152,10 @@ const StoryMap = () => {
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:w-[680px] lg:max-w-none lg:mx-0 lg:shrink-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden">
         {/* 헤더 */}
-        <div className="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
+        {/* 하단 실선을 두지 않는다 — #root 의 overflow-x:hidden 때문에 sticky 가 실제로는 붙지 않아
+            이 바는 본문과 함께 스크롤되고, 반투명 앱 헤더 밑을 지날 때 실선만 카드 폭만큼 비쳐
+            "중간에 끊긴 선"처럼 보였다. sticky 가 살아나면 헤더 바로 아래(top-14)에 붙는다 */}
+        <div className="sticky top-14 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm lg:rounded-t-3xl">
           <div className="flex items-center gap-3 px-4 h-14">
             <button
               onClick={() => navigate('/bible')}

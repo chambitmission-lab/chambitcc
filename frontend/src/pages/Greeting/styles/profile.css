@@ -88,6 +88,12 @@
 .gr-cred-item {
   position: relative;
   padding-left: 1.45rem;
+  /* 모바일 폭에서 "…편집위원 겸 집필자" 가 "집필 / 자" 처럼 글자 단위로 갈라지던 자리.
+     편지 본문과 같은 규칙 — 어절 단위로만 넘기고, 마지막 줄 외톨이 어절은 pretty 로 줄인다.
+     (text-wrap 은 블록 컨테이너에만 먹으므로 span 이 아닌 li 에 둔다) */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
 }
 
 /* 정거장 점 — 지나온 자리는 빈 원, 현재는 채운 브랜드 점 + 은은한 링 */
