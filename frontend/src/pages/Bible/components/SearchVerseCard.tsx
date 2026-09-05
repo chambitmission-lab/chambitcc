@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
-import { bookmarkKeys, useUpsertBookmark } from '../../../hooks/useBibleBookmark'
+import { bookmarkKeys, useDeleteBookmark, useUpsertBookmark } from '../../../hooks/useBibleBookmark'
 import { getBookmark } from '../../../api/bibleBookmark'
 import type { BibleVerse } from '../../../types/bible'
 import { HeartIcon, VerseCardIcon } from '../../../components/icons/ActionIcons'
@@ -42,7 +42,10 @@ const CopyIcon = ({ size = 16 }: { size?: number }) => (
  * 검색 결과의 절 카드 — 카드 전체는 그 절로 이동, 우측 액션은 이동 없이 바로 처리.
  * - 복사: 읽기 화면과 같은 포맷터(출처·딥링크 설정 공유)
  * - 즐겨찾기: 누를 때 기존 북마크를 한 번 읽어 메모·형광펜을 지우지 않고 is_favorite만 토글
- *   (카드마다 미리 조회하면 페이지당 30건의 N+1이라 눌렀을 때만 읽는다)
+ *   (카드마다 미리 조회하면 페이지당 30건의 N+1이라 눌렀을 때만 읽는다).
+ *   해제는 PUT이 아니라 DELETE ?target=favorite — 색·메모·즐겨찾기가 전부 빈 PUT은
+ *   서버가 400으로 거부하므로(빈 북마크 금지), 필드 삭제로 보내면 서버가 남은 표시가
+ *   없을 때 행까지 정리해 준다
  * - 말씀 카드: 사진 위에 이 절을 얹는 화면으로 절을 미리 채워 진입
  */
 const SearchVerseCard = ({ verse, bookNumber, bookNameKo, children, onOpen }: SearchVerseCardProps) => {
@@ -51,6 +54,7 @@ const SearchVerseCard = ({ verse, bookNumber, bookNameKo, children, onOpen }: Se
   const queryClient = useQueryClient()
   const { isLoggedIn } = useAuth()
   const upsert = useUpsertBookmark(verse.id)
+  const del = useDeleteBookmark(verse.id)
   // null = 아직 모름(조회 전). 누른 뒤에는 서버 상태를 그대로 따른다
   const [favorite, setFavorite] = useState<boolean | null>(null)
   const [busy, setBusy] = useState(false)
@@ -109,11 +113,15 @@ const SearchVerseCard = ({ verse, bookNumber, bookNameKo, children, onOpen }: Se
         staleTime: 60 * 1000,
       })
       const next = !(favorite ?? existing?.is_favorite ?? false)
-      await upsert.mutateAsync({
-        highlight_color: existing?.highlight_color ?? null,
-        note: existing?.note ?? null,
-        is_favorite: next,
-      })
+      if (next) {
+        await upsert.mutateAsync({
+          highlight_color: existing?.highlight_color ?? null,
+          note: existing?.note ?? null,
+          is_favorite: true,
+        })
+      } else {
+        await del.mutateAsync('favorite')
+      }
       setFavorite(next)
       showToast(next ? t.favAdded(refLabel) : t.favRemoved(refLabel), 'success')
     } catch {
