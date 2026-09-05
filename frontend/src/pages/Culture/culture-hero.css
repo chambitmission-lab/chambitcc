@@ -1,0 +1,40 @@
+/* 문화교실 타이틀 밴드 삽화 — /culture 최상단 (CULTURE CLASS · 문화교실 · 안내 한 줄)
+ *
+ * 소식 히어로(news-hero.css)·홈 타임캡슐 배너와 같은 문법이다. 밴드 폭이 모바일 390 →
+ * PC 약 864 로 두 배 넘게 변하는데 높이는 그대로라 `cover` 를 쓰면 양들이 가로로 잘린다.
+ * → **높이맞춤(auto 100%) + 오른쪽 정렬**. 어느 폭에서나 삽화 크기가 같고,
+ *   이미지 오른쪽 끝 = 밴드 오른쪽 끝이 된다.
+ *
+ * 에셋(docs/culture-hero-bg-prompts.md · docs/culture-hero-process.py)에는 알파 페이드를
+ * 왼쪽·위·아래 세 방향으로 구워 두었다. 여기는 카드가 아니라 페이지 최상단 띠라
+ * 이미지 배경색이 그대로 남으면 앱 캔버스(#f1f3f6 / #131313)와의 이음매가 가로줄로 보인다.
+ * **삽화를 다시 뽑으면 그 페이드도 다시 구울 것.**
+ *
+ * min-height 는 삽화 크기를 정하는 값이다(높이맞춤이므로). 안내 문구가 모바일에서 두 줄,
+ * PC 에서 한 줄이라 밴드 높이가 갈리는데, 8rem 으로 묶어 두 곳의 양 크기를 같게 맞췄다.
+ */
+.culture-hero {
+  min-height: 8rem;
+  background-image: url('/images/culture/hero-light.webp');
+  background-size: auto 100%;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+
+.dark .culture-hero {
+  background-image: url('/images/culture/hero-dark.webp');
+}
+
+/* PC(lg+) — 본문 열이 390 → 864 로 넓어지는데 삽화는 높이맞춤이라 그대로 213px 이다.
+ * 오른쪽이 휑해 보이므로 **밴드를 키워 삽화를 키운다**(배율을 키우면 위아래가 잘리는데,
+ * 다크는 y≈8.5% 에 스탠드 갓이 있어 잘라선 안 된다). 13rem → 삽화 폭 약 345px.
+ * 늘어난 높이만큼 생기는 여백은 글 묶음을 세로 가운데로 보내 삽화와 축을 맞춘다.
+ * (미디어쿼리는 특이도가 같아 기본 규칙 뒤에 두어야 먹는다) */
+@media (min-width: 1024px) {
+  .culture-hero {
+    min-height: 13rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}

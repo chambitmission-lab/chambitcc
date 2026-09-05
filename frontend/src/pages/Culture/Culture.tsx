@@ -31,6 +31,7 @@ import {
   EmptyMailIcon,
 } from './CultureIcons'
 import { confirmDialog } from '../../utils/confirmDialog'
+import './culture-hero.css'
 
 type SectionKey = 'classes' | 'lookup' | 'notice' | 'contact'
 
@@ -271,6 +272,24 @@ const Culture = () => {
   const [openNoticeId, setOpenNoticeId] = useState<number | null>(null)
   const [guideOpen, setGuideOpen] = useState(false)
 
+  // 브라우저는 지금 매칭되는 삽화 한 장만 받는다(.culture-hero / .dark .culture-hero).
+  // 테마를 토글하는 순간 반대 테마 파일을 맨땅에서 받기 시작해 밴드가 빈 채로 남으므로,
+  // 현재 테마가 그려진 뒤 유휴 시간에 반대 테마도 데워 둔다 (TimeCapsuleCard 와 같은 이유)
+  useEffect(() => {
+    const dark = document.documentElement.classList.contains('dark')
+    const warm = () => {
+      const img = new Image()
+      img.decoding = 'async'
+      img.src = `/images/culture/hero-${dark ? 'light' : 'dark'}.webp`
+    }
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(warm, { timeout: 5000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = window.setTimeout(warm, 2500)
+    return () => window.clearTimeout(id)
+  }, [])
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -370,15 +389,16 @@ const Culture = () => {
       {/* lg+: 좁은 셸을 풀고 본문 + 우측 위젯 레일 2단 (/news·/sermon 등과 같은 규격) */}
       <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen pb-20 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
-        {/* 헤더 */}
-        <header className="px-4 pt-5 pb-3">
+        {/* 헤더 — 오른쪽에 삽화(culture-hero.css)를 높이맞춤으로 깐다.
+            안내 문구는 모바일에서 삽화 위를 지나가므로 폭을 묶어 두 줄로 접는다. */}
+        <header className="culture-hero px-4 pt-5 pb-3">
           <p className="text-brand text-[11.5px] font-bold tracking-[0.12em] uppercase mb-1.5">
             CULTURE CLASS
           </p>
           <h1 className="text-ink-strong text-[26px] font-bold leading-none tracking-[-0.02em]">
             문화교실
           </h1>
-          <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2">
+          <p className="text-gray-500 dark:text-white/55 text-[13px] mt-2 max-w-[62%] lg:max-w-none">
             아름다운 배움과 즐거운 만남이 있는 참빛 문화교실입니다
           </p>
         </header>

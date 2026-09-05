@@ -1,25 +1,23 @@
 /* 홈 타임캡슐 히어로 카드 — 시간을 건너는 편지.
    카드의 정체성은 '밤'이 아니라 '시간(하늘)'이다:
-     다크 = 밤하늘에 봉인된 편지 (아래 기본값)
-     라이트 = 아침 하늘에 도착하는 편지 (파일 끝 html:not(.dark) 블록, /mission 방식)
-   사진 대신 플랫 그라데이션 — 홈의 토스식 플랫 문법과 결을 맞추고,
-   아래쪽 앰버 글로우(--worship-sky-night의 촛불빛 문법)로 금색 봉투와 잇는다. */
+     다크 = 밤하늘을 달리는 편지 배달부 (아래 기본값)
+     라이트 = 아침 하늘을 달리는 편지 배달부 (파일 끝 html:not(.dark) 블록, /mission 방식)
+   오른쪽에는 삽화(public/images/capsule/home-banner-{light,dark}.webp)를 높이맞춤으로 얹는다.
+   ★ 카드 그라데이션은 삽화의 배경색에서 역산한 값이다. 삽화를 다시 뽑으면
+     docs/capsule-banner-bg-prompts.md 의 "적용 상태" 절대로 두 색을 다시 맞출 것 —
+     여기가 어긋나면 알파 페이드 구간에 세로 띠가 보인다. */
 
 .tc-card {
   position: relative;
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 12px;
   text-align: left;
   padding: 20px 16px 19px 18px;
-  min-height: 116px;
+  min-height: 124px;
   border-radius: 20px;
   overflow: hidden;
-  background:
-    radial-gradient(95% 75% at 78% 115%, rgba(251, 191, 36, 0.2), rgba(251, 176, 66, 0.06) 45%, transparent 68%),
-    radial-gradient(120% 140% at 85% -20%, rgba(120, 140, 235, 0.18), transparent 55%),
-    linear-gradient(168deg, #101a36 0%, #182347 54%, #2b2a52 100%);
+  background: linear-gradient(165deg, #101932 0%, #171e40 55%, #1f2248 100%);
   border: 1px solid rgba(165, 175, 235, 0.16);
   box-shadow: 0 14px 34px -16px rgba(25, 35, 95, 0.55);
   transition: transform 0.15s ease;
@@ -31,7 +29,8 @@
 
 /* 은하수 — 카드를 비스듬히 가로지르는 옅은 빛의 강.
    회전한 오버사이즈 레이어에 부드러운 밴드 + 성운 덩어리 + 잔별 무리(별가루)를
-   얹어 "별빛이 하늘에 퍼져 있는" 인상을 만든다. 아주 느리게 숨 쉰다. */
+   얹어 "별빛이 하늘에 퍼져 있는" 인상을 만든다. 아주 느리게 숨 쉰다.
+   삽화가 오른쪽을 덮으므로 실제로 보이는 건 카드 왼쪽 절반이다. */
 .tc-card__milkyway {
   position: absolute;
   inset: -35% -12%;
@@ -75,7 +74,7 @@
 /* 별 — 사진이 사라진 자리를 채우는 유일한 하늘 질감.
    세 겹(상시 베이스 + 어긋난 박자로 깜빡이는 두 겹)으로 나눠서
    레이어 전체가 통째로 꺼지지 않고, 언제나 어떤 별은 빛나고 어떤 별은
-   숨을 고르는 실제 밤하늘의 호흡을 만든다. 밝은 별 두엇엔 광륜을 얹는다. */
+   숨을 고르는 실제 밤하늘의 호흡을 만든다. */
 .tc-card__stars {
   position: absolute;
   inset: 0;
@@ -83,30 +82,31 @@
   /* 상시 켜져 있는 잔별 베이스 — 깜빡임의 바닥 밝기 */
   background-image:
     radial-gradient(1px 1px at 44% 78%, rgba(255, 255, 255, 0.5), transparent),
-    radial-gradient(1px 1px at 93% 14%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 33% 14%, rgba(255, 255, 255, 0.55), transparent),
     radial-gradient(1px 1px at 12% 76%, rgba(255, 236, 190, 0.45), transparent),
     radial-gradient(1px 1px at 35% 22%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(1px 1px at 64% 55%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 24% 55%, rgba(255, 255, 255, 0.35), transparent),
     radial-gradient(1px 1px at 8% 30%, rgba(255, 255, 255, 0.4), transparent);
 }
 
 /* 흰 별 겹 — 밝은 별은 둥근 광륜 대신 십자 광선(가늘고 긴 타원 그라데이션)으로.
-   위아래·좌우로 뻗는 빛줄기 + 밝은 심 + 아주 작은 글로우 = 베들레헴의 별 문법 */
+   위아래·좌우로 뻗는 빛줄기 + 밝은 심 + 아주 작은 글로우 = 베들레헴의 별 문법.
+   좌표는 전부 카드 왼쪽(삽화에 안 가리는 구역)으로 모아 두었다. */
 .tc-card__stars::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    /* 큰 별 (71% 24%) — 4방 광선 */
-    radial-gradient(1px 12px at 71% 24%, rgba(240, 246, 255, 0.95), transparent),
-    radial-gradient(12px 1px at 71% 24%, rgba(240, 246, 255, 0.9), transparent),
-    radial-gradient(3.5px 3.5px at 71% 24%, rgba(215, 228, 255, 0.5), transparent),
-    radial-gradient(1.7px 1.7px at 71% 24%, #ffffff, transparent),
-    /* 중간 별 (22% 40%) — 짧은 십자 */
-    radial-gradient(0.9px 6.5px at 22% 40%, rgba(255, 255, 255, 0.85), transparent),
-    radial-gradient(6.5px 0.9px at 22% 40%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1.4px 1.4px at 22% 40%, #ffffff, transparent),
-    radial-gradient(1.2px 1.2px at 48% 12%, rgba(255, 255, 255, 0.85), transparent);
+    /* 큰 별 (31% 24%) — 4방 광선 */
+    radial-gradient(1px 12px at 31% 24%, rgba(240, 246, 255, 0.95), transparent),
+    radial-gradient(12px 1px at 31% 24%, rgba(240, 246, 255, 0.9), transparent),
+    radial-gradient(3.5px 3.5px at 31% 24%, rgba(215, 228, 255, 0.5), transparent),
+    radial-gradient(1.7px 1.7px at 31% 24%, #ffffff, transparent),
+    /* 중간 별 (14% 46%) — 짧은 십자 */
+    radial-gradient(0.9px 6.5px at 14% 46%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(6.5px 0.9px at 14% 46%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1.4px 1.4px at 14% 46%, #ffffff, transparent),
+    radial-gradient(1.2px 1.2px at 42% 12%, rgba(255, 255, 255, 0.85), transparent);
   animation: tc-twinkle 3.2s ease-in-out infinite alternate;
 }
 
@@ -116,14 +116,14 @@
   position: absolute;
   inset: 0;
   background-image:
-    /* 금빛 별 (56% 16%) — 십자 광선 */
-    radial-gradient(1px 8.5px at 56% 16%, rgba(255, 233, 175, 0.95), transparent),
-    radial-gradient(8.5px 1px at 56% 16%, rgba(255, 233, 175, 0.9), transparent),
-    radial-gradient(3.2px 3.2px at 56% 16%, rgba(253, 224, 150, 0.45), transparent),
-    radial-gradient(1.7px 1.7px at 56% 16%, rgba(255, 244, 214, 1), transparent),
-    radial-gradient(1.3px 1.3px at 82% 62%, rgba(253, 224, 150, 0.9), transparent),
-    radial-gradient(1.2px 1.2px at 30% 60%, rgba(255, 244, 214, 0.7), transparent),
-    radial-gradient(1.1px 1.1px at 88% 40%, rgba(255, 255, 255, 0.75), transparent);
+    /* 금빛 별 (22% 16%) — 십자 광선 */
+    radial-gradient(1px 8.5px at 22% 16%, rgba(255, 233, 175, 0.95), transparent),
+    radial-gradient(8.5px 1px at 22% 16%, rgba(255, 233, 175, 0.9), transparent),
+    radial-gradient(3.2px 3.2px at 22% 16%, rgba(253, 224, 150, 0.45), transparent),
+    radial-gradient(1.7px 1.7px at 22% 16%, rgba(255, 244, 214, 1), transparent),
+    radial-gradient(1.3px 1.3px at 9% 62%, rgba(253, 224, 150, 0.9), transparent),
+    radial-gradient(1.2px 1.2px at 38% 60%, rgba(255, 244, 214, 0.7), transparent),
+    radial-gradient(1.1px 1.1px at 46% 40%, rgba(255, 255, 255, 0.75), transparent);
   animation: tc-twinkle 4.4s ease-in-out infinite alternate-reverse;
 }
 
@@ -137,12 +137,11 @@
 }
 
 /* 별똥별 — 9초에 한 번, 0.6초쯤 하늘 위쪽을 스치고 사라진다.
-   머리(왼쪽 끝)가 밝고 꼬리가 옅어지는 빛줄기 하나가 좌하단으로 떨어진다.
-   자주 나오면 장식이 아니라 소음이라, "어쩌다 마주치는" 빈도로 둔다 */
+   출발점이 카드 오른쪽이면 삽화 뒤에 가려 안 보인다 → 왼쪽 절반에서 출발한다 */
 .tc-card__meteor {
   position: absolute;
   top: 16%;
-  left: 72%;
+  left: 44%;
   width: 62px;
   height: 1.4px;
   border-radius: 999px;
@@ -182,12 +181,35 @@
   }
   6.5% {
     opacity: 0;
-    transform: translate3d(-130px, 84px, 0) rotate(-33deg);
+    transform: translate3d(-108px, 70px, 0) rotate(-33deg);
   }
   100% {
     opacity: 0;
-    transform: translate3d(-130px, 84px, 0) rotate(-33deg);
+    transform: translate3d(-108px, 70px, 0) rotate(-33deg);
   }
+}
+
+/* ── 삽화 — 편지를 흘리며 달리는 배달부 양 ──
+   `cover` 금지. 카드 가로는 358~448 사이에서 변하는데 높이는 거의 고정이라,
+   cover 를 쓰면 PC 에서 그림만 확대된다. 높이맞춤 + 오른쪽 정렬이면
+   "이미지의 오른쪽 끝 = 카드의 오른쪽 끝"이 어느 폭에서나 성립한다.
+   에셋 오른쪽 끝 14%는 빈 하늘로 늘려 두었다 — 거기 화살표 버튼이 앉는다. */
+.tc-card__art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url('/images/capsule/home-banner-dark.webp');
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  /* ★ 배율은 카드 '폭'으로 잡는다. 높이 기준(auto 100%)이면 PC 에서 되먹임이 돈다 —
+     피드 칼럼(lg:max-w-[480px])은 flex 아이템이라 좌측 레일이 펼쳐지면 480px 아래로
+     줄어드는데, 삽화는 높이로만 정해져 그대로 220px 를 차지한다 → 글자 자리가 120px 로
+     쪼그라들어 문구가 접히고 → 카드가 자라고 → 삽화가 더 커진다.
+     220px = 카드 높이 134px 를 꽉 채우는 삽화 폭. 135% − 265px 는 아래 padding-right 의 짝이라
+     둘 중 하나만 바꾸면 안 된다 (삽화 폭의 74% 지점부터 진한 그림이 시작한다). */
+  background-size: auto 100%; /* clamp() 를 못 읽는 브라우저용 폴백 — 아래 줄이 무효면
+                                이 값이 남는다(빼면 auto auto 로 떨어져 삽화가 원본 크기로 커진다) */
+  background-size: clamp(0px, calc(135% - 265px), 220px) auto;
 }
 
 .tc-card__body {
@@ -196,16 +218,22 @@
   flex: 1;
   min-width: 0;
   display: block;
+  /* 삽화의 진한 그림이 시작되는 자리를 비워 둔다. 페이드 구간까지는 하늘뿐이라
+     글자가 조금 걸쳐도 된다. 카드가 좁아지면 삽화와 함께 여백도 같이 줄어,
+     글자 폭이 어느 칼럼에서나 178px 아래로는 안 내려간다(= 상태 문구 한 줄의 실측 폭 170px).
+     % 는 카드 콘텐츠 박스(폭 − 좌우 패딩 34px) 기준이다 */
+  padding-right: 162px; /* 위와 같은 이유의 폴백 */
+  padding-right: clamp(0px, calc(100% - 162px), 163px);
 }
 
 /* 아이브로우 — 영문 대문자 자간 라벨은 광고 배너 문법이라 한글 소자로.
-   금빛 톤은 봉투·앰버 글로우와 같은 감성 액센트 언어 */
+   본문 위계에서 한 단 내려앉은 차가운 회색: 강조는 제목과 D-day 칩이 맡는다 */
 .tc-card__label {
   display: block;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: rgba(250, 222, 168, 0.88);
+  color: rgba(163, 180, 216, 0.85);
 }
 
 .tc-card__title {
@@ -219,10 +247,21 @@
   word-break: keep-all;
 }
 
+/* 제목 둘째 줄의 액센트 — 카드에서 유일하게 브랜드색이 크게 쓰이는 자리 */
+.tc-card__title em {
+  font-style: normal;
+  color: #93b8ff;
+}
+
 .tc-card__status {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
+  row-gap: 2px;
+  /* 폭이 모자라도 항목(문구·D-day 칩) 안에서는 쪼개지지 않게 — 이게 없으면
+     좁은 칼럼에서 "다음 / 개봉까지", "D- / 111" 처럼 낱글자로 끊긴다 */
+  white-space: nowrap;
   margin-top: 9px;
   font-size: 11.5px;
   line-height: 1.6;
@@ -235,14 +274,27 @@
   font-weight: 600;
 }
 
-.tc-card__status--sealed strong {
-  font-weight: 800;
-  color: #c3d4ff;
-}
-
 .tc-card__status--arrived {
   color: #ffd479;
   font-weight: 700;
+}
+
+/* D-day 칩 — 숫자가 문장에 묻히지 않게 알약으로 떼어 낸다 */
+.tc-card__dday {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: #c3d8ff;
+  background: rgba(69, 147, 252, 0.2);
+  border: 1px solid rgba(120, 168, 255, 0.28);
+}
+
+.tc-card__when {
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
 }
 
 .tc-card__pulse {
@@ -267,85 +319,40 @@
   }
 }
 
-/* ── 우측 비주얼: 빛으로 그린 봉투 선화 ── */
-
-.tc-card__visual {
-  position: relative;
-  z-index: 1;
-  flex-shrink: 0;
-  padding-right: 6px;
-}
-
-/* 봉투 뒤 달무리 — 밤하늘에 떠 있는 오브젝트라는 공간감을 주는 은은한 후광 */
-.tc-card__visual::before {
-  content: '';
+/* ── 우측 진입 버튼 ──
+   카드 전체가 버튼이지만, 삽화가 오른쪽을 채우면 "탭할 수 있다"는 신호가 약해진다.
+   삽화 오른쪽에 일부러 비워 둔 빈 하늘 위에 브랜드색 원형 화살표를 앉힌다. */
+.tc-card__go {
   position: absolute;
-  inset: -16px -12px -16px -14px;
-  background: radial-gradient(50% 50% at 50% 48%, rgba(255, 214, 145, 0.16), transparent 72%);
-  pointer-events: none;
+  z-index: 1;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: #3182f6;
+  box-shadow: 0 6px 14px -6px rgba(49, 130, 246, 0.9);
+  transition: transform 0.15s ease;
 }
 
-.tc-env {
-  display: block;
-  width: 44px;
-  height: 32px;
-  transform: rotate(-4deg);
-  filter: drop-shadow(0 0 7px rgba(255, 214, 145, 0.4));
-  animation: tc-env-float 4.6s ease-in-out infinite;
+.tc-card__go svg {
+  width: 15px;
+  height: 15px;
 }
 
-@keyframes tc-env-float {
-  0%,
-  100% {
-    transform: rotate(-4deg) translateY(0);
-  }
-  50% {
-    transform: rotate(-2.5deg) translateY(-3px);
-  }
-}
-
-/* 선은 아래쪽 앰버 글로우·금빛 별과 같은 톤 */
-.tc-env__stroke {
-  stroke: rgba(250, 226, 178, 0.9);
-  /* 봉투를 44px로 줄이면서 선이 얇아 보이므로 축소 비율만큼 굵기 보정 */
-  stroke-width: 2.15;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
-}
-
-/* 종이 질감 — 옅은 크림빛 그라데이션 채움. 외곽선 아이콘이 아니라 실물감 */
-.tc-env__panel {
-  fill: url(#tc-env-paper);
-}
-
-/* 플랩 틈으로 새어 나오는 빛 — 봉인 안의 빛. 블러 필터로 번진다 */
-.tc-env__leak {
-  stroke: rgba(255, 238, 195, 0.6);
-  stroke-width: 2.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
-}
-
-/* 밀랍 인장 자리 — 궤적 끝의 빛 한 점 */
-.tc-env__seal {
-  fill: rgba(255, 219, 160, 0.95);
-  stroke: none;
-}
-
-/* 인장에 새긴 별 도장 — 밀랍에 눌린 4각 별, 어두운 금색 */
-.tc-env__seal-star {
-  fill: rgba(92, 62, 18, 0.58);
-  stroke: none;
+.tc-card:active .tc-card__go {
+  transform: translateY(-50%) scale(0.92);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tc-card__milkyway,
   .tc-card__stars::before,
   .tc-card__stars::after,
-  .tc-card__pulse,
-  .tc-env {
+  .tc-card__pulse {
     animation: none;
   }
 
@@ -356,22 +363,20 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   라이트 테마 — 아침 하늘에 도착하는 편지.
-   라이트는 대부분 낮에 보므로 인디고 밤하늘 대신 연한 하늘빛→크림 그라데이션,
-   우하단 앰버 글로우는 '촛불'이 아니라 '햇살'로 같은 자리에서 재해석한다.
+   라이트 테마 — 아침 하늘을 달리는 편지 배달부.
+   라이트는 대부분 낮에 보므로 인디고 밤하늘 대신 옅은 하늘빛 그라데이션,
    별은 아침 햇살이 렌즈에 맺힌 보케·광선으로, 은하수는 비스듬한 햇살 한 줄기로,
    별똥별은 고요한 아침에 맞지 않아 띄우지 않는다. 다크 값은 한 픽셀도 건드리지 않는다.
    ═══════════════════════════════════════════════════════════════ */
 
 html:not(.dark) .tc-card {
-  background:
-    /* 햇살 글로우 — 다크의 앰버 촛불빛과 같은 자리 */
-    radial-gradient(95% 75% at 78% 115%, rgba(255, 196, 92, 0.34), rgba(255, 210, 120, 0.1) 45%, transparent 68%),
-    /* 위쪽 하늘의 푸른 기운 */
-    radial-gradient(120% 140% at 85% -20%, rgba(147, 197, 253, 0.34), transparent 55%),
-    linear-gradient(168deg, #e6f1ff 0%, #f3f8ff 52%, #fff5e4 100%);
-  border: 1px solid rgba(49, 130, 246, 0.14);
-  box-shadow: 0 14px 30px -18px rgba(49, 110, 220, 0.28);
+  background: linear-gradient(165deg, #cfe2f5 0%, #d9e6f4 55%, #e3ebf4 100%);
+  border: 1px solid rgba(49, 130, 246, 0.16);
+  box-shadow: 0 14px 30px -18px rgba(49, 110, 220, 0.3);
+}
+
+html:not(.dark) .tc-card__art {
+  background-image: url('/images/capsule/home-banner-light.webp');
 }
 
 /* 은하수 → 햇살 한 줄기: 각도·호흡은 그대로, 빛만 따뜻하게 */
@@ -394,36 +399,36 @@ html:not(.dark) .tc-card__milkyway {
 html:not(.dark) .tc-card__stars {
   background-image:
     radial-gradient(3px 3px at 44% 78%, rgba(255, 214, 140, 0.32), transparent),
-    radial-gradient(2.5px 2.5px at 93% 14%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(2.5px 2.5px at 33% 14%, rgba(255, 255, 255, 0.85), transparent),
     radial-gradient(3px 3px at 12% 76%, rgba(255, 220, 150, 0.3), transparent),
     radial-gradient(2.5px 2.5px at 35% 22%, rgba(147, 197, 253, 0.4), transparent),
-    radial-gradient(2px 2px at 64% 55%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(2px 2px at 24% 55%, rgba(255, 255, 255, 0.7), transparent),
     radial-gradient(2.5px 2.5px at 8% 30%, rgba(147, 197, 253, 0.35), transparent);
 }
 
 /* 흰 별의 십자 광선 → 따뜻한 햇살 광선(렌즈 플레어) */
 html:not(.dark) .tc-card__stars::before {
   background-image:
-    radial-gradient(1px 14px at 71% 24%, rgba(255, 196, 110, 0.55), transparent),
-    radial-gradient(14px 1px at 71% 24%, rgba(255, 196, 110, 0.5), transparent),
-    radial-gradient(7px 7px at 71% 24%, rgba(255, 224, 160, 0.45), transparent),
-    radial-gradient(2px 2px at 71% 24%, rgba(255, 255, 255, 1), transparent),
-    radial-gradient(0.9px 7px at 22% 40%, rgba(255, 210, 140, 0.5), transparent),
-    radial-gradient(7px 0.9px at 22% 40%, rgba(255, 210, 140, 0.45), transparent),
-    radial-gradient(2px 2px at 22% 40%, rgba(255, 255, 255, 0.95), transparent),
-    radial-gradient(2.5px 2.5px at 48% 12%, rgba(255, 255, 255, 0.9), transparent);
+    radial-gradient(1px 14px at 31% 24%, rgba(255, 196, 110, 0.55), transparent),
+    radial-gradient(14px 1px at 31% 24%, rgba(255, 196, 110, 0.5), transparent),
+    radial-gradient(7px 7px at 31% 24%, rgba(255, 224, 160, 0.45), transparent),
+    radial-gradient(2px 2px at 31% 24%, rgba(255, 255, 255, 1), transparent),
+    radial-gradient(0.9px 7px at 14% 46%, rgba(255, 210, 140, 0.5), transparent),
+    radial-gradient(7px 0.9px at 14% 46%, rgba(255, 210, 140, 0.45), transparent),
+    radial-gradient(2px 2px at 14% 46%, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(2.5px 2.5px at 42% 12%, rgba(255, 255, 255, 0.9), transparent);
 }
 
 /* 금빛 별 겹 → 하늘빛 보케 (푸른 아침 공기) */
 html:not(.dark) .tc-card__stars::after {
   background-image:
-    radial-gradient(1px 9px at 56% 16%, rgba(255, 200, 120, 0.45), transparent),
-    radial-gradient(9px 1px at 56% 16%, rgba(255, 200, 120, 0.4), transparent),
-    radial-gradient(6px 6px at 56% 16%, rgba(255, 228, 170, 0.4), transparent),
-    radial-gradient(1.8px 1.8px at 56% 16%, rgba(255, 255, 255, 1), transparent),
-    radial-gradient(3px 3px at 82% 62%, rgba(147, 197, 253, 0.4), transparent),
-    radial-gradient(2.5px 2.5px at 30% 60%, rgba(255, 224, 160, 0.4), transparent),
-    radial-gradient(2.5px 2.5px at 88% 40%, rgba(255, 255, 255, 0.85), transparent);
+    radial-gradient(1px 9px at 22% 16%, rgba(255, 200, 120, 0.45), transparent),
+    radial-gradient(9px 1px at 22% 16%, rgba(255, 200, 120, 0.4), transparent),
+    radial-gradient(6px 6px at 22% 16%, rgba(255, 228, 170, 0.4), transparent),
+    radial-gradient(1.8px 1.8px at 22% 16%, rgba(255, 255, 255, 1), transparent),
+    radial-gradient(3px 3px at 9% 62%, rgba(147, 197, 253, 0.4), transparent),
+    radial-gradient(2.5px 2.5px at 38% 60%, rgba(255, 224, 160, 0.4), transparent),
+    radial-gradient(2.5px 2.5px at 46% 40%, rgba(255, 255, 255, 0.85), transparent);
 }
 
 /* 별똥별은 밤의 사건 — 아침엔 띄우지 않는다 */
@@ -433,11 +438,15 @@ html:not(.dark) .tc-card__meteor {
 
 /* 타이포 — 흰 글씨 계열이 하나도 남지 않게 */
 html:not(.dark) .tc-card__label {
-  color: #b07a1c;
+  color: #6b86ad;
 }
 
 html:not(.dark) .tc-card__title {
   color: #1a2a4a;
+}
+
+html:not(.dark) .tc-card__title em {
+  color: #2563eb;
 }
 
 html:not(.dark) .tc-card__status {
@@ -445,47 +454,24 @@ html:not(.dark) .tc-card__status {
 }
 
 html:not(.dark) .tc-card__status--sealed {
-  color: #2f6fd6;
-}
-
-html:not(.dark) .tc-card__status--sealed strong {
-  color: #3182f6;
+  color: #3a5a86;
 }
 
 html:not(.dark) .tc-card__status--arrived {
   color: #b45309;
 }
 
+html:not(.dark) .tc-card__dday {
+  color: #1d5fd0;
+  background: rgba(49, 130, 246, 0.13);
+  border-color: rgba(49, 130, 246, 0.22);
+}
+
+html:not(.dark) .tc-card__when {
+  color: #5b6b85;
+}
+
 html:not(.dark) .tc-card__pulse {
   background: #f59e0b;
   box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
-}
-
-/* 봉투 — 발광체가 아니라 아침 빛을 받는 실물 종이 봉투 */
-html:not(.dark) .tc-card__visual::before {
-  background: radial-gradient(50% 50% at 50% 48%, rgba(255, 214, 140, 0.4), transparent 72%);
-}
-
-html:not(.dark) .tc-env {
-  filter: drop-shadow(0 4px 8px rgba(180, 130, 40, 0.28));
-}
-
-html:not(.dark) .tc-env__stroke {
-  stroke: #c9962e;
-}
-
-html:not(.dark) .tc-env__panel {
-  fill: #fff8e8;
-}
-
-html:not(.dark) .tc-env__leak {
-  stroke: rgba(255, 200, 100, 0.85);
-}
-
-html:not(.dark) .tc-env__seal {
-  fill: #e4a83a;
-}
-
-html:not(.dark) .tc-env__seal-star {
-  fill: rgba(92, 62, 18, 0.7);
 }
