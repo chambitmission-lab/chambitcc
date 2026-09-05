@@ -1,25 +1,14 @@
 import { Lock } from '../../components/icons/phosphor'
 // 우리반 알림장 홈 (/classes/:classId)
 // 반 정보 · 초대 공유 · 유형 필터 · 알림 피드 (확인체크/암송/RSVP/댓글)
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useClassDetail, useClassPosts, useLeaveClass } from '../../hooks/useClassRoom'
-import type { ClassPost, ClassPostType } from '../../types/classRoom'
+import type { ClassDetail, ClassPost, ClassPostType } from '../../types/classRoom'
 import { isAuthenticated } from '../../utils/auth'
 import { classInviteUrl } from '../../utils/inviteLink'
 import { showToast } from '../../utils/toast'
-import ClassCommentSheet from './components/ClassCommentSheet'
-import ClassComposerSheet from './components/ClassComposerSheet'
 import ClassPostCard from './components/ClassPostCard'
-import {
-  CheckStatusSheet,
-  GrowthSheet,
-  MembersSheet,
-  PollDetailSheet,
-  RecitationSheet,
-  RsvpDetailSheet,
-  StarsSheet,
-} from './components/ClassStatusSheets'
 import { Avatar, DeptBadge, Shell } from './classUi'
 import {
   BallotIcon,
@@ -37,6 +26,51 @@ import {
   type IconFn,
 } from './ClassIcons'
 import { confirmDialog } from '../../utils/confirmDialog'
+
+// 시트들은 열기 전엔 한 줄도 쓰이지 않는데, 정적 import면 첫 진입에 같이 받는다.
+// (작성 시트가 DatePicker·TimePicker·useBible·imageResize를, 상태 시트가
+//  MemberSearchInput을, 댓글 시트가 EmojiPickerPanel·ReplyList를 끌고 온다)
+// → lazy로 떼어내 첫 진입 페이로드를 줄이고, 아래 useEffect에서 idle에 데워둔다.
+const loadStatusSheets = () => import('./components/ClassStatusSheets')
+const ClassComposerSheet = lazy(() => import('./components/ClassComposerSheet'))
+const ClassCommentSheet = lazy(() => import('./components/ClassCommentSheet'))
+const MembersSheet = lazy(() => loadStatusSheets().then((m) => ({ default: m.MembersSheet })))
+const CheckStatusSheet = lazy(() => loadStatusSheets().then((m) => ({ default: m.CheckStatusSheet })))
+const RecitationSheet = lazy(() => loadStatusSheets().then((m) => ({ default: m.RecitationSheet })))
+const RsvpDetailSheet = lazy(() => loadStatusSheets().then((m) => ({ default: m.RsvpDetailSheet })))
+const PollDetailSheet = lazy(() => loadStatusSheets().then((m) => ({ default: m.PollDetailSheet })))
+const StarsSheet = lazy(() => loadStatusSheets().then((m) => ({ default: m.StarsSheet })))
+const GrowthSheet = lazy(() => loadStatusSheets().then((m) => ({ default: m.GrowthSheet })))
+
+// 멤버 아바타 겹침 — 목록 캐시로 먼저 그릴 때는 members가 비어 있으므로
+// member_count 만큼 회색 자리를 채워 아바타가 뒤늦게 들어와도 줄이 밀리지 않게 한다
+const AvatarStack = ({
+  members,
+  memberCount,
+  max,
+  size,
+}: {
+  members: ClassDetail['members']
+  memberCount: number
+  max: number
+  size: number
+}) => (
+  <div className="flex -space-x-2">
+    {members.length > 0
+      ? members.slice(0, max).map((m) => (
+          <span key={m.user_id} title={m.name} className="inline-block">
+            <Avatar name={m.name} avatarUrl={m.avatar_url} size={size} />
+          </span>
+        ))
+      : Array.from({ length: Math.min(memberCount, max) }).map((_, i) => (
+          <span
+            key={i}
+            className="inline-block rounded-full bg-gray-100 dark:bg-white/[0.06] ring-2 ring-white dark:ring-[#15151d]"
+            style={{ width: size, height: size }}
+          />
+        ))}
+  </div>
+)
 
 const FILTER_TABS: { value: ClassPostType | undefined; label: string; icon?: IconFn }[] = [
   { value: undefined, label: '전체' },
@@ -72,6 +106,22 @@ const ClassHome = () => {
       navigate('/login')
     }
   }, [id, navigate])
+
+  // 피드가 그려진 뒤 한가할 때 시트 청크를 데워둔다 — 첫 진입은 가볍게,
+  // 정작 시트를 열 때는 기다림이 없게 (BibleBottomNav와 같은 문법)
+  useEffect(() => {
+    const warm = () => {
+      void loadStatusSheets()
+      void import('./components/ClassCommentSheet')
+      void import('./components/ClassComposerSheet')
+    }
+    if (typeof window.requestIdleCallback === 'function') {
+      const handle = window.requestIdleCallback(warm, { timeout: 3000 })
+      return () => window.cancelIdleCallback(handle)
+    }
+    const handle = window.setTimeout(warm, 1500)
+    return () => window.clearTimeout(handle)
+  }, [])
 
   // '알림 쓰기' FAB가 떠 있는 동안 전역 챗봇 버튼을 위로 밀어 우하단 겹침을 막는다.
   // (VerseList·BookJourneyPath와 같은 --chat-fab-lift 문법 — 챗봇 쪽은 변수만 읽는다)
@@ -125,22 +175,27 @@ const ClassHome = () => {
     }
   }
 
+  // 목록 캐시로 먼저 그리는 경우 cls가 있어도 요청은 실패할 수 있다 — 에러를 먼저 본다
+  if (error) {
+    return (
+      <Shell onBack={() => navigate('/classes')} title="우리반 알림장">
+        <div className="text-center py-16 px-6">
+          <span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3"><Lock size={26} weight="duotone" color="currentColor" aria-hidden="true" /></span>
+          <p className="text-[13px] text-gray-500 dark:text-white/55">
+            {error instanceof Error ? error.message : '반을 불러오지 못했습니다'}
+          </p>
+        </div>
+      </Shell>
+    )
+  }
+
   if (isLoading || !cls) {
     return (
       <Shell onBack={() => navigate('/classes')} title="우리반 알림장">
-        {error ? (
-          <div className="text-center py-16 px-6">
-            <span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[var(--brand-soft-strong)] text-brand mb-3"><Lock size={26} weight="duotone" color="currentColor" aria-hidden="true" /></span>
-            <p className="text-[13px] text-gray-500 dark:text-white/55">
-              {error instanceof Error ? error.message : '반을 불러오지 못했습니다'}
-            </p>
-          </div>
-        ) : (
-          <div className="px-4 pt-4 space-y-3">
-            <div className="h-36 rounded-3xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
-            <div className="h-24 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
-          </div>
-        )}
+        <div className="px-4 pt-4 space-y-3">
+          <div className="h-36 rounded-3xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+          <div className="h-24 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+        </div>
       </Shell>
     )
   }
@@ -193,13 +248,12 @@ const ClassHome = () => {
               onClick={() => setShowMembers(true)}
               className="mt-4 flex items-center active:scale-95 transition-transform"
             >
-              <div className="flex -space-x-2">
-                {cls.members.slice(0, 5).map((m) => (
-                  <span key={m.user_id} title={m.name} className="inline-block">
-                    <Avatar name={m.name} avatarUrl={m.avatar_url} size={28} />
-                  </span>
-                ))}
-              </div>
+              <AvatarStack
+                members={cls.members}
+                memberCount={cls.member_count}
+                max={5}
+                size={28}
+              />
               <span className="ml-2.5 text-[12px] font-semibold text-gray-500 dark:text-white/55">
                 {cls.member_count}명 →
               </span>
@@ -286,13 +340,12 @@ const ClassHome = () => {
             onClick={() => setShowMembers(true)}
             className="flex items-center active:scale-95 transition-transform"
           >
-            <div className="flex -space-x-2">
-              {cls.members.slice(0, 6).map((m) => (
-                <span key={m.user_id} title={m.name} className="inline-block">
-                  <Avatar name={m.name} avatarUrl={m.avatar_url} size={30} />
-                </span>
-              ))}
-            </div>
+            <AvatarStack
+              members={cls.members}
+              memberCount={cls.member_count}
+              max={6}
+              size={30}
+            />
             <span className="ml-2.5 text-[12px] font-semibold text-gray-500 dark:text-white/55">
               {cls.member_count}명 →
             </span>
@@ -386,31 +439,33 @@ const ClassHome = () => {
         </button>
       )}
 
-      {/* 시트들 */}
-      {showComposer && (
-        <ClassComposerSheet classId={id} onClose={() => setShowComposer(false)} />
-      )}
-      {showMembers && <MembersSheet cls={cls} onClose={() => setShowMembers(false)} />}
-      {commentPost && (
-        <ClassCommentSheet
-          post={commentPost}
-          isTeacher={cls.is_teacher}
-          onClose={() => setCommentPost(null)}
-        />
-      )}
-      {checkPost && <CheckStatusSheet post={checkPost} onClose={() => setCheckPost(null)} />}
-      {recitePost && (
-        <RecitationSheet
-          post={recitePost}
-          isTeacher={cls.is_teacher}
-          memberCount={cls.member_count}
-          onClose={() => setRecitePost(null)}
-        />
-      )}
-      {rsvpPost && <RsvpDetailSheet post={rsvpPost} onClose={() => setRsvpPost(null)} />}
-      {pollPost && <PollDetailSheet post={pollPost} onClose={() => setPollPost(null)} />}
-      {showStars && <StarsSheet classId={id} onClose={() => setShowStars(false)} />}
-      {showGrowth && <GrowthSheet classId={id} onClose={() => setShowGrowth(false)} />}
+      {/* 시트들 — lazy 청크. idle에 데워두므로 대개 fallback 없이 바로 뜬다 */}
+      <Suspense fallback={null}>
+        {showComposer && (
+          <ClassComposerSheet classId={id} onClose={() => setShowComposer(false)} />
+        )}
+        {showMembers && <MembersSheet cls={cls} onClose={() => setShowMembers(false)} />}
+        {commentPost && (
+          <ClassCommentSheet
+            post={commentPost}
+            isTeacher={cls.is_teacher}
+            onClose={() => setCommentPost(null)}
+          />
+        )}
+        {checkPost && <CheckStatusSheet post={checkPost} onClose={() => setCheckPost(null)} />}
+        {recitePost && (
+          <RecitationSheet
+            post={recitePost}
+            isTeacher={cls.is_teacher}
+            memberCount={cls.member_count}
+            onClose={() => setRecitePost(null)}
+          />
+        )}
+        {rsvpPost && <RsvpDetailSheet post={rsvpPost} onClose={() => setRsvpPost(null)} />}
+        {pollPost && <PollDetailSheet post={pollPost} onClose={() => setPollPost(null)} />}
+        {showStars && <StarsSheet classId={id} onClose={() => setShowStars(false)} />}
+        {showGrowth && <GrowthSheet classId={id} onClose={() => setShowGrowth(false)} />}
+      </Suspense>
     </Shell>
   )
 }

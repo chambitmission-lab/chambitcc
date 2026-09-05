@@ -261,6 +261,11 @@
   font-size: calc(1.0625rem * var(--bible-font-scale, 1));
   font-family: var(--bible-font-family, inherit);
   letter-spacing: -0.01em;
+  /* 한글은 기본값(normal)이면 글자 단위로 줄이 바뀌어 "임하시매"의 "매"만
+     다음 줄로 떨어진다. 어절(공백) 단위로만 끊고, 한 줄을 넘는 긴 토큰
+     (URL·붙임표 없는 외래어)만 예외적으로 잘라 넘긴다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* 형광펜 친 절은 본문 글자를 살짝 또렷하게 — 마커 위에서 묻히지 않도록 */

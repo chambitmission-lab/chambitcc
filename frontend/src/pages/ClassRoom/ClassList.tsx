@@ -1,6 +1,6 @@
 // 우리반 알림장 목록 (/classes)
 // 내가 속한 반 + 반 만들기(교사) + 초대 코드로 참여(학부모)
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   useAddClassMembers,
@@ -12,6 +12,7 @@ import type { ClassSummary } from '../../types/classRoom'
 import type { CapsuleRecipient } from '../../types/timeCapsule'
 import MemberSearchInput from '../../components/common/MemberSearchInput'
 import { isAuthenticated } from '../../utils/auth'
+import { isRoutePreloaded, preloadRoute } from '../../utils/routePreload'
 import { showToast } from '../../utils/toast'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { Avatar, DEPARTMENTS, DeptBadge, timeAgo } from './classUi'
@@ -24,7 +25,30 @@ const ClassList = () => {
   const { data: classes, isLoading } = useMyClasses(authed)
   const [showCreate, setShowCreate] = useState(false)
   const [joinCode, setJoinCode] = useState('')
+  const [pendingClassId, setPendingClassId] = useState<number | null>(null)
   const joinClass = useJoinClass()
+
+  // 반 상세(ClassHome)는 목록보다 5배 큰 청크다. 라우터가 startTransition으로
+  // 전환하는 동안엔 Suspense fallback이 뜨지 않아 목록이 그대로 멈춘 것처럼 보이므로
+  // 카드에 손이 닿는 순간 미리 받고, 그래도 못 받았으면 눌린 카드에 스피너를 띄운다
+  // (NewHome·DesktopNavRail의 goLazy와 같은 문법).
+  const goClass = useCallback(
+    async (classId: number) => {
+      const path = `/classes/${classId}`
+      if (isRoutePreloaded(path)) {
+        navigate(path)
+        return
+      }
+      setPendingClassId(classId)
+      try {
+        await preloadRoute(path)
+      } finally {
+        setPendingClassId(null)
+      }
+      navigate(path)
+    },
+    [navigate],
+  )
 
   // 히어로 문구용 — 내 반이 있으면 소개 대신 현황을 띄운다
   const hasClasses = (classes?.length ?? 0) > 0
@@ -51,7 +75,7 @@ const ClassList = () => {
     try {
       const detail = await joinClass.mutateAsync({ inviteCode: code })
       showToast('반에 참여했어요!', 'success')
-      navigate(`/classes/${detail.id}`)
+      await goClass(detail.id)
     } catch (e) {
       showToast(e instanceof Error ? e.message : '참여에 실패했습니다', 'error')
     }
@@ -209,7 +233,12 @@ const ClassList = () => {
           ) : (
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 lg:items-start">
               {classes.map((cls) => (
-                <ClassCard key={cls.id} cls={cls} onClick={() => navigate(`/classes/${cls.id}`)} />
+                <ClassCard
+                  key={cls.id}
+                  cls={cls}
+                  pending={pendingClassId === cls.id}
+                  onClick={() => void goClass(cls.id)}
+                />
               ))}
             </div>
           )}
@@ -285,7 +314,8 @@ const ClassList = () => {
             {latestPost?.last_post_at && (
               <button
                 type="button"
-                onClick={() => navigate(`/classes/${latestPost.id}`)}
+                onMouseEnter={() => void preloadRoute(`/classes/${latestPost.id}`)}
+                onClick={() => void goClass(latestPost.id)}
                 className="mt-3 w-full flex items-center gap-2 px-3 h-10 rounded-xl border border-[var(--card-border)] text-left hover:border-[var(--brand-soft-strong)] hover:bg-[var(--brand-soft)] transition-colors"
               >
                 <BellIcon width={13} height={13} className="shrink-0 text-brand" />
@@ -314,15 +344,30 @@ const EmptyNote = ({ icon: Icon, text }: { icon: IconFn; text: string }) => (
   </div>
 )
 
-const ClassCard = ({ cls, onClick }: { cls: ClassSummary; onClick: () => void }) => (
+const ClassCard = ({
+  cls,
+  pending,
+  onClick,
+}: {
+  cls: ClassSummary
+  pending: boolean
+  onClick: () => void
+}) => (
   <button
     type="button"
+    onMouseEnter={() => void preloadRoute(`/classes/${cls.id}`)}
+    onTouchStart={() => void preloadRoute(`/classes/${cls.id}`)}
     onClick={onClick}
+    aria-busy={pending}
     className="w-full text-left p-4 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm dark:shadow-[0_6px_18px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985]"
   >
     <div className="flex items-start gap-3">
       <span className="shrink-0 w-11 h-11 rounded-2xl bg-[var(--brand-soft)] flex items-center justify-center">
-        <Avatar name={cls.name} size={28} />
+        {pending ? (
+          <span className="w-5 h-5 rounded-full border-2 border-brand/30 border-t-brand animate-spin" />
+        ) : (
+          <Avatar name={cls.name} size={28} />
+        )}
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
@@ -363,6 +408,12 @@ const CreateClassSheet = ({ onClose }: { onClose: () => void }) => {
   const [picked, setPicked] = useState<CapsuleRecipient[]>([])
 
   useModalBackButton(onClose)
+
+  // 반을 만들면 곧장 상세로 이동한다 — 시트가 열린 동안(이름 입력·멤버 검색) 청크를
+  // 미리 받아두면 '만들기' 직후 화면이 멈추지 않는다. (deepLink 키가 같아 id는 무관)
+  useEffect(() => {
+    void preloadRoute('/classes/new')
+  }, [])
 
   const handleCreate = async () => {
     if (!name.trim()) {

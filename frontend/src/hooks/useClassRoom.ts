@@ -43,10 +43,12 @@ import {
 } from '../api/classRoom'
 import type {
   ClassCreateRequest,
+  ClassDetail,
   ClassPost,
   ClassPostCreateRequest,
   ClassPostListResponse,
   ClassPostType,
+  ClassSummary,
   RemindTarget,
   RsvpStatus,
 } from '../types/classRoom'
@@ -112,14 +114,26 @@ export const useMyClasses = (enabled = true) =>
     refetchOnMount: true,
   })
 
-export const useClassDetail = (classId: number, enabled = true) =>
-  useQuery({
+export const useClassDetail = (classId: number, enabled = true) => {
+  const qc = useQueryClient()
+  return useQuery({
     queryKey: classKeys.detail(classId),
     queryFn: () => getClass(classId),
     enabled: enabled && classId > 0,
     staleTime: 1000 * 30,
     refetchOnMount: true,
+    // 목록에서 들어오면 이름·부서·멤버수·교사여부는 이미 캐시에 있다 —
+    // refetchOnMount:true라 상세 응답은 늘 기다리게 되는데, 그 동안 화면 전체를
+    // 스켈레톤으로 덮지 않도록 요약으로 먼저 그린다 (멤버 목록만 비어 있고,
+    // placeholder는 캐시에 쓰이지 않아 다른 화면에 새지 않는다)
+    placeholderData: (): ClassDetail | undefined => {
+      const summary = qc
+        .getQueryData<ClassSummary[]>(classKeys.list())
+        ?.find((c) => c.id === classId)
+      return summary ? { ...summary, members: [] } : undefined
+    },
   })
+}
 
 export const useClassPreview = (inviteCode: string) =>
   useQuery({
