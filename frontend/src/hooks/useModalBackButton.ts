@@ -31,14 +31,37 @@ let counter = 0
 // 맨 위로 튀며(첫 닫기에서만 재현), push 인덱스도 NaN이 된다.
 let pendingCleanup: number | null = null
 
-const handlePop = () => {
+// popstate 처리는 두 단계로 나눈다.
+//
+// 라우터(react-router)의 popstate 리스너가 우리보다 먼저 등록되어 있어, 같은 popstate 안에서
+// 라우터가 화면을 갈아끼우고(React는 popstate를 discrete 이벤트로 취급해 리스너 사이의
+// 마이크로태스크에서 동기 렌더한다) 그 결과로 새로 마운트된 모달이 closeStack에 먼저 쌓인
+// 뒤에야 우리 리스너가 돌았다. 그러면 "방금 떠난 엔트리의 모달"이 아니라 "방금 열린 모달"을
+// 닫아 버린다 — 검색 결과에서 장으로 갔다 뒤로 와도 검색어가 지워지던 원인.
+//
+// 그래서 닫을 대상은 capture 리스너(at-target에서도 bubble보다 먼저 호출됨)에서 라우터보다
+// 먼저 스냅샷하고, 실제 close()는 기존 bubble 리스너(라우터 다음)에서 실행한다. close 안에서
+// navigate(replace 등)를 부르는 모달도 라우터의 인덱스 정리가 끝난 뒤에 돌게 된다.
+let pendingClose: StackEntry | null = null
+
+const snapshotPop = () => {
   // 버튼/배경 클릭 정리용으로 우리가 호출한 history.back() 은 무시
   if (suppressNextPop) {
     suppressNextPop = false
+    pendingClose = null
     return
   }
-  const top = closeStack.pop()
+  pendingClose = closeStack.pop() ?? null
+}
+
+const handlePop = () => {
+  const top = pendingClose
+  pendingClose = null
   if (top) top.close()
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('popstate', snapshotPop, true)
 }
 
 export function useModalBackButton(onClose: () => void, enabled = true) {

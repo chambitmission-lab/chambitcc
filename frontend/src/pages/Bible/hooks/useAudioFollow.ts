@@ -83,9 +83,17 @@ export const useAudioFollow = ({
 
   // 일시정지(또는 종료) 순간: 진행 중인 따라가기 스크롤과 6초 자동 복귀 예약을 모두 취소.
   // 이게 없으면 멈춘 뒤에도 예약된 복귀가 살아 있어 화면이 혼자 낭독 절로 돌아간다.
+  //
+  // 취소는 "재생 중 → 멈춤" 전환에서만 한다. 이 effect는 마운트 시에도 한 번 도는데,
+  // 그때 무조건 취소하면 같은 커밋에서 VerseList가 막 시작한 절 이동 스크롤(검색 결과
+  // ?verse=N 딥링크·이어 읽기)까지 끊긴다 — 장 본문이 이미 캐시돼 있어 절 이동 effect와
+  // 이 마운트 effect가 한 커밋에 겹칠 때 "하이라이트만 붙고 그 절로 안 가던" 원인.
+  const wasPlayingRef = useRef(false)
   useEffect(() => {
+    const wasPlaying = wasPlayingRef.current
+    wasPlayingRef.current = audioPlaying
     if (audioPlaying) return
-    cancelVerseScroll()
+    if (wasPlaying) cancelVerseScroll()
     if (followResumeTimerRef.current) {
       clearTimeout(followResumeTimerRef.current)
       followResumeTimerRef.current = null

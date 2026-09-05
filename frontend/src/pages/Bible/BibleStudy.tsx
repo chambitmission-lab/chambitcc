@@ -143,6 +143,10 @@ const BibleStudy = () => {
   const lastChapterNavRef = useRef(0)
   if (chapterNavSignal) lastChapterNavRef.current = chapterNavSignal
   const chapterNav = lastChapterNavRef.current
+  // URL의 ?tab= 이 탭 상태의 원본(아래 tabParam effect). 책 목록(books)은 비동기로 오므로
+  // 이 effect는 tab effect보다 늦게 한 번 더 도는데, 그때 무조건 'read'로 덮으면
+  // /bible/46/1?tab=search 를 새로 열거나 뒤로가기로 돌아올 때 검색 탭이 읽기 화면에 밀린다.
+  const tabParam = searchParams.get('tab')
   useEffect(() => {
     if (bookNumber && chapter && books && books.length > 0) {
       const bookNum = parseInt(bookNumber)
@@ -154,7 +158,7 @@ const BibleStudy = () => {
         setSelectedBook(book.book_name_ko)
         setSelectedChapter(chapterNum)
         setShowBookList(false)
-        setActiveTab('read')
+        if (tabParam !== 'search') setActiveTab('read')
 
         if (verseParam > 0) {
           // 절 스크롤은 본문 로드 후 VerseList가 수행
@@ -170,7 +174,7 @@ const BibleStudy = () => {
         }
       }
     }
-  }, [bookNumber, chapter, books, verseParam, chapterNav])
+  }, [bookNumber, chapter, books, verseParam, chapterNav, tabParam])
   
   const { 
     data: chapterData, 
@@ -189,7 +193,6 @@ const BibleStudy = () => {
   // 그 본문(장)을 끝까지 읽으면 해당 일차를 자동 완료 처리한다.
   // 하단 네비게이션에서 다른 페이지(플랜/가계도)로부터 검색 탭으로 진입 (?tab=search)
   // URL을 탭 상태의 원본으로 삼아 새로고침해도 보고 있던 탭이 유지되게 한다.
-  const tabParam = searchParams.get('tab')
   useEffect(() => {
     setActiveTab(tabParam === 'search' ? 'search' : 'read')
   }, [tabParam])
@@ -329,7 +332,10 @@ const BibleStudy = () => {
   // 모바일/브라우저 뒤로가기 시 메인으로 빠져나가는 대신 책 목록으로 돌아간다.
   // 단, 읽기 플랜(?plan=)에서 진입한 경우는 예외 — 뒤로가기가 플랜 상세로
   // 자연스럽게 돌아가야 하므로 가로채지 않는다.
-  useModalBackButton(handleChangeBook, !showBookList && planId === 0)
+  // 검색 탭에서 결과를 눌러 들어온 경우(goToChapter가 넘긴 chapterNav state)도 예외 —
+  // 바로 앞 히스토리가 검색 화면이므로 가로채면 책 목록을 한 번 거쳐야 검색으로 돌아간다.
+  const openedFromSearch = !!chapterNavSignal
+  useModalBackButton(handleChangeBook, !showBookList && planId === 0 && !openedFromSearch)
   
   const handleChapterChange = (chapter: number) => {
     setSelectedChapter(chapter)
