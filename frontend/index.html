@@ -185,6 +185,30 @@
       })();
     </script>
 
+    <!-- /bible/plans 히어로 삽화 선요청: 배경 URL 이 라우트 청크의 CSS 안에 있어
+         (청크 → CSS → 엘리먼트 렌더) 뒤에야 발견된다. CSS background-image 는
+         프리로드 스캐너가 볼 수 없고, 매칭되는 엘리먼트가 실제로 렌더될 때까지
+         요청조차 나가지 않아 한 왕복이 통째로 뒤로 밀린다.
+         새로고침·딥링크로 플랜 목록에 바로 들어온 경우에만 문서 파싱 시점에 받아 둔다
+         (다른 경로로 들어오면 성경 도크·레일이 유휴 시간에 데운다 — heroPrefetch.ts).
+         상세(/bible/plans/:id)·초대(join) 화면엔 히어로가 없으므로 목록만 매칭한다.
+         테마는 위 선적용 스크립트가 찍은 data-theme 을 따르고, 파일 경로는
+         src/pages/Bible/Plans/plan-hero.css 와 동일하게 유지할 것. -->
+    <script>
+      (function () {
+        try {
+          if (!/^#\/bible\/plans(\?|$)/.test(location.hash)) return;
+          var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = '/images/plans/hero-' + (dark ? 'dark' : 'light') + '.webp';
+          link.fetchPriority = 'high';
+          document.head.appendChild(link);
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- 폰트 CDN 사전 연결 — 핸드셰이크를 미리 끝내 폰트 도착을 앞당긴다 -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

@@ -2,7 +2,7 @@
 // 인스타 감성 리디자인: 스토리형 Hero + 피드형 카드 그리드 + 해시태그 칩.
 // 플랜 데이터에 커버 이미지가 없어 실사 대신 accent 그라데이션 + 이모지를
 // '감성 그래픽'으로 사용한다. (추후 plan.cover_image 추가 시 PlanVisual 교체만 하면 됨)
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBiblePlans, useTodayReadings } from '../../../hooks/useBiblePlan'
 import type { PlanSummary, TodayReading } from '../../../types/biblePlan'
@@ -22,6 +22,7 @@ import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import PersonalPlanSheet from './components/PersonalPlanSheet'
 import './plan-hero.css'
+import { isPlanHeroWarm, warmPlanHero } from './heroPrefetch'
 import { showToast } from '../../../utils/toast'
 
 const PlanList = () => {
@@ -37,6 +38,20 @@ const PlanList = () => {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [codeOpen, setCodeOpen] = useState(false)
   const [codeValue, setCodeValue] = useState('')
+
+  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(heroPrefetch.ts 참고).
+  // 하단 도크·레일이 미리 데워 뒀으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인한다.
+  const [artReady, setArtReady] = useState(isPlanHeroWarm)
+  useEffect(() => {
+    if (artReady) return
+    let alive = true
+    void warmPlanHero().then(() => {
+      if (alive) setArtReady(true)
+    })
+    return () => {
+      alive = false
+    }
+  }, [artReady])
 
   // 로딩 중엔 매 렌더 새 빈 배열이 되어 아래 useMemo 들이 무력화된다 — 참조를 고정
   const plans = useMemo(() => data?.items ?? [], [data])
@@ -134,7 +149,7 @@ const PlanList = () => {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(96,165,250,0.42),transparent_55%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_105%,rgba(49,130,246,0.28),transparent_52%)]" />
           {/* 삽화는 오른쪽 아래에 붙고 왼쪽은 알파 페이드로 카드 그라데이션에 녹는다 */}
-          <div className="plan-hero-art absolute inset-0" aria-hidden />
+          <div className={`plan-hero-art absolute inset-0${artReady ? ' is-ready' : ''}`} aria-hidden />
 
           <div className="relative z-10">
             <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/65">

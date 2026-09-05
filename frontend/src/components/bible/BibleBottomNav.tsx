@@ -33,6 +33,11 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
       import('../../pages/Bible/BibleStudy')
       import('../../pages/Bible/Plans/PlanList')
       import('../../pages/Bible/Genealogy/Genealogy')
+      // 플랜 히어로 삽화는 CSS 배경이라 청크를 미리 받아둬도 화면이 그려진 뒤에야
+      // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (heroPrefetch.ts)
+      import('../../pages/Bible/Plans/heroPrefetch')
+        .then((m) => m.warmPlanHero())
+        .catch(() => undefined)
     }
     if (typeof window.requestIdleCallback === 'function') {
       const id = window.requestIdleCallback(prefetch, { timeout: 3000 })

@@ -39,6 +39,26 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
   const slotRef = useRef<HTMLDivElement>(null)
   const [slotLeft, setSlotLeft] = useState<number | null>(null)
 
+  // 레일 목적지 lazy 청크 prefetch — 하단 도크(BibleBottomNav)와 동일 패턴.
+  // 플랜 히어로 삽화는 CSS 배경이라 청크를 미리 받아둬도 화면이 그려진 뒤에야
+  // 요청이 나간다 — 청크와 같은 시점에 이미지까지 데운다 (heroPrefetch.ts)
+  useEffect(() => {
+    const prefetch = () => {
+      import('../../pages/Bible/BibleStudy')
+      import('../../pages/Bible/Plans/PlanList')
+      import('../../pages/Bible/Genealogy/Genealogy')
+      import('../../pages/Bible/Plans/heroPrefetch')
+        .then((m) => m.warmPlanHero())
+        .catch(() => undefined)
+    }
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(prefetch, { timeout: 3000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = window.setTimeout(prefetch, 1500)
+    return () => window.clearTimeout(id)
+  }, [])
+
   const labels =
     language === 'ko'
       ? { read: '읽기', search: '검색', plans: '플랜', wordbook: '단어장', genealogy: '가계도', menu: '성경' }

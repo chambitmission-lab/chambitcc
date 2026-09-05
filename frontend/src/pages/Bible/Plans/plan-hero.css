@@ -15,3 +15,20 @@
 .dark .plan-hero-art {
   background-image: url('/images/plans/hero-dark.webp');
 }
+
+/* 도착 전에는 감춰 뒀다 페이드인 — 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야
+   요청이 나가고, 늦게 도착하면 카드 위에 "툭" 나타난다(heroPrefetch.ts 참고).
+   하단 도크·레일이 미리 데워 둔 경우엔 PlanList 가 첫 렌더부터 is-ready 로 그려
+   페이드 없이 즉시 보인다. */
+.plan-hero-art {
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+.plan-hero-art.is-ready {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .plan-hero-art {
+    transition: none;
+  }
+}
