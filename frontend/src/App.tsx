@@ -25,6 +25,7 @@ import { isAuthenticated, getCurrentUser } from './utils/auth'
 // 즉시 진입 가능성이 높은 페이지는 eager import 유지
 import NewHome from './pages/Home/NewHome'
 import Login from './pages/Auth/Login'
+import { tokenStore, sessionStore } from './utils/tokenStore'
 
 // 보조/관리/대형 페이지는 lazy로 분리 → 메인 번들 축소
 // 햄버거 메뉴 페이지는 routePreload의 로더를 공유해 프리로드 청크를 재사용
@@ -33,7 +34,7 @@ const Home = lazy(() => import('./pages/Home/Home'))
 // 청크를 받아둬서 라우트 진입 시 폭포수(메인 → 랜딩) 없이 바로 그린다.
 const loadLanding = () => import('./pages/Landing/Landing')
 const Landing = lazy(loadLanding)
-if (!localStorage.getItem('access_token')) void loadLanding()
+if (!tokenStore.getAccess()) void loadLanding()
 // dev 전용 — 업적 모달 미리보기 (프로덕션 번들에는 라우트 자체가 빠짐)
 const AchievementModalPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/AchievementModalPreview'))
@@ -160,6 +161,7 @@ const WeeklyPrayerScreen = lazy(() => import('./pages/Prayer/WeeklyPrayerScreen'
 
 import './App.css'
 import './styles/common.css'
+import { prayerKeys } from './hooks/usePrayersQuery'
 
 const RouteFallback = () => (
   <div className="min-h-[50vh] flex items-center justify-center">
@@ -172,7 +174,7 @@ const RouteFallback = () => (
 // (X·인스타그램 문법: 로그인 = 피드, 비로그인 = 소개 페이지)
 // 비로그인이 피드를 구경하고 싶으면 랜딩의 "둘러보기" → /feed 로 간다.
 const HomeGate = () => {
-  return localStorage.getItem('access_token') ? <NewHome /> : <Landing />
+  return tokenStore.getAccess() ? <NewHome /> : <Landing />
 }
 
 const MainContent = ({ children }: { children: ReactNode }) => {
@@ -193,7 +195,7 @@ function App() {
   // 앱 시작 시 캐시 일관성 확인 (장시간 후 재접속 대응)
   useEffect(() => {
     const checkCacheConsistency = () => {
-      const currentUsername = localStorage.getItem('user_username')
+      const currentUsername = sessionStore.get('username')
       const lastCachedUsername = localStorage.getItem('last_cached_username')
       const lastAppOpenTime = localStorage.getItem('last_app_open_time')
       const now = Date.now()
@@ -220,7 +222,7 @@ function App() {
           console.log('App reopened after 30+ minutes, invalidating prayer caches')
           // 기도 목록 캐시만 무효화 (백그라운드에서 새로 가져옴)
           queryClient.invalidateQueries({
-            queryKey: ['prayers'],
+            queryKey: prayerKeys.all,
             refetchType: 'active', // 현재 활성화된 쿼리만 즉시 refetch
           })
         }

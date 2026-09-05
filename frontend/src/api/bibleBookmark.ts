@@ -1,6 +1,5 @@
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders, requireAuth } from './utils/apiHelpers'
-
+import { API_V1 } from '../config/api'
+import { request, requestRaw, type UntypedJson } from './utils/request'
 export type HighlightColor = 'yellow' | 'orange' | 'pink' | 'blue' | 'green'
 
 export interface VerseBookmark {
@@ -46,20 +45,16 @@ export const upsertBookmark = async (
   verseId: number,
   payload: UpsertBookmarkPayload
 ): Promise<VerseBookmark> => {
-  requireAuth()
-  const response = await apiFetch(bookmarkPath(verseId), {
+  const data = await request<UntypedJson>(bookmarkPath(verseId), {
     method: 'PUT',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({
+    auth: 'required',
+    json: {
       highlight_color: payload.highlight_color ?? null,
       note: payload.note ?? null,
       is_favorite: payload.is_favorite ?? false,
-    }),
+    },
+    errorMessage: '북마크 저장에 실패했습니다',
   })
-  if (!response.ok) {
-    throw new Error('북마크 저장에 실패했습니다')
-  }
-  const data = await response.json()
   return data.data
 }
 
@@ -70,26 +65,16 @@ export const deleteBookmark = async (
   verseId: number,
   target?: BookmarkDeleteTarget
 ): Promise<void> => {
-  requireAuth()
   const url = target ? `${bookmarkPath(verseId)}?target=${target}` : bookmarkPath(verseId)
-  const response = await apiFetch(url, {
+  await requestRaw(url, {
     method: 'DELETE',
-    headers: getAuthHeaders(true),
+    auth: 'required',
+    errorMessage: '북마크 삭제에 실패했습니다',
   })
-  if (!response.ok) {
-    throw new Error('북마크 삭제에 실패했습니다')
-  }
 }
 
 export const getBookmark = async (verseId: number): Promise<VerseBookmark | null> => {
-  requireAuth()
-  const response = await apiFetch(bookmarkPath(verseId), {
-    headers: getAuthHeaders(true),
-  })
-  if (!response.ok) {
-    throw new Error('북마크 조회에 실패했습니다')
-  }
-  const data = await response.json()
+  const data = await request<UntypedJson>(bookmarkPath(verseId), { auth: 'required', errorMessage: '북마크 조회에 실패했습니다' })
   return data.data
 }
 
@@ -101,15 +86,7 @@ export const listChapterBookmarks = async (
   bookNumber: number,
   chapter: number
 ): Promise<VerseBookmark[]> => {
-  requireAuth()
-  const response = await apiFetch(
-    `${API_V1}/bible/bookmarks/by-chapter?book_number=${bookNumber}&chapter=${chapter}`,
-    { headers: getAuthHeaders(true) }
-  )
-  if (!response.ok) {
-    throw new Error('북마크 조회에 실패했습니다')
-  }
-  const data = await response.json()
+  const data = await request<UntypedJson>(`/bible/bookmarks/by-chapter?book_number=${bookNumber}&chapter=${chapter}`, { auth: 'required', errorMessage: '북마크 조회에 실패했습니다' })
   return data.data.items
 }
 
@@ -121,7 +98,6 @@ export const listBookmarks = async (params?: {
   page?: number
   page_size?: number
 }): Promise<BookmarkListResponse> => {
-  requireAuth()
   const query = new URLSearchParams()
   if (params?.favorites_only) query.append('favorites_only', 'true')
   if (params?.notes_only) query.append('notes_only', 'true')
@@ -131,35 +107,21 @@ export const listBookmarks = async (params?: {
   if (params?.page_size) query.append('page_size', String(params.page_size))
 
   const url = `${API_V1}/bible/bookmarks${query.toString() ? `?${query}` : ''}`
-  const response = await apiFetch(url, { headers: getAuthHeaders(true) })
-  if (!response.ok) {
-    throw new Error('북마크 목록 조회에 실패했습니다')
-  }
-  const data = await response.json()
+  const data = await request<UntypedJson>(url, { auth: 'required', errorMessage: '북마크 목록 조회에 실패했습니다' })
   return data.data
 }
 
 /** 즐겨찾기 플레이리스트 순서 저장 — id 나열 순서가 곧 재생 순서 */
 export const reorderBookmarks = async (bookmarkIds: number[]): Promise<void> => {
-  requireAuth()
-  const response = await apiFetch(`${API_V1}/bible/bookmarks/reorder`, {
+  await requestRaw('/bible/bookmarks/reorder', {
     method: 'PUT',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ bookmark_ids: bookmarkIds }),
+    auth: 'required',
+    json: { bookmark_ids: bookmarkIds },
+    errorMessage: '순서 저장에 실패했습니다',
   })
-  if (!response.ok) {
-    throw new Error('순서 저장에 실패했습니다')
-  }
 }
 
 export const getBookmarkStats = async (): Promise<BookmarkStats> => {
-  requireAuth()
-  const response = await apiFetch(`${API_V1}/bible/bookmarks/stats`, {
-    headers: getAuthHeaders(true),
-  })
-  if (!response.ok) {
-    throw new Error('북마크 통계 조회에 실패했습니다')
-  }
-  const data = await response.json()
+  const data = await request<UntypedJson>('/bible/bookmarks/stats', { auth: 'required', errorMessage: '북마크 통계 조회에 실패했습니다' })
   return data.data
 }

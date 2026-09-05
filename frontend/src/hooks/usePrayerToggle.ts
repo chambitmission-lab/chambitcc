@@ -1,16 +1,17 @@
 // 기도 토글 로직을 담당하는 커스텀 훅 (Single Responsibility)
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addPrayer, removePrayer } from '../api/prayer'
-import { showToast } from '../utils/toast'
 import { prayerKeys } from './usePrayersQuery'
 import { groupKeys } from './useGroups'
 import type { Prayer, SortType } from '../types/prayer'
 import type { PrayerListCache } from '../types/queryCache'
 import type { ProfileDetail } from '../types/profile'
+import { profileKeys } from './queryKeys'
 
-interface UsePrayerToggleOptions {
+export interface UsePrayerToggleOptions {
   prayerId?: number // 상세 페이지용
   username?: string | null // 사용자별 캐시 키용
+  /** 서버 메시지(예: '함께 기도합니다')를 받아 화면 피드백을 띄운다 — 훅은 토스트를 직접 띄우지 않는다 */
   onSuccess?: (message: string) => void
   onError?: (error: string) => void
 }
@@ -41,11 +42,9 @@ export const usePrayerToggle = ({
     mutationFn: ({ prayerId, durationMinutes }: { prayerId: number; durationMinutes?: number }) => 
       addPrayer(prayerId, durationMinutes),
     onSuccess: (data) => {
-      showToast(data.message, 'success')
       onSuccess?.(data.message)
     },
     onError: (error: Error) => {
-      showToast(error.message, 'error')
       onError?.(error.message)
     },
   })
@@ -54,11 +53,9 @@ export const usePrayerToggle = ({
   const removeMutation = useMutation({
     mutationFn: (prayerId: number) => removePrayer(prayerId),
     onSuccess: (data) => {
-      showToast(data.message, 'success')
       onSuccess?.(data.message)
     },
     onError: (error: Error) => {
-      showToast(error.message, 'error')
       onError?.(error.message)
     },
   })
@@ -136,10 +133,10 @@ export const usePrayerToggle = ({
     }
 
     // Optimistic Update - 프로필 캐시 (기도 횟수 + 기도중 개수 즉시 반영)
-    const previousProfileData = queryClient.getQueryData(['profile', 'detail'])
+    const previousProfileData = queryClient.getQueryData(profileKeys.detail())
     if (!isPrayed) {
       // 기도 추가 시 total_count +1, praying_for(+누적) +1
-      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
+      queryClient.setQueryData<ProfileDetail>(profileKeys.detail(), (old) => {
         if (!old) return old
         return {
           ...old,
@@ -165,7 +162,7 @@ export const usePrayerToggle = ({
       // 기도 취소 시 praying_for(현재 목록 표시)만 -1.
       // total_count/this_week_count/praying_for_total 은 누적(이력) 기준이라
       // 취소해도 깎지 않는다 — 포인트가 함께 깎이는 것을 막는 서버 정책과 일치
-      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
+      queryClient.setQueryData<ProfileDetail>(profileKeys.detail(), (old) => {
         if (!old) return old
         return {
           ...old,
@@ -210,7 +207,7 @@ export const usePrayerToggle = ({
       // 프로필 캐시 무효화 및 자동 갱신 (기도 통계 업데이트)
       // 'profile' 전체 — 프로필 탭 무한 목록(praying-for 등)도 stale 처리
       queryClient.invalidateQueries({
-        queryKey: ['profile'],
+        queryKey: profileKeys.all,
       })
 
       // 기도방 통계('함께 기도한 횟수') 캐시 무효화
@@ -224,7 +221,7 @@ export const usePrayerToggle = ({
         queryClient.setQueryData(detailQueryKey, previousDetailData)
       }
       if (previousProfileData) {
-        queryClient.setQueryData(['profile', 'detail'], previousProfileData)
+        queryClient.setQueryData(profileKeys.detail(), previousProfileData)
       }
       // 롤백한 캐시 자체가 서버와 어긋나 있을 수 있다(어긋남이 이 에러의
       // 원인일 가능성이 높다) — 서버 진실로 강제 재동기화해서 잘못된

@@ -1,6 +1,6 @@
 // Admin API
-import { API_V1, apiFetch } from '../config/api'
 import type { PrayerGroup } from '../types/prayer'
+import { request, requestRaw, type UntypedJson } from './utils/request'
 
 // 관리자용 그룹 목록 조회
 export interface AdminGroupListResponse {
@@ -22,26 +22,7 @@ export const fetchAdminGroups = async (
   page: number = 1,
   limit: number = 20
 ): Promise<AdminGroupListResponse> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const headers: HeadersInit = {
-    'Authorization': `Bearer ${token}`,
-  }
-
-  const response = await apiFetch(
-    `${API_V1}/admin/groups?page=${page}&limit=${limit}`,
-    { headers }
-  )
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '그룹 목록을 불러오는데 실패했습니다')
-  }
-
-  return response.json()
+  return request<AdminGroupListResponse>(`/admin/groups?page=${page}&limit=${limit}`, { auth: 'required', errorMessage: '그룹 목록을 불러오는데 실패했습니다' })
 }
 
 // 말씀 반응 통계 (익명 집계 — 개인 식별 정보 없음)
@@ -80,43 +61,16 @@ export interface BibleEngagementData {
 export const fetchBibleEngagement = async (
   days?: number
 ): Promise<BibleEngagementData> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
 
   const query = days ? `?days=${days}` : ''
-  const response = await apiFetch(`${API_V1}/admin/bible-engagement${query}`, {
-    headers: { 'Authorization': `Bearer ${token}` },
-  })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '말씀 반응 통계를 불러오는데 실패했습니다')
-  }
-
-  const json = await response.json()
+  const json = await request<UntypedJson>(`/admin/bible-engagement${query}`, { auth: 'required', errorMessage: '말씀 반응 통계를 불러오는데 실패했습니다' })
   return json.data
 }
 
 // ── 관리자 홈 대시보드 · 돌봄 레이더 ──────────────────────
 const adminGet = async <T,>(path: string, errorMessage: string): Promise<T> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const response = await apiFetch(`${API_V1}${path}`, {
-    headers: { 'Authorization': `Bearer ${token}` },
-  })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || errorMessage)
-  }
-
-  const json = await response.json()
-  return json.data as T
+  const json = await request<{ data: T }>(path, { auth: 'required', errorMessage })
+  return json.data
 }
 
 /** 대시보드 액션 카드 — 0건인 항목은 서버가 아예 내려보내지 않는다 */
@@ -209,22 +163,9 @@ export const fetchCareRadar = (quietDays: number): Promise<CareRadarData> =>
 
 // 관리자용 그룹 삭제
 export const deleteAdminGroup = async (groupId: number): Promise<void> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const headers: HeadersInit = {
-    'Authorization': `Bearer ${token}`,
-  }
-
-  const response = await apiFetch(`${API_V1}/admin/groups/${groupId}`, {
+  await requestRaw(`/admin/groups/${groupId}`, {
     method: 'DELETE',
-    headers,
+    auth: 'required',
+    errorMessage: '그룹 삭제에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '그룹 삭제에 실패했습니다')
-  }
 }

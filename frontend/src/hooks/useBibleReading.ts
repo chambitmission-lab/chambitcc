@@ -12,6 +12,7 @@ import {
 } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 import type { ProfileDetail } from '../types/profile'
+import { profileKeys } from './queryKeys'
 
 // Query Keys
 export const bibleReadingKeys = {
@@ -47,7 +48,7 @@ export const useMarkVerseAsRead = () => {
       scheduleTitleEvaluation()
 
       // 프로필 캐시 즉시 업데이트 (구절 읽기 +1P)
-      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
+      queryClient.setQueryData<ProfileDetail>(profileKeys.detail(), (old) => {
         if (!old) return old
         return {
           ...old,
@@ -68,7 +69,7 @@ export const useMarkVerseAsRead = () => {
       // 백그라운드에서 실제 데이터로 동기화
       setTimeout(() => {
         queryClient.invalidateQueries({
-          queryKey: ['profile', 'detail'],
+          queryKey: profileKeys.detail(),
         })
       }, 0)
     },
@@ -166,7 +167,7 @@ export const useMarkChapterAsRead = () => {
       markChapterAsRead(bookNumber, chapter),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
-      queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+      queryClient.invalidateQueries({ queryKey: profileKeys.detail() })
       // 일괄 처리 후 칭호 평가는 한 번만 — 개별 절처럼 절마다 부르지 않는다
       scheduleTitleEvaluation()
     },
@@ -184,7 +185,7 @@ export const useUnmarkChapterAsRead = () => {
       unmarkChapterAsRead(bookNumber, chapter),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
-      queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+      queryClient.invalidateQueries({ queryKey: profileKeys.detail() })
     },
   })
 }
@@ -202,7 +203,7 @@ export const useUnmarkVerseAsRead = () => {
       queryClient.invalidateQueries({ queryKey: bibleReadingKeys.all })
       
       // 프로필 캐시 즉시 업데이트 (구절 읽기 -1P)
-      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
+      queryClient.setQueryData<ProfileDetail>(profileKeys.detail(), (old) => {
         if (!old) return old
         return {
           ...old,
@@ -221,7 +222,7 @@ export const useUnmarkVerseAsRead = () => {
       // 백그라운드에서 실제 데이터로 동기화
       setTimeout(() => {
         queryClient.invalidateQueries({
-          queryKey: ['profile', 'detail'],
+          queryKey: profileKeys.detail(),
         })
       }, 0)
     },

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import {
   fetchCareRadar,
@@ -11,6 +10,7 @@ import {
 } from '../../api/admin'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { AdminPageHeader, EmptyHint, SectionCard, StatSpinner } from './components/StatCards'
+import { can } from '../../utils/access'
 
 type Tab = 'quiet' | 'newcomers'
 
@@ -30,7 +30,7 @@ const MEMBER_LIST_CLS = 'space-y-1.5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-
 
 const CareRadar = () => {
   const navigate = useNavigate()
-  const admin = isAdmin()
+  const admin = can('admin:access')
   const [quietDays, setQuietDays] = useState(21)
   const [tab, setTab] = useState<Tab>('quiet')
 

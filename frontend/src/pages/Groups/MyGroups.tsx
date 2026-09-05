@@ -19,6 +19,7 @@ import groupPixelArt from '../../assets/hero/group-pixel.png'
 import groupJoinPixelArt from '../../assets/hero/group-join-pixel.png'
 import type { PrayerGroup } from '../../types/prayer'
 import { CheckIcon, GroupGlyph, PersonIcon, PrayIcon, TicketIcon } from './GroupIcons'
+import { toastFeedback } from '../../utils/toast'
 
 // 마지막 활동 상대 시각 — "방금 전 / N분 전 / N시간 전 / N일 전"
 const timeAgo = (iso?: string | null): string | null => {
@@ -468,8 +469,8 @@ const ActionCard = ({ icon, label, sublabel, variant, onClick }: ActionCardProps
 const DiscoverSection = ({ promoted }: { promoted?: boolean }) => {
   const navigate = useNavigate()
   const { data, isLoading } = useDiscoverGroups()
-  const joinOpen = useJoinOpenGroup()
-  const requestJoin = useRequestJoinGroup()
+  const joinOpen = useJoinOpenGroup(toastFeedback({ success: '그룹에 가입했어요 🙌', error: '그룹 가입에 실패했습니다' }))
+  const requestJoin = useRequestJoinGroup(toastFeedback({ success: '가입을 신청했어요. 승인되면 알려드릴게요', error: '가입 신청에 실패했습니다' }))
   const [pendingId, setPendingId] = useState<number | null>(null)
 
   const groups = data?.data.items ?? []

@@ -14,7 +14,6 @@ import {
   toggleWelcome,
   updateNewFamilyComment,
 } from '../api/newFamily'
-import { showToast } from '../utils/toast'
 import type {
   NewFamilyComment,
   NewFamilyCommentListResponse,
@@ -22,6 +21,7 @@ import type {
   NewFamilyPost,
 } from '../types/newFamily'
 import type { InfiniteData } from '@tanstack/react-query'
+import type { MutationFeedback } from './mutationFeedback'
 
 type PostsCache = InfiniteData<NewFamilyListResponse>
 type CommentsCache = InfiniteData<NewFamilyCommentListResponse>
@@ -92,7 +92,7 @@ export const useNewFamilyStats = (enabled = true) =>
  * 같은 이모지 재클릭 = 취소, 다른 이모지 = 교체.
  * 낙관적 업데이트로 탭하는 즉시 카운트가 움직인다.
  */
-export const useToggleWelcome = () => {
+export const useToggleWelcome = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -132,16 +132,17 @@ export const useToggleWelcome = () => {
     },
     onError: (error: Error, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(POSTS_KEY, context.previous)
-      showToast(error.message, 'error')
+      feedback?.onError?.(error, _vars)
     },
-    onSuccess: (response, { postId }) => {
+    onSuccess: (response, variables) => {
       // 서버 실제 집계로 정렬 (동시 클릭으로 어긋난 값 교정)
-      patchPostInCache(queryClient, postId, (post) => ({
+      patchPostInCache(queryClient, variables.postId, (post) => ({
         ...post,
         my_welcome: response.my_welcome,
         welcome_count: response.welcome_count,
         welcome_breakdown: response.welcome_breakdown,
       }))
+      feedback?.onSuccess?.(response, variables)
     },
   })
 
@@ -172,26 +173,26 @@ export const useNewFamilyComments = (postId: number, enabled = true, limit = 50)
   }
 }
 
-export const useCreateNewFamilyComment = (postId: number) => {
+export const useCreateNewFamilyComment = (postId: number, feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
     mutationFn: (content: string) => createNewFamilyComment(postId, content),
-    onSuccess: (response) => {
-      showToast(response.message, 'success')
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: commentsKey(postId) })
       patchPostInCache(queryClient, postId, (post) => ({
         ...post,
         comment_count: post.comment_count + 1,
       }))
+      feedback?.onSuccess?.(response, variables)
     },
-    onError: (error: Error) => showToast(error.message, 'error'),
+    onError: (error: Error, variables) => feedback?.onError?.(error, variables),
   })
 
   return { createComment: mutation.mutate, isCreating: mutation.isPending }
 }
 
-export const useUpdateNewFamilyComment = (postId: number) => {
+export const useUpdateNewFamilyComment = (postId: number, feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -222,18 +223,18 @@ export const useUpdateNewFamilyComment = (postId: number) => {
     },
     onError: (error: Error, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(commentsKey(postId), context.previous)
-      showToast(error.message, 'error')
+      feedback?.onError?.(error, _vars)
     },
-    onSuccess: (response) => {
-      showToast(response.message, 'success')
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: commentsKey(postId) })
+      feedback?.onSuccess?.(response, variables)
     },
   })
 
   return { updateComment: mutation.mutate, isUpdating: mutation.isPending }
 }
 
-export const useDeleteNewFamilyComment = (postId: number) => {
+export const useDeleteNewFamilyComment = (postId: number, feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -265,11 +266,11 @@ export const useDeleteNewFamilyComment = (postId: number) => {
     },
     onError: (error: Error, _commentId, context) => {
       if (context?.previous) queryClient.setQueryData(commentsKey(postId), context.previous)
-      showToast(error.message, 'error')
+      feedback?.onError?.(error, _commentId)
     },
-    onSuccess: (response) => {
-      showToast(response.message, 'success')
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: commentsKey(postId) })
+      feedback?.onSuccess?.(response, variables)
     },
   })
 

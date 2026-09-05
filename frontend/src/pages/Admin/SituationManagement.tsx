@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import {
   useAdminSituationCategories,
@@ -17,6 +16,7 @@ import {
 import { getAdminSettings, updateAdminSettings } from '../../api/user'
 import type { SituationCategory } from '../../types/situation'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 const ICON_OPTIONS = [
   'shield','cloud_off','favorite_border','sentiment_very_dissatisfied',
@@ -432,7 +432,7 @@ const SituationManagement = () => {
   const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
-    if (!isAdmin()) { showToast('관리자 권한이 필요합니다', 'error'); navigate('/') }
+    if (!can('admin:access')) { showToast('관리자 권한이 필요합니다', 'error'); navigate('/') }
   }, [navigate])
 
   const handleSeed = async () => {

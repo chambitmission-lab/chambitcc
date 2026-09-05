@@ -7,6 +7,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useGrowthRecentDays } from '../../../hooks/useGrowth'
 import { buildWeekCells, type DayCell } from './growthFootprints'
 import './LevelProgress.css'
+import { tokenStore } from '../../../utils/tokenStore'
 
 interface LevelProgressProps {
   currentLevel: GlowLevel
@@ -110,7 +111,7 @@ const LevelProgress = ({
 
   // 요일 마이크로 도트 — 스토리 트레이(useGrowthRecentDays 14일)와 같은 쿼리를
   // 공유하므로 추가 요청 없음. 데이터 도착 전에는 자리 잡지 않고 숨긴다.
-  const hasToken = !!localStorage.getItem('access_token')
+  const hasToken = !!tokenStore.getAccess()
   const { data: recent } = useGrowthRecentDays(14, hasToken)
   const weekCells = recent?.data ? buildWeekCells(recent.data.events) : null
 

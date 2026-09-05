@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query'
+import { bibleKeys } from '../hooks/queryKeys'
 
 /**
  * 성경 관련 캐시 완전 새로고침
@@ -10,18 +11,18 @@ export const refreshBibleCache = async (queryClient: QueryClient, bookNumber?: n
     if (bookNumber && chapter) {
       // 특정 장만 새로고침
       await queryClient.refetchQueries({
-        queryKey: ['bible', 'chapter', 'infinite', bookNumber, chapter],
+        queryKey: bibleKeys.chapterInfinite(bookNumber, chapter),
         type: 'active'
       })
       
       await queryClient.refetchQueries({
-        queryKey: ['bible', 'chapter', bookNumber, chapter],
+        queryKey: bibleKeys.chapter(bookNumber, chapter),
         type: 'active'
       })
     } else {
       // 모든 성경 캐시 새로고침
       await queryClient.refetchQueries({
-        queryKey: ['bible'],
+        queryKey: bibleKeys.all,
         type: 'active'
       })
     }
@@ -41,16 +42,16 @@ export const invalidateBibleCache = (queryClient: QueryClient, bookNumber?: numb
   if (bookNumber && chapter) {
     // 특정 장 캐시만 무효화
     queryClient.invalidateQueries({
-      queryKey: ['bible', 'chapter', 'infinite', bookNumber, chapter]
+      queryKey: bibleKeys.chapterInfinite(bookNumber, chapter)
     })
     
     queryClient.invalidateQueries({
-      queryKey: ['bible', 'chapter', bookNumber, chapter]
+      queryKey: bibleKeys.chapter(bookNumber, chapter)
     })
   } else {
     // 모든 성경 캐시 무효화
     queryClient.invalidateQueries({
-      queryKey: ['bible']
+      queryKey: bibleKeys.all
     })
   }
   
@@ -66,16 +67,16 @@ export const removeBibleCache = (queryClient: QueryClient, bookNumber?: number, 
   if (bookNumber && chapter) {
     // 특정 장 캐시만 제거
     queryClient.removeQueries({
-      queryKey: ['bible', 'chapter', 'infinite', bookNumber, chapter]
+      queryKey: bibleKeys.chapterInfinite(bookNumber, chapter)
     })
     
     queryClient.removeQueries({
-      queryKey: ['bible', 'chapter', bookNumber, chapter]
+      queryKey: bibleKeys.chapter(bookNumber, chapter)
     })
   } else {
     // 모든 성경 캐시 제거
     queryClient.removeQueries({
-      queryKey: ['bible']
+      queryKey: bibleKeys.all
     })
   }
   

@@ -6,13 +6,14 @@ import { fetchPrayers } from '../../../api/prayer'
 import { ChevronRightIcon } from '../../../components/icons/ActionIcons'
 import { GraceIcon } from '../../../components/icons/GraceIcons'
 import './AnsweredPrayersBanner.css'
+import { prayerKeys } from '../../../hooks/usePrayersQuery'
 
 const AnsweredPrayersBanner = () => {
   const navigate = useNavigate()
 
   // 개수만 필요하므로 limit=1로 total만 받아온다
   const { data: answeredTotal } = useQuery({
-    queryKey: ['prayers', 'answeredCount'],
+    queryKey: prayerKeys.answeredCount(),
     queryFn: async () =>
       (await fetchPrayers(1, 1, 'latest', null, null, true)).data.total,
     staleTime: 10 * 60 * 1000,

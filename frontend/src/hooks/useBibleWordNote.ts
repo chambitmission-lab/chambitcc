@@ -4,6 +4,7 @@ import {
   useQueryClient,
   useInfiniteQuery,
 } from '@tanstack/react-query'
+import { tokenStore } from '../utils/tokenStore'
 import {
   createWordNote,
   updateWordNote,
@@ -37,7 +38,7 @@ export const useChapterWordNotes = (
   chapter: number,
   enabled: boolean = true
 ) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  const token = typeof window !== 'undefined' ? tokenStore.getAccess() : null
   return useQuery({
     queryKey: wordNoteKeys.chapter(bookNumber, chapter),
     queryFn: () => listChapterWordNotes(bookNumber, chapter),
@@ -89,7 +90,7 @@ const WORDBOOK_PAGE_SIZE = 30
 
 /** 단어장 페이지 무한 목록 (검색어 포함) */
 export const useMyWordNotes = (q?: string, enabled: boolean = true) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  const token = typeof window !== 'undefined' ? tokenStore.getAccess() : null
   return useInfiniteQuery({
     queryKey: wordNoteKeys.list(q),
     queryFn: ({ pageParam }) =>
@@ -108,7 +109,7 @@ export const useMyWordNotes = (q?: string, enabled: boolean = true) => {
  * book_number 필터 미배포 백엔드는 전체 최신 100개를 주므로 소비 측에서
  * book_number 로 한 번 더 걸러 쓴다. */
 export const useBookWordNotes = (bookNumber: number, enabled: boolean = true) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  const token = typeof window !== 'undefined' ? tokenStore.getAccess() : null
   return useQuery({
     queryKey: wordNoteKeys.book(bookNumber),
     queryFn: () => listWordNotes({ book_number: bookNumber, page_size: 100 }),

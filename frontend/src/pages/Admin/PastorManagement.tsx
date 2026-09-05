@@ -5,7 +5,6 @@
 // 그 교체 동선이 이 화면의 존재 이유다.
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
 import {
@@ -18,6 +17,7 @@ import { pastorTermLabel } from '../../types/pastor'
 import type { Pastor, PastorStatus } from '../../types/pastor'
 import PastorComposer from './components/PastorComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { can } from '../../utils/access'
 
 type StatusFilter = 'all' | PastorStatus
 type SortKey = 'term' | 'name'
@@ -30,7 +30,7 @@ const STATUS_LABEL: Record<PastorStatus, string> = {
 
 const PastorManagement = () => {
   const navigate = useNavigate()
-  const admin = isAdmin()
+  const admin = can('admin:access')
 
   const { data: pastors = [], isPending, isError, refetch } = useAllPastors(admin)
   const setCurrentMutation = useSetCurrentPastor()

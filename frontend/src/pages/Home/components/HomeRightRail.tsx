@@ -22,6 +22,9 @@ import { ArrowUpRight, Megaphone } from '../../../components/icons/phosphor'
 import type { Language } from '../../../locales'
 import type { Event } from '../../../types/event'
 import type { SituationCategory } from '../../../types/situation'
+import { tokenStore } from '../../../utils/tokenStore'
+import { prayerStatsKeys, worshipKeys } from '../../../hooks/queryKeys'
+import { prayerKeys } from '../../../hooks/usePrayersQuery'
 
 // 표시 전용 — 영어 모드에서 _en 값이 있으면 사용, 없으면 한글로 폴백 (Worship.tsx와 같은 규칙).
 // 요일·시간 파싱은 항상 한글 원본 필드를 쓴다.
@@ -46,7 +49,7 @@ interface WeeklyPrayerStats {
 // 이번주(월~일 KST) 실측 집계 — 구버전 백엔드에는 없으므로 실패 시 폴백 경로를 탄다
 const useWeeklyPrayerStats = () =>
   useQuery({
-    queryKey: ['prayer-stats', 'weekly'],
+    queryKey: prayerStatsKeys.weekly(),
     queryFn: async (): Promise<WeeklyPrayerStats> => {
       const res = await apiFetch(`${API_V1}/prayers/stats/weekly`)
       if (!res.ok) throw new Error('주간 기도 현황을 불러오지 못했습니다')
@@ -68,7 +71,7 @@ interface PrayerStatsSummary {
 // 폴백용 누적 통계 (구버전 백엔드에도 있는 엔드포인트)
 const usePrayerStatsSummary = (enabled: boolean) =>
   useQuery({
-    queryKey: ['prayer-stats', 'summary'],
+    queryKey: prayerStatsKeys.summary(),
     queryFn: async (): Promise<PrayerStatsSummary> => {
       const res = await apiFetch(`${API_V1}/prayers/stats/summary`)
       if (!res.ok) throw new Error('기도 통계를 불러오지 못했습니다')
@@ -82,7 +85,7 @@ const usePrayerStatsSummary = (enabled: boolean) =>
 // 폴백용 응답의 전당 총 건수 — 목록 API의 total만 쓴다 (limit=1로 최소 페이로드)
 const useAnsweredTotal = (enabled: boolean) =>
   useQuery({
-    queryKey: ['prayer-stats', 'answered-total'],
+    queryKey: prayerStatsKeys.answeredTotal(),
     queryFn: async () => {
       const res = await fetchPrayers(1, 1, 'latest', null, null, true)
       return res.data.total
@@ -487,7 +490,7 @@ const SituationTagsWidget = () => {
 // 내 최근 기도 1건 — 로그인 사용자만. 감정 태그만 쓴다.
 const useMyLatestPrayer = (enabled: boolean) =>
   useQuery({
-    queryKey: ['prayers', 'mine', 'latest-one'],
+    queryKey: prayerKeys.mineLatest(),
     queryFn: async () => {
       const res = await fetchPrayers(1, 1, 'latest', null, 'my_prayers')
       return res.data.items[0] ?? null
@@ -505,7 +508,7 @@ const dayOfYear = () => {
 const PersonalPickWidget = () => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
-  const loggedIn = !!localStorage.getItem('access_token')
+  const loggedIn = !!tokenStore.getAccess()
   const { data: myPrayer } = useMyLatestPrayer(loggedIn)
   const weekly = useWeeklyPrayerStats()
   const { data: categories = [] } = useSituationCategories()
@@ -738,7 +741,7 @@ const ActionBentoWidget = () => {
 // 일정 위젯에 자동 합류시킨다. 관리자가 일정으로 따로 등록할 필요 없음.
 const useWorshipServicesAll = () =>
   useQuery({
-    queryKey: ['worship-services', 'all'],
+    queryKey: worshipKeys.services(),
     queryFn: async () => {
       const [sunday, weekday] = await Promise.all([
         getSundayServices(),

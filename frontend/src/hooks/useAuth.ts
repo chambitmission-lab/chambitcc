@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom'
 import { showToast } from '../utils/toast'
+import { tokenStore } from '../utils/tokenStore'
 
 export const useAuth = () => {
   const navigate = useNavigate()
 
   const isLoggedIn = () => {
-    return !!localStorage.getItem('access_token')
+    return !!tokenStore.getAccess()
   }
 
   const requireAuth = (action: () => void) => {

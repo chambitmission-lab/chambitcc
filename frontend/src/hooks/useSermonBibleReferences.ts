@@ -2,10 +2,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { getSermonBibleReferences } from '../api/sermon'
 import type { BibleReference } from '../types/sermon'
+import { sermonKeys } from './queryKeys'
 
 export const useSermonBibleReferences = (sermonId: number | null) => {
   return useQuery<BibleReference[]>({
-    queryKey: ['sermon-bible-references', sermonId],
+    queryKey: sermonKeys.bibleReferences(sermonId),
     queryFn: () => {
       if (!sermonId) {
         throw new Error('설교 ID가 필요합니다')

@@ -14,7 +14,7 @@ import {
 } from '../../../hooks/useGroups'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import MemberSearchInput from '../../../components/common/MemberSearchInput'
-import { showToast } from '../../../utils/toast'
+import { showToast, toastFeedback } from '../../../utils/toast'
 import { groupInviteUrl } from '../../../utils/inviteLink'
 import { getCurrentUser } from '../../../utils/auth'
 import type { CapsuleRecipient } from '../../../types/timeCapsule'
@@ -45,10 +45,10 @@ const GroupMembersTab = ({ group }: GroupMembersTabProps) => {
   const { data: membersData, isLoading, isError } = useGroupMembers(groupId, group.is_member)
   const members = membersData?.data.items ?? []
 
-  const kick = useKickMember()
-  const transfer = useTransferAdmin()
-  const addMembers = useAddGroupMembers()
-  const decideRequest = useDecideJoinRequest()
+  const kick = useKickMember(toastFeedback({ success: '멤버를 내보냈어요', error: '멤버 내보내기에 실패했습니다' }))
+  const transfer = useTransferAdmin(toastFeedback({ success: '관리자 권한을 이양했어요', error: '권한 이양에 실패했습니다' }))
+  const addMembers = useAddGroupMembers(toastFeedback({ error: '멤버 추가에 실패했습니다' }))
+  const decideRequest = useDecideJoinRequest(toastFeedback<unknown, { approve: boolean }>({ success: (_data, { approve }) => (approve ? '가입을 승인했어요 🎉' : '가입 신청을 거절했어요'), error: '신청 처리에 실패했습니다' }))
 
   // 승인제 그룹의 가입 신청 (관리자만 조회)
   const { data: requestsData } = useJoinRequests(

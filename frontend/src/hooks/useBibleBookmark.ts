@@ -12,7 +12,9 @@ import {
   type HighlightColor,
   type BookmarkDeleteTarget,
 } from '../api/bibleBookmark'
+import { tokenStore } from '../utils/tokenStore'
 import type { ProfileDetail } from '../types/profile'
+import { profileKeys } from './queryKeys'
 
 export const bookmarkKeys = {
   all: ['bookmark'] as const,
@@ -31,7 +33,7 @@ export const bookmarkKeys = {
  * 특정 구절 북마크 조회
  */
 export const useVerseBookmark = (verseId: number, enabled: boolean = true) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  const token = typeof window !== 'undefined' ? tokenStore.getAccess() : null
   return useQuery({
     queryKey: bookmarkKeys.detail(verseId),
     queryFn: () => getBookmark(verseId),
@@ -51,7 +53,7 @@ export const useChapterBookmarks = (
   chapter: number,
   enabled: boolean = true
 ) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  const token = typeof window !== 'undefined' ? tokenStore.getAccess() : null
   return useQuery({
     queryKey: bookmarkKeys.chapter(bookNumber, chapter),
     queryFn: () => listChapterBookmarks(bookNumber, chapter),
@@ -93,7 +95,7 @@ export const useUpsertBookmark = (verseId: number) => {
       const previous = queryClient.getQueryData<VerseBookmark | null>(bookmarkKeys.detail(verseId))
       const wasExisting = previous != null
 
-      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
+      queryClient.setQueryData<ProfileDetail>(profileKeys.detail(), (old) => {
         if (!old) return old
         // 타입상 필수인 세 필드까지 채운 폴백 — 통계가 아직 없는 계정에서도
         // bible_reading 모양이 깨지지 않는다
@@ -138,7 +140,7 @@ export const useUpsertBookmark = (verseId: number) => {
       // stale 마크만 해 두면 프로필 재진입 때 refetchOnMount(true)가 재조회한다
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists() })
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.stats() })
-      queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+      queryClient.invalidateQueries({ queryKey: profileKeys.detail() })
       // 현재 보고 있는 장의 배치 캐시 갱신 (활성 쿼리만 — 즉시 표시는 detail 캐시가 담당)
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.chapters() })
     },
@@ -181,7 +183,7 @@ export const useDeleteBookmark = (verseId: number) => {
         },
       )
 
-      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
+      queryClient.setQueryData<ProfileDetail>(profileKeys.detail(), (old) => {
         if (!old) return old
         // 타입상 필수인 세 필드까지 채운 폴백 — 통계가 아직 없는 계정에서도
         // bible_reading 모양이 깨지지 않는다
@@ -216,7 +218,7 @@ export const useDeleteBookmark = (verseId: number) => {
 
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.lists() })
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.stats() })
-      queryClient.invalidateQueries({ queryKey: ['profile', 'detail'] })
+      queryClient.invalidateQueries({ queryKey: profileKeys.detail() })
       // 현재 보고 있는 장의 배치 캐시 갱신 (활성 쿼리만 — 즉시 표시는 detail 캐시가 담당)
       queryClient.invalidateQueries({ queryKey: bookmarkKeys.chapters() })
     },
@@ -253,7 +255,7 @@ export const useMyBookmarks = (
   },
   enabled: boolean = true
 ) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+  const token = typeof window !== 'undefined' ? tokenStore.getAccess() : null
   return useQuery({
     queryKey: bookmarkKeys.list(params),
     queryFn: () => listBookmarks(params),

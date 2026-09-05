@@ -1,7 +1,7 @@
 // 오디오 업로드 관련 로직
 import { useState } from 'react'
 import { useUploadAudio, useDeleteAudioOnly } from '../../../../hooks/useSermons'
-import { showToast } from '../../../../utils/toast'
+import { showToast, toastFeedback } from '../../../../utils/toast'
 import { validateAudioFile } from './validation'
 import type { AudioUploadState } from './types'
 
@@ -12,8 +12,8 @@ export const useAudioUpload = () => {
     isUploading: false,
   })
 
-  const uploadAudioMutation = useUploadAudio()
-  const deleteAudioMutation = useDeleteAudioOnly()
+  const uploadAudioMutation = useUploadAudio(toastFeedback({ error: '음성 파일 업로드에 실패했습니다' }))
+  const deleteAudioMutation = useDeleteAudioOnly(toastFeedback({ success: '음성 파일이 삭제되었습니다', error: '음성 파일 삭제에 실패했습니다' }))
 
   const handleRecordingComplete = (audioBlob: Blob) => {
     const file = new File([audioBlob], `sermon_${Date.now()}.webm`, {

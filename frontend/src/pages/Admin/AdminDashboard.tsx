@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { fetchAdminDashboard, type AdminDashboardData, type DashboardAction } from '../../api/admin'
 import { AdminPageHeader, SectionCard, StatSpinner } from './components/StatCards'
+import { can } from '../../utils/access'
 
 // 액션 카드 톤 — 빨강 대신 앰버/브랜드 틴트로, 앱 전체 팔레트를 벗어나지 않게.
 const TONE_STYLE: Record<DashboardAction['tone'], string> = {
@@ -30,7 +30,7 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 const AdminDashboard = () => {
   const navigate = useNavigate()
-  const admin = isAdmin()
+  const admin = can('admin:access')
 
   useEffect(() => {
     if (!admin) {

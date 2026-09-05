@@ -1,6 +1,8 @@
 // 인증 관련 유틸리티 함수
 import { clearAllPersistedCache } from '../config/persister'
 import { unsubscribeFromPushNotifications } from './pushNotification'
+import { tokenStore, sessionStore } from './tokenStore'
+import { getRole } from './access'
 
 /**
  * 로그아웃 처리
@@ -22,16 +24,11 @@ import { unsubscribeFromPushNotifications } from './pushNotification'
  */
 export const logout = async () => {
   // 백엔드 구독 해제에 필요한 토큰을 제거 전에 스냅샷
-  const token = localStorage.getItem('access_token')
+  const token = tokenStore.getAccess()
 
   // 토큰 및 사용자 정보 제거 (동기 · 즉시)
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('refresh_token')
-  localStorage.removeItem('user')
-  localStorage.removeItem('user_username')
-  localStorage.removeItem('user_full_name')
-  localStorage.removeItem('user_fingerprint')
-  localStorage.removeItem('user_avatar_url')
+  tokenStore.clear()
+  sessionStore.clear()
   localStorage.removeItem('last_cached_username')
 
   // React Query 캐시 제거 (모든 사용자의 캐시 - 프로필 포함)
@@ -42,6 +39,30 @@ export const logout = async () => {
   void unsubscribeFromPushNotifications(token).catch((error) => {
     console.warn('로그아웃 중 푸시 구독 해제 실패 (무시):', error)
   })
+}
+
+/**
+ * 로그인 응답을 세션으로 확정한다 — 토큰·세션 사용자 필드 저장 + 이전 사용자 캐시 제거.
+ * (React Query 메모리 캐시 초기화는 호출부가 queryClient.clear() 로 담당)
+ */
+export const establishSession = (
+  data: { access_token: string; refresh_token?: string; username?: string; full_name?: string },
+  fallbackUsername: string
+): { username: string; fullName: string | null } => {
+  tokenStore.setAccess(data.access_token)
+  // Refresh token 저장 (백엔드에서 제공하는 경우)
+  if (data.refresh_token) tokenStore.setRefresh(data.refresh_token)
+
+  // 백엔드에서 username을 반환하지 않으면 입력한 값 사용
+  const username = data.username || fallbackUsername
+  sessionStore.set('username', username)
+  localStorage.setItem('last_cached_username', username)
+  if (data.full_name) sessionStore.set('fullName', data.full_name)
+
+  // 이전 사용자의 캐시 완전히 제거 (사용자별 캐시 분리)
+  clearAllPersistedCache()
+
+  return { username, fullName: data.full_name ?? null }
 }
 
 /**
@@ -66,10 +87,10 @@ export const isTokenExpired = (token: string, skewMs = 30_000): boolean => {
  * access 가 만료됐어도 refresh token 이 살아있으면 apiFetch 가 자동 갱신하므로 로그인 상태로 본다.
  */
 export const isAuthenticated = (): boolean => {
-  const accessToken = localStorage.getItem('access_token')
+  const accessToken = tokenStore.getAccess()
   if (!accessToken) return false
   if (!isTokenExpired(accessToken)) return true
-  return !!localStorage.getItem('refresh_token')
+  return !!tokenStore.getRefresh()
 }
 
 /**
@@ -77,24 +98,21 @@ export const isAuthenticated = (): boolean => {
  */
 export const getCurrentUser = () => {
   return {
-    username: localStorage.getItem('user_username'),
-    fullName: localStorage.getItem('user_full_name'),
+    username: sessionStore.get('username'),
+    fullName: sessionStore.get('fullName'),
   }
 }
 
 /**
- * 관리자 권한 확인
+ * 관리자 권한 확인 — 화면에서는 utils/access 의 can('...') 을 쓴다 (역할 확장 대비)
  */
-export const isAdmin = (): boolean => {
-  const username = localStorage.getItem('user_username')
-  return username === 'admin'
-}
+export const isAdmin = (): boolean => getRole() === 'admin'
 
 /**
  * Access Token 갱신
  */
 export const refreshAccessToken = async (): Promise<string | null> => {
-  const refreshToken = localStorage.getItem('refresh_token')
+  const refreshToken = tokenStore.getRefresh()
   
   if (!refreshToken) {
     return null
@@ -126,7 +144,7 @@ export const refreshAccessToken = async (): Promise<string | null> => {
     const newAccessToken = data.access_token
 
     // 새 access token 저장
-    localStorage.setItem('access_token', newAccessToken)
+    tokenStore.setAccess(newAccessToken)
 
     return newAccessToken
   } catch (error) {

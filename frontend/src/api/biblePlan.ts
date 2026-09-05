@@ -1,5 +1,4 @@
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders } from './utils/apiHelpers'
+import { API_V1 } from '../config/api'
 import { streamSSE } from './sse'
 import type {
   GenerateScheduleResponse,
@@ -15,95 +14,54 @@ import type {
   PlanUpdateRequest,
   TodayResponse,
 } from '../types/biblePlan'
+import { request, requestRaw, type UntypedJson } from './utils/request'
 
 const BASE = `${API_V1}/bible-plans`
 
 // ── 사용자 ──
 export const listPlans = async (): Promise<PlanListResponse> => {
-  const response = await apiFetch(BASE, { headers: getAuthHeaders() })
-  if (!response.ok) throw new Error('읽기 플랜을 불러오지 못했습니다')
-  return response.json()
+  return request<PlanListResponse>(BASE, { errorMessage: '읽기 플랜을 불러오지 못했습니다' })
 }
 
 export const getPlan = async (planId: number): Promise<PlanDetail> => {
-  const response = await apiFetch(`${BASE}/${planId}`, { headers: getAuthHeaders() })
-  if (!response.ok) throw new Error('플랜을 불러오지 못했습니다')
-  return response.json()
+  return request<PlanDetail>(`${BASE}/${planId}`, { errorMessage: '플랜을 불러오지 못했습니다' })
 }
 
 export const getTodayReadings = async (): Promise<TodayResponse> => {
-  const response = await apiFetch(`${BASE}/today`, { headers: getAuthHeaders() })
-  if (!response.ok) throw new Error('오늘의 읽기를 불러오지 못했습니다')
-  return response.json()
+  return request<TodayResponse>(`${BASE}/today`, { errorMessage: '오늘의 읽기를 불러오지 못했습니다' })
 }
 
 export const subscribePlan = async (
   planId: number,
   startDate?: string,
 ): Promise<PlanProgress> => {
-  const response = await apiFetch(`${BASE}/${planId}/subscribe`, {
+  return request<PlanProgress>(`${BASE}/${planId}/subscribe`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ start_date: startDate ?? null }),
+    json: { start_date: startDate ?? null },
+    errorMessage: '플랜 시작에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '플랜 시작에 실패했습니다')
-  }
-  return response.json()
 }
 
 export const unsubscribePlan = async (planId: number): Promise<void> => {
-  const response = await apiFetch(`${BASE}/${planId}/subscribe`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok && response.status !== 204) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '플랜 그만두기에 실패했습니다')
-  }
+  await requestRaw(`${BASE}/${planId}/subscribe`, { method: 'DELETE', errorMessage: '플랜 그만두기에 실패했습니다' })
 }
 
 export const restartPlan = async (planId: number): Promise<PlanProgress> => {
-  const response = await apiFetch(`${BASE}/${planId}/restart`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '다시 시작에 실패했습니다')
-  }
-  return response.json()
+  return request<PlanProgress>(`${BASE}/${planId}/restart`, { method: 'POST', errorMessage: '다시 시작에 실패했습니다' })
 }
 
 export const completeDay = async (
   planId: number,
   dayNumber: number,
 ): Promise<PlanProgress> => {
-  const response = await apiFetch(`${BASE}/${planId}/days/${dayNumber}/complete`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '완료 처리에 실패했습니다')
-  }
-  return response.json()
+  return request<PlanProgress>(`${BASE}/${planId}/days/${dayNumber}/complete`, { method: 'POST', errorMessage: '완료 처리에 실패했습니다' })
 }
 
 export const uncompleteDay = async (
   planId: number,
   dayNumber: number,
 ): Promise<PlanProgress> => {
-  const response = await apiFetch(`${BASE}/${planId}/days/${dayNumber}/complete`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '완료 취소에 실패했습니다')
-  }
-  return response.json()
+  return request<PlanProgress>(`${BASE}/${planId}/days/${dayNumber}/complete`, { method: 'DELETE', errorMessage: '완료 취소에 실패했습니다' })
 }
 
 export const generateReflection = async (
@@ -112,18 +70,7 @@ export const generateReflection = async (
   force = false,
 ): Promise<PlanReflection> => {
   const query = force ? '?force=true' : ''
-  const response = await apiFetch(
-    `${BASE}/${planId}/days/${dayNumber}/reflection${query}`,
-    {
-      method: 'POST',
-      headers: getAuthHeaders(),
-    },
-  )
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || 'AI 묵상 생성에 실패했습니다')
-  }
-  return response.json()
+  return request<PlanReflection>(`${BASE}/${planId}/days/${dayNumber}/reflection${query}`, { method: 'POST', errorMessage: 'AI 묵상 생성에 실패했습니다' })
 }
 
 /**
@@ -165,32 +112,22 @@ export const updateReflection = async (
   dayNumber: number,
   payload: PlanReflectionUpdateRequest,
 ): Promise<PlanReflection> => {
-  const response = await apiFetch(`${BASE}/${planId}/days/${dayNumber}/reflection`, {
+  return request<PlanReflection>(`${BASE}/${planId}/days/${dayNumber}/reflection`, {
     method: 'PUT',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    json: payload,
+    errorMessage: '묵상 수정에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '묵상 수정에 실패했습니다')
-  }
-  return response.json()
 }
 
 // ── 개인 플랜(나만의 플랜) / 초대 ──
 export const createPersonalPlan = async (
   payload: PersonalPlanCreateRequest,
 ): Promise<PlanDetail> => {
-  const response = await apiFetch(`${BASE}/mine`, {
+  const data = await request<UntypedJson>(`${BASE}/mine`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    json: payload,
+    errorMessage: '플랜 만들기에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '플랜 만들기에 실패했습니다')
-  }
-  const data = await response.json()
   return data.plan as PlanDetail
 }
 
@@ -198,89 +135,53 @@ export const updatePersonalPlan = async (
   planId: number,
   payload: PersonalPlanUpdateRequest,
 ): Promise<PlanDetail> => {
-  const response = await apiFetch(`${BASE}/${planId}/personal`, {
+  const data = await request<UntypedJson>(`${BASE}/${planId}/personal`, {
     method: 'PATCH',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    json: payload,
+    errorMessage: '플랜 수정에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '플랜 수정에 실패했습니다')
-  }
-  const data = await response.json()
   return data.plan as PlanDetail
 }
 
 export const deletePersonalPlan = async (planId: number): Promise<void> => {
-  const response = await apiFetch(`${BASE}/${planId}/personal`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok && response.status !== 204) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '플랜 삭제에 실패했습니다')
-  }
+  await requestRaw(`${BASE}/${planId}/personal`, { method: 'DELETE', errorMessage: '플랜 삭제에 실패했습니다' })
 }
 
 export const previewPlanInvite = async (inviteCode: string): Promise<PlanInvitePreview> => {
-  const response = await apiFetch(`${BASE}/invite/${encodeURIComponent(inviteCode)}`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '초대장을 찾을 수 없어요')
-  }
-  return response.json()
+  return request<PlanInvitePreview>(`${BASE}/invite/${encodeURIComponent(inviteCode)}`, { errorMessage: '초대장을 찾을 수 없어요' })
 }
 
 export const addPlanMembers = async (
   planId: number,
   userIds: number[],
 ): Promise<{ added_count: number }> => {
-  const response = await apiFetch(`${BASE}/${planId}/members`, {
+  return request<{ added_count: number }>(`${BASE}/${planId}/members`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ user_ids: userIds }),
+    json: { user_ids: userIds },
+    errorMessage: '초대에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '초대에 실패했습니다')
-  }
-  return response.json()
 }
 
 export const joinPlanByCode = async (inviteCode: string): Promise<PlanDetail> => {
-  const response = await apiFetch(`${BASE}/join`, {
+  const data = await request<UntypedJson>(`${BASE}/join`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ invite_code: inviteCode }),
+    json: { invite_code: inviteCode },
+    errorMessage: '참여에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '참여에 실패했습니다')
-  }
-  const data = await response.json()
   return data.plan as PlanDetail
 }
 
 // ── 관리자 ──
 export const listAllPlans = async (): Promise<PlanListResponse> => {
-  const response = await apiFetch(`${BASE}/admin`, { headers: getAuthHeaders() })
-  if (!response.ok) throw new Error('플랜 목록을 불러오지 못했습니다')
-  return response.json()
+  return request<PlanListResponse>(`${BASE}/admin`, { errorMessage: '플랜 목록을 불러오지 못했습니다' })
 }
 
 export const createPlan = async (payload: PlanCreateRequest): Promise<PlanDetail> => {
-  const response = await apiFetch(BASE, {
+  const data = await request<UntypedJson>(BASE, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    json: payload,
+    errorMessage: '플랜 등록에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '플랜 등록에 실패했습니다')
-  }
-  const data = await response.json()
   return data.plan as PlanDetail
 }
 
@@ -288,42 +189,25 @@ export const updatePlan = async (
   planId: number,
   payload: PlanUpdateRequest,
 ): Promise<PlanDetail> => {
-  const response = await apiFetch(`${BASE}/${planId}`, {
+  const data = await request<UntypedJson>(`${BASE}/${planId}`, {
     method: 'PATCH',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    json: payload,
+    errorMessage: '플랜 수정에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '플랜 수정에 실패했습니다')
-  }
-  const data = await response.json()
   return data.plan as PlanDetail
 }
 
 export const deletePlan = async (planId: number): Promise<void> => {
-  const response = await apiFetch(`${BASE}/${planId}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok && response.status !== 204) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '플랜 삭제에 실패했습니다')
-  }
+  await requestRaw(`${BASE}/${planId}`, { method: 'DELETE', errorMessage: '플랜 삭제에 실패했습니다' })
 }
 
 export const generateSchedule = async (
   bookNumbers: number[],
   totalDays: number,
 ): Promise<GenerateScheduleResponse> => {
-  const response = await apiFetch(`${BASE}/generate-schedule`, {
+  return request<GenerateScheduleResponse>(`${BASE}/generate-schedule`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ book_numbers: bookNumbers, total_days: totalDays }),
+    json: { book_numbers: bookNumbers, total_days: totalDays },
+    errorMessage: '일정 자동 생성에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '일정 자동 생성에 실패했습니다')
-  }
-  return response.json()
 }

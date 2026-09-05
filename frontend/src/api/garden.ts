@@ -1,5 +1,4 @@
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders, requireAuth } from './utils/apiHelpers'
+import { request, isApiError, type UntypedJson } from './utils/request'
 
 // 정원 테마 타입 정의
 export type ThemeType = 'preset' | 'custom'
@@ -36,15 +35,12 @@ export interface ImageUploadResponse {
  * 정원 테마 설정 조회
  */
 export const getGardenTheme = async (): Promise<GardenTheme> => {
-  requireAuth()
-
-  const response = await apiFetch(`${API_V1}/garden/theme`, {
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
+  let result: UntypedJson
+  try {
+    result = await request<UntypedJson>('/garden/theme', { auth: 'required', errorMessage: '정원 테마를 불러오는데 실패했습니다' })
+  } catch (error) {
     // 404인 경우 기본 테마 반환
-    if (response.status === 404) {
+    if (isApiError(error, 404)) {
       return {
         theme_type: 'preset',
         preset_name: 'classic',
@@ -52,10 +48,8 @@ export const getGardenTheme = async (): Promise<GardenTheme> => {
         sun_image_url: null,
       }
     }
-    throw new Error('정원 테마를 불러오는데 실패했습니다')
+    throw error
   }
-
-  const result = await response.json()
   console.log('getGardenTheme response:', result)
   
   // 백엔드 응답 구조에 따라 처리
@@ -83,20 +77,12 @@ export const getGardenTheme = async (): Promise<GardenTheme> => {
  * 정원 테마 설정 저장
  */
 export const saveGardenTheme = async (theme: Omit<GardenTheme, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<GardenTheme> => {
-  requireAuth()
-
-  const response = await apiFetch(`${API_V1}/garden/theme`, {
+  const result = await request<UntypedJson>('/garden/theme', {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(theme),
+    auth: 'required',
+    json: theme,
+    errorMessage: '정원 테마 저장에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '정원 테마 저장에 실패했습니다')
-  }
-
-  const result = await response.json()
   console.log('saveGardenTheme response:', result)
   
   // 백엔드 응답 구조에 따라 처리
@@ -116,27 +102,17 @@ export const saveGardenTheme = async (theme: Omit<GardenTheme, 'id' | 'user_id' 
  * 정원 이미지 업로드
  */
 export const uploadGardenImage = async (file: File, imageType: ImageType): Promise<string> => {
-  requireAuth()
 
   const formData = new FormData()
   formData.append('image', file)
   formData.append('image_type', imageType)
 
-  const token = localStorage.getItem('access_token')
-  const response = await apiFetch(`${API_V1}/garden/upload-image`, {
+  const result = await request<UntypedJson>('/garden/upload-image', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+    auth: 'required',
     body: formData,
+    errorMessage: '이미지 업로드에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '이미지 업로드에 실패했습니다')
-  }
-
-  const result = await response.json()
   console.log('Upload response:', result) // 디버깅용
   
   // 백엔드 응답 구조에 따라 처리

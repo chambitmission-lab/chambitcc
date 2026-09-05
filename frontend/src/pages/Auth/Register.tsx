@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { API_V1 } from '../../config/api'
+import { getSignupPolicy, register } from '../../api/auth'
 import { showToast } from '../../utils/toast'
 import { EyeIcon, StatusIcon } from './AuthIcons'
 import './AuthForm.css'
@@ -27,8 +27,7 @@ const Register = () => {
   const fieldsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch(`${API_V1}/auth/signup-policy`)
-      .then(res => (res.ok ? res.json() : null))
+    getSignupPolicy()
       .then(data => {
         if (data) setRequireApproval(!!data.require_approval)
       })
@@ -77,23 +76,14 @@ const Register = () => {
     }
 
     try {
-      const response = await fetch(`${API_V1}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password,
-          full_name: formData.full_name || null
-        })
+      // 서버 detail 이 있으면 그 문구가, 없으면 REGISTER_FAILED 가 message 로 온다
+      const data = await register({
+        username: formData.username,
+        password: formData.password,
+        full_name: formData.full_name || null,
+      }).catch((err: unknown) => {
+        throw new Error(err instanceof Error && err.message !== 'REGISTER_FAILED' ? err.message : t('registerFailed'))
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.detail || t('registerFailed'))
-      }
 
       // 정책이 도중에 바뀌었을 수 있으니 실제 생성된 상태를 기준으로 안내한다.
       // 토스트는 document.body에 직접 붙어 화면 전환 후에도 남는다.

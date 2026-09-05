@@ -5,14 +5,16 @@ import ReplyList from '../../../components/common/ReplyList'
 import EmojiPickerPanel from '../../../components/common/EmojiPickerPanel'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useProfileDetail } from '../../../hooks/useProfile'
-import { isAdmin } from '../../../utils/auth'
 import {
   useCreateEventAlbumComment,
   useDeleteEventAlbumComment,
   useEventAlbumComments,
   useUpdateEventAlbumComment,
 } from '../../../hooks/useEventAlbum'
+import { sessionStore } from '../../../utils/tokenStore'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
+import { toastFeedback } from '../../../utils/toast'
+import { can } from '../../../utils/access'
 
 interface EventAlbumCommentSheetProps {
   post: EventAlbumPost
@@ -31,15 +33,15 @@ const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) 
   const avatarUrl = profileDetail?.stats.avatar_url ?? null
   const displayName =
     profileDetail?.stats.full_name ||
-    localStorage.getItem('user_full_name') ||
-    localStorage.getItem('user_username') ||
+    sessionStore.get('fullName') ||
+    sessionStore.get('username') ||
     '성도'
 
   const { comments, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useEventAlbumComments(post.id)
-  const { createComment, isCreating } = useCreateEventAlbumComment(post.id)
-  const { updateComment, isUpdating } = useUpdateEventAlbumComment(post.id)
-  const { deleteComment } = useDeleteEventAlbumComment(post.id)
+  const { createComment, isCreating } = useCreateEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 등록에 실패했습니다' }))
+  const { updateComment, isUpdating } = useUpdateEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 수정에 실패했습니다' }))
+  const { deleteComment } = useDeleteEventAlbumComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 삭제에 실패했습니다' }))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,7 +104,7 @@ const EventAlbumCommentSheet = ({ post, onClose }: EventAlbumCommentSheetProps) 
             }
             onReplyDelete={(commentId) => deleteComment(commentId)}
             isUpdating={isUpdating}
-            canModerate={isAdmin()}
+            canModerate={can('community:moderate')}
           />
         </div>
 

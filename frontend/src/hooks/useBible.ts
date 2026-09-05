@@ -2,11 +2,12 @@ import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import type { InfiniteData } from '@tanstack/react-query'
 import type { BibleSearchResult } from '../types/bible'
 import { getBibleBooks, getBibleChapter, getBibleVerse, searchBible, getBibleChapterPaginated } from '../api/bible'
+import { bibleKeys } from './queryKeys'
 
 // 성경 책 목록
 export const useBibleBooks = () => {
   return useQuery({
-    queryKey: ['bible', 'books'],
+    queryKey: bibleKeys.books(),
     queryFn: getBibleBooks,
     staleTime: 1000 * 60 * 60 * 24, // 24시간
     gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
@@ -16,7 +17,7 @@ export const useBibleBooks = () => {
 // 특정 장 읽기 - 책 ID 사용
 export const useBibleChapter = (bookId: number, chapter: number, enabled: boolean = true) => {
   return useQuery({
-    queryKey: ['bible', 'chapter', bookId, chapter],
+    queryKey: bibleKeys.chapter(bookId, chapter),
     queryFn: () => getBibleChapter(bookId, chapter),
     enabled: enabled && bookId > 0 && chapter > 0,
     staleTime: 1000 * 60 * 60 * 24, // 24시간
@@ -27,7 +28,7 @@ export const useBibleChapter = (bookId: number, chapter: number, enabled: boolea
 // 특정 구절 조회
 export const useBibleVerse = (book: string, chapter: number, verse: number, enabled: boolean = true) => {
   return useQuery({
-    queryKey: ['bible', 'verse', book, chapter, verse],
+    queryKey: bibleKeys.verse(book, chapter, verse),
     queryFn: () => getBibleVerse(book, chapter, verse),
     enabled: enabled && !!book && chapter > 0 && verse > 0,
     staleTime: 1000 * 60 * 60 * 24, // 24시간
@@ -41,7 +42,7 @@ export const BIBLE_SEARCH_PAGE_SIZE = 30
 // 성경 검색 (첫 페이지만) — 말씀 고르기 시트처럼 스크롤 페이징이 필요 없는 곳에서 사용
 export const useBibleSearch = (keyword: string, limit: number = BIBLE_SEARCH_PAGE_SIZE) => {
   return useQuery({
-    queryKey: ['bible', 'search', keyword, limit],
+    queryKey: bibleKeys.search(keyword, limit),
     queryFn: () => searchBible(keyword, { limit }),
     // 백엔드가 2글자 미만을 400으로 막으므로 헛요청을 보내지 않는다
     enabled: keyword.trim().length >= 2,
@@ -58,7 +59,7 @@ export const useBibleSearchInfinite = (
   bookNumber?: number
 ) => {
   return useInfiniteQuery({
-    queryKey: ['bible', 'search', 'infinite', keyword, testament ?? 'ALL', bookNumber ?? 0],
+    queryKey: bibleKeys.searchInfinite(keyword, testament, bookNumber),
     // 구약/신약 범위나 책 칩만 바꿀 때는 키가 바뀌어도 이전 결과를 placeholder로 유지 —
     // 안 그러면 결과 전체가 스피너로 갈렸다가 다시 그려져 깜빡인다.
     // 검색어 자체가 바뀌면 옛 결과를 보여 줄 이유가 없으니(하이라이트도 어긋남) 유지하지 않는다.
@@ -87,7 +88,7 @@ export const useBibleSearchInfinite = (
 // 무한 스크롤 장 조회
 export const useBibleChapterInfinite = (bookNumber: number, chapter: number, enabled: boolean = true) => {
   return useInfiniteQuery({
-    queryKey: ['bible', 'chapter', 'infinite', bookNumber, chapter],
+    queryKey: bibleKeys.chapterInfinite(bookNumber, chapter),
     queryFn: ({ pageParam = 1 }) => getBibleChapterPaginated(bookNumber, chapter, pageParam, 20),
     enabled: enabled && bookNumber > 0 && chapter > 0,
     getNextPageParam: (lastPage) => {

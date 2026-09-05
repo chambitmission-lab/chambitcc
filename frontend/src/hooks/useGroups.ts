@@ -23,8 +23,8 @@ import {
   decideJoinRequest,
   fetchGroupCare,
 } from '../api/group'
-import { showToast } from '../utils/toast'
 import type { CreateGroupRequest, UpdateGroupRequest, JoinGroupRequest } from '../types/prayer'
+import type { MutationFeedback } from './mutationFeedback'
 
 // Query Keys
 export const groupKeys = {
@@ -103,50 +103,51 @@ export const useCreateGroup = () => {
 }
 
 // 그룹 가입
-export const useJoinGroup = () => {
+export const useJoinGroup = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
   
   return useMutation({
     mutationFn: (data: JoinGroupRequest) => joinGroup(data),
-    onSuccess: () => {
-      showToast('그룹에 가입했습니다', 'success')
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      feedback?.onSuccess?.(data, variables)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '그룹 가입에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }
 
 // 앱 사용자 바로 초대 (관리자 전용)
-export const useAddGroupMembers = () => {
+export const useAddGroupMembers = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: ({ groupId, userIds }: { groupId: number; userIds: number[] }) =>
       addGroupMembers(groupId, userIds),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       // 성공 토스트는 호출부에서 처리 (추가/건너뜀을 구분해 안내)
       queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      feedback?.onSuccess?.(data, variables)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '멤버 추가에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }
 
 // 그룹 탈퇴
-export const useLeaveGroup = () => {
+export const useLeaveGroup = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (groupId: number) => leaveGroup(groupId),
-    onSuccess: () => {
-      showToast('그룹에서 탈퇴했습니다', 'success')
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      feedback?.onSuccess?.(data, variables)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '그룹 탈퇴에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }
@@ -163,64 +164,64 @@ export const useGroupMembers = (groupId: number, enabled = true) => {
 }
 
 // 그룹 정보 수정 (관리자만)
-export const useUpdateGroup = () => {
+export const useUpdateGroup = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ groupId, data }: { groupId: number; data: UpdateGroupRequest }) =>
       updateGroup(groupId, data),
-    onSuccess: () => {
-      showToast('그룹 정보를 수정했어요', 'success')
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      feedback?.onSuccess?.(data, variables)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '그룹 수정에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }
 
 // 그룹 삭제 (관리자만)
-export const useDeleteGroup = () => {
+export const useDeleteGroup = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (groupId: number) => deleteGroup(groupId),
-    onSuccess: () => {
-      showToast('그룹을 삭제했어요', 'success')
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      feedback?.onSuccess?.(data, variables)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '그룹 삭제에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }
 
 // 멤버 내보내기 (관리자만)
-export const useKickMember = () => {
+export const useKickMember = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ groupId, userId }: { groupId: number; userId: number }) =>
       kickGroupMember(groupId, userId),
-    onSuccess: () => {
-      showToast('멤버를 내보냈어요', 'success')
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      feedback?.onSuccess?.(data, variables)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '멤버 내보내기에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }
 
 // 관리자 권한 이양
-export const useTransferAdmin = () => {
+export const useTransferAdmin = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ groupId, newAdminUserId }: { groupId: number; newAdminUserId: number }) =>
       transferGroupAdmin(groupId, newAdminUserId),
-    onSuccess: () => {
-      showToast('관리자 권한을 이양했어요', 'success')
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      feedback?.onSuccess?.(data, variables)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '권한 이양에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }
@@ -237,15 +238,16 @@ export const useGroupDigest = (groupId: number, enabled = true) => {
 }
 
 // 오늘의 체크인 — 응답(최신 다이제스트)으로 캐시를 바로 채운다
-export const useGroupCheckin = () => {
+export const useGroupCheckin = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (groupId: number) => checkinGroup(groupId),
     onSuccess: (res, groupId) => {
       queryClient.setQueryData(groupKeys.digest(groupId), res)
+      feedback?.onSuccess?.(res, groupId)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '체크인에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }
@@ -262,32 +264,32 @@ export const useDiscoverGroups = (enabled = true) => {
 }
 
 // 공개 그룹 바로 가입
-export const useJoinOpenGroup = () => {
+export const useJoinOpenGroup = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (groupId: number) => joinOpenGroup(groupId),
-    onSuccess: () => {
-      showToast('그룹에 가입했어요 🙌', 'success')
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      feedback?.onSuccess?.(data, variables)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '그룹 가입에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }
 
 // 승인제 그룹 가입 신청
-export const useRequestJoinGroup = () => {
+export const useRequestJoinGroup = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ groupId, message }: { groupId: number; message?: string }) =>
       requestJoinGroup(groupId, message),
-    onSuccess: () => {
-      showToast('가입을 신청했어요. 승인되면 알려드릴게요', 'success')
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.discover() })
+      feedback?.onSuccess?.(data, variables)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '가입 신청에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }
@@ -304,7 +306,7 @@ export const useJoinRequests = (groupId: number, enabled = true) => {
 }
 
 // 가입 신청 승인/거절 (관리자만)
-export const useDecideJoinRequest = () => {
+export const useDecideJoinRequest = (feedback?: MutationFeedback<unknown, { approve: boolean }>) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({
@@ -316,12 +318,12 @@ export const useDecideJoinRequest = () => {
       requestId: number
       approve: boolean
     }) => decideJoinRequest(groupId, requestId, approve),
-    onSuccess: (_res, { approve }) => {
-      showToast(approve ? '가입을 승인했어요 🎉' : '가입 신청을 거절했어요', 'success')
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.all })
+      feedback?.onSuccess?.(data, variables)
     },
-    onError: (error: Error) => {
-      showToast(error.message || '신청 처리에 실패했습니다', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.onError?.(error, variables)
     },
   })
 }

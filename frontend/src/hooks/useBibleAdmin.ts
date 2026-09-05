@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { updateBibleVerse } from '../api/bible'
 import type { UpdateBibleVerseRequest, BibleChapterPaginatedResponse } from '../types/bible'
 import type { InfiniteData } from '@tanstack/react-query'
+import { bibleKeys } from './queryKeys'
 
 /**
  * 성경 구절 수정 Mutation (관리자 전용)
@@ -16,11 +17,11 @@ export const useUpdateBibleVerse = () => {
       const { verseId, data } = variables
       
       // 모든 성경 관련 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['bible'] })
+      queryClient.invalidateQueries({ queryKey: bibleKeys.all })
       
       // 특별히 무한 스크롤 캐시 강제 새로고침
       queryClient.refetchQueries({ 
-        queryKey: ['bible', 'chapter', 'infinite'],
+        queryKey: bibleKeys.chapterInfinites(),
         type: 'active'
       })
       
@@ -46,7 +47,7 @@ export const useOptimisticUpdateVerse = () => {
       chapter: number
     }) => {
       // 낙관적 업데이트 먼저 적용
-      const queryKey = ['bible', 'chapter', 'infinite', bookNumber, chapter]
+      const queryKey = bibleKeys.chapterInfinite(bookNumber, chapter)
       
       // 이전 데이터 백업
       const previousData = queryClient.getQueryData<InfiniteData<BibleChapterPaginatedResponse>>(queryKey)
@@ -80,7 +81,7 @@ export const useOptimisticUpdateVerse = () => {
     },
     onSuccess: ({ queryKey }) => {
       // 성공 시 관련 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['bible', 'search'] })
+      queryClient.invalidateQueries({ queryKey: bibleKeys.searches() })
       queryClient.invalidateQueries({ queryKey })
     }
   })

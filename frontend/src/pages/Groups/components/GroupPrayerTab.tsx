@@ -13,6 +13,7 @@ import { showToast } from '../../../utils/toast'
 import type { SortType, Prayer } from '../../../types/prayer'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { GroupGlyph } from '../GroupIcons'
+import { prayerToastFeedback } from '../../../components/prayer/prayerFeedback'
 
 interface GroupPrayerTabProps {
   groupId: number
@@ -29,7 +30,7 @@ const GroupPrayerTab = ({ groupId }: GroupPrayerTabProps) => {
   const [showAnswerModal, setShowAnswerModal] = useState(false)
   const [selectedPrayerForAnswer, setSelectedPrayerForAnswer] = useState<Prayer | null>(null)
 
-  const prayerHook = usePrayersInfinite(sort, groupId, 'all', graceMode ? true : undefined)
+  const prayerHook = usePrayersInfinite(sort, groupId, 'all', graceMode ? true : undefined, prayerToastFeedback)
   // 핸들러 안정화 — prayerHook은 매 렌더 새 객체라 useCallback deps에 못 넣는다.
   // 핸들러는 이벤트 시점에만 읽으므로 effect에서 갱신해도 최신값이 보장된다
   const prayerHookRef = useRef(prayerHook)

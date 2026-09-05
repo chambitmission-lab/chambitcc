@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getStoryProgress, markStoryEpisodeRead } from '../../../api/bibleStory'
 import { isAuthenticated } from '../../../utils/auth'
 import { scheduleTitleEvaluation } from '../../../utils/titleUnlockBus'
+import { sessionStore } from '../../../utils/tokenStore'
 
 // 스토리 모드 진행 상태 — 읽은 에피소드 id 목록.
 //
@@ -21,7 +22,7 @@ export const STORY_PROGRESS_KEY = ['bible', 'story-progress'] as const
 
 const userKey = (base: string): string => {
   try {
-    const username = localStorage.getItem('user_username')
+    const username = sessionStore.get('username')
     return username ? `${base}:${username}` : base
   } catch {
     return base

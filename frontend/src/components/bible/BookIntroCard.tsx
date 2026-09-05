@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import {
   useBookIntro,
@@ -11,6 +10,7 @@ import { getBookGenre, genreStyle } from './bookGenre'
 import BookIntroEditor from './BookIntroEditor'
 import BookIntroSheet from './BookIntroSheet'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 interface BookIntroCardProps {
   bookNumber: number
@@ -38,7 +38,7 @@ const BookIntroCard = ({
   currentChapter,
   onJumpToChapter,
 }: BookIntroCardProps) => {
-  const admin = isAdmin()
+  const admin = can('bible:edit')
   const { data: intro, isLoading } = useBookIntro(bookNumber)
 
   const upsertMutation = useUpsertBookIntro()

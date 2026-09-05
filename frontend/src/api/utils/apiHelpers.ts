@@ -1,4 +1,5 @@
 // API 공통 유틸리티 함수들
+import { tokenStore } from '../../utils/tokenStore'
 
 /**
  * HTTP 상태를 들고 다니는 에러.
@@ -8,29 +9,33 @@
  */
 export class ApiError extends Error {
   status: number
+  /** 원본 응답 — 헤더(X-Auth-Reason 등)를 읽어야 하는 드문 경우에만 쓴다 */
+  response?: Response
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, response?: Response) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.response = response
   }
 }
 
 /**
  * 인증 토큰을 포함한 헤더 생성
+ * (신규 코드는 api/utils/request 의 request()/requestRaw() 를 쓴다 — 헤더를 직접 만들 일이 없다)
  */
-export const getAuthHeaders = (includeContentType = false): HeadersInit => {
-  const headers: HeadersInit = {}
-  
-  const token = localStorage.getItem('access_token')
+export const getAuthHeaders = (includeContentType = false): Record<string, string> => {
+  const headers: Record<string, string> = {}
+
+  const token = tokenStore.getAccess()
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
   }
-  
+
   if (includeContentType) {
     headers['Content-Type'] = 'application/json'
   }
-  
+
   return headers
 }
 
@@ -38,24 +43,23 @@ export const getAuthHeaders = (includeContentType = false): HeadersInit => {
  * 인증 토큰 확인 (로그인 필수 API용)
  */
 export const requireAuth = (): string => {
-  const token = localStorage.getItem('access_token')
+  const token = tokenStore.getAccess()
   if (!token) {
-    throw new Error('로그인이 필요합니다')
+    throw new ApiError(401, '로그인이 필요합니다')
   }
   return token
 }
 
 /**
- * API 에러 처리
+ * API 에러 처리 — 실패 응답을 status 가 담긴 ApiError 로 던진다.
  */
 export const handleApiError = async (response: Response, defaultMessage: string): Promise<never> => {
-  if (!response.ok) {
-    try {
-      const error = await response.json()
-      throw new Error(error.detail || defaultMessage)
-    } catch {
-      throw new Error(defaultMessage)
-    }
+  let message = defaultMessage
+  try {
+    const error = await response.json()
+    if (typeof error?.detail === 'string' && error.detail) message = error.detail
+  } catch {
+    /* 본문이 JSON 이 아니면 기본 메시지 */
   }
-  throw new Error(defaultMessage)
+  throw new ApiError(response.status, message)
 }

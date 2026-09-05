@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import {
   getAllCultureClasses,
@@ -21,6 +20,7 @@ import type {
   CultureNotice,
 } from '../../types/culture'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 type TabKey = 'classes' | 'applications' | 'notices'
 
@@ -326,7 +326,7 @@ const CultureManagement = () => {
   const [noticeTarget, setNoticeTarget] = useState<CultureNotice | null>(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
     }

@@ -6,14 +6,16 @@
 }
 
 /* ── 읽기 진행 요약 ────────────────────────────────────────────────
-   전체/구약/신약을 한 줄에 나란히. 39개 카드를 훑지 않고도 "어디가 비었나"를
-   먼저 알려주는 오리엔테이션 영역이다. 수치는 장 기준(완독한 장/전체 장). */
+   히어로(전체 진행률 한 숫자·격려·게이지) + 구약/신약 타일(또는 66권 지도).
+   39개 카드를 훑지 않고도 "어디가 비었나"를 먼저 알려주는 오리엔테이션 영역이다.
+   색은 토스 블루 한 계열만 쓰고, 구약/신약은 두루마리·십자가 아이콘으로 나눈다.
+   수치는 장 기준(완독한 장/전체 장). */
 .reading-summary {
   margin-bottom: 1.25rem;
-  padding: 0.875rem 0.875rem 0.75rem;
+  padding: 0.875rem 0.875rem 0.875rem;
   background: var(--ig-primary-background);
   border: 1px solid var(--ig-border);
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
 [data-theme="dark"] .reading-summary {
@@ -25,163 +27,220 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
   margin-bottom: 0.75rem;
 }
 
-.reading-summary__title {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--ig-secondary-text);
+.reading-summary__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
 }
 
-.reading-summary__map-toggle {
+/* 제목 옆 아이콘 타일 — 브랜드 tint 사각 위 펼친 책(duotone) */
+.reading-summary__badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 11px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 1.25rem;
+}
+
+.reading-summary__heading-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.reading-summary__title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--text-strong);
+}
+
+.reading-summary__subtitle {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 보기 전환(진행률 | 지도) — 토스식 플랫 세그먼트. 활성은 브랜드 tint + 브랜드 글자 */
+.reading-summary__views {
+  display: inline-flex;
+  flex-shrink: 0;
   gap: 0.25rem;
-  padding: 0.28rem 0.6rem 0.28rem 0.45rem;
-  border-radius: 999px;
+}
+
+.reading-summary__view {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.36rem 0.62rem 0.36rem 0.5rem;
+  border-radius: 10px;
   border: 1px solid var(--ig-border);
   background: transparent;
-  color: var(--ig-secondary-text);
-  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-size: 0.74rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.reading-summary__map-toggle .material-icons-round {
+.reading-summary__view svg {
   font-size: 0.95rem;
 }
 
-.reading-summary__map-toggle.active {
-  background: var(--brand);
+.reading-summary__view.active {
+  background: var(--brand-soft-strong);
   border-color: transparent;
-  color: #fff;
+  color: var(--brand);
 }
 
-[data-theme="dark"] .reading-summary__map-toggle {
+[data-theme="dark"] .reading-summary__view {
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-/* 도넛 링 3개 — 전체(브랜드)·구약(딥 틸)·신약(로얄 퍼플). 링 색은 셋을 구분하는 정보색이라
-   장르 액센트 토큰을 재사용하고, 다크에서는 토큰 쪽에서 밝기가 함께 올라간다 */
-.reading-summary__rings {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  padding: 0.25rem 0 0.5rem;
-}
-
-.summary-ring {
-  --ring-color: var(--brand);
+/* ── 히어로: 전체 진행률 ─────────────────────────────────────────
+   숫자 하나가 먼저 읽히도록 큰 활자, 그 옆에 장 수 칩.
+   배경 삽화(펼친 성경, 728×510, 투명 배경 WebP)는 카드 전체를 덮지 않고 우상단에 "작게 얹는다".
+   크기는 카드 "폭" 기준 — 높이 기준(%)으로 잡으면 문장이 두 줄로 접힐 때 카드가 늘어나며
+   책까지 따라 커진다. 오른쪽 음수 오프셋으로 삽화 우측의 잎·별 장식을 카드 밖으로 밀어
+   책 자체가 오른쪽 끝에 붙는다. 알파 에셋이라 바탕색과 이음새(상자 자국)가 생기지 않는다. */
+.reading-hero {
   position: relative;
-  width: 100%;
-  max-width: 6.25rem;
-  aspect-ratio: 1;
-  margin: 0 auto;
-}
-
-.summary-ring[data-stat="ot"] {
-  --ring-color: var(--genre-prophets);
-}
-
-.summary-ring[data-stat="nt"] {
-  --ring-color: var(--genre-revelation);
-}
-
-.summary-ring__svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.summary-ring__track,
-.summary-ring__fill {
-  fill: none;
-  stroke-width: 7;
-}
-
-.summary-ring__track {
-  stroke: color-mix(in srgb, var(--ring-color) 14%, transparent);
-}
-
-[data-theme="dark"] .summary-ring__track {
-  stroke: color-mix(in srgb, var(--ring-color) 22%, transparent);
-}
-
-.summary-ring__fill {
-  stroke: var(--ring-color);
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .summary-ring__fill {
-    transition: none;
-  }
-}
-
-.summary-ring__center {
-  position: absolute;
-  inset: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.1rem;
-  padding: 0.75rem;
-  text-align: center;
+  gap: 0.3rem;
+  padding: 0.9rem 0.95rem 0.95rem;
+  border-radius: 14px;
+  background-color: #ecf4ff;
+  background-image: url('/images/bible/reading-hero-light.webp');
+  background-size: 46% auto;
+  /* 세로는 % 정렬 — 카드가 늘어나도 게이지 위 영역의 가운데쯤에 머문다(top 고정이면 코너에 붙는다) */
+  background-position: right -2rem top 32%;
+  background-repeat: no-repeat;
+  overflow: hidden;
 }
 
-.summary-ring__value {
-  font-size: 1.3rem;
+[data-theme="dark"] .reading-hero {
+  background-color: #1a222d;
+  background-image: url('/images/bible/reading-hero-dark.webp');
+}
+
+.reading-hero__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-body);
+}
+
+.reading-hero__row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.reading-hero__value {
+  font-size: 2.45rem;
   font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--ring-color);
+  letter-spacing: -0.045em;
+  color: var(--brand);
   font-variant-numeric: tabular-nums;
 }
 
-.summary-ring__value small {
-  margin-left: 1px;
-  font-size: 0.68rem;
+.reading-hero__value small {
+  margin-left: 2px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.reading-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.62rem;
+  border-radius: 999px;
+  background: var(--ig-primary-background);
+  color: var(--brand);
+  font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 0 0 1px rgba(49, 130, 246, 0.14);
 }
 
-.summary-ring__label {
-  font-size: 0.66rem;
-  font-weight: 600;
-  color: var(--ig-secondary-text);
+[data-theme="dark"] .reading-hero__chip {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(69, 147, 252, 0.22);
+}
+
+/* 격려 한 줄은 책 왼쪽에서 접히게 — 삽화 위로 글자가 올라타지 않도록 오른쪽을 비운다.
+   flex 가 아니라 인라인 흐름으로 두어 손모양 아이콘이 문장 끝에 붙어 함께 접히고,
+   keep-all 로 어절 단위에서만 줄이 바뀐다("있어/요" 같은 낱자 분리 방지) */
+.reading-hero__cheer {
+  display: block;
+  margin: 0.15rem 0 0.35rem;
+  padding-right: 30%;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text-body);
+}
+
+.reading-hero__cheer-tail {
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
 }
 
-/* 전체 진행 막대 — 링은 비율만 말하므로 장 단위 절대량은 여기 한 줄로 */
-.reading-summary__bar {
+.reading-hero__cheer svg {
+  display: inline-block;
+  margin-left: 0.3rem;
+  font-size: 1rem;
+  vertical-align: -0.18em;
+  color: var(--brand);
+}
+
+/* 게이지 + 남은 장 수를 한 줄에 — 트랙이 늘어나고 라벨은 오른쪽 끝에 붙는다 */
+.reading-hero__gauge {
   display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  padding-top: 0.25rem;
+  align-items: center;
+  gap: 0.6rem;
 }
 
-.reading-summary__track {
+.reading-hero__track {
   position: relative;
   display: block;
+  flex: 1;
   height: 8px;
   border-radius: 999px;
-  background: var(--brand-soft-strong);
+  background: rgba(49, 130, 246, 0.16);
   overflow: hidden;
 }
 
-[data-theme="dark"] .reading-summary__track {
+[data-theme="dark"] .reading-hero__track {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.reading-summary__fill {
+.reading-hero__fill {
   display: block;
   height: 100%;
   border-radius: 999px;
@@ -189,26 +248,161 @@
   transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.reading-summary__bar-meta {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.5rem;
+.reading-hero__left {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
-.reading-summary__bar-read {
-  font-size: 0.9rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--brand);
+/* ── 구약/신약 타일 ─────────────────────────────────────────────
+   같은 파랑 안에서 아이콘(두루마리/십자가)만 다르다. 모바일은 세로 결, 넓어지면 가로 결 */
+.reading-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
-.reading-summary__bar-left {
-  font-size: 0.7rem;
+.reading-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem 0.8rem 0.8rem;
+  border-radius: 14px;
+  border: 1px solid var(--ig-border);
+  background: var(--ig-primary-background);
+  min-width: 0;
+}
+
+[data-theme="dark"] .reading-tile {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.reading-tile__head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.reading-tile__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 1.35rem;
+}
+
+.reading-tile__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  min-width: 0;
+}
+
+.reading-tile__label {
+  font-size: 0.72rem;
   font-weight: 600;
-  color: var(--ig-secondary-text);
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
+}
+
+.reading-tile__value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.reading-tile__value small {
+  margin-left: 1px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.reading-tile__detail {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-muted);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.reading-tile__track {
+  position: relative;
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(49, 130, 246, 0.14);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .reading-tile__track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.reading-tile__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--brand);
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-hero__fill,
+  .reading-tile__fill {
+    transition: none;
+  }
+}
+
+/* 넓은 폭(PC 620px 컬럼 포함): 히어로 숫자와 타일 아이콘을 키운다 */
+@media (min-width: 480px) {
+  .reading-summary {
+    padding: 1rem 1rem 1rem;
+  }
+
+  .reading-hero {
+    padding: 1.1rem 1.2rem 1.2rem;
+    /* 이전 높이 기준 70%(카드 156px → 책 ~160px 폭)와 같은 크기를 폭 기준으로 고정 */
+    background-size: 30% auto;
+    background-position: right 0.75rem top 38%;
+  }
+
+  .reading-hero__cheer {
+    padding-right: 34%;
+  }
+
+  .reading-hero__value {
+    font-size: 3.1rem;
+  }
+
+  .reading-tile {
+    padding: 0.9rem 1rem 0.95rem;
+  }
+
+  .reading-tile__icon {
+    width: 2.9rem;
+    height: 2.9rem;
+    font-size: 1.55rem;
+  }
+
+  .reading-tile__value {
+    font-size: 1.5rem;
+  }
 }
 
 /* ── 성경 지도 (66권 히트맵) ─────────────────────────────────────
@@ -524,22 +718,51 @@
 }
 
 /* 크기는 실제 요소의 폰트 박스에 맞춘다 — 데이터가 와도 높이가 튀지 않게 */
+.bib-skel--badge {
+  flex-shrink: 0;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 11px;
+}
+
 .bib-skel--title {
-  width: 4rem;
-  height: 0.8125rem;
+  width: 6rem;
+  height: 0.95rem;
+}
+
+.bib-skel--subtitle {
+  width: 8.5rem;
+  height: 0.7rem;
 }
 
 .bib-skel--toggle {
-  width: 3.6rem;
-  height: 1.65rem; /* map-toggle 버튼(패딩 0.28rem×2 + 0.72rem 텍스트)과 동일 */
-  border-radius: 999px;
+  width: 7.2rem;
+  height: 1.7rem; /* 보기 전환 버튼 두 개(패딩 0.36rem×2 + 0.74rem 텍스트) 폭·높이 */
+  border-radius: 10px;
 }
 
-.bib-skel--ring {
+.bib-skel--label {
+  width: 4.2rem;
+  height: 0.78rem;
+}
+
+.bib-skel--number {
+  width: 8.5rem;
+  height: 2.6rem;
+  border-radius: 10px;
+}
+
+.bib-skel--cheer {
+  width: 11rem;
+  height: 0.8rem;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.bib-skel--tile {
   display: block;
   width: 100%;
-  aspect-ratio: 1;
-  border-radius: 50%;
+  height: 4.4rem;
+  border-radius: 10px;
 }
 
 .bib-skel--detail {

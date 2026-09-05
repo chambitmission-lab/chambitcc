@@ -2,7 +2,6 @@
 // 컴팩트 행 + accordion + 검색/필터 + 통계 chip + FAB → Composer (admin_list_pattern)
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { useAllBiblePlans, useDeletePlan } from '../../hooks/useBiblePlan'
 import type { PlanSummary } from '../../types/biblePlan'
@@ -11,6 +10,7 @@ import { PlanGlyph } from '../Bible/Plans/PlanIcons'
 import BiblePlanComposer from './components/BiblePlanComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 type PublishFilter = 'all' | 'published' | 'draft'
 
@@ -26,7 +26,7 @@ const BiblePlanManagement = () => {
   const [editingPlan, setEditingPlan] = useState<PlanSummary | null>(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
     }

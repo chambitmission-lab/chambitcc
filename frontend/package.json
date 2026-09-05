@@ -17,7 +17,6 @@
     "@tanstack/react-query-devtools": "^5.91.3",
     "@tanstack/react-query-persist-client": "^5.90.22",
     "@types/d3": "^7.4.3",
-    "axios": "^1.13.4",
     "canvas-confetti": "^1.9.4",
     "d3": "^7.9.0",
     "flag-icons": "^7.5.0",

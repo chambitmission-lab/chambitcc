@@ -1,4 +1,5 @@
 // 인스타그램 스타일 토스트 알림 유틸리티
+import type { MutationFeedback } from '../hooks/mutationFeedback'
 // options.title을 주면 굵은 제목 줄 + 설명 줄의 2단 구조로 좌측 정렬되어 보여진다 (절기 안내 등)
 export const showToast = (
   message: string,
@@ -118,3 +119,34 @@ export const showToast = (
     setTimeout(() => toast.remove(), 300)
   }, 2500)
 }
+
+/**
+ * 뮤테이션 훅에 넘길 토스트 피드백 조합.
+ * 훅은 캐시만 다루고 문구는 호출부가 정한다 (hooks/mutationFeedback 참고).
+ *
+ *   useJoinGroup(toastFeedback({ success: '그룹에 가입했습니다', error: '그룹 가입에 실패했습니다' }))
+ *
+ * success/error 는 문자열 또는 (data|error, variables) => 문자열. 함수가 빈 값을 돌려주면 토스트를 생략한다.
+ * error 문자열은 서버 메시지(error.message)가 없을 때의 대체 문구다.
+ */
+export interface ToastFeedbackSpec<TData = unknown, TVariables = unknown> {
+  success?: string | ((data: TData, variables: TVariables) => string | null | undefined)
+  successType?: 'success' | 'info'
+  error?: string | ((error: Error, variables: TVariables) => string | null | undefined)
+}
+
+export const toastFeedback = <TData = unknown, TVariables = unknown>(
+  spec: ToastFeedbackSpec<TData, TVariables>
+): MutationFeedback<TData, TVariables> => ({
+  onSuccess(data, variables) {
+    if (spec.success === undefined) return
+    const message = typeof spec.success === 'function' ? spec.success(data, variables) : spec.success
+    if (message) showToast(message, spec.successType ?? 'success')
+  },
+  onError(error, variables) {
+    if (spec.error === undefined) return
+    const message =
+      typeof spec.error === 'function' ? spec.error(error, variables) : error.message || spec.error
+    if (message) showToast(message, 'error')
+  },
+})

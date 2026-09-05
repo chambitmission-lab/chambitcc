@@ -1,8 +1,6 @@
+import { request, type UntypedJson } from './utils/request'
 // 집중 기도 세션 API
 // 로그인 사용자만 호출 가능. 비로그인이면 로컬에서만 처리하도록 호출부에서 분기.
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders, requireAuth } from './utils/apiHelpers'
-
 export type PrayerThemeId =
   | 'thanks'
   | 'repentance'
@@ -65,17 +63,12 @@ const cleanPayload = (data: CreatePrayerSessionRequest): Record<string, unknown>
 export const createPrayerSession = async (
   data: CreatePrayerSessionRequest,
 ): Promise<PrayerSessionResponse> => {
-  requireAuth()
-  const response = await apiFetch(`${API_V1}/prayer-sessions`, {
+  const json = await request<UntypedJson>('/prayer-sessions', {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(cleanPayload(data)),
+    auth: 'required',
+    json: cleanPayload(data),
+    errorMessage: '기도 세션 기록에 실패했습니다',
   })
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}))
-    throw new Error(err.detail || '기도 세션 기록에 실패했습니다')
-  }
-  const json = await response.json()
   return json.data as PrayerSessionResponse
 }
 
@@ -84,30 +77,18 @@ export const updatePrayerSessionNote = async (
   sessionId: number,
   note: string,
 ): Promise<PrayerSessionResponse> => {
-  requireAuth()
-  const response = await apiFetch(`${API_V1}/prayer-sessions/${sessionId}/note`, {
+  const json = await request<UntypedJson>(`/prayer-sessions/${sessionId}/note`, {
     method: 'PATCH',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ note }),
+    auth: 'required',
+    json: { note },
+    errorMessage: '묵상 기록 저장에 실패했습니다',
   })
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}))
-    throw new Error(err.detail || '묵상 기록 저장에 실패했습니다')
-  }
-  const json = await response.json()
   return json.data as PrayerSessionResponse
 }
 
 /** 통계 조회 (로그인 필수) */
 export const getPrayerSessionStats = async (): Promise<PrayerSessionStats> => {
-  requireAuth()
-  const response = await apiFetch(`${API_V1}/prayer-sessions/stats`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) {
-    throw new Error('통계 조회에 실패했습니다')
-  }
-  const json = await response.json()
+  const json = await request<UntypedJson>('/prayer-sessions/stats', { auth: 'required', errorMessage: '통계 조회에 실패했습니다' })
   return json.data as PrayerSessionStats
 }
 

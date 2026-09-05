@@ -4,10 +4,10 @@
 // 진행률을 보여준다. 1건씩 호출하므로 타임아웃에 안전하고 중간 중단도 가능.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { useBibleBooks } from '../../hooks/useBible'
 import { batchGenerateOneCommentary } from '../../api/bibleCommentary'
+import { can } from '../../utils/access'
 
 interface LogEntry {
   ok: boolean
@@ -36,7 +36,7 @@ const BibleCommentaryManagement = () => {
   const cancelRef = useRef(false)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
     }

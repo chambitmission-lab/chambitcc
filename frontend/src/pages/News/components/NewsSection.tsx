@@ -6,9 +6,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import NewsDetailView from './NewsDetailView'
 import { MegaphoneIcon, SignalIcon, InboxIcon } from './NewsIcons'
 import { useNewsCategories, useNewsList } from '../../../hooks/useNews'
-import { isAdmin } from '../../../utils/auth'
 import type { NewsItem } from '../../../types/news'
 import '../news-hero.css'
+import { can } from '../../../utils/access'
 
 const formatDate = (value: string | null) => {
   if (!value) return ''
@@ -30,7 +30,7 @@ const isFresh = (value: string | null): boolean => {
 const NewsSection = () => {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const admin = isAdmin()
+  const admin = can('content:manage')
 
   const [category, setCategory] = useState<string | null>(null)
   const [searchInput, setSearchInput] = useState('')

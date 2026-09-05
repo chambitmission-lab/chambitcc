@@ -2,19 +2,19 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../../contexts/LanguageContext'
 import { useAuth } from '../../../../hooks/useAuth'
-import { isAdmin } from '../../../../utils/auth'
 import { showToast } from '../../../../utils/toast'
 import ThanksCard from './ThanksCard'
 import { ThanksIcon } from '../../../../components/icons/ThanksIcons'
 import ThanksComposer from './ThanksComposer'
 import { useThanks } from './useThanks'
 import { confirmDialog } from '../../../../utils/confirmDialog'
+import { can } from '../../../../utils/access'
 
 const ThanksThread = () => {
   const { language } = useLanguage()
   const { requireAuth } = useAuth()
   const navigate = useNavigate()
-  const admin = isAdmin()
+  const admin = can('community:moderate')
   const { items, loading, total, add, remove, amen } = useThanks({ limit: 10 })
   const [showComposer, setShowComposer] = useState(false)
 

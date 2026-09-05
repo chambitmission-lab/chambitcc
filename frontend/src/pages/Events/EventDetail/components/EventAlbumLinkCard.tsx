@@ -3,6 +3,7 @@
 // 로그인한 성도만 앨범을 볼 수 있으므로 비로그인에서는 조회 자체를 하지 않는다.
 import { useNavigate } from 'react-router-dom'
 import { useEventAlbumsByEvent } from '../../../../hooks/useEventAlbum'
+import { tokenStore } from '../../../../utils/tokenStore'
 
 interface EventAlbumLinkCardProps {
   eventId: number
@@ -10,7 +11,7 @@ interface EventAlbumLinkCardProps {
 
 export const EventAlbumLinkCard = ({ eventId }: EventAlbumLinkCardProps) => {
   const navigate = useNavigate()
-  const isLoggedIn = !!localStorage.getItem('access_token')
+  const isLoggedIn = !!tokenStore.getAccess()
   const { data: albums } = useEventAlbumsByEvent(eventId, isLoggedIn)
 
   if (!isLoggedIn || !albums || albums.length === 0) return null

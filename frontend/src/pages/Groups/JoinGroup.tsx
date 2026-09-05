@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useGroupPreview, useJoinGroup } from '../../hooks/useGroups'
 import { isAuthenticated } from '../../utils/auth'
 import { escapeKakaoInApp, isInAppBrowser, isKakaoInApp } from '../../utils/inappBrowser'
-import { showToast } from '../../utils/toast'
+import { showToast, toastFeedback } from '../../utils/toast'
 import { GroupGlyph } from './GroupIcons'
 
 const JoinGroup = () => {
@@ -15,7 +15,7 @@ const JoinGroup = () => {
 
   const { data, isLoading, error } = useGroupPreview(inviteCode)
   const group = data?.data
-  const joinGroup = useJoinGroup()
+  const joinGroup = useJoinGroup(toastFeedback({ success: '그룹에 가입했습니다', error: '그룹 가입에 실패했습니다' }))
   // 자동 탈출은 main.tsx에서 전역 처리 — 여기서는 실패 대비 수동 UI만 담당
   const inApp = isInAppBrowser()
 

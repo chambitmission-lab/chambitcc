@@ -10,6 +10,7 @@ import { getSermons } from '../../../api/sermon'
 import { getSundayServices, getWeekdayServices } from '../../../api/worship'
 import { DAY_CHARS, soonestService } from '../../../utils/worshipSchedule'
 import { ChevronRightIcon } from '../icons'
+import { sermonKeys, columnKeys, worshipKeys } from '../../../hooks/queryKeys'
 
 interface Props {
   ko: boolean
@@ -36,23 +37,23 @@ const DAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export default function GreetingRail({ ko }: Props) {
   const navigate = useNavigate()
 
-  // 목양칼럼 — Ministry 페이지와 같은 키(['columns', ''])라 캐시를 나눠 쓴다
+  // 목양칼럼 — Ministry 페이지와 같은 키(columnKeys.list(''))라 캐시를 나눠 쓴다
   const { data: columns } = useQuery({
-    queryKey: ['columns', ''],
+    queryKey: columnKeys.list(''),
     queryFn: async () => (await getColumns('')).filter((c) => c.is_active),
     staleTime: 1000 * 60 * 30,
   })
   const latestColumn = columns?.[0]
 
   const { data: sermons } = useQuery({
-    queryKey: ['sermons', 0, 1, 'light'],
+    queryKey: sermonKeys.list(0, 1, false),
     queryFn: () => getSermons(0, 1, false),
     staleTime: 1000 * 60 * 5,
   })
   const latestSermon = sermons?.[0]
 
   const { data: services } = useQuery({
-    queryKey: ['worship-services', 'all'],
+    queryKey: worshipKeys.services(),
     queryFn: async () => {
       const [sun, week] = await Promise.all([getSundayServices(), getWeekdayServices()])
       return [...sun, ...week]

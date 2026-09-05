@@ -1,15 +1,18 @@
 // 기도 삭제 로직을 담당하는 커스텀 훅 with Optimistic Update
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { deletePrayer } from '../api/prayer'
-import { showToast } from '../utils/toast'
 import { getCurrentUser } from '../utils/auth'
 import { prayerKeys } from './usePrayersQuery'
 import { groupKeys } from './useGroups'
 import type { PrayerListCache } from '../types/queryCache'
+import type { MutationFeedback } from './mutationFeedback'
+import { profileKeys } from './queryKeys'
 
 interface UsePrayerDeleteOptions {
   onSuccess?: () => void
   onError?: (error: string) => void
+  /** 화면 피드백(토스트 등) — 훅은 캐시만 다룬다 */
+  feedback?: MutationFeedback<{ message?: string }, number>
 }
 
 /**
@@ -18,7 +21,7 @@ interface UsePrayerDeleteOptions {
  * - 목록과 상세 페이지 캐시 동시 업데이트 (사용자별 캐시 포함)
  * - 에러 시 자동 롤백
  */
-export const usePrayerDelete = ({ onSuccess, onError }: UsePrayerDeleteOptions = {}) => {
+export const usePrayerDelete = ({ onSuccess, onError, feedback }: UsePrayerDeleteOptions = {}) => {
   const queryClient = useQueryClient()
   const currentUser = getCurrentUser()
 
@@ -64,11 +67,10 @@ export const usePrayerDelete = ({ onSuccess, onError }: UsePrayerDeleteOptions =
       })
 
       const errorMsg = error.message || '기도 요청 삭제에 실패했습니다.'
-      showToast(errorMsg, 'error')
       onError?.(errorMsg)
+      feedback?.onError?.(error, _prayerId)
     },
-    onSuccess: (data) => {
-      showToast(data.message || '기도 요청이 삭제되었습니다.', 'success')
+    onSuccess: (data, variables) => {
 
       // 서버 기준으로 목록 재동기화 (활성 화면은 즉시 refetch)
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
@@ -79,12 +81,13 @@ export const usePrayerDelete = ({ onSuccess, onError }: UsePrayerDeleteOptions =
       // 백그라운드에서 프로필 캐시 무효화 (내 기도 -1)
       setTimeout(() => {
         queryClient.invalidateQueries({
-          queryKey: ['profile', 'detail'],
+          queryKey: profileKeys.detail(),
           refetchType: 'none',
         })
       }, 0)
 
       onSuccess?.()
+      feedback?.onSuccess?.(data, variables)
     },
   })
 

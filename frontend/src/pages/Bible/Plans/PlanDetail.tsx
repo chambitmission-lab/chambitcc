@@ -16,8 +16,8 @@ import {
 } from '../../../hooks/useBiblePlan'
 import { usePlanReflections } from '../../../hooks/usePlanReflections'
 import type { PlanDay } from '../../../types/biblePlan'
-import { isAdmin, isAuthenticated } from '../../../utils/auth'
-import { showToast } from '../../../utils/toast'
+import { isAuthenticated } from '../../../utils/auth'
+import { showToast, toastFeedback } from '../../../utils/toast'
 import { accentGradient } from './planVisuals'
 import DayCard from './components/DayCard'
 import ReflectionSheet from './components/ReflectionSheet'
@@ -34,6 +34,7 @@ import {
   PartyIcon,
   PeopleIcon as UsersIcon,
 } from './PlanIcons'
+import { can } from '../../../utils/access'
 
 // 나만의 플랜 초대 링크 — HashRouter 라 #/ 경로, JoinPlan(/bible/plans/join/:code)으로 떨어진다
 const inviteUrl = (code: string) =>
@@ -86,13 +87,16 @@ const PlanDetail = () => {
     toggleReflection,
     regenerateReflection,
     saveReflection,
-  } = usePlanReflections(id)
+  } = usePlanReflections(id, {
+    regenerate: toastFeedback({ success: 'AI 묵상을 새로 생성했어요', error: '다시 생성에 실패했습니다' }),
+    save: toastFeedback({ success: '묵상을 수정했어요' }),
+  })
   const [menuOpen, setMenuOpen] = useState(false)
   const [shareCopied, setShareCopied] = useState(false)
   // 그룹 접힘 상태 — 명시적으로 토글한 그룹만 기록하고,
   // 기록이 없으면 "현재 일차가 속한 그룹만 펼침"을 기본값으로 쓴다 (플랜 로딩 타이밍 무관)
   const [openGroups, setOpenGroups] = useState<Record<number, boolean>>({})
-  const admin = isAdmin()
+  const admin = can('plans:manage')
 
   const grad = accentGradient(plan?.accent)
   const progress = plan?.progress

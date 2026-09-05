@@ -3,10 +3,11 @@ import { attendEvent, cancelAttendance } from '../../../../api/event'
 import type { AttendanceStatus } from '../../../../types/event'
 import type { Translation } from '../../../../locales'
 import { showToast } from '../../../../utils/toast'
+import { tokenStore } from '../../../../utils/tokenStore'
 
 export const useEventActions = (eventId: number, refresh: () => void, t: Translation) => {
   const navigate = useNavigate()
-  const isLoggedIn = !!localStorage.getItem('access_token')
+  const isLoggedIn = !!tokenStore.getAccess()
 
   const handleAttend = async (status: AttendanceStatus) => {
     if (!isLoggedIn) {

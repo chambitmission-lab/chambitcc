@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getSermon } from '../../api/sermon'
 import { useInfiniteSermons } from '../../hooks/useSermons'
-import { isAdmin } from '../../utils/auth'
 import SermonHero from './components/SermonHero'
 import SermonRow from './components/SermonRow'
 import SermonDetail from './components/SermonDetail'
@@ -12,6 +11,7 @@ import { deriveWorshipType, groupSermonsByMonth, WORSHIP_TYPES } from './utils/s
 import type { WorshipType } from './utils/sermonMeta'
 import type { Sermon as SermonType } from '../../types/sermon'
 import './Sermon.css'
+import { can } from '../../utils/access'
 
 type Filter = '전체' | WorshipType
 
@@ -25,7 +25,7 @@ const Sermon = () => {
   const [editingSermon, setEditingSermon] = useState<SermonType | null>(null)
   const [selected, setSelected] = useState<SelectedSermon | null>(null)
   const [filter, setFilter] = useState<Filter>('전체')
-  const adminUser = isAdmin()
+  const adminUser = can('sermons:manage')
 
   const {
     data,

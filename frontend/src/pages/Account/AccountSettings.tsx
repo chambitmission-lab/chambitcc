@@ -37,6 +37,8 @@ import {
   ShieldIcon,
   type AccountIconProps,
 } from './AccountIcons'
+import { tokenStore, sessionStore } from '../../utils/tokenStore'
+import { profileKeys } from '../../hooks/queryKeys'
 
 /* 행 앞 아이콘 타일 — 소프트 브랜드 배경 위 duotone 아이콘 (계정 정보·보안 공용) */
 const RowTile = ({ Icon, size = 20 }: { Icon: (p: AccountIconProps) => React.ReactElement; size?: number }) => (
@@ -52,7 +54,7 @@ const AccountSettings = () => {
 
   // 로그인 체크
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
+    const token = tokenStore.getAccess()
     if (!token) {
       navigate('/login', { replace: true })
     }
@@ -61,7 +63,7 @@ const AccountSettings = () => {
   const { data: me, isLoading, error, refetch } = useQuery({
     queryKey: ['account', 'me'],
     queryFn: getMe,
-    enabled: !!localStorage.getItem('access_token'),
+    enabled: !!tokenStore.getAccess(),
     staleTime: 1000 * 60,
   })
 
@@ -69,14 +71,14 @@ const AccountSettings = () => {
      /profile을 다녀왔다면 이미 받아 둔 값이 캐시에 있으므로 첫 프레임부터 사진이 뜨고,
      사진을 바꾸면 업로드 훅의 ['profile'] 무효화가 이 키에도 걸려 함께 갱신된다. */
   const { data: profileStats } = useQuery({
-    queryKey: ['profile', 'stats'],
+    queryKey: profileKeys.stats(),
     queryFn: getProfileStats,
-    enabled: !!localStorage.getItem('access_token'),
+    enabled: !!tokenStore.getAccess(),
     staleTime: 1000 * 60 * 5,
     initialData: () =>
-      queryClient.getQueryData<ProfileDetail>(['profile', 'detail'])?.stats,
+      queryClient.getQueryData<ProfileDetail>(profileKeys.detail())?.stats,
     initialDataUpdatedAt: () =>
-      queryClient.getQueryState(['profile', 'detail'])?.dataUpdatedAt,
+      queryClient.getQueryState(profileKeys.detail())?.dataUpdatedAt,
   })
 
   // 이미지 주소가 깨졌을 때(파일 삭제 등) 조용히 이니셜로 되돌아간다
@@ -156,7 +158,7 @@ const AccountSettings = () => {
     try {
       await updateName(nameTrimmed)
       // 기도/답글 작성 시 참조하는 로컬 이름도 동기화
-      localStorage.setItem('user_full_name', nameTrimmed)
+      sessionStore.set('fullName', nameTrimmed)
       queryClient.invalidateQueries({ queryKey: ['account', 'me'] })
       setEditingName(false)
       showToast(t('accountNameChanged'), 'success')

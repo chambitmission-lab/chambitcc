@@ -6,6 +6,7 @@ import {
   useMarkAsRead,
   useMarkAllAsRead,
 } from '../../hooks/useNotifications'
+import { tokenStore } from '../../utils/tokenStore'
 import { prefetchCapsule } from '../../hooks/useTimeCapsule'
 import { showToast } from '../../utils/toast'
 import { preloadRoute } from '../../utils/routePreload'
@@ -100,7 +101,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   // 목적지가 준비될 때까지 모달이 떠 있으므로, 어느 바로가기를 눌렀는지 표시해준다
   const [isNavigating, startNavTransition] = useTransition()
   const [pendingLinkId, setPendingLinkId] = useState<number | null>(null)
-  const isLoggedIn = !!localStorage.getItem('access_token')
+  const isLoggedIn = !!tokenStore.getAccess()
   const sentinelRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const queryClient = useQueryClient()

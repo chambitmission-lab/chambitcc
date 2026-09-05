@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useDailyVerse } from '../../hooks/useDailyVerse'
 import { getCurrentWeeklyPrayer } from '../../api/weeklyPrayer'
 import './chatbot.css'
+import { weeklyPrayerKeys } from '../../hooks/queryKeys'
 
 /**
  * 챗봇을 처음 열었을 때의 환영 화면 — 브랜드 블루 안개 배경 위
@@ -266,7 +267,7 @@ const WelcomeScene = ({ reply, onAction, onAsk }: Props) => {
 
   // 함께하는 우리 — 이번 주 공동 기도에 함께한 실제 인원 (홈 배너와 같은 캐시)
   const { data: weekly } = useQuery({
-    queryKey: ['weeklyPrayer', 'current', 'homeBanner'],
+    queryKey: weeklyPrayerKeys.homeBanner(),
     queryFn: getCurrentWeeklyPrayer,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,

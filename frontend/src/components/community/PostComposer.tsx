@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ApiError } from '../../types/queryCache'
+import { isApiError } from '../../api/utils/request'
 import './PostComposer.css'
 import { showToast } from '../../utils/toast'
 
@@ -33,7 +33,7 @@ export const PostComposer = ({ onPostCreated }: PostComposerProps) => {
       setContent('')
     } catch (err) {
       console.error('게시물 작성 실패:', err)
-      if ((err as ApiError).response?.status === 401) {
+      if (isApiError(err, 401)) {
         showToast('로그인이 필요합니다.', 'error')
       } else {
         showToast('게시물 작성에 실패했습니다.', 'error')

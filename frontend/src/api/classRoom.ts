@@ -1,6 +1,5 @@
 // 우리반 알림장 API 클라이언트
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders } from './utils/apiHelpers'
+import { API_V1 } from '../config/api'
 import type {
   AttendanceMonth,
   AttendanceToggleResult,
@@ -27,91 +26,65 @@ import type {
   RsvpStatus,
   StarRow,
 } from '../types/classRoom'
+import { request, requestRaw } from './utils/request'
 
 const BASE = `${API_V1}/school-classes`
 
-const parseError = async (response: Response, fallback: string): Promise<never> => {
-  const error = await response.json().catch(() => ({}))
-  throw new Error(error.detail || fallback)
-}
-
 export const createClass = async (payload: ClassCreateRequest): Promise<ClassDetail> => {
-  const response = await apiFetch(BASE, {
+  return request<ClassDetail>(BASE, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    json: payload,
+    errorMessage: '반 만들기에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '반 만들기에 실패했습니다')
-  return response.json()
 }
 
 export const listMyClasses = async (): Promise<ClassSummary[]> => {
-  const response = await apiFetch(BASE, { headers: getAuthHeaders() })
-  if (!response.ok) return parseError(response, '반 목록을 불러오지 못했습니다')
-  return response.json()
+  return request<ClassSummary[]>(BASE, { errorMessage: '반 목록을 불러오지 못했습니다' })
 }
 
 export const previewClass = async (inviteCode: string): Promise<ClassPreview> => {
-  const response = await apiFetch(`${BASE}/preview/${encodeURIComponent(inviteCode)}`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '유효하지 않은 초대 링크입니다')
-  return response.json()
+  return request<ClassPreview>(`${BASE}/preview/${encodeURIComponent(inviteCode)}`, { errorMessage: '유효하지 않은 초대 링크입니다' })
 }
 
 export const joinClass = async (
   inviteCode: string,
   childName?: string,
 ): Promise<ClassDetail> => {
-  const response = await apiFetch(`${BASE}/join`, {
+  return request<ClassDetail>(`${BASE}/join`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ invite_code: inviteCode, child_name: childName || null }),
+    json: { invite_code: inviteCode, child_name: childName || null },
+    errorMessage: '반 참여에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '반 참여에 실패했습니다')
-  return response.json()
 }
 
 export const getClass = async (classId: number): Promise<ClassDetail> => {
-  const response = await apiFetch(`${BASE}/${classId}`, { headers: getAuthHeaders() })
-  if (!response.ok) return parseError(response, '반을 불러오지 못했습니다')
-  return response.json()
+  return request<ClassDetail>(`${BASE}/${classId}`, { errorMessage: '반을 불러오지 못했습니다' })
 }
 
 export const updateClass = async (
   classId: number,
   payload: Partial<ClassCreateRequest>,
 ): Promise<ClassDetail> => {
-  const response = await apiFetch(`${BASE}/${classId}`, {
+  return request<ClassDetail>(`${BASE}/${classId}`, {
     method: 'PATCH',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    json: payload,
+    errorMessage: '반 정보 수정에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '반 정보 수정에 실패했습니다')
-  return response.json()
 }
 
 export const leaveClass = async (classId: number): Promise<void> => {
-  const response = await apiFetch(`${BASE}/${classId}/leave`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok && response.status !== 204) {
-    return parseError(response, '나가기에 실패했습니다')
-  }
+  await requestRaw(`${BASE}/${classId}/leave`, { method: 'DELETE', errorMessage: '나가기에 실패했습니다' })
 }
 
 export const updateMyChildName = async (
   classId: number,
   childName: string,
 ): Promise<ClassMember> => {
-  const response = await apiFetch(`${BASE}/${classId}/members/me`, {
+  return request<ClassMember>(`${BASE}/${classId}/members/me`, {
     method: 'PATCH',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ child_name: childName }),
+    json: { child_name: childName },
+    errorMessage: '자녀 이름 수정에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '자녀 이름 수정에 실패했습니다')
-  return response.json()
 }
 
 // 앱 사용자를 반에 바로 추가 — 선생님 전용, 이미 멤버면 서버가 건너뛴다(멱등)
@@ -119,13 +92,11 @@ export const addClassMembers = async (
   classId: number,
   userIds: number[],
 ): Promise<ClassMember[]> => {
-  const response = await apiFetch(`${BASE}/${classId}/members`, {
+  return request<ClassMember[]>(`${BASE}/${classId}/members`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ user_ids: userIds }),
+    json: { user_ids: userIds },
+    errorMessage: '멤버 추가에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '멤버 추가에 실패했습니다')
-  return response.json()
 }
 
 export const setMemberTeacher = async (
@@ -133,13 +104,11 @@ export const setMemberTeacher = async (
   userId: number,
   isTeacher: boolean,
 ): Promise<ClassMember> => {
-  const response = await apiFetch(`${BASE}/${classId}/members/${userId}`, {
+  return request<ClassMember>(`${BASE}/${classId}/members/${userId}`, {
     method: 'PATCH',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ is_teacher: isTeacher }),
+    json: { is_teacher: isTeacher },
+    errorMessage: '역할 변경에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '역할 변경에 실패했습니다')
-  return response.json()
 }
 
 export const listClassPosts = async (
@@ -150,11 +119,7 @@ export const listClassPosts = async (
 ): Promise<ClassPostListResponse> => {
   const qs = new URLSearchParams({ offset: String(offset), limit: String(limit) })
   if (postType) qs.set('post_type', postType)
-  const response = await apiFetch(`${BASE}/${classId}/posts?${qs}`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '알림장을 불러오지 못했습니다')
-  return response.json()
+  return request<ClassPostListResponse>(`${BASE}/${classId}/posts?${qs}`, { errorMessage: '알림장을 불러오지 못했습니다' })
 }
 
 export const createClassPost = async (
@@ -166,13 +131,11 @@ export const createClassPost = async (
   form.append('payload', JSON.stringify(payload))
   files.forEach((f) => form.append('files', f))
   // FormData는 Content-Type을 브라우저가 boundary와 함께 넣도록 지정하지 않는다
-  const response = await apiFetch(`${BASE}/${classId}/posts`, {
+  return request<ClassPost>(`${BASE}/${classId}/posts`, {
     method: 'POST',
-    headers: getAuthHeaders(),
     body: form,
+    errorMessage: '알림 작성에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '알림 작성에 실패했습니다')
-  return response.json()
 }
 
 export const updateClassPost = async (
@@ -180,69 +143,43 @@ export const updateClassPost = async (
   postId: number,
   payload: { title?: string | null; content?: string; is_pinned?: boolean },
 ): Promise<ClassPost> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}`, {
+  return request<ClassPost>(`${BASE}/${classId}/posts/${postId}`, {
     method: 'PATCH',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    json: payload,
+    errorMessage: '알림 수정에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '알림 수정에 실패했습니다')
-  return response.json()
 }
 
 export const deleteClassPost = async (classId: number, postId: number): Promise<void> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok && response.status !== 204) {
-    return parseError(response, '삭제에 실패했습니다')
-  }
+  await requestRaw(`${BASE}/${classId}/posts/${postId}`, { method: 'DELETE', errorMessage: '삭제에 실패했습니다' })
 }
 
 export const toggleClassPostCheck = async (
   classId: number,
   postId: number,
 ): Promise<{ checked: boolean; check_count: number }> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/check`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '확인 처리에 실패했습니다')
-  return response.json()
+  return request<{ checked: boolean; check_count: number }>(`${BASE}/${classId}/posts/${postId}/check`, { method: 'POST', errorMessage: '확인 처리에 실패했습니다' })
 }
 
 export const getClassPostChecks = async (
   classId: number,
   postId: number,
 ): Promise<CheckStatus> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/checks`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '확인 현황을 불러오지 못했습니다')
-  return response.json()
+  return request<CheckStatus>(`${BASE}/${classId}/posts/${postId}/checks`, { errorMessage: '확인 현황을 불러오지 못했습니다' })
 }
 
 export const toggleClassPostRecite = async (
   classId: number,
   postId: number,
 ): Promise<{ recited: boolean; recite_count: number }> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/recite`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '암송 체크에 실패했습니다')
-  return response.json()
+  return request<{ recited: boolean; recite_count: number }>(`${BASE}/${classId}/posts/${postId}/recite`, { method: 'POST', errorMessage: '암송 체크에 실패했습니다' })
 }
 
 export const listClassPostRecitations = async (
   classId: number,
   postId: number,
 ): Promise<RecitationRow[]> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/recitations`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '암송 현황을 불러오지 못했습니다')
-  return response.json()
+  return request<RecitationRow[]>(`${BASE}/${classId}/posts/${postId}/recitations`, { errorMessage: '암송 현황을 불러오지 못했습니다' })
 }
 
 export const setClassPostRsvp = async (
@@ -250,36 +187,25 @@ export const setClassPostRsvp = async (
   postId: number,
   status: RsvpStatus,
 ): Promise<EventBlock> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/rsvp`, {
+  return request<EventBlock>(`${BASE}/${classId}/posts/${postId}/rsvp`, {
     method: 'PUT',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ status }),
+    json: { status },
+    errorMessage: '참석 응답에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '참석 응답에 실패했습니다')
-  return response.json()
 }
 
 export const cancelClassPostRsvp = async (
   classId: number,
   postId: number,
 ): Promise<EventBlock> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/rsvp`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '참석 취소에 실패했습니다')
-  return response.json()
+  return request<EventBlock>(`${BASE}/${classId}/posts/${postId}/rsvp`, { method: 'DELETE', errorMessage: '참석 취소에 실패했습니다' })
 }
 
 export const getClassPostRsvps = async (
   classId: number,
   postId: number,
 ): Promise<RsvpDetail> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/rsvps`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '참석 현황을 불러오지 못했습니다')
-  return response.json()
+  return request<RsvpDetail>(`${BASE}/${classId}/posts/${postId}/rsvps`, { errorMessage: '참석 현황을 불러오지 못했습니다' })
 }
 
 // ── 투표 ──
@@ -288,24 +214,18 @@ export const voteClassPoll = async (
   postId: number,
   optionIds: number[],
 ): Promise<PollBlock> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/vote`, {
+  return request<PollBlock>(`${BASE}/${classId}/posts/${postId}/vote`, {
     method: 'PUT',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ option_ids: optionIds }),
+    json: { option_ids: optionIds },
+    errorMessage: '투표에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '투표에 실패했습니다')
-  return response.json()
 }
 
 export const getClassPollDetail = async (
   classId: number,
   postId: number,
 ): Promise<PollDetail> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/votes`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '투표 현황을 불러오지 못했습니다')
-  return response.json()
+  return request<PollDetail>(`${BASE}/${classId}/posts/${postId}/votes`, { errorMessage: '투표 현황을 불러오지 못했습니다' })
 }
 
 // ── 콕 찌르기 (미응답자 리마인더) ──
@@ -314,13 +234,11 @@ export const remindClassPost = async (
   postId: number,
   target: RemindTarget,
 ): Promise<RemindResult> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/remind`, {
+  return request<RemindResult>(`${BASE}/${classId}/posts/${postId}/remind`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ target }),
+    json: { target },
+    errorMessage: '리마인더 발송에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '리마인더 발송에 실패했습니다')
-  return response.json()
 }
 
 // ── 우리반 리포트 / 별 랭킹 / 성장 카드 ──
@@ -328,27 +246,15 @@ export const getClassReport = async (
   classId: number,
   weeks = 4,
 ): Promise<ClassReport> => {
-  const response = await apiFetch(`${BASE}/${classId}/report?weeks=${weeks}`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '리포트를 불러오지 못했습니다')
-  return response.json()
+  return request<ClassReport>(`${BASE}/${classId}/report?weeks=${weeks}`, { errorMessage: '리포트를 불러오지 못했습니다' })
 }
 
 export const getClassStars = async (classId: number): Promise<StarRow[]> => {
-  const response = await apiFetch(`${BASE}/${classId}/stars`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '별 랭킹을 불러오지 못했습니다')
-  return response.json()
+  return request<StarRow[]>(`${BASE}/${classId}/stars`, { errorMessage: '별 랭킹을 불러오지 못했습니다' })
 }
 
 export const getMyClassGrowth = async (classId: number): Promise<MyGrowth> => {
-  const response = await apiFetch(`${BASE}/${classId}/growth/me`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '성장 카드를 불러오지 못했습니다')
-  return response.json()
+  return request<MyGrowth>(`${BASE}/${classId}/growth/me`, { errorMessage: '성장 카드를 불러오지 못했습니다' })
 }
 
 // ── 출석부 ──
@@ -356,11 +262,7 @@ export const getClassAttendanceMonth = async (
   classId: number,
   month: string,
 ): Promise<AttendanceMonth> => {
-  const response = await apiFetch(`${BASE}/${classId}/attendance?month=${month}`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '출석부를 불러오지 못했습니다')
-  return response.json()
+  return request<AttendanceMonth>(`${BASE}/${classId}/attendance?month=${month}`, { errorMessage: '출석부를 불러오지 못했습니다' })
 }
 
 export const toggleClassAttendance = async (
@@ -368,24 +270,18 @@ export const toggleClassAttendance = async (
   attDate: string,
   userId: number,
 ): Promise<AttendanceToggleResult> => {
-  const response = await apiFetch(`${BASE}/${classId}/attendance/toggle`, {
+  return request<AttendanceToggleResult>(`${BASE}/${classId}/attendance/toggle`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ att_date: attDate, user_id: userId }),
+    json: { att_date: attDate, user_id: userId },
+    errorMessage: '출석 체크에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '출석 체크에 실패했습니다')
-  return response.json()
 }
 
 export const listClassPostComments = async (
   classId: number,
   postId: number,
 ): Promise<ClassComment[]> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/comments`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '댓글을 불러오지 못했습니다')
-  return response.json()
+  return request<ClassComment[]>(`${BASE}/${classId}/posts/${postId}/comments`, { errorMessage: '댓글을 불러오지 못했습니다' })
 }
 
 export const createClassPostComment = async (
@@ -393,13 +289,11 @@ export const createClassPostComment = async (
   postId: number,
   content: string,
 ): Promise<ClassComment> => {
-  const response = await apiFetch(`${BASE}/${classId}/posts/${postId}/comments`, {
+  return request<ClassComment>(`${BASE}/${classId}/posts/${postId}/comments`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ content }),
+    json: { content },
+    errorMessage: '댓글 작성에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '댓글 작성에 실패했습니다')
-  return response.json()
 }
 
 export const updateClassPostComment = async (
@@ -408,16 +302,11 @@ export const updateClassPostComment = async (
   commentId: number,
   content: string,
 ): Promise<ClassComment> => {
-  const response = await apiFetch(
-    `${BASE}/${classId}/posts/${postId}/comments/${commentId}`,
-    {
-      method: 'PATCH',
-      headers: getAuthHeaders(true),
-      body: JSON.stringify({ content }),
-    },
-  )
-  if (!response.ok) return parseError(response, '댓글 수정에 실패했습니다')
-  return response.json()
+  return request<ClassComment>(`${BASE}/${classId}/posts/${postId}/comments/${commentId}`, {
+    method: 'PATCH',
+    json: { content },
+    errorMessage: '댓글 수정에 실패했습니다',
+  })
 }
 
 export const deleteClassPostComment = async (
@@ -425,11 +314,5 @@ export const deleteClassPostComment = async (
   postId: number,
   commentId: number,
 ): Promise<void> => {
-  const response = await apiFetch(
-    `${BASE}/${classId}/posts/${postId}/comments/${commentId}`,
-    { method: 'DELETE', headers: getAuthHeaders() },
-  )
-  if (!response.ok && response.status !== 204) {
-    return parseError(response, '댓글 삭제에 실패했습니다')
-  }
+  await requestRaw(`${BASE}/${classId}/posts/${postId}/comments/${commentId}`, { method: 'DELETE', errorMessage: '댓글 삭제에 실패했습니다' })
 }

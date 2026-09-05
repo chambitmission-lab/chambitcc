@@ -4,6 +4,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { buildRecentCells, cellLevel } from './growthFootprints'
 import { SproutIcon, StreakFlameIcon } from '../../../components/icons/GrowthIcons'
 import './GrowthHook.css'
+import { tokenStore } from '../../../utils/tokenStore'
 
 /** 발자국 스트립 일수 — 2주면 "요즘의 리듬"이 보이고 카드 한 줄에 들어간다 */
 const STRIP_DAYS = 14
@@ -18,7 +19,7 @@ const STRIP_DAYS = 14
  */
 const GrowthHook = () => {
   const navigate = useNavigate()
-  const hasToken = !!localStorage.getItem('access_token')
+  const hasToken = !!tokenStore.getAccess()
   const { data } = useGrowthSummary(hasToken)
   const { data: recent } = useGrowthRecentDays(STRIP_DAYS, hasToken)
   const summary = data?.data

@@ -1,7 +1,6 @@
 // 공동 기도제목 관리 — 붙여넣기 파싱으로 주차별 기도제목을 등록/수정한다
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import DatePicker from '../../components/common/DatePicker'
 import {
@@ -14,6 +13,7 @@ import {
 } from '../../api/weeklyPrayer'
 import type { WeeklyPrayerItem, WeeklyPrayerListItem } from '../../types/weeklyPrayer'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 // 다가오는 주일(일요일) 날짜 — 오늘이 일요일이면 오늘
 const upcomingSunday = (): string => {
@@ -58,7 +58,7 @@ const WeeklyPrayerManagement = () => {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자만 접근할 수 있습니다', 'error')
       navigate('/')
     }

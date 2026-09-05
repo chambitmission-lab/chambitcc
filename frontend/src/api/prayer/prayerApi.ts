@@ -1,6 +1,4 @@
 // 기도 CRUD API
-import { API_V1, apiFetch } from '../../config/api'
-import { getAuthHeaders, requireAuth } from '../utils/apiHelpers'
 import type { 
   PrayerListResponse, 
   CreatePrayerRequest, 
@@ -8,6 +6,7 @@ import type {
   SortType,
   Prayer,
 } from '../../types/prayer'
+import { request, type UntypedJson } from '../utils/request'
 
 /**
  * 기도 요청 목록 조회 (비로그인 가능)
@@ -43,15 +42,7 @@ export const fetchPrayers = async (
     params.append('is_answered', String(isAnswered))
   }
 
-  const response = await apiFetch(`${API_V1}/prayers?${params}`, {
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    throw new Error('기도 요청을 불러오는데 실패했습니다')
-  }
-
-  return response.json()
+  return request<PrayerListResponse>(`/prayers?${params}`, { errorMessage: '기도 요청을 불러오는데 실패했습니다' })
 }
 
 /**
@@ -60,15 +51,7 @@ export const fetchPrayers = async (
 export const fetchPrayerDetail = async (
   prayerId: number
 ): Promise<Prayer> => {
-  const response = await apiFetch(`${API_V1}/prayers/${prayerId}`, {
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    throw new Error('기도 요청을 불러오는데 실패했습니다')
-  }
-
-  const result = await response.json()
+  const result = await request<UntypedJson>(`/prayers/${prayerId}`, { errorMessage: '기도 요청을 불러오는데 실패했습니다' })
   return result.data
 }
 
@@ -78,19 +61,12 @@ export const fetchPrayerDetail = async (
 export const createPrayer = async (
   data: CreatePrayerRequest
 ): Promise<PrayerResponse> => {
-  requireAuth()
-
-  const response = await apiFetch(`${API_V1}/prayers`, {
+  return request<PrayerResponse>('/prayers', {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(data),
+    auth: 'required',
+    json: data,
+    errorMessage: '기도 요청 등록에 실패했습니다',
   })
-
-  if (!response.ok) {
-    throw new Error('기도 요청 등록에 실패했습니다')
-  }
-
-  return response.json()
 }
 
 /**
@@ -99,17 +75,9 @@ export const createPrayer = async (
 export const deletePrayer = async (
   prayerId: number
 ): Promise<{ success: boolean; message: string }> => {
-  requireAuth()
-
-  const response = await apiFetch(`${API_V1}/prayers/${prayerId}`, {
+  return request<{ success: boolean; message: string }>(`/prayers/${prayerId}`, {
     method: 'DELETE',
-    headers: getAuthHeaders(),
+    auth: 'required',
+    errorMessage: '기도 요청 삭제에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '기도 요청 삭제에 실패했습니다')
-  }
-
-  return response.json()
 }

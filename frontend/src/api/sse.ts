@@ -3,6 +3,7 @@
 // fetch의 ReadableStream으로 text/event-stream을 직접 파싱한다.
 // apiFetch를 재사용하므로 만료 토큰 선제 갱신 / 401 재시도도 그대로 적용된다.
 import { apiFetch } from '../config/api'
+import { tokenStore } from '../utils/tokenStore'
 
 export interface SSEOptions {
   method?: 'GET' | 'POST'
@@ -26,7 +27,7 @@ export const streamSSE = async (
 ): Promise<void> => {
   const { method = 'GET', body, signal } = options
 
-  const token = localStorage.getItem('access_token')
+  const token = tokenStore.getAccess()
   const headers: Record<string, string> = { Accept: 'text/event-stream' }
   if (token) headers['Authorization'] = `Bearer ${token}`
   if (body !== undefined) headers['Content-Type'] = 'application/json'

@@ -5,7 +5,6 @@
 // 레거시는 계좌가 바뀌면 HTML을 직접 고쳐야 했다 — 여기서는 화면에서 끝난다.
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
 import {
@@ -18,12 +17,13 @@ import type { OfferingAccount } from '../../types/offering'
 import OfferingComposer, { type OfferingComposerTarget } from './components/OfferingComposer'
 import { BankIcon, OfferingBoxIcon } from '../News/components/NewsIcons'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { can } from '../../utils/access'
 
 type VisibilityFilter = 'all' | 'active' | 'hidden'
 
 const OfferingManagement = () => {
   const navigate = useNavigate()
-  const admin = isAdmin()
+  const admin = can('admin:access')
 
   const { data, isPending, isError, refetch } = useAdminOffering(admin)
   const guide = data?.guide ?? null

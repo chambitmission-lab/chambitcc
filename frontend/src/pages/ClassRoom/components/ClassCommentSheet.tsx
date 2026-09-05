@@ -9,6 +9,7 @@ import {
   useDeleteClassPostComment,
   useUpdateClassPostComment,
 } from '../../../hooks/useClassRoom'
+import { sessionStore } from '../../../utils/tokenStore'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useProfileDetail } from '../../../hooks/useProfile'
 import type { Reply } from '../../../types/prayer'
@@ -33,8 +34,8 @@ const ClassCommentSheet = ({ post, isTeacher, onClose }: ClassCommentSheetProps)
   const avatarUrl = profileDetail?.stats.avatar_url ?? null
   const displayName =
     profileDetail?.stats.full_name ||
-    localStorage.getItem('user_full_name') ||
-    localStorage.getItem('user_username') ||
+    sessionStore.get('fullName') ||
+    sessionStore.get('username') ||
     '성도'
 
   const { data: comments, isLoading } = useClassPostComments(post.class_id, post.id, true)

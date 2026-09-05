@@ -4,13 +4,14 @@ import type { WordNote } from '../../../api/bibleWordNote'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
 import { useVerseReading } from '../../../hooks/useVerseReading'
 import { useKaraokeProgress } from '../../../hooks/useKaraokeProgress'
-import { isAdmin, isAuthenticated } from '../../../utils/auth'
+import { isAuthenticated } from '../../../utils/auth'
 import { useVerseBookmark } from '../../../hooks/useBibleBookmark'
 import { HIGHLIGHT_COLOR_BG } from './VerseBookmarkModal'
 import { useGlossaryChips } from '../hooks/useGlossaryChips'
 import type { GlossaryEntry } from '../data/bibleGlossary'
 import { HeartIcon } from '../../../components/icons/ActionIcons'
 import type { VerseCopyTarget } from './verseCopy'
+import { useVerseListActions, useVerseListSettings } from './verse/VerseListContext'
 import VerseNumber from './verse/VerseNumber'
 import VerseText from './verse/VerseText'
 import VerseActionPopover from './verse/VerseActionPopover'
@@ -18,6 +19,7 @@ import VerseSheets from './verse/VerseSheets'
 import { useHoldToRead } from './verse/useHoldToRead'
 import { useWordSelection } from './verse/useWordSelection'
 import { useGlossarySegments, useNoteSegments, useWordTokens } from './verse/verseTextSegments'
+import { can } from '../../../utils/access'
 
 interface VerseItemProps {
   verse: BibleVerse
@@ -25,37 +27,20 @@ interface VerseItemProps {
   bookNumber?: number
   chapter?: number
   isRead: boolean
-  onReadSuccess: (verseId: number, similarity: number) => void
-  onEdit?: (verse: BibleVerse) => void
-  // 음성 낭독 없이 읽음/읽음취소를 수동으로 처리 (로그인한 모든 사용자)
-  onToggleRead?: (verse: BibleVerse, nextRead: boolean) => void
   // 이 절의 수동 읽음 처리가 진행 중 (중복 클릭 방지)
   isTogglingRead?: boolean
-  onShowCommentary?: (verse: BibleVerse) => void
-  // 오디오북을 이 절부터 재생 (절 메뉴 '여기부터 듣기')
-  onListenFrom?: (verse: BibleVerse) => void
   hasCommentary?: boolean
   // 오디오북이 지금 낭독 중인 절 — 듣기-보기 동기화 하이라이트
   isAudioActive?: boolean
-  // 액션바 열림 상태는 부모(VerseList)가 관리한다 — 한 번에 한 절의 메뉴만 열려
-  // 다른 절을 탭하면 이전 메뉴가 닫힌다(예전 풀스크린 백드롭의 역할을 대체).
-  // 콜백은 verseId를 함께 받아 부모가 절마다 클로저를 만들지 않아도 되게 한다(memo 유지).
+  // 액션바 열림 여부 — 열림 상태 자체는 목록(VerseListContext.onActionsOpenChange)이 관리한다
   actionsOpen: boolean
-  onActionsOpenChange: (verseId: number, open: boolean) => void
   // 이 절에 저장된 단어 노트들 — 부모가 장 단위로 배치 조회해 나눠준다
   wordNotes?: WordNote[]
   // 이 절의 북마크 — 부모(VerseList)가 장 단위로 배치 조회해 나눠준다.
   // undefined = 장 데이터 없음(로딩/미배포) → 기존 절별 조회로 폴백,
   // null = 장 데이터는 있는데 이 절엔 북마크 없음
   chapterBookmark?: VerseBookmark | null
-  // 여러 절 선택 모드 — 켜지면 절을 탭할 때 액션바 대신 선택이 토글된다
-  selectionMode?: boolean
   isSelected?: boolean
-  onToggleSelect?: (verseId: number) => void
-  // 액션바의 '여러 절' 버튼 — 이 절을 첫 선택으로 두고 선택 모드에 진입
-  onEnterSelection?: (verse: BibleVerse) => void
-  // 공유 — 부모(VerseList)가 공유 시트를 띄운다. 없으면 네이티브 공유로 폴백.
-  onShare?: (target: VerseCopyTarget) => void
   // 본문 보기 — list(절마다 한 줄, 기본) / flow(문단으로 이어 붙이고 번호는 위첨자).
   // flow일 땐 부모가 단락(div.verse-paragraph__body) 안에 인라인으로 나열한다.
   layout?: 'list' | 'flow'
@@ -72,11 +57,15 @@ const ROW_ACCENT_BASE: CSSProperties = {
  * 제스처·단어 선택·본문 장식 계산은 ./verse/ 아래 훅과 컴포넌트가 담당.
  */
 const VerseItem = ({
-  verse, bookNameKo, bookNumber, chapter, isRead, onReadSuccess, onEdit, onToggleRead, isTogglingRead,
-  onShowCommentary, onListenFrom, hasCommentary, isAudioActive, actionsOpen,
-  onActionsOpenChange: setActionsOpenById, wordNotes, chapterBookmark, selectionMode, isSelected,
-  onToggleSelect, onEnterSelection, onShare, layout = 'list',
+  verse, bookNameKo, bookNumber, chapter, isRead, isTogglingRead, hasCommentary, isAudioActive, actionsOpen,
+  wordNotes, chapterBookmark, isSelected, layout = 'list',
 }: VerseItemProps) => {
+  // 목록 수준 액션·설정은 컨텍스트에서 — 절 props 는 "이 절"에 관한 것만 받는다
+  const {
+    onReadSuccess, onEdit, onToggleRead, onShowCommentary, onListenFrom,
+    onActionsOpenChange: setActionsOpenById, onToggleSelect, onEnterSelection, onShare,
+  } = useVerseListActions()
+  const { selectionMode } = useVerseListSettings()
   const isFlow = layout === 'flow'
   // 내부에선 이 절 기준의 (open) 시그니처가 편해 verse.id를 미리 물린 래퍼를 쓴다
   const onActionsOpenChange = (open: boolean) => setActionsOpenById(verse.id, open)
@@ -86,7 +75,7 @@ const VerseItem = ({
   const [glossaryEntry, setGlossaryEntry] = useState<GlossaryEntry | null>(null)
   // 선택 모드에선 액션바가 뜨지 않는다 (탭은 선택 토글에 쓰인다)
   const showActions = actionsOpen && !selectionMode
-  const isAdminUser = isAdmin()
+  const isAdminUser = can('bible:edit')
   // 수동 읽음 처리는 로그인만 하면 누구나 (기록은 사용자별로 저장된다)
   const loggedIn = isAuthenticated()
 

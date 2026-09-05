@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import {
   deleteEventAlbumPost,
@@ -17,6 +16,7 @@ import EventAlbumComposer from './components/EventAlbumComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { EventTagIcon } from '../News/components/NewsIcons'
+import { can } from '../../utils/access'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'reaction'
@@ -47,7 +47,7 @@ const EventAlbumManagement = () => {
   const [composer, setComposer] = useState<'new' | EventAlbumPost | null>(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return

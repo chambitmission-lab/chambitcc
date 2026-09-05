@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchPrayers, addPrayer as addPrayerAPI, removePrayer } from '../api/prayer'
 import type { Prayer, SortType } from '../types/prayer'
+import { tokenStore } from '../utils/tokenStore'
 
 export const usePrayers = (initialSort: SortType = 'popular') => {
   const [prayers, setPrayers] = useState<Prayer[]>([])
@@ -49,7 +50,7 @@ export const usePrayers = (initialSort: SortType = 'popular') => {
 
   // 기도했어요 토글 (로그인 필수)
   const handlePrayerToggle = useCallback(async (prayerId: number) => {
-    const token = localStorage.getItem('access_token')
+    const token = tokenStore.getAccess()
     if (!token) {
       setError('로그인이 필요합니다')
       return

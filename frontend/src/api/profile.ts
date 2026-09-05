@@ -1,30 +1,13 @@
-import { API_V1, apiFetch } from '../config/api'
+import { API_V1 } from '../config/api'
 import type { ProfileStats, ProfileDetail, MyPrayer, PrayingFor, MyReply } from '../types/profile'
+import { request } from './utils/request'
 
 const PROFILE_BASE = `${API_V1}/profile`
 
-// 인증 헤더 생성 헬퍼
-const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-  return {
-    'Authorization': `Bearer ${token}`,
-  }
-}
 
 // 프로필 통계 조회
 export const getProfileStats = async (): Promise<ProfileStats> => {
-  const response = await apiFetch(`${PROFILE_BASE}/stats`, {
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    throw new Error('프로필 통계를 불러오는데 실패했습니다')
-  }
-
-  return response.json()
+  return request<ProfileStats>(`${PROFILE_BASE}/stats`, { auth: 'required', errorMessage: '프로필 통계를 불러오는데 실패했습니다' })
 }
 
 // 프로필 전체 정보 조회 (통합 API)
@@ -42,15 +25,7 @@ export const getProfileDetail = async (params?: {
     ? `${PROFILE_BASE}/detail?${queryParams}` 
     : `${PROFILE_BASE}/detail`
 
-  const response = await apiFetch(url, {
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    throw new Error('프로필 정보를 불러오는데 실패했습니다')
-  }
-
-  return response.json()
+  return request<ProfileDetail>(url, { auth: 'required', errorMessage: '프로필 정보를 불러오는데 실패했습니다' })
 }
 
 // 내가 작성한 기도 목록
@@ -66,15 +41,7 @@ export const getMyPrayers = async (params?: {
     ? `${PROFILE_BASE}/my-prayers?${queryParams}` 
     : `${PROFILE_BASE}/my-prayers`
 
-  const response = await apiFetch(url, {
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    throw new Error('내 기도 목록을 불러오는데 실패했습니다')
-  }
-
-  return response.json()
+  return request<MyPrayer[]>(url, { auth: 'required', errorMessage: '내 기도 목록을 불러오는데 실패했습니다' })
 }
 
 // 내가 기도중인 기도 목록
@@ -90,15 +57,7 @@ export const getPrayingFor = async (params?: {
     ? `${PROFILE_BASE}/praying-for?${queryParams}` 
     : `${PROFILE_BASE}/praying-for`
 
-  const response = await apiFetch(url, {
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    throw new Error('기도중인 목록을 불러오는데 실패했습니다')
-  }
-
-  return response.json()
+  return request<PrayingFor[]>(url, { auth: 'required', errorMessage: '기도중인 목록을 불러오는데 실패했습니다' })
 }
 
 // 내 댓글 목록
@@ -114,15 +73,7 @@ export const getMyReplies = async (params?: {
     ? `${PROFILE_BASE}/my-replies?${queryParams}` 
     : `${PROFILE_BASE}/my-replies`
 
-  const response = await apiFetch(url, {
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    throw new Error('내 댓글 목록을 불러오는데 실패했습니다')
-  }
-
-  return response.json()
+  return request<MyReply[]>(url, { auth: 'required', errorMessage: '내 댓글 목록을 불러오는데 실패했습니다' })
 }
 
 // 프로필 사진 업로드/교체 — FormData 전송이므로 Content-Type은 브라우저가 지정
@@ -132,30 +83,15 @@ export const uploadProfileAvatar = async (
   const formData = new FormData()
   formData.append('file', file, 'avatar.jpg')
 
-  const response = await apiFetch(`${PROFILE_BASE}/avatar`, {
+  return request<{ avatar_url: string }>(`${PROFILE_BASE}/avatar`, {
+    auth: 'required',
     method: 'POST',
-    headers: getAuthHeaders(),
     body: formData,
+    errorMessage: '프로필 사진 업로드에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const detail = await response.json().catch(() => null)
-    throw new Error(detail?.detail ?? '프로필 사진 업로드에 실패했습니다')
-  }
-
-  return response.json()
 }
 
 // 프로필 사진 삭제 (이니셜 아바타로 복귀)
 export const deleteProfileAvatar = async (): Promise<{ avatar_url: null }> => {
-  const response = await apiFetch(`${PROFILE_BASE}/avatar`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  })
-
-  if (!response.ok) {
-    throw new Error('프로필 사진 삭제에 실패했습니다')
-  }
-
-  return response.json()
+  return request<{ avatar_url: null }>(`${PROFILE_BASE}/avatar`, { auth: 'required', method: 'DELETE', errorMessage: '프로필 사진 삭제에 실패했습니다' })
 }

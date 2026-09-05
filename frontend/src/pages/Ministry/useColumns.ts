@@ -4,11 +4,12 @@ import { getColumns, toggleColumnAmen } from '../../api/column'
 import type { Column } from '../../types/column'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
+import { columnKeys } from '../../hooks/queryKeys'
 
 // 칼럼은 주 1건 수준이라 캐시 우선: 재방문 시 캐시를 즉시 보여주고,
 // 30분 지난 경우에만 백그라운드에서 조용히 갱신 (persister로 앱 재시작에도 유지)
 const columnsQueryOptions = (q: string) => ({
-  queryKey: ['columns', q] as const,
+  queryKey: columnKeys.list(q),
   queryFn: async () => {
     const data = await getColumns(q)
     return data.filter((c) => c.is_active)
@@ -41,13 +42,13 @@ export const useColumns = (appliedQuery: string) => {
 
   // 관리자 변경 사항을 캐시에 즉시 반영하고, 서버 기준으로 재검증
   const syncColumnsCache = (updater: (prev: Column[]) => Column[]) => {
-    queryClient.setQueriesData<Column[]>({ queryKey: ['columns'] }, (prev) => (prev ? updater(prev) : prev))
-    queryClient.invalidateQueries({ queryKey: ['columns'] })
+    queryClient.setQueriesData<Column[]>({ queryKey: columnKeys.all }, (prev) => (prev ? updater(prev) : prev))
+    queryClient.invalidateQueries({ queryKey: columnKeys.all })
   }
 
   // 아멘·완독은 캐시만 갱신한다 (invalidate 하면 방금 누른 값이 재조회로 되돌아가 깜빡인다)
   const patchColumnCache = (id: number, patch: Partial<Column>) => {
-    queryClient.setQueriesData<Column[]>({ queryKey: ['columns'] }, (prev) =>
+    queryClient.setQueriesData<Column[]>({ queryKey: columnKeys.all }, (prev) =>
       prev ? prev.map((c) => (c.id === id ? { ...c, ...patch } : c)) : prev
     )
   }

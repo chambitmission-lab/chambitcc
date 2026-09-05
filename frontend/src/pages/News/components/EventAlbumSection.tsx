@@ -15,15 +15,16 @@ import {
   useEventAlbumStats,
   useToggleEventAlbumReaction,
 } from '../../../hooks/useEventAlbum'
+import { tokenStore } from '../../../utils/tokenStore'
 import { deleteEventAlbumPost, fetchEventAlbumPost } from '../../../api/eventAlbum'
-import { isAdmin } from '../../../utils/auth'
-import { showToast } from '../../../utils/toast'
+import { showToast, toastFeedback } from '../../../utils/toast'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { EVENT_ALBUM_TAGS } from '../../../types/eventAlbum'
 import type { EventAlbumPost } from '../../../types/eventAlbum'
 import { AlbumIcon } from './NewsIcons'
 import { EventTagIcon } from './NewsIcons'
 import '../news-hero.css'
+import { can } from '../../../utils/access'
 
 type ViewMode = 'feed' | 'grid'
 
@@ -32,8 +33,8 @@ const EventAlbumSection = () => {
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const isLoggedIn = !!localStorage.getItem('access_token')
-  const admin = isAdmin()
+  const isLoggedIn = !!tokenStore.getAccess()
+  const admin = can('content:manage')
 
   const [viewMode, setViewMode] = useState<ViewMode>('feed')
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
@@ -50,7 +51,7 @@ const EventAlbumSection = () => {
     useEventAlbumPosts(filter, 10, isLoggedIn)
   const { data: stats } = useEventAlbumStats(isLoggedIn)
   const { data: onThisDay } = useEventAlbumOnThisDay(isLoggedIn)
-  const { toggleReaction } = useToggleEventAlbumReaction()
+  const { toggleReaction } = useToggleEventAlbumReaction(toastFeedback({ error: '반응 처리에 실패했습니다' }))
 
   // ── 딥링크: /news?tab=event-album&post=123 → 해당 포스트 뷰어 자동 오픈 ──
   const openedDeepLink = useRef(false)

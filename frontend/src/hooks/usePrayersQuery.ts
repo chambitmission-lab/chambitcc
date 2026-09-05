@@ -11,12 +11,13 @@ import {
 } from '../api/prayer'
 import { usePrayerToggle } from './usePrayerToggle'
 import { groupKeys } from './useGroups'
-import { showToast } from '../utils/toast'
+import type { MutationFeedback } from './mutationFeedback'
 import type { PrayerListCache } from '../types/queryCache'
 import { getCurrentUser } from '../utils/auth'
 import { createRetry } from '../config/queryClient'
 import { refetchIfFewPages, trimInfiniteQuery } from '../utils/infiniteQueryTrim'
 import type { SortType, Prayer, CreatePrayerRequest, PrayerFilterType } from '../types/prayer'
+import { profileKeys } from './queryKeys'
 
 // Query Keys - 사용자별로 다른 캐시 사용
 export const prayerKeys = {
@@ -38,16 +39,34 @@ export const prayerKeys = {
       isAnswered === undefined ? 'any' : isAnswered ? 'answered' : 'unanswered',
     ] as const,
   details: () => [...prayerKeys.all, 'detail'] as const,
+  /** 사용자 무관 prefix — setQueriesData/invalidate 용. setQueryData 에는 쓰지 않는다(완전 키가 아니다) */
+  detailPrefix: (prayerId: number) => [...prayerKeys.details(), prayerId] as const,
   detail: (prayerId: number, username?: string | null) =>
-    [...prayerKeys.details(), prayerId, username || 'anonymous'] as const,
+    [...prayerKeys.detailPrefix(prayerId), username || 'anonymous'] as const,
+  replies: (prayerId: number) => [...prayerKeys.all, prayerId, 'replies'] as const,
+  answeredCount: () => [...prayerKeys.all, 'answeredCount'] as const,
+  mineLatest: () => [...prayerKeys.all, 'mine', 'latest-one'] as const,
 }
 
 // Infinite Query Hook
+/**
+ * 기도 목록 훅의 화면 피드백 — 훅은 캐시만 다루고 문구는 호출부가 정한다.
+ * (pages/Home/components/prayerFeedback.ts 의 prayerToastFeedback 이 기본 조합)
+ */
+export interface PrayerFeedback {
+  /** 기도했어요 토글 — 서버 메시지를 그대로 받는다 */
+  toggle?: { onSuccess?: (message: string) => void; onError?: (message: string) => void }
+  create?: MutationFeedback<unknown, CreatePrayerRequest>
+  answer?: MutationFeedback<unknown, { prayerId: number; testimony: string; isUpdate?: boolean }>
+  cancelAnswer?: MutationFeedback<unknown, { prayerId: number }>
+}
+
 export const usePrayersInfinite = (
   sort: SortType = 'popular',
   groupId?: number | null,
   filter?: PrayerFilterType | null,
   isAnswered?: boolean,
+  feedback?: PrayerFeedback,
 ) => {
   const queryClient = useQueryClient()
   // 매 렌더링마다 최신 사용자 정보 가져오기 (장시간 후 재접속 대응)
@@ -116,6 +135,8 @@ export const usePrayersInfinite = (
   // 기도 토글 훅 사용 (Dependency Inversion)
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
     username: currentUser.username,
+    onSuccess: feedback?.toggle?.onSuccess,
+    onError: feedback?.toggle?.onError,
   })
 
   // 기도 생성 Mutation
@@ -167,15 +188,15 @@ export const usePrayersInfinite = (
 
       return { previousData }
     },
-    onError: (error: Error, _variables, context) => {
+    onError: (error: Error, variables, context) => {
       // 에러 시 롤백
       if (context?.previousData) {
         queryClient.setQueryData(listKey, context.previousData)
       }
-      showToast(error.message || '기도 요청 등록에 실패했습니다.', 'error')
+      feedback?.create?.onError?.(error, variables)
     },
-    onSuccess: () => {
-      showToast('기도 요청이 등록되었습니다.', 'success')
+    onSuccess: (data, variables) => {
+      feedback?.create?.onSuccess?.(data, variables)
 
       // 실제 데이터로 갱신 (모든 사용자의 캐시)
       queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
@@ -187,7 +208,7 @@ export const usePrayersInfinite = (
       // 'profile' 전체 — detail뿐 아니라 프로필 탭 무한 목록(my-prayers 등)도
       // stale 처리해야 다음 방문 때 새 항목이 반영된다
       queryClient.invalidateQueries({
-        queryKey: ['profile'],
+        queryKey: profileKeys.all,
         refetchType: 'none',
       })
     },
@@ -210,11 +231,8 @@ export const usePrayersInfinite = (
       }
       return answerPrayer(prayerId, testimony)
     },
-    onSuccess: (_data, variables) => {
-      showToast(
-        variables.isUpdate ? '응답 간증이 수정되었습니다.' : '✨ 응답이 등록되었습니다',
-        'success',
-      )
+    onSuccess: (data, variables) => {
+      feedback?.answer?.onSuccess?.(data, variables)
 
       // 모든 기도 목록 캐시 무효화 (응답의 전당 포함)
       // refetchType: 'all' — 비활성 list 쿼리(예: 응답의 전당에서 액션한
@@ -240,20 +258,20 @@ export const usePrayersInfinite = (
       // 'profile' 전체 — detail뿐 아니라 프로필 탭 무한 목록(my-prayers 등)도
       // stale 처리해야 다음 방문 때 새 항목이 반영된다
       queryClient.invalidateQueries({
-        queryKey: ['profile'],
+        queryKey: profileKeys.all,
         refetchType: 'none',
       })
     },
-    onError: (error: Error) => {
-      showToast(error.message || '응답 등록에 실패했습니다.', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.answer?.onError?.(error, variables)
     },
   })
 
   // 응답 취소 Mutation
   const cancelAnswerMutation = useMutation({
     mutationFn: ({ prayerId }: { prayerId: number }) => cancelPrayerAnswer(prayerId),
-    onSuccess: (_data, variables) => {
-      showToast('응답 등록이 취소되었습니다.', 'success')
+    onSuccess: (data, variables) => {
+      feedback?.cancelAnswer?.onSuccess?.(data, variables)
 
       // refetchType: 'all' — answerMutation 참조. 응답 취소 후
       // 다른 페이지(메인 홈/응답의 전당)로 이동했을 때도 즉시 반영되도록.
@@ -269,12 +287,12 @@ export const usePrayersInfinite = (
       // 'profile' 전체 — detail뿐 아니라 프로필 탭 무한 목록(my-prayers 등)도
       // stale 처리해야 다음 방문 때 새 항목이 반영된다
       queryClient.invalidateQueries({
-        queryKey: ['profile'],
+        queryKey: profileKeys.all,
         refetchType: 'none',
       })
     },
-    onError: (error: Error) => {
-      showToast(error.message || '응답 취소에 실패했습니다.', 'error')
+    onError: (error: Error, variables) => {
+      feedback?.cancelAnswer?.onError?.(error, variables)
     },
   })
 
@@ -323,7 +341,11 @@ export const usePrayersInfinite = (
 
 
 // 기도 상세 조회 Hook
-export const usePrayerDetail = (prayerId: number, initialData?: Prayer) => {
+export const usePrayerDetail = (
+  prayerId: number,
+  initialData?: Prayer,
+  feedback?: Pick<PrayerFeedback, 'toggle'>,
+) => {
   const queryClient = useQueryClient()
   const currentUser = getCurrentUser()
 
@@ -361,6 +383,8 @@ export const usePrayerDetail = (prayerId: number, initialData?: Prayer) => {
   const { togglePrayer: handleToggle, isToggling } = usePrayerToggle({
     prayerId, // 상세 페이지용
     username: currentUser.username,
+    onSuccess: feedback?.toggle?.onSuccess,
+    onError: feedback?.toggle?.onError,
   })
 
   // 기도 토글 핸들러

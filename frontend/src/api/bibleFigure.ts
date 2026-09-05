@@ -1,11 +1,11 @@
 // 성경 인물 가계도 API
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders } from './utils/apiHelpers'
+import { API_V1 } from '../config/api'
 import type {
   BibleFigureDetail,
   BibleFigureSummary,
   GenealogyResponse,
 } from '../types/bibleFigure'
+import { request } from './utils/request'
 
 interface ListResponse {
   success: boolean
@@ -28,24 +28,12 @@ interface GenealogyApiResponse {
 }
 
 export const fetchMessianicGenealogy = async (): Promise<GenealogyResponse> => {
-  const response = await apiFetch(`${API_V1}/bible-figures/genealogy/messianic`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) {
-    throw new Error('가계도 데이터를 불러오지 못했습니다')
-  }
-  const json: GenealogyApiResponse = await response.json()
+  const json: GenealogyApiResponse = await request<GenealogyApiResponse>('/bible-figures/genealogy/messianic', { errorMessage: '가계도 데이터를 불러오지 못했습니다' })
   return json.data
 }
 
 export const fetchBibleFigureDetail = async (slug: string): Promise<BibleFigureDetail> => {
-  const response = await apiFetch(`${API_V1}/bible-figures/${encodeURIComponent(slug)}`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) {
-    throw new Error('인물 정보를 불러오지 못했습니다')
-  }
-  const json: DetailResponse = await response.json()
+  const json: DetailResponse = await request<DetailResponse>(`/bible-figures/${encodeURIComponent(slug)}`, { errorMessage: '인물 정보를 불러오지 못했습니다' })
   return json.data
 }
 
@@ -59,10 +47,6 @@ export const listBibleFigures = async (params?: {
   if (params?.era) search.set('era', params.era)
   if (params?.messianic_only) search.set('messianic_only', 'true')
   const url = `${API_V1}/bible-figures${search.toString() ? `?${search}` : ''}`
-  const response = await apiFetch(url, { headers: getAuthHeaders() })
-  if (!response.ok) {
-    throw new Error('인물 목록을 불러오지 못했습니다')
-  }
-  const json: ListResponse = await response.json()
+  const json: ListResponse = await request<ListResponse>(url, { errorMessage: '인물 목록을 불러오지 못했습니다' })
   return json.data
 }

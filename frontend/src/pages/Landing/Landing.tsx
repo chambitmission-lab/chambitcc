@@ -2,7 +2,6 @@ import { useCallback } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useSermons } from '../../hooks/useSermons'
 import { useEvents } from '../../hooks/useEvents'
-import { isAdmin } from '../../utils/auth'
 import HeroSection from './components/HeroSection'
 import FaqSection from './components/FaqSection'
 import PillarsSection from './components/PillarsSection'
@@ -11,6 +10,7 @@ import QuizSection from './components/QuizSection'
 import ThisWeekSection from './components/ThisWeekSection'
 import ClosingCta from './components/ClosingCta'
 import './Landing.css'
+import { can } from '../../utils/access'
 
 // 비로그인 방문자용 메인 — 로그인 교인은 App의 HomeGate가 기도 피드 홈(NewHome)을 보여준다.
 //
@@ -30,7 +30,7 @@ const toDateString = (d: Date) => {
 const Landing = () => {
   const { language } = useLanguage()
   const ko = language === 'ko'
-  const isAdminUser = isAdmin()
+  const isAdminUser = can('content:manage')
 
   const { data: sermons } = useSermons(0, 2, false) // 제목·설교자·날짜만 쓴다 — 전문 제외
   const today = new Date()

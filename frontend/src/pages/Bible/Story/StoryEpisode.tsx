@@ -8,6 +8,7 @@ import { ALL_EPISODES, TOTAL_EPISODES, findEpisode } from './data'
 import { GLOSSARY, parseGlossaryText } from './glossary'
 import { useStoryProgress } from './storyProgress'
 import './Story.css'
+import { bibleKeys } from '../../../hooks/queryKeys'
 
 // 에피소드 일러스트 — img/{에피소드 id}.webp 파일을 넣기만 하면 자동으로 연결된다.
 // 아직 없는 화는 기존 이모지 히어로를 유지한다. eager여도 청크에는 URL 맵만 실리고
@@ -47,7 +48,7 @@ const fetchEpisodeVerses = async (refs: StoryVerseRef[]): Promise<FetchedRef[]> 
 
 const useEpisodeVerses = (episodeId: string, refs: StoryVerseRef[]) =>
   useQuery<FetchedRef[]>({
-    queryKey: ['bible', 'story-verses', episodeId],
+    queryKey: bibleKeys.storyVerses(episodeId),
     queryFn: () => fetchEpisodeVerses(refs),
     staleTime: 1000 * 60 * 60 * 24,
     gcTime: 1000 * 60 * 60 * 24 * 7,

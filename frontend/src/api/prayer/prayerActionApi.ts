@@ -1,7 +1,6 @@
 // 기도 액션 API (기도했어요, 취소, 응답 등록)
-import { API_V1, apiFetch } from '../../config/api'
-import { getAuthHeaders, requireAuth } from '../utils/apiHelpers'
 import type { Prayer } from '../../types/prayer'
+import { request } from '../utils/request'
 
 /**
  * 기도했어요 (로그인 필수)
@@ -12,25 +11,18 @@ export const addPrayer = async (
   prayerId: number,
   prayerDurationMinutes?: number
 ): Promise<{ success: boolean; message: string }> => {
-  requireAuth()
 
   const body: { prayer_duration_minutes?: number } = {}
   if (prayerDurationMinutes !== undefined && prayerDurationMinutes > 0) {
     body.prayer_duration_minutes = prayerDurationMinutes
   }
 
-  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/pray`, {
+  return request<{ success: boolean; message: string }>(`/prayers/${prayerId}/pray`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(body),
+    auth: 'required',
+    json: body,
+    errorMessage: '기도 처리에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '기도 처리에 실패했습니다')
-  }
-
-  return response.json()
 }
 
 /**
@@ -39,19 +31,11 @@ export const addPrayer = async (
 export const removePrayer = async (
   prayerId: number
 ): Promise<{ success: boolean; message: string }> => {
-  requireAuth()
-
-  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/pray`, {
+  return request<{ success: boolean; message: string }>(`/prayers/${prayerId}/pray`, {
     method: 'DELETE',
-    headers: getAuthHeaders(),
+    auth: 'required',
+    errorMessage: '기도 취소에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '기도 취소에 실패했습니다')
-  }
-
-  return response.json()
 }
 
 /**
@@ -64,20 +48,12 @@ export const answerPrayer = async (
   prayerId: number,
   testimony: string
 ): Promise<{ success: boolean; message: string; data: Prayer }> => {
-  requireAuth()
-
-  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/answer`, {
+  return request<{ success: boolean; message: string; data: Prayer }>(`/prayers/${prayerId}/answer`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ testimony }),
+    auth: 'required',
+    json: { testimony },
+    errorMessage: '응답 등록에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '응답 등록에 실패했습니다')
-  }
-
-  return response.json()
 }
 
 /**
@@ -89,20 +65,12 @@ export const updatePrayerAnswer = async (
   prayerId: number,
   testimony: string
 ): Promise<{ success: boolean; message: string; data: Prayer }> => {
-  requireAuth()
-
-  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/answer`, {
+  return request<{ success: boolean; message: string; data: Prayer }>(`/prayers/${prayerId}/answer`, {
     method: 'PUT',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ testimony }),
+    auth: 'required',
+    json: { testimony },
+    errorMessage: '응답 수정에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '응답 수정에 실패했습니다')
-  }
-
-  return response.json()
 }
 
 /**
@@ -113,17 +81,9 @@ export const updatePrayerAnswer = async (
 export const cancelPrayerAnswer = async (
   prayerId: number
 ): Promise<{ success: boolean; message: string; data: Prayer }> => {
-  requireAuth()
-
-  const response = await apiFetch(`${API_V1}/prayers/${prayerId}/answer`, {
+  return request<{ success: boolean; message: string; data: Prayer }>(`/prayers/${prayerId}/answer`, {
     method: 'DELETE',
-    headers: getAuthHeaders(),
+    auth: 'required',
+    errorMessage: '응답 취소에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '응답 취소에 실패했습니다')
-  }
-
-  return response.json()
 }

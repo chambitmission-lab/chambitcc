@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import {
   getUserList,
@@ -14,6 +13,7 @@ import {
 } from '../../api/user'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog, alertDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 type RoleFilter = 'all' | 'admin' | 'user'
 type StatusFilter = 'all' | 'active' | 'inactive' | 'pending'
@@ -32,7 +32,7 @@ const UserManagement = () => {
   const [savingApproval, setSavingApproval] = useState(false)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return

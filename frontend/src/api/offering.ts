@@ -1,7 +1,6 @@
 // 온라인 헌금 안내 API (offering_guide / offering_accounts)
 // 조회는 공개(인증 불필요), 나머지는 관리자.
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders } from './utils/apiHelpers'
+import { API_V1 } from '../config/api'
 import type {
   AccountPayload,
   AccountUpdatePayload,
@@ -10,6 +9,7 @@ import type {
   OfferingData,
   OfferingGuide,
 } from '../types/offering'
+import { request, requestRaw } from './utils/request'
 
 const BASE = `${API_V1}/offering`
 
@@ -19,18 +19,11 @@ const EMPTY: OfferingData = {
   accounts: [],
 }
 
-const readError = async (res: Response, fallback: string): Promise<never> => {
-  const body = await res.json().catch(() => null)
-  throw new Error(typeof body?.detail === 'string' ? body.detail : fallback)
-}
-
 // ── 공개 ─────────────────────────────────────────────
 
 export const fetchOffering = async (): Promise<OfferingData> => {
   try {
-    const res = await apiFetch(BASE)
-    if (!res.ok) return EMPTY
-    return res.json()
+    return await request<OfferingData>(BASE)
   } catch (error) {
     console.warn('offering API not available:', error)
     return EMPTY
@@ -40,57 +33,44 @@ export const fetchOffering = async (): Promise<OfferingData> => {
 // ── 관리자 ───────────────────────────────────────────
 
 export const fetchAdminOffering = async (): Promise<OfferingData> => {
-  const res = await apiFetch(`${BASE}/admin/all`, { headers: getAuthHeaders() })
-  if (!res.ok) await readError(res, '온라인 헌금 안내를 불러오지 못했습니다')
-  return res.json()
+  return request<OfferingData>(`${BASE}/admin/all`, { errorMessage: '온라인 헌금 안내를 불러오지 못했습니다' })
 }
 
 export const updateOfferingGuide = async (data: GuideUpdatePayload): Promise<OfferingGuide> => {
-  const res = await apiFetch(`${BASE}/guide`, {
+  return request<OfferingGuide>(`${BASE}/guide`, {
     method: 'PUT',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(data),
+    json: data,
+    errorMessage: '안내 문구 수정에 실패했습니다',
   })
-  if (!res.ok) await readError(res, '안내 문구 수정에 실패했습니다')
-  return res.json()
 }
 
 export const createOfferingAccount = async (data: AccountPayload): Promise<OfferingAccount> => {
-  const res = await apiFetch(`${BASE}/accounts`, {
+  return request<OfferingAccount>(`${BASE}/accounts`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(data),
+    json: data,
+    errorMessage: '계좌 등록에 실패했습니다',
   })
-  if (!res.ok) await readError(res, '계좌 등록에 실패했습니다')
-  return res.json()
 }
 
 export const updateOfferingAccount = async (
   id: number,
   data: AccountUpdatePayload,
 ): Promise<OfferingAccount> => {
-  const res = await apiFetch(`${BASE}/accounts/${id}`, {
+  return request<OfferingAccount>(`${BASE}/accounts/${id}`, {
     method: 'PUT',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(data),
+    json: data,
+    errorMessage: '계좌 수정에 실패했습니다',
   })
-  if (!res.ok) await readError(res, '계좌 수정에 실패했습니다')
-  return res.json()
 }
 
 export const moveOfferingAccount = async (id: number, direction: 'up' | 'down'): Promise<void> => {
-  const res = await apiFetch(`${BASE}/accounts/${id}/move`, {
+  await requestRaw(`${BASE}/accounts/${id}/move`, {
     method: 'PATCH',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ direction }),
+    json: { direction },
+    errorMessage: '순서 변경에 실패했습니다',
   })
-  if (!res.ok) await readError(res, '순서 변경에 실패했습니다')
 }
 
 export const deleteOfferingAccount = async (id: number): Promise<void> => {
-  const res = await apiFetch(`${BASE}/accounts/${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  })
-  if (!res.ok) await readError(res, '계좌 삭제에 실패했습니다')
+  await requestRaw(`${BASE}/accounts/${id}`, { method: 'DELETE', errorMessage: '계좌 삭제에 실패했습니다' })
 }

@@ -4,7 +4,6 @@ import { usePrayerDetail } from '../../../../hooks/usePrayersQuery'
 import { useReplies, useCreateReply, useUpdateReply, useDeleteReply } from '../../../../hooks/useReplies'
 import { usePrayerDelete } from '../../../../hooks/usePrayerDelete'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
-import { isAdmin } from '../../../../utils/auth'
 import type { Prayer } from '../../../../types/prayer'
 import { useTranslation } from './useTranslation'
 import PrayerDetailModal from './PrayerDetailModal'
@@ -17,6 +16,9 @@ import PrayerActions from './PrayerActions'
 import PrayerStats from './PrayerStats'
 import RepliesSection from './RepliesSection'
 import DeleteConfirmModal from './DeleteConfirmModal'
+import { toastFeedback } from '../../../../utils/toast'
+import { prayerToastFeedback } from '../../../../components/prayer/prayerFeedback'
+import { can } from '../../../../utils/access'
 
 interface PrayerDetailProps {
   prayerId: number
@@ -27,7 +29,7 @@ interface PrayerDetailProps {
 }
 
 const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenReplies = false }: PrayerDetailProps) => {
-  const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData)
+  const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData, prayerToastFeedback)
   const repliesSectionRef = useRef<HTMLDivElement>(null)
 
   // 댓글 작성 중 여부 — 작성 중엔 하단 기도 바를 접어 "댓글 작성"과
@@ -73,6 +75,10 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
       onClose()
       onDelete?.()
     },
+    feedback: toastFeedback<{ message?: string }, number>({
+      success: (data) => data.message || '기도 요청이 삭제되었습니다.',
+      error: '기도 요청 삭제에 실패했습니다.',
+    }),
   })
 
   const handleDelete = () => {
@@ -88,10 +94,10 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
     isFetchingNextPage,
   } = useReplies({ prayerId })
 
-  const { createReply, isCreating } = useCreateReply({ prayerId })
+  const { createReply, isCreating } = useCreateReply({ prayerId, feedback: toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 등록에 실패했습니다' }) })
 
-  const { updateReply, isUpdating } = useUpdateReply({ prayerId })
-  const { deleteReply } = useDeleteReply({ prayerId })
+  const { updateReply, isUpdating } = useUpdateReply({ prayerId, feedback: toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 수정에 실패했습니다' }) })
+  const { deleteReply } = useDeleteReply({ prayerId, feedback: toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 삭제에 실패했습니다' }) })
 
   const handleReplySubmit = (content: string, displayName: string) => {
     createReply({ content, display_name: displayName })
@@ -117,7 +123,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
 
   // 관리자는 부적절한 글을 즉시 정리할 수 있도록 남의 글에도 삭제 버튼 노출 (백엔드도 is_admin 허용)
   const isOwner = prayer.is_owner || false
-  const isAdminDelete = !isOwner && isAdmin()
+  const isAdminDelete = !isOwner && can('community:moderate')
 
   return (
     <>

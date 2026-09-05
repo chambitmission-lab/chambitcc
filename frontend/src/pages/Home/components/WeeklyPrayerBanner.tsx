@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getCurrentWeeklyPrayer } from '../../../api/weeklyPrayer'
 import { ChevronRightIcon } from '../../../components/icons/ActionIcons'
 import { GraceIcon } from '../../../components/icons/GraceIcons'
+import { weeklyPrayerKeys } from '../../../hooks/queryKeys'
 
 const ROTATE_MS = 4200
 
@@ -14,7 +15,7 @@ const WeeklyPrayerBanner = () => {
 
   // 홈 진입마다 두드리지 않게 길게 캐시 — 주간 단위 데이터라 신선도 부담이 없다
   const { data } = useQuery({
-    queryKey: ['weeklyPrayer', 'current', 'homeBanner'],
+    queryKey: weeklyPrayerKeys.homeBanner(),
     queryFn: getCurrentWeeklyPrayer,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,

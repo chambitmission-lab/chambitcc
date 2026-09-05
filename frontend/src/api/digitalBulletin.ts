@@ -1,6 +1,6 @@
 // 디지털 주보 API
-import { API_V1, apiFetch } from '../config/api'
 import type { BulletinData, DigitalBulletinResponse } from '../types/digitalBulletin'
+import { request } from './utils/request'
 
 const EMPTY_RESPONSE: DigitalBulletinResponse = {
   data: {
@@ -21,11 +21,7 @@ const EMPTY_RESPONSE: DigitalBulletinResponse = {
 
 export const getDigitalBulletin = async (): Promise<DigitalBulletinResponse> => {
   try {
-    const response = await apiFetch(`${API_V1}/digital-bulletin`)
-    if (!response.ok) {
-      return EMPTY_RESPONSE
-    }
-    return response.json()
+    return await request<DigitalBulletinResponse>('/digital-bulletin')
   } catch (error) {
     console.warn('digital-bulletin API not available, using defaults:', error)
     return EMPTY_RESPONSE
@@ -35,19 +31,9 @@ export const getDigitalBulletin = async (): Promise<DigitalBulletinResponse> => 
 export const replaceDigitalBulletin = async (
   data: BulletinData
 ): Promise<DigitalBulletinResponse> => {
-  const token = localStorage.getItem('access_token')
-  const response = await apiFetch(`${API_V1}/digital-bulletin`, {
+  return request<DigitalBulletinResponse>('/digital-bulletin', {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ data }),
+    json: { data },
+    errorMessage: 'Failed to update digital bulletin',
   })
-
-  if (!response.ok) {
-    throw new Error('Failed to update digital bulletin')
-  }
-
-  return response.json()
 }

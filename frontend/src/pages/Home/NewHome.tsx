@@ -39,6 +39,7 @@ import { showToast } from '../../utils/toast'
 import { preloadNavRoutes, preloadRoute, isRoutePreloaded } from '../../utils/routePreload'
 import type { SortType, PrayerFilterType, Prayer } from '../../types/prayer'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { prayerToastFeedback } from '../../components/prayer/prayerFeedback'
 
 const NewHome = () => {
   const location = useLocation()
@@ -64,7 +65,7 @@ const NewHome = () => {
   const [selectedPrayerForAnswer, setSelectedPrayerForAnswer] = useState<Prayer | null>(null)
   // 하단 네비에서 lazy 청크를 받는 중인 경로 — 해당 아이콘에 스피너를 띄운다
   const [navPending, setNavPending] = useState<string | null>(null)
-  const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter)  // ✅ selectedFilter 전달
+  const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter, undefined, prayerToastFeedback)  // ✅ selectedFilter 전달
   const mainRef = useRef<HTMLDivElement>(null)
   const feedRef = useRef<HTMLDivElement>(null)
   // 사이드 컬럼 bottom-sticky — 헤더(56px)+상단 여백에 맞춘 기존 top-[4.5rem]=72px 기준

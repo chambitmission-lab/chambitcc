@@ -1,6 +1,5 @@
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders, requireAuth } from './utils/apiHelpers'
-
+import { API_V1 } from '../config/api'
+import { request, requestRaw, type UntypedJson } from './utils/request'
 /** 절 안의 특정 단어에 남긴 뜻/메모 */
 export interface WordNote {
   id: number
@@ -47,21 +46,17 @@ export const createWordNote = async (
   verseId: number,
   payload: CreateWordNotePayload
 ): Promise<WordNote> => {
-  requireAuth()
-  const response = await apiFetch(`${API_V1}/bible/verses/${verseId}/word-notes`, {
+  const data = await request<UntypedJson>(`/bible/verses/${verseId}/word-notes`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({
+    auth: 'required',
+    json: {
       word: payload.word,
       note: payload.note ?? null,
       char_start: payload.char_start ?? null,
       char_end: payload.char_end ?? null,
-    }),
+    },
+    errorMessage: '단어 저장에 실패했습니다',
   })
-  if (!response.ok) {
-    throw new Error('단어 저장에 실패했습니다')
-  }
-  const data = await response.json()
   return data.data
 }
 
@@ -69,35 +64,28 @@ export const updateWordNote = async (
   noteId: number,
   payload: UpdateWordNotePayload
 ): Promise<WordNote> => {
-  requireAuth()
-  const response = await apiFetch(`${API_V1}/bible/word-notes/${noteId}`, {
+  const data = await request<UntypedJson>(`/bible/word-notes/${noteId}`, {
     method: 'PUT',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({
+    auth: 'required',
+    json: {
       word: payload.word,
       note: payload.note ?? null,
       // 백엔드는 범위 생략 시 기존 위치를 유지한다 (null 반쪽 전송 금지)
       ...(payload.char_start != null && payload.char_end != null
         ? { char_start: payload.char_start, char_end: payload.char_end }
         : {}),
-    }),
+    },
+    errorMessage: '단어 수정에 실패했습니다',
   })
-  if (!response.ok) {
-    throw new Error('단어 수정에 실패했습니다')
-  }
-  const data = await response.json()
   return data.data
 }
 
 export const deleteWordNote = async (noteId: number): Promise<void> => {
-  requireAuth()
-  const response = await apiFetch(`${API_V1}/bible/word-notes/${noteId}`, {
+  await requestRaw(`/bible/word-notes/${noteId}`, {
     method: 'DELETE',
-    headers: getAuthHeaders(true),
+    auth: 'required',
+    errorMessage: '단어 삭제에 실패했습니다',
   })
-  if (!response.ok) {
-    throw new Error('단어 삭제에 실패했습니다')
-  }
 }
 
 /** 한 장의 내 단어 노트 전체 — 본문 밑줄 표시용 배치 조회 */
@@ -105,15 +93,7 @@ export const listChapterWordNotes = async (
   bookNumber: number,
   chapter: number
 ): Promise<WordNote[]> => {
-  requireAuth()
-  const response = await apiFetch(
-    `${API_V1}/bible/word-notes/by-chapter?book_number=${bookNumber}&chapter=${chapter}`,
-    { headers: getAuthHeaders(true) }
-  )
-  if (!response.ok) {
-    throw new Error('단어 노트 조회에 실패했습니다')
-  }
-  const data = await response.json()
+  const data = await request<UntypedJson>(`/bible/word-notes/by-chapter?book_number=${bookNumber}&chapter=${chapter}`, { auth: 'required', errorMessage: '단어 노트 조회에 실패했습니다' })
   return data.data.items
 }
 
@@ -125,7 +105,6 @@ export const listWordNotes = async (params?: {
   page?: number
   page_size?: number
 }): Promise<WordNoteListResponse> => {
-  requireAuth()
   const query = new URLSearchParams()
   if (params?.q) query.append('q', params.q)
   if (params?.book_number) query.append('book_number', String(params.book_number))
@@ -133,10 +112,6 @@ export const listWordNotes = async (params?: {
   if (params?.page_size) query.append('page_size', String(params.page_size))
 
   const url = `${API_V1}/bible/word-notes${query.toString() ? `?${query}` : ''}`
-  const response = await apiFetch(url, { headers: getAuthHeaders(true) })
-  if (!response.ok) {
-    throw new Error('단어장 목록 조회에 실패했습니다')
-  }
-  const data = await response.json()
+  const data = await request<UntypedJson>(url, { auth: 'required', errorMessage: '단어장 목록 조회에 실패했습니다' })
   return data.data
 }

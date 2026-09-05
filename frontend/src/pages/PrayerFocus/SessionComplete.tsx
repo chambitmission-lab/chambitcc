@@ -11,6 +11,7 @@ import {
   type AmbienceId,
   type PrayerSessionStats,
 } from '../../api/prayerSession'
+import { tokenStore } from '../../utils/tokenStore'
 
 interface SessionCompleteProps {
   duration: number  // 분 단위
@@ -25,7 +26,7 @@ interface SessionCompleteProps {
   onClose: () => void
 }
 
-const isLoggedIn = (): boolean => !!localStorage.getItem('access_token')
+const isLoggedIn = (): boolean => !!tokenStore.getAccess()
 
 /* 세션 기록은 마운트 시 POST 한 번 — 그런데 이 화면은 두 번 기록되기 쉬운 자리에 있다.
    ① StrictMode(main.tsx)는 개발 중 마운트 이펙트를 setup→cleanup→setup 으로 두 번 돌린다.

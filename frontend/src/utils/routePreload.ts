@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react'
+import { tokenStore } from './tokenStore'
 
 type RouteLoader = () => Promise<{ default: ComponentType }>
 
@@ -114,7 +115,7 @@ export const preloadNavRoutes = (): Promise<void> =>
 // 메뉴가 열리는 순간 호출 — 네트워크를 몰아치지 않게 순차로 받는다
 export const preloadMenuRoutes = async (): Promise<void> => {
   // 비로그인: 공개 페이지만 순차로 (로그인하면 HomeGate 가 다시 마운트되며 전체 프리로드)
-  if (!localStorage.getItem('access_token')) {
+  if (!tokenStore.getAccess()) {
     for (const path of PUBLIC_MENU_ROUTES) {
       await preloadRoute(path)
     }
@@ -134,7 +135,7 @@ export const preloadMenuRoutes = async (): Promise<void> => {
 const IDLE_PRELOAD_ROUTES = [...NAV_ROUTES, '/events', '/news', '/groups', '/growth']
 
 const preloadLikelyRoutes = async (): Promise<void> => {
-  if (!localStorage.getItem('access_token')) {
+  if (!tokenStore.getAccess()) {
     for (const path of PUBLIC_MENU_ROUTES) {
       await preloadRoute(path)
     }

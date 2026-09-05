@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import {
   fetchBibleEngagement,
@@ -10,6 +9,7 @@ import {
 } from '../../api/admin'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { AdminPageHeader, EmptyHint, SectionCard, StatSpinner } from './components/StatCards'
+import { can } from '../../utils/access'
 
 type PeriodKey = 'all' | '7' | '30' | '90'
 type TopTab = 'favorites' | 'notes' | 'underlines'
@@ -62,7 +62,7 @@ const BibleEngagementManagement = () => {
   const navigate = useNavigate()
   const [period, setPeriod] = useState<PeriodKey>('7')
   const [topTab, setTopTab] = useState<TopTab>('favorites')
-  const admin = isAdmin()
+  const admin = can('admin:access')
 
   useEffect(() => {
     if (!admin) {

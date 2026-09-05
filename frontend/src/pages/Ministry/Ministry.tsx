@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { deleteColumn } from '../../api/column'
 import type { Column } from '../../types/column'
@@ -12,6 +11,7 @@ import ColumnReaderModal from './ColumnReaderModal'
 import ColumnEditorModal from './ColumnEditorModal'
 import DeleteColumnDialog from './DeleteColumnDialog'
 import MinistryRail, { type RailHighlight } from './MinistryRail'
+import { can } from '../../utils/access'
 
 /** 새 컬럼 기본값 — 날짜는 오늘 */
 const newColumnDraft = (): Partial<Column> => ({
@@ -29,7 +29,7 @@ const newColumnDraft = (): Partial<Column> => ({
  */
 const Ministry = () => {
   const { language } = useLanguage()
-  const isAdminUser = isAdmin()
+  const isAdminUser = can('content:manage')
 
   const [appliedQuery, setAppliedQuery] = useState('')
   const [selectedColumn, setSelectedColumn] = useState<Column | null>(null)

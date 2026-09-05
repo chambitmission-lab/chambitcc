@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { translations } from '../../../locales'
-import { isAdmin } from '../../../utils/auth'
 import type { EventCategory } from '../../../types/event'
 import { CategoryIcon } from './CategoryIcons'
+import { can } from '../../../utils/access'
 
 interface EmptyStateProps {
   // 선택된 카테고리 칩에 맞춰 문구·이모지가 반응한다 (undefined = 전체)
@@ -14,7 +14,7 @@ const EmptyState = ({ category }: EmptyStateProps) => {
   const navigate = useNavigate()
   const { language } = useLanguage()
   const t = translations[language]
-  const admin = isAdmin()
+  const admin = can('content:manage')
   const label = category ? t.categories[category] : null
 
   return (

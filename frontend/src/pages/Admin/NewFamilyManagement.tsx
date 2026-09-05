@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import {
   deleteNewFamilyPost,
@@ -13,6 +12,7 @@ import { invalidateNewFamily } from '../../hooks/useNewFamily'
 import NewFamilyComposer from './components/NewFamilyComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'welcome'
@@ -45,7 +45,7 @@ const NewFamilyManagement = () => {
   const [composer, setComposer] = useState<'new' | NewFamilyPost | null>(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return

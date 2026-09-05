@@ -6,6 +6,7 @@ import {
   IntercessionIcon,
   ThanksRecordIcon,
 } from '../../../components/icons/GrowthIcons'
+import { tokenStore } from '../../../utils/tokenStore'
 
 /** GrowthHook 발자국 스트립과 같은 기간을 공유해 요청이 하나로 합쳐진다 */
 const WINDOW_DAYS = 14
@@ -21,7 +22,7 @@ const WINDOW_DAYS = 14
  */
 const FaithInsightCard = () => {
   const { t, language } = useLanguage()
-  const hasToken = !!localStorage.getItem('access_token')
+  const hasToken = !!tokenStore.getAccess()
   const { data: summaryRes } = useGrowthSummary(hasToken)
   const { data: recent } = useGrowthRecentDays(WINDOW_DAYS, hasToken)
   const summary = summaryRes?.data

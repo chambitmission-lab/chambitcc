@@ -3,6 +3,7 @@
 // 백엔드 /titles/evaluate 를 한 번만 때리고, 새로 획득한 칭호를 구독자(해금 팝업)에게 흘려보낸다.
 // React 트리와 분리해 어디서든(훅/이벤트 핸들러) 트리거할 수 있게 모듈 싱글톤으로 둔다.
 import { evaluateTitles, type TitleStatus } from '../api/titles'
+import { tokenStore } from './tokenStore'
 
 type Listener = (titles: TitleStatus[]) => void
 
@@ -23,7 +24,7 @@ const emit = (titles: TitleStatus[]) => {
 const runEvaluation = async () => {
   if (inFlight) return
   // 로그인 상태에서만
-  if (!localStorage.getItem('access_token')) return
+  if (!tokenStore.getAccess()) return
   inFlight = true
   try {
     const result = await evaluateTitles()

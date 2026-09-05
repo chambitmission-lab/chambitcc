@@ -3,7 +3,6 @@
 // 화면 틀은 WeeklyPrayerManagement 와 동일: 헤더 + PC 2단(목록/작업 레일) 구성.
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
 import {
@@ -16,6 +15,7 @@ import {
   deleteChatbotIntent,
 } from '../../api/chatbot'
 import type { ChatAction, ChatbotIntent, ChatbotUnanswered } from '../../types/chatbot'
+import { can } from '../../utils/access'
 
 type Tab = 'unanswered' | 'intents'
 
@@ -80,7 +80,7 @@ const ChatbotManagement = () => {
   }, [])
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return

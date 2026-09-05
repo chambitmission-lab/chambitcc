@@ -1,6 +1,5 @@
 // 타임캡슐 API 클라이언트
-import { API_V1, apiFetch } from '../config/api'
-import { ApiError, getAuthHeaders } from './utils/apiHelpers'
+import { API_V1 } from '../config/api'
 import type {
   CapsuleCreateRequest,
   CapsuleDetail,
@@ -9,13 +8,9 @@ import type {
   CapsuleRecipient,
   CapsuleSummary,
 } from '../types/timeCapsule'
+import { request, requestRaw } from './utils/request'
 
 const BASE = `${API_V1}/time-capsules`
-
-const parseError = async (response: Response, fallback: string): Promise<never> => {
-  const error = await response.json().catch(() => ({}))
-  throw new ApiError(response.status, error.detail || fallback)
-}
 
 const audioFileName = (blob: Blob): string => {
   if (blob.type.includes('mp4')) return 'capsule.m4a'
@@ -57,70 +52,42 @@ export const createCapsule = async (
       JSON.stringify(payload.photos.map((p) => p.caption.trim())),
     )
   }
-  const response = await apiFetch(BASE, {
+  return request<CapsuleSummary>(BASE, {
     method: 'POST',
-    // Content-Type은 브라우저가 multipart boundary와 함께 설정한다
-    headers: getAuthHeaders(),
     body: formData,
+    errorMessage: '캡슐 봉인에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '캡슐 봉인에 실패했습니다')
-  return response.json()
 }
 
 // 받는 사람 검색 — 이름/아이디 부분 일치, 서버가 최대 8명만 내려준다
 export const searchCapsuleRecipients = async (q: string): Promise<CapsuleRecipient[]> => {
-  const response = await apiFetch(`${BASE}/recipients?q=${encodeURIComponent(q)}`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '받는 분을 찾지 못했습니다')
-  return response.json()
+  return request<CapsuleRecipient[]>(`${BASE}/recipients?q=${encodeURIComponent(q)}`, { errorMessage: '받는 분을 찾지 못했습니다' })
 }
 
 export const listMyCapsules = async (): Promise<CapsuleListResponse> => {
-  const response = await apiFetch(BASE, { headers: getAuthHeaders() })
-  if (!response.ok) return parseError(response, '캡슐함을 불러오지 못했습니다')
-  return response.json()
+  return request<CapsuleListResponse>(BASE, { errorMessage: '캡슐함을 불러오지 못했습니다' })
 }
 
 export const getCapsule = async (capsuleId: number): Promise<CapsuleDetail> => {
-  const response = await apiFetch(`${BASE}/${capsuleId}`, { headers: getAuthHeaders() })
-  if (!response.ok) return parseError(response, '캡슐을 불러오지 못했습니다')
-  return response.json()
+  return request<CapsuleDetail>(`${BASE}/${capsuleId}`, { errorMessage: '캡슐을 불러오지 못했습니다' })
 }
 
 export const openCapsule = async (capsuleId: number): Promise<CapsuleDetail> => {
-  const response = await apiFetch(`${BASE}/${capsuleId}/open`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '아직 캡슐을 열 수 없습니다')
-  return response.json()
+  return request<CapsuleDetail>(`${BASE}/${capsuleId}/open`, { method: 'POST', errorMessage: '아직 캡슐을 열 수 없습니다' })
 }
 
 export const previewCapsule = async (inviteCode: string): Promise<CapsulePreview> => {
-  const response = await apiFetch(`${BASE}/preview/${encodeURIComponent(inviteCode)}`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) return parseError(response, '유효하지 않은 초대 링크입니다')
-  return response.json()
+  return request<CapsulePreview>(`${BASE}/preview/${encodeURIComponent(inviteCode)}`, { errorMessage: '유효하지 않은 초대 링크입니다' })
 }
 
 export const claimCapsule = async (inviteCode: string): Promise<CapsuleSummary> => {
-  const response = await apiFetch(`${BASE}/claim`, {
+  return request<CapsuleSummary>(`${BASE}/claim`, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify({ invite_code: inviteCode }),
+    json: { invite_code: inviteCode },
+    errorMessage: '캡슐 받기에 실패했습니다',
   })
-  if (!response.ok) return parseError(response, '캡슐 받기에 실패했습니다')
-  return response.json()
 }
 
 export const deleteCapsule = async (capsuleId: number): Promise<void> => {
-  const response = await apiFetch(`${BASE}/${capsuleId}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok && response.status !== 204) {
-    return parseError(response, '캡슐 삭제에 실패했습니다')
-  }
+  await requestRaw(`${BASE}/${capsuleId}`, { method: 'DELETE', errorMessage: '캡슐 삭제에 실패했습니다' })
 }

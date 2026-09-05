@@ -4,9 +4,10 @@ import type { BibleChapterPaginatedResponse, BibleVerse } from '../../../types/b
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
 import VerseItem from './VerseItem'
+import { VerseListProvider } from './verse/VerseListProvider'
+import type { VerseListActions, VerseListSettings } from './verse/VerseListContext'
 import ChapterLoader from './ChapterLoader'
 import { useChapterReadStatus, useMarkVerseAsRead, useUnmarkVerseAsRead, useMarkChapterAsRead, useUnmarkChapterAsRead } from '../../../hooks/useBibleReading'
-import { isAdmin } from '../../../utils/auth'
 import { biblePlanKeys } from '../../../hooks/useBiblePlan'
 import { celebrateFlowerBloom } from '../../../utils/confettiEffects'
 import VerseEditModal from '../../../components/bible/VerseEditModal'
@@ -25,6 +26,8 @@ import { useAudioFollow } from '../hooks/useAudioFollow'
 import VerseShareSheet from './VerseShareSheet'
 import { getReaderLayout, subscribeReaderLayout } from '../data/readerLayout'
 import { loadBookOutline, peekBookOutline, type BookOutline, type OutlineSection } from '../data/chapterOutlines'
+import { bibleKeys } from '../../../hooks/queryKeys'
+import { can } from '../../../utils/access'
 
 /** 절 번호 길게 누르기 안내를 이미 본 적 있는지 (한 번 보면 다시 안 뜬다) */
 const HOLD_HINT_KEY = 'bible_hold_read_hint_v1'
@@ -277,7 +280,7 @@ const VerseList = ({
   const [togglingVerseId, setTogglingVerseId] = useState<number | null>(null)
 
   // ---------- 관리자 전용: 장 일괄 읽음/취소 (업적 테스트용, 본인 계정) ----------
-  const isAdminUser = isAdmin()
+  const isAdminUser = can('bible:edit')
   const markChapterMutation = useMarkChapterAsRead()
   const unmarkChapterMutation = useUnmarkChapterAsRead()
   // 실수 방지 2탭 확인 — 한 번 탭하면 확인 문구로 바뀌고 3초 내 재탭 시 실행
@@ -419,7 +422,7 @@ const VerseList = ({
       // 방법 2: 추가 안전장치 - 캐시 강제 새로고침
       setTimeout(async () => {
         await queryClient.refetchQueries({
-          queryKey: ['bible', 'chapter', 'infinite', bookNumber, selectedChapter],
+          queryKey: bibleKeys.chapterInfinite(bookNumber, selectedChapter),
           type: 'active'
         })
       }, 100) // 100ms 후 새로고침
@@ -644,6 +647,21 @@ const VerseList = ({
     }
   }, [chapterData])
   
+  // 목록 수준 액션 — 절마다 props 로 내려보내지 않고 컨텍스트로 한 번만 제공한다.
+  // 전부 useCallback/setState 라 참조가 고정돼 memo 된 절이 불필요하게 재렌더되지 않는다.
+  const verseActions = useMemo<VerseListActions>(() => ({
+    onReadSuccess: handleReadSuccess,
+    onEdit: handleEditVerse,
+    onToggleRead: handleToggleRead,
+    onShowCommentary: handleShowCommentary,
+    onListenFrom: onListenFromVerse ? handleListenFrom : undefined,
+    onActionsOpenChange: handleActionsOpenChange,
+    onToggleSelect: toggleSelect,
+    onEnterSelection: enterSelection,
+    onShare: setShareTarget,
+  }), [handleReadSuccess, handleEditVerse, handleToggleRead, handleShowCommentary, onListenFromVerse, handleListenFrom, handleActionsOpenChange, toggleSelect, enterSelection])
+  const verseSettings = useMemo<VerseListSettings>(() => ({ selectionMode }), [selectionMode])
+
   // 절 하나 렌더 — 절별/이어읽기 두 보기가 같은 props를 쓴다
   const renderVerse = (verse: BibleVerse, bookName: string, chapterNo: number, verseLayout: 'list' | 'flow') => (
     <VerseItem
@@ -653,23 +671,13 @@ const VerseList = ({
       bookNumber={bookNumber}
       chapter={chapterNo}
       isRead={readVerses.has(verse.id)}
-      onReadSuccess={handleReadSuccess}
-      onEdit={handleEditVerse}
-      onToggleRead={handleToggleRead}
       isTogglingRead={togglingVerseId === verse.id}
-      onShowCommentary={handleShowCommentary}
-      onListenFrom={onListenFromVerse ? handleListenFrom : undefined}
       hasCommentary={verseHasCommentaryMap.has(verse.verse)}
       isAudioActive={verse.verse === audioActiveVerse}
       actionsOpen={openVerseId === verse.id}
-      onActionsOpenChange={handleActionsOpenChange}
       wordNotes={wordNotesByVerse.get(verse.id)}
       chapterBookmark={bookmarksByVerse ? (bookmarksByVerse.get(verse.id) ?? null) : undefined}
-      selectionMode={selectionMode}
       isSelected={selectedIdSet.has(verse.id)}
-      onToggleSelect={toggleSelect}
-      onEnterSelection={enterSelection}
-      onShare={setShareTarget}
       layout={verseLayout}
     />
   )
@@ -688,6 +696,7 @@ const VerseList = ({
   }
   
   return (
+    <VerseListProvider actions={verseActions} settings={verseSettings}>
     <div className="bible-content">
       {/* 진행률 pill - 읽은 절이 있을 때만 컴팩트하게 표시 */}
       {readCount > 0 && totalVerses > 0 && (
@@ -1064,6 +1073,7 @@ const VerseList = ({
         />
       )}
     </div>
+    </VerseListProvider>
   )
 }
 

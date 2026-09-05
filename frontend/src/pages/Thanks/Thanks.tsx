@@ -22,7 +22,6 @@ import {
   type ThanksPage,
 } from '../Home/components/ThanksThread/useThanks'
 import type { CreateThanksRequest, Thanks as ThanksItem } from '../../types/thanks'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import ThanksCard from '../Home/components/ThanksThread/ThanksCard'
 import ThanksComposer from '../Home/components/ThanksThread/ThanksComposer'
@@ -33,6 +32,7 @@ import gratitudeHero from '../../assets/hero/gratitude.jpg'
 import '../Home/components/ThanksThread/thanks.css'
 import './Thanks.css'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 /* 히어로에 하루 하나씩 도는 감사 말씀 */
 const THANKS_VERSES = [
@@ -66,7 +66,7 @@ const Thanks = () => {
   const ko = language === 'ko'
   const { requireAuth } = useAuth()
   const navigate = useNavigate()
-  const admin = isAdmin()
+  const admin = can('community:moderate')
   const queryClient = useQueryClient()
 
   const sentinelRef = useRef<HTMLDivElement>(null)

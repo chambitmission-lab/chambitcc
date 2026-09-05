@@ -8,7 +8,6 @@ import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { isAdmin } from '../../utils/auth'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { usePastors } from '../../hooks/usePastors'
 import { EditableText } from '../../components/AboutEditor'
@@ -35,6 +34,7 @@ import heroSummerDay from '../../assets/hero/afternoon.jpg'
 import heroAutumnDay from '../../assets/hero/autumn-afternoon.jpg'
 import heroWinterDay from '../../assets/hero/winter-afternoon.jpg'
 import './styles/index.css'
+import { can } from '../../utils/access'
 
 /* 서명 문장 안의 이름만 손글씨 잉크로 바꿔 "참빛교회 담임목사 [사인] 올림" 으로 읽히게 한다.
    등록된 이름이 아니면 텍스트 그대로. */
@@ -70,7 +70,7 @@ const Greeting = () => {
   const ko = language === 'ko'
   const { tx } = useAboutContent()
   const { current, past, isLoading } = usePastors()
-  const isAdminUser = isAdmin()
+  const isAdminUser = can('content:manage')
 
   // 역대 목사 카드를 누르면 그분의 인사말·약력을 하단 시트로 연다
   const [sheetPastor, setSheetPastor] = useState<Pastor | null>(null)

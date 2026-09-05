@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { fetchAllEvents, deleteEvent } from '../../api/event'
 import type { Event, EventCategory } from '../../types/event'
@@ -14,6 +13,7 @@ import EventComposer from './components/EventComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { CategoryIcon } from '../Events/components/CategoryIcons'
+import { can } from '../../utils/access'
 
 type PublishFilter = 'all' | 'published' | 'draft'
 type SortKey = 'upcoming' | 'recent' | 'attendance'
@@ -35,7 +35,7 @@ const EventManagement = () => {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return

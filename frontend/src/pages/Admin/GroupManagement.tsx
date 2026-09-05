@@ -8,13 +8,13 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { fetchAdminGroups, deleteAdminGroup } from '../../api/admin'
 import type { AdminGroupListResponse } from '../../api/admin'
 import { groupInviteUrl } from '../../utils/inviteLink'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 type AdminGroup = AdminGroupListResponse['data']['items'][number]
 
@@ -104,7 +104,7 @@ const GroupManagement = () => {
   }, [])
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return

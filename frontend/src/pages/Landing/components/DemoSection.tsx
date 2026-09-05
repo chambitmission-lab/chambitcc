@@ -14,6 +14,7 @@ import avatarSorry from '../../../components/chatbot/img/sorry.webp'
 import avatarTalking from '../../../components/chatbot/img/talking.webp'
 import { ChevronRightIcon } from '../../About/icons'
 import { Reveal, SectionHeader } from './shared'
+import { dailyVerseKeys } from '../../../hooks/queryKeys'
 
 // 인터랙티브 데모 — "스마트한 교회"를 글로 주장하지 않고 세 가지를 직접 만져보게 한다.
 // ① 참비에게 한 마디(실제 챗봇 API, 비로그인 허용) ② 통독표 도장 체험 ③ 오늘의 말씀 카드
@@ -281,7 +282,7 @@ const StampDemo = ({ ko }: { ko: boolean }) => {
 const VerseCardDemo = ({ ko }: { ko: boolean }) => {
   const navigate = useNavigate()
   const { data } = useQuery({
-    queryKey: ['daily-verse', 'current'],
+    queryKey: dailyVerseKeys.current(),
     queryFn: getTodayVerse,
     staleTime: 1000 * 60 * 30,
     retry: false,

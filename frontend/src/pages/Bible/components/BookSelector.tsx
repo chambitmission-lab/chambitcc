@@ -7,6 +7,14 @@ import BibleProgressMap from './BibleProgressMap'
 import BookJourneyPath from './BookJourneyPath'
 import { aggregateRange, buildBookInfoMap } from './readingProgressInfo'
 import { bookAbbrev } from './bibleBookAbbrev'
+import {
+  BookOpen,
+  ChartPieSlice,
+  Cross,
+  HandsPraying,
+  MapTrifold,
+  Scroll,
+} from '../../../components/icons/phosphor'
 
 interface BookSelectorProps {
   books: BibleBook[] | undefined
@@ -108,11 +116,20 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       loadingBooks: '성경 책 목록을 불러오는 중...',
       errorBooks: '성경 책 목록을 불러오는데 실패했습니다. 백엔드 API를 확인해주세요.',
       noBooks: '성경 책 데이터가 없습니다.',
-      summaryTitle: '읽기 진행',
+      summaryTitle: '성경 읽기 현황',
+      summarySubtitle: '말씀을 읽으며 믿음이 자라가요',
+      overallLabel: '전체 진행률',
       remaining: '남은',
       allComplete: '성경 전체를 완독했어요 🎉',
       whole: '전체',
+      statsToggle: '진행률',
       mapToggle: '지도',
+      cheerStart: '오늘 첫 장을 펼쳐볼까요?',
+      cheerEarly: '좋은 시작이에요, 한 장씩 이어가요',
+      cheerSteady: '하나님 말씀을 꾸준히 읽어가고 있어요',
+      cheerHalf: '절반을 넘었어요, 조금만 더 힘내요',
+      cheerAlmost: '완독이 눈앞이에요, 끝까지 함께해요',
+      cheerDone: '성경 66권을 모두 읽었어요',
       chapterUnit: '장',
       verseUnit: '절',
       complete: '완독',
@@ -133,11 +150,20 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
       loadingBooks: 'Loading bible books...',
       errorBooks: 'Failed to load bible books. Please check backend API.',
       noBooks: 'No bible book data available.',
-      summaryTitle: 'Reading progress',
+      summaryTitle: 'Bible reading',
+      summarySubtitle: 'Faith grows as you read the Word',
+      overallLabel: 'Overall progress',
       remaining: 'Remaining',
       allComplete: 'Whole Bible complete 🎉',
       whole: 'Whole Bible',
+      statsToggle: 'Progress',
       mapToggle: 'Map',
+      cheerStart: 'Shall we open the first chapter today?',
+      cheerEarly: 'A good start — keep going one chapter at a time',
+      cheerSteady: "You're steadily reading through God's Word",
+      cheerHalf: "Past the halfway mark — you've got this",
+      cheerAlmost: 'Almost there — finish strong',
+      cheerDone: "You've read all 66 books",
       chapterUnit: 'ch',
       verseUnit: 'v',
       complete: 'Done',
@@ -209,6 +235,28 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   }, [progress, t.whole, t.oldTestament, t.newTestament, t.chapterUnit, t.verseUnit])
 
   const overallStat = summaryStats[0]
+
+
+  // 격려 문구 — 진행률 구간별 한 줄. 숫자만 있는 대시보드가 아니라 "함께 읽는" 톤을 만든다
+  const cheerText = useMemo(() => {
+    if (!overallStat) return ''
+    const r = overallStat.rate
+    if (r >= 100) return t.cheerDone
+    if (r >= 85) return t.cheerAlmost
+    if (r >= 50) return t.cheerHalf
+    if (r >= 10) return t.cheerSteady
+    if (r > 0) return t.cheerEarly
+    return t.cheerStart
+  }, [overallStat, t.cheerDone, t.cheerAlmost, t.cheerHalf, t.cheerSteady, t.cheerEarly, t.cheerStart])
+
+  // 격려 문구를 "앞부분 + 마지막 어절"로 나눈다 — 마지막 어절은 아이콘과 묶여 함께 줄바꿈된다
+  const cheerSplit = useMemo(() => {
+    const text = cheerText.trim()
+    const cut = text.lastIndexOf(' ')
+    return cut < 0 ? { head: '', tail: text } : { head: text.slice(0, cut + 1), tail: text.slice(cut + 1) }
+  }, [cheerText])
+  const cheerHead = cheerSplit.head
+  const cheerTail = cheerSplit.tail
 
   const handleMapSelect = useCallback(
     (book: BibleBook) => {
@@ -450,107 +498,158 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
     <div className="bible-books-section">
       <h2 className="section-title">{t.selectBook}</h2>
 
-      {/* 읽기 진행 요약 — 전체/구약/신약을 나란히 두어 "지금 어디가 비었나"를 먼저 알려준다.
+      {/* 읽기 진행 요약 — 히어로(전체 진행률·격려·게이지) + 구약/신약 타일, 또는 66권 지도.
+          링 3개 대신 "숫자 하나가 먼저 읽히고" 그 아래 구약/신약이 나뉘는 위계로 재구성했다.
           탭 안에 %를 넣지 않는 이유: 탭은 선택 컨트롤이고, 비활성 탭의 수치는 가려지기 때문 */}
       {summaryStats.length === 0 && progressPending && (
         <div className="reading-summary" aria-hidden="true">
           <div className="reading-summary__head">
-            <span className="bib-skel bib-skel--title" />
+            <div className="reading-summary__heading">
+              <span className="bib-skel bib-skel--badge" />
+              <span className="reading-summary__heading-text">
+                <span className="bib-skel bib-skel--title" />
+                <span className="bib-skel bib-skel--subtitle" />
+              </span>
+            </div>
             <span className="bib-skel bib-skel--toggle" />
           </div>
-          <div className="reading-summary__rings">
-            {[0, 1, 2].map(i => (
-              <div className="summary-ring" key={i}>
-                <span className="bib-skel bib-skel--ring" />
+          <div className="reading-hero">
+            <span className="bib-skel bib-skel--label" />
+            <span className="bib-skel bib-skel--number" />
+            <span className="bib-skel bib-skel--cheer" />
+            <span className="reading-hero__track" />
+          </div>
+          <div className="reading-tiles">
+            {[0, 1].map(i => (
+              <div className="reading-tile" key={i}>
+                <span className="bib-skel bib-skel--tile" />
               </div>
             ))}
           </div>
-          <div className="reading-summary__bar">
-            <span className="reading-summary__track" />
-            <span className="reading-summary__bar-meta">
-              <span className="bib-skel bib-skel--detail" />
-              <span className="bib-skel bib-skel--detail" />
-            </span>
-          </div>
         </div>
       )}
-      {summaryStats.length > 0 && (
-        <div className="reading-summary">
+      {summaryStats.length > 0 && overallStat && (
+        <section className="reading-summary" aria-label={t.summaryTitle}>
           <div className="reading-summary__head">
-            <span className="reading-summary__title">{t.summaryTitle}</span>
-            <button
-              type="button"
-              className={`reading-summary__map-toggle${showMap ? ' active' : ''}`}
-              aria-expanded={showMap}
-              onClick={() => setShowMap(v => !v)}
-            >
-              <span className="material-icons-round">grid_view</span>
-              {t.mapToggle}
-            </button>
+            <div className="reading-summary__heading">
+              <span className="reading-summary__badge" aria-hidden="true">
+                <BookOpen size="1em" weight="duotone" color="currentColor" />
+              </span>
+              <span className="reading-summary__heading-text">
+                <span className="reading-summary__title">{t.summaryTitle}</span>
+                <span className="reading-summary__subtitle">{t.summarySubtitle}</span>
+              </span>
+            </div>
+
+            {/* 보기 전환 — 진행률(구약/신약 타일) ↔ 지도(66권 히트맵). 히어로는 둘 다에서 유지 */}
+            <div className="reading-summary__views" role="tablist" aria-label={t.summaryTitle}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!showMap}
+                className={`reading-summary__view${!showMap ? ' active' : ''}`}
+                onClick={() => setShowMap(false)}
+              >
+                <ChartPieSlice size="1em" weight="duotone" color="currentColor" aria-hidden="true" />
+                {t.statsToggle}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={showMap}
+                className={`reading-summary__view${showMap ? ' active' : ''}`}
+                onClick={() => setShowMap(true)}
+              >
+                <MapTrifold size="1em" weight="duotone" color="currentColor" aria-hidden="true" />
+                {t.mapToggle}
+              </button>
+            </div>
           </div>
 
-          {/* 도넛 링 3개 — 게이지 세 줄보다 "얼마나 찼나"가 도형으로 먼저 읽힌다.
-              둘레 = 2π·r(38) ≈ 238.8, dashoffset으로 비율만큼 열어둔다 */}
-          <div className="reading-summary__rings">
-            {summaryStats.map(stat => {
-              const circumference = 2 * Math.PI * 38
-              const shown = stat.rate > 0 ? Math.max(stat.rate, 1.5) : 0
-              const offset = circumference * (1 - shown / 100)
-              return (
-                <div
-                  className="summary-ring"
-                  key={stat.id}
-                  data-stat={stat.id}
-                  role="img"
-                  aria-label={`${stat.label} ${pctLabel(stat.rate)}% · ${stat.detail}`}
-                >
-                  <svg className="summary-ring__svg" viewBox="0 0 88 88" aria-hidden="true">
-                    <circle className="summary-ring__track" cx="44" cy="44" r="38" />
-                    <circle
-                      className="summary-ring__fill"
-                      cx="44"
-                      cy="44"
-                      r="38"
-                      strokeDasharray={circumference}
-                      strokeDashoffset={offset}
-                    />
-                  </svg>
-                  <span className="summary-ring__center" aria-hidden="true">
-                    <span className="summary-ring__value">
-                      {pctLabel(stat.rate)}
-                      <small>%</small>
-                    </span>
-                    <span className="summary-ring__label">{stat.label}</span>
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* 전체 진행 막대 — 링은 비율만 말하므로, 장 단위 절대량은 여기 한 줄로 */}
-          {overallStat && (
-            <div className="reading-summary__bar">
-              <span className="reading-summary__track" aria-hidden="true">
+          {/* 히어로 — 전체 진행률 한 숫자 + 장 수 칩 + 격려 한 줄 + 게이지.
+              배경은 우측에 펼친 성경 삽화(라이트/다크 각 1장, CSS background) — 왼쪽은 스크림으로 비워 글자 자리 확보 */}
+          <div className="reading-hero" data-done={overallStat.rate >= 100 ? 'true' : undefined}>
+            <span className="reading-hero__label">{t.overallLabel}</span>
+            <div className="reading-hero__row">
+              <span
+                className="reading-hero__value"
+                aria-label={`${t.overallLabel} ${pctLabel(overallStat.rate)}%`}
+              >
+                {pctLabel(overallStat.rate)}
+                <small>%</small>
+              </span>
+              <span className="reading-hero__chip">{overallStat.detail}</span>
+            </div>
+            {/* 마지막 어절 + 손모양 아이콘을 nowrap 한 덩어리로 — 크롬은 NBSP 뒤의 인라인 SVG 앞에서도
+                줄을 바꾸므로, 아이콘만 다음 줄로 떨어지지 않게 어절과 함께 움직이게 한다 */}
+            <p className="reading-hero__cheer">
+              {cheerHead}
+              <span className="reading-hero__cheer-tail">
+                {cheerTail}
+                <HandsPraying size="1em" weight="duotone" color="currentColor" aria-hidden="true" />
+              </span>
+            </p>
+            <div className="reading-hero__gauge">
+              <span className="reading-hero__track" aria-hidden="true">
                 <span
-                  className="reading-summary__fill"
+                  className="reading-hero__fill"
                   style={{ width: `${gaugeWidth(overallStat.rate)}%` }}
                 />
               </span>
-              <span className="reading-summary__bar-meta">
-                <span className="reading-summary__bar-read">{overallStat.detail}</span>
-                <span className="reading-summary__bar-left">
-                  {overallStat.total - overallStat.read > 0
-                    ? `${t.remaining} ${(overallStat.total - overallStat.read).toLocaleString()}${overallStat.unit}`
-                    : t.allComplete}
-                </span>
+              <span className="reading-hero__left">
+                {overallStat.total - overallStat.read > 0
+                  ? `${t.remaining} ${(overallStat.total - overallStat.read).toLocaleString()}${overallStat.unit}`
+                  : t.allComplete}
               </span>
+            </div>
+          </div>
+
+          {/* 구약/신약 타일 — 색으로 나누지 않고(전부 브랜드 블루) 두루마리·십자가 아이콘으로 구분한다.
+              전체 수치는 히어로에 이미 있으므로 타일에서 반복하지 않는다 */}
+          {!showMap && (
+            <div className="reading-tiles">
+              {summaryStats
+                .filter(stat => stat.id !== 'all')
+                .map(stat => (
+                  <div
+                    className="reading-tile"
+                    key={stat.id}
+                    data-stat={stat.id}
+                    role="img"
+                    aria-label={`${stat.label} ${pctLabel(stat.rate)}% · ${stat.detail}`}
+                  >
+                    <div className="reading-tile__head" aria-hidden="true">
+                      <span className="reading-tile__icon">
+                        {stat.id === 'ot' ? (
+                          <Scroll size="1em" weight="duotone" color="currentColor" />
+                        ) : (
+                          <Cross size="1em" weight="duotone" color="currentColor" />
+                        )}
+                      </span>
+                      <span className="reading-tile__text">
+                        <span className="reading-tile__label">{stat.label}</span>
+                        <span className="reading-tile__value">
+                          {pctLabel(stat.rate)}
+                          <small>%</small>
+                        </span>
+                        <span className="reading-tile__detail">{stat.detail}</span>
+                      </span>
+                    </div>
+                    <span className="reading-tile__track" aria-hidden="true">
+                      <span
+                        className="reading-tile__fill"
+                        style={{ width: `${gaugeWidth(stat.rate)}%` }}
+                      />
+                    </span>
+                  </div>
+                ))}
             </div>
           )}
 
           {showMap && (
             <BibleProgressMap books={books} infoMap={infoMap} onBookSelect={handleMapSelect} />
           )}
-        </div>
+        </section>
       )}
 
       {/* (구 "최근 읽은 책" 슬라이더 자리 — 이어 읽기 카드·통독표 마커와 역할이 겹쳐 제거.

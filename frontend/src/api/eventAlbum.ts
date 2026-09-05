@@ -1,6 +1,6 @@
 // 행사 앨범 API (새가족 앨범 API 미러링)
 // 열람도 로그인 필수(초상권 보호) — 모든 요청에 Authorization 헤더를 싣는다.
-import { API_V1, apiFetch } from '../config/api'
+import { API_V1 } from '../config/api'
 import type {
   EventAlbumComment,
   EventAlbumCommentListResponse,
@@ -10,30 +10,9 @@ import type {
   EventAlbumStats,
   ReactionToggleResponse,
 } from '../types/eventAlbum'
+import { request, requestRaw, type UntypedJson } from './utils/request'
 
 const BASE = `${API_V1}/event-albums`
-
-const authHeaders = (json = true): Record<string, string> => {
-  const token = localStorage.getItem('access_token')
-  const headers: Record<string, string> = {}
-  if (token) headers.Authorization = `Bearer ${token}`
-  if (json) headers['Content-Type'] = 'application/json'
-  return headers
-}
-
-const unwrap = async (response: Response, fallback: string) => {
-  if (!response.ok) {
-    let detail = fallback
-    try {
-      const body = await response.json()
-      if (body?.detail) detail = typeof body.detail === 'string' ? body.detail : fallback
-    } catch {
-      /* 본문이 JSON이 아니면 기본 메시지 */
-    }
-    throw new Error(detail)
-  }
-  return response.json()
-}
 
 /** data가 배열이든 {items}이든 포스트 배열로 정규화 */
 const toPostArray = (data: unknown): EventAlbumPost[] => {
@@ -57,22 +36,17 @@ export const fetchEventAlbumPosts = async (
   if (filter.year) params.append('year', String(filter.year))
   if (filter.tag) params.append('tag', filter.tag)
 
-  const response = await apiFetch(`${BASE}?${params}`, {
-    headers: authHeaders(false),
-  })
-  return unwrap(response, '행사 앨범을 불러오지 못했습니다')
+  return request<EventAlbumListResponse>(`${BASE}?${params}`, { errorMessage: '행사 앨범을 불러오지 못했습니다' })
 }
 
 export const fetchEventAlbumStats = async (): Promise<EventAlbumStats> => {
-  const response = await apiFetch(`${BASE}/stats`, { headers: authHeaders(false) })
-  const body = await unwrap(response, '통계를 불러오지 못했습니다')
+  const body = await request<UntypedJson>(`${BASE}/stats`, { errorMessage: '통계를 불러오지 못했습니다' })
   return body.data
 }
 
 /** 과거 연도 같은 날짜(±7일) 회상 포스트 — 결과 없으면 빈 배열 */
 export const fetchEventAlbumOnThisDay = async (): Promise<EventAlbumPost[]> => {
-  const response = await apiFetch(`${BASE}/on-this-day`, { headers: authHeaders(false) })
-  const body = await unwrap(response, '회상 소식을 불러오지 못했습니다')
+  const body = await request<UntypedJson>(`${BASE}/on-this-day`, { errorMessage: '회상 소식을 불러오지 못했습니다' })
   return toPostArray(body.data)
 }
 
@@ -80,16 +54,12 @@ export const fetchEventAlbumOnThisDay = async (): Promise<EventAlbumPost[]> => {
 export const fetchEventAlbumsByEvent = async (
   eventId: number,
 ): Promise<EventAlbumPost[]> => {
-  const response = await apiFetch(`${BASE}/by-event/${eventId}`, {
-    headers: authHeaders(false),
-  })
-  const body = await unwrap(response, '행사 사진을 불러오지 못했습니다')
+  const body = await request<UntypedJson>(`${BASE}/by-event/${eventId}`, { errorMessage: '행사 사진을 불러오지 못했습니다' })
   return toPostArray(body.data)
 }
 
 export const fetchEventAlbumPost = async (postId: number): Promise<EventAlbumPost> => {
-  const response = await apiFetch(`${BASE}/${postId}`, { headers: authHeaders(false) })
-  const body = await unwrap(response, '행사 앨범을 불러오지 못했습니다')
+  const body = await request<UntypedJson>(`${BASE}/${postId}`, { errorMessage: '행사 앨범을 불러오지 못했습니다' })
   return body.data
 }
 
@@ -113,12 +83,11 @@ export const createEventAlbumPost = async (payload: {
   })
 
   // Content-Type은 브라우저가 boundary와 함께 자동 설정
-  const response = await apiFetch(BASE, {
+  const body = await request<UntypedJson>(BASE, {
     method: 'POST',
-    headers: authHeaders(false),
     body: formData,
+    errorMessage: '행사 앨범 등록에 실패했습니다',
   })
-  const body = await unwrap(response, '행사 앨범 등록에 실패했습니다')
   return body.data
 }
 
@@ -126,12 +95,11 @@ export const updateEventAlbumPost = async (
   postId: number,
   payload: EventAlbumPostUpdatePayload,
 ): Promise<EventAlbumPost> => {
-  const response = await apiFetch(`${BASE}/${postId}`, {
+  const body = await request<UntypedJson>(`${BASE}/${postId}`, {
     method: 'PUT',
-    headers: authHeaders(),
-    body: JSON.stringify(payload),
+    json: payload,
+    errorMessage: '수정에 실패했습니다',
   })
-  const body = await unwrap(response, '수정에 실패했습니다')
   return body.data
 }
 
@@ -151,21 +119,16 @@ export const syncEventAlbumPhotos = async (
     formData.append('files', file, `event-album-${idx + 1}.jpg`)
   })
 
-  const response = await apiFetch(`${BASE}/${postId}/photos`, {
+  const body = await request<UntypedJson>(`${BASE}/${postId}/photos`, {
     method: 'PUT',
-    headers: authHeaders(false),
     body: formData,
+    errorMessage: '사진 수정에 실패했습니다',
   })
-  const body = await unwrap(response, '사진 수정에 실패했습니다')
   return body.data
 }
 
 export const deleteEventAlbumPost = async (postId: number): Promise<void> => {
-  const response = await apiFetch(`${BASE}/${postId}`, {
-    method: 'DELETE',
-    headers: authHeaders(false),
-  })
-  await unwrap(response, '삭제에 실패했습니다')
+  await requestRaw(`${BASE}/${postId}`, { method: 'DELETE', errorMessage: '삭제에 실패했습니다' })
 }
 
 // ── 리액션 ───────────────────────────────────────────
@@ -173,12 +136,11 @@ export const toggleEventAlbumReaction = async (
   postId: number,
   emoji: string,
 ): Promise<ReactionToggleResponse> => {
-  const response = await apiFetch(`${BASE}/${postId}/reaction`, {
+  return request<ReactionToggleResponse>(`${BASE}/${postId}/reaction`, {
     method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify({ emoji }),
+    json: { emoji },
+    errorMessage: '반응 남기기에 실패했습니다',
   })
-  return unwrap(response, '반응 남기기에 실패했습니다')
 }
 
 // ── 댓글 ─────────────────────────────────────────────
@@ -187,23 +149,18 @@ export const fetchEventAlbumComments = async (
   page = 1,
   limit = 50,
 ): Promise<EventAlbumCommentListResponse> => {
-  const response = await apiFetch(
-    `${BASE}/${postId}/comments?page=${page}&limit=${limit}`,
-    { headers: authHeaders(false) },
-  )
-  return unwrap(response, '댓글을 불러오지 못했습니다')
+  return request<EventAlbumCommentListResponse>(`${BASE}/${postId}/comments?page=${page}&limit=${limit}`, { errorMessage: '댓글을 불러오지 못했습니다' })
 }
 
 export const createEventAlbumComment = async (
   postId: number,
   content: string,
 ): Promise<{ message: string; data: EventAlbumComment }> => {
-  const response = await apiFetch(`${BASE}/${postId}/comments`, {
+  return request<{ message: string; data: EventAlbumComment }>(`${BASE}/${postId}/comments`, {
     method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify({ content }),
+    json: { content },
+    errorMessage: '댓글 작성에 실패했습니다',
   })
-  return unwrap(response, '댓글 작성에 실패했습니다')
 }
 
 export const updateEventAlbumComment = async (
@@ -211,21 +168,16 @@ export const updateEventAlbumComment = async (
   commentId: number,
   content: string,
 ): Promise<{ message: string; data: EventAlbumComment }> => {
-  const response = await apiFetch(`${BASE}/${postId}/comments/${commentId}`, {
+  return request<{ message: string; data: EventAlbumComment }>(`${BASE}/${postId}/comments/${commentId}`, {
     method: 'PUT',
-    headers: authHeaders(),
-    body: JSON.stringify({ content }),
+    json: { content },
+    errorMessage: '댓글 수정에 실패했습니다',
   })
-  return unwrap(response, '댓글 수정에 실패했습니다')
 }
 
 export const deleteEventAlbumComment = async (
   postId: number,
   commentId: number,
 ): Promise<{ message: string }> => {
-  const response = await apiFetch(`${BASE}/${postId}/comments/${commentId}`, {
-    method: 'DELETE',
-    headers: authHeaders(false),
-  })
-  return unwrap(response, '댓글 삭제에 실패했습니다')
+  return request<{ message: string }>(`${BASE}/${postId}/comments/${commentId}`, { method: 'DELETE', errorMessage: '댓글 삭제에 실패했습니다' })
 }

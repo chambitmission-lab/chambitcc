@@ -2,7 +2,6 @@ import { Info, MapPin } from '../../components/icons/phosphor'
 import { memo, useState, useEffect, type ReactElement } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import type { Language } from '../../locales'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { getSundayServices, getWeekdayServices, updateWorshipService } from '../../api/worship'
 import type { WorshipService } from '../../types/worship'
@@ -29,6 +28,7 @@ import {
   PlayCircleIcon,
 } from '../About/icons'
 import './Worship.css'
+import { can } from '../../utils/access'
 
 // 평일 예배 종류별 emblem 아이콘 (새벽/수요/금요·기타)
 const weekdayIcon = (name: string): string => {
@@ -277,7 +277,7 @@ const FILTER_KEY = {
 
 const Worship = () => {
   const { t, language } = useLanguage()
-  const isAdminUser = isAdmin()
+  const isAdminUser = can('content:manage')
   const navigate = useNavigate()
   const { tx } = useAboutContent()
   const liveUrl = tx('worshipLiveUrl').trim()

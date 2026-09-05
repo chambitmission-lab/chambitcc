@@ -1,5 +1,4 @@
 import { useState, type ReactNode } from 'react'
-import { isAdmin } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import {
   useDigitalBulletin,
@@ -22,6 +21,7 @@ import {
   PinIcon,
   SparkleIcon,
 } from './NewsIcons'
+import { can } from '../../../utils/access'
 
 type SectionKey = 'worship' | 'announcements' | 'groups' | 'schedule'
 
@@ -52,7 +52,7 @@ const SECTION_META: Record<
 }
 
 const DigitalBulletin = () => {
-  const isAdminUser = isAdmin()
+  const isAdminUser = can('content:manage')
   const { data } = useDigitalBulletin()
   const replaceMutation = useReplaceDigitalBulletin()
   const [expanded, setExpanded] = useState<Set<SectionKey>>(new Set(['worship']))

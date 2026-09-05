@@ -6,6 +6,7 @@ import {
   markAsRead,
   markAllAsRead,
 } from '../api/notification'
+import { tokenStore } from '../utils/tokenStore'
 import { notificationStream } from '../utils/notificationStream'
 import { refetchIfFewPages } from '../utils/infiniteQueryTrim'
 
@@ -24,7 +25,7 @@ export const notificationKeys = {
  * refetchInterval은 SSE가 끊겨 있을 때만 동작하는 폴백 폴링.
  */
 export const useNotifications = () => {
-  const token = localStorage.getItem('access_token')
+  const token = tokenStore.getAccess()
 
   return useInfiniteQuery({
     queryKey: notificationKeys.list(),

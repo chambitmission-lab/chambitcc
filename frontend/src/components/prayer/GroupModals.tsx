@@ -6,7 +6,7 @@ import { useCreateGroup, useJoinGroup } from '../../hooks/useGroups'
 import { useSituationCategories } from '../../hooks/useSituation'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
-import { showToast } from '../../utils/toast'
+import { showToast, toastFeedback } from '../../utils/toast'
 import type { PrayerGroup, GroupVisibility } from '../../types/prayer'
 import { groupInviteUrl } from '../../utils/inviteLink'
 import { GroupGlyph, PersonIcon, TicketIcon } from '../../pages/Groups/GroupIcons'
@@ -575,7 +575,7 @@ export const JoinGroupModal = ({ isOpen, onClose }: JoinGroupModalProps) => {
   const { t } = useLanguage()
   const [inviteCode, setInviteCode] = useState('')
 
-  const joinMutation = useJoinGroup()
+  const joinMutation = useJoinGroup(toastFeedback({ success: '그룹에 가입했습니다', error: '그룹 가입에 실패했습니다' }))
 
   if (!isOpen) return null
 

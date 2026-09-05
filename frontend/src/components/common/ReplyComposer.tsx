@@ -6,6 +6,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useProfileDetail } from '../../hooks/useProfile'
 import EmojiPickerPanel from './EmojiPickerPanel'
 import { showToast } from '../../utils/toast'
+import { tokenStore, sessionStore } from '../../utils/tokenStore'
 
 interface ReplyComposerProps {
   onSubmit: (content: string, displayName: string) => void
@@ -21,7 +22,7 @@ const ReplyComposer = ({ onSubmit, isSubmitting, onExpandedChange }: ReplyCompos
   const [showStickers, setShowStickers] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const isLoggedIn = !!localStorage.getItem('access_token')
+  const isLoggedIn = !!tokenStore.getAccess()
 
   // 펼쳐지는 즉시 바로 쓸 수 있게 포커스
   useEffect(() => {
@@ -60,8 +61,8 @@ const ReplyComposer = ({ onSubmit, isSubmitting, onExpandedChange }: ReplyCompos
     if (!isLoggedIn || isAnonymous) return '익명'
 
     const fullName =
-      profileDetail?.stats.full_name || localStorage.getItem('user_full_name')
-    const username = localStorage.getItem('user_username')
+      profileDetail?.stats.full_name || sessionStore.get('fullName')
+    const username = sessionStore.get('username')
 
     return fullName || username || '익명'
   }

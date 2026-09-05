@@ -1,6 +1,5 @@
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders, requireAuth } from './utils/apiHelpers'
-
+import { API_V1 } from '../config/api'
+import { request, requestRaw } from './utils/request'
 export interface VerseAlarm {
   id: number
   /** KST 24시간제 "HH:MM" */
@@ -25,50 +24,36 @@ export type VerseAlarmUpdatePayload = Partial<VerseAlarmCreatePayload>
 const BASE = `${API_V1}/verse-alarms`
 
 export const getMyVerseAlarms = async (): Promise<VerseAlarm[]> => {
-  requireAuth()
-  const response = await apiFetch(BASE, { headers: getAuthHeaders() })
-  if (!response.ok) throw new Error('알람 목록을 가져올 수 없습니다')
-  return response.json()
+  return request<VerseAlarm[]>(BASE, { auth: 'required', errorMessage: '알람 목록을 가져올 수 없습니다' })
 }
 
 export const createVerseAlarm = async (
   payload: VerseAlarmCreatePayload
 ): Promise<VerseAlarm> => {
-  requireAuth()
-  const response = await apiFetch(BASE, {
+  return request<VerseAlarm>(BASE, {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    auth: 'required',
+    json: payload,
+    errorMessage: '알람 등록에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '알람 등록에 실패했습니다')
-  }
-  return response.json()
 }
 
 export const updateVerseAlarm = async (
   alarmId: number,
   payload: VerseAlarmUpdatePayload
 ): Promise<VerseAlarm> => {
-  requireAuth()
-  const response = await apiFetch(`${BASE}/${alarmId}`, {
+  return request<VerseAlarm>(`${BASE}/${alarmId}`, {
     method: 'PATCH',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    auth: 'required',
+    json: payload,
+    errorMessage: '알람 수정에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '알람 수정에 실패했습니다')
-  }
-  return response.json()
 }
 
 export const deleteVerseAlarm = async (alarmId: number): Promise<void> => {
-  requireAuth()
-  const response = await apiFetch(`${BASE}/${alarmId}`, {
+  await requestRaw(`${BASE}/${alarmId}`, {
     method: 'DELETE',
-    headers: getAuthHeaders(),
+    auth: 'required',
+    errorMessage: '알람 삭제에 실패했습니다',
   })
-  if (!response.ok) throw new Error('알람 삭제에 실패했습니다')
 }

@@ -1,32 +1,11 @@
 // 교회소식 게시판 API
 // 열람은 누구나 가능하지만, 토큰이 있으면 함께 보낸다 — 관리자는 비공개 글까지 받아
 // 미리보기를 할 수 있어야 하기 때문(백엔드 optional-auth).
-import { API_V1, apiFetch } from '../config/api'
+import { API_V1 } from '../config/api'
 import type { NewsDetail, NewsFormPayload, NewsListResponse } from '../types/news'
+import { request, requestRaw, type UntypedJson } from './utils/request'
 
 const BASE = `${API_V1}/news`
-
-const authHeaders = (json = false): Record<string, string> => {
-  const token = localStorage.getItem('access_token')
-  const headers: Record<string, string> = {}
-  if (token) headers.Authorization = `Bearer ${token}`
-  if (json) headers['Content-Type'] = 'application/json'
-  return headers
-}
-
-const unwrap = async (response: Response, fallback: string) => {
-  if (!response.ok) {
-    let detail = fallback
-    try {
-      const body = await response.json()
-      if (body?.detail) detail = typeof body.detail === 'string' ? body.detail : fallback
-    } catch {
-      /* 본문이 JSON이 아니면 기본 메시지 */
-    }
-    throw new Error(detail)
-  }
-  return response.json()
-}
 
 // ── 조회 ─────────────────────────────────────────────
 export const fetchNewsList = async (
@@ -38,21 +17,16 @@ export const fetchNewsList = async (
   if (options.category) params.set('category', options.category)
   if (options.search) params.set('search', options.search)
 
-  const response = await apiFetch(`${BASE}?${params.toString()}`, {
-    headers: authHeaders(),
-  })
-  return unwrap(response, '교회소식을 불러오지 못했습니다')
+  return request<NewsListResponse>(`${BASE}?${params.toString()}`, { errorMessage: '교회소식을 불러오지 못했습니다' })
 }
 
 export const fetchNewsCategories = async (): Promise<string[]> => {
-  const response = await apiFetch(`${BASE}/categories`, { headers: authHeaders() })
-  const body = await unwrap(response, '분류를 불러오지 못했습니다')
+  const body = await request<UntypedJson>(`${BASE}/categories`, { errorMessage: '분류를 불러오지 못했습니다' })
   return body.data ?? []
 }
 
 export const fetchNewsDetail = async (newsId: number): Promise<NewsDetail> => {
-  const response = await apiFetch(`${BASE}/${newsId}`, { headers: authHeaders() })
-  const body = await unwrap(response, '소식을 불러오지 못했습니다')
+  const body = await request<UntypedJson>(`${BASE}/${newsId}`, { errorMessage: '소식을 불러오지 못했습니다' })
   return body.data
 }
 
@@ -81,12 +55,11 @@ const buildFormData = (payload: NewsFormPayload): FormData => {
 
 export const createNews = async (payload: NewsFormPayload): Promise<NewsDetail> => {
   // Content-Type은 브라우저가 boundary와 함께 자동 설정
-  const response = await apiFetch(BASE, {
+  const body = await request<UntypedJson>(BASE, {
     method: 'POST',
-    headers: authHeaders(),
     body: buildFormData(payload),
+    errorMessage: '소식 등록에 실패했습니다',
   })
-  const body = await unwrap(response, '소식 등록에 실패했습니다')
   return body.data
 }
 
@@ -94,12 +67,11 @@ export const updateNews = async (
   newsId: number,
   payload: NewsFormPayload,
 ): Promise<NewsDetail> => {
-  const response = await apiFetch(`${BASE}/${newsId}`, {
+  const body = await request<UntypedJson>(`${BASE}/${newsId}`, {
     method: 'PUT',
-    headers: authHeaders(),
     body: buildFormData(payload),
+    errorMessage: '수정에 실패했습니다',
   })
-  const body = await unwrap(response, '수정에 실패했습니다')
   return body.data
 }
 
@@ -108,19 +80,14 @@ export const patchNews = async (
   newsId: number,
   patch: { is_published?: boolean; is_pinned?: boolean; category?: string | null },
 ): Promise<NewsDetail> => {
-  const response = await apiFetch(`${BASE}/${newsId}`, {
+  const body = await request<UntypedJson>(`${BASE}/${newsId}`, {
     method: 'PATCH',
-    headers: authHeaders(true),
-    body: JSON.stringify(patch),
+    json: patch,
+    errorMessage: '수정에 실패했습니다',
   })
-  const body = await unwrap(response, '수정에 실패했습니다')
   return body.data
 }
 
 export const deleteNews = async (newsId: number): Promise<void> => {
-  const response = await apiFetch(`${BASE}/${newsId}`, {
-    method: 'DELETE',
-    headers: authHeaders(),
-  })
-  await unwrap(response, '삭제에 실패했습니다')
+  await requestRaw(`${BASE}/${newsId}`, { method: 'DELETE', errorMessage: '삭제에 실패했습니다' })
 }

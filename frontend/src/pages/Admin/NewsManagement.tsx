@@ -2,7 +2,6 @@
 // Single Responsibility: 소식 목록 조회·필터와 등록/수정/공개·고정/삭제 액션
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { deleteNews, fetchNewsList, patchNews } from '../../api/news'
@@ -10,6 +9,7 @@ import type { NewsItem } from '../../types/news'
 import { useInvalidateNews } from '../../hooks/useNews'
 import NewsComposer from './components/NewsComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
+import { can } from '../../utils/access'
 
 type VisibilityFilter = 'all' | 'published' | 'hidden'
 type SortKey = 'recent' | 'oldest' | 'views'
@@ -41,7 +41,7 @@ const NewsManagement = () => {
   const [composer, setComposer] = useState<'new' | NewsItem | null>(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return

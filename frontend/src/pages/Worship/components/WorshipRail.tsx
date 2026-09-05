@@ -12,6 +12,7 @@ import { useAboutContent } from '../../../hooks/useAboutContent'
 import { EditableText } from '../../../components/AboutEditor'
 import { getSermons } from '../../../api/sermon'
 import { BookOpenIcon, ChevronRightIcon, MapPinIcon, PlayCircleIcon } from '../../About/icons'
+import { sermonKeys } from '../../../hooks/queryKeys'
 
 interface Props {
   isAdminUser: boolean
@@ -41,7 +42,7 @@ export default function WorshipRail({ isAdminUser, ongoing }: Props) {
   // 지난 주일 설교 — 최근 몇 건 중 "3부"(메인 예배) 설교를 우선 고른다.
   // 같은 날 3부·4부가 함께 올라오는데 최신순 첫 건은 4부일 수 있어서, 3부 → 주일 → 최신 순으로 폴백.
   const { data: sermons } = useQuery({
-    queryKey: ['sermons', 0, 8, 'light'],
+    queryKey: sermonKeys.list(0, 8, false),
     queryFn: () => getSermons(0, 8, false),
     staleTime: 1000 * 60 * 5,
   })

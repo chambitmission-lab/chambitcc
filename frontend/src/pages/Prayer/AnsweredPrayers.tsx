@@ -8,6 +8,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import type { Prayer, SortType } from '../../types/prayer'
 import './AnsweredPrayers.css'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { prayerToastFeedback } from '../../components/prayer/prayerFeedback'
 
 const AnsweredPrayers = () => {
   const { t } = useLanguage()
@@ -29,7 +30,7 @@ const AnsweredPrayers = () => {
     updatePrayerAnswer,
     cancelPrayerAnswer,
     isAnswering,
-  } = usePrayersInfinite(sort, null, 'all', true)
+  } = usePrayersInfinite(sort, null, 'all', true, prayerToastFeedback)
 
   const handleEditAnswer = (prayerId: number) => {
     const prayer = answeredPrayers.find(p => p.id === prayerId)

@@ -4,6 +4,8 @@ import { useProfileDetail } from '../../../../hooks/useProfile'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { validation } from '../../../../utils/validation'
 import type { PrayerEmotion, RecommendedVerses, SortType } from '../../../../types/prayer'
+import { tokenStore, sessionStore } from '../../../../utils/tokenStore'
+import { prayerToastFeedback } from '../../../../components/prayer/prayerFeedback'
 
 interface UsePrayerComposerProps {
   onClose: () => void
@@ -13,7 +15,7 @@ interface UsePrayerComposerProps {
 }
 
 export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePrayerComposerProps) => {
-  const { createPrayer, isCreating } = usePrayersInfinite(sort, groupId)  // ✅ groupId 전달
+  const { createPrayer, isCreating } = usePrayersInfinite(sort, groupId, undefined, undefined, prayerToastFeedback)  // ✅ groupId 전달
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
@@ -30,7 +32,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
   // 브라우저 뒤로가기 → 모달만 닫기
   useModalBackButton(onClose)
 
-  const isLoggedIn = !!localStorage.getItem('access_token')
+  const isLoggedIn = !!tokenStore.getAccess()
 
   // 프로필 사진 — 캐시된 프로필 상세에서 가져온다 (미등록/비로그인 시 null → 이니셜 아바타)
   const { data: profileDetail } = useProfileDetail()
@@ -42,8 +44,8 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     if (!isLoggedIn || isAnonymous) return '익명'
 
     const fullName =
-      profileDetail?.stats.full_name || localStorage.getItem('user_full_name')
-    const username = localStorage.getItem('user_username')
+      profileDetail?.stats.full_name || sessionStore.get('fullName')
+    const username = sessionStore.get('username')
 
     return fullName || username || '익명'
   }

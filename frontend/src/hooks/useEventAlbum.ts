@@ -18,7 +18,6 @@ import {
   updateEventAlbumComment,
   type EventAlbumListFilter,
 } from '../api/eventAlbum'
-import { showToast } from '../utils/toast'
 import type {
   EventAlbumComment,
   EventAlbumCommentListResponse,
@@ -26,6 +25,7 @@ import type {
   EventAlbumPost,
 } from '../types/eventAlbum'
 import type { InfiniteData } from '@tanstack/react-query'
+import type { MutationFeedback } from './mutationFeedback'
 
 type PostsCache = InfiniteData<EventAlbumListResponse>
 type CommentsCache = InfiniteData<EventAlbumCommentListResponse>
@@ -134,7 +134,7 @@ export const invalidateEventAlbum = (
  * 같은 이모지 재클릭 = 취소, 다른 이모지 = 교체.
  * 낙관적 업데이트로 탭하는 즉시 카운트가 움직인다. (useToggleWelcome 패턴)
  */
-export const useToggleEventAlbumReaction = () => {
+export const useToggleEventAlbumReaction = (feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -177,16 +177,17 @@ export const useToggleEventAlbumReaction = () => {
       context?.previous?.forEach(([key, data]) => {
         queryClient.setQueryData(key, data)
       })
-      showToast(error.message, 'error')
+      feedback?.onError?.(error, _vars)
     },
-    onSuccess: (response, { postId }) => {
+    onSuccess: (response, variables) => {
       // 서버 실제 집계로 정렬 (동시 클릭으로 어긋난 값 교정)
-      patchPostInCache(queryClient, postId, (post) => ({
+      patchPostInCache(queryClient, variables.postId, (post) => ({
         ...post,
         my_reaction: response.my_reaction,
         reaction_count: response.reaction_count,
         reaction_breakdown: response.reaction_breakdown,
       }))
+      feedback?.onSuccess?.(response, variables)
     },
   })
 
@@ -218,26 +219,26 @@ export const useEventAlbumComments = (postId: number, enabled = true, limit = 50
   }
 }
 
-export const useCreateEventAlbumComment = (postId: number) => {
+export const useCreateEventAlbumComment = (postId: number, feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
     mutationFn: (content: string) => createEventAlbumComment(postId, content),
-    onSuccess: (response) => {
-      showToast(response.message, 'success')
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: commentsKey(postId) })
       patchPostInCache(queryClient, postId, (post) => ({
         ...post,
         comment_count: post.comment_count + 1,
       }))
+      feedback?.onSuccess?.(response, variables)
     },
-    onError: (error: Error) => showToast(error.message, 'error'),
+    onError: (error: Error, variables) => feedback?.onError?.(error, variables),
   })
 
   return { createComment: mutation.mutate, isCreating: mutation.isPending }
 }
 
-export const useUpdateEventAlbumComment = (postId: number) => {
+export const useUpdateEventAlbumComment = (postId: number, feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -268,18 +269,18 @@ export const useUpdateEventAlbumComment = (postId: number) => {
     },
     onError: (error: Error, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(commentsKey(postId), context.previous)
-      showToast(error.message, 'error')
+      feedback?.onError?.(error, _vars)
     },
-    onSuccess: (response) => {
-      showToast(response.message, 'success')
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: commentsKey(postId) })
+      feedback?.onSuccess?.(response, variables)
     },
   })
 
   return { updateComment: mutation.mutate, isUpdating: mutation.isPending }
 }
 
-export const useDeleteEventAlbumComment = (postId: number) => {
+export const useDeleteEventAlbumComment = (postId: number, feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
@@ -311,11 +312,11 @@ export const useDeleteEventAlbumComment = (postId: number) => {
     },
     onError: (error: Error, _commentId, context) => {
       if (context?.previous) queryClient.setQueryData(commentsKey(postId), context.previous)
-      showToast(error.message, 'error')
+      feedback?.onError?.(error, _commentId)
     },
-    onSuccess: (response) => {
-      showToast(response.message, 'success')
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: commentsKey(postId) })
+      feedback?.onSuccess?.(response, variables)
     },
   })
 

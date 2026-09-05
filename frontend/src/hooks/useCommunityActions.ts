@@ -1,10 +1,13 @@
 // 커뮤니티 게시물 액션(좋아요, 리트윗) 관리 훅 with Optimistic Update
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toggleLike, toggleRetweet } from '../api/community'
-import { showToast } from '../utils/toast'
-import type { ApiError, CommunityPostsCache } from '../types/queryCache'
+import type { MutationFeedback } from './mutationFeedback'
+import type { CommunityPostsCache } from '../types/queryCache'
+import { communityKeys } from './useCommunityFeed'
 
 interface UseCommunityActionsOptions {
+  /** 화면 피드백 — 훅은 캐시만 다루고 문구는 호출부가 정한다 */
+  feedback?: { like?: MutationFeedback<{ message?: string }, number>; retweet?: MutationFeedback<{ message?: string }, number> }
   sort?: string
 }
 
@@ -14,7 +17,7 @@ interface UseCommunityActionsOptions {
  * - 에러 시 자동 롤백
  * - 자동 캐시 갱신
  */
-export const useCommunityActions = ({ sort = 'latest' }: UseCommunityActionsOptions = {}) => {
+export const useCommunityActions = ({ sort = 'latest', feedback }: UseCommunityActionsOptions = {}) => {
   const queryClient = useQueryClient()
 
   // 좋아요 토글 Mutation
@@ -22,13 +25,13 @@ export const useCommunityActions = ({ sort = 'latest' }: UseCommunityActionsOpti
     mutationFn: (postId: number) => toggleLike(postId),
     onMutate: async (postId) => {
       // 진행 중인 쿼리 취소
-      await queryClient.cancelQueries({ queryKey: ['community', 'posts', sort] })
+      await queryClient.cancelQueries({ queryKey: communityKeys.posts(sort) })
 
       // 이전 데이터 백업
-      const previousData = queryClient.getQueryData(['community', 'posts', sort])
+      const previousData = queryClient.getQueryData(communityKeys.posts(sort))
 
       // Optimistic Update
-      queryClient.setQueryData<CommunityPostsCache>(['community', 'posts', sort], (old) => {
+      queryClient.setQueryData<CommunityPostsCache>(communityKeys.posts(sort), (old) => {
         if (!old) return old
 
         return {
@@ -56,22 +59,13 @@ export const useCommunityActions = ({ sort = 'latest' }: UseCommunityActionsOpti
     onError: (error: Error, _postId, context) => {
       // 에러 시 롤백
       if (context?.previousData) {
-        queryClient.setQueryData(['community', 'posts', sort], context.previousData)
+        queryClient.setQueryData(communityKeys.posts(sort), context.previousData)
       }
 
-      // 에러 메시지 표시
-      const apiError = error as ApiError
-      const errorMsg = apiError.response?.data?.detail || apiError.message
-      if (errorMsg?.includes('already liked')) {
-        showToast('이미 좋아요를 누르셨습니다.', 'info')
-      } else if (apiError.response?.status === 401) {
-        showToast('로그인이 필요합니다.', 'error')
-      } else {
-        showToast('좋아요 처리 중 오류가 발생했습니다.', 'error')
-      }
+      feedback?.like?.onError?.(error, _postId)
     },
-    onSuccess: (data) => {
-      showToast(data.message || '좋아요!', 'success')
+    onSuccess: (data, postId) => {
+      feedback?.like?.onSuccess?.(data, postId)
     },
   })
 
@@ -80,13 +74,13 @@ export const useCommunityActions = ({ sort = 'latest' }: UseCommunityActionsOpti
     mutationFn: (postId: number) => toggleRetweet(postId),
     onMutate: async (postId) => {
       // 진행 중인 쿼리 취소
-      await queryClient.cancelQueries({ queryKey: ['community', 'posts', sort] })
+      await queryClient.cancelQueries({ queryKey: communityKeys.posts(sort) })
 
       // 이전 데이터 백업
-      const previousData = queryClient.getQueryData(['community', 'posts', sort])
+      const previousData = queryClient.getQueryData(communityKeys.posts(sort))
 
       // Optimistic Update
-      queryClient.setQueryData<CommunityPostsCache>(['community', 'posts', sort], (old) => {
+      queryClient.setQueryData<CommunityPostsCache>(communityKeys.posts(sort), (old) => {
         if (!old) return old
 
         return {
@@ -114,22 +108,13 @@ export const useCommunityActions = ({ sort = 'latest' }: UseCommunityActionsOpti
     onError: (error: Error, _postId, context) => {
       // 에러 시 롤백
       if (context?.previousData) {
-        queryClient.setQueryData(['community', 'posts', sort], context.previousData)
+        queryClient.setQueryData(communityKeys.posts(sort), context.previousData)
       }
 
-      // 에러 메시지 표시
-      const apiError = error as ApiError
-      const errorMsg = apiError.response?.data?.detail || apiError.message
-      if (errorMsg?.includes('already')) {
-        showToast('이미 리트윗하셨습니다.', 'info')
-      } else if (apiError.response?.status === 401) {
-        showToast('로그인이 필요합니다.', 'error')
-      } else {
-        showToast('리트윗 처리 중 오류가 발생했습니다.', 'error')
-      }
+      feedback?.retweet?.onError?.(error, _postId)
     },
-    onSuccess: (data) => {
-      showToast(data.message || '리트윗 완료!', 'success')
+    onSuccess: (data, postId) => {
+      feedback?.retweet?.onSuccess?.(data, postId)
     },
   })
 

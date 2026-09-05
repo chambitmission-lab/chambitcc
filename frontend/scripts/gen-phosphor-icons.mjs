@@ -31,8 +31,9 @@ const walk = (dir) =>
 const files = walk(SRC)
 const icons = new Set()
 const weights = new Set(ALWAYS_WEIGHTS)
+// components/icons/ 안의 파일은 './phosphor' 로 바로 가져오므로 그 형태도 잡는다
 const importRe =
-  /import\s+(type\s+)?\{([^}]+)\}\s+from\s+['"]([^'"]*(?:\/icons\/phosphor|@phosphor-icons\/react))['"]/g
+  /import\s+(type\s+)?\{([^}]+)\}\s+from\s+['"]([^'"]*(?:\/icons\/phosphor|\.\/phosphor|@phosphor-icons\/react))['"]/g
 const weightRe = /\bweight\s*[:=]\s*(?:\{\s*)?['"](thin|light|regular|bold|fill|duotone)['"]/g
 // make(CaretRight, 'bold') 처럼 아이콘 뒤에 인자로 넘기는 굵기만 잡는다 (테마 'light' 같은 문자열 오탐 방지)
 const literalWeightRe = /\(\s*[A-Z]\w*\s*,\s*['"](thin|light|regular|bold|fill|duotone)['"]\s*\)/g

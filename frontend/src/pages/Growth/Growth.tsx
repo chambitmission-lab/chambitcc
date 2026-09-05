@@ -6,10 +6,11 @@ import GrowthHero from './components/GrowthHero'
 import JourneyInsightCard from './components/JourneyInsightCard'
 import GrowthStats from './components/GrowthStats'
 import ActivityTimeline from './components/ActivityTimeline'
+import { tokenStore } from '../../utils/tokenStore'
 
 const Growth = () => {
   const navigate = useNavigate()
-  const hasToken = !!localStorage.getItem('access_token')
+  const hasToken = !!tokenStore.getAccess()
 
   useEffect(() => {
     if (!hasToken) navigate('/login', { replace: true })

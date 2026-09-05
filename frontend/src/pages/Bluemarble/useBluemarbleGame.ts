@@ -12,6 +12,7 @@ import {
   useAbandonGame,
   QK_BM_STATE,
 } from '../../hooks/useBluemarble'
+import { tokenStore } from '../../utils/tokenStore'
 import { useSfx } from '../../hooks/useSfx'
 import { useMyRabbit, QK_RABBIT_ME } from '../../hooks/useRabbit'
 import type {
@@ -41,7 +42,7 @@ export interface NarrativeState {
 
 export const useBluemarbleGame = () => {
   const queryClient = useQueryClient()
-  const isAuthenticated = !!localStorage.getItem('access_token')
+  const isAuthenticated = !!tokenStore.getAccess()
   const startMutation = useStartGame()
   const advanceMutation = useAdvanceStep()
   const answerMutation = useSubmitAnswer()

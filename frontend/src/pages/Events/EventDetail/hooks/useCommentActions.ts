@@ -4,12 +4,13 @@ import { createEventComment, deleteEventComment } from '../../../../api/event'
 import type { Translation } from '../../../../locales'
 import { confirmDialog } from '../../../../utils/confirmDialog'
 import { showToast } from '../../../../utils/toast'
+import { tokenStore } from '../../../../utils/tokenStore'
 
 export const useCommentActions = (eventId: number, refresh: () => void, t: Translation) => {
   const navigate = useNavigate()
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const isLoggedIn = !!localStorage.getItem('access_token')
+  const isLoggedIn = !!tokenStore.getAccess()
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault()

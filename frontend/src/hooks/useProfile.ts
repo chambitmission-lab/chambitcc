@@ -9,13 +9,15 @@ import {
   uploadProfileAvatar,
   deleteProfileAvatar,
 } from '../api/profile'
+import { tokenStore, sessionStore } from '../utils/tokenStore'
+import { profileKeys, meKeys } from './queryKeys'
 
 // 프로필 전체 정보 조회 (React Query persist-client가 localStorage 영속화 담당)
 export const useProfileDetail = () => {
-  const token = localStorage.getItem('access_token')
+  const token = tokenStore.getAccess()
 
   return useQuery({
-    queryKey: ['profile', 'detail'],
+    queryKey: profileKeys.detail(),
     queryFn: () => getProfileDetail({
       prayers_limit: 5,
       praying_limit: 12,
@@ -43,7 +45,7 @@ const nextSkip = <T,>(lastPage: T[], allPages: T[][]) =>
 // 내가 작성한 기도 목록 (무한 스크롤)
 export const useMyPrayers = (enabled: boolean = true) => {
   return useInfiniteQuery({
-    queryKey: ['profile', 'my-prayers', 'infinite'],
+    queryKey: profileKeys.myPrayers(),
     queryFn: ({ pageParam }) => getMyPrayers({ skip: pageParam, limit: LIST_PAGE_SIZE }),
     initialPageParam: 0,
     getNextPageParam: nextSkip,
@@ -55,7 +57,7 @@ export const useMyPrayers = (enabled: boolean = true) => {
 // 내가 기도중인 목록 (무한 스크롤)
 export const usePrayingFor = (enabled: boolean = true) => {
   return useInfiniteQuery({
-    queryKey: ['profile', 'praying-for', 'infinite'],
+    queryKey: profileKeys.prayingFor(),
     queryFn: ({ pageParam }) => getPrayingFor({ skip: pageParam, limit: LIST_PAGE_SIZE }),
     initialPageParam: 0,
     getNextPageParam: nextSkip,
@@ -67,7 +69,7 @@ export const usePrayingFor = (enabled: boolean = true) => {
 // 내 댓글 목록 (무한 스크롤)
 export const useMyReplies = (enabled: boolean = true) => {
   return useInfiniteQuery({
-    queryKey: ['profile', 'my-replies', 'infinite'],
+    queryKey: profileKeys.myReplies(),
     queryFn: ({ pageParam }) => getMyReplies({ skip: pageParam, limit: LIST_PAGE_SIZE }),
     initialPageParam: 0,
     getNextPageParam: nextSkip,
@@ -83,9 +85,9 @@ export const useUploadAvatar = () => {
   return useMutation({
     mutationFn: (file: Blob) => uploadProfileAvatar(file),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: profileKeys.all })
       // 헤더 아바타(['me'])는 'profile' prefix 밖에 있으므로 따로 무효화
-      queryClient.invalidateQueries({ queryKey: ['me'] })
+      queryClient.invalidateQueries({ queryKey: meKeys.all })
     },
   })
 }
@@ -97,8 +99,8 @@ export const useDeleteAvatar = () => {
   return useMutation({
     mutationFn: () => deleteProfileAvatar(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
-      queryClient.invalidateQueries({ queryKey: ['me'] })
+      queryClient.invalidateQueries({ queryKey: profileKeys.all })
+      queryClient.invalidateQueries({ queryKey: meKeys.all })
     },
   })
 }
@@ -110,13 +112,11 @@ export const useDeleteAvatar = () => {
 // 항상 떠 있으므로 그 키를 그대로 쓰면 페이지 이동·좋아요 한 번마다 상세를 다시 부른다.
 // 그래서 가벼운 stats 를 ['me'] 라는 별도 네임스페이스에 길게 캐시하고,
 // 사진이 실제로 바뀌는 순간(업로드·삭제)에만 명시적으로 무효화한다.
-const AVATAR_CACHE_KEY = 'user_avatar_url'
-
 export const useMyIdentity = () => {
-  const token = localStorage.getItem('access_token')
+  const token = tokenStore.getAccess()
 
   const { data } = useQuery({
-    queryKey: ['me', 'identity'],
+    queryKey: meKeys.identity(),
     queryFn: getProfileStats,
     enabled: !!token,
     staleTime: 1000 * 60 * 10, // 10분 — 사진/이름은 거의 안 바뀐다
@@ -130,13 +130,12 @@ export const useMyIdentity = () => {
   // (없으면 새로고침마다 이니셜 → 사진으로 깜빡인다)
   useEffect(() => {
     if (!data) return
-    if (data.avatar_url) localStorage.setItem(AVATAR_CACHE_KEY, data.avatar_url)
-    else localStorage.removeItem(AVATAR_CACHE_KEY)
+    sessionStore.set('avatarUrl', data.avatar_url || null)
   }, [data])
 
-  const avatarUrl = data?.avatar_url ?? (token ? localStorage.getItem(AVATAR_CACHE_KEY) : null)
+  const avatarUrl = data?.avatar_url ?? (token ? sessionStore.get('avatarUrl') : null)
   const displayName =
-    data?.full_name || data?.username || localStorage.getItem('user_full_name') || localStorage.getItem('user_username') || ''
+    data?.full_name || data?.username || sessionStore.get('fullName') || sessionStore.get('username') || ''
 
   return { avatarUrl, displayName }
 }

@@ -8,6 +8,8 @@ import { useGroupDigest, useGroupCheckin } from '../../../hooks/useGroups'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { CheckIcon, PrayIcon } from '../GroupIcons'
 import type { Prayer } from '../../../types/prayer'
+import { toastFeedback } from '../../../utils/toast'
+import { prayerToastFeedback } from '../../../components/prayer/prayerFeedback'
 
 const MAX_CARDS = 10
 
@@ -18,9 +20,9 @@ interface IntercessionModeProps {
 }
 
 const IntercessionMode = ({ groupId, groupName, onClose }: IntercessionModeProps) => {
-  const prayerHook = usePrayersInfinite('latest', groupId, 'all')
+  const prayerHook = usePrayersInfinite('latest', groupId, 'all', undefined, prayerToastFeedback)
   const { data: digestData } = useGroupDigest(groupId)
-  const checkin = useGroupCheckin()
+  const checkin = useGroupCheckin(toastFeedback({ error: '체크인에 실패했습니다' }))
   const digest = digestData?.data
 
   // 세션 시작 시점의 카드 구성을 고정한다 — 기도 반응으로 목록이 재정렬돼도

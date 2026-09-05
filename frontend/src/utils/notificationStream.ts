@@ -10,6 +10,8 @@ import { streamSSE } from '../api/sse'
 import type { Prayer } from '../types/prayer'
 import type { PrayerListCache } from '../types/queryCache'
 import { trimInfiniteQuery } from './infiniteQueryTrim'
+import { tokenStore } from './tokenStore'
+import { prayerKeys } from '../hooks/usePrayersQuery'
 
 const INITIAL_RETRY_MS = 5_000
 const MAX_RETRY_MS = 60_000
@@ -70,7 +72,7 @@ class NotificationStreamManager {
 
     // 기도 목록(무한 스크롤) 캐시 — prayerKeys.lists()와 동일한 리터럴 키
     this.queryClient.setQueriesData<PrayerListCache>(
-      { queryKey: ['prayers', 'list'] },
+      { queryKey: prayerKeys.lists() },
       (old) => {
         if (!old?.pages) return old
         let touched = false
@@ -96,7 +98,7 @@ class NotificationStreamManager {
 
     // 기도 상세 캐시
     this.queryClient.setQueriesData<Prayer>(
-      { queryKey: ['prayers', 'detail'] },
+      { queryKey: prayerKeys.details() },
       (old) => {
         if (!old || old.id !== prayerId || old[field] === count) return old
         return { ...old, [field]: count }
@@ -106,7 +108,7 @@ class NotificationStreamManager {
 
   private async loop(gen: number): Promise<void> {
     while (this.running && gen === this.generation) {
-      const token = localStorage.getItem('access_token')
+      const token = tokenStore.getAccess()
       if (!token) {
         // 로그아웃 상태 — 연결하지 않고 종료 (로그인 시 start가 다시 호출됨)
         this.running = false

@@ -1,7 +1,7 @@
 // 설교 폼 상태 및 로직 관리
 import { useState } from 'react'
 import { useCreateSermon, useUpdateSermon } from '../../../../hooks/useSermons'
-import { showToast } from '../../../../utils/toast'
+import { showToast, toastFeedback } from '../../../../utils/toast'
 import { validateFormData } from './validation'
 import { useAudioUpload } from './useAudioUpload'
 import { useTranscriptUpload } from './useTranscriptUpload'
@@ -22,8 +22,8 @@ export const useSermonForm = (onSuccess: () => void, onClose: () => void, sermon
 
   const [createdSermonId, setCreatedSermonId] = useState<number | null>(sermon?.id || null)
 
-  const createSermonMutation = useCreateSermon()
-  const updateSermonMutation = useUpdateSermon()
+  const createSermonMutation = useCreateSermon(toastFeedback({ success: '설교가 성공적으로 등록되었습니다', error: '설교 등록에 실패했습니다' }))
+  const updateSermonMutation = useUpdateSermon(toastFeedback({ success: '설교가 성공적으로 수정되었습니다', error: '설교 수정에 실패했습니다' }))
   const audioUpload = useAudioUpload()
   
   // 트랜스크립트 업로드 성공 시 설교 내용 업데이트 콜백

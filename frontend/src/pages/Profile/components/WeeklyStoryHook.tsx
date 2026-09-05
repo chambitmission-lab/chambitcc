@@ -4,6 +4,7 @@ import { useGrowthRecentDays } from '../../../hooks/useGrowth'
 import { buildWeekCells, weekNarrative, WEEKDAY_KO, WEEKDAY_EN } from './growthFootprints'
 import { DomainGlyph } from '../../../components/icons/GrowthIcons'
 import './WeeklyStoryHook.css'
+import { tokenStore } from '../../../utils/tokenStore'
 
 interface WeeklyStoryHookProps {
   /** 요약 데이터가 오기 전 헤드라인 폴백용 */
@@ -21,7 +22,7 @@ interface WeeklyStoryHookProps {
 const WeeklyStoryHook = ({ thisWeekCount }: WeeklyStoryHookProps) => {
   const navigate = useNavigate()
   const { t, language } = useLanguage()
-  const hasToken = !!localStorage.getItem('access_token')
+  const hasToken = !!tokenStore.getAccess()
   const { data: recent } = useGrowthRecentDays(14, hasToken)
 
   const loaded = !!recent?.data

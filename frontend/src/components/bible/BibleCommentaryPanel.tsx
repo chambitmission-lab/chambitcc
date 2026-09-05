@@ -6,7 +6,6 @@ import {
   useUpdateCommentary,
 } from '../../hooks/useBibleCommentary'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import type {
   BibleCommentary,
@@ -16,6 +15,7 @@ import BibleCommentaryEditor from './BibleCommentaryEditor'
 import BibleCommentaryItem from './BibleCommentaryItem'
 import { genreStyle } from './bookGenre'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 interface BibleCommentaryPanelProps {
   bookNumber: number
@@ -38,7 +38,7 @@ const BibleCommentaryPanel = ({
   verseTexts,
   onClose,
 }: BibleCommentaryPanelProps) => {
-  const admin = isAdmin()
+  const admin = can('bible:edit')
   const { data, isLoading } = useChapterCommentaries(bookNumber, chapter)
 
   const createMutation = useCreateCommentary()

@@ -1,4 +1,6 @@
-import { API_V1, apiFetch } from '../config/api';
+import { API_V1 } from '../config/api'
+import { tokenStore } from '../utils/tokenStore'
+import { request, type UntypedJson } from './utils/request'
 
 export interface PushSubscriptionKeys {
   p256dh: string;
@@ -37,11 +39,7 @@ export interface SendPushResult {
  * VAPID 공개 키 가져오기
  */
 export const getVapidPublicKey = async (): Promise<string> => {
-  const response = await apiFetch(`${API_V1}/push/vapid-public-key`);
-  if (!response.ok) {
-    throw new Error('VAPID 공개 키를 가져올 수 없습니다.');
-  }
-  const data = await response.json();
+  const data = await request<UntypedJson>('/push/vapid-public-key', { errorMessage: 'VAPID 공개 키를 가져올 수 없습니다.' })
   return data.publicKey;
 };
 
@@ -49,8 +47,6 @@ export const getVapidPublicKey = async (): Promise<string> => {
  * 푸시 구독 등록
  */
 export const subscribePush = async (subscription: PushSubscriptionData): Promise<void> => {
-  const token = localStorage.getItem('access_token');
-  
   console.log('📝 푸시 구독 등록 시작');
   console.log('📦 구독 데이터:', {
     endpoint: subscription.endpoint,
@@ -60,24 +56,18 @@ export const subscribePush = async (subscription: PushSubscriptionData): Promise
     }
   });
   
-  const response = await apiFetch(`${API_V1}/push/subscribe`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(subscription)
-  });
-  
-  console.log('📡 구독 API 응답 상태:', response.status, response.statusText);
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
+  let result: UntypedJson = null
+  try {
+    result = await request<UntypedJson>('/push/subscribe', {
+      method: 'POST',
+      json: subscription,
+      errorMessage: '푸시 구독에 실패했습니다.',
+      ignoreServerDetail: true,
+    })
+  } catch (error) {
     console.error('❌ 구독 실패:', error);
-    throw new Error('푸시 구독에 실패했습니다.');
+    throw error
   }
-  
-  const result = await response.json().catch(() => null);
   console.log('✅ 구독 성공:', result);
 };
 
@@ -93,7 +83,7 @@ export const subscribePush = async (subscription: PushSubscriptionData): Promise
 export const unsubscribePush = async (endpoint: string, token?: string | null): Promise<void> => {
   // logout 흐름에서는 토큰을 지우기 전에 스냅샷한 값을 넘겨받는다.
   // (인자가 없으면 기존 동작대로 localStorage에서 조회)
-  const authToken = token ?? localStorage.getItem('access_token');
+  const authToken = token ?? tokenStore.getAccess();
   const encodedEndpoint = encodeURIComponent(endpoint);
 
   // 네트워크가 느리거나 멈춰도 무한정 매달리지 않도록 타임아웃을 건다.
@@ -121,18 +111,7 @@ export const unsubscribePush = async (endpoint: string, token?: string | null): 
  * 내 구독 목록 조회
  */
 export const getMySubscriptions = async (): Promise<PushSubscriptionData[]> => {
-  const token = localStorage.getItem('access_token');
-  const response = await apiFetch(`${API_V1}/push/subscriptions`, {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  });
-  
-  if (!response.ok) {
-    throw new Error('구독 목록을 가져올 수 없습니다.');
-  }
-  
-  return response.json();
+  return request<PushSubscriptionData[]>('/push/subscriptions', { errorMessage: '구독 목록을 가져올 수 없습니다.' })
 };
 
 /**
@@ -142,24 +121,15 @@ export const getMySubscriptions = async (): Promise<PushSubscriptionData[]> => {
  * HTTP 에러는 throw 하지만, sent===0 같은 부분 실패는 UI에서 결과 카드로 표시하도록
  * throw 하지 않고 그대로 결과를 돌려준다.
  */
-export const sendPush = async (request: SendPushRequest): Promise<SendPushResult> => {
-  const token = localStorage.getItem('access_token');
-
-  const response = await apiFetch(`${API_V1}/push/send`, {
+export const sendPush = async (payload: SendPushRequest): Promise<SendPushResult> => {
+  const result: UntypedJson = await request<UntypedJson>('/push/send', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(request)
+    json: payload,
+    errorMessage: '푸시 전송에 실패했습니다.',
+  }).catch((error: unknown) => {
+    if (error instanceof SyntaxError) return null // 본문이 JSON 이 아니면 결과 없음으로
+    throw error
   });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || error.detail || '푸시 전송에 실패했습니다.');
-  }
-
-  const result = await response.json().catch(() => null);
   return {
     sent: result?.sent ?? 0,
     failed: result?.failed ?? 0,

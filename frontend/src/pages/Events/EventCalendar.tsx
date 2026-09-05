@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useEvents } from '../../hooks/useEvents'
-import { isAdmin } from '../../utils/auth'
 import { translations } from '../../locales'
 import type { EventCategory } from '../../types/event'
 import CategoryPills from './components/CategoryPills'
@@ -14,6 +13,7 @@ import { preloadCategoryBackgrounds } from './utils/categoryConfig'
 import { getNextEvent, groupEventsByDate } from './utils/dateGrouping'
 import { kstNow, toKstCalendarDate } from '../../utils/kstTime'
 import './styles/index.css'
+import { can } from '../../utils/access'
 
 const formatYMD = (d: Date): string =>
   `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`
@@ -22,7 +22,7 @@ const EventCalendar = () => {
   const { language } = useLanguage()
   const t = translations[language]
   const navigate = useNavigate()
-  const admin = isAdmin()
+  const admin = can('content:manage')
 
   // 달력의 '오늘'과 보이는 달은 기기 타임존이 아니라 서울 기준
   const [viewDate, setViewDate] = useState(() => kstNow())

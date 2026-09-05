@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { getBulletins, deleteBulletin } from '../../api/bulletin'
 import type { Bulletin } from '../../types/bulletin'
 import BulletinComposer from './components/BulletinComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 type TimeFilter = 'all' | 'thisMonth' | 'past'
 type SortKey = 'recent' | 'oldest' | 'views'
@@ -44,7 +44,7 @@ const BulletinManagement = () => {
   const [editing, setEditing] = useState<Bulletin | null>(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return

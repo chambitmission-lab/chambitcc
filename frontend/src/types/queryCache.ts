@@ -11,11 +11,5 @@ export type PrayerListCache = InfiniteData<PrayerListResponse>
 /** 커뮤니티 게시물 무한 스크롤 (communityKeys.posts(sort)) */
 export type CommunityPostsCache = InfiniteData<PostsResponse>
 
-/**
- * apiFetch 래퍼가 던지는 에러 — 서버 응답 본문이 함께 붙어 오는 경우가 있다.
- * (axios 시절 코드가 error.response.data.detail 을 읽던 흔적이 남아 있어
- *  옵셔널로 두고 message 폴백과 함께 쓴다)
- */
-export type ApiError = Error & {
-  response?: { status?: number; data?: { detail?: string; message?: string } }
-}
+/** API 계층(request)이 던지는 에러 — status 로 분기하려면 isApiError(e, 401) 을 쓴다 */
+export type { ApiError } from '../api/utils/apiHelpers'

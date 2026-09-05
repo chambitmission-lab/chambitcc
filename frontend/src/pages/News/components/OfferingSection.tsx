@@ -9,12 +9,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useOffering } from '../../../hooks/useOffering'
-import { isAdmin } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import { accountText, guideText, plainAccountNumber } from '../../../types/offering'
 import type { OfferingAccount } from '../../../types/offering'
 import { BankIcon, CheckIcon, CopyIcon, OfferingBoxIcon, SignalIcon } from './NewsIcons'
 import '../offering.css'
+import { can } from '../../../utils/access'
 
 const copyToClipboard = async (text: string): Promise<boolean> => {
   try {
@@ -44,7 +44,7 @@ const copyToClipboard = async (text: string): Promise<boolean> => {
 const OfferingSection = () => {
   const navigate = useNavigate()
   const { language } = useLanguage()
-  const admin = isAdmin()
+  const admin = can('content:manage')
   const { guide, accounts, isLoading, isError } = useOffering()
 
   // 방금 복사한 계좌 — 버튼이 체크로 잠깐 바뀐다

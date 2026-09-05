@@ -1,8 +1,8 @@
 // 커뮤니티 피드 데이터 관리 커스텀 훅 with React Query
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getPosts, createPost, type Post } from '../api/community'
-import { showToast } from '../utils/toast'
 import type { CommunityPostsCache } from '../types/queryCache'
+import type { MutationFeedback } from './mutationFeedback'
 
 // Query Keys
 export const communityKeys = {
@@ -10,7 +10,7 @@ export const communityKeys = {
   posts: (sort: string) => [...communityKeys.all, 'posts', sort] as const,
 }
 
-export const useCommunityFeed = (initialSort: string = 'latest') => {
+export const useCommunityFeed = (initialSort: string = 'latest', feedback?: MutationFeedback) => {
   const queryClient = useQueryClient()
 
   // 무한 스크롤 쿼리
@@ -87,12 +87,12 @@ export const useCommunityFeed = (initialSort: string = 'latest') => {
       if (context?.previousData) {
         queryClient.setQueryData(communityKeys.posts(initialSort), context.previousData)
       }
-      showToast(error.message || '게시물 작성에 실패했습니다.', 'error')
+      feedback?.onError?.(error, _variables)
     },
-    onSuccess: () => {
-      showToast('게시물이 작성되었습니다.', 'success')
+    onSuccess: (data, variables) => {
       // 모든 sort의 캐시를 무효화 (다른 탭에서도 새 글 반영)
       queryClient.invalidateQueries({ queryKey: communityKeys.all })
+      feedback?.onSuccess?.(data, variables)
     },
   })
 

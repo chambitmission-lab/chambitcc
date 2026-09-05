@@ -1,6 +1,6 @@
 // 트랜스크립트 업로드 섹션 컴포넌트 — AI 성경 구절 추출·요약 생성
 import { useRef, useState } from 'react'
-import { isAdmin } from '../../../../utils/auth'
+import { can } from '../../../../utils/access'
 
 interface TranscriptUploadSectionProps {
   sermonId: number | null
@@ -20,7 +20,7 @@ export const TranscriptUploadSection = ({
   uploadResult,
 }: TranscriptUploadSectionProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const adminUser = isAdmin()
+  const adminUser = can('sermons:manage')
   const [autoGenerateSummary, setAutoGenerateSummary] = useState(true)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

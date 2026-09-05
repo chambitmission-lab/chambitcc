@@ -3,7 +3,9 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { analyzeTranscript } from '../../../../api/sermon'
 import { showToast } from '../../../../utils/toast'
-import { isAuthenticated, isAdmin } from '../../../../utils/auth'
+import { isAuthenticated } from '../../../../utils/auth'
+import { sermonKeys } from '../../../../hooks/queryKeys'
+import { can } from '../../../../utils/access'
 
 export const useTranscriptUpload = (
   sermonId: number | null,
@@ -24,7 +26,7 @@ export const useTranscriptUpload = (
       }
       
       // 관리자 권한 확인
-      if (!isAdmin()) {
+      if (!can('sermons:manage')) {
         throw new Error('관리자 권한이 필요합니다')
       }
       
@@ -55,9 +57,9 @@ export const useTranscriptUpload = (
       
       // 성경 구절 목록 및 설교 상세 캐시 무효화하여 새로고침
       if (sermonId) {
-        queryClient.invalidateQueries({ queryKey: ['sermon-bible-references', sermonId] })
-        queryClient.invalidateQueries({ queryKey: ['sermon', sermonId] })
-        queryClient.invalidateQueries({ queryKey: ['sermons'] })
+        queryClient.invalidateQueries({ queryKey: sermonKeys.bibleReferences(sermonId) })
+        queryClient.invalidateQueries({ queryKey: sermonKeys.detail(sermonId) })
+        queryClient.invalidateQueries({ queryKey: sermonKeys.all })
       }
     },
     onError: (error: Error) => {

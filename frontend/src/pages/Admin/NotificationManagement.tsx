@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAdminNotifications, deleteNotification } from '../../api/notification'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import type { Notification } from '../../types/notification'
 import NotificationComposer from './components/NotificationComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 type ActiveFilter = 'all' | 'active' | 'inactive'
 type SortKey = 'recent' | 'oldest' | 'title'
@@ -24,7 +24,7 @@ const NotificationManagement = () => {
   const [editingNotification, setEditingNotification] = useState<Notification | null>(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return

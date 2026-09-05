@@ -7,14 +7,16 @@ import ReplyList from '../../../components/common/ReplyList'
 import EmojiPickerPanel from '../../../components/common/EmojiPickerPanel'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { useProfileDetail } from '../../../hooks/useProfile'
-import { isAdmin } from '../../../utils/auth'
 import {
   useCreateNewFamilyComment,
   useDeleteNewFamilyComment,
   useNewFamilyComments,
   useUpdateNewFamilyComment,
 } from '../../../hooks/useNewFamily'
+import { sessionStore } from '../../../utils/tokenStore'
 import type { NewFamilyPost } from '../../../types/newFamily'
+import { toastFeedback } from '../../../utils/toast'
+import { can } from '../../../utils/access'
 
 interface NewFamilyCommentSheetProps {
   post: NewFamilyPost
@@ -33,15 +35,15 @@ const NewFamilyCommentSheet = ({ post, onClose }: NewFamilyCommentSheetProps) =>
   const avatarUrl = profileDetail?.stats.avatar_url ?? null
   const displayName =
     profileDetail?.stats.full_name ||
-    localStorage.getItem('user_full_name') ||
-    localStorage.getItem('user_username') ||
+    sessionStore.get('fullName') ||
+    sessionStore.get('username') ||
     '성도'
 
   const { comments, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage } =
     useNewFamilyComments(post.id)
-  const { createComment, isCreating } = useCreateNewFamilyComment(post.id)
-  const { updateComment, isUpdating } = useUpdateNewFamilyComment(post.id)
-  const { deleteComment } = useDeleteNewFamilyComment(post.id)
+  const { createComment, isCreating } = useCreateNewFamilyComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 등록에 실패했습니다' }))
+  const { updateComment, isUpdating } = useUpdateNewFamilyComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 수정에 실패했습니다' }))
+  const { deleteComment } = useDeleteNewFamilyComment(post.id, toastFeedback<{ message?: string }>({ success: (response) => response.message, error: '댓글 삭제에 실패했습니다' }))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -104,7 +106,7 @@ const NewFamilyCommentSheet = ({ post, onClose }: NewFamilyCommentSheetProps) =>
             }
             onReplyDelete={(commentId) => deleteComment(commentId)}
             isUpdating={isUpdating}
-            canModerate={isAdmin()}
+            canModerate={can('community:moderate')}
           />
         </div>
 

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { generateReflection, streamReflection, updateReflection } from '../api/biblePlan'
 import type { PlanReflection } from '../types/biblePlan'
-import { showToast } from '../utils/toast'
+import type { MutationFeedback } from './mutationFeedback'
 import { confirmDialog } from '../utils/confirmDialog'
 
 export interface ReflectionState {
@@ -21,7 +21,12 @@ export interface ReflectionState {
  * streamText에 쌓여 실시간으로 보인다. 스트림이 아무것도 보내기 전에 실패하면
  * (구버전 서버·프록시 비호환 등) 기존 블로킹 API로 자동 폴백한다.
  */
-export const usePlanReflections = (planId: number) => {
+export interface PlanReflectionFeedback {
+  regenerate?: MutationFeedback<void, number>
+  save?: MutationFeedback<void, number>
+}
+
+export const usePlanReflections = (planId: number, feedback?: PlanReflectionFeedback) => {
   const [reflections, setReflections] = useState<Record<number, ReflectionState>>({})
   const [openReflection, setOpenReflection] = useState<number | null>(null)
   const [editingDay, setEditingDay] = useState<number | null>(null)
@@ -96,14 +101,14 @@ export const usePlanReflections = (planId: number) => {
     setRegeneratingDay(dayNumber)
     try {
       await runReflection(dayNumber, true)
-      showToast('AI 묵상을 새로 생성했어요', 'success')
+      feedback?.regenerate?.onSuccess?.(undefined, dayNumber)
     } catch (e) {
       // 실패 시 기존 묵상 복원
       setReflections((prev) => ({
         ...prev,
         [dayNumber]: previous ?? { loading: false },
       }))
-      showToast(e instanceof Error ? e.message : '다시 생성에 실패했습니다', 'error')
+      feedback?.regenerate?.onError?.(e instanceof Error ? e : new Error(String(e)), dayNumber)
     } finally {
       setRegeneratingDay(null)
     }
@@ -118,7 +123,7 @@ export const usePlanReflections = (planId: number) => {
     const data = await updateReflection(planId, dayNumber, { reflection, questions })
     setReflections((prev) => ({ ...prev, [dayNumber]: { loading: false, data } }))
     setEditingDay(null)
-    showToast('묵상을 수정했어요', 'success')
+    feedback?.save?.onSuccess?.(undefined, dayNumber)
   }
 
   return {

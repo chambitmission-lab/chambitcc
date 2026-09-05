@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { API_V1 } from '../../config/api'
-import { clearAllPersistedCache } from '../../config/persister'
+import { getAuthReason, login } from '../../api/auth'
+import { establishSession } from '../../utils/auth'
+import { isApiError } from '../../api/utils/request'
 import { restorePushSubscriptionForUser } from '../../utils/pushNotification'
 import { playWelcomeTransition } from '../../utils/welcomeTransition'
 import { deriveTimeOfDay } from '../../hooks/useDailyMeditation'
@@ -68,29 +69,19 @@ const Login = () => {
     setErrorTone('error')
 
     try {
-      const formBody = new URLSearchParams()
-      formBody.append('username', formData.username)
-      formBody.append('password', formData.password)
-
-      const response = await fetch(`${API_V1}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formBody
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
+      let data
+      try {
+        data = await login(formData.username, formData.password)
+      } catch (loginError) {
         // 백엔드 detail 문구는 한국어/영어로 고정되어 있으므로 그대로 노출하지 않고,
         // 현재 선택된 언어에 맞는 번역 메시지로 변환해서 보여준다.
         // 403은 사유가 여러 개(승인 대기 / 거절 / 정지)라 X-Auth-Reason 헤더로 구분한다.
+        if (!isApiError(loginError)) throw loginError
         let message = t('loginFailed')
-        if (response.status === 401) {
+        if (loginError.status === 401) {
           message = t('loginInvalidCredentials')
-        } else if (response.status === 403) {
-          const reason = response.headers.get('X-Auth-Reason')
+        } else if (loginError.status === 403) {
+          const reason = getAuthReason(loginError)
           message =
             reason === 'pending_approval'
               ? t('loginPendingApproval')
@@ -110,29 +101,8 @@ const Login = () => {
         localStorage.removeItem(REMEMBER_KEY)
       }
 
-      // 토큰 저장
-      localStorage.setItem('access_token', data.access_token)
-      
-      // Refresh token 저장 (백엔드에서 제공하는 경우)
-      if (data.refresh_token) {
-        localStorage.setItem('refresh_token', data.refresh_token)
-      }
-      
-      // 사용자 정보 저장 (username과 full_name)
-      if (data.username) {
-        localStorage.setItem('user_username', data.username)
-        localStorage.setItem('last_cached_username', data.username)
-      } else {
-        // 백엔드에서 username을 반환하지 않으면 입력한 값 사용
-        localStorage.setItem('user_username', formData.username)
-        localStorage.setItem('last_cached_username', formData.username)
-      }
-      if (data.full_name) {
-        localStorage.setItem('user_full_name', data.full_name)
-      }
-      
-      // 이전 사용자의 캐시 완전히 제거 (사용자별 캐시 분리)
-      clearAllPersistedCache()
+      // 토큰·세션 사용자 정보 저장 + 이전 사용자 캐시 제거
+      establishSession(data, formData.username)
 
       // React Query 캐시 초기화 (메모리 캐시)
       queryClient.clear()

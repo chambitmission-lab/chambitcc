@@ -23,6 +23,7 @@ import {
   isNoticeDismissedForever,
   markNoticeSeenThisSession,
 } from '../../../utils/noticeDismiss'
+import { tokenStore } from '../../../utils/tokenStore'
 
 /**
  * 공지 링크 → 실제 이동 대상.
@@ -57,7 +58,7 @@ const HomeNotice = () => {
   const navigate = useNavigate()
   const { data } = usePopupNotices()
   const markAsRead = useMarkAsRead()
-  const isLoggedIn = !!localStorage.getItem('access_token')
+  const isLoggedIn = !!tokenStore.getAccess()
 
   const notices = useMemo(() => data ?? [], [data])
   // 이번 방문에서 이미 닫은 공지 — '안 보기'와 달리 저장하지 않는다(다음 진입 때 다시 뜸)

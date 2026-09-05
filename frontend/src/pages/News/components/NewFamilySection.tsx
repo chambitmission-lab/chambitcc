@@ -9,12 +9,13 @@ import NewFamilyCommentSheet from './NewFamilyCommentSheet'
 import NewFamilyViewer from './NewFamilyViewer'
 import { useNewFamilyPosts, useNewFamilyStats, useToggleWelcome } from '../../../hooks/useNewFamily'
 import { deleteNewFamilyPost } from '../../../api/newFamily'
-import { isAdmin } from '../../../utils/auth'
-import { showToast } from '../../../utils/toast'
+import { showToast, toastFeedback } from '../../../utils/toast'
 import type { NewFamilyPost } from '../../../types/newFamily'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import { SproutIcon } from './NewsIcons'
 import '../news-hero.css'
+import { tokenStore } from '../../../utils/tokenStore'
+import { can } from '../../../utils/access'
 
 type ViewMode = 'feed' | 'grid'
 
@@ -22,8 +23,8 @@ const NewFamilySection = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const isLoggedIn = !!localStorage.getItem('access_token')
-  const admin = isAdmin()
+  const isLoggedIn = !!tokenStore.getAccess()
+  const admin = can('content:manage')
 
   const [viewMode, setViewMode] = useState<ViewMode>('feed')
   const [commentPost, setCommentPost] = useState<NewFamilyPost | null>(null)
@@ -32,7 +33,7 @@ const NewFamilySection = () => {
   const { posts, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage, error } =
     useNewFamilyPosts(10, isLoggedIn)
   const { data: stats } = useNewFamilyStats(isLoggedIn)
-  const { toggleWelcome } = useToggleWelcome()
+  const { toggleWelcome } = useToggleWelcome(toastFeedback({ error: '환영 표시에 실패했습니다' }))
 
   // 시트가 열려 있는 동안 목록이 갱신되면 최신 카운트로 따라가게 한다
   const activeCommentPost = commentPost

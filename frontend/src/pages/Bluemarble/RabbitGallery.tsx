@@ -8,6 +8,7 @@ import {
   useUnequipSlot,
   useSetRabbitNickname,
 } from '../../hooks/useRabbit'
+import { tokenStore } from '../../utils/tokenStore'
 import RabbitAvatar from '../../components/rabbit/RabbitAvatar'
 import BmIcon, { type BmIconName } from './components/BluemarbleIcons'
 import '../../components/rabbit/rabbit.css'
@@ -46,7 +47,7 @@ const STAGE_NAMES: Record<number, string> = {
 
 export default function RabbitGallery() {
   const navigate = useNavigate()
-  const isAuthenticated = !!localStorage.getItem('access_token')
+  const isAuthenticated = !!tokenStore.getAccess()
   const meQuery = useMyRabbit(isAuthenticated)
   const catalogQuery = useRabbitCatalog()
   const eventsQuery = useRabbitEvents(isAuthenticated, 30)

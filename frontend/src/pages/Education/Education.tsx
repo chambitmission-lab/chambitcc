@@ -10,7 +10,6 @@
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { isAdmin } from '../../utils/auth'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import type React from 'react'
 import { useEducationTree } from '../../hooks/useEducation'
@@ -19,6 +18,7 @@ import { categoryText, programText } from '../../types/education'
 import type { EducationCategory, EducationProgram } from '../../types/education'
 import './education.css'
 import { EduGlyph, OpenBookIcon, PencilIcon, PeopleIcon, SproutIcon } from './EduIcons'
+import { can } from '../../utils/access'
 
 // /events 카테고리 칩처럼 선택마다 색이 살짝 달라지도록 — 부서는 DB 기반이라
 // 고정 키 매핑 대신 순서로 블루 패밀리(토스 블루 톤 안에서만) 팔레트를 순환한다.
@@ -49,7 +49,7 @@ const Education = () => {
   const ko = language === 'ko'
   const { tx } = useAboutContent()
   const { categories, isLoading } = useEducationTree()
-  const isAdminUser = isAdmin()
+  const isAdminUser = can('content:manage')
   const [params, setSearchParams] = useSearchParams()
 
   const visible = useMemo(

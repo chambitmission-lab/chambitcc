@@ -1,6 +1,6 @@
 // 주보 API
-import { API_V1, apiFetch } from '../config/api'
 import type { Bulletin, BulletinUpdatePayload } from '../types/bulletin'
+import { request, requestRaw, type UntypedJson } from './utils/request'
 
 /**
  * 주보 목록 조회
@@ -9,16 +9,10 @@ import type { Bulletin, BulletinUpdatePayload } from '../types/bulletin'
  * 방금 수정/삭제한 결과가 그대로 안 보이면 "수정이 안 된다"로 읽힌다.
  */
 export const getBulletins = async (skip = 0, limit = 10, fresh = false): Promise<Bulletin[]> => {
-  const response = await apiFetch(
-    `${API_V1}/bulletins?skip=${skip}&limit=${limit}`,
-    fresh ? { cache: 'no-store' } : {},
-  )
-  
-  if (!response.ok) {
-    throw new Error('주보 목록을 불러오는데 실패했습니다')
-  }
-  
-  const data = await response.json()
+  const data = await request<UntypedJson>(`/bulletins?skip=${skip}&limit=${limit}`, {
+    cache: fresh ? 'no-store' : undefined,
+    errorMessage: '주보 목록을 불러오는데 실패했습니다',
+  })
   
   // 응답이 배열 형식
   if (Array.isArray(data)) {
@@ -35,16 +29,10 @@ export const getBulletins = async (skip = 0, limit = 10, fresh = false): Promise
  * 조회수를 올리지 않는다.
  */
 export const getBulletinDetail = async (id: number, countView = true): Promise<Bulletin> => {
-  const response = await apiFetch(
-    `${API_V1}/bulletins/${id}${countView ? '' : '?count_view=false'}`,
-    countView ? {} : { cache: 'no-store' },
-  )
-  
-  if (!response.ok) {
-    throw new Error('주보를 불러오는데 실패했습니다')
-  }
-  
-  return response.json()
+  return request<Bulletin>(`/bulletins/${id}${countView ? '' : '?count_view=false'}`, {
+    cache: countView ? undefined : 'no-store',
+    errorMessage: '주보를 불러오는데 실패했습니다',
+  })
 }
 
 /**
@@ -56,7 +44,6 @@ export const createBulletin = async (
   description: string,
   files: File[]
 ): Promise<Bulletin> => {
-  const token = localStorage.getItem('access_token')
   
   const formData = new FormData()
   formData.append('title', title)
@@ -70,21 +57,11 @@ export const createBulletin = async (
     formData.append('files', file)
   })
   
-  const response = await apiFetch(`${API_V1}/bulletins`, {
+  return request<Bulletin>('/bulletins', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-      // Content-Type은 자동으로 설정됨 (multipart/form-data; boundary=...)
-    },
-    body: formData
+    body: formData,
+    errorMessage: '주보 생성에 실패했습니다',
   })
-  
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '주보 생성에 실패했습니다')
-  }
-  
-  return response.json()
 }
 
 /**
@@ -96,22 +73,11 @@ export const updateBulletin = async (
   id: number,
   payload: BulletinUpdatePayload
 ): Promise<Bulletin> => {
-  const token = localStorage.getItem('access_token')
-  const response = await apiFetch(`${API_V1}/bulletins/${id}`, {
+  return request<Bulletin>(`/bulletins/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
+    json: payload,
+    errorMessage: '주보 수정에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '주보 수정에 실패했습니다')
-  }
-
-  return response.json()
 }
 
 /**
@@ -123,25 +89,17 @@ export const addBulletinPage = async (
   file: File,
   pageNumber?: number
 ): Promise<number> => {
-  const token = localStorage.getItem('access_token')
   const formData = new FormData()
   formData.append('file', file)
   if (pageNumber !== undefined) {
     formData.append('page_number', String(pageNumber))
   }
 
-  const response = await apiFetch(`${API_V1}/bulletins/${bulletinId}/pages`, {
+  const data = await request<UntypedJson>(`/bulletins/${bulletinId}/pages`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
     body: formData,
+    errorMessage: '페이지 추가에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '페이지 추가에 실패했습니다')
-  }
-
-  const data = await response.json()
   return data.page_id as number
 }
 
@@ -149,16 +107,7 @@ export const addBulletinPage = async (
  * 주보 페이지 삭제 (관리자 전용)
  */
 export const deleteBulletinPage = async (pageId: number): Promise<void> => {
-  const token = localStorage.getItem('access_token')
-  const response = await apiFetch(`${API_V1}/bulletins/pages/${pageId}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '페이지 삭제에 실패했습니다')
-  }
+  await requestRaw(`/bulletins/pages/${pageId}`, { method: 'DELETE', errorMessage: '페이지 삭제에 실패했습니다' })
 }
 
 /**
@@ -169,36 +118,16 @@ export const reorderBulletinPages = async (
   bulletinId: number,
   pageIds: number[]
 ): Promise<void> => {
-  const token = localStorage.getItem('access_token')
-  const response = await apiFetch(`${API_V1}/bulletins/${bulletinId}/pages/order`, {
+  await requestRaw(`/bulletins/${bulletinId}/pages/order`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ page_ids: pageIds }),
+    json: { page_ids: pageIds },
+    errorMessage: '페이지 순서 변경에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '페이지 순서 변경에 실패했습니다')
-  }
 }
 
 /**
  * 주보 삭제 (관리자 전용)
  */
 export const deleteBulletin = async (id: number): Promise<void> => {
-  const token = localStorage.getItem('access_token')
-  const response = await apiFetch(`${API_V1}/bulletins/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  })
-  
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '주보 삭제에 실패했습니다')
-  }
+  await requestRaw(`/bulletins/${id}`, { method: 'DELETE', errorMessage: '주보 삭제에 실패했습니다' })
 }

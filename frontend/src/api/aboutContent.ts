@@ -1,10 +1,10 @@
 // 소개 페이지 컨텐츠 API
-import { API_V1, apiFetch } from '../config/api'
 import type {
   AboutContent,
   UpdateAboutContentRequest,
   AboutImageUploadResponse,
 } from '../types/aboutContent'
+import { request } from './utils/request'
 
 const EMPTY_CONTENT: AboutContent = {
   fields: {},
@@ -14,12 +14,8 @@ const EMPTY_CONTENT: AboutContent = {
 // 컨텐츠 조회 (인증 불필요). 백엔드 미구현 / 404 시 빈 컨텐츠 반환.
 export const getAboutContent = async (): Promise<AboutContent> => {
   try {
-    const response = await apiFetch(`${API_V1}/about-content`)
-    if (!response.ok) {
-      // 404 = 아직 저장된 컨텐츠 없음 → 기본 i18n 사용
-      return EMPTY_CONTENT
-    }
-    return response.json()
+    // 404 = 아직 저장된 컨텐츠 없음 → 기본 i18n 사용
+    return await request<AboutContent>('/about-content')
   } catch (error) {
     console.warn('about-content API not available, using defaults:', error)
     return EMPTY_CONTENT
@@ -30,42 +26,23 @@ export const getAboutContent = async (): Promise<AboutContent> => {
 export const updateAboutContent = async (
   data: UpdateAboutContentRequest
 ): Promise<AboutContent> => {
-  const token = localStorage.getItem('access_token')
-  const response = await apiFetch(`${API_V1}/about-content`, {
+  return request<AboutContent>('/about-content', {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
+    json: data,
+    errorMessage: 'Failed to update about content',
   })
-
-  if (!response.ok) {
-    throw new Error('Failed to update about content')
-  }
-
-  return response.json()
 }
 
 // 배경 이미지 업로드 (관리자). multipart/form-data.
 export const uploadAboutImage = async (
   file: File
 ): Promise<AboutImageUploadResponse> => {
-  const token = localStorage.getItem('access_token')
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await apiFetch(`${API_V1}/about-content/upload`, {
+  return request<AboutImageUploadResponse>('/about-content/upload', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
     body: formData,
+    errorMessage: 'Failed to upload image',
   })
-
-  if (!response.ok) {
-    throw new Error('Failed to upload image')
-  }
-
-  return response.json()
 }

@@ -1,6 +1,4 @@
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders, requireAuth } from './utils/apiHelpers'
-
+import { request } from './utils/request'
 export interface MeditationRecord {
   id: number
   record_date: string
@@ -27,36 +25,20 @@ export interface MeditationStreak {
 export const createMeditationRecord = async (
   payload: MeditationRecordCreatePayload
 ): Promise<MeditationRecord> => {
-  requireAuth()
-  const response = await apiFetch(`${API_V1}/meditation/records`, {
+  return request<MeditationRecord>('/meditation/records', {
     method: 'POST',
-    headers: getAuthHeaders(true),
-    body: JSON.stringify(payload),
+    auth: 'required',
+    json: payload,
+    errorMessage: '묵상 기록 저장에 실패했습니다',
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.detail || '묵상 기록 저장에 실패했습니다')
-  }
-  return response.json()
 }
 
 export const getMeditationRecords = async (
   limit = 30
 ): Promise<MeditationRecord[]> => {
-  requireAuth()
-  const response = await apiFetch(
-    `${API_V1}/meditation/records?limit=${limit}`,
-    { headers: getAuthHeaders() }
-  )
-  if (!response.ok) throw new Error('묵상 기록을 가져올 수 없습니다')
-  return response.json()
+  return request<MeditationRecord[]>(`/meditation/records?limit=${limit}`, { auth: 'required', errorMessage: '묵상 기록을 가져올 수 없습니다' })
 }
 
 export const getMeditationStreak = async (): Promise<MeditationStreak> => {
-  requireAuth()
-  const response = await apiFetch(`${API_V1}/meditation/streak`, {
-    headers: getAuthHeaders(),
-  })
-  if (!response.ok) throw new Error('스트릭 정보를 가져올 수 없습니다')
-  return response.json()
+  return request<MeditationStreak>('/meditation/streak', { auth: 'required', errorMessage: '스트릭 정보를 가져올 수 없습니다' })
 }

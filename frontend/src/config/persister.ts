@@ -9,6 +9,7 @@
 // 사용자별 키는 그대로 유지한다 (같은 기기에서 계정을 바꿔도 남의 캐시가 보이지 않게).
 // 만료(maxAge) 판정은 main.tsx 의 persistOptions.maxAge 한 곳에서만 한다.
 import type { PersistedClient, Persister } from '@tanstack/react-query-persist-client'
+import { sessionStore } from '../utils/tokenStore'
 
 const DB_NAME = 'chambit-query-cache'
 const STORE = 'clients'
@@ -21,7 +22,7 @@ const PERSIST_THROTTLE_MS = 3000
 
 // 현재 사용자의 캐시 키 생성
 const getCacheKey = () => {
-  const username = localStorage.getItem('user_username')
+  const username = sessionStore.get('username')
   return username ? `${LEGACY_PREFIX}_${username}` : `${LEGACY_PREFIX}_ANONYMOUS`
 }
 

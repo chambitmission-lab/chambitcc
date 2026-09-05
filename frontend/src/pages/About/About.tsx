@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { isAdmin } from '../../utils/auth'
 import { smoothScrollToElement } from '../../utils/scrollTo'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { EditableText, EditableImage, HeroEditButton } from '../../components/AboutEditor'
@@ -25,6 +24,7 @@ import {
 } from './icons'
 import { EmojiText } from '../../components/common/EmojiText'
 import './styles/index.css'
+import { can } from '../../utils/access'
 
 // 다섯 가지 만남 — 행 순서 = 화면 순서. key 는 이미지 파일명(./img/{key}.webp)이자 프롬프트 문서의 슬러그
 const MEETINGS = [
@@ -63,7 +63,7 @@ const About = () => {
   const navigate = useNavigate()
   const { language } = useLanguage()
   const { tx, heroBackgroundUrl } = useAboutContent()
-  const isAdminUser = isAdmin()
+  const isAdminUser = can('content:manage')
   const ko = language === 'ko'
 
   // 배경은 CSS background-image 가 아니라 <img> 로 그린다.

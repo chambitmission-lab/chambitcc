@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
 import { API_URL } from '../../../config/api'
 import { getBibleVerse } from '../../../api/bible'
-import { isAdmin } from '../../../utils/auth'
 import { useDeleteSermon } from '../../../hooks/useSermons'
 import { useSermonBibleReferences } from '../../../hooks/useSermonBibleReferences'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -18,6 +17,8 @@ import {
   stripTitleDate,
 } from '../utils/sermonMeta'
 import './SermonDetail.css'
+import { toastFeedback } from '../../../utils/toast'
+import { can } from '../../../utils/access'
 
 interface SermonDetailProps {
   sermon: Sermon
@@ -33,8 +34,8 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
   const videoPlayerRef = useRef<HTMLIFrameElement>(null)
   const audioPlayerRef = useRef<HTMLAudioElement>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const adminUser = isAdmin()
-  const deleteSermonMutation = useDeleteSermon()
+  const adminUser = can('sermons:manage')
+  const deleteSermonMutation = useDeleteSermon(toastFeedback({ success: '설교가 삭제되었습니다', error: '설교 삭제에 실패했습니다' }))
   
   // 설교별 성경 구절 목록 조회 (설교 상세에 포함되지 않은 경우 별도 조회)
   const { data: bibleReferences, isLoading: isLoadingReferences } = useSermonBibleReferences(

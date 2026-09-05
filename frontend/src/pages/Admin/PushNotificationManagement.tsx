@@ -2,11 +2,11 @@ import { useState, useEffect, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sendPush, type PushPayload, type SendPushResult } from '../../api/push'
 import { useAudiencePicker } from '../../hooks/useAudiencePicker'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import AudiencePicker from './components/AudiencePicker'
 import { FilterChip } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { can } from '../../utils/access'
 
 const TITLE_MAX = 50
 const BODY_MAX = 200
@@ -84,7 +84,9 @@ export const PushNotificationManagement = () => {
   const [infoOpen, setInfoOpen] = useState(false)
 
   // 대상 상태 (사용자 목록 로딩 포함)
-  const picker = useAudiencePicker()
+  const picker = useAudiencePicker({
+    onLoadUsersError: () => showToast('사용자 목록을 불러오는데 실패했습니다', 'error'),
+  })
   const { audienceMode, audienceUserIds, audienceCount, audienceLabel } = picker
 
   // 전송 상태
@@ -96,7 +98,7 @@ export const PushNotificationManagement = () => {
   >(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return

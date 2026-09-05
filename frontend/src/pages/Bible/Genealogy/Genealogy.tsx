@@ -9,6 +9,7 @@ import type { BibleFigureSummary } from '../../../types/bibleFigure'
 import BibleBottomNav from '../../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../../components/bible/BibleSideRail'
 import './Genealogy.css'
+import { tokenStore } from '../../../utils/tokenStore'
 
 // 히어로 이미지는 CSS 배경(테마 토큰)이라 다크 전환 순간에야 받기 시작한다.
 // 두 테마 파일을 마운트 시 미리 디코드해 두면 토글 시 즉시 뜨고, 첫 표시는 페이드인.
@@ -77,7 +78,7 @@ export const Genealogy = () => {
     }
   }, [])
 
-  const isLoggedIn = !!localStorage.getItem('access_token')
+  const isLoggedIn = !!tokenStore.getAccess()
 
   const overallProgress = useMemo(() => {
     if (!data || !isLoggedIn) return null

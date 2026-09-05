@@ -29,6 +29,7 @@ import {
   calculateAchievements,
   getNewlyUnlockedAchievements 
 } from '../../utils/achievementCalculator'
+import { tokenStore } from '../../utils/tokenStore'
 
 const Profile = () => {
   const navigate = useNavigate()
@@ -40,13 +41,13 @@ const Profile = () => {
   
   // 로그인 체크
   useEffect(() => {
-    const token = localStorage.getItem('access_token')
+    const token = tokenStore.getAccess()
     if (!token) {
       navigate('/login', { replace: true })
     }
   }, [navigate])
   
-  const hasToken = !!localStorage.getItem('access_token')
+  const hasToken = !!tokenStore.getAccess()
   const { data, isLoading, error } = useProfileDetail()
 
   // 탭 목록 무한 스크롤 — detail 응답은 미리보기(5/12/8개)일 뿐이므로,

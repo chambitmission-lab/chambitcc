@@ -6,7 +6,6 @@ import {
   type ReactNode,
 } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { useDragSort } from '../../hooks/useDragSort'
@@ -20,6 +19,7 @@ import {
   useUpdateOrgUnit,
 } from '../../hooks/useOrganization'
 import { UNIT_TYPE_LABEL, type OrgUnit, type OrgUnitType } from '../../types/organization'
+import { can } from '../../utils/access'
 
 const TYPE_OPTIONS: { value: OrgUnitType; label: string; desc: string }[] = [
   { value: 'governance', label: '의결기구', desc: '공동의회 · 당회 · 제직회' },
@@ -548,7 +548,7 @@ const OrganizationManagement = () => {
   >(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
     }

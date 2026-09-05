@@ -4,6 +4,8 @@ import { useCommunityFeed } from '../../../hooks/useCommunityFeed'
 import { useCommunityActions } from '../../../hooks/useCommunityActions'
 import { PostComposer } from '../../../components/community/PostComposer'
 import { PostItem } from '../../../components/community/PostItem'
+import { toastFeedback } from '../../../utils/toast'
+import { isApiError } from '../../../api/utils/request'
 
 /**
  * 커뮤니티 피드 메인 컴포넌트
@@ -11,8 +13,25 @@ import { PostItem } from '../../../components/community/PostItem'
  * - UI 컴포넌트는 재사용 가능한 작은 컴포넌트로 분리
  */
 const CommunityFeed = () => {
-  const { posts, loading, error, addPost } = useCommunityFeed()
-  const { handleLike, handleRetweet } = useCommunityActions()
+  const { posts, loading, error, addPost } = useCommunityFeed('latest', toastFeedback({ success: '게시물이 작성되었습니다.', error: '게시물 작성에 실패했습니다.' }))
+  const { handleLike, handleRetweet } = useCommunityActions({
+    feedback: {
+      like: toastFeedback<{ message?: string }, number>({
+        success: (data) => data.message || '좋아요!',
+        error: (e) =>
+          e.message.includes('already liked') ? '이미 좋아요를 누르셨습니다.'
+            : isApiError(e, 401) ? '로그인이 필요합니다.'
+              : '좋아요 처리 중 오류가 발생했습니다.',
+      }),
+      retweet: toastFeedback<{ message?: string }, number>({
+        success: (data) => data.message || '리트윗 완료!',
+        error: (e) =>
+          e.message.includes('already') ? '이미 리트윗하셨습니다.'
+            : isApiError(e, 401) ? '로그인이 필요합니다.'
+              : '리트윗 처리 중 오류가 발생했습니다.',
+      }),
+    },
+  })
 
   const handlePostCreated = async (content: string, image?: string) => {
     await addPost(content, image)

@@ -9,6 +9,7 @@ import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { confirmDialog } from '../../../utils/confirmDialog'
 import type { PrayerGroup, GroupVisibility } from '../../../types/prayer'
 import { GroupGlyph, PersonIcon, PrayIcon } from '../GroupIcons'
+import { toastFeedback } from '../../../utils/toast'
 
 const ICON_OPTIONS = ['🙏', '⛪', '✝️', '🎵', '📖', '💒', '👥', '🕊️', '🌟', '❤️']
 
@@ -38,9 +39,9 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 
 const GroupSettingsSheet = ({ group, onClose }: GroupSettingsSheetProps) => {
   const navigate = useNavigate()
-  const update = useUpdateGroup()
-  const remove = useDeleteGroup()
-  const leave = useLeaveGroup()
+  const update = useUpdateGroup(toastFeedback({ success: '그룹 정보를 수정했어요', error: '그룹 수정에 실패했습니다' }))
+  const remove = useDeleteGroup(toastFeedback({ success: '그룹을 삭제했어요', error: '그룹 삭제에 실패했습니다' }))
+  const leave = useLeaveGroup(toastFeedback({ success: '그룹에서 탈퇴했습니다', error: '그룹 탈퇴에 실패했습니다' }))
   const { data: themeCategories } = useSituationCategories()
 
   const [name, setName] = useState(group.name)

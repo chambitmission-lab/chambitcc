@@ -1,5 +1,4 @@
-import { API_V1, apiFetch } from '../config/api'
-import { getAuthHeaders, requireAuth } from './utils/apiHelpers'
+import { request, requestRaw, withStatusMessages } from './utils/request'
 
 // 타입 정의
 export interface BibleReadingRecord {
@@ -132,8 +131,6 @@ export const markVerseAsRead = async (
   verseId: number,
   similarity: number
 ): Promise<BibleReadingRecord> => {
-  requireAuth()
-  
   // similarity를 0.0 ~ 1.0 범위로 제한하고 소수점 2자리로 반올림
   let normalizedSimilarity = Math.min(1.0, Math.max(0.0, Math.round(similarity * 100) / 100))
   
@@ -151,26 +148,15 @@ export const markVerseAsRead = async (
     read_at: new Date().toISOString()
   })
   
-  const response = await apiFetch(
-    `${API_V1}/bible/verses/${verseId}/read`,
-    {
+  const result = await withStatusMessages(
+    request<MarkVerseAsReadResponse>(`/bible/verses/${verseId}/read`, {
       method: 'POST',
-      headers: getAuthHeaders(true),
-      body: JSON.stringify({
-        similarity: normalizedSimilarity,
-        read_at: new Date().toISOString()
-      })
-    }
+      auth: 'required',
+      json: { similarity: normalizedSimilarity, read_at: new Date().toISOString() },
+      errorMessage: '구절 읽음 처리에 실패했습니다',
+    }),
+    { 409: 'ALREADY_READ' }
   )
-  
-  if (!response.ok) {
-    if (response.status === 409) {
-      throw new Error('ALREADY_READ')
-    }
-    throw new Error('구절 읽음 처리에 실패했습니다')
-  }
-  
-  const result: MarkVerseAsReadResponse = await response.json()
   return result.data
 }
 
@@ -195,21 +181,11 @@ export const markChapterAsRead = async (
   bookNumber: number,
   chapter: number
 ): Promise<ChapterBulkReadResult> => {
-  requireAuth()
-
-  const response = await apiFetch(
-    `${API_V1}/bible/chapters/${bookNumber}/${chapter}/read-all`,
-    {
-      method: 'POST',
-      headers: getAuthHeaders(true)
-    }
-  )
-
-  if (!response.ok) {
-    throw new Error('장 전체 읽음 처리에 실패했습니다')
-  }
-
-  const result: { success: boolean; data: ChapterBulkReadResult } = await response.json()
+  const result: { success: boolean; data: ChapterBulkReadResult } = await request<{ success: boolean; data: ChapterBulkReadResult }>(`/bible/chapters/${bookNumber}/${chapter}/read-all`, {
+    method: 'POST',
+    auth: 'required',
+    errorMessage: '장 전체 읽음 처리에 실패했습니다',
+  })
   return result.data
 }
 
@@ -220,21 +196,11 @@ export const unmarkChapterAsRead = async (
   bookNumber: number,
   chapter: number
 ): Promise<ChapterBulkUnreadResult> => {
-  requireAuth()
-
-  const response = await apiFetch(
-    `${API_V1}/bible/chapters/${bookNumber}/${chapter}/read-all`,
-    {
-      method: 'DELETE',
-      headers: getAuthHeaders(true)
-    }
-  )
-
-  if (!response.ok) {
-    throw new Error('장 전체 읽음 취소에 실패했습니다')
-  }
-
-  const result: { success: boolean; data: ChapterBulkUnreadResult } = await response.json()
+  const result: { success: boolean; data: ChapterBulkUnreadResult } = await request<{ success: boolean; data: ChapterBulkUnreadResult }>(`/bible/chapters/${bookNumber}/${chapter}/read-all`, {
+    method: 'DELETE',
+    auth: 'required',
+    errorMessage: '장 전체 읽음 취소에 실패했습니다',
+  })
   return result.data
 }
 
@@ -249,7 +215,6 @@ export const getReadVerses = async (params?: {
   page?: number
   page_size?: number
 }): Promise<ReadVersesResponse['data']> => {
-  requireAuth()
   
   const queryParams = new URLSearchParams()
   
@@ -260,17 +225,9 @@ export const getReadVerses = async (params?: {
   if (params?.page) queryParams.append('page', params.page.toString())
   if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
   
-  const url = `${API_V1}/bible/verses/read${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+  const url = `/bible/verses/read${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
   
-  const response = await apiFetch(url, {
-    headers: getAuthHeaders(true)
-  })
-  
-  if (!response.ok) {
-    throw new Error('읽은 구절 목록을 불러오는데 실패했습니다')
-  }
-  
-  const result: ReadVersesResponse = await response.json()
+  const result: ReadVersesResponse = await request<ReadVersesResponse>(url, { auth: 'required', errorMessage: '읽은 구절 목록을 불러오는데 실패했습니다' })
   return result.data
 }
 
@@ -281,20 +238,7 @@ export const getChapterReadStatus = async (
   bookNumber: number,
   chapter: number
 ): Promise<ChapterReadStatusResponse['data']> => {
-  requireAuth()
-  
-  const response = await apiFetch(
-    `${API_V1}/bible/chapters/${bookNumber}/${chapter}/read-status`,
-    {
-      headers: getAuthHeaders(true)
-    }
-  )
-  
-  if (!response.ok) {
-    throw new Error('장 읽음 상태를 불러오는데 실패했습니다')
-  }
-  
-  const result: ChapterReadStatusResponse = await response.json()
+  const result: ChapterReadStatusResponse = await request<ChapterReadStatusResponse>(`/bible/chapters/${bookNumber}/${chapter}/read-status`, { auth: 'required', errorMessage: '장 읽음 상태를 불러오는데 실패했습니다' })
   return result.data
 }
 
@@ -302,20 +246,7 @@ export const getChapterReadStatus = async (
  * 전체 읽기 진행률 조회
  */
 export const getReadingProgress = async (): Promise<ReadingProgressResponse['data']> => {
-  requireAuth()
-  
-  const response = await apiFetch(
-    `${API_V1}/bible/reading-progress`,
-    {
-      headers: getAuthHeaders(true)
-    }
-  )
-  
-  if (!response.ok) {
-    throw new Error('읽기 진행률을 불러오는데 실패했습니다')
-  }
-  
-  const result: ReadingProgressResponse = await response.json()
+  const result: ReadingProgressResponse = await request<ReadingProgressResponse>('/bible/reading-progress', { auth: 'required', errorMessage: '읽기 진행률을 불러오는데 실패했습니다' })
   return result.data
 }
 
@@ -325,20 +256,7 @@ export const getReadingProgress = async (): Promise<ReadingProgressResponse['dat
 export const getBookReadingProgress = async (
   bookId: number
 ): Promise<BookDetailProgressResponse['data']> => {
-  requireAuth()
-  
-  const response = await apiFetch(
-    `${API_V1}/bible/reading-progress?book_id=${bookId}`,
-    {
-      headers: getAuthHeaders(true)
-    }
-  )
-  
-  if (!response.ok) {
-    throw new Error('책 읽기 진행률을 불러오는데 실패했습니다')
-  }
-  
-  const result: BookDetailProgressResponse = await response.json()
+  const result: BookDetailProgressResponse = await request<BookDetailProgressResponse>(`/bible/reading-progress?book_id=${bookId}`, { auth: 'required', errorMessage: '책 읽기 진행률을 불러오는데 실패했습니다' })
   return result.data
 }
 
@@ -367,20 +285,7 @@ export interface ResumeReadingResponse {
 export const getResumeReading = async (
   limit: number = 10
 ): Promise<ResumeReadingResponse['data']> => {
-  requireAuth()
-
-  const response = await apiFetch(
-    `${API_V1}/bible/reading-progress/resume?limit=${limit}`,
-    {
-      headers: getAuthHeaders(true)
-    }
-  )
-
-  if (!response.ok) {
-    throw new Error('이어 읽기 정보를 불러오는데 실패했습니다')
-  }
-
-  const result: ResumeReadingResponse = await response.json()
+  const result: ResumeReadingResponse = await request<ResumeReadingResponse>(`/bible/reading-progress/resume?limit=${limit}`, { auth: 'required', errorMessage: '이어 읽기 정보를 불러오는데 실패했습니다' })
   return result.data
 }
 
@@ -388,17 +293,9 @@ export const getResumeReading = async (
  * 읽음 취소
  */
 export const unmarkVerseAsRead = async (verseId: number): Promise<void> => {
-  requireAuth()
-  
-  const response = await apiFetch(
-    `${API_V1}/bible/verses/${verseId}/read`,
-    {
-      method: 'DELETE',
-      headers: getAuthHeaders(true)
-    }
-  )
-  
-  if (!response.ok) {
-    throw new Error('읽음 취소에 실패했습니다')
-  }
+  await requestRaw(`/bible/verses/${verseId}/read`, {
+    method: 'DELETE',
+    auth: 'required',
+    errorMessage: '읽음 취소에 실패했습니다',
+  })
 }

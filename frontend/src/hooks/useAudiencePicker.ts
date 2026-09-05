@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { getUserList, type User } from '../api/user'
-import { showToast } from '../utils/toast'
 
 export type AudienceMode = 'all' | 'active' | 'admin' | 'selected'
 export type UserListFilter = 'all' | 'active' | 'admin'
@@ -10,7 +9,7 @@ export type UserListFilter = 'all' | 'active' | 'admin'
  * 직접 선택 모드의 검색·필터·체크 상태를 묶는다.
  * 푸시 발송 외에도 "회원 대상 지정"이 필요한 어드민 화면에서 재사용 가능.
  */
-export const useAudiencePicker = () => {
+export const useAudiencePicker = (options?: { onLoadUsersError?: (error: unknown) => void }) => {
   const [users, setUsers] = useState<User[]>([])
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
 
@@ -26,7 +25,7 @@ export const useAudiencePicker = () => {
       setUsers(data.users)
     } catch (error) {
       console.error('사용자 목록 조회 실패:', error)
-      showToast('사용자 목록을 불러오는데 실패했습니다', 'error')
+      options?.onLoadUsersError?.(error)
     } finally {
       setIsLoadingUsers(false)
     }

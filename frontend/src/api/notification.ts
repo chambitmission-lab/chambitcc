@@ -1,6 +1,7 @@
 // 공지사항 API
-import { API_V1, apiFetch } from '../config/api'
 import type { Notification, NotificationsResponse, CreateNotificationRequest, UpdateNotificationRequest } from '../types/notification'
+import { tokenStore } from '../utils/tokenStore'
+import { request, requestRaw, isApiError, type UntypedJson } from './utils/request'
 
 /**
  * 공지사항 목록 조회 (페이지네이션)
@@ -10,25 +11,14 @@ export const getNotifications = async (params?: {
   page?: number
   limit?: number
 }): Promise<NotificationsResponse> => {
-  const token = localStorage.getItem('access_token')
-  const headers: HeadersInit = {}
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
 
   const query = new URLSearchParams()
   if (params?.page) query.set('page', String(params.page))
   if (params?.limit) query.set('limit', String(params.limit))
   const qs = query.toString()
 
-  const response = await apiFetch(`${API_V1}/notifications${qs ? `?${qs}` : ''}`, { headers })
-
-  if (!response.ok) {
-    throw new Error('공지사항을 불러오는데 실패했습니다')
-  }
-
-  const data = await response.json()
+  const data = await request<UntypedJson>(`/notifications${qs ? `?${qs}` : ''}`, { errorMessage: '공지사항을 불러오는데 실패했습니다' })
 
   return {
     notifications: data.notifications ?? [],
@@ -50,21 +40,12 @@ export const getAdminNotifications = async (params?: {
   page?: number
   limit?: number
 }): Promise<NotificationsResponse> => {
-  const token = localStorage.getItem('access_token')
   const query = new URLSearchParams()
   if (params?.page) query.set('page', String(params.page))
   if (params?.limit) query.set('limit', String(params.limit))
   const qs = query.toString()
 
-  const response = await apiFetch(`${API_V1}/notifications/admin${qs ? `?${qs}` : ''}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-
-  if (!response.ok) {
-    throw new Error('공지사항을 불러오는데 실패했습니다')
-  }
-
-  const data = await response.json()
+  const data = await request<UntypedJson>(`/notifications/admin${qs ? `?${qs}` : ''}`, { errorMessage: '공지사항을 불러오는데 실패했습니다' })
 
   return {
     notifications: data.notifications ?? [],
@@ -80,17 +61,7 @@ export const getAdminNotifications = async (params?: {
  * 로그인/비로그인 모두 조회 가능 — 로그인 시 is_read 포함
  */
 export const getPopupNotifications = async (): Promise<Notification[]> => {
-  const token = localStorage.getItem('access_token')
-  const headers: HeadersInit = {}
-  if (token) headers['Authorization'] = `Bearer ${token}`
-
-  const response = await apiFetch(`${API_V1}/notifications/popups`, { headers })
-
-  if (!response.ok) {
-    throw new Error('팝업 공지를 불러오는데 실패했습니다')
-  }
-
-  const data = await response.json()
+  const data = await request<UntypedJson>('/notifications/popups', { errorMessage: '팝업 공지를 불러오는데 실패했습니다' })
   return Array.isArray(data) ? data : []
 }
 
@@ -99,22 +70,14 @@ export const getPopupNotifications = async (): Promise<Notification[]> => {
  * 업로드만 수행하고, 반환된 URL은 공지 생성/수정 시 image_url로 저장한다.
  */
 export const uploadNotificationImage = async (file: File): Promise<string> => {
-  const token = localStorage.getItem('access_token')
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await apiFetch(`${API_V1}/notifications/upload-image`, {
+  const data = await request<UntypedJson>('/notifications/upload-image', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
     body: formData,
+    errorMessage: '이미지 업로드에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => null)
-    throw new Error(error?.detail || '이미지 업로드에 실패했습니다')
-  }
-
-  const data = await response.json()
   return data.url as string
 }
 
@@ -122,43 +85,24 @@ export const uploadNotificationImage = async (file: File): Promise<string> => {
  * 공지사항 상세 조회 (모든 사용자)
  */
 export const getNotificationDetail = async (id: number): Promise<Notification> => {
-  const token = localStorage.getItem('access_token')
-  const headers: HeadersInit = {}
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-  
-  const response = await apiFetch(`${API_V1}/notifications/${id}`, {
-    headers
-  })
-  
-  if (!response.ok) {
-    throw new Error('공지사항을 불러오는데 실패했습니다')
-  }
-  return response.json()
+  return request<Notification>(`/notifications/${id}`, { errorMessage: '공지사항을 불러오는데 실패했습니다' })
 }
 
 /**
  * 읽지 않은 알림 개수 조회 (로그인 필수)
  */
 export const getUnreadCount = async (): Promise<number> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
+  if (!tokenStore.hasAccess()) {
     return 0
   }
-  
-  const response = await apiFetch(`${API_V1}/notifications/unread-count`, {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  })
-  
-  if (!response.ok) {
-    return 0
+
+  let data: UntypedJson
+  try {
+    data = await request<UntypedJson>('/notifications/unread-count', { auth: 'required' })
+  } catch (error) {
+    if (isApiError(error)) return 0
+    throw error
   }
-  
-  const data = await response.json()
   
   // 응답 형식 확인
   if (typeof data === 'number') {
@@ -176,104 +120,49 @@ export const getUnreadCount = async (): Promise<number> => {
  * 알림 읽음 처리 (로그인 필수)
  */
 export const markAsRead = async (id: number): Promise<void> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-  
-  const response = await apiFetch(`${API_V1}/notifications/${id}/read`, {
+  await requestRaw(`/notifications/${id}/read`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    auth: 'required',
+    errorMessage: '읽음 처리에 실패했습니다',
   })
-  
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '읽음 처리에 실패했습니다')
-  }
 }
 
 /**
  * 모든 알림 읽음 처리 (로그인 필수)
  */
 export const markAllAsRead = async (): Promise<void> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-  
-  const response = await apiFetch(`${API_V1}/notifications/read-all`, {
+  await requestRaw('/notifications/read-all', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    auth: 'required',
+    errorMessage: '읽음 처리에 실패했습니다',
   })
-  
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '읽음 처리에 실패했습니다')
-  }
 }
 
 /**
  * 공지사항 생성 (관리자 전용)
  */
 export const createNotification = async (data: CreateNotificationRequest): Promise<Notification> => {
-  const token = localStorage.getItem('access_token')
-  const response = await apiFetch(`${API_V1}/notifications`, {
+  return request<Notification>('/notifications', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(data)
+    json: data,
+    errorMessage: '공지사항 생성에 실패했습니다',
   })
-  
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '공지사항 생성에 실패했습니다')
-  }
-  
-  return response.json()
 }
 
 /**
  * 공지사항 수정 (관리자 전용)
  */
 export const updateNotification = async (id: number, data: UpdateNotificationRequest): Promise<Notification> => {
-  const token = localStorage.getItem('access_token')
-  const response = await apiFetch(`${API_V1}/notifications/${id}`, {
+  return request<Notification>(`/notifications/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(data)
+    json: data,
+    errorMessage: '공지사항 수정에 실패했습니다',
   })
-  
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '공지사항 수정에 실패했습니다')
-  }
-  
-  return response.json()
 }
 
 /**
  * 공지사항 삭제 (관리자 전용)
  */
 export const deleteNotification = async (id: number): Promise<void> => {
-  const token = localStorage.getItem('access_token')
-  const response = await apiFetch(`${API_V1}/notifications/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  })
-  
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '공지사항 삭제에 실패했습니다')
-  }
+  await requestRaw(`/notifications/${id}`, { method: 'DELETE', errorMessage: '공지사항 삭제에 실패했습니다' })
 }

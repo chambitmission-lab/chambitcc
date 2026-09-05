@@ -23,6 +23,8 @@ import './CommandPalette.css'
 // 전역 1개만 마운트(App.tsx) — 상태는 열려 있는 동안만 산다.
 
 import { OPEN_CHATBOT_EVENT, OPEN_SEARCH_EVENT, isMacLike } from './commandEvents'
+import { tokenStore } from '../../utils/tokenStore'
+import { sermonKeys, dailyVerseKeys, worshipKeys } from '../../hooks/queryKeys'
 
 type Row =
   | { kind: 'action'; id: string; label: string; desc: string; icon: keyof typeof NAV_ICONS | 'chambi'; to?: string; ask?: boolean; accent?: boolean }
@@ -56,7 +58,7 @@ const CommandPalette = () => {
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const debounced = useDebounced(query.trim(), DEBOUNCE_MS)
-  const loggedIn = !!localStorage.getItem('access_token')
+  const loggedIn = !!tokenStore.getAccess()
   // 최근 항목 — 열릴 때 읽고, 실행할 때 갱신
   const [recentVersion, setRecentVersion] = useState(0)
   // recentVersion 은 "지우기" 뒤 다시 읽게 하는 버전 카운터 — 의존성으로만 쓴다
@@ -140,7 +142,7 @@ const CommandPalette = () => {
   // ── 커맨드 센터 첫 화면(빈 검색창) 데이터 — 다른 화면과 같은 캐시 키라 대부분 즉시 ──
   const home = open && !debounced
   const { data: recentSermons } = useQuery({
-    queryKey: ['sermons', 0, 8, 'light'],
+    queryKey: sermonKeys.list(0, 8, false),
     queryFn: () => getSermons(0, 8, false),
     enabled: home,
     staleTime: 1000 * 60 * 5,
@@ -151,7 +153,7 @@ const CommandPalette = () => {
     recentSermons?.find((x) => /주일|성수/.test(x.title)) ??
     recentSermons?.[0]
   const { data: services } = useQuery({
-    queryKey: ['worship-services', 'all'],
+    queryKey: worshipKeys.services(),
     queryFn: async () => {
       const [sun, week] = await Promise.all([getSundayServices(), getWeekdayServices()])
       return [...sun, ...week]
@@ -178,7 +180,7 @@ const CommandPalette = () => {
     return { name: ko ? next.service.name : next.service.name_en || next.service.name, when: `${day} ${clock}` }
   }, [services, ko])
   const { data: todayVerse } = useQuery({
-    queryKey: ['daily-verse', 'current'],
+    queryKey: dailyVerseKeys.current(),
     queryFn: getTodayVerse,
     enabled: home,
     staleTime: 1000 * 60 * 30,

@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { getAllDailyVerses, deleteDailyVerse } from '../../api/dailyVerse'
 import type { DailyVerse } from '../../types/dailyVerse'
 import DailyVerseComposer from './components/DailyVerseComposer'
 import { FilterChip, FilterRow } from './components/FilterControls'
 import { confirmDialog } from '../../utils/confirmDialog'
+import { dailyVerseKeys } from '../../hooks/queryKeys'
+import { can } from '../../utils/access'
 
 type VerseFilter = 'all' | 'today' | 'upcoming' | 'past'
 type SortKey = 'recent' | 'oldest'
@@ -69,7 +70,7 @@ const DailyVerseManagement = () => {
   const [editingVerse, setEditingVerse] = useState<DailyVerse | null>(null)
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can('admin:access')) {
       showToast('관리자 권한이 필요합니다', 'error')
       navigate('/')
       return
@@ -91,7 +92,7 @@ const DailyVerseManagement = () => {
   }
 
   const invalidateUserCache = () => {
-    queryClient.invalidateQueries({ queryKey: ['dailyVerse', 'today'] })
+    queryClient.invalidateQueries({ queryKey: dailyVerseKeys.today() })
   }
 
   const handleDelete = async (id: number) => {

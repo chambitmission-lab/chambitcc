@@ -3,7 +3,6 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useAboutContent } from '../../hooks/useAboutContent'
 import { useTheme } from '../../contexts/ThemeContext'
 import { EditableText } from '../../components/AboutEditor'
-import { isAdmin } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { getSundayServices, getWeekdayServices } from '../../api/worship'
 import type { WorshipService } from '../../types/worship'
@@ -16,6 +15,7 @@ import LeaveNowCard from './components/LeaveNowCard'
 import { parseCoords } from './geo'
 import { ChurchIcon, CopyIcon, KakaoMapIcon, NaverMapIcon, PhoneIcon, PinIcon, StoreIcon, SubwayIcon, TmapIcon } from './icons'
 import './Visit.css'
+import { can } from '../../utils/access'
 
 /** 히어로 하늘 — /worship 과 같은 --worship-sky-* 토큰을 시각으로 고른다 */
 const moodOfHour = (h: number): 'dawn' | 'day' | 'dusk' | 'night' => {
@@ -58,7 +58,7 @@ const Visit = () => {
     if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(warm)
     else setTimeout(warm, 1500)
   }, [theme])
-  const isAdminUser = isAdmin()
+  const isAdminUser = can('content:manage')
 
   const [services, setServices] = useState<WorshipService[]>([])
   const [now, setNow] = useState(() => new Date())

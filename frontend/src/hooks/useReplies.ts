@@ -1,9 +1,11 @@
 // 댓글 관련 로직을 담당하는 커스텀 훅 (Single Responsibility)
 import { useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import { fetchReplies, createReply, updateReply, deleteReply } from '../api/prayer'
-import { showToast } from '../utils/toast'
 import type { CreateReplyRequest, Prayer, Reply, ReplyListResponse } from '../types/prayer'
 import type { ProfileDetail } from '../types/profile'
+import type { MutationFeedback } from './mutationFeedback'
+import { profileKeys } from './queryKeys'
+import { prayerKeys } from './usePrayersQuery'
 
 /** 댓글 무한 스크롤 캐시 — setQueryData 콜백의 old 타입 */
 type RepliesCache = InfiniteData<ReplyListResponse>
@@ -19,7 +21,7 @@ interface UseRepliesOptions {
  * - 자동 캐싱 및 갱신
  */
 export const useReplies = ({ prayerId, limit = 50 }: UseRepliesOptions) => {
-  const queryKey = ['prayers', prayerId, 'replies']
+  const queryKey = prayerKeys.replies(prayerId)
 
   const {
     data,
@@ -53,6 +55,8 @@ export const useReplies = ({ prayerId, limit = 50 }: UseRepliesOptions) => {
 }
 
 interface UseCreateReplyOptions {
+  /** 화면 피드백(토스트 등) — 훅은 캐시만 다룬다 */
+  feedback?: MutationFeedback<{ message?: string }>
   prayerId: number
   onSuccess?: () => void
 }
@@ -62,14 +66,14 @@ interface UseCreateReplyOptions {
  * - Optimistic Update로 즉각적인 UI 반응
  * - 자동 캐시 갱신
  */
-export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) => {
+export const useCreateReply = ({ prayerId, onSuccess, feedback }: UseCreateReplyOptions) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
     mutationFn: (data: CreateReplyRequest) => createReply(prayerId, data),
     onMutate: async (data) => {
       // 진행 중인 쿼리 취소
-      const repliesQueryKey = ['prayers', prayerId, 'replies']
+      const repliesQueryKey = prayerKeys.replies(prayerId)
       await queryClient.cancelQueries({ queryKey: repliesQueryKey })
 
       // 이전 데이터 백업
@@ -79,7 +83,7 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
       // 익명이 아니면 프로필 사진도 미리 반영 (재조회 후 아바타가 바뀌는 깜빡임 방지)
       const isAnonReply =
         !data.display_name || data.display_name === '익명' || data.display_name === 'Anonymous'
-      const cachedProfile = queryClient.getQueryData<ProfileDetail>(['profile', 'detail'])
+      const cachedProfile = queryClient.getQueryData<ProfileDetail>(profileKeys.detail())
       const tempReply: Reply = {
         id: Date.now(), // 임시 ID
         display_name: data.display_name || '익명',
@@ -110,8 +114,9 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
         }
       })
 
-      // 기도 상세의 댓글 수 증가 (Optimistic)
-      queryClient.setQueryData<Prayer>(['prayers', 'detail', prayerId], (old) => {
+      // 기도 상세의 댓글 수 증가 (Optimistic) — 상세 키는 사용자별이라 prefix 로 전부 패치한다
+      // (['prayers','detail',id] 3인자 키에 setQueryData 하면 존재하지 않는 쿼리에 써져 무효가 된다)
+      queryClient.setQueriesData<Prayer>({ queryKey: prayerKeys.detailPrefix(prayerId) }, (old) => {
         if (!old) return old
         return {
           ...old,
@@ -120,7 +125,7 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
       })
 
       // 프로필 댓글 수 증가 (Optimistic) - 포인트 즉시 반영
-      queryClient.setQueryData<ProfileDetail>(['profile', 'detail'], (old) => {
+      queryClient.setQueryData<ProfileDetail>(profileKeys.detail(), (old) => {
         if (!old) return old
         return {
           ...old,
@@ -144,30 +149,30 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
     onError: (error: Error, _variables, context) => {
       // 에러 시 롤백
       if (context?.previousReplies) {
-        queryClient.setQueryData(['prayers', prayerId, 'replies'], context.previousReplies)
+        queryClient.setQueryData(prayerKeys.replies(prayerId), context.previousReplies)
       }
-      showToast(error.message, 'error')
+      feedback?.onError?.(error, _variables)
     },
-    onSuccess: (response) => {
+    onSuccess: (response, variables) => {
       // 즉시 성공 처리
-      showToast(response.message, 'success')
       onSuccess?.()
       
       // 실제 데이터로 갱신
-      queryClient.invalidateQueries({ queryKey: ['prayers', prayerId, 'replies'] })
+      queryClient.invalidateQueries({ queryKey: prayerKeys.replies(prayerId) })
       
       // 캐시 무효화 (비동기, 백그라운드)
       setTimeout(() => {
         // 기도 목록의 댓글 수 갱신
-        queryClient.invalidateQueries({ queryKey: ['prayers', 'list'] })
-        queryClient.invalidateQueries({ queryKey: ['prayers', 'detail', prayerId] })
+        queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+        queryClient.invalidateQueries({ queryKey: prayerKeys.detailPrefix(prayerId) })
 
         // 프로필 캐시 무효화 및 자동 갱신 (내 댓글 +1, 포인트 +3)
         // 'profile' 전체 — 프로필 탭 무한 목록(my-replies 등)도 stale 처리
         queryClient.invalidateQueries({
-          queryKey: ['profile'],
+          queryKey: profileKeys.all,
         })
       }, 0)
+      feedback?.onSuccess?.(response, variables)
     },
   })
 
@@ -178,6 +183,8 @@ export const useCreateReply = ({ prayerId, onSuccess }: UseCreateReplyOptions) =
 }
 
 interface UseUpdateReplyOptions {
+  /** 화면 피드백(토스트 등) — 훅은 캐시만 다룬다 */
+  feedback?: MutationFeedback<{ message?: string }>
   prayerId: number
   onSuccess?: () => void
 }
@@ -186,14 +193,14 @@ interface UseUpdateReplyOptions {
  * 댓글 수정 훅 (본인 댓글만)
  * - Optimistic Update로 즉각적인 UI 반응, 실패 시 롤백
  */
-export const useUpdateReply = ({ prayerId, onSuccess }: UseUpdateReplyOptions) => {
+export const useUpdateReply = ({ prayerId, onSuccess, feedback }: UseUpdateReplyOptions) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
     mutationFn: ({ replyId, content }: { replyId: number; content: string }) =>
       updateReply(prayerId, replyId, { content }),
     onMutate: async ({ replyId, content }) => {
-      const repliesQueryKey = ['prayers', prayerId, 'replies']
+      const repliesQueryKey = prayerKeys.replies(prayerId)
       await queryClient.cancelQueries({ queryKey: repliesQueryKey })
 
       const previousReplies = queryClient.getQueryData(repliesQueryKey)
@@ -219,16 +226,16 @@ export const useUpdateReply = ({ prayerId, onSuccess }: UseUpdateReplyOptions) =
     },
     onError: (error: Error, _variables, context) => {
       if (context?.previousReplies) {
-        queryClient.setQueryData(['prayers', prayerId, 'replies'], context.previousReplies)
+        queryClient.setQueryData(prayerKeys.replies(prayerId), context.previousReplies)
       }
-      showToast(error.message, 'error')
+      feedback?.onError?.(error, _variables)
     },
-    onSuccess: (response) => {
-      showToast(response.message, 'success')
+    onSuccess: (response, variables) => {
       onSuccess?.()
-      queryClient.invalidateQueries({ queryKey: ['prayers', prayerId, 'replies'] })
+      queryClient.invalidateQueries({ queryKey: prayerKeys.replies(prayerId) })
       // 프로필 탭 '내 댓글' 목록에도 수정된 본문이 반영되도록
-      queryClient.invalidateQueries({ queryKey: ['profile'], refetchType: 'none' })
+      queryClient.invalidateQueries({ queryKey: profileKeys.all, refetchType: 'none' })
+      feedback?.onSuccess?.(response, variables)
     },
   })
 
@@ -239,6 +246,8 @@ export const useUpdateReply = ({ prayerId, onSuccess }: UseUpdateReplyOptions) =
 }
 
 interface UseDeleteReplyOptions {
+  /** 화면 피드백(토스트 등) — 훅은 캐시만 다룬다 */
+  feedback?: MutationFeedback<{ message?: string }>
   prayerId: number
   onSuccess?: () => void
 }
@@ -247,17 +256,17 @@ interface UseDeleteReplyOptions {
  * 댓글 삭제 훅 (본인 댓글만)
  * - Optimistic Update로 목록에서 즉시 제거, 실패 시 롤백
  */
-export const useDeleteReply = ({ prayerId, onSuccess }: UseDeleteReplyOptions) => {
+export const useDeleteReply = ({ prayerId, onSuccess, feedback }: UseDeleteReplyOptions) => {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
     mutationFn: (replyId: number) => deleteReply(prayerId, replyId),
     onMutate: async (replyId) => {
-      const repliesQueryKey = ['prayers', prayerId, 'replies']
+      const repliesQueryKey = prayerKeys.replies(prayerId)
       await queryClient.cancelQueries({ queryKey: repliesQueryKey })
 
       const previousReplies = queryClient.getQueryData(repliesQueryKey)
-      const previousDetail = queryClient.getQueryData(['prayers', 'detail', prayerId])
+      const previousDetails = queryClient.getQueriesData<Prayer>({ queryKey: prayerKeys.detailPrefix(prayerId) })
 
       // Optimistic Update - 목록에서 즉시 제거
       queryClient.setQueryData<RepliesCache>(repliesQueryKey, (old) => {
@@ -274,8 +283,8 @@ export const useDeleteReply = ({ prayerId, onSuccess }: UseDeleteReplyOptions) =
         }
       })
 
-      // 기도 상세의 댓글 수 감소 (Optimistic)
-      queryClient.setQueryData<Prayer>(['prayers', 'detail', prayerId], (old) => {
+      // 기도 상세의 댓글 수 감소 (Optimistic) — 사용자별 상세 키 전부
+      queryClient.setQueriesData<Prayer>({ queryKey: prayerKeys.detailPrefix(prayerId) }, (old) => {
         if (!old) return old
         return {
           ...old,
@@ -283,29 +292,29 @@ export const useDeleteReply = ({ prayerId, onSuccess }: UseDeleteReplyOptions) =
         }
       })
 
-      return { previousReplies, previousDetail }
+      return { previousReplies, previousDetails }
     },
     onError: (error: Error, _replyId, context) => {
       if (context?.previousReplies) {
-        queryClient.setQueryData(['prayers', prayerId, 'replies'], context.previousReplies)
+        queryClient.setQueryData(prayerKeys.replies(prayerId), context.previousReplies)
       }
-      if (context?.previousDetail) {
-        queryClient.setQueryData(['prayers', 'detail', prayerId], context.previousDetail)
-      }
-      showToast(error.message, 'error')
+      context?.previousDetails?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data)
+      })
+      feedback?.onError?.(error, _replyId)
     },
-    onSuccess: (response) => {
-      showToast(response.message, 'success')
+    onSuccess: (response, variables) => {
       onSuccess?.()
 
-      queryClient.invalidateQueries({ queryKey: ['prayers', prayerId, 'replies'] })
+      queryClient.invalidateQueries({ queryKey: prayerKeys.replies(prayerId) })
 
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['prayers', 'list'] })
-        queryClient.invalidateQueries({ queryKey: ['prayers', 'detail', prayerId] })
+        queryClient.invalidateQueries({ queryKey: prayerKeys.lists() })
+        queryClient.invalidateQueries({ queryKey: prayerKeys.detailPrefix(prayerId) })
         // 'profile' 전체 — 프로필 탭 무한 목록(my-replies 등)도 stale 처리
-        queryClient.invalidateQueries({ queryKey: ['profile'] })
+        queryClient.invalidateQueries({ queryKey: profileKeys.all })
       }, 0)
+      feedback?.onSuccess?.(response, variables)
     },
   })
 

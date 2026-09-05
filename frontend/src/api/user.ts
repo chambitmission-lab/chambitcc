@@ -1,4 +1,4 @@
-import { API_V1, apiFetch } from '../config/api'
+import { request, requestRaw } from './utils/request'
 
 /** 가입 승인 상태 — is_active(운영 중 정지)와는 별개의 축 */
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
@@ -36,24 +36,7 @@ export interface UpdateUserStatusRequest {
 
 // 회원 목록 조회
 export const getUserList = async (): Promise<UsersResponse> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const headers: HeadersInit = {
-    'Authorization': `Bearer ${token}`,
-  }
-
-  const response = await apiFetch(`${API_V1}/admin/users`, {
-    headers,
-  })
-
-  if (!response.ok) {
-    throw new Error('회원 목록을 불러오는데 실패했습니다')
-  }
-
-  return response.json()
+  return request<UsersResponse>('/admin/users', { auth: 'required', errorMessage: '회원 목록을 불러오는데 실패했습니다' })
 }
 
 // 회원 권한 변경
@@ -61,26 +44,12 @@ export const updateUserRole = async (
   userId: number,
   isAdmin: boolean
 ): Promise<void> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-  }
-
-  const response = await apiFetch(`${API_V1}/admin/users/${userId}/role`, {
+  await requestRaw(`/admin/users/${userId}/role`, {
     method: 'PATCH',
-    headers,
-    body: JSON.stringify({ is_admin: isAdmin }),
+    auth: 'required',
+    json: { is_admin: isAdmin },
+    errorMessage: '권한 변경에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '권한 변경에 실패했습니다')
-  }
 }
 
 // 회원 상태 변경
@@ -88,26 +57,12 @@ export const updateUserStatus = async (
   userId: number,
   isActive: boolean
 ): Promise<void> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-  }
-
-  const response = await apiFetch(`${API_V1}/admin/users/${userId}/status`, {
+  await requestRaw(`/admin/users/${userId}/status`, {
     method: 'PATCH',
-    headers,
-    body: JSON.stringify({ is_active: isActive }),
+    auth: 'required',
+    json: { is_active: isActive },
+    errorMessage: '상태 변경에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '상태 변경에 실패했습니다')
-  }
 }
 
 // 회원 가입 승인 / 거절
@@ -116,26 +71,12 @@ export const updateUserApproval = async (
   userId: number,
   approve: boolean
 ): Promise<void> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-  }
-
-  const response = await apiFetch(`${API_V1}/admin/users/${userId}/approval`, {
+  await requestRaw(`/admin/users/${userId}/approval`, {
     method: 'PATCH',
-    headers,
-    body: JSON.stringify({ approve }),
+    auth: 'required',
+    json: { approve },
+    errorMessage: '승인 처리에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '승인 처리에 실패했습니다')
-  }
 }
 
 // 회원 비밀번호 초기화 (임시 비밀번호로 재설정)
@@ -143,73 +84,26 @@ export const updateUserApproval = async (
 export const resetUserPassword = async (
   userId: number
 ): Promise<{ message: string; temp_password: string }> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-  }
-
-  const response = await apiFetch(`${API_V1}/admin/users/${userId}/reset-password`, {
+  return request<{ message: string; temp_password: string }>(`/admin/users/${userId}/reset-password`, {
     method: 'POST',
-    headers,
+    auth: 'required',
+    errorMessage: '비밀번호 초기화에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '비밀번호 초기화에 실패했습니다')
-  }
-
-  return response.json()
 }
 
 // 전역 운영 설정 조회
 export const getAdminSettings = async (): Promise<AdminSettings> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const headers: HeadersInit = {
-    'Authorization': `Bearer ${token}`,
-  }
-
-  const response = await apiFetch(`${API_V1}/admin/settings`, { headers })
-
-  if (!response.ok) {
-    throw new Error('설정을 불러오는데 실패했습니다')
-  }
-
-  return response.json()
+  return request<AdminSettings>('/admin/settings', { auth: 'required', errorMessage: '설정을 불러오는데 실패했습니다' })
 }
 
 // 전역 운영 설정 변경 (보낸 항목만 반영)
 export const updateAdminSettings = async (
   patch: Partial<AdminSettings>
 ): Promise<AdminSettings> => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
-    throw new Error('로그인이 필요합니다')
-  }
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-  }
-
-  const response = await apiFetch(`${API_V1}/admin/settings`, {
+  return request<AdminSettings>('/admin/settings', {
     method: 'PATCH',
-    headers,
-    body: JSON.stringify(patch),
+    auth: 'required',
+    json: patch,
+    errorMessage: '설정 변경에 실패했습니다',
   })
-
-  if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.detail || '설정 변경에 실패했습니다')
-  }
-
-  return response.json()
 }
