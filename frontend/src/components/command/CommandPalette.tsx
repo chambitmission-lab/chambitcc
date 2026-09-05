@@ -16,6 +16,7 @@ import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { NAV_ICONS } from '../layout/NewHeader/components/NavIcons'
 import { PAGE_INDEX, scorePage, type PageEntry } from './commandIndex'
 import chambiAvatar from '../chatbot/img/default.webp'
+import { loadGlossary, searchGlossary, GLOSSARY_TYPE_LABEL, type GlossaryEntry } from '../../pages/Bible/data/bibleGlossary'
 import './CommandPalette.css'
 
 // ⌘K "무엇이든 찾기" — 메뉴·설교·성구를 한 입력창에서 찾고, 못 찾으면 참비에게 넘긴다.
@@ -33,6 +34,7 @@ type Row =
   | { kind: 'ref'; id: string; label: string; desc: string; to: string }
   | { kind: 'verse'; id: string; label: string; desc: string; to: string }
   | { kind: 'sermon'; id: string; label: string; desc: string; to: string }
+  | { kind: 'glossary'; id: string; entry: GlossaryEntry; to: string }
   | { kind: 'ask'; id: string; message: string }
 
 const DEBOUNCE_MS = 180
@@ -109,6 +111,15 @@ const CommandPalette = () => {
   }, [open, close])
 
   // ── 검색 소스 ──────────────────────────────────────────────
+  // 성경 사전(인물·지명·용어 460여 개) — 한국어 전용, 팔레트를 처음 열 때 청크를 한 번 내려받는다
+  const [glossaryReady, setGlossaryReady] = useState(false)
+  useEffect(() => {
+    if (!open || !ko || glossaryReady) return
+    let alive = true
+    loadGlossary().then(() => { if (alive) setGlossaryReady(true) }).catch(() => {})
+    return () => { alive = false }
+  }, [open, ko, glossaryReady])
+
   const ref = useMemo(() => {
     const p = parseBibleReference(debounced)
     return p && p.bookNumber ? p : null
@@ -240,6 +251,12 @@ const CommandPalette = () => {
       out.push({ kind: 'ref', id: `ref:${to}`, label: b.chapter ? `${b.book} ${b.chapter}장` : b.book, desc: b.chapter ? t('cmdkOpenChapter') : t('cmdkOpenBook'), to })
     })
     pages.forEach((entry) => out.push({ kind: 'page', id: `page:${entry.to}`, entry }))
+    // 사전 행 — 메뉴 다음, 절 결과 앞. 누르면 검색 탭(정의 카드 + 본문 절)으로 간다
+    if (debounced && !ref && ko && glossaryReady) {
+      searchGlossary(debounced, 3).forEach((entry) => {
+        out.push({ kind: 'glossary', id: `glossary:${entry.name}:${entry.first}`, entry, to: `/bible?tab=search&q=${encodeURIComponent(entry.name)}` })
+      })
+    }
     if (debounced && !ref && verses?.results?.length) {
       verses.results.slice(0, 4).forEach((v) => {
         const book = v.book_number ?? v.book_id
@@ -271,7 +288,7 @@ const CommandPalette = () => {
     }
     if (debounced) out.push({ kind: 'ask', id: 'ask', message: debounced })
     return out
-  }, [ref, bookHits, pages, verses, sermons, debounced, ko, t, bookName, actions, recent])
+  }, [ref, bookHits, pages, verses, sermons, debounced, ko, t, bookName, actions, recent, glossaryReady])
 
   const rowsKey = rows.map((r) => r.id).join('|')
   const cursor = cursorState.key === rowsKey ? cursorState.idx : 0
@@ -321,10 +338,11 @@ const CommandPalette = () => {
     kind === 'page' ? t('cmdkGroupPages')
     : kind === 'ref' || kind === 'verse' ? t('cmdkGroupBible')
     : kind === 'sermon' ? t('cmdkGroupSermon')
+    : kind === 'glossary' ? t('cmdkGroupGlossary')
     : kind === 'recent' ? t('cmdkRecentTitle')
     : kind === 'action' ? t('cmdkActionsTitle')
     : t('cmdkGroupAsk')
-  const hints = ko ? ['요 3:16', '예배 시간', '주차', '사랑', '위로'] : ['John 3:16', 'service time', 'parking', 'love']
+  const hints = ko ? ['요 3:16', '예배 시간', '바리새인', '사랑', '위로'] : ['John 3:16', 'service time', 'parking', 'love']
 
   // 그룹 헤더는 같은 kind 가 처음 나올 때만
   let lastGroup = ''
@@ -436,6 +454,22 @@ const CommandPalette = () => {
                       <span className="min-w-0 flex-1">
                         <span className={`block text-[14px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>{row.item.label}</span>
                         <span className="block mt-0.5 text-[12px] text-ink-muted line-clamp-1">{row.item.desc}</span>
+                      </span>
+                    </>
+                  ) : row.kind === 'glossary' ? (
+                    <>
+                      <span className={iconBox}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-[20px] h-[20px]" aria-hidden>
+                          <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+                          <path d="M4 20.5V5.5M8 7.5h8M8 11h5" />
+                        </svg>
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className={`block text-[14px] leading-tight ${active ? 'text-brand font-bold' : 'text-ink-strong font-semibold'}`}>
+                          {row.entry.name}
+                          <span className="ml-1.5 text-[11px] font-semibold text-ink-muted">{GLOSSARY_TYPE_LABEL[row.entry.type]}</span>
+                        </span>
+                        <span className="block mt-0.5 text-[12px] text-ink-muted line-clamp-1">{row.entry.desc}</span>
                       </span>
                     </>
                   ) : row.kind === 'ask' ? (

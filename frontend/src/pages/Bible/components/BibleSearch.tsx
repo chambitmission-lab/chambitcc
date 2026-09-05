@@ -9,6 +9,8 @@ import SearchBookCard from './SearchBookCard'
 import type { BookCard } from './SearchBookCard'
 import BookQuickPicker from './BookQuickPicker'
 import SearchVerseCard from './SearchVerseCard'
+import SearchGlossaryCard from './SearchGlossaryCard'
+import { useGlossaryEntry } from '../hooks/useGlossaryEntry'
 import { BOOK_ABBREV_KO, BOOK_ABBREV_EN } from './bibleBookAbbrev'
 
 type SearchScope = 'ALL' | 'OLD' | 'NEW'
@@ -108,6 +110,8 @@ const BibleSearch = () => {
     bookFilter ?? undefined
   )
   const { data: allBooks } = useBibleBooks()
+  // 검색어가 사전 표제어("바리새인", "삼위일체")면 결과 위에 뜻풀이 카드 — 사전은 한국어라 ko 에서만
+  const glossaryEntry = useGlossaryEntry(language === 'ko' ? searchQuery : '')
 
   // 메타(책·장 검색 여부 등)는 첫 페이지에만 담겨 오고, 절은 모든 페이지를 이어붙인다
   const searchResults = searchPages?.pages[0]
@@ -613,6 +617,9 @@ const BibleSearch = () => {
 
       {/* 시작 화면 — 최근·추천 칩. 결과를 보는 중엔 같은 블록이 PC 레일로 옮겨 간다 */}
       {!searchQuery && <div className="search-suggestions">{suggestionGroups}</div>}
+
+      {/* 성경 사전 정의 카드 — 절 결과가 0건("삼위일체")이어도 뜻은 답한다 */}
+      {searchQuery && glossaryEntry && <SearchGlossaryCard entry={glossaryEntry} />}
 
       {searchError && !hasAnyResult ? (
         <div className="no-results" role="alert">

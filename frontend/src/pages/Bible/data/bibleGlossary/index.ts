@@ -30,6 +30,11 @@ export interface GlossaryEntry {
   books?: number[]
   /** true 면 조사가 붙은 형태만 매칭 (단독 표기는 동음이의어 위험) */
   requireParticle?: boolean
+  /**
+   * true 면 본문 인라인 칩은 달지 않고 사전 조회(참비·검색 탭·⌘K)에만 쓴다.
+   * "죄", "교회", "믿음"처럼 본문에 너무 흔하거나 일반어와 겹치는 핵심 개념어용.
+   */
+  chipless?: boolean
 }
 
 export interface GlossaryMatch {
@@ -129,6 +134,7 @@ const getBookMatcher = (bookNumber: number): BookMatcher | null => {
   if (!entries) return null
   const byForm = new Map<string, FormTarget>()
   for (const entry of entries) {
+    if (entry.chipless) continue
     if (entry.books && !entry.books.includes(bookNumber)) continue
     // 어간을 먼저 등록 — name 과 같은 철자("긍휼")면 어간 매칭이 이겨야 "긍휼히"가 잡힌다
     for (const form of entry.stems ?? []) {
@@ -207,6 +213,67 @@ export const claimFirstMention = (
   }
   return holder === verse
 }
+
+
+// ── 사전 조회 (참비 로컬 응답·검색 탭 정의 카드·⌘K 행) ─────────────
+// 본문 칩 매칭(matchGlossary)과 달리 사용자가 직접 친 낱말을 찾는다.
+// 표제어·별칭을 공백 제거·소문자로 정규화해 비교한다. entries 가 아직 안 내려왔으면
+// null/[] — 호출 쪽에서 loadGlossary() 를 먼저 기다릴 것.
+
+const normalizeTerm = (s: string) => s.replace(/\s+/g, '').toLowerCase()
+
+let lookupIndex: Map<string, GlossaryEntry> | null = null
+
+const getLookupIndex = (): Map<string, GlossaryEntry> | null => {
+  if (lookupIndex) return lookupIndex
+  if (!entries) return null
+  const idx = new Map<string, GlossaryEntry>()
+  for (const entry of entries) {
+    // 대표 표기가 별칭보다 우선 — 같은 철자가 두 항목에 있으면 먼저 등록된(앞선) 항목이 이긴다
+    for (const form of [entry.name, ...(entry.alt ?? [])]) {
+      const key = normalizeTerm(form)
+      if (!idx.has(key)) idx.set(key, entry)
+    }
+  }
+  lookupIndex = idx
+  return idx
+}
+
+/** 표제어·별칭과 정확히 일치하는 항목 (없으면 null) */
+export const findGlossaryEntry = (term: string): GlossaryEntry | null => {
+  const idx = getLookupIndex()
+  if (!idx) return null
+  const key = normalizeTerm(term)
+  if (!key) return null
+  return idx.get(key) ?? null
+}
+
+/**
+ * 타이핑 중 제안용 — 앞글자 일치를 먼저, 그다음 포함 일치. 정확히 일치하는 항목이 맨 앞.
+ * 1글자 질의는 앞글자 일치만 본다("죄"로 "속죄"까지 끌려오지 않게).
+ */
+export const searchGlossary = (query: string, limit = 4): GlossaryEntry[] => {
+  if (!entries) return []
+  const q = normalizeTerm(query)
+  if (!q) return []
+  const exact: GlossaryEntry[] = []
+  const prefix: GlossaryEntry[] = []
+  const contains: GlossaryEntry[] = []
+  const seen = new Set<GlossaryEntry>()
+  for (const entry of entries) {
+    if (seen.has(entry)) continue
+    const forms = [entry.name, ...(entry.alt ?? [])].map(normalizeTerm)
+    if (forms.includes(q)) { exact.push(entry); seen.add(entry); continue }
+    if (forms.some((f) => f.startsWith(q))) { prefix.push(entry); seen.add(entry); continue }
+    if (q.length >= 2 && forms.some((f) => f.includes(q))) { contains.push(entry); seen.add(entry) }
+  }
+  // 앞글자 일치는 짧은 표제어부터 — "예"에 예레미야보다 예수·예배가 먼저
+  prefix.sort((a, b) => a.name.length - b.name.length)
+  return [...exact, ...prefix, ...contains].slice(0, limit)
+}
+
+/** 사전 표제어 수 — 안내 문구용 */
+export const glossarySize = () => entries?.length ?? 0
 
 /** 시트에 보여줄 구분 라벨 */
 export const GLOSSARY_TYPE_LABEL: Record<GlossaryType, string> = {

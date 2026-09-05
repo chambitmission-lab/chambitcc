@@ -51,6 +51,7 @@ export const navigation = {
   cmdkGroupPages: '메뉴',
   cmdkGroupBible: '성경',
   cmdkGroupSermon: '설교',
+  cmdkGroupGlossary: '성경 사전',
   cmdkGroupAsk: '참비',
   cmdkOpenBook: '1장부터 펼치기',
   cmdkOpenChapter: '펼치기',

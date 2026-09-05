@@ -141,26 +141,32 @@ const PlanList = () => {
           </h1>
         </div>
 
-        {/* Hero — 브랜드 블루 그라데이션 + 배경 삽화("통독표에 도장 찍는 양").
+        {/* Hero — 카드 그라데이션 + 배경 삽화("통독표에 도장 찍는 양").
             플랜마다 다른 수채 사진을 깔았더니 들어올 때마다 배경이 바뀌는 인상을 줘,
-            한 톤의 브랜드 캔버스로 고정하고 그 위에 라이트/다크 한 장씩만 얹었다 */}
-        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[linear-gradient(120deg,#0b1224_0%,#14306a_58%,#2563eb_125%)] ring-1 ring-white/[0.08] shadow-[0_10px_34px_-12px_rgba(0,0,0,0.55)]">
-          {/* 우상단 브랜드 글로우 + 좌하단 잔광 — 사진이 있던 자리를 빛으로 채운다 */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(96,165,250,0.42),transparent_55%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_105%,rgba(49,130,246,0.28),transparent_52%)]" />
-          {/* 삽화는 오른쪽 아래에 붙고 왼쪽은 알파 페이드로 카드 그라데이션에 녹는다 */}
+            한 톤의 캔버스로 고정하고 그 위에 라이트/다크 한 장씩만 얹었다.
+            ★2판(2026-09-05): 라이트도 남색이던 걸 뒤집어 /bible 이어읽기 카드와 같은 문법으로 갔다 —
+            라이트는 밝은 하늘 + 남색 잉크, 다크는 거의 검은 별밤 + 흰 잉크.
+            ★삽화가 카드 전면을 불투명하게 덮는다. 예전엔 왼쪽 절반을 알파로 파서 카드 그라데이션이
+            비치게 했는데, 그 남색이 삽화의 별밤 하늘을 덮어 버려 폐기했다(재도입 금지).
+            그래서 아래 배경은 **삽화 도착 전 자리끼움**일 뿐이고, 색은 삽화 하늘색과 같게 맞춰 둔다.
+            카드·잉크·삽화는 한 세트다. 하나만 바꾸면 글씨가 죽는다(docs/plan-hero-bg-prompts.md) */}
+        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[linear-gradient(120deg,#dceefc_0%,#e9f4fd_55%,#eef7ff_100%)] ring-1 ring-[rgba(49,130,246,0.15)] shadow-[0_10px_30px_-14px_rgba(49,130,246,0.45)] dark:bg-[linear-gradient(120deg,#060d1c_0%,#08111f_55%,#0c162e_100%)] dark:ring-white/[0.08] dark:shadow-[0_10px_34px_-12px_rgba(0,0,0,0.6)]">
+          {/* 라디얼 글로우 두 겹은 삭제했다 — 불투명한 삽화 아래에 깔려 보이지도 않으면서
+              페이드인 320ms 동안만 파랗게 번쩍였다. 자리끼움은 위 카드 그라데이션이면 충분하다.
+              삽화는 카드 전면을 덮고, 왼쪽 통독표 자국은 에셋 안에서 자기 하늘색으로 녹아 있다 */}
           <div className={`plan-hero-art absolute inset-0${artReady ? ' is-ready' : ''}`} aria-hidden />
 
           <div className="relative z-10">
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/65">
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-[#2563eb] dark:text-white/65">
               Reading&nbsp;Plan
             </span>
-            <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] text-white mt-3 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+            {/* drop-shadow 는 다크에만 — 밝은 카드 위 남색 글씨에 검은 그림자가 붙으면 지저분하다 */}
+            <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] text-[#152648] dark:text-white mt-3 dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
               오늘부터,
               <br />
               함께 읽어요
             </h2>
-            <p className="text-[13px] font-light leading-[1.7] text-white/80 mt-3 max-w-[15rem] break-keep">
+            <p className="text-[13px] font-light leading-[1.7] text-[#41527a] dark:text-white/80 mt-3 max-w-[15rem] break-keep">
               계획을 골라 시작하면 매일 분량과 진행률·연속 기록을 챙겨드려요.
             </p>
           </div>

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Sparkle, Check } from '../icons/phosphor'
 import { EmojiText } from '../common/EmojiText'
 import { getChatbotGreeting, sendChatbotMessage } from '../../api/chatbot'
+import { tryGlossaryReply } from './localGlossary'
 import type { ChatAction, ChatReply } from '../../types/chatbot'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
@@ -386,6 +387,12 @@ const ChatbotWidget = () => {
       setInput('')
       setLoading(true)
       try {
+        // 성경 사전이 답할 수 있는 질문("바리새인이 뭐야")은 서버 왕복 없이 바로 답한다
+        const local = await tryGlossaryReply(trimmed)
+        if (local) {
+          appendReplies([local])
+          return
+        }
         const res = await sendChatbotMessage(trimmed)
         appendReplies(res.replies)
       } catch {
