@@ -1,0 +1,233 @@
+/* 알림 모달 맨 위 '중요 공지' 히어로 카드.
+   라이트: 흰 카드 + 브랜드 광원 + 파란 칩 (3층 문법의 흰 카드).
+   다크: 남색→토스 블루 카드 + 흰 칩 (스토리 완주 히어로와 같은 카드 문법).
+   오른쪽 아래에 큰 확성기 워터마크, 칩에는 '지금 게시 중' 맥박 점. */
+.notif-hero {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  text-align: left;
+  padding: 0.95rem 1rem 0.9rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(49, 130, 246, 0.16);
+  background:
+    radial-gradient(120% 80% at 100% 0%, var(--brand-soft-strong), transparent 58%),
+    #fff;
+  box-shadow: 0 10px 26px -18px var(--brand-glow);
+  color: var(--ig-primary-text);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.notif-hero:hover {
+  box-shadow: 0 14px 30px -16px var(--brand-glow);
+}
+.notif-hero:active {
+  transform: scale(0.99);
+}
+.dark .notif-hero {
+  border: 0;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(69, 147, 252, 0.5), transparent 58%),
+    linear-gradient(160deg, #0b1f45 0%, #10306e 60%, #1a4fb8 100%);
+  box-shadow: 0 18px 40px -24px rgba(16, 48, 110, 0.8);
+  color: #fff;
+}
+
+/* 워터마크 확성기 — 장식 */
+.notif-hero__mark {
+  position: absolute;
+  right: -0.6rem;
+  bottom: -0.9rem;
+  color: var(--brand);
+  opacity: 0.07;
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+.dark .notif-hero__mark {
+  color: #fff;
+  opacity: 0.08;
+}
+
+.notif-hero__top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.notif-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.dark .notif-hero__chip {
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.92);
+}
+/* 맥박 점 — '지금 게시 중' */
+.notif-hero__pulse {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.notif-hero__pulse::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 1.5px solid currentColor;
+  opacity: 0;
+  animation: notif-pulse 2.2s ease-out infinite;
+}
+@keyframes notif-pulse {
+  0% { transform: scale(0.5); opacity: 0.8; }
+  70%, 100% { transform: scale(1.6); opacity: 0; }
+}
+.notif-hero__time {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+.dark .notif-hero__time {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.notif-hero__body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+.notif-hero__img {
+  flex-shrink: 0;
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 1rem;
+  object-fit: cover;
+  background: var(--brand-soft);
+  box-shadow: 0 0 0 3px var(--brand-soft-strong), 0 8px 18px -10px var(--brand-glow);
+}
+.dark .notif-hero__img {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14), 0 8px 18px -10px rgba(0, 0, 0, 0.5);
+}
+.notif-hero__title {
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.3;
+  color: inherit;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.notif-hero__preview {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--ig-secondary-text);
+  word-break: break-word;
+}
+.dark .notif-hero__preview {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+/* 하단 액션 줄 — 게시 마감(있을 때) + 자세히/펼치기 */
+.notif-hero__foot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  padding-top: 0.7rem;
+  border-top: 1px dashed rgba(49, 130, 246, 0.22);
+}
+.dark .notif-hero__foot {
+  border-top-color: rgba(255, 255, 255, 0.16);
+}
+.notif-hero__until {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.dark .notif-hero__until {
+  color: rgba(255, 255, 255, 0.55);
+}
+.notif-hero__until strong {
+  font-weight: 800;
+  color: var(--brand);
+}
+.dark .notif-hero__until strong {
+  color: #fff;
+}
+.notif-hero__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  padding: 0.4rem 0.75rem 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.dark .notif-hero__action {
+  background: #fff;
+  color: #0b1f45;
+}
+.notif-hero__action svg {
+  transition: transform 0.2s ease;
+}
+.notif-hero:hover .notif-hero__action svg {
+  transform: translateX(2px);
+}
+.notif-hero__action--open svg {
+  transform: rotate(180deg);
+}
+.notif-hero:hover .notif-hero__action--open svg {
+  transform: rotate(180deg);
+}
+
+/* 펼친 본문 */
+.notif-hero__expanded {
+  position: relative;
+  margin-top: 0.8rem;
+}
+.notif-hero__expanded-img {
+  margin-top: 0.7rem;
+  width: 100%;
+  max-height: 18rem;
+  object-fit: contain;
+  border-radius: 0.9rem;
+  background: var(--brand-soft);
+}
+.dark .notif-hero__expanded-img {
+  background: rgba(255, 255, 255, 0.06);
+}
+.dark .notif-hero__expanded {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notif-hero__pulse::after {
+    animation: none;
+  }
+}

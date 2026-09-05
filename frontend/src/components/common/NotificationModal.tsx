@@ -12,6 +12,7 @@ import { showToast } from '../../utils/toast'
 import { preloadRoute } from '../../utils/routePreload'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import NoticeContent, { NoticeInline } from './NoticeContent'
+import './NotificationHero.css'
 import {
   BellIcon,
   MegaphoneIcon,
@@ -32,6 +33,29 @@ const GROUP_LABELS: Record<DateGroup, string> = {
   today: '오늘',
   week: '이번 주',
   older: '이전',
+}
+
+/** 노출 기간이 남아 있는 팝업 공지 하나 — 히어로 카드로 올린다 (시각 비교라 훅 밖에서 계산) */
+const pickHeroNotice = (list: Notification[]): Notification | null => {
+  const now = Date.now()
+  return (
+    list.find(
+      (n) =>
+        isNotice(n) && n.is_popup && (!n.popup_until || new Date(n.popup_until).getTime() > now),
+    ) ?? null
+  )
+}
+
+/** 게시 마감 표기 — 'D-n · 9월 19일까지 게시'. 하루 미만 남으면 D-0, 30일 넘게 남으면 D-day 생략 */
+const heroDeadline = (hero: Notification | null) => {
+  if (!hero?.popup_until) return null
+  const until = new Date(hero.popup_until)
+  if (Number.isNaN(until.getTime())) return null
+  const dday = Math.max(0, Math.ceil((until.getTime() - Date.now()) / 86_400_000))
+  return {
+    dday: dday <= 30 ? dday : null,
+    label: `${until.getMonth() + 1}월 ${until.getDate()}일`,
+  }
 }
 
 const formatDate = (iso: string) => {
@@ -157,17 +181,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
 
   // 홈 전면 팝업으로 띄우는 '중요 공지'는 목록에 섞이면 묻힌다.
   // 노출 기간이 남아 있는 것만 맨 위 히어로 카드로 올리고, 아래 목록에서는 뺀다.
-  const hero = useMemo(() => {
-    const now = Date.now()
-    return (
-      notifications.find(
-        (n) =>
-          isNotice(n) &&
-          n.is_popup &&
-          (!n.popup_until || new Date(n.popup_until).getTime() > now),
-      ) ?? null
-    )
-  }, [notifications])
+  const hero = useMemo(() => pickHeroNotice(notifications), [notifications])
 
   const grouped = useMemo(() => {
     const groups: Record<DateGroup, Notification[]> = { today: [], week: [], older: [] }
@@ -180,6 +194,7 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
   const groupOrder: DateGroup[] = ['today', 'week', 'older']
   // 공지는 전용 상세 페이지가 없다 — 링크가 없으면 히어로 카드 안에서 펼쳐 읽는다
   const heroExpanded = !!hero && expandedIds.has(hero.id)
+  const heroUntil = useMemo(() => heroDeadline(hero), [hero])
 
   const toggleExpand = async (notification: Notification) => {
     setExpandedIds((prev) => {
@@ -363,81 +378,87 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
                     type="button"
                     onClick={() => handleItemClick(hero)}
                     aria-expanded={hero.link_url ? undefined : heroExpanded}
-                    className="group w-full text-left p-3.5 rounded-2xl border border-[var(--brand-glow)] bg-[var(--brand-soft)] hover:bg-[var(--brand-soft-strong)] active:bg-[var(--brand-glow)] transition-colors"
+                    className="notif-hero"
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center gap-1 px-1.5 py-[2px] rounded-md bg-brand text-brand-on text-[10px] font-bold tracking-tight">
-                        <MegaphoneIcon size={11} strokeWidth={2.2} />
+                    <span className="notif-hero__mark" aria-hidden>
+                      <MegaphoneIcon size={96} strokeWidth={1.4} />
+                    </span>
+
+                    <div className="notif-hero__top">
+                      <span className="notif-hero__chip">
+                        <span className="notif-hero__pulse" aria-hidden />
                         중요 공지
                       </span>
-                      <span className="flex-shrink-0 text-[11px] text-gray-500 dark:text-gray-400 tabular-nums">
-                        {formatDate(hero.created_at)}
-                      </span>
+                      <span className="notif-hero__time">{formatDate(hero.created_at)}</span>
                     </div>
 
-                    <div className="mt-2.5 flex items-center gap-3">
+                    <div className="notif-hero__body">
                       {hero.image_url && !heroExpanded && (
                         <img
                           src={hero.image_url}
                           alt=""
                           loading="lazy"
-                          className="flex-shrink-0 w-14 h-14 rounded-xl object-cover bg-white/60 dark:bg-white/[0.06]"
+                          className="notif-hero__img"
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[15.5px] font-bold text-ink-strong tracking-tight truncate">
-                          {stripLeadingEmoji(hero.title)}
-                        </h3>
+                        <h3 className="notif-hero__title">{stripLeadingEmoji(hero.title)}</h3>
                         {!heroExpanded && (
-                          <p className="content-clamp mt-1 text-[13px] text-gray-600 dark:text-gray-400 leading-relaxed break-words">
+                          <p className="notif-hero__preview content-clamp">
                             <NoticeInline source={hero.content} />
                           </p>
                         )}
                       </div>
-                      <span
-                        className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-white dark:bg-white/[0.1] text-brand shadow-sm"
-                        aria-hidden
-                      >
-                        {isNavigating && pendingLinkId === hero.id ? (
-                          <span className="block w-3.5 h-3.5 border-[1.5px] border-current border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <svg
-                            width="15"
-                            height="15"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.4"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className={
-                              hero.link_url
-                                ? ''
-                                : `transition-transform duration-200 ${heroExpanded ? 'rotate-180' : ''}`
-                            }
-                          >
-                            <path d={hero.link_url ? 'M9 18l6-6-6-6' : 'M6 9l6 6 6-6'} />
-                          </svg>
-                        )}
-                      </span>
                     </div>
 
                     {heroExpanded && (
-                      <div className="mt-2.5">
+                      <div className="notif-hero__expanded">
                         <NoticeContent source={hero.content} compact />
                         {hero.image_url && (
                           <img
                             src={hero.image_url}
                             alt=""
                             loading="lazy"
-                            className="mt-2.5 w-full max-h-72 object-contain rounded-xl bg-white/60 dark:bg-white/[0.06]"
+                            className="notif-hero__expanded-img"
                           />
                         )}
-                        <span className="mt-2 inline-block text-[12px] font-semibold text-brand">
-                          접기
-                        </span>
                       </div>
                     )}
+
+                    <div className="notif-hero__foot">
+                      {heroUntil && (
+                        <span className="notif-hero__until">
+                          {heroUntil.dday !== null && <strong>D-{heroUntil.dday}</strong>}
+                          {heroUntil.label}까지 게시
+                        </span>
+                      )}
+                      <span
+                        className={`notif-hero__action ${
+                          !hero.link_url && heroExpanded ? 'notif-hero__action--open' : ''
+                        }`}
+                      >
+                        {isNavigating && pendingLinkId === hero.id ? (
+                          <span className="block w-3.5 h-3.5 border-[1.5px] border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            {hero.link_url ? '자세히 보기' : heroExpanded ? '접기' : '펼쳐 읽기'}
+                            <svg
+                              width="13"
+                              height="13"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.6"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden
+                            >
+                              <path d={hero.link_url ? 'M9 18l6-6-6-6' : 'M6 9l6 6 6-6'} />
+                            </svg>
+                          </>
+                        )}
+                      </span>
+                    </div>
                   </button>
                 </div>
               )}
