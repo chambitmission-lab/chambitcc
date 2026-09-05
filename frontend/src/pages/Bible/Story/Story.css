@@ -53,13 +53,6 @@
 .story-hero__cta:active {
   transform: scale(0.98);
 }
-.story-hero__sub {
-  display: block;
-  margin-top: 0.6rem;
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--ig-secondary-text);
-}
 
 /* 전체 진행 바 */
 .story-progress {
@@ -566,20 +559,231 @@
   word-break: keep-all;
 }
 
-/* 완주 히어로 */
+/* ── 완주 히어로 ──────────────────────────────────────
+ * 라이트: 3층(흰 크롬/회색 캔버스/흰 카드) 문법대로 흰 카드 위에 파란 인장이 찍힌다.
+ * 다크: 남색→토스 블루 카드 위에 흰 인장. 두 테마는 같은 마크업이고 아래 토큰만 바뀐다.
+ * 인장이 꾹 눌려 찍히고 잔별 3개가 아주 천천히 반짝인다. 우측 레일(312px)에서도 그대로 쓰이므로 세로 구성. */
 .story-hero--done {
+  /* 라이트 토큰 */
+  --done-ink: var(--ig-primary-text);
+  --done-ink-soft: var(--ig-secondary-text);
+  --done-ink-faint: var(--text-muted);
+  --done-chip-bg: var(--brand-soft);
+  --done-chip-ink: var(--brand);
+  --done-glow: var(--brand-soft-strong);
+  --done-spark: var(--brand);
+  --done-seal-bg:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.28), transparent 48%),
+    linear-gradient(155deg, #4593fc, var(--brand));
+  --done-seal-ink: #fff;
+  --done-seal-ring: rgba(255, 255, 255, 0.45);
+  --done-seal-halo: var(--brand-soft-strong);
+  --done-seal-shadow: 0 12px 28px -10px var(--brand-glow);
+  --done-tile-bg: var(--brand-soft);
+  --done-tile-ring: transparent;
+  --done-tile-label: var(--ig-secondary-text);
+  --done-tile-value: var(--brand);
+  --done-cta-bg: var(--brand);
+  --done-cta-ink: #fff;
+  --done-cta-shadow: 0 10px 24px -10px var(--brand-glow);
+
   text-align: center;
+  padding: 1.35rem 1.25rem 1.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background:
+    radial-gradient(120% 90% at 100% 0%, var(--done-glow), transparent 60%),
+    #fff;
+  color: var(--done-ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
-.story-hero--done .story-hero__emoji {
-  display: grid;
-  place-items: center;
-  width: 4rem;
-  height: 4rem;
-  margin: 0 auto 0.5rem;
+[data-theme='dark'] .story-hero--done {
+  --done-ink: #fff;
+  --done-ink-soft: rgba(255, 255, 255, 0.72);
+  --done-ink-faint: rgba(255, 255, 255, 0.55);
+  --done-chip-bg: rgba(255, 255, 255, 0.14);
+  --done-chip-ink: rgba(255, 255, 255, 0.9);
+  --done-glow: rgba(255, 255, 255, 0.22);
+  --done-spark: rgba(255, 255, 255, 0.85);
+  --done-seal-bg: #fff;
+  --done-seal-ink: var(--brand);
+  --done-seal-ring: rgba(49, 130, 246, 0.45);
+  --done-seal-halo: rgba(255, 255, 255, 0.16);
+  --done-seal-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.45);
+  --done-tile-bg: rgba(255, 255, 255, 0.1);
+  --done-tile-ring: rgba(255, 255, 255, 0.1);
+  --done-tile-label: rgba(255, 255, 255, 0.6);
+  --done-tile-value: #fff;
+  --done-cta-bg: #fff;
+  --done-cta-ink: #0b1f45;
+  --done-cta-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.5);
+
+  border: 0;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(69, 147, 252, 0.55), transparent 60%),
+    linear-gradient(160deg, #0b1f45 0%, #10306e 55%, #1d5fd6 100%);
+  box-shadow: 0 18px 40px -22px rgba(16, 48, 110, 0.7);
+}
+.story-done__glow {
+  position: absolute;
+  left: 50%;
+  top: 3.6rem;
+  width: 14rem;
+  height: 14rem;
+  transform: translate(-50%, -50%);
   border-radius: 999px;
-  background: var(--brand);
-  color: #fff;
-  font-size: 2.4rem;
+  background: radial-gradient(circle, var(--done-glow), transparent 62%);
+  pointer-events: none;
+}
+.story-done__spark {
+  position: absolute;
+  color: var(--done-spark);
+  animation: story-twinkle 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+.story-done__spark--1 { left: 14%; top: 18%; }
+.story-done__spark--2 { right: 16%; top: 12%; animation-delay: 1.1s; }
+.story-done__spark--3 { right: 12%; top: 34%; animation-delay: 2s; }
+@keyframes story-twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.85) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.1) rotate(15deg); }
+}
+.story-done__eyebrow {
+  position: relative;
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--done-chip-bg);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--done-chip-ink);
+}
+/* 인장 — 원판 + 안쪽 점선 압인 링, 살짝 기울여 손으로 찍은 느낌 (라이트=파란 도장, 다크=흰 도장) */
+.story-done__seal {
+  position: relative;
+  display: grid;
+  place-content: center;
+  width: 5.25rem;
+  height: 5.25rem;
+  margin: 0.9rem auto 0;
+  border-radius: 999px;
+  background: var(--done-seal-bg);
+  color: var(--done-seal-ink);
+  transform: rotate(-8deg);
+  box-shadow:
+    0 0 0 4px var(--done-seal-halo),
+    var(--done-seal-shadow);
+  animation: story-stamp 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.story-done__seal-ring {
+  position: absolute;
+  inset: 5px;
+  border-radius: 999px;
+  border: 1.5px dashed var(--done-seal-ring);
+}
+.story-done__seal-text {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.story-done__seal-meta {
+  margin-top: 0.2rem;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+@keyframes story-stamp {
+  from { opacity: 0; transform: rotate(-20deg) scale(1.6); }
+  to { opacity: 1; transform: rotate(-8deg) scale(1); }
+}
+.story-done__title {
+  position: relative;
+  margin-top: 0.9rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.03em;
+  color: var(--done-ink);
+  word-break: keep-all;
+}
+.story-done__text {
+  position: relative;
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--done-ink-soft);
+  word-break: keep-all;
+}
+/* 통계 타일 3칸 — 숫자는 크게 */
+.story-done__stats {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin: 1rem 0 0;
+}
+.story-done__stat {
+  padding: 0.55rem 0.25rem 0.5rem;
+  border-radius: 0.8rem;
+  background: var(--done-tile-bg);
+  box-shadow: inset 0 0 0 1px var(--done-tile-ring);
+}
+.story-done__stat dt {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--done-tile-label);
+}
+.story-done__stat dd {
+  margin: 0.1rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--done-tile-value);
+}
+/* CTA — 라이트는 브랜드 블루, 다크는 남색 위에서 가장 밝은 흰 버튼 */
+.story-done__cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 0.9rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.9rem;
+  background: var(--done-cta-bg);
+  color: var(--done-cta-ink);
+  font-size: 0.925rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  box-shadow: var(--done-cta-shadow);
+  transition: transform 0.15s ease;
+}
+.story-done__cta:active {
+  transform: scale(0.98);
+}
+.story-done__cta-arrow {
+  margin-left: 0.1rem;
+  transition: transform 0.2s ease;
+}
+.story-done__cta:hover .story-done__cta-arrow {
+  transform: translateX(3px);
+}
+.story-done__sub {
+  position: relative;
+  display: block;
+  margin-top: 0.6rem;
+  font-size: 0.72rem;
+  color: var(--done-ink-faint);
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-done__spark,
+  .story-done__seal {
+    animation: none;
+  }
 }
 
 /* ── PC 읽기 화면 (lg+) ───────────────────────────────

@@ -17,7 +17,6 @@ import {
   Broadcast,
   Cactus,
   CastleTurret,
-  Confetti,
   Cross,
   CrownSimple,
   Crown,
@@ -110,7 +109,6 @@ const GLYPHS: Record<string, (p: StoryIconProps) => ReactElement> = {
   '✉': duotone(EnvelopeSimple), // 교회에게 보낸 편지들
   '📖': duotone(BookOpen), // 마지막 책, 문 앞에 서신 분
   '🚪': duotone(DoorOpen), // 이제 당신의 차례
-  '🎉': duotone(Confetti), // 완주 축하 히어로
 }
 
 const normalize = (e: string) => e.replace(/️/g, '').trim()

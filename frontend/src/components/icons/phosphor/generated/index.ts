@@ -1,6 +1,7 @@
 // 자동 생성 — 직접 수정하지 말고 scripts/gen-phosphor-icons.mjs 를 실행하세요.
 export { AirplaneTilt } from './AirplaneTilt'
 export { Alarm } from './Alarm'
+export { ArrowRight } from './ArrowRight'
 export { ArrowUpRight } from './ArrowUpRight'
 export { ArrowsClockwise } from './ArrowsClockwise'
 export { Bank } from './Bank'

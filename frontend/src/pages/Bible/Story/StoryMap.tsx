@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti'
 import { STORY_ACTS, TOTAL_EPISODES, nextUnread } from './data'
 import { useStoryProgress, hasCelebrated, markCelebrated } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
+import { ArrowRight, BookOpen, Sparkle } from '../../../components/icons/phosphor'
 import './Story.css'
 
 /**
@@ -42,17 +43,58 @@ const StoryMap = () => {
           {/* 히어로 — 진행 상태에 따라 3가지 얼굴 */}
           {completed ? (
             <div className="story-hero story-hero--done">
-              <div className="story-hero__emoji"><StoryGlyph emoji="🎉" size={44} /></div>
-              <div className="story-hero__title">완주를 축하합니다!</div>
-              <p className="story-hero__text">
-                창조에서 새 창조까지, 성경 전체의 이야기를 끝까지 걸으셨어요. 이제 지도를
-                손에 쥐었으니, 진짜 말씀 속으로 떠나 볼 차례입니다.
+              {/* 배경 광원·잔별 — 장식이라 스크린리더에서 숨긴다 */}
+              <div className="story-done__glow" aria-hidden />
+              <span className="story-done__spark story-done__spark--1" aria-hidden>
+                <Sparkle size={18} weight="duotone" />
+              </span>
+              <span className="story-done__spark story-done__spark--2" aria-hidden>
+                <Sparkle size={12} weight="duotone" />
+              </span>
+              <span className="story-done__spark story-done__spark--3" aria-hidden>
+                <Sparkle size={14} weight="duotone" />
+              </span>
+
+              <span className="story-done__eyebrow">처음 만나는 성경 · 완주</span>
+
+              {/* 완주 인장 — 통독표 도장과 같은 문법, 열릴 때 꾹 눌러 찍힌다 */}
+              <div className="story-done__seal" aria-label="완주 인장">
+                <span className="story-done__seal-ring" aria-hidden />
+                <span className="story-done__seal-text">완주</span>
+                <span className="story-done__seal-meta">{TOTAL_EPISODES}화</span>
+              </div>
+
+              <h3 className="story-done__title">
+                성경 한 편을
+                <br />
+                끝까지 걸었어요
+              </h3>
+              <p className="story-done__text">
+                창조에서 새 창조까지, 하나로 이어진 이야기의 지도를 손에 쥐었어요.
+                이제 진짜 말씀 속으로 떠날 차례입니다.
               </p>
-              <button className="story-hero__cta" onClick={() => navigate('/bible/plans')}>
-                <span className="material-icons-round text-[18px]">menu_book</span>
-                이제 진짜 성경으로 — 읽기 플랜 보기
+
+              <dl className="story-done__stats">
+                <div className="story-done__stat">
+                  <dt>막</dt>
+                  <dd>{STORY_ACTS.length}</dd>
+                </div>
+                <div className="story-done__stat">
+                  <dt>이야기</dt>
+                  <dd>{TOTAL_EPISODES}</dd>
+                </div>
+                <div className="story-done__stat">
+                  <dt>다음은</dt>
+                  <dd>66권</dd>
+                </div>
+              </dl>
+
+              <button className="story-done__cta" onClick={() => navigate('/bible/plans')}>
+                <BookOpen size={18} weight="duotone" />
+                진짜 성경으로 떠나기
+                <ArrowRight size={16} weight="bold" className="story-done__cta-arrow" />
               </button>
-              <span className="story-hero__sub">아래에서 언제든 다시 읽을 수 있어요</span>
+              <span className="story-done__sub">아래에서 언제든 다시 읽을 수 있어요</span>
             </div>
           ) : (
             <div className="story-hero">
