@@ -178,6 +178,7 @@
     "play_circle",
     "poll",
     "preview",
+    "print",
     "public",
     "quiz",
     "radio",
@@ -256,6 +257,7 @@
     "view_agenda",
     "view_list",
     "vignette",
+    "visibility",
     "volume_off",
     "volume_up",
     "volunteer_activism",
@@ -269,10 +271,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 21284
+    "bytes": 21516
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 23856
+    "bytes": 23940
   }
 }

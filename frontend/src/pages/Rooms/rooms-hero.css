@@ -1,0 +1,31 @@
+/* /rooms 히어로 배경 삽화 — "거대한 펼친 성경 앞에 모여 같은 줄을 읽는 양들"
+   에셋 생성/후처리는 docs/rooms-hero-bg-prompts.md · docs/plan-hero-process.py 참고
+   (`python docs/plan-hero-process.py ~/Downloads rooms`).
+
+   - 카드 높이는 214px 로 고정이고 폭만 358(모바일)→832(PC)로 변한다.
+     cover 는 높이로 스케일이 정해지므로, 모바일에서 그림이 안내 문구를 덮지 않게
+     에셋을 2.2:1 로 만들어 두었다(위쪽은 빈 하늘). 이 비율을 바꾸면 모바일이 깨진다.
+   - 에셋은 완전 불투명이다. 카드 그라데이션은 삽화 도착 전 자리끼움일 뿐이라
+     삽화의 하늘색과 같은 값으로 맞춰 두었다(플랜 히어로 2판과 같은 문법).
+     위에 워시를 한 겹 더 깔지 말 것 — 카드 그라데이션이 120deg 대각선이라 얼룩진다. */
+.rooms-hero-art {
+  background-image: url('/images/rooms/hero-light.webp');
+  background-size: cover;
+  background-position: right bottom;
+  background-repeat: no-repeat;
+  /* 도착 전에는 감춰 뒀다 페이드인 — 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야
+     요청이 나가고, 늦게 도착하면 카드 위에 "툭" 나타난다(heroPrefetch.ts 참고). */
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+.dark .rooms-hero-art {
+  background-image: url('/images/rooms/hero-dark.webp');
+}
+.rooms-hero-art.is-ready {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rooms-hero-art {
+    transition: none;
+  }
+}

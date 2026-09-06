@@ -7,7 +7,10 @@ Gemini 원본 2장(1.png 라이트 / 2.png 다크, 1792x592)을 받아
   3) 왼쪽 알파 페이드를 굽고 1536 폭 webp 로 저장
 까지 한 번에 한다.
 
-    python docs/plan-hero-process.py [원본폴더]
+    python docs/plan-hero-process.py [원본폴더] [대상폴더명]
+
+대상폴더명은 public/images/ 아래 이름(기본 plans). 공동 묵상방 히어로는 rooms —
+docs/rooms-hero-bg-prompts.md 가 같은 규격(2.2:1)이라 이 스크립트를 그대로 쓴다.
 """
 import sys, os
 import numpy as np
@@ -15,7 +18,8 @@ import scipy.ndimage as nd
 from PIL import Image
 
 SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/Downloads")
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public", "images", "plans")
+DEST = sys.argv[2] if len(sys.argv) > 2 else "plans"
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "public", "images", DEST)
 
 RATIO   = 2.2            # 최종 가로:세로 — 아래 "왜 2.2:1 인가" 참고
 # 왼쪽을 녹이는 구간(폭 비율). ★2026-09-05: '투명으로 파기' → '자기 하늘색으로 녹이기'.
@@ -30,7 +34,66 @@ CX, CY = 1671.5, 471.5   # 워터마크 ✦ 중심 (1792x592 기준) — 두 세
 BOXR   = 70              # 별 주변 작업 상자 반경
 
 def load(name):
-    return np.asarray(Image.open(os.path.join(SRC, name)).convert("RGB")).astype(np.float32)
+    a = np.asarray(Image.open(os.path.join(SRC, name)).convert("RGB")).astype(np.float32)
+
+    # ── 제미나이가 배경에 남기는 '가로 계단' 세 종류를 여기서 다 없앤다 ──────────
+    # 프롬프트에 "no straight background edges anywhere" 를 넣어도 거의 매번 그린다.
+    # 대비가 2~5 밖에 안 되지만 **완벽하게 곧고 화면을 가로지르므로** 그림이 아니라
+    # 렌더링 이음매로 읽힌다. 카드가 214px 로 납작해서 더 눈에 띈다.
+
+    # (1) 맨 위 하늘 띠 — 그대로 두면 extend_top 이 그 띠 색으로 천장을 채워
+    #     모바일 카드에 이음매 한 줄이 그대로 남는다.
+    col = a[:200, :600].mean((1, 2))
+    d = np.abs(np.diff(col))
+    i = int(np.argmax(d))
+    if d[i] > 4:
+        print(f"  {name}: 상단 하늘 띠 엣지 row {i+1} (jump {d[i]:.1f}) 잘라냄")
+        a = a[i+1:]
+
+    # (2) 맨 아래 1~2행 — 카드는 bottom 정렬이라 이 몇 줄이 카드 최하단에 그대로 깔린다.
+    col = a[:, :600].mean((1, 2))
+    while len(col) > 3 and abs(col[-1] - col[-2]) > 1.0:
+        a, col = a[:-1], col[:-1]
+
+    # (3) 중간의 지평선 — 배경(빈 하늘) 열에서만 녹인다. 언덕·책·양의 실루엣은
+    #     content 마스크가 지켜 주므로 장면은 그대로 남고 허공의 직선만 사라진다.
+    d = np.abs(np.diff(col))
+    for r in np.where(d[5:len(col)-5] > 1.5)[0] + 6:
+        if r < 5 or r > len(col) - 5:
+            continue
+        print(f"  {name}: 지평선 계단 row {r} (jump {d[r-1]:.1f}) 녹임")
+        a = soften_hstep(a, int(r))
+    return a
+
+
+def sky_model(a):
+    """행마다 x 에 대한 1차식으로 맞춘 '빈 배경' 색. 통독표·삽화가 없는 x 5~58% 만 본다."""
+    H, W, _ = a.shape
+    lo, hi = int(W*0.05), int(W*0.58)
+    xs = np.arange(lo, hi, dtype=np.float32)
+    A = np.stack([np.ones_like(xs), xs], axis=1)
+    coef = np.linalg.lstsq(A, a[:, lo:hi, :].transpose(1, 0, 2).reshape(len(xs), -1), rcond=None)[0]
+    x = np.arange(W, dtype=np.float32)
+    return (coef[0][None, :] + np.outer(x, coef[1])).reshape(W, H, 3).transpose(1, 0, 2)
+
+
+def content_mask(a, grow=6, blur=4.0):
+    """그려진 것(언덕·책·양·풀) = 배경색과 다른 자리. 열림 연산이 별·잔점을 떨어뜨린다."""
+    big = np.abs(a - sky_model(a)).mean(2) > 8
+    big = nd.binary_dilation(nd.binary_opening(big, disk(4)), disk(grow))
+    return nd.gaussian_filter(big.astype(np.float32), blur)
+
+def soften_hstep(a, row, hw=45):
+    """가로 계단 한 줄을 세로 블러로 녹인다 — 배경인 열에서만.
+
+    세로 방향 가우시안은 선형 그라데이션을 그대로 보존하고 계단만 완만한 램프로 바꾼다.
+    가중치는 계단에서 1, ±hw 에서 0 인 스무스스텝이라 밴딩 없이 이어진다."""
+    H, W, _ = a.shape
+    r = np.arange(H, dtype=np.float32)
+    w = smooth(1 - np.abs(r-row)/hw)
+    blur = np.dstack([nd.gaussian_filter1d(a[:, :, c], hw/2.4, axis=0, mode="nearest") for c in range(3)])
+    W3 = (w[:, None]*(1 - content_mask(a)))[:, :, None]
+    return a*(1-W3) + blur*W3
 
 def smooth(t):
     t = np.clip(t, 0, 1); return t*t*(3-2*t)
@@ -129,6 +192,25 @@ def unwatermark(img, A, box):
     out[y0:y1, x0:x1] = np.clip((out[y0:y1, x0:x1] - 255.0*al)/(1.0-al), 0, 255)
     return out
 
+def despeckle(img, A, box):
+    """알파 역산이 별 테두리에 남기는 얇은 윤곽 지우기.
+
+    ✦ 가장자리 1px 은 실제 알파가 0~A 사이로 램프하는데 마스크는 사실상 이진이라,
+    안/밖 어느 쪽으로 찍히든 밝거나 어두운 실선이 한 겹 남는다(다크에서 특히 보인다).
+    마스크를 더 뭉개는 건 역효과였다(잔차가 오히려 커진다) → 별 둘레 링에서
+    **배경이 평평한 화소만** 골라 작은 중앙값으로 눌러 준다. 책 모서리·풀처럼
+    진짜 엣지가 지나가는 곳은 평탄도 조건에서 걸러져 손대지 않는다."""
+    x0, x1, y0, y1 = box
+    sub = img[y0:y1, x0:x1]
+    bg = nd.median_filter(sub.mean(2), footprint=disk(25), mode="nearest")
+    gx, gy = np.gradient(bg)
+    ring = nd.binary_dilation(A > 0.02, disk(2)) & (np.hypot(gx, gy) < 1.2)
+    med = np.dstack([nd.median_filter(sub[:, :, c], size=5, mode="nearest") for c in range(3)])
+    w = nd.gaussian_filter(ring.astype(np.float32), 1.0)[:, :, None]
+    out = img.copy()
+    out[y0:y1, x0:x1] = sub*(1-w) + med*w
+    return out
+
 # ── 2. 위로 캔버스 늘리기 ──────────────────────────────────────────────
 # 원본 3.03:1 을 그대로 cover 로 깔면 모바일(358x216)에서 삽화가 폭 242px 를
 # 차지해 안내 문구를 통째로 덮는다. cover 는 높이로 스케일이 정해지므로
@@ -160,16 +242,9 @@ def blend_to_sky(a, fade):
     if fade is None:
         return a
     H, W, _ = a.shape
-    lo, hi = int(W*0.05), int(W*0.58)
-    xs = np.arange(lo, hi, dtype=np.float32)
-    A = np.stack([np.ones_like(xs), xs], axis=1)
-    coef = np.linalg.lstsq(A, a[:, lo:hi, :].transpose(1, 0, 2).reshape(len(xs), -1), rcond=None)[0]
+    sky = sky_model(a)
     x = np.arange(W, dtype=np.float32)
-    sky = (coef[0][None, :] + np.outer(x, coef[1])).reshape(W, H, 3).transpose(1, 0, 2)
-
-    big = np.abs(a-sky).mean(2) > 8                       # 하늘과 다른 자리 = 그려진 것
-    big = nd.binary_opening(big, disk(4))                 # 별·잔점은 여기서 떨어진다
-    big = nd.gaussian_filter(big.astype(np.float32), 3.0)[:, :, None]
+    big = content_mask(a, grow=0, blur=3.0)[:, :, None]   # 하늘과 다른 자리 = 그려진 것
     ramp = smooth((x - fade[0]*W)/((fade[1]-fade[0])*W))[None, :, None]
     w = 1.0 - big*(1.0-ramp)                              # 마스크 밖은 원본 그대로
     return sky*(1-w) + a*w
@@ -180,7 +255,7 @@ def run():
     A, box = watermark_alpha(dark)
     print(f"watermark alpha peak {A.max():.3f}  area {(A>0).sum()}")
     for name, out_name in [("1.png", "hero-light"), ("2.png", "hero-dark")]:
-        a = unwatermark(load(name), A, box)
+        a = despeckle(unwatermark(load(name), A, box), A, box)
         a = extend_top(a, RATIO)
         H, W, _ = a.shape
         a = blend_to_sky(a, FADE)

@@ -53,6 +53,14 @@ const PlanList = () => {
     }
   }, [artReady])
 
+  // /rooms 히어로 삽화도 CSS 배경이라 화면이 그려진 뒤에야 요청이 나간다.
+  // 여기가 /rooms 로 들어가는 유일한 길목이므로, 버튼에 손이 닿는 순간 미리 데운다.
+  const warmRooms = () => {
+    void import('../../Rooms/heroPrefetch')
+      .then((m) => m.warmRoomsHero())
+      .catch(() => undefined)
+  }
+
   // 로딩 중엔 매 렌더 새 빈 배열이 되어 아래 useMemo 들이 무력화된다 — 참조를 고정
   const plans = useMemo(() => data?.items ?? [], [data])
   const myPlans = plans.filter((p) => p.progress?.subscribed)
@@ -176,6 +184,8 @@ const PlanList = () => {
         <button
           type="button"
           onClick={() => navigate('/rooms')}
+          onPointerEnter={warmRooms}
+          onTouchStart={warmRooms}
           className="lg:hidden mx-4 mt-3.5 w-[calc(100%-2rem)] flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] active:scale-[0.985] text-left"
         >
           <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">
@@ -348,6 +358,8 @@ const PlanList = () => {
         <button
           type="button"
           onClick={() => navigate('/rooms')}
+          onPointerEnter={warmRooms}
+          onTouchStart={warmRooms}
           className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.07] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-[var(--brand-soft-strong)] text-left"
         >
           <span className="shrink-0 w-10 h-10 rounded-xl bg-[var(--brand-soft)] text-brand flex items-center justify-center">

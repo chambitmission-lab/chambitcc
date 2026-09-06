@@ -1,6 +1,6 @@
 // 공동 묵상방 목록 (/rooms)
 // 내가 참여 중인 방 + 새 방 만들기 (본문 범위를 기간에 절 단위 자동 분배)
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useJoinRoom, useMyRooms } from '../../hooks/useMeditationRoom'
 import type { RoomSummary } from '../../types/meditationRoom'
@@ -9,6 +9,8 @@ import { showToast } from '../../utils/toast'
 import { CheckIcon, FlameIcon, PartyIcon, RoomGlyph } from './RoomIcons'
 import { UsersIcon } from '../../components/icons/ActionIcons'
 import { ROOM_COURSES, courseRangeLabel } from './roomCourses'
+import { isRoomsHeroWarm, warmRoomsHero } from './heroPrefetch'
+import './rooms-hero.css'
 
 // 위저드는 만들 때만 필요 — 목록 진입 번들에서 뺀다
 const CreateRoomWizard = lazy(() => import('./CreateRoomWizard'))
@@ -22,6 +24,20 @@ const RoomList = () => {
   const [showCreate, setShowCreate] = useState(false)
   const [joinCode, setJoinCode] = useState('')
   const joinRoom = useJoinRoom()
+
+  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(heroPrefetch.ts 참고).
+  // 플랜 화면의 "공동 묵상방" 버튼이 미리 데워 뒀으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인.
+  const [artReady, setArtReady] = useState(isRoomsHeroWarm)
+  useEffect(() => {
+    if (artReady) return
+    let alive = true
+    void warmRoomsHero().then(() => {
+      if (alive) setArtReady(true)
+    })
+    return () => {
+      alive = false
+    }
+  }, [artReady])
 
   const handleJoinByCode = async () => {
     const code = joinCode.trim().toUpperCase()
@@ -57,22 +73,26 @@ const RoomList = () => {
           </h1>
         </div>
 
-        {/* Hero — 브랜드 블루 그라데이션 (플랜 히어로와 같은 문법, 사진 없음) */}
-        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[linear-gradient(120deg,#0b1224_0%,#14306a_58%,#2563eb_125%)] ring-1 ring-white/[0.08] shadow-[0_10px_34px_-12px_rgba(0,0,0,0.55)]">
-          {/* 우상단 브랜드 글로우 + 좌하단 잔광 — 사진이 있던 자리를 빛으로 채운다 */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(96,165,250,0.42),transparent_55%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_105%,rgba(49,130,246,0.28),transparent_52%)]" />
+        {/* Hero — 삽화 배경 (플랜 히어로 2판과 같은 문법: 라이트는 밝은 하늘 카드 + 남색 잉크).
+            ★삽화가 카드 전면을 불투명하게 덮는다. 아래 카드 그라데이션은 **삽화 도착 전 자리끼움**일
+            뿐이고, 색은 삽화 하늘색과 같게 맞춰 둔다. 카드·잉크·삽화는 한 세트다 —
+            하나만 바꾸면 글씨가 죽는다(docs/rooms-hero-bg-prompts.md) */}
+        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-8 bg-[linear-gradient(120deg,#eef7ff_0%,#dceefc_58%,#cfe3ff_125%)] ring-1 ring-[rgba(49,130,246,0.15)] shadow-[0_10px_30px_-14px_rgba(49,130,246,0.45)] dark:bg-[linear-gradient(120deg,#060d1c_0%,#0c162e_58%,#1a2f60_125%)] dark:ring-white/[0.08] dark:shadow-[0_10px_34px_-12px_rgba(0,0,0,0.6)]">
+          {/* 라디얼 글로우 두 겹은 삭제했다 — 불투명한 삽화 아래라 보이지도 않으면서
+              페이드인 320ms 동안만 파랗게 번쩍인다(플랜 2판에서 같은 이유로 지웠다) */}
+          <div className={`rooms-hero-art absolute inset-0${artReady ? ' is-ready' : ''}`} aria-hidden />
 
           <div className="relative z-10">
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-white/70">
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.34em] text-[#2563eb] dark:text-white/65">
               Together
             </span>
-            <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] text-white mt-3 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+            {/* drop-shadow 는 다크에만 — 밝은 카드 위 남색 글씨에 검은 그림자가 붙으면 지저분하다 */}
+            <h2 className="text-[26px] font-extrabold tracking-[-0.02em] leading-[1.25] text-[#152648] dark:text-white mt-3 dark:drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
               같은 말씀,
               <br />
               함께 묵상해요
             </h2>
-            <p className="text-[13px] font-light leading-[1.7] text-white/80 mt-3 max-w-[16rem]">
+            <p className="text-[13px] font-light leading-[1.7] text-[#41527a] dark:text-white/80 mt-3 max-w-[16rem]">
               코스를 고르고 초대장을 보내면 끝. 매일 같은 본문을 읽고 한 줄씩
               마음을 나눠요.
             </p>

@@ -231,3 +231,24 @@ export const groupSermonsByMonth = (sermons: Sermon[]): SermonMonthGroup[] => {
 
   return groups
 }
+
+/* 본문 속 "▶ …" 한 줄 — 설교 원고라기보다 목회적 한마디라, 상세에서는 본문 흐름에서
+ * 빼내 '핵심 포인트' 인용 카드로 세운다. 못 찾으면 본문은 원문 그대로 둔다. */
+const HIGHLIGHT_LINE_RE = /^\s*[▶▷►★☆■◆]+\s*(.+?)\s*$/
+
+export const extractSermonHighlight = (
+  content: string,
+): { highlight: string | null; body: string } => {
+  if (!content) return { highlight: null, body: '' }
+
+  const lines = content.split('\n')
+  for (let i = 0; i < lines.length; i++) {
+    const text = lines[i].match(HIGHLIGHT_LINE_RE)?.[1]
+    /* 너무 긴 줄은 인용 카드에 담기지 않는다(본문 문단이 기호로 시작한 경우) */
+    if (!text || text.length > 120) continue
+    const body = [...lines.slice(0, i), ...lines.slice(i + 1)].join('\n').trim()
+    return { highlight: text, body }
+  }
+
+  return { highlight: null, body: content }
+}

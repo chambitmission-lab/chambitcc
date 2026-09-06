@@ -125,16 +125,21 @@ const Sermon = () => {
         {/* lg+: 좁은 셸을 풀고 본문 + 우측 위젯 레일 2단 (/news·/ministry·/worship과 같은 문법) */}
         <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
         <div className="max-w-md mx-auto bg-[var(--app-canvas)] min-h-screen lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
-          {/* 헤더 — 플랫 스티키 */}
-          <div className="sermon-page-header">
-            <h1 className="sermon-page-title">설교 말씀</h1>
+          {/* 헤더 — 캔버스 위 편집 헤더(/news와 같은 문법). 흰 바를 깔면
+            * 회색 캔버스와 사이에 이음새가 생겨 상단이 어색해진다. */}
+          <header className="sermon-page-header">
+            <div className="sermon-page-heading">
+              <p className="sermon-page-eyebrow">SERMON</p>
+              <h1 className="sermon-page-title">설교 말씀</h1>
+              <p className="sermon-page-subtitle">주일과 절기, 매주 전해진 말씀을 모았어요</p>
+            </div>
             {adminUser && (
               <button className="sermon-add-btn" onClick={() => setShowForm(true)}>
                 <span className="material-icons-outlined">add</span>
                 등록
               </button>
             )}
-          </div>
+          </header>
 
           {/* 로딩 스켈레톤 */}
           {isLoading && (

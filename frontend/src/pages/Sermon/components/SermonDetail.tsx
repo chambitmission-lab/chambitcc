@@ -1,5 +1,8 @@
-// 설교 상세 모달 — 목록(SermonHero)과 같은 편집 문법: 제목 → 세리프 성구 인용 → 미디어 → 본문
+// 설교 상세 모달 — 와이드 시네마 레이아웃:
+//   헤더(날짜·예배구분·액션) → 사진 리드(제목·성구 인용) → 메타 스트립 → 플레이어 → 본문 카드
+// 색·질감은 theme.css 토큰만 참조하고, 문법은 목록(SermonHero)의 편집 위계를 잇는다.
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import type { Sermon } from '../../../types/sermon'
 import { API_URL } from '../../../config/api'
@@ -10,6 +13,8 @@ import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { BibleReferencesSection } from './BibleReferencesSection'
 import SermonContentFormatter from './SermonContentFormatter'
 import {
+  deriveWorshipType,
+  extractSermonHighlight,
   extractYouTubeVideoId,
   parseBibleReference,
   formatReference,
@@ -35,6 +40,7 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
   const audioPlayerRef = useRef<HTMLAudioElement>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const adminUser = can('sermons:manage')
+  const navigate = useNavigate()
   const deleteSermonMutation = useDeleteSermon(toastFeedback({ success: '설교가 삭제되었습니다', error: '설교 삭제에 실패했습니다' }))
   
   // 설교별 성경 구절 목록 조회 (설교 상세에 포함되지 않은 경우 별도 조회)
@@ -103,6 +109,22 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
     retry: 1,
   })
 
+  const worshipType = deriveWorshipType(sermon.title)
+  const referenceLabel = parsed ? formatReference(parsed) : sermon.bible_verse
+  const mediaLabel = [videoId ? '영상' : null, sermon.audio_url ? '음성' : null].filter(Boolean).join(' · ')
+
+  // "▶ …" 한 줄은 본문에서 빼내 핵심 포인트 카드로 (없으면 본문 그대로)
+  const { highlight, body: bodyContent } = useMemo(
+    () => extractSermonHighlight(sermon.content),
+    [sermon.content]
+  )
+
+  // 성구 칩 → 성경 화면 딥링크 (책 번호를 해석한 경우에만 눌린다)
+  const openBible = () => {
+    if (!parsed?.bookNumber) return
+    navigate(`/bible/${parsed.bookNumber}/${parsed.chapter}${parsed.verse ? `?verse=${parsed.verse}` : ''}`)
+  }
+
   // 목록에서 음성/영상 버튼으로 진입 — 해당 플레이어 위치로 스크롤 (음성은 바로 재생, 영상은 autoplay 파라미터)
   useEffect(() => {
     if (!initialMedia) return
@@ -145,11 +167,21 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
   }
 
   return (
-    <div className="sermon-detail-overlay">
+    <div
+      className="sermon-detail-overlay"
+      onClick={(e) => {
+        // 배경(모달 바깥) 클릭으로 닫기
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
       <div ref={modalRef} className="sermon-detail-modal">
-        {/* 헤더 — 날짜 한 줄 + 액션. 설교자·성구는 도입부가 담당하므로 여기선 반복하지 않는다 */}
+        {/* 헤더 — 날짜 + 예배구분 칩 + 액션. 설교자·성구는 리드가 담당하므로 여기선 반복하지 않는다 */}
         <div className="sermon-detail-header">
-          <span className="sermon-detail-header-date">{formatSermonDate(sermon.sermon_date)}</span>
+          <div className="sermon-detail-header-meta">
+            <span className="material-icons-outlined sermon-detail-header-icon">event</span>
+            <span className="sermon-detail-header-date">{formatSermonDate(sermon.sermon_date)}</span>
+            <span className="sermon-detail-type-chip">{worshipType}</span>
+          </div>
           <div className="sermon-detail-actions">
             {adminUser && (
               <>
@@ -159,6 +191,7 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
                   title="수정"
                 >
                   <span className="material-icons-outlined">edit</span>
+                  <span className="sermon-detail-action-label">수정</span>
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
@@ -166,12 +199,15 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
                   title="삭제"
                 >
                   <span className="material-icons-outlined">delete</span>
+                  <span className="sermon-detail-action-label">삭제</span>
                 </button>
               </>
             )}
             <button
               onClick={onClose}
               className="sermon-detail-action-btn sermon-detail-close-btn"
+              title="닫기"
+              aria-label="닫기"
             >
               <span className="material-icons-outlined">close</span>
             </button>
@@ -180,94 +216,168 @@ const SermonDetail = ({ sermon, initialMedia = null, onClose, onDelete, onEdit }
 
         {/* 내용 */}
         <div className="sermon-detail-content">
-          {/* 도입 — 제목 → 설교자·조회 → 세리프 성구 인용 (히어로와 같은 위계) */}
-          <div className="sermon-detail-lead">
-            <h1 className="sermon-detail-title">{stripTitleDate(sermon.title)}</h1>
-            <div className="sermon-detail-byline">
-              <span>{sermon.pastor}</span>
-              <span aria-hidden>·</span>
-              <span>조회 {sermon.views.toLocaleString()}</span>
-            </div>
-            {leadVerse?.text && (
-              <blockquote className="sermon-detail-quote">
-                <p className="sermon-detail-quote-text">{leadVerse.text}</p>
-              </blockquote>
+          {/* 리드 — 썸네일을 오른쪽으로 흘려보내고 그 위에 제목·성구 인용을 얹는다.
+            * 사진은 그라디언트로 왼쪽 절반을 덮어 글자 대비를 지킨다. */}
+          <div className={`sermon-detail-lead${sermon.thumbnail_url ? ' has-photo' : ''}`}>
+            {sermon.thumbnail_url && (
+              <div
+                className="sermon-detail-lead-photo"
+                style={{ backgroundImage: `url(${sermon.thumbnail_url})` }}
+                aria-hidden
+              />
             )}
-            <div className="sermon-detail-reference">
-              {parsed ? formatReference(parsed) : sermon.bible_verse}
+
+            <div className="sermon-detail-lead-body">
+              <div className="sermon-detail-lead-head">
+                <div className="sermon-detail-byline">{sermon.pastor}</div>
+                <h1 className="sermon-detail-title">{stripTitleDate(sermon.title)}</h1>
+              </div>
+
+              {leadVerse?.text && (
+                <blockquote className="sermon-detail-quote">
+                  <p className="sermon-detail-quote-text">{leadVerse.text}</p>
+                </blockquote>
+              )}
+
+              {referenceLabel && (
+                parsed?.bookNumber ? (
+                  <button type="button" className="sermon-detail-reference" onClick={openBible}>
+                    <span className="material-icons-outlined">menu_book</span>
+                    {referenceLabel}
+                    <span className="material-icons-outlined sermon-detail-reference-arrow">chevron_right</span>
+                  </button>
+                ) : (
+                  <span className="sermon-detail-reference is-static">
+                    <span className="material-icons-outlined">menu_book</span>
+                    {referenceLabel}
+                  </span>
+                )
+              )}
             </div>
           </div>
 
-          {/* 썸네일 — 영상이 없는 설교의 유일한 비주얼로만 쓴다.
-            * 썸네일은 대개 유튜브 대표 이미지라, 영상이 있으면 아래 플레이어의
-            * 첫 화면과 같은 그림이 두 번 그려진다(목록 히어로 배경은 계속 사용). */}
-          {sermon.thumbnail_url && !videoId && (
-            <div className="sermon-detail-thumbnail">
-              <img
-                src={sermon.thumbnail_url}
-                alt={sermon.title}
-              />
-            </div>
-          )}
-
-          {/* 음성 플레이어 */}
-          {sermon.audio_url && (
-            <div className="sermon-detail-audio">
-              <div className="sermon-detail-audio-header">
-                <span className="material-icons-outlined">headphones</span>
-                <h3>설교 음성</h3>
+          {/* 메타 스트립 — 리드와 플레이어 사이의 사실 한 줄 */}
+          <div className="sermon-detail-meta">
+            <div className="sermon-detail-meta-item">
+              <span className="material-icons-outlined">church</span>
+              <div className="sermon-detail-meta-text">
+                <span className="sermon-detail-meta-label">예배구분</span>
+                <strong className="sermon-detail-meta-value">{worshipType}</strong>
               </div>
-              <audio
-                ref={audioPlayerRef}
-                controls
-                src={getAudioUrl()}
-                className="sermon-detail-audio-player"
-                controlsList="nodownload"
-              >
-                Your browser does not support the audio element.
-              </audio>
             </div>
-          )}
+            <div className="sermon-detail-meta-item">
+              <span className="material-icons-outlined">visibility</span>
+              <div className="sermon-detail-meta-text">
+                <span className="sermon-detail-meta-label">조회</span>
+                <strong className="sermon-detail-meta-value">{sermon.views.toLocaleString()}</strong>
+              </div>
+            </div>
+            {mediaLabel && (
+              <div className="sermon-detail-meta-item">
+                <span className="material-icons-outlined">play_circle</span>
+                <div className="sermon-detail-meta-text">
+                  <span className="sermon-detail-meta-label">자료</span>
+                  <strong className="sermon-detail-meta-value">{mediaLabel}</strong>
+                </div>
+              </div>
+            )}
+          </div>
 
-          {/* YouTube 비디오 플레이어 */}
-          {videoId && (
-            <div className="sermon-detail-video-container">
-              <iframe
-                ref={videoPlayerRef}
-                src={`https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1${initialMedia === 'video' ? '&autoplay=1' : ''}`}
-                title="설교 영상"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                className="sermon-detail-video-iframe"
-              />
+          {/* 무대 — 영상·썸네일·음성은 캔버스 위에 뜬 라운드 프레임으로 */}
+          {(videoId || sermon.thumbnail_url || sermon.audio_url) && (
+            <div className="sermon-detail-stage">
+              {/* YouTube 비디오 플레이어 */}
+              {videoId && (
+                <div className="sermon-detail-video-container">
+                  <iframe
+                    ref={videoPlayerRef}
+                    src={`https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1${initialMedia === 'video' ? '&autoplay=1' : ''}`}
+                    title="설교 영상"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="sermon-detail-video-iframe"
+                  />
+                </div>
+              )}
+
+              {/* 썸네일 — 영상이 없는 설교의 유일한 비주얼로만 쓴다.
+                * 썸네일은 대개 유튜브 대표 이미지라, 영상이 있으면 아래 플레이어의
+                * 첫 화면과 같은 그림이 두 번 그려진다(리드 배경은 계속 사용). */}
+              {sermon.thumbnail_url && !videoId && (
+                <div className="sermon-detail-thumbnail">
+                  <img src={sermon.thumbnail_url} alt={sermon.title} />
+                </div>
+              )}
+
+              {/* 음성 플레이어 */}
+              {sermon.audio_url && (
+                <div className="sermon-detail-audio">
+                  <div className="sermon-detail-audio-header">
+                    <span className="material-icons-outlined">headphones</span>
+                    <h3>설교 음성</h3>
+                  </div>
+                  <audio
+                    ref={audioPlayerRef}
+                    controls
+                    src={getAudioUrl()}
+                    className="sermon-detail-audio-player"
+                    controlsList="nodownload"
+                  >
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              )}
             </div>
           )}
 
           {/* 언급된 성경 구절 */}
           {displayReferences.length > 0 && (
-            <BibleReferencesSection
-              references={displayReferences}
-              videoId={videoId}
-              hasAudio={!!sermon.audio_url}
-              onTimestampClick={handleTimestampClick}
-            />
+            <div className="sermon-detail-card">
+              <BibleReferencesSection
+                references={displayReferences}
+                videoId={videoId}
+                hasAudio={!!sermon.audio_url}
+                onTimestampClick={handleTimestampClick}
+              />
+            </div>
           )}
           
           {/* 성경 구절 로딩 중 */}
           {isLoadingReferences && (
-            <div className="sermon-detail-body">
-              <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
-                <span className="material-icons-outlined animate-spin">refresh</span>
-                <span>성경 구절을 불러오는 중...</span>
-              </div>
+            <div className="sermon-detail-card sermon-detail-loading">
+              <span className="material-icons-outlined animate-spin">refresh</span>
+              <span>성경 구절을 불러오는 중...</span>
             </div>
           )}
 
           {/* 설교 내용 */}
-          <div className="sermon-detail-body">
-            <h3 className="sermon-detail-body-title">설교 내용</h3>
-            <SermonContentFormatter content={sermon.content} />
-          </div>
+          {(bodyContent.trim() || highlight) && (
+            <section className="sermon-detail-body">
+              <div className="sermon-detail-body-head">
+                <span className="material-icons-outlined">menu_book</span>
+                <h3 className="sermon-detail-body-title">설교 내용</h3>
+                <span className="sermon-detail-body-rule" aria-hidden />
+              </div>
+
+              <div className={`sermon-detail-body-grid${highlight ? ' has-aside' : ''}`}>
+                {bodyContent.trim() && (
+                  <div className="sermon-detail-body-main">
+                    <SermonContentFormatter content={bodyContent} />
+                  </div>
+                )}
+
+                {highlight && (
+                  <aside className="sermon-detail-highlight">
+                    <div className="sermon-detail-highlight-head">
+                      <span className="material-icons-outlined">format_quote</span>
+                      핵심 포인트
+                    </div>
+                    <p className="sermon-detail-highlight-text">{highlight}</p>
+                  </aside>
+                )}
+              </div>
+            </section>
+          )}
         </div>
 
         {/* 삭제 확인 모달 */}
