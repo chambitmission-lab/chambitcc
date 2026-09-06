@@ -210,12 +210,27 @@ const WeekdayBars = ({
   return (
     <div className="mt-3 rounded-xl border border-[var(--card-border)] bg-[var(--surface-inset)] px-3 pt-2.5 pb-2">
       <p className="mb-2 text-[11px] font-semibold text-gray-400 dark:text-white/45">{title}</p>
-      <div className="grid grid-cols-7 items-end gap-1.5" style={{ height: 44 }}>
+      {/* pt는 막대 위 숫자 라벨이 앉을 자리(border-box라 h-full 막대 높이는 그대로 44px) */}
+      <div className="grid grid-cols-7 items-end gap-1.5 pt-[14px]" style={{ height: 58 }}>
         {daily.slice(0, 7).map((d, i) => {
           const isToday = i === todayIndex
           const isFuture = i > todayIndex
           const v = value(d)
           const pct = Math.round((v / max) * 100)
+          // 몇 명이 참여했는지 한눈에 읽힐 수 있게 모든 막대 위에 수치를 올린다
+          const countLabel = (
+            <span
+              className={`absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-full text-[10px] font-bold leading-none tabular-nums ${
+                isToday
+                  ? 'text-brand'
+                  : v > 0
+                    ? 'text-ink-muted'
+                    : 'text-gray-300 dark:text-white/25'
+              }`}
+            >
+              {v}
+            </span>
+          )
           return (
             <div
               key={d.date}
@@ -223,10 +238,12 @@ const WeekdayBars = ({
               title={`${labels[i]} · ${d.prayers} / ${d.amens}`}
             >
               {isFuture ? (
-                <span className="w-full h-[6px] rounded-full border border-dashed border-[var(--card-border)]" />
+                <span className="relative w-full h-[6px] rounded-full border border-dashed border-[var(--card-border)]">
+                  {countLabel}
+                </span>
               ) : (
                 <span
-                  className={`w-full rounded-full transition-[height] duration-500 ease-out ${
+                  className={`relative w-full rounded-full transition-[height] duration-500 ease-out ${
                     isToday ? 'text-white' : 'bg-[var(--brand-soft-strong)]'
                   }`}
                   style={{
@@ -238,11 +255,8 @@ const WeekdayBars = ({
                         }
                       : {}),
                   }}
-                />
-              )}
-              {isToday && v > 0 && (
-                <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 -translate-y-full text-[10px] font-bold text-brand tabular-nums">
-                  {v}
+                >
+                  {countLabel}
                 </span>
               )}
             </div>
