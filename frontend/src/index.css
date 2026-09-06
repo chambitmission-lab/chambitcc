@@ -28,7 +28,7 @@ h3 {
 
 :root {
   /* Pretendard - MZ세대 선호 폰트 */
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   line-height: 1.6;
   font-weight: 400;
   /* 한글 기본 자간은 UI에서 성기게 보인다 — Pretendard 권장대로 타이트하게 (토스 문법).

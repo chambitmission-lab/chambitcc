@@ -289,7 +289,7 @@
 }
 
 [data-theme="dark"] .gr-hero-card {
-  --gr-hero-image: url('../assets/hero/winter-evening.jpg');
+  --gr-hero-image: url('../assets/hero/winter-evening.webp');
 }
 
 /* 글래스 카드 — 상단 고정 카드(말씀·묵상·읽기)용. 피드에는 쓰지 않는다. */

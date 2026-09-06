@@ -37,6 +37,9 @@ export default defineConfig(({ command }) => ({
   build: {
     rollupOptions: {
       output: {
+        // 주의: experimentalMinChunkSize 로 조각 청크(아이콘 하나짜리 3KB 미만 120여 개)를
+        // 합치는 실험은 되돌렸다 — Rollup 이 lazy 라우트 전용 조각까지 "항상 로드되는" 엔트리에
+        // 합쳐 엔트리가 390→488KB(gz 126→159KB) 로 불었다. 요청 수보다 첫 로드 바이트가 우선.
         // npm 업데이트 때만 바뀌는 프레임워크 코드를 vendor 청크로 고정.
         // 앱 코드만 바뀌는 평소 배포에서는 vendor 해시가 그대로 유지되어
         // 재방문 사용자가 메인 청크의 앱 코드 부분만 다시 받는다.

@@ -70,7 +70,16 @@ const ChapterBriefCard = ({ bookNumber, chapter }: ChapterBriefCardProps) => {
   }, [bookNumber, chapter])
 
   const brief = loaded?.briefs[chapter]
-  if (!loaded || !brief) return null
+  // 데이터 청크를 받는 동안 카드와 같은 높이를 비워 둔다(접힘 상태면 헤더 높이만) —
+  // null 이었다가 나타나면 아래 절 목록이 통째로 밀린다
+  if (!loaded) {
+    return (
+      <div className="px-4 mb-2" aria-hidden>
+        <div className={`chapter-brief-placeholder${collapsed ? ' is-collapsed' : ''}`} />
+      </div>
+    )
+  }
+  if (!brief) return null
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {

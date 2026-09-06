@@ -29,10 +29,10 @@ import {
   UsersIcon,
 } from './icons'
 import { getNaturalSeason, type NaturalSeason } from '../../utils/naturalSeason'
-import heroSpringDay from '../../assets/hero/spring-afternoon.jpg'
-import heroSummerDay from '../../assets/hero/afternoon.jpg'
-import heroAutumnDay from '../../assets/hero/autumn-afternoon.jpg'
-import heroWinterDay from '../../assets/hero/winter-afternoon.jpg'
+import heroSpringDay from '../../assets/hero/spring-afternoon.webp'
+import heroSummerDay from '../../assets/hero/afternoon.webp'
+import heroAutumnDay from '../../assets/hero/autumn-afternoon.webp'
+import heroWinterDay from '../../assets/hero/winter-afternoon.webp'
 import './styles/index.css'
 import { can } from '../../utils/access'
 

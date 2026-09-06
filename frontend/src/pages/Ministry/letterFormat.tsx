@@ -7,7 +7,7 @@ import { removeHighlightTags } from './highlightMarkup'
 // 편지·에세이 톤의 서체 — 성경 읽기 설정과 동일한 스택(이미 index.html에서 로드됨)
 // Noto Serif KR은 400/600만 로드되어 있으므로 굵기는 font-semibold(600)까지만 사용
 export const SERIF = "'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif"
-export const PEN = "'Nanum Pen Script', 'Pretendard', cursive"
+export const PEN = "'Nanum Pen Script', 'Pretendard Variable', cursive"
 
 // 정규식 메타문자 이스케이프
 const escapeRegex = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')

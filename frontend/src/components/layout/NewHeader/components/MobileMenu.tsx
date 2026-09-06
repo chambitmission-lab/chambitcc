@@ -1,6 +1,8 @@
 import NavigationMenu from './NavigationMenu'
 import SettingsMenu from './SettingsMenu'
-import AdminMenu from './AdminMenu'
+import { lazyModal } from '../../../../utils/lazyModal'
+// 관리자 메뉴(아이콘 세트 포함 18KB)는 관리자에게만 — 엔트리에서 분리
+const AdminMenu = lazyModal(() => import('./AdminMenu'))
 
 interface MobileMenuProps {
   isAdminUser: boolean

@@ -3,7 +3,7 @@ import type { Column } from '../../types/column'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
 import { HandHeartIcon } from '../../components/icons/ActionIcons'
-import andongProfile from '../../assets/andong.png'
+import andongProfile from '../../assets/andong.webp'
 import { renderHighlightedText } from './highlightMarkup'
 import {
   FONT_STEPS,

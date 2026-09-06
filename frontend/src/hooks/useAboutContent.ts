@@ -1,6 +1,6 @@
 // 소개 페이지 컨텐츠 훅 - React Query
 import { useEffect } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import {
   getAboutContent,
   updateAboutContent,
@@ -15,8 +15,13 @@ import type {
   UpdateAboutContentRequest,
 } from '../types/aboutContent'
 
-const aboutContentKeys = {
+export const aboutContentKeys = {
   all: ['about-content'] as const,
+}
+
+/** 비로그인 랜딩 진입 시 App(RouteDataPrefetch)이 Landing 청크와 나란히 호출 — 훅과 같은 키 */
+export const prefetchAboutContent = (qc: QueryClient): void => {
+  void qc.prefetchQuery({ queryKey: aboutContentKeys.all, queryFn: getAboutContent, staleTime: 1000 * 60 * 5 })
 }
 
 export const useAboutContent = () => {

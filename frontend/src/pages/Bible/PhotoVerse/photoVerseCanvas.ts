@@ -55,7 +55,7 @@ export const DEFAULT_CARD_STYLE: VerseCardStyle = {
 }
 
 const FONT_STACKS: Record<VerseCardStyle['fontFamily'], string> = {
-  sans: '"Pretendard", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
+  sans: '"Pretendard Variable", "Pretendard", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
   serif: '"Noto Serif KR", "Apple SD Gothic Neo", serif',
   hand: '"Nanum Pen Script", "Apple SD Gothic Neo", cursive',
 }
@@ -1086,7 +1086,7 @@ export const ensureCardFonts = async (sampleText?: string) => {
   const sample = sampleText?.trim() || undefined
   try {
     await Promise.all([
-      document.fonts.load('600 24px Pretendard', sample),
+      document.fonts.load('600 24px "Pretendard Variable"', sample),
       document.fonts.load('600 24px "Noto Serif KR"', sample),
       document.fonts.load('700 24px "Noto Serif KR"', sample),
       document.fonts.load('400 16px "Noto Serif KR"', sample),

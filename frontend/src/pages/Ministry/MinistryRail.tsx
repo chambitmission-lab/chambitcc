@@ -1,5 +1,5 @@
 import type { Column } from '../../types/column'
-import andongProfile from '../../assets/andong.png'
+import andongProfile from '../../assets/andong.webp'
 import { SERIF, monthAnchorId, type MonthGroup } from './letterFormat'
 
 export interface RailHighlight {

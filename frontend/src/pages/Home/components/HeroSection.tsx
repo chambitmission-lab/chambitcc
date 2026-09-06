@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import mainBackground from '../../../assets/main_1.jpg'
+import mainBackground from '../../../assets/main_1.webp'
 
 const HeroSection = () => {
   useEffect(() => {

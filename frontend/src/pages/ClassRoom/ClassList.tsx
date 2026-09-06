@@ -17,7 +17,7 @@ import { showToast } from '../../utils/toast'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { Avatar, DEPARTMENTS, DeptBadge, timeAgo } from './classUi'
 import { BellIcon, KeyIcon, PeopleIcon, SchoolIcon, type IconFn } from './ClassIcons'
-import classNoteHero from '../../assets/hero/class-note.jpg'
+import classNoteHero from '../../assets/hero/class-note.webp'
 
 const ClassList = () => {
   const navigate = useNavigate()

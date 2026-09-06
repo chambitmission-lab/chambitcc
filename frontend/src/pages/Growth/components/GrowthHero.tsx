@@ -1,7 +1,7 @@
 import type { GrowthSummaryData } from '../../../types/growth'
 import { SproutIcon } from '../../../components/icons/GrowthIcons'
 // 홈 묵상 카드의 아침 히어로와 같은 사진 — 여명빛이 "빛을 향해 자라나는 여정" 서사와 맞닿는다
-import heroMorning from '../../../assets/hero/morning.jpg'
+import heroMorning from '../../../assets/hero/morning.webp'
 
 interface GrowthHeroProps {
   summary: GrowthSummaryData

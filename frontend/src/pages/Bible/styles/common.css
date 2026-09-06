@@ -265,3 +265,22 @@
   color: var(--ig-secondary-text);
   opacity: 0.85;
 }
+
+/* 로딩 중 자리 표시자 — 권 개관 바(BookIntroCard)·오늘의 길잡이(ChapterBriefCard)가
+   데이터 도착 후 나타나며 절 목록을 밀어내던 레이아웃 시프트를 막는다.
+   높이는 실제 렌더 결과를 재서 맞춘 값 — 마크업 패딩을 바꾸면 같이 갱신할 것. */
+.book-intro-bar-placeholder {
+  height: 61px;
+  border-radius: 1rem;
+  background: var(--surface-inset, rgba(0, 0, 0, 0.04));
+  opacity: 0.6;
+}
+.chapter-brief-placeholder {
+  height: 204px;
+  border-radius: 1rem;
+  background: var(--surface-inset, rgba(0, 0, 0, 0.04));
+  opacity: 0.6;
+}
+.chapter-brief-placeholder.is-collapsed {
+  height: 56px;
+}

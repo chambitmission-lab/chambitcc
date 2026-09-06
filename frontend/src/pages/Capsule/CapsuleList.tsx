@@ -7,7 +7,7 @@ import type { CapsuleSummary } from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
-import capsuleHero from '../../assets/capsule/hero.jpg'
+import capsuleHero from '../../assets/capsule/hero.webp'
 import './capsule.css'
 
 const capsuleInviteUrl = (code: string) =>

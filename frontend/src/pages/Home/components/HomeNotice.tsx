@@ -56,7 +56,7 @@ const previewOf = (content: string) => noticePreviewText(content)
 
 const HomeNotice = () => {
   const navigate = useNavigate()
-  const { data } = usePopupNotices()
+  const { data, isPending } = usePopupNotices()
   const markAsRead = useMarkAsRead()
   const isLoggedIn = !!tokenStore.getAccess()
 
@@ -105,6 +105,29 @@ const HomeNotice = () => {
   )
 
   const current = queue[0]
+
+  // 포스터가 있는 공지는 이미지가 디코드된 뒤에 연다 — 열린 팝업 안에서 이미지가 뒤늦게
+  // 도착하면 본문·버튼이 통째로 밀린다(실측 CLS 0.35). 실패·지연 시 2.5초 뒤엔 그냥 연다.
+  const [posterReady, setPosterReady] = useState<ReadonlySet<string>>(() => new Set())
+  const currentPoster = current?.image_url ?? null
+  useEffect(() => {
+    if (!currentPoster || posterReady.has(currentPoster)) return
+    let alive = true
+    const markReady = () => {
+      if (!alive) return
+      setPosterReady((prev) => (prev.has(currentPoster) ? prev : new Set([...prev, currentPoster])))
+    }
+    const img = new Image()
+    img.src = currentPoster
+    const decode = typeof img.decode === 'function' ? img.decode() : Promise.resolve()
+    decode.then(markReady, markReady)
+    const timer = window.setTimeout(markReady, 2500)
+    return () => {
+      alive = false
+      window.clearTimeout(timer)
+    }
+  }, [currentPoster, posterReady])
+  const popupReady = !!current && (!currentPoster || posterReady.has(currentPoster))
 
   // 팝업으로 본 공지는 읽음 처리 — 헤더 알림 뱃지가 이미 확인한 공지로 계속 울리지 않게
   useEffect(() => {
@@ -156,6 +179,17 @@ const HomeNotice = () => {
 
   useModalBackButton(closeCurrent, !!current)
 
+  // 첫 조회 중엔 배너 자리를 같은 높이로 비워 둔다 — 응답이 온 뒤 배너가 끼어들면
+  // 아래 묵상 카드가 통째로 104px 밀렸다(실측 CLS 0.115). persist 복원·재방문은 data 가
+  // 즉시 있어 이 분기를 타지 않는다.
+  if (isPending && !data) {
+    return (
+      <div className="px-4 pt-3" aria-hidden>
+        {/* 배너(실측 92px)와 같은 높이. 인라인 <style> 은 배너 분기에서만 렌더되므로 여기선 유틸리티로 */}
+        <div className="h-[92px] rounded-2xl opacity-60" style={{ background: 'var(--surface-inset)' }} />
+      </div>
+    )
+  }
   if (bannerNotices.length === 0) return null
 
   const latest = bannerNotices[0]
@@ -393,8 +427,8 @@ const HomeNotice = () => {
         </button>
       </div>
 
-      {/* 전면 팝업 */}
-      {current && (
+      {/* 전면 팝업 — 포스터가 있으면 디코드가 끝난 뒤에 */}
+      {current && popupReady && (
         <div
           className="notice-backdrop fixed inset-0 z-[120] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={closeCurrent}

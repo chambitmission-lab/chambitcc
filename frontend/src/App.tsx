@@ -15,7 +15,9 @@ import PullToRefresh from './components/common/PullToRefresh'
 import ScrollRestoration from './components/common/ScrollRestoration'
 import { TitleUnlockHost } from './components/titles/TitleUnlockHost'
 import { ConfirmDialogHost } from './components/common/ConfirmDialog'
-import ChatbotWidget from './components/chatbot/ChatbotWidget'
+// 챗봇 위젯(24KB + CSS 24KB + 아바타 7장)은 첫 페인트에 필요 없다 — 엔트리에서 떼고
+// App 첫 렌더 때 받기 시작해 한 왕복 뒤 FAB 이 나타난다
+const ChatbotWidget = lazy(() => import('./components/chatbot/ChatbotWidget'))
 // ⌘K 팔레트는 열 때만 필요 — lazy 로 분리해 메인 번들에서 제외 (트리거 호버 시 프리로드)
 const CommandPalette = lazy(() => import('./components/command/CommandPalette'))
 import { menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
@@ -414,7 +416,7 @@ function App() {
           {/* 공통 확인/안내 모달 호스트 — 브라우저 기본 confirm()/alert() 대체 */}
           <ConfirmDialogHost />
           {/* 규칙 기반 교회 챗봇 "참빛 말씀비서" — 전역 플로팅 위젯 */}
-          <ChatbotWidget />
+          <Suspense fallback={null}><ChatbotWidget /></Suspense>
           {/* ⌘K 무엇이든 찾기 — 메뉴·설교·성구·참비 */}
           <Suspense fallback={null}><CommandPalette /></Suspense>
           {/* 방문자 집계는 Cloudflare Pages 의 Web Analytics(대시보드 토글)가

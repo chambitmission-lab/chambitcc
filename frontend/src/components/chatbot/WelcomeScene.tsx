@@ -69,7 +69,7 @@ const IconQuiz = (
       fontSize="15"
       fontWeight="800"
       fill="#fff"
-      fontFamily="Pretendard, sans-serif"
+      fontFamily="'Pretendard Variable', Pretendard, sans-serif"
     >
       ?
     </text>

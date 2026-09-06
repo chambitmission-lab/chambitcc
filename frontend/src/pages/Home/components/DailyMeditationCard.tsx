@@ -20,18 +20,19 @@ import {
 } from '../../../utils/churchCalendar'
 import type { TimeOfDay } from '../../../types/meditation'
 import { getNaturalSeason, type NaturalSeason } from '../../../utils/naturalSeason'
-import heroSummerMorning from '../../../assets/hero/morning.jpg'
-import heroSummerAfternoon from '../../../assets/hero/afternoon.jpg'
-import heroSummerEvening from '../../../assets/hero/evening.jpg'
-import heroSpringMorning from '../../../assets/hero/spring-morning.jpg'
-import heroSpringAfternoon from '../../../assets/hero/spring-afternoon.jpg'
-import heroSpringEvening from '../../../assets/hero/spring-evening.jpg'
-import heroAutumnMorning from '../../../assets/hero/autumn-morning.jpg'
-import heroAutumnAfternoon from '../../../assets/hero/autumn-afternoon.jpg'
-import heroAutumnEvening from '../../../assets/hero/autumn-evening.jpg'
-import heroWinterMorning from '../../../assets/hero/winter-morning.jpg'
-import heroWinterAfternoon from '../../../assets/hero/winter-afternoon.jpg'
-import heroWinterEvening from '../../../assets/hero/winter-evening.jpg'
+import { tokenStore } from '../../../utils/tokenStore'
+import heroSummerMorning from '../../../assets/hero/morning.webp'
+import heroSummerAfternoon from '../../../assets/hero/afternoon.webp'
+import heroSummerEvening from '../../../assets/hero/evening.webp'
+import heroSpringMorning from '../../../assets/hero/spring-morning.webp'
+import heroSpringAfternoon from '../../../assets/hero/spring-afternoon.webp'
+import heroSpringEvening from '../../../assets/hero/spring-evening.webp'
+import heroAutumnMorning from '../../../assets/hero/autumn-morning.webp'
+import heroAutumnAfternoon from '../../../assets/hero/autumn-afternoon.webp'
+import heroAutumnEvening from '../../../assets/hero/autumn-evening.webp'
+import heroWinterMorning from '../../../assets/hero/winter-morning.webp'
+import heroWinterAfternoon from '../../../assets/hero/winter-afternoon.webp'
+import heroWinterEvening from '../../../assets/hero/winter-evening.webp'
 import './DailyMeditationCard.css'
 
 const GREETING_KEYS = {
@@ -41,7 +42,8 @@ const GREETING_KEYS = {
 } as const satisfies Record<TimeOfDay, string>
 
 /* 계절 × 시간대 히어로 — 이미지·이모지·헤드라인이 함께 바뀌며 분위기를 만든다.
- * CSS 배경으로만 참조되므로 실제 다운로드는 현재 계절·시간대 1장뿐이다. */
+ * CSS 배경으로만 참조되므로 실제 다운로드는 현재 계절·시간대 1장뿐이다.
+ * (아래 preloadCurrentHero 가 그 한 장을 엔트리 실행 시점에 high 우선순위로 미리 받는다) */
 const HERO_IMAGES: Record<NaturalSeason, Record<TimeOfDay, string>> = {
   spring: {
     morning: heroSpringMorning,
@@ -124,6 +126,26 @@ const WEATHER_LABEL_KEYS = {
 
 /* 이 확률 이상이면 강수확률을 함께 보여준다 (우산 챙길 판단선) */
 const POP_VISIBLE_THRESHOLD = 40
+
+/* 홈 LCP 후보인 히어로 사진을 엔트리 실행 시점에 미리 받는다.
+ * CSS 배경(::before)은 HTML 프리로드 스캐너가 볼 수 없고, 요소가 레이아웃된 뒤에야
+ * 낮은 우선순위로 요청된다 — 느린 4G 실측에서 사진 한 장에 3초가 걸린 이유.
+ * 이 모듈은 엔트리에 있으므로 비로그인 랜딩에서도 평가된다 → 홈(피드)이 그려질 때만 건다. */
+const preloadCurrentHero = () => {
+  if (typeof document === 'undefined') return
+  const isHome = !!tokenStore.getAccess() || /^#\/feed(\?|$)/.test(window.location.hash)
+  if (!isHome) return
+  const now = new Date()
+  const src = HERO_IMAGES[getNaturalSeason(now)][deriveTimeOfDay(now.getHours())]
+  if (document.querySelector(`link[rel="preload"][href="${src}"]`)) return
+  const link = document.createElement('link')
+  link.rel = 'preload'
+  link.as = 'image'
+  link.href = src
+  link.setAttribute('fetchpriority', 'high')
+  document.head.appendChild(link)
+}
+preloadCurrentHero()
 
 const HERO_EMOJI: Record<TimeOfDay, string> = {
   morning: '☀️',

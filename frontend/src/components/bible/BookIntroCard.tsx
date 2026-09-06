@@ -94,7 +94,8 @@ const BookIntroCard = ({
   )
 
   // 로딩 중이거나, 개관도 없고 관리자도 아니면 아무것도 보여주지 않는다
-  if (isLoading) return null
+  // 로딩 중엔 바와 같은 높이를 비워 둔다 — null 이었다가 나타나면 아래 절 목록이 통째로 밀린다
+  if (isLoading) return <div className="mt-3 mb-2 px-4" aria-hidden><div className="book-intro-bar-placeholder" /></div>
   if (!intro && !admin) return null
 
   // 관리자인데 개관이 아직 없는 경우 — 추가 유도 슬림 배너

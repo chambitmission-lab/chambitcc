@@ -216,9 +216,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- Pretendard Font — dynamic-subset: unicode-range 로 쪼갠 조각만 받는다
-         (static 빌드는 웨이트당 전체 한글 글리프 ~1MB 를 첫 화면에서 통째로 내려받았다) -->
-    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+    <!-- Pretendard Variable — dynamic-subset: unicode-range 로 쪼갠 조각만 받되, 가변 폰트라
+         조각 하나가 45~920 전 웨이트를 담는다. static 빌드는 화면에 쓰인 웨이트마다(400·500·600·
+         700·800) 같은 범위를 따로 받아 홈 피드 한 번에 54조각 614KB 였다(가변은 절반 이하,
+         차단 CSS 도 553KB→53KB). font-family 는 'Pretendard Variable' — index.css 스택과 맞출 것. -->
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 
     <!-- Material Icons — self-host 서브셋(실제 쓰는 아이콘만, 두 벌 합쳐 ~45KB). 예전엔
          Google Fonts 의 차단 CSS 2개 → 전체 폰트 2벌(322KB)을 받았고, 폰트 요청 자체가
