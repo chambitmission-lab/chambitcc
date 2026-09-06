@@ -1,0 +1,34 @@
+/* /survey 히어로 배경 삽화 — "의견함에 쪽지를 넣는 양 + 자기 몸통만 한 두루마리를 끄는 새끼양"
+   에셋 생성/후처리는 docs/survey-hero-bg-prompts.md · docs/plan-hero-process.py
+   (`python docs/plan-hero-process.py ~/Downloads survey`, FADE=(0.42,0.72)).
+
+   - 카드 높이는 214px 고정이고 폭만 358(모바일)→832(PC)로 변한다.
+     cover 는 높이로 스케일이 정해지므로, 모바일에서 그림이 안내 문구를 덮지 않게
+     에셋을 2.2:1 로 만들어 두었다(위쪽은 빈 하늘). 이 비율을 바꾸면 모바일이 깨진다.
+   - ★세로 정렬이 `bottom` 이 아니라 `85%` 다. 제미나이가 캐릭터를 규격(머리 끝 62%)보다
+     크게 그려서, PC(폭맞춤)에서 위가 잘릴 때 큰 양의 귀·연필 끝이 날아간다.
+     15% 를 아래(빈 바닥)에서 대신 잘라 머리를 살린다. 모바일은 높이맞춤이라 영향 없다.
+   - 에셋은 완전 불투명이다. 카드 그라데이션은 삽화 도착 전 자리끼움일 뿐이라
+     삽화의 하늘색을 실측해 같은 값으로 맞춰 두었다(플랜 2판·묵상방과 같은 문법).
+     위에 워시를 한 겹 더 깔지 말 것 — 카드 그라데이션이 120deg 대각선이라 얼룩진다. */
+.survey-hero-art {
+  background-image: url('/images/survey/hero-light.webp');
+  background-size: cover;
+  background-position: right 85%;
+  background-repeat: no-repeat;
+  /* 도착 전에는 감춰 뒀다 페이드인 — 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야
+     요청이 나가고, 늦게 도착하면 카드 위에 "툭" 나타난다(heroPrefetch.ts 참고). */
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+.dark .survey-hero-art {
+  background-image: url('/images/survey/hero-dark.webp');
+}
+.survey-hero-art.is-ready {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .survey-hero-art {
+    transition: none;
+  }
+}

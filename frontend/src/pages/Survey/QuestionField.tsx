@@ -9,7 +9,10 @@ interface Props {
   question: SurveyQuestion
   value?: AnswerDraft
   onChange: (next: AnswerDraft) => void
+  /** 입력은 그대로 두되 손댈 수 없게 (관리자 미리보기) */
   disabled?: boolean
+  /** 제출한 답을 다시 볼 때 — 입력 대신 '내가 고른 답'만 보여준다 */
+  view?: boolean
   index: number
 }
 
@@ -165,7 +168,76 @@ const RatingInput = ({
   )
 }
 
-const QuestionField = ({ question, value, onChange, disabled, index }: Props) => {
+
+/* 읽기 전용 — 고르지 않은 보기까지 회색으로 늘어놓지 않고, 낸 답만 보여준다 */
+const AnswerView = ({ question, draft }: { question: SurveyQuestion; draft: AnswerDraft }) => {
+  const settings = question.settings ?? {}
+  const labels = (question.options ?? [])
+    .filter((o) => draft.optionIds.includes(o.id))
+    .map((o) => o.label)
+  const otherText = draft.text.trim()
+
+  if (question.type === 'single' || question.type === 'multi') {
+    const chips = [...labels, ...(otherText ? [otherText] : [])]
+    if (!chips.length) return <EmptyAnswer />
+    return (
+      <div className="flex flex-wrap gap-1.5">
+        {chips.map((label, i) => (
+          <span
+            key={`${label}-${i}`}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[var(--brand-soft)] border border-[var(--brand-soft-strong)] text-[13.5px] font-semibold text-brand"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {label}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  if (question.type === 'rating') {
+    const current = draft.number === '' ? 0 : Number(draft.number)
+    if (!current) return <EmptyAnswer />
+    const max = typeof settings.max === 'number' && settings.max > 0 ? settings.max : 5
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="flex items-center gap-0.5 text-[#f4b400]">
+          {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
+            <svg key={n} width="20" height="20" viewBox="0 0 24 24" fill={current >= n ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" className={current >= n ? '' : 'text-gray-300 dark:text-white/20'}>
+              <path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z" />
+            </svg>
+          ))}
+        </span>
+        <span className="text-[13.5px] font-bold text-ink-strong tabular-nums">{current}점</span>
+      </div>
+    )
+  }
+
+  if (question.type === 'number') {
+    if (draft.number === '') return <EmptyAnswer />
+    return (
+      <p className="text-[15px] font-bold text-ink-strong tabular-nums">
+        {draft.number}
+        {settings.unit ? <span className="ml-0.5 text-[13px] font-semibold text-ink-muted">{settings.unit}</span> : null}
+      </p>
+    )
+  }
+
+  if (!otherText) return <EmptyAnswer />
+  return (
+    <p className="text-[14px] text-ink-strong leading-relaxed whitespace-pre-wrap break-words">
+      {otherText}
+    </p>
+  )
+}
+
+const EmptyAnswer = () => (
+  <p className="text-[13px] text-gray-400 dark:text-white/40">답하지 않음</p>
+)
+
+const QuestionField = ({ question, value, onChange, disabled, view, index }: Props) => {
   const draft = value ?? emptyDraft()
   const settings = question.settings ?? {}
   const options = question.options ?? []
@@ -207,14 +279,16 @@ const QuestionField = ({ question, value, onChange, disabled, index }: Props) =>
           {question.description ? (
             <p className="mt-0.5 text-[12.5px] text-ink-muted leading-relaxed">{question.description}</p>
           ) : null}
-          {question.type === 'multi' && settings.max_select ? (
+          {!view && question.type === 'multi' && settings.max_select ? (
             <p className="mt-0.5 text-[12px] text-brand">최대 {settings.max_select}개까지 선택</p>
           ) : null}
         </div>
       </div>
 
       <div className="mt-2.5 pl-7 space-y-2">
-        {(question.type === 'single' || question.type === 'multi') && (
+        {view ? <AnswerView question={question} draft={draft} /> : null}
+
+        {!view && (question.type === 'single' || question.type === 'multi') && (
           <>
             {options.map((option) => (
               <ChoiceRow
@@ -250,7 +324,7 @@ const QuestionField = ({ question, value, onChange, disabled, index }: Props) =>
           </>
         )}
 
-        {question.type === 'text' && (
+        {!view && question.type === 'text' && (
           <input
             type="text"
             value={draft.text}
@@ -261,7 +335,7 @@ const QuestionField = ({ question, value, onChange, disabled, index }: Props) =>
           />
         )}
 
-        {question.type === 'long' && (
+        {!view && question.type === 'long' && (
           <textarea
             value={draft.text}
             disabled={disabled}
@@ -272,7 +346,7 @@ const QuestionField = ({ question, value, onChange, disabled, index }: Props) =>
           />
         )}
 
-        {question.type === 'number' && (
+        {!view && question.type === 'number' && (
           <NumberInput
             value={draft.number}
             unit={settings.unit}
@@ -283,7 +357,7 @@ const QuestionField = ({ question, value, onChange, disabled, index }: Props) =>
           />
         )}
 
-        {question.type === 'rating' && (
+        {!view && question.type === 'rating' && (
           <RatingInput
             value={draft.number}
             max={typeof settings.max === 'number' && settings.max > 0 ? settings.max : 5}
@@ -292,7 +366,7 @@ const QuestionField = ({ question, value, onChange, disabled, index }: Props) =>
           />
         )}
 
-        {question.type === 'time' && (
+        {!view && question.type === 'time' && (
           <TimePicker
             value={draft.text}
             onChange={(next) => patch({ text: next })}
@@ -302,7 +376,7 @@ const QuestionField = ({ question, value, onChange, disabled, index }: Props) =>
           />
         )}
 
-        {question.type === 'date' && (
+        {!view && question.type === 'date' && (
           <DatePicker
             value={draft.text}
             onChange={(next) => patch({ text: next })}

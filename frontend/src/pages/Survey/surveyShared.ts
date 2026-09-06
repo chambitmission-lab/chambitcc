@@ -195,3 +195,10 @@ export const findMissingRequired = (
   }
   return null
 }
+
+/** 목록 카드·배너의 액션 문구 — 상태별로 말투가 흩어지지 않게 한곳에서 정한다 */
+export const surveyActionLabel = (survey: SurveySummary): string => {
+  if (isAcceptingResponses(survey)) return survey.my_response_id ? '응답 수정' : '참여하기'
+  if (survey.my_response_id) return '내 응답 보기'
+  return survey.is_result_public ? '결과 보기' : '자세히 보기'
+}

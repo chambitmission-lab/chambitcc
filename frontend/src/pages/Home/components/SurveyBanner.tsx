@@ -3,7 +3,9 @@
 import { useNavigate } from 'react-router-dom'
 import { useSurveyHomeBanner } from '../../../hooks/useSurvey'
 import { isAuthenticated } from '../../../utils/auth'
+import { preloadRoute } from '../../../utils/routePreload'
 import { daysLeft } from '../../Survey/surveyShared'
+import { ClipboardIcon } from '../../Survey/surveyUi'
 
 const SurveyBanner = () => {
   const navigate = useNavigate()
@@ -20,16 +22,13 @@ const SurveyBanner = () => {
       <button
         type="button"
         onClick={() => navigate(`/survey/${survey.id}`)}
+        onMouseEnter={() => void preloadRoute(`/survey/${survey.id}`)}
+        onTouchStart={() => void preloadRoute(`/survey/${survey.id}`)}
         className="w-full text-left rounded-2xl border border-[var(--brand-soft-strong)] bg-[var(--brand-soft)] px-4 py-3.5 flex items-center gap-3 transition-transform active:scale-[0.99]"
       >
         {/* 체크리스트 — 설문지 한 장 */}
         <span className="shrink-0 w-11 h-11 rounded-2xl bg-white/70 dark:bg-white/[0.08] text-brand flex items-center justify-center">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M8 4H6.5A1.5 1.5 0 0 0 5 5.5v14A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-14A1.5 1.5 0 0 0 17.5 4H16" />
-            <rect x="8" y="2.6" width="8" height="3.2" rx="1.1" />
-            <polyline points="9.2 12 10.8 13.6 14.8 9.6" />
-            <path d="M9.2 17.4h5.6" />
-          </svg>
+          <ClipboardIcon size={22} />
         </span>
 
         <div className="min-w-0 flex-1">

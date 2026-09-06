@@ -42,6 +42,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
 // 첫 화면 이미지를 미리 받아 둔다. 청크가 처음 로드될 때 한 번만 호출된다.
 const routeDataPrefetchers: Record<string, () => Promise<void>> = {
   '/greeting': () => import('../pages/Greeting/prefetch').then((m) => m.prefetch()),
+  // 설문 히어로 삽화는 CSS 배경이라 엘리먼트가 렌더된 뒤에야 요청이 나간다 — 청크와 같이 데운다
+  '/survey': () => import('../pages/Survey/heroPrefetch').then((m) => m.warmSurveyHero()),
 }
 
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다
@@ -64,6 +66,7 @@ const deepLinkRouteLoaders: { key: string; match: RegExp; load: RouteLoader }[] 
   { key: 'capsule', match: /^\/capsule$/, load: () => import('../pages/Capsule/CapsuleList') },
   { key: 'classes/join', match: /^\/classes\/join\//, load: () => import('../pages/ClassRoom/JoinClass') },
   { key: 'classes/detail', match: /^\/classes\/[^/]+$/, load: () => import('../pages/ClassRoom/ClassHome') },
+  { key: 'survey/detail', match: /^\/survey\/[^/]+$/, load: () => import('../pages/Survey/SurveyDetail') },
 ]
 
 // 진행 중인 로드는 promise 자체를 캐싱한다. Set으로 "시작했음"만 기록하면

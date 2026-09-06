@@ -1,6 +1,6 @@
 // 설문 참여 화면 — 문항에 답하고 제출한다.
-// 제출 뒤에는 완료 카드로 바뀌고, 결과 공개 설문이면 그 자리에서 통계까지 볼 수 있다.
-import { useMemo, useState } from 'react'
+// 제출한 뒤에는 '내 응답' / '결과' 두 탭으로 바뀐다(결과는 공개 설문일 때만).
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useSubmitSurvey, useSurvey, useSurveyStats } from '../../hooks/useSurvey'
 import { isAuthenticated } from '../../utils/auth'
@@ -8,9 +8,7 @@ import { showToast, toastFeedback } from '../../utils/toast'
 import QuestionField from './QuestionField'
 import SurveyStatsView from './SurveyStatsView'
 import {
-  STATUS_META,
   cardCls,
-  daysLeft,
   draftsFromAnswers,
   draftsToAnswers,
   emptyDraft,
@@ -21,24 +19,15 @@ import {
   OTHER_OPTION_ID,
   type AnswerDraft,
 } from './surveyShared'
+import {
+  CenterNote,
+  CheckIcon,
+  Spinner,
+  SurveyShell,
+  SurveyStateChip,
+} from './surveyUi'
 
-type Mode = 'form' | 'done' | 'stats'
-
-const BackBar = ({ onBack }: { onBack: () => void }) => (
-  <div className="sticky top-0 z-20 flex items-center gap-2 px-2 py-2 bg-surface/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark">
-    <button
-      type="button"
-      onClick={onBack}
-      className="w-9 h-9 rounded-full flex items-center justify-center text-ink-muted hover:text-brand hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
-      aria-label="뒤로"
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="15 18 9 12 15 6" />
-      </svg>
-    </button>
-    <span className="text-[14px] font-semibold text-ink-strong">설문조사</span>
-  </div>
-)
+type Tab = 'answer' | 'stats'
 
 const SurveyDetail = () => {
   const navigate = useNavigate()
@@ -66,12 +55,23 @@ const SurveyDetail = () => {
   const [edits, setEdits] = useState<Record<number, AnswerDraft> | null>(null)
   const drafts = edits ?? serverDrafts
 
-  // 참여 이력이 있으면 완료 화면으로 연다 — 사용자가 버튼을 누르기 전까지만 자동 판정
-  const [modeOverride, setModeOverride] = useState<Mode | null>(null)
-  const mode: Mode = modeOverride ?? (survey?.my_response_id ? 'done' : 'form')
-  const setMode = setModeOverride
+  // 참여 이력이 있으면 '내 응답'으로 열고, 아직이면 바로 답할 수 있게 폼으로 연다.
+  const [editing, setEditing] = useState(false)
+  const [tab, setTab] = useState<Tab>('answer')
+  const answered = Boolean(survey?.my_response_id)
+  const accepting = survey ? isAcceptingResponses(survey) : false
+  const formMode = !answered || editing
 
-  const statsEnabled = mode === 'stats' && Boolean(survey?.is_result_public)
+  // 필수 문항을 비우고 제출하면 그 문항으로 데려가 잠깐 테두리를 밝힌다
+  const [flashId, setFlashId] = useState<number | null>(null)
+  const questionRefs = useRef<Record<number, HTMLDivElement | null>>({})
+  useEffect(() => {
+    if (flashId === null) return
+    const t = window.setTimeout(() => setFlashId(null), 1800)
+    return () => window.clearTimeout(t)
+  }, [flashId])
+
+  const statsEnabled = tab === 'stats' && !editing && Boolean(survey?.is_result_public)
   const { data: stats, isLoading: statsLoading } = useSurveyStats(surveyId, statsEnabled)
 
   const submit = useSubmitSurvey(
@@ -81,7 +81,6 @@ const SurveyDetail = () => {
     })
   )
 
-  const accepting = survey ? isAcceptingResponses(survey) : false
   const answeredCount = useMemo(() => {
     if (!survey) return 0
     return draftsToAnswers(survey.questions, drafts).length
@@ -92,6 +91,11 @@ const SurveyDetail = () => {
     const missing = findMissingRequired(survey.questions, drafts)
     if (missing) {
       showToast(missing.message, 'error')
+      setFlashId(missing.question.id)
+      questionRefs.current[missing.question.id]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
       return
     }
     const answers = draftsToAnswers(survey.questions, drafts)
@@ -103,7 +107,9 @@ const SurveyDetail = () => {
       { id: survey.id, data: { answers } },
       {
         onSuccess: () => {
-          setMode('done')
+          setEditing(false)
+          setEdits(null)
+          setTab('answer')
           window.scrollTo({ top: 0, behavior: 'smooth' })
         },
       }
@@ -112,215 +118,226 @@ const SurveyDetail = () => {
 
   if (!loggedIn) {
     return (
-      <div className="min-h-screen bg-[var(--app-canvas)] flex items-center justify-center px-6">
-        <div className={`${cardCls} px-5 py-10 text-center max-w-sm w-full`}>
-          <p className="text-[14px] text-ink-muted">로그인 후 참여할 수 있습니다</p>
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="mt-3 px-4 py-2 rounded-xl bg-brand text-white text-[13.5px] font-semibold"
-          >
-            로그인하기
-          </button>
-        </div>
-      </div>
+      <SurveyShell onBack={() => navigate('/survey')} title="설문조사">
+        <CenterNote
+          title="로그인 후 참여할 수 있습니다"
+          hint="설문은 한 분이 한 번만 참여할 수 있어, 로그인이 필요해요."
+          actionLabel="로그인하기"
+          onAction={() => navigate('/login')}
+        />
+      </SurveyShell>
     )
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[var(--app-canvas)] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
-      </div>
+      <SurveyShell onBack={() => navigate('/survey')} title="설문조사">
+        <Spinner />
+      </SurveyShell>
     )
   }
 
   if (isError || !survey) {
     return (
-      <div className="min-h-screen bg-[var(--app-canvas)] flex items-center justify-center px-6">
-        <div className={`${cardCls} px-5 py-10 text-center max-w-sm w-full`}>
-          <p className="text-[14px] text-ink-strong font-semibold">설문을 찾을 수 없습니다</p>
-          <button
-            type="button"
-            onClick={() => navigate('/survey')}
-            className="mt-3 px-4 py-2 rounded-xl bg-brand text-white text-[13.5px] font-semibold"
-          >
-            목록으로
-          </button>
-        </div>
-      </div>
+      <SurveyShell onBack={() => navigate('/survey')} title="설문조사">
+        <CenterNote
+          title="설문을 찾을 수 없습니다"
+          hint="이미 삭제되었거나 주소가 바뀌었을 수 있어요."
+          actionLabel="목록으로"
+          onAction={() => navigate('/survey')}
+        />
+      </SurveyShell>
     )
   }
 
-  const left = daysLeft(survey.ends_at)
-  const readOnly = mode === 'done' || !accepting
+  const showTabs = answered && !editing && survey.is_result_public
+  const readOnly = !formMode
 
   return (
-    <div className="min-h-screen bg-[var(--app-canvas)] text-gray-900 dark:text-gray-100">
-      <div className="lg:max-w-[860px] lg:mx-auto lg:px-5 lg:pt-3 lg:pb-12">
-        <div className="max-w-md mx-auto min-h-screen pb-32 lg:max-w-none lg:mx-0 lg:min-h-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden">
-          <BackBar onBack={() => (mode === 'stats' ? setMode('done') : navigate('/survey'))} />
-
-          {/* 설문 안내 */}
-          <header className="px-4 pt-4 pb-3">
-            <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-              <span
-                className={`text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${STATUS_META[survey.status].badge}`}
-              >
-                {STATUS_META[survey.status].label}
-              </span>
-              {left !== null && left >= 0 && accepting ? (
-                <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full border bg-gray-100 text-gray-500 border-gray-200 dark:bg-white/[0.06] dark:text-white/50 dark:border-white/[0.08]">
-                  {left === 0 ? '오늘 마감' : `D-${left}`}
-                </span>
-              ) : null}
-            </div>
-            <h1 className="text-[22px] font-bold text-ink-strong leading-snug tracking-[-0.02em]">
+    <SurveyShell onBack={() => navigate('/survey')} title={survey.title}>
+      <div className="px-4 pt-4 space-y-3">
+        {/* 설문 안내 — 무엇을 묻는 설문인지, 언제까지인지 */}
+        <header className={`${cardCls} px-4 py-4`}>
+          <div className="flex items-start gap-2">
+            <h2 className="flex-1 min-w-0 text-[19px] font-extrabold text-ink-strong leading-snug tracking-[-0.02em]">
               {survey.title}
-            </h1>
-            {survey.description ? (
-              <p className="mt-2 text-[13.5px] text-ink-muted leading-relaxed whitespace-pre-wrap">
-                {survey.description}
-              </p>
-            ) : null}
-            {survey.ends_at ? (
-              <p className="mt-2 text-[12px] text-ink-muted">
-                {formatDate(survey.ends_at)}까지 참여할 수 있습니다
-              </p>
-            ) : null}
-          </header>
-
-          <div className="px-4 space-y-3">
-            {/* 참여 완료 카드 */}
-            {mode !== 'form' && survey.my_response_id ? (
-              <div className={`${cardCls} px-4 py-5 text-center`}>
-                <div className="mx-auto w-12 h-12 rounded-full bg-[var(--brand-soft)] text-brand flex items-center justify-center mb-2.5">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <p className="text-[15.5px] font-bold text-ink-strong">참여해 주셔서 감사합니다</p>
-                <p className="mt-1 text-[13px] text-ink-muted whitespace-pre-wrap leading-relaxed">
-                  {survey.thank_you_message ?? '보내주신 의견은 소중히 살펴 반영하겠습니다'}
-                </p>
-                {survey.my_responded_at ? (
-                  <p className="mt-2 text-[11.5px] text-ink-muted">
-                    {formatDateTime(survey.my_responded_at)} 제출
-                  </p>
-                ) : null}
-
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                  {accepting && survey.allow_edit ? (
-                    <button
-                      type="button"
-                      onClick={() => setMode('form')}
-                      className="px-4 py-2 rounded-xl border border-gray-200 dark:border-white/[0.1] text-[13.5px] font-semibold text-ink hover:border-brand hover:text-brand transition-colors"
-                    >
-                      응답 수정
-                    </button>
-                  ) : null}
-                  {survey.is_result_public ? (
-                    <button
-                      type="button"
-                      onClick={() => setMode(mode === 'stats' ? 'done' : 'stats')}
-                      className="px-4 py-2 rounded-xl bg-brand text-white text-[13.5px] font-semibold"
-                    >
-                      {mode === 'stats' ? '결과 닫기' : '결과 보기'}
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
-
-            {/* 마감 안내 */}
-            {!accepting && !survey.my_response_id ? (
-              <div className={`${cardCls} px-4 py-8 text-center`}>
-                <p className="text-[14.5px] font-semibold text-ink-strong">
-                  {survey.status === 'closed' || (left !== null && left < 0)
-                    ? '마감된 설문입니다'
-                    : '아직 시작되지 않은 설문입니다'}
-                </p>
-                <p className="mt-1 text-[13px] text-ink-muted">다음 설문에서 만나요</p>
-              </div>
-            ) : null}
-
-            {/* 통계 */}
-            {mode === 'stats' ? (
-              statsLoading ? (
-                <div className="flex justify-center py-10">
-                  <div className="w-7 h-7 border-2 border-gray-200 dark:border-white/20 border-t-brand rounded-full animate-spin" />
-                </div>
-              ) : stats ? (
-                <SurveyStatsView stats={stats} />
-              ) : null
-            ) : null}
-
-            {/* 문항 — 제출 뒤에는 내가 낸 답을 읽기 전용으로 보여준다 */}
-            {mode !== 'stats' && (accepting || survey.my_response_id) ? (
-              <div className={`${cardCls} p-4 space-y-5`}>
-                {mode === 'done' ? (
-                  <p className="text-[11.5px] font-bold tracking-[0.05em] text-ink-muted">내 응답</p>
-                ) : null}
-                {survey.questions.map((question, i) => (
-                  <div
-                    key={question.id}
-                    className={i > 0 ? 'pt-5 border-t border-gray-100 dark:border-white/[0.06]' : ''}
-                  >
-                    <QuestionField
-                      question={question}
-                      index={i + 1}
-                      value={drafts[question.id] ?? emptyDraft()}
-                      disabled={readOnly}
-                      onChange={(next) =>
-                        setEdits((prev) => ({ ...(prev ?? serverDrafts), [question.id]: next }))
-                      }
-                    />
-                  </div>
-                ))}
-                {survey.questions.length === 0 ? (
-                  <p className="text-[13px] text-ink-muted text-center py-6">
-                    아직 문항이 등록되지 않았습니다
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
+            </h2>
+            <span className="shrink-0 mt-0.5">
+              <SurveyStateChip survey={survey} />
+            </span>
           </div>
+          {survey.description ? (
+            <p className="mt-2 text-[13.5px] text-ink-muted leading-relaxed whitespace-pre-wrap">
+              {survey.description}
+            </p>
+          ) : null}
+          <p className="mt-2.5 text-[12px] text-gray-400 dark:text-white/45">
+            문항 {survey.questions.length}개
+            {survey.response_count > 0 ? ` · ${survey.response_count}명 참여` : ''}
+            {survey.ends_at ? ` · ${formatDate(survey.ends_at)}까지` : ''}
+          </p>
+        </header>
 
-          {/* 제출 바 — 답한 문항 수를 함께 보여줘 남은 분량이 보이게 한다 */}
-          {mode === 'form' && accepting && survey.questions.length > 0 ? (
-            <div className="fixed bottom-0 inset-x-0 z-30 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 bg-surface/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark">
-              <div className="max-w-md mx-auto lg:max-w-[820px]">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[12px] text-ink-muted">
-                    {answeredCount} / {survey.questions.length} 문항 응답
-                  </span>
-                  <div className="flex-1 mx-3 h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-brand transition-[width] duration-300"
-                      style={{
-                        width: `${Math.round((answeredCount / survey.questions.length) * 100)}%`,
-                      }}
-                    />
-                  </div>
-                </div>
+        {/* 참여 완료 — 낸 답이 잘 접수됐다는 확인과, 다음에 할 수 있는 일 */}
+        {answered && !editing ? (
+          <div className={`${cardCls} px-4 py-4 flex items-start gap-3`}>
+            <span className="shrink-0 w-10 h-10 rounded-full bg-[var(--brand-soft)] text-brand flex items-center justify-center">
+              <CheckIcon size={20} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[14.5px] font-bold text-ink-strong">참여해 주셔서 감사합니다</p>
+              <p className="mt-0.5 text-[12.5px] text-ink-muted whitespace-pre-wrap leading-relaxed">
+                {survey.thank_you_message ?? '보내주신 의견은 소중히 살펴 반영하겠습니다'}
+              </p>
+              {survey.my_responded_at ? (
+                <p className="mt-1 text-[11.5px] text-gray-400 dark:text-white/40">
+                  {formatDateTime(survey.my_responded_at)} 제출
+                </p>
+              ) : null}
+              {accepting && survey.allow_edit ? (
                 <button
                   type="button"
-                  onClick={handleSubmit}
-                  disabled={submit.isPending}
-                  className="w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold disabled:opacity-60 transition-opacity"
+                  onClick={() => {
+                    setEditing(true)
+                    setTab('answer')
+                  }}
+                  className="mt-2.5 px-3.5 py-2 rounded-xl border border-gray-200 dark:border-white/[0.1] text-[13px] font-semibold text-ink hover:border-brand hover:text-brand transition-colors"
                 >
-                  {submit.isPending
-                    ? '제출 중…'
-                    : survey.my_response_id
-                      ? '수정한 내용 제출'
-                      : '제출하기'}
+                  응답 수정하기
                 </button>
-              </div>
+              ) : null}
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
+
+        {/* 마감 안내 — 아직 참여하지 않았는데 받을 수 없는 설문일 때 */}
+        {!accepting && !answered ? (
+          <div className={`${cardCls} px-4 py-8 text-center`}>
+            <p className="text-[14.5px] font-semibold text-ink-strong">
+              {survey.status === 'closed' || (survey.ends_at && new Date(survey.ends_at) < new Date())
+                ? '마감된 설문입니다'
+                : '아직 시작되지 않은 설문입니다'}
+            </p>
+            <p className="mt-1 text-[13px] text-ink-muted">다음 설문에서 만나요</p>
+          </div>
+        ) : null}
+
+        {/* 탭 — 낸 답과 전체 결과를 오간다 (결과 공개 설문일 때만) */}
+        {showTabs ? (
+          <div className="flex gap-1.5 p-1 rounded-2xl bg-gray-100 dark:bg-white/[0.06]">
+            {([
+              ['answer', '내 응답'],
+              ['stats', '결과'],
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTab(key)}
+                className={`relative flex-1 py-2 rounded-xl text-[13.5px] font-bold transition-colors ${
+                  tab === key
+                    ? 'bg-brand text-white seal-chip [--seal-radius:0.75rem] [--seal-drop:none]'
+                    : 'text-gray-500 dark:text-white/55'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        {/* 결과 */}
+        {showTabs && tab === 'stats' ? (
+          statsLoading ? (
+            <Spinner size={28} />
+          ) : stats ? (
+            <SurveyStatsView stats={stats} />
+          ) : null
+        ) : null}
+
+        {/* 문항 — 제출 뒤에는 내가 고른 답만 읽기 전용으로 보여준다 */}
+        {(!showTabs || tab === 'answer') && (accepting || answered) ? (
+          <div className={`${cardCls} p-4 space-y-5`}>
+            {readOnly ? (
+              <p className="text-[11.5px] font-bold tracking-[0.05em] text-ink-muted">내 응답</p>
+            ) : null}
+            {survey.questions.map((question, i) => (
+              <div
+                key={question.id}
+                ref={(el) => {
+                  questionRefs.current[question.id] = el
+                }}
+                className={`${i > 0 ? 'pt-5 border-t border-gray-100 dark:border-white/[0.06]' : ''} ${
+                  flashId === question.id
+                    ? '-mx-2 px-2 rounded-xl ring-2 ring-red-400/70 dark:ring-red-400/50'
+                    : ''
+                }`}
+              >
+                <QuestionField
+                  question={question}
+                  index={i + 1}
+                  value={drafts[question.id] ?? emptyDraft()}
+                  view={readOnly}
+                  onChange={(next) =>
+                    setEdits((prev) => ({ ...(prev ?? serverDrafts), [question.id]: next }))
+                  }
+                />
+              </div>
+            ))}
+            {survey.questions.length === 0 ? (
+              <p className="text-[13px] text-ink-muted text-center py-6">
+                아직 문항이 등록되지 않았습니다
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
-    </div>
+
+      {/* 제출 바 — 모바일은 화면 아래 고정, PC는 본문 끝에 붙는다 */}
+      {formMode && accepting && survey.questions.length > 0 ? (
+        <div className="fixed bottom-0 inset-x-0 z-30 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-t border-border-light dark:border-border-dark lg:static lg:mt-4 lg:px-4 lg:pb-6 lg:pt-0 lg:bg-transparent lg:dark:bg-transparent lg:backdrop-blur-none lg:border-0">
+          <div className="max-w-md mx-auto lg:max-w-none">
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <span className="text-[12px] font-semibold text-ink-muted tabular-nums">
+                {answeredCount} / {survey.questions.length} 문항 응답
+              </span>
+              {answered ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditing(false)
+                    setEdits(null)
+                  }}
+                  className="text-[12.5px] font-semibold text-gray-400 dark:text-white/45 hover:text-brand transition-colors"
+                >
+                  수정 취소
+                </button>
+              ) : null}
+            </div>
+            <div className="h-1.5 rounded-full bg-gray-100 dark:bg-white/[0.08] overflow-hidden mb-2.5">
+              <div
+                className="h-full rounded-full bg-brand transition-[width] duration-300"
+                style={{
+                  width: `${Math.round((answeredCount / survey.questions.length) * 100)}%`,
+                }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submit.isPending}
+              className="relative w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold disabled:opacity-60 transition-opacity seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)]"
+            >
+              {submit.isPending ? '제출 중…' : answered ? '수정한 내용 제출' : '제출하기'}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {/* 고정 제출 바에 본문이 가리지 않게 — PC에선 바가 흐름에 들어가므로 필요 없다 */}
+      {formMode && accepting && survey.questions.length > 0 ? (
+        <div className="h-32 lg:hidden" aria-hidden />
+      ) : null}
+    </SurveyShell>
   )
 }
 
