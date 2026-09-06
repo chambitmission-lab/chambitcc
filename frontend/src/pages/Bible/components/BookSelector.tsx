@@ -3,7 +3,9 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import type { BibleBook } from '../../../types/bible'
 import type { ReadingProgressResponse, ResumePosition } from '../../../api/bibleReading'
 import { parseApiDate } from '../../../utils/dateUtils'
-import BibleProgressMap from './BibleProgressMap'
+import { lazyModal } from '../../../utils/lazyModal'
+// 지도 보기는 토글해야 나온다 — 기본 뷰(여정)만 정적으로 둔다
+const BibleProgressMap = lazyModal(() => import('./BibleProgressMap'))
 import BookJourneyPath from './BookJourneyPath'
 import { aggregateRange, buildBookInfoMap } from './readingProgressInfo'
 import { bookAbbrev } from './bibleBookAbbrev'

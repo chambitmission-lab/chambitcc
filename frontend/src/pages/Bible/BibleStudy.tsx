@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useParams, useSearchParams, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
-import confetti from 'canvas-confetti'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
 import { useResumeReading, useReadingProgress } from '../../hooks/useBibleReading'
 import { useQueryClient } from '@tanstack/react-query'
@@ -17,11 +16,15 @@ import {
   ChapterOutlineRail,
   BibleAudioPlayer,
   VerseList,
-  BibleSearch,
   ResumeReadingCard,
-  FavoritesPlaylistModal,
-  FocusReading,
 } from './components'
+import ChapterLoader from './components/ChapterLoader'
+import { lazyModal } from '../../utils/lazyModal'
+// 열 때만 필요한 화면은 별도 청크 — 읽기 화면 청크(gz 82KB)에서 검색 탭·집중 읽기·
+// 즐겨찾기 플레이리스트(framer-motion gz 40KB 를 혼자 끌어오던 주범)를 뗀다
+const BibleSearch = lazyModal(() => import('./components/BibleSearch'), <ChapterLoader />)
+const FavoritesPlaylistModal = lazyModal(() => import('./components/FavoritesPlaylistModal'))
+const FocusReading = lazyModal(() => import('./components/FocusReading'))
 import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
@@ -272,12 +275,15 @@ const BibleStudy = () => {
     const prev = prevPlanDayRef.current
     prevPlanDayRef.current = { day: planDay.day_number, completed: planDay.completed }
     if (prev && prev.day === planDay.day_number && !prev.completed && planDay.completed) {
-      confetti({
-        particleCount: 90,
-        spread: 75,
-        origin: { y: 0.7 },
-        colors: ['#3182f6', '#4593fc', '#60a5fa', '#93c5fd'],
-      })
+      // 축하 효과는 완주 순간에만 필요하다 — canvas-confetti 는 그때 받는다
+      void import('canvas-confetti').then(({ default: confetti }) =>
+        confetti({
+          particleCount: 90,
+          spread: 75,
+          origin: { y: 0.7 },
+          colors: ['#3182f6', '#4593fc', '#60a5fa', '#93c5fd'],
+        }),
+      )
       showToast(`오늘 분량 완료! ${planDay.day_number}일차를 마쳤어요 🎉`, 'success')
     }
   }, [planId, planDay])

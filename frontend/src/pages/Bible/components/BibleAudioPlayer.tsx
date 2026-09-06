@@ -12,9 +12,11 @@ import {
   setAudioVoice,
   useAudioSettings,
 } from '../data/audioSettings'
-import AudioSleepSheet from './AudioSleepSheet'
 import AudioSettingsMenu from './AudioSettingsMenu'
-import CinemaReading from './CinemaReading'
+import { lazyModal } from '../../../utils/lazyModal'
+// 열 때만 받는 오버레이·시트 — 읽기 화면 청크에서 분리
+const AudioSleepSheet = lazyModal(() => import('./AudioSleepSheet'))
+const CinemaReading = lazyModal(() => import('./CinemaReading'))
 
 // 절 메뉴 '여기부터 듣기' 요청. seq가 바뀔 때마다 새 요청으로 처리한다.
 // book/chapter는 장 이동 직후 남은 이전 장 요청을 무시하기 위한 대조용.

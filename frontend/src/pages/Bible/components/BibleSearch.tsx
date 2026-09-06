@@ -12,6 +12,7 @@ import SearchVerseCard from './SearchVerseCard'
 import SearchGlossaryCard from './SearchGlossaryCard'
 import { useGlossaryEntry } from '../hooks/useGlossaryEntry'
 import { BOOK_ABBREV_KO, BOOK_ABBREV_EN } from './bibleBookAbbrev'
+import '../styles/search.css'
 
 type SearchScope = 'ALL' | 'OLD' | 'NEW'
 

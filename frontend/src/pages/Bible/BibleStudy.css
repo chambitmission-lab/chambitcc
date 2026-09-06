@@ -25,14 +25,9 @@
 /* Verse Display - 성경 본문 표시 */
 @import './styles/verse-display.css';
 
-/* 집중 읽기 - 한 절씩 몰입 모드 */
-@import './styles/focus-reading.css';
-
-/* 낭독 영화관 - 말씀+음성+배경 전체화면 */
-@import './styles/cinema-reading.css';
-
-/* Search - 검색 기능 */
-@import './styles/search.css';
+/* 집중 읽기(focus-reading.css)·낭독 영화관(cinema-reading.css)·검색(search.css)은
+   열 때만 받는 lazy 청크의 컴포넌트가 직접 import 한다 — 여기서 묶으면 읽기 화면이
+   쓰지도 않는 스타일을 첫 로드에 받는다. */
 
 /* Common - 공통 컴포넌트 */
 @import './styles/common.css';

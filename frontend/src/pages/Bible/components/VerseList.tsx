@@ -9,9 +9,13 @@ import type { VerseListActions, VerseListSettings } from './verse/VerseListConte
 import ChapterLoader from './ChapterLoader'
 import { useChapterReadStatus, useMarkVerseAsRead, useUnmarkVerseAsRead, useMarkChapterAsRead, useUnmarkChapterAsRead } from '../../../hooks/useBibleReading'
 import { biblePlanKeys } from '../../../hooks/useBiblePlan'
-import { celebrateFlowerBloom } from '../../../utils/confettiEffects'
-import VerseEditModal from '../../../components/bible/VerseEditModal'
-import BibleCommentaryPanel from '../../../components/bible/BibleCommentaryPanel'
+import { lazyModal } from '../../../utils/lazyModal'
+// 열 때만 받는 시트·패널·모달 — 읽기 화면 청크에서 분리 (공유 시트는 캔버스 렌더러까지 끌어온다)
+const VerseEditModal = lazyModal(() => import('../../../components/bible/VerseEditModal'))
+const BibleCommentaryPanel = lazyModal(() => import('../../../components/bible/BibleCommentaryPanel'))
+// 축하 효과(canvas-confetti)는 장을 다 읽은 순간에만 필요하다
+const celebrateFlowerBloom = () =>
+  void import('../../../utils/confettiEffects').then((m) => m.celebrateFlowerBloom())
 import { showToast } from '../../../utils/toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useOptimisticUpdateVerse } from '../../../hooks/useBibleAdmin'
@@ -23,7 +27,7 @@ import type { VerseCopyTarget } from './verseCopy'
 import VerseSelectionBar from './VerseSelectionBar'
 import { useVerseScroll } from '../hooks/useVerseScroll'
 import { useAudioFollow } from '../hooks/useAudioFollow'
-import VerseShareSheet from './VerseShareSheet'
+const VerseShareSheet = lazyModal(() => import('./VerseShareSheet'))
 import { getReaderLayout, subscribeReaderLayout } from '../data/readerLayout'
 import { loadBookOutline, peekBookOutline, type BookOutline, type OutlineSection } from '../data/chapterOutlines'
 import { bibleKeys } from '../../../hooks/queryKeys'

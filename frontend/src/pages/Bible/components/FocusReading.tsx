@@ -12,6 +12,7 @@ import { showToast } from '../../../utils/toast'
 import VerseBookmarkModal from './VerseBookmarkModal'
 import type { BibleVerse } from '../../../types/bible'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
+import '../styles/focus-reading.css'
 
 /**
  * 집중 읽기 — 한 화면에 한 절만 띄우고 위로 쓸어올려 다음 절로 넘어가는 몰입 모드.

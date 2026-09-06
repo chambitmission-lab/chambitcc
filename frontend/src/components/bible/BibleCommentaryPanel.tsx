@@ -11,7 +11,9 @@ import type {
   BibleCommentary,
   BibleCommentaryCreateRequest,
 } from '../../types/bibleCommentary'
-import BibleCommentaryEditor from './BibleCommentaryEditor'
+import { lazyModal } from '../../utils/lazyModal'
+// 관리자 전용 에디터(20KB)는 열 때만
+const BibleCommentaryEditor = lazyModal(() => import('./BibleCommentaryEditor'))
 import BibleCommentaryItem from './BibleCommentaryItem'
 import { genreStyle } from './bookGenre'
 import { confirmDialog } from '../../utils/confirmDialog'

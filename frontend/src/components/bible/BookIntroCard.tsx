@@ -7,8 +7,10 @@ import {
 } from '../../hooks/useBibleBookIntro'
 import type { BibleBookIntroUpsertRequest } from '../../types/bibleBookIntro'
 import { getBookGenre, genreStyle } from './bookGenre'
-import BookIntroEditor from './BookIntroEditor'
-import BookIntroSheet from './BookIntroSheet'
+import { lazyModal } from '../../utils/lazyModal'
+// 개관 읽기 시트·(관리자) 에디터는 열 때만 — 읽기 화면 청크에서 분리
+const BookIntroEditor = lazyModal(() => import('./BookIntroEditor'))
+const BookIntroSheet = lazyModal(() => import('./BookIntroSheet'))
 import { confirmDialog } from '../../utils/confirmDialog'
 import { can } from '../../utils/access'
 

@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react'
 import { tokenStore } from './tokenStore'
+import { preloadBudget, scheduleAfterFirstScreen } from './idlePreload'
 
 type RouteLoader = () => Promise<{ default: ComponentType }>
 
@@ -108,9 +109,18 @@ export const preloadRoute = (path: string): Promise<void> => {
   return promise
 }
 
-// 하단 네비 3개는 동시에 받는다 (순차로 돌리면 마지막 것이 몇 초씩 밀린다)
-export const preloadNavRoutes = (): Promise<void> =>
-  Promise.all(NAV_ROUTES.map(preloadRoute)).then(() => undefined)
+// 하단 네비 3개는 동시에 받는다 (순차로 돌리면 마지막 것이 몇 초씩 밀린다).
+// 첫 화면 리소스(히어로·아이콘 폰트·홈 API)와 대역폭을 다투지 않게 `load` 뒤에 시작하되,
+// 콜드 스타트 직후 누른 첫 탭이 먹히도록 settle 여유는 두지 않는다.
+export const preloadNavRoutes = (): Promise<void> => {
+  if (preloadBudget() === 'none') return Promise.resolve()
+  return new Promise((resolve) => {
+    scheduleAfterFirstScreen(
+      () => void Promise.all(NAV_ROUTES.map(preloadRoute)).then(() => resolve()),
+      { settleMs: 0, idleTimeoutMs: 1500 },
+    )
+  })
+}
 
 // 메뉴가 열리는 순간 호출 — 네트워크를 몰아치지 않게 순차로 받는다
 export const preloadMenuRoutes = async (): Promise<void> => {
@@ -134,27 +144,31 @@ export const preloadMenuRoutes = async (): Promise<void> => {
 // 이나 링크 호버/터치 때 받는다.
 const IDLE_PRELOAD_ROUTES = [...NAV_ROUTES, '/events', '/news', '/groups', '/growth']
 
+// 비로그인 방문자가 랜딩에서 실제로 누르는 곳만 — 공개 메뉴 9개(성경 청크만 gz 120KB 등
+// 합계 JS 1.5MB)를 첫 방문마다 받는 건 랜딩 히어로·API 와 대역폭을 다투는 낭비였다.
+// 나머지 공개 페이지는 메뉴를 여는 순간(preloadMenuRoutes) 받는다.
+const GUEST_IDLE_ROUTES = ['/about', '/worship', '/visit', '/bible']
+
 const preloadLikelyRoutes = async (): Promise<void> => {
+  const budget = preloadBudget()
+  if (budget === 'none') return
+
   if (!tokenStore.getAccess()) {
-    for (const path of PUBLIC_MENU_ROUTES) {
+    for (const path of budget === 'essential' ? ['/about'] : GUEST_IDLE_ROUTES) {
       await preloadRoute(path)
     }
     return
   }
   await preloadNavRoutes()
+  if (budget === 'essential') return
   for (const path of IDLE_PRELOAD_ROUTES) {
     await preloadRoute(path)
   }
 }
 
-// 첫 화면 렌더가 끝난 뒤 브라우저 유휴 시간에 미리 받아두기
+// 첫 화면이 완전히 그려진 뒤(load + 여유 시간) 브라우저 유휴 시간에 미리 받아두기.
+// 예전엔 requestIdleCallback 이 첫 페인트 직후(≈300ms)에 불려 LCP 이미지·아이콘 폰트와
+// 다퉜다 — dynamic import() 는 High 우선순위라 "유휴"여도 대역폭은 양보하지 않는다.
 export const schedulePreloadOnIdle = (): void => {
-  const run = () => {
-    void preloadLikelyRoutes()
-  }
-  if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(run, { timeout: 5000 })
-  } else {
-    setTimeout(run, 2500)
-  }
+  scheduleAfterFirstScreen(() => void preloadLikelyRoutes())
 }

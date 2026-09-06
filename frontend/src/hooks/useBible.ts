@@ -1,5 +1,5 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
-import type { InfiniteData } from '@tanstack/react-query'
+import type { InfiniteData, QueryClient } from '@tanstack/react-query'
 import type { BibleSearchResult } from '../types/bible'
 import { getBibleBooks, getBibleChapter, getBibleVerse, searchBible, getBibleChapterPaginated } from '../api/bible'
 import { bibleKeys } from './queryKeys'
@@ -85,17 +85,43 @@ export const useBibleSearchInfinite = (
 // 오디오북(TTS)은 BibleAudioPlayer가 백엔드 스트리밍 엔드포인트를
 // `<audio src>` 로 직접 가리켜 재생하므로 별도 훅이 필요 없다.
 
+const CHAPTER_PAGE_SIZE = 20
+const CHAPTER_STALE_MS = 1000 * 60 * 60 * 24 // 24시간
+const CHAPTER_GC_MS = 1000 * 60 * 60 * 24 * 7 // 7일
+
 // 무한 스크롤 장 조회
 export const useBibleChapterInfinite = (bookNumber: number, chapter: number, enabled: boolean = true) => {
   return useInfiniteQuery({
     queryKey: bibleKeys.chapterInfinite(bookNumber, chapter),
-    queryFn: ({ pageParam = 1 }) => getBibleChapterPaginated(bookNumber, chapter, pageParam, 20),
+    queryFn: ({ pageParam = 1 }) => getBibleChapterPaginated(bookNumber, chapter, pageParam, CHAPTER_PAGE_SIZE),
     enabled: enabled && bookNumber > 0 && chapter > 0,
     getNextPageParam: (lastPage) => {
       return lastPage.has_more ? lastPage.current_page + 1 : undefined
     },
     initialPageParam: 1,
-    staleTime: 1000 * 60 * 60 * 24, // 24시간
-    gcTime: 1000 * 60 * 60 * 24 * 7, // 7일
+    staleTime: CHAPTER_STALE_MS,
+    gcTime: CHAPTER_GC_MS,
+  })
+}
+
+/**
+ * 장 본문 첫 페이지 + 책 목록을 라우트 청크와 나란히 미리 받는다 (App 의 RouteDataPrefetch).
+ * 예전엔 BibleStudy 청크가 도착·실행된 뒤에야 훅이 요청을 보내 청크 다운로드 시간만큼
+ * API 왕복이 통째로 뒤로 밀렸다. 키·queryFn·페이지 크기는 useBibleChapterInfinite 와
+ * 반드시 같아야 훅이 캐시를 그대로 이어받는다.
+ */
+export const prefetchBibleChapter = (qc: QueryClient, bookNumber: number, chapter: number): void => {
+  if (!(bookNumber > 0 && chapter > 0)) return
+  void qc.prefetchQuery({
+    queryKey: bibleKeys.books(),
+    queryFn: getBibleBooks,
+    staleTime: CHAPTER_STALE_MS,
+  })
+  void qc.prefetchInfiniteQuery({
+    queryKey: bibleKeys.chapterInfinite(bookNumber, chapter),
+    queryFn: ({ pageParam = 1 }) => getBibleChapterPaginated(bookNumber, chapter, pageParam, CHAPTER_PAGE_SIZE),
+    initialPageParam: 1,
+    staleTime: CHAPTER_STALE_MS,
+    gcTime: CHAPTER_GC_MS,
   })
 }

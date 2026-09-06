@@ -22,6 +22,7 @@ import { menuRouteLoaders, schedulePreloadOnIdle } from './utils/routePreload'
 import { healPushSubscription } from './utils/pushNotification'
 import { checkForAppUpdate } from './utils/appVersion'
 import { isAuthenticated, getCurrentUser } from './utils/auth'
+import RouteDataPrefetch from './components/common/RouteDataPrefetch'
 // 즉시 진입 가능성이 높은 페이지는 eager import 유지
 import NewHome from './pages/Home/NewHome'
 import Login from './pages/Auth/Login'
@@ -34,7 +35,9 @@ const Home = lazy(() => import('./pages/Home/Home'))
 // 청크를 받아둬서 라우트 진입 시 폭포수(메인 → 랜딩) 없이 바로 그린다.
 const loadLanding = () => import('./pages/Landing/Landing')
 const Landing = lazy(loadLanding)
-if (!tokenStore.getAccess()) void loadLanding()
+// 딥링크(#/bible/1/1 등)로 들어온 비로그인 방문자에겐 랜딩 청크가 첫 화면과 무관하다 — 루트일 때만
+const atRootHash = /^#?\/?(\?|$)/.test(window.location.hash)
+if (!tokenStore.getAccess() && atRootHash) void loadLanding()
 // dev 전용 — 업적 모달 미리보기 (프로덕션 번들에는 라우트 자체가 빠짐)
 const AchievementModalPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/AchievementModalPreview'))
@@ -267,6 +270,8 @@ function App() {
     <ThemeProvider>
       <Router>
         <ScrollRestoration />
+        {/* lazy 청크와 나란히 라우트 데이터를 미리 받는다 (Suspense 바깥이라 청크를 기다리지 않는다) */}
+        <RouteDataPrefetch />
         <div className="app">
           <NewHeader />
           {/* PC 전용 전역 좌측 내비 레일 (lg+) — 몰입형·인증 화면에선 스스로 숨는다.

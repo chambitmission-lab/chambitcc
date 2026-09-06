@@ -59,9 +59,11 @@ styles/
 @import './styles/book-selector.css';
 @import './styles/chapter-navigation.css';
 @import './styles/verse-display.css';
-@import './styles/search.css';
 @import './styles/common.css';
 ```
+
+검색(`search.css`)·집중 읽기(`focus-reading.css`)·낭독 영화관(`cinema-reading.css`)은
+열 때만 받는 lazy 컴포넌트(BibleSearch·FocusReading·CinemaReading)가 직접 import 한다.
 
 ## 장점
 

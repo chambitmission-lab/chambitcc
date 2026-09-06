@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 
 export type BibleNavKey = 'read' | 'search' | 'plans' | 'wordbook' | 'genealogy'
 
@@ -39,12 +40,9 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
         .then((m) => m.warmPlanHero())
         .catch(() => undefined)
     }
-    if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(prefetch, { timeout: 3000 })
-      return () => window.cancelIdleCallback(id)
-    }
-    const id = window.setTimeout(prefetch, 1500)
-    return () => window.clearTimeout(id)
+    // 첫 화면(장 본문·API)이 끝난 뒤 유휴 시간에 — 절약 모드·2G 에선 받지 않는다
+    if (preloadBudget() === 'none') return
+    return scheduleAfterFirstScreen(prefetch)
   }, [])
 
   useEffect(() => {

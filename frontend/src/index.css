@@ -1,5 +1,5 @@
-/* Material Icons 는 index.html 의 <link> 로 로드한다.
-   여기서 @import 로 또 불러오면 CSS 로딩이 직렬로 막혀(render-blocking) 첫 렌더가 느려진다. */
+/* Material Icons 는 self-host 서브셋(styles/material-icons.css, main.tsx 에서 import)으로
+   로드하고 index.html 이 같은 woff2 를 preload 한다. 여기서 @import 하지 말 것. */
 
 @tailwind base;
 @tailwind components;

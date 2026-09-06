@@ -7,7 +7,9 @@ import { getBookReadingProgress } from '../../../api/bibleReading'
 import { bookmarkKeys } from '../../../hooks/useBibleBookmark'
 import { listBookmarks } from '../../../api/bibleBookmark'
 import ReaderSettings from './ReaderSettings'
-import ChapterPickerSheet from './ChapterPickerSheet'
+import { lazyModal } from '../../../utils/lazyModal'
+// 장 선택 시트는 열 때만 — 읽기 화면 청크에서 분리
+const ChapterPickerSheet = lazyModal(() => import('./ChapterPickerSheet'))
 
 interface ChapterNavigationProps {
   selectedBook: string

@@ -1,9 +1,11 @@
 import type { VerseBookmark } from '../../../../api/bibleBookmark'
 import type { GlossaryEntry } from '../../data/bibleGlossary'
-import VerseBookmarkModal from '../VerseBookmarkModal'
-import VerseNoteSheet from '../VerseNoteSheet'
-import WordNoteSheet from '../WordNoteSheet'
-import GlossarySheet from '../GlossarySheet'
+import { lazyModal } from '../../../../utils/lazyModal'
+// 전부 "탭해야 열리는" 시트·모달 — 절마다 렌더되는 컴포넌트라 읽기 화면 청크에서 뗀다
+const VerseBookmarkModal = lazyModal(() => import('../VerseBookmarkModal'))
+const VerseNoteSheet = lazyModal(() => import('../VerseNoteSheet'))
+const WordNoteSheet = lazyModal(() => import('../WordNoteSheet'))
+const GlossarySheet = lazyModal(() => import('../GlossarySheet'))
 import type { WordSheetState } from './useWordSelection'
 
 interface VerseSheetsProps {

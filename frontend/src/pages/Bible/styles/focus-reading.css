@@ -3,37 +3,7 @@
    레이아웃 높이는 dvh 대신 index.html이 실측 주입하는 --vvh를 쓴다(설치 PWA 오계산 방지). */
 
 /* ── 진입 버튼 (책 정보 헤더, Aa 옆) ─────────────────────────── */
-.focus-mode-btn {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ig-secondary-background);
-  /* 참빛 로고와 같은 정적 브랜드 글로우 — 몰입 기능 입구라 살짝 빛나게 시선 유도 */
-  border: 1px solid rgba(49, 130, 246, 0.38);
-  box-shadow: 0 0 6px var(--brand-glow), 0 0 14px var(--brand-glow);
-  border-radius: 50%;
-  color: var(--ig-primary-text);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-[data-theme="dark"] .focus-mode-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(49, 130, 246, 0.5);
-}
-
-.focus-mode-btn:hover {
-  background: var(--ig-hover);
-  border-color: var(--brand);
-  color: var(--brand);
-}
-
-.focus-mode-btn .material-icons-round {
-  font-size: 1.25rem;
-}
+/* .focus-mode-btn(장 헤더의 집중 읽기 진입 버튼)은 항상 보이는 요소라 chapter-navigation.css 로 옮겼다 */
 
 /* ── 오버레이 ────────────────────────────────────────────────── */
 .focus-overlay {

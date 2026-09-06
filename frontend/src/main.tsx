@@ -6,6 +6,9 @@ import { persister } from './config/persister'
 import { initPWAInstallPrompt, registerPushServiceWorker } from './utils/pwa'
 import { escapeKakaoInApp, isKakaoInApp } from './utils/inappBrowser'
 import { LanguageProvider } from './contexts/LanguageContext'
+// 아이콘 폰트(@font-face)는 index.css 보다 먼저 — 첫 CSSOM 에 폰트 선언이 있어야
+// index.html 의 preload 와 곧바로 매칭된다
+import './styles/material-icons.css'
 import './index.css'
 import './styles/theme.css'
 import './styles/common.css'
@@ -24,6 +27,11 @@ if (import.meta.env.PROD) {
 
 // 푸시 알림용 Service Worker 등록 (개발/프로덕션 모두)
 registerPushServiceWorker()
+
+// dev 전용 — 서브셋에 없는 Material Icons 이름을 콘솔로 경고 (프로덕션 번들에서 제거됨)
+if (import.meta.env.DEV) {
+  void import('./utils/materialIconsCheck').then((m) => m.startMaterialIconsCheck())
+}
 
 // Strict Mode는 개발/프로덕션 모두에서 활성화
 // 권한 중복 요청 문제는 AudioRecorder 컴포넌트에서 ref로 해결

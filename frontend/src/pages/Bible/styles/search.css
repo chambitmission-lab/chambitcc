@@ -652,31 +652,7 @@
   pointer-events: none;
 }
 
-.no-results {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: var(--ig-secondary-text);
-}
-
-.no-results .material-icons-round {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  opacity: 0.3;
-}
-
-.no-results p {
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.no-results .no-results-hint {
-  margin-top: 0.375rem;
-  font-size: 0.8125rem;
-  font-weight: 400;
-  line-height: 1.5;
-  color: var(--ig-secondary-text);
-  opacity: 0.85;
-}
+/* .no-results 는 책 선택기(항상 로드)도 쓰므로 common.css 로 옮겼다 */
 
 .search-retry-button {
   display: inline-flex;

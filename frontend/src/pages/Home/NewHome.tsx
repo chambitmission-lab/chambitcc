@@ -117,9 +117,11 @@ const NewHome = () => {
 
   // 하단 네비 목적지(성경/집중기도/프로필) lazy 청크 prefetch — 첫 탭에서 다운로드를 시작하면
   // react-router v7의 startTransition 탓에 청크가 올 때까지 화면이 안 바뀌어 "안 눌린 것처럼" 느껴짐.
-  // idle 대기(최대 3초)를 두면 콜드 스타트 직후 누른 첫 탭이 그대로 먹히므로 마운트 즉시 시작한다.
+  // 첫 화면 리소스가 끝나는 `load` 직후에 시작한다(preloadNavRoutes 내부). 비로그인은 집중기도·
+  // 프로필 탭이 로그인으로 가므로 받지 않는다 — 성경은 유휴 프리로드(GUEST_IDLE_ROUTES)가 맡는다.
   useEffect(() => {
-    void preloadNavRoutes()
+    if (isLoggedIn()) void preloadNavRoutes()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // 로그인 상태 변경 시 필터 초기화

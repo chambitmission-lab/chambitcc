@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "deploy:ghpages": "npm run build -- --base=/chambitcc/ && gh-pages -d dist",
     "check-env": "node check-env.js",
-    "gen:icons": "node scripts/gen-phosphor-icons.mjs"
+    "gen:icons": "node scripts/gen-phosphor-icons.mjs",
+    "gen:material-icons": "python3 scripts/gen-material-icons.py"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",
