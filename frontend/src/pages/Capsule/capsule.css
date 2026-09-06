@@ -2364,3 +2364,47 @@
     transition: opacity 0.3s ease;
   }
 }
+
+/* ── /capsule 히어로 — "시간을 건너 편지를 부치는 배달부 양" ─────────────
+   에셋 생성/후처리는 docs/capsule-hero-bg-prompts.md · docs/capsule-hero-process.py
+   (`python docs/capsule-hero-process.py ~/Downloads`).
+
+   ★ 플랜·묵상방 히어로와 배치 방식이 다르다 — 여기만 `cover` 가 아니다.
+   저쪽 삽화는 주인공이 오른쪽 25% 안에 들어가 있어서 `cover`(높이맞춤)로 깔아도
+   모바일에서 글씨를 안 덮는다. 이 그림은 주인공 덩어리가 폭의 44%(양 x56% ~ 우체통 x96%)라
+   `cover` 로 깔면 모바일에서 양의 왼쪽 끝이 카드 x 99px 에 떨어져 안내 문구(202px까지) 위로 올라온다.
+   그래서 `background-size: 100% auto` + 아래 정렬 — **삽화 폭 = 카드 폭**으로 고정한다.
+     · 양의 왼쪽 끝이 어느 폭에서나 0.566 × 카드폭(모바일 203px · PC 308px) → 글씨와 안 겹친다
+     · 글씨는 항상 평평한 카드 그라데이션 위에 앉는다(삽화 밝기와 무관하게 대비가 보장된다)
+     · 삽화 x 좌표가 카드 x 좌표와 1:1 이라, 아래 가로 그라데이션이 어느 폭에서나 이음매 없이 맞는다
+   삽화 위쪽은 에셋에 알파 페이드가 구워져 있다(하늘은 길게, 그려진 것은 짧게).
+   카드 그라데이션 값은 그 페이드 지점의 삽화 하늘색을 그대로 읽어 온 것이다 — 바꾸면 띠가 보인다. */
+.capsule-hero {
+  background: linear-gradient(180deg, #dceefd 0%, #d9ebfd 100%);
+  box-shadow: 0 10px 30px -14px rgba(49, 130, 246, 0.45);
+}
+.dark .capsule-hero {
+  background: linear-gradient(100deg, #09122c 0%, #0a1434 55%, #101a39 100%);
+  box-shadow: 0 10px 34px -12px rgba(0, 0, 0, 0.6);
+}
+.capsule-hero-art {
+  background-image: url('/images/capsule/hero-light.webp');
+  background-size: 100% auto;
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  /* 도착 전에는 감춰 뒀다 페이드인 — CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다
+     (heroPrefetch.ts 참고). 늦게 도착하면 카드 위에 "툭" 나타난다. */
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+.dark .capsule-hero-art {
+  background-image: url('/images/capsule/hero-dark.webp');
+}
+.capsule-hero-art.is-ready {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .capsule-hero-art {
+    transition: none;
+  }
+}

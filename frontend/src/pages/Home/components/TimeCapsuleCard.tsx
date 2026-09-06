@@ -25,6 +25,11 @@ const TimeCapsuleCard = () => {
       const img = new Image()
       img.decoding = 'async'
       img.src = other
+      // 이 카드가 /capsule 로 들어가는 길목이다. 히어로 삽화도 CSS 배경이라
+      // 화면이 그려진 뒤에야 요청이 나가므로 여기서 미리 데운다(Capsule/heroPrefetch.ts).
+      void import('../../Capsule/heroPrefetch')
+        .then((m) => m.warmCapsuleHero())
+        .catch(() => undefined)
     }
     if (typeof window.requestIdleCallback === 'function') {
       const id = window.requestIdleCallback(warm, { timeout: 5000 })

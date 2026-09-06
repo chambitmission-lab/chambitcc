@@ -1,14 +1,14 @@
 // 타임캡슐함 (/capsule)
 // 봉인 중인 캡슐(D-day)과 도착한 캡슐을 보여준다. 내용은 개봉 전까지 서버가 내려주지 않는다.
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMyCapsules } from '../../hooks/useTimeCapsule'
 import type { CapsuleSummary } from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
-import capsuleHero from '../../assets/capsule/hero.webp'
 import './capsule.css'
+import { isCapsuleHeroWarm, warmCapsuleHero } from './heroPrefetch'
 
 const capsuleInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/capsule/invite/${code}`
@@ -162,7 +162,10 @@ const postmarkParts = (iso: string): { year: string; day: string } | null => {
 
 const ArrivedRow = ({ capsule }: { capsule: CapsuleSummary }) => {
   const navigate = useNavigate()
-  const unopened = !capsule.opened_at
+  // opened_at은 '수신자가 열었는가'만 기록한다(발신자 재열람은 남지 않는다).
+  // 그래서 내가 보낸 캡슐에는 미개봉 상태를 쓰면 안 된다 — 내가 아무리 읽어도 영영 '안 읽음'이 된다.
+  const isSender = capsule.role === 'sender'
+  const unopened = !isSender && !capsule.opened_at
   const journey = journeyLabel(capsule)
   const stamp = postmarkParts(capsule.sealed_at)
   const photos = capsule.photo_count ?? 0
@@ -189,7 +192,15 @@ const ArrivedRow = ({ capsule }: { capsule: CapsuleSummary }) => {
           <span className="capsule-mail__chips">
             {capsule.has_audio && <i className="capsule-mail__chip">🎙️ 음성편지</i>}
             {photos > 0 && <i className="capsule-mail__chip">📷 사진 {photos}장</i>}
-            {!unopened && <i className="capsule-mail__chip">읽음</i>}
+            {isSender ? (
+              <i className="capsule-mail__chip">
+                {capsule.opened_at
+                  ? `${capsule.recipient_name || '받는 분'}님이 읽었어요`
+                  : '아직 안 읽었어요'}
+              </i>
+            ) : (
+              !unopened && <i className="capsule-mail__chip">읽음</i>
+            )}
           </span>
         </span>
 
@@ -225,9 +236,24 @@ const CapsuleList = () => {
     }
   }, [navigate])
 
+  // 히어로 삽화는 CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다(heroPrefetch.ts 참고).
+  // 홈 배너가 미리 데워 뒀으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인한다.
+  const [artReady, setArtReady] = useState(isCapsuleHeroWarm)
+  useEffect(() => {
+    if (artReady) return
+    let alive = true
+    void warmCapsuleHero().then(() => {
+      if (alive) setArtReady(true)
+    })
+    return () => {
+      alive = false
+    }
+  }, [artReady])
+
   const sealed = data?.sealed ?? []
   const arrived = data?.arrived ?? []
-  const unreadCount = arrived.filter((c) => !c.opened_at).length
+  // 내가 받은 캡슐만 '안 읽음'으로 센다 — 내가 보낸 캡슐의 opened_at은 상대의 열람 기록이다
+  const unreadCount = arrived.filter((c) => c.role !== 'sender' && !c.opened_at).length
   const nextOpenDday = sealed.length
     ? Math.min(...sealed.map((c) => daysUntil(c.open_at)))
     : null
@@ -251,28 +277,26 @@ const CapsuleList = () => {
           <h1 className="text-[16px] font-extrabold">타임캡슐</h1>
         </div>
 
-        {/* 히어로 */}
-        <section className="relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-7 bg-brand shadow-[0_10px_34px_-12px_var(--brand-glow)] text-white">
-          {/* 배경 사진(별 쏟아지는 밤하늘) — 은하수·별똥별이 보이는 상단 하늘 위주로 크롭 */}
-          <img
-            src={capsuleHero}
-            alt=""
+        {/* 히어로 — 배경 삽화는 capsule.css 의 .capsule-hero-art (docs/capsule-hero-bg-prompts.md) */}
+        <section className="capsule-hero relative mx-4 mt-5 overflow-hidden rounded-[26px] px-6 py-7">
+          <div
+            className={`capsule-hero-art absolute inset-0 pointer-events-none${artReady ? ' is-ready' : ''}`}
             aria-hidden
-            className="absolute inset-0 h-full w-full object-cover object-[50%_38%] select-none pointer-events-none"
           />
-          {/* 스크림 — 사진이 원래 어두워 왼쪽 텍스트 구간만 은은히 눌러준다 */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0c1a38]/75 via-[#122a55]/45 to-transparent pointer-events-none" />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0c1a38]/60 to-transparent pointer-events-none" />
           <div className="relative z-10">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/70">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#2f6bd8] dark:text-white/70">
               Time Capsule
             </p>
-            <h2 className="text-[21px] font-extrabold tracking-[-0.02em] leading-[1.35] mt-1.5 break-keep">
-              미래의 나에게,
-              <br />
-              사랑하는 이에게
+            {/* 제목·안내 첫 문장은 어느 폭에서나 한 줄로 흐른다.
+                안내 한 줄은 289px 라, 모바일(카드 382 기준)에서 끝자락이 삽화의 **날아오르는
+                편지 줄** 위를 지난다(다크 배경 밝기 p95 118 · 상한 110 — 사용자 확인 후 채택).
+                여기서 문구를 더 늘리면 양 머리에 올라탄다. 늘릴 거면
+                `python docs/capsule-hero-process.py` 의 밝기 검사를 다시 돌릴 것.
+                더 좁은 폰(≤360)에서는 낱말 단위로 자연스럽게 접힌다(break-keep). */}
+            <h2 className="text-[21px] font-extrabold tracking-[-0.02em] leading-[1.35] mt-1.5 break-keep text-[#152648] dark:text-white">
+              미래의 나에게, 사랑하는 이에게
             </h2>
-            <p className="text-[12.5px] text-white/80 mt-2 leading-[1.6]">
+            <p className="text-[12.5px] mt-2 leading-[1.6] break-keep text-[#41527a] dark:text-white/80">
               오늘의 마음을 봉인하면 정해진 날 아침에 도착해요.
               <br />
               개봉 전엔 나도 열어볼 수 없어요.
@@ -280,9 +304,9 @@ const CapsuleList = () => {
             <button
               type="button"
               onClick={() => navigate('/capsule/new')}
-              className="mt-4 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white text-brand text-[13.5px] font-extrabold shadow-sm active:scale-[0.97]"
+              className="mt-4 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-brand text-white text-[13.5px] font-extrabold shadow-[0_6px_16px_-6px_var(--brand-glow)] active:scale-[0.97] dark:bg-white dark:text-brand dark:shadow-sm"
             >
-              {/* 봉인된 편지 — 손+펜 이모지가 사진 히어로 위에서 겉돌아 스트로크 아이콘으로 교체 */}
+              {/* 봉인된 편지 — 손+펜 이모지가 삽화 위에서 겉돌아 스트로크 아이콘으로 교체 */}
               <svg
                 className="w-4 h-4"
                 viewBox="0 0 24 24"
