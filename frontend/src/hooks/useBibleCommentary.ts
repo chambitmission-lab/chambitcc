@@ -3,6 +3,7 @@ import {
   createCommentary,
   deleteCommentary,
   listChapterCommentaries,
+  listChapterCommentarySummaries,
   listVerseCommentaries,
   updateCommentary,
 } from '../api/bibleCommentary'
@@ -15,6 +16,8 @@ const keys = {
   all: ['bibleCommentary'] as const,
   chapter: (book: number, chapter: number) =>
     [...keys.all, 'chapter', book, chapter] as const,
+  chapterSummary: (book: number, chapter: number) =>
+    [...keys.all, 'chapter-summary', book, chapter] as const,
   verse: (book: number, chapter: number, verse: number) =>
     [...keys.all, 'verse', book, chapter, verse] as const,
 }
@@ -27,6 +30,20 @@ export const useChapterCommentaries = (
   return useQuery({
     queryKey: keys.chapter(bookNumber, chapter),
     queryFn: () => listChapterCommentaries(bookNumber, chapter),
+    enabled: enabled && bookNumber > 0 && chapter > 0,
+    staleTime: 60_000,
+  })
+}
+
+/** 읽기 화면용 — 절별 '해석 있음' 마커와 패널 버튼 노출에만 쓴다 (본문 없음, 장당 수백 B) */
+export const useChapterCommentarySummaries = (
+  bookNumber: number,
+  chapter: number,
+  enabled: boolean = true,
+) => {
+  return useQuery({
+    queryKey: keys.chapterSummary(bookNumber, chapter),
+    queryFn: () => listChapterCommentarySummaries(bookNumber, chapter),
     enabled: enabled && bookNumber > 0 && chapter > 0,
     staleTime: 60_000,
   })
@@ -52,6 +69,7 @@ const invalidateForCommentary = (
   chapter: number,
 ) => {
   queryClient.invalidateQueries({ queryKey: keys.chapter(bookNumber, chapter) })
+  queryClient.invalidateQueries({ queryKey: keys.chapterSummary(bookNumber, chapter) })
   queryClient.invalidateQueries({ queryKey: [...keys.all, 'verse', bookNumber, chapter] })
 }
 

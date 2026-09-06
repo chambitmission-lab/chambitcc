@@ -28,6 +28,17 @@ export interface BibleCommentaryListResponse {
   items: BibleCommentary[]
 }
 
+/** 본문(content) 없는 요약 — 읽기 화면의 절별 마커·패널 버튼용 (GET …/summary) */
+export type BibleCommentarySummary = Pick<
+  BibleCommentary,
+  'id' | 'book_number' | 'chapter' | 'verse_start' | 'verse_end' | 'title' | 'category' | 'scope'
+>
+
+export interface BibleCommentarySummaryListResponse {
+  total: number
+  items: BibleCommentarySummary[]
+}
+
 export interface BibleCommentaryCreateRequest {
   book_number: number
   chapter: number

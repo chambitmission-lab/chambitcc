@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { loadCopyPrefs, saveCopyPrefs, type CopyPrefs, type CopyStyle } from './verseCopy'
 import { isGlossaryEnabled, setGlossaryEnabled } from '../data/bibleGlossary'
 import { getReaderLayout, setReaderLayout, type ReaderLayout } from '../data/readerLayout'
+import { ensureDeferredFontsNow } from '../../../utils/deferredFonts'
 
 /**
  * Aa 읽기 설정 — 성경 본문의 서체/글자 크기/줄 간격 + 구절 복사 형식을 개인화한다.
@@ -46,6 +47,8 @@ const applyPrefs = (p: ReaderPrefs) => {
   root.style.setProperty('--bible-font-scale', String(FONT_SCALES[p.scaleIdx]))
   root.style.setProperty('--bible-line-height', String(LINE_HEIGHTS[p.leadingIdx]))
   if (p.font === 'serif') {
+    // 명조 CSS 는 첫 화면 뒤에 지연 로드된다 — 고른 순간엔 기다리지 않고 바로 붙인다
+    ensureDeferredFontsNow()
     root.style.setProperty('--bible-font-family', SERIF_STACK)
   } else {
     root.style.removeProperty('--bible-font-family')

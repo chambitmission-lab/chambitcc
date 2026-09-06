@@ -8,10 +8,26 @@ import type {
   BibleCommentaryCreateRequest,
   BibleCommentaryListResponse,
   BibleCommentaryUpdateRequest,
+  BibleCommentarySummaryListResponse,
 } from '../types/bibleCommentary'
 import { request, requestRaw, type UntypedJson } from './utils/request'
 
 const BASE = `${API_V1}/bible-commentaries`
+
+/** 장 해석 요약(위치·제목) — 본문 없이 가볍다. 배포 전 백엔드(404)에선 전체 목록으로 폴백 */
+export const listChapterCommentarySummaries = async (
+  bookNumber: number,
+  chapter: number,
+): Promise<BibleCommentarySummaryListResponse> => {
+  try {
+    return await request<BibleCommentarySummaryListResponse>(`${BASE}/chapter/${bookNumber}/${chapter}/summary`, {
+      errorMessage: '해석을 불러오지 못했습니다',
+    })
+  } catch (e) {
+    if ((e as { status?: number })?.status !== 404) throw e
+    return listChapterCommentaries(bookNumber, chapter)
+  }
+}
 
 export const listChapterCommentaries = async (
   bookNumber: number,

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useBibleChapter } from '../../../hooks/useBible'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
-import { useChapterCommentaries } from '../../../hooks/useBibleCommentary'
+import { useChapterCommentarySummaries } from '../../../hooks/useBibleCommentary'
 import BibleCommentaryPanel from '../../../components/bible/BibleCommentaryPanel'
 import { useAuth } from '../../../hooks/useAuth'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -68,7 +68,7 @@ const FocusReading = ({
 
   const { data: readStatus } = useChapterReadStatus(bookNumber, chapter, loggedIn)
   const { data: chapterBookmarks } = useChapterBookmarks(bookNumber, chapter, loggedIn)
-  const { data: chapterCommentaries } = useChapterCommentaries(bookNumber, chapter)
+  const { data: chapterCommentaries } = useChapterCommentarySummaries(bookNumber, chapter)
   const markAsRead = useMarkVerseAsRead()
 
   const [activeIndex, setActiveIndex] = useState(0)

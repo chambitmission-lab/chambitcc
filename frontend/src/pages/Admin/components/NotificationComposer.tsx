@@ -15,6 +15,10 @@ import { confirmDialog } from '../../../utils/confirmDialog'
 import NoticeContent from '../../../components/common/NoticeContent'
 import NoticeMarkupToolbar from './NoticeMarkupToolbar'
 import { NOTICE_TEMPLATES, type NoticeTemplate } from '../../../utils/noticeMarkup'
+import { resizeImageToBlob } from '../../../utils/imageResize'
+
+/** 포스터 업로드 긴 변 상한(px) */
+const POSTER_MAX_SIZE = 1280
 
 interface NotificationComposerProps {
   editingNotification: Notification | null
@@ -121,7 +125,11 @@ const NotificationComposer = ({
 
     setUploading(true)
     try {
-      const url = await uploadNotificationImage(file)
+      // 홈 팝업의 LCP 요소가 이 포스터다 — 원본(수 MB·수천 px)을 그대로 올리면 첫 화면이 그만큼 늦다.
+      // 긴 변 1280px·JPEG 0.85 로 줄여 올린다(팝업 최대 폭 512px 의 2.5배 → 고배율 화면에서도 선명).
+      const resized = await resizeImageToBlob(file, POSTER_MAX_SIZE, 0.85)
+      const upload = new File([resized], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' })
+      const url = await uploadNotificationImage(upload)
       setForm((prev) => ({ ...prev, image_url: url }))
       showToast('이미지를 첨부했습니다. 저장해야 공지에 반영됩니다', 'success')
     } catch (err) {

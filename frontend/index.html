@@ -210,17 +210,17 @@
       })();
     </script>
 
-    <!-- 폰트 CDN 사전 연결 — 핸드셰이크를 미리 끝내 폰트 도착을 앞당긴다
-         (Pretendard 는 jsdelivr, Orbitron·Noto Serif KR·Nanum Pen 은 Google Fonts) -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <!-- Pretendard Variable — self-host dynamic-subset (@font-face 는 src/styles/pretendard.css 가 번들에
+         품고, 파일은 public/fonts/pretendard-v1.3.9/). unicode-range 로 쪼갠 조각만 받되 가변 폰트라
+         조각 하나가 45~920 전 웨이트를 담는다(static 5웨이트는 홈 피드 한 번에 54조각 614KB, 가변은
+         18조각 477KB). jsdelivr 의 차단 CSS 한 왕복(DNS+TLS)도 없앴다.
+         ★핵심 한글 조각(82~91번, 250KB)을 여기서 preload 하는 실험은 되돌렸다 — 느린 4G 실측에서
+         엔트리 JS·CSS 와 대역폭을 다퉈 FCP 가 2.0→3.3s 로 늦어지고 LCP 도 나아지지 않았다(재제안 금지). -->
+
+    <!-- Google Fonts 사전 연결 — Orbitron·Noto Serif KR·Nanum Pen(니치 서체)은 load 이후
+         src/utils/deferredFonts.ts 가 스타일시트를 붙인다. 핸드셰이크만 미리 끝내 둔다. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- Pretendard Variable — dynamic-subset: unicode-range 로 쪼갠 조각만 받되, 가변 폰트라
-         조각 하나가 45~920 전 웨이트를 담는다. static 빌드는 화면에 쓰인 웨이트마다(400·500·600·
-         700·800) 같은 범위를 따로 받아 홈 피드 한 번에 54조각 614KB 였다(가변은 절반 이하,
-         차단 CSS 도 553KB→53KB). font-family 는 'Pretendard Variable' — index.css 스택과 맞출 것. -->
-    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
 
     <!-- Material Icons — self-host 서브셋(실제 쓰는 아이콘만, 두 벌 합쳐 ~45KB). 예전엔
          Google Fonts 의 차단 CSS 2개 → 전체 폰트 2벌(322KB)을 받았고, 폰트 요청 자체가
@@ -232,17 +232,9 @@
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/src/assets/fonts/material-icons-round.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/src/assets/fonts/material-icons-outlined.woff2" />
 
-    <!-- 아래 세 폰트는 일부 화면(프로필 스탯·명조 읽기·타임캡슐 캡션)만 쓰는 니치 서체라
-         첫 렌더를 막지 않게 media="print" 로 비차단 요청 → 도착하면 all 로 전환한다.
-         (display=swap 이라 늦게 와도 폴백 → 교체만 일어난다) -->
-    <!-- Orbitron — 프로필 카드 스탯/시리얼 넘버용 스코어보드 폰트 -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-
-    <!-- Noto Serif KR — 성경 읽기 Aa 설정의 '명조' 서체 (적용 전에는 다운로드되지 않음) -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-
-    <!-- Nanum Pen Script — 타임캡슐 폴라로이드 손글씨 캡션 (펜으로 쓴 손편지 느낌) -->
-    <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <!-- Orbitron·Noto Serif KR·Nanum Pen Script(니치 서체)는 여기 두지 않는다 — media="print" 로
+         비차단이어도 CSS 자체(Noto Serif KR 은 187KB)를 첫 화면과 함께 받았다. load 이벤트 뒤
+         src/utils/deferredFonts.ts 가 같은 URL 을 붙인다(display=swap 이라 폴백 → 교체만 일어난다). -->
     
     <!-- SEO: 검색 노출용 메타. 지역명(부천·상동)을 제목/설명에 포함해
          "부천참빛교회" 검색에 매칭되도록 한다. canonical은 HashRouter 특성상 루트로 고정. -->

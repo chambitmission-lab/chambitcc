@@ -19,7 +19,7 @@ const celebrateFlowerBloom = () =>
 import { showToast } from '../../../utils/toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useOptimisticUpdateVerse } from '../../../hooks/useBibleAdmin'
-import { useChapterCommentaries } from '../../../hooks/useBibleCommentary'
+import { useChapterCommentarySummaries } from '../../../hooks/useBibleCommentary'
 import { useChapterWordNotes, groupWordNotesByVerse } from '../../../hooks/useBibleWordNote'
 import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
@@ -187,7 +187,7 @@ const VerseList = ({
   }, [isFlow, chapterData, bookOutline, bookNumber, selectedChapter])
 
   // 해당 장의 해석 목록 (절별로 indicator 표시용)
-  const { data: chapterCommentaries } = useChapterCommentaries(
+  const { data: chapterCommentaries } = useChapterCommentarySummaries(
     bookNumber,
     selectedChapter,
     bookNumber > 0 && selectedChapter > 0,

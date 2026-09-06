@@ -38,7 +38,11 @@ interface ChapterBriefCardProps {
  * 숙련자는 접어둘 수 있고, 접힘 상태는 기기에 기억된다.
  */
 const ChapterBriefCard = ({ bookNumber, chapter }: ChapterBriefCardProps) => {
-  const [loaded, setLoaded] = useState<LoadedBriefs | null>(null)
+  // 로드 결과를 책 번호와 함께 보관 — 책이 바뀌면 파생값이 자연히 null 이 되므로
+  // effect 안에서 동기 setState(setLoaded(null)) 로 비울 필요가 없다
+  const [loadedFor, setLoadedFor] = useState<{ book: number; data: LoadedBriefs | null } | null>(null)
+  const resolved = loadedFor?.book === bookNumber
+  const loaded = resolved ? loadedFor.data : null
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem(COLLAPSED_KEY) === '1'
@@ -51,9 +55,8 @@ const ChapterBriefCard = ({ bookNumber, chapter }: ChapterBriefCardProps) => {
 
   useEffect(() => {
     let alive = true
-    setLoaded(null)
     loadBookBriefs(bookNumber).then((data) => {
-      if (alive) setLoaded(data)
+      if (alive) setLoadedFor({ book: bookNumber, data })
     })
     return () => {
       alive = false
@@ -72,14 +75,14 @@ const ChapterBriefCard = ({ bookNumber, chapter }: ChapterBriefCardProps) => {
   const brief = loaded?.briefs[chapter]
   // 데이터 청크를 받는 동안 카드와 같은 높이를 비워 둔다(접힘 상태면 헤더 높이만) —
   // null 이었다가 나타나면 아래 절 목록이 통째로 밀린다
-  if (!loaded) {
+  if (!resolved) {
     return (
       <div className="px-4 mb-2" aria-hidden>
         <div className={`chapter-brief-placeholder${collapsed ? ' is-collapsed' : ''}`} />
       </div>
     )
   }
-  if (!brief) return null
+  if (!loaded || !brief) return null
 
   const toggleCollapsed = () => {
     setCollapsed((prev) => {
