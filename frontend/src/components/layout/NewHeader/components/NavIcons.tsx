@@ -203,6 +203,16 @@ const IconSeedBook = (p: IconProps) => (
   </Svg>
 )
 
+/* 설문조사 — 클립보드에 체크 */
+const IconSurvey = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M8 4.5H6.6A1.6 1.6 0 0 0 5 6.1v13.3A1.6 1.6 0 0 0 6.6 21h10.8a1.6 1.6 0 0 0 1.6-1.6V6.1A1.6 1.6 0 0 0 17.4 4.5H16" />
+    <rect x="8" y="3" width="8" height="3.2" rx="1.1" />
+    <path d="M9.3 12.2l1.6 1.6 3.8-3.8" />
+    <path d="M9.3 17.4h5.4" />
+  </Svg>
+)
+
 export const NAV_ICONS = {
   about: IconChurch,
   greeting: IconLetter,
@@ -223,6 +233,7 @@ export const NAV_ICONS = {
   garden: IconMedal,
   bluemarble: IconDice,
   answeredPrayers: IconSparkle,
+  survey: IconSurvey,
 } as const
 
 export type NavIconKey = keyof typeof NAV_ICONS

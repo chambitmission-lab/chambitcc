@@ -42,6 +42,7 @@ const MENU_SECTIONS: NavSection[] = [
       { path: '/groups', key: 'myGroups' },
       { path: '/classes', key: 'classNote' },
       { path: '/mission', key: 'missionStatus' },
+      { path: '/survey', key: 'survey' },
       { path: '/news', key: 'news' }
     ]
   }

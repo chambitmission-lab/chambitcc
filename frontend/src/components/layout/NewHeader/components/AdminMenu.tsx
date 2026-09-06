@@ -50,7 +50,8 @@ const ADMIN_GROUPS: AdminGroup[] = [
     items: [
       { path: '/admin/notifications', key: 'adminNavNotice' },
       { path: '/admin/push', key: 'adminNavPush' },
-      { path: '/admin/chatbot', key: 'adminNavChatbot' }
+      { path: '/admin/chatbot', key: 'adminNavChatbot' },
+      { path: '/admin/surveys', key: 'adminNavSurvey' }
     ]
   },
   {

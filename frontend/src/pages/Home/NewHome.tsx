@@ -21,6 +21,7 @@ import AnnualThemeVerse from './components/AnnualThemeVerse'
 import HomeNotice from './components/HomeNotice'
 import DailyMeditationCard from './components/DailyMeditationCard'
 import TimeCapsuleCard from './components/TimeCapsuleCard'
+import SurveyBanner from './components/SurveyBanner'
 import TodayPlanCard from './components/TodayPlanCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import ThanksTicker from './components/ThanksTicker'
@@ -350,6 +351,9 @@ const NewHome = () => {
                 <AnsweredPrayersBanner />
               </div>
             </section>
+
+            {/* 진행 중인 설문 — 아직 참여하지 않은 성도에게만 뜬다 */}
+            <SurveyBanner />
 
             {/* 타임캡슐 — 밤하늘 봉인 편지 히어로 (내 캡슐 상태 반영 동적 문구) */}
             <TimeCapsuleCard />

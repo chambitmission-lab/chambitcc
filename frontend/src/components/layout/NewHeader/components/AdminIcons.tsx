@@ -238,6 +238,17 @@ const IconOfferingBox = (p: IconProps) => (
   </Svg>
 )
 
+/* 설문조사 — 클립보드 위 응답 막대 */
+const IconSurveyBoard = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M8 4.5H6.6A1.6 1.6 0 0 0 5 6.1v13.3A1.6 1.6 0 0 0 6.6 21h10.8a1.6 1.6 0 0 0 1.6-1.6V6.1A1.6 1.6 0 0 0 17.4 4.5H16" />
+    <rect x="8" y="3" width="8" height="3.2" rx="1.1" />
+    <path d="M9 17.6V13" />
+    <path d="M12 17.6v-7" />
+    <path d="M15 17.6v-3.4" />
+  </Svg>
+)
+
 export const ADMIN_ICONS = {
   adminNavDashboard: IconDashboard,
   adminNavCare: IconRadar,
@@ -258,6 +269,7 @@ export const ADMIN_ICONS = {
   adminNavNotice: IconMegaphone,
   adminNavPush: IconBell,
   adminNavChatbot: IconChatBot,
+  adminNavSurvey: IconSurveyBoard,
   adminNavEvent: IconCalendar,
   adminNavCulture: IconPalette,
   adminNavOrganization: IconOrgChart,

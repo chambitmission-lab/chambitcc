@@ -34,6 +34,7 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
   // 홈 FAB 스피드 다이얼의 "말씀 카드 만들기" 목적지
   '/bible/photo-verse': () => import('../pages/Bible/PhotoVerse/PhotoVerse'),
   '/classes': () => import('../pages/ClassRoom/ClassList'),
+  '/survey': () => import('../pages/Survey/SurveyList'),
 }
 
 // 청크와 함께 데워 둘 페이지 데이터. 청크만 먼저 받으면 진입 시 껍데기(히어로)는 즉시

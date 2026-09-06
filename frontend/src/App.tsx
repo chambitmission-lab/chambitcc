@@ -81,6 +81,8 @@ const News = lazy(menuRouteLoaders['/news'])
 const Participate = lazy(() => import('./pages/Participate/Participate'))
 const Online = lazy(() => import('./pages/Online/Online'))
 const Culture = lazy(menuRouteLoaders['/culture'])
+const SurveyList = lazy(menuRouteLoaders['/survey'])
+const SurveyDetail = lazy(() => import('./pages/Survey/SurveyDetail'))
 const Worship = lazy(menuRouteLoaders['/worship'])
 const Sermon = lazy(menuRouteLoaders['/sermon'])
 const Register = lazy(() => import('./pages/Auth/Register'))
@@ -155,6 +157,7 @@ const MeditationPage = lazy(() => import('./pages/Bible/Meditation/MeditationPag
 const VerseAlarmPage = lazy(() => import('./pages/Bible/VerseAlarm/VerseAlarmPage'))
 const SituationManagement = lazy(() => import('./pages/Admin/SituationManagement'))
 const CultureManagement = lazy(() => import('./pages/Admin/CultureManagement'))
+const SurveyManagement = lazy(() => import('./pages/Admin/SurveyManagement'))
 const OrganizationManagement = lazy(() => import('./pages/Admin/OrganizationManagement'))
 const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'))
 const CareRadar = lazy(() => import('./pages/Admin/CareRadar'))
@@ -308,6 +311,8 @@ function App() {
                 <Route path="/participate" element={<Participate />} />
                 <Route path="/online" element={<Online />} />
                 <Route path="/culture" element={<Culture />} />
+                <Route path="/survey" element={<SurveyList />} />
+                <Route path="/survey/:id" element={<SurveyDetail />} />
                 <Route path="/worship" element={<Worship />} />
                 <Route path="/sermon" element={<Sermon />} />
                 <Route path="/login" element={<Login />} />
@@ -331,6 +336,7 @@ function App() {
                 <Route path="/admin/situations" element={<SituationManagement />} />
                 <Route path="/admin/chatbot" element={<ChatbotManagement />} />
                 <Route path="/admin/culture" element={<CultureManagement />} />
+                <Route path="/admin/surveys" element={<SurveyManagement />} />
                 <Route path="/admin/organization" element={<OrganizationManagement />} />
                 <Route path="/admin/pastors" element={<PastorManagement />} />
                 <Route path="/admin/education" element={<EducationManagement />} />

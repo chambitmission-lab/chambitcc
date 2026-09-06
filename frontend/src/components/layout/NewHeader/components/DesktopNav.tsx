@@ -58,6 +58,7 @@ const GROUPS: Group[] = [
       { to: '/events', labelKey: 'events', descKey: 'navDescEvents', icon: 'events' },
       { to: '/mission', labelKey: 'mission', descKey: 'navDescMission', iconFallback: 'mission' },
       { to: '/culture', labelKey: 'culture', descKey: 'navDescCulture', icon: 'culture' },
+      { to: '/survey', labelKey: 'survey', descKey: 'navDescSurvey', icon: 'survey' },
       { to: '/news?tab=new-family', labelKey: 'navNewFamilyAlbum', descKey: 'navDescNewFamily', iconFallback: 'newFamily' },
     ],
   },
