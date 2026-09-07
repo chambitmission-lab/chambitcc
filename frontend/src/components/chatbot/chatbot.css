@@ -439,6 +439,10 @@ html.dark .cb-msg { background: #201f1f; color: #e6eaf2; box-shadow: inset 0 1px
   color: var(--brand);
   margin-bottom: 6px !important;
 }
+/* 제목이 한 줄을 넘길 땐 어절째 내려가게 — 글자 단위로 끊기면 "요." 한 글자만 고아로 남는다.
+   EmojiText는 svg 글리프 + 맨 텍스트 노드(익명 flex 아이템)라 제목 자체에 걸어 상속시킨다 */
+.cb-msg-title { word-break: keep-all; overflow-wrap: anywhere; }
+.cb-msg-title > svg { flex-shrink: 0; }
 .cb-msg-para { white-space: pre-line; word-break: keep-all; }
 .cb-msg-para + .cb-msg-para { margin-top: 8px !important; }
 /* 인사처럼 첫 문단이 짧고 뒤에 문단이 더 있으면 첫 문단을 도드라지게 */

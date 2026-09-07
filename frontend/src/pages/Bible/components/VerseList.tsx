@@ -629,8 +629,15 @@ const VerseList = ({
   // 이어 읽기: 지정된 절로 자동 스크롤 + 일시적 하이라이트.
   // 무한 스크롤 페이지가 새로 로드될 때마다 DOM 존재 여부를 재확인하고,
   // 없으면 자동으로 다음 페이지를 미리 받는다.
+  //
+  // 절 DOM은 본문(chapterData)뿐 아니라 읽음 상태(readStatusLoading)까지 도착해야
+  // 그려진다(아래 로딩 게이트). 본문은 24시간 캐시라 즉시 오고 읽음 상태는 네트워크를
+  // 타므로, chapterData만 보고 돌면 스피너 상태에서 getElementById가 null이 된 채
+  // 끝나고 다시는 재시도되지 않았다 — 단어장·검색의 ?verse=N 딥링크가 첫 진입에선
+  // 안 가고 두 번째(읽음 상태가 캐시된 뒤)에만 가던 원인. 실제 렌더 여부를 의존성으로 둔다.
+  const bodyRendered = !isLoading && !readStatusLoading && !!chapterData
   useEffect(() => {
-    if (!scrollToVerse || !chapterData) return
+    if (!scrollToVerse || !bodyRendered || !chapterData) return
     const el = document.getElementById(`bible-verse-${scrollToVerse}`)
     if (el) {
       scrollVerseIntoView(el)
@@ -644,7 +651,7 @@ const VerseList = ({
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
     }
-  }, [scrollToVerse, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
+  }, [scrollToVerse, bodyRendered, chapterData, hasNextPage, isFetchingNextPage, fetchNextPage, onScrolled, scrollVerseIntoView])
 
   // ---------- 오디오북 듣기-보기 동기화 ----------
   // 하단 앵커 따라가기, 직접 스크롤 시 일시 정지, 6초 자동 복귀는 useAudioFollow 로 분리했다.
