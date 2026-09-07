@@ -31,7 +31,8 @@ export interface Prayer {
   emotion?: PrayerEmotion  // 감정 태그 (주간 스토리용)
   created_at: string
   time_ago: string
-  recommended_verses?: RecommendedVerses  // 성경 구절 추천
+  recommended_verses?: RecommendedVerses  // 성경 구절 추천 (목록 응답에는 없음 — 아래 count 로 배지만 그린다)
+  recommended_verses_count?: number  // 추천 구절 개수 (목록 응답용, 전문은 상세에서)
   group_id?: number  // 소그룹 ID (null이면 전체 공개)
   group?: PrayerGroup  // 소그룹 정보
 }

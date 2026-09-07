@@ -44,6 +44,8 @@ export const prayerKeys = {
   detail: (prayerId: number, username?: string | null) =>
     [...prayerKeys.detailPrefix(prayerId), username || 'anonymous'] as const,
   replies: (prayerId: number) => [...prayerKeys.all, prayerId, 'replies'] as const,
+  /** 카드 '함께 묵상' 모달용 추천 구절 — 목록 응답에는 개수만 오고 전문은 여기서 따로 받는다 */
+  verses: (prayerId: number) => [...prayerKeys.detailPrefix(prayerId), 'verses'] as const,
   answeredCount: () => [...prayerKeys.all, 'answeredCount'] as const,
   mineLatest: () => [...prayerKeys.all, 'mine', 'latest-one'] as const,
 }
@@ -82,7 +84,10 @@ export const usePrayersInfinite = (
   const query = useInfiniteQuery({
     queryKey: infiniteListKey,
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await fetchPrayers(pageParam, 20, sort, groupId, filter, isAnswered)
+      // 첫 화면의 핵심 요청 — 홈 콜드 마운트에서 다른 위젯 요청보다 먼저 나간다(utils/requestPriority)
+      const response = await fetchPrayers(pageParam, 20, sort, groupId, filter, isAnswered, {
+        priority: 'critical',
+      })
       
       // 클라이언트에서 is_owner 재계산 (보안 강화)
       const itemsWithRecalculatedOwner = response.data.items.map((prayer: Prayer) => ({

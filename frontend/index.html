@@ -141,6 +141,11 @@
          없으므로, 그 경우를 메우려면 정적 preconnect 여야 한다. -->
     <link rel="preconnect" href="https://omkzokuhaxadkfrgklcm.supabase.co" crossorigin />
 
+    <!-- API 서버 사전 연결 — 첫 API 요청(기도 목록)이 DNS+TCP+TLS 를 통째로 무는 것을 막는다
+         (실측 약 30ms, 모바일망에선 100~300ms). VITE_API_URL 은 빌드 때 치환된다(.env.production).
+         API 요청은 자격증명 없는 CORS(Authorization 헤더만) 라 crossorigin(anonymous) 커넥션과 매칭된다. -->
+    <link rel="preconnect" href="%VITE_API_URL%" crossorigin />
+
     <!-- /about 히어로 배경 선요청: 배경 URL은 /about-content API 응답 안에 있어
          (라우트 청크 → API 왕복 → 렌더) 뒤에야 발견된다. CSS background-image 나
          React가 그리는 <img> 모두 프리로드 스캐너가 못 보므로, 지난 방문에 저장해 둔

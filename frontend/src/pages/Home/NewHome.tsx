@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useIsRestoring } from '@tanstack/react-query'
 import ErrorBoundary from '../../components/common/ErrorBoundary'
 // 열어야만 보이는 모달·PC 전용 레일은 lazy — 홈 첫 로드 번들에서 제외한다.
 // 작성 모달은 홈의 1순위 액션이라 첫 화면이 그려진 뒤 한가할 때 미리 받아 둔다(preloadComposer).
@@ -41,6 +42,7 @@ import { preloadNavRoutes, preloadRoute, isRoutePreloaded } from '../../utils/ro
 import type { SortType, PrayerFilterType, Prayer } from '../../types/prayer'
 import { confirmDialog } from '../../utils/confirmDialog'
 import { prayerToastFeedback } from '../../components/prayer/prayerFeedback'
+import { holdSecondaryRequests, releaseSecondaryRequests } from '../../utils/requestPriority'
 
 const NewHome = () => {
   const location = useLocation()
@@ -67,6 +69,18 @@ const NewHome = () => {
   // 하단 네비에서 lazy 청크를 받는 중인 경로 — 해당 아이콘에 스피너를 띄운다
   const [navPending, setNavPending] = useState<string | null>(null)
   const prayerHook = usePrayersInfinite(sort, selectedGroupId, selectedFilter, undefined, prayerToastFeedback)  // ✅ selectedFilter 전달
+
+  // 기도 목록 우선 출발 게이트 — 캐시 없이(콜드) 뜨는 첫 마운트에만 건다.
+  // 반드시 렌더 단계에서: 자식 위젯들의 useQuery 는 effect 에서 fetch 를 시작하는데 effect 는
+  // 자식→부모 순이라, 부모 effect 에서 걸면 이미 다 나간 뒤다. persist 복원 중에는 어떤 쿼리도
+  // 출발하지 않으므로 복원이 끝난 첫 렌더에서 한 번만 판정한다(멱등이라 StrictMode 이중 렌더도 무해).
+  const isRestoring = useIsRestoring()
+  const priorityArmedRef = useRef(false)
+  if (!isRestoring && !priorityArmedRef.current) {
+    priorityArmedRef.current = true
+    if (prayerHook.loading) holdSecondaryRequests()
+  }
+  useEffect(() => releaseSecondaryRequests, [])
   const mainRef = useRef<HTMLDivElement>(null)
   const feedRef = useRef<HTMLDivElement>(null)
   // 사이드 컬럼 bottom-sticky — 헤더(56px)+상단 여백에 맞춘 기존 top-[4.5rem]=72px 기준

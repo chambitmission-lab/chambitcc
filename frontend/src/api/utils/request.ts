@@ -11,6 +11,7 @@
  */
 import { API_V1, apiFetch } from '../../config/api'
 import { tokenStore } from '../../utils/tokenStore'
+import { releaseSecondaryRequests, waitForCriticalRequests } from '../../utils/requestPriority'
 import { ApiError } from './apiHelpers'
 
 export type QueryValue = string | number | boolean | null | undefined
@@ -36,7 +37,16 @@ export interface RequestOptions {
   errorMessage?: string
   /** 서버 응답에 상관없이 항상 errorMessage 를 쓴다(사용자에게 원문을 보이고 싶지 않을 때) */
   ignoreServerDetail?: boolean
+  /**
+   * 'critical': 첫 화면의 핵심 요청(기도 목록). 게이트를 기다리지 않고 즉시 나가며,
+   *   끝나는 순간 게이트를 열어 미뤄 둔 요청들을 출발시킨다.
+   * 'normal'(기본): 홈 콜드 마운트 중이면 핵심 요청이 끝날 때까지 출발을 미룬다.
+   *   (utils/requestPriority 참고 — 웜 진입·다른 페이지에서는 게이트가 없어 즉시 나간다)
+   */
+  priority?: 'critical' | 'normal'
 }
+
+export type RequestPriority = NonNullable<RequestOptions['priority']>
 
 export const LOGIN_REQUIRED_MESSAGE = '로그인이 필요합니다'
 
@@ -129,7 +139,16 @@ export const toApiError = async (
  */
 export const requestRaw = async (path: string, options: RequestOptions = {}): Promise<Response> => {
   const url = resolveUrl(path) + buildQuery(options.query)
-  const response = await apiFetch(url, buildInit(options))
+  const init = buildInit(options)
+  const critical = options.priority === 'critical'
+  if (!critical) await waitForCriticalRequests()
+  let response: Response
+  try {
+    response = await apiFetch(url, init)
+  } finally {
+    // 성공이든 실패든 핵심 요청이 끝나면 나머지를 풀어 준다
+    if (critical) releaseSecondaryRequests()
+  }
   if (!response.ok) {
     throw await toApiError(response, options.errorMessage, options.ignoreServerDetail)
   }

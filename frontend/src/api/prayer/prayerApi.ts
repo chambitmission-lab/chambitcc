@@ -6,7 +6,7 @@ import type {
   SortType,
   Prayer,
 } from '../../types/prayer'
-import { request, type UntypedJson } from '../utils/request'
+import { request, type RequestPriority, type UntypedJson } from '../utils/request'
 
 /**
  * 기도 요청 목록 조회 (비로그인 가능)
@@ -19,7 +19,8 @@ export const fetchPrayers = async (
   sort: SortType = 'popular',
   groupId?: number | null,
   filter?: 'all' | 'my_prayers' | 'prayed_by_me' | null,
-  isAnswered?: boolean
+  isAnswered?: boolean,
+  options?: { priority?: RequestPriority }
 ): Promise<PrayerListResponse> => {
   const params = new URLSearchParams({
     page: page.toString(),
@@ -42,7 +43,10 @@ export const fetchPrayers = async (
     params.append('is_answered', String(isAnswered))
   }
 
-  return request<PrayerListResponse>(`/prayers?${params}`, { errorMessage: '기도 요청을 불러오는데 실패했습니다' })
+  return request<PrayerListResponse>(`/prayers?${params}`, {
+    errorMessage: '기도 요청을 불러오는데 실패했습니다',
+    priority: options?.priority,
+  })
 }
 
 /**

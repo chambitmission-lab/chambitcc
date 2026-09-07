@@ -1,5 +1,9 @@
-import { memo, useState, lazy, Suspense } from 'react'
-import type { Prayer } from '../../../../types/prayer'
+import { memo, useState, useEffect, lazy, Suspense } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import type { Prayer, RecommendedVerses } from '../../../../types/prayer'
+import { fetchPrayerDetail } from '../../../../api/prayer'
+import { prayerKeys } from '../../../../hooks/usePrayersQuery'
+import { showToast } from '../../../../utils/toast'
 import PrayerHeader from './PrayerHeader'
 import PrayerContent from './PrayerContent'
 import PrayerActions from './PrayerActions'
@@ -73,7 +77,25 @@ const PrayerArticle = ({
     onPrayerClick(prayer.id, true)
   }
 
-  const hasVerses = !!prayer.recommended_verses && prayer.recommended_verses.verses.length > 0
+  // 목록 응답은 구절 전문 없이 개수만 온다(응답 크기 70% 절감). 전문이 실려 온 경우(단건 응답)는 그대로 쓴다.
+  const versesCount = prayer.recommended_verses?.verses.length ?? prayer.recommended_verses_count ?? 0
+
+  // 모달을 여는 순간에만 전문을 받는다 — 상세 쿼리와 키를 달리해 목록 항목이 initialData 로
+  // 들어간 detail 캐시(구절 없음)를 잘못 재사용하지 않게 한다
+  const versesQuery = useQuery<RecommendedVerses | null>({
+    queryKey: prayerKeys.verses(prayer.id),
+    queryFn: async () => (await fetchPrayerDetail(prayer.id)).recommended_verses ?? null,
+    enabled: showVersesModal && !prayer.recommended_verses,
+    staleTime: 1000 * 60 * 10,
+  })
+  const verses = prayer.recommended_verses ?? versesQuery.data ?? null
+
+  useEffect(() => {
+    if (showVersesModal && versesQuery.isError) {
+      setShowVersesModal(false)
+      showToast('말씀을 불러오지 못했어요. 잠시 후 다시 시도해주세요.', 'error')
+    }
+  }, [showVersesModal, versesQuery.isError])
 
   const liveStatusText = prayer.is_owner
     ? language === 'ko'
@@ -130,7 +152,7 @@ const PrayerArticle = ({
               prayerCount={prayer.prayer_count}
               replyCount={prayer.reply_count}
               onReplyClick={handleReplyClick}
-              versesCount={hasVerses ? prayer.recommended_verses!.verses.length : 0}
+              versesCount={versesCount}
               onVersesClick={handleVersesClick}
               isOwner={prayer.is_owner}
               isAnswered={prayer.is_answered}
@@ -149,10 +171,10 @@ const PrayerArticle = ({
         </div>
       </div>
 
-      {showVersesModal && prayer.recommended_verses && (
+      {showVersesModal && verses && (
         <Suspense fallback={null}>
           <BibleVersesModal
-            verses={prayer.recommended_verses}
+            verses={verses}
             authorName={prayer.display_name}
             prayerId={prayer.is_owner ? prayer.id : undefined}
             onClose={() => setShowVersesModal(false)}
