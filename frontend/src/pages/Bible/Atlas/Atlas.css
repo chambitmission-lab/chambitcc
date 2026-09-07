@@ -787,7 +787,6 @@
   gap: 0.5rem;
 }
 .atl-pass__row {
-  position: relative;
   display: block;
   width: 100%;
   padding: 0.7rem 0.8rem;
@@ -850,17 +849,18 @@
 .atl-pass__stamp .material-icons-round {
   font-size: 0.85rem;
 }
+/* 완주 도장 — 카운트와 같은 자리를 쓰므로 둘은 절대 함께 뜨지 않는다 */
 .atl-pass__seal {
-  position: absolute;
-  top: 0.6rem;
-  right: 0.7rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: 0.3rem;
+  flex-shrink: 0;
+  padding: 0.14rem 0.45rem;
+  border-radius: 0.35rem;
   border: 1.5px solid;
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  transform: rotate(-8deg);
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transform: rotate(-5deg);
 }
 .atl-pass__hint {
   margin-top: 0.9rem;

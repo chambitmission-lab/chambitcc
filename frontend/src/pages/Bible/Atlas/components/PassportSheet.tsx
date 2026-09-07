@@ -88,12 +88,20 @@ const PassportSheet = ({ visitedIds, onOpenJourney, onClose }: PassportSheetProp
                   <span className="atl-pass__head">
                     <span className="atl-pass__dot" style={{ background: journey.color }} />
                     <span className="atl-pass__title">{journey.title}</span>
-                    <span
-                      className="atl-pass__count"
-                      style={complete ? { color: journey.color } : undefined}
-                    >
-                      {done}/{placeIds.length}
-                    </span>
+                    {/* 완주하면 카운트(8/8) 대신 도장을 찍는다 — 둘 다 같은 말이라
+                        나란히 두면 자리를 다투기만 한다 */}
+                    {complete ? (
+                      <span
+                        className="atl-pass__seal"
+                        style={{ color: journey.color, borderColor: journey.color }}
+                      >
+                        완주
+                      </span>
+                    ) : (
+                      <span className="atl-pass__count">
+                        {done}/{placeIds.length}
+                      </span>
+                    )}
                   </span>
 
                   <span className="atl-pass__stamps">
@@ -116,12 +124,6 @@ const PassportSheet = ({ visitedIds, onOpenJourney, onClose }: PassportSheetProp
                       )
                     })}
                   </span>
-
-                  {complete && (
-                    <span className="atl-pass__seal" style={{ color: journey.color, borderColor: journey.color }}>
-                      완주
-                    </span>
-                  )}
                 </button>
               </li>
             ))}
