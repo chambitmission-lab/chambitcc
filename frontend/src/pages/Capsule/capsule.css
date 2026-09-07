@@ -3059,3 +3059,36 @@
     max-width: 52%;
   }
 }
+
+/* ── /capsule/new PC(lg+) 2단 ───────────────────────────────────────────
+   편집기 화면이라 위젯 레일을 붙이지 않고 폼 자체를 편다(/bible/photo-verse 와 같은 방식).
+   왼쪽 = 무엇을 담을까(받는 사람·편지·사진) / 오른쪽 = 어떻게 보낼까(음성·개봉일·봉인).
+   두 래퍼는 lg 미만에서 display:contents 라 모바일 DOM 흐름·간격이 1px도 바뀌지 않는다. */
+.cc-main,
+.cc-side {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  .cc-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    column-gap: 20px;
+    align-items: start;
+    padding: 0 12px 8px;
+  }
+  .cc-main,
+  .cc-side {
+    display: block;
+  }
+
+  /* 오른쪽 열 첫 카드는 왼쪽 첫 섹션(pt-5)과 눈높이를 맞춘다 */
+  .cc-side > section:first-child {
+    padding-top: 1.25rem;
+  }
+
+  /* 편지 칸 — 폰의 7줄은 넓은 화면에서 너무 얕다. 오른쪽 열 길이와도 얼추 맞는다 */
+  .cc-letter-body {
+    min-height: 320px;
+  }
+}
