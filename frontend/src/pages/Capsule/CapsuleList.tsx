@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMyCapsules } from '../../hooks/useTimeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import CapsuleMailbox from './CapsuleMailbox'
+import CapsuleRail from './CapsuleRail'
 import './capsule.css'
 import { isCapsuleHeroWarm, warmCapsuleHero } from './heroPrefetch'
 
@@ -42,7 +43,9 @@ const CapsuleList = () => {
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
+      {/* lg+: 좁은 셸을 풀고 본문(캡슐함) + 우측 레일(봉인하기·한눈에·다가올 개봉) 2단 표준 규격 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
+      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-10 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
         {/* 헤더 */}
         <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
           <button
@@ -64,7 +67,7 @@ const CapsuleList = () => {
             className={`capsule-hero-art absolute inset-0 pointer-events-none${artReady ? ' is-ready' : ''}`}
             aria-hidden
           />
-          <div className="relative z-10">
+          <div className="capsule-hero__body relative z-10">
             <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#2f6bd8] dark:text-white/70">
               Time Capsule
             </p>
@@ -136,6 +139,9 @@ const CapsuleList = () => {
             </p>
           </div>
         )}
+      </div>
+
+      <CapsuleRail data={mailbox} />
       </div>
     </div>
   )

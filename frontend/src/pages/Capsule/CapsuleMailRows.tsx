@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import type { CapsuleSummary } from '../../types/timeCapsule'
 import { showToast } from '../../utils/toast'
 import { daysUntil, formatKoreanDate } from './capsuleDates'
-import { splitHighlight } from './capsuleGroups'
+import { counterpartLabel, splitHighlight } from './capsuleGroups'
 
 const capsuleInviteUrl = (code: string) =>
   `${window.location.origin}${window.location.pathname}#/capsule/invite/${code}`
@@ -49,13 +49,6 @@ const Mark = ({ text, keyword }: { text: string; keyword?: string }) => {
       )}
     </>
   )
-}
-
-/** 상대 표시: 누구에게/누구로부터 */
-const counterpartLabel = (c: CapsuleSummary): string => {
-  if (c.role === 'self') return '미래의 나에게'
-  if (c.role === 'sender') return `${c.recipient_name || '소중한 분'}에게 보냄`
-  return `${c.sender_name}님이 보냄`
 }
 
 /** 밀랍 인장 — 누가 보냈는지는 옆 텍스트가 이미 말한다.

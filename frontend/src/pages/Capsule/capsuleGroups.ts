@@ -95,3 +95,10 @@ export const splitHighlight = (text: string, keyword: string): HighlightPart[] =
   if (from < text.length) parts.push({ text: text.slice(from), hit: false })
   return parts.length ? parts : [{ text, hit: false }]
 }
+
+/** 상대 표시: 누구에게/누구로부터 — 목록 행과 PC 레일의 '다가올 개봉'이 같은 문구를 쓴다 */
+export const counterpartLabel = (c: CapsuleSummary): string => {
+  if (c.role === 'self') return '미래의 나에게'
+  if (c.role === 'sender') return `${c.recipient_name || '소중한 분'}에게 보냄`
+  return `${c.sender_name}님이 보냄`
+}

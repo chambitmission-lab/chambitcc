@@ -177,7 +177,8 @@ const GroupedSection = ({
         {groups.map((group) => {
           const open = !grouped || openKeys.has(group.key)
           const rows = (
-            <div className="space-y-2.5">
+            // PC(lg+)에서는 2열 — 편지 한 통은 좁아야 읽히는 카드라 넓히지 않고 늘린다
+            <div className="capsule-list">
               {group.items.map((c) =>
                 kind === 'arrived' ? (
                   <ArrivedRow key={c.id} capsule={c} />
@@ -249,9 +250,11 @@ const SearchResults = ({
   // 첫 검색은 손에 든 결과가 없다 — 빈 결과와 구분해서 기다리는 티를 낸다
   if (total === 0 && busy) {
     return (
-      <section className="px-4 pt-6 space-y-2.5" aria-busy>
-        <div className="h-16 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
-        <div className="h-16 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+      <section className="px-4 pt-6" aria-busy>
+        <div className="capsule-list">
+          <div className="h-16 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+          <div className="h-16 rounded-2xl bg-gray-100/70 dark:bg-white/[0.04] animate-pulse" />
+        </div>
       </section>
     )
   }
@@ -282,15 +285,19 @@ const SearchResults = ({
         ‘{keyword}’ 검색 결과 {total}통
       </p>
 
-      <div className={`mt-2.5 space-y-2.5${busy ? ' opacity-60 transition-opacity' : ''}`}>
+      <div
+        className={`mt-2.5 flex flex-col gap-2.5${busy ? ' opacity-60 transition-opacity' : ''}`}
+      >
         {arrived.length > 0 && (
           <>
             <p className="px-1 pt-1 text-[11px] font-bold text-[var(--text-muted)]">
               도착한 캡슐 {arrivedTotal}통
             </p>
-            {arrived.map((c) => (
-              <ArrivedRow key={c.id} capsule={c} keyword={keyword} />
-            ))}
+            <div className="capsule-list">
+              {arrived.map((c) => (
+                <ArrivedRow key={c.id} capsule={c} keyword={keyword} />
+              ))}
+            </div>
             {paging.hasMore && (
               <LoadMore
                 remaining={arrivedTotal - arrived.length}
@@ -305,9 +312,11 @@ const SearchResults = ({
             <p className="px-1 pt-2 text-[11px] font-bold text-[var(--text-muted)]">
               봉인 중인 캡슐 {sealed.length}통
             </p>
-            {sealed.map((c) => (
-              <SealedRow key={c.id} capsule={c} keyword={keyword} />
-            ))}
+            <div className="capsule-list">
+              {sealed.map((c) => (
+                <SealedRow key={c.id} capsule={c} keyword={keyword} />
+              ))}
+            </div>
           </>
         )}
       </div>
