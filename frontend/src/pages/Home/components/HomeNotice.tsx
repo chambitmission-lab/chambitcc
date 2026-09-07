@@ -54,6 +54,58 @@ const formatRelative = (iso: string) => {
 /** 배너 미리보기 — 서식을 벗기고 한 줄로 눕혀 truncate가 자연스럽게 걸리도록 */
 const previewOf = (content: string) => noticePreviewText(content)
 
+/**
+ * 지난 방문에 배너가 떠 있었는지 — 첫 조회가 끝나기 전에 자리를 비워 둘지 정하는 힌트.
+ * 앱을 켤 때마다 persist 복원 + 기도 목록 우선 게이트(최대 1.5초) 동안 data 가 없어서,
+ * 공지가 하나도 없는 평소에도 빈 자리표시자가 떴다가 꺼지며 아래 카드가 올라왔다.
+ * 지난 결과가 '없음'이면 자리를 두지 않고, '있음'일 때만 같은 높이로 비워 둔다.
+ * (공지가 새로 생긴 첫 방문은 한 번 밀리지만, 그 뒤로는 어느 쪽도 흔들리지 않는다)
+ */
+const SLOT_HINT_KEY = 'home_notice_slot_v1'
+const readSlotHint = (): boolean => {
+  try {
+    return localStorage.getItem(SLOT_HINT_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+const writeSlotHint = (hasBanner: boolean) => {
+  try {
+    localStorage.setItem(SLOT_HINT_KEY, hasBanner ? '1' : '0')
+  } catch {
+    /* 저장 불가 환경 — 다음 방문에 자리표시자 없이 뜰 뿐 */
+  }
+}
+
+/**
+ * 첫 조회 중 자리표시자 — 실제 배너와 같은 DOM 골격(패딩·아이콘 44px·글줄 3개)을 그대로
+ * 세워 높이가 저절로 맞는다. 고정 px 로 두면 폰트·줄간격이 바뀔 때마다 몇 px 씩 어긋난다.
+ */
+const BannerSkeleton = () => (
+  <div className="px-4 pt-3" aria-hidden>
+    <div className="feed-card w-full overflow-hidden rounded-2xl opacity-60">
+      <div className="flex items-center gap-3 py-3 pl-3.5 pr-3">
+        <span className="h-11 w-11 shrink-0 rounded-[13px]" style={{ background: 'var(--surface-inset)' }} />
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-1.5">
+            <span className="text-[10.5px] font-bold tracking-[0.1em]">
+              <span className="inline-block h-[1em] w-7 rounded" style={{ background: 'var(--surface-inset)' }} />
+            </span>
+            <span className="text-[11px]">&nbsp;</span>
+          </span>
+          <span className="mt-1 block text-[14.5px] font-bold">
+            <span className="inline-block h-[1em] w-2/3 rounded" style={{ background: 'var(--surface-inset)' }} />
+          </span>
+          <span className="mt-[1px] block text-[12px] leading-snug">
+            <span className="inline-block h-[1em] w-1/2 rounded" style={{ background: 'var(--surface-inset)' }} />
+          </span>
+        </span>
+        <span className="h-[17px] w-[17px] shrink-0" />
+      </div>
+    </div>
+  </div>
+)
+
 const HomeNotice = () => {
   const navigate = useNavigate()
   const { data, isPending } = usePopupNotices()
@@ -105,6 +157,12 @@ const HomeNotice = () => {
   )
 
   const current = queue[0]
+
+  // 조회가 끝날 때마다 배너 유무를 남긴다 — 다음 실행의 자리표시자 판단 근거
+  const hasBanner = bannerNotices.length > 0
+  useEffect(() => {
+    if (data) writeSlotHint(hasBanner)
+  }, [data, hasBanner])
 
   // 포스터가 있는 공지는 이미지가 디코드된 뒤에 연다 — 열린 팝업 안에서 이미지가 뒤늦게
   // 도착하면 본문·버튼이 통째로 밀린다(실측 CLS 0.35). 실패·지연 시 2.5초 뒤엔 그냥 연다.
@@ -179,18 +237,14 @@ const HomeNotice = () => {
 
   useModalBackButton(closeCurrent, !!current)
 
-  // 첫 조회 중엔 배너 자리를 같은 높이로 비워 둔다 — 응답이 온 뒤 배너가 끼어들면
-  // 아래 묵상 카드가 통째로 104px 밀렸다(실측 CLS 0.115). persist 복원·재방문은 data 가
-  // 즉시 있어 이 분기를 타지 않는다.
+  // 첫 조회 중 — 응답이 온 뒤 배너가 끼어들면 아래 묵상 카드가 통째로 밀린다(실측 CLS 0.115).
+  // 지난 방문에 배너가 있었을 때만 같은 골격으로 자리를 비워 두고, 없었으면 아무것도 두지
+  // 않는다. persist 복원 중(useIsRestoring)에도 data 는 아직 없으므로 이 분기를 탄다 —
+  // 그래서 '지난 결과' 힌트가 필요하다.
   if (isPending && !data) {
-    return (
-      <div className="px-4 pt-3" aria-hidden>
-        {/* 배너(실측 92px)와 같은 높이. 인라인 <style> 은 배너 분기에서만 렌더되므로 여기선 유틸리티로 */}
-        <div className="h-[92px] rounded-2xl opacity-60" style={{ background: 'var(--surface-inset)' }} />
-      </div>
-    )
+    return readSlotHint() ? <BannerSkeleton /> : null
   }
-  if (bannerNotices.length === 0) return null
+  if (!hasBanner) return null
 
   const latest = bannerNotices[0]
 
