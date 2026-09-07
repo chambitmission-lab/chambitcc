@@ -238,7 +238,7 @@ const AccountSettings = () => {
 
   const handleLogout = async () => {
     await logout() // 푸시 구독 해제 + 토큰 제거 + React Query 캐시 정리
-    navigate('/login', { replace: true })
+    navigate('/', { replace: true }) // 토큰이 지워진 뒤이므로 HomeGate가 랜딩을 그린다
   }
 
   const locale = language === 'ko' ? 'ko-KR' : 'en-US'

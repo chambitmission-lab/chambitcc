@@ -17,14 +17,16 @@ import { getRole } from './access'
  * 명시적으로 해제하지 않으면 다음에 같은 디바이스로 로그인한 다른
  * 사용자가 이전 사용자의 구독 상태를 그대로 물려받게 된다.
  * 백엔드 DELETE 호출은 인증이 필요하므로 토큰을 지우기 *전에* 스냅샷해서 넘긴다.
+ * 호출부가 이미 토큰을 지운 뒤라면(화면 전환을 먼저 하려고 동기로 지우는 경우)
+ * 그때 스냅샷해 둔 값을 tokenOverride 로 넘겨야 푸시 구독 해제가 인증을 통과한다.
  *
  * 참고: React Query 캐시는 자동으로 무효화됩니다.
  * 로그인 시 queryClient.invalidateQueries()가 호출되어
  * 새 사용자의 데이터로 갱신됩니다.
  */
-export const logout = async () => {
+export const logout = async (tokenOverride?: string | null) => {
   // 백엔드 구독 해제에 필요한 토큰을 제거 전에 스냅샷
-  const token = tokenStore.getAccess()
+  const token = tokenOverride ?? tokenStore.getAccess()
 
   // 토큰 및 사용자 정보 제거 (동기 · 즉시)
   tokenStore.clear()
