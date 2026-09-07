@@ -4,6 +4,8 @@ import { HOLD_TO_READ_MS } from './useHoldToRead'
 interface VerseNumberProps {
   number: number
   isRead: boolean
+  /** 방금 사용자가 읽음으로 바꾼 절만 튀어오른다 — 서버 상태가 뒤늦게 도착해 칠해지는 절은 색만 스르르 */
+  pop: boolean
   /** 길게 누르기(읽음 표시) 제스처가 살아 있는지 — 안내 문구·텍스트 선택 차단에 쓰인다 */
   canHoldToRead: boolean
   /** 누르고 있는 동안 번호 자리가 브랜드 색으로 차오른다 */
@@ -20,7 +22,7 @@ interface VerseNumberProps {
 }
 
 /** 절 번호 — 절별/이어읽기 두 보기 공통. 읽음 색·길게 누르기·차오름 표시를 품는다. */
-const VerseNumber = ({ number, isRead, canHoldToRead, isHolding, holdHandlers }: VerseNumberProps) => (
+const VerseNumber = ({ number, isRead, pop, canHoldToRead, isHolding, holdHandlers }: VerseNumberProps) => (
   <span
     className="bible-verse-number"
     title={
@@ -34,8 +36,9 @@ const VerseNumber = ({ number, isRead, canHoldToRead, isHolding, holdHandlers }:
     }
     {...holdHandlers}
     style={{
+      transition: 'color 0.35s ease',
       ...(isRead
-        ? { color: 'var(--ig-success)', animation: 'verseNumberPop 0.4s ease-out' }
+        ? { color: 'var(--ig-success)', animation: pop ? 'verseNumberPop 0.4s ease-out' : undefined }
         : null),
       ...(canHoldToRead
         ? {

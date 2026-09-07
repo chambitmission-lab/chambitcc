@@ -238,7 +238,9 @@ export const getChapterReadStatus = async (
   bookNumber: number,
   chapter: number
 ): Promise<ChapterReadStatusResponse['data']> => {
-  const result: ChapterReadStatusResponse = await request<ChapterReadStatusResponse>(`/bible/chapters/${bookNumber}/${chapter}/read-status`, { auth: 'required', errorMessage: '장 읽음 상태를 불러오는데 실패했습니다' })
+  // 절 번호 색·진행률 pill 이 이 응답을 기다린다 — 콜드 진입 게이트에 걸리면 본문이 그려진 뒤에도
+  // 읽음 표시가 한 박자 늦게 따라온다. 게이트를 통과하는 high 로 보낸다(핵심 요청 게이트는 풀지 않음)
+  const result: ChapterReadStatusResponse = await request<ChapterReadStatusResponse>(`/bible/chapters/${bookNumber}/${chapter}/read-status`, { auth: 'required', priority: 'high', errorMessage: '장 읽음 상태를 불러오는데 실패했습니다' })
   return result.data
 }
 

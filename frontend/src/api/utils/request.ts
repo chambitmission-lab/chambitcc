@@ -40,10 +40,12 @@ export interface RequestOptions {
   /**
    * 'critical': 첫 화면의 핵심 요청(기도 목록). 게이트를 기다리지 않고 즉시 나가며,
    *   끝나는 순간 게이트를 열어 미뤄 둔 요청들을 출발시킨다.
+   * 'high': 게이트를 기다리지 않되 열지도 않는다 — 핵심 요청과 나란히 나가야 하는
+   *   화면 렌더 조건(성경 장 읽음 상태)용. 게이트는 여전히 critical 이 끝날 때 열린다.
    * 'normal'(기본): 홈 콜드 마운트 중이면 핵심 요청이 끝날 때까지 출발을 미룬다.
    *   (utils/requestPriority 참고 — 웜 진입·다른 페이지에서는 게이트가 없어 즉시 나간다)
    */
-  priority?: 'critical' | 'normal'
+  priority?: 'critical' | 'high' | 'normal'
 }
 
 export type RequestPriority = NonNullable<RequestOptions['priority']>
@@ -141,7 +143,7 @@ export const requestRaw = async (path: string, options: RequestOptions = {}): Pr
   const url = resolveUrl(path) + buildQuery(options.query)
   const init = buildInit(options)
   const critical = options.priority === 'critical'
-  if (!critical) await waitForCriticalRequests()
+  if (!critical && options.priority !== 'high') await waitForCriticalRequests()
   let response: Response
   try {
     response = await apiFetch(url, init)

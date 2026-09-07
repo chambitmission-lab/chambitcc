@@ -34,11 +34,13 @@ export interface VerseListActions {
 export interface VerseListSettings {
   /** 여러 절 선택 모드 — 켜지면 절을 탭할 때 액션바 대신 선택이 토글된다 */
   selectionMode: boolean
+  /** 읽음 상태가 도착했는지(비로그인은 항상 true) — 도착 전 절은 '미정'이라 팝 애니메이션을 쓰지 않는다 */
+  readStatusReady: boolean
 }
 
 const noop = () => {}
 const DEFAULT_ACTIONS: VerseListActions = { onReadSuccess: noop, onActionsOpenChange: noop }
-const DEFAULT_SETTINGS: VerseListSettings = { selectionMode: false }
+const DEFAULT_SETTINGS: VerseListSettings = { selectionMode: false, readStatusReady: true }
 
 export const ActionsContext = createContext<VerseListActions>(DEFAULT_ACTIONS)
 export const SettingsContext = createContext<VerseListSettings>(DEFAULT_SETTINGS)

@@ -876,3 +876,19 @@
   margin: 0.5rem 0 0.75rem;
   max-width: 100%;
 }
+
+/* 진행률 pill 이 본문보다 늦게 도착할 때 — 툭 끼어드는 대신 높이를 펼치며 나타난다.
+   (읽음 상태가 캐시에 있어 본문과 함께 그려지면 이 클래스가 붙지 않는다) */
+.verse-progress-pill--reveal {
+  animation: verseProgressPillReveal 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  overflow: hidden;
+}
+
+@keyframes verseProgressPillReveal {
+  from { opacity: 0; max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+  to   { opacity: 1; max-height: 3.5rem; margin-bottom: 0.875rem; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verse-progress-pill--reveal { animation: none; }
+}

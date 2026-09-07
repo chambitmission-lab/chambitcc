@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { useState, useEffect, useRef, memo, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import type { BibleVerse } from '../../../types/bible'
 import type { WordNote } from '../../../api/bibleWordNote'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
@@ -65,7 +65,17 @@ const VerseItem = ({
     onReadSuccess, onEdit, onToggleRead, onShowCommentary, onListenFrom,
     onActionsOpenChange: setActionsOpenById, onToggleSelect, onEnterSelection, onShare,
   } = useVerseListActions()
-  const { selectionMode } = useVerseListSettings()
+  const { selectionMode, readStatusReady } = useVerseListSettings()
+  // 팝 애니메이션은 "상태가 이미 알려진 뒤에 미읽음→읽음으로 바뀐" 경우에만 —
+  // 본문을 먼저 그리고 읽음 상태가 뒤따라 도착하는 첫 칠하기는 색 전환만 한다
+  const [readPop, setReadPop] = useState(false)
+  const prevReadRef = useRef({ isRead, ready: readStatusReady })
+  useEffect(() => {
+    const prev = prevReadRef.current
+    prevReadRef.current = { isRead, ready: readStatusReady }
+    if (isRead && !prev.isRead && prev.ready) setReadPop(true)
+    else if (!isRead) setReadPop(false)
+  }, [isRead, readStatusReady])
   const isFlow = layout === 'flow'
   // 내부에선 이 절 기준의 (open) 시그니처가 편해 verse.id를 미리 물린 래퍼를 쓴다
   const onActionsOpenChange = (open: boolean) => setActionsOpenById(verse.id, open)
@@ -173,6 +183,7 @@ const VerseItem = ({
     <VerseNumber
       number={verse.verse}
       isRead={isRead}
+      pop={readPop}
       canHoldToRead={canHoldToRead}
       isHolding={hold.isHolding}
       holdHandlers={hold.handlers}

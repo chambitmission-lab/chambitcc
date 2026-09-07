@@ -224,7 +224,7 @@ const VerseList = ({
   // 이 장의 내 북마크 전체 (절마다 개별 요청하던 N+1 제거 — 단어 노트와 동일 패턴).
   // 데이터가 아직 없으면(로딩/백엔드 미배포) null 대신 undefined를 내려보내
   // VerseItem이 기존 절별 조회로 폴백하게 한다.
-  const { data: chapterBookmarks } = useChapterBookmarks(
+  const { data: chapterBookmarks, isError: chapterBookmarksError } = useChapterBookmarks(
     bookNumber,
     selectedChapter,
     isLoggedIn(),
@@ -614,7 +614,9 @@ const VerseList = ({
       },
       {
         threshold: 0.1,
-        rootMargin: '100px', // 100px 전에 미리 로드
+        // 화면 1.5개 앞에서 미리 받는다 — 100px 로는 20절마다 스크롤이 잠깐 멈췄다.
+        // 첫 페이지가 짧으면(PC·짧은 절) 마운트 직후 바로 걸려 2페이지가 미리 들어온다
+        rootMargin: '0px 0px 150% 0px',
       }
     )
     observerRef.current.observe(node)
@@ -630,12 +632,11 @@ const VerseList = ({
   // 무한 스크롤 페이지가 새로 로드될 때마다 DOM 존재 여부를 재확인하고,
   // 없으면 자동으로 다음 페이지를 미리 받는다.
   //
-  // 절 DOM은 본문(chapterData)뿐 아니라 읽음 상태(readStatusLoading)까지 도착해야
-  // 그려진다(아래 로딩 게이트). 본문은 24시간 캐시라 즉시 오고 읽음 상태는 네트워크를
-  // 타므로, chapterData만 보고 돌면 스피너 상태에서 getElementById가 null이 된 채
-  // 끝나고 다시는 재시도되지 않았다 — 단어장·검색의 ?verse=N 딥링크가 첫 진입에선
-  // 안 가고 두 번째(읽음 상태가 캐시된 뒤)에만 가던 원인. 실제 렌더 여부를 의존성으로 둔다.
-  const bodyRendered = !isLoading && !readStatusLoading && !!chapterData
+  // 절 DOM 은 본문(chapterData)이 오면 바로 그려진다(아래 로딩 게이트와 같은 조건).
+  // 예전엔 읽음 상태까지 기다렸는데, chapterData 만 보고 돌면 스피너 상태에서
+  // getElementById 가 null 인 채 끝나 딥링크가 첫 진입에 안 가던 버그가 있었다 —
+  // 게이트 조건과 이 값은 반드시 같이 움직여야 한다.
+  const bodyRendered = !isLoading && !!chapterData
   useEffect(() => {
     if (!scrollToVerse || !bodyRendered || !chapterData) return
     const el = document.getElementById(`bible-verse-${scrollToVerse}`)
@@ -688,7 +689,22 @@ const VerseList = ({
     onEnterSelection: enterSelection,
     onShare: setShareTarget,
   }), [handleReadSuccess, handleEditVerse, handleToggleRead, handleShowCommentary, onListenFromVerse, handleListenFrom, handleActionsOpenChange, toggleSelect, enterSelection])
-  const verseSettings = useMemo<VerseListSettings>(() => ({ selectionMode }), [selectionMode])
+  // 비로그인은 읽음 상태 쿼리가 꺼져 있어 '도착'으로 본다
+  const readStatusReady = !isLoggedIn() || !readStatusLoading
+  const verseSettings = useMemo<VerseListSettings>(
+    () => ({ selectionMode, readStatusReady }),
+    [selectionMode, readStatusReady],
+  )
+
+  // 진행률 pill 이 본문보다 늦게 도착하면 목록이 툭 밀린다 — 그 경우에만 높이를 펼치며 나타난다.
+  // (읽음 상태가 캐시에 있어 본문과 함께 그려지면 그냥 정적으로 둔다)
+  const [pillReveal, setPillReveal] = useState(false)
+  useEffect(() => {
+    setPillReveal(false)
+  }, [bookNumber, selectedChapter])
+  useEffect(() => {
+    if (bodyRendered && !readStatusReady) setPillReveal(true)
+  }, [bodyRendered, readStatusReady])
 
   // 절 하나 렌더 — 절별/이어읽기 두 보기가 같은 props를 쓴다
   const renderVerse = (verse: BibleVerse, bookName: string, chapterNo: number, verseLayout: 'list' | 'flow') => (
@@ -704,18 +720,26 @@ const VerseList = ({
       isAudioActive={verse.verse === audioActiveVerse}
       actionsOpen={openVerseId === verse.id}
       wordNotes={wordNotesByVerse.get(verse.id)}
-      chapterBookmark={bookmarksByVerse ? (bookmarksByVerse.get(verse.id) ?? null) : undefined}
+      // 장 배치가 실패했을 때(백엔드 미배포 404)만 undefined → 절별 조회 폴백.
+      // 로딩 중까지 undefined 로 두면 첫 페이지 20절이 각자 북마크 요청을 쏘아 본문 응답과 경쟁했다
+      chapterBookmark={
+        bookmarksByVerse
+          ? (bookmarksByVerse.get(verse.id) ?? null)
+          : chapterBookmarksError
+            ? undefined
+            : null
+      }
       isSelected={selectedIdSet.has(verse.id)}
       layout={verseLayout}
     />
   )
 
   // 로딩 상태는 모든 훅 호출 이후에 체크.
-  // 본문(캐시로 즉시)과 읽음 상태(staleTime 5분이라 늦게 도착)가 따로 도착하면
-  // '안 읽음' 초기 상태가 잠깐 보였다가 읽음으로 확 바뀌는 깜빡임이 생긴다.
-  // 읽음 상태가 처음 로드되는 동안에도 스피너를 유지해 최종 상태를 한 번에 그린다.
-  // (읽음 상태가 이미 캐시에 있으면 readStatusLoading=false라 지연 없음)
-  if (isLoading || readStatusLoading) {
+  // 본문은 프리페치·24시간 캐시로 거의 즉시 오지만 읽음 상태는 네트워크를 탄다.
+  // 예전엔 둘 다 기다려 스피너를 띄웠는데, 본문이 있는데도 빈 화면을 보는 시간이
+  // 더 길게 느껴졌다. 이제 본문을 먼저 그리고 읽음 표시는 도착 시 색만 스르르 입힌다
+  // (팝 애니메이션은 사용자가 직접 바꾼 절만 — VerseItem.readPop).
+  if (isLoading) {
     return <ChapterLoader size="lg" />
   }
   
@@ -728,7 +752,7 @@ const VerseList = ({
     <div className="bible-content">
       {/* 진행률 pill - 읽은 절이 있을 때만 컴팩트하게 표시 */}
       {readCount > 0 && totalVerses > 0 && (
-        <div style={{
+        <div className={pillReveal ? 'verse-progress-pill--reveal' : undefined} style={{
           display: 'flex',
           alignItems: 'center',
           gap: '0.625rem',
