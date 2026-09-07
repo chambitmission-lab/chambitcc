@@ -108,3 +108,52 @@ export const parseBookStructure = (
 
   return sections.sort((a, b) => a.from - b.from)
 }
+
+// ---------------------------------------------------------------------------
+// 핵심 장 파싱
+// ---------------------------------------------------------------------------
+
+export interface KeyChapterItem {
+  /** 화면에 그대로 찍는 범위 라벨 — "38-39장" */
+  range: string
+  desc: string
+}
+
+/**
+ * 관리자가 자유 텍스트로 적은 핵심 장을 항목 단위로 끊는다.
+ *
+ *   "1-2장: 사탄의 시험" 다음 줄에 "38-39장: 폭풍 가운데 말씀하심"
+ *   "1-2장: 사탄의 시험 38-39장: 폭풍 가운데 말씀하심"   ← 줄바꿈이 없어도 같게
+ *
+ * 한 덩어리로 흘려 쓰면 "38-39" 와 "장" 이 줄 끝에서 갈라져 읽기가 어긋난다.
+ * 범위와 설명을 분리해 두면 화면이 범위를 한 덩어리(nowrap)로 붙여 놓을 수 있다.
+ *
+ * 콜론이 있는 항목만 인정한다 — 본문에 섞인 "3장" 같은 언급을 항목으로
+ * 오인해 문장을 토막 내는 쪽이 더 나쁘다. 하나도 못 찾으면 빈 배열을 주고,
+ * 호출부는 원문을 그대로 보여준다.
+ */
+export const parseKeyChapters = (raw: string | null | undefined): KeyChapterItem[] => {
+  if (!raw?.trim()) return []
+
+  const text = raw.replace(/\s+/g, ' ').trim()
+  const pattern = /(\d+(?:\s*[-~–—]\s*\d+)?)\s*장\s*[:：]\s*/g
+  const marks: { range: string; end: number; start: number }[] = []
+
+  let m: RegExpExecArray | null
+  while ((m = pattern.exec(text)) !== null) {
+    marks.push({
+      range: `${m[1].replace(/\s*([-~–—])\s*/, '$1')}장`,
+      start: m.index,
+      end: pattern.lastIndex,
+    })
+  }
+  if (marks.length === 0) return []
+
+  const items: KeyChapterItem[] = []
+  marks.forEach((mark, i) => {
+    const stop = i + 1 < marks.length ? marks[i + 1].start : text.length
+    const desc = text.slice(mark.end, stop).trim().replace(/[,;·\/]$/, '').trim()
+    if (desc) items.push({ range: mark.range, desc })
+  })
+  return items
+}

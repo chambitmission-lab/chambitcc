@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Markdown } from '../../utils/markdown'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
-import { getBookGenre, genreStyle, parseBookStructure } from './bookGenre'
+import { getBookGenre, genreStyle, parseBookStructure, parseKeyChapters } from './bookGenre'
+import type { KeyChapterItem } from './bookGenre'
 import type { BibleBookIntro } from '../../types/bibleBookIntro'
 
 interface BookIntroSheetProps {
@@ -63,10 +64,12 @@ const BookIntroSheet = ({
     onClose()
   }
 
-  const metaRows = [
+  // 핵심 장은 한 문단으로 흘리면 "38-39" 와 "장" 이 줄바꿈에서 갈라진다 —
+  // 항목으로 끊어 범위를 따로 세운다 (형식이 어긋나면 items가 비고 원문을 그대로 쓴다)
+  const metaRows: { label: string; value?: string | null; items?: KeyChapterItem[] }[] = [
     { label: '주제', value: intro.theme },
     { label: '저자 · 시대', value: intro.author_period },
-    { label: '핵심 장', value: intro.key_chapters },
+    { label: '핵심 장', value: intro.key_chapters, items: parseKeyChapters(intro.key_chapters) },
   ].filter((row) => !!row.value?.trim())
 
   return (
@@ -206,7 +209,24 @@ const BookIntroSheet = ({
                     {row.label}
                   </dt>
                   <dd className="min-w-0 flex-1 text-[14px] leading-[1.6] text-ink">
-                    {row.value}
+                    {row.items?.length ? (
+                      <ul className="space-y-1.5">
+                        {row.items.map((item) => (
+                          <li key={item.range} className="flex gap-2">
+                            {/* 범위는 절대 쪼개지지 않게 — 이 nowrap 이 이 행의 전부다 */}
+                            <span
+                              className="shrink-0 whitespace-nowrap text-[12.5px] font-bold pt-[2px]"
+                              style={{ color: 'var(--genre)' }}
+                            >
+                              {item.range}
+                            </span>
+                            <span className="min-w-0 flex-1">{item.desc}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      row.value
+                    )}
                   </dd>
                 </div>
               ))}

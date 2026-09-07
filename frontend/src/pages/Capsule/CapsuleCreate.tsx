@@ -20,6 +20,7 @@ import { getCurrentSeason } from '../../utils/churchCalendar'
 import { resizeImageToBlob } from '../../utils/imageResize'
 import { showToast } from '../../utils/toast'
 import { buildPresets, formatKoreanDate, toDateStr } from './capsuleDates'
+import { CalendarGlyph, Icon } from './capsuleIcons'
 import './capsule.css'
 
 const MAX_RECORD_SECONDS = 180
@@ -632,36 +633,8 @@ const CapsuleCreate = () => {
                       placeholder="받는 분 이름이나 애칭 (예: 아들 민준)"
                       className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] outline-none focus:border-brand placeholder:text-gray-400 dark:placeholder:text-white/30"
                     />
-                    {/* 링크는 봉인해야 만들어진다 — 지금 이 자리에 링크가 없는 게 정상이라는 걸
-                        빈 링크 칩으로 먼저 보여준다 */}
-                    <div className="mt-2 p-3 rounded-2xl bg-white dark:bg-card-dark border border-dashed border-gray-300/80 dark:border-white/[0.14]">
-                      <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-[var(--brand-soft)] text-brand flex items-center justify-center shrink-0">
-                          <svg
-                            className="w-3.5 h-3.5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={1.8}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden
-                          >
-                            <path d="M10 13.8a4 4 0 0 0 5.7 0l2.6-2.6a4 4 0 0 0-5.7-5.7l-1.3 1.3" />
-                            <path d="M14 10.2a4 4 0 0 0-5.7 0l-2.6 2.6a4 4 0 1 0 5.7 5.7l1.3-1.3" />
-                          </svg>
-                        </span>
-                        <span className="flex-1 min-w-0 text-[12px] font-bold text-gray-400 dark:text-white/35 truncate">
-                          {window.location.host}/…/capsule/invite/••••••
-                        </span>
-                      </div>
-                      <p className="mt-2 text-[11.5px] text-gray-500 dark:text-white/55 leading-[1.65]">
-                        링크는 <b className="text-brand">봉인한 뒤</b>에 만들어져요. 아래 버튼으로 봉인하면
-                        바로 카카오톡·문자로 전할 수 있어요.
-                      </p>
-                    </div>
                     <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
-                      받는 분이 링크를 열면 자신의 캡슐로 등록해요.
+                      봉인 후 초대 링크를 전달하면, 받는 분이 자신의 캡슐로 등록해요.
                       아직 앱이 없어도 가입하면 이어져요.
                     </p>
                   </div>
@@ -868,8 +841,15 @@ const CapsuleCreate = () => {
               </div>
             )}
             {openDate && (
-              <p className="px-1 mt-2.5 text-[12.5px] text-gray-500 dark:text-white/55">
-                📅 <strong className="text-ink-strong">{formatKoreanDate(openDate)}</strong> 아침 7시에 열려요
+              <p className="px-1 mt-2.5 flex items-center gap-1.5 text-[12.5px] text-gray-500 dark:text-white/55">
+                <span className="shrink-0 text-brand inline-flex">
+                  <Icon size={14}>
+                    <CalendarGlyph />
+                  </Icon>
+                </span>
+                <span className="min-w-0">
+                  <strong className="text-ink-strong">{formatKoreanDate(openDate)}</strong> 아침 7시에 열려요
+                </span>
               </p>
             )}
           </section>
