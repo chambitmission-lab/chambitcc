@@ -604,12 +604,12 @@ const PersonalPickWidget = () => {
           </div>
         ) : (
           <>
-            <p className="relative mt-3 text-[13.5px] font-medium leading-[1.6] text-ink-strong line-clamp-3 tracking-[-0.01em]">
+            <p className="relative mt-3 text-[13.5px] font-medium leading-[1.6] text-ink-strong line-clamp-3 tracking-[-0.01em] break-keep">
               “{verse.text}”
             </p>
             <p className="relative mt-1 text-[11.5px] font-bold text-brand tabular-nums">{ref}</p>
             {verse.message && (
-              <p className="relative mt-1.5 text-[11.5px] leading-relaxed text-ink-muted line-clamp-2">
+              <p className="relative mt-1.5 text-[11.5px] leading-relaxed text-ink-muted line-clamp-2 break-keep">
                 {verse.message}
               </p>
             )}

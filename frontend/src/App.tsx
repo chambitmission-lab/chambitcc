@@ -1,4 +1,4 @@
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -187,6 +187,15 @@ const RouteFallback = () => (
 // (X·인스타그램 문법: 로그인 = 피드, 비로그인 = 소개 페이지)
 // 비로그인이 피드를 구경하고 싶으면 랜딩의 "둘러보기" → /feed 로 간다.
 const HomeGate = () => {
+  // location 을 "구독만" 한다 — 분기에 쓰지는 않는다.
+  // <Route element={<HomeGate />}> 의 element 객체는 App 이 리렌더될 때만 새로 만들어진다.
+  // 라우트 이동으로 리렌더되는 쪽은 Routes 아래뿐이라, 같은 element 참조를 다시 받은 React 는
+  // 이 서브트리 렌더를 통째로 건너뛴다(bailout). 그래서 '/' 에서 로그아웃해 '/' 로
+  // replace 하면 토큰은 지워졌는데도 HomeGate 가 다시 실행되지 않아 로그인 피드(NewHome)가
+  // 그대로 남아 "로그아웃이 안 먹는" 것처럼 보였다.
+  // useLocation() 은 컨텍스트 구독이라 bailout 된 서브트리에도 갱신이 전달된다 →
+  // 같은 경로로의 navigate 에도 아래 토큰 검사가 다시 돈다.
+  useLocation()
   return tokenStore.getAccess() ? <NewHome /> : <Landing />
 }
 
