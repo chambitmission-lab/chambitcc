@@ -530,23 +530,78 @@ const ArrivalEnvelope = ({
   )
 }
 
-const CapsuleOpen = () => {
+/* ── 편지가 도착한 아침 하늘 ──────────────────────────────────
+   사진 한 장 없이 그라데이션·능선·십자가로 그린다. 사진을 깔면 캡슐마다
+   같은 풍경이 반복되고 용량도 붙는다 — 빛만 빌려 오고 주인공은 종이에 남긴다. */
+const DawnSky = () => (
+  <div className="capsule-sky" aria-hidden>
+    <span className="capsule-sky__sun" />
+    <span className="capsule-sky__cloud capsule-sky__cloud--a" />
+    <span className="capsule-sky__cloud capsule-sky__cloud--b" />
+    <span className="capsule-sky__cloud capsule-sky__cloud--c" />
+    <span className="capsule-sky__ridge" />
+    <span className="capsule-sky__cross" />
+    <span className="capsule-sky__grain" />
+  </div>
+)
+
+/* ── 우표 + 소인 ───────────────────────────────────────────────
+   봉인하던 달이 찍힌 기념우표 한 장. 톱니는 mask로 파고(미지원 브라우저는
+   그냥 네모 우표로 남는다), 소인은 우표 모서리를 물고 물결선을 흘린다. */
+const LetterStamp = ({ sealedAt }: { sealedAt: string }) => {
+  const d = new Date(sealedAt)
+  const ym = Number.isNaN(d.getTime())
+    ? ''
+    : `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}`
+  return (
+    <span className="capsule-stamp" aria-hidden>
+      <span className="capsule-stamp__perf">
+        <span className="capsule-stamp__scene">
+          <i className="capsule-stamp__sun" />
+          <i className="capsule-stamp__cross" />
+          <i className="capsule-stamp__ridge" />
+        </span>
+      </span>
+      <span className="capsule-stamp__mark">
+        <em>TIME CAPSULE</em>
+        <b>{ym}</b>
+      </span>
+      <svg className="capsule-stamp__waves" viewBox="0 0 54 20" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round">
+        <path d="M2 4.5c5-3 9 3 14 0s9 3 14 0 9 3 14 0" />
+        <path d="M2 10c5-3 9 3 14 0s9 3 14 0 9 3 14 0" />
+        <path d="M2 15.5c5-3 9 3 14 0s9 3 14 0 9 3 14 0" />
+      </svg>
+    </span>
+  )
+}
+
+/** preview: /dev/capsule-letter 미리보기 전용 — 넣으면 네트워크·로그인 없이 이 캡슐을 그린다 */
+const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const capsuleId = Number(id)
 
-  const { data: capsule, isLoading, error } = useCapsule(capsuleId, isAuthenticated())
+  const { data: fetched, isLoading: fetching, error: fetchError } = useCapsule(
+    capsuleId,
+    isAuthenticated() && !preview,
+  )
+  const capsule = preview ?? fetched
+  const isLoading = preview ? false : fetching
+  const error = preview ? null : fetchError
   const openCapsule = useOpenCapsule(capsuleId)
   const deleteCapsule = useDeleteCapsule()
   const [phase, setPhase] = useState<Phase>('sealed')
   const [showSlideshow, setShowSlideshow] = useState(false)
+  // 편지를 읽는 동안 헤더는 아침 하늘 위에 떠 있다 — 종이 위로 넘어가면 크림 유리로 바꾼다
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
+    if (preview) return
     if (!isAuthenticated()) {
       sessionStorage.setItem('redirect_after_login', `/capsule/${id}`)
       navigate('/login')
     }
-  }, [id, navigate])
+  }, [id, navigate, preview])
 
   // 이미 개봉한 캡슐(재열람)은 연출 없이 바로 편지를 보여준다
   useEffect(() => {
@@ -554,6 +609,25 @@ const CapsuleOpen = () => {
       setPhase('letter')
     }
   }, [capsule, phase])
+
+  // 하늘 위 헤더 ↔ 크림 유리 헤더 전환 (편지를 읽는 동안에만)
+  useEffect(() => {
+    // 편지 단계는 되돌아오지 않으므로 벗어날 때 상태를 되돌릴 일이 없다
+    if (phase !== 'letter') return
+    // 실제 스크롤 컨테이너는 body다(#root·body에 overflow-y가 걸려 있어 window.scrollY는 늘 0).
+    // 어느 쪽이 움직이든 잡히도록 둘 다 읽고, 둘 다 듣는다.
+    const onScroll = () =>
+      setScrolled(
+        (document.body.scrollTop || document.documentElement.scrollTop || window.scrollY) > 130,
+      )
+    onScroll()
+    document.body.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      document.body.removeEventListener('scroll', onScroll)
+      window.removeEventListener('scroll', onScroll)
+    }
+  }, [phase])
 
   const handleOpen = async () => {
     try {
@@ -617,28 +691,60 @@ const CapsuleOpen = () => {
   // 배포 전 캐시 응답에는 photos가 없을 수 있다
   const photos = content?.photos ?? []
 
+  // 편지를 읽는 화면에서만 헤더가 아침 하늘 위로 올라간다
+  const onSky = phase === 'letter' && !!content
+
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
-      <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
+      <div
+        className={`relative max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0 ${
+          onSky ? 'capsule-stage' : ''
+        }`}
+      >
+        {/* 편지가 도착한 아침 하늘 — 헤더 뒤까지 올라와 화면 전체의 조명이 된다 */}
+        {onSky && <DawnSky />}
+
         {/* 헤더 */}
-        <div className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2">
+        <div
+          className={
+            onSky
+              ? `capsule-topbar ${scrolled ? 'is-scrolled' : ''}`
+              : 'sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-2'
+          }
+        >
           <button
             type="button"
             onClick={() => navigate('/capsule')}
-            className="p-1 -ml-1 text-gray-700 dark:text-white/80"
+            className={onSky ? 'capsule-topbar__back' : 'p-1 -ml-1 text-gray-700 dark:text-white/80'}
             aria-label="캡슐함으로"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <h1 className="text-[16px] font-extrabold flex-1">타임캡슐</h1>
+          {onSky ? (
+            <div className="capsule-topbar__title">
+              <h1>타임캡슐</h1>
+              <p className="capsule-topbar__sub">그날의 마음이 오늘 도착했어요</p>
+            </div>
+          ) : (
+            <h1 className="text-[16px] font-extrabold flex-1">타임캡슐</h1>
+          )}
           {capsule && capsule.role !== 'recipient' && (
             <button
               type="button"
               onClick={handleDelete}
-              className="text-[12.5px] font-bold text-gray-400 dark:text-white/40"
+              className={
+                onSky
+                  ? 'capsule-topbar__del'
+                  : 'text-[12.5px] font-bold text-gray-400 dark:text-white/40'
+              }
             >
+              {onSky && (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M4 7h16M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7M6.5 7l.9 12.1A1.9 1.9 0 0 0 9.3 21h5.4a1.9 1.9 0 0 0 1.9-1.9L17.5 7" />
+                </svg>
+              )}
               삭제
             </button>
           )}
@@ -756,29 +862,33 @@ const CapsuleOpen = () => {
             봉투·초대장·폴라로이드가 쌓아온 재질 언어(크림 종이·소인·손글씨·밀랍)를
             여기서 끊지 않는다. 앱 카드가 아니라 세 겹으로 접혀 있던 종이 한 장이다. */}
         {capsule && phase === 'letter' && content && (
-          <div className="capsule-reading px-4 pt-7">
-            {/* 밤하늘의 내레이션 — 편지를 펼치기 전에 집배원이 건네는 한마디 */}
-            <p className="capsule-reading__journey capsule-letter-enter">
-              {arrivalNarration(capsule.sealed_at, capsule.open_at)}
-            </p>
+          <div className="capsule-reading px-4">
+            {/* 하늘의 내레이션 — 편지를 펼치기 전에 집배원이 건네는 한마디 */}
+            <div className="capsule-reading__journey capsule-letter-enter">
+              <span className="capsule-reading__journey-chip">
+                <Icon size={13}>
+                  <CalendarGlyph />
+                </Icon>
+                {arrivalNarration(capsule.sealed_at, capsule.open_at)}
+              </span>
+            </div>
+
             <article className="capsule-paper capsule-letter-enter">
-              {/* 편지 머리 — 뜯긴 인장 자국과 소인 */}
+              {/* 앨범에 붙이듯 종이테이프 두 조각으로 눌러 둔 편지 */}
+              <i className="capsule-washi capsule-washi--tl" aria-hidden />
+              <i className="capsule-washi capsule-washi--br" aria-hidden />
+              {/* 편지 곁에 놓인 들꽃 — 초점 밖으로 흐려 전경에만 걸친다(글줄은 비켜 간다) */}
+              <i className="capsule-paper__petals" aria-hidden />
+
+              {/* 편지 머리 — 수취인과 우표·소인 */}
               <header className="capsule-paper__head">
-                <div className="capsule-paper__marks">
-                  <span className="capsule-paper__remnant" aria-hidden>
-                    <Icon size={15}>
-                      <SigilGlyph />
-                    </Icon>
-                  </span>
-                  <span className="capsule-paper__postmark" aria-hidden>
-                    <b>{postmark(capsule.sealed_at).year}</b>
-                    <i>{postmark(capsule.sealed_at).day}</i>
-                    <em>SEALED</em>
-                  </span>
-                </div>
+                <LetterStamp sealedAt={capsule.sealed_at} />
 
                 <p className="capsule-paper__to">
                   To. <b>{addressTo(capsule)}</b>
+                  <svg className="capsule-paper__heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M12 20s-7.2-4.4-7.2-9.4A4.1 4.1 0 0 1 12 8.2a4.1 4.1 0 0 1 7.2 2.4C19.2 15.6 12 20 12 20Z" />
+                  </svg>
                 </p>
                 <h2 className="capsule-paper__title">
                   {content.title || capsule.title || '봉인됐던 편지'}

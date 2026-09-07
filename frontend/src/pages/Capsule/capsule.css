@@ -947,51 +947,303 @@
    전부 무너진다. 편지 본문도 같은 재질 — 크림 종이·괘선·명조 잉크·
    손글씨 서명 — 으로 그린다. 종이색은 라이트/다크 모두 크림 고정. */
 
-/* 무대 — 개봉하던 밤하늘의 끝자락이 편지 위쪽에 남아 있다 */
+/* ── 편지가 도착한 아침 ─────────────────────────────────────────
+   봉인·개봉까지가 밤이라면 편지를 읽는 순간은 그 밤이 끝난 아침이다.
+   하늘은 헤더 뒤(스테이지 맨 위)부터 깔리고, 편지는 그 빛 위에 놓인다.
+   사진을 깔지 않는 이유: 캡슐마다 같은 풍경이 반복되고 용량도 붙는다 —
+   빛만 빌려 오고 주인공은 종이에 남긴다. */
+.capsule-stage {
+  position: relative;
+  isolation: isolate;
+}
+
+.capsule-sky {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: 340px;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    #6f96cb 0%,
+    #9bb0d8 15%,
+    #c7b6cc 32%,
+    #e8b795 52%,
+    #f2cda9 70%,
+    #f9e3cd 100%
+  );
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 56%, rgba(0, 0, 0, 0.5) 84%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 56%, rgba(0, 0, 0, 0.5) 84%, transparent 100%);
+}
+
+.dark .capsule-sky {
+  background: linear-gradient(
+    180deg,
+    #1d2740 0%,
+    #2e3552 18%,
+    #4a3f5c 40%,
+    #7a5461 62%,
+    #9a6455 80%,
+    #b2775c 100%
+  );
+}
+
+/* 낮은 해 — 편지지 오른쪽 위를 데우는 광원(종이 그림자 방향과 맞춘다) */
+.capsule-sky__sun {
+  position: absolute;
+  left: 63%;
+  top: 74px;
+  width: 260px;
+  height: 260px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 247, 224, 0.95) 0%,
+    rgba(255, 216, 163, 0.6) 26%,
+    rgba(255, 190, 142, 0.22) 52%,
+    transparent 72%
+  );
+}
+
+.dark .capsule-sky__sun {
+  background: radial-gradient(
+    circle,
+    rgba(255, 228, 188, 0.5) 0%,
+    rgba(240, 168, 122, 0.3) 30%,
+    transparent 70%
+  );
+}
+
+.capsule-sky__cloud {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(10px);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.dark .capsule-sky__cloud {
+  background: rgba(226, 214, 232, 0.24);
+}
+
+.capsule-sky__cloud--a {
+  left: -8%;
+  top: 52px;
+  width: 200px;
+  height: 30px;
+}
+
+.capsule-sky__cloud--b {
+  right: -10%;
+  top: 92px;
+  width: 230px;
+  height: 34px;
+  opacity: 0.5;
+}
+
+.capsule-sky__cloud--c {
+  left: 20%;
+  top: 22px;
+  width: 130px;
+  height: 20px;
+  opacity: 0.42;
+}
+
+/* 능선 — 형태만 남기고 초점은 흐린다. 편지가 주인공이라 배경은 눈을 붙잡지 않는다 */
+.capsule-sky__ridge {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  top: 78px;
+  height: 128px;
+  opacity: 0.34;
+  filter: blur(0.6px);
+  background: linear-gradient(180deg, rgba(104, 78, 76, 0.6), rgba(66, 48, 50, 0.85));
+  clip-path: polygon(
+    0 64%,
+    13% 47%,
+    26% 59%,
+    41% 33%,
+    55% 53%,
+    68% 41%,
+    82% 57%,
+    100% 45%,
+    100% 100%,
+    0 100%
+  );
+}
+
+.dark .capsule-sky__ridge {
+  opacity: 0.5;
+  background: linear-gradient(180deg, rgba(30, 24, 34, 0.75), rgba(18, 14, 22, 0.9));
+}
+
+/* 언덕 위 십자가 — 이 편지가 놓인 자리를 말없이 알려 주는 한 획 */
+.capsule-sky__cross {
+  position: absolute;
+  right: 23%;
+  top: 34px;
+  width: 5px;
+  height: 56px;
+  border-radius: 2px;
+  opacity: 0.55;
+  background: rgba(58, 42, 42, 0.85);
+}
+
+.capsule-sky__cross::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 13px;
+  width: 27px;
+  height: 5px;
+  border-radius: 2px;
+  transform: translateX(-50%);
+  background: inherit;
+}
+
+.dark .capsule-sky__cross {
+  opacity: 0.72;
+  background: rgba(16, 12, 18, 0.9);
+}
+
+/* 필름 그레인 — 그라데이션의 띠(banding)를 덮어 "찍은 하늘"에 가깝게 */
+.capsule-sky__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── 하늘 위 헤더 ───────────────────────────────────────────────
+   편지를 읽는 동안에만 헤더가 크롬을 벗고 하늘 위로 올라간다.
+   종이 위로 스크롤이 넘어가면 흰 글씨가 크림 종이에서 사라지므로,
+   그 지점부터 크림 유리로 갈아입는다(뒤로가기를 잃지 않는다). */
+.capsule-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px 12px;
+  color: #fff;
+  transition:
+    background 220ms ease,
+    box-shadow 220ms ease,
+    color 220ms ease;
+}
+
+.capsule-topbar.is-scrolled {
+  color: var(--p-ink-strong, #3a3428);
+  background: rgba(255, 252, 246, 0.92);
+  backdrop-filter: blur(10px) saturate(1.1);
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  box-shadow: 0 1px 0 rgba(74, 67, 53, 0.1);
+}
+
+.dark .capsule-topbar.is-scrolled {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(19, 19, 19, 0.9);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.capsule-topbar__back {
+  margin-left: -4px;
+  padding: 4px;
+  color: inherit;
+  filter: drop-shadow(0 1px 6px rgba(38, 26, 16, 0.35));
+}
+
+.capsule-topbar.is-scrolled .capsule-topbar__back {
+  filter: none;
+}
+
+.capsule-topbar__title {
+  flex: 1;
+  min-width: 0;
+}
+
+.capsule-topbar__title h1 {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 10px rgba(38, 26, 16, 0.35);
+}
+
+.capsule-topbar.is-scrolled .capsule-topbar__title h1 {
+  text-shadow: none;
+}
+
+.capsule-topbar__sub {
+  margin-top: 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  opacity: 0.88;
+  text-shadow: 0 1px 8px rgba(38, 26, 16, 0.4);
+}
+
+.capsule-topbar.is-scrolled .capsule-topbar__sub {
+  display: none;
+}
+
+.capsule-topbar__del {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.capsule-topbar.is-scrolled .capsule-topbar__del {
+  border-color: rgba(74, 67, 53, 0.14);
+  background: rgba(74, 67, 53, 0.06);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  opacity: 0.75;
+}
+
+/* 무대 — 하늘 위에 놓인 편지 */
 .capsule-reading {
   position: relative;
+  z-index: 1;
+  padding-top: 16px;
 }
 
-/* 밤하늘의 내레이션 — 앱의 목소리는 편지지 밖, 하늘에서만 말한다.
+/* 하늘의 내레이션 — 앱의 목소리는 편지지 밖, 하늘에서만 말한다.
    (편지 안은 그날의 손글씨만 남긴다) */
 .capsule-reading__journey {
-  position: relative;
-  z-index: 1;
-  margin-bottom: 16px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.capsule-reading__journey-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
   word-break: keep-all;
-  color: rgba(205, 220, 255, 0.9);
-  text-shadow: 0 1px 8px rgba(4, 8, 22, 0.6);
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(38, 26, 16, 0.4);
 }
 
-.capsule-reading::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 235px;
-  pointer-events: none;
-  background:
-    radial-gradient(110% 78% at 80% 0%, rgba(96, 140, 255, 0.16), transparent 58%),
-    linear-gradient(180deg, rgba(14, 24, 48, 0.92) 0%, rgba(22, 38, 77, 0.5) 46%, rgba(22, 38, 77, 0) 100%);
-}
-
-.capsule-reading::after {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 235px;
-  pointer-events: none;
-  background-image:
-    radial-gradient(1px 1px at 14% 22%, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1.3px 1.3px at 42% 12%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 68% 30%, rgba(190, 210, 255, 0.6), transparent),
-    radial-gradient(1.2px 1.2px at 88% 15%, rgba(255, 255, 255, 0.75), transparent);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 70%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 70%);
-}
 
 /* ── 편지지 팔레트 ──────────────────────────────────────────────
    종이 위의 모든 색은 이 토큰만 쓴다(앱 테마 토큰 금지 — 크림 위에
@@ -1014,6 +1266,10 @@
   --p-dash: rgba(74, 67, 53, 0.26);
   --p-edge: rgba(74, 67, 53, 0.1);
   --p-accent: #a8503f;
+  /* 손으로 그은 자국(이름 밑줄·제목 밑줄)과 작은 하트 — 편지에만 허용되는 온기.
+     브랜드 블루는 크림 종이 위에서 앱 UI가 편지에 침입한 것처럼 보인다. */
+  --p-mark: rgba(214, 138, 138, 0.26);
+  --p-heart: #d98a8a;
   --p-wax1: #5e76c4;
   --p-wax2: #41579e;
   --p-clip: #988f79;
@@ -1026,19 +1282,20 @@
   --p-lo: #d8c69e;
 }
 
-/* 편지지 한 장 */
+/* 편지지 한 장 — 아침 빛을 오른쪽 위에서 받는다(하늘의 해와 같은 방향).
+   테이프가 종이 밖으로 반쯤 걸쳐야 "붙여 둔 것"으로 읽혀서 overflow는 visible. */
 .capsule-paper {
   --line: 34px;
   position: relative;
+  z-index: 1;
   border-radius: 16px;
   padding: 22px 22px 26px;
   background: linear-gradient(172deg, var(--p-hi) 0%, var(--p-mid) 52%, var(--p-lo) 100%);
   box-shadow:
     inset 0 0 0 1px var(--p-edge),
-    0 30px 60px -30px rgba(6, 12, 32, 0.6),
-    0 12px 28px -18px rgba(6, 12, 32, 0.35);
+    0 30px 56px -28px rgba(74, 48, 30, 0.45),
+    0 12px 26px -16px rgba(74, 48, 30, 0.28);
   color: var(--p-ink);
-  overflow: hidden;
 }
 
 /* 종이 결 — 봉투·폴라로이드와 같은 그레인 */
@@ -1046,6 +1303,8 @@
   content: '';
   position: absolute;
   inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   mix-blend-mode: multiply;
@@ -1054,87 +1313,203 @@
 
 .capsule-paper__head {
   position: relative;
+  min-height: 96px;
+  padding-right: 96px;
 }
 
-/* 뜯긴 인장 자국 + 소인 */
-.capsule-paper__marks {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+/* ── 종이테이프 ────────────────────────────────────────────────
+   앨범에 붙이듯 두 귀퉁이를 눌러 둔다. 종이보다 확실히 짙은 꿀색이어야
+   크림 위에서 테이프로 읽힌다(폴라로이드 테이프와 같은 재질). */
+.capsule-washi {
+  position: absolute;
+  z-index: 2;
+  width: 94px;
+  height: 26px;
+  border-left: 1px dashed rgba(255, 250, 235, 0.65);
+  border-right: 1px dashed rgba(255, 250, 235, 0.65);
+  background: linear-gradient(180deg, rgba(226, 203, 170, 0.62), rgba(212, 186, 150, 0.58));
+  box-shadow: 0 1.5px 5px rgba(72, 56, 32, 0.13);
 }
 
-/* 뜯고 남은 밀랍 자국 — 캡슐함의 "개봉됨 인장"과 같은 문법(갈라진 금).
-   ★종이 위의 색은 테마 토큰을 쓰지 않는다. 종이가 라이트/다크 모두 크림
-   고정이므로 그 위의 잉크·밀랍도 고정색이어야 한다 — 다크 테마의 쨍한
-   브랜드 블루가 크림 위에 얹히면 앱 UI가 편지에 침입한 것처럼 보인다. */
-.capsule-paper__remnant {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 47% 53% 52% 48% / 50% 46% 54% 50%;
-  transform: rotate(-8deg);
-  background: linear-gradient(160deg, var(--p-wax1), var(--p-wax2));
-  color: rgba(248, 242, 230, 0.85);
-  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.22);
+/* 들꽃 — 편지 아래 왼쪽 귀퉁이에 걸친 전경. 초점 밖으로 흐려 두면
+   "테이블 위에 놓인 편지"의 깊이가 생긴다. 서명은 오른쪽 정렬이라 글줄과 겹치지 않는다. */
+.capsule-paper__petals {
+  position: absolute;
+  left: -22px;
+  bottom: -18px;
+  z-index: 2;
+  width: 122px;
+  height: 128px;
+  pointer-events: none;
+  filter: blur(6px);
   opacity: 0.85;
+  background-image:
+    radial-gradient(circle 14px at 30% 22%, rgba(255, 255, 255, 0.95), transparent 68%),
+    radial-gradient(circle 10px at 58% 36%, rgba(255, 241, 244, 0.9), transparent 68%),
+    radial-gradient(circle 12px at 20% 50%, rgba(255, 250, 244, 0.85), transparent 68%),
+    radial-gradient(circle 9px at 48% 62%, rgba(255, 236, 238, 0.8), transparent 68%),
+    radial-gradient(circle 24px at 36% 92%, rgba(146, 176, 136, 0.5), transparent 70%),
+    radial-gradient(circle 18px at 6% 74%, rgba(158, 186, 146, 0.42), transparent 70%);
 }
 
-/* 뜯을 때 갈라진 금 — 틈으로 종이가 비친다 */
-.capsule-paper__remnant::after {
+.dark .capsule-paper__petals {
+  opacity: 0.5;
+}
+
+.capsule-washi--tl {
+  top: -11px;
+  left: 18px;
+  transform: rotate(-4.5deg);
+}
+
+.capsule-washi--br {
+  right: 18px;
+  bottom: -11px;
+  transform: rotate(-3.5deg);
+}
+
+/* ── 기념우표 + 소인 ───────────────────────────────────────────
+   봉인하던 달이 찍힌 우표 한 장. 톱니는 mask로 파고, 소인은 우표 모서리를
+   물고 물결선을 왼쪽으로 흘린다. mask 미지원이면 네모 우표로 남는다. */
+.capsule-stamp {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 74px;
+  height: 92px;
+  color: rgba(168, 80, 63, 0.62);
+}
+
+.capsule-stamp__perf {
+  --s: 4.5px;
+  display: block;
+  width: 74px;
+  height: 88px;
+  padding: 5px;
+  background: #fffdf6;
+  filter: drop-shadow(0 4px 8px rgba(80, 60, 30, 0.28));
+  -webkit-mask:
+    radial-gradient(var(--s) at 50% 0, #0000 98%, #000) 50% 0 / calc(2 * var(--s)) 100% repeat-x,
+    radial-gradient(var(--s) at 50% 100%, #0000 98%, #000) 50% 100% / calc(2 * var(--s)) 100% repeat-x,
+    radial-gradient(var(--s) at 0 50%, #0000 98%, #000) 0 50% / 100% calc(2 * var(--s)) repeat-y,
+    radial-gradient(var(--s) at 100% 50%, #0000 98%, #000) 100% 50% / 100% calc(2 * var(--s)) repeat-y;
+  -webkit-mask-composite: source-in;
+  mask:
+    radial-gradient(var(--s) at 50% 0, #0000 98%, #000) 50% 0 / calc(2 * var(--s)) 100% repeat-x,
+    radial-gradient(var(--s) at 50% 100%, #0000 98%, #000) 50% 100% / calc(2 * var(--s)) 100% repeat-x,
+    radial-gradient(var(--s) at 0 50%, #0000 98%, #000) 0 50% / 100% calc(2 * var(--s)) repeat-y,
+    radial-gradient(var(--s) at 100% 50%, #0000 98%, #000) 100% 50% / 100% calc(2 * var(--s)) repeat-y;
+  mask-composite: intersect;
+}
+
+/* 우표 속 풍경 — 배경 하늘의 축소판(같은 아침을 우표에도 찍는다) */
+.capsule-stamp__scene {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg, #93b3d8 0%, #c8b8cd 42%, #efc39e 74%, #f7dfc7 100%);
+}
+
+.capsule-stamp__sun {
+  position: absolute;
+  left: 52%;
+  top: 46%;
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 244, 210, 0.95), rgba(255, 208, 152, 0.45) 58%, transparent 74%);
+}
+
+.capsule-stamp__ridge {
+  position: absolute;
+  inset: auto -2px -1px;
+  height: 24px;
+  background: linear-gradient(180deg, rgba(118, 86, 78, 0.6), rgba(92, 64, 60, 0.8));
+  clip-path: polygon(0 55%, 22% 28%, 45% 62%, 66% 26%, 100% 52%, 100% 100%, 0 100%);
+}
+
+.capsule-stamp__cross {
+  position: absolute;
+  right: 27%;
+  bottom: 21px;
+  width: 3px;
+  height: 19px;
+  border-radius: 1px;
+  background: rgba(66, 46, 44, 0.8);
+}
+
+.capsule-stamp__cross::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    99deg,
-    transparent calc(50% - 1px),
-    var(--p-mid) calc(50% - 1px),
-    var(--p-mid) calc(50% + 1px),
-    transparent calc(50% + 1px)
-  );
+  left: 50%;
+  top: 4px;
+  width: 13px;
+  height: 3px;
+  border-radius: 1px;
+  transform: translateX(-50%);
+  background: inherit;
 }
 
-/* 소인 — 봉투·초대장과 같은 monospace 문법 */
-.capsule-paper__postmark {
+/* 소인 — 우표 왼쪽 아래를 물고 찍힌 원형 도장 */
+.capsule-stamp__mark {
+  position: absolute;
+  left: -25px;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
-  padding: 6px 10px 5px;
-  border: 1px dashed var(--p-dash);
-  border-radius: 9px;
+  justify-content: center;
+  gap: 2px;
+  width: 52px;
+  height: 52px;
+  border: 1.4px solid currentColor;
+  border-radius: 50%;
+  transform: rotate(-11deg);
+  background: rgba(255, 253, 246, 0.3);
   font-family: 'Courier New', monospace;
-  color: var(--p-ink-soft);
-  transform: rotate(5deg);
 }
 
-.capsule-paper__postmark b {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+.capsule-stamp__mark::before {
+  content: '';
+  position: absolute;
+  inset: 3.5px;
+  border: 1px dashed currentColor;
+  border-radius: 50%;
+  opacity: 0.55;
 }
 
-.capsule-paper__postmark i {
-  font-size: 13px;
+.capsule-stamp__mark em {
+  font-size: 6.4px;
   font-style: normal;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.capsule-stamp__mark b {
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 
-.capsule-paper__postmark em {
-  font-size: 7.5px;
-  font-style: normal;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  opacity: 0.75;
+.capsule-stamp__waves {
+  position: absolute;
+  left: -74px;
+  bottom: 16px;
+  width: 54px;
+  height: 20px;
+  opacity: 0.5;
 }
 
-/* 인사 — 봉투 겉면과 같은 펜글씨가 편지 안에서 이어진다 */
+/* 인사 — 봉투 겉면과 같은 펜글씨가 편지 안에서 이어진다.
+   이름 밑에는 형광펜으로 한 번 그어 둔 자국(받는 사람이 이 편지의 주인이다) */
 .capsule-paper__to {
-  margin-top: 16px;
+  position: relative;
+  margin-top: 14px;
   font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
   font-size: 21px;
   line-height: 1.2;
@@ -1147,11 +1522,29 @@
   font-weight: 400;
   font-size: 31px;
   color: var(--p-ink);
+  background-image: linear-gradient(
+    180deg,
+    transparent 74%,
+    var(--p-mark) 74%,
+    var(--p-mark) 94%,
+    transparent 94%
+  );
+}
+
+.capsule-paper__heart {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-left: 6px;
+  vertical-align: 1px;
+  color: var(--p-heart);
 }
 
 /* 제목도 본문·수취인과 같은 손글씨 — 명조가 홀로 남으면 인쇄물 제목처럼 붕 뜬다 */
 .capsule-paper__title {
-  margin-top: 10px;
+  position: relative;
+  display: inline-block;
+  margin-top: 8px;
   font-family: 'Nanum Pen Script', 'Pretendard Variable', cursive;
   font-size: 28px;
   font-weight: 400;
@@ -1159,6 +1552,19 @@
   letter-spacing: 0.01em;
   color: var(--p-ink-strong);
   word-break: keep-all;
+}
+
+/* 제목 아래 손으로 그은 밑줄 — 자로 잰 선이 아니라 살짝 기운 한 획 */
+.capsule-paper__title::after {
+  content: '';
+  position: absolute;
+  left: 1px;
+  right: 6px;
+  bottom: 2px;
+  height: 3px;
+  border-radius: 2px;
+  transform: rotate(-0.6deg);
+  background: linear-gradient(90deg, var(--p-mark), rgba(0, 0, 0, 0) 108%);
 }
 
 /* 머리와 본문 사이 — 봉투 아랫단과 같은 점선 */

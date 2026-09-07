@@ -68,6 +68,10 @@ const NoticeMarkupPreview = import.meta.env.DEV
 const ProfileHeaderPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Profile/components/ProfileHeaderPreview'))
   : null
+// 타임캡슐 개봉 후 편지 화면(아침 하늘·우표·종이테이프) 확인용
+const CapsuleLetterPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Capsule/CapsuleLetterPreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
@@ -405,6 +409,9 @@ function App() {
                 )}
                 {NoticeMarkupPreview && (
                   <Route path="/dev/notice-markup" element={<NoticeMarkupPreview />} />
+                )}
+                {CapsuleLetterPreview && (
+                  <Route path="/dev/capsule-letter" element={<CapsuleLetterPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
