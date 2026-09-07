@@ -88,4 +88,16 @@ const VerseSheets = ({
   </>
 )
 
+/**
+ * 절 시트 청크를 한꺼번에 미리 받아둔다 — 본문이 뜨면 사전 칩·밑줄 단어가 곧 눌릴 수 있어서.
+ * 장 목록(VerseList)이 idle 시간에 한 번 부른다. 이미 받았으면 아무 일도 안 한다.
+ * (별도 named export 대신 컴포넌트에 붙인 이유: 이 파일이 컴포넌트만 내보내야 HMR이 온전하다)
+ */
+VerseSheets.preload = () => {
+  void GlossarySheet.preload()
+  void WordNoteSheet.preload()
+  void VerseNoteSheet.preload()
+  void VerseBookmarkModal.preload()
+}
+
 export default VerseSheets

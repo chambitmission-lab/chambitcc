@@ -5,6 +5,7 @@ import { useLanguage } from '../../../contexts/LanguageContext'
 import { useAuth } from '../../../hooks/useAuth'
 import VerseItem from './VerseItem'
 import { VerseListProvider } from './verse/VerseListProvider'
+import VerseSheets from './verse/VerseSheets'
 import type { VerseListActions, VerseListSettings } from './verse/VerseListContext'
 import ChapterLoader from './ChapterLoader'
 import { useChapterReadStatus, useMarkVerseAsRead, useUnmarkVerseAsRead, useMarkChapterAsRead, useUnmarkChapterAsRead } from '../../../hooks/useBibleReading'
@@ -158,6 +159,22 @@ const VerseList = ({
   }, [])
   const queryClient = useQueryClient()
   const updateVerseMutation = useOptimisticUpdateVerse()
+
+  // 사전 칩·단어장·묵상 노트 시트는 lazy 청크라 첫 탭이 네트워크 왕복만큼 늦게 열렸다.
+  // 본문이 그려진 뒤 브라우저가 한가할 때 미리 받아둔다 (배포 직후 해시가 바뀐 경우 포함).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(VerseSheets.preload, { timeout: 2500 })
+      return () => w.cancelIdleCallback?.(id)
+    }
+    const id = window.setTimeout(VerseSheets.preload, 1200)
+    return () => window.clearTimeout(id)
+  }, [])
 
   // 본문 보기(절별/이어읽기) — Aa 읽기 설정에서 바꾸면 열린 본문에 즉시 반영
   const layout = useSyncExternalStore(subscribeReaderLayout, getReaderLayout)
