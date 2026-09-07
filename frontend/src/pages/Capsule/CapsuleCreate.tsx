@@ -463,27 +463,63 @@ const CapsuleCreate = () => {
             </div>
             {capsuleType !== 'self' && (
               <div className="mt-2.5">
-                {/* 전달 방식 — 같은 앱 사용자면 바로, 아니면 초대 링크 */}
+                {/* 전달 방식 — 같은 앱 사용자면 바로, 아니면 초대 링크.
+                    "보내는 버튼"이 아니라 방식 고르기라는 걸 라벨·아이콘·선택 링으로 분명히 한다
+                    (눌러도 아무 일이 없어 보인다는 얘기가 있었다 — 링크는 봉인 후에 생긴다) */}
+                <p className="px-1 mb-1.5 text-[11.5px] font-bold text-[var(--text-muted)]">
+                  어떻게 전할까요?
+                </p>
                 <div className="flex gap-1.5 p-1 rounded-xl bg-gray-100 dark:bg-white/[0.06]">
                   {(
                     [
-                      { mode: 'direct' as const, label: '앱에서 바로 보내기' },
-                      { mode: 'invite' as const, label: '초대 링크로 보내기' },
+                      {
+                        mode: 'direct' as const,
+                        label: '앱에서 바로',
+                        // 종이비행기 — 앱 안에서 곧장 배달
+                        icon: <path d="M21 3 10.5 13.5M21 3l-6.6 18-3.9-7.5L3 9.6 21 3Z" />,
+                      },
+                      {
+                        mode: 'invite' as const,
+                        label: '초대 링크로',
+                        // 사슬 고리 — 링크로 건네기
+                        icon: (
+                          <>
+                            <path d="M10 13.8a4 4 0 0 0 5.7 0l2.6-2.6a4 4 0 0 0-5.7-5.7l-1.3 1.3" />
+                            <path d="M14 10.2a4 4 0 0 0-5.7 0l-2.6 2.6a4 4 0 1 0 5.7 5.7l1.3-1.3" />
+                          </>
+                        ),
+                      },
                     ]
-                  ).map(({ mode, label }) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setCapsuleType(mode)}
-                      className={`flex-1 py-2 rounded-lg text-[12.5px] font-bold transition-colors ${
-                        capsuleType === mode
-                          ? 'bg-white dark:bg-card-dark text-brand shadow-sm'
-                          : 'text-gray-500 dark:text-white/50'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                  ).map(({ mode, label, icon }) => {
+                    const on = capsuleType === mode
+                    return (
+                      <button
+                        key={mode}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setCapsuleType(mode)}
+                        className={`flex-1 py-2 rounded-lg text-[12.5px] font-bold transition-colors inline-flex items-center justify-center gap-1.5 ${
+                          on
+                            ? 'bg-white dark:bg-card-dark text-brand shadow-sm ring-1 ring-brand/30'
+                            : 'text-gray-500 dark:text-white/50'
+                        }`}
+                      >
+                        <svg
+                          className="w-3.5 h-3.5 shrink-0"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={1.8}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden
+                        >
+                          {icon}
+                        </svg>
+                        {label}
+                      </button>
+                    )
+                  })}
                 </div>
 
                 {capsuleType === 'direct' && (
@@ -596,8 +632,36 @@ const CapsuleCreate = () => {
                       placeholder="받는 분 이름이나 애칭 (예: 아들 민준)"
                       className="w-full px-4 py-3 rounded-2xl bg-white dark:bg-card-dark border border-gray-200/70 dark:border-white/[0.08] text-[14px] outline-none focus:border-brand placeholder:text-gray-400 dark:placeholder:text-white/30"
                     />
+                    {/* 링크는 봉인해야 만들어진다 — 지금 이 자리에 링크가 없는 게 정상이라는 걸
+                        빈 링크 칩으로 먼저 보여준다 */}
+                    <div className="mt-2 p-3 rounded-2xl bg-white dark:bg-card-dark border border-dashed border-gray-300/80 dark:border-white/[0.14]">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-[var(--brand-soft)] text-brand flex items-center justify-center shrink-0">
+                          <svg
+                            className="w-3.5 h-3.5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={1.8}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden
+                          >
+                            <path d="M10 13.8a4 4 0 0 0 5.7 0l2.6-2.6a4 4 0 0 0-5.7-5.7l-1.3 1.3" />
+                            <path d="M14 10.2a4 4 0 0 0-5.7 0l-2.6 2.6a4 4 0 1 0 5.7 5.7l1.3-1.3" />
+                          </svg>
+                        </span>
+                        <span className="flex-1 min-w-0 text-[12px] font-bold text-gray-400 dark:text-white/35 truncate">
+                          {window.location.host}/…/capsule/invite/••••••
+                        </span>
+                      </div>
+                      <p className="mt-2 text-[11.5px] text-gray-500 dark:text-white/55 leading-[1.65]">
+                        링크는 <b className="text-brand">봉인한 뒤</b>에 만들어져요. 아래 버튼으로 봉인하면
+                        바로 카카오톡·문자로 전할 수 있어요.
+                      </p>
+                    </div>
                     <p className="px-1 mt-1.5 text-[11px] text-gray-400 dark:text-white/35 leading-[1.6]">
-                      봉인 후 초대 링크를 전달하면, 받는 분이 자신의 캡슐로 등록해요.
+                      받는 분이 링크를 열면 자신의 캡슐로 등록해요.
                       아직 앱이 없어도 가입하면 이어져요.
                     </p>
                   </div>
@@ -833,7 +897,9 @@ const CapsuleCreate = () => {
                 ? '봉인하는 중...'
                 : confirming
                   ? '🔏 정말 봉인하기'
-                  : '캡슐 봉인하기'}
+                  : capsuleType === 'invite'
+                    ? '봉인하고 초대 링크 만들기'
+                    : '캡슐 봉인하기'}
             </button>
             {!canSubmit && !createCapsule.isPending && (
               <p className="text-center text-[11.5px] text-gray-400 dark:text-white/35 mt-2">
