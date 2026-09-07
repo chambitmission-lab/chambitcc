@@ -11,6 +11,7 @@ import {
   unmarkChapterAsRead
 } from '../api/bibleReading'
 import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
+import type { RequestPriority } from '../api/utils/request'
 import type { ProfileDetail } from '../types/profile'
 import { profileKeys } from './queryKeys'
 
@@ -117,10 +118,13 @@ export const useChapterReadStatus = (
 /**
  * 전체 읽기 진행률 조회
  */
-export const useReadingProgress = (enabled: boolean = true) => {
+export const useReadingProgress = (
+  enabled: boolean = true,
+  options?: { priority?: RequestPriority }
+) => {
   return useQuery({
     queryKey: bibleReadingKeys.progress(),
-    queryFn: () => getReadingProgress(),
+    queryFn: () => getReadingProgress(options),
     enabled,
     staleTime: 1000 * 30, // 30초
     refetchOnMount: true, // staleTime(30초) 지나면 Garden 진입 시 재조회
@@ -146,10 +150,14 @@ export const useBookReadingProgress = (bookId: number, enabled: boolean = true) 
 /**
  * 이어 읽기 위치 조회 (전역 최신 + 책별 마지막)
  */
-export const useResumeReading = (limit: number = 10, enabled: boolean = true) => {
+export const useResumeReading = (
+  limit: number = 10,
+  enabled: boolean = true,
+  options?: { priority?: RequestPriority }
+) => {
   return useQuery({
     queryKey: bibleReadingKeys.resume(limit),
-    queryFn: () => getResumeReading(limit),
+    queryFn: () => getResumeReading(limit, options),
     enabled,
     staleTime: 1000 * 30, // 30초
   })

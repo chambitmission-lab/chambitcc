@@ -1,4 +1,4 @@
-import { request, requestRaw, withStatusMessages } from './utils/request'
+import { request, requestRaw, withStatusMessages, type RequestPriority } from './utils/request'
 
 // 타입 정의
 export interface BibleReadingRecord {
@@ -245,8 +245,14 @@ export const getChapterReadStatus = async (
 /**
  * 전체 읽기 진행률 조회
  */
-export const getReadingProgress = async (): Promise<ReadingProgressResponse['data']> => {
-  const result: ReadingProgressResponse = await request<ReadingProgressResponse>('/bible/reading-progress', { auth: 'required', errorMessage: '읽기 진행률을 불러오는데 실패했습니다' })
+export const getReadingProgress = async (
+  options?: { priority?: RequestPriority }
+): Promise<ReadingProgressResponse['data']> => {
+  const result: ReadingProgressResponse = await request<ReadingProgressResponse>('/bible/reading-progress', {
+    auth: 'required',
+    errorMessage: '읽기 진행률을 불러오는데 실패했습니다',
+    priority: options?.priority,
+  })
   return result.data
 }
 
@@ -283,9 +289,14 @@ export interface ResumeReadingResponse {
  * 이어 읽기 위치 조회 (전역 최신 + 책별 마지막)
  */
 export const getResumeReading = async (
-  limit: number = 10
+  limit: number = 10,
+  options?: { priority?: RequestPriority }
 ): Promise<ResumeReadingResponse['data']> => {
-  const result: ResumeReadingResponse = await request<ResumeReadingResponse>(`/bible/reading-progress/resume?limit=${limit}`, { auth: 'required', errorMessage: '이어 읽기 정보를 불러오는데 실패했습니다' })
+  const result: ResumeReadingResponse = await request<ResumeReadingResponse>(`/bible/reading-progress/resume?limit=${limit}`, {
+    auth: 'required',
+    errorMessage: '이어 읽기 정보를 불러오는데 실패했습니다',
+    priority: options?.priority,
+  })
   return result.data
 }
 

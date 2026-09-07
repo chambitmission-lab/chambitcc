@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useParams, useSearchParams, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
 import { useResumeReading, useReadingProgress } from '../../hooks/useBibleReading'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useIsRestoring } from '@tanstack/react-query'
 import { biblePlanKeys, useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
 import { useAuth } from '../../hooks/useAuth'
+import { holdSecondaryRequests, releaseSecondaryRequests } from '../../utils/requestPriority'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useModalBackButton } from '../../hooks/useModalBackButton'
 import { showToast } from '../../utils/toast'
@@ -122,8 +123,21 @@ const BibleStudy = () => {
   // isPending까지 받는 이유: 요약 카드가 데이터 도착 전엔 자리 없이 숨어 있다가
   // 늦게 나타나면 아래 목록이 밀려 새로고침처럼 보인다 — 로딩 동안 스켈레톤으로 자리를 잡는다.
   // 비로그인 시 쿼리가 disabled라 isPending이 영원히 true이므로 isLoggedIn()과 함께 판정해야 한다.
-  const { data: resumeData } = useResumeReading(20, isLoggedIn())
-  const { data: progressData, isPending: progressPending } = useReadingProgress(isLoggedIn())
+  // 진행률·이어읽기는 /bible 첫 화면의 핵심 요청 — 콜드 마운트에서 북마크 통계·스토리 진도 등
+  // 부가 요청보다 먼저 나간다 (utils/requestPriority, 홈 기도 목록과 같은 게이트)
+  const { data: resumeData } = useResumeReading(20, isLoggedIn(), { priority: 'critical' })
+  const { data: progressData, isPending: progressPending } = useReadingProgress(isLoggedIn(), { priority: 'critical' })
+
+  // 게이트는 캐시 없이(콜드) 뜨는 첫 마운트에만, 렌더 단계에서 건다 — NewHome 과 같은 이유:
+  // 자식 위젯의 fetch 가 부모 effect 보다 먼저 돌고, persist 복원 중엔 어떤 쿼리도 출발하지 않는다.
+  // 비로그인은 진행률 쿼리가 꺼져 있어(isPending 이 영원히 true) 걸지 않는다.
+  const isRestoring = useIsRestoring()
+  const priorityArmedRef = useRef(false)
+  if (!isRestoring && !priorityArmedRef.current) {
+    priorityArmedRef.current = true
+    if (isLoggedIn() && progressPending) holdSecondaryRequests()
+  }
+  useEffect(() => releaseSecondaryRequests, [])
 
   const resumeMap = useMemo(() => {
     const map = new Map<number, ResumePosition>()
