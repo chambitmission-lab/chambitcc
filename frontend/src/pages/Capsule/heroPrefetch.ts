@@ -14,10 +14,13 @@
 
 const HERO_LIGHT = '/images/capsule/hero-light.webp'
 const HERO_DARK = '/images/capsule/hero-dark.webp'
+// 개봉 후 편지 화면의 하늘 삽화 — 히어로와 같은 짝(라이트/다크) 구조
+const LETTER_LIGHT = '/images/capsule/letter-light.webp'
+const LETTER_DARK = '/images/capsule/letter-dark.webp'
 
 // 테마 판정은 index.html 의 테마 선적용 스크립트/ThemeContext 가 붙이는 .dark 를 따른다
-const currentHero = (): string =>
-  document.documentElement.classList.contains('dark') ? HERO_DARK : HERO_LIGHT
+const isDark = (): boolean => document.documentElement.classList.contains('dark')
+const currentHero = (): string => (isDark() ? HERO_DARK : HERO_LIGHT)
 
 const inflight = new Map<string, Promise<void>>()
 const settled = new Set<string>()
@@ -60,6 +63,17 @@ export const warmCapsuleHero = (): Promise<void> => {
 
   const promise = warm(current)
   // 반대 테마는 첫 화면 리소스와 대역폭을 다투지 않게 현재 테마가 끝난 뒤 유휴 시간에
+  void promise.then(() => whenIdle(() => void warm(other)))
+  return promise
+}
+
+/** 개봉 직전(봉투 화면)에 편지 하늘을 미리 받아 둔다 —
+    인장을 뜯고 편지가 올라오는 1.7초 안에 하늘이 이미 자리에 있게. */
+export const warmCapsuleLetterArt = (): Promise<void> => {
+  const current = isDark() ? LETTER_DARK : LETTER_LIGHT
+  const other = current === LETTER_DARK ? LETTER_LIGHT : LETTER_DARK
+
+  const promise = warm(current)
   void promise.then(() => whenIdle(() => void warm(other)))
   return promise
 }

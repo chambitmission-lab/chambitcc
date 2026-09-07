@@ -950,170 +950,74 @@
 /* ── 편지가 도착한 아침 ─────────────────────────────────────────
    봉인·개봉까지가 밤이라면 편지를 읽는 순간은 그 밤이 끝난 아침이다.
    하늘은 헤더 뒤(스테이지 맨 위)부터 깔리고, 편지는 그 빛 위에 놓인다.
-   사진을 깔지 않는 이유: 캡슐마다 같은 풍경이 반복되고 용량도 붙는다 —
-   빛만 빌려 오고 주인공은 종이에 남긴다. */
+   삽화는 캡슐함 히어로와 같은 양 마스코트 시리즈 — 배달을 끝내고 뻗은 우체부 양.
+   라이트/다크는 같은 구도에 조명만 다른 짝이라 테마를 토글해도 그림이 튀지 않는다. */
 .capsule-stage {
   position: relative;
   isolation: isolate;
 }
 
+/* 그라데이션은 삽화 아래 깔린 안전망 — 이미지 레이어가 실패하면 이쪽이 그대로 하늘이 된다 */
 .capsule-sky {
   position: absolute;
   inset: 0 0 auto;
   z-index: 0;
-  height: 340px;
+  /* 상자 비율을 삽화와 맞춰(5:3) 잘림 없이 전폭으로 깔린다 — 폭이 정해지면 높이가 따라온다 */
+  aspect-ratio: 5 / 3;
   overflow: hidden;
   pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    #6f96cb 0%,
-    #9bb0d8 15%,
-    #c7b6cc 32%,
-    #e8b795 52%,
-    #f2cda9 70%,
-    #f9e3cd 100%
-  );
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 56%, rgba(0, 0, 0, 0.5) 84%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 56%, rgba(0, 0, 0, 0.5) 84%, transparent 100%);
+  background-image:
+    url('/images/capsule/letter-light.webp'),
+    linear-gradient(
+      180deg,
+      #6f96cb 0%,
+      #9bb0d8 15%,
+      #c7b6cc 32%,
+      #e8b795 52%,
+      #f2cda9 70%,
+      #f9e3cd 100%
+    );
+  background-repeat: no-repeat, no-repeat;
+  background-size: cover, cover;
+  background-position: 50% 0, 0 0;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 70%, rgba(0, 0, 0, 0.5) 89%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 70%, rgba(0, 0, 0, 0.5) 89%, transparent 100%);
 }
 
 .dark .capsule-sky {
+  background-image:
+    url('/images/capsule/letter-dark.webp'),
+    linear-gradient(
+      180deg,
+      #1d2740 0%,
+      #2e3552 18%,
+      #4a3f5c 40%,
+      #7a5461 62%,
+      #9a6455 80%,
+      #b2775c 100%
+    );
+}
+
+/* 삽화 윗단은 연한 살구빛이라 흰 헤더 글씨가 묻힌다 — 위쪽만 살짝 눌러 글자를 띄운다 */
+.capsule-sky__scrim {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 190px;
   background: linear-gradient(
     180deg,
-    #1d2740 0%,
-    #2e3552 18%,
-    #4a3f5c 40%,
-    #7a5461 62%,
-    #9a6455 80%,
-    #b2775c 100%
+    rgba(74, 48, 30, 0.4) 0%,
+    rgba(74, 48, 30, 0.22) 42%,
+    rgba(74, 48, 30, 0) 100%
   );
 }
 
-/* 낮은 해 — 편지지 오른쪽 위를 데우는 광원(종이 그림자 방향과 맞춘다) */
-.capsule-sky__sun {
-  position: absolute;
-  left: 63%;
-  top: 74px;
-  width: 260px;
-  height: 260px;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(
-    circle,
-    rgba(255, 247, 224, 0.95) 0%,
-    rgba(255, 216, 163, 0.6) 26%,
-    rgba(255, 190, 142, 0.22) 52%,
-    transparent 72%
+.dark .capsule-sky__scrim {
+  background: linear-gradient(
+    180deg,
+    rgba(10, 12, 24, 0.42) 0%,
+    rgba(10, 12, 24, 0.2) 45%,
+    rgba(10, 12, 24, 0) 100%
   );
-}
-
-.dark .capsule-sky__sun {
-  background: radial-gradient(
-    circle,
-    rgba(255, 228, 188, 0.5) 0%,
-    rgba(240, 168, 122, 0.3) 30%,
-    transparent 70%
-  );
-}
-
-.capsule-sky__cloud {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(10px);
-  background: rgba(255, 255, 255, 0.55);
-}
-
-.dark .capsule-sky__cloud {
-  background: rgba(226, 214, 232, 0.24);
-}
-
-.capsule-sky__cloud--a {
-  left: -8%;
-  top: 52px;
-  width: 200px;
-  height: 30px;
-}
-
-.capsule-sky__cloud--b {
-  right: -10%;
-  top: 92px;
-  width: 230px;
-  height: 34px;
-  opacity: 0.5;
-}
-
-.capsule-sky__cloud--c {
-  left: 20%;
-  top: 22px;
-  width: 130px;
-  height: 20px;
-  opacity: 0.42;
-}
-
-/* 능선 — 형태만 남기고 초점은 흐린다. 편지가 주인공이라 배경은 눈을 붙잡지 않는다 */
-.capsule-sky__ridge {
-  position: absolute;
-  left: -4%;
-  right: -4%;
-  top: 78px;
-  height: 128px;
-  opacity: 0.34;
-  filter: blur(0.6px);
-  background: linear-gradient(180deg, rgba(104, 78, 76, 0.6), rgba(66, 48, 50, 0.85));
-  clip-path: polygon(
-    0 64%,
-    13% 47%,
-    26% 59%,
-    41% 33%,
-    55% 53%,
-    68% 41%,
-    82% 57%,
-    100% 45%,
-    100% 100%,
-    0 100%
-  );
-}
-
-.dark .capsule-sky__ridge {
-  opacity: 0.5;
-  background: linear-gradient(180deg, rgba(30, 24, 34, 0.75), rgba(18, 14, 22, 0.9));
-}
-
-/* 언덕 위 십자가 — 이 편지가 놓인 자리를 말없이 알려 주는 한 획 */
-.capsule-sky__cross {
-  position: absolute;
-  right: 23%;
-  top: 34px;
-  width: 5px;
-  height: 56px;
-  border-radius: 2px;
-  opacity: 0.55;
-  background: rgba(58, 42, 42, 0.85);
-}
-
-.capsule-sky__cross::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 13px;
-  width: 27px;
-  height: 5px;
-  border-radius: 2px;
-  transform: translateX(-50%);
-  background: inherit;
-}
-
-.dark .capsule-sky__cross {
-  opacity: 0.72;
-  background: rgba(16, 12, 18, 0.9);
-}
-
-/* 필름 그레인 — 그라데이션의 띠(banding)를 덮어 "찍은 하늘"에 가깝게 */
-.capsule-sky__grain {
-  position: absolute;
-  inset: 0;
-  opacity: 0.05;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* ── 하늘 위 헤더 ───────────────────────────────────────────────
@@ -1215,15 +1119,19 @@
 .capsule-reading {
   position: relative;
   z-index: 1;
-  padding-top: 16px;
+  padding-top: 26px;
 }
 
 /* 하늘의 내레이션 — 앱의 목소리는 편지지 밖, 하늘에서만 말한다.
    (편지 안은 그날의 손글씨만 남긴다) */
+/* 편지를 내려놓는 높이 — 삽화(5:3) 높이는 폭에 비례해 커지는데 헤더·칩 높이는 고정이라,
+   고정 px 여백을 쓰면 넓은 셸(PC)에서만 편지가 위로 올라붙어 뻗어 있는 양을 덮어 버린다.
+   폭에 비례하는 값으로 잡아 어느 폭에서든 편지가 삽화의 8할쯤 지점에 놓이게 한다.
+   (%는 부모 콘텐츠 폭 기준, 빼는 상수는 헤더+패딩+칩 높이) */
 .capsule-reading__journey {
   display: flex;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: max(28px, calc(49.2% - 109px));
 }
 
 .capsule-reading__journey-chip {

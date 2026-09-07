@@ -10,6 +10,7 @@ import type { CapsuleDetail, CapsulePhoto } from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import CapsuleSlideshow from './CapsuleSlideshow'
+import { warmCapsuleLetterArt } from './heroPrefetch'
 import { daysSealed, daysUntil, formatKoreanDate, sealProgress } from './capsuleDates'
 import {
   CalendarGlyph,
@@ -531,17 +532,11 @@ const ArrivalEnvelope = ({
 }
 
 /* ── 편지가 도착한 아침 하늘 ──────────────────────────────────
-   사진 한 장 없이 그라데이션·능선·십자가로 그린다. 사진을 깔면 캡슐마다
-   같은 풍경이 반복되고 용량도 붙는다 — 빛만 빌려 오고 주인공은 종이에 남긴다. */
+   캡슐함 히어로와 같은 양 마스코트 삽화(배달을 끝내고 뻗은 우체부 양) 위에
+   헤더와 편지가 놓인다. 삽화·그라데이션 폴백·스크림은 전부 capsule.css. */
 const DawnSky = () => (
   <div className="capsule-sky" aria-hidden>
-    <span className="capsule-sky__sun" />
-    <span className="capsule-sky__cloud capsule-sky__cloud--a" />
-    <span className="capsule-sky__cloud capsule-sky__cloud--b" />
-    <span className="capsule-sky__cloud capsule-sky__cloud--c" />
-    <span className="capsule-sky__ridge" />
-    <span className="capsule-sky__cross" />
-    <span className="capsule-sky__grain" />
+    <span className="capsule-sky__scrim" />
   </div>
 )
 
@@ -609,6 +604,11 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
       setPhase('letter')
     }
   }, [capsule, phase])
+
+  // 봉투를 뜯기 전에 편지 하늘 삽화를 데워 둔다 — 개봉 연출이 끝나는 순간 이미 자리에 있게
+  useEffect(() => {
+    if (capsule?.openable) void warmCapsuleLetterArt()
+  }, [capsule?.openable])
 
   // 하늘 위 헤더 ↔ 크림 유리 헤더 전환 (편지를 읽는 동안에만)
   useEffect(() => {
