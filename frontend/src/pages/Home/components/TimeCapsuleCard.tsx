@@ -39,9 +39,9 @@ const TimeCapsuleCard = () => {
     return () => window.clearTimeout(id)
   }, [])
 
-  // 내가 열 수 있는데 아직 안 연 캡슐 (보낸 사람 재열람은 제외)
-  const unopened =
-    data?.arrived.filter((c) => !c.opened_at && c.role !== 'sender').length ?? 0
+  // 내가 열 수 있는데 아직 안 연 캡슐 (보낸 사람 재열람은 제외).
+  // 캡슐함은 한 페이지씩 오므로 목록을 세면 안 된다 — 서버가 준 총계를 쓴다.
+  const unopened = data?.unreadTotal ?? 0
   // sealed는 open_at 오름차순 — 첫 항목이 가장 가까운 개봉일
   const nextSealed = data?.sealed[0] ?? null
 

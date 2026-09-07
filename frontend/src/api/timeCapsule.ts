@@ -2,6 +2,7 @@
 import { API_V1 } from '../config/api'
 import type {
   CapsuleCreateRequest,
+  CapsuleListParams,
   CapsuleDetail,
   CapsuleListResponse,
   CapsulePreview,
@@ -64,8 +65,16 @@ export const searchCapsuleRecipients = async (q: string): Promise<CapsuleRecipie
   return request<CapsuleRecipient[]>(`${BASE}/recipients?q=${encodeURIComponent(q)}`, { errorMessage: '받는 분을 찾지 못했습니다' })
 }
 
-export const listMyCapsules = async (): Promise<CapsuleListResponse> => {
-  return request<CapsuleListResponse>(BASE, { errorMessage: '캡슐함을 불러오지 못했습니다' })
+// q를 주면 서버가 같은 형태(sealed/arrived)로 걸러서 내려준다.
+// 봉인 중인 캡슐은 제목·상대 이름·개봉 라벨만 검색된다 (본문은 개봉 전 비공개).
+// 도착함만 페이지를 나눈다 — before를 주면 봉인함은 비어서 온다.
+export const listMyCapsules = async (
+  params: CapsuleListParams = {},
+): Promise<CapsuleListResponse> => {
+  return request<CapsuleListResponse>(BASE, {
+    query: { q: params.q || undefined, before: params.before, limit: params.limit },
+    errorMessage: '캡슐함을 불러오지 못했습니다',
+  })
 }
 
 export const getCapsule = async (capsuleId: number): Promise<CapsuleDetail> => {

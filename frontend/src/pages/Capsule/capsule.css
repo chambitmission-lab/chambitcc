@@ -2206,6 +2206,309 @@
   }
 }
 
+/* ── 캡슐함 정리 = 검색 + 달별 서랍 ───────────────────────────────
+   편지가 쌓이면 목록은 흐름이 아니라 더미가 된다. 도착한 달로 서랍을 나누고,
+   지금 볼 서랍만 열어 둔다. 열린 서랍의 머리글은 목록 위 라벨처럼 조용하고,
+   닫힌 서랍은 눌러서 여는 '띠'로 보여야 한다 — 그래서 두 모습이 다르다. */
+
+.capsule-group__head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.capsule-group__head:active {
+  transform: scale(0.99);
+}
+
+/* 열린 서랍 — 카드가 아니라 목록 위에 얹힌 라벨 */
+.capsule-group.is-open > .capsule-group__head {
+  padding: 4px 5px 7px;
+  border-color: transparent;
+  background: transparent;
+}
+
+.capsule-group__title {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.capsule-group__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-body);
+}
+
+.capsule-group.is-open .capsule-group__label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.capsule-group__label i {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+/* 닫힌 서랍이 무엇을 감추고 있는지 — 없으면 열어볼 이유가 없다 */
+.capsule-group__peek {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.capsule-group__meta {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-muted);
+}
+
+.capsule-group__count {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 접힌 채로 안 읽은 편지가 남아 있으면 서랍 밖에서도 보여야 한다 */
+.capsule-group__unread {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.capsule-group__chevron {
+  width: 15px;
+  height: 15px;
+  opacity: 0.65;
+  transition: transform 0.18s ease;
+}
+
+.capsule-group__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.capsule-group__body {
+  padding-top: 1px;
+  animation: capsule-group-open 0.2s ease-out;
+}
+
+@keyframes capsule-group-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 모두 펼치기/접기 · 검색 지우기 — 텍스트 버튼 한 종류로 통일 */
+.capsule-group__all {
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-container);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.capsule-group__all:active {
+  transform: scale(0.97);
+}
+
+/* 검색 — 헤더 팔레트(.search-capsule)와 같은 문법의 납작한 입력 필드 */
+.capsule-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: var(--surface-inset);
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.capsule-search:focus-within {
+  background: var(--surface-container);
+  border-color: color-mix(in srgb, var(--brand) 55%, transparent);
+  box-shadow: 0 0 0 3px var(--brand-soft);
+}
+
+.capsule-search__icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  transition: color 0.18s ease;
+}
+
+.capsule-search:focus-within .capsule-search__icon {
+  color: var(--brand);
+}
+
+.capsule-search__input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-body);
+}
+
+.capsule-search__input::placeholder {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* 브라우저 기본 지우기 버튼(웹킷)은 우리 것과 겹친다 */
+.capsule-search__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.capsule-search__clear {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* 지난 캡슐 더 보기 — 목록의 끝이 아니라 '아직 더 있다'는 표지.
+   카드처럼 보이면 편지 한 통으로 오해되므로 점선 테두리의 빈 자리로 둔다. */
+.capsule-more {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 16px;
+  border: 1px dashed var(--card-border);
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-muted);
+  transition:
+    background 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.capsule-more:active {
+  transform: scale(0.985);
+  background: var(--surface-inset);
+}
+
+.capsule-more:disabled {
+  opacity: 0.6;
+}
+
+.capsule-more i {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-more {
+    transition: none;
+  }
+}
+
+/* 검색어가 걸린 자리 — 형광펜은 배경만, 글자색은 건드리지 않는다 */
+.capsule-mark {
+  font-style: normal;
+  border-radius: 3px;
+  padding: 0 1px;
+  background: var(--brand-soft-strong);
+  color: inherit;
+}
+
+/* 편지 본문에서 걸린 한 조각 — 도착해서 이미 읽은 편지에만 붙는다 */
+.capsule-mail__snippet {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 5px;
+  padding-left: 8px;
+  border-left: 2px solid var(--brand-soft-strong);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  word-break: keep-all;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capsule-group__chevron,
+  .capsule-group__head {
+    transition: none;
+  }
+  .capsule-group__body {
+    animation: none;
+  }
+}
+
 /* ── 초대장 = 도착한 편지 한 통 ───────────────────────────────────
    외부인이 이 앱을 처음 보는 유일한 화면. 브랜드 원색 슬래브 한 장은
    면적이 커질수록 깊이가 사라져서, 대신 실물 우편물의 재질로 그린다.

@@ -53,11 +53,24 @@ export interface CapsuleSummary {
   photo_count: number // 동봉 사진 수 (내용은 개봉 전 비공개)
   claimed: boolean
   invite_code: string | null // 발신자에게만 내려온다
+  // 검색 시 편지 본문에서 걸린 부분 발췌. 아직 열어보지 않고 받은 편지에는 오지 않는다
+  // (구버전 백엔드에는 아예 없는 필드 — 항상 옵셔널로 다룬다)
+  match_snippet?: string | null
 }
 
 export interface CapsuleListResponse {
-  sealed: CapsuleSummary[]
-  arrived: CapsuleSummary[]
+  sealed: CapsuleSummary[] // 봉인 중인 캡슐 전량 — 첫 페이지에만 실린다
+  arrived: CapsuleSummary[] // 도착한 캡슐 한 페이지 (최근 도착 순)
+  // 아래 셋은 구버전 백엔드에는 없다 — 항상 폴백을 둘 것
+  arrived_total?: number // 도착한 캡슐 전체 수 (페이지가 아니라 총계)
+  arrived_unread?: number // 그중 아직 열어보지 않은 수
+  arrived_cursor?: string | null // 다음 페이지 커서 (null이면 끝)
+}
+
+export interface CapsuleListParams {
+  q?: string
+  before?: string // 직전 응답의 arrived_cursor
+  limit?: number
 }
 
 export interface CapsulePreview {
