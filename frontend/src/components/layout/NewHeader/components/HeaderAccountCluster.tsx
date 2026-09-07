@@ -6,6 +6,8 @@ import { preloadRoute } from '../../../../utils/routePreload'
 interface HeaderAccountClusterProps {
   unreadCount: number
   onNotificationClick: () => void
+  /** hover·터치 시작 시 알림 모달 청크를 미리 받는다 — 탭 시점엔 이미 도착해 바로 뜬다 */
+  onNotificationWarm?: () => void
 }
 
 // 호버 툴팁 — 레일 툴팁(RailTip)과 같은 반전 토큰. 헤더 아래로 떨어지므로 top 배치.
@@ -25,7 +27,7 @@ const Tip = ({ label, align = 'center' }: { label: string; align?: 'center' | 'r
 // 알림을 레일 하단에서 여기로 올린 이유: 알림은 "내 것"이라 계정 옆이 제자리고,
 // 시선이 가장 먼저 닿는 우상단이어야 뱃지가 제 역할을 한다(구글·인스타 문법).
 // 테마 토글과 ⋮(전체 메뉴)는 사이트 설정이라 레일 하단에 그대로 둔다.
-const HeaderAccountCluster = ({ unreadCount, onNotificationClick }: HeaderAccountClusterProps) => {
+const HeaderAccountCluster = ({ unreadCount, onNotificationClick, onNotificationWarm }: HeaderAccountClusterProps) => {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { t } = useLanguage()
@@ -40,6 +42,9 @@ const HeaderAccountCluster = ({ unreadCount, onNotificationClick }: HeaderAccoun
       <button
         type="button"
         onClick={onNotificationClick}
+        onPointerEnter={onNotificationWarm}
+        onPointerDown={onNotificationWarm}
+        onFocus={onNotificationWarm}
         aria-label={t('notificationsAria')}
         className="group relative flex h-9 w-9 items-center justify-center rounded-full text-gray-600 hover:bg-[var(--brand-soft)] hover:text-brand active:scale-[0.94] transition-[color,background-color,transform] duration-150 dark:text-white/75"
       >

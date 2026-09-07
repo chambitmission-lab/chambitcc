@@ -168,15 +168,35 @@ const NotificationModal = ({ isOpen, onClose }: NotificationModalProps) => {
 
   // 바로가기 대상의 청크와 데이터를 목록이 뜨는 동안 미리 받아둔다.
   // 탭한 뒤에 받기 시작하면 도착할 때까지 전환이 지연되고, 그 사이 이전 화면이 남는다.
+  // 단, 열리는 순간 바로 돌리면 여러 청크 import 가 모달 진입 애니메이션·목록 첫 페인트와
+  // 메인 스레드·대역폭을 다툰다 — 진입 애니메이션(0.18s)이 끝난 뒤 유휴 시간에 시작한다.
   useEffect(() => {
     if (!isOpen) return
-    notifications.forEach((n) => {
-      if (!n.link_url) return
-      void preloadRoute(n.link_url)
+    let cancelled = false
+    let idleId: number | null = null
+    const run = () => {
+      if (cancelled) return
+      notifications.forEach((n) => {
+        if (!n.link_url) return
+        void preloadRoute(n.link_url)
 
-      const capsuleId = n.link_url.match(/^\/capsule\/(\d+)$/)?.[1]
-      if (capsuleId && isLoggedIn) void prefetchCapsule(queryClient, Number(capsuleId))
-    })
+        const capsuleId = n.link_url.match(/^\/capsule\/(\d+)$/)?.[1]
+        if (capsuleId && isLoggedIn) void prefetchCapsule(queryClient, Number(capsuleId))
+      })
+    }
+    const timer = window.setTimeout(() => {
+      if (cancelled) return
+      if (typeof window.requestIdleCallback === 'function') {
+        idleId = window.requestIdleCallback(run, { timeout: 1500 })
+      } else {
+        run()
+      }
+    }, 250)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+      if (idleId !== null && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idleId)
+    }
   }, [isOpen, notifications, isLoggedIn, queryClient])
 
   // 홈 전면 팝업으로 띄우는 '중요 공지'는 목록에 섞이면 묻힌다.

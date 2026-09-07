@@ -3,8 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useNotifications, useNotificationStream } from '../../../hooks/useNotifications'
 import { preloadMenuRoutes } from '../../../utils/routePreload'
-// 알림 모달은 종을 눌러야 열린다 — lazy 로 분리해 첫 로드에서 제외
-const NotificationModal = lazy(() => import('../../common/NotificationModal'))
+// 알림 모달은 종을 눌러야 열린다 — lazy 로 분리해 첫 로드에서 제외.
+// 다만 눌린 뒤에 받으면 도착까지 아무것도 안 떠서, 로그인 후 유휴 시간과 종 hover/pointerdown 에
+// 같은 로더로 미리 받아둔다 (loadNotificationModal 을 공유해야 청크가 하나다)
+import { loadNotificationModal, warmNotificationModal, warmNotificationModalOnIdle } from '../../common/notificationModalLoader'
+import NotificationModalFallback from '../../common/NotificationModalFallback'
+const NotificationModal = lazy(loadNotificationModal)
 import Logo from './components/Logo'
 // PC(lg+) 전용 메뉴 — framer-motion(layoutId 투영 엔진 ~120KB)을 끌고 오므로
 // 엔트리 청크에서 떼어 lg 이상 화면에서만 내려받는다. 모바일 사용자는 영영 받지 않는다.
@@ -64,15 +68,30 @@ const NewHeader = () => {
   // 알림 모달·전체 메뉴 패널의 소유권은 헤더에 남기고, 레일은 열기만 요청한다.
   // (열린 뒤엔 백드롭/모달이 레일을 덮으므로 토글 경합이 생기지 않는다)
   useEffect(() => {
-    const openNotifications = () => setIsNotificationOpen(true)
+    const openFromRail = () => {
+      void warmNotificationModal()
+      setIsNotificationOpen(true)
+    }
     const openMenu = () => setIsMenuOpen(true)
-    window.addEventListener('chambit:open-notifications', openNotifications)
+    window.addEventListener('chambit:open-notifications', openFromRail)
     window.addEventListener('chambit:open-menu', openMenu)
     return () => {
-      window.removeEventListener('chambit:open-notifications', openNotifications)
+      window.removeEventListener('chambit:open-notifications', openFromRail)
       window.removeEventListener('chambit:open-menu', openMenu)
     }
   }, [setIsMenuOpen])
+
+  // 알림 모달 청크는 로그인 사용자만 쓴다 — 첫 화면이 끝난 뒤 유휴 시간에 미리 받아둔다
+  useEffect(() => {
+    if (!isLoggedIn) return
+    return warmNotificationModalOnIdle()
+  }, [isLoggedIn])
+
+  // 종을 누르는 순간 청크 요청도 같이 시작 (이미 받았으면 즉시 resolve)
+  const openNotifications = () => {
+    void warmNotificationModal()
+    setIsNotificationOpen(true)
+  }
 
   // 메뉴를 여는 순간 = 곧 이동한다는 신호 → 메뉴 페이지 청크를 미리 로드
   // (이미 받은 청크는 스킵되므로 유휴 프리로드와 중복돼도 비용 없음)
@@ -146,7 +165,8 @@ const NewHeader = () => {
           {railVisible && isLoggedIn && (
             <HeaderAccountCluster
               unreadCount={unreadCount}
-              onNotificationClick={() => setIsNotificationOpen(true)}
+              onNotificationClick={openNotifications}
+              onNotificationWarm={warmNotificationModal}
             />
           )}
           {/* 우상단 액션 — 레일이 보이는 PC에선 레일 하단 유틸리티가 대신한다 */}
@@ -154,7 +174,8 @@ const NewHeader = () => {
             <HeaderActions
               unreadCount={unreadCount}
               isMenuOpen={isMenuOpen}
-              onNotificationClick={() => setIsNotificationOpen(true)}
+              onNotificationClick={openNotifications}
+              onNotificationWarm={warmNotificationModal}
               onMenuToggle={() => setIsMenuOpen(!isMenuOpen)}
             />
           </div>
@@ -172,7 +193,7 @@ const NewHeader = () => {
 
       {/* Notification Modal — 열릴 때만 마운트(모달 자체도 !isOpen 이면 null 을 반환한다) */}
       {isNotificationOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<NotificationModalFallback onClose={() => setIsNotificationOpen(false)} />}>
           <NotificationModal
             isOpen={isNotificationOpen}
             onClose={() => setIsNotificationOpen(false)}

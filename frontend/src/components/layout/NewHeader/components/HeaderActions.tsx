@@ -6,10 +6,12 @@ interface HeaderActionsProps {
   unreadCount: number
   isMenuOpen: boolean
   onNotificationClick: () => void
+  /** hover·터치 시작 시 알림 모달 청크를 미리 받는다 — 탭 시점엔 이미 도착해 바로 뜬다 */
+  onNotificationWarm?: () => void
   onMenuToggle: () => void
 }
 
-const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onMenuToggle }: HeaderActionsProps) => {
+const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onNotificationWarm, onMenuToggle }: HeaderActionsProps) => {
   const { theme, toggleTheme } = useTheme()
   const { t } = useLanguage()
 
@@ -40,6 +42,9 @@ const HeaderActions = ({ unreadCount, isMenuOpen, onNotificationClick, onMenuTog
 
       <button
         onClick={onNotificationClick}
+        onPointerEnter={onNotificationWarm}
+        onPointerDown={onNotificationWarm}
+        onFocus={onNotificationWarm}
         className={`${iconBaseClass} relative`}
         aria-label={t('notificationsAria')}
       >

@@ -37,10 +37,12 @@ import { can } from '../../../utils/access'
 /** 절 번호 길게 누르기 안내를 이미 본 적 있는지 (한 번 보면 다시 안 뜬다) */
 const HOLD_HINT_KEY = 'bible_hold_read_hint_v1'
 
-/** 이어읽기(문단) 보기의 단락 하나 — 장 개요(단락 소제목) 범위대로 절을 묶는다 */
+/** 본문 단락 하나 — 장 개요(단락 소제목) 범위대로 절을 묶는다. 이어읽기·절별 보기가 같이 쓴다 */
 interface FlowParagraph {
   key: string
   title: string | null
+  /** 개요 단락의 절 범위 — 절별 보기 소제목 옆에 '1-2절'로 붙인다 */
+  range: [number, number] | null
   verses: BibleVerse[]
 }
 
@@ -53,13 +55,19 @@ const FLOW_FALLBACK_CHUNK = 10
  * - 개요가 없으면 FLOW_FALLBACK_CHUNK 절씩 제목 없이 끊는다.
  * 페이지네이션으로 절이 뒤늦게 붙어도 번호 기준이라 같은 단락으로 자연히 들어간다.
  */
-const buildFlowParagraphs = (verses: BibleVerse[], sections: OutlineSection[]): FlowParagraph[] => {
+const buildFlowParagraphs = (
+  verses: BibleVerse[],
+  sections: OutlineSection[],
+  // 개요가 없을 때 끊을 절 수. 0 이면 끊지 않고 한 덩어리(절별 보기 — 절 카드가 이미 구분선이다)
+  fallbackChunk = FLOW_FALLBACK_CHUNK,
+): FlowParagraph[] => {
   const out: FlowParagraph[] = []
   if (!verses.length) return out
   if (!sections.length) {
-    for (let i = 0; i < verses.length; i += FLOW_FALLBACK_CHUNK) {
-      const chunk = verses.slice(i, i + FLOW_FALLBACK_CHUNK)
-      out.push({ key: `c-${chunk[0].verse}`, title: null, verses: chunk })
+    if (!fallbackChunk) return [{ key: 'all', title: null, range: null, verses }]
+    for (let i = 0; i < verses.length; i += fallbackChunk) {
+      const chunk = verses.slice(i, i + fallbackChunk)
+      out.push({ key: `c-${chunk[0].verse}`, title: null, range: null, verses: chunk })
     }
     return out
   }
@@ -71,6 +79,7 @@ const buildFlowParagraphs = (verses: BibleVerse[], sections: OutlineSection[]): 
       current = {
         key: sec ? `s-${sec.v[0]}` : `g-${v.verse}`,
         title: sec?.title ?? null,
+        range: sec ? [sec.v[0], sec.v[1]] : null,
         verses: [],
       }
       currentSection = sec
@@ -179,10 +188,11 @@ const VerseList = ({
   // 본문 보기(절별/이어읽기) — Aa 읽기 설정에서 바꾸면 열린 본문에 즉시 반영
   const layout = useSyncExternalStore(subscribeReaderLayout, getReaderLayout)
   const isFlow = layout === 'flow'
-  // 이어읽기 단락 나누기용 장 개요(책별 lazy). 캐시된 책은 동기로 꺼내 깜빡임을 피한다.
+  // 단락 나누기용 장 개요(책별 lazy). 캐시된 책은 동기로 꺼내 깜빡임을 피한다.
+  // 이어읽기는 문단으로, 절별 보기는 단락 첫 절 앞 소제목으로 쓴다 — PC 레일의 "이 장의 흐름"이
+  // 모바일에선 숨겨지므로(1024px 미만 display:none) 본문 안에서 같은 흐름을 보여준다.
   const [bookOutline, setBookOutline] = useState<BookOutline | null>(() => peekBookOutline(bookNumber))
   useEffect(() => {
-    if (!isFlow) return
     const cached = peekBookOutline(bookNumber)
     if (cached) {
       setBookOutline(cached)
@@ -195,12 +205,12 @@ const VerseList = ({
     return () => {
       alive = false
     }
-  }, [isFlow, bookNumber])
+  }, [bookNumber])
   const flowParagraphs = useMemo<FlowParagraph[]>(() => {
-    if (!isFlow || !chapterData) return []
+    if (!chapterData) return []
     const verses = chapterData.pages.flatMap((page) => page.verses)
     const outline = bookOutline ?? peekBookOutline(bookNumber)
-    return buildFlowParagraphs(verses, outline?.[selectedChapter] ?? [])
+    return buildFlowParagraphs(verses, outline?.[selectedChapter] ?? [], isFlow ? FLOW_FALLBACK_CHUNK : 0)
   }, [isFlow, chapterData, bookOutline, bookNumber, selectedChapter])
 
   // 해당 장의 해석 목록 (절별로 indicator 표시용)
@@ -919,9 +929,22 @@ const VerseList = ({
                   </div>
                 </section>
               ))
-            : chapterData.pages.map((page, pageIndex) => (
-                <div key={pageIndex}>
-                  {page.verses.map((verse) => renderVerse(verse, page.book_name_ko, page.chapter, 'list'))}
+            : // 절별 보기: 절 카드는 그대로 두고, 개요 단락이 시작되는 절 앞에 소제목만 끼운다
+              flowParagraphs.map((para) => (
+                <div key={para.key} className="verse-section">
+                  {para.title && (
+                    <h3 className="verse-section__title">
+                      <span className="verse-section__name">{para.title}</span>
+                      {para.range && (
+                        <span className="verse-section__range">
+                          {para.range[0] === para.range[1]
+                            ? `${para.range[0]}절`
+                            : `${para.range[0]}-${para.range[1]}절`}
+                        </span>
+                      )}
+                    </h3>
+                  )}
+                  {para.verses.map((verse) => renderVerse(verse, bookNameKo, selectedChapter, 'list'))}
                 </div>
               ))}
         </div>
