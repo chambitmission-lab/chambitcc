@@ -10,6 +10,7 @@ import type { CapsuleDetail, CapsulePhoto } from '../../types/timeCapsule'
 import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import CapsuleSlideshow from './CapsuleSlideshow'
+import CapsuleOpenRail from './CapsuleOpenRail'
 import { warmCapsuleLetterArt } from './heroPrefetch'
 import { daysSealed, daysUntil, formatKoreanDate, sealProgress } from './capsuleDates'
 import {
@@ -696,8 +697,11 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
 
   return (
     <div className="min-h-screen bg-[var(--app-canvas)] dark:bg-background-dark text-gray-900 dark:text-gray-100 page-stage">
+      {/* lg+: 좁은 셸을 풀고 본문(편지) + 우측 레일(편지 정보·이어서) 2단 표준 규격.
+          편지지 자체는 capsule.css 가 읽기 폭으로 묶는다 — 카드는 넓혀야 하늘 삽화가 산다 */}
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:items-start lg:gap-6 lg:px-5 lg:pt-3 lg:pb-12">
       <div
-        className={`relative max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-xl lg:mt-2 lg:mb-12 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0 ${
+        className={`relative max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-none lg:mx-0 lg:flex-1 lg:min-w-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0 ${
           onSky ? 'capsule-stage' : ''
         }`}
       >
@@ -818,7 +822,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
 
         {/* 아직 못 여는 캡슐 — 봉투는 "열 수 있다"는 신호라서 다이얼만 보여준다 */}
         {capsule && phase !== 'letter' && !capsule.openable && (
-          <div className="px-6 pt-10 text-center">
+          <div className="capsule-waiting px-6 pt-10 text-center">
             <SealDial sealedAt={capsule.sealed_at} openAt={capsule.open_at} />
 
             <p className="mt-9 text-[12.5px] font-bold text-[var(--text-muted)]">
@@ -1049,7 +1053,7 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
 
             {/* 답장 체인 — 개봉이 다음 봉인의 입구.
                 여기부터는 편지가 아니라 앱이다 — 간격을 넉넉히 둬서 세계를 구분한다 */}
-            <div className="capsule-letter-enter capsule-letter-enter--delayed mt-9 text-center">
+            <div className="capsule-reading__outro capsule-letter-enter capsule-letter-enter--delayed mt-9 text-center">
               <p className="text-[12.5px] text-gray-500 dark:text-white/50 leading-[1.7]">
                 편지를 읽은 지금의 마음, 그대로 흘려보내긴 아깝지 않나요?
               </p>
@@ -1084,6 +1088,26 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
             </div>
           </div>
         )}
+      </div>
+
+      {capsule && (
+        <CapsuleOpenRail
+          capsule={capsule}
+          reading={phase === 'letter' && !!content}
+          senderLine={senderLine(capsule)}
+          onSlideshow={
+            photos.length > 0 && content?.audio_url ? () => setShowSlideshow(true) : undefined
+          }
+          onShare={
+            !capsule.openable &&
+            capsule.role === 'sender' &&
+            capsule.capsule_type === 'invite' &&
+            capsule.invite_code
+              ? handleShare
+              : undefined
+          }
+        />
+      )}
       </div>
     </div>
   )

@@ -347,7 +347,7 @@ const CapsuleCreate = () => {
             <button
               type="button"
               onClick={handleShareCreated}
-              className="w-full mt-7 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)]"
+              className="relative w-full mt-7 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)]"
             >
               초대 링크 전달하기
             </button>
@@ -357,7 +357,7 @@ const CapsuleCreate = () => {
             onClick={() => navigate('/capsule', { replace: true })}
             className={
               isDirect
-                ? 'w-full mt-7 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)]'
+                ? 'relative w-full mt-7 py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)]'
                 : 'w-full mt-2.5 py-3.5 rounded-2xl bg-[var(--brand-soft)] text-brand text-[14px] font-bold'
             }
           >
@@ -431,14 +431,16 @@ const CapsuleCreate = () => {
                 ]
               ).map(({ type, label, icon }) => {
                 const active = type === 'self' ? capsuleType === 'self' : capsuleType !== 'self'
+                // 활성 칩은 앱 전역 인장(점선) 문법 — seal-chip 은 relative 필수이고,
+                // 테두리는 transparent 라야 인장 링과 겹치지 않는다
                 return (
                 <button
                   key={type}
                   type="button"
                   onClick={() => setCapsuleType(type)}
-                  className={`flex-1 py-3 rounded-2xl text-[13.5px] font-bold border transition-colors inline-flex items-center justify-center gap-1.5 ${
+                  className={`relative flex-1 py-3 rounded-2xl text-[13.5px] font-bold border transition-colors inline-flex items-center justify-center gap-1.5 ${
                     active
-                      ? 'bg-brand text-white border-brand'
+                      ? 'bg-brand text-white border-transparent seal-chip [--seal-radius:1rem]'
                       : 'bg-white dark:bg-card-dark text-gray-600 dark:text-white/60 border-gray-200/70 dark:border-white/[0.08]'
                   }`}
                 >
@@ -775,9 +777,9 @@ const CapsuleCreate = () => {
                   key={p.key}
                   type="button"
                   onClick={() => setPresetKey(p.key)}
-                  className={`px-4 py-2 rounded-full text-[13px] font-bold transition-colors ${
+                  className={`relative px-4 py-2 rounded-full text-[13px] font-bold transition-colors ${
                     presetKey === p.key
-                      ? 'bg-brand text-white'
+                      ? 'bg-brand text-white seal-chip'
                       : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
                   }`}
                 >
@@ -787,9 +789,9 @@ const CapsuleCreate = () => {
               <button
                 type="button"
                 onClick={() => setPresetKey('custom')}
-                className={`px-4 py-2 rounded-full text-[13px] font-bold transition-colors ${
+                className={`relative px-4 py-2 rounded-full text-[13px] font-bold transition-colors ${
                   presetKey === 'custom'
-                    ? 'bg-brand text-white'
+                    ? 'bg-brand text-white seal-chip'
                     : 'bg-gray-100 dark:bg-white/[0.07] text-gray-600 dark:text-white/60'
                 }`}
               >
@@ -825,7 +827,7 @@ const CapsuleCreate = () => {
               type="button"
               onClick={handleSeal}
               disabled={!canSubmit}
-              className="w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold shadow-[0_10px_30px_-8px_var(--brand-glow)] disabled:opacity-40"
+              className="relative w-full py-3.5 rounded-2xl bg-brand text-white text-[15px] font-bold seal-chip [--seal-radius:1rem] [--seal-drop:0_10px_30px_-8px_var(--brand-glow)] disabled:opacity-40"
             >
               {createCapsule.isPending
                 ? '봉인하는 중...'

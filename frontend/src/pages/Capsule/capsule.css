@@ -3092,3 +3092,32 @@
     min-height: 320px;
   }
 }
+
+/* ── /capsule/:id PC(lg+) ────────────────────────────────────────────────
+   본문 카드는 표준 2단으로 넓어진다. 다만 편지 세계의 비례는 카드 폭에 묶여 있다 —
+   하늘(.capsule-sky)은 5:3 전폭이고, 편지가 내려앉는 높이(.capsule-reading__journey)는
+   부모 폭의 %로 계산된다. 그래서 .capsule-reading 자체를 좁히면 편지가 삽화 한가운데
+   올라타 버린다. 컨테이너는 그대로 두고 **그 안의 종이들만** 읽기 폭으로 묶는다. */
+@media (min-width: 1024px) {
+  .capsule-reading > .capsule-reading__journey,
+  .capsule-reading > .capsule-paper,
+  .capsule-reading > .capsule-ps,
+  .capsule-reading > .capsule-reading__outro {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* 클립으로 끼운 쪽지는 편지지보다 좌우 10px 씩 안쪽에 놓인다(기본 margin) —
+     가운데 정렬로 바뀌어도 그 관계를 지킨다 */
+  .capsule-reading > .capsule-ps {
+    max-width: 580px;
+  }
+
+  /* 봉투가 내려앉는 무대·기다리는 다이얼도 넓은 카드 한가운데로 */
+  .capsule-arrival__inner,
+  .capsule-waiting {
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
