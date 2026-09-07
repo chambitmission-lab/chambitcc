@@ -29,7 +29,7 @@ import type { PlayFromVerseRequest } from './components/BibleAudioPlayer'
 import { useBookmarkStats } from '../../hooks/useBibleBookmark'
 import BookIntroCard from '../../components/bible/BookIntroCard'
 import ChapterBriefCard from './components/ChapterBriefCard'
-import { StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon } from './components/BibleToolIcons'
+import { AtlasIcon, StoryIcon, SituationIcon, PhotoVerseIcon, ListenIcon } from './components/BibleToolIcons'
 import BibleBottomNav from '../../components/bible/BibleBottomNav'
 import BibleSideRail from '../../components/bible/BibleSideRail'
 // 스토리 모드 진행 상태만 가볍게 읽는다 — 42화 콘텐츠 데이터는 스토리 라우트 청크에만 실린다
@@ -74,6 +74,8 @@ const BibleStudy = () => {
       storyTitle: '처음 만나는 성경',
       storyProgress: (n: number) => `${n}화까지 읽었어요 · 이어서 보기`,
       storyIntro: '창조부터 새 창조까지, 3분씩 42편의 이야기',
+      atlasTitle: '성경 지도여행',
+      atlasText: '말씀이 실제로 걸어간 길을 지도에서 따라 걷기',
       situationTitle: '상황별 성구',
       situationText: '두려울 때, 슬플 때… 지금 내 마음에 맞는 말씀',
       photoTitle: '말씀 사진 카드',
@@ -84,6 +86,7 @@ const BibleStudy = () => {
       // 모바일 4열 타일용 짧은 문구
       tileStory: '3분씩 42편의 이야기',
       tileStoryProgress: (n: number) => `${n}화까지 읽음`,
+      tileAtlas: '지도 위에서 따라 걷기',
       tileSituation: '두려울 때, 슬플 때…',
       tilePhoto: '말씀을 담아 나누기',
       tileFavTitle: '즐겨찾기 구절',
@@ -94,6 +97,8 @@ const BibleStudy = () => {
       storyTitle: 'Meeting the Bible',
       storyProgress: (n: number) => `Read up to episode ${n} · Continue`,
       storyIntro: 'From creation to new creation — 42 stories, 3 min each',
+      atlasTitle: 'Bible Atlas Journey',
+      atlasText: 'Walk the roads Scripture actually travelled',
       situationTitle: 'Verses for Your Moment',
       situationText: 'When afraid, when sad… words that meet your heart now',
       photoTitle: 'Verse Photo Cards',
@@ -103,6 +108,7 @@ const BibleStudy = () => {
       favIntro: 'Gather verses that touch you, listen before sleep',
       tileStory: '42 stories, 3 min each',
       tileStoryProgress: (n: number) => `Read to ep. ${n}`,
+      tileAtlas: 'Walk it on the map',
       tileSituation: 'When afraid, sad…',
       tilePhoto: 'Verse over your photo',
       tileFavTitle: 'Favorites',
@@ -374,6 +380,22 @@ const BibleStudy = () => {
         <span className="material-icons-round dash-card__chevron">chevron_right</span>
       </button>
 
+      {/* 성경 지도여행 — 사건이 일어난 자리를 지도에서 */}
+      <button
+        type="button"
+        onClick={() => navigate('/bible/atlas')}
+        className="dash-card dash-card--fav dash-card--tone-atlas"
+      >
+        <span className="dash-card__icon dash-card__icon--seal">
+          <AtlasIcon className="dash-card__glyph" />
+        </span>
+        <span className="dash-card__body">
+          <span className="dash-card__title">{dt.atlasTitle}</span>
+          <span className="dash-card__text">{dt.atlasText}</span>
+        </span>
+        <span className="material-icons-round dash-card__chevron">chevron_right</span>
+      </button>
+
       {/* 상황별 성구 */}
       <button
         type="button"
@@ -431,7 +453,7 @@ const BibleStudy = () => {
   // 4열 세로형은 한글 제목이 두 줄로 깨져 폐기. 높이는 4열 때와 비슷하면서 줄바꿈이 없다.
   // 아이콘은 참빛 인장(모노 스탬프) — BibleToolIcons + .dash-card__icon--seal
   const dashToolTiles = (
-    <div className={`dash-tiles${isLoggedIn() ? '' : ' dash-tiles--3'}`}>
+    <div className={`dash-tiles${isLoggedIn() ? ' dash-tiles--odd' : ''}`}>
       <button type="button" onClick={() => navigate('/bible/story')} className="dash-tile">
         <span className="dash-tile__icon dash-card__icon--seal">
           <StoryIcon className="dash-card__glyph" />
@@ -441,6 +463,15 @@ const BibleStudy = () => {
           <span className="dash-tile__text">
             {storyReadCount > 0 ? dt.tileStoryProgress(storyReadCount) : dt.tileStory}
           </span>
+        </span>
+      </button>
+      <button type="button" onClick={() => navigate('/bible/atlas')} className="dash-tile">
+        <span className="dash-tile__icon dash-card__icon--seal">
+          <AtlasIcon className="dash-card__glyph" />
+        </span>
+        <span className="dash-tile__body">
+          <span className="dash-tile__title">{dt.atlasTitle}</span>
+          <span className="dash-tile__text">{dt.tileAtlas}</span>
         </span>
       </button>
       <button type="button" onClick={() => navigate('/bible/situation')} className="dash-tile">

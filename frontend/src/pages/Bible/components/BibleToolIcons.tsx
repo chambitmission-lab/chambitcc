@@ -5,6 +5,7 @@
  * 크기는 className(.dash-card__glyph 등)의 width/height CSS가 정한다.
  *
  * - StoryIcon      : 글이 적힌 펼친 책 (처음 만나는 성경 = 첫걸음)
+ * - AtlasIcon      : 접힌 지도 (지도여행 = 말씀이 걸어간 길)
  * - SituationIcon  : 손 위의 마음 (상황별 성구 = 지금 마음에 맞는 말씀)
  * - PhotoVerseIcon : 사진 프레임 (말씀 사진 카드)
  * - ListenIcon     : 헤드폰 (즐겨찾기 구절 듣기)
@@ -17,6 +18,7 @@ import {
   HandHeart,
   Headphones,
   ImageSquare,
+  MapTrifold,
   type Icon,
 } from '../../../components/icons/phosphor'
 
@@ -41,6 +43,7 @@ const duotone =
   )
 
 export const StoryIcon = duotone(BookOpenText)
+export const AtlasIcon = duotone(MapTrifold)
 export const SituationIcon = duotone(HandHeart)
 export const PhotoVerseIcon = duotone(ImageSquare)
 export const ListenIcon = duotone(Headphones)

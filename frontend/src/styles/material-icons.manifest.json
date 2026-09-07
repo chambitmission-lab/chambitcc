@@ -194,6 +194,7 @@
     "room",
     "route",
     "rsvp",
+    "sailing",
     "save",
     "schedule",
     "screen_rotation",
@@ -247,6 +248,7 @@
     "trending_up",
     "tune",
     "tv",
+    "u_turn_left",
     "undo",
     "unfold_more",
     "upcoming",
@@ -271,10 +273,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 21516
+    "bytes": 21628
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 23940
+    "bytes": 24180
   }
 }

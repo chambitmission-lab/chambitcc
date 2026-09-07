@@ -229,14 +229,14 @@
 /* ── 모바일 도구 타일 그리드 (2×2 가로형) ─────────────────────
    4열 세로형은 "처음 만나는 성경" 같은 한글 제목이 두 줄로 깨지고 설명은 말줄임돼
    들쭉날쭉했다. 2열 가로형(아이콘 좌·텍스트 우)은 제목·설명이 각각 한 줄에 들어가고
-   높이도 4열 때와 비슷하다. 3개(비로그인)일 땐 마지막 타일이 전폭. */
+   높이도 4열 때와 비슷하다. 개수가 홀수일 땐 마지막 타일이 전폭(--odd). */
 .dash-tiles {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
   margin-top: 0.125rem;
 }
-.dash-tiles--3 .dash-tile:last-child {
+.dash-tiles--odd .dash-tile:last-child {
   grid-column: 1 / -1;
 }
 .dash-tile {

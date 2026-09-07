@@ -803,3 +803,15 @@
     max-width: none;
   }
 }
+
+/* 이 이야기가 일어난 곳 — 지도여행 연동 카드 (AtlasPlaceCard) */
+.story-ep__where {
+  margin-top: 1.1rem;
+}
+.story-ep__where-label {
+  margin-bottom: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ig-secondary-text);
+}

@@ -1,0 +1,1098 @@
+/* 성경 지도여행 (/bible/atlas) — 지도 캔버스 + 걸어보기 + 지점 목록
+   클래스 접두사는 atl-. BookJourneyPath(bjp-) 와 같은 규칙이다. */
+
+/* ── 지도 ──────────────────────────────────────────────────── */
+
+.atl-stage {
+  position: relative;
+  margin: 0 1rem;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  border: 1px solid var(--ig-border);
+  background: var(--atl-sea);
+}
+
+.atl-canvas {
+  /* 바다/육지 색은 여기서만 정한다 — 라이트/다크 전환이 한 곳에서 끝나도록 */
+  --atl-sea: #c7dcef;
+  --atl-land: #e6e9ee;
+  --atl-land-edge: #bfc8d2;
+  --atl-label: #3c4149;
+  --atl-label-halo: rgba(255, 255, 255, 0.92);
+  --atl-leader: rgba(60, 65, 73, 0.45);
+
+  position: relative;
+  height: clamp(272px, 46vh, 440px);
+  touch-action: none; /* 지도에서 손가락 이동은 스크롤이 아니라 팬 */
+  cursor: grab;
+  background: var(--atl-sea);
+}
+.atl-canvas:active {
+  cursor: grabbing;
+}
+
+[data-theme='dark'] .atl-canvas {
+  --atl-sea: #0a121c;
+  --atl-land: #2c323a;
+  --atl-land-edge: #3f4650;
+  --atl-label: #d7dbe2;
+  --atl-label-halo: rgba(10, 18, 28, 0.92);
+  --atl-leader: rgba(215, 219, 226, 0.4);
+}
+
+@media (min-width: 1024px) {
+  .atl-canvas {
+    height: 440px;
+  }
+}
+
+.atl-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.atl-sea {
+  fill: var(--atl-sea);
+}
+.atl-land {
+  fill: var(--atl-land);
+  stroke: var(--atl-land-edge);
+  stroke-width: 0.4;
+  /* 인접 폴리곤 사이 머리카락 같은 이음새를 같은 색 실선으로 덮는다 */
+  vector-effect: non-scaling-stroke;
+}
+
+.atl-leg {
+  stroke-linejoin: round;
+  opacity: 0.92;
+}
+.atl-leg--growing {
+  opacity: 1;
+}
+
+/* 여행자 — 선 끝에서 함께 움직인다 */
+.atl-walker-halo {
+  animation: atl-walker 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes atl-walker {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.22;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.1;
+  }
+}
+
+/* ── 핀 ────────────────────────────────────────────────────── */
+
+.atl-pin {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.atl-pin:focus {
+  outline: none;
+}
+.atl-pin__shadow {
+  fill: rgba(0, 0, 0, 0.18);
+}
+[data-theme='dark'] .atl-pin__shadow {
+  fill: rgba(0, 0, 0, 0.45);
+}
+.atl-pin__no {
+  pointer-events: none;
+}
+.atl-pin__label {
+  fill: var(--atl-label);
+  stroke: var(--atl-label-halo);
+  pointer-events: none;
+  letter-spacing: -0.01em;
+}
+.atl-pin__leader {
+  stroke: var(--atl-leader);
+  pointer-events: none;
+}
+.atl-pin--active .atl-pin__label {
+  fill: var(--brand);
+}
+
+/* 현재 지점 파동 — 재생 중에만 */
+.atl-pin__pulse {
+  animation: atl-pulse 1.6s ease-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@keyframes atl-pulse {
+  0% {
+    opacity: 0.75;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atl-walker-halo,
+  .atl-pin__pulse {
+    animation: none;
+  }
+}
+
+/* ── 확대 컨트롤 ───────────────────────────────────────────── */
+
+.atl-zoom {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 4.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.atl-zoom button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: #4b5563;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(6px);
+}
+.atl-zoom button:active {
+  transform: scale(0.94);
+}
+.atl-zoom .material-icons-round {
+  font-size: 1.05rem;
+}
+[data-theme='dark'] .atl-zoom button {
+  background: rgba(32, 31, 31, 0.9);
+  color: rgba(255, 255, 255, 0.75);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ── 자막 ──────────────────────────────────────────────────── */
+
+.atl-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.6rem 0.9rem 0.8rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.3) 60%, transparent);
+  color: #fff;
+  pointer-events: none;
+}
+.atl-caption__where {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  /* 어두운 그라데이션 위에 얹히므로 트랙 색을 그대로 쓰면 가라앉는다 — 충분히 밝힌다 */
+  filter: brightness(1.9) saturate(1.15);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  margin-bottom: 0.15rem;
+}
+.atl-caption__text {
+  display: block;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  font-weight: 600;
+  word-break: keep-all;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.atl-caption__text--hook {
+  font-size: 0.88rem;
+}
+
+/* 진행 바 — 자막 위에 얇게 */
+.atl-seek {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.22);
+}
+.atl-seek__fill {
+  height: 100%;
+  transition: width 0.12s linear;
+}
+
+/* ── 재생 컨트롤 ───────────────────────────────────────────── */
+
+.atl-controls {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem 0.25rem;
+}
+.atl-play {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.875rem;
+  color: #fff;
+  font-size: 0.925rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px -12px var(--brand-glow);
+  transition: transform 0.15s ease;
+}
+.atl-play:active {
+  transform: scale(0.98);
+}
+.atl-ghost {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.875rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  background: var(--ig-secondary-background, rgba(0, 0, 0, 0.04));
+  border: 1px solid var(--ig-border);
+}
+.atl-ghost:disabled {
+  opacity: 0.4;
+}
+[data-theme='dark'] .atl-ghost {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ── 트랙 선택 칩 ──────────────────────────────────────────── */
+
+.atl-tracks {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.15rem 1rem 0.75rem;
+  scrollbar-width: none;
+}
+.atl-tracks::-webkit-scrollbar {
+  display: none;
+}
+.atl-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding: 0.42rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--ig-secondary-text);
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+}
+.atl-track--on {
+  background: var(--brand-soft);
+}
+.atl-track__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+}
+
+/* ── 여정 요약 ─────────────────────────────────────────────── */
+
+.atl-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.9rem;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.atl-meta__era {
+  color: var(--brand);
+}
+.atl-meta__dot {
+  opacity: 0.5;
+}
+.atl-subtitle {
+  margin-top: 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+
+/* ── 지점 목록 ─────────────────────────────────────────────── */
+
+.atl-stops {
+  position: relative;
+  margin: 0.9rem 0 0;
+  padding: 0 1rem 1.5rem;
+  list-style: none;
+}
+.atl-stop {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.7rem 0.5rem 0.7rem 0;
+  text-align: left;
+  opacity: 0.45;
+  transition: opacity 0.25s ease;
+}
+.atl-stop--on {
+  opacity: 1;
+}
+.atl-stop__no {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-top: 0.1rem;
+  border-radius: 999px;
+  background: var(--ig-border);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+/* 노드를 잇는 세로 선 — 마지막 지점 아래로는 이어지지 않게 */
+.atl-stops li:not(:last-child) .atl-stop::before {
+  content: '';
+  position: absolute;
+  left: 0.8rem;
+  top: 1.9rem;
+  bottom: -0.3rem;
+  width: 2px;
+  transform: translateX(-1px);
+  background: var(--ig-border);
+}
+.atl-stop__body {
+  flex: 1;
+  min-width: 0;
+}
+.atl-stop__head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.atl-stop__place {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-stop__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+.atl-stop__title {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--brand-muted);
+}
+.atl-stop__narration {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.atl-stop__more {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+  margin-top: 0.05rem;
+  border-radius: 999px;
+  color: var(--ig-secondary-text);
+}
+.atl-stop--current .atl-stop__no {
+  box-shadow: 0 0 0 3px var(--brand-soft-strong);
+}
+
+/* ── 핀 상세 시트 ──────────────────────────────────────────── */
+
+.atl-sheet__badge {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.atl-sheet__label {
+  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ig-secondary-text);
+}
+.atl-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.atl-event {
+  display: flex;
+  gap: 0.6rem;
+}
+.atl-event__no {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+}
+.atl-event__text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+.atl-event__ref {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+.atl-figure {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+}
+
+/* ── 우측 레일 (lg+) ───────────────────────────────────────── */
+
+.atl-rail-card {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid var(--ig-border);
+}
+[data-theme='dark'] .atl-rail-card {
+  background: #201f1f;
+  /* 다크 카드 규약 — 솔리드 + 미세 그라데이션 + 상단 1px 빛줄 */
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.045), transparent 45%);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.atl-rail-card__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--ig-secondary-text);
+}
+.atl-rail-card__title {
+  margin-top: 0.2rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+.atl-rail-card__text {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.atl-rail-stats {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ig-border);
+}
+.atl-rail-stats dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.atl-rail-stats dd {
+  margin: 0.1rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-tips {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.atl-tips li {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.atl-tips .material-icons-round {
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--brand);
+}
+
+/* ── 여권 버튼 (헤더) ──────────────────────────────────────── */
+
+.atl-passport-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+}
+.atl-passport-btn .material-icons-outlined {
+  font-size: 1rem;
+}
+.atl-passport-btn:active {
+  transform: scale(0.96);
+}
+
+/* ── 구간 거리 칩 ──────────────────────────────────────────── */
+
+.atl-leg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  /* 지점 번호 원(1.6rem)의 중심에 맞춰 들여쓴다 — 세로 연결선 위에 얹힌 표지판처럼 */
+  margin-left: 2.3rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  background: var(--ig-secondary-background, rgba(0, 0, 0, 0.04));
+  border: 1px solid var(--ig-border);
+}
+[data-theme='dark'] .atl-leg-chip {
+  background: rgba(255, 255, 255, 0.05);
+}
+.atl-leg-chip__more {
+  font-size: 0.85rem !important;
+  opacity: 0.5;
+}
+.atl-leg-chip:active {
+  transform: scale(0.97);
+}
+
+.atl-stop__stamp {
+  display: inline-flex;
+  align-items: center;
+}
+.atl-meta__done {
+  font-weight: 800;
+}
+
+/* ── 다른 여정으로 건너가는 칩 ─────────────────────────────── */
+
+.atl-cross {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid;
+}
+.atl-cross__dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+}
+
+/* ── 거리 체감 시트 ────────────────────────────────────────── */
+
+.atl-dist__route {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-dist__arrow {
+  font-weight: 800;
+}
+.atl-dist__figures {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+.atl-dist__value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.atl-dist__unit {
+  margin-left: 0.15rem;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ig-secondary-text);
+}
+.atl-dist__days {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.atl-dist__label {
+  margin-bottom: 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ig-secondary-text);
+}
+.atl-dist__mini {
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid var(--ig-border);
+  /* 비교 지도는 성경 지도와 같은 바다색을 써서 "같은 종류의 지도"로 읽히게 한다 */
+  background: #c7dcef;
+  padding: 0.5rem;
+}
+[data-theme='dark'] .atl-dist__mini {
+  background: #0a121c;
+}
+.atl-dist__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.atl-dist__land {
+  fill: #e6e9ee;
+  stroke: #bfc8d2;
+  stroke-width: 0.4;
+}
+[data-theme='dark'] .atl-dist__land {
+  fill: #2c323a;
+  stroke: #3f4650;
+}
+.atl-dist__ref {
+  fill: #3c4149;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+[data-theme='dark'] .atl-dist__ref {
+  fill: #d7dbe2;
+  stroke: rgba(10, 18, 28, 0.92);
+}
+.atl-dist__sentence {
+  margin-top: 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  font-weight: 700;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+.atl-dist__note {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+
+/* ── 여권 시트 ─────────────────────────────────────────────── */
+
+.atl-pass__summary {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.9rem;
+  border-radius: 0.9rem;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+}
+.atl-pass__summary dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.atl-pass__summary dd {
+  margin: 0.1rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+.atl-pass__summary dd span {
+  font-size: 0.8rem;
+  color: var(--ig-secondary-text);
+}
+.atl-pass__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.atl-pass__row {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  border-radius: 0.85rem;
+  text-align: left;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+}
+.atl-pass__row--done {
+  background: transparent;
+}
+.atl-pass__head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.atl-pass__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.atl-pass__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-pass__count {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--ig-secondary-text);
+  font-variant-numeric: tabular-nums;
+}
+.atl-pass__stamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.55rem;
+}
+/* 도장 자리 — 빈 칸이 보여야 "다음에 갈 곳"이 생긴다 */
+.atl-pass__stamp {
+  display: grid;
+  place-items: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 999px;
+  border: 1px dashed var(--ig-border);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  opacity: 0.65;
+}
+.atl-pass__stamp--on {
+  border-style: solid;
+  border-width: 1.5px;
+  opacity: 1;
+}
+.atl-pass__stamp .material-icons-round {
+  font-size: 0.85rem;
+}
+.atl-pass__seal {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.3rem;
+  border: 1.5px solid;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  transform: rotate(-8deg);
+}
+.atl-pass__hint {
+  margin-top: 0.9rem;
+  font-size: 0.72rem;
+  color: var(--ig-secondary-text);
+  text-align: center;
+}
+
+/* ── 본문·스토리에서 쓰는 지명 카드 ────────────────────────── */
+
+.atl-card {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.9rem;
+  text-align: left;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+  transition: border-color 0.15s ease;
+}
+.atl-card__row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.75rem 0.65rem;
+}
+.atl-card:active {
+  transform: scale(0.99);
+}
+.atl-card:hover {
+  border-color: var(--brand);
+}
+.atl-card__map {
+  display: block;
+  width: 100%;
+  line-height: 0;
+  border-bottom: 1px solid var(--ig-border);
+}
+.atl-card__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.atl-card__sea {
+  fill: #c7dcef;
+}
+.atl-card__land {
+  fill: #e6e9ee;
+  stroke: #bfc8d2;
+  stroke-width: 0.5;
+}
+[data-theme='dark'] .atl-card__sea {
+  fill: #0a121c;
+}
+[data-theme='dark'] .atl-card__land {
+  fill: #2c323a;
+  stroke: #3f4650;
+}
+.atl-card__halo {
+  fill: var(--brand);
+  opacity: 0.25;
+}
+.atl-card__dot {
+  fill: var(--brand);
+  stroke: #fff;
+  stroke-width: 1;
+}
+.atl-card__body {
+  flex: 1;
+  min-width: 0;
+}
+.atl-card__eyebrow {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--brand);
+}
+.atl-card__title {
+  display: block;
+  margin-top: 0.05rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--ig-primary-text);
+}
+.atl-card__modern {
+  display: block;
+  margin-top: 0.05rem;
+  font-size: 0.72rem;
+  color: var(--ig-secondary-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.atl-card__chevron {
+  flex-shrink: 0;
+  font-size: 1.15rem !important;
+  color: var(--ig-secondary-text);
+}
+
+/* ── 지도 퀴즈 ─────────────────────────────────────────────── */
+
+.atl-ghost--quiz {
+  display: grid;
+  place-items: center;
+  padding: 0.75rem;
+}
+.atl-ghost--quiz .material-icons-outlined {
+  font-size: 1.15rem;
+}
+
+/* 퀴즈 중 핀 상태 */
+.atl-pin--dimmed {
+  opacity: 0.22;
+  pointer-events: none;
+}
+.atl-pin--wrong {
+  opacity: 0.5;
+}
+.atl-pin--answer .atl-pin__label {
+  font-weight: 800;
+}
+
+.atl-quiz {
+  margin: 0.85rem 1rem 0.25rem;
+  padding: 0.9rem 1rem 1rem;
+  border-radius: 1rem;
+  background: var(--ig-primary-background);
+  border: 1px solid var(--ig-border);
+}
+.atl-quiz__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.atl-quiz__step {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.atl-quiz__quit {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+}
+.atl-quiz__prompt {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.5;
+  color: var(--ig-primary-text);
+  word-break: keep-all;
+}
+.atl-quiz__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ig-secondary-text);
+}
+.atl-quiz__reveal {
+  margin-top: 0.7rem;
+}
+.atl-quiz__verdict {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.atl-quiz__explain {
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}
+.atl-quiz__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+}
+.atl-quiz__ref,
+.atl-quiz__close {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ig-secondary-text);
+  border: 1px solid var(--ig-border);
+}
+.atl-quiz__next,
+.atl-quiz__again {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.7rem;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.atl-quiz__next:active,
+.atl-quiz__again:active {
+  transform: scale(0.98);
+}
+
+/* 결과 */
+.atl-quiz--done {
+  text-align: center;
+}
+.atl-quiz__score {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.atl-quiz__result {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--ig-secondary-text);
+  word-break: keep-all;
+}

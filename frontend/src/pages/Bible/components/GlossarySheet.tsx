@@ -1,9 +1,13 @@
-import { useMemo } from 'react'
+import { Suspense, lazy, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
 import { GLOSSARY_TYPE_LABEL, type GlossaryEntry } from '../data/bibleGlossary'
 import { parseBibleReference } from '../../Sermon/utils/sermonMeta'
+
+// 지명 칩에서만 쓰는 지도 카드. 지도 데이터(해안선 38KB + 장소 사전)가 읽기 화면
+// 청크에 딸려 들어오지 않도록 lazy 로 둔다 — 지명 칩을 실제로 눌러야 받는다.
+const AtlasPlaceCard = lazy(() => import('../Atlas/components/AtlasPlaceCard'))
 
 const TYPE_ICON: Record<GlossaryEntry['type'], string> = {
   person: 'person',
@@ -73,6 +77,16 @@ const GlossarySheet = ({ entry, onClose }: { entry: GlossaryEntry; onClose: () =
           </div>
 
           <p className="mt-4 text-[14.5px] leading-relaxed text-ink break-keep">{entry.desc}</p>
+
+          {/* 지명이면 "지금 어디인지"를 지도 한 조각으로 — 지도여행에 없는 곳이면
+              카드가 스스로 아무것도 그리지 않는다 */}
+          {entry.type === 'place' && (
+            <div className="mt-3.5">
+              <Suspense fallback={null}>
+                <AtlasPlaceCard name={entry.name} onNavigate={onClose} />
+              </Suspense>
+            </div>
+          )}
 
           {firstRef ? (
             <button

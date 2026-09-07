@@ -24,11 +24,11 @@ const readCollapsed = (): boolean => {
 
 /**
  * PC 전용(lg+) 성경 섹션 좌측 레일 — 모바일 하단 도크(BibleBottomNav)의 데스크톱 대응물.
- * 위에는 읽기·검색·플랜·단어장·가계도 세로 내비, 아래에는 화면별 내용(읽기 화면의 장 개요)이 붙는다.
- * 예전엔 같은 5개 목적지를 헤더 아래 가로 탭(BibleSectionTabs)으로 두었는데, 전역 헤더 밑에
+ * 위에는 읽기·검색·플랜·지도여행·단어장·가계도 세로 내비, 아래에는 화면별 내용(읽기 화면의 장 개요)이 붙는다.
+ * 예전엔 같은 목적지를 헤더 아래 가로 탭(BibleSectionTabs)으로 두었는데, 전역 헤더 밑에
  * 메뉴가 한 층 더 생겨 어색했고 본문 위 스택도 한 층 늘어나 레일로 옮겼다.
  *
- * - 접기: 아이콘 5개만 남는 활동 바(56px)로 줄어든다. 기기별 저장.
+ * - 접기: 아이콘만 남는 활동 바(56px)로 줄어든다. 기기별 저장.
  * - 이 앱은 #root/body overflow 구조 탓에 position: sticky가 먹지 않는다.
  *   폭만 차지하는 슬롯을 flex에 두고, 실제 레일은 fixed로 띄워 슬롯의 left를 따라간다.
  * - 1024px 미만에선 layout.css가 통째로 숨긴다(도크가 담당).
@@ -48,6 +48,7 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
       import('../../pages/Bible/BibleStudy')
       import('../../pages/Bible/Plans/PlanList')
       import('../../pages/Bible/Genealogy/Genealogy')
+      import('../../pages/Bible/Atlas/AtlasMap')
       import('../../pages/Bible/Plans/heroPrefetch')
         .then((m) => m.warmPlanHero())
         .catch(() => undefined)
@@ -59,13 +60,14 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
 
   const labels =
     language === 'ko'
-      ? { read: '읽기', search: '검색', plans: '플랜', wordbook: '단어장', genealogy: '가계도', menu: '성경' }
-      : { read: 'Read', search: 'Search', plans: 'Plans', wordbook: 'Words', genealogy: 'Genealogy', menu: 'Bible' }
+      ? { read: '읽기', search: '검색', plans: '플랜', atlas: '지도여행', wordbook: '단어장', genealogy: '가계도', menu: '성경' }
+      : { read: 'Read', search: 'Search', plans: 'Plans', atlas: 'Atlas', wordbook: 'Words', genealogy: 'Genealogy', menu: 'Bible' }
 
   const items: { key: BibleNavKey; icon: string; label: string }[] = [
     { key: 'read', icon: 'menu_book', label: labels.read },
     { key: 'search', icon: 'search', label: labels.search },
     { key: 'plans', icon: 'event_available', label: labels.plans },
+    { key: 'atlas', icon: 'travel_explore', label: labels.atlas },
     { key: 'wordbook', icon: 'spellcheck', label: labels.wordbook },
     { key: 'genealogy', icon: 'account_tree', label: labels.genealogy },
   ]
@@ -80,8 +82,9 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
       }
       return
     }
-    const paths: Record<'plans' | 'wordbook' | 'genealogy', string> = {
+    const paths: Record<'plans' | 'atlas' | 'wordbook' | 'genealogy', string> = {
       plans: '/bible/plans',
+      atlas: '/bible/atlas',
       wordbook: '/bible/wordbook',
       genealogy: '/bible/genealogy',
     }

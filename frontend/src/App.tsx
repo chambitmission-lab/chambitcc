@@ -144,6 +144,7 @@ const CapsuleCreate = lazy(() => import('./pages/Capsule/CapsuleCreate'))
 const CapsuleOpen = lazy(() => import('./pages/Capsule/CapsuleOpen'))
 const CapsuleInvite = lazy(() => import('./pages/Capsule/CapsuleInvite'))
 const BibleWordbook = lazy(() => import('./pages/Bible/Wordbook/WordbookPage'))
+const BibleAtlas = lazy(() => import('./pages/Bible/Atlas/AtlasMap'))
 const BiblePlanManagement = lazy(() => import('./pages/Admin/BiblePlanManagement'))
 const BibleCommentaryManagement = lazy(() => import('./pages/Admin/BibleCommentaryManagement'))
 const AnsweredPrayers = lazy(menuRouteLoaders['/answered-prayers'])
@@ -379,6 +380,7 @@ function App() {
                 <Route path="/bible/wordbook" element={<BibleWordbook />} />
                 <Route path="/bible/situation" element={<SituationBible />} />
                 <Route path="/bible/story" element={<BibleStoryMap />} />
+                <Route path="/bible/atlas" element={<BibleAtlas />} />
                 <Route path="/bible/story/:episodeId" element={<BibleStoryEpisode />} />
                 <Route path="/bible/photo-verse" element={<PhotoVerse />} />
                 <Route path="/bible/meditation" element={<MeditationPage />} />

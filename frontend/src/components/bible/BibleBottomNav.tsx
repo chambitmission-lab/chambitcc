@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 
-export type BibleNavKey = 'read' | 'search' | 'plans' | 'wordbook' | 'genealogy'
+export type BibleNavKey = 'read' | 'search' | 'plans' | 'atlas' | 'wordbook' | 'genealogy'
 
 interface BibleBottomNavProps {
   active: BibleNavKey
@@ -58,13 +58,14 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
 
   const labels =
     language === 'ko'
-      ? { read: '읽기', search: '검색', plans: '플랜', wordbook: '단어장', genealogy: '가계도' }
-      : { read: 'Read', search: 'Search', plans: 'Plans', wordbook: 'Words', genealogy: 'Genealogy' }
+      ? { read: '읽기', search: '검색', plans: '플랜', atlas: '지도', wordbook: '단어장', genealogy: '가계도' }
+      : { read: 'Read', search: 'Search', plans: 'Plans', atlas: 'Atlas', wordbook: 'Words', genealogy: 'Genealogy' }
 
   const items: { key: BibleNavKey; icon: string; label: string }[] = [
     { key: 'read', icon: 'menu_book', label: labels.read },
     { key: 'search', icon: 'search', label: labels.search },
     { key: 'plans', icon: 'event_available', label: labels.plans },
+    { key: 'atlas', icon: 'travel_explore', label: labels.atlas },
     { key: 'wordbook', icon: 'spellcheck', label: labels.wordbook },
     { key: 'genealogy', icon: 'account_tree', label: labels.genealogy },
   ]
@@ -79,8 +80,9 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
       }
       return
     }
-    const paths: Record<'plans' | 'wordbook' | 'genealogy', string> = {
+    const paths: Record<'plans' | 'atlas' | 'wordbook' | 'genealogy', string> = {
       plans: '/bible/plans',
+      atlas: '/bible/atlas',
       wordbook: '/bible/wordbook',
       genealogy: '/bible/genealogy',
     }
@@ -96,7 +98,7 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
     <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden" aria-label="성경 메뉴">
       <div className="mx-auto max-w-md px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
         {/* Glass dock — 홈 BottomNavigation과 동일한 표면(블러 + 상단 빛줄 + soft shadow) */}
-        <div className="relative backdrop-blur-xl bg-white/80 dark:bg-[#201f1f]/90 border border-black/[0.04] dark:border-white/[0.08] rounded-2xl px-5 py-2 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_var(--brand-soft)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.5),0_12px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <div className="relative backdrop-blur-xl bg-white/80 dark:bg-[#201f1f]/90 border border-black/[0.04] dark:border-white/[0.08] rounded-2xl px-3 py-2 flex items-center justify-between shadow-[0_4px_16px_rgba(0,0,0,0.08),0_8px_24px_var(--brand-soft)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.5),0_12px_28px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)]">
           {/* 다크모드 카드 표면 그라데이션 — 카드 시스템과 동일 */}
           <div className="hidden dark:block absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
           {items.map(({ key, icon, label }) => {

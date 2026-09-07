@@ -502,13 +502,97 @@ html.dark .cb-person-desc { color: #9aa3b2; }
   background: var(--brand-soft);
 }
 html.dark .cb-verse-quote { background: rgba(255,255,255,0.05); }
-.cb-commentary {
+
+/* ── 말씀 해석 블록 ───────────────────────────────────────
+   통짜 문단을 그대로 흘리면 좁은 말풍선에서 읽히지 않는다.
+   요지 → 관찰 목차 → 적용까지만 접어두고, 전문은 버튼으로 펼친다. */
+.cb-cm {
   margin-top: 10px;
+  padding: 12px 13px 10px;
+  border-radius: 14px;
+  background: var(--brand-soft);
+  border: 1px solid var(--cb-line);
+}
+html.dark .cb-cm { background: rgba(255,255,255,0.05); }
+
+.cb-cm-head { display: flex; align-items: center; gap: 6px; margin: 0; }
+.cb-cm-scope {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 11px; font-weight: 700; letter-spacing: -0.01em;
+}
+.cb-cm-cat { font-size: 11.5px; font-weight: 600; color: var(--cb-ink-2); }
+
+.cb-cm-title {
+  margin: 8px 0 0;
+  font-size: 14px; font-weight: 700; line-height: 1.45;
+  color: var(--cb-ink);
+}
+/* 요지 한 줄 — 나머지를 다 접어도 이 문장만은 남는다 */
+.cb-cm-lead {
+  margin: 8px 0 0;
+  font-size: 13.5px; font-weight: 600; line-height: 1.6;
+  color: var(--cb-ink);
+}
+
+/* 접힌 상태의 목차 */
+.cb-cm-outline { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.cb-cm-outline li { display: flex; align-items: baseline; gap: 6px; }
+.cb-cm-outline-text {
+  font-size: 13px; line-height: 1.5; font-weight: 600;
+  color: var(--cb-ink-2);
+}
+.cb-cm-num { flex-shrink: 0; font-size: 13px; font-weight: 700; color: var(--brand); }
+.cb-cm-preview {
+  margin: 8px 0 0;
+  font-size: 13px; line-height: 1.7; color: var(--cb-ink-2);
+}
+
+/* 펼친 상태 */
+.cb-cm-obs { margin-top: 12px; }
+.cb-cm-obs-head {
+  display: flex; align-items: baseline; gap: 6px; margin: 0 0 2px;
+  font-size: 13px; font-weight: 700; color: var(--cb-ink);
+}
+.cb-cm-prose { font-size: 13px; line-height: 1.75; color: var(--cb-ink-2); }
+.cb-cm-prose p { margin: 6px 0 0; }
+.cb-cm-prose > *:first-child { margin-top: 0; }
+.cb-cm-obs .cb-cm-prose { padding-left: 20px; }
+.cb-cm-gap { margin-top: 12px; }
+.cb-cm-closing {
+  margin: 12px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--brand);
+  font-size: 13px; font-weight: 600; line-height: 1.65;
+  color: var(--cb-ink);
+}
+
+.cb-cm-apply {
+  margin-top: 12px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: var(--brand-soft);
+  background: var(--cb-card);
+  border: 1px solid var(--cb-line);
 }
-html.dark .cb-commentary { background: rgba(255,255,255,0.05); }
+.cb-cm-apply-head {
+  margin: 0 0 3px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+  color: var(--brand);
+}
+.cb-cm-apply-text { margin: 0; font-size: 13px; line-height: 1.7; color: var(--cb-ink); }
+
+.cb-cm-more {
+  margin-top: 10px;
+  padding: 6px 0 0;
+  width: 100%;
+  border-top: 1px solid var(--cb-line);
+  font-size: 12.5px; font-weight: 700; color: var(--brand);
+  text-align: center;
+}
+.cb-cm-more:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
 
 /* 카드 하단 — 한 줄 문구 (좋아요·저장·공유 버튼은 불필요해 제거, 2026-09) */
 .cb-msg-foot {

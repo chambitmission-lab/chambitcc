@@ -10,6 +10,7 @@ import { OPEN_CHATBOT_EVENT } from '../command/commandEvents'
 // 환영 장면은 패널을 열어야 보인다 — lazy 로 분리해 위젯 버튼만 첫 로드에 남긴다
 const WelcomeScene = lazy(() => import('./WelcomeScene'))
 import { RECOMMENDED } from './recommended'
+import ChatCommentaryBlock from './ChatCommentaryBlock'
 import { useChatbotHidden, hideChatbot, hideChatbotForever, showChatbot } from './chatbotVisibility'
 import './chatbot.css'
 import avatarDefault from './img/default.webp'
@@ -44,10 +45,6 @@ let nextId = 1
 // 페이지 스크롤 위치 — html/body에 overflow-x:hidden이 걸려 실제 스크롤러가 body다
 const scrollTop = () =>
   window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
-
-// 해석 본문은 마크다운으로 저장돼 있다 — 채팅 말풍선에서는 제목 기호만 걷어낸다
-const stripMd = (s: string) =>
-  s.replace(/^#{1,6}\s*/gm, '').replace(/\*\*(.+?)\*\*/g, '$1').trim()
 
 /** 사용자 메시지 옆에 붙는 시각 — "오후 8:30" */
 const timeLabel = (d: Date) => {
@@ -172,16 +169,10 @@ const BotBubble = ({
           </blockquote>
         ))}
         {reply.commentary && (
-          <div className="cb-commentary">
-            <p className="m-0 mb-1 text-[12px] font-bold text-brand">
-              <EmojiText text="📖" size={14} />{' '}
-              {reply.commentary.scope === 'summary' ? '요약 해석' : '절별 해석'}
-              {reply.commentary.title ? ` — ${reply.commentary.title}` : ''}
-            </p>
-            <p className="m-0 whitespace-pre-line text-[13px] leading-relaxed text-ink">
-              {stripMd(reply.commentary.content)}
-            </p>
-          </div>
+          <ChatCommentaryBlock
+            commentary={reply.commentary}
+            scripture={reply.verses[0]?.text}
+          />
         )}
         {reply.kind !== 'greeting' && reply.kind !== 'help' && reply.kind !== 'fallback' && (
           <div className="cb-msg-foot">

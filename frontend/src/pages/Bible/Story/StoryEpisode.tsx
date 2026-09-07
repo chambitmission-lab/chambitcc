@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getBibleChapter } from '../../../api/bible'
@@ -10,6 +10,11 @@ import { useStoryProgress } from './storyProgress'
 import { StoryGlyph } from './StoryIcons'
 import './Story.css'
 import { bibleKeys } from '../../../hooks/queryKeys'
+import { placeForEpisode } from '../Atlas/storyPlaces'
+
+// 이 화의 무대를 지도 한 조각으로 보여 주는 카드. 지도 데이터(해안선·장소 사전)가
+// 스토리 청크에 딸려 오지 않도록 lazy 로 둔다.
+const AtlasPlaceCard = lazy(() => import('../Atlas/components/AtlasPlaceCard'))
 
 // 에피소드 일러스트 — img/{에피소드 id}.webp 파일을 넣기만 하면 자동으로 연결된다.
 // 아직 없는 화는 기존 이모지 히어로를 유지한다. eager여도 청크에는 URL 맵만 실리고
@@ -107,6 +112,8 @@ const StoryEpisode = () => {
 
   if (!found) return null
   const { episode, act, index } = found
+  // 이 화의 무대 — 지도에 찍을 자리가 있는 화에만 값이 있다 (storyPlaces.ts)
+  const atlasPlaceId = placeForEpisode(episode.id)
   const isRead = readIds.has(episode.id)
   const nextEp = index + 1 < ALL_EPISODES.length ? ALL_EPISODES[index + 1] : null
 
@@ -222,6 +229,16 @@ const StoryEpisode = () => {
             <span className="material-icons-round text-[15px]">chevron_right</span>
           </button>
         </div>
+
+        {/* 이 이야기가 일어난 곳 — 지도에 찍을 자리가 있는 화에만 붙는다 */}
+        {atlasPlaceId && (
+          <div className="story-ep__where">
+            <p className="story-ep__where-label">이 이야기가 일어난 곳</p>
+            <Suspense fallback={null}>
+              <AtlasPlaceCard placeId={atlasPlaceId} />
+            </Suspense>
+          </div>
+        )}
 
         {/* 다음 화 예고 */}
         {episode.teaser && nextEp && (
