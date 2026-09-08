@@ -93,23 +93,18 @@ const PrayerActions = ({
             아이콘을 살짝 빗나가도 카드(상세보기)가 아니라 버튼이 잡힌다.
             호버 시 은은한 원형 배경으로 "여긴 버튼" 피드백 (X 문법) */}
         <div className="flex items-center gap-4">
-          {/* 나만 보는 기도 — 함께 기도·댓글은 없다. 자물쇠 상태 + 공개 전환만 */}
+          {/* 나만 보는 기도 — 함께 기도·댓글은 없다. 헤더 칩이 이미 '나만 보기'를 말하므로
+              여기선 공개 전환 액션 하나만 (문구까지 두면 두 줄로 접힌다) */}
           {isPrivate ? (
-            <>
-              <span className="inline-flex items-center gap-1.5 text-[12.5px] text-gray-600 dark:text-gray-400">
-                <span className="material-icons-outlined text-[16px] text-[var(--brand)]">lock</span>
-                {t('privatePrayerStatus')}
-              </span>
-              {onMakePublicClick && (
-                <button
-                  onClick={onMakePublicClick}
-                  className="flex items-center gap-1 rounded-full p-2 -m-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors text-[12.5px] font-medium"
-                >
-                  <span className="material-icons-outlined text-[15px]">public</span>
-                  <span>{t('makePrayerPublic')}</span>
-                </button>
-              )}
-            </>
+            onMakePublicClick && (
+              <button
+                onClick={onMakePublicClick}
+                className="flex items-center gap-1 whitespace-nowrap rounded-full p-2 -m-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors text-[12.5px] font-medium"
+              >
+                <span className="material-icons-outlined text-[15px]">public</span>
+                <span>{t('makePrayerPublic')}</span>
+              </button>
+            )
           ) : (
           <>
           {/* 기도 — 손하트, 눌렀을 때만 브랜드 컬러+글로우 */}
@@ -169,7 +164,7 @@ const PrayerActions = ({
         {isOwner && !isAnswered && onAnswerClick && (
           <button
             onClick={onAnswerClick}
-            className="flex items-center gap-1.5 rounded-full p-2 -m-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-[var(--amber)] transition-colors text-[12.5px] font-medium"
+            className="flex items-center gap-1.5 whitespace-nowrap rounded-full p-2 -m-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-[var(--amber)] transition-colors text-[12.5px] font-medium"
           >
             <svg width="10" height="10" viewBox="0 0 10 10" className="text-[var(--amber-icon)] shrink-0" aria-hidden>
               <path d="M5 0 L6.1 3.9 L10 5 L6.1 6.1 L5 10 L3.9 6.1 L0 5 L3.9 3.9 Z" fill="currentColor" />
