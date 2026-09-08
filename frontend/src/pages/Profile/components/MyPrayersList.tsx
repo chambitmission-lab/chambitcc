@@ -50,6 +50,12 @@ const MyPrayersList = ({ prayers, onPrayerClick }: MyPrayersListProps) => {
           <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-white/[0.05] via-transparent to-white/[0.02] pointer-events-none" />
 
           <div className="relative z-10">
+            {prayer.is_private && (
+              <span className="inline-flex items-center gap-0.5 mb-2 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
+                <span className="material-icons-outlined text-[11px] leading-none">lock</span>
+                {t('privatePrayerBadge')}
+              </span>
+            )}
             {prayer.title && (
               <h4 className="text-[16px] font-bold text-ink-strong tracking-[-0.015em] leading-[1.3] mb-2">
                 {prayer.title}
@@ -62,14 +68,23 @@ const MyPrayersList = ({ prayers, onPrayerClick }: MyPrayersListProps) => {
               textClassName="text-[14px] text-gray-700 dark:text-white/75 leading-[1.7]"
             />
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-gray-500 dark:text-white/50">
-              <span className="flex items-center gap-1">
-                <HandHeartIcon size={14} filled className="text-brand" />
-                {prayer.prayer_count}{language === 'ko' ? '' : ' '}{t('peopleArePraying')}
-              </span>
-              <span className="flex items-center gap-1">
-                <CommentIcon size={14} />
-                {prayer.reply_count}
-              </span>
+              {prayer.is_private ? (
+                <span className="flex items-center gap-1">
+                  <span className="material-icons-outlined text-[14px] text-brand">lock</span>
+                  {t('privatePrayerStatus')}
+                </span>
+              ) : (
+                <>
+                  <span className="flex items-center gap-1">
+                    <HandHeartIcon size={14} filled className="text-brand" />
+                    {prayer.prayer_count}{language === 'ko' ? '' : ' '}{t('peopleArePraying')}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CommentIcon size={14} />
+                    {prayer.reply_count}
+                  </span>
+                </>
+              )}
               <span className="ml-auto">{getRelativeTime(prayer.created_at)}</span>
             </div>
           </div>

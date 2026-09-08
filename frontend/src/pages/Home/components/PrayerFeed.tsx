@@ -34,6 +34,8 @@ interface PrayerFeedProps {
   onAnswerToggle?: (prayerId: number) => void
   onEditAnswer?: (prayerId: number) => void
   onCancelAnswer?: (prayerId: number) => void
+  /** 나만 보기 기도를 전체 공개로 전환 */
+  onMakePublic?: (prayerId: number) => void
   onPrayerClick: (prayerId: number, shouldOpenReplies?: boolean) => void
   /** 그룹 방 안 피드 — 카드마다 반복되는 그룹명을 숨긴다 */
   showGroupName?: boolean
@@ -51,6 +53,7 @@ const PrayerFeed = ({
   onAnswerToggle,
   onEditAnswer,
   onCancelAnswer,
+  onMakePublic,
   onPrayerClick,
   showGroupName = true,
   groupByDate = false
@@ -105,6 +108,7 @@ const PrayerFeed = ({
             onAnswerToggle={onAnswerToggle}
             onEditAnswer={onEditAnswer}
             onCancelAnswer={onCancelAnswer}
+            onMakePublic={onMakePublic}
             onPrayerClick={onPrayerClick}
             showGroupName={showGroupName}
           />

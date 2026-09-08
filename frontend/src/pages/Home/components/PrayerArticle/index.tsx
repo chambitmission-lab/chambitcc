@@ -18,6 +18,7 @@ interface PrayerArticleProps {
   onAnswerToggle?: (prayerId: number) => void
   onEditAnswer?: (prayerId: number) => void
   onCancelAnswer?: (prayerId: number) => void
+  onMakePublic?: (prayerId: number) => void
   onPrayerClick: (prayerId: number, shouldOpenReplies?: boolean) => void
   /** 그룹 방 안 피드 — 카드마다 같은 그룹명이 반복되면 노이즈라 숨긴다 */
   showGroupName?: boolean
@@ -29,6 +30,7 @@ const PrayerArticle = ({
   onAnswerToggle,
   onEditAnswer,
   onCancelAnswer,
+  onMakePublic,
   onPrayerClick,
   showGroupName = true,
 }: PrayerArticleProps) => {
@@ -64,6 +66,11 @@ const PrayerArticle = ({
   const handleCancelAnswer = (e: React.MouseEvent) => {
     e.stopPropagation()
     onCancelAnswer?.(prayer.id)
+  }
+
+  const handleMakePublic = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onMakePublic?.(prayer.id)
   }
 
   const handleVersesClick = (e: React.MouseEvent) => {
@@ -130,6 +137,7 @@ const PrayerArticle = ({
             groupName={prayer.group?.name}
             showGroupName={showGroupName}
             colorTheme={colorTheme}
+            isPrivate={!!prayer.is_private}
           />
 
           <PrayerContent
@@ -156,13 +164,15 @@ const PrayerArticle = ({
               onVersesClick={handleVersesClick}
               isOwner={prayer.is_owner}
               isAnswered={prayer.is_answered}
+              isPrivate={!!prayer.is_private}
               onAnswerClick={handleAnswer}
               onEditAnswerClick={handleEditAnswer}
               onCancelAnswerClick={handleCancelAnswer}
+              onMakePublicClick={onMakePublic ? handleMakePublic : undefined}
             />
 
             {/* 살아있는 기도 — 지금 함께 기도하는 사람 수 (따뜻한 문구) */}
-            {prayer.prayer_count > 0 && (
+            {!prayer.is_private && prayer.prayer_count > 0 && (
               <div className="mt-2.5 text-[12px] text-gray-600 dark:text-gray-400">
                 {liveStatusText}
               </div>

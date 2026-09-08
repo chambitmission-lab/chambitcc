@@ -19,16 +19,20 @@ import DeleteConfirmModal from './DeleteConfirmModal'
 import { toastFeedback } from '../../../../utils/toast'
 import { prayerToastFeedback } from '../../../../components/prayer/prayerFeedback'
 import { can } from '../../../../utils/access'
+import { useLanguage } from '../../../../contexts/LanguageContext'
 
 interface PrayerDetailProps {
   prayerId: number
   initialData?: Prayer
   onClose: () => void
   onDelete?: () => void
+  /** 나만 보기 기도를 전체 공개로 전환 */
+  onMakePublic?: (prayerId: number) => void
   initialOpenReplies?: boolean
 }
 
-const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenReplies = false }: PrayerDetailProps) => {
+const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, onMakePublic, initialOpenReplies = false }: PrayerDetailProps) => {
+  const { t } = useLanguage()
   const { prayer, loading, error, handlePrayerToggle, isToggling } = usePrayerDetail(prayerId, initialData, prayerToastFeedback)
   const repliesSectionRef = useRef<HTMLDivElement>(null)
 
@@ -124,6 +128,8 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
   // 관리자는 부적절한 글을 즉시 정리할 수 있도록 남의 글에도 삭제 버튼 노출 (백엔드도 is_admin 허용)
   const isOwner = prayer.is_owner || false
   const isAdminDelete = !isOwner && can('community:moderate')
+  // 나만 보는 기도 — 함께 기도·댓글 없이 조용한 일기장처럼
+  const isPrivate = !!prayer.is_private
 
   return (
     <>
@@ -141,6 +147,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
             avatarUrl={prayer.avatar_url ?? null}
             timeAgo={prayer.time_ago}
             isOwner={isOwner}
+            isPrivate={isPrivate}
             hasTranslation={hasTranslation}
             showTranslation={showTranslation}
             nextLanguage={nextLanguage}
@@ -149,6 +156,32 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
 
           <PrayerContent title={displayTitle} content={displayContent} />
 
+          {isPrivate ? (
+            <div className="mt-2 rounded-2xl border border-[var(--card-border)] bg-[var(--surface-inset)] p-4">
+              <div className="flex items-start gap-3">
+                <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-[var(--brand-soft-strong)] text-[var(--brand)]">
+                  <span className="material-icons-outlined text-[18px]">lock</span>
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13.5px] font-bold text-ink-strong">{t('privatePrayerStatus')}</p>
+                  <p className="mt-1 text-[12.5px] leading-snug text-gray-600 dark:text-gray-400">
+                    {t('privatePrayerDetailNotice')}
+                  </p>
+                  {onMakePublic && (
+                    <button
+                      type="button"
+                      onClick={() => onMakePublic(prayer.id)}
+                      className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-brand text-[var(--on-brand)] text-[12.5px] font-bold shadow-[0_4px_12px_var(--brand-glow)] hover:bg-brand-dim active:scale-95 transition-all"
+                    >
+                      <span className="material-icons-outlined text-[15px]">public</span>
+                      {t('makePrayerPublic')}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+          <>
           <PrayerStats prayerCount={prayer.prayer_count} />
 
           {/* 댓글은 토글 없이 항상 인라인 — 짧은 글일 때 하단이 텅 비지 않고
@@ -169,12 +202,15 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
               onComposerExpandedChange={setIsComposing}
             />
           </div>
+          </>
+          )}
         </div>
 
         {/* 하단 고정 액션 바 — 짧은 글에서도 버튼이 어중간한 높이에 뜨지 않고
             항상 엄지 존에 머문다. 설치형 PWA 홈 인디케이터 영역만큼 safe-area 패딩.
             댓글 작성 중에는 접어둔다 — "댓글 작성"을 누르려다 이 큰 파란 버튼을
             잘못 누르는 오탭 방지. 작성 완료/취소 시 다시 올라온다 */}
+        {!isPrivate && (
         <div
           aria-hidden={isComposing}
           className={`shrink-0 overflow-hidden transition-all duration-300 ease-out ${
@@ -191,6 +227,7 @@ const PrayerDetail = ({ prayerId, initialData, onClose, onDelete, initialOpenRep
             />
           </div>
         </div>
+        )}
       </PrayerDetailModal>
 
       {showDeleteConfirm && (

@@ -35,6 +35,7 @@ export interface Prayer {
   recommended_verses_count?: number  // 추천 구절 개수 (목록 응답용, 전문은 상세에서)
   group_id?: number  // 소그룹 ID (null이면 전체 공개)
   group?: PrayerGroup  // 소그룹 정보
+  is_private?: boolean  // 나만 보는 기도 (비밀기도) — 작성자에게만 내려온다
 }
 
 export interface PrayerDetailResponse {
@@ -59,6 +60,7 @@ export interface CreatePrayerRequest {
   display_name?: string  // 선택 (기본값: "익명")
   is_fully_anonymous: boolean
   group_id?: number  // 소그룹 ID (선택)
+  is_private?: boolean  // 나만 보기 — true면 group_id는 서버가 무시
   emotion?: PrayerEmotion  // 감정 태그 (선택)
 }
 

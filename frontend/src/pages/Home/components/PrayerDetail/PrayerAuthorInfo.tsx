@@ -15,6 +15,7 @@ interface PrayerAuthorInfoProps {
   avatarUrl?: string | null
   timeAgo: string
   isOwner: boolean
+  isPrivate?: boolean
   hasTranslation: boolean
   showTranslation: boolean
   nextLanguage: string
@@ -27,6 +28,7 @@ const PrayerAuthorInfo = ({
   avatarUrl = null,
   timeAgo,
   isOwner,
+  isPrivate = false,
   hasTranslation,
   showTranslation,
   nextLanguage,
@@ -68,7 +70,12 @@ const PrayerAuthorInfo = ({
               : 'font-semibold text-ink-strong'
           }`}>
             <span className="truncate">{shownName}</span>
-            {isOwner && (
+            {isPrivate ? (
+              <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
+                <span className="material-icons-outlined text-[11px] leading-none">lock</span>
+                {t('privatePrayerBadge')}
+              </span>
+            ) : isOwner && (
               <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
                 내 기도
               </span>

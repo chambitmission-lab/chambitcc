@@ -57,6 +57,25 @@ export const answerPrayer = async (
 }
 
 /**
+ * 기도 공개 범위 전환 (로그인 필수, 작성자만)
+ *
+ * 백엔드: PUT /api/v1/prayers/{id}  { is_private }
+ * - 나만 보기 → 전체 공개는 언제나 가능
+ * - 전체 공개 → 나만 보기는 아직 함께 기도한 사람·댓글이 없을 때만 (409)
+ */
+export const updatePrayerVisibility = async (
+  prayerId: number,
+  isPrivate: boolean
+): Promise<{ success: boolean; message: string; data: Prayer }> => {
+  return request<{ success: boolean; message: string; data: Prayer }>(`/prayers/${prayerId}`, {
+    method: 'PUT',
+    auth: 'required',
+    json: { is_private: isPrivate },
+    errorMessage: '공개 범위를 바꾸지 못했어요',
+  })
+}
+
+/**
  * 기도 응답 간증 수정 — 응답의 전당 (로그인 필수, 작성자만)
  *
  * 백엔드: PUT /api/v1/prayers/{id}/answer

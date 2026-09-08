@@ -15,9 +15,12 @@ interface PrayerActionsProps {
   onVersesClick?: (e: React.MouseEvent) => void
   isOwner?: boolean
   isAnswered?: boolean
+  /** 나만 보는 기도 — 기도·댓글 대신 자물쇠 상태와 '공개로 전환'을 보여준다 */
+  isPrivate?: boolean
   onAnswerClick?: (e: React.MouseEvent) => void
   onEditAnswerClick?: (e: React.MouseEvent) => void
   onCancelAnswerClick?: (e: React.MouseEvent) => void
+  onMakePublicClick?: (e: React.MouseEvent) => void
 }
 
 interface LightParticle {
@@ -38,11 +41,13 @@ const PrayerActions = ({
   onVersesClick,
   isOwner,
   isAnswered,
+  isPrivate = false,
   onAnswerClick,
   onEditAnswerClick,
   onCancelAnswerClick,
+  onMakePublicClick,
 }: PrayerActionsProps) => {
-  const { language } = useLanguage()
+  const { language, t } = useLanguage()
   const [particles, setParticles] = useState<LightParticle[]>([])
   const [isPopping, setIsPopping] = useState(false)
 
@@ -88,6 +93,25 @@ const PrayerActions = ({
             아이콘을 살짝 빗나가도 카드(상세보기)가 아니라 버튼이 잡힌다.
             호버 시 은은한 원형 배경으로 "여긴 버튼" 피드백 (X 문법) */}
         <div className="flex items-center gap-4">
+          {/* 나만 보는 기도 — 함께 기도·댓글은 없다. 자물쇠 상태 + 공개 전환만 */}
+          {isPrivate ? (
+            <>
+              <span className="inline-flex items-center gap-1.5 text-[12.5px] text-gray-600 dark:text-gray-400">
+                <span className="material-icons-outlined text-[16px] text-[var(--brand)]">lock</span>
+                {t('privatePrayerStatus')}
+              </span>
+              {onMakePublicClick && (
+                <button
+                  onClick={onMakePublicClick}
+                  className="flex items-center gap-1 rounded-full p-2 -m-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:text-brand transition-colors text-[12.5px] font-medium"
+                >
+                  <span className="material-icons-outlined text-[15px]">public</span>
+                  <span>{t('makePrayerPublic')}</span>
+                </button>
+              )}
+            </>
+          ) : (
+          <>
           {/* 기도 — 손하트, 눌렀을 때만 브랜드 컬러+글로우 */}
           <button
             onClick={handlePrayClick}
@@ -124,6 +148,8 @@ const PrayerActions = ({
               <span className="text-[12.5px] font-bold tabular-nums">{replyCount}</span>
             )}
           </button>
+          </>
+          )}
 
           {/* 함께 묵상할 말씀 */}
           {versesCount > 0 && onVersesClick && (

@@ -13,6 +13,8 @@ interface PrayerHeaderProps {
   /** 그룹 방 안 피드처럼 모든 카드가 같은 그룹이면 이름은 숨긴다 (색 정체성은 유지) */
   showGroupName?: boolean
   colorTheme: GroupColorTheme
+  /** 나만 보는 기도 — 이름 옆에 자물쇠 칩 */
+  isPrivate?: boolean
 }
 
 const PrayerHeader = ({
@@ -22,7 +24,8 @@ const PrayerHeader = ({
   timeAgo,
   groupName,
   showGroupName = true,
-  colorTheme
+  colorTheme,
+  isPrivate = false,
 }: PrayerHeaderProps) => {
   const { t } = useLanguage()
   const [showAvatarZoom, setShowAvatarZoom] = useState(false)
@@ -118,6 +121,12 @@ const PrayerHeader = ({
               style={{ color: colorTheme.accent }}
             >
               · {groupName}
+            </span>
+          )}
+          {isPrivate && (
+            <span className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-[var(--brand-soft-strong)] text-[10px] font-bold leading-none text-[var(--brand)]">
+              <span className="material-icons-outlined text-[11px] leading-none">lock</span>
+              {t('privatePrayerBadge')}
             </span>
           )}
         </div>

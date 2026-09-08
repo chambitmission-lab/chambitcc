@@ -34,6 +34,7 @@ import PrayerFeed from './components/PrayerFeed'
 import BottomNavigation from './components/BottomNavigation'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
+import { usePrayerVisibility } from '../../hooks/usePrayerVisibility'
 import { useBottomStickyRail } from '../../hooks/useBottomStickyRail'
 import { useAuth } from '../../hooks/useAuth'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -224,6 +225,28 @@ const NewHome = () => {
       setShowAnswerModal(true)
     }
   }, [])
+
+  // 나만 보기 → 전체 공개 전환 (되돌리기 조건이 있어 한 번 더 묻는다)
+  const { setVisibility } = usePrayerVisibility({
+    onSuccess: () => showToast(t('prayerMadePublic'), 'success'),
+    onError: (error) => showToast(error.message, 'error'),
+  })
+  const handleMakePublic = useCallback(async (prayerId: number) => {
+    const ok = await confirmDialog({
+      title: t('makePrayerPublicTitle'),
+      message: t('makePrayerPublicMessage'),
+      description: t('makePrayerPublicDescription'),
+      confirmText: t('makePrayerPublicConfirm'),
+      cancelText: t('cancel'),
+      icon: 'public',
+    })
+    if (!ok) return
+    try {
+      await setVisibility(prayerId, false)
+    } catch {
+      // onError 토스트
+    }
+  }, [setVisibility, t])
 
   // 응답된 기도의 간증 수정 진입점
   const handleEditAnswer = useCallback((prayerId: number) => {
@@ -453,6 +476,7 @@ const NewHome = () => {
                 onAnswerToggle={handleAnswerToggle}
                 onEditAnswer={handleEditAnswer}
                 onCancelAnswer={handleCancelAnswer}
+                onMakePublic={handleMakePublic}
                 onPrayerClick={handlePrayerClick}
               />
             )}
@@ -469,9 +493,14 @@ const NewHome = () => {
               sort={sort}
               groupId={selectedGroupId}  // ✅ selectedGroupId 전달
               onClose={() => setShowComposer(false)}
-              onSuccess={() => {
+              onSuccess={(prayer) => {
                 // Optimistic Update가 자동으로 처리됨
                 // 성경 구절 모달이 있을 수 있으므로 PrayerComposer가 자체적으로 닫힘 처리
+                // 비밀기도는 전체 피드에 없으므로 '내 기도' 탭으로 옮겨 방금 쓴 글을 보여준다
+                if (prayer.is_private) {
+                  setSelectedGroupId(null)
+                  setSelectedFilter('my_prayers')
+                }
               }}
             />
           )}
@@ -481,6 +510,7 @@ const NewHome = () => {
             <PrayerDetail
               prayerId={selectedPrayerId}
               initialData={prayerHook.prayers.find(p => p.id === selectedPrayerId)}
+              onMakePublic={handleMakePublic}
               onClose={() => {
                 setSelectedPrayerId(null)
                 setOpenReplies(false)

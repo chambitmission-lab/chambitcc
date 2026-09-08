@@ -3,13 +3,13 @@ import { usePrayersInfinite } from '../../../../hooks/usePrayersQuery'
 import { useProfileDetail } from '../../../../hooks/useProfile'
 import { useModalBackButton } from '../../../../hooks/useModalBackButton'
 import { validation } from '../../../../utils/validation'
-import type { PrayerEmotion, RecommendedVerses, SortType } from '../../../../types/prayer'
+import type { Prayer, PrayerEmotion, RecommendedVerses, SortType } from '../../../../types/prayer'
 import { tokenStore, sessionStore } from '../../../../utils/tokenStore'
 import { prayerToastFeedback } from '../../../../components/prayer/prayerFeedback'
 
 interface UsePrayerComposerProps {
   onClose: () => void
-  onSuccess?: () => void
+  onSuccess?: (prayer: Prayer) => void
   sort: SortType
   groupId?: number | null  // ✅ 초기 groupId 추가
 }
@@ -19,7 +19,17 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(true)
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(groupId || null)  // ✅ 초기값 설정
+  const [selectedGroupId, setSelectedGroupIdRaw] = useState<number | null>(groupId || null)  // ✅ 초기값 설정
+  // 나만 보기(비밀기도) — 그룹과 배타적. 하나를 고르면 다른 쪽은 풀린다
+  const [isPrivate, setIsPrivateRaw] = useState(false)
+  const setIsPrivate = useCallback((next: boolean) => {
+    setIsPrivateRaw(next)
+    if (next) setSelectedGroupIdRaw(null)
+  }, [])
+  const setSelectedGroupId = useCallback((next: number | null) => {
+    setSelectedGroupIdRaw(next)
+    if (next !== null) setIsPrivateRaw(false)
+  }, [])
   const [emotion, setEmotion] = useState<PrayerEmotion | null>(null)
   const [error, setError] = useState('')
   const [recommendedVerses, setRecommendedVerses] = useState<RecommendedVerses | null>(null)
@@ -82,13 +92,14 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
         content: content.trim(),
         display_name: displayName,
         is_fully_anonymous: isAnonymous,
-        group_id: selectedGroupId || undefined,
+        group_id: isPrivate ? undefined : selectedGroupId || undefined,
+        is_private: isPrivate || undefined,
         emotion: emotion || undefined,
       })
 
       const prayer = response.data
 
-      onSuccess?.()
+      onSuccess?.(prayer)
       setCreatedPrayerId(prayer.id)
 
       if (prayer.recommended_verses && prayer.recommended_verses.verses.length > 0) {
@@ -139,6 +150,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     title,
     content,
     isAnonymous,
+    isPrivate,
     selectedGroupId,
     emotion,
     error,
@@ -155,6 +167,7 @@ export const usePrayerComposer = ({ onClose, onSuccess, sort, groupId }: UsePray
     setTitle: handleTitleChange,
     setContent: handleContentChange,
     setIsAnonymous,
+    setIsPrivate,
     setSelectedGroupId,
     setEmotion,
     handleSubmit,

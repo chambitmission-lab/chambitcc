@@ -157,6 +157,12 @@ export const usePrayersInfinite = (
       // 이전 데이터 백업
       const previousData = queryClient.getQueryData(listKey)
 
+      // 비밀기도는 '내 기도' 탭에만 존재한다 — 전체/그룹 피드에 낙관적으로 꽂아 넣으면
+      // 서버 재조회 때 사라져 "글이 날아갔다"로 보인다
+      if (data.is_private && filter !== 'my_prayers') {
+        return { previousData }
+      }
+
       // Optimistic Update - 임시 기도 추가
       const tempPrayer: Prayer = {
         id: Date.now(), // 임시 ID
@@ -170,6 +176,7 @@ export const usePrayersInfinite = (
         is_prayed: false,
         is_owner: true,
         group_id: data.group_id,
+        is_private: data.is_private,
       }
 
       queryClient.setQueryData<PrayerListCache>(listKey, (old) => {

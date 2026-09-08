@@ -45,6 +45,7 @@ export interface MyPrayer {
   reply_count: number
   created_at: string
   is_active: boolean
+  is_private?: boolean  // 나만 보는 기도
 }
 
 export interface PrayingFor {
