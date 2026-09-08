@@ -820,12 +820,14 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
           </div>
         )}
 
-        {/* 아직 못 여는 캡슐 — 봉투는 "열 수 있다"는 신호라서 다이얼만 보여준다 */}
+        {/* 아직 못 여는 캡슐 — 봉투는 "열 수 있다"는 신호라서 다이얼만 보여준다.
+            위·아래 여백은 capsule.css 가 잡는다: 뒤에 깔린 금고 삽화(양·텐트·새끼양)가
+            다이얼과 제목 사이에 들어앉을 자리라서 pt-10/mt-9 로는 모자란다 */}
         {capsule && phase !== 'letter' && !capsule.openable && (
-          <div className="capsule-waiting px-6 pt-10 text-center">
+          <div className="capsule-waiting px-6 text-center">
             <SealDial sealedAt={capsule.sealed_at} openAt={capsule.open_at} />
 
-            <p className="mt-9 text-[12.5px] font-bold text-[var(--text-muted)]">
+            <p className="capsule-waiting__sender text-[12.5px] font-bold text-[var(--text-muted)]">
               {senderLine(capsule)}
             </p>
             <h2 className="text-[20px] font-extrabold mt-1.5 break-keep">
