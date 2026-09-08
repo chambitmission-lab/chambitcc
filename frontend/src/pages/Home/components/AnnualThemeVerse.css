@@ -1,280 +1,276 @@
-/* AnnualThemeVerse — 교회 연간 표어 말씀, 인스타그램 스토리 카드 문법
- *   - 상단 세그먼트 진행 바(스토리 타이머처럼 한 번 차오른다)
- *   - 헤더 라인: 작은 아바타 · 참빛교회 · 올해의 말씀
- *   - 가운데 굵은 산세리프 큰 타이포, 마지막 어절은 형광펜(텍스트 배경 스티커)
- *   - 하단 행: 출처 · "말씀 카드로 공유"
- *   - 배경: 인스타 선셋 프리셋을 브랜드 블루 쪽으로 당긴 플랫 그래디언트(코발트→마젠타→코럴)
- * 이미지 자산 없음. 팔레트는 --story-* 토큰만 바꾸면 된다.
+/* AnnualThemeVerse — 교회 연간 표어 말씀, "명판(plaque)" 문법
+ *   - 금박 헤어라인 프레임 + 대각 코너 악센트
+ *   - 자간 넓은 작은 라벨(2026 올해의 말씀) → 가운데 명조 인용 → 금박 구분선 → 출처·공유
+ *   - 접기: 라벨을 누르면 한 줄로 접힌다(기기에 기억). 접힌 줄에도 말씀은 남는다.
+ *   - 라이트=아이보리 종이 / 다크=딥 잉크. 두 테마 모두 금박은 같은 역할만 맡는다.
+ * 1년에 한 번 정하는 문장이라 홈에서 유일하게 격식을 갖춘 자리다. 이미지 자산 없음.
  */
 
 .annual-theme-section {
   margin: 16px 16px 10px;
 }
 
-.story-card {
-  --story-a: #1f4bd8;   /* 코발트 (브랜드 블루 계열) */
-  --story-b: #6a3fd6;   /* 바이올렛 */
-  --story-c: #d23f8f;   /* 마젠타 */
-  --story-d: #ff7a59;   /* 코럴 */
-  --story-mark-bg: #ffffff;
-  --story-mark-ink: #1c1f3a;
+.verse-plate {
+  /* 라이트 — 아이보리 종이 + 가라앉은 금 */
+  --plate-gold: #b08d3c;
+  --plate-gold-line: rgba(176, 141, 60, 0.42);
+  --plate-gold-strong: #8e6f26;
+  --plate-ink: #1f2739;
+  --plate-ink-soft: rgba(31, 39, 57, 0.58);
+  --plate-bg:
+    radial-gradient(92% 72% at 50% -12%, rgba(190, 152, 62, 0.16), transparent 62%),
+    linear-gradient(168deg, #fffdf6 0%, #f8f2e5 62%, #fdfaf2 100%);
+  --plate-shadow: 0 12px 28px -18px rgba(94, 73, 24, 0.5), 0 1px 2px rgba(94, 73, 24, 0.1);
 
   position: relative;
   margin: 0;
-  padding: 12px 16px 14px;
-  border-radius: 22px;
+  padding: 22px 22px 16px;
+  border-radius: 20px;
   overflow: hidden;
-  isolation: isolate;
-  color: #fff;
-  background: linear-gradient(160deg, var(--story-a) 0%, var(--story-b) 38%, var(--story-c) 72%, var(--story-d) 100%);
-  box-shadow:
-    0 18px 40px -18px rgba(31, 75, 216, 0.55),
-    0 2px 6px rgba(20, 24, 60, 0.12);
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+  background: var(--plate-bg);
+  box-shadow: var(--plate-shadow);
+  transition: padding 0.34s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
 }
 
-/* 깊이감 — 흐릿한 색 덩어리 두 개 (플랫 스토리 배경에 살짝 입체감만) */
-.story-card__blob {
+/* 다크 — 딥 잉크 네이비 + 밝은 금박 */
+[data-theme='dark'] .verse-plate {
+  --plate-gold: #d8b25f;
+  --plate-gold-line: rgba(216, 178, 95, 0.42);
+  --plate-gold-strong: #d8b25f;
+  --plate-ink: #f4f1ea;
+  --plate-ink-soft: rgba(244, 241, 234, 0.62);
+  --plate-bg:
+    radial-gradient(90% 70% at 50% -10%, rgba(216, 178, 95, 0.22), transparent 62%),
+    linear-gradient(168deg, #16203a 0%, #0e1526 62%, #131b30 100%);
+  --plate-shadow: 0 18px 38px -20px rgba(10, 16, 32, 0.75), 0 1px 2px rgba(10, 16, 32, 0.3);
+}
+
+.verse-plate[data-open='false'] {
+  padding: 12px 18px;
+}
+
+/* ── 금박 프레임 ── */
+.verse-plate__frame {
   position: absolute;
-  z-index: 0;
-  border-radius: 999px;
-  filter: blur(28px);
+  inset: 8px;
+  border-radius: 14px;
+  border: 1px solid var(--plate-gold-line);
   pointer-events: none;
+  transition: inset 0.34s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.story-card__blob--a {
-  width: 180px;
-  height: 180px;
-  right: -50px;
-  top: -60px;
-  background: rgba(255, 190, 120, 0.55);
+.verse-plate[data-open='false'] .verse-plate__frame {
+  inset: 6px;
+  border-radius: 12px;
 }
 
-.story-card__blob--b {
-  width: 160px;
-  height: 160px;
-  left: -60px;
-  bottom: -70px;
-  background: rgba(70, 120, 255, 0.55);
-}
-
-/* 샤인 — 호버 시 표면을 사선으로 한 번 스친다 */
-.story-card__sheen {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(105deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 60%);
-  transform: translateX(-120%);
-}
-
-@media (hover: hover) {
-  .story-card:hover {
-    transform: translateY(-3px);
-    box-shadow:
-      0 26px 52px -20px rgba(31, 75, 216, 0.65),
-      0 0 0 1px rgba(255, 255, 255, 0.16),
-      0 4px 10px rgba(20, 24, 60, 0.14);
-  }
-  .story-card:hover .story-card__sheen {
-    animation: story-sheen 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-}
-
-@keyframes story-sheen {
-  to { transform: translateX(120%); }
-}
-
-/* ── 상단 세그먼트 바 ── */
-.story-card__progress {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  gap: 4px;
-  height: 3px;
-}
-
-.story-card__segment {
-  flex: 1;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.32);
-  overflow: hidden;
-}
-
-.story-card__segment::after {
+/* 대각 코너 악센트 — 명판의 "새김" 느낌만 낸다 */
+.verse-plate__frame::before,
+.verse-plate__frame::after {
   content: '';
-  display: block;
-  height: 100%;
-  width: 0;
-  border-radius: inherit;
-  background: #fff;
-  animation: story-fill 5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s forwards;
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--plate-gold);
+  opacity: 0.75;
 }
 
-@keyframes story-fill {
-  to { width: 100%; }
+.verse-plate__frame::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+  border-radius: 14px 0 0 0;
 }
 
-/* ── 헤더 라인 ── */
-.story-card__header {
+.verse-plate__frame::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1px 1px 0;
+  border-radius: 0 0 14px 0;
+}
+
+/* ── 라벨 줄 (= 접기 버튼) ── */
+.verse-plate__head {
   position: relative;
-  z-index: 2;
   display: flex;
   align-items: center;
-  gap: 7px;
-  margin-top: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  gap: 9px;
+  width: 100%;
+  padding: 0 22px 0 0;
+  color: inherit;
+  text-align: left;
 }
 
-.story-card__avatar {
-  display: inline-flex;
-  align-items: center;
+.verse-plate[data-open='true'] .verse-plate__head {
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  color: #fff;
+  padding: 0 22px;
 }
 
-.story-card__who {
-  color: #fff;
+.verse-plate__label {
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: var(--plate-gold-strong);
+  white-space: nowrap;
 }
 
-.story-card__dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
-}
-
-.story-card__label {
-  color: rgba(255, 255, 255, 0.78);
+/* 접힌 줄에도 말씀은 남는다 — 라벨만 남기면 카드가 홈에서 할 일이 없어진다 */
+.verse-plate__peek {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-serif-kr);
+  font-size: 13.5px;
   font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--plate-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* ── 본문 — 명조 + 형광펜 ── */
-.story-card__quote {
+.verse-plate__chev {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  color: var(--plate-gold-strong);
+  opacity: 0.8;
+  transform: translateY(-50%);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.verse-plate[data-open='true'] .verse-plate__chev {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* ── 펼침 영역 ── */
+.verse-plate__body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.verse-plate[data-open='true'] .verse-plate__body {
+  grid-template-rows: 1fr;
+}
+
+.verse-plate__inner {
   position: relative;
-  z-index: 2;
+  overflow: hidden;
+}
+
+/* ── 본문 — 명조 ── */
+.verse-plate__quote {
   margin: 0;
-  padding: 22px 6px 20px;
-  text-align: center;
 }
 
 /* 올해의 말씀은 이 화면에서 가장 무겁게 읽혀야 하는 문장이라 명조로 세운다.
-   800 산세리프의 "쨍한" 무게 대신 700 명조의 획 대비로 진중함을 만든다.
-   명조는 -0.03em 처럼 조이면 세리프가 서로 붙어 지저분해지므로 자간을 푼다. */
-.story-card__text {
-  margin: 0 auto;
-  max-width: 20ch;
+   명조는 자간을 조이면 세리프가 서로 붙어 지저분해지므로 풀어 둔다. */
+.verse-plate__text {
+  margin: 16px auto 18px;
+  max-width: 17ch;
+  text-align: center;
   font-family: var(--font-serif-kr);
-  font-size: 25px;
-  line-height: 1.62;
-  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.66;
+  font-weight: 600;
   letter-spacing: -0.005em;
   word-break: keep-all;
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(20, 24, 60, 0.25);
+  color: var(--plate-ink);
 }
 
-/* 형광펜 — 스토리 텍스트의 "배경 스티커" 스타일. 줄바꿈돼도 각 줄이 따로 상자를 갖는다 */
-.story-card__mark {
-  display: inline;
-  margin-left: 0.12em;
-  padding: 0.04em 0.34em 0.08em;
-  border-radius: 0.36em;
-  background: var(--story-mark-bg);
-  color: var(--story-mark-ink);
-  text-shadow: none;
-  box-shadow: 0 6px 16px -8px rgba(20, 24, 60, 0.5);
+/* 결론 어절 — 금박 밑줄. border-bottom 대신 배경 그라데이션이라 줄바꿈돼도 각 줄에 붙는다 */
+.verse-plate__mark {
+  font-style: normal;
+  font-weight: 700;
+  padding-bottom: 2px;
+  background-image: linear-gradient(var(--plate-gold), var(--plate-gold));
+  background-repeat: no-repeat;
+  background-position: 0 92%;
+  background-size: 100% 2px;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
 
-/* ── 하단 행 — 출처 · 공유 ── */
-.story-card__footer {
-  position: relative;
-  z-index: 2;
+.verse-plate__rule {
+  display: block;
+  width: 46px;
+  height: 1px;
+  margin: 0 auto 12px;
+  background: linear-gradient(90deg, transparent, var(--plate-gold), transparent);
+}
+
+/* ── 하단 행 ── */
+.verse-plate__foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-}
-
-.story-card__ref {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.78);
+  letter-spacing: 0.08em;
+  color: var(--plate-ink-soft);
   font-variant-numeric: tabular-nums;
 }
 
-.story-card__share {
+.verse-plate__share {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 12px 7px 10px;
+  gap: 5px;
+  padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #fff;
-  font-size: 11.5px;
+  border: 1px solid var(--plate-gold-line);
+  color: var(--plate-gold-strong);
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   white-space: nowrap;
   transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
-.story-card__share:hover {
-  background: rgba(255, 255, 255, 0.28);
+.verse-plate__share:hover {
+  background: color-mix(in srgb, var(--plate-gold) 12%, transparent);
 }
 
-.story-card__share:active {
+.verse-plate__share:active {
   transform: scale(0.95);
 }
 
 /* ── 로딩 ── */
-.story-card__skeleton {
-  position: relative;
-  z-index: 2;
+.verse-plate__skeleton {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 26px 0 24px;
+  gap: 9px;
+  padding: 22px 0 20px;
 }
 
-.story-card__skeleton span {
+.verse-plate__skeleton span {
   display: block;
-  height: 18px;
+  height: 17px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.22);
-  animation: story-pulse 1.6s ease-in-out infinite;
+  background: color-mix(in srgb, var(--plate-gold) 22%, transparent);
+  animation: verse-plate-pulse 1.6s ease-in-out infinite;
 }
 
-.story-card__skeleton span:first-child { width: 70%; }
-.story-card__skeleton span:last-child { width: 45%; }
+.verse-plate__skeleton span:first-child { width: 68%; }
+.verse-plate__skeleton span:last-child { width: 44%; }
 
-@keyframes story-pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.9; }
+@keyframes verse-plate-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.85; }
 }
 
 /* PC 2단 */
 @media (min-width: 1024px) {
-  .story-card { padding: 14px 20px 16px; }
-  .story-card__quote { padding: 28px 8px 26px; }
-  .story-card__text { font-size: 29px; max-width: 22ch; }
+  .verse-plate { padding: 24px 24px 18px; }
+  .verse-plate__text { font-size: 27px; max-width: 19ch; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .story-card__segment::after { animation: none; width: 100%; }
-  .story-card__sheen { animation: none !important; }
-  .story-card, .story-card:hover { transform: none; }
+  .verse-plate,
+  .verse-plate__frame,
+  .verse-plate__body,
+  .verse-plate__chev { transition: none; }
+  .verse-plate__skeleton span { animation: none; }
 }

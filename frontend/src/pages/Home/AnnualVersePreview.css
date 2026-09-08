@@ -1,0 +1,47 @@
+/* /dev/annual-verse — 명판 카드 라이트/다크 확인용 (DEV 전용) */
+
+.avp {
+  min-height: 100%;
+  padding: 20px 0 80px;
+  background: var(--surface);
+}
+
+.avp__shell {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.avp__title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.avp__sub {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.avp__stage {
+  margin-top: 22px;
+  padding: 10px 0 14px;
+  border-radius: 22px;
+  background: #faf9fc;
+}
+
+.avp__stage--dark {
+  background: #131313;
+}
+
+.avp__tag {
+  display: block;
+  margin: 4px 0 0 18px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #7d7887;
+}

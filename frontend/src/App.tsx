@@ -72,6 +72,10 @@ const ProfileHeaderPreview = import.meta.env.DEV
 const CapsuleLetterPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Capsule/CapsuleLetterPreview'))
   : null
+// 홈 "올해의 말씀" 카드 리디자인 후보 비교용
+const AnnualVersePreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Home/AnnualVersePreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
@@ -423,6 +427,9 @@ function App() {
                 )}
                 {CapsuleLetterPreview && (
                   <Route path="/dev/capsule-letter" element={<CapsuleLetterPreview />} />
+                )}
+                {AnnualVersePreview && (
+                  <Route path="/dev/annual-verse" element={<AnnualVersePreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
