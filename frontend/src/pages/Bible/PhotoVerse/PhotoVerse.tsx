@@ -378,7 +378,7 @@ const PhotoVerse = () => {
       saveFailed: '저장에 실패했어요. 다시 시도해주세요.',
       photoFailed: '사진을 불러오지 못했어요. 다른 사진으로 시도해주세요.',
       size: '글자 크기',
-      font: { serif: '명조', sans: '고딕', hand: '손글씨' },
+      font: { serif: '명조', sans: '고딕', hand: '손글씨', brush: '붓' },
       alignLabel: '정렬',
       ref: '출처',
       signature: '서명',
@@ -418,7 +418,7 @@ const PhotoVerse = () => {
       saveFailed: 'Failed to save. Please try again.',
       photoFailed: 'Could not load the photo. Please try another one.',
       size: 'Text size',
-      font: { serif: 'Serif', sans: 'Sans', hand: 'Hand' },
+      font: { serif: 'Serif', sans: 'Sans', hand: 'Hand', brush: 'Brush' },
       alignLabel: 'Align',
       ref: 'Reference',
       signature: 'Signature',
@@ -919,7 +919,7 @@ const PhotoVerse = () => {
 
                 <div className="pv-control-row">
                   <div className="pv-seg" role="radiogroup" aria-label="서체">
-                    {(['serif', 'sans', 'hand'] as const).map((f) => (
+                    {(['serif', 'sans', 'hand', 'brush'] as const).map((f) => (
                       <button
                         key={f}
                         type="button"

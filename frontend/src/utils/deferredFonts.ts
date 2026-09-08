@@ -6,6 +6,7 @@ import { scheduleAfterFirstScreen } from './idlePreload'
 //  - Orbitron: 프로필 카드 스탯/시리얼 넘버
 //  - Noto Serif KR: 성경 Aa 설정의 '명조' 읽기 서체 + 홈 말씀 카드(오늘의 묵상 핵심 절·올해의 말씀)
 //  - Nanum Pen Script: 타임캡슐·인사말 편지의 손글씨
+//  - Nanum Brush Script: 말씀 카드 붓글씨
 const SHEETS = [
   'https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap',
   // 700 은 홈 '올해의 말씀' 대형 인용과 말씀 카드(photoVerseCanvas)가 실제로 요청하는 웨이트다
@@ -13,6 +14,8 @@ const SHEETS = [
   // 500 은 말씀 카드 본문 — 사진 위에서 인쇄물처럼 보이는 가벼운 획 (없으면 400 으로 떨어져 너무 얇다)
   'https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap',
+  // 말씀 카드 붓글씨 서체 — 세로쓰기 족자 프리셋
+  'https://fonts.googleapis.com/css2?family=Nanum+Brush+Script&display=swap',
 ]
 
 let loaded = false

@@ -33,7 +33,7 @@ export interface VerseCardStyle {
   color: string
   /** 글자 크기 — 이미지 너비 대비 비율 (0.03 ~ 0.09) */
   fontScale: number
-  fontFamily: 'sans' | 'serif' | 'hand'
+  fontFamily: 'sans' | 'serif' | 'hand' | 'brush'
   align: 'left' | 'center' | 'right'
   /** 텍스트 뒤 배경 — 은은한 라디얼 스크림 / 반투명 박스 / 형광펜 자국 */
   textBg: CardTextBg
@@ -78,6 +78,7 @@ const FONT_STACKS: Record<VerseCardStyle['fontFamily'], string> = {
   sans: '"Pretendard Variable", "Pretendard", -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif',
   serif: '"Noto Serif KR", "Apple SD Gothic Neo", serif',
   hand: '"Nanum Pen Script", "Apple SD Gothic Neo", cursive',
+  brush: '"Nanum Brush Script", "Apple SD Gothic Neo", cursive',
 }
 
 // 본문은 굵은 600 대신 500 — 사진 위에서 '인쇄물'처럼 보이는 건 가벼운 획과 넉넉한 행간이다.
@@ -89,6 +90,8 @@ const FONT_TUNING: Record<
   sans: { weight: 500, sizeMul: 1, lineHeight: 1.6, tracking: -0.005 },
   serif: { weight: 500, sizeMul: 1, lineHeight: 1.66, tracking: 0 },
   hand: { weight: 400, sizeMul: 1.3, lineHeight: 1.42, tracking: 0 },
+  // 붓글씨는 획이 가늘고 자폭이 작아 크게 보정한다
+  brush: { weight: 400, sizeMul: 1.42, lineHeight: 1.4, tracking: 0.02 },
 }
 
 // 출처 라벨은 본문 서체와 무관하게 고딕 자간 넓게 — 에디토리얼 인쇄물의 캡션 문법
@@ -838,6 +841,20 @@ const setTextShadow = (ctx: CanvasRenderingContext2D, fontPx: number, lightText:
   ctx.shadowOffsetY = lightText ? fontPx * 0.05 : 0
 }
 
+/** 먹 번짐 — 붓 서체는 그림자 대신 글자색이 종이에 스민 듯 살짝 번지게 한다 */
+const setInkBleed = (ctx: CanvasRenderingContext2D, fontPx: number, color: string) => {
+  const [r, g, b] = parseHex(color)
+  ctx.shadowColor = `rgba(${r},${g},${b},0.55)`
+  ctx.shadowBlur = fontPx * 0.07
+  ctx.shadowOffsetY = 0
+}
+
+/** 서체에 맞는 글자 그림자 — 붓은 먹 번짐, 나머지는 드롭 섀도 */
+const setTypeShadow = (tc: TypeContext, fontPx: number) => {
+  if (tc.style.fontFamily === 'brush') setInkBleed(tc.ctx, fontPx, tc.style.color)
+  else setTextShadow(tc.ctx, fontPx, tc.lightText)
+}
+
 const clearTextShadow = (ctx: CanvasRenderingContext2D) => {
   ctx.shadowColor = 'transparent'
   ctx.shadowBlur = 0
@@ -929,6 +946,52 @@ const drawSmallCross = (ctx: CanvasRenderingContext2D, cx: number, cy: number, s
   ctx.restore()
 }
 
+/**
+ * 낙관 — 붉은 인장. 족자·서예 작품의 서명 문법이라 세로쓰기 레이아웃의 서명이 이것으로 바뀐다.
+ * 주사(朱砂) 빛 사각 도장 안에 흰 글자, 테두리 한 줄, 살짝 기울임과 찍힘 얼룩.
+ */
+const drawSeal = (ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number, lang: 'ko' | 'en') => {
+  ctx.save()
+  ctx.translate(cx, cy)
+  ctx.rotate((-2.5 * Math.PI) / 180)
+  ctx.shadowColor = 'rgba(120, 20, 10, 0.25)'
+  ctx.shadowBlur = s * 0.12
+  ctx.fillStyle = 'rgba(196, 48, 36, 0.9)'
+  roundRect(ctx, -s / 2, -s / 2, s, s, s * 0.08)
+  ctx.fill()
+  ctx.shadowColor = 'transparent'
+  // 인주가 고르지 않게 찍힌 얼룩 — 모서리를 살짝 비워 손도장의 물성
+  ctx.globalCompositeOperation = 'destination-out'
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'
+  ctx.beginPath()
+  ctx.ellipse(s * 0.38, -s * 0.36, s * 0.16, s * 0.1, 0.6, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.beginPath()
+  ctx.ellipse(-s * 0.4, s * 0.34, s * 0.12, s * 0.08, -0.4, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.globalCompositeOperation = 'source-over'
+  // 테두리
+  ctx.strokeStyle = 'rgba(255, 240, 230, 0.85)'
+  ctx.lineWidth = Math.max(0.6, s * 0.035)
+  const inset = s * 0.11
+  roundRect(ctx, -s / 2 + inset, -s / 2 + inset, s - inset * 2, s - inset * 2, s * 0.03)
+  ctx.stroke()
+  // 글자 — 한글은 두 자 세로, 영문은 십자
+  ctx.fillStyle = 'rgba(255, 244, 236, 0.95)'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  if (lang === 'ko') {
+    const px = s * 0.36
+    ctx.font = `600 ${px}px ${FONT_STACKS.serif}`
+    ctx.fillText('참', 0, -s * 0.2)
+    ctx.fillText('빛', 0, s * 0.2)
+  } else {
+    ctx.strokeStyle = 'rgba(255, 244, 236, 0.95)'
+    drawSmallCross(ctx, 0, s * 0.02, s * 0.26)
+  }
+  ctx.restore()
+}
+
 /** 자유 레이아웃 — 드래그로 위치를 정하는 기존 방식 + 은은한 스크림/박스/형광펜 배경 */
 const drawClassicLayout = (tc: TypeContext) => {
   const { ctx, l, text, refLabel, style, family, tuning, fontPx, refOnPhoto, lightText } = tc
@@ -1000,7 +1063,7 @@ const drawClassicLayout = (tc: TypeContext) => {
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = style.color
   // 박스/형광펜이 없을 때만 그림자를 준다
-  if (style.textBg === 'none' || style.textBg === 'soft') setTextShadow(ctx, fontPx, lightText)
+  if (style.textBg === 'none' || style.textBg === 'soft') setTypeShadow(tc, fontPx)
 
   ctx.font = mainFont
   setTracking(ctx, fontPx * tuning.tracking)
@@ -1057,7 +1120,7 @@ const drawGalleryLayout = (tc: TypeContext) => {
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = style.color
-  setTextShadow(ctx, bodyPx, lightText)
+  setTypeShadow(tc, bodyPx)
 
   let y = bottom - textH + bodyPx * 0.83
   for (const line of lines) {
@@ -1081,7 +1144,7 @@ const drawGalleryLayout = (tc: TypeContext) => {
 
 /** 인용 레이아웃 — 큰 따옴표가 여는 클래식한 인용 구도 */
 const drawQuoteLayout = (tc: TypeContext) => {
-  const { ctx, l, text, refLabel, style, family, tuning, fontPx, refOnPhoto, lightText } = tc
+  const { ctx, l, text, refLabel, style, family, tuning, fontPx, refOnPhoto } = tc
   const maxW = l.pw * 0.76
   const lineHeight = fontPx * tuning.lineHeight
   const quotePx = fontPx * 2.7
@@ -1107,7 +1170,7 @@ const drawQuoteLayout = (tc: TypeContext) => {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = style.color
-  setTextShadow(ctx, fontPx, lightText)
+  setTypeShadow(tc, fontPx)
 
   // 여는 따옴표는 항상 명조 — 인용 부호의 품위
   ctx.font = `700 ${quotePx}px ${FONT_STACKS.serif}`
@@ -1140,7 +1203,7 @@ const drawQuoteLayout = (tc: TypeContext) => {
 
 /** 한 단어 레이아웃 — 핵심 단어를 크게 띄우고 구절 전체가 그 아래를 받친다 */
 const drawFocusLayout = (tc: TypeContext) => {
-  const { ctx, l, text, refLabel, style, family, tuning, fontPx, refOnPhoto, lightText } = tc
+  const { ctx, l, text, refLabel, style, family, tuning, fontPx, refOnPhoto } = tc
   const word = pickEmphasisWord(text)
   const bigPx = fontPx * 2.35
   const bodyPx = fontPx * 0.76
@@ -1164,7 +1227,7 @@ const drawFocusLayout = (tc: TypeContext) => {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = style.color
-  setTextShadow(ctx, fontPx, lightText)
+  setTypeShadow(tc, fontPx)
 
   ctx.font = `700 ${bigPx}px ${family}`
   setTracking(ctx, bigPx * 0.04)
@@ -1195,7 +1258,7 @@ const drawFocusLayout = (tc: TypeContext) => {
  * 청첩장·타이포 포스터의 문법. 사진이 평범해도 '만든 카드'처럼 보인다.
  */
 const drawPosterLayout = (tc: TypeContext) => {
-  const { ctx, l, text, refLabel, style, family, tuning, fontPx, refOnPhoto, lightText } = tc
+  const { ctx, l, text, refLabel, style, family, tuning, fontPx, refOnPhoto } = tc
   const inset = l.pw * 0.07
   const maxW = l.pw - inset * 2 - fontPx * 1.6
   const lineHeight = fontPx * tuning.lineHeight
@@ -1223,7 +1286,7 @@ const drawPosterLayout = (tc: TypeContext) => {
   ctx.save()
   ctx.strokeStyle = style.color
   ctx.fillStyle = style.color
-  setTextShadow(ctx, fontPx, lightText)
+  setTypeShadow(tc, fontPx)
 
   // 괘선 액자 — 바깥 가는 선 하나, 안쪽 더 가는 선 하나
   ctx.globalAlpha = 0.72
@@ -1264,40 +1327,48 @@ const drawPosterLayout = (tc: TypeContext) => {
 
 /** 세로 레이아웃 — 오른쪽에서 왼쪽으로 흐르는 세로쓰기 (붓글씨 족자의 구도) */
 const drawVerticalLayout = (tc: TypeContext) => {
-  const { ctx, l, text, refLabel, style, family, tuning, refOnPhoto, lightText } = tc
+  const { ctx, l, text, refLabel, style, family, tuning, refOnPhoto } = tc
   let fontPx = tc.fontPx
   const chars = Array.from(text)
+  const brush = style.fontFamily === 'brush'
 
   // 글이 길면 폭 안에 들어올 때까지 글자를 줄인다
   const usableH = l.ph * 0.74
   const topY = l.py + l.ph * 0.13
-  let charStep = fontPx * 1.18
-  let colStep = fontPx * 1.42
+  const stepMul = brush ? 1.08 : 1.18
+  const colMul = brush ? 1.3 : 1.42
+  let charStep = fontPx * stepMul
+  let colStep = fontPx * colMul
   let cols = 1
   for (let attempt = 0; attempt < 8; attempt++) {
-    charStep = fontPx * 1.18
-    colStep = fontPx * 1.42
+    charStep = fontPx * stepMul
+    colStep = fontPx * colMul
     const perCol = Math.max(4, Math.floor(usableH / charStep))
     cols = Math.ceil(chars.length / perCol)
     if (cols * colStep <= l.pw * 0.76 || fontPx <= 12) break
     fontPx *= 0.88
   }
 
+  // 열 균형 — 마지막 열에 한두 글자만 남지 않게 글자 수를 열마다 고르게 나눈다 (띄어쓰기는 반 칸)
+  const effLen = chars.reduce((n, ch) => n + (ch === ' ' ? 0.5 : 1), 0)
+  const perColSteps = Math.max(1, Math.ceil(effLen / cols))
+  const colH = Math.min(usableH, perColSteps * charStep)
+
   const right = l.px + l.pw - l.pw * 0.11
   if (style.textBg !== 'none') {
     const blockW = cols * colStep
-    drawSoftScrim(tc, right - blockW / 2, topY + usableH / 2, blockW, usableH)
+    drawSoftScrim(tc, right - blockW / 2, topY + colH / 2, blockW, colH)
   }
 
   ctx.font = `${tuning.weight} ${fontPx}px ${family}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillStyle = style.color
-  setTextShadow(ctx, fontPx, lightText)
+  setTypeShadow(tc, fontPx)
 
   let x = right - fontPx / 2
   let y = topY + charStep / 2
-  const maxY = topY + usableH
+  const maxY = topY + colH
   for (const ch of chars) {
     if (ch === ' ') {
       y += charStep * 0.5
@@ -1315,10 +1386,11 @@ const drawVerticalLayout = (tc: TypeContext) => {
     }
   }
 
-  // 출처 — 왼쪽 아래에 낙관처럼 가로로 작게
+  // 출처 — 왼쪽 아래에 가로로 작게. 붓 서체면 출처도 붓으로 쓴다
   if (refOnPhoto) {
-    const refPx = minPx(l.pw, fontPx * 0.46, 10)
-    setRefFont(ctx, refPx)
+    const refPx = minPx(l.pw, fontPx * (brush ? 0.62 : 0.46), 10)
+    if (brush) ctx.font = `400 ${refPx}px ${family}`
+    else setRefFont(ctx, refPx)
     ctx.textAlign = 'left'
     ctx.textBaseline = 'alphabetic'
     ctx.globalAlpha = 0.85
@@ -1331,14 +1403,20 @@ const drawVerticalLayout = (tc: TypeContext) => {
 
 /** 모서리 서명 — 작은 십자 + 교회 이름. 공유된 카드가 어디서 왔는지 조용히 말해준다 */
 const drawSignature = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, l: FrameLayout, style: VerseCardStyle) => {
+  // 세로쓰기는 글자 서명 대신 낙관 — 출처 위, 왼쪽 아래
+  if (style.layout === 'vertical') {
+    const size = minPx(l.pw, l.pw * 0.075, 18)
+    const refLift = style.showRef ? l.ph * 0.07 + size * 0.75 : l.ph * 0.07
+    drawSeal(ctx, l.px + l.pw * 0.09 + size / 2, l.py + l.ph - refLift - size * 0.6, size, style.lang)
+    return
+  }
   const px = minPx(l.pw, l.pw * 0.021, 9)
   // 괘선 액자(엽서 레이아웃·절기 프레임) 안쪽으로 들어가 선과 겹치지 않게 한다
   const inset = style.layout === 'poster' ? l.pw * 0.105 : style.frame === 'season' ? l.pw * 0.075 : l.pw * 0.055
   const text = SIGNATURE_TEXT[style.lang]
   const hasStamp = style.frame === 'film' || style.textures.includes('stamp')
-  // 날짜 스탬프가 오른쪽 아래를 쓰면 왼쪽으로, 세로쓰기 낙관까지 겹치면 생략
-  const side: 'right' | 'left' | null = hasStamp ? (style.layout === 'vertical' ? null : 'left') : 'right'
-  if (!side) return
+  // 날짜 스탬프가 오른쪽 아래를 쓰면 왼쪽으로
+  const side: 'right' | 'left' = hasStamp ? 'left' : 'right'
 
   ctx.save()
   setRefFont(ctx, px)
@@ -1547,6 +1625,7 @@ export const BACKGROUNDS: VerseBackground[] = [
   { id: 'lavender', nameKo: '라벤더', nameEn: 'Lavender', stops: ['#7d72c4', '#b79ddd', '#d9b8d6'], textColor: '#ffffff' },
   { id: 'sage', nameKo: '세이지', nameEn: 'Sage', stops: ['#dfe6da', '#a9bca5'], textColor: '#2f3a2f' },
   { id: 'cream', nameKo: '종이', nameEn: 'Paper', stops: ['#fbf5ea', '#ecdfc9'], textColor: '#5c4a36' },
+  { id: 'hanji', nameKo: '한지', nameEn: 'Hanji', stops: ['#f3eee3', '#d9d2c3', '#5c5a58'], textColor: '#2b2722' },
   { id: 'rose', nameKo: '로즈', nameEn: 'Rose', stops: ['#fbe4e6', '#e8a3ad'], textColor: '#6b3540' },
 ]
 
@@ -1809,6 +1888,40 @@ const PAINTERS: Record<string, Painter> = {
     ctx.fillRect(0, 0, W, H)
     ctx.restore()
   },
+  hanji: (ctx, W, H, rnd) => {
+    // 닥나무 결이 비치는 누런 종이 위에 먹이 번진 자국 — 붓글씨 족자의 바탕
+    vertical(ctx, W, H, [
+      [0, '#f4efe4'],
+      [1, '#e6dfcf'],
+    ])
+    fibers(ctx, W, H, rnd, 3200, '110,95,70')
+    ctx.save()
+    ctx.globalCompositeOperation = 'multiply'
+    // 먹 번짐 — 왼쪽 아래에서 위로 스치듯 올라가는 담묵 두 붓
+    const wash = (x: number, y: number, rx: number, ry: number, rot: number, a: number) => {
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.rotate(rot)
+      ctx.scale(1, ry / rx)
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx)
+      g.addColorStop(0, `rgba(70,72,78,${a})`)
+      g.addColorStop(0.55, `rgba(70,72,78,${a * 0.55})`)
+      g.addColorStop(1, 'rgba(70,72,78,0)')
+      ctx.fillStyle = g
+      ctx.fillRect(-rx, -rx, rx * 2, rx * 2)
+      ctx.restore()
+    }
+    wash(W * 0.18, H * 0.86, W * 0.55, W * 0.16, -0.55, 0.32)
+    wash(W * 0.32, H * 0.78, W * 0.4, W * 0.09, -0.7, 0.22)
+    wash(W * 0.88, H * 0.12, W * 0.3, W * 0.1, 0.5, 0.14)
+    // 종이 가장자리의 바램
+    const v = ctx.createRadialGradient(W * 0.5, H * 0.5, Math.min(W, H) * 0.3, W * 0.5, H * 0.5, Math.hypot(W, H) * 0.6)
+    v.addColorStop(0, 'rgba(200,185,150,0)')
+    v.addColorStop(1, 'rgba(190,170,135,0.35)')
+    ctx.fillStyle = v
+    ctx.fillRect(0, 0, W, H)
+    ctx.restore()
+  },
   rose: (ctx, W, H) => {
     vertical(ctx, W, H, [
       [0, '#fbe6e8'],
@@ -1882,6 +1995,7 @@ export const ensureCardFonts = async (sampleText?: string) => {
       document.fonts.load('600 24px "Noto Serif KR"', sample),
       document.fonts.load('700 24px "Noto Serif KR"', sample),
       document.fonts.load('400 24px "Nanum Pen Script"', sample),
+      document.fonts.load('400 24px "Nanum Brush Script"', sample),
       document.fonts.load('700 16px Orbitron'), // 날짜 스탬프 — 숫자뿐이라 샘플 불필요
     ])
   } catch {

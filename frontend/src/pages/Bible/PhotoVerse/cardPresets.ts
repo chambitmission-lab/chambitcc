@@ -71,7 +71,7 @@ export const CARD_PRESETS: CardPreset[] = [
     id: 'brush',
     nameKo: '붓글씨',
     nameEn: 'Brush',
-    style: { layout: 'vertical', filter: 'sepia', fontFamily: 'serif', textBg: 'soft', frame: 'none', textures: ['grain'] },
+    style: { layout: 'vertical', filter: 'sepia', fontFamily: 'brush', textBg: 'soft', frame: 'none', textures: ['grain'] },
   },
   {
     id: 'marker',
@@ -93,5 +93,5 @@ export const INTRO_SAMPLES: { bgId: string; presetId: string }[] = [
   { bgId: 'midnight', presetId: 'dawn' },
   { bgId: 'cream', presetId: 'postcard' },
   { bgId: 'bokeh', presetId: 'golden' },
-  { bgId: 'ink', presetId: 'brush' },
+  { bgId: 'hanji', presetId: 'brush' },
 ]
