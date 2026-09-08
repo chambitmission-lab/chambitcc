@@ -17,6 +17,9 @@ const HERO_DARK = '/images/capsule/hero-dark.webp'
 // 개봉 후 편지 화면의 하늘 삽화 — 히어로와 같은 짝(라이트/다크) 구조
 const LETTER_LIGHT = '/images/capsule/letter-light.webp'
 const LETTER_DARK = '/images/capsule/letter-dark.webp'
+// 봉인 대기 화면의 금고 삽화 (capsule.css .capsule-waiting --vault-art)
+const SEALED_LIGHT = '/images/capsule/sealed-light.webp'
+const SEALED_DARK = '/images/capsule/sealed-dark.webp'
 
 // 테마 판정은 index.html 의 테마 선적용 스크립트/ThemeContext 가 붙이는 .dark 를 따른다
 const isDark = (): boolean => document.documentElement.classList.contains('dark')
@@ -67,13 +70,21 @@ export const warmCapsuleHero = (): Promise<void> => {
   return promise
 }
 
-/** 개봉 직전(봉투 화면)에 편지 하늘을 미리 받아 둔다 —
-    인장을 뜯고 편지가 올라오는 1.7초 안에 하늘이 이미 자리에 있게. */
-export const warmCapsuleLetterArt = (): Promise<void> => {
-  const current = isDark() ? LETTER_DARK : LETTER_LIGHT
-  const other = current === LETTER_DARK ? LETTER_LIGHT : LETTER_DARK
+/** 현재 테마 파일을 받고, 끝나면 유휴 시간에 반대 테마까지 받아 둔다(테마 토글 지연 제거) */
+const warmPair = (light: string, dark: string): Promise<void> => {
+  const current = isDark() ? dark : light
+  const other = current === dark ? light : dark
 
   const promise = warm(current)
   void promise.then(() => whenIdle(() => void warm(other)))
   return promise
 }
+
+/** 봉인 대기 화면(아직 못 여는 캡슐)의 금고 삽화 —
+    현재 테마는 CSS가 이미 요청하지만, 반대 테마는 토글 순간에야 처음 받기 시작해
+    첫 토글에서 배경만 한 박자 늦게 바뀐다. 여기서 미리 받아 두면 두 번째처럼 즉시 바뀐다. */
+export const warmCapsuleSealedArt = (): Promise<void> => warmPair(SEALED_LIGHT, SEALED_DARK)
+
+/** 개봉 직전(봉투 화면)에 편지 하늘을 미리 받아 둔다 —
+    인장을 뜯고 편지가 올라오는 1.7초 안에 하늘이 이미 자리에 있게. */
+export const warmCapsuleLetterArt = (): Promise<void> => warmPair(LETTER_LIGHT, LETTER_DARK)

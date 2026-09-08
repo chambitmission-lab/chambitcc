@@ -11,7 +11,7 @@ import { isAuthenticated } from '../../utils/auth'
 import { showToast } from '../../utils/toast'
 import CapsuleSlideshow from './CapsuleSlideshow'
 import CapsuleOpenRail from './CapsuleOpenRail'
-import { warmCapsuleLetterArt } from './heroPrefetch'
+import { warmCapsuleLetterArt, warmCapsuleSealedArt } from './heroPrefetch'
 import { daysSealed, daysUntil, formatKoreanDate, sealProgress } from './capsuleDates'
 import {
   CalendarGlyph,
@@ -610,6 +610,12 @@ const CapsuleOpen = ({ preview }: { preview?: CapsuleDetail } = {}) => {
   useEffect(() => {
     if (capsule?.openable) void warmCapsuleLetterArt()
   }, [capsule?.openable])
+
+  // 봉인 대기 화면의 금고 삽화는 CSS 배경이라 현재 테마만 받는다 —
+  // 반대 테마도 미리 데워 첫 테마 토글에서 배경이 늦게 바뀌지 않게 한다
+  useEffect(() => {
+    if (capsule && !capsule.openable) void warmCapsuleSealedArt()
+  }, [capsule])
 
   // 하늘 위 헤더 ↔ 크림 유리 헤더 전환 (편지를 읽는 동안에만)
   useEffect(() => {
