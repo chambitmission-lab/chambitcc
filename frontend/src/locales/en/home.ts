@@ -77,8 +77,6 @@ export const home = {
   homeRailPickReasonWeek: "Chosen for this week's '{e}' hearts",
   homeRailPickReasonDefault: 'Chosen for you today',
   homeRailPickRead: 'Read',
-  homeRailPickAsk: 'Ask Chambi to pray',
-  homeRailPickAskMessage: 'Write a short prayer for today based on {ref}',
   homeRailScheduleEmptyLead: 'Nothing scheduled today · how about these?',
   homeRailPlaceholderNews: 'Church news',
   homeRailScheduleNext: 'Next',

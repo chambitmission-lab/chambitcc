@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router-dom'
 import { API_V1, apiFetch } from '../../../config/api'
 import { fetchPrayers } from '../../../api/prayer'
 import { fetchNewsList } from '../../../api/news'
-import { OPEN_CHATBOT_EVENT } from '../../../components/command/commandEvents'
 import chambiAvatar from '../../../components/chatbot/img/default.webp'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import { useSituationCategories, useSituationVerses } from '../../../hooks/useSituation'
@@ -563,14 +562,6 @@ const PersonalPickWidget = () => {
         : t('homeRailPickReasonDefault')
   const ref = verse ? `${verse.book_name_ko} ${verse.chapter}:${verse.verse}` : ''
 
-  const askChambi = () => {
-    window.dispatchEvent(
-      new CustomEvent(OPEN_CHATBOT_EVENT, {
-        detail: { message: t('homeRailPickAskMessage').replace('{ref}', ref) },
-      }),
-    )
-  }
-
   return (
     <section className="px-4 pt-3">
       <div
@@ -616,22 +607,14 @@ const PersonalPickWidget = () => {
           </>
         )}
 
-        <div className="relative mt-3 flex gap-1.5">
+        <div className="relative mt-3">
           <button
             type="button"
             onClick={() => verse && navigate(`/bible/${verse.book_number}/${verse.chapter}`)}
             disabled={!verse}
-            className="flex-1 rounded-full bg-[var(--brand)] px-3 py-1.5 text-[12px] font-bold text-white shadow-[0_6px_14px_-6px_var(--brand-glow)] active:scale-[0.97] transition-transform duration-150 disabled:opacity-50"
+            className="w-full rounded-full bg-[var(--brand)] px-3 py-1.5 text-[12px] font-bold text-white shadow-[0_6px_14px_-6px_var(--brand-glow)] active:scale-[0.97] transition-transform duration-150 disabled:opacity-50"
           >
             {t('homeRailPickRead')}
-          </button>
-          <button
-            type="button"
-            onClick={askChambi}
-            disabled={!verse}
-            className="flex-1 rounded-full border border-[var(--brand-soft-strong)] bg-[var(--surface-container)] px-3 py-1.5 text-[12px] font-bold text-brand hover:bg-[var(--brand-soft)] active:scale-[0.97] transition-[background-color,transform] duration-150 disabled:opacity-50"
-          >
-            {t('homeRailPickAsk')}
           </button>
         </div>
       </div>

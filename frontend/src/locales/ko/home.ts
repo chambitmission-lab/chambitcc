@@ -77,8 +77,6 @@ export const home = {
   homeRailPickReasonWeek: '이번주 성도들의 \'{e}\'에 맞춰 골랐어요',
   homeRailPickReasonDefault: '오늘 당신을 위해 골랐어요',
   homeRailPickRead: '말씀 읽기',
-  homeRailPickAsk: '참비에게 기도문 부탁',
-  homeRailPickAskMessage: '{ref} 말씀으로 오늘 드릴 짧은 기도문을 지어줘',
   homeRailScheduleEmptyLead: '오늘 일정은 없어요 · 대신 이건 어때요?',
   homeRailPlaceholderNews: '교회 소식',
   homeRailScheduleNext: '곧',
