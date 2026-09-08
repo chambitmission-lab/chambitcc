@@ -7,7 +7,16 @@ import { useSpeechRecognition } from '../../../../hooks/useSpeechRecognition'
 import { showToast } from '../../../../utils/toast'
 import type { PrayerEmotion } from '../../../../types/prayer'
 import type { PrayerComposerProps } from './types'
-import { EmotionGlyph, PrayIcon } from '../EmotionIcons'
+import {
+  ClosetIcon,
+  DiceIcon,
+  EmotionGlyph,
+  EyeIcon,
+  GlobeIcon,
+  LockIcon,
+  PrayIcon,
+} from '../EmotionIcons'
+import { GroupGlyph } from '../../../Groups/GroupIcons'
 import '../ThanksThread/thanks.css'
 
 const MAX_LEN = 1000
@@ -384,7 +393,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                             className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center"
                             style={{ background: 'var(--brand-soft-strong)', color: 'var(--brand)' }}
                           >
-                            <span className="material-icons-outlined text-[12px]">lock</span>
+                            <LockIcon size={12} />
                           </span>
                           <span key="private" className="thanks-swap truncate font-semibold text-brand">
                             {t('privatePrayerPreviewName')}
@@ -404,7 +413,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                             fontSize: isAnonymous ? '12px' : '10px',
                           }}
                         >
-                          {isAnonymous ? '🤫' : previewName.charAt(0).toUpperCase()}
+                          {isAnonymous ? <ClosetIcon size={12} /> : previewName.charAt(0).toUpperCase()}
                         </span>
                       ) : (
                         <img
@@ -433,8 +442,8 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
               </div>
               <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                 {[
-                  { key: 'public', icon: 'public', label: t('prayerVisibilityPublic'), active: !isPrivate && selectedGroupId === null, onClick: () => { setIsPrivate(false); setSelectedGroupId(null) } },
-                  { key: 'private', icon: 'lock', label: t('prayerVisibilityPrivate'), active: isPrivate, onClick: () => setIsPrivate(true) },
+                  { key: 'public', Icon: GlobeIcon, label: t('prayerVisibilityPublic'), active: !isPrivate && selectedGroupId === null, onClick: () => { setIsPrivate(false); setSelectedGroupId(null) } },
+                  { key: 'private', Icon: LockIcon, label: t('prayerVisibilityPrivate'), active: isPrivate, onClick: () => setIsPrivate(true) },
                 ].map((opt) => (
                   <button
                     key={opt.key}
@@ -452,7 +461,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                         : { borderColor: 'var(--card-border)', background: 'var(--surface-inset)' }
                     }
                   >
-                    <span className="material-icons-outlined text-[14px]">{opt.icon}</span>
+                    <opt.Icon size={14} />
                     {opt.label}
                   </button>
                 ))}
@@ -476,7 +485,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                           : { borderColor: 'var(--card-border)', background: 'var(--surface-inset)' }
                       }
                     >
-                      <span>{group.icon}</span>
+                      <GroupGlyph emoji={group.icon} size={14} className="shrink-0" />
                       {group.name}
                     </button>
                   )
@@ -496,9 +505,7 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                       background: isAnonymous ? 'var(--brand-soft)' : 'var(--surface-inset)',
                     }}
                   >
-                    <span className="material-icons-outlined text-[14px]">
-                      {isAnonymous ? 'visibility_off' : 'visibility'}
-                    </span>
+                    {isAnonymous ? <ClosetIcon size={14} /> : <EyeIcon size={14} />}
                     {t('prayerComposerAnonymous')}
                   </button>
                 )}
@@ -731,7 +738,9 @@ const PrayerComposer = ({ onClose, onSuccess, sort = 'popular', groupId }: Praye
                   onClick={rollSeeds}
                   className="flex items-center gap-1 px-2 py-1 rounded-full text-[11.5px] font-semibold text-ink-muted hover:text-brand hover:bg-[var(--brand-soft)] transition-colors"
                 >
-                  <span className={rolling ? 'thanks-roll inline-block' : 'inline-block'}>🎲</span>
+                  <span className={rolling ? 'thanks-roll inline-flex' : 'inline-flex'}>
+                    <DiceIcon size={14} />
+                  </span>
                   {ko ? '다른 문장' : 'Shuffle'}
                 </button>
               </div>

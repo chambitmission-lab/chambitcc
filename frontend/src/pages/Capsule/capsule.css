@@ -664,30 +664,47 @@
    "아무도 못 여는 문을 굳이 밤새 지키는 양" — 기다림을 장면으로 만든다.
    그림의 금고 문 구멍과 다이얼이 겹쳐 한 물건으로 읽히는 게 전부라서,
    폭은 컨테이너가 아니라 **다이얼(208px)에 묶인 고정값**이다. 늘리면 원이 어긋난다.
-   (원본 1024px 기준 안쪽 원 r=277·중심 (512,471), 88px 여백을 덧대 1200px로 저장) */
+   (원본 1024px 기준 안쪽 원 r=277·중심 (512,471), 260px 여백을 덧대 1544px로 저장) */
 .capsule-waiting {
   position: relative;
   /* 금고 문 윗테가 헤더에 잘리지 않을 만큼 다이얼을 내린다 */
   padding-top: 76px;
   /* 좌우로 삐져나온 페이드 여백이 가로 스크롤을 만들지 않게 */
   overflow: hidden;
+  --vault-art: url('/images/capsule/sealed-light.webp');
+  /* 그림 속 조명색(크림 #fdf9ed) 그대로 — PC에서 카드 폭까지 번지는 층 */
+  --vault-glow: radial-gradient(
+    58% 52% at 50% 34%,
+    rgba(253, 249, 237, 0.92) 0%,
+    rgba(253, 249, 237, 0.5) 46%,
+    rgba(253, 249, 237, 0) 78%
+  );
+}
+
+.dark .capsule-waiting {
+  --vault-art: url('/images/capsule/sealed-dark.webp');
+  /* 다크는 등불 주변의 따뜻한 어둠 — 밝히지 않고 색만 데운다 */
+  --vault-glow: radial-gradient(
+    58% 52% at 50% 34%,
+    rgba(46, 34, 20, 0.34) 0%,
+    rgba(30, 25, 18, 0.16) 48%,
+    rgba(19, 19, 19, 0) 78%
+  );
 }
 
 .capsule-waiting::before {
   content: '';
   position: absolute;
-  top: -45px;
+  top: -114px;
   left: 50%;
-  width: 483px;
-  height: 483px;
+  /* 덧댄 260px(화면에선 105px)이 통째로 페이드 구간이다 — 넓은 PC 카드에서
+     정사각 경계가 보이지 않고 빛 웅덩이처럼 번지려면 이 여유가 필요하다 */
+  width: 621px;
+  height: 621px;
   transform: translateX(-50%);
-  background: url('/images/capsule/sealed-light.webp') center / 100% 100% no-repeat;
+  background: var(--vault-art) center top / 621px 621px no-repeat;
   pointer-events: none;
   z-index: 0;
-}
-
-.dark .capsule-waiting::before {
-  background-image: url('/images/capsule/sealed-dark.webp');
 }
 
 /* 다이얼·제목·카드는 그림 위로 */
@@ -3165,5 +3182,21 @@
     max-width: 560px;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  /* 삽화의 페이드 여백(좌우 105px)까지 560px 안에 가두면 그 지점에서 잘려
+     경계가 다시 보인다. 가로 스크롤은 부모 카드(lg:overflow-hidden)가 막는다 */
+  .capsule-waiting {
+    overflow: visible;
+  }
+
+  /* 넓은 카드에서는 621px 그림만 가운데 떠 있어 좌우가 빈 접시처럼 보인다.
+     그림의 조명을 카드 폭까지 넓혀, 빈 자리를 '빛이 번진 자리'로 만든다.
+     그림 자체는 621px 그대로 — 늘리면 다이얼과 어긋난다. */
+  .capsule-waiting::before {
+    width: 1040px;
+    background:
+      var(--vault-art) center top / 621px 621px no-repeat,
+      var(--vault-glow);
   }
 }

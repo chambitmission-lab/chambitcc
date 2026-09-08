@@ -15,9 +15,14 @@ import {
   CloudLightning,
   CloudRain,
   Compass,
+  DiceFive,
+  DoorOpen,
+  Eye,
   Flame,
+  GlobeSimple,
   HandHeart,
   HandsPraying,
+  LockSimple,
   MoonStars,
   Plant,
   Tag,
@@ -53,6 +58,14 @@ export const AlarmIcon = duotone(Alarm)
 export const ImageIcon = duotone(Image)
 /** 감사 한 줄 — 손 위의 마음(감사 화면의 하트 문법을 아이콘으로) */
 export const ThanksHandIcon = duotone(HandHeart)
+/** 공개 범위 — 전체 공개 / 나만 보기 / 실명 */
+export const GlobeIcon = duotone(GlobeSimple)
+export const LockIcon = duotone(LockSimple)
+export const EyeIcon = duotone(Eye)
+/** 골방 기도자(익명) — 마 6:6 "골방에 들어가 문을 닫고" */
+export const ClosetIcon = duotone(DoorOpen)
+/** 기도 씨앗 다시 뽑기 */
+export const DiceIcon = duotone(DiceFive)
 
 /** 감정 키 → 아이콘 (PrayerComposer의 MOOD 키와 동기화) */
 const GLYPHS: Record<string, (p: EmotionIconProps) => ReactElement> = {
