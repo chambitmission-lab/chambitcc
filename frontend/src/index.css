@@ -518,9 +518,18 @@ html:not([data-viewport-settled]) .bottom-dock-anchor {
   animation: mote-rise var(--mote-dur, 7s) linear infinite;
 }
 
-/* 집중 기도 화면의 명조 타이포 — 성경 읽기와 같은 Noto Serif KR (index.html에서 로드) */
+/* ── 말씀 전용 명조 스택 ───────────────────────────────────────────
+   Noto Serif KR 은 deferredFonts.ts 가 첫 화면 뒤에 붙인다. 그 전(그리고 오프라인)
+   구간에는 기기에 이미 있는 한글 명조로 버텨야 하므로 폴백을 명조로만 채운다 —
+   'Apple SD Gothic Neo'(고딕)를 앞에 두면 폴백이 고딕이 되어 세리프 의도가 통째로
+   사라진다. iOS=AppleMyungjo, Windows=바탕, Android=generic serif(Noto Serif CJK). */
+:root {
+  --font-serif-kr: 'Noto Serif KR', 'AppleMyungjo', 'Nanum Myeongjo', 'Batang', Georgia, serif;
+}
+
+/* 집중 기도 화면·홈 말씀 카드의 명조 타이포 */
 .font-serif-kr {
-  font-family: 'Noto Serif KR', 'Apple SD Gothic Neo', Georgia, serif;
+  font-family: var(--font-serif-kr);
   /* 명조 장문은 고딕 UI만큼 조이면 답답하다 — 전역(-0.02em)보다 살짝 풀어준다 */
   letter-spacing: -0.01em;
 }

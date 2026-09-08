@@ -52,7 +52,7 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
 
       {title && (
         <h3
-          className="text-[19px] font-bold text-ink-strong mb-3 tracking-[-0.015em] leading-[1.35] text-left"
+          className="text-[21px] font-bold text-ink-strong mb-2.5 tracking-[-0.03em] leading-[1.32] text-left"
           style={transitionStyles}
         >
           {title}
@@ -61,7 +61,7 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
 
       <p
         ref={contentRef}
-        className={`text-[15px] text-gray-800 dark:text-gray-300 leading-[1.7] font-normal tracking-[-0.01em] text-left ${
+        className={`text-[15px] text-gray-800 dark:text-gray-300 leading-[1.75] font-normal tracking-[-0.015em] text-left ${
           expanded ? '' : 'line-clamp-3'
         }`}
         style={transitionStyles}
@@ -76,7 +76,7 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
           type="button"
           onClick={toggleExpanded}
           aria-expanded={expanded}
-          className="mt-1 text-[13px] font-semibold text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
+          className="mt-1.5 text-[12.5px] font-semibold text-gray-500 dark:text-gray-400 hover:text-brand transition-colors"
         >
           {expanded
             ? language === 'ko' ? '접기' : 'Show less'
@@ -94,7 +94,7 @@ const PrayerContent = ({ title, content, testimony, isAnswered, transitionStyles
             </svg>
             <span className="text-[11px] font-bold tracking-[0.04em] text-[var(--amber)]">간증</span>
           </div>
-          <p className="text-sm text-gray-800 dark:text-gray-300 leading-relaxed line-clamp-2">
+          <p className="text-[13.5px] text-gray-800 dark:text-gray-300 leading-[1.7] line-clamp-2">
             {testimony}
           </p>
         </div>

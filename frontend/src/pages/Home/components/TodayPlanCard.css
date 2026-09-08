@@ -130,7 +130,10 @@
   position: absolute;
   right: 2px;
   bottom: 0;
-  font-size: 11px;
+  /* 진행률은 이 카드의 유일한 "수치" — 주변 칩(10.5~11px)과 같은 크기면 묻힌다 */
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: -0.03em;
   font-weight: 800;
   color: var(--brand);
   font-variant-numeric: tabular-nums;

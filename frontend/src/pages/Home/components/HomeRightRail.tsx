@@ -151,15 +151,17 @@ const StatTiles = ({ tiles }: { tiles: StatTile[] }) => (
               style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.45), rgba(255,255,255,0) 70%)' }}
             />
           )}
+          {/* 라벨(11px/600) → 숫자(27px/800) → 단위(11px/700, 흐리게) 로 세 단계를 벌린다.
+              라벨·숫자·단위가 모두 11~19px 안에 몰려 있으면 "숫자가 주인공"이 읽히지 않는다. */}
           <p
-            className={`text-[11px] font-semibold tracking-[-0.01em] ${
-              hero ? 'text-white/80' : tint ? 'text-[var(--brand)]' : 'text-gray-400 dark:text-white/45'
+            className={`text-[11px] font-semibold tracking-[0.01em] ${
+              hero ? 'text-white/75' : tint ? 'text-[var(--brand)]' : 'text-gray-400 dark:text-white/45'
             }`}
           >
             {tile.label}
           </p>
           <p
-            className={`mt-1 text-[19px] font-extrabold tabular-nums leading-none tracking-[-0.02em] ${
+            className={`mt-1.5 text-[27px] font-extrabold tabular-nums leading-none tracking-[-0.035em] ${
               hero ? 'text-white' : 'text-ink-strong'
             }`}
           >
@@ -169,8 +171,8 @@ const StatTiles = ({ tiles }: { tiles: StatTile[] }) => (
               <>
                 {tile.value.toLocaleString()}
                 <span
-                  className={`ml-0.5 text-[11.5px] font-semibold ${
-                    hero ? 'text-white/75' : 'text-ink-muted'
+                  className={`ml-1 align-baseline text-[11px] font-bold tracking-[0] ${
+                    hero ? 'text-white/70' : 'text-gray-400 dark:text-white/40'
                   }`}
                 >
                   {tile.unit}
@@ -293,7 +295,7 @@ const AmenGoalBar = ({ amens, goal }: { amens: number; goal: number }) => {
             {t('homeRailAmenGoalOf').replace('{n}', goal.toLocaleString())}
           </span>
         </p>
-        <p className={`text-[12px] font-extrabold tabular-nums ${done ? 'text-brand' : 'text-ink-strong'}`}>
+        <p className={`text-[16px] font-extrabold tabular-nums leading-none tracking-[-0.03em] ${done ? 'text-brand' : 'text-ink-strong'}`}>
           {done ? t('homeRailAmenGoalDone') : `${pct}%`}
         </p>
       </div>
@@ -348,7 +350,7 @@ const PrayerStatsWidget = () => {
   return (
     <section className="px-4 pt-3">
       <div className="feed-card rounded-2xl p-4">
-        <p className="mb-3 flex items-center gap-1.5 text-[12.5px] font-bold text-ink-strong">
+        <p className="mb-3 flex items-center gap-1.5 text-[13.5px] font-bold tracking-[-0.02em] text-ink-strong">
           <PrayIcon size={14} className="shrink-0" />
           {weekly.data ? t('homeRailPrayerWeekTitle') : t('homeRailPrayerTitle')}
           {weekly.data && (
@@ -579,7 +581,7 @@ const PersonalPickWidget = () => {
         />
         <div className="relative flex items-center gap-2">
           <img src={chambiAvatar} alt="" className="h-7 w-7 rounded-full ring-2 ring-white/70 dark:ring-white/10" draggable={false} />
-          <p className="text-[12.5px] font-bold text-ink-strong">{t('homeRailPickTitle')}</p>
+          <p className="text-[13.5px] font-bold tracking-[-0.02em] text-ink-strong">{t('homeRailPickTitle')}</p>
         </div>
 
         <p className="relative mt-2 inline-flex items-center gap-1 rounded-full bg-[var(--brand-soft)] px-2 py-0.5 text-[11px] font-semibold text-brand">
@@ -595,7 +597,7 @@ const PersonalPickWidget = () => {
           </div>
         ) : (
           <>
-            <p className="relative mt-3 text-[13.5px] font-medium leading-[1.6] text-ink-strong line-clamp-3 tracking-[-0.01em] break-keep">
+            <p className="font-serif-kr relative mt-3 text-[15px] font-normal leading-[1.7] text-ink-strong line-clamp-3 break-keep">
               “{verse.text}”
             </p>
             <p className="relative mt-1 text-[11.5px] font-bold text-brand tabular-nums">{ref}</p>

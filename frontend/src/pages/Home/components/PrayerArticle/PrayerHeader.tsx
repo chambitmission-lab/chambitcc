@@ -105,19 +105,19 @@ const PrayerHeader = ({
         </div>
 
         <div className="flex items-baseline gap-1.5 min-w-0">
-          <span className={`text-[14.5px] tracking-[-0.01em] truncate ${
+          <span className={`text-[13.5px] tracking-[-0.015em] truncate ${
             isAnonymous
               ? 'font-medium text-gray-500 dark:text-gray-400'
               : 'font-semibold text-ink-strong'
           }`}>
             {shownName}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
+          <span className="text-[11.5px] text-gray-400 dark:text-gray-500 shrink-0">
             · {timeAgo}
           </span>
           {groupName && showGroupName && (
             <span
-              className="text-xs font-semibold truncate"
+              className="text-[11.5px] font-semibold truncate"
               style={{ color: colorTheme.accent }}
             >
               · {groupName}

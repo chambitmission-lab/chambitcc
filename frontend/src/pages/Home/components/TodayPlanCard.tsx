@@ -74,7 +74,7 @@ const TodayPlanCard = () => {
                     — "오늘의 읽기 + 완료 배지"가 위 본문을 읽은 것처럼 오독되는 것 방지 */}
                 {today.done_today ? '다음 읽기' : '오늘의 읽기'}
               </span>
-              <span className="text-[11.5px] text-gray-400 dark:text-white/45 truncate">
+              <span className="text-[11px] font-medium text-gray-400 dark:text-white/40 truncate">
                 · {today.plan_title}
               </span>
             </div>
@@ -115,15 +115,15 @@ const TodayPlanCard = () => {
           {/* 위계: 일차는 작은 칩, 본문 범위(사무엘하 17-19장)가 카드의 주인공 */}
           <div className="mt-3 min-w-0">
             <span className="plan-day-chip">{today.day_number}일차</span>
-            <p className="mt-1.5 text-[19px] font-extrabold text-ink-strong tracking-[-0.03em] leading-tight">
+            <p className="mt-1.5 text-[22px] font-extrabold text-ink-strong tracking-[-0.035em] leading-[1.25]">
               {titleDupsRefs ? refs || today.plan_title : today.day_title}
             </p>
             {titleDupsRefs ? (
-              <p className="text-[12px] text-gray-400 dark:text-white/45 mt-1">
+              <p className="text-[12px] font-medium text-gray-400 dark:text-white/45 mt-1.5">
                 {journeyLine}
               </p>
             ) : (
-              refs && <p className="text-[12.5px] font-semibold text-brand mt-1">{refs}</p>
+              refs && <p className="text-[13px] font-semibold text-brand mt-1.5">{refs}</p>
             )}
           </div>
 
