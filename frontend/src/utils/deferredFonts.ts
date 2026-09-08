@@ -10,7 +10,8 @@ const SHEETS = [
   'https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap',
   // 700 은 홈 '올해의 말씀' 대형 인용과 말씀 카드(photoVerseCanvas)가 실제로 요청하는 웨이트다
   // — 없으면 브라우저가 600 을 가짜 볼드로 늘려 획이 뭉갠다.
-  'https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap',
+  // 500 은 말씀 카드 본문 — 사진 위에서 인쇄물처럼 보이는 가벼운 획 (없으면 400 으로 떨어져 너무 얇다)
+  'https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap',
 ]
 

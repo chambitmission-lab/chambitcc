@@ -3,7 +3,10 @@ import type { ChangeEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../../contexts/LanguageContext'
 import VersePickerSheet from './VersePickerSheet'
-import type { PickedVerse } from './VersePickerSheet'
+import { getTodayRecommended } from './recommendedVerses'
+import type { PickedVerse } from './recommendedVerses'
+import { CARD_PRESETS, INTRO_SAMPLES } from './cardPresets'
+import type { CardPreset } from './cardPresets'
 import {
   BACKGROUNDS,
   CARD_FILTERS,
@@ -16,6 +19,7 @@ import {
   drawVerseCard,
   ensureCardFonts,
   getSeasonStamp,
+  measureImageLuminance,
 } from './photoVerseCanvas'
 import type {
   CardLayoutId,
@@ -30,6 +34,10 @@ import './PhotoVerse.css'
 // 미리보기는 화면용으로 캡, 저장본은 원본 해상도(최대 2048px)로 다시 그린다
 const PREVIEW_MAX_SIDE = 1280
 const EXPORT_MAX_SIDE = 2048
+// 프리셋 썸네일 — CSS 84px 폭에 2배 해상도. 카드 구도가 그대로 축소돼 보인다
+const PRESET_THUMB_SIDE = 210
+// 인트로 예시 카드 — CSS 156px 폭에 2배 해상도
+const SAMPLE_SIDE = 390
 
 const COLOR_SWATCHES = [
   '#ffffff',
@@ -92,6 +100,16 @@ const LayoutGlyph = ({ id }: { id: CardLayoutId }) => {
           <line x1="12" y1="31" x2="24" y2="31" strokeWidth={1.8} />
         </g>
       )}
+      {id === 'poster' && (
+        <g {...common}>
+          <rect x="5" y="5" width="26" height="34" rx="1" strokeWidth={1.4} />
+          <line x1="18" y1="11" x2="18" y2="16" strokeWidth={1.6} />
+          <line x1="16" y1="12.5" x2="20" y2="12.5" strokeWidth={1.6} />
+          <line x1="11" y1="22" x2="25" y2="22" />
+          <line x1="13" y1="27" x2="23" y2="27" />
+          <line x1="14" y1="33" x2="22" y2="33" strokeWidth={1.4} />
+        </g>
+      )}
       {id === 'vertical' && (
         <g {...common}>
           <line x1="27" y1="9" x2="27" y2="33" />
@@ -150,10 +168,158 @@ const FilterStrip = ({
   )
 }
 
+/** 프리셋 스트립 — 내 사진과 말씀으로 각 룩을 실제로 그린 썸네일. 한 탭에 완성된 카드가 나온다 */
+const PresetStrip = ({
+  img,
+  verse,
+  baseColor,
+  lang,
+  language,
+  active,
+  fontsReady,
+  onSelect,
+}: {
+  img: HTMLImageElement
+  verse: PickedVerse
+  baseColor: string
+  lang: 'ko' | 'en'
+  language: string
+  active: string | null
+  fontsReady: number
+  onSelect: (preset: CardPreset) => void
+}) => {
+  const thumbRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
+
+  useEffect(() => {
+    for (const p of CARD_PRESETS) {
+      const canvas = thumbRefs.current[p.id]
+      if (!canvas) continue
+      const style: VerseCardStyle = {
+        ...DEFAULT_CARD_STYLE,
+        ...p.style,
+        color: p.style.color ?? baseColor,
+        lang,
+        ratio: '4:5',
+      }
+      const sized = createCardCanvas(img, PRESET_THUMB_SIDE, style.frame, '4:5')
+      if (canvas.width !== sized.width || canvas.height !== sized.height) {
+        canvas.width = sized.width
+        canvas.height = sized.height
+      }
+      drawVerseCard(canvas, img, verse.text, verse.refLabel, style)
+    }
+  }, [img, verse, baseColor, lang, fontsReady])
+
+  return (
+    <div className="pv-presets" role="radiogroup" aria-label="스타일">
+      {CARD_PRESETS.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          role="radio"
+          aria-checked={active === p.id}
+          className={`pv-preset${active === p.id ? ' pv-preset--active' : ''}`}
+          onClick={() => onSelect(p)}
+        >
+          <span className="pv-preset__frame">
+            <canvas
+              ref={(el) => {
+                thumbRefs.current[p.id] = el
+              }}
+              className="pv-preset__thumb"
+            />
+          </span>
+          <span className="pv-preset__name">{language === 'ko' ? p.nameKo : p.nameEn}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** 인트로 예시 카드 — 감성 배경 위에 오늘의 말씀을 실제로 그려 "이런 카드가 나온다"를 보여준다 */
+const IntroSamples = ({
+  verse,
+  lang,
+  fontsReady,
+  onPick,
+}: {
+  verse: PickedVerse
+  lang: 'ko' | 'en'
+  fontsReady: number
+  onPick: (bg: VerseBackground, preset: CardPreset) => void
+}) => {
+  const refs = useRef<Record<string, HTMLCanvasElement | null>>({})
+
+  useEffect(() => {
+    let cancelled = false
+    for (const s of INTRO_SAMPLES) {
+      const bg = BACKGROUNDS.find((b) => b.id === s.bgId)
+      const preset = CARD_PRESETS.find((p) => p.id === s.presetId)
+      if (!bg || !preset) continue
+      createBackgroundImage(bg)
+        .then((img) => {
+          if (cancelled) return
+          const canvas = refs.current[`${s.bgId}-${s.presetId}`]
+          if (!canvas) return
+          const style: VerseCardStyle = {
+            ...DEFAULT_CARD_STYLE,
+            ...preset.style,
+            color: preset.style.color ?? bg.textColor,
+            lang,
+            ratio: '4:5',
+          }
+          const sized = createCardCanvas(img, SAMPLE_SIDE, style.frame, '4:5')
+          if (canvas.width !== sized.width || canvas.height !== sized.height) {
+            canvas.width = sized.width
+            canvas.height = sized.height
+          }
+          drawVerseCard(canvas, img, verse.text, verse.refLabel, style)
+          canvas.classList.add('pv-sample__thumb--ready')
+        })
+        .catch(() => {
+          /* 배경 생성 실패 — 예시 카드 하나가 비어 보일 뿐 */
+        })
+    }
+    return () => {
+      cancelled = true
+    }
+  }, [verse, lang, fontsReady])
+
+  return (
+    <div className="pv-samples">
+      {INTRO_SAMPLES.map((s) => {
+        const bg = BACKGROUNDS.find((b) => b.id === s.bgId)
+        const preset = CARD_PRESETS.find((p) => p.id === s.presetId)
+        if (!bg || !preset) return null
+        return (
+          <button
+            key={`${s.bgId}-${s.presetId}`}
+            type="button"
+            className="pv-sample"
+            aria-label={`${lang === 'ko' ? bg.nameKo : bg.nameEn} · ${lang === 'ko' ? preset.nameKo : preset.nameEn}`}
+            onClick={() => onPick(bg, preset)}
+          >
+            <span className="pv-sample__frame" style={{ background: backgroundCss(bg) }}>
+              <canvas
+                ref={(el) => {
+                  refs.current[`${s.bgId}-${s.presetId}`] = el
+                }}
+                className="pv-sample__thumb"
+              />
+            </span>
+            <span className="pv-sample__name">{lang === 'ko' ? preset.nameKo : preset.nameEn}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 const PhotoVerse = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { language } = useLanguage()
+  const lang: 'ko' | 'en' = language === 'en' ? 'en' : 'ko'
 
   // 다른 화면(예: 기도 완료)에서 말씀을 미리 실어 보낼 수 있다
   const presetVerse = (location.state as { presetVerse?: PickedVerse } | null)?.presetVerse
@@ -163,10 +329,16 @@ const PhotoVerse = () => {
   const [verse, setVerse] = useState<PickedVerse | null>(
     presetVerse && presetVerse.text && presetVerse.refLabel ? presetVerse : null,
   )
+  // 인트로 예시 카드에 쓰는 오늘의 말씀 — 피커의 피처드 카드와 같은 절
+  const [todayVerse] = useState(() => getTodayRecommended(Date.now()))
   const [style, setStyle] = useState<VerseCardStyle>(() => ({
     ...DEFAULT_CARD_STYLE,
-    lang: language === 'en' ? 'en' : 'ko',
+    lang,
   }))
+  // 사진/배경에 맞춘 기본 글자색 — 프리셋을 바꿔도 형광펜처럼 룩이 요구하지 않는 한 이 색으로 돌아온다
+  const [baseColor, setBaseColor] = useState(DEFAULT_CARD_STYLE.color)
+  const [activePreset, setActivePreset] = useState<string | null>(CARD_PRESETS[0].id)
+  const [showDetails, setShowDetails] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   // 폰트 로드 세대 — 구절이 바뀌어 새 서브셋 조각이 로드될 때마다 올라가 다시 그리게 한다
   const [fontsReady, setFontsReady] = useState(0)
@@ -179,6 +351,8 @@ const PhotoVerse = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const dragRef = useRef<{ pointerId: number; startX: number; startY: number; origin: { x: number; y: number } } | null>(null)
+  // 예시 카드에서 고른 프리셋 — 배경 이미지가 준비된 뒤 적용한다
+  const pendingPresetRef = useRef<CardPreset | null>(null)
 
   const texts = {
     ko: {
@@ -187,12 +361,16 @@ const PhotoVerse = () => {
       introBody: '갤러리에서 사진을 고르고 마음에 새기고 싶은 말씀을 올려 나만의 말씀 카드를 만들 수 있어요.',
       privacy: '사진은 서버로 전송되지 않고 내 기기 안에서만 처리돼요.',
       pickPhoto: '사진 선택하기',
+      samplesTitle: '이런 카드가 만들어져요',
+      samplesBody: '탭하면 그 스타일로 바로 시작해요',
       noPhotoTitle: '사진이 없어도 괜찮아요',
       noPhotoBody: '감성 배경을 골라 바로 시작해보세요',
       changePhoto: '사진 바꾸기',
       changeVerse: '말씀 바꾸기',
       pickVerse: '말씀 고르기',
       dragHint: '사진을 드래그해 말씀 위치를 옮길 수 있어요',
+      presetTitle: '스타일',
+      details: '세부 조정',
       save: '저장',
       share: '공유',
       saving: '만드는 중…',
@@ -203,9 +381,10 @@ const PhotoVerse = () => {
       font: { serif: '명조', sans: '고딕', hand: '손글씨' },
       alignLabel: '정렬',
       ref: '출처',
+      signature: '서명',
       layoutTitle: '레이아웃',
       textBgLabel: '글 배경',
-      textBg: { none: '없음', scrim: '박스', marker: '형광펜' },
+      textBg: { none: '없음', soft: '은은', scrim: '박스', marker: '형광펜' },
       frameLabel: '프레임',
       frame: { none: '기본', season: '절기', polaroid: '폴라로이드', film: '필름' },
       ratioLabel: '비율',
@@ -222,12 +401,16 @@ const PhotoVerse = () => {
       introBody: 'Pick a photo from your gallery and overlay a Bible verse to keep as your own verse card.',
       privacy: 'Photos never leave your device — everything happens locally.',
       pickPhoto: 'Choose Photo',
+      samplesTitle: 'Cards you can make',
+      samplesBody: 'Tap one to start in that style',
       noPhotoTitle: 'No photo? No problem',
       noPhotoBody: 'Start right away with a mood background',
       changePhoto: 'Change photo',
       changeVerse: 'Change verse',
       pickVerse: 'Choose verse',
       dragHint: 'Drag the photo to move the text',
+      presetTitle: 'Style',
+      details: 'Fine-tune',
       save: 'Save',
       share: 'Share',
       saving: 'Creating…',
@@ -238,9 +421,10 @@ const PhotoVerse = () => {
       font: { serif: 'Serif', sans: 'Sans', hand: 'Hand' },
       alignLabel: 'Align',
       ref: 'Reference',
+      signature: 'Signature',
       layoutTitle: 'Layout',
       textBgLabel: 'Text backdrop',
-      textBg: { none: 'None', scrim: 'Box', marker: 'Marker' },
+      textBg: { none: 'None', soft: 'Soft', scrim: 'Box', marker: 'Marker' },
       frameLabel: 'Frame',
       frame: { none: 'None', season: 'Season', polaroid: 'Polaroid', film: 'Film' },
       ratioLabel: 'Ratio',
@@ -257,22 +441,22 @@ const PhotoVerse = () => {
   // 웹폰트(명조/손글씨)가 로드되기 전에 그리면 시스템 폰트로 그려진다.
   // 한글 폰트는 서브셋 조각으로 나뉘어 있어 구절 텍스트를 넘겨 해당 글자의
   // 조각까지 받아오고, 로드가 끝나면 세대를 올려 canvas를 다시 그린다.
+  // 인트로 예시 카드도 오늘의 말씀을 그리므로 구절이 없을 땐 그 글자로 받아온다.
   useEffect(() => {
     let cancelled = false
-    const sample = verse ? `${verse.text} ${verse.refLabel}` : undefined
-    ensureCardFonts(sample).then(() => {
+    const v = verse ?? todayVerse
+    ensureCardFonts(`${v.text} ${v.refLabel}`).then(() => {
       if (!cancelled) setFontsReady((n) => n + 1)
     })
     return () => {
       cancelled = true
     }
-  }, [verse])
+  }, [verse, todayVerse])
 
-  // 절기 스탬프 언어를 앱 언어와 맞춘다
+  // 절기 스탬프·서명 언어를 앱 언어와 맞춘다
   useEffect(() => {
-    const lang = language === 'en' ? 'en' : 'ko'
     setStyle((s) => (s.lang === lang ? s : { ...s, lang }))
-  }, [language])
+  }, [lang])
 
   // 인화 연출 — 오버레이가 뜨고 잠깐 뒤 현상이 시작된다
   useEffect(() => {
@@ -306,6 +490,15 @@ const PhotoVerse = () => {
     window.setTimeout(() => setToast(null), 2500)
   }
 
+  // 프리셋 적용 — 비율·언어·위치·글자 크기는 그대로, 룩(레이아웃·필터·서체·질감·프레임)만 바꾼다
+  const applyPreset = useCallback(
+    (p: CardPreset, color = baseColor) => {
+      setStyle((s) => ({ ...s, ...p.style, color: p.style.color ?? color }))
+      setActivePreset(p.id)
+    },
+    [baseColor],
+  )
+
   const handleFile = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = '' // 같은 사진 재선택도 동작하게
@@ -322,21 +515,39 @@ const PhotoVerse = () => {
     }
     setPhoto({ url, img })
     setBgId(null)
+    // 사진 밝기에 맞춘 기본 글자색 — 눈밭·하늘처럼 밝은 사진은 어두운 잉크로 시작해야 읽힌다.
+    // 형광펜처럼 어두운 글자가 필요한 룩은 그대로 둔다
+    const color = measureImageLuminance(img) > 0.7 ? '#1f1d1a' : '#ffffff'
+    setBaseColor(color)
+    setStyle((s) => ({ ...s, color: s.textBg === 'marker' ? s.color : color }))
     if (!verse) setPickerOpen(true)
   }
 
-  // 감성 배경으로 시작/교체 — 그라데이션을 이미지로 만들어 사진과 같은 파이프라인을 탄다
-  const pickBackground = async (bg: VerseBackground) => {
+  // 감성 배경으로 시작/교체 — 장면을 이미지로 만들어 사진과 같은 파이프라인을 탄다
+  const pickBackground = async (bg: VerseBackground, preset?: CardPreset, hasVerse = !!verse) => {
     try {
       const img = await createBackgroundImage(bg)
       setPhoto({ url: img.src, img })
       setBgId(bg.id)
       // 밝은 배경에서는 어두운 글자로 시작해야 읽힌다
-      setStyle((s) => ({ ...s, color: bg.textColor }))
-      if (!verse) setPickerOpen(true)
+      setBaseColor(bg.textColor)
+      const p = preset ?? pendingPresetRef.current
+      pendingPresetRef.current = null
+      if (p) {
+        applyPreset(p, bg.textColor)
+      } else {
+        setStyle((s) => ({ ...s, color: s.textBg === 'marker' ? s.color : bg.textColor }))
+      }
+      if (!hasVerse) setPickerOpen(true)
     } catch {
       showToast(t.photoFailed)
     }
+  }
+
+  // 인트로 예시 카드 — 그 배경·프리셋·오늘의 말씀으로 곧바로 시작한다
+  const startFromSample = (bg: VerseBackground, preset: CardPreset) => {
+    if (!verse) setVerse(todayVerse)
+    void pickBackground(bg, preset, true)
   }
 
   // 미리보기 canvas 크기는 사진/프레임이 바뀔 때 맞춘다
@@ -390,7 +601,7 @@ const PhotoVerse = () => {
     const canvas = createCardCanvas(photo.img, EXPORT_MAX_SIDE, style.frame, style.ratio)
     drawVerseCard(canvas, photo.img, verse.text, verse.refLabel, style)
     const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, 'image/jpeg', 0.92)
+      canvas.toBlob(resolve, 'image/jpeg', 0.94)
     )
     if (!blob) return null
     const filename = `말씀카드_${verse.refLabel.replace(/[\s:]/g, '_')}.jpg`
@@ -448,23 +659,31 @@ const PhotoVerse = () => {
     }
   })
 
-  const setPartial = (patch: Partial<VerseCardStyle>) => setStyle((s) => ({ ...s, ...patch }))
+  // 세부 조정 — 프리셋에서 벗어난 '나만의 조합'이 된다
+  const setPartial = (patch: Partial<VerseCardStyle>) => {
+    setStyle((s) => ({ ...s, ...patch }))
+    setActivePreset(null)
+  }
 
-  const toggleTexture = (id: CardTextureId) =>
+  const toggleTexture = (id: CardTextureId) => {
     setStyle((s) => ({
       ...s,
       textures: s.textures.includes(id) ? s.textures.filter((x) => x !== id) : [...s.textures, id],
     }))
+    setActivePreset(null)
+  }
 
   // 형광펜은 밝은 글자와 겹치면 안 읽혀 어두운 글자로 함께 바꿔준다
-  const pickTextBg = (textBg: CardTextBg) =>
+  const pickTextBg = (textBg: CardTextBg) => {
     setStyle((s) => ({
       ...s,
       textBg,
       color: textBg === 'marker' && s.color !== '#111111' ? '#111111' : s.color,
     }))
+    setActivePreset(null)
+  }
 
-  const seasonStamp = getSeasonStamp(language === 'en' ? 'en' : 'ko')
+  const seasonStamp = getSeasonStamp(lang)
 
   const bgStrip = (
     <div className="pv-bg-row">
@@ -482,6 +701,9 @@ const PhotoVerse = () => {
       ))}
     </div>
   )
+
+  const textBgOptions: CardTextBg[] =
+    style.layout === 'classic' ? ['none', 'soft', 'scrim', 'marker'] : ['none', 'soft']
 
   return (
     <div className="photo-verse bg-[var(--app-canvas)] dark:bg-background-dark min-h-screen">
@@ -562,6 +784,19 @@ const PhotoVerse = () => {
               <span className="material-icons-round">add_photo_alternate</span>
               {t.pickPhoto}
             </button>
+
+            {/* 예시 카드 — 만들어 보기 전에는 재미를 알 수 없으니 결과물을 먼저 보여준다 */}
+            <div className="pv-intro__samples">
+              <p className="pv-intro__bg-title">{t.samplesTitle}</p>
+              <p className="pv-intro__bg-body">{t.samplesBody}</p>
+              <IntroSamples
+                verse={verse ?? todayVerse}
+                lang={lang}
+                fontsReady={fontsReady}
+                onPick={startFromSample}
+              />
+            </div>
+
             <div className="pv-intro__bg">
               <p className="pv-intro__bg-title">{t.noPhotoTitle}</p>
               <p className="pv-intro__bg-body">{t.noPhotoBody}</p>
@@ -611,6 +846,35 @@ const PhotoVerse = () => {
             {/* 스타일 컨트롤 */}
             {verse && (
               <div className="pv-controls">
+                {/* 스타일 프리셋 — 내 사진으로 그린 실사 썸네일. 한 탭에 완성된 룩 */}
+                <div className="pv-section">
+                  <p className="pv-section__title">{t.presetTitle}</p>
+                  <PresetStrip
+                    img={photo.img}
+                    verse={verse}
+                    baseColor={baseColor}
+                    lang={lang}
+                    language={language}
+                    active={activePreset}
+                    fontsReady={fontsReady}
+                    onSelect={(p) => applyPreset(p)}
+                  />
+                </div>
+
+                {/* 세부 조정 — 접혀 있다. 프리셋으로 충분한 사람에게는 보이지 않아야 화면이 차분하다 */}
+                <button
+                  type="button"
+                  className={`pv-details-toggle${showDetails ? ' pv-details-toggle--open' : ''}`}
+                  aria-expanded={showDetails}
+                  onClick={() => setShowDetails((v) => !v)}
+                >
+                  <span className="material-icons-round text-[18px]">tune</span>
+                  {t.details}
+                  <span className="material-icons-round pv-details-toggle__chevron">expand_more</span>
+                </button>
+
+                {showDetails && (
+                  <div className="pv-details">
                 {/* 레이아웃 — 옵션 조합이 아니라 디자이너가 완성한 구도를 고른다 */}
                 <div className="pv-layouts" role="radiogroup" aria-label={t.layoutTitle}>
                   {CARD_LAYOUTS.map((lay) => (
@@ -700,27 +964,34 @@ const PhotoVerse = () => {
                   >
                     {t.ref}
                   </button>
+
+                  <button
+                    type="button"
+                    aria-pressed={style.signature}
+                    className={`pv-toggle${style.signature ? ' pv-toggle--active' : ''}`}
+                    onClick={() => setPartial({ signature: !style.signature })}
+                  >
+                    {t.signature}
+                  </button>
                 </div>
 
-                {/* 글 배경 — 반투명 박스 또는 성경 밑줄 긋듯 형광펜 (자유 레이아웃 전용) */}
-                {style.layout === 'classic' && (
-                  <div className="pv-control-row">
-                    <div className="pv-seg" role="radiogroup" aria-label={t.textBgLabel}>
-                      {(['none', 'scrim', 'marker'] as const).map((b) => (
-                        <button
-                          key={b}
-                          type="button"
-                          role="radio"
-                          aria-checked={style.textBg === b}
-                          className={`pv-seg__item${style.textBg === b ? ' pv-seg__item--active' : ''}`}
-                          onClick={() => pickTextBg(b)}
-                        >
-                          {t.textBg[b]}
-                        </button>
-                      ))}
-                    </div>
+                {/* 글 배경 — 은은한 스크림 / 반투명 박스 / 성경 밑줄 긋듯 형광펜(자유 레이아웃 전용) */}
+                <div className="pv-control-row">
+                  <div className="pv-seg" role="radiogroup" aria-label={t.textBgLabel}>
+                    {textBgOptions.map((b) => (
+                      <button
+                        key={b}
+                        type="button"
+                        role="radio"
+                        aria-checked={style.textBg === b}
+                        className={`pv-seg__item${style.textBg === b ? ' pv-seg__item--active' : ''}`}
+                        onClick={() => pickTextBg(b)}
+                      >
+                        {t.textBg[b]}
+                      </button>
+                    ))}
                   </div>
-                )}
+                </div>
 
                 {/* 프레임 — 절기는 교회력 스탬프, 폴라로이드는 손글씨 출처, 필름은 날짜 스탬프 */}
                 <div className="pv-control-row">
@@ -757,7 +1028,7 @@ const PhotoVerse = () => {
                         role="radio"
                         aria-checked={style.ratio === r}
                         className={`pv-seg__item${style.ratio === r ? ' pv-seg__item--active' : ''}`}
-                        onClick={() => setPartial({ ratio: r })}
+                        onClick={() => setStyle((s) => ({ ...s, ratio: r }))}
                       >
                         {t.ratio[r]}
                       </button>
@@ -789,14 +1060,16 @@ const PhotoVerse = () => {
                     step={0.002}
                     value={style.fontScale}
                     aria-label={t.size}
-                    onChange={(e) => setPartial({ fontScale: Number(e.target.value) })}
+                    onChange={(e) => setStyle((s) => ({ ...s, fontScale: Number(e.target.value) }))}
                     className="pv-slider"
                   />
                   <span className="pv-slider-label pv-slider-label--big">가</span>
                 </div>
+                  </div>
+                )}
 
                 <div className="pv-bg-section">
-                  <p className="pv-bg-section__title">{t.bgTitle}</p>
+                  <p className="pv-section__title">{t.bgTitle}</p>
                   {bgStrip}
                 </div>
               </div>
