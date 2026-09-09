@@ -35,6 +35,11 @@ interface ChapterPresencePillProps {
  * 숫자는 "나 말고 N명"이 아니라 "나를 포함해 N명"이다 — 둘이 읽는데 '1명과 함께'라고
  * 하면 한 명이 빠진 것처럼 읽힌다(2026-09 피드백). 내가 카운트 밖이면(비로그인·공유 끔)
  * 포함할 내가 없으니 남의 수 그대로 "N명이 읽는 중".
+ *
+ * 실시간 줄일 때도 오늘 숫자를 꼬리("· 오늘 3명")로 남긴다 — 한 자리에서 "지금 2명" ↔
+ * "오늘 3명"이 통째로 교체되면 2명이 3명이 됐다 돌아오는 것처럼 읽혔다(2026-09 피드백).
+ * 꼬리는 오늘 숫자가 실시간 인원보다 클 때만: 둘 다 방금 들어와 아직 독자로 인정되기 전엔
+ * "지금 2명 함께 · 오늘 1명"이 모순처럼 보인다.
  */
 const ChapterPresencePill = ({ loading, total, readersToday, meReadToday, meCounted, mePending }: ChapterPresencePillProps) => {
   const others = mePending ? 0 : Math.max(0, (total ?? 0) - (meCounted ? 1 : 0))
@@ -48,17 +53,22 @@ const ChapterPresencePill = ({ loading, total, readersToday, meReadToday, meCoun
     body = null
   } else if (others > 0) {
     live = true
+    const liveTotal = others + (meCounted ? 1 : 0)
+    const todayTail = (readersToday ?? 0) > liveTotal ? readersToday : null
     body = (
       <>
         <span className="rt-live-dot" aria-hidden />
         {meCounted ? (
           <span>
-            지금 나를 포함해 <strong>{others + 1}명</strong>이 함께 읽는 중
+            지금 나를 포함해 <strong>{liveTotal}명</strong>이 함께 읽는 중
           </span>
         ) : (
           <span>
             지금 <strong>{others}명</strong>이 이 장을 읽는 중
           </span>
+        )}
+        {todayTail !== null && (
+          <span className="rt-chapter-line__tail">· 오늘 {todayTail}명</span>
         )}
       </>
     )

@@ -50,6 +50,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* 실시간 줄 뒤에 붙는 "· 오늘 N명" — 본문(브랜드 색)보다 한 톤 낮춰 보조 정보로 읽히게 */
+.rt-chapter-line__tail {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-weight: 500;
+}
 .rt-chapter-line strong {
   color: var(--text-body);
   font-weight: 800;

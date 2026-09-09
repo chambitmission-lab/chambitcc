@@ -12,11 +12,11 @@ const CASES: Case[] = [
     props: { loading: true, total: undefined, readersToday: undefined, meReadToday: null, meCounted: false, mePending: false },
   },
   {
-    label: '지금 함께 읽는 중(나 포함 2명) — 브랜드 색 + 맥박 점',
+    label: '지금 함께 읽는 중(나 포함 2명) + 오늘 3명 꼬리 — 브랜드 색 + 맥박 점',
     props: { loading: false, total: 2, readersToday: 3, meReadToday: true, meCounted: true, mePending: false },
   },
   {
-    label: '비로그인·공유 끔 — 나는 카운트 밖이라 남의 수 그대로',
+    label: '비로그인·공유 끔 — 나는 카운트 밖이라 남의 수 그대로 (+ 오늘 꼬리)',
     props: { loading: false, total: 2, readersToday: 3, meReadToday: null, meCounted: false, mePending: false },
   },
   {

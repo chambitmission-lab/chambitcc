@@ -27,6 +27,13 @@ import { readingTogetherKeys } from './queryKeys'
 
 /** 하트비트 주기 — 서버 TTL(90초)의 1/3 이하여야 순단 한 번에 사라지지 않는다 */
 export const HEARTBEAT_INTERVAL_MS = 25_000
+/**
+ * 장 진입 후 "머물렀다"를 확인하는 추가 하트비트 시점. 서버는 첫 하트비트로부터
+ * MIN_DWELL_SECONDS(10초) 지난 뒤의 하트비트에서 '오늘 읽은 성도'로 세므로, 정기 주기(25초)만
+ * 기다리면 30초 가까이 걸린다. 첫 전송 12초 뒤에 한 번 더 보내 10초 근처에서 인정되게 한다.
+ * 장마다 한 번뿐이다 — 절이 바뀌어 effect 가 다시 돌아도 진입 시점 기준의 마감을 지킨다.
+ */
+export const DWELL_CONFIRM_MS = 12_000
 /** 하트비트를 안 보내는 뷰어(비로그인·공유 끔)의 현황 폴링 주기 */
 export const PRESENCE_POLL_INTERVAL_MS = 30_000
 
@@ -178,6 +185,8 @@ export const useReadingPresenceHeartbeat = ({ bookNumber, chapter, verse, enable
     posRef.current = { bookNumber, chapter, verse }
   }, [bookNumber, chapter, verse])
   const activeRef = useRef(false)
+  // 이 장의 확인용 하트비트 마감(첫 전송 +12초). 장이 바뀌면 새로 잡고, 보낸 뒤엔 at=null.
+  const dwellRef = useRef<{ key: string; at: number | null } | null>(null)
 
   const send = useCallback(() => {
     const { bookNumber: b, chapter: c, verse: v } = posRef.current
@@ -207,6 +216,19 @@ export const useReadingPresenceHeartbeat = ({ bookNumber, chapter, verse, enable
     send()
     const timer = window.setInterval(send, HEARTBEAT_INTERVAL_MS)
 
+    // 체류 확인 하트비트 — 장 진입 시점 기준 한 번. 절이 바뀌어 effect 가 다시 돌면 남은
+    // 시간만큼만 기다린다 (매번 12초를 새로 세면 스크롤하는 사람은 계속 뒤로 밀린다).
+    const key = `${bookNumber}:${chapter}`
+    if (dwellRef.current?.key !== key) dwellRef.current = { key, at: Date.now() + DWELL_CONFIRM_MS }
+    const dwellAt = dwellRef.current.at
+    const dwellTimer =
+      dwellAt === null
+        ? null
+        : window.setTimeout(() => {
+            dwellRef.current = { key, at: null }
+            send()
+          }, Math.max(0, dwellAt - Date.now()))
+
     // 탭 숨김 → 이탈, 복귀 → 즉시 하트비트 (숨긴 탭이 "읽는 중"으로 남지 않게)
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') leave()
@@ -221,6 +243,7 @@ export const useReadingPresenceHeartbeat = ({ bookNumber, chapter, verse, enable
     window.addEventListener('pagehide', onPageHide)
     return () => {
       window.clearInterval(timer)
+      if (dwellTimer !== null) window.clearTimeout(dwellTimer)
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('pagehide', onPageHide)
       offConnected()
