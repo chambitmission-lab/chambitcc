@@ -43,7 +43,9 @@ const applyPresence = (qc: QueryClient, data: ChapterPresence) => {
     readingTogetherKeys.presence(data.book_number, data.chapter),
     (old) => ({
       ...data,
-      readers_today: old?.readers_today ?? data.readers_today ?? null,
+      // 서버가 새 숫자를 실어 보냈으면 그걸 쓰고, 모른다고 하면(null) 이전 값을 지킨다.
+      // 반대로 두면 장에 들어온 순간의 값이 그대로 굳어 사람이 늘어도 안 변한다.
+      readers_today: data.readers_today ?? old?.readers_today ?? null,
       // 구 백엔드(필드 없음)에선 이전 값을 잃지 않게 둔다
       me_included: data.me_included ?? old?.me_included,
     }),

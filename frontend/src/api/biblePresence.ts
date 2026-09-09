@@ -16,7 +16,10 @@ export interface ChapterPresence {
   me_included?: boolean
   /** 절 번호(문자열) → 그 절을 읽는 중인 사람 수 */
   verse_counts: Record<string, number>
-  /** 오늘(KST) 이 장을 읽은 성도 수 — GET 응답에만 있다 */
+  /**
+   * 오늘(KST) 이 장을 읽은 성도 수 — 그 장에 머문 사람 ∪ 읽음 기록을 남긴 사람.
+   * null 이면 서버가 아직 모른다는 뜻이라 클라이언트는 이전 값을 지킨다.
+   */
   readers_today?: number | null
 }
 
