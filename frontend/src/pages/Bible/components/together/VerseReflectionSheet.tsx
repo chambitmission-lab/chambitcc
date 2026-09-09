@@ -23,8 +23,8 @@ interface VerseReflectionSheetProps {
   /** "로마서 8:28" */
   verseReference: string
   verseText: string
-  /** 이 절을 지금 함께 읽는 다른 사람 수 (나 제외) */
-  liveOthers: number
+  /** 이 장을 지금 함께 읽는 다른 사람 수 (나 제외) */
+  chapterOthers: number
   onClose: () => void
 }
 
@@ -43,7 +43,7 @@ const VerseReflectionSheet = ({
   verse,
   verseReference,
   verseText,
-  liveOthers,
+  chapterOthers,
   onClose,
 }: VerseReflectionSheetProps) => {
   useModalBackButton(onClose)
@@ -115,10 +115,10 @@ const VerseReflectionSheet = ({
             {verseText}
           </div>
 
-          {liveOthers > 0 ? (
+          {chapterOthers > 0 ? (
             <div className="rt-live-line">
               <span className="rt-live-dot" aria-hidden />
-              지금 <strong>{liveOthers}명</strong>이 이 말씀을 함께 읽고 있어요
+              지금 <strong>{chapterOthers}명</strong>이 이 장을 함께 읽고 있어요
             </div>
           ) : readersToday > 0 ? (
             <div className="rt-live-line">

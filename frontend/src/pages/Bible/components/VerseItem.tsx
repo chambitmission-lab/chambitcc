@@ -46,9 +46,9 @@ interface VerseItemProps {
   // 본문 보기 — list(절마다 한 줄, 기본) / flow(문단으로 이어 붙이고 번호는 위첨자).
   // flow일 땐 부모가 단락(div.verse-paragraph__body) 안에 인라인으로 나열한다.
   layout?: 'list' | 'flow'
-  // 함께 읽기 — 이 절을 지금 읽는 다른 사람 수(나 제외) / 이 절의 공개 묵상 수.
-  // 부모(VerseList)가 장 단위 presence·요약 캐시에서 절별로 나눠준다
-  liveOthers?: number
+  // 함께 읽기 — 이 절의 공개 묵상 수. 부모(VerseList)가 장 요약 캐시에서 절별로 나눠준다.
+  // (절 단위 "지금 읽는 중" 표시는 두지 않는다 — 절은 몇 초면 지나가 소음일 뿐이고,
+  //  같은 장을 몇 명이 보는지는 장 상단 pill 하나로 충분하다는 결정)
   reflectionCount?: number
 }
 
@@ -65,7 +65,7 @@ const ROW_ACCENT_BASE: CSSProperties = {
 const VerseItem = ({
   verse, bookNameKo, bookNumber, chapter, isRead, isTogglingRead, hasCommentary, isAudioActive, actionsOpen,
   wordNotes, chapterBookmark, isSelected, layout = 'list',
-  liveOthers = 0, reflectionCount = 0,
+  reflectionCount = 0,
 }: VerseItemProps) => {
   // 목록 수준 액션·설정은 컨텍스트에서 — 절 props 는 "이 절"에 관한 것만 받는다
   const {
@@ -319,7 +319,7 @@ const VerseItem = ({
             </span>
           )}
           {!selectionMode && (
-            <VerseTogetherChip liveOthers={liveOthers} reflectionCount={reflectionCount} inline onOpen={openReflections} />
+            <VerseTogetherChip reflectionCount={reflectionCount} inline onOpen={openReflections} />
           )}
         </span>
         {/* 묵상 노트 — 문단을 어지럽히지 않게 아이콘 칩만, 누르면 읽기 시트 */}
@@ -542,10 +542,8 @@ const VerseItem = ({
         </button>
       )}
 
-      {/* 함께 읽기 칩 — 지금 이 절을 함께 읽는 사람 / 남겨진 묵상. 둘 다 없으면 안 그린다 */}
-      {!selectionMode && (
-        <VerseTogetherChip liveOthers={liveOthers} reflectionCount={reflectionCount} onOpen={openReflections} />
-      )}
+      {/* 묵상 칩 — 남겨진 묵상이 있을 때만 */}
+      {!selectionMode && <VerseTogetherChip reflectionCount={reflectionCount} onOpen={openReflections} />}
 
       {sheetsEl}
     </div>

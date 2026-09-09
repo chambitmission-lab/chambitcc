@@ -669,11 +669,9 @@ const VerseList = ({
   const { data: presence } = useChapterPresence(bookNumber, selectedChapter, bodyRendered)
   const { data: reflectionSummary } = useChapterReflectionSummary(bookNumber, selectedChapter, bodyRendered)
   const meCounted = presenceActive && readingVerse !== null
-  // 절별 "나 말고 몇 명" — 서버 카운트엔 내가 포함돼 있어 내 자리에서 하나 뺀다
-  const liveOthersAt = (verseNo: number) => {
-    const count = presence?.verse_counts[String(verseNo)] ?? 0
-    return Math.max(0, count - (meCounted && readingVerse === verseNo ? 1 : 0))
-  }
+  // 장 단위 "나 말고 몇 명" — 서버 카운트엔 내가 포함돼 있어 하나 뺀다.
+  // 절 단위 인원은 쓰지 않는다(절은 순식간에 지나가 위치 표시가 소음이 된다).
+  const chapterOthers = Math.max(0, (presence?.total ?? 0) - (meCounted ? 1 : 0))
   const reflectionCountAt = (verseNo: number) => reflectionSummary?.verse_counts[String(verseNo)] ?? 0
   useEffect(() => {
     if (!scrollToVerse || !bodyRendered || !chapterData) return
@@ -770,7 +768,6 @@ const VerseList = ({
       }
       isSelected={selectedIdSet.has(verse.id)}
       layout={verseLayout}
-      liveOthers={liveOthersAt(verse.verse)}
       reflectionCount={reflectionCountAt(verse.verse)}
     />
   )
@@ -834,7 +831,12 @@ const VerseList = ({
       )}
 
       {/* 함께 읽기 — 지금 이 장을 함께 읽는 성도 / 오늘 읽은 성도 */}
-      <ChapterPresencePill total={presence?.total} readersToday={presence?.readers_today} meCounted={meCounted} />
+      <ChapterPresencePill
+        loading={presence === undefined}
+        total={presence?.total}
+        readersToday={presence?.readers_today}
+        meCounted={meCounted}
+      />
 
       {/* 관리자 전용: 장 일괄 읽음/취소 — 업적·칭호 테스트용, 본인 계정에만 적용 */}
       {isAdminUser && isLoggedIn() && readStatusData && (() => {
@@ -1188,7 +1190,7 @@ const VerseList = ({
           verse={reflectionTarget.verse}
           verseReference={`${chapterData.pages[0].book_name_ko} ${selectedChapter}:${reflectionTarget.verse}`}
           verseText={reflectionTarget.text}
-          liveOthers={liveOthersAt(reflectionTarget.verse)}
+          chapterOthers={chapterOthers}
           onClose={() => setReflectionTarget(null)}
         />
       )}

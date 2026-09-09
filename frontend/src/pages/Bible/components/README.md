@@ -148,7 +148,7 @@ interface VerseListProps {
 ```
 together/
 ├── ChapterPresencePill.tsx    # "지금 N명이 이 장을 함께" / "오늘 N명의 성도가 읽었어요" (장 상단)
-├── VerseTogetherChip.tsx      # 절 아래 칩: "N명이 함께 읽는 중" · "묵상 N" (둘 다 0이면 안 그림)
+├── VerseTogetherChip.tsx      # 절 아래 칩: "묵상 N" (0이면 안 그림)
 ├── ReflectionLiveBanner.tsx   # 같은 장 성도가 방금 남긴 묵상 배너 (readingTogetherBus 구독)
 ├── VerseReflectionSheet.tsx   # 묵상 나눔 하단 시트 (목록에 하나, 칩·액션 메뉴·배너가 연다)
 ├── ReflectionCard.tsx         # 묵상 한 장 + 공감/댓글/수정/삭제
@@ -165,7 +165,8 @@ together/
 - `utils/notificationStream.on(event, handler)` — 스트림 확장점. 새 실시간 기능은 매니저를 고치지 않고 핸들러만 등록
 
 **주의**
-- 서버 카운트에는 내가 포함돼 있다 → 표시할 땐 `VerseList.liveOthersAt` 이 내 자리에서 1을 뺀다
+- 서버 카운트에는 내가 포함돼 있다 → 표시할 땐 `VerseList.chapterOthers` 가 1을 뺀다
+- 절 단위 "지금 읽는 중" 표시는 의도적으로 없다(절은 순식간에 지나가 소음). 장 pill 하나로 충분
 - 묵상 본문은 로그인 필수, 절별 개수 요약은 비로그인도 조회 가능
 - CSS 는 `styles/reading-together.css`, 접두사 `rt-` 필수
 
