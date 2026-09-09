@@ -920,14 +920,19 @@
 }
 
 /* ── 히어로 배경 삽화 — "깨우러 온 양이 더 졸리다" ─────────────────────
-   에셋 생성/후처리는 docs/verse-alarm-hero-bg-prompts.md · docs/verse-alarm-hero-process.py.
+   에셋: docs/verse-alarm-hero-bg-prompts.md · docs/verse-alarm-hero-process.py (전체 장면)
+        docs/verse-alarm-mobile-pieces.py (그 장면에서 잘라낸 모바일 두 조각)
 
-   ★ 삽화 한가운데의 빈 원이 다이얼 자리다(원본 지름 = 폭 43% · 높이 78%).
+   폭에 따라 배치가 둘로 갈린다 — 그림이 "다이얼을 감싸는 배경"이냐, "다이얼 옆에 선
+   등장인물"이냐의 차이다.
+
+   ★ ≥1440px — 장면 한 장을 카드에 통째로 깐다.
+     삽화 한가운데의 빈 원이 다이얼 자리다(원본 지름 = 폭 43% · 높이 78%).
      cover 배율은 카드 높이(392px 고정)로 정해지므로 원은 항상 약 305px 로 그려지고,
      320px 다이얼과 거의 포개진다. `background-position: center` 나 에셋 비율(16:9)을
      바꾸면 이 정렬이 그대로 깨진다.
 
-   ★ 왜 1024 가 아니라 1440 부터인가 — 본문 칼럼이 그 아래에서 너무 좁다.
+     왜 1024 가 아니라 1440 부터인가 — 본문 칼럼이 그 아래에서 너무 좁다.
      .va-shell(max 1240) 안에서 성경 레일 176 + 우 컬럼 clamp(288,26vw,344) 를 떼고 나면
      카드 폭은 이렇게 남는다:
 
@@ -935,13 +940,28 @@
 
      삽화는 높이 기준으로 702px 폭으로 그려지므로, 카드가 439 면 좌우 131px 씩 잘려
      새끼양이 반토막 난다. 588 부터는 이불 가장자리만 살짝 물려 자연스럽다.
-     모바일(<1024px)은 카드 자체가 없다 — 카드로 승격해도 다이얼이 꽉 차 그림이 설 자리가 없다. */
-@media (min-width: 1440px) {
-  .va-hero {
-    position: relative;
-    overflow: hidden;
-  }
 
+   ★ <1440px — 같은 장면을 자른 두 조각을 카드 양쪽 바닥에 세운다.
+     폰 폭에서는 위 정렬이 성립하지 않는다. 카드가 ~330~430px 인데 다이얼은 260px 이라
+     원/다이얼 비율이 원본(43%)의 두 배 가까이(≈73%) 된다. 원에 맞춰 cover 를 걸면
+     배율이 600px 을 넘어 좌우 양이 통째로 잘려 나가고(가운데 빈 원만 남는다),
+     반대로 장면 전체를 넣으면 양이 손톱만 해진다.
+     그래서 왼쪽 바닥엔 자는 새끼양, 오른쪽 바닥엔 종 치는 양만 세우고 가운데는
+     다이얼에 내준다. 조각의 안쪽·윗변 알파는 에셋에 구워 뒀다(CSS mask 합성 불필요). */
+
+/* 공통 — 삽화는 카드 안에서만, 다이얼은 그 위로 */
+.va-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.va-dial-wrap,
+.va-hero-skeleton {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 1440px) {
   .va-hero::before {
     content: '';
     position: absolute;
@@ -963,18 +983,94 @@
   .va-hero.is-art-ready::before {
     opacity: 1;
   }
+}
 
-  /* 다이얼을 삽화 레이어 위로 */
-  .va-dial-wrap,
-  .va-hero-skeleton {
-    position: relative;
-    z-index: 1;
+@media (max-width: 1439.98px) {
+  /* 조각 크기는 폭 하나로만 정한다 — 높이는 원본 crop 픽셀(560×518 · 436×648)에서 환산.
+     이 비율을 바꾸면 조각이 늘어난다(background-size: contain 이라 잘리진 않는다) */
+  .va-hero {
+    --va-lamb-w: 141px;
+    --va-sheep-w: 110px;
+  }
+
+  .va-hero::before,
+  .va-hero::after {
+    content: '';
+    position: absolute;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: bottom;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 320ms ease-out;
+  }
+
+  /* 자는 새끼양 + 자명종 — 왼쪽 아래. 바깥으로 조금 물려 다이얼 눈금과 덜 겹치게 */
+  .va-hero::before {
+    left: -8px;
+    bottom: -4px;
+    width: var(--va-lamb-w);
+    height: calc(var(--va-lamb-w) * 518 / 560);
+    background-image: url('/images/verse-alarm/mobile-lamb-light.webp');
+  }
+
+  /* 종 치는 양 — 오른쪽 아래 */
+  .va-hero::after {
+    right: -10px;
+    bottom: -6px;
+    width: var(--va-sheep-w);
+    height: calc(var(--va-sheep-w) * 648 / 436);
+    background-image: url('/images/verse-alarm/mobile-sheep-light.webp');
+  }
+
+  .dark .va-hero::before {
+    background-image: url('/images/verse-alarm/mobile-lamb-dark.webp');
+  }
+
+  .dark .va-hero::after {
+    background-image: url('/images/verse-alarm/mobile-sheep-dark.webp');
+  }
+
+  .va-hero.is-art-ready::before,
+  .va-hero.is-art-ready::after {
+    opacity: 1;
+  }
+}
+
+/* 모바일은 히어로가 맨바닥에 다이얼만 떠 있었다 — 삽화가 설 무대가 없으므로
+   PC 와 같은 카드로 승격한다(그림을 담고, 둥근 모서리로 조각을 잘라 준다) */
+@media (max-width: 1023.98px) {
+  .va-hero {
+    margin: 4px 0 24px;
+    padding: 18px 0 20px;
+    border-radius: 24px;
+    background: var(--surface-container);
+    border: 1px solid var(--card-border);
+  }
+}
+
+/* 아주 좁은 폰(≤360px)은 다이얼이 70vw 로 줄어드는 대신 카드도 같이 줄어 여백이 없다 —
+   조각을 함께 줄여 눈금 위로 올라타지 않게 한다 */
+@media (max-width: 359.98px) {
+  .va-hero {
+    --va-lamb-w: 118px;
+    --va-sheep-w: 92px;
+  }
+}
+
+/* 카드가 넓어지는 구간(태블릿 ~ 1440 미만 PC)에선 조각도 같이 키운다 */
+@media (min-width: 600px) and (max-width: 1439.98px) {
+  .va-hero {
+    --va-lamb-w: 168px;
+    --va-sheep-w: 131px;
   }
 }
 
 /* 히어로 삽화 페이드인은 장식이다 — 모션을 줄여 달라고 하면 그냥 켠 채로 나타난다 */
 @media (prefers-reduced-motion: reduce) {
-  .va-hero::before {
+  .va-hero::before,
+  .va-hero::after {
     transition: none;
   }
 }

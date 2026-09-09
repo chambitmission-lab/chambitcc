@@ -1,0 +1,343 @@
+/* ── PC 좌측 성경 레일 (corl-) ─────────────────────────────
+   BibleSideRail 전용 스타일. Bible/styles/layout.css 에 있던 것을 컴포넌트 옆으로 옮겼다.
+   ★ 왜 옮겼나 — layout.css 는 BibleStudy.css 가 @import 하는 파일이라 '읽기' 청크에만
+     들어간다. 그런데 레일은 /bible/alarm·/plans·/atlas·/wordbook·/genealogy 도 쓴다.
+     그 페이지들을 새로고침으로 바로 열면 레일이 스타일 없는 목록으로 본문 위에 잠깐
+     쌓였다가, 레일이 유휴 시간에 prefetch 한 읽기 청크의 CSS 가 도착하는 순간 제자리를
+     찾거나(PC) 사라졌다(모바일). 스타일이 컴포넌트와 같은 청크로 따라다니면 그 창이 없다.
+   BibleSideRail: 위에 섹션 내비(읽기·검색·플랜·단어장·가계도), 아래에 화면별 내용.
+   읽기 화면은 단락 소제목 + 절 번호 격자(264px), 다른 화면은 내비만(--nav, 176px),
+   접으면 아이콘 바(--collapsed, 56px). lg+ 전용, sticky 대신 slot+fixed.
+   해석 패널이 우측에 도킹되면 폭이 모자라므로 1440px 미만에선 숨긴다. */
+.corl-slot,
+.corl {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .corl-slot {
+    display: block;
+    width: 264px;
+    flex-shrink: 0;
+    align-self: stretch;
+  }
+  .corl-slot--nav {
+    width: 176px;
+  }
+  .corl-slot--collapsed {
+    width: 56px;
+  }
+  .corl {
+    display: block;
+    width: 264px;
+    position: fixed;
+    top: 4.5rem;
+    max-height: calc(100vh - 5.5rem);
+    overflow-y: auto;
+    padding: 1rem 0.75rem 1.5rem 0;
+    margin-top: 0.5rem;
+    scrollbar-width: thin;
+    z-index: 5;
+  }
+  .corl--nav {
+    width: 176px;
+  }
+  .corl--collapsed {
+    width: 56px;
+    padding-right: 0;
+  }
+  .bible-chapter-section.commentary-docked .corl-slot,
+  .bible-chapter-section.commentary-docked .corl {
+    display: none;
+  }
+}
+@media (min-width: 1440px) {
+  .bible-chapter-section.commentary-docked .corl-slot,
+  .bible-chapter-section.commentary-docked .corl {
+    display: block;
+  }
+}
+
+/* 섹션 내비 — 세로 목록. 활성은 브랜드 소프트 배경 + 브랜드 글자 */
+.corl-nav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.25rem;
+  margin-bottom: 0.25rem;
+  min-height: 28px;
+}
+.corl-nav-label {
+  margin: 0;
+  padding: 0;
+}
+.corl-collapse {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s;
+}
+.corl-collapse .material-icons-round {
+  font-size: 20px;
+}
+.corl-collapse:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.corl--collapsed .corl-nav-head {
+  justify-content: center;
+  padding: 0;
+}
+.corl-nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.corl-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.7rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+.corl-nav-item .material-icons-outlined {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.corl-nav-item:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.corl-nav-item.active {
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+}
+.corl-nav-text {
+  white-space: nowrap;
+}
+.corl--collapsed .corl-nav-item {
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin: 0 auto;
+  border-radius: 0.75rem;
+}
+.corl--collapsed .corl-nav {
+  gap: 4px;
+}
+
+/* 내비 아래 화면별 내용(장 개요) — 얇은 선으로 구분 */
+.corl-body {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--card-border);
+}
+
+.corl-head {
+  padding: 0 0.25rem 0.75rem;
+  border-bottom: 1px solid var(--card-border);
+  margin-bottom: 0.75rem;
+}
+.corl-book {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+.corl-book-ko {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+}
+.corl-book-en {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.corl-chap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+.corl-chap-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  transition: background 0.15s;
+}
+.corl-chap-btn .material-icons-round {
+  font-size: 20px;
+}
+.corl-chap-btn:hover:not(:disabled) {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.corl-chap-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.corl-chap-label {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.corl-chap-label em {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-left: 0.15rem;
+}
+
+.corl-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  padding: 0 0.25rem;
+  margin: 0.25rem 0 0.5rem;
+}
+.corl-list {
+  list-style: none;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  position: relative;
+}
+/* 세로 진행선 — 지나온 단락은 브랜드색으로 채워진다 */
+.corl-list::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: var(--card-border);
+  border-radius: 1px;
+}
+.corl-item {
+  position: relative;
+}
+.corl-item-btn {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.4rem 0.35rem;
+  border-radius: 0.6rem;
+  text-align: left;
+  transition: background 0.15s;
+}
+.corl-item-btn:hover {
+  background: var(--brand-soft);
+}
+.corl-num {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: var(--surface-container);
+  border: 2px solid var(--card-border);
+  color: var(--text-muted);
+  position: relative;
+  z-index: 1;
+  transition: all 0.2s;
+}
+.corl-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  padding-top: 0.15rem;
+}
+.corl-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  line-height: 1.35;
+  word-break: keep-all;
+  transition: color 0.15s;
+}
+.corl-range {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+.corl-item.passed .corl-num {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+.corl-item.passed .corl-title {
+  color: var(--text-muted);
+}
+.corl-item.active .corl-num {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--brand-soft-strong);
+}
+.corl-item.active .corl-title {
+  color: var(--brand);
+}
+.corl-item--skeleton {
+  height: 40px;
+  margin: 0.25rem 0.35rem;
+  border-radius: 0.6rem;
+  background: var(--surface-inset);
+}
+.corl-empty {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  padding: 0.5rem 0.35rem 1rem;
+}
+
+.corl-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 0 0.25rem;
+}
+.corl-cell {
+  height: 28px;
+  border-radius: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-inset);
+  position: relative;
+  transition: all 0.15s;
+}
+.corl-cell:hover {
+  background: var(--brand-soft-strong);
+  color: var(--brand);
+}
+.corl-cell.read::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  top: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--brand);
+  opacity: 0.6;
+}

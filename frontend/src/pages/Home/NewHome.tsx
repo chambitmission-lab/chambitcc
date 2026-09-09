@@ -24,6 +24,7 @@ import DailyMeditationCard from './components/DailyMeditationCard'
 import TimeCapsuleCard from './components/TimeCapsuleCard'
 import SurveyBanner from './components/SurveyBanner'
 import TodayPlanCard from './components/TodayPlanCard'
+import LiveReadingCard from './components/LiveReadingCard'
 import AnsweredPrayersBanner from './components/AnsweredPrayersBanner'
 import ThanksTicker from './components/ThanksTicker'
 import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
@@ -367,6 +368,10 @@ const NewHome = () => {
 
             {/* 오늘의 읽기 — 진행 중인 구독형 읽기 플랜(bible_plans) */}
             <TodayPlanCard />
+
+            {/* 지금 함께 읽는 말씀 — 성도들이 지금 모여 있는 장(실시간) 또는 오늘 가장 많이
+                읽힌 장. 아무도 없으면 렌더하지 않는다 */}
+            <LiveReadingCard />
 
             {/* 올해의 말씀 — 교회 연간 비전. 매일 바뀌는 '오늘' 영역과
                 커뮤니티(감사·기도) 영역 사이를 잇는 다리 위치 */}

@@ -44,6 +44,8 @@ export const readingTogetherKeys = {
   all: ['readingTogether'] as const,
   presence: (bookNumber: number, chapter: number) =>
     [...readingTogetherKeys.all, 'presence', bookNumber, chapter] as const,
+  /** 홈 카드 — 지금 붐비는 장 + 오늘 최다 장 */
+  live: () => [...readingTogetherKeys.all, 'live'] as const,
   summary: (bookNumber: number, chapter: number) =>
     [...readingTogetherKeys.all, 'summary', bookNumber, chapter] as const,
   reflections: (verseId: number) => [...readingTogetherKeys.all, 'reflections', verseId] as const,
