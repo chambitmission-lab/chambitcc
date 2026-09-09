@@ -27,6 +27,8 @@ import { readingTogetherKeys } from './queryKeys'
 
 /** 하트비트 주기 — 서버 TTL(90초)의 1/3 이하여야 순단 한 번에 사라지지 않는다 */
 export const HEARTBEAT_INTERVAL_MS = 25_000
+/** 하트비트를 안 보내는 뷰어(비로그인·공유 끔)의 현황 폴링 주기 */
+export const PRESENCE_POLL_INTERVAL_MS = 30_000
 
 // ── SSE → 캐시 ────────────────────────────────────────────────────────
 
@@ -106,7 +108,20 @@ export const installReadingTogetherStream = (qc: QueryClient) => {
 
 // ── 조회 훅 ───────────────────────────────────────────────────────────
 
-export const useChapterPresence = (bookNumber: number, chapter: number, enabled = true) =>
+/**
+ * 장 현황 조회.
+ *
+ * participating: 내가 하트비트를 보내는 중인지. 보내는 사람은 서버가 SSE 로 변화를 밀어 주고
+ * 하트비트 응답도 현황이라 폴링이 필요 없다. 안 보내는 사람(비로그인·공유 끔)은 서버가
+ * 그 장 사람들에게만 이벤트를 주므로 아무 갱신도 못 받는다 — 진입 시점 숫자가 굳어
+ * "지금 1명이 읽는 중"이 그 사람이 나간 뒤에도 계속 떠 있었다. 그래서 그때만 폴링한다.
+ */
+export const useChapterPresence = (
+  bookNumber: number,
+  chapter: number,
+  enabled = true,
+  participating = true,
+) =>
   useQuery({
     queryKey: readingTogetherKeys.presence(bookNumber, chapter),
     queryFn: () => getChapterPresence(bookNumber, chapter),
@@ -120,6 +135,9 @@ export const useChapterPresence = (bookNumber: number, chapter: number, enabled 
     gcTime: 0,
     refetchOnMount: 'always',
     refetchOnReconnect: 'always',
+    // 서버 TTL(90초)보다 충분히 짧게 — 나간 사람이 1분 넘게 남아 보이지 않도록
+    refetchInterval: participating ? false : PRESENCE_POLL_INTERVAL_MS,
+    refetchIntervalInBackground: false,
   })
 
 export const useChapterReflectionSummary = (bookNumber: number, chapter: number, enabled = true) =>

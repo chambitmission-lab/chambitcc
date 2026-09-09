@@ -25,6 +25,8 @@ interface VerseReflectionSheetProps {
   verseText: string
   /** 이 장을 지금 함께 읽는 다른 사람 수 (나 제외) */
   chapterOthers: number
+  /** 내가 장 카운트에 들어있는지 — 들어있으면 '나를 포함해 N명' */
+  meCounted: boolean
   onClose: () => void
 }
 
@@ -44,6 +46,7 @@ const VerseReflectionSheet = ({
   verseReference,
   verseText,
   chapterOthers,
+  meCounted,
   onClose,
 }: VerseReflectionSheetProps) => {
   useModalBackButton(onClose)
@@ -118,7 +121,11 @@ const VerseReflectionSheet = ({
           {chapterOthers > 0 ? (
             <div className="rt-live-line">
               <span className="rt-live-dot" aria-hidden />
-              지금 <strong>{chapterOthers}명</strong>이 이 장을 함께 읽고 있어요
+              {meCounted ? (
+                <>지금 나를 포함해 <strong>{chapterOthers + 1}명</strong>이 이 장을 함께 읽고 있어요</>
+              ) : (
+                <>지금 <strong>{chapterOthers}명</strong>이 이 장을 읽고 있어요</>
+              )}
             </div>
           ) : readersToday > 0 ? (
             <div className="rt-live-line">

@@ -52,6 +52,11 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
       import('../../pages/Bible/Plans/heroPrefetch')
         .then((m) => m.warmPlanHero())
         .catch(() => undefined)
+      // 알람 히어로 삽화도 같은 사정이다. 다만 그쪽은 ≥1440px 에서만 깔리므로
+      // warmAlarmHero 가 폭을 보고 스스로 걸러낸다(하단 도크에는 아예 넣지 않았다).
+      import('../../pages/Bible/VerseAlarm/heroPrefetch')
+        .then((m) => m.warmAlarmHero())
+        .catch(() => undefined)
     }
     // 첫 화면(장 본문·API)이 끝난 뒤 유휴 시간에 — 절약 모드·2G 에선 받지 않는다
     if (preloadBudget() === 'none') return

@@ -12,8 +12,12 @@ const CASES: Case[] = [
     props: { loading: true, total: undefined, readersToday: undefined, meCounted: false, mePending: false },
   },
   {
-    label: '지금 함께 읽는 중 — 브랜드 색 + 맥박 점',
+    label: '지금 함께 읽는 중(나 포함 2명) — 브랜드 색 + 맥박 점',
     props: { loading: false, total: 2, readersToday: 3, meCounted: true, mePending: false },
+  },
+  {
+    label: '비로그인·공유 끔 — 나는 카운트 밖이라 남의 수 그대로',
+    props: { loading: false, total: 2, readersToday: 3, meCounted: false, mePending: false },
   },
   {
     label: '오늘 읽은 성도가 있음',

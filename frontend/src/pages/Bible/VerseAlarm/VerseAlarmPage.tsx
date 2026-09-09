@@ -13,6 +13,7 @@ import { showToast } from '../../../utils/toast'
 import type { VerseAlarm } from '../../../api/verseAlarm'
 import './VerseAlarmPage.css'
 import { confirmDialog } from '../../../utils/confirmDialog'
+import { isAlarmHeroWarm, warmAlarmHero } from './heroPrefetch'
 
 const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
 
@@ -313,6 +314,20 @@ const VerseAlarmPage = () => {
   const [pickerMode, setPickerMode] = useState<'hour' | 'minute'>('hour')
   const [saving, setSaving] = useState(false)
 
+  // 히어로 배경 삽화는 CSS 배경이라 카드가 렌더된 뒤에야 요청이 나간다(heroPrefetch.ts).
+  // 성경 레일이 미리 데워 뒀으면 첫 렌더부터 보이고, 아니면 도착에 맞춰 페이드인한다.
+  const [artReady, setArtReady] = useState(isAlarmHeroWarm)
+  useEffect(() => {
+    if (artReady) return
+    let alive = true
+    void warmAlarmHero().then(() => {
+      if (alive) setArtReady(true)
+    })
+    return () => {
+      alive = false
+    }
+  }, [artReady])
+
   const sortedAlarms = useMemo(
     () => [...alarms].sort((a, b) => a.time_hhmm.localeCompare(b.time_hhmm)),
     [alarms]
@@ -528,7 +543,7 @@ const VerseAlarmPage = () => {
 
       {renderPushBanner()}
 
-      <section className="va-hero" aria-label="다음 알람">
+      <section className={`va-hero${artReady ? ' is-art-ready' : ''}`} aria-label="다음 알람">
         {isLoading ? <div className="va-hero-skeleton" /> : <AlarmDial alarms={alarms} />}
       </section>
       </div>

@@ -8,7 +8,10 @@ interface ChapterPresencePillProps {
   total: number | undefined
   /** 오늘 이 장을 읽은 성도 수 */
   readersToday: number | null | undefined
-  /** 내가 카운트에 포함돼 있는지(공유 켬 + 하트비트 중) — 표시할 땐 나를 뺀다 */
+  /**
+   * 내가 카운트에 포함돼 있는지(공유 켬 + 하트비트 중).
+   * 포함돼 있으면 "나를 포함해 N명", 아니면(비로그인·공유 끔) 남의 수만 "N명이 읽는 중".
+   */
   meCounted: boolean
   /**
    * 내 하트비트가 아직 서버에 안 들어간 상태(공유는 켰지만 읽는 절 확정 전).
@@ -26,6 +29,10 @@ interface ChapterPresencePillProps {
  * 생겼다 사라지면 본문 전체가 밀려 읽던 줄을 잃는다.
  * 실시간 동시 읽기는 드물어 '오늘 읽은 성도'를 바닥으로 깔고, 지금 함께 읽는 사람이
  * 있을 때만 브랜드 색 + 맥박 점으로 올라온다.
+ *
+ * 숫자는 "나 말고 N명"이 아니라 "나를 포함해 N명"이다 — 둘이 읽는데 '1명과 함께'라고
+ * 하면 한 명이 빠진 것처럼 읽힌다(2026-09 피드백). 내가 카운트 밖이면(비로그인·공유 끔)
+ * 포함할 내가 없으니 남의 수 그대로 "N명이 읽는 중".
  */
 const ChapterPresencePill = ({ loading, total, readersToday, meCounted, mePending }: ChapterPresencePillProps) => {
   const others = mePending ? 0 : Math.max(0, (total ?? 0) - (meCounted ? 1 : 0))
@@ -40,9 +47,15 @@ const ChapterPresencePill = ({ loading, total, readersToday, meCounted, mePendin
     body = (
       <>
         <span className="rt-live-dot" aria-hidden />
-        <span>
-          지금 <strong>{others}명</strong>과 함께 읽는 중
-        </span>
+        {meCounted ? (
+          <span>
+            지금 나를 포함해 <strong>{others + 1}명</strong>이 함께 읽는 중
+          </span>
+        ) : (
+          <span>
+            지금 <strong>{others}명</strong>이 이 장을 읽는 중
+          </span>
+        )}
       </>
     )
   } else if (readersToday && readersToday > 0) {

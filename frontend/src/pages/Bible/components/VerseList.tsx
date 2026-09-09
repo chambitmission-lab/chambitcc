@@ -676,7 +676,8 @@ const VerseList = ({
   useReadingPresenceHeartbeat({ bookNumber, chapter: selectedChapter, verse: readingVerse, enabled: presenceActive })
   // 본문을 기다리지 않고 바로 받는다 — 본문과 같은 프레임에 그려져야 묵상 칩이 뒤늦게
   // 끼어들며 본문을 미는 일이 줄어든다 (늦게 와도 아래 CSS 가 접힘→펼침으로 부드럽게 연다)
-  const { data: presence } = useChapterPresence(bookNumber, selectedChapter)
+  // 하트비트를 안 보내는 뷰어(비로그인·공유 끔)는 SSE 도 못 받으므로 폴링으로 따라간다.
+  const { data: presence } = useChapterPresence(bookNumber, selectedChapter, true, presenceActive)
   const { data: reflectionSummary } = useChapterReflectionSummary(bookNumber, selectedChapter)
   // "이 카운트에 내가 들어있는지"는 서버만 정확히 안다 — 내려주면 그대로 쓰고,
   // 아직 안 내려주는 백엔드에서만 하트비트 등록 여부로 짐작한다.
@@ -1207,6 +1208,7 @@ const VerseList = ({
           verseReference={`${chapterData.pages[0].book_name_ko} ${selectedChapter}:${reflectionTarget.verse}`}
           verseText={reflectionTarget.text}
           chapterOthers={chapterOthers}
+          meCounted={meCounted}
           onClose={() => setReflectionTarget(null)}
         />
       )}
