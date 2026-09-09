@@ -32,6 +32,7 @@ import WeeklyPrayerBanner from './components/WeeklyPrayerBanner'
 // import ThanksThread from './components/ThanksThread'
 import SortTabs from './components/SortTabs'
 import PrayerFeed from './components/PrayerFeed'
+import HomeQuickStrip, { HOME_CARD_IDS } from './components/HomeQuickStrip'
 import BottomNavigation from './components/BottomNavigation'
 import GroupFilter from '../../components/prayer/GroupFilter'
 import { usePrayersInfinite } from '../../hooks/usePrayersQuery'
@@ -364,22 +365,31 @@ const NewHome = () => {
             >
 
             {/* 오늘의 묵상 카드 — 시간대별 히어로가 홈의 첫인사 역할 (위계 최상단) */}
-            <DailyMeditationCard onWriteMeditation={handleComposerOpen} />
+            {/* 카드 래퍼 id 는 모바일 요약 스트립(HomeQuickStrip)의 바로가기 목적지 */}
+            <div id={HOME_CARD_IDS.meditation}>
+              <DailyMeditationCard onWriteMeditation={handleComposerOpen} />
+            </div>
 
             {/* 오늘의 읽기 — 진행 중인 구독형 읽기 플랜(bible_plans) */}
-            <TodayPlanCard />
+            <div id={HOME_CARD_IDS.plan}>
+              <TodayPlanCard />
+            </div>
 
             {/* 지금 함께 읽는 말씀 — 성도들이 지금 모여 있는 장(실시간) 또는 오늘 가장 많이
                 읽힌 장. 아무도 없으면 렌더하지 않는다 */}
-            <LiveReadingCard />
+            <div id={HOME_CARD_IDS.live}>
+              <LiveReadingCard />
+            </div>
 
             {/* 올해의 말씀 — 교회 연간 비전. 매일 바뀌는 '오늘' 영역과
                 커뮤니티(감사·기도) 영역 사이를 잇는 다리 위치 */}
-            <AnnualThemeVerse />
+            <div id={HOME_CARD_IDS.verse}>
+              <AnnualThemeVerse />
+            </div>
 
             {/* 공동체 소식 — 감사 한 줄 + 응답의 전당을 하나의 그룹 리스트 카드로 묶어
                 "관련 항목 한 덩어리"로 스캔되게 한다 (토스식 grouped list) */}
-            <section className="px-4 pt-3 pb-1.5">
+            <section id={HOME_CARD_IDS.grace} className="px-4 pt-3 pb-1.5">
               <p className="px-1 mb-1.5 flex items-center gap-1.5 text-[11.5px] font-bold tracking-[0.05em] text-[var(--text-muted)]">
                 {/* 올해의 말씀 장식과 같은 금색 반짝임 — 두 섹션을 은은하게 잇는다 */}
                 <svg width="10" height="10" viewBox="0 0 10 10" className="text-[#d9a514] shrink-0" aria-hidden>
@@ -398,7 +408,9 @@ const NewHome = () => {
             <SurveyBanner />
 
             {/* 타임캡슐 — 밤하늘 봉인 편지 히어로 (내 캡슐 상태 반영 동적 문구) */}
-            <TimeCapsuleCard />
+            <div id={HOME_CARD_IDS.capsule}>
+              <TimeCapsuleCard />
+            </div>
 
             {/* 오늘의 감사 (Small Thanks Thread) — 임시 비활성화 */}
             {/* <ThanksThread /> */}
@@ -489,6 +501,10 @@ const NewHome = () => {
             </div>{/* /피드 컬럼 */}
             </div>{/* /lg 2컬럼 래퍼 */}
           </main>
+
+          {/* 모바일 요약 스트립 — 피드 구간에서 위로 스크롤하면 헤더 밑에 카드 바로가기 칩이 내려온다.
+              PC(lg+)는 사이드바가 양방향 sticky 라 렌더하지 않는다 */}
+          <HomeQuickStrip feedAnchorRef={feedRef} />
 
           {/* 모달들 — 전부 lazy 청크. 열리기 전엔 마운트되지 않으므로 fallback 은 비워 둔다 */}
           <Suspense fallback={null}>

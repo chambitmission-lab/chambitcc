@@ -53,10 +53,10 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
       import('../../pages/Bible/Plans/heroPrefetch')
         .then((m) => m.warmPlanHero())
         .catch(() => undefined)
-      // 알람 히어로 삽화도 같은 사정이다. 폭에 따라 쓰는 에셋이 달라서(장면 한 장 /
-      // 양쪽 바닥 두 조각) warmAlarmHero 가 화면 폭을 보고 스스로 고른다.
+      // 알람 히어로 삽화도 같은 사정이다. 폭에 따라 쓰는 에셋이 달라서(원본 장면 /
+      // 모바일 띠) warmAlarmHero 가 화면 폭을 보고 스스로 고른다.
       // 모바일 하단 도크에는 넣지 않았다 — 알람은 도크 목적지가 아니라, 방문하지도
-      // 않을 사용자에게 조각 두 장을 미리 받게 할 이유가 없다(페이지가 직접 데운다).
+      // 않을 사용자에게 미리 받게 할 이유가 없다(페이지가 직접 데운다).
       import('../../pages/Bible/VerseAlarm/heroPrefetch')
         .then((m) => m.warmAlarmHero())
         .catch(() => undefined)

@@ -8,13 +8,13 @@
 // 라이트로 보던 사용자가 다크로 토글하면 그 순간 반대 테마 파일을 맨땅에서 받기 시작해
 // 카드가 빈 배경으로 남는다 — 그래서 현재 테마를 먼저, 반대 테마를 유휴 시간에 데운다.
 //
-// 폭에 따라 쓰는 에셋이 다르다(CSS 주석 참고) — ≥1440px 은 장면 한 장, 그 아래는
-// 양쪽 바닥에 세우는 두 조각. 안 쓰는 쪽을 받아 둘 이유는 없으므로 화면 폭을 보고 고른다.
+// 폭에 따라 쓰는 에셋이 다르다(CSS 주석 참고) — ≥1440px 은 원본 장면, 그 아래는 카드
+// 바닥에 까는 모바일 띠. 안 쓰는 쪽을 받아 둘 이유는 없으므로 화면 폭을 보고 고른다.
 
 const HERO = { light: '/images/verse-alarm/hero-light.webp', dark: '/images/verse-alarm/hero-dark.webp' }
-const PIECES = {
-  light: ['/images/verse-alarm/mobile-lamb-light.webp', '/images/verse-alarm/mobile-sheep-light.webp'],
-  dark: ['/images/verse-alarm/mobile-lamb-dark.webp', '/images/verse-alarm/mobile-sheep-dark.webp'],
+const BAND = {
+  light: '/images/verse-alarm/mobile-band-light.webp',
+  dark: '/images/verse-alarm/mobile-band-dark.webp',
 }
 
 /** 장면 한 장을 통째로 까는 폭인가 — VerseAlarmPage.css 의 @media (min-width: 1440px) 와 짝 */
@@ -24,8 +24,8 @@ const wideScene = (): boolean =>
 // 테마 판정은 index.html 의 테마 선적용 스크립트/ThemeContext 가 붙이는 .dark 를 따른다
 const isDark = (): boolean => document.documentElement.classList.contains('dark')
 
-const assetsFor = (dark: boolean): string[] =>
-  wideScene() ? [dark ? HERO.dark : HERO.light] : dark ? PIECES.dark : PIECES.light
+const assetFor = (dark: boolean): string =>
+  wideScene() ? (dark ? HERO.dark : HERO.light) : dark ? BAND.dark : BAND.light
 
 const inflight = new Map<string, Promise<void>>()
 const settled = new Set<string>()
@@ -58,17 +58,17 @@ const whenIdle = (fn: () => void): void => {
   }
 }
 
-/** 현재 테마 삽화가 이미 다 도착했는지 — 첫 렌더에서 페이드를 건너뛰는 데 쓴다 */
+/** 현재 테마 삽화가 이미 도착했는지 — 첫 렌더에서 페이드를 건너뛰는 데 쓴다 */
 export const isAlarmHeroWarm = (): boolean =>
-  typeof window !== 'undefined' && assetsFor(isDark()).every((src) => settled.has(src))
+  typeof window !== 'undefined' && settled.has(assetFor(isDark()))
 
 /** 현재 테마 삽화를 받고, 이어서 유휴 시간에 반대 테마까지 받아 둔다(토글 지연 제거) */
 export const warmAlarmHero = (): Promise<void> => {
   if (typeof window === 'undefined') return Promise.resolve()
 
   const dark = isDark()
-  const promise = Promise.all(assetsFor(dark).map(warm)).then(() => undefined)
+  const promise = warm(assetFor(dark))
   // 반대 테마는 첫 화면 리소스와 대역폭을 다투지 않게 현재 테마가 끝난 뒤 유휴 시간에
-  void promise.then(() => whenIdle(() => void Promise.all(assetsFor(!dark).map(warm))))
+  void promise.then(() => whenIdle(() => void warm(assetFor(!dark))))
   return promise
 }
