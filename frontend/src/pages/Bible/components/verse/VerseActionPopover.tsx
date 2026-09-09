@@ -66,6 +66,8 @@ export interface VerseActionHandlers {
   onEnterSelection?: (verse: BibleVerse) => void
   onShare?: (target: VerseCopyTarget) => void
   onEdit?: (verse: BibleVerse) => void
+  /** 함께 읽기 — 이 절의 묵상 나눔 시트 */
+  onOpenReflections?: () => void
 }
 
 interface VerseActionPopoverProps {
@@ -78,6 +80,8 @@ interface VerseActionPopoverProps {
   bookmark: VerseBookmark | null | undefined
   hasWordNotes: boolean
   hasCommentary: boolean
+  /** 이 절에 남겨진 공개 묵상 수 — 있으면 '나눔' 항목을 강조 */
+  reflectionCount?: number
   reading: VerseReadingControls
   handlers: VerseActionHandlers
   /** 항목을 고르면 메뉴를 닫는다 — 열림 상태는 부모(VerseList)가 관리 */
@@ -95,6 +99,7 @@ const VerseActionPopover = ({
   bookmark,
   hasWordNotes,
   hasCommentary,
+  reflectionCount = 0,
   reading,
   handlers,
   onClose,
@@ -184,6 +189,17 @@ const VerseActionPopover = ({
           label="듣기"
           title="여기부터 듣기"
           onClick={pick(() => handlers.onListenFrom?.(verse))}
+        />
+      )}
+
+      {/* 함께 읽기 — 같은 말씀을 읽는 성도들과 묵상 나누기 */}
+      {handlers.onOpenReflections && (
+        <VerseAction
+          icon="forum"
+          label="나눔"
+          title={reflectionCount > 0 ? `성도의 묵상 ${reflectionCount}개 보기` : '이 말씀에 묵상 남기기'}
+          tone={reflectionCount > 0 ? 'active' : 'default'}
+          onClick={pick(() => handlers.onOpenReflections?.())}
         />
       )}
 

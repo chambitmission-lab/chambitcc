@@ -33,6 +33,8 @@ export interface RequestOptions {
   headers?: Record<string, string>
   signal?: AbortSignal
   cache?: RequestCache
+  /** 페이지가 닫히는 중에도 요청이 살아남게 한다(이탈 신호 등 작은 요청 전용, 64KB 제한) */
+  keepalive?: boolean
   /** 서버가 detail 을 주지 않을 때 쓸 메시지 */
   errorMessage?: string
   /** 서버 응답에 상관없이 항상 errorMessage 를 쓴다(사용자에게 원문을 보이고 싶지 않을 때) */
@@ -91,6 +93,7 @@ const buildInit = (options: RequestOptions): RequestInit => {
     body,
     signal: options.signal,
     cache: options.cache,
+    keepalive: options.keepalive,
   }
 }
 

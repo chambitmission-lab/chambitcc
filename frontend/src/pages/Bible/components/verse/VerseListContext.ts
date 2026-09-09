@@ -29,6 +29,8 @@ export interface VerseListActions {
   onEnterSelection?: (verse: BibleVerse) => void
   /** 공유 — 목록이 공유 시트를 띄운다. 없으면 네이티브 공유로 폴백 */
   onShare?: (target: VerseCopyTarget) => void
+  /** 함께 읽기 — 이 절의 묵상 나눔 시트를 연다 (시트는 목록에 하나뿐, 배너에서도 연다) */
+  onOpenReflections?: (verse: BibleVerse) => void
 }
 
 export interface VerseListSettings {

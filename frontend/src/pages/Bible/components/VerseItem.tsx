@@ -20,6 +20,8 @@ import { useHoldToRead } from './verse/useHoldToRead'
 import { useWordSelection } from './verse/useWordSelection'
 import { useGlossarySegments, useNoteSegments, useWordTokens } from './verse/verseTextSegments'
 import { can } from '../../../utils/access'
+import { showToast } from '../../../utils/toast'
+import VerseTogetherChip from './together/VerseTogetherChip'
 
 interface VerseItemProps {
   verse: BibleVerse
@@ -44,6 +46,10 @@ interface VerseItemProps {
   // 본문 보기 — list(절마다 한 줄, 기본) / flow(문단으로 이어 붙이고 번호는 위첨자).
   // flow일 땐 부모가 단락(div.verse-paragraph__body) 안에 인라인으로 나열한다.
   layout?: 'list' | 'flow'
+  // 함께 읽기 — 이 절을 지금 읽는 다른 사람 수(나 제외) / 이 절의 공개 묵상 수.
+  // 부모(VerseList)가 장 단위 presence·요약 캐시에서 절별로 나눠준다
+  liveOthers?: number
+  reflectionCount?: number
 }
 
 const ROW_ACCENT_BASE: CSSProperties = {
@@ -59,11 +65,13 @@ const ROW_ACCENT_BASE: CSSProperties = {
 const VerseItem = ({
   verse, bookNameKo, bookNumber, chapter, isRead, isTogglingRead, hasCommentary, isAudioActive, actionsOpen,
   wordNotes, chapterBookmark, isSelected, layout = 'list',
+  liveOthers = 0, reflectionCount = 0,
 }: VerseItemProps) => {
   // 목록 수준 액션·설정은 컨텍스트에서 — 절 props 는 "이 절"에 관한 것만 받는다
   const {
     onReadSuccess, onEdit, onToggleRead, onShowCommentary, onListenFrom,
     onActionsOpenChange: setActionsOpenById, onToggleSelect, onEnterSelection, onShare,
+    onOpenReflections,
   } = useVerseListActions()
   const { selectionMode, readStatusReady } = useVerseListSettings()
   // 팝 애니메이션은 "상태가 이미 알려진 뒤에 미읽음→읽음으로 바뀐" 경우에만 —
@@ -167,6 +175,16 @@ const VerseItem = ({
       : `${verse.verse}절 메뉴 ${showActions ? '닫기' : '열기'}`,
   }
 
+  // 함께 읽기 — 묵상 나눔 시트는 목록(VerseList)에 하나뿐이라 열기만 위임한다.
+  // 묵상 본문은 성도만 볼 수 있어 비로그인은 안내로 끝낸다.
+  const openReflections = () => {
+    if (!loggedIn) {
+      showToast('로그인하면 같은 말씀을 읽는 성도들과 묵상을 나눌 수 있어요', 'info')
+      return
+    }
+    onOpenReflections?.(verse)
+  }
+
   // 복사/공유 대상 — 이 절 하나 (여러 절은 VerseList의 선택 바가 따로 만든다)
   const copyTarget: VerseCopyTarget = {
     bookNameKo: bookNameKo ?? verse.book_name_ko ?? '',
@@ -218,6 +236,7 @@ const VerseItem = ({
       bookmark={bookmark}
       hasWordNotes={(wordNotes?.length ?? 0) > 0}
       hasCommentary={!!hasCommentary}
+      reflectionCount={reflectionCount}
       reading={{
         isSupported,
         isReading,
@@ -235,6 +254,7 @@ const VerseItem = ({
         onEnterSelection,
         onShare,
         onEdit,
+        onOpenReflections: onOpenReflections ? openReflections : undefined,
       }}
       onClose={() => onActionsOpenChange(false)}
     />
@@ -297,6 +317,9 @@ const VerseItem = ({
             <span title="즐겨찾기" className="bible-verse-flow-fav">
               <HeartIcon size={11} filled />
             </span>
+          )}
+          {!selectionMode && (
+            <VerseTogetherChip liveOthers={liveOthers} reflectionCount={reflectionCount} inline onOpen={openReflections} />
           )}
         </span>
         {/* 묵상 노트 — 문단을 어지럽히지 않게 아이콘 칩만, 누르면 읽기 시트 */}
@@ -517,6 +540,11 @@ const VerseItem = ({
             {bookmark!.note}
           </span>
         </button>
+      )}
+
+      {/* 함께 읽기 칩 — 지금 이 절을 함께 읽는 사람 / 남겨진 묵상. 둘 다 없으면 안 그린다 */}
+      {!selectionMode && (
+        <VerseTogetherChip liveOthers={liveOthers} reflectionCount={reflectionCount} onOpen={openReflections} />
       )}
 
       {sheetsEl}

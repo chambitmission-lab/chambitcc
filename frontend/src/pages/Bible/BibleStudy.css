@@ -25,6 +25,9 @@
 /* Verse Display - 성경 본문 표시 */
 @import './styles/verse-display.css';
 
+/* 함께 읽기 — 장 현황 pill · 절 칩 · 실시간 배너 · 묵상 시트 (rt- 접두사) */
+@import './styles/reading-together.css';
+
 /* 집중 읽기(focus-reading.css)·낭독 영화관(cinema-reading.css)·검색(search.css)은
    열 때만 받는 lazy 청크의 컴포넌트가 직접 import 한다 — 여기서 묶으면 읽기 화면이
    쓰지도 않는 스타일을 첫 로드에 받는다. */

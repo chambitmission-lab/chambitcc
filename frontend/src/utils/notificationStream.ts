@@ -16,6 +16,9 @@ import { prayerKeys } from '../hooks/usePrayersQuery'
 const INITIAL_RETRY_MS = 5_000
 const MAX_RETRY_MS = 60_000
 
+/** 스트림 이벤트 구독자 — data 는 SSE data 라인 원문(JSON 문자열) */
+export type StreamEventHandler = (data: string) => void
+
 class NotificationStreamManager {
   /** 현재 SSE 연결 여부 — useNotifications가 폴백 폴링 여부를 결정하는 데 사용 */
   connected = false
@@ -27,6 +30,40 @@ class NotificationStreamManager {
   // stop() 직후 start() 되어도(StrictMode의 mount→cleanup→mount 등)
   // 이전 루프가 계속 돌지 않도록 세대 번호로 구분한다
   private generation = 0
+  // 기능별 이벤트 구독자 — 알림/기도 반응은 이 클래스가 직접 처리하지만, 그 밖의
+  // 이벤트(함께 읽기 presence, 절 묵상 등)는 각 기능 모듈이 on() 으로 붙인다.
+  // 새 실시간 기능마다 이 파일을 고치지 않게 하기 위한 확장점(OCP).
+  private handlers = new Map<string, Set<StreamEventHandler>>()
+
+  /**
+   * 이벤트 구독. 'connected' 도 구독할 수 있다(재연결 직후 상태를 다시 보내야 하는 기능용).
+   * 반환값을 호출하면 해제된다. 연결 여부와 무관하게 언제든 등록 가능.
+   */
+  on(event: string, handler: StreamEventHandler): () => void {
+    let set = this.handlers.get(event)
+    if (!set) {
+      set = new Set()
+      this.handlers.set(event, set)
+    }
+    set.add(handler)
+    return () => {
+      set?.delete(handler)
+      if (set && set.size === 0) this.handlers.delete(event)
+    }
+  }
+
+  private dispatch(event: string, data: string): void {
+    const set = this.handlers.get(event)
+    if (!set) return
+    for (const handler of set) {
+      try {
+        handler(data)
+      } catch (err) {
+        // 한 구독자의 오류가 다른 구독자·스트림 루프를 죽이면 안 된다
+        console.error(`[stream] handler for "${event}" failed`, err)
+      }
+    }
+  }
 
   start(queryClient: QueryClient): void {
     this.queryClient = queryClient
@@ -131,6 +168,7 @@ class NotificationStreamManager {
             } else if (event === 'prayer_reaction' || event === 'prayer_reply') {
               this.applyPrayerCount(event, data)
             }
+            this.dispatch(event, data)
           },
         )
       } catch {

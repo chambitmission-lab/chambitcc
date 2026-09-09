@@ -1,0 +1,360 @@
+/* ─────────────────────────────────────────────────────────────────
+   함께 읽기 (reading together) — 장 현황 pill · 절 칩 · 실시간 배너 · 묵상 시트
+   접두사 rt- 필수 (bjp-/corl- 와 같은 규칙). 색은 theme.css 브랜드 토큰만 쓴다.
+   ───────────────────────────────────────────────────────────────── */
+
+/* 실시간 점 — 무한 글로우 대신 아주 작은 맥박 하나 */
+.rt-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+  flex-shrink: 0;
+  animation: rt-pulse 1.8s ease-in-out infinite;
+}
+@keyframes rt-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.72); opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-live-dot { animation: none; }
+}
+
+/* ── 장 현황 pill (진행률 pill 아래) ── */
+.rt-chapter-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  margin-bottom: 0.875rem;
+  max-width: 42rem;
+  margin-inline: auto;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+  font-size: 0.8125rem;
+  color: var(--text-body);
+  animation: rt-pop 0.18s ease-out;
+}
+.rt-chapter-pill--quiet {
+  background: var(--ig-secondary-background);
+  border-color: transparent;
+  color: var(--text-muted);
+}
+.rt-chapter-pill strong {
+  color: var(--brand);
+  font-weight: 800;
+}
+.rt-chapter-pill__icon {
+  display: inline-flex;
+  color: var(--brand);
+  flex-shrink: 0;
+}
+.rt-chapter-pill--quiet .rt-chapter-pill__icon { color: var(--text-muted); }
+@keyframes rt-pop {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ── 절 아래 칩 (묵상 노트 칩과 같은 자리·같은 크기) ── */
+.rt-verse-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  align-self: flex-start;
+  margin-left: 3.25rem;
+  margin-top: 0.25rem;
+  max-width: calc(100% - 3.25rem);
+}
+.rt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.65rem 0.28rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--brand-soft-strong);
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  animation: rt-pop 0.16s ease-out;
+}
+.rt-chip:hover { filter: brightness(0.97); }
+.rt-chip__icon { display: inline-flex; }
+.rt-chip--muted {
+  background: var(--ig-secondary-background);
+  border-color: transparent;
+  color: var(--text-muted);
+}
+.rt-chip--muted .rt-chip__icon { color: var(--brand); }
+/* 이어읽기(문단) 보기 — 문단 흐름 안의 작은 인라인 배지 */
+.rt-chip--inline {
+  vertical-align: middle;
+  margin-left: 0.2rem;
+  padding: 0.1rem 0.45rem 0.1rem 0.4rem;
+  font-size: 0.68rem;
+  gap: 0.2rem;
+  animation: none;
+}
+
+/* ── 실시간 배너: 같은 장을 읽는 성도가 방금 묵상을 남겼을 때 ── */
+.rt-banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: min(92vw, 26rem);
+  padding: 0.6rem 0.75rem 0.6rem 0.85rem;
+  border-radius: 1rem;
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--brand-soft-strong);
+  box-shadow: 0 10px 30px -10px var(--brand-glow), 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: var(--text-body);
+  font-size: 0.8125rem;
+  animation: rt-banner-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.dark .rt-banner { background: #201f1f; }
+.rt-banner__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+.rt-banner__body { min-width: 0; flex: 1; }
+.rt-banner__title {
+  font-weight: 700;
+  color: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rt-banner__title strong { color: var(--brand); }
+.rt-banner__preview {
+  margin-top: 1px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.76rem;
+}
+.rt-banner__cta {
+  flex-shrink: 0;
+  color: var(--brand);
+  font-weight: 800;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+}
+@keyframes rt-banner-in {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* ── 묵상 시트 내부 ── */
+.rt-prompt {
+  border-radius: 1rem;
+  padding: 0.9rem 1rem;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-soft-strong);
+}
+.rt-prompt__q {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-body);
+  letter-spacing: -0.01em;
+}
+.rt-prompt__hint {
+  margin-top: 2px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+.rt-textarea {
+  width: 100%;
+  margin-top: 0.6rem;
+  min-height: 84px;
+  resize: none;
+  border-radius: 0.8rem;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-body);
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--ig-border);
+  outline: none;
+}
+.dark .rt-textarea { background: rgba(255, 255, 255, 0.04); }
+.rt-textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+.rt-prompt__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.rt-counter { font-size: 0.72rem; color: var(--text-muted); }
+.rt-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 38px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.82rem;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -10px var(--brand-glow);
+}
+.rt-btn-primary:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+
+.rt-card {
+  border-radius: 1rem;
+  padding: 0.85rem 0.95rem;
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--ig-border);
+}
+.dark .rt-card { background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.07); }
+.rt-card--mine { border-color: var(--brand-soft-strong); }
+.rt-card__head { display: flex; align-items: center; gap: 0.6rem; }
+.rt-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+.rt-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.rt-avatar--sm { width: 26px; height: 26px; font-size: 0.7rem; }
+.rt-card__name { font-weight: 700; font-size: 0.86rem; color: var(--text-body); }
+.rt-card__meta { font-size: 0.72rem; color: var(--text-muted); }
+.rt-card__body {
+  margin-top: 0.55rem;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-body);
+}
+.rt-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+.rt-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 30px;
+  padding: 0 0.6rem;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.rt-action:hover { background: var(--ig-secondary-background); }
+.rt-action--on { color: var(--brand); }
+.rt-action--danger:hover { color: #e5484d; }
+.rt-action__spacer { flex: 1; }
+
+.rt-replies {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--ig-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.rt-reply { display: flex; gap: 0.5rem; align-items: flex-start; }
+.rt-reply__bubble {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0.8rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--ig-secondary-background);
+}
+.rt-reply__name { font-size: 0.76rem; font-weight: 700; color: var(--text-body); }
+.rt-reply__meta { font-size: 0.68rem; color: var(--text-muted); margin-left: 0.35rem; }
+.rt-reply__text { margin-top: 2px; font-size: 0.86rem; line-height: 1.55; color: var(--text-body); white-space: pre-wrap; }
+.rt-reply__del {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  align-self: center;
+}
+.rt-reply-form { display: flex; gap: 0.4rem; align-items: flex-end; }
+.rt-reply-form textarea {
+  flex: 1;
+  min-height: 38px;
+  max-height: 120px;
+  resize: none;
+  border-radius: 0.8rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--text-body);
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--ig-border);
+  outline: none;
+}
+.dark .rt-reply-form textarea { background: rgba(255, 255, 255, 0.04); }
+.rt-reply-form textarea:focus { border-color: var(--brand); }
+.rt-reply-form button {
+  height: 38px;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.rt-reply-form button:disabled { opacity: 0.5; cursor: default; }
+
+.rt-empty {
+  text-align: center;
+  padding: 1.2rem 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.rt-live-line {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.rt-live-line strong { color: var(--brand); font-weight: 800; }

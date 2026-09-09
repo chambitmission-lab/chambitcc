@@ -33,6 +33,13 @@ import { getReaderLayout, subscribeReaderLayout } from '../data/readerLayout'
 import { loadBookOutline, peekBookOutline, type BookOutline, type OutlineSection } from '../data/chapterOutlines'
 import { bibleKeys } from '../../../hooks/queryKeys'
 import { can } from '../../../utils/access'
+// 함께 읽기 — 읽는 줄 감지 → 하트비트 → presence/묵상 요약 캐시 → 절 칩·장 pill·배너·시트
+import { useReadingLine } from '../hooks/useReadingLine'
+import { useChapterPresence, useChapterReflectionSummary, useReadingPresenceHeartbeat } from '../../../hooks/useReadingTogether'
+import { isPresenceSharingEnabled, subscribePresenceSharing } from '../data/presenceSharing'
+import ChapterPresencePill from './together/ChapterPresencePill'
+import ReflectionLiveBanner from './together/ReflectionLiveBanner'
+const VerseReflectionSheet = lazyModal(() => import('./together/VerseReflectionSheet'))
 
 /** 절 번호 길게 누르기 안내를 이미 본 적 있는지 (한 번 보면 다시 안 뜬다) */
 const HOLD_HINT_KEY = 'bible_hold_read_hint_v1'
@@ -149,6 +156,9 @@ const VerseList = ({
   // 공유 시트 — 단일 절(VerseItem)과 여러 절 선택 바가 같은 시트 하나를 공유한다.
   // 절마다 시트를 두면 여러 개가 겹쳐 뜨고 뒤로가기 스택도 꼬인다.
   const [shareTarget, setShareTarget] = useState<VerseCopyTarget | null>(null)
+  // 함께 읽기 묵상 시트 — 절 칩·액션 메뉴·실시간 배너가 모두 이 하나를 연다
+  const [reflectionTarget, setReflectionTarget] = useState<BibleVerse | null>(null)
+  const openReflections = useCallback((verse: BibleVerse) => setReflectionTarget(verse), [])
   // '절 번호 꾹 눌러 읽음 표시' 안내 — 처음 한 번만. 제스처는 눈에 보이지 않아
   // 알려주지 않으면 아무도 쓰지 않는다. 한 번 써 보면 자동으로 사라진다.
   const [showHoldHint, setShowHoldHint] = useState(() => {
@@ -647,6 +657,24 @@ const VerseList = ({
   // getElementById 가 null 인 채 끝나 딥링크가 첫 진입에 안 가던 버그가 있었다 —
   // 게이트 조건과 이 값은 반드시 같이 움직여야 한다.
   const bodyRendered = !isLoading && !!chapterData
+
+  // ── 함께 읽기 ──
+  // 읽는 줄(화면 40% 지점)이 3초 이상 머문 절만 서버에 알린다. 공유를 끄면 하트비트가
+  // 멈추고 이탈을 보낸다. 현황·요약은 장 진입 때 한 번 받고 이후엔 SSE 가 캐시를 갱신한다.
+  const presenceSharing = useSyncExternalStore(subscribePresenceSharing, isPresenceSharingEnabled)
+  const presenceActive = isLoggedIn() && presenceSharing && bodyRendered
+  const chapterTotalVerses = chapterData?.pages[0]?.total_verses
+  const readingVerse = useReadingLine(bookNumber, selectedChapter, chapterTotalVerses, presenceActive)
+  useReadingPresenceHeartbeat({ bookNumber, chapter: selectedChapter, verse: readingVerse, enabled: presenceActive })
+  const { data: presence } = useChapterPresence(bookNumber, selectedChapter, bodyRendered)
+  const { data: reflectionSummary } = useChapterReflectionSummary(bookNumber, selectedChapter, bodyRendered)
+  const meCounted = presenceActive && readingVerse !== null
+  // 절별 "나 말고 몇 명" — 서버 카운트엔 내가 포함돼 있어 내 자리에서 하나 뺀다
+  const liveOthersAt = (verseNo: number) => {
+    const count = presence?.verse_counts[String(verseNo)] ?? 0
+    return Math.max(0, count - (meCounted && readingVerse === verseNo ? 1 : 0))
+  }
+  const reflectionCountAt = (verseNo: number) => reflectionSummary?.verse_counts[String(verseNo)] ?? 0
   useEffect(() => {
     if (!scrollToVerse || !bodyRendered || !chapterData) return
     const el = document.getElementById(`bible-verse-${scrollToVerse}`)
@@ -698,7 +726,8 @@ const VerseList = ({
     onToggleSelect: toggleSelect,
     onEnterSelection: enterSelection,
     onShare: setShareTarget,
-  }), [handleReadSuccess, handleEditVerse, handleToggleRead, handleShowCommentary, onListenFromVerse, handleListenFrom, handleActionsOpenChange, toggleSelect, enterSelection])
+    onOpenReflections: openReflections,
+  }), [handleReadSuccess, handleEditVerse, handleToggleRead, handleShowCommentary, onListenFromVerse, handleListenFrom, handleActionsOpenChange, toggleSelect, enterSelection, openReflections])
   // 비로그인은 읽음 상태 쿼리가 꺼져 있어 '도착'으로 본다
   const readStatusReady = !isLoggedIn() || !readStatusLoading
   const verseSettings = useMemo<VerseListSettings>(
@@ -741,6 +770,8 @@ const VerseList = ({
       }
       isSelected={selectedIdSet.has(verse.id)}
       layout={verseLayout}
+      liveOthers={liveOthersAt(verse.verse)}
+      reflectionCount={reflectionCountAt(verse.verse)}
     />
   )
 
@@ -801,6 +832,9 @@ const VerseList = ({
           </span>
         </div>
       )}
+
+      {/* 함께 읽기 — 지금 이 장을 함께 읽는 성도 / 오늘 읽은 성도 */}
+      <ChapterPresencePill total={presence?.total} readersToday={presence?.readers_today} meCounted={meCounted} />
 
       {/* 관리자 전용: 장 일괄 읽음/취소 — 업적·칭호 테스트용, 본인 계정에만 적용 */}
       {isAdminUser && isLoggedIn() && readStatusData && (() => {
@@ -1130,6 +1164,33 @@ const VerseList = ({
       {/* 공유 시트 — 보내기 전 미리보기 (텍스트/이미지 카드/링크) */}
       {shareTarget && (
         <VerseShareSheet target={shareTarget} onClose={() => setShareTarget(null)} />
+      )}
+
+      {/* 함께 읽기 — 같은 장을 읽는 성도가 방금 남긴 묵상 배너 (탭하면 그 절의 시트) */}
+      {chapterData.pages[0] && (
+        <ReflectionLiveBanner
+          bookNumber={bookNumber}
+          chapter={selectedChapter}
+          bookNameKo={chapterData.pages[0].book_name_ko}
+          onOpen={(verseNo) => {
+            const found = chapterData.pages.flatMap((page) => page.verses).find((v) => v.verse === verseNo)
+            if (found) setReflectionTarget(found)
+          }}
+        />
+      )}
+
+      {/* 함께 읽기 — 절 묵상 나눔 시트 (목록에 하나) */}
+      {reflectionTarget && chapterData.pages[0] && (
+        <VerseReflectionSheet
+          verseId={reflectionTarget.id}
+          bookNumber={bookNumber}
+          chapter={selectedChapter}
+          verse={reflectionTarget.verse}
+          verseReference={`${chapterData.pages[0].book_name_ko} ${selectedChapter}:${reflectionTarget.verse}`}
+          verseText={reflectionTarget.text}
+          liveOthers={liveOthersAt(reflectionTarget.verse)}
+          onClose={() => setReflectionTarget(null)}
+        />
       )}
 
       {/* 해석 패널 */}

@@ -39,6 +39,17 @@ export const bibleKeys = {
   storyVerses: (episodeId: string | number) => [...bibleKeys.all, 'story-verses', episodeId] as const,
 }
 
+/** 함께 읽기 — 실시간 읽기 현황 + 절 묵상 나눔. SSE 핸들러가 이 키로 캐시를 직접 갱신한다 */
+export const readingTogetherKeys = {
+  all: ['readingTogether'] as const,
+  presence: (bookNumber: number, chapter: number) =>
+    [...readingTogetherKeys.all, 'presence', bookNumber, chapter] as const,
+  summary: (bookNumber: number, chapter: number) =>
+    [...readingTogetherKeys.all, 'summary', bookNumber, chapter] as const,
+  reflections: (verseId: number) => [...readingTogetherKeys.all, 'reflections', verseId] as const,
+  replies: (reflectionId: number) => [...readingTogetherKeys.all, 'replies', reflectionId] as const,
+}
+
 export const sermonKeys = {
   all: ['sermons'] as const,
   /** includeContent=false 는 전문 없는 경량 목록 — 키를 분리해 전문 포함 캐시와 섞이지 않게 한다 */

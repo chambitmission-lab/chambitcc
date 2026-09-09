@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { loadCopyPrefs, saveCopyPrefs, type CopyPrefs, type CopyStyle } from './verseCopy'
 import { isGlossaryEnabled, setGlossaryEnabled } from '../data/bibleGlossary'
 import { getReaderLayout, setReaderLayout, type ReaderLayout } from '../data/readerLayout'
+import { isPresenceSharingEnabled, setPresenceSharingEnabled } from '../data/presenceSharing'
 import { ensureDeferredFontsNow } from '../../../utils/deferredFonts'
 
 /**
@@ -76,6 +77,8 @@ const ReaderSettings = () => {
   const [glossaryOn, setGlossaryOn] = useState(isGlossaryEnabled)
   // 본문 보기(절별/이어읽기) — readerLayout 모듈이 저장·전파 (VerseList가 구독)
   const [layout, setLayout] = useState<ReaderLayout>(getReaderLayout)
+  // 함께 읽기 — 내 읽기 위치 공유 (presenceSharing 모듈이 저장·전파, VerseList 하트비트가 구독)
+  const [sharingOn, setSharingOn] = useState(isPresenceSharingEnabled)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   // 마운트 시(및 변경 시) 저장된 설정을 CSS 변수로 반영
@@ -274,6 +277,37 @@ const ReaderSettings = () => {
           <p className="reader-settings__hint">
             바로·라합 같은 인물·지명, 긍휼·기업 같은 어려운 말, 셀라·달리다굼 같은 원어에 옅은
             점선이 표시되고, 누르면 한 줄 설명이 열려요.
+          </p>
+
+          {/* 함께 읽기 — 읽기 위치 공유. 끄면 하트비트가 즉시 멈추고 카운트에서 빠진다 */}
+          <div className="reader-settings__row">
+            <span className="reader-settings__label">함께 읽기</span>
+            <div className="reader-settings__seg">
+              <button
+                type="button"
+                className={sharingOn ? 'active' : ''}
+                onClick={() => {
+                  setPresenceSharingEnabled(true)
+                  setSharingOn(true)
+                }}
+              >
+                켜기
+              </button>
+              <button
+                type="button"
+                className={!sharingOn ? 'active' : ''}
+                onClick={() => {
+                  setPresenceSharingEnabled(false)
+                  setSharingOn(false)
+                }}
+              >
+                끄기
+              </button>
+            </div>
+          </div>
+          <p className="reader-settings__hint">
+            켜 두면 같은 장을 읽는 성도에게 "지금 N명이 함께 읽는 중"으로 숫자만 보여요. 이름이나
+            위치는 공개되지 않고, 끄면 바로 빠져요.
           </p>
 
           <p className="reader-settings__preview" style={{

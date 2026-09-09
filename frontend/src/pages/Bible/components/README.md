@@ -142,6 +142,35 @@ interface VerseListProps {
 
 ---
 
+### 9. together/ (함께 읽기)
+**책임**: 성경 → 묵상 → 사람 → 대화 연결. 같은 장을 읽는 성도 수(실시간)와 절 묵상 나눔.
+
+```
+together/
+├── ChapterPresencePill.tsx    # "지금 N명이 이 장을 함께" / "오늘 N명의 성도가 읽었어요" (장 상단)
+├── VerseTogetherChip.tsx      # 절 아래 칩: "N명이 함께 읽는 중" · "묵상 N" (둘 다 0이면 안 그림)
+├── ReflectionLiveBanner.tsx   # 같은 장 성도가 방금 남긴 묵상 배너 (readingTogetherBus 구독)
+├── VerseReflectionSheet.tsx   # 묵상 나눔 하단 시트 (목록에 하나, 칩·액션 메뉴·배너가 연다)
+├── ReflectionCard.tsx         # 묵상 한 장 + 공감/댓글/수정/삭제
+├── ReflectionReplies.tsx      # 댓글 목록 + 한 줄 작성 (펼칠 때만 조회)
+└── RtAvatar.tsx               # 작성자 아바타
+```
+
+**데이터 흐름** (레이어별 책임):
+- `hooks/useReadingLine.ts` — 스크롤 위치 → 3초 이상 머문 절 번호 (측정만)
+- `hooks/useReadingTogether.ts` — 하트비트(25초·절 바뀔 때·탭 복귀·SSE 재연결) + SSE `reading_presence`/`verse_reflection` → React Query 캐시
+- `hooks/useVerseReflections.ts` — 묵상 CRUD·공감·댓글 뮤테이션과 캐시 패치
+- `data/presenceSharing.ts` — "함께 읽기" 설정 저장/전파 (읽기 설정 Aa)
+- `utils/readingTogetherBus.ts` — 순간 알림(배너)용 이벤트 버스. 캐시가 아니라 사건이라 분리
+- `utils/notificationStream.on(event, handler)` — 스트림 확장점. 새 실시간 기능은 매니저를 고치지 않고 핸들러만 등록
+
+**주의**
+- 서버 카운트에는 내가 포함돼 있다 → 표시할 땐 `VerseList.liveOthersAt` 이 내 자리에서 1을 뺀다
+- 묵상 본문은 로그인 필수, 절별 개수 요약은 비로그인도 조회 가능
+- CSS 는 `styles/reading-together.css`, 접두사 `rt-` 필수
+
+---
+
 ## 사용 방법
 
 ### 개별 import
