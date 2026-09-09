@@ -78,6 +78,8 @@ const VerseReflectionSheet = ({
   const fail = (e: unknown, fallback: string) => showToast(e instanceof Error ? e.message : fallback, 'error')
 
   const readersToday = presence?.readers_today ?? 0
+  const meReadToday = presence?.me_read_today === true
+  const todayOthers = Math.max(0, readersToday - (meReadToday ? 1 : 0))
 
   return createPortal(
     <div
@@ -127,10 +129,14 @@ const VerseReflectionSheet = ({
                 <>지금 <strong>{chapterOthers}명</strong>이 이 장을 읽고 있어요</>
               )}
             </div>
-          ) : readersToday > 0 ? (
+          ) : todayOthers > 0 ? (
             <div className="rt-live-line">
               <UsersIcon size={14} />
-              오늘 <strong>{readersToday}명</strong>의 성도가 이 장을 읽었어요
+              {meReadToday ? (
+                <>오늘 나를 포함해 <strong>{todayOthers + 1}명</strong>의 성도가 이 장을 읽었어요</>
+              ) : (
+                <>오늘 <strong>{todayOthers}명</strong>의 성도가 이 장을 읽었어요</>
+              )}
             </div>
           ) : null}
 

@@ -851,6 +851,7 @@ const VerseList = ({
         loading={presence === undefined}
         total={presence?.total}
         readersToday={presence?.readers_today}
+        meReadToday={presence?.me_read_today}
         meCounted={meCounted}
         mePending={mePending}
       />

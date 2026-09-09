@@ -8,6 +8,8 @@ interface ChapterPresencePillProps {
   total: number | undefined
   /** 오늘 이 장을 읽은 성도 수 */
   readersToday: number | null | undefined
+  /** readersToday 에 내가 들어있는지 — 들어있으면 "나를 포함해", 나 혼자면 "첫 독자" */
+  meReadToday: boolean | null | undefined
   /**
    * 내가 카운트에 포함돼 있는지(공유 켬 + 하트비트 중).
    * 포함돼 있으면 "나를 포함해 N명", 아니면(비로그인·공유 끔) 남의 수만 "N명이 읽는 중".
@@ -34,8 +36,10 @@ interface ChapterPresencePillProps {
  * 하면 한 명이 빠진 것처럼 읽힌다(2026-09 피드백). 내가 카운트 밖이면(비로그인·공유 끔)
  * 포함할 내가 없으니 남의 수 그대로 "N명이 읽는 중".
  */
-const ChapterPresencePill = ({ loading, total, readersToday, meCounted, mePending }: ChapterPresencePillProps) => {
+const ChapterPresencePill = ({ loading, total, readersToday, meReadToday, meCounted, mePending }: ChapterPresencePillProps) => {
   const others = mePending ? 0 : Math.max(0, (total ?? 0) - (meCounted ? 1 : 0))
+  // 오늘 독자 중 나 말고 — "오늘 1명이 읽었어요"의 1명이 나라면 남처럼 말하지 않는다
+  const todayOthers = Math.max(0, (readersToday ?? 0) - (meReadToday ? 1 : 0))
 
   let body: ReactNode
   let live = false
@@ -58,16 +62,23 @@ const ChapterPresencePill = ({ loading, total, readersToday, meCounted, mePendin
         )}
       </>
     )
-  } else if (readersToday && readersToday > 0) {
+  } else if (todayOthers > 0) {
     body = (
       <>
         <span className="rt-chapter-line__icon"><UsersIcon size={13} /></span>
-        <span>
-          오늘 <strong>{readersToday}명</strong>이 이 장을 읽었어요
-        </span>
+        {meReadToday ? (
+          <span>
+            오늘 나를 포함해 <strong>{todayOthers + 1}명</strong>이 이 장을 읽었어요
+          </span>
+        ) : (
+          <span>
+            오늘 <strong>{todayOthers}명</strong>이 이 장을 읽었어요
+          </span>
+        )}
       </>
     )
   } else {
+    // 아무도 없거나, 오늘 독자가 나 하나뿐이다
     body = (
       <>
         <span className="rt-chapter-line__icon"><UsersIcon size={13} /></span>

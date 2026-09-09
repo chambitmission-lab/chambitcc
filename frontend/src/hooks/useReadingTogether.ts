@@ -50,6 +50,9 @@ const applyPresence = (qc: QueryClient, data: ChapterPresence) => {
       readers_today: data.readers_today ?? old?.readers_today ?? null,
       // 구 백엔드(필드 없음)에선 이전 값을 잃지 않게 둔다
       me_included: data.me_included ?? old?.me_included,
+      // 사람마다 다른 값이라 SSE 엔 안 실리고(null), 하트비트도 인정 전엔 모른다(null).
+      // GET 이 준 DB 기준 값을 그때까지 지킨다.
+      me_read_today: data.me_read_today ?? old?.me_read_today ?? null,
     }),
   )
 }

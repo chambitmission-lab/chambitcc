@@ -9,27 +9,31 @@ type Case = { label: string; props: React.ComponentProps<typeof ChapterPresenceP
 const CASES: Case[] = [
   {
     label: '불러오는 중 — 자리만 잡고 문구는 비운다',
-    props: { loading: true, total: undefined, readersToday: undefined, meCounted: false, mePending: false },
+    props: { loading: true, total: undefined, readersToday: undefined, meReadToday: null, meCounted: false, mePending: false },
   },
   {
     label: '지금 함께 읽는 중(나 포함 2명) — 브랜드 색 + 맥박 점',
-    props: { loading: false, total: 2, readersToday: 3, meCounted: true, mePending: false },
+    props: { loading: false, total: 2, readersToday: 3, meReadToday: true, meCounted: true, mePending: false },
   },
   {
     label: '비로그인·공유 끔 — 나는 카운트 밖이라 남의 수 그대로',
-    props: { loading: false, total: 2, readersToday: 3, meCounted: false, mePending: false },
+    props: { loading: false, total: 2, readersToday: 3, meReadToday: null, meCounted: false, mePending: false },
   },
   {
-    label: '오늘 읽은 성도가 있음',
-    props: { loading: false, total: 1, readersToday: 3, meCounted: true, mePending: false },
+    label: '오늘 읽은 성도가 있음(나 포함 3명)',
+    props: { loading: false, total: 1, readersToday: 3, meReadToday: true, meCounted: true, mePending: false },
+  },
+  {
+    label: '오늘 독자가 나 하나뿐 — "오늘 1명"이 아니라 첫 독자',
+    props: { loading: false, total: 1, readersToday: 1, meReadToday: true, meCounted: true, mePending: false },
   },
   {
     label: '내 하트비트 확정 전 — 남을 셀 수 없어 오늘 기준으로만 말한다',
-    props: { loading: false, total: 2, readersToday: 3, meCounted: false, mePending: true },
+    props: { loading: false, total: 2, readersToday: 3, meReadToday: false, meCounted: false, mePending: true },
   },
   {
     label: '아직 아무도 없음',
-    props: { loading: false, total: 0, readersToday: 0, meCounted: false, mePending: false },
+    props: { loading: false, total: 0, readersToday: 0, meReadToday: false, meCounted: false, mePending: false },
   },
 ]
 

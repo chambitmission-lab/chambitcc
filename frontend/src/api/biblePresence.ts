@@ -21,6 +21,11 @@ export interface ChapterPresence {
    * null 이면 서버가 아직 모른다는 뜻이라 클라이언트는 이전 값을 지킨다.
    */
   readers_today?: number | null
+  /**
+   * readers_today 에 내가 들어있는지. GET 은 DB 로 정확히 알고, 하트비트는 이번 세션에
+   * 인정된 뒤부터 true, 그 전과 SSE 는 null(모름) — 클라이언트는 이전 값을 지킨다.
+   */
+  me_read_today?: boolean | null
 }
 
 export interface PresencePosition {
