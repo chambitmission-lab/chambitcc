@@ -15,8 +15,9 @@ interface ChapterPresencePillProps {
 /**
  * 장 상단 "함께" 한 줄.
  *
- * 항상 같은 높이의 자리를 차지한다 — 사람이 들어오고 나갈 때마다 생겼다 사라지면
- * 본문 전체가 위아래로 밀려 읽던 줄을 잃는다. 문구만 바뀌고 높이는 절대 안 바뀐다.
+ * 상자 없는 캡션 한 줄이다 — 문구 하나에 폭이 꽉 찬 pill 을 두면 본문 위에 빈 공간만
+ * 커 보인다. 대신 높이(1.5rem)는 절대 안 바뀐다: 사람이 들어오고 나갈 때마다 줄이
+ * 생겼다 사라지면 본문 전체가 밀려 읽던 줄을 잃는다.
  * 실시간 동시 읽기는 드물어 '오늘 읽은 성도'를 바닥으로 깔고, 지금 함께 읽는 사람이
  * 있을 때만 브랜드 색 + 맥박 점으로 올라온다.
  */
@@ -24,40 +25,41 @@ const ChapterPresencePill = ({ loading, total, readersToday, meCounted }: Chapte
   const others = Math.max(0, (total ?? 0) - (meCounted ? 1 : 0))
 
   let body: ReactNode
-  let quiet = true
+  let live = false
   if (loading) {
-    body = <span>함께 읽는 성도를 확인하는 중…</span>
+    // 확인하는 중이라는 문구조차 두지 않는다 — 잠깐 떴다 바뀌는 글자가 더 시끄럽다
+    body = null
   } else if (others > 0) {
-    quiet = false
+    live = true
     body = (
       <>
         <span className="rt-live-dot" aria-hidden />
         <span>
-          지금 <strong>{others}명</strong>이 이 장을 함께 읽고 있어요
+          지금 <strong>{others}명</strong>과 함께 읽는 중
         </span>
       </>
     )
   } else if (readersToday && readersToday > 0) {
     body = (
       <>
-        <span className="rt-chapter-pill__icon"><UsersIcon size={14} /></span>
+        <span className="rt-chapter-line__icon"><UsersIcon size={13} /></span>
         <span>
-          오늘 <strong>{readersToday}명</strong>의 성도가 이 장을 읽었어요
+          오늘 <strong>{readersToday}명</strong>이 이 장을 읽었어요
         </span>
       </>
     )
   } else {
     body = (
       <>
-        <span className="rt-chapter-pill__icon"><UsersIcon size={14} /></span>
-        <span>오늘 아직 이 장을 읽은 성도가 없어요</span>
+        <span className="rt-chapter-line__icon"><UsersIcon size={13} /></span>
+        <span>오늘 이 장의 첫 독자예요</span>
       </>
     )
   }
 
   return (
-    <div className={`rt-chapter-pill ${quiet ? 'rt-chapter-pill--quiet' : ''}`} role="status" aria-live="polite">
-      <div key={quiet ? 'q' : 'live'} className="rt-chapter-pill__body">{body}</div>
+    <div className={`rt-chapter-line ${live ? 'rt-chapter-line--live' : ''}`} role="status" aria-live="polite">
+      {body && <div key={live ? 'live' : 'quiet'} className="rt-chapter-line__body">{body}</div>}
     </div>
   )
 }

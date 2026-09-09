@@ -76,6 +76,10 @@ const CapsuleLetterPreview = import.meta.env.DEV
 const AnnualVersePreview = import.meta.env.DEV
   ? lazy(() => import('./pages/Home/AnnualVersePreview'))
   : null
+// 장 상단 "함께 읽기" 한 줄 리디자인 후보 비교용
+const PresencePillPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/Bible/components/together/PresencePillPreview'))
+  : null
 const About = lazy(menuRouteLoaders['/about'])
 const Greeting = lazy(menuRouteLoaders['/greeting'])
 const Visit = lazy(menuRouteLoaders['/visit'])
@@ -430,6 +434,9 @@ function App() {
                 )}
                 {AnnualVersePreview && (
                   <Route path="/dev/annual-verse" element={<AnnualVersePreview />} />
+                )}
+                {PresencePillPreview && (
+                  <Route path="/dev/presence-pill" element={<PresencePillPreview />} />
                 )}
                 {/* Catch-all route - 모든 매칭되지 않는 경로를 홈으로 리다이렉트 */}
                 <Route path="*" element={<Navigate to="/" replace />} />
