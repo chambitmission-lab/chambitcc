@@ -89,6 +89,7 @@
     "format_list_numbered",
     "format_quote",
     "format_size",
+    "forum",
     "forward",
     "forward_to_inbox",
     "grain",
@@ -128,7 +129,6 @@
     "list",
     "local_fire_department",
     "lock",
-    "lock_open",
     "lock_reset",
     "login",
     "logout",
@@ -273,10 +273,10 @@
   ],
   "outlined": {
     "file": "material-icons-outlined.woff2",
-    "bytes": 21628
+    "bytes": 21740
   },
   "round": {
     "file": "material-icons-round.woff2",
-    "bytes": 24180
+    "bytes": 24276
   }
 }

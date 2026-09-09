@@ -77,16 +77,32 @@
   to { opacity: 1; }
 }
 
-/* ── 절 아래 칩 (묵상 노트 칩과 같은 자리·같은 크기) ── */
+/* ── 절 아래 칩 (묵상 노트 칩과 같은 자리·같은 크기) ──
+   등장 애니메이션: 바깥 grid 의 행 높이를 0fr → 1fr 로 펼친다. 뒤늦게 도착한 요약이나
+   다른 성도의 새 묵상으로 칩이 생길 때 본문이 '툭' 밀리지 않고 0.32초 동안 스르르 열린다.
+   (grid-template-rows 애니메이션은 Chrome 107+/Safari 16+ — 그 이전 브라우저는 그냥 나타난다) */
 .rt-verse-chips {
+  display: grid;
+  grid-template-rows: 1fr;
+  align-self: stretch;
+  margin-left: 3.25rem;
+  max-width: calc(100% - 3.25rem);
+  animation: rt-unfold 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.rt-verse-chips__inner {
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-wrap: wrap;
   gap: 0.375rem;
-  align-self: flex-start;
-  /* 실시간 요소는 여기 없다 — 이 칩은 장 진입 시 정해지는 묵상 수만 담는다 */
-  margin-left: 3.25rem;
-  margin-top: 0.25rem;
-  max-width: calc(100% - 3.25rem);
+  padding-top: 0.25rem;
+}
+@keyframes rt-unfold {
+  from { grid-template-rows: 0fr; opacity: 0; }
+  to { grid-template-rows: 1fr; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-verse-chips { animation: none; }
 }
 .rt-chip {
   display: inline-flex;
@@ -112,14 +128,25 @@
   color: var(--text-muted);
 }
 .rt-chip--muted .rt-chip__icon { color: var(--brand); }
-/* 이어읽기(문단) 보기 — 문단 흐름 안의 작은 인라인 배지 */
+/* 이어읽기(문단) 보기 — 문단 흐름 안의 작은 인라인 배지.
+   가로로 0 → 제 폭으로 펼쳐져 문단이 한 번에 재줄바꿈되지 않고 밀려 열린다 */
 .rt-chip--inline {
   vertical-align: middle;
   margin-left: 0.2rem;
   padding: 0.1rem 0.45rem 0.1rem 0.4rem;
   font-size: 0.68rem;
   gap: 0.2rem;
-  animation: none;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 8rem;
+  animation: rt-unfold-x 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes rt-unfold-x {
+  from { max-width: 0; padding-left: 0; padding-right: 0; margin-left: 0; opacity: 0; }
+  to { max-width: 8rem; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-chip--inline { animation: none; }
 }
 
 /* ── 실시간 배너: 같은 장을 읽는 성도가 방금 묵상을 남겼을 때 ── */

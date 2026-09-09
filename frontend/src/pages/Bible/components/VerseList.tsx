@@ -666,8 +666,10 @@ const VerseList = ({
   const chapterTotalVerses = chapterData?.pages[0]?.total_verses
   const readingVerse = useReadingLine(bookNumber, selectedChapter, chapterTotalVerses, presenceActive)
   useReadingPresenceHeartbeat({ bookNumber, chapter: selectedChapter, verse: readingVerse, enabled: presenceActive })
-  const { data: presence } = useChapterPresence(bookNumber, selectedChapter, bodyRendered)
-  const { data: reflectionSummary } = useChapterReflectionSummary(bookNumber, selectedChapter, bodyRendered)
+  // 본문을 기다리지 않고 바로 받는다 — 본문과 같은 프레임에 그려져야 묵상 칩이 뒤늦게
+  // 끼어들며 본문을 미는 일이 줄어든다 (늦게 와도 아래 CSS 가 접힘→펼침으로 부드럽게 연다)
+  const { data: presence } = useChapterPresence(bookNumber, selectedChapter)
+  const { data: reflectionSummary } = useChapterReflectionSummary(bookNumber, selectedChapter)
   const meCounted = presenceActive && readingVerse !== null
   // 장 단위 "나 말고 몇 명" — 서버 카운트엔 내가 포함돼 있어 하나 뺀다.
   // 절 단위 인원은 쓰지 않는다(절은 순식간에 지나가 위치 표시가 소음이 된다).
