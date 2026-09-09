@@ -402,18 +402,23 @@ const VerseItem = ({
           // 선택 모드에선 탭마다 텍스트가 파랗게 잡히는 걸 막는다
           userSelect: selectionMode ? 'none' : 'text',
           ...rowAccent,
+          // 우측 묵상 마커 자리 — 묵상이 없는 절에도 항상 비워 둔다.
+          // (있을 때만 자리를 만들면 숫자가 도착하는 순간 본문이 다시 접힌다)
+          paddingRight: '1rem',
+          // 강조(rowAccent) 행은 위쪽에 0.375rem 패딩이 붙는다 → 마커도 그만큼 내려
+          // 어떤 상태에서도 첫 줄 라인박스 중앙에 앉는다
+          ...({ '--rt-mark-top': rowAccent.padding ? '0.375rem' : '0px' } as CSSProperties),
         }}
       >
         {/* 읽음 완료 표시는 번호 자체의 색(초록) + 등장 팝으로 —
             체크 아이콘을 본문 행에 끼우면 재줄바꿈으로 높이가 출렁이고,
             absolute 오버레이는 어디에 둬도 붕 떠 보여서 요소 추가 없이 해결. */}
-        {/* 번호 + 묵상 마커. 마커는 번호 기준 absolute 라 강조(패딩 있는 rowAccent)든
-            아니든 언제나 번호와 본문 사이 여백에 정확히 앉는다. */}
-        <span style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
-          {numberEl}
-          {!selectionMode && <VerseTogetherChip reflectionCount={reflectionCount} onOpen={openReflections} />}
-        </span>
+        {numberEl}
         {textEl}
+
+        {/* 묵상 마커 — 항상 비워 두는 우측 여백(paddingRight)에 absolute.
+            흐름 밖이라 숫자가 뒤늦게 도착해도 본문은 밀리지 않는다. */}
+        {!selectionMode && <VerseTogetherChip reflectionCount={reflectionCount} onOpen={openReflections} />}
 
         {/* 가벼운 상태 인디케이터 - 본문 폭을 거의 잡아먹지 않음.
             하이라이트는 좌측 바+배경, 노트는 아래 칩으로 이미 보이므로 여기선 생략(중복 방지).

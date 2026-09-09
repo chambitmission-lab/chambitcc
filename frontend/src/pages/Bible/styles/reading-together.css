@@ -78,13 +78,15 @@
 }
 
 /* ── 절 여백 묵상 마커 (절별 보기) ──
-   절 번호와 본문 사이 빈 여백(1.25rem)에 absolute 로 얹는다. 요약 쿼리가 늦게 오거나
-   다른 성도가 묵상을 남겨(SSE) 숫자가 생겨도 본문은 1px 도 밀리지 않는다.
-   — 예전엔 절 아래 "묵상 N" 칩을 흐름에 끼워 읽던 화면이 통째로 내려갔다. */
+   본문 오른쪽 여백에 absolute 로 얹는다(행이 paddingRight 로 자리를 항상 비워 둔다).
+   요약 쿼리가 늦게 오거나 다른 성도가 묵상을 남겨(SSE) 숫자가 생겨도 본문은 1px 도 안 밀린다.
+   — 절 아래 칩(흐름 삽입)도, 절 번호 옆(숫자가 둘 나란히 보인다)도 되돌리지 말 것. */
 .rt-verse-mark {
   position: absolute;
-  left: 100%;
-  top: 0;
+  /* 행이 비워 둔 1rem 자리에 앉되 읽기 패널 여백을 0.5rem 만 빌린다
+     — 모바일(패널 좌우 1rem)에서도 화면 끝에 붙지 않고 잘리지도 않는다 */
+  right: -0.5rem;
+  top: var(--rt-mark-top, 0px);
   width: 1.25rem;
   height: var(--verse-line-box);
   display: flex;
@@ -113,11 +115,11 @@
   margin-top: -1px;
   font-variant-numeric: tabular-nums;
 }
-/* 손가락 타깃 확대 — 왼쪽은 0으로 둬서 절 번호 길게 누르기(읽음 표시) 영역을 뺏지 않는다 */
+/* 손가락 타깃 확대 — 마커 자체는 20px 라 그대로면 집기 어렵다. 레이아웃은 그대로 */
 .rt-verse-mark::before {
   content: '';
   position: absolute;
-  inset: -8px -6px -8px 0;
+  inset: -8px -6px;
 }
 @media (prefers-reduced-motion: reduce) {
   .rt-verse-mark { animation: none; }
