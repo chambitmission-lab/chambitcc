@@ -82,11 +82,13 @@ const BibleSideRail = ({ active, onSelectTab, children }: BibleSideRailProps) =>
       }
       return
     }
-    const paths: Record<'plans' | 'atlas' | 'wordbook' | 'genealogy', string> = {
+    const paths: Record<Exclude<BibleNavKey, 'read' | 'search'>, string> = {
       plans: '/bible/plans',
       atlas: '/bible/atlas',
       wordbook: '/bible/wordbook',
       genealogy: '/bible/genealogy',
+      alarm: '/bible/alarm',
+      meditation: '/bible/meditation',
     }
     navigate(paths[key])
   }

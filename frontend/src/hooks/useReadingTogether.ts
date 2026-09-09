@@ -41,7 +41,12 @@ const parse = <T,>(raw: string): T | null => {
 const applyPresence = (qc: QueryClient, data: ChapterPresence) => {
   qc.setQueryData<ChapterPresence>(
     readingTogetherKeys.presence(data.book_number, data.chapter),
-    (old) => ({ ...data, readers_today: old?.readers_today ?? data.readers_today ?? null }),
+    (old) => ({
+      ...data,
+      readers_today: old?.readers_today ?? data.readers_today ?? null,
+      // 구 백엔드(필드 없음)에선 이전 값을 잃지 않게 둔다
+      me_included: data.me_included ?? old?.me_included,
+    }),
   )
 }
 
@@ -104,9 +109,13 @@ export const useChapterPresence = (bookNumber: number, chapter: number, enabled 
     queryKey: readingTogetherKeys.presence(bookNumber, chapter),
     queryFn: () => getChapterPresence(bookNumber, chapter),
     enabled: enabled && bookNumber > 0 && chapter > 0,
-    // 실시간 값이라 persist 복원분은 의미 없다 — 진입마다 새로 받고 SSE 가 이어받는다
+    // 실시간 값이라 persist 복원분은 의미 없다 — 진입마다 새로 받고 SSE 가 이어받는다.
+    // 메모리 캐시도 남기지 않는다(gcTime 0): 장을 떠나면 그 장의 SSE 도 더 안 오므로
+    // 남은 숫자는 그 순간 화석이 된다. 다시 들어올 때 화석부터 그리면 '지금 N명과 함께
+    // 읽는 중'이 떴다가 응답이 와서 사라진다 — 그 N명이 사실은 조금 전의 나였다.
+    // refetchOnMount:'always' 라 어차피 매 진입 요청하므로 요청 수는 그대로다.
     staleTime: 30_000,
-    gcTime: 5 * 60_000,
+    gcTime: 0,
     refetchOnMount: 'always',
     refetchOnReconnect: 'always',
   })

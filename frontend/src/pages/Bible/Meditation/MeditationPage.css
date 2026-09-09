@@ -431,3 +431,121 @@
   opacity: 0.55;
   pointer-events: none;
 }
+
+/* ── PC(lg+) 2단 레이아웃 ─────────────────────────────
+   PC 에서도 560px 한 컬럼이 화면 한가운데 홀로 떠 있던 것을,
+   성경 섹션 문법(좌측 레일 + 나란히 보기)으로 편다:
+     좌측 성경 레일 | 좌 흐름(말씀→질문→기도→기록) | 우 340px(잠시 멈춤·최근 묵상)
+   묵상은 순서가 곧 흐름이라 DOM 은 그대로 두고 grid 자리 지정으로만 나눈다.
+   래퍼(.mp-stage/.mp-shell)는 lg 미만에서 display:contents 라 모바일은 손대지 않았다. */
+.mp-stage,
+.mp-shell {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  .mp-stage {
+    display: block;
+    padding: 8px 20px 48px;
+  }
+
+  .mp-shell {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    max-width: 1240px;
+    margin: 0 auto;
+  }
+
+  /* 시간대 워시는 넓어진 무대 전체에 — 라운드 패널로 담는다 */
+  .meditation-page {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 22px 24px 32px;
+    border-radius: 24px;
+    background: linear-gradient(180deg, var(--mp-tint), transparent 420px);
+  }
+
+  /* 뒤로가기는 좌측 레일·전역 내비가 대신한다 */
+  .mp-back {
+    display: none;
+  }
+
+  .mp-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .mp-greeting {
+    font-size: 0.95rem;
+    margin-bottom: 18px;
+  }
+
+  /* 감정 칩 — PC 에선 제목과 한 줄로 */
+  .mp-emotions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .mp-emotions-title {
+    margin-bottom: 0;
+    white-space: nowrap;
+  }
+
+  .mp-body {
+    display: grid;
+    /* 좌측엔 전역 레일(76/248px)과 성경 레일(176px)이 이미 자리를 먹는다 */
+    grid-template-columns: minmax(0, 1fr) clamp(280px, 26vw, 340px);
+    column-gap: 18px;
+    align-items: start;
+  }
+
+  /* 좌: 묵상 흐름 그대로 세로로 */
+  .mp-verse-card {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .mp-block--question {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .mp-block--prayer {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .mp-block--journal {
+    grid-column: 1;
+    grid-row: 4;
+    margin-bottom: 0;
+  }
+
+  /* 우: 곁에 두고 쓰는 것들 — 멈춤 타이머와 지난 묵상 */
+  .mp-silence {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .mp-block--records {
+    grid-column: 2;
+    grid-row: 2 / span 3;
+    align-self: start;
+  }
+
+  .mp-verse-text {
+    font-size: 1.2rem;
+  }
+
+  .mp-journal {
+    min-height: 140px;
+  }
+
+  .mp-skeleton {
+    height: 320px;
+  }
+}

@@ -7,6 +7,7 @@ import {
   useMeditationStreak,
 } from '../../../hooks/useMeditationRecords'
 import { isAuthenticated } from '../../../utils/auth'
+import BibleSideRail from '../../../components/bible/BibleSideRail'
 import { showToast } from '../../../utils/toast'
 import type { EmotionTag, TimeOfDay } from '../../../types/meditation'
 import {
@@ -142,7 +143,12 @@ const MeditationPage = () => {
   const pageTitle = TOD_TITLES[tod]
 
   return (
-    <div className="meditation-page" data-tod={tod}>
+    /* lg+: 좌측 성경 레일 + 본문 2단(좌: 말씀→질문→기도→기록 흐름 / 우: 침묵·최근 묵상).
+       모바일에선 래퍼가 display:contents 라 지금까지의 한 줄 흐름 그대로다. */
+    <div className="mp-stage page-stage">
+      <div className="mp-shell">
+      <BibleSideRail active="meditation" />
+      <div className="meditation-page" data-tod={tod}>
       <header className="mp-header">
         <button type="button" className="mp-back" onClick={goBack} aria-label="뒤로가기">
           <span className="material-icons-round">arrow_back</span>
@@ -218,7 +224,7 @@ const MeditationPage = () => {
           </section>
 
           {/* 2. 묵상 질문 */}
-          <section className="mp-block">
+          <section className="mp-block mp-block--question">
             <span className="mp-step-label"><QuestionIcon /> 오늘의 질문</span>
             <p className="mp-question">{data.meditation_question}</p>
             {data.redemptive_note && (
@@ -268,7 +274,7 @@ const MeditationPage = () => {
           </section>
 
           {/* 4. 오늘의 기도 */}
-          <section className="mp-block">
+          <section className="mp-block mp-block--prayer">
             <span className="mp-step-label"><PrayIcon /> 오늘의 기도</span>
             <p className="mp-prayer">{prayerText}</p>
             <button
@@ -282,7 +288,7 @@ const MeditationPage = () => {
           </section>
 
           {/* 5. 묵상 기록 */}
-          <section className="mp-block">
+          <section className="mp-block mp-block--journal">
             <span className="mp-step-label"><JournalIcon /> 묵상 기록 남기기</span>
             <textarea
               className="mp-journal"
@@ -309,7 +315,7 @@ const MeditationPage = () => {
 
           {/* 최근 기록 */}
           {loggedIn && records.length > 0 && (
-            <section className="mp-block">
+            <section className="mp-block mp-block--records">
               <span className="mp-step-label"><SproutIcon /> 나의 최근 묵상</span>
               <ul className="mp-records">
                 {records.map((r) => (
@@ -328,6 +334,8 @@ const MeditationPage = () => {
           )}
         </div>
       )}
+      </div>
+      </div>
     </div>
   )
 }

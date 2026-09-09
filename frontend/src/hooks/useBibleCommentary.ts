@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createCommentary,
@@ -47,6 +48,39 @@ export const useChapterCommentarySummaries = (
     enabled: enabled && bookNumber > 0 && chapter > 0,
     staleTime: 60_000,
   })
+}
+
+/**
+ * 해석 패널을 열기 전에 장 해석 본문을 미리 받아 둔다.
+ * 읽기 화면은 요약(마커용)만 갖고 있어서, "해석 보기"를 누른 뒤에야 본문을 요청하느라
+ * 청크 왕복 + API 왕복이 직렬로 겹쳐 한 박자 늦게 떴다. 요약에 해석이 있는 장에서만 부른다.
+ */
+export const usePrefetchChapterCommentaries = (
+  bookNumber: number,
+  chapter: number,
+  enabled: boolean,
+) => {
+  const queryClient = useQueryClient()
+  useEffect(() => {
+    if (!enabled || bookNumber <= 0 || chapter <= 0) return
+    const run = () => {
+      void queryClient.prefetchQuery({
+        queryKey: keys.chapter(bookNumber, chapter),
+        queryFn: () => listChapterCommentaries(bookNumber, chapter),
+        staleTime: 60_000,
+      })
+    }
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(run, { timeout: 2500 })
+      return () => w.cancelIdleCallback?.(id)
+    }
+    const id = window.setTimeout(run, 1200)
+    return () => window.clearTimeout(id)
+  }, [queryClient, bookNumber, chapter, enabled])
 }
 
 export const useVerseCommentaries = (

@@ -9,6 +9,11 @@ export interface ChapterPresence {
   chapter: number
   /** 지금 이 장을 읽는 중인 사람 수 (나 포함) */
   total: number
+  /**
+   * total 에 내가 들어있는지 — "나 말고 몇 명"을 셀 때 이 값으로 뺀다.
+   * 아직 이 필드를 안 내려주는 백엔드에선 undefined (프론트가 하트비트 여부로 짐작한다).
+   */
+  me_included?: boolean
   /** 절 번호(문자열) → 그 절을 읽는 중인 사람 수 */
   verse_counts: Record<string, number>
   /** 오늘(KST) 이 장을 읽은 성도 수 — GET 응답에만 있다 */

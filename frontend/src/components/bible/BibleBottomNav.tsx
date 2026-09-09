@@ -3,7 +3,17 @@ import { useNavigate } from 'react-router-dom'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { preloadBudget, scheduleAfterFirstScreen } from '../../utils/idlePreload'
 
-export type BibleNavKey = 'read' | 'search' | 'plans' | 'atlas' | 'wordbook' | 'genealogy'
+/** 'alarm'(구절 알람)·'meditation'(오늘의 묵상)은 목적지로만 존재한다 —
+    도크/레일 항목에는 없어 활성 표시가 붙지 않는다 */
+export type BibleNavKey =
+  | 'read'
+  | 'search'
+  | 'plans'
+  | 'atlas'
+  | 'wordbook'
+  | 'genealogy'
+  | 'alarm'
+  | 'meditation'
 
 interface BibleBottomNavProps {
   active: BibleNavKey
@@ -80,11 +90,13 @@ const BibleBottomNav = ({ active, onSelectTab }: BibleBottomNavProps) => {
       }
       return
     }
-    const paths: Record<'plans' | 'atlas' | 'wordbook' | 'genealogy', string> = {
+    const paths: Record<Exclude<BibleNavKey, 'read' | 'search'>, string> = {
       plans: '/bible/plans',
       atlas: '/bible/atlas',
       wordbook: '/bible/wordbook',
       genealogy: '/bible/genealogy',
+      alarm: '/bible/alarm',
+      meditation: '/bible/meditation',
     }
     navigate(paths[key])
   }

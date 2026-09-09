@@ -7,6 +7,7 @@ import {
   useDeleteVerseAlarm,
 } from '../../../hooks/useVerseAlarms'
 import { usePushNotification } from '../../../hooks/usePushNotification'
+import BibleSideRail from '../../../components/bible/BibleSideRail'
 import { isAuthenticated } from '../../../utils/auth'
 import { showToast } from '../../../utils/toast'
 import type { VerseAlarm } from '../../../api/verseAlarm'
@@ -472,7 +473,10 @@ const VerseAlarmPage = () => {
 
   if (!loggedIn) {
     return (
-      <div className="verse-alarm-page">
+      <div className="va-stage page-stage">
+        <div className="va-shell">
+        <BibleSideRail active="alarm" />
+        <div className="verse-alarm-page">
         <header className="va-header">
           <button type="button" className="va-back" onClick={() => navigate(-1)} aria-label="뒤로가기">
             <span className="material-icons-round">arrow_back</span>
@@ -488,12 +492,19 @@ const VerseAlarmPage = () => {
             로그인하기
           </button>
         </div>
+        </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="verse-alarm-page">
+    /* lg+: 좌측 성경 레일 + 본문 2단(좌: 안내·푸시 상태·다이얼 / 우: 알람 목록).
+       모바일에선 래퍼가 display:contents 라 지금까지의 한 줄 흐름 그대로다. */
+    <div className="va-stage page-stage">
+      <div className="va-shell">
+      <BibleSideRail active="alarm" />
+      <div className="verse-alarm-page">
       <header className="va-header">
         <button type="button" className="va-back" onClick={() => navigate(-1)} aria-label="뒤로가기">
           <span className="material-icons-round">arrow_back</span>
@@ -509,6 +520,7 @@ const VerseAlarmPage = () => {
         </button>
       </header>
 
+      <div className="va-col-main">
       <p className="va-intro">
         설정한 시간에 오늘의 말씀 한 절이 알림으로 도착해요.
         알림을 열면 1~2분 묵상으로 이어집니다.
@@ -519,6 +531,19 @@ const VerseAlarmPage = () => {
       <section className="va-hero" aria-label="다음 알람">
         {isLoading ? <div className="va-hero-skeleton" /> : <AlarmDial alarms={alarms} />}
       </section>
+      </div>
+
+      {/* 우 컬럼(PC) — 알람 목록 레일. 제목·안내는 lg 에서만 보인다 */}
+      <div className="va-col-side">
+      <h2 className="va-side-title">
+        내 알람
+        <span className="va-side-count">{sortedAlarms.length}/5</span>
+      </h2>
+      {sortedAlarms.length === 0 && !isLoading && (
+        <p className="va-side-hint">
+          원하는 시간에 오늘의 말씀 한 절이 도착해요. 알람은 최대 5개까지 만들 수 있어요.
+        </p>
+      )}
 
       {sortedAlarms.length > 0 && (
         <section className="va-list" aria-label="알람 목록">
@@ -561,6 +586,7 @@ const VerseAlarmPage = () => {
         <span className="material-icons-round" aria-hidden>add</span>
         알람 추가
       </button>
+      </div>
 
       {/* ── 알람 편집 바텀시트 ── */}
       {editor && (
@@ -687,6 +713,8 @@ const VerseAlarmPage = () => {
           </div>
         </div>
       )}
+      </div>
+      </div>
     </div>
   )
 }

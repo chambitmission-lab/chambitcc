@@ -44,6 +44,8 @@ const routeDataPrefetchers: Record<string, () => Promise<void>> = {
   '/greeting': () => import('../pages/Greeting/prefetch').then((m) => m.prefetch()),
   // 설문 히어로 삽화는 CSS 배경이라 엘리먼트가 렌더된 뒤에야 요청이 나간다 — 청크와 같이 데운다
   '/survey': () => import('../pages/Survey/heroPrefetch').then((m) => m.warmSurveyHero()),
+  // 칭호 히어로 배너도 CSS 배경 — 테마 토글 시 반대 테마 배너가 늦게 뜨는 것까지 같이 막는다
+  '/garden': () => import('../pages/Garden/heroPrefetch').then((m) => m.warmGardenHero()),
 }
 
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다

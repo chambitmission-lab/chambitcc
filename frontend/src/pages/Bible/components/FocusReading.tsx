@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useBibleChapter } from '../../../hooks/useBible'
 import { useChapterReadStatus, useMarkVerseAsRead } from '../../../hooks/useBibleReading'
 import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
-import { useChapterCommentarySummaries } from '../../../hooks/useBibleCommentary'
+import { useChapterCommentarySummaries, usePrefetchChapterCommentaries } from '../../../hooks/useBibleCommentary'
 import BibleCommentaryPanel from '../../../components/bible/BibleCommentaryPanel'
 import { useAuth } from '../../../hooks/useAuth'
 import { useModalBackButton } from '../../../hooks/useModalBackButton'
@@ -69,6 +69,8 @@ const FocusReading = ({
   const { data: readStatus } = useChapterReadStatus(bookNumber, chapter, loggedIn)
   const { data: chapterBookmarks } = useChapterBookmarks(bookNumber, chapter, loggedIn)
   const { data: chapterCommentaries } = useChapterCommentarySummaries(bookNumber, chapter)
+  // 해석이 있는 장이면 본문을 idle에 미리 받아 둔다 (패널은 이 화면에선 정적 import)
+  usePrefetchChapterCommentaries(bookNumber, chapter, (chapterCommentaries?.items.length ?? 0) > 0)
   const markAsRead = useMarkVerseAsRead()
 
   const [activeIndex, setActiveIndex] = useState(0)

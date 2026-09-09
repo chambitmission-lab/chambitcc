@@ -20,7 +20,7 @@ const celebrateFlowerBloom = () =>
 import { showToast } from '../../../utils/toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { useOptimisticUpdateVerse } from '../../../hooks/useBibleAdmin'
-import { useChapterCommentarySummaries } from '../../../hooks/useBibleCommentary'
+import { useChapterCommentarySummaries, usePrefetchChapterCommentaries } from '../../../hooks/useBibleCommentary'
 import { useChapterWordNotes, groupWordNotesByVerse } from '../../../hooks/useBibleWordNote'
 import { useChapterBookmarks } from '../../../hooks/useBibleBookmark'
 import type { VerseBookmark } from '../../../api/bibleBookmark'
@@ -229,6 +229,14 @@ const VerseList = ({
     selectedChapter,
     bookNumber > 0 && selectedChapter > 0,
   )
+
+  // 해석이 있는 장이면 패널 청크와 본문을 idle에 미리 받아 둔다 — 누른 뒤에야
+  // "청크 왕복 → API 왕복"이 직렬로 이어지던 지연 제거
+  const hasCommentaries = (chapterCommentaries?.items.length ?? 0) > 0
+  usePrefetchChapterCommentaries(bookNumber, selectedChapter, hasCommentaries)
+  useEffect(() => {
+    if (hasCommentaries) void BibleCommentaryPanel.preload()
+  }, [hasCommentaries])
 
   // 이 장의 내 단어 노트 전체 (절마다 개별 요청하지 않도록 배치 조회)
   const { data: chapterWordNotes } = useChapterWordNotes(
@@ -670,10 +678,15 @@ const VerseList = ({
   // 끼어들며 본문을 미는 일이 줄어든다 (늦게 와도 아래 CSS 가 접힘→펼침으로 부드럽게 연다)
   const { data: presence } = useChapterPresence(bookNumber, selectedChapter)
   const { data: reflectionSummary } = useChapterReflectionSummary(bookNumber, selectedChapter)
-  const meCounted = presenceActive && readingVerse !== null
+  // "이 카운트에 내가 들어있는지"는 서버만 정확히 안다 — 내려주면 그대로 쓰고,
+  // 아직 안 내려주는 백엔드에서만 하트비트 등록 여부로 짐작한다.
+  const meKnown = presence?.me_included !== undefined
+  const meCounted = presence?.me_included ?? (presenceActive && readingVerse !== null)
+  // 짐작 중이면서 아직 하트비트가 안 나간 찰나 — 남을 셀 근거가 없어 '함께'를 말하지 않는다
+  const mePending = !meKnown && presenceActive && readingVerse === null
   // 장 단위 "나 말고 몇 명" — 서버 카운트엔 내가 포함돼 있어 하나 뺀다.
   // 절 단위 인원은 쓰지 않는다(절은 순식간에 지나가 위치 표시가 소음이 된다).
-  const chapterOthers = Math.max(0, (presence?.total ?? 0) - (meCounted ? 1 : 0))
+  const chapterOthers = mePending ? 0 : Math.max(0, (presence?.total ?? 0) - (meCounted ? 1 : 0))
   const reflectionCountAt = (verseNo: number) => reflectionSummary?.verse_counts[String(verseNo)] ?? 0
   useEffect(() => {
     if (!scrollToVerse || !bodyRendered || !chapterData) return
@@ -838,6 +851,7 @@ const VerseList = ({
         total={presence?.total}
         readersToday={presence?.readers_today}
         meCounted={meCounted}
+        mePending={mePending}
       />
 
       {/* 관리자 전용: 장 일괄 읽음/취소 — 업적·칭호 테스트용, 본인 계정에만 적용 */}

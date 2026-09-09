@@ -10,6 +10,12 @@ interface ChapterPresencePillProps {
   readersToday: number | null | undefined
   /** 내가 카운트에 포함돼 있는지(공유 켬 + 하트비트 중) — 표시할 땐 나를 뺀다 */
   meCounted: boolean
+  /**
+   * 내 하트비트가 아직 서버에 안 들어간 상태(공유는 켰지만 읽는 절 확정 전).
+   * 이때 total 에 내가 들어있는지 알 수 없어 남을 셀 수 없다 — 확정될 때까지
+   * '함께 읽는 중'은 말하지 않는다.
+   */
+  mePending: boolean
 }
 
 /**
@@ -21,8 +27,8 @@ interface ChapterPresencePillProps {
  * 실시간 동시 읽기는 드물어 '오늘 읽은 성도'를 바닥으로 깔고, 지금 함께 읽는 사람이
  * 있을 때만 브랜드 색 + 맥박 점으로 올라온다.
  */
-const ChapterPresencePill = ({ loading, total, readersToday, meCounted }: ChapterPresencePillProps) => {
-  const others = Math.max(0, (total ?? 0) - (meCounted ? 1 : 0))
+const ChapterPresencePill = ({ loading, total, readersToday, meCounted, mePending }: ChapterPresencePillProps) => {
+  const others = mePending ? 0 : Math.max(0, (total ?? 0) - (meCounted ? 1 : 0))
 
   let body: ReactNode
   let live = false
