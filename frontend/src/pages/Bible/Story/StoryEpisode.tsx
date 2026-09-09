@@ -105,6 +105,21 @@ const StoryEpisode = () => {
     document.body.scrollTop = 0
   }, [episodeId])
 
+  // 다음(과 이전) 화 일러스트를 미리 받아 둔다 — 화를 넘길 때 히어로가 한 박자 늦게
+  // 나타나던 원인. 그림 한 장이 20~70KB라 앞뒤 한 장씩이면 충분히 가볍다.
+  useEffect(() => {
+    const idx = found?.index
+    if (idx === undefined) return
+    const timer = window.setTimeout(() => {
+      for (const step of [1, -1]) {
+        const neighbor = ALL_EPISODES[idx + step]
+        const url = neighbor && storyImage(neighbor.id)
+        if (url) new Image().src = url
+      }
+    }, 200)
+    return () => window.clearTimeout(timer)
+  }, [found?.index])
+
   const { data: fetchedRefs, isLoading: versesLoading } = useEpisodeVerses(
     episodeId,
     found?.episode.verseRefs ?? []
@@ -161,7 +176,14 @@ const StoryEpisode = () => {
         {/* 타이틀 — 일러스트가 있는 화는 이모지 대신 장면 그림이 히어로가 된다 */}
         <div className="story-ep__hero">
           {storyImage(episode.id) ? (
-            <img className="story-ep__img" src={storyImage(episode.id)} alt="" loading="lazy" />
+            <img
+              key={episode.id}
+              className="story-ep__img"
+              src={storyImage(episode.id)}
+              alt=""
+              decoding="async"
+              fetchPriority="high"
+            />
           ) : (
             <div className="story-ep__emoji"><StoryGlyph emoji={episode.emoji} size={40} /></div>
           )}
