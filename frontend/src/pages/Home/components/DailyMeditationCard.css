@@ -637,7 +637,9 @@
 .meditation-verse-quote {
   position: relative;
   margin: 0 0 12px;
-  padding: 18px 20px 16px;
+  /* 좌우 여백을 2px 줄여 한 줄에 들어가는 어절 수를 늘린다 —
+     keep-all 로 어절을 쪼개지 않는 만큼 가로 폭이 곧 줄바꿈 품질이다 */
+  padding: 18px 18px 16px;
   border-radius: 18px;
   background: linear-gradient(135deg, var(--brand-soft) 0%, var(--tint-morning) 100%);
   border: 1px solid var(--brand-soft-strong);
@@ -665,18 +667,32 @@
 .meditation-verse-text {
   font-family: var(--font-serif-kr);
   font-size: 19px;
-  line-height: 1.75;
+  /* 명조 + 짧은 측정폭(카드 폭)에서는 1.75 도 빽빽하게 읽힌다.
+     크기는 그대로 두고 행간만 열어 구절이 숨 쉬게 한다 */
+  line-height: 1.85;
   font-weight: 400;
   letter-spacing: -0.005em;
+  /* 어절 단위 줄바꿈 — 단어 중간이 잘리지 않게. 다만 공백 없는 긴 문자열
+     (URL·원어 표기)이 카드를 밀어내지 않도록 안전판을 함께 둔다 */
   word-break: keep-all;
+  overflow-wrap: break-word;
+  /* 마지막 줄에 한 어절만 남는 고아 줄을 브라우저가 알아서 피하게 한다 */
+  text-wrap: pretty;
   color: var(--text-strong);
   margin: 0;
+}
+
+/* 좁은 화면(≤360px)에서는 측정폭 자체가 부족해 어절이 과하게 쪼개진다.
+   글자 크기는 유지하고 좌우 여백과 자간만 조금 더 조여 한 줄을 벌어준다 */
+@media (max-width: 360px) {
+  .meditation-verse-quote { padding-left: 15px; padding-right: 15px; }
+  .meditation-verse-text { letter-spacing: -0.015em; }
 }
 
 /* 출처는 본문이 아니라 꼬리표 — 고딕으로 되돌리고 한 단계 더 작고 흐리게 */
 .meditation-verse-reference {
   display: block;
-  margin-top: 12px;
+  margin-top: 14px;
   font-size: 11.5px;
   font-weight: 700;
   letter-spacing: 0.01em;
