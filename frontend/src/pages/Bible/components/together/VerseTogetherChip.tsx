@@ -10,8 +10,12 @@ interface VerseTogetherChipProps {
 }
 
 /**
- * 절 아래 "묵상 N" 칩. 0이면 아무것도 그리지 않는다 — 대부분의 절은 조용해야 한다.
- * 묵상 수는 장을 열 때 정해지고 거의 바뀌지 않아 본문 흐름에 두어도 괜찮다.
+ * 이 절에 묵상이 있다는 표시. 0이면 아무것도 그리지 않는다 — 대부분의 절은 조용해야 한다.
+ *
+ * 절별 보기에서는 본문 흐름이 아니라 '절 번호와 본문 사이 여백'에 절대 위치로 올린다.
+ * 숫자는 장을 여는 도중(요약 쿼리)이나 다른 성도가 묵상을 남길 때(SSE) 뒤늦게 도착하는데,
+ * 이전처럼 절 아래 칩을 흐름에 끼우면 읽고 있던 본문이 통째로 밀려 내려갔다.
+ * 여백 마커는 도착해도 자리를 차지하지 않아 화면이 흔들리지 않는다.
  * (절 단위 "지금 읽는 중" 표시는 의도적으로 없다 — 장 상단 pill 이 장 단위 인원을 보여준다)
  */
 const VerseTogetherChip = ({ reflectionCount, inline = false, onOpen }: VerseTogetherChipProps) => {
@@ -20,6 +24,7 @@ const VerseTogetherChip = ({ reflectionCount, inline = false, onOpen }: VerseTog
     e.stopPropagation()
     onOpen()
   }
+  const label = `성도의 묵상 ${reflectionCount}개 보기`
 
   if (inline) {
     return (
@@ -31,15 +36,10 @@ const VerseTogetherChip = ({ reflectionCount, inline = false, onOpen }: VerseTog
   }
 
   return (
-    <div className="rt-verse-chips">
-      {/* 안쪽 행이 0fr → 1fr 로 펼쳐지며 등장 — 갑자기 끼어들어 본문을 '툭' 미는 대신 접힌 종이가 열리듯 */}
-      <div className="rt-verse-chips__inner">
-        <button type="button" className="rt-chip rt-chip--muted" onClick={open} title="함께 읽는 성도의 묵상 보기">
-          <span className="rt-chip__icon"><CommentIcon size={13} /></span>
-          묵상 {reflectionCount}
-        </button>
-      </div>
-    </div>
+    <button type="button" className="rt-verse-mark" onClick={open} title={label} aria-label={label}>
+      <span className="rt-verse-mark__icon" aria-hidden><CommentIcon size={12} /></span>
+      <span className="rt-verse-mark__count" aria-hidden>{reflectionCount > 9 ? '9+' : reflectionCount}</span>
+    </button>
   )
 }
 

@@ -407,7 +407,12 @@ const VerseItem = ({
         {/* 읽음 완료 표시는 번호 자체의 색(초록) + 등장 팝으로 —
             체크 아이콘을 본문 행에 끼우면 재줄바꿈으로 높이가 출렁이고,
             absolute 오버레이는 어디에 둬도 붕 떠 보여서 요소 추가 없이 해결. */}
-        {numberEl}
+        {/* 번호 + 묵상 마커. 마커는 번호 기준 absolute 라 강조(패딩 있는 rowAccent)든
+            아니든 언제나 번호와 본문 사이 여백에 정확히 앉는다. */}
+        <span style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
+          {numberEl}
+          {!selectionMode && <VerseTogetherChip reflectionCount={reflectionCount} onOpen={openReflections} />}
+        </span>
         {textEl}
 
         {/* 가벼운 상태 인디케이터 - 본문 폭을 거의 잡아먹지 않음.
@@ -541,9 +546,6 @@ const VerseItem = ({
           </span>
         </button>
       )}
-
-      {/* 묵상 칩 — 남겨진 묵상이 있을 때만 */}
-      {!selectionMode && <VerseTogetherChip reflectionCount={reflectionCount} onOpen={openReflections} />}
 
       {sheetsEl}
     </div>

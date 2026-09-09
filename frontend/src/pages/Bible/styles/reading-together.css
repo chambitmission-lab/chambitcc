@@ -77,33 +77,52 @@
   to { opacity: 1; }
 }
 
-/* ── 절 아래 칩 (묵상 노트 칩과 같은 자리·같은 크기) ──
-   등장 애니메이션: 바깥 grid 의 행 높이를 0fr → 1fr 로 펼친다. 뒤늦게 도착한 요약이나
-   다른 성도의 새 묵상으로 칩이 생길 때 본문이 '툭' 밀리지 않고 0.32초 동안 스르르 열린다.
-   (grid-template-rows 애니메이션은 Chrome 107+/Safari 16+ — 그 이전 브라우저는 그냥 나타난다) */
-.rt-verse-chips {
-  display: grid;
-  grid-template-rows: 1fr;
-  align-self: stretch;
-  margin-left: 3.25rem;
-  max-width: calc(100% - 3.25rem);
-  animation: rt-unfold 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-.rt-verse-chips__inner {
-  min-height: 0;
-  overflow: hidden;
+/* ── 절 여백 묵상 마커 (절별 보기) ──
+   절 번호와 본문 사이 빈 여백(1.25rem)에 absolute 로 얹는다. 요약 쿼리가 늦게 오거나
+   다른 성도가 묵상을 남겨(SSE) 숫자가 생겨도 본문은 1px 도 밀리지 않는다.
+   — 예전엔 절 아래 "묵상 N" 칩을 흐름에 끼워 읽던 화면이 통째로 내려갔다. */
+.rt-verse-mark {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  width: 1.25rem;
+  height: var(--verse-line-box);
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  padding-top: 0.25rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand);
+  line-height: 1;
+  opacity: 0.8;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  /* 등장은 불투명도만 — 위치가 움직이면 읽는 눈이 끌려간다 */
+  animation: rt-fade 0.3s ease-out;
+  transition: opacity 0.15s ease;
 }
-@keyframes rt-unfold {
-  from { grid-template-rows: 0fr; opacity: 0; }
-  to { grid-template-rows: 1fr; opacity: 1; }
+.rt-verse-mark:hover,
+.rt-verse-mark:focus-visible { opacity: 1; }
+.rt-verse-mark__icon { display: inline-flex; }
+.rt-verse-mark__count {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-top: -1px;
+  font-variant-numeric: tabular-nums;
+}
+/* 손가락 타깃 확대 — 왼쪽은 0으로 둬서 절 번호 길게 누르기(읽음 표시) 영역을 뺏지 않는다 */
+.rt-verse-mark::before {
+  content: '';
+  position: absolute;
+  inset: -8px -6px -8px 0;
 }
 @media (prefers-reduced-motion: reduce) {
-  .rt-verse-chips { animation: none; }
+  .rt-verse-mark { animation: none; }
 }
+
 .rt-chip {
   display: inline-flex;
   align-items: center;
