@@ -122,14 +122,20 @@ export const personText = (
   return typeof fallback === 'string' ? fallback : ''
 }
 
+/** 대표 카드 텍스트 — church_pastors(LeaderCard) 든 합쳐진 LeaderSlot 이든 같은 필드 */
+type LeaderTextSource = Pick<
+  LeaderCard,
+  'name_ko' | 'name_en' | 'role_ko' | 'role_en' | 'headline_ko' | 'headline_en'
+>
+
 export const leaderText = (
-  leader: LeaderCard,
+  leader: LeaderTextSource,
   field: 'name' | 'role' | 'headline',
   language: 'ko' | 'en',
 ): string => {
-  const primary = leader[`${field}_${language}` as keyof LeaderCard]
+  const primary = leader[`${field}_${language}` as keyof LeaderTextSource]
   if (typeof primary === 'string' && primary.trim().length > 0) return primary
-  const fallback = leader[`${field}_ko` as keyof LeaderCard]
+  const fallback = leader[`${field}_ko` as keyof LeaderTextSource]
   return typeof fallback === 'string' ? fallback : ''
 }
 
@@ -200,33 +206,81 @@ export const groupPeople = (
    대표 카드를 남긴 뒤 격자에서 뺀다 — 대신 대표 카드를 누르면 그분의 인물 시트가 열려
    담당 사역·연락처는 그대로 닿는다. */
 
+/* ── 대표(담임·원로) 한 줄 ──────────────────────────────
+   대표 카드는 두 곳에서 온다. 담임목사는 인사말(/greeting)이 있어 church_pastors 에 있고,
+   원로목사는 인사말을 넣을 수 없어 church_people(교역자)에만 등록되기도 한다.
+   두 출처를 한 줄로 합치고(원로가 왼쪽, 담임이 오른쪽), 여기 올라간 분은 아래 교역자
+   격자에서 뺀다 — 같은 화면에 두 번 보이지 않게. church_people 쪽 대표는 다른 카드처럼
+   눌러 인물 시트(담당 사역·연락처)를 열 수 있다. */
+
+/** 대표 카드 한 자리 — 출처가 어디든 화면은 같은 모양으로 그린다 */
+export interface LeaderSlot {
+  key: string
+  name_ko: string
+  name_en?: string | null
+  role_ko: string
+  role_en?: string | null
+  photo_url?: string | null
+  headline_ko?: string | null
+  headline_en?: string | null
+  status: 'current' | 'emeritus'
+  /** church_people 에 같은 분이 있으면 그 기록 — 인물 시트를 열 수 있다 */
+  person: Person | null
+}
+
 /** 공백·가운뎃점 차이를 무시하고 이름을 견주기 위한 키 */
 const nameKey = (value: string): string => value.replace(/[\s·.]/g, '').toLowerCase()
 
-const leaderNameKeys = (leader: LeaderCard): string[] =>
-  [leader.name_ko, leader.name_en]
+const findLeaderPerson = (people: Person[], leader: LeaderCard): Person | null => {
+  const keys = [leader.name_ko, leader.name_en]
     .map((value) => (typeof value === 'string' ? nameKey(value) : ''))
     .filter(Boolean)
-
-/** 대표 카드와 같은 분(교역자 카테고리)을 찾아 pastor_id → Person 으로 묶는다 */
-export const leaderPersonMap = (
-  people: Person[],
-  leaders: LeaderCard[],
-): Map<number, Person> => {
-  const map = new Map<number, Person>()
-  leaders.forEach((leader) => {
-    const keys = leaderNameKeys(leader)
-    const found = people.find(
+  return (
+    people.find(
       (person) => person.category === 'pastor' && keys.includes(nameKey(person.name_ko)),
-    )
-    if (found) map.set(leader.pastor_id, found)
-  })
-  return map
+    ) ?? null
+  )
 }
 
-/** 대표 카드로 이미 올라간 분을 목록에서 뺀 나머지 */
-export const withoutLeaders = (people: Person[], leaders: LeaderCard[]): Person[] => {
-  if (leaders.length === 0) return people
-  const taken = new Set(Array.from(leaderPersonMap(people, leaders).values(), (p) => p.id))
+export const buildLeaderSlots = (people: Person[], leaders: LeaderCard[]): LeaderSlot[] => {
+  const slots: LeaderSlot[] = leaders.map((leader) => ({
+    key: `pastor-${leader.pastor_id}`,
+    name_ko: leader.name_ko,
+    name_en: leader.name_en,
+    role_ko: leader.role_ko,
+    role_en: leader.role_en,
+    photo_url: leader.photo_url,
+    headline_ko: leader.headline_ko,
+    headline_en: leader.headline_en,
+    status: leader.status,
+    person: findLeaderPerson(people, leader),
+  }))
+
+  // church_pastors 에 없는 담임·원로(= 인사말 없이 교역자로만 등록된 분)도 같은 줄에
+  people.forEach((person) => {
+    if (person.category !== 'pastor' || !looksLikeLeaderRole(person)) return
+    if (slots.some((slot) => slot.person?.id === person.id)) return
+    const role = person.role_ko || person.group_ko || '목사'
+    slots.push({
+      key: `person-${person.id}`,
+      name_ko: person.name_ko,
+      name_en: person.name_en,
+      role_ko: role,
+      role_en: person.role_en,
+      photo_url: person.photo_url,
+      headline_ko: person.bio_ko,
+      headline_en: person.bio_en,
+      status: role.includes('원로') ? 'emeritus' : 'current',
+      person,
+    })
+  })
+
+  // 원로가 왼쪽, 담임이 오른쪽 — 레거시 홈페이지의 예우 순서 (sort 는 안정 정렬)
+  return slots.sort((a, b) => (a.status === b.status ? 0 : a.status === 'emeritus' ? -1 : 1))
+}
+
+/** 대표 줄로 올라간 분을 교역자 격자에서 뺀 나머지 */
+export const withoutLeaderPeople = (people: Person[], slots: LeaderSlot[]): Person[] => {
+  const taken = new Set(slots.map((slot) => slot.person?.id).filter((id): id is number => !!id))
   return taken.size === 0 ? people : people.filter((person) => !taken.has(person.id))
 }

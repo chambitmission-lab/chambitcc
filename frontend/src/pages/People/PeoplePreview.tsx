@@ -18,15 +18,8 @@ const person = (id: number, data: Partial<Person> & { name_ko: string }): Person
 })
 
 const SAMPLE: PeopleDirectory = {
-  // 서버와 같은 순서 — 원로목사가 왼쪽, 담임목사가 그 다음 (레거시 예우 순서)
+  // 인사말(/greeting)이 있는 담임목사만 church_pastors 에 있다 — 원로목사는 아래 people 에
   leaders: [
-    {
-      pastor_id: 2,
-      name_ko: '이은혜',
-      role_ko: '원로목사',
-      headline_ko: '한 영혼을 천하보다 귀히 여긴 목회',
-      status: 'emeritus',
-    },
     {
       pastor_id: 1,
       name_ko: '김참빛',
@@ -36,7 +29,15 @@ const SAMPLE: PeopleDirectory = {
     },
   ],
   people: [
-    // church_pastors 에도 있는 담임목사 — 대표 카드로 접히고 격자에선 빠지는지 보는 표본
+    // 인사말이 없어 교역자로만 등록된 원로목사 — 대표 줄 왼쪽으로 올라간다
+    person(9, {
+      name_ko: '이은혜',
+      role_ko: '원로목사',
+      group_ko: '교역자',
+      bio_ko: '한 영혼을 천하보다 귀히 여긴 목회를 이어오셨습니다.',
+      started_on: '1998-03-01',
+    }),
+    // church_pastors 에도 있는 담임목사 — 대표 줄로 접히고 격자에선 빠지는지 보는 표본
     person(10, {
       name_ko: '김참빛',
       role_ko: '담임목사',

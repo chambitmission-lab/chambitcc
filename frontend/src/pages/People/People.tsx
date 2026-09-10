@@ -28,14 +28,14 @@ import {
   CATEGORY_LABEL,
   PERSON_CATEGORIES,
   assignmentList,
+  buildLeaderSlots,
   groupPeople,
-  leaderPersonMap,
   leaderText,
   personInitial,
   personText,
-  withoutLeaders,
+  withoutLeaderPeople,
 } from '../../types/people'
-import type { LeaderCard, Person, PersonCategory } from '../../types/people'
+import type { LeaderSlot, Person, PersonCategory } from '../../types/people'
 import PersonSheet from './PersonSheet'
 import './people.css'
 
@@ -59,8 +59,11 @@ const People = () => {
   // 담임·원로목사가 church_people 에도 등록돼 있으면 대표 카드와 격자에 두 번 보인다 —
   // 대표 카드만 남기고 격자에서 민다. 대신 대표 카드를 누르면 그분의 인물 시트가 열려
   // 담당 사역·연락처는 그대로 닿는다.
-  const leaderPeople = useMemo(() => leaderPersonMap(registered, leaders), [registered, leaders])
-  const people = useMemo(() => withoutLeaders(registered, leaders), [registered, leaders])
+  const leaderSlots = useMemo(() => buildLeaderSlots(registered, leaders), [registered, leaders])
+  const people = useMemo(
+    () => withoutLeaderPeople(registered, leaderSlots),
+    [registered, leaderSlots],
+  )
 
   const [params, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState('')
@@ -76,14 +79,14 @@ const People = () => {
   }, [people])
 
   // 대표 카드도 교역자 수에 든다 — 탭 배지와 히어로 통계가 같은 숫자를 말하게
-  const totalFor = (c: PersonCategory) => counts[c] + (c === 'pastor' ? leaders.length : 0)
+  const totalFor = (c: PersonCategory) => counts[c] + (c === 'pastor' ? leaderSlots.length : 0)
 
   const tabs = useMemo(
     () =>
       PERSON_CATEGORIES.filter(
-        (c) => counts[c] > 0 || (c === 'pastor' && leaders.length > 0),
+        (c) => counts[c] > 0 || (c === 'pastor' && leaderSlots.length > 0),
       ),
-    [counts, leaders.length],
+    [counts, leaderSlots.length],
   )
 
   const requested = params.get('tab')
@@ -160,7 +163,7 @@ const People = () => {
                 : 'Those who build Chambit Church together in word and prayer.\nTap a card to see what they serve and how to reach them.'}
             </p>
 
-            {(totalPeople > 0 || leaders.length > 0) && (
+            {(totalPeople > 0 || leaderSlots.length > 0) && (
               <div className="ppl-stats" aria-label={ko ? '한눈에 보기' : 'At a glance'}>
                 {PERSON_CATEGORIES.filter((c) => totalFor(c) > 0).map((c) => (
                   <span key={c} className="ppl-stat">
@@ -209,26 +212,22 @@ const People = () => {
           )}
 
           {/* 대표(담임·원로목사) — 교역자 탭 맨 위. 편집은 /admin/pastors 에서 */}
-          {active === 'pastor' && leaders.length > 0 && !query && (
+          {active === 'pastor' && leaderSlots.length > 0 && !query && (
             <>
               <div className="ppl-group-title">
                 {ko ? '담임 · 원로목사' : 'Senior & Emeritus'}
                 <span className="ppl-group-rule" />
               </div>
               {/* 한 분뿐이면 왼쪽에 홀로 붙어 허전하다 — 가운데로 모은다 */}
-              <div className={`ppl-leaders ${leaders.length === 1 ? 'is-single' : ''}`}>
-                {leaders.map((leader) => {
-                  const person = leaderPeople.get(leader.pastor_id) ?? null
-                  return (
-                    <LeaderTile
-                      key={leader.pastor_id}
-                      leader={leader}
-                      language={language}
-                      person={person}
-                      onOpen={person ? () => setSelected(person) : undefined}
-                    />
-                  )
-                })}
+              <div className={`ppl-leaders ${leaderSlots.length === 1 ? 'is-single' : ''}`}>
+                {leaderSlots.map((slot) => (
+                  <LeaderTile
+                    key={slot.key}
+                    slot={slot}
+                    language={language}
+                    onOpen={slot.person ? () => setSelected(slot.person as Person) : undefined}
+                  />
+                ))}
               </div>
             </>
           )}
@@ -272,7 +271,7 @@ const People = () => {
               searching={query.trim().length > 0}
               isAdminUser={isAdminUser}
               onManage={() => navigate('/admin/people')}
-              hasAnyone={totalPeople > 0 || leaders.length > 0}
+              hasAnyone={totalPeople > 0 || leaderSlots.length > 0}
             />
           ) : (
             groups.map((group) => (
@@ -332,24 +331,22 @@ const People = () => {
 // 인사말은 메뉴와 /greeting 이 따로 맡는다 — 여긴 사진·직분·한 줄 소개만.
 // church_people 에 같은 분이 있으면 다른 카드처럼 눌러 인물 시트를 열 수 있다.
 const LeaderTile = ({
-  leader,
+  slot,
   language,
-  person,
   onOpen,
 }: {
-  leader: LeaderCard
+  slot: LeaderSlot
   language: 'ko' | 'en'
-  person: Person | null
   onOpen?: () => void
 }) => {
-  const name = leaderText(leader, 'name', language)
-  const role = leaderText(leader, 'role', language)
-  const headline = leaderText(leader, 'headline', language)
-  const photo = leader.photo_url || person?.photo_url || ''
+  const name = leaderText(slot, 'name', language)
+  const role = leaderText(slot, 'role', language)
+  const headline = leaderText(slot, 'headline', language)
+  const photo = slot.photo_url || slot.person?.photo_url || ''
 
   const className = [
     'ppl-leader',
-    leader.status === 'emeritus' ? 'is-emeritus' : '',
+    slot.status === 'emeritus' ? 'is-emeritus' : '',
     onOpen ? '' : 'is-static',
   ]
     .filter(Boolean)
