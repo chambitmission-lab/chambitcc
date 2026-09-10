@@ -276,8 +276,9 @@ const People = () => {
           ) : (
             groups.map((group) => (
               <section key={group.key}>
-                {/* 그룹이 하나뿐이면 헤더가 탭 라벨과 같아 군더더기가 된다 */}
-                {groups.length > 1 && (
+                {/* 그룹이 하나뿐이면 헤더가 탭 라벨과 같아 군더더기가 된다 —
+                    예우 그룹(명예전도사·은퇴장로)만은 예외로 늘 이름을 붙인다 */}
+                {(groups.length > 1 || group.honor) && (
                   <div className="ppl-group-title">
                     {group.label}
                     <span className="ppl-group-count">{group.people.length}</span>

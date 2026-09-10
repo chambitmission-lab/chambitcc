@@ -76,6 +76,15 @@ const SAMPLE: PeopleDirectory = {
       group_ko: '전도사',
       assignments_ko: '중고등부',
     }),
+    // 예우 그룹 — 현직 전도사 뒤에 '명예전도사' 소제목으로 따로 묶이는지 보는 표본
+    person(15, {
+      name_ko: '한소망',
+      role_ko: '전도사',
+      group_ko: '명예전도사',
+      group_en: 'Honorary evangelist',
+      bio_ko: '오랜 세월 심방과 기도로 교회를 섬기셨습니다.',
+      started_on: '1985-04-01',
+    }),
     person(21, {
       category: 'missionary',
       name_ko: '한믿음',

@@ -177,10 +177,23 @@ export const looksLikeLeaderRole = (person: {
   return LEADER_ROLE_WORDS.some((word) => haystack.includes(word))
 }
 
+/* ── 예우 그룹 ────────────────────────────────────────
+   '명예전도사' · '은퇴장로'처럼 현직에서 물러난 뒤에도 이름을 올려 두는 자리.
+   레거시 홈페이지가 그랬듯 현직 다음에 두고, 그룹이 하나뿐이어도 소제목을 지우지
+   않는다 — '명예전도사'라는 말 자체가 예우라서 이름 위에 남아 있어야 한다. */
+const HONOR_GROUP_WORDS = ['명예', '원로', '은퇴', 'honorary', 'emerit', 'retired']
+
+export const isHonorGroup = (label: string): boolean => {
+  const haystack = label.toLowerCase()
+  return HONOR_GROUP_WORDS.some((word) => haystack.includes(word))
+}
+
 /** 같은 group 끼리 묶는다. group 이 비면 카테고리 기본 라벨로 */
 export interface PersonGroup {
   key: string
   label: string
+  /** 명예·원로·은퇴 — 현직 뒤로 놓이고 소제목을 항상 보여준다 */
+  honor: boolean
   people: Person[]
 }
 
@@ -195,9 +208,17 @@ export const groupPeople = (
     const label = personText(person, 'group', language) || fallback
     const found = groups.find((g) => g.key === label)
     if (found) found.people.push(person)
-    else groups.push({ key: label, label, people: [person] })
+    else
+      groups.push({
+        key: label,
+        label,
+        // 표시 언어가 영어여도 예우 여부는 한국어 원문까지 함께 본다
+        honor: isHonorGroup(`${label} ${person.group_ko ?? ''}`),
+        people: [person],
+      })
   })
-  return groups
+  // 예우 그룹은 현직 뒤로 (sort 는 안정 정렬이라 나머지 순서는 그대로)
+  return groups.sort((a, b) => Number(a.honor) - Number(b.honor))
 }
 
 /* ── 대표(담임·원로) 중복 정리 ──────────────────────────

@@ -34,14 +34,14 @@ const STEPS: { key: Step; label: string }[] = [
 ]
 
 const CATEGORY_DESC: Record<PersonCategory, string> = {
-  pastor: '부목사 · 전도사 · 강도사',
+  pastor: '부목사 · 전도사 · 강도사 · 명예전도사',
   missionary: '파송 선교사 — 사역지와 국기가 함께 보입니다',
   elder: '시무장로 · 은퇴장로',
   staff: '사무간사 · 관리집사 등',
 }
 
 const GROUP_PRESETS: Record<PersonCategory, string[]> = {
-  pastor: ['부목사', '전도사', '강도사', '교육전도사'],
+  pastor: ['부목사', '전도사', '강도사', '교육전도사', '명예전도사'],
   missionary: ['파송선교사', '협력선교사'],
   elder: ['시무장로', '은퇴장로', '협동장로'],
   staff: ['사무간사', '관리집사', '차량봉사'],
@@ -346,7 +346,7 @@ const PersonComposer = ({
                   value={group}
                   onChange={setGroup}
                   placeholder={`예) ${GROUP_PRESETS[category][0]}`}
-                  hint="같은 그룹끼리 묶여서 표시됩니다. 비우면 분류 이름으로 묶입니다."
+                  hint="같은 그룹끼리 묶여서 표시됩니다. 비우면 분류 이름으로 묶입니다. '명예전도사'·'은퇴장로' 같은 예우 그룹은 현직 뒤에 놓입니다."
                   presets={GROUP_PRESETS[category]}
                 />
 
