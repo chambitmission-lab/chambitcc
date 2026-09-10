@@ -1,6 +1,8 @@
 /* 지금 함께 읽는 말씀 — 브랜드 블루 카드 위에 "양들이 함께 성경을 펼친" 목장 일러스트를 깐다.
    그림(3:1)의 주인공은 오른쪽에만 있고 왼쪽은 하늘·들판뿐이라, 왼쪽에서 카드색 스크림을 덮어
    라벨·제목·본문을 그 위에 올린다(이어 읽기 .dash-card--resume와 같은 처방).
+   스크림이 74~76%까지 끌리면 양 무리(카드 폭 52% 지점부터)가 옅게 지워지므로, 본문 폭(68%)이
+   끝나는 자리에서 걷히도록 앞당겼다 — 글 뒤는 여전히 흰 벽, 양들은 제 색으로 선다.
    다크는 같은 장면의 밤 버전 — 등불만 앰버로 켜진 어두운 들판.
    색은 전부 theme.css 토큰 — 라이트/다크가 토큰으로 갈린다. */
 
@@ -15,9 +17,9 @@
     linear-gradient(160deg, var(--brand-soft) 0%, transparent 55%),
     linear-gradient(100deg,
       #ffffff 0%,
-      rgba(255, 255, 255, 0.96) 42%,
-      rgba(255, 255, 255, 0.52) 70%,
-      rgba(255, 255, 255, 0) 92%),
+      rgba(255, 255, 255, 0.95) 40%,
+      rgba(255, 255, 255, 0.42) 58%,
+      rgba(255, 255, 255, 0) 74%),
     url('/images/home/live-reading-light.webp') right center / cover no-repeat,
     #ffffff;
   box-shadow:
@@ -33,9 +35,9 @@
     linear-gradient(160deg, var(--brand-soft) 0%, transparent 55%),
     linear-gradient(100deg,
       #201f1f 0%,
-      rgba(32, 31, 31, 0.95) 42%,
-      rgba(32, 31, 31, 0.48) 70%,
-      rgba(32, 31, 31, 0) 94%),
+      rgba(32, 31, 31, 0.94) 40%,
+      rgba(32, 31, 31, 0.40) 58%,
+      rgba(32, 31, 31, 0) 76%),
     url('/images/home/live-reading-dark.webp') right center / cover no-repeat,
     #1a1a1a;
 }
@@ -65,13 +67,17 @@
 @media (min-width: 1024px) {
   .live-card { min-height: 11.5rem; }
   .live-card__body { max-width: 62%; }
+  .live-card__foot { margin-bottom: -10px; }
 }
 
-/* 아래 줄(안내문 + CTA)은 카드 바닥에 붙여, 그림이 숨 쉴 여백을 위로 남긴다 */
+/* 아래 줄(안내문 + CTA)은 카드 바닥에 붙여, 그림이 숨 쉴 여백을 위로 남긴다.
+   카드 안쪽 여백(p-4)만큼 띄우면 CTA pill이 오른쪽 양의 몸을 물어서, 바닥 여백을 깎아
+   한 단계 더 내려앉힌다 — 양은 드러나고 pill은 여전히 둥근 모서리 안쪽. */
 .live-card__foot {
   position: relative;
   margin-top: auto;
   padding-top: 12px;
+  margin-bottom: -8px;
 }
 
 .live-card:hover {
