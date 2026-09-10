@@ -345,7 +345,9 @@ const LeaderTile = ({
   const headline = leaderText(slot, 'headline', language)
   const photo = slot.photo_url || slot.person?.photo_url || ''
 
+  // 아래 인물 카드와 같은 생김새(세로 사진 + 이름·직분)로 간다 — 대표라고 따로 놀지 않게
   const className = [
+    'ppl-card',
     'ppl-leader',
     slot.status === 'emeritus' ? 'is-emeritus' : '',
     onOpen ? '' : 'is-static',
@@ -355,16 +357,21 @@ const LeaderTile = ({
 
   const inner = (
     <>
-      <span className="ppl-leader-photo">
+      <span className="ppl-card-photo">
         {photo ? (
           <img src={photo} alt={name} loading="lazy" />
         ) : (
           <span className="ppl-card-initial">{personInitial(name)}</span>
         )}
       </span>
-      <span className="ppl-leader-role">{role}</span>
-      <span className="ppl-leader-name">{name}</span>
-      {headline && <span className="ppl-leader-headline">{headline}</span>}
+
+      <span className="ppl-card-body">
+        <span className="ppl-card-name">
+          {name}
+          {role && <span className="ppl-card-role">{role}</span>}
+        </span>
+        {headline && <span className="ppl-card-sub">{headline}</span>}
+      </span>
     </>
   )
 
