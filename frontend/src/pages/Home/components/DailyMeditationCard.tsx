@@ -153,6 +153,23 @@ const HERO_EMOJI: Record<TimeOfDay, string> = {
   evening: '🌙',
 }
 
+/* 헤드라인 강조 — 번역 문자열의 [[…]] 구간만 빛을 머금은 액센트로 칠한다.
+ * 언어마다 강조할 낱말이 다르므로(ko '빛나는' / en 'shining') 코드가 아니라
+ * 로케일 문자열이 어디를 강조할지 정한다. */
+function renderHeadline(text: string) {
+  const parts = text.split(/\[\[(.+?)\]\]/)
+  if (parts.length === 1) return text
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <span key={i} className="meditation-hero-accent">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  )
+}
+
 const HEADLINE_KEYS = {
   morning: ['homeHeadlineMorning1', 'homeHeadlineMorning2'],
   afternoon: ['homeHeadlineAfternoon1', 'homeHeadlineAfternoon2'],
@@ -389,7 +406,11 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               ))}
             </div>
           )}
-          {/* 실황 날씨 칩 — 우측 상단 유리 칩(이모지+기온). 맑으면 시간대 이모지,
+          {/* 우상단 유리 클러스터 — 날씨 칩 + 알람 버튼이 한 덩어리로 앉는다.
+            * 알람이 사진 하단에 홀로 떠 있으면 덩그러니 보여, 같은 유리 재질끼리
+            * 모아 한 쌍으로 읽히게 했다. */}
+          <div className="meditation-hero-top">
+          {/* 실황 날씨 칩 — 유리 칩(이모지+기온). 맑으면 시간대 이모지,
            * 비·눈이면 한 단어 라벨, 강수확률 40% 이상이면 확률까지 붙는다.
            * API 실패 시엔 칩을 숨기고 인사말 끝 이모지로 폴백한다. */}
           {/* 로딩 동안은 칩 크기의 스켈레톤으로 자리를 잡아둔다 — 칩이 뒤늦게
@@ -425,8 +446,24 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               )}
             </span>
           )}
+            {/* 구절 알람 설정 진입점 — 원하는 시간에 오늘의 말씀 푸시 */}
+            <button
+              type="button"
+              className="meditation-alarm-btn"
+              onClick={() => navigate('/bible/alarm')}
+              aria-label={t('homeVerseAlarmAria')}
+              title={t('homeVerseAlarmAria')}
+            >
+              <span className="material-icons-round" aria-hidden>notifications</span>
+            </button>
+          </div>
           <div className="meditation-hero-text">
             <p className="meditation-hero-greeting">
+              {/* 절기 칩 — 인사말 줄 맨 앞에 나직이. 사진 위 흰 글씨와 한 줄로
+                * 읽히도록 파스텔 채움 대신 절기색을 머금은 유리 칩으로 앉힌다. */}
+              <span className="meditation-season-tag is-inline" data-season={season}>
+                {t(SEASON_LABEL_KEYS[season])}
+              </span>
               {buildGreeting(t(GREETING_KEYS[timeOfDay]), fullName, language)}
               {/* 날씨 조회가 끝났는데도 값이 없을 때(실패)만 폴백 이모지.
                 * 타임아웃(4초) 뒤에 붙을 수 있어 살짝 페이드인시킨다 */}
@@ -438,9 +475,9 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               )}
             </p>
             <h2 className="meditation-hero-headline">
-              {t(HEADLINE_KEYS[timeOfDay][0])}
+              {renderHeadline(t(HEADLINE_KEYS[timeOfDay][0]))}
               <br />
-              {t(HEADLINE_KEYS[timeOfDay][1])}
+              {renderHeadline(t(HEADLINE_KEYS[timeOfDay][1]))}
             </h2>
             {/* 주일 우산 속삭임 — 주일이 가까우면서(3일 내) 비 확률이 높을 때만.
               * 알림 박스가 아니라 풍경 속 한 줄로, 헤드라인 아래에 나직이 얹힌다.
@@ -452,22 +489,6 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
               </p>
             )}
           </div>
-          {/* 절기 태그 + 알람 — 사진 위 하단에 유리 칩으로 앉는다 (시안: 활동·연속 묵상 행) */}
-          <header className="meditation-meta-row">
-            <span className="meditation-season-tag" data-season={season}>
-              {t(SEASON_LABEL_KEYS[season])}
-            </span>
-            {/* 구절 알람 설정 진입점 — 원하는 시간에 오늘의 말씀 푸시 */}
-            <button
-              type="button"
-              className="meditation-alarm-btn"
-              onClick={() => navigate('/bible/alarm')}
-              aria-label={t('homeVerseAlarmAria')}
-              title={t('homeVerseAlarmAria')}
-            >
-              <span className="material-icons-round" aria-hidden>notifications</span>
-            </button>
-          </header>
         </div>
 
         <div className="meditation-body">
@@ -532,19 +553,23 @@ const DailyMeditationCard = ({ onWriteMeditation }: DailyMeditationCardProps) =>
         <div className={`meditation-content${enteredFromSkeleton ? ' is-entering' : ''}`}>
         <div className="meditation-passage">
           <span className="meditation-passage-label">{data.passage.label}</span>
-          {data.passage.theme && (
-            <span className="meditation-passage-theme">{data.passage.theme}</span>
-          )}
-          {!isDone && (
-            <span className="meditation-passage-time">
-              <span className="material-icons-round" aria-hidden>schedule</span>
-              {inProgress
-                ? t('homePassageFromVerse')
-                    .replace('{v}', String(firstUnreadVerse))
-                    .replace('{m}', String(remainingMinutes))
-                : t('homePassageMinutes').replace('{m}', String(remainingMinutes))}
-            </span>
-          )}
+          {/* 주제·소요시간은 제목의 곁말 — 크기·높이를 맞춘 한 쌍으로 묶어
+            * 우측에 붙인다(따로 놓으면 크기가 달라 흐트러져 보인다) */}
+          <span className="meditation-passage-meta">
+            {data.passage.theme && (
+              <span className="meditation-passage-theme">{data.passage.theme}</span>
+            )}
+            {!isDone && (
+              <span className="meditation-passage-time">
+                <span className="material-icons-round" aria-hidden>schedule</span>
+                {inProgress
+                  ? t('homePassageFromVerse')
+                      .replace('{v}', String(firstUnreadVerse))
+                      .replace('{m}', String(remainingMinutes))
+                  : t('homePassageMinutes').replace('{m}', String(remainingMinutes))}
+              </span>
+            )}
+          </span>
         </div>
 
         <blockquote className="meditation-verse-quote">
