@@ -135,9 +135,10 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  /* 블러 없이 스크림만 — 전체화면 backdrop-filter는 긴 절 목록 위에서 페이드
+     매 프레임 블러를 다시 계산해 저사양 폰의 열림 애니메이션을 끊었다.
+     3px 블러가 빠진 만큼 스크림을 조금 진하게 해 분리감을 유지한다 */
+  background: rgba(0, 0, 0, 0.6);
   animation: chapter-sheet-fade 0.18s ease-out;
 }
 

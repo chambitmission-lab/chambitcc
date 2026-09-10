@@ -6,6 +6,8 @@ import { bibleReadingKeys } from '../../../hooks/useBibleReading'
 import { getBookReadingProgress } from '../../../api/bibleReading'
 import { bookmarkKeys } from '../../../hooks/useBibleBookmark'
 import { listBookmarks } from '../../../api/bibleBookmark'
+import { wordNoteKeys } from '../../../hooks/useBibleWordNote'
+import { listWordNotes } from '../../../api/bibleWordNote'
 import ReaderSettings from './ReaderSettings'
 import { lazyModal } from '../../../utils/lazyModal'
 // 장 선택 시트는 열 때만 — 읽기 화면 청크에서 분리
@@ -43,10 +45,29 @@ const ChapterNavigation = ({
   const [pickerOpen, setPickerOpen] = useState(false)
   const queryClient = useQueryClient()
 
-  // 장 피커 시트가 열리는 순간에야 진행도·북마크를 요청하면 ✓ 표시가 한 박자 늦게
-  // 뜬다. 책을 펼쳐 읽는 동안 미리 받아 두면 시트는 캐시로 즉시 그려진다.
-  // (staleTime은 useBookReadingProgress / useMyBookmarks와 동일하게 맞춘다 —
-  //  fresh하면 prefetch가 네트워크 요청 없이 조용히 끝난다)
+  // 시트 청크를 본문이 그려진 뒤 한가할 때 미리 받아둔다.
+  // 미리 받지 않으면 첫 탭은 Suspense 경로로 열리는데, React는 폴백(null)을 한 번
+  // 커밋하면 실제 콘텐츠 커밋을 폴백 시점+300ms까지 미룬다(fallback throttle) —
+  // 청크가 7ms에 도착해도 빈 화면 300ms 뒤에 시트가 "툭" 뜨던 원인. 받아둔 뒤엔
+  // lazyModal이 Suspense를 건너뛰어 첫 열기도 즉시(3~5ms) 그려진다.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(ChapterPickerSheet.preload, { timeout: 2500 })
+      return () => w.cancelIdleCallback?.(id)
+    }
+    const id = window.setTimeout(ChapterPickerSheet.preload, 1200)
+    return () => window.clearTimeout(id)
+  }, [])
+
+  // 장 피커 시트가 열리는 순간에야 진행도·북마크·단어장을 요청하면 ✓·점 표시가
+  // 한 박자 늦게 뜬다. 책을 펼쳐 읽는 동안 미리 받아 두면 시트는 캐시로 즉시 그려진다.
+  // (staleTime은 useBookReadingProgress / useMyBookmarks / useBookWordNotes와
+  //  동일하게 맞춘다 — fresh하면 prefetch도, 시트의 refetchOnMount도 요청 없이 끝난다)
   const loggedIn = isLoggedIn()
   useEffect(() => {
     if (!loggedIn) return
@@ -62,6 +83,11 @@ const ChapterNavigation = ({
         queryKey: bookmarkKeys.list({ book_number: bookNumber, page_size: 100 }),
         queryFn: () => listBookmarks({ book_number: bookNumber, page_size: 100 }),
         staleTime: 1000 * 60 * 2,
+      })
+      queryClient.prefetchQuery({
+        queryKey: wordNoteKeys.book(bookNumber),
+        queryFn: () => listWordNotes({ book_number: bookNumber, page_size: 100 }),
+        staleTime: 1000 * 60 * 5,
       })
     }
   }, [loggedIn, selectedBookId, bookNumber, queryClient])
