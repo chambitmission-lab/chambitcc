@@ -11,8 +11,30 @@
 .ppl-hero {
   position: relative;
   overflow: hidden;
-  padding: 2.25rem 1.25rem 2.25rem;
+  /* 모바일은 카드 — 좌우 1rem 은 아래 탭·격자의 padding 과 같은 기준선 */
+  margin: 0.75rem 1rem 0.35rem;
+  padding: 1.9rem 1.25rem 1.6rem;
+  border-radius: 1.5rem;
+  background-color: var(--surface-container);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
   text-align: center;
+}
+
+[data-theme='dark'] .ppl-hero {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 26px rgba(0, 0, 0, 0.32);
+}
+
+/* PC 와이드 셸은 이미 라운드 카드라, 히어로는 그 안의 상단 띠로 둔다(카드 안 카드 방지) */
+@media (min-width: 1024px) {
+  .ppl-hero {
+    margin: 0;
+    padding: 2.5rem 1.5rem 2.25rem;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
 
 .ppl-hero::before {
@@ -23,8 +45,8 @@
   background:
     radial-gradient(150% 62% at 50% 100%, rgba(255, 176, 118, 0.44), rgba(255, 202, 166, 0.16) 44%, transparent 72%),
     linear-gradient(180deg, rgba(118, 170, 245, 0.34) 0%, rgba(178, 205, 248, 0.20) 32%, rgba(255, 226, 205, 0.18) 62%, transparent 88%);
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0, 0, 0, 0.55) 88%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 62%, rgba(0, 0, 0, 0.55) 88%, transparent 100%);
 }
 
 [data-theme='dark'] .ppl-hero::before {
@@ -71,6 +93,36 @@
   box-shadow: 0 8px 22px -12px var(--brand-glow);
 }
 
+/* 관리자 chip — 히어로 카드 우상단. 아래에 버튼 한 줄을 더 쌓지 않아
+   히어로가 짧아지고, 일반 이용자 눈에는 애초에 없는 자리다. */
+.ppl-hero .ppl-hero-admin {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.85rem;
+  padding: 0 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--brand);
+  background: var(--brand-soft-strong);
+  border: 1px solid var(--brand-glow);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ppl-hero .ppl-hero-admin:hover {
+    background: var(--brand-soft);
+  }
+}
+
 .ppl-hero-badge {
   display: block;
   margin-top: 0.85rem;
@@ -109,7 +161,7 @@
 
 /* 한눈에 보기 — 실제 등록된 인원만 센다 */
 .ppl-stats {
-  margin-top: 1.15rem;
+  margin-top: 1rem;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -127,11 +179,14 @@
   color: var(--text-muted);
   background: var(--surface-container);
   border: 1px solid var(--card-border);
+  /* 카드도 흰색이라 테두리만으로는 묻힌다 — 아주 얕게 띄워 읽히게 */
+  box-shadow: 0 1px 2px rgba(24, 26, 40, 0.06);
 }
 
 [data-theme='dark'] .ppl-stat {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 .ppl-stat-num {

@@ -150,6 +150,16 @@ const People = () => {
         <div className="max-w-md mx-auto bg-background-light dark:bg-background-dark min-h-screen pb-12 lg:max-w-none lg:mx-0 lg:rounded-3xl lg:border lg:border-border-light dark:lg:border-border-dark lg:overflow-hidden lg:min-h-0">
           {/* Hero */}
           <header className="ppl-hero">
+            {isAdminUser && (
+              <button
+                type="button"
+                onClick={() => navigate('/admin/people')}
+                className="ppl-hero-admin"
+              >
+                <PencilSimple size={12} weight="bold" />
+                {ko ? '인물 관리' : 'Manage'}
+              </button>
+            )}
             <span className="ppl-hero-emblem">
               <UsersThree size={28} weight="duotone" />
             </span>
@@ -171,19 +181,6 @@ const People = () => {
                     {CATEGORY_LABEL[c][ko ? 'ko' : 'en']}
                   </span>
                 ))}
-              </div>
-            )}
-
-            {isAdminUser && (
-              <div className="mt-4 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => navigate('/admin/people')}
-                  className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-[12.5px] font-bold text-brand bg-[var(--brand-soft-strong)] border border-[var(--brand-glow)] hover:bg-[var(--brand-soft)] transition-colors"
-                >
-                  <PencilSimple size={13} weight="bold" />
-                  {ko ? '인물 관리' : 'Manage'}
-                </button>
               </div>
             )}
           </header>
