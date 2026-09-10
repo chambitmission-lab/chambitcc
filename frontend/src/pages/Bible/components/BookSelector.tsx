@@ -81,7 +81,14 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   // 세션 한정 상태로 둔다: 기기에 기억하면 다음 방문에 목록이 비어 보이는 이유를 찾기 어렵다
   const [unreadOnly, setUnreadOnly] = useState(false)
 
+  // 진입 스태거(칩 슬라이드·카드/정거장 pop-in·도장 압인)는 "필터를 바꿨다"는 응답이지
+  // 화면 로딩 연출이 아니다. 라우트 진입 첫 마운트에도 매번 0.7초씩 순차로 떠오르니
+  // 웜 진입조차 "아직 불러오는 중"처럼 읽혔다 — 사용자가 탭·칩·보기를 한 번 만진 뒤부터만
+  // 켠다(data-animate). CSS 는 이 속성이 없으면 해당 animation 을 끈다.
+  const [interacted, setInteracted] = useState(false)
+
   const handleViewModeChange = (mode: BookViewMode) => {
+    setInteracted(true)
     setViewMode(mode)
     try {
       localStorage.setItem(VIEW_MODE_KEY, mode)
@@ -185,6 +192,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
 
   const handleTestamentChange = (next: Testament) => {
     if (next === testament) return
+    setInteracted(true)
     setDir(next === 'NT' ? 'forward' : 'back')
     setTestament(next)
     setFilter('all')
@@ -497,7 +505,7 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
   const listBooks = unreadOnly ? remainingBooks : filteredBooks
 
   return (
-    <div className="bible-books-section">
+    <div className="bible-books-section" data-animate={interacted ? '' : undefined}>
       <h2 className="section-title">{t.selectBook}</h2>
 
       {/* 읽기 진행 요약 — 히어로(전체 진행률·격려·게이지) + 구약/신약 타일, 또는 66권 지도.
@@ -697,7 +705,10 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                 type="button"
                 className={`book-filter-chip${filter === cat.id ? ' active' : ''}`}
                 style={{ animationDelay: `${i * 45}ms` }}
-                onClick={() => setFilter(cat.id)}
+                onClick={() => {
+                  setInteracted(true)
+                  setFilter(cat.id)
+                }}
               >
                 {/* 칩 배경을 진행률만큼 채워, 숫자를 읽지 않아도 덜 읽은 분류가 드러나게 */}
                 {showRate && (
@@ -795,7 +806,10 @@ const BookSelector = ({ books, isLoading, error, onBookSelect, resumeMap, progre
                   type="button"
                   className={`unread-chip${unreadOnly ? ' active' : ''}`}
                   aria-pressed={unreadOnly}
-                  onClick={() => setUnreadOnly(v => !v)}
+                  onClick={() => {
+                    setInteracted(true)
+                    setUnreadOnly(v => !v)
+                  }}
                 >
                   {t.unreadOnly}
                   <span className="unread-chip__count">{remainingBooks.length}</span>

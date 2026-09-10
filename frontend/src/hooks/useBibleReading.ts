@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import {
   markVerseAsRead,
   getReadVerses,
@@ -14,6 +15,13 @@ import { scheduleTitleEvaluation } from '../utils/titleUnlockBus'
 import type { RequestPriority } from '../api/utils/request'
 import type { ProfileDetail } from '../types/profile'
 import { profileKeys } from './queryKeys'
+
+// 진행률·이어읽기 신선도. 예전 30초는 /bible 을 열 때마다 두 요청을 다시 보냈는데,
+// 읽음·플랜 mutation 이 이미 bibleReadingKeys.all 을 무효화하므로 짧은 staleTime 은
+// 소형 컨테이너에서 요청 경쟁만 늘렸다. 선요청(prefetchReadingState)과 반드시 같은 값.
+export const READING_STATE_STALE_MS = 1000 * 60 * 5
+/** /bible 허브의 책별 이어읽기 마커 개수 — 훅 호출과 선요청의 키가 같아야 한다 */
+export const BIBLE_HUB_RESUME_LIMIT = 20
 
 // Query Keys
 export const bibleReadingKeys = {
@@ -126,8 +134,8 @@ export const useReadingProgress = (
     queryKey: bibleReadingKeys.progress(),
     queryFn: () => getReadingProgress(options),
     enabled,
-    staleTime: 1000 * 30, // 30초
-    refetchOnMount: true, // staleTime(30초) 지나면 Garden 진입 시 재조회
+    staleTime: READING_STATE_STALE_MS,
+    refetchOnMount: true, // staleTime 지나면 Garden 진입 시 재조회
   })
 }
 
@@ -159,7 +167,25 @@ export const useResumeReading = (
     queryKey: bibleReadingKeys.resume(limit),
     queryFn: () => getResumeReading(limit, options),
     enabled,
-    staleTime: 1000 * 30, // 30초
+    staleTime: READING_STATE_STALE_MS,
+  })
+}
+
+/**
+ * /bible 허브의 진행률 + 이어읽기를 훅과 같은 키·staleTime 으로 미리 받는다
+ * (pages/Bible/prefetch — 청크 프리로드·라우트 진입 시점). 로그인 상태에서만 부른다.
+ * 'critical' 은 훅과 동일 — 허브가 먼저 마운트돼 게이트가 걸려 있어도 통과한다.
+ */
+export const prefetchReadingState = (qc: QueryClient): void => {
+  void qc.prefetchQuery({
+    queryKey: bibleReadingKeys.progress(),
+    queryFn: () => getReadingProgress({ priority: 'critical' }),
+    staleTime: READING_STATE_STALE_MS,
+  })
+  void qc.prefetchQuery({
+    queryKey: bibleReadingKeys.resume(BIBLE_HUB_RESUME_LIMIT),
+    queryFn: () => getResumeReading(BIBLE_HUB_RESUME_LIMIT, { priority: 'critical' }),
+    staleTime: READING_STATE_STALE_MS,
   })
 }
 

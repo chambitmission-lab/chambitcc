@@ -519,3 +519,9 @@
     animation: none;
   }
 }
+
+/* 진입 스태거 게이트 — book-selector.css 의 같은 규칙과 한 쌍. 정거장 pop-in 과 완독 도장 압인은
+   필터 전환(data-animate) 뒤에만 재생하고, 첫 마운트엔 즉시 그린다. 펄스·흐름 애니메이션은 유지. */
+.bible-books-section:not([data-animate]) :is(.bjp-row, .bjp-row--done .bjp-node) {
+  animation: none;
+}

@@ -55,6 +55,29 @@
     padding: 1.25rem 1.25rem;
   }
 }
+/* 이어읽기 응답 전 자리표시자 — 실제 카드와 같은 골격·높이·배경(그림 포함)이라 응답이 와도
+   아래 통독표가 밀리지 않는다. 막대는 book-selector.css 의 .bib-skel 시머를 그대로 쓴다. */
+.dash-card--resume-skel {
+  cursor: default;
+  pointer-events: none;
+}
+.dash-card--resume-skel .dash-card__icon {
+  background: rgba(69, 147, 252, 0.12);
+  box-shadow: none;
+}
+.dash-card--resume-skel .dash-card__icon::after {
+  display: none;
+}
+.dash-card--resume-skel .dash-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.bib-skel--resume-icon { width: 1.5rem; height: 1.5rem; border-radius: 0.5rem; }
+.bib-skel--resume-label { width: 7rem; height: 0.7rem; }
+.bib-skel--resume-title { width: 9.5rem; height: 1.05rem; }
+.bib-skel--resume-text { width: 78%; height: 0.8rem; }
+
 /* 본문은 그림의 주인공(오른쪽 약 30%)을 침범하지 않도록 오른쪽 여백을 둔다.
    우측 화살표는 그림 위 건물과 겹쳐 지저분해서 숨긴다 — 카드 전체가 버튼이라 손실 없음 */
 .dash-card--resume .dash-card__body {

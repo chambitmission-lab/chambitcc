@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useParams, useSearchParams, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
 import { useBibleBooks, useBibleChapterInfinite } from '../../hooks/useBible'
-import { useResumeReading, useReadingProgress } from '../../hooks/useBibleReading'
+import { useResumeReading, useReadingProgress, BIBLE_HUB_RESUME_LIMIT } from '../../hooks/useBibleReading'
 import { useQueryClient, useIsRestoring } from '@tanstack/react-query'
 import { biblePlanKeys, useBiblePlan, useCompleteDay } from '../../hooks/useBiblePlan'
 import { useAuth } from '../../hooks/useAuth'
@@ -125,7 +125,7 @@ const BibleStudy = () => {
   // 비로그인 시 쿼리가 disabled라 isPending이 영원히 true이므로 isLoggedIn()과 함께 판정해야 한다.
   // 진행률·이어읽기는 /bible 첫 화면의 핵심 요청 — 콜드 마운트에서 북마크 통계·스토리 진도 등
   // 부가 요청보다 먼저 나간다 (utils/requestPriority, 홈 기도 목록과 같은 게이트)
-  const { data: resumeData } = useResumeReading(20, isLoggedIn(), { priority: 'critical' })
+  const { data: resumeData, isPending: resumePending } = useResumeReading(BIBLE_HUB_RESUME_LIMIT, isLoggedIn(), { priority: 'critical' })
   const { data: progressData, isPending: progressPending } = useReadingProgress(isLoggedIn(), { priority: 'critical' })
 
   // 게이트는 캐시 없이(콜드) 뜨는 첫 마운트에만, 렌더 단계에서 건다 — NewHome 과 같은 이유:
@@ -554,6 +554,21 @@ const BibleStudy = () => {
                   {/* 나의 서재 — 이어 읽기(강조) + 도구 카드(모바일 위치).
                       처음 만나는 성경은 비로그인 초심자에게도 보여야 하므로 로그인 여부와 무관하게 렌더 */}
                   <div className="bible-dash">
+                    {/* 콜드 진입에서 이어읽기 응답이 책 목록보다 늦으면 카드가 뒤늦게 끼어들며
+                        아래 통독표가 밀렸다 — 응답 전엔 같은 높이의 스켈레톤으로 자리를 잡는다.
+                        (비로그인은 쿼리가 꺼져 isPending 이 영원히 true 라 isLoggedIn 과 함께 판정) */}
+                    {isLoggedIn() && resumePending && !resumeData && (
+                      <div className="dash-card dash-card--resume dash-card--resume-skel" aria-hidden="true">
+                        <span className="dash-card__icon">
+                          <span className="bib-skel bib-skel--resume-icon" />
+                        </span>
+                        <span className="dash-card__body">
+                          <span className="bib-skel bib-skel--resume-label" />
+                          <span className="bib-skel bib-skel--resume-title" />
+                          <span className="bib-skel bib-skel--resume-text" />
+                        </span>
+                      </div>
+                    )}
                     {resumeData?.latest && (
                       <ResumeReadingCard
                         latest={resumeData.latest}

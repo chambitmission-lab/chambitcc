@@ -12,7 +12,14 @@ export const getBibleBooks = async (): Promise<BibleBook[]> => {
     return getMockBibleBooks()
   }
   
-  return request<BibleBook[]>('/bible/books', { errorMessage: 'Failed to fetch bible books' })
+  // 'high': 첫 화면 우선순위 게이트(utils/requestPriority)를 거치지 않는다.
+  // 책 목록은 /bible 허브를 그리는 데 꼭 필요한 유일한 데이터인데, 콜드 진입에서
+  // 진행률(critical) 응답이 올 때까지 게이트 뒤에 묶여 스피너만 떠 있었다.
+  // 서버가 1시간 HTTP 캐시를 주므로 가로막지만 않으면 사실상 즉시 온다.
+  return request<BibleBook[]>('/bible/books', {
+    errorMessage: 'Failed to fetch bible books',
+    priority: 'high',
+  })
 }
 
 // 특정 장 읽기 - 책 ID 사용

@@ -110,13 +110,18 @@ export const useBibleChapterInfinite = (bookNumber: number, chapter: number, ena
  * API 왕복이 통째로 뒤로 밀렸다. 키·queryFn·페이지 크기는 useBibleChapterInfinite 와
  * 반드시 같아야 훅이 캐시를 그대로 이어받는다.
  */
-export const prefetchBibleChapter = (qc: QueryClient, bookNumber: number, chapter: number): void => {
-  if (!(bookNumber > 0 && chapter > 0)) return
+/** 책 목록 — 훅(useBibleBooks)과 같은 키·staleTime. 24시간 안에 이미 있으면 요청하지 않는다 */
+export const prefetchBibleBooks = (qc: QueryClient): void => {
   void qc.prefetchQuery({
     queryKey: bibleKeys.books(),
     queryFn: getBibleBooks,
     staleTime: CHAPTER_STALE_MS,
   })
+}
+
+export const prefetchBibleChapter = (qc: QueryClient, bookNumber: number, chapter: number): void => {
+  if (!(bookNumber > 0 && chapter > 0)) return
+  prefetchBibleBooks(qc)
   void qc.prefetchInfiniteQuery({
     queryKey: bibleKeys.chapterInfinite(bookNumber, chapter),
     queryFn: ({ pageParam = 1 }) => getBibleChapterPaginated(bookNumber, chapter, pageParam, CHAPTER_PAGE_SIZE),

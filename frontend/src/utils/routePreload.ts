@@ -46,6 +46,8 @@ export const menuRouteLoaders: Record<string, RouteLoader> = {
 // 청크 로드 직후 일괄로 데운다(현재 테마 즉시, 반대 테마는 유휴 시간에).
 const routeDataPrefetchers: Record<string, () => Promise<void>> = {
   '/greeting': () => import('../pages/Greeting/prefetch').then((m) => m.prefetch()),
+  // 하단 네비 1순위 목적지 — 책 목록(+로그인 시 진행률·이어읽기)을 청크와 같이 데운다
+  '/bible': () => import('../pages/Bible/prefetch').then((m) => m.prefetchBibleHub()),
 }
 
 // 하단 네비 목적지 — 사용자가 가장 먼저 누르는 곳이라 메뉴 페이지들보다 먼저 받아둔다

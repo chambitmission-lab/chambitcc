@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { prefetchBibleChapter } from '../../hooks/useBible'
+import { prefetchBibleHub } from '../../pages/Bible/prefetch'
 import { prefetchAboutContent } from '../../hooks/useAboutContent'
 import { tokenStore } from '../../utils/tokenStore'
 import { warmRouteThemeAssets } from '../../utils/themeAssets'
@@ -22,6 +23,8 @@ const RouteDataPrefetch = () => {
     if (chapter) {
       prefetchBibleChapter(queryClient, Number(chapter[1]), Number(chapter[2]))
     }
+    // /bible 허브(책 목록·진행률·이어읽기) — 예전엔 장 화면만 선요청해 허브는 청크 뒤에 API 가 왔다
+    if (pathname === '/bible') prefetchBibleHub(queryClient)
     // 비로그인 랜딩 — 히어로 사진 URL 이 /about-content 응답에 있어 청크 뒤에 API, 그 뒤에
     // 이미지가 오는 3단 체인이었다. API 를 청크와 같은 시점에 띄운다.
     if ((pathname === '/' || pathname === '/welcome') && !tokenStore.getAccess()) {
