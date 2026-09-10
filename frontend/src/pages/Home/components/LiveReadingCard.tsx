@@ -124,7 +124,7 @@ const LiveReadingCard = () => {
           </p>
           <span className="live-card__cta">
             {isLive ? '함께 읽기' : '나도 읽기'}
-            <ChevronRightIcon size={14} />
+            <ChevronRightIcon size={12} />
           </span>
         </div>
       </div>

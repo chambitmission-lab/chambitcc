@@ -10,7 +10,7 @@
   border-radius: 24px;
   border: 1px solid var(--card-border);
   /* 그림이 카드 폭에 cover 되므로 높이가 얕으면 양이 잘린다 */
-  min-height: 9.5rem;
+  min-height: 10rem;
   display: flex;
   flex-direction: column;
   background:
@@ -67,17 +67,18 @@
 @media (min-width: 1024px) {
   .live-card { min-height: 11.5rem; }
   .live-card__body { max-width: 62%; }
-  .live-card__foot { margin-bottom: -10px; }
+  .live-card__foot { margin-bottom: -14px; }
 }
 
 /* 아래 줄(안내문 + CTA)은 카드 바닥에 붙여, 그림이 숨 쉴 여백을 위로 남긴다.
-   카드 안쪽 여백(p-4)만큼 띄우면 CTA pill이 오른쪽 양의 몸을 물어서, 바닥 여백을 깎아
-   한 단계 더 내려앉힌다 — 양은 드러나고 pill은 여전히 둥근 모서리 안쪽. */
+   카드 안쪽 여백(p-4)만큼 띄우면 CTA pill이 오른쪽 양의 몸 한가운데를 물어서, 바닥 여백을
+   깎아 모서리 곡선 바로 위까지 내려앉힌다 — 양은 드러나고 pill은 여전히 카드 안쪽.
+   (12px면 반지름 24px 곡선이 안쪽으로 3px 남짓 들어올 뿐이라 pill과 겹치지 않는다) */
 .live-card__foot {
   position: relative;
   margin-top: auto;
-  padding-top: 12px;
-  margin-bottom: -8px;
+  padding-top: 18px;
+  margin-bottom: -12px;
 }
 
 .live-card:hover {
@@ -189,20 +190,23 @@
   word-break: keep-all;
 }
 
-/* CTA — 브랜드 솔리드 pill. 카드 전체가 링크지만 "여기를 누르면 된다"를 손가락에 보여 준다 */
+/* CTA — 브랜드 솔리드 pill. 카드 전체가 링크지만 "여기를 누르면 된다"를 손가락에 보여 준다.
+   pill이 크면 뒤 양을 가려서, 눌러야 할 것으로 보이는 최소 크기까지만 줄였다(터치 높이 28px). */
 .live-card__cta {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  padding: 7px 12px 7px 14px;
+  gap: 1px;
+  padding: 5px 9px 5px 11px;
   border-radius: 999px;
   background: var(--brand);
   color: #fff;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   flex-shrink: 0;
-  box-shadow: 0 6px 14px -8px var(--brand-glow);
+  box-shadow: 0 5px 12px -8px var(--brand-glow);
 }
 
 @media (prefers-reduced-motion: reduce) {
