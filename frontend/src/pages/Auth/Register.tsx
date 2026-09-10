@@ -143,6 +143,10 @@ const Register = () => {
               />
               <label htmlFor="register-username">{t('registerUsername')}</label>
             </div>
+            {/* 아이디에 한글도 쓸 수 있다는 건 직접 말해주지 않으면 아무도 모른다 */}
+            <p className="auth-msg auth-msg--hint mt-2">
+              <span>{t('registerUsernameHelp')}</span>
+            </p>
 
             <div className="auth-field auth-gap">
               <input

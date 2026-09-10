@@ -42,6 +42,7 @@ export const auth = {
   registerFullName: '이름 (선택)',
   registerFullNameHelp: '교회 안에서 이렇게 불러드릴게요. 같은 이름은 쓸 수 없어요 — 동명이인이라면 뒤에 숫자 등을 붙여주세요.',
   registerUsername: '아이디',
+  registerUsernameHelp: '한글로 만드셔도 괜찮아요. 로그인할 때 쓰는 아이디예요.',
   // 최소 길이는 라벨이 아니라 필드 아래 힌트로 안내한다
   registerPassword: '비밀번호',
   registerPasswordRule: '6자 이상 입력해 주세요',

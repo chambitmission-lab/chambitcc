@@ -42,6 +42,7 @@ export const auth = {
   registerFullName: 'Full Name (Optional)',
   registerFullNameHelp: 'This is how we will greet you at church. Names must be unique — add a number if yours is taken.',
   registerUsername: 'Username',
+  registerUsernameHelp: 'Korean characters are welcome too. This is the ID you will sign in with.',
   // The minimum length is shown as a hint under the field, not in the label
   registerPassword: 'Password',
   registerPasswordRule: 'Use at least 6 characters',
