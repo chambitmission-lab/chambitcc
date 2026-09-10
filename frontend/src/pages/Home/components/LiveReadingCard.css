@@ -1,13 +1,25 @@
-/* 지금 함께 읽는 말씀 — 오늘의 읽기(.plan-card)와 같은 결의 브랜드 블루 카드.
-   실시간일 땐 우상단에 은은한 빛무리가 한 번 더 깔려 "지금 살아 있다"를 말한다.
+/* 지금 함께 읽는 말씀 — 브랜드 블루 카드 위에 "양들이 함께 성경을 펼친" 목장 일러스트를 깐다.
+   그림(3:1)의 주인공은 오른쪽에만 있고 왼쪽은 하늘·들판뿐이라, 왼쪽에서 카드색 스크림을 덮어
+   라벨·제목·본문을 그 위에 올린다(이어 읽기 .dash-card--resume와 같은 처방).
+   다크는 같은 장면의 밤 버전 — 등불만 앰버로 켜진 어두운 들판.
    색은 전부 theme.css 토큰 — 라이트/다크가 토큰으로 갈린다. */
 
 .live-card {
   border-radius: 24px;
   border: 1px solid var(--card-border);
+  /* 그림이 카드 폭에 cover 되므로 높이가 얕으면 양이 잘린다 */
+  min-height: 9.5rem;
+  display: flex;
+  flex-direction: column;
   background:
-    linear-gradient(160deg, var(--brand-soft) 0%, rgba(49, 130, 246, 0) 48%),
-    linear-gradient(180deg, var(--surface-container) 0%, var(--surface-container-high) 100%);
+    linear-gradient(160deg, var(--brand-soft) 0%, transparent 55%),
+    linear-gradient(100deg,
+      #ffffff 0%,
+      rgba(255, 255, 255, 0.96) 42%,
+      rgba(255, 255, 255, 0.52) 70%,
+      rgba(255, 255, 255, 0) 92%),
+    url('/images/home/live-reading-light.webp') right center / cover no-repeat,
+    #ffffff;
   box-shadow:
     inset 0 1px 0 var(--glass-highlight),
     var(--card-shadow);
@@ -16,11 +28,50 @@
   overflow: hidden;
 }
 
-.live-card--live {
+[data-theme="dark"] .live-card {
   background:
-    radial-gradient(120px 90px at 100% 0%, var(--brand-soft-strong), transparent 70%),
-    linear-gradient(160deg, var(--brand-soft) 0%, rgba(49, 130, 246, 0) 48%),
-    linear-gradient(180deg, var(--surface-container) 0%, var(--surface-container-high) 100%);
+    linear-gradient(160deg, var(--brand-soft) 0%, transparent 55%),
+    linear-gradient(100deg,
+      #201f1f 0%,
+      rgba(32, 31, 31, 0.95) 42%,
+      rgba(32, 31, 31, 0.48) 70%,
+      rgba(32, 31, 31, 0) 94%),
+    url('/images/home/live-reading-dark.webp') right center / cover no-repeat,
+    #1a1a1a;
+}
+
+/* 실시간일 땐 우상단에 은은한 빛무리가 한 번 더 깔려 "지금 살아 있다"를 말한다 */
+.live-card--live::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120px 90px at 100% 0%, var(--brand-soft-strong), transparent 70%);
+}
+
+/* 배경 레이어(::before) 위로 내용이 올라오게 — 자식은 전부 stacking 컨텍스트 참여 */
+.live-card > * {
+  position: relative;
+}
+
+/* 그림의 주인공(오른쪽)을 글이 침범하지 않도록 본문 폭을 제한한다 */
+.live-card__body {
+  min-width: 0;
+  max-width: 68%;
+}
+
+/* PC는 카드가 넓어져(lg:max-w-xl) 그림이 세로로 잘리기 시작하는 지점(폭/3.03)을 넘어서므로
+   높이를 한 단계 더 준다 */
+@media (min-width: 1024px) {
+  .live-card { min-height: 11.5rem; }
+  .live-card__body { max-width: 62%; }
+}
+
+/* 아래 줄(안내문 + CTA)은 카드 바닥에 붙여, 그림이 숨 쉴 여백을 위로 남긴다 */
+.live-card__foot {
+  position: relative;
+  margin-top: auto;
+  padding-top: 12px;
 }
 
 .live-card:hover {
@@ -77,6 +128,8 @@
   font-size: 13.5px;
   line-height: 1.45;
   color: var(--text-body);
+  /* 그림 때문에 폭이 좁아 두 줄이 되므로, 어절 단위로 끊어 "요" 한 글자가 남지 않게 */
+  word-break: keep-all;
 }
 
 .live-card__lead strong {
@@ -87,19 +140,6 @@
 .live-card__tail {
   color: var(--text-muted);
   font-size: 12.5px;
-}
-
-/* 우측 엠블럼 — 펼친 책. 제목과 같은 높이에서 살짝 떠 있다 */
-.live-card__emblem {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: 14px;
-  background: var(--brand-soft-strong);
-  color: var(--brand);
 }
 
 /* 함께 읽는 다른 장 — 작은 칩 */
@@ -140,6 +180,7 @@
   font-size: 12.5px;
   color: var(--text-muted);
   min-width: 0;
+  word-break: keep-all;
 }
 
 /* CTA — 브랜드 솔리드 pill. 카드 전체가 링크지만 "여기를 누르면 된다"를 손가락에 보여 준다 */

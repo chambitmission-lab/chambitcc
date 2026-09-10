@@ -9,11 +9,12 @@
 // 숫자 문턱: 실시간 "1명"은 오히려 썰렁해 보여 2명부터 헤드라인으로 올린다(2026-09 결정).
 // 오늘 바닥도 2명부터 — 1명은 그 사람이 나일 수 있어 초대가 아니라 독백이 된다.
 // 갱신은 폴링이 아니라 SSE(useLiveReading 참고).
+// 배경은 양들이 함께 성경을 펼친 목장 일러스트(라이트=낮 / 다크=등불 켠 밤) — LiveReadingCard.css.
 import { useNavigate } from 'react-router-dom'
 import { useBibleBooks } from '../../../hooks/useBible'
 import { useLiveReading } from '../../../hooks/useLiveReading'
 import { isAuthenticated } from '../../../utils/auth'
-import { BookOpenIcon, ChevronRightIcon, UsersIcon } from '../../../components/icons/ActionIcons'
+import { ChevronRightIcon, UsersIcon } from '../../../components/icons/ActionIcons'
 import './LiveReadingCard.css'
 
 /** 실시간 헤드라인으로 올리는 최소 인원 (나 제외) */
@@ -80,7 +81,7 @@ const LiveReadingCard = () => {
           </span>
         </div>
 
-        <div className="mt-2 flex items-end justify-between gap-3">
+        <div className="live-card__body mt-2">
           <div className="min-w-0">
             <h3 className="live-card__title">{titleOf(target.book_number, target.chapter)}</h3>
             <p className="live-card__lead">
@@ -96,9 +97,6 @@ const LiveReadingCard = () => {
               )}
             </p>
           </div>
-          <span className="live-card__emblem" aria-hidden>
-            <BookOpenIcon size={22} strokeWidth={1.6} />
-          </span>
         </div>
 
         {extras.length > 0 && (
@@ -120,7 +118,7 @@ const LiveReadingCard = () => {
           </div>
         )}
 
-        <div className="mt-3 flex items-center justify-between gap-2">
+        <div className="live-card__foot flex items-center justify-between gap-2">
           <p className="live-card__sub">
             {isLive ? '함께 읽어보실래요?' : '오늘 성도들이 가장 많이 머문 자리예요'}
           </p>
