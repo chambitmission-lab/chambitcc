@@ -87,13 +87,24 @@
   line-height: 1.4;
   letter-spacing: -0.02em;
   color: var(--text-strong);
+  /* 한글 단어가 음절 단위로 쪼개지지 않게 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: balance;
 }
 
 .ppl-hero-subtitle {
   margin-top: 0.6rem;
+  max-width: 26rem;
+  margin-left: auto;
+  margin-right: auto;
   font-size: 0.875rem;
   line-height: 1.65;
   color: var(--text-muted);
+  /* '담/당' 처럼 단어 중간에서 끊기지 않고, 줄 길이도 고르게 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
 }
 
 /* 한눈에 보기 — 실제 등록된 인원만 센다 */

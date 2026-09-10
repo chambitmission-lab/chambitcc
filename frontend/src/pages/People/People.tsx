@@ -159,8 +159,8 @@ const People = () => {
             </h1>
             <p className="ppl-hero-subtitle">
               {ko
-                ? '말씀과 기도로 참빛교회를 함께 세워가는 분들입니다.\n궁금한 분을 누르면 담당 사역과 연락처를 볼 수 있어요.'
-                : 'Those who build Chambit Church together in word and prayer.\nTap a card to see what they serve and how to reach them.'}
+                ? '말씀과 기도로 참빛교회를 함께 세워가는 분들입니다. 궁금한 분을 누르면 담당 사역과 연락처를 볼 수 있어요.'
+                : 'Those who build Chambit Church together in word and prayer. Tap a card to see what they serve and how to reach them.'}
             </p>
 
             {(totalPeople > 0 || leaderSlots.length > 0) && (
