@@ -2,29 +2,60 @@
    색은 theme.css 토큰이 단일 출처. 손수 쓰는 CSS라 var(--text-body)/var(--text-muted) 를 쓴다
    (--ink-* 는 Tailwind 색 이름이라 CSS 변수로 참조하면 다크에서 조용히 사라진다). */
 
-/* ── Hero ───────────────────────────────────────────── */
+/* ── Hero ───────────────────────────────────────────────
+   배경은 '새벽하늘' 한 겹 — 위는 새벽 푸름, 아래 지평선은 해뜨기 직전의 온기.
+   그 위에 거친 입자(::after)를 한 켜 얹어 평면 그라데이션 티를 지운다.
+   전부 CSS라 이미지 파일도, SW 캐시로 그림이 안 바뀌는 문제도 없다.
+   하늘은 히어로 바닥에서 카드색으로 녹아 사라진다(mask) — 아래 인물 격자와
+   경계선이 생기지 않게. 움직이는 효과는 넣지 않는다. */
 .ppl-hero {
   position: relative;
   overflow: hidden;
-  padding: 2.25rem 1.25rem 1.5rem;
+  padding: 2.25rem 1.25rem 2.25rem;
   text-align: center;
 }
 
-/* 브랜드 후광 — 히어로 위쪽에 옅게 한 겹 */
 .ppl-hero::before {
   content: '';
   position: absolute;
-  top: -140px;
-  left: 50%;
-  width: 320px;
-  height: 320px;
-  transform: translateX(-50%);
-  background: radial-gradient(circle, var(--brand-soft-strong), transparent 68%);
+  inset: 0;
   pointer-events: none;
+  background:
+    radial-gradient(150% 62% at 50% 100%, rgba(255, 176, 118, 0.44), rgba(255, 202, 166, 0.16) 44%, transparent 72%),
+    linear-gradient(180deg, rgba(118, 170, 245, 0.34) 0%, rgba(178, 205, 248, 0.20) 32%, rgba(255, 226, 205, 0.18) 62%, transparent 88%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 84%, transparent 100%);
+}
+
+[data-theme='dark'] .ppl-hero::before {
+  background:
+    radial-gradient(150% 62% at 50% 100%, rgba(255, 138, 58, 0.34), rgba(255, 118, 60, 0.10) 44%, transparent 72%),
+    linear-gradient(180deg, rgba(56, 90, 166, 0.44) 0%, rgba(42, 64, 122, 0.22) 34%, rgba(90, 62, 74, 0.16) 62%, transparent 88%);
+}
+
+/* 필름 입자 — 라이트는 곱하기(어둡게), 다크는 스크린(밝게) 으로 얹어야
+   두 테마 모두에서 입자가 '떠 보이지' 않고 하늘에 섞인다 */
+.ppl-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 74%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 74%, transparent 100%);
+}
+
+[data-theme='dark'] .ppl-hero::after {
+  opacity: 0.42;
+  mix-blend-mode: screen;
 }
 
 .ppl-hero > * {
   position: relative;
+  z-index: 1;
 }
 
 .ppl-hero-emblem {
