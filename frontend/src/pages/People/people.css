@@ -3,24 +3,72 @@
    (--ink-* 는 Tailwind 색 이름이라 CSS 변수로 참조하면 다크에서 조용히 사라진다). */
 
 /* ── Hero ───────────────────────────────────────────── */
+/* 배경 일러스트(단체사진 찍는 양들)는 아래쪽 띠에만 그림이 있다.
+   모바일은 가로 가운데 절반, PC는 세로 아래쪽만 보이므로 cover; center bottom 으로 맞춘다.
+   원본: src/assets/people/hero-{light,dark}.webp (1584×672) */
 .ppl-hero {
   position: relative;
   overflow: hidden;
-  padding: 2.25rem 1.25rem 1.5rem;
+  padding: 2.25rem 1.25rem 8.75rem;
   text-align: center;
+  background-image: url('../../assets/people/hero-light.webp');
+  /* 모바일은 카드 폭의 175% — 제목 줄 수와 무관하게 양들 띠 높이가 일정하게(≈120px) 유지된다 */
+  background-size: 175% auto;
+  background-position: center bottom;
+  background-repeat: no-repeat;
 }
 
-/* 브랜드 후광 — 히어로 위쪽에 옅게 한 겹 */
+/* 관리자에게만 보이는 '인물 관리' 버튼이 한 줄 더 붙는다 → 그때만 양들 자리를 더 비운다 */
+.ppl-hero:has(.ppl-hero-admin) {
+  padding-bottom: 10.5rem;
+}
+
+/* PC 카드는 가로로 길다 → 폭에 맞춰 깔고, 양들이 앉을 아래 여백을 더 준다 */
+@media (min-width: 1024px) {
+  .ppl-hero {
+    padding-bottom: 12.5rem;
+    background-size: cover;
+  }
+
+  .ppl-hero:has(.ppl-hero-admin) {
+    padding-bottom: 14.5rem;
+  }
+}
+
+[data-theme='dark'] .ppl-hero {
+  background-image: url('../../assets/people/hero-dark.webp');
+}
+
+/* 글자 자리 — 일러스트 위쪽을 카드색으로 눌러 제목·부제를 또렷하게,
+   맨 아래는 바닥선이 카드색으로 사라지게 (히어로 끝에서 잘린 티가 안 나도록) */
 .ppl-hero::before {
   content: '';
   position: absolute;
-  top: -140px;
-  left: 50%;
-  width: 320px;
-  height: 320px;
-  transform: translateX(-50%);
-  background: radial-gradient(circle, var(--brand-soft-strong), transparent 68%);
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      #f1f3f6 0%,
+      #f1f3f6 24%,
+      rgba(241, 243, 246, 0.94) 40%,
+      rgba(241, 243, 246, 0.62) 55%,
+      rgba(241, 243, 246, 0) 74%
+    ),
+    linear-gradient(to top, #f1f3f6 0%, rgba(241, 243, 246, 0) 6%);
   pointer-events: none;
+}
+
+[data-theme='dark'] .ppl-hero::before {
+  background:
+    linear-gradient(
+      to bottom,
+      #131313 0%,
+      #131313 24%,
+      rgba(19, 19, 19, 0.94) 40%,
+      rgba(19, 19, 19, 0.62) 55%,
+      rgba(19, 19, 19, 0) 74%
+    ),
+    linear-gradient(to top, #131313 0%, rgba(19, 19, 19, 0) 6%);
 }
 
 .ppl-hero > * {
