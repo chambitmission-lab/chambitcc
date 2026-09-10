@@ -175,7 +175,7 @@ const People = () => {
             )}
 
             {isAdminUser && (
-              <div className="ppl-hero-admin mt-4 flex justify-center">
+              <div className="mt-4 flex justify-center">
                 <button
                   type="button"
                   onClick={() => navigate('/admin/people')}
