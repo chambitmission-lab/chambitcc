@@ -10,6 +10,7 @@
 // 오늘 바닥도 2명부터 — 1명은 그 사람이 나일 수 있어 초대가 아니라 독백이 된다.
 // 갱신은 폴링이 아니라 SSE(useLiveReading 참고).
 // 배경은 양들이 함께 성경을 펼친 목장 일러스트(라이트=낮 / 다크=등불 켠 밤) — LiveReadingCard.css.
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBibleBooks } from '../../../hooks/useBible'
 import { useLiveReading } from '../../../hooks/useLiveReading'
@@ -31,23 +32,44 @@ const LiveReadingCard = () => {
   const { data } = useLiveReading(authed)
   const { data: books } = useBibleBooks()
 
-  if (!data || !books?.length) return null
-
-  const nameOf = (bookNumber: number) =>
-    books.find((b) => b.book_number === bookNumber)?.book_name_ko ?? ''
-  const titleOf = (bookNumber: number, chapter: number) =>
-    `${nameOf(bookNumber)} ${chapterLabel(bookNumber, chapter)}`
-
   // 나를 뺀 인원으로 정렬 — 다른 탭에서 읽는 중인 나 혼자를 "지금 1명"으로 세지 않는다
-  const live = data.live
+  const live = (data?.live ?? [])
     .map((c) => ({ ...c, others: Math.max(0, c.total - (c.me_included ? 1 : 0)) }))
     .filter((c) => c.others > 0)
     .sort((a, b) => b.others - a.others)
   const head = live[0]
   const isLive = !!head && head.others >= LIVE_MIN
 
-  const today = data.today.find((t) => t.readers >= TODAY_MIN)
-  if (!isLive && !today) return null
+  const today = data?.today.find((t) => t.readers >= TODAY_MIN)
+  const shown = isLive || !!today
+
+  // 브라우저는 지금 매칭되는 한 장만 받는다(.live-card / [data-theme="dark"] .live-card).
+  // 테마를 토글하는 순간 반대 테마 파일을 맨땅에서 받기 시작해 목장 삽화가 사라지고
+  // 스크림만 남으므로, 현재 테마가 그려진 뒤 유휴 시간에 반대 테마도 데워 둔다
+  // (TimeCapsuleCard / plans/heroPrefetch.ts 와 같은 처방).
+  // 카드가 실제로 뜰 때만 — 안 뜨는 사람에게 20KB 를 물리지 않는다.
+  useEffect(() => {
+    if (!shown) return
+    const dark = document.documentElement.classList.contains('dark')
+    const warm = () => {
+      const img = new Image()
+      img.decoding = 'async'
+      img.src = `/images/home/live-reading-${dark ? 'light' : 'dark'}.webp`
+    }
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(warm, { timeout: 5000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = window.setTimeout(warm, 2500)
+    return () => window.clearTimeout(id)
+  }, [shown])
+
+  if (!data || !books?.length || !shown) return null
+
+  const nameOf = (bookNumber: number) =>
+    books.find((b) => b.book_number === bookNumber)?.book_name_ko ?? ''
+  const titleOf = (bookNumber: number, chapter: number) =>
+    `${nameOf(bookNumber)} ${chapterLabel(bookNumber, chapter)}`
 
   const target = isLive ? head : today!
   const to = `/bible/${target.book_number}/${target.chapter}`
