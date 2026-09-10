@@ -947,9 +947,16 @@
      배율이 600px 을 넘어 좌우 양이 통째로 잘려 나가고(가운데 빈 원만 남는다),
      반대로 장면 전체를 넣으면 양이 손톱만 해진다. 그래서 원-다이얼 정렬을 포기했다.
      한때 장면을 두 조각으로 잘라 양쪽 구석에 세워 봤는데, 사각 색면 두 덩이를 붙여 놓은
-     것처럼 보여서 버렸다 — 땅선·빛무리가 이어지는 한 장이 훨씬 자연스럽다.
-     모바일 전용 에셋(mobile-band-*.webp)은 위쪽 알파 페이드와 다크 원 자국 보정을
-     구워 둔 것이다. 굽는 법은 docs/verse-alarm-mobile-band.py. */
+     것처럼 보여서 버렸다.
+     모바일 전용 에셋(mobile-band-*.webp)은 **하늘을 통째로 빼고 양·시계만 남긴** 컷아웃이다.
+     카드 배경이 그대로 비치므로 빈 원도 후광도 있을 자리가 없다.
+     굽는 법은 docs/verse-alarm-mobile-band.py.
+
+   ★ 에셋은 src/assets/verse-alarm/ 에 둔다 — public/ 이 아니다.
+     public/ 은 URL 이 고정이라 sw.js 의 stale-while-revalidate 가 옛 그림을 계속 내주고,
+     다시 구워 배포해도 화면은 그대로다("몇 일을 말했는데 변화가 없다", 2026-09).
+     src/assets 에서 번들러를 거치면 파일명에 콘텐츠 해시가 붙어 URL 이 같이 바뀌므로
+     캐시가 낡을 수가 없다. 되돌리지 말 것. */
 
 /* 공통 — 삽화는 카드 안에서만, 다이얼은 그 위로 */
 .va-hero {
@@ -968,7 +975,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background-image: url('/images/verse-alarm/hero-light.webp');
+    background-image: url('../../../assets/verse-alarm/hero-light.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -979,7 +986,7 @@
   }
 
   .dark .va-hero::before {
-    background-image: url('/images/verse-alarm/hero-dark.webp');
+    background-image: url('../../../assets/verse-alarm/hero-dark.webp');
   }
 
   .va-hero.is-art-ready::before {
@@ -995,8 +1002,8 @@
     padding-bottom: 31%;
   }
 
-  /* 장면 한 장을 카드 폭에 맞춰 바닥에 깐다 — 다이얼은 그 위 하늘에 뜬다.
-     에셋은 위쪽 알파 페이드와 다크 원 자국 보정을 구워 둔 것(docs/verse-alarm-mobile-band.py). */
+  /* 양·시계 컷아웃을 카드 폭에 맞춰 바닥에 깐다 — 다이얼은 그 위 빈 자리에 뜬다.
+     배경이 투명이라 카드 색이 그대로 비친다(docs/verse-alarm-mobile-band.py). */
   .va-hero::before {
     content: '';
     position: absolute;
@@ -1004,7 +1011,7 @@
     right: 0;
     bottom: 0;
     aspect-ratio: 1376 / 768;
-    background: url('/images/verse-alarm/mobile-band-light.webp') no-repeat center bottom / 100% auto;
+    background: url('../../../assets/verse-alarm/mobile-band-light.webp') no-repeat center bottom / 100% auto;
     pointer-events: none;
     /* CSS 배경이라 이 엘리먼트가 렌더된 뒤에야 요청이 나간다 — 도착에 맞춰 페이드인 */
     opacity: 0;
@@ -1012,19 +1019,21 @@
   }
 
   .dark .va-hero::before {
-    background-image: url('/images/verse-alarm/mobile-band-dark.webp');
+    background-image: url('../../../assets/verse-alarm/mobile-band-dark.webp');
   }
 
   .va-hero.is-art-ready::before {
     opacity: 1;
   }
 
-  /* 삽화 한가운데의 "다이얼 자리" 원은 띠에서 지웠다(docs/verse-alarm-mobile-band.py) —
-     원본 배율대로 두면 다이얼보다 작은 원이 아래로 밀려나 시계와 따로 노는 동그라미로
-     보였기 때문. 한때 그 후광(.va-dial-wrap::before, inset -7%)을 다이얼 바로 뒤에 다시
-     그렸지만 이 구간에서는 원이 눈금 아래로 삐져나와, 띠 삽화 위에 시계와 상관없이 떠 있는
-     흰 동그라미로 읽혔다 → 후광 없이 다이얼만 하늘에 띄운다. 되살리지 말 것.
-     원-다이얼 정렬이 성립하는 ≥1440px 에서는 삽화 원본의 빈 원이 그 자리를 맡는다. */
+  /* 이 구간에 둥근 것을 다시 들이지 말 것.
+     원본 삽화 한가운데의 "다이얼 자리" 원과 그 둘레 후광은, 다이얼이 위로 떠 있는
+     이 구간에서는 시계와 따로 노는 둥근 얼룩으로 읽힌다("알람시계 가리는 둥근 원,
+     안 될 거면 없애 달라", 2026-09 · 여러 차례 반복된 지적).
+     그림에서 그 원을 빼내려는 시도(다항식 인페인팅·반지름 프로파일 차감)는 전부
+     보정 경계에 더 큰 링을 만들었다 → 하늘을 통째로 빼는 쪽으로 바꿨다.
+     CSS 후광(.va-dial-wrap::before, inset -7%)도 눈금 아래로 삐져나와 제거했다.
+     원-다이얼 정렬이 성립하는 ≥1440px 에서만 원본의 빈 원이 그 자리를 맡는다. */
 }
 
 /* 모바일은 히어로가 맨바닥에 다이얼만 떠 있었다 — 삽화가 설 무대가 없으므로

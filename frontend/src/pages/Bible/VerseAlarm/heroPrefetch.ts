@@ -11,11 +11,17 @@
 // 폭에 따라 쓰는 에셋이 다르다(CSS 주석 참고) — ≥1440px 은 원본 장면, 그 아래는 카드
 // 바닥에 까는 모바일 띠. 안 쓰는 쪽을 받아 둘 이유는 없으므로 화면 폭을 보고 고른다.
 
-const HERO = { light: '/images/verse-alarm/hero-light.webp', dark: '/images/verse-alarm/hero-dark.webp' }
-const BAND = {
-  light: '/images/verse-alarm/mobile-band-light.webp',
-  dark: '/images/verse-alarm/mobile-band-dark.webp',
-}
+// 에셋은 src/assets 에서 번들러를 거쳐 들어온다 — 파일명에 콘텐츠 해시가 붙어
+// 그림을 다시 구우면 URL 이 통째로 바뀐다. public/ 에 두면 URL 이 고정이라
+// 서비스 워커(sw.js 의 stale-while-revalidate)가 옛 그림을 계속 내주고,
+// "다시 구웠는데 화면은 그대로"가 된다. 여기서 다시 public/ 으로 옮기지 말 것.
+import heroLight from '../../../assets/verse-alarm/hero-light.webp'
+import heroDark from '../../../assets/verse-alarm/hero-dark.webp'
+import bandLight from '../../../assets/verse-alarm/mobile-band-light.webp'
+import bandDark from '../../../assets/verse-alarm/mobile-band-dark.webp'
+
+const HERO = { light: heroLight, dark: heroDark }
+const BAND = { light: bandLight, dark: bandDark }
 
 /** 장면 한 장을 통째로 까는 폭인가 — VerseAlarmPage.css 의 @media (min-width: 1440px) 와 짝 */
 const wideScene = (): boolean =>
